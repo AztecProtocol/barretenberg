@@ -6,8 +6,14 @@ rm -rf ./build
 rm -rf ./build-wasm
 
 # Install formatting git hook.
-echo "cd ./barretenberg && ./format.sh staged" > ../.git/hooks/pre-commit
-chmod +x ../.git/hooks/pre-commit
+PREFIX=
+if [ -f ../.git ]; then
+  # this is a submodule, need to use .git in parent repo
+  # arg 1 is the path to the parent repo's top level
+  PREFIX=${1:-../}
+fi
+echo "cd ./barretenberg && ./format.sh staged" > $PREFIX../.git/hooks/pre-commit
+chmod +x $PREFIX../.git/hooks/pre-commit
 
 # Determine system.
 if [[ "$OSTYPE" == "darwin"* ]]; then
