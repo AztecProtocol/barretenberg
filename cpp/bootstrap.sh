@@ -6,14 +6,13 @@ rm -rf ./build
 rm -rf ./build-wasm
 
 # Install formatting git hook.
-PREFIX=
-if [ -f ../.git ]; then
-  # this is a submodule, need to use .git in parent repo
-  # arg 1 is the path to the parent repo's top level
-  PREFIX=${1:-../}
-fi
-echo "cd ./barretenberg && ./format.sh staged" > $PREFIX../.git/hooks/pre-commit
-chmod +x $PREFIX../.git/hooks/pre-commit
+HOOKS_DIR=$(git rev-parse --git-path hooks)
+# The pre-commit script will live in a barretenberg-specific hooks directory
+# That may be just in the top level of this repository,
+# or may be in a .git/modules/barretenberg subdirectory when this is actually a submodule
+# Either way, running `git rev-parse --show-toplevel` from the hooks directory gives the path to barretenberg
+echo "cd \$(git rev-parse --show-toplevel)/cpp && ./format.sh staged" > $HOOKS_DIR/pre-commit
+chmod +x $HOOKS_DIR/pre-commit
 
 # Determine system.
 if [[ "$OSTYPE" == "darwin"* ]]; then
