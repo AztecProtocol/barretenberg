@@ -18,5 +18,5 @@ docker run --rm -t $IMAGE_URI /bin/sh -c "\
   set -e; \
   cd /usr/src/barretenberg/srs_db; \
   ./download_ignition.sh 1; \
-  cd /usr/src/barretenberg/build; \
+  cd /usr/src/barretenberg/cpp/build; \
   for BIN in $TESTS; do ./bin/\$BIN $@; done"

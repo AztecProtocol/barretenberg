@@ -8,4 +8,4 @@ COPY . .
 RUN mkdir build && cd build && cmake -DTOOLCHAIN=wasm-linux-clang .. && make -j$(nproc) barretenberg.wasm
 
 FROM alpine:3.13
-COPY --from=builder /usr/src/barretenberg/build/bin/barretenberg.wasm /usr/src/barretenberg/build/bin/barretenberg.wasm
+COPY --from=builder /usr/src/barretenberg/cpp/build/bin/barretenberg.wasm /usr/src/barretenberg/cpp/build/bin/barretenberg.wasm
