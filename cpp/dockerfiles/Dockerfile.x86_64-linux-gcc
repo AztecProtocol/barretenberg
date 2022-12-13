@@ -13,5 +13,5 @@ RUN mkdir build && cd build && cmake -DTOOLCHAIN=x86_64-linux-gcc -DCI=ON .. && 
 
 FROM alpine:3.13
 RUN apk update && apk add libstdc++ libgomp
-COPY --from=builder /usr/src/barretenberg/build/bin/db_cli /usr/src/barretenberg/build/bin/db_cli
-COPY --from=builder /usr/src/barretenberg/build/bin/rollup_cli /usr/src/barretenberg/build/bin/rollup_cli
+COPY --from=builder /usr/src/barretenberg/cpp/build/bin/db_cli /usr/src/barretenberg/cpp/build/bin/db_cli
+COPY --from=builder /usr/src/barretenberg/cpp/build/bin/rollup_cli /usr/src/barretenberg/cpp/build/bin/rollup_cli
