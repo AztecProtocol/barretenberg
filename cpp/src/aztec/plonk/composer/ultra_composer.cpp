@@ -614,8 +614,6 @@ std::shared_ptr<proving_key> UltraComposer::compute_proving_key()
         lookups_size += table.lookup_gates.size();
     }
 
-    info("PROVER N AFTER RANGE LISTS = ", n);
-
     // Compute selector polynomials and appropriate fft versions and put them in the proving key
     ComposerBase::compute_proving_key_base(type, tables_size + lookups_size, NUM_RESERVED_GATES);
 

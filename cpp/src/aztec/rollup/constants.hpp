@@ -31,7 +31,7 @@ developer can quickly check whether the circuit gate counts are in allowed range
 limit, by setting it to one. However, while merging the corresponding PR, the developer should set
 is_circuit_change_expected to zero and change the modified circuit gate counts accordingly.
 */
-constexpr bool is_circuit_change_expected = 0;
+constexpr bool is_circuit_change_expected = 1;
 /* The below constants are only used for regression testing; to identify accidental changes to circuit
  constraints. They need to be changed when there is a circuit change. */
 

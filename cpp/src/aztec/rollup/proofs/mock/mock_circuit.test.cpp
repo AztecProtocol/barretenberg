@@ -17,7 +17,7 @@ TEST(mock_circuit_tests, test_simple_circuit)
         public_inputs.push_back(fr::random_element());
     }
 
-    Composer composer = Composer("../srs_db");
+    Composer composer = Composer("../srs_db/ignition");
     mock_circuit(composer, public_inputs);
 
     UnrolledProver prover = composer.create_unrolled_prover();
