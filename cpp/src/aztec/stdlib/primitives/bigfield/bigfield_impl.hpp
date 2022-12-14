@@ -2039,51 +2039,26 @@ void bigfield<C, T>::unsafe_evaluate_multiply_add(const bigfield& input_left,
         const uint64_t carry_lo_msb = max_lo_bits - (2 * NUM_LIMB_BITS);
         const uint64_t carry_hi_msb = max_hi_bits - (2 * NUM_LIMB_BITS);
 
-<<<<<<< HEAD
-        // ULTRATODO: this `if` condition is never satisfied. Safe to remove, as in the unsafe version?
         const barretenberg::fr carry_lo_shift(uint256_t(uint256_t(1) << carry_lo_msb));
-        if constexpr (C::type == waffle::PLOOKUP) {
-            carry_lo = carry_lo.normalize();
-            carry_hi = carry_hi.normalize();
-            ctx->decompose_into_default_range(carry_lo.witness_index, static_cast<size_t>(carry_lo_msb));
-            ctx->decompose_into_default_range(carry_hi.witness_index, static_cast<size_t>(carry_hi_msb));
-        } else {
-            if ((carry_hi_msb + carry_lo_msb) < field_t<C>::modulus.get_msb()) {
-                field_t carry_combined = carry_lo + (carry_hi * carry_lo_shift);
-                carry_combined = carry_combined.normalize();
-                const auto accumulators = ctx->decompose_into_base4_accumulators(
-                    carry_combined.witness_index,
-                    static_cast<size_t>(carry_lo_msb + carry_hi_msb),
-                    "bigfield: carry_combined too large in unsafe_evaluate_multiply_add.");
-                field_t<C> accumulator_midpoint =
-                    field_t<C>::from_witness_index(ctx, accumulators[static_cast<size_t>((carry_hi_msb / 2) - 1)]);
-                carry_hi.assert_equal(accumulator_midpoint, "bigfield multiply range check failed");
-            } else {
-                carry_lo = carry_lo.normalize();
-                carry_hi = carry_hi.normalize();
-                ctx->decompose_into_base4_accumulators(carry_lo.witness_index,
-                                                       static_cast<size_t>(carry_lo_msb),
-                                                       "bigfield: carry_lo too large in unsafe_evaluate_multiply_add.");
-                ctx->decompose_into_base4_accumulators(carry_hi.witness_index,
-                                                       static_cast<size_t>(carry_hi_msb),
-                                                       "bigfield: carry_hi too large in unsafe_evaluate_multiply_add.");
-            }
-=======
-    } else {
         if ((carry_hi_msb + carry_lo_msb) < field_t<C>::modulus.get_msb()) {
             field_t carry_combined = carry_lo + (carry_hi * carry_lo_shift);
             carry_combined = carry_combined.normalize();
             const auto accumulators = ctx->decompose_into_base4_accumulators(
-                carry_combined.witness_index, static_cast<size_t>(carry_lo_msb + carry_hi_msb));
+                carry_combined.witness_index,
+                static_cast<size_t>(carry_lo_msb + carry_hi_msb),
+                "bigfield: carry_combined too large in unsafe_evaluate_multiply_add.");
             field_t<C> accumulator_midpoint =
                 field_t<C>::from_witness_index(ctx, accumulators[static_cast<size_t>((carry_hi_msb / 2) - 1)]);
             carry_hi.assert_equal(accumulator_midpoint, "bigfield multiply range check failed");
         } else {
             carry_lo = carry_lo.normalize();
             carry_hi = carry_hi.normalize();
-            ctx->decompose_into_base4_accumulators(carry_lo.witness_index, static_cast<size_t>(carry_lo_msb));
-            ctx->decompose_into_base4_accumulators(carry_hi.witness_index, static_cast<size_t>(carry_hi_msb));
->>>>>>> defi-bridge-project
+            ctx->decompose_into_base4_accumulators(carry_lo.witness_index,
+                                                   static_cast<size_t>(carry_lo_msb),
+                                                   "bigfield: carry_lo too large in unsafe_evaluate_multiply_add.");
+            ctx->decompose_into_base4_accumulators(carry_hi.witness_index,
+                                                   static_cast<size_t>(carry_hi_msb),
+                                                   "bigfield: carry_hi too large in unsafe_evaluate_multiply_add.");
         }
     }
 }
@@ -2425,7 +2400,6 @@ void bigfield<C, T>::unsafe_evaluate_multiple_multiply_add(const std::vector<big
             We should make sure that no constraint like this is needed but missing (e.g., an equivalent constraint
             was just imposed?). */
     } else {
-<<<<<<< HEAD
         field_t b0 = left[0].binary_basis_limbs[1].element.madd(
             right[0].binary_basis_limbs[0].element, quotient.binary_basis_limbs[1].element * neg_modulus_limbs[0]);
         field_t b1 = left[0].binary_basis_limbs[0].element.madd(
@@ -2607,21 +2581,6 @@ void bigfield<C, T>::unsafe_evaluate_multiple_multiply_add(const std::vector<big
                     static_cast<size_t>(carry_hi_msb),
                     "bigfield: carry_hi too large in unsafe_evaluate_multiple_multiply_add.");
             }
-=======
-        if ((carry_hi_msb + carry_lo_msb) < field_t<C>::modulus.get_msb()) {
-            field_t carry_combined = carry_lo + (carry_hi * carry_lo_shift);
-            carry_combined = carry_combined.normalize();
-            const auto accumulators = ctx->decompose_into_base4_accumulators(
-                carry_combined.witness_index, static_cast<size_t>(carry_lo_msb + carry_hi_msb));
-            field_t<C> accumulator_midpoint =
-                field_t<C>::from_witness_index(ctx, accumulators[static_cast<size_t>((carry_hi_msb / 2) - 1)]);
-            carry_hi.assert_equal(accumulator_midpoint, "bigfield multiply range check failed");
-        } else {
-            carry_lo = carry_lo.normalize();
-            carry_hi = carry_hi.normalize();
-            ctx->decompose_into_base4_accumulators(carry_lo.witness_index, static_cast<size_t>(carry_lo_msb));
-            ctx->decompose_into_base4_accumulators(carry_hi.witness_index, static_cast<size_t>(carry_hi_msb));
->>>>>>> defi-bridge-project
         }
     }
 }
@@ -2764,30 +2723,21 @@ void bigfield<C, T>::unsafe_evaluate_square_add(const bigfield& left,
             field_t carry_combined = carry_lo + (carry_hi * carry_lo_shift);
             carry_combined = carry_combined.normalize();
             const auto accumulators = ctx->decompose_into_base4_accumulators(
-<<<<<<< HEAD
                 carry_combined.witness_index,
                 static_cast<size_t>(carry_lo_msb + carry_hi_msb),
                 "bigfield: carry_combined too large in unsafe_evaluate_square_add.");
-=======
-                carry_combined.witness_index, static_cast<size_t>(carry_lo_msb + carry_hi_msb));
->>>>>>> defi-bridge-project
             field_t<C> accumulator_midpoint =
                 field_t<C>::from_witness_index(ctx, accumulators[static_cast<size_t>((carry_hi_msb / 2) - 1)]);
             carry_hi.assert_equal(accumulator_midpoint, "bigfield multiply range check failed");
         } else {
             carry_lo = carry_lo.normalize();
             carry_hi = carry_hi.normalize();
-<<<<<<< HEAD
             ctx->decompose_into_base4_accumulators(carry_lo.witness_index,
                                                    static_cast<size_t>(carry_lo_msb),
                                                    "bigfield: carry_lo too large in unsafe_evaluate_square_add.");
             ctx->decompose_into_base4_accumulators(carry_hi.witness_index,
                                                    static_cast<size_t>(carry_hi_msb),
                                                    "bigfield: carry_hi too large in unsafe_evaluate_square_add");
-=======
-            ctx->decompose_into_base4_accumulators(carry_lo.witness_index, static_cast<size_t>(carry_lo_msb));
-            ctx->decompose_into_base4_accumulators(carry_hi.witness_index, static_cast<size_t>(carry_hi_msb));
->>>>>>> defi-bridge-project
         }
     }
 }

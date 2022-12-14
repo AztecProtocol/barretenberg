@@ -13,56 +13,15 @@
 #include <memory>
 #include <numeric/random/engine.hpp>
 
-<<<<<<< HEAD
 namespace test_stdlib_biggroup {
 namespace {
 auto& engine = numeric::random::get_debug_engine();
 }
-=======
-using namespace barretenberg;
-using namespace plonk;
 
 #define GET_COMPOSER_NAME_STRING(composer)                                                                             \
     (typeid(composer) == typeid(waffle::StandardComposer)                                                              \
          ? "StandardPlonk"                                                                                             \
          : typeid(composer) == typeid(waffle::TurboComposer) ? "TurboPlonk" : "NULLPlonk")
-
-// SEE BOTTOM FOR REMNANTS OF TESTS FOR PLOOKUP AND NOTE ON UPDATING THOSE
-
-template <typename Composer> class stdlib_biggroup : public testing::Test {
-    typedef stdlib::bn254<Composer> bn254;
-    typedef stdlib::secp256r1_ct<Composer> secp256r1_ct;
-    typedef typename bn254::fr_ct fr_ct;
-    typedef typename bn254::bigfr_ct bigfr_ct;
-    typedef typename bn254::g1_ct g1_ct;
-    typedef typename bn254::g1_bigfr_ct g1_bigfr_ct;
-    typedef typename bn254::fq_ct fq_ct;
-    typedef typename bn254::public_witness_ct public_witness_ct;
-    typedef typename bn254::witness_ct witness_ct;
-
-    static g1_bigfr_ct convert_inputs_bigfr(Composer* ctx, const g1::affine_element& input)
-    {
-        uint256_t x_u256(input.x);
-        uint256_t y_u256(input.y);
-
-        fq_ct x(witness_ct(ctx, fr(x_u256.slice(0, fq_ct::NUM_LIMB_BITS * 2))),
-                witness_ct(ctx, fr(x_u256.slice(fq_ct::NUM_LIMB_BITS * 2, fq_ct::NUM_LIMB_BITS * 4))));
-        fq_ct y(witness_ct(ctx, fr(y_u256.slice(0, fq_ct::NUM_LIMB_BITS * 2))),
-                witness_ct(ctx, fr(y_u256.slice(fq_ct::NUM_LIMB_BITS * 2, fq_ct::NUM_LIMB_BITS * 4))));
-
-        return g1_bigfr_ct(x, y);
-    }
-
-    static bigfr_ct convert_inputs_bigfr(Composer* ctx, const fr& scalar)
-    {
-        uint256_t scalar_u256(scalar);
-
-        bigfr_ct x(witness_ct(ctx, fr(scalar_u256.slice(0, fq_ct::NUM_LIMB_BITS * 2))),
-                   witness_ct(ctx, fr(scalar_u256.slice(fq_ct::NUM_LIMB_BITS * 2, fq_ct::NUM_LIMB_BITS * 4))));
-
-        return x;
-    }
->>>>>>> defi-bridge-project
 
 // using namespace barretenberg;
 using namespace plonk;
@@ -112,22 +71,16 @@ template <typename TestType> class stdlib_biggroup : public testing::Test {
             affine_element input_a(element::random_element());
             affine_element input_b(element::random_element());
 
-<<<<<<< HEAD
             element_ct a = element_ct::from_witness(&composer, input_a);
             element_ct b = element_ct::from_witness(&composer, input_b);
 
-            element_ct c = a + b;
-=======
-            g1_bigfr_ct a = convert_inputs_bigfr(&composer, input_a);
-            g1_bigfr_ct b = convert_inputs_bigfr(&composer, input_b);
             uint64_t before = composer.get_num_gates();
-            g1_bigfr_ct c = a + b;
+            element_ct c = a + b;
             uint64_t after = composer.get_num_gates();
             if (i == num_repetitions - 1) {
                 std::cout << "num gates per add = " << after - before << std::endl;
                 benchmark_info(GET_COMPOSER_NAME_STRING(Composer), "Biggroup", "ADD", "Gate Count", after - before);
             }
->>>>>>> defi-bridge-project
 
             affine_element c_expected(element(input_a) + element(input_b));
 
