@@ -212,7 +212,7 @@ HEAVY_TEST_F(root_rollup_full_tests, test_bad_js_proof_fails)
     Composer inner_composer = Composer(tx_rollup_cd.proving_key, tx_rollup_cd.verification_key, tx_rollup_cd.num_gates);
     rollup::pad_rollup_tx(inner_rollup_tx, tx_rollup_cd.num_txs, tx_rollup_cd.join_split_circuit_data.padding_proof);
     rollup::rollup_circuit(inner_composer, inner_rollup_tx, tx_rollup_cd.verification_keys, tx_rollup_cd.num_txs);
-    ASSERT_FALSE(inner_composer.failed);
+    ASSERT_FALSE(inner_composer.failed());
     auto inner_prover = inner_composer.create_unrolled_prover();
     auto inner_proof = inner_prover.construct_proof();
     auto inner_verifier = inner_composer.create_unrolled_verifier();
@@ -233,7 +233,7 @@ HEAVY_TEST_F(root_rollup_full_tests, test_bad_js_proof_fails)
                         root_rollup_cd.inner_rollup_circuit_data.rollup_size,
                         root_rollup_cd.rollup_size,
                         root_rollup_cd.inner_rollup_circuit_data.verification_key);
-    ASSERT_FALSE(root_composer.failed);
+    ASSERT_FALSE(root_composer.failed());
     auto root_prover = root_composer.create_prover();
     auto root_proof = root_prover.construct_proof();
     auto root_verifier = root_composer.create_verifier();

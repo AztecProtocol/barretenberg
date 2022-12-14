@@ -13,7 +13,7 @@
 #include <stdlib/merkle_tree/merkle_tree.hpp>
 
 using namespace barretenberg;
-using namespace plonk::stdlib::types::turbo;
+using namespace plonk::stdlib::types;
 using namespace plonk::stdlib::merkle_tree;
 using namespace rollup;
 using namespace rollup::proofs;
@@ -145,10 +145,10 @@ class account_tests : public ::testing::Test {
     {
         Composer composer(get_proving_key(), nullptr);
         account_circuit(composer, tx);
-        if (composer.failed) {
-            info("Circuit logic failed: " + composer.err);
+        if (composer.failed()) {
+            info("Circuit logic failed: " + composer.err());
         }
-        return { !composer.failed, composer.err };
+        return { !composer.failed(), composer.err() };
     }
 
     rollup::fixtures::user_context alice;

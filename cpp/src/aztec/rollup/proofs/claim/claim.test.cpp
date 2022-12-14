@@ -12,7 +12,7 @@ namespace proofs {
 namespace claim {
 
 using namespace barretenberg;
-using namespace plonk::stdlib::types::turbo;
+using namespace plonk::stdlib::types;
 using namespace plonk::stdlib::merkle_tree;
 using namespace rollup::proofs::notes::native;
 using namespace rollup::proofs::notes::native::claim;

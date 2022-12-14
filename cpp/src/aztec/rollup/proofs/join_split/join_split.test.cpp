@@ -12,7 +12,7 @@ namespace proofs {
 namespace join_split {
 
 using namespace barretenberg;
-using namespace plonk::stdlib::types::turbo;
+using namespace plonk::stdlib::types;
 using namespace plonk::stdlib::merkle_tree;
 using namespace rollup::proofs::notes::native;
 using key_pair = rollup::fixtures::grumpkin_key_pair;
@@ -273,10 +273,10 @@ class join_split_tests : public ::testing::Test {
     {
         Composer composer(get_proving_key(), nullptr);
         join_split_circuit(composer, tx);
-        if (composer.failed) {
-            std::cout << "Logic failed: " << composer.err << std::endl;
+        if (composer.failed()) {
+            std::cout << "Logic failed: " << composer.err() << std::endl;
         }
-        return { !composer.failed, composer.err, composer.get_public_inputs(), composer.get_num_gates() };
+        return { !composer.failed(), composer.err(), composer.get_public_inputs(), composer.get_num_gates() };
     }
 
     verify_result sign_and_verify_logic(join_split_tx& tx, key_pair const& signing_key)
@@ -1025,7 +1025,7 @@ TEST_F(join_split_tests, test_total_output_value_larger_than_total_input_value_f
 TEST_F(join_split_tests, test_different_input_note_owners_fails)
 {
     join_split_tx tx = simple_setup({ 1, 2 });
-    tx.input_note[0].owner = grumpkin::g1::affine_element::hash_to_curve(1).second;
+    tx.input_note[0].owner = grumpkin::g1::affine_element::hash_to_curve(1);
 
     auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
@@ -2507,7 +2507,7 @@ TEST_F(join_split_tests, serialzed_proving_key_size)
 {
     uint8_t* ptr;
     auto len = join_split__get_new_proving_key_data(&ptr);
-    EXPECT_LE(len, 170 * 1024 * 1024);
+    EXPECT_LE(len, 2 * 170 * 1024 * 1024);
 }
 
 } // namespace join_split
