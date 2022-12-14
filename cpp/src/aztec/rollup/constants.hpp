@@ -36,8 +36,8 @@ constexpr bool is_circuit_change_expected = 0;
  constraints. They need to be changed when there is a circuit change. */
 
 // Ultra constants.
-// constexpr uint32_t JOIN_SPLIT = 51926;
 // constexpr uint32_t ACCOUNT = 20098;
+// constexpr uint32_t JOIN_SPLIT = 51926;
 // constexpr uint32_t CLAIM = 21947;
 // constexpr uint32_t ROLLUP = 839974;
 // constexpr uint32_t ROOT_ROLLUP = 2061128;
@@ -57,8 +57,8 @@ namespace circuit_gate_next_power_of_two {
 want to exceed the next power of two limit. */
 
 // Ultra constants.
-// constexpr uint32_t JOIN_SPLIT = 65536;
 // constexpr uint32_t ACCOUNT = 32768;
+// constexpr uint32_t JOIN_SPLIT = 65536;
 // constexpr uint32_t CLAIM = 32768;
 // constexpr uint32_t ROLLUP = 1048576;
 // constexpr uint32_t ROOT_ROLLUP = 2097152;
