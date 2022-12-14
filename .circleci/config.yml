@@ -272,7 +272,8 @@ workflows:
       - wasm-linux-clang
       - barretenberg-tests: *bb_test
       - stdlib-primitives-tests: *bb_test
-      - stdlib-recursion-tests: *bb_test
+      - stdlib-recursion-turbo-tests: *bb_test
+      - stdlib-recursion-ultra-tests: *bb_test
       - tx-rollup-tests: *bb_test
       - tx-rollup-full-tests: *bb_test
       - root-rollup-tests: *bb_test
@@ -282,7 +283,8 @@ workflows:
           requires:
             - barretenberg-tests
             - stdlib-primitives-tests
-            - stdlib-recursion-tests
+            - stdlib-recursion-turbo-tests
+            - stdlib-recursion-ultra-tests
             - tx-rollup-tests
             - tx-rollup-full-tests
             - root-verifier-tests
