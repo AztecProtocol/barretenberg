@@ -6,7 +6,7 @@ rm -rf ./build
 rm -rf ./build-wasm
 
 # Install formatting git hook.
-echo "cd ./barretenberg && ./format.sh staged" > ../.git/hooks/pre-commit
+echo "cd ./cpp && ./format.sh staged" > ../.git/hooks/pre-commit
 chmod +x ../.git/hooks/pre-commit
 
 # Determine system.

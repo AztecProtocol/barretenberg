@@ -37,7 +37,7 @@ template <class Field, class Getters, typename PolyContainer> class TurboLogicKe
     inline static bool gate_enabled(PolyContainer& polynomials, const size_t i = 0)
     {
         const Field& q_logic =
-            Getters::template get_value<EvaluationType::NON_SHIFTED, PolynomialIndex::Q_LOGIC_SELECTOR>(polynomials, i);
+            Getters::template get_value<EvaluationType::NON_SHIFTED, PolynomialIndex::Q_LOGIC>(polynomials, i);
         return !q_logic.is_zero();
     }
 

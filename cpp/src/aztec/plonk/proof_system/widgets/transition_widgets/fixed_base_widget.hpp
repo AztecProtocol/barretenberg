@@ -106,8 +106,7 @@ template <class Field, class Getters, typename PolyContainer, bool turbo> class 
     inline static bool gate_enabled(PolyContainer& polynomials, const size_t i = 0)
     {
         const Field& q_ecc_1 =
-            Getters::template get_value<EvaluationType::NON_SHIFTED, PolynomialIndex::Q_FIXED_BASE_SELECTOR>(
-                polynomials, i);
+            Getters::template get_value<EvaluationType::NON_SHIFTED, PolynomialIndex::Q_FIXED_BASE>(polynomials, i);
         return !q_ecc_1.is_zero();
     }
 
