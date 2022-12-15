@@ -14,7 +14,7 @@ int main(int argc, char** argv)
         equals 1, the corresponding monomial srs has only one term (g1::affine_one) and thus
         we encounter a `No input file found` error in io::read_transcript_g1().
 
-        Sample usage: ../../../../barretenberg/build/src/aztec/lagrange_base_gen/lagrange_base_gen 8
+        Sample usage: ./bin/lagrange_base_gen 8
         The bash script lagrange_base_gen.sh runs this script for a given set of subgroup sizes (only
         powers of two). To run the srs_tests successfully, you need to run the bash script once to
         generate relevant lagrange base transcripts.
@@ -26,8 +26,8 @@ int main(int argc, char** argv)
     }
 
     const size_t subgroup_size = (size_t)atoi(args[1].c_str());
-    const std::string srs_path = (args.size() > 2) ? args[2] : "../../../../barretenberg/srs_db/ignition";
-    const std::string lagrange_srs_path = (args.size() > 3) ? args[3] : "../../../../barretenberg/srs_db/lagrange";
+    const std::string srs_path = (args.size() > 2) ? args[2] : "../srs_db/ignition";
+    const std::string lagrange_srs_path = (args.size() > 3) ? args[3] : "../srs_db/lagrange";
 
     auto reference_string = std::make_shared<waffle::FileReferenceString>(subgroup_size, srs_path);
     std::vector<barretenberg::g1::affine_element> monomial_srs(subgroup_size);
