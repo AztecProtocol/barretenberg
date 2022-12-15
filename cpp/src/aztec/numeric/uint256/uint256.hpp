@@ -14,6 +14,7 @@
 #include <cstdint>
 #include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <common/serialize.hpp>
 #include "../uint128/uint128.hpp"
 
