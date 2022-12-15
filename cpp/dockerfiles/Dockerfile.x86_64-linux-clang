@@ -15,7 +15,7 @@ RUN git clone -b release/10.x --depth 1 https://github.com/llvm/llvm-project.git
   && make -j$(nproc) \
   && make install \
   && cd ../.. && rm -rf llvm-project
-WORKDIR /usr/src/barretenberg
+WORKDIR /usr/src/barretenberg/cpp
 COPY . .
 # Only build binaries that are needed upstream.
 RUN mkdir build && cd build && cmake -DOpenMP_omp_LIBRARY=/usr/local/lib/libomp.a .. && make -j$(nproc) db_cli rollup_cli tx_factory keygen
