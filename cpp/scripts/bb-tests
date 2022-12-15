@@ -1,4 +1,3 @@
-ci_failsafe_tests
 crypto_aes128_tests
 crypto_blake2s_tests
 crypto_blake3s_tests
