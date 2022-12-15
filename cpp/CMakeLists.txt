@@ -10,15 +10,11 @@ project(Barretenberg
     DESCRIPTION "BN254 elliptic curve library, and PLONK SNARK prover"
     LANGUAGES CXX C)
 
-# set(CMAKE_C_COMPILER /usr/bin/gcc-9 CACHE PATH "")
-# set(CMAKE_CXX_COMPILER /usr/bin/g++-9 CACHE PATH "")
-
 option(DISABLE_ASM "Disable custom assembly" OFF)
 option(DISABLE_ADX "Disable ADX assembly variant" OFF)
 option(MULTITHREADING "Enable multi-threading" ON)
 option(TESTING "Build tests" ON)
 option(BENCHMARKS "Build benchmarks" ON)
-option(PROFILING "Build profiling" ON)
 option(DISABLE_TBB "Intel Thread Building Blocks" ON)
 
 if(ARM)
@@ -46,7 +42,7 @@ if(FUZZING)
     if(UNDEFINED_BEHAVIOUR_SANITIZER)
         set(SANITIZER_OPTIONS ${SANITIZER_OPTIONS} -fsanitize=undefined  -fno-sanitize=alignment)
     endif()
-    
+
     add_compile_options(-fsanitize=fuzzer-no-link ${SANITIZER_OPTIONS})
 
     set(WASM OFF)
@@ -59,7 +55,6 @@ if(WASM)
     set(DISABLE_ASM ON)
     set(MULTITHREADING OFF)
     set(BENCHMARKS OFF)
-    set(PROFILING OFF)
     set(DISABLE_TBB 1)
 endif()
 
@@ -70,13 +65,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_CXX_EXTENSIONS ON)
 
 include(cmake/build.cmake)
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-message("Using clang")
-endif()
-if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-message("Using gcc")
-endif()
-
 include(GNUInstallDirs)
 include(cmake/arch.cmake)
 include(cmake/threading.cmake)
