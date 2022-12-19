@@ -7,4 +7,5 @@ srs_db/ignition/transcript*
 srs_db/lagrange
 srs_db/coset_lagrange
 srs_db/modified_lagrange
-.vscode
+# to be unignored when we agree on clang-tidy rules
+.clangd
