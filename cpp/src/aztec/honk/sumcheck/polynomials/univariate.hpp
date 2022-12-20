@@ -187,7 +187,7 @@ template <class Fr, size_t _length> class Univariate {
         return res;
     }
 
-    // Output is immediately parsable as a list of intebers by Python.
+    // Output is immediately parsable as a list of integers by Python.
     friend std::ostream& operator<<(std::ostream& os, const Univariate& u)
     {
         os << "[";
