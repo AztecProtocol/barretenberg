@@ -10,15 +10,15 @@
 
 namespace honk::sumcheck {
 
-template <typename Fr> class GrandProductComputationRelation : public Relation<Fr> {
+template <typename FF> class GrandProductComputationRelation : public Relation<FF> {
   public:
     // 1 + polynomial degree of this relation
     static constexpr size_t RELATION_LENGTH = 5;
     using MULTIVARIATE = StandardHonk::MULTIVARIATE;
 
   public:
-    const Fr beta;
-    const Fr gamma;
+    const FF beta;
+    const FF gamma;
 
     explicit GrandProductComputationRelation(auto& challenge_container)
         : beta(challenge_container.get_grand_product_beta_challenge())
@@ -36,20 +36,20 @@ template <typename Fr> class GrandProductComputationRelation : public Relation<F
      *      Q(X) = Prod_{i=1:3} w_i(X) + β*σ_i(X) + γ
      *
      */
-    void add_edge_contribution(auto& extended_edges, Univariate<Fr, RELATION_LENGTH>& evals)
+    void add_edge_contribution(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals)
     {
-        auto w_1 = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_L]);
-        auto w_2 = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_R]);
-        auto w_3 = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_O]);
-        auto sigma_1 = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::SIGMA_1]);
-        auto sigma_2 = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::SIGMA_2]);
-        auto sigma_3 = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::SIGMA_3]);
-        auto id_1 = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::ID_1]);
-        auto id_2 = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::ID_1]);
-        auto id_3 = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::ID_1]);
-        auto z_perm = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Z_PERM]);
-        auto z_perm_shift = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Z_PERM_SHIFT]);
-        // auto lagrange_1 = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::LAGRANGE_1]);
+        auto w_1 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_L]);
+        auto w_2 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_R]);
+        auto w_3 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_O]);
+        auto sigma_1 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::SIGMA_1]);
+        auto sigma_2 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::SIGMA_2]);
+        auto sigma_3 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::SIGMA_3]);
+        auto id_1 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::ID_1]);
+        auto id_2 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::ID_1]);
+        auto id_3 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::ID_1]);
+        auto z_perm = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Z_PERM]);
+        auto z_perm_shift = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Z_PERM_SHIFT]);
+        // auto lagrange_1 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::LAGRANGE_1]);
 
         // Contribution (1)
         evals += z_perm;
@@ -60,10 +60,10 @@ template <typename Fr> class GrandProductComputationRelation : public Relation<F
                  (w_3 + sigma_3 * beta + gamma);
     };
 
-    void add_full_relation_value_contribution(auto& purported_evaluations, Fr& full_honk_relation_value)
+    void add_full_relation_value_contribution(auto& purported_evaluations, FF& full_honk_relation_value)
     {
-        Fr beta = 1; // to be obtained from transcript
-        Fr gamma = 1;
+        FF beta = 1; // to be obtained from transcript
+        FF gamma = 1;
 
         auto w_1 = purported_evaluations[MULTIVARIATE::W_L];
         auto w_2 = purported_evaluations[MULTIVARIATE::W_R];
@@ -123,17 +123,17 @@ template <typename Fr> class GrandProductComputationRelation : public Relation<F
         size_t key_n = 100;             // temp placeholder to get things building
 
         // Allocate scratch space for accumulators
-        Fr* numererator_accum[program_width];
-        Fr* denominator_accum[program_width];
+        FF* numererator_accum[program_width];
+        FF* denominator_accum[program_width];
         for (size_t i = 0; i < program_width; ++i) {
             // TODO(Cody): clang-tidy is not happy with these lines.
-            numererator_accum[i] = static_cast<Fr*>(aligned_alloc(64, sizeof(Fr) * key_n));
-            denominator_accum[i] = static_cast<Fr*>(aligned_alloc(64, sizeof(Fr) * key_n));
+            numererator_accum[i] = static_cast<FF*>(aligned_alloc(64, sizeof(FF) * key_n));
+            denominator_accum[i] = static_cast<FF*>(aligned_alloc(64, sizeof(FF) * key_n));
         }
 
         // Popoulate wire and permutation polynomials
-        std::array<const Fr*, program_width> wires;
-        std::array<const Fr*, program_width> sigmas;
+        std::array<const FF*, program_width> wires;
+        std::array<const FF*, program_width> sigmas;
         for (size_t i = 0; i < program_width; ++i) {
             std::string wire_id = "w_" + std::to_string(i + 1) + "_lagrange";
             std::string sigma_id = "sigma_" + std::to_string(i + 1) + "_lagrange";
@@ -142,14 +142,14 @@ template <typename Fr> class GrandProductComputationRelation : public Relation<F
         }
 
         // Get random challenges (to be obtained from transcript)
-        Fr beta = Fr::random_element();
-        Fr gamma = Fr::random_element();
+        FF beta = FF::random_element();
+        FF gamma = FF::random_element();
 
         // Step (1)
         for (size_t i = 0; i < key_n; ++i) {
             for (size_t k = 0; k < program_width; ++k) {
                 // TODO(luke): maybe this idx is replaced by proper ID polys in the future
-                Fr idx = k * key_n + i;
+                FF idx = k * key_n + i;
                 numererator_accum[k][i] = wires[k][i] + (idx * beta) + gamma;          // w_k(i) + β.(k*n+i) + γ
                 denominator_accum[k][i] = wires[k][i] + (sigmas[k][i] * beta) + gamma; // w_k(i) + β.σ_k(i) + γ
             }
@@ -173,8 +173,8 @@ template <typename Fr> class GrandProductComputationRelation : public Relation<F
 
         // Step (4)
         // Use Montgomery batch inversion to compute z_perm[i+1] = numererator_accum[0][i] / denominator_accum[0][i]
-        Fr* inversion_coefficients = &denominator_accum[1][0]; // arbitrary scratch space
-        Fr inversion_accumulator = Fr::one();
+        FF* inversion_coefficients = &denominator_accum[1][0]; // arbitrary scratch space
+        FF inversion_accumulator = FF::one();
         for (size_t i = 0; i < key_n; ++i) {
             inversion_coefficients[i] = numererator_accum[0][i] * inversion_accumulator;
             inversion_accumulator *= denominator_accum[0][i];
@@ -191,7 +191,7 @@ template <typename Fr> class GrandProductComputationRelation : public Relation<F
         // Construct permutation polynomial 'z_perm' in lagrange form as:
         // z_perm = [1 numererator_accum[0][0] numererator_accum[0][1] ... numererator_accum[0][n-2]]
         // polynomial z_perm(key_n, key_n);
-        // z_perm[0] = Fr::one();
+        // z_perm[0] = FF::one();
         // barretenberg::polynomial_arithmetic::copy_polynomial(numererator_accum[0], &z_perm[1], key_n - 1, key_n -
         // 1);
 

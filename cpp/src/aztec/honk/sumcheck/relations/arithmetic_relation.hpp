@@ -13,7 +13,7 @@
 
 namespace honk::sumcheck {
 
-template <typename Fr> class ArithmeticRelation : public Relation<Fr> {
+template <typename FF> class ArithmeticRelation : public Relation<FF> {
   public:
     // 1 + polynomial degree of this relation
     static constexpr size_t RELATION_LENGTH = 4;
@@ -27,16 +27,16 @@ template <typename Fr> class ArithmeticRelation : public Relation<Fr> {
 
     // OPTIMIZATION?: Karatsuba in general, at least for some degrees?
     //       See https://hackmd.io/xGLuj6biSsCjzQnYN-pEiA?both
-    void add_edge_contribution(auto extended_edges, Univariate<Fr, RELATION_LENGTH>& evals)
+    void add_edge_contribution(auto extended_edges, Univariate<FF, RELATION_LENGTH>& evals)
     {
-        auto w_l = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_L]);
-        auto w_r = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_R]);
-        auto w_o = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_O]);
-        auto q_m = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_M]);
-        auto q_l = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_L]);
-        auto q_r = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_R]);
-        auto q_o = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_O]);
-        auto q_c = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_C]);
+        auto w_l = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_L]);
+        auto w_r = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_R]);
+        auto w_o = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_O]);
+        auto q_m = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_M]);
+        auto q_l = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_L]);
+        auto q_r = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_R]);
+        auto q_o = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_O]);
+        auto q_c = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_C]);
 
         evals += w_l * (q_m * w_r + q_l);
         evals += q_r * w_r;
@@ -44,7 +44,7 @@ template <typename Fr> class ArithmeticRelation : public Relation<Fr> {
         evals += q_c;
     };
 
-    void add_full_relation_value_contribution(auto& purported_evaluations, Fr& full_honk_relation_value)
+    void add_full_relation_value_contribution(auto& purported_evaluations, FF& full_honk_relation_value)
     {
 
         auto w_l = purported_evaluations[MULTIVARIATE::W_L];

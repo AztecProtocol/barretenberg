@@ -9,7 +9,7 @@
 
 namespace honk::sumcheck {
 
-template <typename Fr> class GrandProductInitializationRelation : public Relation<Fr> {
+template <typename FF> class GrandProductInitializationRelation : public Relation<FF> {
   public:
     // 1 + polynomial degree of this relation
     static constexpr size_t RELATION_LENGTH = 3;
@@ -26,20 +26,20 @@ template <typename Fr> class GrandProductInitializationRelation : public Relatio
      *
      *                      C(X) = L_1(X)(z_perm(X) - 1)
      */
-    void add_edge_contribution(auto& extended_edges, Univariate<Fr, RELATION_LENGTH>& evals)
+    void add_edge_contribution(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals)
     {
-        auto z_perm = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Z_PERM]);
-        auto lagrange_1 = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::LAGRANGE_1]);
-        auto one = Fr(1);
+        auto z_perm = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Z_PERM]);
+        auto lagrange_1 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::LAGRANGE_1]);
+        auto one = FF(1);
 
         evals += lagrange_1 * (z_perm - one);
     };
 
-    void add_full_relation_value_contribution(auto& purported_evaluations, Fr& full_honk_relation_value)
+    void add_full_relation_value_contribution(auto& purported_evaluations, FF& full_honk_relation_value)
     {
         auto z_perm = purported_evaluations[MULTIVARIATE::Z_PERM];
         auto lagrange_1 = purported_evaluations[MULTIVARIATE::LAGRANGE_1];
-        auto one = Fr(1);
+        auto one = FF(1);
 
         full_honk_relation_value += lagrange_1 * (z_perm - one);
     };
