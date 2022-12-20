@@ -55,6 +55,7 @@ template <typename Fr> class ArithmeticRelation : public Relation<Fr> {
         auto q_r = purported_evaluations[MULTIVARIATE::Q_R];
         auto q_o = purported_evaluations[MULTIVARIATE::Q_O];
         auto q_c = purported_evaluations[MULTIVARIATE::Q_C];
+
         full_honk_relation_value += w_l * (q_m * w_r + q_l);
         full_honk_relation_value += q_r * w_r;
         full_honk_relation_value += q_o * w_o;
