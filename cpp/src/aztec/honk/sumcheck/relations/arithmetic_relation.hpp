@@ -25,8 +25,6 @@ template <typename Fr> class ArithmeticRelation : public Relation<Fr> {
     BarycentricData<Fr, RELATION_LENGTH, StandardHonk::MAX_RELATION_LENGTH> barycentric =
         BarycentricData<Fr, RELATION_LENGTH, StandardHonk::MAX_RELATION_LENGTH>();
 
-    using UnivariateClass = Univariate<Fr, RELATION_LENGTH>;
-
     // This relation takes no randomness, so it will not receive a ChallengeContainer.
     ArithmeticRelation() = default;
     explicit ArithmeticRelation(auto){}; // NOLINT(readability-named-parameter)

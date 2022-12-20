@@ -52,7 +52,7 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
 
     FF target_total_sum;
 
-    std::tuple<typename Relations<FF>::UnivariateClass...> univariate_accumulators;
+    std::tuple<Univariate<FF, Relations<FF>::RELATION_LENGTH>...> univariate_accumulators;
     std::array<FF, NUM_RELATIONS> evaluations;
     std::array<Univariate<FF, MAX_RELATION_LENGTH>, num_multivariates> edge_extensions;
     std::array<Univariate<FF, MAX_RELATION_LENGTH>, num_multivariates> extended_univariates;
@@ -64,14 +64,14 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     SumcheckRound(size_t initial_round_size, auto relations) // TOPO: want auto&& relations
         : round_size(initial_round_size)
         , relations(relations)
-        , univariate_accumulators(typename Relations<FF>::UnivariateClass()...)
+        , univariate_accumulators(Univariate<FF, Relations<FF>::RELATION_LENGTH>()...)
     {}
 
     // Verifier constructor
     explicit SumcheckRound(auto relations)
         : relations(relations)
         // TODO(Cody): this is a hack; accumulators not needed by verifier
-        , univariate_accumulators(typename Relations<FF>::UnivariateClass()...)
+        , univariate_accumulators(Univariate<FF, Relations<FF>::RELATION_LENGTH>()...)
     {
         // FF's default constructor may not initialize to zero (e.g., barretenberg::fr), hence we can't rely on
         // aggregate initialization of the evaluations array.

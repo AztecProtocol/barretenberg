@@ -16,9 +16,7 @@ template <typename Fr> class GrandProductInitializationRelation : public Relatio
     using MULTIVARIATE = StandardHonk::MULTIVARIATE; // could just get from StandardArithmetization
     BarycentricData<Fr, RELATION_LENGTH, StandardHonk::MAX_RELATION_LENGTH> barycentric =
         BarycentricData<Fr, RELATION_LENGTH, StandardHonk::MAX_RELATION_LENGTH>();
-    using UnivariateClass = Univariate<Fr, RELATION_LENGTH>;
 
-  public:
     GrandProductInitializationRelation() = default;
     explicit GrandProductInitializationRelation(auto){}; // NOLINT(readability-named-parameter)
 
@@ -30,7 +28,7 @@ template <typename Fr> class GrandProductInitializationRelation : public Relatio
      *
      *                      C(X) = L_1(X)(z_perm(X) - 1)
      */
-    void add_edge_contribution(auto& edge_extensions, UnivariateClass& evals)
+    void add_edge_contribution(auto& edge_extensions, Univariate<Fr, RELATION_LENGTH>& evals)
     {
         auto z_perm = UnivariateView<Fr, RELATION_LENGTH>(edge_extensions[MULTIVARIATE::Z_PERM]);
         auto lagrange_1 = UnivariateView<Fr, RELATION_LENGTH>(edge_extensions[MULTIVARIATE::LAGRANGE_1]);

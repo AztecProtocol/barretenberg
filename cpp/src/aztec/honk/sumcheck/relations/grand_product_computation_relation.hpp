@@ -19,9 +19,6 @@ template <typename Fr> class GrandProductComputationRelation : public Relation<F
     // Ditto for other relations.
     BarycentricData<Fr, RELATION_LENGTH, StandardHonk::MAX_RELATION_LENGTH> barycentric =
         BarycentricData<Fr, RELATION_LENGTH, StandardHonk::MAX_RELATION_LENGTH>();
-    // IMPROVEMENT(Cody): Ugly name temporary for GCC10 compilation; should rever to using the
-    // clang-approved convention of `using A = A<...>` to avoid explosion of similar names.
-    using UnivariateClass = Univariate<Fr, RELATION_LENGTH>;
 
   public:
     const Fr beta;
@@ -43,7 +40,7 @@ template <typename Fr> class GrandProductComputationRelation : public Relation<F
      *      Q(X) = Prod_{i=1:3} w_i(X) + β*σ_i(X) + γ
      *
      */
-    void add_edge_contribution(auto& edge_extensions, UnivariateClass& evals)
+    void add_edge_contribution(auto& edge_extensions, Univariate<Fr, RELATION_LENGTH>& evals)
     {
         auto w_1 = UnivariateView<Fr, RELATION_LENGTH>(edge_extensions[MULTIVARIATE::W_L]);
         auto w_2 = UnivariateView<Fr, RELATION_LENGTH>(edge_extensions[MULTIVARIATE::W_R]);
