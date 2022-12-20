@@ -14,8 +14,6 @@ template <typename Fr> class GrandProductInitializationRelation : public Relatio
     // 1 + polynomial degree of this relation
     static constexpr size_t RELATION_LENGTH = 3;
     using MULTIVARIATE = StandardHonk::MULTIVARIATE; // could just get from StandardArithmetization
-    BarycentricData<Fr, RELATION_LENGTH, StandardHonk::MAX_RELATION_LENGTH> barycentric =
-        BarycentricData<Fr, RELATION_LENGTH, StandardHonk::MAX_RELATION_LENGTH>();
 
     GrandProductInitializationRelation() = default;
     explicit GrandProductInitializationRelation(auto){}; // NOLINT(readability-named-parameter)

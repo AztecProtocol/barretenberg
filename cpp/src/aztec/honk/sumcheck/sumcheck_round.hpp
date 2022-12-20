@@ -52,6 +52,8 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
 
     FF target_total_sum;
 
+    // TODO(Cody): this barycentric stuff should be more built-in?
+    std::tuple<BarycentricData<FF, Relations<FF>::RELATION_LENGTH, MAX_RELATION_LENGTH>...> barycentric_utils;
     std::tuple<Univariate<FF, Relations<FF>::RELATION_LENGTH>...> univariate_accumulators;
     std::array<FF, NUM_RELATIONS> evaluations;
     std::array<Univariate<FF, MAX_RELATION_LENGTH>, num_multivariates> edge_extensions;
@@ -64,6 +66,7 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     SumcheckRound(size_t initial_round_size, auto relations) // TOPO: want auto&& relations
         : round_size(initial_round_size)
         , relations(relations)
+        , barycentric_utils(BarycentricData<FF, Relations<FF>::RELATION_LENGTH, MAX_RELATION_LENGTH>()...)
         , univariate_accumulators(Univariate<FF, Relations<FF>::RELATION_LENGTH>()...)
     {}
 
@@ -163,7 +166,7 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     template <size_t relation_idx = 0> void extend_univariate_accumulators()
     {
         extended_univariates[relation_idx] =
-            std::get<relation_idx>(relations).barycentric.extend(std::get<relation_idx>(univariate_accumulators));
+            std::get<relation_idx>(barycentric_utils).extend(std::get<relation_idx>(univariate_accumulators));
 
         // Repeat for the next relation.
         if constexpr (relation_idx + 1 < NUM_RELATIONS) {

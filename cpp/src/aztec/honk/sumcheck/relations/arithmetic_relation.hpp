@@ -20,10 +20,6 @@ template <typename Fr> class ArithmeticRelation : public Relation<Fr> {
     using MULTIVARIATE = StandardHonk::MULTIVARIATE; // could just get from StandardArithmetization
 
     // FUTURE OPTIMIZATION: successively extend as needed?
-    // TODO(Cody): This barycentric class is just being used externally. Maybe these should be somewhere else?
-    // Ditto for the other relations.
-    BarycentricData<Fr, RELATION_LENGTH, StandardHonk::MAX_RELATION_LENGTH> barycentric =
-        BarycentricData<Fr, RELATION_LENGTH, StandardHonk::MAX_RELATION_LENGTH>();
 
     // This relation takes no randomness, so it will not receive a ChallengeContainer.
     ArithmeticRelation() = default;

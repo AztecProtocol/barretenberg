@@ -15,10 +15,6 @@ template <typename Fr> class GrandProductComputationRelation : public Relation<F
     // 1 + polynomial degree of this relation
     static constexpr size_t RELATION_LENGTH = 5;
     using MULTIVARIATE = StandardHonk::MULTIVARIATE;
-    // IMPROVEMENT(Cody): Flavor (or just arithmetization?) should be provided as template parameter.
-    // Ditto for other relations.
-    BarycentricData<Fr, RELATION_LENGTH, StandardHonk::MAX_RELATION_LENGTH> barycentric =
-        BarycentricData<Fr, RELATION_LENGTH, StandardHonk::MAX_RELATION_LENGTH>();
 
   public:
     const Fr beta;
