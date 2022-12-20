@@ -49,7 +49,8 @@ template <class Multivariates, class ChallengeContainer, template <class> class.
         // All but final round
         // We operate on multivariates.full_polynomials in place.
         for (size_t round_idx = 1; round_idx < multivariate_d; round_idx++) {
-            round.compute_univariate(multivariates.folded_polynomials, relation_separator_challenge);
+            challenges.transcript.add(
+                round.compute_univariate(multivariates.folded_polynomials, relation_separator_challenge));
             round_challenges[round_idx] = challenges.get_sumcheck_round_challenge(round_idx);
             multivariates.fold(multivariates.folded_polynomials, multivariate_n, round_challenges[round_idx]);
         }
