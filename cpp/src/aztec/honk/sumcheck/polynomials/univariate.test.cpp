@@ -61,7 +61,7 @@ TYPED_TEST(UnivariateTest, Addition)
     EXPECT_EQ(f1f2, expected_result);
 }
 
-TYPED_TEST(UnivariateTest, BarycentricData)
+TYPED_TEST(UnivariateTest, BarycentricData2to3)
 {
     UNIVARIATE_TESTS_ALIASES
 
@@ -86,7 +86,7 @@ TYPED_TEST(UnivariateTest, BarycentricData)
     EXPECT_EQ(ext1, expected);
 }
 
-TYPED_TEST(UnivariateTest, BarycentricDataExtend)
+TYPED_TEST(UnivariateTest, BarycentricData5to6)
 {
     UNIVARIATE_TESTS_ALIASES
 
