@@ -118,7 +118,7 @@ TYPED_TEST(UnivariateTest, Multiplication)
     EXPECT_EQ(f1f2, expected_result);
 }
 
-TYPED_TEST(UnivariateTest, ConstructUnivariateViewFFomUnivariate)
+TYPED_TEST(UnivariateTest, ConstructUnivariateViewFromUnivariate)
 {
     UNIVARIATE_TESTS_ALIASES
 
@@ -128,7 +128,7 @@ TYPED_TEST(UnivariateTest, ConstructUnivariateViewFFomUnivariate)
     EXPECT_EQ(g.value_at(1), f.value_at(1));
 }
 
-TYPED_TEST(UnivariateTest, ConstructUnivariateFFomUnivariateView)
+TYPED_TEST(UnivariateTest, ConstructUnivariateFromUnivariateView)
 {
     UNIVARIATE_TESTS_ALIASES
 
