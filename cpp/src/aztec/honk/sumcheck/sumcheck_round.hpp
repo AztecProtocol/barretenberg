@@ -34,8 +34,8 @@ namespace honk::sumcheck {
   1   2   5   6
 
  The polynomials Y1, Y2 are stored in an array in Multivariates. In the first round, these are arrays
- of spans living outside of the polynomial cache, and in sebsequent rounts these are arrays of field
- elements that are stored in the Multivariates cache. The rationale for adopting this model is to
+ of spans living outside of the Multivariates object, and in sebsequent rounts these are arrays of field
+ elements that are stored in the Multivariates. The rationale for adopting this model is to
  avoid copying the full-length polynomials; this way, the largest polynomial array stores in a
  Multivariates class is multivariates_n/2.
  */
