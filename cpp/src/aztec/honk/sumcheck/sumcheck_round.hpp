@@ -131,6 +131,21 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     }
 
     // TODO(Cody): make private
+    /**
+     * @brief For a given edge, calculate the contribution of each relation to the prover round univariate (S_l in the
+     * thesis).
+     *
+     * @details In Round l, the univariate S_l computed by the prover is computed as follows:
+     *   - Outer loop: iterate through the points on the boolean hypercube of dimension = log(round_size), skipping
+     *                 every other point. On each iteration, create a Univariate<FF, 2> (an 'edge') for each
+     *                 multivariate.
+     *   - Inner loop: iterate throught the relations, feeding each relation the present collection of edges. Each
+     *                 relation adds a contribution
+     *
+     * Result: for each relation, a univariate of some degree is computed by accumulating the contributions of each
+     * group of edges. These are stored in `univariate_accumulators`. Adding these univariates together, with
+     * appropriate scaling factors, produces S_l.
+     */
     template <size_t relation_idx = 0> void accumulate_relation_univariates()
     {
         std::get<relation_idx>(relations).add_edge_contribution(extended_edges,
@@ -144,6 +159,14 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
 
     // TODO(Cody): make private
     // TODO(Cody): make uniform with accumulate_relation_univariates
+    /**
+     * @brief Calculate the contribution of each relation to the expected value of the full Honk relation.
+     *
+     * @details For each relation, use the purported values (supplied by the prover) of the multivariates to calculate
+     * a contribution to the purported value of the full Honk relation. These are stored in `evaluations`. Adding these
+     * together, with appropriate scaling factors, produces the expected value of the full Honk relation. This value is
+     * checked against the final value of the target total sum (called sigma_0 in the thesis).
+     */
     template <size_t relation_idx = 0>
     // TODO(Cody): Input should be an array? Then challenge container has to know array length.
     void accumulate_relation_evaluations(std::vector<FF>& purported_evaluations)
