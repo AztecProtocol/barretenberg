@@ -26,10 +26,10 @@ template <typename Fr> class GrandProductInitializationRelation : public Relatio
      *
      *                      C(X) = L_1(X)(z_perm(X) - 1)
      */
-    void add_edge_contribution(auto& edge_extensions, Univariate<Fr, RELATION_LENGTH>& evals)
+    void add_edge_contribution(auto& extended_edges, Univariate<Fr, RELATION_LENGTH>& evals)
     {
-        auto z_perm = UnivariateView<Fr, RELATION_LENGTH>(edge_extensions[MULTIVARIATE::Z_PERM]);
-        auto lagrange_1 = UnivariateView<Fr, RELATION_LENGTH>(edge_extensions[MULTIVARIATE::LAGRANGE_1]);
+        auto z_perm = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Z_PERM]);
+        auto lagrange_1 = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::LAGRANGE_1]);
         auto one = Fr(1);
 
         evals += lagrange_1 * (z_perm - one);

@@ -36,20 +36,20 @@ template <typename Fr> class GrandProductComputationRelation : public Relation<F
      *      Q(X) = Prod_{i=1:3} w_i(X) + β*σ_i(X) + γ
      *
      */
-    void add_edge_contribution(auto& edge_extensions, Univariate<Fr, RELATION_LENGTH>& evals)
+    void add_edge_contribution(auto& extended_edges, Univariate<Fr, RELATION_LENGTH>& evals)
     {
-        auto w_1 = UnivariateView<Fr, RELATION_LENGTH>(edge_extensions[MULTIVARIATE::W_L]);
-        auto w_2 = UnivariateView<Fr, RELATION_LENGTH>(edge_extensions[MULTIVARIATE::W_R]);
-        auto w_3 = UnivariateView<Fr, RELATION_LENGTH>(edge_extensions[MULTIVARIATE::W_O]);
-        auto sigma_1 = UnivariateView<Fr, RELATION_LENGTH>(edge_extensions[MULTIVARIATE::SIGMA_1]);
-        auto sigma_2 = UnivariateView<Fr, RELATION_LENGTH>(edge_extensions[MULTIVARIATE::SIGMA_2]);
-        auto sigma_3 = UnivariateView<Fr, RELATION_LENGTH>(edge_extensions[MULTIVARIATE::SIGMA_3]);
-        auto id_1 = UnivariateView<Fr, RELATION_LENGTH>(edge_extensions[MULTIVARIATE::ID_1]);
-        auto id_2 = UnivariateView<Fr, RELATION_LENGTH>(edge_extensions[MULTIVARIATE::ID_1]);
-        auto id_3 = UnivariateView<Fr, RELATION_LENGTH>(edge_extensions[MULTIVARIATE::ID_1]);
-        auto z_perm = UnivariateView<Fr, RELATION_LENGTH>(edge_extensions[MULTIVARIATE::Z_PERM]);
-        auto z_perm_shift = UnivariateView<Fr, RELATION_LENGTH>(edge_extensions[MULTIVARIATE::Z_PERM_SHIFT]);
-        // auto lagrange_1 = UnivariateView<Fr, RELATION_LENGTH>(edge_extensions[MULTIVARIATE::LAGRANGE_1]);
+        auto w_1 = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_L]);
+        auto w_2 = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_R]);
+        auto w_3 = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_O]);
+        auto sigma_1 = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::SIGMA_1]);
+        auto sigma_2 = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::SIGMA_2]);
+        auto sigma_3 = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::SIGMA_3]);
+        auto id_1 = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::ID_1]);
+        auto id_2 = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::ID_1]);
+        auto id_3 = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::ID_1]);
+        auto z_perm = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Z_PERM]);
+        auto z_perm_shift = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Z_PERM_SHIFT]);
+        // auto lagrange_1 = UnivariateView<Fr, RELATION_LENGTH>(extended_edges[MULTIVARIATE::LAGRANGE_1]);
 
         // Contribution (1)
         evals += z_perm;

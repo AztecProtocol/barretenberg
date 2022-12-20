@@ -56,7 +56,7 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     std::tuple<BarycentricData<FF, Relations<FF>::RELATION_LENGTH, MAX_RELATION_LENGTH>...> barycentric_utils;
     std::tuple<Univariate<FF, Relations<FF>::RELATION_LENGTH>...> univariate_accumulators;
     std::array<FF, NUM_RELATIONS> evaluations;
-    std::array<Univariate<FF, MAX_RELATION_LENGTH>, num_multivariates> edge_extensions;
+    std::array<Univariate<FF, MAX_RELATION_LENGTH>, num_multivariates> extended_edges;
     std::array<Univariate<FF, MAX_RELATION_LENGTH>, num_multivariates> extended_univariates;
 
     // TODO(Cody): this should go away and we should use constexpr method to extend
@@ -126,14 +126,14 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     {
         for (size_t idx = 0; idx < num_multivariates; idx++) {
             auto edge = Univariate<FF, 2>({ multivariate[idx][edge_idx], multivariate[idx][edge_idx + 1] });
-            edge_extensions[idx] = barycentric_2_to_max.extend(edge);
+            extended_edges[idx] = barycentric_2_to_max.extend(edge);
         }
     }
 
     // TODO(Cody): make private
     template <size_t relation_idx = 0> void accumulate_relation_univariates()
     {
-        std::get<relation_idx>(relations).add_edge_contribution(edge_extensions,
+        std::get<relation_idx>(relations).add_edge_contribution(extended_edges,
                                                                 std::get<relation_idx>(univariate_accumulators));
 
         // Repeat for the next relation.
