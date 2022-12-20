@@ -181,8 +181,8 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     }
 
     /**
-     * @brief After executing each widget on each edge, producing a tuple of univariates of differing lenghts,
-     * extend all univariates to the max of the lenghts required by the largest relation.
+     * @brief After executing each widget on each edge, producing a tuple of univariates of differing lenghths,
+     * extend all univariates to the max of the lenghths required by the largest relation.
      *
      * @tparam relation_idx
      */
