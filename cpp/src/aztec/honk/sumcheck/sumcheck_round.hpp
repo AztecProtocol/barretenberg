@@ -28,7 +28,7 @@ namespace honk::sumcheck {
  G1, G2 together comprise the Relations.
 
  In the first round, the computations will relate elements along veritcal lines. As a mnemonic, we
- use the term "edge" for the call the linear, univariate polynomials corresponding to the four lines
+ use the term "edge" for the linear, univariate polynomials corresponding to the four lines
   3   4   7   8
   | , | , | , | .
   1   2   5   6
