@@ -63,6 +63,8 @@ template <class FF_, size_t num_polys, size_t num_vars> class Multivariates {
 
     std::array<std::span<FF>, num_polys> full_polynomials;
     // TODO(Cody): adjacency issues with std::array of std::arrays?
+    // IMPROVEMENT(Cody): for each round after the first, we could release half of the memory reserved by
+    // folded_polynomials.
     std::array<std::array<FF, (multivariate_n >> 1)>, num_polys> folded_polynomials;
 
     Multivariates() = default;
