@@ -2,6 +2,9 @@
 #include <array>
 #include <span>
 #include <ostream>
+#include <algorithm>
+#include <stddef.h>
+#include "./common/serialize.hpp"
 
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -39,6 +42,13 @@ template <class Fr, size_t _length> class Univariate {
     }
 
     Fr& value_at(size_t i) { return evaluations[i]; };
+
+    std::vector<uint8_t> to_buffer() const
+    {
+        std::vector<uint8_t> buf;
+        std::write<std::vector<uint8_t>, Fr, _length>(buf, evaluations);
+        return buf;
+    }
 
     // Operations between Univariate and other Univariate
     Univariate operator=(const Univariate& other)
