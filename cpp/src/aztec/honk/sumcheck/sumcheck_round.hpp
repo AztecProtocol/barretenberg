@@ -50,7 +50,7 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     static constexpr size_t NUM_RELATIONS = sizeof...(Relations);
     static constexpr size_t MAX_RELATION_LENGTH = std::max({ Relations<FF>::RELATION_LENGTH... });
 
-    FF target_total_sum;
+    FF target_total_sum = 0;
 
     // TODO(Cody): this barycentric stuff should be more built-in?
     std::tuple<BarycentricData<FF, Relations<FF>::RELATION_LENGTH, MAX_RELATION_LENGTH>...> barycentric_utils;
