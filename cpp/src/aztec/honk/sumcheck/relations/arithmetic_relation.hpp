@@ -3,7 +3,6 @@
 
 #include "../../flavor/flavor.hpp"
 #include "relation.hpp"
-// #include "../challenge_container.hpp"
 #include "../transcript.hpp"
 #include "../polynomials/multivariates.hpp"
 #include "../polynomials/barycentric_data.hpp"
