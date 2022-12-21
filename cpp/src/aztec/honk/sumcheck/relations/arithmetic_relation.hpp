@@ -21,7 +21,7 @@ template <typename FF> class ArithmeticRelation : public Relation<FF> {
 
     // FUTURE OPTIMIZATION: successively extend as needed?
 
-    // This relation takes no randomness, so it will not receive a ChallengeContainer.
+    // This relation takes no randomness, so it will not receive challenges.
     ArithmeticRelation() = default;
     explicit ArithmeticRelation(auto){}; // NOLINT(readability-named-parameter)
 

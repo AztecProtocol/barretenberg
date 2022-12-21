@@ -5,7 +5,6 @@
 #include "grand_product_computation_relation.hpp"
 #include "../polynomials/multivariates.hpp"
 #include "../polynomials/univariate.hpp"
-#include "../challenge_container.hpp"
 #include "../transcript.hpp"
 #include "../polynomials/barycentric_data.hpp"
 
@@ -101,8 +100,6 @@ TYPED_TEST(SumcheckRelation, GrandProductComputationRelation)
 {
     SUMCHECK_RELATION_TYPE_ALIASES
 
-    using ChallengeContainer = ChallengeContainer<FF, honk::Transcript<FF>, Univariate<FF, 5>>;
-
     // TODO(luke): Write a test that illustrates the following?
     // Note: the below z_perm_shift = X^2 will fail because it results in a relation of degree 2*1*1*1 = 5 which
     // cannot be represented by 5 points. Therefore when we do the calculation then barycentrically extend, we are
@@ -111,8 +108,7 @@ TYPED_TEST(SumcheckRelation, GrandProductComputationRelation)
 
     auto extended_edges = TestFixture::compute_mock_extended_edges();
     auto transcript = honk::Transcript<FF>();
-    auto challenges = ChallengeContainer(transcript);
-    auto relation = GrandProductComputationRelation<FF>(challenges);
+    auto relation = GrandProductComputationRelation<FF>();
     using UnivariateView = UnivariateView<FF, relation.RELATION_LENGTH>;
     using Univariate = Univariate<FF, relation.RELATION_LENGTH>;
 
@@ -132,8 +128,8 @@ TYPED_TEST(SumcheckRelation, GrandProductComputationRelation)
     auto z_perm_shift = UnivariateView(extended_edges[MULTIVARIATE::Z_PERM_SHIFT]);
     // auto lagrange_1 = UnivariateView(extended_edges[MULTIVARIATE::LAGRANGE_1]);
     // TODO(luke): use real transcript/challenges
-    FF beta = challenges.get_challenge_equals_one();
-    FF gamma = challenges.get_challenge_equals_one();
+    FF beta = transcript.get_challenge_equals_one();
+    FF gamma = transcript.get_challenge_equals_one();
 
     auto expected_evals = Univariate();
     // expected_evals is { { 27, 125, 343, 729, 1331 } }

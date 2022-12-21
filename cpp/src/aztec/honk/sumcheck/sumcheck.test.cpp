@@ -4,7 +4,6 @@
 #include "relations/arithmetic_relation.hpp"
 #include "relations/grand_product_computation_relation.hpp"
 #include "relations/grand_product_initialization_relation.hpp"
-#include "challenge_container.hpp"
 #include <ecc/curves/bn254/fr.hpp>
 #include <numeric/random/engine.hpp>
 
@@ -34,7 +33,7 @@ TEST(Sumcheck, Prover)
 
     using FF = barretenberg::fr;
     using Multivariates = ::Multivariates<FF, num_polys, multivariate_d>;
-    using ChallengeContainer = ::ChallengeContainer<FF, MockTranscript<FF>, Univariate<FF, max_relation_length>>;
+    using Transcript = ::Transcript<FF>;
 
     std::array<FF, 2> w_l = { 1, 2 };
     std::array<FF, 2> w_r = { 1, 2 };
@@ -59,16 +58,16 @@ TEST(Sumcheck, Prover)
         w_l, w_r,     w_o,     z_perm,  z_perm_shift, q_m,  q_l,  q_r,       q_o,
         q_c, sigma_1, sigma_2, sigma_3, id_1,         id_2, id_3, lagrange_1
     };
-    auto transcript = MockTranscript<FF>();
-    auto challenges = ChallengeContainer(transcript);
+    // auto transcript = MockTranscript<FF>();
+    auto transcript = Transcript();
 
     auto multivariates = Multivariates(full_polynomials);
 
     auto sumcheck = Sumcheck<Multivariates,
-                             ChallengeContainer,
+                             Transcript,
                              ArithmeticRelation,
                              GrandProductComputationRelation,
-                             GrandProductInitializationRelation>(multivariates, challenges);
+                             GrandProductInitializationRelation>(multivariates, transcript);
 
     sumcheck.execute_prover();
     // TODO(Cody) This does not constitute a test.
@@ -83,16 +82,15 @@ TEST(Sumcheck, Verifier)
 
     using FF = barretenberg::fr;
     using Multivariates = ::Multivariates<FF, num_polys, multivariate_d>;
-    using ChallengeContainer = ::ChallengeContainer<FF, MockTranscript<FF>, Univariate<FF, max_relation_length>>;
+    using Transcript = ::Transcript<FF>;
 
-    auto transcript = MockTranscript<FF>();
-    auto challenges = ChallengeContainer(transcript);
+    auto transcript = Transcript();
 
     auto sumcheck = Sumcheck<Multivariates,
-                             ChallengeContainer,
+                             Transcript,
                              ArithmeticRelation,
                              GrandProductComputationRelation,
-                             GrandProductInitializationRelation>(challenges);
+                             GrandProductInitializationRelation>(transcript);
 
     sumcheck.execute_verifier();
     // TODO(Cody) This does not constitute a test.
