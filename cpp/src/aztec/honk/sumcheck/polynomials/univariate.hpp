@@ -43,6 +43,7 @@ template <class Fr, size_t _length> class Univariate {
 
     Fr& value_at(size_t i) { return evaluations[i]; };
 
+    // Write the Univariate evaluations to a buffer
     std::vector<uint8_t> to_buffer() const
     {
         std::vector<uint8_t> buf;
