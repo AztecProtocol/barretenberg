@@ -90,8 +90,10 @@ std::shared_ptr<verification_key> ComposerHelper::compute_verification_key_base(
 
         if (selector_poly_info.source == PolynomialSource::SELECTOR) {
             // Fetch the constraint selector polynomial in its vector form.
-            fr* selector_poly_coefficients;
-            selector_poly_coefficients = proving_key->polynomial_cache.get(selector_poly_label).get_coefficients();
+            // Disable for now so that GCC doesn't complain
+            // TODO: restore when we actually implement the commitments
+            // fr* selector_poly_coefficients;
+            // selector_poly_coefficients = proving_key->polynomial_cache.get(selector_poly_label).get_coefficients();
 
             // Commit to the constraint selector polynomial and insert the commitment in the verification key.
             // TODO: Replace with actual commitment
@@ -102,8 +104,10 @@ std::shared_ptr<verification_key> ComposerHelper::compute_verification_key_base(
 
         } else if (selector_poly_info.source == PolynomialSource::PERMUTATION) {
             // Fetch the permutation selector polynomial in its coefficient form.
-            fr* selector_poly_coefficients;
-            selector_poly_coefficients = proving_key->polynomial_cache.get(selector_poly_label).get_coefficients();
+            // Disable for now so that GCC doesn't complain
+            // TODO: restore when we actually implement the commitments
+            // fr* selector_poly_coefficients;
+            // selector_poly_coefficients = proving_key->polynomial_cache.get(selector_poly_label).get_coefficients();
 
             // Commit to the permutation selector polynomial insert the commitment in the verification key.
 
