@@ -16,12 +16,6 @@
 using namespace honk;
 using namespace honk::sumcheck;
 
-template <class FF> class MockTranscript : public Transcript<FF> {
-  public:
-    FF get_challenge() { return mock_challenge; };
-    FF mock_challenge = -1;
-};
-
 namespace test_sumcheck_round {
 
 TEST(Sumcheck, Prover)
@@ -58,7 +52,7 @@ TEST(Sumcheck, Prover)
         w_l, w_r,     w_o,     z_perm,  z_perm_shift, q_m,  q_l,  q_r,       q_o,
         q_c, sigma_1, sigma_2, sigma_3, id_1,         id_2, id_3, lagrange_1
     };
-    // auto transcript = MockTranscript<FF>();
+
     auto transcript = Transcript();
 
     auto multivariates = Multivariates(full_polynomials);

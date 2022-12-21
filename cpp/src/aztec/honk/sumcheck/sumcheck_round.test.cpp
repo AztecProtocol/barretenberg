@@ -18,12 +18,6 @@
 using namespace honk;
 using namespace honk::sumcheck;
 
-template <class Fr> class MockTranscript : public Transcript<Fr> {
-  public:
-    Fr get_challenge() { return mock_challenge; };
-    Fr mock_challenge = -1;
-};
-
 namespace test_sumcheck_round {
 
 TEST(SumcheckRound, ComputeUnivariateProver)
@@ -58,7 +52,6 @@ TEST(SumcheckRound, ComputeUnivariateProver)
         q_c, sigma_1, sigma_2, sigma_3, id_1,         id_2, id_3, lagrange_1
     };
 
-    auto transcript = MockTranscript<FF>();
     size_t round_size = 1;
 
     auto relations = std::tuple(
@@ -112,8 +105,6 @@ TEST(SumcheckRound, ComputeUnivariateVerifier)
     std::vector<FF> purported_evaluations = { w_l, w_r,     w_o,     z_perm,  z_perm_shift, q_m,  q_l,  q_r,       q_o,
                                               q_c, sigma_1, sigma_2, sigma_3, id_1,         id_2, id_3, lagrange_1 };
 
-    auto transcript = MockTranscript<FF>();
-
     size_t round_size = 1;
     auto relations = std::tuple(
         ArithmeticRelation<FF>(), GrandProductComputationRelation<FF>(), GrandProductInitializationRelation<FF>());
@@ -164,7 +155,6 @@ TEST(SumcheckRound, ComputeUnivariateVerifier)
 
 //     auto polynomials = Multivariates({ group0, group1 });
 //     auto relations = std::make_tuple(ArithmeticRelation<Fr>());
-//     auto transcript = MockTranscript<Fr>(); // actually a shared pointer to a transcript?
 
 //     auto round = SumcheckRound<..., ArithmeticRelation>(polynomials, relations);
 //     // The values of the univariate restriction S2 created in the first round

@@ -20,12 +20,6 @@ using namespace honk::sumcheck;
 
 namespace honk_relation_tests {
 
-template <class Fr> class MockTranscript : public honk::Transcript<Fr> {
-  public:
-    Fr get_challenge() { return mock_challenge; };
-    Fr mock_challenge = -1;
-};
-
 template <class FF> class SumcheckRelation : public testing::Test {
   public:
     template <size_t t> using Univariate = Univariate<FF, t>;
