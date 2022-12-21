@@ -5,9 +5,6 @@
 #include <common/mem.hpp>
 #include <cstddef>
 
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
 using namespace honk;
 
 namespace test_honk_prover {

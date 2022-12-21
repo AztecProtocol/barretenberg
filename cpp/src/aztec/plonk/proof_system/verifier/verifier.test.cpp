@@ -315,6 +315,7 @@ TEST(verifier, verify_arithmetic_proof)
     EXPECT_EQ(result, true);
 }
 
+#if !defined(__wasm__)
 TEST(verifier, verify_damaged_proof)
 {
     size_t n = 8;
@@ -329,3 +330,4 @@ TEST(verifier, verify_damaged_proof)
     // verify proof
     EXPECT_ANY_THROW(verifier.verify_proof(proof));
 }
+#endif
