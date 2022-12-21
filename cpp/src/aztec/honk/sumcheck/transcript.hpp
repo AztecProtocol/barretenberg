@@ -11,6 +11,6 @@ class Transcript {
         barretenberg::fr; // TODO(luke): de-templatizing this class for now since StandardTranscript is not templatized
   public:
     template <class... Frs> void add(Frs... field_elements){}; // TODO(Cody): implementation
-    Fr get_challenge() { return Fr::random_element(); };
+    Fr get_mock_challenge() { return Fr::random_element(); };
 };
 }; // namespace honk

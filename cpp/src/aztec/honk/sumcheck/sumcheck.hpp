@@ -42,17 +42,17 @@ template <class Multivariates, class Transcript, template <class> class... Relat
 
         // First round
         // This populates multivariates.folded_polynomials.
-        FF relation_separator_challenge = transcript.get_challenge();
+        FF relation_separator_challenge = transcript.get_mock_challenge();
         transcript.add(round.compute_univariate(multivariates.full_polynomials, relation_separator_challenge));
         // IMPROVEMENT(Cody): Could move building of this list into challenge container?
-        round_challenges[0] = transcript.get_challenge();
+        round_challenges[0] = transcript.get_mock_challenge();
         multivariates.fold(multivariates.full_polynomials, multivariate_n, round_challenges[0]);
 
         // All but final round
         // We operate on multivariates.full_polynomials in place.
         for (size_t round_idx = 1; round_idx < multivariate_d; round_idx++) {
             transcript.add(round.compute_univariate(multivariates.folded_polynomials, relation_separator_challenge));
-            round_challenges[round_idx] = transcript.get_challenge();
+            round_challenges[round_idx] = transcript.get_mock_challenge();
             multivariates.fold(multivariates.folded_polynomials, multivariate_n, round_challenges[round_idx]);
         }
 
@@ -75,7 +75,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
             // auto round_univariate = challenges.get_sumcheck_round_univariate(round_idx);
             auto round_univariate = Univariate<FF, MAX_RELATION_LENGTH>();
             verified = verified && round.check_sum(round_univariate);
-            FF round_challenge = transcript.get_challenge();
+            FF round_challenge = transcript.get_mock_challenge();
             round.compute_next_target_sum(round_univariate, round_challenge);
         }
 
@@ -84,7 +84,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         std::vector<FF> purported_evaluations = {
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         }; // TODO: update this
-        FF relation_separator_challenge = transcript.get_challenge();
+        FF relation_separator_challenge = transcript.get_mock_challenge();
         FF full_honk_relation_purported_value =
             round.compute_full_honk_relation_purported_value(purported_evaluations, relation_separator_challenge);
         verified = verified && (full_honk_relation_purported_value == round.target_total_sum);

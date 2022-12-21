@@ -4,6 +4,10 @@
 #include <ecc/curves/bn254/fr.hpp>
 #include <ecc/curves/bn254/g1.hpp>
 
+// TODO(luke): get rid of these ASAP
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 namespace transcript {
 /**
  * Transcript extended with functions for easy
@@ -52,6 +56,10 @@ class StandardTranscript : public Transcript {
                                                           const std::string& challenge_map_name) const;
 
     std::vector<uint8_t> export_transcript() const { return Transcript::export_transcript(); }
+
+    // TODO(luke): temporary functions for getting honk working with StandardTranscript
+    template <class... Frs> void add(Frs... field_elements){}; // TODO(Cody): implementation
+    barretenberg::fr get_mock_challenge() { return barretenberg::fr::random_element(); };
 };
 
 } // namespace transcript
