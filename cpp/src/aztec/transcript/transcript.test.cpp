@@ -1,7 +1,7 @@
 #include "transcript.hpp"
 #include "transcript_wrappers.hpp"
 #include <gtest/gtest.h>
-#include "../../honk/sumcheck/sumcheck_types/univariate.hpp"
+#include "../honk/sumcheck/polynomials/univariate.hpp"
 
 namespace {
 transcript::Manifest create_manifest(const size_t num_public_inputs)
