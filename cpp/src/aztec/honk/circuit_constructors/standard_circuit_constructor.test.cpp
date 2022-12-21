@@ -9,9 +9,9 @@ namespace {
 auto& engine = numeric::random::get_debug_engine();
 }
 
-TEST(plonk_circuit_composer, base_case)
+TEST(standard_circuit_composer, base_case)
 {
-    waffle::PlonkCircuitConstructor composer = waffle::PlonkCircuitConstructor();
+    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
     fr a = fr::one();
     composer.add_public_variable(a);
 
@@ -19,9 +19,9 @@ TEST(plonk_circuit_composer, base_case)
     EXPECT_EQ(result, true);
 }
 
-TEST(plonk_circuit_composer, test_add_gate)
+TEST(standard_circuit_composer, test_add_gate)
 {
-    waffle::PlonkCircuitConstructor composer = waffle::PlonkCircuitConstructor();
+    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
     fr a = fr::one();
     uint32_t a_idx = composer.add_public_variable(a);
     fr b = fr::one();
@@ -72,9 +72,9 @@ TEST(plonk_circuit_composer, test_add_gate)
     EXPECT_EQ(result, true);
 }
 
-TEST(plonk_circuit_composer, test_mul_gate_proofs)
+TEST(standard_circuit_composer, test_mul_gate_proofs)
 {
-    waffle::PlonkCircuitConstructor composer = waffle::PlonkCircuitConstructor();
+    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
     fr q[7]{ fr::random_element(), fr::random_element(), fr::random_element(), fr::random_element(),
              fr::random_element(), fr::random_element(), fr::random_element() };
     fr q_inv[7]{
@@ -145,9 +145,9 @@ TEST(plonk_circuit_composer, test_mul_gate_proofs)
     EXPECT_EQ(result, true);
 }
 
-TEST(plonk_circuit_composer, range_constraint)
+TEST(standard_circuit_composer, range_constraint)
 {
-    waffle::PlonkCircuitConstructor composer = waffle::PlonkCircuitConstructor();
+    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
 
     for (size_t i = 0; i < 10; ++i) {
 
@@ -183,9 +183,9 @@ TEST(plonk_circuit_composer, range_constraint)
     EXPECT_EQ(result, true);
 }
 
-TEST(plonk_circuit_composer, range_constraint_fail)
+TEST(standard_circuit_composer, range_constraint_fail)
 {
-    waffle::PlonkCircuitConstructor composer = waffle::PlonkCircuitConstructor();
+    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
 
     uint64_t value = 0xffffff;
     uint32_t witness_index = composer.add_variable(fr(value));
@@ -197,9 +197,9 @@ TEST(plonk_circuit_composer, range_constraint_fail)
     EXPECT_EQ(result, false);
 }
 
-TEST(plonk_circuit_composer, and_constraint)
+TEST(standard_circuit_composer, and_constraint)
 {
-    waffle::PlonkCircuitConstructor composer = waffle::PlonkCircuitConstructor();
+    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
 
     for (size_t i = 0; i < /*10*/ 1; ++i) {
         uint32_t left_value = engine.get_random_uint32();
@@ -262,9 +262,9 @@ TEST(plonk_circuit_composer, and_constraint)
     EXPECT_EQ(result, true);
 }
 
-TEST(plonk_circuit_composer, xor_constraint)
+TEST(standard_circuit_composer, xor_constraint)
 {
-    waffle::PlonkCircuitConstructor composer = waffle::PlonkCircuitConstructor();
+    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
 
     for (size_t i = 0; i < /*10*/ 1; ++i) {
         uint32_t left_value = engine.get_random_uint32();
@@ -326,9 +326,9 @@ TEST(plonk_circuit_composer, xor_constraint)
     EXPECT_EQ(result, true);
 }
 
-TEST(plonk_circuit_composer, big_add_gate_with_bit_extract)
+TEST(standard_circuit_composer, big_add_gate_with_bit_extract)
 {
-    waffle::PlonkCircuitConstructor composer = waffle::PlonkCircuitConstructor();
+    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
 
     const auto generate_constraints = [&composer](uint32_t quad_value) {
         uint32_t quad_accumulator_left =
@@ -363,9 +363,9 @@ TEST(plonk_circuit_composer, big_add_gate_with_bit_extract)
     EXPECT_EQ(result, true);
 }
 
-TEST(plonk_circuit_composer, test_range_constraint_fail)
+TEST(standard_circuit_composer, test_range_constraint_fail)
 {
-    waffle::PlonkCircuitConstructor composer = waffle::PlonkCircuitConstructor();
+    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
     uint32_t witness_index = composer.add_variable(fr::neg_one());
     composer.decompose_into_base4_accumulators(witness_index, 32);
 
@@ -374,9 +374,9 @@ TEST(plonk_circuit_composer, test_range_constraint_fail)
     EXPECT_EQ(result, false);
 }
 
-TEST(plonk_circuit_composer, test_check_circuit_correct)
+TEST(standard_circuit_composer, test_check_circuit_correct)
 {
-    waffle::PlonkCircuitConstructor composer = waffle::PlonkCircuitConstructor();
+    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
     fr a = fr::one();
     uint32_t a_idx = composer.add_public_variable(a);
     fr b = fr::one();
@@ -394,9 +394,9 @@ TEST(plonk_circuit_composer, test_check_circuit_correct)
     EXPECT_EQ(result, true);
 }
 
-TEST(plonk_circuit_composer, test_check_circuit_broken)
+TEST(standard_circuit_composer, test_check_circuit_broken)
 {
-    waffle::PlonkCircuitConstructor composer = waffle::PlonkCircuitConstructor();
+    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
     fr a = fr::one();
     uint32_t a_idx = composer.add_public_variable(a);
     fr b = fr::one();
@@ -414,9 +414,9 @@ TEST(plonk_circuit_composer, test_check_circuit_broken)
     EXPECT_EQ(result, false);
 }
 
-TEST(plonk_circuit_composer, test_fixed_group_add_gate_with_init)
+TEST(standard_circuit_composer, test_fixed_group_add_gate_with_init)
 {
-    waffle::PlonkCircuitConstructor composer = waffle::PlonkCircuitConstructor();
+    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
     auto gen_data = crypto::pedersen::get_generator_data({ 0, 0 });
 
     // 1. generate two origin points P, Q
@@ -465,9 +465,9 @@ TEST(plonk_circuit_composer, test_fixed_group_add_gate_with_init)
     EXPECT_EQ(result, true);
 }
 
-TEST(plonk_circuit_composer, test_fixed_group_add_gate)
+TEST(standard_circuit_composer, test_fixed_group_add_gate)
 {
-    auto composer = waffle::PlonkCircuitConstructor();
+    auto composer = waffle::StandardCircuitConstructor();
     auto gen_data = crypto::pedersen::get_generator_data({ 0, 0 });
 
     constexpr size_t num_bits = 63;

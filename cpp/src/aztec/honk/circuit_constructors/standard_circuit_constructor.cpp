@@ -18,7 +18,7 @@ namespace waffle {
  * @param in An add_triple containing the indexes of variables to be placed into the
  * wires w_l, w_r, w_o and addition coefficients to be placed into q_1, q_2, q_3, q_c.
  */
-void PlonkCircuitConstructor::create_add_gate(const add_triple& in)
+void StandardCircuitConstructor::create_add_gate(const add_triple& in)
 {
     STANDARD_SELECTOR_REFS
     assert_valid_variables({ in.a, in.b, in.c });
@@ -42,7 +42,7 @@ void PlonkCircuitConstructor::create_add_gate(const add_triple& in)
  * @param in An add quad containing the indexes of variables a, b, c, d and
  * the scaling factors.
  * */
-void PlonkCircuitConstructor::create_big_add_gate(const add_quad& in)
+void StandardCircuitConstructor::create_big_add_gate(const add_quad& in)
 {
     // (a terms + b terms = temp)
     // (c terms + d  terms + temp = 0 )
@@ -63,7 +63,7 @@ void PlonkCircuitConstructor::create_big_add_gate(const add_quad& in)
  * @param in An add quad containing the indexes of variables a, b, c, d and
  * the scaling factors.
  * */
-void PlonkCircuitConstructor::create_balanced_add_gate(const add_quad& in)
+void StandardCircuitConstructor::create_balanced_add_gate(const add_quad& in)
 {
 
     STANDARD_SELECTOR_REFS
@@ -126,7 +126,7 @@ void PlonkCircuitConstructor::create_balanced_add_gate(const add_quad& in)
     ++n;
 }
 
-void PlonkCircuitConstructor::create_big_add_gate_with_bit_extraction(const add_quad& in)
+void StandardCircuitConstructor::create_big_add_gate_with_bit_extraction(const add_quad& in)
 {
     // blah.
     // delta = (c - 4d)
@@ -171,7 +171,7 @@ void PlonkCircuitConstructor::create_big_add_gate_with_bit_extraction(const add_
         add_quad{ in.a, in.b, in.c, r_2_idx, in.a_scaling, in.b_scaling, in.c_scaling, fr::one(), in.const_scaling });
 }
 
-void PlonkCircuitConstructor::create_big_mul_gate(const mul_quad& in)
+void StandardCircuitConstructor::create_big_mul_gate(const mul_quad& in)
 {
     fr temp = ((get_variable(in.c) * in.c_scaling) + (get_variable(in.d) * in.d_scaling));
     uint32_t temp_idx = add_variable(temp);
@@ -187,7 +187,7 @@ void PlonkCircuitConstructor::create_big_mul_gate(const mul_quad& in)
  * @param in A mul_tripple containing the indexes of variables to be placed into the
  * wires w_l, w_r, w_o and scaling coefficients to be placed into q_m, q_3, q_c.
  */
-void PlonkCircuitConstructor::create_mul_gate(const mul_triple& in)
+void StandardCircuitConstructor::create_mul_gate(const mul_triple& in)
 {
     STANDARD_SELECTOR_REFS
     assert_valid_variables({ in.a, in.b, in.c });
@@ -210,7 +210,7 @@ void PlonkCircuitConstructor::create_mul_gate(const mul_triple& in)
  *
  * @param variable_index The index of the variable.
  */
-void PlonkCircuitConstructor::create_bool_gate(const uint32_t variable_index)
+void StandardCircuitConstructor::create_bool_gate(const uint32_t variable_index)
 {
     STANDARD_SELECTOR_REFS
     assert_valid_variables({ variable_index });
@@ -233,7 +233,7 @@ void PlonkCircuitConstructor::create_bool_gate(const uint32_t variable_index)
  *
  * @param in A poly_triple containing all the information.
  */
-void PlonkCircuitConstructor::create_poly_gate(const poly_triple& in)
+void StandardCircuitConstructor::create_poly_gate(const poly_triple& in)
 {
     STANDARD_SELECTOR_REFS
     assert_valid_variables({ in.a, in.b, in.c });
@@ -250,8 +250,8 @@ void PlonkCircuitConstructor::create_poly_gate(const poly_triple& in)
     ++n;
 }
 
-void PlonkCircuitConstructor::create_fixed_group_add_gate_with_init(const fixed_group_add_quad& in,
-                                                                    const fixed_group_init_quad& init)
+void StandardCircuitConstructor::create_fixed_group_add_gate_with_init(const fixed_group_add_quad& in,
+                                                                       const fixed_group_init_quad& init)
 {
     uint32_t x_0_idx = in.a;
     uint32_t y_0_idx = in.b;
@@ -294,7 +294,7 @@ void PlonkCircuitConstructor::create_fixed_group_add_gate_with_init(const fixed_
     previous_add_quad = in;
 }
 
-void PlonkCircuitConstructor::create_fixed_group_add_gate(const fixed_group_add_quad& in)
+void StandardCircuitConstructor::create_fixed_group_add_gate(const fixed_group_add_quad& in)
 {
     assert_valid_variables({ in.a, in.b, in.c, in.d });
 
@@ -477,7 +477,7 @@ void PlonkCircuitConstructor::create_fixed_group_add_gate(const fixed_group_add_
                       .const_scaling = 0 });
 }
 
-void PlonkCircuitConstructor::create_fixed_group_add_gate_final(const add_quad& in)
+void StandardCircuitConstructor::create_fixed_group_add_gate_final(const add_quad& in)
 {
     waffle::fixed_group_add_quad final_round_quad{ .a = in.a,
                                                    .b = in.b,
@@ -490,9 +490,9 @@ void PlonkCircuitConstructor::create_fixed_group_add_gate_final(const add_quad& 
     create_fixed_group_add_gate(final_round_quad);
 }
 
-std::vector<uint32_t> PlonkCircuitConstructor::decompose_into_base4_accumulators(const uint32_t witness_index,
-                                                                                 const size_t num_bits,
-                                                                                 std::string const& msg)
+std::vector<uint32_t> StandardCircuitConstructor::decompose_into_base4_accumulators(const uint32_t witness_index,
+                                                                                    const size_t num_bits,
+                                                                                    std::string const& msg)
 {
     ASSERT(num_bits > 0);
     const uint256_t target(get_variable(witness_index));
@@ -550,10 +550,10 @@ std::vector<uint32_t> PlonkCircuitConstructor::decompose_into_base4_accumulators
     return accumulators;
 }
 
-waffle::accumulator_triple PlonkCircuitConstructor::create_logic_constraint(const uint32_t a,
-                                                                            const uint32_t b,
-                                                                            const size_t num_bits,
-                                                                            const bool is_xor_gate)
+waffle::accumulator_triple StandardCircuitConstructor::create_logic_constraint(const uint32_t a,
+                                                                               const uint32_t b,
+                                                                               const size_t num_bits,
+                                                                               const bool is_xor_gate)
 {
     assert_valid_variables({ a, b });
 
@@ -674,7 +674,7 @@ waffle::accumulator_triple PlonkCircuitConstructor::create_logic_constraint(cons
     return accumulators;
 }
 
-void PlonkCircuitConstructor::fix_witness(const uint32_t witness_index, const barretenberg::fr& witness_value)
+void StandardCircuitConstructor::fix_witness(const uint32_t witness_index, const barretenberg::fr& witness_value)
 {
     STANDARD_SELECTOR_REFS
     assert_valid_variables({ witness_index });
@@ -690,7 +690,7 @@ void PlonkCircuitConstructor::fix_witness(const uint32_t witness_index, const ba
     ++n;
 }
 
-uint32_t PlonkCircuitConstructor::put_constant_variable(const barretenberg::fr& variable)
+uint32_t StandardCircuitConstructor::put_constant_variable(const barretenberg::fr& variable)
 {
     if (constant_variable_indices.contains(variable)) {
         return constant_variable_indices.at(variable);
@@ -703,21 +703,21 @@ uint32_t PlonkCircuitConstructor::put_constant_variable(const barretenberg::fr& 
     }
 }
 
-waffle::accumulator_triple PlonkCircuitConstructor::create_and_constraint(const uint32_t a,
-                                                                          const uint32_t b,
-                                                                          const size_t num_bits)
+waffle::accumulator_triple StandardCircuitConstructor::create_and_constraint(const uint32_t a,
+                                                                             const uint32_t b,
+                                                                             const size_t num_bits)
 {
     return create_logic_constraint(a, b, num_bits, false);
 }
 
-waffle::accumulator_triple PlonkCircuitConstructor::create_xor_constraint(const uint32_t a,
-                                                                          const uint32_t b,
-                                                                          const size_t num_bits)
+waffle::accumulator_triple StandardCircuitConstructor::create_xor_constraint(const uint32_t a,
+                                                                             const uint32_t b,
+                                                                             const size_t num_bits)
 {
     return create_logic_constraint(a, b, num_bits, true);
 }
 
-void PlonkCircuitConstructor::assert_equal_constant(uint32_t const a_idx, fr const& b, std::string const& msg)
+void StandardCircuitConstructor::assert_equal_constant(uint32_t const a_idx, fr const& b, std::string const& msg)
 {
     if (variables[a_idx] != b && !failed()) {
         failure(msg);
@@ -732,7 +732,7 @@ void PlonkCircuitConstructor::assert_equal_constant(uint32_t const a_idx, fr con
  *
  * @return true if the circuit is correct.
  * */
-bool PlonkCircuitConstructor::check_circuit()
+bool StandardCircuitConstructor::check_circuit()
 {
     STANDARD_SELECTOR_REFS
 

@@ -15,7 +15,7 @@ class StandardHonkComposer {
 
     static constexpr size_t UINT_LOG2_BASE = 2;
     // An instantiation of the circuit constructor that only depends on arithmetization, not  on the proof system
-    PlonkCircuitConstructor circuit_constructor;
+    StandardCircuitConstructor circuit_constructor;
     // Composer helper contains all proof-related material that is separate from circuit creation such as:
     // 1) Proving and verification keys
     // 2) CRS

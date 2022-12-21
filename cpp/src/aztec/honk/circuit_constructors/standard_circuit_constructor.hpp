@@ -10,7 +10,7 @@ inline std::vector<std::string> standard_selector_names()
     return result;
 }
 
-class PlonkCircuitConstructor : public CircuitConstructorBase {
+class StandardCircuitConstructor : public CircuitConstructorBase {
   public:
     static constexpr ComposerType type = ComposerType::STANDARD;
     static constexpr size_t UINT_LOG2_BASE = 2;
@@ -19,7 +19,7 @@ class PlonkCircuitConstructor : public CircuitConstructorBase {
     // equal to a defined value.
     std::map<barretenberg::fr, uint32_t> constant_variable_indices;
 
-    PlonkCircuitConstructor(const size_t size_hint = 0)
+    StandardCircuitConstructor(const size_t size_hint = 0)
         : CircuitConstructorBase(standard_selector_names(), StandardSelectors::NUM, size_hint)
     {
         w_l.reserve(size_hint);
@@ -28,9 +28,9 @@ class PlonkCircuitConstructor : public CircuitConstructorBase {
         zero_idx = put_constant_variable(barretenberg::fr::zero());
     };
 
-    PlonkCircuitConstructor(PlonkCircuitConstructor&& other) = default;
-    PlonkCircuitConstructor& operator=(PlonkCircuitConstructor&& other) = default;
-    ~PlonkCircuitConstructor() {}
+    StandardCircuitConstructor(StandardCircuitConstructor&& other) = default;
+    StandardCircuitConstructor& operator=(StandardCircuitConstructor&& other) = default;
+    ~StandardCircuitConstructor() {}
 
     void assert_equal_constant(uint32_t const a_idx,
                                barretenberg::fr const& b,
