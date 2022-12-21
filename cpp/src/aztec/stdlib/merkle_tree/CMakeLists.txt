@@ -13,9 +13,12 @@ if(NOT WASM)
         add_subdirectory(${leveldb_SOURCE_DIR} ${leveldb_BINARY_DIR} EXCLUDE_FROM_ALL)
     endif()
 
+    # Silence certain compiler warnings from LevelDB
+    # that we have enabled project-wide otherwise.
     target_compile_options(
         leveldb
         PRIVATE
+        -Wno-error=unused-but-set-variable
         -Wno-sign-conversion
         -Wno-unused-parameter
         -Wno-shorten-64-to-32
