@@ -1,9 +1,10 @@
 #include "sumcheck.hpp"
-#include "transcript.hpp"
+#include "../../transcript/transcript_wrappers.hpp"
 #include "polynomials/multivariates.hpp"
 #include "relations/arithmetic_relation.hpp"
 #include "relations/grand_product_computation_relation.hpp"
 #include "relations/grand_product_initialization_relation.hpp"
+#include "transcript/manifest.hpp"
 #include <ecc/curves/bn254/fr.hpp>
 #include <numeric/random/engine.hpp>
 
@@ -18,6 +19,30 @@ using namespace honk::sumcheck;
 
 namespace test_sumcheck_round {
 
+// namespace {
+// transcript::Manifest create_toy_honk_manifest(const size_t num_public_inputs = 0, const size_t
+// SUMCHECK_RELATION_LENGTH = 5)
+// {
+//     // Create a toy honk manifest that includes a univariate like the ones constructed by the prover in each round of
+//     // sumcheck
+//     constexpr size_t g1_size = 64;
+//     constexpr size_t fr_size = 32;
+//     const size_t public_input_size = fr_size * num_public_inputs;
+//     const transcript::Manifest output = transcript::Manifest(
+//         { transcript::Manifest::RoundManifest(
+//               { { "circuit_size", 4, true }, { "public_input_size", 4, true } }, "init", 1),
+//           transcript::Manifest::RoundManifest({ { "public_inputs", public_input_size, false },
+//                                                 { "W_1", g1_size, false },
+//                                                 { "W_2", g1_size, false },
+//                                                 { "W_3", g1_size, false } },
+//                                               "beta",
+//                                               2),
+//           transcript::Manifest::RoundManifest(
+//               { { "sumcheck_round_univariate_i", fr_size * SUMCHECK_RELATION_LENGTH, false } }, "omicron", 1) });
+//     return output;
+// }
+// } // namespace
+
 TEST(Sumcheck, Prover)
 {
     const size_t num_polys(StandardArithmetization::NUM_POLYNOMIALS);
@@ -27,7 +52,7 @@ TEST(Sumcheck, Prover)
 
     using FF = barretenberg::fr;
     using Multivariates = ::Multivariates<FF, num_polys, multivariate_d>;
-    using Transcript = ::Transcript;
+    using Transcript = transcript::StandardTranscript;
 
     std::array<FF, 2> w_l = { 1, 2 };
     std::array<FF, 2> w_r = { 1, 2 };
@@ -53,7 +78,7 @@ TEST(Sumcheck, Prover)
         q_c, sigma_1, sigma_2, sigma_3, id_1,         id_2, id_3, lagrange_1
     };
 
-    auto transcript = Transcript();
+    auto transcript = Transcript(transcript::Manifest());
 
     auto multivariates = Multivariates(full_polynomials);
 
@@ -76,9 +101,9 @@ TEST(Sumcheck, Verifier)
 
     using FF = barretenberg::fr;
     using Multivariates = ::Multivariates<FF, num_polys, multivariate_d>;
-    using Transcript = ::Transcript;
+    using Transcript = transcript::StandardTranscript;
 
-    auto transcript = Transcript();
+    auto transcript = Transcript(transcript::Manifest());
 
     auto sumcheck = Sumcheck<Multivariates,
                              Transcript,

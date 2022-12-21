@@ -5,7 +5,6 @@
 #include "grand_product_computation_relation.hpp"
 #include "../polynomials/multivariates.hpp"
 #include "../polynomials/univariate.hpp"
-#include "../transcript.hpp"
 #include "../polynomials/barycentric_data.hpp"
 
 #include <ecc/curves/bn254/fr.hpp>
@@ -101,7 +100,6 @@ TYPED_TEST(SumcheckRelation, GrandProductComputationRelation)
     // auto z_perm_shift = Univariate<FF, 5>({ 1, 4, 9, 16, 25 }); // X^2
 
     auto extended_edges = TestFixture::compute_mock_extended_edges();
-    auto transcript = honk::Transcript();
     auto relation = GrandProductComputationRelation<FF>();
     using UnivariateView = UnivariateView<FF, relation.RELATION_LENGTH>;
     using Univariate = Univariate<FF, relation.RELATION_LENGTH>;

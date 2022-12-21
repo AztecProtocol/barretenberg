@@ -67,6 +67,8 @@ class Manifest {
         bool map_challenges;
     };
 
+    Manifest() = default;
+
     Manifest(std::initializer_list<RoundManifest> _round_manifests)
         : round_manifests(_round_manifests)
         , num_rounds(round_manifests.size()){};

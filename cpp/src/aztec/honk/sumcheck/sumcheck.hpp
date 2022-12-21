@@ -1,4 +1,3 @@
-#include "honk/sumcheck/transcript.hpp"
 #include "sumcheck_round.hpp"
 #include "polynomials/univariate.hpp"
 #include "../flavor/flavor.hpp"

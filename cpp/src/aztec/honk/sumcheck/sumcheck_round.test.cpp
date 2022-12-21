@@ -1,5 +1,4 @@
 #include "../flavor/flavor.hpp"
-#include "transcript.hpp"
 #include "sumcheck_round.hpp"
 #include "relations/relation.hpp"
 #include "relations/arithmetic_relation.hpp"
