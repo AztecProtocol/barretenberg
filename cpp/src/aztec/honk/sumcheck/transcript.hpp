@@ -1,18 +1,16 @@
 #pragma once
 
+#include "../../ecc/curves/bn254/fr.hpp"
+
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
 namespace honk {
-template <class Fr> class Transcript {
+class Transcript {
+    using Fr =
+        barretenberg::fr; // TODO(luke): de-templatizing this class for now since StandardTranscript is not templatized
   public:
     template <class... Frs> void add(Frs... field_elements){}; // TODO(Cody): implementation
     Fr get_challenge() { return Fr::random_element(); };
-    Fr get_challenge_equals_one() { return Fr::one(); };
-    // Univariate get_sumcheck_round_univariate(size_t) // NOLINT(readability-named-parameter)
-    // {
-    //     Univariate result;
-    //     return result;
-    // };
 };
 }; // namespace honk

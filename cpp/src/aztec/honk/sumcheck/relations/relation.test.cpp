@@ -101,7 +101,7 @@ TYPED_TEST(SumcheckRelation, GrandProductComputationRelation)
     // auto z_perm_shift = Univariate<FF, 5>({ 1, 4, 9, 16, 25 }); // X^2
 
     auto extended_edges = TestFixture::compute_mock_extended_edges();
-    auto transcript = honk::Transcript<FF>();
+    auto transcript = honk::Transcript();
     auto relation = GrandProductComputationRelation<FF>();
     using UnivariateView = UnivariateView<FF, relation.RELATION_LENGTH>;
     using Univariate = Univariate<FF, relation.RELATION_LENGTH>;
@@ -122,8 +122,8 @@ TYPED_TEST(SumcheckRelation, GrandProductComputationRelation)
     auto z_perm_shift = UnivariateView(extended_edges[MULTIVARIATE::Z_PERM_SHIFT]);
     // auto lagrange_1 = UnivariateView(extended_edges[MULTIVARIATE::LAGRANGE_1]);
     // TODO(luke): use real transcript/challenges
-    FF beta = transcript.get_challenge_equals_one();
-    FF gamma = transcript.get_challenge_equals_one();
+    FF beta = FF::one();
+    FF gamma = FF::one();
 
     auto expected_evals = Univariate();
     // expected_evals is { { 27, 125, 343, 729, 1331 } }

@@ -27,7 +27,7 @@ TEST(Sumcheck, Prover)
 
     using FF = barretenberg::fr;
     using Multivariates = ::Multivariates<FF, num_polys, multivariate_d>;
-    using Transcript = ::Transcript<FF>;
+    using Transcript = ::Transcript;
 
     std::array<FF, 2> w_l = { 1, 2 };
     std::array<FF, 2> w_r = { 1, 2 };
@@ -76,7 +76,7 @@ TEST(Sumcheck, Verifier)
 
     using FF = barretenberg::fr;
     using Multivariates = ::Multivariates<FF, num_polys, multivariate_d>;
-    using Transcript = ::Transcript<FF>;
+    using Transcript = ::Transcript;
 
     auto transcript = Transcript();
 
