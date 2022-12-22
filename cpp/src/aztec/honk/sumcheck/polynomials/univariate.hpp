@@ -251,7 +251,7 @@ template <class Fr, size_t view_length> class UnivariateView {
     Fr& value_at(size_t i) { return evaluations[i]; };
 
     template <size_t full_length>
-    explicit UnivariateView(Univariate<Fr, full_length> univariate_in)
+    explicit UnivariateView(Univariate<Fr, full_length>& univariate_in)
         : evaluations(std::span<Fr>(univariate_in.evaluations.begin(), view_length)){};
 
     Univariate<Fr, view_length> operator+(const UnivariateView& other) const
