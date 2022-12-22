@@ -144,40 +144,112 @@ class StandardHonkComposer {
 
     bool check_circuit() { return circuit_constructor.check_circuit(); }
 
-    /**
-     * Create a manifest, which specifies proof rounds, elements and who supplies them.
-     *
-     * @param num_public_inputs The number of public inputs.
-     *
-     * @return Constructed manifest.
-     * */
-    static transcript::Manifest create_manifest(const size_t num_public_inputs)
-    {
-        // add public inputs....
-        // constexpr size_t g1_size = 64;
-        // constexpr size_t fr_size = 32;
-        // const size_t public_input_size = fr_size * num_public_inputs;
-        (void)num_public_inputs;
-        const transcript::Manifest output = transcript::Manifest({});
-        return output;
-    }
+    // There will be no linearization
+    //
+    // /**
+    //  * Create a manifest, which specifies proof rounds, elements and who supplies them.
+    //  *
+    //  * @param num_public_inputs The number of public inputs.
+    //  *
+    //  * @return Constructed manifest.
+    //  * */
+    // static transcript::Manifest create_manifest(const size_t num_public_inputs)
+    // {
+    //     // add public inputs....
+    //     constexpr size_t g1_size = 64;
+    //     constexpr size_t fr_size = 32;
+    //     const size_t public_input_size = fr_size * num_public_inputs;
+    //     const transcript::Manifest output = transcript::Manifest({
+    //     });
+    //     return output;
+    // }
 
     static transcript::Manifest create_unrolled_manifest(const size_t num_public_inputs)
     {
-        // add public inputs....
         constexpr size_t g1_size = 64;
         (void)g1_size;
         constexpr size_t fr_size = 32;
         const size_t public_input_size = fr_size * num_public_inputs;
-        (void)public_input_size;
+        /*  A RoundManifest describes data that will be put in or extracted from a transcript.
+            Here we have 7 RoundManifests. */
         const transcript::Manifest output = transcript::Manifest(
+            { // clang-format off
 
-            {});
+              // Round 1
+              transcript::Manifest::RoundManifest(
+                { 
+                  { .name = "circuit_size",      .num_bytes = 4, .derived_by_verifier = true },
+                  { .name = "public_input_size", .num_bytes = 4, .derived_by_verifier = true }
+                },
+                /* challenge_name = */ "init",
+                /* num_challenges_in = */ 1),
 
+              // Round 2
+              transcript::Manifest::RoundManifest(
+                {}, 
+                /* challenge_name = */ "eta", 
+                /* num_challenges_in = */ 0),
+
+              // Round 3
+              transcript::Manifest::RoundManifest(
+                {
+                    { .name = "public_inputs", .num_bytes = public_input_size, .derived_by_verifier = false },
+                    { .name = "W_1",           .num_bytes = g1_size,           .derived_by_verifier = false },
+                    { .name = "W_2",           .num_bytes = g1_size,           .derived_by_verifier = false },
+                    { .name = "W_3",           .num_bytes = g1_size,           .derived_by_verifier = false },
+                },
+                /* challenge_name = */ "beta",
+                /* num_challenges_in = */ 2),
+
+              // Round 4
+              transcript::Manifest::RoundManifest(
+                { { .name = "Z_PERM", .num_bytes = g1_size, .derived_by_verifier = false } }, 
+                /* challenge_name = */ "alpha",
+                /* num_challenges_in = */ 1),
+
+              // Round 5
+              transcript::Manifest::RoundManifest(
+                { { .name = "T_1", .num_bytes = g1_size, .derived_by_verifier = false },
+                  { .name = "T_2", .num_bytes = g1_size, .derived_by_verifier = false },
+                  { .name = "T_3", .num_bytes = g1_size, .derived_by_verifier = false } },
+                /* challenge_name = */ "z",
+                /* num_challenges_in = */ 1),
+
+              // Round 6
+              transcript::Manifest::RoundManifest(
+                {
+                    { .name = "t",            .num_bytes = fr_size, .derived_by_verifier = true, .challenge_map_index = -1 },
+                    { .name = "w_1",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 0 },
+                    { .name = "w_2",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 1 },
+                    { .name = "w_3",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 2 },
+                    { .name = "sigma_1",      .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 3 },
+                    { .name = "sigma_2",      .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 4 },
+                    { .name = "sigma_3",      .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 5 },
+                    { .name = "q_1",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 6 },
+                    { .name = "q_2",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 7 },
+                    { .name = "q_3",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 8 },
+                    { .name = "q_m",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 9 },
+                    { .name = "q_c",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 10 },
+                    { .name = "z_perm",       .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 11 },
+                    { .name = "z_perm_omega", .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = -1 },
+                },
+                /* challenge_name = */ "nu",
+                /* num_challenges_in = */ STANDARD_UNROLLED_MANIFEST_SIZE,
+                /* map_challenges_in = */ true),
+
+              // Round 7
+              transcript::Manifest::RoundManifest(
+                { { .name = "PI_Z",       .num_bytes = g1_size, .derived_by_verifier = false },
+                  { .name = "PI_Z_OMEGA", .num_bytes = g1_size, .derived_by_verifier = false } },
+                /* challenge_name = */ "separator",
+                /* num_challenges_in = */ 1) }
+
+            // clang-format off
+    );
         return output;
     }
 
-    /**Proof and verification-related methods*/
+/**Proof and verification-related methods*/
 
     std::shared_ptr<proving_key> compute_proving_key()
     {
