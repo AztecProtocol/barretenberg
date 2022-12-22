@@ -183,7 +183,7 @@ TEST(transcript, univariate_serialization)
     static_cast<void>(omicron);
 
     // Deserialize into a univariate from the transcript
-    auto deserialized_univariate = Univariate::from_buf(transcript.get_element("round_univariate_i"));
+    auto deserialized_univariate = Univariate::serialize_from_buffer(transcript.get_element("round_univariate_i"));
 
     for (size_t i = 0; i < LENGTH; ++i) {
         EXPECT_EQ(univariate.value_at(i), deserialized_univariate.value_at(i));

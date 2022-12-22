@@ -66,6 +66,7 @@ TEST(Sumcheck, Prover)
 
     sumcheck.execute_prover();
     // TODO(Cody) This does not constitute a test.
+    // TODO(luke): verifier now requires prover to have executed; executing verifier here for now.
     sumcheck.execute_verifier();
 }
 

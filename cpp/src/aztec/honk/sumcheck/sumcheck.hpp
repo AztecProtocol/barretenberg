@@ -82,7 +82,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         // target_total_sum is initialized to zero then mutated in place.
         for (size_t round_idx = 0; round_idx < multivariate_d; round_idx++) {
             // Obtain the round univariate from the transcript
-            auto round_univariate = Univariate<FF, MAX_RELATION_LENGTH>::from_buf(
+            auto round_univariate = Univariate<FF, MAX_RELATION_LENGTH>::serialize_from_buffer(
                 transcript.get_element("univariate_" + std::to_string(round_idx)));
 
             verified = verified && round.check_sum(round_univariate);

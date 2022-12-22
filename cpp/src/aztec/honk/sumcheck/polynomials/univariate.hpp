@@ -7,7 +7,6 @@
 #include <string>
 #include "./common/serialize.hpp"
 #include "common/assert.hpp"
-#include "../../../common/serialize.hpp"
 
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -44,8 +43,8 @@ template <class Fr, size_t _length> class Univariate {
         }
     }
 
-    // TODO(luke): I'd like to be able to construct a Univariate directly from a buffer like this but the compiler
-    // complains about ambiguity with the 'evaluations' based constructor above. Could find a way to resolve if desired.
+    // TODO(luke): I'd like to be able to construct a Univariate directly from a buffer this leads to ambiguity with the
+    // 'evaluations' based constructor above. Could find a way to resolve if desired.
 
     // explicit Univariate(std::vector<uint8_t> buffer)
     //     : evaluations({ { 0 } })
@@ -68,19 +67,14 @@ template <class Fr, size_t _length> class Univariate {
     }
 
     // Static method for creating a Univariate from a buffer
-    // IMPROVEMENT(luke): implement read/write as in field.hpp
-    static Univariate from_buf(std::vector<uint8_t> const& buffer)
+    // IMPROVEMENT(luke): implement read/write for Univariate?
+    static Univariate serialize_from_buffer(std::vector<uint8_t> buffer)
     {
         ASSERT(_length == (buffer.size() / sizeof(Fr)));
         Univariate result;
-        for (size_t i = 0; i < _length; ++i) {
-            result.evaluations[i] = from_buffer<Fr>(buffer, i * sizeof(Fr));
-        }
+        std::read<std::vector<uint8_t>, Fr, _length>(buffer, result.evaluations);
         return result;
     }
-
-    // TODO(luke): implement; might allow for getting rid of the "to_buffer" I added
-    // void read(buf, Univariate)
 
     // Operations between Univariate and other Univariate
     Univariate operator=(const Univariate& other)
