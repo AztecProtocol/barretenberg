@@ -68,6 +68,7 @@ template <class Fr, size_t _length> class Univariate {
     }
 
     // Static method for creating a Univariate from a buffer
+    // IMPROVEMENT(luke): implement read/write as in field.hpp
     static Univariate from_buf(std::vector<uint8_t> const& buffer)
     {
         ASSERT(_length == (buffer.size() / sizeof(Fr)));
@@ -77,6 +78,9 @@ template <class Fr, size_t _length> class Univariate {
         }
         return result;
     }
+
+    // TODO(luke): implement; might allow for getting rid of the "to_buffer" I added
+    // void read(buf, Univariate)
 
     // Operations between Univariate and other Univariate
     Univariate operator=(const Univariate& other)

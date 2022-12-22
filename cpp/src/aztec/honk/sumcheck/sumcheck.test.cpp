@@ -19,30 +19,6 @@ using namespace honk::sumcheck;
 
 namespace test_sumcheck_round {
 
-// namespace {
-// transcript::Manifest create_toy_honk_manifest(const size_t num_public_inputs = 0, const size_t
-// SUMCHECK_RELATION_LENGTH = 5)
-// {
-//     // Create a toy honk manifest that includes a univariate like the ones constructed by the prover in each round of
-//     // sumcheck
-//     constexpr size_t g1_size = 64;
-//     constexpr size_t fr_size = 32;
-//     const size_t public_input_size = fr_size * num_public_inputs;
-//     const transcript::Manifest output = transcript::Manifest(
-//         { transcript::Manifest::RoundManifest(
-//               { { "circuit_size", 4, true }, { "public_input_size", 4, true } }, "init", 1),
-//           transcript::Manifest::RoundManifest({ { "public_inputs", public_input_size, false },
-//                                                 { "W_1", g1_size, false },
-//                                                 { "W_2", g1_size, false },
-//                                                 { "W_3", g1_size, false } },
-//                                               "beta",
-//                                               2),
-//           transcript::Manifest::RoundManifest(
-//               { { "sumcheck_round_univariate_i", fr_size * SUMCHECK_RELATION_LENGTH, false } }, "omicron", 1) });
-//     return output;
-// }
-// } // namespace
-
 TEST(Sumcheck, Prover)
 {
     const size_t num_polys(StandardArithmetization::NUM_POLYNOMIALS);
@@ -93,7 +69,7 @@ TEST(Sumcheck, Prover)
     sumcheck.execute_verifier();
 }
 
-// TODO(luke): Fails because verifier now requires prover to have run
+// TODO(luke): Fails because verifier now requires prover to have run; execute_verifier() run in previous test
 // TEST(Sumcheck, Verifier)
 // {
 //     const size_t num_polys(StandardArithmetization::NUM_POLYNOMIALS);
