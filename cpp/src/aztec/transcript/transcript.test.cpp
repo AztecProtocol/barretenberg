@@ -1,5 +1,7 @@
 #include "transcript.hpp"
+#include "common/serialize.hpp"
 #include "transcript_wrappers.hpp"
+#include <array>
 #include <gtest/gtest.h>
 #include "../honk/sumcheck/polynomials/univariate.hpp"
 
@@ -119,7 +121,7 @@ transcript::Manifest create_toy_honk_manifest(const size_t num_public_inputs, co
                                               "beta",
                                               2),
           transcript::Manifest::RoundManifest(
-              { { "sumcheck_round_univariate_i", fr_size * SUMCHECK_RELATION_LENGTH, false } }, "omicron", 1) });
+              { { "round_univariate_i", fr_size * SUMCHECK_RELATION_LENGTH, false } }, "omicron", 1) });
     return output;
 }
 } // namespace
@@ -130,14 +132,16 @@ transcript::Manifest create_toy_honk_manifest(const size_t num_public_inputs, co
  */
 TEST(transcript, univariate_serialization)
 {
-    using Fr = barretenberg::fr;
-
     constexpr size_t num_public_inputs = 0;
-    constexpr size_t SUMCHECK_RELATION_LENGTH = 8;
+    constexpr size_t LENGTH = 8;
+
+    using Fr = barretenberg::fr;
+    using Univariate = honk::sumcheck::Univariate<Fr, LENGTH>;
+    using Transcript = transcript::StandardTranscript;
 
     std::vector<uint8_t> g1_vector(64);
     std::vector<uint8_t> fr_vector(32);
-    std::array<Fr, SUMCHECK_RELATION_LENGTH> evaluations;
+    std::array<Fr, LENGTH> evaluations;
 
     for (size_t i = 0; i < g1_vector.size(); ++i) {
         g1_vector[i] = 1;
@@ -145,13 +149,12 @@ TEST(transcript, univariate_serialization)
     for (size_t i = 0; i < fr_vector.size(); ++i) {
         fr_vector[i] = 1;
     }
-    for (size_t i = 0; i < SUMCHECK_RELATION_LENGTH; ++i) {
+    for (size_t i = 0; i < LENGTH; ++i) {
         evaluations[i] = Fr::random_element();
     }
 
     // Instantiate a StandardTranscript
-    auto transcript =
-        transcript::StandardTranscript(create_toy_honk_manifest(num_public_inputs, SUMCHECK_RELATION_LENGTH));
+    auto transcript = Transcript(create_toy_honk_manifest(num_public_inputs, LENGTH));
 
     // Add some junk to the transcript and compute challenges
     transcript.add_element("circuit_size", { 1, 2, 3, 4 });
@@ -166,17 +169,22 @@ TEST(transcript, univariate_serialization)
 
     transcript.apply_fiat_shamir("beta");
 
-    // Instantiate a Univariate from some evaluations
-    auto univariate = honk::sumcheck::Univariate<Fr, SUMCHECK_RELATION_LENGTH>(evaluations);
+    // Instantiate a Univariate from the evaluations
+    auto univariate = Univariate(evaluations);
 
     // Add the univariate to the transcript using the to_buffer() member function
-    transcript.add_element("sumcheck_round_univariate_i", univariate.to_buffer());
+    // NOTE: the element being added here does not actually have to exist in the manifest for the
+    // serialization/deserialization to work.
+    transcript.add_element("round_univariate_i", univariate.to_buffer());
 
-    // Deserialize the univariate from the transcript
-    // Note: this could easily be made to deserialize to a Univariate instead of a vector if necessary
-    auto deserialized_univariate_values = transcript.get_field_element_vector("sumcheck_round_univariate_i");
+    // Example of challenge generation; not used in test
+    transcript.apply_fiat_shamir("omicron");
+    Fr omicron = Fr::serialize_from_buffer(transcript.get_challenge("omicron").begin());
 
-    for (size_t i = 0; i < SUMCHECK_RELATION_LENGTH; ++i) {
-        EXPECT_EQ(univariate.value_at(i), deserialized_univariate_values[i]);
+    // Deserialize into a univariate from the transcript
+    auto deserialized_univariate = Univariate::from_buf(transcript.get_element("round_univariate_i"));
+
+    for (size_t i = 0; i < LENGTH; ++i) {
+        EXPECT_EQ(univariate.value_at(i), deserialized_univariate.value_at(i));
     }
 }

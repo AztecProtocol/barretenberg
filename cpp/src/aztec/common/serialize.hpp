@@ -29,6 +29,7 @@
 #pragma once
 #include <array>
 #include <common/net.hpp>
+#include <cstddef>
 #include <type_traits>
 #include <vector>
 #include <map>
@@ -340,6 +341,16 @@ template <typename T> std::vector<T> many_from_buffer(std::vector<uint8_t> const
     return elements;
 }
 
+template <typename T, size_t N> std::array<T, N> array_from_buffer(std::vector<uint8_t> const& buffer)
+{
+    // const size_t num_elements = buffer.size() / sizeof(T);
+    std::array<T, N> elements;
+    for (size_t i = 0; i < N; ++i) {
+        elements[i] = from_buffer<T>(buffer, i * sizeof(T));
+    }
+    return elements;
+}
+
 // By default, if calling to_buffer on a vector of types, we don't prefix the vector size.
 template <bool include_size = false, typename T> std::vector<uint8_t> to_buffer(std::vector<T> const& value)
 {
@@ -351,6 +362,16 @@ template <bool include_size = false, typename T> std::vector<uint8_t> to_buffer(
         for (auto e : value) {
             write(buf, e);
         }
+    }
+    return buf;
+}
+
+template <typename T, size_t N> std::vector<uint8_t> to_buffer(std::array<T, N> const& value)
+{
+    using serialize::write;
+    std::vector<uint8_t> buf;
+    for (auto e : value) {
+        write(buf, e);
     }
     return buf;
 }

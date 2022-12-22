@@ -1,7 +1,11 @@
+#include "common/serialize.hpp"
 #include "sumcheck_round.hpp"
 #include "polynomials/univariate.hpp"
 #include "../flavor/flavor.hpp"
 #include <algorithm>
+#include <cstddef>
+#include <string>
+#include <vector>
 namespace honk::sumcheck {
 template <class Multivariates, class Transcript, template <class> class... Relations> class Sumcheck {
     using FF = typename Multivariates::FF;
@@ -16,17 +20,25 @@ template <class Multivariates, class Transcript, template <class> class... Relat
     std::array<FF, Multivariates::num> purported_evaluations;
     Transcript transcript;
     SumcheckRound<FF, Multivariates::num, Relations...> round;
+    std::array<std::string, multivariate_d> round_univariate_names;
+    using Univariate = Univariate<FF, MAX_RELATION_LENGTH>;
 
     // prover instantiates sumcheck with multivariates
     Sumcheck(Multivariates multivariates, Transcript transcript)
         : multivariates(multivariates)
         , transcript(transcript)
-        , round(Multivariates::num, std::tuple(Relations<FF>()...)){};
+        , round(Multivariates::num, std::tuple(Relations<FF>()...))
+    {
+        compute_round_univariate_names();
+    };
 
     // verifier instantiates with challenges alone
     explicit Sumcheck(Transcript transcript)
         : transcript(transcript)
-        , round(Multivariates::num, std::tuple(Relations<FF>()...)){};
+        , round(Multivariates::num, std::tuple(Relations<FF>()...))
+    {
+        compute_round_univariate_names();
+    };
 
     /**
      * @brief Compute univariate restriction place in transcript, generate challenge, fold,... repeat until final round,
@@ -42,21 +54,26 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         // First round
         // This populates multivariates.folded_polynomials.
         FF relation_separator_challenge = transcript.get_mock_challenge();
-        transcript.add(round.compute_univariate(multivariates.full_polynomials, relation_separator_challenge));
+        auto round_univariate = round.compute_univariate(multivariates.full_polynomials, relation_separator_challenge);
+        transcript.add_element(round_univariate_names[0], round_univariate.to_buffer());
         // IMPROVEMENT(Cody): Could move building of this list into challenge container?
         round_challenges[0] = transcript.get_mock_challenge();
         multivariates.fold(multivariates.full_polynomials, multivariate_n, round_challenges[0]);
 
         // All but final round
-        // We operate on multivariates.full_polynomials in place.
+        // We operate on multivariates.folded_polynomials in place.
         for (size_t round_idx = 1; round_idx < multivariate_d; round_idx++) {
-            transcript.add(round.compute_univariate(multivariates.folded_polynomials, relation_separator_challenge));
+            // Write the round univariate to the transcript
+            round_univariate = round.compute_univariate(multivariates.folded_polynomials, relation_separator_challenge);
+            transcript.add_element(round_univariate_names[round_idx], round_univariate.to_buffer());
+
             round_challenges[round_idx] = transcript.get_mock_challenge();
             multivariates.fold(multivariates.folded_polynomials, multivariate_n, round_challenges[round_idx]);
         }
 
         // Final round
-        transcript.add(multivariates.batch_evaluate(round_challenges));
+        auto multivariate_evaluations = multivariates.batch_evaluate(round_challenges);
+        transcript.add_element("multivariate_evaluations", to_buffer(multivariate_evaluations));
     };
 
     /**
@@ -71,23 +88,28 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         // All but final round.
         // target_total_sum is initialized to zero then mutated in place.
         for (size_t round_idx = 0; round_idx < multivariate_d; round_idx++) {
-            // auto round_univariate = challenges.get_sumcheck_round_univariate(round_idx);
-            auto round_univariate = Univariate<FF, MAX_RELATION_LENGTH>();
+            // Obtain the round univariate from the transcript
+            auto round_univariate = Univariate::from_buf(transcript.get_element(round_univariate_names[round_idx]));
+
             verified = verified && round.check_sum(round_univariate);
             FF round_challenge = transcript.get_mock_challenge();
             round.compute_next_target_sum(round_univariate, round_challenge);
         }
 
         // Final round
-        // std::vector<FF> purported_evaluations = challenges.get_sumcheck_purported_evaluations();
-        std::vector<FF> purported_evaluations = {
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-        }; // TODO: update this
+        auto purported_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
         FF relation_separator_challenge = transcript.get_mock_challenge();
         FF full_honk_relation_purported_value =
             round.compute_full_honk_relation_purported_value(purported_evaluations, relation_separator_challenge);
         verified = verified && (full_honk_relation_purported_value == round.target_total_sum);
         return verified;
     };
+
+    void compute_round_univariate_names()
+    {
+        for (size_t round_idx = 0; round_idx < multivariate_d; round_idx++) {
+            round_univariate_names[round_idx] = "round_univariate_" + std::to_string(round_idx);
+        }
+    }
 };
 } // namespace honk::sumcheck

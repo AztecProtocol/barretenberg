@@ -4,7 +4,10 @@
 #include <ostream>
 #include <algorithm>
 #include <stddef.h>
+#include <string>
 #include "./common/serialize.hpp"
+#include "common/assert.hpp"
+#include "../../../common/serialize.hpp"
 
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -41,6 +44,19 @@ template <class Fr, size_t _length> class Univariate {
         }
     }
 
+    // TODO(luke): I'd like to be able to construct a Univariate directly from a buffer like this but the compiler
+    // complains about ambiguity with the 'evaluations' based constructor above. Could find a way to resolve if desired.
+
+    // explicit Univariate(std::vector<uint8_t> buffer)
+    //     : evaluations({ { 0 } })
+    // {
+    //     const size_t num_elements = buffer.size() / sizeof(Fr);
+    //     ASSERT(num_elements == _length);
+    //     for (size_t i = 0; i < num_elements; ++i) {
+    //         evaluations[i] = from_buffer<Fr>(buffer, i * sizeof(Fr));
+    //     }
+    // }
+
     Fr& value_at(size_t i) { return evaluations[i]; };
 
     // Write the Univariate evaluations to a buffer
@@ -49,6 +65,17 @@ template <class Fr, size_t _length> class Univariate {
         std::vector<uint8_t> buf;
         std::write<std::vector<uint8_t>, Fr, _length>(buf, evaluations);
         return buf;
+    }
+
+    // Static method for creating a Univariate from a buffer
+    static Univariate from_buf(std::vector<uint8_t> const& buffer)
+    {
+        ASSERT(_length == (buffer.size() / sizeof(Fr)));
+        Univariate result;
+        for (size_t i = 0; i < _length; ++i) {
+            result.evaluations[i] = from_buffer<Fr>(buffer, i * sizeof(Fr));
+        }
+        return result;
     }
 
     // Operations between Univariate and other Univariate

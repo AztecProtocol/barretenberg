@@ -1,8 +1,10 @@
 #pragma once
 
 #include "./transcript.hpp"
+#include <cstddef>
 #include <ecc/curves/bn254/fr.hpp>
 #include <ecc/curves/bn254/g1.hpp>
+#include "../honk/sumcheck/polynomials/univariate.hpp"
 
 // TODO(luke): get rid of these ASAP
 #pragma GCC diagnostic ignored "-Wunused-variable"
@@ -57,8 +59,7 @@ class StandardTranscript : public Transcript {
 
     std::vector<uint8_t> export_transcript() const { return Transcript::export_transcript(); }
 
-    // TODO(luke): temporary functions for getting honk working with StandardTranscript
-    template <class... Frs> void add(Frs... field_elements){}; // TODO(Cody): implementation
+    // TODO(luke): temporary function for debugging
     barretenberg::fr get_mock_challenge() { return barretenberg::fr::random_element(); };
 };
 
