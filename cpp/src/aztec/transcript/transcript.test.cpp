@@ -180,6 +180,7 @@ TEST(transcript, univariate_serialization)
     // Example of challenge generation; not used in test
     transcript.apply_fiat_shamir("omicron");
     Fr omicron = Fr::serialize_from_buffer(transcript.get_challenge("omicron").begin());
+    static_cast<void>(omicron);
 
     // Deserialize into a univariate from the transcript
     auto deserialized_univariate = Univariate::from_buf(transcript.get_element("round_univariate_i"));

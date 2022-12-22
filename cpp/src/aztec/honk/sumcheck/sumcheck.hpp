@@ -21,7 +21,6 @@ template <class Multivariates, class Transcript, template <class> class... Relat
     Transcript transcript;
     SumcheckRound<FF, Multivariates::num, Relations...> round;
     std::array<std::string, multivariate_d> round_univariate_names;
-    using Univariate = Univariate<FF, MAX_RELATION_LENGTH>;
 
     // prover instantiates sumcheck with multivariates
     Sumcheck(Multivariates multivariates, Transcript transcript)
@@ -89,7 +88,8 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         // target_total_sum is initialized to zero then mutated in place.
         for (size_t round_idx = 0; round_idx < multivariate_d; round_idx++) {
             // Obtain the round univariate from the transcript
-            auto round_univariate = Univariate::from_buf(transcript.get_element(round_univariate_names[round_idx]));
+            auto round_univariate = Univariate<FF, MAX_RELATION_LENGTH>::from_buf(
+                transcript.get_element(round_univariate_names[round_idx]));
 
             verified = verified && round.check_sum(round_univariate);
             FF round_challenge = transcript.get_mock_challenge();
