@@ -14,7 +14,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
     Multivariates multivariates;
     static constexpr size_t multivariate_d = Multivariates::multivariate_d; // number of variables
     static constexpr size_t multivariate_n = Multivariates::multivariate_n; // 2^d
-    // TODO(luke): this lives in sumcheck_round, remove when possible
+    // TODO(luke): this value is needed here but also lives in sumcheck_round
     static constexpr size_t MAX_RELATION_LENGTH = std::max({ Relations<FF>::RELATION_LENGTH... });
 
     std::array<FF, Multivariates::num> purported_evaluations;
