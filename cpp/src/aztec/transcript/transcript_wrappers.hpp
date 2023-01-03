@@ -1,14 +1,8 @@
 #pragma once
 
 #include "./transcript.hpp"
-#include <cstddef>
 #include <ecc/curves/bn254/fr.hpp>
 #include <ecc/curves/bn254/g1.hpp>
-#include "../honk/sumcheck/polynomials/univariate.hpp"
-
-// TODO(luke): get rid of these ASAP
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 namespace transcript {
 /**

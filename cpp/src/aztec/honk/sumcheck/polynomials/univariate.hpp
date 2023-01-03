@@ -43,19 +43,6 @@ template <class Fr, size_t _length> class Univariate {
         }
     }
 
-    // TODO(luke): I'd like to be able to construct a Univariate directly from a buffer this leads to ambiguity with the
-    // 'evaluations' based constructor above. Could find a way to resolve if desired.
-
-    // explicit Univariate(std::vector<uint8_t> buffer)
-    //     : evaluations({ { 0 } })
-    // {
-    //     const size_t num_elements = buffer.size() / sizeof(Fr);
-    //     ASSERT(num_elements == _length);
-    //     for (size_t i = 0; i < num_elements; ++i) {
-    //         evaluations[i] = from_buffer<Fr>(buffer, i * sizeof(Fr));
-    //     }
-    // }
-
     Fr& value_at(size_t i) { return evaluations[i]; };
 
     // Write the Univariate evaluations to a buffer
@@ -67,7 +54,6 @@ template <class Fr, size_t _length> class Univariate {
     }
 
     // Static method for creating a Univariate from a buffer
-    // IMPROVEMENT(luke): implement read/write for Univariate?
     static Univariate serialize_from_buffer(std::vector<uint8_t> buffer)
     {
         ASSERT(_length == (buffer.size() / sizeof(Fr)));

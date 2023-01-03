@@ -29,7 +29,6 @@
 #pragma once
 #include <array>
 #include <common/net.hpp>
-#include <cstddef>
 #include <type_traits>
 #include <vector>
 #include <map>
@@ -352,16 +351,6 @@ template <bool include_size = false, typename T> std::vector<uint8_t> to_buffer(
         for (auto e : value) {
             write(buf, e);
         }
-    }
-    return buf;
-}
-
-template <typename T, size_t N> std::vector<uint8_t> to_buffer(std::array<T, N> const& value)
-{
-    using serialize::write;
-    std::vector<uint8_t> buf;
-    for (auto e : value) {
-        write(buf, e);
     }
     return buf;
 }

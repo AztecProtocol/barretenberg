@@ -1,7 +1,4 @@
 #include "./transcript_wrappers.hpp"
-#include "common/serialize.hpp"
-#include <array>
-#include <cstddef>
 
 namespace transcript {
 void StandardTranscript::add_field_element(const std::string& element_name, const barretenberg::fr& element)

@@ -64,7 +64,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         }
 
         // Final round
-        // TODO: get evaluations from folded_polynomials; don't need batch_evaluate
+        // Note: get evaluations from folded_polynomials; don't need batch_evaluate
         auto multivariate_evaluations = multivariates.batch_evaluate(round_challenges);
         transcript.add_element("multivariate_evaluations", to_buffer(multivariate_evaluations));
     };
