@@ -5,6 +5,8 @@
 #include "relations/grand_product_computation_relation.hpp"
 #include "relations/grand_product_initialization_relation.hpp"
 #include "transcript/manifest.hpp"
+#include <array>
+#include <cstddef>
 #include <ecc/curves/bn254/fr.hpp>
 #include <numeric/random/engine.hpp>
 
@@ -19,6 +21,25 @@ using namespace honk::sumcheck;
 
 namespace test_sumcheck_round {
 
+using Transcript = transcript::StandardTranscript;
+using FF = barretenberg::fr;
+
+// Add mock data to the transcript corresponding to the components added by the prover during sumcheck. This is useful
+// for independent testing of the sumcheck verifier.
+template <size_t multivariate_d, size_t MAX_RELATION_LENGTH, size_t num_polys>
+void mock_prover_contributions_to_transcript(Transcript& transcript)
+{
+    // Write d-many arbitrary round univariates to the transcript
+    for (size_t round_idx = 0; round_idx < multivariate_d; round_idx++) {
+        auto round_univariate = Univariate<FF, MAX_RELATION_LENGTH>();
+        transcript.add_element("univariate_" + std::to_string(round_idx), round_univariate.to_buffer());
+    }
+
+    // Write array of arbitrary multivariate evaluations to trascript
+    std::array<FF, num_polys> multivariate_evaluations;
+    transcript.add_element("multivariate_evaluations", to_buffer(multivariate_evaluations));
+}
+
 TEST(Sumcheck, Prover)
 {
     const size_t num_polys(StandardArithmetization::NUM_POLYNOMIALS);
@@ -26,9 +47,7 @@ TEST(Sumcheck, Prover)
     const size_t multivariate_n(1 << multivariate_d);
     const size_t max_relation_length = 4;
 
-    using FF = barretenberg::fr;
     using Multivariates = ::Multivariates<FF, num_polys, multivariate_d>;
-    using Transcript = transcript::StandardTranscript;
 
     std::array<FF, 2> w_l = { 1, 2 };
     std::array<FF, 2> w_r = { 1, 2 };
@@ -66,32 +85,28 @@ TEST(Sumcheck, Prover)
 
     sumcheck.execute_prover();
     // TODO(Cody) This does not constitute a test.
-    // TODO(luke): verifier now requires prover to have executed; executing verifier here for now.
-    sumcheck.execute_verifier();
 }
 
-// TODO(luke): Fails because verifier now requires prover to have run; execute_verifier() run in previous test
-// TEST(Sumcheck, Verifier)
-// {
-//     const size_t num_polys(StandardArithmetization::NUM_POLYNOMIALS);
-//     const size_t multivariate_d(1);
-//     const size_t multivariate_n(1 << multivariate_d);
-//     const size_t max_relation_length = 5;
+TEST(Sumcheck, Verifier)
+{
+    const size_t num_polys(StandardArithmetization::NUM_POLYNOMIALS);
+    const size_t multivariate_d(1);
+    const size_t multivariate_n(1 << multivariate_d);
+    const size_t max_relation_length = 5;
 
-//     using FF = barretenberg::fr;
-//     using Multivariates = ::Multivariates<FF, num_polys, multivariate_d>;
-//     using Transcript = transcript::StandardTranscript;
+    using Multivariates = ::Multivariates<FF, num_polys, multivariate_d>;
 
-//     auto transcript = Transcript(transcript::Manifest());
+    auto transcript = Transcript(transcript::Manifest());
+    mock_prover_contributions_to_transcript<multivariate_d, max_relation_length, num_polys>(transcript);
 
-//     auto sumcheck = Sumcheck<Multivariates,
-//                              Transcript,
-//                              ArithmeticRelation,
-//                              GrandProductComputationRelation,
-//                              GrandProductInitializationRelation>(transcript);
+    auto sumcheck = Sumcheck<Multivariates,
+                             Transcript,
+                             ArithmeticRelation,
+                             GrandProductComputationRelation,
+                             GrandProductInitializationRelation>(transcript);
 
-//     sumcheck.execute_verifier();
-//     // TODO(Cody) This does not constitute a test.
-// }
+    sumcheck.execute_verifier();
+    // TODO(Cody) This does not constitute a test.
+}
 
 } // namespace test_sumcheck_round
