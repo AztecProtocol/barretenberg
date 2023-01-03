@@ -119,7 +119,7 @@ TYPED_TEST(SumcheckRelation, GrandProductComputationRelation)
     auto z_perm = UnivariateView(extended_edges[MULTIVARIATE::Z_PERM]);
     auto z_perm_shift = UnivariateView(extended_edges[MULTIVARIATE::Z_PERM_SHIFT]);
     // auto lagrange_1 = UnivariateView(extended_edges[MULTIVARIATE::LAGRANGE_1]);
-    // TODO(luke): use real transcript/challenges
+    // TODO(luke): use real transcript/challenges once manifest is done
     FF beta = FF::one();
     FF gamma = FF::one();
 

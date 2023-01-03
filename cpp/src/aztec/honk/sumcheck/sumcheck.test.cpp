@@ -1,5 +1,5 @@
 #include "sumcheck.hpp"
-#include "../../transcript/transcript_wrappers.hpp"
+#include "transcript/transcript_wrappers.hpp"
 #include "polynomials/multivariates.hpp"
 #include "relations/arithmetic_relation.hpp"
 #include "relations/grand_product_computation_relation.hpp"

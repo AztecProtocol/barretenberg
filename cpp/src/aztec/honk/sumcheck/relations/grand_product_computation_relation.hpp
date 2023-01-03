@@ -16,7 +16,8 @@ template <typename FF> class GrandProductComputationRelation : public Relation<F
     using MULTIVARIATE = StandardHonk::MULTIVARIATE;
 
   public:
-    const FF beta = FF::one(); // TODO(luke): make these real challenges
+    // TODO(luke): make these real challenges once manifest is done
+    const FF beta = FF::one();
     const FF gamma = FF::one();
 
     GrandProductComputationRelation() = default;

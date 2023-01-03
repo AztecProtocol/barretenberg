@@ -1,7 +1,4 @@
-#include "transcript.hpp"
-#include "common/serialize.hpp"
 #include "transcript_wrappers.hpp"
-#include <array>
 #include <gtest/gtest.h>
 #include "../honk/sumcheck/polynomials/univariate.hpp"
 
