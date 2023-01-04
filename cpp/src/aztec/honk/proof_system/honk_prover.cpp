@@ -223,6 +223,7 @@ template <typename settings> void HonkProver<settings>::execute_second_round()
 {
     queue.flush_queue();
     // No operations are needed here for Standard Honk
+    transcript.apply_fiat_shamir("eta");
 }
 
 /**
