@@ -4,6 +4,7 @@
 #include "../uintx/uintx.hpp"
 #include "stdint.h"
 #include "unistd.h"
+#include <cstdint>
 
 namespace numeric {
 namespace random {
@@ -39,7 +40,19 @@ class Engine {
     }
 };
 
-Engine& get_debug_engine(bool reset = false);
+/**
+ * @brief Retruns a reference to the global debug engine.
+ *
+ * @details When seed=0 (by default), the engine is not reset. Otherwise, the engine weill be reset
+ * and the new seed will be used.
+ *
+ * @warning Only a single instance of a DebugEngine exists at any given time. If the engine is reseeded,
+ * all previous references to the debug engine will use the newly reset engine.
+ *
+ * @param seed
+ * @return Engine&
+ */
+Engine& get_debug_engine(uint64_t seed = 0);
 Engine& get_engine();
 
 } // namespace random
