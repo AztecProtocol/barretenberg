@@ -3,6 +3,7 @@
 #include <bitset>
 
 #include "../composers/composers.hpp"
+#include <numeric/uint256/uint256.hpp>
 
 using namespace barretenberg;
 
@@ -156,6 +157,13 @@ template <typename Composer> byte_array<Composer>::byte_array(const field_t<Comp
         }
     }
 }
+
+template <typename Composer>
+byte_array<Composer>::byte_array(const safe_uint_t<Composer>& input)
+    // We compute the number of bytes requires depending on input's current max,
+    // but check if it's zero in which case we can set the max to 0.
+    : byte_array(input.value, (input.current_max == 0) ? 0 : 1 + (static_cast<size_t>(input.current_max.get_msb()) / 8))
+{}
 
 template <typename Composer>
 byte_array<Composer>::byte_array(const safe_uint_t<Composer>& input, const size_t num_bytes)

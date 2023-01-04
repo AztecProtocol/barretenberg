@@ -1,80 +1,70 @@
-#include "byte_array.hpp"
-#include <gtest/gtest.h>
-#include <plonk/composer/turbo_composer.hpp>
-#include <plonk/composer/ultra_composer.hpp>
+#include "stdlib/testing/testing.hpp"
 
-// ULTRATODO: make these typed tests
 namespace test_stdlib_byte_array {
 using namespace barretenberg;
 using namespace plonk;
-typedef waffle::TurboComposer Composer;
-typedef stdlib::bool_t<Composer> bool_t;
-typedef stdlib::field_t<Composer> field_t;
-typedef stdlib::witness_t<Composer> witness_t;
-typedef stdlib::byte_array<Composer> byte_array;
 
-TEST(stdlib_byte_array, test_reverse)
+template <typename Composer> class stdlib_byte_array : public plonk::stdlib::test::StdlibTest<Composer> {};
+
+TYPED_TEST_SUITE(stdlib_byte_array, plonk::stdlib::test::ComposerTypes);
+
+TYPED_STDLIB_TEST(stdlib_byte_array, test_reverse)
 {
-    Composer composer = Composer();
+    Composer composer;
     std::vector<uint8_t> expected = { 0x04, 0x03, 0x02, 0x01 };
-    byte_array arr(&composer, std::vector<uint8_t>{ 0x01, 0x02, 0x03, 0x04 });
+    byte_array_ct arr(&composer, std::vector<uint8_t>{ 0x01, 0x02, 0x03, 0x04 });
 
     EXPECT_EQ(arr.size(), 4UL);
     EXPECT_EQ(arr.reverse().get_value(), expected);
 }
 
-TEST(stdlib_byte_array, test_string_constructor)
+TYPED_STDLIB_TEST(stdlib_byte_array, test_string_constructor)
 {
-    Composer composer = Composer();
+    Composer composer;
     std::string a = "ascii";
-    byte_array arr(&composer, a);
+    byte_array_ct arr(&composer, a);
     EXPECT_EQ(arr.get_string(), a);
 }
 
-TEST(stdlib_byte_array, test_ostream_operator)
+TYPED_STDLIB_TEST(stdlib_byte_array, test_ostream_operator)
 {
-    Composer composer = Composer();
+    Composer composer;
     std::string a = "\1\2\3a";
-    byte_array arr(&composer, a);
+    byte_array_ct arr(&composer, a);
     std::ostringstream os;
     os << arr;
     EXPECT_EQ(os.str(), "[ 01 02 03 61 ]");
 }
 
-TEST(stdlib_byte_array, test_byte_array_input_output_consistency)
+TYPED_STDLIB_TEST(stdlib_byte_array, test_byte_array_input_output_consistency)
 {
-    Composer composer = Composer();
+    Composer composer;
+    fr a_expected = fr::random_element(this->engine);
+    fr b_expected = fr::random_element(this->engine);
 
-    fr a_expected = fr::random_element();
-    fr b_expected = fr::random_element();
+    field_ct a = witness_ct(&composer, a_expected);
+    field_ct b = witness_ct(&composer, b_expected);
 
-    field_t a = witness_t(&composer, a_expected);
-    field_t b = witness_t(&composer, b_expected);
+    byte_array_ct arr(&composer);
 
-    byte_array arr(&composer);
-
-    arr.write(static_cast<byte_array>(a));
-    arr.write(static_cast<byte_array>(b));
+    arr.write(static_cast<byte_array_ct>(a));
+    arr.write(static_cast<byte_array_ct>(b));
 
     EXPECT_EQ(arr.size(), 64UL);
 
-    field_t a_result(arr.slice(0, 32));
-    field_t b_result(arr.slice(32));
+    field_ct a_result(arr.slice(0, 32));
+    field_ct b_result(arr.slice(32));
 
     EXPECT_EQ(a_result.get_value(), a_expected);
     EXPECT_EQ(b_result.get_value(), b_expected);
 
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
-    auto proof = prover.construct_proof();
-    bool verified = verifier.verify_proof(proof);
-    EXPECT_EQ(verified, true);
+    EXPECT_TRUE(this->circuit_verifies(composer));
 }
 
-TEST(stdlib_byte_array, get_bit)
+TYPED_STDLIB_TEST(stdlib_byte_array, get_bit)
 {
-    Composer composer = Composer();
-    byte_array arr(&composer, std::vector<uint8_t>{ 0x01, 0x02, 0x03, 0x04 });
+    Composer composer;
+    byte_array_ct arr(&composer, std::vector<uint8_t>{ 0x01, 0x02, 0x03, 0x04 });
 
     EXPECT_EQ(arr.get_bit(0).get_value(), false);
     EXPECT_EQ(arr.get_bit(1).get_value(), false);
@@ -96,33 +86,82 @@ TEST(stdlib_byte_array, get_bit)
 
     EXPECT_EQ(arr.size(), 4UL);
 
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
-    auto proof = prover.construct_proof();
-    bool proof_result = verifier.verify_proof(proof);
-    EXPECT_EQ(proof_result, true);
+    EXPECT_TRUE(this->circuit_verifies(composer));
 }
 
-TEST(stdlib_byte_array, set_bit)
+TYPED_STDLIB_TEST(stdlib_byte_array, set_bit)
 {
-    Composer composer = Composer();
-    byte_array arr(&composer, std::vector<uint8_t>{ 0x01, 0x02, 0x03, 0x04 });
+    Composer composer;
+    byte_array_ct arr(&composer, std::vector<uint8_t>{ 0x01, 0x02, 0x03, 0x04 });
 
-    arr.set_bit(16, bool_t(witness_t(&composer, true)));
-    arr.set_bit(18, bool_t(witness_t(&composer, true)));
-    arr.set_bit(24, bool_t(witness_t(&composer, false)));
-    arr.set_bit(0, bool_t(witness_t(&composer, true)));
+    arr.set_bit(16, bool_ct(witness_ct(&composer, true)));
+    arr.set_bit(18, bool_ct(witness_ct(&composer, true)));
+    arr.set_bit(24, bool_ct(witness_ct(&composer, false)));
+    arr.set_bit(0, bool_ct(witness_ct(&composer, true)));
 
     const auto out = arr.get_value();
     EXPECT_EQ(out[0], uint8_t(0));
     EXPECT_EQ(out[1], uint8_t(7));
     EXPECT_EQ(out[3], uint8_t(5));
 
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
-    auto proof = prover.construct_proof();
-    bool proof_result = verifier.verify_proof(proof);
-    EXPECT_EQ(proof_result, true);
+    EXPECT_TRUE(this->circuit_verifies(composer));
+}
+
+TYPED_STDLIB_TEST(stdlib_byte_array, safe_uint_constructor)
+{
+    Composer composer;
+    std::vector<std::pair<uint256_t, uint8_t>> expected_sizes = {
+        { 0, 0 },
+        { 1, 1 },
+        { 2, 1 },
+        { 255, 1 },
+        { 256, 2 },
+        { (1 << 16) - 1, 2 },
+        { (1 << 16), 3 },
+        { uint256_t{ UINT64_MAX, UINT64_MAX, UINT64_MAX, 0 }, 24 },
+        { uint256_t{ UINT64_MAX, UINT64_MAX, UINT64_MAX, UINT64_MAX }, 32 },
+    };
+
+    for (const auto& [value, expected_bytes] : expected_sizes) {
+        if (value < fr::modulus) {
+            fr value_fr(value);
+            // create a witness and not a constant
+            witness_ct w_value_fr(&composer, value_fr);
+
+            // we explicitly set the number of bytes required
+            byte_array_ct b_value_fr(w_value_fr, expected_bytes);
+            auto values = b_value_fr.get_value();
+            EXPECT_EQ(values.size(), expected_bytes);
+
+            // For the value 0 or 1, msb is 0.
+            // for 0, we actually want the number of bits to be zero as well.
+            // but for 1, we need one bit.
+            // so we set num_bits in a way that handles this
+            const auto value_msb = value.get_msb();
+            const auto num_bits = (value == 0) ? 0 : value_msb + 1;
+
+            // create a safe uint with the right number of bits
+            suint_ct s_value_fr(w_value_fr, num_bits);
+            byte_array_ct bs_value_fr(s_value_fr);
+            values = bs_value_fr.get_value();
+            EXPECT_EQ(values.size(), expected_bytes);
+        }
+        suint_ct s_value(value);
+        byte_array_ct b_value(s_value);
+        EXPECT_EQ(b_value.get_value().size(), expected_bytes);
+    }
+
+    // Test writing safe uint to the array
+    field_ct elt(witness_ct(&composer, 0x7f6f5f4f00010203UL));
+    suint_ct safe(elt, 63);
+    // safe.value is a 63 bit uint256_t, so we serialize to a 8-byte array
+    std::string expected = { 0x7f, 0x6f, 0x5f, 0x4f, 0x00, 0x01, 0x02, 0x03 };
+
+    byte_array_ct arr(&composer);
+    arr.write(static_cast<byte_array_ct>(safe));
+    EXPECT_EQ(arr.get_string(), expected);
+
+    EXPECT_TRUE(this->circuit_verifies(composer));
 }
 
 } // namespace test_stdlib_byte_array

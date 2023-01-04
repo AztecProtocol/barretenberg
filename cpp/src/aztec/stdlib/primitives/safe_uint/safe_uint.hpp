@@ -5,6 +5,7 @@
 #include "../bool/bool.hpp"
 #include <common/assert.hpp>
 #include "../field/field.hpp"
+#include <concepts>
 
 // The purpose of this class is to enable positive integer operations without a risk of overflow.
 // Despite the name, it is *not* a "safe" version of the uint class - as operations are positive integer
@@ -87,7 +88,8 @@ template <typename ComposerContext> class safe_uint_t {
 
     // We take advantage of the range constraint already being applied in the bool constructor and don't make a
     // redundant one.
-    safe_uint_t(const bool_ct& other)
+    // we use a template argument to prevent implicit conversions to bool_t from other types.
+    safe_uint_t(const std::same_as<bool_ct> auto& other)
         : value(other)
         , current_max(1)
     {}

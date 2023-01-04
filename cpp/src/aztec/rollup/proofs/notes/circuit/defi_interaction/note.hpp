@@ -50,11 +50,11 @@ struct note {
     {
         byte_array_ct arr(&composer);
 
-        arr.write(bridge_call_data * is_real);
-        arr.write(interaction_nonce * is_real);
-        arr.write(total_input_value * is_real);
-        arr.write(total_output_value_a * is_real);
-        arr.write(total_output_value_b * is_real);
+        arr.write(byte_array_ct(bridge_call_data * is_real, 32));
+        arr.write(byte_array_ct(interaction_nonce * is_real, 32));
+        arr.write(byte_array_ct(total_input_value * is_real, 32));
+        arr.write(byte_array_ct(total_output_value_a * is_real, 32));
+        arr.write(byte_array_ct(total_output_value_b * is_real, 32));
         arr.write((field_ct(interaction_result) * is_real));
 
         return arr;

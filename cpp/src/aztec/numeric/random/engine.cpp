@@ -111,17 +111,18 @@ class DebugEngine : public Engine {
 
     uint1024_t get_random_uint1024();
 
+    void seed(uint64_t s) { engine.seed(s); }
+
   private:
     std::mt19937_64 engine;
     std::uniform_int_distribution<uint64_t> dist = std::uniform_int_distribution<uint64_t>{ 0ULL, UINT64_MAX };
 };
 
-Engine& get_debug_engine(bool reset)
+Engine& get_debug_engine(uint64_t seed)
 {
-    // static std::seed_seq seed({ 1, 2, 3, 4, 5 });
-    static DebugEngine debug_engine;
-    if (reset) {
-        debug_engine = DebugEngine();
+    static DebugEngine debug_engine = DebugEngine();
+    if (seed != 0) {
+        debug_engine.seed(seed);
     }
     return debug_engine;
 }

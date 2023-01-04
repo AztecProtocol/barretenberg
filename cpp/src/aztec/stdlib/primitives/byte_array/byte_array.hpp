@@ -17,7 +17,10 @@ template <typename ComposerContext> class byte_array {
     byte_array(ComposerContext* parent_context, bytes_t const& input);
     byte_array(ComposerContext* parent_context, bytes_t&& input);
     byte_array(const field_t<ComposerContext>& input, const size_t num_bytes = 32);
-    byte_array(const safe_uint_t<ComposerContext>& input, const size_t num_bytes = 32);
+    // create a byte_array by computing the number of bytes required from the safe_uint's current_max.
+    byte_array(const safe_uint_t<ComposerContext>& input);
+    // create a byte_array from a safe_uint with a specified number of bytes
+    byte_array(const safe_uint_t<ComposerContext>& input, const size_t num_bytes);
 
     template <typename ItBegin, typename ItEnd>
     byte_array(ComposerContext* parent_context, ItBegin const& begin, ItEnd const& end)
