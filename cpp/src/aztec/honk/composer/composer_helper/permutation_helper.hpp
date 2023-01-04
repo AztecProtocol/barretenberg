@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <vector>
+#include <proof_system/proving_key/proving_key.hpp>
 namespace waffle {
 // Enum values spaced in increments of 30-bits (multiples of 2 ** 30).
 enum WireType { LEFT = 0U, RIGHT = (1U << 30U), OUTPUT = (1U << 31U), FOURTH = 0xc0000000 };
@@ -102,6 +103,44 @@ void compute_wire_copy_cycles(CircuitConstructor& circuit_constructor, CycleColl
             wire_copy_cycles[static_cast<size_t>(w_4_index)].emplace_back(static_cast<uint32_t>(i + num_public_inputs),
                                                                           WireType::FOURTH);
         }
+    }
+}
+
+template <size_t program_width, typename CircuitConstructor>
+void compute_standard_honk_sigma_permutations(CircuitConstructor& circuit_constructor, proving_key* key)
+{
+    // Compute wire copy cycles for public and private variables
+    CycleCollector wire_copy_cycles;
+    compute_wire_copy_cycles<program_width>(circuit_constructor, wire_copy_cycles);
+    auto n = key->n;
+    // Fill sigma polynomials with default values
+    barretenberg::polynomial sigma_polynomials_lagrange[program_width];
+    for (uint64_t i = 0; i < program_width; ++i) {
+        // Construct permutation polynomials in lagrange base
+        std::string index = std::to_string(i + 1);
+        sigma_polynomials_lagrange[i] = barretenberg::polynomial(key->n);
+        auto& sigma_polynomial = sigma_polynomials_lagrange[i];
+        for (uint64_t j = 0; j < key->n; j++) {
+            sigma_polynomial_lagrange.add_coefficient(i * n + j);
+        }
+    }
+    for (size_t i = 0; i < wire_copy_cycles.size(); i++) {
+        ASSERT(wire_copy_cycles[i].size() > 0);
+        size_t cycle_size = wire_copy_cycles[i].size();
+        cycle_node current_element = wire_copy_cycles[i][cycle_size - 1];
+        auto last_index =
+            sigma_polynomials_lagrange[current_element.wire_type >> 30].data()[current_element.gate_index];
+
+        for (size_t j = 0; j < cycle_size; j++) {
+            current_element = wire_copy_cycles[i][j];
+            auto temp_index =
+                sigma_polynomials_lagrange[current_element.wire_type >> 30].data()[current_element.gate_index];
+            sigma_polynomials_lagrange[current_element.wire_type >> 30].data()[current_element.gate_index] = last_index;
+            last_index = temp_index
+        }
+    }
+    for (size_t i = 0; i < program_width) {
+        key->polynomial_cache.put("sigma_" + index + "_lagrange", std::move(sigma_polynomial_lagrange));
     }
 }
 

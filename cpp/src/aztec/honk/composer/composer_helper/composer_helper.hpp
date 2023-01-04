@@ -3,7 +3,7 @@
 #include <plonk/proof_system/verification_key/verification_key.hpp>
 #include <plonk/proof_system/prover/prover.hpp>
 #include <plonk/proof_system/verifier/verifier.hpp>
-#
+#include "permutation_helper.hpp"
 namespace waffle {
 // TODO: change initializations to specify this parameter
 #define NUM_RESERVED_GATES 4

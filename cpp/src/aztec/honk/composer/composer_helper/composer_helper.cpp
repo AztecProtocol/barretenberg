@@ -2,6 +2,7 @@
 #include <proof_system/proving_key/proving_key.hpp>
 #include <plonk/proof_system/verification_key/verification_key.hpp>
 namespace waffle {
+
 /**
  * Compute proving key base.
  *
@@ -221,7 +222,7 @@ std::shared_ptr<proving_key> ComposerHelper::compute_proving_key(CircuitConstruc
 
     // Compute sigma polynomials (we should update that late)
     // TODO: Update this
-    // compute_sigma_permutations<3, false>(circuit_proving_key.get());
+    compute_standard_honk_sigma_permutations<3>(circuit_constructor, circuit_proving_key.get());
 
     return circuit_proving_key;
 }
