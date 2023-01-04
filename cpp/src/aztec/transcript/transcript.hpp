@@ -6,7 +6,6 @@
 #include <vector>
 #include <exception>
 
-// #include "../plonk/proof_system/verification_key/verification_key.hpp"
 #include "../proof_system/verification_key/verification_key.hpp"
 
 namespace transcript {
