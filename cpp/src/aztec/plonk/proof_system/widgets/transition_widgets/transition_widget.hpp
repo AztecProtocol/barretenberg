@@ -9,7 +9,6 @@
 #include "../../types/polynomial_manifest.hpp"
 #include "../../types/prover_settings.hpp"
 #include "../../../../proof_system/proving_key/proving_key.hpp"
-#include "../../verification_key/verification_key.hpp"
 #include "../../../../proof_system/work_queue/work_queue.hpp"
 
 namespace waffle {
