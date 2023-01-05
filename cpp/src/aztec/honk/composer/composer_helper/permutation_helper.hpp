@@ -56,10 +56,8 @@ void compute_wire_copy_cycles(CircuitConstructor& circuit_constructor, CycleColl
     auto& w_l = circuit_constructor.w_l;
     auto& w_r = circuit_constructor.w_r;
     auto& w_o = circuit_constructor.w_o;
-    if constexpr (program_width > 3) {
-        auto& w_4 = circuit_constructor.w_4;
-    }
-    auto& w_o = circuit_constructor.w_o;
+    auto& n = circuit_constructor.n;
+    auto& w_4 = circuit_constructor.w_4;
 
     size_t number_of_cycles = 0;
     // Initialize wire_copy_cycles of public input variables to point to themselves
@@ -119,28 +117,35 @@ void compute_standard_honk_sigma_permutations(CircuitConstructor& circuit_constr
         // Construct permutation polynomials in lagrange base
         std::string index = std::to_string(i + 1);
         sigma_polynomials_lagrange[i] = barretenberg::polynomial(key->n);
-        auto& sigma_polynomial = sigma_polynomials_lagrange[i];
+        auto& sigma_polynomial_lagrange = sigma_polynomials_lagrange[i];
         for (uint64_t j = 0; j < key->n; j++) {
-            sigma_polynomial_lagrange.add_coefficient(i * n + j);
+            sigma_polynomial_lagrange.coefficients[j] = (i * n + j);
         }
     }
+    // Go through each cycle
     for (size_t i = 0; i < wire_copy_cycles.size(); i++) {
         ASSERT(wire_copy_cycles[i].size() > 0);
         size_t cycle_size = wire_copy_cycles[i].size();
         cycle_node current_element = wire_copy_cycles[i][cycle_size - 1];
+        // Get the index value of the last element
         auto last_index =
             sigma_polynomials_lagrange[current_element.wire_type >> 30].data()[current_element.gate_index];
 
+        // Propagate indices through the cycle
         for (size_t j = 0; j < cycle_size; j++) {
+
             current_element = wire_copy_cycles[i][j];
             auto temp_index =
                 sigma_polynomials_lagrange[current_element.wire_type >> 30].data()[current_element.gate_index];
             sigma_polynomials_lagrange[current_element.wire_type >> 30].data()[current_element.gate_index] = last_index;
-            last_index = temp_index
+            last_index = temp_index;
         }
     }
-    for (size_t i = 0; i < program_width) {
-        key->polynomial_cache.put("sigma_" + index + "_lagrange", std::move(sigma_polynomial_lagrange));
+    // Save to polynomial cache
+    for (size_t i = 0; i < program_width; i++) {
+
+        std::string index = std::to_string(i + 1);
+        key->polynomial_cache.put("sigma_" + index + "_lagrange", std::move(sigma_polynomials_lagrange[i]));
     }
 }
 
