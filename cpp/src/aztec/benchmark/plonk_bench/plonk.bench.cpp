@@ -5,8 +5,10 @@
 #include <plonk/proof_system/prover/prover.hpp>
 #include <plonk/proof_system/verifier/verifier.hpp>
 #include <stdlib/primitives/field/field.hpp>
+#include <stdlib/types/types.hpp>
 
 using namespace benchmark;
+using namespace plonk::stdlib::types;
 
 constexpr size_t MAX_GATES = 1 << 20;
 constexpr size_t NUM_CIRCUITS = 10;
@@ -15,11 +17,11 @@ constexpr size_t START = (MAX_GATES) >> (NUM_CIRCUITS - 1);
 // constexpr size_t MAX_HASH_ROUNDS = 8192;
 // constexpr size_t START_HASH_ROUNDS = 64;
 
-void generate_test_plonk_circuit(waffle::StandardComposer& composer, size_t num_gates)
+void generate_test_plonk_circuit(Composer& composer, size_t num_gates)
 {
-    plonk::stdlib::field_t a(plonk::stdlib::witness_t(&composer, barretenberg::fr::random_element()));
-    plonk::stdlib::field_t b(plonk::stdlib::witness_t(&composer, barretenberg::fr::random_element()));
-    plonk::stdlib::field_t c(&composer);
+    field_ct a(witness_ct(&composer, barretenberg::fr::random_element()));
+    field_ct b(witness_ct(&composer, barretenberg::fr::random_element()));
+    field_ct c(&composer);
     for (size_t i = 0; i < (num_gates / 4) - 4; ++i) {
         c = a + b;
         c = a * c;
@@ -28,15 +30,18 @@ void generate_test_plonk_circuit(waffle::StandardComposer& composer, size_t num_
     }
 }
 
-waffle::Prover provers[NUM_CIRCUITS];
-waffle::Verifier verifiers[NUM_CIRCUITS];
+Prover provers[NUM_CIRCUITS];
+Verifier verifiers[NUM_CIRCUITS];
 waffle::plonk_proof proofs[NUM_CIRCUITS];
 
 void construct_witnesses_bench(State& state) noexcept
 {
     for (auto _ : state) {
-        waffle::StandardComposer composer = waffle::StandardComposer(static_cast<size_t>(state.range(0)));
+        state.PauseTiming();
+        Composer composer = Composer();
         generate_test_plonk_circuit(composer, static_cast<size_t>(state.range(0)));
+        composer.compute_proving_key();
+        state.ResumeTiming();
         composer.compute_witness();
     }
 }
@@ -45,13 +50,13 @@ BENCHMARK(construct_witnesses_bench)->RangeMultiplier(2)->Range(START, MAX_GATES
 void construct_proving_keys_bench(State& state) noexcept
 {
     for (auto _ : state) {
-        waffle::StandardComposer composer = waffle::StandardComposer(static_cast<size_t>(state.range(0)));
+        Composer composer = Composer();
         generate_test_plonk_circuit(composer, static_cast<size_t>(state.range(0)));
         size_t idx = static_cast<size_t>(numeric::get_msb((uint64_t)state.range(0))) -
                      static_cast<size_t>(numeric::get_msb(START));
         composer.compute_proving_key();
         state.PauseTiming();
-        provers[idx] = composer.preprocess();
+        provers[idx] = composer.create_prover();
         state.ResumeTiming();
     }
 }
@@ -61,11 +66,11 @@ void construct_instances_bench(State& state) noexcept
 {
     for (auto _ : state) {
         state.PauseTiming();
-        waffle::StandardComposer composer = waffle::StandardComposer(static_cast<size_t>(state.range(0)));
+        Composer composer = Composer();
         generate_test_plonk_circuit(composer, static_cast<size_t>(state.range(0)));
         size_t idx = static_cast<size_t>(numeric::get_msb((uint64_t)state.range(0))) -
                      static_cast<size_t>(numeric::get_msb(START));
-        composer.preprocess();
+        composer.create_prover();
         state.ResumeTiming();
         verifiers[idx] = composer.create_verifier();
     }
