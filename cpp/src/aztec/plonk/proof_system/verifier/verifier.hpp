@@ -21,6 +21,7 @@ template <typename program_settings> class VerifierBase {
     bool validate_scalars();
 
     bool verify_proof(const waffle::plonk_proof& proof);
+    void print_debug_data(const transcript::StandardTranscript& transcript);
     transcript::Manifest manifest;
 
     std::shared_ptr<verification_key> key;

@@ -83,6 +83,8 @@ template <typename settings> class ProverBase {
 
     void reset();
 
+    void print_debug_data();
+
     size_t n;
 
     std::vector<std::unique_ptr<ProverRandomWidget>> random_widgets;
