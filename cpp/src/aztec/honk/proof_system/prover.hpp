@@ -10,7 +10,7 @@ template <typename settings> class Prover {
   public:
     // TODO(luke): update this appropriately to work with Honk Manifest
     Prover(std::shared_ptr<waffle::proving_key> input_key = nullptr,
-           const transcript::Manifest& manifest = transcript::Manifest({}));
+           const transcript::Manifest& manifest = transcript::Manifest());
 
     void execute_preamble_round();
     void execute_first_round();

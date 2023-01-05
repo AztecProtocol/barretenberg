@@ -1,8 +1,8 @@
 #include "standard_honk_composer.hpp"
 #include <gtest/gtest.h>
 
+namespace test_standard_honk_composer {
 /**
- *
  * @brief The goal of this test is to check that the sigma permutation vectors for honk are generated correctly.
  *
  * @details Specifically:
@@ -199,3 +199,13 @@ TEST(standard_honk_composer, test_assert_equal)
     // Check that the maximum cycle in the one, where we used assert_equal, is twice as long
     EXPECT_EQ(get_maximum_cycle(composer_with_assert_equal), get_maximum_cycle(composer_no_assert_equal) * 2);
 }
+
+
+TEST(StandarHonkComposer, CreateManifest)
+{
+    constexpr size_t num_sumcheck_rounds = 17;
+    constexpr size_t num_public_inputs = 1;
+    auto manifest = waffle::StandardHonkComposer::create_unrolled_manifest<num_sumcheck_rounds>(num_public_inputs);
+    EXPECT_EQ(1 + (8 + num_sumcheck_rounds), manifest.get_num_rounds());
+}
+} // namespace test_standard_honk_composer
