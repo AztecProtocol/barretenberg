@@ -35,8 +35,8 @@ template <typename Fr, typename Fq, typename G1> class InnerProductArgument {
         Fr a_zero;
     };
     // To contain the public inputs for IPA proof
-    // For now we are including the aux_generator in public input. It will be computed by the prover and the verifier
-    // separately when the challengeGenerator is defined.
+    // For now we are including the aux_generator and round_challenges in public input. They will be computed by the
+    // prover and the verifier by Fiat-Shamir when the challengeGenerator is defined.
     struct IpaPubInput {
         element commitment;
         Fr challenge_point;
@@ -79,14 +79,16 @@ template <typename Fr, typename Fq, typename G1> class InnerProductArgument {
     {
         IpaProof proof;
         auto& challenge_point = ipa_pub_input.challenge_point;
-        ASSERT(challenge_point != 0);
+        ASSERT(challenge_point != 0 && "The challenge point should not be zero");
         const size_t poly_degree = ipa_pub_input.poly_degree;
-        ASSERT(poly_degree != 0);
+        // To check poly_degree is greater than zero and a power of two
+        ASSERT((poly_degree > 0) && (!(poly_degree & (poly_degree - 1))) &&
+               "The poly_degree should be positive and a power of two");
         auto& aux_generator = ipa_pub_input.aux_generator;
         auto a_vec = polynomial;
-        std::vector<affine_element> G_vec(poly_degree);
+        std::vector<affine_element> G_vec_local(poly_degree);
         for (size_t i = 0; i < poly_degree; i++) {
-            G_vec[i] = G_vector[i];
+            G_vec_local[i] = G_vector[i];
         }
         // Construct b vector
         std::vector<Fr> b_vec(poly_degree);
@@ -113,12 +115,12 @@ template <typename Fr, typename Fq, typename G1> class InnerProductArgument {
             // L_i = < a_vec_lo, G_vec_hi > + inner_prod_L * aux_generator
             auto pippenger_runtime_state = barretenberg::scalar_multiplication::pippenger_runtime_state(round_size);
             element partial_L = barretenberg::scalar_multiplication::pippenger_without_endomorphism_basis_points(
-                &a_vec[0], &G_vec[round_size], round_size, pippenger_runtime_state);
+                &a_vec[0], &G_vec_local[round_size], round_size, pippenger_runtime_state);
             partial_L += aux_generator * inner_prod_L;
 
             // R_i = < a_vec_hi, G_vec_lo > + inner_prod_R * aux_generator
             element partial_R = barretenberg::scalar_multiplication::pippenger_without_endomorphism_basis_points(
-                &a_vec[round_size], &G_vec[0], round_size, pippenger_runtime_state);
+                &a_vec[round_size], &G_vec_local[0], round_size, pippenger_runtime_state);
             partial_R += aux_generator * inner_prod_R;
 
             std::vector<element> round_commitments(2);
@@ -143,12 +145,12 @@ template <typename Fr, typename Fq, typename G1> class InnerProductArgument {
                 b_vec[j] *= round_challenge_inv;
                 b_vec[j] += round_challenge * b_vec[round_size + j];
 
-                // element has (x,y,z) coord, affine_element has (x,y) coord, G_vec is a vector of affine_element,
+                // element has (x,y,z) coord, affine_element has (x,y) coord, G_vec_local is a vector of affine_element,
 
-                auto G_lo = element(G_vec[j]) * round_challenge_inv;
-                auto G_hi = element(G_vec[round_size + j]) * round_challenge;
+                auto G_lo = element(G_vec_local[j]) * round_challenge_inv;
+                auto G_hi = element(G_vec_local[round_size + j]) * round_challenge;
                 auto temp = G_lo + G_hi;
-                G_vec[j] = temp.normalize();
+                G_vec_local[j] = temp.normalize();
             }
         }
         proof.L_vec = std::vector<affine_element>(log_poly_degree);
@@ -248,13 +250,13 @@ template <typename Fr, typename Fq, typename G1> class InnerProductArgument {
             s_vec[i] = s_vec_scalar;
         }
         // Copy the G_vector to local memory.
-        std::vector<affine_element> G_vec2(poly_degree);
+        std::vector<affine_element> G_vec_local(poly_degree);
         for (size_t i = 0; i < poly_degree; i++) {
-            G_vec2[i] = G_vector[i];
+            G_vec_local[i] = G_vector[i];
         }
         auto pippenger_runtime_state_2 = barretenberg::scalar_multiplication::pippenger_runtime_state(poly_degree);
         auto G_zero = barretenberg::scalar_multiplication::pippenger_without_endomorphism_basis_points(
-            &s_vec[0], &G_vec2[0], poly_degree, pippenger_runtime_state_2);
+            &s_vec[0], &G_vec_local[0], poly_degree, pippenger_runtime_state_2);
         element right_hand_side = G_zero * a_zero;
         Fr a_zero_b_zero = a_zero * b_zero;
         right_hand_side += aux_generator * a_zero_b_zero;
