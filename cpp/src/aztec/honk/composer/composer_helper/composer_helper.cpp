@@ -280,7 +280,8 @@ UnrolledVerifier ComposerHelper<CircuitConstructor>::create_unrolled_verifier(Ci
 {
     compute_verification_key(circuit_constructor);
     // UnrolledVerifier output_state(circuit_verification_key,
-    //                             create_unrolled_manifest(circuit_constructor.public_inputs.size()));
+    //                               create_unrolled_manifest(circuit_constructor.n,
+    //                               circuit_constructor.public_inputs.size()));
     UnrolledVerifier output_state;
 
     // TODO: Deal with commitments
@@ -299,7 +300,8 @@ UnrolledProver ComposerHelper<CircuitConstructor>::create_unrolled_prover(Circui
     compute_witness(circuit_constructor);
 
     // TODO: Initialize UnrolledProver correctly
-    // UnrolledProver output_state(circuit_proving_key, create_unrolled_manifest(public_inputs.size()));
+    // UnrolledProver output_state(circuit_proving_key, create_unrolled_manifest(circuit_constructor.n,
+    // public_inputs.size()));
     UnrolledProver output_state;
     // TODO: Initialize constraints
     // std::unique_ptr<ProverPermutationWidget<3, false>> permutation_widget =

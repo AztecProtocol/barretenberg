@@ -259,7 +259,7 @@ class StandardComposer : public ComposerBase {
               // Round 6
               transcript::Manifest::RoundManifest(
                 {
-                    { .name = "t",            .num_bytes = fr_size, .derived_by_verifier = true, .challenge_map_index = -1 },
+                    { .name = "t",            .num_bytes = fr_size, .derived_by_verifier = true,  .challenge_map_index = -1 },
                     { .name = "w_1",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 0 },
                     { .name = "w_2",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 1 },
                     { .name = "w_3",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 2 },
