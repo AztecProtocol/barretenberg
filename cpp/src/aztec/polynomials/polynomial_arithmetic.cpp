@@ -5,6 +5,7 @@
 #include <math.h>
 #include <memory.h>
 #include <numeric/bitop/get_msb.hpp>
+#include <numeric/bitop/pow.hpp>
 #include <common/max_threads.hpp>
 
 namespace barretenberg {
@@ -45,11 +46,6 @@ inline uint32_t reverse_bits(uint32_t x, uint32_t bit_length)
     return (((x >> 16) | (x << 16))) >> (32 - bit_length);
 }
 
-inline bool is_power_of_two(uint64_t x)
-{
-    return x && !(x & (x - 1));
-}
-
 void copy_polynomial(const fr* src, fr* dest, size_t num_src_coefficients, size_t num_target_coefficients)
 {
     // TODO: fiddle around with avx asm to see if we can speed up
@@ -65,9 +61,9 @@ void fft_inner_serial(std::vector<fr*> coeffs, const size_t domain_size, const s
 {
     // Assert that the number of polynomials is a power of two.
     const size_t num_polys = coeffs.size();
-    ASSERT(is_power_of_two(num_polys));
+    ASSERT(numeric::is_power_of_two(num_polys));
     const size_t poly_domain_size = domain_size / num_polys;
-    ASSERT(is_power_of_two(poly_domain_size));
+    ASSERT(numeric::is_power_of_two(poly_domain_size));
 
     fr temp;
     size_t log2_size = (size_t)numeric::get_msb(domain_size);
@@ -177,9 +173,9 @@ void fft_inner_parallel(std::vector<fr*> coeffs,
     fr* scratch_space = get_scratch_space(domain.size);
 
     const size_t num_polys = coeffs.size();
-    ASSERT(is_power_of_two(num_polys));
+    ASSERT(numeric::is_power_of_two(num_polys));
     const size_t poly_size = domain.size / num_polys;
-    ASSERT(is_power_of_two(poly_size));
+    ASSERT(numeric::is_power_of_two(poly_size));
     const size_t poly_mask = poly_size - 1;
     const size_t log2_poly_size = (size_t)numeric::get_msb(poly_size);
 
@@ -570,9 +566,9 @@ void ifft(std::vector<fr*> coeffs, const evaluation_domain& domain)
     fft_inner_parallel(coeffs, domain, domain.root_inverse, domain.get_inverse_round_roots());
 
     const size_t num_polys = coeffs.size();
-    ASSERT(is_power_of_two(num_polys));
+    ASSERT(numeric::is_power_of_two(num_polys));
     const size_t poly_size = domain.size / num_polys;
-    ASSERT(is_power_of_two(poly_size));
+    ASSERT(numeric::is_power_of_two(poly_size));
     const size_t poly_mask = poly_size - 1;
     const size_t log2_poly_size = (size_t)numeric::get_msb(poly_size);
 
@@ -604,7 +600,7 @@ void coset_fft(fr* coeffs, fr* target, const evaluation_domain& domain)
 void coset_fft(std::vector<fr*> coeffs, const evaluation_domain& domain)
 {
     const size_t num_polys = coeffs.size();
-    ASSERT(is_power_of_two(num_polys));
+    ASSERT(numeric::is_power_of_two(num_polys));
     const size_t poly_size = domain.size / num_polys;
     const fr generator_pow_n = domain.generator.pow(poly_size);
     fr generator_start = 1;
@@ -706,7 +702,7 @@ void coset_ifft(std::vector<fr*> coeffs, const evaluation_domain& domain)
     ifft(coeffs, domain);
 
     const size_t num_polys = coeffs.size();
-    ASSERT(is_power_of_two(num_polys));
+    ASSERT(numeric::is_power_of_two(num_polys));
     const size_t poly_size = domain.size / num_polys;
     const fr generator_inv_pow_n = domain.generator_inverse.pow(poly_size);
     fr generator_start = 1;
@@ -775,7 +771,7 @@ fr evaluate(const std::vector<fr*> coeffs, const fr& z, const size_t large_n)
 {
     const size_t num_polys = coeffs.size();
     const size_t poly_size = large_n / num_polys;
-    ASSERT(is_power_of_two(poly_size));
+    ASSERT(numeric::is_power_of_two(poly_size));
     const size_t log2_poly_size = (size_t)numeric::get_msb(poly_size);
 #ifndef NO_MULTITHREADING
     size_t num_threads = max_threads::compute_num_threads();
@@ -924,9 +920,9 @@ void divide_by_pseudo_vanishing_polynomial(std::vector<fr*> coeffs,
 
     // Assert that the number of polynomials in coeffs is a power of 2.
     const size_t num_polys = coeffs.size();
-    ASSERT(is_power_of_two(num_polys));
+    ASSERT(numeric::is_power_of_two(num_polys));
     const size_t poly_size = target_domain.size / num_polys;
-    ASSERT(is_power_of_two(poly_size));
+    ASSERT(numeric::is_power_of_two(poly_size));
     const size_t poly_mask = poly_size - 1;
     const size_t log2_poly_size = (size_t)numeric::get_msb(poly_size);
 
