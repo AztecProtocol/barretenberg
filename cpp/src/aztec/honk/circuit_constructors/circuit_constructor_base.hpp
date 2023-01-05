@@ -1,7 +1,7 @@
 #pragma once
 #include <ecc/curves/bn254/fr.hpp>
 
-namespace waffle {
+namespace honk {
 static constexpr uint32_t DUMMY_TAG = 0;
 
 struct add_triple {
@@ -277,7 +277,10 @@ template <size_t program_width_> class CircuitConstructorBase {
         }
     }
 
-    virtual void assert_equal(const uint32_t a_idx, const uint32_t b_idx, std::string const& msg = "assert_equal");
+    // TODO(Cody): virtual keyword is giving a linker error. Seemingly relevant keyword: "class template SFINAE".
+    /* virtual */ void assert_equal(const uint32_t a_idx,
+                                    const uint32_t b_idx,
+                                    std::string const& msg = "assert_equal");
 
     size_t get_circuit_subgroup_size(const size_t num_gates)
     {
@@ -318,7 +321,8 @@ template <size_t program_width_> class CircuitConstructorBase {
         set_err(msg);
     }
 };
-} // namespace waffle
+
+} // namespace honk
 
 /**
  * Composer Example: Pythagorean triples.

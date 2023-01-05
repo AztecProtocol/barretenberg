@@ -11,7 +11,7 @@ auto& engine = numeric::random::get_debug_engine();
 
 TEST(standard_circuit_constructor, base_case)
 {
-    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
+    honk::StandardCircuitConstructor composer = honk::StandardCircuitConstructor();
     fr a = fr::one();
     composer.add_public_variable(a);
 
@@ -21,7 +21,7 @@ TEST(standard_circuit_constructor, base_case)
 
 TEST(standard_circuit_constructor, test_add_gate)
 {
-    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
+    honk::StandardCircuitConstructor composer = honk::StandardCircuitConstructor();
     fr a = fr::one();
     uint32_t a_idx = composer.add_public_variable(a);
     fr b = fr::one();
@@ -74,7 +74,7 @@ TEST(standard_circuit_constructor, test_add_gate)
 
 TEST(standard_circuit_constructor, test_mul_gate_proofs)
 {
-    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
+    honk::StandardCircuitConstructor composer = honk::StandardCircuitConstructor();
     fr q[7]{ fr::random_element(), fr::random_element(), fr::random_element(), fr::random_element(),
              fr::random_element(), fr::random_element(), fr::random_element() };
     fr q_inv[7]{
@@ -147,7 +147,7 @@ TEST(standard_circuit_constructor, test_mul_gate_proofs)
 
 TEST(standard_circuit_constructor, range_constraint)
 {
-    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
+    honk::StandardCircuitConstructor composer = honk::StandardCircuitConstructor();
 
     for (size_t i = 0; i < 10; ++i) {
 
@@ -185,7 +185,7 @@ TEST(standard_circuit_constructor, range_constraint)
 
 TEST(standard_circuit_constructor, range_constraint_fail)
 {
-    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
+    honk::StandardCircuitConstructor composer = honk::StandardCircuitConstructor();
 
     uint64_t value = 0xffffff;
     uint32_t witness_index = composer.add_variable(fr(value));
@@ -199,7 +199,7 @@ TEST(standard_circuit_constructor, range_constraint_fail)
 
 TEST(standard_circuit_constructor, and_constraint)
 {
-    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
+    honk::StandardCircuitConstructor composer = honk::StandardCircuitConstructor();
 
     for (size_t i = 0; i < /*10*/ 1; ++i) {
         uint32_t left_value = engine.get_random_uint32();
@@ -215,7 +215,7 @@ TEST(standard_circuit_constructor, and_constraint)
         // include non-nice numbers of bits, that will bleed over gate boundaries
         size_t extra_bits = 2 * (i % 4);
 
-        waffle::accumulator_triple accumulators =
+        honk::accumulator_triple accumulators =
             composer.create_and_constraint(left_witness_index, right_witness_index, 32 + extra_bits);
         // composer.create_and_constraint(left_witness_index, right_witness_index, 32 + extra_bits);
 
@@ -264,7 +264,7 @@ TEST(standard_circuit_constructor, and_constraint)
 
 TEST(standard_circuit_constructor, xor_constraint)
 {
-    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
+    honk::StandardCircuitConstructor composer = honk::StandardCircuitConstructor();
 
     for (size_t i = 0; i < /*10*/ 1; ++i) {
         uint32_t left_value = engine.get_random_uint32();
@@ -280,7 +280,7 @@ TEST(standard_circuit_constructor, xor_constraint)
         // include non-nice numbers of bits, that will bleed over gate boundaries
         size_t extra_bits = 2 * (i % 4);
 
-        waffle::accumulator_triple accumulators =
+        honk::accumulator_triple accumulators =
             composer.create_xor_constraint(left_witness_index, right_witness_index, 32 + extra_bits);
 
         for (uint32_t j = 0; j < 16; ++j) {
@@ -328,7 +328,7 @@ TEST(standard_circuit_constructor, xor_constraint)
 
 TEST(standard_circuit_constructor, big_add_gate_with_bit_extract)
 {
-    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
+    honk::StandardCircuitConstructor composer = honk::StandardCircuitConstructor();
 
     const auto generate_constraints = [&composer](uint32_t quad_value) {
         uint32_t quad_accumulator_left =
@@ -341,15 +341,15 @@ TEST(standard_circuit_constructor, big_add_gate_with_bit_extract)
         uint32_t input = engine.get_random_uint32();
         uint32_t output = input + (quad_value > 1 ? 1 : 0);
 
-        waffle::add_quad gate{ composer.add_variable(uint256_t(input)),
-                               composer.add_variable(uint256_t(output)),
-                               right_idx,
-                               left_idx,
-                               fr(6),
-                               -fr(6),
-                               fr::zero(),
-                               fr::zero(),
-                               fr::zero() };
+        honk::add_quad gate{ composer.add_variable(uint256_t(input)),
+                             composer.add_variable(uint256_t(output)),
+                             right_idx,
+                             left_idx,
+                             fr(6),
+                             -fr(6),
+                             fr::zero(),
+                             fr::zero(),
+                             fr::zero() };
 
         composer.create_big_add_gate_with_bit_extraction(gate);
     };
@@ -365,7 +365,7 @@ TEST(standard_circuit_constructor, big_add_gate_with_bit_extract)
 
 TEST(standard_circuit_constructor, test_range_constraint_fail)
 {
-    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
+    honk::StandardCircuitConstructor composer = honk::StandardCircuitConstructor();
     uint32_t witness_index = composer.add_variable(fr::neg_one());
     composer.decompose_into_base4_accumulators(witness_index, 32);
 
@@ -376,7 +376,7 @@ TEST(standard_circuit_constructor, test_range_constraint_fail)
 
 TEST(standard_circuit_constructor, test_check_circuit_correct)
 {
-    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
+    honk::StandardCircuitConstructor composer = honk::StandardCircuitConstructor();
     fr a = fr::one();
     uint32_t a_idx = composer.add_public_variable(a);
     fr b = fr::one();
@@ -396,7 +396,7 @@ TEST(standard_circuit_constructor, test_check_circuit_correct)
 
 TEST(standard_circuit_constructor, test_check_circuit_broken)
 {
-    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
+    honk::StandardCircuitConstructor composer = honk::StandardCircuitConstructor();
     fr a = fr::one();
     uint32_t a_idx = composer.add_public_variable(a);
     fr b = fr::one();
@@ -416,7 +416,7 @@ TEST(standard_circuit_constructor, test_check_circuit_broken)
 
 TEST(standard_circuit_constructor, test_fixed_group_add_gate_with_init)
 {
-    waffle::StandardCircuitConstructor composer = waffle::StandardCircuitConstructor();
+    honk::StandardCircuitConstructor composer = honk::StandardCircuitConstructor();
     auto gen_data = crypto::pedersen::get_generator_data({ 0, 0 });
 
     // 1. generate two origin points P, Q
@@ -442,12 +442,12 @@ TEST(standard_circuit_constructor, test_fixed_group_add_gate_with_init)
     for (size_t i = 0; i < 2; ++i) {
         fr starting_accumulator = origin_accumulators[i]; // skew = 0
 
-        waffle::fixed_group_init_quad init_quad{ origin_points[0].x,
-                                                 (origin_points[0].x - origin_points[1].x),
-                                                 origin_points[0].y,
-                                                 (origin_points[0].y - origin_points[1].y) };
+        honk::fixed_group_init_quad init_quad{ origin_points[0].x,
+                                               (origin_points[0].x - origin_points[1].x),
+                                               origin_points[0].y,
+                                               (origin_points[0].y - origin_points[1].y) };
 
-        waffle::fixed_group_add_quad round_quad{
+        honk::fixed_group_add_quad round_quad{
             .a = composer.add_variable(origin_points[i].x),
             .b = composer.add_variable(origin_points[i].y),
             .c = composer.add_variable(accumulator_offset),
@@ -467,7 +467,7 @@ TEST(standard_circuit_constructor, test_fixed_group_add_gate_with_init)
 
 TEST(standard_circuit_constructor, test_fixed_group_add_gate)
 {
-    auto composer = waffle::StandardCircuitConstructor();
+    auto composer = honk::StandardCircuitConstructor();
     auto gen_data = crypto::pedersen::get_generator_data({ 0, 0 });
 
     constexpr size_t num_bits = 63;
@@ -529,14 +529,14 @@ TEST(standard_circuit_constructor, test_fixed_group_add_gate)
     }
     grumpkin::g1::element::batch_normalize(&multiplication_transcript[0], num_quads + 1);
 
-    waffle::fixed_group_init_quad init_quad{ origin_points[0].x,
-                                             (origin_points[0].x - origin_points[1].x),
-                                             origin_points[0].y,
-                                             (origin_points[0].y - origin_points[1].y) };
+    honk::fixed_group_init_quad init_quad{ origin_points[0].x,
+                                           (origin_points[0].x - origin_points[1].x),
+                                           origin_points[0].y,
+                                           (origin_points[0].y - origin_points[1].y) };
 
     fr x_alpha = accumulator_offset;
     for (size_t i = 0; i < 2; ++i) {
-        waffle::fixed_group_add_quad round_quad;
+        honk::fixed_group_add_quad round_quad;
         round_quad.d = composer.add_variable(accumulator_transcript[i]);
         round_quad.a = composer.add_variable(multiplication_transcript[i].x);
         round_quad.b = composer.add_variable(multiplication_transcript[i].y);
@@ -567,15 +567,15 @@ TEST(standard_circuit_constructor, test_fixed_group_add_gate)
         }
     }
 
-    waffle::add_quad add_quad{ composer.add_variable(multiplication_transcript[2].x),
-                               composer.add_variable(multiplication_transcript[2].y),
-                               composer.add_variable(x_alpha),
-                               composer.add_variable(accumulator_transcript[2]),
-                               fr::zero(),
-                               fr::zero(),
-                               fr::zero(),
-                               fr::zero(),
-                               fr::zero() };
+    honk::add_quad add_quad{ composer.add_variable(multiplication_transcript[2].x),
+                             composer.add_variable(multiplication_transcript[2].y),
+                             composer.add_variable(x_alpha),
+                             composer.add_variable(accumulator_transcript[2]),
+                             fr::zero(),
+                             fr::zero(),
+                             fr::zero(),
+                             fr::zero(),
+                             fr::zero() };
     composer.create_fixed_group_add_gate_final(add_quad);
 
     bool result = composer.check_circuit();
