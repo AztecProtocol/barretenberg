@@ -537,14 +537,6 @@ template <typename settings> void ProverBase<settings>::compute_linearisation_co
             linear_poly[key->n] +=
                 -lagrange_evals.vanishing_poly * key->quotient_polynomial_parts[j][key->n] * quotient_multipliers[j];
         }
-
-        // Assert that r(X) at X = zeta is 0
-        const auto size = key->n + 1;
-        fr linear_eval = linear_poly.evaluate(zeta, size);
-        // This condition checks if r(z) = 0 but does not abort.
-        if (linear_eval != fr(0)) {
-            info("linear_eval is not 0.");
-        }
     } else {
         fr t_eval = polynomial_arithmetic::evaluate({ &key->quotient_polynomial_parts[0][0],
                                                       &key->quotient_polynomial_parts[1][0],
