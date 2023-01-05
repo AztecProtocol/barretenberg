@@ -5,7 +5,8 @@
 #include <string>
 #include <transcript/manifest.hpp>
 #include <honk/flavor/flavor.hpp>
-namespace waffle {
+
+namespace honk {
 /**
  * @brief Standard Honk Composer has everything required to construct a prover and verifier, just as the legacy classes.
  *
@@ -14,7 +15,7 @@ namespace waffle {
  */
 class StandardHonkComposer {
   public:
-    static constexpr ComposerType type = ComposerType::STANDARD;
+    static constexpr waffle::ComposerType type = waffle::ComposerType::STANDARD;
 
     static constexpr size_t UINT_LOG2_BASE = 2;
     // An instantiation of the circuit constructor that only depends on arithmetization, not  on the proof system
@@ -35,22 +36,23 @@ class StandardHonkComposer {
         : circuit_constructor(size_hint){};
 
     StandardHonkComposer(std::string const& crs_path, const size_t size_hint = 0)
-        : StandardHonkComposer(std::unique_ptr<ReferenceStringFactory>(new FileReferenceStringFactory(crs_path)),
-                               size_hint){};
+        : StandardHonkComposer(
+              std::unique_ptr<waffle::ReferenceStringFactory>(new waffle::FileReferenceStringFactory(crs_path)),
+              size_hint){};
 
-    StandardHonkComposer(std::shared_ptr<ReferenceStringFactory> const& crs_factory, const size_t size_hint = 0)
+    StandardHonkComposer(std::shared_ptr<waffle::ReferenceStringFactory> const& crs_factory, const size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(crs_factory)
 
     {}
-    StandardHonkComposer(std::unique_ptr<ReferenceStringFactory>&& crs_factory, const size_t size_hint = 0)
+    StandardHonkComposer(std::unique_ptr<waffle::ReferenceStringFactory>&& crs_factory, const size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(std::move(crs_factory))
 
     {}
 
-    StandardHonkComposer(std::shared_ptr<proving_key> const& p_key,
-                         std::shared_ptr<verification_key> const& v_key,
+    StandardHonkComposer(std::shared_ptr<waffle::proving_key> const& p_key,
+                         std::shared_ptr<waffle::verification_key> const& v_key,
                          size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(p_key, v_key)
@@ -220,7 +222,7 @@ class StandardHonkComposer {
                   .challenge_map_index = -1 },
             },
             /* challenge_name = */ "rho",
-            /* num_challenges_in = */ STANDARD_UNROLLED_MANIFEST_SIZE - 1, /* TODO(Cody): this is bad. */
+            /* num_challenges_in = */ waffle::STANDARD_UNROLLED_MANIFEST_SIZE - 1, /* TODO(Cody): this is bad. */
             /* map_challenges_in = */ true));
 
         // Rounds 5 + num_sumcheck_rounds
@@ -259,29 +261,32 @@ class StandardHonkComposer {
         return output;
     }
 
-/**Proof and verification-related methods*/
+    /**Proof and verification-related methods*/
 
-    std::shared_ptr<proving_key> compute_proving_key()
+    std::shared_ptr<waffle::proving_key> compute_proving_key()
     {
         return composer_helper.compute_proving_key(circuit_constructor);
     }
-    std::shared_ptr<verification_key> compute_verification_key()
+
+    std::shared_ptr<waffle::verification_key> compute_verification_key()
     {
         return composer_helper.compute_verification_key(circuit_constructor);
     }
     void compute_witness() { composer_helper.compute_witness(circuit_constructor); };
-    Verifier create_verifier() { return composer_helper.create_verifier(circuit_constructor); }
+    waffle::Verifier create_verifier() { return composer_helper.create_verifier(circuit_constructor); }
     /**
      * Preprocess the circuit. Delegates to create_prover.
      *
      * @return A new initialized prover.
      */
-    Prover preprocess() { return composer_helper.create_prover(circuit_constructor); };
-    Prover create_prover() { return composer_helper.create_prover(circuit_constructor); };
-    UnrolledVerifier create_unrolled_verifier()
+
+    // Prover preprocess() { return composer_helper.create_prover(circuit_constructor); };
+    // Prover create_prover() { return composer_helper.create_prover(circuit_constructor); };
+    // UnrolledVerifier create_unrolled_verifier()
+    waffle::UnrolledVerifier create_unrolled_verifier()
     {
         return composer_helper.create_unrolled_verifier(circuit_constructor);
     }
-    UnrolledProver create_unrolled_prover() { return composer_helper.create_unrolled_prover(circuit_constructor); };
+    StandardUnrolledProver create_unrolled_prover() { return composer_helper.create_unrolled_prover(circuit_constructor); };
 }; // namespace waffle
-} // namespace waffle
+} // namespace honk
