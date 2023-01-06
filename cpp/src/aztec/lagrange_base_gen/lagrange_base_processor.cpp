@@ -44,10 +44,35 @@ int main(int argc, char** argv)
     g2_elements.push_back(verifier_ref_string->get_g2x());
     g2_elements.push_back(barretenberg::g2::affine_one);
 
-    barretenberg::io::Manifest manifest{
-        0, 1, static_cast<uint32_t>(subgroup_size), 2, static_cast<uint32_t>(subgroup_size), 2, 0
-    };
-    barretenberg::io::write_transcript(&lagrange_base_srs[0], &g2_elements[0], manifest, lagrange_srs_path, true);
+    const uint32_t subgroup_size_ = static_cast<uint32_t>(subgroup_size);
+    const uint32_t max_lagrange_transcript_size = static_cast<uint32_t>((size_t(1) << 24));
+    if (subgroup_size > max_lagrange_transcript_size) {
+        // If the transcript size is > 2^24, write the Lagrange srs into individual transcripts each containing 2^24
+        // points. This means that the individual lagrange transcripts will have a max size of 1.1 GB.
+        const uint32_t total_transcripts = static_cast<uint32_t>(subgroup_size_ / (size_t(1) << 24));
+        size_t start_idx = 0;
+        for (size_t i = 0; i < total_transcripts; i++) {
+            barretenberg::io::Manifest manifest{ .transcript_number = static_cast<uint32_t>(i),
+                                                 .total_transcripts = total_transcripts,
+                                                 .total_g1_points = subgroup_size_,
+                                                 .total_g2_points = 2,
+                                                 .num_g1_points = max_lagrange_transcript_size,
+                                                 .num_g2_points = 2,
+                                                 .start_from = 0 };
+            barretenberg::io::write_transcript(
+                &lagrange_base_srs[start_idx], &g2_elements[0], manifest, lagrange_srs_path, true);
+            start_idx += max_lagrange_transcript_size;
+        }
+    } else {
+        barretenberg::io::Manifest manifest{ .transcript_number = 0,
+                                             .total_transcripts = 1,
+                                             .total_g1_points = subgroup_size_,
+                                             .total_g2_points = 2,
+                                             .num_g1_points = subgroup_size_,
+                                             .num_g2_points = 2,
+                                             .start_from = 0 };
+        barretenberg::io::write_transcript(&lagrange_base_srs[0], &g2_elements[0], manifest, lagrange_srs_path, true);
+    }
 
     return 0;
 }
