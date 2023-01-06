@@ -128,14 +128,15 @@ void read_file_into_buffer(
 
 std::string get_transcript_path(std::string const& dir, size_t num)
 {
-    return dir + "/transcript" + (num < 10 ? "0" : "") + std::to_string(num) + ".dat";
+    return dir + "/monomial/transcript" + (num < 10 ? "0" : "") + std::to_string(num) + ".dat";
 };
 
-std::string get_lagrange_transcript_path(std::string const& dir, size_t degree)
+std::string get_lagrange_transcript_path(std::string const& dir, size_t degree, size_t num = 0)
 {
     auto log2_n = static_cast<uint32_t>(numeric::get_msb(degree));
     auto new_degree = (1 << log2_n);
-    return dir + "/transcript_" + std::to_string(new_degree) + ".dat";
+    std::string suffix_str = (num > 0) ? "_" + std::to_string(num) : "";
+    return dir + "/lagrange/transcript_" + std::to_string(new_degree) + suffix_str + ".dat";
 };
 
 bool is_file_exist(std::string const& fileName)
@@ -148,7 +149,7 @@ void read_transcript_g1(g1::affine_element* monomials, size_t degree, std::strin
 {
     size_t num = 0;
     size_t num_read = 0;
-    std::string path = is_lagrange ? get_lagrange_transcript_path(dir, degree) : get_transcript_path(dir, num);
+    std::string path = is_lagrange ? get_lagrange_transcript_path(dir, degree, num) : get_transcript_path(dir, num);
 
     while (is_file_exist(path) && num_read < degree) {
         Manifest manifest;
@@ -167,7 +168,7 @@ void read_transcript_g1(g1::affine_element* monomials, size_t degree, std::strin
         byteswap(&monomials[num_read], size);
 
         num_read += num_to_read;
-        path = get_transcript_path(dir, ++num);
+        path = is_lagrange ? get_lagrange_transcript_path(dir, degree, ++num) : get_transcript_path(dir, ++num);
     }
 
     const bool monomial_srs_condition = (num_read < degree) & (!is_lagrange);
@@ -320,8 +321,8 @@ void write_transcript(g1::affine_element const* g1_x,
     const size_t g1_buffer_size = sizeof(fq) * 2 * num_g1_x;
     const size_t g2_buffer_size = sizeof(fq) * 4 * num_g2_x;
     const size_t transcript_size = manifest_size + g1_buffer_size + g2_buffer_size;
-    std::string path =
-        is_lagrange ? get_lagrange_transcript_path(dir, num_g1_x) : get_transcript_path(dir, transcript_num);
+    std::string path = is_lagrange ? get_lagrange_transcript_path(dir, num_g1_x, transcript_num)
+                                   : get_transcript_path(dir, transcript_num);
     std::vector<char> buffer(transcript_size);
 
     Manifest net_manifest;
