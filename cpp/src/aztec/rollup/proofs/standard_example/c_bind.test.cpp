@@ -25,8 +25,8 @@ TEST(client_proofs, test_standard_example_c_bindings)
     // Read g2x.
     std::vector<uint8_t> g2x(128);
     std::ifstream transcript;
-    int NUM_POINTS_IN_TRANSCRIPT = 5040000;
-    transcript.open("../srs_db/ignition/transcript00.dat", std::ifstream::binary);
+    int NUM_POINTS_IN_TRANSCRIPT = 5040001;
+    transcript.open("../srs_db/ignition/monomial/transcript00.dat", std::ifstream::binary);
     transcript.seekg(28 + NUM_POINTS_IN_TRANSCRIPT * 64);
     transcript.read((char*)g2x.data(), 128);
     transcript.close();
