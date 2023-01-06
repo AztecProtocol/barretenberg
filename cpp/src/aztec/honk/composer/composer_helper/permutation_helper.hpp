@@ -51,6 +51,7 @@ typedef std::vector<std::vector<cycle_node>> CycleCollector;
 template <size_t program_width, typename CircuitConstructor>
 void compute_wire_copy_cycles(CircuitConstructor& circuit_constructor, CycleCollector& wire_copy_cycles)
 {
+    // Reference circuit constructor members
     auto& real_variable_index = circuit_constructor.real_variable_index;
     auto& public_inputs = circuit_constructor.public_inputs;
     auto& w_l = circuit_constructor.w_l;
@@ -60,8 +61,11 @@ void compute_wire_copy_cycles(CircuitConstructor& circuit_constructor, CycleColl
     auto& w_4 = circuit_constructor.w_4;
 
     size_t number_of_cycles = 0;
-    // Initialize wire_copy_cycles of public input variables to point to themselves
-    for (size_t i = 0; i < public_inputs.size(); ++i) {
+
+    const uint32_t num_public_inputs = static_cast<uint32_t>(public_inputs.size());
+    // Initialize wire_copy_cycles of public input variables to point to themselves ( we could actually ignore this step
+    // for HONK because of the way we construct the permutation)
+    for (size_t i = 0; i < num_public_inputs; ++i) {
         cycle_node left{ static_cast<uint32_t>(i), WireType::LEFT };
         cycle_node right{ static_cast<uint32_t>(i), WireType::RIGHT };
 
@@ -75,16 +79,16 @@ void compute_wire_copy_cycles(CircuitConstructor& circuit_constructor, CycleColl
         cycle.emplace_back(right);
     }
 
-    const uint32_t num_public_inputs = static_cast<uint32_t>(public_inputs.size());
-
     // Go through all witnesses and add them to the wire_copy_cycles
     for (size_t i = 0; i < n; ++i) {
         const auto w_1_index = real_variable_index[w_l[i]];
         const auto w_2_index = real_variable_index[w_r[i]];
         const auto w_3_index = real_variable_index[w_o[i]];
+        // Check the maximum index of a variable. If it is more or equal to the cycle vector size, extend the vector
         auto max_index = std::max({ w_1_index, w_2_index, w_3_index });
         if (max_index >= number_of_cycles) {
             wire_copy_cycles.resize(max_index + 1);
+            number_of_cycles = max_index + 1;
         }
         wire_copy_cycles[static_cast<size_t>(w_1_index)].emplace_back(static_cast<uint32_t>(i + num_public_inputs),
                                                                       WireType::LEFT);
@@ -93,7 +97,9 @@ void compute_wire_copy_cycles(CircuitConstructor& circuit_constructor, CycleColl
         wire_copy_cycles[static_cast<size_t>(w_3_index)].emplace_back(static_cast<uint32_t>(i + num_public_inputs),
                                                                       WireType::OUTPUT);
 
+        // Handle width 4 separately
         if constexpr (program_width > 3) {
+            static_assert(program_width == 4);
             const auto w_4_index = real_variable_index[w_4[i]];
             if (w_4_index >= number_of_cycles) {
                 wire_copy_cycles.resize(w_4_index + 1);
@@ -104,6 +110,18 @@ void compute_wire_copy_cycles(CircuitConstructor& circuit_constructor, CycleColl
     }
 }
 
+/**
+ * @brief Compute sigma permutations for standard honk.
+ *
+ * @details These permutations don't involve sets. We only care about equating one witness value to another. The
+ * sequences don't use cosets unlike FFT-based Plonk, because there is no need for them. We simply use indices based on
+ * the witness vector and index within the vector. These values are permuted to account for wire copy cycles
+ *
+ * @tparam program_width
+ * @tparam CircuitConstructor
+ * @param circuit_constructor
+ * @param key
+ */
 template <size_t program_width, typename CircuitConstructor>
 void compute_standard_honk_sigma_permutations(CircuitConstructor& circuit_constructor, proving_key* key)
 {
@@ -143,7 +161,6 @@ void compute_standard_honk_sigma_permutations(CircuitConstructor& circuit_constr
     }
     // Save to polynomial cache
     for (size_t i = 0; i < program_width; i++) {
-
         std::string index = std::to_string(i + 1);
         key->polynomial_cache.put("sigma_" + index + "_lagrange", std::move(sigma_polynomials_lagrange[i]));
     }

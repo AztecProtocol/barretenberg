@@ -10,7 +10,8 @@ inline std::vector<std::string> standard_selector_names()
     return result;
 }
 
-class StandardCircuitConstructor : public CircuitConstructorBase {
+#define STANDARD_HONK_WIDTH 3
+class StandardCircuitConstructor : public CircuitConstructorBase<STANDARD_HONK_WIDTH> {
   public:
     static constexpr ComposerType type = ComposerType::STANDARD;
     static constexpr size_t UINT_LOG2_BASE = 2;

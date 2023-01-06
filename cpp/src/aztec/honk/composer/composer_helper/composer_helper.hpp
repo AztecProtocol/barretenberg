@@ -11,6 +11,7 @@ namespace waffle {
 template <typename CircuitConstructor> class ComposerHelper {
   public:
     static constexpr size_t NUM_RESERVED_GATES = 4; // this must be >= num_roots_cut_out_of_vanishing_polynomial
+    static constexpr size_t program_width = CircuitConstructor::program_width;
     std::shared_ptr<proving_key> circuit_proving_key;
     std::shared_ptr<verification_key> circuit_verification_key;
     std::shared_ptr<ReferenceStringFactory> crs_factory_;
@@ -36,7 +37,10 @@ template <typename CircuitConstructor> class ComposerHelper {
     std::shared_ptr<proving_key> compute_proving_key(CircuitConstructor& circuit_constructor);
     std::shared_ptr<verification_key> compute_verification_key(CircuitConstructor& circuit_constructor);
 
-    void compute_witness(CircuitConstructor& circuit_constructor) { compute_witness_base<4>(circuit_constructor); }
+    void compute_witness(CircuitConstructor& circuit_constructor)
+    {
+        compute_witness_base<program_width>(circuit_constructor);
+    }
     Verifier create_verifier(CircuitConstructor& circuit_constructor);
     /**
      * Preprocess the circuit. Delegates to create_prover.
