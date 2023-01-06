@@ -7,9 +7,7 @@ Pippenger::Pippenger(g1::affine_element* points, size_t num_points)
     : monomials_(points)
     , num_points_(num_points)
 {
-    monomials_[0] = barretenberg::g1::affine_one;
-    io::byteswap(&monomials_[1], (num_points - 1) * 64);
-
+    io::byteswap(&monomials_[0], num_points * 64);
     scalar_multiplication::generate_pippenger_point_table(monomials_, monomials_, num_points);
 }
 
@@ -18,13 +16,7 @@ Pippenger::Pippenger(uint8_t const* points, size_t num_points, bool is_lagrange)
 {
     monomials_ = point_table_alloc<g1::affine_element>(num_points);
 
-    size_t index = 0;
-    if (!is_lagrange) {
-        monomials_[0] = barretenberg::g1::affine_one;
-        index = 1;
-    }
-
-    barretenberg::io::read_g1_elements_from_buffer(&monomials_[index], (char*)points, (num_points - index) * 64);
+    barretenberg::io::read_g1_elements_from_buffer(&monomials_[0], (char*)points, num_points * 64);
     barretenberg::scalar_multiplication::generate_pippenger_point_table(monomials_, monomials_, num_points);
 }
 
