@@ -29,9 +29,9 @@ download() {
 
 get_transcript() {
   if [ -f checksums ]; then
-    checksum ${1} && continue
+    checksum ${1} && return 0
     download ${1}
-    checksum ${1} || exit 1
+    checksum ${1} || return 1
   else
     download ${1}
   fi
