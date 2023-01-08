@@ -1,6 +1,6 @@
 #pragma once
 #include "../../plonk/proof_system/types/plonk_proof.hpp"
-#include "../../plonk/proof_system/types/program_settings.hpp"
+#include "./program_settings.hpp"
 #include "../../plonk/proof_system/verification_key/verification_key.hpp"
 #include <transcript/manifest.hpp>
 #include <plonk/proof_system/commitment_scheme/commitment_scheme.hpp>
@@ -9,16 +9,17 @@
 #include "../sumcheck/relations/arithmetic_relation.hpp"
 
 namespace honk {
-template <typename program_settings> class HonkVerifier {
+template <typename program_settings> class Verifier {
 
   public:
-    HonkVerifier(std::shared_ptr<waffle::verification_key> verifier_key = nullptr,
-                 const transcript::Manifest& manifest = transcript::Manifest({}));
-    HonkVerifier(HonkVerifier&& other);
-    HonkVerifier(const HonkVerifier& other) = delete;
-    HonkVerifier& operator=(const HonkVerifier& other) = delete;
-    HonkVerifier& operator=(HonkVerifier&& other);
+    Verifier(std::shared_ptr<waffle::verification_key> verifier_key = nullptr,
+             const transcript::Manifest& manifest = transcript::Manifest({}));
+    Verifier(Verifier&& other);
+    Verifier(const Verifier& other) = delete;
+    Verifier& operator=(const Verifier& other) = delete;
+    Verifier& operator=(Verifier&& other);
 
+    // TODO: plonk_proof is just an std::vector<uint8_t>; probably shouldn't even exist
     bool verify_proof(const waffle::plonk_proof& proof);
     transcript::Manifest manifest;
 
@@ -28,8 +29,8 @@ template <typename program_settings> class HonkVerifier {
     std::unique_ptr<waffle::CommitmentScheme> commitment_scheme;
 };
 
-extern template class HonkVerifier<waffle::standard_verifier_settings>;
+extern template class Verifier<waffle::standard_verifier_settings>;
 
-typedef HonkVerifier<waffle::standard_verifier_settings> Verifier;
+typedef Verifier<honk::standard_verifier_settings> StandardVerifier;
 
 } // namespace honk

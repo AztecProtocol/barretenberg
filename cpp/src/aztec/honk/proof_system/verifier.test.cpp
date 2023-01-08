@@ -9,7 +9,10 @@
 #include <plonk/proof_system/types/polynomial_manifest.hpp>
 #include <plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp>
 
-namespace verifier_helpers {
+using namespace barretenberg;
+using namespace honk;
+
+namespace verifier_test_helpers {
 
 // TODO(luke): replace this with an appropriate mock honk manifest
 transcript::Manifest create_manifest(const size_t num_public_inputs = 0)
@@ -26,10 +29,7 @@ transcript::Manifest create_manifest(const size_t num_public_inputs = 0)
     return output;
 }
 
-using namespace barretenberg;
-using namespace honk;
-
-honk::Verifier generate_verifier(std::shared_ptr<waffle::proving_key> circuit_proving_key)
+StandardVerifier generate_verifier(std::shared_ptr<waffle::proving_key> circuit_proving_key)
 {
     std::array<fr*, 8> poly_coefficients;
     poly_coefficients[0] = circuit_proving_key->polynomial_cache.get("q_1_lagrange").get_coefficients();
@@ -54,7 +54,7 @@ honk::Verifier generate_verifier(std::shared_ptr<waffle::proving_key> circuit_pr
     }
 
     auto crs = std::make_shared<waffle::VerifierFileReferenceString>("../srs_db/ignition");
-    std::shared_ptr<waffle::verification_key> circuit_verification_key = std::make_shared<waffle::verification_key>(
+    auto circuit_verification_key = std::make_shared<waffle::verification_key>(
         circuit_proving_key->n, circuit_proving_key->num_public_inputs, crs, circuit_proving_key->composer_type);
 
     circuit_verification_key->constraint_selectors.insert({ "Q_1", commitments[0] });
@@ -67,8 +67,9 @@ honk::Verifier generate_verifier(std::shared_ptr<waffle::proving_key> circuit_pr
     circuit_verification_key->permutation_selectors.insert({ "SIGMA_2", commitments[6] });
     circuit_verification_key->permutation_selectors.insert({ "SIGMA_3", commitments[7] });
 
-    Verifier verifier(circuit_verification_key, create_manifest());
+    StandardVerifier verifier(circuit_verification_key, create_manifest());
 
+    // TODO(luke): set verifier PCS ala the following:
     // std::unique_ptr<KateCommitmentScheme<standard_settings>> kate_commitment_scheme =
     //     std::make_unique<KateCommitmentScheme<standard_settings>>();
     // verifier.commitment_scheme = std::move(kate_commitment_scheme);
@@ -76,9 +77,11 @@ honk::Verifier generate_verifier(std::shared_ptr<waffle::proving_key> circuit_pr
     return verifier;
 }
 
-honk::Prover generate_test_data(const size_t n)
+// TODO: this example is adapted from a corresponding PlonK verifier test. Needs to be
+// updated further as the Honk PoC comes together.
+Prover generate_test_data(const size_t n)
 {
-    // create some constraints that satisfy our arithmetic circuit relation
+    // Create some constraints that satisfy our arithmetic circuit relation
     // even indices = mul gates, odd incides = add gates
 
     auto crs = std::make_shared<waffle::FileReferenceString>(n + 1, "../srs_db/ignition");
@@ -193,21 +196,23 @@ honk::Prover generate_test_data(const size_t n)
     key->polynomial_cache.put("q_m_lagrange", std::move(q_m));
     key->polynomial_cache.put("q_c_lagrange", std::move(q_c));
 
-    // TODO(luke): add a PCS (Gemini) to the proving key
+    // TODO(luke): add a PCS to the proving key
 
-    honk::Prover state = honk::Prover(std::move(key), create_manifest());
+    Prover state = Prover(std::move(key), create_manifest());
 
     return state;
 }
-} // namespace verifier_helpers
+} // namespace verifier_test_helpers
 
-TEST(verifier, verify_arithmetic_proof_small)
+// This test is modeled after a corresponding test for the Plonk Verifier. As is the case there, this test relies on
+// valid proof construction which makes the scope quite large. Not really a unit test but a nice test nonetheless.
+TEST(Verifier, verify_arithmetic_proof_small)
 {
     size_t n = 8;
 
-    honk::Prover state = verifier_helpers::generate_test_data(n);
+    Prover state = verifier_test_helpers::generate_test_data(n);
 
-    honk::Verifier verifier = verifier_helpers::generate_verifier(state.key);
+    StandardVerifier verifier = verifier_test_helpers::generate_verifier(state.key);
 
     // construct proof
     waffle::plonk_proof proof = state.construct_proof();
