@@ -1,7 +1,7 @@
 #pragma once
 #include "circuit_constructor_base.hpp"
 #include <plonk/proof_system/constants.hpp>
-#include <honk/flavor/flavor.hpp>
+#include <proof_system/flavor/flavor.hpp>
 
 namespace honk {
 enum StandardSelectors { QM, QC, Q1, Q2, Q3, NUM };

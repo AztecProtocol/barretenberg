@@ -98,7 +98,8 @@ template <size_t program_width_> class CircuitConstructorBase {
   public:
     static constexpr size_t program_width = program_width_;
     std::vector<std::string> selector_names_;
-    size_t n;
+    size_t n;          // the circuit size; we should rename
+    size_t ceil_log_n; // TODO(Cody): store this in here?
     std::vector<uint32_t> w_l;
     std::vector<uint32_t> w_r;
     std::vector<uint32_t> w_o;

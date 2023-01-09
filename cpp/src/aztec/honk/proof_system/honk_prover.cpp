@@ -17,7 +17,7 @@ namespace honk {
  * @tparam settings Settings class.
  * */
 template <typename settings>
-HonkProver<settings>::HonkProver(std::shared_ptr<waffle::proving_key> input_key,
+Prover<settings>::Prover(std::shared_ptr<waffle::proving_key> input_key,
                                  const transcript::Manifest& input_manifest)
     : n(input_key == nullptr ? 0 : input_key->n)
     , transcript(input_manifest, settings::hash_type, settings::num_challenge_bytes)
@@ -35,7 +35,7 @@ HonkProver<settings>::HonkProver(std::shared_ptr<waffle::proving_key> input_key,
  * - Add PI to transcript (I guess PI will stay in w_2 for now?)
  *
  * */
-template <typename settings> void HonkProver<settings>::compute_wire_commitments()
+template <typename settings> void Prover<settings>::compute_wire_commitments()
 {
     // TODO(luke): Compute wire commitments
     for (size_t i = 0; i < settings::program_width; ++i) {
@@ -74,7 +74,7 @@ template <typename settings> void HonkProver<settings>::compute_wire_commitments
  * Note: Step (4) utilizes Montgomery batch inversion to replace n-many inversions with
  * one batch inversion (at the expense of more multiplications)
  */
-template <typename settings> void HonkProver<settings>::compute_grand_product_polynomial()
+template <typename settings> void Prover<settings>::compute_grand_product_polynomial()
 {
     // TODO: Fr to become template param
     using Fr = barretenberg::fr;
@@ -175,7 +175,7 @@ template <typename settings> void HonkProver<settings>::compute_grand_product_po
  * - Add circuit size and PI size to transcript. That's it?
  *
  * */
-template <typename settings> void HonkProver<settings>::execute_preamble_round()
+template <typename settings> void Prover<settings>::execute_preamble_round()
 {
     // Add some initial data to transcript (circuit size and PI size)
     queue.flush_queue();
@@ -204,7 +204,7 @@ template <typename settings> void HonkProver<settings>::execute_preamble_round()
  * - compute wire commitments
  * - add public inputs to transcript (done explicitly in execute_first_round())
  * */
-template <typename settings> void HonkProver<settings>::execute_wire_commitments_round()
+template <typename settings> void Prover<settings>::execute_wire_commitments_round()
 {
     queue.flush_queue();
 
@@ -226,7 +226,7 @@ template <typename settings> void HonkProver<settings>::execute_wire_commitments
  *
  * For Standard Honk, this is a non-op (just like for Standard/Turbo Plonk).
  * */
-template <typename settings> void HonkProver<settings>::execute_tables_round()
+template <typename settings> void Prover<settings>::execute_tables_round()
 {
     queue.flush_queue();
     transcript.apply_fiat_shamir("eta");
@@ -244,7 +244,7 @@ template <typename settings> void HonkProver<settings>::execute_tables_round()
  * - Do Fiat-Shamir to get "beta" challenge (Note: gamma = beta^2)
  * - Compute grand product polynomial (permutation only) and commitment
  * */
-template <typename settings> void HonkProver<settings>::execute_grand_product_computation_round()
+template <typename settings> void Prover<settings>::execute_grand_product_computation_round()
 {
     queue.flush_queue();
 
@@ -268,7 +268,7 @@ template <typename settings> void HonkProver<settings>::execute_grand_product_co
  * - Run Sumcheck resulting in u = (u_1,...,u_d) challenges and all
  *   evaluations at u being calculated.
  * */
-template <typename settings> void HonkProver<settings>::execute_relation_check_rounds()
+template <typename settings> void Prover<settings>::execute_relation_check_rounds()
 {
     queue.flush_queue();
 
@@ -309,7 +309,7 @@ template <typename settings> void HonkProver<settings>::execute_relation_check_r
  * - Compute Fold polynomials and commitments.
  *
  * */
-template <typename settings> void HonkProver<settings>::execute_univariatization_round()
+template <typename settings> void Prover<settings>::execute_univariatization_round()
 {
     // TODO(Cody): Implement
     for (size_t round_idx = 1; round_idx < key->log_n; round_idx++) {
@@ -327,7 +327,7 @@ template <typename settings> void HonkProver<settings>::execute_univariatization
  * - Do Fiat-Shamir to get "r" challenge
  * - Compute evaluations of folded polynomials.
  * */
-template <typename settings> void HonkProver<settings>::execute_pcs_evaluation_round()
+template <typename settings> void Prover<settings>::execute_pcs_evaluation_round()
 {
     // TODO(Cody): Implement
     for (size_t round_idx = 0; round_idx < key->log_n; round_idx++) {
@@ -343,7 +343,7 @@ template <typename settings> void HonkProver<settings>::execute_pcs_evaluation_r
  * - Do Fiat-Shamir to get "nu" challenge.
  * - Compute Shplonk batched quotient commitment [Q]_1.
  * */
-template <typename settings> void HonkProver<settings>::execute_shplonk_round()
+template <typename settings> void Prover<settings>::execute_shplonk_round()
 {
     // TODO(luke): Do Fiat-Shamir to get "nu" challenge.
     // TODO(luke): Get Shplonk opening point [Q]_1
@@ -361,20 +361,20 @@ template <typename settings> void HonkProver<settings>::execute_shplonk_round()
  * - Compute KZG quotient [W]_1.
  *
  * */
-template <typename settings> void HonkProver<settings>::execute_kzg_round()
+template <typename settings> void Prover<settings>::execute_kzg_round()
 {
     // TODO(luke): Do Fiat-Shamir to get "z" challenge.
     // TODO(luke): Get KZG opening point [W]_1
     transcript.add_element("W", barretenberg::g1::affine_one.to_buffer());
     // transcript.apply_fiat_shamir("separator");
 }
-template <typename settings> waffle::plonk_proof& HonkProver<settings>::export_proof()
+template <typename settings> waffle::plonk_proof& Prover<settings>::export_proof()
 {
     proof.proof_data = transcript.export_transcript();
     return proof;
 }
 
-template <typename settings> waffle::plonk_proof& HonkProver<settings>::construct_proof()
+template <typename settings> waffle::plonk_proof& Prover<settings>::construct_proof()
 {
     // Add circuit size and public input size to transcript.
     execute_preamble_round();
@@ -425,6 +425,6 @@ template <typename settings> waffle::plonk_proof& HonkProver<settings>::construc
 }
 
 // TODO(luke): Need to define a 'standard_settings' analog for Standard Honk
-template class HonkProver<waffle::standard_settings>;
+template class Prover<waffle::standard_settings>;
 
 } // namespace honk
