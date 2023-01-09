@@ -546,7 +546,7 @@ std::vector<uint32_t> StandardCircuitConstructor::decompose_into_base4_accumulat
         }
     }
 
-    (void)msg;
+    assert_equal(witness_index, accumulator_idx, msg);
     return accumulators;
 }
 

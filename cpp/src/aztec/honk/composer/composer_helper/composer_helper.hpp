@@ -56,7 +56,8 @@ template <typename CircuitConstructor> class ComposerHelper {
     StandardProver create_prover(CircuitConstructor& circuit_constructor);
 
     waffle::UnrolledVerifier create_unrolled_verifier(CircuitConstructor& circuit_constructor);
-    StandardUnrolledProver create_unrolled_prover(CircuitConstructor& circuit_constructor);
+
+    template <typename Flavor> StandardUnrolledProver create_unrolled_prover(CircuitConstructor& circuit_constructor);
 
     std::shared_ptr<waffle::proving_key> compute_proving_key_base(CircuitConstructor& circuit_constructor,
                                                                   const size_t minimum_ciricut_size = 0,
