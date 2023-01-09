@@ -8,9 +8,12 @@ namespace honk {
 template <typename TranscriptType> struct Oracle {
     size_t consumed{ 0 };
     using Transcript = TranscriptType;
+    Transcript* transcript;
 
-    using Fr = typename TranscriptType::Fr;
-    Oracle(Transcript*){};
+    // using Fr = typename TranscriptType::Fr;
+    using Fr = typename barretenberg::fr;
+    Oracle(Transcript* transcript)
+        : transcript(transcript){};
 
     /**
      * @brief commit data to the current challenge buffer
@@ -43,7 +46,7 @@ template <typename TranscriptType> struct Oracle {
      *
      * @return Fr the generated challenge
      */
-    Fr generate_challenge() { return Fr(consumed + 2); }
+    Fr generate_challenge() { return transcript->get_mock_challenge(); }
 };
 // /**
 //  * @brief Oracle class wraps a Transcript and exposes an interface to generate plonk/honk challenges
