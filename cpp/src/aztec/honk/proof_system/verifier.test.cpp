@@ -224,7 +224,7 @@ TYPED_TEST(VerifierTests, verify_arithmetic_proof_small)
     // construct proof
     waffle::plonk_proof proof = state.construct_proof();
 
-    // verify proof
+    // TODO:(luke): verify proof. (verify_proof currently just returns 'true')
     bool result = verifier.verify_proof(proof);
 
     EXPECT_EQ(result, true);

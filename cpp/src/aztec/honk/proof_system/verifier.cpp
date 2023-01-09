@@ -52,7 +52,7 @@ template <typename program_settings> Verifier<program_settings>& Verifier<progra
 
     Univariate evaluations:
         a_0 = Fold_{-r}^(0)(-r),
-        a_l = Fold^(l)(-r^{2^l}), i = 1,...,d-1
+        a_l = Fold^(l)(-r^{2^l}), l = 1,...,d-1
 
     Univariate polynomials (evaluations over MAX_RELATION_LENGTH-many points):
         S_l, l = 0,...,d-1
@@ -100,7 +100,8 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     transcript.apply_fiat_shamir("beta");
     transcript.apply_fiat_shamir("alpha");
 
-    // Compute some basic public polys like id(X), pow(X), and any required Lagrange polys
+    // TODO(luke): Get evaluation point "u" that resulted from Sumcheck and compute evaluations of id(X), pow(X), and
+    // any required Lagrange polys
 
     // Execute Sumcheck Verifier
     auto sumcheck = Sumcheck<Multivariates, Transcript, ArithmeticRelation>(transcript);
