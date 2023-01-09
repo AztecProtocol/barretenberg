@@ -52,25 +52,28 @@ template <size_t program_width, typename CircuitConstructor>
 void compute_wire_copy_cycles(CircuitConstructor& circuit_constructor, CycleCollector& wire_copy_cycles)
 {
     // Reference circuit constructor members
-    auto& real_variable_index = circuit_constructor.real_variable_index;
-    auto& public_inputs = circuit_constructor.public_inputs;
-    auto& w_l = circuit_constructor.w_l;
-    auto& w_r = circuit_constructor.w_r;
-    auto& w_o = circuit_constructor.w_o;
-    auto& n = circuit_constructor.n;
-    auto& w_4 = circuit_constructor.w_4;
+    const std::vector<uint32_t>& real_variable_index = circuit_constructor.real_variable_index;
+    const std::vector<uint32_t>& public_inputs = circuit_constructor.public_inputs;
+
+    const std::vector<uint32_t>& w_l = circuit_constructor.w_l;
+    const std::vector<uint32_t>& w_r = circuit_constructor.w_r;
+    const std::vector<uint32_t>& w_o = circuit_constructor.w_o;
+    const size_t n = circuit_constructor.n;
+    const std::vector<uint32_t>& w_4 = circuit_constructor.w_4;
 
     size_t number_of_cycles = 0;
 
-    const uint32_t num_public_inputs = static_cast<uint32_t>(public_inputs.size());
+    const size_t num_public_inputs = public_inputs.size();
+
     // Initialize wire_copy_cycles of public input variables to point to themselves ( we could actually ignore this step
     // for HONK because of the way we construct the permutation)
-    for (size_t i = 0; i < num_public_inputs; ++i) {
+    for (size_t counter = 0; counter < num_public_inputs; ++counter) {
+        size_t i = num_public_inputs - 1 - counter;
         cycle_node left{ static_cast<uint32_t>(i), WireType::LEFT };
         cycle_node right{ static_cast<uint32_t>(i), WireType::RIGHT };
 
         const auto public_input_index = real_variable_index[public_inputs[i]];
-        if (public_input_index >= number_of_cycles) {
+        if (static_cast<size_t>(public_input_index) >= number_of_cycles) {
             wire_copy_cycles.resize(public_input_index + 1);
         }
         std::vector<cycle_node>& cycle = wire_copy_cycles[static_cast<size_t>(public_input_index)];
@@ -80,12 +83,14 @@ void compute_wire_copy_cycles(CircuitConstructor& circuit_constructor, CycleColl
     }
 
     // Go through all witnesses and add them to the wire_copy_cycles
-    for (size_t i = 0; i < n; ++i) {
-        const auto w_1_index = real_variable_index[w_l[i]];
-        const auto w_2_index = real_variable_index[w_r[i]];
-        const auto w_3_index = real_variable_index[w_o[i]];
+    for (size_t counter = 0; counter < n; ++counter) {
+        // Start from the back. This way we quickly get the maximum real variable index
+        size_t i = n - 1 - counter;
+        const uint32_t w_1_index = real_variable_index[w_l[i]];
+        const uint32_t w_2_index = real_variable_index[w_r[i]];
+        const uint32_t w_3_index = real_variable_index[w_o[i]];
         // Check the maximum index of a variable. If it is more or equal to the cycle vector size, extend the vector
-        auto max_index = std::max({ w_1_index, w_2_index, w_3_index });
+        const uint32_t max_index = std::max({ w_1_index, w_2_index, w_3_index });
         if (max_index >= number_of_cycles) {
             wire_copy_cycles.resize(max_index + 1);
             number_of_cycles = max_index + 1;
@@ -128,14 +133,14 @@ void compute_standard_honk_sigma_permutations(CircuitConstructor& circuit_constr
     // Compute wire copy cycles for public and private variables
     CycleCollector wire_copy_cycles;
     compute_wire_copy_cycles<program_width>(circuit_constructor, wire_copy_cycles);
-    auto n = key->n;
+    const size_t n = key->n;
     // Fill sigma polynomials with default values
     std::vector<barretenberg::polynomial> sigma_polynomials_lagrange;
     for (uint64_t i = 0; i < program_width; ++i) {
         // Construct permutation polynomials in lagrange base
         std::string index = std::to_string(i + 1);
         sigma_polynomials_lagrange.push_back(barretenberg::polynomial(key->n));
-        auto& sigma_polynomial_lagrange = sigma_polynomials_lagrange[i];
+        barretenberg::polynomial& sigma_polynomial_lagrange = sigma_polynomials_lagrange[i];
         for (uint64_t j = 0; j < key->n; j++) {
             sigma_polynomial_lagrange.coefficients[j] = (i * n + j);
         }
