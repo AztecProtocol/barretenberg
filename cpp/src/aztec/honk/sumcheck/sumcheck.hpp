@@ -1,7 +1,7 @@
 #include "common/serialize.hpp"
 #include "sumcheck_round.hpp"
 #include "polynomials/univariate.hpp"
-#include "../flavor/flavor.hpp"
+#include <proof_system/flavor/flavor.hpp>
 #include <algorithm>
 #include <cstddef>
 #include <string>
