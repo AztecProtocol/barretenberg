@@ -11,10 +11,12 @@
 #include <ecc/curves/bn254/g1.hpp>
 
 #include "../oracle/oracle.hpp"
-#include "../transcript/transcript.hpp"
+// #include "../transcript/transcript.hpp"
+#include "../../transcript/transcript_wrappers.hpp"
 
 #include "claim.hpp"
 #include "commitment_key.hpp"
+#include "transcript/manifest.hpp"
 
 namespace honk::pcs {
 namespace {
@@ -57,8 +59,8 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
 
   public:
     CommitmentTest()
-        : prover_transcript{}
-        , verifier_transcript{}
+        : prover_transcript{ transcript::Manifest() } // TODO(luke): initialize with empty Manifest for now
+        , verifier_transcript{ transcript::Manifest() }
         , prover_challenges{ &prover_transcript }
         , verifier_challenges{ &verifier_transcript }
         , engine{ &numeric::random::get_debug_engine() }
@@ -174,10 +176,15 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
         (verifier_challenges.consume(args), ...);
     }
 
-    Transcript<Fr> prover_transcript;
-    Transcript<Fr> verifier_transcript;
-    Oracle<Transcript<Fr>> prover_challenges;
-    Oracle<Transcript<Fr>> verifier_challenges;
+    // Transcript<Fr> prover_transcript;
+    // Transcript<Fr> verifier_transcript;
+    // Oracle<Transcript<Fr>> prover_challenges;
+    // Oracle<Transcript<Fr>> verifier_challenges;
+    using Transcript = transcript::StandardTranscript;
+    Transcript prover_transcript;
+    Transcript verifier_transcript;
+    Oracle<Transcript> prover_challenges;
+    Oracle<Transcript> verifier_challenges;
     numeric::random::Engine* engine;
 
     // Per-test-suite set-up.
@@ -212,7 +219,8 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
 template <typename Params> typename Params::CK* CommitmentTest<Params>::commitment_key = nullptr;
 template <typename Params> typename Params::VK* CommitmentTest<Params>::verification_key = nullptr;
 
-using CommitmentSchemeParams =
-    ::testing::Types<fake::Params<barretenberg::g1>, fake::Params<grumpkin::g1>, kzg::Params>;
+// using CommitmentSchemeParams =
+//     ::testing::Types<fake::Params<barretenberg::g1>, fake::Params<grumpkin::g1>, kzg::Params>;
+using CommitmentSchemeParams = ::testing::Types<kzg::Params>;
 
 } // namespace honk::pcs

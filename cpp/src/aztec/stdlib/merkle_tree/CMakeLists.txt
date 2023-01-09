@@ -16,6 +16,7 @@ if(NOT WASM)
     target_compile_options(
         leveldb
         PRIVATE
+        # -Wno-error=unused-but-set-variable
         -Wno-sign-conversion
         -Wno-unused-parameter
         -Wno-shorten-64-to-32
