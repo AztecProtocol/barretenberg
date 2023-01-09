@@ -52,7 +52,7 @@ template <typename CommitmentSchemeData, typename ChallengeGenerator> class Kate
         auto pippenger_runtime_state = barretenberg::scalar_multiplication::pippenger_runtime_state(n);
         for (auto& poly : polynomials) {
             commitments.push_back(barretenberg::scalar_multiplication::pippenger_unsafe(
-                poly, srs->get_monomials(), n, pippenger_runtime_state));
+                poly, srs->get_monomial_points(), n, pippenger_runtime_state));
         }
 
         return commitments;
