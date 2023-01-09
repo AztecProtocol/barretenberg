@@ -2,8 +2,8 @@
 #include <common/log.hpp>
 
 #define STANDARD_HONK_WIDTH 3
-class StandardArithmetization {
-  public:
+namespace onk {
+struct StandardArithmetization {
     enum POLYNOMIAL {
         W_L,
         W_R,
@@ -27,15 +27,16 @@ class StandardArithmetization {
 
     static constexpr size_t NUM_POLYNOMIALS = POLYNOMIAL::COUNT;
 };
+} // namespace onk
 
-namespace honk::sumcheck { // TODO(Cody): get namespaces right here
-class StandardHonk {
+namespace honk {
+struct StandardHonk {
   public:
-    using Arithmetization = StandardArithmetization;
+    using Arithmetization = onk::StandardArithmetization;
     using MULTIVARIATE = Arithmetization::POLYNOMIAL;
     static constexpr size_t MAX_RELATION_LENGTH = 5; // TODO(Cody): increment after fixing add_edge_contribution; kill
                                                      // after moving barycentric class out of relations
 
     // TODO(Cody): should extract this from the parameter pack. Maybe that should be done here?
 };
-} // namespace honk::sumcheck
+} // namespace honk
