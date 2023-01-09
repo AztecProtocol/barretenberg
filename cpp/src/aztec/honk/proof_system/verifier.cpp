@@ -99,9 +99,10 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     transcript.apply_fiat_shamir("eta");
     transcript.apply_fiat_shamir("beta");
     transcript.apply_fiat_shamir("alpha");
+    // TODO(luke): Apply fiat-shamir sequentially on the d-many Univariates S_l produced by the Prover during sumcheck
+    // to obtain the evaluation point u = (u_0, ..., u_{d-1})
 
-    // TODO(luke): Get evaluation point "u" that resulted from Sumcheck and compute evaluations of id(X), pow(X), and
-    // any required Lagrange polys
+    // TODO(luke): Evaluate polys id(X), pow(X), L_0(X), etc. at the point 'u'
 
     // Execute Sumcheck Verifier
     auto sumcheck = Sumcheck<Multivariates, Transcript, ArithmeticRelation>(transcript);

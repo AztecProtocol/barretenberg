@@ -175,7 +175,7 @@ template <class FF> class VerifierTests : public testing::Test {
         polynomial sigma_2(key->n);
         polynomial sigma_3(key->n);
 
-        // TODO(luke): This is part of the permutation functionality that needs to be updated for honk
+        // TODO(luke): Reinstate this with permutation functionality updated for honk
         // waffle::compute_permutation_lagrange_base_single<standard_settings>(sigma_1, sigma_1_mapping,
         // key->small_domain); waffle::compute_permutation_lagrange_base_single<standard_settings>(sigma_2,
         // sigma_2_mapping, key->small_domain);
