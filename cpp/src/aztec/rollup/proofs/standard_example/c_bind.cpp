@@ -17,10 +17,14 @@ WASM_EXPORT void standard_example__init_proving_key()
     rollup::proofs::standard_example::init_proving_key(std::move(crs_factory));
 }
 
-WASM_EXPORT void standard_example__init_verification_key(void* pippenger_ptr, uint8_t const* g2x)
+WASM_EXPORT void standard_example__init_verification_key(void* pippenger_ptr,
+                                                         void* pippenger_lagrange_ptr,
+                                                         uint8_t const* g2x)
 {
     auto crs_factory = std::make_unique<waffle::PippengerReferenceStringFactory>(
-        reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger_ptr), g2x);
+        reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger_ptr),
+        reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger_lagrange_ptr),
+        g2x);
     rollup::proofs::standard_example::init_verification_key(std::move(crs_factory));
 }
 
