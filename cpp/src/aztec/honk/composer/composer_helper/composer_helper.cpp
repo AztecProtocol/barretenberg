@@ -1,4 +1,6 @@
 #include "composer_helper.hpp"
+#include <cstddef>
+#include <proof_system/flavor/flavor.hpp>
 
 namespace honk {
 
@@ -297,16 +299,24 @@ waffle::UnrolledVerifier ComposerHelper<CircuitConstructor>::create_unrolled_ver
 }
 
 template <typename CircuitConstructor>
+template <typename Flavor>
 // TODO(Cody): this file should be generic with regard to flavor/arithmetization/whatever.
 StandardUnrolledProver ComposerHelper<CircuitConstructor>::create_unrolled_prover(CircuitConstructor& circuit_constructor)
 {
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
 
-    // TODO: Initialize StandardUnrolledProver correctly
-    // StandardUnrolledProver output_state(circuit_proving_key, create_unrolled_manifest(circuit_constructor.n,
-    // public_inputs.size()));
-    StandardUnrolledProver output_state;
+    // TODO: Initialize UnrolledProver correctly
+    size_t num_sumcheck_rounds(1);
+    while (num_sumcheck_rounds < circuit_constructor.n) { // TODO(Cody): Improve
+        num_sumcheck_rounds <<= 1;
+    };
+
+    StandardUnrolledProver output_state(
+        circuit_proving_key,
+        Flavor::create_unrolled_manifest(circuit_constructor.public_inputs.size(), num_sumcheck_rounds));
+
+    // UnrolledProver output_state;
     // TODO: Initialize constraints
     // std::unique_ptr<ProverPermutationWidget<3, false>> permutation_widget =
     //     std::make_unique<ProverPermutationWidget<3, false>>(circuit_proving_key.get());
@@ -363,5 +373,8 @@ StandardProver ComposerHelper<CircuitConstructor>::create_prover(CircuitConstruc
 
     return output_state;
 }
+
 template class ComposerHelper<StandardCircuitConstructor>;
+template StandardUnrolledProver ComposerHelper<StandardCircuitConstructor>::create_unrolled_prover<StandardHonk>(
+    StandardCircuitConstructor& circuit_constructor);
 } // namespace honk
