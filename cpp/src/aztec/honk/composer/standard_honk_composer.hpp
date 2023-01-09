@@ -4,7 +4,7 @@
 #include <srs/reference_string/file_reference_string.hpp>
 #include <string>
 #include <transcript/manifest.hpp>
-#include <honk/flavor/flavor.hpp>
+#include <proof_system/flavor/flavor.hpp>
 
 namespace honk {
 /**
@@ -193,12 +193,12 @@ class StandardHonkComposer {
         // Rounds 3 + 1, ... 3 + num_sumcheck_rounds
         for (size_t i = 0; i < num_sumcheck_rounds; i++) {
             auto label = std::to_string(num_sumcheck_rounds - i);
-            manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
-                { { .name = "uni_" + label,
-                    .num_bytes = fr_size * honk::sumcheck::StandardHonk::MAX_RELATION_LENGTH,
-                    .derived_by_verifier = false } },
-                /* challenge_name = */ "u_" + label,
-                /* num_challenges_in = */ 1));
+            manifest_rounds.emplace_back(
+                transcript::Manifest::RoundManifest({ { .name = "uni_" + label,
+                                                        .num_bytes = fr_size * honk::StandardHonk::MAX_RELATION_LENGTH,
+                                                        .derived_by_verifier = false } },
+                                                    /* challenge_name = */ "u_" + label,
+                                                    /* num_challenges_in = */ 1));
         }
 
         // Rounds 4 + num_sumcheck_rounds
