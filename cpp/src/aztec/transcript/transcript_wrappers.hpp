@@ -1,6 +1,7 @@
 #pragma once
 
 #include "./transcript.hpp"
+#include "transcript/manifest.hpp"
 #include <ecc/curves/bn254/fr.hpp>
 #include <ecc/curves/bn254/g1.hpp>
 
