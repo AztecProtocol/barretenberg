@@ -130,29 +130,33 @@ void compute_standard_honk_sigma_permutations(CircuitConstructor& circuit_constr
     compute_wire_copy_cycles<program_width>(circuit_constructor, wire_copy_cycles);
     auto n = key->n;
     // Fill sigma polynomials with default values
-    barretenberg::polynomial sigma_polynomials_lagrange[program_width];
+    std::vector<barretenberg::polynomial> sigma_polynomials_lagrange;
     for (uint64_t i = 0; i < program_width; ++i) {
         // Construct permutation polynomials in lagrange base
         std::string index = std::to_string(i + 1);
-        sigma_polynomials_lagrange[i] = barretenberg::polynomial(key->n);
+        sigma_polynomials_lagrange.push_back(barretenberg::polynomial(key->n));
         auto& sigma_polynomial_lagrange = sigma_polynomials_lagrange[i];
         for (uint64_t j = 0; j < key->n; j++) {
             sigma_polynomial_lagrange.coefficients[j] = (i * n + j);
         }
     }
     // Go through each cycle
-    for (size_t i = 0; i < wire_copy_cycles.size(); i++) {
-        ASSERT(wire_copy_cycles[i].size() > 0);
-        size_t cycle_size = wire_copy_cycles[i].size();
-        cycle_node current_element = wire_copy_cycles[i][cycle_size - 1];
+    for (auto& single_copy_cycle : wire_copy_cycles) {
+
+        // If we use assert equal, we lose a real variable index, which creates an empty cycle
+        if (single_copy_cycle.size() == 0) {
+            continue;
+        }
+        size_t cycle_size = single_copy_cycle.size();
         // Get the index value of the last element
+        cycle_node current_element = single_copy_cycle[cycle_size - 1];
         auto last_index =
             sigma_polynomials_lagrange[current_element.wire_type >> 30].data()[current_element.gate_index];
 
         // Propagate indices through the cycle
         for (size_t j = 0; j < cycle_size; j++) {
 
-            current_element = wire_copy_cycles[i][j];
+            current_element = single_copy_cycle[j];
             auto temp_index =
                 sigma_polynomials_lagrange[current_element.wire_type >> 30].data()[current_element.gate_index];
             sigma_polynomials_lagrange[current_element.wire_type >> 30].data()[current_element.gate_index] = last_index;

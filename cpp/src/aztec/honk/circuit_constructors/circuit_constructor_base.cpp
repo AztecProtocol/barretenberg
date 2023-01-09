@@ -40,5 +40,6 @@ void CircuitConstructorBase<program_width_>::assert_equal(const uint32_t a_varia
     if (real_variable_tags[a_real_idx] == DUMMY_TAG)
         real_variable_tags[a_real_idx] = real_variable_tags[b_real_idx];
 }
+// Standard honk/ plonk instantiation
 template class CircuitConstructorBase<3>;
 } // namespace waffle

@@ -2,6 +2,7 @@
 #include "composer_helper/composer_helper.hpp"
 #include <srs/reference_string/file_reference_string.hpp>
 #include <transcript/manifest.hpp>
+#include <honk/flavor/flavor.hpp>
 namespace waffle {
 /**
  * @brief Standard Honk Composer has everything required to construct a prover and verifier, just as the legacy classes.
@@ -24,7 +25,7 @@ class StandardHonkComposer {
 
     // Leaving it in for now just in case
     bool contains_recursive_proof = false;
-    static constexpr size_t program_width = 3;
+    static constexpr size_t program_width = STANDARD_HONK_WIDTH;
 
     /**Standard methods*/
 
@@ -60,7 +61,10 @@ class StandardHonkComposer {
     /**Methods related to circuit construction
      * They simply get proxied to the circuit constructor
      */
-
+    void assert_equal(const uint32_t a_variable_idx, const uint32_t b_variable_idx, std::string const& msg)
+    {
+        circuit_constructor.assert_equal(a_variable_idx, b_variable_idx, msg);
+    }
     void assert_equal_constant(uint32_t const a_idx,
                                barretenberg::fr const& b,
                                std::string const& msg = "assert equal constant")
