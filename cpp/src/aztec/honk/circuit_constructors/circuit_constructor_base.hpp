@@ -98,8 +98,7 @@ template <size_t program_width_> class CircuitConstructorBase {
   public:
     static constexpr size_t program_width = program_width_;
     std::vector<std::string> selector_names_;
-    size_t n;          // the circuit size; we should rename
-    size_t ceil_log_n; // TODO(Cody): store this in here?
+    size_t n; // the circuit size; we should rename
     std::vector<uint32_t> w_l;
     std::vector<uint32_t> w_r;
     std::vector<uint32_t> w_o;
@@ -278,10 +277,7 @@ template <size_t program_width_> class CircuitConstructorBase {
         }
     }
 
-    // TODO(Cody): virtual keyword is giving a linker error. Seemingly relevant keyword: "class template SFINAE".
-    /* virtual */ void assert_equal(const uint32_t a_idx,
-                                    const uint32_t b_idx,
-                                    std::string const& msg = "assert_equal");
+    virtual void assert_equal(const uint32_t a_idx, const uint32_t b_idx, std::string const& msg = "assert_equal");
 
     size_t get_circuit_subgroup_size(const size_t num_gates)
     {
