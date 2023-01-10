@@ -1,6 +1,7 @@
 #include "composer_helper.hpp"
 #include <cstddef>
 #include <proof_system/flavor/flavor.hpp>
+#include <numeric/bitop/get_msb.hpp>
 
 namespace honk {
 
@@ -306,15 +307,9 @@ StandardUnrolledProver ComposerHelper<CircuitConstructor>::create_unrolled_prove
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
 
-    // TODO: Initialize UnrolledProver correctly
-    size_t num_sumcheck_rounds(1);
-    while (num_sumcheck_rounds < circuit_constructor.n) { // TODO(Cody): Improve
-        num_sumcheck_rounds <<= 1;
-    };
-
-    StandardUnrolledProver output_state(
-        circuit_proving_key,
-        Flavor::create_unrolled_manifest(circuit_constructor.public_inputs.size(), num_sumcheck_rounds));
+    size_t num_sumcheck_rounds(circuit_proving_key->log_n);
+    auto manifest = Flavor::create_unrolled_manifest(circuit_constructor.public_inputs.size(), num_sumcheck_rounds);
+    StandardUnrolledProver output_state(circuit_proving_key, manifest);
 
     // UnrolledProver output_state;
     // TODO: Initialize constraints
