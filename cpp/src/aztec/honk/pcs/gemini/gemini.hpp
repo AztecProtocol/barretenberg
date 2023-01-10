@@ -166,6 +166,7 @@ template <typename Params> class MultilinearReductionScheme {
         ASSERT(claims_g.size() == num_polys_g);
 
         // Generate batching challenge ρ and powers 1,ρ,…,ρᵐ⁻¹
+        // Fr rho = challenge_generator.generate_challenge("rho");
         Fr rho = challenge_generator.generate_challenge();
         const std::vector<Fr> rhos = powers_of_rho(rho, num_polys);
         std::span<const Fr> rhos_span{ rhos };
@@ -254,6 +255,7 @@ template <typename Params> class MultilinearReductionScheme {
          * Add commitments to transcript and generate evaluation challenge r, and derive -r, r²
          */
         challenge_generator.consume(commitments);
+        // const Fr r = challenge_generator.generate_challenge("r");
         const Fr r = challenge_generator.generate_challenge();
 
         /*
@@ -351,6 +353,50 @@ template <typename Params> class MultilinearReductionScheme {
         challenge_generator.consume(proof.commitments);
         const Fr r = challenge_generator.generate_challenge();
         challenge_generator.consume(proof.evals);
+
+        std::vector<Fr> r_squares = squares_of_r(r, num_variables);
+
+        return compute_output_claim_from_proof(claims_f, claims_g, mle_opening_point, rhos, r_squares, proof);
+    };
+
+    /**
+     * @brief Temporary version of reduce_verify that does not use Oracle.
+     *
+     * @details This version of reduce_verify will go away once we fully incorporate the Oracle concept
+     * into Honk. Since we are currently using the Transcript/Manifest instead, reduce_verify does
+     * not need to construct it's own challenge_generator; we can simply pass it the challenges directly.
+     * @param mle_opening_point the MLE evaluation point for all claims
+     * @param claims MLE claims with (C, v) and C is a univariate commitment
+     * @param claims_shifted MLE claims with (C, v↺) and C is a univariate commitment
+     *      to the non-shifted polynomial
+     * @param proof commitments to the m-1 folded polynomials, and alleged evaluations.
+     * @param rho Batching challenge
+     * @param r Random evaluation challenge
+     * @return BatchOpeningClaim
+     */
+    static OutputClaim<Params> reduce_verify_with_existing_transcript(
+        std::span<const Fr> mle_opening_point,
+        std::span<const MLEOpeningClaim<Params>> claims,
+        std::span<const MLEOpeningClaim<Params>> claims_shifted,
+        const Proof<Params>& proof,
+        auto& challenge_generator)
+    {
+        // Relabel inputs to be more consistent with the math comments.
+        auto& claims_f = claims;
+        auto& claims_g = claims_shifted;
+
+        const size_t num_variables = mle_opening_point.size();
+        const size_t num_claims_f = claims_f.size();
+        const size_t num_claims_g = claims_g.size();
+        const size_t num_claims = num_claims_f + num_claims_g;
+
+        // batching challenge ρ
+        const Fr rho = challenge_generator.get_challenge("rho");
+        // compute vector of powers of rho only once
+        std::vector<Fr> rhos = powers_of_rho(rho, num_claims);
+
+        // random evaluation point r
+        const Fr r = challenge_generator.get_challenge("r");
 
         std::vector<Fr> r_squares = squares_of_r(r, num_variables);
 

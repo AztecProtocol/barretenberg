@@ -13,6 +13,7 @@
 #include "../oracle/oracle.hpp"
 // #include "../transcript/transcript.hpp"
 #include "../../transcript/transcript_wrappers.hpp"
+#include "../../proof_system/flavor/flavor.hpp"
 
 #include "claim.hpp"
 #include "commitment_key.hpp"
@@ -60,6 +61,8 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
   public:
     CommitmentTest()
         : prover_transcript{ transcript::Manifest() } // TODO(luke): initialize with empty Manifest for now
+        // : prover_transcript{ honk::StandardHonk::create_unrolled_manifest(0)} // TODO(luke): initialize with empty
+        // Manifest for now
         , verifier_transcript{ transcript::Manifest() }
         , prover_challenges{ &prover_transcript }
         , verifier_challenges{ &verifier_transcript }
