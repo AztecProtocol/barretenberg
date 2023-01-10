@@ -104,9 +104,13 @@ template <class FF_, size_t num_polys, size_t num_vars> class Multivariates {
 
     std::array<FF, num_polys> batch_evaluate(std::array<FF, num_vars> input)
     {
-        // TODO(Cody): IOU implementation.
+        // TODO(Cody): these just get extracted from the folded multivariates
         static_cast<void>(input);
-        return { { 1 } };
+        std::array<FF, num_polys> result;
+        for (auto& elt : result) {
+            elt = 1;
+        }
+        return result;
     };
 };
 } // namespace sumcheck

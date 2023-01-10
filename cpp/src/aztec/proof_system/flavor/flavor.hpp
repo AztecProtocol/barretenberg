@@ -46,7 +46,6 @@ struct StandardHonk {
                                                          const size_t num_sumcheck_rounds = 1)
     {
         constexpr size_t g1_size = 64;
-        (void)g1_size;
         constexpr size_t fr_size = 32;
         const size_t public_input_size = fr_size * num_public_inputs;
         /*  A RoundManifest describes data that will be put in or extracted from a transcript.
@@ -85,7 +84,7 @@ struct StandardHonk {
         for (size_t i = 0; i < num_sumcheck_rounds; i++) {
             auto label = std::to_string(num_sumcheck_rounds - i);
             manifest_rounds.emplace_back(
-                transcript::Manifest::RoundManifest({ { .name = "uni_" + label,
+                transcript::Manifest::RoundManifest({ { .name = "univariate_" + label,
                                                         .num_bytes = fr_size * honk::StandardHonk::MAX_RELATION_LENGTH,
                                                         .derived_by_verifier = false } },
                                                     /* challenge_name = */ "u_" + label,
@@ -118,7 +117,7 @@ struct StandardHonk {
 
         // Rounds 5 + num_sumcheck_rounds
         std::vector<transcript::Manifest::ManifestEntry> fold_commitment_entries;
-        for (size_t i = 0; i + 1 < num_sumcheck_rounds; i++) {
+        for (size_t i = 1; i < num_sumcheck_rounds; i++) {
             fold_commitment_entries.emplace_back(transcript::Manifest::ManifestEntry(
                 { .name = "FOLD_" + std::to_string(i), .num_bytes = g1_size, .derived_by_verifier = false }));
         };
@@ -144,7 +143,7 @@ struct StandardHonk {
 
         // Rounds 8 + num_sumcheck_rounds
         manifest_rounds.emplace_back(
-            transcript::Manifest::RoundManifest({ { .name = "Q", .num_bytes = g1_size, .derived_by_verifier = false } },
+            transcript::Manifest::RoundManifest({ { .name = "W", .num_bytes = g1_size, .derived_by_verifier = false } },
                                                 /* challenge_name = */ "separator",
                                                 /* num_challenges_in */ 1));
         auto output = transcript::Manifest(manifest_rounds);
