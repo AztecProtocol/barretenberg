@@ -11,8 +11,8 @@ TEST(power_polynomial, test_full_polynomial_correctness)
 
     barretenberg::fr current_power = barretenberg::fr::one();
     for (size_t i = 0; i < n; i++) {
-        EXPECT_EQ(power_polynomial.coefficients[i], current_power);
-        if (power_polynomial.coefficients[i] != current_power) {
+        EXPECT_EQ(power_polynomial[i], current_power);
+        if (power_polynomial[i] != current_power) {
             break;
         }
         current_power *= zeta;
@@ -30,5 +30,6 @@ TEST(power_polynomial, test_evaluation_correctness)
     for (size_t i = 0; i < order; i++) {
         variables.emplace_back((random_index >> i) & 1);
     }
-    EXPECT_EQ(zeta.pow(static_cast<size_t>(random_index)), honk::power_polynomial::evaluate(zeta, variables));
+    EXPECT_EQ(zeta.pow(static_cast<size_t>(random_index)),
+              honk::power_polynomial::evaluate<barretenberg::fr>(zeta, variables));
 }

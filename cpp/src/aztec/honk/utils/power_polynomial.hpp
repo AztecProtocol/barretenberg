@@ -16,10 +16,10 @@ namespace power_polynomial {
  * @param vector_size
  * @return barretenberg::polynomial
  */
-barretenberg::polynomial generate_vector(barretenberg::fr zeta, size_t vector_size)
+template <typename Fr> barretenberg::Polynomial<Fr> generate_vector(Fr zeta, size_t vector_size)
 {
     // We know the size from the start, so we can allocate exactly the right amount of memory
-    barretenberg::polynomial pow_vector(vector_size, vector_size);
+    barretenberg::Polynomial<Fr> pow_vector(vector_size, vector_size);
 
     constexpr size_t usefulness_margin = 4;
     size_t num_threads = max_threads::compute_num_threads();
@@ -39,16 +39,16 @@ barretenberg::polynomial generate_vector(barretenberg::fr zeta, size_t vector_si
 #endif
     for (size_t i = 0; i < num_threads; i++) {
         // Exponentiate ζ to the starting power of the chunk
-        barretenberg::fr starting_power = zeta.pow(i * thread_size);
+        Fr starting_power = zeta.pow(i * thread_size);
         // Set the chunk size depending ontwhether this is the last thread
         size_t chunk_size = i != (num_threads - 1) ? thread_size : last_thread_size;
         size_t j = 0;
         // Go through elements and compute ζ powers
         for (; j < chunk_size - 1; j++) {
-            pow_vector.coefficients[i * thread_size + j] = starting_power;
+            pow_vector[i * thread_size + j] = starting_power;
             starting_power *= zeta;
         }
-        pow_vector.coefficients[i * thread_size + j] = starting_power;
+        pow_vector[i * thread_size + j] = starting_power;
     }
     return pow_vector;
 }
@@ -62,9 +62,9 @@ barretenberg::polynomial generate_vector(barretenberg::fr zeta, size_t vector_si
  * @param variables
  * @return barretenberg::fr
  */
-barretenberg::fr evaluate(barretenberg::fr zeta, const std::span<barretenberg::fr>& variables)
+template <typename Fr> Fr evaluate(Fr zeta, const std::span<Fr>& variables)
 {
-    barretenberg::fr evaluation = barretenberg::fr::one();
+    Fr evaluation = Fr::one();
     for (size_t i = 0; i < variables.size(); i++) {
         // evaulutaion *= b^{2^i} - 1) * x_i + 1
         evaluation *= (zeta - 1) * variables[i] + 1;
