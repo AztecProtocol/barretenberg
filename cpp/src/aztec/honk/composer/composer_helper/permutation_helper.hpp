@@ -186,8 +186,7 @@ void compute_standard_honk_sigma_permutations(CircuitConstructor& circuit_constr
  * @param circuit_constructor The object containing the circuit
  * @param key Proving key where we will save the polynomials
  */
-template <size_t program_width, typename CircuitConstructor>
-void compute_standard_honk_id_polynomials(CircuitConstructor& circuit_constructor, proving_key* key)
+template <size_t program_width> void compute_standard_honk_id_polynomials(proving_key* key)
 {
     const size_t n = key->n;
     // Fill id polynomials with default values

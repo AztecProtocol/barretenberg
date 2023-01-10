@@ -10,7 +10,7 @@
  * 2) That if the permutation argument is computed with witness values, the values from the identity permutation and
  * sigma permutation are equal
  */
-TEST(standard_honk_composer, test_sigma_correctness)
+TEST(standard_honk_composer, test_sigma_and_id_correctness)
 {
     waffle::StandardHonkComposer composer = waffle::StandardHonkComposer();
     fr a = fr::one();
@@ -86,11 +86,12 @@ TEST(standard_honk_composer, test_sigma_correctness)
         std::string index = std::to_string(i + 1);
         auto permutation_polynomial = proving_key->polynomial_cache.get("sigma_" + index + "_lagrange");
         auto witness_polynomial = proving_key->polynomial_cache.get("w_" + index + "_lagrange");
+        auto id_polynomial = proving_key->polynomial_cache.get("id_" + index + "_lagrange");
         // left = ∏ᵢ,ⱼ(ωᵢ,ⱼ + β⋅ind(i,j) + γ)
         // right = ∏ᵢ,ⱼ(ωᵢ,ⱼ + β⋅σ(i,j) + γ)
         for (size_t j = 0; j < proving_key->n; j++) {
             auto current_witness = witness_polynomial[j];
-            left *= current_witness + beta * (i * (proving_key->n) + j) + gamma;
+            left *= current_witness + beta * id_polynomial[j] + gamma;
             right *= current_witness + beta * permutation_polynomial[j] + gamma;
         }
     }
