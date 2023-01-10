@@ -24,20 +24,29 @@ barretenberg::polynomial generate_vector(barretenberg::fr zeta, size_t vector_si
     if (vector_size < (usefulness_margin * num_threads)) {
         num_threads = 1;
     }
+    // Prepare for a random number of threads. We need to handle the last thread separately
     size_t thread_size = vector_size / num_threads;
-    if ((num_threads % thread_size) != 0) {
+    size_t last_thread_size = thread_size;
+    // Check if the vector size is divided into threads cleanly
+    if ((vector_size % thread_size) != 0) {
         thread_size += 1;
+        last_thread_size = vector_size % thread_size;
     }
 #ifndef NO_MULTITHREADING
 #pragma omp parallel for
 #endif
     for (size_t i = 0; i < num_threads; i++) {
+        // Exponentiate ζ to the starting power of the chunk
         barretenberg::fr starting_power = zeta.pow(i * thread_size);
-        for (size_t j = 0; j < (thread_size - 1); j++) {
+        // Set the chunk size depending ontwhether this is the last thread
+        size_t chunk_size = i != (num_threads - 1) ? thread_size : last_thread_size;
+        size_t j = 0;
+        // Go through elements and compute ζ powers
+        for (; j < chunk_size - 1; j++) {
             pow_vector.coefficients[i * thread_size + j] = starting_power;
             starting_power *= zeta;
         }
-        pow_vector.coefficients[(i + 1) * thread_size - 1] = starting_power;
+        pow_vector.coefficients[i * thread_size + j] = starting_power;
     }
     return pow_vector;
 }
