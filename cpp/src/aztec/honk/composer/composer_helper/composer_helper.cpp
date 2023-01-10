@@ -225,6 +225,8 @@ std::shared_ptr<proving_key> ComposerHelper<CircuitConstructor>::compute_proving
                                                                                 circuit_proving_key.get());
     compute_standard_honk_id_polynomials<CircuitConstructor::program_width>(circuit_proving_key.get());
 
+    compute_edge_lagrange_polynomials(circuit_proving_key.get());
+
     return circuit_proving_key;
 }
 
