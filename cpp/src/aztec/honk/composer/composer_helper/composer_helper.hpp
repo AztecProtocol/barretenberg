@@ -71,4 +71,5 @@ template <typename CircuitConstructor> class ComposerHelper {
     template <size_t program_width>
     void compute_witness_base(CircuitConstructor& circuit_constructor, const size_t minimum_circuit_size = 0);
 };
+
 } // namespace honk

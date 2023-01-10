@@ -105,6 +105,7 @@ template <class FF_, size_t num_polys, size_t num_vars> class Multivariates {
     std::array<FF, num_polys> batch_evaluate(std::array<FF, num_vars> input)
     {
         // TODO(Cody): these just get extracted from the folded multivariates
+        // For now, at least initialize properly.
         static_cast<void>(input);
         std::array<FF, num_polys> result;
         for (auto& elt : result) {

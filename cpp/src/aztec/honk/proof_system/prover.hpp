@@ -67,7 +67,7 @@ template <typename settings> class Prover {
 // TODO(luke): need equivalent notion of settings for Honk
 extern template class Prover<waffle::standard_settings>;
 
-typedef Prover<waffle::standard_settings> StandardProver;
+typedef Prover<waffle::standard_settings> StandardProver; // TODO(Cody): Delete?
 typedef Prover<waffle::standard_settings> StandardUnrolledProver;
 
 } // namespace honk
