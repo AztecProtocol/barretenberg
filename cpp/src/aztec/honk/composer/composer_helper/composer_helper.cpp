@@ -221,8 +221,9 @@ std::shared_ptr<proving_key> ComposerHelper<CircuitConstructor>::compute_proving
     ComposerHelper::compute_proving_key_base(circuit_constructor, ComposerType::STANDARD);
 
     // Compute sigma polynomials (we should update that late)
-    // TODO: Update this
-    compute_standard_honk_sigma_permutations<3>(circuit_constructor, circuit_proving_key.get());
+    compute_standard_honk_sigma_permutations<CircuitConstructor::program_width>(circuit_constructor,
+                                                                                circuit_proving_key.get());
+    compute_standard_honk_id_polynomials<CircuitConstructor::program_width>(circuit_proving_key.get());
 
     return circuit_proving_key;
 }
