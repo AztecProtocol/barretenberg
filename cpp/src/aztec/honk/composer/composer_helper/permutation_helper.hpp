@@ -116,7 +116,7 @@ void compute_wire_copy_cycles(CircuitConstructor& circuit_constructor, CycleColl
 }
 
 /**
- * @brief Compute sigma permutations for standard honk.
+ * @brief Compute sigma permutations for standard honk and put them into polynomial cache
  *
  * @details These permutations don't involve sets. We only care about equating one witness value to another. The
  * sequences don't use cosets unlike FFT-based Plonk, because there is no need for them. We simply use indices based on
@@ -175,4 +175,36 @@ void compute_standard_honk_sigma_permutations(CircuitConstructor& circuit_constr
     }
 }
 
+/**
+ * @brief Compute standard honk id polynomials and put them into cache
+ *
+ * @details Honk permutations involve using id and sigma polynomials to generate variable cycles. This function
+ * generates the id polynomials and puts them into polynomial cache, so that they can be used by the prover.
+ *
+ * @tparam program_width The number of witness polynomials
+ * @tparam CircuitConstructor The class that defines circuit construction logic and holds the circuit
+ * @param circuit_constructor The object containing the circuit
+ * @param key Proving key where we will save the polynomials
+ */
+template <size_t program_width, typename CircuitConstructor>
+void compute_standard_honk_id_polynomials(CircuitConstructor& circuit_constructor, proving_key* key)
+{
+    const size_t n = key->n;
+    // Fill id polynomials with default values
+    std::vector<barretenberg::polynomial> id_polynomials_lagrange;
+    for (uint64_t i = 0; i < program_width; ++i) {
+        // Construct permutation polynomials in lagrange base
+        std::string index = std::to_string(i + 1);
+        id_polynomials_lagrange.push_back(barretenberg::polynomial(key->n));
+        barretenberg::polynomial& id_polynomial_lagrange = id_polynomials_lagrange[i];
+        for (uint64_t j = 0; j < key->n; j++) {
+            id_polynomial_lagrange.coefficients[j] = (i * n + j);
+        }
+    }
+    // Save to polynomial cache
+    for (size_t i = 0; i < program_width; i++) {
+        std::string index = std::to_string(i + 1);
+        key->polynomial_cache.put("id_" + index + "_lagrange", std::move(id_polynomials_lagrange[i]));
+    }
+}
 } // namespace waffle
