@@ -182,8 +182,6 @@ void compute_standard_honk_sigma_permutations(CircuitConstructor& circuit_constr
  * generates the id polynomials and puts them into polynomial cache, so that they can be used by the prover.
  *
  * @tparam program_width The number of witness polynomials
- * @tparam CircuitConstructor The class that defines circuit construction logic and holds the circuit
- * @param circuit_constructor The object containing the circuit
  * @param key Proving key where we will save the polynomials
  */
 template <size_t program_width> void compute_standard_honk_id_polynomials(proving_key* key)
@@ -197,7 +195,7 @@ template <size_t program_width> void compute_standard_honk_id_polynomials(provin
         id_polynomials_lagrange.push_back(barretenberg::polynomial(key->n));
         barretenberg::polynomial& id_polynomial_lagrange = id_polynomials_lagrange[i];
         for (uint64_t j = 0; j < key->n; j++) {
-            id_polynomial_lagrange.coefficients[j] = (i * n + j);
+            id_polynomial_lagrange[j] = (i * n + j);
         }
     }
     // Save to polynomial cache
