@@ -1,5 +1,6 @@
 #include <polynomials/polynomial.hpp>
 #include <common/max_threads.hpp>
+#include <span>
 
 #ifndef NO_MULTITHREADING
 #include "omp.h"
@@ -17,7 +18,8 @@ namespace power_polynomial {
  */
 barretenberg::polynomial generate_vector(barretenberg::fr zeta, size_t vector_size)
 {
-    barretenberg::polynomial pow_vector(vector_size);
+    // We know the size from the start, so we can allocate exactly the right amount of memory
+    barretenberg::polynomial pow_vector(vector_size, vector_size);
 
     constexpr size_t usefulness_margin = 4;
     size_t num_threads = max_threads::compute_num_threads();
@@ -60,7 +62,7 @@ barretenberg::polynomial generate_vector(barretenberg::fr zeta, size_t vector_si
  * @param variables
  * @return barretenberg::fr
  */
-barretenberg::fr evaluate(barretenberg::fr zeta, const std::vector<barretenberg::fr>& variables)
+barretenberg::fr evaluate(barretenberg::fr zeta, const std::span<barretenberg::fr>& variables)
 {
     barretenberg::fr evaluation = barretenberg::fr::one();
     for (size_t i = 0; i < variables.size(); i++) {
