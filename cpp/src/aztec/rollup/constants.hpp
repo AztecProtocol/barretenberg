@@ -34,8 +34,8 @@ is_circuit_change_expected to zero and change the modified circuit gate counts a
 constexpr bool is_circuit_change_expected = 0;
 /* The below constants are only used for regression testing; to identify accidental changes to circuit
  constraints. They need to be changed when there is a circuit change. */
-constexpr uint32_t ACCOUNT = 23958;
-constexpr uint32_t JOIN_SPLIT = 64000;
+constexpr uint32_t ACCOUNT = 23967;
+constexpr uint32_t JOIN_SPLIT = 64043;
 constexpr uint32_t CLAIM = 22684;
 constexpr uint32_t ROLLUP = 1173221;
 constexpr uint32_t ROOT_ROLLUP = 5481327;
@@ -57,13 +57,13 @@ namespace circuit_vk_hash {
 /* These below constants are only used for regression testing; to identify accidental changes to circuit
  constraints. They need to be changed when there is a circuit change. Note that they are written in the reverse order
  to comply with the from_buffer<>() method. */
-constexpr auto ACCOUNT = uint256_t(0x78ebf096ab73e440, 0xaa1dc7c26a125f6e, 0x488a97e465b96964, 0xf9d3e501b89bf466);
-constexpr auto JOIN_SPLIT = uint256_t(0x5e67a4a4503ebf25, 0xb3c070c061e76d1a, 0xb18c6c6a5bcad5fb, 0xe0d5f46cafb33ecf);
+constexpr auto ACCOUNT = uint256_t(0xcd6d70c733eaf823, 0x6505d3402817ad3d, 0xbf9e2b6a262589cf, 0xafcc546b55cc45e3);
+constexpr auto JOIN_SPLIT = uint256_t(0x5cb3fad96d99c1dd, 0x9d6cb4da6534bed5, 0xde45f710d14e4c8f, 0xbbd799c6bc1604c6);
 constexpr auto CLAIM = uint256_t(0x878301ebba40ab60, 0x931466762c62d661, 0x40aad71ec3496905, 0x9f47aaa109759d0a);
-constexpr auto ROLLUP = uint256_t(0x160731cc44173fdc, 0x6a6d55e46bf198bd, 0x9ce1d4608ae26fb0, 0x865ced5c16cb6152);
-constexpr auto ROOT_ROLLUP = uint256_t(0xd77e82eae9e6efc7, 0x2b5ddf767012a4cf, 0x8b5982bb3d64616f, 0x20b515f5a9c78048);
+constexpr auto ROLLUP = uint256_t(0xd553ea0ac51c58e9, 0x86d42c1ccbea7aa6, 0x4a909dd1739f5a4d, 0x858ee674e0e6563a);
+constexpr auto ROOT_ROLLUP = uint256_t(0x27e4fc32f1b1c7c1, 0x494949a979fce5ba, 0x261c3a86be3b691f, 0xce98cdfea4b4f39c);
 constexpr auto ROOT_VERIFIER =
-    uint256_t(0x8e8313d6015ca626, 0x62ccf70b81c4e099, 0x33bee0072a20f36a, 0x44bd24daa009cd59);
+    uint256_t(0xe8e502db8a4f8d42, 0x6337b5d53c3ca77d, 0xdb4da3d73331c7ef, 0x213a2f3f34e8ad04);
 }; // namespace circuit_vk_hash
 
 namespace ProofIds {
