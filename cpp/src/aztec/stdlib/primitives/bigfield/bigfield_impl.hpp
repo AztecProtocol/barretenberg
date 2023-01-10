@@ -1711,8 +1711,9 @@ void bigfield<C, T>::unsafe_evaluate_multiply_add(const bigfield& input_left,
         linear_terms += to_add[to_add.size() - 1].prime_basis_limb;
     }
     if (remainders.size() >= 2) {
-        for (size_t i = 0; i < remainders.size(); i += 2) {
-            linear_terms = linear_terms.add_two(-remainders[i].prime_basis_limb, -remainders[i + 1].prime_basis_limb);
+        for (size_t i = 0; i < (remainders.size() >> 1); i += 1) {
+            linear_terms =
+                linear_terms.add_two(-remainders[2 * i].prime_basis_limb, -remainders[2 * i + 1].prime_basis_limb);
         }
     }
     if ((remainders.size() & 1UL) == 1UL) {
