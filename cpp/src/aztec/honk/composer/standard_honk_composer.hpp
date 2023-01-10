@@ -1,8 +1,6 @@
 #include "../circuit_constructors/standard_circuit_constructor.hpp"
 #include "composer_helper/composer_helper.hpp"
-#include <cstddef>
 #include <srs/reference_string/file_reference_string.hpp>
-#include <string>
 #include <transcript/manifest.hpp>
 #include <proof_system/flavor/flavor.hpp>
 
@@ -162,16 +160,20 @@ class StandardHonkComposer {
         return composer_helper.compute_verification_key(circuit_constructor);
     }
     void compute_witness() { composer_helper.compute_witness(circuit_constructor); };
+    // TODO(Cody): This will not be needed, but maybe something is required for ComposerHelper to be generic?
     waffle::Verifier create_verifier() { return composer_helper.create_verifier(circuit_constructor); }
     /**
      * Preprocess the circuit. Delegates to create_prover.
      *
      * @return A new initialized prover.
      */
-
-    // Prover preprocess() { return composer_helper.create_prover(circuit_constructor); };
-    // Prover create_prover() { return composer_helper.create_prover(circuit_constructor); };
-    // UnrolledVerifier create_unrolled_verifier()
+    /**
+     * Preprocess the circuit. Delegates to create_prover.
+     *
+     * @return A new initialized prover.
+     */
+    StandardProver preprocess() { return composer_helper.create_prover(circuit_constructor); };
+    StandardProver create_prover() { return composer_helper.create_prover(circuit_constructor); };
     waffle::UnrolledVerifier create_unrolled_verifier()
     {
         return composer_helper.create_unrolled_verifier(circuit_constructor);
