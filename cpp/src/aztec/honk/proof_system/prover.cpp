@@ -1,4 +1,10 @@
 #include "prover.hpp"
+// #include <honk/sumcheck/sumcheck.hpp> // will need
+#include <honk/sumcheck/polynomials/univariate.hpp> // will go away
+#include <vector>
+#include "ecc/curves/bn254/fr.hpp"
+#include "ecc/curves/bn254/g1.hpp"
+#include "proof_system/flavor/flavor.hpp"
 
 namespace honk {
 
@@ -31,13 +37,14 @@ Prover<settings>::Prover(std::shared_ptr<waffle::proving_key> input_key, const t
 template <typename settings> void Prover<settings>::compute_wire_commitments()
 {
     // TODO(luke): Compute wire commitments
-    // for (size_t i = 0; i < settings::program_width; ++i) {
-    //     std::string wire_tag = "w_" + std::to_string(i + 1);
-    //     std::string commit_tag = "W_" + std::to_string(i + 1);
-    //     barretenberg::fr* coefficients = key->polynomial_cache.get(wire_tag).get_coefficients();
-    //     // This automatically saves the computed point to the transcript
-    //     commitment_scheme->commit(coefficients, commit_tag, work_queue::MSMSize::N, queue);
-    // }
+    for (size_t i = 0; i < settings::program_width; ++i) {
+        std::string wire_tag = "w_" + std::to_string(i + 1);
+        std::string commit_tag = "W_" + std::to_string(i + 1);
+        // barretenberg::fr* coefficients = key->polynomial_cache.get(wire_tag).get_coefficients();
+        // This automatically saves the computed point to the transcript
+        // commitment_scheme->commit(coefficients, commit_tag, work_queue::MSMSize::N, queue);
+        transcript.add_element(commit_tag, barretenberg::g1::affine_one.to_buffer()); // TODO(Cody): unmock.
+    }
 }
 
 /**
@@ -200,7 +207,7 @@ template <typename settings> void Prover<settings>::execute_wire_commitments_rou
 {
     queue.flush_queue();
 
-    // TODO(luke): compute_wire_polynomial_commitments()
+    compute_wire_commitments();
 
     // Add public inputs to transcript
     const barretenberg::polynomial& public_wires_source = key->polynomial_cache.get("w_2_lagrange");
@@ -221,8 +228,9 @@ template <typename settings> void Prover<settings>::execute_wire_commitments_rou
 template <typename settings> void Prover<settings>::execute_tables_round()
 {
     queue.flush_queue();
-    // No operations are needed here for Standard Honk
     transcript.apply_fiat_shamir("eta");
+
+    // No operations are needed here for Standard Honk
 }
 
 /**
@@ -244,6 +252,7 @@ template <typename settings> void Prover<settings>::execute_grand_product_comput
 
     // TODO(luke): compute_grand_product_polynomial
     // TODO(luke): compute_grand_product_polynomial_commitment
+    transcript.add_element("Z_PERM", barretenberg::g1::affine_one.to_buffer()); // TODO(Cody): unmock.
 }
 
 /**
@@ -265,7 +274,31 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
     // Compute alpha challenge
     transcript.apply_fiat_shamir("alpha");
 
-    // TODO(luke): Run Sumcheck
+    // TODO(luke): Run Sumcheck. For now, mock univariates.
+    for (size_t round_idx = 0; round_idx < key->log_n; round_idx++) {
+        honk::sumcheck::Univariate<barretenberg::fr, honk::StandardHonk::MAX_RELATION_LENGTH> round_univariate;
+        for (auto eval : round_univariate.evaluations) {
+            eval = round_idx;
+        }
+        transcript.add_element("univariate_" + std::to_string(key->log_n - round_idx), round_univariate.to_buffer());
+        transcript.apply_fiat_shamir("u_" + std::to_string(key->log_n - round_idx));
+    }
+
+    transcript.add_element("w_1", barretenberg::fr(100).to_buffer());
+    transcript.add_element("w_2", barretenberg::fr(101).to_buffer());
+    transcript.add_element("w_3", barretenberg::fr(102).to_buffer());
+    transcript.add_element("sigma_1", barretenberg::fr(103).to_buffer());
+    transcript.add_element("sigma_2", barretenberg::fr(104).to_buffer());
+    transcript.add_element("sigma_3", barretenberg::fr(105).to_buffer());
+    transcript.add_element("q_1", barretenberg::fr(106).to_buffer());
+    transcript.add_element("q_2", barretenberg::fr(107).to_buffer());
+    transcript.add_element("q_3", barretenberg::fr(108).to_buffer());
+    transcript.add_element("q_m", barretenberg::fr(109).to_buffer());
+    transcript.add_element("q_c", barretenberg::fr(110).to_buffer());
+    transcript.add_element("z_perm", barretenberg::fr(111).to_buffer());
+    transcript.add_element("z_perm_omega", barretenberg::fr(112).to_buffer());
+
+    transcript.apply_fiat_shamir("rho");
 }
 
 /**
@@ -278,6 +311,10 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
 template <typename settings> void Prover<settings>::execute_univariatization_round()
 {
     // TODO(Cody): Implement
+    for (size_t round_idx = 1; round_idx < key->log_n; round_idx++) {
+        transcript.add_element("FOLD_" + std::to_string(round_idx), barretenberg::g1::affine_one.to_buffer());
+    }
+    transcript.apply_fiat_shamir("r");
 }
 
 /**
@@ -291,7 +328,11 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
  * */
 template <typename settings> void Prover<settings>::execute_pcs_evaluation_round()
 {
-    // TODO(luke): Is there anything to do here? Possible some pre-processing for Gemini?
+    // TODO(Cody): Implement
+    for (size_t round_idx = 0; round_idx < key->log_n; round_idx++) {
+        transcript.add_element("a_" + std::to_string(round_idx), barretenberg::fr(round_idx + 1000).to_buffer());
+    }
+    transcript.apply_fiat_shamir("nu");
 }
 
 /**
@@ -305,6 +346,8 @@ template <typename settings> void Prover<settings>::execute_shplonk_round()
 {
     // TODO(luke): Do Fiat-Shamir to get "nu" challenge.
     // TODO(luke): Get Shplonk opening point [Q]_1
+    transcript.add_element("Q", barretenberg::g1::affine_one.to_buffer());
+    transcript.apply_fiat_shamir("z");
 }
 
 /**
@@ -321,6 +364,8 @@ template <typename settings> void Prover<settings>::execute_kzg_round()
 {
     // TODO(luke): Do Fiat-Shamir to get "z" challenge.
     // TODO(luke): Get KZG opening point [W]_1
+    transcript.add_element("W", barretenberg::g1::affine_one.to_buffer());
+    // transcript.apply_fiat_shamir("separator");
 }
 template <typename settings> waffle::plonk_proof& Prover<settings>::export_proof()
 {

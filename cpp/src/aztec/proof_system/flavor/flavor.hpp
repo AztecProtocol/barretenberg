@@ -3,6 +3,7 @@
 #include <transcript/manifest.hpp>
 
 #define STANDARD_HONK_WIDTH 3
+// TODO(Cody): Temporary namespace for stuff that is shared by honk and plonk
 namespace onk {
 struct StandardArithmetization {
     enum POLYNOMIAL {
@@ -48,27 +49,33 @@ struct StandardHonk {
         constexpr size_t g1_size = 64;
         constexpr size_t fr_size = 32;
         const size_t public_input_size = fr_size * num_public_inputs;
+        // clang-format off
         /*  A RoundManifest describes data that will be put in or extracted from a transcript.
             Here we have (1 + 7 + num_sumcheck_rounds)-many RoundManifests. */
-
         std::vector<transcript::Manifest::RoundManifest> manifest_rounds;
+
         // Round 0
         manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
-            { { .name = "circuit_size", .num_bytes = 4, .derived_by_verifier = true },
-              { .name = "public_input_size", .num_bytes = 4, .derived_by_verifier = true } },
+            { 
+              { .name = "circuit_size",      .num_bytes = 4, .derived_by_verifier = true },
+              { .name = "public_input_size", .num_bytes = 4, .derived_by_verifier = true } 
+            },
             /* challenge_name = */ "init",
             /* num_challenges_in = */ 1));
+        
         // Round 1
-        manifest_rounds.emplace_back(transcript::Manifest::RoundManifest({ /* this is a noop */ },
-                                                                         /* challenge_name = */ "eta",
-                                                                         /* num_challenges_in = */ 0));
+        manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
+            { /* this is a noop */ },
+            /* challenge_name = */ "eta",
+            /* num_challenges_in = */ 0));
+
         // Round 2
         manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
             {
-                { .name = "public_inputs", .num_bytes = public_input_size, .derived_by_verifier = false },
-                { .name = "W_1", .num_bytes = g1_size, .derived_by_verifier = false },
-                { .name = "W_2", .num_bytes = g1_size, .derived_by_verifier = false },
-                { .name = "W_3", .num_bytes = g1_size, .derived_by_verifier = false },
+              { .name = "public_inputs", .num_bytes = public_input_size, .derived_by_verifier = false },
+              { .name = "W_1",           .num_bytes = g1_size,           .derived_by_verifier = false },
+              { .name = "W_2",           .num_bytes = g1_size,           .derived_by_verifier = false },
+              { .name = "W_3",           .num_bytes = g1_size,           .derived_by_verifier = false },
             },
             /* challenge_name = */ "beta",
             /* num_challenges_in = */ 2) // also produce "gamma"
@@ -84,32 +91,30 @@ struct StandardHonk {
         for (size_t i = 0; i < num_sumcheck_rounds; i++) {
             auto label = std::to_string(num_sumcheck_rounds - i);
             manifest_rounds.emplace_back(
-                transcript::Manifest::RoundManifest({ { .name = "univariate_" + label,
-                                                        .num_bytes = fr_size * honk::StandardHonk::MAX_RELATION_LENGTH,
-                                                        .derived_by_verifier = false } },
-                                                    /* challenge_name = */ "u_" + label,
-                                                    /* num_challenges_in = */ 1));
+                transcript::Manifest::RoundManifest(
+            { 
+              { .name = "univariate_" + label, .num_bytes = fr_size * honk::StandardHonk::MAX_RELATION_LENGTH, .derived_by_verifier = false } 
+            },
+            /* challenge_name = */ "u_" + label,
+            /* num_challenges_in = */ 1));
         }
 
         // Rounds 4 + num_sumcheck_rounds
         manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
             {
-                { .name = "w_1", .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 0 },
-                { .name = "w_2", .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 1 },
-                { .name = "w_3", .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 2 },
-                { .name = "sigma_1", .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 3 },
-                { .name = "sigma_2", .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 4 },
-                { .name = "sigma_3", .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 5 },
-                { .name = "q_1", .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 6 },
-                { .name = "q_2", .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 7 },
-                { .name = "q_3", .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 8 },
-                { .name = "q_m", .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 9 },
-                { .name = "q_c", .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 10 },
-                { .name = "z_perm", .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 11 },
-                { .name = "z_perm_omega",
-                  .num_bytes = fr_size,
-                  .derived_by_verifier = false,
-                  .challenge_map_index = -1 },
+              { .name = "w_1",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 0 },
+              { .name = "w_2",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 1 },
+              { .name = "w_3",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 2 },
+              { .name = "sigma_1",      .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 3 },
+              { .name = "sigma_2",      .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 4 },
+              { .name = "sigma_3",      .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 5 },
+              { .name = "q_1",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 6 },
+              { .name = "q_2",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 7 },
+              { .name = "q_3",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 8 },
+              { .name = "q_m",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 9 },
+              { .name = "q_c",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 10 },
+              { .name = "z_perm",       .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 11 },
+              { .name = "z_perm_omega", .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = -1 },
             },
             /* challenge_name = */ "rho",
             /* num_challenges_in = */ STANDARD_UNROLLED_MANIFEST_SIZE - 1, /* TODO(Cody): this is bad. */
@@ -119,35 +124,45 @@ struct StandardHonk {
         std::vector<transcript::Manifest::ManifestEntry> fold_commitment_entries;
         for (size_t i = 1; i < num_sumcheck_rounds; i++) {
             fold_commitment_entries.emplace_back(transcript::Manifest::ManifestEntry(
-                { .name = "FOLD_" + std::to_string(i), .num_bytes = g1_size, .derived_by_verifier = false }));
+              { .name = "FOLD_" + std::to_string(i), .num_bytes = g1_size, .derived_by_verifier = false }));
         };
-        manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(fold_commitment_entries,
-                                                                         /* challenge_name = */ "r",
-                                                                         /* num_challenges_in */ 1));
+        manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
+            fold_commitment_entries,
+            /* challenge_name = */ "r",
+            /* num_challenges_in */ 1));
 
         // Rounds 6 + num_sumcheck_rounds
         std::vector<transcript::Manifest::ManifestEntry> gemini_evaluation_entries;
         for (size_t i = 0; i < num_sumcheck_rounds; i++) {
             gemini_evaluation_entries.emplace_back(transcript::Manifest::ManifestEntry(
-                { .name = "a_" + std::to_string(i), .num_bytes = fr_size, .derived_by_verifier = false }));
+            { .name = "a_" + std::to_string(i), .num_bytes = fr_size, .derived_by_verifier = false }));
         };
-        manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(gemini_evaluation_entries,
-                                                                         /* challenge_name = */ "nu",
-                                                                         /* num_challenges_in */ 1));
+        manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
+            gemini_evaluation_entries,
+            /* challenge_name = */ "nu",
+            /* num_challenges_in */ 1));
 
         // Rounds 7 + num_sumcheck_rounds
         manifest_rounds.emplace_back(
-            transcript::Manifest::RoundManifest({ { .name = "Q", .num_bytes = g1_size, .derived_by_verifier = false } },
-                                                /* challenge_name = */ "z",
-                                                /* num_challenges_in */ 1));
+            transcript::Manifest::RoundManifest(
+            { 
+              { .name = "Q", .num_bytes = g1_size, .derived_by_verifier = false } 
+            },
+            /* challenge_name = */ "z",
+            /* num_challenges_in */ 1));
 
         // Rounds 8 + num_sumcheck_rounds
         manifest_rounds.emplace_back(
-            transcript::Manifest::RoundManifest({ { .name = "W", .num_bytes = g1_size, .derived_by_verifier = false } },
-                                                /* challenge_name = */ "separator",
-                                                /* num_challenges_in */ 1));
-        auto output = transcript::Manifest(manifest_rounds);
+            transcript::Manifest::RoundManifest(
+            { 
+              { .name = "W", .num_bytes = g1_size, .derived_by_verifier = false }
+            },
+            /* challenge_name = */ "separator",
+            /* num_challenges_in */ 1));
 
+        //clang-format on
+
+        auto output = transcript::Manifest(manifest_rounds);
         return output;
     }
 };

@@ -302,7 +302,8 @@ waffle::UnrolledVerifier ComposerHelper<CircuitConstructor>::create_unrolled_ver
 template <typename CircuitConstructor>
 template <typename Flavor>
 // TODO(Cody): this file should be generic with regard to flavor/arithmetization/whatever.
-StandardUnrolledProver ComposerHelper<CircuitConstructor>::create_unrolled_prover(CircuitConstructor& circuit_constructor)
+StandardUnrolledProver ComposerHelper<CircuitConstructor>::create_unrolled_prover(
+    CircuitConstructor& circuit_constructor)
 {
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
@@ -311,7 +312,6 @@ StandardUnrolledProver ComposerHelper<CircuitConstructor>::create_unrolled_prove
     auto manifest = Flavor::create_unrolled_manifest(circuit_constructor.public_inputs.size(), num_sumcheck_rounds);
     StandardUnrolledProver output_state(circuit_proving_key, manifest);
 
-    // UnrolledProver output_state;
     // TODO: Initialize constraints
     // std::unique_ptr<ProverPermutationWidget<3, false>> permutation_widget =
     //     std::make_unique<ProverPermutationWidget<3, false>>(circuit_proving_key.get());

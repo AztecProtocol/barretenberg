@@ -3,6 +3,8 @@
 
 #include <gtest/gtest.h>
 
+using namespace honk;
+
 namespace test_standard_honk_composer {
 /**
  * @brief The goal of this test is to check that the sigma permutation vectors for honk are generated correctly.
@@ -14,7 +16,7 @@ namespace test_standard_honk_composer {
  */
 TEST(standard_honk_composer, test_sigma_correctness)
 {
-    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+    StandardHonkComposer composer = StandardHonkComposer();
     fr a = fr::one();
     uint32_t a_idx = composer.add_variable(a);
     fr b = fr::one();
@@ -186,8 +188,8 @@ TEST(standard_honk_composer, test_assert_equal)
     };
 
     // Get 2 circuits
-    honk::StandardHonkComposer composer_no_assert_equal = honk::StandardHonkComposer();
-    honk::StandardHonkComposer composer_with_assert_equal = honk::StandardHonkComposer();
+    StandardHonkComposer composer_no_assert_equal = StandardHonkComposer();
+    StandardHonkComposer composer_with_assert_equal = StandardHonkComposer();
 
     // Construct circuits
     create_simple_circuit(composer_no_assert_equal);
@@ -202,9 +204,9 @@ TEST(standard_honk_composer, test_assert_equal)
     EXPECT_EQ(get_maximum_cycle(composer_with_assert_equal), get_maximum_cycle(composer_no_assert_equal) * 2);
 }
 
-TEST(StandarHonkComposer, BaseCase) // TODO(Cody): Fill in as more things get built.
+TEST(StandarHonkComposer, BaseCase)
 {
-    auto composer = honk::StandardHonkComposer();
+    auto composer = StandardHonkComposer();
     fr a = fr::one();
     composer.circuit_constructor.add_public_variable(a);
 

@@ -216,7 +216,7 @@ class StandardComposer : public ComposerBase {
         const transcript::Manifest output = transcript::Manifest(
             { // clang-format off
 
-              // Round 1
+              // Round 0
               transcript::Manifest::RoundManifest(
                 { 
                   { .name = "circuit_size",      .num_bytes = 4, .derived_by_verifier = true },
@@ -225,13 +225,13 @@ class StandardComposer : public ComposerBase {
                 /* challenge_name = */ "init",
                 /* num_challenges_in = */ 1),
 
-              // Round 2
+              // Round 1
               transcript::Manifest::RoundManifest(
                 {}, 
                 /* challenge_name = */ "eta", 
                 /* num_challenges_in = */ 0),
 
-              // Round 3
+              // Round 2
               transcript::Manifest::RoundManifest(
                 {
                     { .name = "public_inputs", .num_bytes = public_input_size, .derived_by_verifier = false },
@@ -242,13 +242,13 @@ class StandardComposer : public ComposerBase {
                 /* challenge_name = */ "beta",
                 /* num_challenges_in = */ 2),
 
-              // Round 4
+              // Round 3
               transcript::Manifest::RoundManifest(
                 { { .name = "Z_PERM", .num_bytes = g1_size, .derived_by_verifier = false } }, 
                 /* challenge_name = */ "alpha",
                 /* num_challenges_in = */ 1),
 
-              // Round 5
+              // Round 4
               transcript::Manifest::RoundManifest(
                 { { .name = "T_1", .num_bytes = g1_size, .derived_by_verifier = false },
                   { .name = "T_2", .num_bytes = g1_size, .derived_by_verifier = false },
@@ -256,7 +256,7 @@ class StandardComposer : public ComposerBase {
                 /* challenge_name = */ "z",
                 /* num_challenges_in = */ 1),
 
-              // Round 6
+              // Round 5
               transcript::Manifest::RoundManifest(
                 {
                     { .name = "t",            .num_bytes = fr_size, .derived_by_verifier = true,  .challenge_map_index = -1 },
@@ -278,7 +278,7 @@ class StandardComposer : public ComposerBase {
                 /* num_challenges_in = */ STANDARD_UNROLLED_MANIFEST_SIZE,
                 /* map_challenges_in = */ true),
 
-              // Round 7
+              // Round 6
               transcript::Manifest::RoundManifest(
                 { { .name = "PI_Z",       .num_bytes = g1_size, .derived_by_verifier = false },
                   { .name = "PI_Z_OMEGA", .num_bytes = g1_size, .derived_by_verifier = false } },
