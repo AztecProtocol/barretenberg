@@ -78,7 +78,9 @@ template <typename TranscriptType> struct Oracle {
      *
      * @return Fr the generated challenge
      */
-    Fr generate_challenge() { return transcript->get_mock_challenge(); }
+    // Fr generate_challenge() { return transcript->get_mock_challenge(); }
+    Fr generate_challenge() { return Fr(consumed + 2); }
+    // Fr generate_challenge() { return Fr::one(); } // TODO: this will allow new gemini transcript tests to pass
 
     /**
      * @brief Temporary method for generating and adding a challenge to the transcript via pointer
@@ -87,11 +89,11 @@ template <typename TranscriptType> struct Oracle {
      */
     Fr generate_challenge(const std::string& challenge_name)
     {
-        static_cast<void>(challenge_name);
-        return Fr::one();
+        // static_cast<void>(challenge_name);
+        // return Fr::one();
         // TODO(luke): replace the above lines with the below lines once the challenges have been added to the Manifest.
-        // transcript->apply_fiat_shamir(challenge_name);
-        // return Fr::serialize_from_buffer(transcript->get_challenge(challenge_name).begin());
+        transcript->apply_fiat_shamir(challenge_name);
+        return Fr::serialize_from_buffer(transcript->get_challenge(challenge_name).begin());
     }
 
     /**
@@ -101,11 +103,11 @@ template <typename TranscriptType> struct Oracle {
      */
     Fr get_challenge(const std::string& challenge_name, const size_t idx = 0)
     {
-        static_cast<void>(challenge_name);
-        static_cast<void>(idx);
-        return Fr::one();
+        // static_cast<void>(challenge_name);
+        // static_cast<void>(idx);
+        // return Fr::one();
         // TODO(luke): replace the above lines with the below lines once the challenges have been added to the Manifest.
-        // return transcript->get_challenge(challenge_name, idx);
+        return Fr::serialize_from_buffer(transcript->get_challenge(challenge_name, idx).begin());
     }
     // Fr get_challenge(const std::string& challenge_name, const size_t idx = 0) { return
     // transcript->get_mock_challenge(); }

@@ -43,6 +43,7 @@ template <class Params> class GeminiTranscriptTest : public CommitmentTest<Param
 
 TYPED_TEST_SUITE(GeminiTranscriptTest, CommitmentSchemeParams);
 
+// Test fails right now because transcript calls up to Gemini this point have to be mocked
 TYPED_TEST(GeminiTranscriptTest, single_no_oracle)
 {
     using Gemini = MultilinearReductionScheme<TypeParam>;
@@ -62,11 +63,11 @@ TYPED_TEST(GeminiTranscriptTest, single_no_oracle)
     this->consume(u);
 
     auto [prover_claim, witness, proof] =
-        Gemini::reduce_prove(this->ck(), u, claims, {}, { &poly }, {}, this->prover_challenges);
+        Gemini::reduce_prove_with_transcript(this->ck(), u, claims, {}, { &poly }, {}, this->prover_challenges);
 
     this->verify_batch_opening_claim(prover_claim, witness);
 
-    auto verifier_claim = Gemini::reduce_verify_with_existing_transcript(u, claims, {}, proof, this->prover_challenges);
+    auto verifier_claim = Gemini::reduce_verify_with_transcript(u, claims, {}, proof, this->prover_challenges);
 
     this->verify_batch_opening_claim(verifier_claim, witness);
 
