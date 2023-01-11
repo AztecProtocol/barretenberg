@@ -50,6 +50,11 @@ inline circuit_data get_circuit_data(size_t rollup_size,
         rollup_circuit(composer, rollup, verification_keys, rollup_size);
     };
 
+    // Silence an error due to string overflow in GCC, which shouldn't happen normally.
+#if !defined(__clang__) && defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wrestrict"
+#endif
     auto cd =
         proofs::get_circuit_data<Composer>("tx rollup",
                                            name,
@@ -64,6 +69,9 @@ inline circuit_data get_circuit_data(size_t rollup_size,
                                            mock,
                                            build_circuit,
                                            " " + std::to_string(rollup_size) + "x" + std::to_string(rollup_size_pow2));
+#if !defined(__clang__) && defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
     circuit_data data;
     data.num_gates = cd.num_gates;
