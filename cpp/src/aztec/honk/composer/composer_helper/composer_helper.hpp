@@ -1,9 +1,7 @@
 #include <srs/reference_string/file_reference_string.hpp>
 #include <proof_system/proving_key/proving_key.hpp>
 #include <honk/proof_system/prover.hpp>
-// keeping this include for now to use the proving key
-#include <plonk/proof_system/prover/prover.hpp>
-// TODO(Cody): these use Honk classes.
+#include <honk/proof_system/verifier.hpp>
 #include <plonk/proof_system/verification_key/verification_key.hpp>
 #include <plonk/proof_system/verifier/verifier.hpp>
 #include "permutation_helper.hpp"

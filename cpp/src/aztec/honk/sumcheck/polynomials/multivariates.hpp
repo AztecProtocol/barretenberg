@@ -108,8 +108,8 @@ template <class FF_, size_t num_polys, size_t num_vars> class Multivariates {
         // For now, at least initialize properly.
         static_cast<void>(input);
         std::array<FF, num_polys> result;
-        for (auto& elt : result) {
-            elt = 1;
+        for (auto& entry : result) {
+            entry = 1;
         }
         return result;
     };

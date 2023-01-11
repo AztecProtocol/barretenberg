@@ -296,9 +296,6 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
     transcript.add_element("q_m", barretenberg::fr(109).to_buffer());
     transcript.add_element("q_c", barretenberg::fr(110).to_buffer());
     transcript.add_element("z_perm", barretenberg::fr(111).to_buffer());
-    transcript.add_element("z_perm_omega", barretenberg::fr(112).to_buffer());
-
-    transcript.apply_fiat_shamir("rho");
 }
 
 /**
@@ -310,11 +307,11 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
  * */
 template <typename settings> void Prover<settings>::execute_univariatization_round()
 {
+    transcript.apply_fiat_shamir("rho");
     // TODO(Cody): Implement
     for (size_t round_idx = 1; round_idx < key->log_n; round_idx++) {
         transcript.add_element("FOLD_" + std::to_string(round_idx), barretenberg::g1::affine_one.to_buffer());
     }
-    transcript.apply_fiat_shamir("r");
 }
 
 /**
@@ -328,11 +325,11 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
  * */
 template <typename settings> void Prover<settings>::execute_pcs_evaluation_round()
 {
+    transcript.apply_fiat_shamir("r");
     // TODO(Cody): Implement
     for (size_t round_idx = 0; round_idx < key->log_n; round_idx++) {
         transcript.add_element("a_" + std::to_string(round_idx), barretenberg::fr(round_idx + 1000).to_buffer());
     }
-    transcript.apply_fiat_shamir("nu");
 }
 
 /**
@@ -346,8 +343,8 @@ template <typename settings> void Prover<settings>::execute_shplonk_round()
 {
     // TODO(luke): Do Fiat-Shamir to get "nu" challenge.
     // TODO(luke): Get Shplonk opening point [Q]_1
+    transcript.apply_fiat_shamir("nu");
     transcript.add_element("Q", barretenberg::g1::affine_one.to_buffer());
-    transcript.apply_fiat_shamir("z");
 }
 
 /**
@@ -362,6 +359,7 @@ template <typename settings> void Prover<settings>::execute_shplonk_round()
  * */
 template <typename settings> void Prover<settings>::execute_kzg_round()
 {
+    transcript.apply_fiat_shamir("z");
     // TODO(luke): Do Fiat-Shamir to get "z" challenge.
     // TODO(luke): Get KZG opening point [W]_1
     transcript.add_element("W", barretenberg::g1::affine_one.to_buffer());

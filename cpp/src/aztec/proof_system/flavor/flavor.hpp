@@ -4,7 +4,7 @@
 
 #define STANDARD_HONK_WIDTH 3
 // TODO(Cody): Temporary namespace for stuff that is shared by honk and plonk
-namespace onk {
+namespace proving_system {
 struct StandardArithmetization {
     enum POLYNOMIAL {
         W_L,
@@ -29,12 +29,12 @@ struct StandardArithmetization {
 
     static constexpr size_t NUM_POLYNOMIALS = POLYNOMIAL::COUNT;
 };
-} // namespace onk
+} // namespace proving_system
 
 namespace honk {
 struct StandardHonk {
   public:
-    using Arithmetization = onk::StandardArithmetization;
+    using Arithmetization = proving_system::StandardArithmetization;
     using MULTIVARIATE = Arithmetization::POLYNOMIAL;
     static constexpr size_t STANDARD_UNROLLED_MANIFEST_SIZE = 12; // cf waffle::STANDARD_UNROLLED_MANIFEST_SIZE
     static constexpr size_t MAX_RELATION_LENGTH = 5; // TODO(Cody): increment after fixing add_edge_contribution; kill
@@ -114,7 +114,6 @@ struct StandardHonk {
               { .name = "q_m",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 9 },
               { .name = "q_c",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 10 },
               { .name = "z_perm",       .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 11 },
-              { .name = "z_perm_omega", .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = -1 },
             },
             /* challenge_name = */ "rho",
             /* num_challenges_in = */ STANDARD_UNROLLED_MANIFEST_SIZE - 1, /* TODO(Cody): this is bad. */
