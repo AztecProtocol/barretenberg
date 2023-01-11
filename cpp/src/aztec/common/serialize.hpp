@@ -33,6 +33,8 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <common/log.hpp>
+// /mnt/user-data/luke/barretenberg/cpp/src/aztec/common/log.hpp
 
 #ifndef __i386__
 __extension__ using uint128_t = unsigned __int128;
