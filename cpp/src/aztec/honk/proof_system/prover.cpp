@@ -178,7 +178,7 @@ template <typename settings> void Prover<settings>::compute_grand_product_polyno
 template <typename settings> void Prover<settings>::execute_preamble_round()
 {
     // Add some initial data to transcript (circuit size and PI size)
-    queue.flush_queue();
+    // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
 
     transcript.add_element("circuit_size",
                            { static_cast<uint8_t>(n >> 24),
@@ -206,7 +206,7 @@ template <typename settings> void Prover<settings>::execute_preamble_round()
  * */
 template <typename settings> void Prover<settings>::execute_wire_commitments_round()
 {
-    queue.flush_queue();
+    // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
 
     compute_wire_commitments();
 
@@ -228,7 +228,7 @@ template <typename settings> void Prover<settings>::execute_wire_commitments_rou
  * */
 template <typename settings> void Prover<settings>::execute_tables_round()
 {
-    queue.flush_queue();
+    // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
     transcript.apply_fiat_shamir("eta");
 
     // No operations are needed here for Standard Honk
@@ -246,7 +246,7 @@ template <typename settings> void Prover<settings>::execute_tables_round()
  * */
 template <typename settings> void Prover<settings>::execute_grand_product_computation_round()
 {
-    queue.flush_queue();
+    // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
 
     transcript.apply_fiat_shamir("beta");
 
@@ -271,7 +271,7 @@ template <typename settings> void Prover<settings>::execute_grand_product_comput
  * */
 template <typename settings> void Prover<settings>::execute_relation_check_rounds()
 {
-    queue.flush_queue();
+    // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
 
     // Compute alpha challenge
     transcript.apply_fiat_shamir("alpha");
@@ -378,32 +378,32 @@ template <typename settings> waffle::plonk_proof& Prover<settings>::construct_pr
 {
     // Add circuit size and public input size to transcript.
     execute_preamble_round();
-    queue.process_queue();
+    // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
 
     // Compute wire commitments; Add PI to transcript
     execute_wire_commitments_round();
-    queue.process_queue();
+    // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
 
     // Currently a no-op; may execute some "random widgets", commit to W_4, do RAM/ROM stuff
     // if this prover structure is kept when we bring tables to Honk.
     execute_tables_round();
-    queue.process_queue();
+    // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
 
     // Fiat-Shamir: beta & gamma
     // Compute grand product(s) and commitments.
     execute_grand_product_computation_round();
-    queue.process_queue();
+    // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
 
     // Fiat-Shamir: alpha
     // Run sumcheck subprotocol.
     execute_relation_check_rounds();
     // // queue currently only handles commitments, not partial multivariate evaluations.
-    // queue.process_queue();
+    // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
 
     // Fiat-Shamir: rho
     // Compute Fold polynomials and their commitments.
     execute_univariatization_round();
-    queue.process_queue();
+    // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
 
     // Fiat-Shamir: r
     // Compute Fold evaluations
@@ -412,14 +412,14 @@ template <typename settings> waffle::plonk_proof& Prover<settings>::construct_pr
     // Fiat-Shamir: nu
     // Compute Shplonk batched quotient commitment
     execute_shplonk_round();
-    queue.process_queue();
+    // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
 
     // Fiat-Shamir: z
     // Compute KZG quotient commitment
     execute_kzg_round();
-    queue.process_queue();
+    // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
 
-    queue.flush_queue();
+    // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
 
     return export_proof();
 }
