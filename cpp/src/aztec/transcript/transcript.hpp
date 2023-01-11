@@ -32,7 +32,6 @@ enum HashType { Keccak256, PedersenBlake3s, PlookupPedersenBlake3s };
  * values and get the data and challenges back.
  *
  */
-// template<typename FF = barretenberg::fr>
 class Transcript {
     static constexpr size_t PRNG_OUTPUT_SIZE = 32;
     struct challenge {
