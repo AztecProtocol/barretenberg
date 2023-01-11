@@ -52,12 +52,9 @@ template <class Fr, size_t _length> class Univariate {
     static Univariate serialize_from_buffer(uint8_t const* buffer)
     {
         Univariate result;
-        read(buffer, result);
+        std::read(buffer, result.evaluations);
         return result;
     }
-
-    // Read a Univariate from a buffer
-    static void read(uint8_t const* buffer, Univariate univariate) { std::read(buffer, univariate.evaluations); }
 
     // Operations between Univariate and other Univariate
     Univariate operator=(const Univariate& other)
