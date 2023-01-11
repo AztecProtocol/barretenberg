@@ -99,6 +99,50 @@ TEST(standard_honk_composer, test_sigma_and_id_correctness)
 }
 
 /**
+ * @brief Check the correctness of lagrange polynomials generated during proving key computation
+ *
+ */
+TEST(standard_honk_composer, test_lagrange_polynomial_correctness)
+{
+    // Create a composer and a dummy circuit with a few gates
+    waffle::StandardHonkComposer composer = waffle::StandardHonkComposer();
+    fr a = fr::one();
+    uint32_t a_idx = composer.add_variable(a);
+    fr b = fr::one();
+    fr c = a + b;
+    fr d = a + c;
+    uint32_t b_idx = composer.add_variable(b);
+    uint32_t c_idx = composer.add_variable(c);
+    uint32_t d_idx = composer.add_variable(d);
+    for (size_t i = 0; i < 16; i++) {
+        composer.create_add_gate({ a_idx, b_idx, c_idx, fr::one(), fr::one(), fr::neg_one(), fr::zero() });
+        composer.create_add_gate({ d_idx, c_idx, a_idx, fr::one(), fr::neg_one(), fr::neg_one(), fr::zero() });
+    }
+    // Generate proving key
+    auto proving_key = composer.compute_proving_key();
+    // Generate a random polynomial
+    barretenberg::polynomial random_polynomial = barretenberg::polynomial(proving_key->n, proving_key->n);
+    for (size_t i = 0; i < proving_key->n; i++) {
+        random_polynomial[i] = barretenberg::fr::random_element();
+    }
+    // Compute inner product of random polynomial and the first lagrange polynomial
+    barretenberg::polynomial first_lagrange_polynomial = proving_key->polynomial_cache.get("L_first_lagrange");
+    barretenberg::fr first_product(0);
+    for (size_t i = 0; i < proving_key->n; i++) {
+        first_product += random_polynomial[i] * first_lagrange_polynomial[i];
+    }
+    EXPECT_EQ(first_product, random_polynomial[0]);
+
+    // Compute inner product of random polynomial and the last lagrange polynomial
+    barretenberg::polynomial last_lagrange_polynomial = proving_key->polynomial_cache.get("L_last_lagrange");
+    barretenberg::fr last_product(0);
+    for (size_t i = 0; i < proving_key->n; i++) {
+        last_product += random_polynomial[i] * last_lagrange_polynomial[i];
+    }
+    EXPECT_EQ(last_product, random_polynomial[proving_key->n - 1]);
+}
+
+/**
  * @brief Test that the assert_equal method in composer is working as intended
  *
  * @details We show equality of witness values through permutation arguments, so the assert_equal method changes the

@@ -210,15 +210,15 @@ template <size_t program_width> void compute_standard_honk_id_polynomials(provin
  *
  * @param key Proving key where we will save the polynomials
  */
-void compute_edge_lagrange_polynomials(proving_key* key)
+inline void compute_first_and_last_lagrange_polynomials(proving_key* key)
 {
     const size_t n = key->n;
     barretenberg::polynomial lagrange_polynomial_0(n, n);
     barretenberg::polynomial lagrange_polynomial_n_min_1(n, n);
     lagrange_polynomial_0[0] = 1;
     lagrange_polynomial_n_min_1[n - 1] = 1;
-    key->polynomial_cache.put("L_0", std::move(lagrange_polynomial_0));
-    key->polynomial_cache.put("L_last", std::move(lagrange_polynomial_n_min_1));
+    key->polynomial_cache.put("L_first_lagrange", std::move(lagrange_polynomial_0));
+    key->polynomial_cache.put("L_last_lagrange", std::move(lagrange_polynomial_n_min_1));
 }
 
 } // namespace waffle
