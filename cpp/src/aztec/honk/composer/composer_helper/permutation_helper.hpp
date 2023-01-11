@@ -189,12 +189,12 @@ template <size_t program_width> void compute_standard_honk_id_polynomials(waffle
     const size_t n = key->n;
     // Fill id polynomials with default values
     std::vector<barretenberg::polynomial> id_polynomials_lagrange;
-    for (uint64_t i = 0; i < program_width; ++i) {
+    for (size_t i = 0; i < program_width; ++i) {
         // Construct permutation polynomials in lagrange base
         std::string index = std::to_string(i + 1);
         id_polynomials_lagrange.push_back(barretenberg::polynomial(key->n));
         barretenberg::polynomial& id_polynomial_lagrange = id_polynomials_lagrange[i];
-        for (uint64_t j = 0; j < key->n; j++) {
+        for (size_t j = 0; j < key->n; j++) {
             id_polynomial_lagrange[j] = (i * n + j);
         }
     }
