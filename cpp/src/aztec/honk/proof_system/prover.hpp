@@ -25,7 +25,8 @@ template <typename settings> class Prover {
 
     void compute_wire_commitments();
 
-    void compute_grand_product_polynomial();
+    void compute_grand_product_polynomial(
+        barretenberg::fr beta = 1); // TODO(Cody): get rid of dangerous default value here
 
     waffle::plonk_proof& export_proof();
     waffle::plonk_proof& construct_proof();

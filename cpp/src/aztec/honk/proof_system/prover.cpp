@@ -76,13 +76,15 @@ template <typename settings> void Prover<settings>::compute_wire_commitments()
  * Note: Step (4) utilizes Montgomery batch inversion to replace n-many inversions with
  * one batch inversion (at the expense of more multiplications)
  */
-template <typename settings> void Prover<settings>::compute_grand_product_polynomial()
+template <typename settings> void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta)
 {
     // TODO: Fr to become template param
     using Fr = barretenberg::fr;
     using barretenberg::polynomial;
     using barretenberg::polynomial_arithmetic::copy_polynomial;
     static const size_t program_width = settings::program_width;
+
+    Fr gamma = beta * beta; // TODO(Cody): We already do this and it's kosher, right?
 
     // Allocate scratch space for accumulators
     Fr* numererator_accum[program_width];
@@ -96,15 +98,11 @@ template <typename settings> void Prover<settings>::compute_grand_product_polyno
     std::array<const Fr*, program_width> wires;
     std::array<const Fr*, program_width> sigmas;
     for (size_t i = 0; i < program_width; ++i) {
-        std::string wire_id = "wire_" + std::to_string(i + 1) + "_lagrange";
+        std::string wire_id = "w_" + std::to_string(i + 1) + "_lagrange";
         std::string sigma_id = "sigma_" + std::to_string(i + 1) + "_lagrange";
         wires[i] = proving_key->polynomial_cache.get(wire_id).get_coefficients();
         sigmas[i] = proving_key->polynomial_cache.get(sigma_id).get_coefficients();
     }
-
-    // Get random challenges (TODO(luke): to be obtained from transcript)
-    Fr beta = Fr::one();
-    Fr gamma = Fr::one();
 
     // Step (1)
     for (size_t i = 0; i < proving_key->n; ++i) {
@@ -250,12 +248,13 @@ template <typename settings> void Prover<settings>::execute_grand_product_comput
 {
     queue.flush_queue();
 
-    // Compute beta/gamma challenge (Note: gamma = beta^2)
     transcript.apply_fiat_shamir("beta");
 
-    // TODO(luke): compute_grand_product_polynomial
-    // TODO(luke): compute_grand_product_polynomial_commitment
-    transcript.add_element("Z_PERM", barretenberg::g1::affine_one.to_buffer()); // TODO(Cody): unmock.
+    auto beta = transcript.get_challenge_field_element("beta");
+    compute_grand_product_polynomial(beta);
+    auto z_perm = proving_key->polynomial_cache.get("z_perm").get_coefficients_span();
+    auto commitment = commitment_key->commit(z_perm);
+    transcript.add_element("Z_PERM", commitment.to_buffer());
 }
 
 /**
