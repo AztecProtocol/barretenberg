@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <gtest/gtest.h>
 
 #include <concepts>
@@ -13,6 +14,8 @@
 #include "../oracle/oracle.hpp"
 // #include "../transcript/transcript.hpp"
 #include "../../transcript/transcript_wrappers.hpp"
+#include "../../proof_system/flavor/flavor.hpp"
+#include "../../honk/sumcheck/polynomials/univariate.hpp"
 
 #include "claim.hpp"
 #include "commitment_key.hpp"
@@ -59,12 +62,15 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
 
   public:
     CommitmentTest()
-        : prover_transcript{ transcript::Manifest() } // TODO(luke): initialize with empty Manifest for now
-        , verifier_transcript{ transcript::Manifest() }
+        : prover_transcript{ honk::StandardHonk::create_unrolled_manifest(0) }
+        , verifier_transcript{ honk::StandardHonk::create_unrolled_manifest(0) }
         , prover_challenges{ &prover_transcript }
         , verifier_challenges{ &verifier_transcript }
         , engine{ &numeric::random::get_debug_engine() }
-    {}
+    {
+        // Mock the rounds preceding Gemini
+        mock_transcript_interactions_up_to_gemini();
+    }
 
     CK* ck() { return commitment_key; }
     VK* vk() { return verification_key; }
@@ -174,6 +180,66 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
     {
         (prover_challenges.consume(args), ...);
         (verifier_challenges.consume(args), ...);
+    }
+
+    void mock_transcript_interactions_up_to_gemini()
+    {
+        // Mock the rounds preceding Gemini
+        const size_t LENGTH = honk::StandardHonk::MAX_RELATION_LENGTH;
+        using Univariate = honk::sumcheck::Univariate<Fr, LENGTH>;
+        std::vector<uint8_t> g1_buf(64);
+        std::vector<uint8_t> fr_buf(32);
+        std::array<Fr, LENGTH> evaluations;
+
+        for (size_t i = 0; i < g1_buf.size(); ++i) {
+            g1_buf[i] = 1;
+        }
+        for (size_t i = 0; i < fr_buf.size(); ++i) {
+            fr_buf[i] = 1;
+        }
+        for (size_t i = 0; i < LENGTH; ++i) {
+            evaluations[i] = Fr::random_element();
+        }
+
+        prover_transcript.add_element("circuit_size", { 1, 2, 3, 4 });
+        prover_transcript.add_element("public_input_size", { 0, 0, 0, 0 });
+
+        prover_transcript.apply_fiat_shamir("init");
+        prover_transcript.apply_fiat_shamir("eta");
+
+        prover_transcript.add_element("public_inputs", {});
+        prover_transcript.add_element("W_1", g1_buf);
+        prover_transcript.add_element("W_2", g1_buf);
+        prover_transcript.add_element("W_3", g1_buf);
+
+        prover_transcript.apply_fiat_shamir("beta");
+
+        prover_transcript.add_element("Z_PERM", g1_buf);
+
+        prover_transcript.apply_fiat_shamir("alpha");
+
+        // Instantiate a Univariate from the evaluations
+        auto univariate = Univariate(evaluations);
+
+        // Add the univariate to the transcript
+        prover_transcript.add_element("univariate_1", univariate.to_buffer());
+
+        // Example of challenge generation; not used in test
+        prover_transcript.apply_fiat_shamir("u_1");
+
+        prover_transcript.add_element("w_1", fr_buf);
+        prover_transcript.add_element("w_2", fr_buf);
+        prover_transcript.add_element("w_3", fr_buf);
+        prover_transcript.add_element("sigma_1", fr_buf);
+        prover_transcript.add_element("sigma_2", fr_buf);
+        prover_transcript.add_element("sigma_3", fr_buf);
+        prover_transcript.add_element("q_1", fr_buf);
+        prover_transcript.add_element("q_2", fr_buf);
+        prover_transcript.add_element("q_3", fr_buf);
+        prover_transcript.add_element("q_m", fr_buf);
+        prover_transcript.add_element("q_c", fr_buf);
+        prover_transcript.add_element("z_perm", fr_buf);
+        prover_transcript.add_element("z_perm_omega", fr_buf);
     }
 
     // Transcript<Fr> prover_transcript;

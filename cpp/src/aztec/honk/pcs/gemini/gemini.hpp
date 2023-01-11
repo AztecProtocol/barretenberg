@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../claim.hpp"
+#include "common/log.hpp"
 #include "polynomials/polynomial.hpp"
 
 #include <common/assert.hpp>
@@ -132,6 +133,237 @@ template <typename Params> class MultilinearReductionScheme {
     using Polynomial = barretenberg::Polynomial<Fr>;
 
   public:
+    /* ***********  VERSIONS OF reduce_prove/verify that work with the existing transcript  *********** */
+
+    /**
+     * @brief reduces claims about multiple (shifted) MLE evaluation
+     *
+     * @param ck is the commitment key for creating the new commitments
+     * @param mle_opening_point = u =(u₀,...,uₘ₋₁) is the MLE opening point
+     * @param claims a set of MLE claims for the same point u
+     * @param mle_witness_polynomials the MLE polynomials for each evaluation.
+     *      Internally, it contains a reference to the non-shifted polynomial.
+     * @param challenge_generator used to derive Fiat-Shamir challenges
+     * @return Output (result_claims, proof, folded_witness_polynomials)
+     */
+    static ProverOutput<Params> reduce_prove_with_transcript(
+        CK* ck,
+        std::span<const Fr> mle_opening_point,
+        std::span<const MLEOpeningClaim<Params>> claims,
+        std::span<const MLEOpeningClaim<Params>> claims_shifted,
+        const std::vector<Polynomial*>& mle_witness_polynomials,
+        const std::vector<Polynomial*>& mle_witness_polynomials_shifted,
+        auto& challenge_generator)
+    {
+        // Relabel inputs to be consistent with the comments
+        auto& claims_f = claims;
+        auto& claims_g = claims_shifted;
+        auto& polys_f = mle_witness_polynomials;
+        auto& polys_g = mle_witness_polynomials_shifted;
+
+        const size_t num_variables = mle_opening_point.size(); // m
+        const size_t n = 1 << num_variables;
+        const size_t num_polys_f = polys_f.size();
+        const size_t num_polys_g = polys_g.size();
+        const size_t num_polys = num_polys_f + num_polys_g;
+        ASSERT(claims_f.size() == num_polys_f);
+        ASSERT(claims_g.size() == num_polys_g);
+
+        // Generate batching challenge ρ and powers 1,ρ,…,ρᵐ⁻¹
+        Fr rho = challenge_generator.generate_challenge("rho");
+        const std::vector<Fr> rhos = powers_of_rho(rho, num_polys);
+        std::span<const Fr> rhos_span{ rhos };
+        std::span rhos_f = rhos_span.subspan(0, num_polys_f);
+        std::span rhos_g = rhos_span.subspan(num_polys_f, num_polys_g);
+
+        // Allocate m+1 witness polynomials
+        //
+        // At the end, the first two will contain the batched polynomial
+        // partially evaluated at the challenges r,-r.
+        // The other m-1 polynomials correspond to the foldings of A₀
+        std::vector<Polynomial> witness_polynomials;
+        witness_polynomials.reserve(num_variables + 1);
+
+        // Create the batched polynomials
+        // F(X) = ∑ⱼ ρʲ   fⱼ(X)
+        // G(X) = ∑ⱼ ρᵏ⁺ʲ gⱼ(X)
+        // using powers of the challenge ρ.
+        //
+        // In what follows, we use indices j, k for non-shifted and shifted polynomials respectively.
+        //
+        // We separate A₀(X) into two polynomials F(X), G↺(X)
+        // such that A₀(X) = F(X) + G↺(X) = F(X) + G(X)/X.
+
+        //  F(X) = ∑ⱼ ρʲ fⱼ(X)
+        Polynomial& batched_F = witness_polynomials.emplace_back(Polynomial(n, n));
+        for (size_t j = 0; j < num_polys_f; ++j) {
+            const size_t n_j = polys_f[j]->size();
+            ASSERT(n_j <= n);
+            // F(X) += ρʲ fⱼ(X)
+            batched_F.add_scaled(*polys_f[j], rhos_f[j]);
+        }
+
+        //  G(X) = ∑ⱼ ρʲ gⱼ(X)
+        Polynomial& batched_G = witness_polynomials.emplace_back(Polynomial(n, n));
+        for (size_t j = 0; j < num_polys_g; ++j) {
+            const size_t n_j = polys_g[j]->size();
+            ASSERT(n_j <= n);
+            // G(X) += ρʲ gⱼ(X)
+            batched_G.add_scaled(*polys_g[j], rhos_g[j]);
+        }
+
+        // A₀(X) = F(X) + G↺(X) = F(X) + G(X)/X.
+        Polynomial A_0(batched_F);
+        A_0 += batched_G.shifted();
+
+        // Create the folded polynomials A₁(X),…,Aₘ₋₁(X)
+        //
+        // A_l = Aₗ(X) is the polynomial being folded
+        // in the first iteration, we take the batched polynomial
+        // in the next iteration, it is the previously folded one
+        Fr* A_l = A_0.get_coefficients();
+        for (size_t l = 0; l < num_variables - 1; ++l) {
+            const Fr u_l = mle_opening_point[l];
+
+            // size of the previous polynomial/2
+            const size_t n_l = 1 << (num_variables - l - 1);
+
+            // A_l_fold = Aₗ₊₁(X) = (1-uₗ)⋅even(Aₗ)(X) + uₗ⋅odd(Aₗ)(X)
+            Fr* A_l_fold = witness_polynomials.emplace_back(Polynomial(n_l, n_l)).get_coefficients();
+
+            // fold the previous polynomial with odd and even parts
+            for (size_t i = 0; i < n_l; ++i) {
+                // TODO parallelize
+
+                // fold(Aₗ)[i] = (1-uₗ)⋅even(Aₗ)[i] + uₗ⋅odd(Aₗ)[i]
+                //            = (1-uₗ)⋅Aₗ[2i]      + uₗ⋅Aₗ[2i+1]
+                //            = Aₗ₊₁[i]
+                A_l_fold[i] = A_l[i << 1] + u_l * (A_l[(i << 1) + 1] - A_l[i << 1]);
+            }
+
+            // set Aₗ₊₁ = Aₗ for the next iteration
+            A_l = A_l_fold;
+        }
+
+        /*
+         * Create commitments C₁,…,Cₘ₋₁
+         */
+        std::vector<Commitment> commitments;
+        commitments.reserve(num_variables - 1);
+        for (size_t l = 0; l < num_variables - 1; ++l) {
+            commitments.emplace_back(ck->commit(witness_polynomials[l + 2]));
+        }
+
+        /*
+         * Add commitments to transcript and generate evaluation challenge r, and derive -r, r²
+         */
+        challenge_generator.consume(commitments);
+        const Fr r = challenge_generator.generate_challenge("r");
+
+        /*
+         * Compute the witness polynomials for the resulting claim
+         *
+         *
+         * We are batching all polynomials together, and linearly combining them with
+         * powers of ρ
+         */
+
+        // 2 simulated polynomials and (m-1) polynomials from this round
+        Fr r_inv = r.invert();
+        // G(X) *= r⁻¹
+        batched_G *= r_inv;
+
+        // To avoid an extra allocation, we reuse the following polynomials
+        // but rename them to represent the result.
+        // tmp     = A₀(X) (&tmp     == &A_0)
+        // A_0_pos = F(X)  (&A_0_pos == &batched_F)
+        Polynomial& tmp = A_0;
+        Polynomial& A_0_pos = witness_polynomials[0];
+
+        tmp = batched_F;
+        // A₀₊(X) = F(X) + G(X)/r, s.t. A₀₊(r) = A₀(r)
+        A_0_pos += batched_G;
+
+        std::swap(tmp, batched_G);
+        // After the swap, we have
+        // tmp = G(X)/r
+        // A_0_neg = F(X) (since &batched_F == &A_0_neg)
+        Polynomial& A_0_neg = witness_polynomials[1];
+
+        // A₀₋(X) = F(X) - G(X)/r, s.t. A₀₋(-r) = A₀(-r)
+        A_0_neg -= tmp;
+
+        /*
+         * compute rₗ = r^{2ˡ} for l = 0, 1, ..., m-1
+         */
+        std::vector<Fr> r_squares = squares_of_r(r, num_variables);
+
+        // evaluate all new polynomials Aₗ at -rₗ
+        std::vector<Fr> evals;
+        evals.reserve(num_variables);
+        for (size_t l = 0; l < num_variables; ++l) {
+            const Polynomial& A_l = witness_polynomials[l + 1];
+            const Fr r_l_neg = -r_squares[l];
+            evals.emplace_back(A_l.evaluate(r_l_neg));
+        }
+
+        challenge_generator.consume(evals);
+
+        Proof<Params> proof = { commitments, evals };
+        /*
+         * Compute new claims and add them to the output
+         */
+        auto result_claims =
+            compute_output_claim_from_proof(claims_f, claims_g, mle_opening_point, rhos, r_squares, proof);
+
+        return { result_claims, std::move(witness_polynomials), proof };
+    };
+
+    /**
+     * @brief Temporary version of reduce_verify that does not use Oracle.
+     *
+     * @details This version of reduce_verify will go away once we fully incorporate the Oracle concept
+     * into Honk. Since we are currently using the Transcript/Manifest instead, reduce_verify does
+     * not need to construct it's own challenge_generator; we can simply pass it the challenges directly.
+     * @param mle_opening_point the MLE evaluation point for all claims
+     * @param claims MLE claims with (C, v) and C is a univariate commitment
+     * @param claims_shifted MLE claims with (C, v↺) and C is a univariate commitment
+     *      to the non-shifted polynomial
+     * @param proof commitments to the m-1 folded polynomials, and alleged evaluations.
+     * @param rho Batching challenge
+     * @param r Random evaluation challenge
+     * @return BatchOpeningClaim
+     */
+    static OutputClaim<Params> reduce_verify_with_transcript(std::span<const Fr> mle_opening_point,
+                                                             std::span<const MLEOpeningClaim<Params>> claims,
+                                                             std::span<const MLEOpeningClaim<Params>> claims_shifted,
+                                                             const Proof<Params>& proof,
+                                                             auto& challenge_generator)
+    {
+        // Relabel inputs to be more consistent with the math comments.
+        auto& claims_f = claims;
+        auto& claims_g = claims_shifted;
+
+        const size_t num_variables = mle_opening_point.size();
+        const size_t num_claims_f = claims_f.size();
+        const size_t num_claims_g = claims_g.size();
+        const size_t num_claims = num_claims_f + num_claims_g;
+
+        // batching challenge ρ
+        const Fr rho = challenge_generator.get_challenge("rho");
+        // compute vector of powers of rho only once
+        std::vector<Fr> rhos = powers_of_rho(rho, num_claims);
+
+        // random evaluation point r
+        const Fr r = challenge_generator.get_challenge("r");
+
+        std::vector<Fr> r_squares = squares_of_r(r, num_variables);
+
+        return compute_output_claim_from_proof(claims_f, claims_g, mle_opening_point, rhos, r_squares, proof);
+    };
+
+    /* ***********  END   *********** */
+
     /**
      * @brief reduces claims about multiple (shifted) MLE evaluation
      *
