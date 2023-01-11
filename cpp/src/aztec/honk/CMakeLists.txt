@@ -1,5 +1,6 @@
 barretenberg_module(honk numeric ecc srs proof_system transcript)
 
+# TODO: Re-enable all these warnings once PoC is finished 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_compile_options(
         honk_test_objects 
@@ -12,5 +13,6 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
         PRIVATE 
         -Wno-error=maybe-uninitialized
         -Wno-error=uninitialized
+        -Wno-error=unused-variable
     )
 endif()

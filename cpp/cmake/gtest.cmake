@@ -15,6 +15,13 @@ if(TESTING)
         add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
     endif()
 
+    # Disable all warning when compiling gtest
+    target_compile_options(
+        gtest
+        PRIVATE
+        -w
+    )
+
     if(WASM)
         target_compile_definitions(
             gtest

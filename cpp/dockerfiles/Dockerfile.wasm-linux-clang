@@ -7,7 +7,6 @@ WORKDIR /usr/src/barretenberg/cpp
 COPY . .
 # Build both honk_tests barretenberg.wasm
 # This ensures that we aren't using features that would be incompatible with WASM for Honk
-# Once we move to emscripten, this will need to change
 RUN mkdir build && cd build && cmake -DTOOLCHAIN=wasm-linux-clang .. && make -j$(nproc) honk_tests barretenberg.wasm
 
 FROM alpine:3.17

@@ -88,9 +88,7 @@ TEST(stdlib_safeuint, test_multiply_operation_out_of_range_fails)
         FAIL() << "Expected std::runtime_error modulus in safe_uint class";
     }
 }
-#endif
 
-#if !defined(__wasm__)
 TEST(stdlib_safeuint, test_multiply_operation_on_constants_out_of_range_fails)
 {
     //  Now we check that when using constants the maximum grows more slowly - since they are bounded by themselves
@@ -120,10 +118,8 @@ TEST(stdlib_safeuint, test_multiply_operation_on_constants_out_of_range_fails)
         FAIL() << "Expected std::runtime_error modulus in safe_uint class";
     }
 }
-#endif
 // + OPERATOR
 
-#if !defined(__wasm__)
 TEST(stdlib_safeuint, test_add_operation_out_of_range_fails)
 {
     // Here we test the addition operator also causes a throw when exceeding r
