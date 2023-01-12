@@ -14,7 +14,7 @@ template <typename TranscriptType> struct Oracle {
     enum TranscriptDataLabel { NONE, FOLD_COMMS, FOLD_EVALS };
 
     // using Fr = typename TranscriptType::Fr;
-    using Fr = typename barretenberg::fr;
+    using Fr = barretenberg::fr;
     Oracle(Transcript* transcript)
         : transcript(transcript){};
 
