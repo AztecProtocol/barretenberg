@@ -12,7 +12,6 @@
 #include <ecc/curves/bn254/g1.hpp>
 
 #include "../oracle/oracle.hpp"
-// #include "../transcript/transcript.hpp"
 #include "../../transcript/transcript_wrappers.hpp"
 #include "../../proof_system/flavor/flavor.hpp"
 #include "../../honk/sumcheck/polynomials/univariate.hpp"
@@ -243,21 +242,19 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
         transcript->add_element("z_perm_omega", fr_buf);
     }
 
-    static void mock_transcript_interactions_up_to_shplonk(auto& transcript)
+    static void mock_transcript_interactions_up_to_shplonk(auto& transcript, size_t log_n)
     {
-        mock_transcript_interactions_up_to_gemini(transcript);
+        mock_transcript_interactions_up_to_gemini(transcript, log_n);
 
-        // transcript->apply_fiat_shamir("rho");
-        // for (size_t round_idx = 1; round_idx < key->log_n; round_idx++) {
-        //     transcript->add_element("FOLD_" + std::to_string(round_idx),
-        //     barretenberg::g1::affine_one.to_buffer());
-        // }
+        transcript->apply_fiat_shamir("rho");
+        for (size_t round_idx = 1; round_idx < log_n; round_idx++) {
+            transcript->add_element("FOLD_" + std::to_string(round_idx), barretenberg::g1::affine_one.to_buffer());
+        }
 
-        // transcript->apply_fiat_shamir("r");
-        // for (size_t round_idx = 0; round_idx < key->log_n; round_idx++) {
-        //     transcript->add_element("a_" + std::to_string(round_idx), barretenberg::fr(round_idx +
-        //     1000).to_buffer());
-        // }
+        transcript->apply_fiat_shamir("r");
+        for (size_t round_idx = 0; round_idx < log_n; round_idx++) {
+            transcript->add_element("a_" + std::to_string(round_idx), barretenberg::fr(round_idx + 1).to_buffer());
+        }
     }
 
     // Transcript<Fr> prover_transcript;

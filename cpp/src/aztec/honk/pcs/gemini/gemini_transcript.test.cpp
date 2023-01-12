@@ -15,7 +15,7 @@ TYPED_TEST(GeminiTranscriptTest, single_with_transcript)
     using MLEOpeningClaim = MLEOpeningClaim<TypeParam>;
 
     const size_t n = 16;
-    const size_t log_n = 4; // = log(n)
+    const size_t log_n = 4;
 
     auto u = this->random_evaluation_point(log_n);
     auto poly = this->random_polynomial(n);
@@ -49,7 +49,7 @@ TYPED_TEST(GeminiTranscriptTest, shift_with_transcript)
     using MLEOpeningClaim = MLEOpeningClaim<TypeParam>;
 
     const size_t n = 16;
-    const size_t log_n = 4; // = log(n)
+    const size_t log_n = 4;
 
     auto u = this->random_evaluation_point(log_n);
 
@@ -86,7 +86,7 @@ TYPED_TEST(GeminiTranscriptTest, double_with_transcript)
     using MLEOpeningClaim = MLEOpeningClaim<TypeParam>;
 
     const size_t n = 16;
-    const size_t log_n = 4; // = log(n)
+    const size_t log_n = 4;
 
     auto u = this->random_evaluation_point(log_n);
 
@@ -127,7 +127,7 @@ TYPED_TEST(GeminiTranscriptTest, double_shift_with_transcript)
     using MLEOpeningClaim = MLEOpeningClaim<TypeParam>;
 
     const size_t n = 16;
-    const size_t log_n = 4; // = log(n)
+    const size_t log_n = 4;
 
     auto u = this->random_evaluation_point(log_n);
 

@@ -362,13 +362,11 @@ template <typename Params> class MultilinearReductionScheme {
         const size_t num_claims = num_claims_f + num_claims_g;
 
         // batching challenge ρ
-        // const Fr rho = oracle.get_challenge("rho");
         const Fr rho = Fr::serialize_from_buffer(transcript->get_challenge("rho").begin());
         // compute vector of powers of rho only once
         std::vector<Fr> rhos = powers_of_rho(rho, num_claims);
 
         // random evaluation point r
-        // const Fr r = oracle.get_challenge("r");
         const Fr r = Fr::serialize_from_buffer(transcript->get_challenge("r").begin());
 
         std::vector<Fr> r_squares = squares_of_r(r, num_variables);
