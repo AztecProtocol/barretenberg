@@ -22,7 +22,7 @@ Prover<settings>::Prover(std::shared_ptr<waffle::proving_key> input_key, const t
     : n(input_key == nullptr ? 0 : input_key->n)
     , transcript(input_manifest, settings::hash_type, settings::num_challenge_bytes)
     , proving_key(input_key)
-    , commitment_key(std::make_unique<pcs::kzg::CommitmentKey>(n, "../srs_db/ignition"))
+    , commitment_key(nullptr) // TODO(Cody): Need better constructors for prover.
     , queue(proving_key.get(), &transcript)
 {}
 
