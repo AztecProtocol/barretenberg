@@ -43,8 +43,8 @@ std::shared_ptr<waffle::proving_key> ComposerHelper<CircuitConstructor>::compute
 
     // Initialize circuit_proving_key
     // TODO: replace composer types.
-    circuit_proving_key =
-        std::make_shared<waffle::proving_key>(subgroup_size, public_inputs.size(), crs, waffle::ComposerType::STANDARD);
+    circuit_proving_key = std::make_shared<waffle::proving_key>(
+        subgroup_size, public_inputs.size(), crs, waffle::ComposerType::STANDARD_HONK);
 
     for (size_t i = 0; i < constructor.num_selectors; ++i) {
         std::vector<barretenberg::fr>& selector_values = selectors[i];
@@ -225,7 +225,7 @@ std::shared_ptr<waffle::proving_key> ComposerHelper<CircuitConstructor>::compute
         return circuit_proving_key;
     }
     // Compute q_l, q_r, q_o, etc polynomials
-    ComposerHelper::compute_proving_key_base(circuit_constructor, waffle::ComposerType::STANDARD);
+    ComposerHelper::compute_proving_key_base(circuit_constructor, waffle::ComposerType::STANDARD_HONK);
 
     // Compute sigma polynomials (we should update that late)
     compute_standard_honk_sigma_permutations<CircuitConstructor::program_width>(circuit_constructor,

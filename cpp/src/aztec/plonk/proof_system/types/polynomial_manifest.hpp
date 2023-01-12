@@ -205,8 +205,8 @@ class PolynomialManifest {
     {
         switch (composer_type) {
         case ComposerType::STANDARD: {
-            std::copy(standard_honk_polynomial_manifest,
-                      standard_honk_polynomial_manifest + STANDARD_HONK_MANIFEST_SIZE,
+            std::copy(standard_polynomial_manifest,
+                      standard_polynomial_manifest + STANDARD_UNROLLED_MANIFEST_SIZE,
                       std::back_inserter(manifest));
             break;
         };
@@ -219,6 +219,12 @@ class PolynomialManifest {
         case ComposerType::PLOOKUP: {
             std::copy(ultra_polynomial_manifest,
                       ultra_polynomial_manifest + ULTRA_UNROLLED_MANIFEST_SIZE,
+                      std::back_inserter(manifest));
+            break;
+        };
+        case ComposerType::STANDARD_HONK: {
+            std::copy(standard_honk_polynomial_manifest,
+                      standard_honk_polynomial_manifest + STANDARD_HONK_MANIFEST_SIZE,
                       std::back_inserter(manifest));
             break;
         };
