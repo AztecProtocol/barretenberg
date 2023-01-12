@@ -123,9 +123,6 @@ void Transcript::apply_fiat_shamir(const std::string& challenge_name /*, const b
     // TODO(Cody): Coupling: this line insists that the challenges in the manifest
     // are encountered in the order that matches the order of the proof construction functions.
     // Future architecture should specify this data in a single place (?).
-    info("challenge_name = ", challenge_name);
-    info("manifest.get_round_manifest(current_round).challenge = ",
-         manifest.get_round_manifest(current_round).challenge);
     ASSERT(challenge_name == manifest.get_round_manifest(current_round).challenge);
 
     const size_t num_challenges = manifest.get_round_manifest(current_round).num_challenges;
@@ -145,8 +142,6 @@ void Transcript::apply_fiat_shamir(const std::string& challenge_name /*, const b
         ASSERT(elements.count(manifest_element.name) == 1);
         std::vector<uint8_t>& element_data = elements.at(manifest_element.name);
         if (!manifest_element.derived_by_verifier) {
-            info("manifest_element.num_bytes = ", manifest_element.num_bytes);
-            info("element_data.size() = ", element_data.size());
             ASSERT(manifest_element.num_bytes == element_data.size());
         }
         buffer.insert(buffer.end(), element_data.begin(), element_data.end());

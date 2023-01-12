@@ -142,7 +142,7 @@ template <typename Params> class MultilinearReductionScheme {
      * @param claims a set of MLE claims for the same point u
      * @param mle_witness_polynomials the MLE polynomials for each evaluation.
      *      Internally, it contains a reference to the non-shifted polynomial.
-     * @param oracle used to derive Fiat-Shamir challenges
+     * @param transcript
      * @return Output (result_claims, proof, folded_witness_polynomials)
      */
     static ProverOutput<Params> reduce_prove(CK* ck,
@@ -329,18 +329,15 @@ template <typename Params> class MultilinearReductionScheme {
     };
 
     /**
-     * @brief Temporary version of reduce_verify that does not use Oracle.
+     * @brief Checks that all MLE evaluations vⱼ contained in the list of m MLE opening claims
+     * is correct, and returns univariate polynomial opening claims to be checked later
      *
-     * @details This version of reduce_verify will go away once we fully incorporate the Oracle concept
-     * into Honk. Since we are currently using the Transcript/Manifest instead, reduce_verify does
-     * not need to construct it's own oracle; we can simply pass it the challenges directly.
      * @param mle_opening_point the MLE evaluation point for all claims
      * @param claims MLE claims with (C, v) and C is a univariate commitment
      * @param claims_shifted MLE claims with (C, v↺) and C is a univariate commitment
      *      to the non-shifted polynomial
      * @param proof commitments to the m-1 folded polynomials, and alleged evaluations.
-     * @param rho Batching challenge
-     * @param r Random evaluation challenge
+     * @param transcript
      * @return BatchOpeningClaim
      */
     static OutputClaim<Params> reduce_verify(std::span<const Fr> mle_opening_point,

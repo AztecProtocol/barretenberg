@@ -2,20 +2,15 @@
 
 #include <cstddef>
 #include <array>
-#include <string>
-#include "../pcs/commitment_key.hpp"
 
 namespace honk {
 
 template <typename TranscriptType> struct Oracle {
     size_t consumed{ 0 };
     using Transcript = TranscriptType;
-    Transcript* transcript;
 
-    // using Fr = typename TranscriptType::Fr;
-    using Fr = barretenberg::fr;
-    Oracle(Transcript* transcript)
-        : transcript(transcript){};
+    using Fr = typename TranscriptType::Fr;
+    Oracle(Transcript*){};
 
     /**
      * @brief commit data to the current challenge buffer

@@ -27,7 +27,7 @@ template <typename Params> class MultiBatchOpeningScheme {
      * @param witness_polynomials witnesses corresponsing to the commitments in 'batch_claim'.
      *        Note that the order of the polynomials must follow the order of the commitments
      *        in 'batch_claim'.
-     * @param challenge_generator Oracle used to derive challenges.
+     * @param transcript
      * @return Output{OpeningClaim, WitnessPolynomial, Proof}
      */
     static ProverOutput<Params> reduce_prove(CK* ck,
@@ -35,7 +35,6 @@ template <typename Params> class MultiBatchOpeningScheme {
                                              std::span<const Polynomial> witness_polynomials,
                                              const auto& transcript)
     {
-        // const Fr nu = challenge_generator.generate_challenge();
         transcript->apply_fiat_shamir("nu");
         Fr nu = Fr::serialize_from_buffer(transcript->get_challenge("nu").begin());
 
@@ -124,11 +123,9 @@ template <typename Params> class MultiBatchOpeningScheme {
 
         // commit to Q(X) and add [Q] to the transcript
         Commitment Q_commitment = ck->commit(Q);
-        // challenge_generator.consume(Q_commitment);
         transcript->add_element("Q", static_cast<barretenberg::g1::affine_element>(Q_commitment).to_buffer());
 
-        // generate random evaluation challenge r
-        // Fr zeta = challenge_generator.generate_challenge();
+        // generate random evaluation challenge zeta
         transcript->apply_fiat_shamir("z");
         const Fr zeta = Fr::serialize_from_buffer(transcript->get_challenge("z").begin());
 
@@ -187,17 +184,14 @@ template <typename Params> class MultiBatchOpeningScheme {
      *
      * @param multi_claims a set of commitments and evaluation queries claimed
      * @param proof [Q(X)]
-     * @param challenge_generator an Oracle used to rederive challenges.
+     * @param transcript
      * @return OpeningClaim
      */
     static OpeningClaim<Params> reduce_verify(std::span<const MultiOpeningClaim<Params>> multi_claims,
                                               const Proof<Params>& proof,
                                               const auto& transcript)
     {
-        // const Fr nu = challenge_generator.generate_challenge();
         const Fr nu = Fr::serialize_from_buffer(transcript->get_challenge("nu").begin());
-        // challenge_generator.consume(proof);
-        // const Fr r = challenge_generator.generate_challenge();
         const Fr zeta = Fr::serialize_from_buffer(transcript->get_challenge("z").begin());
 
         // compute simulated commitment to [G] as

@@ -25,7 +25,7 @@ template <typename Params> class SingleBatchOpeningScheme {
      * @param ck CommitmentKey
      * @param claims list of opening claims (Cⱼ, xⱼ, vⱼ) for a witness polynomial fⱼ(X), s.t. fⱼ(xⱼ) = vⱼ.
      * @param witness_polynomials list of polynomials fⱼ(X).
-     * @param oracle Oracle used to derive challenges.
+     * @param transcript
      * @return Output{OpeningClaim, WitnessPolynomial, Proof}
      */
     static ProverOutput<Params> reduce_prove(CK* ck,
@@ -33,7 +33,6 @@ template <typename Params> class SingleBatchOpeningScheme {
                                              std::span<const Polynomial> witness_polynomials,
                                              const auto& transcript)
     {
-        // const Fr nu = oracle.generate_challenge();
         transcript->apply_fiat_shamir("nu");
         Fr nu = Fr::serialize_from_buffer(transcript->get_challenge("nu").begin());
 
@@ -64,11 +63,9 @@ template <typename Params> class SingleBatchOpeningScheme {
 
         // [Q]
         Commitment Q_commitment = ck->commit(Q);
-        // oracle.consume(Q_commitment);
         transcript->add_element("Q", static_cast<barretenberg::g1::affine_element>(Q_commitment).to_buffer());
 
-        // generate random evaluation challenge r
-        // Fr zeta = oracle.generate_challenge();
+        // generate random evaluation challenge zeta
         transcript->apply_fiat_shamir("z");
         const Fr zeta = Fr::serialize_from_buffer(transcript->get_challenge("z").begin());
 
@@ -125,7 +122,7 @@ template <typename Params> class SingleBatchOpeningScheme {
      *
      * @param claims list of opening claims (Cⱼ, xⱼ, vⱼ) for a witness polynomial fⱼ(X), s.t. fⱼ(xⱼ) = vⱼ.
      * @param proof [Q(X)] = [ ∑ⱼ ρʲ ⋅ ( fⱼ(X) − vⱼ) / ( X − xⱼ ) ]
-     * @param oracle an Oracle used to rederive challenges.
+     * @param transcript
      * @return OpeningClaim
      */
     static OpeningClaim<Params> reduce_verify(std::span<const OpeningClaim<Params>> claims,
@@ -133,10 +130,7 @@ template <typename Params> class SingleBatchOpeningScheme {
                                               const auto& transcript)
     {
         const size_t num_claims = claims.size();
-        // const Fr nu = oracle.generate_challenge();
         const Fr nu = Fr::serialize_from_buffer(transcript->get_challenge("nu").begin());
-        // oracle.consume(proof);
-        // const Fr zeta = oracle.generate_challenge();
         const Fr zeta = Fr::serialize_from_buffer(transcript->get_challenge("z").begin());
 
         // compute simulated commitment to [G] as a linear combination of

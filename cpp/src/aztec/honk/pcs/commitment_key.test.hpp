@@ -62,11 +62,7 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
 
   public:
     CommitmentTest()
-        : prover_transcript{ honk::StandardHonk::create_unrolled_manifest(0, 1) }
-        , verifier_transcript{ honk::StandardHonk::create_unrolled_manifest(0, 1) }
-        , prover_challenges{ &prover_transcript }
-        , verifier_challenges{ &verifier_transcript }
-        , engine{ &numeric::random::get_debug_engine() }
+        : engine{ &numeric::random::get_debug_engine() }
     {}
 
     CK* ck() { return commitment_key; }
@@ -173,16 +169,15 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
         }
     }
 
-    template <typename... T> void consume(const T&... args)
-    {
-        (prover_challenges.consume(args), ...);
-        (verifier_challenges.consume(args), ...);
-    }
-
-    // Mock all prover transcript interactions up to the Gemini round.
-    // TODO(luke): it might be useful for Transcript to own a method like this, e.g.
-    // mock_interactions_up_to_challenge(name). It would use its manifest to directly perform these operations. That
-    // would avoid the need to hard code the manifest details in a function like this.
+    /**
+     * @brief Mock all prover transcript interactions up to the Gemini round.
+     *
+     * @param transcript
+     * @param log_n
+     * TODO(luke): it might be useful for Transcript to own a method like this, e.g.
+     * mock_interactions_up_to_challenge(name). It would use its manifest to directly perform these operations. That
+     * would avoid the need to hard code the manifest details in a function like this.
+     */
     static void mock_transcript_interactions_up_to_gemini(auto& transcript, size_t log_n)
     {
         // Mock the rounds preceding Gemini
@@ -242,7 +237,12 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
         transcript->add_element("z_perm_omega", fr_buf);
     }
 
-    // Mock all prover transcript interactions up to the Gemini round.
+    /**
+     * @brief Mock all prover transcript interactions up to the Gemini round.
+     *
+     * @param transcript
+     * @param log_n
+     */
     static void mock_transcript_interactions_up_to_shplonk(auto& transcript, size_t log_n)
     {
         mock_transcript_interactions_up_to_gemini(transcript, log_n);
@@ -258,14 +258,6 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
         }
     }
 
-    // Transcript<Fr> prover_transcript;
-    // Transcript<Fr> verifier_transcript;
-    // Oracle<Transcript<Fr>> prover_challenges;
-    // Oracle<Transcript<Fr>> verifier_challenges;
-    Transcript prover_transcript;
-    Transcript verifier_transcript;
-    Oracle<Transcript> prover_challenges;
-    Oracle<Transcript> verifier_challenges;
     numeric::random::Engine* engine;
 
     // Per-test-suite set-up.

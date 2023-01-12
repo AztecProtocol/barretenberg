@@ -16,8 +16,6 @@
 
 namespace honk::pcs {
 
-enum TranscriptDataLabel { NONE, FOLD_COMMS, FOLD_EVALS };
-
 namespace kzg {
 
 /**

@@ -51,43 +51,6 @@ template <class Params> class ShplonkTest : public CommitmentTest<Params> {
 
 TYPED_TEST_SUITE(ShplonkTest, CommitmentSchemeParams);
 
-// Test of Shplonk prover/verifier using real Gemini claim
-TYPED_TEST(ShplonkTest, Gemini)
-{
-    using Shplonk = SingleBatchOpeningScheme<TypeParam>;
-    using Gemini = gemini::MultilinearReductionScheme<TypeParam>;
-    using MLEOpeningClaim = MLEOpeningClaim<TypeParam>;
-
-    const size_t n = 16;
-    const size_t log_n = 4;
-
-    const auto u = this->random_evaluation_point(log_n);
-    auto poly = this->random_polynomial(n);
-    const auto commitment = this->commit(poly);
-    const auto eval = poly.evaluate_mle(u);
-
-    // create opening claim
-    const auto claims = { MLEOpeningClaim{ commitment, eval } };
-
-    using Transcript = transcript::StandardTranscript;
-    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
-
-    this->mock_transcript_interactions_up_to_gemini(transcript, log_n);
-
-    auto [gemini_claim, gemini_witness, gemini_proof] =
-        Gemini::reduce_prove(this->ck(), u, claims, {}, { &poly }, {}, transcript);
-
-    Gemini::reduce_verify(u, claims, {}, gemini_proof, transcript);
-
-    const auto [prover_claim, witness, proof] =
-        Shplonk::reduce_prove(this->ck(), gemini_claim, gemini_witness, transcript);
-
-    this->verify_opening_claim(prover_claim, witness);
-
-    const auto verifier_claim = Shplonk::reduce_verify(gemini_claim, proof, transcript);
-    EXPECT_EQ(prover_claim, verifier_claim);
-}
-
 TYPED_TEST(ShplonkTest, single_poly_two_points)
 {
     using Shplonk = MultiBatchOpeningScheme<TypeParam>;
@@ -175,5 +138,42 @@ TYPED_TEST(ShplonkTest, three_polys_different_sizes_and_different_queries)
     const auto verifier_claim = Shplonk::reduce_verify(claims, proof, transcript);
     EXPECT_EQ(prover_claim, verifier_claim);
     this->verify_opening_claim(prover_claim, witness);
+}
+
+// Test of Shplonk prover/verifier using real Gemini claim
+TYPED_TEST(ShplonkTest, Gemini)
+{
+    using Shplonk = SingleBatchOpeningScheme<TypeParam>;
+    using Gemini = gemini::MultilinearReductionScheme<TypeParam>;
+    using MLEOpeningClaim = MLEOpeningClaim<TypeParam>;
+
+    const size_t n = 16;
+    const size_t log_n = 4;
+
+    const auto u = this->random_evaluation_point(log_n);
+    auto poly = this->random_polynomial(n);
+    const auto commitment = this->commit(poly);
+    const auto eval = poly.evaluate_mle(u);
+
+    // create opening claim
+    const auto claims = { MLEOpeningClaim{ commitment, eval } };
+
+    using Transcript = transcript::StandardTranscript;
+    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
+
+    this->mock_transcript_interactions_up_to_gemini(transcript, log_n);
+
+    auto [gemini_claim, gemini_witness, gemini_proof] =
+        Gemini::reduce_prove(this->ck(), u, claims, {}, { &poly }, {}, transcript);
+
+    Gemini::reduce_verify(u, claims, {}, gemini_proof, transcript);
+
+    const auto [prover_claim, witness, proof] =
+        Shplonk::reduce_prove(this->ck(), gemini_claim, gemini_witness, transcript);
+
+    this->verify_opening_claim(prover_claim, witness);
+
+    const auto verifier_claim = Shplonk::reduce_verify(gemini_claim, proof, transcript);
+    EXPECT_EQ(prover_claim, verifier_claim);
 }
 } // namespace honk::pcs::shplonk
