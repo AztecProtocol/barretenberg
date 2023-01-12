@@ -59,17 +59,18 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
     using Fr = typename Params::Fr;
     using Commitment = typename Params::Commitment;
     using Polynomial = typename Params::Polynomial;
+    using Transcript = transcript::StandardTranscript;
 
   public:
     CommitmentTest()
-        : prover_transcript{ honk::StandardHonk::create_unrolled_manifest(0) }
-        , verifier_transcript{ honk::StandardHonk::create_unrolled_manifest(0) }
+        : prover_transcript{ honk::StandardHonk::create_unrolled_manifest(0, 1) }
+        , verifier_transcript{ honk::StandardHonk::create_unrolled_manifest(0, 1) }
         , prover_challenges{ &prover_transcript }
         , verifier_challenges{ &verifier_transcript }
         , engine{ &numeric::random::get_debug_engine() }
     {
         // Mock the rounds preceding Gemini
-        mock_transcript_interactions_up_to_gemini();
+        // mock_transcript_interactions_up_to_gemini(prover_challenges);
     }
 
     CK* ck() { return commitment_key; }
@@ -182,7 +183,7 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
         (verifier_challenges.consume(args), ...);
     }
 
-    void mock_transcript_interactions_up_to_gemini()
+    static void mock_transcript_interactions_up_to_gemini(Oracle<Transcript>& oracle)
     {
         // Mock the rounds preceding Gemini
         const size_t LENGTH = honk::StandardHonk::MAX_RELATION_LENGTH;
@@ -201,52 +202,70 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
             evaluations[i] = Fr::random_element();
         }
 
-        prover_transcript.add_element("circuit_size", { 1, 2, 3, 4 });
-        prover_transcript.add_element("public_input_size", { 0, 0, 0, 0 });
+        oracle.transcript->add_element("circuit_size", { 1, 2, 3, 4 });
+        oracle.transcript->add_element("public_input_size", { 0, 0, 0, 0 });
 
-        prover_transcript.apply_fiat_shamir("init");
-        prover_transcript.apply_fiat_shamir("eta");
+        oracle.transcript->apply_fiat_shamir("init");
+        oracle.transcript->apply_fiat_shamir("eta");
 
-        prover_transcript.add_element("public_inputs", {});
-        prover_transcript.add_element("W_1", g1_buf);
-        prover_transcript.add_element("W_2", g1_buf);
-        prover_transcript.add_element("W_3", g1_buf);
+        oracle.transcript->add_element("public_inputs", {});
+        oracle.transcript->add_element("W_1", g1_buf);
+        oracle.transcript->add_element("W_2", g1_buf);
+        oracle.transcript->add_element("W_3", g1_buf);
 
-        prover_transcript.apply_fiat_shamir("beta");
+        oracle.transcript->apply_fiat_shamir("beta");
 
-        prover_transcript.add_element("Z_PERM", g1_buf);
+        oracle.transcript->add_element("Z_PERM", g1_buf);
 
-        prover_transcript.apply_fiat_shamir("alpha");
+        oracle.transcript->apply_fiat_shamir("alpha");
 
         // Instantiate a Univariate from the evaluations
         auto univariate = Univariate(evaluations);
 
-        // Add the univariate to the transcript
-        prover_transcript.add_element("univariate_1", univariate.to_buffer());
+        // NOTE: This assumes d=1 due to default argument in create_unrolled_manifest!
+        // Add the univariate to the oracle.transcript and compute associated challenge
+        // oracle.transcript->add_element("univariate_2", univariate.to_buffer());
+        // oracle.transcript->apply_fiat_shamir("u_2");
+        oracle.transcript->add_element("univariate_1", univariate.to_buffer());
+        oracle.transcript->apply_fiat_shamir("u_1");
 
-        // Example of challenge generation; not used in test
-        prover_transcript.apply_fiat_shamir("u_1");
-
-        prover_transcript.add_element("w_1", fr_buf);
-        prover_transcript.add_element("w_2", fr_buf);
-        prover_transcript.add_element("w_3", fr_buf);
-        prover_transcript.add_element("sigma_1", fr_buf);
-        prover_transcript.add_element("sigma_2", fr_buf);
-        prover_transcript.add_element("sigma_3", fr_buf);
-        prover_transcript.add_element("q_1", fr_buf);
-        prover_transcript.add_element("q_2", fr_buf);
-        prover_transcript.add_element("q_3", fr_buf);
-        prover_transcript.add_element("q_m", fr_buf);
-        prover_transcript.add_element("q_c", fr_buf);
-        prover_transcript.add_element("z_perm", fr_buf);
-        prover_transcript.add_element("z_perm_omega", fr_buf);
+        oracle.transcript->add_element("w_1", fr_buf);
+        oracle.transcript->add_element("w_2", fr_buf);
+        oracle.transcript->add_element("w_3", fr_buf);
+        oracle.transcript->add_element("sigma_1", fr_buf);
+        oracle.transcript->add_element("sigma_2", fr_buf);
+        oracle.transcript->add_element("sigma_3", fr_buf);
+        oracle.transcript->add_element("q_1", fr_buf);
+        oracle.transcript->add_element("q_2", fr_buf);
+        oracle.transcript->add_element("q_3", fr_buf);
+        oracle.transcript->add_element("q_m", fr_buf);
+        oracle.transcript->add_element("q_c", fr_buf);
+        oracle.transcript->add_element("z_perm", fr_buf);
+        oracle.transcript->add_element("z_perm_omega", fr_buf);
     }
+
+    // static void mock_transcript_interactions_up_to_shplonk(Oracle<Transcript>& oracle)
+    // {
+    //     mock_transcript_interactions_up_to_gemini(oracle);
+
+    //     oracle.transcript->apply_fiat_shamir("rho");
+    //     for (size_t round_idx = 1; round_idx < key->log_n; round_idx++) {
+    //         oracle.transcript->add_element("FOLD_" + std::to_string(round_idx),
+    //         barretenberg::g1::affine_one.to_buffer());
+    //     }
+
+    //     oracle.transcript->apply_fiat_shamir("r");
+    //     for (size_t round_idx = 0; round_idx < key->log_n; round_idx++) {
+    //         oracle.transcript->add_element("a_" + std::to_string(round_idx), barretenberg::fr(round_idx +
+    //         1000).to_buffer());
+    //     }
+
+    // }
 
     // Transcript<Fr> prover_transcript;
     // Transcript<Fr> verifier_transcript;
     // Oracle<Transcript<Fr>> prover_challenges;
     // Oracle<Transcript<Fr>> verifier_challenges;
-    using Transcript = transcript::StandardTranscript;
     Transcript prover_transcript;
     Transcript verifier_transcript;
     Oracle<Transcript> prover_challenges;
