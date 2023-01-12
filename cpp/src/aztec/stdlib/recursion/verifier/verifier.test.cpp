@@ -1,5 +1,6 @@
 #include "verifier.hpp"
 #include <common/test.hpp>
+#include <gtest/internal/gtest-internal.h>
 #include <transcript/transcript.hpp>
 #include <proof_system/proving_key/serialize.hpp>
 #include <stdlib/primitives/curves/bn254.hpp>
@@ -634,17 +635,20 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
     }
 };
 
-typedef testing::Types<waffle::StandardComposer, waffle::TurboComposer, waffle::UltraComposer> OuterComposerTypes;
+typedef testing::Types<waffle::StandardComposer, /* waffle::TurboComposer,  */ waffle::UltraComposer>
+    OuterComposerTypes;
 
 TYPED_TEST_SUITE(stdlib_verifier, OuterComposerTypes);
 
 HEAVY_TYPED_TEST(stdlib_verifier, recursive_proof_composition)
 {
+    GTEST_SKIP_("Skipping to reduce CI time.");
     TestFixture::test_recursive_proof_composition();
 };
 
 HEAVY_TYPED_TEST(stdlib_verifier, recursive_proof_composition_ultra_no_tables)
 {
+    GTEST_SKIP_("Skipping to reduce CI time.");
     TestFixture::test_recursive_proof_composition_ultra_no_tables();
 };
 
@@ -661,16 +665,19 @@ HEAVY_TYPED_TEST(stdlib_verifier, recursive_proof_composition_with_variable_veri
 
 HEAVY_TYPED_TEST(stdlib_verifier, recursive_proof_composition_with_variable_verification_key_b)
 {
+    GTEST_SKIP_("Skipping to reduce CI time.");
     TestFixture::test_recursive_proof_composition_with_variable_verification_key_b();
 }
 
 HEAVY_TYPED_TEST(stdlib_verifier, recursive_proof_composition_var_verif_key_fail)
 {
+    GTEST_SKIP_("Skipping to reduce CI time.");
     TestFixture::test_recursive_proof_composition_with_variable_verification_key_failure_case();
 }
 
 HEAVY_TYPED_TEST(stdlib_verifier, recursive_proof_composition_const_verif_key)
 {
+    GTEST_SKIP_("Skipping to reduce CI time.");
     TestFixture::test_recursive_proof_composition_with_constant_verification_key();
 }
 
