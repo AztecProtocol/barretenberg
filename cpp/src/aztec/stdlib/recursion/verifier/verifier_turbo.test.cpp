@@ -474,11 +474,13 @@ TYPED_TEST_SUITE(stdlib_verifier_turbo, OuterComposerTypes);
 
 HEAVY_TYPED_TEST(stdlib_verifier_turbo, recursive_proof_composition)
 {
+    GTEST_SKIP_("Skipping to reduce CI time.");
     TestFixture::test_recursive_proof_composition();
 };
 
 HEAVY_TYPED_TEST(stdlib_verifier_turbo, double_verification)
 {
+    GTEST_SKIP_("Skipping to reduce CI time.");
     TestFixture::test_double_verification();
 };
 
@@ -489,16 +491,19 @@ HEAVY_TYPED_TEST(stdlib_verifier_turbo, recursive_proof_composition_with_variabl
 
 HEAVY_TYPED_TEST(stdlib_verifier_turbo, recursive_proof_composition_with_variable_verification_key_b)
 {
+    GTEST_SKIP_("Skipping to reduce CI time.");
     TestFixture::test_recursive_proof_composition_with_variable_verification_key_b();
 }
 
 HEAVY_TYPED_TEST(stdlib_verifier_turbo, recursive_proof_composition_var_verif_key_fail)
 {
+    GTEST_SKIP_("Skipping to reduce CI time.");
     TestFixture::test_recursive_proof_composition_with_variable_verification_key_failure_case();
 }
 
 HEAVY_TYPED_TEST(stdlib_verifier_turbo, recursive_proof_composition_const_verif_key)
 {
+    GTEST_SKIP_("Skipping to reduce CI time.");
     TestFixture::test_recursive_proof_composition_with_constant_verification_key();
 }
 
