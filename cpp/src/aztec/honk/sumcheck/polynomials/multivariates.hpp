@@ -1,4 +1,5 @@
 #pragma once // just adding these willy-nilly
+#include "proof_system/proving_key/proving_key.hpp"
 #include <array>
 #include <algorithm>
 #include <span>
@@ -73,6 +74,16 @@ template <class FF_, size_t num_polys, size_t num_vars> class Multivariates {
     explicit Multivariates(std::array<std::span<FF>, num_polys> full_polynomials)
         : full_polynomials(full_polynomials){};
 
+    explicit Multivariates(const std::shared_ptr<waffle::proving_key>& proving_key)
+    {
+        for (size_t i = 0; i < waffle::STANDARD_HONK_MANIFEST_SIZE; i++) {
+            auto label = proving_key->polynomial_manifest[i].polynomial_label;
+            full_polynomials[i] = proving_key->polynomial_cache.get(std::string(label));
+        }
+    }
+
+    // TODO(Cody): Rename. fold is not descriptive, and it's already in use in the Gemini context.
+    //             Probably just call it partial_evaluation?
     /**
      * @brief Evaluate at the round challenge and prepare class for next round.
      * Illustration of layout in example of first round when d==3 (showing just one Honk polynomial,
@@ -90,7 +101,6 @@ template <class FF_, size_t num_polys, size_t num_vars> class Multivariates {
      *
      * @param challenge
      */
-
     void fold(auto& polynomials, size_t round_size, const FF& round_challenge)
     {
         // after the first round, operate in place on folded_polynomials
