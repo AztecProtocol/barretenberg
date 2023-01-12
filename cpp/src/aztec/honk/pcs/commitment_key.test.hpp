@@ -292,8 +292,9 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
 template <typename Params> typename Params::CK* CommitmentTest<Params>::commitment_key = nullptr;
 template <typename Params> typename Params::VK* CommitmentTest<Params>::verification_key = nullptr;
 
+using CommitmentSchemeParams = ::testing::Types<kzg::Params>;
+// IMPROVEMENT: reinstate typed-tests for multiple field types, i.e.:
 // using CommitmentSchemeParams =
 //     ::testing::Types<fake::Params<barretenberg::g1>, fake::Params<grumpkin::g1>, kzg::Params>;
-using CommitmentSchemeParams = ::testing::Types<kzg::Params>;
 
 } // namespace honk::pcs
