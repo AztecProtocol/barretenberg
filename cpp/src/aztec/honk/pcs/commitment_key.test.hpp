@@ -179,6 +179,7 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
         (verifier_challenges.consume(args), ...);
     }
 
+    // Mock all prover transcript interactions up to the Gemini round.
     // TODO(luke): it might be useful for Transcript to own a method like this, e.g.
     // mock_interactions_up_to_challenge(name). It would use its manifest to directly perform these operations. That
     // would avoid the need to hard code the manifest details in a function like this.
@@ -187,10 +188,11 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
         // Mock the rounds preceding Gemini
         const size_t LENGTH = honk::StandardHonk::MAX_RELATION_LENGTH;
         using Univariate = honk::sumcheck::Univariate<Fr, LENGTH>;
+
+        // Define mock data to be added to transcript
         std::vector<uint8_t> g1_buf(64);
         std::vector<uint8_t> fr_buf(32);
         std::array<Fr, LENGTH> evaluations;
-
         for (size_t i = 0; i < g1_buf.size(); ++i) {
             g1_buf[i] = 1;
         }
@@ -205,28 +207,26 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
         transcript->add_element("public_input_size", { 0, 0, 0, 0 });
 
         transcript->apply_fiat_shamir("init");
+
         transcript->apply_fiat_shamir("eta");
 
+        // Mock wire commitments
         transcript->add_element("public_inputs", {});
         transcript->add_element("W_1", g1_buf);
         transcript->add_element("W_2", g1_buf);
         transcript->add_element("W_3", g1_buf);
-
         transcript->apply_fiat_shamir("beta");
 
+        // Mock permutation grand product commitment
         transcript->add_element("Z_PERM", g1_buf);
-
         transcript->apply_fiat_shamir("alpha");
 
-        // Instantiate a Univariate from the evaluations
-        auto univariate = Univariate(evaluations);
-
         // Mock sumcheck prover interactions
+        auto univariate = Univariate(evaluations);
         for (size_t round_idx = 0; round_idx < log_n; round_idx++) {
             transcript->add_element("univariate_" + std::to_string(log_n - round_idx), univariate.to_buffer());
             transcript->apply_fiat_shamir("u_" + std::to_string(log_n - round_idx));
         }
-
         transcript->add_element("w_1", fr_buf);
         transcript->add_element("w_2", fr_buf);
         transcript->add_element("w_3", fr_buf);
@@ -242,6 +242,7 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
         transcript->add_element("z_perm_omega", fr_buf);
     }
 
+    // Mock all prover transcript interactions up to the Gemini round.
     static void mock_transcript_interactions_up_to_shplonk(auto& transcript, size_t log_n)
     {
         mock_transcript_interactions_up_to_gemini(transcript, log_n);
