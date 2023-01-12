@@ -12,8 +12,6 @@ template <typename TranscriptType> struct Oracle {
     using Transcript = TranscriptType;
     Transcript* transcript;
 
-    // enum TranscriptDataLabel { NONE, FOLD_COMMS, FOLD_EVALS };
-
     // using Fr = typename TranscriptType::Fr;
     using Fr = barretenberg::fr;
     Oracle(Transcript* transcript)
@@ -44,42 +42,6 @@ template <typename TranscriptType> struct Oracle {
      */
     template <typename... T> void consume(const T&...) { ++consumed; }
 
-    // /**
-    //  * @brief Temporary consume method that populates the data in the transcript
-    //  * @details This will go away once we do away with the current Manifest/Transcript model
-    //  * in favor of the Oracle/Transcript
-    //  *
-    //  * @tparam T
-    //  * @param label
-    //  */
-    // // template <typename T> void consume(TranscriptDataLabel label, const T& data)
-    // template <typename T> void consume(pcs::TranscriptDataLabel label, const T& data)
-    // {
-    //     // add data to the transcript based on the TranscriptDataLabel
-    //     switch (label) {
-    //     case pcs::FOLD_COMMS:
-    //         for (size_t i = 0; i < data.size(); ++i) {
-    //             // std::string label = "FOLD_" + std::to_string(i + 1);
-    //             // // barretenberg::g1::element elem(data[i]);
-    //             // barretenberg::g1::element elem = barretenberg::g1::element::one();
-    //             // barretenberg::g1::affine_element commitment(elem);
-    //             // transcript->add_element(label, commitment.to_buffer());
-    //             // // transcript->add_element(label,
-    //             static_cast<barretenberg::g1::affine_element>(data[i]).to_buffer());
-    //         }
-    //         break;
-    //     case pcs::FOLD_EVALS:
-    //         for (size_t i = 0; i < data.size(); ++i) {
-    //             std::string label = "a_" + std::to_string(i);
-    //             info("data[i] = ", data[i]);
-    //             // transcript->add_element(label, data[i].to_buffer());
-    //         }
-    //         break;
-    //     default:
-    //         break;
-    //     }
-    // }
-
     /**
      * @brief use the current value of `current_round_challenge_inputs` to generate a challenge via the Fiat-Shamir
      * heuristic
@@ -87,36 +49,6 @@ template <typename TranscriptType> struct Oracle {
      * @return Fr the generated challenge
      */
     Fr generate_challenge() { return Fr(consumed + 2); }
-
-    // /**
-    //  * @brief Temporary method for generating and adding a challenge to the transcript via pointer
-    //  *
-    //  * @return Fr the generated challenge
-    //  */
-    // Fr generate_challenge(const std::string& challenge_name)
-    // {
-    //     // static_cast<void>(challenge_name);
-    //     // return Fr::one();
-    //     // TODO(luke): replace the above lines with the below lines once the challenges have been added to the
-    //     Manifest. transcript->apply_fiat_shamir(challenge_name); return
-    //     Fr::serialize_from_buffer(transcript->get_challenge(challenge_name).begin());
-    // }
-
-    /**
-     * @brief Temporary pass-through for getting challenge from the transcript via pointer
-     *
-     * @return Fr the generated challenge
-     */
-    Fr get_challenge(const std::string& challenge_name, const size_t idx = 0)
-    {
-        // static_cast<void>(challenge_name);
-        // static_cast<void>(idx);
-        // return Fr::one();
-        // TODO(luke): replace the above lines with the below lines once the challenges have been added to the Manifest.
-        return Fr::serialize_from_buffer(transcript->get_challenge(challenge_name, idx).begin());
-    }
-    // Fr get_challenge(const std::string& challenge_name, const size_t idx = 0) { return
-    // transcript->get_mock_challenge(); }
 };
 // /**
 //  * @brief Oracle class wraps a Transcript and exposes an interface to generate plonk/honk challenges

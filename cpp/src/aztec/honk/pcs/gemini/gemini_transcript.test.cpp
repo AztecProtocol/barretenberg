@@ -9,6 +9,7 @@ template <class Params> class GeminiTranscriptTest : public CommitmentTest<Param
 
 TYPED_TEST_SUITE(GeminiTranscriptTest, CommitmentSchemeParams);
 
+// TODO(luke): pull out the oracle from these tests altogether and use transcript directly
 TYPED_TEST(GeminiTranscriptTest, single_with_transcript)
 {
     using Gemini = MultilinearReductionScheme<TypeParam>;
@@ -25,14 +26,15 @@ TYPED_TEST(GeminiTranscriptTest, single_with_transcript)
     // create opening claim
     auto claims = { MLEOpeningClaim{ commitment, eval } };
 
-    this->mock_transcript_interactions_up_to_gemini(this->prover_challenges);
+    this->mock_transcript_interactions_up_to_gemini(this->prover_challenges.transcript);
 
-    auto [prover_claim, witness, proof] =
-        Gemini::reduce_prove_with_transcript(this->ck(), u, claims, {}, { &poly }, {}, this->prover_challenges);
+    auto [prover_claim, witness, proof] = Gemini::reduce_prove_with_transcript(
+        this->ck(), u, claims, {}, { &poly }, {}, this->prover_challenges.transcript);
 
     this->verify_batch_opening_claim(prover_claim, witness);
 
-    auto verifier_claim = Gemini::reduce_verify_with_transcript(u, claims, {}, proof, this->prover_challenges);
+    auto verifier_claim =
+        Gemini::reduce_verify_with_transcript(u, claims, {}, proof, this->prover_challenges.transcript);
 
     this->verify_batch_opening_claim(verifier_claim, witness);
 
@@ -62,14 +64,15 @@ TYPED_TEST(GeminiTranscriptTest, shift_with_transcript)
         MLEOpeningClaim{ commitment, eval_shift },
     };
 
-    this->mock_transcript_interactions_up_to_gemini(this->prover_challenges);
+    this->mock_transcript_interactions_up_to_gemini(this->prover_challenges.transcript);
 
-    auto [prover_claim, witness, proof] =
-        Gemini::reduce_prove_with_transcript(this->ck(), u, {}, claims_shift, {}, { &poly }, this->prover_challenges);
+    auto [prover_claim, witness, proof] = Gemini::reduce_prove_with_transcript(
+        this->ck(), u, {}, claims_shift, {}, { &poly }, this->prover_challenges.transcript);
 
     this->verify_batch_opening_claim(prover_claim, witness);
 
-    auto verifier_claim = Gemini::reduce_verify_with_transcript(u, {}, claims_shift, proof, this->prover_challenges);
+    auto verifier_claim =
+        Gemini::reduce_verify_with_transcript(u, {}, claims_shift, proof, this->prover_challenges.transcript);
 
     EXPECT_EQ(prover_claim, verifier_claim);
 }
@@ -98,14 +101,15 @@ TYPED_TEST(GeminiTranscriptTest, double_with_transcript)
         MLEOpeningClaim{ commitment2, eval2 },
     };
 
-    this->mock_transcript_interactions_up_to_gemini(this->prover_challenges);
+    this->mock_transcript_interactions_up_to_gemini(this->prover_challenges.transcript);
 
     auto [prover_claim, witness, proof] = Gemini::reduce_prove_with_transcript(
-        this->ck(), u, claims, {}, { &poly1, &poly2 }, {}, this->prover_challenges);
+        this->ck(), u, claims, {}, { &poly1, &poly2 }, {}, this->prover_challenges.transcript);
 
     this->verify_batch_opening_claim(prover_claim, witness);
 
-    auto verifier_claim = Gemini::reduce_verify_with_transcript(u, claims, {}, proof, this->prover_challenges);
+    auto verifier_claim =
+        Gemini::reduce_verify_with_transcript(u, claims, {}, proof, this->prover_challenges.transcript);
 
     this->verify_batch_opening_claim(verifier_claim, witness);
     EXPECT_EQ(prover_claim, verifier_claim);
@@ -142,15 +146,15 @@ TYPED_TEST(GeminiTranscriptTest, double_shift_with_transcript)
         MLEOpeningClaim{ commitment2, eval2_shift },
     };
 
-    this->mock_transcript_interactions_up_to_gemini(this->prover_challenges);
+    this->mock_transcript_interactions_up_to_gemini(this->prover_challenges.transcript);
 
     auto [prover_claim, witness, proof] = Gemini::reduce_prove_with_transcript(
-        this->ck(), u, claims, claims_shift, { &poly1, &poly2 }, { &poly2 }, this->prover_challenges);
+        this->ck(), u, claims, claims_shift, { &poly1, &poly2 }, { &poly2 }, this->prover_challenges.transcript);
 
     this->verify_batch_opening_claim(prover_claim, witness);
 
     auto verifier_claim =
-        Gemini::reduce_verify_with_transcript(u, claims, claims_shift, proof, this->prover_challenges);
+        Gemini::reduce_verify_with_transcript(u, claims, claims_shift, proof, this->prover_challenges.transcript);
 
     ASSERT_EQ(prover_claim, verifier_claim);
 }

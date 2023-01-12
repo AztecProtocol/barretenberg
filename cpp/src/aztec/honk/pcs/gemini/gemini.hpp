@@ -154,7 +154,7 @@ template <typename Params> class MultilinearReductionScheme {
         std::span<const MLEOpeningClaim<Params>> claims_shifted,
         const std::vector<Polynomial*>& mle_witness_polynomials,
         const std::vector<Polynomial*>& mle_witness_polynomials_shifted,
-        auto& oracle)
+        const auto& transcript)
     {
         // Relabel inputs to be consistent with the comments
         auto& claims_f = claims;
@@ -171,8 +171,8 @@ template <typename Params> class MultilinearReductionScheme {
         ASSERT(claims_g.size() == num_polys_g);
 
         // Generate batching challenge ρ and powers 1,ρ,…,ρᵐ⁻¹
-        oracle.transcript->apply_fiat_shamir("rho");
-        Fr rho = Fr::serialize_from_buffer(oracle.transcript->get_challenge("rho").begin());
+        transcript->apply_fiat_shamir("rho");
+        Fr rho = Fr::serialize_from_buffer(transcript->get_challenge("rho").begin());
         const std::vector<Fr> rhos = powers_of_rho(rho, num_polys);
         std::span<const Fr> rhos_span{ rhos };
         std::span rhos_f = rhos_span.subspan(0, num_polys_f);
@@ -261,11 +261,10 @@ template <typename Params> class MultilinearReductionScheme {
          */
         for (size_t i = 0; i < commitments.size(); ++i) {
             std::string label = "FOLD_" + std::to_string(i + 1);
-            oracle.transcript->add_element(label,
-                                           static_cast<barretenberg::g1::affine_element>(commitments[i]).to_buffer());
+            transcript->add_element(label, static_cast<barretenberg::g1::affine_element>(commitments[i]).to_buffer());
         }
-        oracle.transcript->apply_fiat_shamir("r");
-        const Fr r = Fr::serialize_from_buffer(oracle.transcript->get_challenge("r").begin());
+        transcript->apply_fiat_shamir("r");
+        const Fr r = Fr::serialize_from_buffer(transcript->get_challenge("r").begin());
 
         /*
          * Compute the witness polynomials for the resulting claim
@@ -319,7 +318,7 @@ template <typename Params> class MultilinearReductionScheme {
          */
         for (size_t i = 0; i < evals.size(); ++i) {
             std::string label = "a_" + std::to_string(i);
-            oracle.transcript->add_element(label, evals[i].to_buffer());
+            transcript->add_element(label, evals[i].to_buffer());
         }
 
         Proof<Params> proof = { commitments, evals };
@@ -351,7 +350,7 @@ template <typename Params> class MultilinearReductionScheme {
                                                              std::span<const MLEOpeningClaim<Params>> claims,
                                                              std::span<const MLEOpeningClaim<Params>> claims_shifted,
                                                              const Proof<Params>& proof,
-                                                             auto& oracle)
+                                                             const auto& transcript)
     {
         // Relabel inputs to be more consistent with the math comments.
         auto& claims_f = claims;
@@ -363,12 +362,14 @@ template <typename Params> class MultilinearReductionScheme {
         const size_t num_claims = num_claims_f + num_claims_g;
 
         // batching challenge ρ
-        const Fr rho = oracle.get_challenge("rho");
+        // const Fr rho = oracle.get_challenge("rho");
+        const Fr rho = Fr::serialize_from_buffer(transcript->get_challenge("rho").begin());
         // compute vector of powers of rho only once
         std::vector<Fr> rhos = powers_of_rho(rho, num_claims);
 
         // random evaluation point r
-        const Fr r = oracle.get_challenge("r");
+        // const Fr r = oracle.get_challenge("r");
+        const Fr r = Fr::serialize_from_buffer(transcript->get_challenge("r").begin());
 
         std::vector<Fr> r_squares = squares_of_r(r, num_variables);
 

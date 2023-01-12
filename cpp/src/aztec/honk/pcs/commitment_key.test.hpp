@@ -68,10 +68,7 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
         , prover_challenges{ &prover_transcript }
         , verifier_challenges{ &verifier_transcript }
         , engine{ &numeric::random::get_debug_engine() }
-    {
-        // Mock the rounds preceding Gemini
-        // mock_transcript_interactions_up_to_gemini(prover_challenges);
-    }
+    {}
 
     CK* ck() { return commitment_key; }
     VK* vk() { return verification_key; }
@@ -183,7 +180,8 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
         (verifier_challenges.consume(args), ...);
     }
 
-    static void mock_transcript_interactions_up_to_gemini(Oracle<Transcript>& oracle)
+    // static void mock_transcript_interactions_up_to_gemini(Oracle<Transcript>& oracle)
+    static void mock_transcript_interactions_up_to_gemini(Transcript*& transcript)
     {
         // Mock the rounds preceding Gemini
         const size_t LENGTH = honk::StandardHonk::MAX_RELATION_LENGTH;
@@ -202,46 +200,46 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
             evaluations[i] = Fr::random_element();
         }
 
-        oracle.transcript->add_element("circuit_size", { 1, 2, 3, 4 });
-        oracle.transcript->add_element("public_input_size", { 0, 0, 0, 0 });
+        transcript->add_element("circuit_size", { 1, 2, 3, 4 });
+        transcript->add_element("public_input_size", { 0, 0, 0, 0 });
 
-        oracle.transcript->apply_fiat_shamir("init");
-        oracle.transcript->apply_fiat_shamir("eta");
+        transcript->apply_fiat_shamir("init");
+        transcript->apply_fiat_shamir("eta");
 
-        oracle.transcript->add_element("public_inputs", {});
-        oracle.transcript->add_element("W_1", g1_buf);
-        oracle.transcript->add_element("W_2", g1_buf);
-        oracle.transcript->add_element("W_3", g1_buf);
+        transcript->add_element("public_inputs", {});
+        transcript->add_element("W_1", g1_buf);
+        transcript->add_element("W_2", g1_buf);
+        transcript->add_element("W_3", g1_buf);
 
-        oracle.transcript->apply_fiat_shamir("beta");
+        transcript->apply_fiat_shamir("beta");
 
-        oracle.transcript->add_element("Z_PERM", g1_buf);
+        transcript->add_element("Z_PERM", g1_buf);
 
-        oracle.transcript->apply_fiat_shamir("alpha");
+        transcript->apply_fiat_shamir("alpha");
 
         // Instantiate a Univariate from the evaluations
         auto univariate = Univariate(evaluations);
 
         // NOTE: This assumes d=1 due to default argument in create_unrolled_manifest!
-        // Add the univariate to the oracle.transcript and compute associated challenge
-        // oracle.transcript->add_element("univariate_2", univariate.to_buffer());
-        // oracle.transcript->apply_fiat_shamir("u_2");
-        oracle.transcript->add_element("univariate_1", univariate.to_buffer());
-        oracle.transcript->apply_fiat_shamir("u_1");
+        // Add the univariate to the transcript and compute associated challenge
+        // transcript->add_element("univariate_2", univariate.to_buffer());
+        // transcript->apply_fiat_shamir("u_2");
+        transcript->add_element("univariate_1", univariate.to_buffer());
+        transcript->apply_fiat_shamir("u_1");
 
-        oracle.transcript->add_element("w_1", fr_buf);
-        oracle.transcript->add_element("w_2", fr_buf);
-        oracle.transcript->add_element("w_3", fr_buf);
-        oracle.transcript->add_element("sigma_1", fr_buf);
-        oracle.transcript->add_element("sigma_2", fr_buf);
-        oracle.transcript->add_element("sigma_3", fr_buf);
-        oracle.transcript->add_element("q_1", fr_buf);
-        oracle.transcript->add_element("q_2", fr_buf);
-        oracle.transcript->add_element("q_3", fr_buf);
-        oracle.transcript->add_element("q_m", fr_buf);
-        oracle.transcript->add_element("q_c", fr_buf);
-        oracle.transcript->add_element("z_perm", fr_buf);
-        oracle.transcript->add_element("z_perm_omega", fr_buf);
+        transcript->add_element("w_1", fr_buf);
+        transcript->add_element("w_2", fr_buf);
+        transcript->add_element("w_3", fr_buf);
+        transcript->add_element("sigma_1", fr_buf);
+        transcript->add_element("sigma_2", fr_buf);
+        transcript->add_element("sigma_3", fr_buf);
+        transcript->add_element("q_1", fr_buf);
+        transcript->add_element("q_2", fr_buf);
+        transcript->add_element("q_3", fr_buf);
+        transcript->add_element("q_m", fr_buf);
+        transcript->add_element("q_c", fr_buf);
+        transcript->add_element("z_perm", fr_buf);
+        transcript->add_element("z_perm_omega", fr_buf);
     }
 
     // static void mock_transcript_interactions_up_to_shplonk(Oracle<Transcript>& oracle)
