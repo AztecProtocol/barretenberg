@@ -11,7 +11,7 @@ struct StandardArithmetization {
         W_R,
         W_O,
         Z_PERM,
-        Z_PERM_SHIFT,
+        Z_PERM_SHIFT, // TODO(Cody): Hid ethis.
         Q_M,
         Q_L,
         Q_R,
@@ -36,7 +36,8 @@ struct StandardHonk {
   public:
     using Arithmetization = proving_system::StandardArithmetization;
     using MULTIVARIATE = Arithmetization::POLYNOMIAL;
-    static constexpr size_t STANDARD_UNROLLED_MANIFEST_SIZE = 12; // cf waffle::STANDARD_UNROLLED_MANIFEST_SIZE
+    // TODO(Cody): Where to specify? is this polynomial manifest size?
+    static constexpr size_t STANDARD_HONK_MANIFEST_SIZE = 16;
     static constexpr size_t MAX_RELATION_LENGTH = 5; // TODO(Cody): increment after fixing add_edge_contribution; kill
                                                      // after moving barycentric class out of relations
 
@@ -116,7 +117,7 @@ struct StandardHonk {
               { .name = "z_perm",       .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 11 },
             },
             /* challenge_name = */ "rho",
-            /* num_challenges_in = */ STANDARD_UNROLLED_MANIFEST_SIZE - 1, /* TODO(Cody): this is bad. */
+            /* num_challenges_in = */ 11, /* TODO(Cody): magic number! Where should this be specified? */
             /* map_challenges_in = */ true));
 
         // Rounds 5 + num_sumcheck_rounds

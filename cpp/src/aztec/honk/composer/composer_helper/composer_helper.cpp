@@ -1,4 +1,5 @@
 #include "composer_helper.hpp"
+#include "polynomials/polynomial.hpp"
 #include <cstddef>
 #include <proof_system/flavor/flavor.hpp>
 #include <honk/pcs/commitment_key.hpp>
@@ -232,6 +233,8 @@ std::shared_ptr<waffle::proving_key> ComposerHelper<CircuitConstructor>::compute
     compute_standard_honk_id_polynomials<CircuitConstructor::program_width>(circuit_proving_key.get());
 
     compute_first_and_last_lagrange_polynomials(circuit_proving_key.get());
+
+    circuit_proving_key->polynomial_cache.put("z_perm", Polynomial<barretenberg::fr>(1));
 
     return circuit_proving_key;
 }
