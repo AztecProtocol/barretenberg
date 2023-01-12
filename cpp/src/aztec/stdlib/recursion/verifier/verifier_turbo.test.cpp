@@ -474,7 +474,6 @@ TYPED_TEST_SUITE(stdlib_verifier_turbo, OuterComposerTypes);
 
 HEAVY_TYPED_TEST(stdlib_verifier_turbo, recursive_proof_composition)
 {
-    GTEST_SKIP_("Skipping to reduce CI time.");
     TestFixture::test_recursive_proof_composition();
 };
 
