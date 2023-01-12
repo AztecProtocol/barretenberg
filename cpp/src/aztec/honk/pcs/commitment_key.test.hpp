@@ -180,8 +180,10 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
         (verifier_challenges.consume(args), ...);
     }
 
-    // static void mock_transcript_interactions_up_to_gemini(Oracle<Transcript>& oracle)
-    static void mock_transcript_interactions_up_to_gemini(Transcript*& transcript)
+    // TODO(luke): it might be useful for Transcript to own a method like this, e.g.
+    // mock_interactions_up_to_challenge(name). It would use its manifest to directly perform these operations. That
+    // would avoid the need to hard code the manifest details in a function like this.
+    static void mock_transcript_interactions_up_to_gemini(auto& transcript)
     {
         // Mock the rounds preceding Gemini
         const size_t LENGTH = honk::StandardHonk::MAX_RELATION_LENGTH;
@@ -242,23 +244,22 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
         transcript->add_element("z_perm_omega", fr_buf);
     }
 
-    // static void mock_transcript_interactions_up_to_shplonk(Oracle<Transcript>& oracle)
-    // {
-    //     mock_transcript_interactions_up_to_gemini(oracle);
+    static void mock_transcript_interactions_up_to_shplonk(auto& transcript)
+    {
+        mock_transcript_interactions_up_to_gemini(transcript);
 
-    //     oracle.transcript->apply_fiat_shamir("rho");
-    //     for (size_t round_idx = 1; round_idx < key->log_n; round_idx++) {
-    //         oracle.transcript->add_element("FOLD_" + std::to_string(round_idx),
-    //         barretenberg::g1::affine_one.to_buffer());
-    //     }
+        // transcript->apply_fiat_shamir("rho");
+        // for (size_t round_idx = 1; round_idx < key->log_n; round_idx++) {
+        //     transcript->add_element("FOLD_" + std::to_string(round_idx),
+        //     barretenberg::g1::affine_one.to_buffer());
+        // }
 
-    //     oracle.transcript->apply_fiat_shamir("r");
-    //     for (size_t round_idx = 0; round_idx < key->log_n; round_idx++) {
-    //         oracle.transcript->add_element("a_" + std::to_string(round_idx), barretenberg::fr(round_idx +
-    //         1000).to_buffer());
-    //     }
-
-    // }
+        // transcript->apply_fiat_shamir("r");
+        // for (size_t round_idx = 0; round_idx < key->log_n; round_idx++) {
+        //     transcript->add_element("a_" + std::to_string(round_idx), barretenberg::fr(round_idx +
+        //     1000).to_buffer());
+        // }
+    }
 
     // Transcript<Fr> prover_transcript;
     // Transcript<Fr> verifier_transcript;
