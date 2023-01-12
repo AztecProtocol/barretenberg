@@ -51,91 +51,103 @@ template <class Params> class ShplonkTranscriptTest : public CommitmentTest<Para
 
 TYPED_TEST_SUITE(ShplonkTranscriptTest, CommitmentSchemeParams);
 
-// TYPED_TEST(ShplonkTranscriptTest, single_poly_two_points)
-// {
-//     using Shplonk = MultiBatchOpeningScheme<TypeParam>;
-//     using MultiOpeningClaim = MultiOpeningClaim<TypeParam>;
-//     using Fr = typename TypeParam::Fr;
-//     using Polynomial = barretenberg::Polynomial<Fr>;
-//     constexpr size_t n = 16;
-//     const size_t log_n = 4;
+TYPED_TEST(ShplonkTranscriptTest, single_poly_two_points)
+{
+    using Shplonk = MultiBatchOpeningScheme<TypeParam>;
+    using MultiOpeningClaim = MultiOpeningClaim<TypeParam>;
+    using Fr = typename TypeParam::Fr;
+    using Polynomial = barretenberg::Polynomial<Fr>;
+    constexpr size_t n = 16;
+    const size_t log_n = 4;
 
-//     this->consume(true);
+    this->consume(true);
 
-//     auto queries = this->random_opening_set(2);
-//     std::vector<MultiOpeningClaim> claims;
-//     std::vector<Polynomial> polys;
+    auto queries = this->random_opening_set(2);
+    std::vector<MultiOpeningClaim> claims;
+    std::vector<Polynomial> polys;
 
-//     this->add_random_batch_opening_sub_claims(claims, polys, queries, std::array{ n });
+    this->add_random_batch_opening_sub_claims(claims, polys, queries, std::array{ n });
 
-//     using Transcript = transcript::StandardTranscript;
-//     auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
+    using Transcript = transcript::StandardTranscript;
+    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
 
-//     this->mock_transcript_interactions_up_to_shplonk(transcript, log_n);
+    this->mock_transcript_interactions_up_to_shplonk(transcript, log_n);
 
-//     const auto [prover_claim, witness, proof] =
-//         Shplonk::reduce_prove(this->ck(), claims, polys, transcript);
+    const auto [prover_claim, witness, proof] =
+        Shplonk::reduce_prove_with_transcript(this->ck(), claims, polys, transcript);
 
-//     this->verify_opening_claim(prover_claim, witness);
-//     const auto verifier_claim = Shplonk::reduce_verify(claims, proof, transcript);
-//     EXPECT_EQ(prover_claim, verifier_claim);
-//     this->verify_opening_claim(prover_claim, witness);
-// }
+    this->verify_opening_claim(prover_claim, witness);
+    const auto verifier_claim = Shplonk::reduce_verify_with_transcript(claims, proof, transcript);
+    EXPECT_EQ(prover_claim, verifier_claim);
+    this->verify_opening_claim(prover_claim, witness);
+}
 
-// TYPED_TEST(ShplonkTranscriptTest, two_polys_different_size_at_two_different_points)
-// {
-//     using Shplonk = MultiBatchOpeningScheme<TypeParam>;
-//     using MultiOpeningClaim = MultiOpeningClaim<TypeParam>;
-//     using Fr = typename TypeParam::Fr;
-//     using Polynomial = barretenberg::Polynomial<Fr>;
-//     const size_t n = 16;
+TYPED_TEST(ShplonkTranscriptTest, two_polys_different_size_at_two_different_points)
+{
+    using Shplonk = MultiBatchOpeningScheme<TypeParam>;
+    using MultiOpeningClaim = MultiOpeningClaim<TypeParam>;
+    using Fr = typename TypeParam::Fr;
+    using Polynomial = barretenberg::Polynomial<Fr>;
+    const size_t n = 16;
+    const size_t log_n = 4;
 
-//     this->consume(true);
+    this->consume(true);
 
-//     std::vector<MultiOpeningClaim> claims;
-//     std::vector<Polynomial> polys;
+    std::vector<MultiOpeningClaim> claims;
+    std::vector<Polynomial> polys;
 
-//     auto queries = this->random_opening_set(2);
+    auto queries = this->random_opening_set(2);
 
-//     this->add_random_batch_opening_sub_claims(claims, polys, { queries[0] }, std::array{ n });
-//     this->add_random_batch_opening_sub_claims(claims, polys, { queries[1] }, std::array{ n - 1 });
+    this->add_random_batch_opening_sub_claims(claims, polys, { queries[0] }, std::array{ n });
+    this->add_random_batch_opening_sub_claims(claims, polys, { queries[1] }, std::array{ n - 1 });
 
-//     const auto [prover_claim, witness, proof] =
-//         Shplonk::reduce_prove(this->ck(), claims, polys, this->prover_challenges);
+    using Transcript = transcript::StandardTranscript;
+    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
 
-//     this->verify_opening_claim(prover_claim, witness);
-//     const auto verifier_claim = Shplonk::reduce_verify(claims, proof, this->verifier_challenges);
-//     EXPECT_EQ(prover_claim, verifier_claim);
-//     this->verify_opening_claim(prover_claim, witness);
-// }
+    this->mock_transcript_interactions_up_to_shplonk(transcript, log_n);
 
-// TYPED_TEST(ShplonkTranscriptTest, three_polys_different_sizes_and_different_queries)
-// {
-//     using Shplonk = MultiBatchOpeningScheme<TypeParam>;
-//     using MultiOpeningClaim = MultiOpeningClaim<TypeParam>;
-//     using Fr = typename TypeParam::Fr;
-//     using Polynomial = barretenberg::Polynomial<Fr>;
-//     const size_t n = 16;
+    const auto [prover_claim, witness, proof] =
+        Shplonk::reduce_prove_with_transcript(this->ck(), claims, polys, transcript);
 
-//     this->consume(true);
+    this->verify_opening_claim(prover_claim, witness);
+    const auto verifier_claim = Shplonk::reduce_verify_with_transcript(claims, proof, transcript);
+    EXPECT_EQ(prover_claim, verifier_claim);
+    this->verify_opening_claim(prover_claim, witness);
+}
 
-//     std::vector<MultiOpeningClaim> claims;
-//     std::vector<Polynomial> polys;
+TYPED_TEST(ShplonkTranscriptTest, three_polys_different_sizes_and_different_queries)
+{
+    using Shplonk = MultiBatchOpeningScheme<TypeParam>;
+    using MultiOpeningClaim = MultiOpeningClaim<TypeParam>;
+    using Fr = typename TypeParam::Fr;
+    using Polynomial = barretenberg::Polynomial<Fr>;
+    const size_t n = 16;
+    const size_t log_n = 4;
 
-//     auto queries = this->random_opening_set(3);
+    this->consume(true);
 
-//     this->add_random_batch_opening_sub_claims(claims, polys, { queries[0] }, std::array{ n });
-//     this->add_random_batch_opening_sub_claims(claims, polys, { queries[1], queries[2] }, std::array{ n - 1, n + 2 });
-//     this->add_random_batch_opening_sub_claims(claims, polys, { queries[0], queries[2] }, std::array{ n });
+    std::vector<MultiOpeningClaim> claims;
+    std::vector<Polynomial> polys;
 
-//     const auto [prover_claim, witness, proof] =
-//         Shplonk::reduce_prove(this->ck(), claims, polys, this->prover_challenges);
+    auto queries = this->random_opening_set(3);
 
-//     this->verify_opening_claim(prover_claim, witness);
-//     const auto verifier_claim = Shplonk::reduce_verify(claims, proof, this->verifier_challenges);
-//     EXPECT_EQ(prover_claim, verifier_claim);
-//     this->verify_opening_claim(prover_claim, witness);
-// }
+    this->add_random_batch_opening_sub_claims(claims, polys, { queries[0] }, std::array{ n });
+    this->add_random_batch_opening_sub_claims(claims, polys, { queries[1], queries[2] }, std::array{ n - 1, n + 2 });
+    this->add_random_batch_opening_sub_claims(claims, polys, { queries[0], queries[2] }, std::array{ n });
+
+    using Transcript = transcript::StandardTranscript;
+    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
+
+    this->mock_transcript_interactions_up_to_shplonk(transcript, log_n);
+
+    const auto [prover_claim, witness, proof] =
+        Shplonk::reduce_prove_with_transcript(this->ck(), claims, polys, transcript);
+
+    this->verify_opening_claim(prover_claim, witness);
+    const auto verifier_claim = Shplonk::reduce_verify_with_transcript(claims, proof, transcript);
+    EXPECT_EQ(prover_claim, verifier_claim);
+    this->verify_opening_claim(prover_claim, witness);
+}
 
 TYPED_TEST(ShplonkTranscriptTest, Gemini)
 {
