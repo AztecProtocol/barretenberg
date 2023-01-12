@@ -1,8 +1,10 @@
 #pragma once
 #include <array>
 #include <ecc/curves/grumpkin/grumpkin.hpp>
-#include "./generator_data.hpp"
-#include "./fixed_base_scalar_mul.hpp"
+#include "../generators/generator_data.hpp"
+#include "../generators/fixed_base_scalar_mul.hpp"
+
+using namespace crypto::generators;
 
 namespace crypto {
 namespace pedersen {

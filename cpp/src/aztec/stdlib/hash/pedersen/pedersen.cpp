@@ -81,8 +81,8 @@ point<C> pedersen<C>::hash_single(const field_t& in,
     //   initial_exponent = ((num_bits & 1) == 1) ? num_bits - 1: num_bits;
     // this may require updating the logic around accumulator_offset
     constexpr size_t initial_exponent = num_bits;
-    const auto gen_data = crypto::pedersen::get_generator_data(hash_index);
-    const crypto::pedersen::fixed_base_ladder* ladder = gen_data.get_hash_ladder(num_bits);
+    const auto gen_data = crypto::generators::get_generator_data(hash_index);
+    const crypto::generators::fixed_base_ladder* ladder = gen_data.get_hash_ladder(num_bits);
     grumpkin::g1::affine_element skew_generator = gen_data.skew_generator;
 
     // Here n = num_quads = 127.

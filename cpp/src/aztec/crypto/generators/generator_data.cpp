@@ -1,7 +1,7 @@
 #include "./generator_data.hpp"
 
 namespace crypto {
-namespace pedersen {
+namespace generators {
 namespace {
 
 // The number of unique base points with default main index with precomputed ladders
@@ -276,5 +276,5 @@ const fixed_base_ladder* generator_data::get_hash_ladder(size_t num_bits) const
     return get_ladder_internal(hash_ladder, num_bits);
 }
 
-} // namespace pedersen
+} // namespace generators
 } // namespace crypto

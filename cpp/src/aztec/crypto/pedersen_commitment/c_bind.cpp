@@ -9,7 +9,7 @@ extern "C" {
 
 WASM_EXPORT void pedersen__init()
 {
-    crypto::pedersen::init_generator_data();
+    crypto::generators::init_generator_data();
 }
 
 WASM_EXPORT void pedersen__compress_fields(uint8_t const* left, uint8_t const* right, uint8_t* result)

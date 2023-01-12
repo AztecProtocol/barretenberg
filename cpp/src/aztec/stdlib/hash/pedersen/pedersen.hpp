@@ -8,7 +8,7 @@
 namespace plonk {
 namespace stdlib {
 
-constexpr uint64_t WNAF_MASK = crypto::pedersen::WNAF_MASK;
+constexpr uint64_t WNAF_MASK = crypto::generators::WNAF_MASK;
 
 template <typename ComposerContext> class pedersen {
   private:
@@ -18,7 +18,7 @@ template <typename ComposerContext> class pedersen {
     typedef plonk::stdlib::bool_t<ComposerContext> bool_t;
 
     static point hash_single(const field_t& in,
-                             const crypto::pedersen::generator_index_t hash_index,
+                             const crypto::generators::generator_index_t hash_index,
                              const bool validate_input_is_in_field = true);
     static point accumulate(const std::vector<point>& to_accumulate);
 

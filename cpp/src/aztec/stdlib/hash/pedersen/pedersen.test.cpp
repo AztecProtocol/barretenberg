@@ -70,10 +70,10 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
                                           compute_split_scalar(&right_wnafs[126], 2) };
 
         grumpkin::g1::affine_element grumpkin_points[4]{
-            crypto::pedersen::get_generator_data(crypto::pedersen::DEFAULT_GEN_1).generator,
-            crypto::pedersen::get_generator_data(crypto::pedersen::DEFAULT_GEN_1).aux_generator,
-            crypto::pedersen::get_generator_data(crypto::pedersen::DEFAULT_GEN_2).generator,
-            crypto::pedersen::get_generator_data(crypto::pedersen::DEFAULT_GEN_2).aux_generator,
+            crypto::generators::get_generator_data(crypto::generators::DEFAULT_GEN_1).generator,
+            crypto::generators::get_generator_data(crypto::generators::DEFAULT_GEN_1).aux_generator,
+            crypto::generators::get_generator_data(crypto::generators::DEFAULT_GEN_2).generator,
+            crypto::generators::get_generator_data(crypto::generators::DEFAULT_GEN_2).aux_generator,
         };
 
         grumpkin::g1::element result_points[4]{
@@ -91,12 +91,12 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
 
         if (left_skew) {
             grumpkin::g1::affine_element left_skew_gen =
-                crypto::pedersen::get_generator_data(crypto::pedersen::DEFAULT_GEN_1).skew_generator;
+                crypto::generators::get_generator_data(crypto::generators::DEFAULT_GEN_1).skew_generator;
             hash_output_left -= left_skew_gen;
         }
         if (right_skew) {
             grumpkin::g1::affine_element right_skew_gen =
-                crypto::pedersen::get_generator_data(crypto::pedersen::DEFAULT_GEN_2).skew_generator;
+                crypto::generators::get_generator_data(crypto::generators::DEFAULT_GEN_2).skew_generator;
             hash_output_right -= right_skew_gen;
         }
 

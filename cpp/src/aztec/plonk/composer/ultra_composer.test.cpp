@@ -149,9 +149,9 @@ TEST(ultra_composer, test_elliptic_gate)
     typedef grumpkin::g1::element element;
     waffle::UltraComposer composer = waffle::UltraComposer();
 
-    affine_element p1 = crypto::pedersen::get_generator_data({ 0, 0 }).generator;
+    affine_element p1 = crypto::generators::get_generator_data({ 0, 0 }).generator;
 
-    affine_element p2 = crypto::pedersen::get_generator_data({ 0, 1 }).generator;
+    affine_element p2 = crypto::generators::get_generator_data({ 0, 1 }).generator;
     affine_element p3(element(p1) + element(p2));
 
     uint32_t x1 = composer.add_variable(p1.x);
