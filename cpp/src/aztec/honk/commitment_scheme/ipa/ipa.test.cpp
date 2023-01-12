@@ -6,7 +6,6 @@
 #include <ecc/curves/bn254/fq12.hpp>
 #include <ecc/curves/bn254/pairing.hpp>
 using namespace barretenberg;
-using namespace waffle;
 
 TEST(honk_commitment_scheme, ipa_commit)
 {
@@ -24,7 +23,7 @@ TEST(honk_commitment_scheme, ipa_commit)
         expected += points[i] * scalars[i];
     }
 
-    waffle::InnerProductArgument<barretenberg::fr, barretenberg::fq, barretenberg::g1> newIpa;
+    InnerProductArgument<barretenberg::fr, barretenberg::fq, barretenberg::g1> newIpa;
     barretenberg::g1::element result = newIpa.commit(scalars, n, points);
     EXPECT_EQ(expected.normalize(), result.normalize());
 }
@@ -46,9 +45,9 @@ TEST(honk_commitment_scheme, ipa_open)
         auto scalar = fr::random_element();
         G_vec[i] = barretenberg::g1::affine_element(barretenberg::g1::one * scalar);
     }
-    waffle::InnerProductArgument<barretenberg::fr, barretenberg::fq, barretenberg::g1> newIpa;
+    InnerProductArgument<barretenberg::fr, barretenberg::fq, barretenberg::g1> newIpa;
     auto C = newIpa.commit(coeffs, n, G_vec);
-    waffle::InnerProductArgument<barretenberg::fr, barretenberg::fq, barretenberg::g1>::IpaPubInput pub_input;
+    InnerProductArgument<barretenberg::fr, barretenberg::fq, barretenberg::g1>::IpaPubInput pub_input;
     pub_input.commitment = C;
     pub_input.challenge_point = x;
     pub_input.evaluation = eval;
@@ -61,7 +60,7 @@ TEST(honk_commitment_scheme, ipa_open)
         pub_input.round_challenges[i] = barretenberg::fr::random_element();
     }
     auto proof = newIpa.ipa_prove(pub_input, coeffs, G_vec);
-    auto result = waffle::InnerProductArgument<barretenberg::fr, barretenberg::fq, barretenberg::g1>::ipa_verify(
-        proof, pub_input, G_vec);
+    auto result =
+        InnerProductArgument<barretenberg::fr, barretenberg::fq, barretenberg::g1>::ipa_verify(proof, pub_input, G_vec);
     EXPECT_TRUE(result);
 }

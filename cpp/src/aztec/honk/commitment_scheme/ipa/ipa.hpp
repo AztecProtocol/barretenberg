@@ -15,8 +15,6 @@
 // 4: (SRS class should contain a `pippenger_runtime_state` object so it does not need to be repeatedly
 // generated)
 
-namespace waffle {
-
 /**
  * @brief IPA (inner-product argument) commitment scheme class. Conforms to the specification
  * https://hackmd.io/q-A8y6aITWyWJrvsGGMWNA?view.
@@ -82,15 +80,22 @@ template <typename Fr, typename Fq, typename G1> class InnerProductArgument {
         ASSERT(challenge_point != 0 && "The challenge point should not be zero");
         const size_t poly_degree = ipa_pub_input.poly_degree;
         // To check poly_degree is greater than zero and a power of two
+        // Todo: To accomodate non power of two poly_degree
         ASSERT((poly_degree > 0) && (!(poly_degree & (poly_degree - 1))) &&
                "The poly_degree should be positive and a power of two");
         auto& aux_generator = ipa_pub_input.aux_generator;
         auto a_vec = polynomial;
+        // Todo:  to make it more efficient by directly using G_vector for the input points when i = 0 and write the
+        // output points to G_vec_local. Then use G_vec_local for rounds where i>0, this can be done after we use SRS
+        // instead of G_vector.
         std::vector<affine_element> G_vec_local(poly_degree);
         for (size_t i = 0; i < poly_degree; i++) {
             G_vec_local[i] = G_vector[i];
         }
         // Construct b vector
+        // Todo: For round i=0, b_vec can be derived in-place.
+        // This means that the size of b_vec can be 50% of the current size (i.e. we only write values to b_vec at the
+        // end of round 0)
         std::vector<Fr> b_vec(poly_degree);
         Fr b_power = 1;
         for (size_t i = 0; i < poly_degree; i++) {
@@ -113,6 +118,7 @@ template <typename Fr, typename Fq, typename G1> class InnerProductArgument {
                 inner_prod_R += a_vec[round_size + j] * b_vec[j];
             }
             // L_i = < a_vec_lo, G_vec_hi > + inner_prod_L * aux_generator
+            // Todo: Remove usage of multiple runtime_state, pass it as an element of the SRS.
             auto pippenger_runtime_state = barretenberg::scalar_multiplication::pippenger_runtime_state(round_size);
             element partial_L = barretenberg::scalar_multiplication::pippenger_without_endomorphism_basis_points(
                 &a_vec[0], &G_vec_local[round_size], round_size, pippenger_runtime_state);
@@ -123,13 +129,8 @@ template <typename Fr, typename Fq, typename G1> class InnerProductArgument {
                 &a_vec[round_size], &G_vec_local[0], round_size, pippenger_runtime_state);
             partial_R += aux_generator * inner_prod_R;
 
-            std::vector<element> round_commitments(2);
-            round_commitments[0] = partial_L;
-            round_commitments[1] = partial_R;
-            element::batch_normalize(&round_commitments[0], 2);
-
-            L_elements[i] = affine_element({ round_commitments[0].x, round_commitments[0].y });
-            R_elements[i] = affine_element({ round_commitments[1].x, round_commitments[1].y });
+            L_elements[i] = affine_element(partial_L);
+            R_elements[i] = affine_element(partial_R);
 
             // Generate the round challenge. Todo: Use Fiat-Shamir
             const Fr round_challenge = ipa_pub_input.round_challenges[i];
@@ -145,7 +146,16 @@ template <typename Fr, typename Fq, typename G1> class InnerProductArgument {
                 b_vec[j] *= round_challenge_inv;
                 b_vec[j] += round_challenge * b_vec[round_size + j];
 
-                // element has (x,y,z) coord, affine_element has (x,y) coord, G_vec_local is a vector of affine_element,
+                /*
+                Todo: (performance improvement suggested by Zac): We can improve performance here by using
+                element::batch_mul_with_endomorphism. This method takes a vector of input points points and a scalar x
+                and outputs a vector containing points[i]*x. It's 30% faster than a basic mul operation due to
+                performing group additions in 2D affine coordinates instead of 3D projective coordinates (affine point
+                additions are usually more expensive than projective additions due to the need to compute a modular
+                inverse. However we get around this by computing a single batch inverse. This only works if you are
+                adding a lot of independent point pairs so you can amortise the cost of the single batch inversion
+                across multiple points).
+                */
 
                 auto G_lo = element(G_vec_local[j]) * round_challenge_inv;
                 auto G_hi = element(G_vec_local[round_size + j]) * round_challenge;
@@ -263,4 +273,3 @@ template <typename Fr, typename Fq, typename G1> class InnerProductArgument {
         return (C_zero.normalize() == right_hand_side.normalize());
     }
 };
-} // namespace waffle
