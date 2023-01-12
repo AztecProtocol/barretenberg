@@ -9,7 +9,6 @@ template <class Params> class GeminiTranscriptTest : public CommitmentTest<Param
 
 TYPED_TEST_SUITE(GeminiTranscriptTest, CommitmentSchemeParams);
 
-// Test fails right now because transcript calls up to Gemini this point have to be mocked
 TYPED_TEST(GeminiTranscriptTest, single_no_oracle)
 {
     using Gemini = MultilinearReductionScheme<TypeParam>;
