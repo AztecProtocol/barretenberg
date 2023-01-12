@@ -1,6 +1,6 @@
 #include "compute_nullifier.hpp"
 #include "../../constants.hpp"
-#include <crypto/pedersen_hash/pedersen.hpp>
+#include <crypto/pedersen_commitment/pedersen.hpp>
 #include <crypto/blake2s/blake2s.hpp>
 
 namespace rollup {

@@ -1,6 +1,6 @@
 #pragma once
 #include "account_note.hpp"
-#include <crypto/pedersen_hash/pedersen.hpp>
+#include <crypto/pedersen_commitment/pedersen.hpp>
 #include "../../constants.hpp"
 
 namespace rollup {

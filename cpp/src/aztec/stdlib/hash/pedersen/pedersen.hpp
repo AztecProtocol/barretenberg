@@ -1,5 +1,5 @@
 #pragma once
-#include <crypto/pedersen_hash/pedersen.hpp>
+#include <crypto/pedersen_commitment/pedersen.hpp>
 #include "../../primitives/composers/composers_fwd.hpp"
 #include "../../primitives/field/field.hpp"
 #include "../../primitives/point/point.hpp"

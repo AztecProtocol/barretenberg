@@ -2,7 +2,7 @@
 
 #include "./types.hpp"
 
-#include <crypto/pedersen_hash/pedersen_lookup.hpp>
+#include <crypto/pedersen_commitment/pedersen_lookup.hpp>
 #include <numeric/bitop/rotate.hpp>
 #include <numeric/bitop/sparse_form.hpp>
 #include <numeric/bitop/pow.hpp>

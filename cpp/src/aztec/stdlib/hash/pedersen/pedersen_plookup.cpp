@@ -1,5 +1,5 @@
 #include "pedersen_plookup.hpp"
-#include <crypto/pedersen_hash/pedersen.hpp>
+#include <crypto/pedersen_commitment/pedersen.hpp>
 #include <ecc/curves/grumpkin/grumpkin.hpp>
 
 #include <plonk/composer/plookup_tables/types.hpp>

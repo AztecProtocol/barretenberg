@@ -14,8 +14,8 @@
 
 #include <ecc/curves/bn254/fq12.hpp>
 #include <ecc/curves/bn254/pairing.hpp>
-#include <crypto/pedersen_hash/pedersen.hpp>
-#include <crypto/pedersen_hash/pedersen_lookup.hpp>
+#include <crypto/pedersen_commitment/pedersen.hpp>
+#include <crypto/pedersen_commitment/pedersen_lookup.hpp>
 
 #include "../../primitives/uint/uint.hpp"
 #include "../../primitives/memory/rom_table.hpp"

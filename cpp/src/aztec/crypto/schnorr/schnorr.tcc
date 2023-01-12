@@ -1,7 +1,7 @@
 #pragma once
 
 #include <crypto/hmac/hmac.hpp>
-#include <crypto/pedersen_hash/pedersen.hpp>
+#include <crypto/pedersen_commitment/pedersen.hpp>
 
 #include "schnorr.hpp"
 
@@ -42,7 +42,7 @@ static auto generate_schnorr_challenge(const std::string& message,
                                        const typename G1::affine_element& R)
 {
     using Fq = typename G1::coordinate_field;
-    // create challenge message pedersen_hash(R.x, pubkey)
+    // create challenge message pedersen_commitment(R.x, pubkey)
     Fq compressed_keys = crypto::pedersen::compress_native({ R.x, pubkey.x, pubkey.y });
     std::vector<uint8_t> e_buffer;
     write(e_buffer, compressed_keys);

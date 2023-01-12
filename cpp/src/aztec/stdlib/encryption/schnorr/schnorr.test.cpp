@@ -1,5 +1,5 @@
 #include "schnorr.hpp"
-#include <crypto/pedersen_hash/pedersen.hpp>
+#include <crypto/pedersen_commitment/pedersen.hpp>
 #include <ecc/curves/grumpkin/grumpkin.hpp>
 #include <gtest/gtest.h>
 #include <stdlib/types/types.hpp>

@@ -1,5 +1,5 @@
 #include "join_split_tx.hpp"
-#include <crypto/pedersen_hash/pedersen.hpp>
+#include <crypto/pedersen_commitment/pedersen.hpp>
 
 namespace rollup {
 namespace proofs {

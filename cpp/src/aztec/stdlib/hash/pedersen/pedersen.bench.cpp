@@ -1,6 +1,6 @@
 #include "pedersen.hpp"
 #include <benchmark/benchmark.h>
-#include <crypto/pedersen_hash/pedersen.hpp>
+#include <crypto/pedersen_commitment/pedersen.hpp>
 #include <ecc/curves/bn254/fr.hpp>
 #include <ecc/curves/grumpkin/grumpkin.hpp>
 #include <plonk/composer/turbo_composer.hpp>
@@ -60,14 +60,14 @@ grumpkin::fq pedersen_function(const size_t count)
     }
     return out;
 }
-void native_pedersen_hash_bench(State& state) noexcept
+void native_pedersen_commitment_bench(State& state) noexcept
 {
     for (auto _ : state) {
         const size_t count = (static_cast<size_t>(state.range(0)));
         (pedersen_function(count));
     }
 }
-BENCHMARK(native_pedersen_hash_bench)
+BENCHMARK(native_pedersen_commitment_bench)
     ->Arg(num_hashes[0])
     ->Arg(num_hashes[1])
     ->Arg(num_hashes[2])

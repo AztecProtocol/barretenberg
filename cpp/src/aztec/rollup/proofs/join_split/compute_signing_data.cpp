@@ -1,6 +1,6 @@
 #include "compute_signing_data.hpp"
 #include "../notes/native/index.hpp"
-#include <crypto/pedersen_hash/pedersen.hpp>
+#include <crypto/pedersen_commitment/pedersen.hpp>
 
 namespace rollup {
 namespace proofs {
