@@ -43,7 +43,7 @@ template <typename settings> void Prover<settings>::compute_wire_commitments()
         std::string wire_tag = "w_" + std::to_string(i + 1) + "_lagrange";
         std::string commit_tag = "W_" + std::to_string(i + 1);
 
-        auto wire_polynomial = proving_key->polynomial_cache.get(wire_tag).get_coefficients_span();
+        std::span<barretenberg::fr> wire_polynomial = proving_key->polynomial_cache.get(wire_tag);
         auto commitment = commitment_key->commit(wire_polynomial);
 
         transcript.add_element(commit_tag, commitment.to_buffer());
@@ -252,7 +252,7 @@ template <typename settings> void Prover<settings>::execute_grand_product_comput
 
     auto beta = transcript.get_challenge_field_element("beta");
     compute_grand_product_polynomial(beta);
-    auto z_perm = proving_key->polynomial_cache.get("z_perm").get_coefficients_span();
+    std::span<barretenberg::fr> z_perm = proving_key->polynomial_cache.get("z_perm");
     auto commitment = commitment_key->commit(z_perm);
     transcript.add_element("Z_PERM", commitment.to_buffer());
 }

@@ -41,6 +41,8 @@ template <typename Fr> class Polynomial {
     Polynomial& operator=(const Polynomial& other);
     ~Polynomial();
 
+    explicit constexpr operator std::span<Fr>() const noexcept { return std::span<Fr>(coefficients_, size()); };
+
     void clear()
     {
         free();
@@ -76,8 +78,6 @@ template <typename Fr> class Polynomial {
 
     Fr* get_coefficients() const { return coefficients_; };
     Fr* get_coefficients() { return coefficients_; };
-    // TODO(Cody): This is a hack.
-    std::span<Fr> get_coefficients_span() { return std::span<Fr>(coefficients_, size()); };
 
     size_t get_size() const { return size_; };
     size_t get_max_size() const { return max_size_; };
