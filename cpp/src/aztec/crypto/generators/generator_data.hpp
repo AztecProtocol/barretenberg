@@ -4,7 +4,7 @@
 #include <ecc/curves/grumpkin/grumpkin.hpp>
 
 namespace crypto {
-namespace pedersen {
+namespace generators {
 
 struct generator_index_t {
     size_t index;
@@ -58,5 +58,5 @@ std::vector<std::unique_ptr<generator_data>> const& init_generator_data();
 const fixed_base_ladder* get_g1_ladder(const size_t num_bits);
 generator_data const& get_generator_data(generator_index_t index);
 
-} // namespace pedersen
+} // namespace generators
 } // namespace crypto

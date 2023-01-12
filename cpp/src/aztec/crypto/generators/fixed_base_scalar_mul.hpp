@@ -1,8 +1,9 @@
 #pragma once
 #include <ecc/curves/grumpkin/grumpkin.hpp>
+#include "./generator_data.hpp"
 
 namespace crypto {
-namespace pedersen {
+namespace generators {
 
 constexpr uint64_t WNAF_MASK = 0x7fffffffUL;
 
@@ -17,7 +18,7 @@ grumpkin::g1::element fixed_base_scalar_mul(const barretenberg::fr& in, const si
     constexpr size_t num_quads = ((num_quads_base << 1) + 1 < num_bits) ? num_quads_base + 1 : num_quads_base;
     constexpr size_t num_wnaf_bits = (num_quads << 1) + 1;
 
-    const crypto::pedersen::fixed_base_ladder* ladder = gen_data.get_ladder(num_bits);
+    const crypto::generators::fixed_base_ladder* ladder = gen_data.get_ladder(num_bits);
 
     uint64_t wnaf_entries[num_quads + 2] = { 0 };
     bool skew = false;
@@ -40,5 +41,5 @@ grumpkin::g1::element fixed_base_scalar_mul(const barretenberg::fr& in, const si
     return accumulator.normalize();
 }
 
-} // namespace pedersen
+} // namespace generators
 } // namespace crypto

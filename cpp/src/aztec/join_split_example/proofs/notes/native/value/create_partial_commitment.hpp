@@ -1,6 +1,6 @@
 #pragma once
 #include <common/serialize.hpp>
-#include <crypto/pedersen/pedersen.hpp>
+#include <crypto/pedersen_commitment/pedersen.hpp>
 #include <ecc/curves/grumpkin/grumpkin.hpp>
 #include "../../constants.hpp"
 
@@ -15,8 +15,8 @@ inline auto create_partial_commitment(barretenberg::fr const& secret,
                                       bool account_required,
                                       barretenberg::fr const& creator_pubkey)
 {
-    return crypto::pedersen::compress_native({ secret, owner.x, owner.y, account_required, creator_pubkey },
-                                             GeneratorIndex::VALUE_NOTE_PARTIAL_COMMITMENT);
+    return crypto::pedersen_commitment::compress_native({ secret, owner.x, owner.y, account_required, creator_pubkey },
+                                                        GeneratorIndex::VALUE_NOTE_PARTIAL_COMMITMENT);
 }
 
 } // namespace value
