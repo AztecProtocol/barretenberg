@@ -69,7 +69,7 @@ TYPED_TEST(ShplonkTest, single_poly_two_points)
     using Transcript = transcript::StandardTranscript;
     auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
 
-    this->mock_transcript_interactions_up_to_shplonk(transcript, log_n);
+    transcript->mock_inputs_prior_to_challenge("nu");
 
     const auto [prover_claim, witness, proof] = Shplonk::reduce_prove(this->ck(), claims, polys, transcript);
 
@@ -99,7 +99,7 @@ TYPED_TEST(ShplonkTest, two_polys_different_size_at_two_different_points)
     using Transcript = transcript::StandardTranscript;
     auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
 
-    this->mock_transcript_interactions_up_to_shplonk(transcript, log_n);
+    transcript->mock_inputs_prior_to_challenge("nu");
 
     const auto [prover_claim, witness, proof] = Shplonk::reduce_prove(this->ck(), claims, polys, transcript);
 
@@ -130,7 +130,7 @@ TYPED_TEST(ShplonkTest, three_polys_different_sizes_and_different_queries)
     using Transcript = transcript::StandardTranscript;
     auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
 
-    this->mock_transcript_interactions_up_to_shplonk(transcript, log_n);
+    transcript->mock_inputs_prior_to_challenge("nu");
 
     const auto [prover_claim, witness, proof] = Shplonk::reduce_prove(this->ck(), claims, polys, transcript);
 
@@ -161,7 +161,7 @@ TYPED_TEST(ShplonkTest, Gemini)
     using Transcript = transcript::StandardTranscript;
     auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
 
-    this->mock_transcript_interactions_up_to_gemini(transcript, log_n);
+    transcript->mock_inputs_prior_to_challenge("rho");
 
     auto [gemini_claim, gemini_witness, gemini_proof] =
         Gemini::reduce_prove(this->ck(), u, claims, {}, { &poly }, {}, transcript);

@@ -28,7 +28,8 @@ TYPED_TEST(GeminiTest, single)
     using Transcript = transcript::StandardTranscript;
     auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
 
-    this->mock_transcript_interactions_up_to_gemini(transcript, log_n);
+    // this->mock_transcript_interactions_up_to_gemini(transcript, log_n);
+    transcript->mock_inputs_prior_to_challenge("rho");
 
     auto [prover_claim, witness, proof] = Gemini::reduce_prove(this->ck(), u, claims, {}, { &poly }, {}, transcript);
 
@@ -67,7 +68,7 @@ TYPED_TEST(GeminiTest, shift)
     using Transcript = transcript::StandardTranscript;
     auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
 
-    this->mock_transcript_interactions_up_to_gemini(transcript, log_n);
+    transcript->mock_inputs_prior_to_challenge("rho");
 
     auto [prover_claim, witness, proof] =
         Gemini::reduce_prove(this->ck(), u, {}, claims_shift, {}, { &poly }, transcript);
@@ -106,7 +107,7 @@ TYPED_TEST(GeminiTest, double)
     using Transcript = transcript::StandardTranscript;
     auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
 
-    this->mock_transcript_interactions_up_to_gemini(transcript, log_n);
+    transcript->mock_inputs_prior_to_challenge("rho");
 
     auto [prover_claim, witness, proof] =
         Gemini::reduce_prove(this->ck(), u, claims, {}, { &poly1, &poly2 }, {}, transcript);
@@ -153,7 +154,7 @@ TYPED_TEST(GeminiTest, double_shift)
     using Transcript = transcript::StandardTranscript;
     auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
 
-    this->mock_transcript_interactions_up_to_gemini(transcript, log_n);
+    transcript->mock_inputs_prior_to_challenge("rho");
 
     auto [prover_claim, witness, proof] =
         Gemini::reduce_prove(this->ck(), u, claims, claims_shift, { &poly1, &poly2 }, { &poly2 }, transcript);
