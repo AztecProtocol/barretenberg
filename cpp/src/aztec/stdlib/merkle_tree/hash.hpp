@@ -1,7 +1,7 @@
 #pragma once
 #include <common/net.hpp>
 #include <crypto/blake2s/blake2s.hpp>
-#include <crypto/pedersen/pedersen.hpp>
+#include <crypto/pedersen_hash/pedersen.hpp>
 #include <stdlib/hash/blake2s/blake2s.hpp>
 #include <stdlib/hash/pedersen/pedersen.hpp>
 #include <stdlib/primitives/field/field.hpp>

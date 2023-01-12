@@ -1,6 +1,6 @@
 #include "pedersen.hpp"
 #include "pedersen_plookup.hpp"
-#include <crypto/pedersen/pedersen.hpp>
+#include <crypto/pedersen_hash/pedersen.hpp>
 #include <ecc/curves/grumpkin/grumpkin.hpp>
 
 #include "../../primitives/composers/composers.hpp"

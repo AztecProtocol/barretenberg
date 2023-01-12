@@ -1,7 +1,7 @@
 #pragma once
 #include <common/serialize.hpp>
 #include "../constants.hpp"
-#include <crypto/pedersen/pedersen.hpp>
+#include <crypto/pedersen_hash/pedersen.hpp>
 #include <ecc/curves/grumpkin/grumpkin.hpp>
 #include <common/throw_or_abort.hpp>
 

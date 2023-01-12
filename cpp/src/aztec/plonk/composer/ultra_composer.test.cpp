@@ -1,6 +1,6 @@
 #include <stdlib/primitives/plookup/plookup.hpp>
 #include "ultra_composer.hpp"
-#include <crypto/pedersen/pedersen.hpp>
+#include <crypto/pedersen_hash/pedersen.hpp>
 #include <gtest/gtest.h>
 #include <numeric/bitop/get_msb.hpp>
 #include <numeric/uintx/uintx.hpp>

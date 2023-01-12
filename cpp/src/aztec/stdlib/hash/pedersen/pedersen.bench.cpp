@@ -1,6 +1,6 @@
 #include "pedersen.hpp"
 #include <benchmark/benchmark.h>
-#include <crypto/pedersen/pedersen.hpp>
+#include <crypto/pedersen_hash/pedersen.hpp>
 #include <ecc/curves/bn254/fr.hpp>
 #include <ecc/curves/grumpkin/grumpkin.hpp>
 #include <plonk/composer/turbo_composer.hpp>

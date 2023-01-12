@@ -5,8 +5,8 @@
 #include <common/net.hpp>
 #include <crypto/blake3s/blake3s.hpp>
 #include <crypto/keccak/keccak.hpp>
-#include <crypto/pedersen/pedersen.hpp>
-#include <crypto/pedersen/pedersen_lookup.hpp>
+#include <crypto/pedersen_hash/pedersen.hpp>
+#include <crypto/pedersen_hash/pedersen_lookup.hpp>
 #include <iomanip>
 #include <iostream>
 #include <vector>

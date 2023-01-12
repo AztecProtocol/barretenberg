@@ -1,7 +1,7 @@
 #include "standard_circuit_constructor.hpp"
 #include <gtest/gtest.h>
-#include <crypto/pedersen/pedersen.hpp>
-#include <crypto/pedersen/generator_data.hpp>
+#include <crypto/pedersen_hash/pedersen.hpp>
+#include <crypto/pedersen_hash/generator_data.hpp>
 
 using namespace barretenberg;
 using namespace honk;

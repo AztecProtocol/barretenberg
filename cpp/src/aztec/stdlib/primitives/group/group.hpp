@@ -3,7 +3,7 @@
 #include "../field/field.hpp"
 #include <ecc/curves/grumpkin/grumpkin.hpp>
 #include <plonk/composer/composer_base.hpp>
-#include <crypto/pedersen/pedersen.hpp>
+#include <crypto/pedersen_hash/pedersen.hpp>
 
 #include "../../hash/pedersen/pedersen.hpp"
 namespace plonk {

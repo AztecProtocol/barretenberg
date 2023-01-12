@@ -4,7 +4,7 @@
 #include <plonk/composer/ultra_composer.hpp>
 #include <numeric/random/engine.hpp>
 #include <numeric/bitop/rotate.hpp>
-#include <crypto/pedersen/pedersen_lookup.hpp>
+#include <crypto/pedersen_hash/pedersen_lookup.hpp>
 #include <stdlib/primitives/biggroup/biggroup.hpp>
 #include <stdlib/primitives/bigfield/bigfield.hpp>
 #include <stdlib/primitives/uint/uint.hpp>

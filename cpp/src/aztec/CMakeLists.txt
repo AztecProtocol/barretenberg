@@ -59,7 +59,7 @@ if(WASM)
         $<TARGET_OBJECTS:crypto_blake3s_objects>
         $<TARGET_OBJECTS:crypto_keccak_objects>
         $<TARGET_OBJECTS:crypto_schnorr_objects>
-        $<TARGET_OBJECTS:crypto_pedersen_objects>
+        $<TARGET_OBJECTS:crypto_pedersen_hash_objects>
         $<TARGET_OBJECTS:ecc_objects>
         $<TARGET_OBJECTS:polynomials_objects>
         $<TARGET_OBJECTS:plonk_objects>

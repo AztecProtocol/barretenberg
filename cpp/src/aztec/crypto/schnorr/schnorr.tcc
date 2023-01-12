@@ -1,7 +1,7 @@
 #pragma once
 
 #include <crypto/hmac/hmac.hpp>
-#include <crypto/pedersen/pedersen.hpp>
+#include <crypto/pedersen_hash/pedersen.hpp>
 
 #include "schnorr.hpp"
 

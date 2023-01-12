@@ -1,5 +1,5 @@
 #pragma once
-#include <crypto/pedersen/pedersen.hpp>
+#include <crypto/pedersen_hash/pedersen.hpp>
 #include "../../constants.hpp"
 
 namespace rollup {

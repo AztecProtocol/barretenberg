@@ -1,5 +1,5 @@
 #include "account_tx.hpp"
-#include <crypto/pedersen/pedersen.hpp>
+#include <crypto/pedersen_hash/pedersen.hpp>
 #include "../notes/constants.hpp"
 
 namespace rollup {

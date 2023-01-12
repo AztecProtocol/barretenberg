@@ -1,5 +1,5 @@
 #include "turbo_composer.hpp"
-#include <crypto/pedersen/pedersen.hpp>
+#include <crypto/pedersen_hash/pedersen.hpp>
 #include <gtest/gtest.h>
 #include <proof_system/proving_key/serialize.hpp>
 
