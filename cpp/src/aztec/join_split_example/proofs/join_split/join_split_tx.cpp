@@ -1,5 +1,5 @@
 #include "join_split_tx.hpp"
-#include <crypto/pedersen/pedersen.hpp>
+#include <crypto/pedersen_commitment/pedersen.hpp>
 
 namespace join_split_example {
 namespace proofs {
