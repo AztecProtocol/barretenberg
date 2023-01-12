@@ -14,11 +14,9 @@
 #include "../oracle/oracle.hpp"
 #include "../../transcript/transcript_wrappers.hpp"
 #include "../../proof_system/flavor/flavor.hpp"
-#include "../../honk/sumcheck/polynomials/univariate.hpp"
 
 #include "claim.hpp"
 #include "commitment_key.hpp"
-#include "transcript/manifest.hpp"
 
 namespace honk::pcs {
 namespace {
