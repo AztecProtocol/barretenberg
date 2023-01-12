@@ -9,16 +9,15 @@ template <class Params> class GeminiTranscriptTest : public CommitmentTest<Param
 
 TYPED_TEST_SUITE(GeminiTranscriptTest, CommitmentSchemeParams);
 
-// TODO(luke): pull out the oracle from these tests altogether and use transcript directly
 TYPED_TEST(GeminiTranscriptTest, single_with_transcript)
 {
     using Gemini = MultilinearReductionScheme<TypeParam>;
     using MLEOpeningClaim = MLEOpeningClaim<TypeParam>;
 
     const size_t n = 16;
-    const size_t m = 4; // = log(n)
+    const size_t log_n = 4; // = log(n)
 
-    auto u = this->random_evaluation_point(m);
+    auto u = this->random_evaluation_point(log_n);
     auto poly = this->random_polynomial(n);
     auto commitment = this->commit(poly);
     auto eval = poly.evaluate_mle(u);
@@ -27,9 +26,9 @@ TYPED_TEST(GeminiTranscriptTest, single_with_transcript)
     auto claims = { MLEOpeningClaim{ commitment, eval } };
 
     using Transcript = transcript::StandardTranscript;
-    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, 1));
+    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
 
-    this->mock_transcript_interactions_up_to_gemini(transcript);
+    this->mock_transcript_interactions_up_to_gemini(transcript, log_n);
 
     auto [prover_claim, witness, proof] =
         Gemini::reduce_prove_with_transcript(this->ck(), u, claims, {}, { &poly }, {}, transcript);
@@ -50,9 +49,9 @@ TYPED_TEST(GeminiTranscriptTest, shift_with_transcript)
     using MLEOpeningClaim = MLEOpeningClaim<TypeParam>;
 
     const size_t n = 16;
-    const size_t m = 4; // = log(n)
+    const size_t log_n = 4; // = log(n)
 
-    auto u = this->random_evaluation_point(m);
+    auto u = this->random_evaluation_point(log_n);
 
     // shiftable polynomial must have 0 as last coefficient
     auto poly = this->random_polynomial(n);
@@ -67,9 +66,9 @@ TYPED_TEST(GeminiTranscriptTest, shift_with_transcript)
     };
 
     using Transcript = transcript::StandardTranscript;
-    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, 1));
+    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
 
-    this->mock_transcript_interactions_up_to_gemini(transcript);
+    this->mock_transcript_interactions_up_to_gemini(transcript, log_n);
 
     auto [prover_claim, witness, proof] =
         Gemini::reduce_prove_with_transcript(this->ck(), u, {}, claims_shift, {}, { &poly }, transcript);
@@ -87,9 +86,9 @@ TYPED_TEST(GeminiTranscriptTest, double_with_transcript)
     using MLEOpeningClaim = MLEOpeningClaim<TypeParam>;
 
     const size_t n = 16;
-    const size_t m = 4; // = log(n)
+    const size_t log_n = 4; // = log(n)
 
-    auto u = this->random_evaluation_point(m);
+    auto u = this->random_evaluation_point(log_n);
 
     auto poly1 = this->random_polynomial(n);
     auto poly2 = this->random_polynomial(n);
@@ -106,9 +105,9 @@ TYPED_TEST(GeminiTranscriptTest, double_with_transcript)
     };
 
     using Transcript = transcript::StandardTranscript;
-    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, 1));
+    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
 
-    this->mock_transcript_interactions_up_to_gemini(transcript);
+    this->mock_transcript_interactions_up_to_gemini(transcript, log_n);
 
     auto [prover_claim, witness, proof] =
         Gemini::reduce_prove_with_transcript(this->ck(), u, claims, {}, { &poly1, &poly2 }, {}, transcript);
@@ -128,9 +127,9 @@ TYPED_TEST(GeminiTranscriptTest, double_shift_with_transcript)
     using MLEOpeningClaim = MLEOpeningClaim<TypeParam>;
 
     const size_t n = 16;
-    const size_t m = 4; // = log(n)
+    const size_t log_n = 4; // = log(n)
 
-    auto u = this->random_evaluation_point(m);
+    auto u = this->random_evaluation_point(log_n);
 
     auto poly1 = this->random_polynomial(n);
     auto poly2 = this->random_polynomial(n);
@@ -153,9 +152,9 @@ TYPED_TEST(GeminiTranscriptTest, double_shift_with_transcript)
     };
 
     using Transcript = transcript::StandardTranscript;
-    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, 1));
+    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
 
-    this->mock_transcript_interactions_up_to_gemini(transcript);
+    this->mock_transcript_interactions_up_to_gemini(transcript, log_n);
 
     auto [prover_claim, witness, proof] = Gemini::reduce_prove_with_transcript(
         this->ck(), u, claims, claims_shift, { &poly1, &poly2 }, { &poly2 }, transcript);

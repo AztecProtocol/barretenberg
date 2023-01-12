@@ -183,7 +183,7 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
     // TODO(luke): it might be useful for Transcript to own a method like this, e.g.
     // mock_interactions_up_to_challenge(name). It would use its manifest to directly perform these operations. That
     // would avoid the need to hard code the manifest details in a function like this.
-    static void mock_transcript_interactions_up_to_gemini(auto& transcript)
+    static void mock_transcript_interactions_up_to_gemini(auto& transcript, size_t log_n)
     {
         // Mock the rounds preceding Gemini
         const size_t LENGTH = honk::StandardHonk::MAX_RELATION_LENGTH;
@@ -222,12 +222,11 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
         // Instantiate a Univariate from the evaluations
         auto univariate = Univariate(evaluations);
 
-        // NOTE: This assumes d=1 due to default argument in create_unrolled_manifest!
-        // Add the univariate to the transcript and compute associated challenge
-        // transcript->add_element("univariate_2", univariate.to_buffer());
-        // transcript->apply_fiat_shamir("u_2");
-        transcript->add_element("univariate_1", univariate.to_buffer());
-        transcript->apply_fiat_shamir("u_1");
+        // Mock sumcheck prover interactions
+        for (size_t round_idx = 0; round_idx < log_n; round_idx++) {
+            transcript->add_element("univariate_" + std::to_string(log_n - round_idx), univariate.to_buffer());
+            transcript->apply_fiat_shamir("u_" + std::to_string(log_n - round_idx));
+        }
 
         transcript->add_element("w_1", fr_buf);
         transcript->add_element("w_2", fr_buf);
