@@ -26,7 +26,7 @@ TEST(SumcheckRound, ComputeUnivariateProver)
     const size_t max_relation_length = 5;
 
     using FF = barretenberg::fr;
-    using Multivariates = ::Multivariates<FF, num_polys, multivariate_d>;
+    using Multivariates = ::Multivariates<FF, num_polys>;
 
     std::array<FF, 2> w_l = { 1, 2 };
     std::array<FF, 2> w_r = { 1, 2 };
@@ -78,7 +78,7 @@ TEST(SumcheckRound, ComputeUnivariateVerifier)
     const size_t max_relation_length = 5;
 
     using FF = barretenberg::fr;
-    using Multivariates = ::Multivariates<FF, num_polys, multivariate_d>;
+    using Multivariates = ::Multivariates<FF, num_polys>;
 
     FF w_l = { 1 };
     FF w_r = { 2 };
@@ -131,7 +131,7 @@ TEST(SumcheckRound, ComputeUnivariateVerifier)
 //     using Fr = barretenberg::fr;
 //     using Edge = Edge<Fr>;
 //     using EdgeGroup = EdgeGroup<Fr, num_polys>;
-//     using Multivariates = Multivariates<Fr, num_polys, multivariate_d>;
+//     using Multivariates = Multivariates<Fr, num_polys>;
 //     using Univariate = Univariate<Fr, max_relation_length>;
 //     // TODO(Cody): move this out of round.
 //     EdgeGroup group0({ Edge({ 1, 2 }),

@@ -265,8 +265,8 @@ TEST(StandarHonkComposer, BaseCase)
     auto prover = composer.create_unrolled_prover();
     // waffle::Verifier verifier = composer.create_verifier();
     // TODO(Cody): multivariate_d can't be a template parameter.
-    auto multivariates = honk::sumcheck::Multivariates<fr, 17, 1>(prover.proving_key);
-    (void)multivariates;
+    // auto multivariates = honk::sumcheck::Multivariates<fr, 17, 1>(prover.proving_key);
+    // (void)multivariates;
     // Next up: construct sumcheck module from multivariates.
     waffle::plonk_proof proof = prover.construct_proof();
 
