@@ -12,8 +12,6 @@ template <class Multivariates, class Transcript, template <class> class... Relat
 
   public:
     Multivariates multivariates;
-    static constexpr size_t multivariate_d = Multivariates::multivariate_d; // number of variables
-    static constexpr size_t multivariate_n = Multivariates::multivariate_n; // 2^d
     // TODO(luke): this value is needed here but also lives in sumcheck_round
     static constexpr size_t MAX_RELATION_LENGTH = std::max({ Relations<FF>::RELATION_LENGTH... });
 
@@ -29,7 +27,8 @@ template <class Multivariates, class Transcript, template <class> class... Relat
 
     // verifier instantiates with challenges alone
     explicit Sumcheck(Transcript transcript)
-        : transcript(transcript)
+        : multivariates(transcript)
+        , transcript(transcript)
         , round(Multivariates::num, std::tuple(Relations<FF>()...)){};
 
     /**
@@ -40,33 +39,36 @@ template <class Multivariates, class Transcript, template <class> class... Relat
      */
     void execute_prover()
     {
-        std::array<FF, multivariate_d> round_challenges;
+        std::vector<FF> round_challenges;
+        round_challenges.reserve(multivariates.multivariate_d);
         std::fill(round_challenges.begin(), round_challenges.end(), 0);
 
         // First round
         // This populates multivariates.folded_polynomials.
         FF relation_separator_challenge = transcript.get_mock_challenge();
         auto round_univariate = round.compute_univariate(multivariates.full_polynomials, relation_separator_challenge);
-        transcript.add_element("univariate_" + std::to_string(multivariate_d), round_univariate.to_buffer());
+        transcript.add_element("univariate_" + std::to_string(multivariates.multivariate_d),
+                               round_univariate.to_buffer());
         // IMPROVEMENT(Cody): Could move building of this list into challenge container?
         round_challenges[0] = transcript.get_mock_challenge();
-        multivariates.fold(multivariates.full_polynomials, multivariate_n, round_challenges[0]);
+        multivariates.fold(multivariates.full_polynomials, multivariates.multivariate_n, round_challenges[0]);
 
         // All but final round
         // We operate on multivariates.folded_polynomials in place.
-        for (size_t round_idx = 1; round_idx < multivariate_d; round_idx++) {
+        for (size_t round_idx = 1; round_idx < multivariates.multivariate_d; round_idx++) {
             // Write the round univariate to the transcript
             round_univariate = round.compute_univariate(multivariates.folded_polynomials, relation_separator_challenge);
-            transcript.add_element("univariate_" + std::to_string(multivariate_d - round_idx),
+            transcript.add_element("univariate_" + std::to_string(multivariates.multivariate_d - round_idx),
                                    round_univariate.to_buffer());
 
             round_challenges[round_idx] = transcript.get_mock_challenge();
-            multivariates.fold(multivariates.folded_polynomials, multivariate_n, round_challenges[round_idx]);
+            multivariates.fold(
+                multivariates.folded_polynomials, multivariates.multivariate_n, round_challenges[round_idx]);
         }
 
         // Final round
         // Note: get evaluations from folded_polynomials; don't need batch_evaluate
-        auto multivariate_evaluations = multivariates.batch_evaluate(round_challenges);
+        auto multivariate_evaluations = multivariates.batch_evaluate();
         // TODO(Cody): might need to add these evaluations one-by-one.
         //             This is what is currently done in the mocked prover.
         transcript.add_element("multivariate_evaluations", to_buffer(multivariate_evaluations));
@@ -83,7 +85,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
 
         // All but final round.
         // target_total_sum is initialized to zero then mutated in place.
-        for (size_t round_idx = 0; round_idx < multivariate_d; round_idx++) {
+        for (size_t round_idx = 0; round_idx < multivariates.multivariate_d; round_idx++) {
             // Obtain the round univariate from the transcript
             auto round_univariate = Univariate<FF, MAX_RELATION_LENGTH>::serialize_from_buffer(
                 &transcript.get_element("univariate_" + std::to_string(round_idx))[0]);
