@@ -16,17 +16,17 @@ template <class Multivariates, class Transcript, template <class> class... Relat
     static constexpr size_t MAX_RELATION_LENGTH = std::max({ Relations<FF>::RELATION_LENGTH... });
 
     std::array<FF, Multivariates::num> purported_evaluations;
-    Transcript transcript;
+    Transcript& transcript;
     SumcheckRound<FF, Multivariates::num, Relations...> round;
 
     // prover instantiates sumcheck with multivariates
-    Sumcheck(Multivariates multivariates, Transcript transcript)
+    Sumcheck(Multivariates multivariates, Transcript& transcript)
         : multivariates(multivariates)
         , transcript(transcript)
         , round(Multivariates::num, std::tuple(Relations<FF>()...)){};
 
     // verifier instantiates with challenges alone
-    explicit Sumcheck(Transcript transcript)
+    explicit Sumcheck(Transcript& transcript)
         : multivariates(transcript)
         , transcript(transcript)
         , round(Multivariates::num, std::tuple(Relations<FF>()...)){};
@@ -49,8 +49,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         auto round_univariate = round.compute_univariate(multivariates.full_polynomials, relation_separator_challenge);
         transcript.add_element("univariate_" + std::to_string(multivariates.multivariate_d),
                                round_univariate.to_buffer());
-        // IMPROVEMENT(Cody): Could move building of this list into challenge container?
-        round_challenges[0] = transcript.get_mock_challenge();
+        transcript.apply_fiat_shamir("u_" + std::to_string(multivariates.multivariate_d));
         multivariates.fold(multivariates.full_polynomials, multivariates.multivariate_n, round_challenges[0]);
 
         // All but final round
@@ -61,17 +60,15 @@ template <class Multivariates, class Transcript, template <class> class... Relat
             transcript.add_element("univariate_" + std::to_string(multivariates.multivariate_d - round_idx),
                                    round_univariate.to_buffer());
 
-            round_challenges[round_idx] = transcript.get_mock_challenge();
+            transcript.apply_fiat_shamir("u_" + std::to_string(multivariates.multivariate_d - round_idx));
             multivariates.fold(
                 multivariates.folded_polynomials, multivariates.multivariate_n, round_challenges[round_idx]);
         }
 
         // Final round
-        // Note: get evaluations from folded_polynomials; don't need batch_evaluate
-        auto multivariate_evaluations = multivariates.batch_evaluate();
-        // TODO(Cody): might need to add these evaluations one-by-one.
-        //             This is what is currently done in the mocked prover.
-        transcript.add_element("multivariate_evaluations", to_buffer(multivariate_evaluations));
+        // TODO(Cody): Figure out how to actually handle this. Currently done in prover, should happen here prob.
+        // auto multivariate_evaluations = multivariates.batch_evaluate();
+        // transcript.add_element("multivariate_evaluations", to_buffer(multivariate_evaluations));
     };
 
     /**

@@ -79,16 +79,21 @@ template <class FF_, size_t num_polys> class Multivariates {
         , full_polynomials(full_polynomials)
     {
         for (auto& polynomial : folded_polynomials) {
-            polynomial.reserve(multivariate_n >> 1);
             polynomial.resize(multivariate_n >> 1);
         }
     };
 
     explicit Multivariates(const std::shared_ptr<waffle::proving_key>& proving_key)
+        : multivariate_n(proving_key->n)
+        , multivariate_d(proving_key->log_n)
     {
         for (size_t i = 0; i < waffle::STANDARD_HONK_MANIFEST_SIZE; i++) {
             auto label = proving_key->polynomial_manifest[i].polynomial_label;
             full_polynomials[i] = proving_key->polynomial_cache.get(std::string(label));
+        }
+
+        for (auto& polynomial : folded_polynomials) {
+            polynomial.resize(multivariate_n >> 1);
         }
     }
 
