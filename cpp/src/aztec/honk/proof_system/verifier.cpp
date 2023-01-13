@@ -9,6 +9,8 @@
 #include <polynomials/polynomial_arithmetic.hpp>
 #include <math.h>
 
+#pragma GCC diagnostic ignored "-Wunused-variable"
+
 using namespace barretenberg;
 using namespace honk::sumcheck;
 
