@@ -26,6 +26,8 @@ using FF = barretenberg::fr;
 template <size_t multivariate_d, size_t MAX_RELATION_LENGTH, size_t num_polys>
 void mock_prover_contributions_to_transcript(Transcript& transcript)
 {
+    transcript.add_element("circuit_size", FF(1 << multivariate_d).to_buffer());
+
     // Write d-many arbitrary round univariates to the transcript
     for (size_t round_idx = 0; round_idx < multivariate_d; round_idx++) {
         auto round_univariate = Univariate<FF, MAX_RELATION_LENGTH>();
@@ -44,7 +46,7 @@ TEST(Sumcheck, Prover)
     const size_t multivariate_n(1 << multivariate_d);
     const size_t max_relation_length = 4;
 
-    using Multivariates = ::Multivariates<FF, num_polys, multivariate_d>;
+    using Multivariates = ::Multivariates<FF, num_polys>;
 
     std::array<FF, 2> w_l = { 1, 2 };
     std::array<FF, 2> w_r = { 1, 2 };
@@ -91,7 +93,7 @@ TEST(Sumcheck, Verifier)
     const size_t multivariate_n(1 << multivariate_d);
     const size_t max_relation_length = 5;
 
-    using Multivariates = ::Multivariates<FF, num_polys, multivariate_d>;
+    using Multivariates = ::Multivariates<FF, num_polys>;
 
     auto transcript = Transcript(transcript::Manifest());
     mock_prover_contributions_to_transcript<multivariate_d, max_relation_length, num_polys>(transcript);
