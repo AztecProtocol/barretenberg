@@ -5,6 +5,37 @@
 
 #include "keccak.hpp"
 #include <stdint.h>
+#include <cstdio>
+
+#if _MSC_VER
+#include <string.h>
+#define __builtin_memcpy memcpy
+#endif
+
+#if _WIN32
+/* On Windows assume little endian. */
+#define __LITTLE_ENDIAN 1234
+#define __BIG_ENDIAN 4321
+#define __BYTE_ORDER __LITTLE_ENDIAN
+#elif __APPLE__
+#include <machine/endian.h>
+#else
+#include <endian.h>
+#endif
+
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+#define to_le64(X) X
+#else
+#define to_le64(X) __builtin_bswap64(X)
+#endif
+
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+#define to_be64(X) __builtin_bswap64(X)
+#else
+#define to_be64(X) X
+#endif
+
+#define ROTL64(x, y) (((x) << (y)) | ((x) >> (64 - (y))))
 
 static uint64_t rol(uint64_t x, unsigned s)
 {
@@ -41,6 +72,11 @@ void ethash_keccakf1600(uint64_t state[25]) NOEXCEPT
 
     uint64_t Da, De, Di, Do, Du;
 
+    printf("theta input real\n");
+    for (size_t i = 0; i < 25; ++i) {
+        printf("%lx, ", (state[i]));
+    }
+
     Aba = state[0];
     Abe = state[1];
     Abi = state[2];
@@ -67,6 +103,32 @@ void ethash_keccakf1600(uint64_t state[25]) NOEXCEPT
     Aso = state[23];
     Asu = state[24];
 
+    {
+
+        uint64_t C[5] = { 0, 0, 0, 0, 0 };
+        uint64_t D[5] = { 0, 0, 0, 0, 0 };
+        uint64_t thetaState[25];
+        int x, y;
+        for (x = 0; x < 5; ++x) {
+            C[x] = state[x] ^ state[5 + x] ^ state[10 + x] ^ state[15 + x] ^ state[20 + x];
+        }
+
+        for (x = 0; x < 5; ++x) {
+            /* in order to avoid negative mod values,
+            we've replaced "(x - 1) % 5" with "(x + 4) % 5" */
+            D[x] = C[(x + 4) % 5] ^ ROTL64(C[(x + 1) % 5], 1);
+
+            for (y = 0; y < 5; ++y) {
+                thetaState[y * 5 + x] = state[y * 5 + x] ^ D[x];
+            }
+        }
+
+        printf("theta output real\n");
+        for (size_t i = 0; i < 25; ++i) {
+            printf("%lx, ", (thetaState[i]));
+        }
+        printf("\n");
+    }
     for (round = 0; round < 24; round += 2) {
         /* Round (round + 0): Axx -> Exx */
 
