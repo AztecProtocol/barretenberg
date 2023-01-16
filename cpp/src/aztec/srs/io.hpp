@@ -1,6 +1,7 @@
 #pragma once
 #include "../ecc/curves/bn254/g1.hpp"
 #include "../ecc/curves/bn254/g2.hpp"
+#include "../ecc/curves/grumpkin/grumpkin.hpp"
 #include <cstdint>
 #include <string>
 
@@ -41,6 +42,11 @@ void write_g2_elements_to_buffer(g2::affine_element const* elements, char* buffe
 
 void write_transcript(g1::affine_element const* g1_x,
                       g2::affine_element const* g2_x,
+                      Manifest const& manifest,
+                      std::string const& dir,
+                      bool is_lagrange = false);
+
+void write_transcript(grumpkin::g1::affine_element const* g1_x,
                       Manifest const& manifest,
                       std::string const& dir,
                       bool is_lagrange = false);

@@ -10,6 +10,9 @@
 #include "./affine_element.hpp"
 #include "./element.hpp"
 
+#define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+#define PBWIDTH 60
+
 namespace barretenberg {
 
 /**
@@ -59,6 +62,25 @@ template <typename _coordinate_field, typename _subgroup_field, typename GroupPa
             }
         }
 
+        return generators;
+    }
+
+    /**
+     * 10 generators: 1, 15, 23, 24, 67, 108, 289, 301, 555, 30000 - Pedersen hash
+     * 1000000 generators: >30000 <= 32600
+     */
+    template <size_t N> static inline auto derive_generator_vector(size_t seed = 0)
+    {
+        std::vector<affine_element> generators;
+        size_t count = 0;
+        while (count < N) {
+            ++seed;
+            auto candidate = affine_element::hash_to_curve(seed);
+            if (candidate.on_curve() && !candidate.is_point_at_infinity()) {
+                generators.push_back(candidate);
+                ++count;
+            }
+        }
         return generators;
     }
 
