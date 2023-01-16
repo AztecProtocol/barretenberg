@@ -58,12 +58,12 @@ namespace circuit_vk_hash {
  constraints. They need to be changed when there is a circuit change. Note that they are written in the reverse order
  to comply with the from_buffer<>() method. */
 constexpr auto ACCOUNT = uint256_t(0xcd6d70c733eaf823, 0x6505d3402817ad3d, 0xbf9e2b6a262589cf, 0xafcc546b55cc45e3);
-constexpr auto JOIN_SPLIT = uint256_t(0x5cb3fad96d99c1dd, 0x9d6cb4da6534bed5, 0xde45f710d14e4c8f, 0xbbd799c6bc1604c6);
+constexpr auto JOIN_SPLIT = uint256_t(0x7f154a0f7899ffe5, 0xb131200661bf1911, 0x9a0c8cd44c9c087b, 0x1038d50b67f8a5b3);
 constexpr auto CLAIM = uint256_t(0x878301ebba40ab60, 0x931466762c62d661, 0x40aad71ec3496905, 0x9f47aaa109759d0a);
-constexpr auto ROLLUP = uint256_t(0xd553ea0ac51c58e9, 0x86d42c1ccbea7aa6, 0x4a909dd1739f5a4d, 0x858ee674e0e6563a);
-constexpr auto ROOT_ROLLUP = uint256_t(0x27e4fc32f1b1c7c1, 0x494949a979fce5ba, 0x261c3a86be3b691f, 0xce98cdfea4b4f39c);
+constexpr auto ROLLUP = uint256_t(0x10909f6022cbe853, 0x05540f4a6cdd597a, 0x89b7c29dfbfc50e2, 0xa3a335eed6b774d6);
+constexpr auto ROOT_ROLLUP = uint256_t(0x4d135bb2a2aa9ac1, 0xadf2e42748b53e53, 0x501463f9b3207d2b, 0xa0d8b0d4053698ba);
 constexpr auto ROOT_VERIFIER =
-    uint256_t(0xe8e502db8a4f8d42, 0x6337b5d53c3ca77d, 0xdb4da3d73331c7ef, 0x213a2f3f34e8ad04);
+    uint256_t(0x85521cebe5e98f46, 0x02141f667a54d17e, 0xd8d43be20eea9560, 0xade9412d8afbb6b9);
 }; // namespace circuit_vk_hash
 
 namespace ProofIds {
