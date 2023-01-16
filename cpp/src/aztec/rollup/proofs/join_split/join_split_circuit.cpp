@@ -272,9 +272,9 @@ join_split_outputs join_split_circuit_component(join_split_inputs const& inputs)
     // is_merge_send: 
     //   if true, we can elide our signature as this is a same-owner, same-amount send
     //   where one of the output notes has value 0
+    //   Caveat: A signature of all 0's will still fail basic checks
     const bool_ct is_merge_send =
         is_send && (output_note_1_value == 0 || output_note_2_value == 0) && is_same_owner && is_same_amount;
-    // Caveat: A signature of all 0's will still fail basic checks
     (verified || is_merge_send).assert_equal(true, "verify signature failed");
 
     return { nullifier1,      nullifier2, output_note_1_commitment, output_note_2.commitment,
