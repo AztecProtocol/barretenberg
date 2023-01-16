@@ -1,17 +1,14 @@
 #include "./pedersen.hpp"
-#include "./convert_buffer_to_field.hpp"
 #include <common/throw_or_abort.hpp>
 #include <iostream>
 #ifndef NO_MULTITHREADING
 #include <omp.h>
 #endif
 
-// using namespace crypto::generators;
-
 namespace crypto {
-namespace pedersen_commitment {
+namespace pedersen_hash {
 
-grumpkin::g1::element commit_single(const barretenberg::fr& in, generator_index_t const& index)
+grumpkin::g1::element hash_single(const barretenberg::fr& in, generator_index_t const& index)
 {
     auto gen_data = get_generator_data(index);
     barretenberg::fr scalar_multiplier = in.from_montgomery_form();
@@ -44,9 +41,9 @@ grumpkin::g1::element commit_single(const barretenberg::fr& in, generator_index_
 }
 
 /**
- * Given a vector of fields, generate a pedersen commitment using the indexed generators.
+ * Given a vector of fields, generate a pedersen hash using the indexed generators.
  */
-grumpkin::g1::affine_element commit_native(const std::vector<grumpkin::fq>& inputs, const size_t hash_index)
+grumpkin::fq hash_multiple(const std::vector<grumpkin::fq>& inputs, const size_t hash_index)
 {
     ASSERT((inputs.size() < (1 << 16)) && "too many inputs for 16 bit index");
     std::vector<grumpkin::g1::element> out(inputs.size());
@@ -58,38 +55,17 @@ grumpkin::g1::affine_element commit_native(const std::vector<grumpkin::fq>& inpu
 #endif
     for (size_t i = 0; i < inputs.size(); ++i) {
         generator_index_t index = { hash_index, i };
-        out[i] = commit_single(inputs[i], index);
+        out[i] = hash_single(inputs[i], index);
     }
 
     grumpkin::g1::element r = out[0];
     for (size_t i = 1; i < inputs.size(); ++i) {
         r = out[i] + r;
     }
-    return r.is_point_at_infinity() ? grumpkin::g1::affine_element(0, 0) : grumpkin::g1::affine_element(r);
+    grumpkin::g1::affine_element result =
+        r.is_point_at_infinity() ? grumpkin::g1::affine_element(0, 0) : grumpkin::g1::affine_element(r);
+    return result.x;
 }
 
-/**
- * The same as commit_native, but only return the resultant x coordinate (i.e. compress).
- */
-grumpkin::fq compress_native(const std::vector<grumpkin::fq>& inputs, const size_t hash_index)
-{
-    return commit_native(inputs, hash_index).x;
-}
-
-/**
- * Given an arbitrary length of bytes, convert them to fields and compress the result using the default generators.
- */
-grumpkin::fq compress_native_buffer_to_field(const std::vector<uint8_t>& input)
-{
-    const auto elements = convert_buffer_to_field(input);
-    grumpkin::fq result_fq = compress_native(elements);
-    return result_fq;
-}
-
-grumpkin::fq compress_native(const std::vector<uint8_t>& input)
-{
-    return compress_native_buffer_to_field(input);
-}
-
-} // namespace pedersen_commitment
+} // namespace pedersen_hash
 } // namespace crypto

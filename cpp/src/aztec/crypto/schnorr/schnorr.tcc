@@ -43,7 +43,7 @@ static auto generate_schnorr_challenge(const std::string& message,
 {
     using Fq = typename G1::coordinate_field;
     // create challenge message pedersen_commitment(R.x, pubkey)
-    Fq compressed_keys = crypto::pedersen::compress_native({ R.x, pubkey.x, pubkey.y });
+    Fq compressed_keys = crypto::pedersen_commitment::compress_native({ R.x, pubkey.x, pubkey.y });
     std::vector<uint8_t> e_buffer;
     write(e_buffer, compressed_keys);
     std::copy(message.begin(), message.end(), std::back_inserter(e_buffer));

@@ -156,12 +156,12 @@ void Transcript::apply_fiat_shamir(const std::string& challenge_name /*, const b
         break;
     }
     case HashType::PedersenBlake3s: {
-        std::vector<uint8_t> compressed_buffer = to_buffer(crypto::pedersen::compress_native(buffer));
+        std::vector<uint8_t> compressed_buffer = to_buffer(crypto::pedersen_commitment::compress_native(buffer));
         base_hash = Blake3sHasher::hash(compressed_buffer);
         break;
     }
     case HashType::PlookupPedersenBlake3s: {
-        std::vector<uint8_t> compressed_buffer = crypto::pedersen::lookup::compress_native(buffer);
+        std::vector<uint8_t> compressed_buffer = crypto::pedersen_commitment::lookup::compress_native(buffer);
         base_hash = Blake3sHasher::hash(compressed_buffer);
         break;
     }

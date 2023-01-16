@@ -21,7 +21,7 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
     typedef typename curve::fr_ct fr_ct;
     typedef typename curve::witness_ct witness_ct;
     typedef typename curve::public_witness_ct public_witness_ct;
-    typedef typename stdlib::pedersen<Composer> pedersen;
+    typedef typename stdlib::pedersen_commitment<Composer> pedersen_commitment;
 
   public:
     static grumpkin::g1::element pedersen_recover(const fr& left_in, const fr& right_in)
@@ -154,7 +154,7 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
         composer.fix_witness(left.witness_index, left.get_value());
         composer.fix_witness(right.witness_index, right.get_value());
 
-        fr_ct out = pedersen::compress(left, right);
+        fr_ct out = pedersen_commitment::compress(left, right);
 
         auto prover = composer.create_prover();
 
@@ -175,7 +175,7 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
 
         EXPECT_EQ(out.get_value(), hash_output.x);
 
-        fr compress_native = crypto::pedersen::compress_native({ left.get_value(), right.get_value() });
+        fr compress_native = crypto::pedersen_commitment::compress_native({ left.get_value(), right.get_value() });
         EXPECT_EQ(out.get_value(), compress_native);
     }
 
@@ -195,11 +195,11 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
         fr_ct r_minus_two = witness_ct(&composer, r_minus_two_fr);
         fr_ct r = witness_ct(&composer, r_fr);
 
-        fr_ct out_1_with_zero = pedersen::compress(zero, one);
-        fr_ct out_1_with_r = pedersen::compress(r, one);
-        fr_ct out_2 = pedersen::compress(r_minus_one, r_minus_two);
-        fr_ct out_with_zero = pedersen::compress(out_1_with_zero, out_2);
-        fr_ct out_with_r = pedersen::compress(out_1_with_r, out_2);
+        fr_ct out_1_with_zero = pedersen_commitment::compress(zero, one);
+        fr_ct out_1_with_r = pedersen_commitment::compress(r, one);
+        fr_ct out_2 = pedersen_commitment::compress(r_minus_one, r_minus_two);
+        fr_ct out_with_zero = pedersen_commitment::compress(out_1_with_zero, out_2);
+        fr_ct out_with_r = pedersen_commitment::compress(out_1_with_r, out_2);
 
         auto prover = composer.create_prover();
 
@@ -232,12 +232,15 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
         EXPECT_EQ(r_minus_one_fr, recovered_r_minus_one);
         EXPECT_EQ(r_minus_two_fr, recovered_r_minus_two);
 
-        fr compress_native_1_with_zero = crypto::pedersen::compress_native({ zero.get_value(), one.get_value() });
-        fr compress_native_1_with_r = crypto::pedersen::compress_native({ r.get_value(), one.get_value() });
-        fr compress_native_2 = crypto::pedersen::compress_native({ r_minus_one.get_value(), r_minus_two.get_value() });
+        fr compress_native_1_with_zero =
+            crypto::pedersen_commitment::compress_native({ zero.get_value(), one.get_value() });
+        fr compress_native_1_with_r = crypto::pedersen_commitment::compress_native({ r.get_value(), one.get_value() });
+        fr compress_native_2 =
+            crypto::pedersen_commitment::compress_native({ r_minus_one.get_value(), r_minus_two.get_value() });
         fr compress_native_with_zero =
-            crypto::pedersen::compress_native({ out_1_with_zero.get_value(), out_2.get_value() });
-        fr compress_native_with_r = crypto::pedersen::compress_native({ out_1_with_r.get_value(), out_2.get_value() });
+            crypto::pedersen_commitment::compress_native({ out_1_with_zero.get_value(), out_2.get_value() });
+        fr compress_native_with_r =
+            crypto::pedersen_commitment::compress_native({ out_1_with_r.get_value(), out_2.get_value() });
 
         EXPECT_EQ(out_1_with_zero.get_value(), compress_native_1_with_zero);
         EXPECT_EQ(out_1_with_r.get_value(), compress_native_1_with_r);
@@ -264,7 +267,7 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
         fr_ct right = witness_ct(&composer, right_in);
 
         for (size_t i = 0; i < 256; ++i) {
-            left = pedersen::compress(left, right);
+            left = pedersen_commitment::compress(left, right);
         }
 
         composer.set_public_input(left.witness_index);
@@ -297,7 +300,7 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
         fr_ct right = witness_ct(&composer, right_in);
 
         for (size_t i = 0; i < 256; ++i) {
-            left = pedersen::compress(left, right);
+            left = pedersen_commitment::compress(left, right);
         }
 
         composer.set_public_input(left.witness_index);
@@ -325,10 +328,10 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
             input.push_back(engine.get_random_uint8());
         }
 
-        fr expected = crypto::pedersen::compress_native(input);
+        fr expected = crypto::pedersen_commitment::compress_native(input);
 
         byte_array_ct circuit_input(&composer, input);
-        auto result = pedersen::compress(circuit_input);
+        auto result = pedersen_commitment::compress(circuit_input);
 
         EXPECT_EQ(result.get_value(), expected);
 
@@ -382,9 +385,9 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
                 witnesses.push_back(witness_ct(&composer, input));
             }
 
-            barretenberg::fr expected = crypto::pedersen::compress_native(inputs);
+            barretenberg::fr expected = crypto::pedersen_commitment::compress_native(inputs);
 
-            fr_ct result = pedersen::compress(witnesses);
+            fr_ct result = pedersen_commitment::compress(witnesses);
             EXPECT_EQ(result.get_value(), expected);
         }
 
@@ -413,8 +416,8 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
         }
 
         constexpr size_t hash_idx = 10;
-        grumpkin::fq expected = crypto::pedersen::compress_native(inputs, hash_idx);
-        auto result = pedersen::compress(witness_inputs, hash_idx);
+        grumpkin::fq expected = crypto::pedersen_commitment::compress_native(inputs, hash_idx);
+        auto result = pedersen_commitment::compress(witness_inputs, hash_idx);
 
         EXPECT_EQ(result.get_value(), expected);
     }
@@ -435,8 +438,8 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
             }
         }
 
-        barretenberg::fr expected = crypto::pedersen::compress_native(inputs);
-        auto result = pedersen::compress(witness_inputs);
+        barretenberg::fr expected = crypto::pedersen_commitment::compress_native(inputs);
+        auto result = pedersen_commitment::compress(witness_inputs);
 
         EXPECT_EQ(result.get_value(), expected);
     }
@@ -486,98 +489,4 @@ TYPED_TEST(stdlib_pedersen, compress_constants)
     TestFixture::test_compress_constants();
 };
 
-// Tests of Plookup-based Pedersen hash
-namespace plookup_pedersen_tests {
-typedef stdlib::field_t<waffle::UltraComposer> field_ct;
-typedef stdlib::witness_t<waffle::UltraComposer> witness_ct;
-TEST(stdlib_pedersen, test_pedersen_plookup)
-{
-    waffle::UltraComposer composer = waffle::UltraComposer();
-
-    fr left_in = fr::random_element();
-    fr right_in = fr::random_element();
-
-    field_ct left = witness_ct(&composer, left_in);
-    field_ct right = witness_ct(&composer, right_in);
-
-    field_ct result = stdlib::pedersen_plookup<waffle::UltraComposer>::compress(left, right);
-
-    fr expected = crypto::pedersen::lookup::hash_pair(left_in, right_in);
-
-    EXPECT_EQ(result.get_value(), expected);
-
-    auto prover = composer.create_prover();
-
-    printf("composer gates = %zu\n", composer.get_num_gates());
-    auto verifier = composer.create_verifier();
-
-    waffle::plonk_proof proof = prover.construct_proof();
-
-    bool proof_result = verifier.verify_proof(proof);
-    EXPECT_EQ(proof_result, true);
-}
-
-TEST(stdlib_pedersen, test_compress_many_plookup)
-{
-    waffle::UltraComposer composer = waffle::UltraComposer();
-
-    std::vector<fr> input_values{
-        fr::random_element(), fr::random_element(), fr::random_element(),
-        fr::random_element(), fr::random_element(), fr::random_element(),
-    };
-    std::vector<field_ct> inputs;
-    for (const auto& input : input_values) {
-        inputs.emplace_back(witness_ct(&composer, input));
-    }
-
-    const size_t hash_idx = 20;
-
-    field_ct result = stdlib::pedersen_plookup<waffle::UltraComposer>::compress(inputs, hash_idx);
-
-    auto expected = crypto::pedersen::lookup::compress_native(input_values, hash_idx);
-
-    EXPECT_EQ(result.get_value(), expected);
-
-    auto prover = composer.create_prover();
-
-    printf("composer gates = %zu\n", composer.get_num_gates());
-    auto verifier = composer.create_verifier();
-
-    waffle::plonk_proof proof = prover.construct_proof();
-
-    bool proof_result = verifier.verify_proof(proof);
-    EXPECT_EQ(proof_result, true);
-}
-
-TEST(stdlib_pedersen, test_merkle_damgard_compress_plookup)
-{
-    waffle::UltraComposer composer = waffle::UltraComposer();
-
-    std::vector<fr> input_values{
-        fr::random_element(), fr::random_element(), fr::random_element(),
-        fr::random_element(), fr::random_element(), fr::random_element(),
-    };
-    std::vector<field_ct> inputs;
-    for (const auto& input : input_values) {
-        inputs.emplace_back(witness_ct(&composer, input));
-    }
-    field_ct iv = witness_ct(&composer, fr(10));
-
-    field_ct result = stdlib::pedersen_plookup<waffle::UltraComposer>::merkle_damgard_compress(inputs, iv).x;
-
-    auto expected = crypto::pedersen::lookup::merkle_damgard_compress(input_values, 10);
-
-    EXPECT_EQ(result.get_value(), expected.normalize().x);
-
-    auto prover = composer.create_prover();
-
-    printf("composer gates = %zu\n", composer.get_num_gates());
-    auto verifier = composer.create_verifier();
-
-    waffle::plonk_proof proof = prover.construct_proof();
-
-    bool proof_result = verifier.verify_proof(proof);
-    EXPECT_EQ(proof_result, true);
-}
-} // namespace plookup_pedersen_tests
 } // namespace test_stdlib_pedersen
