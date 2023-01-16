@@ -224,7 +224,8 @@ TEST(stdlib_schnorr, verify_signature)
         point_ct pub_key{ witness_ct(&composer, account.public_key.x), witness_ct(&composer, account.public_key.y) };
         stdlib::schnorr::signature_bits sig = stdlib::schnorr::convert_signature(&composer, signature);
         byte_array_ct message(&composer, message_string);
-        stdlib::schnorr::verify_signature(message, pub_key, sig);
+        bool_ct result_ct = stdlib::schnorr::verify_signature(message, pub_key, sig);
+        result_ct.assert_equal(true, "verify signature failed");
 
         Prover prover = composer.create_prover();
         printf("composer gates = %zu\n", composer.get_num_gates());
@@ -268,7 +269,8 @@ TEST(stdlib_schnorr, verify_signature_failure)
     point_ct pub_key2_ct{ witness_ct(&composer, account2.public_key.x), witness_ct(&composer, account2.public_key.y) };
     stdlib::schnorr::signature_bits sig = stdlib::schnorr::convert_signature(&composer, signature);
     byte_array_ct message(&composer, message_string);
-    stdlib::schnorr::verify_signature(message, pub_key2_ct, sig);
+    bool_ct result_ct = stdlib::schnorr::verify_signature(message, pub_key2_ct, sig);
+    result_ct.assert_equal(true, "verify signature failed");
 
     Prover prover = composer.create_prover();
 
