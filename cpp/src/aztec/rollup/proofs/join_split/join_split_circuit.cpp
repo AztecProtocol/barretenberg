@@ -254,7 +254,6 @@ join_split_outputs join_split_circuit_component(join_split_inputs const& inputs)
     // A: By passing a signature to the circuit, the 'signing private key' doesn't need to be passed to the proof
     // construction software. This is useful for multisigs, offline signing, etc., so that the proof construction
     // software (or machine) doesn't have access to the signing private key.
-    // Dec 21, 2022: Added exception for merge notes
     const bool_ct verified = verify_signature(inputs.public_value.value,
                                               inputs.public_owner,
                                               public_asset_id.value,
@@ -266,21 +265,17 @@ join_split_outputs join_split_circuit_component(join_split_inputs const& inputs)
                                               inputs.backward_link,
                                               inputs.allow_chain,
                                               inputs.signature);
-    // Check if we can elide our signature, first we check if this is a note merge,
-    // for the case of spending a bunch of owned notes
-    // This is a merge if one this is a 'send' proof type and one of the output notes has value 0
-    const bool_ct is_merge_send = is_send && (output_note_1_value == 0 || output_note_2_value == 0);
-    // If we are merging our own notes, we don't need to sign
-    // Note: when computing is_same_owner, we rely on input_note_1.owner == input_note_2.owner being checked already
-    // above
+    // is_same_owner: we rely on input_note_1.owner == input_note_2.owner being checked already
     const bool_ct is_same_owner =
         input_note_1.owner == output_note_1.owner && input_note_2.owner == output_note_2.owner;
     const bool_ct is_same_amount = total_in_value == total_out_value;
-    // Exception: If merging our own notes, allow an invalid signature
-    // Note: must still passes basic checks, can't be 0s
-    const bool_ct verified_or_merge_with_same_owners_and_amount =
-        verified || (is_merge_send && is_same_owner && is_same_amount);
-    verified_or_merge_with_same_owners_and_amount.assert_equal(true, "verify signature failed");
+    // is_merge_send: 
+    //   if true, we can elide our signature if this is a same-owner, same-amount send
+    //   where one of the output notes has value 0
+    const bool_ct is_merge_send =
+        is_send && (output_note_1_value == 0 || output_note_2_value == 0) && is_same_owner && is_same_amount;
+    // Caveat: A signature of all 0's will still fail basic checks
+    (verified || is_merge_send).assert_equal(true, "verify signature failed");
 
     return { nullifier1,      nullifier2, output_note_1_commitment, output_note_2.commitment,
              public_asset_id, tx_fee,     bridge_call_data,         defi_deposit_value };
