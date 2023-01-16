@@ -269,6 +269,36 @@ void write_g1_elements_to_buffer(g1::affine_element const* elements, char* buffe
     }
 }
 
+void write_g1_elements_to_buffer(grumpkin::g1::affine_element const* elements, char* buffer, size_t num_elements)
+{
+    uint64_t temp_x[4];
+    uint64_t temp_y[4];
+    fr temp_x_g1;
+    fr temp_y_g1;
+
+    if (is_little_endian()) {
+        for (size_t i = 0; i < num_elements; ++i) {
+            size_t byte_position_1 = sizeof(fr) * i * 2;
+            size_t byte_position_2 = sizeof(fr) * (i * 2 + 1);
+
+            temp_x_g1 = elements[i].x.from_montgomery_form();
+            temp_y_g1 = elements[i].y.from_montgomery_form();
+
+            temp_x[0] = __builtin_bswap64(temp_x_g1.data[0]);
+            temp_x[1] = __builtin_bswap64(temp_x_g1.data[1]);
+            temp_x[2] = __builtin_bswap64(temp_x_g1.data[2]);
+            temp_x[3] = __builtin_bswap64(temp_x_g1.data[3]);
+            temp_y[0] = __builtin_bswap64(temp_y_g1.data[0]);
+            temp_y[1] = __builtin_bswap64(temp_y_g1.data[1]);
+            temp_y[2] = __builtin_bswap64(temp_y_g1.data[2]);
+            temp_y[3] = __builtin_bswap64(temp_y_g1.data[3]);
+
+            memcpy((void*)(buffer + byte_position_1), (void*)temp_x, sizeof(fr));
+            memcpy((void*)(buffer + byte_position_2), (void*)temp_y, sizeof(fr));
+        }
+    }
+}
+
 void write_g2_elements_to_buffer(g2::affine_element const* elements, char* buffer, size_t num_elements)
 {
     uint64_t temp_x[8];
@@ -343,6 +373,37 @@ void write_transcript(g1::affine_element const* g1_x,
     write_g1_elements_to_buffer(g1_x, &buffer[manifest_size], num_g1_x);
     write_g2_elements_to_buffer(g2_x, &buffer[manifest_size + g1_buffer_size], num_g2_x);
     // add_checksum_to_buffer(&buffer[0], manifest_size + g1_buffer_size + g2_buffer_size);
+    write_buffer_to_file(path, &buffer[0], transcript_size);
+}
+
+void write_transcript(grumpkin::g1::affine_element const* g1_x,
+                      Manifest const& manifest,
+                      std::string const& dir,
+                      bool is_lagrange)
+{
+    const size_t num_g1_x = manifest.num_g1_points;
+    const size_t num_g2_x = manifest.num_g2_points;
+    const size_t transcript_num = manifest.transcript_number;
+    const size_t manifest_size = sizeof(Manifest);
+    const size_t g1_buffer_size = sizeof(fq) * 2 * num_g1_x;
+    const size_t g2_buffer_size = sizeof(fq) * 4 * num_g2_x;
+    const size_t transcript_size = manifest_size + g1_buffer_size + g2_buffer_size;
+    std::string path =
+        is_lagrange ? get_lagrange_transcript_path(dir, num_g1_x) : get_transcript_path(dir, transcript_num);
+    std::vector<char> buffer(transcript_size);
+
+    Manifest net_manifest;
+    net_manifest.transcript_number = htonl(manifest.transcript_number);
+    net_manifest.total_transcripts = htonl(manifest.total_transcripts);
+    net_manifest.total_g1_points = htonl(manifest.total_g1_points);
+    net_manifest.total_g2_points = htonl(manifest.total_g2_points);
+    net_manifest.num_g1_points = htonl(manifest.num_g1_points);
+    net_manifest.num_g2_points = htonl(manifest.num_g2_points);
+    net_manifest.start_from = htonl(manifest.start_from);
+
+    std::copy(&net_manifest, &net_manifest + 1, (Manifest*)&buffer[0]);
+
+    write_g1_elements_to_buffer(g1_x, &buffer[manifest_size], num_g1_x);
     write_buffer_to_file(path, &buffer[0], transcript_size);
 }
 

@@ -1,8 +1,12 @@
 #include <ecc/curves/bn254/fq12.hpp>
 #include <ecc/curves/bn254/pairing.hpp>
+#include <ecc/curves/grumpkin/grumpkin.hpp>
+#include <crypto/blake2s/blake2s.hpp>
 #include "io.hpp"
 #include <common/mem.hpp>
+#include <common/test.hpp>
 #include <gtest/gtest.h>
+#include <stdio.h>
 
 using namespace barretenberg;
 
@@ -27,4 +31,36 @@ TEST(io, read_transcript_loads_well_formed_srs)
         EXPECT_EQ(monomials[i].on_curve(), true);
     }
     aligned_free(monomials);
+}
+
+HEAVY_TEST(io, generate_and_write_ipa_srs)
+{
+    constexpr size_t points_per_transcript = 5040000;
+    constexpr size_t num_transcripts = 20;
+    constexpr size_t subgroup_size = points_per_transcript * num_transcripts;
+
+    for (size_t i = 11; i < num_transcripts; i++) {
+        // Generate a 64-bit seed
+        const std::string seed_str = "AZTEC_IPA_GENERATORS" + std::to_string(i);
+        std::vector<uint8_t> seed_vec(seed_str.begin(), seed_str.end());
+        const auto seed_hash_vec = (blake2::blake2s(seed_vec));
+        uint64_t seed_hash = 0, multiplicand = 1;
+        for (size_t i = 0; i < (seed_hash_vec.size() / 4); i++) {
+            seed_hash += multiplicand * seed_hash_vec[i];
+            multiplicand *= (1UL << 8);
+        }
+
+        // Derive generators
+        auto generators = grumpkin::g1::derive_generator_vector<subgroup_size>(seed_hash);
+
+        // Write generators to a transcript file
+        barretenberg::io::Manifest manifest{ .transcript_number = static_cast<uint32_t>(i),
+                                             .total_transcripts = 20,
+                                             .total_g1_points = static_cast<uint32_t>(subgroup_size),
+                                             .total_g2_points = 0,
+                                             .num_g1_points = points_per_transcript,
+                                             .num_g2_points = 0,
+                                             .start_from = 0 };
+        barretenberg::io::write_transcript(&generators[0], manifest, "../srs_db/trustless/grumpkin");
+    }
 }
