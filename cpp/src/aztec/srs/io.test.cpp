@@ -41,7 +41,7 @@ HEAVY_TEST(io, generate_and_write_ipa_srs)
     constexpr size_t num_transcripts = 20;
     constexpr size_t subgroup_size = points_per_transcript * num_transcripts;
 
-    for (size_t i = 11; i < num_transcripts; i++) {
+    for (size_t i = 0; i < num_transcripts; i++) {
         // Generate a 64-bit seed
         const std::string seed_str = "AZTEC_IPA_GENERATORS" + std::to_string(i);
         std::vector<uint8_t> seed_vec(seed_str.begin(), seed_str.end());
