@@ -275,7 +275,7 @@ TEST(standard_honk_composer, test_verification_key_creation)
     }
     auto verification_key = composer.compute_verification_key();
     EXPECT_EQ(verification_key->constraint_selectors.size(), 5);
-    EXPECT_EQ(verification_key->permutation_selectors.size(), 3);
+    EXPECT_EQ(verification_key->permutation_selectors.size(), 6);
 }
 
 TEST(StandarHonkComposer, BaseCase)
