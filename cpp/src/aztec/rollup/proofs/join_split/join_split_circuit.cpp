@@ -270,7 +270,7 @@ join_split_outputs join_split_circuit_component(join_split_inputs const& inputs)
         input_note_1.owner == output_note_1.owner && input_note_2.owner == output_note_2.owner;
     const bool_ct is_same_amount = total_in_value == total_out_value;
     // is_merge_send: 
-    //   if true, we can elide our signature if this is a same-owner, same-amount send
+    //   if true, we can elide our signature as this is a same-owner, same-amount send
     //   where one of the output notes has value 0
     const bool_ct is_merge_send =
         is_send && (output_note_1_value == 0 || output_note_2_value == 0) && is_same_owner && is_same_amount;
