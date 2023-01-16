@@ -209,6 +209,8 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
         }
 
         FF running_challenge(1);
+        // TODO(cody): Fix unused variable
+        (void)running_challenge;
         auto result = batch_over_relations<Univariate<FF, MAX_RELATION_LENGTH>>(univariate_accumulators,
                                                                                 relation_separator_challenge);
 
