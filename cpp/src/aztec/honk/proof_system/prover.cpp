@@ -98,11 +98,11 @@ void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, b
     static const size_t program_width = settings::program_width;
 
     // Allocate scratch space for accumulators
-    Fr* numererator_accum[program_width];
-    Fr* denominator_accum[program_width];
+    Fr* numerator_accumulator[program_width];
+    Fr* denominator_accumulator[program_width];
     for (size_t i = 0; i < program_width; ++i) {
-        numererator_accum[i] = static_cast<Fr*>(aligned_alloc(64, sizeof(Fr) * key->n));
-        denominator_accum[i] = static_cast<Fr*>(aligned_alloc(64, sizeof(Fr) * key->n));
+        numerator_accumulator[i] = static_cast<Fr*>(aligned_alloc(64, sizeof(Fr) * proving_key->n));
+        denominator_accumulator[i] = static_cast<Fr*>(aligned_alloc(64, sizeof(Fr) * proving_key->n));
     }
 
     // Populate wire and permutation polynomials
@@ -119,56 +119,56 @@ void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, b
     for (size_t i = 0; i < key->n; ++i) {
         for (size_t k = 0; k < program_width; ++k) {
             // TODO(luke): maybe this idx is replaced by proper ID polys in the future
-            Fr idx = k * key->n + i;
-            numererator_accum[k][i] = wires[k][i] + (idx * beta) + gamma;          // w_k(i) + β.(k*n+i) + γ
-            denominator_accum[k][i] = wires[k][i] + (sigmas[k][i] * beta) + gamma; // w_k(i) + β.σ_k(i) + γ
+            Fr idx = k * proving_key->n + i;
+            numerator_accumulator[k][i] = wires[k][i] + (idx * beta) + gamma;            // w_k(i) + β.(k*n+i) + γ
+            denominator_accumulator[k][i] = wires[k][i] + (sigmas[k][i] * beta) + gamma; // w_k(i) + β.σ_k(i) + γ
         }
     }
 
     // Step (2)
     for (size_t k = 0; k < program_width; ++k) {
-        for (size_t i = 0; i < key->n - 1; ++i) {
-            numererator_accum[k][i + 1] *= numererator_accum[k][i];
-            denominator_accum[k][i + 1] *= denominator_accum[k][i];
+        for (size_t i = 0; i < proving_key->n - 1; ++i) {
+            numerator_accumulator[k][i + 1] *= numerator_accumulator[k][i];
+            denominator_accumulator[k][i + 1] *= denominator_accumulator[k][i];
         }
     }
 
     // Step (3)
     for (size_t i = 0; i < key->n; ++i) {
         for (size_t k = 1; k < program_width; ++k) {
-            numererator_accum[0][i] *= numererator_accum[k][i];
-            denominator_accum[0][i] *= denominator_accum[k][i];
+            numerator_accumulator[0][i] *= numerator_accumulator[k][i];
+            denominator_accumulator[0][i] *= denominator_accumulator[k][i];
         }
     }
 
     // Step (4)
-    // Use Montgomery batch inversion to compute z_perm[i+1] = numererator_accum[0][i] / denominator_accum[0][i]. At the
-    // end of this computation, the quotient numererator_accum[0] / denominator_accum[0] is stored in
-    // numererator_accum[0].
-    Fr* inversion_coefficients = &denominator_accum[1][0]; // arbitrary scratch space
+    // Use Montgomery batch inversion to compute z_perm[i+1] = numerator_accumulator[0][i] /
+    // denominator_accumulator[0][i]. At the end of this computation, the quotient numerator_accumulator[0] /
+    // denominator_accumulator[0] is stored in numerator_accumulator[0].
+    Fr* inversion_coefficients = &denominator_accumulator[1][0]; // arbitrary scratch space
     Fr inversion_accumulator = Fr::one();
-    for (size_t i = 0; i < key->n; ++i) {
-        inversion_coefficients[i] = numererator_accum[0][i] * inversion_accumulator;
-        inversion_accumulator *= denominator_accum[0][i];
+    for (size_t i = 0; i < proving_key->n; ++i) {
+        inversion_coefficients[i] = numerator_accumulator[0][i] * inversion_accumulator;
+        inversion_accumulator *= denominator_accumulator[0][i];
     }
     inversion_accumulator = inversion_accumulator.invert(); // perform single inversion per thread
     for (size_t i = key->n - 1; i != size_t(0) - 1; --i) {
         // TODO(luke): What needs to be done Re the comment below:
         // We can avoid fully reducing z_perm[i + 1] as the inverse fft will take care of that for us
-        numererator_accum[0][i] = inversion_accumulator * inversion_coefficients[i];
-        inversion_accumulator *= denominator_accum[0][i];
+        numerator_accumulator[0][i] = inversion_accumulator * inversion_coefficients[i];
+        inversion_accumulator *= denominator_accumulator[0][i];
     }
 
     // Construct permutation polynomial 'z_perm' in lagrange form as:
     // z_perm = [1 numererator_accum[0][0] numererator_accum[0][1] ... numererator_accum[0][n-2]]
     Polynomial z_perm(key->n, key->n);
     z_perm[0] = Fr::one();
-    copy_polynomial(numererator_accum[0], &z_perm[1], key->n - 1, key->n - 1);
+    copy_polynomial(numerator_accumulator[0], &z_perm[1], proving_key->n - 1, proving_key->n - 1);
 
     // free memory allocated for scratch space
     for (size_t k = 0; k < program_width; ++k) {
-        aligned_free(numererator_accum[k]);
-        aligned_free(denominator_accum[k]);
+        aligned_free(numerator_accumulator[k]);
+        aligned_free(denominator_accumulator[k]);
     }
 
     // TODO(luke): Commit to z_perm here? This would match Plonk but maybe best to do separately?
@@ -432,6 +432,8 @@ template <typename settings> waffle::plonk_proof& Prover<settings>::construct_pr
 
     // Currently a no-op; may execute some "random widgets", commit to W_4, do RAM/ROM stuff
     // if this prover structure is kept when we bring tables to Honk.
+    // Suggestion: Maybe we shouldn't mix and match proof creation for different systems and
+    // instead instatiate construct_proof differently for each?
     execute_tables_round();
     // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
 
