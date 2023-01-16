@@ -9,6 +9,8 @@
 #include "uint.hpp"
 #include "non_native_group_generator.hpp"
 #include "blake2s.hpp"
+#include "keccak.hpp"
+
 namespace plookup {
 
 const MultiTable& create_table(const MultiTableId id);
@@ -235,6 +237,21 @@ inline BasicTable create_basic_table(const BasicTableId id, const size_t index)
     }
     case PEDERSEN_IV_BASE: {
         return pedersen_tables::basic::generate_pedersen_iv_table(PEDERSEN_IV_BASE);
+    }
+    case KECCAK_SPARSE_MAP: {
+        return sparse_tables::generate_sparse_table_with_rotation<11, 8, 0>(KECCAK_SPARSE_MAP, index);
+    }
+    case KECCAK_THETA: {
+        return keccak_tables::generate_theta_renormalization_table(KECCAK_THETA, index);
+    }
+    case KECCAK_RHO: {
+        return keccak_tables::generate_rho_renormalization_table(KECCAK_RHO, index);
+    }
+    case KECCAK_CHI: {
+        return keccak_tables::generate_chi_renormalization_table(KECCAK_CHI, index);
+    }
+    case KECCAK_OUTPUT: {
+        return keccak_tables::generate_keccak_output_table(KECCAK_OUTPUT, index);
     }
     default: {
         throw_or_abort("table id does not exist");

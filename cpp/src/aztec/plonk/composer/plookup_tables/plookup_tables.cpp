@@ -82,6 +82,16 @@ void init_multi_tables()
         blake2s_tables::get_blake2s_xor_rotate_8_table(MultiTableId::BLAKE_XOR_ROTATE_8);
     MULTI_TABLES[MultiTableId::BLAKE_XOR_ROTATE_7] =
         blake2s_tables::get_blake2s_xor_rotate_7_table(MultiTableId::BLAKE_XOR_ROTATE_7);
+    MULTI_TABLES[MultiTableId::KECCAK_FORMAT_INPUT] =
+        keccak_tables::get_keccak_input_table(MultiTableId::KECCAK_FORMAT_INPUT);
+    MULTI_TABLES[MultiTableId::KECCAK_THETA_OUTPUT] =
+        keccak_tables::get_theta_output_table(MultiTableId::KECCAK_THETA_OUTPUT);
+    MULTI_TABLES[MultiTableId::KECCAK_RHO_OUTPUT] =
+        keccak_tables::get_rho_output_table(MultiTableId::KECCAK_RHO_OUTPUT);
+    MULTI_TABLES[MultiTableId::KECCAK_CHI_OUTPUT] =
+        keccak_tables::get_chi_output_table(MultiTableId::KECCAK_CHI_OUTPUT);
+    MULTI_TABLES[MultiTableId::KECCAK_FORMAT_OUTPUT] =
+        keccak_tables::get_keccak_output_table(MultiTableId::KECCAK_FORMAT_OUTPUT);
 }
 } // namespace
 
@@ -115,6 +125,11 @@ ReadData<barretenberg::fr> get_lookup_accumulators(const MultiTableId id,
     for (size_t i = 0; i < num_lookups; ++i) {
         // get i-th table query function and then submit query
         const auto values = multi_table.get_table_values[i]({ key_a_slices[i], key_b_slices[i] });
+
+        if (id == MultiTableId::KECCAK_FORMAT_INPUT && i == 0) {
+            std::cout << "KECCAK INPUT i == 0. slices and values = " << key_a_slices[i] << " : " << values[0]
+                      << std::endl;
+        }
         // store all query data in raw columns and key entry
         column_1_raw_values.emplace_back(key_a_slices[i]);
         column_2_raw_values.emplace_back(is_2_to_1_lookup ? key_b_slices[i] : values[0]);
@@ -183,6 +198,11 @@ ReadData<barretenberg::fr> get_lookup_accumulators(const MultiTableId id,
         current_1 = raw_1 + previous_1 * multi_table.column_1_step_sizes[num_lookups - i];
         current_2 = raw_2 + previous_2 * multi_table.column_2_step_sizes[num_lookups - i];
         current_3 = raw_3 + previous_3 * multi_table.column_3_step_sizes[num_lookups - i];
+
+        if (id == MultiTableId::KECCAK_FORMAT_INPUT) {
+
+            std::cout << "column2 step size = " << multi_table.column_2_step_sizes[num_lookups - i] << std::endl;
+        }
     }
     return lookup;
 }
