@@ -15,13 +15,3 @@ TEST(stdlib_merkle_tree_hash, compress_native_vs_circuit)
     auto zz = crypto::pedersen_hash::hash_multiple({ x, x });
     EXPECT_EQ(z.get_value(), zz);
 }
-
-// TEST(stdlib_merkle_tree_hash, hash_value_native_vs_circuit)
-// {
-//     std::vector<uint8_t> x = std::vector<uint8_t>(64, '\1');
-//     Composer composer = Composer();
-//     byte_array_ct y(&composer, x);
-//     field_ct z = merkle_tree::hash_value(y);
-//     fr zz = merkle_tree::hash_value_native(x);
-//     EXPECT_EQ(z.get_value(), zz);
-// }
