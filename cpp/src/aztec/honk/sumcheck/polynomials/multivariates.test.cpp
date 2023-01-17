@@ -60,7 +60,7 @@ TYPED_TEST(MultivariatesTests, Constructor)
     MULTIVARIATES_TESTS_TYPE_ALIASES
 
     const size_t num_polys(4);
-    const size_t multivariate_d(2);
+    // const size_t multivariate_d(2);
     // const size_t multivariate_n(1 << multivariate_d);
 
     std::array<FF, 3> f0 = { 0, 0, 1 };

@@ -296,6 +296,7 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
 
     sumcheck.execute_prover();
 
+    // TODO(Cody): Execute as a loop over polynomial manifest? Things thare are called *_lagrange
     transcript.add_element("w_1", multivariates.folded_polynomials[1][0].to_buffer());
     transcript.add_element("w_2", multivariates.folded_polynomials[1][0].to_buffer());
     transcript.add_element("w_3", multivariates.folded_polynomials[2][0].to_buffer());

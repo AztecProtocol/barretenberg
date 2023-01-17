@@ -98,7 +98,8 @@ template <class FF_, size_t num_polys> class Multivariates {
     }
 
     explicit Multivariates(transcript::StandardTranscript transcript)
-        : multivariate_n(transcript.get_field_element("circuit_size"))
+        : multivariate_n(
+              static_cast<size_t>(transcript.get_field_element("circuit_size").from_montgomery_form().data[0]))
         , multivariate_d(numeric::get_msb(multivariate_n))
     {}
 
