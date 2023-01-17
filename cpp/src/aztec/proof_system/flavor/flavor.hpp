@@ -36,8 +36,8 @@ struct StandardHonk {
   public:
     using Arithmetization = proving_system::StandardArithmetization;
     using MULTIVARIATE = Arithmetization::POLYNOMIAL;
-    // TODO(Cody): Where to specify? is this polynomial manifest size?
-    static constexpr size_t STANDARD_HONK_MANIFEST_SIZE = 16;
+    // // TODO(Cody): Where to specify? is this polynomial manifest size?
+    // static constexpr size_t STANDARD_HONK_MANIFEST_SIZE = 16;
     static constexpr size_t MAX_RELATION_LENGTH = 5; // TODO(Cody): increment after fixing add_edge_contribution; kill
                                                      // after moving barycentric class out of relations
 
