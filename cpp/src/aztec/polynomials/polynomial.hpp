@@ -151,11 +151,14 @@ template <typename Fr> class Polynomial {
      * @details If the n coefficients of self are (0, a₁, …, aₙ₋₁),
      * we returns the view of the n-1 coefficients (a₁, …, aₙ₋₁).
      */
-    std::span<const Fr> shifted() const
+    // TODO(luke): Update this to return a full size n span
+    // std::span<const Fr> shifted() const
+    std::span<Fr> shifted() const
     {
         ASSERT(size_ > 0);
-        ASSERT(coefficients_[0].is_zero());
-        return std::span{ coefficients_ + 1, size_ - 1 };
+        // ASSERT(coefficients_[0].is_zero()); // TODO(luke): Reinstate once Adrian's updates make this true!
+        ASSERT(coefficients_[size_].is_zero()); // relies on DEFAULT_PAGE_SPILL
+        return std::span{ coefficients_ + 1, size_ };
     }
 
     /**

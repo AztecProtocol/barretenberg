@@ -1,4 +1,5 @@
 #include "prover.hpp"
+#include <cstddef>
 #include <honk/sumcheck/sumcheck.hpp> // will need
 #include <array>
 #include <honk/sumcheck/polynomials/univariate.hpp> // will go away
@@ -13,6 +14,7 @@
 #include "plonk/proof_system/types/polynomial_manifest.hpp"
 #include "proof_system/flavor/flavor.hpp"
 #include "transcript/transcript_wrappers.hpp"
+#include <string>
 
 namespace honk {
 
@@ -169,7 +171,7 @@ template <typename settings> void Prover<settings>::compute_grand_product_polyno
 
     // TODO(luke): Commit to z_perm here? This would match Plonk but maybe best to do separately?
 
-    proving_key->polynomial_cache.put("z_perm", std::move(z_perm));
+    proving_key->polynomial_cache.put("z_perm_lagrange", std::move(z_perm));
 }
 
 /**
@@ -259,7 +261,7 @@ template <typename settings> void Prover<settings>::execute_grand_product_comput
 
     auto beta = transcript.get_challenge_field_element("beta");
     compute_grand_product_polynomial(beta);
-    std::span<barretenberg::fr> z_perm = proving_key->polynomial_cache.get("z_perm");
+    std::span<barretenberg::fr> z_perm = proving_key->polynomial_cache.get("z_perm_lagrange");
     auto commitment = commitment_key->commit(z_perm);
     transcript.add_element("Z_PERM", commitment.to_buffer());
 }
@@ -280,7 +282,8 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
 {
     // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
 
-    using Multivariates = sumcheck::Multivariates<barretenberg::fr, waffle::STANDARD_HONK_MANIFEST_SIZE>;
+    // using Multivariates = sumcheck::Multivariates<barretenberg::fr, waffle::STANDARD_HONK_MANIFEST_SIZE>;
+    using Multivariates = sumcheck::Multivariates<barretenberg::fr, waffle::TOTAL_NUM_POLYNOMIALS>;
     using Transcript = transcript::StandardTranscript;
     using Sumcheck = sumcheck::Sumcheck<Multivariates,
                                         Transcript,
@@ -296,24 +299,22 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
 
     sumcheck.execute_prover();
 
-    // TODO(Cody): Execute as a loop over polynomial manifest? Things thare are called *_lagrange
-    transcript.add_element("w_1", multivariates.folded_polynomials[1][0].to_buffer());
-    transcript.add_element("w_2", multivariates.folded_polynomials[1][0].to_buffer());
-    transcript.add_element("w_3", multivariates.folded_polynomials[2][0].to_buffer());
-    transcript.add_element("z_perm", multivariates.folded_polynomials[3][0].to_buffer());
-    transcript.add_element("q_m", multivariates.folded_polynomials[4][0].to_buffer());
-    transcript.add_element("q_1", multivariates.folded_polynomials[5][0].to_buffer());
-    transcript.add_element("q_2", multivariates.folded_polynomials[6][0].to_buffer());
-    transcript.add_element("q_3", multivariates.folded_polynomials[7][0].to_buffer());
-    transcript.add_element("q_c", multivariates.folded_polynomials[8][0].to_buffer());
-    transcript.add_element("sigma_1", multivariates.folded_polynomials[9][0].to_buffer());
-    transcript.add_element("sigma_2", multivariates.folded_polynomials[10][0].to_buffer());
-    transcript.add_element("sigma_3", multivariates.folded_polynomials[11][0].to_buffer());
-    transcript.add_element("id_1", multivariates.folded_polynomials[12][0].to_buffer());
-    transcript.add_element("id_2", multivariates.folded_polynomials[13][0].to_buffer());
-    transcript.add_element("id_3", multivariates.folded_polynomials[14][0].to_buffer());
-    transcript.add_element("L_first", multivariates.folded_polynomials[15][0].to_buffer());
-    transcript.add_element("L_last", multivariates.folded_polynomials[16][0].to_buffer());
+    // TODO(luke): Doing the awkward extra step of removing the suffix "_lagrange" from the labels here. Could be fixed
+    // by changing naming in Honk polynomial_manifest to match Plonk style.
+    size_t poly_idx = 0;
+    for (size_t i = 0; i < proving_key->polynomial_manifest.size(); ++i) {
+        // Note: The number of evaluations is poly manifest size + number of shifted polys
+        const auto& descriptor = proving_key->polynomial_manifest[i];
+        std::string label(descriptor.polynomial_label);
+        label.erase(label.end() - 9, label.end()); // remove suffix "_lagrange"
+        info("label = ", label);
+        transcript.add_element(label, multivariates.folded_polynomials[poly_idx][0].to_buffer());
+        ++poly_idx;
+        if (descriptor.requires_shifted_evaluation) {
+            transcript.add_element(label + "_shift", multivariates.folded_polynomials[poly_idx][0].to_buffer());
+            ++poly_idx;
+        }
+    }
 }
 
 /**

@@ -1,9 +1,11 @@
 #pragma once // just adding these willy-nilly
 #include "numeric/bitop/get_msb.hpp"
+#include "plonk/proof_system/types/polynomial_manifest.hpp"
 #include "proof_system/proving_key/proving_key.hpp"
 #include "transcript/transcript_wrappers.hpp"
 #include <array>
 #include <algorithm>
+#include <cstddef>
 #include <span>
 #include <common/log.hpp>
 
@@ -87,9 +89,17 @@ template <class FF_, size_t num_polys> class Multivariates {
         : multivariate_n(proving_key->n)
         , multivariate_d(proving_key->log_n)
     {
-        for (size_t i = 0; i < waffle::STANDARD_HONK_MANIFEST_SIZE; i++) {
-            auto label = proving_key->polynomial_manifest[i].polynomial_label;
-            full_polynomials[i] = proving_key->polynomial_cache.get(std::string(label));
+        // Note: number of full polynomials is manifest size + number of shifted polys
+        size_t poly_idx = 0;
+        for (size_t i = 0; i < waffle::STANDARD_HONK_MANIFEST_SIZE; ++i) {
+            auto descriptor = proving_key->polynomial_manifest[i];
+            auto polynomial = proving_key->polynomial_cache.get(std::string(descriptor.polynomial_label));
+            full_polynomials[poly_idx] = polynomial;
+            ++poly_idx;
+            if (descriptor.requires_shifted_evaluation) {
+                full_polynomials[poly_idx] = polynomial.shifted();
+                ++poly_idx;
+            }
         }
 
         for (auto& polynomial : folded_polynomials) {

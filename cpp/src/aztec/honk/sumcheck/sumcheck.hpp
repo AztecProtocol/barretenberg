@@ -46,6 +46,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         // First round
         // This populates multivariates.folded_polynomials.
         FF relation_separator_challenge = transcript.get_mock_challenge();
+        info("multivariates.full_polynomials.size() = ", multivariates.full_polynomials.size());
         auto round_univariate = round.compute_univariate(multivariates.full_polynomials, relation_separator_challenge);
         transcript.add_element("univariate_" + std::to_string(multivariates.multivariate_d),
                                round_univariate.to_buffer());

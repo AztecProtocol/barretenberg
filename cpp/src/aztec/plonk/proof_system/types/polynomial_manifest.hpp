@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <vector>
 #include <string>
 #include <plonk/proof_system/constants.hpp>
 
@@ -172,12 +173,14 @@ static constexpr PolynomialDescriptor ultra_polynomial_manifest[ULTRA_UNROLLED_M
 
 // TODO(Cody): Get this right; just using for now to extract names.
 static constexpr size_t STANDARD_HONK_MANIFEST_SIZE = 17;
+static constexpr size_t NUM_SHIFTED_POLYNOMIALS = 1;
+static constexpr size_t TOTAL_NUM_POLYNOMIALS = STANDARD_HONK_MANIFEST_SIZE + NUM_SHIFTED_POLYNOMIALS;
 static constexpr PolynomialDescriptor standard_honk_polynomial_manifest[STANDARD_HONK_MANIFEST_SIZE]{
-    PolynomialDescriptor("W_1", "w_1_lagrange", false, false, WITNESS, W_1), //
-    PolynomialDescriptor("W_2", "w_2_lagrange", false, false, WITNESS, W_2), //
-    PolynomialDescriptor("W_3", "w_3_lagrange", false, false, WITNESS, W_3), //
-    PolynomialDescriptor("Z_PERM", "z_perm", true, true, WITNESS, Z),        //
-    // PolynomialDescriptor("Z_PERM_SHIFT", "z_perm_shift", true, true, WITNESS, Z_LOOKUP),                     //
+    PolynomialDescriptor("W_1", "w_1_lagrange", false, false, WITNESS, W_1),   //
+    PolynomialDescriptor("W_2", "w_2_lagrange", false, false, WITNESS, W_2),   //
+    PolynomialDescriptor("W_3", "w_3_lagrange", false, false, WITNESS, W_3),   //
+    PolynomialDescriptor("Z_PERM", "z_perm_lagrange", true, true, WITNESS, Z), //
+    // PolynomialDescriptor("Z_PERM_SHIFT", "z_perm_shift_lagrange", true, true, WITNESS, Z_LOOKUP), //
     PolynomialDescriptor("Q_M", "q_m_lagrange", true, false, SELECTOR, Q_M),                         //
     PolynomialDescriptor("Q_1", "q_1_lagrange", true, false, SELECTOR, Q_1),                         //
     PolynomialDescriptor("Q_2", "q_2_lagrange", true, false, SELECTOR, Q_2),                         //
@@ -229,7 +232,8 @@ class PolynomialManifest {
             break;
         };
         default: {
-            throw_or_abort("Received invalid composer type");
+            // TODO(luke): reinstate this. Was getting "use of undeclared identifier" error
+            // throw_or_abort("Received invalid composer type");
         }
         };
     }

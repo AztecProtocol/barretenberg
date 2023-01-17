@@ -6,7 +6,7 @@ namespace waffle {
 using namespace barretenberg;
 
 // Set to 1 to enable logging.
-#if 0
+#if 1
 template <typename... Args> inline void debug(Args... args)
 {
     info("PolynomialCache: ", args...);
