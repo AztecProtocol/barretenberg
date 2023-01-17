@@ -17,10 +17,17 @@ struct Manifest {
     uint32_t num_g2_points;
     uint32_t start_from;
 };
+// enum srs_type {
+//     MONOMIAL = 0,
+//     LAGRANGE = 1,
+//     IPA = 2,
+// };
 
 void read_transcript_g1(g1::affine_element* monomials, size_t degree, std::string const& dir, bool is_lagrange = false);
 
 void read_transcript_g2(g2::affine_element& g2_x, std::string const& dir, bool is_lagrange = false);
+
+void read_transcript_ipa(grumpkin::g1::affine_element* ipa_monomials, size_t degree, std::string const& dir);
 
 void read_transcript(g1::affine_element* monomials,
                      g2::affine_element& g2_x,
