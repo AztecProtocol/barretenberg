@@ -2,6 +2,7 @@
 #include <common/mem.hpp>
 #include <common/net.hpp>
 #include <common/throw_or_abort.hpp>
+#include <ecc/curves/grumpkin/grumpkin.hpp>
 #include <fstream>
 #include <sys/stat.h>
 
@@ -45,6 +46,28 @@ void byteswap(g1::affine_element* elements, size_t elements_size)
     constexpr size_t bytes_per_element = sizeof(g1::affine_element);
     size_t num_elements = elements_size / bytes_per_element;
 
+    if (is_little_endian()) {
+        for (size_t i = 0; i < num_elements; ++i) {
+            elements[i].x.data[0] = __builtin_bswap64(elements[i].x.data[0]);
+            elements[i].x.data[1] = __builtin_bswap64(elements[i].x.data[1]);
+            elements[i].x.data[2] = __builtin_bswap64(elements[i].x.data[2]);
+            elements[i].x.data[3] = __builtin_bswap64(elements[i].x.data[3]);
+            elements[i].y.data[0] = __builtin_bswap64(elements[i].y.data[0]);
+            elements[i].y.data[1] = __builtin_bswap64(elements[i].y.data[1]);
+            elements[i].y.data[2] = __builtin_bswap64(elements[i].y.data[2]);
+            elements[i].y.data[3] = __builtin_bswap64(elements[i].y.data[3]);
+            elements[i].x.self_to_montgomery_form();
+            elements[i].y.self_to_montgomery_form();
+        }
+    }
+}
+
+// byteswap for ipa
+void byteswap(grumpkin::g1::affine_element* elements, size_t elements_size)
+{
+    constexpr size_t bytes_per_element = sizeof(grumpkin::g1::affine_element);
+    size_t num_elements = elements_size / bytes_per_element;
+    // Need to check if below is correct
     if (is_little_endian()) {
         for (size_t i = 0; i < num_elements; ++i) {
             elements[i].x.data[0] = __builtin_bswap64(elements[i].x.data[0]);
@@ -139,6 +162,14 @@ std::string get_lagrange_transcript_path(std::string const& dir, size_t degree, 
     return dir + "/lagrange/transcript_" + std::to_string(new_degree) + suffix_str + ".dat";
 };
 
+std::string get_ipa_transcript_path(std::string const& dir, size_t degree, size_t num = 0)
+{
+    auto log2_n = static_cast<uint32_t>(numeric::get_msb(degree));
+    auto new_degree = (1 << log2_n);
+    std::string suffix_str = (num > 0) ? "_" + std::to_string(num) : "";
+    return dir + "/ipa/transcript_" + std::to_string(new_degree) + suffix_str + ".dat";
+};
+
 bool is_file_exist(std::string const& fileName)
 {
     std::ifstream infile(fileName);
@@ -181,6 +212,48 @@ void read_transcript_g1(g1::affine_element* monomials, size_t degree, std::strin
                               degree,
                               ". Is your srs large enough? Either run bootstrap.sh to download the transcript.dat "
                               "files to `srs_db/ignition/`, or you might need to download extra transcript.dat files "
+                              "by editing `srs_db/download_ignition.sh` (but be careful, as this suggests you've "
+                              "just changed a circuit to exceed a new 'power of two' boundary)."));
+    }
+}
+
+// ipa srs read function
+void read_transcript_ipa(grumpkin::g1::affine_element* ipa_monomials, size_t degree, std::string const& dir)
+{
+    size_t num = 0;
+    size_t num_read = 0;
+    std::string path = get_ipa_transcript_path(dir, degree, num);
+
+    while (is_file_exist(path) && num_read < degree) {
+        Manifest manifest;
+        read_manifest(path, manifest);
+
+        auto offset = sizeof(Manifest);
+        const size_t num_to_read = std::min((size_t)manifest.num_g1_points, degree - num_read);
+        const size_t g1_buffer_size = sizeof(fr) * 2 * num_to_read;
+
+        char* buffer = (char*)&ipa_monomials[num_read];
+        size_t size = 0;
+
+        // We must pass the size actually read to the second call, not the desired
+        // g1_buffer_size as the file may have been smaller than this.
+        read_file_into_buffer(buffer, size, path, offset, g1_buffer_size);
+        byteswap(&ipa_monomials[num_read], size);
+
+        num_read += num_to_read;
+        path = get_ipa_transcript_path(dir, degree, num);
+    }
+
+    const bool monomial_srs_condition = (num_read < degree);
+    if (monomial_srs_condition) {
+        throw_or_abort(format("Only read ",
+                              num_read,
+                              " points from ",
+                              path,
+                              ", but require ",
+                              degree,
+                              ". Is your srs large enough? Either run bootstrap.sh to download the transcript.dat "
+                              "files to `srs_db/ignition/`, or you might need to download extra transcript.dat files"
                               "by editing `srs_db/download_ignition.sh` (but be careful, as this suggests you've "
                               "just changed a circuit to exceed a new 'power of two' boundary)."));
     }

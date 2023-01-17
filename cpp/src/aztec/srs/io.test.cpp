@@ -35,6 +35,17 @@ TEST(io, read_transcript_loads_well_formed_srs)
     aligned_free(monomials);
 }
 
+TEST(io, read_transcript_ipa_srs)
+{
+    size_t degree = 100000;
+    grumpkin::g1::affine_element* monomials =
+        (grumpkin::g1::affine_element*)(aligned_alloc(32, sizeof(grumpkin::g1::affine_element) * (degree + 2)));
+    io::read_transcript_ipa(monomials, degree, "mnt/usr/suyash/trustless/grumpkin");
+    info("monomials[1].x = ", monomials[1].x, "\n");
+    info("read from file successfully");
+    aligned_free(monomials);
+}
+
 HEAVY_TEST(io, generate_and_write_ipa_srs)
 {
     constexpr size_t points_per_transcript = 5040000;
