@@ -14,7 +14,7 @@ inline auto create_partial_commitment(uint256_t const& deposit_value,
                                       grumpkin::fq const& value_note_partial_commitment,
                                       grumpkin::fq const& input_nullifier)
 {
-    return crypto::pedersen::compress_native(
+    return crypto::pedersen_commitment::compress_native(
         { deposit_value, bridge_call_data, value_note_partial_commitment, input_nullifier },
         GeneratorIndex::CLAIM_NOTE_PARTIAL_COMMITMENT);
 }

@@ -1,7 +1,7 @@
 #pragma once
 #include <common/map.hpp>
 #include <stdlib/primitives/field/field.hpp>
-#include <stdlib/hash/pedersen/pedersen.hpp>
+#include <stdlib/commitment/pedersen/pedersen.hpp>
 
 namespace rollup {
 namespace proofs {
@@ -15,7 +15,8 @@ template <typename Composer> void mock_circuit(Composer& composer, std::vector<f
     for (auto& p : public_inputs) {
         p.set_public();
     }
-    plonk::stdlib::pedersen<Composer>::compress(field_t(witness_t(&composer, 1)), field_t(witness_t(&composer, 1)));
+    plonk::stdlib::pedersen_commitment<Composer>::compress(field_t(witness_t(&composer, 1)),
+                                                           field_t(witness_t(&composer, 1)));
 }
 
 } // namespace mock

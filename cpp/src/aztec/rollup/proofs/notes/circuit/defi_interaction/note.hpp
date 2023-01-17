@@ -63,13 +63,13 @@ struct note {
   private:
     field_ct compute_commitment()
     {
-        return pedersen::compress({ bridge_call_data,
-                                    total_input_value,
-                                    total_output_value_a,
-                                    total_output_value_b,
-                                    interaction_nonce,
-                                    interaction_result },
-                                  GeneratorIndex::DEFI_INTERACTION_NOTE_COMMITMENT);
+        return pedersen_commitment::compress({ bridge_call_data,
+                                               total_input_value,
+                                               total_output_value_a,
+                                               total_output_value_b,
+                                               interaction_nonce,
+                                               interaction_result },
+                                             GeneratorIndex::DEFI_INTERACTION_NOTE_COMMITMENT);
     }
 };
 

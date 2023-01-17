@@ -511,7 +511,9 @@ template <typename C> point<C> pedersen_hash<C>::accumulate(const std::vector<po
 }
 
 template <typename C>
-field_t<C> pedersen_hash<C>::hash_multiple(const std::vector<field_t>& inputs, const size_t hash_index)
+field_t<C> pedersen_hash<C>::hash_multiple(const std::vector<field_t>& inputs,
+                                           const size_t hash_index,
+                                           const bool validate_inputs_in_field)
 {
     if constexpr (C::type == waffle::ComposerType::PLOOKUP &&
                   C::merkle_hash_type == waffle::MerkleHashType::LOOKUP_PEDERSEN) {
@@ -521,7 +523,7 @@ field_t<C> pedersen_hash<C>::hash_multiple(const std::vector<field_t>& inputs, c
     std::vector<point> to_accumulate;
     for (size_t i = 0; i < inputs.size(); ++i) {
         generator_index_t index = { hash_index, i };
-        to_accumulate.push_back(pedersen_hash<C>::hash_single(inputs[i], index));
+        to_accumulate.push_back(pedersen_hash<C>::hash_single(inputs[i], index, validate_inputs_in_field));
     }
     point result = pedersen_hash<C>::accumulate(to_accumulate);
     return result.x;

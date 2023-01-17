@@ -68,15 +68,15 @@ class account_tests : public ::testing::Test {
     uint256_t compute_account_alias_hash_nullifier(fr const& account_alias_hash)
     {
         const std::vector<fr> hash_elements{ account_alias_hash };
-        auto result =
-            crypto::pedersen::compress_native(hash_elements, notes::GeneratorIndex::ACCOUNT_ALIAS_HASH_NULLIFIER);
+        auto result = crypto::pedersen_commitment::compress_native(hash_elements,
+                                                                   notes::GeneratorIndex::ACCOUNT_ALIAS_HASH_NULLIFIER);
         return uint256_t(result);
     }
 
     uint256_t compute_account_public_key_nullifier(grumpkin::g1::affine_element const& account_public_key)
     {
-        return crypto::pedersen::compress_native({ account_public_key.x },
-                                                 notes::GeneratorIndex::ACCOUNT_PUBLIC_KEY_NULLIFIER);
+        return crypto::pedersen_commitment::compress_native({ account_public_key.x },
+                                                            notes::GeneratorIndex::ACCOUNT_PUBLIC_KEY_NULLIFIER);
     }
 
     account_tx create_new_account_tx(const rollup::fixtures::user_context& user)

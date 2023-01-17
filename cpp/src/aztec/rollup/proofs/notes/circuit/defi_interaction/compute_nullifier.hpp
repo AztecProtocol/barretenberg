@@ -15,8 +15,8 @@ using namespace plonk::stdlib::types;
  */
 inline field_ct compute_nullifier(field_ct const& defi_interaction_note_commitment, field_ct const& nonce)
 {
-    return pedersen::compress(std::vector<field_ct>{ defi_interaction_note_commitment, nonce },
-                              GeneratorIndex::DEFI_INTERACTION_NULLIFIER);
+    return pedersen_commitment::compress(std::vector<field_ct>{ defi_interaction_note_commitment, nonce },
+                                         GeneratorIndex::DEFI_INTERACTION_NULLIFIER);
 }
 
 } // namespace defi_interaction

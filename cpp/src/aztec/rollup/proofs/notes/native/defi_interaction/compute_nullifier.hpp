@@ -16,8 +16,9 @@ using namespace barretenberg;
  */
 inline auto compute_nullifier(grumpkin::fq const& defi_interaction_note_commitment, grumpkin::fq nonce)
 {
-    return crypto::pedersen::compress_native(std::vector<barretenberg::fr>{ defi_interaction_note_commitment, nonce },
-                                             GeneratorIndex::DEFI_INTERACTION_NULLIFIER);
+    return crypto::pedersen_commitment::compress_native(
+        std::vector<barretenberg::fr>{ defi_interaction_note_commitment, nonce },
+        GeneratorIndex::DEFI_INTERACTION_NULLIFIER);
 }
 
 } // namespace defi_interaction

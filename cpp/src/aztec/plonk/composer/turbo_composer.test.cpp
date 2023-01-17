@@ -4,7 +4,7 @@
 #include <proof_system/proving_key/serialize.hpp>
 
 using namespace barretenberg;
-using namespace crypto::pedersen;
+using namespace crypto::pedersen_commitment;
 
 namespace {
 auto& engine = numeric::random::get_debug_engine();

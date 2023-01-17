@@ -4,7 +4,7 @@ namespace rollup {
 namespace proofs {
 namespace account {
 
-using namespace crypto::pedersen;
+using namespace crypto::pedersen_commitment;
 
 barretenberg::fr compute_signing_data(account_tx const& tx)
 {

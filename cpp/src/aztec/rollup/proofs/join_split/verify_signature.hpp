@@ -1,5 +1,5 @@
 #include <stdlib/encryption/schnorr/schnorr.hpp>
-#include <stdlib/hash/pedersen/pedersen.hpp>
+#include <stdlib/commitment/pedersen/pedersen.hpp>
 
 namespace rollup {
 namespace proofs {
@@ -23,7 +23,7 @@ inline void verify_signature(field_ct const& public_value,
         public_value, public_owner,  public_asset_id, output_note1_commitment, output_note2_commitment, nullifier1,
         nullifier2,   backward_link, allow_chain,
     };
-    byte_array_ct message = pedersen::compress(to_compress);
+    byte_array_ct message = pedersen_commitment::compress(to_compress);
     verify_signature(message, owner_pub_key, signature);
 }
 

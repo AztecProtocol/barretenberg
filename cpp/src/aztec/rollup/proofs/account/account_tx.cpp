@@ -8,7 +8,7 @@ namespace account {
 
 using namespace barretenberg;
 using namespace crypto::schnorr;
-using namespace crypto::pedersen;
+using namespace crypto::pedersen_commitment;
 
 fr account_tx::compute_account_alias_hash_nullifier() const
 {

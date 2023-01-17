@@ -14,7 +14,7 @@ using namespace barretenberg;
 
 inline auto compute_nullifier(grumpkin::fq const& note_commitment)
 {
-    return crypto::pedersen::compress_native({ note_commitment }, GeneratorIndex::CLAIM_NOTE_NULLIFIER);
+    return crypto::pedersen_commitment::compress_native({ note_commitment }, GeneratorIndex::CLAIM_NOTE_NULLIFIER);
 }
 
 } // namespace claim

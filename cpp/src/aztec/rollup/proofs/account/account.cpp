@@ -25,14 +25,14 @@ static size_t number_of_gates;
 
 field_ct compute_account_alias_hash_nullifier(suint_ct const& account_alias_hash)
 {
-    return pedersen::compress(std::vector<field_ct>{ account_alias_hash.value },
-                              notes::GeneratorIndex::ACCOUNT_ALIAS_HASH_NULLIFIER);
+    return pedersen_commitment::compress(std::vector<field_ct>{ account_alias_hash.value },
+                                         notes::GeneratorIndex::ACCOUNT_ALIAS_HASH_NULLIFIER);
 }
 
 field_ct compute_account_public_key_nullifier(point_ct const& account_public_key)
 {
-    return pedersen::compress(std::vector<field_ct>{ account_public_key.x },
-                              notes::GeneratorIndex::ACCOUNT_PUBLIC_KEY_NULLIFIER);
+    return pedersen_commitment::compress(std::vector<field_ct>{ account_public_key.x },
+                                         notes::GeneratorIndex::ACCOUNT_PUBLIC_KEY_NULLIFIER);
 }
 void account_circuit(Composer& composer, account_tx const& tx)
 {
@@ -102,7 +102,7 @@ void account_circuit(Composer& composer, account_tx const& tx)
                                               spending_public_key_2.x,
                                               nullifier_1,
                                               nullifier_2 };
-        const byte_array_ct message = pedersen::compress(to_compress);
+        const byte_array_ct message = pedersen_commitment::compress(to_compress);
         stdlib::schnorr::verify_signature(message, signer, signature);
         if (composer.failed() && !composerAlreadyFailed) {
             // only assign this error if an error hasn't already been assigned.

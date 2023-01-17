@@ -6,7 +6,7 @@ namespace rollup {
 namespace proofs {
 namespace join_split {
 
-using namespace crypto::pedersen;
+using namespace crypto::pedersen_commitment;
 using namespace notes::native;
 
 barretenberg::fr compute_signing_data(join_split_tx const& tx)

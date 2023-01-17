@@ -24,13 +24,13 @@ struct note {
 
     auto commit() const
     {
-        return crypto::pedersen::compress_native({ bridge_call_data,
-                                                   total_input_value,
-                                                   total_output_value_a,
-                                                   total_output_value_b,
-                                                   interaction_nonce,
-                                                   interaction_result },
-                                                 GeneratorIndex::DEFI_INTERACTION_NOTE_COMMITMENT);
+        return crypto::pedersen_commitment::compress_native({ bridge_call_data,
+                                                              total_input_value,
+                                                              total_output_value_a,
+                                                              total_output_value_b,
+                                                              interaction_nonce,
+                                                              interaction_result },
+                                                            GeneratorIndex::DEFI_INTERACTION_NOTE_COMMITMENT);
     }
 
     // Returns a byte array where all input fields are treated as 32 bytes.
