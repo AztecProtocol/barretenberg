@@ -53,8 +53,6 @@ inline BasicTable generate_sparse_table_with_rotation(BasicTableId id, const siz
     for (size_t i = 0; i < bits_per_slice; ++i) {
         sparse_step_size *= base;
     }
-    // ?????? why is column1 automatically 2^11?
-    //     table.column_1_step_size = barretenberg::fr((1 << 11));
     table.column_1_step_size = barretenberg::fr((1 << bits_per_slice));
     table.column_2_step_size = barretenberg::fr(sparse_step_size);
     table.column_3_step_size = barretenberg::fr(sparse_step_size);
@@ -135,17 +133,17 @@ inline BasicTable generate_sparse_normalization_table(BasicTableId id, const siz
     return table;
 }
 
-template <size_t i, size_t num_bits, uint64_t base_value, uint64_t max_base_value>
+template <size_t i, size_t num_bits, uint64_t base_value, uint64_t max_base_value_plus_one, const uint64_t* base_table>
 std::pair<uint64_t, uint64_t> update_counts(std::array<size_t, num_bits>& counts)
 {
-    ASSERT(i < num_bits);
+    ASSERT(i <= num_bits);
     if constexpr (i >= num_bits) {
         // TODO use concepts or template metaprogramming to put this condition in method declaration
         return std::make_pair(0, 0);
     } else {
-        if (counts[i] == max_base_value) {
+        if (counts[i] == max_base_value_plus_one - 1) {
             counts[i] = 0;
-            return update_counts<i + 1, num_bits, base_value, max_base_value>(counts);
+            return update_counts<i + 1, num_bits, base_value, max_base_value_plus_one, base_table>(counts);
         } else {
             counts[i] += 1;
         }
@@ -153,26 +151,30 @@ std::pair<uint64_t, uint64_t> update_counts(std::array<size_t, num_bits>& counts
         uint64_t value = 0;
         uint64_t normalized_value = 0;
         uint64_t cumulative_base = 1;
-        for (size_t j = 0; j <= i; ++j) {
+        for (size_t j = 0; j < num_bits; ++j) {
             value += counts[j] * cumulative_base;
-            normalized_value += (counts[j] % 2) * cumulative_base;
+            normalized_value += (base_table[counts[j]]) * cumulative_base;
             cumulative_base *= base_value;
         }
         return std::make_pair(value, normalized_value);
     }
 }
 
-template <size_t i, size_t num_bits, uint64_t base_value, uint64_t max_base_value>
+template <size_t i, size_t num_bits, uint64_t base_value, uint64_t max_base_value_plus_one, const uint64_t* base_table>
 std::pair<uint64_t, uint64_t> update_counts_value_in_binary_basis(std::array<size_t, num_bits>& counts)
 {
-    ASSERT(i < num_bits);
+    ASSERT(i <= num_bits);
     if constexpr (i >= num_bits) {
         // TODO use concepts or template metaprogramming to put this condition in method declaration
         return std::make_pair(0, 0);
     } else {
-        if (counts[i] == max_base_value) {
+        if (counts[i] == max_base_value_plus_one - 1) {
             counts[i] = 0;
-            return update_counts_value_in_binary_basis<i + 1, num_bits, base_value, max_base_value>(counts);
+            return update_counts_value_in_binary_basis<i + 1,
+                                                       num_bits,
+                                                       base_value,
+                                                       max_base_value_plus_one,
+                                                       base_table>(counts);
         } else {
             counts[i] += 1;
         }
@@ -180,11 +182,13 @@ std::pair<uint64_t, uint64_t> update_counts_value_in_binary_basis(std::array<siz
         uint64_t value = 0;
         uint64_t normalized_value = 0;
         uint64_t cumulative_base = 1;
-        for (size_t j = 0; j <= i; ++j) {
-            value += counts[j] * cumulative_base;
-            normalized_value += (counts[j] % 2) * cumulative_base;
-            cumulative_base *= 2;
+
+        for (size_t j = 0; j < num_bits; ++j) {
+            value += (counts[j] * cumulative_base);
+            normalized_value += ((base_table[counts[j]]) << j);
+            cumulative_base *= base_value;
         }
+
         return std::make_pair(value, normalized_value);
     }
 }
@@ -207,28 +211,26 @@ inline BasicTable generate_sparse_renormalization_table(BasicTableId id, const s
     uint64_t value = 0;
     std::pair<uint64_t, uint64_t> key_value;
 
-    for (size_t i = 0; i < num_bits; ++i) {
-        for (size_t j = 0; j < max_base_value_plus_one; ++j) {
-            table.column_1.emplace_back(value);
-            table.column_2.emplace_back(key);
-            table.column_3.emplace_back(barretenberg::fr(0));
-            key_value = update_counts<0, num_bits, base, max_base_value_plus_one>(counts);
-            key_value.first = key;
-            key_value.second = value;
-        }
+    for (size_t i = 0; i < table.size; ++i) {
+        table.column_1.emplace_back(key);
+        table.column_2.emplace_back(value);
+        table.column_3.emplace_back(barretenberg::fr(0));
+        key_value = update_counts<0, num_bits, base, max_base_value_plus_one, base_table>(counts);
+        key = key_value.first;
+        value = key_value.second;
     }
 
     table.get_values_from_key = &get_sparse_renormalization_values<max_base_value_plus_one, base_table>;
 
-    table.column_1_step_size = barretenberg::fr(table.size);
-    table.column_2_step_size = barretenberg::fr(table.size);
+    uint64_t step_size = numeric::pow64(static_cast<uint64_t>(base), num_bits);
+    table.column_1_step_size = barretenberg::fr(step_size);
+    table.column_2_step_size = barretenberg::fr(step_size);
     table.column_3_step_size = barretenberg::fr(0);
     return table;
 }
 
-// todo replace older method if this works
 template <size_t base, uint64_t num_bits, const uint64_t* base_table, uint64_t max_base_value_plus_one = base>
-inline BasicTable generate_sparse_normalization_table_new(BasicTableId id, const size_t table_index)
+inline BasicTable generate_sparse_normalization_table_keccak(BasicTableId id, const size_t table_index)
 {
     // max_base_value_plus_one sometimes may not equal base iff this is an intermediate lookup table
     // (e.g. keccak, we have base11 values that need to be normalized where the actual values-per-base only range from
@@ -245,21 +247,19 @@ inline BasicTable generate_sparse_normalization_table_new(BasicTableId id, const
     uint64_t value = 0;
     std::pair<uint64_t, uint64_t> key_value;
 
-    for (size_t i = 0; i < num_bits; ++i) {
-        for (size_t j = 0; j < max_base_value_plus_one; ++j) {
-            table.column_1.emplace_back(value);
-            table.column_2.emplace_back(key);
-            table.column_3.emplace_back(barretenberg::fr(0));
-            // todo fix ugly name
-            key_value = update_counts_value_in_binary_basis<0, num_bits, base, max_base_value_plus_one>(counts);
-            key_value.first = key;
-            key_value.second = value;
-        }
+    for (size_t i = 0; i < table.size; ++i) {
+        table.column_1.emplace_back(key);
+        table.column_2.emplace_back(value);
+        table.column_3.emplace_back(barretenberg::fr(0));
+        // todo fix ugly name
+        key_value = update_counts_value_in_binary_basis<0, num_bits, base, max_base_value_plus_one, base_table>(counts);
+        key = key_value.first;
+        value = key_value.second;
     }
 
-    table.get_values_from_key = &get_sparse_normalization_values<max_base_value_plus_one, base_table>;
+    table.get_values_from_key = &get_sparse_normalization_values<base, base_table>;
 
-    table.column_1_step_size = barretenberg::fr(table.size);
+    table.column_1_step_size = barretenberg::fr(numeric::pow64(static_cast<size_t>(base), num_bits));
     table.column_2_step_size = barretenberg::fr(((uint64_t)1 << num_bits));
     table.column_3_step_size = barretenberg::fr(0);
     return table;

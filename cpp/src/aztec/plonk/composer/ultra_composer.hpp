@@ -18,7 +18,7 @@ class UltraComposer : public ComposerBase {
     // The plookup range proof requires work linear in range size, thus cannot be used directly for
     // large ranges such as 2^64. For such ranges the element will be decomposed into smaller
     // chuncks according to the parameter below
-    static constexpr size_t DEFAULT_PLOOKUP_RANGE_BITNUM = 9;
+    static constexpr size_t DEFAULT_PLOOKUP_RANGE_BITNUM = 14;
     static constexpr size_t DEFAULT_PLOOKUP_RANGE_STEP_SIZE = 3;
     static constexpr size_t DEFAULT_PLOOKUP_RANGE_SIZE = (1 << DEFAULT_PLOOKUP_RANGE_BITNUM) - 1;
     static constexpr uint32_t UNINITIALIZED_MEMORY_RECORD = UINT32_MAX;
@@ -179,6 +179,10 @@ class UltraComposer : public ComposerBase {
      */
     virtual size_t get_num_gates() const override
     {
+        // if circuit finalised already added extra gates
+        if (circuit_finalised) {
+            return n;
+        }
         size_t count = n;
         size_t rangecount = 0;
         size_t romcount = 0;
@@ -203,6 +207,50 @@ class UltraComposer : public ComposerBase {
             rangecount += 1; // we need to add 1 extra addition gates for every distinct range list
         }
         return count + romcount + rangecount;
+    }
+
+    /**
+     * @brief Get the num gates without the constant cost of creating range tables.
+     * Useful to measure gate cost of sub-algorithms that will be used in a larger circuit,
+     * where the cost of the range tables is already baked into the larger circuit
+     *
+     * @return size_t
+     */
+    size_t get_num_gates_without_range_table_constants() const
+    {
+        size_t count = n;
+        size_t rangecount = 0;
+        size_t romcount = 0;
+        for (size_t i = 0; i < rom_arrays.size(); ++i) {
+            for (size_t j = 0; j < rom_arrays[i].state.size(); ++j) {
+                if (rom_arrays[i].state[j][0] == UNINITIALIZED_MEMORY_RECORD) {
+                    romcount += 2;
+                }
+            }
+            romcount += (rom_arrays[i].records.size());
+            romcount += 1; // we add an addition gate after procesing a rom array
+        }
+
+        constexpr size_t gate_width = ultra_settings::program_width;
+        size_t const_rangecount = 0;
+        for (const auto& list : range_lists) {
+            auto list_size = list.second.variable_indices.size();
+            size_t padding = (gate_width - (list.second.variable_indices.size() % gate_width)) % gate_width;
+            if (list.second.variable_indices.size() == gate_width)
+                padding += gate_width;
+            list_size += padding;
+            rangecount += (list_size / gate_width);
+            rangecount += 1; // we need to add 1 extra addition gates for every distinct range list
+
+            // rough estimate
+            const size_t constant_cost = (list.second.target_range / 6);
+            const_rangecount += constant_cost;
+        }
+        // if circuit_finalised, already added extra gates
+        if (circuit_finalised) {
+            return n - const_rangecount;
+        }
+        return count + romcount + rangecount - const_rangecount;
     }
 
     virtual void print_num_gates() const override

@@ -18,12 +18,15 @@ template <typename Composer> class plookup_ {
     static std::pair<field_pt, field_pt> read_pair_from_table(const MultiTableId id, const field_pt& key);
 
     static field_pt read_from_2_to_1_table(const MultiTableId id, const field_pt& key_a, const field_pt& key_b);
-    static field_pt read_from_1_to_2_table(const MultiTableId id, const field_pt& key_a);
+    static field_pt read_from_1_to_2_table(const MultiTableId id,
+                                           const field_pt& key_a,
+                                           const size_t explicit_number_of_lookups = 0);
 
     static ReadData<field_pt> get_lookup_accumulators(const MultiTableId id,
                                                       const field_pt& key_a,
                                                       const field_pt& key_b = 0,
-                                                      const bool is_2_to_1_lookup = false);
+                                                      const bool is_2_to_1_lookup = false,
+                                                      const size_t explicit_number_of_lookups = 0);
 };
 
 extern template class plookup_<waffle::UltraComposer>;
