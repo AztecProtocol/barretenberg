@@ -166,7 +166,10 @@ void Transcript::apply_fiat_shamir(const std::string& challenge_name /*, const b
         buffer.insert(buffer.end(), current_challenge.data.begin(), current_challenge.data.end());
     }
     for (auto manifest_element : manifest.get_round_manifest(current_round).elements) {
+        info("manifest_element.name = ", manifest_element.name);
+        info("elements.count(manifest_element.name) = ", elements.count(manifest_element.name));
         ASSERT(elements.count(manifest_element.name) == 1);
+
         std::vector<uint8_t>& element_data = elements.at(manifest_element.name);
         if (!manifest_element.derived_by_verifier) {
             ASSERT(manifest_element.num_bytes == element_data.size());

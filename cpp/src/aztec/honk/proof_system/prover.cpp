@@ -302,17 +302,13 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
 
     // Add the multilinear evaluations produced by Sumcheck to the transcript.
     // Note: The number of evaluations is poly manifest size + number of shifted polys.
-    // TODO(luke): Doing the awkward extra step of removing the suffix "_lagrange" from the labels here. Could be fixed
-    // by changing naming in Honk polynomial_manifest to match Plonk style.
     size_t poly_idx = 0;
     for (size_t i = 0; i < proving_key->polynomial_manifest.size(); ++i) {
-        const auto& descriptor = proving_key->polynomial_manifest[i];
-        std::string label(descriptor.polynomial_label);
-        label.erase(label.end() - 9, label.end()); // remove suffix "_lagrange"
-        info("label = ", label);
+        const auto& entry = proving_key->polynomial_manifest[i];
+        std::string label(entry.polynomial_label);
         transcript.add_element(label, multivariates.folded_polynomials[poly_idx][0].to_buffer());
         ++poly_idx;
-        if (descriptor.requires_shifted_evaluation) {
+        if (entry.requires_shifted_evaluation) {
             transcript.add_element(label + "_shift", multivariates.folded_polynomials[poly_idx][0].to_buffer());
             ++poly_idx;
         }
@@ -329,21 +325,29 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
 template <typename settings> void Prover<settings>::execute_univariatization_round()
 {
     // construct MLE opening claims for full set of multivariate polynomials
+    // TODO(luke): Currently feeding in mock commitments for non-WITNESS polynomials. This may be sufficient for simple
+    // proof verification since the other commitments are only needed to produce 'claims' in gemini.reduce_prove, they
+    // are not needed in the proof itself.
     using MLEOpeningClaim = pcs::MLEOpeningClaim<pcs::kzg::Params>;
     std::vector<MLEOpeningClaim> opening_claims;
+    std::vector<MLEOpeningClaim> opening_claims_shifted;
     for (size_t i = 0; i < proving_key->polynomial_manifest.size(); ++i) {
-        const auto& descriptor = proving_key->polynomial_manifest[i];
-        std::string evaluation_label(descriptor.polynomial_label);
-        std::string commitment_label(descriptor.commitment_label);
-        evaluation_label.erase(evaluation_label.end() - 9, evaluation_label.end()); // remove suffix "_lagrange"
+        const auto& entry = proving_key->polynomial_manifest[i];
+        std::string evaluation_label(entry.polynomial_label);
+        std::string commitment_label(entry.commitment_label);
         auto evaluation = barretenberg::fr::serialize_from_buffer(&transcript.get_element(evaluation_label)[0]);
-        auto commitment =
-            barretenberg::g1::affine_element::serialize_from_buffer(&transcript.get_element(commitment_label)[0]);
+        barretenberg::g1::affine_element commitment;
+        if (entry.source == waffle::WITNESS) {
+            commitment =
+                barretenberg::g1::affine_element::serialize_from_buffer(&transcript.get_element(commitment_label)[0]);
+        } else {                                       // SELECTOR, PERMUTATION, OTHER
+            commitment = barretenberg::g1::affine_one; // mock commitment
+        }
         opening_claims.emplace_back(commitment, evaluation);
-        if (descriptor.requires_shifted_evaluation) {
+        if (entry.requires_shifted_evaluation) {
             auto shifted_evaluation =
                 barretenberg::fr::serialize_from_buffer(&transcript.get_element(evaluation_label + "_shift")[0]);
-            opening_claims.emplace_back(commitment, shifted_evaluation);
+            opening_claims_shifted.emplace_back(commitment, shifted_evaluation);
         }
     }
 
