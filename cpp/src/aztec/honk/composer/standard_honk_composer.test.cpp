@@ -277,6 +277,41 @@ TEST(standard_honk_composer, test_verification_key_creation)
     EXPECT_EQ(verification_key->permutation_selectors.size(), 3);
 }
 
+TEST(standard_honk_composer, test_proof_relation_sum_correctness)
+{
+    // Create a composer and a dummy circuit with a few gates
+    StandardHonkComposer composer = StandardHonkComposer();
+    fr a = fr::one();
+    uint32_t a_idx = composer.add_variable(a);
+    fr b = fr::one();
+    fr c = a + b;
+    fr d = a + c;
+    uint32_t b_idx = composer.add_variable(b);
+    uint32_t c_idx = composer.add_variable(c);
+    uint32_t d_idx = composer.add_variable(d);
+    for (size_t i = 0; i < 16; i++) {
+        composer.create_add_gate({ a_idx, b_idx, c_idx, fr::one(), fr::one(), fr::neg_one(), fr::zero() });
+        composer.create_add_gate({ d_idx, c_idx, a_idx, fr::one(), fr::neg_one(), fr::neg_one(), fr::zero() });
+    }
+
+    auto verification_key = composer.compute_verification_key();
+    auto prover = composer.create_prover();
+
+    // Let's step through rounds
+    // Ignore setting the parameters, they only affect the domain/fiat shamir
+    prover.compute_wire_commitments();
+
+    fr beta = fr::random_element();
+    // Compute grand product polynomial
+    prover.compute_grand_product_polynomial(beta);
+    // Show grand product polynomial
+    polynomial z_perm = prover.proving_key->polynomial_cache.get("z_perm");
+
+    for (auto& element : z_perm) {
+        info("Element: ", element);
+    }
+}
+
 TEST(StandarHonkComposer, BaseCase)
 {
     auto composer = StandardHonkComposer();

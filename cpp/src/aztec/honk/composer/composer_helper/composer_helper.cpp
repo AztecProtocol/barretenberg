@@ -52,9 +52,6 @@ std::shared_ptr<waffle::proving_key> ComposerHelper<CircuitConstructor>::compute
 
         // Fill unfilled gates' selector values with zeroes (stopping 1 short; the last value will be nonzero).
         // TODO: (Do we want to copy the vectors and do it in a different place or do this iside the circuit itself?)
-        for (size_t j = num_filled_gates; j < subgroup_size - 1; ++j) {
-            selector_values.emplace_back(fr::zero());
-        }
 
         // TODO: Now that we can't accomodate this, what do we do?
         // selector_values.emplace_back(i + 1);
@@ -64,7 +61,7 @@ std::shared_ptr<waffle::proving_key> ComposerHelper<CircuitConstructor>::compute
         for (size_t k = 0; k < public_inputs.size(); ++k) {
             selector_poly_lagrange[k] = fr::zero();
         }
-        for (size_t k = public_inputs.size(); k < subgroup_size; ++k) {
+        for (size_t k = public_inputs.size(); k < num_filled_gates; ++k) {
             selector_poly_lagrange[k] = selector_values[k - public_inputs.size()];
         }
 
@@ -353,7 +350,7 @@ StandardProver ComposerHelper<CircuitConstructor>::create_prover(CircuitConstruc
     compute_witness(circuit_constructor);
     // TODO: Initialize prover properly
     // Prover output_state(circuit_proving_key, create_manifest(public_inputs.size()));
-    StandardProver output_state;
+    StandardProver output_state(circuit_proving_key);
     // Initialize constraints
 
     // std::unique_ptr<ProverPermutationWidget<3, false>> permutation_widget =
