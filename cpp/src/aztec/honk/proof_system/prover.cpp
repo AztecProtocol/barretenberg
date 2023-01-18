@@ -297,23 +297,42 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
     sumcheck.execute_prover();
 
     // TODO(Cody): Execute as a loop over polynomial manifest? Things thare are called *_lagrange
-    transcript.add_element("w_1", multivariates.folded_polynomials[1][0].to_buffer());
-    transcript.add_element("w_2", multivariates.folded_polynomials[1][0].to_buffer());
-    transcript.add_element("w_3", multivariates.folded_polynomials[2][0].to_buffer());
-    transcript.add_element("z_perm", multivariates.folded_polynomials[3][0].to_buffer());
-    transcript.add_element("q_m", multivariates.folded_polynomials[4][0].to_buffer());
-    transcript.add_element("q_1", multivariates.folded_polynomials[5][0].to_buffer());
-    transcript.add_element("q_2", multivariates.folded_polynomials[6][0].to_buffer());
-    transcript.add_element("q_3", multivariates.folded_polynomials[7][0].to_buffer());
-    transcript.add_element("q_c", multivariates.folded_polynomials[8][0].to_buffer());
-    transcript.add_element("sigma_1", multivariates.folded_polynomials[9][0].to_buffer());
-    transcript.add_element("sigma_2", multivariates.folded_polynomials[10][0].to_buffer());
-    transcript.add_element("sigma_3", multivariates.folded_polynomials[11][0].to_buffer());
-    transcript.add_element("id_1", multivariates.folded_polynomials[12][0].to_buffer());
-    transcript.add_element("id_2", multivariates.folded_polynomials[13][0].to_buffer());
-    transcript.add_element("id_3", multivariates.folded_polynomials[14][0].to_buffer());
-    transcript.add_element("L_first", multivariates.folded_polynomials[15][0].to_buffer());
-    transcript.add_element("L_last", multivariates.folded_polynomials[16][0].to_buffer());
+    transcript.add_element("multivariate_evaluations",
+                           to_buffer(std::array<barretenberg::fr, 17>({ multivariates.folded_polynomials[1][0],
+                                                                        multivariates.folded_polynomials[1][0],
+                                                                        multivariates.folded_polynomials[2][0],
+                                                                        multivariates.folded_polynomials[3][0],
+                                                                        multivariates.folded_polynomials[4][0],
+                                                                        multivariates.folded_polynomials[5][0],
+                                                                        multivariates.folded_polynomials[6][0],
+                                                                        multivariates.folded_polynomials[7][0],
+                                                                        multivariates.folded_polynomials[8][0],
+                                                                        multivariates.folded_polynomials[9][0],
+                                                                        multivariates.folded_polynomials[10][0],
+                                                                        multivariates.folded_polynomials[11][0],
+                                                                        multivariates.folded_polynomials[12][0],
+                                                                        multivariates.folded_polynomials[13][0],
+                                                                        multivariates.folded_polynomials[14][0],
+                                                                        multivariates.folded_polynomials[15][0],
+                                                                        multivariates.folded_polynomials[16][0] })));
+
+    //             transcript.add_element("w_1", multivariates.folded_polynomials[1][0].to_buffer());
+    //     transcript.add_element("w_2", multivariates.folded_polynomials[1][0].to_buffer());
+    //     transcript.add_element("w_3", multivariates.folded_polynomials[2][0].to_buffer());
+    //     transcript.add_element("z_perm", multivariates.folded_polynomials[3][0].to_buffer());
+    //     transcript.add_element("q_m", multivariates.folded_polynomials[4][0].to_buffer());
+    //     transcript.add_element("q_1", multivariates.folded_polynomials[5][0].to_buffer());
+    //     transcript.add_element("q_2", multivariates.folded_polynomials[6][0].to_buffer());
+    //     transcript.add_element("q_3", multivariates.folded_polynomials[7][0].to_buffer());
+    //     transcript.add_element("q_c", multivariates.folded_polynomials[8][0].to_buffer());
+    //     transcript.add_element("sigma_1", multivariates.folded_polynomials[9][0].to_buffer());
+    //     transcript.add_element("sigma_2", multivariates.folded_polynomials[10][0].to_buffer());
+    //     transcript.add_element("sigma_3", multivariates.folded_polynomials[11][0].to_buffer());
+    //     transcript.add_element("id_1", multivariates.folded_polynomials[12][0].to_buffer());
+    //     transcript.add_element("id_2", multivariates.folded_polynomials[13][0].to_buffer());
+    //     transcript.add_element("id_3", multivariates.folded_polynomials[14][0].to_buffer());
+    //     transcript.add_element("L_first", multivariates.folded_polynomials[15][0].to_buffer());
+    //     transcript.add_element("L_last", multivariates.folded_polynomials[16][0].to_buffer());
 }
 
 /**

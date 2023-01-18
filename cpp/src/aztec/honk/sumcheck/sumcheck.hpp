@@ -45,7 +45,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
 
         // First round
         // This populates multivariates.folded_polynomials.
-        FF relation_separator_challenge = transcript.get_mock_challenge();
+        FF relation_separator_challenge = transcript.get_mock_challenge(); // TODO(Cody): Replace
         auto round_univariate = round.compute_univariate(multivariates.full_polynomials, relation_separator_challenge);
         transcript.add_element("univariate_" + std::to_string(multivariates.multivariate_d),
                                round_univariate.to_buffer());
@@ -85,10 +85,10 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         for (size_t round_idx = 0; round_idx < multivariates.multivariate_d; round_idx++) {
             // Obtain the round univariate from the transcript
             auto round_univariate = Univariate<FF, MAX_RELATION_LENGTH>::serialize_from_buffer(
-                &transcript.get_element("univariate_" + std::to_string(round_idx))[0]);
+                &transcript.get_element("univariate_" + std::to_string(multivariates.multivariate_d - round_idx))[0]);
 
             verified = verified && round.check_sum(round_univariate);
-            FF round_challenge = transcript.get_mock_challenge();
+            FF round_challenge = transcript.get_mock_challenge(); // TODO(real challenge)
             round.compute_next_target_sum(round_univariate, round_challenge);
         }
 

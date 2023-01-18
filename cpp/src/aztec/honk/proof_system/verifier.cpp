@@ -68,8 +68,6 @@ template <typename program_settings> Verifier<program_settings>& Verifier<progra
 */
 template <typename program_settings> bool Verifier<program_settings>::verify_proof(const waffle::plonk_proof& proof)
 {
-    // TODO(luke): TBD how 'd' gets set here and elsewhere
-    const size_t multivariate_d(1);
 
     const size_t num_polys = program_settings::num_polys;
     using FF = typename program_settings::fr;
@@ -102,11 +100,11 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     transcript.apply_fiat_shamir("beta");
     transcript.apply_fiat_shamir("alpha");
 
-    // Compute some basic public polys like id(X), pow(X), and any required Lagrange polys
+    // TODO(Cody): Compute some basic public polys like id(X), pow(X), and any required Lagrange polys
 
     // Execute Sumcheck Verifier
     auto sumcheck = Sumcheck<Multivariates, Transcript, ArithmeticRelation>(transcript);
-    // sumcheck.execute_verifier(); // Need to mock prover in tests for this to run
+    sumcheck.execute_verifier(); // Need to mock prover in tests for this to run
 
     // Execute Gemini/Shplonk verification:
     // Gemini (reduce_verify()): Compute [Fold_{r}^(0)]_1, [Fold_{-r}^(0)]_1, Fold_{r}^(0)(r)
