@@ -29,7 +29,9 @@ Prover<settings>::Prover(std::shared_ptr<waffle::proving_key> input_key, const t
     : n(input_key == nullptr ? 0 : input_key->n)
     , transcript(input_manifest, settings::hash_type, settings::num_challenge_bytes)
     , proving_key(input_key)
-    , commitment_key(nullptr) // TODO(Cody): Need better constructors for prover.
+    , commitment_key(std::make_unique<pcs::kzg::CommitmentKey>(
+          input_key->n,
+          "../srs_db/ignition")) // TODO(Cody): Need better constructors for prover.
     , queue(proving_key.get(), &transcript)
 {}
 
@@ -69,6 +71,7 @@ template <typename settings> void Prover<settings>::compute_wire_commitments()
  *
  * where ∏ := ∏_{j=0:i-1} and id_i(X) = id(X) + n*(i-1). These evaluations are constructed over the
  * course of four steps. For expositional simplicity, write Z_perm[i] as
+ * o
  *
  *                A_1(j) ⋅ A_2(j) ⋅ A_3(j)
  * Z_perm[i] = ∏ --------------------------
@@ -158,12 +161,13 @@ template <typename settings> void Prover<settings>::compute_grand_product_polyno
     }
 
     // Construct permutation polynomial 'z_perm' in lagrange form as:
-    // z_perm = [1 numerator_accumulator[0][0] numerator_accumulator[0][1] ... numerator_accumulator[0][n-2]]
-    polynomial z_perm(proving_key->n, proving_key->n);
+    // z_perm = [0 numerator_accumulator[0][0] numerator_accumulator[0][1] ... numerator_accumulator[0][n-2] 0]
+    polynomial z_perm(proving_key->n + 1, proving_key->n + 1);
     // We'll need to shift this polynomial to the left by dividing it by X in gemini, so the the 0-th coefficient should
     // stay zero
-    z_perm[1] = Fr::one();
-    copy_polynomial(numerator_accumulator[0], &z_perm[2], proving_key->n - 2, proving_key->n - 2);
+    z_perm[1] = Fr::zero();
+    z_perm[n] = Fr::zero();
+    copy_polynomial(numerator_accumulator[0], &z_perm[1], proving_key->n - 1, proving_key->n - 1);
 
     // free memory allocated for scratch space
     for (size_t k = 0; k < program_width; ++k) {
