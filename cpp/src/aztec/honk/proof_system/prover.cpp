@@ -15,6 +15,7 @@
 #include "proof_system/flavor/flavor.hpp"
 #include "transcript/transcript_wrappers.hpp"
 #include <string>
+#include <honk/pcs/claim.hpp>
 
 namespace honk {
 
@@ -299,11 +300,12 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
 
     sumcheck.execute_prover();
 
+    // Add the multilinear evaluations produced by Sumcheck to the transcript.
+    // Note: The number of evaluations is poly manifest size + number of shifted polys.
     // TODO(luke): Doing the awkward extra step of removing the suffix "_lagrange" from the labels here. Could be fixed
     // by changing naming in Honk polynomial_manifest to match Plonk style.
     size_t poly_idx = 0;
     for (size_t i = 0; i < proving_key->polynomial_manifest.size(); ++i) {
-        // Note: The number of evaluations is poly manifest size + number of shifted polys
         const auto& descriptor = proving_key->polynomial_manifest[i];
         std::string label(descriptor.polynomial_label);
         label.erase(label.end() - 9, label.end()); // remove suffix "_lagrange"
@@ -326,6 +328,25 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
  * */
 template <typename settings> void Prover<settings>::execute_univariatization_round()
 {
+    // construct MLE opening claims for full set of multivariate polynomials
+    using MLEOpeningClaim = pcs::MLEOpeningClaim<pcs::kzg::Params>;
+    std::vector<MLEOpeningClaim> opening_claims;
+    for (size_t i = 0; i < proving_key->polynomial_manifest.size(); ++i) {
+        const auto& descriptor = proving_key->polynomial_manifest[i];
+        std::string evaluation_label(descriptor.polynomial_label);
+        std::string commitment_label(descriptor.commitment_label);
+        evaluation_label.erase(evaluation_label.end() - 9, evaluation_label.end()); // remove suffix "_lagrange"
+        auto evaluation = barretenberg::fr::serialize_from_buffer(&transcript.get_element(evaluation_label)[0]);
+        auto commitment =
+            barretenberg::g1::affine_element::serialize_from_buffer(&transcript.get_element(commitment_label)[0]);
+        opening_claims.emplace_back(commitment, evaluation);
+        if (descriptor.requires_shifted_evaluation) {
+            auto shifted_evaluation =
+                barretenberg::fr::serialize_from_buffer(&transcript.get_element(evaluation_label + "_shift")[0]);
+            opening_claims.emplace_back(commitment, shifted_evaluation);
+        }
+    }
+
     transcript.apply_fiat_shamir("rho");
     // TODO(Cody): Implement
     for (size_t round_idx = 1; round_idx < proving_key->log_n; round_idx++) {

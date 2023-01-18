@@ -362,7 +362,7 @@ size_t Transcript::get_num_challenges(const std::string& challenge_name) const
  * */
 std::vector<uint8_t> Transcript::get_element(const std::string& element_name) const
 {
-    // printf("getting element %s \n", element_name.c_str());
+    printf("getting element %s \n", element_name.c_str());
     ASSERT(elements.count(element_name) == 1);
     return elements.at(element_name);
 }
