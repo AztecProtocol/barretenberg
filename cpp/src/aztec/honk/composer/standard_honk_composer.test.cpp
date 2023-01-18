@@ -274,8 +274,8 @@ TEST(standard_honk_composer, test_verification_key_creation)
         composer.create_add_gate({ d_idx, c_idx, a_idx, fr::one(), fr::neg_one(), fr::neg_one(), fr::zero() });
     }
     auto verification_key = composer.compute_verification_key();
-    EXPECT_EQ(verification_key->constraint_selectors.size(), 5);
-    EXPECT_EQ(verification_key->permutation_selectors.size(), 6);
+    EXPECT_EQ(verification_key->constraint_selectors.size(), composer.circuit_constructor.selectors.size());
+    EXPECT_EQ(verification_key->permutation_selectors.size(), composer.program_width * 2);
 }
 
 TEST(StandarHonkComposer, BaseCase)
