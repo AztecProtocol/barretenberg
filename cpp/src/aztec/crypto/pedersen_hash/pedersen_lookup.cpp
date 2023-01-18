@@ -10,6 +10,8 @@ std::array<std::vector<grumpkin::g1::affine_element>, NUM_PEDERSEN_TABLES> peder
 std::vector<grumpkin::g1::affine_element> pedersen_iv_table;
 std::array<grumpkin::g1::affine_element, NUM_PEDERSEN_TABLES> generators;
 
+static bool inited = false;
+
 void init_single_lookup_table(const size_t index)
 {
     std::vector<grumpkin::g1::element> temp;

@@ -22,7 +22,6 @@ constexpr size_t NUM_PEDERSEN_IV_TABLES = 4;
 extern std::array<std::vector<grumpkin::g1::affine_element>, NUM_PEDERSEN_TABLES> pedersen_tables;
 extern std::vector<grumpkin::g1::affine_element> pedersen_iv_table;
 extern std::array<grumpkin::g1::affine_element, NUM_PEDERSEN_TABLES> generators;
-static bool inited = false;
 
 void init_single_lookup_table(const size_t index);
 void init_small_lookup_table(const size_t index);
