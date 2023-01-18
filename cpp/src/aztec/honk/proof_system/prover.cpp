@@ -116,7 +116,8 @@ void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, b
     }
 
     // Step (1)
-    for (size_t i = 0; i < key->n; ++i) {
+    // TODO: Change the order to engage automatic prefetching and get rid of redundant computation
+    for (size_t i = 0; i < proving_key->n; ++i) {
         for (size_t k = 0; k < program_width; ++k) {
             // TODO(luke): maybe this idx is replaced by proper ID polys in the future
             Fr idx = k * proving_key->n + i;
