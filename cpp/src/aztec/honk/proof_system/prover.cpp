@@ -113,6 +113,7 @@ template <typename settings> void Prover<settings>::compute_grand_product_polyno
     }
 
     // Step (1)
+    // TODO: Change the order to engage automatic prefetching and get rid of redundant computation
     for (size_t i = 0; i < proving_key->n; ++i) {
         for (size_t k = 0; k < program_width; ++k) {
             // TODO(luke): maybe this idx is replaced by proper ID polys in the future
@@ -159,8 +160,10 @@ template <typename settings> void Prover<settings>::compute_grand_product_polyno
     // Construct permutation polynomial 'z_perm' in lagrange form as:
     // z_perm = [1 numerator_accumulator[0][0] numerator_accumulator[0][1] ... numerator_accumulator[0][n-2]]
     polynomial z_perm(proving_key->n, proving_key->n);
-    z_perm[0] = Fr::one();
-    copy_polynomial(numerator_accumulator[0], &z_perm[1], proving_key->n - 1, proving_key->n - 1);
+    // We'll need to shift this polynomial to the left by dividing it by X in gemini, so the the 0-th coefficient should
+    // stay zero
+    z_perm[1] = Fr::one();
+    copy_polynomial(numerator_accumulator[0], &z_perm[2], proving_key->n - 2, proving_key->n - 2);
 
     // free memory allocated for scratch space
     for (size_t k = 0; k < program_width; ++k) {
