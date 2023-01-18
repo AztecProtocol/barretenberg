@@ -1,0 +1,174 @@
+{
+  "folders": [
+    {
+      "path": "./cpp"
+    }
+  ],
+  "settings": {
+    //
+    // Clangd
+    //
+    // By default, clangd stores precompiled headers in /tmp.
+    // It can be changed by setting the environment variable
+    //   $TMPDIR = ~/tmp
+    // However, setting this variable in .zshrc does not
+    // work here, and ends up clobbering up the shared
+    // /tmp folder.
+    // A workaround for now is to use RAM to store these.
+    //
+    // From experimenting, clangd will use several GB of RAM.
+    // Closing the remote server frees this usage.
+    // "clangd.arguments": [
+    //   "--pch-storage=memory" // it seemsm this can use huge amounts (e.g., 300G) of memory!
+    // ],
+    "clangd.path": "clangd-15",
+
+    //
+    // CMake
+    //
+    "cmake.ignoreCMakeListsMissing": false,
+    "cmake.configureOnOpen": true,
+    "cmake.buildDirectory": "${workspaceFolder}/build",
+    // Location of base CMakeLists file
+    "cmake.sourceDirectory": "${workspaceFolder}",
+    "cmake.ctest.parallelJobs": 32,
+
+    //
+    // C/C++ (should be disabled)
+    //
+    // Make sure all C++ IntelliSense features are disabled
+    // and don't interfere with clangd
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "C_Cpp.autocomplete": "disabled",
+    "C_Cpp.codeAnalysis.clangTidy.codeAction.formatFixes": false,
+    "C_Cpp.codeAnalysis.runAutomatically": false,
+    "C_Cpp.configurationWarnings": "disabled",
+    "C_Cpp.debugShortcut": false,
+    "C_Cpp.default.enableConfigurationSquiggles": false,
+    "C_Cpp.formatting": "disabled",
+    "C_Cpp.vcpkg.enabled": false,
+
+    //
+    // TestMate
+    //
+    // Ensures tests are run from the `build` directory
+    // which ensures SRS can be read
+    "testMate.cpp.test.workingDirectory": "${workspaceFolder}/build",
+    // Filter all binaries that are not tests
+    "testMate.cpp.test.executables": "${workspaceFolder}/build/bin/*{test,Test,TEST}*",
+
+    //
+    // GTest adapter (not currently used)
+    //
+    "gtest-adapter.debugConfig": ["(lldb) Launch Target"],
+
+    //
+    // Other
+    //
+    "editor.tokenColorCustomizations": {
+      "textMateRules": [
+        {
+          "scope": "googletest.failed",
+          "settings": {
+            "foreground": "#f00"
+          }
+        },
+        {
+          "scope": "googletest.passed",
+          "settings": {
+            "foreground": "#0f0"
+          }
+        },
+        {
+          "scope": "googletest.run",
+          "settings": {
+            "foreground": "#0f0"
+          }
+        }
+      ]
+    },
+    "files.associations": {
+      "*.tf": "terraform",
+      "*.tfvars": "terraform",
+      "Makefile.*": "makefile",
+      "iosfwd": "cpp"
+    },
+    "[cpp]": {
+      "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "GitHub.vscode-pull-request-github",
+
+      // Enables CMake integration and configuration
+      // for easier building
+      "ms-vscode.cmake-tools",
+
+      // Provides a nice UI for listing all Google Test
+      // tests, including launching a debug session
+      // for a specific test directly.
+      // Also provides buttons alongside test definitions.
+      "matepek.vscode-catch2-test-adapter",
+
+      // Integrates the `clangd` language server for
+      // - code formatting (clang-format)
+      // - static analysis (clang-tidy)
+      // - hints, tooltips, and more.
+      "llvm-vs-code-extensions.vscode-clangd",
+
+      // Better syntax highlighting for C++.
+      // Make sure to select one of the themes suggested
+      // (e.g. "Dark+")
+      "jeff-hykin.better-cpp-syntax",
+
+      // Handle CMakeLists.txt editing
+      "twxs.cmake",
+
+      // Integrates LLDB debugger
+      "vadimcn.vscode-lldb",
+
+      // Generate nicer Doxygen comments
+      "cschlosser.doxdocgen",
+
+      // Makes the CMake build output slightly
+      // prettier.
+      "IBM.output-colorizer",
+
+      "eamodio.gitlens",
+      "esbenp.prettier-vscode"
+    ],
+    "unwantedRecommendations": [
+      // The following may have been installed
+      // and cause some confusion when running
+      // tests.
+      // The options provided by C++ TestMate
+      // should be good enough.
+      "ms-vscode.cpptools-themes",
+      "hbenl.vscode-test-explorer",
+      "ms-vscode.test-adapter-converter",
+      "fredericbonnet.cmake-test-adapter",
+      "ms-vscode.cpptools-extension-pack",
+
+      // Used to enable GDB debugging
+      // Most features are disabled in `settings.json`
+      // which confict with `clangd`
+      // Since we ignore GDB, we no longer need this extension
+      "ms-vscode.cpptools"
+    ]
+  },
+  "launch": {
+    "configurations": [
+      {
+        "name": "(lldb) Launch Target",
+        "type": "lldb",
+        "request": "launch",
+        "program": "${command:cmake.launchTargetPath}",
+        "args": [],
+        "cwd": "${workspaceFolder}/build",
+        "internalConsoleOptions": "openOnSessionStart",
+        "console": "internalConsole"
+      }
+    ]
+  }
+}

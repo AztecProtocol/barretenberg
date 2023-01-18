@@ -1,0 +1,50 @@
+---
+# Applies all barretenberg source files
+If:
+  PathMatch: [src/.*\.hpp, src/.*\.cpp, src/.*\.tcc]
+Diagnostics:
+  # Checks whether we are including unused header files
+  # Note that some headers may be _implicitly_ used and still
+  # need to be included, so be careful before removing them.
+  UnusedIncludes: Strict
+
+  # Static analysis configuration
+  ClangTidy:
+    # For now, enable all checks, and disable some which are
+    # too cumbersome for now.
+    Add:
+      - clang-diagnostic-*
+      - clang-analyzer-*
+      - cppcoreguidelines-*
+      - modernize-*
+      - bugprone-*
+      - misc-*
+      - performance-*
+    Remove:
+      # This is mainly cosmetic, and is not really used unless we return auto
+      - modernize-use-trailing-return-type
+      # - modernize-avoid-c-arrays
+      # - modernize-use-nodiscard
+      # - cppcoreguidelines-pro-bounds-pointer-arithmetic
+      # - cppcoreguidelines-avoid-c-arrays
+      # - cppcoreguidelines-avoid-magic-numbers
+      # - cppcoreguidelines-pro-type-member-init
+      # - readability-magic-numbers
+      # - readability-identifier-length
+      # - readability-braces-around-statements
+      # - bugprone-suspicious-memory-comparison
+      # - bugprone-easily-swappable-parameters
+      - misc-non-private-member-variables-in-classes
+---
+# Disable some checks for Google Test/Bench
+If:
+  PathMatch: [src/.*\.test\.cpp, src/.*\.bench\.cpp]
+Diagnostics:
+  ClangTidy:
+    # these checks get triggered by the Google macros, so we can di
+    Remove:
+      - cppcoreguidelines-avoid-non-const-global-variables
+      - cppcoreguidelines-owning-memory
+      - cppcoreguidelines-special-member-functions
+      - cppcoreguidelines-avoid-magic-numbers
+      # - bugprone-implicit-widening-of-multiplication-result

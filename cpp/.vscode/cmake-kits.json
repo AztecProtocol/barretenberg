@@ -1,0 +1,44 @@
+[
+    {
+        "name": "Clang 10",
+        "compilers": {
+            "C": "/usr/bin/clang",
+            "CXX": "/usr/bin/clang++"
+        }
+    },
+    {
+        "name": "Clang 15",
+        "compilers": {
+            "C": "/usr/bin/clang-15",
+            "CXX": "/usr/bin/clang++-15"
+        }
+    },
+    {
+        "name": "GCC 10",
+        "compilers": {
+            "C": "/usr/bin/gcc-10",
+            "CXX": "/usr/bin/g++-10"
+        }
+    },
+    {
+        "name": "GCC 12",
+        "compilers": {
+            "C": "/mnt/user-data/adrian/gcc-12/bin/gcc",
+            "CXX": "/mnt/user-data/adrian/gcc-12/bin/g++"
+        },
+        "cmakeSettings": {
+            "CMAKE_EXE_LINKER_FLAGS": "-static-libgcc -static-libstdc++",
+            "CMAKE_FIND_ROOT_PATH": "/mnt/user-data/adrian/gcc-12/"
+        },
+        "environmentVariables": {
+            "LD_LIBRARY_PATH": "/mnt/user-data/adrian/gcc-12/lib/"
+        }
+    },
+    {
+        "name": "WASI-SDK 12",
+        "compilers": {
+            "C": "/mnt/user-data/adrian/barretenberg/cpp/src/wasi-sdk-12.0/bin/clang",
+            "CXX": "/mnt/user-data/adrian/barretenberg/cpp/src/wasi-sdk-12.0/bin/clang++"
+        }
+    }
+]

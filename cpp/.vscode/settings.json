@@ -1,0 +1,6 @@
+{
+    "cmake.showSystemKits": false,
+    "cmake.additionalKits": [
+        "./cmake-kits.json"
+    ]
+}
