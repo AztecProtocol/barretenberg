@@ -107,11 +107,14 @@ const MultiTable& create_table(const MultiTableId id)
 ReadData<barretenberg::fr> get_lookup_accumulators(const MultiTableId id,
                                                    const fr& key_a,
                                                    const fr& key_b,
-                                                   const bool is_2_to_1_lookup)
+                                                   const bool is_2_to_1_lookup,
+                                                   const size_t explicit_number_of_lookups)
 {
     // return multi-table, populating global array of all multi-tables if need be
     const auto& multi_table = create_table(id);
-    const size_t num_lookups = multi_table.lookup_ids.size();
+    ASSERT(explicit_number_of_lookups <= multi_table.lookup_ids.size());
+    const size_t num_lookups =
+        (explicit_number_of_lookups > 0) ? explicit_number_of_lookups : multi_table.lookup_ids.size();
 
     ReadData<barretenberg::fr> lookup;
 
@@ -126,10 +129,6 @@ ReadData<barretenberg::fr> get_lookup_accumulators(const MultiTableId id,
         // get i-th table query function and then submit query
         const auto values = multi_table.get_table_values[i]({ key_a_slices[i], key_b_slices[i] });
 
-        if (id == MultiTableId::KECCAK_FORMAT_INPUT && i == 0) {
-            std::cout << "KECCAK INPUT i == 0. slices and values = " << key_a_slices[i] << " : " << values[0]
-                      << std::endl;
-        }
         // store all query data in raw columns and key entry
         column_1_raw_values.emplace_back(key_a_slices[i]);
         column_2_raw_values.emplace_back(is_2_to_1_lookup ? key_b_slices[i] : values[0]);
@@ -198,11 +197,6 @@ ReadData<barretenberg::fr> get_lookup_accumulators(const MultiTableId id,
         current_1 = raw_1 + previous_1 * multi_table.column_1_step_sizes[num_lookups - i];
         current_2 = raw_2 + previous_2 * multi_table.column_2_step_sizes[num_lookups - i];
         current_3 = raw_3 + previous_3 * multi_table.column_3_step_sizes[num_lookups - i];
-
-        if (id == MultiTableId::KECCAK_FORMAT_INPUT) {
-
-            std::cout << "column2 step size = " << multi_table.column_2_step_sizes[num_lookups - i] << std::endl;
-        }
     }
     return lookup;
 }

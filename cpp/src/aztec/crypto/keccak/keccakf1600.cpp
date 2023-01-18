@@ -72,11 +72,6 @@ void ethash_keccakf1600(uint64_t state[25]) NOEXCEPT
 
     uint64_t Da, De, Di, Do, Du;
 
-    printf("theta input real\n");
-    for (size_t i = 0; i < 25; ++i) {
-        printf("%lx, ", (state[i]));
-    }
-
     Aba = state[0];
     Abe = state[1];
     Abi = state[2];
@@ -122,12 +117,6 @@ void ethash_keccakf1600(uint64_t state[25]) NOEXCEPT
                 thetaState[y * 5 + x] = state[y * 5 + x] ^ D[x];
             }
         }
-
-        printf("theta output real\n");
-        for (size_t i = 0; i < 25; ++i) {
-            printf("%lx, ", (thetaState[i]));
-        }
-        printf("\n");
     }
     for (round = 0; round < 24; round += 2) {
         /* Round (round + 0): Axx -> Exx */

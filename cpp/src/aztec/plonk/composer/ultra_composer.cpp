@@ -1164,6 +1164,11 @@ std::vector<uint32_t> UltraComposer::decompose_into_default_range(const uint32_t
     }
 
     const uint64_t sublimb_mask = (1ULL << target_range_bitnum) - 1;
+
+    if (num_bits <= target_range_bitnum) {
+        create_new_range_constraint(variable_index, sublimb_mask);
+        return { variable_index };
+    }
     std::vector<uint64_t> sublimbs;
     std::vector<uint32_t> sublimb_indices;
 

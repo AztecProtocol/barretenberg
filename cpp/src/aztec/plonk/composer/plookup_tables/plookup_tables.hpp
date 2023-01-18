@@ -18,7 +18,8 @@ const MultiTable& create_table(const MultiTableId id);
 ReadData<barretenberg::fr> get_lookup_accumulators(const MultiTableId id,
                                                    const barretenberg::fr& key_a,
                                                    const barretenberg::fr& key_b = 0,
-                                                   const bool is_2_to_1_map = false);
+                                                   const bool is_2_to_1_map = false,
+                                                   const size_t explicit_number_of_lookups = 0);
 
 inline BasicTable create_basic_table(const BasicTableId id, const size_t index)
 {
@@ -238,8 +239,8 @@ inline BasicTable create_basic_table(const BasicTableId id, const size_t index)
     case PEDERSEN_IV_BASE: {
         return pedersen_tables::basic::generate_pedersen_iv_table(PEDERSEN_IV_BASE);
     }
-    case KECCAK_SPARSE_MAP: {
-        return sparse_tables::generate_sparse_table_with_rotation<11, 8, 0>(KECCAK_SPARSE_MAP, index);
+    case KECCAK_INPUT: {
+        return keccak_tables::generate_keccak_input_table(KECCAK_INPUT, index);
     }
     case KECCAK_THETA: {
         return keccak_tables::generate_theta_renormalization_table(KECCAK_THETA, index);
