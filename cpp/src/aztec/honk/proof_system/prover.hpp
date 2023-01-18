@@ -59,7 +59,8 @@ template <typename settings> class Prover {
     // needed as input to the Gemini prover.
     std::shared_ptr<waffle::proving_key> verification_key;
 
-    std::unique_ptr<pcs::kzg::CommitmentKey> commitment_key;
+    // std::shared_ptr<pcs::kzg::CommitmentKey> commitment_key;
+    pcs::kzg::CommitmentKey* commitment_key;
 
     // Honk only needs a small portion of the functionality but may be fine to use existing work_queue
     // NOTE: this is not currently in use, but it may well be used in the future.

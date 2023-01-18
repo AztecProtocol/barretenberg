@@ -198,6 +198,7 @@ static constexpr PolynomialDescriptor standard_honk_polynomial_manifest[STANDARD
 
 // Simple class allowing for access to a polynomial manifest based on composer type
 class PolynomialManifest {
+    // TODO(luke): make this object iterable, i.e. compatible with range-based for loop
   private:
     std::vector<PolynomialDescriptor> manifest;
 
@@ -237,6 +238,8 @@ class PolynomialManifest {
         }
         };
     }
+
+    std::vector<PolynomialDescriptor>& get() { return manifest; };
 
     size_t size() const { return manifest.size(); }
 

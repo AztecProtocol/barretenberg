@@ -330,7 +330,9 @@ StandardUnrolledProver ComposerHelper<CircuitConstructor>::create_unrolled_prove
     std::unique_ptr<pcs::kzg::CommitmentKey> kate_commitment_key =
         std::make_unique<pcs::kzg::CommitmentKey>(circuit_proving_key->n, "../srs_db/ignition");
 
-    output_state.commitment_key = std::move(kate_commitment_key);
+    // TODO(luke): TEMPORARY! converting unique_ptr to raw pointer while getting Gemini hooked up in Prover
+    output_state.commitment_key = kate_commitment_key.release(); // DONT DO THIS
+    // output_state.commitment_key = std::move(kate_commitment_key); // DO THIS (unique_ptr --> shared_ptr)
 
     return output_state;
 }
