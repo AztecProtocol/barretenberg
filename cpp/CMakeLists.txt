@@ -82,6 +82,7 @@ include(cmake/arch.cmake)
 include(cmake/threading.cmake)
 include(cmake/gtest.cmake)
 include(cmake/benchmark.cmake)
+include(cmake/dependencies.cmake)
 include(cmake/module.cmake)
 
 add_subdirectory(src/aztec)
