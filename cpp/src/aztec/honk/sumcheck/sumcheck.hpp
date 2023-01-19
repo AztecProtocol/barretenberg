@@ -1,4 +1,5 @@
 #include "common/serialize.hpp"
+#include "plonk/proof_system/types/polynomial_manifest.hpp"
 #include "sumcheck_round.hpp"
 #include "polynomials/univariate.hpp"
 #include <proof_system/flavor/flavor.hpp>
@@ -84,8 +85,9 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         // target_total_sum is initialized to zero then mutated in place.
         for (size_t round_idx = 0; round_idx < multivariates.multivariate_d; round_idx++) {
             // Obtain the round univariate from the transcript
+            info("multivariates.multivariate_d = ", multivariates.multivariate_d);
             auto round_univariate = Univariate<FF, MAX_RELATION_LENGTH>::serialize_from_buffer(
-                &transcript.get_element("univariate_" + std::to_string(round_idx))[0]);
+                &transcript.get_element("univariate_" + std::to_string(round_idx + 1))[0]);
 
             verified = verified && round.check_sum(round_univariate);
             FF round_challenge = transcript.get_mock_challenge();
@@ -93,7 +95,8 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         }
 
         // Final round
-        auto purported_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
+        // auto purported_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
+        std::vector<FF> purported_evaluations(waffle::TOTAL_NUM_POLYNOMIALS);
         FF alpha = FF::serialize_from_buffer(transcript.get_challenge("alpha").begin());
         FF full_honk_relation_purported_value =
             round.compute_full_honk_relation_purported_value(purported_evaluations, alpha);

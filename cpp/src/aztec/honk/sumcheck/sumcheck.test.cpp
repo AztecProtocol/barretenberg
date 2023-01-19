@@ -24,7 +24,7 @@ using FF = barretenberg::fr;
 // Add mock data to the transcript corresponding to the components added by the prover during sumcheck. This is useful
 // for independent testing of the sumcheck verifier.
 template <size_t multivariate_d, size_t MAX_RELATION_LENGTH, size_t num_polys>
-void mock_prover_contributions_to_transcript(Transcript& transcript)
+void mock_transcript_contributions_prior_to_sumcheck(Transcript& transcript)
 {
     transcript.add_element("circuit_size", FF(1 << multivariate_d).to_buffer());
 
@@ -46,7 +46,6 @@ TEST(Sumcheck, Prover)
     // const size_t multivariate_n(1 << multivariate_d);
 
     // const size_t max_relation_length = 4;
-    constexpr size_t fr_size = 32;
 
     using Multivariates = ::Multivariates<FF, num_polys>;
 
@@ -74,18 +73,10 @@ TEST(Sumcheck, Prover)
         q_c, sigma_1, sigma_2, sigma_3, id_1,         id_2, id_3, lagrange_1
     };
 
-    std::vector<transcript::Manifest::RoundManifest> manifest_rounds;
-    for (size_t i = 0; i < multivariate_d; i++) {
-        auto label = std::to_string(multivariate_d - i);
-        manifest_rounds.emplace_back(
-            transcript::Manifest::RoundManifest({ { .name = "univariate_" + label,
-                                                    .num_bytes = fr_size * honk::StandardHonk::MAX_RELATION_LENGTH,
-                                                    .derived_by_verifier = false } },
-                                                /* challenge_name = */ "u_" + label,
-                                                /* num_challenges_in = */ 1));
-    }
-
-    auto transcript = Transcript(transcript::Manifest(manifest_rounds));
+    // Mock prover-transcript interactions prior to Sumcheck
+    auto transcript = Transcript(StandardHonk::create_unrolled_manifest(0, multivariate_d));
+    transcript.mock_inputs_prior_to_challenge("alpha");
+    transcript.apply_fiat_shamir("alpha");
 
     auto multivariates = Multivariates(full_polynomials);
 
@@ -103,13 +94,15 @@ TEST(Sumcheck, Verifier)
 {
     const size_t num_polys(proving_system::StandardArithmetization::NUM_POLYNOMIALS);
     const size_t multivariate_d(1);
-    // const size_t multivariate_n(1 << multivariate_d);
-    const size_t max_relation_length = 5;
+    const size_t multivariate_n(1 << multivariate_d);
+    // const size_t max_relation_length = 5;
 
     using Multivariates = ::Multivariates<FF, num_polys>;
 
-    auto transcript = Transcript(transcript::Manifest());
-    mock_prover_contributions_to_transcript<multivariate_d, max_relation_length, num_polys>(transcript);
+    // Mock prover-transcript interactions through Sumcheck
+    auto transcript = Transcript(StandardHonk::create_unrolled_manifest(0, multivariate_d));
+    transcript.mock_inputs_prior_to_challenge("rho", multivariate_n);
+    // transcript.apply_fiat_shamir("rho");
 
     auto sumcheck = Sumcheck<Multivariates,
                              Transcript,
