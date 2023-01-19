@@ -54,10 +54,11 @@ template <typename settings> class Prover {
 
     std::shared_ptr<waffle::proving_key> proving_key;
 
-    // Note(luke): This will likely change as the architecture settles but for now we give the prover access to the
-    // verification key so that it has access to the selector and permutation polynomial commitments which are currently
-    // needed as input to the Gemini prover.
-    std::shared_ptr<waffle::proving_key> verification_key;
+    // // Note(luke): This will likely change as the architecture settles but for now we give the prover access to the
+    // // verification key so that it has access to the selector and permutation polynomial commitments which are
+    // currently
+    // // needed as input to the Gemini prover.
+    // std::shared_ptr<waffle::proving_key> verification_key;
 
     std::shared_ptr<pcs::kzg::CommitmentKey> commitment_key;
 
