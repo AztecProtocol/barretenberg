@@ -235,7 +235,7 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
         FF total_sum = univariate.value_at(0) + univariate.value_at(1);
         bool sumcheck_round_failed = (target_total_sum != total_sum);
         round_failed = round_failed || sumcheck_round_failed;
-        return sumcheck_round_failed;
+        return !sumcheck_round_failed;
     };
 
     FF compute_next_target_sum(Univariate<FF, MAX_RELATION_LENGTH>& univariate, FF& round_challenge)

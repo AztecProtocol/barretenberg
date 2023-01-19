@@ -1,4 +1,5 @@
 #include "common/serialize.hpp"
+#include "ecc/curves/bn254/fr.hpp"
 #include "sumcheck_round.hpp"
 #include "polynomials/univariate.hpp"
 #include <proof_system/flavor/flavor.hpp>
@@ -128,6 +129,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
             auto round_univariate = Univariate<FF, MAX_RELATION_LENGTH>::serialize_from_buffer(
                 &transcript.get_element("univariate_" + std::to_string(multivariates.multivariate_d - round_idx))[0]);
 
+            info("univariate_" + std::to_string(multivariates.multivariate_d - round_idx), round_univariate);
             bool checked = round.check_sum(round_univariate);
 
             verified = verified && checked;
