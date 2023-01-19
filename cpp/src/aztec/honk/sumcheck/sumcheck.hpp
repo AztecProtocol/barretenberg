@@ -39,20 +39,14 @@ template <class Multivariates, class Transcript, template <class> class... Relat
      */
     void execute_prover()
     {
-        info("here 4");
         std::vector<FF> round_challenges;
-        info("here 5");
         round_challenges.reserve(multivariates.multivariate_d);
-        info("here 6");
         std::fill(round_challenges.begin(), round_challenges.end(), 0);
-        info("here 7");
 
         // First round
         // This populates multivariates.folded_polynomials.
-        FF relation_separator_challenge = transcript.get_mock_challenge();
-        info("here: compute_univariate");
-        // FF alpha = FF::serialize_from_buffer(transcript->get_challenge("alpha").begin());
-        auto round_univariate = round.compute_univariate(multivariates.full_polynomials, relation_separator_challenge);
+        FF alpha = FF::serialize_from_buffer(transcript.get_challenge("alpha").begin());
+        auto round_univariate = round.compute_univariate(multivariates.full_polynomials, alpha);
         transcript.add_element("univariate_" + std::to_string(multivariates.multivariate_d),
                                round_univariate.to_buffer());
         transcript.apply_fiat_shamir("u_" + std::to_string(multivariates.multivariate_d));
@@ -62,7 +56,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         // We operate on multivariates.folded_polynomials in place.
         for (size_t round_idx = 1; round_idx < multivariates.multivariate_d; round_idx++) {
             // Write the round univariate to the transcript
-            round_univariate = round.compute_univariate(multivariates.folded_polynomials, relation_separator_challenge);
+            round_univariate = round.compute_univariate(multivariates.folded_polynomials, alpha);
             transcript.add_element("univariate_" + std::to_string(multivariates.multivariate_d - round_idx),
                                    round_univariate.to_buffer());
 
@@ -100,9 +94,9 @@ template <class Multivariates, class Transcript, template <class> class... Relat
 
         // Final round
         auto purported_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
-        FF relation_separator_challenge = transcript.get_mock_challenge();
+        FF alpha = FF::serialize_from_buffer(transcript.get_challenge("alpha").begin());
         FF full_honk_relation_purported_value =
-            round.compute_full_honk_relation_purported_value(purported_evaluations, relation_separator_challenge);
+            round.compute_full_honk_relation_purported_value(purported_evaluations, alpha);
         verified = verified && (full_honk_relation_purported_value == round.target_total_sum);
         return verified;
     };

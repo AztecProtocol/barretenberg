@@ -90,7 +90,7 @@ template <class FF_, size_t num_polys> class Multivariates {
         : multivariate_n(proving_key->n)
         , multivariate_d(proving_key->log_n)
     {
-        // Loop over polynomial manifest to populate full_polynomials from polynomial cache
+        // Iterate through polynomial manifest to populate full_polynomials from polynomial cache
         size_t poly_idx = 0;
         for (auto& entry : proving_key->polynomial_manifest.get()) {
             std::string label(entry.polynomial_label);

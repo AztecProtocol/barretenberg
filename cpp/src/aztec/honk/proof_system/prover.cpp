@@ -18,7 +18,6 @@
 #include "transcript/transcript_wrappers.hpp"
 #include <string>
 #include <honk/pcs/claim.hpp>
-#include <honk/pcs/gemini/gemini.hpp>
 
 namespace honk {
 
@@ -299,7 +298,6 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
 
     auto multivariates = Multivariates(proving_key);
     auto sumcheck = Sumcheck(multivariates, transcript);
-    info("here 3");
 
     sumcheck.execute_prover();
 
@@ -332,7 +330,7 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     // Construct inputs for Gemini:
     // - Multivariate opening point u = (u_1, ..., u_d)
     // - MLE opening claim = {commitment, eval} for each multivariate and shifted multivariate polynomial
-    // - Pointers to ultivariate and shifted multivariate polynomials
+    // - Pointers to multivariate and shifted multivariate polynomials
     std::vector<Fr> opening_point;
     std::vector<MLEOpeningClaim> opening_claims;
     std::vector<MLEOpeningClaim> opening_claims_shifted;
@@ -363,20 +361,21 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
         opening_claims.emplace_back(commitment, evaluation);
         multivariate_polynomials.emplace_back(&proving_key->polynomial_cache.get(label));
         if (entry.requires_shifted_evaluation) {
-            // Provide the evaluation of the shifted polynomial but the unshifted polynomial and its commitment
+            // Note: For a polynomial p for which we need the shift p_shift, we provide Gemini with the SHIFTED
+            // evaluation p_shift(u), but the UNSHIFTED polynomial p and its UNSHIFTED commitment [p].
             auto shifted_evaluation = Fr::serialize_from_buffer(&transcript.get_element(label + "_shift")[0]);
             opening_claims_shifted.emplace_back(commitment, shifted_evaluation);
             multivariate_polynomials_shifted.emplace_back(&proving_key->polynomial_cache.get(label));
         }
     }
 
-    Gemini::reduce_prove(commitment_key,
-                         opening_point,
-                         opening_claims,
-                         opening_claims_shifted,
-                         multivariate_polynomials,
-                         multivariate_polynomials_shifted,
-                         &transcript);
+    gemini_output = Gemini::reduce_prove(commitment_key,
+                                         opening_point,
+                                         opening_claims,
+                                         opening_claims_shifted,
+                                         multivariate_polynomials,
+                                         multivariate_polynomials_shifted,
+                                         &transcript);
 }
 
 /**
@@ -392,7 +391,7 @@ template <typename settings> void Prover<settings>::execute_pcs_evaluation_round
 {
     // TODO(luke): This functionality is performed within Gemini::reduce_prove(), called in the previous round. In the
     // future we could (1) split the Gemini functionality to match the round structure defined here, or (2) remove this
-    // round. The former may be necessary to maintain the work_queue paradigm.
+    // function from the prover. The former may be necessary to maintain the work_queue paradigm.
 }
 
 /**
@@ -404,10 +403,8 @@ template <typename settings> void Prover<settings>::execute_pcs_evaluation_round
  * */
 template <typename settings> void Prover<settings>::execute_shplonk_round()
 {
-    // TODO(luke): Do Fiat-Shamir to get "nu" challenge.
-    // TODO(luke): Get Shplonk opening point [Q]_1
-    transcript.apply_fiat_shamir("nu");
-    transcript.add_element("Q", barretenberg::g1::affine_one.to_buffer());
+    using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<pcs::kzg::Params>;
+    shplonk_output = Shplonk::reduce_prove(commitment_key, gemini_output.claim, gemini_output.witness, &transcript);
 }
 
 /**
@@ -422,12 +419,17 @@ template <typename settings> void Prover<settings>::execute_shplonk_round()
  * */
 template <typename settings> void Prover<settings>::execute_kzg_round()
 {
-    transcript.apply_fiat_shamir("z");
-    // TODO(luke): Do Fiat-Shamir to get "z" challenge.
+    // Note(luke): Fiat-Shamir to get "z" challenge is done in Shplonk::reduce_prove
     // TODO(luke): Get KZG opening point [W]_1
-    transcript.add_element("W", barretenberg::g1::affine_one.to_buffer());
-    // transcript.apply_fiat_shamir("separator");
+    using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
+    using KzgOutput = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>::Output;
+    KzgOutput kzg_output = KZG::reduce_prove(commitment_key, shplonk_output.claim, shplonk_output.witness);
+
+    auto W_commitment = static_cast<barretenberg::g1::affine_element>(kzg_output.proof).to_buffer();
+
+    transcript.add_element("W", W_commitment);
 }
+
 template <typename settings> waffle::plonk_proof& Prover<settings>::export_proof()
 {
     proof.proof_data = transcript.export_transcript();

@@ -239,7 +239,7 @@ class PolynomialManifest {
         };
     }
 
-    std::vector<PolynomialDescriptor>& get() { return manifest; };
+    const std::vector<PolynomialDescriptor>& get() { return manifest; };
 
     size_t size() const { return manifest.size(); }
 

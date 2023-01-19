@@ -3,6 +3,9 @@
 #include <honk/pcs/commitment_key.hpp>
 #include "../../plonk/proof_system/types/plonk_proof.hpp"
 #include "../../plonk/proof_system/types/program_settings.hpp"
+#include <honk/pcs/gemini/gemini.hpp>
+#include <honk/pcs/shplonk/shplonk_single.hpp>
+#include <honk/pcs/kzg/kzg.hpp>
 
 namespace honk {
 
@@ -68,6 +71,10 @@ template <typename settings> class Prover {
 
     // This makes 'settings' accesible from Prover
     typedef settings settings_;
+
+    pcs::gemini::ProverOutput<pcs::kzg::Params> gemini_output;
+    pcs::shplonk::ProverOutput<pcs::kzg::Params> shplonk_output;
+    // pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>::Output kzg_output;
 
   private:
     waffle::plonk_proof proof;
