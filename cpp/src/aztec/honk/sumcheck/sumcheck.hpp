@@ -46,6 +46,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         // First round
         // This populates multivariates.folded_polynomials.
         FF relation_separator_challenge = FF::serialize_from_buffer(transcript.get_challenge("alpha").begin());
+
         auto round_univariate = round.compute_univariate(multivariates.full_polynomials, relation_separator_challenge);
         transcript.add_element("univariate_" + std::to_string(multivariates.multivariate_d),
                                round_univariate.to_buffer());
@@ -53,6 +54,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         transcript.apply_fiat_shamir(challenge_label);
         FF round_challenge = FF::serialize_from_buffer(transcript.get_challenge(challenge_label).begin());
         multivariates.fold(multivariates.full_polynomials, multivariates.multivariate_n, round_challenge);
+        round.round_size = round.round_size >> 1;
 
         // All but final round
         // We operate on multivariates.folded_polynomials in place.
@@ -65,6 +67,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
             transcript.apply_fiat_shamir(challenge_label);
             FF round_challenge = FF::serialize_from_buffer(transcript.get_challenge(challenge_label).begin());
             multivariates.fold(multivariates.folded_polynomials, round.round_size, round_challenge);
+            round.round_size = round.round_size >> 1;
         }
 
         // Final round
@@ -126,11 +129,13 @@ template <class Multivariates, class Transcript, template <class> class... Relat
                 &transcript.get_element("univariate_" + std::to_string(multivariates.multivariate_d - round_idx))[0]);
 
             bool checked = round.check_sum(round_univariate);
+
             verified = verified && checked;
             FF round_challenge = FF::serialize_from_buffer(
                 transcript.get_challenge("u_" + std::to_string(multivariates.multivariate_d - round_idx))
                     .begin()); // TODO(real challenge)
             info("u_" + std::to_string(multivariates.multivariate_d - round_idx) + ": ", round_challenge);
+
             round.compute_next_target_sum(round_univariate, round_challenge);
             info("sigma_" + std::to_string(multivariates.multivariate_d - 1 - round_idx) + ": ",
                  round.target_total_sum);
