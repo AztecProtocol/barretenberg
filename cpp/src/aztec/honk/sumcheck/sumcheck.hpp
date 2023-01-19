@@ -39,9 +39,9 @@ template <class Multivariates, class Transcript, template <class> class... Relat
      */
     void execute_prover()
     {
-        std::vector<FF> round_challenges;
-        round_challenges.reserve(multivariates.multivariate_d);
-        std::fill(round_challenges.begin(), round_challenges.end(), 0);
+        // std::vector<FF> round_challenges;
+        // round_challenges.reserve(multivariates.multivariate_d);
+        // std::fill(round_challenges.begin(), round_challenges.end(), 0);
 
         // First round
         // This populates multivariates.folded_polynomials.
@@ -49,8 +49,10 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         auto round_univariate = round.compute_univariate(multivariates.full_polynomials, relation_separator_challenge);
         transcript.add_element("univariate_" + std::to_string(multivariates.multivariate_d),
                                round_univariate.to_buffer());
-        transcript.apply_fiat_shamir("u_" + std::to_string(multivariates.multivariate_d));
-        multivariates.fold(multivariates.full_polynomials, multivariates.multivariate_n, round_challenges[0]);
+        std::string challenge_label = "u_" + std::to_string(multivariates.multivariate_d);
+        transcript.apply_fiat_shamir(challenge_label);
+        FF round_challenge = FF::serialize_from_buffer(transcript.get_challenge(challenge_label).begin());
+        multivariates.fold(multivariates.full_polynomials, multivariates.multivariate_n, round_challenge);
 
         // All but final round
         // We operate on multivariates.folded_polynomials in place.
@@ -59,9 +61,10 @@ template <class Multivariates, class Transcript, template <class> class... Relat
             round_univariate = round.compute_univariate(multivariates.folded_polynomials, relation_separator_challenge);
             transcript.add_element("univariate_" + std::to_string(multivariates.multivariate_d - round_idx),
                                    round_univariate.to_buffer());
-
-            transcript.apply_fiat_shamir("u_" + std::to_string(multivariates.multivariate_d - round_idx));
-            multivariates.fold(multivariates.folded_polynomials, round.round_size, round_challenges[round_idx]);
+            challenge_label = "u_" + std::to_string(multivariates.multivariate_d - round_idx);
+            transcript.apply_fiat_shamir(challenge_label);
+            FF round_challenge = FF::serialize_from_buffer(transcript.get_challenge(challenge_label).begin());
+            multivariates.fold(multivariates.folded_polynomials, round.round_size, round_challenge);
         }
 
         // Final round
@@ -115,6 +118,8 @@ template <class Multivariates, class Transcript, template <class> class... Relat
 
         // All but final round.
         // target_total_sum is initialized to zero then mutated in place.
+        info("sigma_" + std::to_string(multivariates.multivariate_d) + ": ", round.target_total_sum);
+
         for (size_t round_idx = 0; round_idx < multivariates.multivariate_d; round_idx++) {
             // Obtain the round univariate from the transcript
             auto round_univariate = Univariate<FF, MAX_RELATION_LENGTH>::serialize_from_buffer(
@@ -125,8 +130,10 @@ template <class Multivariates, class Transcript, template <class> class... Relat
             FF round_challenge = FF::serialize_from_buffer(
                 transcript.get_challenge("u_" + std::to_string(multivariates.multivariate_d - round_idx))
                     .begin()); // TODO(real challenge)
+            info("u_" + std::to_string(multivariates.multivariate_d - round_idx) + ": ", round_challenge);
             round.compute_next_target_sum(round_univariate, round_challenge);
-            info("sigma_" + std::to_string(multivariates.multivariate_d - round_idx) + ": ", round.target_total_sum);
+            info("sigma_" + std::to_string(multivariates.multivariate_d - 1 - round_idx) + ": ",
+                 round.target_total_sum);
         }
 
         // Final round

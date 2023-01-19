@@ -94,7 +94,25 @@ template <class FF_, size_t num_polys> class Multivariates {
             full_polynomials[i] = proving_key->polynomial_cache.get(std::string(label));
         }
 
+        info("full_polynomials[0][0]: ", full_polynomials[0][0]);
+        info("full_polynomials[1][0]: ", full_polynomials[1][0]);
+        info("full_polynomials[2][0]: ", full_polynomials[2][0]);
+        info("full_polynomials[3][0]: ", full_polynomials[3][0]);
+        info("full_polynomials[4][0]: ", full_polynomials[4][0]);
+        info("full_polynomials[5][0]: ", full_polynomials[5][0]);
+        info("full_polynomials[6][0]: ", full_polynomials[6][0]);
+        info("full_polynomials[7][0]: ", full_polynomials[7][0]);
+        info("full_polynomials[8][0]: ", full_polynomials[8][0]);
+        info("full_polynomials[9][0]: ", full_polynomials[9][0]);
+        info("full_polynomials[10][0]: ", full_polynomials[10][0]);
+        info("full_polynomials[11][0]: ", full_polynomials[11][0]);
+        info("full_polynomials[12][0]: ", full_polynomials[12][0]);
+        info("full_polynomials[13][0]: ", full_polynomials[13][0]);
+        info("full_polynomials[14][0]: ", full_polynomials[14][0]);
+        info("full_polynomials[15][0]: ", full_polynomials[15][0]);
+        info("full_polynomials[16][0]: ", full_polynomials[16][0]);
         for (auto& polynomial : folded_polynomials) {
+            polynomial.reserve(multivariate_n >> 1);
             polynomial.resize(multivariate_n >> 1);
         }
     }
@@ -135,10 +153,30 @@ template <class FF_, size_t num_polys> class Multivariates {
         // after the first round, operate in place on folded_polynomials
         for (size_t j = 0; j < num_polys; ++j) {
             for (size_t i = 0; i < round_size; i += 2) {
-                folded_polynomials[j][i >> 1] =
-                    polynomials[j][i] + round_challenge * (polynomials[j][i + 1] - polynomials[j][i]);
+                FF new_value = polynomials[j][i] + round_challenge * (polynomials[j][i + 1] - polynomials[j][i]);
+                // info(new_value);
+                folded_polynomials[j][i >> 1] = new_value;
             }
         }
+
+        info("Folding from size ", round_size);
+        info("folded_polynomials[0][0]: ", folded_polynomials[0][0]);
+        info("folded_polynomials[1][0]: ", folded_polynomials[1][0]);
+        info("folded_polynomials[2][0]: ", folded_polynomials[2][0]);
+        info("folded_polynomials[3][0]: ", folded_polynomials[3][0]);
+        info("folded_polynomials[4][0]: ", folded_polynomials[4][0]);
+        info("folded_polynomials[5][0]: ", folded_polynomials[5][0]);
+        info("folded_polynomials[6][0]: ", folded_polynomials[6][0]);
+        info("folded_polynomials[7][0]: ", folded_polynomials[7][0]);
+        info("folded_polynomials[8][0]: ", folded_polynomials[8][0]);
+        info("folded_polynomials[9][0]: ", folded_polynomials[9][0]);
+        info("folded_polynomials[10][0]: ", folded_polynomials[10][0]);
+        info("folded_polynomials[11][0]: ", folded_polynomials[11][0]);
+        info("folded_polynomials[12][0]: ", folded_polynomials[12][0]);
+        info("folded_polynomials[13][0]: ", folded_polynomials[13][0]);
+        info("folded_polynomials[14][0]: ", folded_polynomials[14][0]);
+        info("folded_polynomials[15][0]: ", folded_polynomials[15][0]);
+        info("folded_polynomials[16][0]: ", folded_polynomials[16][0]);
     };
 
     std::array<FF, num_polys> batch_evaluate()
