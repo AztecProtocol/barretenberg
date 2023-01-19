@@ -233,7 +233,7 @@ class PolynomialManifest {
             break;
         };
         default: {
-            // TODO(luke): reinstate this. Was getting "use of undeclared identifier" error
+            // TODO(luke): reinstate this. Was getting "use of undeclared identifier" error for 'throw_or_abort'.
             // throw_or_abort("Received invalid composer type");
         }
         };

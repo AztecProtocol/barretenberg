@@ -95,7 +95,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         }
 
         // Final round
-        // auto purported_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
+        // TODO(luke): properly construct purported_evaluations from transcript
         std::vector<FF> purported_evaluations(waffle::TOTAL_NUM_POLYNOMIALS);
         FF alpha = FF::serialize_from_buffer(transcript.get_challenge("alpha").begin());
         FF full_honk_relation_purported_value =

@@ -57,12 +57,6 @@ template <typename settings> class Prover {
 
     std::shared_ptr<waffle::proving_key> proving_key;
 
-    // // Note(luke): This will likely change as the architecture settles but for now we give the prover access to the
-    // // verification key so that it has access to the selector and permutation polynomial commitments which are
-    // currently
-    // // needed as input to the Gemini prover.
-    // std::shared_ptr<waffle::proving_key> verification_key;
-
     std::shared_ptr<pcs::kzg::CommitmentKey> commitment_key;
 
     // Honk only needs a small portion of the functionality but may be fine to use existing work_queue
@@ -74,7 +68,6 @@ template <typename settings> class Prover {
 
     pcs::gemini::ProverOutput<pcs::kzg::Params> gemini_output;
     pcs::shplonk::ProverOutput<pcs::kzg::Params> shplonk_output;
-    // pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>::Output kzg_output;
 
   private:
     waffle::plonk_proof proof;

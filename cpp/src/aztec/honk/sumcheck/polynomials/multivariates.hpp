@@ -113,21 +113,7 @@ template <class FF_, size_t num_polys> class Multivariates {
                    (static_cast<size_t>(buffer[1]) << 16) + (static_cast<size_t>(buffer[0]) << 24);
         }(transcript.get_element("circuit_size")))
         , multivariate_d(numeric::get_msb(multivariate_n))
-    {
-        // std::vector<uint8_t> buffer = transcript.get_element("circuit_size");
-        // multivariate_n = buffer[0] + (buffer[1] << 8) + (buffer[2] << 16) + (buffer[3] << 24);
-        // multivariate_d = numeric::get_msb(multivariate_n);
-        info("in Multivariates constructor; multivariate_n = ", multivariate_n);
-    }
-
-    // explicit Multivariates(transcript::StandardTranscript transcript)
-    //     : multivariate_n(
-    //         //   static_cast<size_t>(transcript.get_field_element("circuit_size").from_montgomery_form().data[0]))
-    //           static_cast<size_t>(transcript.get_field_element("circuit_size")))
-    //     , multivariate_d(numeric::get_msb(multivariate_n))
-    // {
-    //     info("in Multivariates constructor; multivariate_n = ", multivariate_n);
-    // }
+    {}
 
     // TODO(Cody): Rename. fold is not descriptive, and it's already in use in the Gemini context.
     //             Probably just call it partial_evaluation?

@@ -31,22 +31,13 @@ template <> inline std::shared_ptr<kzg::CommitmentKey> CreateCommitmentKey<kzg::
     const size_t n = 128;
     return std::make_shared<kzg::CommitmentKey>(n, kzg_srs_path);
 }
-// template <> inline kzg::CommitmentKey* CreateCommitmentKey<kzg::CommitmentKey>()
-// {
-//     const size_t n = 128;
-//     return new kzg::CommitmentKey(n, kzg_srs_path);
-// }
 
 template <typename CK> inline std::shared_ptr<CK> CreateCommitmentKey()
 // requires std::default_initializable<CK>
 {
     return std::make_shared<CK>();
 }
-// template <typename CK> inline CK* CreateCommitmentKey()
-// // requires std::default_initializable<CK>
-// {
-//     return new CK();
-// }
+
 template <class VK> inline VK* CreateVerificationKey();
 
 template <> inline kzg::VerificationKey* CreateVerificationKey<kzg::VerificationKey>()
@@ -199,8 +190,6 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
     // Can be omitted if not needed.
     static void TearDownTestSuite()
     {
-        // delete commitment_key;
-        // commitment_key = nullptr;
         delete verification_key;
         verification_key = nullptr;
     }

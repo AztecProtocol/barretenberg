@@ -21,24 +21,6 @@ namespace test_sumcheck_round {
 using Transcript = transcript::StandardTranscript;
 using FF = barretenberg::fr;
 
-// Add mock data to the transcript corresponding to the components added by the prover during sumcheck. This is useful
-// for independent testing of the sumcheck verifier.
-template <size_t multivariate_d, size_t MAX_RELATION_LENGTH, size_t num_polys>
-void mock_transcript_contributions_prior_to_sumcheck(Transcript& transcript)
-{
-    transcript.add_element("circuit_size", FF(1 << multivariate_d).to_buffer());
-
-    // Write d-many arbitrary round univariates to the transcript
-    for (size_t round_idx = 0; round_idx < multivariate_d; round_idx++) {
-        auto round_univariate = Univariate<FF, MAX_RELATION_LENGTH>();
-        transcript.add_element("univariate_" + std::to_string(round_idx), round_univariate.to_buffer());
-    }
-
-    // Write array of arbitrary multivariate evaluations to trascript
-    std::array<FF, num_polys> multivariate_evaluations;
-    transcript.add_element("multivariate_evaluations", to_buffer(multivariate_evaluations));
-}
-
 TEST(Sumcheck, Prover)
 {
     const size_t num_polys(proving_system::StandardArithmetization::NUM_POLYNOMIALS);
@@ -99,10 +81,9 @@ TEST(Sumcheck, Verifier)
 
     using Multivariates = ::Multivariates<FF, num_polys>;
 
-    // Mock prover-transcript interactions through Sumcheck
+    // Mock prover-transcript interactions up to and including Sumcheck
     auto transcript = Transcript(StandardHonk::create_unrolled_manifest(0, multivariate_d));
     transcript.mock_inputs_prior_to_challenge("rho", multivariate_n);
-    // transcript.apply_fiat_shamir("rho");
 
     auto sumcheck = Sumcheck<Multivariates,
                              Transcript,
