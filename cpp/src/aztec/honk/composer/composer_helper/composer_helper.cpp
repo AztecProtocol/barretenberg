@@ -270,15 +270,15 @@ std::shared_ptr<waffle::verification_key> ComposerHelper<CircuitConstructor>::co
  * @return The verifier.
  * */
 template <typename CircuitConstructor>
-waffle::Verifier ComposerHelper<CircuitConstructor>::create_verifier(CircuitConstructor& circuit_constructor)
+StandardVerifier ComposerHelper<CircuitConstructor>::create_verifier(CircuitConstructor& circuit_constructor)
 {
-    compute_verification_key(circuit_constructor);
-    // TODO figure out types, actuallt
+    auto verification_key = compute_verification_key(circuit_constructor);
+    // TODO figure out types, actually
     // circuit_verification_key->composer_type = type;
 
     // TODO: initialize verifier according to manifest and key
     // Verifier output_state(circuit_verification_key, create_manifest(public_inputs.size()));
-    waffle::Verifier output_state;
+    StandardVerifier output_state;
     // TODO: Do we need a commitment scheme defined here?
     // std::unique_ptr<KateCommitmentScheme<standard_settings>> kate_commitment_scheme =
     //    std::make_unique<KateCommitmentScheme<standard_settings>>();
@@ -289,14 +289,15 @@ waffle::Verifier ComposerHelper<CircuitConstructor>::create_verifier(CircuitCons
 }
 
 template <typename CircuitConstructor>
-waffle::UnrolledVerifier ComposerHelper<CircuitConstructor>::create_unrolled_verifier(
+StandardUnrolledVerifier ComposerHelper<CircuitConstructor>::create_unrolled_verifier(
     CircuitConstructor& circuit_constructor)
 {
     compute_verification_key(circuit_constructor);
-    // UnrolledVerifier output_state(circuit_verification_key,
-    //                               create_unrolled_manifest(circuit_constructor.n,
-    //                               circuit_constructor.public_inputs.size()));
-    waffle::UnrolledVerifier output_state;
+    StandardUnrolledVerifier output_state(
+        circuit_verification_key,
+        honk::StandardHonk::create_unrolled_manifest(circuit_constructor.public_inputs.size(),
+                                                     numeric::get_msb(circuit_verification_key->n)));
+    // StandardUnrolledVerifier output_state;
 
     // TODO: Deal with commitments
     // std::unique_ptr<KateCommitmentScheme<unrolled_standard_settings>> kate_commitment_scheme =

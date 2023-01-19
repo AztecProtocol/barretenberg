@@ -44,7 +44,8 @@ template <typename CircuitConstructor> class ComposerHelper {
     {
         compute_witness_base<program_width>(circuit_constructor);
     }
-    waffle::Verifier create_verifier(CircuitConstructor& circuit_constructor);
+
+    StandardVerifier create_verifier(CircuitConstructor& circuit_constructor);
     /**
      * Preprocess the circuit. Delegates to create_prover.
      *
@@ -53,7 +54,7 @@ template <typename CircuitConstructor> class ComposerHelper {
     StandardProver preprocess(CircuitConstructor& circuit_constructor) { return create_prover(circuit_constructor); };
     StandardProver create_prover(CircuitConstructor& circuit_constructor);
 
-    waffle::UnrolledVerifier create_unrolled_verifier(CircuitConstructor& circuit_constructor);
+    StandardUnrolledVerifier create_unrolled_verifier(CircuitConstructor& circuit_constructor);
 
     template <typename Flavor> StandardUnrolledProver create_unrolled_prover(CircuitConstructor& circuit_constructor);
 

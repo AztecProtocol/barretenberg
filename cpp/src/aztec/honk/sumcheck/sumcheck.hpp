@@ -88,7 +88,9 @@ template <class Multivariates, class Transcript, template <class> class... Relat
                 &transcript.get_element("univariate_" + std::to_string(multivariates.multivariate_d - round_idx))[0]);
 
             verified = verified && round.check_sum(round_univariate);
-            FF round_challenge = transcript.get_mock_challenge(); // TODO(real challenge)
+            FF round_challenge = FF::serialize_from_buffer(
+                transcript.get_challenge("u_" + std::to_string(multivariates.multivariate_d - round_idx))
+                    .begin()); // TODO(real challenge)
             round.compute_next_target_sum(round_univariate, round_challenge);
         }
 
@@ -97,6 +99,8 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         FF relation_separator_challenge = transcript.get_mock_challenge();
         FF full_honk_relation_purported_value =
             round.compute_full_honk_relation_purported_value(purported_evaluations, relation_separator_challenge);
+        info("full_honk_relation_purported_value: ", full_honk_relation_purported_value);
+        info("round.target_total_sum:             ", round.target_total_sum);
         verified = verified && (full_honk_relation_purported_value == round.target_total_sum);
         return verified;
     };

@@ -264,12 +264,11 @@ TEST(StandarHonkComposer, BaseCase)
     composer.circuit_constructor.add_public_variable(a);
 
     auto prover = composer.create_unrolled_prover();
-    // waffle::Verifier verifier = composer.create_verifier();
-    auto multivariates = honk::sumcheck::Multivariates<fr, waffle::STANDARD_HONK_MANIFEST_SIZE>(prover.proving_key);
-    (void)multivariates;
+    auto verifier = composer.create_unrolled_verifier();
+
     waffle::plonk_proof proof = prover.construct_proof();
 
-    // bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
-    // EXPECT_EQ(result, true);
+    bool result = verifier.verify_proof(proof);
+    EXPECT_EQ(result, true);
 }
 } // namespace test_standard_honk_composer

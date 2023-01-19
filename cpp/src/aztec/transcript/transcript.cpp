@@ -403,16 +403,16 @@ std::vector<uint8_t> Transcript::export_transcript() const
                 ASSERT(manifest_element.num_bytes == element_data.size());
             }
             if (!manifest_element.derived_by_verifier) {
-                // printf("writing element %s ", manifest_element.name.c_str());
-                // for (size_t j = 0; j < element_data.size(); ++j) {
-                //     printf("%x", element_data[j]);
-                // }
-                // printf("\n");
+                printf("writing element %s ", manifest_element.name.c_str());
+                for (size_t j = 0; j < element_data.size(); ++j) {
+                    printf("%x", element_data[j]);
+                }
+                printf("\n");
                 buffer.insert(buffer.end(), element_data.begin(), element_data.end());
             }
         }
     }
-    // printf("output buffer size = %lu \n", buffer.size());
+    printf("output buffer size = %lu \n", buffer.size());
     return buffer;
 }
 
