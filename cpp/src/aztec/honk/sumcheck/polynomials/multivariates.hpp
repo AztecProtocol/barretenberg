@@ -93,21 +93,37 @@ template <class FF_, size_t num_polys> class Multivariates {
         size_t poly_idx = 0;
         for (size_t i = 0; i < waffle::STANDARD_HONK_MANIFEST_SIZE; ++i) {
             auto descriptor = proving_key->polynomial_manifest[i];
-            auto polynomial = proving_key->polynomial_cache.get(std::string(descriptor.polynomial_label));
-            full_polynomials[poly_idx] = polynomial;
+            std::string label(descriptor.polynomial_label);
+            // auto polynomial = proving_key->polynomial_cache.get(label);
+            full_polynomials[poly_idx] = proving_key->polynomial_cache.get(label);
+            ;
             ++poly_idx;
             if (descriptor.requires_shifted_evaluation) {
-                full_polynomials[poly_idx] = polynomial.shifted();
+                full_polynomials[poly_idx] = proving_key->polynomial_cache.get(label);
+                ;
+                // full_polynomials[poly_idx] = polynomial.shifted();
                 ++poly_idx;
             }
         }
-        info("here 1");
 
         for (auto& polynomial : folded_polynomials) {
             polynomial.resize(multivariate_n >> 1);
         }
-        info("here 2");
     }
+
+    // explicit Multivariates(const std::shared_ptr<waffle::proving_key>& proving_key)
+    //     : multivariate_n(proving_key->n)
+    //     , multivariate_d(proving_key->log_n)
+    // {
+    //     for (size_t i = 0; i < waffle::STANDARD_HONK_MANIFEST_SIZE; i++) {
+    //         auto label = proving_key->polynomial_manifest[i].polynomial_label;
+    //         full_polynomials[i] = proving_key->polynomial_cache.get(std::string(label));
+    //     }
+
+    //     for (auto& polynomial : folded_polynomials) {
+    //         polynomial.resize(multivariate_n >> 1);
+    //     }
+    // }
 
     explicit Multivariates(transcript::StandardTranscript transcript)
         : multivariate_n(
