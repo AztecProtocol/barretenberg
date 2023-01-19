@@ -1,4 +1,5 @@
 #include "standard_honk_composer.hpp"
+#include "common/assert.hpp"
 #include "numeric/uint256/uint256.hpp"
 #include "plonk/proof_system/types/polynomial_manifest.hpp"
 #include <cstdint>
@@ -268,7 +269,7 @@ TEST(StandarHonkComposer, BaseCase)
 
     waffle::plonk_proof proof = prover.construct_proof();
 
-    bool result = verifier.verify_proof(proof);
-    EXPECT_EQ(result, true);
+    bool verified = verifier.verify_proof(proof);
+    ASSERT_TRUE(verified);
 }
 } // namespace test_standard_honk_composer

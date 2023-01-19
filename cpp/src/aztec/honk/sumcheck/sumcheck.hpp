@@ -23,7 +23,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
     Sumcheck(Multivariates multivariates, Transcript& transcript)
         : multivariates(multivariates)
         , transcript(transcript)
-        , round(Multivariates::num, std::tuple(Relations<FF>()...)){};
+        , round(multivariates.multivariate_n, std::tuple(Relations<FF>()...)){};
 
     // verifier instantiates with challenges alone
     explicit Sumcheck(Transcript& transcript)
@@ -61,14 +61,29 @@ template <class Multivariates, class Transcript, template <class> class... Relat
                                    round_univariate.to_buffer());
 
             transcript.apply_fiat_shamir("u_" + std::to_string(multivariates.multivariate_d - round_idx));
-            multivariates.fold(
-                multivariates.folded_polynomials, multivariates.multivariate_n, round_challenges[round_idx]);
+            multivariates.fold(multivariates.folded_polynomials, round.round_size, round_challenges[round_idx]);
         }
 
         // Final round
-        // TODO(Cody): Figure out how to actually handle this. Currently done in prover, should happen here prob.
-        // auto multivariate_evaluations = multivariates.batch_evaluate();
-        // transcript.add_element("multivariate_evaluations", to_buffer(multivariate_evaluations));
+        // TODO(Cody): Execute as a loop over polynomial manifest? Things thare are called *_lagrange
+        transcript.add_element("multivariate_evaluations",
+                               to_buffer(std::array<FF, 17>({ multivariates.folded_polynomials[0][0],
+                                                              multivariates.folded_polynomials[1][0],
+                                                              multivariates.folded_polynomials[2][0],
+                                                              multivariates.folded_polynomials[3][0],
+                                                              multivariates.folded_polynomials[4][0],
+                                                              multivariates.folded_polynomials[5][0],
+                                                              multivariates.folded_polynomials[6][0],
+                                                              multivariates.folded_polynomials[7][0],
+                                                              multivariates.folded_polynomials[8][0],
+                                                              multivariates.folded_polynomials[9][0],
+                                                              multivariates.folded_polynomials[10][0],
+                                                              multivariates.folded_polynomials[11][0],
+                                                              multivariates.folded_polynomials[12][0],
+                                                              multivariates.folded_polynomials[13][0],
+                                                              multivariates.folded_polynomials[14][0],
+                                                              multivariates.folded_polynomials[15][0],
+                                                              multivariates.folded_polynomials[16][0] })));
     };
 
     /**
@@ -99,8 +114,6 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         FF relation_separator_challenge = transcript.get_mock_challenge();
         FF full_honk_relation_purported_value =
             round.compute_full_honk_relation_purported_value(purported_evaluations, relation_separator_challenge);
-        info("full_honk_relation_purported_value: ", full_honk_relation_purported_value);
-        info("round.target_total_sum:             ", round.target_total_sum);
         verified = verified && (full_honk_relation_purported_value == round.target_total_sum);
         return verified;
     };
