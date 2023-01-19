@@ -24,6 +24,13 @@ function(barretenberg_module MODULE_NAME)
             ${SOURCE_FILES}
         )
 
+        target_link_libraries(
+            ${MODULE_NAME}_objects
+            PUBLIC
+            fmt::fmt-header-only
+            zppbits
+        )
+
         add_library(
             ${MODULE_NAME}
             STATIC
@@ -53,6 +60,8 @@ function(barretenberg_module MODULE_NAME)
             PRIVATE
             gtest
             ${TBB_IMPORTED_TARGETS}
+            fmt::fmt-header-only
+            zppbits
         )
 
         add_executable(
