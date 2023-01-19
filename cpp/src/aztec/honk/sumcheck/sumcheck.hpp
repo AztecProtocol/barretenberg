@@ -29,7 +29,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
     explicit Sumcheck(Transcript& transcript)
         : multivariates(transcript)
         , transcript(transcript)
-        , round(Multivariates::num, std::tuple(Relations<FF>()...)){};
+        , round(multivariates.multivariate_n, std::tuple(Relations<FF>()...)){};
 
     /**
      * @brief Compute univariate restriction place in transcript, generate challenge, fold,... repeat until final round,
