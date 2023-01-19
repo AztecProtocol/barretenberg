@@ -16,6 +16,8 @@
 #include <math.h>
 #include <string>
 #include <honk/utils/power_polynomial.hpp>
+#include <honk/sumcheck/relations/grand_product_computation_relation.hpp>
+#include <honk/sumcheck/relations/grand_product_initialization_relation.hpp>
 
 #pragma GCC diagnostic ignored "-Wunused-variable"
 
@@ -127,7 +129,11 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     honk::power_polynomial::evaluate<barretenberg::fr>(zeta_challenge, u_vector_challenge);
 
     // Execute Sumcheck Verifier
-    auto sumcheck = Sumcheck<Multivariates, Transcript, ArithmeticRelation>(transcript);
+    auto sumcheck = Sumcheck<Multivariates,
+                             Transcript,
+                             ArithmeticRelation,
+                             GrandProductComputationRelation,
+                             GrandProductInitializationRelation>(transcript);
     bool result = sumcheck.execute_verifier(); // Need to mock prover in tests for this to run
 
     // Execute Gemini/Shplonk verification:
