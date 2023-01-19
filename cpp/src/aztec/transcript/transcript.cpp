@@ -118,7 +118,6 @@ void Transcript::compute_challenge_map()
  */
 void Transcript::mock_inputs_prior_to_challenge(const std::string& challenge_in, size_t circuit_size)
 {
-    (void)circuit_size;
     // Perform operations only up to fiat-shamir of challenge_in
     for (auto& manifest : manifest.get_round_manifests()) // loop over RoundManifests
     {

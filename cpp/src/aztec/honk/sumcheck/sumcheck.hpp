@@ -85,7 +85,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         // target_total_sum is initialized to zero then mutated in place.
         for (size_t round_idx = 0; round_idx < multivariates.multivariate_d; round_idx++) {
             // Obtain the round univariate from the transcript
-            info("multivariates.multivariate_d = ", multivariates.multivariate_d);
+            // info("multivariates.multivariate_d = ", multivariates.multivariate_d);
             auto round_univariate = Univariate<FF, MAX_RELATION_LENGTH>::serialize_from_buffer(
                 &transcript.get_element("univariate_" + std::to_string(round_idx + 1))[0]);
 
@@ -96,7 +96,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
 
         // Final round
         // TODO(luke): properly construct purported_evaluations from transcript
-        std::vector<FF> purported_evaluations(waffle::TOTAL_NUM_POLYNOMIALS);
+        std::vector<FF> purported_evaluations(waffle::STANDARD_HONK_TOTAL_NUM_POLYS);
         FF alpha = FF::serialize_from_buffer(transcript.get_challenge("alpha").begin());
         FF full_honk_relation_purported_value =
             round.compute_full_honk_relation_purported_value(purported_evaluations, alpha);
