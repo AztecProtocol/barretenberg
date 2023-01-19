@@ -299,6 +299,7 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
 
     auto multivariates = Multivariates(proving_key);
     auto sumcheck = Sumcheck(multivariates, transcript);
+    info("here 3");
 
     sumcheck.execute_prover();
 

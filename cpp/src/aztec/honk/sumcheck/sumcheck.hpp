@@ -39,13 +39,19 @@ template <class Multivariates, class Transcript, template <class> class... Relat
      */
     void execute_prover()
     {
+        info("here 4");
         std::vector<FF> round_challenges;
+        info("here 5");
         round_challenges.reserve(multivariates.multivariate_d);
+        info("here 6");
         std::fill(round_challenges.begin(), round_challenges.end(), 0);
+        info("here 7");
 
         // First round
         // This populates multivariates.folded_polynomials.
         FF relation_separator_challenge = transcript.get_mock_challenge();
+        info("here: compute_univariate");
+        // FF alpha = FF::serialize_from_buffer(transcript->get_challenge("alpha").begin());
         auto round_univariate = round.compute_univariate(multivariates.full_polynomials, relation_separator_challenge);
         transcript.add_element("univariate_" + std::to_string(multivariates.multivariate_d),
                                round_univariate.to_buffer());

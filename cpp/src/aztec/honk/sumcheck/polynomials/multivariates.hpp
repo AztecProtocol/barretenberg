@@ -101,10 +101,12 @@ template <class FF_, size_t num_polys> class Multivariates {
                 ++poly_idx;
             }
         }
+        info("here 1");
 
         for (auto& polynomial : folded_polynomials) {
             polynomial.resize(multivariate_n >> 1);
         }
+        info("here 2");
     }
 
     explicit Multivariates(transcript::StandardTranscript transcript)

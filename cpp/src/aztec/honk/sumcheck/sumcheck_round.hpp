@@ -125,8 +125,8 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     template <typename T> void extend_edges(T multivariate, size_t edge_idx)
     {
         for (size_t idx = 0; idx < num_multivariates; idx++) {
-            // info("num_multivariates = ", num_multivariates);
-            // info("idx = ", idx);
+            info("num_multivariates = ", num_multivariates);
+            info("idx = ", idx);
             auto val_1 = multivariate[idx][edge_idx];
             auto val_2 = multivariate[idx][edge_idx + 1];
             auto edge = Univariate<FF, 2>({ val_1, val_2 });
@@ -209,8 +209,8 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     Univariate<FF, MAX_RELATION_LENGTH> compute_univariate(auto& polynomials, FF& relation_separator_challenge)
     {
         for (size_t edge_idx = 0; edge_idx < round_size; edge_idx += 2) {
-            // info("round_size = ", round_size);
-            // info("edge_idx = ", edge_idx);
+            info("round_size = ", round_size);
+            info("edge_idx = ", edge_idx);
             extend_edges(polynomials, edge_idx);
             accumulate_relation_univariates<>();
         }
