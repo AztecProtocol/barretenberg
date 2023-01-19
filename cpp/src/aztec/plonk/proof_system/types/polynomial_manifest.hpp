@@ -172,7 +172,7 @@ static constexpr PolynomialDescriptor ultra_polynomial_manifest[ULTRA_UNROLLED_M
 };
 
 // TODO(Cody): Get this right; just using for now to extract names.
-static constexpr size_t STANDARD_HONK_MANIFEST_SIZE = 17;
+static constexpr size_t STANDARD_HONK_MANIFEST_SIZE = 17; // equivalent to num unshifted polynomials
 static constexpr size_t NUM_SHIFTED_POLYNOMIALS = 1;
 static constexpr size_t TOTAL_NUM_POLYNOMIALS = STANDARD_HONK_MANIFEST_SIZE + NUM_SHIFTED_POLYNOMIALS;
 static constexpr PolynomialDescriptor standard_honk_polynomial_manifest[STANDARD_HONK_MANIFEST_SIZE]{
