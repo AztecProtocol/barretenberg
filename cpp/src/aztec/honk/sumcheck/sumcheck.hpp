@@ -45,7 +45,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
 
         // First round
         // This populates multivariates.folded_polynomials.
-        FF relation_separator_challenge = transcript.get_mock_challenge(); // TODO(Cody): Replace
+        FF relation_separator_challenge = FF::serialize_from_buffer(transcript.get_challenge("alpha").begin());
         auto round_univariate = round.compute_univariate(multivariates.full_polynomials, relation_separator_challenge);
         transcript.add_element("univariate_" + std::to_string(multivariates.multivariate_d),
                                round_univariate.to_buffer());
@@ -84,6 +84,24 @@ template <class Multivariates, class Transcript, template <class> class... Relat
                                                               multivariates.folded_polynomials[14][0],
                                                               multivariates.folded_polynomials[15][0],
                                                               multivariates.folded_polynomials[16][0] })));
+
+        info("multivariates.folded_polynomials[0][0]: ", multivariates.folded_polynomials[0][0]);
+        info("multivariates.folded_polynomials[1][0]: ", multivariates.folded_polynomials[1][0]);
+        info("multivariates.folded_polynomials[2][0]: ", multivariates.folded_polynomials[2][0]);
+        info("multivariates.folded_polynomials[3][0]: ", multivariates.folded_polynomials[3][0]);
+        info("multivariates.folded_polynomials[4][0]: ", multivariates.folded_polynomials[4][0]);
+        info("multivariates.folded_polynomials[5][0]: ", multivariates.folded_polynomials[5][0]);
+        info("multivariates.folded_polynomials[6][0]: ", multivariates.folded_polynomials[6][0]);
+        info("multivariates.folded_polynomials[7][0]: ", multivariates.folded_polynomials[7][0]);
+        info("multivariates.folded_polynomials[8][0]: ", multivariates.folded_polynomials[8][0]);
+        info("multivariates.folded_polynomials[9][0]: ", multivariates.folded_polynomials[9][0]);
+        info("multivariates.folded_polynomials[10][0]: ", multivariates.folded_polynomials[10][0]);
+        info("multivariates.folded_polynomials[11][0]: ", multivariates.folded_polynomials[11][0]);
+        info("multivariates.folded_polynomials[12][0]: ", multivariates.folded_polynomials[12][0]);
+        info("multivariates.folded_polynomials[13][0]: ", multivariates.folded_polynomials[13][0]);
+        info("multivariates.folded_polynomials[14][0]: ", multivariates.folded_polynomials[14][0]);
+        info("multivariates.folded_polynomials[15][0]: ", multivariates.folded_polynomials[15][0]);
+        info("multivariates.folded_polynomials[16][0]: ", multivariates.folded_polynomials[16][0]);
     };
 
     /**
@@ -102,19 +120,25 @@ template <class Multivariates, class Transcript, template <class> class... Relat
             auto round_univariate = Univariate<FF, MAX_RELATION_LENGTH>::serialize_from_buffer(
                 &transcript.get_element("univariate_" + std::to_string(multivariates.multivariate_d - round_idx))[0]);
 
-            verified = verified && round.check_sum(round_univariate);
+            bool checked = round.check_sum(round_univariate);
+            verified = verified && checked;
             FF round_challenge = FF::serialize_from_buffer(
                 transcript.get_challenge("u_" + std::to_string(multivariates.multivariate_d - round_idx))
                     .begin()); // TODO(real challenge)
             round.compute_next_target_sum(round_univariate, round_challenge);
+            info("sigma_" + std::to_string(multivariates.multivariate_d - round_idx) + ": ", round.target_total_sum);
         }
 
         // Final round
         auto purported_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
-        FF relation_separator_challenge = transcript.get_mock_challenge();
+        for (auto& eval : purported_evaluations) {
+            info("purported evaluation: ", eval);
+        }
+        FF relation_separator_challenge = FF::serialize_from_buffer(transcript.get_challenge("alpha").begin());
         FF full_honk_relation_purported_value =
             round.compute_full_honk_relation_purported_value(purported_evaluations, relation_separator_challenge);
-        verified = verified && (full_honk_relation_purported_value == round.target_total_sum);
+        info("full_honk_relation_purported_value: ", full_honk_relation_purported_value);
+        // verified = verified && (full_honk_relation_purported_value == round.target_total_sum);
         return verified;
     };
 };

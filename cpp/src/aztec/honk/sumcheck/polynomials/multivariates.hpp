@@ -90,6 +90,7 @@ template <class FF_, size_t num_polys> class Multivariates {
     {
         for (size_t i = 0; i < waffle::STANDARD_HONK_MANIFEST_SIZE; i++) {
             auto label = proving_key->polynomial_manifest[i].polynomial_label;
+            info("i, label = ", i, ", ", label);
             full_polynomials[i] = proving_key->polynomial_cache.get(std::string(label));
         }
 
