@@ -1,8 +1,8 @@
 #pragma once
 #include <proof_system/proving_key/proving_key.hpp>
 #include <honk/pcs/commitment_key.hpp>
-#include "../../plonk/proof_system/types/plonk_proof.hpp"
-#include "../../plonk/proof_system/types/program_settings.hpp"
+#include <plonk/proof_system/types/plonk_proof.hpp>
+#include <plonk/proof_system/types/program_settings.hpp>
 #include <honk/pcs/gemini/gemini.hpp>
 #include <honk/pcs/shplonk/shplonk_single.hpp>
 #include <honk/pcs/kzg/kzg.hpp>
@@ -36,15 +36,6 @@ template <typename settings> class Prover {
 
     size_t get_circuit_size() const { return n; }
 
-    void flush_queued_work_items() { queue.flush_queue(); }
-
-    waffle::work_queue::work_item_info get_queued_work_item_info() const { return queue.get_queued_work_item_info(); }
-
-    size_t get_scalar_multiplication_size(const size_t work_item_number) const
-    {
-        return queue.get_scalar_multiplication_size(work_item_number);
-    }
-
     // TODO(luke): Eventually get rid of this but leave it for convenience for now
     const size_t n;
 
@@ -61,10 +52,19 @@ template <typename settings> class Prover {
 
     // Honk only needs a small portion of the functionality but may be fine to use existing work_queue
     // NOTE: this is not currently in use, but it may well be used in the future.
-    waffle::work_queue queue;
+    // TODO(Adrian): Uncomment when we need this again.
+    // waffle::work_queue queue;
+    // void flush_queued_work_items() { queue.flush_queue(); }
+    // waffle::work_queue::work_item_info get_queued_work_item_info() const {
+    //     return queue.get_queued_work_item_info();
+    // }
+    // size_t get_scalar_multiplication_size(const size_t work_item_number) const
+    // {
+    //     return queue.get_scalar_multiplication_size(work_item_number);
+    // }
 
     // This makes 'settings' accesible from Prover
-    typedef settings settings_;
+    using settings_ = settings;
 
     pcs::gemini::ProverOutput<pcs::kzg::Params> gemini_output;
     pcs::shplonk::ProverOutput<pcs::kzg::Params> shplonk_output;
@@ -76,7 +76,7 @@ template <typename settings> class Prover {
 // TODO(luke): need equivalent notion of settings for Honk
 extern template class Prover<waffle::standard_settings>;
 
-typedef Prover<waffle::standard_settings> StandardProver; // TODO(Cody): Delete?
-typedef Prover<waffle::standard_settings> StandardUnrolledProver;
+using StandardProver = Prover<waffle::standard_settings>; // TODO(Cody): Delete?
+using StandardUnrolledProver = Prover<waffle::standard_settings>;
 
 } // namespace honk

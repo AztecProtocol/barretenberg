@@ -38,7 +38,7 @@ Prover<settings>::Prover(std::shared_ptr<waffle::proving_key> input_key, const t
     , transcript(input_manifest, settings::hash_type, settings::num_challenge_bytes)
     , proving_key(input_key)
     , commitment_key(nullptr) // TODO(Cody): Need better constructors for prover.
-    , queue(proving_key.get(), &transcript)
+// , queue(proving_key.get(), &transcript) // TODO(Adrian): explore whether it's needed 
 {}
 
 /**
