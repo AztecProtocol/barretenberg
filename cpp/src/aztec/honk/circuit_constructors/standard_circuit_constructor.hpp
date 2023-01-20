@@ -7,7 +7,7 @@ namespace honk {
 enum StandardSelectors { QM, QC, Q1, Q2, Q3, NUM };
 inline std::vector<std::string> standard_selector_names()
 {
-    std::vector<std::string> result{ "q_m", "q_c", "q_1", "q_2", "q_3" };
+    std::vector<std::string> result{ "q_m", "q_1", "q_2", "q_3", "q_c" };
     return result;
 }
 

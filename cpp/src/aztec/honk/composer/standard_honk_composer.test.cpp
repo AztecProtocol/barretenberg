@@ -7,6 +7,8 @@
 #include <honk/sumcheck/polynomials/multivariates.hpp>
 #include <gtest/gtest.h>
 
+#pragma GCC diagnostic ignored "-Wunused-variable"
+
 using namespace honk;
 
 namespace test_standard_honk_composer {
@@ -257,12 +259,36 @@ TEST(standard_honk_composer, test_assert_equal)
     // Check that the maximum cycle in the one, where we used assert_equal, is twice as long
     EXPECT_EQ(get_maximum_cycle(composer_with_assert_equal), get_maximum_cycle(composer_no_assert_equal) * 2);
 }
-
 TEST(StandarHonkComposer, BaseCase)
 {
     auto composer = StandardHonkComposer();
-    fr a = fr::one();
-    composer.circuit_constructor.add_public_variable(a);
+    fr a = 1;
+    composer.circuit_constructor.add_variable(a);
+
+    auto prover = composer.create_unrolled_prover();
+    auto verifier = composer.create_unrolled_verifier();
+
+    waffle::plonk_proof proof = prover.construct_proof();
+
+    bool verified = verifier.verify_proof(proof);
+    ASSERT_TRUE(verified);
+}
+
+TEST(StandarHonkComposer, TwoGates)
+{
+    auto composer = StandardHonkComposer();
+    // fr a = fr::one();
+    // composer.circuit_constructor.add_public_variable(a);
+
+    uint32_t w_l_1_idx = composer.circuit_constructor.add_variable(1);
+    uint32_t w_r_1_idx = composer.circuit_constructor.add_variable(1);
+    uint32_t w_o_1_idx = composer.circuit_constructor.add_variable(2);
+    uint32_t w_l_2_idx = composer.circuit_constructor.add_variable(2);
+    uint32_t w_r_2_idx = composer.circuit_constructor.add_variable(2);
+    uint32_t w_o_2_idx = composer.circuit_constructor.add_variable(4);
+
+    composer.create_add_gate({ w_l_1_idx, w_r_1_idx, w_o_1_idx, 1, 1, -1, 0 });
+    composer.create_mul_gate({ w_l_2_idx, w_r_2_idx, w_o_2_idx, 1, -1, 0 });
 
     auto prover = composer.create_unrolled_prover();
     auto verifier = composer.create_unrolled_verifier();

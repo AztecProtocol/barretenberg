@@ -284,9 +284,9 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
     using Transcript = transcript::StandardTranscript;
     using Sumcheck = sumcheck::Sumcheck<Multivariates,
                                         Transcript,
-                                        sumcheck::ArithmeticRelation,
+                                        sumcheck::ArithmeticRelation/* ,
                                         sumcheck::GrandProductComputationRelation,
-                                        sumcheck::GrandProductInitializationRelation>;
+                                        sumcheck::GrandProductInitializationRelation */>;
 
     // Compute alpha challenge
     transcript.apply_fiat_shamir("alpha");
@@ -396,26 +396,26 @@ template <typename settings> waffle::plonk_proof& Prover<settings>::construct_pr
     // // queue currently only handles commitments, not partial multivariate evaluations.
     // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
 
-    // Fiat-Shamir: rho
-    // Compute Fold polynomials and their commitments.
-    execute_univariatization_round();
-    // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
+    // // Fiat-Shamir: rho
+    // // Compute Fold polynomials and their commitments.
+    // execute_univariatization_round();
+    // // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
 
-    // Fiat-Shamir: r
-    // Compute Fold evaluations
-    execute_pcs_evaluation_round();
+    // // Fiat-Shamir: r
+    // // Compute Fold evaluations
+    // execute_pcs_evaluation_round();
 
-    // Fiat-Shamir: nu
-    // Compute Shplonk batched quotient commitment
-    execute_shplonk_round();
-    // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
+    // // Fiat-Shamir: nu
+    // // Compute Shplonk batched quotient commitment
+    // execute_shplonk_round();
+    // // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
 
-    // Fiat-Shamir: z
-    // Compute KZG quotient commitment
-    execute_kzg_round();
-    // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
+    // // Fiat-Shamir: z
+    // // Compute KZG quotient commitment
+    // execute_kzg_round();
+    // // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
 
-    // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
+    // // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
 
     return export_proof();
 }

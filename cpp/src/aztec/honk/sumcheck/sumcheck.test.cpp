@@ -83,12 +83,12 @@ TEST(Sumcheck, Prover)
                                                                      /* num_challenges_in = */ 1));
     for (size_t i = 0; i < multivariate_d; i++) {
         auto label = std::to_string(multivariate_d - i);
-        manifest_rounds.emplace_back(
-            transcript::Manifest::RoundManifest({ { .name = "univariate_" + label,
-                                                    .num_bytes = fr_size * honk::StandardHonk::MAX_RELATION_LENGTH,
-                                                    .derived_by_verifier = false } },
-                                                /* challenge_name = */ "u_" + label,
-                                                /* num_challenges_in = */ 1));
+        manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
+            { { .name = "univariate_" + label,
+                .num_bytes = fr_size * 5 /* honk::StandardHonk::MAX_RELATION_LENGTH */,
+                .derived_by_verifier = false } },
+            /* challenge_name = */ "u_" + label,
+            /* num_challenges_in = */ 1));
     }
 
     auto transcript = Transcript(transcript::Manifest(manifest_rounds));
@@ -159,12 +159,12 @@ TEST(Sumcheck, Verifier)
                                                                      /* num_challenges_in = */ 1));
     for (size_t i = 0; i < multivariate_d; i++) {
         auto label = std::to_string(multivariate_d - i);
-        manifest_rounds.emplace_back(
-            transcript::Manifest::RoundManifest({ { .name = "univariate_" + label,
-                                                    .num_bytes = fr_size * honk::StandardHonk::MAX_RELATION_LENGTH,
-                                                    .derived_by_verifier = false } },
-                                                /* challenge_name = */ "u_" + label,
-                                                /* num_challenges_in = */ 1));
+        manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
+            { { .name = "univariate_" + label,
+                .num_bytes = fr_size * 5 /* honk::StandardHonk::MAX_RELATION_LENGTH */,
+                .derived_by_verifier = false } },
+            /* challenge_name = */ "u_" + label,
+            /* num_challenges_in = */ 1));
     }
 
     auto transcript = Transcript(transcript::Manifest(manifest_rounds));
@@ -184,8 +184,8 @@ TEST(Sumcheck, Verifier)
         value_at_2.self_to_montgomery_form();
         value_at_3.self_to_montgomery_form();
         value_at_4.self_to_montgomery_form();
-        auto round_univariate = Univariate<FF, honk::StandardHonk::MAX_RELATION_LENGTH>(
-            std::array<FF, 5>({ value_at_0, value_at_1, value_at_2, value_at_3, value_at_4 }));
+        auto round_univariate =
+            Univariate<FF, 5>(std::array<FF, 5>({ value_at_0, value_at_1, value_at_2, value_at_3, value_at_4 }));
         transcript.add_element("univariate_" + std::to_string(multivariate_d), round_univariate.to_buffer());
         // transcript.add_element("univariate_" + std::to_string(round_idx), round_univariate.to_buffer());
         // }
@@ -216,7 +216,7 @@ TEST(Sumcheck, ProverAndVerifier)
     const size_t multivariate_d(1);
     const size_t multivariate_n(1 << multivariate_d);
 
-    // const size_t max_relation_length = 4;
+    const size_t max_relation_length = 4 /* honk::StandardHonk::MAX_RELATION_LENGTH */;
     constexpr size_t fr_size = 32;
 
     using Multivariates = ::Multivariates<FF, num_polys>;
@@ -225,7 +225,6 @@ TEST(Sumcheck, ProverAndVerifier)
     std::array<FF, 2> w_r = { 1, 2 };
     std::array<FF, 2> w_o = { 2, 4 };
     std::array<FF, 2> z_perm = { 1, 2 };
-    std::array<FF, 2> z_perm_shift = { 0, 1 };
     std::array<FF, 2> q_m = { 0, 1 };
     std::array<FF, 2> q_l = { 1, 0 };
     std::array<FF, 2> q_r = { 1, 0 };
@@ -238,11 +237,12 @@ TEST(Sumcheck, ProverAndVerifier)
     std::array<FF, 2> id_2 = { 1, 2 };
     std::array<FF, 2> id_3 = { 1, 2 };
     std::array<FF, 2> lagrange_1 = { 1, 2 };
+    std::array<FF, 2> z_perm_shift = { 0, 1 };
 
     // These will be owned outside the class, probably by the composer.
     std::array<std::span<FF>, Multivariates::num> full_polynomials = {
-        w_l, w_r,     w_o,     z_perm,  z_perm_shift, q_m,  q_l,  q_r,       q_o,
-        q_c, sigma_1, sigma_2, sigma_3, id_1,         id_2, id_3, lagrange_1
+        w_l,     w_r,     w_o,     z_perm, q_m,  q_l,  q_r,        q_o,          q_c,
+        sigma_1, sigma_2, sigma_3, id_1,   id_2, id_3, lagrange_1, z_perm_shift,
     };
 
     std::vector<transcript::Manifest::RoundManifest> manifest_rounds;
@@ -251,12 +251,11 @@ TEST(Sumcheck, ProverAndVerifier)
                                                                      /* num_challenges_in = */ 1));
     for (size_t i = 0; i < multivariate_d; i++) {
         auto label = std::to_string(multivariate_d - i);
-        manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
-            { { .name = "univariate_" + label,
-                .num_bytes = fr_size * 4 /* honk::StandardHonk::MAX_RELATION_LENGTH */,
-                .derived_by_verifier = false } },
-            /* challenge_name = */ "u_" + label,
-            /* num_challenges_in = */ 1));
+        manifest_rounds.emplace_back(transcript::Manifest::RoundManifest({ { .name = "univariate_" + label,
+                                                                             .num_bytes = fr_size * max_relation_length,
+                                                                             .derived_by_verifier = false } },
+                                                                         /* challenge_name = */ "u_" + label,
+                                                                         /* num_challenges_in = */ 1));
     }
 
     auto transcript = Transcript(transcript::Manifest(manifest_rounds));

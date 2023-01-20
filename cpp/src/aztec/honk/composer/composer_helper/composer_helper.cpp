@@ -317,6 +317,69 @@ StandardUnrolledProver ComposerHelper<CircuitConstructor>::create_unrolled_prove
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
 
+    for (size_t i = 0; i < 8; i++) {
+        auto poly = circuit_proving_key->polynomial_cache.get("w_1_lagrange");
+        if (poly[i] != 0) {
+            info("nonzero value");
+        }
+        info(poly[i]);
+    }
+
+    for (size_t i = 0; i < 8; i++) {
+        auto poly = circuit_proving_key->polynomial_cache.get("w_2_lagrange");
+        if (poly[i] != 0) {
+            info("nonzero value");
+        }
+        info(poly[i]);
+    }
+
+    for (size_t i = 0; i < 8; i++) {
+        auto poly = circuit_proving_key->polynomial_cache.get("w_3_lagrange");
+        if (poly[i] != 0) {
+            info("nonzero value");
+        }
+        info(poly[i]);
+    }
+
+    for (size_t i = 0; i < 8; i++) {
+        auto poly = circuit_proving_key->polynomial_cache.get("q_m_lagrange");
+        if (poly[i] != 0) {
+            info("nonzero value");
+        }
+        info(poly[i]);
+    }
+
+    for (size_t i = 0; i < 8; i++) {
+        auto poly = circuit_proving_key->polynomial_cache.get("q_1_lagrange");
+        if (poly[i] != 0) {
+            info("nonzero value");
+        }
+        info(poly[i]);
+    }
+
+    for (size_t i = 0; i < 8; i++) {
+        auto poly = circuit_proving_key->polynomial_cache.get("q_2_lagrange");
+        if (poly[i] != 0) {
+            info("nonzero value");
+        }
+        info(poly[i]);
+    }
+
+    for (size_t i = 0; i < 8; i++) {
+        auto poly = circuit_proving_key->polynomial_cache.get("q_3_lagrange");
+        if (poly[i] != 0) {
+            info("nonzero value");
+        }
+        info(poly[i]);
+    }
+
+    for (size_t i = 0; i < 8; i++) {
+        auto poly = circuit_proving_key->polynomial_cache.get("q_c_lagrange");
+        if (poly[i] != 0) {
+            info("nonzero value");
+        }
+        info(poly[i]);
+    }
     size_t num_sumcheck_rounds(circuit_proving_key->log_n);
     auto manifest = Flavor::create_unrolled_manifest(circuit_constructor.public_inputs.size(), num_sumcheck_rounds);
     StandardUnrolledProver output_state(circuit_proving_key, manifest);

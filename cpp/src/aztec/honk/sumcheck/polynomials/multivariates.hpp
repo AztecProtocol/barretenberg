@@ -120,8 +120,10 @@ template <class FF_, size_t num_polys> class Multivariates {
     explicit Multivariates(transcript::StandardTranscript transcript)
         // TODO(Cody): This is atrocious.
         : multivariate_n([&](std::vector<uint8_t> buffer) {
-            return static_cast<size_t>(buffer[31]) + (static_cast<size_t>(buffer[30]) << 8) +
-                   (static_cast<size_t>(buffer[29]) << 16) + (static_cast<size_t>(buffer[28]) << 24);
+            return static_cast<size_t>(buffer[buffer.size() - 1]) +
+                   (static_cast<size_t>(buffer[buffer.size() - 2]) << 8) +
+                   (static_cast<size_t>(buffer[buffer.size() - 3]) << 16) +
+                   (static_cast<size_t>(buffer[buffer.size() - 4]) << 24);
         }(transcript.get_element("circuit_size")))
         , multivariate_d(numeric::get_msb(multivariate_n))
     {

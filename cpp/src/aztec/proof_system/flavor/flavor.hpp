@@ -11,7 +11,6 @@ struct StandardArithmetization {
         W_R,
         W_O,
         Z_PERM,
-        Z_PERM_SHIFT, // TODO(Cody): Hid ethis.
         Q_M,
         Q_L,
         Q_R,
@@ -24,6 +23,7 @@ struct StandardArithmetization {
         ID_2,
         ID_3,
         LAGRANGE_1,
+        Z_PERM_SHIFT, // TODO(Cody): Hide this.
         COUNT
     };
 
@@ -38,7 +38,7 @@ struct StandardHonk {
     using MULTIVARIATE = Arithmetization::POLYNOMIAL;
     // // TODO(Cody): Where to specify? is this polynomial manifest size?
     // static constexpr size_t STANDARD_HONK_MANIFEST_SIZE = 16;
-    static constexpr size_t MAX_RELATION_LENGTH = 5; // TODO(Cody): increment after fixing add_edge_contribution; kill
+    static constexpr size_t MAX_RELATION_LENGTH = 4; // TODO(Cody): increment after fixing add_edge_contribution; kill
                                                      // after moving barycentric class out of relations
 
     // TODO(Cody): should extract this from the parameter pack. Maybe that should be done here?
@@ -126,45 +126,45 @@ struct StandardHonk {
             /* num_challenges_in = */ 1, /* TODO(Cody): magic number! Where should this be specified? */
             /* map_challenges_in = */ true));
 
-        // Rounds 5 + num_sumcheck_rounds
-        std::vector<transcript::Manifest::ManifestEntry> fold_commitment_entries;
-        for (size_t i = 1; i < num_sumcheck_rounds; i++) {
-            fold_commitment_entries.emplace_back(transcript::Manifest::ManifestEntry(
-              { .name = "FOLD_" + std::to_string(i), .num_bytes = g1_size, .derived_by_verifier = false }));
-        };
-        manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
-            fold_commitment_entries,
-            /* challenge_name = */ "r",
-            /* num_challenges_in */ 1));
+        // // Rounds 5 + num_sumcheck_rounds
+        // std::vector<transcript::Manifest::ManifestEntry> fold_commitment_entries;
+        // for (size_t i = 1; i < num_sumcheck_rounds; i++) {
+        //     fold_commitment_entries.emplace_back(transcript::Manifest::ManifestEntry(
+        //       { .name = "FOLD_" + std::to_string(i), .num_bytes = g1_size, .derived_by_verifier = false }));
+        // };
+        // manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
+        //     fold_commitment_entries,
+        //     /* challenge_name = */ "r",
+        //     /* num_challenges_in */ 1));
 
-        // Rounds 6 + num_sumcheck_rounds
-        std::vector<transcript::Manifest::ManifestEntry> gemini_evaluation_entries;
-        for (size_t i = 0; i < num_sumcheck_rounds; i++) {
-            gemini_evaluation_entries.emplace_back(transcript::Manifest::ManifestEntry(
-            { .name = "a_" + std::to_string(i), .num_bytes = fr_size, .derived_by_verifier = false }));
-        };
-        manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
-            gemini_evaluation_entries,
-            /* challenge_name = */ "nu",
-            /* num_challenges_in */ 1));
+        // // Rounds 6 + num_sumcheck_rounds
+        // std::vector<transcript::Manifest::ManifestEntry> gemini_evaluation_entries;
+        // for (size_t i = 0; i < num_sumcheck_rounds; i++) {
+        //     gemini_evaluation_entries.emplace_back(transcript::Manifest::ManifestEntry(
+        //     { .name = "a_" + std::to_string(i), .num_bytes = fr_size, .derived_by_verifier = false }));
+        // };
+        // manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
+        //     gemini_evaluation_entries,
+        //     /* challenge_name = */ "nu",
+        //     /* num_challenges_in */ 1));
 
-        // Rounds 7 + num_sumcheck_rounds
-        manifest_rounds.emplace_back(
-            transcript::Manifest::RoundManifest(
-            { 
-              { .name = "Q", .num_bytes = g1_size, .derived_by_verifier = false } 
-            },
-            /* challenge_name = */ "z",
-            /* num_challenges_in */ 1));
+        // // Rounds 7 + num_sumcheck_rounds
+        // manifest_rounds.emplace_back(
+        //     transcript::Manifest::RoundManifest(
+        //     { 
+        //       { .name = "Q", .num_bytes = g1_size, .derived_by_verifier = false } 
+        //     },
+        //     /* challenge_name = */ "z",
+        //     /* num_challenges_in */ 1));
 
-        // Rounds 8 + num_sumcheck_rounds
-        manifest_rounds.emplace_back(
-            transcript::Manifest::RoundManifest(
-            { 
-              { .name = "W", .num_bytes = g1_size, .derived_by_verifier = false }
-            },
-            /* challenge_name = */ "separator",
-            /* num_challenges_in */ 1));
+        // // Rounds 8 + num_sumcheck_rounds
+        // manifest_rounds.emplace_back(
+        //     transcript::Manifest::RoundManifest(
+        //     { 
+        //       { .name = "W", .num_bytes = g1_size, .derived_by_verifier = false }
+        //     },
+        //     /* challenge_name = */ "separator",
+        //     /* num_challenges_in */ 1));
 
         //clang-format on
 

@@ -34,10 +34,21 @@ template <typename FF> class ArithmeticRelation : public Relation<FF> {
         auto q_o = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_O]);
         auto q_c = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_C]);
 
+        info("w_l: ", w_l);
+        info("w_r: ", w_r);
+        info("w_o: ", w_o);
+        info("q_m: ", q_m);
+        info("q_l: ", q_l);
+        info("q_r: ", q_r);
+        info("q_o: ", q_o);
+        info("q_c: ", q_c);
+
         evals += w_l * (q_m * w_r + q_l);
         evals += q_r * w_r;
         evals += q_o * w_o;
         evals += q_c;
+
+        info("evals: ", evals);
     };
 
     void add_full_relation_value_contribution(auto& purported_evaluations, FF& full_honk_relation_value)
