@@ -163,7 +163,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         FF full_honk_relation_purported_value =
             round.compute_full_honk_relation_purported_value(purported_evaluations, relation_separator_challenge);
         info("full_honk_relation_purported_value: ", full_honk_relation_purported_value);
-        // verified = verified && (full_honk_relation_purported_value == round.target_total_sum);
+        verified = verified && (full_honk_relation_purported_value == round.target_total_sum);
         return verified;
     };
 };
