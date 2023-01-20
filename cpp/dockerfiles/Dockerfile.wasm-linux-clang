@@ -9,5 +9,3 @@ RUN mkdir build && cd build && cmake -DTOOLCHAIN=wasm-linux-clang .. && make -j$
 
 FROM alpine:3.13
 COPY --from=builder /usr/src/barretenberg/cpp/build/bin/barretenberg.wasm /usr/src/barretenberg/cpp/build/bin/barretenberg.wasm
-COPY --from=builder /usr/src/barretenberg/cpp/build/lib/libbarretenberg.a /usr/src/barretenberg/cpp/build/bin/lib/libbarretenberg.a
-COPY --from=builder /usr/src/barretenberg/cpp/build/lib/libenv.a /usr/src/barretenberg/cpp/build/bin/lib/libenv.a
