@@ -124,7 +124,7 @@ struct StandardHonk {
             },
             /* challenge_name = */ "rho",
             /* num_challenges_in = */ 1, /* TODO(Cody): magic number! Where should this be specified? */
-            /* map_challenges_in = */ true));
+            /* map_challenges_in = */ false));
 
         // // Rounds 5 + num_sumcheck_rounds
         // std::vector<transcript::Manifest::ManifestEntry> fold_commitment_entries;

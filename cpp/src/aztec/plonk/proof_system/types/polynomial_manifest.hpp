@@ -177,7 +177,7 @@ static constexpr PolynomialDescriptor standard_honk_polynomial_manifest[STANDARD
     PolynomialDescriptor("W_2", "w_2_lagrange", false, false, WITNESS, W_2), //
     PolynomialDescriptor("W_3", "w_3_lagrange", false, false, WITNESS, W_3), //
     PolynomialDescriptor("Z_PERM", "z_perm", true, true, WITNESS, Z),        //
-    // PolynomialDescriptor("Z_PERM_SHIFT", "z_perm_shift", true, true, WITNESS, Z_LOOKUP),                     //
+    // PolynomialDescriptor("Z_PERM_SHIFT", "z_perm_shift", true, true, WITNESS, Z_LOOKUP),             //
     PolynomialDescriptor("Q_M", "q_m_lagrange", true, false, SELECTOR, Q_M),                         //
     PolynomialDescriptor("Q_1", "q_1_lagrange", true, false, SELECTOR, Q_1),                         //
     PolynomialDescriptor("Q_2", "q_2_lagrange", true, false, SELECTOR, Q_2),                         //

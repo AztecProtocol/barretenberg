@@ -78,7 +78,10 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     {
         // FF's default constructor may not initialize to zero (e.g., barretenberg::fr), hence we can't rely on
         // aggregate initialization of the evaluations array.
-        std::fill(evaluations.begin(), evaluations.end(), 0);
+        std::fill(evaluations.begin(), evaluations.end(), FF::zero());
+        for (auto& thing : evaluations) {
+            info("printing evaluation: ", thing);
+        }
     };
 
     // IMPROVEMENT(Cody): This is kind of ugly. There should be a one-liner with folding
@@ -215,14 +218,15 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
         return result;
     }
 
-    FF compute_full_honk_relation_purported_value(std::vector<FF> purported_evaluations,
+    FF compute_full_honk_relation_purported_value(std::vector<FF>& purported_evaluations,
                                                   FF& relation_separator_challenge)
     {
+        // for (auto& thing : purported_evaluations) {info("PURPORTED_EVAL: ", thing);}
         accumulate_relation_evaluations<>(purported_evaluations);
 
         // IMPROVEMENT(Cody): Reuse functions from univariate_accumulators batching?
-        FF running_challenge(1);
-        FF output(0);
+        FF running_challenge = 1;
+        FF output = 0;
         for (auto& evals : evaluations) {
             output += evals * running_challenge;
             running_challenge *= relation_separator_challenge;

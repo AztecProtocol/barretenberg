@@ -73,7 +73,7 @@ template <class FF_, size_t num_polys> class Multivariates {
 
     Multivariates() = default;
 
-    // TODO(Cody): static span extent below more efficient
+    // Note: this constructor is only for testing (?); in practice we use the constructor from a proving key.
     explicit Multivariates(std::array<std::span<FF>, num_polys> full_polynomials)
         : multivariate_n(full_polynomials[0].size())
         , multivariate_d(numeric::get_msb(multivariate_n))
@@ -161,25 +161,6 @@ template <class FF_, size_t num_polys> class Multivariates {
                 folded_polynomials[j][i >> 1] = new_value;
             }
         }
-
-        info("Folding from size ", round_size);
-        info("folded_polynomials[0][0]: ", folded_polynomials[0][0]);
-        info("folded_polynomials[1][0]: ", folded_polynomials[1][0]);
-        info("folded_polynomials[2][0]: ", folded_polynomials[2][0]);
-        info("folded_polynomials[3][0]: ", folded_polynomials[3][0]);
-        info("folded_polynomials[4][0]: ", folded_polynomials[4][0]);
-        info("folded_polynomials[5][0]: ", folded_polynomials[5][0]);
-        info("folded_polynomials[6][0]: ", folded_polynomials[6][0]);
-        info("folded_polynomials[7][0]: ", folded_polynomials[7][0]);
-        info("folded_polynomials[8][0]: ", folded_polynomials[8][0]);
-        info("folded_polynomials[9][0]: ", folded_polynomials[9][0]);
-        info("folded_polynomials[10][0]: ", folded_polynomials[10][0]);
-        info("folded_polynomials[11][0]: ", folded_polynomials[11][0]);
-        info("folded_polynomials[12][0]: ", folded_polynomials[12][0]);
-        info("folded_polynomials[13][0]: ", folded_polynomials[13][0]);
-        info("folded_polynomials[14][0]: ", folded_polynomials[14][0]);
-        info("folded_polynomials[15][0]: ", folded_polynomials[15][0]);
-        info("folded_polynomials[16][0]: ", folded_polynomials[16][0]);
     };
 
     std::array<FF, num_polys> batch_evaluate()

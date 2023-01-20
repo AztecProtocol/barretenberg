@@ -54,6 +54,8 @@ template <typename FF> class ArithmeticRelation : public Relation<FF> {
     void add_full_relation_value_contribution(auto& purported_evaluations, FF& full_honk_relation_value)
     {
 
+        info("full_honk_relation_value: ", full_honk_relation_value);
+
         auto w_l = purported_evaluations[MULTIVARIATE::W_L];
         auto w_r = purported_evaluations[MULTIVARIATE::W_R];
         auto w_o = purported_evaluations[MULTIVARIATE::W_O];
@@ -62,6 +64,15 @@ template <typename FF> class ArithmeticRelation : public Relation<FF> {
         auto q_r = purported_evaluations[MULTIVARIATE::Q_R];
         auto q_o = purported_evaluations[MULTIVARIATE::Q_O];
         auto q_c = purported_evaluations[MULTIVARIATE::Q_C];
+
+        info("w_l: ", w_l);
+        info("w_r: ", w_r);
+        info("w_o: ", w_o);
+        info("q_m: ", q_m);
+        info("q_l: ", q_l);
+        info("q_r: ", q_r);
+        info("q_o: ", q_o);
+        info("q_c: ", q_c);
 
         full_honk_relation_value += w_l * (q_m * w_r + q_l);
         full_honk_relation_value += q_r * w_r;

@@ -287,8 +287,21 @@ TEST(StandarHonkComposer, TwoGates)
     uint32_t w_r_2_idx = composer.circuit_constructor.add_variable(2);
     uint32_t w_o_2_idx = composer.circuit_constructor.add_variable(4);
 
-    composer.create_add_gate({ w_l_1_idx, w_r_1_idx, w_o_1_idx, 1, 1, -1, 0 });
-    composer.create_mul_gate({ w_l_2_idx, w_r_2_idx, w_o_2_idx, 1, -1, 0 });
+    // composer.create_add_gate({ w_l_1_idx, w_r_1_idx, w_o_1_idx, 1, 1, -1, 0 });
+    // composer.create_mul_gate({ w_l_2_idx, w_r_2_idx, w_o_2_idx, 1, -1, 0 });
+    composer.create_add_gate({ composer.circuit_constructor.zero_idx,
+                               composer.circuit_constructor.zero_idx,
+                               composer.circuit_constructor.zero_idx,
+                               0,
+                               0,
+                               0,
+                               0 });
+    composer.create_mul_gate({ composer.circuit_constructor.zero_idx,
+                               composer.circuit_constructor.zero_idx,
+                               composer.circuit_constructor.zero_idx,
+                               0,
+                               0,
+                               0 });
 
     auto prover = composer.create_unrolled_prover();
     auto verifier = composer.create_unrolled_verifier();
