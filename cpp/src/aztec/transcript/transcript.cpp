@@ -15,14 +15,14 @@
 
 namespace transcript {
 
-// Set to 1 to enable debug logging.
+// Set to 1 to enable some logging.
 #if 0
-template <typename... Args> inline void debug(Args... args)
+template <typename... Args> inline void info_togglable(Args... args)
 {
     info("Transcript: ", args...);
 }
 #else
-template <typename... Args> inline void debug(Args...) {}
+template <typename... Args> inline void info_togglable(Args...) {}
 #endif
 
 std::array<uint8_t, Keccak256Hasher::PRNG_OUTPUT_SIZE> Keccak256Hasher::hash(std::vector<uint8_t> const& buffer)
@@ -154,7 +154,7 @@ void Transcript::mock_inputs_prior_to_challenge(const std::string& challenge_in,
 
 void Transcript::add_element(const std::string& element_name, const std::vector<uint8_t>& buffer)
 {
-    debug("add_element(): ", element_name, "\n");
+    info_togglable("add_element(): ", element_name, "\n");
     elements.insert({ element_name, buffer });
 }
 
@@ -164,7 +164,7 @@ void Transcript::add_element(const std::string& element_name, const std::vector<
  *
  * @param challenge_name Challenge name (needed to check if the challenge fits the current round).
  * */
-void Transcript::apply_fiat_shamir(const std::string& challenge_name /*, const bool debug*/)
+void Transcript::apply_fiat_shamir(const std::string& challenge_name /*, const bool info_togglable*/)
 {
     // For reference, see the relevant manifest, which is defined in
     // plonk/composer/[standard/turbo/ultra]_composer.hpp
@@ -172,9 +172,9 @@ void Transcript::apply_fiat_shamir(const std::string& challenge_name /*, const b
     // TODO(Cody): Coupling: this line insists that the challenges in the manifest
     // are encountered in the order that matches the order of the proof construction functions.
     // Future architecture should specify this data in a single place (?).
-    debug("apply_fiat_shamir(): challenge name match:");
-    debug("\t challenge_name in: ", challenge_name);
-    debug("\t challenge_name expected: ", manifest.get_round_manifest(current_round).challenge, "\n");
+    info_togglable("apply_fiat_shamir(): challenge name match:");
+    info_togglable("\t challenge_name in: ", challenge_name);
+    info_togglable("\t challenge_name expected: ", manifest.get_round_manifest(current_round).challenge, "\n");
     ASSERT(challenge_name == manifest.get_round_manifest(current_round).challenge);
 
     const size_t num_challenges = manifest.get_round_manifest(current_round).num_challenges;
@@ -191,9 +191,9 @@ void Transcript::apply_fiat_shamir(const std::string& challenge_name /*, const b
         buffer.insert(buffer.end(), current_challenge.data.begin(), current_challenge.data.end());
     }
     for (auto manifest_element : manifest.get_round_manifest(current_round).elements) {
-        debug("apply_fiat_shamir(): manifest element name match:");
-        debug("\t element name: ", manifest_element.name);
-        debug(
+        info_togglable("apply_fiat_shamir(): manifest element name match:");
+        info_togglable("\t element name: ", manifest_element.name);
+        info_togglable(
             "\t element exists and is unique: ", (elements.count(manifest_element.name) == 1) ? "true" : "false", "\n");
         ASSERT(elements.count(manifest_element.name) == 1);
 
@@ -309,7 +309,7 @@ void Transcript::apply_fiat_shamir(const std::string& challenge_name /*, const b
 std::array<uint8_t, Transcript::PRNG_OUTPUT_SIZE> Transcript::get_challenge(const std::string& challenge_name,
                                                                             const size_t idx) const
 {
-    debug("get_challenge(): ", challenge_name, "\n");
+    info_togglable("get_challenge(): ", challenge_name, "\n");
     ASSERT(challenges.count(challenge_name) == 1);
     return challenges.at(challenge_name)[idx].data;
 }
