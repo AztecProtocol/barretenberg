@@ -47,13 +47,13 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         // First round
         // This populates multivariates.folded_polynomials.
         FF relation_separator_challenge = FF::serialize_from_buffer(transcript.get_challenge("alpha").begin());
-
         auto round_univariate = round.compute_univariate(multivariates.full_polynomials, relation_separator_challenge);
         transcript.add_element("univariate_" + std::to_string(multivariates.multivariate_d),
                                round_univariate.to_buffer());
         std::string challenge_label = "u_" + std::to_string(multivariates.multivariate_d);
         transcript.apply_fiat_shamir(challenge_label);
         FF round_challenge = FF::serialize_from_buffer(transcript.get_challenge(challenge_label).begin());
+        info("univariate_" + std::to_string(multivariates.multivariate_d) + ": ", round_univariate);
         multivariates.fold(multivariates.full_polynomials, multivariates.multivariate_n, round_challenge);
         round.round_size = round.round_size >> 1;
 
@@ -62,6 +62,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         for (size_t round_idx = 1; round_idx < multivariates.multivariate_d; round_idx++) {
             // Write the round univariate to the transcript
             round_univariate = round.compute_univariate(multivariates.folded_polynomials, relation_separator_challenge);
+            info("univariate_" + std::to_string(multivariates.multivariate_d - round_idx) + ": ", round_univariate);
             transcript.add_element("univariate_" + std::to_string(multivariates.multivariate_d - round_idx),
                                    round_univariate.to_buffer());
             challenge_label = "u_" + std::to_string(multivariates.multivariate_d - round_idx);
@@ -152,7 +153,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         FF full_honk_relation_purported_value =
             round.compute_full_honk_relation_purported_value(purported_evaluations, relation_separator_challenge);
         info("full_honk_relation_purported_value: ", full_honk_relation_purported_value);
-        // verified = verified && (full_honk_relation_purported_value == round.target_total_sum);
+        verified = verified && (full_honk_relation_purported_value == round.target_total_sum);
         return verified;
     };
 };

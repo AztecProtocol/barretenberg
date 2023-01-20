@@ -110,18 +110,29 @@ void Transcript::compute_challenge_map()
  *
  * @details This is useful for testing individual parts of the prover since all
  * transcript interactions must occur sequentially according to the manifest.
+ * Function allows for optional input of circuit_size since this is needed in some
+ * test cases, e.g. instantiating a Sumcheck from a mocked transcript.
  *
  * @param challenge_in
  */
-void Transcript::mock_inputs_prior_to_challenge(const std::string& challenge_in)
+void Transcript::mock_inputs_prior_to_challenge(const std::string& challenge_in, size_t circuit_size)
 {
+    (void)circuit_size;
     // Perform operations only up to fiat-shamir of challenge_in
     for (auto& manifest : manifest.get_round_manifests()) // loop over RoundManifests
     {
         for (auto& entry : manifest.elements) // loop over ManifestEntrys
         {
-            std::vector<uint8_t> buffer(entry.num_bytes, 1); // arbitrary buffer of 1's
-            add_element(entry.name, buffer);
+            if (entry.name == "circuit_size") {
+                add_element("circuit_size",
+                            { static_cast<uint8_t>(circuit_size >> 24),
+                              static_cast<uint8_t>(circuit_size >> 16),
+                              static_cast<uint8_t>(circuit_size >> 8),
+                              static_cast<uint8_t>(circuit_size) });
+            } else {
+                std::vector<uint8_t> buffer(entry.num_bytes, 1); // arbitrary buffer of 1's
+                add_element(entry.name, buffer);
+            }
         }
         if (challenge_in == manifest.challenge) {
             break;

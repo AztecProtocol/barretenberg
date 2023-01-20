@@ -233,6 +233,8 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     bool check_sum(Univariate<FF, MAX_RELATION_LENGTH>& univariate)
     {
         FF total_sum = univariate.value_at(0) + univariate.value_at(1);
+        info("total sum: ", total_sum);
+        info("target total sum: ", target_total_sum);
         bool sumcheck_round_failed = (target_total_sum != total_sum);
         round_failed = round_failed || sumcheck_round_failed;
         return !sumcheck_round_failed;
