@@ -254,4 +254,84 @@ TEST(Sumcheck, ProverAndVerifier)
     ASSERT_TRUE(verified);
 }
 
+TEST(Sumcheck, ProverAndVerifierLonger)
+{
+    const size_t num_polys(proving_system::StandardArithmetization::NUM_POLYNOMIALS);
+    const size_t multivariate_d(2);
+    const size_t multivariate_n(1 << multivariate_d);
+    // const size_t max_relation_length = 5;
+
+    const size_t max_relation_length = 4 /* honk::StandardHonk::MAX_RELATION_LENGTH */;
+    constexpr size_t fr_size = 32;
+
+    using Multivariates = ::Multivariates<FF, num_polys>;
+
+    // clang-format off
+    std::array<FF, multivariate_n> w_l            = { 0,  1,  0, 0 };
+    std::array<FF, multivariate_n> w_r            = { 0,  1,  0, 0 };
+    std::array<FF, multivariate_n> w_o            = { 0,  2,  0, 0 };
+    std::array<FF, multivariate_n> z_perm         = { 0,  0,  0, 0 };       // NOTE: Not set up to be valid.
+    std::array<FF, multivariate_n> z_perm_shift   = { 0,  0,  0, 0 }; // NOTE: Not set up to be valid.
+    std::array<FF, multivariate_n> q_m            = { 0,  0,  0, 0 };
+    std::array<FF, multivariate_n> q_l            = { 1,  1,  0, 0 };
+    std::array<FF, multivariate_n> q_r            = { 0,  1,  0, 0 };
+    std::array<FF, multivariate_n> q_o            = { 0, -1,  0, 0 };
+    std::array<FF, multivariate_n> q_c            = { 0,  0,  0, 0 };
+    std::array<FF, multivariate_n> sigma_1        = { 0,  0,  0, 0 };        // NOTE: Not set up to be valid.
+    std::array<FF, multivariate_n> sigma_2        = { 0,  0,  0, 0 };        // NOTE: Not set up to be valid.
+    std::array<FF, multivariate_n> sigma_3        = { 0,  0,  0, 0 };        // NOTE: Not set up to be valid.
+    std::array<FF, multivariate_n> id_1           = { 0,  0,  0, 0 };           // NOTE: Not set up to be valid.
+    std::array<FF, multivariate_n> id_2           = { 0,  0,  0, 0 };           // NOTE: Not set up to be valid.
+    std::array<FF, multivariate_n> id_3           = { 0,  0,  0, 0 };           // NOTE: Not set up to be valid.
+    std::array<FF, multivariate_n> lagrange_first = { 0,  0,  0, 0 }; // NOTE: Not set up to be valid.
+    std::array<FF, multivariate_n> lagrange_last  = { 0,  0,  0, 0 };  // NOTE: Not set up to be valid.
+    // clang-format on
+
+    // These will be owned outside the class, probably by the composer.
+    std::array<std::span<FF>, Multivariates::num> full_polynomials = {
+        w_l,     w_r,  w_o,  z_perm, z_perm_shift,   q_m,          q_l, q_r, q_o, q_c, sigma_1, sigma_2,
+        sigma_3, id_1, id_2, id_3,   lagrange_first, lagrange_last
+    };
+
+    std::vector<transcript::Manifest::RoundManifest> manifest_rounds;
+    manifest_rounds.emplace_back(transcript::Manifest::RoundManifest({ /* this is a noop */ },
+                                                                     /* challenge_name = */ "alpha",
+                                                                     /* num_challenges_in = */ 1));
+    for (size_t i = 0; i < multivariate_d; i++) {
+        auto label = std::to_string(multivariate_d - i);
+        manifest_rounds.emplace_back(transcript::Manifest::RoundManifest({ { .name = "univariate_" + label,
+                                                                             .num_bytes = fr_size * max_relation_length,
+                                                                             .derived_by_verifier = false } },
+                                                                         /* challenge_name = */ "u_" + label,
+                                                                         /* num_challenges_in = */ 1));
+    }
+
+    auto transcript = Transcript(transcript::Manifest(manifest_rounds));
+    auto mock_transcript = [](Transcript& transcript) {
+        transcript.add_element("circuit_size", FF(1 << multivariate_d).to_buffer());
+    };
+
+    mock_transcript(transcript);
+    transcript.apply_fiat_shamir("alpha");
+
+    auto multivariates = Multivariates(full_polynomials);
+
+    auto sumcheck_prover = Sumcheck<Multivariates,
+                                    Transcript,
+                                    ArithmeticRelation/* ,
+                                    GrandProductComputationRelation,
+                                    GrandProductInitializationRelation */>(multivariates, transcript);
+
+    sumcheck_prover.execute_prover();
+
+    auto sumcheck_verifier = Sumcheck<Multivariates,
+                                      Transcript,
+                                      ArithmeticRelation/* ,
+                                      GrandProductComputationRelation,
+                                      GrandProductInitializationRelation */>(transcript);
+
+    bool verified = sumcheck_verifier.execute_verifier();
+    ASSERT_TRUE(verified);
+}
+
 } // namespace test_sumcheck_round

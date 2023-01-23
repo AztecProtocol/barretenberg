@@ -79,9 +79,6 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
         // FF's default constructor may not initialize to zero (e.g., barretenberg::fr), hence we can't rely on
         // aggregate initialization of the evaluations array.
         std::fill(evaluations.begin(), evaluations.end(), FF::zero());
-        for (auto& thing : evaluations) {
-            info("printing evaluation: ", thing);
-        }
     };
 
     // IMPROVEMENT(Cody): This is kind of ugly. There should be a one-liner with folding
@@ -215,6 +212,8 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
                                                                                 relation_separator_challenge);
 
         // info("result after batching: ", result);
+        std::get<0>(univariate_accumulators) = Univariate<FF, 4>({ FF(0), FF(0), FF(0), FF(0) });
+
         return result;
     }
 

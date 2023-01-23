@@ -56,7 +56,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         std::string challenge_label = "u_" + std::to_string(multivariates.multivariate_d);
         transcript.apply_fiat_shamir(challenge_label);
         FF round_challenge = FF::serialize_from_buffer(transcript.get_challenge(challenge_label).begin());
-        info("u_" + std::to_string(multivariates.multivariate_d) + ": ", alpha);
+        info("u_" + std::to_string(multivariates.multivariate_d) + ": ", round_challenge);
         multivariates.fold(multivariates.full_polynomials, multivariates.multivariate_n, round_challenge);
         round.round_size = round.round_size >> 1;
 
@@ -65,13 +65,13 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         for (size_t round_idx = 1; round_idx < multivariates.multivariate_d; round_idx++) {
             // Write the round univariate to the transcript
             round_univariate = round.compute_univariate(multivariates.folded_polynomials, alpha);
-            // info("univariate_" + std::to_string(multivariates.multivariate_d - round_idx) + ": ", round_univariate);
+            info("univariate_" + std::to_string(multivariates.multivariate_d - round_idx) + ": ", round_univariate);
             transcript.add_element("univariate_" + std::to_string(multivariates.multivariate_d - round_idx),
                                    round_univariate.to_buffer());
             challenge_label = "u_" + std::to_string(multivariates.multivariate_d - round_idx);
             transcript.apply_fiat_shamir(challenge_label);
             FF round_challenge = FF::serialize_from_buffer(transcript.get_challenge(challenge_label).begin());
-            // info("u_" + std::to_string(multivariates.multivariate_d - round_idx) + ": ", round_challenge);
+            info("u_" + std::to_string(multivariates.multivariate_d - round_idx) + ": ", round_challenge);
             multivariates.fold(multivariates.folded_polynomials, round.round_size, round_challenge);
             round.round_size = round.round_size >> 1;
         }
@@ -151,6 +151,8 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         FF full_honk_relation_purported_value =
             round.compute_full_honk_relation_purported_value(purported_evaluations, alpha);
         info("full_honk_relation_purported_value: ", full_honk_relation_purported_value);
+        info("expected value: ", round.target_total_sum);
+
         verified = verified && (full_honk_relation_purported_value == round.target_total_sum);
         return verified;
     };

@@ -19,6 +19,10 @@ template <class Fr, size_t _length> class Univariate {
 
     Univariate() = default;
 
+    // template <size_t full_length>
+    // explicit Univariate(Univariate<Fr, full_length>& univariate_in)
+    //     : evaluations(std::array<Fr, _length>(univariate_in.evaluations.begin(), _length)){};
+
     explicit Univariate(std::array<Fr, _length> evaluations)
         : evaluations(evaluations)
     {}

@@ -95,24 +95,28 @@ TYPED_TEST(MultivariatesTests, FoldTwoRoundsSpecial)
     const size_t multivariate_d(2);
     const size_t multivariate_n(1 << multivariate_d);
 
-    FF v00 = 1;
-    FF v01 = 2;
-    FF v10 = 3;
-    FF v11 = 4;
+    FF v00 = 0;
+    FF v01 = 1;
+    FF v10 = 0;
+    FF v11 = 0;
 
     std::array<FF, 4> f0 = { v00, v01, v10, v11 };
 
     auto full_polynomials = std::array<std::span<FF>, 1>({ f0 });
     auto multivariates = Multivariates<FF, num_polys>(full_polynomials);
 
-    FF round_challenge_2 = 1;
+    // FF round_challenge_2 = 1;
+    // 0x04410c360230a295b13d66d8d6c1a24c44311531e39c64f66c7301b49d85a46c
+    FF round_challenge_2 = { 0x6c7301b49d85a46c, 0x44311531e39c64f6, 0xb13d66d8d6c1a24c, 0x04410c360230a295 };
+    round_challenge_2.self_to_montgomery_form();
+    info("CHECKING ROUND CHALLENGE: ", round_challenge_2);
     FF expected_lo = v00 * (FF(1) - round_challenge_2) + v01 * round_challenge_2; // 2
     FF expected_hi = v11 * round_challenge_2 + v10 * (FF(1) - round_challenge_2); // 4
 
     multivariates.fold(multivariates.full_polynomials, multivariate_n, round_challenge_2);
 
-    EXPECT_EQ(multivariates.folded_polynomials[0][0], expected_lo);
-    EXPECT_EQ(multivariates.folded_polynomials[0][1], expected_hi);
+    EXPECT_EQ(multivariates.folded_polynomials[0][0], round_challenge_2);
+    EXPECT_EQ(multivariates.folded_polynomials[0][1], FF(0));
 
     FF round_challenge_1 = 2;
     FF expected_val = expected_lo * (FF(1) - round_challenge_1) + expected_hi * round_challenge_1; // 6

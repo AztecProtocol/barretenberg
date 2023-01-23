@@ -23,7 +23,7 @@ template <typename FF> class ArithmeticRelation : public Relation<FF> {
 
     // OPTIMIZATION?: Karatsuba in general, at least for some degrees?
     //       See https://hackmd.io/xGLuj6biSsCjzQnYN-pEiA?both
-    void add_edge_contribution(auto extended_edges, Univariate<FF, RELATION_LENGTH>& evals)
+    void add_edge_contribution(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals)
     {
         auto w_l = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_L]);
         auto w_r = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_R]);
@@ -34,17 +34,17 @@ template <typename FF> class ArithmeticRelation : public Relation<FF> {
         auto q_o = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_O]);
         auto q_c = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_C]);
 
-        // info("w_l: ", w_l);
-        // info("w_r: ", w_r);
-        // info("w_o: ", w_o);
+        info("w_l: ", w_l);
+        info("w_r: ", w_r);
+        info("w_o: ", w_o);
         // FF something = {0x43e1f593efffffff, 0x2833e84879b97091, 0xb85045b68181585d, 0x30644e72e131a029 };
         // something.self_to_montgomery_form();
         // info("SOMETHING: ", -something);
         info("q_m: ", q_m);
         info("q_l: ", q_l);
         info("q_r: ", q_r);
-        // info("q_o: ", q_o);
-        // info("q_c: ", q_c);
+        info("q_o: ", q_o);
+        info("q_c: ", q_c);
 
         evals += w_l * ((q_m * w_r) + q_l);
         evals += q_r * w_r;

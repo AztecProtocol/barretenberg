@@ -288,47 +288,34 @@ TEST(StandardHonkComposer, TwoGates)
 {
     auto composer = StandardHonkComposer();
     info(composer.circuit_constructor.n);
-    info("value prior to adding gates: ", composer.circuit_constructor.selectors[0][0]);
-    info("value prior to adding gates: ", composer.circuit_constructor.selectors[1][0]);
-    info("value prior to adding gates: ", composer.circuit_constructor.selectors[2][0]);
-    info("value prior to adding gates: ", composer.circuit_constructor.selectors[3][0]);
-    info("value prior to adding gates: ", composer.circuit_constructor.selectors[4][0]);
-    // // 1 + 1 - 2 = 0
-    // uint32_t w_l_1_idx = composer.circuit_constructor.add_variable(1);
-    // uint32_t w_r_1_idx = composer.circuit_constructor.add_variable(1);
-    // uint32_t w_o_1_idx = composer.circuit_constructor.add_variable(2);
-    composer.create_add_gate({ composer.circuit_constructor.zero_idx,
-                               composer.circuit_constructor.zero_idx,
-                               composer.circuit_constructor.zero_idx,
-                               0,
-                               0,
-                               0,
-                               0 });
+
+    // 1 + 1 - 2 = 0
+    uint32_t w_l_1_idx = composer.circuit_constructor.add_variable(1);
+    uint32_t w_r_1_idx = composer.circuit_constructor.add_variable(0);
+    uint32_t w_o_1_idx = composer.circuit_constructor.add_variable(0);
+    composer.create_add_gate({ w_l_1_idx, w_r_1_idx, w_o_1_idx, 0, 0, 0, 0 });
 
     // // 2 * 2 - 4 = 0
     // uint32_t w_l_2_idx = composer.circuit_constructor.add_variable(2);
     // uint32_t w_r_2_idx = composer.circuit_constructor.add_variable(2);
     // uint32_t w_o_2_idx = composer.circuit_constructor.add_variable(4);
-    composer.create_mul_gate({ composer.circuit_constructor.zero_idx,
-                               composer.circuit_constructor.zero_idx,
-                               composer.circuit_constructor.zero_idx,
-                               0,
-                               0,
-                               0 });
-
-    info("value prior to creating prover: ", composer.circuit_constructor.selectors[0][0]);
-    info("value prior to creating prover: ", composer.circuit_constructor.selectors[1][0]);
-    info("value prior to creating prover: ", composer.circuit_constructor.selectors[2][0]);
-    info("value prior to creating prover: ", composer.circuit_constructor.selectors[3][0]);
-    info("value prior to creating prover: ", composer.circuit_constructor.selectors[4][0]);
+    // composer.create_mul_gate({ w_l_2_idx,
+    //                            w_r_2_idx,
+    //                            w_o_2_idx,
+    //                            1,
+    //                            -1,
+    //                            0 });
 
     auto prover = composer.create_unrolled_prover();
 
-    info("value prior to proof construction: ", prover.proving_key->polynomial_cache.get("q_m_lagrange")[0]);
     info("value prior to proof construction: ", prover.proving_key->polynomial_cache.get("q_1_lagrange")[0]);
-    info("value prior to proof construction: ", prover.proving_key->polynomial_cache.get("q_2_lagrange")[0]);
-    info("value prior to proof construction: ", prover.proving_key->polynomial_cache.get("q_3_lagrange")[0]);
-    info("value prior to proof construction: ", prover.proving_key->polynomial_cache.get("q_c_lagrange")[0]);
+    info("value prior to proof construction: ", prover.proving_key->polynomial_cache.get("q_1_lagrange")[1]);
+    info("value prior to proof construction: ", prover.proving_key->polynomial_cache.get("q_1_lagrange")[2]);
+    info("value prior to proof construction: ", prover.proving_key->polynomial_cache.get("q_1_lagrange")[3]);
+    info("value prior to proof construction: ", prover.proving_key->polynomial_cache.get("q_1_lagrange")[4]);
+    info("value prior to proof construction: ", prover.proving_key->polynomial_cache.get("q_1_lagrange")[5]);
+    info("value prior to proof construction: ", prover.proving_key->polynomial_cache.get("q_1_lagrange")[6]);
+    info("value prior to proof construction: ", prover.proving_key->polynomial_cache.get("q_1_lagrange")[7]);
     waffle::plonk_proof proof = prover.construct_proof();
     auto verifier = composer.create_unrolled_verifier();
     bool verified = verifier.verify_proof(proof);

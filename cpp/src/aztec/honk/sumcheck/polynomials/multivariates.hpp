@@ -84,7 +84,7 @@ template <class FF_, size_t num_polys> class Multivariates {
         , full_polynomials(full_polynomials)
     {
         for (auto& polynomial : folded_polynomials) {
-            polynomial.resize(multivariate_n >> 1);
+            polynomial.resize(multivariate_n);
         }
     };
 
@@ -184,9 +184,11 @@ template <class FF_, size_t num_polys> class Multivariates {
      *
      * @param challenge
      */
-    void fold(auto& polynomials, size_t round_size, const FF& round_challenge)
+    void fold(std::array<std::span<FF>, num_polys>& polynomials, size_t round_size, FF round_challenge)
     {
         // after the first round, operate in place on folded_polynomials
+        info("ROUND CHALLENGE INSIDE: ", round_challenge);
+        info(round_size);
         for (size_t j = 0; j < num_polys; ++j) {
             for (size_t i = 0; i < round_size; i += 2) {
                 FF new_value = polynomials[j][i] + round_challenge * (polynomials[j][i + 1] - polynomials[j][i]);
@@ -195,6 +197,33 @@ template <class FF_, size_t num_polys> class Multivariates {
             }
         }
     };
+
+    void fold(std::array<std::vector<FF>, num_polys>& polynomials, size_t round_size, FF round_challenge)
+    {
+        // after the first round, operate in place on folded_polynomials
+        info("ROUND CHALLENGE INSIDE: ", round_challenge);
+        info(round_size);
+        for (size_t j = 0; j < num_polys; ++j) {
+            for (size_t i = 0; i < round_size; i += 2) {
+                FF new_value = polynomials[j][i] + round_challenge * (polynomials[j][i + 1] - polynomials[j][i]);
+                // info(new_value);
+                folded_polynomials[j][i >> 1] = new_value;
+            }
+        }
+    };
+
+    //     void fold_later(size_t round_size, const FF& round_challenge)
+    // {
+    //     // after the first round, operate in place on folded_polynomials
+    //     for (size_t j = 0; j < num_polys; ++j) {
+    //         for (size_t i = 0; i < round_size; i += 2) {
+    //             FF new_value = folded_polynomials[j][i] + round_challenge * (folded_polynomials[j][i + 1] -
+    //             folded_polynomials[j][i]);
+    //             // info(new_value);
+    //             folded_polynomials[j][i >> 1] = new_value;
+    //         }
+    //     }
+    // };
 };
 } // namespace sumcheck
 } // namespace honk
