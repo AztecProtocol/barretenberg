@@ -191,7 +191,7 @@ TEST(Sumcheck, ProverAndVerifier)
     std::array<FF, 2> w_l = { 1, 2 };
     std::array<FF, 2> w_r = { 1, 2 };
     std::array<FF, 2> w_o = { 2, 4 };
-    std::array<FF, 2> z_perm = { 1, 2 };       // NOTE: Not set up to be valid.
+    std::array<FF, 2> z_perm = { 1, 0 };       // NOTE: Not set up to be valid.
     std::array<FF, 2> z_perm_shift = { 0, 1 }; // NOTE: Not set up to be valid.
     std::array<FF, 2> q_m = { 0, 1 };
     std::array<FF, 2> q_l = { 1, 0 };
@@ -204,7 +204,7 @@ TEST(Sumcheck, ProverAndVerifier)
     std::array<FF, 2> id_1 = { 1, 2 };           // NOTE: Not set up to be valid.
     std::array<FF, 2> id_2 = { 1, 2 };           // NOTE: Not set up to be valid.
     std::array<FF, 2> id_3 = { 1, 2 };           // NOTE: Not set up to be valid.
-    std::array<FF, 2> lagrange_first = { 1, 2 }; // NOTE: Not set up to be valid.
+    std::array<FF, 2> lagrange_first = { 1, 0 }; // NOTE: Not set up to be valid.
     std::array<FF, 2> lagrange_last = { 1, 2 };  // NOTE: Not set up to be valid.
 
     // These will be owned outside the class, probably by the composer.
@@ -238,17 +238,17 @@ TEST(Sumcheck, ProverAndVerifier)
 
     auto sumcheck_prover = Sumcheck<Multivariates,
                                     Transcript,
-                                    ArithmeticRelation/* ,
-                                    GrandProductComputationRelation,
-                                    GrandProductInitializationRelation */>(multivariates, transcript);
+                                    ArithmeticRelation,
+                                    // GrandProductComputationRelation,
+                                    GrandProductInitializationRelation>(multivariates, transcript);
 
     sumcheck_prover.execute_prover();
 
     auto sumcheck_verifier = Sumcheck<Multivariates,
                                       Transcript,
-                                      ArithmeticRelation/* ,
-                                      GrandProductComputationRelation,
-                                      GrandProductInitializationRelation */>(transcript);
+                                      ArithmeticRelation,
+                                      //   GrandProductComputationRelation,
+                                      GrandProductInitializationRelation>(transcript);
 
     bool verified = sumcheck_verifier.execute_verifier();
     ASSERT_TRUE(verified);
