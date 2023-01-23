@@ -38,7 +38,7 @@ template <typename Composer> class keccak {
     // word size of hash lane
     static constexpr size_t WORD_SIZE = 8;
 
-    // block size. We only support keccak256 with a 1088-bit rate!
+    // block size. We only support keccak256 with a 1088-bit rate! This is what Ethereum uses
     static constexpr size_t BLOCK_SIZE = (1600 - BITS * 2) / WORD_SIZE;
 
     // how many limbs fit into a block (17)
@@ -54,22 +54,70 @@ template <typename Composer> class keccak {
     };
 
     // Rotation offsets, y vertically, x horizontally: r[y * 5 + x]
-    static constexpr std::array<size_t, 25> ROTATIONS = { 0,  1,  62, 28, 27, 36, 44, 6,  55, 20, 3,  10, 43,
-                                                          25, 39, 41, 45, 15, 21, 8,  18, 2,  61, 56, 14 };
+    static constexpr std::array<size_t, 25> ROTATIONS = {
+        0, 1, 62, 28, 27, 36, 44, 6, 55, 20, 3, 10, 43, 25, 39, 41, 45, 15, 21, 8, 18, 2, 61, 56, 14,
+    };
 
+    /**
+     * @brief Convert a binary integer into a base11 integer
+     *
+     * Input  = \sum_{i=0}^63 b_i * 2^i
+     * Output = \sum_{i=0}^63 b_i * 11^i
+     *
+     * @param input
+     * @return constexpr uint256_t sparse form of input
+     */
     static constexpr uint256_t convert_to_sparse(uint256_t input)
     {
-        uint256_t output = 0;
-        uint256_t scale_factor = 1;
+        std::array<uint64_t, 64> out_bits;
+        size_t count = 0;
         while (input > 0) {
-            uint256_t slice = input & 1;
-            output += (slice * scale_factor);
-            scale_factor *= 11;
+            uint64_t bit = static_cast<uint64_t>(input & 1);
+            out_bits[count++] = bit;
             input = input >> 1;
+        }
+        uint256_t output = 0;
+        for (size_t i = 0; i < count; ++i) {
+            output *= BASE;
+            output += out_bits[count - 1 - i];
         }
         return output;
     };
 
+    /**
+     * @brief Normalize a base-11 integer where each base value can be > 1
+     *
+     * Input  = \sum_{i=0}^63 b_i * 11^i
+     * Output = \sum_{i=0}^63 (b_i & 1) * 11^i
+     *
+     * (XORs are evaluated by adding integers in sparse-form and normalizing. Even = 0, Odd = 1)
+     *
+     * @param input
+     * @return constexpr uint256_t
+     */
+    static constexpr uint256_t normalize_sparse(uint256_t input)
+    {
+        std::array<uint64_t, 64> out_bits;
+        size_t count = 0;
+        while (input > 0) {
+            const auto [quotient, slice] = input.divmod(BASE);
+            uint64_t bit = static_cast<uint64_t>(slice) & 1;
+            out_bits[count++] = bit;
+            input = quotient;
+        }
+        uint256_t out;
+        for (size_t i = 0; i < count; ++i) {
+            out *= BASE;
+            out += out_bits[count - 1 - i];
+        }
+        return out;
+    }
+
+    /**
+     * @brief Get the sparse round constants object
+     *
+     * @return constexpr std::array<uint256_t, 24>
+     */
     static constexpr std::array<uint256_t, 24> get_sparse_round_constants()
     {
         std::array<uint256_t, 24> output;
@@ -78,7 +126,6 @@ template <typename Composer> class keccak {
         }
         return output;
     }
-
     static constexpr std::array<uint256_t, 24> SPARSE_RC = get_sparse_round_constants();
 
     /**
@@ -100,6 +147,7 @@ template <typename Composer> class keccak {
         }
         return result;
     }
+    static constexpr uint256_t CHI_OFFSET = get_chi_offset();
 
     struct keccak_state {
         std::array<field_ct, 25> state;
@@ -108,6 +156,7 @@ template <typename Composer> class keccak {
         Composer* context;
     };
 
+    template <size_t lane_index> static field_t<Composer> normalize_and_rotate(const field_ct& limb, field_ct& msb);
     static void compute_twisted_state(keccak_state& internal);
     static void theta(keccak_state& state);
     static void rho(keccak_state& state);
@@ -120,6 +169,17 @@ template <typename Composer> class keccak {
     static byte_array_ct sponge_squeeze(keccak_state& internal);
     static void keccakf1600(keccak_state& state);
     static byte_array_ct hash(byte_array_ct& input);
+
+    static std::vector<uint8_t> hash_native(const std::vector<uint8_t>& data)
+    {
+        auto hash_result = ethash_keccak256(&data[0], data.size());
+
+        std::vector<uint8_t> output;
+        output.resize(32);
+
+        memcpy((void*)&output[0], (void*)&hash_result.word64s[0], 32);
+        return output;
+    }
 };
 
 extern template class keccak<waffle::UltraComposer>;

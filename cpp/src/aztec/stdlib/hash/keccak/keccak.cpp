@@ -7,6 +7,167 @@ namespace plonk {
 namespace stdlib {
 
 /**
+ * @brief Normalize a base-11 limb and left-rotate by keccak::ROTATIONS[lane_index] bits.
+ *        This method also extracts the most significant bit of the normalised rotated limb.
+ *        Used in the RHO and IOTA rounds and in `sponge_absorb`.
+ *
+ * Normalize process:
+ *  Input v = \sum_{i=0}^63 b_i * 11^i , where b is in range [0, 1, 2]
+ *  Output  = \sum_{i=0}^63 (b_i & 1) * 11^i (i.e. even values go to 0)
+ *
+ * Implementation is via a sequence of lookup tables
+ *
+ * @tparam lane_index What keccak lane are we working on?
+ * @param limb Input limb we want to normalize and rotate
+ * @param msb (return parameter) The most significant bit of the normalized and rotated limb
+ * @return field_t<Composer> The normalized and rotated output
+ */
+template <typename Composer>
+template <size_t lane_index>
+field_t<Composer> keccak<Composer>::normalize_and_rotate(const field_ct& limb, field_ct& msb)
+{
+    // left_bits = the number of bits that wrap around 11^64 (left_bits)
+    constexpr size_t left_bits = ROTATIONS[lane_index];
+
+    // right_bits = the number of bits that don't wrap
+    constexpr size_t right_bits = 64 - ROTATIONS[lane_index];
+
+    // TODO read from same source as plookup table code
+    constexpr size_t max_bits_per_table = plookup::keccak_tables::Rho<>::MAXIMUM_MULTITABLE_BITS;
+
+    // compute the number of lookups required for our left and right bit slices
+    constexpr size_t num_left_tables = left_bits / max_bits_per_table + (left_bits % max_bits_per_table > 0 ? 1 : 0);
+    constexpr size_t num_right_tables = right_bits / max_bits_per_table + (right_bits % max_bits_per_table > 0 ? 1 : 0);
+
+    // get the numerical value of the left and right bit slices
+    // (lookup table input values derived from left / right)
+    uint256_t input = limb.get_value();
+    constexpr uint256_t slice_divisor = BASE.pow(right_bits);
+    const uint256_t left = input / slice_divisor;
+    const uint256_t right = input - (left * slice_divisor);
+
+    // compute the normalized values for the left and right bit slices
+    // (lookup table output values derived from left_normalised / right_normalized)
+    uint256_t left_normalized = normalize_sparse(left);
+    uint256_t right_normalized = normalize_sparse(right);
+
+    /**
+     * manually construct the ReadData object required to generate plookup gate constraints.
+     * To explain in more detail: the input integer can be represented via two the bit slices [A, B]
+     * (A = left, B = right)
+     * To simplify let's assume A, B both are '16 bit' integers represented as: A = A1.11^8 + A0, B = B1.11^8 + B0
+     * Let's define A' = normalize(A), B' = normalize(B)
+     * We want our lookup gate wire values to look like the following:
+     *
+     * | Row | C0                                       | C1             | C2        |
+     * | --- | -----------------------------------------| -------------- | --------- |
+     * |  0  | A1.11^24 + A0.11^16 + B1.11^8  + B0      | B1'.11^8 + B0' | B0'.msb() |
+     * |  1  |            A1.11^16 + A0.11^8  + B1      |            B1' | B1'.msb() |
+     * |  2  |                       A1.11^8  + A0      | A1'.11^8 + A0' | A0'.msb() |
+     * |  3  |                                  A1      |            A1' | A1'.msb() |
+     *
+     * The plookup table keys + values are derived via the expression:
+     *
+     * C1[i] + C1[i+1].q1[i] = LOOKUP[C0[i] + C0[i+1].q0[i]]
+     *
+     * (the same applies for C2, however q2[i] = 0 for all rows)
+     *
+     * The plookup coefficients for the rows treat Column0 as a single accumulating sum,
+     * but Column1 is a pair of accumulating sums.
+     * In the above example, the q coefficient value are:
+     *
+     * | Row | Q1   | Q2   | Q3 |
+     * | --- | ---- | ---- | -- |
+     * |  0  | 11^8 | 11^8 | 0  |
+     * |  1  | 11^8 | 0    | 0  |
+     * |  2  | 11^8 | 11^8 | 0  |
+     * |  3  | 0    | 0    | 0  |
+     *
+     * stdlib::plookup cannot derive witnesses in the above pattern without a substantial rewrite,
+     * so we do it manually in this method!
+     **/
+    plookup::ReadData<barretenberg::fr> lookup;
+
+    // compute plookup witness values for a given slice
+    // (same lambda can be used to compute witnesses for left and right slices)
+    auto compute_lookup_witnesses_for_limb = [&]<size_t limb_bits, size_t num_lookups>(uint256_t& normalized) {
+        // (use a constexpr loop to make some pow and div operations compile-time)
+        barretenberg::constexpr_for<0, num_lookups, 1>([&]<size_t i> {
+            constexpr size_t num_bits_processed = i * max_bits_per_table;
+
+            // How many bits can this slice contain?
+            // We want to implicitly range-constrain `normalized < 11^{limb_bits}`,
+            // which means potentially using a lookup table that is not of size 11^{max_bits_per_table}
+            // for the most-significant slice
+            constexpr size_t bit_slice = (num_bits_processed + max_bits_per_table > limb_bits)
+                                             ? limb_bits % max_bits_per_table
+                                             : max_bits_per_table;
+
+            // current column values are tracked via 'input' and 'normalized'
+            lookup[ColumnIdx::C1].push_back(input);
+            lookup[ColumnIdx::C2].push_back(normalized);
+
+            constexpr uint64_t divisor = numeric::pow64(static_cast<uint64_t>(BASE), bit_slice);
+            constexpr uint64_t msb_divisor = divisor / static_cast<uint64_t>(BASE);
+
+            // compute the value of the most significant bit of this slice and store in C3
+            const auto [normalized_quotient, normalized_slice] = normalized.divmod(divisor);
+
+            // 256-bit divisions are expensive! cast to u64s when we don't need the extra bits
+            const uint64_t normalized_msb = (static_cast<uint64_t>(normalized_slice) / msb_divisor);
+            lookup[ColumnIdx::C3].push_back(normalized_msb);
+
+            // We need to provide a key/value object for this lookup in order for the Composer
+            // to compute the plookup sorted list commitment
+            const auto [input_quotient, input_slice] = input.divmod(divisor);
+            lookup.key_entries.push_back(
+                { { static_cast<uint64_t>(input_slice), 0 }, { normalized_slice, normalized_msb } });
+
+            // reduce the input and output by 11^{bit_slice}
+            input = input_quotient;
+            normalized = normalized_quotient;
+        });
+    };
+
+    // template lambda syntax is a little funky.
+    // Need to explicitly write `.template operator()` (instead of just `()`).
+    // Otherwise compiler cannot distinguish between `>` symbol referring to closing the template parameter list,
+    // OR `>` being a greater-than operator :/
+    compute_lookup_witnesses_for_limb.template operator()<right_bits, num_right_tables>(right_normalized);
+    compute_lookup_witnesses_for_limb.template operator()<left_bits, num_left_tables>(left_normalized);
+
+    // Call composer method to create plookup constraints.
+    // The MultiTable table index can be derived from `lane_idx`
+    // Each lane_idx has a different rotation amount, which changes sizes of left/right slices
+    // and therefore the selector constants required (i.e. the Q1, Q2, Q3 values in the earlier example)
+    const auto accumulator_witnesses = limb.context->create_gates_from_plookup_accumulators(
+        (plookup::MultiTableId)((size_t)KECCAK_NORMALIZE_AND_ROTATE + lane_index),
+        lookup,
+        limb.normalize().get_witness_index());
+
+    // extract the most significant bit of the normalized output from the final lookup entry in column C3
+    msb = field_ct::from_witness_index(limb.get_context(),
+                                       accumulator_witnesses[ColumnIdx::C3][num_left_tables + num_right_tables - 1]);
+
+    // Extract the witness that maps to the normalized right slice
+    const field_t<Composer> right_output =
+        field_t<Composer>::from_witness_index(limb.get_context(), accumulator_witnesses[ColumnIdx::C2][0]);
+
+    if (num_left_tables == 0) {
+        // if the left slice size is 0 bits (i.e. no rotation), return `right_output`
+        return right_output;
+    } else {
+        // Extract the normalized left slice
+        const field_t<Composer> left_output = field_t<Composer>::from_witness_index(
+            limb.get_context(), accumulator_witnesses[ColumnIdx::C2][num_right_tables]);
+
+        // Stitch the right/left slices together to create our rotated output
+        constexpr uint256_t shift = BASE.pow(ROTATIONS[lane_index]);
+        return (left_output + right_output * shift);
+    }
+}
+
+/**
  * @brief Compute twisted representation of hash lane
  *
  * The THETA round requires computation of XOR(A, ROTL(B, 1))
@@ -73,6 +234,8 @@ template <typename Composer> void keccak<Composer>::compute_twisted_state(keccak
  * The output of the XOR operation exists in bit-slices 1, ..., 63
  * (which can be extracted by removing the least and most significant slices of the output)
  * This is MUCH cheaper than the extra range constraints required for a naive left-rotation
+ *
+ * Total cost of theta = 20.5 gates per 5 lanes + 25 = 127.5 per round
  */
 template <typename Composer> void keccak<Composer>::theta(keccak_state& internal)
 {
@@ -104,9 +267,8 @@ template <typename Composer> void keccak<Composer>::theta(keccak_state& internal
      */
     for (size_t i = 0; i < 5; ++i) {
         const auto non_shifted_equivalent = (C[(i + 4) % 5]);
-        const auto shifted_equivalent = C[(i + 1) % 5] * 11;
-        // TODO need normalize??
-        D[i] = (non_shifted_equivalent + shifted_equivalent).normalize();
+        const auto shifted_equivalent = C[(i + 1) % 5] * BASE;
+        D[i] = (non_shifted_equivalent + shifted_equivalent);
     }
 
     /**
@@ -119,22 +281,17 @@ template <typename Composer> void keccak<Composer>::theta(keccak_state& internal
      * to prevent our base from overflowing when we XOR D into internal.state
      *
      * 1. create sliced_D witness, plus lo and hi slices
-     * 2. validate D = lo + (sliced_D * 11) + (hi * 11^65)
+     * 2. validate D == lo + (sliced_D * 11) + (hi * 11^65)
      * 3. feed sliced_D into KECCAK_THETA_OUTPUT lookup table
-     * 4. validate most significant lookup for sliced_D is < 11^4
      *
-     * (point 4 is required because KECCAK_THETA_OUTPUT is a sequence of 13 5-bit lookups)
-     * i.e. can support a maximum input value of 11^65 - 1
-     *      and we need to ensure that `sliced_D < 11^64`
-     *
-     * N.B. we could improve efficiency by using more complex, larger lookup tables
-     * i.e. special lookup tables that remove the least and most significant bits of D
+     * KECCAK_THETA_OUTPUT currently splices its input into 16 4-bit slices (in base 11 i.e. from 0 to 11^4 - 1)
+     * This ensures that sliced_D is correctly range constrained to be < 11^64
      */
     static constexpr uint256_t divisor = BASE.pow(64);
     static constexpr uint256_t multiplicand = BASE.pow(65);
     for (size_t i = 0; i < 5; ++i) {
         uint256_t D_native = D[i].get_value();
-        const auto [D_quotient, lo_native] = D_native.divmod(11);
+        const auto [D_quotient, lo_native] = D_native.divmod(BASE);
         const uint256_t hi_native = D_quotient / divisor;
         const uint256_t mid_native = D_quotient - hi_native * divisor;
 
@@ -142,29 +299,42 @@ template <typename Composer> void keccak<Composer>::theta(keccak_state& internal
         field_ct mid(witness_ct(internal.context, mid_native));
         field_ct lo(witness_ct(internal.context, lo_native));
 
-        // assert equal should cost 1 gate (mulitpliers are all constants)
+        // assert equal should cost 1 gate (multipliers are all constants)
         D[i].assert_equal((hi * multiplicand).add_two(mid * 11, lo));
-        internal.context->create_new_range_constraint(hi.get_witness_index(), 11);
-        internal.context->create_new_range_constraint(lo.get_witness_index(), 11);
-        D[i] = mid;
-    }
+        internal.context->create_new_range_constraint(hi.get_witness_index(), static_cast<uint64_t>(BASE));
+        internal.context->create_new_range_constraint(lo.get_witness_index(), static_cast<uint64_t>(BASE));
 
-    // Perform the lookup read from KECCAK_THETA_OUTPUT to normalize D
-    for (size_t i = 0; i < 5; ++i) {
-        const auto accumulators = plookup_read::get_lookup_accumulators(KECCAK_THETA_OUTPUT, D[i]);
-        D[i] = accumulators[ColumnIdx::C2][0];
+        // If number of bits in KECCAK_THETA_OUTPUT table does NOT cleanly divide 64,
+        // we need an additional range constraint to ensure that mid < 11^64
+        if constexpr (64 % plookup::keccak_tables::Theta::TABLE_BITS == 0) {
+            // N.B. we could optimize out 5 gates per round here but it's very fiddly...
+            // In previous section, D[i] = X + Y (non shifted equiv and shifted equiv)
+            // We also want to validate D[i] == hi' + mid' + lo (where hi', mid' are hi, mid scaled by constants)
+            // We *could* create a big addition gate to validate the previous logic w. following structure:
+            // | w1 | w2  | w3 | w4 |
+            // | -- | --- | -- | -- |
+            // | hi | mid | lo | X  |
+            // | P0 | P1  | P2 | Y  |
+            // To save a gate, we would need to place the wires for the first KECCAK_THETA_OUTPUT plookup gate
+            // at P0, P1, P2. This is fiddly composer logic that is circuit-width-dependent
+            // (this would save 120 gates per hash block... not worth making the code less readable for that)
+            D[i] = plookup_read::read_from_1_to_2_table(KECCAK_THETA_OUTPUT, mid);
+        } else {
+            const auto accumulators = plookup_read::get_lookup_accumulators(KECCAK_THETA_OUTPUT, D[i]);
+            D[i] = accumulators[ColumnIdx::C2][0];
 
-        // Ensure input to lookup is < 11^64,
-        // by validating most significant input slice is < 11^4
-        const field_ct most_significant_slice = accumulators[ColumnIdx::C1][accumulators[ColumnIdx::C1].size() - 1];
+            // Ensure input to lookup is < 11^64,
+            // by validating most significant input slice is < 11^{64 mod slice_bits}
+            const field_ct most_significant_slice = accumulators[ColumnIdx::C1][accumulators[ColumnIdx::C1].size() - 1];
 
-        // N.B. cheaper to validate (11^4 - slice < 2^14) as this
-        // prevents an extra range table from being created
-        constexpr uint256_t maximum = BASE.pow(4);
-        const field_ct target = -most_significant_slice + maximum;
-        ASSERT(((uint256_t(1) << Composer::DEFAULT_PLOOKUP_RANGE_BITNUM) - 1) > maximum);
-        target.create_range_constraint(Composer::DEFAULT_PLOOKUP_RANGE_BITNUM,
-                                       "input to KECCAK_THETA_OUTPUT too large!");
+            // N.B. cheaper to validate (11^{64 mod slice_bits} - slice < 2^14) as this
+            // prevents an extra range table from being created
+            constexpr uint256_t maximum = BASE.pow(64 % plookup::keccak_tables::Theta::TABLE_BITS);
+            const field_ct target = -most_significant_slice + maximum;
+            ASSERT(((uint256_t(1) << Composer::DEFAULT_PLOOKUP_RANGE_BITNUM) - 1) > maximum);
+            target.create_range_constraint(Composer::DEFAULT_PLOOKUP_RANGE_BITNUM,
+                                           "input to KECCAK_THETA_OUTPUT too large!");
+        }
     }
 
     // compute state[j * 5 + i] XOR D[i] in base-11 representation
@@ -189,124 +359,22 @@ template <typename Composer> void keccak<Composer>::theta(keccak_state& internal
  * 1. 'normalize' each limb so that each b_i value is 0 or 1
  * 2. left-rotate each limb as defined by the keccak `rotations` matrix
  *
- * The KECCAK_RHO_OUTPUT lookup table is used to normalize each limb.
- * Rotations are trickier.
- *
- * To efficiently rotate, we split each input limb into 'left' and 'right' components.
- * If input bits = [left, right], rotated bits = [right, left]
- * We then independently perform the KECCAK_RHO_OUTPUT lookup on the left and right input components.
- * This gives us implicit range checks for 'free' as part of the lookup protocol.
- *
- * Finally we stitch together the left, right lookup table outputs to produce our normalized rotated limb
+ * The KECCAK_RHO_OUTPUT lookup table is used for both. See `normalize_and_rotate` for more details
  *
  * COST PER LIMB...
- *     (1 gate) Validate (left * left_shift + right) equals input limb
- *     (6-7 gates) 6-7 11-bit lookups (splitting into left/right can add an extra lookup)
- *     (2.5 gates) Range-constraining the most significant lookup slice of the right component (see comments)
- *     (1 gate) Stitching together normalized output limb from lookup table outputs
+ *     8 gates for first lane (no rotation. Lookup table is 8-bits per slice = 8 lookups for 64 bits)
+ *     10 gates for other 24 lanes (lookup sequence is split into 6 8-bit slices and 2 slices that sum to 8 bits,
+ *     an addition gate is required to complete the rotation)
  *
- * Total costs are 10.5-11.5 gates per limb
+ * Total costs is 248 gates.
  *
- * N.B. Future efficiency improvements that are possible but a pain to implement:
- *      1. can increase efficiency by changing lookup table interface,
- *         to accomodate accumulations across multiple MultiTables :o
- *         (i.e. remove explicitly validating `left * left_shift + right = input limb`)
- *      2. create multiple RHO lookup tables of varying bit slices
- *         to remove range constraint on right-component lookup slice.
- *         This range check is needed because the lookup table is 11 bits.
- *         if the 'right' slice is not an even multiple of 11 bits we need
- *         a range check to validate Prover has not sneaked part of the 'left' witness into 'right'.
- *         For example, for a rotate-left by 5 bits, we have a 5-bit RHO lookup table for LEFT
- *         and 5 * 11-bit lookups + a 5-bit lookup for RIGHT.
- *         (would likely need to reduce max lookup table bits to 10 to accomodate increased number of tables)
- *         (I think this would add 1 lookup gate on average vs current, but remove the 2.5 gates from range check)
+ * N.B. Can reduce lookup costs by using larger lookup tables.
+ * Current algo is optimized for lookup tables where sum of all table sizes is < 2^64
  */
 template <typename Composer> void keccak<Composer>::rho(keccak_state& internal)
 {
-    // 1st rotation of rho is 0, treat separately
-
-    internal.state[0] = plookup_read::read_from_1_to_2_table(KECCAK_RHO_OUTPUT, internal.state[0]);
-
-    constexpr_for<1, 25, 1>([&]<size_t i>() {
-        // use a constexpr loop so that expensive uint256_t::pow method can be constexpr
-        constexpr size_t left_bits = ROTATIONS[i];
-        constexpr size_t right_bits = 64 - ROTATIONS[i];
-
-        // TODO make max_bits_per_table a constant in class header
-        constexpr size_t max_bits_per_table = 11;
-
-        constexpr size_t num_left_tables =
-            left_bits / max_bits_per_table + (left_bits % max_bits_per_table > 0 ? 1 : 0);
-        constexpr size_t num_right_tables =
-            right_bits / max_bits_per_table + (right_bits % max_bits_per_table > 0 ? 1 : 0);
-
-        // voila, a compile time constant!
-        constexpr uint256_t divisor = BASE.pow(right_bits);
-
-        uint256_t input = internal.state[i].get_value();
-        const auto [quotient, remainder] = input.divmod(divisor);
-        const field_ct left(witness_ct(internal.context, quotient));
-        const field_ct right(witness_ct(internal.context, remainder));
-
-        internal.state[i].assert_equal(left.madd(divisor, right));
-
-        field_ct rol_left = 0;
-        field_ct rol_right = 0;
-
-        if (num_left_tables > 0) {
-            rol_left = plookup_read::read_from_1_to_2_table(KECCAK_RHO_OUTPUT, left, num_left_tables);
-        }
-        if (num_right_tables > 0) {
-            const auto ror_accumulators =
-                plookup_read::get_lookup_accumulators(KECCAK_RHO_OUTPUT, right, 0, false, num_right_tables);
-            rol_right = ror_accumulators[ColumnIdx::C2][0];
-
-            /**
-             * validate the most significant slice < 11^{most significant slice bits}
-             * N.B. If we do this for the right slice I don't think we need to do it for the left
-             * as we can infer inductively it's correct...
-             *
-             * (the following reasoning is described in the binary basis for simplicity,
-             * but is also valid in base 11)
-             *
-             * we know (left << right_bits + right) = input
-             *
-             * we also know that input < 2^64
-             * We *want to validate that `left << right_bits` and `right` do not overlap
-             * i.e. (left << right_bits).bit[i] == 1 && (right.bit[i] == 1) == FALSE
-             *
-             * If we validate that `right < (2 << left_bits)`...
-             * The only way the two bitfields can overlap,
-             * is iff `left << right_bits` wraps mod p
-             *
-             * But `left` has been fed into a lookup table sequence
-             * which validates `left < (2 << num_left_tables)`
-             *
-             * i.e. left <<< p
-             **/
-            constexpr size_t most_significant_slice_bits = right_bits % 11;
-            if (num_left_tables > 0 && most_significant_slice_bits > 0) {
-                // if rotation == 0 we can implicitly rely on the fact that the input is already constraint to be < 2^64
-                // if right_bits % 11 == 0 the RHO lookup table
-                // will correctly range constrain the slice without additional constraints
-                const field_ct ror_right_most_significant_slice = ror_accumulators[ColumnIdx::C1][num_right_tables - 1];
-
-                constexpr uint256_t maximum = BASE.pow(most_significant_slice_bits);
-
-                const field_ct should_be_greater_than_zero =
-                    (field_ct(maximum) - ror_right_most_significant_slice).normalize();
-                // check (maximum - slice) is < 2^(log2(maximum) + 1)
-                // should be sufficient iff maximum < sqrt(p)
-                constexpr size_t maximum_msb = maximum.get_msb();
-                should_be_greater_than_zero.create_range_constraint(maximum_msb + 1,
-                                                                    "keccak rho. rotated slice too large");
-            }
-        }
-        const uint256_t multiplicand = BASE.pow(left_bits);
-
-        // todo need normalize?
-        internal.state[i] = rol_right.madd(multiplicand, rol_left).normalize();
-    });
+    constexpr_for<0, 25, 1>(
+        [&]<size_t i>() { internal.state[i] = normalize_and_rotate<i>(internal.state[i], internal.state_msb[i]); });
 }
 
 /**
@@ -356,6 +424,7 @@ template <typename Composer> void keccak<Composer>::pi(keccak_state& internal)
  */
 template <typename Composer> void keccak<Composer>::chi(keccak_state& internal)
 {
+    // (cost = 12 * 25 = 300?)
     auto& state = internal.state;
 
     for (size_t y = 0; y < 5; ++y) {
@@ -366,7 +435,7 @@ template <typename Composer> void keccak<Composer>::chi(keccak_state& internal)
             const auto C = state[y * 5 + ((x + 2) % 5)];
 
             // vv should cost 1 gate
-            lane_outputs[x] = (A + A + get_chi_offset()).add_two(-B, C);
+            lane_outputs[x] = (A + A + CHI_OFFSET).add_two(-B, C);
         }
         for (size_t x = 0; x < 5; ++x) {
             // Normalize lane outputs and assign to internal.state
@@ -388,12 +457,10 @@ template <typename Composer> void keccak<Composer>::chi(keccak_state& internal)
  */
 template <typename Composer> void keccak<Composer>::iota(keccak_state& internal, size_t round)
 {
-    const uint256_t base11_operand = SPARSE_RC[round];
-    const field_ct xor_result = internal.state[0] + base11_operand;
+    const field_ct xor_result = internal.state[0] + SPARSE_RC[round];
 
-    auto accumulators = plookup_read::get_lookup_accumulators(KECCAK_RHO_OUTPUT, xor_result);
-    internal.state[0] = accumulators[ColumnIdx::C2][0];
-    internal.state_msb[0] = accumulators[ColumnIdx::C3][accumulators[ColumnIdx::C3].size() - 1];
+    // normalize lane value so that we don't overflow our base11 modulus boundary in the next round
+    internal.state[0] = normalize_and_rotate<0>(xor_result, internal.state_msb[0]);
 
     // No need to add constraints to compute twisted repr if this is the last round
     if (round != 23) {
@@ -419,7 +486,6 @@ void keccak<Composer>::sponge_absorb(keccak_state& internal,
 {
     const size_t l = input_buffer.size();
 
-    // todo make these static class members
     const size_t num_blocks = l / (BLOCK_SIZE / 8);
 
     for (size_t i = 0; i < num_blocks; ++i) {
@@ -427,10 +493,6 @@ void keccak<Composer>::sponge_absorb(keccak_state& internal,
             for (size_t j = 0; j < LIMBS_PER_BLOCK; ++j) {
                 internal.state[j] = input_buffer[j];
                 internal.state_msb[j] = msb_buffer[j];
-                // // TODO FORMAT_INPUT table should add lsb into column C3
-                // constexpr uint256_t divisor = BASE.pow(63);
-                // uint256_t native = uint256_t(internal.state[j].get_value()) / divisor;
-                // internal.state_msb[j] = field_ct(witness_ct(internal.context, native));
             }
             for (size_t j = LIMBS_PER_BLOCK; j < 25; ++j) {
                 internal.state[j] = witness_ct::create_constant_witness(internal.context, 0);
@@ -438,10 +500,9 @@ void keccak<Composer>::sponge_absorb(keccak_state& internal,
             }
         } else {
             for (size_t j = 0; j < LIMBS_PER_BLOCK; ++j) {
-                internal.state[j] += input_buffer[i * BLOCK_SIZE + j];
-                auto accumulators = plookup_read::get_lookup_accumulators(KECCAK_RHO_OUTPUT, internal.state[j]);
-                internal.state[j] = accumulators[ColumnIdx::C2][0];
-                internal.state_msb[j] = accumulators[ColumnIdx::C3][accumulators[ColumnIdx::C3].size() - 1];
+                internal.state[j] += input_buffer[i * LIMBS_PER_BLOCK + j];
+
+                internal.state[j] = normalize_and_rotate<0>(internal.state[j], internal.state_msb[j]);
             }
         }
 
@@ -476,8 +537,15 @@ template <typename Composer> stdlib::byte_array<Composer> keccak<Composer>::hash
 {
     auto ctx = input.get_context();
 
-    ASSERT(ctx != nullptr);
-    // TODO HANDLE CONSTANT INPUTS
+    if (ctx == nullptr) {
+        // if buffer is constant compute hash and return w/o creating constraints
+        byte_array_ct output(nullptr, 32);
+        const std::vector<uint8_t> result = hash_native(input.get_value());
+        for (size_t i = 0; i < 32; ++i) {
+            output.set_byte(i, result[i]);
+        }
+        return output;
+    }
 
     const size_t input_size = input.size();
 
