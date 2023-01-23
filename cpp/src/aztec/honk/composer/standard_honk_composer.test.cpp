@@ -1,10 +1,13 @@
 #include "standard_honk_composer.hpp"
+#include "common/assert.hpp"
 #include "numeric/uint256/uint256.hpp"
 #include "plonk/proof_system/types/polynomial_manifest.hpp"
 #include <cstdint>
 #include <honk/proof_system/prover.hpp>
 #include <honk/sumcheck/polynomials/multivariates.hpp>
 #include <gtest/gtest.h>
+
+#pragma GCC diagnostic ignored "-Wunused-variable"
 
 using namespace honk;
 
@@ -281,19 +284,51 @@ TEST(standard_honk_composer, test_verification_key_creation)
     EXPECT_EQ(verification_key->permutation_selectors.size(), composer.program_width * 2);
 }
 
-TEST(StandarHonkComposer, BaseCase)
+TEST(StandardHonkComposer, TwoGates)
 {
     auto composer = StandardHonkComposer();
-    fr a = fr::one();
-    composer.circuit_constructor.add_public_variable(a);
+
+    // 1 + 1 - 2 = 0
+    uint32_t w_l_1_idx = composer.circuit_constructor.add_variable(1);
+    uint32_t w_r_1_idx = composer.circuit_constructor.add_variable(1);
+    uint32_t w_o_1_idx = composer.circuit_constructor.add_variable(2);
+    composer.create_add_gate({ composer.circuit_constructor.zero_idx,
+                               composer.circuit_constructor.zero_idx,
+                               composer.circuit_constructor.zero_idx,
+                               0,
+                               0,
+                               0,
+                               0 });
+
+    // 2 * 2 - 4 = 0
+    uint32_t w_l_2_idx = composer.circuit_constructor.add_variable(2);
+    uint32_t w_r_2_idx = composer.circuit_constructor.add_variable(2);
+    uint32_t w_o_2_idx = composer.circuit_constructor.add_variable(4);
+    composer.create_mul_gate({ composer.circuit_constructor.zero_idx,
+                               composer.circuit_constructor.zero_idx,
+                               composer.circuit_constructor.zero_idx,
+                               0,
+                               0,
+                               0 });
 
     auto prover = composer.create_unrolled_prover();
-    // waffle::Verifier verifier = composer.create_verifier();
-    // auto multivariates = honk::sumcheck::Multivariates<fr, waffle::STANDARD_HONK_MANIFEST_SIZE>(prover.proving_key);
-    // (void)multivariates;
     waffle::plonk_proof proof = prover.construct_proof();
-
-    // bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
-    // EXPECT_EQ(result, true);
+    auto verifier = composer.create_unrolled_verifier();
+    bool verified = verifier.verify_proof(proof);
+    ASSERT_TRUE(verified);
 }
+
+TEST(StandardHonkComposer, BaseCase)
+{
+    auto composer = StandardHonkComposer();
+    fr a = 1;
+    composer.circuit_constructor.add_variable(a);
+
+    auto prover = composer.create_unrolled_prover();
+    waffle::plonk_proof proof = prover.construct_proof();
+    auto verifier = composer.create_unrolled_verifier();
+    bool verified = verifier.verify_proof(proof);
+    ASSERT_TRUE(verified);
+}
+
 } // namespace test_standard_honk_composer

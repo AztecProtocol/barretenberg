@@ -4,6 +4,8 @@
 #include <gtest/gtest.h>
 #include <numeric/random/engine.hpp>
 
+#pragma GCC diagnostic ignored "-Wunused-variable"
+
 using namespace honk::sumcheck;
 namespace test_sumcheck_polynomials {
 
@@ -149,8 +151,63 @@ TYPED_TEST(MultivariatesTests, FoldTwoRoundsGeneric)
     FF round_challenge_1 = FF::random_element();
     FF expected_val = expected_lo * (FF(1) - round_challenge_1) + expected_hi * round_challenge_1;
 
-    info(expected_val);
+    // info(expected_val);
     multivariates.fold(multivariates.folded_polynomials, multivariate_n >> 1, round_challenge_1);
     EXPECT_EQ(multivariates.folded_polynomials[0][0], expected_val);
+}
+
+TYPED_TEST(MultivariatesTests, FoldSimpleFull)
+{
+    MULTIVARIATES_TESTS_TYPE_ALIASES
+
+    const size_t num_polys(17);
+    const size_t multivariate_d(1);
+    const size_t multivariate_n(1 << multivariate_d);
+
+    std::array<FF, 2> w_l = { 1, 2 };
+    std::array<FF, 2> w_r = { 1, 2 };
+    std::array<FF, 2> w_o = { 1, 2 };
+    std::array<FF, 2> z_perm = { 1, 2 };
+    std::array<FF, 2> z_perm_shift = { 0, 1 };
+    std::array<FF, 2> q_m = { 1, 2 };
+    std::array<FF, 2> q_l = { 1, 2 };
+    std::array<FF, 2> q_r = { 1, 2 };
+    std::array<FF, 2> q_o = { 1, 2 };
+    std::array<FF, 2> q_c = { 1, 2 };
+    std::array<FF, 2> sigma_1 = { 1, 2 };
+    std::array<FF, 2> sigma_2 = { 1, 2 };
+    std::array<FF, 2> sigma_3 = { 1, 2 };
+    std::array<FF, 2> id_1 = { 1, 2 };
+    std::array<FF, 2> id_2 = { 1, 2 };
+    std::array<FF, 2> id_3 = { 1, 2 };
+    std::array<FF, 2> lagrange_1 = { 1, 2 };
+
+    // These will be owned outside the class, probably by the composer.
+    std::array<std::span<FF>, num_polys> full_polynomials = { w_l,     w_r,  w_o,  z_perm, z_perm_shift, q_m,
+                                                              q_l,     q_r,  q_o,  q_c,    sigma_1,      sigma_2,
+                                                              sigma_3, id_1, id_2, id_3,   lagrange_1 };
+    auto multivariates = Multivariates<FF, num_polys>(full_polynomials);
+
+    FF round_challenge_2 = 1;
+    std::vector<FF> expected_values;
+    for (auto& polynomial : full_polynomials) {
+        FF expected_lo =
+            polynomial[0] * (FF(1) - round_challenge_2) + polynomial[1] * round_challenge_2; // the second value, 2 or 1
+        expected_values.emplace_back(expected_lo);
+    }
+
+    multivariates.fold(multivariates.full_polynomials, multivariate_n, round_challenge_2);
+
+    for (size_t poly_idx = 0; poly_idx < num_polys; poly_idx++) {
+        EXPECT_EQ(multivariates.folded_polynomials[poly_idx][0], expected_values[poly_idx]);
+    }
+
+    // EXPECT_EQ(multivariates.folded_polynomials[0][1], expected_hi);
+
+    // FF round_challenge_1 = 2;
+    // FF expected_val = expected_lo * (FF(1) - round_challenge_1) + expected_hi * round_challenge_1; // 6
+
+    // multivariates.fold(multivariates.folded_polynomials, multivariate_n >> 1, round_challenge_1);
+    // EXPECT_EQ(multivariates.folded_polynomials[0][0], expected_val);
 }
 } // namespace test_sumcheck_polynomials

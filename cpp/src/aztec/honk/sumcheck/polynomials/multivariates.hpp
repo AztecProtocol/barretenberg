@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <span>
 #include <common/log.hpp>
+#include <common/serialize.hpp>
 
 namespace honk {
 namespace sumcheck {
@@ -74,8 +75,9 @@ template <class FF_, size_t num_polys> class Multivariates {
     std::array<std::vector<FF>, num_polys> folded_polynomials;
 
     Multivariates() = default;
+    // Multivariates& operator=(Multivariates& other) = default;
 
-    // TODO(Cody): static span extent below more efficient
+    // Note: this constructor is only for testing (?); in practice we use the constructor from a proving key.
     explicit Multivariates(std::array<std::span<FF>, num_polys> full_polynomials)
         : multivariate_n(full_polynomials[0].size())
         , multivariate_d(numeric::get_msb(multivariate_n))
@@ -96,24 +98,69 @@ template <class FF_, size_t num_polys> class Multivariates {
             std::string label(entry.polynomial_label);
             full_polynomials[poly_idx] = proving_key->polynomial_cache.get(label);
             ++poly_idx;
-            if (entry.requires_shifted_evaluation) {
-                full_polynomials[poly_idx] = proving_key->polynomial_cache.get(label).shifted();
-                ++poly_idx;
-            }
+            // if (entry.requires_shifted_evaluation) {
+            //     full_polynomials[poly_idx] = proving_key->polynomial_cache.get(label).shifted();
+            //     ++poly_idx;
+            // }
         }
+        info("FINAL VALUE OF poly_idx: ", poly_idx);
 
+        // info("full_polynomials[0][0]: ", full_polynomials[0][0]);
+        // info("full_polynomials[1][0]: ", full_polynomials[1][0]);
+        // info("full_polynomials[2][0]: ", full_polynomials[2][0]);
+        // info("full_polynomials[3][0]: ", full_polynomials[3][0]);
+        // info("full_polynomials[4][0]: ", full_polynomials[4][0]);
+        // info("full_polynomials[5][0]: ", full_polynomials[5][0]);
+        // info("full_polynomials[6][0]: ", full_polynomials[6][0]);
+        // info("full_polynomials[7][0]: ", full_polynomials[7][0]);
+        // info("full_polynomials[8][0]: ", full_polynomials[8][0]);
+        // info("full_polynomials[9][0]: ", full_polynomials[9][0]);
+        // info("full_polynomials[10][0]: ", full_polynomials[10][0]);
+        // info("full_polynomials[11][0]: ", full_polynomials[11][0]);
+        // info("full_polynomials[12][0]: ", full_polynomials[12][0]);
+        // info("full_polynomials[13][0]: ", full_polynomials[13][0]);
+        // info("full_polynomials[14][0]: ", full_polynomials[14][0]);
+        // info("full_polynomials[15][0]: ", full_polynomials[15][0]);
+        // info("full_polynomials[16][0]: ", full_polynomials[16][0]);
         for (auto& polynomial : folded_polynomials) {
+            polynomial.reserve(multivariate_n >> 1);
             polynomial.resize(multivariate_n >> 1);
         }
     }
 
+    // explicit Multivariates(transcript::StandardTranscript transcript)
+    //     : multivariate_n([](std::vector<uint8_t> buffer) {
+    //         return static_cast<size_t>(buffer[3]) + (static_cast<size_t>(buffer[2]) << 8) +
+    //                (static_cast<size_t>(buffer[1]) << 16) + (static_cast<size_t>(buffer[0]) << 24);
+    //     }(transcript.get_element("circuit_size")))
+    //     , multivariate_d(numeric::get_msb(multivariate_n))
+    // {}
+
+    // explicit Multivariates(const std::shared_ptr<waffle::proving_key>& proving_key)
+    //     : multivariate_n(proving_key->n)
+    //     , multivariate_d(proving_key->log_n)
+    // {
+    //     for (size_t i = 0; i < waffle::STANDARD_HONK_MANIFEST_SIZE; i++) {
+    //         auto label = proving_key->polynomial_manifest[i].polynomial_label;
+    //         info("i, label = ", i, ", ", label);
+    //         full_polynomials[i] = proving_key->polynomial_cache.get(std::string(label));
+    //     }
+    // }
+
     explicit Multivariates(transcript::StandardTranscript transcript)
-        : multivariate_n([](std::vector<uint8_t> buffer) {
-            return static_cast<size_t>(buffer[3]) + (static_cast<size_t>(buffer[2]) << 8) +
-                   (static_cast<size_t>(buffer[1]) << 16) + (static_cast<size_t>(buffer[0]) << 24);
+        // TODO(Cody): This is atrocious.
+        : multivariate_n([&](std::vector<uint8_t> buffer) {
+            return static_cast<size_t>(buffer[buffer.size() - 1]) +
+                   (static_cast<size_t>(buffer[buffer.size() - 2]) << 8) +
+                   (static_cast<size_t>(buffer[buffer.size() - 3]) << 16) +
+                   (static_cast<size_t>(buffer[buffer.size() - 4]) << 24);
         }(transcript.get_element("circuit_size")))
         , multivariate_d(numeric::get_msb(multivariate_n))
-    {}
+    {
+        // std::vector<uint8_t> buffer = transcript.get_element("circuit_size");
+        // multivariate_n = buffer[0] + (buffer[1] << 8) + (buffer[2] << 16) + (buffer[3] << 24);
+        // multivariate_d = numeric::get_msb(multivariate_n);
+    }
 
     // TODO(Cody): Rename. fold is not descriptive, and it's already in use in the Gemini context.
     //             Probably just call it partial_evaluation?
@@ -139,21 +186,11 @@ template <class FF_, size_t num_polys> class Multivariates {
         // after the first round, operate in place on folded_polynomials
         for (size_t j = 0; j < num_polys; ++j) {
             for (size_t i = 0; i < round_size; i += 2) {
-                folded_polynomials[j][i >> 1] =
-                    polynomials[j][i] + round_challenge * (polynomials[j][i + 1] - polynomials[j][i]);
+                FF new_value = polynomials[j][i] + round_challenge * (polynomials[j][i + 1] - polynomials[j][i]);
+                // info(new_value);
+                folded_polynomials[j][i >> 1] = new_value;
             }
         }
-    };
-
-    std::array<FF, num_polys> batch_evaluate()
-    {
-        // TODO(Cody): these just get extracted from the folded multivariates
-        // For now, at least initialize properly.
-        std::array<FF, num_polys> result;
-        for (auto& entry : result) {
-            entry = 1;
-        }
-        return result;
     };
 };
 } // namespace sumcheck

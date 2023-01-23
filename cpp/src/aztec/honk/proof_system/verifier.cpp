@@ -1,13 +1,23 @@
 #include <cmath>
 #include <common/throw_or_abort.hpp>
+#include <cstddef>
+#include <memory>
 #include <plonk/proof_system/constants.hpp>
 #include "./verifier.hpp"
 #include "../../plonk/proof_system/public_inputs/public_inputs.hpp"
+#include "ecc/curves/bn254/fr.hpp"
+#include "numeric/bitop/get_msb.hpp"
+#include "proof_system/polynomial_cache/polynomial_cache.hpp"
 #include <ecc/curves/bn254/fq12.hpp>
 #include <ecc/curves/bn254/pairing.hpp>
 #include <ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp>
 #include <polynomials/polynomial_arithmetic.hpp>
+#include <honk/composer/composer_helper/permutation_helper.hpp>
 #include <math.h>
+#include <string>
+#include <honk/utils/power_polynomial.hpp>
+#include <honk/sumcheck/relations/grand_product_computation_relation.hpp>
+#include <honk/sumcheck/relations/grand_product_initialization_relation.hpp>
 
 #pragma GCC diagnostic ignored "-Wunused-variable"
 
@@ -68,8 +78,6 @@ template <typename program_settings> Verifier<program_settings>& Verifier<progra
 */
 template <typename program_settings> bool Verifier<program_settings>::verify_proof(const waffle::plonk_proof& proof)
 {
-    // TODO(luke): TBD how 'd' gets set here and elsewhere
-    const size_t multivariate_d(1);
 
     const size_t num_polys = program_settings::num_polys;
     using FF = typename program_settings::fr;
@@ -77,6 +85,8 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     using Multivariates = Multivariates<FF, num_polys>;
 
     key->program_width = program_settings::program_width;
+
+    size_t log_n(numeric::get_msb(key->n));
 
     // Add the proof data to the transcript, according to the manifest. Also initialise the transcript's hash type
     // and challenge bytes.
@@ -101,21 +111,42 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     transcript.apply_fiat_shamir("eta");
     transcript.apply_fiat_shamir("beta");
     transcript.apply_fiat_shamir("alpha");
+    for (size_t idx = 0; idx < log_n; idx++) {
+        transcript.apply_fiat_shamir("u_" + std::to_string(log_n - idx));
+    }
 
-    // Compute some basic public polys like id(X), pow(X), and any required Lagrange polys
+    // // TODO(Cody): Compute some basic public polys like id(X), ~~pow(X)~~, and any required Lagrange polys
+    // std::vector<barretenberg::fr> u_vector_challenge;
+    // u_vector_challenge.resize(log_n);
+    // for (size_t idx = 1; idx <= log_n; idx++) {
+    //     const auto u_value =
+    //         barretenberg::fr::serialize_from_buffer(transcript.get_challenge("u_" + std::to_string(idx)).begin());
+    //     info("verifier u_" + std::to_string(idx) + ": ", u_value);
+    //     u_vector_challenge.emplace_back(u_value);
+    // };
+
+    // auto zeta_challenge = barretenberg::fr::serialize_from_buffer(transcript.get_challenge("alpha").begin());
+    // zeta_challenge = zeta_challenge * zeta_challenge; // zeta = alpha^2
+    // honk::power_polynomial::evaluate<barretenberg::fr>(zeta_challenge, u_vector_challenge);
 
     // Execute Sumcheck Verifier
-    auto sumcheck = Sumcheck<Multivariates, Transcript, ArithmeticRelation>(transcript);
-    // sumcheck.execute_verifier(); // Need to mock prover in tests for this to run
+    auto sumcheck = Sumcheck<Multivariates,
+                             Transcript,
+                             ArithmeticRelation/* ,
+                             GrandProductComputationRelation,
+                             GrandProductInitializationRelation */>(transcript);
+    bool result = sumcheck.execute_verifier(); // Need to mock prover in tests for this to run
 
     // Execute Gemini/Shplonk verification:
     // Gemini (reduce_verify()): Compute [Fold_{r}^(0)]_1, [Fold_{-r}^(0)]_1, Fold_{r}^(0)(r)
     // Shplonk (reduce_verify()): Compute simulated [Q_z]_1
 
-    // TODO: Do final pairing check
-    barretenberg::fq12 result = barretenberg::fq12::one();
+    // TODO(Cody): Do final pairing check
+    // barretenberg::fq12 result = barretenberg::fq12::one();
 
-    return (result == barretenberg::fq12::one());
+    // return (result == barretenberg::fq12::one());
+
+    return result;
 }
 
 template class Verifier<honk::standard_verifier_settings>;

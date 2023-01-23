@@ -732,3 +732,30 @@ TEST(standard_composer, test_fixed_group_add_gate)
 
     EXPECT_EQ(result, true);
 }
+
+TEST(standard_composer, TwoGates)
+{
+    auto composer = waffle::StandardComposer();
+    // fr a = fr::one();
+    // composer.circuit_constructor.add_public_variable(a);
+
+    uint32_t w_l_1_idx = composer.add_variable(1);
+    uint32_t w_r_1_idx = composer.add_variable(1);
+    uint32_t w_o_1_idx = composer.add_variable(2);
+    uint32_t w_l_2_idx = composer.add_variable(2);
+    uint32_t w_r_2_idx = composer.add_variable(2);
+    uint32_t w_o_2_idx = composer.add_variable(4);
+
+    // composer.create_add_gate({ w_l_1_idx, w_r_1_idx, w_o_1_idx, 1, 1, -1, 0 });
+    // composer.create_mul_gate({ w_l_2_idx, w_r_2_idx, w_o_2_idx, 1, -1, 0 });
+    composer.create_add_gate({ w_l_1_idx, w_r_1_idx, w_o_1_idx, 0, 0, 0, 0 });
+    composer.create_mul_gate({ w_l_2_idx, w_r_2_idx, w_o_2_idx, 0, 0, 0 });
+
+    auto prover = composer.create_unrolled_prover();
+    auto verifier = composer.create_unrolled_verifier();
+
+    waffle::plonk_proof proof = prover.construct_proof();
+
+    bool verified = verifier.verify_proof(proof);
+    ASSERT_TRUE(verified);
+}

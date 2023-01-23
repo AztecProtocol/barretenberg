@@ -128,6 +128,7 @@ void Transcript::compute_challenge_map()
  */
 void Transcript::mock_inputs_prior_to_challenge(const std::string& challenge_in, size_t circuit_size)
 {
+    (void)circuit_size;
     // Perform operations only up to fiat-shamir of challenge_in
     for (auto& manifest : manifest.get_round_manifests()) // loop over RoundManifests
     {
@@ -434,11 +435,11 @@ std::vector<uint8_t> Transcript::export_transcript() const
                 ASSERT(manifest_element.num_bytes == element_data.size());
             }
             if (!manifest_element.derived_by_verifier) {
-                // printf("writing element %s ", manifest_element.name.c_str());
-                // for (size_t j = 0; j < element_data.size(); ++j) {
-                //     printf("%x", element_data[j]);
-                // }
-                // printf("\n");
+                printf("writing element %s ", manifest_element.name.c_str());
+                for (size_t j = 0; j < element_data.size(); ++j) {
+                    printf("%x", element_data[j]);
+                }
+                printf("\n");
                 buffer.insert(buffer.end(), element_data.begin(), element_data.end());
             }
         }

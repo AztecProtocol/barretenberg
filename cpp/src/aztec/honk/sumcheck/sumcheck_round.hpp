@@ -63,7 +63,7 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     BarycentricData<FF, 2, MAX_RELATION_LENGTH> barycentric_2_to_max = BarycentricData<FF, 2, MAX_RELATION_LENGTH>();
 
     // Prover constructor
-    SumcheckRound(size_t initial_round_size, auto relations) // TOPO: want auto&& relations
+    SumcheckRound(size_t initial_round_size, auto relations) // TODO: want auto&& relations
         : round_size(initial_round_size)
         , relations(relations)
         , barycentric_utils(BarycentricData<FF, Relations<FF>::RELATION_LENGTH, MAX_RELATION_LENGTH>()...)
@@ -78,7 +78,10 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     {
         // FF's default constructor may not initialize to zero (e.g., barretenberg::fr), hence we can't rely on
         // aggregate initialization of the evaluations array.
-        std::fill(evaluations.begin(), evaluations.end(), 0);
+        std::fill(evaluations.begin(), evaluations.end(), FF::zero());
+        for (auto& thing : evaluations) {
+            info("printing evaluation: ", thing);
+        }
     };
 
     // IMPROVEMENT(Cody): This is kind of ugly. There should be a one-liner with folding
@@ -211,17 +214,19 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
         auto result = batch_over_relations<Univariate<FF, MAX_RELATION_LENGTH>>(univariate_accumulators,
                                                                                 relation_separator_challenge);
 
+        // info("result after batching: ", result);
         return result;
     }
 
-    FF compute_full_honk_relation_purported_value(std::vector<FF> purported_evaluations,
+    FF compute_full_honk_relation_purported_value(std::vector<FF>& purported_evaluations,
                                                   FF& relation_separator_challenge)
     {
+        // for (auto& thing : purported_evaluations) {info("PURPORTED_EVAL: ", thing);}
         accumulate_relation_evaluations<>(purported_evaluations);
 
         // IMPROVEMENT(Cody): Reuse functions from univariate_accumulators batching?
-        FF running_challenge(1);
-        FF output(0);
+        FF running_challenge = 1;
+        FF output = 0;
         for (auto& evals : evaluations) {
             output += evals * running_challenge;
             running_challenge *= relation_separator_challenge;
@@ -233,9 +238,11 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     bool check_sum(Univariate<FF, MAX_RELATION_LENGTH>& univariate)
     {
         FF total_sum = univariate.value_at(0) + univariate.value_at(1);
+        info("total sum: ", total_sum);
+        info("target total sum: ", target_total_sum);
         bool sumcheck_round_failed = (target_total_sum != total_sum);
         round_failed = round_failed || sumcheck_round_failed;
-        return sumcheck_round_failed;
+        return !sumcheck_round_failed;
     };
 
     FF compute_next_target_sum(Univariate<FF, MAX_RELATION_LENGTH>& univariate, FF& round_challenge)
