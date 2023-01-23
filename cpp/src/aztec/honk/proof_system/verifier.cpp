@@ -132,9 +132,9 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     // Execute Sumcheck Verifier
     auto sumcheck = Sumcheck<Multivariates,
                              Transcript,
-                             ArithmeticRelation/* ,
-                             GrandProductComputationRelation,
-                             GrandProductInitializationRelation */>(transcript);
+                             ArithmeticRelation,
+                             //  GrandProductComputationRelation,
+                             GrandProductInitializationRelation>(transcript);
     bool result = sumcheck.execute_verifier(); // Need to mock prover in tests for this to run
 
     // Execute Gemini/Shplonk verification:
