@@ -128,7 +128,7 @@ struct StandardHonk {
             //   { .name = "L_last_lagrange",       .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 17 },
             },
             /* challenge_name = */ "rho",
-            /* num_challenges_in = */ 11, /* TODO(Cody): magic number! Where should this be specified? */
+            /* num_challenges_in = */ 1, /* TODO(Cody): magic number! Where should this be specified? */
             /* map_challenges_in = */ true));
 
         // // Rounds 5 + num_sumcheck_rounds

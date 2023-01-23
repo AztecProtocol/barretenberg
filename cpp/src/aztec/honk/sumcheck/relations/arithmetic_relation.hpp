@@ -37,13 +37,16 @@ template <typename FF> class ArithmeticRelation : public Relation<FF> {
         // info("w_l: ", w_l);
         // info("w_r: ", w_r);
         // info("w_o: ", w_o);
-        // info("q_m: ", q_m);
+        // FF something = {0x43e1f593efffffff, 0x2833e84879b97091, 0xb85045b68181585d, 0x30644e72e131a029 };
+        // something.self_to_montgomery_form();
+        // info("SOMETHING: ", -something);
+        info("q_m: ", q_m);
         info("q_l: ", q_l);
-        // info("q_r: ", q_r);
+        info("q_r: ", q_r);
         // info("q_o: ", q_o);
         // info("q_c: ", q_c);
 
-        evals += w_l * (q_m * w_r + q_l);
+        evals += w_l * ((q_m * w_r) + q_l);
         evals += q_r * w_r;
         evals += q_o * w_o;
         evals += q_c;

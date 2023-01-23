@@ -56,8 +56,9 @@ std::shared_ptr<waffle::proving_key> ComposerHelper<CircuitConstructor>::compute
             selector_values.emplace_back(fr::zero());
         }
 
-        // TODO: Now that we can't accomodate this, what do we do?
+        // // TODO(Cody): We used to use a nonzero value to avoid the zero selector case.
         // selector_values.emplace_back(i + 1);
+        selector_values.emplace_back(fr::zero());
 
         // Compute selector vector
         polynomial selector_poly_lagrange(subgroup_size);

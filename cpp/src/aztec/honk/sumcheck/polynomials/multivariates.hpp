@@ -98,10 +98,13 @@ template <class FF_, size_t num_polys> class Multivariates {
             std::string label(entry.polynomial_label);
             full_polynomials[poly_idx] = proving_key->polynomial_cache.get(label);
             ++poly_idx;
-            // if (entry.requires_shifted_evaluation) {
-            //     full_polynomials[poly_idx] = proving_key->polynomial_cache.get(label).shifted();
-            //     ++poly_idx;
-            // }
+            if (entry.requires_shifted_evaluation) {
+                // std::vector<FF> vec;
+                // for (size_t idx = 0; idx < proving_key->n; idx++) (vec.emplace_back(FF(0)));
+                // full_polynomials[poly_idx] = std::span<FF>(vec);
+                full_polynomials[poly_idx] = proving_key->polynomial_cache.get(label).shifted();
+                ++poly_idx;
+            }
         }
         info("FINAL VALUE OF poly_idx: ", poly_idx);
 

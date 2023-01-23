@@ -27,6 +27,8 @@ class StandardCircuitConstructor : public CircuitConstructorBase<STANDARD_HONK_W
         w_l.reserve(size_hint);
         w_r.reserve(size_hint);
         w_o.reserve(size_hint);
+        // To effieciently constrain wires to zero, we set the first value of w_1 to be 0, and use copy constraints for
+        // all future zero values.
         zero_idx = put_constant_variable(barretenberg::fr::zero());
     };
 

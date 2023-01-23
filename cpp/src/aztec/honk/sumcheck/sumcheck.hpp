@@ -146,11 +146,12 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         for (auto& eval : purported_evaluations) {
             info("purported evaluation: ", eval);
         }
+
         FF alpha = FF::serialize_from_buffer(transcript.get_challenge("alpha").begin());
         FF full_honk_relation_purported_value =
             round.compute_full_honk_relation_purported_value(purported_evaluations, alpha);
         info("full_honk_relation_purported_value: ", full_honk_relation_purported_value);
-        // verified = verified && (full_honk_relation_purported_value == round.target_total_sum);
+        verified = verified && (full_honk_relation_purported_value == round.target_total_sum);
         return verified;
     };
 };
