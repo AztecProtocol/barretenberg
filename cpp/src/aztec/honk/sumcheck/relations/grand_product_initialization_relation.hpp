@@ -24,11 +24,23 @@ template <typename FF> class GrandProductInitializationRelation : public Relatio
      */
     void add_edge_contribution(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals)
     {
+        add_edge_contribution_internal(extended_edges, evals);
+    };
+
+    void add_edge_contribution_internal(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals)
+    {
         auto z_perm_shift = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Z_PERM_SHIFT]);
         auto lagrange_last = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::LAGRANGE_LAST]);
 
         evals += lagrange_last * z_perm_shift;
-    };
+    }
+    template <typename T>
+    void add_edge_contribution_testing(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals, T challenges)
+    {
+        (void)challenges;
+
+        add_edge_contribution_internal(extended_edges, evals);
+    }
 
     void add_full_relation_value_contribution(auto& purported_evaluations, FF& full_honk_relation_value)
     {
