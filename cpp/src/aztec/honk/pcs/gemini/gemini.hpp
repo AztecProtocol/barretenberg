@@ -57,14 +57,14 @@ namespace honk::pcs::gemini {
  * @tparam Params CommitmentScheme parameters
  */
 template <typename Params> struct Proof {
-    /** @brief Commitments to folded polynomials (size = m-2)
+    /** @brief Commitments to folded polynomials (size = m-1)
      *
      * [ C₁, …,  Cₘ₋₁], where Cₗ = commit(Aₗ(X)) of size 2ᵐ⁻ˡ
      */
     std::vector<typename Params::Commitment> commitments;
 
     /**
-     * @brief Evaluations of batched and folded polynomials (size m-1)
+     * @brief Evaluations of batched and folded polynomials (size m)
      *
      * [A₀(-r) , ..., Aₘ₋₁(-r^{2ᵐ⁻¹})]
      */
@@ -320,7 +320,13 @@ template <typename Params> class MultilinearReductionScheme {
             transcript->add_element(label, evals[i].to_buffer());
         }
 
+        /*
+         * Construct the 'Proof' which consists of:
+         * The m-1 commitments [Fold^{l}], l = 1, ..., m-1
+         * The m evaluations a_0 = Fold_{-r}^(0)(-r), and a_l = Fold^(l)(-r^{2^l}), l = 1, ..., m-1
+         */
         Proof<Params> proof = { commitments, evals };
+
         /*
          * Compute new claims and add them to the output
          */

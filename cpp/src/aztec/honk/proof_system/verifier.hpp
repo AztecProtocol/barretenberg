@@ -8,6 +8,9 @@
 #include "../sumcheck/sumcheck.hpp"
 #include "../sumcheck/relations/arithmetic_relation.hpp"
 #include "proof_system/flavor/flavor.hpp"
+#include <honk/pcs/gemini/gemini.hpp>
+#include <honk/pcs/shplonk/shplonk_single.hpp>
+#include <honk/pcs/kzg/kzg.hpp>
 
 namespace honk {
 template <typename program_settings> class Verifier {

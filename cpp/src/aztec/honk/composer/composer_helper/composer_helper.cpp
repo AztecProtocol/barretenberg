@@ -103,8 +103,11 @@ std::shared_ptr<waffle::verification_key> ComposerHelper<CircuitConstructor>::co
             auto selector_poly_commitment = commitment_key.commit({ selector_poly_coefficients, proving_key->n });
             circuit_verification_key->constraint_selectors.insert(
                 { selector_commitment_label, selector_poly_commitment });
-
-        } else if (selector_poly_info.source == waffle::PolynomialSource::PERMUTATION) {
+            // TODO(luke): Adding commitments to polys with label OTHER to 'permutation_selectors' for now. In the
+            // future the Verifier should have a single std::map called 'commitments' and this will store, um.. all the
+            // commitments.
+        } else if (selector_poly_info.source == waffle::PolynomialSource::PERMUTATION ||
+                   selector_poly_info.source == waffle::PolynomialSource::OTHER) {
             // Fetch the permutation selector polynomial in its coefficient form.
             fr* selector_poly_coefficients;
             selector_poly_coefficients = proving_key->polynomial_cache.get(selector_poly_label).get_coefficients();

@@ -21,6 +21,7 @@
 namespace honk {
 
 using Fr = barretenberg::fr;
+using Commitment = barretenberg::g1::affine_element;
 using Polynomial = barretenberg::Polynomial<Fr>;
 
 /**
@@ -340,12 +341,11 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
         std::string label(entry.polynomial_label);
         std::string commitment_label(entry.commitment_label);
         auto evaluation = multivariate_evaluations[eval_idx++];
-        barretenberg::g1::affine_element commitment;
+        Commitment commitment;
         if (entry.source == waffle::WITNESS) {
-            commitment =
-                barretenberg::g1::affine_element::serialize_from_buffer(&transcript.get_element(commitment_label)[0]);
-        } else {                                       // SELECTOR, PERMUTATION, OTHER
-            commitment = barretenberg::g1::affine_one; // mock commitment
+            commitment = Commitment::serialize_from_buffer(&transcript.get_element(commitment_label)[0]);
+        } else {                            // SELECTOR, PERMUTATION, OTHER
+            commitment = Commitment::one(); // mock commitment
         }
         opening_claims.emplace_back(commitment, evaluation);
         multivariate_polynomials.emplace_back(&key->polynomial_cache.get(label));
@@ -414,7 +414,7 @@ template <typename settings> void Prover<settings>::execute_kzg_round()
     using KzgOutput = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>::Output;
     KzgOutput kzg_output = KZG::reduce_prove(commitment_key, shplonk_output.claim, shplonk_output.witness);
 
-    auto W_commitment = static_cast<barretenberg::g1::affine_element>(kzg_output.proof).to_buffer();
+    auto W_commitment = static_cast<Commitment>(kzg_output.proof).to_buffer();
 
     transcript.add_element("W", W_commitment);
 }

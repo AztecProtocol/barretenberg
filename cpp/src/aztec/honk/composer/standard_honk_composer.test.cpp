@@ -297,10 +297,10 @@ TEST(standard_honk_composer, test_verification_key_creation)
     }
     auto verification_key = composer.compute_verification_key();
     // There is nothing we can really check apart from the fact that constraint selectors and permutation selectors were
-    // committed to, we simply check that the verification key now containset he appropriate number of constraint and
+    // committed to, we simply check that the verification key now contains the appropriate number of constraint and
     // permutation selector commitments. This method should work with any future arithemtization
     EXPECT_EQ(verification_key->constraint_selectors.size(), composer.circuit_constructor.selectors.size());
-    EXPECT_EQ(verification_key->permutation_selectors.size(), composer.program_width * 2);
+    EXPECT_EQ(verification_key->permutation_selectors.size(), composer.program_width * 2 + 2);
 }
 
 TEST(StandardHonkComposer, BaseCase)

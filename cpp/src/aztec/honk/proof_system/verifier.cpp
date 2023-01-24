@@ -6,6 +6,8 @@
 #include "./verifier.hpp"
 #include "../../plonk/proof_system/public_inputs/public_inputs.hpp"
 #include "ecc/curves/bn254/fr.hpp"
+#include "honk/pcs/commitment_key.hpp"
+#include "honk/pcs/gemini/gemini.hpp"
 #include "numeric/bitop/get_msb.hpp"
 #include "proof_system/polynomial_cache/polynomial_cache.hpp"
 #include <ecc/curves/bn254/fq12.hpp>
@@ -63,6 +65,7 @@ template <typename program_settings> Verifier<program_settings>& Verifier<progra
         id(X)
 
     Univariate evaluations:
+        a_0_pos = Fold_{r}^(0)(r),
         a_0 = Fold_{-r}^(0)(-r),
         a_l = Fold^(l)(-r^{2^l}), i = 1,...,d-1
 
@@ -72,6 +75,8 @@ template <typename program_settings> Verifier<program_settings>& Verifier<progra
     Commitments:
         [w_i]_1,        i = 1,2,3
         [z_perm]_1,
+        [Fold_{r}^(0)]_1,
+        [Fold_{-r}^(0)]_1,
         [Fold^(l)]_1,   l = 1,...,d-1
         [Q]_1,
         [W]_1
@@ -81,8 +86,11 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
 
     const size_t num_polys = program_settings::num_polys;
     using FF = typename program_settings::fr;
+    using Commitment = barretenberg::g1::affine_element;
     using Transcript = typename program_settings::Transcript;
     using Multivariates = Multivariates<FF, num_polys>;
+    using Gemini = pcs::gemini::MultilinearReductionScheme<pcs::kzg::Params>;
+    using MLEOpeningClaim = pcs::MLEOpeningClaim<pcs::kzg::Params>;
 
     key->program_width = program_settings::program_width;
 
@@ -126,6 +134,72 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     bool result = sumcheck.execute_verifier();
 
     // Execute Gemini/Shplonk verification:
+
+    // Construct inputs for Gemini verifier:
+    // - Multivariate opening point u = (u_1, ..., u_d)
+    // - MLE opening claim = {commitment, eval} for each multivariate and shifted multivariate polynomial
+    std::vector<FF> opening_point;
+    std::vector<MLEOpeningClaim> opening_claims;
+    std::vector<MLEOpeningClaim> opening_claims_shifted;
+
+    // Construct MLE opening point
+    for (size_t round_idx = 0; round_idx < key->log_n; round_idx++) {
+        std::string label = "u_" + std::to_string(round_idx + 1);
+        opening_point.emplace_back(transcript.get_challenge_field_element(label));
+    }
+
+    // Get vector of multivariate evaluations produced by Sumcheck
+    auto multivariate_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
+
+    // Reconstruct Gemini opening claims and polynomials from the transcript/verification_key
+    size_t eval_idx = 0;
+    for (auto& entry : key->polynomial_manifest.get()) {
+        std::string commitment_label(entry.commitment_label);
+        auto evaluation = multivariate_evaluations[eval_idx++];
+        Commitment commitment;
+
+        switch (entry.source) {
+        case waffle::WITNESS: {
+            commitment = Commitment::serialize_from_buffer(&transcript.get_element(commitment_label)[0]);
+            break;
+        }
+        case waffle::SELECTOR: {
+            commitment = key->constraint_selectors[commitment_label];
+            break;
+        }
+        // Note(luke): polys with label PERMUTATION and OTHER are both stored in 'permutation_selectors'. See
+        // 'compute_verification_key_base'.
+        case waffle::PERMUTATION:
+        case waffle::OTHER: {
+            commitment = key->permutation_selectors[commitment_label];
+            break;
+        }
+        }
+
+        opening_claims.emplace_back(commitment, evaluation);
+        if (entry.requires_shifted_evaluation) {
+            // Note: For a polynomial p for which we need the shift p_shift, we provide Gemini with the SHIFTED
+            // evaluation p_shift(u), but the UNSHIFTED commitment [p].
+            auto shifted_evaluation = multivariate_evaluations[eval_idx++];
+            opening_claims_shifted.emplace_back(commitment, shifted_evaluation);
+        }
+    }
+
+    // Reconstruct the Gemini Proof from the transcript
+    pcs::gemini::Proof<pcs::kzg::Params> gemini_proof;
+
+    for (size_t i = 1; i < key->log_n; i++) {
+        std::string label = "FOLD_" + std::to_string(i);
+        gemini_proof.commitments.emplace_back(Commitment::serialize_from_buffer(&transcript.get_element(label)[0]));
+    };
+
+    for (size_t i = 0; i < key->log_n; i++) {
+        std::string label = "a_" + std::to_string(i);
+        gemini_proof.evals.emplace_back(transcript.get_field_element(label));
+    };
+
+    Gemini::reduce_verify(opening_point, opening_claims, opening_claims_shifted, gemini_proof, &transcript);
+
     // Gemini (reduce_verify()): Compute [Fold_{r}^(0)]_1, [Fold_{-r}^(0)]_1, Fold_{r}^(0)(r)
     // Shplonk (reduce_verify()): Compute simulated [Q_z]_1
 
