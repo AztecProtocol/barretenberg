@@ -108,8 +108,7 @@ struct StandardHonk {
               { .name = "multivariate_evaluations",     .num_bytes = fr_size * waffle::STANDARD_HONK_TOTAL_NUM_POLYS, .derived_by_verifier = false, .challenge_map_index = 0 },
             },
             /* challenge_name = */ "rho",
-            /* num_challenges_in = */ 1, /* TODO(Cody): magic number! Where should this be specified? */
-            /* map_challenges_in = */ true));
+            /* num_challenges_in = */ 1)); /* TODO(Cody): magic number! Where should this be specified? */
 
         // Rounds 5 + num_sumcheck_rounds
         std::vector<transcript::Manifest::ManifestEntry> fold_commitment_entries;

@@ -343,7 +343,7 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
         auto evaluation = multivariate_evaluations[eval_idx++];
         Commitment commitment;
         if (entry.source == waffle::WITNESS) {
-            commitment = Commitment::serialize_from_buffer(&transcript.get_element(commitment_label)[0]);
+            commitment = transcript.get_group_element(commitment_label);
         } else {                            // SELECTOR, PERMUTATION, OTHER
             commitment = Commitment::one(); // mock commitment
         }

@@ -279,6 +279,11 @@ StandardUnrolledVerifier ComposerHelper<CircuitConstructor>::create_unrolled_ver
         circuit_verification_key,
         honk::StandardHonk::create_unrolled_manifest(circuit_constructor.public_inputs.size(),
                                                      numeric::get_msb(circuit_verification_key->n)));
+
+    // TODO(Cody): This should be more generic
+    auto kate_verification_key = std::make_unique<pcs::kzg::VerificationKey>("../srs_db/ignition");
+
+    output_state.kate_verification_key = std::move(kate_verification_key);
     // StandardUnrolledVerifier output_state;
 
     // TODO: Deal with commitments

@@ -8,6 +8,7 @@
 #include "ecc/curves/bn254/fr.hpp"
 #include "honk/pcs/commitment_key.hpp"
 #include "honk/pcs/gemini/gemini.hpp"
+#include "honk/pcs/kzg/kzg.hpp"
 #include "numeric/bitop/get_msb.hpp"
 #include "proof_system/polynomial_cache/polynomial_cache.hpp"
 #include <ecc/curves/bn254/fq12.hpp>
@@ -38,14 +39,14 @@ template <typename program_settings>
 Verifier<program_settings>::Verifier(Verifier&& other)
     : manifest(other.manifest)
     , key(other.key)
-    , commitment_scheme(std::move(other.commitment_scheme))
+    , kate_verification_key(std::move(other.kate_verification_key))
 {}
 
 template <typename program_settings> Verifier<program_settings>& Verifier<program_settings>::operator=(Verifier&& other)
 {
     key = other.key;
     manifest = other.manifest;
-    commitment_scheme = (std::move(other.commitment_scheme));
+    kate_verification_key = (std::move(other.kate_verification_key));
     kate_g1_elements.clear();
     kate_fr_elements.clear();
     return *this;
@@ -90,6 +91,9 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     using Transcript = typename program_settings::Transcript;
     using Multivariates = Multivariates<FF, num_polys>;
     using Gemini = pcs::gemini::MultilinearReductionScheme<pcs::kzg::Params>;
+    using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<pcs::kzg::Params>;
+    using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
+    using BilinearAccumulator = pcs::kzg::BilinearAccumulator<pcs::kzg::Params>;
     using MLEOpeningClaim = pcs::MLEOpeningClaim<pcs::kzg::Params>;
 
     key->program_width = program_settings::program_width;
@@ -122,6 +126,11 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     for (size_t idx = 0; idx < log_n; idx++) {
         transcript.apply_fiat_shamir("u_" + std::to_string(log_n - idx));
     }
+    transcript.apply_fiat_shamir("rho");
+    transcript.apply_fiat_shamir("r");
+    transcript.apply_fiat_shamir("nu");
+    transcript.apply_fiat_shamir("z");
+    transcript.apply_fiat_shamir("separator");
 
     // // TODO(Cody): Compute some basic public polys like id(X), pow(X), and any required Lagrange polys
 
@@ -131,7 +140,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
                              ArithmeticRelation,
                              //  GrandProductComputationRelation,
                              GrandProductInitializationRelation>(transcript);
-    bool result = sumcheck.execute_verifier();
+    bool sumcheck_result = sumcheck.execute_verifier();
 
     // Execute Gemini/Shplonk verification:
 
@@ -160,7 +169,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
 
         switch (entry.source) {
         case waffle::WITNESS: {
-            commitment = Commitment::serialize_from_buffer(&transcript.get_element(commitment_label)[0]);
+            commitment = transcript.get_group_element(commitment_label);
             break;
         }
         case waffle::SELECTOR: {
@@ -190,7 +199,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
 
     for (size_t i = 1; i < key->log_n; i++) {
         std::string label = "FOLD_" + std::to_string(i);
-        gemini_proof.commitments.emplace_back(Commitment::serialize_from_buffer(&transcript.get_element(label)[0]));
+        gemini_proof.commitments.emplace_back(transcript.get_group_element(label));
     };
 
     for (size_t i = 0; i < key->log_n; i++) {
@@ -198,17 +207,29 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
         gemini_proof.evals.emplace_back(transcript.get_field_element(label));
     };
 
-    Gemini::reduce_verify(opening_point, opening_claims, opening_claims_shifted, gemini_proof, &transcript);
+    // Produce a Gemini claim consisting of:
+    auto gemini_claim =
+        Gemini::reduce_verify(opening_point, opening_claims, opening_claims_shifted, gemini_proof, &transcript);
 
-    // Gemini (reduce_verify()): Compute [Fold_{r}^(0)]_1, [Fold_{-r}^(0)]_1, Fold_{r}^(0)(r)
-    // Shplonk (reduce_verify()): Compute simulated [Q_z]_1
+    // Reconstruct the Shplonk Proof (commitment [Q]_1) from the transcript
+    pcs::shplonk::Proof<pcs::kzg::Params> shplonk_proof = transcript.get_group_element("Q");
 
-    // TODO(Cody): Do final pairing check
-    // barretenberg::fq12 result = barretenberg::fq12::one();
+    // Produce a Shplonk claim consisting of: simulated [Q_z]_1
+    auto shplonk_claim = Shplonk::reduce_verify(gemini_claim, shplonk_proof, &transcript);
 
-    // return (result == barretenberg::fq12::one());
+    // Reconstruct the KZG Proof (commitment [W]_1) from the transcript
+    pcs::shplonk::Proof<pcs::kzg::Params> kzg_proof = transcript.get_group_element("W");
 
-    return result;
+    // auto kzg_claim = KZG::reduce_verify(shplonk_claim, kzg_proof);
+    BilinearAccumulator kzg_claim = KZG::reduce_verify(shplonk_claim, kzg_proof);
+
+    // Do final pairing check
+    bool pairing_result = kzg_claim.verify(kate_verification_key.get());
+
+    bool result = sumcheck_result && pairing_result;
+
+    // TODO(luke): Change this to 'result' (i.e. genuine full proof verification)
+    return sumcheck_result;
 }
 
 template class Verifier<honk::standard_verifier_settings>;
