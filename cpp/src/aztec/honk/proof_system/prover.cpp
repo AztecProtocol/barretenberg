@@ -331,11 +331,15 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
         opening_point.emplace_back(transcript.get_challenge_field_element(label));
     }
 
+    // Get vector of multivariate evaluations produced by Sumcheck
+    auto multivariate_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
+
     // Construct opening claims and polynomials
+    size_t eval_idx = 0;
     for (auto& entry : key->polynomial_manifest.get()) {
         std::string label(entry.polynomial_label);
         std::string commitment_label(entry.commitment_label);
-        auto evaluation = Fr::serialize_from_buffer(&transcript.get_element(label)[0]);
+        auto evaluation = multivariate_evaluations[eval_idx++];
         barretenberg::g1::affine_element commitment;
         if (entry.source == waffle::WITNESS) {
             commitment =
@@ -348,7 +352,7 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
         if (entry.requires_shifted_evaluation) {
             // Note: For a polynomial p for which we need the shift p_shift, we provide Gemini with the SHIFTED
             // evaluation p_shift(u), but the UNSHIFTED polynomial p and its UNSHIFTED commitment [p].
-            auto shifted_evaluation = Fr::serialize_from_buffer(&transcript.get_element(label + "_shift")[0]);
+            auto shifted_evaluation = multivariate_evaluations[eval_idx++];
             opening_claims_shifted.emplace_back(commitment, shifted_evaluation);
             multivariate_polynomials_shifted.emplace_back(&key->polynomial_cache.get(label));
         }
@@ -447,26 +451,26 @@ template <typename settings> waffle::plonk_proof& Prover<settings>::construct_pr
     // // queue currently only handles commitments, not partial multivariate evaluations.
     // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
 
-    // // Fiat-Shamir: rho
-    // // Compute Fold polynomials and their commitments.
-    // execute_univariatization_round();
-    // // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
+    // Fiat-Shamir: rho
+    // Compute Fold polynomials and their commitments.
+    execute_univariatization_round();
+    // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
 
-    // // Fiat-Shamir: r
-    // // Compute Fold evaluations
-    // execute_pcs_evaluation_round();
+    // Fiat-Shamir: r
+    // Compute Fold evaluations
+    execute_pcs_evaluation_round();
 
-    // // Fiat-Shamir: nu
-    // // Compute Shplonk batched quotient commitment
-    // execute_shplonk_round();
-    // // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
+    // Fiat-Shamir: nu
+    // Compute Shplonk batched quotient commitment
+    execute_shplonk_round();
+    // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
 
-    // // Fiat-Shamir: z
-    // // Compute KZG quotient commitment
-    // execute_kzg_round();
-    // // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
+    // Fiat-Shamir: z
+    // Compute KZG quotient commitment
+    execute_kzg_round();
+    // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
 
-    // // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
+    // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
 
     return export_proof();
 }

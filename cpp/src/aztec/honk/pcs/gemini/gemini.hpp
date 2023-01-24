@@ -331,6 +331,7 @@ template <typename Params> class MultilinearReductionScheme {
         // - Evaluation \hat{a_0} = Fold_{r}^(0)(r) of the 0th Fold polynomial at +r
         // - Commitments [Fold_{r}^(0)] and [Fold_{-r}^(0)] of the partially evaluated 0th Fold poly at +/-r
         Fr a_0_pos = result_claims[0].eval;
+        // TODO(luke): These lines seem to break for trivial circuits. Is this related to point at infinity issue?
         CommitmentAffine Fold_0_pos_commitment(result_claims[0].commitment);
         CommitmentAffine Fold_0_neg_commitment(result_claims[1].commitment);
         transcript->add_element("a_0_pos", a_0_pos.to_buffer());
