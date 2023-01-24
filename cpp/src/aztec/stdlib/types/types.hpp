@@ -20,6 +20,9 @@
 #include <stdlib/primitives/curves/secp256k1.hpp>
 #include <stdlib/primitives/memory/rom_table.hpp>
 #include <stdlib/recursion/verifier/program_settings.hpp>
+#include <stdlib/primitives/memory/ram_table.hpp>
+#include <stdlib/primitives/memory/rom_table.hpp>
+#include <stdlib/primitives/memory/dynamic_array.hpp>
 
 namespace plonk::stdlib::types {
 
@@ -86,7 +89,9 @@ typedef stdlib::schnorr::signature_bits<Composer> signature_bits;
 } // namespace schnorr
 
 // Ultra-composer specific types
+typedef stdlib::ram_table<waffle::UltraComposer> ram_table_ct;
 typedef stdlib::rom_table<waffle::UltraComposer> rom_table_ct;
+typedef stdlib::DynamicArray<waffle::UltraComposer> DynamicArray_ct;
 
 typedef std::conditional_t<SYSTEM_COMPOSER == waffle::TURBO,
                            recursion::recursive_turbo_verifier_settings<bn254>,

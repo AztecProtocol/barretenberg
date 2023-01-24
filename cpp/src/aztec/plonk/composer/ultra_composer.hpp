@@ -189,13 +189,15 @@ class UltraComposer : public ComposerBase {
         }
     }
 
-    void create_new_range_constraint(const uint32_t variable_index, const uint64_t target_range);
-    void create_range_constraint(const uint32_t variable_index, const size_t num_bits, std::string const&)
+    void create_new_range_constraint(const uint32_t variable_index,
+                                     const uint64_t target_range,
+                                     std::string const msg = "create_new_range_constraint");
+    void create_range_constraint(const uint32_t variable_index, const size_t num_bits, std::string const& msg)
     {
         if (num_bits <= DEFAULT_PLOOKUP_RANGE_BITNUM) {
-            create_new_range_constraint(variable_index, 1ULL << num_bits);
+            create_new_range_constraint(variable_index, 1ULL << num_bits, msg);
         } else {
-            decompose_into_default_range(variable_index, num_bits);
+            decompose_into_default_range(variable_index, num_bits, DEFAULT_PLOOKUP_RANGE_BITNUM, msg);
         }
     }
 
