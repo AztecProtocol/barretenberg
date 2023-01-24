@@ -322,8 +322,8 @@ template <typename Params> class MultilinearReductionScheme {
 
         /*
          * Construct the 'Proof' which consists of:
-         * The m-1 commitments [Fold^{l}], l = 1, ..., m-1
-         * The m evaluations a_0 = Fold_{-r}^(0)(-r), and a_l = Fold^(l)(-r^{2^l}), l = 1, ..., m-1
+         * (1) The m-1 commitments [Fold^{l}], l = 1, ..., m-1
+         * (2) The m evaluations a_0 = Fold_{-r}^(0)(-r), and a_l = Fold^(l)(-r^{2^l}), l = 1, ..., m-1
          */
         Proof<Params> proof = { commitments, evals };
 

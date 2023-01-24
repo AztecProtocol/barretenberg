@@ -284,13 +284,6 @@ StandardUnrolledVerifier ComposerHelper<CircuitConstructor>::create_unrolled_ver
     auto kate_verification_key = std::make_unique<pcs::kzg::VerificationKey>("../srs_db/ignition");
 
     output_state.kate_verification_key = std::move(kate_verification_key);
-    // StandardUnrolledVerifier output_state;
-
-    // TODO: Deal with commitments
-    // std::unique_ptr<KateCommitmentScheme<unrolled_standard_settings>> kate_commitment_scheme =
-    //     std::make_unique<KateCommitmentScheme<unrolled_standard_settings>>();
-
-    // output_state.commitment_scheme = std::move(kate_commitment_scheme);
 
     return output_state;
 }

@@ -31,8 +31,6 @@ template <typename program_settings> class Verifier {
     std::shared_ptr<waffle::verification_key> key;
     std::map<std::string, barretenberg::g1::affine_element> kate_g1_elements;
     std::map<std::string, barretenberg::fr> kate_fr_elements;
-    // std::unique_ptr<waffle::CommitmentScheme> commitment_scheme;
-    // std::shared_ptr<pcs::kzg::CommitmentKey> commitment_scheme;
     std::shared_ptr<pcs::kzg::VerificationKey> kate_verification_key;
 };
 
