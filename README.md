@@ -17,8 +17,8 @@ The structured reference string contains monomials up to x^{2^20}. This SRS was 
 RUN git clone -b release/10.x --depth 1 https://github.com/llvm/llvm-project.git \
   && cd llvm-project && mkdir build-openmp && cd build-openmp \
   && cmake ../openmp -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DLIBOMP_ENABLE_SHARED=OFF \
-  && make -j$(nproc) \
-  && make install \
+  && cmake --build . --parallel \
+  && cmake --build . --parallel --target install \
   && cd ../.. && rm -rf llvm-project
 ```
 
@@ -45,7 +45,7 @@ If you've installed the C++ Vscode extension you should configure it to format o
 Each module has its own tests. e.g. To build and run `ecc` tests:
 
 ```
-make ecc_tests
+cmake --build . --parallel --target ecc_tests
 ./bin/ecc_tests
 ```
 
@@ -102,10 +102,10 @@ To build:
 ```
 mkdir build-wasm && cd build-wasm
 cmake -DTOOLCHAIN=wasm-linux-clang ..
-make barretenberg.wasm
+cmake --build . --parallel --target barretenberg.wasm
 ```
 
-The resulting wasm binary will be at `./src/aztec/barretenberg.wasm`.
+The resulting wasm binary will be at `./build-wasm/bin/barretenberg.wasm`.
 
 To run the tests, you'll need to install `wasmtime`.
 
@@ -116,7 +116,7 @@ curl https://wasmtime.dev/install.sh -sSf | bash
 Tests can be built and run like:
 
 ```
-make ecc_tests
+cmake --build . --parallel --target ecc_tests
 wasmtime --dir=.. ./bin/ecc_tests
 ```
 
@@ -126,7 +126,7 @@ To build:
 ```
 mkdir build-fuzzing && cd build-fuzzing
 cmake -DTOOLCHAIN=x86_64-linux-clang -DFUZZING=ON ..
-make
+cmake --build .
 ```
 Fuzzing build turns off building tests and benchmarks, since they are incompatible with libfuzzer interface.
 
