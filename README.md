@@ -33,7 +33,7 @@ cd cpp
 
 ### Parallelise the build
 
-Make sure your MAKEFLAGS environment variable is set to run jobs equal to number of cores. e.g. `MAKEFLAGS=-j$(nproc)`.
+Use the `--parallel` option to `cmake --build <path>` to parallelize builds. This is roughly equivalent to `make -j$(nproc)` but is more portable.
 
 ### Formatting
 
@@ -52,13 +52,13 @@ cmake --build . --parallel --target ecc_tests
 A shorthand for the above is:
 
 ```
-make run_ecc_tests
+cmake --build . --parallel --target run_ecc_tests
 ```
 
 Running the entire suite of tests using `ctest`:
 
 ```
-make test
+cmake --build . --parallel --target test
 ```
 
 You can run specific tests, e.g.
@@ -72,14 +72,14 @@ You can run specific tests, e.g.
 Some modules have benchmarks. The build targets are named `<module_name>_bench`. To build and run, for example `ecc` benchmarks.
 
 ```
-make ecc_bench
+cmake --build . --parallel --target ecc_bench
 ./src/aztec/ecc/ecc_bench
 ```
 
 A shorthand for the above is:
 
 ```
-make run_ecc_bench
+cmake --build . --parallel --target run_ecc_bench
 ```
 
 ### CMake Build Options
@@ -126,11 +126,11 @@ To build:
 ```
 mkdir build-fuzzing && cd build-fuzzing
 cmake -DTOOLCHAIN=x86_64-linux-clang -DFUZZING=ON ..
-cmake --build .
+cmake --build . --parallel
 ```
 Fuzzing build turns off building tests and benchmarks, since they are incompatible with libfuzzer interface.
 
 To turn on address sanitizer add `-DADDRESS_SANITIZER=ON`. Note that address sanitizer can be used to explore crashes.
 Sometimes you might have to specify the address of llvm-symbolizer. You have to do it with `export ASAN_SYMBOLIZER_PATH=<PATH_TO_SYMBOLIZER>`.
 For undefined behaviour sanitizer `-DUNDEFINED_BEHAVIOUR_SANITIZER=ON`.
-Note that the fuzzer can be orders of magnitude slower with ASan (2-3x slower) or UBSan on, so it is best to run a non-sanitized build first, minimize the testcase and then run it for a bit of time with sanitizers.  
+Note that the fuzzer can be orders of magnitude slower with ASan (2-3x slower) or UBSan on, so it is best to run a non-sanitized build first, minimize the testcase and then run it for a bit of time with sanitizers.
