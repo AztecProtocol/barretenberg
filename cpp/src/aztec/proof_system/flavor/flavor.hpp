@@ -5,7 +5,7 @@
 
 #define STANDARD_HONK_WIDTH 3
 // TODO(Cody): Temporary namespace for stuff that is shared by honk and plonk
-namespace proving_system {
+namespace bonk {
 struct StandardArithmetization {
     enum POLYNOMIAL {
         W_L,
@@ -31,12 +31,12 @@ struct StandardArithmetization {
 
     static constexpr size_t NUM_POLYNOMIALS = POLYNOMIAL::COUNT;
 };
-} // namespace proving_system
+} // namespace bonk
 
 namespace honk {
 struct StandardHonk {
   public:
-    using Arithmetization = proving_system::StandardArithmetization;
+    using Arithmetization = bonk::StandardArithmetization;
     using MULTIVARIATE = Arithmetization::POLYNOMIAL;
     // // TODO(Cody): Where to specify? is this polynomial manifest size?
     // static constexpr size_t STANDARD_HONK_MANIFEST_SIZE = 16;
