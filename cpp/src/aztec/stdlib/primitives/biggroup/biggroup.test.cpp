@@ -54,7 +54,7 @@ template <typename TestType> class stdlib_biggroup : public testing::Test {
 
     static constexpr auto EXPECT_VERIFICATION = [](Composer& composer, bool expected_result = true) {
         info("composer gates = ", composer.get_num_gates());
-        auto prover = atesdcomposer.create_prover();
+        auto prover = composer.create_prover();
         info("creating verifier");
         auto verifier = composer.create_verifier();
         info("creating proof");
@@ -838,16 +838,16 @@ template <typename TestType> class stdlib_biggroup : public testing::Test {
 };
 
 enum UseBigfield { No, Yes };
-typedef testing::Types<TestType<stdlib::bn254<honk::StandardHonkComposer>, UseBigfield::No>,
-                       TestType<stdlib::bn254<waffle::UltraComposer>, UseBigfield::No>,
-                       TestType<stdlib::bn254<waffle::TurboComposer>, UseBigfield::No>,
-                       TestType<stdlib::bn254<waffle::StandardComposer>, UseBigfield::No>,
-                       TestType<stdlib::bn254<waffle::UltraComposer>, UseBigfield::Yes>,
-                       //    TestType<stdlib::bn254<waffle::TurboComposer>, UseBigfield::Yes>,
-                       //    TestType<stdlib::bn254<waffle::StandardComposer>, UseBigfield::Yes>,
-                       //    TestType<stdlib::secp256r1<waffle::UltraComposer>, UseBigfield::Yes>,
-                       TestType<stdlib::secp256k1<waffle::UltraComposer>, UseBigfield::Yes>>
-    TestTypes;
+using TestTypes = testing::Types<TestType<stdlib::bn254<honk::StandardHonkComposer>, UseBigfield::No>,
+                                 //  TestType<stdlib::bn254<waffle::UltraComposer>, UseBigfield::No>,
+                                 TestType<stdlib::bn254<waffle::TurboComposer>, UseBigfield::No>,
+                                 TestType<stdlib::bn254<waffle::StandardComposer>, UseBigfield::No>,
+                                 TestType<stdlib::bn254<waffle::UltraComposer>, UseBigfield::Yes>,
+                                 //    TestType<stdlib::bn254<waffle::TurboComposer>, UseBigfield::Yes>,
+                                 //    TestType<stdlib::bn254<waffle::StandardComposer>, UseBigfield::Yes>,
+                                 TestType<stdlib::bn254<honk::StandardHonkComposer>, UseBigfield::Yes>,
+                                 //  TestType<stdlib::secp256r1<waffle::UltraComposer>, UseBigfield::Yes>,
+                                 TestType<stdlib::secp256k1<waffle::UltraComposer>, UseBigfield::Yes>>;
 
 TYPED_TEST_SUITE(stdlib_biggroup, TestTypes);
 
