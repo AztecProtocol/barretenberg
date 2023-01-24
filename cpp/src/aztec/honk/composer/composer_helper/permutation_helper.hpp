@@ -18,7 +18,7 @@ namespace honk {
  * @brief cycle_node represents the index of a value of the circuit.
  * It will belong to a CyclicPermutation, such that all nodes in a CyclicPermutation
  * must have the value.
- * The total number of constaints is always <2^32 since that is the type used to represent variables, so we can save
+ * The total number of constraints is always <2^32 since that is the type used to represent variables, so we can save
  * space by using a type smaller than size_t.
  */
 struct cycle_node {
@@ -60,12 +60,16 @@ std::vector<CyclicPermutation> compute_wire_copy_cycles(const CircuitConstructor
 
     // We use the permutation argument to enforce the public input variables to be equal to values provided by the
     // verifier. The convension we use is to place the public input values as the first rows of witness vectors.
-    // All selectors are zero at these rows, so they are fully unconstrained.
-    // The "real" gates that follow can use references to these variables.
+    // More specifically, we set the LEFT and RIGHT wires to be the public inputs and set the other elements of the row
+    // to 0. All selectors are zero at these rows, so they are fully unconstrained. The "real" gates that follow can use
+    // references to these variables.
     //
     // The copy cycle for the i-th public variable looks like
     //   (i) -> (n+i) -> (i') -> ... -> (i'')
-    // This loop initializes the i-th cycle with (i) -> (n+i), to whi
+    // (Using the convention that W^L_i = W_i and W^R_i = W_{n+i}, W^O_i = W_{2n+i})
+    //
+    // This loop initializes the i-th cycle with (i) -> (n+i), meaning that we always expect W^L_i = W^R_i,
+    // for all i s.t. row i defines a public input.
     for (size_t i = 0; i < num_public_inputs; ++i) {
         const uint32_t public_input_index = real_variable_index[public_inputs[i]];
         const auto gate_index = static_cast<uint32_t>(i);
@@ -77,6 +81,11 @@ std::vector<CyclicPermutation> compute_wire_copy_cycles(const CircuitConstructor
     // Iterate over all variables of the "real" gates, and add a corresponding node to the cycle for that variable
     for (size_t j = 0; j < program_width; ++j) {
         for (size_t i = 0; i < num_gates; ++i) {
+            // We are looking at the j-th wire in the i-th row.
+            // The value in this position should be equal to the value of the element at index `var_index`
+            // of the `constructor.variables` vector.
+            // Therefore, we add (i,j) to the cycle at index `var_index` to indicate that w^j_i should have the values
+            // constructor.variables[var_index].
             const uint32_t var_index = circuit_constructor.real_variable_index[wire_indices[j][i]];
             const auto wire_index = static_cast<uint32_t>(j);
             const auto gate_index = static_cast<uint32_t>(i + num_public_inputs);

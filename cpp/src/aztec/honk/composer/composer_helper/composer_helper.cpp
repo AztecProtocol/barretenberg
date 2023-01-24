@@ -146,7 +146,9 @@ void ComposerHelper<CircuitConstructor>::compute_witness_base(const CircuitConst
     const size_t num_public_inputs = public_inputs.size();
 
     const size_t num_constraints = std::max(minimum_circuit_size, num_gates + num_public_inputs);
-    // TODO(Adrian): We should o
+    // TODO(Adrian): Not a fan of specifying NUM_RANDOMIZED_GATES everywhere,
+    // Each flavor of Honk should have a "fixed" number of random places to add randomness to.
+    // It should be taken care of in as few places possible.
     const size_t subgroup_size = circuit_constructor.get_circuit_subgroup_size(num_constraints + NUM_RANDOMIZED_GATES);
 
     // construct a view over all the wire's variable indices
