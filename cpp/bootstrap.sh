@@ -26,9 +26,7 @@ else
 fi
 
 # Download ignition transcripts.
-cd ./srs_db
-./download_ignition.sh 3
-cd ..
+(cd ./srs_db && ./download_ignition.sh 3)
 
 # Pick native toolchain file.
 if [ "$OS" == "macos" ]; then
@@ -51,7 +49,7 @@ fi
 # Build native.
 mkdir -p build && cd build
 cmake -DCMAKE_BUILD_TYPE=RelWithAssert -DTOOLCHAIN=$TOOLCHAIN ..
-make -j$(getconf _NPROCESSORS_ONLN) $@
+cmake --build . --parallel ${@/#/--target }
 cd ..
 
 # Install the webassembly toolchain.
