@@ -13,18 +13,16 @@ namespace stdlib {
 using namespace barretenberg;
 
 template <typename Composer>
-plookup::ReadData<field_t<Composer>> plookup_<Composer>::get_lookup_accumulators(
-    const MultiTableId id,
-    const field_t<Composer>& key_a_in,
-    const field_t<Composer>& key_b_in,
-    const bool is_2_to_1_lookup,
-    const size_t explicit_number_of_lookups)
+plookup::ReadData<field_t<Composer>> plookup_<Composer>::get_lookup_accumulators(const MultiTableId id,
+                                                                                 const field_t<Composer>& key_a_in,
+                                                                                 const field_t<Composer>& key_b_in,
+                                                                                 const bool is_2_to_1_lookup)
 {
     auto key_a = key_a_in.normalize();
     auto key_b = key_b_in.normalize();
     Composer* ctx = key_a.get_context() ? key_a.get_context() : key_b.get_context();
-    const plookup::ReadData<barretenberg::fr> lookup_data = plookup::get_lookup_accumulators(
-        id, key_a.get_value(), key_b.get_value(), is_2_to_1_lookup, explicit_number_of_lookups);
+    const plookup::ReadData<barretenberg::fr> lookup_data =
+        plookup::get_lookup_accumulators(id, key_a.get_value(), key_b.get_value(), is_2_to_1_lookup);
 
     const bool is_key_a_constant = key_a.is_constant();
     plookup::ReadData<field_t<Composer>> lookup;
@@ -84,11 +82,9 @@ field_t<Composer> plookup_<Composer>::read_from_2_to_1_table(const MultiTableId 
 }
 
 template <typename Composer>
-field_t<Composer> plookup_<Composer>::read_from_1_to_2_table(const MultiTableId id,
-                                                             const field_t<Composer>& key_a,
-                                                             const size_t explicit_number_of_lookups)
+field_t<Composer> plookup_<Composer>::read_from_1_to_2_table(const MultiTableId id, const field_t<Composer>& key_a)
 {
-    const auto lookup = get_lookup_accumulators(id, key_a, 0, false, explicit_number_of_lookups);
+    const auto lookup = get_lookup_accumulators(id, key_a);
 
     return lookup[ColumnIdx::C2][0];
 }
