@@ -1,4 +1,5 @@
 #include "uint.hpp"
+#include "honk/composer/standard_honk_composer.hpp"
 #include <functional>
 #include <gtest/gtest.h>
 #include <numeric/random/engine.hpp>
@@ -1927,7 +1928,9 @@ template <typename Composer> class stdlib_uint : public testing::Test {
     }
 };
 
-typedef testing::Types<waffle::UltraComposer, waffle::TurboComposer, waffle::StandardComposer> ComposerTypes;
+typedef testing::
+    Types<waffle::UltraComposer, waffle::TurboComposer, waffle::StandardComposer, honk::StandardHonkComposer>
+        ComposerTypes;
 
 TYPED_TEST_SUITE(stdlib_uint, ComposerTypes);
 
