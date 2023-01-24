@@ -284,30 +284,6 @@ TEST(standard_honk_composer, test_verification_key_creation)
     EXPECT_EQ(verification_key->permutation_selectors.size(), composer.program_width * 2);
 }
 
-TEST(StandardHonkComposer, TwoGates)
-{
-    auto composer = StandardHonkComposer();
-
-    // 1 + 1 - 2 = 0
-    uint32_t w_l_1_idx = composer.circuit_constructor.add_variable(1);
-    uint32_t w_r_1_idx = composer.circuit_constructor.add_variable(0);
-    uint32_t w_o_1_idx = composer.circuit_constructor.add_variable(0);
-    composer.create_add_gate({ w_l_1_idx, w_r_1_idx, w_o_1_idx, 0, 0, 0, 0 });
-
-    // 2 * 2 - 4 = 0
-    uint32_t w_l_2_idx = composer.circuit_constructor.add_variable(2);
-    uint32_t w_r_2_idx = composer.circuit_constructor.add_variable(2);
-    uint32_t w_o_2_idx = composer.circuit_constructor.add_variable(4);
-    composer.create_mul_gate({ w_l_2_idx, w_r_2_idx, w_o_2_idx, 1, -1, 0 });
-
-    auto prover = composer.create_unrolled_prover();
-
-    waffle::plonk_proof proof = prover.construct_proof();
-    auto verifier = composer.create_unrolled_verifier();
-    bool verified = verifier.verify_proof(proof);
-    ASSERT_TRUE(verified);
-}
-
 TEST(StandardHonkComposer, BaseCase)
 {
     auto composer = StandardHonkComposer();
@@ -321,4 +297,37 @@ TEST(StandardHonkComposer, BaseCase)
     ASSERT_TRUE(verified);
 }
 
+TEST(StandardHonkComposer, TwoGates)
+{
+    auto run_test = [](bool expect_verified) {
+        auto composer = StandardHonkComposer();
+
+        // 1 + 1 - 2 = 0
+        uint32_t w_l_1_idx;
+        if (expect_verified) {
+            w_l_1_idx = composer.circuit_constructor.add_variable(1);
+        } else {
+            w_l_1_idx = composer.circuit_constructor.add_variable(0);
+        }
+        uint32_t w_r_1_idx = composer.circuit_constructor.add_variable(1);
+        uint32_t w_o_1_idx = composer.circuit_constructor.add_variable(2);
+        composer.create_add_gate({ w_l_1_idx, w_r_1_idx, w_o_1_idx, 1, 1, -1, 0 });
+
+        // 2 * 2 - 4 = 0
+        uint32_t w_l_2_idx = composer.circuit_constructor.add_variable(2);
+        uint32_t w_r_2_idx = composer.circuit_constructor.add_variable(2);
+        uint32_t w_o_2_idx = composer.circuit_constructor.add_variable(4);
+        composer.create_mul_gate({ w_l_2_idx, w_r_2_idx, w_o_2_idx, 1, -1, 0 });
+
+        auto prover = composer.create_unrolled_prover();
+
+        waffle::plonk_proof proof = prover.construct_proof();
+        auto verifier = composer.create_unrolled_verifier();
+        bool verified = verifier.verify_proof(proof);
+        EXPECT_EQ(verified, expect_verified);
+    };
+
+    run_test(/* expect_verified=*/true);
+    run_test(/* expect_verified=*/false);
+}
 } // namespace test_standard_honk_composer
