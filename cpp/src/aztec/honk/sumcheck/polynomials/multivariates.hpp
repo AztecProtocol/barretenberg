@@ -63,7 +63,7 @@ bool span_arrays_equal(auto& lhs, auto& rhs)
 template <class FF_, size_t num_polys> class Multivariates {
   public:
     using FF = FF_;
-    const size_t multivariate_n;
+    const size_t multivariate_n; // Todo(Cody): this should
     const size_t multivariate_d;
     static constexpr size_t num = num_polys;
 
@@ -108,10 +108,9 @@ template <class FF_, size_t num_polys> class Multivariates {
     }
 
     explicit Multivariates(transcript::StandardTranscript transcript)
-        // TODO(Cody): This is atrocious.
-        : multivariate_n([&](std::vector<uint8_t> buffer) {
-            return static_cast<uint64_t>(buffer[3]) + (static_cast<uint64_t>(buffer[2]) << 8) +
-                   (static_cast<uint64_t>(buffer[1]) << 16) + (static_cast<uint64_t>(buffer[0]) << 24);
+        : multivariate_n([](std::vector<uint8_t> buffer) {
+            return static_cast<size_t>(buffer[3]) + (static_cast<size_t>(buffer[2]) << 8) +
+                   (static_cast<size_t>(buffer[1]) << 16) + (static_cast<size_t>(buffer[0]) << 24);
         }(transcript.get_element("circuit_size")))
         , multivariate_d(numeric::get_msb(multivariate_n))
     {}
