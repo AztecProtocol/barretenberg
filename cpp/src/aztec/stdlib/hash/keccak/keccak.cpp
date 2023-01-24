@@ -43,8 +43,7 @@ field_t<Composer> keccak<Composer>::normalize_and_rotate(const field_ct& limb, f
     // (lookup table input values derived from left / right)
     uint256_t input = limb.get_value();
     constexpr uint256_t slice_divisor = BASE.pow(right_bits);
-    const uint256_t left = input / slice_divisor;
-    const uint256_t right = input - (left * slice_divisor);
+    const auto [left, right] = input.divmod(slice_divisor);
 
     // compute the normalized values for the left and right bit slices
     // (lookup table output values derived from left_normalised / right_normalized)
@@ -55,16 +54,20 @@ field_t<Composer> keccak<Composer>::normalize_and_rotate(const field_ct& limb, f
      * manually construct the ReadData object required to generate plookup gate constraints.
      * To explain in more detail: the input integer can be represented via two the bit slices [A, B]
      * (A = left, B = right)
-     * To simplify let's assume A, B both are '16 bit' integers represented as: A = A1.11^8 + A0, B = B1.11^8 + B0
-     * Let's define A' = normalize(A), B' = normalize(B)
-     * We want our lookup gate wire values to look like the following:
      *
-     * | Row | C0                                       | C1             | C2        |
-     * | --- | -----------------------------------------| -------------- | --------- |
-     * |  0  | A1.11^24 + A0.11^16 + B1.11^8  + B0      | B1'.11^8 + B0' | B0'.msb() |
-     * |  1  |            A1.11^16 + A0.11^8  + B1      |            B1' | B1'.msb() |
-     * |  2  |                       A1.11^8  + A0      | A1'.11^8 + A0' | A0'.msb() |
-     * |  3  |                                  A1      |            A1' | A1'.msb() |
+     * For example, imagine our input is a 32-bit integer A represented as: A = A3.11^24 + A2.11^16 + A1.11^8 + A0,
+     *              and our output is a 32-bit integer B = B3.11^24 + B2.11^16 + B1.11^8 + B0
+     *
+     * In this example, we want to normalize A and left-rotate by 16 bits.
+     *
+     * Our lookup gate wire values will look like the following:
+     *
+     * | Row | C0                                       | C1           | C2       |
+     * | --- | -----------------------------------------| ------------ | -------- |
+     * |  0  | A3.11^24 + A2.11^16 + A1.11^8  + A0      | B1.11^8 + B0 | A0.msb() |
+     * |  1  |            A3.11^16 + A2.11^8  + A1      |           B1 | A1.msb() |
+     * |  2  |                       A1311^8  + A2      | B3.11^8 + B2 | A2.msb() |
+     * |  3  |                                  A3      |           B3 | A3.msb() |
      *
      * The plookup table keys + values are derived via the expression:
      *
