@@ -287,7 +287,6 @@ TEST(standard_honk_composer, test_verification_key_creation)
 TEST(StandardHonkComposer, TwoGates)
 {
     auto composer = StandardHonkComposer();
-    info(composer.circuit_constructor.n);
 
     // 1 + 1 - 2 = 0
     uint32_t w_l_1_idx = composer.circuit_constructor.add_variable(1);
@@ -303,14 +302,6 @@ TEST(StandardHonkComposer, TwoGates)
 
     auto prover = composer.create_unrolled_prover();
 
-    info("value prior to proof construction: ", prover.proving_key->polynomial_cache.get("q_1_lagrange")[0]);
-    info("value prior to proof construction: ", prover.proving_key->polynomial_cache.get("q_1_lagrange")[1]);
-    info("value prior to proof construction: ", prover.proving_key->polynomial_cache.get("q_1_lagrange")[2]);
-    info("value prior to proof construction: ", prover.proving_key->polynomial_cache.get("q_1_lagrange")[3]);
-    info("value prior to proof construction: ", prover.proving_key->polynomial_cache.get("q_1_lagrange")[4]);
-    info("value prior to proof construction: ", prover.proving_key->polynomial_cache.get("q_1_lagrange")[5]);
-    info("value prior to proof construction: ", prover.proving_key->polynomial_cache.get("q_1_lagrange")[6]);
-    info("value prior to proof construction: ", prover.proving_key->polynomial_cache.get("q_1_lagrange")[7]);
     waffle::plonk_proof proof = prover.construct_proof();
     auto verifier = composer.create_unrolled_verifier();
     bool verified = verifier.verify_proof(proof);

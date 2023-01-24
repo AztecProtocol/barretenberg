@@ -42,21 +42,15 @@ template <class Multivariates, class Transcript, template <class> class... Relat
      */
     void execute_prover()
     {
-        // std::vector<FF> round_challenges;
-        // round_challenges.reserve(multivariates.multivariate_d);
-        // std::fill(round_challenges.begin(), round_challenges.end(), 0);
-
         // First round
         // This populates multivariates.folded_polynomials.
         FF alpha = FF::serialize_from_buffer(transcript.get_challenge("alpha").begin());
         auto round_univariate = round.compute_univariate(multivariates.full_polynomials, alpha);
-        info("univariate_" + std::to_string(multivariates.multivariate_d) + ": ", round_univariate);
         transcript.add_element("univariate_" + std::to_string(multivariates.multivariate_d),
                                round_univariate.to_buffer());
         std::string challenge_label = "u_" + std::to_string(multivariates.multivariate_d);
         transcript.apply_fiat_shamir(challenge_label);
         FF round_challenge = FF::serialize_from_buffer(transcript.get_challenge(challenge_label).begin());
-        info("u_" + std::to_string(multivariates.multivariate_d) + ": ", round_challenge);
         multivariates.fold(multivariates.full_polynomials, multivariates.multivariate_n, round_challenge);
         round.round_size = round.round_size >> 1;
 
@@ -65,20 +59,18 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         for (size_t round_idx = 1; round_idx < multivariates.multivariate_d; round_idx++) {
             // Write the round univariate to the transcript
             round_univariate = round.compute_univariate(multivariates.folded_polynomials, alpha);
-            info("univariate_" + std::to_string(multivariates.multivariate_d - round_idx) + ": ", round_univariate);
             transcript.add_element("univariate_" + std::to_string(multivariates.multivariate_d - round_idx),
                                    round_univariate.to_buffer());
             challenge_label = "u_" + std::to_string(multivariates.multivariate_d - round_idx);
             transcript.apply_fiat_shamir(challenge_label);
             FF round_challenge = FF::serialize_from_buffer(transcript.get_challenge(challenge_label).begin());
-            info("u_" + std::to_string(multivariates.multivariate_d - round_idx) + ": ", round_challenge);
             multivariates.fold(multivariates.folded_polynomials, round.round_size, round_challenge);
             round.round_size = round.round_size >> 1;
         }
 
         // Final round
         transcript.add_element("multivariate_evaluations",
-                               // TODO(Cody): magic number
+                               // TODO(Cody): will need to do this programatically.
                                to_buffer(std::array<FF, waffle::STANDARD_HONK_TOTAL_NUM_POLYS>(
                                    { multivariates.folded_polynomials[0][0],
                                      multivariates.folded_polynomials[1][0],
@@ -111,29 +103,21 @@ template <class Multivariates, class Transcript, template <class> class... Relat
 
         // All but final round.
         // target_total_sum is initialized to zero then mutated in place.
-        info("sigma_" + std::to_string(multivariates.multivariate_d) + ": ", round.target_total_sum);
 
         if (multivariates.multivariate_d == 0) {
             throw_or_abort("Number of variables in multivariate is 0.");
         }
+
         for (size_t round_idx = 0; round_idx < multivariates.multivariate_d; round_idx++) {
             // Obtain the round univariate from the transcript
             auto round_univariate = Univariate<FF, MAX_RELATION_LENGTH>::serialize_from_buffer(
-                // &transcript.get_element("univariate_" + std::to_string(round_idx + 1))[0]); // Luke had this instead
                 &transcript.get_element("univariate_" + std::to_string(multivariates.multivariate_d - round_idx))[0]);
-
-            info("univariate_" + std::to_string(multivariates.multivariate_d - round_idx), round_univariate);
             bool checked = round.check_sum(round_univariate);
-
             verified = verified && checked;
             FF round_challenge = FF::serialize_from_buffer(
-                transcript.get_challenge("u_" + std::to_string(multivariates.multivariate_d - round_idx))
-                    .begin()); // TODO(real challenge)
-            // info("u_" + std::to_string(multivariates.multivariate_d - round_idx) + ": ", round_challenge);
+                transcript.get_challenge("u_" + std::to_string(multivariates.multivariate_d - round_idx)).begin());
 
             round.compute_next_target_sum(round_univariate, round_challenge);
-            // info("sigma_" + std::to_string(multivariates.multivariate_d - 1 - round_idx) + ": ",
-            //      round.target_total_sum);
 
             if (!verified) {
                 return false;
@@ -143,16 +127,9 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         // Final round
         // This will fail; need to iterate over manifest again?
         auto purported_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
-        for (auto& eval : purported_evaluations) {
-            info("purported evaluation: ", eval);
-        }
-
         FF alpha = FF::serialize_from_buffer(transcript.get_challenge("alpha").begin());
         FF full_honk_relation_purported_value =
             round.compute_full_honk_relation_purported_value(purported_evaluations, alpha);
-        info("full_honk_relation_purported_value: ", full_honk_relation_purported_value);
-        info("expected value: ", round.target_total_sum);
-
         verified = verified && (full_honk_relation_purported_value == round.target_total_sum);
         return verified;
     };

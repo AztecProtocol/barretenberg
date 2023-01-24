@@ -166,14 +166,6 @@ template <typename settings> void Prover<settings>::compute_grand_product_polyno
     z_perm[0] = Fr::one();
     copy_polynomial(numererator_accum[0], &z_perm[1], proving_key->n - 1, proving_key->n - 1);
 
-    // // TODO(Cody): This is wrong! I'm just putting z_perm in again. Need to compute the correct shift.
-    // //  Also, this is inefficient, of course.
-    // // Construct permutation polynomial 'z_perm_shift' in lagrange form as:
-    // // z_perm = [1 numererator_accum[0][0] numererator_accum[0][1] ... numererator_accum[0][n-2]]
-    // Polynomial z_perm_shift(proving_key->n, proving_key->n);
-    // z_perm_shift[0] = Fr::one();
-    // copy_polynomial(numererator_accum[0], &z_perm_shift[1], proving_key->n - 1, proving_key->n - 1);
-
     // free memory allocated for scratch space
     for (size_t k = 0; k < program_width; ++k) {
         aligned_free(numererator_accum[k]);
@@ -183,7 +175,6 @@ template <typename settings> void Prover<settings>::compute_grand_product_polyno
     // TODO(luke): Commit to z_perm here? This would match Plonk but maybe best to do separately?
 
     proving_key->polynomial_cache.put("z_perm_lagrange", std::move(z_perm));
-    // proving_key->polynomial_cache.put("z_perm_shift_lagrange", std::move(z_perm_shift));
 }
 
 /**
@@ -227,7 +218,7 @@ template <typename settings> void Prover<settings>::execute_preamble_round()
  * */
 template <typename settings> void Prover<settings>::execute_wire_commitments_round()
 {
-    // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue>
+    // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
     compute_wire_commitments();
 
     // Add public inputs to transcript
@@ -308,26 +299,6 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
     auto sumcheck = Sumcheck(multivariates, transcript);
 
     sumcheck.execute_prover();
-
-    // Add the multilinear evaluations produced by Sumcheck to the transcript.
-    // Note: The number of evaluations is poly manifest size + number of shifted polys.
-    // TODO(Cody): To move this into execute_prover, we have to pass a polynomial manifest. But it is desirable for
-    // sumcheck to be independent and testable without reference to the polynomial manifest (would have to mock this in
-    // the tests, etc.). How to handle? On the other hand, sumcheck already has a multivariates objects, and maybe that
-    // should learn about shifts. On the other hand, maybe the paradigm should be that modules expose functions so that
-    // all transcript interactions happen inside the prover? I lean toward the former.
-
-    // // TODO(Cody): This is what Luke had.
-    // size_t poly_idx = 0;
-    // for (auto& entry : proving_key->polynomial_manifest.get()) {
-    //     std::string label(entry.polynomial_label);
-    //     transcript.add_element(label, multivariates.folded_polynomials[poly_idx][0].to_buffer());
-    //     ++poly_idx;
-    //     if (entry.requires_shifted_evaluation) {
-    //         transcript.add_element(label + "_shift", multivariates.folded_polynomials[poly_idx][0].to_buffer());
-    //         ++poly_idx;
-    //     }
-    // }
 }
 
 /**

@@ -11,7 +11,7 @@ TYPED_TEST_SUITE(GeminiTest, CommitmentSchemeParams);
 
 TYPED_TEST(GeminiTest, single)
 {
-    GTEST_SKIP_("Need to reinstate latter half of manifest, but this breaks composer tests.");
+    GTEST_SKIP_("Need to reinstate latter half of manifest, which would break the composer tests.");
 
     using Gemini = MultilinearReductionScheme<TypeParam>;
     using MLEOpeningClaim = MLEOpeningClaim<TypeParam>;
@@ -45,7 +45,7 @@ TYPED_TEST(GeminiTest, single)
 
 TYPED_TEST(GeminiTest, shift)
 {
-    GTEST_SKIP_("Need to reinstate latter half of manifest, but this breaks composer tests.");
+    GTEST_SKIP_("Need to reinstate latter half of manifest, which would break the composer tests.");
 
     using Gemini = MultilinearReductionScheme<TypeParam>;
     using Fr = typename TypeParam::Fr;
@@ -85,7 +85,7 @@ TYPED_TEST(GeminiTest, shift)
 
 TYPED_TEST(GeminiTest, double)
 {
-    GTEST_SKIP_("Need to reinstate latter half of manifest, but this breaks composer tests.");
+    GTEST_SKIP_("Need to reinstate latter half of manifest, which would break the composer tests.");
 
     using Gemini = MultilinearReductionScheme<TypeParam>;
     using MLEOpeningClaim = MLEOpeningClaim<TypeParam>;
@@ -127,7 +127,7 @@ TYPED_TEST(GeminiTest, double)
 
 TYPED_TEST(GeminiTest, double_shift)
 {
-    GTEST_SKIP_("Need to reinstate latter half of manifest, but this breaks composer tests.");
+    GTEST_SKIP_("Need to reinstate latter half of manifest, which would break the composer tests.");
 
     using Gemini = MultilinearReductionScheme<TypeParam>;
     using Fr = typename TypeParam::Fr;

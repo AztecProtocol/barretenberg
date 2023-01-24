@@ -115,19 +115,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
         transcript.apply_fiat_shamir("u_" + std::to_string(log_n - idx));
     }
 
-    // // TODO(Cody): Compute some basic public polys like id(X), ~~pow(X)~~, and any required Lagrange polys
-    // std::vector<barretenberg::fr> u_vector_challenge;
-    // u_vector_challenge.resize(log_n);
-    // for (size_t idx = 1; idx <= log_n; idx++) {
-    //     const auto u_value =
-    //         barretenberg::fr::serialize_from_buffer(transcript.get_challenge("u_" + std::to_string(idx)).begin());
-    //     info("verifier u_" + std::to_string(idx) + ": ", u_value);
-    //     u_vector_challenge.emplace_back(u_value);
-    // };
-
-    // auto zeta_challenge = barretenberg::fr::serialize_from_buffer(transcript.get_challenge("alpha").begin());
-    // zeta_challenge = zeta_challenge * zeta_challenge; // zeta = alpha^2
-    // honk::power_polynomial::evaluate<barretenberg::fr>(zeta_challenge, u_vector_challenge);
+    // // TODO(Cody): Compute some basic public polys like id(X), pow(X), and any required Lagrange polys
 
     // Execute Sumcheck Verifier
     auto sumcheck = Sumcheck<Multivariates,
@@ -135,7 +123,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
                              ArithmeticRelation,
                              //  GrandProductComputationRelation,
                              GrandProductInitializationRelation>(transcript);
-    bool result = sumcheck.execute_verifier(); // Need to mock prover in tests for this to run
+    bool result = sumcheck.execute_verifier();
 
     // Execute Gemini/Shplonk verification:
     // Gemini (reduce_verify()): Compute [Fold_{r}^(0)]_1, [Fold_{-r}^(0)]_1, Fold_{r}^(0)(r)

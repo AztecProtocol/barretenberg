@@ -34,31 +34,14 @@ template <typename FF> class ArithmeticRelation : public Relation<FF> {
         auto q_o = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_O]);
         auto q_c = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_C]);
 
-        info("w_l: ", w_l);
-        info("w_r: ", w_r);
-        info("w_o: ", w_o);
-        // FF something = {0x43e1f593efffffff, 0x2833e84879b97091, 0xb85045b68181585d, 0x30644e72e131a029 };
-        // something.self_to_montgomery_form();
-        // info("SOMETHING: ", -something);
-        info("q_m: ", q_m);
-        info("q_l: ", q_l);
-        info("q_r: ", q_r);
-        info("q_o: ", q_o);
-        info("q_c: ", q_c);
-
         evals += w_l * ((q_m * w_r) + q_l);
         evals += q_r * w_r;
         evals += q_o * w_o;
         evals += q_c;
-
-        // info("evals: ", evals);
     };
 
     void add_full_relation_value_contribution(auto& purported_evaluations, FF& full_honk_relation_value)
     {
-
-        info("full_honk_relation_value: ", full_honk_relation_value);
-
         auto w_l = purported_evaluations[MULTIVARIATE::W_L];
         auto w_r = purported_evaluations[MULTIVARIATE::W_R];
         auto w_o = purported_evaluations[MULTIVARIATE::W_O];
@@ -67,15 +50,6 @@ template <typename FF> class ArithmeticRelation : public Relation<FF> {
         auto q_r = purported_evaluations[MULTIVARIATE::Q_R];
         auto q_o = purported_evaluations[MULTIVARIATE::Q_O];
         auto q_c = purported_evaluations[MULTIVARIATE::Q_C];
-
-        info("w_l: ", w_l);
-        info("w_r: ", w_r);
-        info("w_o: ", w_o);
-        info("q_m: ", q_m);
-        info("q_l: ", q_l);
-        info("q_r: ", q_r);
-        info("q_o: ", q_o);
-        info("q_c: ", q_c);
 
         full_honk_relation_value += w_l * (q_m * w_r + q_l);
         full_honk_relation_value += q_r * w_r;

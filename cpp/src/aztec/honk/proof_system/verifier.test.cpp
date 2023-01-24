@@ -186,8 +186,6 @@ template <class FF> class VerifierTests : public testing::Test {
         proving_key->polynomial_cache.put("sigma_2_lagrange", std::move(sigma_2_lagrange_base));
         proving_key->polynomial_cache.put("sigma_3_lagrange", std::move(sigma_3_lagrange_base));
 
-        // TODO(Cody): These should be computed here to illustrate how the prover state is computed, or
-        // as we do for the other polynomials, or we should reconsider the place of this test.
         honk::compute_standard_honk_id_polynomials<3>(proving_key);
         honk::compute_first_and_last_lagrange_polynomials(proving_key);
 
@@ -216,24 +214,24 @@ template <class FF> class VerifierTests : public testing::Test {
 using FieldTypes = testing::Types<barretenberg::fr>;
 TYPED_TEST_SUITE(VerifierTests, FieldTypes);
 
-// // It's good to have a standalone test, but for now we just rely on composer tests.
-// // This test is modeled after a corresponding test for the Plonk Verifier. As is the case there, this test relies on
-// // valid proof construction which makes the scope quite large. Not really a unit test but a nice test nonetheless.
-// TYPED_TEST(VerifierTests, VerifyArithmeticProofSmall)
-// {
-//     size_t n = 8;
+// This test is modeled after a corresponding test for the Plonk Verifier. As is the case there, this test relies on
+// valid proof construction which makes the scope quite large. Not really a unit test but a nice test nonetheless.
+TYPED_TEST(VerifierTests, VerifyArithmeticProofSmall)
+{
+    GTEST_SKIP() << "It's good to have a standalone test, but for now we just rely on composer tests.";
+    size_t n = 8;
 
-//     StandardUnrolledProver prover = TestFixture::generate_test_data(n);
+    StandardUnrolledProver prover = TestFixture::generate_test_data(n);
 
-//     StandardVerifier verifier = TestFixture::generate_verifier(prover.proving_key);
+    StandardVerifier verifier = TestFixture::generate_verifier(prover.proving_key);
 
-//     // construct proof
-//     waffle::plonk_proof proof = prover.construct_proof();
+    // construct proof
+    waffle::plonk_proof proof = prover.construct_proof();
 
-//     // verify proof
-//     bool result = verifier.verify_proof(proof);
+    // verify proof
+    bool result = verifier.verify_proof(proof);
 
-//     EXPECT_EQ(result, true);
-// }
+    EXPECT_EQ(result, true);
+}
 
 } // namespace test_honk_verifier
