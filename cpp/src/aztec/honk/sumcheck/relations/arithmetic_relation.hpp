@@ -26,6 +26,17 @@ template <typename FF> class ArithmeticRelation : public Relation<FF> {
     //       See https://hackmd.io/xGLuj6biSsCjzQnYN-pEiA?both
     void add_edge_contribution(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals)
     {
+        add_edge_contribution_internal(extended_edges, evals);
+    };
+
+    template <typename T>
+    void add_edge_contribution_testing(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals, T challenges)
+    {
+        (void)challenges;
+        add_edge_contribution_internal(extended_edges, evals);
+    };
+    void add_edge_contribution_internal(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals)
+    {
         auto w_l = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_L]);
         auto w_r = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_R]);
         auto w_o = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_O]);

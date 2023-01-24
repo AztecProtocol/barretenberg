@@ -40,7 +40,6 @@ Prover<settings>::Prover(std::shared_ptr<waffle::proving_key> input_key, const t
     , commitment_key(std::make_unique<pcs::kzg::CommitmentKey>(
           input_key->n,
           "../srs_db/ignition")) // TODO(Cody): Need better constructors for prover.
-    , queue(proving_key.get(), &transcript)
 {}
 
 /**
@@ -165,7 +164,7 @@ void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, b
 
     // Construct permutation polynomial 'z_perm' in lagrange form as:
     // z_perm = [0 numerator_accumulator[0][0] numerator_accumulator[0][1] ... numerator_accumulator[0][n-2] 0]
-    polynomial z_perm(proving_key->n + 1, proving_key->n + 1);
+    Polynomial z_perm(proving_key->n + 1, proving_key->n + 1);
     // We'll need to shift this polynomial to the left by dividing it by X in gemini, so the the 0-th coefficient should
     // stay zero
     copy_polynomial(numerator_accumulator[0], &z_perm[1], proving_key->n - 1, proving_key->n - 1);
