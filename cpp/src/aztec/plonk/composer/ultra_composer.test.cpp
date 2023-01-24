@@ -161,7 +161,7 @@ TEST(ultra_composer, test_elliptic_gate)
     uint32_t x3 = composer.add_variable(p3.x);
     uint32_t y3 = composer.add_variable(p3.y);
 
-    waffle::ecc_add_gate gate{ x1, y1, x2, y2, x3, y3, 1, 1 };
+    bonk::ecc_add_gate gate{ x1, y1, x2, y2, x3, y3, 1, 1 };
     composer.create_ecc_add_gate(gate);
 
     grumpkin::fq beta = grumpkin::fq::cube_root_of_unity();
@@ -170,14 +170,14 @@ TEST(ultra_composer, test_elliptic_gate)
     p3 = affine_element(element(p1) + element(p2_endo));
     x3 = composer.add_variable(p3.x);
     y3 = composer.add_variable(p3.y);
-    gate = waffle::ecc_add_gate{ x1, y1, x2, y2, x3, y3, beta, 1 };
+    gate = bonk::ecc_add_gate{ x1, y1, x2, y2, x3, y3, beta, 1 };
     composer.create_ecc_add_gate(gate);
 
     p2_endo.x *= beta;
     p3 = affine_element(element(p1) - element(p2_endo));
     x3 = composer.add_variable(p3.x);
     y3 = composer.add_variable(p3.y);
-    gate = waffle::ecc_add_gate{ x1, y1, x2, y2, x3, y3, beta.sqr(), -1 };
+    gate = bonk::ecc_add_gate{ x1, y1, x2, y2, x3, y3, beta.sqr(), -1 };
     composer.create_ecc_add_gate(gate);
 
     auto prover = composer.create_prover();

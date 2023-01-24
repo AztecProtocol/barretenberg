@@ -33,7 +33,9 @@ class StandardHonkComposer {
     /**Standard methods*/
 
     StandardHonkComposer(const size_t size_hint = 0)
-        : circuit_constructor(size_hint){};
+        : circuit_constructor(size_hint)
+        , n(circuit_constructor.num_gates)
+        , variables(circuit_constructor.variables){};
 
     StandardHonkComposer(std::string const& crs_path, const size_t size_hint = 0)
         : StandardHonkComposer(
@@ -43,11 +45,15 @@ class StandardHonkComposer {
     StandardHonkComposer(std::shared_ptr<waffle::ReferenceStringFactory> const& crs_factory, const size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(crs_factory)
+        , n(circuit_constructor.num_gates)
+        , variables(circuit_constructor.variables)
 
     {}
     StandardHonkComposer(std::unique_ptr<waffle::ReferenceStringFactory>&& crs_factory, const size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(std::move(crs_factory))
+        , n(circuit_constructor.num_gates)
+        , variables(circuit_constructor.variables)
 
     {}
 
@@ -56,13 +62,17 @@ class StandardHonkComposer {
                          size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(p_key, v_key)
+        , n(circuit_constructor.num_gates)
+        , variables(circuit_constructor.variables)
     {}
 
     StandardHonkComposer(const StandardHonkComposer& other) = delete;
     StandardHonkComposer(StandardHonkComposer&& other) = default;
     StandardHonkComposer& operator=(const StandardHonkComposer& other) = delete;
-    StandardHonkComposer& operator=(StandardHonkComposer&& other) = default;
+    // StandardHonkComposer& operator=(StandardHonkComposer&& other) = default;
     ~StandardHonkComposer() = default;
+
+    size_t get_num_gates() const { return circuit_constructor.get_num_gates(); }
 
     /**Methods related to circuit construction
      * They simply get proxied to the circuit constructor
@@ -143,6 +153,11 @@ class StandardHonkComposer {
 
     uint32_t add_public_variable(const barretenberg::fr& in) { return circuit_constructor.add_public_variable(in); }
 
+    virtual void set_public_input(const uint32_t witness_index)
+    {
+        return circuit_constructor.set_public_input(witness_index);
+    }
+
     uint32_t put_constant_variable(const barretenberg::fr& variable)
     {
         return circuit_constructor.put_constant_variable(variable);
@@ -151,6 +166,8 @@ class StandardHonkComposer {
     size_t get_num_constant_gates() const { return circuit_constructor.get_num_constant_gates(); }
 
     bool check_circuit() { return circuit_constructor.check_circuit(); }
+
+    barretenberg::fr get_variable(const uint32_t index) const { return circuit_constructor.get_variable(index); }
 
     /**Proof and verification-related methods*/
 
@@ -163,21 +180,30 @@ class StandardHonkComposer {
     {
         return composer_helper.compute_verification_key(circuit_constructor);
     }
+
+    uint32_t zero_idx = 0;
+
     void compute_witness() { composer_helper.compute_witness(circuit_constructor); };
     // TODO(Cody): This will not be needed, but maybe something is required for ComposerHelper to be generic?
-    StandardVerifier create_verifier() { return composer_helper.create_verifier(circuit_constructor); }
+    StandardUnrolledVerifier create_verifier() { return composer_helper.create_unrolled_verifier(circuit_constructor); }
     /**
      * Preprocess the circuit. Delegates to create_prover.
      *
      * @return A new initialized prover.
      */
     /**
-     * Preprocess the circuit. Delegates to create_prover.
+     * Preprocess the circuit. Delegates to create_
      *
      * @return A new initialized prover.
      */
-    StandardProver preprocess() { return composer_helper.create_prover(circuit_constructor); };
-    StandardProver create_prover() { return composer_helper.create_prover(circuit_constructor); };
+    StandardUnrolledProver preprocess()
+    {
+        return composer_helper.create_unrolled_prover<honk::StandardHonk>(circuit_constructor);
+    };
+    StandardUnrolledProver create_prover()
+    {
+        return composer_helper.create_unrolled_prover<honk::StandardHonk>(circuit_constructor);
+    };
     StandardUnrolledVerifier create_unrolled_verifier()
     {
         return composer_helper.create_unrolled_verifier(circuit_constructor);
@@ -186,5 +212,17 @@ class StandardHonkComposer {
     {
         return composer_helper.create_unrolled_prover<honk::StandardHonk>(circuit_constructor);
     };
+
+    size_t& n; /* n = Enemy */
+    // std::vector<uint32_t>& w_l;
+    // std::vector<uint32_t>& w_r;
+    // std::vector<uint32_t>& w_o;
+    // std::vector<uint32_t>& w_4;
+    // std::vector<uint32_t>& public_inputs;
+    std::vector<barretenberg::fr>& variables;
+    bool failed() const { return circuit_constructor.failed(); };
+    const std::string& err() const { return circuit_constructor.err(); };
+    void failure(std::string msg) { circuit_constructor.failure(msg); }
+
 }; // namespace waffle
 } // namespace honk

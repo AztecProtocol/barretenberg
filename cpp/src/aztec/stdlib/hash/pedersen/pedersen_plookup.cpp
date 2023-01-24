@@ -58,9 +58,9 @@ template <typename C> point<C> pedersen_plookup<C>::add_points(const point& p1, 
 
     point p3{ witness_t(ctx, x_3_raw), witness_t(ctx, y_3_raw) };
 
-    waffle::ecc_add_gate add_gate =
-        waffle::ecc_add_gate{ p1.x.witness_index, p1.y.witness_index, p2.x.witness_index,       p2.y.witness_index,
-                              p3.x.witness_index, p3.y.witness_index, endomorphism_coefficient, sign_coefficient };
+    bonk::ecc_add_gate add_gate =
+        bonk::ecc_add_gate{ p1.x.witness_index, p1.y.witness_index, p2.x.witness_index,       p2.y.witness_index,
+                            p3.x.witness_index, p3.y.witness_index, endomorphism_coefficient, sign_coefficient };
     ctx->create_ecc_add_gate(add_gate);
 
     return p3;

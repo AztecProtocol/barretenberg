@@ -133,7 +133,7 @@ uint<Composer, Native> uint<Composer, Native>::operator>>(const size_t shift) co
     const uint32_t left_index = shift == width - 1 ? context->zero_idx : accumulators[static_cast<size_t>(idx - 1)];
 
     // Constraint: -6.(self >> shift) + 12.a[idx-1] + 6.high bit of (a[idx] - 4.a[idx-1]) = 0.
-    const waffle::add_quad gate{
+    const bonk::add_quad gate{
         .a = context->zero_idx,
         .b = context->add_variable(output),
         .c = right_index,
@@ -198,13 +198,13 @@ uint<Composer, Native> uint<Composer, Native>::operator<<(const size_t shift) co
         const uint256_t output = (get_value() << shift) & MASK; // (value * 2**shift) % 2**32
 
         // constraint: A.2**shift - A_{x-1}.2**width + (value * 2**shift) % 2**32 == 0
-        const waffle::add_triple gate{ .a = base_idx,
-                                       .b = right_idx,
-                                       .c = context->add_variable(output),
-                                       .a_scaling = base_shift_factor,
-                                       .b_scaling = -fr(right_shift_factor),
-                                       .c_scaling = fr::neg_one(),
-                                       .const_scaling = fr::zero() };
+        const bonk::add_triple gate{ .a = base_idx,
+                                     .b = right_idx,
+                                     .c = context->add_variable(output),
+                                     .a_scaling = base_shift_factor,
+                                     .b_scaling = -fr(right_shift_factor),
+                                     .c_scaling = fr::neg_one(),
+                                     .const_scaling = fr::zero() };
 
         context->create_add_gate(gate);
 
@@ -271,15 +271,15 @@ uint<Composer, Native> uint<Composer, Native>::operator<<(const size_t shift) co
      *                       + 6 * high bit of A_x - 4 A_{x-1}                                   ,
      * where A = witness and shift = s = 2x + 1 and A_{-1} = 0.
      */
-    const waffle::add_quad gate{ .a = context->add_variable(output),
-                                 .b = base_index,
-                                 .c = left_index,
-                                 .d = right_index,
-                                 .a_scaling = -q_1,
-                                 .b_scaling = q_2,
-                                 .c_scaling = fr::zero(),
-                                 .d_scaling = -q_3,
-                                 .const_scaling = fr::zero() };
+    const bonk::add_quad gate{ .a = context->add_variable(output),
+                               .b = base_index,
+                               .c = left_index,
+                               .d = right_index,
+                               .a_scaling = -q_1,
+                               .b_scaling = q_2,
+                               .c_scaling = fr::zero(),
+                               .d_scaling = -q_3,
+                               .const_scaling = fr::zero() };
 
     context->create_big_add_gate_with_bit_extraction(gate);
 
@@ -343,13 +343,13 @@ uint<Composer, Native> uint<Composer, Native>::ror(const size_t target_rotation)
         const fr base_shift_factor = t1;
 
         // constraint: 4^{w-x} A + (1 - 4^w) A_pivot - out == 0
-        const waffle::add_triple gate{ .a = base_idx,
-                                       .b = left_idx,
-                                       .c = context->add_variable(output),
-                                       .a_scaling = base_shift_factor,
-                                       .b_scaling = left_shift_factor,
-                                       .c_scaling = fr::neg_one(),
-                                       .const_scaling = fr::zero() };
+        const bonk::add_triple gate{ .a = base_idx,
+                                     .b = left_idx,
+                                     .c = context->add_variable(output),
+                                     .a_scaling = base_shift_factor,
+                                     .b_scaling = left_shift_factor,
+                                     .c_scaling = fr::neg_one(),
+                                     .const_scaling = fr::zero() };
 
         context->create_add_gate(gate);
 
@@ -412,15 +412,15 @@ uint<Composer, Native> uint<Composer, Native>::ror(const size_t target_rotation)
      *   -out + (2 * 4^{w-x}) A + (2 - 2 * 4^{w}) A_{w-x-1} + (1 - 4^w) a_{x-1, 1} == 0.
      *
      */
-    const waffle::add_quad gate{ .a = context->add_variable(output),
-                                 .b = base_idx,
-                                 .c = next_pivot_idx,
-                                 .d = pivot_idx,
-                                 .a_scaling = q_1,
-                                 .b_scaling = q_2,
-                                 .c_scaling = fr::zero(),
-                                 .d_scaling = q_3,
-                                 .const_scaling = fr::zero() };
+    const bonk::add_quad gate{ .a = context->add_variable(output),
+                               .b = base_idx,
+                               .c = next_pivot_idx,
+                               .d = pivot_idx,
+                               .a_scaling = q_1,
+                               .b_scaling = q_2,
+                               .c_scaling = fr::zero(),
+                               .d_scaling = q_3,
+                               .const_scaling = fr::zero() };
 
     context->create_big_add_gate_with_bit_extraction(gate);
 
@@ -482,7 +482,7 @@ uint<Composer, Native> uint<Composer, Native>::logic_operator(const uint& other,
     const uint32_t lhs_idx = is_constant() ? ctx->add_variable(lhs) : witness_index;
     const uint32_t rhs_idx = other.is_constant() ? ctx->add_variable(rhs) : other.witness_index;
 
-    waffle::accumulator_triple logic_accumulators;
+    bonk::accumulator_triple logic_accumulators;
 
     switch (op_type) {
     case AND: {

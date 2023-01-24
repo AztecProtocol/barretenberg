@@ -1,4 +1,5 @@
 #pragma once
+#include <honk/composer/standard_honk_composer.hpp>
 #include <plonk/composer/composer_base.hpp>
 #include <ecc/curves/bn254/fr.hpp>
 
@@ -41,7 +42,7 @@ template <typename ComposerContext> class witness_t {
     static witness_t create_constant_witness(ComposerContext* parent_context, const barretenberg::fr& in)
     {
         witness_t out(parent_context, in);
-        parent_context->assert_equal_constant(out.witness_index, in);
+        // parent_context->assert_equal_constant(out.witness_index, in);
         return out;
     }
 
@@ -82,6 +83,8 @@ template <typename ComposerContext> class public_witness_t : public witness_t<Co
         witness_index = context->add_public_variable(witness);
     }
 };
+
+template class witness_t<honk::StandardHonkComposer>;
 
 } // namespace stdlib
 } // namespace plonk
