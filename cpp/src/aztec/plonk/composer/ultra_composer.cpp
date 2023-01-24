@@ -1258,8 +1258,15 @@ std::vector<uint32_t> UltraComposer::decompose_into_default_range(const uint32_t
     return sublimb_indices;
 }
 
-void UltraComposer::create_new_range_constraint(const uint32_t variable_index, const uint64_t target_range)
+void UltraComposer::create_new_range_constraint(const uint32_t variable_index,
+                                                const uint64_t target_range,
+                                                std::string const msg)
 {
+    if (uint256_t(get_variable(variable_index)).data[0] > target_range) {
+        if (!failed()) {
+            failure(msg);
+        }
+    }
     if (range_lists.count(target_range) == 0) {
         range_lists.insert({ target_range, create_range_list(target_range) });
     }
