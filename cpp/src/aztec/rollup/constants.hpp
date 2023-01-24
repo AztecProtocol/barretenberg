@@ -2,6 +2,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <numeric/uint256/uint256.hpp>
+#include <ecc/curves/grumpkin/grumpkin.hpp>
+
 namespace rollup {
 
 constexpr size_t DATA_TREE_DEPTH = 32;
@@ -9,7 +11,7 @@ constexpr size_t NULL_TREE_DEPTH = 256;
 constexpr size_t ROOT_TREE_DEPTH = 28;
 constexpr size_t DEFI_TREE_DEPTH = 30;
 
-constexpr size_t MAX_NO_WRAP_INTEGER_BIT_LENGTH = 252;
+constexpr size_t MAX_NO_WRAP_INTEGER_BIT_LENGTH = grumpkin::MAX_NO_WRAP_INTEGER_BIT_LENGTH;
 constexpr size_t MAX_TXS_BIT_LENGTH = 10;
 constexpr size_t TX_FEE_BIT_LENGTH = MAX_NO_WRAP_INTEGER_BIT_LENGTH - MAX_TXS_BIT_LENGTH;
 

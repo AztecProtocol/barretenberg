@@ -40,7 +40,7 @@ if(FUZZING)
     if(UNDEFINED_BEHAVIOUR_SANITIZER)
         set(SANITIZER_OPTIONS ${SANITIZER_OPTIONS} -fsanitize=undefined  -fno-sanitize=alignment)
     endif()
-    
+
     add_compile_options(-fsanitize=fuzzer-no-link ${SANITIZER_OPTIONS})
 
     set(WASM OFF)
