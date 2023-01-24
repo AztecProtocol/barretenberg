@@ -78,9 +78,21 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     {
         // FF's default constructor may not initialize to zero (e.g., barretenberg::fr), hence we can't rely on
         // aggregate initialization of the evaluations array.
-        std::fill(evaluations.begin(), evaluations.end(), FF::zero());
+        std::fill(evaluations.begin(), evaluations.end(), FF(0));
     };
 
+    /**
+     * @brief After computing the round univariate, it is necessary to zero-out the accumulators used to compute it.
+     */
+    template <size_t idx = 0> void reset_accumulators()
+    {
+        auto& univariate = std::get<idx>(univariate_accumulators);
+        std::fill(univariate.evaluations.begin(), univariate.evaluations.end(), FF(0));
+
+        if constexpr (idx + 1 < NUM_RELATIONS) {
+            reset_accumulators<idx + 1>();
+        }
+    };
     // IMPROVEMENT(Cody): This is kind of ugly. There should be a one-liner with folding
     // or std::apply or something.
 
@@ -96,6 +108,7 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
             scale_tuple<idx + 1>(tuple, challenge, running_challenge);
         }
     };
+
     /**
      * @brief Given a tuple t = (t_0, t_1, ..., t_{NUM_RELATIONS-1}) and a challenge α,
      * return t_0 + αt_1 + ... + α^{NUM_RELATIONS-1}t_{NUM_RELATIONS-1}).
@@ -212,7 +225,10 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
                                                                                 relation_separator_challenge);
 
         // info("result after batching: ", result);
-        std::get<0>(univariate_accumulators) = Univariate<FF, 4>({ FF(0), FF(0), FF(0), FF(0) });
+        reset_accumulators<>();
+        for (auto& value : std::get<0>(univariate_accumulators).evaluations) {
+            info(value);
+        }
 
         return result;
     }
