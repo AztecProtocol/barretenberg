@@ -41,10 +41,12 @@ class UltraComposer : public ComposerBase {
         NON_NATIVE_FIELD_1,
         NON_NATIVE_FIELD_2,
         NON_NATIVE_FIELD_3,
-        CONSISTENT_SORTED_MEMORY_READ,
-        SORTED_MEMORY_READ,
-        MEMORY_TIMESTAMP_CORRECTNESS,
-        MEMORY_READ,
+        RAM_CONSISTENCY_CHECK,
+        ROM_CONSISTENCY_CHECK,
+        RAM_TIMESTAMP_CHECK,
+        ROM_READ,
+        RAM_READ,
+        RAM_WRITE,
     };
 
     struct RangeList {
@@ -55,23 +57,63 @@ class UltraComposer : public ComposerBase {
     };
 
     /**
-     * @brief A memory record that can be ordered
+     * @brief A ROM memory record that can be ordered
      *
      *
      */
-    struct MemoryRecord {
-        uint32_t index_witness;
-        uint32_t timestamp_witness;
-        uint32_t value_witness;
-        uint32_t index;
-        uint32_t timestamp;
-        uint32_t record_witness;
-        size_t gate_index;
-        bool operator<(const MemoryRecord& other) const
+    struct RomRecord {
+        uint32_t index_witness = 0;
+        uint32_t value_column1_witness = 0;
+        uint32_t value_column2_witness = 0;
+        uint32_t index = 0;
+        uint32_t record_witness = 0;
+        size_t gate_index = 0;
+        bool operator<(const RomRecord& other) const { return index < other.index; }
+    };
+
+    /**
+     * @brief A RAM memory record that can be ordered
+     *
+     *
+     */
+    struct RamRecord {
+        enum AccessType {
+            READ,
+            WRITE,
+        };
+        uint32_t index_witness = 0;
+        uint32_t timestamp_witness = 0;
+        uint32_t value_witness = 0;
+        uint32_t index = 0;
+        uint32_t timestamp = 0;
+        AccessType access_type = AccessType::READ; // read or write?
+        uint32_t record_witness = 0;
+        size_t gate_index = 0;
+        bool operator<(const RamRecord& other) const
         {
             bool index_test = (index) < (other.index);
             return index_test || (index == other.index && timestamp < other.timestamp);
         }
+    };
+
+    /**
+     * @brief Each ram array is an instance of memory transcript. It saves values and indexes for a particular memory
+     * array
+     *
+     *
+     */
+    struct RamTranscript {
+        // Contains the value of each index of the array
+        std::vector<uint32_t> state;
+
+        // A vector of records, each of which contains:
+        // + The constant witness with the index
+        // + The value in the memory slot
+        // + The actual index value
+        std::vector<RamRecord> records;
+
+        // used for RAM records, to compute the timestamp when performing a read/write
+        size_t access_count = 0;
     };
 
     /**
@@ -80,7 +122,7 @@ class UltraComposer : public ComposerBase {
      *
      *
      */
-    struct MemoryTranscript {
+    struct RomTranscript {
         // Contains the value of each index of the array
         std::vector<std::array<uint32_t, 2>> state;
 
@@ -88,7 +130,7 @@ class UltraComposer : public ComposerBase {
         // + The constant witness with the index
         // + The value in the memory slot
         // + The actual index value
-        std::vector<MemoryRecord> records;
+        std::vector<RomRecord> records;
     };
 
     enum UltraSelectors { QM, QC, Q1, Q2, Q3, Q4, QARITH, QFIXED, QSORT, QELLIPTIC, QAUX, QLOOKUPTYPE, NUM };
@@ -175,64 +217,98 @@ class UltraComposer : public ComposerBase {
      * 3) Number of Rom array-associated gates
      * 4) NUmber of range-list associated gates
      *
+     *
+     * @param count return arument, number of existing gates
+     * @param rangecount return argument, extra gates due to range checks
+     * @param romcount return argument, extra gates due to rom reads
+     * @param ramcount return argument, extra gates due to ram read/writes
+     */
+    void get_num_gates_split_into_components(size_t& count,
+                                             size_t& rangecount,
+                                             size_t& romcount,
+                                             size_t& ramcount) const
+    {
+        count = n;
+        // each ROM gate adds +1 extra gate due to the rom reads being copied to a sorted list set
+        for (size_t i = 0; i < rom_arrays.size(); ++i) {
+            for (size_t j = 0; j < rom_arrays[i].state.size(); ++j) {
+                if (rom_arrays[i].state[j][0] == UNINITIALIZED_MEMORY_RECORD) {
+                    romcount += 2;
+                }
+            }
+            romcount += (rom_arrays[i].records.size());
+            romcount += 1; // we add an addition gate after procesing a rom array
+        }
+
+        constexpr size_t gate_width = ultra_settings::program_width;
+        // each RAM gate adds +2 extra gates due to the ram reads being copied to a sorted list set,
+        // as well as an extra gate to validate timestamps
+        for (size_t i = 0; i < ram_arrays.size(); ++i) {
+            for (size_t j = 0; j < ram_arrays[i].state.size(); ++j) {
+                if (ram_arrays[i].state[j] == UNINITIALIZED_MEMORY_RECORD) {
+                    ramcount += 2;
+                }
+            }
+            ramcount += (ram_arrays[i].records.size() * 2);
+            ramcount += 1; // we add an addition gate after procesing a ram array
+
+            // there will be 'max_timestamp' number of range checks, need to calculate.
+            const auto max_timestamp = ram_arrays[i].access_count - 1;
+
+            // TODO: if a range check of length `max_timestamp` already exists, this will be innacurate!
+            // TODO: fix this
+            size_t padding = (gate_width - (max_timestamp % gate_width)) % gate_width;
+            if (max_timestamp == gate_width)
+                padding += gate_width;
+            const size_t ram_range_check_list_size = max_timestamp + padding;
+
+            size_t ram_range_check_gate_count = (ram_range_check_list_size / gate_width);
+            ram_range_check_gate_count += 1; // we need to add 1 extra addition gates for every distinct range list
+
+            ramcount += ram_range_check_gate_count;
+        }
+        for (const auto& list : range_lists) {
+            auto list_size = list.second.variable_indices.size();
+            size_t padding = (gate_width - (list.second.variable_indices.size() % gate_width)) % gate_width;
+            if (list.second.variable_indices.size() == gate_width)
+                padding += gate_width;
+            list_size += padding;
+            rangecount += (list_size / gate_width);
+            rangecount += 1; // we need to add 1 extra addition gates for every distinct range list
+        }
+    }
+
+    /**
+     * @brief Get the final number of gates in a circuit, which consists of the sum of:
+     * 1) Current number number of actual gates
+     * 2) Number of public inputs, as we'll need to add a gate for each of them
+     * 3) Number of Rom array-associated gates
+     * 4) NUmber of range-list associated gates
+     *
      * @return size_t
      */
     virtual size_t get_num_gates() const override
     {
-        size_t count = n;
+        size_t count = 0;
         size_t rangecount = 0;
         size_t romcount = 0;
-        for (size_t i = 0; i < rom_arrays.size(); ++i) {
-            for (size_t j = 0; j < rom_arrays[i].state.size(); ++j) {
-                if (rom_arrays[i].state[j][0] == UNINITIALIZED_MEMORY_RECORD) {
-                    romcount += 2;
-                }
-            }
-            romcount += (rom_arrays[i].records.size());
-            romcount += 1; // we add an addition gate after procesing a rom array
-        }
-
-        constexpr size_t gate_width = ultra_settings::program_width;
-        for (const auto& list : range_lists) {
-            auto list_size = list.second.variable_indices.size();
-            size_t padding = (gate_width - (list.second.variable_indices.size() % gate_width)) % gate_width;
-            if (list.second.variable_indices.size() == gate_width)
-                padding += gate_width;
-            list_size += padding;
-            rangecount += (list_size / gate_width);
-            rangecount += 1; // we need to add 1 extra addition gates for every distinct range list
-        }
-        return count + romcount + rangecount;
+        size_t ramcount = 0;
+        get_num_gates_split_into_components(count, rangecount, romcount, ramcount);
+        return count + romcount + ramcount + rangecount;
     }
 
     virtual void print_num_gates() const override
     {
-        size_t count = n;
+        size_t count = 0;
         size_t rangecount = 0;
         size_t romcount = 0;
-        for (size_t i = 0; i < rom_arrays.size(); ++i) {
-            for (size_t j = 0; j < rom_arrays[i].state.size(); ++j) {
-                if (rom_arrays[i].state[j][0] == UNINITIALIZED_MEMORY_RECORD) {
-                    romcount += 2;
-                }
-            }
-            romcount += (rom_arrays[i].records.size());
-            romcount += 1; // we add an addition gate after procesing a rom array
-        }
+        size_t ramcount = 0;
 
-        constexpr size_t gate_width = ultra_settings::program_width;
-        for (const auto& list : range_lists) {
-            auto list_size = list.second.variable_indices.size();
-            size_t padding = (gate_width - (list.second.variable_indices.size() % gate_width)) % gate_width;
-            if (list.second.variable_indices.size() == gate_width)
-                padding += gate_width;
-            list_size += padding;
-            rangecount += (list_size / gate_width);
-            rangecount += 1; // we need to add 1 extra addition gates for every distinct range list
-        }
-        size_t total = count + romcount + rangecount;
-        std::cout << "gates = " << total << " (arith " << count << ", rom " << romcount << ", range " << rangecount
-                  << "), pubinp = " << public_inputs.size() << std::endl;
+        get_num_gates_split_into_components(count, rangecount, romcount, ramcount);
+
+        size_t total = count + romcount + ramcount + rangecount;
+        std::cout << "gates = " << total << " (arith " << count << ", rom " << romcount << ", ram " << ramcount
+                  << ", range " << rangecount << "), pubinp = " << public_inputs.size() << std::endl;
     }
 
     void assert_equal_constant(const uint32_t a_idx,
@@ -349,10 +425,21 @@ class UltraComposer : public ComposerBase {
                               const std::array<uint32_t, 2>& value_witnesses);
     uint32_t read_ROM_array(const size_t rom_id, const uint32_t index_witness);
     std::array<uint32_t, 2> read_ROM_array_pair(const size_t rom_id, const uint32_t index_witness);
-    void create_memory_gate(MemoryRecord& record);
-    void create_sorted_memory_gate(MemoryRecord& record, const bool is_ram_transition_or_rom = false);
+    void create_ROM_gate(RomRecord& record);
+    void create_sorted_ROM_gate(RomRecord& record);
     void process_ROM_array(const size_t rom_id, const size_t gate_offset_from_public_inputs);
     void process_ROM_arrays(const size_t gate_offset_from_public_inputs);
+
+    void create_RAM_gate(RamRecord& record);
+    void create_sorted_RAM_gate(RamRecord& record);
+    void create_final_sorted_RAM_gate(RamRecord& record, const size_t ram_array_size);
+
+    size_t create_RAM_array(const size_t array_size);
+    void init_RAM_element(const size_t ram_id, const size_t index_value, const uint32_t value_witness);
+    uint32_t read_RAM_array(const size_t ram_id, const uint32_t index_witness);
+    void write_RAM_array(const size_t ram_id, const uint32_t index_witness, const uint32_t value_witness);
+    void process_RAM_array(const size_t ram_id, const size_t gate_offset_from_public_inputs);
+    void process_RAM_arrays(const size_t gate_offset_from_public_inputs);
 
     /**
      * Member Variables
@@ -374,9 +461,26 @@ class UltraComposer : public ComposerBase {
     std::vector<plookup::MultiTable> lookup_multi_tables;
     std::map<uint64_t, RangeList> range_lists; // DOCTODO: explain this.
 
-    std::vector<MemoryTranscript> ram_arrays; // DOCTODO: explain this.
-    std::vector<MemoryTranscript> rom_arrays; // DOCTODO: explain this.
-    std::vector<uint32_t> memory_records;     // Used for ROM.
+    /**
+     * @brief Each entry in ram_arrays represents an independent RAM table.
+     * RamTranscript tracks the current table state,
+     * as well as the 'records' produced by each read and write operation.
+     * Used in `compute_proving_key` to generate consistency check gates required to validate the RAM read/write history
+     */
+    std::vector<RamTranscript> ram_arrays;
+
+    /**
+     * @brief Each entry in rim_arrays represents an independent ROM table.
+     * RomTranscript tracks the current table state,
+     * as well as the 'records' produced by each read operation.
+     * Used in `compute_proving_key` to generate consistency check gates required to validate the ROM read history
+     */
+    std::vector<RomTranscript> rom_arrays;
+
+    // Stores gate index of ROM and RAM reads (required by proving key)
+    std::vector<uint32_t> memory_read_records;
+    // Stores gate index of RAM writes (required by proving key)
+    std::vector<uint32_t> memory_write_records;
 
     std::vector<uint32_t> recursive_proof_public_input_indices;
     bool contains_recursive_proof = false;
