@@ -53,7 +53,7 @@ inline BasicTable generate_sparse_table_with_rotation(BasicTableId id, const siz
     for (size_t i = 0; i < bits_per_slice; ++i) {
         sparse_step_size *= base;
     }
-    table.column_1_step_size = barretenberg::fr((1 << bits_per_slice));
+    table.column_1_step_size = barretenberg::fr((1 << 11));
     table.column_2_step_size = barretenberg::fr(sparse_step_size);
     table.column_3_step_size = barretenberg::fr(sparse_step_size);
 
@@ -111,7 +111,7 @@ inline BasicTable generate_sparse_normalization_table(BasicTableId id, const siz
     table.get_values_from_key = &get_sparse_normalization_values<base, base_table>;
 
     table.column_1_step_size = barretenberg::fr(table.size);
-    table.column_2_step_size = barretenberg::fr(((uint64_t)1 << 11));
+    table.column_2_step_size = barretenberg::fr(((uint64_t)1 << num_bits));
     table.column_3_step_size = barretenberg::fr(0);
     return table;
 }

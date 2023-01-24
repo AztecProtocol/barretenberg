@@ -6,8 +6,6 @@
 #include "keccak.hpp"
 #include <stdint.h>
 
-#define ROTL64(x, y) (((x) << (y)) | ((x) >> (64 - (y))))
-
 static uint64_t rol(uint64_t x, unsigned s)
 {
     return (x << s) | (x >> (64 - s));
