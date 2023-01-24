@@ -111,14 +111,11 @@ const MultiTable& create_table(const MultiTableId id)
 ReadData<barretenberg::fr> get_lookup_accumulators(const MultiTableId id,
                                                    const fr& key_a,
                                                    const fr& key_b,
-                                                   const bool is_2_to_1_lookup,
-                                                   const size_t explicit_number_of_lookups)
+                                                   const bool is_2_to_1_lookup)
 {
     // return multi-table, populating global array of all multi-tables if need be
     const auto& multi_table = create_table(id);
-    ASSERT(explicit_number_of_lookups <= multi_table.lookup_ids.size());
-    const size_t num_lookups =
-        (explicit_number_of_lookups > 0) ? explicit_number_of_lookups : multi_table.lookup_ids.size();
+    const size_t num_lookups = multi_table.lookup_ids.size();
 
     ReadData<barretenberg::fr> lookup;
 

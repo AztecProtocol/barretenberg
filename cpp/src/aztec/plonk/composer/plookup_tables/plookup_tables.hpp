@@ -22,8 +22,7 @@ const MultiTable& create_table(const MultiTableId id);
 ReadData<barretenberg::fr> get_lookup_accumulators(const MultiTableId id,
                                                    const barretenberg::fr& key_a,
                                                    const barretenberg::fr& key_b = 0,
-                                                   const bool is_2_to_1_map = false,
-                                                   const size_t explicit_number_of_lookups = 0);
+                                                   const bool is_2_to_1_map = false);
 
 inline BasicTable create_basic_table(const BasicTableId id, const size_t index)
 {
