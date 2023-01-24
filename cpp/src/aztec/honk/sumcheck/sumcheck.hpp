@@ -125,7 +125,6 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         }
 
         // Final round
-        // This will fail; need to iterate over manifest again?
         auto purported_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
         FF alpha = FF::serialize_from_buffer(transcript.get_challenge("alpha").begin());
         FF full_honk_relation_purported_value =

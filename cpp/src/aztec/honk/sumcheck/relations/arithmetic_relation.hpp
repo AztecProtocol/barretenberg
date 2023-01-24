@@ -34,7 +34,7 @@ template <typename FF> class ArithmeticRelation : public Relation<FF> {
         auto q_o = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_O]);
         auto q_c = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_C]);
 
-        evals += w_l * ((q_m * w_r) + q_l);
+        evals += w_l * (q_m * w_r + q_l);
         evals += q_r * w_r;
         evals += q_o * w_o;
         evals += q_c;

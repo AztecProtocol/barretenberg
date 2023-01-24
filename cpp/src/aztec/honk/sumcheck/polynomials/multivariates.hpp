@@ -63,7 +63,7 @@ bool span_arrays_equal(auto& lhs, auto& rhs)
 template <class FF_, size_t num_polys> class Multivariates {
   public:
     using FF = FF_;
-    const size_t multivariate_n; // Todo(Cody): this should
+    const size_t multivariate_n;
     const size_t multivariate_d;
     static constexpr size_t num = num_polys;
 
@@ -139,8 +139,8 @@ template <class FF_, size_t num_polys> class Multivariates {
         // after the first round, operate in place on folded_polynomials
         for (size_t j = 0; j < num_polys; ++j) {
             for (size_t i = 0; i < round_size; i += 2) {
-                FF new_value = polynomials[j][i] + round_challenge * (polynomials[j][i + 1] - polynomials[j][i]);
-                folded_polynomials[j][i >> 1] = new_value;
+                folded_polynomials[j][i >> 1] =
+                    polynomials[j][i] + round_challenge * (polynomials[j][i + 1] - polynomials[j][i]);
             }
         }
     };
