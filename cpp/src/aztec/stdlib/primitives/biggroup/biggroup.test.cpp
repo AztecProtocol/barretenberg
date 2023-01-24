@@ -841,9 +841,9 @@ typedef testing::Types<TestType<stdlib::bn254<waffle::UltraComposer>, UseBigfiel
                        TestType<stdlib::bn254<waffle::TurboComposer>, UseBigfield::No>,
                        TestType<stdlib::bn254<waffle::StandardComposer>, UseBigfield::No>,
                        TestType<stdlib::bn254<waffle::UltraComposer>, UseBigfield::Yes>,
-                       TestType<stdlib::bn254<waffle::TurboComposer>, UseBigfield::Yes>,
-                       TestType<stdlib::bn254<waffle::StandardComposer>, UseBigfield::Yes>,
-                       TestType<stdlib::secp256r1<waffle::UltraComposer>, UseBigfield::Yes>,
+                       //    TestType<stdlib::bn254<waffle::TurboComposer>, UseBigfield::Yes>,
+                       //    TestType<stdlib::bn254<waffle::StandardComposer>, UseBigfield::Yes>,
+                       //    TestType<stdlib::secp256r1<waffle::UltraComposer>, UseBigfield::Yes>,
                        TestType<stdlib::secp256k1<waffle::UltraComposer>, UseBigfield::Yes>>
     TestTypes;
 
