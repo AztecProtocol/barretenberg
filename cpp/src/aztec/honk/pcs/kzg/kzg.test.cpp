@@ -70,16 +70,39 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzg)
     auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
     transcript->mock_inputs_prior_to_challenge("rho");
 
-    // Generate a multilinear polynomial, its commitment (genuine and mocked), and its evaluation at a random point
-    const auto mle_opening_point = this->random_evaluation_point(log_n);
-    auto poly = this->random_polynomial(n);
-    const auto commitment = this->commit(poly);
-    const auto mock_commitment = Params::C::one();
-    const auto eval = poly.evaluate_mle(mle_opening_point);
+    // Generate multilinear polynomials, their commitments (genuine and mocked) and evaluations (genuine) at a random
+    // point.
+    const auto mle_opening_point = this->random_evaluation_point(log_n); // sometimes denoted 'u'
+    auto poly1 = this->random_polynomial(n);
+    auto poly2 = this->random_polynomial(n);
+    poly2[0] = Params::Fr::zero(); // this property is required of polynomials whose shift is used
 
-    // Create a genuine opening claim (for use by verifier) and a mock opening claim (for prover)
-    const auto mle_opening_claims_mock = { MLEOpeningClaim{ mock_commitment, eval } };
-    const auto mle_opening_claims = { MLEOpeningClaim{ commitment, eval } };
+    auto commitment1 = this->commit(poly1);
+    auto commitment2 = this->commit(poly2);
+
+    auto eval1 = poly1.evaluate_mle(mle_opening_point);
+    auto eval2 = poly2.evaluate_mle(mle_opening_point);
+    auto eval2_shift = poly2.evaluate_mle(mle_opening_point, true);
+
+    const auto mock_commitment = Params::C::one();
+
+    // Create genuine opening claims (for use by verifier) and mock opening claims (for prover)
+    const auto claims = {
+        MLEOpeningClaim{ commitment1, eval1 },
+        MLEOpeningClaim{ commitment2, eval2 },
+    };
+    const auto claims_shift = {
+        // Gemini expects unshifted commitment, shifted evaluation
+        MLEOpeningClaim{ commitment2, eval2_shift },
+    };
+
+    const auto claims_mock = {
+        MLEOpeningClaim{ mock_commitment, eval1 },
+        MLEOpeningClaim{ mock_commitment, eval2 },
+    };
+    const auto claims_shift_mock = {
+        MLEOpeningClaim{ mock_commitment, eval2_shift },
+    };
 
     // Run the full prover PCS protocol with mocked opening claims (mocked commitment, genuine evaluation)
 
@@ -87,8 +110,8 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzg)
     // - claim: junk commitments, d+1 genuine evaluations a_0_pos, a_l, l = 0:d-1
     // - witness: the d+1 polynomials Fold_{r}^(0), Fold_{-r}^(0), Fold^(l), l = 1:d-1
     // - proof: d-1 commitments [Fold^(l)], l = 1:d-1 and d evaulations a_l, l = 0:d-1
-    const auto [gemini_prover_claim, gemini_witness, gemini_proof] =
-        Gemini::reduce_prove(this->ck(), mle_opening_point, mle_opening_claims_mock, {}, { &poly }, {}, transcript);
+    const auto [gemini_prover_claim, gemini_witness, gemini_proof] = Gemini::reduce_prove(
+        this->ck(), mle_opening_point, claims_mock, claims_shift_mock, { &poly1, &poly2 }, { &poly2 }, transcript);
 
     // Shplonk prover output:
     // - claim: junk commitment, evaluation point = zero
@@ -106,7 +129,7 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzg)
     // Gemini verifier output:
     // - claim: d+1 commitments to Fold_{r}^(0), Fold_{-r}^(0), Fold^(l), d+1 evaluations a_0_pos, a_l, l = 0:d-1
     const auto gemini_verifier_claim =
-        Gemini::reduce_verify(mle_opening_point, mle_opening_claims, {}, gemini_proof, transcript);
+        Gemini::reduce_verify(mle_opening_point, claims, claims_shift, gemini_proof, transcript);
 
     // Shplonk verifier output:
     // - claim: commitment [Q] - [Q_z], evaluation zero (at random challenge z)
@@ -116,7 +139,7 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzg)
     // - just aggregates inputs [Q] - [Q_z] and [W] into an 'accumulator' (can perform pairing check on result)
     auto kzg_claim = OpeningScheme::reduce_verify(shplonk_verifier_claim, kzg_proof);
 
-    // final pairing check: e([Q] - [Q_z] + z[W], [1]_2) = e([W], [x]_2)
+    // Final pairing check: e([Q] - [Q_z] + z[W], [1]_2) = e([W], [x]_2)
     bool verified = kzg_claim.verify(this->vk());
 
     EXPECT_EQ(verified, true);
