@@ -336,17 +336,12 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     auto multivariate_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
 
     // Construct opening claims and polynomials
+    // Note: the prover does not require genuine commitments to produce genuine proofs so we mock them.
     size_t eval_idx = 0;
     for (auto& entry : key->polynomial_manifest.get()) {
         std::string label(entry.polynomial_label);
-        std::string commitment_label(entry.commitment_label);
         auto evaluation = multivariate_evaluations[eval_idx++];
-        Commitment commitment;
-        if (entry.source == waffle::WITNESS) {
-            commitment = transcript.get_group_element(commitment_label);
-        } else {                            // SELECTOR, PERMUTATION, OTHER
-            commitment = Commitment::one(); // mock commitment
-        }
+        auto commitment = Commitment::one();
         opening_claims.emplace_back(commitment, evaluation);
         multivariate_polynomials.emplace_back(&key->polynomial_cache.get(label));
         if (entry.requires_shifted_evaluation) {

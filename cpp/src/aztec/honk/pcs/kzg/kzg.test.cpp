@@ -16,7 +16,6 @@ template <class Params> class BilinearAccumulationTest : public CommitmentTest<P
     using Fr = typename Params::Fr;
 
     using Commitment = typename Params::Commitment;
-    using CommitmentAffine = typename Params::C;
     using Polynomial = barretenberg::Polynomial<Fr>;
 
     using Accumulator = BilinearAccumulator<Params>;
@@ -45,7 +44,15 @@ TYPED_TEST(BilinearAccumulationTest, single)
 }
 
 /**
- * @brief Test mimicking the full PCS protocol used in individual proof construction/verification
+ * @brief Test full PCS protocol: Gemini, Shplonk, KZG and pairing check
+ * @details This test serves two purposes:
+ * (1) Demonstrate the full PCS protocol as it is used in the construction and verification
+ * of a single Honk proof. (Expository comments included throughout).
+ * (2) Demonstrate that proof construction/verification does not require the prover to pass
+ * genuine claims to the PCS. (This is relevant since in practice the prover does not have
+ * access to, for example, commitments to non-witness polynomials). The prover must provide
+ * only the multivariate polynomials and their genuine evaluations to the PCS, not commitments
+ * to those polynomials.
  *
  */
 TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzg)
