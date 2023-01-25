@@ -165,7 +165,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     for (auto& entry : key->polynomial_manifest.get()) {
         std::string commitment_label(entry.commitment_label);
         auto evaluation = multivariate_evaluations[eval_idx++];
-        Commitment commitment;
+        Commitment commitment = Commitment::one(); // initialize to make gcc happy
 
         switch (entry.source) {
         case waffle::WITNESS: {
