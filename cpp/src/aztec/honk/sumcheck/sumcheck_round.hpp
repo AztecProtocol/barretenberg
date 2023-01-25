@@ -144,6 +144,17 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
         }
     }
 
+    /**
+     * @brief Function accumulating relations for testing
+     *
+     * @details Get univariates from input instead of internal state. Uses submitted challenges
+     *
+     * @tparam relation_idx
+     * @tparam challenge_size
+     * @param internal_extended_edges
+     * @param internal_univariate_accumulators
+     * @param challenges
+     */
     template <size_t relation_idx = 0, size_t challenge_size = 3>
     void accumulate_relation_univariates_testing(
         std::array<Univariate<FF, MAX_RELATION_LENGTH>, num_multivariates>& internal_extended_edges,
@@ -277,5 +288,5 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
         target_total_sum = barycentric.evaluate(univariate, round_challenge);
         return target_total_sum;
     }
-}; // namespace honk::sumcheck
+};
 } // namespace honk::sumcheck

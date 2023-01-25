@@ -40,6 +40,7 @@ Prover<settings>::Prover(std::shared_ptr<waffle::proving_key> input_key, const t
     , commitment_key(std::make_unique<pcs::kzg::CommitmentKey>(
           input_key->n,
           "../srs_db/ignition")) // TODO(Cody): Need better constructors for prover.
+// , queue(proving_key.get(), &transcript) // TODO(Adrian): explore whether it's needed
 {}
 
 /**
@@ -118,7 +119,7 @@ void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, b
     }
 
     // Step (1)
-    // TODO: Change the order to engage automatic prefetching and get rid of redundant computation
+    // TODO(kesha): Change the order to engage automatic prefetching and get rid of redundant computation
     for (size_t i = 0; i < proving_key->n; ++i) {
         for (size_t k = 0; k < program_width; ++k) {
             // TODO(luke): maybe this idx is replaced by proper ID polys in the future

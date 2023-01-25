@@ -29,7 +29,7 @@ template <class Fr, size_t _length> class Univariate {
         : evaluations(std::move(other.evaluations))
     {}
 
-    // Construct Univariate from UnivariateView
+    // Construct Univariate from scalar
     Univariate(Fr value)
         : evaluations{}
     {
