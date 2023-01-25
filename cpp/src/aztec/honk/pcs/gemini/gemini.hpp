@@ -333,17 +333,6 @@ template <typename Params> class MultilinearReductionScheme {
         auto result_claims =
             compute_output_claim_from_proof(claims_f, claims_g, mle_opening_point, rhos, r_squares, proof);
 
-        // Add the following to transcript:
-        // - Evaluation \hat{a_0} = Fold_{r}^(0)(r) of the 0th Fold polynomial at +r
-        // - Commitments [Fold_{r}^(0)] and [Fold_{-r}^(0)] of the partially evaluated 0th Fold poly at +/-r
-        Fr a_0_pos = result_claims[0].eval;
-        // TODO(luke): These lines seem to break for trivial circuits. Is this related to point at infinity issue?
-        CommitmentAffine Fold_0_pos_commitment(result_claims[0].commitment);
-        CommitmentAffine Fold_0_neg_commitment(result_claims[1].commitment);
-        transcript->add_element("a_0_pos", a_0_pos.to_buffer());
-        transcript->add_element("FOLD_0_pos", static_cast<CommitmentAffine>(Fold_0_pos_commitment).to_buffer());
-        transcript->add_element("FOLD_0_neg", static_cast<CommitmentAffine>(Fold_0_neg_commitment).to_buffer());
-
         return { result_claims, std::move(witness_polynomials), proof };
     };
 

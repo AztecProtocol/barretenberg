@@ -1,5 +1,7 @@
 
 #include "kzg.hpp"
+#include "../shplonk/shplonk_single.hpp"
+#include "../gemini/gemini.hpp"
 
 #include "../commitment_key.test.hpp"
 
@@ -14,6 +16,7 @@ template <class Params> class BilinearAccumulationTest : public CommitmentTest<P
     using Fr = typename Params::Fr;
 
     using Commitment = typename Params::Commitment;
+    using CommitmentAffine = typename Params::C;
     using Polynomial = barretenberg::Polynomial<Fr>;
 
     using Accumulator = BilinearAccumulator<Params>;
@@ -39,6 +42,77 @@ TYPED_TEST(BilinearAccumulationTest, single)
     auto result_acc = OpeningScheme::reduce_verify(claim, proof);
 
     this->verify_accumulators(acc, result_acc);
+}
+
+/**
+ * @brief Test mimicking the full PCS protocol used in individual proof construction/verification
+ *
+ */
+TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzg)
+{
+    using Transcript = transcript::StandardTranscript;
+    using Shplonk = shplonk::SingleBatchOpeningScheme<TypeParam>;
+    using Gemini = gemini::MultilinearReductionScheme<TypeParam>;
+    using MLEOpeningClaim = MLEOpeningClaim<TypeParam>;
+    using OpeningScheme = UnivariateOpeningScheme<TypeParam>;
+
+    const size_t n = 16;
+    const size_t log_n = 4;
+
+    // Instantiate a transcript from the real Honk manifest, then mock the inputs prior to Gemini.
+    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
+    transcript->mock_inputs_prior_to_challenge("rho");
+
+    // Generate a multilinear polynomial, its commitment (genuine and mocked), and its evaluation at a random point
+    const auto mle_opening_point = this->random_evaluation_point(log_n);
+    auto poly = this->random_polynomial(n);
+    const auto commitment = this->commit(poly);
+    const auto mock_commitment = Params::C::one();
+    const auto eval = poly.evaluate_mle(mle_opening_point);
+
+    // Create a genuine opening claim (for use by verifier) and a mock opening claim (for prover)
+    const auto mle_opening_claims_mock = { MLEOpeningClaim{ mock_commitment, eval } };
+    const auto mle_opening_claims = { MLEOpeningClaim{ commitment, eval } };
+
+    // Run the full prover PCS protocol with mocked opening claims (mocked commitment, genuine evaluation)
+
+    // Gemini prover output:
+    // - claim: junk commitments, d+1 genuine evaluations a_0_pos, a_l, l = 0:d-1
+    // - witness: the d+1 polynomials Fold_{r}^(0), Fold_{-r}^(0), Fold^(l), l = 1:d-1
+    // - proof: d-1 commitments [Fold^(l)], l = 1:d-1 and d evaulations a_l, l = 0:d-1
+    const auto [gemini_prover_claim, gemini_witness, gemini_proof] =
+        Gemini::reduce_prove(this->ck(), mle_opening_point, mle_opening_claims_mock, {}, { &poly }, {}, transcript);
+
+    // Shplonk prover output:
+    // - claim: junk commitment, evaluation point = zero
+    // - witness: polynomial Q - Q_z
+    // - proof: commitment [Q]
+    const auto [shplonk_prover_claim, shplonk_witness, shplonk_proof] =
+        Shplonk::reduce_prove(this->ck(), gemini_prover_claim, gemini_witness, transcript);
+
+    // KZG prover output:
+    // - proof: commitment [W]
+    auto [kzg_accum, kzg_proof] = OpeningScheme::reduce_prove(this->ck(), shplonk_prover_claim, shplonk_witness);
+
+    // Run the full verifier PCS protocol with genuine opening claims (genuine commitment, genuine evaluation)
+
+    // Gemini verifier output:
+    // - claim: d+1 commitments to Fold_{r}^(0), Fold_{-r}^(0), Fold^(l), d+1 evaluations a_0_pos, a_l, l = 0:d-1
+    const auto gemini_verifier_claim =
+        Gemini::reduce_verify(mle_opening_point, mle_opening_claims, {}, gemini_proof, transcript);
+
+    // Shplonk verifier output:
+    // - claim: commitment [Q] - [Q_z], evaluation zero (at random challenge z)
+    const auto shplonk_verifier_claim = Shplonk::reduce_verify(gemini_verifier_claim, shplonk_proof, transcript);
+
+    // KZG verifier output:
+    // - just aggregates inputs [Q] - [Q_z] and [W] into an 'accumulator' (can perform pairing check on result)
+    auto kzg_claim = OpeningScheme::reduce_verify(shplonk_verifier_claim, kzg_proof);
+
+    // final pairing check: e([Q] - [Q_z] + z[W], [1]_2) = e([W], [x]_2)
+    bool verified = kzg_claim.verify(this->vk());
+
+    EXPECT_EQ(verified, true);
 }
 
 } // namespace honk::pcs::kzg
