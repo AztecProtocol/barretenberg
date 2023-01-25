@@ -9,7 +9,8 @@ class UltraComposer : public ComposerBase {
 
   public:
     static constexpr ComposerType type = ComposerType::PLOOKUP;
-    static constexpr MerkleHashType merkle_hash_type = MerkleHashType::FIXED_BASE_PEDERSEN;
+    static constexpr merkle::HashType merkle_hash_type = merkle::HashType::FIXED_BASE_PEDERSEN;
+    static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
     static constexpr size_t NUM_RESERVED_GATES = 4; // This must be >= num_roots_cut_out_of_vanishing_polynomial
                                                     // See the comment in plonk/proof_system/prover/prover.cpp
                                                     // ProverBase::compute_quotient_commitments() for why 4 exactly.

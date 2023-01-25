@@ -12,12 +12,21 @@ enum ComposerType {
 // This variable sets the composer (TURBO or ULTRA) of the entire stdlib and rollup modules.
 // To switch to using a new composer, only changing this variable should activate the new composer
 // throughout the stdlib and circuits.
-static constexpr uint32_t SYSTEM_COMPOSER = ComposerType::TURBO;
+static constexpr uint32_t SYSTEM_COMPOSER = ComposerType::PLOOKUP;
 
-enum MerkleHashType {
+namespace merkle {
+enum HashType {
     FIXED_BASE_PEDERSEN,
     LOOKUP_PEDERSEN,
 };
+}
+
+namespace pedersen {
+enum CommitmentType {
+    FIXED_BASE_PEDERSEN,
+    LOOKUP_PEDERSEN,
+};
+}
 
 // limb size when simulating a non-native field using bigfield class
 // (needs to be a universal constant to be used by native verifier)

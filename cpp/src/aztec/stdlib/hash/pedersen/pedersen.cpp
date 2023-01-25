@@ -42,7 +42,7 @@ point<C> pedersen_hash<C>::hash_single(const field_t& in,
                                        const bool validate_input_is_in_field)
 {
     if constexpr (C::type == waffle::ComposerType::PLOOKUP &&
-                  C::merkle_hash_type == waffle::MerkleHashType::LOOKUP_PEDERSEN) {
+                  C::merkle_hash_type == waffle::merkle::HashType::LOOKUP_PEDERSEN) {
         return pedersen_plookup_hash<C>::hash_single(in, hash_index.index == 0);
     }
 
@@ -208,7 +208,8 @@ point<C> pedersen_hash<C>::hash_single(const field_t& in,
             ctx->create_fixed_group_add_gate(round_quad);
         } else {
             if constexpr (C::type == waffle::PLOOKUP &&
-                          C::merkle_hash_type == waffle::MerkleHashType::FIXED_BASE_PEDERSEN) {
+                          (C::merkle_hash_type == waffle::merkle::HashType::FIXED_BASE_PEDERSEN ||
+                           C::commitment_type == waffle::pedersen::CommitmentType::FIXED_BASE_PEDERSEN)) {
                 /* In TurboComposer, the selector q_5 is used to show that w_1 and w_2 are properly initialized to the
                  * coordinates of P_s = (-s + 4^n)[g]. In UltraPlonK, we have removed q_5 for overall efficiency (it
                  * would only be used here in this gate), but this presents us a cost in the present circuit: we must
@@ -516,7 +517,7 @@ field_t<C> pedersen_hash<C>::hash_multiple(const std::vector<field_t>& inputs,
                                            const bool validate_inputs_in_field)
 {
     if constexpr (C::type == waffle::ComposerType::PLOOKUP &&
-                  C::merkle_hash_type == waffle::MerkleHashType::LOOKUP_PEDERSEN) {
+                  C::merkle_hash_type == waffle::merkle::HashType::LOOKUP_PEDERSEN) {
         return pedersen_plookup_hash<C>::hash_multiple(inputs, hash_index);
     }
 

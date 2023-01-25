@@ -17,7 +17,7 @@ template <typename C>
 point<C> pedersen_commitment<C>::commit(const std::vector<field_t>& inputs, const size_t hash_index)
 {
     if constexpr (C::type == waffle::ComposerType::PLOOKUP &&
-                  C::merkle_hash_type == waffle::MerkleHashType::LOOKUP_PEDERSEN) {
+                  C::commitment_type == waffle::pedersen::CommitmentType::LOOKUP_PEDERSEN) {
         return pedersen_plookup_commitment<C>::commit(inputs, hash_index);
     }
 
@@ -40,7 +40,7 @@ field_t<C> pedersen_commitment<C>::compress_unsafe(const field_t& in_left,
                                                    const bool validate_input_is_in_field)
 {
     if constexpr (C::type == waffle::ComposerType::PLOOKUP &&
-                  C::merkle_hash_type == waffle::MerkleHashType::LOOKUP_PEDERSEN) {
+                  C::commitment_type == waffle::pedersen::CommitmentType::LOOKUP_PEDERSEN) {
         return pedersen_plookup_commitment<C>::compress({ in_left, in_right });
     }
 
@@ -59,7 +59,7 @@ template <typename C>
 field_t<C> pedersen_commitment<C>::compress(const std::vector<field_t>& inputs, const size_t hash_index)
 {
     if constexpr (C::type == waffle::ComposerType::PLOOKUP &&
-                  C::merkle_hash_type == waffle::MerkleHashType::LOOKUP_PEDERSEN) {
+                  C::commitment_type == waffle::pedersen::CommitmentType::LOOKUP_PEDERSEN) {
         return pedersen_plookup_commitment<C>::compress(inputs, hash_index);
     }
 

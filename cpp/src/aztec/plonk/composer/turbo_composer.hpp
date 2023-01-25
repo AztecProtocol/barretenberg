@@ -6,7 +6,8 @@ namespace waffle {
 class TurboComposer : public ComposerBase {
   public:
     static constexpr ComposerType type = ComposerType::TURBO;
-    static constexpr MerkleHashType merkle_hash_type = MerkleHashType::FIXED_BASE_PEDERSEN;
+    static constexpr merkle::HashType merkle_hash_type = merkle::HashType::FIXED_BASE_PEDERSEN;
+    static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
     static constexpr size_t UINT_LOG2_BASE = 2;
     enum TurboSelectors { QM, QC, Q1, Q2, Q3, Q4, Q5, QARITH, QFIXED, QRANGE, QLOGIC, NUM };
 
