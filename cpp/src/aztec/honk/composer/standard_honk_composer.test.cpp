@@ -311,7 +311,7 @@ TEST(standard_honk_composer, test_verification_key_creation)
  * @brief A test taking sumcheck relations and applying them to the witness and selector polynomials to ensure that the
  * realtions are correct.
  *
- * TODO(kesha): We'll have to update this function once we add zk, since the relation will be incorrect fot he first few
+ * TODO(kesha): We'll have to update this function once we add zk, since the relation will be incorrect for he first few
  * indices
  *
  */
@@ -320,7 +320,7 @@ TEST(standard_honk_composer, test_check_sumcheck_relations_correctness)
     // Create a composer and a dummy circuit with a few gates
     StandardHonkComposer composer = StandardHonkComposer();
     fr a = fr::one();
-    // Using the public variable to check that public_input_delta is computed and added to the realtion correctly
+    // Using the public variable to check that public_input_delta is computed and added to the relation correctly
     uint32_t a_idx = composer.add_public_variable(a);
     fr b = fr::one();
     fr c = a + b;
@@ -346,7 +346,7 @@ TEST(standard_honk_composer, test_check_sumcheck_relations_correctness)
     const auto public_inputs = composer.circuit_constructor.get_public_inputs();
     auto public_input_delta = compute_public_input_delta<fr>(public_inputs, beta, gamma, prover.proving_key->n);
 
-    // Show grand product polynomial
+    // Retrieve polynomials from proving key
     polynomial z_perm = prover.proving_key->polynomial_cache.get("z_perm_lagrange");
     polynomial w_1 = prover.proving_key->polynomial_cache.get("w_1_lagrange");
     polynomial w_2 = prover.proving_key->polynomial_cache.get("w_2_lagrange");
@@ -385,7 +385,7 @@ TEST(standard_honk_composer, test_check_sumcheck_relations_correctness)
     using GrandProductInitializationUnivariate =
         Univariate<fr, honk::sumcheck::GrandProductInitializationRelation<fr>::RELATION_LENGTH>;
 
-    // Initialize relations, SumcheckRound and the results tuple
+    // Construct the round for applying sumcheck relations and results for storing computed results
     auto relations = std::tuple(honk::sumcheck::ArithmeticRelation<fr>(),
                                 honk::sumcheck::GrandProductComputationRelation<fr>(),
                                 honk::sumcheck::GrandProductInitializationRelation<fr>());
@@ -396,6 +396,7 @@ TEST(standard_honk_composer, test_check_sumcheck_relations_correctness)
     // Transpose the polynomials so that each entry of the vector contains an array of polynomial entries at that
     // index
     for (size_t i = 0; i < prover.proving_key->n; i++) {
+        // We only fill in the first element of each univariate with the value of an entry from the original poynomial
         StandardUnivariate w_1_univariate(0);
         w_1_univariate.value_at(0) = w_1[i];
         StandardUnivariate w_2_univariate(0);

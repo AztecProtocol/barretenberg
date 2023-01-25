@@ -27,6 +27,12 @@ template <typename FF> class GrandProductInitializationRelation : public Relatio
         add_edge_contribution_internal(extended_edges, evals);
     };
 
+    /**
+     * @brief Internal function computing the actual contribution for GP intialization relation
+     *
+     * @param extended_edges
+     * @param evals
+     */
     void add_edge_contribution_internal(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals)
     {
         auto z_perm_shift = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Z_PERM_SHIFT]);
@@ -34,6 +40,14 @@ template <typename FF> class GrandProductInitializationRelation : public Relatio
 
         evals += lagrange_last * z_perm_shift;
     }
+    /**
+     * @brief A version of `add_edge_contribution` used for testing the relation
+     *
+     * @tparam T
+     * @param extended_edges
+     * @param evals
+     * @param challenges
+     */
     template <typename T>
     void add_edge_contribution_testing(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals, T challenges)
     {

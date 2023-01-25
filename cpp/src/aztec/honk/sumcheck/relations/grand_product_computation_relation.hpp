@@ -19,9 +19,27 @@ template <typename FF> class GrandProductComputationRelation : public Relation<F
 
     GrandProductComputationRelation() = default;
     explicit GrandProductComputationRelation(auto){}; // TODO(luke): should just be default?
+    /**
+     * @brief Add contribution of the permutation relation for a given edge (used by sumcheck round)
+     */
+    void add_edge_contribution(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals)
+    {
+        add_edge_contribution_internal(extended_edges, evals, beta_default, gamma_default, public_input_delta_default);
+    };
 
     /**
-     * @brief Add contribution of the permutation relation for a given edge
+     * @brief Add contribution of the permutation relation for a given edge (used for testing, allows specifying
+     * challenges)
+     */
+    void add_edge_contribution_testing(auto& extended_edges,
+                                       Univariate<FF, RELATION_LENGTH>& evals,
+                                       std::array<FF, 3> challenges)
+    {
+        add_edge_contribution_internal(extended_edges, evals, challenges[0], challenges[1], challenges[2]);
+    };
+
+    /**
+     * @brief Add contribution of the permutation relation for a given edge (internal function)
      *
      * @detail There are 2 relations associated with enforcing the wire copy relations
      * This file handles the relation that confirms faithful calculation of the grand
@@ -34,18 +52,6 @@ template <typename FF> class GrandProductComputationRelation : public Relation<F
      *      delta is the public input correction term
      *
      */
-    void add_edge_contribution(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals)
-    {
-        add_edge_contribution_internal(extended_edges, evals, beta_default, gamma_default, public_input_delta_default);
-    };
-
-    void add_edge_contribution_testing(auto& extended_edges,
-                                       Univariate<FF, RELATION_LENGTH>& evals,
-                                       std::array<FF, 3> challenges)
-    {
-        add_edge_contribution_internal(extended_edges, evals, challenges[0], challenges[1], challenges[2]);
-    };
-
     inline void add_edge_contribution_internal(
         auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals, FF beta, FF gamma, FF public_input_delta)
     {
