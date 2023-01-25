@@ -7,6 +7,8 @@
 #include <plonk/composer/turbo_composer.hpp>
 #include <numeric/random/engine.hpp>
 
+using namespace bonk;
+
 namespace test_stdlib_field {
 
 namespace {
@@ -138,25 +140,25 @@ template <typename Composer> class stdlib_field : public testing::Test {
                  */
                 if (true_when_y_val_zero) {
                     // constraint: 0*x + 1*y + 0*0 + 0 == 0
-                    bonk::add_triple t{ .a = x.witness_index,
-                                        .b = y.witness_index,
-                                        .c = composer.zero_idx,
-                                        .a_scaling = 0,
-                                        .b_scaling = 1,
-                                        .c_scaling = 0,
-                                        .const_scaling = 0 };
+                    add_triple t{ .a = x.witness_index,
+                                  .b = y.witness_index,
+                                  .c = composer.zero_idx,
+                                  .a_scaling = 0,
+                                  .b_scaling = 1,
+                                  .c_scaling = 0,
+                                  .const_scaling = 0 };
 
                     composer.create_add_gate(t);
                     expected_result = false;
                 } else {
                     // constraint: 0*x + 1*y + 0*0 - 1 == 0
-                    bonk::add_triple t{ .a = x.witness_index,
-                                        .b = y.witness_index,
-                                        .c = composer.zero_idx,
-                                        .a_scaling = 0,
-                                        .b_scaling = 1,
-                                        .c_scaling = 0,
-                                        .const_scaling = -1 };
+                    add_triple t{ .a = x.witness_index,
+                                  .b = y.witness_index,
+                                  .c = composer.zero_idx,
+                                  .a_scaling = 0,
+                                  .b_scaling = 1,
+                                  .c_scaling = 0,
+                                  .const_scaling = -1 };
 
                     composer.create_add_gate(t);
                     expected_result = true;

@@ -3,6 +3,7 @@
 #include <transcript/manifest.hpp>
 #include <srs/reference_string/file_reference_string.hpp>
 
+using namespace bonk;
 namespace waffle {
 enum StandardSelectors { QM, QC, Q1, Q2, Q3, NUM };
 
@@ -96,20 +97,19 @@ class StandardComposer : public ComposerBase {
     UnrolledVerifier create_unrolled_verifier();
     UnrolledProver create_unrolled_prover();
 
-    void create_add_gate(const bonk::add_triple& in) override;
-    void create_mul_gate(const bonk::mul_triple& in) override;
+    void create_add_gate(const add_triple& in) override;
+    void create_mul_gate(const mul_triple& in) override;
     void create_bool_gate(const uint32_t a) override;
-    void create_poly_gate(const bonk::poly_triple& in) override;
-    void create_big_add_gate(const bonk::add_quad& in);
-    void create_big_add_gate_with_bit_extraction(const bonk::add_quad& in);
-    void create_big_mul_gate(const bonk::mul_quad& in);
-    void create_balanced_add_gate(const bonk::add_quad& in);
-    void create_fixed_group_add_gate(const bonk::fixed_group_add_quad& in);
-    void create_fixed_group_add_gate_with_init(const bonk::fixed_group_add_quad& in,
-                                               const bonk::fixed_group_init_quad& init);
-    void create_fixed_group_add_gate_final(const bonk::add_quad& in);
+    void create_poly_gate(const poly_triple& in) override;
+    void create_big_add_gate(const add_quad& in);
+    void create_big_add_gate_with_bit_extraction(const add_quad& in);
+    void create_big_mul_gate(const mul_quad& in);
+    void create_balanced_add_gate(const add_quad& in);
+    void create_fixed_group_add_gate(const fixed_group_add_quad& in);
+    void create_fixed_group_add_gate_with_init(const fixed_group_add_quad& in, const fixed_group_init_quad& init);
+    void create_fixed_group_add_gate_final(const add_quad& in);
 
-    bonk::fixed_group_add_quad previous_add_quad;
+    fixed_group_add_quad previous_add_quad;
 
     void fix_witness(const uint32_t witness_index, const barretenberg::fr& witness_value);
 
@@ -140,12 +140,12 @@ class StandardComposer : public ComposerBase {
     std::vector<uint32_t> recursive_proof_public_input_indices;
     bool contains_recursive_proof = false;
 
-    bonk::accumulator_triple create_logic_constraint(const uint32_t a,
-                                                     const uint32_t b,
-                                                     const size_t num_bits,
-                                                     bool is_xor_gate);
-    bonk::accumulator_triple create_and_constraint(const uint32_t a, const uint32_t b, const size_t num_bits);
-    bonk::accumulator_triple create_xor_constraint(const uint32_t a, const uint32_t b, const size_t num_bits);
+    accumulator_triple create_logic_constraint(const uint32_t a,
+                                               const uint32_t b,
+                                               const size_t num_bits,
+                                               bool is_xor_gate);
+    accumulator_triple create_and_constraint(const uint32_t a, const uint32_t b, const size_t num_bits);
+    accumulator_triple create_xor_constraint(const uint32_t a, const uint32_t b, const size_t num_bits);
 
     uint32_t put_constant_variable(const barretenberg::fr& variable);
 

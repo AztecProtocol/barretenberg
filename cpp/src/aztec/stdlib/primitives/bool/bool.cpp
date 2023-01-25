@@ -3,6 +3,7 @@
 #include "honk/composer/standard_honk_composer.hpp"
 
 using namespace barretenberg;
+using namespace bonk;
 
 namespace plonk {
 namespace stdlib {
@@ -151,7 +152,7 @@ bool_t<ComposerContext> bool_t<ComposerContext>::operator&(const bool_t& other) 
         fr q3(-1);
         fr qc(i_a * i_b);
 
-        const bonk::poly_triple gate_coefficients{
+        const poly_triple gate_coefficients{
             witness_index, other.witness_index, result.witness_index, qm, q1, q2, q3, qc,
         };
         context->create_poly_gate(gate_coefficients);
@@ -229,7 +230,7 @@ bool_t<ComposerContext> bool_t<ComposerContext>::operator|(const bool_t& other) 
             right_coefficient = barretenberg::fr::one();
             constant_coefficient = barretenberg::fr::zero();
         }
-        const bonk::poly_triple gate_coefficients{
+        const poly_triple gate_coefficients{
             witness_index,    other.witness_index, result.witness_index,        multiplicative_coefficient,
             left_coefficient, right_coefficient,   barretenberg::fr::neg_one(), constant_coefficient
         };
@@ -289,7 +290,7 @@ bool_t<ComposerContext> bool_t<ComposerContext>::operator^(const bool_t& other) 
             right_coefficient = barretenberg::fr::neg_one();
             constant_coefficient = barretenberg::fr::one();
         }
-        const bonk::poly_triple gate_coefficients{
+        const poly_triple gate_coefficients{
             witness_index,    other.witness_index, result.witness_index,        multiplicative_coefficient,
             left_coefficient, right_coefficient,   barretenberg::fr::neg_one(), constant_coefficient
         };
@@ -364,7 +365,7 @@ bool_t<ComposerContext> bool_t<ComposerContext>::operator==(const bool_t& other)
             right_coefficient = barretenberg::fr::one();
             constant_coefficient = barretenberg::fr::zero();
         }
-        const bonk::poly_triple gate_coefficients{
+        const poly_triple gate_coefficients{
             witness_index,    other.witness_index, result.witness_index,        multiplicative_coefficient,
             left_coefficient, right_coefficient,   barretenberg::fr::neg_one(), constant_coefficient
         };
@@ -460,7 +461,7 @@ template <typename ComposerContext> bool_t<ComposerContext> bool_t<ComposerConte
     barretenberg::fr q_m = barretenberg::fr::zero();
     barretenberg::fr q_r = barretenberg::fr::zero();
 
-    const bonk::poly_triple gate_coefficients{ witness_index, witness_index, new_witness, q_m, q_l, q_r, q_o, q_c };
+    const poly_triple gate_coefficients{ witness_index, witness_index, new_witness, q_m, q_l, q_r, q_o, q_c };
 
     context->create_poly_gate(gate_coefficients);
 

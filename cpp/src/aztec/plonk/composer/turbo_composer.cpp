@@ -12,6 +12,7 @@
 #include <srs/reference_string/file_reference_string.hpp>
 
 using namespace barretenberg;
+using namespace bonk;
 
 namespace waffle {
 
@@ -635,10 +636,10 @@ std::vector<uint32_t> TurboComposer::decompose_into_base4_accumulators(const uin
  * for u = T.left[T.left.size()-2], u will be too small to express a in the form a = 4u + quad.
  * The same holds, mutatis mutandis, for T.right.
  */
-bonk::accumulator_triple TurboComposer::create_logic_constraint(const uint32_t a,
-                                                                const uint32_t b,
-                                                                const size_t num_bits,
-                                                                const bool is_xor_gate)
+accumulator_triple TurboComposer::create_logic_constraint(const uint32_t a,
+                                                          const uint32_t b,
+                                                          const size_t num_bits,
+                                                          const bool is_xor_gate)
 {
     TURBO_SELECTOR_REFS
     assert_valid_variables({ a, b });
@@ -720,7 +721,7 @@ bonk::accumulator_triple TurboComposer::create_logic_constraint(const uint32_t a
     const uint256_t left_witness_value(get_variable(a));
     const uint256_t right_witness_value(get_variable(b));
 
-    bonk::accumulator_triple accumulators;
+    accumulator_triple accumulators;
     fr left_accumulator = fr::zero();
     fr right_accumulator = fr::zero();
     fr out_accumulator = fr::zero();
@@ -821,12 +822,12 @@ bonk::accumulator_triple TurboComposer::create_logic_constraint(const uint32_t a
     return accumulators;
 }
 
-bonk::accumulator_triple TurboComposer::create_and_constraint(const uint32_t a, const uint32_t b, const size_t num_bits)
+accumulator_triple TurboComposer::create_and_constraint(const uint32_t a, const uint32_t b, const size_t num_bits)
 {
     return create_logic_constraint(a, b, num_bits, false);
 }
 
-bonk::accumulator_triple TurboComposer::create_xor_constraint(const uint32_t a, const uint32_t b, const size_t num_bits)
+accumulator_triple TurboComposer::create_xor_constraint(const uint32_t a, const uint32_t b, const size_t num_bits)
 {
     return create_logic_constraint(a, b, num_bits, true);
 }

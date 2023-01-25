@@ -523,7 +523,7 @@ TEST(stdlib_safeuint, operator_div_remainder_constraint)
     // const uint32_t delta_idx = composer.add_variable(delta);
 
     // // constraint: other - remainder - delta - 1 == 0
-    // const bonk::add_triple delta_gate{ .a = b.get_witness_index(),
+    //         const add_triple delta_gate{ .a = b.get_witness_index(),
     //                                      .b = remainder.get_witness_index(),
     //                                      .c = delta_idx,
     //                                      .a_scaling = 1,
