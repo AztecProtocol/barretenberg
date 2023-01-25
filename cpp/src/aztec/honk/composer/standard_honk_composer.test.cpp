@@ -307,11 +307,20 @@ TEST(standard_honk_composer, test_verification_key_creation)
     EXPECT_EQ(verification_key->permutation_selectors.size(), composer.program_width * 2 + 2);
 }
 
-TEST(standard_honk_composer, test_proof_relation_sum_correctness)
+/**
+ * @brief A test taking sumcheck relations and applying them to the witness and selector polynomials to ensure that the
+ * realtions are correct.
+ *
+ * TODO(kesha): We'll have to update this function once we add zk, since the relation will be incorrect fot he first few
+ * indices
+ *
+ */
+TEST(standard_honk_composer, test_check_sumcheck_relations_correctness)
 {
     // Create a composer and a dummy circuit with a few gates
     StandardHonkComposer composer = StandardHonkComposer();
     fr a = fr::one();
+    // Using the public variable to check that public_input_delta is computed and added to the realtion correctly
     uint32_t a_idx = composer.add_public_variable(a);
     fr b = fr::one();
     fr c = a + b;
@@ -323,21 +332,20 @@ TEST(standard_honk_composer, test_proof_relation_sum_correctness)
         composer.create_add_gate({ a_idx, b_idx, c_idx, fr::one(), fr::one(), fr::neg_one(), fr::zero() });
         composer.create_add_gate({ d_idx, c_idx, a_idx, fr::one(), fr::neg_one(), fr::neg_one(), fr::zero() });
     }
-
-    auto verification_key = composer.compute_verification_key();
+    // Create a prover (it will compute proving key and witness)
     auto prover = composer.create_prover();
 
-    // Let's step through rounds
-    // Ignore setting the parameters, they only affect the domain/fiat shamir
-    prover.compute_wire_commitments();
-
+    // Generate beta and gamma
     fr beta = fr::random_element();
     fr gamma = fr::random_element();
-    const auto public_inputs = composer.circuit_constructor.get_public_inputs();
 
-    auto public_input_delta = compute_public_input_delta<fr>(public_inputs, beta, gamma, prover.proving_key->n);
-    // Compute grand product polynomial
+    // Compute grand product polynomial (now all the necessary polynomials are inside the proving key)
     prover.compute_grand_product_polynomial(beta, gamma);
+
+    // Compute public input delta
+    const auto public_inputs = composer.circuit_constructor.get_public_inputs();
+    auto public_input_delta = compute_public_input_delta<fr>(public_inputs, beta, gamma, prover.proving_key->n);
+
     // Show grand product polynomial
     polynomial z_perm = prover.proving_key->polynomial_cache.get("z_perm_lagrange");
     polynomial w_1 = prover.proving_key->polynomial_cache.get("w_1_lagrange");
@@ -357,26 +365,16 @@ TEST(standard_honk_composer, test_proof_relation_sum_correctness)
     polynomial L_first = prover.proving_key->polynomial_cache.get("L_first_lagrange");
     polynomial L_last = prover.proving_key->polynomial_cache.get("L_last_lagrange");
 
+    // Specify sumcheck configuration
     using honk::sumcheck::Univariate;
     using honk::sumcheck::UnivariateView;
-
-    const size_t num_polys(proving_system::StandardArithmetization::NUM_POLYNOMIALS);
-    // const size_t multivariate_d(1);
-    // const size_t multivariate_n(1 << multivariate_d);
-    // const size_t max_rezlation_length = 5;
-
-    using Multivariates = honk::sumcheck::Multivariates<fr, num_polys>;
-    // size_t round_size = 1;
-    auto relations = std::tuple(honk::sumcheck::ArithmeticRelation<fr>(),
-                                honk::sumcheck::GrandProductComputationRelation<fr>(),
-                                honk::sumcheck::GrandProductInitializationRelation<fr>());
+    using Multivariates = honk::sumcheck::Multivariates<fr, proving_system::StandardArithmetization::NUM_POLYNOMIALS>;
     using SumCheckRound = honk::sumcheck::SumcheckRound<fr,
                                                         Multivariates::num,
                                                         honk::sumcheck::ArithmeticRelation,
                                                         honk::sumcheck::GrandProductComputationRelation,
                                                         honk::sumcheck::GrandProductInitializationRelation>;
     using StandardUnivariate = Univariate<fr, SumCheckRound::MAX_RELATION_LENGTH>;
-    auto round = SumCheckRound(relations);
     std::vector<std::array<Univariate<fr, SumCheckRound::MAX_RELATION_LENGTH>,
                            proving_system::StandardArithmetization::NUM_POLYNOMIALS>>
         sumcheck_typed_polynomial_vector;
@@ -386,9 +384,17 @@ TEST(standard_honk_composer, test_proof_relation_sum_correctness)
         Univariate<fr, honk::sumcheck::GrandProductComputationRelation<fr>::RELATION_LENGTH>;
     using GrandProductInitializationUnivariate =
         Univariate<fr, honk::sumcheck::GrandProductInitializationRelation<fr>::RELATION_LENGTH>;
-    std::tuple<ArithmeticUnivariate, GrandProductComputationUnivariate, GrandProductInitializationUnivariate> results =
-        std::make_tuple(
-            ArithmeticUnivariate(0), GrandProductComputationUnivariate(0), GrandProductInitializationUnivariate(0));
+
+    // Initialize relations, SumcheckRound and the results tuple
+    auto relations = std::tuple(honk::sumcheck::ArithmeticRelation<fr>(),
+                                honk::sumcheck::GrandProductComputationRelation<fr>(),
+                                honk::sumcheck::GrandProductInitializationRelation<fr>());
+    auto round = SumCheckRound(relations);
+    auto results = std::make_tuple(
+        ArithmeticUnivariate(0), GrandProductComputationUnivariate(0), GrandProductInitializationUnivariate(0));
+
+    // Transpose the polynomials so that each entry of the vector contains an array of polynomial entries at that
+    // index
     for (size_t i = 0; i < prover.proving_key->n; i++) {
         StandardUnivariate w_1_univariate(0);
         w_1_univariate.value_at(0) = w_1[i];
@@ -447,6 +453,7 @@ TEST(standard_honk_composer, test_proof_relation_sum_correctness)
             L_last_univariate,
         });
     }
+    // Check all relations at all indices
     for (size_t i = 0; i < prover.proving_key->n; i++) {
         round.accumulate_relation_univariates_testing(
             sumcheck_typed_polynomial_vector[i], results, { beta, gamma, public_input_delta });
