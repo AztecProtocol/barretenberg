@@ -66,7 +66,6 @@ template <typename program_settings> Verifier<program_settings>& Verifier<progra
         id(X)
 
     Univariate evaluations:
-        a_0_pos = Fold_{r}^(0)(r),
         a_0 = Fold_{-r}^(0)(-r),
         a_l = Fold^(l)(-r^{2^l}), i = 1,...,d-1
 
@@ -76,8 +75,6 @@ template <typename program_settings> Verifier<program_settings>& Verifier<progra
     Commitments:
         [w_i]_1,        i = 1,2,3
         [z_perm]_1,
-        [Fold_{r}^(0)]_1,
-        [Fold_{-r}^(0)]_1,
         [Fold^(l)]_1,   l = 1,...,d-1
         [Q]_1,
         [W]_1
@@ -213,16 +210,16 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     auto gemini_claim =
         Gemini::reduce_verify(opening_point, opening_claims, opening_claims_shifted, gemini_proof, &transcript);
 
-    // Reconstruct the Shplonk Proof (commitment [Q]_1) from the transcript
+    // Reconstruct the Shplonk Proof (commitment [Q]) from the transcript
     auto shplonk_proof = transcript.get_group_element("Q");
 
-    // Produce a Shplonk claim consisting of: simulated [Q_z]_1
+    // Produce a Shplonk claim: commitment [Q] - [Q_z], evaluation zero (at random challenge z)
     auto shplonk_claim = Shplonk::reduce_verify(gemini_claim, shplonk_proof, &transcript);
 
     // Reconstruct the KZG Proof (commitment [W]_1) from the transcript
     auto kzg_proof = transcript.get_group_element("W");
 
-    // auto kzg_claim = KZG::reduce_verify(shplonk_claim, kzg_proof);
+    // Aggregate inputs [Q] - [Q_z] and [W] into an 'accumulator' (can perform pairing check on result)
     auto kzg_claim = KZG::reduce_verify(shplonk_claim, kzg_proof);
 
     // Do final pairing check

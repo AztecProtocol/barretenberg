@@ -146,6 +146,11 @@ template <typename Params> class MultilinearReductionScheme {
      *      Internally, it contains a reference to the non-shifted polynomial.
      * @param transcript
      * @return Output (result_claims, proof, folded_witness_polynomials)
+     *
+     * Note: Only the proof and witness produced by this function are needed
+     * in the simple construction and verification of a single Honk proof. The
+     * result_claims constructed in this function are only relevant in a
+     * recursion setting.
      */
     static ProverOutput<Params> reduce_prove(std::shared_ptr<CK> ck,
                                              std::span<const Fr> mle_opening_point,
