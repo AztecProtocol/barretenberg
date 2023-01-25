@@ -267,8 +267,10 @@ template <typename settings> void Prover<settings>::execute_grand_product_comput
     auto beta = transcript.get_challenge_field_element("beta", 0);
     auto gamma = transcript.get_challenge_field_element("beta", 1);
     compute_grand_product_polynomial(beta, gamma);
-    std::span<Fr> z_perm = key->polynomial_cache.get("z_perm_lagrange");
-    auto commitment = commitment_key->commit(z_perm);
+    std::span<Fr> z_perm = proving_key->polynomial_cache.get("z_perm_lagrange");
+    ASSERT(z_perm[z_perm.size() - 1] == Fr::zero());
+    // The actual polynomial is of length n+1, but commitment key is just n, so we need to limit it
+    auto commitment = commitment_key->commit(std::span{ z_perm.data(), proving_key->n });
     transcript.add_element("Z_PERM", commitment.to_buffer());
 }
 
