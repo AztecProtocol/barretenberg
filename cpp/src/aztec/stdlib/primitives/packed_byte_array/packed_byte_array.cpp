@@ -269,7 +269,6 @@ template <typename Composer> std::string packed_byte_array<Composer>::get_value(
 }
 
 INSTANTIATE_STDLIB_TYPE(packed_byte_array);
-template class packed_byte_array<honk::StandardHonkComposer>;
 
 } // namespace stdlib
 } // namespace plonk

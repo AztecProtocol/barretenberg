@@ -1,5 +1,4 @@
 #pragma once
-#include <honk/composer/standard_honk_composer.hpp>
 #include <plonk/composer/composer_base.hpp>
 #include <ecc/curves/bn254/fr.hpp>
 

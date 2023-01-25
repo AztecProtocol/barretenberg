@@ -69,6 +69,9 @@ class StandardHonkComposer {
     StandardHonkComposer(const StandardHonkComposer& other) = delete;
     StandardHonkComposer(StandardHonkComposer&& other) = default;
     StandardHonkComposer& operator=(const StandardHonkComposer& other) = delete;
+    // Todo(Cody): This constructor started to be implicitly deleted when I added `n` and `variables` members. This is a
+    // temporary measure until we can rewrite Plonk and all tests using circuit builder methods in place of composer
+    // methods, where appropriate.
     // StandardHonkComposer& operator=(StandardHonkComposer&& other) = default;
     ~StandardHonkComposer() = default;
 
@@ -192,7 +195,7 @@ class StandardHonkComposer {
      * @return A new initialized prover.
      */
     /**
-     * Preprocess the circuit. Delegates to create_
+     * Preprocess the circuit. Delegates to create_unrolled_prover.
      *
      * @return A new initialized prover.
      */
@@ -214,11 +217,6 @@ class StandardHonkComposer {
     };
 
     size_t& n; /* n = Enemy */
-    // std::vector<uint32_t>& w_l;
-    // std::vector<uint32_t>& w_r;
-    // std::vector<uint32_t>& w_o;
-    // std::vector<uint32_t>& w_4;
-    // std::vector<uint32_t>& public_inputs;
     std::vector<barretenberg::fr>& variables;
     bool failed() const { return circuit_constructor.failed(); };
     const std::string& err() const { return circuit_constructor.err(); };

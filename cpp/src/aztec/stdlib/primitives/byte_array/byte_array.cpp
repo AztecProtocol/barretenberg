@@ -381,7 +381,6 @@ typename byte_array<Composer>::byte_slice byte_array<Composer>::split_byte(const
 }
 
 INSTANTIATE_STDLIB_TYPE(byte_array);
-template class byte_array<honk::StandardHonkComposer>;
 
 } // namespace stdlib
 } // namespace plonk

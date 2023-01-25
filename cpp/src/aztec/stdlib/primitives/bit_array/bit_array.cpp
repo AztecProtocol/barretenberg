@@ -161,7 +161,6 @@ template <typename ComposerContext> std::string bit_array<ComposerContext>::get_
 }
 
 INSTANTIATE_STDLIB_TYPE(bit_array)
-template class bit_array<honk::StandardHonkComposer>;
 
 } // namespace stdlib
 } // namespace plonk

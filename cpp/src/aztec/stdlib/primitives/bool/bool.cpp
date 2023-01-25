@@ -472,7 +472,6 @@ template <typename ComposerContext> bool_t<ComposerContext> bool_t<ComposerConte
 }
 
 INSTANTIATE_STDLIB_TYPE(bool_t);
-template class bool_t<honk::StandardHonkComposer>;
 
 } // namespace stdlib
 } // namespace plonk

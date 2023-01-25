@@ -100,7 +100,6 @@ std::array<safe_uint_t<ComposerContext>, 3> safe_uint_t<ComposerContext>::slice(
 }
 
 INSTANTIATE_STDLIB_TYPE(safe_uint_t);
-template class safe_uint_t<honk::StandardHonkComposer>;
 
 } // namespace stdlib
 } // namespace plonk

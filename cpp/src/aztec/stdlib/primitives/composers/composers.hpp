@@ -5,6 +5,7 @@
 #include <plonk/composer/ultra_composer.hpp>
 
 #define INSTANTIATE_STDLIB_TYPE(stdlib_type)                                                                           \
+    template class stdlib_type<honk::StandardHonkComposer>;                                                            \
     template class stdlib_type<waffle::StandardComposer>;                                                              \
     template class stdlib_type<waffle::TurboComposer>;                                                                 \
     template class stdlib_type<waffle::UltraComposer>;

@@ -4,7 +4,7 @@
 #include <transcript/manifest.hpp>
 
 #define STANDARD_HONK_WIDTH 3
-// TODO(Cody): Temporary namespace for stuff that is shared by honk and plonk
+// TODO(Cody): "bonk" is short for "both plonk and honk". Just need a short and non-vague temporary name.
 namespace bonk {
 struct StandardArithmetization {
     enum POLYNOMIAL {

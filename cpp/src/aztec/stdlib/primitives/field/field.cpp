@@ -1182,6 +1182,6 @@ std::vector<bool_t<ComposerContext>> field_t<ComposerContext>::decompose_into_bi
 }
 
 INSTANTIATE_STDLIB_TYPE(field_t);
-template class field_t<honk::StandardHonkComposer>;
+
 } // namespace stdlib
 } // namespace plonk
