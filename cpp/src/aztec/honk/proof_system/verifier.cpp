@@ -93,8 +93,8 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     using Gemini = pcs::gemini::MultilinearReductionScheme<pcs::kzg::Params>;
     using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<pcs::kzg::Params>;
     using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
-    using BilinearAccumulator = pcs::kzg::BilinearAccumulator<pcs::kzg::Params>;
     using MLEOpeningClaim = pcs::MLEOpeningClaim<pcs::kzg::Params>;
+    using GeminiProof = pcs::gemini::Proof<pcs::kzg::Params>;
 
     key->program_width = program_settings::program_width;
 
@@ -195,7 +195,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     }
 
     // Reconstruct the Gemini Proof from the transcript
-    pcs::gemini::Proof<pcs::kzg::Params> gemini_proof;
+    GeminiProof gemini_proof;
 
     for (size_t i = 1; i < key->log_n; i++) {
         std::string label = "FOLD_" + std::to_string(i);
@@ -208,20 +208,22 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     };
 
     // Produce a Gemini claim consisting of:
+    // - d+1 commitments [Fold_{r}^(0)], [Fold_{-r}^(0)], and [Fold^(l)], l = 1:d-1
+    // - d+1 evaluations a_0_pos, and a_l, l = 0:d-1
     auto gemini_claim =
         Gemini::reduce_verify(opening_point, opening_claims, opening_claims_shifted, gemini_proof, &transcript);
 
     // Reconstruct the Shplonk Proof (commitment [Q]_1) from the transcript
-    pcs::shplonk::Proof<pcs::kzg::Params> shplonk_proof = transcript.get_group_element("Q");
+    auto shplonk_proof = transcript.get_group_element("Q");
 
     // Produce a Shplonk claim consisting of: simulated [Q_z]_1
     auto shplonk_claim = Shplonk::reduce_verify(gemini_claim, shplonk_proof, &transcript);
 
     // Reconstruct the KZG Proof (commitment [W]_1) from the transcript
-    pcs::shplonk::Proof<pcs::kzg::Params> kzg_proof = transcript.get_group_element("W");
+    auto kzg_proof = transcript.get_group_element("W");
 
     // auto kzg_claim = KZG::reduce_verify(shplonk_claim, kzg_proof);
-    BilinearAccumulator kzg_claim = KZG::reduce_verify(shplonk_claim, kzg_proof);
+    auto kzg_claim = KZG::reduce_verify(shplonk_claim, kzg_proof);
 
     // Do final pairing check
     bool pairing_result = kzg_claim.verify(kate_verification_key.get());

@@ -109,7 +109,7 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzg)
     // Gemini prover output:
     // - claim: junk commitments, d+1 genuine evaluations a_0_pos, a_l, l = 0:d-1
     // - witness: the d+1 polynomials Fold_{r}^(0), Fold_{-r}^(0), Fold^(l), l = 1:d-1
-    // - proof: d-1 commitments [Fold^(l)], l = 1:d-1 and d evaulations a_l, l = 0:d-1
+    // - proof: d-1 commitments [Fold^(l)], l = 1:d-1 and d evaluations a_l, l = 0:d-1
     const auto [gemini_prover_claim, gemini_witness, gemini_proof] = Gemini::reduce_prove(
         this->ck(), mle_opening_point, claims_mock, claims_shift_mock, { &poly1, &poly2 }, { &poly2 }, transcript);
 
