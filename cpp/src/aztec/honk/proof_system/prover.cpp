@@ -36,7 +36,7 @@ template <typename settings>
 Prover<settings>::Prover(std::shared_ptr<waffle::proving_key> input_key, const transcript::Manifest& input_manifest)
     : n(input_key == nullptr ? 0 : input_key->n)
     , transcript(input_manifest, settings::hash_type, settings::num_challenge_bytes)
-    , proving_key(input_key)
+    , key(input_key)
     , commitment_key(std::make_unique<pcs::kzg::CommitmentKey>(
           input_key->n,
           "../srs_db/ignition")) // TODO(Cody): Need better constructors for prover.
@@ -104,8 +104,8 @@ void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, b
     Fr* numerator_accumulator[program_width];
     Fr* denominator_accumulator[program_width];
     for (size_t i = 0; i < program_width; ++i) {
-        numerator_accumulator[i] = static_cast<Fr*>(aligned_alloc(64, sizeof(Fr) * proving_key->n));
-        denominator_accumulator[i] = static_cast<Fr*>(aligned_alloc(64, sizeof(Fr) * proving_key->n));
+        numerator_accumulator[i] = static_cast<Fr*>(aligned_alloc(64, sizeof(Fr) * key->n));
+        denominator_accumulator[i] = static_cast<Fr*>(aligned_alloc(64, sizeof(Fr) * key->n));
     }
 
     // Populate wire and permutation polynomials
@@ -120,10 +120,10 @@ void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, b
 
     // Step (1)
     // TODO(kesha): Change the order to engage automatic prefetching and get rid of redundant computation
-    for (size_t i = 0; i < proving_key->n; ++i) {
+    for (size_t i = 0; i < key->n; ++i) {
         for (size_t k = 0; k < program_width; ++k) {
             // TODO(luke): maybe this idx is replaced by proper ID polys in the future
-            Fr idx = k * proving_key->n + i;
+            Fr idx = k * key->n + i;
             numerator_accumulator[k][i] = wires[k][i] + (idx * beta) + gamma;            // w_k(i) + β.(k*n+i) + γ
             denominator_accumulator[k][i] = wires[k][i] + (sigmas[k][i] * beta) + gamma; // w_k(i) + β.σ_k(i) + γ
         }
@@ -131,7 +131,7 @@ void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, b
 
     // Step (2)
     for (size_t k = 0; k < program_width; ++k) {
-        for (size_t i = 0; i < proving_key->n - 1; ++i) {
+        for (size_t i = 0; i < key->n - 1; ++i) {
             numerator_accumulator[k][i + 1] *= numerator_accumulator[k][i];
             denominator_accumulator[k][i + 1] *= denominator_accumulator[k][i];
         }
@@ -151,7 +151,7 @@ void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, b
     // denominator_accumulator[0] is stored in numerator_accumulator[0].
     Fr* inversion_coefficients = &denominator_accumulator[1][0]; // arbitrary scratch space
     Fr inversion_accumulator = Fr::one();
-    for (size_t i = 0; i < proving_key->n; ++i) {
+    for (size_t i = 0; i < key->n; ++i) {
         inversion_coefficients[i] = numerator_accumulator[0][i] * inversion_accumulator;
         inversion_accumulator *= denominator_accumulator[0][i];
     }
@@ -165,10 +165,10 @@ void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, b
 
     // Construct permutation polynomial 'z_perm' in lagrange form as:
     // z_perm = [0 numerator_accumulator[0][0] numerator_accumulator[0][1] ... numerator_accumulator[0][n-2] 0]
-    Polynomial z_perm(proving_key->n + 1, proving_key->n + 1);
+    Polynomial z_perm(key->n, key->n);
     // We'll need to shift this polynomial to the left by dividing it by X in gemini, so the the 0-th coefficient should
     // stay zero
-    copy_polynomial(numerator_accumulator[0], &z_perm[1], proving_key->n - 1, proving_key->n - 1);
+    copy_polynomial(numerator_accumulator[0], &z_perm[1], key->n - 1, key->n - 1);
 
     // free memory allocated for scratch space
     for (size_t k = 0; k < program_width; ++k) {
@@ -268,10 +268,9 @@ template <typename settings> void Prover<settings>::execute_grand_product_comput
     auto beta = transcript.get_challenge_field_element("beta", 0);
     auto gamma = transcript.get_challenge_field_element("beta", 1);
     compute_grand_product_polynomial(beta, gamma);
-    std::span<Fr> z_perm = proving_key->polynomial_cache.get("z_perm_lagrange");
-    ASSERT(z_perm[z_perm.size() - 1] == Fr::zero());
+    std::span<Fr> z_perm = key->polynomial_cache.get("z_perm_lagrange");
     // The actual polynomial is of length n+1, but commitment key is just n, so we need to limit it
-    auto commitment = commitment_key->commit(std::span{ z_perm.data(), proving_key->n });
+    auto commitment = commitment_key->commit(z_perm);
     transcript.add_element("Z_PERM", commitment.to_buffer());
 }
 
