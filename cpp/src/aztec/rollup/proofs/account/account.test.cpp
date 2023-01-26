@@ -364,9 +364,9 @@ TEST_F(account_tests, test_create_account_full_proof_and_detect_circuit_change)
     EXPECT_TRUE(verify_proof(proof));
 
     // The below part detects change in the account circuit
-    constexpr uint32_t CIRCUIT_GATE_COUNT = 23958;
+    constexpr uint32_t CIRCUIT_GATE_COUNT = 22274;
     constexpr uint32_t GATES_NEXT_POWER_OF_TWO = 32768;
-    const uint256_t VK_HASH("e0a3d137687cf0d8e0fd1975351051a63592ae71dcd7649399a3590fb411cc59");
+    const uint256_t VK_HASH("4f81e04e44d54f86a2d40c89a5879d42afb1ddcfb91e80c60827809e5d532ca7");
 
     size_t number_of_gates_acc = get_number_of_gates();
     auto vk_hash_acc = get_verification_key()->sha256_hash();

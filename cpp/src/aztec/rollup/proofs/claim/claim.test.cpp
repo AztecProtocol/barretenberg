@@ -108,9 +108,9 @@ TEST_F(claim_tests, test_claim_and_detect_circuit_change)
     EXPECT_TRUE(verify_logic(tx, cd).logic_verified);
 
     // The below part detects changes in the claim circuit
-    constexpr uint32_t CIRCUIT_GATE_COUNT = 22684;
+    constexpr uint32_t CIRCUIT_GATE_COUNT = 26163;
     constexpr uint32_t GATES_NEXT_POWER_OF_TWO = 32768;
-    const uint256_t VK_HASH("11b5c8e9d3eb55a0d92e0a7a1b6b2cfc123fd1347a78adb8d487ffb2728516ad");
+    const uint256_t VK_HASH("9788011aa8f8265aebca6a02b470adba181ca044285353d5da1d0757a9851dce");
 
     size_t number_of_gates_claim = get_number_of_gates();
     auto vk_hash_claim = get_verification_key()->sha256_hash();

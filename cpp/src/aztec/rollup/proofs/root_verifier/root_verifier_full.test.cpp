@@ -98,9 +98,9 @@ HEAVY_TEST_F(root_verifier_full_tests, good_data_passes_and_detect_circuit_chang
     ASSERT_TRUE(result.verified);
 
     // The below part detects changes in the root verifier circuit
-    constexpr uint32_t CIRCUIT_GATE_COUNT = 7158521;
-    constexpr uint32_t GATES_NEXT_POWER_OF_TWO = 8388608;
-    const uint256_t VK_HASH("8adecb7bd1be689ce8adb46192a9356ad42cb2310b08e55b9cb14708dd2eb85c");
+    constexpr uint32_t CIRCUIT_GATE_COUNT = 9099999;
+    constexpr uint32_t GATES_NEXT_POWER_OF_TWO = 16777216;
+    const uint256_t VK_HASH("27d6eeb0be3007e4326dfab38f6e26b2e13e3efc3ac1ebd3cc32c74858b1dc07");
 
     size_t number_of_gates_root_verifier = result.number_of_gates;
     auto vk_hash_root_verifier = result.verification_key->sha256_hash();

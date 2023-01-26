@@ -92,9 +92,9 @@ HEAVY_TEST_F(rollup_full_tests, test_1_proof_in_1_rollup_full_proof_and_detect_c
     EXPECT_EQ(inner_data.asset_id, tx_data.asset_id);
 
     // The below part detects the changes in the rollup circuit
-    constexpr uint32_t CIRCUIT_GATE_COUNT = 1153136;
-    constexpr uint32_t GATES_NEXT_POWER_OF_TWO = 2097152;
-    const uint256_t VK_HASH("b6481781e449ba7c4a3bff935cc08421ab9b88527d0a70fa454dd9288dba8c46");
+    constexpr uint32_t CIRCUIT_GATE_COUNT = 916961;
+    constexpr uint32_t GATES_NEXT_POWER_OF_TWO = 1048576;
+    const uint256_t VK_HASH("3e823f9e7afcc79b7577b38928e5ccdbc508547fa36e6323f2207125379a1a03");
 
     auto number_of_gates_rollup = rollup_circuit_data.num_gates;
     auto vk_hash_rollup = rollup_circuit_data.verification_key->sha256_hash();

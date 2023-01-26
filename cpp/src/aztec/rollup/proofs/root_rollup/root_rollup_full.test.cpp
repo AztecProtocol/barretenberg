@@ -144,9 +144,9 @@ HEAVY_TEST_F(root_rollup_full_tests, test_root_rollup_3x2_and_detect_circuit_cha
     EXPECT_EQ(inner_data.asset_id, fr(0));
 
     // The below assertions detect changes in the root rollup circuit
-    constexpr uint32_t CIRCUIT_GATE_COUNT = 5424685;
-    constexpr uint32_t GATES_NEXT_POWER_OF_TWO = 8388608;
-    const uint256_t VK_HASH("6f6d58bfe23a31ea15dcc612c6a96d89bf211a192f52386673a0af1ef0fd3745");
+    constexpr uint32_t CIRCUIT_GATE_COUNT = 2066454;
+    constexpr uint32_t GATES_NEXT_POWER_OF_TWO = 2097152;
+    const uint256_t VK_HASH("7caf8fa85564c3a23323db059b0639aecf39cd43cb1d57b04314cd30adf9e5ed");
 
     size_t number_of_gates_root_rollup = result.number_of_gates;
     auto vk_hash_root_rollup = result.verification_key->sha256_hash();
