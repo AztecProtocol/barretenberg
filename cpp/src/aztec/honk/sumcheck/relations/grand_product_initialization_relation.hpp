@@ -50,10 +50,8 @@ template <typename FF> class GrandProductInitializationRelation : public Relatio
      */
     // TODO(kesha): Change once challenges are being supplied to regular contribution
     template <typename T>
-    void add_edge_contribution_testing(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals, T challenges)
+    void add_edge_contribution_testing(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals, T)
     {
-        (void)challenges;
-
         add_edge_contribution_internal(extended_edges, evals);
     }
 
