@@ -355,7 +355,8 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     // Note: the prover does not require genuine commitments to produce genuine proofs so we mock them.
     for (auto& entry : key->polynomial_manifest.get()) {
         std::string label(entry.polynomial_label);
-        if (label == "w_1_lagrange" || label == "w_2_lagrange" || label == "q_1_lagrange") {
+        if (label == "w_1_lagrange" || label == "w_2_lagrange" || label == "q_1_lagrange" ||
+            label == "z_perm_lagrange") {
             // if (label != "z_perm_lagrange") {
             auto evaluation = evals_map[label];
             auto commitment = Commitment::one();
