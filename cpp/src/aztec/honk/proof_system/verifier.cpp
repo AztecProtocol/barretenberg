@@ -171,10 +171,28 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     for (auto& entry : key->polynomial_manifest.get()) {
         std::string label(entry.polynomial_label);
         std::string commitment_label(entry.commitment_label);
-        if (commitment_label == "W_1" || commitment_label == "W_2" || commitment_label == "Q_1" ||
-            commitment_label == "Z_PERM" || commitment_label == "SIGMA_1" || commitment_label == "ID_1" ||
-            commitment_label == "ID_1" || commitment_label == "LAGRANGE_FIRST") {
-            // if (commitment_label != "Z_PERM") {
+        if (
+            // clang-format off
+            commitment_label == "W_1" ||
+            commitment_label == "W_2" ||
+            commitment_label == "W_3" ||
+            commitment_label == "Z_PERM" ||
+            commitment_label == "Z_PERM_SHIFT" ||
+            commitment_label == "Q_M" ||
+            commitment_label == "Q_1" ||
+            commitment_label == "Q_2" ||
+            commitment_label == "Q_3" ||
+            // commitment_label == "Q_C" || // q_c is all 0s in StandardHonkComposer.TwoGates
+            commitment_label == "SIGMA_1" ||
+            commitment_label == "SIGMA_2" ||
+            commitment_label == "SIGMA_3" ||
+            commitment_label == "ID_1" ||
+            commitment_label == "ID_2" ||
+            commitment_label == "ID_3" ||
+            commitment_label == "LAGRANGE_FIRST" ||
+            commitment_label == "LAGRANGE_LAST"
+            // clang-format on
+        ) {
             auto evaluation = evals_map[label];
             Commitment commitment = Commitment::one(); // initialize to make gcc happy
 
@@ -241,10 +259,8 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     bool pairing_result = kzg_claim.verify(kate_verification_key.get());
 
     bool result = sumcheck_result && pairing_result;
-    info("pairing check = ", result ? "true" : "false");
 
-    // TODO(luke): Change this to 'result' (i.e. genuine full proof verification)
-    return sumcheck_result;
+    return result;
 }
 
 template class Verifier<honk::standard_verifier_settings>;

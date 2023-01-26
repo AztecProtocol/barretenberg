@@ -355,13 +355,40 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     // Note: the prover does not require genuine commitments to produce genuine proofs so we mock them.
     for (auto& entry : key->polynomial_manifest.get()) {
         std::string label(entry.polynomial_label);
-        if (label == "w_1_lagrange" || label == "w_2_lagrange" || label == "q_1_lagrange" ||
-            label == "z_perm_lagrange" || label == "sigma_1_lagrange" || label == "L_first_lagrange") {
-            // if (label != "z_perm_lagrange") {
+        if (
+            // clang-format off
+            label == "w_1_lagrange" ||
+            label == "w_2_lagrange" ||
+            label == "w_3_lagrange" ||
+            label == "z_perm_lagrange" ||
+            label == "z_perm_shift_lagrange" ||
+            label == "q_m_lagrange" ||
+            label == "q_1_lagrange" ||
+            label == "q_2_lagrange" ||
+            label == "q_3_lagrange" ||
+            // label == "q_c_lagrange" || // q_c is all 0s in StandardHonkComposer.TwoGates
+            label == "sigma_1_lagrange" ||
+            label == "sigma_2_lagrange" ||
+            label == "sigma_3_lagrange" ||
+            label == "id_1_lagrange" ||
+            label == "id_2_lagrange" ||
+            label == "id_3_lagrange" ||
+            label == "L_first_lagrange" ||
+            label == "L_last_lagrange"
+            // clang-format on
+        ) {
             auto evaluation = evals_map[label];
             auto commitment = Commitment::one();
             opening_claims.emplace_back(commitment, evaluation);
-            multivariate_polynomials.emplace_back(&key->polynomial_cache.get(label));
+
+            auto poly = &key->polynomial_cache.get(label);
+            // // print the polynomial
+            // info("label: ", label);
+            // for (size_t i = 0; i < poly->size(); i++) {
+            //     info("  ", poly->coefficients_[i]);
+            // }
+
+            multivariate_polynomials.emplace_back(poly);
             if (entry.requires_shifted_evaluation) {
                 // Note: For a polynomial p for which we need the shift p_shift, we provide Gemini with the SHIFTED
                 // evaluation p_shift(u), but the UNSHIFTED polynomial p and its UNSHIFTED commitment [p].
