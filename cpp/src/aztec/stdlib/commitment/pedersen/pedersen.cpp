@@ -24,7 +24,7 @@ point<C> pedersen_commitment<C>::commit(const std::vector<field_t>& inputs, cons
     std::vector<point> to_accumulate;
     for (size_t i = 0; i < inputs.size(); ++i) {
         generator_index_t index = { hash_index, i };
-        to_accumulate.push_back(pedersen_hash<C>::hash_single(inputs[i], index));
+        to_accumulate.push_back(pedersen_hash<C>::commit_single(inputs[i], index));
     }
     return pedersen_hash<C>::accumulate(to_accumulate);
 }
@@ -47,8 +47,8 @@ field_t<C> pedersen_commitment<C>::compress_unsafe(const field_t& in_left,
     std::vector<point> accumulators;
     generator_index_t index_1 = { hash_index, 0 };
     generator_index_t index_2 = { hash_index, 1 };
-    accumulators.push_back(pedersen_hash<C>::hash_single(in_left, index_1, validate_input_is_in_field));
-    accumulators.push_back(pedersen_hash<C>::hash_single(in_right, index_2, validate_input_is_in_field));
+    accumulators.push_back(pedersen_hash<C>::commit_single(in_left, index_1, validate_input_is_in_field));
+    accumulators.push_back(pedersen_hash<C>::commit_single(in_right, index_2, validate_input_is_in_field));
     return pedersen_hash<C>::accumulate(accumulators).x;
 }
 

@@ -37,15 +37,10 @@ using namespace crypto::pedersen_hash;
  * Full documentation: https://hackmd.io/gRsmqUGkSDOCI9O22qWXBA?view
  **/
 template <typename C>
-point<C> pedersen_hash<C>::hash_single(const field_t& in,
-                                       const generator_index_t hash_index,
-                                       const bool validate_input_is_in_field)
+point<C> pedersen_hash<C>::hash_single_internal(const field_t& in,
+                                                const generator_index_t hash_index,
+                                                const bool validate_input_is_in_field)
 {
-    if constexpr (C::type == waffle::ComposerType::PLOOKUP &&
-                  C::merkle_hash_type == waffle::merkle::HashType::LOOKUP_PEDERSEN) {
-        return pedersen_plookup_hash<C>::hash_single(in, hash_index.index == 0);
-    }
-
     C* ctx = in.context;
     field_t scalar = in.normalize();
 
@@ -272,6 +267,42 @@ point<C> pedersen_hash<C>::hash_single(const field_t& in,
         validate_wnaf_is_in_field(ctx, accumulator_witnesses);
     }
     return result;
+}
+
+/**
+ * Compute pedersen hash of the field element `in` using either lookup tables or its WNAF representation.
+ *
+ * Full documentation: https://hackmd.io/gRsmqUGkSDOCI9O22qWXBA?view
+ **/
+template <typename C>
+point<C> pedersen_hash<C>::hash_single(const field_t& in,
+                                       const generator_index_t hash_index,
+                                       const bool validate_input_is_in_field)
+{
+    if constexpr (C::type == waffle::ComposerType::PLOOKUP &&
+                  C::merkle_hash_type == waffle::merkle::HashType::LOOKUP_PEDERSEN) {
+        return pedersen_plookup_hash<C>::hash_single(in, hash_index.index == 0);
+    }
+
+    return pedersen_hash<C>::hash_single_internal(in, hash_index, validate_input_is_in_field);
+}
+
+/**
+ * Subsidiary function used by the Pedersen commitment gadget to "hash" a field element.
+ *
+ * Full documentation: https://hackmd.io/gRsmqUGkSDOCI9O22qWXBA?view
+ **/
+template <typename C>
+point<C> pedersen_hash<C>::commit_single(const field_t& in,
+                                         const generator_index_t hash_index,
+                                         const bool validate_input_is_in_field)
+{
+    if constexpr (C::type == waffle::ComposerType::PLOOKUP &&
+                  C::commitment_type == waffle::merkle::HashType::LOOKUP_PEDERSEN) {
+        return pedersen_plookup_hash<C>::hash_single(in, hash_index.index == 0);
+    }
+
+    return pedersen_hash<C>::hash_single_internal(in, hash_index, validate_input_is_in_field);
 }
 
 /**

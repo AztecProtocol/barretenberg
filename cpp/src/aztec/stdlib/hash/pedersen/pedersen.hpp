@@ -20,6 +20,10 @@ template <typename ComposerContext> class pedersen_hash {
   private:
     static point add_points(const point& first, const point& second);
 
+    static point hash_single_internal(const field_t& in,
+                                      const crypto::generators::generator_index_t hash_index,
+                                      const bool validate_input_is_in_field = true);
+
   public:
     static void validate_wnaf_is_in_field(ComposerContext* ctx, const std::vector<uint32_t>& accumulator);
 
@@ -28,6 +32,10 @@ template <typename ComposerContext> class pedersen_hash {
     static point hash_single(const field_t& in,
                              const crypto::generators::generator_index_t hash_index,
                              const bool validate_input_is_in_field = true);
+
+    static point commit_single(const field_t& in,
+                               const crypto::generators::generator_index_t hash_index,
+                               const bool validate_input_is_in_field = true);
 
     static field_t hash_multiple(const std::vector<field_t>& in,
                                  const size_t hash_index = 0,
