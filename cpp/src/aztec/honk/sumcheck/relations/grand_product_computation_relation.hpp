@@ -93,14 +93,12 @@ template <typename FF> class GrandProductComputationRelation : public Relation<F
         auto lagrange_last = purported_evaluations[MULTIVARIATE::LAGRANGE_LAST];
 
         // Contribution (1)
-        full_honk_relation_value += (z_perm + lagrange_first);
-        full_honk_relation_value *= w_1 + beta_default * id_1 + gamma_default;
-        full_honk_relation_value *= w_2 + beta_default * id_2 + gamma_default;
-        full_honk_relation_value *= w_3 + beta_default * id_3 + gamma_default;
-        full_honk_relation_value -= (z_perm_shift + lagrange_last * public_input_delta_default) *
-                                    (w_1 + beta_default * sigma_1 + gamma_default) *
-                                    (w_2 + beta_default * sigma_2 + gamma_default) *
-                                    (w_3 + beta_default * sigma_3 + gamma_default);
+        full_honk_relation_value +=
+            (z_perm + lagrange_first) * (w_1 + beta_default * id_1 + gamma_default) *
+                (w_2 + beta_default * id_2 + gamma_default) * (w_3 + beta_default * id_3 + gamma_default) -
+            (z_perm_shift + lagrange_last * public_input_delta_default) *
+                (w_1 + beta_default * sigma_1 + gamma_default) * (w_2 + beta_default * sigma_2 + gamma_default) *
+                (w_3 + beta_default * sigma_3 + gamma_default);
     };
 };
 } // namespace honk::sumcheck
