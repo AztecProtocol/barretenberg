@@ -4,8 +4,10 @@
 #include "common/log.hpp"
 #include "honk/pcs/commitment_key.hpp"
 #include "polynomials/polynomial.hpp"
+#include "../kzg/kzg.hpp"
 
 #include <common/assert.hpp>
+#include <cstddef>
 #include <memory>
 #include <vector>
 
@@ -338,6 +340,27 @@ template <typename Params> class MultilinearReductionScheme {
         auto result_claims =
             compute_output_claim_from_proof(claims_f, claims_g, mle_opening_point, rhos, r_squares, proof);
 
+        // // Construct Kate verifaction key
+        // auto kate_verification_key = std::make_unique<pcs::kzg::VerificationKey>("../srs_db/ignition");
+        // // construct claim and poly inputs to kzg.reduce_prove
+        // pcs::OpeningClaim<pcs::kzg::Params> gemini_claim;
+        // size_t index_l = 2; // 1 < l < d-1
+        // gemini_claim.commitment = commitments[index_l-1];
+        // gemini_claim.eval = evals[index_l];
+        // gemini_claim.opening_point = -r * r * r * r; // -r^{2^l}
+        // Polynomial Fold_l = witness_polynomials[index_l+1];
+        // info("Fold_l size = ", Fold_l.size());
+        // using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
+        // auto kzg_proof = KZG::reduce_prove(ck, gemini_claim, Fold_l);
+        // auto accumulator = KZG::reduce_verify(gemini_claim, kzg_proof.proof);
+        // bool pairing_result = accumulator.verify(kate_verification_key.release());
+        // info("pairing_result = ", pairing_result ? "true" : "false");
+        // // call kzg.reduce_verify
+        // // do pairing check
+
+        // // Ensure the final Fold polynomial is not a constant polynomial
+        // ASSERT(witness_polynomials.back()[1] != Fr::zero());
+
         return { result_claims, std::move(witness_polynomials), proof };
     };
 
@@ -362,6 +385,8 @@ template <typename Params> class MultilinearReductionScheme {
         // Relabel inputs to be more consistent with the math comments.
         auto& claims_f = claims;
         auto& claims_g = claims_shifted;
+
+        info("w_1 eval inside reduce_verify = ", claims[0].evaluation);
 
         const size_t num_variables = mle_opening_point.size();
         const size_t num_claims_f = claims_f.size();

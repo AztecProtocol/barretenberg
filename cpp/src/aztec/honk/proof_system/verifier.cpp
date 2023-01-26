@@ -148,46 +148,53 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     std::vector<MLEOpeningClaim> opening_claims;
     std::vector<MLEOpeningClaim> opening_claims_shifted;
 
+    info("key->log_n = ", key->log_n);
     // Construct MLE opening point
     for (size_t round_idx = 0; round_idx < key->log_n; round_idx++) {
         std::string label = "u_" + std::to_string(round_idx + 1);
         opening_point.emplace_back(transcript.get_challenge_field_element(label));
+        info(label, " = ", transcript.get_challenge_field_element(label));
     }
 
     // Get vector of multivariate evaluations produced by Sumcheck
     auto multivariate_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
+    info("num evals = ", multivariate_evaluations.size());
+    info("w_1 eval Honk verifier = ", multivariate_evaluations[0]);
 
     // Reconstruct Gemini opening claims and polynomials from the transcript/verification_key
     size_t eval_idx = 0;
     for (auto& entry : key->polynomial_manifest.get()) {
         std::string commitment_label(entry.commitment_label);
-        auto evaluation = multivariate_evaluations[eval_idx++];
-        Commitment commitment = Commitment::one(); // initialize to make gcc happy
+        if (commitment_label == "W_1") {
+            auto evaluation = multivariate_evaluations[eval_idx++];
+            info("w_1 eval Honk verifier #2 = ", evaluation);
+            Commitment commitment = Commitment::one(); // initialize to make gcc happy
 
-        switch (entry.source) {
-        case waffle::WITNESS: {
-            commitment = transcript.get_group_element(commitment_label);
-            break;
-        }
-        case waffle::SELECTOR: {
-            commitment = key->constraint_selectors[commitment_label];
-            break;
-        }
-        // Note(luke): polys with label PERMUTATION and OTHER are both stored in 'permutation_selectors'. See
-        // 'compute_verification_key_base'.
-        case waffle::PERMUTATION:
-        case waffle::OTHER: {
-            commitment = key->permutation_selectors[commitment_label];
-            break;
-        }
-        }
+            switch (entry.source) {
+            case waffle::WITNESS: {
+                commitment = transcript.get_group_element(commitment_label);
+                break;
+            }
+            case waffle::SELECTOR: {
+                commitment = key->constraint_selectors[commitment_label];
+                break;
+            }
+            // Note(luke): polys with label PERMUTATION and OTHER are both stored in 'permutation_selectors'. See
+            // 'compute_verification_key_base'.
+            case waffle::PERMUTATION:
+            case waffle::OTHER: {
+                commitment = key->permutation_selectors[commitment_label];
+                break;
+            }
+            }
 
-        opening_claims.emplace_back(commitment, evaluation);
-        if (entry.requires_shifted_evaluation) {
-            // Note: For a polynomial p for which we need the shift p_shift, we provide Gemini with the SHIFTED
-            // evaluation p_shift(u), but the UNSHIFTED commitment [p].
-            auto shifted_evaluation = multivariate_evaluations[eval_idx++];
-            opening_claims_shifted.emplace_back(commitment, shifted_evaluation);
+            opening_claims.emplace_back(commitment, evaluation);
+            if (entry.requires_shifted_evaluation) {
+                // Note: For a polynomial p for which we need the shift p_shift, we provide Gemini with the SHIFTED
+                // evaluation p_shift(u), but the UNSHIFTED commitment [p].
+                auto shifted_evaluation = multivariate_evaluations[eval_idx++];
+                opening_claims_shifted.emplace_back(commitment, shifted_evaluation);
+            }
         }
     }
 
@@ -226,6 +233,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     bool pairing_result = kzg_claim.verify(kate_verification_key.get());
 
     bool result = sumcheck_result && pairing_result;
+    info("pairing result = ", result ? "true" : "false");
 
     // TODO(luke): Change this to 'result' (i.e. genuine full proof verification)
     return sumcheck_result;

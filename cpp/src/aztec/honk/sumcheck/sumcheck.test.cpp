@@ -15,6 +15,7 @@
 
 #include <initializer_list>
 #include <gtest/gtest.h>
+#include <string>
 #include <sys/types.h>
 
 #pragma GCC diagnostic ignored "-Wunused-variable"
@@ -91,19 +92,22 @@ TEST(Sumcheck, Prover)
 
     sumcheck.execute_prover();
 
-    FF round_challenge_1 = 1 /* FF::serialize_from_buffer(transcript.get_challenge("alpha").begin()) */;
+    // FF round_challenge_1 = 1 /* FF::serialize_from_buffer(transcript.get_challenge("alpha").begin()) */;
+    FF u_1 = transcript.get_challenge_field_element("u_1");
     std::vector<FF> expected_values;
     for (auto& polynomial : full_polynomials) {
-        FF expected = polynomial[1]; // the second value, 2 or 1
-                                     // in general, polynomial[0] * (FF(1) - round_challenge_1) + polynomial[1] *
-                                     // round_challenge_1;
+        FF expected = polynomial[0] * (FF(1) - u_1) + polynomial[1] * u_1;
         expected_values.emplace_back(expected);
     }
 
-    multivariates.fold(multivariates.full_polynomials, multivariate_n, round_challenge_1);
-
+    // The 'multivariates' local to this test is not getting modified by sumcheck so somewhere there
+    // is a copy or something. But if we pull the sumcheck-produced multivariate evals out of the transcript
+    // directly (i.e. how its done in practice) then the test passes.
+    auto sumcheck_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
     for (size_t poly_idx = 0; poly_idx < num_polys; poly_idx++) {
-        EXPECT_EQ(multivariates.folded_polynomials[poly_idx][0], expected_values[poly_idx]);
+
+        info("poly_idx = ", poly_idx);
+        EXPECT_EQ(sumcheck_evaluations[poly_idx], expected_values[poly_idx]);
     }
     // TODO(Cody) Improve this test.
 }

@@ -72,8 +72,15 @@ template <typename Params> class UnivariateOpeningScheme {
     static Output reduce_prove(std::shared_ptr<CK> ck, const OpeningClaim<Params>& claim, const Polynomial& polynomial)
     {
         Polynomial quotient(polynomial);
+        // info("quotient[0] = ", quotient[0]);
+        // info("quotient[1] = ", quotient[1]);
+        // // info("quotient[2] = ", quotient[2]);
+        // // info("quotient[3] = ", quotient[3]);
+        // info("claim.eval = ", claim.eval);
         quotient[0] -= claim.eval;
         quotient.factor_roots(claim.opening_point);
+        // info("quotient[0] = ", quotient[0]);
+        // // info("quotient[1] = ", quotient[1]);
         Proof proof = ck->commit(quotient);
 
         return Output{ Accumulator(claim, proof), proof };
