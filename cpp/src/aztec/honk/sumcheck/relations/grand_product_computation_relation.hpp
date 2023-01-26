@@ -31,6 +31,7 @@ template <typename FF> class GrandProductComputationRelation : public Relation<F
      * @brief Add contribution of the permutation relation for a given edge (used for testing, allows specifying
      * challenges)
      */
+    // TODO(kesha): Change once challenges are being supplied to regular contribution
     void add_edge_contribution_testing(auto& extended_edges,
                                        Univariate<FF, RELATION_LENGTH>& evals,
                                        std::array<FF, 3> challenges)

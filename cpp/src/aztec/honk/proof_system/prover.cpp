@@ -79,7 +79,6 @@ template <typename settings> void Prover<settings>::compute_wire_commitments()
  *
  * where ∏ := ∏_{j=0:i-1} and id_i(X) = id(X) + n*(i-1). These evaluations are constructed over the
  * course of four steps. For expositional simplicity, write Z_perm[i] as
- * o
  *
  *                A_1(j) ⋅ A_2(j) ⋅ A_3(j)
  * Z_perm[i] = ∏ --------------------------
@@ -101,8 +100,8 @@ void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, b
     static const size_t program_width = settings::program_width;
 
     // Allocate scratch space for accumulators
-    Fr* numerator_accumulator[program_width];
-    Fr* denominator_accumulator[program_width];
+    std::array<Fr*, program_width> numerator_accumulator;
+    std::array<Fr*, program_width> denominator_accumulator;
     for (size_t i = 0; i < program_width; ++i) {
         numerator_accumulator[i] = static_cast<Fr*>(aligned_alloc(64, sizeof(Fr) * key->n));
         denominator_accumulator[i] = static_cast<Fr*>(aligned_alloc(64, sizeof(Fr) * key->n));
@@ -156,7 +155,7 @@ void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, b
         inversion_accumulator *= denominator_accumulator[0][i];
     }
     inversion_accumulator = inversion_accumulator.invert(); // perform single inversion per thread
-    for (size_t i = key->n - 1; i != size_t(0) - 1; --i) {
+    for (size_t i = key->n - 1; i != std::numeric_limits<size_t>::max(); --i) {
         // TODO(luke): What needs to be done Re the comment below:
         // We can avoid fully reducing z_perm[i + 1] as the inverse fft will take care of that for us
         numerator_accumulator[0][i] = inversion_accumulator * inversion_coefficients[i];

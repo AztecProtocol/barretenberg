@@ -30,7 +30,7 @@ template <class Fr, size_t _length> class Univariate {
     {}
 
     // Construct Univariate from scalar
-    Univariate(Fr value)
+    explicit Univariate(Fr value)
         : evaluations{}
     {
         for (size_t i = 0; i < _length; ++i) {
