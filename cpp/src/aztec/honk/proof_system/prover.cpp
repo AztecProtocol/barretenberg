@@ -356,7 +356,7 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     for (auto& entry : key->polynomial_manifest.get()) {
         std::string label(entry.polynomial_label);
         if (label == "w_1_lagrange" || label == "w_2_lagrange" || label == "q_1_lagrange" ||
-            label == "z_perm_lagrange") {
+            label == "z_perm_lagrange" || label == "sigma_1_lagrange" || label == "L_first_lagrange") {
             // if (label != "z_perm_lagrange") {
             auto evaluation = evals_map[label];
             auto commitment = Commitment::one();
