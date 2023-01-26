@@ -171,56 +171,33 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     for (auto& entry : key->polynomial_manifest.get()) {
         std::string label(entry.polynomial_label);
         std::string commitment_label(entry.commitment_label);
-        if (
-            // clang-format off
-            commitment_label == "W_1" ||
-            commitment_label == "W_2" ||
-            commitment_label == "W_3" ||
-            commitment_label == "Z_PERM" ||
-            commitment_label == "Z_PERM_SHIFT" ||
-            commitment_label == "Q_M" ||
-            commitment_label == "Q_1" ||
-            commitment_label == "Q_2" ||
-            commitment_label == "Q_3" ||
-            // commitment_label == "Q_C" || // q_c is all 0s in StandardHonkComposer.TwoGates
-            commitment_label == "SIGMA_1" ||
-            commitment_label == "SIGMA_2" ||
-            commitment_label == "SIGMA_3" ||
-            commitment_label == "ID_1" ||
-            commitment_label == "ID_2" ||
-            commitment_label == "ID_3" ||
-            commitment_label == "LAGRANGE_FIRST" ||
-            commitment_label == "LAGRANGE_LAST"
-            // clang-format on
-        ) {
-            auto evaluation = evals_map[label];
-            Commitment commitment = Commitment::one(); // initialize to make gcc happy
+        auto evaluation = evals_map[label];
+        Commitment commitment = Commitment::one(); // initialize to make gcc happy
 
-            switch (entry.source) {
-            case waffle::WITNESS: {
-                commitment = transcript.get_group_element(commitment_label);
-                break;
-            }
-            case waffle::SELECTOR: {
-                commitment = key->constraint_selectors[commitment_label];
-                break;
-            }
-            // Note(luke): polys with label PERMUTATION and OTHER are both stored in 'permutation_selectors'. See
-            // 'compute_verification_key_base'.
-            case waffle::PERMUTATION:
-            case waffle::OTHER: {
-                commitment = key->permutation_selectors[commitment_label];
-                break;
-            }
-            }
+        switch (entry.source) {
+        case waffle::WITNESS: {
+            commitment = transcript.get_group_element(commitment_label);
+            break;
+        }
+        case waffle::SELECTOR: {
+            commitment = key->constraint_selectors[commitment_label];
+            break;
+        }
+        // Note(luke): polys with label PERMUTATION and OTHER are both stored in 'permutation_selectors'. See
+        // 'compute_verification_key_base'.
+        case waffle::PERMUTATION:
+        case waffle::OTHER: {
+            commitment = key->permutation_selectors[commitment_label];
+            break;
+        }
+        }
 
-            opening_claims.emplace_back(commitment, evaluation);
-            if (entry.requires_shifted_evaluation) {
-                // Note: For a polynomial p for which we need the shift p_shift, we provide Gemini with the SHIFTED
-                // evaluation p_shift(u), but the UNSHIFTED commitment [p].
-                auto shifted_evaluation = evals_map[label + "_shift"];
-                opening_claims_shifted.emplace_back(commitment, shifted_evaluation);
-            }
+        opening_claims.emplace_back(commitment, evaluation);
+        if (entry.requires_shifted_evaluation) {
+            // Note: For a polynomial p for which we need the shift p_shift, we provide Gemini with the SHIFTED
+            // evaluation p_shift(u), but the UNSHIFTED commitment [p].
+            auto shifted_evaluation = evals_map[label + "_shift"];
+            opening_claims_shifted.emplace_back(commitment, shifted_evaluation);
         }
     }
 
