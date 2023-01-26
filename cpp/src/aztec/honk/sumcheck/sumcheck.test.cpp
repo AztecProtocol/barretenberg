@@ -195,7 +195,7 @@ TEST(Sumcheck, Prover)
     for (auto& polynomial : full_polynomials) {
         // using knowledge of inputs here to derive the evaluation
         FF expected = polynomial[0] * (FF(1) - u_2) + polynomial[1] * u_2;
-        expected *= u_1;
+        expected *= (FF(1) - u_1);
         expected_values.emplace_back(expected);
     }
 
