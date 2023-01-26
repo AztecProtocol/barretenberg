@@ -1,5 +1,4 @@
 #include "sumcheck.hpp"
-#include "polynomials/polynomial.hpp"
 #include "proof_system/flavor/flavor.hpp"
 #include "transcript/transcript_wrappers.hpp"
 #include "polynomials/multivariates.hpp"

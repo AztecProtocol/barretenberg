@@ -148,27 +148,24 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     std::vector<MLEOpeningClaim> opening_claims;
     std::vector<MLEOpeningClaim> opening_claims_shifted;
 
-    info("key->log_n = ", key->log_n);
     // Construct MLE opening point
     // Note: for consistency the evaluation point must be constructed as u = (u_d,...,u_1)
     for (size_t round_idx = 0; round_idx < key->log_n; round_idx++) {
         std::string label = "u_" + std::to_string(key->log_n - round_idx);
         opening_point.emplace_back(transcript.get_challenge_field_element(label));
-        info(label, " = ", transcript.get_challenge_field_element(label));
     }
 
     // Get vector of multivariate evaluations produced by Sumcheck
     auto multivariate_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
-    info("num evals = ", multivariate_evaluations.size());
-    info("w_1 eval Honk verifier = ", multivariate_evaluations[0]);
 
     // Reconstruct Gemini opening claims and polynomials from the transcript/verification_key
     size_t eval_idx = 0;
     for (auto& entry : key->polynomial_manifest.get()) {
         std::string commitment_label(entry.commitment_label);
-        if (commitment_label == "W_1") {
-            auto evaluation = multivariate_evaluations[eval_idx++];
-            info("w_1 eval Honk verifier #2 = ", evaluation);
+        // if (commitment_label == "W_1") {
+        if (commitment_label == "Q_M") {
+            // auto evaluation = multivariate_evaluations[eval_idx++];
+            auto evaluation = multivariate_evaluations[5];
             Commitment commitment = Commitment::one(); // initialize to make gcc happy
 
             switch (entry.source) {
@@ -234,7 +231,6 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     bool pairing_result = kzg_claim.verify(kate_verification_key.get());
 
     bool result = sumcheck_result && pairing_result;
-    info("pairing result = ", result ? "true" : "false");
 
     // TODO(luke): Change this to 'result' (i.e. genuine full proof verification)
     return sumcheck_result;

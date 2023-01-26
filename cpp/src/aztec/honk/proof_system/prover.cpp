@@ -347,8 +347,10 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     size_t eval_idx = 0;
     for (auto& entry : key->polynomial_manifest.get()) {
         std::string label(entry.polynomial_label);
-        if (label == "w_1_lagrange") {
-            auto evaluation = multivariate_evaluations[eval_idx++];
+        // if (label == "w_1_lagrange") {
+        if (label == "q_m_lagrange") {
+            // auto evaluation = multivariate_evaluations[eval_idx++];
+            auto evaluation = multivariate_evaluations[5];
             auto commitment = Commitment::one();
             opening_claims.emplace_back(commitment, evaluation);
             multivariate_polynomials.emplace_back(&key->polynomial_cache.get(label));
@@ -369,19 +371,6 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
                                          multivariate_polynomials,
                                          multivariate_polynomials_shifted,
                                          &transcript);
-
-    // // Construct Kate verifaction key
-    // auto kate_verification_key = std::make_unique<pcs::kzg::VerificationKey>("../srs_db/ignition");
-    // // construct claim and poly inputs to kzg.reduce_prove
-    // pcs::OpeningClaim<pcs::kzg::Params> gemini_claim;
-    // gemini_claim.commitment = transcript.get_group_element("FOLD_1");
-    // gemini_claim.eval = transcript.get_field_element("a_1");
-    // gemini_claim.opening_point = -transcript.get_challenge_field_element("r");
-    // Polynomial Fold_1 = key->polynomial_cache.get("Fold_1");
-    // using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
-    // KZG::reduce_prove(commitment_key, gemini_claim, Fold_1);
-    // // call kzg.reduce_verify
-    // // do pairing check
 }
 
 /**

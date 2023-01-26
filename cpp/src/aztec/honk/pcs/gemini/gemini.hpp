@@ -4,10 +4,8 @@
 #include "common/log.hpp"
 #include "honk/pcs/commitment_key.hpp"
 #include "polynomials/polynomial.hpp"
-#include "../kzg/kzg.hpp"
 
 #include <common/assert.hpp>
-#include <cstddef>
 #include <memory>
 #include <vector>
 
@@ -339,10 +337,6 @@ template <typename Params> class MultilinearReductionScheme {
          */
         auto result_claims =
             compute_output_claim_from_proof(claims_f, claims_g, mle_opening_point, rhos, r_squares, proof);
-
-        // TODO(luke): determine whether there's something we should do here:
-        // // Ensure the final Fold polynomial is not a constant polynomial
-        // ASSERT(witness_polynomials.back()[1] != Fr::zero());
 
         return { result_claims, std::move(witness_polynomials), proof };
     };
