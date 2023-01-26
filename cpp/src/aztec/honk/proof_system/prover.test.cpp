@@ -143,7 +143,7 @@ template <class Fscalar> class ProverTests : public testing::Test {
         }
 
         // Step (4)
-        polynomial z_perm(proving_key->n + 1, proving_key->n + 1);
+        polynomial z_perm(proving_key->n, proving_key->n);
         z_perm[0] = Fscalar::zero(); // Z_0 = 1
         // Note: in practice, we replace this expensive element-wise division with Montgomery batch inversion
         for (size_t i = 0; i < proving_key->n - 1; ++i) {
