@@ -162,7 +162,9 @@ grumpkin::fq hash_multiple(const std::vector<grumpkin::fq>& inputs, const size_t
         result = hash_pair(result, inputs[i]);
     }
 
-    return (hash_single(result, false) + hash_single(grumpkin::fq(num_inputs), true)).x;
+    auto final_result =
+        grumpkin::g1::affine_element(hash_single(result, false) + hash_single(grumpkin::fq(num_inputs), true));
+    return final_result.x;
 }
 
 } // namespace lookup

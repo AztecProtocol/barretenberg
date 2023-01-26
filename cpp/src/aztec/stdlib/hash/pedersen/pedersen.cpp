@@ -298,7 +298,7 @@ point<C> pedersen_hash<C>::commit_single(const field_t& in,
                                          const bool validate_input_is_in_field)
 {
     if constexpr (C::type == waffle::ComposerType::PLOOKUP &&
-                  C::commitment_type == waffle::merkle::HashType::LOOKUP_PEDERSEN) {
+                  C::commitment_type == waffle::pedersen::CommitmentType::LOOKUP_PEDERSEN) {
         return pedersen_plookup_hash<C>::hash_single(in, hash_index.index == 0);
     }
 

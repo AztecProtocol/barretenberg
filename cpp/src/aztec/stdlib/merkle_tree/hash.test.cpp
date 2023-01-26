@@ -12,6 +12,6 @@ TEST(stdlib_merkle_tree_hash, compress_native_vs_circuit)
     Composer composer = Composer();
     witness_ct y = witness_ct(&composer, x);
     field_ct z = plonk::stdlib::pedersen_hash<Composer>::hash_multiple({ y, y });
-    auto zz = crypto::pedersen_hash::hash_multiple({ x, x });
+    auto zz = crypto::pedersen_hash::lookup::hash_multiple({ x, x });
     EXPECT_EQ(z.get_value(), zz);
 }
