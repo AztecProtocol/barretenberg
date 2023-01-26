@@ -341,23 +341,30 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
 
     // Get vector of multivariate evaluations produced by Sumcheck
     auto multivariate_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
-
-    // Construct opening claims and polynomials
-    // Note: the prover does not require genuine commitments to produce genuine proofs so we mock them.
+    std::unordered_map<std::string, barretenberg::fr> evals_map;
     size_t eval_idx = 0;
     for (auto& entry : key->polynomial_manifest.get()) {
         std::string label(entry.polynomial_label);
+        evals_map[label] = multivariate_evaluations[eval_idx++];
+        if (entry.requires_shifted_evaluation) {
+            evals_map[label + "_shift"] = multivariate_evaluations[eval_idx++];
+        }
+    }
+
+    // Construct opening claims and polynomials
+    // Note: the prover does not require genuine commitments to produce genuine proofs so we mock them.
+    for (auto& entry : key->polynomial_manifest.get()) {
+        std::string label(entry.polynomial_label);
         // if (label == "w_1_lagrange") {
-        if (label == "q_m_lagrange") {
-            // auto evaluation = multivariate_evaluations[eval_idx++];
-            auto evaluation = multivariate_evaluations[5];
+        if (label != "z_perm_lagrange") {
+            auto evaluation = evals_map[label];
             auto commitment = Commitment::one();
             opening_claims.emplace_back(commitment, evaluation);
             multivariate_polynomials.emplace_back(&key->polynomial_cache.get(label));
             if (entry.requires_shifted_evaluation) {
                 // Note: For a polynomial p for which we need the shift p_shift, we provide Gemini with the SHIFTED
                 // evaluation p_shift(u), but the UNSHIFTED polynomial p and its UNSHIFTED commitment [p].
-                auto shifted_evaluation = multivariate_evaluations[eval_idx++];
+                auto shifted_evaluation = evals_map[label + "_shift"];
                 opening_claims_shifted.emplace_back(commitment, shifted_evaluation);
                 multivariate_polynomials_shifted.emplace_back(&key->polynomial_cache.get(label));
             }

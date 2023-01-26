@@ -157,15 +157,23 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
 
     // Get vector of multivariate evaluations produced by Sumcheck
     auto multivariate_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
-
-    // Reconstruct Gemini opening claims and polynomials from the transcript/verification_key
+    std::unordered_map<std::string, barretenberg::fr> evals_map;
     size_t eval_idx = 0;
     for (auto& entry : key->polynomial_manifest.get()) {
+        std::string label(entry.polynomial_label);
+        evals_map[label] = multivariate_evaluations[eval_idx++];
+        if (entry.requires_shifted_evaluation) {
+            evals_map[label + "_shift"] = multivariate_evaluations[eval_idx++];
+        }
+    }
+
+    // Reconstruct Gemini opening claims and polynomials from the transcript/verification_key
+    for (auto& entry : key->polynomial_manifest.get()) {
+        std::string label(entry.polynomial_label);
         std::string commitment_label(entry.commitment_label);
         // if (commitment_label == "W_1") {
-        if (commitment_label == "Q_M") {
-            // auto evaluation = multivariate_evaluations[eval_idx++];
-            auto evaluation = multivariate_evaluations[5];
+        if (commitment_label != "Z_PERM") {
+            auto evaluation = evals_map[label];
             Commitment commitment = Commitment::one(); // initialize to make gcc happy
 
             switch (entry.source) {
@@ -190,7 +198,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
             if (entry.requires_shifted_evaluation) {
                 // Note: For a polynomial p for which we need the shift p_shift, we provide Gemini with the SHIFTED
                 // evaluation p_shift(u), but the UNSHIFTED commitment [p].
-                auto shifted_evaluation = multivariate_evaluations[eval_idx++];
+                auto shifted_evaluation = evals_map[label + "_shift"];
                 opening_claims_shifted.emplace_back(commitment, shifted_evaluation);
             }
         }
@@ -231,6 +239,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     bool pairing_result = kzg_claim.verify(kate_verification_key.get());
 
     bool result = sumcheck_result && pairing_result;
+    info("pairing check = ", result ? "true" : "false");
 
     // TODO(luke): Change this to 'result' (i.e. genuine full proof verification)
     return sumcheck_result;
