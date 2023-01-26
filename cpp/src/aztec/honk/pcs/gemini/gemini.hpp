@@ -204,7 +204,7 @@ template <typename Params> class MultilinearReductionScheme {
         Polynomial& batched_F = witness_polynomials.emplace_back(Polynomial(n, n));
         for (size_t j = 0; j < num_polys_f; ++j) {
             const size_t n_j = polys_f[j]->size();
-            ASSERT((n_j <= n));
+            ASSERT(n_j <= n);
             // F(X) += ρʲ fⱼ(X)
             batched_F.add_scaled(*polys_f[j], rhos_f[j]);
         }
