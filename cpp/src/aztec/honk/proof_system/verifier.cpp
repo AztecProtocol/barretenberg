@@ -150,8 +150,9 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
 
     info("key->log_n = ", key->log_n);
     // Construct MLE opening point
+    // Note: for consistency the evaluation point must be constructed as u = (u_d,...,u_1)
     for (size_t round_idx = 0; round_idx < key->log_n; round_idx++) {
-        std::string label = "u_" + std::to_string(round_idx + 1);
+        std::string label = "u_" + std::to_string(key->log_n - round_idx);
         opening_point.emplace_back(transcript.get_challenge_field_element(label));
         info(label, " = ", transcript.get_challenge_field_element(label));
     }

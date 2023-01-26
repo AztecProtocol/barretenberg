@@ -52,7 +52,6 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         std::string challenge_label = "u_" + std::to_string(multivariates.multivariate_d);
         transcript.apply_fiat_shamir(challenge_label);
         FF round_challenge = FF::serialize_from_buffer(transcript.get_challenge(challenge_label).begin());
-        info("round_challenge = ", round_challenge);
         multivariates.fold(multivariates.full_polynomials, multivariates.multivariate_n, round_challenge);
         round.round_size = round.round_size >> 1;
 
@@ -69,9 +68,6 @@ template <class Multivariates, class Transcript, template <class> class... Relat
             multivariates.fold(multivariates.folded_polynomials, round.round_size, round_challenge);
             round.round_size = round.round_size >> 1;
         }
-
-        // info("w_1 eval sumcheck prover = ", multivariates.folded_polynomials[0][0]);
-        info("multivariates.folded_polynomials[0][0] = ", multivariates.folded_polynomials[0][0]);
 
         // Final round
         transcript.add_element("multivariate_evaluations",
@@ -131,7 +127,6 @@ template <class Multivariates, class Transcript, template <class> class... Relat
 
         // Final round
         auto purported_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
-        info("w_1 eval sumcheck verifier = ", purported_evaluations[0]);
         FF alpha = FF::serialize_from_buffer(transcript.get_challenge("alpha").begin());
         FF full_honk_relation_purported_value =
             round.compute_full_honk_relation_purported_value(purported_evaluations, alpha);
