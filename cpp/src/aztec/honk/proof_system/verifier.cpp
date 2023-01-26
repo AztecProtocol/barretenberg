@@ -171,8 +171,8 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     for (auto& entry : key->polynomial_manifest.get()) {
         std::string label(entry.polynomial_label);
         std::string commitment_label(entry.commitment_label);
-        // if (commitment_label == "W_1") {
-        if (commitment_label != "Z_PERM") {
+        if (commitment_label == "W_1" || commitment_label == "W_2" || commitment_label == "Q_1") {
+            // if (commitment_label != "Z_PERM") {
             auto evaluation = evals_map[label];
             Commitment commitment = Commitment::one(); // initialize to make gcc happy
 
