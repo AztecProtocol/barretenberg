@@ -57,8 +57,6 @@ template <class Multivariates, class Transcript, template <class> class... Relat
                          (static_cast<size_t>(circut_size_vector[1]) << 16) |
                          (static_cast<size_t>(circut_size_vector[2]) << 8) | static_cast<size_t>(circut_size_vector[3]);
         std::vector<FF> public_inputs = many_from_buffer<FF>(transcript.get_element("public_inputs"));
-        info("public_inputs.size() * sizeof(FF) = ", public_inputs.size() * sizeof(FF));
-        info("public_input_size = ", public_input_size);
         ASSERT(public_inputs.size() == public_input_size);
         FF public_input_delta = honk::compute_public_input_delta<FF>(public_inputs, beta, gamma, n);
         const RelationParameters<FF> relation_parameters = RelationParameters<FF>{
@@ -79,7 +77,6 @@ template <class Multivariates, class Transcript, template <class> class... Relat
 
         const auto relation_parameters = retrieve_proof_parameters();
         auto round_univariate = round.compute_univariate(multivariates.full_polynomials, relation_parameters);
-        info("Round univariate:", round_univariate);
         transcript.add_element("univariate_" + std::to_string(multivariates.multivariate_d),
                                round_univariate.to_buffer());
         std::string challenge_label = "u_" + std::to_string(multivariates.multivariate_d);

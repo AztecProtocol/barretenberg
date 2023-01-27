@@ -252,9 +252,6 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
             extend_edges(polynomials, edge_idx);
 
             accumulate_relation_univariates<>(relation_parameters);
-            info("Arithmetic:", std::get<0>(univariate_accumulators));
-            info("Grand Product Computation:", std::get<1>(univariate_accumulators));
-            info("Grand Product Initialization:", std::get<2>(univariate_accumulators));
         }
 
         auto result = batch_over_relations<Univariate<FF, MAX_RELATION_LENGTH>>(relation_parameters.alpha);
