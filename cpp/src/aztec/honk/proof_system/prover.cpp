@@ -35,8 +35,7 @@ using Polynomial = barretenberg::Polynomial<Fr>;
  * */
 template <typename settings>
 Prover<settings>::Prover(std::shared_ptr<waffle::proving_key> input_key, const transcript::Manifest& input_manifest)
-    : n(input_key == nullptr ? 0 : input_key->n)
-    , transcript(input_manifest, settings::hash_type, settings::num_challenge_bytes)
+    : transcript(input_manifest, settings::hash_type, settings::num_challenge_bytes)
     , key(input_key)
     , commitment_key(std::make_unique<pcs::kzg::CommitmentKey>(
           input_key->n,
@@ -195,10 +194,10 @@ template <typename settings> void Prover<settings>::execute_preamble_round()
     // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
 
     transcript.add_element("circuit_size",
-                           { static_cast<uint8_t>(n >> 24),
-                             static_cast<uint8_t>(n >> 16),
-                             static_cast<uint8_t>(n >> 8),
-                             static_cast<uint8_t>(n) });
+                           { static_cast<uint8_t>(key->n >> 24),
+                             static_cast<uint8_t>(key->n >> 16),
+                             static_cast<uint8_t>(key->n >> 8),
+                             static_cast<uint8_t>(key->n) });
 
     transcript.add_element("public_input_size",
                            { static_cast<uint8_t>(key->num_public_inputs >> 24),
