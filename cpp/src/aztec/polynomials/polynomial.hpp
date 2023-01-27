@@ -152,7 +152,6 @@ template <typename Fr> class Polynomial {
     std::span<Fr> shifted() const
     {
         ASSERT(size_ > 0);
-        // TODO(luke): Reinstate the below ASSERT once Adrian's relations update makes this true!
         ASSERT(coefficients_[0].is_zero());
         ASSERT(coefficients_[size_].is_zero()); // relies on DEFAULT_PAGE_SPILL > 1
         return std::span{ coefficients_ + 1, size_ };

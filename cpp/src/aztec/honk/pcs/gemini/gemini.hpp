@@ -132,7 +132,7 @@ template <typename Params> class MultilinearReductionScheme {
 
     using Fr = typename Params::Fr;
     using Commitment = typename Params::Commitment;
-    using CommitmentAffine = typename Params::C; // TODO(luke): find a better name
+    using CommitmentAffine = typename Params::C;
     using Polynomial = barretenberg::Polynomial<Fr>;
 
   public:

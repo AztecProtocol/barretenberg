@@ -80,10 +80,9 @@ template <class Fscalar> class ProverTests : public testing::Test {
         // Instantiate a Prover with pointer to the proving_key just constructed
         auto honk_prover = StandardProver(proving_key);
 
-        // Get random challenges
-        // (TODO(luke): set these up to come from a transcript. Must match actual implementation
-        Fscalar beta = Fscalar::one();
-        Fscalar gamma = Fscalar::one();
+        // Set random challenges
+        Fscalar beta = Fscalar::random_element();
+        Fscalar gamma = Fscalar::random_element();
 
         // Method 1: Compute z_perm using 'compute_grand_product_polynomial' as the prover would in practice
         honk_prover.compute_grand_product_polynomial(beta, gamma);
