@@ -8,7 +8,7 @@ namespace honk::sumcheck {
 template <typename FF> class GrandProductComputationRelation : public Relation<FF> {
   public:
     // 1 + polynomial degree of this relation
-    static constexpr size_t RELATION_LENGTH = 5;
+    static constexpr size_t RELATION_LENGTH = 5; // TODO(Cody): Introduce pow_zeta; increment this by 1.
     using MULTIVARIATE = StandardHonk::MULTIVARIATE;
 
   public:

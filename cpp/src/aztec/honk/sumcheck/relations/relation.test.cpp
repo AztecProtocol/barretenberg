@@ -155,7 +155,6 @@ TYPED_TEST(SumcheckRelation, GrandProductInitializationRelation)
     auto z_perm_shift = UnivariateView(extended_edges[MULTIVARIATE::Z_PERM_SHIFT]);
     auto lagrange_last = UnivariateView(extended_edges[MULTIVARIATE::LAGRANGE_LAST]);
     auto pow_zeta = UnivariateView(extended_edges[MULTIVARIATE::POW_ZETA]);
-    // expectede_evals, lenght 3 (coeff form = x^2 + x), extends to { { 0, 2, 6, 12, 20 } }
     auto expected_evals = pow_zeta * (z_perm_shift * lagrange_last);
 
     // Compute the edge contribution using add_edge_contribution
