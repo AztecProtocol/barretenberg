@@ -218,6 +218,8 @@ std::shared_ptr<waffle::proving_key> ComposerHelper<CircuitConstructor>::compute
 
     // TODO(Cody): this is a workaround
     circuit_proving_key->polynomial_cache.put("z_perm_lagrange", Polynomial<barretenberg::fr>(1));
+    // used in test_verification_key_creation
+    circuit_proving_key->polynomial_cache.put("pow_zeta", Polynomial<barretenberg::fr>(1));
 
     return circuit_proving_key;
 }

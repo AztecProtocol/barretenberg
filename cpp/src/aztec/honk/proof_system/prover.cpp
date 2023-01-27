@@ -3,6 +3,7 @@
 #include <honk/sumcheck/sumcheck.hpp> // will need
 #include <array>
 #include <honk/sumcheck/polynomials/univariate.hpp> // will go away
+#include <honk/utils/power_polynomial.hpp>
 #include <honk/pcs/commitment_key.hpp>
 #include <memory>
 #include <vector>
@@ -300,6 +301,23 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
 
     // Compute alpha challenge
     transcript.apply_fiat_shamir("alpha");
+    // (void)transcript.get_challenge_field_element("alpha", 0); // TODO(Cody): zeta
+    // Fr zeta_challenge = transcript.get_challenge_field_element("alpha", 1); // TODO(Cody): zeta
+    // barretenberg::polynomial pow_zeta = power_polynomial::generate_vector(zeta_challenge, key->n);
+    barretenberg::polynomial pow_zeta = power_polynomial::generate_vector(Fr(1), key->n);
+    auto commitment = commitment_key->commit(pow_zeta);
+    transcript.add_element("POW_ZETA", commitment.to_buffer());
+
+    // // inspect the powers of zeta
+    // Fr zeta_power = 1;
+    // // Note: hex structure of zeta is very weird... why?
+    // for (size_t i = 0; i < key->n; i++) {
+    //     info("pow_zeta[", i, "]: ", pow_zeta.coefficients_[i]);
+    //     info("zeta^", i, "     : ", zeta_power);
+    //     zeta_power *= zeta_challenge;
+    // }
+
+    key->polynomial_cache.put("pow_zeta", std::move(pow_zeta));
 
     auto multivariates = Multivariates(key);
     auto sumcheck = Sumcheck(multivariates, transcript);
