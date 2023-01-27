@@ -251,6 +251,7 @@ std::shared_ptr<waffle::verification_key> ComposerHelper<CircuitConstructor>::co
  *
  * @return The verifier.
  * */
+// TODO(Cody): This should go away altogether.
 template <typename CircuitConstructor>
 StandardVerifier ComposerHelper<CircuitConstructor>::create_verifier(const CircuitConstructor& circuit_constructor)
 {

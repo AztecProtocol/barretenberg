@@ -56,7 +56,6 @@ Prover<settings>::Prover(std::shared_ptr<waffle::proving_key> input_key, const t
  * */
 template <typename settings> void Prover<settings>::compute_wire_commitments()
 {
-    // TODO(luke): Compute wire commitments
     for (size_t i = 0; i < settings::program_width; ++i) {
         std::string wire_tag = "w_" + std::to_string(i + 1) + "_lagrange";
         std::string commit_tag = "W_" + std::to_string(i + 1);
@@ -176,7 +175,7 @@ void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, b
         aligned_free(denominator_accumulator[k]);
     }
 
-    // TODO(luke): Commit to z_perm here? This would match Plonk but maybe best to do separately?
+    // Commit to z_perm here? This would match Plonk but maybe best to do separately?
 
     key->polynomial_cache.put("z_perm_lagrange", std::move(z_perm));
 }
@@ -194,6 +193,7 @@ void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, b
 template <typename settings> void Prover<settings>::execute_preamble_round()
 {
     // Add some initial data to transcript (circuit size and PI size)
+
     // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
 
     transcript.add_element("circuit_size",
