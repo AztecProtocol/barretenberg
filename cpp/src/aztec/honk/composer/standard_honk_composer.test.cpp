@@ -304,7 +304,7 @@ TEST(standard_honk_composer, test_verification_key_creation)
     // permutation selector commitments. This method should work with any future arithemtization.
     // Note(luke): permutation_selectors contains 2*program_width perm/id commitments + 2 lagrange poly commitments.
     EXPECT_EQ(verification_key->constraint_selectors.size(), composer.circuit_constructor.selectors.size());
-    EXPECT_EQ(verification_key->permutation_selectors.size(), composer.program_width * 2 + 2);
+    EXPECT_EQ(verification_key->permutation_selectors.size(), composer.program_width * 2 + 3);
 }
 
 /**

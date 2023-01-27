@@ -47,10 +47,11 @@ template <class FF> class SumcheckRelation : public testing::Test {
         auto id_3 = Univariate<5>({ 1, 2, 3, 4, 5 });
         auto lagrange_first = Univariate<5>({ 1, 2, 3, 4, 5 });
         auto lagrange_last = Univariate<5>({ 1, 2, 3, 4, 5 });
+        auto pow_zeta = Univariate<5>({ 1, 2, 3, 4, 5 });
 
         std::array<Univariate<5>, bonk::StandardArithmetization::NUM_POLYNOMIALS> extended_edges = {
-            w_l,     w_r,  w_o,  z_perm, z_perm_shift,   q_m,          q_l, q_r, q_o, q_c, sigma_1, sigma_2,
-            sigma_3, id_1, id_2, id_3,   lagrange_first, lagrange_last
+            w_l,     w_r,  w_o,  z_perm, z_perm_shift,   q_m,           q_l,     q_r, q_o, q_c, sigma_1, sigma_2,
+            sigma_3, id_1, id_2, id_3,   lagrange_first, lagrange_last, pow_zeta
         };
         return extended_edges;
     }
@@ -79,8 +80,9 @@ TYPED_TEST(SumcheckRelation, ArithmeticRelation)
     auto q_r = UnivariateView<FF, relation.RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_R]);
     auto q_o = UnivariateView<FF, relation.RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_O]);
     auto q_c = UnivariateView<FF, relation.RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_C]);
+    auto pow_zeta = UnivariateView<FF, relation.RELATION_LENGTH>(extended_edges[MULTIVARIATE::POW_ZETA]);
     // expected_evals, length 4, extends to { { 5, 22, 57, 116, 205} };
-    Univariate expected_evals = (q_m * w_r * w_l) + (q_r * w_r) + (q_l * w_l) + (q_o * w_o) + (q_c);
+    Univariate expected_evals = pow_zeta * ((q_m * w_r * w_l) + (q_r * w_r) + (q_l * w_l) + (q_o * w_o) + (q_c));
 
     auto evals = Univariate<FF, relation.RELATION_LENGTH>();
     relation.add_edge_contribution(extended_edges, evals);

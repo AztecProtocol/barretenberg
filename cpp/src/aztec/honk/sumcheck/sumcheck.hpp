@@ -90,7 +90,8 @@ template <class Multivariates, class Transcript, template <class> class... Relat
                                      multivariates.folded_polynomials[14][0],
                                      multivariates.folded_polynomials[15][0],
                                      multivariates.folded_polynomials[16][0],
-                                     multivariates.folded_polynomials[17][0] })));
+                                     multivariates.folded_polynomials[17][0],
+                                     multivariates.folded_polynomials[18][0] })));
     };
 
     /**
