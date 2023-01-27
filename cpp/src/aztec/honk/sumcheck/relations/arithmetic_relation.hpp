@@ -12,8 +12,8 @@ namespace honk::sumcheck {
 
 template <typename FF> class ArithmeticRelation : public Relation<FF> {
   public:
-    // 1 + polynomial degree of this relation
-    static constexpr size_t RELATION_LENGTH = 4;
+    // 2 + polynomial degree of this relation
+    static constexpr size_t RELATION_LENGTH = 5;
     using MULTIVARIATE = StandardHonk::MULTIVARIATE; // could just get from StandardArithmetization
 
     // FUTURE OPTIMIZATION: successively extend as needed?

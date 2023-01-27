@@ -7,8 +7,8 @@ namespace honk::sumcheck {
 
 template <typename FF> class GrandProductInitializationRelation : public Relation<FF> {
   public:
-    // 1 + polynomial degree of this relation
-    static constexpr size_t RELATION_LENGTH = 3;
+    // 2 + polynomial degree of this relation
+    static constexpr size_t RELATION_LENGTH = 4;
     using MULTIVARIATE = StandardHonk::MULTIVARIATE; // could just get from StandardArithmetization
 
     GrandProductInitializationRelation() = default;

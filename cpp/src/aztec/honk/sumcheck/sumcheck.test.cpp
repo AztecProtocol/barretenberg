@@ -74,7 +74,7 @@ TEST(Sumcheck, PolynomialNormalization)
         auto label = std::to_string(multivariate_d - i);
         manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
             { { .name = "univariate_" + label,
-                .num_bytes = fr_size * 5 /* honk::StandardHonk::MAX_RELATION_LENGTH */,
+                .num_bytes = fr_size * 6 /* honk::StandardHonk::MAX_RELATION_LENGTH */,
                 .derived_by_verifier = false } },
             /* challenge_name = */ "u_" + label,
             /* num_challenges_in = */ 1));
@@ -170,7 +170,7 @@ TEST(Sumcheck, Prover)
         auto label = std::to_string(multivariate_d - i);
         manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
             { { .name = "univariate_" + label,
-                .num_bytes = fr_size * 5 /* honk::StandardHonk::MAX_RELATION_LENGTH */,
+                .num_bytes = fr_size * 6 /* honk::StandardHonk::MAX_RELATION_LENGTH */,
                 .derived_by_verifier = false } },
             /* challenge_name = */ "u_" + label,
             /* num_challenges_in = */ 1));
@@ -215,7 +215,7 @@ TEST(Sumcheck, ProverAndVerifier)
     const size_t multivariate_n(1 << multivariate_d);
     // const size_t max_relation_length = 5;
 
-    const size_t max_relation_length = 4 /* honk::StandardHonk::MAX_RELATION_LENGTH */;
+    const size_t max_relation_length = 5 /* honk::StandardHonk::MAX_RELATION_LENGTH */;
     constexpr size_t fr_size = 32;
 
     using Multivariates = ::Multivariates<FF, num_polys>;
@@ -300,7 +300,7 @@ TEST(Sumcheck, ProverAndVerifierLonger)
         const size_t multivariate_n(1 << multivariate_d);
         // const size_t max_relation_length = 5;
 
-        const size_t max_relation_length = 4 /* honk::StandardHonk::MAX_RELATION_LENGTH */;
+        const size_t max_relation_length = 5 /* honk::StandardHonk::MAX_RELATION_LENGTH */;
         constexpr size_t fr_size = 32;
 
         using Multivariates = ::Multivariates<FF, num_polys>;

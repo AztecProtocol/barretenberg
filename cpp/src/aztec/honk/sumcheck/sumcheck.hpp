@@ -53,6 +53,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         transcript.apply_fiat_shamir(challenge_label);
         FF round_challenge = FF::serialize_from_buffer(transcript.get_challenge(challenge_label).begin());
         multivariates.fold(multivariates.full_polynomials, multivariates.multivariate_n, round_challenge);
+        round.pow_univariate.fold(round_challenge);
         round.round_size = round.round_size >> 1;
 
         // All but final round
@@ -66,6 +67,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
             transcript.apply_fiat_shamir(challenge_label);
             FF round_challenge = FF::serialize_from_buffer(transcript.get_challenge(challenge_label).begin());
             multivariates.fold(multivariates.folded_polynomials, round.round_size, round_challenge);
+            round.pow_univariate.fold(round_challenge);
             round.round_size = round.round_size >> 1;
         }
 

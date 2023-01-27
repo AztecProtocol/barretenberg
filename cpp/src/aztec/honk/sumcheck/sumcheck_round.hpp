@@ -5,7 +5,41 @@
 #include <tuple>
 #include "polynomials/barycentric_data.hpp"
 #include "polynomials/univariate.hpp"
+#include <proof_system/flavor/flavor.hpp>
+
 namespace honk::sumcheck {
+
+template <typename FF> class PowUnivariate {
+    FF zeta_pow;
+    FF zeta_pow_sqr;
+    FF constant;
+    Univariate<FF, 2> current_edge;
+
+    PowUnivariate(FF zeta_pow, FF constant)
+        : zeta_pow(zeta_pow)
+        , zeta_pow_sqr(zeta_pow.sqr())
+        , constant(constant)
+        , current_edge({ constant, zeta_pow })
+    {}
+
+  public:
+    PowUnivariate(FF zeta)
+        : PowUnivariate(zeta, FF::one())
+    {}
+
+    void fold(FF challenge)
+    {
+        FF next_constant = constant * (FF::one() + challenge * (zeta_pow - FF::one()));
+        *this = PowUnivariate(zeta_pow_sqr, next_constant);
+    }
+
+    Univariate<FF, 2> next_edge()
+    {
+        auto result = current_edge;
+        current_edge *= zeta_pow_sqr;
+        return result;
+    }
+};
 
 /*
  Notation: The polynomial P(X1, X2) that is the low-degree extension of its values vij = P(i,j)
@@ -49,6 +83,7 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
 
     std::tuple<Relations<FF>...> relations;
     static constexpr size_t NUM_RELATIONS = sizeof...(Relations);
+    static constexpr std::array<size_t, NUM_RELATIONS> RELATION_LENGTHS = { (Relations<FF>::RELATION_LENGTH)... };
     static constexpr size_t MAX_RELATION_LENGTH = std::max({ Relations<FF>::RELATION_LENGTH... });
 
     FF target_total_sum = 0;
@@ -58,6 +93,8 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     std::tuple<Univariate<FF, Relations<FF>::RELATION_LENGTH>...> univariate_accumulators;
     std::array<FF, NUM_RELATIONS> evaluations;
     std::array<Univariate<FF, MAX_RELATION_LENGTH>, num_multivariates> extended_edges;
+    PowUnivariate<FF> pow_univariate;
+    Univariate<FF, MAX_RELATION_LENGTH> pow_extended_edge;
     std::array<Univariate<FF, MAX_RELATION_LENGTH>, NUM_RELATIONS> extended_univariates;
 
     // TODO(Cody): this should go away and we should use constexpr method to extend
@@ -69,6 +106,7 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
         , relations(relations)
         , barycentric_utils(BarycentricData<FF, Relations<FF>::RELATION_LENGTH, MAX_RELATION_LENGTH>()...)
         , univariate_accumulators(Univariate<FF, Relations<FF>::RELATION_LENGTH>()...)
+        , pow_univariate(FF::one())
     {}
 
     // Verifier constructor
@@ -76,6 +114,7 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
         : relations(relations)
         // TODO(Cody): this is a hack; accumulators not needed by verifier
         , univariate_accumulators(Univariate<FF, Relations<FF>::RELATION_LENGTH>()...)
+        , pow_univariate(FF::one())
     {
         // FF's default constructor may not initialize to zero (e.g., barretenberg::fr), hence we can't rely on
         // aggregate initialization of the evaluations array.
@@ -142,6 +181,9 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
             auto edge = Univariate<FF, 2>({ multivariate[idx][edge_idx], multivariate[idx][edge_idx + 1] });
             extended_edges[idx] = barycentric_2_to_max.extend(edge);
         }
+        // Get the next PowUnivariate edge, and extend it.
+        auto pow_edge = pow_univariate.next_edge();
+        pow_extended_edge = barycentric_2_to_max.extend(pow_edge);
     }
 
     /**
@@ -188,9 +230,12 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
      */
     template <size_t relation_idx = 0> void accumulate_relation_univariates()
     {
-        std::get<relation_idx>(relations).add_edge_contribution(extended_edges,
-                                                                std::get<relation_idx>(univariate_accumulators));
+        auto& current_relation = std::get<relation_idx>(relations);
+        auto& current_univariate_accumulator = std::get<relation_idx>(univariate_accumulators);
+        current_relation.add_edge_contribution(extended_edges, current_univariate_accumulator);
 
+        constexpr size_t current_relation_length = RELATION_LENGTHS[relation_idx];
+        current_univariate_accumulator *= UnivariateView<FF, current_relation_length>(pow_extended_edge);
         // Repeat for the next relation.
         if constexpr (relation_idx + 1 < NUM_RELATIONS) {
             accumulate_relation_univariates<relation_idx + 1>();
@@ -245,6 +290,9 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     Univariate<FF, MAX_RELATION_LENGTH> compute_univariate(auto& polynomials, FF& relation_separator_challenge)
     {
         for (size_t edge_idx = 0; edge_idx < round_size; edge_idx += 2) {
+            // TODO(Adrian): Memory access here may be an issue. It may be better to iterate over the polynomials first,
+            // and extend all the edges of that polynomial at once
+
             extend_edges(polynomials, edge_idx);
             accumulate_relation_univariates<>();
         }
