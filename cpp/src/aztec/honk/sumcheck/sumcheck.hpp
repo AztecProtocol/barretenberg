@@ -57,7 +57,9 @@ template <class Multivariates, class Transcript, template <class> class... Relat
                          (static_cast<size_t>(circut_size_vector[1]) << 16) |
                          (static_cast<size_t>(circut_size_vector[2]) << 8) | static_cast<size_t>(circut_size_vector[3]);
         std::vector<FF> public_inputs = many_from_buffer<FF>(transcript.get_element("public_inputs"));
-        ASSERT(public_inputs.size() * sizeof(FF) == public_input_size);
+        info("public_inputs.size() * sizeof(FF) = ", public_inputs.size() * sizeof(FF));
+        info("public_input_size = ", public_input_size);
+        ASSERT(public_inputs.size() == public_input_size);
         FF public_input_delta = honk::compute_public_input_delta<FF>(public_inputs, beta, gamma, n);
         const RelationParameters<FF> relation_parameters = RelationParameters<FF>{
             .alpha = alpha, .beta = beta, .gamma = gamma, .public_input_delta = public_input_delta
