@@ -45,7 +45,7 @@ TEST(SumcheckRound, ComputeUnivariateProver)
     std::array<FF, 2> id_3 = { 1, 2 };
     std::array<FF, 2> lagrange_first = { 1, 2 };
     std::array<FF, 2> lagrange_last = { 1, 2 };
-    std::array<FF, 2> pow_zeta = { 1, 2 };
+    std::array<FF, 2> pow_zeta = { 1, 1 };
 
     std::array<std::span<FF>, bonk::StandardArithmetization::NUM_POLYNOMIALS> full_polynomials = {
         w_l,     w_r,  w_o,  z_perm, z_perm_shift,   q_m,           q_l,     q_r, q_o, q_c, sigma_1, sigma_2,
@@ -100,7 +100,7 @@ TEST(SumcheckRound, ComputeUnivariateVerifier)
     FF id_3 = { 0 };
     FF lagrange_first = { 0 };
     FF lagrange_last = { 0 };
-    FF pow_zeta = { 0 };
+    FF pow_zeta = { 1 };
 
     // q_m * w_l * w_r + q_l * w_l + q_r * w_r + q_o * w_o + q_c
     // = 4 * 1 * 2 + 5 * 1 + 6 * 2 + 7 * 3 + 8 = 54

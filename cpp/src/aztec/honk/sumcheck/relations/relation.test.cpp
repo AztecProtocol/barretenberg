@@ -47,7 +47,7 @@ template <class FF> class SumcheckRelation : public testing::Test {
         auto id_3 = Univariate<5>({ 1, 2, 3, 4, 5 });
         auto lagrange_first = Univariate<5>({ 1, 2, 3, 4, 5 });
         auto lagrange_last = Univariate<5>({ 1, 2, 3, 4, 5 });
-        auto pow_zeta = Univariate<5>({ 1, 2, 3, 4, 5 });
+        auto pow_zeta = Univariate<5>({ 1, 1, 1, 1, 1 });
 
         std::array<Univariate<5>, bonk::StandardArithmetization::NUM_POLYNOMIALS> extended_edges = {
             w_l,     w_r,  w_o,  z_perm, z_perm_shift,   q_m,           q_l,     q_r, q_o, q_c, sigma_1, sigma_2,
@@ -154,8 +154,9 @@ TYPED_TEST(SumcheckRelation, GrandProductInitializationRelation)
 
     auto z_perm_shift = UnivariateView(extended_edges[MULTIVARIATE::Z_PERM_SHIFT]);
     auto lagrange_last = UnivariateView(extended_edges[MULTIVARIATE::LAGRANGE_LAST]);
+    auto pow_zeta = UnivariateView(extended_edges[MULTIVARIATE::POW_ZETA]);
     // expectede_evals, lenght 3 (coeff form = x^2 + x), extends to { { 0, 2, 6, 12, 20 } }
-    auto expected_evals = (z_perm_shift * lagrange_last);
+    auto expected_evals = pow_zeta * (z_perm_shift * lagrange_last);
 
     // Compute the edge contribution using add_edge_contribution
     auto evals = Univariate();
