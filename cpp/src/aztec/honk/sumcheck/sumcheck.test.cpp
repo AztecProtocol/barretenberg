@@ -215,7 +215,7 @@ TEST(Sumcheck, ProverAndVerifier)
     const size_t multivariate_n(1 << multivariate_d);
     // const size_t max_relation_length = 5;
 
-    const size_t max_relation_length = 4 /* honk::StandardHonk::MAX_RELATION_LENGTH */;
+    const size_t max_relation_length = 5 /* honk::StandardHonk::MAX_RELATION_LENGTH */;
     constexpr size_t fr_size = 32;
 
     using Multivariates = ::Multivariates<FF, num_polys>;
@@ -277,7 +277,7 @@ TEST(Sumcheck, ProverAndVerifier)
     auto sumcheck_prover = Sumcheck<Multivariates,
                                     Transcript,
                                     ArithmeticRelation,
-                                    // GrandProductComputationRelation,
+                                    GrandProductComputationRelation,
                                     GrandProductInitializationRelation>(multivariates, transcript);
 
     sumcheck_prover.execute_prover();
@@ -285,7 +285,7 @@ TEST(Sumcheck, ProverAndVerifier)
     auto sumcheck_verifier = Sumcheck<Multivariates,
                                       Transcript,
                                       ArithmeticRelation,
-                                      //   GrandProductComputationRelation,
+                                      GrandProductComputationRelation,
                                       GrandProductInitializationRelation>(transcript);
 
     bool verified = sumcheck_verifier.execute_verifier();
@@ -300,7 +300,7 @@ TEST(Sumcheck, ProverAndVerifierLonger)
         const size_t multivariate_n(1 << multivariate_d);
         // const size_t max_relation_length = 5;
 
-        const size_t max_relation_length = 4 /* honk::StandardHonk::MAX_RELATION_LENGTH */;
+        const size_t max_relation_length = 5 /* honk::StandardHonk::MAX_RELATION_LENGTH */;
         constexpr size_t fr_size = 32;
 
         using Multivariates = ::Multivariates<FF, num_polys>;
@@ -368,7 +368,7 @@ TEST(Sumcheck, ProverAndVerifierLonger)
         auto sumcheck_prover = Sumcheck<Multivariates,
                                         Transcript,
                                         ArithmeticRelation,
-                                        // GrandProductComputationRelation,
+                                        GrandProductComputationRelation,
                                         GrandProductInitializationRelation>(multivariates, transcript);
 
         sumcheck_prover.execute_prover();
@@ -376,7 +376,7 @@ TEST(Sumcheck, ProverAndVerifierLonger)
         auto sumcheck_verifier = Sumcheck<Multivariates,
                                           Transcript,
                                           ArithmeticRelation,
-                                          //   GrandProductComputationRelation,
+                                          GrandProductComputationRelation,
                                           GrandProductInitializationRelation>(transcript);
 
         bool verified = sumcheck_verifier.execute_verifier();
