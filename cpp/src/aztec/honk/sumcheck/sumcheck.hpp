@@ -47,6 +47,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         // This populates multivariates.folded_polynomials.
         FF alpha = FF::serialize_from_buffer(transcript.get_challenge("alpha").begin());
         auto round_univariate = round.compute_univariate(multivariates.full_polynomials, alpha);
+        info("Round univariate:", round_univariate);
         transcript.add_element("univariate_" + std::to_string(multivariates.multivariate_d),
                                round_univariate.to_buffer());
         std::string challenge_label = "u_" + std::to_string(multivariates.multivariate_d);

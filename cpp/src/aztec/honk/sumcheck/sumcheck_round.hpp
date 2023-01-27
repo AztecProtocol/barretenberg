@@ -141,6 +141,7 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
         for (size_t idx = 0; idx < num_multivariates; idx++) {
             auto edge = Univariate<FF, 2>({ multivariate[idx][edge_idx], multivariate[idx][edge_idx + 1] });
             extended_edges[idx] = barycentric_2_to_max.extend(edge);
+            info("idx: ", idx, " extended_edges: ", extended_edges[idx]);
         }
     }
 
@@ -246,7 +247,11 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     {
         for (size_t edge_idx = 0; edge_idx < round_size; edge_idx += 2) {
             extend_edges(polynomials, edge_idx);
+
             accumulate_relation_univariates<>();
+            info("Arithmetic:", std::get<0>(univariate_accumulators));
+            info("Grand Product Computation:", std::get<1>(univariate_accumulators));
+            info("Grand Product Initialization:", std::get<2>(univariate_accumulators));
         }
 
         auto result = batch_over_relations<Univariate<FF, MAX_RELATION_LENGTH>>(relation_separator_challenge);
