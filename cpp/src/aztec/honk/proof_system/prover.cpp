@@ -56,7 +56,7 @@ Prover<settings>::Prover(std::shared_ptr<waffle::proving_key> input_key, const t
  * */
 template <typename settings> void Prover<settings>::compute_wire_commitments()
 {
-    // TODO(luke): Compute wire commitments
+    // Compute wire commitments and add them to the transcript
     for (size_t i = 0; i < settings::program_width; ++i) {
         std::string wire_tag = "w_" + std::to_string(i + 1) + "_lagrange";
         std::string commit_tag = "W_" + std::to_string(i + 1);
@@ -122,7 +122,7 @@ void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, b
     // TODO(kesha): Change the order to engage automatic prefetching and get rid of redundant computation
     for (size_t i = 0; i < key->n; ++i) {
         for (size_t k = 0; k < program_width; ++k) {
-            // TODO(luke): maybe this idx is replaced by proper ID polys in the future
+            // TODO(luke): replace with proper ID polys
             Fr idx = k * key->n + i;
             numerator_accumulator[k][i] = wires[k][i] + (idx * beta) + gamma;            // w_k(i) + β.(k*n+i) + γ
             denominator_accumulator[k][i] = wires[k][i] + (sigmas[k][i] * beta) + gamma; // w_k(i) + β.σ_k(i) + γ
@@ -175,8 +175,6 @@ void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, b
         aligned_free(numerator_accumulator[k]);
         aligned_free(denominator_accumulator[k]);
     }
-
-    // TODO(luke): Commit to z_perm here? This would match Plonk but maybe best to do separately?
 
     key->polynomial_cache.put("z_perm_lagrange", std::move(z_perm));
 }
@@ -323,14 +321,14 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     // - Multivariate opening point u = (u_1, ..., u_d)
     // - MLE opening claim = {commitment, eval} for each multivariate and shifted multivariate polynomial
     // - Pointers to multivariate and shifted multivariate polynomials
+    // Note: The opening claim evaluations fed into Gemini must be genuine but the commitments are not strictly
+    // necessary for proof construction. For this reason we simply provide mocked commitments. See comments in
+    // Gemini.hpp for more explanation.
     std::vector<Fr> opening_point;
     std::vector<MLEOpeningClaim> opening_claims;
     std::vector<MLEOpeningClaim> opening_claims_shifted;
     std::vector<Polynomial*> multivariate_polynomials;
     std::vector<Polynomial*> multivariate_polynomials_shifted;
-    // TODO(luke): Currently feeding in mock commitments for non-WITNESS polynomials. This may be sufficient for simple
-    // proof verification since the other commitments are only needed to produce 'claims' in gemini.reduce_prove, they
-    // are not needed in the proof itself.
 
     // Construct MLE opening point
     // Note: for consistency the evaluation point must be constructed as u = (u_d,...,u_1)
@@ -420,7 +418,7 @@ template <typename settings> void Prover<settings>::execute_shplonk_round()
 template <typename settings> void Prover<settings>::execute_kzg_round()
 {
     // Note(luke): Fiat-Shamir to get "z" challenge is done in Shplonk::reduce_prove
-    // TODO(luke): Get KZG opening point [W]_1
+    // Get KZG opening point [W]_1
     using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
     using KzgOutput = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>::Output;
     KzgOutput kzg_output = KZG::reduce_prove(commitment_key, shplonk_output.claim, shplonk_output.witness);

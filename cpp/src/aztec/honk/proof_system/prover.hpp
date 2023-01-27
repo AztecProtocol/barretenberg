@@ -12,7 +12,6 @@ namespace honk {
 template <typename settings> class Prover {
 
   public:
-    // TODO(luke): update this appropriately to work with Honk Manifest
     Prover(std::shared_ptr<waffle::proving_key> input_key = nullptr,
            const transcript::Manifest& manifest = transcript::Manifest());
 
@@ -72,7 +71,6 @@ template <typename settings> class Prover {
     waffle::plonk_proof proof;
 };
 
-// TODO(luke): need equivalent notion of settings for Honk
 extern template class Prover<waffle::standard_settings>;
 
 using StandardProver = Prover<waffle::standard_settings>; // TODO(Cody): Delete?

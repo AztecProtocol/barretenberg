@@ -21,7 +21,7 @@ template <class FF> class SumcheckRelation : public testing::Test {
     template <size_t t> using Univariate = Univariate<FF, t>;
     template <size_t t> using UnivariateView = UnivariateView<FF, t>;
 
-    // TODO(luke): may want to make this more flexible/genericzs
+    // TODO(luke): may want to make this more flexible/generic
     static std::array<Univariate<5>, bonk::StandardArithmetization::NUM_POLYNOMIALS> compute_mock_extended_edges()
     {
         // TODO(Cody): build from Univariate<2>'s?

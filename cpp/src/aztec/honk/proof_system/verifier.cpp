@@ -55,15 +55,17 @@ template <typename program_settings> Verifier<program_settings>& Verifier<progra
 /**
 * @brief This function verifies a Honk proof for given program settings.
 *
-* TODO(luke): Complete this description
 * @detail A Standard Honk proof contains the following:
     Multilinear evaluations:
-        w_i(X),        i = 1,2,3
-        sigma_i(X),    i = 1,2,3
-        q_i(X),        i = 1,2,3,4,5
-        z_perm(X),
-        L_0(X),
-        id(X)
+        w_i(u),        i = 1,2,3
+        sigma_i(u),    i = 1,2,3
+        id_i(u),       i = 1,2,3
+        q_i(u),        i = 1,2,3,4,5
+        z_perm(u),
+        z_perm_shift(u),
+        L_first(u),
+        L_last(u)
+
 
     Univariate evaluations:
         a_0 = Fold_{-r}^(0)(-r),

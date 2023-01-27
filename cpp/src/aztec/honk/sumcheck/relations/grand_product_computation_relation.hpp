@@ -12,13 +12,13 @@ template <typename FF> class GrandProductComputationRelation : public Relation<F
     using MULTIVARIATE = StandardHonk::MULTIVARIATE;
 
   public:
-    // TODO(luke): make these real challenges once manifest is done
+    // TODO(luke): These are being fed into verifier, need to update
     const FF beta_default = FF::one();
     const FF gamma_default = FF::one();
     const FF public_input_delta_default = FF::one();
 
     GrandProductComputationRelation() = default;
-    explicit GrandProductComputationRelation(auto){}; // TODO(luke): should just be default?
+    explicit GrandProductComputationRelation(auto){};
     /**
      * @brief Add contribution of the permutation relation for a given edge (used by sumcheck round)
      */
@@ -43,8 +43,7 @@ template <typename FF> class GrandProductComputationRelation : public Relation<F
      * @brief Add contribution of the permutation relation for a given edge (internal function)
      *
      * @detail There are 2 relations associated with enforcing the wire copy relations
-     * This file handles the relation that confirms faithful calculation of the grand
-     * product polynomial Z_perm. (Initialization relation Z_perm(0) = 1 is handled elsewhere).
+     * This file contributes the following relation:
      *
      *      ( z_perm(X) + lagrange_first(X) )*P(X) - ( z_perm_shift(X) + delta * lagrange_last(X) )*Q(X),
      *   where

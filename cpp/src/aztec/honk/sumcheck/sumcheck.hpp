@@ -16,7 +16,6 @@ template <class Multivariates, class Transcript, template <class> class... Relat
 
   public:
     Multivariates multivariates;
-    // TODO(luke): this value is needed here but also lives in sumcheck_round
     static constexpr size_t MAX_RELATION_LENGTH = std::max({ Relations<FF>::RELATION_LENGTH... });
 
     std::array<FF, Multivariates::num> purported_evaluations;
