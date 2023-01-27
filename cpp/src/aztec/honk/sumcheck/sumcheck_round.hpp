@@ -5,6 +5,7 @@
 #include <tuple>
 #include "polynomials/barycentric_data.hpp"
 #include "polynomials/univariate.hpp"
+#include "relations/relation.hpp"
 namespace honk::sumcheck {
 
 /*
@@ -141,7 +142,6 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
         for (size_t idx = 0; idx < num_multivariates; idx++) {
             auto edge = Univariate<FF, 2>({ multivariate[idx][edge_idx], multivariate[idx][edge_idx + 1] });
             extended_edges[idx] = barycentric_2_to_max.extend(edge);
-            info("idx: ", idx, " extended_edges: ", extended_edges[idx]);
         }
     }
 
@@ -187,14 +187,15 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
      * group of edges. These are stored in `univariate_accumulators`. Adding these univariates together, with
      * appropriate scaling factors, produces S_l.
      */
-    template <size_t relation_idx = 0> void accumulate_relation_univariates()
+    template <size_t relation_idx = 0>
+    void accumulate_relation_univariates(const RelationParameters<FF>& relation_parameters)
     {
-        std::get<relation_idx>(relations).add_edge_contribution(extended_edges,
-                                                                std::get<relation_idx>(univariate_accumulators));
+        std::get<relation_idx>(relations).add_edge_contribution(
+            extended_edges, std::get<relation_idx>(univariate_accumulators), relation_parameters);
 
         // Repeat for the next relation.
         if constexpr (relation_idx + 1 < NUM_RELATIONS) {
-            accumulate_relation_univariates<relation_idx + 1>();
+            accumulate_relation_univariates<relation_idx + 1>(relation_parameters);
         }
     }
 
@@ -210,14 +211,15 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
      */
     template <size_t relation_idx = 0>
     // TODO(Cody): Input should be an array? Then challenge container has to know array length.
-    void accumulate_relation_evaluations(std::vector<FF>& purported_evaluations)
+    void accumulate_relation_evaluations(std::vector<FF>& purported_evaluations,
+                                         const RelationParameters<FF>& relation_parameters)
     {
-        std::get<relation_idx>(relations).add_full_relation_value_contribution(purported_evaluations,
-                                                                               evaluations[relation_idx]);
+        std::get<relation_idx>(relations).add_full_relation_value_contribution(
+            purported_evaluations, evaluations[relation_idx], relation_parameters);
 
         // Repeat for the next relation.
         if constexpr (relation_idx + 1 < NUM_RELATIONS) {
-            accumulate_relation_evaluations<relation_idx + 1>(purported_evaluations);
+            accumulate_relation_evaluations<relation_idx + 1>(purported_evaluations, relation_parameters);
         }
     }
 
@@ -243,18 +245,19 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
      * values. Most likely this will end up being S_l(0), ... , S_l(t-1) where t is around 12. At the end, reset all
      * univariate accumulators to be zero.
      */
-    Univariate<FF, MAX_RELATION_LENGTH> compute_univariate(auto& polynomials, FF& relation_separator_challenge)
+    Univariate<FF, MAX_RELATION_LENGTH> compute_univariate(auto& polynomials,
+                                                           const RelationParameters<FF>& relation_parameters)
     {
         for (size_t edge_idx = 0; edge_idx < round_size; edge_idx += 2) {
             extend_edges(polynomials, edge_idx);
 
-            accumulate_relation_univariates<>();
+            accumulate_relation_univariates<>(relation_parameters);
             info("Arithmetic:", std::get<0>(univariate_accumulators));
             info("Grand Product Computation:", std::get<1>(univariate_accumulators));
             info("Grand Product Initialization:", std::get<2>(univariate_accumulators));
         }
 
-        auto result = batch_over_relations<Univariate<FF, MAX_RELATION_LENGTH>>(relation_separator_challenge);
+        auto result = batch_over_relations<Univariate<FF, MAX_RELATION_LENGTH>>(relation_parameters.alpha);
 
         reset_accumulators<>();
 
@@ -262,16 +265,16 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     }
 
     FF compute_full_honk_relation_purported_value(std::vector<FF>& purported_evaluations,
-                                                  FF& relation_separator_challenge)
+                                                  const RelationParameters<FF>& relation_parameters)
     {
-        accumulate_relation_evaluations<>(purported_evaluations);
+        accumulate_relation_evaluations<>(purported_evaluations, relation_parameters);
 
         // IMPROVEMENT(Cody): Reuse functions from univariate_accumulators batching?
         FF running_challenge = 1;
         FF output = 0;
         for (auto& evals : evaluations) {
             output += evals * running_challenge;
-            running_challenge *= relation_separator_challenge;
+            running_challenge *= relation_parameters.alpha;
         }
 
         return output;
