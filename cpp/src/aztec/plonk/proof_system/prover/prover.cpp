@@ -22,16 +22,14 @@ namespace waffle {
  * */
 template <typename settings>
 ProverBase<settings>::ProverBase(std::shared_ptr<proving_key> input_key, const transcript::Manifest& input_manifest)
-    : n(input_key == nullptr ? 0 : input_key->n)
-    , transcript(input_manifest, settings::hash_type, settings::num_challenge_bytes)
+    : transcript(input_manifest, settings::hash_type, settings::num_challenge_bytes)
     , key(input_key)
     , queue(key.get(), &transcript)
 {}
 
 template <typename settings>
 ProverBase<settings>::ProverBase(ProverBase<settings>&& other)
-    : n(other.n)
-    , transcript(other.transcript)
+    : transcript(other.transcript)
     , key(std::move(other.key))
     , commitment_scheme(std::move(other.commitment_scheme))
     , queue(key.get(), &transcript)
@@ -46,8 +44,6 @@ ProverBase<settings>::ProverBase(ProverBase<settings>&& other)
 
 template <typename settings> ProverBase<settings>& ProverBase<settings>::operator=(ProverBase<settings>&& other)
 {
-    n = other.n;
-
     random_widgets.resize(0);
     transition_widgets.resize(0);
     for (size_t i = 0; i < other.random_widgets.size(); ++i) {
@@ -156,10 +152,10 @@ template <typename settings> void ProverBase<settings>::execute_preamble_round()
     queue.flush_queue();
 
     transcript.add_element("circuit_size",
-                           { static_cast<uint8_t>(n >> 24),
-                             static_cast<uint8_t>(n >> 16),
-                             static_cast<uint8_t>(n >> 8),
-                             static_cast<uint8_t>(n) });
+                           { static_cast<uint8_t>(key->n >> 24),
+                             static_cast<uint8_t>(key->n >> 16),
+                             static_cast<uint8_t>(key->n >> 8),
+                             static_cast<uint8_t>(key->n) });
 
     transcript.add_element("public_input_size",
                            { static_cast<uint8_t>(key->num_public_inputs >> 24),
@@ -201,7 +197,7 @@ template <typename settings> void ProverBase<settings>::execute_preamble_round()
         const size_t w_randomness = 3;
         ASSERT(w_randomness < settings::num_roots_cut_out_of_vanishing_polynomial);
         for (size_t k = 0; k < w_randomness; ++k) {
-            wire_lagrange.at(n - settings::num_roots_cut_out_of_vanishing_polynomial + k) = fr::random_element();
+            wire_lagrange.at(key->n - settings::num_roots_cut_out_of_vanishing_polynomial + k) = fr::random_element();
         }
 
         key->polynomial_cache.put(wire_tag + "_lagrange", std::move(wire_lagrange));
@@ -284,18 +280,16 @@ template <typename settings> void ProverBase<settings>::execute_second_round()
         add_plookup_memory_records_to_w_4();
         std::string wire_tag = "w_4";
         barretenberg::polynomial& w_4_lagrange = key->polynomial_cache.get(wire_tag + "_lagrange");
-        // barretenberg::polynomial& wire_fft = key->polynomial_cache.get(wire_tag + "_fft");
         barretenberg::polynomial w_4(key->n);
-        // barretenberg::polynomial_arithmetic::copy_polynomial(&wire[0], &wire_fft[0], n, n);
-        barretenberg::polynomial_arithmetic::copy_polynomial(&w_4_lagrange[0], &w_4[0], n, n);
+        barretenberg::polynomial_arithmetic::copy_polynomial(&w_4_lagrange[0], &w_4[0], key->n, key->n);
 
-        // TODO: This adds blinding to the what will become the w_4_monomial, NOT to the w_4_lagrange poly. Is this
-        // intentional?
+        // TODO(luke): This adds blinding to the what will become the w_4_monomial, NOT to the w_4_lagrange poly. Is
+        // this intentional?
         const size_t w_randomness = 3;
         ASSERT(w_randomness < settings::num_roots_cut_out_of_vanishing_polynomial);
         for (size_t k = 0; k < w_randomness; ++k) {
             // Blinding
-            w_4.at(n - settings::num_roots_cut_out_of_vanishing_polynomial + k) = fr::random_element();
+            w_4.at(key->n - settings::num_roots_cut_out_of_vanishing_polynomial + k) = fr::random_element();
         }
 
         // poly w_4 and add to cache
@@ -444,7 +438,7 @@ template <typename settings> void ProverBase<settings>::execute_fourth_round()
     // Manually copy the (n + 1)th coefficient of t_3 for StandardPlonk from t_4.
     // This is because the degree of t_3 for StandardPlonk is n.
     if (settings::program_width == 3) {
-        key->quotient_polynomial_parts[2][n] = key->quotient_polynomial_parts[3][0];
+        key->quotient_polynomial_parts[2][key->n] = key->quotient_polynomial_parts[3][0];
         key->quotient_polynomial_parts[3][0] = 0;
     }
 
@@ -549,7 +543,7 @@ template <typename settings> void ProverBase<settings>::compute_linearisation_co
                                                       &key->quotient_polynomial_parts[2][0],
                                                       &key->quotient_polynomial_parts[3][0] },
                                                     zeta,
-                                                    4 * n);
+                                                    4 * key->n);
 
         // Adjust the evaluation to consider the (n + 1)th coeff.
         fr zeta_pow_n = zeta.pow(key->n);
@@ -594,7 +588,7 @@ template <typename settings> void ProverBase<settings>::add_blinding_to_quotient
 // Compute FFT of lagrange polynomial L_1 needed in random widgets only
 template <typename settings> void ProverBase<settings>::compute_lagrange_1_fft()
 {
-    polynomial lagrange_1_fft(4 * n, 4 * n + 8);
+    polynomial lagrange_1_fft(4 * key->n, 4 * key->n + 8);
     polynomial_arithmetic::compute_lagrange_polynomial_fft(
         lagrange_1_fft.get_coefficients(), key->small_domain, key->large_domain);
     lagrange_1_fft.add_lagrange_base_coefficient(lagrange_1_fft[0]);
