@@ -195,7 +195,7 @@ static constexpr PolynomialDescriptor standard_honk_polynomial_manifest[STANDARD
     PolynomialDescriptor("ID_3", "id_3_lagrange", true, false, PERMUTATION, ID_3),                   //
     PolynomialDescriptor("LAGRANGE_FIRST", "L_first_lagrange", false, false, OTHER, LAGRANGE_FIRST), //
     PolynomialDescriptor("LAGRANGE_LAST", "L_last_lagrange", false, false, OTHER, LAGRANGE_LAST),    //
-    PolynomialDescriptor("POW_ZETA", "pow_zeta", false, false, OTHER, POW_ZETA)                      //
+    PolynomialDescriptor("POW_ZETA", "pow_zeta", false, false, WITNESS, POW_ZETA)                    //
 };
 
 // Simple class allowing for access to a polynomial manifest based on composer type
