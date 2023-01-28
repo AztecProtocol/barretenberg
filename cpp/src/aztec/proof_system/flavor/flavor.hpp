@@ -89,7 +89,8 @@ struct StandardHonk {
         manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
             { { .name = "Z_PERM", .num_bytes = g1_size, .derived_by_verifier = false } },
             /* challenge_name = */ "alpha",
-            /* num_challenges_in = */ 2)); // also produces "zeta"
+            /* num_challenges_in = */ 2) // also produces "zeta"
+            ); 
 
         // Rounds 3 + 1, ... 3 + num_sumcheck_rounds
         for (size_t i = 0; i < num_sumcheck_rounds; i++) {
