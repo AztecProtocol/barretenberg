@@ -172,5 +172,22 @@ TYPED_TEST(UnivariateTest, Serialization)
         EXPECT_EQ(univariate.value_at(i), deserialized_univariate.value_at(i));
     }
 }
+TYPED_TEST(UnivariateTest, Expr)
+{
+    using FF = barretenberg::fr;
+    using P = Poly<FF, 4>;
+
+    P p0{ 0 };
+    P p1{ 1 };
+    P p2{ 2 };
+    P p3{ 3 };
+    P p6{ 6 };
+
+    EXPECT_EQ(P(p1 + p2 + p3).evals, p6.evals);
+    EXPECT_EQ(P(p1 * FF(2) + p2 + p3 - p1).evals, p6.evals);
+    EXPECT_EQ(P(p1 * FF(2) + p2 + p3 - p1 - FF(6) * p1).evals, p0.evals);
+
+    EXPECT_EQ((p1 * p2 * p3).degree(), 3);
+}
 
 } // namespace test_univariate

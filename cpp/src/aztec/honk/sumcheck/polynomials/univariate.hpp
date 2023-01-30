@@ -8,6 +8,126 @@
 
 namespace honk::sumcheck {
 
+template <typename FF, typename E> struct Expr {
+    FF operator[](size_t i) const { return static_cast<E const&>(*this)[i]; }
+    constexpr size_t degree() const { return static_cast<E const&>(*this).degree(); }
+    constexpr size_t size() const { return static_cast<E const&>(*this).size(); }
+};
+
+template <typename FF, size_t N> struct Poly : public Expr<FF, Poly<FF, N>> {
+
+    std::array<FF, N> evals;
+
+    Poly() = default;
+
+    Poly(FF a)
+    {
+        for (size_t i = 0; i < N; ++i) {
+            evals[i] = a;
+        }
+    }
+
+    template <typename P> Poly(Expr<FF, P> const& p)
+    {
+        for (size_t i = 0; i < N; ++i) {
+            evals[i] = p[i];
+        }
+    }
+
+    FF& operator[](size_t i) { return evals[i]; }
+    FF operator[](size_t i) const { return evals[i]; }
+    constexpr size_t degree() const { return 1; }
+    constexpr size_t size() const { return N; }
+};
+
+template <typename FF, typename P1, typename P2> struct PolySum : public Expr<FF, PolySum<FF, P1, P2>> {
+    P1 const& p1;
+    P2 const& p2;
+
+    PolySum(P1 const& p1, P2 const& p2)
+        : p1(p1)
+        , p2(p2)
+    {}
+
+    FF operator[](size_t i) const { return p1[i] + p2[i]; }
+
+    constexpr size_t degree() const { return std::max(p1.degree(), p2.degree()); }
+
+    constexpr size_t size() const { return std::min(p1.size(), p2.size()); }
+};
+
+template <typename FF, typename P1, typename P2>
+PolySum<FF, P1, P2> operator+(Expr<FF, P1> const& p1, Expr<FF, P2> const& p2)
+{
+    return PolySum<FF, P1, P2>(static_cast<const P1&>(p1), static_cast<const P2&>(p2));
+}
+
+template <typename FF, typename P1, typename P2> struct PolyDiff : public Expr<FF, PolyDiff<FF, P1, P2>> {
+    P1 const& p1;
+    P2 const& p2;
+
+    PolyDiff(P1 const& p1, P2 const& p2)
+        : p1(p1)
+        , p2(p2)
+    {}
+
+    FF operator[](size_t i) const { return p1[i] - p2[i]; }
+
+    constexpr size_t degree() const { return std::max(p1.degree(), p2.degree()); }
+
+    constexpr size_t size() const { return std::min(p1.size(), p2.size()); }
+};
+
+template <typename FF, typename P1, typename P2>
+PolyDiff<FF, P1, P2> operator-(Expr<FF, P1> const& p1, Expr<FF, P2> const& p2)
+{
+    return PolyDiff<FF, P1, P2>(static_cast<const P1&>(p1), static_cast<const P2&>(p2));
+}
+template <typename FF, typename P1, typename P2> struct PolyMul : public Expr<FF, PolyMul<FF, P1, P2>> {
+    P1 const& p1;
+    P2 const& p2;
+
+    PolyMul(P1 const& p1, P2 const& p2)
+        : p1(p1)
+        , p2(p2)
+    {}
+
+    FF operator[](size_t i) const { return p1[i] * p2[i]; }
+
+    constexpr size_t degree() const { return p1.degree() + p2.degree(); }
+    constexpr size_t size() const { return std::min(p1.size(), p2.size()); }
+};
+
+template <typename FF, typename P1, typename P2>
+PolyMul<FF, P1, P2> operator*(Expr<FF, P1> const& p1, Expr<FF, P2> const& p2)
+{
+    return PolyMul<FF, P1, P2>(static_cast<const P1&>(p1), static_cast<const P2&>(p2));
+}
+
+template <typename FF, typename P> struct PolyScale : public Expr<FF, PolyScale<FF, P>> {
+    P const& p;
+    FF const& scalar;
+
+    PolyScale(P const& p, FF const& scalar)
+        : p(p)
+        , scalar(scalar)
+    {}
+
+    FF operator[](size_t i) const { return p[i] * scalar; }
+
+    constexpr size_t degree() const { return p.degree(); }
+    constexpr size_t size() const { return p.size(); }
+};
+
+template <typename FF, typename P> PolyScale<FF, P> operator*(Expr<FF, P> const& p, FF const& scalar)
+{
+    return PolyScale<FF, P>(static_cast<const P&>(p), static_cast<const FF&>(scalar));
+}
+template <typename FF, typename P> PolyScale<FF, P> operator*(FF const& scalar, Expr<FF, P> const& p)
+{
+    return PolyScale<FF, P>(static_cast<const P&>(p), static_cast<const FF&>(scalar));
+}
+
 template <class Fr, size_t view_length> class UnivariateView;
 
 // TODO(Cody): This violates Rule of Five
