@@ -6,7 +6,42 @@
 #include "polynomials/barycentric_data.hpp"
 #include "polynomials/univariate.hpp"
 #include "relations/relation.hpp"
+
 namespace honk::sumcheck {
+
+template <typename FF> class PowUnivariate {
+
+  public:
+    FF zeta_pow;
+    FF partial_evaluation_constant = FF::one();
+
+    PowUnivariate(FF zeta_pow)
+        : zeta_pow(zeta_pow)
+        , zeta_pow_sqr(zeta_pow.sqr())
+    {}
+
+    FF univariate_eval(FF challenge) { return (FF::one() + (challenge * (zeta_pow - FF::one()))); };
+
+    void fold(FF challenge)
+    {
+        FF current_univariate_eval = univariate_eval(challenge);
+        zeta_pow = zeta_pow_sqr;
+        zeta_pow_sqr.self_sqr();
+        partial_evaluation_constant *= current_univariate_eval;
+        acc = partial_evaluation_constant;
+    }
+
+    FF next_challenge()
+    {
+        auto result = acc;
+        acc *= zeta_pow_sqr;
+        return result;
+    }
+
+  private:
+    FF zeta_pow_sqr;
+    FF acc = FF::one();
+};
 
 /*
  Notation: The polynomial P(X1, X2) that is the low-degree extension of its values vij = P(i,j)
@@ -59,6 +94,8 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     std::tuple<Univariate<FF, Relations<FF>::RELATION_LENGTH>...> univariate_accumulators;
     std::array<FF, NUM_RELATIONS> evaluations;
     std::array<Univariate<FF, MAX_RELATION_LENGTH>, num_multivariates> extended_edges;
+    PowUnivariate<FF> pow_univariate{ FF{ 3 } };
+    FF pow_challenge{ 1 };
     std::array<Univariate<FF, MAX_RELATION_LENGTH>, NUM_RELATIONS> extended_univariates;
 
     // TODO(Cody): this should go away and we should use constexpr method to extend
@@ -162,8 +199,9 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
         std::tuple<Univariate<FF, Relations<FF>::RELATION_LENGTH>...>& internal_univariate_accumulators,
         std::array<FF, challenge_size> challenges)
     {
-        std::get<relation_idx>(relations).add_edge_contribution_testing(
-            internal_extended_edges, std::get<relation_idx>(internal_univariate_accumulators), challenges);
+        // add the new edge contribution to the accumulator
+        std::get<relation_idx>(internal_univariate_accumulators) +=
+            std::get<relation_idx>(relations).get_edge_contribution_testing(internal_extended_edges, challenges);
 
         // Repeat for the next relation.
         if constexpr (relation_idx + 1 < NUM_RELATIONS) {
@@ -190,8 +228,10 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     template <size_t relation_idx = 0>
     void accumulate_relation_univariates(const RelationParameters<FF>& relation_parameters)
     {
-        std::get<relation_idx>(relations).add_edge_contribution(
-            extended_edges, std::get<relation_idx>(univariate_accumulators), relation_parameters);
+        // add the new edge contribution to the accumulator
+        std::get<relation_idx>(univariate_accumulators) +=
+            std::get<relation_idx>(relations).get_edge_contribution(extended_edges, relation_parameters) *
+            pow_challenge;
 
         // Repeat for the next relation.
         if constexpr (relation_idx + 1 < NUM_RELATIONS) {
@@ -214,8 +254,8 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     void accumulate_relation_evaluations(std::vector<FF>& purported_evaluations,
                                          const RelationParameters<FF>& relation_parameters)
     {
-        std::get<relation_idx>(relations).add_full_relation_value_contribution(
-            purported_evaluations, evaluations[relation_idx], relation_parameters);
+        evaluations[relation_idx] = std::get<relation_idx>(relations).get_full_relation_value_contribution(
+            purported_evaluations, relation_parameters);
 
         // Repeat for the next relation.
         if constexpr (relation_idx + 1 < NUM_RELATIONS) {
@@ -250,7 +290,7 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     {
         for (size_t edge_idx = 0; edge_idx < round_size; edge_idx += 2) {
             extend_edges(polynomials, edge_idx);
-
+            pow_challenge = pow_univariate.next_challenge();
             accumulate_relation_univariates<>(relation_parameters);
         }
 
@@ -273,13 +313,14 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
             output += evals * running_challenge;
             running_challenge *= relation_parameters.alpha;
         }
+        output *= pow_univariate.partial_evaluation_constant;
 
         return output;
     }
 
     bool check_sum(Univariate<FF, MAX_RELATION_LENGTH>& univariate)
     {
-        FF total_sum = univariate.value_at(0) + univariate.value_at(1);
+        FF total_sum = univariate.value_at(0) + (pow_univariate.zeta_pow * univariate.value_at(1));
         bool sumcheck_round_failed = (target_total_sum != total_sum);
         round_failed = round_failed || sumcheck_round_failed;
         return !sumcheck_round_failed;
@@ -291,6 +332,8 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
         // function on Univariate.
         auto barycentric = BarycentricData<FF, MAX_RELATION_LENGTH, MAX_RELATION_LENGTH>();
         target_total_sum = barycentric.evaluate(univariate, round_challenge);
+        target_total_sum *= pow_univariate.univariate_eval(round_challenge);
+        pow_univariate.fold(round_challenge);
         return target_total_sum;
     }
 };

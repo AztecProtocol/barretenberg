@@ -15,7 +15,7 @@ template <typename FF> class GrandProductInitializationRelation : public Relatio
     explicit GrandProductInitializationRelation(auto){}; // NOLINT(readability-named-parameter)
 
     /**
-     * @brief Add contribution of the permutation relation for a given edge
+     * @brief Compute contribution of the permutation relation for a given edge
      *
      * @detail There are 2 relations associated with enforcing the wire copy relations
      * This file handles the relation Z_perm_shift(n_last) = 0 via the relation:
@@ -27,9 +27,9 @@ template <typename FF> class GrandProductInitializationRelation : public Relatio
      * we don't need challenges in this relation.
      *
      */
-    template <typename T> void add_edge_contribution(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals, T)
+    template <typename T> Univariate<FF, RELATION_LENGTH> get_edge_contribution(auto& extended_edges, T)
     {
-        add_edge_contribution_internal(extended_edges, evals);
+        return get_edge_contribution_internal(extended_edges);
     };
 
     /**
@@ -38,35 +38,33 @@ template <typename FF> class GrandProductInitializationRelation : public Relatio
      * @param extended_edges
      * @param evals
      */
-    void add_edge_contribution_internal(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals)
+    Univariate<FF, RELATION_LENGTH> get_edge_contribution_internal(auto& extended_edges)
     {
         auto z_perm_shift = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Z_PERM_SHIFT]);
         auto lagrange_last = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::LAGRANGE_LAST]);
 
-        evals += lagrange_last * z_perm_shift;
+        return lagrange_last * z_perm_shift;
     }
     /**
-     * @brief A version of `add_edge_contribution` used for testing the relation
+     * @brief A version of `get_edge_contribution` used for testing the relation
      *
      * @tparam T
-     * @param extended_edges
+     * @param extended_edge
      * @param evals
      * @param challenges
      */
     // TODO(kesha): Change once challenges are being supplied to regular contribution
-    template <typename T>
-    void add_edge_contribution_testing(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals, T)
+    template <typename T> Univariate<FF, RELATION_LENGTH> get_edge_contribution_testing(auto& extended_edges, T)
     {
-        add_edge_contribution_internal(extended_edges, evals);
+        return get_edge_contribution_internal(extended_edges);
     }
 
-    template <typename T>
-    void add_full_relation_value_contribution(auto& purported_evaluations, FF& full_honk_relation_value, T)
+    template <typename T> FF get_full_relation_value_contribution(auto& purported_evaluations, T)
     {
         auto z_perm_shift = purported_evaluations[MULTIVARIATE::Z_PERM_SHIFT];
         auto lagrange_last = purported_evaluations[MULTIVARIATE::LAGRANGE_LAST];
 
-        full_honk_relation_value += lagrange_last * z_perm_shift;
+        return lagrange_last * z_perm_shift;
     };
 };
 } // namespace honk::sumcheck

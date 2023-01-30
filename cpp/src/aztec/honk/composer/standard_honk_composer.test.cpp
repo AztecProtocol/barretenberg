@@ -25,7 +25,7 @@ namespace test_standard_honk_composer {
  * 2) That if the permutation argument is computed with witness values, the values from the identity permutation and
  * sigma permutation are equal
  */
-TEST(standard_honk_composer, test_sigma_and_id_correctness)
+TEST(StandardHonkComposer, SigmaIDCorrectness)
 {
     auto test_permutation = [](StandardHonkComposer& composer) {
         auto proving_key = composer.compute_proving_key();
@@ -135,7 +135,7 @@ TEST(standard_honk_composer, test_sigma_and_id_correctness)
  * @brief Check the correctness of lagrange polynomials generated during proving key computation
  *
  */
-TEST(standard_honk_composer, test_lagrange_polynomial_correctness)
+TEST(StandardHonkComposer, LagrangeCorrectness)
 {
     // Create a composer and a dummy circuit with a few gates
     StandardHonkComposer composer = StandardHonkComposer();
@@ -183,7 +183,7 @@ TEST(standard_honk_composer, test_lagrange_polynomial_correctness)
  * merged.
  * In this test we create two almost identical circuits. They differ because one
  */
-TEST(standard_honk_composer, test_assert_equal)
+TEST(StandardHonkComposer, AssertEquals)
 {
     /**
      * @brief A function that creates a simple circuit with repeated gates, leading to large permutation cycles
@@ -282,7 +282,7 @@ TEST(standard_honk_composer, test_assert_equal)
     EXPECT_EQ(get_maximum_cycle(composer_with_assert_equal), get_maximum_cycle(composer_no_assert_equal) * 2);
 }
 
-TEST(standard_honk_composer, test_verification_key_creation)
+TEST(StandardHonkComposer, VerificationKeyCreation)
 {
     // Create a composer and a dummy circuit with a few gates
     StandardHonkComposer composer = StandardHonkComposer();
@@ -315,7 +315,7 @@ TEST(standard_honk_composer, test_verification_key_creation)
  * indices
  *
  */
-TEST(standard_honk_composer, test_check_sumcheck_relations_correctness)
+TEST(StandardHonkComposer, SumcheckRelationCorrectness)
 {
     // Create a composer and a dummy circuit with a few gates
     StandardHonkComposer composer = StandardHonkComposer();
@@ -464,7 +464,7 @@ TEST(standard_honk_composer, test_check_sumcheck_relations_correctness)
     }
 }
 
-TEST(StandarHonkComposer, BaseCase)
+TEST(StandardHonkComposer, BaseCase)
 {
     auto composer = StandardHonkComposer();
     fr a = 1;

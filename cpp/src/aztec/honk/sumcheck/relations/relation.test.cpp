@@ -82,8 +82,7 @@ TYPED_TEST(SumcheckRelation, ArithmeticRelation)
     // expected_evals, length 4, extends to { { 5, 22, 57, 116, 205} };
     Univariate expected_evals = (q_m * w_r * w_l) + (q_r * w_r) + (q_l * w_l) + (q_o * w_o) + (q_c);
 
-    auto evals = Univariate<FF, relation.RELATION_LENGTH>();
-    relation.add_edge_contribution(extended_edges, evals, 0);
+    auto evals = relation.get_edge_contribution(extended_edges, 0);
 
     EXPECT_EQ(evals, expected_evals);
 };
@@ -135,8 +134,7 @@ TYPED_TEST(SumcheckRelation, GrandProductComputationRelation)
     expected_evals -= (z_perm_shift + lagrange_last * public_input_delta) * (w_1 + sigma_1 * beta + gamma) *
                       (w_2 + sigma_2 * beta + gamma) * (w_3 + sigma_3 * beta + gamma);
 
-    auto evals = Univariate();
-    relation.add_edge_contribution(extended_edges, evals, relation_parameters);
+    auto evals = relation.get_edge_contribution(extended_edges, relation_parameters);
 
     EXPECT_EQ(evals, expected_evals);
 };
@@ -148,7 +146,6 @@ TYPED_TEST(SumcheckRelation, GrandProductInitializationRelation)
     auto extended_edges = TestFixture::compute_mock_extended_edges();
     auto relation = GrandProductInitializationRelation<FF>();
     using UnivariateView = UnivariateView<FF, relation.RELATION_LENGTH>;
-    using Univariate = Univariate<FF, relation.RELATION_LENGTH>;
 
     // Manually compute the expected edge contribution
     using MULTIVARIATE = bonk::StandardArithmetization::POLYNOMIAL;
@@ -159,8 +156,7 @@ TYPED_TEST(SumcheckRelation, GrandProductInitializationRelation)
     auto expected_evals = (z_perm_shift * lagrange_last);
 
     // Compute the edge contribution using add_edge_contribution
-    auto evals = Univariate();
-    relation.add_edge_contribution(extended_edges, evals, 0);
+    auto evals = relation.get_edge_contribution(extended_edges, 0);
 
     EXPECT_EQ(evals, expected_evals);
 };

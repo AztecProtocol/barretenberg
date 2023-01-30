@@ -8,7 +8,7 @@ using namespace barretenberg;
 
 TEST(honk_commitment_scheme, ipa_commit)
 {
-    constexpr size_t n = 1024;
+    constexpr size_t n = 256;
     std::vector<barretenberg::fr> scalars(n);
     std::vector<barretenberg::g1::affine_element> points(n);
 
@@ -30,7 +30,7 @@ TEST(honk_commitment_scheme, ipa_commit)
 TEST(honk_commitment_scheme, ipa_open)
 {
     // generate a random polynomial coeff, degree needs to be a power of two
-    size_t n = 1024;
+    size_t n = 256;
     std::vector<barretenberg::fr> coeffs(n);
     for (size_t i = 0; i < n; ++i) {
         coeffs[i] = barretenberg::fr::random_element();

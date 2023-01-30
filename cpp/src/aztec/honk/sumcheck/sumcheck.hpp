@@ -3,7 +3,6 @@
 #include "proof_system/types/polynomial_manifest.hpp"
 #include <honk/utils/public_inputs.hpp>
 #include "common/throw_or_abort.hpp"
-#include "ecc/curves/bn254/fr.hpp"
 #include "sumcheck_round.hpp"
 #include "polynomials/univariate.hpp"
 #include <proof_system/flavor/flavor.hpp>
@@ -83,6 +82,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         transcript.apply_fiat_shamir(challenge_label);
         FF round_challenge = FF::serialize_from_buffer(transcript.get_challenge(challenge_label).begin());
         multivariates.fold(multivariates.full_polynomials, multivariates.multivariate_n, round_challenge);
+        round.pow_univariate.fold(round_challenge);
         round.round_size = round.round_size >> 1;
 
         // All but final round
@@ -96,6 +96,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
             transcript.apply_fiat_shamir(challenge_label);
             FF round_challenge = FF::serialize_from_buffer(transcript.get_challenge(challenge_label).begin());
             multivariates.fold(multivariates.folded_polynomials, round.round_size, round_challenge);
+            round.pow_univariate.fold(round_challenge);
             round.round_size = round.round_size >> 1;
         }
 

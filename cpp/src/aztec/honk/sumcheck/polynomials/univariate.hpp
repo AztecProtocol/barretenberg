@@ -22,12 +22,6 @@ template <class Fr, size_t _length> class Univariate {
     explicit Univariate(std::array<Fr, _length> evaluations)
         : evaluations(evaluations)
     {}
-    Univariate(const Univariate& other)
-        : evaluations(other.evaluations)
-    {}
-    Univariate(Univariate&& other) noexcept
-        : evaluations(std::move(other.evaluations))
-    {}
 
     // Construct Univariate from scalar
     explicit Univariate(Fr value)
@@ -61,36 +55,23 @@ template <class Fr, size_t _length> class Univariate {
         return result;
     }
 
-    // Operations between Univariate and other Univariate
-    Univariate operator=(const Univariate& other)
-    {
-        evaluations = other.evaluations;
-        return *this;
-    }
-
-    Univariate operator=(Univariate&& other)
-    {
-        evaluations = std::move(other.evaluations);
-        return *this;
-    }
-
     bool operator==(const Univariate& other) const = default;
 
-    Univariate operator+=(const Univariate& other)
+    Univariate& operator+=(const Univariate& other)
     {
         for (size_t i = 0; i < _length; ++i) {
             evaluations[i] += other.evaluations[i];
         }
         return *this;
     }
-    Univariate operator-=(const Univariate& other)
+    Univariate& operator-=(const Univariate& other)
     {
         for (size_t i = 0; i < _length; ++i) {
             evaluations[i] -= other.evaluations[i];
         }
         return *this;
     }
-    Univariate operator*=(const Univariate& other)
+    Univariate& operator*=(const Univariate& other)
     {
         for (size_t i = 0; i < _length; ++i) {
             evaluations[i] *= other.evaluations[i];
@@ -118,7 +99,7 @@ template <class Fr, size_t _length> class Univariate {
     }
 
     // Operations between Univariate and scalar
-    Univariate operator+=(const Fr& scalar)
+    Univariate& operator+=(const Fr& scalar)
     {
         for (auto& eval : evaluations) {
             eval += scalar;
@@ -126,14 +107,14 @@ template <class Fr, size_t _length> class Univariate {
         return *this;
     }
 
-    Univariate operator-=(const Fr& scalar)
+    Univariate& operator-=(const Fr& scalar)
     {
         for (auto& eval : evaluations) {
             eval -= scalar;
         }
         return *this;
     }
-    Univariate operator*=(const Fr& scalar)
+    Univariate& operator*=(const Fr& scalar)
     {
         for (auto& eval : evaluations) {
             eval *= scalar;
@@ -163,7 +144,7 @@ template <class Fr, size_t _length> class Univariate {
     }
 
     // Operations between Univariate and UnivariateView
-    Univariate operator+=(const UnivariateView<Fr, _length>& view)
+    Univariate& operator+=(const UnivariateView<Fr, _length>& view)
     {
         for (size_t i = 0; i < _length; ++i) {
             evaluations[i] += view.evaluations[i];
@@ -171,7 +152,7 @@ template <class Fr, size_t _length> class Univariate {
         return *this;
     }
 
-    Univariate operator-=(const UnivariateView<Fr, _length>& view)
+    Univariate& operator-=(const UnivariateView<Fr, _length>& view)
     {
         for (size_t i = 0; i < _length; ++i) {
             evaluations[i] -= view.evaluations[i];
@@ -179,7 +160,7 @@ template <class Fr, size_t _length> class Univariate {
         return *this;
     }
 
-    Univariate operator*=(const UnivariateView<Fr, _length>& view)
+    Univariate& operator*=(const UnivariateView<Fr, _length>& view)
     {
         for (size_t i = 0; i < _length; ++i) {
             evaluations[i] *= view.evaluations[i];

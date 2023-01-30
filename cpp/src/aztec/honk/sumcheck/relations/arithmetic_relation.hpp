@@ -26,18 +26,18 @@ template <typename FF> class ArithmeticRelation : public Relation<FF> {
      * @brief External function used by sumcheck round
      *
      * @param extended_edges Contain inputs for the relation
-     * @param evals Contains the resulting univariate polynomial
+     * @return the resulting univariate polynomial
      *
      * The final parameter is left to conform to the general argument structure (input,output, challenges) even though
      * we don't need challenges in this relation.
      */
-    template <typename T> void add_edge_contribution(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals, T)
+    template <typename T> Univariate<FF, RELATION_LENGTH> get_edge_contribution(auto& extended_edges, T)
     {
-        add_edge_contribution_internal(extended_edges, evals);
+        return get_edge_contribution_internal(extended_edges);
     };
 
     /**
-     * @brief Same as add_edge_contribution but is used for testing
+     * @brief Same as get_edge_contribution but is used for testing
      *
      * @details Arithmetic relation doesn't require challenges but it needs the same interface as those relations that
      * do
@@ -48,15 +48,14 @@ template <typename FF> class ArithmeticRelation : public Relation<FF> {
      * @param challenges
      */
     // TODO(kesha): Change once challenges are being supplied to regular contribution
-    template <typename T>
-    void add_edge_contribution_testing(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals, T)
+    template <typename T> Univariate<FF, RELATION_LENGTH> get_edge_contribution_testing(auto& extended_edges, T)
     {
-        add_edge_contribution_internal(extended_edges, evals);
+        return get_edge_contribution_internal(extended_edges);
     };
 
     // OPTIMIZATION?: Karatsuba in general, at least for some degrees?
     //       See https://hackmd.io/xGLuj6biSsCjzQnYN-pEiA?both
-    void add_edge_contribution_internal(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals)
+    Univariate<FF, RELATION_LENGTH> get_edge_contribution_internal(auto& extended_edges)
     {
         auto w_l = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_L]);
         auto w_r = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_R]);
@@ -67,14 +66,10 @@ template <typename FF> class ArithmeticRelation : public Relation<FF> {
         auto q_o = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_O]);
         auto q_c = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_C]);
 
-        evals += w_l * (q_m * w_r + q_l);
-        evals += q_r * w_r;
-        evals += q_o * w_o;
-        evals += q_c;
+        return w_l * (q_m * w_r + q_l) + q_r * w_r + q_o * w_o + q_c;
     };
 
-    template <typename T>
-    void add_full_relation_value_contribution(auto& purported_evaluations, FF& full_honk_relation_value, T)
+    template <typename T> FF get_full_relation_value_contribution(auto& purported_evaluations, T)
     {
         auto w_l = purported_evaluations[MULTIVARIATE::W_L];
         auto w_r = purported_evaluations[MULTIVARIATE::W_R];
@@ -85,10 +80,7 @@ template <typename FF> class ArithmeticRelation : public Relation<FF> {
         auto q_o = purported_evaluations[MULTIVARIATE::Q_O];
         auto q_c = purported_evaluations[MULTIVARIATE::Q_C];
 
-        full_honk_relation_value += w_l * (q_m * w_r + q_l);
-        full_honk_relation_value += q_r * w_r;
-        full_honk_relation_value += q_o * w_o;
-        full_honk_relation_value += q_c;
+        return w_l * (q_m * w_r + q_l) + q_r * w_r + q_o * w_o + q_c;
     };
 };
 } // namespace honk::sumcheck

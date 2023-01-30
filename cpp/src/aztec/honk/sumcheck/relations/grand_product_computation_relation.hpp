@@ -15,33 +15,29 @@ template <typename FF> class GrandProductComputationRelation : public Relation<F
     GrandProductComputationRelation() = default;
     explicit GrandProductComputationRelation(auto){}; // TODO(luke): should just be default?
     /**
-     * @brief Add contribution of the permutation relation for a given edge (used by sumcheck round)
+     * @brief Compute contribution of the permutation relation for a given edge (used by sumcheck round)
      */
-    void add_edge_contribution(auto& extended_edges,
-                               Univariate<FF, RELATION_LENGTH>& evals,
-                               const RelationParameters<FF>& relation_parameters)
+    Univariate<FF, RELATION_LENGTH> get_edge_contribution(auto& extended_edges,
+                                                          const RelationParameters<FF>& relation_parameters)
     {
-        add_edge_contribution_internal(extended_edges,
-                                       evals,
-                                       relation_parameters.beta,
-                                       relation_parameters.gamma,
-                                       relation_parameters.public_input_delta);
+        return get_edge_contribution_internal(extended_edges,
+                                              relation_parameters.beta,
+                                              relation_parameters.gamma,
+                                              relation_parameters.public_input_delta);
     };
 
     /**
-     * @brief Add contribution of the permutation relation for a given edge (used for testing, allows specifying
+     * @brief Compute contribution of the permutation relation for a given edge (used for testing, allows specifying
      * challenges)
      */
     // TODO(kesha): Change once challenges are being supplied to regular contribution
-    void add_edge_contribution_testing(auto& extended_edges,
-                                       Univariate<FF, RELATION_LENGTH>& evals,
-                                       std::array<FF, 3> challenges)
+    Univariate<FF, RELATION_LENGTH> get_edge_contribution_testing(auto& extended_edges, std::array<FF, 3> challenges)
     {
-        add_edge_contribution_internal(extended_edges, evals, challenges[0], challenges[1], challenges[2]);
+        return get_edge_contribution_internal(extended_edges, challenges[0], challenges[1], challenges[2]);
     };
 
     /**
-     * @brief Add contribution of the permutation relation for a given edge (internal function)
+     * @brief Compute contribution of the permutation relation for a given edge (internal function)
      *
      * @detail There are 2 relations associated with enforcing the wire copy relations
      * This file handles the relation that confirms faithful calculation of the grand
@@ -54,11 +50,10 @@ template <typename FF> class GrandProductComputationRelation : public Relation<F
      *      delta is the public input correction term
      *
      */
-    inline void add_edge_contribution_internal(auto& extended_edges,
-                                               Univariate<FF, RELATION_LENGTH>& evals,
-                                               const FF& beta,
-                                               const FF& gamma,
-                                               const FF& public_input_delta)
+    inline Univariate<FF, RELATION_LENGTH> get_edge_contribution_internal(auto& extended_edges,
+                                                                          FF beta,
+                                                                          FF gamma,
+                                                                          FF public_input_delta)
     {
         auto w_1 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_L]);
         auto w_2 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_R]);
@@ -75,15 +70,14 @@ template <typename FF> class GrandProductComputationRelation : public Relation<F
         auto lagrange_last = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::LAGRANGE_LAST]);
 
         // Contribution (1)
-        evals += ((z_perm + lagrange_first) * (w_1 + id_1 * beta + gamma) * (w_2 + id_2 * beta + gamma) *
-                  (w_3 + id_3 * beta + gamma)) -
-                 ((z_perm_shift + lagrange_last * public_input_delta) * (w_1 + sigma_1 * beta + gamma) *
-                  (w_2 + sigma_2 * beta + gamma) * (w_3 + sigma_3 * beta + gamma));
+        return ((z_perm + lagrange_first) * (w_1 + id_1 * beta + gamma) * (w_2 + id_2 * beta + gamma) *
+                (w_3 + id_3 * beta + gamma)) -
+               ((z_perm_shift + lagrange_last * public_input_delta) * (w_1 + sigma_1 * beta + gamma) *
+                (w_2 + sigma_2 * beta + gamma) * (w_3 + sigma_3 * beta + gamma));
     };
 
-    void add_full_relation_value_contribution(auto& purported_evaluations,
-                                              FF& full_honk_relation_value,
-                                              const RelationParameters<FF>& relation_parameters)
+    FF get_full_relation_value_contribution(auto& purported_evaluations,
+                                            const RelationParameters<FF>& relation_parameters)
     {
         auto w_1 = purported_evaluations[MULTIVARIATE::W_L];
         auto w_2 = purported_evaluations[MULTIVARIATE::W_R];
@@ -100,14 +94,13 @@ template <typename FF> class GrandProductComputationRelation : public Relation<F
         auto lagrange_last = purported_evaluations[MULTIVARIATE::LAGRANGE_LAST];
 
         // Contribution (1)
-        full_honk_relation_value += (z_perm + lagrange_first) *
-                                        (w_1 + relation_parameters.beta * id_1 + relation_parameters.gamma) *
-                                        (w_2 + relation_parameters.beta * id_2 + relation_parameters.gamma) *
-                                        (w_3 + relation_parameters.beta * id_3 + relation_parameters.gamma) -
-                                    (z_perm_shift + lagrange_last * relation_parameters.public_input_delta) *
-                                        (w_1 + relation_parameters.beta * sigma_1 + relation_parameters.gamma) *
-                                        (w_2 + relation_parameters.beta * sigma_2 + relation_parameters.gamma) *
-                                        (w_3 + relation_parameters.beta * sigma_3 + relation_parameters.gamma);
+        return (z_perm + lagrange_first) * (w_1 + relation_parameters.beta * id_1 + relation_parameters.gamma) *
+                   (w_2 + relation_parameters.beta * id_2 + relation_parameters.gamma) *
+                   (w_3 + relation_parameters.beta * id_3 + relation_parameters.gamma) -
+               (z_perm_shift + lagrange_last * relation_parameters.public_input_delta) *
+                   (w_1 + relation_parameters.beta * sigma_1 + relation_parameters.gamma) *
+                   (w_2 + relation_parameters.beta * sigma_2 + relation_parameters.gamma) *
+                   (w_3 + relation_parameters.beta * sigma_3 + relation_parameters.gamma);
     };
 };
 } // namespace honk::sumcheck

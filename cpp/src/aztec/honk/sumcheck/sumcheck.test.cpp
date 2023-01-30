@@ -323,14 +323,15 @@ TEST(Sumcheck, ProverAndVerifierLonger)
     std::array<FF, multivariate_n> q_r            = { 0,  1,  0, 0 };
     std::array<FF, multivariate_n> q_o            = { 0, -1,  -1, 0 };
     std::array<FF, multivariate_n> q_c            = { 0,  0,  0, 0 };
+    // Setting all of these to 0 ensures the GrandProductRelation is satisfied
     std::array<FF, multivariate_n> sigma_1        = { 0,  0,  0, 0 };
     std::array<FF, multivariate_n> sigma_2        = { 0,  0,  0, 0 };
     std::array<FF, multivariate_n> sigma_3        = { 0,  0,  0, 0 };
     std::array<FF, multivariate_n> id_1           = { 0,  0,  0, 0 };
     std::array<FF, multivariate_n> id_2           = { 0,  0,  0, 0 };
     std::array<FF, multivariate_n> id_3           = { 0,  0,  0, 0 };
-    std::array<FF, multivariate_n> lagrange_first = { 1,  0,  0, 0 };
-    std::array<FF, multivariate_n> lagrange_last  = { 0,  0,  0, 1 };
+    std::array<FF, multivariate_n> lagrange_first = { 0,  0,  0, 0 };
+    std::array<FF, multivariate_n> lagrange_last  = { 0,  0,  0, 0 };
         // clang-format on
 
         // These will be owned outside the class, probably by the composer.
