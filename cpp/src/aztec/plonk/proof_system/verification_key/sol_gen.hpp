@@ -2,28 +2,6 @@
 
 namespace waffle {
 
-inline void output_vk_sol(std::ostream& os, std::shared_ptr<verification_key> const& key, std::string const& class_name)
-{
-    waffle::ComposerType composer_type = static_cast<waffle::ComposerType>(key->composer_type);
-    switch (composer_type) {
-    case waffle::ComposerType::STANDARD: {
-        return output_vk_sol_standard(os, key, class_name);
-        break;
-    }
-    // case waffle::ComposerType::TURBO: {
-    //     return output_vk_sol_turbo(os, key, class_name);
-    //     break;
-    // }
-    case waffle::ComposerType::PLOOKUP: {
-        return output_vk_sol_ultra(os, key, class_name);
-        break;
-    }
-    default: {
-        std::cerr << "waffle::output_vk_sol unsupported composer type. Defaulting to standard composer" << std::endl;
-        return output_vk_sol_standard(os, key, class_name);
-    }
-    }
-}
 /**
  * Write a solidity file containing the vk params to the given stream.
  * Uses StandardPlonk
@@ -156,5 +134,35 @@ inline void output_vk_sol_ultra(std::ostream& os, std::shared_ptr<verification_k
         "}\n";
 
     os << std::flush;
+}
+
+/**
+ * @brief Wrapper method to output a solidity verification key. Composer type determined from key
+ * 
+ * @param os 
+ * @param key 
+ * @param class_name 
+ */
+inline void output_vk_sol(std::ostream& os, std::shared_ptr<verification_key> const& key, std::string const& class_name)
+{
+    waffle::ComposerType composer_type = static_cast<waffle::ComposerType>(key->composer_type);
+    switch (composer_type) {
+    case waffle::ComposerType::STANDARD: {
+        return output_vk_sol_standard(os, key, class_name);
+        break;
+    }
+    // case waffle::ComposerType::TURBO: {
+    //     return output_vk_sol_turbo(os, key, class_name);
+    //     break;
+    // }
+    case waffle::ComposerType::PLOOKUP: {
+        return output_vk_sol_ultra(os, key, class_name);
+        break;
+    }
+    default: {
+        std::cerr << "waffle::output_vk_sol unsupported composer type. Defaulting to standard composer" << std::endl;
+        return output_vk_sol_standard(os, key, class_name);
+    }
+    }
 }
 } // namespace waffle
