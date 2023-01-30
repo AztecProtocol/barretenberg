@@ -91,6 +91,7 @@ TEST(Sumcheck, PolynomialNormalization)
     const size_t num_polys(bonk::StandardArithmetization::NUM_POLYNOMIALS);
     const size_t multivariate_d(3);
     const size_t multivariate_n(1 << multivariate_d);
+    ;
     const size_t num_public_inputs(1);
 
     constexpr size_t fr_size = 32;
@@ -246,6 +247,7 @@ TEST(Sumcheck, ProverAndVerifier)
     const size_t multivariate_n(1 << multivariate_d);
     const size_t max_relation_length = 5 /* honk::StandardHonk::MAX_RELATION_LENGTH */;
     constexpr size_t fr_size = 32;
+    const size_t num_public_inputs(1);
 
     using Multivariates = ::Multivariates<FF, num_polys>;
 
