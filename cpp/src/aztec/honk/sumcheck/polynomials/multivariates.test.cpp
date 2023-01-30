@@ -42,7 +42,7 @@ TYPED_TEST(MultivariatesTests, Constructor)
  *   X1(msb) |          |
  *           |  X2(lsb) |
  *          v00 ------ v01
- * f0(X1, X2) = v00 * (1-X1)(1-X2) + v01 * (1-X1) * X2 + v10 * X1)(1-X2) + v11 * X1 * X2.
+ * f0(X1, X2) = v00 * (1-X1)(1-X2) + v01 * (1-X1) * X2 + v10 * X1 * (1-X2) + v11 * X1 * X2.
  *
  * To effectively represent folding we write,
  * f0(X1, X2) = [v00 * (1-X2) + v01 * X2] * (1-X1) + [v10 * (1-X2) + v11 * X2] * X1.
@@ -125,10 +125,9 @@ TYPED_TEST(MultivariatesTests, FoldTwoRoundsGeneric)
 /*
  * Similarly for a trivariate polynomial f0(X1, X2, X3), we have
  * f0(X1, X2, X3) = v000 * (1-X1) * (1-X2) * (1-X3) + v001 * (1-X1) * (1-X2) * X3 + v010 * (1-X1) * X2 * (1-X3) +
- * v011(1-X1)* X2 * X3 + v100 * X1 * (1-X2) * (1-X3) + v101 * X1 * (1-X2) * X3 + v110 * X1 * X2 * (1-X3) + v111 * X1 *
- * X2 * X3.
- * After the third round (round challenge u3), we have
- *  f0(X1, X2, u3) = [v000 * (1-u3) + v001 * u3] * (1-X1) * (1-X2) + [v010 * (1-u3) + v011 * u3] * (1-X1) * X2
+ * v011 * (1-X1)* X2 * X3 + v100 * X1 * (1-X2) * (1-X3) + v101 * X1 * (1-X2) * X3 + v110 * X1 * X2 * (1-X3) + v111 * X1
+ * * X2 * X3. After the third round (round challenge u3), we have f0(X1, X2, u3) = [v000 * (1-u3) + v001 * u3] * (1-X1)
+ * * (1-X2) + [v010 * (1-u3) + v011 * u3] * (1-X1) * X2
  *                  + [v100 * (1-u3) + v101 * u3] * X1 * (1-X2) + [v110 * (1-u3) + v111 * u3] * X1 * X2.
  * After the second round (round challenge u2), we have
  * f0(X1, u2, u3) = [(v000 * (1-u3) + v001 * u3) * (1-u2) + (v010 * (1-u3) + v011 * u3) * u2] * (1-X1)

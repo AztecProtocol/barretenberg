@@ -39,26 +39,44 @@ TEST(Sumcheck, PolynomialNormalization)
 
     using Multivariates = ::Multivariates<FF, num_polys>;
 
-    // clang-format off
-    std::array<FF, multivariate_n> w_l =            { 0, 1, 2, 3, 4, 5, 6, 7 };
-    std::array<FF, multivariate_n> w_r =            { 0, 0, 0, 0, 0, 0, 0, 0 };
-    std::array<FF, multivariate_n> w_o =            { 0, 0, 0, 0, 0, 0, 0, 0 };
-    std::array<FF, multivariate_n> z_perm =         { 0, 0, 0, 0, 0, 0, 0, 0 };
-    std::array<FF, multivariate_n> z_perm_shift =   { 0, 0, 0, 0, 0, 0, 0, 0 };
-    std::array<FF, multivariate_n> q_m =            { 0, 0, 0, 0, 0, 0, 0, 0 };
-    std::array<FF, multivariate_n> q_l =            { 0, 0, 0, 0, 0, 0, 0, 0 };
-    std::array<FF, multivariate_n> q_r =            { 0, 0, 0, 0, 0, 0, 0, 0 };
-    std::array<FF, multivariate_n> q_o =            { 0, 0, 0, 0, 0, 0, 0, 0 };
-    std::array<FF, multivariate_n> q_c =            { 0, 0, 0, 0, 0, 0, 0, 0 };
-    std::array<FF, multivariate_n> sigma_1 =        { 0, 0, 0, 0, 0, 0, 0, 0 };
-    std::array<FF, multivariate_n> sigma_2 =        { 0, 0, 0, 0, 0, 0, 0, 0 };
-    std::array<FF, multivariate_n> sigma_3 =        { 0, 0, 0, 0, 0, 0, 0, 0 };
-    std::array<FF, multivariate_n> id_1 =           { 0, 0, 0, 0, 0, 0, 0, 0 };
-    std::array<FF, multivariate_n> id_2 =           { 0, 0, 0, 0, 0, 0, 0, 0 };
-    std::array<FF, multivariate_n> id_3 =           { 0, 0, 0, 0, 0, 0, 0, 0 };
-    std::array<FF, multivariate_n> lagrange_first = { 0, 0, 0, 0, 0, 0, 0, 0 };
-    std::array<FF, multivariate_n> lagrange_last =  { 0, 0, 0, 0, 0, 0, 0, 0 };
-    // clang-format on
+    std::array<FF, multivariate_n> w_l;
+    std::array<FF, multivariate_n> w_r;
+    std::array<FF, multivariate_n> w_o;
+    std::array<FF, multivariate_n> z_perm;
+    std::array<FF, multivariate_n> z_perm_shift;
+    std::array<FF, multivariate_n> q_m;
+    std::array<FF, multivariate_n> q_l;
+    std::array<FF, multivariate_n> q_r;
+    std::array<FF, multivariate_n> q_o;
+    std::array<FF, multivariate_n> q_c;
+    std::array<FF, multivariate_n> sigma_1;
+    std::array<FF, multivariate_n> sigma_2;
+    std::array<FF, multivariate_n> sigma_3;
+    std::array<FF, multivariate_n> id_1;
+    std::array<FF, multivariate_n> id_2;
+    std::array<FF, multivariate_n> id_3;
+    std::array<FF, multivariate_n> lagrange_first;
+    std::array<FF, multivariate_n> lagrange_last;
+    for (size_t i = 0; i < multivariate_n; i++) {
+        w_l[i] = FF::random_element();
+        w_r[i] = FF::random_element();
+        w_o[i] = FF::random_element();
+        z_perm[i] = FF::random_element();
+        z_perm_shift[i] = FF::random_element();
+        q_m[i] = FF::random_element();
+        q_l[i] = FF::random_element();
+        q_r[i] = FF::random_element();
+        q_o[i] = FF::random_element();
+        q_c[i] = FF::random_element();
+        sigma_1[i] = FF::random_element();
+        sigma_2[i] = FF::random_element();
+        sigma_3[i] = FF::random_element();
+        id_1[i] = FF::random_element();
+        id_2[i] = FF::random_element();
+        id_3[i] = FF::random_element();
+        lagrange_first[i] = FF::random_element();
+        lagrange_last[i] = FF::random_element();
+    }
 
     // These will be owned outside the class, probably by the composer.
     std::array<std::span<FF>, Multivariates::num> full_polynomials = {
@@ -117,11 +135,15 @@ TEST(Sumcheck, PolynomialNormalization)
     FF l_6 = (        u_1) * (        u_2) * (FF(1) - u_3);
     FF l_7 = (        u_1) * (        u_2) * (        u_3);
     // clang-format on
-
-    FF hand_computed_value = l_0 * w_l[0] + l_1 * w_l[1] + l_2 * w_l[2] + l_3 * w_l[3] + l_4 * w_l[4] + l_5 * w_l[5] +
-                             l_6 * w_l[6] + l_7 * w_l[7];
-
-    EXPECT_EQ(hand_computed_value, sumcheck.multivariates.folded_polynomials[0][0]);
+    std::array<FF, Multivariates::num> hand_computed_values;
+    for (size_t i = 0; i < Multivariates::num; i++) {
+        // full_polynomials[0][0] = w_l[0], full_polynomials[1][1] = w_r[1], and so on.
+        hand_computed_values[i] = l_0 * full_polynomials[i][0] + l_1 * full_polynomials[i][1] +
+                                  l_2 * full_polynomials[i][2] + l_3 * full_polynomials[i][3] +
+                                  l_4 * full_polynomials[i][4] + l_5 * full_polynomials[i][5] +
+                                  l_6 * full_polynomials[i][6] + l_7 * full_polynomials[i][7];
+        EXPECT_EQ(hand_computed_values[i], sumcheck.multivariates.folded_polynomials[i][0]);
+    }
 }
 
 TEST(Sumcheck, Prover)
