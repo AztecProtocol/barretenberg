@@ -78,7 +78,7 @@ template <typename settings> void Prover<settings>::compute_wire_commitments()
  * Z_perm[i] = ∏ --------------------------------------------------------------------------------
  *                  (w_1(j) + β⋅σ_1(j) + γ) ⋅ (w_2(j) + β⋅σ_2(j) + γ) ⋅ (w_3(j) + β⋅σ_3(j) + γ)
  *
- * where ∏ := ∏_{j=0:i-1} and id_i(X) = id(X) + n*(i-1). These evaluations are constructed over t;he
+ * where ∏ := ∏_{j=0:i-1} and id_i(X) = id(X) + n*(i-1). These evaluations are constructed over the
  * course of four steps. For expositional simplicity, write Z_perm[i] as
  *
  *                A_1(j) ⋅ A_2(j) ⋅ A_3(j)
@@ -305,11 +305,9 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
     // TODO(Cody): This is just temporary of course. Very inefficient, e.g., no commitment needed.
     Fr zeta_challenge = transcript.get_challenge_field_element("zeta");
     barretenberg::polynomial pow_zeta = power_polynomial::generate_vector(zeta_challenge, key->n);
-    key->polynomial_cache.put("pow_zeta", std::move(pow_zeta));
-    std::span<Fr> pow_zeta_fetched = key->polynomial_cache.get("pow_zeta");
-    // The actual polynomial is of length n+1, but commitment key is just n, so we need to limit it
-    auto commitment = commitment_key->commit(pow_zeta_fetched);
+    auto commitment = commitment_key->commit(pow_zeta);
     transcript.add_element("POW_ZETA", commitment.to_buffer());
+    key->polynomial_cache.put("pow_zeta", std::move(pow_zeta));
 
     transcript.apply_fiat_shamir("alpha");
 

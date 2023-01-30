@@ -98,7 +98,7 @@ struct StandardHonk {
         manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
             { { .name = "POW_ZETA", .num_bytes = g1_size, .derived_by_verifier = false } },
             /* challenge_name = */ "alpha",
-            /* num_challenges_in = */ 1) // also produces "zeta"
+            /* num_challenges_in = */ 1) // Will bump to 2 when zeta if computed in same round at alpha
         ); 
 
         // Rounds 4 + 1, ... 4 + num_sumcheck_rounds
