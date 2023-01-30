@@ -121,6 +121,8 @@ TYPED_TEST(SumcheckRelation, GrandProductComputationRelation)
     auto z_perm_shift = UnivariateView(extended_edges[MULTIVARIATE::Z_PERM_SHIFT]);
     auto lagrange_first = UnivariateView(extended_edges[MULTIVARIATE::LAGRANGE_FIRST]);
     auto lagrange_last = UnivariateView(extended_edges[MULTIVARIATE::LAGRANGE_LAST]);
+    auto pow_zeta = UnivariateView(extended_edges[MULTIVARIATE::POW_ZETA]);
+
     // TODO(luke): use real transcript/challenges once manifest is done
     FF beta = FF::random_element();
     FF gamma = FF::random_element();
@@ -131,11 +133,11 @@ TYPED_TEST(SumcheckRelation, GrandProductComputationRelation)
 
     auto expected_evals = Univariate();
     // expected_evals in the below step { { 27, 250, 1029, 2916, 6655 } }
-    expected_evals += (z_perm + lagrange_first) * (w_1 + id_1 * beta + gamma) * (w_2 + id_2 * beta + gamma) *
-                      (w_3 + id_3 * beta + gamma);
+    expected_evals += pow_zeta * ((z_perm + lagrange_first) * (w_1 + id_1 * beta + gamma) *
+                                  (w_2 + id_2 * beta + gamma) * (w_3 + id_3 * beta + gamma));
     // expected_evals below is { { 27, 125, 343, 729, 1331 } }
-    expected_evals -= (z_perm_shift + lagrange_last * public_input_delta) * (w_1 + sigma_1 * beta + gamma) *
-                      (w_2 + sigma_2 * beta + gamma) * (w_3 + sigma_3 * beta + gamma);
+    expected_evals -= pow_zeta * ((z_perm_shift + lagrange_last * public_input_delta) * (w_1 + sigma_1 * beta + gamma) *
+                                  (w_2 + sigma_2 * beta + gamma) * (w_3 + sigma_3 * beta + gamma));
 
     auto evals = Univariate();
     relation.add_edge_contribution(extended_edges, evals, relation_parameters);

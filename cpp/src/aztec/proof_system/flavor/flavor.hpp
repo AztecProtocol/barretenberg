@@ -41,8 +41,10 @@ struct StandardHonk {
     using MULTIVARIATE = Arithmetization::POLYNOMIAL;
     // // TODO(Cody): Where to specify? is this polynomial manifest size?
     // static constexpr size_t STANDARD_HONK_MANIFEST_SIZE = 16;
-    static constexpr size_t MAX_RELATION_LENGTH = 5; // TODO(Cody): increment after fixing add_edge_contribution; kill
-                                                     // after moving barycentric class out of relations
+    // TODO(Cody): Maybe relation should be supplied and this should be computed as is done in sumcheck?
+    // Then honk::StandardHonk (or whatever we rename it) would become an alias for a Honk flavor with a
+    // certain set of parameters, including the relations?
+    static constexpr size_t MAX_RELATION_LENGTH = 6;
 
     // TODO(Cody): should extract this from the parameter pack. Maybe that should be done here?
 

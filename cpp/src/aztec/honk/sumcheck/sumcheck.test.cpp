@@ -245,7 +245,7 @@ TEST(Sumcheck, ProverAndVerifier)
     const size_t num_polys(bonk::StandardArithmetization::NUM_POLYNOMIALS);
     const size_t multivariate_d(1);
     const size_t multivariate_n(1 << multivariate_d);
-    const size_t max_relation_length = 5 /* honk::StandardHonk::MAX_RELATION_LENGTH */;
+    const size_t max_relation_length = 6;
     constexpr size_t fr_size = 32;
     const size_t num_public_inputs(1);
 
@@ -269,7 +269,7 @@ TEST(Sumcheck, ProverAndVerifier)
     std::array<FF, 2> id_3 = { 0, 0 };    // NOTE: Not set up to be valid.
     std::array<FF, 2> lagrange_first = { 0, 0 };
     std::array<FF, 2> lagrange_last = { 0, 0 }; // NOTE: Not set up to be valid.
-    std::array<FF, 2> pow_zeta = { 1, 1 };      // NOTE: Not set up to be valid.
+    std::array<FF, 2> pow_zeta = { 1, 1 };
 
     // These will be owned outside the class, probably by the composer.
     std::array<std::span<FF>, Multivariates::num> full_polynomials = {
@@ -333,8 +333,8 @@ TEST(Sumcheck, ProverAndVerifierLonger)
     std::array<FF, multivariate_n> id_1           = { 0,  0,  0, 0 };
     std::array<FF, multivariate_n> id_2           = { 0,  0,  0, 0 };
     std::array<FF, multivariate_n> id_3           = { 0,  0,  0, 0 };
-    std::array<FF, multivariate_n> lagrange_first = { 1,  0,  0, 0 };
-    std::array<FF, multivariate_n> lagrange_last  = { 0,  0,  0, 1 };
+    std::array<FF, multivariate_n> lagrange_first = { 0,  0,  0, 0 };
+    std::array<FF, multivariate_n> lagrange_last  = { 0,  0,  0, 0 };
     std::array<FF, multivariate_n> pow_zeta       = { 2,  4,  8, 16 }; // TODO(Cody): fails with non-1 entry
         // clang-format on
 

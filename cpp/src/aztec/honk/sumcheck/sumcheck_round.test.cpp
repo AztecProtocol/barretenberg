@@ -22,7 +22,7 @@ TEST(SumcheckRound, ComputeUnivariateProver)
 {
     const size_t num_polys(bonk::StandardArithmetization::NUM_POLYNOMIALS);
     // const size_t multivariate_d(1);
-    const size_t max_relation_length = 5;
+    const size_t max_relation_length = 6;
 
     using FF = barretenberg::fr;
     using Multivariates = ::Multivariates<FF, num_polys>;
@@ -67,8 +67,7 @@ TEST(SumcheckRound, ComputeUnivariateProver)
         RelationParameters<FF>{ .alpha = 1, .beta = 1, .gamma = 1, .public_input_delta = 1 };
     Univariate<FF, max_relation_length> round_univariate =
         round.compute_univariate(full_polynomials, relation_parameters);
-    Univariate<FF, max_relation_length> expected_round_univariate{ { 32, 149, 406, 857, 1556 } };
-
+    Univariate<FF, max_relation_length> expected_round_univariate{ { 32, 149, 406, 857, 1556, 2557 } };
     EXPECT_EQ(round_univariate, expected_round_univariate);
 }
 
