@@ -21,6 +21,11 @@ template <typename FF> class GrandProductInitializationRelation : public Relatio
      * This file handles the relation Z_perm_shift(n_last) = 0 via the relation:
      *
      *                      C(X) = L_LAST(X) * Z_perm_shift(X)
+     *
+     *
+     * The final parameter is left to conform to the general argument structure (input,output, challenges) even though
+     * we don't need challenges in this relation.
+     *
      */
     template <typename T> void add_edge_contribution(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals, T)
     {
