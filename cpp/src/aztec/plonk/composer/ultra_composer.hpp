@@ -168,14 +168,6 @@ class UltraComposer : public ComposerBase {
     void create_mul_gate(const mul_triple& in) override;
     void create_bool_gate(const uint32_t a) override;
     void create_poly_gate(const poly_triple& in) override;
-    void create_fixed_group_add_gate(const fixed_group_add_quad& in);
-    void create_fixed_group_add_gate_with_init(const fixed_group_add_quad& in, const fixed_group_init_quad& init);
-    void create_fixed_group_add_gate_final(const add_quad& in);
-
-    fixed_group_add_quad previous_add_quad;
-    fixed_group_add_quad get_previous_add_quad() const { return previous_add_quad; }
-    void set_previous_add_quad(const fixed_group_add_quad& in) { previous_add_quad = in; }
-
     void create_ecc_add_gate(const ecc_add_gate& in);
 
     void fix_witness(const uint32_t witness_index, const barretenberg::fr& witness_value);

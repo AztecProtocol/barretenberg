@@ -1,5 +1,6 @@
 #include "pedersen.hpp"
 #include "pedersen_plookup.hpp"
+#include "pedersen_gates.hpp"
 #include <crypto/pedersen/pedersen.hpp>
 #include <ecc/curves/grumpkin/grumpkin.hpp>
 
@@ -194,6 +195,7 @@ point<C> pedersen<C>::hash_single(const field_t& in,
      *
      * where x_{α,i} is decided based on the corresponding quad value.
      */
+    pedersen_gates<C> gates(ctx);
     fr x_alpha = accumulator_offset;
     std::vector<uint32_t> accumulator_witnesses;
     for (size_t i = 0; i < num_quads; ++i) {
@@ -220,7 +222,7 @@ point<C> pedersen<C>::hash_single(const field_t& in,
         round_quad.q_y_2 = ladder[i + 1].q_y_2;
 
         if (i > 0) {
-            ctx->create_fixed_group_add_gate(round_quad);
+            gates.create_fixed_group_add_gate(round_quad);
         } else {
             if constexpr (C::type == waffle::PLOOKUP &&
                           C::merkle_hash_type == waffle::MerkleHashType::FIXED_BASE_PEDERSEN) {
@@ -254,7 +256,7 @@ point<C> pedersen<C>::hash_single(const field_t& in,
                                               .const_scaling = init_quad.q_x_2 };
                 ctx->create_big_mul_gate(x_init_quad);
             }
-            ctx->create_fixed_group_add_gate_with_init(round_quad, init_quad);
+            gates.create_fixed_group_add_gate_with_init(round_quad, init_quad);
         };
 
         accumulator_witnesses.push_back(round_quad.d);
@@ -271,7 +273,7 @@ point<C> pedersen<C>::hash_single(const field_t& in,
                                fr::zero(),
                                fr::zero(),
                                fr::zero() };
-    ctx->create_fixed_group_add_gate_final(add_quad);
+    gates.create_fixed_group_add_gate_final(add_quad);
     accumulator_witnesses.push_back(add_quad.d);
 
     point result;
@@ -515,11 +517,6 @@ field_t<C> pedersen<C>::compress_unsafe(const field_t& in_left,
                                         const size_t hash_index,
                                         const bool validate_input_is_in_field)
 {
-    if constexpr (C::type == waffle::ComposerType::PLOOKUP &&
-                  C::merkle_hash_type == waffle::MerkleHashType::LOOKUP_PEDERSEN) {
-        return pedersen_plookup<C>::compress({ in_left, in_right });
-    }
-
     std::vector<point> accumulators;
     generator_index_t index_1 = { hash_index, 0 };
     generator_index_t index_2 = { hash_index, 1 };
@@ -530,11 +527,6 @@ field_t<C> pedersen<C>::compress_unsafe(const field_t& in_left,
 
 template <typename C> point<C> pedersen<C>::commit(const std::vector<field_t>& inputs, const size_t hash_index)
 {
-    if constexpr (C::type == waffle::ComposerType::PLOOKUP &&
-                  C::merkle_hash_type == waffle::MerkleHashType::LOOKUP_PEDERSEN) {
-        return pedersen_plookup<C>::commit(inputs, hash_index);
-    }
-
     std::vector<point> to_accumulate;
     for (size_t i = 0; i < inputs.size(); ++i) {
         generator_index_t index = { hash_index, i };
@@ -545,11 +537,6 @@ template <typename C> point<C> pedersen<C>::commit(const std::vector<field_t>& i
 
 template <typename C> field_t<C> pedersen<C>::compress(const std::vector<field_t>& inputs, const size_t hash_index)
 {
-    if constexpr (C::type == waffle::ComposerType::PLOOKUP &&
-                  C::merkle_hash_type == waffle::MerkleHashType::LOOKUP_PEDERSEN) {
-        return pedersen_plookup<C>::compress(inputs, hash_index);
-    }
-
     return commit(inputs, hash_index).x;
 }
 

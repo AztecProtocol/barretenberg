@@ -360,69 +360,6 @@ void UltraComposer::create_poly_gate(const poly_triple& in)
     ++n;
 }
 
-// adds a grumpkin point, from a 2-bit lookup table, into an accumulator point
-void UltraComposer::create_fixed_group_add_gate(const fixed_group_add_quad& in)
-{
-    ASSERT(true == false); // no! bad!
-    ULTRA_SELECTOR_REFS
-    assert_valid_variables({ in.a, in.b, in.c, in.d });
-
-    w_l.emplace_back(in.a);
-    w_r.emplace_back(in.b);
-    w_o.emplace_back(in.c);
-    w_4.emplace_back(in.d);
-
-    q_1.emplace_back(in.q_x_1);
-    q_2.emplace_back(in.q_x_2);
-    q_3.emplace_back(in.q_y_1);
-
-    q_arith.emplace_back(0);
-    q_4.emplace_back(0);
-    q_m.emplace_back(0);
-    q_c.emplace_back(0);
-    q_lookup_type.emplace_back(0);
-    q_sort.emplace_back(0);
-    q_elliptic.emplace_back(0);
-    q_aux.emplace_back(0);
-    ++n;
-}
-
-// adds a grumpkin point into an accumulator, while also initializing the accumulator
-void UltraComposer::create_fixed_group_add_gate_with_init(const fixed_group_add_quad& in,
-                                                          const fixed_group_init_quad& init)
-{
-    ASSERT(true == false); // no! bad!
-
-    ULTRA_SELECTOR_REFS
-    assert_valid_variables({ in.a, in.b, in.c, in.d });
-
-    w_l.emplace_back(in.a);
-    w_r.emplace_back(in.b);
-    w_o.emplace_back(in.c);
-    w_4.emplace_back(in.d);
-
-    // Initialization differs slightly with that in TurboComposer.
-    q_m.emplace_back(init.q_y_1);
-    q_c.emplace_back(init.q_y_2);
-
-    q_1.emplace_back(in.q_x_1);
-    q_2.emplace_back(in.q_x_2);
-    q_3.emplace_back(in.q_y_1);
-
-    q_4.emplace_back(0);
-    q_aux.emplace_back(0);
-    q_arith.emplace_back(0);
-    q_lookup_type.emplace_back(0);
-    q_sort.emplace_back(0);
-    q_elliptic.emplace_back(0);
-
-    ++n;
-}
-
-void UltraComposer::create_fixed_group_add_gate_final(const add_quad& in)
-{
-    create_big_add_gate(in);
-}
 /**
  * @brief Create an elliptic curve addition gate
  *
