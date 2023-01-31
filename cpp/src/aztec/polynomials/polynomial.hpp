@@ -47,7 +47,6 @@ template <typename Fr> class Polynomial {
 
         mapped_ = false;
         coefficients_ = 0;
-        initial_size_ = 0;
         size_ = 0;
         page_size_ = DEFAULT_SIZE_HINT;
         max_size_ = 0;
@@ -249,12 +248,11 @@ template <typename Fr> class Polynomial {
     const static size_t DEFAULT_SIZE_HINT = 1 << 12; // DOCTODO: justify this number.
     const static size_t DEFAULT_PAGE_SPILL = 20;     // DOCTODO: explain this, or rename.
     void add_coefficient_internal(const Fr& coefficient);
-    void bump_memory(const size_t new_size);
+    void bump_memory();
 
   public:
     bool mapped_;
     Fr* coefficients_;
-    size_t initial_size_;
     size_t size_;      // This is the size() of the `coefficients` vector.
     size_t page_size_; // DOCTODO: what does 'page' mean? Explain this.
     size_t max_size_;
