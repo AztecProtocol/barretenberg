@@ -243,7 +243,7 @@ class UltraComposer : public ComposerBase {
             rangecount += 1; // we need to add 1 extra addition gates for every distinct range list
 
             // rough estimate
-            const size_t constant_cost = (list.second.target_range / 6);
+            const size_t constant_cost = static_cast<size_t>(list.second.target_range / 6);
             const_rangecount += constant_cost;
         }
         // if circuit_finalised, already added extra gates
