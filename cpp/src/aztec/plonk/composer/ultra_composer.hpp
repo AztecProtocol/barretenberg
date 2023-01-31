@@ -151,6 +151,15 @@ class UltraComposer : public ComposerBase {
     void create_range_constraint(const uint32_t variable_index, const size_t num_bits, std::string const&)
     {
         if (num_bits <= DEFAULT_PLOOKUP_RANGE_BITNUM) {
+            /**
+             * N.B. if `variable_index` is not used in any arithmetic constraints, this will create an unsatisfiable
+             *      circuit!
+             *      this range constraint will increase the size of the 'sorted set' of range-constrained integers by 1.
+             *      The 'non-sorted set' of range-constrained integers is a subset of the wire indices of all arithmetic
+             *      gates. No arithemtic gate => size imbalance between sorted and non-sorted sets. Checking for this
+             *      and throwing an error would require a refactor of the Composer to catelog all 'orphan' variables not
+             *      assigned to gates.
+             **/
             create_new_range_constraint(variable_index, 1ULL << num_bits);
         } else {
             decompose_into_default_range(variable_index, num_bits);
