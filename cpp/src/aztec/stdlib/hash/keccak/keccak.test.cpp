@@ -181,8 +181,7 @@ TEST(stdlib_keccak, test_single_block)
 
     EXPECT_EQ(output.get_value(), expected);
 
-    printf("composer gates = %zu\n", composer.get_num_gates());
-    printf("composer gates sans range constants = %zu\n", composer.get_num_gates_without_range_table_constants());
+    composer.print_num_gates();
 
     auto prover = composer.create_prover();
     std::cout << "prover n = " << prover.n << std::endl;
@@ -210,9 +209,9 @@ TEST(stdlib_keccak, test_double_block)
 
     EXPECT_EQ(output.get_value(), expected);
 
+    composer.print_num_gates();
+
     auto prover = composer.create_prover();
-    std::cout << "prover gates = " << prover.n << std::endl;
-    printf("composer gates = %zu\n", composer.get_num_gates());
     auto verifier = composer.create_verifier();
 
     auto proof = prover.construct_proof();

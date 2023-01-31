@@ -218,18 +218,17 @@ class UltraComposer : public ComposerBase {
         return count + romcount + rangecount;
     }
 
-    /**
-     * @brief Get the num gates without the constant cost of creating range tables.
-     * Useful to measure gate cost of sub-algorithms that will be used in a larger circuit,
-     * where the cost of the range tables is already baked into the larger circuit
-     *
-     * @return size_t
-     */
-    size_t get_num_gates_without_range_table_constants() const
+    virtual void print_num_gates() const override
     {
         size_t count = n;
         size_t rangecount = 0;
+        size_t constant_rangecount = 0;
         size_t romcount = 0;
+        size_t plookupcount = 0;
+        for (auto& table : lookup_tables) {
+            plookupcount += table.lookup_gates.size();
+            count -= table.lookup_gates.size();
+        }
         for (size_t i = 0; i < rom_arrays.size(); ++i) {
             for (size_t j = 0; j < rom_arrays[i].state.size(); ++j) {
                 if (rom_arrays[i].state[j][0] == UNINITIALIZED_MEMORY_RECORD) {
@@ -241,7 +240,6 @@ class UltraComposer : public ComposerBase {
         }
 
         constexpr size_t gate_width = ultra_settings::program_width;
-        size_t const_rangecount = 0;
         for (const auto& list : range_lists) {
             auto list_size = list.second.variable_indices.size();
             size_t padding = (gate_width - (list.second.variable_indices.size() % gate_width)) % gate_width;
@@ -253,42 +251,12 @@ class UltraComposer : public ComposerBase {
 
             // rough estimate
             const size_t constant_cost = static_cast<size_t>(list.second.target_range / 6);
-            const_rangecount += constant_cost;
+            constant_rangecount += constant_cost;
+            rangecount -= constant_cost;
         }
-        // if circuit_finalised, already added extra gates
-        if (circuit_finalised) {
-            return n - const_rangecount;
-        }
-        return count + romcount + rangecount - const_rangecount;
-    }
-
-    virtual void print_num_gates() const override
-    {
-        size_t count = n;
-        size_t rangecount = 0;
-        size_t romcount = 0;
-        for (size_t i = 0; i < rom_arrays.size(); ++i) {
-            for (size_t j = 0; j < rom_arrays[i].state.size(); ++j) {
-                if (rom_arrays[i].state[j][0] == UNINITIALIZED_MEMORY_RECORD) {
-                    romcount += 2;
-                }
-            }
-            romcount += (rom_arrays[i].records.size());
-            romcount += 1; // we add an addition gate after procesing a rom array
-        }
-
-        constexpr size_t gate_width = ultra_settings::program_width;
-        for (const auto& list : range_lists) {
-            auto list_size = list.second.variable_indices.size();
-            size_t padding = (gate_width - (list.second.variable_indices.size() % gate_width)) % gate_width;
-            if (list.second.variable_indices.size() == gate_width)
-                padding += gate_width;
-            list_size += padding;
-            rangecount += (list_size / gate_width);
-            rangecount += 1; // we need to add 1 extra addition gates for every distinct range list
-        }
-        size_t total = count + romcount + rangecount;
-        std::cout << "gates = " << total << " (arith " << count << ", rom " << romcount << ", range " << rangecount
+        size_t total = count + romcount + rangecount + constant_rangecount + plookupcount;
+        std::cout << "gates = " << total << " (arith " << count << ", plookup " << plookupcount << ", rom " << romcount
+                  << ", range " << rangecount << ", range table init cost = " << constant_rangecount
                   << "), pubinp = " << public_inputs.size() << std::endl;
     }
 
