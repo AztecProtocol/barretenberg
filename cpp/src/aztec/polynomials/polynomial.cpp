@@ -9,16 +9,6 @@
 #include <sys/mman.h>
 #endif
 
-namespace {
-size_t clamp(size_t target, size_t step)
-{
-    size_t res = (target / step) * step;
-    if (res < target)
-        res += step;
-    return res;
-}
-} // namespace
-
 namespace barretenberg {
 
 /**
@@ -27,8 +17,6 @@ namespace barretenberg {
 template <typename Fr>
 Polynomial<Fr>::Polynomial(std::string const& filename)
     : mapped_(true)
-    , page_size_(DEFAULT_SIZE_HINT)
-    , allocated_pages_(0)
 {
     struct stat st;
     if (stat(filename.c_str(), &st) != 0) {
@@ -52,11 +40,8 @@ Polynomial<Fr>::Polynomial(const size_t size_, const size_t initial_max_size_hin
     : mapped_(false)
     , coefficients_(nullptr)
     , size_(size_)
-    , page_size_(DEFAULT_SIZE_HINT)
     , max_size_(0)
-    , allocated_pages_(0)
 {
-    ASSERT(page_size_ != 0);
     size_t target_max_size = std::max(size_, initial_max_size_hint + DEFAULT_PAGE_SPILL);
     if (target_max_size > 0) {
 
@@ -70,11 +55,8 @@ template <typename Fr>
 Polynomial<Fr>::Polynomial(const Polynomial<Fr>& other, const size_t target_max_size)
     : mapped_(false)
     , size_(other.size_)
-    , page_size_(other.page_size_)
-    , max_size_(std::max(clamp(target_max_size, page_size_ + DEFAULT_PAGE_SPILL), other.max_size_))
-    , allocated_pages_(max_size_ / page_size_)
+    , max_size_(std::max(target_max_size, other.max_size_))
 {
-    ASSERT(page_size_ != 0);
     ASSERT(max_size_ >= size_);
 
     coefficients_ = (Fr*)(aligned_alloc(32, sizeof(Fr) * max_size_));
@@ -89,11 +71,8 @@ Polynomial<Fr>::Polynomial(Polynomial<Fr>&& other) noexcept
     : mapped_(other.mapped_)
     , coefficients_(other.coefficients_)
     , size_(other.size_)
-    , page_size_(other.page_size_)
     , max_size_(other.max_size_)
-    , allocated_pages_(other.allocated_pages_)
 {
-    ASSERT(page_size_ != 0);
     other.coefficients_ = 0;
 
     // Clear other, so we can detect use on free after poly's are put in cache
@@ -105,9 +84,7 @@ Polynomial<Fr>::Polynomial(Fr* buf, const size_t size_)
     : mapped_(false)
     , coefficients_(buf)
     , size_(size_)
-    , page_size_(DEFAULT_SIZE_HINT)
     , max_size_(size_)
-    , allocated_pages_(0)
 {}
 
 template <typename Fr>
@@ -115,19 +92,12 @@ Polynomial<Fr>::Polynomial()
     : mapped_(false)
     , coefficients_(0)
     , size_(0)
-    , page_size_(DEFAULT_SIZE_HINT)
     , max_size_(0)
-    , allocated_pages_(0)
 {}
 
 template <typename Fr> Polynomial<Fr>& Polynomial<Fr>::operator=(const Polynomial<Fr>& other)
 {
-    ASSERT(page_size_ != 0);
     mapped_ = false;
-
-    // Set page size first so that if we do copy from other we allocate according to
-    // other's page size not ours.
-    page_size_ = other.page_size_;
 
     if (other.max_size_ > max_size_) {
         // Bump memory and set max_size, before we set size otherwise we will copy an
@@ -135,7 +105,6 @@ template <typename Fr> Polynomial<Fr>& Polynomial<Fr>::operator=(const Polynomia
         bump_memory();
     } else {
         max_size_ = other.max_size_;
-        allocated_pages_ = other.allocated_pages_;
     }
 
     size_ = other.size_;
@@ -161,11 +130,8 @@ template <typename Fr> Polynomial<Fr>& Polynomial<Fr>::operator=(Polynomial&& ot
 
     mapped_ = other.mapped_;
     coefficients_ = other.coefficients_;
-    page_size_ = other.page_size_;
     max_size_ = other.max_size_;
-    allocated_pages_ = other.allocated_pages_;
     size_ = other.size_;
-    ASSERT(page_size_ != 0);
 
     other.coefficients_ = nullptr;
     // Clear other, so we can detect use on free after poly's are put in cache

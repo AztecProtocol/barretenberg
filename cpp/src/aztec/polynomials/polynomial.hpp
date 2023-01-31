@@ -48,9 +48,7 @@ template <typename Fr> class Polynomial {
         mapped_ = false;
         coefficients_ = 0;
         size_ = 0;
-        page_size_ = DEFAULT_SIZE_HINT;
         max_size_ = 0;
-        allocated_pages_ = 0;
     }
 
     bool operator==(Polynomial const& rhs) const
@@ -253,10 +251,8 @@ template <typename Fr> class Polynomial {
   public:
     bool mapped_;
     Fr* coefficients_;
-    size_t size_;      // This is the size() of the `coefficients` vector.
-    size_t page_size_; // DOCTODO: what does 'page' mean? Explain this.
+    size_t size_; // This is the size() of the `coefficients` vector.
     size_t max_size_;
-    size_t allocated_pages_;
 };
 
 template <typename Fr> inline std::ostream& operator<<(std::ostream& os, Polynomial<Fr> const& p)
