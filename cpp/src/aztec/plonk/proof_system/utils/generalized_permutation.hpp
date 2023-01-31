@@ -10,7 +10,7 @@ inline void compute_gen_permutation_lagrange_base_single(barretenberg::polynomia
                                                          const barretenberg::evaluation_domain& small_domain)
 {
     if (output.get_size() < permutation.size()) {
-        output.resize_unsafe(permutation.size());
+        throw_or_abort("Permutation polynomial size is insufficient to store permutations.");
     }
     // permutation encoding:
     // low 28 bits defines the location in witness polynomial

@@ -6,10 +6,9 @@ namespace barretenberg {
 // Highly optimised read / write of polynomials in little endian montgomery form.
 template <typename B> inline void read(B& buf, polynomial& p)
 {
-    p = polynomial();
     uint32_t size;
     serialize::read(buf, size);
-    p.resize_unsafe(size);
+    p = polynomial(size, size);
     memcpy(&p[0], buf, size * sizeof(fr));
 
     if (!is_little_endian()) {
@@ -47,10 +46,9 @@ inline void write(std::vector<uint8_t>& buf, polynomial const& p)
 
 inline void read(std::istream& is, polynomial& p)
 {
-    p = polynomial();
     uint32_t size;
     serialize::read(is, size);
-    p.resize_unsafe(size);
+    p = polynomial(size, size);
     is.read((char*)&p[0], (std::streamsize)(size * sizeof(fr)));
 
     if (!is_little_endian()) {

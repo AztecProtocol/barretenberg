@@ -222,6 +222,8 @@ template <typename Fr> void Polynomial<Fr>::zero_memory(const size_t zero_size)
 
 template <typename Fr> void Polynomial<Fr>::bump_memory(const size_t new_size_hint)
 {
+    info("WARNING: attempting to bump memory in Polynomial.");
+    ASSERT(false);
     ASSERT(!mapped_);
     size_t amount = (new_size_hint / page_size_) * page_size_;
 
@@ -277,64 +279,66 @@ template <typename Fr> void Polynomial<Fr>::free()
     coefficients_ = nullptr;
 }
 
-template <typename Fr> void Polynomial<Fr>::reserve(const size_t amount)
-{
-    ASSERT(!mapped_);
-    if (amount > max_size_) {
-        bump_memory(amount);
-        memset(static_cast<void*>(&coefficients_[size_]), 0, sizeof(Fr) * (amount - max_size_));
-    }
-}
+// template <typename Fr> void Polynomial<Fr>::reserve(const size_t amount)
+// {
+//     ASSERT(!mapped_);
+//     if (amount > max_size_) {
+//         bump_memory(amount);
+//         memset(static_cast<void*>(&coefficients_[size_]), 0, sizeof(Fr) * (amount - max_size_));
+//     }
+// }
 
-template <typename Fr> void Polynomial<Fr>::resize(const size_t amount)
-{
-    ASSERT(!mapped_);
+// template <typename Fr> void Polynomial<Fr>::resize(const size_t amount)
+// {
+//     ASSERT(!mapped_);
 
-    if (amount > max_size_) {
-        bump_memory(amount);
-    }
+//     if (amount > max_size_) {
+//         bump_memory(amount);
+//     }
 
-    if (coefficients_ != 0 && amount > size_) {
+//     if (coefficients_ != 0 && amount > size_) {
 
-        ASSERT(amount > size_);
+//         ASSERT(amount > size_);
 
-        Fr* back = &coefficients_[size_];
-        memset(static_cast<void*>(back), 0, sizeof(Fr) * (amount - size_));
-    }
+//         Fr* back = &coefficients_[size_];
+//         memset(static_cast<void*>(back), 0, sizeof(Fr) * (amount - size_));
+//     }
 
-    size_ = amount;
-}
+//     size_ = amount;
+// }
 
-// does not zero out memory
-template <typename Fr> void Polynomial<Fr>::resize_unsafe(const size_t amount)
-{
-    ASSERT(!mapped_);
+// // does not zero out memory
+// template <typename Fr> void Polynomial<Fr>::resize_unsafe(const size_t amount)
+// {
+//     ASSERT(!mapped_);
+//     info("amount = ", amount);
+//     info("max_size_ = ", max_size_);
 
-    if (amount > max_size_) {
-        bump_memory(amount);
-    }
+//     if (amount > max_size_) {
+//         bump_memory(amount);
+//     }
 
-    size_ = amount;
-}
+//     size_ = amount;
+// }
 
 /**
  * FFTs
  **/
 
-template <typename Fr> void Polynomial<Fr>::fft(const EvaluationDomain<Fr>& domain)
-{
-    ASSERT(!empty());
+// template <typename Fr> void Polynomial<Fr>::fft(const EvaluationDomain<Fr>& domain)
+// {
+//     ASSERT(!empty());
 
-    if (domain.size > max_size_) {
-        bump_memory(domain.size);
-    }
+//     if (domain.size > max_size_) {
+//         bump_memory(domain.size);
+//     }
 
-    // (ZERO OUT MEMORY!)
-    // TODO: wait, do we still need this?
-    // memset(static_cast<void*>(back), 0, sizeof(Fr) * (amount - size));
-    polynomial_arithmetic::fft(coefficients_, domain);
-    size_ = domain.size;
-}
+//     // (ZERO OUT MEMORY!)
+//     // TODO: wait, do we still need this?
+//     // memset(static_cast<void*>(back), 0, sizeof(Fr) * (amount - size));
+//     polynomial_arithmetic::fft(coefficients_, domain);
+//     size_ = domain.size;
+// }
 
 template <typename Fr> void Polynomial<Fr>::partial_fft(const EvaluationDomain<Fr>& domain, Fr constant, bool is_coset)
 {

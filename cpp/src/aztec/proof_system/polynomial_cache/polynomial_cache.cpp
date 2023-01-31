@@ -1,4 +1,5 @@
 #include "polynomial_cache.hpp"
+#include "polynomials/polynomial.hpp"
 #include <common/streams.hpp>
 
 namespace waffle {
@@ -57,7 +58,7 @@ polynomial& PolynomialCache::get(std::string const& key, size_t size)
             throw_or_abort(format("PolynomialCache: get: ", key, " not found and no size given."));
         }
         info_togglable("get: ", key, " will be adding as zero poly of size ", size);
-        poly.resize(size);
+        poly = polynomial(size, size);
     }
 
     map_[key] = std::move(poly);

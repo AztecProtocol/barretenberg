@@ -1,4 +1,5 @@
 #pragma once
+#include "common/throw_or_abort.hpp"
 #include <numeric/bitop/get_msb.hpp>
 #include <polynomials/iterate_over_domain.hpp>
 #include <polynomials/polynomial.hpp>
@@ -45,7 +46,7 @@ inline void compute_permutation_lagrange_base_single(barretenberg::polynomial& o
                                                      const barretenberg::evaluation_domain& small_domain)
 {
     if (output.get_size() < permutation.size()) {
-        output.resize_unsafe(permutation.size());
+        throw_or_abort("Permutation polynomial size is insufficient to store permutations.");
     }
     // permutation encoding:
     // low 28 bits defines the location in witness polynomial
