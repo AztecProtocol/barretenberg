@@ -243,11 +243,11 @@ waffle::Prover generate_test_data(const size_t n)
     q_m.ifft(key->small_domain);
     q_c.ifft(key->small_domain);
 
-    polynomial q_1_fft(q_l, n * 2);
-    polynomial q_2_fft(q_r, n * 2);
-    polynomial q_3_fft(q_o, n * 2);
-    polynomial q_m_fft(q_m, n * 2);
-    polynomial q_c_fft(q_c, n * 2);
+    polynomial q_1_fft(q_l, n * 4);
+    polynomial q_2_fft(q_r, n * 4);
+    polynomial q_3_fft(q_o, n * 4);
+    polynomial q_m_fft(q_m, n * 4);
+    polynomial q_c_fft(q_c, n * 4);
 
     q_1_fft.coset_fft(key->large_domain);
     q_2_fft.coset_fft(key->large_domain);
