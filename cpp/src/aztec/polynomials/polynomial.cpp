@@ -223,6 +223,8 @@ template <typename Fr> void Polynomial<Fr>::zero_memory(const size_t zero_size)
 template <typename Fr> void Polynomial<Fr>::bump_memory(const size_t new_size_hint)
 {
     info("WARNING: attempting to bump memory in Polynomial.");
+    info("max_size_ = ", max_size_);
+    info("new_size_hint = ", new_size_hint);
     ASSERT(false);
     ASSERT(!mapped_);
     size_t amount = (new_size_hint / page_size_) * page_size_;

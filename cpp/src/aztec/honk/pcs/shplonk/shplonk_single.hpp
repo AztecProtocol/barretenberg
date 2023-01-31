@@ -45,7 +45,6 @@ template <typename Params> class SingleBatchOpeningScheme {
         }
         // Q(X) = ∑ⱼ ρʲ ⋅ ( fⱼ(X) − vⱼ) / ( X − xⱼ )
         Polynomial Q(max_poly_size, max_poly_size);
-        Polynomial tmp(max_poly_size, max_poly_size);
 
         Fr current_nu = Fr::one();
         for (size_t j = 0; j < num_claims; ++j) {
@@ -53,7 +52,7 @@ template <typename Params> class SingleBatchOpeningScheme {
             const auto& [commitment_j, opening_j, eval_j] = claims[j];
 
             // tmp = ρʲ ⋅ ( fⱼ(X) − vⱼ) / ( X − xⱼ )
-            tmp = witness_polynomials[j];
+            Polynomial tmp = witness_polynomials[j];
             tmp[0] -= eval_j;
             tmp.factor_roots(opening_j);
 
@@ -94,7 +93,7 @@ template <typename Params> class SingleBatchOpeningScheme {
             const auto& [commitment_j, opening_j, eval_j] = claims[j];
 
             // tmp = ρʲ ⋅ ( fⱼ(X) − vⱼ) / ( r − xⱼ )
-            tmp = witness_polynomials[j];
+            Polynomial tmp = witness_polynomials[j];
             tmp[0] -= eval_j;
             Fr scaling_factor = current_nu * inverse_vanishing_evals[j]; // = ρʲ / ( r − xⱼ )
 
