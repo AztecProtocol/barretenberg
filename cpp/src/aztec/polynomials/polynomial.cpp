@@ -325,20 +325,20 @@ template <typename Fr> void Polynomial<Fr>::free()
  * FFTs
  **/
 
-// template <typename Fr> void Polynomial<Fr>::fft(const EvaluationDomain<Fr>& domain)
-// {
-//     ASSERT(!empty());
+template <typename Fr> void Polynomial<Fr>::fft(const EvaluationDomain<Fr>& domain)
+{
+    ASSERT(!empty());
 
-//     if (domain.size > max_size_) {
-//         bump_memory(domain.size);
-//     }
+    if (domain.size > max_size_) {
+        bump_memory(domain.size);
+    }
 
-//     // (ZERO OUT MEMORY!)
-//     // TODO: wait, do we still need this?
-//     // memset(static_cast<void*>(back), 0, sizeof(Fr) * (amount - size));
-//     polynomial_arithmetic::fft(coefficients_, domain);
-//     size_ = domain.size;
-// }
+    // (ZERO OUT MEMORY!)
+    // TODO: wait, do we still need this?
+    // memset(static_cast<void*>(back), 0, sizeof(Fr) * (amount - size));
+    polynomial_arithmetic::fft(coefficients_, domain);
+    size_ = domain.size;
+}
 
 template <typename Fr> void Polynomial<Fr>::partial_fft(const EvaluationDomain<Fr>& domain, Fr constant, bool is_coset)
 {
