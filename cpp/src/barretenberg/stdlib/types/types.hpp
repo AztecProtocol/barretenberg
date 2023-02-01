@@ -20,6 +20,9 @@
 #include "barretenberg/stdlib/primitives/curves/secp256k1.hpp"
 #include "barretenberg/stdlib/primitives/memory/rom_table.hpp"
 #include "barretenberg/stdlib/recursion/verifier/program_settings.hpp"
+#include <stdlib/primitives/memory/ram_table.hpp>
+#include <stdlib/primitives/memory/rom_table.hpp>
+#include <stdlib/primitives/memory/dynamic_array.hpp>
 
 namespace plonk::stdlib::types {
 
