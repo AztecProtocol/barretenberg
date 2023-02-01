@@ -105,20 +105,16 @@ class UltraComposer : public ComposerBase {
      *
      */
     struct RamTranscript {
-        // Represents the current state of the array. Elements are variable indices.
-        // Every update requires a new entry in the `records` vector below.
+        // Contains the value of each index of the array
         std::vector<uint32_t> state;
 
         // A vector of records, each of which contains:
-        // - Witnesses for [index, timestamp, value, record]
-        //   (record is initialized during the proof creation, and points to 0 until then)
-        // - Index of the element in the `state` vector
-        // - READ/WRITE flag
-        // - Real timestamp value, initialized to the current `access_count`
+        // + The constant witness with the index
+        // + The value in the memory slot
+        // + The actual index value
         std::vector<RamRecord> records;
 
         // used for RAM records, to compute the timestamp when performing a read/write
-        // Incremented at every init/read/write operation.
         size_t access_count = 0;
     };
 
@@ -241,9 +237,6 @@ class UltraComposer : public ComposerBase {
                                              size_t& ramcount) const
     {
         count = num_gates;
-        rangecount = 0;
-        romcount = 0;
-        ramcount = 0;
         // each ROM gate adds +1 extra gate due to the rom reads being copied to a sorted list set
         for (size_t i = 0; i < rom_arrays.size(); ++i) {
             for (size_t j = 0; j < rom_arrays[i].state.size(); ++j) {
@@ -318,33 +311,16 @@ class UltraComposer : public ComposerBase {
 
     virtual void print_num_gates() const override
     {
-
         size_t count = 0;
         size_t rangecount = 0;
         size_t romcount = 0;
         size_t ramcount = 0;
-        size_t constant_rangecount = 0;
-
-        size_t plookupcount = 0;
 
         get_num_gates_split_into_components(count, rangecount, romcount, ramcount);
 
-        for (const auto& table : lookup_tables) {
-            plookupcount += table.lookup_gates.size();
-            count -= table.lookup_gates.size();
-        }
-
-        for (const auto& list : range_lists) {
-            // rough estimate
-            const auto constant_cost = static_cast<size_t>(list.second.target_range / 6);
-            constant_rangecount += constant_cost;
-            rangecount -= constant_cost;
-        }
-        size_t total = count + romcount + rangecount;
-        std::cout << "gates = " << total << " (arith " << count << ", plookup " << plookupcount << ", rom " << romcount
-                  << ", ram " << ramcount << romcount << ", range " << rangecount
-                  << ", range table init cost = " << constant_rangecount << "), pubinp = " << public_inputs.size()
-                  << std::endl;
+        size_t total = count + romcount + ramcount + rangecount;
+        std::cout << "gates = " << total << " (arith " << count << ", rom " << romcount << ", ram " << ramcount
+                  << ", range " << rangecount << "), pubinp = " << public_inputs.size() << std::endl;
     }
 
     void assert_equal_constant(const uint32_t a_idx,

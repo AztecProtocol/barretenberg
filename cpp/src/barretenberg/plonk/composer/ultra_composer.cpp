@@ -2846,6 +2846,7 @@ void UltraComposer::process_RAM_array(const size_t ram_id, const size_t gate_off
 
     std::vector<uint32_t> timestamp_deltas;
     for (size_t i = 0; i < ram_array.records.size() - 1; ++i) {
+        // create_RAM_timestamp_gate(sorted_records[i], sorted_records[i + 1])
         const auto& current = ram_array.records[i];
         const auto& next = ram_array.records[i + 1];
 
