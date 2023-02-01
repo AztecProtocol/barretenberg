@@ -248,7 +248,7 @@ void work_queue::process_queue()
         case WorkType::FFT: {
             using namespace barretenberg;
             polynomial& wire = key->polynomial_cache.get(item.tag);
-            polynomial wire_fft(4 * key->circuit_size + 4, 4 * key->circuit_size + 4);
+            polynomial wire_fft(4 * key->circuit_size + 4);
 
             polynomial_arithmetic::copy_polynomial(
                 &wire[0], &wire_fft[0], key->circuit_size, 4 * key->circuit_size + 4);

@@ -495,7 +495,7 @@ template <typename settings> void ProverBase<settings>::compute_linearisation_co
 
     fr zeta = fr::serialize_from_buffer(transcript.get_challenge("z").begin());
 
-    polynomial linear_poly(key->circuit_size + 1, key->circuit_size + 1);
+    polynomial linear_poly(key->circuit_size + 1);
 
     commitment_scheme->add_opening_evaluations_to_transcript(transcript, key, false);
     if constexpr (settings::use_linearisation) {

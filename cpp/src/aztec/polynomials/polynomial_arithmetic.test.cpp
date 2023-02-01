@@ -616,9 +616,9 @@ TEST(polynomials, divide_by_vanishing_polynomial)
 
     constexpr size_t n = 16;
 
-    polynomial A(2 * n, 2 * n);
-    polynomial B(2 * n, 2 * n);
-    polynomial C(2 * n, 2 * n);
+    polynomial A(2 * n);
+    polynomial B(2 * n);
+    polynomial C(2 * n);
 
     for (size_t i = 0; i < 13; ++i) {
         A[i] = fr::random_element();
@@ -651,12 +651,12 @@ TEST(polynomials, divide_by_vanishing_polynomial)
     C.coset_fft(large_domain);
 
     // compute A(X) * B(X) - C(X)
-    polynomial R(2 * n, 2 * n);
+    polynomial R(2 * n);
 
     polynomial_arithmetic::mul(&A[0], &B[0], &R[0], large_domain);
     polynomial_arithmetic::sub(&R[0], &C[0], &R[0], large_domain);
 
-    polynomial R_copy(2 * n, 2 * n);
+    polynomial R_copy(2 * n);
     R_copy = R;
 
     polynomial_arithmetic::divide_by_pseudo_vanishing_polynomial({ &R[0] }, small_domain, large_domain, 3);
@@ -1006,7 +1006,7 @@ TEST(polynomials, evaluate_mle)
         auto& engine = numeric::random::get_debug_engine();
         const size_t m = numeric::get_msb(N);
         EXPECT_EQ(N, 1 << m);
-        polynomial poly(N, N);
+        polynomial poly(N);
         for (size_t i = 1; i < N - 1; ++i) {
             poly[i] = fr::random_element(&engine);
         }
@@ -1062,7 +1062,7 @@ TEST(polynomials, factor_roots)
     auto test_case = [](size_t NUM_ZERO_ROOTS, size_t NUM_NON_ZERO_ROOTS) {
         const size_t NUM_ROOTS = NUM_NON_ZERO_ROOTS + NUM_ZERO_ROOTS;
 
-        polynomial poly(N, N);
+        polynomial poly(N);
         for (size_t i = NUM_ZERO_ROOTS; i < N; ++i) {
             poly[i] = fr::random_element();
         }

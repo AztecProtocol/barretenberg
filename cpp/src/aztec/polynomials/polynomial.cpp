@@ -36,12 +36,12 @@ Polynomial<Fr>::Polynomial(std::string const& filename)
 }
 
 template <typename Fr>
-Polynomial<Fr>::Polynomial(const size_t size_, const size_t initial_size_hint)
+Polynomial<Fr>::Polynomial(const size_t size_)
     : mapped_(false)
     , coefficients_(nullptr)
     , size_(size_)
 {
-    size_t target_size = std::max(size_, initial_size_hint) + DEFAULT_PAGE_SPILL;
+    size_t target_size = size_ + DEFAULT_SIZE_INCREASE;
     if (target_size > 0) {
 
         coefficients_ = (Fr*)(aligned_alloc(32, sizeof(Fr) * target_size));
@@ -322,7 +322,7 @@ Fr Polynomial<Fr>::evaluate_from_fft(const EvaluationDomain<Fr>& large_domain,
 
 template <typename Fr>
 Polynomial<Fr>::Polynomial(std::span<const Fr> interpolation_points, std::span<const Fr> evaluations)
-    : Polynomial(interpolation_points.size(), interpolation_points.size())
+    : Polynomial(interpolation_points.size())
 {
     ASSERT(size_ > 0);
 

@@ -8,7 +8,7 @@ template <typename B> inline void read(B& buf, polynomial& p)
 {
     uint32_t size;
     serialize::read(buf, size);
-    p = polynomial(size, size);
+    p = polynomial(size);
     memcpy(&p[0], buf, size * sizeof(fr));
 
     if (!is_little_endian()) {
@@ -48,7 +48,7 @@ inline void read(std::istream& is, polynomial& p)
 {
     uint32_t size;
     serialize::read(is, size);
-    p = polynomial(size, size);
+    p = polynomial(size);
     is.read((char*)&p[0], (std::streamsize)(size * sizeof(fr)));
 
     if (!is_little_endian()) {

@@ -87,14 +87,14 @@ template <class FF> class VerifierTests : public testing::Test {
         std::shared_ptr<waffle::proving_key> proving_key =
             std::make_shared<waffle::proving_key>(n, 0, crs, waffle::STANDARD_HONK);
 
-        polynomial w_l(n, n);
-        polynomial w_r(n, n);
-        polynomial w_o(n, n);
-        polynomial q_l(n, n);
-        polynomial q_r(n, n);
-        polynomial q_o(n, n);
-        polynomial q_c(n, n);
-        polynomial q_m(n, n);
+        polynomial w_l(n);
+        polynomial w_r(n);
+        polynomial w_o(n);
+        polynomial q_l(n);
+        polynomial q_r(n);
+        polynomial q_o(n);
+        polynomial q_c(n);
+        polynomial q_m(n);
 
         fr T0;
         for (size_t i = 0; i < n / 4; ++i) {

@@ -15,9 +15,7 @@ template <typename Fr> class Polynomial {
     // Creates a read only polynomial using mmap.
     Polynomial(std::string const& filename);
 
-    // TODO: add a 'spill' factor when allocating memory - we sometimes needs to extend poly degree by 2/4,
-    // if page size = power of two, will trigger unneccesary copies
-    Polynomial(const size_t initial_size, const size_t initial_size_hint = 0);
+    Polynomial(const size_t initial_size);
     Polynomial(const Polynomial& other, const size_t target_size = 0);
 
     Polynomial(Polynomial&& other) noexcept;
@@ -142,7 +140,7 @@ template <typename Fr> class Polynomial {
         ASSERT(size_ > 0);
         // TODO(luke): Reinstate the below ASSERT once Adrian's relations update makes this true!
         ASSERT(coefficients_[0].is_zero());
-        ASSERT(coefficients_[size_].is_zero()); // relies on DEFAULT_PAGE_SPILL >= 1
+        ASSERT(coefficients_[size_].is_zero()); // relies on DEFAULT_SIZE_INCREASE >= 1
         return std::span{ coefficients_ + 1, size_ };
     }
 
@@ -232,8 +230,10 @@ template <typename Fr> class Polynomial {
   private:
     void free();
     void zero_memory(const size_t start_position, const size_t end_position);
-    const static size_t DEFAULT_SIZE_HINT = 1 << 12; // DOCTODO: justify this number.
-    const static size_t DEFAULT_PAGE_SPILL = 20;     // DOCTODO: explain this, or rename.
+    // When a polynomial is instantiated from a size alone, the memory allocated corresponds to
+    // input size + DEFAULT_SIZE_INCREASE. A DEFAULT_SIZE_INCREASE of >= 1 is required to ensure
+    // that polynomials can be 'shifted' via a span of the 1st to size+1th coefficients.
+    const static size_t DEFAULT_SIZE_INCREASE = 1;
 
   public:
     bool mapped_;
