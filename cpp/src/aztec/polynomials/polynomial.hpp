@@ -17,7 +17,7 @@ template <typename Fr> class Polynomial {
 
     // TODO: add a 'spill' factor when allocating memory - we sometimes needs to extend poly degree by 2/4,
     // if page size = power of two, will trigger unneccesary copies
-    Polynomial(const size_t initial_size, const size_t initial_size_hint = DEFAULT_SIZE_HINT);
+    Polynomial(const size_t initial_size, const size_t initial_size_hint = 0);
     Polynomial(const Polynomial& other, const size_t target_size = 0);
 
     Polynomial(Polynomial&& other) noexcept;
@@ -84,8 +84,6 @@ template <typename Fr> class Polynomial {
 
     Fr& operator[](const size_t i)
     {
-        info("i = ", i);
-        info("size_ = ", size_);
         ASSERT(i < size_);
         return coefficients_[i];
     }
@@ -144,7 +142,7 @@ template <typename Fr> class Polynomial {
         ASSERT(size_ > 0);
         // TODO(luke): Reinstate the below ASSERT once Adrian's relations update makes this true!
         ASSERT(coefficients_[0].is_zero());
-        ASSERT(coefficients_[size_].is_zero()); // relies on DEFAULT_PAGE_SPILL > 1
+        ASSERT(coefficients_[size_].is_zero()); // relies on DEFAULT_PAGE_SPILL >= 1
         return std::span{ coefficients_ + 1, size_ };
     }
 

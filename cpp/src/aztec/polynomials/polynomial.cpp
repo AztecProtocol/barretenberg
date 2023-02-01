@@ -41,7 +41,7 @@ Polynomial<Fr>::Polynomial(const size_t size_, const size_t initial_size_hint)
     , coefficients_(nullptr)
     , size_(size_)
 {
-    size_t target_size = std::max(size_, initial_size_hint + DEFAULT_PAGE_SPILL);
+    size_t target_size = std::max(size_, initial_size_hint) + DEFAULT_PAGE_SPILL;
     if (target_size > 0) {
 
         coefficients_ = (Fr*)(aligned_alloc(32, sizeof(Fr) * target_size));
@@ -333,7 +333,6 @@ Polynomial<Fr>::Polynomial(std::span<const Fr> interpolation_points, std::span<c
         evaluations.data(), coefficients_, interpolation_points.data(), size_);
 }
 
-// TODO(luke): only allow this for equal size polys?
 template <typename Fr> void Polynomial<Fr>::add_scaled(std::span<const Fr> other, Fr scaling_factor)
 {
     ASSERT(!mapped_);
@@ -348,8 +347,6 @@ template <typename Fr> void Polynomial<Fr>::add_scaled(std::span<const Fr> other
     for (size_t i = 0; i < other_size; ++i) {
         coefficients_[i] += scaling_factor * other[i];
     }
-
-    zero_memory(other_size, size_);
 }
 
 template <typename Fr> Polynomial<Fr>& Polynomial<Fr>::operator+=(std::span<const Fr> other)
@@ -366,7 +363,6 @@ template <typename Fr> Polynomial<Fr>& Polynomial<Fr>::operator+=(std::span<cons
         coefficients_[i] += other[i];
     }
 
-    zero_memory(other_size, size_);
     return *this;
 }
 
@@ -384,7 +380,6 @@ template <typename Fr> Polynomial<Fr>& Polynomial<Fr>::operator-=(std::span<cons
         coefficients_[i] -= other[i];
     }
 
-    zero_memory(other_size, size_);
     return *this;
 }
 

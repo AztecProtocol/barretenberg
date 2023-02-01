@@ -171,10 +171,16 @@ TYPED_TEST(ShplonkTest, Gemini)
 
     EXPECT_EQ(gemini_prover_claim, gemini_verifier_claim);
 
+    info("\n\n Shplonk Prover. \n\n");
+
     const auto [prover_claim, witness, proof] =
         Shplonk::reduce_prove(this->ck(), gemini_prover_claim, gemini_witness, transcript);
 
+    info("\n\n Verifiy claim. \n\n");
+
     this->verify_opening_claim(prover_claim, witness);
+
+    info("\n\n Shplonk Verifier. \n\n");
 
     const auto verifier_claim = Shplonk::reduce_verify(gemini_prover_claim, proof, transcript);
     EXPECT_EQ(prover_claim, verifier_claim);
