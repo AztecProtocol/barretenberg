@@ -109,13 +109,8 @@ template <typename Params> class MultiBatchOpeningScheme {
 
         // initialize Q(X) = 0
         Polynomial Q(max_poly_size, max_poly_size);
-        // Polynomial tmp(size_t(0), max_poly_size);
         for (size_t k = 0; k < num_multi_claims; ++k) {
             // Bₖ(X) into temp_poly
-            // info("k = ", k);
-            // info("tmp.get_max_size() = ", tmp.get_max_size());
-            // info("merged_polynomials[j].get_max_size() = ", merged_polynomials[k].get_max_size());
-            // info("interpolated_polynomials[j].get_max_size() = ", interpolated_polynomials[k].get_max_size());
             Polynomial tmp = merged_polynomials[k];
             // subtract Bₖ(X) - Tₖ(X) in-place
             tmp -= interpolated_polynomials[k];

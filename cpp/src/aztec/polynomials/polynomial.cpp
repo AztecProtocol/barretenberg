@@ -93,7 +93,6 @@ Polynomial<Fr>::Polynomial()
     , size_(0)
 {}
 
-// TODO(luke): make sure this makes sense!
 template <typename Fr> Polynomial<Fr>& Polynomial<Fr>::operator=(const Polynomial<Fr>& other)
 {
     mapped_ = false;
@@ -222,7 +221,6 @@ template <typename Fr> void Polynomial<Fr>::coset_fft(const EvaluationDomain<Fr>
     zero_memory(domain.size, size_);
 
     polynomial_arithmetic::coset_fft(coefficients_, domain);
-    // size_ = domain.size;
 }
 
 template <typename Fr>
@@ -277,7 +275,6 @@ template <typename Fr> void Polynomial<Fr>::ifft(const EvaluationDomain<Fr>& dom
     zero_memory(domain.size, size_);
 
     polynomial_arithmetic::ifft(coefficients_, domain);
-    size_ = domain.size;
 }
 
 template <typename Fr> void Polynomial<Fr>::ifft_with_constant(const EvaluationDomain<Fr>& domain, const Fr& constant)

@@ -616,9 +616,9 @@ TEST(polynomials, divide_by_vanishing_polynomial)
 
     constexpr size_t n = 16;
 
-    polynomial A(n, 2 * n);
-    polynomial B(n, 2 * n);
-    polynomial C(n, 2 * n);
+    polynomial A(2 * n, 2 * n);
+    polynomial B(2 * n, 2 * n);
+    polynomial C(2 * n, 2 * n);
 
     for (size_t i = 0; i < 13; ++i) {
         A[i] = fr::random_element();
