@@ -3,6 +3,7 @@
 #include <common/assert.hpp>
 #include <common/mem.hpp>
 #include <common/throw_or_abort.hpp>
+#include <cstddef>
 #include <sys/stat.h>
 #include <fcntl.h>
 #ifndef __wasm__
@@ -24,7 +25,6 @@ Polynomial<Fr>::Polynomial(std::string const& filename)
     }
     size_t len = (size_t)st.st_size;
     size_ = len / sizeof(Fr);
-    max_size_ = size_;
     int fd = open(filename.c_str(), O_RDONLY);
 #ifndef __wasm__
     coefficients_ = (Fr*)mmap(0, len, PROT_READ, MAP_PRIVATE, fd, 0);
@@ -36,42 +36,42 @@ Polynomial<Fr>::Polynomial(std::string const& filename)
 }
 
 template <typename Fr>
-Polynomial<Fr>::Polynomial(const size_t size_, const size_t initial_max_size_hint)
+Polynomial<Fr>::Polynomial(const size_t size_, const size_t initial_size_hint)
     : mapped_(false)
     , coefficients_(nullptr)
     , size_(size_)
-    , max_size_(0)
 {
-    size_t target_max_size = std::max(size_, initial_max_size_hint + DEFAULT_PAGE_SPILL);
-    if (target_max_size > 0) {
+    size_t target_size = std::max(size_, initial_size_hint + DEFAULT_PAGE_SPILL);
+    if (target_size > 0) {
 
-        max_size_ = target_max_size;
-        coefficients_ = (Fr*)(aligned_alloc(32, sizeof(Fr) * target_max_size));
+        coefficients_ = (Fr*)(aligned_alloc(32, sizeof(Fr) * target_size));
     }
-    memset(static_cast<void*>(coefficients_), 0, sizeof(Fr) * max_size_);
+    memset(static_cast<void*>(coefficients_), 0, sizeof(Fr) * target_size);
 }
 
 template <typename Fr>
-Polynomial<Fr>::Polynomial(const Polynomial<Fr>& other, const size_t target_max_size)
+Polynomial<Fr>::Polynomial(const Polynomial<Fr>& other, const size_t target_size)
     : mapped_(false)
-    , size_(other.size_)
-    , max_size_(std::max(target_max_size, other.max_size_))
+    , size_(target_size)
 {
-    ASSERT(max_size_ >= size_);
+    if (0 == size_) {
+        size_ = other.size_;
+    }
 
-    coefficients_ = (Fr*)(aligned_alloc(32, sizeof(Fr) * max_size_));
+    ASSERT(size_ >= other.size_);
+
+    coefficients_ = (Fr*)(aligned_alloc(32, sizeof(Fr) * size_));
 
     if (other.coefficients_ != nullptr) {
-        memcpy(static_cast<void*>(coefficients_), static_cast<void*>(other.coefficients_), sizeof(Fr) * size_);
+        memcpy(static_cast<void*>(coefficients_), static_cast<void*>(other.coefficients_), sizeof(Fr) * other.size_);
     }
-    zero_memory(max_size_);
+    zero_memory(other.size_, size_);
 }
 template <typename Fr>
 Polynomial<Fr>::Polynomial(Polynomial<Fr>&& other) noexcept
     : mapped_(other.mapped_)
     , coefficients_(other.coefficients_)
     , size_(other.size_)
-    , max_size_(other.max_size_)
 {
     other.coefficients_ = 0;
 
@@ -84,7 +84,6 @@ Polynomial<Fr>::Polynomial(Fr* buf, const size_t size_)
     : mapped_(false)
     , coefficients_(buf)
     , size_(size_)
-    , max_size_(size_)
 {}
 
 template <typename Fr>
@@ -92,31 +91,23 @@ Polynomial<Fr>::Polynomial()
     : mapped_(false)
     , coefficients_(0)
     , size_(0)
-    , max_size_(0)
 {}
 
+// TODO(luke): make sure this makes sense!
 template <typename Fr> Polynomial<Fr>& Polynomial<Fr>::operator=(const Polynomial<Fr>& other)
 {
     mapped_ = false;
 
-    if (other.max_size_ > max_size_) {
-        // Bump memory and set max_size, before we set size otherwise we will copy an
-        // inappropriate amount of data.
-        bump_memory();
-    } else {
-        max_size_ = other.max_size_;
-    }
-
-    size_ = other.size_;
-
-    ASSERT(max_size_ >= size_);
+    ASSERT(size_ == 0 || other.size_ <= size_);
 
     if (other.coefficients_ != 0) {
         ASSERT(coefficients_);
-        memcpy(static_cast<void*>(coefficients_), static_cast<void*>(other.coefficients_), sizeof(Fr) * size_);
+        memcpy(static_cast<void*>(coefficients_), static_cast<void*>(other.coefficients_), sizeof(Fr) * other.size_);
     }
 
-    zero_memory(max_size_);
+    zero_memory(other.size_, size_);
+
+    size_ = other.size_;
 
     return *this;
 }
@@ -130,7 +121,6 @@ template <typename Fr> Polynomial<Fr>& Polynomial<Fr>::operator=(Polynomial&& ot
 
     mapped_ = other.mapped_;
     coefficients_ = other.coefficients_;
-    max_size_ = other.max_size_;
     size_ = other.size_;
 
     other.coefficients_ = nullptr;
@@ -158,51 +148,27 @@ template <typename Fr> Fr Polynomial<Fr>::evaluate(const Fr& z) const
 
 /**
  * @brief sets a block of memory to all zeroes
- * Called when re-sizing the container to ensure that, when writing to the polynomial in future,
- * memory requests made to the OS do not return virtual pages (performance optimisation)
+ * Used to zero out unintialized memory to ensure that, when writing to the polynomial in future,
+ * memory requests made to the OS do not return virtual pages (performance optimisation).
+ * Used, for example, when one polynomial is instantiated from another one with size_>= other.size_.
  *
  * @param opening_proof Opening proof computed by `batch_open`
  * @param commitment_data Describes each polynomial being opened: its commitment, the opening points used and the
  * polynomial evaluations
  */
-template <typename Fr> void Polynomial<Fr>::zero_memory(const size_t zero_size)
+template <typename Fr> void Polynomial<Fr>::zero_memory(const size_t start_position, const size_t end_position)
 {
-    ASSERT(zero_size >= size_);
+    ASSERT(end_position >= start_position);
+    ASSERT(end_position <= size_);
 
-    if (zero_size > size_) {
+    if (end_position > start_position) {
 
-        size_t delta = zero_size - size_;
+        size_t delta = end_position - start_position;
         if (delta > 0 && coefficients_) {
             ASSERT(coefficients_);
-            memset(static_cast<void*>(&coefficients_[size_]), 0, sizeof(Fr) * delta);
+            memset(static_cast<void*>(&coefficients_[start_position]), 0, sizeof(Fr) * delta);
         }
     }
-}
-
-template <typename Fr> void Polynomial<Fr>::bump_memory()
-{
-    info("WARNING: attempting to bump memory in Polynomial.");
-    ASSERT(false);
-}
-
-template <typename Fr> void Polynomial<Fr>::add_coefficient_internal(const Fr& coefficient)
-{
-    ASSERT(!mapped_);
-    if (size_ + 1 > max_size_) {
-        bump_memory();
-    }
-    Fr::__copy(coefficient, coefficients_[size_]);
-    ++size_;
-}
-
-template <typename Fr> void Polynomial<Fr>::add_lagrange_base_coefficient(const Fr& coefficient)
-{
-    add_coefficient_internal(coefficient);
-}
-
-template <typename Fr> void Polynomial<Fr>::add_coefficient(const Fr& coefficient)
-{
-    add_coefficient_internal(coefficient);
 }
 
 template <typename Fr> void Polynomial<Fr>::free()
@@ -229,22 +195,19 @@ template <typename Fr> void Polynomial<Fr>::fft(const EvaluationDomain<Fr>& doma
 {
     ASSERT(!empty());
 
-    if (domain.size > max_size_) {
-        bump_memory();
-    }
+    ASSERT(domain.size <= size_);
 
-    // (ZERO OUT MEMORY!)
-    // TODO: wait, do we still need this?
-    // memset(static_cast<void*>(back), 0, sizeof(Fr) * (amount - size));
+    zero_memory(domain.size, size_);
+
     polynomial_arithmetic::fft(coefficients_, domain);
     size_ = domain.size;
 }
 
 template <typename Fr> void Polynomial<Fr>::partial_fft(const EvaluationDomain<Fr>& domain, Fr constant, bool is_coset)
 {
-    if (domain.size > max_size_) {
-        bump_memory();
-    }
+    ASSERT(domain.size <= size_);
+
+    zero_memory(domain.size, size_);
 
     polynomial_arithmetic::partial_fft(coefficients_, domain, constant, is_coset);
     size_ = domain.size;
@@ -253,12 +216,13 @@ template <typename Fr> void Polynomial<Fr>::partial_fft(const EvaluationDomain<F
 template <typename Fr> void Polynomial<Fr>::coset_fft(const EvaluationDomain<Fr>& domain)
 {
     ASSERT(!empty());
-    if (domain.size > max_size_) {
-        bump_memory();
-    }
+
+    ASSERT(domain.size <= size_);
+
+    zero_memory(domain.size, size_);
 
     polynomial_arithmetic::coset_fft(coefficients_, domain);
-    size_ = domain.size;
+    // size_ = domain.size;
 }
 
 template <typename Fr>
@@ -268,12 +232,14 @@ void Polynomial<Fr>::coset_fft(const EvaluationDomain<Fr>& domain,
 {
     ASSERT(!empty());
 
-    if ((domain.size * domain_extension) > max_size_) {
-        bump_memory();
-    }
+    size_t extended_size = domain.size * domain_extension;
+
+    ASSERT(extended_size <= size_);
+
+    zero_memory(extended_size, size_);
 
     polynomial_arithmetic::coset_fft(coefficients_, domain, large_domain, domain_extension);
-    size_ = (domain.size * domain_extension);
+    size_ = extended_size;
 }
 
 template <typename Fr>
@@ -281,9 +247,9 @@ void Polynomial<Fr>::coset_fft_with_constant(const EvaluationDomain<Fr>& domain,
 {
     ASSERT(!empty());
 
-    if (domain.size > max_size_) {
-        bump_memory();
-    }
+    ASSERT(domain.size <= size_);
+
+    zero_memory(domain.size, size_);
 
     polynomial_arithmetic::coset_fft_with_constant(coefficients_, domain, constant);
     size_ = domain.size;
@@ -294,9 +260,9 @@ void Polynomial<Fr>::coset_fft_with_generator_shift(const EvaluationDomain<Fr>& 
 {
     ASSERT(!empty());
 
-    if (domain.size > max_size_) {
-        bump_memory();
-    }
+    ASSERT(domain.size <= size_);
+
+    zero_memory(domain.size, size_);
 
     polynomial_arithmetic::coset_fft_with_generator_shift(coefficients_, domain, constant);
     size_ = domain.size;
@@ -306,9 +272,9 @@ template <typename Fr> void Polynomial<Fr>::ifft(const EvaluationDomain<Fr>& dom
 {
     ASSERT(!empty());
 
-    if (domain.size > max_size_) {
-        bump_memory();
-    }
+    ASSERT(domain.size <= size_);
+
+    zero_memory(domain.size, size_);
 
     polynomial_arithmetic::ifft(coefficients_, domain);
     size_ = domain.size;
@@ -318,9 +284,9 @@ template <typename Fr> void Polynomial<Fr>::ifft_with_constant(const EvaluationD
 {
     ASSERT(!empty());
 
-    if (domain.size > max_size_) {
-        bump_memory();
-    }
+    ASSERT(domain.size <= size_);
+
+    zero_memory(domain.size, size_);
 
     polynomial_arithmetic::ifft_with_constant(coefficients_, domain, constant);
     size_ = domain.size;
@@ -330,9 +296,9 @@ template <typename Fr> void Polynomial<Fr>::coset_ifft(const EvaluationDomain<Fr
 {
     ASSERT(!empty());
 
-    if (domain.size > max_size_) {
-        bump_memory();
-    }
+    ASSERT(domain.size <= size_);
+
+    zero_memory(domain.size, size_);
 
     polynomial_arithmetic::coset_ifft(coefficients_, domain);
     size_ = domain.size;
@@ -367,15 +333,13 @@ Polynomial<Fr>::Polynomial(std::span<const Fr> interpolation_points, std::span<c
         evaluations.data(), coefficients_, interpolation_points.data(), size_);
 }
 
+// TODO(luke): only allow this for equal size polys?
 template <typename Fr> void Polynomial<Fr>::add_scaled(std::span<const Fr> other, Fr scaling_factor)
 {
     ASSERT(!mapped_);
     const size_t other_size = other.size();
-    if (other_size > max_size_) {
-        std::cout << "bumping memory! hey this shouldn't really happen in prod!" << std::endl;
-        bump_memory();
-    }
-    size_ = std::max(size_, other_size);
+
+    ASSERT(size_ >= other_size);
 
     /** TODO parallelize using some kind of generic evaluation domain
      *  we really only need to know the thread size, but we don't need all the FFT roots
@@ -384,17 +348,16 @@ template <typename Fr> void Polynomial<Fr>::add_scaled(std::span<const Fr> other
     for (size_t i = 0; i < other_size; ++i) {
         coefficients_[i] += scaling_factor * other[i];
     }
+
+    zero_memory(other_size, size_);
 }
 
 template <typename Fr> Polynomial<Fr>& Polynomial<Fr>::operator+=(std::span<const Fr> other)
 {
     ASSERT(!mapped_);
     const size_t other_size = other.size();
-    if (other_size > max_size_) {
-        std::cout << "bumping memory! hey this shouldn't really happen in prod!" << std::endl;
-        bump_memory();
-    }
-    size_ = std::max(size_, other_size);
+
+    ASSERT(size_ >= other_size);
 
     /** TODO parallelize using some kind of generic evaluation domain
      *  we really only need to know the thread size, but we don't need all the FFT roots
@@ -402,6 +365,8 @@ template <typename Fr> Polynomial<Fr>& Polynomial<Fr>::operator+=(std::span<cons
     for (size_t i = 0; i < other_size; ++i) {
         coefficients_[i] += other[i];
     }
+
+    zero_memory(other_size, size_);
     return *this;
 }
 
@@ -409,11 +374,8 @@ template <typename Fr> Polynomial<Fr>& Polynomial<Fr>::operator-=(std::span<cons
 {
     ASSERT(!mapped_);
     const size_t other_size = other.size();
-    if (other_size > max_size_) {
-        std::cout << "bumping memory! hey this shouldn't really happen in prod!" << std::endl;
-        bump_memory();
-    }
-    size_ = std::max(size_, other_size);
+
+    ASSERT(size_ >= other_size);
 
     /** TODO parallelize using some kind of generic evaluation domain
      *  we really only need to know the thread size, but we don't need all the FFT roots
@@ -421,6 +383,8 @@ template <typename Fr> Polynomial<Fr>& Polynomial<Fr>::operator-=(std::span<cons
     for (size_t i = 0; i < other_size; ++i) {
         coefficients_[i] -= other[i];
     }
+
+    zero_memory(other_size, size_);
     return *this;
 }
 

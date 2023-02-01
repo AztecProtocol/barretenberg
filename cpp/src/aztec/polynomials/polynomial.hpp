@@ -17,8 +17,8 @@ template <typename Fr> class Polynomial {
 
     // TODO: add a 'spill' factor when allocating memory - we sometimes needs to extend poly degree by 2/4,
     // if page size = power of two, will trigger unneccesary copies
-    Polynomial(const size_t initial_size, const size_t initial_max_size_hint = DEFAULT_SIZE_HINT);
-    Polynomial(const Polynomial& other, const size_t target_max_size = 0);
+    Polynomial(const size_t initial_size, const size_t initial_size_hint = DEFAULT_SIZE_HINT);
+    Polynomial(const Polynomial& other, const size_t target_size = 0);
 
     Polynomial(Polynomial&& other) noexcept;
 
@@ -48,7 +48,6 @@ template <typename Fr> class Polynomial {
         mapped_ = false;
         coefficients_ = 0;
         size_ = 0;
-        max_size_ = 0;
     }
 
     bool operator==(Polynomial const& rhs) const
@@ -75,7 +74,6 @@ template <typename Fr> class Polynomial {
     Fr* get_coefficients() { return coefficients_; };
 
     size_t get_size() const { return size_; };
-    size_t get_max_size() const { return max_size_; };
 
     // Const and non const versions of coefficient accessors
     Fr const& operator[](const size_t i) const
@@ -86,6 +84,8 @@ template <typename Fr> class Polynomial {
 
     Fr& operator[](const size_t i)
     {
+        info("i = ", i);
+        info("size_ = ", size_);
         ASSERT(i < size_);
         return coefficients_[i];
     }
@@ -123,15 +123,8 @@ template <typename Fr> class Polynomial {
     void ifft(const EvaluationDomain<Fr>& domain);
     void ifft_with_constant(const EvaluationDomain<Fr>& domain, const Fr& constant);
     void coset_ifft(const EvaluationDomain<Fr>& domain);
-    // void coset_ifft_with_constant(const EvaluationDomain<Fr> &domain, const Fr &constant);
 
     Fr compute_kate_opening_coefficients(const Fr& z);
-    void add_lagrange_base_coefficient(const Fr& coefficient);
-    void add_coefficient(const Fr& coefficient);
-
-    void reserve(const size_t new_max_size);
-    void resize(const size_t new_size);
-    void resize_unsafe(const size_t new_size);
 
     bool empty() const
     {
@@ -165,7 +158,6 @@ template <typename Fr> class Polynomial {
 
     /**
      * @brief adds the polynomial q(X) 'other'.
-     * If the degree of q is larger, we bump the size.
      *
      * @param other q(X)
      */
@@ -173,7 +165,6 @@ template <typename Fr> class Polynomial {
 
     /**
      * @brief subtracts the polynomial q(X) 'other'.
-     * If the degree of q is larger, we bump the size
      *
      * @param other q(X)
      */
@@ -242,17 +233,14 @@ template <typename Fr> class Polynomial {
 
   private:
     void free();
-    void zero_memory(const size_t zero_size);
+    void zero_memory(const size_t start_position, const size_t end_position);
     const static size_t DEFAULT_SIZE_HINT = 1 << 12; // DOCTODO: justify this number.
     const static size_t DEFAULT_PAGE_SPILL = 20;     // DOCTODO: explain this, or rename.
-    void add_coefficient_internal(const Fr& coefficient);
-    void bump_memory();
 
   public:
     bool mapped_;
     Fr* coefficients_;
     size_t size_; // This is the size() of the `coefficients` vector.
-    size_t max_size_;
 };
 
 template <typename Fr> inline std::ostream& operator<<(std::ostream& os, Polynomial<Fr> const& p)
