@@ -60,7 +60,7 @@ class ultra_settings : public settings_base {
     static constexpr uint64_t wire_shift_settings = 0b1111;
     static constexpr uint32_t permutation_shift = 30;
     static constexpr uint32_t permutation_mask = 0xC0000000;
-    static constexpr bool use_linearisation = true;
+    static constexpr bool use_linearisation = false;
     static constexpr size_t num_roots_cut_out_of_vanishing_polynomial = 4;
     static constexpr bool is_plookup = true;
 };

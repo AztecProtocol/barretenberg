@@ -39,7 +39,6 @@ namespace waffle {
     auto& q_3 = selectors[UltraSelectors::Q3];                                                                         \
     auto& q_4 = selectors[UltraSelectors::Q4];                                                                         \
     auto& q_arith = selectors[UltraSelectors::QARITH];                                                                 \
-    auto& q_fixed_base = selectors[UltraSelectors::QFIXED];                                                            \
     auto& q_sort = selectors[UltraSelectors::QSORT];                                                                   \
     auto& q_elliptic = selectors[UltraSelectors::QELLIPTIC];                                                           \
     auto& q_aux = selectors[UltraSelectors::QAUX];                                                                     \
@@ -48,9 +47,9 @@ namespace waffle {
 std::vector<ComposerBase::SelectorProperties> ultra_selector_properties()
 {
     std::vector<ComposerBase::SelectorProperties> result{
-        { "q_m", true },     { "q_c", true },         { "q_1", true },      { "q_2", true },
-        { "q_3", true },     { "q_4", false },        { "q_arith", false }, { "q_fixed_base", false },
-        { "q_sort", false }, { "q_elliptic", false }, { "q_aux", false },   { "table_type", true },
+        { "q_m", true },         { "q_c", true },    { "q_1", true },        { "q_2", true },
+        { "q_3", true },         { "q_4", false },   { "q_arith", false },   { "q_sort", false },
+        { "q_elliptic", false }, { "q_aux", false }, { "table_type", true },
     };
     return result;
 }
@@ -108,7 +107,6 @@ void UltraComposer::create_add_gate(const add_triple& in)
     q_c.emplace_back(in.const_scaling);
     q_arith.emplace_back(1);
     q_4.emplace_back(0);
-    q_fixed_base.emplace_back(0);
     q_sort.emplace_back(0);
     q_lookup_type.emplace_back(0);
     q_elliptic.emplace_back(0);
@@ -140,7 +138,6 @@ void UltraComposer::create_big_add_gate(const add_quad& in, const bool include_n
     q_c.emplace_back(in.const_scaling);
     q_arith.emplace_back(include_next_gate_w_4 ? 2 : 1);
     q_4.emplace_back(in.d_scaling);
-    q_fixed_base.emplace_back(0);
     q_sort.emplace_back(0);
     q_lookup_type.emplace_back(0);
     q_elliptic.emplace_back(0);
@@ -233,7 +230,6 @@ void UltraComposer::create_big_mul_gate(const mul_quad& in)
     q_c.emplace_back(in.const_scaling);
     q_arith.emplace_back(1);
     q_4.emplace_back(in.d_scaling);
-    q_fixed_base.emplace_back(0);
     q_sort.emplace_back(0);
     q_lookup_type.emplace_back(0);
     q_elliptic.emplace_back(0);
@@ -259,7 +255,6 @@ void UltraComposer::create_balanced_add_gate(const add_quad& in)
     q_c.emplace_back(in.const_scaling);
     q_arith.emplace_back(1);
     q_4.emplace_back(in.d_scaling);
-    q_fixed_base.emplace_back(0);
     q_sort.emplace_back(0);
     q_lookup_type.emplace_back(0);
     q_elliptic.emplace_back(0);
@@ -301,7 +296,6 @@ void UltraComposer::create_mul_gate(const mul_triple& in)
     q_c.emplace_back(in.const_scaling);
     q_arith.emplace_back(1);
     q_4.emplace_back(0);
-    q_fixed_base.emplace_back(0);
     q_sort.emplace_back(0);
     q_lookup_type.emplace_back(0);
     q_elliptic.emplace_back(0);
@@ -331,7 +325,6 @@ void UltraComposer::create_bool_gate(const uint32_t variable_index)
 
     q_arith.emplace_back(1);
     q_4.emplace_back(0);
-    q_fixed_base.emplace_back(0);
     q_lookup_type.emplace_back(0);
     q_elliptic.emplace_back(0);
     q_aux.emplace_back(0);
@@ -361,75 +354,12 @@ void UltraComposer::create_poly_gate(const poly_triple& in)
 
     q_arith.emplace_back(1);
     q_4.emplace_back(0);
-    q_fixed_base.emplace_back(0);
     q_lookup_type.emplace_back(0);
     q_elliptic.emplace_back(0);
     q_aux.emplace_back(0);
     ++n;
 }
 
-// adds a grumpkin point, from a 2-bit lookup table, into an accumulator point
-void UltraComposer::create_fixed_group_add_gate(const fixed_group_add_quad& in)
-{
-    ULTRA_SELECTOR_REFS
-    assert_valid_variables({ in.a, in.b, in.c, in.d });
-
-    w_l.emplace_back(in.a);
-    w_r.emplace_back(in.b);
-    w_o.emplace_back(in.c);
-    w_4.emplace_back(in.d);
-
-    q_1.emplace_back(in.q_x_1);
-    q_2.emplace_back(in.q_x_2);
-    q_3.emplace_back(in.q_y_1);
-    q_fixed_base.emplace_back(in.q_y_2);
-
-    q_arith.emplace_back(0);
-    q_4.emplace_back(0);
-    q_m.emplace_back(0);
-    q_c.emplace_back(0);
-    q_lookup_type.emplace_back(0);
-    q_sort.emplace_back(0);
-    q_elliptic.emplace_back(0);
-    q_aux.emplace_back(0);
-    ++n;
-}
-
-// adds a grumpkin point into an accumulator, while also initializing the accumulator
-void UltraComposer::create_fixed_group_add_gate_with_init(const fixed_group_add_quad& in,
-                                                          const fixed_group_init_quad& init)
-{
-    ULTRA_SELECTOR_REFS
-    assert_valid_variables({ in.a, in.b, in.c, in.d });
-
-    w_l.emplace_back(in.a);
-    w_r.emplace_back(in.b);
-    w_o.emplace_back(in.c);
-    w_4.emplace_back(in.d);
-
-    // Initialization differs slightly with that in TurboComposer.
-    q_m.emplace_back(init.q_y_1);
-    q_c.emplace_back(init.q_y_2);
-
-    q_1.emplace_back(in.q_x_1);
-    q_2.emplace_back(in.q_x_2);
-    q_3.emplace_back(in.q_y_1);
-    q_fixed_base.emplace_back(in.q_y_2);
-
-    q_4.emplace_back(0);
-    q_aux.emplace_back(0);
-    q_arith.emplace_back(0);
-    q_lookup_type.emplace_back(0);
-    q_sort.emplace_back(0);
-    q_elliptic.emplace_back(0);
-
-    ++n;
-}
-
-void UltraComposer::create_fixed_group_add_gate_final(const add_quad& in)
-{
-    create_big_add_gate(in);
-}
 /**
  * @brief Create an elliptic curve addition gate
  *
@@ -481,7 +411,6 @@ void UltraComposer::create_ecc_add_gate(const ecc_add_gate& in)
         q_2.emplace_back(0);
         q_m.emplace_back(0);
         q_c.emplace_back(0);
-        q_fixed_base.emplace_back(0);
         q_sort.emplace_back(0);
         q_lookup_type.emplace_back(0);
         q_elliptic.emplace_back(1);
@@ -500,7 +429,6 @@ void UltraComposer::create_ecc_add_gate(const ecc_add_gate& in)
     q_c.emplace_back(0);
     q_arith.emplace_back(0);
     q_4.emplace_back(0);
-    q_fixed_base.emplace_back(0);
     q_sort.emplace_back(0);
     q_lookup_type.emplace_back(0);
     q_elliptic.emplace_back(0);
@@ -530,7 +458,6 @@ void UltraComposer::fix_witness(const uint32_t witness_index, const barretenberg
     q_c.emplace_back(-witness_value);
     q_arith.emplace_back(1);
     q_4.emplace_back(0);
-    q_fixed_base.emplace_back(0);
     q_sort.emplace_back(0);
     q_lookup_type.emplace_back(0);
     q_elliptic.emplace_back(0);
@@ -612,7 +539,6 @@ std::shared_ptr<proving_key> UltraComposer::compute_proving_key()
     ASSERT(n == q_3.size());
     ASSERT(n == q_4.size());
     ASSERT(n == q_arith.size());
-    ASSERT(n == q_fixed_base.size());
     ASSERT(n == q_elliptic.size());
     ASSERT(n == q_sort.size());
     ASSERT(n == q_lookup_type.size());
@@ -884,9 +810,6 @@ UltraProver UltraComposer::create_prover()
     std::unique_ptr<ProverPlookupArithmeticWidget<ultra_settings>> arithmetic_widget =
         std::make_unique<ProverPlookupArithmeticWidget<ultra_settings>>(circuit_proving_key.get());
 
-    std::unique_ptr<ProverUltraFixedBaseWidget<ultra_settings>> fixed_base_widget =
-        std::make_unique<ProverUltraFixedBaseWidget<ultra_settings>>(circuit_proving_key.get());
-
     std::unique_ptr<ProverGenPermSortWidget<ultra_settings>> sort_widget =
         std::make_unique<ProverGenPermSortWidget<ultra_settings>>(circuit_proving_key.get());
 
@@ -900,7 +823,6 @@ UltraProver UltraComposer::create_prover()
     output_state.random_widgets.emplace_back(std::move(plookup_widget));
 
     output_state.transition_widgets.emplace_back(std::move(arithmetic_widget));
-    output_state.transition_widgets.emplace_back(std::move(fixed_base_widget));
     output_state.transition_widgets.emplace_back(std::move(sort_widget));
     output_state.transition_widgets.emplace_back(std::move(elliptic_widget));
     output_state.transition_widgets.emplace_back(std::move(auxiliary_widget));
@@ -932,9 +854,6 @@ UnrolledUltraProver UltraComposer::create_unrolled_prover()
     std::unique_ptr<ProverPlookupArithmeticWidget<unrolled_ultra_settings>> arithmetic_widget =
         std::make_unique<ProverPlookupArithmeticWidget<unrolled_ultra_settings>>(circuit_proving_key.get());
 
-    std::unique_ptr<ProverUltraFixedBaseWidget<unrolled_ultra_settings>> fixed_base_widget =
-        std::make_unique<ProverUltraFixedBaseWidget<unrolled_ultra_settings>>(circuit_proving_key.get());
-
     std::unique_ptr<ProverGenPermSortWidget<unrolled_ultra_settings>> sort_widget =
         std::make_unique<ProverGenPermSortWidget<unrolled_ultra_settings>>(circuit_proving_key.get());
 
@@ -948,7 +867,6 @@ UnrolledUltraProver UltraComposer::create_unrolled_prover()
     output_state.random_widgets.emplace_back(std::move(plookup_widget));
 
     output_state.transition_widgets.emplace_back(std::move(arithmetic_widget));
-    output_state.transition_widgets.emplace_back(std::move(fixed_base_widget));
     output_state.transition_widgets.emplace_back(std::move(sort_widget));
     output_state.transition_widgets.emplace_back(std::move(elliptic_widget));
     output_state.transition_widgets.emplace_back(std::move(auxiliary_widget));
@@ -981,9 +899,6 @@ UnrolledUltraToStandardProver UltraComposer::create_unrolled_ultra_to_standard_p
     std::unique_ptr<ProverPlookupArithmeticWidget<unrolled_ultra_to_standard_settings>> arithmetic_widget =
         std::make_unique<ProverPlookupArithmeticWidget<unrolled_ultra_to_standard_settings>>(circuit_proving_key.get());
 
-    std::unique_ptr<ProverUltraFixedBaseWidget<unrolled_ultra_to_standard_settings>> fixed_base_widget =
-        std::make_unique<ProverUltraFixedBaseWidget<unrolled_ultra_to_standard_settings>>(circuit_proving_key.get());
-
     std::unique_ptr<ProverGenPermSortWidget<unrolled_ultra_to_standard_settings>> sort_widget =
         std::make_unique<ProverGenPermSortWidget<unrolled_ultra_to_standard_settings>>(circuit_proving_key.get());
 
@@ -997,7 +912,6 @@ UnrolledUltraToStandardProver UltraComposer::create_unrolled_ultra_to_standard_p
     output_state.random_widgets.emplace_back(std::move(plookup_widget));
 
     output_state.transition_widgets.emplace_back(std::move(arithmetic_widget));
-    output_state.transition_widgets.emplace_back(std::move(fixed_base_widget));
     output_state.transition_widgets.emplace_back(std::move(sort_widget));
     output_state.transition_widgets.emplace_back(std::move(elliptic_widget));
     output_state.transition_widgets.emplace_back(std::move(auxiliary_widget));
@@ -1016,8 +930,8 @@ UltraVerifier UltraComposer::create_verifier()
 
     UltraVerifier output_state(circuit_verification_key, create_manifest(public_inputs.size()));
 
-    std::unique_ptr<KateCommitmentScheme<turbo_settings>> kate_commitment_scheme =
-        std::make_unique<KateCommitmentScheme<turbo_settings>>();
+    std::unique_ptr<KateCommitmentScheme<ultra_settings>> kate_commitment_scheme =
+        std::make_unique<KateCommitmentScheme<ultra_settings>>();
 
     output_state.commitment_scheme = std::move(kate_commitment_scheme);
 
@@ -1123,7 +1037,6 @@ plookup::ReadData<uint32_t> UltraComposer::create_gates_from_plookup_accumulator
         q_c.emplace_back((i == (num_lookups - 1) ? 0 : -multi_table.column_3_step_sizes[i + 1]));
         q_arith.emplace_back(0);
         q_4.emplace_back(0);
-        q_fixed_base.emplace_back(0);
         q_sort.emplace_back(0);
         q_elliptic.emplace_back(0);
         q_aux.emplace_back(0);
@@ -1364,7 +1277,6 @@ void UltraComposer::create_sort_constraint(const std::vector<uint32_t>& variable
         q_c.emplace_back(0);
         q_arith.emplace_back(0);
         q_4.emplace_back(0);
-        q_fixed_base.emplace_back(0);
         q_sort.emplace_back(1);
         q_elliptic.emplace_back(0);
         q_lookup_type.emplace_back(0);
@@ -1383,7 +1295,6 @@ void UltraComposer::create_sort_constraint(const std::vector<uint32_t>& variable
     q_c.emplace_back(0);
     q_arith.emplace_back(0);
     q_4.emplace_back(0);
-    q_fixed_base.emplace_back(0);
     q_sort.emplace_back(0);
     q_elliptic.emplace_back(0);
     q_lookup_type.emplace_back(0);
@@ -1417,7 +1328,6 @@ void UltraComposer::create_dummy_constraints(const std::vector<uint32_t>& variab
         q_c.emplace_back(0);
         q_arith.emplace_back(0);
         q_4.emplace_back(0);
-        q_fixed_base.emplace_back(0);
         q_sort.emplace_back(0);
         q_elliptic.emplace_back(0);
         q_lookup_type.emplace_back(0);
@@ -1449,7 +1359,6 @@ void UltraComposer::create_sort_constraint_with_edges(const std::vector<uint32_t
     q_c.emplace_back(-start);
     q_arith.emplace_back(1);
     q_4.emplace_back(0);
-    q_fixed_base.emplace_back(0);
     q_sort.emplace_back(1);
     q_elliptic.emplace_back(0);
     q_lookup_type.emplace_back(0);
@@ -1469,7 +1378,6 @@ void UltraComposer::create_sort_constraint_with_edges(const std::vector<uint32_t
         q_c.emplace_back(0);
         q_arith.emplace_back(0);
         q_4.emplace_back(0);
-        q_fixed_base.emplace_back(0);
         q_sort.emplace_back(1);
         q_elliptic.emplace_back(0);
         q_lookup_type.emplace_back(0);
@@ -1489,7 +1397,6 @@ void UltraComposer::create_sort_constraint_with_edges(const std::vector<uint32_t
         q_c.emplace_back(0);
         q_arith.emplace_back(0);
         q_4.emplace_back(0);
-        q_fixed_base.emplace_back(0);
         q_sort.emplace_back(1);
         q_elliptic.emplace_back(0);
         q_lookup_type.emplace_back(0);
@@ -1510,7 +1417,6 @@ void UltraComposer::create_sort_constraint_with_edges(const std::vector<uint32_t
     q_c.emplace_back(-end);
     q_arith.emplace_back(1);
     q_4.emplace_back(0);
-    q_fixed_base.emplace_back(0);
     q_sort.emplace_back(0);
     q_elliptic.emplace_back(0);
     q_lookup_type.emplace_back(0);
@@ -1617,7 +1523,6 @@ std::vector<uint32_t> UltraComposer::decompose_into_default_range_better_for_odd
 void UltraComposer::apply_aux_selectors(const AUX_SELECTORS type)
 {
     ULTRA_SELECTOR_REFS;
-    q_fixed_base.emplace_back(0);
     q_aux.emplace_back(type == AUX_SELECTORS::NONE ? 0 : 1);
     q_sort.emplace_back(0);
     q_lookup_type.emplace_back(0);
@@ -2236,7 +2141,6 @@ std::array<uint32_t, 5> UltraComposer::evaluate_non_native_field_addition(
     q_arith.emplace_back(1);
 
     for (size_t i = 0; i < 4; ++i) {
-        q_fixed_base.emplace_back(0);
         q_sort.emplace_back(0);
         q_lookup_type.emplace_back(0);
         q_elliptic.emplace_back(0);
@@ -2363,7 +2267,6 @@ std::array<uint32_t, 5> UltraComposer::evaluate_non_native_field_subtraction(
     q_arith.emplace_back(1);
 
     for (size_t i = 0; i < 4; ++i) {
-        q_fixed_base.emplace_back(0);
         q_sort.emplace_back(0);
         q_lookup_type.emplace_back(0);
         q_elliptic.emplace_back(0);

@@ -11,7 +11,7 @@ class UltraComposer : public ComposerBase {
 
   public:
     static constexpr ComposerType type = ComposerType::PLOOKUP;
-    static constexpr MerkleHashType merkle_hash_type = MerkleHashType::FIXED_BASE_PEDERSEN;
+    static constexpr MerkleHashType merkle_hash_type = MerkleHashType::LOOKUP_PEDERSEN;
     static constexpr size_t NUM_RESERVED_GATES = 4; // This must be >= num_roots_cut_out_of_vanishing_polynomial
                                                     // See the comment in plonk/proof_system/prover/prover.cpp
                                                     // ProverBase::compute_quotient_commitments() for why 4 exactly.
@@ -135,7 +135,7 @@ class UltraComposer : public ComposerBase {
         std::vector<RomRecord> records;
     };
 
-    enum UltraSelectors { QM, QC, Q1, Q2, Q3, Q4, QARITH, QFIXED, QSORT, QELLIPTIC, QAUX, QLOOKUPTYPE, NUM };
+    enum UltraSelectors { QM, QC, Q1, Q2, Q3, Q4, QARITH, QSORT, QELLIPTIC, QAUX, QLOOKUPTYPE, NUM };
 
     UltraComposer();
     UltraComposer(std::string const& crs_path, const size_t size_hint = 0);
@@ -170,10 +170,6 @@ class UltraComposer : public ComposerBase {
     void create_mul_gate(const mul_triple& in) override;
     void create_bool_gate(const uint32_t a) override;
     void create_poly_gate(const poly_triple& in) override;
-    void create_fixed_group_add_gate(const fixed_group_add_quad& in);
-    void create_fixed_group_add_gate_with_init(const fixed_group_add_quad& in, const fixed_group_init_quad& init);
-    void create_fixed_group_add_gate_final(const add_quad& in);
-
     void create_ecc_add_gate(const ecc_add_gate& in);
 
     void fix_witness(const uint32_t witness_index, const barretenberg::fr& witness_value);
@@ -495,89 +491,14 @@ class UltraComposer : public ComposerBase {
      * Program Manifests
      **/
 
+    /**
+     * @brief Create a manifest object
+     *
+     * @note UltraPlonk manifest does not use linearisation trick
+     * @param num_public_inputs
+     * @return transcript::Manifest
+     */
     static transcript::Manifest create_manifest(const size_t num_public_inputs)
-    {
-        // add public inputs....
-        constexpr size_t g1_size = 64;
-        constexpr size_t fr_size = 32;
-        const size_t public_input_size = fr_size * num_public_inputs;
-        const transcript::Manifest output = transcript::Manifest(
-
-            { transcript::Manifest::RoundManifest(
-                  { { "circuit_size", 4, true }, { "public_input_size", 4, true } }, "init", 1),
-
-              transcript::Manifest::RoundManifest({ { "public_inputs", public_input_size, false },
-                                                    { "W_1", g1_size, false },
-                                                    { "W_2", g1_size, false },
-                                                    { "W_3", g1_size, false } },
-                                                  "eta",
-                                                  1),
-
-              transcript::Manifest::RoundManifest({ { "W_4", g1_size, false }, { "S", g1_size, false } }, "beta", 2),
-
-              transcript::Manifest::RoundManifest(
-                  { { "Z_PERM", g1_size, false }, { "Z_LOOKUP", g1_size, false } }, "alpha", 1),
-
-              transcript::Manifest::RoundManifest({ { "T_1", g1_size, false },
-                                                    { "T_2", g1_size, false },
-                                                    { "T_3", g1_size, false },
-                                                    { "T_4", g1_size, false } },
-                                                  "z",
-                                                  1),
-
-              transcript::Manifest::RoundManifest(
-                  {
-                      { "w_1", fr_size, false, 0 },
-                      { "w_2", fr_size, false, 1 },
-                      { "w_3", fr_size, false, 2 },
-                      { "w_4", fr_size, false, 3 },
-                      { "sigma_1", fr_size, false, 4 },
-                      { "sigma_2", fr_size, false, 5 },
-                      { "sigma_3", fr_size, false, 6 },
-                      { "q_arith", fr_size, false, 7 },
-                      { "q_fixed_base", fr_size, false, 27 },
-                      { "q_aux", fr_size, false, 26 },
-                      { "q_1", fr_size, false, 25 },
-                      { "q_2", fr_size, false, 8 },
-                      { "q_3", fr_size, false, 9 },
-                      { "q_4", fr_size, false, 10 },
-                      { "q_m", fr_size, false, 11 },
-                      { "q_c", fr_size, false, 12 },
-                      { "table_value_1", fr_size, false, 13 },
-                      { "table_value_2", fr_size, false, 14 },
-                      { "table_value_3", fr_size, false, 15 },
-                      { "table_value_4", fr_size, false, 16 },
-                      { "table_type", fr_size, false, 17 },
-                      { "s", fr_size, false, 18 },
-                      { "z_lookup", fr_size, false, 19 },
-                      { "id_1", fr_size, false, 21 },
-                      { "id_2", fr_size, false, 22 },
-                      { "id_3", fr_size, false, 23 },
-                      { "id_4", fr_size, false, 24 },
-                      { "z_perm_omega", fr_size, false, -1 },
-                      { "w_1_omega", fr_size, false, 0 },
-                      { "w_2_omega", fr_size, false, 1 },
-                      { "w_3_omega", fr_size, false, 2 },
-                      { "w_4_omega", fr_size, false, 3 },
-                      { "table_value_1_omega", fr_size, false, 4 },
-                      { "table_value_2_omega", fr_size, false, 5 },
-                      { "table_value_3_omega", fr_size, false, 6 },
-                      { "table_value_4_omega", fr_size, false, 7 },
-                      { "s_omega", fr_size, false, 8 },
-                      { "z_lookup_omega", fr_size, false, 9 },
-                  },
-                  "nu",
-                  ULTRA_UNROLLED_MANIFEST_SIZE - 3,
-                  true),
-
-              transcript::Manifest::RoundManifest(
-                  { { "PI_Z", g1_size, false }, { "PI_Z_OMEGA", g1_size, false } }, "separator", 1) });
-
-        return output;
-    }
-
-    // @note 'unrolled' means "don't use linearisation techniques from the plonk paper".
-    static transcript::Manifest create_unrolled_manifest(const size_t num_public_inputs)
     {
         // add public inputs....
         constexpr size_t g1_size = 64;
@@ -652,7 +573,6 @@ class UltraComposer : public ComposerBase {
                       { "q_sort", fr_size, false, 14 },     // *
                       { "q_elliptic", fr_size, false, 15 }, // *
                       { "q_aux", fr_size, false, 16 },
-                      { "q_fixed_base", fr_size, false, 30 },
                       { "sigma_1", fr_size, false, 17 },
                       { "sigma_2", fr_size, false, 18 },
                       { "sigma_3", fr_size, false, 19 },
@@ -692,6 +612,23 @@ class UltraComposer : public ComposerBase {
                   ) });
 
         return output;
+    }
+
+    // @note 'unrolled' means "don't use linearisation techniques from the plonk paper".
+    /**
+     * @brief Create a unrolled manifest object
+     *
+     * @note UP rolled/unrolled manifests are the same. Difference between regulur && unrolled Prover/Verifier is that
+     * unrolled Prover/Verifier uses 16-byte challenges and a SNARK-friendly hash algorithm to generate challenges.
+     * (i.e. unrolled Prover/Verifier is used in recursive setting)
+     *
+     * TODO: remove linearisation trick entirely from barretenberg and relabel `unrolled` to `recursive`!
+     * @param num_public_inputs
+     * @return transcript::Manifest
+     */
+    static transcript::Manifest create_unrolled_manifest(const size_t num_public_inputs)
+    {
+        return create_manifest(num_public_inputs);
     }
 };
 } // namespace waffle
