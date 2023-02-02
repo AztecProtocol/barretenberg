@@ -1,5 +1,5 @@
 #pragma once
-#include <plonk/composer/composer_base.hpp>
+#include <proof_system/composer/composer_base.hpp>
 #include "../../primitives/composers/composers_fwd.hpp"
 #include "../../primitives/field/field.hpp"
 #include "../../primitives/point/point.hpp"
@@ -22,9 +22,9 @@ namespace stdlib {
  */
 template <typename Composer> class pedersen_gates {
   public:
-    using fixed_group_add_quad = waffle::fixed_group_add_quad;
-    using fixed_group_init_quad = waffle::fixed_group_init_quad;
-    using add_quad = waffle::add_quad;
+    using fixed_group_add_quad = bonk::fixed_group_add_quad;
+    using fixed_group_init_quad = bonk::fixed_group_init_quad;
+    using add_quad = bonk::add_quad;
     using ComposerType = waffle::ComposerType;
 
     Composer* context;
