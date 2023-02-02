@@ -242,10 +242,11 @@ template <typename Composer> void ram_table<Composer>::write(const field_pt& ind
         value_wire = field_pt::from_witness_index(_context, _context->put_constant_variable(native_value));
     }
 
-    if (index.is_constant() && _index_initialized[static_cast<size_t>(native_index)] == false) {
-        _context->init_RAM_element(_ram_id, static_cast<size_t>(native_index), value_wire.get_witness_index());
+    const size_t cast_index = static_cast<size_t>(static_cast<uint64_t>(native_index));
+    if (index.is_constant() && _index_initialized[cast_index] == false) {
+        _context->init_RAM_element(_ram_id, cast_index, value_wire.get_witness_index());
 
-        _index_initialized[static_cast<size_t>(native_index)] = true;
+        _index_initialized[cast_index] = true;
     } else {
         _context->write_RAM_array(_ram_id, index_wire.normalize().get_witness_index(), value_wire.get_witness_index());
     }
