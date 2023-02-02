@@ -252,6 +252,5 @@ template class VerifierBase<unrolled_ultra_to_standard_verifier_settings>;
 template class VerifierBase<standard_verifier_settings>;
 template class VerifierBase<turbo_verifier_settings>;
 template class VerifierBase<ultra_verifier_settings>;
-template class VerifierBase<generalized_permutation_verifier_settings>;
 
 } // namespace waffle

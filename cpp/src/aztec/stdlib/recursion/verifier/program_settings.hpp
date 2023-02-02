@@ -19,7 +19,6 @@ template <typename Curve> class recursive_ultra_verifier_settings : public waffl
 
     typedef waffle::unrolled_ultra_settings base_settings;
 
-    typedef waffle::VerifierUltraFixedBaseWidget<fr_ct, g1, Transcript_pt, base_settings> UltraFixedBaseWidget;
     typedef waffle::VerifierPlookupArithmeticWidget<fr_ct, g1, Transcript_pt, base_settings> PlookupArithmeticWidget;
     typedef waffle::VerifierTurboLogicWidget<fr_ct, g1, Transcript_pt, base_settings> TurboLogicWidget;
     typedef waffle::VerifierGenPermSortWidget<fr_ct, g1, Transcript_pt, base_settings> GenPermSortWidget;
@@ -49,9 +48,6 @@ template <typename Curve> class recursive_ultra_verifier_settings : public waffl
         updated_alpha =
             PlookupArithmeticWidget::append_scalar_multiplication_inputs(key, updated_alpha, transcript, scalars);
 
-        updated_alpha =
-            UltraFixedBaseWidget::append_scalar_multiplication_inputs(key, updated_alpha, transcript, scalars);
-
         updated_alpha = GenPermSortWidget::append_scalar_multiplication_inputs(key, updated_alpha, transcript, scalars);
 
         updated_alpha = EllipticWidget::append_scalar_multiplication_inputs(key, updated_alpha, transcript, scalars);
@@ -75,9 +71,6 @@ template <typename Curve> class recursive_ultra_verifier_settings : public waffl
 
         updated_alpha_base =
             PlookupArithmeticWidget::compute_quotient_evaluation_contribution(key, updated_alpha_base, transcript, r_0);
-
-        updated_alpha_base =
-            UltraFixedBaseWidget::compute_quotient_evaluation_contribution(key, updated_alpha_base, transcript, r_0);
 
         updated_alpha_base =
             GenPermSortWidget::compute_quotient_evaluation_contribution(key, updated_alpha_base, transcript, r_0);
@@ -106,7 +99,6 @@ class recursive_ultra_to_standard_verifier_settings : public recursive_ultra_ver
 
     typedef waffle::unrolled_ultra_to_standard_settings base_settings;
 
-    typedef waffle::VerifierUltraFixedBaseWidget<fr_ct, g1, Transcript_pt, base_settings> UltraFixedBaseWidget;
     typedef waffle::VerifierPlookupArithmeticWidget<fr_ct, g1, Transcript_pt, base_settings> PlookupArithmeticWidget;
     typedef waffle::VerifierTurboLogicWidget<fr_ct, g1, Transcript_pt, base_settings> TurboLogicWidget;
     typedef waffle::VerifierGenPermSortWidget<fr_ct, g1, Transcript_pt, base_settings> GenPermSortWidget;
