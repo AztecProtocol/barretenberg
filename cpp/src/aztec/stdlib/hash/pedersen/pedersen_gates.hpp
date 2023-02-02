@@ -40,7 +40,8 @@ template <typename Composer> class pedersen_gates {
             context->create_fixed_group_add_gate(in);
         } else {
 
-            context->assert_valid_variables({ in.a, in.b, in.c, in.d });
+            // TODO: not supported by honk composer?
+            // context->assert_valid_variables({ in.a, in.b, in.c, in.d });
 
             auto row_1 = previous_add_quad;
             auto row_2 = in;
