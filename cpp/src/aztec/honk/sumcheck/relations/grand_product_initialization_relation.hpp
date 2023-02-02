@@ -1,14 +1,13 @@
 #pragma once
 #include "relation.hpp"
 #include <proof_system/flavor/flavor.hpp>
-#include "../polynomials/univariate.hpp"
 
 namespace honk::sumcheck {
 
 template <typename FF> class GrandProductInitializationRelation : public Relation<FF> {
   public:
     // 1 + polynomial degree of this relation
-    static constexpr size_t RELATION_LENGTH = 4;
+    static constexpr size_t RELATION_LENGTH = 3;
     using MULTIVARIATE = StandardHonk::MULTIVARIATE; // could just get from StandardArithmetization
 
     GrandProductInitializationRelation() = default;
@@ -22,53 +21,21 @@ template <typename FF> class GrandProductInitializationRelation : public Relatio
      *
      *                      C(X) = L_LAST(X) * Z_perm_shift(X)
      *
-     *
-     * The final parameter is left to conform to the general argument structure (input,output, challenges) even though
-     * we don't need challenges in this relation.
-     *
+     * @param acc transformed to `acc + C(variables...)*scaling_factor`
+     * @param variables an std::array containing the variables for this gate.
+     * Can be either FF or UnivariateView<FF> or UnivariateExpr<FF>.
+     * @param parameters unused
+     * @param scaling_factor optional term to scale the evaluation before adding to acc.
      */
-    template <typename T> void add_edge_contribution(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals, T)
+    static void accumulate_relation_evaluation(auto& acc,
+                                               const auto& variables,
+                                               const RelationParameters<FF>& = {},
+                                               const FF& scaling_factor = FF::one())
     {
-        add_edge_contribution_internal(extended_edges, evals);
-    };
+        const auto& z_perm_shift = variables[MULTIVARIATE::Z_PERM_SHIFT];
+        const auto& lagrange_last = variables[MULTIVARIATE::LAGRANGE_LAST];
 
-    /**
-     * @brief Internal function computing the actual contribution for GP intialization relation
-     *
-     * @param extended_edges
-     * @param evals
-     */
-    void add_edge_contribution_internal(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals)
-    {
-        auto z_perm_shift = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Z_PERM_SHIFT]);
-        auto lagrange_last = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::LAGRANGE_LAST]);
-        auto pow_zeta = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::POW_ZETA]);
-
-        evals += pow_zeta * (lagrange_last * z_perm_shift);
+        acc += (lagrange_last * z_perm_shift) * scaling_factor;
     }
-    /**
-     * @brief A version of `add_edge_contribution` used for testing the relation
-     *
-     * @tparam T
-     * @param extended_edges
-     * @param evals
-     * @param challenges
-     */
-    // TODO(kesha): Change once challenges are being supplied to regular contribution
-    template <typename T>
-    void add_edge_contribution_testing(auto& extended_edges, Univariate<FF, RELATION_LENGTH>& evals, T)
-    {
-        add_edge_contribution_internal(extended_edges, evals);
-    }
-
-    template <typename T>
-    void add_full_relation_value_contribution(auto& purported_evaluations, FF& full_honk_relation_value, T)
-    {
-        auto z_perm_shift = purported_evaluations[MULTIVARIATE::Z_PERM_SHIFT];
-        auto lagrange_last = purported_evaluations[MULTIVARIATE::LAGRANGE_LAST];
-        auto pow_zeta = purported_evaluations[MULTIVARIATE::POW_ZETA];
-
-        full_honk_relation_value += pow_zeta * (lagrange_last * z_perm_shift);
-    };
 };
 } // namespace honk::sumcheck

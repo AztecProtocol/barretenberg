@@ -5,7 +5,9 @@
 #include <tuple>
 #include "polynomials/barycentric_data.hpp"
 #include "polynomials/univariate.hpp"
+#include "polynomials/pow.hpp"
 #include "relations/relation.hpp"
+
 namespace honk::sumcheck {
 
 /*
@@ -40,6 +42,10 @@ namespace honk::sumcheck {
  elements that are stored in the Multivariates. The rationale for adopting this model is to
  avoid copying the full-length polynomials; this way, the largest polynomial array stores in a
  Multivariates class is multivariates_n/2.
+
+ Note: This class uses recursive function calls with template parameters. This is a common trick that is used to force
+ the compiler to unroll loops. The idea is that a function that is only called once will always be inlined, and since
+ template functions always create different functions, this is guaranteed.
  */
 
 template <class FF, size_t num_multivariates, template <class> class... Relations> class SumcheckRound {
@@ -51,13 +57,13 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     std::tuple<Relations<FF>...> relations;
     static constexpr size_t NUM_RELATIONS = sizeof...(Relations);
     static constexpr size_t MAX_RELATION_LENGTH = std::max({ Relations<FF>::RELATION_LENGTH... });
+    static constexpr std::array<size_t, NUM_RELATIONS> RELATION_LENGTHS{ { Relations<FF>::RELATION_LENGTH... } };
 
     FF target_total_sum = 0;
 
     // TODO(Cody): this barycentric stuff should be more built-in?
     std::tuple<BarycentricData<FF, Relations<FF>::RELATION_LENGTH, MAX_RELATION_LENGTH>...> barycentric_utils;
     std::tuple<Univariate<FF, Relations<FF>::RELATION_LENGTH>...> univariate_accumulators;
-    std::array<FF, NUM_RELATIONS> evaluations;
     std::array<Univariate<FF, MAX_RELATION_LENGTH>, num_multivariates> extended_edges;
     std::array<Univariate<FF, MAX_RELATION_LENGTH>, NUM_RELATIONS> extended_univariates;
 
@@ -76,12 +82,7 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     explicit SumcheckRound(auto relations)
         : relations(relations)
         // TODO(Cody): this is a hack; accumulators not needed by verifier
-        , univariate_accumulators(Univariate<FF, Relations<FF>::RELATION_LENGTH>()...)
-    {
-        // FF's default constructor may not initialize to zero (e.g., barretenberg::fr), hence we can't rely on
-        // aggregate initialization of the evaluations array.
-        std::fill(evaluations.begin(), evaluations.end(), FF(0));
-    };
+        , univariate_accumulators(Univariate<FF, Relations<FF>::RELATION_LENGTH>()...){};
 
     /**
      * @brief After computing the round univariate, it is necessary to zero-out the accumulators used to compute it.
@@ -95,37 +96,24 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
             reset_accumulators<idx + 1>();
         }
     };
-    // IMPROVEMENT(Cody): This is kind of ugly. There should be a one-liner with folding
-    // or std::apply or something.
 
     /**
-     * @brief Given a tuple t = (t_0, t_1, ..., t_{NUM_RELATIONS-1}) and a challenge α,
-     * modify the tuple in place to (t_0, αt_1, ..., α^{NUM_RELATIONS-1}t_{NUM_RELATIONS-1}).
-     */
-    template <size_t idx = 0> void scale_tuple(auto& tuple, FF challenge, FF running_challenge)
-    {
-        std::get<idx>(tuple) *= running_challenge;
-        running_challenge *= challenge;
-        if constexpr (idx + 1 < NUM_RELATIONS) {
-            scale_tuple<idx + 1>(tuple, challenge, running_challenge);
-        }
-    };
-
-    /**
-     * @brief Given a tuple t = (t_0, t_1, ..., t_{NUM_RELATIONS-1}) and a challenge α,
-     * return t_0 + αt_1 + ... + α^{NUM_RELATIONS-1}t_{NUM_RELATIONS-1}).
+     * @brief Compute the sum of all the elements in the accumulators.
      *
-     * @tparam T : In practice, this is an FF or a Univariate<FF, MAX_NUM_RELATIONS>.
+     * @tparam T Container type
+     * @tparam N number of relations that have been evaluated.
+     * @param accumulators
+     * @return T = ∑_i accumulators[i] * alpha^i
      */
-    template <typename T> T batch_over_relations(FF challenge)
+    template <typename T, size_t N> T batch_over_relations(const std::array<T, N>& accumulators, const FF& alpha)
     {
-        FF running_challenge = 1;
-        scale_tuple<>(univariate_accumulators, challenge, running_challenge);
-        extend_univariate_accumulators<>();
-        auto result = T();
-        for (size_t i = 0; i < NUM_RELATIONS; ++i) {
-            result += extended_univariates[i];
+        // Iterate over the array in reverse order to avoid the extra multiplication by alpha
+        T result{ 0 };
+        for (size_t i = N - 1; i != 0; --i) {
+            result += accumulators[i];
+            result *= alpha;
         }
+        result += accumulators[0];
         return result;
     }
 
@@ -146,32 +134,44 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     }
 
     /**
-     * @brief Function accumulating relations for testing
+     * @brief Evaluate the specified relation using the polynomials in `columns`, scale it,
+     * and add it to the corresponding accumulator.
      *
-     * @details Get univariates from input instead of internal state. Uses submitted challenges
+     * @details This function is almost uniform over FF and Univariate. To minimize the
+     * amount of work required when we are running the prover, we need to first
+     * transform the columns into UnivariateView which shrinks the length.
      *
-     * @tparam relation_idx
-     * @tparam challenge_size
-     * @param internal_extended_edges
-     * @param internal_univariate_accumulators
-     * @param challenges
+     * @post accumulator[r_idx] += scaling_factor * relation.evaluate(columns)
+     *
+     * @tparam relation_idx Index of the current relation we are evaluating
+     * @param accumulators std::array indexed by each relations containing the accumulated (randomized) sum of
+     * evaluations of this relation.
+     * @param columns std::array of evaluations (FF or Univariate) indexed by the number of polynomials.
+     * @param relation_parameters Generic struct with challenges
+     * @param scaling_factor Either 1 (if we are evaluating as the verifier) or (zeta^2^{l+1})^i (as the prover),
+     * multiplies the evaluated relation before it is added to the accumulator
      */
-    template <size_t relation_idx = 0, size_t challenge_size = 3>
-    void accumulate_relation_univariates_testing(
-        std::array<Univariate<FF, MAX_RELATION_LENGTH>, num_multivariates>& internal_extended_edges,
-        std::tuple<Univariate<FF, Relations<FF>::RELATION_LENGTH>...>& internal_univariate_accumulators,
-        std::array<FF, challenge_size> challenges)
+    template <size_t relation_idx>
+    void accumulate_relations_at_idx(auto& accumulators,
+                                     const auto& columns,
+                                     const RelationParameters<FF>& relation_parameters,
+                                     const FF scaling_factor)
     {
-        std::get<relation_idx>(relations).add_edge_contribution_testing(
-            internal_extended_edges, std::get<relation_idx>(internal_univariate_accumulators), challenges);
+        auto& accumulator = std::get<relation_idx>(accumulators);
+        const auto& relation = std::get<relation_idx>(relations);
 
-        // Repeat for the next relation.
-        if constexpr (relation_idx + 1 < NUM_RELATIONS) {
-            accumulate_relation_univariates_testing<relation_idx + 1, challenge_size>(
-                internal_extended_edges, internal_univariate_accumulators, challenges);
+        // TODO: For now, we need to distinguish between the case where we are summing Field elements or Univariates.
+        if constexpr (std::is_same_v<decltype(accumulator), FF&>) {
+            relation.accumulate_relation_evaluation(accumulator, columns, relation_parameters, scaling_factor);
+        } else {
+            constexpr size_t relation_length = RELATION_LENGTHS[relation_idx];
+
+            const auto columns_view = array_to_array<UnivariateView<FF, relation_length>>(columns);
+
+            relation.accumulate_relation_evaluation(accumulator, columns_view, relation_parameters, scaling_factor);
         }
     }
-    // TODO(Cody): make private
+
     /**
      * @brief For a given edge, calculate the contribution of each relation to the prover round univariate (S_l in the
      * thesis).
@@ -186,40 +186,21 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
      * Result: for each relation, a univariate of some degree is computed by accumulating the contributions of each
      * group of edges. These are stored in `univariate_accumulators`. Adding these univariates together, with
      * appropriate scaling factors, produces S_l.
-     */
-    template <size_t relation_idx = 0>
-    void accumulate_relation_univariates(const RelationParameters<FF>& relation_parameters)
-    {
-        std::get<relation_idx>(relations).add_edge_contribution(
-            extended_edges, std::get<relation_idx>(univariate_accumulators), relation_parameters);
-
-        // Repeat for the next relation.
-        if constexpr (relation_idx + 1 < NUM_RELATIONS) {
-            accumulate_relation_univariates<relation_idx + 1>(relation_parameters);
-        }
-    }
-
-    // TODO(Cody): make private
-    // TODO(Cody): make uniform with accumulate_relation_univariates
-    /**
-     * @brief Calculate the contribution of each relation to the expected value of the full Honk relation.
      *
-     * @details For each relation, use the purported values (supplied by the prover) of the multivariates to calculate
-     * a contribution to the purported value of the full Honk relation. These are stored in `evaluations`. Adding these
-     * together, with appropriate scaling factors, produces the expected value of the full Honk relation. This value is
-     * checked against the final value of the target total sum (called sigma_0 in the thesis).
+     * @note This function is essentially performing an unrolled loop. The actual body is contained in
+     * add_scaled_expression_at_idx.
      */
     template <size_t relation_idx = 0>
-    // TODO(Cody): Input should be an array? Then challenge container has to know array length.
-    void accumulate_relation_evaluations(std::vector<FF>& purported_evaluations,
-                                         const RelationParameters<FF>& relation_parameters)
+    void accumulate_relations(auto& accumulators,
+                              const auto& columns,
+                              const RelationParameters<FF>& relation_parameters,
+                              const FF scaling_factor)
     {
-        std::get<relation_idx>(relations).add_full_relation_value_contribution(
-            purported_evaluations, evaluations[relation_idx], relation_parameters);
+        accumulate_relations_at_idx<relation_idx>(accumulators, columns, relation_parameters, scaling_factor);
 
         // Repeat for the next relation.
         if constexpr (relation_idx + 1 < NUM_RELATIONS) {
-            accumulate_relation_evaluations<relation_idx + 1>(purported_evaluations, relation_parameters);
+            accumulate_relations<relation_idx + 1>(accumulators, columns, relation_parameters, scaling_factor);
         }
     }
 
@@ -246,51 +227,83 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
      * univariate accumulators to be zero.
      */
     Univariate<FF, MAX_RELATION_LENGTH> compute_univariate(auto& polynomials,
-                                                           const RelationParameters<FF>& relation_parameters)
+                                                           const RelationParameters<FF>& relation_parameters,
+                                                           const PowUnivariate<FF>& pow_univariate)
     {
+        // For each edge_idx = 2i, we need to multiply the whole contribution by zeta^{2^{2i}}
+        // This means that each univariate for each relation needs an extra multiplication.
+        FF pow_challenge = pow_univariate.partial_evaluation_constant;
         for (size_t edge_idx = 0; edge_idx < round_size; edge_idx += 2) {
             extend_edges(polynomials, edge_idx);
-
-            accumulate_relation_univariates<>(relation_parameters);
+            accumulate_relations(univariate_accumulators, extended_edges, relation_parameters, pow_challenge);
+            pow_challenge *= pow_univariate.zeta_pow_sqr;
         }
+        extend_univariate_accumulators<>();
 
-        auto result = batch_over_relations<Univariate<FF, MAX_RELATION_LENGTH>>(relation_parameters.alpha);
+        auto result = batch_over_relations(extended_univariates, relation_parameters.alpha);
 
         reset_accumulators<>();
 
         return result;
     }
 
+    /**
+     * @brief Calculate the contribution of each relation to the expected value of the full Honk relation.
+     *
+     * @details For each relation, use the purported values (supplied by the prover) of the multivariates to calculate
+     * a contribution to the purported value of the full Honk relation. These are stored in `evaluations`. Adding these
+     * together, with appropriate scaling factors, produces the expected value of the full Honk relation. This value is
+     * checked against the final value of the target total sum (called sigma_0 in the thesis).
+     */
+    // TODO(Cody): Input should be an array? Then challenge container has to know array length.
     FF compute_full_honk_relation_purported_value(std::vector<FF>& purported_evaluations,
-                                                  const RelationParameters<FF>& relation_parameters)
+                                                  const RelationParameters<FF>& relation_parameters,
+                                                  const PowUnivariate<FF>& pow_univariate)
     {
-        accumulate_relation_evaluations<>(purported_evaluations, relation_parameters);
-
-        // IMPROVEMENT(Cody): Reuse functions from univariate_accumulators batching?
-        FF running_challenge = 1;
-        FF output = 0;
-        for (auto& evals : evaluations) {
-            output += evals * running_challenge;
-            running_challenge *= relation_parameters.alpha;
-        }
-
-        return output;
+        // initialize the accumulator for each relation and set it to zero.
+        std::array<FF, NUM_RELATIONS> evaluation_accumulators;
+        std::fill_n(evaluation_accumulators.begin(), NUM_RELATIONS, FF::zero());
+        // iterate over each relation, evaluate it in the points given in purported_evaluations,
+        // and scale using the alpha challenge in relation_parameters
+        accumulate_relations(evaluation_accumulators, purported_evaluations, relation_parameters, FF::one());
+        // sum all the evaluations, and multiply by the already evaluated pow polynomial.
+        return batch_over_relations(evaluation_accumulators, relation_parameters.alpha) *
+               pow_univariate.partial_evaluation_constant;
     }
 
-    bool check_sum(Univariate<FF, MAX_RELATION_LENGTH>& univariate)
+    /**
+     * @brief check if S^{l}(0) + zeta^{2^l} * S^{l}(1) = S^{l+1}(u_{l+1})
+     *
+     * @param univariate S^{l}(X)
+     */
+    bool check_sum(Univariate<FF, MAX_RELATION_LENGTH>& univariate, const PowUnivariate<FF>& pow_univariate)
     {
-        FF total_sum = univariate.value_at(0) + univariate.value_at(1);
+        FF total_sum = univariate.value_at(0) + (pow_univariate.zeta_pow * univariate.value_at(1));
         bool sumcheck_round_failed = (target_total_sum != total_sum);
         round_failed = round_failed || sumcheck_round_failed;
         return !sumcheck_round_failed;
     };
 
-    FF compute_next_target_sum(Univariate<FF, MAX_RELATION_LENGTH>& univariate, FF& round_challenge)
+    /**
+     * @brief After checking that the univariate is good for this round, compute the next target sum.
+     * To handle the pow polynomial, we need to multiply the target sum by the missing monomial
+     * (1-X_l) + zeta^{2^l} X_l.
+     *
+     * @param univariate S^l(X), given by its evaluations over {0,1,2,...}
+     * @param round_challenge u_l
+     * @return FF sigma_{l}
+     */
+    FF compute_next_target_sum(Univariate<FF, MAX_RELATION_LENGTH>& univariate,
+                               FF& round_challenge,
+                               const PowUnivariate<FF>& pow_univariate)
     {
         // IMPROVEMENT(Cody): Use barycentric static method, maybe implement evaluation as member
         // function on Univariate.
         auto barycentric = BarycentricData<FF, MAX_RELATION_LENGTH, MAX_RELATION_LENGTH>();
         target_total_sum = barycentric.evaluate(univariate, round_challenge);
+        // The full S^l would be factorizable by (1-X_l) + zeta^{2^l} X_l, but this would increase the degree
+        // Since it can be computed by the verifier, the prover omits this factor, and we compensate for it here
+        target_total_sum *= pow_univariate.univariate_eval(round_challenge);
         return target_total_sum;
     }
 };
