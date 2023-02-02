@@ -43,9 +43,9 @@ template <typename Fr> class Polynomial {
     {
         free();
 
-        mapped_ = false;
         coefficients_ = 0;
         size_ = 0;
+        mapped_ = false;
     }
 
     bool operator==(Polynomial const& rhs) const
@@ -226,6 +226,7 @@ template <typename Fr> class Polynomial {
     const_pointer data() const { return coefficients_; }
 
     std::size_t size() const { return size_; }
+    std::size_t capacity() const { return size_ + DEFAULT_SIZE_INCREASE; }
 
   private:
     void free();
@@ -236,9 +237,9 @@ template <typename Fr> class Polynomial {
     const static size_t DEFAULT_SIZE_INCREASE = 1;
 
   public:
-    bool mapped_;
     Fr* coefficients_;
     size_t size_; // This is the size() of the `coefficients` vector.
+    bool mapped_;
 };
 
 template <typename Fr> inline std::ostream& operator<<(std::ostream& os, Polynomial<Fr> const& p)

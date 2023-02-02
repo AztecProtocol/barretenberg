@@ -37,30 +37,22 @@ Polynomial<Fr>::Polynomial(std::string const& filename)
 
 template <typename Fr>
 Polynomial<Fr>::Polynomial(const size_t size_)
-    : mapped_(false)
-    , coefficients_(nullptr)
+    : coefficients_(nullptr)
     , size_(size_)
+    , mapped_(false)
 {
-    size_t target_size = size_ + DEFAULT_SIZE_INCREASE;
-    if (target_size > 0) {
-
-        coefficients_ = (Fr*)(aligned_alloc(32, sizeof(Fr) * target_size));
+    if (capacity() > 0) {
+        coefficients_ = (Fr*)(aligned_alloc(32, sizeof(Fr) * capacity()));
     }
-    memset(static_cast<void*>(coefficients_), 0, sizeof(Fr) * target_size);
+    memset(static_cast<void*>(coefficients_), 0, sizeof(Fr) * capacity());
 }
 
 template <typename Fr>
 Polynomial<Fr>::Polynomial(const Polynomial<Fr>& other, const size_t target_size)
-    : mapped_(false)
-    , size_(target_size)
+    : size_(std::max(target_size, other.size())) // TODO: max(target_size, other_size)?
+    , mapped_(false)
 {
-    if (0 == size_) {
-        size_ = other.size_;
-    }
-
-    ASSERT(size_ >= other.size_);
-
-    coefficients_ = (Fr*)(aligned_alloc(32, sizeof(Fr) * size_));
+    coefficients_ = (Fr*)(aligned_alloc(32, sizeof(Fr) * capacity()));
 
     if (other.coefficients_ != nullptr) {
         memcpy(static_cast<void*>(coefficients_), static_cast<void*>(other.coefficients_), sizeof(Fr) * other.size_);
@@ -69,44 +61,41 @@ Polynomial<Fr>::Polynomial(const Polynomial<Fr>& other, const size_t target_size
 }
 template <typename Fr>
 Polynomial<Fr>::Polynomial(Polynomial<Fr>&& other) noexcept
-    : mapped_(other.mapped_)
-    , coefficients_(other.coefficients_)
+    : coefficients_(other.coefficients_)
     , size_(other.size_)
+    , mapped_(other.mapped_)
 {
-    other.coefficients_ = 0;
-
-    // Clear other, so we can detect use on free after poly's are put in cache
+    // For other, null the coefficients pointer and clear
+    other.coefficients_ = nullptr;
     other.clear();
 }
 
 template <typename Fr>
 Polynomial<Fr>::Polynomial(Fr* buf, const size_t size_)
-    : mapped_(false)
-    , coefficients_(buf)
+    : coefficients_(buf)
     , size_(size_)
+    , mapped_(false)
 {}
 
 template <typename Fr>
 Polynomial<Fr>::Polynomial()
-    : mapped_(false)
-    , coefficients_(0)
+    : coefficients_(nullptr)
     , size_(0)
+    , mapped_(false)
 {}
 
 template <typename Fr> Polynomial<Fr>& Polynomial<Fr>::operator=(const Polynomial<Fr>& other)
 {
     mapped_ = false;
 
-    ASSERT(size_ == 0 || other.size_ <= size_);
+    ASSERT(other.size_ <= size_);
 
-    if (other.coefficients_ != 0) {
+    if (other.coefficients_ != nullptr) {
         ASSERT(coefficients_);
         memcpy(static_cast<void*>(coefficients_), static_cast<void*>(other.coefficients_), sizeof(Fr) * other.size_);
     }
 
     zero_memory(other.size_, size_);
-
-    size_ = other.size_;
 
     return *this;
 }
@@ -118,13 +107,14 @@ template <typename Fr> Polynomial<Fr>& Polynomial<Fr>::operator=(Polynomial&& ot
     }
     free();
 
-    mapped_ = other.mapped_;
     coefficients_ = other.coefficients_;
     size_ = other.size_;
+    mapped_ = other.mapped_;
 
+    // For other, null the coefficients pointer and clear
     other.coefficients_ = nullptr;
-    // Clear other, so we can detect use on free after poly's are put in cache
     other.clear();
+
     return *this;
 }
 
@@ -199,7 +189,6 @@ template <typename Fr> void Polynomial<Fr>::fft(const EvaluationDomain<Fr>& doma
     zero_memory(domain.size, size_);
 
     polynomial_arithmetic::fft(coefficients_, domain);
-    size_ = domain.size;
 }
 
 template <typename Fr> void Polynomial<Fr>::partial_fft(const EvaluationDomain<Fr>& domain, Fr constant, bool is_coset)
@@ -209,7 +198,6 @@ template <typename Fr> void Polynomial<Fr>::partial_fft(const EvaluationDomain<F
     zero_memory(domain.size, size_);
 
     polynomial_arithmetic::partial_fft(coefficients_, domain, constant, is_coset);
-    size_ = domain.size;
 }
 
 template <typename Fr> void Polynomial<Fr>::coset_fft(const EvaluationDomain<Fr>& domain)
@@ -237,7 +225,6 @@ void Polynomial<Fr>::coset_fft(const EvaluationDomain<Fr>& domain,
     zero_memory(extended_size, size_);
 
     polynomial_arithmetic::coset_fft(coefficients_, domain, large_domain, domain_extension);
-    size_ = extended_size;
 }
 
 template <typename Fr>
@@ -250,7 +237,6 @@ void Polynomial<Fr>::coset_fft_with_constant(const EvaluationDomain<Fr>& domain,
     zero_memory(domain.size, size_);
 
     polynomial_arithmetic::coset_fft_with_constant(coefficients_, domain, constant);
-    size_ = domain.size;
 }
 
 template <typename Fr>
@@ -263,7 +249,6 @@ void Polynomial<Fr>::coset_fft_with_generator_shift(const EvaluationDomain<Fr>& 
     zero_memory(domain.size, size_);
 
     polynomial_arithmetic::coset_fft_with_generator_shift(coefficients_, domain, constant);
-    size_ = domain.size;
 }
 
 template <typename Fr> void Polynomial<Fr>::ifft(const EvaluationDomain<Fr>& domain)
@@ -286,7 +271,6 @@ template <typename Fr> void Polynomial<Fr>::ifft_with_constant(const EvaluationD
     zero_memory(domain.size, size_);
 
     polynomial_arithmetic::ifft_with_constant(coefficients_, domain, constant);
-    size_ = domain.size;
 }
 
 template <typename Fr> void Polynomial<Fr>::coset_ifft(const EvaluationDomain<Fr>& domain)
@@ -298,7 +282,6 @@ template <typename Fr> void Polynomial<Fr>::coset_ifft(const EvaluationDomain<Fr
     zero_memory(domain.size, size_);
 
     polynomial_arithmetic::coset_ifft(coefficients_, domain);
-    size_ = domain.size;
 }
 
 template <typename Fr> Fr Polynomial<Fr>::compute_kate_opening_coefficients(const Fr& z)
@@ -340,7 +323,6 @@ template <typename Fr> void Polynomial<Fr>::add_scaled(std::span<const Fr> other
     /** TODO parallelize using some kind of generic evaluation domain
      *  we really only need to know the thread size, but we don't need all the FFT roots
      */
-
     for (size_t i = 0; i < other_size; ++i) {
         coefficients_[i] += scaling_factor * other[i];
     }
