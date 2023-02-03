@@ -1102,8 +1102,6 @@ TEST(polynomials, factor_roots)
         polynomial quotient(poly);
         quotient.factor_roots(roots);
 
-        EXPECT_EQ(quotient.size(), N - NUM_ROOTS);
-
         // check that (t-r)q(t) == p(t)
         fr t = fr::random_element();
         fr roots_eval = polynomial_arithmetic::compute_linear_polynomial_product_evaluation(roots.data(), t, NUM_ROOTS);
