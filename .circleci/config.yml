@@ -172,7 +172,7 @@ jobs:
           command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert stdlib_recursion_tests
       - *save_logs
 
-  tx-rollup-tests:
+  join-split-tests:
     docker:
       - image: aztecprotocol/alpine-build-image
     resource_class: small
@@ -181,55 +181,7 @@ jobs:
       - *setup_env
       - run:
           name: "Test"
-          command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert rollup_proofs_tx_rollup_tests --gtest_filter=-rollup_full_tests.*
-      - *save_logs
-
-  tx-rollup-full-tests:
-    docker:
-      - image: aztecprotocol/alpine-build-image
-    resource_class: small
-    steps:
-      - *checkout
-      - *setup_env
-      - run:
-          name: "Test"
-          command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert rollup_proofs_tx_rollup_tests --gtest_filter=rollup_full_tests.*
-      - *save_logs
-
-  root-rollup-tests:
-    docker:
-      - image: aztecprotocol/alpine-build-image
-    resource_class: small
-    steps:
-      - *checkout
-      - *setup_env
-      - run:
-          name: "Test"
-          command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert rollup_proofs_root_rollup_tests --gtest_filter=-root_rollup_full_tests.*
-      - *save_logs
-
-  root-rollup-full-tests:
-    docker:
-      - image: aztecprotocol/alpine-build-image
-    resource_class: small
-    steps:
-      - *checkout
-      - *setup_env
-      - run:
-          name: "Test"
-          command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert rollup_proofs_root_rollup_tests --gtest_filter=root_rollup_full_tests.*
-      - *save_logs
-
-  root-verifier-tests:
-    docker:
-      - image: aztecprotocol/alpine-build-image
-    resource_class: small
-    steps:
-      - *checkout
-      - *setup_env
-      - run:
-          name: "Test"
-          command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert rollup_proofs_root_verifier_tests
+          command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert rollup_proofs_join_split_tests
       - *save_logs
 
   benchmark-aggregator:
@@ -261,21 +213,13 @@ workflows:
       - barretenberg-tests: *bb_test
       - stdlib-primitives-tests: *bb_test
       - stdlib-recursion-tests: *bb_test
-      - tx-rollup-tests: *bb_test
-      - tx-rollup-full-tests: *bb_test
-      - root-rollup-tests: *bb_test
-      - root-rollup-full-tests: *bb_test
-      - root-verifier-tests: *bb_test
+      - join-split-tests: *bb_test
       - benchmark-aggregator:
           requires:
             - barretenberg-tests
             - stdlib-primitives-tests
             - stdlib-recursion-tests
-            - tx-rollup-tests
-            - tx-rollup-full-tests
-            - root-verifier-tests
-            - root-rollup-tests
-            - root-rollup-full-tests
+            - join-split-tests
           filters:
             branches:
               only:
