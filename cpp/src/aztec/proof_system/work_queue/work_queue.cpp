@@ -255,7 +255,7 @@ void work_queue::process_queue()
 
             wire_fft.coset_fft(key->large_domain);
             for (size_t i = 0; i < 4; i++) {
-                wire_fft[4 * key->n + i] = wire_fft[i];
+                wire_fft[4 * key->circuit_size + i] = wire_fft[i];
             }
 
             key->polynomial_cache.put(item.tag + "_fft", std::move(wire_fft));
