@@ -1,6 +1,5 @@
 #include "../../fixtures/user_context.hpp"
 
-#include "c_bind.h"
 #include "join_split.hpp"
 
 #include <common/streams.hpp>
