@@ -35,6 +35,8 @@ template <typename settings> class Prover {
 
     size_t get_circuit_size() const { return circuit_size; }
 
+    void reset();
+
     // TODO(luke): Eventually get rid of this but leave it for convenience for now
     const size_t circuit_size;
 

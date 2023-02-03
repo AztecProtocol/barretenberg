@@ -37,6 +37,9 @@ void construct_witnesses_bench(State& state) noexcept
     for (auto _ : state) {
         waffle::StandardComposer composer = waffle::StandardComposer(static_cast<size_t>(state.range(0)));
         generate_test_plonk_circuit(composer, static_cast<size_t>(state.range(0)));
+        state.PauseTiming();
+        composer.compute_proving_key();
+        state.ResumeTiming();
         composer.compute_witness();
     }
 }
