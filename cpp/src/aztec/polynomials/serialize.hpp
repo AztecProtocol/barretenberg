@@ -28,7 +28,7 @@ template <typename B> inline void read(B& buf, polynomial& p)
 
 inline void write(uint8_t*& buf, polynomial const& p)
 {
-    auto size = p.get_size();
+    auto size = p.size();
     serialize::write(buf, static_cast<uint32_t>(size));
     memcpy(&buf[0], &p[0], size * sizeof(fr));
     buf += size * sizeof(fr);
@@ -36,7 +36,7 @@ inline void write(uint8_t*& buf, polynomial const& p)
 
 inline void write(std::vector<uint8_t>& buf, polynomial const& p)
 {
-    auto size = p.get_size();
+    auto size = p.size();
     serialize::write(buf, static_cast<uint32_t>(size));
     auto len = (size * sizeof(fr));
     buf.resize(buf.size() + len);
@@ -67,7 +67,7 @@ inline void read(std::istream& is, polynomial& p)
 
 inline void write(std::ostream& os, polynomial const& p)
 {
-    auto size = p.get_size();
+    auto size = p.size();
     auto len = size * sizeof(fr);
     serialize::write(os, static_cast<uint32_t>(size));
     os.write((char*)&p[0], (std::streamsize)len);

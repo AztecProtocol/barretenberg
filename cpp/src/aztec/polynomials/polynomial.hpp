@@ -50,6 +50,30 @@ template <typename Fr> class Polynomial {
 
     bool operator==(Polynomial const& rhs) const
     {
+        // If either is empty, both must be
+        if (is_empty() || rhs.is_empty()) {
+            return is_empty() && rhs.is_empty();
+        }
+        // Otherwise, check coefficients match on the minimum of the two sizes and that, if one poly is larger, all
+        // higher coefficients are identically zero.
+        else {
+            size_t min_size = std::min(size(), rhs.size());
+            for (size_t i = 0; i < min_size; i++) {
+                if (coefficients_[i] != rhs.coefficients_[i])
+                    return false;
+            }
+            for (size_t i = min_size; i < size(); i++) {
+                if (coefficients_[i] != 0)
+                    return false;
+            }
+            for (size_t i = min_size; i < rhs.size(); i++) {
+                if (rhs.coefficients_[i] != 0)
+                    return false;
+            }
+
+            return true;
+        }
+        /*
         if (size_ == rhs.size_) {
 
             // If either poly has null coefficients then we are equal only if both are null
@@ -66,12 +90,12 @@ template <typename Fr> class Polynomial {
         }
 
         return false;
+        */
     }
 
+    // IMPROVEMENT: deprecate in favor of 'data()' and ensure const correctness
     Fr* get_coefficients() const { return coefficients_; };
     Fr* get_coefficients() { return coefficients_; };
-
-    size_t get_size() const { return size_; };
 
     // Const and non const versions of coefficient accessors
     Fr const& operator[](const size_t i) const
@@ -122,12 +146,7 @@ template <typename Fr> class Polynomial {
 
     Fr compute_kate_opening_coefficients(const Fr& z);
 
-    bool empty() const
-    {
-        bool is_null_ptr = (coefficients_ == nullptr);
-        bool size_is_zero = (size_ == 0);
-        return is_null_ptr || size_is_zero;
-    }
+    bool is_empty() const { return (coefficients_ == nullptr) || (size_ == 0); }
 
     /**
      * @brief Returns an std::span of the left-shift of self.
@@ -138,9 +157,8 @@ template <typename Fr> class Polynomial {
     std::span<Fr> shifted() const
     {
         ASSERT(size_ > 0);
-        // TODO(luke): Reinstate the below ASSERT once Adrian's relations update makes this true!
         ASSERT(coefficients_[0].is_zero());
-        ASSERT(coefficients_[size_].is_zero()); // relies on DEFAULT_SIZE_INCREASE >= 1
+        ASSERT(coefficients_[size_].is_zero()); // relies on DEFAULT_CAPACITY_INCREASE >= 1
         return std::span{ coefficients_ + 1, size_ };
     }
 
@@ -226,15 +244,15 @@ template <typename Fr> class Polynomial {
     const_pointer data() const { return coefficients_; }
 
     std::size_t size() const { return size_; }
-    std::size_t capacity() const { return size_ + DEFAULT_SIZE_INCREASE; }
+    std::size_t capacity() const { return size_ + DEFAULT_CAPACITY_INCREASE; }
 
   private:
     void free();
     void zero_memory(const size_t start_position, const size_t end_position);
     // When a polynomial is instantiated from a size alone, the memory allocated corresponds to
-    // input size + DEFAULT_SIZE_INCREASE. A DEFAULT_SIZE_INCREASE of >= 1 is required to ensure
+    // input size + DEFAULT_CAPACITY_INCREASE. A DEFAULT_CAPACITY_INCREASE of >= 1 is required to ensure
     // that polynomials can be 'shifted' via a span of the 1st to size+1th coefficients.
-    const static size_t DEFAULT_SIZE_INCREASE = 1;
+    const static size_t DEFAULT_CAPACITY_INCREASE = 1;
 
   public:
     Fr* coefficients_ = nullptr;

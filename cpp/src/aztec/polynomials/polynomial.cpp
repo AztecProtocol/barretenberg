@@ -179,7 +179,7 @@ template <typename Fr> void Polynomial<Fr>::free()
 
 template <typename Fr> void Polynomial<Fr>::fft(const EvaluationDomain<Fr>& domain)
 {
-    ASSERT(!empty());
+    ASSERT(!is_empty());
 
     ASSERT(domain.size <= size_);
 
@@ -199,7 +199,7 @@ template <typename Fr> void Polynomial<Fr>::partial_fft(const EvaluationDomain<F
 
 template <typename Fr> void Polynomial<Fr>::coset_fft(const EvaluationDomain<Fr>& domain)
 {
-    ASSERT(!empty());
+    ASSERT(!is_empty());
 
     ASSERT(domain.size <= size_);
 
@@ -213,7 +213,7 @@ void Polynomial<Fr>::coset_fft(const EvaluationDomain<Fr>& domain,
                                const EvaluationDomain<Fr>& large_domain,
                                const size_t domain_extension)
 {
-    ASSERT(!empty());
+    ASSERT(!is_empty());
 
     size_t extended_size = domain.size * domain_extension;
 
@@ -227,7 +227,7 @@ void Polynomial<Fr>::coset_fft(const EvaluationDomain<Fr>& domain,
 template <typename Fr>
 void Polynomial<Fr>::coset_fft_with_constant(const EvaluationDomain<Fr>& domain, const Fr& constant)
 {
-    ASSERT(!empty());
+    ASSERT(!is_empty());
 
     ASSERT(domain.size <= size_);
 
@@ -239,7 +239,7 @@ void Polynomial<Fr>::coset_fft_with_constant(const EvaluationDomain<Fr>& domain,
 template <typename Fr>
 void Polynomial<Fr>::coset_fft_with_generator_shift(const EvaluationDomain<Fr>& domain, const Fr& constant)
 {
-    ASSERT(!empty());
+    ASSERT(!is_empty());
 
     ASSERT(domain.size <= size_);
 
@@ -250,7 +250,7 @@ void Polynomial<Fr>::coset_fft_with_generator_shift(const EvaluationDomain<Fr>& 
 
 template <typename Fr> void Polynomial<Fr>::ifft(const EvaluationDomain<Fr>& domain)
 {
-    ASSERT(!empty());
+    ASSERT(!is_empty());
 
     ASSERT(domain.size <= size_);
 
@@ -261,7 +261,7 @@ template <typename Fr> void Polynomial<Fr>::ifft(const EvaluationDomain<Fr>& dom
 
 template <typename Fr> void Polynomial<Fr>::ifft_with_constant(const EvaluationDomain<Fr>& domain, const Fr& constant)
 {
-    ASSERT(!empty());
+    ASSERT(!is_empty());
 
     ASSERT(domain.size <= size_);
 
@@ -272,7 +272,7 @@ template <typename Fr> void Polynomial<Fr>::ifft_with_constant(const EvaluationD
 
 template <typename Fr> void Polynomial<Fr>::coset_ifft(const EvaluationDomain<Fr>& domain)
 {
-    ASSERT(!empty());
+    ASSERT(!is_empty());
 
     ASSERT(domain.size <= size_);
 
