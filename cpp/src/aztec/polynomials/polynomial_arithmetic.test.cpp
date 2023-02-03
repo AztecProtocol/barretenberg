@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <common/mem.hpp>
 #include <gtest/gtest.h>
+#include <utility>
 #include "numeric/bitop/get_msb.hpp"
 #include "numeric/random/engine.hpp"
 #include "polynomial.hpp"
@@ -1129,4 +1130,44 @@ TEST(polynomials, factor_roots)
     test_case(2, 0);
     test_case(0, 2);
     test_case(3, 6);
+}
+
+TEST(polynomials, move_construct_and_assign)
+{
+    // construct a poly with some arbitrary data
+    size_t num_coeffs = 64;
+    polynomial polynomial_a(num_coeffs);
+    for (auto& coeff : polynomial_a) {
+        coeff = fr::random_element();
+    }
+
+    // construct a new poly from the original via the move constructor
+    polynomial polynomial_b(std::move(polynomial_a));
+
+    // verifiy that source poly is appropriately destroyed
+    EXPECT_EQ(polynomial_a.coefficients_, nullptr);
+    EXPECT_EQ(polynomial_a.size(), 0);
+    EXPECT_EQ(polynomial_a.mapped_, false);
+
+    // construct another poly; this will also use the move constructor!
+    auto polynomial_c = std::move(polynomial_b);
+
+    // verifiy that source poly is appropriately destroyed
+    EXPECT_EQ(polynomial_b.coefficients_, nullptr);
+    EXPECT_EQ(polynomial_b.size(), 0);
+    EXPECT_EQ(polynomial_b.mapped_, false);
+
+    // define a poly with some arbitrary coefficients
+    polynomial polynomial_d(num_coeffs);
+    for (auto& coeff : polynomial_d) {
+        coeff = fr::random_element();
+    }
+
+    // reset its data using move assignment
+    polynomial_d = std::move(polynomial_c);
+
+    // verifiy that source poly is appropriately destroyed
+    EXPECT_EQ(polynomial_c.coefficients_, nullptr);
+    EXPECT_EQ(polynomial_c.size(), 0);
+    EXPECT_EQ(polynomial_c.mapped_, false);
 }

@@ -237,9 +237,9 @@ template <typename Fr> class Polynomial {
     const static size_t DEFAULT_SIZE_INCREASE = 1;
 
   public:
-    Fr* coefficients_;
-    size_t size_; // This is the size() of the `coefficients` vector.
-    bool mapped_;
+    Fr* coefficients_ = nullptr;
+    size_t size_ = 0; // This is the size() of the `coefficients` vector.
+    bool mapped_ = false;
 };
 
 template <typename Fr> inline std::ostream& operator<<(std::ostream& os, Polynomial<Fr> const& p)

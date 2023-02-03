@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <utility>
 #ifndef __wasm__
 #include <sys/mman.h>
 #endif
@@ -49,7 +50,7 @@ Polynomial<Fr>::Polynomial(const size_t size_)
 
 template <typename Fr>
 Polynomial<Fr>::Polynomial(const Polynomial<Fr>& other, const size_t target_size)
-    : size_(std::max(target_size, other.size())) // TODO: max(target_size, other_size)?
+    : size_(std::max(target_size, other.size()))
     , mapped_(false)
 {
     coefficients_ = (Fr*)(aligned_alloc(32, sizeof(Fr) * capacity()));
@@ -59,15 +60,14 @@ Polynomial<Fr>::Polynomial(const Polynomial<Fr>& other, const size_t target_size
     }
     zero_memory(other.size_, size_);
 }
+
 template <typename Fr>
 Polynomial<Fr>::Polynomial(Polynomial<Fr>&& other) noexcept
-    : coefficients_(other.coefficients_)
-    , size_(other.size_)
-    , mapped_(other.mapped_)
+    : coefficients_(std::exchange(other.coefficients_, nullptr))
+    , size_(std::exchange(other.size_, 0))
+    , mapped_(std::exchange(other.mapped_, false))
 {
-    // For other, null the coefficients pointer and clear
-    other.coefficients_ = nullptr;
-    other.clear();
+    info("in move constructor!");
 }
 
 template <typename Fr>
@@ -107,13 +107,10 @@ template <typename Fr> Polynomial<Fr>& Polynomial<Fr>::operator=(Polynomial&& ot
     }
     free();
 
-    coefficients_ = other.coefficients_;
-    size_ = other.size_;
-    mapped_ = other.mapped_;
-
-    // For other, null the coefficients pointer and clear
-    other.coefficients_ = nullptr;
-    other.clear();
+    // simultaneously set members and clear other
+    coefficients_ = std::exchange(other.coefficients_, nullptr);
+    size_ = std::exchange(other.size_, 0);
+    mapped_ = std::exchange(other.mapped_, false);
 
     return *this;
 }
