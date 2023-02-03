@@ -54,8 +54,8 @@ template <typename Fr> class Polynomial {
         if (is_empty() || rhs.is_empty()) {
             return is_empty() && rhs.is_empty();
         }
-        // Otherwise, check coefficients match on the minimum of the two sizes and that, if one poly is larger, all
-        // higher coefficients are identically zero.
+        // Otherwise, check that the coefficients match on the minimum of the two sizes and that the higher coefficients
+        // of the larger poly (if one exists) are identically zero.
         else {
             size_t min_size = std::min(size(), rhs.size());
             for (size_t i = 0; i < min_size; i++) {
@@ -73,24 +73,6 @@ template <typename Fr> class Polynomial {
 
             return true;
         }
-        /*
-        if (size_ == rhs.size_) {
-
-            // If either poly has null coefficients then we are equal only if both are null
-            if ((coefficients_ == nullptr) || (rhs.coefficients_ == nullptr))
-                return (coefficients_ == nullptr) && (rhs.coefficients_ == nullptr);
-
-            // Size is equal and both have coefficients, compare
-            for (size_t i = 0; i < size_; ++i) {
-                if (coefficients_[i] != rhs.coefficients_[i])
-                    return false;
-            }
-
-            return true;
-        }
-
-        return false;
-        */
     }
 
     // IMPROVEMENT: deprecate in favor of 'data()' and ensure const correctness
@@ -213,16 +195,8 @@ template <typename Fr> class Polynomial {
      *
      * @param roots list of roots (r₁,…,rₘ)
      */
-    void factor_roots(std::span<const Fr> roots)
-    {
-        polynomial_arithmetic::factor_roots(std::span{ *this }, roots);
-        size_ -= roots.size();
-    };
-    void factor_roots(const Fr& root)
-    {
-        polynomial_arithmetic::factor_roots(std::span{ *this }, root);
-        size_--;
-    };
+    void factor_roots(std::span<const Fr> roots) { polynomial_arithmetic::factor_roots(std::span{ *this }, roots); };
+    void factor_roots(const Fr& root) { polynomial_arithmetic::factor_roots(std::span{ *this }, root); };
 
     /**
      * Implements requirements of `std::ranges::contiguous_range` and `std::ranges::sized_range`
@@ -256,7 +230,10 @@ template <typename Fr> class Polynomial {
 
   public:
     Fr* coefficients_ = nullptr;
-    size_t size_ = 0; // This is the size() of the `coefficients` vector.
+    // The size_ effectively represents the 'usable' length of the coefficients array but may be less than the true
+    // 'capacity' of the array. It is not explicitly tied to the degree and is not changed by any operations on the
+    // polynomial.
+    size_t size_ = 0;
     bool mapped_ = false;
 };
 

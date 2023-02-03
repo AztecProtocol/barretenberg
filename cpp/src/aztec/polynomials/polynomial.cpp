@@ -66,9 +66,7 @@ Polynomial<Fr>::Polynomial(Polynomial<Fr>&& other) noexcept
     : coefficients_(std::exchange(other.coefficients_, nullptr))
     , size_(std::exchange(other.size_, 0))
     , mapped_(std::exchange(other.mapped_, false))
-{
-    info("in move constructor!");
-}
+{}
 
 template <typename Fr>
 Polynomial<Fr>::Polynomial(Fr* buf, const size_t size_)
@@ -147,13 +145,10 @@ template <typename Fr> void Polynomial<Fr>::zero_memory(const size_t start_posit
     ASSERT(end_position >= start_position);
     ASSERT(end_position <= size_);
 
-    if (end_position > start_position) {
-
-        size_t delta = end_position - start_position;
-        if (delta > 0 && coefficients_) {
-            ASSERT(coefficients_);
-            memset(static_cast<void*>(&coefficients_[start_position]), 0, sizeof(Fr) * delta);
-        }
+    size_t delta = end_position - start_position;
+    if (delta > 0) {
+        ASSERT(coefficients_);
+        memset(static_cast<void*>(&coefficients_[start_position]), 0, sizeof(Fr) * delta);
     }
 }
 
