@@ -1,11 +1,9 @@
 #pragma once
-#include "hash_path.hpp"
 #include <common/streams.hpp>
 #include <map>
 #include <set>
 
-namespace plonk {
-namespace stdlib {
+namespace crypto {
 namespace merkle_tree {
 
 class MemoryStore {
@@ -87,5 +85,4 @@ class MemoryStore {
 };
 
 } // namespace merkle_tree
-} // namespace stdlib
-} // namespace plonk
+} // namespace crypto

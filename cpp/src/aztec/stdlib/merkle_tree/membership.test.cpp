@@ -1,14 +1,12 @@
-#include "leveldb_store.hpp"
-#include "merkle_tree.hpp"
 #include "membership.hpp"
-#include "memory_store.hpp"
-#include "memory_tree.hpp"
 #include <gtest/gtest.h>
 #include <stdlib/types/types.hpp>
+#include <crypto/merkle_tree/index.hpp>
 
 using namespace barretenberg;
 using namespace plonk::stdlib::types;
 using namespace plonk::stdlib::merkle_tree;
+using namespace crypto::merkle_tree;
 
 TEST(stdlib_merkle_tree, test_check_membership)
 {

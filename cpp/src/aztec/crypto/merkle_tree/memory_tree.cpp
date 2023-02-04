@@ -1,8 +1,6 @@
 #include "memory_tree.hpp"
-#include "hash.hpp"
 
-namespace plonk {
-namespace stdlib {
+namespace crypto {
 namespace merkle_tree {
 
 MemoryTree::MemoryTree(size_t depth)
@@ -58,5 +56,4 @@ fr MemoryTree::update_element(size_t index, fr const& value)
 }
 
 } // namespace merkle_tree
-} // namespace stdlib
-} // namespace plonk
+} // namespace crypto

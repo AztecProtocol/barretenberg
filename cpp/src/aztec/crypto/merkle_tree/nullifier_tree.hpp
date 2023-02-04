@@ -1,10 +1,8 @@
 #pragma once
-#include "hash_path.hpp"
-#include <stdlib/primitives/field/field.hpp>
+#include "hash.hpp"
 #include "merkle_tree.hpp"
 
-namespace plonk {
-namespace stdlib {
+namespace crypto {
 namespace merkle_tree {
 
 using namespace barretenberg;
@@ -77,5 +75,4 @@ extern template class NullifierTree<MemoryStore>;
 typedef NullifierTree<LevelDbStore> LevelDbNullifierTree;
 
 } // namespace merkle_tree
-} // namespace stdlib
-} // namespace plonk
+} // namespace crypto

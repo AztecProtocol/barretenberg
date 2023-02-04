@@ -5,10 +5,9 @@
 #include <common/streams.hpp>
 #include <common/test.hpp>
 #include <numeric/random/engine.hpp>
-#include <stdlib/types/types.hpp>
 
 using namespace barretenberg;
-using namespace plonk::stdlib::merkle_tree;
+using namespace crypto::merkle_tree;
 
 namespace {
 auto& engine = numeric::random::get_debug_engine();
@@ -23,7 +22,7 @@ static std::vector<fr> VALUES = []() {
     return values;
 }();
 
-TEST(stdlib_nullifier_tree, test_nullifier_basic)
+TEST(crypto_nullifier_tree, test_nullifier_basic)
 {
     MemoryStore store;
     auto db = NullifierTree(store, 256);

@@ -9,8 +9,7 @@
 #include <numeric/uint128/uint128.hpp>
 #include <sstream>
 
-namespace plonk {
-namespace stdlib {
+namespace crypto {
 namespace merkle_tree {
 
 using namespace barretenberg;
@@ -295,5 +294,4 @@ template class MerkleTree<LevelDbStore>;
 template class MerkleTree<MemoryStore>;
 
 } // namespace merkle_tree
-} // namespace stdlib
-} // namespace plonk
+} // namespace crypto

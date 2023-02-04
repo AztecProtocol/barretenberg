@@ -23,4 +23,4 @@ if(NOT WASM)
     link_libraries(leveldb)
 endif()
 
-barretenberg_module(stdlib_merkle_tree stdlib_primitives stdlib_blake3s stdlib_pedersen crypto_merkle_tree)
+barretenberg_module(crypto_merkle_tree crypto_pedersen)

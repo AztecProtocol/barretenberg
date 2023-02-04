@@ -5,7 +5,7 @@
 #include <common/streams.hpp>
 #include <common/test.hpp>
 #include <proof_system/proving_key/serialize.hpp>
-#include <stdlib/merkle_tree/index.hpp>
+#include <crypto/merkle_tree/index.hpp>
 
 namespace rollup {
 namespace proofs {
@@ -20,7 +20,7 @@ constexpr bool CIRCUIT_CHANGE_EXPECTED = false;
 
 using namespace barretenberg;
 using namespace plonk::stdlib::types;
-using namespace plonk::stdlib::merkle_tree;
+using namespace crypto::merkle_tree;
 using namespace rollup::proofs::notes::native;
 using key_pair = rollup::fixtures::grumpkin_key_pair;
 

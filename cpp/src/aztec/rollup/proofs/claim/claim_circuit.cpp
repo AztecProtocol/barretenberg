@@ -2,12 +2,14 @@
 #include "ratio_check.hpp"
 #include "../notes/circuit/index.hpp"
 #include <stdlib/merkle_tree/membership.hpp>
+#include <crypto/merkle_tree/index.hpp>
 
 namespace rollup {
 namespace proofs {
 namespace claim {
 
-using namespace plonk::stdlib::merkle_tree;
+using namespace crypto::merkle_tree;
+using namespace stdlib::merkle_tree;
 using namespace notes;
 
 void claim_circuit(Composer& composer, claim_tx const& tx)

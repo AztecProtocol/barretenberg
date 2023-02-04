@@ -20,7 +20,7 @@ namespace root_verifier {
 
 using namespace barretenberg;
 using namespace notes::native;
-using namespace plonk::stdlib::merkle_tree;
+using namespace crypto::merkle_tree;
 
 namespace {
 #ifdef CI

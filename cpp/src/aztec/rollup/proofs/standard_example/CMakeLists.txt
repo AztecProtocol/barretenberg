@@ -6,4 +6,5 @@ barretenberg_module(
   stdlib_pedersen
   stdlib_schnorr
   stdlib_primitives
-  stdlib_merkle_tree)
+  stdlib_merkle_tree
+  crypto_merkle_tree)

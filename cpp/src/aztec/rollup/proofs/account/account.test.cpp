@@ -9,8 +9,8 @@
 #include <common/streams.hpp>
 #include <common/test.hpp>
 #include <proof_system/proving_key/serialize.hpp>
-#include <stdlib/merkle_tree/memory_store.hpp>
-#include <stdlib/merkle_tree/merkle_tree.hpp>
+#include <crypto/merkle_tree/memory_store.hpp>
+#include <crypto/merkle_tree/merkle_tree.hpp>
 
 #ifdef CI
 constexpr bool CIRCUIT_CHANGE_EXPECTED = false;
@@ -21,7 +21,7 @@ constexpr bool CIRCUIT_CHANGE_EXPECTED = false;
 
 using namespace barretenberg;
 using namespace plonk::stdlib::types;
-using namespace plonk::stdlib::merkle_tree;
+using namespace crypto::merkle_tree;
 using namespace rollup;
 using namespace rollup::proofs;
 using namespace rollup::proofs::account;
