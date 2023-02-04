@@ -1,5 +1,6 @@
 #pragma once
 #include <crypto/schnorr/schnorr.hpp>
+#include <crypto/merkle_tree/index.hpp>
 #include <stdlib/merkle_tree/hash_path.hpp>
 #include <stdlib/types/types.hpp>
 
@@ -21,7 +22,7 @@ struct account_tx {
     bool migrate;
 
     uint32_t account_note_index;
-    plonk::stdlib::merkle_tree::fr_hash_path account_note_path;
+    crypto::merkle_tree::fr_hash_path account_note_path;
     grumpkin::g1::affine_element signing_pub_key = grumpkin::g1::affine_one;
     crypto::schnorr::signature signature;
 

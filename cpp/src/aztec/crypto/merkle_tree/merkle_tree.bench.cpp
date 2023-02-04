@@ -6,7 +6,7 @@
 #include <numeric/random/engine.hpp>
 
 using namespace benchmark;
-using namespace plonk::stdlib::merkle_tree;
+using namespace crypto::merkle_tree;
 
 namespace {
 auto& engine = numeric::random::get_debug_engine();

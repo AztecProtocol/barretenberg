@@ -1,8 +1,7 @@
 #pragma once
-#include "hash_path.hpp"
+#include "hash.hpp"
 
-namespace plonk {
-namespace stdlib {
+namespace crypto {
 namespace merkle_tree {
 
 using namespace barretenberg;
@@ -34,7 +33,7 @@ class MemoryTree {
 
     fr root() const { return root_; }
 
-  private:
+  protected:
     size_t depth_;
     size_t total_size_;
     barretenberg::fr root_;
@@ -42,5 +41,4 @@ class MemoryTree {
 };
 
 } // namespace merkle_tree
-} // namespace stdlib
-} // namespace plonk
+} // namespace crypto

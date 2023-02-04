@@ -7,7 +7,7 @@ namespace rollup {
 namespace proofs {
 namespace account {
 
-using namespace plonk::stdlib::merkle_tree;
+using namespace crypto::merkle_tree;
 
 /**
  * @brief Create an account noop transaction that sets the members in account_tx to be random/zero values.

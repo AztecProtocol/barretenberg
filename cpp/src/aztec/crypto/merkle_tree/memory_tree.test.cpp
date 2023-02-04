@@ -1,9 +1,8 @@
 #include "memory_tree.hpp"
 #include <gtest/gtest.h>
-#include <stdlib/types/types.hpp>
 
 using namespace barretenberg;
-using namespace plonk::stdlib::merkle_tree;
+using namespace crypto::merkle_tree;
 
 static std::vector<fr> VALUES = []() {
     std::vector<fr> values(4);
@@ -13,7 +12,7 @@ static std::vector<fr> VALUES = []() {
     return values;
 }();
 
-TEST(stdlib_merkle_tree, test_memory_store)
+TEST(crypto_merkle_tree, test_memory_store)
 {
     fr e00 = 0;
     fr e01 = VALUES[1];

@@ -7,5 +7,6 @@ target_link_libraries(
     db_cli
     PRIVATE
     stdlib_merkle_tree
+    crypto_merkle_tree
     env
 )

@@ -5,12 +5,12 @@
 #include "../proofs/join_split/index.hpp"
 #include "../proofs/account/index.hpp"
 #include "../proofs/claim/index.hpp"
-#include <stdlib/merkle_tree/index.hpp>
+#include <crypto/merkle_tree/index.hpp>
 
 namespace rollup {
 namespace fixtures {
 
-using namespace plonk::stdlib::merkle_tree;
+using namespace crypto::merkle_tree;
 using namespace ::rollup::proofs;
 using namespace ::rollup::proofs::notes;
 using WorldState = world_state::WorldState<MemoryStore>;

@@ -4,13 +4,13 @@
 #include "../inner_proof_data/inner_proof_data.hpp"
 #include "../notes/native/defi_interaction/note.hpp"
 #include "../../world_state/world_state.hpp"
-#include <stdlib/merkle_tree/memory_store.hpp>
+#include <crypto/merkle_tree/memory_store.hpp>
 
 namespace rollup {
 namespace proofs {
 namespace root_rollup {
 
-using WorldState = world_state::WorldState<plonk::stdlib::merkle_tree::MemoryStore>;
+using WorldState = world_state::WorldState<crypto::merkle_tree::MemoryStore>;
 
 inline void pad_root_rollup_tx(root_rollup_tx& rollup, circuit_data const& circuit_data)
 {

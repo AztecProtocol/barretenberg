@@ -1,9 +1,11 @@
 #include "get.hpp"
 #include "put.hpp"
-#include <stdlib/merkle_tree/leveldb_store.hpp>
-#include <stdlib/merkle_tree/merkle_tree.hpp>
+#include <crypto/merkle_tree/leveldb_store.hpp>
+#include <crypto/merkle_tree/merkle_tree.hpp>
+#include <stdlib/merkle_tree/index.hpp>
 #include <rollup/constants.hpp>
 
+using namespace crypto::merkle_tree;
 using namespace plonk::stdlib::merkle_tree;
 
 char const* DB_PATH = "./world_state.db";

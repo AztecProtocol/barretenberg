@@ -4,7 +4,7 @@
 #include "../inner_proof_data/inner_proof_data.hpp"
 #include "../notes/native/index.hpp"
 #include <common/test.hpp>
-#include <stdlib/merkle_tree/index.hpp>
+#include <crypto/merkle_tree/index.hpp>
 #include <numeric/random/engine.hpp>
 
 namespace rollup {
@@ -13,7 +13,7 @@ namespace claim {
 
 using namespace barretenberg;
 using namespace plonk::stdlib::types;
-using namespace plonk::stdlib::merkle_tree;
+using namespace crypto::merkle_tree;
 using namespace rollup::proofs::notes::native;
 using namespace rollup::proofs::notes::native::claim;
 

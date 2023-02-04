@@ -9,8 +9,7 @@
 #include <numeric/uint128/uint128.hpp>
 #include <sstream>
 
-namespace plonk {
-namespace stdlib {
+namespace crypto {
 namespace merkle_tree {
 
 using namespace barretenberg;
@@ -261,7 +260,7 @@ template <typename Store> fr MerkleTree<Store>::compute_zero_path_hash(size_t he
             right = zero_hashes_[i];
             left = current;
         }
-        current = compress_native(is_right ? zero_hashes_[i] : current, is_right ? current : zero_hashes_[i]);
+        current = compress_native(left, right);
     }
     return current;
 }
@@ -295,5 +294,4 @@ template class MerkleTree<LevelDbStore>;
 template class MerkleTree<MemoryStore>;
 
 } // namespace merkle_tree
-} // namespace stdlib
-} // namespace plonk
+} // namespace crypto

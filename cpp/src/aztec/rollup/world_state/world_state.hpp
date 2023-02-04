@@ -1,5 +1,5 @@
 #pragma once
-#include <stdlib/merkle_tree/merkle_tree.hpp>
+#include <crypto/merkle_tree/merkle_tree.hpp>
 #include "../proofs/notes/native/defi_interaction/note.hpp"
 #include "../proofs/notes/native/value/value_note.hpp"
 #include "../proofs/notes/native/account/account_note.hpp"
@@ -9,7 +9,7 @@
 namespace rollup {
 namespace world_state {
 
-using namespace plonk::stdlib::merkle_tree;
+using namespace crypto::merkle_tree;
 using namespace proofs::notes::native;
 
 template <typename Store> class WorldState {

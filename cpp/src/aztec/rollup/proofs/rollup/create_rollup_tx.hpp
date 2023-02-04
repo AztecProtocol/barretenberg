@@ -4,12 +4,13 @@
 #include "../../constants.hpp"
 #include "../../world_state/world_state.hpp"
 #include "../notes/native/claim/index.hpp"
-#include <stdlib/merkle_tree/index.hpp>
+#include <crypto/merkle_tree/index.hpp>
 
 namespace rollup {
 namespace proofs {
 namespace rollup {
 
+using namespace crypto::merkle_tree;
 using WorldState = world_state::WorldState<MemoryStore>;
 
 /**

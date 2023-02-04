@@ -1,9 +1,7 @@
 #pragma once
-#include "hash_path.hpp"
-#include <stdlib/primitives/field/field.hpp>
+#include "hash.hpp"
 
-namespace plonk {
-namespace stdlib {
+namespace crypto {
 namespace merkle_tree {
 
 using namespace barretenberg;
@@ -30,7 +28,7 @@ template <typename Store> class MerkleTree {
 
     index_t size() const;
 
-  private:
+  protected:
     void load_metadata();
 
     /**
@@ -89,7 +87,7 @@ template <typename Store> class MerkleTree {
 
     void remove(fr const& key);
 
-  private:
+  protected:
     Store& store_;
     std::vector<fr> zero_hashes_;
     size_t depth_;
@@ -102,5 +100,4 @@ extern template class MerkleTree<MemoryStore>;
 typedef MerkleTree<LevelDbStore> LevelDbTree;
 
 } // namespace merkle_tree
-} // namespace stdlib
-} // namespace plonk
+} // namespace crypto

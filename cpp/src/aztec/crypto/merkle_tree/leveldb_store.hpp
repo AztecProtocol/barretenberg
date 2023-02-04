@@ -1,14 +1,12 @@
 #pragma once
 #ifndef __wasm__
-#include "hash_path.hpp"
 #include <common/streams.hpp>
 #include <leveldb/db.h>
 #include <leveldb/write_batch.h>
 #include <map>
 #include <set>
 
-namespace plonk {
-namespace stdlib {
+namespace crypto {
 namespace merkle_tree {
 
 using namespace leveldb;
@@ -27,7 +25,7 @@ class LevelDbStore {
         options.create_if_missing = true;
         options.compression = leveldb::kNoCompression;
         leveldb::Status status = leveldb::DB::Open(options, db_path, &db);
-        ASSERT(status.ok());
+        assert(status.ok());
         db_.reset(db);
     }
 
@@ -100,6 +98,5 @@ class LevelDbStore {
 };
 
 } // namespace merkle_tree
-} // namespace stdlib
-} // namespace plonk
+} // namespace crypto
 #endif
