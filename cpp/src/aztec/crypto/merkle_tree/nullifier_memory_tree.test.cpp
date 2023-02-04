@@ -36,7 +36,7 @@ TEST(crypto_nullifier_tree, test_nullifier_memory)
 {
     // Create a depth-3 indexed merkle tree
     constexpr size_t depth = 3;
-    IndexedMerkleTree tree(depth);
+    NullifierMemoryTree tree(depth);
 
     /**
      * Intial state:
@@ -165,7 +165,7 @@ TEST(crypto_nullifier_tree, test_nullifier_tree)
 {
     // Create a depth-8 indexed merkle tree
     constexpr size_t depth = 8;
-    IndexedMerkleTree tree(depth);
+    NullifierMemoryTree tree(depth);
 
     leaf zero_leaf = { 0, 0, 0 };
     EXPECT_EQ(tree.get_leaves().size(), 1);

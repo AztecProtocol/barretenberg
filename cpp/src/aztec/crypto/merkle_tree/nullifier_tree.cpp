@@ -48,8 +48,6 @@ template <typename Store> NullifierTree<Store>::~NullifierTree() {}
 
 template <typename Store> fr NullifierTree<Store>::update_element(fr const& value)
 {
-    ASSERT(leaves.size() == size());
-
     // Find the leaf with the value closest and less than `value`
     size_t current;
     bool is_already_present;
@@ -57,22 +55,22 @@ template <typename Store> fr NullifierTree<Store>::update_element(fr const& valu
 
     leaf new_leaf = { .value = value, .nextIndex = leaves[current].nextIndex, .nextValue = leaves[current].nextValue };
     if (!is_already_present) {
+        // Update the current leaf to point it to the new leaf
+        leaves[current].nextIndex = leaves.size();
+        leaves[current].nextValue = value;
+
         // Insert the new leaf with (nextIndex, nextValue) of the current leaf
         leaves.push_back(new_leaf);
-
-        // Update the current leaf to point it to the new leaf
-        leaves[current].nextIndex = size() + 1;
-        leaves[current].nextValue = value;
     }
 
     // Update the old leaf in the tree
     auto old_leaf_hash = leaves[current].hash();
-    index_t old_leaf_index = size() - 1;
+    index_t old_leaf_index = current;
     auto r = update_element(old_leaf_index, old_leaf_hash);
 
     // Insert the new leaf in the tree
     auto new_leaf_hash = new_leaf.hash();
-    index_t new_leaf_index = is_already_present ? old_leaf_index : old_leaf_index + 1;
+    index_t new_leaf_index = is_already_present ? old_leaf_index : leaves.size() - 1;
     r = update_element(new_leaf_index, new_leaf_hash);
 
     return r;

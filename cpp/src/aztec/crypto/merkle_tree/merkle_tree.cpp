@@ -260,7 +260,7 @@ template <typename Store> fr MerkleTree<Store>::compute_zero_path_hash(size_t he
             right = zero_hashes_[i];
             left = current;
         }
-        current = compress_native(is_right ? zero_hashes_[i] : current, is_right ? current : zero_hashes_[i]);
+        current = compress_native(left, right);
     }
     return current;
 }

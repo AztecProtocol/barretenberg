@@ -1,6 +1,7 @@
 #pragma once
 #include "hash.hpp"
 #include "nullifier_leaf.hpp"
+#include "memory_tree.hpp"
 
 namespace crypto {
 namespace merkle_tree {
@@ -8,7 +9,7 @@ namespace merkle_tree {
 using namespace barretenberg;
 
 /**
- * An IndexedMerkleTree is structured just like a usual merkle tree:
+ * An NullifierMemoryTree is structured just like a usual merkle tree:
  *
  *                                       hashes_
  *    +------------------------------------------------------------------------------+
@@ -65,27 +66,25 @@ using namespace barretenberg;
  *  nextIdx   2       4       3       1        0       0       0       0
  *  nextVal   10      50      20      30       0       0       0       0
  */
-class IndexedMerkleTree {
+class NullifierMemoryTree : public MemoryTree {
   public:
-    IndexedMerkleTree(size_t depth);
+    NullifierMemoryTree(size_t depth);
 
-    fr_hash_path get_hash_path(size_t index);
-
-    fr update_element_internal(size_t index, fr const& value);
+    using MemoryTree::get_hash_path;
+    using MemoryTree::root;
+    using MemoryTree::update_element;
 
     fr update_element(fr const& value);
-
-    fr root() const { return root_; }
 
     const std::vector<barretenberg::fr>& get_hashes() { return hashes_; }
     const std::vector<leaf>& get_leaves() { return leaves_; }
 
   private:
-    size_t depth_;
-    size_t total_size_;
-    barretenberg::fr root_;
+    using MemoryTree::depth_;
+    using MemoryTree::hashes_;
+    using MemoryTree::root_;
+    using MemoryTree::total_size_;
     std::vector<leaf> leaves_;
-    std::vector<barretenberg::fr> hashes_;
 };
 
 } // namespace merkle_tree
