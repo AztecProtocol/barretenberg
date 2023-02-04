@@ -1,44 +1,12 @@
 #pragma once
 #include "hash.hpp"
+#include "nullifier_leaf.hpp"
 #include "merkle_tree.hpp"
 
 namespace crypto {
 namespace merkle_tree {
 
 using namespace barretenberg;
-
-struct leaf {
-    fr value;
-    uint256_t nextIndex;
-    fr nextValue;
-};
-
-inline std::ostream& operator<<(std::ostream& os, leaf const& input)
-{
-    os << "value   = " << input.value << "\nnextIdx = " << input.nextIndex << "\nnextVal = " << input.nextValue;
-    return os;
-}
-
-inline void read(uint8_t const*& it, leaf& input)
-{
-    using serialize::read;
-    read(it, input.value);
-    read(it, input.nextIndex);
-    read(it, input.nextValue);
-}
-
-inline void write(std::vector<uint8_t>& buf, leaf const& input)
-{
-    using serialize::write;
-    write(buf, input.value);
-    write(buf, input.nextIndex);
-    write(buf, input.nextValue);
-}
-
-inline barretenberg::fr hash_leaf_native(leaf const& input_leaf)
-{
-    return crypto::pedersen::compress_native({ input_leaf.value, input_leaf.nextIndex });
-}
 
 template <typename Store> class NullifierTree : public MerkleTree<Store> {
   public:

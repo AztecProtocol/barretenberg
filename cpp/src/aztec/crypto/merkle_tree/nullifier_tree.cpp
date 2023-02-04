@@ -31,7 +31,7 @@ NullifierTree<Store>::NullifierTree(Store& store, size_t depth, uint8_t tree_id)
     // Insert the zero leaf to the `leaves` and also to the tree at index 0.
     auto zero_leaf = leaf{ .value = 0, .nextIndex = 0, .nextValue = 0 };
     leaves.push_back(zero_leaf);
-    auto current = hash_leaf_native(zero_leaf);
+    auto current = zero_leaf.hash();
     update_element(0, current);
     for (size_t i = 0; i < depth; ++i) {
         zero_hashes_[i] = current;
@@ -45,26 +45,6 @@ NullifierTree<Store>::NullifierTree(NullifierTree&& other)
 {}
 
 template <typename Store> NullifierTree<Store>::~NullifierTree() {}
-
-std::pair<size_t, bool> find_closest_leaf(std::vector<leaf> const& leaves, fr const& new_value)
-{
-    std::vector<uint256_t> diff;
-    bool repeated = false;
-    for (size_t i = 0; i < leaves.size(); i++) {
-        auto leaf_value_ = uint256_t(leaves[i].value);
-        auto new_value_ = uint256_t(new_value);
-        if (leaf_value_ > new_value_) {
-            diff.push_back(leaf_value_);
-        } else if (leaf_value_ == new_value_) {
-            repeated = true;
-            return std::make_pair(i, repeated);
-        } else {
-            diff.push_back(new_value_ - leaf_value_);
-        }
-    }
-    auto it = std::min_element(diff.begin(), diff.end());
-    return std::make_pair(static_cast<size_t>(it - diff.begin()), repeated);
-}
 
 template <typename Store> fr NullifierTree<Store>::update_element(fr const& value)
 {
@@ -86,12 +66,12 @@ template <typename Store> fr NullifierTree<Store>::update_element(fr const& valu
     }
 
     // Update the old leaf in the tree
-    auto old_leaf_hash = hash_leaf_native(leaves[current]);
+    auto old_leaf_hash = leaves[current].hash();
     index_t old_leaf_index = size() - 1;
     auto r = update_element(old_leaf_index, old_leaf_hash);
 
     // Insert the new leaf in the tree
-    auto new_leaf_hash = hash_leaf_native(new_leaf);
+    auto new_leaf_hash = new_leaf.hash();
     index_t new_leaf_index = is_already_present ? old_leaf_index : old_leaf_index + 1;
     r = update_element(new_leaf_index, new_leaf_hash);
 
