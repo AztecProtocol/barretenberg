@@ -312,12 +312,14 @@ template point<waffle::TurboComposer> variable_base_mul<waffle::TurboComposer>(
     const point<waffle::TurboComposer>&,
     const wnaf_record<waffle::TurboComposer>&);
 
-template void verify_signature<waffle::TurboComposer>(const byte_array<waffle::TurboComposer>&,
-                                                      const point<waffle::TurboComposer>&,
-                                                      const signature_bits<waffle::TurboComposer>&);
-template void verify_signature<waffle::UltraComposer>(const byte_array<waffle::UltraComposer>&,
-                                                      const point<waffle::UltraComposer>&,
-                                                      const signature_bits<waffle::UltraComposer>&);
+template bool_t<waffle::TurboComposer> verify_signature<waffle::TurboComposer>(
+    const byte_array<waffle::TurboComposer>&,
+    const point<waffle::TurboComposer>&,
+    const signature_bits<waffle::TurboComposer>&);
+template bool_t<waffle::UltraComposer> verify_signature<waffle::UltraComposer>(
+    const byte_array<waffle::UltraComposer>&,
+    const point<waffle::UltraComposer>&,
+    const signature_bits<waffle::UltraComposer>&);
 
 template signature_bits<waffle::TurboComposer> convert_signature<waffle::TurboComposer>(
     waffle::TurboComposer*, const crypto::schnorr::signature&);
