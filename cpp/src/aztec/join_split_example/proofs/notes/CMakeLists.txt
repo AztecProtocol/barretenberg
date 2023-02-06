@@ -1,5 +1,5 @@
 barretenberg_module(
-  rollup_proofs_notes
+  join_split_example_proofs_notes
   crypto_schnorr
   stdlib_blake2s
   stdlib_sha256

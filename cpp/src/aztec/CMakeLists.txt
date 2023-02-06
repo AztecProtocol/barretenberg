@@ -34,7 +34,7 @@ add_subdirectory(crypto)
 add_subdirectory(polynomials)
 add_subdirectory(plonk)
 add_subdirectory(stdlib)
-add_subdirectory(rollup)
+add_subdirectory(join_split_example)
 
 if(BENCHMARKS)
     add_subdirectory(benchmark)
