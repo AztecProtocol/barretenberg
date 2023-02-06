@@ -130,6 +130,12 @@ template <typename Fr> class Polynomial {
 
     bool is_empty() const { return (coefficients_ == nullptr) || (size_ == 0); }
 
+    // safety check for in place operations
+    bool in_place_operation_viable(size_t domain_size = 0)
+    {
+        return !is_empty() && !mapped() && (size() >= domain_size);
+    }
+
     /**
      * @brief Returns an std::span of the left-shift of self.
      *
@@ -219,10 +225,11 @@ template <typename Fr> class Polynomial {
 
     std::size_t size() const { return size_; }
     std::size_t capacity() const { return size_ + DEFAULT_CAPACITY_INCREASE; }
+    std::size_t mapped() const { return mapped_; }
 
   private:
     void free();
-    void zero_memory(const size_t start_position, const size_t end_position);
+    void zero_memory_beyond(const size_t start_position);
     // When a polynomial is instantiated from a size alone, the memory allocated corresponds to
     // input size + DEFAULT_CAPACITY_INCREASE. A DEFAULT_CAPACITY_INCREASE of >= 1 is required to ensure
     // that polynomials can be 'shifted' via a span of the 1st to size+1th coefficients.
