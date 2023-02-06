@@ -18,7 +18,7 @@ RUN git clone -b release/10.x --depth 1 https://github.com/llvm/llvm-project.git
 WORKDIR /usr/src/barretenberg/cpp
 COPY . .
 # Only build binaries that are needed upstream.
-RUN mkdir build && cd build && cmake -DOpenMP_omp_LIBRARY=/usr/local/lib/libomp.a .. && cmake --build . --parallel --target db_cli --target rollup_cli --target tx_factory --target keygen
+RUN mkdir build && cd build && cmake -DOpenMP_omp_LIBRARY=/usr/local/lib/libomp.a .. && cmake --build . --parallel
 
 FROM alpine:3.13
 RUN apk update && apk add llvm10-libs
