@@ -2277,7 +2277,8 @@ TEST_F(join_split_tests, test_incorrect_output_note_creator_pubkey_x)
 // Full proofs
 // *************************************************************************************************************
 
-TEST_F(join_split_tests, test_deposit_full_proof)
+// Named differently from *_full_proof tests to let us run just this one full proof test in CI with a gtest filter
+TEST_F(join_split_tests, test_deposit_construct_proof)
 {
     join_split_tx tx = zero_input_setup();
     tx.proof_id = ProofIds::DEPOSIT;

@@ -181,7 +181,7 @@ jobs:
       - *setup_env
       - run:
           name: "Test"
-          command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert joins_split_example_join_split_tests
+          command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert join_split_example_proofs_join_split_tests --gtest_filter=-*full_proof*
       - *save_logs
 
   benchmark-aggregator:
