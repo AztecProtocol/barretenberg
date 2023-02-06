@@ -3,7 +3,7 @@
 #include <crypto/pedersen/pedersen.hpp>
 #include "../../constants.hpp"
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace notes {
 namespace native {
@@ -21,4 +21,4 @@ inline fr compute_account_public_key_nullifier(grumpkin::g1::affine_element cons
 } // namespace native
 } // namespace notes
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

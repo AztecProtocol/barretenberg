@@ -2,7 +2,7 @@
 #include <crypto/pedersen/pedersen.hpp>
 #include "../../constants.hpp"
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace notes {
 namespace native {
@@ -25,4 +25,4 @@ grumpkin::fq account_note::commit() const
 } // namespace native
 } // namespace notes
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

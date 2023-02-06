@@ -3,7 +3,7 @@
 #include "../notes/native/value/value_note.hpp"
 #include "join_split_tx.hpp"
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace join_split {
 
@@ -14,4 +14,4 @@ signature sign_join_split_tx(proofs::join_split::join_split_tx const& tx,
 
 } // namespace join_split
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

@@ -7,15 +7,15 @@
 #include <plonk/proof_system/proving_key/serialize.hpp>
 #include <stdlib/merkle_tree/index.hpp>
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace join_split {
 
 using namespace barretenberg;
 using namespace plonk::stdlib::types::turbo;
 using namespace plonk::stdlib::merkle_tree;
-using namespace rollup::proofs::notes::native;
-using key_pair = rollup::fixtures::grumpkin_key_pair;
+using namespace join_split_example::proofs::notes::native;
+using key_pair = join_split_example::fixtures::grumpkin_key_pair;
 
 auto create_account_leaf_data(fr const& account_alias_hash,
                               grumpkin::g1::affine_element const& owner_key,
@@ -40,8 +40,8 @@ class join_split_tests : public ::testing::Test {
     {
         store = std::make_unique<MemoryStore>();
         tree = std::make_unique<MerkleTree<MemoryStore>>(*store, 32);
-        input_user = rollup::fixtures::create_user_context();
-        output_user = rollup::fixtures::create_user_context();
+        input_user = join_split_example::fixtures::create_user_context();
+        output_user = join_split_example::fixtures::create_user_context();
 
         default_value_note = { .value = 100,
                                .asset_id = asset_id,
@@ -60,7 +60,7 @@ class join_split_tests : public ::testing::Test {
         value_notes[0].creator_pubkey = input_user.owner.public_key.x;
 
         value_notes[1].value = 50;
-        value_notes[1].creator_pubkey = rollup::fixtures::create_key_pair(nullptr).public_key.x;
+        value_notes[1].creator_pubkey = join_split_example::fixtures::create_key_pair(nullptr).public_key.x;
 
         value_notes[2].value = 90;
         value_notes[2].account_required = true,
@@ -146,7 +146,7 @@ class join_split_tests : public ::testing::Test {
      */
     join_split_tx create_join_split_tx(std::array<uint32_t, 2> const& input_indices,
                                        std::array<value::value_note, 2> const& input_notes,
-                                       rollup::fixtures::user_context& output_user,
+                                       join_split_example::fixtures::user_context& output_user,
                                        uint32_t account_note_index = 0,
                                        bool account_required = false)
     {
@@ -184,7 +184,8 @@ class join_split_tests : public ::testing::Test {
         tx.asset_id = tx_asset_id;
         tx.account_private_key = input_user.owner.private_key;
         tx.partial_claim_note.input_nullifier = 0;
-        tx.alias_hash = !account_required ? rollup::fixtures::generate_alias_hash("penguin") : input_user.alias_hash;
+        tx.alias_hash =
+            !account_required ? join_split_example::fixtures::generate_alias_hash("penguin") : input_user.alias_hash;
         tx.account_required = account_required;
         // default to no chaining:
         tx.backward_link = 0;
@@ -199,7 +200,7 @@ class join_split_tests : public ::testing::Test {
     join_split_tx simple_setup(std::array<uint32_t, 2> const& input_indices = { 0, 1 },
                                uint32_t account_note_index = 0,
                                bool account_required = false,
-                               rollup::fixtures::user_context* tx_output_user = nullptr)
+                               join_split_example::fixtures::user_context* tx_output_user = nullptr)
     {
         // The tree, user and notes are initialised in SetUp().
         preload_value_notes();
@@ -260,7 +261,7 @@ class join_split_tests : public ::testing::Test {
         tx.output_note = { output_note1, output_note2 };
         tx.partial_claim_note.input_nullifier = 0;
         tx.account_private_key = input_user.owner.private_key;
-        tx.alias_hash = rollup::fixtures::generate_alias_hash("penguin");
+        tx.alias_hash = join_split_example::fixtures::generate_alias_hash("penguin");
         tx.account_required = false;
         tx.account_note_index = 0;
         tx.account_note_path = tree->get_hash_path(0);
@@ -306,8 +307,8 @@ class join_split_tests : public ::testing::Test {
         return verify_logic(tx);
     }
 
-    rollup::fixtures::user_context input_user;
-    rollup::fixtures::user_context output_user;
+    join_split_example::fixtures::user_context input_user;
+    join_split_example::fixtures::user_context output_user;
     std::unique_ptr<MemoryStore> store;
     std::unique_ptr<MerkleTree<MemoryStore>> tree;
     bridge_call_data empty_bridge_call_data = { .bridge_address_id = 0,
@@ -715,8 +716,9 @@ TEST_F(join_split_tests, test_0_input_notes_and_detect_circuit_change)
     auto number_of_gates_js = result.number_of_gates;
     auto vk_hash_js = get_verification_key()->sha256_hash();
     // If the below assertions fail, consider changing the variable is_circuit_change_expected to 1 in
-    // rollup/constants.hpp and see if atleast the next power of two limit is not exceeded. Please change the constant
-    // values accordingly and set is_circuit_change_expected to 0 in rollup/constants.hpp before merging.
+    // join_split_example//constants.hpp and see if atleast the next power of two limit is not exceeded. Please change
+    // the constant values accordingly and set is_circuit_change_expected to 0 in join_split_example/constants.hpp
+    // before merging.
     if (!(circuit_gate_count::is_circuit_change_expected)) {
         EXPECT_EQ(number_of_gates_js, circuit_gate_count::JOIN_SPLIT)
             << "The gate count for the join_split circuit is changed.";
@@ -1011,7 +1013,7 @@ TEST_F(join_split_tests, test_non_zero_tx_fee_zero_public_values)
 TEST_F(join_split_tests, test_max_tx_fee)
 {
     join_split_tx tx = zero_input_setup();
-    auto tx_fee = (uint256_t(1) << rollup::TX_FEE_BIT_LENGTH) - 1;
+    auto tx_fee = (uint256_t(1) << join_split_example::TX_FEE_BIT_LENGTH) - 1;
     tx.proof_id = ProofIds::DEPOSIT;
     tx.public_value += tx_fee;
     tx.public_owner = fr::random_element();
@@ -1024,7 +1026,7 @@ TEST_F(join_split_tests, test_max_tx_fee)
 TEST_F(join_split_tests, test_overflow_tx_fee_fails)
 {
     join_split_tx tx = simple_setup();
-    auto tx_fee = uint256_t(1) << rollup::TX_FEE_BIT_LENGTH;
+    auto tx_fee = uint256_t(1) << join_split_example::TX_FEE_BIT_LENGTH;
     tx.proof_id = ProofIds::DEPOSIT;
     tx.public_value += tx_fee;
     tx.public_owner = fr::random_element();
@@ -1234,7 +1236,7 @@ TEST_F(join_split_tests, test_spend_registered_notes_with_owner_key_fails)
 TEST_F(join_split_tests, test_wrong_alias_hash_fails)
 {
     join_split_tx tx = simple_setup({ 2, 3 }, ACCOUNT_INDEX, 1);
-    tx.alias_hash = rollup::fixtures::generate_alias_hash("chicken");
+    tx.alias_hash = join_split_example::fixtures::generate_alias_hash("chicken");
 
     auto result = sign_and_verify_logic(tx, input_user.owner);
     EXPECT_FALSE(result.valid);
@@ -1244,7 +1246,7 @@ TEST_F(join_split_tests, test_wrong_alias_hash_fails)
 TEST_F(join_split_tests, test_nonregistered_signing_key_fails)
 {
     join_split_tx tx = simple_setup({ 2, 3 }, ACCOUNT_INDEX, 1);
-    auto keys = rollup::fixtures::create_key_pair(nullptr);
+    auto keys = join_split_example::fixtures::create_key_pair(nullptr);
     tx.signing_pub_key = keys.public_key;
 
     auto result = sign_and_verify_logic(tx, input_user.owner);
@@ -2256,7 +2258,7 @@ TEST_F(join_split_tests, test_incorrect_output_note_creator_pubkey_x)
     {
         join_split_tx tx = simple_setup();
         tx.output_note[0].creator_pubkey =
-            rollup::fixtures::create_key_pair(nullptr)
+            join_split_example::fixtures::create_key_pair(nullptr)
                 .public_key.x; // setting creator to be different from sender (the owner of the input notes).
         auto result = sign_and_verify_logic(tx, input_user.owner);
         EXPECT_FALSE(result.valid);
@@ -2265,7 +2267,7 @@ TEST_F(join_split_tests, test_incorrect_output_note_creator_pubkey_x)
     {
         join_split_tx tx = simple_setup();
         tx.output_note[1].creator_pubkey =
-            rollup::fixtures::create_key_pair(nullptr)
+            join_split_example::fixtures::create_key_pair(nullptr)
                 .public_key.x; // setting creator to be different from sender (the owner of the input notes).
         auto result = sign_and_verify_logic(tx, input_user.owner);
         EXPECT_FALSE(result.valid);
@@ -2586,4 +2588,4 @@ TEST_F(join_split_tests, serialzed_proving_key_size)
 
 } // namespace join_split
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

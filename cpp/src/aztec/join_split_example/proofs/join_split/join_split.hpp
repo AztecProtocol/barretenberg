@@ -3,7 +3,7 @@
 #include <plonk/reference_string/mem_reference_string.hpp>
 #include <stdlib/types/turbo.hpp>
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace join_split {
 
@@ -31,4 +31,4 @@ std::shared_ptr<waffle::verification_key> get_verification_key();
 
 } // namespace join_split
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

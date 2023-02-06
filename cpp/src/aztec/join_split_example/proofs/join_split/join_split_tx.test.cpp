@@ -12,7 +12,7 @@
 #include <gtest/gtest.h>
 
 using namespace barretenberg;
-using namespace rollup::proofs::join_split;
+using namespace join_split_example::proofs::join_split;
 
 namespace {
 auto& engine = numeric::random::get_debug_engine();

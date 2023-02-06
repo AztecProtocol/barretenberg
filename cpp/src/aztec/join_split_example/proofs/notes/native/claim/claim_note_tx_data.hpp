@@ -4,7 +4,7 @@
 #include <ecc/curves/grumpkin/grumpkin.hpp>
 #include "../bridge_call_data.hpp"
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace notes {
 namespace native {
@@ -47,4 +47,4 @@ inline void write(std::vector<uint8_t>& buf, partial_claim_note_data const& note
 } // namespace native
 } // namespace notes
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

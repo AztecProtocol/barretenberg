@@ -4,13 +4,13 @@
 #include "../notes/native/index.hpp"
 #include <stdlib/merkle_tree/hash_path.hpp>
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace join_split {
 
-using namespace rollup::proofs::join_split;
+using namespace join_split_example::proofs::join_split;
 using namespace plonk::stdlib::types::turbo;
-using namespace rollup::proofs::notes::native;
+using namespace join_split_example::proofs::notes::native;
 using namespace plonk::stdlib::merkle_tree;
 
 join_split_tx noop_tx()
@@ -73,4 +73,4 @@ circuit_data get_circuit_data(std::shared_ptr<waffle::ReferenceStringFactory> co
 
 } // namespace join_split
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

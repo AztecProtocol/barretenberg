@@ -2,7 +2,7 @@
 #include <stdlib/types/turbo.hpp>
 #include "../../constants.hpp"
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace notes {
 namespace circuit {
@@ -22,4 +22,4 @@ inline auto complete_partial_commitment(field_ct const& partial_commitment,
 } // namespace circuit
 } // namespace notes
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

@@ -3,7 +3,7 @@
 #include <stdlib/primitives/field/field.hpp>
 #include <stdlib/hash/pedersen/pedersen.hpp>
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace mock {
 
@@ -20,4 +20,4 @@ template <typename Composer> void mock_circuit(Composer& composer, std::vector<f
 
 } // namespace mock
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

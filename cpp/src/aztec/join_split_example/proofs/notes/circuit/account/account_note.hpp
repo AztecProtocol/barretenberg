@@ -2,7 +2,7 @@
 #include <stdlib/types/turbo.hpp>
 #include "commit.hpp"
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace notes {
 namespace circuit {
@@ -32,4 +32,4 @@ struct account_note {
 } // namespace circuit
 } // namespace notes
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

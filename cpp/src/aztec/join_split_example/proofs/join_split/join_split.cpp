@@ -4,7 +4,7 @@
 #include <plonk/composer/turbo/compute_verification_key.hpp>
 #include <plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp>
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace join_split {
 
@@ -31,7 +31,7 @@ void init_proving_key(std::shared_ptr<waffle::ReferenceStringFactory> const& crs
         Composer composer;
         join_split_circuit(composer, tx);
         Composer mock_proof_composer(crs_factory);
-        rollup::proofs::mock::mock_circuit(mock_proof_composer, composer.get_public_inputs());
+        join_split_example::proofs::mock::mock_circuit(mock_proof_composer, composer.get_public_inputs());
         proving_key = mock_proof_composer.compute_proving_key();
     }
 }
@@ -80,7 +80,7 @@ UnrolledProver new_join_split_prover(join_split_tx const& tx, bool mock)
         return composer.create_unrolled_prover();
     } else {
         Composer mock_proof_composer(proving_key, nullptr);
-        rollup::proofs::mock::mock_circuit(mock_proof_composer, composer.get_public_inputs());
+        join_split_example::proofs::mock::mock_circuit(mock_proof_composer, composer.get_public_inputs());
         info("mock composer gates: ", mock_proof_composer.get_num_gates());
         return mock_proof_composer.create_unrolled_prover();
     }
@@ -110,4 +110,4 @@ std::shared_ptr<waffle::verification_key> get_verification_key()
 
 } // namespace join_split
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

@@ -3,7 +3,7 @@
 #include <numeric/uint256/uint256.hpp>
 #include "../../constants.hpp"
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace notes {
 
@@ -42,4 +42,4 @@ constexpr uint32_t DEFI_BRIDGE_AUX_DATA = 64;
 
 } // namespace notes
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

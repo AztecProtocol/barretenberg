@@ -13,7 +13,7 @@
          ? "StandardPlonk"                                                                                             \
          : typeid(composer) == typeid(waffle::TurboComposer) ? "TurboPlonk" : "NULLPlonk")
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 
 struct circuit_data {
@@ -264,4 +264,4 @@ circuit_data get_circuit_data(std::string const& name,
 }
 
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

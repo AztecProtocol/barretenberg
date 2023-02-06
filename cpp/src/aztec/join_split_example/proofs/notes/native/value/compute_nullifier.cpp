@@ -3,7 +3,7 @@
 #include <crypto/pedersen/pedersen.hpp>
 #include <crypto/blake2s/blake2s.hpp>
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace notes {
 namespace native {
@@ -35,4 +35,4 @@ fr compute_nullifier(grumpkin::fq const& note_commitment,
 } // namespace native
 } // namespace notes
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

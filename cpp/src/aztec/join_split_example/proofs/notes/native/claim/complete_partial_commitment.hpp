@@ -4,7 +4,7 @@
 #include <ecc/curves/grumpkin/grumpkin.hpp>
 #include "../../constants.hpp"
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace notes {
 namespace native {
@@ -22,4 +22,4 @@ inline auto complete_partial_commitment(grumpkin::fq const& claim_note_partial_c
 } // namespace native
 } // namespace notes
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

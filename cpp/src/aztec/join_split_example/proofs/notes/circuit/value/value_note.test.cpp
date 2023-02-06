@@ -6,12 +6,12 @@
 
 using namespace barretenberg;
 using namespace plonk::stdlib::types::turbo;
-using namespace rollup::proofs::notes;
-using namespace rollup::proofs::notes::circuit::value;
+using namespace join_split_example::proofs::notes;
+using namespace join_split_example::proofs::notes::circuit::value;
 
 TEST(value_note, commits)
 {
-    auto user = rollup::fixtures::create_user_context();
+    auto user = join_split_example::fixtures::create_user_context();
     Composer composer = Composer();
 
     fr note_value = fr::random_element();
@@ -44,7 +44,7 @@ TEST(value_note, commits)
 
 TEST(value_note, commits_with_0_value)
 {
-    auto user = rollup::fixtures::create_user_context();
+    auto user = join_split_example::fixtures::create_user_context();
     Composer composer = Composer();
 
     uint32_t asset_id_value = 0x2abbccddULL; // needs to be less than 30 bits
@@ -78,7 +78,7 @@ TEST(value_note, commits_with_0_value)
 
 TEST(value_note, commit_with_oversized_asset_id_fails)
 {
-    auto user = rollup::fixtures::create_user_context();
+    auto user = join_split_example::fixtures::create_user_context();
     Composer composer = Composer();
 
     native::value::value_note note = {

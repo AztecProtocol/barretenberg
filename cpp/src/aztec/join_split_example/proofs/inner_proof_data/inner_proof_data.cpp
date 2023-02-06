@@ -1,6 +1,6 @@
 #include "inner_proof_data.hpp"
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 
 inner_proof_data::inner_proof_data(std::vector<uint8_t> const& proof_data)
@@ -24,4 +24,4 @@ inner_proof_data::inner_proof_data(std::vector<uint8_t> const& proof_data)
 }
 
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

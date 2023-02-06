@@ -4,7 +4,7 @@
 #include <ecc/curves/bn254/pairing.hpp>
 #include <stdlib/recursion/verifier/verifier.hpp>
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 
 template <typename Composer> struct verify_result {
@@ -95,7 +95,7 @@ auto verify_internal(
         }
     } else {
         Composer mock_proof_composer = Composer(cd.proving_key, cd.verification_key, cd.num_gates);
-        ::rollup::proofs::mock::mock_circuit(mock_proof_composer, composer.get_public_inputs());
+        ::join_split_example::proofs::mock::mock_circuit(mock_proof_composer, composer.get_public_inputs());
         if (unrolled) {
             auto prover = mock_proof_composer.create_unrolled_prover();
             auto proof = prover.construct_proof();
@@ -128,4 +128,4 @@ auto verify_internal(
 }
 
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

@@ -5,7 +5,7 @@
 #include <stdlib/merkle_tree/hash_path.hpp>
 #include <stdlib/types/turbo.hpp>
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace join_split {
 
@@ -47,4 +47,4 @@ std::ostream& operator<<(std::ostream& os, join_split_tx const& tx);
 
 } // namespace join_split
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

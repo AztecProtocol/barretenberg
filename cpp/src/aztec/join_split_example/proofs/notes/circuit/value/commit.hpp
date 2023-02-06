@@ -3,7 +3,7 @@
 #include "create_partial_commitment.hpp"
 #include "complete_partial_commitment.hpp"
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace notes {
 namespace circuit {
@@ -21,4 +21,4 @@ inline auto commit(const witness_data& plaintext)
 } // namespace circuit
 } // namespace notes
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

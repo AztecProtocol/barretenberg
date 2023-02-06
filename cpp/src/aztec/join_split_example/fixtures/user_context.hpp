@@ -3,7 +3,7 @@
 #include <ecc/curves/grumpkin/grumpkin.hpp>
 #include <crypto/schnorr/schnorr.hpp>
 
-namespace rollup {
+namespace join_split_example {
 namespace fixtures {
 
 typedef crypto::schnorr::key_pair<grumpkin::fr, grumpkin::g1> grumpkin_key_pair;
@@ -39,4 +39,4 @@ inline user_context create_user_context(numeric::random::Engine* engine = nullpt
 }
 
 } // namespace fixtures
-} // namespace rollup
+} // namespace join_split_example

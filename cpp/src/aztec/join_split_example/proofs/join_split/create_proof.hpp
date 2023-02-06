@@ -4,7 +4,7 @@
 #include "sign_join_split_tx.hpp"
 #include "../../fixtures/user_context.hpp"
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace join_split {
 
@@ -28,4 +28,4 @@ inline std::vector<uint8_t> create_proof(join_split_tx const& tx,
 
 } // namespace join_split
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

@@ -3,7 +3,7 @@
 #include <stdlib/hash/pedersen/pedersen.hpp>
 #include "../../constants.hpp"
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace notes {
 namespace circuit {
@@ -24,4 +24,4 @@ inline auto create_partial_commitment(field_ct const& secret,
 } // namespace circuit
 } // namespace notes
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

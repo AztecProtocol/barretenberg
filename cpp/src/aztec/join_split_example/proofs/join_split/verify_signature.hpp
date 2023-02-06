@@ -1,7 +1,7 @@
 #include <stdlib/encryption/schnorr/schnorr.hpp>
 #include <stdlib/hash/pedersen/pedersen.hpp>
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace join_split {
 
@@ -29,4 +29,4 @@ inline bool_ct verify_signature(field_ct const& public_value,
 
 } // namespace join_split
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

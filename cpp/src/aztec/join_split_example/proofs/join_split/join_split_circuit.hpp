@@ -5,7 +5,7 @@
 #include <crypto/schnorr/schnorr.hpp>
 #include <stdlib/types/turbo.hpp>
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace join_split {
 
@@ -55,4 +55,4 @@ void join_split_circuit(Composer& composer, join_split_tx const& tx);
 
 } // namespace join_split
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

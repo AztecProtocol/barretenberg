@@ -5,7 +5,7 @@
 #include <ecc/curves/grumpkin/grumpkin.hpp>
 #include <array>
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 
 using namespace barretenberg;
@@ -101,4 +101,4 @@ inline std::ostream& operator<<(std::ostream& os, inner_proof_data const& data)
 }
 
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

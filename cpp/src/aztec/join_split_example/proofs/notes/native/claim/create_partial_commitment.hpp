@@ -3,7 +3,7 @@
 #include <crypto/pedersen/pedersen.hpp>
 #include "../../constants.hpp"
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace notes {
 namespace native {
@@ -23,4 +23,4 @@ inline auto create_partial_commitment(uint256_t const& deposit_value,
 } // namespace native
 } // namespace notes
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

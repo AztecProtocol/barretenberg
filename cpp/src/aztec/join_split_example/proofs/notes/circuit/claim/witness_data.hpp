@@ -5,7 +5,7 @@
 #include "../../constants.hpp"
 #include "../bridge_call_data.hpp"
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace notes {
 namespace circuit {
@@ -69,4 +69,4 @@ inline std::ostream& operator<<(std::ostream& os, partial_claim_note_witness_dat
 } // namespace circuit
 } // namespace notes
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

@@ -4,7 +4,7 @@
 #include <numeric/uint256/uint256.hpp>
 #include <ecc/curves/grumpkin/grumpkin.hpp>
 
-namespace rollup {
+namespace join_split_example {
 
 constexpr size_t DATA_TREE_DEPTH = 32;
 constexpr size_t NULL_TREE_DEPTH = 256;
@@ -73,4 +73,4 @@ namespace ProofIds {
 enum { PADDING = 0, DEPOSIT = 1, WITHDRAW = 2, SEND = 3, ACCOUNT = 4, DEFI_DEPOSIT = 5, DEFI_CLAIM = 6 };
 };
 
-} // namespace rollup
+} // namespace join_split_example

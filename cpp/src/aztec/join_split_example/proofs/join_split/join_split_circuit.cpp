@@ -10,7 +10,7 @@
 
 // #pragma GCC diagnostic ignored "-Wunused-variable"
 // #pragma GCC diagnostic ignored "-Wunused-parameter"
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace join_split {
 
@@ -345,4 +345,4 @@ void join_split_circuit(Composer& composer, join_split_tx const& tx)
 
 } // namespace join_split
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

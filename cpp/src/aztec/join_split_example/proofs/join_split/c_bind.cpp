@@ -13,7 +13,7 @@
 
 using namespace barretenberg;
 using namespace plonk::stdlib::types::turbo;
-using namespace rollup::proofs::join_split;
+using namespace join_split_example::proofs::join_split;
 
 #define WASM_EXPORT __attribute__((visibility("default")))
 

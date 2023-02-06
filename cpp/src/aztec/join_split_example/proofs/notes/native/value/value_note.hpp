@@ -5,7 +5,7 @@
 #include "create_partial_commitment.hpp"
 #include "complete_partial_commitment.hpp"
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace notes {
 namespace native {
@@ -67,4 +67,4 @@ inline void write(std::vector<uint8_t>& buf, value_note const& note)
 } // namespace native
 } // namespace notes
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

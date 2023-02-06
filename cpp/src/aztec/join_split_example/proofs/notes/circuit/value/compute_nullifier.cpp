@@ -2,7 +2,7 @@
 #include "../../constants.hpp"
 #include <stdlib/types/turbo.hpp>
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace notes {
 namespace circuit {
@@ -49,4 +49,4 @@ field_ct compute_nullifier(field_ct const& note_commitment,
 } // namespace circuit
 } // namespace notes
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

@@ -6,7 +6,7 @@
 #include "complete_partial_commitment.hpp"
 #include "../bridge_call_data.hpp"
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace notes {
 namespace native {
@@ -72,4 +72,4 @@ inline std::ostream& operator<<(std::ostream& os, claim_note const& note)
 } // namespace native
 } // namespace notes
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

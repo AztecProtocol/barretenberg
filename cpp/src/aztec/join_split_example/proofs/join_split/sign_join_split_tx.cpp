@@ -2,7 +2,7 @@
 #include "compute_signing_data.hpp"
 #include <crypto/schnorr/schnorr.hpp>
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace join_split {
 
@@ -21,4 +21,4 @@ signature sign_join_split_tx(join_split_tx const& tx, key_pair<grumpkin::fr, gru
 
 } // namespace join_split
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

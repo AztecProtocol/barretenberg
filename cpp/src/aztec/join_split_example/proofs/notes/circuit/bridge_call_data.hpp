@@ -4,7 +4,7 @@
 #include "./asset_id.hpp"
 #include "../constants.hpp"
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace notes {
 namespace circuit {
@@ -219,4 +219,4 @@ inline std::ostream& operator<<(std::ostream& os, bridge_call_data const& bridge
 } // namespace circuit
 } // namespace notes
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

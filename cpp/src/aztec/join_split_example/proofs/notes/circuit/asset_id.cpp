@@ -1,7 +1,7 @@
 #include <stdlib/types/turbo.hpp>
 #include "../constants.hpp"
 
-namespace rollup::proofs::notes::circuit {
+namespace join_split_example::proofs::notes::circuit {
 
 using namespace plonk::stdlib::types::turbo;
 
@@ -28,4 +28,4 @@ bool_ct get_asset_id_flag(suint_ct const& asset_id)
     return is_virtual;
 }
 
-} // namespace rollup::proofs::notes::circuit
+} // namespace join_split_example::proofs::notes::circuit

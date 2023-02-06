@@ -3,7 +3,7 @@
 #include "../../native/value/value_note.hpp"
 #include "../../constants.hpp"
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace notes {
 namespace circuit {
@@ -37,4 +37,4 @@ struct witness_data {
 } // namespace circuit
 } // namespace notes
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example

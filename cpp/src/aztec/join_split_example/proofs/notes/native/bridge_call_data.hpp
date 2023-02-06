@@ -5,7 +5,7 @@
 #include <ecc/curves/grumpkin/grumpkin.hpp>
 #include <common/throw_or_abort.hpp>
 
-namespace rollup {
+namespace join_split_example {
 namespace proofs {
 namespace notes {
 namespace native {
@@ -182,4 +182,4 @@ inline std::ostream& operator<<(std::ostream& os, bridge_call_data const& bridge
 } // namespace native
 } // namespace notes
 } // namespace proofs
-} // namespace rollup
+} // namespace join_split_example
