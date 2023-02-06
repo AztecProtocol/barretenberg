@@ -100,8 +100,9 @@ void account_circuit(Composer& composer, account_tx const& tx)
                                               nullifier_1,
                                               nullifier_2 };
         const byte_array_ct message = pedersen::compress(to_compress);
-        stdlib::schnorr::verify_signature(message, signer, signature);
-        if (composer.failed() && !composerAlreadyFailed) {
+        const bool_ct verified = stdlib::schnorr::verify_signature(message, signer, signature);
+        verified.assert_equal(true, "verify signature failed");
+        if (composer.failed && !composerAlreadyFailed) {
             // only assign this error if an error hasn't already been assigned.
             composer.set_err("verify signature failed");
         }

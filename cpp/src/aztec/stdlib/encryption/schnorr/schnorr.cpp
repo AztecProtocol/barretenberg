@@ -270,7 +270,7 @@ point<C> variable_base_mul(const point<C>& pub_key, const point<C>& current_accu
  * @details TurboPlonk: ~10850 gates (~4k for variable_base_mul, ~6k for blake2s) for a string of length < 32.
  */
 template <typename C>
-void verify_signature(const byte_array<C>& message, const point<C>& pub_key, const signature_bits<C>& sig)
+bool_t<C> verify_signature(const byte_array<C>& message, const point<C>& pub_key, const signature_bits<C>& sig)
 {
     // Compute [s]g, where s = (s_lo, s_hi) and g = G1::one.
     point<C> R_1 = group<C>::fixed_base_scalar_mul(sig.s_lo, sig.s_hi);
@@ -291,11 +291,10 @@ void verify_signature(const byte_array<C>& message, const point<C>& pub_key, con
     // compute  e' = hash(([s]g + [e]pub).x | message)
     byte_array<C> output = blake2s(hash_input);
 
-    // verify that e' == e
     field_t<C> output_hi(output.slice(0, 16));
     field_t<C> output_lo(output.slice(16, 16));
-    output_lo.assert_equal(sig.e_lo, "verify signature failed");
-    output_hi.assert_equal(sig.e_hi, "verify signature failed");
+    // check that e' == e
+    return output_lo == sig.e_lo && output_hi == sig.e_hi;
 }
 
 template wnaf_record<waffle::TurboComposer> convert_field_into_wnaf<waffle::TurboComposer>(

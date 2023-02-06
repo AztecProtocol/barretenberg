@@ -33,7 +33,7 @@ point<C> variable_base_mul(const point<C>& pub_key, const field_t<C>& low_bits, 
 template <typename C> signature_bits<C> convert_signature(C* context, const crypto::schnorr::signature& sig);
 
 template <typename C>
-void verify_signature(const byte_array<C>& message, const point<C>& pub_key, const signature_bits<C>& sig);
+bool_t<C> verify_signature(const byte_array<C>& message, const point<C>& pub_key, const signature_bits<C>& sig);
 
 extern template point<waffle::TurboComposer> variable_base_mul<waffle::TurboComposer>(
     const point<waffle::TurboComposer>&,

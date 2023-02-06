@@ -12,7 +12,7 @@ RUN apk update \
 WORKDIR /usr/src/barretenberg/cpp
 COPY . .
 # Only build binaries that are needed upstream.
-RUN mkdir build && cd build && cmake .. && make -j$(nproc) db_cli rollup_cli tx_factory keygen
+RUN mkdir build && cd build && cmake -DOpenMP_omp_LIBRARY=/usr/local/lib/libomp.a .. && cmake --build . --parallel --target db_cli --target rollup_cli --target tx_factory --target keygen
 
 FROM alpine:3.17
 RUN apk update && apk add openmp

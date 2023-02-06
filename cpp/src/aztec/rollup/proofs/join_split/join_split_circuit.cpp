@@ -251,17 +251,33 @@ join_split_outputs join_split_circuit_component(join_split_inputs const& inputs)
     // A: By passing a signature to the circuit, the 'signing private key' doesn't need to be passed to the proof
     // construction software. This is useful for multisigs, offline signing, etc., so that the proof construction
     // software (or machine) doesn't have access to the signing private key.
-    verify_signature(inputs.public_value.value,
-                     inputs.public_owner,
-                     public_asset_id.value,
-                     output_note_1_commitment,
-                     output_note_2.commitment,
-                     nullifier1,
-                     nullifier2,
-                     signer,
-                     inputs.backward_link,
-                     inputs.allow_chain,
-                     inputs.signature);
+    const bool_ct verified = verify_signature(inputs.public_value.value,
+                                              inputs.public_owner,
+                                              public_asset_id.value,
+                                              output_note_1_commitment,
+                                              output_note_2.commitment,
+                                              nullifier1,
+                                              nullifier2,
+                                              signer,
+                                              inputs.backward_link,
+                                              inputs.allow_chain,
+                                              inputs.signature);
+    // is_same_owner: we rely on input_note_1.owner == input_note_2.owner being checked already
+    const bool_ct is_same_owner =
+        input_note_1.owner == output_note_1.owner && input_note_2.owner == output_note_2.owner;
+    const bool_ct is_same_amount = total_in_value == total_out_value;
+    // is_same_account_flag:
+    //   we rely on input_note_1.account_required == input_note_2.account_required being checked already
+    const bool_ct is_same_account_flag = input_note_1.account_required == output_note_1.account_required &&
+                                         input_note_2.account_required == output_note_2.account_required;
+    // is_merge_send:
+    //   if true, we can elide our signature as this is a same-owner, same-amount send
+    //   where one of the output notes has value 0. In addition, we shouldn't have output notes
+    //   that do not need an account if input notes needed an account, and vice versa
+    //   Caveat: A signature of all 0's will still fail basic checks
+    const bool_ct is_merge_send = is_send && (output_note_1_value == 0 || output_note_2_value == 0) && is_same_owner &&
+                                  is_same_amount && is_same_account_flag;
+    (verified || is_merge_send).assert_equal(true, "verify signature failed");
 
     return { nullifier1,      nullifier2, output_note_1_commitment, output_note_2.commitment,
              public_asset_id, tx_fee,     bridge_call_data,         defi_deposit_value };

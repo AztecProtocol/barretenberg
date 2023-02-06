@@ -2073,17 +2073,14 @@ void bigfield<C, T>::unsafe_evaluate_multiply_add(const bigfield& input_left,
                 linear_terms = linear_terms.add_two(to_add[i].prime_basis_limb, to_add[i + 1].prime_basis_limb);
             }
         }
-        if ((to_add.size() & 1UL) == 1UL) {
-            linear_terms += to_add[to_add.size() - 1].prime_basis_limb;
-        }
-        if (remainders.size() >= 2) {
-            for (size_t i = 0; i < remainders.size(); i += 2) {
-                linear_terms =
-                    linear_terms.add_two(-remainders[i].prime_basis_limb, -remainders[i + 1].prime_basis_limb);
-            }
-        }
-        if ((remainders.size() & 1UL) == 1UL) {
-            linear_terms += -remainders[remainders.size() - 1].prime_basis_limb;
+    }
+    if ((to_add.size() & 1UL) == 1UL) {
+        linear_terms += to_add[to_add.size() - 1].prime_basis_limb;
+    }
+    if (remainders.size() >= 2) {
+        for (size_t i = 0; i < (remainders.size() >> 1); i += 1) {
+            linear_terms =
+                linear_terms.add_two(-remainders[2 * i].prime_basis_limb, -remainders[2 * i + 1].prime_basis_limb);
         }
 
         // This is where we show our identity is zero mod r (to use CRT we show it's zero mod r and mod 2^t)

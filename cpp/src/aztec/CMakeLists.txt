@@ -1,4 +1,5 @@
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 # Enable the following warnings project wide.
 # If any compilation issues arise in the future, they should not be silenced here but rather in the 
@@ -108,5 +109,55 @@ if(WASM)
         barretenberg.wasm
         DEPENDS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/barretenberg.wasm
     )
+    # For use when compiling dependent cpp projects for WASM
+    message(STATUS "Compiling all-in-one barretenberg WASM archive")
+    add_library(
+        barretenberg
+        STATIC
+        $<TARGET_OBJECTS:srs_objects>
+        $<TARGET_OBJECTS:numeric_objects>
+        $<TARGET_OBJECTS:crypto_sha256_objects>
+        $<TARGET_OBJECTS:crypto_aes128_objects>
+        $<TARGET_OBJECTS:crypto_blake2s_objects>
+        $<TARGET_OBJECTS:crypto_keccak_objects>
+        $<TARGET_OBJECTS:crypto_schnorr_objects>
+        $<TARGET_OBJECTS:crypto_pedersen_objects>
+        $<TARGET_OBJECTS:ecc_objects>
+        $<TARGET_OBJECTS:polynomials_objects>
+        $<TARGET_OBJECTS:plonk_objects>
+        $<TARGET_OBJECTS:stdlib_primitives_objects>
+        $<TARGET_OBJECTS:stdlib_schnorr_objects>
+        $<TARGET_OBJECTS:stdlib_pedersen_objects>
+        $<TARGET_OBJECTS:stdlib_blake2s_objects>
+        $<TARGET_OBJECTS:stdlib_sha256_objects>
+        $<TARGET_OBJECTS:stdlib_aes128_objects>
+        $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
+    )
 
+else()
+    # For use when compiling dependent cpp projects
+    message(STATUS "Compiling all-in-one barretenberg archive")
+    add_library(
+        barretenberg
+        STATIC
+        $<TARGET_OBJECTS:srs_objects>
+        $<TARGET_OBJECTS:numeric_objects>
+        $<TARGET_OBJECTS:crypto_sha256_objects>
+        $<TARGET_OBJECTS:crypto_aes128_objects>
+        $<TARGET_OBJECTS:crypto_blake2s_objects>
+        $<TARGET_OBJECTS:crypto_keccak_objects>
+        $<TARGET_OBJECTS:crypto_schnorr_objects>
+        $<TARGET_OBJECTS:crypto_pedersen_objects>
+        $<TARGET_OBJECTS:ecc_objects>
+        $<TARGET_OBJECTS:polynomials_objects>
+        $<TARGET_OBJECTS:plonk_objects>
+        $<TARGET_OBJECTS:stdlib_primitives_objects>
+        $<TARGET_OBJECTS:stdlib_schnorr_objects>
+        $<TARGET_OBJECTS:stdlib_pedersen_objects>
+        $<TARGET_OBJECTS:stdlib_blake2s_objects>
+        $<TARGET_OBJECTS:stdlib_sha256_objects>
+        $<TARGET_OBJECTS:stdlib_aes128_objects>
+        $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
+        $<TARGET_OBJECTS:env_objects>
+    )
 endif()
