@@ -1,6 +1,7 @@
 #include "polynomial_arithmetic.hpp"
 #include <algorithm>
 #include <common/mem.hpp>
+#include <cstddef>
 #include <gtest/gtest.h>
 #include <utility>
 #include "numeric/bitop/get_msb.hpp"
@@ -1168,4 +1169,28 @@ TEST(polynomials, move_construct_and_assign)
     EXPECT_EQ(polynomial_c.coefficients_, nullptr);
     EXPECT_EQ(polynomial_c.size(), 0);
     EXPECT_EQ(polynomial_c.mapped_, false);
+}
+
+TEST(polynomials, default_construct_then_assign)
+{
+    // construct an arbitrary but non-empty polynomial
+    size_t num_coeffs = 64;
+    polynomial interesting_poly(num_coeffs);
+    for (auto& coeff : interesting_poly) {
+        coeff = fr::random_element();
+    }
+
+    // construct an empty poly via the default constructor
+    polynomial poly;
+
+    EXPECT_EQ(poly.is_empty(), true);
+
+    // fill the empty poly using the assignment operator
+    poly = interesting_poly;
+
+    // coefficients and size should be equal in value
+    for (size_t i = 0; i < num_coeffs; ++i) {
+        EXPECT_EQ(poly[i], interesting_poly[i]);
+    }
+    EXPECT_EQ(poly.size(), interesting_poly.size());
 }

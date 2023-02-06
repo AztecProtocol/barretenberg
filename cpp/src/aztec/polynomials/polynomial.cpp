@@ -77,12 +77,16 @@ Polynomial<Fr>::Polynomial(Fr* buf, const size_t size_)
 
 template <typename Fr> Polynomial<Fr>& Polynomial<Fr>::operator=(const Polynomial<Fr>& other)
 {
+    if (is_empty()) {
+        size_ = other.size();
+        coefficients_ = (Fr*)(aligned_alloc(32, sizeof(Fr) * other.capacity()));
+    }
+
     mapped_ = false;
 
     ASSERT(other.size_ <= size_);
 
     if (other.coefficients_ != nullptr) {
-        ASSERT(coefficients_);
         memcpy(static_cast<void*>(coefficients_), static_cast<void*>(other.coefficients_), sizeof(Fr) * other.size_);
     }
 
