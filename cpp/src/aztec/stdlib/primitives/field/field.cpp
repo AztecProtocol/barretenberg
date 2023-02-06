@@ -1065,8 +1065,7 @@ template <typename ComposerContext>
 std::array<field_t<ComposerContext>, 3> field_t<ComposerContext>::slice(const uint8_t msb, const uint8_t lsb) const
 {
     ASSERT(msb >= lsb);
-    ASSERT(msb < rollup::MAX_NO_WRAP_INTEGER_BIT_LENGTH); //  CODY: eek! Why is rollup info here? function input arg
-                                                          //  msb_bound or something
+    ASSERT(msb < grumpkin::MAX_NO_WRAP_INTEGER_BIT_LENGTH);
     const field_t lhs = *this;
     ComposerContext* ctx = lhs.get_context();
 
