@@ -18,7 +18,7 @@ template <typename... Args> inline void debug(Args...) {}
 void PolynomialStoreMem::put(std::string const& key, polynomial const& value)
 {
     debug("put: taking copy of polynomial: ", key);
-    map_.emplace(key, std::move(value));
+    map_.emplace(key, value);
     auto& stats = stats_[key];
     stats.first++;
 }

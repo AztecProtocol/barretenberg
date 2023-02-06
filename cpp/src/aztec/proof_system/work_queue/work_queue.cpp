@@ -251,7 +251,7 @@ void work_queue::process_queue()
             polynomial wire_fft(4 * key->circuit_size + 4);
 
             polynomial_arithmetic::copy_polynomial(
-                &wire[0], &wire_fft[0], key->circuit_size, 4 * key->circuit_size + 4);
+                wire.data(), wire_fft.data(), key->circuit_size, 4 * key->circuit_size + 4);
 
             wire_fft.coset_fft(key->large_domain);
             for (size_t i = 0; i < 4; i++) {

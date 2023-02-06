@@ -24,7 +24,7 @@ template <typename Fr> class Polynomial {
     Polynomial(Fr* buf, const size_t initial_size);
 
     // Allow polynomials to be entirely reset/dormant
-    Polynomial();
+    Polynomial() = default;
 
     /**
      * @brief Create the degree-(m-1) polynomial T(X) that interpolates the given evaluations.

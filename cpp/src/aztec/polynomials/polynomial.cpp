@@ -75,13 +75,6 @@ Polynomial<Fr>::Polynomial(Fr* buf, const size_t size_)
     , mapped_(false)
 {}
 
-template <typename Fr>
-Polynomial<Fr>::Polynomial()
-    : coefficients_(nullptr)
-    , size_(0)
-    , mapped_(false)
-{}
-
 template <typename Fr> Polynomial<Fr>& Polynomial<Fr>::operator=(const Polynomial<Fr>& other)
 {
     mapped_ = false;
