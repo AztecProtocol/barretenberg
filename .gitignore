@@ -4,3 +4,5 @@ node_modules
 .yarn/install-state.gz
 ts/dest
 .tsbuildinfo
+.doxygen/*
+doxydoc/*

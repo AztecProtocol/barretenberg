@@ -199,3 +199,17 @@ Alternatively you can build separate test binaries, e.g. honk_tests or numeric_t
 ### VS Code configuration
 
 A default configuration for VS Code is provided by the file [`barretenberg.code-workspace`](barretenberg.code-workspace). These settings can be overridden by placing configuration files in `.vscode/`.
+
+### Doxygen
+
+An alternative might be retrofitting https://www.cryptologie.net/article/553/the-code-is-the-specification-introducing-cargo-spec/ to our needs.
+
+Installation: run boostrap_doxygen.sh.
+
+The file ./Doxyfile is a config for doxygen. There are tons of options. For example, you can generate very cool but often uselessly huge diagrams by setting `HAVE_DOT` to `YES`.
+
+To generate the documentation: `doxygen Doxyfile`
+
+To browse the generated documentaiton, a good starting point is: ./doxydoc/html/annotated.html
+
+Reference: http://web.evolbio.mpg.de/~boettcher//other/2016/creating_source_graph.html
