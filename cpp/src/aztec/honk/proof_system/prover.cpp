@@ -45,12 +45,6 @@ Prover<settings>::Prover(std::shared_ptr<waffle::proving_key> input_key, const t
 // , queue(proving_key.get(), &transcript) // TODO(Adrian): explore whether it's needed
 {}
 
-template <typename settings> void Prover<settings>::reset()
-{
-    transcript::Manifest manifest = transcript.get_manifest();
-    transcript = transcript::StandardTranscript(manifest, settings::hash_type, settings::num_challenge_bytes);
-}
-
 /**
  * For Plonk systems:
  * - Compute commitments to wires 1,2,3
