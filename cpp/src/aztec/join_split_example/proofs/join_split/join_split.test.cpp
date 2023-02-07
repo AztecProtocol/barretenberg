@@ -47,14 +47,13 @@ class join_split_tests : public ::testing::Test {
     {
         store = std::make_unique<MemoryStore>();
         tree = std::make_unique<MerkleTree<MemoryStore>>(*store, 32);
-        input_user = join_split_example::fixtures::create_user_context();
-        output_user = join_split_example::fixtures::create_user_context();
+        user = join_split_example::fixtures::create_user_context();
 
         default_value_note = { .value = 100,
                                .asset_id = asset_id,
                                .account_required = false,
-                               .owner = input_user.owner.public_key,
-                               .secret = input_user.note_secret,
+                               .owner = user.owner.public_key,
+                               .secret = user.note_secret,
                                .creator_pubkey = 0,
                                .input_nullifier = fr::random_element() };
 
@@ -64,7 +63,7 @@ class join_split_tests : public ::testing::Test {
             value_note.input_nullifier = fr::random_element(); // to ensure uniqueness
         }
 
-        value_notes[0].creator_pubkey = input_user.owner.public_key.x;
+        value_notes[0].creator_pubkey = user.owner.public_key.x;
 
         value_notes[1].value = 50;
         value_notes[1].creator_pubkey = join_split_example::fixtures::create_key_pair(nullptr).public_key.x;
@@ -84,16 +83,16 @@ class join_split_tests : public ::testing::Test {
 
         value_notes[6].value = 90;
         value_notes[6].asset_id = asset_id + 1;
-        value_notes[6].creator_pubkey = input_user.owner.public_key.x;
+        value_notes[6].creator_pubkey = user.owner.public_key.x;
 
         // Value chosen to cause tests to fail.
         value_notes[7].value = 110;
         value_notes[7].asset_id = asset_id + 1;
-        value_notes[7].creator_pubkey = input_user.owner.public_key.x;
+        value_notes[7].creator_pubkey = user.owner.public_key.x;
 
         // Similar to value_notes[0], but a different value of 90, to match defi_deposit_value in tests.
         value_notes[8].value = 90;
-        value_notes[8].creator_pubkey = input_user.owner.public_key.x;
+        value_notes[8].creator_pubkey = user.owner.public_key.x;
 
         // Similar previous virtual notes, but a different value of 90, to match defi_deposit_value in tests.
         value_notes[9].value = 90;
@@ -121,14 +120,12 @@ class join_split_tests : public ::testing::Test {
      */
     void preload_account_notes()
     {
-        tree->update_element(tree->size(),
-                             create_account_leaf_data(input_user.alias_hash,
-                                                      input_user.owner.public_key,
-                                                      input_user.signing_keys[0].public_key));
-        tree->update_element(tree->size(),
-                             create_account_leaf_data(input_user.alias_hash,
-                                                      input_user.owner.public_key,
-                                                      input_user.signing_keys[1].public_key));
+        tree->update_element(
+            tree->size(),
+            create_account_leaf_data(user.alias_hash, user.owner.public_key, user.signing_keys[0].public_key));
+        tree->update_element(
+            tree->size(),
+            create_account_leaf_data(user.alias_hash, user.owner.public_key, user.signing_keys[1].public_key));
     }
 
     /**
@@ -153,25 +150,24 @@ class join_split_tests : public ::testing::Test {
      */
     join_split_tx create_join_split_tx(std::array<uint32_t, 2> const& input_indices,
                                        std::array<value::value_note, 2> const& input_notes,
-                                       join_split_example::fixtures::user_context& output_user,
                                        uint32_t account_note_index = 0,
                                        bool account_required = false)
     {
         uint32_t tx_asset_id = input_notes[0].asset_id;
-        auto input_nullifier1 = compute_nullifier(input_notes[0].commit(), input_user.owner.private_key, true);
-        auto input_nullifier2 = compute_nullifier(input_notes[1].commit(), input_user.owner.private_key, true);
+        auto input_nullifier1 = compute_nullifier(input_notes[0].commit(), user.owner.private_key, true);
+        auto input_nullifier2 = compute_nullifier(input_notes[1].commit(), user.owner.private_key, true);
         value::value_note output_note1 = { .value = input_notes[0].value + input_notes[1].value,
                                            .asset_id = tx_asset_id,
                                            .account_required = account_required,
-                                           .owner = output_user.owner.public_key,
-                                           .secret = output_user.note_secret,
+                                           .owner = user.owner.public_key,
+                                           .secret = user.note_secret,
                                            .creator_pubkey = 0,
                                            .input_nullifier = input_nullifier1 };
         value::value_note output_note2 = { .value = 0,
                                            .asset_id = tx_asset_id,
                                            .account_required = account_required,
-                                           .owner = output_user.owner.public_key,
-                                           .secret = output_user.note_secret,
+                                           .owner = user.owner.public_key,
+                                           .secret = user.note_secret,
                                            .creator_pubkey = 0,
                                            .input_nullifier = input_nullifier2 };
 
@@ -187,12 +183,12 @@ class join_split_tests : public ::testing::Test {
         tx.public_owner = fr(0);
         tx.account_note_index = account_note_index;
         tx.account_note_path = tree->get_hash_path(account_note_index);
-        tx.signing_pub_key = input_user.signing_keys[0].public_key;
+        tx.signing_pub_key = user.signing_keys[0].public_key;
         tx.asset_id = tx_asset_id;
-        tx.account_private_key = input_user.owner.private_key;
+        tx.account_private_key = user.owner.private_key;
         tx.partial_claim_note.input_nullifier = 0;
         tx.alias_hash =
-            !account_required ? join_split_example::fixtures::generate_alias_hash("penguin") : input_user.alias_hash;
+            !account_required ? join_split_example::fixtures::generate_alias_hash("penguin") : user.alias_hash;
         tx.account_required = account_required;
         // default to no chaining:
         tx.backward_link = 0;
@@ -206,15 +202,13 @@ class join_split_tests : public ::testing::Test {
      */
     join_split_tx simple_setup(std::array<uint32_t, 2> const& input_indices = { 0, 1 },
                                uint32_t account_note_index = 0,
-                               bool account_required = false,
-                               join_split_example::fixtures::user_context* tx_output_user = nullptr)
+                               bool account_required = false)
     {
         // The tree, user and notes are initialised in SetUp().
         preload_value_notes();
         preload_account_notes(); // indices: [ACCOUNT_INDEX, ACCOUNT_INDEX + 1]
         return create_join_split_tx(input_indices,
                                     { value_notes[input_indices[0]], value_notes[input_indices[1]] },
-                                    tx_output_user ? *tx_output_user : output_user,
                                     account_note_index,
                                     account_required);
 
@@ -228,32 +222,17 @@ class join_split_tests : public ::testing::Test {
          */
     }
 
-    join_split_tx same_owner_setup(std::array<uint32_t, 2> const& input_indices = { 0, 1 },
-                                   uint32_t account_note_index = 0,
-                                   bool account_required = false)
-    {
-        return simple_setup(input_indices, account_note_index, account_required, &input_user);
-    }
-
     /**
      * Return a join split tx with 0-valued input notes.
      */
     join_split_tx zero_input_setup()
     {
-        value::value_note input_note1 = {
-            0, 0, 0, input_user.owner.public_key, input_user.note_secret, 0, fr::random_element()
-        };
-        value::value_note input_note2 = {
-            0, 0, 0, input_user.owner.public_key, input_user.note_secret, 0, fr::random_element()
-        };
-        auto input_nullifier1 = compute_nullifier(input_note1.commit(), input_user.owner.private_key, false);
-        auto input_nullifier2 = compute_nullifier(input_note2.commit(), input_user.owner.private_key, false);
-        value::value_note output_note1 = {
-            0, 0, 0, input_user.owner.public_key, input_user.note_secret, 0, input_nullifier1
-        };
-        value::value_note output_note2 = {
-            0, 0, 0, input_user.owner.public_key, input_user.note_secret, 0, input_nullifier2
-        };
+        value::value_note input_note1 = { 0, 0, 0, user.owner.public_key, user.note_secret, 0, fr::random_element() };
+        value::value_note input_note2 = { 0, 0, 0, user.owner.public_key, user.note_secret, 0, fr::random_element() };
+        auto input_nullifier1 = compute_nullifier(input_note1.commit(), user.owner.private_key, false);
+        auto input_nullifier2 = compute_nullifier(input_note2.commit(), user.owner.private_key, false);
+        value::value_note output_note1 = { 0, 0, 0, user.owner.public_key, user.note_secret, 0, input_nullifier1 };
+        value::value_note output_note2 = { 0, 0, 0, user.owner.public_key, user.note_secret, 0, input_nullifier2 };
 
         join_split_tx tx;
         tx.proof_id = ProofIds::SEND;
@@ -267,12 +246,12 @@ class join_split_tests : public ::testing::Test {
         tx.input_note = { input_note1, input_note2 };
         tx.output_note = { output_note1, output_note2 };
         tx.partial_claim_note.input_nullifier = 0;
-        tx.account_private_key = input_user.owner.private_key;
+        tx.account_private_key = user.owner.private_key;
         tx.alias_hash = join_split_example::fixtures::generate_alias_hash("penguin");
         tx.account_required = false;
         tx.account_note_index = 0;
         tx.account_note_path = tree->get_hash_path(0);
-        tx.signing_pub_key = input_user.signing_keys[0].public_key;
+        tx.signing_pub_key = user.signing_keys[0].public_key;
         tx.backward_link = 0;
         tx.allow_chain = 0;
         return tx;
@@ -314,8 +293,7 @@ class join_split_tests : public ::testing::Test {
         return verify_logic(tx);
     }
 
-    join_split_example::fixtures::user_context input_user;
-    join_split_example::fixtures::user_context output_user;
+    join_split_example::fixtures::user_context user;
     std::unique_ptr<MemoryStore> store;
     std::unique_ptr<MerkleTree<MemoryStore>> tree;
     bridge_call_data empty_bridge_call_data = { .bridge_address_id = 0,
@@ -463,10 +441,9 @@ TEST_F(join_split_tests, test_invalid_num_input_notes_fails)
     tx.num_input_notes = 100; // <-- testing this fails.
     tx.input_note[1].value = 0;
     tx.output_note[0].value = tx.input_note[0].value;
-    tx.output_note[1].input_nullifier =
-        compute_nullifier(tx.input_note[1].commit(), input_user.owner.private_key, false);
+    tx.output_note[1].input_nullifier = compute_nullifier(tx.input_note[1].commit(), user.owner.private_key, false);
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "invalid num_input_notes");
 }
@@ -478,7 +455,7 @@ TEST_F(join_split_tests, test_deposit_public_value_invalid_fails)
     tx.public_value = 0; // <-- invalid, should be nonzero
     tx.public_owner = fr::random_element();
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "public value invalid");
 }
@@ -489,7 +466,7 @@ TEST_F(join_split_tests, test_send_public_value_invalid_fails)
     tx.public_value = 10; // <-- invalid - should be 0
     tx.public_owner = fr::random_element();
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "public value invalid");
 }
@@ -501,7 +478,7 @@ TEST_F(join_split_tests, test_withdraw_public_value_invalid_fails)
     tx.public_value = 0; // <-- invalid - should be nonzero
     tx.public_owner = fr::random_element();
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "public value invalid");
 }
@@ -520,7 +497,7 @@ TEST_F(join_split_tests, test_defi_deposit_public_value_invalid_fails)
     bridge_call_data.input_asset_id_a = tx.input_note[0].asset_id;
     tx.partial_claim_note.bridge_call_data = bridge_call_data.to_uint256_t();
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "public value invalid");
 }
@@ -532,7 +509,7 @@ TEST_F(join_split_tests, test_deposit_public_owner_invalid_fails)
     tx.public_value = 10;
     tx.public_owner = 0; // <-- invalid - should be nonzero
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "public owner invalid");
 }
@@ -543,7 +520,7 @@ TEST_F(join_split_tests, test_send_public_owner_invalid_fails)
     tx.public_value = 0;
     tx.public_owner = fr::random_element(); // <-- invalid - should be 0
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "public owner invalid");
 }
@@ -555,7 +532,7 @@ TEST_F(join_split_tests, test_withdraw_public_owner_invalid_fails)
     tx.public_value = 10;
     tx.public_owner = 0; // <-- invalid - should be nonzero
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "public owner invalid");
 }
@@ -574,7 +551,7 @@ TEST_F(join_split_tests, test_defi_deposit_public_owner_invalid_fails)
     bridge_call_data.input_asset_id_a = tx.input_note[0].asset_id;
     tx.partial_claim_note.bridge_call_data = bridge_call_data.to_uint256_t();
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "public owner invalid");
 }
@@ -584,7 +561,7 @@ TEST_F(join_split_tests, test_wrong_proof_id)
     join_split_tx tx = zero_input_setup();
     tx.proof_id = ProofIds::DEFI_CLAIM;
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "invalid proof id");
 }
@@ -592,7 +569,7 @@ TEST_F(join_split_tests, test_wrong_proof_id)
 TEST_F(join_split_tests, test_joining_same_note_fails)
 {
     join_split_tx tx = simple_setup({ 1, 1 });
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "joining same note");
 }
@@ -601,7 +578,7 @@ TEST_F(join_split_tests, test_send_with_0_input_notes_fails)
 {
     join_split_tx tx = zero_input_setup();
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "can only deposit");
 }
@@ -613,7 +590,7 @@ TEST_F(join_split_tests, test_withdraw_with_0_input_notes_fails)
     tx.public_value = 10;
     tx.public_owner = fr::random_element();
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "can only deposit");
 }
@@ -623,7 +600,7 @@ TEST_F(join_split_tests, test_defi_deposit_with_0_input_notes_fails)
     join_split_tx tx = zero_input_setup();
     tx.proof_id = ProofIds::DEFI_DEPOSIT;
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "can only deposit");
 }
@@ -633,7 +610,7 @@ TEST_F(join_split_tests, test_wrong_asset_id_fails)
     join_split_tx tx = simple_setup();
     tx.asset_id = 3;
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "asset ids don't match");
 }
@@ -643,7 +620,7 @@ TEST_F(join_split_tests, test_different_input_note_1_asset_id_fails)
     join_split_tx tx = simple_setup();
     tx.input_note[0].asset_id = 3;
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "asset ids don't match");
 }
@@ -653,7 +630,7 @@ TEST_F(join_split_tests, test_different_output_note_1_asset_id_fails)
     join_split_tx tx = simple_setup();
     tx.output_note[0].asset_id = 3;
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "asset ids don't match");
 }
@@ -663,7 +640,7 @@ TEST_F(join_split_tests, test_different_output_note_2_asset_id_fails)
     join_split_tx tx = simple_setup();
     tx.output_note[1].asset_id = 3;
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "asset ids don't match");
 }
@@ -676,7 +653,7 @@ TEST_F(join_split_tests, test_deposit_but_different_input_note_2_asset_id_fails)
     tx.public_owner = fr::random_element();
     tx.input_note[1].asset_id = 3;
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "input asset ids must match unless defi-depositing");
 }
@@ -686,7 +663,7 @@ TEST_F(join_split_tests, test_send_but_different_input_note_2_asset_id_fails)
     join_split_tx tx = simple_setup();
     tx.input_note[1].asset_id = 3;
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "input asset ids must match unless defi-depositing");
 }
@@ -699,7 +676,7 @@ TEST_F(join_split_tests, test_withdraw_but_different_input_note_2_asset_id_fails
     tx.public_owner = fr::random_element();
     tx.input_note[1].asset_id = 3;
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "input asset ids must match unless defi-depositing");
 }
@@ -716,7 +693,7 @@ TEST_F(join_split_tests, test_0_input_notes_and_detect_circuit_change)
     tx.public_owner = fr::random_element();
     tx.output_note[0].value = 30;
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
 
     EXPECT_TRUE(result.valid);
 
@@ -753,7 +730,7 @@ TEST_F(join_split_tests, test_0_input_notes_create_dupicate_output_notes_fails)
     tx.output_note[1] = tx.output_note[0]; // <-- attempt to maliciously create duplicate output notes.
     tx.input_note[1] = tx.input_note[0];   // <-- for output notes to be equal, input_nullifiers must be equal.
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "joining same note");
 }
@@ -773,7 +750,7 @@ TEST_F(join_split_tests, test_0_input_notes_create_dupicate_output_notes_fails_2
         1; // <-- to avoid 'joining same note', modify input_note[1], but then hit the error that requirement for
            // different input_nullifiers will force the output_notes to be different.
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "output note 2 has incorrect input nullifier");
 }
@@ -788,7 +765,7 @@ TEST_F(join_split_tests, test_dummy_input_note_1_non_0_value_fails)
     tx.input_note[0].value = 10;
     tx.output_note[0].value = 20;
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "padding note non zero");
 }
@@ -803,7 +780,7 @@ TEST_F(join_split_tests, test_dummy_input_note_2_non_0_value_fails)
     tx.input_note[1].value = 10;
     tx.output_note[0].value = 20;
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "padding note non zero");
 }
@@ -814,10 +791,9 @@ TEST_F(join_split_tests, test_1_input_note)
     tx.num_input_notes = 1; // <-- testing this
     tx.input_note[1].value = 0;
     tx.output_note[0].value = tx.input_note[0].value;
-    tx.output_note[1].input_nullifier =
-        compute_nullifier(tx.input_note[1].commit(), input_user.owner.private_key, false);
+    tx.output_note[1].input_nullifier = compute_nullifier(tx.input_note[1].commit(), user.owner.private_key, false);
 
-    EXPECT_TRUE(sign_and_verify_logic(tx, input_user.owner).valid);
+    EXPECT_TRUE(sign_and_verify_logic(tx, user.owner).valid);
 }
 
 // Bespoke test seeking bug.
@@ -829,12 +805,10 @@ TEST_F(join_split_tests, test_1_input_note_with_num_input_notes_as_0)
     tx.input_note[1].value = 0;
     tx.output_note[0].value = tx.input_note[0].value;
     // create a cheeky nullifier for tx.input_note[0] where is_real = false
-    tx.output_note[0].input_nullifier =
-        compute_nullifier(tx.input_note[0].commit(), input_user.owner.private_key, false);
-    tx.output_note[1].input_nullifier =
-        compute_nullifier(tx.input_note[1].commit(), input_user.owner.private_key, false);
+    tx.output_note[0].input_nullifier = compute_nullifier(tx.input_note[0].commit(), user.owner.private_key, false);
+    tx.output_note[1].input_nullifier = compute_nullifier(tx.input_note[1].commit(), user.owner.private_key, false);
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "can only deposit");
 }
@@ -842,7 +816,7 @@ TEST_F(join_split_tests, test_1_input_note_with_num_input_notes_as_0)
 TEST_F(join_split_tests, test_2_input_notes)
 {
     join_split_tx tx = simple_setup();
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_TRUE(result.valid);
     EXPECT_EQ(result.public_inputs.size(), InnerProofFields::NUM_FIELDS);
 }
@@ -856,7 +830,7 @@ TEST_F(join_split_tests, test_0_output_notes)
     tx.public_value = tx.input_note[0].value + tx.input_note[1].value;
     tx.public_owner = fr::random_element();
 
-    EXPECT_TRUE(sign_and_verify_logic(tx, input_user.owner).valid);
+    EXPECT_TRUE(sign_and_verify_logic(tx, user.owner).valid);
 }
 
 // *************************************************************************************************************
@@ -866,10 +840,10 @@ TEST_F(join_split_tests, test_0_output_notes)
 class test_valid_allow_chain_permutations : public join_split_tests, public ::testing::WithParamInterface<uint32_t> {};
 TEST_P(test_valid_allow_chain_permutations, )
 {
-    join_split_tx tx = same_owner_setup();
+    join_split_tx tx = simple_setup();
     // sending to self is implied here, by the fixture's default values
     tx.allow_chain = GetParam();
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_TRUE(result.valid);
     EXPECT_EQ(result.public_inputs[InnerProofFields::ALLOW_CHAIN], GetParam());
 }
@@ -879,7 +853,7 @@ TEST_F(join_split_tests, test_allow_chain_out_of_range_fails)
 {
     join_split_tx tx = simple_setup();
     tx.backward_link = fr::random_element(); // choose a value unrelated to the inputs being spent
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "backward_link unrelated to inputs");
 }
@@ -888,7 +862,7 @@ TEST_F(join_split_tests, test_unrelated_backward_link_fails)
 {
     join_split_tx tx = simple_setup();
     tx.allow_chain = 4;
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "allow_chain out of range");
 }
@@ -899,7 +873,7 @@ TEST_P(test_allow_chain_to_other_users_fail, )
     join_split_tx tx = simple_setup();
     tx.allow_chain = GetParam();
     tx.output_note[tx.allow_chain - 1].owner = grumpkin::g1::element::random_element(); // i.e. not owned by self.
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "inter-user chaining disallowed");
 }
@@ -931,7 +905,7 @@ TEST_P(test_propagated_notes_skip_membership_check, )
     assign_backward_link(tx, indicator);
     tx.input_path[indicator - 1] =
         tree->get_hash_path(99); // select a clearly incorrect path for the input note being propagated.
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_TRUE(result.valid);
 }
 INSTANTIATE_TEST_SUITE_P(join_split_tests, test_propagated_notes_skip_membership_check, ::testing::Values(1, 2));
@@ -955,7 +929,7 @@ TEST_F(join_split_tests, test_propagated_input_note1_no_double_spend)
         tx.output_note[0].input_nullifier
     };
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
 
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "joining same note");
@@ -973,7 +947,7 @@ TEST_F(join_split_tests, test_max_public_input)
     tx.output_note[0].value = max_value;
     tx.public_owner = fr::random_element();
 
-    EXPECT_TRUE(sign_and_verify_logic(tx, input_user.owner).valid);
+    EXPECT_TRUE(sign_and_verify_logic(tx, user.owner).valid);
 }
 
 TEST_F(join_split_tests, test_overflow_public_value_fails)
@@ -983,7 +957,7 @@ TEST_F(join_split_tests, test_overflow_public_value_fails)
     tx.public_value = max_value + 1;
     tx.public_owner = fr::random_element();
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "safe_uint_t range constraint failure: public_value");
 }
@@ -999,7 +973,7 @@ TEST_F(join_split_tests, test_non_zero_tx_fee)
     tx.public_value += 10;
     tx.public_owner = fr::random_element();
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_TRUE(result.valid);
     EXPECT_EQ(result.public_inputs[InnerProofFields::TX_FEE], 10);
 }
@@ -1009,7 +983,7 @@ TEST_F(join_split_tests, test_non_zero_tx_fee_zero_public_values)
     join_split_tx tx = simple_setup();
     tx.output_note[0].value -= 10;
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_TRUE(result.valid);
     EXPECT_EQ(result.public_inputs[InnerProofFields::TX_FEE], 10);
 }
@@ -1022,7 +996,7 @@ TEST_F(join_split_tests, test_max_tx_fee)
     tx.public_value += tx_fee;
     tx.public_owner = fr::random_element();
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_TRUE(result.valid);
     EXPECT_EQ(result.public_inputs[InnerProofFields::TX_FEE], fr(tx_fee));
 }
@@ -1035,7 +1009,7 @@ TEST_F(join_split_tests, test_overflow_tx_fee_fails)
     tx.public_value += tx_fee;
     tx.public_owner = fr::random_element();
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "safe_uint_t range constraint failure: subtract: total_in_value < total_out_value");
 }
@@ -1045,7 +1019,7 @@ TEST_F(join_split_tests, test_total_output_value_larger_than_total_input_value_f
     join_split_tx tx = simple_setup();
     tx.output_note[0].value += 1;
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "safe_uint_t range constraint failure: subtract: total_in_value < total_out_value");
 }
@@ -1059,7 +1033,7 @@ TEST_F(join_split_tests, test_different_input_note_owners_fails)
     join_split_tx tx = simple_setup({ 1, 2 });
     tx.input_note[0].owner = grumpkin::g1::affine_element::hash_to_curve(1);
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "input note owners don't match");
 }
@@ -1068,7 +1042,7 @@ TEST_F(join_split_tests, test_different_input_note_account_requireds_fails)
 {
     join_split_tx tx = simple_setup({ 1, 2 });
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "input note account_required don't match");
 }
@@ -1088,13 +1062,13 @@ TEST_F(join_split_tests, test_different_input_note_account_requireds_fails)
 TEST_F(join_split_tests, test_spend_notes_with_registered_account)
 {
     join_split_tx tx = simple_setup({ 2, 3 }, ACCOUNT_INDEX, 1);
-    EXPECT_TRUE(sign_and_verify_logic(tx, input_user.signing_keys[0]).valid);
+    EXPECT_TRUE(sign_and_verify_logic(tx, user.signing_keys[0]).valid);
 }
 
 TEST_F(join_split_tests, test_different_note_account_required_vs_account_required_fails)
 {
     join_split_tx tx = simple_setup({ 2, 3 }, ACCOUNT_INDEX, 0);
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "account_required incorrect");
 }
@@ -1105,7 +1079,7 @@ TEST_F(join_split_tests, test_wrong_input_note_owner_fails)
     tx.input_note[0].owner = grumpkin::g1::element::random_element();
     tx.input_note[1].owner = tx.input_note[0].owner;
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "account_private_key incorrect");
 }
@@ -1116,7 +1090,7 @@ TEST_F(join_split_tests, test_random_output_note_owners)
     tx.output_note[0].owner = grumpkin::g1::element::random_element();
     tx.output_note[1].owner = grumpkin::g1::element::random_element();
 
-    EXPECT_TRUE(sign_and_verify_logic(tx, input_user.owner).valid);
+    EXPECT_TRUE(sign_and_verify_logic(tx, user.owner).valid);
 }
 
 TEST_F(join_split_tests, test_tainted_output_owner_fails)
@@ -1124,12 +1098,12 @@ TEST_F(join_split_tests, test_tainted_output_owner_fails)
     join_split_tx tx = simple_setup();
     tx.proof_id = ProofIds::DEPOSIT;
     tx.public_value = 1;
-    tx.signing_pub_key = input_user.owner.public_key;
+    tx.signing_pub_key = user.owner.public_key;
     uint8_t public_owner[32] = { 0x01, 0xaa, 0x42, 0xd4, 0x72, 0x88, 0x8e, 0xae, 0xa5, 0x56, 0x39,
                                  0x46, 0xeb, 0x5c, 0xf5, 0x6c, 0x81, 0x6,  0x4d, 0x80, 0xc6, 0xf5,
                                  0xa5, 0x38, 0xcc, 0x87, 0xae, 0x54, 0xae, 0xdb, 0x75, 0xd9 };
     tx.public_owner = from_buffer<fr>(public_owner);
-    tx.signature = sign_join_split_tx(tx, input_user.owner);
+    tx.signature = sign_join_split_tx(tx, user.owner);
 
     auto prover = new_join_split_prover(tx, false);
     auto proof = prover.construct_proof();
@@ -1149,7 +1123,7 @@ TEST_F(join_split_tests, test_wrong_account_private_key_fails)
     join_split_tx tx = simple_setup();
     tx.account_private_key = grumpkin::fr::random_element();
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "account_private_key incorrect");
 }
@@ -1162,7 +1136,7 @@ TEST_F(join_split_tests, test_wrong_public_owner_sig_fail)
     tx.public_owner = fr::random_element();
 
     // sign over a different public owner
-    tx.signature = sign_join_split_tx(tx, input_user.owner);
+    tx.signature = sign_join_split_tx(tx, user.owner);
 
     tx.public_owner = fr::random_element();
 
@@ -1171,56 +1145,10 @@ TEST_F(join_split_tests, test_wrong_public_owner_sig_fail)
     EXPECT_EQ(result.err, "verify signature failed");
 }
 
-TEST_F(join_split_tests, test_merge_with_different_owners_sig_fail)
-{
-    // Negative case of "Simple merge transactions do not need to be signed"
-    // Here since our recipient does not equal our sender, this fails
-    // See https://hackmd.io/@aztec-network/H10r1JqOo
-    join_split_tx tx = simple_setup();
-    tx.proof_id = ProofIds::SEND;
-    // sign with the wrong signer
-    // since this is a merge with *different* owners, this will fail
-    tx.signature = sign_join_split_tx(tx, output_user.owner);
-
-    auto result = verify_logic(tx);
-    EXPECT_FALSE(result.valid);
-    EXPECT_EQ(result.err, "verify signature failed");
-}
-
-TEST_F(join_split_tests, test_merge_with_diff_amounts_sig_fail)
-{
-    // Negative case of "Simple merge transactions do not need to be signed"
-    // Here since our input and output amounts don't match, this fails
-    // See https://hackmd.io/@aztec-network/H10r1JqOo
-    join_split_tx tx = simple_setup();
-    tx.output_note[0].value = 0;
-    tx.output_note[1].value = 0;
-    tx.proof_id = ProofIds::SEND;
-    // sign with the wrong signer
-    // since this is a merge with same owners and amount, this will still pass
-    tx.signature = sign_join_split_tx(tx, output_user.owner);
-    auto result = verify_logic(tx);
-    EXPECT_FALSE(result.valid);
-    EXPECT_EQ(result.err, "verify signature failed");
-}
-
-TEST_F(join_split_tests, test_merge_with_same_owners_same_amounts_sig_bypass)
-{
-    // Simple merge transactions do not need to be signed
-    // Since our recipient equals our sender, amounts are the same, and it is a send, this passes
-    // See https://hackmd.io/@aztec-network/H10r1JqOo
-    join_split_tx tx = same_owner_setup();
-    tx.proof_id = ProofIds::SEND;
-    // sign with the wrong signer
-    // since this is a merge with same owners and amount, this will still pass
-    tx.signature = sign_join_split_tx(tx, output_user.owner);
-    EXPECT_TRUE(verify_logic(tx).valid);
-}
-
 TEST_F(join_split_tests, test_spend_notes_with_signing_key_when_account_required_is_false_fails)
 {
     join_split_tx tx = simple_setup();
-    auto result = sign_and_verify_logic(tx, input_user.signing_keys[0]);
+    auto result = sign_and_verify_logic(tx, user.signing_keys[0]);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "verify signature failed");
 }
@@ -1228,7 +1156,7 @@ TEST_F(join_split_tests, test_spend_notes_with_signing_key_when_account_required
 TEST_F(join_split_tests, test_spend_registered_notes_with_owner_key_fails)
 {
     auto tx = simple_setup({ 2, 3 }, ACCOUNT_INDEX, 1);
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "verify signature failed");
 }
@@ -1242,7 +1170,7 @@ TEST_F(join_split_tests, test_wrong_alias_hash_fails)
     join_split_tx tx = simple_setup({ 2, 3 }, ACCOUNT_INDEX, 1);
     tx.alias_hash = join_split_example::fixtures::generate_alias_hash("chicken");
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "account check_membership failed");
 }
@@ -1253,7 +1181,7 @@ TEST_F(join_split_tests, test_nonregistered_signing_key_fails)
     auto keys = join_split_example::fixtures::create_key_pair(nullptr);
     tx.signing_pub_key = keys.public_key;
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "account check_membership failed");
 }
@@ -1267,7 +1195,7 @@ TEST_F(join_split_tests, test_wrong_merkle_root_fails)
     join_split_tx tx = simple_setup();
     tx.old_data_root = fr::random_element();
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "input note not a member");
 }
@@ -1278,7 +1206,7 @@ TEST_F(join_split_tests, test_wrong_note_hash_path_fails)
     auto gibberish_path = fr_hash_path(32, std::make_pair(fr::random_element(), fr::random_element()));
     tx.input_path[0] = gibberish_path;
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "input note not a member");
 }
@@ -1288,7 +1216,7 @@ TEST_F(join_split_tests, test_wrong_leaf_index_fails)
     join_split_tx tx = simple_setup();
     tx.input_index[0] = 99;
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "input note not a member");
 }
@@ -1302,7 +1230,7 @@ TEST_F(join_split_tests, test_incorrect_input_nullifier_in_output_note_1_fails)
     join_split_tx tx = simple_setup();
     tx.output_note[0].input_nullifier = 1; // incorrect nullifier
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "output note 1 has incorrect input nullifier");
 }
@@ -1312,7 +1240,7 @@ TEST_F(join_split_tests, test_incorrect_input_nullifier_in_output_note_2_fails)
     join_split_tx tx = simple_setup();
     tx.output_note[1].input_nullifier = 1; // incorrect nullifier
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "output note 2 has incorrect input nullifier");
 }
@@ -1326,8 +1254,8 @@ TEST_F(join_split_tests, test_defi_deposit_one_virtual_input)
     join_split_tx tx = simple_setup({ 4, 13 });
 
     tx.num_input_notes = 1;
-    tx.output_note[1].input_nullifier = compute_nullifier(
-        tx.input_note[1].commit(), input_user.owner.private_key, false); // input note 2 is a dummy note
+    tx.output_note[1].input_nullifier =
+        compute_nullifier(tx.input_note[1].commit(), user.owner.private_key, false); // input note 2 is a dummy note
 
     tx.proof_id = ProofIds::DEFI_DEPOSIT;
     tx.partial_claim_note.deposit_value = 90;
@@ -1345,7 +1273,7 @@ TEST_F(join_split_tests, test_defi_deposit_one_virtual_input)
      *   - 10 paid as fee
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_TRUE(result.valid);
 }
 
@@ -1372,7 +1300,7 @@ TEST_F(join_split_tests, test_defi_deposit_one_real_one_virtual_inputs)
      *   - 10 paid as fee (in1's asset_id)
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_TRUE(result.valid);
 }
 
@@ -1398,7 +1326,7 @@ TEST_F(join_split_tests, test_defi_deposit_one_virtual_one_real_inputs)
      *   - 110 deposited via bridge input 2 (virtual)
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_TRUE(result.valid);
 }
 
@@ -1425,7 +1353,7 @@ TEST_F(join_split_tests, test_defi_deposit_one_real_one_virtual_inputs_same_asse
      *   - 10 paid as fee (in1's asset_id)
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_TRUE(result.valid);
 }
 
@@ -1452,7 +1380,7 @@ TEST_F(join_split_tests, test_defi_deposit_two_real_inputs_different_asset_ids)
      *   - 10 paid as fee (in1's asset_id)
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_TRUE(result.valid);
 }
 
@@ -1479,7 +1407,7 @@ TEST_F(join_split_tests, test_defi_deposit_two_virtual_inputs_different_asset_id
      *   - 10 paid as fee (in1's asset_id)
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_TRUE(result.valid);
 }
 
@@ -1508,7 +1436,7 @@ TEST_F(join_split_tests,
      *   - 10 paid as fee (in1's asset_id)
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "all of input note 2 must be defi-deposited");
 }
@@ -1537,7 +1465,7 @@ TEST_F(join_split_tests, test_defi_deposit_two_real_inputs_different_asset_ids_a
      *   - 10 paid as fee (in1's asset_id)
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "all of input note 2 must be defi-deposited");
 }
@@ -1566,7 +1494,7 @@ TEST_F(join_split_tests, test_defi_deposit_two_real_inputs_different_asset_ids_a
      *   - 5 paid as fee (in1's asset_id)
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "all of input note 2 must be defi-deposited");
 }
@@ -1596,7 +1524,7 @@ TEST_F(join_split_tests, test_defi_invalid_tx_fee_asset_id_fails)
      *   - 10 paid as fee (incorrect asset_id)
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "asset ids don't match");
 }
@@ -1614,7 +1542,7 @@ TEST_F(join_split_tests, test_defi_deposit_of_zero_fails)
     bridge_call_data.input_asset_id_a = tx.input_note[0].asset_id;
     tx.partial_claim_note.bridge_call_data = bridge_call_data.to_uint256_t();
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "Expected a nonzero defi_deposit_value for a defi-deposit");
 }
@@ -1642,12 +1570,12 @@ TEST_F(join_split_tests, test_defi_non_zero_output_note_1_ignored)
      *   - 0 paid as fee
      */
 
-    EXPECT_TRUE(sign_and_verify_logic(tx, input_user.owner).valid);
+    EXPECT_TRUE(sign_and_verify_logic(tx, user.owner).valid);
 }
 
 TEST_F(join_split_tests, test_defi_allow_chain_1_fails)
 {
-    join_split_tx tx = same_owner_setup();
+    join_split_tx tx = simple_setup();
     tx.proof_id = ProofIds::DEFI_DEPOSIT;
     tx.output_note[1].value = 100;
     tx.partial_claim_note.deposit_value = 50;
@@ -1669,7 +1597,7 @@ TEST_F(join_split_tests, test_defi_allow_chain_1_fails)
      *   - trying to chain off output_note_1, which is not allowed for defi deposits.
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "cannot chain from a partial claim note");
 }
@@ -1679,8 +1607,8 @@ TEST_F(join_split_tests, test_defi_deposit_incorrect_input_nullifier_in_partial_
     join_split_tx tx = simple_setup({ 4, 13 });
 
     tx.num_input_notes = 1;
-    tx.output_note[1].input_nullifier = compute_nullifier(
-        tx.input_note[1].commit(), input_user.owner.private_key, false); // input note 2 is a dummy note
+    tx.output_note[1].input_nullifier =
+        compute_nullifier(tx.input_note[1].commit(), user.owner.private_key, false); // input note 2 is a dummy note
 
     tx.proof_id = ProofIds::DEFI_DEPOSIT;
     tx.partial_claim_note.deposit_value = 90;
@@ -1698,7 +1626,7 @@ TEST_F(join_split_tests, test_defi_deposit_incorrect_input_nullifier_in_partial_
      *   - 10 paid as fee
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "partial claim note has incorrect input nullifier");
 }
@@ -1730,7 +1658,7 @@ TEST_F(join_split_tests, test_defi_deposit_bridge_call_data_second_bridge_input_
      *   - 10 paid as fee (in1's asset_id)
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "Expected second_input_in_use, given input_asset_id_b != 0");
 }
@@ -1740,8 +1668,8 @@ TEST_F(join_split_tests, test_defi_deposit_bridge_call_data_second_bridge_output
     join_split_tx tx = simple_setup({ 4, 13 });
 
     tx.num_input_notes = 1;
-    tx.output_note[1].input_nullifier = compute_nullifier(
-        tx.input_note[1].commit(), input_user.owner.private_key, false); // input note 2 is a dummy note
+    tx.output_note[1].input_nullifier =
+        compute_nullifier(tx.input_note[1].commit(), user.owner.private_key, false); // input note 2 is a dummy note
 
     tx.proof_id = ProofIds::DEFI_DEPOSIT;
     tx.partial_claim_note.deposit_value = 90;
@@ -1762,7 +1690,7 @@ TEST_F(join_split_tests, test_defi_deposit_bridge_call_data_second_bridge_output
      *   - 10 paid as fee (in1's asset_id)
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "Expected second_output_in_use, given output_asset_id_b != 0");
 }
@@ -1793,7 +1721,7 @@ TEST_F(join_split_tests, test_defi_deposit_second_bridge_input_in_use_but_same_b
      *   - 10 paid as fee (in1's asset_id)
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "input asset ids must be different for the second bridge input to be in-use");
 }
@@ -1803,8 +1731,8 @@ TEST_F(join_split_tests, test_defi_deposit_second_bridge_output_in_use_and_same_
     join_split_tx tx = simple_setup({ 4, 13 });
 
     tx.num_input_notes = 1;
-    tx.output_note[1].input_nullifier = compute_nullifier(
-        tx.input_note[1].commit(), input_user.owner.private_key, false); // input note 2 is a dummy note
+    tx.output_note[1].input_nullifier =
+        compute_nullifier(tx.input_note[1].commit(), user.owner.private_key, false); // input note 2 is a dummy note
 
     tx.proof_id = ProofIds::DEFI_DEPOSIT;
     tx.partial_claim_note.deposit_value = 90;
@@ -1827,7 +1755,7 @@ TEST_F(join_split_tests, test_defi_deposit_second_bridge_output_in_use_and_same_
      *   - 10 paid as fee (in1's asset_id)
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_TRUE(result.valid);
 }
 
@@ -1836,8 +1764,8 @@ TEST_F(join_split_tests, test_defi_deposit_second_bridge_output_in_use_but_same_
     join_split_tx tx = simple_setup({ 4, 13 });
 
     tx.num_input_notes = 1;
-    tx.output_note[1].input_nullifier = compute_nullifier(
-        tx.input_note[1].commit(), input_user.owner.private_key, false); // input note 2 is a dummy note
+    tx.output_note[1].input_nullifier =
+        compute_nullifier(tx.input_note[1].commit(), user.owner.private_key, false); // input note 2 is a dummy note
 
     tx.proof_id = ProofIds::DEFI_DEPOSIT;
     tx.partial_claim_note.deposit_value = 90;
@@ -1860,7 +1788,7 @@ TEST_F(join_split_tests, test_defi_deposit_second_bridge_output_in_use_but_same_
      *   - 10 paid as fee (in1's asset_id)
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "real output asset ids must be different for the second bridge output to be in-use");
 }
@@ -1870,8 +1798,8 @@ TEST_F(join_split_tests, test_defi_deposit_first_bridge_output_asset_id_virtual_
     join_split_tx tx = simple_setup({ 4, 13 });
 
     tx.num_input_notes = 1;
-    tx.output_note[1].input_nullifier = compute_nullifier(
-        tx.input_note[1].commit(), input_user.owner.private_key, false); // input note 2 is a dummy note
+    tx.output_note[1].input_nullifier =
+        compute_nullifier(tx.input_note[1].commit(), user.owner.private_key, false); // input note 2 is a dummy note
 
     tx.proof_id = ProofIds::DEFI_DEPOSIT;
     tx.partial_claim_note.deposit_value = 90;
@@ -1891,7 +1819,7 @@ TEST_F(join_split_tests, test_defi_deposit_first_bridge_output_asset_id_virtual_
      *   - 10 paid as fee (in1's asset_id)
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "output_asset_id_a detected as virtual, but has incorrect placeholder value");
 }
@@ -1901,8 +1829,8 @@ TEST_F(join_split_tests, test_defi_deposit_second_bridge_output_asset_id_virtual
     join_split_tx tx = simple_setup({ 4, 13 });
 
     tx.num_input_notes = 1;
-    tx.output_note[1].input_nullifier = compute_nullifier(
-        tx.input_note[1].commit(), input_user.owner.private_key, false); // input note 2 is a dummy note
+    tx.output_note[1].input_nullifier =
+        compute_nullifier(tx.input_note[1].commit(), user.owner.private_key, false); // input note 2 is a dummy note
 
     tx.proof_id = ProofIds::DEFI_DEPOSIT;
     tx.partial_claim_note.deposit_value = 90;
@@ -1924,7 +1852,7 @@ TEST_F(join_split_tests, test_defi_deposit_second_bridge_output_asset_id_virtual
      *   - 10 paid as fee (in1's asset_id)
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "output_asset_id_b detected as virtual, but has incorrect placeholder value");
 }
@@ -1938,8 +1866,8 @@ TEST_F(join_split_tests, test_defi_wrong_first_asset_id_in_bridge_call_data_fail
     join_split_tx tx = simple_setup({ 4, 13 });
 
     tx.num_input_notes = 1;
-    tx.output_note[1].input_nullifier = compute_nullifier(
-        tx.input_note[1].commit(), input_user.owner.private_key, false); // input note 2 is a dummy note
+    tx.output_note[1].input_nullifier =
+        compute_nullifier(tx.input_note[1].commit(), user.owner.private_key, false); // input note 2 is a dummy note
 
     tx.proof_id = ProofIds::DEFI_DEPOSIT;
     tx.partial_claim_note.deposit_value = 90;
@@ -1957,7 +1885,7 @@ TEST_F(join_split_tests, test_defi_wrong_first_asset_id_in_bridge_call_data_fail
      *   - 10 paid as fee
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err,
               "Expected bridge_call_data_local.input_asset_id_a == input_note_1.asset_id for a defi-deposit");
@@ -1968,8 +1896,8 @@ TEST_F(join_split_tests, test_defi_bridge_call_data_config_second_input_in_use_b
     join_split_tx tx = simple_setup({ 4, 13 });
 
     tx.num_input_notes = 1;
-    tx.output_note[1].input_nullifier = compute_nullifier(
-        tx.input_note[1].commit(), input_user.owner.private_key, false); // input note 2 is a dummy note
+    tx.output_note[1].input_nullifier =
+        compute_nullifier(tx.input_note[1].commit(), user.owner.private_key, false); // input note 2 is a dummy note
 
     tx.proof_id = ProofIds::DEFI_DEPOSIT;
     tx.partial_claim_note.deposit_value = 90;
@@ -1989,7 +1917,7 @@ TEST_F(join_split_tests, test_defi_bridge_call_data_config_second_input_in_use_b
      *   - 10 paid as fee
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "Expected input_note_2_in_use, given bridge_call_data_local.config.second_input_in_use");
 }
@@ -2015,7 +1943,7 @@ TEST_F(join_split_tests, test_defi_missing_second_asset_in_bridge_call_data_fail
      *   - 10 paid as fee (in1's asset_id)
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err,
               "Expected bridge_call_data_local.config.second_input_in_use, given input_note_2_in_use && "
@@ -2045,7 +1973,7 @@ TEST_F(join_split_tests, test_defi_wrong_second_asset_id_in_bridge_call_data_fai
      *   - 10 paid as fee (in1's asset_id)
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err,
               "Expected bridge_call_data_local.input_asset_id_b == input_note_2.asset_id, given "
@@ -2080,7 +2008,7 @@ TEST_F(join_split_tests, test_repayment_logic)
      *   - 10 out2 repayment back to depositor (in1's asset_id)
      */
 
-    EXPECT_TRUE(sign_and_verify_logic(tx, input_user.owner).valid);
+    EXPECT_TRUE(sign_and_verify_logic(tx, user.owner).valid);
 }
 
 TEST_F(join_split_tests, test_virtual_note_repay_different_asset_id_fail)
@@ -2107,7 +2035,7 @@ TEST_F(join_split_tests, test_virtual_note_repay_different_asset_id_fail)
      *   - 10 out2 repayment back to depositor (INVALID asset_id)
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "asset ids don't match");
 }
@@ -2134,7 +2062,7 @@ TEST_F(join_split_tests, test_real_input_value_lt_virtual_input_value_fails)
      *   - 10 out2 repayment back to depositor (INVALID asset_id)
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     // In this context, failure of this subtraction (due to underflow) implies input note 1's value was less than input
     // note 2's value (and hence the defi_deposit_value) (which is not allowed).
@@ -2157,15 +2085,14 @@ TEST_F(join_split_tests, test_send_two_virtual_notes)
      *   - 0 out2
      */
 
-    EXPECT_TRUE(sign_and_verify_logic(tx, input_user.owner).valid);
+    EXPECT_TRUE(sign_and_verify_logic(tx, user.owner).valid);
 }
 
 TEST_F(join_split_tests, test_send_one_virtual_note)
 {
     join_split_tx tx = simple_setup({ 4, 13 });
     tx.num_input_notes = 1;
-    tx.output_note[1].input_nullifier =
-        compute_nullifier(tx.input_note[1].commit(), input_user.owner.private_key, false);
+    tx.output_note[1].input_nullifier = compute_nullifier(tx.input_note[1].commit(), user.owner.private_key, false);
 
     /**
      *  SEND tx represents:
@@ -2175,7 +2102,7 @@ TEST_F(join_split_tests, test_send_one_virtual_note)
      *   - 0 out2
      */
 
-    EXPECT_TRUE(sign_and_verify_logic(tx, input_user.owner).valid);
+    EXPECT_TRUE(sign_and_verify_logic(tx, user.owner).valid);
 }
 
 TEST_F(join_split_tests, test_send_two_virtual_notes_nonzero_public_value_fails)
@@ -2192,7 +2119,7 @@ TEST_F(join_split_tests, test_send_two_virtual_notes_nonzero_public_value_fails)
      *   - public_value = 10 (not allowed for a send tx)
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "public value invalid");
 }
@@ -2209,7 +2136,7 @@ TEST_F(join_split_tests, test_send_two_virtual_inputs_different_asset_ids_fails)
      *   - 0 out2
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "input asset ids must match unless defi-depositing");
 }
@@ -2228,7 +2155,7 @@ TEST_F(join_split_tests, test_send_two_virtual_inputs_different_fee_asset_id_fai
      *   - public_asset_id = 0 (should be same as input_note_1's asset_id)
      */
 
-    auto result = sign_and_verify_logic(tx, input_user.owner);
+    auto result = sign_and_verify_logic(tx, user.owner);
     EXPECT_FALSE(result.valid);
     EXPECT_EQ(result.err, "asset ids don't match");
 }
@@ -2241,19 +2168,19 @@ TEST_F(join_split_tests, test_non_zero_output_note_creator_pubkey_x)
 {
     {
         join_split_tx tx = simple_setup();
-        tx.output_note[0].creator_pubkey = input_user.owner.public_key.x;
-        tx.output_note[1].creator_pubkey = input_user.owner.public_key.x;
-        EXPECT_TRUE(sign_and_verify_logic(tx, input_user.owner).valid);
+        tx.output_note[0].creator_pubkey = user.owner.public_key.x;
+        tx.output_note[1].creator_pubkey = user.owner.public_key.x;
+        EXPECT_TRUE(sign_and_verify_logic(tx, user.owner).valid);
     }
     {
         join_split_tx tx = simple_setup();
-        tx.output_note[0].creator_pubkey = input_user.owner.public_key.x;
-        EXPECT_TRUE(sign_and_verify_logic(tx, input_user.owner).valid);
+        tx.output_note[0].creator_pubkey = user.owner.public_key.x;
+        EXPECT_TRUE(sign_and_verify_logic(tx, user.owner).valid);
     }
     {
         join_split_tx tx = simple_setup();
-        tx.output_note[1].creator_pubkey = input_user.owner.public_key.x;
-        EXPECT_TRUE(sign_and_verify_logic(tx, input_user.owner).valid);
+        tx.output_note[1].creator_pubkey = user.owner.public_key.x;
+        EXPECT_TRUE(sign_and_verify_logic(tx, user.owner).valid);
     }
 }
 
@@ -2264,7 +2191,7 @@ TEST_F(join_split_tests, test_incorrect_output_note_creator_pubkey_x)
         tx.output_note[0].creator_pubkey =
             join_split_example::fixtures::create_key_pair(nullptr)
                 .public_key.x; // setting creator to be different from sender (the owner of the input notes).
-        auto result = sign_and_verify_logic(tx, input_user.owner);
+        auto result = sign_and_verify_logic(tx, user.owner);
         EXPECT_FALSE(result.valid);
         EXPECT_EQ(result.err, "output note 1 creator_pubkey mismatch");
     }
@@ -2273,7 +2200,7 @@ TEST_F(join_split_tests, test_incorrect_output_note_creator_pubkey_x)
         tx.output_note[1].creator_pubkey =
             join_split_example::fixtures::create_key_pair(nullptr)
                 .public_key.x; // setting creator to be different from sender (the owner of the input notes).
-        auto result = sign_and_verify_logic(tx, input_user.owner);
+        auto result = sign_and_verify_logic(tx, user.owner);
         EXPECT_FALSE(result.valid);
         EXPECT_EQ(result.err, "output note 2 creator_pubkey mismatch");
     }
@@ -2299,13 +2226,13 @@ TEST_F(join_split_tests, test_deposit_construct_proof)
      *   - fee = 3
      */
 
-    auto proof = sign_and_create_proof(tx, input_user.owner);
+    auto proof = sign_and_create_proof(tx, user.owner);
     auto proof_data = inner_proof_data(proof.proof_data);
 
     auto input_note1_commitment = tx.input_note[0].commit();
     auto input_note2_commitment = tx.input_note[1].commit();
-    uint256_t nullifier1 = compute_nullifier(input_note1_commitment, input_user.owner.private_key, false);
-    uint256_t nullifier2 = compute_nullifier(input_note2_commitment, input_user.owner.private_key, false);
+    uint256_t nullifier1 = compute_nullifier(input_note1_commitment, user.owner.private_key, false);
+    uint256_t nullifier2 = compute_nullifier(input_note2_commitment, user.owner.private_key, false);
     auto output_note1_commitment = tx.output_note[0].commit();
     auto output_note2_commitment = tx.output_note[1].commit();
 
@@ -2344,13 +2271,13 @@ TEST_F(join_split_tests, test_withdraw_full_proof)
      *   - 3 paid as fee (in1's asset_id)
      */
 
-    auto proof = sign_and_create_proof(tx, input_user.owner);
+    auto proof = sign_and_create_proof(tx, user.owner);
     auto proof_data = inner_proof_data(proof.proof_data);
 
     auto input_note1_commitment = tx.input_note[0].commit();
     auto input_note2_commitment = tx.input_note[1].commit();
-    uint256_t nullifier1 = compute_nullifier(input_note1_commitment, input_user.owner.private_key, true);
-    uint256_t nullifier2 = compute_nullifier(input_note2_commitment, input_user.owner.private_key, true);
+    uint256_t nullifier1 = compute_nullifier(input_note1_commitment, user.owner.private_key, true);
+    uint256_t nullifier2 = compute_nullifier(input_note2_commitment, user.owner.private_key, true);
     auto output_note1_commitment = tx.output_note[0].commit();
     auto output_note2_commitment = tx.output_note[1].commit();
 
@@ -2385,15 +2312,15 @@ TEST_F(join_split_tests, test_private_send_full_proof)
      *   - 3 paid as fee (in1's asset_id)
      */
 
-    auto proof = sign_and_create_proof(tx, input_user.owner);
+    auto proof = sign_and_create_proof(tx, user.owner);
     auto proof_data = inner_proof_data(proof.proof_data);
 
     auto input_note1_commitment = tx.input_note[0].commit();
     auto input_note2_commitment = tx.input_note[1].commit();
     auto output_note1_commitment = tx.output_note[0].commit();
     auto output_note2_commitment = tx.output_note[1].commit();
-    uint256_t nullifier1 = compute_nullifier(input_note1_commitment, input_user.owner.private_key, true);
-    uint256_t nullifier2 = compute_nullifier(input_note2_commitment, input_user.owner.private_key, true);
+    uint256_t nullifier1 = compute_nullifier(input_note1_commitment, user.owner.private_key, true);
+    uint256_t nullifier2 = compute_nullifier(input_note2_commitment, user.owner.private_key, true);
 
     EXPECT_EQ(proof_data.proof_id, ProofIds::SEND);
     EXPECT_EQ(proof_data.note_commitment1, output_note1_commitment);
@@ -2440,7 +2367,7 @@ TEST_F(join_split_tests, test_defi_deposit_full_proof)
      *   - 10 paid as fee (in1's asset_id)
      */
 
-    auto proof = sign_and_create_proof(tx, input_user.owner);
+    auto proof = sign_and_create_proof(tx, user.owner);
     EXPECT_TRUE(verify_proof(proof));
 
     auto proof_data = inner_proof_data(proof.proof_data);
@@ -2456,8 +2383,8 @@ TEST_F(join_split_tests, test_defi_deposit_full_proof)
     auto input_note2_commitment = tx.input_note[1].commit();
     auto output_note1_commitment = claim_note.partial_commit();
     auto output_note2_commitment = tx.output_note[1].commit();
-    uint256_t nullifier1 = compute_nullifier(input_note1_commitment, input_user.owner.private_key, true);
-    uint256_t nullifier2 = compute_nullifier(input_note2_commitment, input_user.owner.private_key, true);
+    uint256_t nullifier1 = compute_nullifier(input_note1_commitment, user.owner.private_key, true);
+    uint256_t nullifier2 = compute_nullifier(input_note2_commitment, user.owner.private_key, true);
 
     EXPECT_EQ(proof_data.proof_id, ProofIds::DEFI_DEPOSIT);
     EXPECT_EQ(proof_data.note_commitment1, output_note1_commitment);
@@ -2504,7 +2431,7 @@ TEST_F(join_split_tests, test_repayment_full_proof)
     tx.partial_claim_note.bridge_call_data = bridge_call_data.to_uint256_t();
     tx.partial_claim_note.input_nullifier = tx.output_note[0].input_nullifier;
 
-    auto proof = sign_and_create_proof(tx, input_user.owner);
+    auto proof = sign_and_create_proof(tx, user.owner);
     auto proof_data = inner_proof_data(proof.proof_data);
 
     auto partial_commitment = value::create_partial_commitment(
@@ -2518,8 +2445,8 @@ TEST_F(join_split_tests, test_repayment_full_proof)
     auto input_note2_commitment = tx.input_note[1].commit();
     auto output_note1_commitment = claim_note.partial_commit();
     auto output_note2_commitment = tx.output_note[1].commit();
-    uint256_t nullifier1 = compute_nullifier(input_note1_commitment, input_user.owner.private_key, true);
-    uint256_t nullifier2 = compute_nullifier(input_note2_commitment, input_user.owner.private_key, true);
+    uint256_t nullifier1 = compute_nullifier(input_note1_commitment, user.owner.private_key, true);
+    uint256_t nullifier2 = compute_nullifier(input_note2_commitment, user.owner.private_key, true);
 
     EXPECT_EQ(proof_data.proof_id, ProofIds::DEFI_DEPOSIT);
     EXPECT_EQ(proof_data.note_commitment1, output_note1_commitment);
@@ -2551,7 +2478,7 @@ TEST_F(join_split_tests, test_send_two_virtual_notes_full_proof)
      *   - 0 out2
      */
 
-    auto proof = sign_and_create_proof(tx, input_user.owner);
+    auto proof = sign_and_create_proof(tx, user.owner);
 
     auto proof_data = inner_proof_data(proof.proof_data);
 
@@ -2559,8 +2486,8 @@ TEST_F(join_split_tests, test_send_two_virtual_notes_full_proof)
     auto input_note2_commitment = tx.input_note[1].commit();
     auto output_note1_commitment = tx.output_note[0].commit();
     auto output_note2_commitment = tx.output_note[1].commit();
-    uint256_t nullifier1 = compute_nullifier(input_note1_commitment, input_user.owner.private_key, true);
-    uint256_t nullifier2 = compute_nullifier(input_note2_commitment, input_user.owner.private_key, true);
+    uint256_t nullifier1 = compute_nullifier(input_note1_commitment, user.owner.private_key, true);
+    uint256_t nullifier2 = compute_nullifier(input_note2_commitment, user.owner.private_key, true);
 
     EXPECT_EQ(proof_data.proof_id, ProofIds::SEND);
     EXPECT_EQ(proof_data.note_commitment1, output_note1_commitment);
