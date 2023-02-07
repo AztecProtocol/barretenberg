@@ -1,9 +1,9 @@
 #pragma once
-#include <stdlib/types/types.hpp>
+#include <stdlib/types/turbo.hpp>
 
 namespace join_split_example::proofs::notes::circuit {
 
-using namespace plonk::stdlib::types;
+using namespace plonk::stdlib::types::turbo;
 
 std::pair<bool_ct, suint_ct> deflag_asset_id(suint_ct const& asset_id);
 
