@@ -225,7 +225,7 @@ template <typename Fr> class Polynomial {
 
     std::size_t size() const { return size_; }
     std::size_t capacity() const { return size_ + DEFAULT_CAPACITY_INCREASE; }
-    std::size_t mapped() const { return mapped_; }
+    bool mapped() const { return mapped_; }
 
   private:
     void free();
