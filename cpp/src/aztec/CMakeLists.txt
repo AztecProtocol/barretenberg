@@ -34,7 +34,7 @@ add_subdirectory(crypto)
 add_subdirectory(polynomials)
 add_subdirectory(plonk)
 add_subdirectory(stdlib)
-add_subdirectory(rollup)
+add_subdirectory(join_split_example)
 
 if(BENCHMARKS)
     add_subdirectory(benchmark)
@@ -63,12 +63,6 @@ if(WASM)
         $<TARGET_OBJECTS:stdlib_schnorr_objects>
         $<TARGET_OBJECTS:stdlib_pedersen_objects>
         $<TARGET_OBJECTS:stdlib_blake2s_objects>
-        # TODO: remove all except those needed for testing (join_split)
-        $<TARGET_OBJECTS:rollup_proofs_inner_proof_data_objects>
-        $<TARGET_OBJECTS:rollup_proofs_notes_objects>
-        $<TARGET_OBJECTS:rollup_proofs_account_objects>
-        $<TARGET_OBJECTS:rollup_proofs_join_split_objects>
-        $<TARGET_OBJECTS:rollup_proofs_claim_objects>
     )
 
     # With binaryen installed, it seems its wasm backend optimiser gets invoked automatically.
