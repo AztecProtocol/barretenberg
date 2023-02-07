@@ -250,25 +250,17 @@ workflows:
       - honk-tests: *bb_test
       - barretenberg-tests: *bb_test
       - stdlib-primitives-tests: *bb_test
-<<<<<<< HEAD
       - stdlib-biggroup-tests: *bb_test
       - stdlib-recursion-turbo-tests: *bb_test
       - stdlib-recursion-ultra-tests: *bb_test
-=======
-      - stdlib-recursion-tests: *bb_test
->>>>>>> origin/defi-bridge-project
       - join-split-tests: *bb_test
       - benchmark-aggregator:
           requires:
             - barretenberg-tests
             - stdlib-primitives-tests
-<<<<<<< HEAD
             - stdlib-biggroup-tests
             - stdlib-recursion-turbo-tests
             - stdlib-recursion-ultra-tests
-=======
-            - stdlib-recursion-tests
->>>>>>> origin/defi-bridge-project
             - join-split-tests
           filters:
             branches:
