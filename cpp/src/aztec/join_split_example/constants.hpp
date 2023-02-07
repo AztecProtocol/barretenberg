@@ -47,7 +47,7 @@ constexpr auto JOIN_SPLIT = uint256_t(0xb23c7772f47bc823, 0x5493625d4f08603c, 0x
 }; // namespace circuit_vk_hash
 
 namespace ProofIds {
-enum { PADDING = 0, DEPOSIT = 1, WITHDRAW = 2, SEND = 3, DEFI_DEPOSIT = 4, DEFI_CLAIM = 5 };
+enum { PADDING = 0, DEPOSIT = 1, WITHDRAW = 2, SEND = 3, ACCOUNT = 4, DEFI_DEPOSIT = 5, DEFI_CLAIM = 6 };
 };
 
 } // namespace join_split_example
