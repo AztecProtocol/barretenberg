@@ -308,11 +308,20 @@ template <class Fr, size_t view_length> class UnivariateView {
 };
 
 /**
- * @brief Helper method for `array_to_array`
- * @details The output array is created by unpacking the index_sequence of the same length as `elements`
+ * @brief Create a sub-array of `elements` at the indices given in the template pack `Is`, converting them to the new
+ * type T.
+ *
+ * @tparam T type to convert to
+ * @tparam U type to convert from
+ * @tparam N number (deduced by `elements`)
+ * @tparam Is list of indices we want in the returned array. When the second argument is called with
+ * `std::make_index_sequence<N>`, these will be `0, 1, ..., N-1`.
+ * @param elements array to convert from
+ * @return std::array<T, sizeof...(Is)> result array s.t. result[i] = T(elements[Is[i]]). By default, Is[i] = i when
+ * called with `std::make_index_sequence<N>`.
  */
 template <typename T, typename U, std::size_t N, std::size_t... Is>
-std::array<T, N> array_to_array_aux(const std::array<U, N>& elements, std::index_sequence<Is...>)
+std::array<T, sizeof...(Is)> array_to_array_aux(const std::array<U, N>& elements, std::index_sequence<Is...>)
 {
     return { { T{ elements[Is] }... } };
 };
@@ -326,7 +335,7 @@ std::array<T, N> array_to_array_aux(const std::array<U, N>& elements, std::index
  * @tparam U Input type (deduced from `elements`)
  * @tparam N Common array size (deduced from `elements`)
  * @param elements array to be converted
- * @return std::array<T, N>
+ * @return std::array<T, N> result s.t. result[i] = T(elements[i])
  */
 template <typename T, typename U, std::size_t N> std::array<T, N> array_to_array(const std::array<U, N>& elements)
 {

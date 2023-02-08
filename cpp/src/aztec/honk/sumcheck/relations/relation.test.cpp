@@ -51,6 +51,39 @@ template <class FF> class SumcheckRelation : public testing::Test {
         };
         return extended_edges;
     }
+
+    /**
+     * @brief Compute the evaluation of a `relation` in different ways, comparing it to the provided `expected_evals`
+     *
+     * @param expected_evals std::array of
+     * @param relation
+     * @param extended_edges
+     * @param relation_parameters
+     */
+    static void validate_evaluations(auto expected_evals,
+                                     auto relation,
+                                     auto extended_edges,
+                                     const RelationParameters<FF>& relation_parameters)
+    {
+        using Univariate = Univariate<relation.RELATION_LENGTH>;
+        using UnivariateView = UnivariateView<FF, relation.RELATION_LENGTH>;
+
+        // Compute the expression index-by-index
+        auto expected_evals_index = Univariate(0);
+        for (size_t i = 0; i < relation.RELATION_LENGTH; ++i) {
+            // Get an array of the same size as `extended_edges` with only the i-th element of each extended edge.
+            std::array evals_i = transposed_univariate_array_at(extended_edges, i);
+            // Evaluate the relation
+            relation.accumulate_relation_evaluation(expected_evals_index.value_at(i), evals_i, relation_parameters, 1);
+        }
+        EXPECT_EQ(expected_evals, expected_evals_index);
+
+        // Compute the expression using the class, using UnivariateView
+        auto extended_edges_view = array_to_array<UnivariateView>(extended_edges);
+        auto expected_evals_view = Univariate(0);
+        relation.accumulate_relation_evaluation(expected_evals_view, extended_edges_view, relation_parameters, 1);
+        EXPECT_EQ(expected_evals, expected_evals_view);
+    };
 };
 
 using FieldTypes = testing::Types<barretenberg::fr>;
@@ -89,21 +122,7 @@ TYPED_TEST(SumcheckRelation, ArithmeticRelation)
     // Ensure that expression changes are detected.
     // expected_evals, length 4, extends to { { 5, 22, 57, 116, 205} };
     auto expected_evals = Univariate((q_m * w_r * w_l) + (q_r * w_r) + (q_l * w_l) + (q_o * w_o) + (q_c));
-
-    // Compute the expression index-by-index
-    auto expected_evals_index = Univariate(0);
-    for (size_t i = 0; i < relation.RELATION_LENGTH; ++i) {
-        std::array evals_i = transposed_univariate_array_at(extended_edges, i);
-        relation.accumulate_relation_evaluation(expected_evals_index.value_at(i), evals_i, relation_parameters, 1);
-    }
-
-    // Compute the expression using the class, using UnivariateView
-    auto expected_evals_view = Univariate(0);
-    relation.accumulate_relation_evaluation(expected_evals_view, extended_edges_view, relation_parameters, 1);
-
-    // All should be equal to the evals that were performed index-by-index.
-    EXPECT_EQ(expected_evals, expected_evals_index);
-    EXPECT_EQ(expected_evals, expected_evals_view);
+    this->validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
 };
 
 TYPED_TEST(SumcheckRelation, GrandProductComputationRelation)
@@ -158,20 +177,7 @@ TYPED_TEST(SumcheckRelation, GrandProductComputationRelation)
                    (z_perm_shift + lagrange_last * public_input_delta) * (w_1 + sigma_1 * beta + gamma) *
                        (w_2 + sigma_2 * beta + gamma) * (w_3 + sigma_3 * beta + gamma));
 
-    // Compute the expression index-by-index
-    auto expected_evals_index = Univariate(0);
-    for (size_t i = 0; i < relation.RELATION_LENGTH; ++i) {
-        std::array evals_i = transposed_univariate_array_at(extended_edges, i);
-        relation.accumulate_relation_evaluation(expected_evals_index.value_at(i), evals_i, relation_parameters, 1);
-    }
-
-    // Compute the expression using the class, using UnivariateView
-    auto expected_evals_view = Univariate(0);
-    relation.accumulate_relation_evaluation(expected_evals_view, extended_edges_view, relation_parameters, 1);
-
-    // All should be equal to the evals that were performed index-by-index.
-    EXPECT_EQ(expected_evals, expected_evals_index);
-    EXPECT_EQ(expected_evals, expected_evals_view);
+    this->validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
 };
 
 TYPED_TEST(SumcheckRelation, GrandProductInitializationRelation)
@@ -197,21 +203,7 @@ TYPED_TEST(SumcheckRelation, GrandProductInitializationRelation)
     // expected_evals, lenght 3 (coeff form = x^2 + x), extends to { { 0, 2, 6, 12, 20 } }
     auto expected_evals = Univariate(z_perm_shift * lagrange_last);
 
-    // Compute the expression index-by-index
-    auto expected_evals_index = Univariate(0);
-    for (size_t i = 0; i < relation.RELATION_LENGTH; ++i) {
-        //
-        std::array evals_i = transposed_univariate_array_at(extended_edges, i);
-        relation.accumulate_relation_evaluation(expected_evals_index.value_at(i), evals_i, relation_parameters, 1);
-    }
-
-    // Compute the expression using the class, using UnivariateView
-    auto expected_evals_view = Univariate(0);
-    relation.accumulate_relation_evaluation(expected_evals_view, extended_edges_view, relation_parameters, 1);
-
-    // All should be equal to the evals that were performed index-by-index.
-    EXPECT_EQ(expected_evals, expected_evals_index);
-    EXPECT_EQ(expected_evals, expected_evals_view);
+    this->validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
 };
 
 } // namespace honk_relation_tests
