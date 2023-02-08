@@ -4,16 +4,16 @@
 # the branch from which the script is run. Simply check out the branch of interest, ensure 
 # it is up to date with local master, and run the script.
 
-# Note: This script requires that scipy be installed. This can be done via the command:
-# pip3 install -r barretenberg/cpp/build/_deps/benchmark-src/requirements.txt
-# By default, installation will occur in $HOME/.local/bin.
-
 echo -e '\nComparing Honk benchmarks between master and current branch:'
 # Set some directories
 BASE_DIR="$HOME/barretenberg/cpp"
 BUILD_DIR="$BASE_DIR/build"
 BENCH_RESULTS_DIR="$BASE_DIR/tmp_bench_results"
 BENCH_TOOLS_DIR="$BUILD_DIR/_deps/benchmark-src/tools"
+
+# Install requirements (numpy + scipy) for comparison script if necessary.
+# Note: By default, installation will occur in $HOME/.local/bin.
+pip3 install -r $BUILD_DIR/_deps/benchmark-src/requirements.txt
 
 # Create temporary directory for honk_bench results (json)
 cd $BASE_DIR
