@@ -59,9 +59,9 @@ class CommitmentKey {
     C commit(std::span<const Fr> polynomial)
     {
         const size_t degree = polynomial.size();
-        ASSERT(degree <= srs.get_size());
+        ASSERT(degree <= srs.get_monomial_size());
         return barretenberg::scalar_multiplication::pippenger_unsafe(
-            const_cast<Fr*>(polynomial.data()), srs.get_monomials(), degree, pippenger_runtime_state);
+            const_cast<Fr*>(polynomial.data()), srs.get_monomial_points(), degree, pippenger_runtime_state);
     };
 
   private:
