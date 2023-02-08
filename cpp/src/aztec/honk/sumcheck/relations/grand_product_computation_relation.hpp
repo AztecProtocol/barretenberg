@@ -40,6 +40,8 @@ template <typename FF> class GrandProductComputationRelation : public Relation<F
         const auto& beta = parameters.beta;
         const auto& gamma = parameters.gamma;
         const auto& public_input_delta = parameters.public_input_delta;
+        const auto& n = parameters.subgroup_size;
+
 
         const auto& w_1 = variables[MULTIVARIATE::W_L];
         const auto& w_2 = variables[MULTIVARIATE::W_R];
@@ -47,16 +49,15 @@ template <typename FF> class GrandProductComputationRelation : public Relation<F
         const auto& sigma_1 = variables[MULTIVARIATE::SIGMA_1];
         const auto& sigma_2 = variables[MULTIVARIATE::SIGMA_2];
         const auto& sigma_3 = variables[MULTIVARIATE::SIGMA_3];
-        const auto& id_1 = variables[MULTIVARIATE::ID_1];
-        const auto& id_2 = variables[MULTIVARIATE::ID_2];
-        const auto& id_3 = variables[MULTIVARIATE::ID_3];
+        const auto& id = variables[MULTIVARIATE::ID];
         const auto& z_perm = variables[MULTIVARIATE::Z_PERM];
         const auto& z_perm_shift = variables[MULTIVARIATE::Z_PERM_SHIFT];
         const auto& lagrange_first = variables[MULTIVARIATE::LAGRANGE_FIRST];
         const auto& lagrange_last = variables[MULTIVARIATE::LAGRANGE_LAST];
 
-        acc += ((z_perm + lagrange_first) * (w_1 + id_1 * beta + gamma) * (w_2 + id_2 * beta + gamma) *
-                    (w_3 + id_3 * beta + gamma) -
+
+        acc += ((z_perm + lagrange_first) * (w_1 + id * beta + gamma) * (w_2 + id * beta + (beta * n + gamma)) *
+                    (w_3 + id * beta + (beta * (n + n) + gamma)) -
                 (z_perm_shift + lagrange_last * public_input_delta) * (w_1 + sigma_1 * beta + gamma) *
                     (w_2 + sigma_2 * beta + gamma) * (w_3 + sigma_3 * beta + gamma)) *
                scaling_factor;

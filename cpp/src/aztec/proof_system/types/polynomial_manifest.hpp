@@ -172,7 +172,7 @@ static constexpr PolynomialDescriptor ultra_polynomial_manifest[ULTRA_UNROLLED_M
 };
 
 // TODO(Cody): Get this right; just using for now to extract names.
-static constexpr size_t STANDARD_HONK_MANIFEST_SIZE = 17; // equivalent to num unshifted polynomials
+static constexpr size_t STANDARD_HONK_MANIFEST_SIZE = 15; // equivalent to num unshifted polynomials
 static constexpr size_t NUM_SHIFTED_POLYNOMIALS = 1;
 static constexpr size_t STANDARD_HONK_TOTAL_NUM_POLYS = STANDARD_HONK_MANIFEST_SIZE + NUM_SHIFTED_POLYNOMIALS;
 static constexpr PolynomialDescriptor standard_honk_polynomial_manifest[STANDARD_HONK_MANIFEST_SIZE]{
@@ -189,9 +189,7 @@ static constexpr PolynomialDescriptor standard_honk_polynomial_manifest[STANDARD
     PolynomialDescriptor("SIGMA_1", "sigma_1_lagrange", false, false, PERMUTATION, SIGMA_1),         //
     PolynomialDescriptor("SIGMA_2", "sigma_2_lagrange", false, false, PERMUTATION, SIGMA_2),         //
     PolynomialDescriptor("SIGMA_3", "sigma_3_lagrange", true, false, PERMUTATION, SIGMA_3),          //
-    PolynomialDescriptor("ID_1", "id_1_lagrange", false, false, PERMUTATION, ID_1),                  //
-    PolynomialDescriptor("ID_2", "id_2_lagrange", false, false, PERMUTATION, ID_2),                  //
-    PolynomialDescriptor("ID_3", "id_3_lagrange", true, false, PERMUTATION, ID_3),                   //
+    PolynomialDescriptor("ID", "id_lagrange", false, false, PERMUTATION, ID_1),                      //
     PolynomialDescriptor("LAGRANGE_FIRST", "L_first_lagrange", false, false, OTHER, LAGRANGE_FIRST), //
     PolynomialDescriptor("LAGRANGE_LAST", "L_last_lagrange", false, false, OTHER, LAGRANGE_LAST),    //
 };

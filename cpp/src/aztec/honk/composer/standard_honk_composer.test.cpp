@@ -71,16 +71,17 @@ TEST(StandardHonkComposer, SigmaIDCorrectness)
         // Now let's check that witness values correspond to the permutation
         composer.compute_witness();
 
+        const auto& id_polynomial = proving_key->polynomial_cache.get("id_lagrange");
         for (size_t j = 0; j < composer.program_width; ++j) {
+            barretenberg::fr id_shift = j * proving_key->circuit_size;
             std::string index = std::to_string(j + 1);
             const auto& permutation_polynomial = proving_key->polynomial_cache.get("sigma_" + index + "_lagrange");
             const auto& witness_polynomial = proving_key->polynomial_cache.get("w_" + index + "_lagrange");
-            const auto& id_polynomial = proving_key->polynomial_cache.get("id_" + index + "_lagrange");
             // left = ∏ᵢ,ⱼ(ωᵢ,ⱼ + β⋅ind(i,j) + γ)
             // right = ∏ᵢ,ⱼ(ωᵢ,ⱼ + β⋅σ(i,j) + γ)
             for (size_t i = 0; i < proving_key->circuit_size; ++i) {
                 const auto current_witness = witness_polynomial[i];
-                left *= current_witness + beta * id_polynomial[i] + gamma;
+                left *= current_witness + beta * (id_polynomial[i] + id_shift) + gamma;
                 right *= current_witness + beta * permutation_polynomial[i] + gamma;
             }
             // check that the first rows are correctly set to handle public inputs.
@@ -306,7 +307,7 @@ TEST(StandardHonkComposer, VerificationKeyCreation)
     // committed to, we simply check that the verification key now contains the appropriate number of constraint and
     // permutation selector commitments. This method should work with any future arithemtization.
     EXPECT_EQ(verification_key->commitments.size(),
-              composer.circuit_constructor.selectors.size() + composer.program_width * 2 + 2);
+              composer.circuit_constructor.selectors.size() + composer.program_width + 3);
 }
 
 /**
@@ -355,6 +356,7 @@ TEST(StandardHonkComposer, SumcheckRelationCorrectness)
         .beta = beta,
         .gamma = gamma,
         .public_input_delta = public_input_delta,
+        .subgroup_size = prover.get_circuit_size(),
     };
 
     constexpr size_t num_polynomials = bonk::StandardArithmetization::NUM_POLYNOMIALS;
@@ -371,9 +373,7 @@ TEST(StandardHonkComposer, SumcheckRelationCorrectness)
     polynomial sigma_1 = prover.key->polynomial_cache.get("sigma_1_lagrange");
     polynomial sigma_2 = prover.key->polynomial_cache.get("sigma_2_lagrange");
     polynomial sigma_3 = prover.key->polynomial_cache.get("sigma_3_lagrange");
-    polynomial id_1 = prover.key->polynomial_cache.get("id_1_lagrange");
-    polynomial id_2 = prover.key->polynomial_cache.get("id_2_lagrange");
-    polynomial id_3 = prover.key->polynomial_cache.get("id_3_lagrange");
+    polynomial id = prover.key->polynomial_cache.get("id_lagrange");
     polynomial L_first = prover.key->polynomial_cache.get("L_first_lagrange");
     polynomial L_last = prover.key->polynomial_cache.get("L_last_lagrange");
 
@@ -394,9 +394,7 @@ TEST(StandardHonkComposer, SumcheckRelationCorrectness)
                                                                    sigma_1,
                                                                    sigma_2,
                                                                    sigma_3,
-                                                                   id_1,
-                                                                   id_2,
-                                                                   id_3,
+                                                                   id,
                                                                    L_first,
                                                                    L_last } };
 

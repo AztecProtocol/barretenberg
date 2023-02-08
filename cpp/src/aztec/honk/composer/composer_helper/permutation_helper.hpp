@@ -186,16 +186,13 @@ template <size_t program_width>
 void compute_standard_honk_id_polynomials(auto key) // proving_key* and share_ptr<proving_key>
 {
     const size_t n = key->circuit_size;
-    // Fill id polynomials with default values
-    for (size_t j = 0; j < program_width; ++j) {
-        // Construct permutation polynomials in lagrange base
-        barretenberg::polynomial id_j(n);
-        for (size_t i = 0; i < key->circuit_size; ++i) {
-            id_j[i] = (j * n + i);
-        }
-        std::string index = std::to_string(j + 1);
-        key->polynomial_cache.put("id_" + index + "_lagrange", std::move(id_j));
+
+    // Construct permutation polynomials in lagrange base
+    barretenberg::polynomial id(n);
+    for (size_t i = 0; i < key->circuit_size; ++i) {
+        id[i] = i;
     }
+    key->polynomial_cache.put("id_lagrange", std::move(id));
 }
 
 /**

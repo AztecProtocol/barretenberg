@@ -10,5 +10,6 @@ template <typename FF> struct RelationParameters {
     FF beta;
     FF gamma;
     FF public_input_delta;
+    FF subgroup_size;
 };
 } // namespace honk::sumcheck

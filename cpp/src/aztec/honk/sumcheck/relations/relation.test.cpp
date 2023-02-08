@@ -39,15 +39,13 @@ template <class FF> class SumcheckRelation : public testing::Test {
         auto sigma_1 = Univariate<5>({ 1, 2, 3, 4, 5 });
         auto sigma_2 = Univariate<5>({ 1, 2, 3, 4, 5 });
         auto sigma_3 = Univariate<5>({ 1, 2, 3, 4, 5 });
-        auto id_1 = Univariate<5>({ 1, 2, 3, 4, 5 });
-        auto id_2 = Univariate<5>({ 1, 2, 3, 4, 5 });
-        auto id_3 = Univariate<5>({ 1, 2, 3, 4, 5 });
+        auto id = Univariate<5>({ 1, 2, 3, 4, 5 });
         auto lagrange_first = Univariate<5>({ 1, 2, 3, 4, 5 });
         auto lagrange_last = Univariate<5>({ 1, 2, 3, 4, 5 });
 
         std::array<Univariate<5>, bonk::StandardArithmetization::NUM_POLYNOMIALS> extended_edges = {
-            w_l,     w_r,  w_o,  z_perm, z_perm_shift,   q_m,          q_l, q_r, q_o, q_c, sigma_1, sigma_2,
-            sigma_3, id_1, id_2, id_3,   lagrange_first, lagrange_last
+            w_l,     w_r,     w_o,     z_perm, z_perm_shift,   q_m,          q_l, q_r, q_o, q_c,
+            sigma_1, sigma_2, sigma_3, id,     lagrange_first, lagrange_last
         };
         return extended_edges;
     }
@@ -149,7 +147,12 @@ TYPED_TEST(SumcheckRelation, GrandProductComputationRelation)
     FF gamma = FF::random_element();
     FF public_input_delta = FF::random_element();
     const RelationParameters<FF> relation_parameters = RelationParameters<FF>{
-        .zeta = zeta, .alpha = FF::one(), .beta = beta, .gamma = gamma, .public_input_delta = public_input_delta
+        .zeta = zeta,
+        .alpha = FF::one(),
+        .beta = beta,
+        .gamma = gamma,
+        .public_input_delta = public_input_delta,
+        .subgroup_size = 0,
     };
 
     auto extended_edges_view = array_to_array<UnivariateView>(extended_edges);
@@ -160,9 +163,7 @@ TYPED_TEST(SumcheckRelation, GrandProductComputationRelation)
     const auto& sigma_1 = extended_edges_view[MULTIVARIATE::SIGMA_1];
     const auto& sigma_2 = extended_edges_view[MULTIVARIATE::SIGMA_2];
     const auto& sigma_3 = extended_edges_view[MULTIVARIATE::SIGMA_3];
-    const auto& id_1 = extended_edges_view[MULTIVARIATE::ID_1];
-    const auto& id_2 = extended_edges_view[MULTIVARIATE::ID_1];
-    const auto& id_3 = extended_edges_view[MULTIVARIATE::ID_1];
+    const auto& id = extended_edges_view[MULTIVARIATE::ID];
     const auto& z_perm = extended_edges_view[MULTIVARIATE::Z_PERM];
     const auto& z_perm_shift = extended_edges_view[MULTIVARIATE::Z_PERM_SHIFT];
     const auto& lagrange_first = extended_edges_view[MULTIVARIATE::LAGRANGE_FIRST];
@@ -171,9 +172,8 @@ TYPED_TEST(SumcheckRelation, GrandProductComputationRelation)
     // We first compute the evaluations using UnivariateViews, with the provided hard-coded formula.
     // Ensure that expression changes are detected.
     // expected_evals in the below step { { 27, 250, 1029, 2916, 6655 } } - { { 27, 125, 343, 729, 1331 } }
-    auto expected_evals =
-        Univariate((z_perm + lagrange_first) * (w_1 + id_1 * beta + gamma) * (w_2 + id_2 * beta + gamma) *
-                       (w_3 + id_3 * beta + gamma) -
+    auto expected_evals = Univariate(
+        (z_perm + lagrange_first) * (w_1 + id * beta + gamma) * (w_2 + id * beta + gamma) * (w_3 + id * beta + gamma) -
                    (z_perm_shift + lagrange_last * public_input_delta) * (w_1 + sigma_1 * beta + gamma) *
                        (w_2 + sigma_2 * beta + gamma) * (w_3 + sigma_3 * beta + gamma));
 

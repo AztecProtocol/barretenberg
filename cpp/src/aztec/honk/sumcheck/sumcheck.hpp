@@ -61,7 +61,12 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         ASSERT(public_inputs.size() == public_input_size);
         FF public_input_delta = honk::compute_public_input_delta<FF>(public_inputs, beta, gamma, n);
         const RelationParameters<FF> relation_parameters = RelationParameters<FF>{
-            .zeta = zeta, .alpha = alpha, .beta = beta, .gamma = gamma, .public_input_delta = public_input_delta
+            .zeta = zeta,
+            .alpha = alpha,
+            .beta = beta,
+            .gamma = gamma,
+            .public_input_delta = public_input_delta,
+            .subgroup_size = n,
         };
         return relation_parameters;
     }
@@ -126,9 +131,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
                                      multivariates.folded_polynomials[12][0],
                                      multivariates.folded_polynomials[13][0],
                                      multivariates.folded_polynomials[14][0],
-                                     multivariates.folded_polynomials[15][0],
-                                     multivariates.folded_polynomials[16][0],
-                                     multivariates.folded_polynomials[17][0] })));
+                                     multivariates.folded_polynomials[15][0] })));
     };
 
     /**
