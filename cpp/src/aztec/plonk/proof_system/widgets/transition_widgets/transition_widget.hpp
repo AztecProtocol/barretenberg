@@ -66,7 +66,7 @@ namespace getters {
  *
  * @tparam Field Base field
  * @tparam Transcript Transcript class
- * @tparam Settings Configuration, specifically the use of linearization
+ * @tparam Settings Configuration
  * @tparam num_widget_relations How many powers of α are needed
  */
 template <class Field, class Transcript, class Settings, size_t num_widget_relations> class BaseGetter {
@@ -146,7 +146,7 @@ template <class Field, class Transcript, class Settings, size_t num_widget_relat
  *
  * @tparam Field Base field
  * @tparam Transcript Transcript class
- * @tparam Settings Configuration, specifically the use of linearization
+ * @tparam Settings Configuration
  * @tparam num_widget_relations How many powers of α are needed
  */
 template <class Field, class Transcript, class Settings, size_t num_widget_relations>
@@ -189,11 +189,8 @@ class EvaluationGetter : public BaseGetter<Field, Transcript, Settings, num_widg
         for (size_t i = 0; i < polynomial_manifest.size(); ++i) {
             auto info = polynomial_manifest[i];
             const std::string label(info.polynomial_label);
-            if (!info.is_linearised || !Settings::use_linearisation) {
-                result[info.index].first = transcript.get_field_element(label);
-            } else {
-                result[info.index].first = 0;
-            }
+            result[info.index].first = transcript.get_field_element(label);
+
             if (info.requires_shifted_evaluation) {
                 result[info.index].second = transcript.get_field_element(label + "_omega");
             } else {
@@ -206,8 +203,7 @@ class EvaluationGetter : public BaseGetter<Field, Transcript, Settings, num_widg
 
 /**
  * @brief Provides access to polynomials (monomial or coset FFT) for use in widgets
- * @details Coset FFT access is needed in quotient construction and monomial access is
- * for construction of linearization polynomial
+ * @details Coset FFT access is needed in quotient construction.
  *
  * @tparam Field
  * @tparam Transcript
@@ -284,7 +280,6 @@ template <class Field> class TransitionWidgetBase {
     virtual ~TransitionWidgetBase() {}
 
     virtual Field compute_quotient_contribution(const Field&, const transcript::StandardTranscript&) = 0;
-    virtual Field compute_linear_contribution(const Field&, const transcript::StandardTranscript&, Field*) = 0;
 
   public:
     proving_key* key;
@@ -363,42 +358,6 @@ class TransitionWidget : public TransitionWidgetBase<Field> {
 
         return FFTGetter::update_alpha(challenges, FFTKernel::num_independent_relations);
     }
-
-    Field compute_linear_contribution(const Field& alpha_base,
-                                      const transcript::StandardTranscript& transcript,
-                                      Field* linear_poly) override
-    {
-        challenge_array challenges = MonomialGetter::get_challenges(transcript,
-                                                                    alpha_base,
-                                                                    EvaluationKernel::quotient_required_challenges |
-                                                                        MonomialKernel::quotient_required_challenges);
-
-        if constexpr (!Settings::use_linearisation) {
-            return MonomialGetter::update_alpha(challenges, FFTKernel::num_independent_relations);
-        }
-        auto* key = TransitionWidgetBase<Field>::key;
-
-        // Get the set IDs for the polynomials required by the widget
-        auto& required_polynomial_ids = MonomialKernel::get_required_polynomial_ids();
-
-        // Construct the map of pointers to the required polynomials
-        poly_ptr_map polynomials = MonomialGetter::get_polynomials(key, required_polynomial_ids);
-        poly_array polynomial_evaluations =
-            EvaluationGetter::get_polynomial_evaluations(key->polynomial_manifest, transcript);
-
-        coefficient_array linear_terms;
-        EvaluationKernel::compute_linear_terms(polynomial_evaluations, challenges, linear_terms);
-
-        ITERATE_OVER_DOMAIN_START(key->small_domain);
-        linear_poly[i] += MonomialKernel::sum_linear_terms(polynomials, challenges, linear_terms, i);
-        ITERATE_OVER_DOMAIN_END;
-
-        if (Settings::use_linearisation) {
-            EvaluationKernel::compute_non_linear_terms(polynomial_evaluations, challenges, linear_poly[0]);
-        }
-
-        return MonomialGetter::update_alpha(challenges, FFTKernel::num_independent_relations);
-    }
 };
 
 template <class Field, class Transcript, class Settings, template <typename, typename, typename> typename KernelBase>
@@ -417,45 +376,33 @@ class GenericVerifierWidget {
     static Field compute_quotient_evaluation_contribution(typename Transcript::Key* key,
                                                           const Field& alpha_base,
                                                           const Transcript& transcript,
-                                                          Field& r_0)
+                                                          Field& quotient_numerator_eval)
     {
         poly_array polynomial_evaluations =
             EvaluationGetter::get_polynomial_evaluations(key->polynomial_manifest, transcript);
         challenge_array challenges =
             EvaluationGetter::get_challenges(transcript, alpha_base, EvaluationKernel::quotient_required_challenges);
 
-        if constexpr (!Settings::use_linearisation) {
-            coefficient_array linear_terms;
-            EvaluationKernel::compute_linear_terms(polynomial_evaluations, challenges, linear_terms);
-            r_0 += EvaluationKernel::sum_linear_terms(polynomial_evaluations, challenges, linear_terms);
-            EvaluationKernel::compute_non_linear_terms(polynomial_evaluations, challenges, r_0);
-        } else {
-            EvaluationKernel::compute_non_linear_terms(polynomial_evaluations, challenges, r_0);
-        }
+        // As in the permutation widget, we have vestiges of the linearization trick: the code first computes what
+        // would be the contribution with linearization, then completes that smaller sum to the full contribution
+        // without linearization.
+        coefficient_array linear_terms;
+        EvaluationKernel::compute_linear_terms(polynomial_evaluations, challenges, linear_terms);
+        quotient_numerator_eval += EvaluationKernel::sum_linear_terms(polynomial_evaluations, challenges, linear_terms);
+        EvaluationKernel::compute_non_linear_terms(polynomial_evaluations, challenges, quotient_numerator_eval);
+
         return EvaluationGetter::update_alpha(challenges, num_independent_relations);
     }
 
-    static Field append_scalar_multiplication_inputs(typename Transcript::Key* key,
+    static Field append_scalar_multiplication_inputs(typename Transcript::Key*,
                                                      const Field& alpha_base,
                                                      const Transcript& transcript,
-                                                     std::map<std::string, Field>& scalars)
+                                                     std::map<std::string, Field>&)
     {
         challenge_array challenges = EvaluationGetter::get_challenges(transcript,
                                                                       alpha_base,
                                                                       EvaluationKernel::quotient_required_challenges |
                                                                           EvaluationKernel::update_required_challenges);
-        if (!Settings::use_linearisation) {
-            return EvaluationGetter::update_alpha(challenges, num_independent_relations);
-        }
-
-        poly_array polynomial_evaluations =
-            EvaluationGetter::get_polynomial_evaluations(key->polynomial_manifest, transcript);
-
-        coefficient_array linear_terms;
-        EvaluationKernel::compute_linear_terms(polynomial_evaluations, challenges, linear_terms);
-
-        EvaluationKernel::update_kate_opening_scalars(linear_terms, scalars, challenges);
-
         return EvaluationGetter::update_alpha(challenges, num_independent_relations);
     }
 };
