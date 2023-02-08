@@ -17,7 +17,7 @@ TEST(SumcheckPow, FullPowConsistency)
     std::array<FF, d> variables{};
     for (auto& u_i : variables) {
         u_i = FF::random_element();
-        pow_univariate.fold(u_i);
+        pow_univariate.partially_evaluate(u_i);
     }
 
     FF expected_eval = honk::power_polynomial::evaluate<FF>(zeta, variables);

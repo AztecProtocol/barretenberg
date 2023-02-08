@@ -379,6 +379,8 @@ TEST(StandardHonkComposer, SumcheckRelationCorrectness)
 
     // Create an array of spans to the underlying polynomials to more easily
     // get the transposition.
+    // Ex: polynomial_spans[3][i] returns the i-th coefficient of the third polynomial
+    // in the list below
     std::array<std::span<fr>, num_polynomials> polynomial_spans{ { w_1,
                                                                    w_2,
                                                                    w_3,
@@ -403,15 +405,20 @@ TEST(StandardHonkComposer, SumcheckRelationCorrectness)
                                 honk::sumcheck::GrandProductComputationRelation<fr>(),
                                 honk::sumcheck::GrandProductInitializationRelation<fr>());
 
-    // Check all relations at all indices
+    // Check all relations at all indices.
     for (size_t i = 0; i < prover.key->circuit_size; i++) {
 
         // Compute an array containing all the evaluations at a given row i
+        // Ex: transposed[3] returns the i-th coefficient of the third polynomial
         std::array<fr, num_polynomials> transposed;
         for (size_t j = 0; j < num_polynomials; ++j) {
             transposed[j] = polynomial_spans[j][i];
         }
 
+        // For each relation, call the `accumulate_relation_evaluation` over all witness/selector values at the
+        // i-th row/vertex of the hypercube.
+        // We always set the accumulator to 0, so that
+        // result = 0 + C(transposed)*1, which we expect will equal 0.
         fr result = 0;
         std::get<0>(relations).accumulate_relation_evaluation(result, transposed, params, 1);
         EXPECT_EQ(result, 0);

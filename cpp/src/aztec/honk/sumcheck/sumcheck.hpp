@@ -88,7 +88,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
         transcript.apply_fiat_shamir(challenge_label);
         FF round_challenge = FF::serialize_from_buffer(transcript.get_challenge(challenge_label).begin());
         multivariates.fold(multivariates.full_polynomials, multivariates.multivariate_n, round_challenge);
-        pow_univariate.fold(round_challenge);
+        pow_univariate.partially_evaluate(round_challenge);
         round.round_size = round.round_size >> 1; // TODO(Cody): Maybe fold should do this and release memory?
 
         // All but final round
@@ -103,7 +103,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
             transcript.apply_fiat_shamir(challenge_label);
             FF round_challenge = FF::serialize_from_buffer(transcript.get_challenge(challenge_label).begin());
             multivariates.fold(multivariates.folded_polynomials, round.round_size, round_challenge);
-            pow_univariate.fold(round_challenge);
+            pow_univariate.partially_evaluate(round_challenge);
             round.round_size = round.round_size >> 1;
         }
 
@@ -159,7 +159,7 @@ template <class Multivariates, class Transcript, template <class> class... Relat
                 transcript.get_challenge("u_" + std::to_string(multivariates.multivariate_d - round_idx)).begin());
 
             round.compute_next_target_sum(round_univariate, round_challenge, pow_univariate);
-            pow_univariate.fold(round_challenge);
+            pow_univariate.partially_evaluate(round_challenge);
 
             if (!verified) {
                 return false;

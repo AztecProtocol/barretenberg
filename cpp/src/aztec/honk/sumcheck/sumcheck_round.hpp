@@ -102,7 +102,7 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
      *
      * @tparam T Container type
      * @tparam N number of relations that have been evaluated.
-     * @param accumulators
+     * @param accumulators array of N elements to combine
      * @return T = ∑_i accumulators[i] * alpha^i
      */
     template <typename T, size_t N> T batch_over_relations(const std::array<T, N>& accumulators, const FF& alpha)
@@ -166,6 +166,8 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
         } else {
             constexpr size_t relation_length = RELATION_LENGTHS[relation_idx];
 
+            // Create UnivariateView's from all the Univariates, where the size of the UnivariateView corresponds to
+            // this relation's "length"
             const auto columns_view = array_to_array<UnivariateView<FF, relation_length>>(columns);
 
             relation.accumulate_relation_evaluation(accumulator, columns_view, relation_parameters, scaling_factor);
@@ -235,11 +237,20 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
         FF pow_challenge = pow_univariate.partial_evaluation_constant;
         for (size_t edge_idx = 0; edge_idx < round_size; edge_idx += 2) {
             extend_edges(polynomials, edge_idx);
+            // Compute the i-th edge's univariate contribution,
+            // scale it by the pow polynomial's constant and zeta power "cₗ ⋅ ζₗ₋₁ⁱ"
+            // and add it to the accumulators for Sˡ(Xₗ)
             accumulate_relations(univariate_accumulators, extended_edges, relation_parameters, pow_challenge);
+            // Update the pow polynomial's contribution ζₗ₋₁ⁱ for the next edge.
             pow_challenge *= pow_univariate.zeta_pow_sqr;
         }
+
+        // Univariates have been computed for each relation.
+        // Extend their evaluations so we can sum them all together.
         extend_univariate_accumulators<>();
 
+        // Compute the linear combination of the (now extended) univariates for each relation, using powers of the alpha
+        // challenge.
         auto result = batch_over_relations(extended_univariates, relation_parameters.alpha);
 
         reset_accumulators<>();
@@ -272,12 +283,14 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     }
 
     /**
-     * @brief check if S^{l}(0) + zeta^{2^l} * S^{l}(1) = S^{l+1}(u_{l+1})
+     * @brief check if S^{l}(0) + S^{l}(1) = S^{l+1}(u_{l+1})
      *
-     * @param univariate S^{l}(X)
+     * @param univariate T^{l}(X), the round univariate that is equal to S^{l}(X)/( (1−X) + X⋅ζ^{ 2^{d-l-1} } )
      */
     bool check_sum(Univariate<FF, MAX_RELATION_LENGTH>& univariate, const PowUnivariate<FF>& pow_univariate)
     {
+        // S^{l}(0) = ( (1−0) + 0⋅ζ^{ 2^{d-l-1} } ) ⋅ T^{l}(0) = T^{l}(0)
+        // S^{l}(1) = ( (1−1) + 1⋅ζ^{ 2^{d-l-1} } ) ⋅ T^{l}(1) = ζ^{ 2^{d-l-1} } ⋅ T^{l}(1)
         FF total_sum = univariate.value_at(0) + (pow_univariate.zeta_pow * univariate.value_at(1));
         bool sumcheck_round_failed = (target_total_sum != total_sum);
         round_failed = round_failed || sumcheck_round_failed;
@@ -286,12 +299,11 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
 
     /**
      * @brief After checking that the univariate is good for this round, compute the next target sum.
-     * To handle the pow polynomial, we need to multiply the target sum by the missing monomial
-     * (1-X_l) + zeta^{2^l} X_l.
      *
-     * @param univariate S^l(X), given by its evaluations over {0,1,2,...}
+     * @param univariate T^l(X), given by its evaluations over {0,1,2,...},
+     * equal to S^{l}(X)/( (1−X) + X⋅ζ^{ 2^{d-l-1} } )
      * @param round_challenge u_l
-     * @return FF sigma_{l}
+     * @return FF sigma_{l} = S^l(u_l)
      */
     FF compute_next_target_sum(Univariate<FF, MAX_RELATION_LENGTH>& univariate,
                                FF& round_challenge,
@@ -300,10 +312,12 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
         // IMPROVEMENT(Cody): Use barycentric static method, maybe implement evaluation as member
         // function on Univariate.
         auto barycentric = BarycentricData<FF, MAX_RELATION_LENGTH, MAX_RELATION_LENGTH>();
+        // Evaluate T^{l}(u_{l})
         target_total_sum = barycentric.evaluate(univariate, round_challenge);
-        // The full S^l would be factorizable by (1-X_l) + zeta^{2^l} X_l, but this would increase the degree
-        // Since it can be computed by the verifier, the prover omits this factor, and we compensate for it here
-        target_total_sum *= pow_univariate.univariate_eval(round_challenge);
+        // Evaluate (1−u_{l}) + u_{l}⋅ζ^{2^{d-l-1}} )
+        FF pow_monomial_eval = pow_univariate.univariate_eval(round_challenge);
+        // sigma_{l} = S^l(u_l) = (1−u_{l}) + u_{l}⋅ζ^{2^{d-l-1}} ) ⋅ T^{l}(u_{l})
+        target_total_sum *= pow_monomial_eval;
         return target_total_sum;
     }
 };
