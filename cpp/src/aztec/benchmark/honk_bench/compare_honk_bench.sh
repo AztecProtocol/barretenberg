@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# This script is used to compare the results of honk_bench between baseline (master) and the branch from which the script is run. Simply check out the branch of interest, ensure it is up to date with local master, and run the script.
+# This script is used to compare the results of honk_bench between baseline (master) and
+# the branch from which the script is run. Simply check out the branch of interest, ensure 
+# it is up to date with local master, and run the script.
 
 # Note: This script requires that scipy be installed. This can be done via the command:
 # pip3 install -r barretenberg/cpp/build/_deps/benchmark-src/requirements.txt
@@ -35,7 +37,8 @@ BRANCH_HONK_BENCH_RESULTS="$BENCH_RESULTS_DIR/honk_bench_results_branch.json"
 echo -e '\nRunning honk_bench in feature branch..'
 bin/honk_bench --benchmark_format=json > $BRANCH_HONK_BENCH_RESULTS
 
-# Call compare.py on the results (json) to get high level statistics. See docs at https://github.com/google/benchmark/blob/main/docs/tools.md for more details.
+# Call compare.py on the results (json) to get high level statistics. 
+# See docs at https://github.com/google/benchmark/blob/main/docs/tools.md for more details.
 $BENCH_TOOLS_DIR/compare.py benchmarks $MASTER_HONK_BENCH_RESULTS $BRANCH_HONK_BENCH_RESULTS
 
 # Delete the temporary results directory and its contents
