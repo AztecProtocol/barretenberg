@@ -85,7 +85,7 @@ struct ExprSum : public Expr<FF, ExprSum<FF, E1, E2>> {
         , expr2(expr2)
     {}
 
-    decltype(auto) operator[](size_t i) const { return expr1[i] + expr2[i]; }
+    inline __attribute__((always_inline)) decltype(auto) operator[](size_t i) const { return expr1[i] + expr2[i]; }
 };
 
 // Difference expression
@@ -104,7 +104,7 @@ struct ExprDiff : public Expr<FF, ExprDiff<FF, E1, E2>> {
         , expr2(expr2)
     {}
 
-    decltype(auto) operator[](size_t i) const { return expr1[i] - expr2[i]; }
+    inline __attribute__((always_inline)) decltype(auto) operator[](size_t i) const { return expr1[i] - expr2[i]; }
 };
 
 // Multiplication expression
@@ -123,7 +123,7 @@ struct ExprMul : public Expr<FF, ExprMul<FF, E1, E2>> {
         , expr2(expr2)
     {}
 
-    decltype(auto) operator[](size_t i) const { return expr1[i] * expr2[i]; }
+    inline __attribute__((always_inline)) decltype(auto) operator[](size_t i) const { return expr1[i] * expr2[i]; }
 };
 
 // Scale by scalar expression
@@ -140,7 +140,7 @@ template <typename FF, typename E> struct ExprScale : public Expr<FF, ExprScale<
         , scalar(scalar)
     {}
 
-    decltype(auto) operator[](size_t i) const { return expr[i] * scalar; }
+    inline __attribute__((always_inline)) decltype(auto) operator[](size_t i) const { return expr[i] * scalar; }
 };
 
 // Translate by scalar expression
@@ -157,7 +157,7 @@ template <typename FF, typename E> struct ExprTranslate : public Expr<FF, ExprTr
         , scalar(scalar)
     {}
 
-    decltype(auto) operator[](size_t i) const { return expr[i] + scalar; }
+    inline __attribute__((always_inline)) decltype(auto) operator[](size_t i) const { return expr[i] + scalar; }
 };
 
 /**
