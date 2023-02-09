@@ -10,7 +10,8 @@
 #include "../../../../proof_system/proving_key/proving_key.hpp"
 #include "../../../../proof_system/work_queue/work_queue.hpp"
 
-namespace waffle {
+using namespace bonk;
+namespace plonk {
 
 namespace widget {
 enum ChallengeIndex {
@@ -38,15 +39,16 @@ template <class Field, size_t num_widget_relations> struct challenge_array {
     std::array<Field, num_widget_relations> alpha_powers;
 };
 
-template <class Field> using poly_array = std::array<std::pair<Field, Field>, PolynomialIndex::MAX_NUM_POLYNOMIALS>;
+template <class Field>
+using poly_array = std::array<std::pair<Field, Field>, bonk::PolynomialIndex::MAX_NUM_POLYNOMIALS>;
 
 template <class Field> struct poly_ptr_map {
-    std::unordered_map<PolynomialIndex, std::span<Field>> coefficients;
+    std::unordered_map<bonk::PolynomialIndex, Field*> coefficients;
     size_t block_mask;
     size_t index_shift;
 };
 
-template <class Field> using coefficient_array = std::array<Field, PolynomialIndex::MAX_NUM_POLYNOMIALS>;
+template <class Field> using coefficient_array = std::array<Field, bonk::PolynomialIndex::MAX_NUM_POLYNOMIALS>;
 
 } // namespace containers
 
@@ -167,7 +169,7 @@ class EvaluationGetter : public BaseGetter<Field, Transcript, Settings, num_widg
      *
      * @return The chosen polynomial
      * */
-    template <bool use_shifted_evaluation, PolynomialIndex id>
+    template <bool use_shifted_evaluation, bonk::PolynomialIndex id>
     inline static const Field& get_value(const poly_array& polynomials, const size_t = 0)
     {
         if constexpr (use_shifted_evaluation) {
@@ -225,7 +227,7 @@ class PolynomialGetter : public BaseGetter<Field, Transcript, Settings, num_widg
     typedef containers::poly_ptr_map<Field> poly_ptr_map;
 
   public:
-    static poly_ptr_map get_polynomials(proving_key* key, std::set<PolynomialIndex> required_polynomial_ids)
+    static poly_ptr_map get_polynomials(proving_key* key, std::set<bonk::PolynomialIndex> required_polynomial_ids)
     {
         poly_ptr_map result;
         std::string label_suffix;
@@ -252,7 +254,7 @@ class PolynomialGetter : public BaseGetter<Field, Transcript, Settings, num_widg
         return result;
     }
 
-    template <EvaluationType evaluation_type, PolynomialIndex id>
+    template <EvaluationType evaluation_type, bonk::PolynomialIndex id>
     inline static const Field& get_value(poly_ptr_map& polynomials, const size_t index = 0)
     {
         if constexpr (EvaluationType::SHIFTED == evaluation_type) {
@@ -460,4 +462,4 @@ class GenericVerifierWidget {
     }
 };
 } // namespace widget
-} // namespace waffle
+} // namespace plonk
