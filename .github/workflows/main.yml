@@ -26,5 +26,5 @@ jobs:
     needs: checkout_code
     container: aztecprotocol/alpine-build-image
     steps:
-      - name Build
+      - name: Build
         runs: cond_spot_run_build barretenberg-wasm-linux-clang 64
