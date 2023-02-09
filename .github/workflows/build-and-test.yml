@@ -1,0 +1,30 @@
+name: Build docker images & run tests
+
+on:
+  push:
+    branches:
+      # run for all pushes to master
+      - master
+    tags:
+      # run for all pushes to any tags
+      - "*"
+  pull_request:
+    # run for all opens/pushes/merges of PRs
+    # to run on merge, we use `closed` in conjunction with
+    # `if: github.event.pull_request.merged` in job
+    types: [opened, reopened, synchronize, closed ]
+
+jobs:
+  checkout:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+  wasm-linux-clang:
+    runs-on: ubuntu-latest
+    needs: checkout_code
+    container: aztecprotocol/alpine-build-image
+    steps:
+      - name Build
+        runs: cond_spot_run_build barretenberg-wasm-linux-clang 64
