@@ -1,5 +1,6 @@
 #pragma once
 #include "./mock/mock_circuit.hpp"
+#include "proof_system/verification_key/verification_key.hpp"
 #include <ecc/curves/bn254/fq12.hpp>
 #include <ecc/curves/bn254/pairing.hpp>
 #include <stdlib/recursion/verifier/verifier.hpp>
@@ -26,16 +27,15 @@ template <typename Composer> struct verify_result {
 
 template <typename Composer>
 inline bool pairing_check(plonk::stdlib::recursion::recursion_output<plonk::stdlib::bn254<Composer>> recursion_output,
-                          std::shared_ptr<waffle::VerifierReferenceString> const& srs)
+                          std::shared_ptr<waffle::verification_key> const& vk)
 {
     g1::affine_element P[2];
     P[0].x = barretenberg::fq(recursion_output.P0.x.get_value().lo);
     P[0].y = barretenberg::fq(recursion_output.P0.y.get_value().lo);
     P[1].x = barretenberg::fq(recursion_output.P1.x.get_value().lo);
     P[1].y = barretenberg::fq(recursion_output.P1.y.get_value().lo);
-    barretenberg::fq12 inner_proof_result =
-        barretenberg::pairing::reduced_ate_pairing_batch_precomputed(P, srs->get_precomputed_g2_lines(), 2);
-    return inner_proof_result == barretenberg::fq12::one();
+
+    return vk->commitment_verification_key.pairing_check(P[0], P[1]);
 }
 
 template <typename Composer, typename Tx, typename CircuitData, typename F>
@@ -57,7 +57,9 @@ auto verify_logic_internal(Composer& composer, Tx& tx, CircuitData const& cd, ch
         return result;
     }
 
-    if (!pairing_check(result.recursion_output, cd.srs->get_verifier_crs())) {
+    // info(cd.verification_key->commitment_verification_key.dod());
+
+    if (!pairing_check(result.recursion_output, cd.verification_key)) {
         info(name, ": Native pairing check failed.");
         return result;
     }

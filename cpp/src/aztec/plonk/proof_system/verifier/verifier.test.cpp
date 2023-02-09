@@ -53,26 +53,19 @@ using namespace waffle;
 
 waffle::Verifier generate_verifier(std::shared_ptr<proving_key> circuit_proving_key)
 {
-    std::array<fr*, 8> poly_coefficients;
-    poly_coefficients[0] = circuit_proving_key->polynomial_cache.get("q_1").get_coefficients();
-    poly_coefficients[1] = circuit_proving_key->polynomial_cache.get("q_2").get_coefficients();
-    poly_coefficients[2] = circuit_proving_key->polynomial_cache.get("q_3").get_coefficients();
-    poly_coefficients[3] = circuit_proving_key->polynomial_cache.get("q_m").get_coefficients();
-    poly_coefficients[4] = circuit_proving_key->polynomial_cache.get("q_c").get_coefficients();
-    poly_coefficients[5] = circuit_proving_key->polynomial_cache.get("sigma_1").get_coefficients();
-    poly_coefficients[6] = circuit_proving_key->polynomial_cache.get("sigma_2").get_coefficients();
-    poly_coefficients[7] = circuit_proving_key->polynomial_cache.get("sigma_3").get_coefficients();
+    std::array<std::span<const barretenberg::fr>, 8> poly_spans{
+        circuit_proving_key->polynomial_cache.get("q_1"),     circuit_proving_key->polynomial_cache.get("q_2"),
+        circuit_proving_key->polynomial_cache.get("q_3"),     circuit_proving_key->polynomial_cache.get("q_m"),
+        circuit_proving_key->polynomial_cache.get("q_c"),     circuit_proving_key->polynomial_cache.get("sigma_1"),
+        circuit_proving_key->polynomial_cache.get("sigma_2"), circuit_proving_key->polynomial_cache.get("sigma_3"),
+    };
 
     std::vector<barretenberg::g1::affine_element> commitments;
     scalar_multiplication::pippenger_runtime_state state(circuit_proving_key->circuit_size);
     commitments.resize(8);
 
     for (size_t i = 0; i < 8; ++i) {
-        commitments[i] = g1::affine_element(
-            scalar_multiplication::pippenger(poly_coefficients[i],
-                                             circuit_proving_key->reference_string->get_monomial_points(),
-                                             circuit_proving_key->circuit_size,
-                                             state));
+        commitments[i] = circuit_proving_key->commitment_key.commit(poly_spans[i]);
     }
 
     auto crs = std::make_shared<waffle::VerifierFileReferenceString>("../srs_db/ignition");

@@ -1,6 +1,5 @@
 #pragma once
 #include "shplonk.hpp"
-#include "honk/pcs/commitment_key.hpp"
 
 namespace honk::pcs::shplonk {
 
@@ -28,7 +27,7 @@ template <typename Params> class SingleBatchOpeningScheme {
      * @param transcript
      * @return Output{OpeningClaim, WitnessPolynomial, Proof}
      */
-    static ProverOutput<Params> reduce_prove(std::shared_ptr<CK> ck,
+    static ProverOutput<Params> reduce_prove(const CK& ck,
                                              std::span<const OpeningClaim<Params>> claims,
                                              std::span<const Polynomial> witness_polynomials,
                                              const auto& transcript)
@@ -62,8 +61,8 @@ template <typename Params> class SingleBatchOpeningScheme {
         }
 
         // [Q]
-        Commitment Q_commitment = ck->commit(Q);
-        transcript->add_element("Q", static_cast<barretenberg::g1::affine_element>(Q_commitment).to_buffer());
+        auto Q_commitment = ck.commit(Q);
+        transcript->add_element("Q", Q_commitment.to_buffer());
 
         // generate random evaluation challenge zeta_challenge
         transcript->apply_fiat_shamir("z");

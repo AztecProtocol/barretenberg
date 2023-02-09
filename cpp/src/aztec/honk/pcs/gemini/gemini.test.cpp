@@ -26,7 +26,7 @@ TYPED_TEST(GeminiTest, single)
     auto claims = { MLEOpeningClaim{ commitment, eval } };
 
     using Transcript = transcript::StandardTranscript;
-    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
+    auto transcript = std::make_shared<Transcript>(honk::StandardHonk::create_unrolled_manifest(0, log_n));
 
     transcript->mock_inputs_prior_to_challenge("rho");
 
@@ -65,7 +65,7 @@ TYPED_TEST(GeminiTest, shift)
     };
 
     using Transcript = transcript::StandardTranscript;
-    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
+    auto transcript = std::make_shared<Transcript>(honk::StandardHonk::create_unrolled_manifest(0, log_n));
 
     transcript->mock_inputs_prior_to_challenge("rho");
 
@@ -104,7 +104,7 @@ TYPED_TEST(GeminiTest, double)
     };
 
     using Transcript = transcript::StandardTranscript;
-    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
+    auto transcript = std::make_shared<Transcript>(honk::StandardHonk::create_unrolled_manifest(0, log_n));
 
     transcript->mock_inputs_prior_to_challenge("rho");
 
@@ -151,7 +151,7 @@ TYPED_TEST(GeminiTest, double_shift)
     };
 
     using Transcript = transcript::StandardTranscript;
-    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
+    auto transcript = std::make_shared<Transcript>(honk::StandardHonk::create_unrolled_manifest(0, log_n));
 
     transcript->mock_inputs_prior_to_challenge("rho");
 

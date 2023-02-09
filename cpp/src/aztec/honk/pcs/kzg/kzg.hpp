@@ -18,6 +18,7 @@ template <typename Params> class BilinearAccumulator {
     using VK = typename Params::VK;
     using Fr = typename Params::Fr;
     using Commitment = typename Params::Commitment;
+    using CommitmentAffine = typename Params::CommitmentAffine;
 
   public:
     /**
@@ -27,7 +28,7 @@ template <typename Params> class BilinearAccumulator {
      * @param claim an OpeningClaim (C,r,v)
      * @param proof a Commitment π
      */
-    BilinearAccumulator(const OpeningClaim<Params>& claim, const Commitment& proof)
+    BilinearAccumulator(const OpeningClaim<Params>& claim, const CommitmentAffine& proof)
         : lhs(claim.commitment - (Commitment::one() * claim.eval) + (proof * claim.opening_point))
         , rhs(-proof)
     {}
@@ -38,11 +39,11 @@ template <typename Params> class BilinearAccumulator {
      * @param vk VerificationKey
      * @return e(P₀,[1]₁)e(P₁,[x]₂)≡ [1]ₜ
      */
-    bool verify(VK* vk) const { return vk->pairing_check(lhs, rhs); };
+    bool verify(const VK& vk) const { return vk.pairing_check(lhs, rhs); };
 
     bool operator==(const BilinearAccumulator& other) const = default;
 
-    Commitment lhs, rhs;
+    CommitmentAffine lhs, rhs;
 };
 
 template <typename Params> class UnivariateOpeningScheme {
@@ -54,7 +55,7 @@ template <typename Params> class UnivariateOpeningScheme {
 
   public:
     using Accumulator = BilinearAccumulator<Params>;
-    using Proof = Commitment;
+    using Proof = typename Params::CommitmentAffine;
 
     struct Output {
         Accumulator accumulator;
@@ -69,12 +70,12 @@ template <typename Params> class UnivariateOpeningScheme {
      * @param polynomial the witness polynomial for C
      * @return Output{Accumulator, Proof}
      */
-    static Output reduce_prove(std::shared_ptr<CK> ck, const OpeningClaim<Params>& claim, const Polynomial& polynomial)
+    static Output reduce_prove(const CK& ck, const OpeningClaim<Params>& claim, const Polynomial& polynomial)
     {
         Polynomial quotient(polynomial);
         quotient[0] -= claim.eval;
         quotient.factor_roots(claim.opening_point);
-        Proof proof = ck->commit(quotient);
+        Proof proof = ck.commit(quotient);
 
         return Output{ Accumulator(claim, proof), proof };
     };

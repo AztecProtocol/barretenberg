@@ -2,14 +2,13 @@
 #include "shplonk_single.hpp"
 #include "../gemini/gemini.hpp"
 
+#include "../commitment_key.test.hpp"
+#include "polynomials/polynomial.hpp"
+
 #include <gtest/internal/gtest-internal.h>
 #include <random>
 #include <iterator>
 #include <algorithm>
-
-#include "../commitment_key.test.hpp"
-#include "honk/pcs/claim.hpp"
-#include "polynomials/polynomial.hpp"
 namespace honk::pcs::shplonk {
 template <class Params> class ShplonkTest : public CommitmentTest<Params> {
     using Base = CommitmentTest<Params>;
@@ -68,7 +67,7 @@ TYPED_TEST(ShplonkTest, single_poly_two_points)
     this->add_random_batch_opening_sub_claims(claims, polys, queries, std::array{ n });
 
     using Transcript = transcript::StandardTranscript;
-    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
+    auto transcript = std::make_shared<Transcript>(honk::StandardHonk::create_unrolled_manifest(0, log_n));
 
     transcript->mock_inputs_prior_to_challenge("nu");
 
@@ -98,7 +97,7 @@ TYPED_TEST(ShplonkTest, two_polys_different_size_at_two_different_points)
     this->add_random_batch_opening_sub_claims(claims, polys, { queries[1] }, std::array{ n - 1 });
 
     using Transcript = transcript::StandardTranscript;
-    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
+    auto transcript = std::make_shared<Transcript>(honk::StandardHonk::create_unrolled_manifest(0, log_n));
 
     transcript->mock_inputs_prior_to_challenge("nu");
 
@@ -129,7 +128,7 @@ TYPED_TEST(ShplonkTest, three_polys_different_sizes_and_different_queries)
     this->add_random_batch_opening_sub_claims(claims, polys, { queries[0], queries[2] }, std::array{ n });
 
     using Transcript = transcript::StandardTranscript;
-    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
+    auto transcript = std::make_shared<Transcript>(honk::StandardHonk::create_unrolled_manifest(0, log_n));
 
     transcript->mock_inputs_prior_to_challenge("nu");
 
@@ -160,7 +159,7 @@ TYPED_TEST(ShplonkTest, Gemini)
     const auto claims = { MLEOpeningClaim{ commitment, eval } };
 
     using Transcript = transcript::StandardTranscript;
-    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
+    auto transcript = std::make_shared<Transcript>(honk::StandardHonk::create_unrolled_manifest(0, log_n));
 
     transcript->mock_inputs_prior_to_challenge("rho");
 

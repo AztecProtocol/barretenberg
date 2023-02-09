@@ -2,7 +2,7 @@
 #include "permutation_helper.hpp"
 #include <polynomials/polynomial.hpp>
 #include <proof_system/flavor/flavor.hpp>
-#include <honk/pcs/commitment_key.hpp>
+#include "proof_system/commitment_key/commitment_key.hpp"
 #include <numeric/bitop/get_msb.hpp>
 
 #include <cstddef>
@@ -84,7 +84,7 @@ std::shared_ptr<waffle::verification_key> ComposerHelper<CircuitConstructor>::co
     auto circuit_verification_key = std::make_shared<waffle::verification_key>(
         proving_key->circuit_size, proving_key->num_public_inputs, vrs, proving_key->composer_type);
     // TODO(kesha): Dirty hack for now. Need to actually make commitment-agnositc
-    auto commitment_key = pcs::kzg::CommitmentKey(proving_key->circuit_size, "../srs_db/ignition");
+    const auto& commitment_key = proving_key->commitment_key;
 
     for (size_t i = 0; i < proving_key->polynomial_manifest.size(); ++i) {
         const auto& poly_info = proving_key->polynomial_manifest[i];
@@ -264,11 +264,6 @@ StandardUnrolledVerifier ComposerHelper<CircuitConstructor>::create_unrolled_ver
         honk::StandardHonk::create_unrolled_manifest(circuit_constructor.public_inputs.size(),
                                                      numeric::get_msb(circuit_verification_key->circuit_size)));
 
-    // TODO(Cody): This should be more generic
-    auto kate_verification_key = std::make_unique<pcs::kzg::VerificationKey>("../srs_db/ignition");
-
-    output_state.kate_verification_key = std::move(kate_verification_key);
-
     return output_state;
 }
 
@@ -284,12 +279,6 @@ StandardUnrolledProver ComposerHelper<CircuitConstructor>::create_unrolled_prove
     size_t num_sumcheck_rounds(circuit_proving_key->log_circuit_size);
     auto manifest = Flavor::create_unrolled_manifest(circuit_constructor.public_inputs.size(), num_sumcheck_rounds);
     StandardUnrolledProver output_state(circuit_proving_key, manifest);
-
-    // TODO(Cody): This should be more generic
-    std::unique_ptr<pcs::kzg::CommitmentKey> kate_commitment_key =
-        std::make_unique<pcs::kzg::CommitmentKey>(circuit_proving_key->circuit_size, "../srs_db/ignition");
-
-    output_state.commitment_key = std::move(kate_commitment_key);
 
     return output_state;
 }

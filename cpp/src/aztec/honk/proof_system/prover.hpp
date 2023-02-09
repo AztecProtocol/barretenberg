@@ -1,6 +1,6 @@
 #pragma once
 #include <proof_system/proving_key/proving_key.hpp>
-#include <honk/pcs/commitment_key.hpp>
+#include "proof_system/commitment_key/commitment_key.hpp"
 #include <plonk/proof_system/types/plonk_proof.hpp>
 #include <plonk/proof_system/types/program_settings.hpp>
 #include <honk/pcs/gemini/gemini.hpp>
@@ -47,8 +47,6 @@ template <typename settings> class Prover {
 
     std::shared_ptr<waffle::proving_key> key;
 
-    std::shared_ptr<pcs::kzg::CommitmentKey> commitment_key;
-
     // Honk only needs a small portion of the functionality but may be fine to use existing work_queue
     // NOTE: this is not currently in use, but it may well be used in the future.
     // TODO(Adrian): Uncomment when we need this again.
@@ -65,8 +63,8 @@ template <typename settings> class Prover {
     // This makes 'settings' accesible from Prover
     using settings_ = settings;
 
-    pcs::gemini::ProverOutput<pcs::kzg::Params> gemini_output;
-    pcs::shplonk::ProverOutput<pcs::kzg::Params> shplonk_output;
+    pcs::gemini::ProverOutput<waffle::pcs::Params> gemini_output;
+    pcs::shplonk::ProverOutput<waffle::pcs::Params> shplonk_output;
 
   private:
     waffle::plonk_proof proof;

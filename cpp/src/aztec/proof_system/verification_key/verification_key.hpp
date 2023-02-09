@@ -4,6 +4,7 @@
 #include <polynomials/evaluation_domain.hpp>
 #include <crypto/sha256/sha256.hpp>
 #include "../../proof_system/types/polynomial_manifest.hpp"
+#include "proof_system/commitment_key/commitment_key.hpp"
 
 namespace waffle {
 
@@ -66,6 +67,8 @@ struct verification_key {
     barretenberg::evaluation_domain domain;
 
     std::shared_ptr<VerifierReferenceString> reference_string;
+    // contains it's own shared_ptr<VerifierReferenceString>
+    waffle::pcs::VerificationKey commitment_verification_key;
 
     std::map<std::string, barretenberg::g1::affine_element> commitments;
 

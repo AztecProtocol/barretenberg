@@ -300,13 +300,12 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         P[1].x = barretenberg::fq(circuit_output.recursion_output.P1.x.get_value().lo);
         P[1].y = barretenberg::fq(circuit_output.recursion_output.P1.y.get_value().lo);
 
-        barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
-            P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
+        bool inner_proof_result =
+            circuit_output.verification_key->base_key->commitment_verification_key.pairing_check(P[0], P[1]);
+        EXPECT_TRUE(inner_proof_result);
 
         EXPECT_EQ(circuit_output.recursion_output.public_inputs[0].get_value(), inner_inputs[0]);
         EXPECT_EQ(circuit_output.recursion_output.public_inputs[1].get_value(), inner_inputs[1]);
-
-        EXPECT_EQ(inner_proof_result, barretenberg::fq12::one());
 
         circuit_output.recursion_output.add_proof_outputs_as_public_inputs();
 
@@ -348,10 +347,9 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         P[1].x = barretenberg::fq(circuit_output.recursion_output.P1.x.get_value().lo);
         P[1].y = barretenberg::fq(circuit_output.recursion_output.P1.y.get_value().lo);
 
-        barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
-            P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
-
-        EXPECT_EQ(inner_proof_result, barretenberg::fq12::one());
+        bool inner_proof_result =
+            circuit_output.verification_key->base_key->commitment_verification_key.pairing_check(P[0], P[1]);
+        EXPECT_TRUE(inner_proof_result);
 
         circuit_output.recursion_output.add_proof_outputs_as_public_inputs();
 
@@ -402,13 +400,13 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         P[0].y = barretenberg::fq(circuit_output.recursion_output.P0.y.get_value().lo);
         P[1].x = barretenberg::fq(circuit_output.recursion_output.P1.x.get_value().lo);
         P[1].y = barretenberg::fq(circuit_output.recursion_output.P1.y.get_value().lo);
-        barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
-            P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
 
         EXPECT_EQ(circuit_output.recursion_output.public_inputs[0].get_value(), inner_inputs[0]);
         EXPECT_EQ(circuit_output.recursion_output.public_inputs[1].get_value(), inner_inputs[1]);
 
-        EXPECT_EQ(inner_proof_result, barretenberg::fq12::one());
+        bool inner_proof_result =
+            circuit_output.verification_key->base_key->commitment_verification_key.pairing_check(P[0], P[1]);
+        EXPECT_TRUE(inner_proof_result);
 
         printf("composer gates = %zu\n", outer_composer.get_num_gates());
 
@@ -453,14 +451,13 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         P[0].y = barretenberg::fq(circuit_output.recursion_output.P0.y.get_value().lo);
         P[1].x = barretenberg::fq(circuit_output.recursion_output.P1.x.get_value().lo);
         P[1].y = barretenberg::fq(circuit_output.recursion_output.P1.y.get_value().lo);
-        barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
-            P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
+        bool inner_proof_result =
+            circuit_output.verification_key->base_key->commitment_verification_key.pairing_check(P[0], P[1]);
+        EXPECT_TRUE(inner_proof_result);
 
         EXPECT_EQ(circuit_output.recursion_output.public_inputs[0].get_value(), inner_inputs_a[0]);
         EXPECT_EQ(circuit_output.recursion_output.public_inputs[1].get_value(), inner_inputs_a[1]);
         EXPECT_EQ(circuit_output.recursion_output.public_inputs[2].get_value(), inner_inputs_a[2]);
-
-        EXPECT_EQ(inner_proof_result, barretenberg::fq12::one());
 
         printf("composer gates = %zu\n", outer_composer.get_num_gates());
 
@@ -500,14 +497,13 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         P[1].x = barretenberg::fq(circuit_output.recursion_output.P1.x.get_value().lo);
         P[1].y = barretenberg::fq(circuit_output.recursion_output.P1.y.get_value().lo);
 
-        barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
-            P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
+        bool inner_proof_result =
+            circuit_output.verification_key->base_key->commitment_verification_key.pairing_check(P[0], P[1]);
+        EXPECT_TRUE(inner_proof_result);
 
         EXPECT_EQ(circuit_output.recursion_output.public_inputs[0].get_value(), inner_inputs_b[0]);
         EXPECT_EQ(circuit_output.recursion_output.public_inputs[1].get_value(), inner_inputs_b[1]);
         EXPECT_EQ(circuit_output.recursion_output.public_inputs[2].get_value(), inner_inputs_b[2]);
-
-        EXPECT_EQ(inner_proof_result, barretenberg::fq12::one());
 
         printf("composer gates = %zu\n", outer_composer.get_num_gates());
 
@@ -545,14 +541,13 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         P[0].y = barretenberg::fq(circuit_output.recursion_output.P0.y.get_value().lo);
         P[1].x = barretenberg::fq(circuit_output.recursion_output.P1.x.get_value().lo);
         P[1].y = barretenberg::fq(circuit_output.recursion_output.P1.y.get_value().lo);
-        barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
-            P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
+        bool inner_proof_result =
+            circuit_output.verification_key->base_key->commitment_verification_key.pairing_check(P[0], P[1]);
+        EXPECT_TRUE(inner_proof_result);
 
         EXPECT_EQ(circuit_output.recursion_output.public_inputs[0].get_value(), inner_inputs_a[0]);
         EXPECT_EQ(circuit_output.recursion_output.public_inputs[1].get_value(), inner_inputs_a[1]);
         EXPECT_EQ(circuit_output.recursion_output.public_inputs[2].get_value(), inner_inputs_a[2]);
-
-        EXPECT_EQ(inner_proof_result, barretenberg::fq12::one());
 
         printf("composer gates = %zu\n", outer_composer.get_num_gates());
 
@@ -590,14 +585,14 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         P[0].y = barretenberg::fq(circuit_output.recursion_output.P0.y.get_value().lo);
         P[1].x = barretenberg::fq(circuit_output.recursion_output.P1.x.get_value().lo);
         P[1].y = barretenberg::fq(circuit_output.recursion_output.P1.y.get_value().lo);
-        barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
-            P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
+        bool inner_proof_result =
+            circuit_output.verification_key->base_key->commitment_verification_key.pairing_check(P[0], P[1]);
 
         EXPECT_EQ(circuit_output.recursion_output.public_inputs[0].get_value(), inner_inputs_a[0]);
         EXPECT_EQ(circuit_output.recursion_output.public_inputs[1].get_value(), inner_inputs_a[1]);
         EXPECT_EQ(circuit_output.recursion_output.public_inputs[2].get_value(), inner_inputs_a[2]);
 
-        EXPECT_EQ(inner_proof_result, barretenberg::fq12::one());
+        EXPECT_TRUE(inner_proof_result);
 
         printf("composer gates = %zu\n", outer_composer.get_num_gates());
 

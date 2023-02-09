@@ -5,7 +5,6 @@
 #include <honk/proof_system/prover.hpp>
 #include <honk/proof_system/verifier.hpp>
 #include <honk/circuit_constructors/standard_circuit_constructor.hpp>
-#include <honk/pcs/commitment_key.hpp>
 #include <proof_system/verification_key/verification_key.hpp>
 #include <plonk/proof_system/verifier/verifier.hpp>
 #include <proof_system/composer/composer_base.hpp>

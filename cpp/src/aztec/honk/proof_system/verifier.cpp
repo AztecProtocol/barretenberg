@@ -6,7 +6,7 @@
 #include "./verifier.hpp"
 #include "../../plonk/proof_system/public_inputs/public_inputs.hpp"
 #include "ecc/curves/bn254/fr.hpp"
-#include "honk/pcs/commitment_key.hpp"
+#include "proof_system/commitment_key/commitment_key.hpp"
 #include "honk/pcs/gemini/gemini.hpp"
 #include "honk/pcs/kzg/kzg.hpp"
 #include "numeric/bitop/get_msb.hpp"
@@ -39,14 +39,12 @@ template <typename program_settings>
 Verifier<program_settings>::Verifier(Verifier&& other)
     : manifest(other.manifest)
     , key(other.key)
-    , kate_verification_key(std::move(other.kate_verification_key))
 {}
 
 template <typename program_settings> Verifier<program_settings>& Verifier<program_settings>::operator=(Verifier&& other)
 {
     key = other.key;
     manifest = other.manifest;
-    kate_verification_key = (std::move(other.kate_verification_key));
     kate_g1_elements.clear();
     kate_fr_elements.clear();
     return *this;
@@ -87,11 +85,11 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     using Commitment = barretenberg::g1::affine_element;
     using Transcript = typename program_settings::Transcript;
     using Multivariates = Multivariates<FF, num_polys>;
-    using Gemini = pcs::gemini::MultilinearReductionScheme<pcs::kzg::Params>;
-    using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<pcs::kzg::Params>;
-    using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
-    using MLEOpeningClaim = pcs::MLEOpeningClaim<pcs::kzg::Params>;
-    using GeminiProof = pcs::gemini::Proof<pcs::kzg::Params>;
+    using Gemini = pcs::gemini::MultilinearReductionScheme<waffle::pcs::Params>;
+    using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<waffle::pcs::Params>;
+    using KZG = pcs::kzg::UnivariateOpeningScheme<waffle::pcs::Params>;
+    using MLEOpeningClaim = pcs::MLEOpeningClaim<waffle::pcs::Params>;
+    using GeminiProof = pcs::gemini::Proof<waffle::pcs::Params>;
 
     key->program_width = program_settings::program_width;
 
@@ -229,7 +227,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     auto kzg_claim = KZG::reduce_verify(shplonk_claim, kzg_proof);
 
     // Do final pairing check
-    bool pairing_result = kzg_claim.verify(kate_verification_key.get());
+    bool pairing_result = kzg_claim.verify(key->commitment_verification_key);
 
     bool result = sumcheck_result && pairing_result;
 

@@ -4,7 +4,6 @@
 #include "../gemini/gemini.hpp"
 
 #include "../commitment_key.test.hpp"
-#include "honk/pcs/commitment_key.hpp"
 #include "polynomials/polynomial.hpp"
 
 #include <ecc/curves/bn254/g1.hpp>
@@ -60,6 +59,8 @@ TYPED_TEST(BilinearAccumulationTest, single)
  */
 TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
 {
+    using Fr = typename TypeParam::Fr;
+    using CommitmentAffine = typename TypeParam::CommitmentAffine;
     using Transcript = transcript::StandardTranscript;
     using Shplonk = shplonk::SingleBatchOpeningScheme<TypeParam>;
     using Gemini = gemini::MultilinearReductionScheme<TypeParam>;
@@ -70,7 +71,7 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
     const size_t log_n = 4;
 
     // Instantiate a transcript from the real Honk manifest, then mock the inputs prior to Gemini.
-    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
+    auto transcript = std::make_shared<Transcript>(honk::StandardHonk::create_unrolled_manifest(0, log_n));
     transcript->mock_inputs_prior_to_challenge("rho");
 
     // Generate multilinear polynomials, their commitments (genuine and mocked) and evaluations (genuine) at a random
@@ -78,7 +79,7 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
     const auto mle_opening_point = this->random_evaluation_point(log_n); // sometimes denoted 'u'
     auto poly1 = this->random_polynomial(n);
     auto poly2 = this->random_polynomial(n);
-    poly2[0] = Params::Fr::zero(); // this property is required of polynomials whose shift is used
+    poly2[0] = Fr::zero(); // this property is required of polynomials whose shift is used
 
     auto commitment1 = this->commit(poly1);
     auto commitment2 = this->commit(poly2);
@@ -87,27 +88,16 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
     auto eval2 = poly2.evaluate_mle(mle_opening_point);
     auto eval2_shift = poly2.evaluate_mle(mle_opening_point, true);
 
-    const auto mock_commitment = Params::C::one();
-
-    std::vector<MLEOpeningClaim> claims;
-    std::vector<MLEOpeningClaim> claims_shift;
-    std::vector<MLEOpeningClaim> claims_mock;
-    std::vector<MLEOpeningClaim> claims_shift_mock;
-    std::vector<Params::Polynomial*> multivariate_polynomials;
-    std::vector<Params::Polynomial*> multivariate_polynomials_shifted;
+    const auto mock_commitment = CommitmentAffine::one();
 
     // Create genuine opening claims (for use by verifier) and mock opening claims (for prover)
-    claims.emplace_back(commitment1, eval1);
-    claims.emplace_back(commitment2, eval2);
-    claims_shift.emplace_back(commitment2, eval2_shift);
+    auto claims = { MLEOpeningClaim{ commitment1, eval1 }, MLEOpeningClaim{ commitment2, eval2 } };
+    auto claims_shift = { MLEOpeningClaim{ commitment2, eval2_shift } };
+    auto claims_mock = { MLEOpeningClaim{ mock_commitment, eval1 }, MLEOpeningClaim{ mock_commitment, eval2 } };
+    auto claims_shift_mock = { MLEOpeningClaim{ mock_commitment, eval2_shift } };
 
-    claims_mock.emplace_back(mock_commitment, eval1);
-    claims_mock.emplace_back(mock_commitment, eval2);
-    claims_shift_mock.emplace_back(mock_commitment, eval2_shift);
-
-    multivariate_polynomials.emplace_back(&poly1);
-    multivariate_polynomials.emplace_back(&poly2);
-    multivariate_polynomials_shifted.emplace_back(&poly2);
+    auto multivariate_polynomials = { &poly1, &poly2 };
+    auto multivariate_polynomials_shifted = { &poly2 };
 
     // Run the full prover PCS protocol with mocked opening claims (mocked commitment, genuine evaluation)
 
@@ -158,6 +148,7 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
 
 TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgSimple)
 {
+    using CommitmentAffine = typename TypeParam::CommitmentAffine;
     using Transcript = transcript::StandardTranscript;
     using Shplonk = shplonk::SingleBatchOpeningScheme<TypeParam>;
     using Gemini = gemini::MultilinearReductionScheme<TypeParam>;
@@ -168,7 +159,7 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgSimple)
     const size_t log_n = 4;
 
     // Instantiate a transcript from the real Honk manifest, then mock the inputs prior to Gemini.
-    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
+    auto transcript = std::make_shared<Transcript>(honk::StandardHonk::create_unrolled_manifest(0, log_n));
     transcript->mock_inputs_prior_to_challenge("rho");
 
     // Generate multilinear polynomials, their commitments (genuine and mocked) and evaluations (genuine) at a random
@@ -180,15 +171,12 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgSimple)
 
     auto eval1 = poly1.evaluate_mle(mle_opening_point);
 
-    const auto mock_commitment = Params::C::one();
+    const auto mock_commitment = CommitmentAffine::one();
 
-    std::vector<MLEOpeningClaim> claims;
-    std::vector<MLEOpeningClaim> claims_mock;
-    std::vector<Params::Polynomial*> multivariate_polynomials;
+    auto claims = { MLEOpeningClaim{ commitment1, eval1 } };
+    auto claims_mock = { MLEOpeningClaim{ mock_commitment, eval1 } };
 
-    claims.emplace_back(commitment1, eval1);
-    claims_mock.emplace_back(mock_commitment, eval1);
-    multivariate_polynomials.emplace_back(&poly1);
+    auto multivariate_polynomials = { &poly1 };
 
     // Run the full prover PCS protocol with mocked opening claims (mocked commitment, genuine evaluation)
 

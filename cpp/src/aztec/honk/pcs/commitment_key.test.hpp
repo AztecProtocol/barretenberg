@@ -9,27 +9,67 @@
 #include <string_view>
 
 #include <polynomials/polynomial.hpp>
+#include "proof_system/commitment_key/commitment_key.hpp"
+#include "proof_system/flavor/flavor.hpp"
+#include "transcript/transcript_wrappers.hpp"
 #include <srs/reference_string/file_reference_string.hpp>
 #include <ecc/curves/bn254/g1.hpp>
 
-#include "../oracle/oracle.hpp"
-#include "../../transcript/transcript_wrappers.hpp"
-#include "../../proof_system/flavor/flavor.hpp"
-
 #include "claim.hpp"
-#include "commitment_key.hpp"
 
 namespace honk::pcs {
+
+template <typename TranscriptType> struct Oracle {
+    size_t consumed{ 0 };
+    using Transcript = TranscriptType;
+
+    using Fr = typename TranscriptType::Fr;
+    Oracle(Transcript*){};
+
+    /**
+     * @brief commit data to the current challenge buffer
+     *
+     * @tparam T template parameter pack! List of types we're inputting
+     * @param args data we want to add to the transcript
+     *
+     * @details Method is deliberately generic. T can be an array of types or a list of parameters. The only
+     condition
+     * is that T (or its inner types if T is an array) have valid serialization functions `read/write`
+     *
+     * e.g. all of these are valid uses of `append_data`
+     *
+     * ```
+     *   Fr a = something_old;
+     *   Fr b = something_new();
+     *   append_data(a, b);
+     *   append_data({a, b});
+     *   G1& c = something_borrowed();
+     *   std::string d = "something new";
+     *   append_data({a, b}, c, d);
+     * ```
+     *
+     */
+    template <typename... T> void consume(const T&...) { ++consumed; }
+
+    /**
+     * @brief use the current value of `current_round_challenge_inputs` to generate a challenge via the Fiat-Shamir
+     * heuristic
+     *
+     * @return Fr the generated challenge
+     */
+    Fr generate_challenge() { return Fr(consumed + 2); }
+};
+
 namespace {
 constexpr std::string_view kzg_srs_path = "../srs_db/ignition";
 }
 
 template <class CK> inline std::shared_ptr<CK> CreateCommitmentKey();
 
-template <> inline std::shared_ptr<kzg::CommitmentKey> CreateCommitmentKey<kzg::CommitmentKey>()
+template <> inline std::shared_ptr<waffle::pcs::CommitmentKey> CreateCommitmentKey<waffle::pcs::CommitmentKey>()
 {
     const size_t n = 128;
-    return std::make_shared<kzg::CommitmentKey>(n, kzg_srs_path);
+    return std::make_shared<waffle::pcs::CommitmentKey>(kzg_srs_path, n);
 }
 
 template <typename CK> inline std::shared_ptr<CK> CreateCommitmentKey()
@@ -40,9 +80,9 @@ template <typename CK> inline std::shared_ptr<CK> CreateCommitmentKey()
 
 template <class VK> inline VK* CreateVerificationKey();
 
-template <> inline kzg::VerificationKey* CreateVerificationKey<kzg::VerificationKey>()
+template <> inline waffle::pcs::VerificationKey* CreateVerificationKey<waffle::pcs::VerificationKey>()
 {
-    return new kzg::VerificationKey(kzg_srs_path);
+    return new waffle::pcs::VerificationKey(kzg_srs_path);
 }
 
 template <typename VK> inline VK* CreateVerificationKey()
@@ -65,8 +105,8 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
         : engine{ &numeric::random::get_debug_engine() }
     {}
 
-    std::shared_ptr<CK> ck() { return commitment_key; }
-    VK* vk() { return verification_key; }
+    const CK& ck() { return *commitment_key; }
+    const VK& vk() { return *verification_key; }
 
     Commitment commit(const Polynomial& polynomial) { return commitment_key->commit(polynomial); }
 
@@ -202,7 +242,7 @@ template <typename Params>
 typename std::shared_ptr<typename Params::CK> CommitmentTest<Params>::commitment_key = nullptr;
 template <typename Params> typename Params::VK* CommitmentTest<Params>::verification_key = nullptr;
 
-using CommitmentSchemeParams = ::testing::Types<kzg::Params>;
+using CommitmentSchemeParams = ::testing::Types<waffle::pcs::Params>;
 // IMPROVEMENT: reinstate typed-tests for multiple field types, i.e.:
 // using CommitmentSchemeParams =
 //     ::testing::Types<fake::Params<barretenberg::g1>, fake::Params<grumpkin::g1>, kzg::Params>;

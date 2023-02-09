@@ -1,5 +1,6 @@
 #include "numeric/bitop/get_msb.hpp"
 #include "plonk/proof_system/constants.hpp"
+#include "polynomials/polynomial.hpp"
 #include "proof_system/flavor/flavor.hpp"
 #include "prover.hpp"
 #include "proof_system/proving_key/proving_key.hpp"
@@ -27,26 +28,22 @@ template <class FF> class VerifierTests : public testing::Test {
 
     static StandardVerifier generate_verifier(std::shared_ptr<waffle::proving_key> circuit_proving_key)
     {
-        std::array<fr*, 8> poly_coefficients;
-        poly_coefficients[0] = circuit_proving_key->polynomial_cache.get("q_1_lagrange").get_coefficients();
-        poly_coefficients[1] = circuit_proving_key->polynomial_cache.get("q_2_lagrange").get_coefficients();
-        poly_coefficients[2] = circuit_proving_key->polynomial_cache.get("q_3_lagrange").get_coefficients();
-        poly_coefficients[3] = circuit_proving_key->polynomial_cache.get("q_m_lagrange").get_coefficients();
-        poly_coefficients[4] = circuit_proving_key->polynomial_cache.get("q_c_lagrange").get_coefficients();
-        poly_coefficients[5] = circuit_proving_key->polynomial_cache.get("sigma_1_lagrange").get_coefficients();
-        poly_coefficients[6] = circuit_proving_key->polynomial_cache.get("sigma_2_lagrange").get_coefficients();
-        poly_coefficients[7] = circuit_proving_key->polynomial_cache.get("sigma_3_lagrange").get_coefficients();
+        std::array<std::span<const barretenberg::fr>, 8> poly_spans{
+            circuit_proving_key->polynomial_cache.get("q_1_lagrange"),
+            circuit_proving_key->polynomial_cache.get("q_2_lagrange"),
+            circuit_proving_key->polynomial_cache.get("q_3_lagrange"),
+            circuit_proving_key->polynomial_cache.get("q_m_lagrange"),
+            circuit_proving_key->polynomial_cache.get("q_c_lagrange"),
+            circuit_proving_key->polynomial_cache.get("sigma_1_lagrange"),
+            circuit_proving_key->polynomial_cache.get("sigma_2_lagrange"),
+            circuit_proving_key->polynomial_cache.get("sigma_3_lagrange"),
+        };
 
         std::vector<barretenberg::g1::affine_element> commitments;
-        scalar_multiplication::pippenger_runtime_state prover(circuit_proving_key->circuit_size);
         commitments.resize(8);
 
         for (size_t i = 0; i < 8; ++i) {
-            commitments[i] = g1::affine_element(
-                scalar_multiplication::pippenger(poly_coefficients[i],
-                                                 circuit_proving_key->reference_string->get_monomial_points(),
-                                                 circuit_proving_key->circuit_size,
-                                                 prover));
+            commitments[i] = circuit_proving_key->commitment_key.commit(poly_spans[i]);
         }
 
         auto crs = std::make_shared<waffle::VerifierFileReferenceString>("../srs_db/ignition");
@@ -193,14 +190,8 @@ template <class FF> class VerifierTests : public testing::Test {
         proving_key->polynomial_cache.put("q_m_lagrange", std::move(q_m));
         proving_key->polynomial_cache.put("q_c_lagrange", std::move(q_c));
 
-        // TODO(Cody): This should be more generic
         StandardUnrolledProver prover =
             StandardUnrolledProver(proving_key, create_manifest(0, proving_key->log_circuit_size));
-
-        std::unique_ptr<pcs::kzg::CommitmentKey> kate_commitment_key =
-            std::make_unique<pcs::kzg::CommitmentKey>(proving_key->circuit_size, "../srs_db/ignition");
-
-        prover.commitment_key = std::move(kate_commitment_key);
 
         return prover;
     }

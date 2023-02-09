@@ -4,7 +4,7 @@
 #include <array>
 #include <honk/sumcheck/polynomials/univariate.hpp> // will go away
 #include <honk/utils/power_polynomial.hpp>
-#include <honk/pcs/commitment_key.hpp>
+#include "proof_system/commitment_key/commitment_key.hpp"
 #include <memory>
 #include <vector>
 #include "ecc/curves/bn254/fr.hpp"
@@ -18,12 +18,11 @@
 #include "proof_system/flavor/flavor.hpp"
 #include "transcript/transcript_wrappers.hpp"
 #include <string>
-#include <honk/pcs/claim.hpp>
 
 namespace honk {
 
 using Fr = barretenberg::fr;
-using Commitment = barretenberg::g1::affine_element;
+using CommitmentAffine = barretenberg::g1::affine_element;
 using Polynomial = barretenberg::Polynomial<Fr>;
 
 /**
@@ -39,9 +38,6 @@ Prover<settings>::Prover(std::shared_ptr<waffle::proving_key> input_key, const t
     : circuit_size(input_key == nullptr ? 0 : input_key->circuit_size)
     , transcript(input_manifest, settings::hash_type, settings::num_challenge_bytes)
     , key(input_key)
-    , commitment_key(std::make_unique<pcs::kzg::CommitmentKey>(
-          input_key->circuit_size,
-          "../srs_db/ignition")) // TODO(Cody): Need better constructors for prover.
 // , queue(proving_key.get(), &transcript) // TODO(Adrian): explore whether it's needed
 {}
 
@@ -62,7 +58,7 @@ template <typename settings> void Prover<settings>::compute_wire_commitments()
         std::string commit_tag = "W_" + std::to_string(i + 1);
 
         std::span<Fr> wire_polynomial = key->polynomial_cache.get(wire_tag);
-        auto commitment = commitment_key->commit(wire_polynomial);
+        auto commitment = key->commitment_key.commit(wire_polynomial);
 
         transcript.add_element(commit_tag, commitment.to_buffer());
     }
@@ -271,7 +267,7 @@ template <typename settings> void Prover<settings>::execute_grand_product_comput
     compute_grand_product_polynomial(beta, gamma);
     std::span<Fr> z_perm = key->polynomial_cache.get("z_perm_lagrange");
     // The actual polynomial is of length n+1, but commitment key is just n, so we need to limit it
-    auto commitment = commitment_key->commit(z_perm);
+    auto commitment = key->commitment_key.commit(z_perm);
     transcript.add_element("Z_PERM", commitment.to_buffer());
 }
 
@@ -305,7 +301,7 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
     // TODO(Cody): This is just temporary of course. Very inefficient, e.g., no commitment needed.
     Fr zeta_challenge = transcript.get_challenge_field_element("zeta");
     barretenberg::polynomial pow_zeta = power_polynomial::generate_vector(zeta_challenge, key->circuit_size);
-    auto commitment = commitment_key->commit(pow_zeta);
+    auto commitment = key->commitment_key.commit(pow_zeta);
     transcript.add_element("POW_ZETA", commitment.to_buffer());
     key->polynomial_cache.put("pow_zeta", std::move(pow_zeta));
 
@@ -326,8 +322,8 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
  * */
 template <typename settings> void Prover<settings>::execute_univariatization_round()
 {
-    using Gemini = pcs::gemini::MultilinearReductionScheme<pcs::kzg::Params>;
-    using MLEOpeningClaim = pcs::MLEOpeningClaim<pcs::kzg::Params>;
+    using Gemini = pcs::gemini::MultilinearReductionScheme<waffle::pcs::Params>;
+    using MLEOpeningClaim = pcs::MLEOpeningClaim<waffle::pcs::Params>;
 
     // Construct inputs for Gemini:
     // - Multivariate opening point u = (u_1, ..., u_d)
@@ -367,7 +363,7 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
         std::string label(entry.polynomial_label);
 
         auto evaluation = evals_map[label];
-        auto commitment = Commitment::one();
+        auto commitment = CommitmentAffine::one();
         opening_claims.emplace_back(commitment, evaluation);
         multivariate_polynomials.emplace_back(&key->polynomial_cache.get(label));
         if (entry.requires_shifted_evaluation) {
@@ -379,7 +375,7 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
         }
     }
 
-    gemini_output = Gemini::reduce_prove(commitment_key,
+    gemini_output = Gemini::reduce_prove(key->commitment_key,
                                          opening_point,
                                          opening_claims,
                                          opening_claims_shifted,
@@ -413,8 +409,9 @@ template <typename settings> void Prover<settings>::execute_pcs_evaluation_round
  * */
 template <typename settings> void Prover<settings>::execute_shplonk_round()
 {
-    using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<pcs::kzg::Params>;
-    shplonk_output = Shplonk::reduce_prove(commitment_key, gemini_output.claim, gemini_output.witness, &transcript);
+    using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<waffle::pcs::Params>;
+    shplonk_output =
+        Shplonk::reduce_prove(key->commitment_key, gemini_output.claim, gemini_output.witness, &transcript);
 }
 
 /**
@@ -431,13 +428,13 @@ template <typename settings> void Prover<settings>::execute_kzg_round()
 {
     // Note(luke): Fiat-Shamir to get "z" challenge is done in Shplonk::reduce_prove
     // TODO(luke): Get KZG opening point [W]_1
-    using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
-    using KzgOutput = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>::Output;
-    KzgOutput kzg_output = KZG::reduce_prove(commitment_key, shplonk_output.claim, shplonk_output.witness);
+    using KZG = pcs::kzg::UnivariateOpeningScheme<waffle::pcs::Params>;
+    using KzgOutput = pcs::kzg::UnivariateOpeningScheme<waffle::pcs::Params>::Output;
+    KzgOutput kzg_output = KZG::reduce_prove(key->commitment_key, shplonk_output.claim, shplonk_output.witness);
 
-    auto W_commitment = static_cast<Commitment>(kzg_output.proof).to_buffer();
+    const auto& W_commitment = kzg_output.proof;
 
-    transcript.add_element("W", W_commitment);
+    transcript.add_element("W", W_commitment.to_buffer());
 }
 
 template <typename settings> waffle::plonk_proof& Prover<settings>::export_proof()

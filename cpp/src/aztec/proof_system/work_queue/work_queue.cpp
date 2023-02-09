@@ -217,55 +217,26 @@ void work_queue::process_queue()
             // We use the variable work_item::constant to set the size of the multi-scalar multiplication.
             // Note that a size (n+1) MSM is always needed to commit to the quotient polynomial parts t_1, t_2
             // and t_3 for Standard/Turbo/Ultra due to the addition of blinding factors
-            size_t msm_size = 0;
-            barretenberg::g1::affine_element* srs_points;
-            switch (static_cast<size_t>(uint256_t(item.constant))) {
-            case MSMType::MONOMIAL_N: {
-                if (key->reference_string->get_monomial_size() < key->small_domain.size) {
-                    info("MSM: Monomial reference string size: ",
-                         key->reference_string->get_monomial_size(),
-                         ", required size: ",
-                         key->small_domain.size);
-                }
-                msm_size = key->small_domain.size;
-                srs_points = key->reference_string->get_monomial_points();
-                break;
-            }
-            case MSMType::MONOMIAL_N_PLUS_ONE: {
-                if (key->reference_string->get_monomial_size() < key->small_domain.size + 1) {
-                    info("MSM: Monomial reference string size: ",
-                         key->reference_string->get_monomial_size(),
-                         ", required size: ",
-                         key->small_domain.size + 1);
-                }
+
+            auto msm_type = static_cast<size_t>(uint256_t(item.constant));
+            bool is_monomial = (msm_type == MSMType::MONOMIAL_N) || (msm_type == MSMType::MONOMIAL_N_PLUS_ONE);
+            bool is_lagrange = (msm_type == MSMType::LAGRANGE_N);
+
+            // By default use N
+            size_t msm_size = key->small_domain.size;
+            if (msm_type == MSMType::MONOMIAL_N_PLUS_ONE) {
                 msm_size = key->small_domain.size + 1;
-                srs_points = key->reference_string->get_monomial_points();
-                break;
-            }
-            case MSMType::LAGRANGE_N: {
-                if (key->reference_string->get_lagrange_size() != key->small_domain.size) {
-                    info("MSM: Lagrange reference string size: ",
-                         key->reference_string->get_lagrange_size(),
-                         ", required size: ",
-                         key->small_domain.size);
-                }
-                msm_size = key->small_domain.size;
-                srs_points = key->reference_string->get_lagrange_points();
-                break;
-            }
-            default: {
-                info("Incorrect item constant value: ", static_cast<size_t>(uint256_t(item.constant)));
-                srs_points = key->reference_string->get_monomial_points();
-            }
             }
 
-            // Run pippenger multi-scalar multiplication.
-            auto runtime_state = barretenberg::scalar_multiplication::pippenger_runtime_state(msm_size);
-            barretenberg::g1::affine_element result(barretenberg::scalar_multiplication::pippenger_unsafe(
-                item.mul_scalars, srs_points, msm_size, runtime_state));
-
-            transcript->add_element(item.tag, result.to_buffer());
-
+            if (is_monomial) {
+                auto result = key->commitment_key.commit(std::span{ item.mul_scalars, msm_size });
+                transcript->add_element(item.tag, result.to_buffer());
+            } else if (is_lagrange) {
+                auto result = key->commitment_key.commit_lagrange(std::span{ item.mul_scalars, msm_size });
+                transcript->add_element(item.tag, result.to_buffer());
+            } else {
+                info("MSM: Incorrect item constant value: ", msm_type);
+            }
             break;
         }
         // About 20% of the cost of a scalar multiplication. For WASM, might be a bit more expensive

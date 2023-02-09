@@ -23,7 +23,7 @@ namespace honk::pcs::shplonk {
  * @brief Single commitment to  Q(X) = ∑ₖ ( Bₖ(X) − Tₖ(X) ) / zₖ(X)
  *
  */
-template <typename Params> using Proof = typename Params::Commitment;
+template <typename Params> using Proof = typename Params::CommitmentAffine;
 
 /**
  * @brief Single opening claim ([G], r, 0) so that G(r) = 0

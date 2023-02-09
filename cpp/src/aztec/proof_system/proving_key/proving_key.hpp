@@ -10,6 +10,7 @@
 #include <unordered_map>
 
 #include "../polynomial_cache/polynomial_cache.hpp"
+#include "../commitment_key/commitment_key.hpp"
 
 namespace waffle {
 
@@ -60,10 +61,9 @@ struct proving_key {
     barretenberg::evaluation_domain small_domain;
     barretenberg::evaluation_domain large_domain;
 
-    // The reference_string object contains monomial as well as lagrange SRS. We can access them using:
-    // Monomial SRS: reference_string->get_monomial_points()
-    // Lagrange SRS: reference_string->get_lagrange_points()
-    std::shared_ptr<ProverReferenceString> reference_string;
+    // Stores a reference internally to the ProverReferenceString, which itself may have a Lagrange SRS in addition to
+    // the Monomial Use commitment_key.commit() or commitment_key.commit_lagrange() depending on context.
+    pcs::CommitmentKey commitment_key;
 
     barretenberg::polynomial quotient_polynomial_parts[NUM_QUOTIENT_PARTS];
 

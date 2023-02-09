@@ -1,8 +1,6 @@
 #pragma once
 
 #include "../claim.hpp"
-#include "common/log.hpp"
-#include "honk/pcs/commitment_key.hpp"
 #include "polynomials/polynomial.hpp"
 
 #include <common/assert.hpp>
@@ -61,7 +59,7 @@ template <typename Params> struct Proof {
      *
      * [ C₁, …,  Cₘ₋₁], where Cₗ = commit(Aₗ(X)) of size 2ᵐ⁻ˡ
      */
-    std::vector<typename Params::Commitment> commitments;
+    std::vector<typename Params::CommitmentAffine> commitments;
 
     /**
      * @brief Evaluations of batched and folded polynomials (size m)
@@ -132,7 +130,7 @@ template <typename Params> class MultilinearReductionScheme {
 
     using Fr = typename Params::Fr;
     using Commitment = typename Params::Commitment;
-    using CommitmentAffine = typename Params::C; // TODO(luke): find a better name
+    using CommitmentAffine = typename Params::CommitmentAffine;
     using Polynomial = barretenberg::Polynomial<Fr>;
 
   public:
@@ -152,7 +150,7 @@ template <typename Params> class MultilinearReductionScheme {
      * result_claims constructed in this function are only relevant in a
      * recursion setting.
      */
-    static ProverOutput<Params> reduce_prove(std::shared_ptr<CK> ck,
+    static ProverOutput<Params> reduce_prove(const CK& ck,
                                              std::span<const Fr> mle_opening_point,
                                              std::span<const MLEOpeningClaim<Params>> claims,
                                              std::span<const MLEOpeningClaim<Params>> claims_shifted,
@@ -254,10 +252,10 @@ template <typename Params> class MultilinearReductionScheme {
         /*
          * Create commitments C₁,…,Cₘ₋₁
          */
-        std::vector<Commitment> commitments;
+        std::vector<CommitmentAffine> commitments;
         commitments.reserve(num_variables - 1);
         for (size_t l = 0; l < num_variables - 1; ++l) {
-            commitments.emplace_back(ck->commit(witness_polynomials[l + 2]));
+            commitments.emplace_back(ck.commit(witness_polynomials[l + 2]));
         }
 
         /*
@@ -265,7 +263,7 @@ template <typename Params> class MultilinearReductionScheme {
          */
         for (size_t i = 0; i < commitments.size(); ++i) {
             std::string label = "FOLD_" + std::to_string(i + 1);
-            transcript->add_element(label, static_cast<CommitmentAffine>(commitments[i]).to_buffer());
+            transcript->add_element(label, commitments[i].to_buffer());
         }
         transcript->apply_fiat_shamir("r");
         const Fr r = Fr::serialize_from_buffer(transcript->get_challenge("r").begin());

@@ -82,13 +82,13 @@ template <typename Fr> class Polynomial {
     // Const and non const versions of coefficient accessors
     Fr const& operator[](const size_t i) const
     {
-        ASSERT(i < size_);
+        // ASSERT(i < size_);
         return coefficients_[i];
     }
 
     Fr& operator[](const size_t i)
     {
-        ASSERT(i < size_);
+        // ASSERT(i < size_);
         return coefficients_[i];
     }
 

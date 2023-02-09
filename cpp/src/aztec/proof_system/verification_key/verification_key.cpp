@@ -14,6 +14,7 @@ verification_key::verification_key(const size_t num_gates,
     , num_public_inputs(num_inputs)
     , domain(circuit_size)
     , reference_string(crs)
+    , commitment_verification_key(crs)
     , polynomial_manifest(composer_type)
 {}
 
@@ -24,6 +25,7 @@ verification_key::verification_key(verification_key_data&& data, std::shared_ptr
     , num_public_inputs(data.num_public_inputs)
     , domain(circuit_size)
     , reference_string(crs)
+    , commitment_verification_key(crs)
     , commitments(std::move(data.commitments))
     , polynomial_manifest(data.composer_type)
     , contains_recursive_proof(data.contains_recursive_proof)
@@ -37,6 +39,7 @@ verification_key::verification_key(const verification_key& other)
     , num_public_inputs(other.num_public_inputs)
     , domain(other.domain)
     , reference_string(other.reference_string)
+    , commitment_verification_key(other.commitment_verification_key)
     , commitments(other.commitments)
     , polynomial_manifest(other.polynomial_manifest)
     , contains_recursive_proof(other.contains_recursive_proof)
@@ -50,6 +53,7 @@ verification_key::verification_key(verification_key&& other)
     , num_public_inputs(other.num_public_inputs)
     , domain(other.domain)
     , reference_string(other.reference_string)
+    , commitment_verification_key(other.commitment_verification_key)
     , commitments(other.commitments)
     , polynomial_manifest(other.polynomial_manifest)
     , contains_recursive_proof(other.contains_recursive_proof)
@@ -63,6 +67,7 @@ verification_key& verification_key::operator=(verification_key&& other)
     log_circuit_size = numeric::get_msb(other.circuit_size);
     num_public_inputs = other.num_public_inputs;
     reference_string = std::move(other.reference_string);
+    commitment_verification_key = std::move(other.commitment_verification_key);
     commitments = std::move(other.commitments);
     polynomial_manifest = std::move(other.polynomial_manifest);
     domain = std::move(other.domain);

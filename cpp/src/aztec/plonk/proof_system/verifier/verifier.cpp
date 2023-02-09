@@ -236,12 +236,8 @@ template <typename program_settings> bool VerifierBase<program_settings>::verify
         { P[0].x, P[0].y },
         { P[1].x, P[1].y },
     };
-
     // The final pairing check of step 12.
-    barretenberg::fq12 result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
-        P_affine, key->reference_string->get_precomputed_g2_lines(), 2);
-
-    return (result == barretenberg::fq12::one());
+    return key->commitment_verification_key.pairing_check(P_affine[0], P_affine[1]);
 }
 
 template class VerifierBase<unrolled_standard_verifier_settings>;
