@@ -128,15 +128,15 @@ void read_file_into_buffer(
 
 std::string get_transcript_path(std::string const& dir, size_t num)
 {
-    return dir + "/monomial/transcript" + (num < 10 ? "0" : "") + std::to_string(num) + ".dat";
+    return format(dir, "/monomial/transcript", (num < 10) ? "0" : "", std::to_string(num), ".dat");
 };
 
 std::string get_lagrange_transcript_path(std::string const& dir, size_t degree, size_t num = 0)
 {
     auto log2_n = static_cast<uint32_t>(numeric::get_msb(degree));
     auto new_degree = (1 << log2_n);
-    std::string suffix_str = (num > 0) ? "_" + std::to_string(num) : "";
-    return dir + "/lagrange/transcript_" + std::to_string(new_degree) + suffix_str + ".dat";
+    std::string suffix_str = (num > 0) ? format("_", std::to_string(num)) : "";
+    return format(dir, "/lagrange/transcript_", std::to_string(new_degree), suffix_str, ".dat");
 };
 
 bool is_file_exist(std::string const& fileName)
@@ -190,7 +190,7 @@ void read_transcript_g2(g2::affine_element& g2_x, std::string const& dir, bool i
 {
 
     const size_t g2_size = sizeof(fq2) * 2;
-    std::string path = dir + "/g2.dat";
+    std::string path = format(dir, "/g2.dat");
 
     if (is_file_exist(path)) {
         char* buffer = (char*)&g2_x;
