@@ -134,6 +134,36 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     }
 
     /**
+     * @brief Temporary copy of accumulate_relations_at_idx that uses Expression Templates to
+     * evaluate the realation index-by-index.
+     *
+     * @todo If we let the caller in the prover first transform columns into columns_expr,
+     * then the else branch can be removed since accumulate_relation_evaluation is uniform over both
+     * FF and UnivariateExpr.
+     *
+     * @post accumulator[r_idx] += scaling_factor * relation.evaluate(columns)
+     *
+     * @tparam relation_idx Index of the current relation we are evaluating
+     * @param accumulators std::array indexed by each relations containing the accumulated (randomized) sum of
+     * evaluations of this relation.
+     * @param columns std::array of evaluations (FF or Univariate) indexed by the number of polynomials.
+     * @param relation_parameters Generic struct with challenges
+     * @param scaling_factor Either 1 (if we are evaluating as the verifier) or (zeta^2^{l+1})^i (as the prover),
+     * multiplies the evaluated relation before it is added to the accumulator
+     */
+    template <size_t relation_idx>
+    void accumulate_relations_at_idx_expr(auto& accumulators,
+                                          const auto& columns,
+                                          const RelationParameters<FF>& relation_parameters,
+                                          FF scaling_factor)
+    {
+        auto& accumulator = std::get<relation_idx>(accumulators);
+        const auto& relation = std::get<relation_idx>(relations);
+
+        relation.accumulate_relation_evaluation(accumulator, columns, relation_parameters, scaling_factor);
+    }
+
+    /**
      * @brief Evaluate the specified relation using the polynomials in `columns`, scale it,
      * and add it to the corresponding accumulator.
      *
@@ -198,7 +228,7 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
                               const RelationParameters<FF>& relation_parameters,
                               const FF scaling_factor)
     {
-        accumulate_relations_at_idx<relation_idx>(accumulators, columns, relation_parameters, scaling_factor);
+        accumulate_relations_at_idx_expr<relation_idx>(accumulators, columns, relation_parameters, scaling_factor);
 
         // Repeat for the next relation.
         if constexpr (relation_idx + 1 < NUM_RELATIONS) {
@@ -237,10 +267,11 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
         FF pow_challenge = pow_univariate.partial_evaluation_constant;
         for (size_t edge_idx = 0; edge_idx < round_size; edge_idx += 2) {
             extend_edges(polynomials, edge_idx);
+            const auto extended_edges_expr = array_to_array<UnivariateExpr<FF, MAX_RELATION_LENGTH>>(extended_edges);
             // Compute the i-th edge's univariate contribution,
             // scale it by the pow polynomial's constant and zeta power "cₗ ⋅ ζₗ₋₁ⁱ"
             // and add it to the accumulators for Sˡ(Xₗ)
-            accumulate_relations(univariate_accumulators, extended_edges, relation_parameters, pow_challenge);
+            accumulate_relations(univariate_accumulators, extended_edges_expr, relation_parameters, pow_challenge);
             // Update the pow polynomial's contribution ζₗ₋₁ⁱ for the next edge.
             pow_challenge *= pow_univariate.zeta_pow_sqr;
         }

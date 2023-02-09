@@ -5,6 +5,7 @@
 #include <ostream>
 #include <common/serialize.hpp>
 #include <common/assert.hpp>
+#include "expression.hpp"
 
 namespace honk::sumcheck {
 
@@ -40,6 +41,28 @@ template <class Fr, size_t _length> class Univariate {
         for (size_t i = 0; i < in.evaluations.size(); ++i) {
             evaluations[i] = in.evaluations[i];
         }
+    }
+
+    // Construct a Univariate by evaluating an expression
+    template <typename E>
+        requires((E::SIZE >= LENGTH) && (E::DEGREE < LENGTH))
+    explicit Univariate(Expr<Fr, E> const& expr)
+        : evaluations{}
+    {
+        for (size_t i = 0; i < LENGTH; ++i) {
+            evaluations[i] = expr[i];
+        }
+    }
+
+    // Add to *this the evaluated expression contained in expr
+    template <typename E>
+        requires((E::SIZE >= LENGTH) && (E::DEGREE < LENGTH))
+    Univariate& operator+=(Expr<Fr, E> const& expr)
+    {
+        for (size_t i = 0; i < LENGTH; ++i) {
+            evaluations[i] += expr[i];
+        }
+        return *this;
     }
 
     Fr& value_at(size_t i) { return evaluations[i]; };

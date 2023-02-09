@@ -67,6 +67,7 @@ template <class FF> class SumcheckRelation : public testing::Test {
     {
         using Univariate = Univariate<relation.RELATION_LENGTH>;
         using UnivariateView = UnivariateView<FF, relation.RELATION_LENGTH>;
+        using UnivariateExpr = UnivariateExpr<FF, relation.RELATION_LENGTH>;
 
         // Compute the expression index-by-index
         auto expected_evals_index = Univariate(0);
@@ -83,6 +84,11 @@ template <class FF> class SumcheckRelation : public testing::Test {
         auto expected_evals_view = Univariate(0);
         relation.accumulate_relation_evaluation(expected_evals_view, extended_edges_view, relation_parameters, 1);
         EXPECT_EQ(expected_evals, expected_evals_view);
+
+        // Compute the expression using UnivariateExpr
+        auto extended_edges_expr = array_to_array<UnivariateExpr>(extended_edges);
+        auto expected_evals_expr = Univariate(0);
+        relation.accumulate_relation_evaluation(expected_evals_expr, extended_edges_expr, relation_parameters, 1);
     };
 };
 

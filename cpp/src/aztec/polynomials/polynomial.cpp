@@ -136,7 +136,7 @@ template <typename Fr> Fr Polynomial<Fr>::evaluate(const Fr& z) const
  */
 template <typename Fr> void Polynomial<Fr>::zero_memory_beyond(const size_t start_position)
 {
-    size_t end = size();
+    size_t end = capacity();
     ASSERT(end >= start_position);
 
     size_t delta = end - start_position;

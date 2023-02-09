@@ -11,6 +11,7 @@ using namespace benchmark;
 
 constexpr size_t MIN_LOG_NUM_GATES = 10; // num_gates = 1 << long_num_gates
 constexpr size_t MAX_LOG_NUM_GATES = 16;
+constexpr size_t REPETITIONS = 30;
 
 // IMPROVEMENT: Ideally we would save the data computed in each benchmark for use in benchmarks. For example, save the
 // proofs constructed in the construction benchmark for use in the verification benchmark rather than recomputing them.
@@ -47,7 +48,7 @@ void create_unrolled_prover_bench(State& state) noexcept
         composer.create_unrolled_prover();
     }
 }
-BENCHMARK(create_unrolled_prover_bench)->DenseRange(MIN_LOG_NUM_GATES, MAX_LOG_NUM_GATES, 1);
+BENCHMARK(create_unrolled_prover_bench)->DenseRange(MIN_LOG_NUM_GATES, MAX_LOG_NUM_GATES, 1)->Repetitions(REPETITIONS);
 
 /**
  * @brief Benchmark: Creation of an unrolled standard Honk verifier
@@ -64,7 +65,9 @@ void create_unrolled_verifier_bench(State& state) noexcept
         composer.create_unrolled_verifier();
     }
 }
-BENCHMARK(create_unrolled_verifier_bench)->DenseRange(MIN_LOG_NUM_GATES, MAX_LOG_NUM_GATES, 1);
+BENCHMARK(create_unrolled_verifier_bench)
+    ->DenseRange(MIN_LOG_NUM_GATES, MAX_LOG_NUM_GATES, 1)
+    ->Repetitions(REPETITIONS);
 
 /**
  * @brief Benchmark: Construction of an unrolled standard Honk proof
@@ -83,7 +86,10 @@ void construct_proof_bench(State& state) noexcept
     }
     state.SetComplexityN(state.range(0)); // Set up for computation of constant C where prover ~ C*N
 }
-BENCHMARK(construct_proof_bench)->DenseRange(MIN_LOG_NUM_GATES, MAX_LOG_NUM_GATES, 1)->Complexity(benchmark::oN);
+BENCHMARK(construct_proof_bench)
+    ->DenseRange(MIN_LOG_NUM_GATES, MAX_LOG_NUM_GATES, 1)
+    ->Complexity(benchmark::oN)
+    ->Repetitions(REPETITIONS);
 
 /**
  * @brief Benchmark: Verification of an unrolled standard Honk proof
@@ -106,6 +112,9 @@ void verify_proof_bench(State& state) noexcept
 // Note: enforcing Iterations == 1 for now. Otherwise proof construction will occur many times and this bench will take
 // a long time. (This is because the time limit for benchmarks does not include the time-excluded setup, and
 // verification itself is pretty fast).
-BENCHMARK(verify_proof_bench)->DenseRange(MIN_LOG_NUM_GATES, MAX_LOG_NUM_GATES, 1)->Iterations(1);
+BENCHMARK(verify_proof_bench)
+    ->DenseRange(MIN_LOG_NUM_GATES, MAX_LOG_NUM_GATES, 1)
+    ->Iterations(1)
+    ->Repetitions(REPETITIONS);
 
 BENCHMARK_MAIN();
