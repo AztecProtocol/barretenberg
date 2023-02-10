@@ -64,6 +64,7 @@ int main(int argc, char** argv)
         barretenberg::io::write_transcript(
             &lagrange_base_srs[start_idx], &g2_elements[0], manifest, lagrange_srs_path, true);
         start_idx += max_lagrange_transcript_size;
-
-        return 0;
     }
+
+    return 0;
+}
