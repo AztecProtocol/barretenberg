@@ -109,13 +109,13 @@ void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, b
     }
 
     // Populate wire and permutation polynomials
-    std::array<const Fr*, program_width> wires;
-    std::array<const Fr*, program_width> sigmas;
+    std::array<std::span<Fr>, program_width> wires;
+    std::array<std::span<Fr>, program_width> sigmas;
     for (size_t i = 0; i < program_width; ++i) {
         std::string wire_id = "w_" + std::to_string(i + 1) + "_lagrange";
         std::string sigma_id = "sigma_" + std::to_string(i + 1) + "_lagrange";
-        wires[i] = key->polynomial_cache.get(wire_id).get_coefficients();
-        sigmas[i] = key->polynomial_cache.get(sigma_id).get_coefficients();
+        wires[i] = key->polynomial_cache.get(wire_id);
+        sigmas[i] = key->polynomial_cache.get(sigma_id);
     }
 
     // Step (1)

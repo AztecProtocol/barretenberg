@@ -97,12 +97,12 @@ std::shared_ptr<waffle::verification_key> ComposerHelper<CircuitConstructor>::co
             poly_info.source == waffle::PolynomialSource::OTHER) {
             // Fetch the polynomial in its vector form.
 
-            fr* poly_coefficients;
-            poly_coefficients = proving_key->polynomial_cache.get(poly_label).get_coefficients();
+            std::span<fr> poly_coefficients;
+            poly_coefficients = proving_key->polynomial_cache.get(poly_label);
 
             // Commit to the constraint selector polynomial and insert the commitment in the verification key.
 
-            auto poly_commitment = commitment_key.commit({ poly_coefficients, proving_key->circuit_size });
+            auto poly_commitment = commitment_key.commit(poly_coefficients);
             circuit_verification_key->commitments.insert({ selector_commitment_label, poly_commitment });
         }
     }

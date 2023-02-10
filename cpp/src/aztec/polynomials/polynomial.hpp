@@ -136,6 +136,8 @@ template <typename Fr> class Polynomial {
         return !is_empty() && !mapped() && (size() >= domain_size);
     }
 
+    Fr* allocate_aligned_memory(const size_t size) const { return static_cast<Fr*>(aligned_alloc(sizeof(Fr), size)); }
+
     /**
      * @brief Returns an std::span of the left-shift of self.
      *
