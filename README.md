@@ -158,4 +158,4 @@ make create_full_coverage_report
 
 The report will land in the build directory in the all_test_coverage_report directory.
 
-Alternatively you can build separate test binaries, e.g. honk_tests or numeric_tests and run make test just for them or even just for a single test. Then the report will just show coverage for those binareis
+Alternatively you can build separate test binaries, e.g. honk_tests or numeric_tests and run **make test** just for them or even just for a single test. Then the report will just show coverage for those binaries
