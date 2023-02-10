@@ -48,8 +48,6 @@ if [ ${#non_empty_profiles[@]} -eq 1 ]; then
 fi
 
 if [ ${#non_empty_profiles[@]} -gt 1 ]; then
-
-    echo ${#non_empty_profiles[@]}
     mkdir -p "$WORKING_DIRECTORY/merged_profdata/"
     rm -f "$WORKING_DIRECTORY/merged_profdata/default.profdata"
     $llvm_profdata_command merge -sparse "$WORKING_DIRECTORY/bin/profdata/"*.profraw -o "$WORKING_DIRECTORY/merged_profdata/default.profdata"

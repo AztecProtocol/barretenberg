@@ -96,10 +96,9 @@ if(COVERAGE)
         message(FATAL_ERROR "Couldn't find ${COV_EXECUTABLE_NAME}")
     endif()
     add_compile_options(-fprofile-instr-generate -fcoverage-mapping)
-    add_custom_target(
-        generate_test_coverage
-        COMMAND message(WARNING generate_test_coverage_MANUALLY_ADDED_DEPENDENCIES)
-        BYPRODUCTS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/profdata/all_tests.profraw
+    add_custom_target(create_full_coverage_report
+    COMMAND "${CMAKE_SOURCE_DIR}/scripts/collect_coverage_information.sh" ${PROFDATA_EXECUTABLE} ${COV_EXECUTABLE}
+    VERBATIM
     )
 endif() 
 
