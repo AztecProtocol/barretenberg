@@ -103,6 +103,7 @@ function(barretenberg_module MODULE_NAME)
             # If collecting coverage data, set profile
             # For some reason processor affinity doesn't work, so the developer has to set it manually anyway
             if(COVERAGE)
+                # Profile filename has to be dependent on some process characteristic, because ctest calls all tests individually and the profiles get overwritten
                 gtest_discover_tests(${MODULE_NAME}_tests
                 PROPERTIES ENVIRONMENT "LLVM_PROFILE_FILE=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/profdata/${MODULE_NAME}.%p.profraw"
                 PROPERTIES PROCESSOR_AFFINITY ON
