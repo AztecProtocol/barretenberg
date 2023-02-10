@@ -80,7 +80,8 @@ function(barretenberg_module MODULE_NAME)
             )
         endif()
 
-        if(DISABLE_HEAVY_TESTS)
+        if((COVERAGE AND NOT ENABLE_HEAVY_TESTS) OR (DISABLE_HEAVY_TESTS))
+            # Heavy tests take hours when we are using profiling instrumentation
             target_compile_definitions(
                 ${MODULE_NAME}_test_objects
                 PRIVATE
