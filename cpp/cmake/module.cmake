@@ -100,12 +100,17 @@ function(barretenberg_module MODULE_NAME)
         )
 
         if(NOT WASM AND NOT CI)
-            # Currently haven't found a way to easily wrap the calls in wasmtime when run from ctest.
-            gtest_discover_tests(${MODULE_NAME}_tests WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+            # If collecting coverage data, set profile
+            # For some reason processor affinity doesn't work, so the developer has to set it manually anyway
             if(COVERAGE)
                 gtest_discover_tests(${MODULE_NAME}_tests
                 PROPERTIES ENVIRONMENT "LLVM_PROFILE_FILE=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/profdata/${MODULE_NAME}.%p.profraw"
+                PROPERTIES PROCESSOR_AFFINITY ON
+                PROPERTIES PROCESSORS 16
                 WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+            else()
+                # Currently haven't found a way to easily wrap the calls in wasmtime when run from ctest.
+                gtest_discover_tests(${MODULE_NAME}_tests WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
             endif()
         endif()
 

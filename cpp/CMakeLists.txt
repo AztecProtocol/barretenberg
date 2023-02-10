@@ -18,6 +18,7 @@ option(BENCHMARKS "Build benchmarks" ON)
 option(FUZZING "Build fuzzing harnesses" OFF)
 option(DISABLE_TBB "Intel Thread Building Blocks" ON)
 option(COVERAGE "Enable collecting coverage from tests" OFF)
+option(DISABLE_PROFILING_LIMITS "Disable being nice while running profiling tests" OFF)
 
 if(ARM)
     message(STATUS "Compiling for ARM.")
@@ -95,7 +96,7 @@ if(COVERAGE)
     if(COV_EXECUTABLE MATCHES "NOTFOUND")
         message(FATAL_ERROR "Couldn't find ${COV_EXECUTABLE_NAME}")
     endif()
-    add_compile_options(-fprofile-instr-generate -fcoverage-mapping)
+    add_compile_options(-fprofile-instr-generate -fcoverage-mapping -O0)
     add_custom_target(create_full_coverage_report
     COMMAND "${CMAKE_SOURCE_DIR}/scripts/collect_coverage_information.sh" ${PROFDATA_EXECUTABLE} ${COV_EXECUTABLE}
     VERBATIM
@@ -110,5 +111,4 @@ include(cmake/threading.cmake)
 include(cmake/gtest.cmake)
 include(cmake/benchmark.cmake)
 include(cmake/module.cmake)
-
 add_subdirectory(src/aztec)
