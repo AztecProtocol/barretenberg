@@ -44,7 +44,7 @@ if [ ${#non_empty_profiles[@]} -eq 1 ]; then
     $llvm_profdata_command merge -sparse "$WORKING_DIRECTORY/bin/profdata/${!non_empty_profiles[@]}."*.profraw -o "$WORKING_DIRECTORY/merged_profdata/default.profdata"
     rm -rf "$WORKING_DIRECTORY/${non_empty_profiles[0]}_coverage_report"
     mkdir "$WORKING_DIRECTORY/${non_empty_profiles[0]}_coverage_report"
-    $llvm_cov_command show -output-dir="$WORKING_DIRECTORY/${!non_empty_profiles[@]}_coverage_report" -format=html "$WORKING_DIRECTORY/bin/${!non_empty_profiles[@]}_tests" -instr-profile="$WORKING_DIRECTORY/merged_profdata/default.profdata" -ignore-filename-regex=".*googletest-src.*"
+    $llvm_cov_command show -output-dir="$WORKING_DIRECTORY/${!non_empty_profiles[@]}_coverage_report" -format=html "$WORKING_DIRECTORY/bin/${!non_empty_profiles[@]}_tests" -instr-profile="$WORKING_DIRECTORY/merged_profdata/default.profdata" -ignore-filename-regex=".*_deps.*"
 fi
 
 if [ ${#non_empty_profiles[@]} -gt 1 ]; then
@@ -58,5 +58,5 @@ if [ ${#non_empty_profiles[@]} -gt 1 ]; then
     object_string=${additional_objects#"-object"}
     rm -rf "$WORKING_DIRECTORY/all_tests_coverage_report"
     mkdir "$WORKING_DIRECTORY/all_tests_coverage_report"
-    $llvm_cov_command show -output-dir="$WORKING_DIRECTORY/all_tests_coverage_report" -format=html $object_string -instr-profile="$WORKING_DIRECTORY/merged_profdata/default.profdata" -ignore-filename-regex=".*googletest-src.*"
+    $llvm_cov_command show -output-dir="$WORKING_DIRECTORY/all_tests_coverage_report" -format=html $object_string -instr-profile="$WORKING_DIRECTORY/merged_profdata/default.profdata" -ignore-filename-regex=".*_deps.*"
 fi
