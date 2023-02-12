@@ -58,6 +58,11 @@ size_t work_queue::get_scalar_multiplication_size(const size_t work_item_number)
     return 0;
 }
 
+/**
+ * Returns a boolean that denotes if the scalar multiplication is to be done with the Monomial SRS or Lagrange SRS.
+ * 0: MSM with Monomial SRS (size n or n + 1)
+ * 1: MSM with Lagrange SRS (size n)
+ */
 bool work_queue::get_scalar_multiplication_type(const size_t work_item_number) const
 {
     size_t count = 0;
