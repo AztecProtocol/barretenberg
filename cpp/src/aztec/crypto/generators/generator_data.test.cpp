@@ -1,10 +1,11 @@
 #include <gtest/gtest.h>
 #include <common/streams.hpp>
-#include "./pedersen.hpp"
+#include "./fixed_base_scalar_mul.hpp"
+#include "./generator_data.hpp"
 
-using namespace crypto::pedersen;
+using namespace crypto::generators;
 
-TEST(pedersen, hash_ladder_structure)
+TEST(generators, hash_ladder_structure)
 {
     generator_index_t index = { 2, 0 };
     generator_data gen_data = get_generator_data(index);
@@ -60,7 +61,7 @@ TEST(pedersen, hash_ladder_structure)
     EXPECT_EQ(grumpkin::g1::element(hash_ladder[0].one), mult);
 }
 
-TEST(pedersen, fixed_base_scalar_mul)
+TEST(generators, fixed_base_scalar_mul)
 {
     uint256_t scalar(123, 0, 0, 0);
 

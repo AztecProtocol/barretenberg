@@ -18,7 +18,8 @@ inline std::vector<ComposerBase::SelectorProperties> standard_selector_propertie
 class StandardComposer : public ComposerBase {
   public:
     static constexpr ComposerType type = ComposerType::STANDARD;
-    static constexpr MerkleHashType merkle_hash_type = MerkleHashType::FIXED_BASE_PEDERSEN;
+    static constexpr merkle::HashType merkle_hash_type = merkle::HashType::FIXED_BASE_PEDERSEN;
+    static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
     static constexpr size_t UINT_LOG2_BASE = 2;
 
     StandardComposer(const size_t size_hint = 0)

@@ -43,7 +43,7 @@ bool_t<Composer> check_subtree_membership(field_t<Composer> const& root,
         // current iff path_bit If either of these does not hold, then the final computed merkle root will not match
         field_t<Composer> left = field_t<Composer>::conditional_assign(path_bit, hashes[i].first, current);
         field_t<Composer> right = field_t<Composer>::conditional_assign(path_bit, current, hashes[i].second);
-        current = pedersen<Composer>::compress_unsafe(left, right, 0, is_updating_tree);
+        current = pedersen_hash<Composer>::hash_multiple({ left, right }, 0, is_updating_tree);
     }
 
     return (current == root);
@@ -199,7 +199,7 @@ template <typename Composer> field_t<Composer> compute_tree_root(std::vector<fie
     while (layer.size() > 1) {
         std::vector<field_t<Composer>> next_layer(layer.size() / 2);
         for (size_t i = 0; i < next_layer.size(); ++i) {
-            next_layer[i] = pedersen<Composer>::compress(layer[i * 2], layer[i * 2 + 1]);
+            next_layer[i] = pedersen_hash<Composer>::hash_multiple({ layer[i * 2], layer[i * 2 + 1] });
         }
         layer = std::move(next_layer);
     }

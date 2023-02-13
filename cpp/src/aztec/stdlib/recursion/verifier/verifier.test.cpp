@@ -39,7 +39,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
             a = (a * b) + b + a;
             a = a.madd(b, c);
         }
-        plonk::stdlib::pedersen<InnerComposer>::compress(a, b);
+        plonk::stdlib::pedersen_commitment<InnerComposer>::compress(a, b);
         typename inner_curve::byte_array_ct to_hash(&composer, "nonsense test data");
         stdlib::blake3s(to_hash);
 
@@ -86,7 +86,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
             a = (a * b) + b + a;
             a = c.madd(b, a);
         }
-        plonk::stdlib::pedersen<InnerComposer>::compress(a, a);
+        plonk::stdlib::pedersen_commitment<InnerComposer>::compress(a, a);
         inner_curve::byte_array_ct to_hash(&composer, "different nonsense test data");
         stdlib::blake3s(to_hash);
 

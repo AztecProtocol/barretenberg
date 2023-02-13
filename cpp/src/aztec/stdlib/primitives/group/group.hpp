@@ -3,7 +3,7 @@
 #include "../field/field.hpp"
 #include <ecc/curves/grumpkin/grumpkin.hpp>
 #include <plonk/composer/composer_base.hpp>
-#include <crypto/pedersen/pedersen.hpp>
+#include <crypto/pedersen_commitment/pedersen.hpp>
 
 #include "../../hash/pedersen/pedersen.hpp"
 
@@ -13,7 +13,7 @@ namespace plonk {
 namespace stdlib {
 
 using namespace barretenberg;
-using namespace crypto::pedersen;
+using namespace crypto::pedersen_hash;
 
 template <typename ComposerContext> class group {
   public:
@@ -136,7 +136,7 @@ auto group<ComposerContext>::fixed_base_scalar_mul_internal(const field_t<Compos
     fr three = ((one + one) + one);
 
     for (size_t i = 0; i < num_quads; ++i) {
-        uint64_t entry = wnaf_entries[i + 1] & stdlib::WNAF_MASK;
+        uint64_t entry = wnaf_entries[i + 1] & crypto::generators::WNAF_MASK;
 
         fr prev_accumulator = accumulator_transcript[i] + accumulator_transcript[i];
         prev_accumulator = prev_accumulator + prev_accumulator;
@@ -207,7 +207,7 @@ auto group<ComposerContext>::fixed_base_scalar_mul_internal(const field_t<Compos
     accumulator_witnesses.push_back(add_quad.d);
 
     if (num_bits >= 254) {
-        plonk::stdlib::pedersen<ComposerContext>::validate_wnaf_is_in_field(ctx, accumulator_witnesses);
+        plonk::stdlib::pedersen_hash<ComposerContext>::validate_wnaf_is_in_field(ctx, accumulator_witnesses);
     }
     aligned_free(multiplication_transcript);
     aligned_free(accumulator_transcript);
