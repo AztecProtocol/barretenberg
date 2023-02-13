@@ -16,6 +16,9 @@ namespace honk {
 class StandardHonkComposer {
   public:
     static constexpr waffle::ComposerType type = waffle::ComposerType::STANDARD_HONK;
+    static constexpr waffle::merkle::HashType merkle_hash_type = waffle::merkle::HashType::LOOKUP_PEDERSEN;
+    static constexpr waffle::pedersen::CommitmentType commitment_type =
+        waffle::pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
 
     static constexpr size_t UINT_LOG2_BASE = 2;
     // An instantiation of the circuit constructor that only depends on arithmetization, not  on the proof system
