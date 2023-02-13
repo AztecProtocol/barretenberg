@@ -20,8 +20,9 @@ if(NOT WASM)
         # Globally installed leveldb needs Threads available as Threads::Threads as discovered by `find_package`
         find_package(Threads REQUIRED)
 
-        target_link_libraries(stdlib_merkle_tree PRIVATE leveldb::leveldb)
-        target_link_libraries(stdlib_merkle_tree_objects PRIVATE leveldb::leveldb)
+        foreach(target IN LISTS stdlib_merkle_tree_lib_targets stdlib_merkle_tree_exe_targets)
+            target_link_libraries(${target} PRIVATE leveldb::leveldb)
+        endforeach()
     else()
         # FetchContent_MakeAvailable calls FetchContent_Populate if `find_package` is unsuccessful
         # so these variables will be available if we reach this case
@@ -35,15 +36,8 @@ if(NOT WASM)
             -w
         )
 
-        target_link_libraries(stdlib_merkle_tree PRIVATE leveldb)
-        target_link_libraries(stdlib_merkle_tree_objects PRIVATE leveldb)
-        if(TESTING)
-            target_link_libraries(stdlib_merkle_tree_tests PRIVATE leveldb)
-            target_link_libraries(stdlib_merkle_tree_test_objects PRIVATE leveldb)
-        endif()
-        if(BENCHMARKS)
-            target_link_libraries(stdlib_merkle_tree_bench PRIVATE leveldb)
-            target_link_libraries(stdlib_merkle_tree_bench_objects PRIVATE leveldb)
-        endif()
+        foreach(target IN LISTS stdlib_merkle_tree_lib_targets stdlib_merkle_tree_exe_targets)
+            target_link_libraries(${target} PRIVATE leveldb)
+        endforeach()
     endif()
 endif()
