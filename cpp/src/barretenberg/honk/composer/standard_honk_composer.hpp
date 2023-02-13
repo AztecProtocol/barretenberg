@@ -16,6 +16,9 @@ namespace honk {
 class StandardHonkComposer {
   public:
     static constexpr plonk::ComposerType type = plonk::ComposerType::STANDARD_HONK;
+    static constexpr plonk::merkle::HashType merkle_hash_type = plonk::merkle::HashType::LOOKUP_PEDERSEN;
+    static constexpr plonk::pedersen::CommitmentType commitment_type =
+        plonk::pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
 
     static constexpr size_t UINT_LOG2_BASE = 2;
     // An instantiation of the circuit constructor that only depends on arithmetization, not  on the proof system

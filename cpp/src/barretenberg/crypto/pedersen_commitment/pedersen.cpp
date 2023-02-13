@@ -6,10 +6,12 @@
 #include <omp.h>
 #endif
 
-namespace crypto {
-namespace pedersen {
+// using namespace crypto::generators;
 
-grumpkin::g1::element hash_single(const barretenberg::fr& in, generator_index_t const& index)
+namespace crypto {
+namespace pedersen_commitment {
+
+grumpkin::g1::element commit_single(const barretenberg::fr& in, generator_index_t const& index)
 {
     auto gen_data = get_generator_data(index);
     barretenberg::fr scalar_multiplier = in.from_montgomery_form();
@@ -19,7 +21,7 @@ grumpkin::g1::element hash_single(const barretenberg::fr& in, generator_index_t 
     constexpr size_t num_quads = ((num_quads_base << 1) + 1 < num_bits) ? num_quads_base + 1 : num_quads_base;
     constexpr size_t num_wnaf_bits = (num_quads << 1) + 1;
 
-    const crypto::pedersen::fixed_base_ladder* ladder = gen_data.get_hash_ladder(num_bits);
+    const crypto::generators::fixed_base_ladder* ladder = gen_data.get_hash_ladder(num_bits);
 
     uint64_t wnaf_entries[num_quads + 2] = { 0 };
     bool skew = false;
@@ -56,11 +58,32 @@ grumpkin::g1::affine_element commit_native(const std::vector<grumpkin::fq>& inpu
 #endif
     for (size_t i = 0; i < inputs.size(); ++i) {
         generator_index_t index = { hash_index, i };
-        out[i] = hash_single(inputs[i], index);
+        out[i] = commit_single(inputs[i], index);
     }
 
     grumpkin::g1::element r = out[0];
     for (size_t i = 1; i < inputs.size(); ++i) {
+        r = out[i] + r;
+    }
+    return r.is_point_at_infinity() ? grumpkin::g1::affine_element(0, 0) : grumpkin::g1::affine_element(r);
+}
+
+grumpkin::g1::affine_element commit_native(const std::vector<std::pair<grumpkin::fq, generator_index_t>>& input_pairs)
+{
+    ASSERT((input_pairs.size() < (1 << 16)) && "too many inputs for 16 bit index");
+    std::vector<grumpkin::g1::element> out(input_pairs.size());
+
+#ifndef NO_MULTITHREADING
+    // Ensure generator data is initialized before threading...
+    init_generator_data();
+#pragma omp parallel for num_threads(input_pairs.size())
+#endif
+    for (size_t i = 0; i < input_pairs.size(); ++i) {
+        out[i] = commit_single(input_pairs[i].first, input_pairs[i].second);
+    }
+
+    grumpkin::g1::element r = out[0];
+    for (size_t i = 1; i < input_pairs.size(); ++i) {
         r = out[i] + r;
     }
     return r.is_point_at_infinity() ? grumpkin::g1::affine_element(0, 0) : grumpkin::g1::affine_element(r);
@@ -72,6 +95,11 @@ grumpkin::g1::affine_element commit_native(const std::vector<grumpkin::fq>& inpu
 grumpkin::fq compress_native(const std::vector<grumpkin::fq>& inputs, const size_t hash_index)
 {
     return commit_native(inputs, hash_index).x;
+}
+
+grumpkin::fq compress_native(const std::vector<std::pair<grumpkin::fq, generator_index_t>>& input_pairs)
+{
+    return commit_native(input_pairs).x;
 }
 
 /**
@@ -89,5 +117,5 @@ grumpkin::fq compress_native(const std::vector<uint8_t>& input)
     return compress_native_buffer_to_field(input);
 }
 
-} // namespace pedersen
+} // namespace pedersen_commitment
 } // namespace crypto
