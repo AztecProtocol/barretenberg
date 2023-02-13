@@ -8,49 +8,35 @@
 
 extern "C" {
 
-WASM_EXPORT void pedersen__init()
+WASM_EXPORT void pedersen_hash__init()
 {
-    crypto::pedersen::init_generator_data();
+    crypto::generators::init_generator_data();
 }
 
-WASM_EXPORT void pedersen__compress_fields(uint8_t const* left, uint8_t const* right, uint8_t* result)
+WASM_EXPORT void pedersen__hash_pair(uint8_t const* left, uint8_t const* right, uint8_t* result)
 {
     auto lhs = barretenberg::fr::serialize_from_buffer(left);
     auto rhs = barretenberg::fr::serialize_from_buffer(right);
-    auto r = crypto::pedersen::compress_native({ lhs, rhs });
+    auto r = crypto::pedersen_hash::hash_multiple({ lhs, rhs });
     barretenberg::fr::serialize_to_buffer(r, result);
 }
 
-WASM_EXPORT void pedersen__compress(uint8_t const* inputs_buffer, uint8_t* output)
+WASM_EXPORT void pedersen__hash_multiple(uint8_t const* inputs_buffer, uint8_t* output)
 {
     std::vector<grumpkin::fq> to_compress;
     read(inputs_buffer, to_compress);
-    auto r = crypto::pedersen::compress_native(to_compress);
+    auto r = crypto::pedersen_hash::hash_multiple(to_compress);
     barretenberg::fr::serialize_to_buffer(r, output);
 }
 
-WASM_EXPORT void pedersen__compress_with_hash_index(uint8_t const* inputs_buffer, uint8_t* output, uint32_t hash_index)
+WASM_EXPORT void pedersen__hash_multiple_with_hash_index(uint8_t const* inputs_buffer,
+                                                         uint8_t* output,
+                                                         uint32_t hash_index)
 {
     std::vector<grumpkin::fq> to_compress;
     read(inputs_buffer, to_compress);
-    auto r = crypto::pedersen::compress_native(to_compress, hash_index);
+    auto r = crypto::pedersen_hash::hash_multiple(to_compress, hash_index);
     barretenberg::fr::serialize_to_buffer(r, output);
-}
-
-WASM_EXPORT void pedersen__commit(uint8_t const* inputs_buffer, uint8_t* output)
-{
-    std::vector<grumpkin::fq> to_compress;
-    read(inputs_buffer, to_compress);
-    grumpkin::g1::affine_element pedersen_hash = crypto::pedersen::commit_native(to_compress);
-
-    write(output, pedersen_hash);
-}
-
-WASM_EXPORT void pedersen__buffer_to_field(uint8_t const* data, size_t length, uint8_t* r)
-{
-    std::vector<uint8_t> to_compress(data, data + length);
-    auto output = crypto::pedersen::compress_native(to_compress);
-    write(r, output);
 }
 
 /**
@@ -67,7 +53,7 @@ WASM_EXPORT uint8_t* pedersen__hash_to_tree(uint8_t const* data)
     fields.reserve(num_outputs);
 
     for (size_t i = 0; fields.size() < num_outputs; i += 2) {
-        fields.push_back(crypto::pedersen::compress_native({ fields[i], fields[i + 1] }));
+        fields.push_back(crypto::pedersen_hash::hash_multiple({ fields[i], fields[i + 1] }));
     }
 
     auto buf_size = 4 + num_outputs * sizeof(grumpkin::fq);

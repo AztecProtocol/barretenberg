@@ -12,13 +12,13 @@
 
 #include "barretenberg/ecc/curves/bn254/fq12.hpp"
 #include "barretenberg/ecc/curves/bn254/pairing.hpp"
-#include "barretenberg/crypto/pedersen/pedersen.hpp"
-#include "barretenberg/crypto/pedersen/pedersen_lookup.hpp"
+#include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
+#include "barretenberg/crypto/pedersen_commitment/pedersen_lookup.hpp"
 
 #include "../../primitives/uint/uint.hpp"
 #include "../../primitives/memory/rom_table.hpp"
-#include "../../hash/pedersen/pedersen.hpp"
-#include "../../hash/pedersen/pedersen_plookup.hpp"
+#include "../../commitment/pedersen/pedersen.hpp"
+#include "../../commitment/pedersen/pedersen_plookup.hpp"
 #include "../../primitives/curves/bn254.hpp"
 
 namespace plonk {
@@ -55,14 +55,14 @@ template <typename Composer> struct evaluation_domain {
     field_t<Composer> compress() const
     {
         if constexpr (Composer::type == ComposerType::PLOOKUP) {
-            field_t<Composer> out = pedersen_plookup<Composer>::compress({
+            field_t<Composer> out = pedersen_plookup_commitment<Composer>::compress({
                 root,
                 domain,
                 generator,
             });
             return out;
         } else {
-            field_t<Composer> out = pedersen<Composer>::compress({
+            field_t<Composer> out = pedersen_commitment<Composer>::compress({
                 root,
                 domain,
                 generator,
@@ -75,13 +75,13 @@ template <typename Composer> struct evaluation_domain {
     {
         barretenberg::fr out;
         if constexpr (Composer::type == ComposerType::PLOOKUP) {
-            out = crypto::pedersen::lookup::compress_native({
+            out = crypto::pedersen_commitment::lookup::compress_native({
                 input.root,
                 input.domain,
                 input.generator,
             });
         } else {
-            out = crypto::pedersen::compress_native({
+            out = crypto::pedersen_commitment::compress_native({
                 input.root,
                 input.domain,
                 input.generator,
@@ -206,9 +206,9 @@ template <typename Curve> struct verification_key {
 
         field_t<Composer> compressed_key;
         if constexpr (Composer::type == ComposerType::PLOOKUP) {
-            compressed_key = pedersen_plookup<Composer>::compress(key_witnesses);
+            compressed_key = pedersen_plookup_commitment<Composer>::compress(key_witnesses);
         } else {
-            compressed_key = pedersen<Composer>::compress(key_witnesses);
+            compressed_key = pedersen_commitment<Composer>::compress(key_witnesses);
         }
         return compressed_key;
     }
@@ -246,9 +246,9 @@ template <typename Curve> struct verification_key {
         }
         barretenberg::fr compressed_key;
         if constexpr (Composer::type == ComposerType::PLOOKUP) {
-            compressed_key = crypto::pedersen::lookup::compress_native(key_witnesses);
+            compressed_key = crypto::pedersen_commitment::lookup::compress_native(key_witnesses);
         } else {
-            compressed_key = crypto::pedersen::compress_native(key_witnesses);
+            compressed_key = crypto::pedersen_commitment::compress_native(key_witnesses);
         }
         return compressed_key;
     }
