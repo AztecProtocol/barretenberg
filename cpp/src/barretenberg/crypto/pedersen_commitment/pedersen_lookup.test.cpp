@@ -3,6 +3,7 @@
 #include "barretenberg/numeric/random/engine.hpp"
 
 #include "./pedersen_lookup.hpp"
+#include "../pedersen_hash/pedersen_lookup.hpp"
 
 namespace {
 auto& engine = numeric::random::get_debug_engine();
@@ -13,14 +14,14 @@ auto compute_expected(const grumpkin::fq exponent, size_t generator_offset)
     uint256_t bits(exponent);
     std::array<grumpkin::g1::element, 2> accumulators;
     const auto lambda = grumpkin::fr::cube_root_of_unity();
-    const auto mask = crypto::pedersen::lookup::PEDERSEN_TABLE_SIZE - 1;
+    const auto mask = crypto::pedersen_hash::lookup::PEDERSEN_TABLE_SIZE - 1;
 
     for (size_t i = 0; i < 15; ++i) {
         const auto slice_a = static_cast<size_t>(bits.data[0] & mask) + 1;
-        bits >>= crypto::pedersen::lookup::BITS_PER_TABLE;
+        bits >>= crypto::pedersen_hash::lookup::BITS_PER_TABLE;
         const auto slice_b = static_cast<size_t>(bits.data[0] & mask) + 1;
 
-        const auto generator = crypto::pedersen::lookup::get_table_generator(generator_offset + i);
+        const auto generator = crypto::pedersen_hash::lookup::get_table_generator(generator_offset + i);
 
         if (i == 0) {
             accumulators[0] = generator * (lambda * slice_a);
@@ -31,7 +32,7 @@ auto compute_expected(const grumpkin::fq exponent, size_t generator_offset)
                 accumulators[1] += (generator * grumpkin::fr(slice_b));
             }
         }
-        bits >>= crypto::pedersen::lookup::BITS_PER_TABLE;
+        bits >>= crypto::pedersen_hash::lookup::BITS_PER_TABLE;
     }
     return (accumulators[0] + accumulators[1]);
 }
@@ -70,9 +71,9 @@ TEST(pedersen_lookup, hash_single)
 
     const fq exponent = engine.get_random_uint256();
 
-    const affine_element result(crypto::pedersen::lookup::hash_single(exponent, false));
+    const affine_element result(crypto::pedersen_hash::lookup::hash_single(exponent, false));
 
-    const auto mask = crypto::pedersen::lookup::PEDERSEN_TABLE_SIZE - 1;
+    const auto mask = crypto::pedersen_hash::lookup::PEDERSEN_TABLE_SIZE - 1;
 
     uint256_t bits(exponent);
 
@@ -82,10 +83,10 @@ TEST(pedersen_lookup, hash_single)
 
     for (size_t i = 0; i < 15; ++i) {
         const auto slice_a = static_cast<size_t>(bits.data[0] & mask) + 1;
-        bits >>= crypto::pedersen::lookup::BITS_PER_TABLE;
+        bits >>= crypto::pedersen_hash::lookup::BITS_PER_TABLE;
         const auto slice_b = static_cast<size_t>(bits.data[0] & mask) + 1;
 
-        const element generator = crypto::pedersen::lookup::get_table_generator(i);
+        const element generator = crypto::pedersen_hash::lookup::get_table_generator(i);
 
         if (i == 0) {
             accumulators[0] = generator * (lambda * slice_a);
@@ -96,7 +97,7 @@ TEST(pedersen_lookup, hash_single)
                 accumulators[1] += (generator * (slice_b));
             }
         }
-        bits >>= crypto::pedersen::lookup::BITS_PER_TABLE;
+        bits >>= crypto::pedersen_hash::lookup::BITS_PER_TABLE;
     }
 
     const affine_element expected(accumulators[0] + accumulators[1]);
@@ -112,7 +113,7 @@ TEST(pedersen_lookup, hash_pair)
     const fq left = engine.get_random_uint256();
     const fq right = engine.get_random_uint256();
 
-    const fq result(crypto::pedersen::lookup::hash_pair(left, right));
+    const fq result(crypto::pedersen_hash::lookup::hash_pair(left, right));
 
     const affine_element expected(compute_expected(left, 0) + compute_expected(right, 15));
 
@@ -131,7 +132,7 @@ TEST(pedersen_lookup, merkle_damgard_compress)
         inputs.push_back(engine.get_random_uint256());
     }
 
-    const auto result = crypto::pedersen::lookup::merkle_damgard_compress(inputs, iv);
+    const auto result = crypto::pedersen_commitment::lookup::merkle_damgard_compress(inputs, iv);
 
     fq intermediate = (grumpkin::g1::affine_one * fr(iv + 1)).x;
     for (size_t i = 0; i < m; i++) {
@@ -140,4 +141,68 @@ TEST(pedersen_lookup, merkle_damgard_compress)
 
     EXPECT_EQ(affine_element(result).x,
               affine_element(compute_expected(intermediate, 0) + compute_expected(fq(m), 15)).x);
+}
+
+TEST(pedersen_lookup, merkle_damgard_compress_multiple_iv)
+{
+    typedef grumpkin::fq fq;
+    typedef grumpkin::fr fr;
+    typedef grumpkin::g1::affine_element affine_element;
+
+    const size_t m = 10;
+    std::vector<size_t> ivs;
+    std::vector<fq> inputs;
+    for (size_t i = 0; i < m; i++) {
+        inputs.push_back(engine.get_random_uint256());
+        ivs.push_back(engine.get_random_uint8());
+    }
+
+    const auto result = crypto::pedersen_commitment::lookup::merkle_damgard_compress(inputs, ivs);
+
+    const size_t initial_iv = 0;
+    fq intermediate = (grumpkin::g1::affine_one * fr(initial_iv + 1)).x;
+    for (size_t i = 0; i < 2 * m; i++) {
+        if ((i & 1) == 0) {
+            const auto iv = (grumpkin::g1::affine_one * fr(ivs[i >> 1] + 1)).x;
+            intermediate = affine_element(compute_expected(intermediate, 0) + compute_expected(iv, 15)).x;
+        } else {
+            intermediate = affine_element(compute_expected(intermediate, 0) + compute_expected(inputs[i >> 1], 15)).x;
+        }
+    }
+
+    EXPECT_EQ(affine_element(result).x,
+              affine_element(compute_expected(intermediate, 0) + compute_expected(fq(m), 15)).x);
+}
+
+TEST(pedersen_lookup, merkle_damgard_tree_compress)
+{
+    typedef grumpkin::fq fq;
+    typedef grumpkin::fr fr;
+    typedef grumpkin::g1::affine_element affine_element;
+
+    const size_t m = 8;
+    std::vector<size_t> ivs;
+    std::vector<fq> inputs;
+    for (size_t i = 0; i < m; i++) {
+        inputs.push_back(engine.get_random_uint256());
+        ivs.push_back(engine.get_random_uint8());
+    }
+
+    const auto result = crypto::pedersen_commitment::lookup::merkle_damgard_tree_compress(inputs, ivs);
+
+    std::vector<fq> temp;
+    for (size_t i = 0; i < m; i++) {
+        const fq iv_term = (grumpkin::g1::affine_one * fr(ivs[i] + 1)).x;
+        temp.push_back(affine_element(compute_expected(iv_term, 0) + compute_expected(inputs[i], 15)).x);
+    }
+
+    const size_t logm = numeric::get_msb(m);
+    for (size_t j = 1; j <= logm; j++) {
+        const size_t nodes = (1UL << (logm - j));
+        for (size_t i = 0; i < nodes; i++) {
+            temp[i] = affine_element(compute_expected(temp[2 * i], 0) + compute_expected(temp[2 * i + 1], 15)).x;
+        }
+    }
+
+    EXPECT_EQ(affine_element(result).x, affine_element(compute_expected(temp[0], 0) + compute_expected(fq(m), 15)).x);
 }
