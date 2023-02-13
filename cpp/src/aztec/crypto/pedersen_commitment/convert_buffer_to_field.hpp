@@ -3,7 +3,7 @@
 #include <ecc/curves/grumpkin/grumpkin.hpp>
 
 namespace crypto {
-namespace pedersen {
+namespace pedersen_commitment {
 
 inline std::vector<grumpkin::fq> convert_buffer_to_field(const std::vector<uint8_t>& input)
 {
@@ -33,5 +33,5 @@ inline std::vector<grumpkin::fq> convert_buffer_to_field(const std::vector<uint8
     }
     return elements;
 }
-} // namespace pedersen
+} // namespace pedersen_commitment
 } // namespace crypto
