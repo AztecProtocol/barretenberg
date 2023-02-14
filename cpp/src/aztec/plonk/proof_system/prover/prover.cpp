@@ -290,7 +290,7 @@ template <typename settings> void ProverBase<settings>::execute_second_round()
     if (settings::is_plookup) {
         add_plookup_memory_records_to_w_4();
         std::string wire_tag = "w_4";
-        barretenberg::polynomial w_4(key->polynomial_cache.get(wire_tag + "_lagrange"), key->circuit_size);
+        barretenberg::polynomial& w_4_lagrange(key->polynomial_cache.get(wire_tag + "_lagrange"));
 
         // add randomness to w_4_lagrange
         const size_t w_randomness = 3;
