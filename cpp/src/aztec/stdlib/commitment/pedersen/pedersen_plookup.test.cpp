@@ -107,5 +107,80 @@ TEST(stdlib_pedersen, test_merkle_damgard_compress_plookup)
     bool proof_result = verifier.verify_proof(proof);
     EXPECT_EQ(proof_result, true);
 }
+
+TEST(stdlib_pedersen, test_merkle_damgard_compress_multiple_iv_plookup)
+{
+    waffle::UltraComposer composer = waffle::UltraComposer();
+
+    const size_t m = 10;
+    std::vector<fr> input_values;
+    std::vector<size_t> iv_values;
+    for (size_t i = 0; i < m; i++) {
+        input_values.push_back(fr::random_element());
+        iv_values.push_back(engine.get_random_uint8());
+    }
+
+    std::vector<field_ct> inputs;
+    std::vector<field_ct> ivs;
+    for (size_t i = 0; i < m; i++) {
+        inputs.emplace_back(witness_ct(&composer, input_values[i]));
+        ivs.emplace_back(witness_ct(&composer, fr(iv_values[i])));
+    }
+
+    field_ct result =
+        stdlib::pedersen_plookup_commitment<waffle::UltraComposer>::merkle_damgard_compress(inputs, ivs).x;
+
+    auto expected = crypto::pedersen_commitment::lookup::merkle_damgard_compress(input_values, iv_values);
+
+    EXPECT_EQ(result.get_value(), expected.normalize().x);
+
+    auto prover = composer.create_prover();
+
+    printf("composer gates = %zu\n", composer.get_num_gates());
+    auto verifier = composer.create_verifier();
+
+    waffle::plonk_proof proof = prover.construct_proof();
+
+    bool proof_result = verifier.verify_proof(proof);
+    EXPECT_EQ(proof_result, true);
+}
+
+TEST(stdlib_pedersen, test_merkle_damgard_tree_compress_plookup)
+{
+    waffle::UltraComposer composer = waffle::UltraComposer();
+
+    const size_t m = 16;
+    std::vector<fr> input_values;
+    std::vector<size_t> iv_values;
+    for (size_t i = 0; i < m; i++) {
+        input_values.push_back(fr::random_element());
+        iv_values.push_back(engine.get_random_uint8());
+    }
+
+    std::vector<field_ct> inputs;
+    std::vector<field_ct> ivs;
+    for (size_t i = 0; i < m; i++) {
+        inputs.emplace_back(witness_ct(&composer, input_values[i]));
+        ivs.emplace_back(witness_ct(&composer, fr(iv_values[i])));
+    }
+
+    field_ct result =
+        stdlib::pedersen_plookup_commitment<waffle::UltraComposer>::merkle_damgard_tree_compress(inputs, ivs).x;
+
+    auto expected = crypto::pedersen_commitment::lookup::merkle_damgard_tree_compress(input_values, iv_values);
+
+    EXPECT_EQ(result.get_value(), expected.normalize().x);
+
+    auto prover = composer.create_prover();
+
+    printf("composer gates = %zu\n", composer.get_num_gates());
+    auto verifier = composer.create_verifier();
+
+    waffle::plonk_proof proof = prover.construct_proof();
+
+    bool proof_result = verifier.verify_proof(proof);
+    EXPECT_EQ(proof_result, true);
+}
+
 } // namespace plookup_pedersen_tests
 } // namespace test_stdlib_pedersen

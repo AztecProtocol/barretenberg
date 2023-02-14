@@ -5,6 +5,8 @@
 #include "../../primitives/point/point.hpp"
 #include "../../primitives/byte_array/byte_array.hpp"
 
+using namespace crypto::generators;
+
 namespace plonk {
 namespace stdlib {
 
@@ -17,9 +19,14 @@ template <typename ComposerContext> class pedersen_commitment {
     typedef plonk::stdlib::byte_array<ComposerContext> byte_array;
     typedef plonk::stdlib::bool_t<ComposerContext> bool_t;
 
+  public:
     static point commit(const std::vector<field_t>& inputs, const size_t hash_index = 0);
 
-  public:
+    static point commit(const std::vector<field_t>& inputs,
+                        const std::vector<generator_index_t>& hash_generator_indices);
+
+    static point commit(const std::vector<std::pair<field_t, generator_index_t>>& input_pairs);
+
     static field_t compress_unsafe(const field_t& left,
                                    const field_t& right,
                                    const size_t hash_index,
@@ -31,6 +38,11 @@ template <typename ComposerContext> class pedersen_commitment {
     }
 
     static field_t compress(const std::vector<field_t>& inputs, const size_t hash_index = 0);
+
+    static field_t compress(const std::vector<field_t>& inputs,
+                            const std::vector<generator_index_t>& hash_generator_indices);
+
+    static field_t compress(const std::vector<std::pair<field_t, generator_index_t>>& input_pairs);
 
     template <size_t T> static field_t compress(const std::array<field_t, T>& inputs)
     {

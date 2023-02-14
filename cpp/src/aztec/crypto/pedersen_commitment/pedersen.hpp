@@ -13,6 +13,8 @@ grumpkin::g1::element commit_single(const barretenberg::fr& in, generator_index_
 
 grumpkin::g1::affine_element commit_native(const std::vector<grumpkin::fq>& elements, const size_t hash_index = 0);
 
+grumpkin::g1::affine_element commit_native(const std::vector<std::pair<grumpkin::fq, generator_index_t>>& input_pairs);
+
 grumpkin::fq compress_native(const std::vector<grumpkin::fq>& inputs, const size_t hash_index = 0);
 
 template <size_t T> grumpkin::fq compress_native(const std::array<grumpkin::fq, T>& inputs)
@@ -22,6 +24,8 @@ template <size_t T> grumpkin::fq compress_native(const std::array<grumpkin::fq, 
 }
 
 grumpkin::fq compress_native(const std::vector<uint8_t>& input);
+
+grumpkin::fq compress_native(const std::vector<std::pair<grumpkin::fq, generator_index_t>>& input_pairs);
 
 } // namespace pedersen_commitment
 } // namespace crypto
