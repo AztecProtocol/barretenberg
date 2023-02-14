@@ -23,7 +23,6 @@ function(barretenberg_module MODULE_NAME)
             OBJECT
             ${SOURCE_FILES}
         )
-        list(APPEND lib_targets ${MODULE_NAME}_objects)
 
         add_library(
             ${MODULE_NAME}
@@ -37,7 +36,6 @@ function(barretenberg_module MODULE_NAME)
             ${ARGN}
             ${TBB_IMPORTED_TARGETS}
         )
-        list(APPEND lib_targets ${MODULE_NAME})
 
         set(MODULE_LINK_NAME ${MODULE_NAME})
     endif()
@@ -49,7 +47,6 @@ function(barretenberg_module MODULE_NAME)
             OBJECT
             ${TEST_SOURCE_FILES}
         )
-        list(APPEND lib_targets ${MODULE_NAME}_test_objects)
 
         target_link_libraries(
             ${MODULE_NAME}_test_objects
@@ -62,7 +59,6 @@ function(barretenberg_module MODULE_NAME)
             ${MODULE_NAME}_tests
             $<TARGET_OBJECTS:${MODULE_NAME}_test_objects>
         )
-        list(APPEND exe_targets ${MODULE_NAME}_tests)
 
         if(WASM)
             target_link_options(
@@ -115,23 +111,22 @@ function(barretenberg_module MODULE_NAME)
         foreach(FUZZER_SOURCE_FILE ${FUZZERS_SOURCE_FILES})
             get_filename_component(FUZZER_NAME_STEM ${FUZZER_SOURCE_FILE} NAME_WE)
             add_executable(
-                ${MODULE_NAME}_${FUZZER_NAME_STEM}_fuzzer
-                ${FUZZER_SOURCE_FILE}
+            ${MODULE_NAME}_${FUZZER_NAME_STEM}_fuzzer
+            ${FUZZER_SOURCE_FILE}
             )
-            list(APPEND exe_targets ${MODULE_NAME}_${FUZZER_NAME_STEM}_fuzzer)
 
             target_link_options(
-                ${MODULE_NAME}_${FUZZER_NAME_STEM}_fuzzer
+            ${MODULE_NAME}_${FUZZER_NAME_STEM}_fuzzer
                 PRIVATE
                 "-fsanitize=fuzzer"
                 ${SANITIZER_OPTIONS}
-            )
+                )
 
             target_link_libraries(
-                ${MODULE_NAME}_${FUZZER_NAME_STEM}_fuzzer
-                PRIVATE
+            ${MODULE_NAME}_${FUZZER_NAME_STEM}_fuzzer
+            PRIVATE
                 ${MODULE_LINK_NAME}
-            )
+                )
         endforeach()
     endif()
 
@@ -142,7 +137,6 @@ function(barretenberg_module MODULE_NAME)
             OBJECT
             ${BENCH_SOURCE_FILES}
         )
-        list(APPEND lib_targets ${MODULE_NAME}_bench_objects)
 
         target_link_libraries(
             ${MODULE_NAME}_bench_objects
@@ -155,7 +149,6 @@ function(barretenberg_module MODULE_NAME)
             ${MODULE_NAME}_bench
             $<TARGET_OBJECTS:${MODULE_NAME}_bench_objects>
         )
-        list(APPEND exe_targets ${MODULE_NAME}_bench)
 
         target_link_libraries(
             ${MODULE_NAME}_bench
@@ -172,7 +165,4 @@ function(barretenberg_module MODULE_NAME)
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         )
     endif()
-
-    set(${MODULE_NAME}_lib_targets ${lib_targets} PARENT_SCOPE)
-    set(${MODULE_NAME}_exe_targets ${exe_targets} PARENT_SCOPE)
 endfunction()
