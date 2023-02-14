@@ -37,6 +37,17 @@ template <typename Curve> struct recursion_output {
     }
 };
 
+// Native version of the recursion_output of the stdlib, for passing into/between circuits.
+// TODO: this isn't really in the right place, but wasn't sure where to put it?
+struct native_recursion_output {
+    typename barretenberg::g1::affine_element P0 = barretenberg::g1::affine_one;
+    typename barretenberg::g1::affine_element P1 = barretenberg::g1::affine_one;
+    // the public inputs of the inner ciruit are now private inputs of the outer circuit!
+    std::vector<barretenberg::fr> public_inputs;
+    std::vector<uint32_t> proof_witness_indices;
+    bool has_data = false;
+};
+
 template <typename Composer> struct lagrange_evaluations {
     field_t<Composer> l_start;
     field_t<Composer> l_end;

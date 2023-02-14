@@ -29,6 +29,45 @@ point<C> pedersen_commitment<C>::commit(const std::vector<field_t>& inputs, cons
     return pedersen_hash<C>::accumulate(to_accumulate);
 }
 
+template <typename C>
+point<C> pedersen_commitment<C>::commit(const std::vector<field_t>& inputs,
+                                        const std::vector<generator_index_t>& hash_generator_indices)
+{
+    if (inputs.size() != hash_generator_indices.size()) {
+        throw_or_abort("Vector size mismatch.");
+    }
+
+    if constexpr (C::type == waffle::ComposerType::PLOOKUP &&
+                  C::commitment_type == waffle::pedersen::CommitmentType::LOOKUP_PEDERSEN) {
+        return pedersen_plookup_commitment<C>::commit(inputs, hash_generator_indices);
+    }
+
+    std::vector<point> to_accumulate;
+    for (size_t i = 0; i < inputs.size(); ++i) {
+        to_accumulate.push_back(pedersen_hash<C>::commit_single(inputs[i], hash_generator_indices[i]));
+    }
+
+    return pedersen_hash<C>::accumulate(to_accumulate);
+}
+
+template <typename C>
+point<C> pedersen_commitment<C>::commit(const std::vector<std::pair<field_t, generator_index_t>>& input_pairs)
+{
+    if constexpr (C::type == waffle::ComposerType::PLOOKUP &&
+                  C::commitment_type == waffle::pedersen::CommitmentType::LOOKUP_PEDERSEN) {
+        return pedersen_plookup_commitment<C>::commit(input_pairs);
+    }
+
+    std::vector<point> to_accumulate;
+    std::vector<field_t> inputs;
+    for (size_t i = 0; i < input_pairs.size(); ++i) {
+        to_accumulate.push_back(pedersen_hash<C>::commit_single(input_pairs[i].first, input_pairs[i].second));
+        inputs.push_back(input_pairs[i].first);
+    }
+
+    return pedersen_hash<C>::accumulate(to_accumulate);
+}
+
 /**
  * Compress the pair (in_left, in_right) with a given hash index.
  * Called unsafe because this allows the option of not validating the input elements are unique, i.e. <r
