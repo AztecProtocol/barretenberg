@@ -1,9 +1,9 @@
 #include "pedersen_plookup.hpp"
-#include <crypto/pedersen_commitment/pedersen.hpp>
-#include <ecc/curves/grumpkin/grumpkin.hpp>
+#include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 #include "../../hash/pedersen/pedersen_plookup.hpp"
 
-#include <plonk/composer/plookup_tables/types.hpp>
+#include "barretenberg/plonk/composer/plookup_tables/types.hpp"
 #include "../../primitives/composers/composers.hpp"
 #include "../../primitives/plookup/plookup.hpp"
 
