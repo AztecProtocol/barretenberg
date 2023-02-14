@@ -420,16 +420,66 @@ void bool_t<ComposerContext>::assert_equal(const bool_t& rhs, std::string const&
     }
 }
 
+// if predicate == true then return lhs, else return rhs
+template <typename ComposerContext>
+bool_t<ComposerContext> bool_t<ComposerContext>::conditional_assign(const bool_t<ComposerContext>& predicate,
+                                                                    const bool_t& lhs,
+                                                                    const bool_t& rhs)
+{
+    return (predicate && lhs) || (!predicate && rhs);
+}
+
 template <typename ComposerContext>
 bool_t<ComposerContext> bool_t<ComposerContext>::implies(const bool_t<ComposerContext>& other) const
 {
     return (!(*this) || other); // P => Q is equiv. to !P || Q (not(P) or Q).
 }
 
+/**
+ *      (P => Q) && (P => R)
+ * <=>  (!P || Q) && (!P || R)
+ * <=>  !P || (Q && R)           [by distributivity of propositional logic]
+ * <=>  P => (Q && R)            [a.k.a. distribution of implication over conjunction]
+ */
 template <typename ComposerContext>
 void bool_t<ComposerContext>::must_imply(const bool_t& other, std::string const& msg) const
 {
     (this->implies(other)).assert_equal(true, msg);
+}
+
+/**
+ * Process many implications all at once, for readablity, and as an optimisation.
+ * @param conds - each pair is a boolean condition that we want to constrain to be "implied", and an error message if it
+ * is not implied.
+ *
+ * Why this works:
+ *      (P => Q) && (P => R)
+ * <=>  (!P || Q) && (!P || R)
+ * <=>  !P || (Q && R)           [by distributivity of propositional logic]
+ * <=>  P => (Q && R)            [a.k.a. distribution of implication over conjunction]
+ */
+template <typename ComposerContext>
+void bool_t<ComposerContext>::must_imply(const std::vector<std::pair<bool_t, std::string>>& conds) const
+{
+    bool_t acc = true; // will accumulate the conjunctions of each condition (i.e. `&&` of each)
+    const bool this_val = this->get_value();
+
+    for (size_t i = 0; i < conds.size(); ++i) {
+        const bool_t& cond = conds[i].first;
+        const std::string& msg = conds[i].second;
+        const bool cond_val = cond.get_value();
+
+        // If this does NOT imply that, throw the error msg of that condition.
+        if (!(!this_val || cond_val)) {
+            // TODO: make it so the first failure message given to the composer persists, and cannot be overwritten by
+            // subsequent failure msgs.
+            context->failure(msg);
+        }
+
+        acc &= cond;
+    }
+
+    (this->implies(acc)).assert_equal(true, "multi implication fail");
 }
 
 // A "double-implication" (<=>),
