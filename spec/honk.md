@@ -7,7 +7,7 @@ Honk is a sumcheck-based SNARK protocol which is similar to HyperPlonk [HyperPlo
 # Flavors
 
 # Prover's algorithm
-This is outlined in `honk::Prover<settings>::construct_proof()`:
+This is outlined in `honk::Prover::construct_proof()`:
  \snippet cpp/src/aztec/honk/proof_system/prover.cpp ConstructProof
 
 ## Sumcheck
