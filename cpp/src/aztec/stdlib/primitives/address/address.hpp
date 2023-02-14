@@ -6,7 +6,6 @@
 #include <stdlib/primitives/group/group.hpp>
 #include <stdlib/primitives/point/point.hpp>
 #include <stdlib/primitives/witness/witness.hpp>
-#include "../../constants.hpp"
 
 namespace plonk {
 namespace stdlib {
