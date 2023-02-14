@@ -256,7 +256,7 @@ template <typename settings> plonk::proof& Prover<settings>::export_proof()
     return proof;
 }
 
-template <typename settings> plonk::proof& Prover<settings>::construct_proof()
+//! [ConstructProof]
 {
     // Add circuit size and public input size to transcript.
     execute_preamble_round();
@@ -305,6 +305,8 @@ template <typename settings> plonk::proof& Prover<settings>::construct_proof()
 
     return export_proof();
 }
+//! [ConstructProof]
+
 
 template class Prover<plonk::standard_settings>;
 
