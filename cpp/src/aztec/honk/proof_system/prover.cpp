@@ -327,8 +327,8 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     std::vector<Fr> opening_point;
     std::vector<MLEOpeningClaim> opening_claims;
     std::vector<MLEOpeningClaim> opening_claims_shifted;
-    std::vector<Polynomial*> multivariate_polynomials;
-    std::vector<Polynomial*> multivariate_polynomials_shifted;
+    std::vector<std::span<Fr>> multivariate_polynomials;
+    std::vector<std::span<Fr>> multivariate_polynomials_shifted;
     // TODO(luke): Currently feeding in mock commitments for non-WITNESS polynomials. This may be sufficient for simple
     // proof verification since the other commitments are only needed to produce 'claims' in gemini.reduce_prove, they
     // are not needed in the proof itself.
@@ -360,13 +360,13 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
         auto evaluation = evals_map[label];
         auto commitment = Commitment::one();
         opening_claims.emplace_back(commitment, evaluation);
-        multivariate_polynomials.emplace_back(&key->polynomial_cache.get(label));
+        multivariate_polynomials.emplace_back(key->polynomial_cache.get(label));
         if (entry.requires_shifted_evaluation) {
             // Note: For a polynomial p for which we need the shift p_shift, we provide Gemini with the SHIFTED
             // evaluation p_shift(u), but the UNSHIFTED polynomial p and its UNSHIFTED commitment [p].
             auto shifted_evaluation = evals_map[label + "_shift"];
             opening_claims_shifted.emplace_back(commitment, shifted_evaluation);
-            multivariate_polynomials_shifted.emplace_back(&key->polynomial_cache.get(label));
+            multivariate_polynomials_shifted.emplace_back(key->polynomial_cache.get(label));
         }
     }
 
