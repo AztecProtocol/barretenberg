@@ -74,7 +74,7 @@ template <typename Composer> struct CircuitTypes {
         return plonk::stdlib::pedersen_commitment<Composer>::compress(inputs, hash_sub_indices, hash_index);
     }
 
-    static fr compress(const std::vector<std::pair<fr, crypto::pedersen::generator_index_t>>& input_pairs)
+    static fr compress(const std::vector<std::pair<fr, crypto::generators::generator_index_t>>& input_pairs)
     {
         return plonk::stdlib::pedersen_commitment<Composer>::compress(input_pairs);
     };
@@ -84,7 +84,7 @@ template <typename Composer> struct CircuitTypes {
         return plonk::stdlib::pedersen_commitment<Composer>::commit(inputs, hash_index);
     };
 
-    static grumpkin_point commit(const std::vector<std::pair<fr, crypto::pedersen::generator_index_t>>& input_pairs)
+    static grumpkin_point commit(const std::vector<std::pair<fr, crypto::generators::generator_index_t>>& input_pairs)
     {
         return plonk::stdlib::pedersen_commitment<Composer>::commit(input_pairs);
     };
