@@ -145,7 +145,7 @@ template <typename Composer> typename NT::uint32 to_nt(typename CT<Composer>::ui
     return e_32;
 };
 
-template <typename Composer> typename CT<Composer>::grumpkin_point to_nt(typename CT<Composer>::grumpkin_point const& e)
+template <typename Composer> typename NT::grumpkin_point to_nt(typename CT<Composer>::grumpkin_point const& e)
 {
     return NT::grumpkin_point{ e.x.get_value(), e.y.get_value() };
 };
