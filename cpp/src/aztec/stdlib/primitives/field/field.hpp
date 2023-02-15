@@ -103,6 +103,13 @@ template <typename ComposerContext> class field_t {
         return *this;
     }
 
+    static field_t copy_as_new_witness(ComposerContext& context, field_t const& other)
+    {
+        auto result = field_t<ComposerContext>(witness_t<ComposerContext>(&context, other.get_value()));
+        result.assert_equal(other, "field_t::copy_as_new_witness, assert_equal");
+        return result;
+    }
+
     field_t operator+(const field_t& other) const;
     field_t operator-(const field_t& other) const;
     field_t operator*(const field_t& other) const;
