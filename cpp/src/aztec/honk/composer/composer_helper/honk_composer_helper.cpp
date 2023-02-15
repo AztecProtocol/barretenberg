@@ -1,4 +1,4 @@
-#include "composer_helper.hpp"
+#include "honk_composer_helper.hpp"
 #include "permutation_helper.hpp"
 #include <polynomials/polynomial.hpp>
 #include <proof_system/flavor/flavor.hpp>
