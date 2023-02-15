@@ -5,6 +5,10 @@
 #include <sys/time.h>
 #include <ctime>
 
+/**
+ * @brief Get the execution between a block of code.
+ *
+ */
 class Timer {
   private:
     struct timespec _startTime;
@@ -12,17 +16,30 @@ class Timer {
 
     static constexpr int64_t NanosecondsPerSecond = 1000LL * 1000 * 1000;
 
+    /**
+     * @brief Manually sets the start time.
+     */
+    void start() { clock_gettime(CLOCK_REALTIME, &_startTime); }
+
+    /**
+     * @brief Manually sets the end time.
+     */
+    void end() { clock_gettime(CLOCK_REALTIME, &_endTime); }
+
   public:
+    /**
+     * @brief Initialize a Timer with the current time.
+     *
+     */
     Timer()
         : _endTime({})
     {
         start();
     }
 
-    void start() { clock_gettime(CLOCK_REALTIME, &_startTime); }
-
-    void end() { clock_gettime(CLOCK_REALTIME, &_endTime); }
-
+    /**
+     * @brief Return the number of nanoseconds elapsed since the start of the timer.
+     */
     [[nodiscard]] int64_t nanoseconds() const
     {
         struct timespec end;
@@ -38,6 +55,9 @@ class Timer {
         return nanos;
     }
 
+    /**
+     * @brief Return the number of seconds elapsed since the start of the timer.
+     */
     [[nodiscard]] double seconds() const
     {
         int64_t nanos = nanoseconds();
@@ -45,6 +65,9 @@ class Timer {
         return secs;
     }
 
+    /**
+     * @brief Return the number of seconds elapsed since the start of the timer as a string.
+     */
     [[nodiscard]] std::string toString() const
     {
         double secs = seconds();
