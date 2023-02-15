@@ -142,6 +142,21 @@ template <typename ComposerContext> class field_t {
         return *this;
     }
 
+    // Prefix increment (++x)
+    field_t& operator++()
+    {
+        *this = *this + 1;
+        return *this;
+    };
+
+    // Postfix increment (x++)
+    field_t operator++(int)
+    {
+        field_t this_before_operation = field_t(*this);
+        *this = *this + 1;
+        return this_before_operation;
+    };
+
     field_t invert() const { return (field_t(1) / field_t(*this)).normalize(); }
 
     static field_t coset_generator(const size_t generator_idx)

@@ -129,6 +129,17 @@ template <class T> constexpr field<T> field<T>::operator+=(const field& other) n
     return *this;
 }
 
+template <class T> constexpr field<T> field<T>::operator++() noexcept
+{
+    return *this += 1;
+}
+
+template <class T> constexpr field<T> field<T>::operator++(int) noexcept
+{
+    // TODO check if this is correct.
+    return *this += 1;
+}
+
 /**
  *
  * Subtraction
