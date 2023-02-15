@@ -25,6 +25,19 @@ struct cycle_node {
     uint32_t wire_index;
     uint32_t gate_index;
 };
+
+/**
+ * @brief Permutations subgroup element structure is used to hold data necessary to construct permutation polynomials.
+ *
+ * @details All parameters define the evaluation of an id or sigma polynomial.
+ *
+ */
+struct permutation_subgroup_element {
+    uint32_t subgroup_index = 0;
+    uint8_t column_index = 0;
+    bool is_public_input = false;
+    bool is_tag = false;
+};
 using CyclicPermutation = std::vector<cycle_node>;
 
 /**
@@ -172,6 +185,77 @@ void compute_standard_honk_sigma_permutations(CircuitConstructor& circuit_constr
     }
 }
 
+template <size_t program_width>
+void compute_standard_honk_sigma_lagrange_polynomials(
+    std::array<std::vector<permutation_subgroup_element>, program_width>& sigma_mappings, waffle::proving_key* key)
+{
+    const size_t num_gates = key->circuit_size;
+
+    // Initialize sigma[0], sigma[1], ..., as the identity permutation
+    // at the end of the loop, sigma[j][i] = j*n + i
+    std::array<barretenberg::polynomial, program_width> sigma;
+
+    for (size_t j = 0; j < program_width; j++) {
+        sigma[j] = barretenberg::polynomial(num_gates);
+        for (size_t i = 0; i < num_gates; i++) {
+            sigm
+        }
+    }
+    for (size_t j = 0; j < program_width; ++j) {
+        sigma[j] = barretenberg::polynomial(n);
+        for (size_t i = 0; i < n; i++) {
+            sigma[j][i] = (j * n + i);
+        }
+    }
+
+    // Each cycle is a partition of the indexes
+    for (auto& single_copy_cycle : copy_cycles) {
+        const size_t cycle_size = single_copy_cycle.size();
+
+        // If we use assert equal, we lose a real variable index, which creates an empty cycle
+        if (cycle_size == 0) {
+            continue;
+        }
+
+        // next_index represents the index of the variable that the current node in the cycle should point to.
+        // We iterate over the cycle in reverse order, so the index of the last node should map to the index of the
+        // first one.
+        const auto [first_col, first_idx] = single_copy_cycle.front();
+        auto next_index = sigma[first_col][first_idx];
+
+        // The index of variable reference by the j-th node should map to the index of the (j+1)-th node.
+        // The last one points to the first, and the index of the latter is stored in `next_index`.
+        // When we get to the second node in the list, we replace it with the index of the third node, and save the
+        // index it currently points to into `next_index`
+        for (size_t j = cycle_size - 1; j != 0; --j) {
+            const auto [current_col, current_idx] = single_copy_cycle[j];
+            next_index = std::exchange(sigma[current_col][current_idx], next_index);
+        }
+        // After the loop ends, we make the first node point to the index of the second node,
+        // thereby completing the cycle.
+        sigma[first_col][first_idx] = next_index;
+    }
+
+    // We intentionally want to break the cycles of the public input variables.
+    // During the witness generation, the left and right wire polynomials at index i contain the i-th public input.
+    // The CyclicPermutation created for these variables always start with (i) -> (n+i), followed by the indices of the
+    // variables in the "real" gates.
+    // We make i point to -(i+1), so that the only way of repairing the cycle is add the mapping
+    //  -(i+1) -> (n+i)
+    // These indices are chosen so they can easily be computed by the verifier. They can expect the running product
+    // to be equal to the "public input delta" that is computed in <honk/utils/public_inputs.hpp>
+    const auto num_public_inputs = static_cast<uint32_t>(circuit_constructor.public_inputs.size());
+    for (size_t i = 0; i < num_public_inputs; ++i) {
+        sigma[0][i] = -barretenberg::fr(i + 1);
+    }
+
+    // Save to polynomial cache
+    for (size_t j = 0; j < program_width; j++) {
+        std::string index = std::to_string(j + 1);
+        key->polynomial_cache.put("sigma_" + index + "_lagrange", std::move(sigma[j]));
+    }
+}
+
 /**
  * @brief Compute standard honk id polynomials and put them into cache
  *
@@ -196,6 +280,56 @@ void compute_standard_honk_id_polynomials(auto key) // proving_key* and share_pt
         std::string index = std::to_string(j + 1);
         key->polynomial_cache.put("id_" + index + "_lagrange", std::move(id_j));
     }
+}
+
+/**
+ * @brief Compute the permutation mapping for the basic no-tags case
+ *
+ * @details This function computes the permutation information in a commonf format that can then be used to generate
+ * either Plonk-style FFT-ready sigma polynomials or Honk-style indexed vectors
+ *
+ * @tparam program_width The number of wires
+ * @tparam CircuitConstructor The class that holds basic circuitl ogic
+ * @param circuit_constructor Circuit-containing object
+ * @param key Pointer to the proving key
+ */
+template <size_t program_width, typename CircuitConstructor>
+std::array<std::vector<permutation_subgroup_element>, program_width> compute_basic_bonk_sigma_permutations(
+    const CircuitConstructor& circuit_constructor, waffle::proving_key* key)
+{
+    auto wire_copy_cycles = compute_wire_copy_cycles<program_width>(circuit_constructor);
+
+    std::array<std::vector<permutation_subgroup_element>, program_width> sigma_mappings;
+    for (size_t i = 0; i < program_width; ++i) {
+        sigma_mappings[i].reserve(key->circuit_size);
+        sigma_mappings[i].emplace_back(permutation_subgroup_element{
+            .subgroup_index = (uint32_t)j, .column_index = (uint8_t)i, .is_public_input = false, .is_tag = false });
+    }
+    for (size_t i = 0; i < wire_copy_cycles.size(); ++i) {
+        for (size_t j = 0; j < wire_copy_cycles[i].size(); ++j) {
+            cycle_node current_cycle_node = wire_copy_cycles[i][j];
+            size_t next_cycle_node_index = j == wire_copy_cycles[i].size() - 1 ? 0 : j + 1;
+            cycle_node next_cycle_node = wire_copy_cycles[i][next_cycle_node_index];
+            const auto current_row = current_cycle_node.gate_index;
+            const auto next_row = next_cycle_node.gate_index;
+
+            const uint32_t current_column = current_cycle_node.wire_index const uint32_t next_column =
+                next_cycle_node.wire_index;
+            sigma_mappings[current_column][current_row] = { .subgroup_index = next_row,
+                                                            .column_index = (uint8_t)next_column,
+                                                            .is_public_input = false,
+                                                            .is_tag = false };
+        }
+    }
+
+    const uint32_t num_public_inputs = static_cast<uint32_t>(public_inputs.size());
+
+    for (size_t i = 0; i < num_public_inputs; ++i) {
+        sigma_mappings[0][i].subgroup_index = static_cast<uint32_t>(i);
+        sigma_mappings[0][i].column_index = 0;
+        sigma_mappings[0][i].is_public_input = true;
+    }
+    return sigma_mappings;
 }
 
 /**

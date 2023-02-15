@@ -1,6 +1,6 @@
 #pragma once
 
-#include "composer_helper/honk_composer_helper.hpp"
+#include "composer_helper/standard_plonk_composer_helper.hpp"
 #include <honk/circuit_constructors/standard_circuit_constructor.hpp>
 #include <srs/reference_string/file_reference_string.hpp>
 #include <transcript/manifest.hpp>
@@ -13,7 +13,7 @@ namespace honk {
  * @details However, it has a lot of its logic separated into subclasses and simply proxies the calls.
  *
  */
-class StandardHonkComposer {
+class StandardPlonkComposer {
   public:
     static constexpr waffle::ComposerType type = waffle::ComposerType::STANDARD_HONK;
 
@@ -24,7 +24,7 @@ class StandardHonkComposer {
     // 1) Proving and verification keys
     // 2) CRS
     // 3) Converting variables to witness vectors/polynomials
-    ComposerHelper<StandardCircuitConstructor> composer_helper;
+    StandardPlonkComposerHelper<StandardCircuitConstructor> composer_helper;
 
     // Leaving it in for now just in case
     bool contains_recursive_proof = false;
@@ -32,24 +32,25 @@ class StandardHonkComposer {
 
     /**Standard methods*/
 
-    StandardHonkComposer(const size_t size_hint = 0)
+    StandardPlonkComposer(const size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , num_gates(circuit_constructor.num_gates)
         , variables(circuit_constructor.variables){};
 
-    StandardHonkComposer(std::string const& crs_path, const size_t size_hint = 0)
-        : StandardHonkComposer(
+    StandardPlonkComposer(std::string const& crs_path, const size_t size_hint = 0)
+        : StandardPlonkComposer(
               std::unique_ptr<waffle::ReferenceStringFactory>(new waffle::FileReferenceStringFactory(crs_path)),
               size_hint){};
 
-    StandardHonkComposer(std::shared_ptr<waffle::ReferenceStringFactory> const& crs_factory, const size_t size_hint = 0)
+    StandardPlonkComposer(std::shared_ptr<waffle::ReferenceStringFactory> const& crs_factory,
+                          const size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(crs_factory)
         , num_gates(circuit_constructor.num_gates)
         , variables(circuit_constructor.variables)
 
     {}
-    StandardHonkComposer(std::unique_ptr<waffle::ReferenceStringFactory>&& crs_factory, const size_t size_hint = 0)
+    StandardPlonkComposer(std::unique_ptr<waffle::ReferenceStringFactory>&& crs_factory, const size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(std::move(crs_factory))
         , num_gates(circuit_constructor.num_gates)
@@ -57,23 +58,23 @@ class StandardHonkComposer {
 
     {}
 
-    StandardHonkComposer(std::shared_ptr<waffle::proving_key> const& p_key,
-                         std::shared_ptr<waffle::verification_key> const& v_key,
-                         size_t size_hint = 0)
+    StandardPlonkComposer(std::shared_ptr<waffle::proving_key> const& p_key,
+                          std::shared_ptr<waffle::verification_key> const& v_key,
+                          size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(p_key, v_key)
         , num_gates(circuit_constructor.num_gates)
         , variables(circuit_constructor.variables)
     {}
 
-    StandardHonkComposer(const StandardHonkComposer& other) = delete;
-    StandardHonkComposer(StandardHonkComposer&& other) = default;
-    StandardHonkComposer& operator=(const StandardHonkComposer& other) = delete;
+    StandardPlonkComposer(const StandardPlonkComposer& other) = delete;
+    StandardPlonkComposer(StandardPlonkComposer&& other) = default;
+    StandardPlonkComposer& operator=(const StandardPlonkComposer& other) = delete;
     // Todo(Cody): This constructor started to be implicitly deleted when I added `n` and `variables` members. This is a
     // temporary measure until we can rewrite Plonk and all tests using circuit builder methods in place of composer
     // methods, where appropriate.
-    // StandardHonkComposer& operator=(StandardHonkComposer&& other) = default;
-    ~StandardHonkComposer() = default;
+    // StandardPlonkComposer& operator=(StandardPlonkComposer&& other) = default;
+    ~StandardPlonkComposer() = default;
 
     size_t get_num_gates() const { return circuit_constructor.get_num_gates(); }
 
@@ -216,6 +217,15 @@ class StandardHonkComposer {
         return composer_helper.create_unrolled_prover<honk::StandardHonk>(circuit_constructor);
     };
 
+    static transcript::Manifest create_manifest(const size_t num_public_inputs)
+    {
+        return StandardPlonkComposerHelper<StandardCircuitConstructor>::create_manifest(num_public_inputs);
+    }
+
+    static transcript::Manifest create_unrolled_manifest(const size_t num_public_inputs)
+    {
+        return StandardPlonkComposerHelper<StandardCircuitConstructor>::create_unrolled_manifest(num_public_inputs);
+    }
     size_t& num_gates;
     std::vector<barretenberg::fr>& variables;
     bool failed() const { return circuit_constructor.failed(); };
