@@ -147,7 +147,7 @@ function(barretenberg_module MODULE_NAME)
         target_link_libraries(
             ${MODULE_NAME}_bench_objects
             PRIVATE
-            benchmark
+            benchmark::benchmark
             ${TBB_IMPORTED_TARGETS}
         )
 
@@ -162,7 +162,7 @@ function(barretenberg_module MODULE_NAME)
             PRIVATE
             ${MODULE_LINK_NAME}
             ${ARGN}
-            benchmark
+            benchmark::benchmark
             ${TBB_IMPORTED_TARGETS}
         )
 
