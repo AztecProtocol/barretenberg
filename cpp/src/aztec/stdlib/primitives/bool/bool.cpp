@@ -435,6 +435,12 @@ bool_t<ComposerContext> bool_t<ComposerContext>::implies(const bool_t<ComposerCo
     return (!(*this) || other); // P => Q is equiv. to !P || Q (not(P) or Q).
 }
 
+/**
+ *      (P => Q) && (P => R)
+ * <=>  (!P || Q) && (!P || R)
+ * <=>  !P || (Q && R)           [by distributivity of propositional logic]
+ * <=>  P => (Q && R)            [a.k.a. distribution of implication over conjunction]
+ */
 template <typename ComposerContext>
 void bool_t<ComposerContext>::must_imply(const bool_t& other, std::string const& msg) const
 {

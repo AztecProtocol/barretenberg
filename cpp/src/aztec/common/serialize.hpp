@@ -34,6 +34,7 @@
 #include <map>
 #include <iostream>
 #include <common/log.hpp>
+#include <optional>
 
 #ifndef __i386__
 __extension__ using uint128_t = unsigned __int128;
@@ -326,6 +327,8 @@ template <typename B, typename T> inline void read(B& it, std::optional<T>& opt_
 }
 
 // Write std::optional<T>.
+// Note: It takes up a different amount of space, depending on whether it's std::nullopt or populated with an actual
+// value.
 template <typename B, typename T> inline void write(B& buf, std::optional<T> const& opt_value)
 {
     if (opt_value) {

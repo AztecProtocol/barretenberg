@@ -260,9 +260,10 @@ template <typename ComposerContext> class field_t {
     void set_public() const { context->set_public_input(normalize().witness_index); }
 
     /**
-     * Create a witness form a constant. This way the value of the witness is fixed and public.
-     **/
-    void convert_constant_to_witness(ComposerContext* ctx)
+     * Create a witness form a constant. This way the value of the witness is fixed and public (public, because the
+     * value becomes hard-coded as an element of the q_c selector vector).
+     */
+    void convert_constant_to_fixed_witness(ComposerContext* ctx)
     {
         ASSERT(witness_index == IS_CONSTANT);
         context = ctx;
