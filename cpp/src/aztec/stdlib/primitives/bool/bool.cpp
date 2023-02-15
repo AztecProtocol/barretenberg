@@ -420,6 +420,15 @@ void bool_t<ComposerContext>::assert_equal(const bool_t& rhs, std::string const&
     }
 }
 
+// if predicate == true then return lhs, else return rhs
+template <typename ComposerContext>
+bool_t<ComposerContext> bool_t<ComposerContext>::conditional_assign(const bool_t<ComposerContext>& predicate,
+                                                                    const bool_t& lhs,
+                                                                    const bool_t& rhs)
+{
+    return (predicate && lhs) || (!predicate && rhs);
+}
+
 template <typename ComposerContext>
 bool_t<ComposerContext> bool_t<ComposerContext>::implies(const bool_t<ComposerContext>& other) const
 {

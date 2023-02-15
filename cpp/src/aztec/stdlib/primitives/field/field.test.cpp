@@ -241,6 +241,44 @@ template <typename Composer> class stdlib_field : public testing::Test {
         EXPECT_EQ(result, true);
     }
 
+    static void test_postfix_increment()
+    {
+        Composer composer = Composer();
+
+        field_ct a = witness_ct(&composer, 10);
+
+        field_ct b = a++;
+
+        EXPECT_EQ(b.get_value(), 10);
+        EXPECT_EQ(a.get_value(), 11);
+
+        auto prover = composer.create_prover();
+
+        auto verifier = composer.create_verifier();
+        waffle::plonk_proof proof = prover.construct_proof();
+        bool result = verifier.verify_proof(proof);
+        EXPECT_EQ(result, true);
+    }
+
+    static void test_prefix_increment()
+    {
+        Composer composer = Composer();
+
+        field_ct a = witness_ct(&composer, 10);
+
+        field_ct b = ++a;
+
+        EXPECT_EQ(b.get_value(), 11);
+        EXPECT_EQ(a.get_value(), 11);
+
+        auto prover = composer.create_prover();
+
+        auto verifier = composer.create_verifier();
+        waffle::plonk_proof proof = prover.construct_proof();
+        bool result = verifier.verify_proof(proof);
+        EXPECT_EQ(result, true);
+    }
+
     static void test_field_fibbonaci()
     {
         Composer composer = Composer();
@@ -579,7 +617,8 @@ template <typename Composer> class stdlib_field : public testing::Test {
 
         const uint256_t expected0 = uint256_t(a_) & ((uint256_t(1) << uint64_t(lsb)) - 1);
         const uint256_t expected1 = (uint256_t(a_) >> lsb) & ((uint256_t(1) << (uint64_t(msb - lsb) + 1)) - 1);
-        const uint256_t expected2 = (uint256_t(a_) >> (msb + 1)) & ((uint256_t(1) << (uint64_t(252 - msb) - 1)) - 1);
+        const uint256_t expected2 =
+            (uint256_t(a_) >> uint64_t(msb + 1)) & ((uint256_t(1) << (uint64_t(252 - msb) - 1)) - 1);
 
         EXPECT_EQ(slice[0].get_value(), fr(expected0));
         EXPECT_EQ(slice[1].get_value(), fr(expected1));
@@ -931,6 +970,14 @@ TYPED_TEST(stdlib_field, test_add_mul_with_constants)
 TYPED_TEST(stdlib_field, test_div)
 {
     TestFixture::test_div();
+}
+TYPED_TEST(stdlib_field, test_postfix_increment)
+{
+    TestFixture::test_postfix_increment();
+}
+TYPED_TEST(stdlib_field, test_prefix_increment)
+{
+    TestFixture::test_prefix_increment();
 }
 TYPED_TEST(stdlib_field, test_field_fibbonaci)
 {
