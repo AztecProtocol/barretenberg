@@ -34,8 +34,8 @@ namespace honk::sumcheck {
  *                  = ∏_{0≤k<l} ( (1-iₖ) + iₖ⋅ζₖ )
  *                             ⋅( (1−Xₗ) + Xₗ⋅ζₗ )
  *                    ∏_{l<k<d} ( (1-uₖ) + uₖ⋅ζₖ )
- *                  = ζ^{2^{d-l-1}}^{i} ⋅ ( (1−Xₗ) + Xₗ⋅ζₗ ) ⋅ cₗ
- *                  = ζ_{   l-1   }^{i} ⋅ ( (1−Xₗ) + Xₗ⋅ζₗ ) ⋅ cₗ,
+ *                  = ζ^{2^{d-l}}^{i} ⋅ ( (1−Xₗ) + Xₗ⋅ζₗ ) ⋅ cₗ
+ *                  = ζ_{  l-1  }^{i} ⋅ ( (1−Xₗ) + Xₗ⋅ζₗ ) ⋅ cₗ,
  *
  *   This is the pow polynomial, partially evaluated in
  *     (X_{l+1}, ..., X_{d-1}) = (u_{l+1}, ..., u_{d-1}),
@@ -77,11 +77,12 @@ namespace honk::sumcheck {
  * - ζ_{l-1} <-- ζ_{l}^2                                // Get next power of ζ
  *
  * Final round l=0:
- * - σ_{1} =?= S'⁰(0) + S'⁰(1) = T⁰(0) + ζ_{0}⋅T⁰(1)                            // Check partial sum
- * - σ_{0} <-- ( (1−u_{0}) + u_{0}⋅ζ_{0} )⋅T⁰(u_{0})                            // Compute purported evaluation of P'(u)
- * - c_{0} <-- ∏_{0≤l<d} ( (1-u_{l}) + u_{l}⋅ζ_{l} ) = pow(u_{0}, ..., u_{d-1}) // Full evaluation of pow
- * - σ_{0} =?= c_{0}⋅P(u_{0}, ..., u_{d-1})                                     // Compare against real evaluation of
- * P'(u)
+ * - σ_{1} =?= S'⁰(0) + S'⁰(1) = T⁰(0) + ζ_{0}⋅T⁰(1)    // Check partial sum
+ * - σ_{0} <-- ( (1−u_{0}) + u_{0}⋅ζ_{0} )⋅T⁰(u_{0})    // Compute purported evaluation of P'(u)
+ * - c_{0} <-- ∏_{0≤l<d} ( (1-u_{l}) + u_{l}⋅ζ_{l} )
+ *           = pow(u_{0}, ..., u_{d-1})                 // Full evaluation of pow
+ * - σ_{0} =?= c_{0}⋅P(u_{0}, ..., u_{d-1})             // Compare against real evaluation of P'(u)
+ * @todo(Adrian): Eventually re-index polynomials with LSB first, and also rework the unicode symbols
  */
 template <typename FF> struct PowUnivariate {
     // ζ_{l}, initialized as ζ_{d-1} = ζ

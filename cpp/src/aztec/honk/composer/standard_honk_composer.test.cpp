@@ -12,8 +12,6 @@
 #include <cstdint>
 #include <gtest/gtest.h>
 
-#pragma GCC diagnostic ignored "-Wunused-variable"
-
 using namespace honk;
 
 namespace test_standard_honk_composer {
@@ -338,7 +336,6 @@ TEST(standard_honk_composer, test_check_sumcheck_relations_correctness)
     // Generate beta and gamma
     fr beta = fr::random_element();
     fr gamma = fr::random_element();
-    fr zeta = fr::random_element();
 
     // Compute grand product polynomial (now all the necessary polynomials are inside the proving key)
     prover.compute_grand_product_polynomial(beta, gamma);
@@ -346,14 +343,6 @@ TEST(standard_honk_composer, test_check_sumcheck_relations_correctness)
     // Compute public input delta
     const auto public_inputs = composer.circuit_constructor.get_public_inputs();
     auto public_input_delta = compute_public_input_delta<fr>(public_inputs, beta, gamma, prover.key->circuit_size);
-
-    sumcheck::RelationParameters<fr> params{
-        .zeta = zeta,
-        .alpha = fr::one(),
-        .beta = beta,
-        .gamma = gamma,
-        .public_input_delta = public_input_delta,
-    };
 
     constexpr size_t num_polynomials = bonk::StandardArithmetization::NUM_POLYNOMIALS;
     // Retrieve polynomials from proving key
