@@ -86,6 +86,9 @@ if(WASM)
         $<TARGET_OBJECTS:stdlib_pedersen_commitment_objects>
         $<TARGET_OBJECTS:stdlib_blake2s_objects>
         $<TARGET_OBJECTS:stdlib_blake3s_objects>
+        $<TARGET_OBJECTS:stdlib_sha256_objects>
+        $<TARGET_OBJECTS:stdlib_aes128_objects>
+        $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
     )
 
     # With binaryen installed, it seems its wasm backend optimiser gets invoked automatically.
