@@ -74,8 +74,8 @@ fn main() {
     // env::set_var("LIBCLANG_PATH", "/usr/lib/llvm-15/lib");
     // env::set_var("LIBCLANG_STATIC_PATH", "/usr/lib/llvm-15/lib");
     // env::set_var("CLANG_PATH", "/usr/bin/clang-15");
-    env::set_var("CMAKE_C_COMPILER", "/usr/bin/clang-15");
-    env::set_var("CMAKE_CXX_COMPILER", "/usr/bin/clang++-15");
+    // env::set_var("CMAKE_C_COMPILER", "/usr/bin/clang-15");
+    // env::set_var("CMAKE_CXX_COMPILER", "/usr/bin/clang++-15");
 
     // Select toolchain
     let toolchain = select_toolchain();
@@ -93,7 +93,8 @@ fn main() {
         .cxxflag("-fPIE")
         .env("NUM_JOBS", num_cpus::get().to_string())
         .define("TOOLCHAIN", toolchain)
-        .define("TESTING", "OFF")
+        .define("TESTING", "ON")
+        .define("BENCHMARKS", "OFF")
         .define("DISABLE_ASM", "ON")
         .define("DISABLE_ADX", "ON")
         .define("CMAKE_C_COMPILER", "/usr/bin/clang-15")
