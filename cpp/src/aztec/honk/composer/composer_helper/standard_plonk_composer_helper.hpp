@@ -9,6 +9,8 @@
 #include <proof_system/verification_key/verification_key.hpp>
 #include <plonk/proof_system/verifier/verifier.hpp>
 #include <proof_system/composer/composer_base.hpp>
+#include "composer_helper_lib.hpp"
+#include "permutation_helper.hpp"
 
 #include <utility>
 
@@ -44,22 +46,31 @@ template <typename CircuitConstructor> class StandardPlonkComposerHelper {
         : circuit_proving_key(std::move(p_key))
         , circuit_verification_key(std::move(v_key))
     {}
-    StandardPlonkComposerHelper(ComposerHelper&& other) noexcept = default;
-    StandardPlonkComposerHelper(const ComposerHelper& other) = delete;
-    StandardPlonkComposerHelper& operator=(ComposerHelper&& other) noexcept = default;
-    StandardPlonkComposerHelper& operator=(const ComposerHelper& other) = delete;
+    StandardPlonkComposerHelper(StandardPlonkComposerHelper&& other) noexcept = default;
+    StandardPlonkComposerHelper(const StandardPlonkComposerHelper& other) = delete;
+    StandardPlonkComposerHelper& operator=(StandardPlonkComposerHelper&& other) noexcept = default;
+    StandardPlonkComposerHelper& operator=(const StandardPlonkComposerHelper& other) = delete;
     ~StandardPlonkComposerHelper() = default;
 
-    void add_recursive_proof(const std::vector<uint32_t>& proof_output_witness_indices)
+    inline std::vector<SelectorProperties> standard_selector_properties()
     {
+        std::vector<SelectorProperties> result{
+            { "q_m", false }, { "q_c", false }, { "q_1", false }, { "q_2", false }, { "q_3", false },
+        };
+        return result;
+    }
+    void add_recursive_proof(CircuitConstructor& circuit_constructor,
+                             const std::vector<uint32_t>& proof_output_witness_indices)
+    {
+
         if (contains_recursive_proof) {
-            failure("added recursive proof when one already exists");
+            circuit_constructor.failure("added recursive proof when one already exists");
         }
         contains_recursive_proof = true;
 
         for (const auto& idx : proof_output_witness_indices) {
-            set_public_input(idx);
-            recursive_proof_public_input_indices.push_back((uint32_t)(public_inputs.size() - 1));
+            circuit_constructor.set_public_input(idx);
+            recursive_proof_public_input_indices.push_back((uint32_t)(circuit_constructor.public_inputs.size() - 1));
         }
     }
     std::shared_ptr<waffle::proving_key> compute_proving_key(const CircuitConstructor& circuit_constructor);
@@ -91,7 +102,6 @@ template <typename CircuitConstructor> class StandardPlonkComposerHelper {
     // Cody: Where should this go? In the flavor (or whatever that becomes)?
     std::shared_ptr<waffle::proving_key> compute_proving_key_base(
         const CircuitConstructor& circuit_constructor,
-        const waffle::ComposerType composer_type,
         const size_t minimum_ciricut_size = 0,
         const size_t num_randomized_gates = NUM_RANDOMIZED_GATES);
     // This needs to be static as it may be used only to compute the selector commitments.
@@ -145,7 +155,7 @@ template <typename CircuitConstructor> class StandardPlonkComposerHelper {
                       { "z_perm_omega", fr_size, false, -1 },
                   },
                   "nu",
-                  STANDARD_UNROLLED_MANIFEST_SIZE - 6,
+                  waffle::STANDARD_UNROLLED_MANIFEST_SIZE - 6,
                   true),
 
               transcript::Manifest::RoundManifest(
@@ -222,7 +232,7 @@ template <typename CircuitConstructor> class StandardPlonkComposerHelper {
                     { .name = "z_perm_omega", .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = -1 },
                 },
                 /* challenge_name = */ "nu",
-                /* num_challenges_in = */ STANDARD_UNROLLED_MANIFEST_SIZE,
+                /* num_challenges_in = */ waffle::STANDARD_UNROLLED_MANIFEST_SIZE,
                 /* map_challenges_in = */ true),
 
               // Round 6

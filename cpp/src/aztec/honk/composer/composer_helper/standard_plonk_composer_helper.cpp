@@ -1,5 +1,4 @@
 #include "standard_plonk_composer_helper.hpp"
-#include "permutation_helper.hpp"
 #include <polynomials/polynomial.hpp>
 #include <proof_system/flavor/flavor.hpp>
 #include <honk/pcs/commitment_key.hpp>
@@ -29,43 +28,15 @@ template <typename CircuitConstructor>
 std::shared_ptr<waffle::proving_key> StandardPlonkComposerHelper<CircuitConstructor>::compute_proving_key_base(
     const CircuitConstructor& constructor, const size_t minimum_circuit_size, const size_t num_randomized_gates)
 {
-    const size_t num_gates = constructor.num_gates;
-    std::span<const uint32_t> public_inputs = constructor.public_inputs;
-
-    const size_t num_public_inputs = public_inputs.size();
-    const size_t num_constraints = num_gates + num_public_inputs;
-    const size_t total_num_constraints = std::max(minimum_circuit_size, num_constraints);
-    const size_t subgroup_size =
-        constructor.get_circuit_subgroup_size(total_num_constraints + num_randomized_gates); // next power of 2
-
-    auto crs = crs_factory_->get_prover_crs(subgroup_size + 1);
 
     // Initialize circuit_proving_key
     // TODO: replace composer types.
-    circuit_proving_key = std::make_shared<waffle::proving_key>(
-        subgroup_size, num_public_inputs, crs, waffle::ComposerType::STANDARD_HONK);
-
-    for (size_t j = 0; j < constructor.num_selectors; ++j) {
-        std::span<const barretenberg::fr> selector_values = constructor.selectors[j];
-        ASSERT(num_gates == selector_values.size());
-
-        // Compute selector vector, initialized to 0.
-        // Copy the selector values for all gates, keeping the rows at which we store public inputs as 0.
-        // Initializing the polynomials in this way automatically applies 0-padding to the selectors.
-        polynomial selector_poly_lagrange(subgroup_size);
-        for (size_t i = 0; i < num_gates; ++i) {
-            selector_poly_lagrange[num_public_inputs + i] = selector_values[i];
-        }
-        // TODO(Adrian): We may want to add a unique value (e.g. j+1) in the last position of each selector polynomial
-        // to guard against some edge cases that may occur during the MSM.
-        // If we do so, we should ensure that this does not clash with any other values we want to place at the end of
-        // of the witness vectors.
-        // In later iterations of the Sumcheck, we will be able to efficiently cancel out any checks in the last 2^k
-        // rows, so any randomness or unique values should be placed there.
-
-        circuit_proving_key->polynomial_cache.put(constructor.selector_names_[j] + "_lagrange",
-                                                  std::move(selector_poly_lagrange));
-    }
+    circuit_proving_key = initialize_proving_key(
+        constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, waffle::ComposerType::STANDARD);
+    // Compute lagrange selectors
+    put_selectors_in_polynomial_cache(constructor, circuit_proving_key.get());
+    // Compute selectors in monomial form
+    compute_monomial_selector_forms_and_put_into_cache(circuit_proving_key.get(), standard_selector_properties());
 
     return circuit_proving_key;
 }
@@ -81,36 +52,8 @@ std::shared_ptr<waffle::verification_key> StandardPlonkComposerHelper<
     CircuitConstructor>::compute_verification_key_base(std::shared_ptr<waffle::proving_key> const& proving_key,
                                                        std::shared_ptr<waffle::VerifierReferenceString> const& vrs)
 {
-    auto circuit_verification_key = std::make_shared<waffle::verification_key>(
-        proving_key->circuit_size, proving_key->num_public_inputs, vrs, proving_key->composer_type);
-    // TODO(kesha): Dirty hack for now. Need to actually make commitment-agnositc
-    auto commitment_key = pcs::kzg::CommitmentKey(proving_key->circuit_size, "../srs_db/ignition");
 
-    for (size_t i = 0; i < proving_key->polynomial_manifest.size(); ++i) {
-        const auto& poly_info = proving_key->polynomial_manifest[i];
-
-        const std::string poly_label(poly_info.polynomial_label);
-        const std::string selector_commitment_label(poly_info.commitment_label);
-
-        if (poly_info.source == waffle::PolynomialSource::SELECTOR ||
-            poly_info.source == waffle::PolynomialSource::PERMUTATION ||
-            poly_info.source == waffle::PolynomialSource::OTHER) {
-            // Fetch the polynomial in its vector form.
-
-            fr* poly_coefficients;
-            poly_coefficients = proving_key->polynomial_cache.get(poly_label).get_coefficients();
-
-            // Commit to the constraint selector polynomial and insert the commitment in the verification key.
-
-            auto poly_commitment = commitment_key.commit({ poly_coefficients, proving_key->circuit_size });
-            circuit_verification_key->commitments.insert({ selector_commitment_label, poly_commitment });
-        }
-    }
-
-    // Set the polynomial manifest in verification key.
-    circuit_verification_key->polynomial_manifest = waffle::PolynomialManifest(proving_key->composer_type);
-
-    return circuit_verification_key;
+    return compute_verification_key_base_common(proving_key, vrs);
 }
 
 /**
@@ -127,53 +70,12 @@ template <size_t program_width>
 void StandardPlonkComposerHelper<CircuitConstructor>::compute_witness_base(
     const CircuitConstructor& circuit_constructor, const size_t minimum_circuit_size)
 {
+
     if (computed_witness) {
         return;
     }
-    const size_t num_gates = circuit_constructor.num_gates;
-    std::span<const uint32_t> public_inputs = circuit_constructor.public_inputs;
-    const size_t num_public_inputs = public_inputs.size();
-
-    const size_t num_constraints = std::max(minimum_circuit_size, num_gates + num_public_inputs);
-    // TODO(Adrian): Not a fan of specifying NUM_RANDOMIZED_GATES everywhere,
-    // Each flavor of Honk should have a "fixed" number of random places to add randomness to.
-    // It should be taken care of in as few places possible.
-    const size_t subgroup_size = circuit_constructor.get_circuit_subgroup_size(num_constraints + NUM_RANDOMIZED_GATES);
-
-    // construct a view over all the wire's variable indices
-    // w[j][i] is the index of the variable in the j-th wire, at gate i
-    // Each array should be of size `num_gates`
-    std::array<std::span<const uint32_t>, program_width> w;
-    w[0] = circuit_constructor.w_l;
-    w[1] = circuit_constructor.w_r;
-    w[2] = circuit_constructor.w_o;
-    if constexpr (program_width > 3) {
-        w[3] = circuit_constructor.w_4;
-    }
-
-    // Note: randomness is added to 3 of the last 4 positions in plonk/proof_system/prover/prover.cpp
-    // StandardProverBase::execute_preamble_round().
-    for (size_t j = 0; j < program_width; ++j) {
-        // Initialize the polynomial with all the actual copies variable values
-        // Expect all values to be set to 0 initially
-        polynomial w_lagrange(subgroup_size);
-
-        // Place all public inputs at the start of w_l and w_r.
-        // All selectors at these indices are set to 0 so these values are not constrained at all.
-        if ((j == 0) || (j == 1)) {
-            for (size_t i = 0; i < num_public_inputs; ++i) {
-                w_lagrange[i] = circuit_constructor.get_variable(public_inputs[i]);
-            }
-        }
-
-        // Assign the variable values (which are pointed-to by the `w_` wires) to the wire witness polynomials
-        // `poly_w_`, shifted to make room for the public inputs at the beginning.
-        for (size_t i = 0; i < num_gates; ++i) {
-            w_lagrange[num_public_inputs + i] = circuit_constructor.get_variable(w[j][i]);
-        }
-        std::string index = std::to_string(j + 1);
-        circuit_proving_key->polynomial_cache.put("w_" + index + "_lagrange", std::move(w_lagrange));
-    }
+    compute_witness_base_common(
+        circuit_constructor, minimum_circuit_size, NUM_RANDOMIZED_GATES, circuit_proving_key.get());
 
     computed_witness = true;
 }
@@ -196,12 +98,13 @@ std::shared_ptr<waffle::proving_key> StandardPlonkComposerHelper<CircuitConstruc
     StandardPlonkComposerHelper::compute_proving_key_base(circuit_constructor, waffle::ComposerType::STANDARD_HONK);
 
     // Compute sigma polynomials (we should update that late)
-    compute_standard_honk_sigma_permutations<CircuitConstructor::program_width>(circuit_constructor,
-                                                                                circuit_proving_key.get());
-    compute_standard_honk_id_polynomials<CircuitConstructor::program_width>(circuit_proving_key.get());
+    compute_standard_plonk_sigma_permutations<CircuitConstructor::program_width>(circuit_constructor,
+                                                                                 circuit_proving_key.get());
 
-    compute_first_and_last_lagrange_polynomials(circuit_proving_key.get());
-
+    circuit_proving_key->recursive_proof_public_input_indices =
+        std::vector<uint32_t>(recursive_proof_public_input_indices.begin(), recursive_proof_public_input_indices.end());
+    // What does this line do exactly?
+    circuit_proving_key->contains_recursive_proof = contains_recursive_proof;
     return circuit_proving_key;
 }
 
