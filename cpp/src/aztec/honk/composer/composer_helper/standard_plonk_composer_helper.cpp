@@ -3,6 +3,9 @@
 #include <proof_system/flavor/flavor.hpp>
 #include <honk/pcs/commitment_key.hpp>
 #include <numeric/bitop/get_msb.hpp>
+#include <plonk/proof_system/widgets/transition_widgets/arithmetic_widget.hpp>
+#include <plonk/proof_system/widgets/random_widgets/permutation_widget.hpp>
+#include <plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp>
 
 #include <cstddef>
 #include <cstdint>
@@ -127,6 +130,9 @@ std::shared_ptr<waffle::verification_key> StandardPlonkComposerHelper<CircuitCon
     circuit_verification_key = StandardPlonkComposerHelper::compute_verification_key_base(
         circuit_proving_key, crs_factory_->get_verifier_crs());
     circuit_verification_key->composer_type = circuit_proving_key->composer_type;
+    circuit_verification_key->recursive_proof_public_input_indices =
+        std::vector<uint32_t>(recursive_proof_public_input_indices.begin(), recursive_proof_public_input_indices.end());
+    circuit_verification_key->contains_recursive_proof = contains_recursive_proof;
 
     return circuit_verification_key;
 }
@@ -139,39 +145,33 @@ std::shared_ptr<waffle::verification_key> StandardPlonkComposerHelper<CircuitCon
  * */
 // TODO(Cody): This should go away altogether.
 template <typename CircuitConstructor>
-StandardVerifier StandardPlonkComposerHelper<CircuitConstructor>::create_verifier(
+waffle::Verifier StandardPlonkComposerHelper<CircuitConstructor>::create_verifier(
     const CircuitConstructor& circuit_constructor)
 {
     auto verification_key = compute_verification_key(circuit_constructor);
-    // TODO figure out types, actually
-    // circuit_verification_key->composer_type = type;
 
-    // TODO: initialize verifier according to manifest and key
-    // Verifier output_state(circuit_verification_key, create_manifest(public_inputs.size()));
-    StandardVerifier output_state;
-    // TODO: Do we need a commitment scheme defined here?
-    // std::unique_ptr<KateCommitmentScheme<standard_settings>> kate_commitment_scheme =
-    //    std::make_unique<KateCommitmentScheme<standard_settings>>();
+    waffle::Verifier output_state(circuit_verification_key, create_manifest(circuit_constructor.public_inputs.size()));
 
-    // output_state.commitment_scheme = std::move(kate_commitment_scheme);
+    std::unique_ptr<waffle::KateCommitmentScheme<waffle::standard_settings>> kate_commitment_scheme =
+        std::make_unique<waffle::KateCommitmentScheme<waffle::standard_settings>>();
+
+    output_state.commitment_scheme = std::move(kate_commitment_scheme);
 
     return output_state;
 }
 
 template <typename CircuitConstructor>
-StandardUnrolledVerifier StandardPlonkComposerHelper<CircuitConstructor>::create_unrolled_verifier(
+waffle::UnrolledVerifier StandardPlonkComposerHelper<CircuitConstructor>::create_unrolled_verifier(
     const CircuitConstructor& circuit_constructor)
 {
     compute_verification_key(circuit_constructor);
-    StandardUnrolledVerifier output_state(
-        circuit_verification_key,
-        honk::StandardHonk::create_unrolled_manifest(circuit_constructor.public_inputs.size(),
-                                                     numeric::get_msb(circuit_verification_key->circuit_size)));
+    waffle::UnrolledVerifier output_state(circuit_verification_key,
+                                          create_unrolled_manifest(circuit_constructor.public_inputs.size()));
 
-    // TODO(Cody): This should be more generic
-    auto kate_verification_key = std::make_unique<pcs::kzg::VerificationKey>("../srs_db/ignition");
+    std::unique_ptr<waffle::KateCommitmentScheme<waffle::unrolled_standard_settings>> kate_commitment_scheme =
+        std::make_unique<waffle::KateCommitmentScheme<waffle::unrolled_standard_settings>>();
 
-    output_state.kate_verification_key = std::move(kate_verification_key);
+    output_state.commitment_scheme = std::move(kate_commitment_scheme);
 
     return output_state;
 }
@@ -179,21 +179,27 @@ StandardUnrolledVerifier StandardPlonkComposerHelper<CircuitConstructor>::create
 template <typename CircuitConstructor>
 template <typename Flavor>
 // TODO(Cody): this file should be generic with regard to flavor/arithmetization/whatever.
-StandardUnrolledProver StandardPlonkComposerHelper<CircuitConstructor>::create_unrolled_prover(
+waffle::UnrolledProver StandardPlonkComposerHelper<CircuitConstructor>::create_unrolled_prover(
     const CircuitConstructor& circuit_constructor)
 {
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
 
-    size_t num_sumcheck_rounds(circuit_proving_key->log_circuit_size);
-    auto manifest = Flavor::create_unrolled_manifest(circuit_constructor.public_inputs.size(), num_sumcheck_rounds);
-    StandardUnrolledProver output_state(circuit_proving_key, manifest);
+    waffle::UnrolledProver output_state(circuit_proving_key,
+                                        create_unrolled_manifest(circuit_constructor.public_inputs.size()));
 
-    // TODO(Cody): This should be more generic
-    std::unique_ptr<pcs::kzg::CommitmentKey> kate_commitment_key =
-        std::make_unique<pcs::kzg::CommitmentKey>(circuit_proving_key->circuit_size, "../srs_db/ignition");
+    std::unique_ptr<waffle::ProverPermutationWidget<3, false>> permutation_widget =
+        std::make_unique<waffle::ProverPermutationWidget<3, false>>(circuit_proving_key.get());
+    std::unique_ptr<waffle::ProverArithmeticWidget<waffle::unrolled_standard_settings>> arithmetic_widget =
+        std::make_unique<waffle::ProverArithmeticWidget<waffle::unrolled_standard_settings>>(circuit_proving_key.get());
 
-    output_state.commitment_key = std::move(kate_commitment_key);
+    output_state.random_widgets.emplace_back(std::move(permutation_widget));
+    output_state.transition_widgets.emplace_back(std::move(arithmetic_widget));
+
+    std::unique_ptr<waffle::KateCommitmentScheme<waffle::unrolled_standard_settings>> kate_commitment_scheme =
+        std::make_unique<waffle::KateCommitmentScheme<waffle::unrolled_standard_settings>>();
+
+    output_state.commitment_scheme = std::move(kate_commitment_scheme);
 
     return output_state;
 }
@@ -207,7 +213,7 @@ StandardUnrolledProver StandardPlonkComposerHelper<CircuitConstructor>::create_u
  * @return Initialized prover.
  * */
 template <typename CircuitConstructor>
-StandardProver StandardPlonkComposerHelper<CircuitConstructor>::create_prover(
+waffle::Prover StandardPlonkComposerHelper<CircuitConstructor>::create_prover(
     const CircuitConstructor& circuit_constructor)
 {
     // Compute q_l, etc. and sigma polynomials.
@@ -215,30 +221,27 @@ StandardProver StandardPlonkComposerHelper<CircuitConstructor>::create_prover(
 
     // Compute witness polynomials.
     compute_witness(circuit_constructor);
-    // TODO: Initialize prover properly
-    // Prover output_state(circuit_proving_key, create_manifest(public_inputs.size()));
-    StandardProver output_state(circuit_proving_key);
-    // Initialize constraints
 
-    // std::unique_ptr<ProverPermutationWidget<3, false>> permutation_widget =
-    //     std::make_unique<ProverPermutationWidget<3, false>>(circuit_proving_key.get());
+    waffle::Prover output_state(circuit_proving_key, create_manifest(circuit_constructor.public_inputs.size()));
 
-    // std::unique_ptr<ProverArithmeticWidget<standard_settings>> arithmetic_widget =
-    //     std::make_unique<ProverArithmeticWidget<standard_settings>>(circuit_proving_key.get());
+    std::unique_ptr<waffle::ProverPermutationWidget<3, false>> permutation_widget =
+        std::make_unique<waffle::ProverPermutationWidget<3, false>>(circuit_proving_key.get());
 
-    // output_state.random_widgets.emplace_back(std::move(permutation_widget));
-    // output_state.transition_widgets.emplace_back(std::move(arithmetic_widget));
+    std::unique_ptr<waffle::ProverArithmeticWidget<waffle::standard_settings>> arithmetic_widget =
+        std::make_unique<waffle::ProverArithmeticWidget<waffle::standard_settings>>(circuit_proving_key.get());
 
-    // Is commitment scheme going to stay a part of the prover? Why is it here?
-    // std::unique_ptr<KateCommitmentScheme<standard_settings>> kate_commitment_scheme =
-    //    std::make_unique<KateCommitmentScheme<standard_settings>>();
+    output_state.random_widgets.emplace_back(std::move(permutation_widget));
+    output_state.transition_widgets.emplace_back(std::move(arithmetic_widget));
 
-    // output_state.commitment_scheme = std::move(kate_commitment_scheme);
+    std::unique_ptr<waffle::KateCommitmentScheme<waffle::standard_settings>> kate_commitment_scheme =
+        std::make_unique<waffle::KateCommitmentScheme<waffle::standard_settings>>();
+
+    output_state.commitment_scheme = std::move(kate_commitment_scheme);
 
     return output_state;
 }
 
 template class StandardPlonkComposerHelper<StandardCircuitConstructor>;
-template StandardUnrolledProver StandardPlonkComposerHelper<StandardCircuitConstructor>::create_unrolled_prover<
+template waffle::UnrolledProver StandardPlonkComposerHelper<StandardCircuitConstructor>::create_unrolled_prover<
     StandardHonk>(const StandardCircuitConstructor& circuit_constructor);
 } // namespace honk

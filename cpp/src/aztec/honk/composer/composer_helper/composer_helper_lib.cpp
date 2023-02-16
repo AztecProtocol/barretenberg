@@ -81,7 +81,9 @@ void compute_monomial_selector_forms_and_put_into_cache(waffle::proving_key* cir
 {
     for (size_t i = 0; i < selector_properties.size(); i++) {
         // Compute monomial form of selector polynomial
-        auto& selector_poly_lagrange = circuit_proving_key->polynomial_cache.get(selector_properties[i].name);
+
+        auto& selector_poly_lagrange =
+            circuit_proving_key->polynomial_cache.get(selector_properties[i].name + "_lagrange");
         barretenberg::polynomial selector_poly(circuit_proving_key->circuit_size);
         barretenberg::polynomial_arithmetic::ifft(
             &selector_poly_lagrange[0], &selector_poly[0], circuit_proving_key->small_domain);

@@ -15,7 +15,7 @@ namespace honk {
  */
 class StandardPlonkComposer {
   public:
-    static constexpr waffle::ComposerType type = waffle::ComposerType::STANDARD_HONK;
+    static constexpr waffle::ComposerType type = waffle::ComposerType::STANDARD;
 
     static constexpr size_t UINT_LOG2_BASE = 2;
     // An instantiation of the circuit constructor that only depends on arithmetization, not  on the proof system
@@ -189,7 +189,7 @@ class StandardPlonkComposer {
 
     void compute_witness() { composer_helper.compute_witness(circuit_constructor); };
     // TODO(Cody): This will not be needed, but maybe something is required for ComposerHelper to be generic?
-    StandardUnrolledVerifier create_verifier() { return composer_helper.create_unrolled_verifier(circuit_constructor); }
+    waffle::Verifier create_verifier() { return composer_helper.create_verifier(circuit_constructor); }
     /**
      * Preprocess the circuit. Delegates to create_prover.
      *
@@ -200,19 +200,13 @@ class StandardPlonkComposer {
      *
      * @return A new initialized prover.
      */
-    StandardUnrolledProver preprocess()
-    {
-        return composer_helper.create_unrolled_prover<honk::StandardHonk>(circuit_constructor);
-    };
-    StandardUnrolledProver create_prover()
-    {
-        return composer_helper.create_unrolled_prover<honk::StandardHonk>(circuit_constructor);
-    };
-    StandardUnrolledVerifier create_unrolled_verifier()
+    waffle::Prover preprocess() { return composer_helper.create_prover(circuit_constructor); };
+    waffle::Prover create_prover() { return composer_helper.create_prover(circuit_constructor); };
+    waffle::UnrolledVerifier create_unrolled_verifier()
     {
         return composer_helper.create_unrolled_verifier(circuit_constructor);
     }
-    StandardUnrolledProver create_unrolled_prover()
+    waffle::UnrolledProver create_unrolled_prover()
     {
         return composer_helper.create_unrolled_prover<honk::StandardHonk>(circuit_constructor);
     };

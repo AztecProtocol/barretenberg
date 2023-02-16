@@ -2,8 +2,8 @@
 
 #include <srs/reference_string/file_reference_string.hpp>
 #include <proof_system/proving_key/proving_key.hpp>
-#include <honk/proof_system/prover.hpp>
-#include <honk/proof_system/verifier.hpp>
+#include <plonk/proof_system/prover/prover.hpp>
+#include <plonk/proof_system/verifier/verifier.hpp>
 #include <honk/circuit_constructors/standard_circuit_constructor.hpp>
 #include <honk/pcs/commitment_key.hpp>
 #include <proof_system/verification_key/verification_key.hpp>
@@ -81,23 +81,22 @@ template <typename CircuitConstructor> class StandardPlonkComposerHelper {
         compute_witness_base<program_width>(circuit_constructor);
     }
 
-    StandardVerifier create_verifier(const CircuitConstructor& circuit_constructor);
+    waffle::Verifier create_verifier(const CircuitConstructor& circuit_constructor);
     /**
      * Preprocess the circuit. Delegates to create_prover.
      *
      * @return A new initialized prover.
      */
-    StandardProver preprocess(const CircuitConstructor& circuit_constructor)
+    waffle::Prover preprocess(const CircuitConstructor& circuit_constructor)
     {
         return create_prover(circuit_constructor);
     };
-    StandardProver create_prover(const CircuitConstructor& circuit_constructor);
+    waffle::Prover create_prover(const CircuitConstructor& circuit_constructor);
 
-    StandardUnrolledVerifier create_unrolled_verifier(const CircuitConstructor& circuit_constructor);
+    waffle::UnrolledVerifier create_unrolled_verifier(const CircuitConstructor& circuit_constructor);
 
     template <typename Flavor>
-    StandardUnrolledProver create_unrolled_prover(const CircuitConstructor& circuit_constructor);
-
+    waffle::UnrolledProver create_unrolled_prover(const CircuitConstructor& circuit_constructor);
     // TODO(Adrian): Seems error prone to provide the number of randomized gates
     // Cody: Where should this go? In the flavor (or whatever that becomes)?
     std::shared_ptr<waffle::proving_key> compute_proving_key_base(

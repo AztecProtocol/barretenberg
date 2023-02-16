@@ -1,3 +1,4 @@
+#pragma once
 #include <proof_system/proving_key/proving_key.hpp>
 #include <proof_system/verification_key/verification_key.hpp>
 #include <polynomials/polynomial_arithmetic.hpp>
