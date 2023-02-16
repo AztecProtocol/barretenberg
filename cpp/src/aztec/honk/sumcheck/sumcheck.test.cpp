@@ -19,8 +19,6 @@
 #include <sys/types.h>
 #include <vector>
 
-#pragma GCC diagnostic ignored "-Wunused-variable"
-
 using namespace honk;
 using namespace honk::sumcheck;
 

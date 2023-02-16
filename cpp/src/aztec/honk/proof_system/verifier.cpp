@@ -22,8 +22,6 @@
 #include <honk/sumcheck/relations/grand_product_computation_relation.hpp>
 #include <honk/sumcheck/relations/grand_product_initialization_relation.hpp>
 
-#pragma GCC diagnostic ignored "-Wunused-variable"
-
 using namespace barretenberg;
 using namespace honk::sumcheck;
 
@@ -173,7 +171,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
         std::string label(entry.polynomial_label);
         std::string commitment_label(entry.commitment_label);
         auto evaluation = evals_map[label];
-        Commitment commitment = Commitment::one(); // initialize to make gcc happy
+        Commitment commitment = Commitment::one();
 
         switch (entry.source) {
         case waffle::WITNESS: {

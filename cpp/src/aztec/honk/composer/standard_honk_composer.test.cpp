@@ -12,8 +12,6 @@
 #include <cstdint>
 #include <gtest/gtest.h>
 
-#pragma GCC diagnostic ignored "-Wunused-variable"
-
 using namespace honk;
 
 namespace test_standard_honk_composer {
