@@ -18,7 +18,7 @@
 namespace honk {
 // TODO(Kesha): change initializations to specify this parameter
 // Cody: What does this mean?
-template <typename CircuitConstructor> class ComposerHelper {
+template <typename CircuitConstructor> class StandardHonkComposerHelper {
   public:
     static constexpr size_t NUM_RANDOMIZED_GATES = 2; // equal to the number of multilinear evaluations leaked
     static constexpr size_t program_width = CircuitConstructor::program_width;
@@ -28,26 +28,27 @@ template <typename CircuitConstructor> class ComposerHelper {
     // TODO(kesha): we need to put this into the commitment key, so that the composer doesn't have to handle srs at all
     std::shared_ptr<bonk::ReferenceStringFactory> crs_factory_;
     bool computed_witness = false;
-    ComposerHelper()
-        : ComposerHelper(
-              std::shared_ptr<bonk::ReferenceStringFactory>(new bonk::FileReferenceStringFactory("../srs_db/ignition")))
+    StandardHonkComposerHelper()
+        : StandardHonkComposerHelper(std::shared_ptr<waffle::ReferenceStringFactory>(
+              new waffle::FileReferenceStringFactory("../srs_db/ignition")))
     {}
-    ComposerHelper(std::shared_ptr<bonk::ReferenceStringFactory> crs_factory)
+    StandardHonkComposerHelper(std::shared_ptr<waffle::ReferenceStringFactory> crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
 
-    ComposerHelper(std::unique_ptr<bonk::ReferenceStringFactory>&& crs_factory)
+    StandardHonkComposerHelper(std::unique_ptr<waffle::ReferenceStringFactory>&& crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
-    ComposerHelper(std::shared_ptr<bonk::proving_key> p_key, std::shared_ptr<bonk::verification_key> v_key)
+    StandardHonkComposerHelper(std::shared_ptr<waffle::proving_key> p_key,
+                               std::shared_ptr<waffle::verification_key> v_key)
         : circuit_proving_key(std::move(p_key))
         , circuit_verification_key(std::move(v_key))
     {}
-    ComposerHelper(ComposerHelper&& other) noexcept = default;
-    ComposerHelper(const ComposerHelper& other) = delete;
-    ComposerHelper& operator=(ComposerHelper&& other) noexcept = default;
-    ComposerHelper& operator=(const ComposerHelper& other) = delete;
-    ~ComposerHelper() = default;
+    StandardHonkComposerHelper(StandardHonkComposerHelper&& other) noexcept = default;
+    StandardHonkComposerHelper(const StandardHonkComposerHelper& other) = delete;
+    StandardHonkComposerHelper& operator=(StandardHonkComposerHelper&& other) noexcept = default;
+    StandardHonkComposerHelper& operator=(const StandardHonkComposerHelper& other) = delete;
+    ~StandardHonkComposerHelper() = default;
 
     std::shared_ptr<bonk::proving_key> compute_proving_key(const CircuitConstructor& circuit_constructor);
     std::shared_ptr<bonk::verification_key> compute_verification_key(const CircuitConstructor& circuit_constructor);

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "composer_helper/honk_composer_helper.hpp"
+#include "composer_helper/standard_honk_composer_helper.hpp"
 #include <honk/circuit_constructors/standard_circuit_constructor.hpp>
 #include <srs/reference_string/file_reference_string.hpp>
 #include <transcript/manifest.hpp>
@@ -24,7 +24,7 @@ class StandardHonkComposer {
     // 1) Proving and verification keys
     // 2) CRS
     // 3) Converting variables to witness vectors/polynomials
-    ComposerHelper<StandardCircuitConstructor> composer_helper;
+    StandardHonkComposerHelper<StandardCircuitConstructor> composer_helper;
 
     // Leaving it in for now just in case
     bool contains_recursive_proof = false;
