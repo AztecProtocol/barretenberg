@@ -5,7 +5,7 @@
 ### Dependencies
 
 - cmake >= 3.24
-- clang >= 10 or gcc >= 10
+- clang >= 10
 - clang-format
 - libomp (if multithreading is required. Multithreading can be disabled using the compiler flag `-DMULTITHREADING 0`)
 

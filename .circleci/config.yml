@@ -103,17 +103,6 @@ jobs:
           name: "Build"
           command: cond_spot_run_build barretenberg-wasm-linux-clang 64
 
-  x86_64-linux-gcc:
-    docker:
-      - image: aztecprotocol/alpine-build-image
-    resource_class: small
-    steps:
-      - *checkout
-      - *setup_env
-      - run:
-          name: "Build"
-          command: cond_spot_run_build barretenberg-x86_64-linux-gcc 64
-
   x86_64-linux-clang:
     docker:
       - image: aztecprotocol/alpine-build-image
@@ -243,7 +232,6 @@ bb_test: &bb_test
 workflows:
   system:
     jobs:
-      - x86_64-linux-gcc
       - x86_64-linux-clang
       - x86_64-linux-clang-assert
       - wasm-linux-clang

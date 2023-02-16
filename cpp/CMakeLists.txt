@@ -72,12 +72,8 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "10")
         message(WARNING "Clang <10 is not supported")
     endif()
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS "10")
-        message(WARNING "GCC <10 is not supported")
-    endif()
-else() 
-    message(WARNING "Unsuported compiler, use Clang >10 or GCC >10")
+else()
+    message(WARNING "Unsuported compiler, use Clang >10")
 endif()
 
 if(COVERAGE)
@@ -107,13 +103,13 @@ if(COVERAGE)
 
     # Add profiling compile options and disable optimisations
     add_compile_options(-fprofile-instr-generate -fcoverage-mapping -O0)
-    
+
     # Add a custom target for creating the report
     add_custom_target(create_full_coverage_report
     COMMAND "${CMAKE_SOURCE_DIR}/scripts/collect_coverage_information.sh" ${PROFDATA_EXECUTABLE} ${COV_EXECUTABLE}
     VERBATIM
     )
-endif() 
+endif()
 
 
 include(cmake/build.cmake)
