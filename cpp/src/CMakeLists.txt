@@ -76,10 +76,14 @@ if(WASM)
         $<TARGET_OBJECTS:crypto_keccak_objects>
         $<TARGET_OBJECTS:crypto_schnorr_objects>
         $<TARGET_OBJECTS:crypto_generators_objects>
+        $<TARGET_OBJECTS:crypto_pedersen_hash_objects>
         $<TARGET_OBJECTS:crypto_pedersen_commitment_objects>
         $<TARGET_OBJECTS:ecc_objects>
         $<TARGET_OBJECTS:polynomials_objects>
         $<TARGET_OBJECTS:plonk_objects>
+        $<TARGET_OBJECTS:honk_objects>
+        $<TARGET_OBJECTS:transcript_objects>
+        $<TARGET_OBJECTS:proof_system_objects>
         $<TARGET_OBJECTS:stdlib_primitives_objects>
         $<TARGET_OBJECTS:stdlib_schnorr_objects>
         $<TARGET_OBJECTS:stdlib_pedersen_hash_objects>
@@ -88,6 +92,9 @@ if(WASM)
         $<TARGET_OBJECTS:stdlib_blake3s_objects>
         $<TARGET_OBJECTS:acir_format_objects>
         $<TARGET_OBJECTS:turbo_proofs_objects>
+        $<TARGET_OBJECTS:stdlib_sha256_objects>
+        $<TARGET_OBJECTS:stdlib_aes128_objects>
+        $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
     )
 
     # With binaryen installed, it seems its wasm backend optimiser gets invoked automatically.
@@ -131,11 +138,15 @@ if(WASM)
         $<TARGET_OBJECTS:crypto_blake3s_objects>
         $<TARGET_OBJECTS:crypto_keccak_objects>
         $<TARGET_OBJECTS:crypto_schnorr_objects>
+        $<TARGET_OBJECTS:crypto_generators_objects>
         $<TARGET_OBJECTS:crypto_pedersen_hash_objects>
         $<TARGET_OBJECTS:crypto_pedersen_commitment_objects>
         $<TARGET_OBJECTS:ecc_objects>
         $<TARGET_OBJECTS:polynomials_objects>
         $<TARGET_OBJECTS:plonk_objects>
+        $<TARGET_OBJECTS:honk_objects>
+        $<TARGET_OBJECTS:transcript_objects>
+        $<TARGET_OBJECTS:proof_system_objects>
         $<TARGET_OBJECTS:stdlib_primitives_objects>
         $<TARGET_OBJECTS:stdlib_schnorr_objects>
         $<TARGET_OBJECTS:stdlib_pedersen_hash_objects>
@@ -162,11 +173,15 @@ else()
         $<TARGET_OBJECTS:crypto_blake3s_objects>
         $<TARGET_OBJECTS:crypto_keccak_objects>
         $<TARGET_OBJECTS:crypto_schnorr_objects>
+        $<TARGET_OBJECTS:crypto_generators_objects>
         $<TARGET_OBJECTS:crypto_pedersen_hash_objects>
         $<TARGET_OBJECTS:crypto_pedersen_commitment_objects>
         $<TARGET_OBJECTS:ecc_objects>
         $<TARGET_OBJECTS:polynomials_objects>
         $<TARGET_OBJECTS:plonk_objects>
+        $<TARGET_OBJECTS:honk_objects>
+        $<TARGET_OBJECTS:transcript_objects>
+        $<TARGET_OBJECTS:proof_system_objects>
         $<TARGET_OBJECTS:stdlib_primitives_objects>
         $<TARGET_OBJECTS:stdlib_schnorr_objects>
         $<TARGET_OBJECTS:stdlib_pedersen_hash_objects>
