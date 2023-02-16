@@ -10,6 +10,7 @@
 #include "../field/field.hpp"
 #include "./bigfield.hpp"
 #include "honk/composer/standard_honk_composer.hpp"
+#include "honk/composer/standard_plonk_composer.hpp"
 
 #include <stdlib/primitives/curves/bn254.hpp>
 #include <plonk/proof_system/prover/prover.hpp>
@@ -859,9 +860,12 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
 };
 
 // Define types for which the above tests will be constructed.
-typedef testing::
-    Types<waffle::UltraComposer, waffle::TurboComposer, waffle::StandardComposer, honk::StandardHonkComposer>
-        ComposerTypes;
+typedef testing::Types<waffle::UltraComposer,
+                       waffle::TurboComposer,
+                       waffle::StandardComposer,
+                       honk::StandardHonkComposer,
+                       honk::StandardPlonkComposer>
+    ComposerTypes;
 
 // Define the suite of tests.
 TYPED_TEST_SUITE(stdlib_bigfield, ComposerTypes);
