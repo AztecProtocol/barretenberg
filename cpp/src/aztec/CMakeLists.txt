@@ -39,6 +39,7 @@ add_subdirectory(plonk)
 add_subdirectory(stdlib)
 add_subdirectory(rollup)
 add_subdirectory(lagrange_base_gen)
+add_subdirectory(dsl)
 
 if(BENCHMARKS)
     add_subdirectory(benchmark)

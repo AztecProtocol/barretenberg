@@ -1,0 +1,13 @@
+# This ensures Clang (instead of GCC) is used as a linker on Linux.
+# See https://github.com/rust-lang/rust/issues/71515#issuecomment-935020057
+# These should apply when used as a library, as per
+# https://doc.rust-lang.org/cargo/reference/config.html#hierarchical-structure
+[target.x86_64-unknown-linux-gnu]
+# rustflags = ["-C", "linker=clang-15"]
+# rustflags = ["-C", "linker=clang", "-C", "link-arg=-fuse-ld=lld"]
+[target.aarch64-unknown-linux-gnu]
+# rustflags = ["-C", "linker=clang", "-C", "link-arg=-fuse-ld=lld"]
+# rustflags = ["-C", "linker=clang-15"]
+
+# [features]
+# clang_15_0 = []
