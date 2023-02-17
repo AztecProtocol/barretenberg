@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <ecc/curves/bn254/fr.hpp>
+#include <common/serialize.hpp>
 
 namespace bonk {
 struct add_triple {
@@ -56,7 +57,48 @@ struct poly_triple {
     barretenberg::fr q_r;
     barretenberg::fr q_o;
     barretenberg::fr q_c;
+
+    friend bool operator==(poly_triple const& lhs, poly_triple const& rhs)
+    {
+        // clang-format off
+    return
+        lhs.a == rhs.a &&
+        lhs.b == rhs.b &&
+        lhs.c == rhs.c &&
+        lhs.q_m == rhs.q_m &&
+        lhs.q_l == rhs.q_l &&
+        lhs.q_r == rhs.q_r &&
+        lhs.q_o == rhs.q_o &&
+        lhs.q_c == rhs.q_c;
+        // clang-format on
+    }
 };
+
+template <typename B> inline void read(B& buf, poly_triple& constraint)
+{
+    using serialize::read;
+    read(buf, constraint.a);
+    read(buf, constraint.b);
+    read(buf, constraint.c);
+    read(buf, constraint.q_m);
+    read(buf, constraint.q_l);
+    read(buf, constraint.q_r);
+    read(buf, constraint.q_o);
+    read(buf, constraint.q_c);
+}
+
+template <typename B> inline void write(B& buf, poly_triple const& constraint)
+{
+    using serialize::write;
+    write(buf, constraint.a);
+    write(buf, constraint.b);
+    write(buf, constraint.c);
+    write(buf, constraint.q_m);
+    write(buf, constraint.q_l);
+    write(buf, constraint.q_r);
+    write(buf, constraint.q_o);
+    write(buf, constraint.q_c);
+}
 
 struct fixed_group_add_quad {
     uint32_t a;
