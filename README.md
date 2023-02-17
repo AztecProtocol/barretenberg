@@ -92,8 +92,11 @@ CMake can be passed various build options on its command line:
 - `-DMULTITHREADING=ON | OFF`: Enable/disable multithreading using OpenMP.
 - `-DTESTING=ON | OFF`: Enable/disable building of tests.
 - `-DBENCHMARK=ON | OFF`: Enable/disable building of benchmarks.
-- `-DTOOLCHAIN=<filename in ./cmake/toolchains>`: Use one of the preconfigured toolchains.
 - `-DFUZZING=ON | OFF`: Enable building various fuzzers.
+
+If you are cross-compiling, you can use a preconfigured toolchain file:
+
+- `-DCMAKE_TOOLCHAIN_FILE=<filename in ./cmake/toolchains>`: Use one of the preconfigured toolchains.
 
 ### WASM build
 
