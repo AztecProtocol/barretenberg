@@ -270,7 +270,7 @@ point<C> variable_base_mul(const point<C>& pub_key, const point<C>& current_accu
  * @details TurboPlonk: ~10850 gates (~4k for variable_base_mul, ~6k for blake2s) for a string of length < 32.
  */
 template <typename C>
-void verify_signature(const byte_array<C>& message, const point<C>& pub_key, const signature_bits<C>& sig)
+bool verify_signature(const byte_array<C>& message, const point<C>& pub_key, const signature_bits<C>& sig)
 {
     // Compute [s]g, where s = (s_lo, s_hi) and g = G1::one.
     point<C> R_1 = group<C>::fixed_base_scalar_mul(sig.s_lo, sig.s_hi);
@@ -296,6 +296,13 @@ void verify_signature(const byte_array<C>& message, const point<C>& pub_key, con
     field_t<C> output_lo(output.slice(16, 16));
     output_lo.assert_equal(sig.e_lo, "verify signature failed");
     output_hi.assert_equal(sig.e_hi, "verify signature failed");
+
+    // This is not secure because we want to constrain the
+    // `valid` variable to the two equalities below and not
+    // just return the value.
+    bool valid = (output_lo.get_value() == sig.e_lo.get_value());
+    valid = valid && (output_hi.get_value() == sig.e_hi.get_value());
+    return valid;
 }
 
 template wnaf_record<waffle::TurboComposer> convert_field_into_wnaf<waffle::TurboComposer>(
@@ -313,10 +320,10 @@ template point<waffle::TurboComposer> variable_base_mul<waffle::TurboComposer>(
     const point<waffle::TurboComposer>&,
     const wnaf_record<waffle::TurboComposer>&);
 
-template void verify_signature<waffle::TurboComposer>(const byte_array<waffle::TurboComposer>&,
+template bool verify_signature<waffle::TurboComposer>(const byte_array<waffle::TurboComposer>&,
                                                       const point<waffle::TurboComposer>&,
                                                       const signature_bits<waffle::TurboComposer>&);
-template void verify_signature<waffle::UltraComposer>(const byte_array<waffle::UltraComposer>&,
+template bool verify_signature<waffle::UltraComposer>(const byte_array<waffle::UltraComposer>&,
                                                       const point<waffle::UltraComposer>&,
                                                       const signature_bits<waffle::UltraComposer>&);
 
