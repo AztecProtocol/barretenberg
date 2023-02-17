@@ -77,9 +77,9 @@ void ProverPermutationWidget<program_width, idpolys, num_roots_cut_out_of_vanish
     barretenberg::fr beta = fr::serialize_from_buffer(transcript.get_challenge("beta").begin());
     barretenberg::fr gamma = fr::serialize_from_buffer(transcript.get_challenge("beta", 1).begin());
 
-    std::array<std::span<fr>, program_width> lagrange_base_wires;
-    std::array<std::span<fr>, program_width> lagrange_base_sigmas;
-    [[maybe_unused]] std::array<std::span<fr>, program_width> lagrange_base_ids;
+    std::array<std::span<const fr>, program_width> lagrange_base_wires;
+    std::array<std::span<const fr>, program_width> lagrange_base_sigmas;
+    [[maybe_unused]] std::array<std::span<const fr>, program_width> lagrange_base_ids;
 
     for (size_t i = 0; i < program_width; ++i) {
         lagrange_base_wires[i] = key->polynomial_cache.get("w_" + std::to_string(i + 1) + "_lagrange");
@@ -377,9 +377,9 @@ barretenberg::fr ProverPermutationWidget<program_width, idpolys, num_roots_cut_o
     // (w_l(X) + β.σ_1(X) + γ).(w_r(X) + β.σ_2(X) + γ).(w_o(X) + β.σ_3(X) + γ).z(X).α
     // Once we divide by the vanishing polynomial, this will be a degree 3n polynomial. (4 * (n-1) - (n-4)).
 
-    std::array<std::span<fr>, program_width> wire_ffts;
-    std::array<std::span<fr>, program_width> sigma_ffts;
-    [[maybe_unused]] std::array<std::span<fr>, program_width> id_ffts;
+    std::array<std::span<const fr>, program_width> wire_ffts;
+    std::array<std::span<const fr>, program_width> sigma_ffts;
+    [[maybe_unused]] std::array<std::span<const fr>, program_width> id_ffts;
 
     for (size_t i = 0; i < program_width; ++i) {
 

@@ -61,8 +61,7 @@ template <typename settings> void Prover<settings>::compute_wire_commitments()
         std::string wire_tag = "w_" + std::to_string(i + 1) + "_lagrange";
         std::string commit_tag = "W_" + std::to_string(i + 1);
 
-        std::span<Fr> wire_polynomial = key->polynomial_cache.get(wire_tag);
-        auto commitment = commitment_key->commit(wire_polynomial);
+        auto commitment = commitment_key->commit(key->polynomial_cache.get(wire_tag));
 
         transcript.add_element(commit_tag, commitment.to_buffer());
     }
@@ -109,8 +108,8 @@ void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, b
     }
 
     // Populate wire and permutation polynomials
-    std::array<std::span<Fr>, program_width> wires;
-    std::array<std::span<Fr>, program_width> sigmas;
+    std::array<std::span<const Fr>, program_width> wires;
+    std::array<std::span<const Fr>, program_width> sigmas;
     for (size_t i = 0; i < program_width; ++i) {
         std::string wire_id = "w_" + std::to_string(i + 1) + "_lagrange";
         std::string sigma_id = "sigma_" + std::to_string(i + 1) + "_lagrange";
@@ -269,9 +268,8 @@ template <typename settings> void Prover<settings>::execute_grand_product_comput
     auto beta = transcript.get_challenge_field_element("beta", 0);
     auto gamma = transcript.get_challenge_field_element("beta", 1);
     compute_grand_product_polynomial(beta, gamma);
-    std::span<Fr> z_perm = key->polynomial_cache.get("z_perm_lagrange");
     // The actual polynomial is of length n+1, but commitment key is just n, so we need to limit it
-    auto commitment = commitment_key->commit(z_perm);
+    auto commitment = commitment_key->commit(key->polynomial_cache.get("z_perm_lagrange"));
     transcript.add_element("Z_PERM", commitment.to_buffer());
 }
 

@@ -54,9 +54,9 @@ void ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>::compute_sor
     transcript::StandardTranscript& transcript)
 {
     barretenberg::polynomial s_accum(key->polynomial_cache.get("s_1_lagrange"));
-    std::span<fr> s_2 = key->polynomial_cache.get("s_2_lagrange");
-    std::span<fr> s_3 = key->polynomial_cache.get("s_3_lagrange");
-    std::span<fr> s_4 = key->polynomial_cache.get("s_4_lagrange");
+    std::span<const fr> s_2 = key->polynomial_cache.get("s_2_lagrange");
+    std::span<const fr> s_3 = key->polynomial_cache.get("s_3_lagrange");
+    std::span<const fr> s_4 = key->polynomial_cache.get("s_4_lagrange");
 
     // Get challenge η
     const auto eta = fr::serialize_from_buffer(transcript.get_challenge("eta", 0).begin());
