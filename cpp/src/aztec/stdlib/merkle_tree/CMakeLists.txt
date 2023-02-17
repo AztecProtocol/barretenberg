@@ -4,21 +4,31 @@ if(NOT WASM)
         leveldb
         GIT_REPOSITORY https://github.com/google/leveldb.git
         GIT_TAG 1.22
+        FIND_PACKAGE_ARGS
     )
 
-    FetchContent_GetProperties(leveldb)
-    if(NOT leveldb_POPULATED)
-        FetchContent_Populate(leveldb)
         set(LEVELDB_BUILD_TESTS OFF CACHE BOOL "LevelDB tests off")
-        add_subdirectory(${leveldb_SOURCE_DIR} ${leveldb_BINARY_DIR} EXCLUDE_FROM_ALL)
-    endif()
+    set(LEVELDB_BUILD_BENCHMARKS OFF CACHE BOOL "LevelDB benchmarks off")
 
-    # Silence all compiler warnings from LevelDB
+    FetchContent_MakeAvailable(leveldb)
+
+    if (leveldb_SOURCE_DIR AND leveldb_BINARY_DIR)
+        set_property(DIRECTORY ${leveldb_SOURCE_DIR} PROPERTY EXCLUDE_FROM_ALL)
+        set_property(DIRECTORY ${leveldb_BINARY_DIR} PROPERTY EXCLUDE_FROM_ALL)
+
     target_compile_options(
         leveldb
         PRIVATE
-        -w
+            -Wno-unknown-warning-option
+            -Wno-unused-but-set-variable
+            -Wno-sign-conversion
+            -Wno-unused-parameter
+            -Wno-shorten-64-to-32
+            -Wno-implicit-int-conversion
+            -Wno-conversion
+            -Wno-implicit-fallthrough
     )
+    endif()
 
     link_libraries(leveldb)
 endif()

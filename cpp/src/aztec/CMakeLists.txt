@@ -40,6 +40,7 @@ add_subdirectory(stdlib)
 add_subdirectory(rollup)
 add_subdirectory(lagrange_base_gen)
 add_subdirectory(dsl)
+add_subdirectory(bb)
 
 if(BENCHMARKS)
     add_subdirectory(benchmark)
