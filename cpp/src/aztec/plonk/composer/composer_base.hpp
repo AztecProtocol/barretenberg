@@ -132,6 +132,7 @@ class ComposerBase {
     virtual void create_bool_gate(const uint32_t a) = 0;
     virtual void create_poly_gate(const poly_triple& in) = 0;
     virtual size_t get_num_constant_gates() const = 0;
+    virtual void copy_from_to(const uint32_t from_idx, const uint32_t to_idx);
 
     /**
      * Get the index of the first variable in class.
