@@ -5,6 +5,7 @@ add_compile_options(-Werror -Wall -Wextra -Wconversion -Wsign-conversion -Wno-de
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-Wno-unguarded-availability-new -Wno-c99-extensions -fconstexpr-steps=100000000)
+
     if(MEMORY_CHECKS)
         message(STATUS "Compiling with memory checks.")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
@@ -39,6 +40,7 @@ add_subdirectory(plonk)
 add_subdirectory(stdlib)
 add_subdirectory(rollup)
 add_subdirectory(lagrange_base_gen)
+add_subdirectory(standard_format)
 
 if(BENCHMARKS)
     add_subdirectory(benchmark)
@@ -67,12 +69,17 @@ if(WASM)
         $<TARGET_OBJECTS:stdlib_schnorr_objects>
         $<TARGET_OBJECTS:stdlib_pedersen_objects>
         $<TARGET_OBJECTS:stdlib_blake2s_objects>
+
         # TODO: remove all except those needed for testing (join_split)
         $<TARGET_OBJECTS:rollup_proofs_inner_proof_data_objects>
         $<TARGET_OBJECTS:rollup_proofs_notes_objects>
         $<TARGET_OBJECTS:rollup_proofs_account_objects>
         $<TARGET_OBJECTS:rollup_proofs_join_split_objects>
         $<TARGET_OBJECTS:rollup_proofs_claim_objects>
+
+        # Needed for Noir
+        $<TARGET_OBJECTS:standard_format_objects>
+        $<TARGET_OBJECTS:rollup_proofs_standard_example_objects>
     )
 
     # With binaryen installed, it seems its wasm backend optimiser gets invoked automatically.
@@ -97,6 +104,7 @@ if(WASM)
         barretenberg.wasm
         DEPENDS ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/barretenberg.wasm
     )
+
     # For use when compiling dependent cpp projects for WASM
     message(STATUS "Compiling all-in-one barretenberg WASM archive")
     add_library(
@@ -120,6 +128,10 @@ if(WASM)
         $<TARGET_OBJECTS:stdlib_sha256_objects>
         $<TARGET_OBJECTS:stdlib_aes128_objects>
         $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
+
+        # Needed for Noir
+        $<TARGET_OBJECTS:standard_format_objects>
+        $<TARGET_OBJECTS:rollup_proofs_standard_example_objects>
     )
 
 else()
@@ -152,5 +164,9 @@ else()
         $<TARGET_OBJECTS:stdlib_aes128_objects>
         $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
         $<TARGET_OBJECTS:env_objects>
+
+        # Needed for Noir
+        $<TARGET_OBJECTS:standard_format_objects>
+        $<TARGET_OBJECTS:rollup_proofs_standard_example_objects>
     )
 endif()
