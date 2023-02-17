@@ -29,10 +29,6 @@ cd cpp
 ./bootstrap.sh
 ```
 
-### Parallelise the build
-
-Use the `--parallel` option to `cmake --build <path>` to parallelize builds. This is roughly equivalent to `make -j$(nproc)` but is more portable.
-
 ### Formatting
 
 Code is formatted using `clang-format` and the `./cpp/format.sh` script which is called via a git pre-commit hook.
