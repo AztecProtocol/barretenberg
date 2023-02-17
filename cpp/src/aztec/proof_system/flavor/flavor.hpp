@@ -4,6 +4,7 @@
 #include <transcript/manifest.hpp>
 
 #define STANDARD_HONK_WIDTH 3
+#define TURBO_WIDTH 4
 // TODO(Cody): "bonk" is short for "both plonk and honk". Just need a short and non-vague temporary name.
 namespace bonk {
 struct StandardArithmetization {
