@@ -270,7 +270,7 @@ point<C> variable_base_mul(const point<C>& pub_key, const point<C>& current_accu
  * @details TurboPlonk: ~10850 gates (~4k for variable_base_mul, ~6k for blake2s) for a string of length < 32.
  */
 template <typename C>
-void verify_signature(const byte_array<C>& message, const point<C>& pub_key, const signature_bits<C>& sig)
+bool verify_signature(const byte_array<C>& message, const point<C>& pub_key, const signature_bits<C>& sig)
 {
     // Compute [s]g, where s = (s_lo, s_hi) and g = G1::one.
     point<C> R_1 = group<C>::fixed_base_scalar_mul(sig.s_lo, sig.s_hi);
@@ -295,6 +295,13 @@ void verify_signature(const byte_array<C>& message, const point<C>& pub_key, con
     field_t<C> output_lo(output.slice(16, 16));
     output_lo.assert_equal(sig.e_lo, "verify signature failed");
     output_hi.assert_equal(sig.e_hi, "verify signature failed");
+
+    // This is not secure because we want to constrain the
+    // `valid` variable to the two equalities below and not
+    // just return the value.
+    bool valid = (output_lo.get_value() == sig.e_lo.get_value());
+    valid = valid && (output_hi.get_value() == sig.e_hi.get_value());
+    return valid;
 }
 
 template wnaf_record<plonk::TurboComposer> convert_field_into_wnaf<plonk::TurboComposer>(
@@ -311,10 +318,10 @@ template point<plonk::TurboComposer> variable_base_mul<plonk::TurboComposer>(con
                                                                              const point<plonk::TurboComposer>&,
                                                                              const wnaf_record<plonk::TurboComposer>&);
 
-template void verify_signature<plonk::TurboComposer>(const byte_array<plonk::TurboComposer>&,
+template bool verify_signature<plonk::TurboComposer>(const byte_array<plonk::TurboComposer>&,
                                                      const point<plonk::TurboComposer>&,
                                                      const signature_bits<plonk::TurboComposer>&);
-template void verify_signature<plonk::UltraComposer>(const byte_array<plonk::UltraComposer>&,
+template bool verify_signature<plonk::UltraComposer>(const byte_array<plonk::UltraComposer>&,
                                                      const point<plonk::UltraComposer>&,
                                                      const signature_bits<plonk::UltraComposer>&);
 

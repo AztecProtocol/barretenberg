@@ -33,7 +33,7 @@ point<C> variable_base_mul(const point<C>& pub_key, const field_t<C>& low_bits, 
 template <typename C> signature_bits<C> convert_signature(C* context, const crypto::schnorr::signature& sig);
 
 template <typename C>
-void verify_signature(const byte_array<C>& message, const point<C>& pub_key, const signature_bits<C>& sig);
+bool verify_signature(const byte_array<C>& message, const point<C>& pub_key, const signature_bits<C>& sig);
 
 extern template point<plonk::TurboComposer> variable_base_mul<plonk::TurboComposer>(
     const point<plonk::TurboComposer>&, const point<plonk::TurboComposer>&, const wnaf_record<plonk::TurboComposer>&);
@@ -48,10 +48,10 @@ extern template wnaf_record<plonk::TurboComposer> convert_field_into_wnaf<plonk:
 extern template wnaf_record<plonk::UltraComposer> convert_field_into_wnaf<plonk::UltraComposer>(
     plonk::UltraComposer* context, const field_t<plonk::UltraComposer>& limb);
 
-extern template void verify_signature<plonk::TurboComposer>(const byte_array<plonk::TurboComposer>&,
+extern template bool verify_signature<plonk::TurboComposer>(const byte_array<plonk::TurboComposer>&,
                                                             const point<plonk::TurboComposer>&,
                                                             const signature_bits<plonk::TurboComposer>&);
-extern template void verify_signature<plonk::UltraComposer>(const byte_array<plonk::UltraComposer>&,
+extern template bool verify_signature<plonk::UltraComposer>(const byte_array<plonk::UltraComposer>&,
                                                             const point<plonk::UltraComposer>&,
                                                             const signature_bits<plonk::UltraComposer>&);
 
