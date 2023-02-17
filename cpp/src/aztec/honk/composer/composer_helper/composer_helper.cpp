@@ -166,6 +166,8 @@ void ComposerHelper<CircuitConstructor>::compute_witness_base(const CircuitConst
         for (size_t i = 0; i < num_gates; ++i) {
             w_lagrange[num_public_inputs + i] = circuit_constructor.get_variable(w[j][i]);
         }
+        // Add wires to witness_polynomials (eventually move rather than copy)
+        witness_polynomials.emplace_back(w_lagrange);
         std::string index = std::to_string(j + 1);
         circuit_proving_key->polynomial_cache.put("w_" + index + "_lagrange", std::move(w_lagrange));
     }
@@ -278,7 +280,7 @@ StandardUnrolledProver ComposerHelper<CircuitConstructor>::create_unrolled_prove
 
     size_t num_sumcheck_rounds(circuit_proving_key->log_circuit_size);
     auto manifest = Flavor::create_unrolled_manifest(circuit_constructor.public_inputs.size(), num_sumcheck_rounds);
-    StandardUnrolledProver output_state(circuit_proving_key, manifest);
+    StandardUnrolledProver output_state(witness_polynomials, circuit_proving_key, manifest);
 
     // TODO(Cody): This should be more generic
     std::unique_ptr<pcs::kzg::CommitmentKey> kate_commitment_key =
@@ -307,7 +309,7 @@ StandardProver ComposerHelper<CircuitConstructor>::create_prover(const CircuitCo
     compute_witness(circuit_constructor);
     // TODO: Initialize prover properly
     // Prover output_state(circuit_proving_key, create_manifest(public_inputs.size()));
-    StandardProver output_state(circuit_proving_key);
+    StandardProver output_state(witness_polynomials, circuit_proving_key);
     // Initialize constraints
 
     // std::unique_ptr<ProverPermutationWidget<3, false>> permutation_widget =

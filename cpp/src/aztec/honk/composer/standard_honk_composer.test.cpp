@@ -432,26 +432,24 @@ TEST(standard_honk_composer, test_check_sumcheck_relations_correctness)
         L_first_univariate.value_at(0) = L_first[i];
         StandardUnivariate L_last_univariate(0);
         L_last_univariate.value_at(0) = L_last[i];
-        sumcheck_typed_polynomial_vector.push_back({
-            w_1_univariate,
-            w_2_univariate,
-            w_3_univariate,
-            z_perm_univariate,
-            z_perm_shift_univariate,
-            q_m_univariate,
-            q_1_univariate,
-            q_2_univariate,
-            q_3_univariate,
-            q_c_univariate,
-            sigma_1_univariate,
-            sigma_2_univariate,
-            sigma_3_univariate,
-            id_1_univariate,
-            id_2_univariate,
-            id_3_univariate,
-            L_first_univariate,
-            L_last_univariate,
-        });
+        sumcheck_typed_polynomial_vector.push_back({ w_1_univariate,
+                                                     w_2_univariate,
+                                                     w_3_univariate,
+                                                     z_perm_univariate,
+                                                     q_m_univariate,
+                                                     q_1_univariate,
+                                                     q_2_univariate,
+                                                     q_3_univariate,
+                                                     q_c_univariate,
+                                                     sigma_1_univariate,
+                                                     sigma_2_univariate,
+                                                     sigma_3_univariate,
+                                                     id_1_univariate,
+                                                     id_2_univariate,
+                                                     id_3_univariate,
+                                                     L_first_univariate,
+                                                     L_last_univariate,
+                                                     z_perm_shift_univariate });
     }
     // Check all relations at all indices
     for (size_t i = 0; i < prover.key->circuit_size; i++) {

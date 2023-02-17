@@ -10,6 +10,7 @@
 #include "honk/pcs/gemini/gemini.hpp"
 #include "honk/pcs/kzg/kzg.hpp"
 #include "numeric/bitop/get_msb.hpp"
+#include "proof_system/flavor/flavor.hpp"
 #include "proof_system/polynomial_cache/polynomial_cache.hpp"
 #include <ecc/curves/bn254/fq12.hpp>
 #include <ecc/curves/bn254/pairing.hpp>
@@ -157,44 +158,69 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
 
     // Get vector of multivariate evaluations produced by Sumcheck
     auto multivariate_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
-    std::unordered_map<std::string, barretenberg::fr> evals_map;
-    size_t eval_idx = 0;
-    for (auto& entry : key->polynomial_manifest.get()) {
-        std::string label(entry.polynomial_label);
-        evals_map[label] = multivariate_evaluations[eval_idx++];
-        if (entry.requires_shifted_evaluation) {
-            evals_map[label + "_shift"] = multivariate_evaluations[eval_idx++];
-        }
-    }
 
-    // Reconstruct Gemini opening claims and polynomials from the transcript/verification_key
-    for (auto& entry : key->polynomial_manifest.get()) {
-        std::string label(entry.polynomial_label);
-        std::string commitment_label(entry.commitment_label);
-        auto evaluation = evals_map[label];
-        Commitment commitment = Commitment::one(); // initialize to make gcc happy
+    Commitment commitment = Commitment::one();
+    Fr evaluation = Fr::one();
 
-        switch (entry.source) {
-        case bonk::WITNESS: {
-            commitment = transcript.get_group_element(commitment_label);
-            break;
-        }
-        case bonk::SELECTOR:
-        case bonk::PERMUTATION:
-        case bonk::OTHER: {
-            commitment = key->commitments[commitment_label];
-            break;
-        }
-        }
+    // Construct non-shifted witness claims
+    commitment = transcript.get_group_element("W_1");
+    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::W_L];
+    opening_claims.emplace_back(commitment, evaluation);
+    commitment = transcript.get_group_element("W_2");
+    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::W_R];
+    opening_claims.emplace_back(commitment, evaluation);
+    commitment = transcript.get_group_element("W_3");
+    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::W_O];
+    opening_claims.emplace_back(commitment, evaluation);
+    commitment = transcript.get_group_element("Z_PERM");
+    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::Z_PERM];
+    opening_claims.emplace_back(commitment, evaluation);
 
-        opening_claims.emplace_back(commitment, evaluation);
-        if (entry.requires_shifted_evaluation) {
-            // Note: For a polynomial p for which we need the shift p_shift, we provide Gemini with the SHIFTED
-            // evaluation p_shift(u), but the UNSHIFTED commitment [p].
-            auto shifted_evaluation = evals_map[label + "_shift"];
-            opening_claims_shifted.emplace_back(commitment, shifted_evaluation);
-        }
-    }
+    // Construct (non-shifted) precomputed poly claims
+    commitment = key->commitments["Q_M"];
+    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::Q_M];
+    opening_claims.emplace_back(commitment, evaluation);
+    commitment = key->commitments["Q_1"];
+    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::Q_L];
+    opening_claims.emplace_back(commitment, evaluation);
+    commitment = key->commitments["Q_2"];
+    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::Q_R];
+    opening_claims.emplace_back(commitment, evaluation);
+    commitment = key->commitments["Q_3"];
+    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::Q_O];
+    opening_claims.emplace_back(commitment, evaluation);
+    commitment = key->commitments["Q_C"];
+    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::Q_C];
+    opening_claims.emplace_back(commitment, evaluation);
+    commitment = key->commitments["SIGMA_1"];
+    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::SIGMA_1];
+    opening_claims.emplace_back(commitment, evaluation);
+    commitment = key->commitments["SIGMA_2"];
+    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::SIGMA_2];
+    opening_claims.emplace_back(commitment, evaluation);
+    commitment = key->commitments["SIGMA_3"];
+    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::SIGMA_3];
+    opening_claims.emplace_back(commitment, evaluation);
+    commitment = key->commitments["ID_1"];
+    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::ID_1];
+    opening_claims.emplace_back(commitment, evaluation);
+    commitment = key->commitments["ID_2"];
+    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::ID_2];
+    opening_claims.emplace_back(commitment, evaluation);
+    commitment = key->commitments["ID_3"];
+    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::ID_3];
+    opening_claims.emplace_back(commitment, evaluation);
+    commitment = key->commitments["LAGRANGE_FIRST"];
+    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::LAGRANGE_FIRST];
+    opening_claims.emplace_back(commitment, evaluation);
+    commitment = key->commitments["LAGRANGE_LAST"];
+    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::LAGRANGE_LAST];
+    opening_claims.emplace_back(commitment, evaluation);
+
+    // Constructed shifted claims
+    commitment = transcript.get_group_element("Z_PERM");
+    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::Z_PERM_SHIFT];
+    opening_claims_shifted.emplace_back(commitment, evaluation);
 
     // Reconstruct the Gemini Proof from the transcript
     GeminiProof gemini_proof;

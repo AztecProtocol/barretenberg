@@ -1,5 +1,4 @@
 #pragma once
-#include "proof_system/types/polynomial_manifest.hpp"
 #include <common/log.hpp>
 #include <transcript/manifest.hpp>
 
@@ -7,12 +6,13 @@
 // TODO(Cody): "bonk" is short for "both plonk and honk". Just need a short and non-vague temporary name.
 namespace bonk {
 struct StandardArithmetization {
+    // NOTE(luke): maybe eventually this becomes 3 enums, precomputed, witness, and shifted. That would allow
+    // 'iterating' thrrough them easily.
     enum POLYNOMIAL {
         W_L,
         W_R,
         W_O,
         Z_PERM,
-        Z_PERM_SHIFT,
         Q_M,
         Q_L,
         Q_R,
@@ -26,10 +26,13 @@ struct StandardArithmetization {
         ID_3,
         LAGRANGE_FIRST,
         LAGRANGE_LAST, // = LAGRANGE_N-1 whithout ZK, but can be less
+        Z_PERM_SHIFT,
         COUNT
     };
 
     static constexpr size_t NUM_POLYNOMIALS = POLYNOMIAL::COUNT;
+    static constexpr size_t NUM_SHIFTED_POLYNOMIALS = 1;
+    static constexpr size_t NUM_UNSHIFTED_POLYNOMIALS = NUM_POLYNOMIALS - NUM_SHIFTED_POLYNOMIALS;
 };
 } // namespace bonk
 
@@ -108,7 +111,7 @@ struct StandardHonk {
         // Round 5 + num_sumcheck_rounds
         manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(       
             {
-              { .name = "multivariate_evaluations",     .num_bytes = fr_size * bonk::STANDARD_HONK_TOTAL_NUM_POLYS, .derived_by_verifier = false, .challenge_map_index = 0 },
+              { .name = "multivariate_evaluations",     .num_bytes = fr_size * bonk::StandardArithmetization::NUM_POLYNOMIALS, .derived_by_verifier = false, .challenge_map_index = 0 },
             },
             /* challenge_name = */ "rho",
             /* num_challenges_in = */ 1)); /* TODO(Cody): magic number! Where should this be specified? */

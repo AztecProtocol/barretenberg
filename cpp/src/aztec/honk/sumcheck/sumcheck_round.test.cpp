@@ -47,8 +47,8 @@ TEST(SumcheckRound, ComputeUnivariateProver)
     std::array<FF, 2> lagrange_last = { 1, 2 };
 
     std::array<std::span<FF>, bonk::StandardArithmetization::NUM_POLYNOMIALS> full_polynomials = {
-        w_l,     w_r,  w_o,  z_perm, z_perm_shift,   q_m,          q_l, q_r, q_o, q_c, sigma_1, sigma_2,
-        sigma_3, id_1, id_2, id_3,   lagrange_first, lagrange_last
+        w_l,  w_r,  w_o,  z_perm,         q_m,           q_l,         q_r, q_o, q_c, sigma_1, sigma_2, sigma_3,
+        id_1, id_2, id_3, lagrange_first, lagrange_last, z_perm_shift
     };
 
     size_t round_size = 1;
@@ -105,9 +105,9 @@ TEST(SumcheckRound, ComputeUnivariateVerifier)
     // q_m * w_l * w_r + q_l * w_l + q_r * w_r + q_o * w_o + q_c
     // = 1 * (4 * 1 * 2 + 5 * 1 + 6 * 2 + 7 * 3 + 8) = 54
     FF expected_full_purported_value = 54;
-    std::vector<FF> purported_evaluations = { w_l,     w_r,  w_o,  z_perm, z_perm_shift,   q_m,
-                                              q_l,     q_r,  q_o,  q_c,    sigma_1,        sigma_2,
-                                              sigma_3, id_1, id_2, id_3,   lagrange_first, lagrange_last };
+    std::vector<FF> purported_evaluations = { w_l,  w_r,  w_o,  z_perm,         q_m,           q_l,
+                                              q_r,  q_o,  q_c,  sigma_1,        sigma_2,       sigma_3,
+                                              id_1, id_2, id_3, lagrange_first, lagrange_last, z_perm_shift };
 
     // size_t round_size = 1;
     auto relations = std::tuple(

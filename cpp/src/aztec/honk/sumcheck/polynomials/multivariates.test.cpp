@@ -16,23 +16,6 @@ TYPED_TEST_SUITE(MultivariatesTests, FieldTypes);
 
 #define MULTIVARIATES_TESTS_TYPE_ALIASES using FF = TypeParam;
 
-TYPED_TEST(MultivariatesTests, Constructor)
-{
-    MULTIVARIATES_TESTS_TYPE_ALIASES
-
-    const size_t num_polys(4);
-
-    std::array<FF, 3> f0 = { 0, 0, 1 };
-    std::array<FF, 3> f1 = { 1, 1, 1 };
-    std::array<FF, 3> f2 = { 3, 4, 1 };
-    std::array<FF, 3> f3 = { -1, -1, 1 };
-
-    auto full_polynomials = std::array<std::span<FF>, num_polys>({ f0, f1, f2, f3 });
-    auto multivariates = Multivariates<FF, num_polys>(full_polynomials);
-
-    ASSERT_TRUE(span_arrays_equal(full_polynomials, multivariates.full_polynomials));
-}
-
 /*
  * We represent a bivariate f0 as f0(X1, X2). The indexing starts from 1 to match with the round number in sumcheck.
  * The idea is variable X2 (lsb) will be folded at round 2 (the first sumcheck round),
@@ -70,14 +53,14 @@ TYPED_TEST(MultivariatesTests, FoldTwoRoundsSpecial)
     std::array<FF, 4> f0 = { v00, v01, v10, v11 };
 
     auto full_polynomials = std::array<std::span<FF>, 1>({ f0 });
-    auto multivariates = Multivariates<FF, num_polys>(full_polynomials);
+    auto multivariates = Multivariates<FF, num_polys>(multivariate_n);
 
     FF round_challenge_2 = { 0x6c7301b49d85a46c, 0x44311531e39c64f6, 0xb13d66d8d6c1a24c, 0x04410c360230a295 };
     round_challenge_2.self_to_montgomery_form();
     FF expected_lo = v00 * (FF(1) - round_challenge_2) + v01 * round_challenge_2;
     FF expected_hi = v11 * round_challenge_2 + v10 * (FF(1) - round_challenge_2);
 
-    multivariates.fold(multivariates.full_polynomials, multivariate_n, round_challenge_2);
+    multivariates.fold(full_polynomials, multivariate_n, round_challenge_2);
 
     EXPECT_EQ(multivariates.folded_polynomials[0][0], round_challenge_2);
     EXPECT_EQ(multivariates.folded_polynomials[0][1], FF(0));
@@ -105,13 +88,13 @@ TYPED_TEST(MultivariatesTests, FoldTwoRoundsGeneric)
     std::array<FF, 4> f0 = { v00, v01, v10, v11 };
 
     auto full_polynomials = std::array<std::span<FF>, 1>({ f0 });
-    auto multivariates = Multivariates<FF, num_polys>(full_polynomials);
+    auto multivariates = Multivariates<FF, num_polys>(multivariate_n);
 
     FF round_challenge_2 = FF::random_element();
     FF expected_lo = v00 * (FF(1) - round_challenge_2) + v01 * round_challenge_2;
     FF expected_hi = v11 * round_challenge_2 + v10 * (FF(1) - round_challenge_2);
 
-    multivariates.fold(multivariates.full_polynomials, multivariate_n, round_challenge_2);
+    multivariates.fold(full_polynomials, multivariate_n, round_challenge_2);
 
     EXPECT_EQ(multivariates.folded_polynomials[0][0], expected_lo);
     EXPECT_EQ(multivariates.folded_polynomials[0][1], expected_hi);
@@ -157,7 +140,7 @@ TYPED_TEST(MultivariatesTests, FoldThreeRoundsSpecial)
     std::array<FF, 8> f0 = { v000, v001, v010, v011, v100, v101, v110, v111 };
 
     auto full_polynomials = std::array<std::span<FF>, 1>({ f0 });
-    auto multivariates = Multivariates<FF, num_polys>(full_polynomials);
+    auto multivariates = Multivariates<FF, num_polys>(multivariate_n);
 
     FF round_challenge_3 = 1;
     FF expected_q1 = v000 * (FF(1) - round_challenge_3) + v001 * round_challenge_3; // 2
@@ -165,7 +148,7 @@ TYPED_TEST(MultivariatesTests, FoldThreeRoundsSpecial)
     FF expected_q3 = v100 * (FF(1) - round_challenge_3) + v101 * round_challenge_3; // 6
     FF expected_q4 = v110 * (FF(1) - round_challenge_3) + v111 * round_challenge_3; // 8
 
-    multivariates.fold(multivariates.full_polynomials, multivariate_n, round_challenge_3);
+    multivariates.fold(full_polynomials, multivariate_n, round_challenge_3);
 
     EXPECT_EQ(multivariates.folded_polynomials[0][0], expected_q1);
     EXPECT_EQ(multivariates.folded_polynomials[0][1], expected_q2);
@@ -206,7 +189,7 @@ TYPED_TEST(MultivariatesTests, FoldThreeRoundsGeneric)
     std::array<FF, 8> f0 = { v000, v001, v010, v011, v100, v101, v110, v111 };
 
     auto full_polynomials = std::array<std::span<FF>, 1>({ f0 });
-    auto multivariates = Multivariates<FF, num_polys>(full_polynomials);
+    auto multivariates = Multivariates<FF, num_polys>(multivariate_n);
 
     FF round_challenge_3 = FF::random_element();
     FF expected_q1 = v000 * (FF(1) - round_challenge_3) + v001 * round_challenge_3;
@@ -214,7 +197,7 @@ TYPED_TEST(MultivariatesTests, FoldThreeRoundsGeneric)
     FF expected_q3 = v100 * (FF(1) - round_challenge_3) + v101 * round_challenge_3;
     FF expected_q4 = v110 * (FF(1) - round_challenge_3) + v111 * round_challenge_3;
 
-    multivariates.fold(multivariates.full_polynomials, multivariate_n, round_challenge_3);
+    multivariates.fold(full_polynomials, multivariate_n, round_challenge_3);
 
     EXPECT_EQ(multivariates.folded_polynomials[0][0], expected_q1);
     EXPECT_EQ(multivariates.folded_polynomials[0][1], expected_q2);
@@ -265,7 +248,7 @@ TYPED_TEST(MultivariatesTests, FoldThreeRoundsGenericMultiplePolys)
     std::array<FF, 8> f2 = { v000[2], v001[2], v010[2], v011[2], v100[2], v101[2], v110[2], v111[2] };
 
     auto full_polynomials = std::array<std::span<FF>, 3>{ f0, f1, f2 };
-    auto multivariates = Multivariates<FF, num_polys>(full_polynomials);
+    auto multivariates = Multivariates<FF, num_polys>(multivariate_n);
 
     std::array<FF, 3> expected_q1;
     std::array<FF, 3> expected_q2;
@@ -279,7 +262,7 @@ TYPED_TEST(MultivariatesTests, FoldThreeRoundsGenericMultiplePolys)
         expected_q4[i] = v110[i] * (FF(1) - round_challenge_3) + v111[i] * round_challenge_3;
     }
 
-    multivariates.fold(multivariates.full_polynomials, multivariate_n, round_challenge_3);
+    multivariates.fold(full_polynomials, multivariate_n, round_challenge_3);
     for (size_t i = 0; i < 3; i++) {
         EXPECT_EQ(multivariates.folded_polynomials[i][0], expected_q1[i]);
         EXPECT_EQ(multivariates.folded_polynomials[i][1], expected_q2[i]);

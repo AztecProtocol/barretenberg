@@ -127,7 +127,7 @@ TEST(Sumcheck, PolynomialNormalization)
 
     auto transcript = produce_mocked_transcript(multivariate_d, num_public_inputs);
 
-    auto multivariates = Multivariates(full_polynomials);
+    auto multivariates = Multivariates(multivariate_n);
 
     auto sumcheck = Sumcheck<Multivariates,
                              Transcript,
@@ -135,7 +135,7 @@ TEST(Sumcheck, PolynomialNormalization)
                              GrandProductComputationRelation,
                              GrandProductInitializationRelation>(multivariates, transcript);
 
-    sumcheck.execute_prover();
+    sumcheck.execute_prover(full_polynomials);
 
     FF u_1 = transcript.get_challenge_field_element("u_1");
     FF u_2 = transcript.get_challenge_field_element("u_2");
@@ -209,7 +209,7 @@ TEST(Sumcheck, Prover)
 
     auto transcript = produce_mocked_transcript(multivariate_d, num_public_inputs);
 
-    auto multivariates = Multivariates(full_polynomials);
+    auto multivariates = Multivariates(multivariate_n);
 
     auto sumcheck = Sumcheck<Multivariates,
                              Transcript,
@@ -217,7 +217,7 @@ TEST(Sumcheck, Prover)
                              GrandProductComputationRelation,
                              GrandProductInitializationRelation>(multivariates, transcript);
 
-    sumcheck.execute_prover();
+    sumcheck.execute_prover(full_polynomials);
 
     FF u_1 = transcript.get_challenge_field_element("u_1");
     FF u_2 = transcript.get_challenge_field_element("u_2");
@@ -270,13 +270,13 @@ TEST(Sumcheck, ProverAndVerifier)
 
     // These will be owned outside the class, probably by the composer.
     std::array<std::span<FF>, Multivariates::num> full_polynomials = {
-        w_l,     w_r,  w_o,  z_perm, z_perm_shift,   q_m,          q_l, q_r, q_o, q_c, sigma_1, sigma_2,
-        sigma_3, id_1, id_2, id_3,   lagrange_first, lagrange_last
+        w_l,  w_r,  w_o,  z_perm,         q_m,           q_l,         q_r, q_o, q_c, sigma_1, sigma_2, sigma_3,
+        id_1, id_2, id_3, lagrange_first, lagrange_last, z_perm_shift
     };
 
     auto transcript = produce_mocked_transcript(multivariate_d, num_public_inputs);
 
-    auto multivariates = Multivariates(full_polynomials);
+    auto multivariates = Multivariates(multivariate_n);
 
     auto sumcheck_prover = Sumcheck<Multivariates,
                                     Transcript,
@@ -284,7 +284,7 @@ TEST(Sumcheck, ProverAndVerifier)
                                     GrandProductComputationRelation,
                                     GrandProductInitializationRelation>(multivariates, transcript);
 
-    sumcheck_prover.execute_prover();
+    sumcheck_prover.execute_prover(full_polynomials);
 
     auto sumcheck_verifier = Sumcheck<Multivariates,
                                       Transcript,
@@ -337,13 +337,13 @@ TEST(Sumcheck, ProverAndVerifierLonger)
 
         // These will be owned outside the class, probably by the composer.
         std::array<std::span<FF>, Multivariates::num> full_polynomials = {
-            w_l,     w_r,  w_o,  z_perm, z_perm_shift,   q_m,          q_l, q_r, q_o, q_c, sigma_1, sigma_2,
-            sigma_3, id_1, id_2, id_3,   lagrange_first, lagrange_last
+            w_l,  w_r,  w_o,  z_perm,         q_m,           q_l,         q_r, q_o, q_c, sigma_1, sigma_2, sigma_3,
+            id_1, id_2, id_3, lagrange_first, lagrange_last, z_perm_shift
         };
 
         auto transcript = produce_mocked_transcript(multivariate_d, num_public_inputs);
 
-        auto multivariates = Multivariates(full_polynomials);
+        auto multivariates = Multivariates(multivariate_n);
 
         auto sumcheck_prover = Sumcheck<Multivariates,
                                         Transcript,
@@ -351,7 +351,7 @@ TEST(Sumcheck, ProverAndVerifierLonger)
                                         GrandProductComputationRelation,
                                         GrandProductInitializationRelation>(multivariates, transcript);
 
-        sumcheck_prover.execute_prover();
+        sumcheck_prover.execute_prover(full_polynomials);
 
         auto sumcheck_verifier = Sumcheck<Multivariates,
                                           Transcript,

@@ -66,7 +66,6 @@ template <class FF_, size_t num_polys> class Multivariates {
     const size_t multivariate_d;
     static constexpr size_t num = num_polys;
 
-    std::array<std::span<FF>, num_polys> full_polynomials;
     // TODO(Cody): adjacency issues with std::array of std::vectors?
     // IMPROVEMENT(Cody): for each round after the first, we could release half of the memory reserved by
     // folded_polynomials.
@@ -74,10 +73,9 @@ template <class FF_, size_t num_polys> class Multivariates {
 
     Multivariates() = default;
 
-    explicit Multivariates(std::array<std::span<FF>, num_polys> full_polynomials)
-        : multivariate_n(full_polynomials[0].size())
+    explicit Multivariates(size_t circuit_size)
+        : multivariate_n(circuit_size)
         , multivariate_d(numeric::get_msb(multivariate_n))
-        , full_polynomials(full_polynomials)
     {
         for (auto& polynomial : folded_polynomials) {
             polynomial.resize(multivariate_n >> 1);
@@ -88,16 +86,6 @@ template <class FF_, size_t num_polys> class Multivariates {
         : multivariate_n(proving_key->circuit_size)
         , multivariate_d(proving_key->log_circuit_size)
     {
-        // Iterate through polynomial manifest to populate full_polynomials from polynomial cache
-        size_t poly_idx = 0;
-        for (auto& entry : proving_key->polynomial_manifest.get()) {
-            std::string label(entry.polynomial_label);
-            full_polynomials[poly_idx++] = proving_key->polynomial_cache.get(label);
-            if (entry.requires_shifted_evaluation) {
-                full_polynomials[poly_idx++] = proving_key->polynomial_cache.get(label).shifted();
-            }
-        }
-
         for (auto& polynomial : folded_polynomials) {
             polynomial.reserve(multivariate_n >> 1);
             polynomial.resize(multivariate_n >> 1);

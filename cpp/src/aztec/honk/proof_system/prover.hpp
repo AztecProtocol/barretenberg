@@ -1,4 +1,9 @@
 #pragma once
+#include "ecc/curves/bn254/fr.hpp"
+#include "polynomials/polynomial.hpp"
+#include "proof_system/flavor/flavor.hpp"
+#include "proof_system/polynomial_cache/polynomial_cache.hpp"
+#include <array>
 #include <proof_system/proving_key/proving_key.hpp>
 #include <honk/pcs/commitment_key.hpp>
 #include <plonk/proof_system/types/proof.hpp>
@@ -6,14 +11,34 @@
 #include <honk/pcs/gemini/gemini.hpp>
 #include <honk/pcs/shplonk/shplonk_single.hpp>
 #include <honk/pcs/kzg/kzg.hpp>
+#include <span>
+#include <unordered_map>
+#include <vector>
 
 namespace honk {
+
+using Fr = barretenberg::fr;
+
+struct ProverPolynomial {
+    // ProverPolynomial(std::span<Fr> polynomial)
+    //     : coefficients(polynomial){};
+
+    ProverPolynomial() = default;
+    std::span<Fr, std::dynamic_extent> coefficients{};
+    // const Fr evaluation_point = Fr::one();
+    const Fr evaluation = Fr::one();
+    const bool is_shift = false;
+
+    Fr operator[](const size_t i) { return coefficients[i]; }
+    void operator=(barretenberg::polynomial& poly) { coefficients = poly; }
+};
 
 template <typename settings> class Prover {
 
   public:
     // TODO(luke): update this appropriately to work with Honk Manifest
-    Prover(std::shared_ptr<bonk::proving_key> input_key = nullptr,
+    Prover(std::vector<barretenberg::polynomial> witness_polynomials,
+           std::shared_ptr<bonk::proving_key> input_key = nullptr,
            const transcript::Manifest& manifest = transcript::Manifest());
 
     void execute_preamble_round();
@@ -30,6 +55,8 @@ template <typename settings> class Prover {
 
     void compute_grand_product_polynomial(barretenberg::fr beta, barretenberg::fr gamma);
 
+    void construct_prover_polynomials();
+
     plonk::proof& export_proof();
     plonk::proof& construct_proof();
 
@@ -45,9 +72,17 @@ template <typename settings> class Prover {
     // TODO(luke): maybe pointer instead?
     transcript::StandardTranscript transcript;
 
+    std::vector<barretenberg::polynomial> witness_polynomials;
+
     std::shared_ptr<bonk::proving_key> key;
 
     std::shared_ptr<pcs::kzg::CommitmentKey> commitment_key;
+
+    // Container for minimal polynomial data needed for sumcheck/pcs.
+    // Could be constructed after all polys have been computed just prior to sumcheck,
+    // then the evaluations would be added after sumcheck prior to pcs.
+    // std::array<ProverPolynomial, bonk::StandardArithmetization::POLYNOMIAL::COUNT> prover_polynomials;
+    std::array<std::span<Fr>, bonk::StandardArithmetization::POLYNOMIAL::COUNT> prover_polynomials;
 
     // Honk only needs a small portion of the functionality but may be fine to use existing work_queue
     // NOTE: this is not currently in use, but it may well be used in the future.
