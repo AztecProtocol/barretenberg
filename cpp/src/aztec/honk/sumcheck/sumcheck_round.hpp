@@ -146,8 +146,6 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     void extend_edges(auto& multivariates, size_t edge_idx)
     {
         for (size_t idx = 0; idx < num_multivariates; idx++) {
-            info("idx = ", idx);
-            info("edge_idx = ", edge_idx);
             auto edge = Univariate<FF, 2>({ multivariates[idx][edge_idx], multivariates[idx][edge_idx + 1] });
             extended_edges[idx] = barycentric_2_to_max.extend(edge);
         }

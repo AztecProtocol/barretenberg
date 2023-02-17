@@ -7,7 +7,7 @@ namespace bonk {
 using namespace barretenberg;
 
 // Set to 1 to enable logging.
-#if 1
+#if 0
 template <typename... Args> inline void info_togglable(Args... args)
 {
     info("PolynomialCache: ", args...);

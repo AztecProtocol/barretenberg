@@ -71,9 +71,6 @@ Prover<settings>::Prover(std::vector<barretenberg::polynomial> wire_polynomials,
     prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::W_L] = witness_polynomials[0];
     prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::W_R] = witness_polynomials[1];
     prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::W_O] = witness_polynomials[2];
-    // for (auto& poly : witness_polynomials) {
-    //     prover_polynomials.emplace_back(poly);
-    // }
 }
 
 /**
@@ -89,14 +86,9 @@ Prover<settings>::Prover(std::vector<barretenberg::polynomial> wire_polynomials,
 template <typename settings> void Prover<settings>::compute_wire_commitments()
 {
     for (size_t i = 0; i < settings::program_width; ++i) {
-        // std::string wire_tag = "w_" + std::to_string(i + 1) + "_lagrange";
-        std::string commit_tag = "W_" + std::to_string(i + 1);
-
-        // std::span<Fr> wire_polynomial = key->polynomial_cache.get(wire_tag);
-        // std::span<Fr> wire_polynomial = witness_polys[i];
         auto commitment = commitment_key->commit(witness_polynomials[i]);
-        // auto commitment = commitment_key->commit(wire_polynomial);
 
+        std::string commit_tag = "W_" + std::to_string(i + 1);
         transcript.add_element(commit_tag, commitment.to_buffer());
     }
 }
@@ -145,10 +137,8 @@ void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, b
     std::array<std::span<const Fr>, program_width> wires;
     std::array<std::span<const Fr>, program_width> sigmas;
     for (size_t i = 0; i < program_width; ++i) {
-        // std::string wire_id = "w_" + std::to_string(i + 1) + "_lagrange";
         std::string sigma_id = "sigma_" + std::to_string(i + 1) + "_lagrange";
         wires[i] = witness_polynomials[i].get_coefficients();
-        // wires[i] = key->polynomial_cache.get(wire_id).get_coefficients();
         sigmas[i] = key->polynomial_cache.get(sigma_id).get_coefficients();
     }
 
@@ -214,12 +204,6 @@ void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, b
     witness_polynomials.push_back(z_perm);
     prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::Z_PERM] = witness_polynomials.back();
     prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::Z_PERM_SHIFT] = witness_polynomials.back().shifted();
-    // info("witness_polynomials.back().size() = ", witness_polynomials.back().size());
-    // info("z_perm.size() = ", z_perm.size());
-    // info("witness_polynomials.back().capacity() = ", witness_polynomials.back().capacity());
-    // info("z_perm.capacity() = ", z_perm.capacity());
-    // info("witness_polynomials.back()[64] = ", witness_polynomials.back()[64]);
-    // info("z_perm[64] = ", z_perm[64]);
 
     key->polynomial_cache.put("z_perm_lagrange", std::move(z_perm));
 }
@@ -271,7 +255,7 @@ template <typename settings> void Prover<settings>::execute_wire_commitments_rou
 
     // Add public inputs to transcript
     const Polynomial& public_wires_source = witness_polynomials[1]; // w_2_lagrange
-    // const Polynomial& public_wires_source = key->polynomial_cache.get("w_2_lagrange");
+
     std::vector<Fr> public_wires;
     for (size_t i = 0; i < key->num_public_inputs; ++i) {
         public_wires.push_back(public_wires_source[i]);
@@ -316,8 +300,6 @@ template <typename settings> void Prover<settings>::execute_grand_product_comput
     // The actual polynomial is of length n+1, but commitment key is just n, so we need to limit it
     auto commitment = commitment_key->commit(key->polynomial_cache.get("z_perm_lagrange"));
     transcript.add_element("Z_PERM", commitment.to_buffer());
-
-    // TODO: construct prover polynomials here prior to sumcheck (or could do in sumcheck round)
 }
 
 /**
@@ -375,7 +357,6 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     std::vector<std::span<Fr>> multivariate_polynomials_shifted;
     multivariate_polynomials.resize(bonk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS);
     multivariate_polynomials_shifted.resize(bonk::StandardArithmetization::NUM_SHIFTED_POLYNOMIALS);
-    info("multivariate_polynomials.size() = ", multivariate_polynomials.size());
     // TODO(luke): Currently feeding in mock commitments for non-WITNESS polynomials. This may be sufficient for simple
     // proof verification since the other commitments are only needed to produce 'claims' in gemini.reduce_prove, they
     // are not needed in the proof itself.

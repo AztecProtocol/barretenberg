@@ -373,10 +373,10 @@ template <typename Params> class MultilinearReductionScheme {
         const size_t num_polys_f = polys_f.size();
         const size_t num_polys_g = polys_g.size();
         const size_t num_polys = num_polys_f + num_polys_g;
-        info("claims_f.size() = ", claims_f.size());
-        info("num_polys_f = ", num_polys_f);
-        info("claims_g.size() = ", claims_g.size());
-        info("num_polys_g = ", num_polys_g);
+        // info("claims_f.size() = ", claims_f.size());
+        // info("num_polys_f = ", num_polys_f);
+        // info("claims_g.size() = ", claims_g.size());
+        // info("num_polys_g = ", num_polys_g);
         ASSERT(claims_f.size() == num_polys_f);
         ASSERT(claims_g.size() == num_polys_g);
 
