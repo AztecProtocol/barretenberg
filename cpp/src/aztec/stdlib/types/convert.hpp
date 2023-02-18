@@ -152,7 +152,8 @@ template <typename Composer> typename NT::grumpkin_point to_nt(typename CT<Compo
 
 template <typename Composer> typename NT::bn254_point to_nt(typename CT<Composer>::bn254_point const& e)
 {
-    return NT::bn254_point{ e.x.get_value(), e.y.get_value() };
+    // TODO: cannot instantiate a field from a uint512_t?
+    return NT::bn254_point{ e.x.get_value().lo, e.y.get_value().lo };
 };
 
 template <typename Composer>
@@ -176,6 +177,13 @@ template <typename Composer>
 std::optional<typename NT::grumpkin_point> to_nt(std::optional<typename CT<Composer>::grumpkin_point> const& e)
 {
     return e ? std::make_optional<typename NT::grumpkin_point>(to_nt<Composer>(*e)) : std::nullopt;
+};
+
+template <typename Composer> std::vector<typename NT::fr> to_nt(std::vector<typename CT<Composer>::fr> const& vec)
+{
+    auto ref_to_nt = [&](typename CT<Composer>::fr const& e) { return to_nt<Composer>(e); };
+
+    return map(vec, ref_to_nt);
 };
 
 template <typename Composer>
