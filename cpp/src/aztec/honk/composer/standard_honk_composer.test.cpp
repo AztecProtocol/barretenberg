@@ -338,7 +338,7 @@ TEST(standard_honk_composer, test_check_sumcheck_relations_correctness)
     fr gamma = fr::random_element();
 
     // Compute grand product polynomial (now all the necessary polynomials are inside the proving key)
-    prover.compute_grand_product_polynomial(beta, gamma);
+    auto z_permutation = prover.compute_grand_product_polynomial(beta, gamma);
 
     // Compute public input delta
     const auto public_inputs = composer.circuit_constructor.get_public_inputs();
@@ -346,10 +346,9 @@ TEST(standard_honk_composer, test_check_sumcheck_relations_correctness)
         honk::compute_public_input_delta<fr>(public_inputs, beta, gamma, prover.key->circuit_size);
 
     // Retrieve polynomials from proving key
-    polynomial z_perm = prover.key->polynomial_cache.get("z_perm_lagrange");
-    polynomial w_1 = prover.key->polynomial_cache.get("w_1_lagrange");
-    polynomial w_2 = prover.key->polynomial_cache.get("w_2_lagrange");
-    polynomial w_3 = prover.key->polynomial_cache.get("w_3_lagrange");
+    polynomial w_1 = prover.wire_polynomials[0];
+    polynomial w_2 = prover.wire_polynomials[1];
+    polynomial w_3 = prover.wire_polynomials[2];
     polynomial q_m = prover.key->polynomial_cache.get("q_m_lagrange");
     polynomial q_1 = prover.key->polynomial_cache.get("q_1_lagrange");
     polynomial q_2 = prover.key->polynomial_cache.get("q_2_lagrange");
@@ -403,9 +402,9 @@ TEST(standard_honk_composer, test_check_sumcheck_relations_correctness)
         StandardUnivariate w_3_univariate(0);
         w_3_univariate.value_at(0) = w_3[i];
         StandardUnivariate z_perm_univariate(0);
-        z_perm_univariate.value_at(0) = z_perm[i];
+        z_perm_univariate.value_at(0) = z_permutation[i];
         StandardUnivariate z_perm_shift_univariate(0);
-        z_perm_shift_univariate.value_at(0) = (i < (prover.key->circuit_size - 1)) ? z_perm[i + 1] : 0;
+        z_perm_shift_univariate.value_at(0) = (i < (prover.key->circuit_size - 1)) ? z_permutation[i + 1] : 0;
         StandardUnivariate q_m_univariate(0);
         q_m_univariate.value_at(0) = q_m[i];
         StandardUnivariate q_1_univariate(0);

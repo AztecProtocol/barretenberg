@@ -106,7 +106,7 @@ template <class Fscalar> class ProverTests : public testing::Test {
         Fscalar gamma = Fscalar::one();
 
         // Method 1: Compute z_perm using 'compute_grand_product_polynomial' as the prover would in practice
-        honk_prover.compute_grand_product_polynomial(beta, gamma);
+        polynomial prover_z_perm = honk_prover.compute_grand_product_polynomial(beta, gamma);
 
         // Method 2: Compute z_perm locally using the simplest non-optimized syntax possible. The comment below,
         // which describes the computation in 4 steps, is adapted from a similar comment in
@@ -171,7 +171,7 @@ template <class Fscalar> class ProverTests : public testing::Test {
         }
 
         // Check consistency between locally computed z_perm and the one computed by the prover
-        EXPECT_EQ(z_perm, honk_prover.key->polynomial_cache.get("z_perm_lagrange"));
+        EXPECT_EQ(z_perm, prover_z_perm);
     };
 };
 

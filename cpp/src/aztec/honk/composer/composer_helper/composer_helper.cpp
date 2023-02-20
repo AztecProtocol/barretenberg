@@ -169,6 +169,7 @@ void ComposerHelper<CircuitConstructor>::compute_witness_base(const CircuitConst
         // Add wires to witness_polynomials (eventually move rather than copy)
         witness_polynomials.emplace_back(w_lagrange);
         std::string index = std::to_string(j + 1);
+        // TODO(luke): wires no longer need to be added to PK. need to alter some tests before removing though.
         circuit_proving_key->polynomial_cache.put("w_" + index + "_lagrange", std::move(w_lagrange));
     }
 

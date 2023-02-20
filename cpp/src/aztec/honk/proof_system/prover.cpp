@@ -8,6 +8,7 @@
 #include <honk/pcs/commitment_key.hpp>
 #include <memory>
 #include <span>
+#include <utility>
 #include <vector>
 #include "common/assert.hpp"
 #include "ecc/curves/bn254/fr.hpp"
@@ -38,12 +39,11 @@ using Polynomial = barretenberg::Polynomial<Fr>;
  * @tparam settings Settings class.
  * */
 template <typename settings>
-Prover<settings>::Prover(std::vector<barretenberg::polynomial> wire_polynomials,
+Prover<settings>::Prover(std::vector<barretenberg::polynomial> wire_polys,
                          std::shared_ptr<bonk::proving_key> input_key,
                          const transcript::Manifest& input_manifest)
-    : circuit_size(input_key == nullptr ? 0 : input_key->circuit_size)
-    , transcript(input_manifest, settings::hash_type, settings::num_challenge_bytes)
-    , witness_polynomials(wire_polynomials)
+    : transcript(input_manifest, settings::hash_type, settings::num_challenge_bytes)
+    , wire_polynomials(std::move(wire_polys)) // TODO(luke): move these properly
     , key(input_key)
     , commitment_key(std::make_unique<pcs::kzg::CommitmentKey>(
           input_key->circuit_size,
@@ -64,9 +64,9 @@ Prover<settings>::Prover(std::vector<barretenberg::polynomial> wire_polynomials,
     prover_polynomials[POLYNOMIAL::ID_3] = key->polynomial_cache.get("id_3_lagrange");
     prover_polynomials[POLYNOMIAL::LAGRANGE_FIRST] = key->polynomial_cache.get("L_first_lagrange");
     prover_polynomials[POLYNOMIAL::LAGRANGE_LAST] = key->polynomial_cache.get("L_last_lagrange");
-    prover_polynomials[POLYNOMIAL::W_L] = witness_polynomials[0];
-    prover_polynomials[POLYNOMIAL::W_R] = witness_polynomials[1];
-    prover_polynomials[POLYNOMIAL::W_O] = witness_polynomials[2];
+    prover_polynomials[POLYNOMIAL::W_L] = wire_polynomials[0];
+    prover_polynomials[POLYNOMIAL::W_R] = wire_polynomials[1];
+    prover_polynomials[POLYNOMIAL::W_O] = wire_polynomials[2];
 }
 
 /**
@@ -82,7 +82,7 @@ Prover<settings>::Prover(std::vector<barretenberg::polynomial> wire_polynomials,
 template <typename settings> void Prover<settings>::compute_wire_commitments()
 {
     for (size_t i = 0; i < settings::program_width; ++i) {
-        auto commitment = commitment_key->commit(witness_polynomials[i]);
+        auto commitment = commitment_key->commit(wire_polynomials[i]);
 
         std::string commit_tag = "W_" + std::to_string(i + 1);
         transcript.add_element(commit_tag, commitment.to_buffer());
@@ -115,8 +115,7 @@ template <typename settings> void Prover<settings>::compute_wire_commitments()
  * Note: Step (4) utilizes Montgomery batch inversion to replace n-many inversions with
  * one batch inversion (at the expense of more multiplications)
  */
-template <typename settings>
-void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, barretenberg::fr gamma)
+template <typename settings> Polynomial Prover<settings>::compute_grand_product_polynomial(Fr beta, Fr gamma)
 {
     using barretenberg::polynomial_arithmetic::copy_polynomial;
     static const size_t program_width = settings::program_width;
@@ -134,7 +133,7 @@ void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, b
     std::array<std::span<const Fr>, program_width> sigmas;
     for (size_t i = 0; i < program_width; ++i) {
         std::string sigma_id = "sigma_" + std::to_string(i + 1) + "_lagrange";
-        wires[i] = witness_polynomials[i];
+        wires[i] = wire_polynomials[i];
         sigmas[i] = key->polynomial_cache.get(sigma_id);
     }
 
@@ -196,12 +195,7 @@ void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, b
         aligned_free(denominator_accumulator[k]);
     }
 
-    // eventually this becomes an emplace_back w/ std::move
-    witness_polynomials.push_back(z_perm);
-    prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::Z_PERM] = witness_polynomials.back();
-    prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::Z_PERM_SHIFT] = witness_polynomials.back().shifted();
-
-    key->polynomial_cache.put("z_perm_lagrange", std::move(z_perm));
+    return z_perm;
 }
 
 /**
@@ -221,10 +215,10 @@ template <typename settings> void Prover<settings>::execute_preamble_round()
     // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
 
     transcript.add_element("circuit_size",
-                           { static_cast<uint8_t>(circuit_size >> 24),
-                             static_cast<uint8_t>(circuit_size >> 16),
-                             static_cast<uint8_t>(circuit_size >> 8),
-                             static_cast<uint8_t>(circuit_size) });
+                           { static_cast<uint8_t>(key->circuit_size >> 24),
+                             static_cast<uint8_t>(key->circuit_size >> 16),
+                             static_cast<uint8_t>(key->circuit_size >> 8),
+                             static_cast<uint8_t>(key->circuit_size) });
 
     transcript.add_element("public_input_size",
                            { static_cast<uint8_t>(key->num_public_inputs >> 24),
@@ -250,7 +244,7 @@ template <typename settings> void Prover<settings>::execute_wire_commitments_rou
     compute_wire_commitments();
 
     // Add public inputs to transcript
-    const Polynomial& public_wires_source = witness_polynomials[1]; // w_2_lagrange
+    const Polynomial& public_wires_source = wire_polynomials[1]; // w_2_lagrange
 
     std::vector<Fr> public_wires;
     for (size_t i = 0; i < key->num_public_inputs; ++i) {
@@ -292,10 +286,13 @@ template <typename settings> void Prover<settings>::execute_grand_product_comput
 
     auto beta = transcript.get_challenge_field_element("beta", 0);
     auto gamma = transcript.get_challenge_field_element("beta", 1);
-    compute_grand_product_polynomial(beta, gamma);
+    z_permutation = compute_grand_product_polynomial(beta, gamma);
     // The actual polynomial is of length n+1, but commitment key is just n, so we need to limit it
-    auto commitment = commitment_key->commit(key->polynomial_cache.get("z_perm_lagrange"));
+    auto commitment = commitment_key->commit(z_permutation);
     transcript.add_element("Z_PERM", commitment.to_buffer());
+
+    prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::Z_PERM] = z_permutation;
+    prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::Z_PERM_SHIFT] = z_permutation.shifted();
 }
 
 /**
