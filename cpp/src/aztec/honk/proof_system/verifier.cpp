@@ -161,65 +161,66 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
 
     Commitment commitment = Commitment::one();
     Fr evaluation = Fr::one();
+    using POLYNOMIAL = bonk::StandardArithmetization::POLYNOMIAL;
 
     // Construct non-shifted witness claims
     commitment = transcript.get_group_element("W_1");
-    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::W_L];
+    evaluation = multivariate_evaluations[POLYNOMIAL::W_L];
     opening_claims.emplace_back(commitment, evaluation);
     commitment = transcript.get_group_element("W_2");
-    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::W_R];
+    evaluation = multivariate_evaluations[POLYNOMIAL::W_R];
     opening_claims.emplace_back(commitment, evaluation);
     commitment = transcript.get_group_element("W_3");
-    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::W_O];
+    evaluation = multivariate_evaluations[POLYNOMIAL::W_O];
     opening_claims.emplace_back(commitment, evaluation);
     commitment = transcript.get_group_element("Z_PERM");
-    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::Z_PERM];
+    evaluation = multivariate_evaluations[POLYNOMIAL::Z_PERM];
     opening_claims.emplace_back(commitment, evaluation);
 
     // Construct (non-shifted) precomputed poly claims
     commitment = key->commitments["Q_M"];
-    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::Q_M];
+    evaluation = multivariate_evaluations[POLYNOMIAL::Q_M];
     opening_claims.emplace_back(commitment, evaluation);
     commitment = key->commitments["Q_1"];
-    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::Q_L];
+    evaluation = multivariate_evaluations[POLYNOMIAL::Q_L];
     opening_claims.emplace_back(commitment, evaluation);
     commitment = key->commitments["Q_2"];
-    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::Q_R];
+    evaluation = multivariate_evaluations[POLYNOMIAL::Q_R];
     opening_claims.emplace_back(commitment, evaluation);
     commitment = key->commitments["Q_3"];
-    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::Q_O];
+    evaluation = multivariate_evaluations[POLYNOMIAL::Q_O];
     opening_claims.emplace_back(commitment, evaluation);
     commitment = key->commitments["Q_C"];
-    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::Q_C];
+    evaluation = multivariate_evaluations[POLYNOMIAL::Q_C];
     opening_claims.emplace_back(commitment, evaluation);
     commitment = key->commitments["SIGMA_1"];
-    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::SIGMA_1];
+    evaluation = multivariate_evaluations[POLYNOMIAL::SIGMA_1];
     opening_claims.emplace_back(commitment, evaluation);
     commitment = key->commitments["SIGMA_2"];
-    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::SIGMA_2];
+    evaluation = multivariate_evaluations[POLYNOMIAL::SIGMA_2];
     opening_claims.emplace_back(commitment, evaluation);
     commitment = key->commitments["SIGMA_3"];
-    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::SIGMA_3];
+    evaluation = multivariate_evaluations[POLYNOMIAL::SIGMA_3];
     opening_claims.emplace_back(commitment, evaluation);
     commitment = key->commitments["ID_1"];
-    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::ID_1];
+    evaluation = multivariate_evaluations[POLYNOMIAL::ID_1];
     opening_claims.emplace_back(commitment, evaluation);
     commitment = key->commitments["ID_2"];
-    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::ID_2];
+    evaluation = multivariate_evaluations[POLYNOMIAL::ID_2];
     opening_claims.emplace_back(commitment, evaluation);
     commitment = key->commitments["ID_3"];
-    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::ID_3];
+    evaluation = multivariate_evaluations[POLYNOMIAL::ID_3];
     opening_claims.emplace_back(commitment, evaluation);
     commitment = key->commitments["LAGRANGE_FIRST"];
-    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::LAGRANGE_FIRST];
+    evaluation = multivariate_evaluations[POLYNOMIAL::LAGRANGE_FIRST];
     opening_claims.emplace_back(commitment, evaluation);
     commitment = key->commitments["LAGRANGE_LAST"];
-    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::LAGRANGE_LAST];
+    evaluation = multivariate_evaluations[POLYNOMIAL::LAGRANGE_LAST];
     opening_claims.emplace_back(commitment, evaluation);
 
     // Constructed shifted claims
     commitment = transcript.get_group_element("Z_PERM");
-    evaluation = multivariate_evaluations[bonk::StandardArithmetization::POLYNOMIAL::Z_PERM_SHIFT];
+    evaluation = multivariate_evaluations[POLYNOMIAL::Z_PERM_SHIFT];
     opening_claims_shifted.emplace_back(commitment, evaluation);
 
     // Reconstruct the Gemini Proof from the transcript

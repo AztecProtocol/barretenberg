@@ -85,6 +85,7 @@ Transcript produce_mocked_transcript(size_t multivariate_d, size_t num_public_in
     return transcript;
 }
 
+// TODO(luke): Make all of these tests use StandardArithmetization enum for ordering of full_polynomials.
 TEST(Sumcheck, PolynomialNormalization)
 {
     // Todo(Cody): We should not use real constants like this in the tests, at least not in so many of them.

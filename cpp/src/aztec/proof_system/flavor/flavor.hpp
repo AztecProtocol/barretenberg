@@ -30,6 +30,16 @@ struct StandardArithmetization {
         COUNT
     };
 
+    // TODO(luke): This is a temporary measure to associate the above enum with sting tags. Its only needed because the
+    // polynomials/commitments in the prover/verifier are stored in maps. This storage should be converted to simple
+    // arrays at which point these string tags can be removed.
+    const std::array<std::string, 18> ENUM_TO_COMM = { "W_L",           "W_R",     "W_O",     "Z_PERM",
+                                                       "Q_M",           "Q_L",     "Q_R",     "Q_O",
+                                                       "Q_C",           "SIGMA_1", "SIGMA_2", "SIGMA_3",
+                                                       "ID_1",          "ID_2",    "ID_3",    "LAGRANGE_FIRST",
+                                                       "LAGRANGE_LAST", // = LAGRANGE_N-1 whithout ZK, but can be less
+                                                       "Z_PERM_SHIFT" };
+
     static constexpr size_t NUM_POLYNOMIALS = POLYNOMIAL::COUNT;
     static constexpr size_t NUM_SHIFTED_POLYNOMIALS = 1;
     static constexpr size_t NUM_UNSHIFTED_POLYNOMIALS = NUM_POLYNOMIALS - NUM_SHIFTED_POLYNOMIALS;

@@ -50,27 +50,23 @@ Prover<settings>::Prover(std::vector<barretenberg::polynomial> wire_polynomials,
           "../srs_db/ignition")) // TODO(Cody): Need better constructors for prover.
 // , queue(proving_key.get(), &transcript) // TODO(Adrian): explore whether it's needed
 {
-    prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::Q_C] = key->polynomial_cache.get("q_c_lagrange");
-    prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::Q_L] = key->polynomial_cache.get("q_1_lagrange");
-    prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::Q_R] = key->polynomial_cache.get("q_2_lagrange");
-    prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::Q_O] = key->polynomial_cache.get("q_3_lagrange");
-    prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::Q_M] = key->polynomial_cache.get("q_m_lagrange");
-    prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::SIGMA_1] =
-        key->polynomial_cache.get("sigma_1_lagrange");
-    prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::SIGMA_2] =
-        key->polynomial_cache.get("sigma_2_lagrange");
-    prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::SIGMA_3] =
-        key->polynomial_cache.get("sigma_3_lagrange");
-    prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::ID_1] = key->polynomial_cache.get("id_1_lagrange");
-    prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::ID_2] = key->polynomial_cache.get("id_2_lagrange");
-    prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::ID_3] = key->polynomial_cache.get("id_3_lagrange");
-    prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::LAGRANGE_FIRST] =
-        key->polynomial_cache.get("L_first_lagrange");
-    prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::LAGRANGE_LAST] =
-        key->polynomial_cache.get("L_last_lagrange");
-    prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::W_L] = witness_polynomials[0];
-    prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::W_R] = witness_polynomials[1];
-    prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::W_O] = witness_polynomials[2];
+    using POLYNOMIAL = bonk::StandardArithmetization::POLYNOMIAL;
+    prover_polynomials[POLYNOMIAL::Q_C] = key->polynomial_cache.get("q_c_lagrange");
+    prover_polynomials[POLYNOMIAL::Q_L] = key->polynomial_cache.get("q_1_lagrange");
+    prover_polynomials[POLYNOMIAL::Q_R] = key->polynomial_cache.get("q_2_lagrange");
+    prover_polynomials[POLYNOMIAL::Q_O] = key->polynomial_cache.get("q_3_lagrange");
+    prover_polynomials[POLYNOMIAL::Q_M] = key->polynomial_cache.get("q_m_lagrange");
+    prover_polynomials[POLYNOMIAL::SIGMA_1] = key->polynomial_cache.get("sigma_1_lagrange");
+    prover_polynomials[POLYNOMIAL::SIGMA_2] = key->polynomial_cache.get("sigma_2_lagrange");
+    prover_polynomials[POLYNOMIAL::SIGMA_3] = key->polynomial_cache.get("sigma_3_lagrange");
+    prover_polynomials[POLYNOMIAL::ID_1] = key->polynomial_cache.get("id_1_lagrange");
+    prover_polynomials[POLYNOMIAL::ID_2] = key->polynomial_cache.get("id_2_lagrange");
+    prover_polynomials[POLYNOMIAL::ID_3] = key->polynomial_cache.get("id_3_lagrange");
+    prover_polynomials[POLYNOMIAL::LAGRANGE_FIRST] = key->polynomial_cache.get("L_first_lagrange");
+    prover_polynomials[POLYNOMIAL::LAGRANGE_LAST] = key->polynomial_cache.get("L_last_lagrange");
+    prover_polynomials[POLYNOMIAL::W_L] = witness_polynomials[0];
+    prover_polynomials[POLYNOMIAL::W_R] = witness_polynomials[1];
+    prover_polynomials[POLYNOMIAL::W_O] = witness_polynomials[2];
 }
 
 /**
@@ -138,8 +134,8 @@ void Prover<settings>::compute_grand_product_polynomial(barretenberg::fr beta, b
     std::array<std::span<const Fr>, program_width> sigmas;
     for (size_t i = 0; i < program_width; ++i) {
         std::string sigma_id = "sigma_" + std::to_string(i + 1) + "_lagrange";
-        wires[i] = witness_polynomials[i].get_coefficients();
-        sigmas[i] = key->polynomial_cache.get(sigma_id).get_coefficients();
+        wires[i] = witness_polynomials[i];
+        sigmas[i] = key->polynomial_cache.get(sigma_id);
     }
 
     // Step (1)
@@ -355,8 +351,6 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     std::vector<MLEOpeningClaim> opening_claims_shifted;
     std::vector<std::span<Fr>> multivariate_polynomials;
     std::vector<std::span<Fr>> multivariate_polynomials_shifted;
-    multivariate_polynomials.resize(bonk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS);
-    multivariate_polynomials_shifted.resize(bonk::StandardArithmetization::NUM_SHIFTED_POLYNOMIALS);
     // TODO(luke): Currently feeding in mock commitments for non-WITNESS polynomials. This may be sufficient for simple
     // proof verification since the other commitments are only needed to produce 'claims' in gemini.reduce_prove, they
     // are not needed in the proof itself.
@@ -371,17 +365,19 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     // Get vector of multivariate evaluations produced by Sumcheck
     auto multivariate_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
 
-    // Construct NON-shifted opening claims based on enum
-    for (size_t i = 0; i < bonk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS; ++i) {
-        multivariate_polynomials[i] = prover_polynomials[i];
-        opening_claims.emplace_back(Commitment::one(), multivariate_evaluations[i]);
-    }
-
-    // Construct shifted opening claims based on enum
-    for (size_t i = 0; i < bonk::StandardArithmetization::NUM_SHIFTED_POLYNOMIALS; ++i) {
-        size_t idx = i + bonk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
-        multivariate_polynomials_shifted[i] = prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::Z_PERM];
-        opening_claims_shifted.emplace_back(Commitment::one(), multivariate_evaluations[idx]);
+    // Collect NON-shifted and shifted polynomials and opening claims based on enum
+    for (size_t i = 0; i < bonk::StandardArithmetization::NUM_POLYNOMIALS; ++i) {
+        if (i < bonk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS) {
+            multivariate_polynomials.push_back(prover_polynomials[i]);
+            opening_claims.emplace_back(Commitment::one(), multivariate_evaluations[i]);
+        } else { // shifted polynomials/claims
+            // Note: we must provide the NON-shifted polynomial but the shifted evaluation
+            // TODO(luke): Change the Gemini interface to take the shifted version of the poly then this can just use
+            // index 'i'.
+            multivariate_polynomials_shifted.push_back(
+                prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::Z_PERM]);
+            opening_claims_shifted.emplace_back(Commitment::one(), multivariate_evaluations[i]);
+        }
     }
 
     gemini_output = Gemini::reduce_prove(commitment_key,
