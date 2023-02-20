@@ -152,8 +152,7 @@ template <typename Composer> typename NT::grumpkin_point to_nt(typename CT<Compo
 
 template <typename Composer> typename NT::bn254_point to_nt(typename CT<Composer>::bn254_point const& e)
 {
-    // TODO: cannot instantiate a field from a uint512_t?
-    return NT::bn254_point{ e.x.get_value().lo, e.y.get_value().lo };
+    return e.get_value();
 };
 
 template <typename Composer>
