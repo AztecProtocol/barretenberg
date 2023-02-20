@@ -243,7 +243,7 @@ const fixed_base_ladder* get_g1_ladder(const size_t num_bits)
  * Default generators:
  * 0: P_0  P_1  P_2  ...  P_{N'-1}
  *
- * Hash-index dependent generators: (let N' = 3 * N)
+ * Hash-index dependent generators: (let N' = t * N)
  * 1:  P_{N' + 0*h*t}   P_{N' + 0*h*t + 1*t}  ...  P_{N' + 0*h*t + (h-1)*t}
  * 2:  P_{N' + 1*h*t}   P_{N' + 1*h*t + 1*t}  ...  P_{N' + 1*h*t + (h-1)*t}
  * 2:  P_{N' + 2*h*t}   P_{N' + 2*h*t + 1*t}  ...  P_{N' + 2*h*t + (h-1)*t}
