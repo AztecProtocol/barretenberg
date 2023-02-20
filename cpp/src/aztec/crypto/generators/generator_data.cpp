@@ -12,8 +12,8 @@ constexpr size_t num_default_generators = 2048;
 #endif
 
 constexpr size_t hash_indices_generator_offset = 2048;
-constexpr size_t num_hash_indices = 16;
-constexpr size_t num_generators_per_hash_index = 8;
+constexpr size_t num_hash_indices = 32;
+constexpr size_t num_generators_per_hash_index = 64;
 constexpr size_t num_indexed_generators = num_hash_indices * num_generators_per_hash_index;
 constexpr size_t size_of_generator_data_array = hash_indices_generator_offset + num_indexed_generators;
 constexpr size_t num_generator_types = 3;
@@ -235,21 +235,26 @@ const fixed_base_ladder* get_g1_ladder(const size_t num_bits)
 /**
  * Generator indexing:
  *
- * Default generators:
- * 0: P_0  P_1  P_2  ...  P_{2047}
+ * Number of default generators (index = 0): N = 2048
+ * Number of hash indices: H = 32
+ * Number of sub indices for a given hash index: h = 64.
+ * Number of types of generators needed per hash index: t = 3
  *
- * Hash-index dependent generators:
- * 1:  P_{2048 + 0*8}   P_{2049}  ...  P_{2055}
- * 2:  P_{2048 + 1*8}   P_{2048 + 1*8 + 1}   ...  P_{2048 + 1*8 + 7}
- * 3:
+ * Default generators:
+ * 0: P_0  P_1  P_2  ...  P_{N'-1}
+ *
+ * Hash-index dependent generators: (let N' = t * N)
+ * 1:  P_{N' + 0*h*t}   P_{N' + 0*h*t + 1*t}  ...  P_{N' + 0*h*t + (h-1)*t}
+ * 2:  P_{N' + 1*h*t}   P_{N' + 1*h*t + 1*t}  ...  P_{N' + 1*h*t + (h-1)*t}
+ * 2:  P_{N' + 2*h*t}   P_{N' + 2*h*t + 1*t}  ...  P_{N' + 2*h*t + (h-1)*t}
  * 4:
  * .
  * .
  * .
- * 31: P_{2048 + 30*8}  P_{2048 + 30*8 + 1}  ...  P_{2048 + 30*8 + 7}
- * 32: P_{2048 + 31*8}  P_{2048 + 31*8 + 1}  ...  P_{2048 + 31*8 + 7}
+ * H-1:  P_{N' + (H-2)*h*t}   P_{N' + (H-2)*h*t + 1*t}  ...  P_{N' + (H-2)*h*t + (h-1)*t}
+ * H  :  P_{N' + (H-1)*h*t}   P_{N' + (H-1)*h*t + 1*t}  ...  P_{N' + (H-1)*h*t + (h-1)*t}
  *
- * Total generators = 2048 + 32*8 = 2304
+ * Total generators = (N + H * h) * t = 2304
  */
 generator_data const& get_generator_data(generator_index_t index)
 {
