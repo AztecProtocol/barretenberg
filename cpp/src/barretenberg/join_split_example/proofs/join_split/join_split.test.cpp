@@ -804,7 +804,7 @@ TEST_F(join_split_tests, test_0_input_notes_and_detect_circuit_change)
 #ifdef USE_TURBO
     constexpr uint32_t CIRCUIT_GATE_COUNT = 59175;
     constexpr uint32_t GATES_NEXT_POWER_OF_TWO = 65536;
-    const uint256_t VK_HASH("edcee79f9736d8a9dcc7a5c822a49bc930315bdad7f7b67accc60ab196eb63d9");
+    const uint256_t VK_HASH("7c5f17b829f8a6b17292a998ec06b2481abb82923e838d7422c3aec5cd5edd95");
 #else
     constexpr uint32_t CIRCUIT_GATE_COUNT = 522850;
     constexpr uint32_t GATES_NEXT_POWER_OF_TWO = 524288;
