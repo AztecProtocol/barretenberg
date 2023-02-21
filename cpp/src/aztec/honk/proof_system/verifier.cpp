@@ -87,7 +87,6 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     using FF = typename program_settings::fr;
     using Commitment = barretenberg::g1::affine_element;
     using Transcript = typename program_settings::Transcript;
-    using Multivariates = Multivariates<FF, num_polys>;
     using Gemini = pcs::gemini::MultilinearReductionScheme<pcs::kzg::Params>;
     using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<pcs::kzg::Params>;
     using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
@@ -137,7 +136,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     // // TODO(Cody): Compute some basic public polys like id(X), pow(X), and any required Lagrange polys
 
     // Execute Sumcheck Verifier
-    auto sumcheck = Sumcheck<Multivariates,
+    auto sumcheck = Sumcheck<FF,
                              Transcript,
                              ArithmeticRelation,
                              GrandProductComputationRelation,

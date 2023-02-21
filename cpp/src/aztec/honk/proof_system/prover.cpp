@@ -13,7 +13,6 @@
 #include "common/assert.hpp"
 #include "ecc/curves/bn254/fr.hpp"
 #include "ecc/curves/bn254/g1.hpp"
-#include <honk/sumcheck/polynomials/multivariates.hpp>
 #include <honk/sumcheck/relations/arithmetic_relation.hpp>
 #include <honk/sumcheck/relations/grand_product_computation_relation.hpp>
 #include <honk/sumcheck/relations/grand_product_initialization_relation.hpp>
@@ -313,9 +312,8 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
 {
     // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
 
-    using Multivariates = sumcheck::Multivariates<barretenberg::fr, bonk::STANDARD_HONK_TOTAL_NUM_POLYS>;
     using Transcript = transcript::StandardTranscript;
-    using Sumcheck = sumcheck::Sumcheck<Multivariates,
+    using Sumcheck = sumcheck::Sumcheck<Fr,
                                         Transcript,
                                         sumcheck::ArithmeticRelation,
                                         sumcheck::GrandProductComputationRelation,
@@ -323,8 +321,7 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
 
     transcript.apply_fiat_shamir("alpha");
 
-    auto multivariates = Multivariates(key);
-    auto sumcheck = Sumcheck(multivariates, transcript);
+    auto sumcheck = Sumcheck(key->circuit_size, transcript);
 
     sumcheck.execute_prover(prover_polynomials);
 }

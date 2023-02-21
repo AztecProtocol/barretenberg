@@ -1,7 +1,6 @@
 #include "sumcheck.hpp"
 #include "proof_system/flavor/flavor.hpp"
 #include "transcript/transcript_wrappers.hpp"
-#include "polynomials/multivariates.hpp"
 #include "relations/arithmetic_relation.hpp"
 #include "relations/grand_product_computation_relation.hpp"
 #include "relations/grand_product_initialization_relation.hpp"
@@ -142,8 +141,6 @@ TEST(Sumcheck, PolynomialNormalization)
 
     constexpr size_t fr_size = 32;
 
-    using Multivariates = ::Multivariates<FF, num_polys>;
-
     // clang-format off
     std::array<FF, multivariate_n> w_l =            { 0, 1, 2, 3, 4, 5, 6, 7 };
     std::array<FF, multivariate_n> w_r =            { 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -186,13 +183,11 @@ TEST(Sumcheck, PolynomialNormalization)
 
     auto transcript = produce_mocked_transcript(multivariate_d, num_public_inputs);
 
-    auto multivariates = Multivariates(multivariate_n);
-
-    auto sumcheck = Sumcheck<Multivariates,
+    auto sumcheck = Sumcheck<FF,
                              Transcript,
                              ArithmeticRelation,
                              GrandProductComputationRelation,
-                             GrandProductInitializationRelation>(multivariates, transcript);
+                             GrandProductInitializationRelation>(multivariate_n, transcript);
 
     sumcheck.execute_prover(full_polynomials);
 
@@ -225,7 +220,7 @@ TEST(Sumcheck, PolynomialNormalization)
                              l_6 * w_l[6] + l_7 * w_l[7];
 
     size_t w_l_idx = bonk::StandardArithmetization::POLYNOMIAL::W_L;
-    EXPECT_EQ(hand_computed_value, sumcheck.multivariates.folded_polynomials[w_l_idx][0]);
+    EXPECT_EQ(hand_computed_value, sumcheck.folded_polynomials[w_l_idx][0]);
 }
 
 TEST(Sumcheck, Prover)
@@ -237,8 +232,6 @@ TEST(Sumcheck, Prover)
 
     // const size_t max_relation_length = 4;
     constexpr size_t fr_size = 32;
-
-    using Multivariates = ::Multivariates<FF, num_polys>;
 
     // clang-format off
     std::array<FF, multivariate_n> w_l =            { 1, 2, 0, 0};
@@ -282,13 +275,11 @@ TEST(Sumcheck, Prover)
 
     auto transcript = produce_mocked_transcript(multivariate_d, num_public_inputs);
 
-    auto multivariates = Multivariates(multivariate_n);
-
-    auto sumcheck = Sumcheck<Multivariates,
+    auto sumcheck = Sumcheck<FF,
                              Transcript,
                              ArithmeticRelation,
                              GrandProductComputationRelation,
-                             GrandProductInitializationRelation>(multivariates, transcript);
+                             GrandProductInitializationRelation>(multivariate_n, transcript);
 
     sumcheck.execute_prover(full_polynomials);
 
@@ -319,8 +310,6 @@ TEST(Sumcheck, ProverAndVerifier)
     const size_t max_relation_length = 6;
     constexpr size_t fr_size = 32;
     const size_t num_public_inputs(1);
-
-    using Multivariates = ::Multivariates<FF, num_polys>;
 
     std::array<FF, 2> w_l = { 0, 1 };
     std::array<FF, 2> w_r = { 0, 1 };
@@ -362,17 +351,15 @@ TEST(Sumcheck, ProverAndVerifier)
 
     auto transcript = produce_mocked_transcript(multivariate_d, num_public_inputs);
 
-    auto multivariates = Multivariates(multivariate_n);
-
-    auto sumcheck_prover = Sumcheck<Multivariates,
+    auto sumcheck_prover = Sumcheck<FF,
                                     Transcript,
                                     ArithmeticRelation,
                                     GrandProductComputationRelation,
-                                    GrandProductInitializationRelation>(multivariates, transcript);
+                                    GrandProductInitializationRelation>(multivariate_n, transcript);
 
     sumcheck_prover.execute_prover(full_polynomials);
 
-    auto sumcheck_verifier = Sumcheck<Multivariates,
+    auto sumcheck_verifier = Sumcheck<FF,
                                       Transcript,
                                       ArithmeticRelation,
                                       GrandProductComputationRelation,
@@ -393,8 +380,6 @@ TEST(Sumcheck, ProverAndVerifierLonger)
 
         const size_t max_relation_length = honk::StandardHonk::MAX_RELATION_LENGTH;
         constexpr size_t fr_size = 32;
-
-        using Multivariates = ::Multivariates<FF, num_polys>;
 
         // clang-format off
     std::array<FF, multivariate_n> w_l;
@@ -442,17 +427,15 @@ TEST(Sumcheck, ProverAndVerifierLonger)
 
         auto transcript = produce_mocked_transcript(multivariate_d, num_public_inputs);
 
-        auto multivariates = Multivariates(multivariate_n);
-
-        auto sumcheck_prover = Sumcheck<Multivariates,
+        auto sumcheck_prover = Sumcheck<FF,
                                         Transcript,
                                         ArithmeticRelation,
                                         GrandProductComputationRelation,
-                                        GrandProductInitializationRelation>(multivariates, transcript);
+                                        GrandProductInitializationRelation>(multivariate_n, transcript);
 
         sumcheck_prover.execute_prover(full_polynomials);
 
-        auto sumcheck_verifier = Sumcheck<Multivariates,
+        auto sumcheck_verifier = Sumcheck<FF,
                                           Transcript,
                                           ArithmeticRelation,
                                           GrandProductComputationRelation,

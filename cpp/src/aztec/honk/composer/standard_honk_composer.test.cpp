@@ -4,7 +4,6 @@
 #include "proof_system/flavor/flavor.hpp"
 #include <cstdint>
 #include <honk/proof_system/prover.hpp>
-#include <honk/sumcheck/polynomials/multivariates.hpp>
 #include <honk/sumcheck/sumcheck_round.hpp>
 #include <honk/sumcheck/relations/grand_product_computation_relation.hpp>
 #include <honk/sumcheck/relations/grand_product_initialization_relation.hpp>
@@ -367,9 +366,8 @@ TEST(standard_honk_composer, test_check_sumcheck_relations_correctness)
     // Specify sumcheck configuration
     using honk::sumcheck::Univariate;
     using honk::sumcheck::UnivariateView;
-    using Multivariates = honk::sumcheck::Multivariates<fr, bonk::StandardArithmetization::NUM_POLYNOMIALS>;
     using SumCheckRound = honk::sumcheck::SumcheckRound<fr,
-                                                        Multivariates::num,
+                                                        bonk::StandardArithmetization::NUM_POLYNOMIALS,
                                                         honk::sumcheck::ArithmeticRelation,
                                                         honk::sumcheck::GrandProductComputationRelation,
                                                         honk::sumcheck::GrandProductInitializationRelation>;
