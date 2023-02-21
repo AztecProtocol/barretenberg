@@ -85,8 +85,13 @@ template <size_t program_width> void ComposerBase::compute_wire_copy_cycles()
     }
 }
 
-// Copies the value of a_variable_idx into b_variable_idx
-// Can be seen as us replacing all occurrences of b_variable_idx with a_variable_idx
+/**
+ * Copies the value of a_variable_idx into b_variable_idx.
+ * Can be seen as us replacing all occurrences of b_variable_idx with a_variable_idx.
+ *
+ * @param a_variable_idx The value to replace.
+ * @param b_variable_idx The value to be replaced.
+ */
 void ComposerBase::copy_from_to(const uint32_t a_variable_idx, const uint32_t b_variable_idx)
 {
     assert_equal(a_variable_idx, b_variable_idx, "");
