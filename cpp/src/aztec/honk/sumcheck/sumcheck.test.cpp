@@ -28,6 +28,51 @@ namespace test_sumcheck_round {
 
 using Transcript = transcript::StandardTranscript;
 using FF = barretenberg::fr;
+const size_t NUM_POLYNOMIALS = bonk::StandardArithmetization::NUM_POLYNOMIALS;
+using POLYNOMIAL = bonk::StandardArithmetization::POLYNOMIAL;
+
+template <class FF, size_t N>
+std::array<std::span<FF>, NUM_POLYNOMIALS> construct_full_polynomials(std::array<FF, N>& w_l,
+                                                                      std::array<FF, N>& w_r,
+                                                                      std::array<FF, N>& w_o,
+                                                                      std::array<FF, N>& z_perm,
+                                                                      std::array<FF, N>& z_perm_shift,
+                                                                      std::array<FF, N>& q_m,
+                                                                      std::array<FF, N>& q_l,
+                                                                      std::array<FF, N>& q_r,
+                                                                      std::array<FF, N>& q_o,
+                                                                      std::array<FF, N>& q_c,
+                                                                      std::array<FF, N>& sigma_1,
+                                                                      std::array<FF, N>& sigma_2,
+                                                                      std::array<FF, N>& sigma_3,
+                                                                      std::array<FF, N>& id_1,
+                                                                      std::array<FF, N>& id_2,
+                                                                      std::array<FF, N>& id_3,
+                                                                      std::array<FF, N>& lagrange_first,
+                                                                      std::array<FF, N>& lagrange_last)
+{
+    std::array<std::span<FF>, NUM_POLYNOMIALS> full_polynomials;
+    full_polynomials[POLYNOMIAL::W_L] = w_l;
+    full_polynomials[POLYNOMIAL::W_R] = w_r;
+    full_polynomials[POLYNOMIAL::W_O] = w_o;
+    full_polynomials[POLYNOMIAL::Z_PERM] = z_perm;
+    full_polynomials[POLYNOMIAL::Z_PERM_SHIFT] = z_perm_shift;
+    full_polynomials[POLYNOMIAL::Q_M] = q_m;
+    full_polynomials[POLYNOMIAL::Q_L] = q_l;
+    full_polynomials[POLYNOMIAL::Q_R] = q_r;
+    full_polynomials[POLYNOMIAL::Q_O] = q_o;
+    full_polynomials[POLYNOMIAL::Q_C] = q_c;
+    full_polynomials[POLYNOMIAL::SIGMA_1] = sigma_1;
+    full_polynomials[POLYNOMIAL::SIGMA_2] = sigma_2;
+    full_polynomials[POLYNOMIAL::SIGMA_3] = sigma_3;
+    full_polynomials[POLYNOMIAL::ID_1] = id_1;
+    full_polynomials[POLYNOMIAL::ID_2] = id_2;
+    full_polynomials[POLYNOMIAL::ID_3] = id_3;
+    full_polynomials[POLYNOMIAL::LAGRANGE_FIRST] = lagrange_first;
+    full_polynomials[POLYNOMIAL::LAGRANGE_LAST] = lagrange_last;
+
+    return full_polynomials;
+}
 
 Transcript produce_mocked_transcript(size_t multivariate_d, size_t num_public_inputs)
 {
@@ -120,11 +165,24 @@ TEST(Sumcheck, PolynomialNormalization)
     std::array<FF, multivariate_n> lagrange_last =  { 0, 0, 0, 0, 0, 0, 0, 0 };
     // clang-format on
 
-    // These will be owned outside the class, probably by the composer.
-    std::array<std::span<FF>, Multivariates::num> full_polynomials = {
-        w_l,     w_r,  w_o,  z_perm, z_perm_shift,   q_m,          q_l, q_r, q_o, q_c, sigma_1, sigma_2,
-        sigma_3, id_1, id_2, id_3,   lagrange_first, lagrange_last
-    };
+    auto full_polynomials = construct_full_polynomials(w_l,
+                                                       w_r,
+                                                       w_o,
+                                                       z_perm,
+                                                       z_perm_shift,
+                                                       q_m,
+                                                       q_l,
+                                                       q_r,
+                                                       q_o,
+                                                       q_c,
+                                                       sigma_1,
+                                                       sigma_2,
+                                                       sigma_3,
+                                                       id_1,
+                                                       id_2,
+                                                       id_3,
+                                                       lagrange_first,
+                                                       lagrange_last);
 
     auto transcript = produce_mocked_transcript(multivariate_d, num_public_inputs);
 
@@ -202,11 +260,24 @@ TEST(Sumcheck, Prover)
     std::array<FF, multivariate_n> lagrange_last =  { 1, 2, 0, 0};
     // clang-format on
 
-    // These will be owned outside the class, probably by the composer.
-    std::array<std::span<FF>, Multivariates::num> full_polynomials = {
-        w_l,     w_r,  w_o,  z_perm, z_perm_shift,   q_m,          q_l, q_r, q_o, q_c, sigma_1, sigma_2,
-        sigma_3, id_1, id_2, id_3,   lagrange_first, lagrange_last
-    };
+    auto full_polynomials = construct_full_polynomials(w_l,
+                                                       w_r,
+                                                       w_o,
+                                                       z_perm,
+                                                       z_perm_shift,
+                                                       q_m,
+                                                       q_l,
+                                                       q_r,
+                                                       q_o,
+                                                       q_c,
+                                                       sigma_1,
+                                                       sigma_2,
+                                                       sigma_3,
+                                                       id_1,
+                                                       id_2,
+                                                       id_3,
+                                                       lagrange_first,
+                                                       lagrange_last);
 
     auto transcript = produce_mocked_transcript(multivariate_d, num_public_inputs);
 
@@ -269,11 +340,24 @@ TEST(Sumcheck, ProverAndVerifier)
     std::array<FF, 2> lagrange_first = { 0, 0 };
     std::array<FF, 2> lagrange_last = { 0, 0 }; // NOTE: Not set up to be valid.
 
-    // These will be owned outside the class, probably by the composer.
-    std::array<std::span<FF>, Multivariates::num> full_polynomials = {
-        w_l,  w_r,  w_o,  z_perm,         q_m,           q_l,         q_r, q_o, q_c, sigma_1, sigma_2, sigma_3,
-        id_1, id_2, id_3, lagrange_first, lagrange_last, z_perm_shift
-    };
+    auto full_polynomials = construct_full_polynomials(w_l,
+                                                       w_r,
+                                                       w_o,
+                                                       z_perm,
+                                                       z_perm_shift,
+                                                       q_m,
+                                                       q_l,
+                                                       q_r,
+                                                       q_o,
+                                                       q_c,
+                                                       sigma_1,
+                                                       sigma_2,
+                                                       sigma_3,
+                                                       id_1,
+                                                       id_2,
+                                                       id_3,
+                                                       lagrange_first,
+                                                       lagrange_last);
 
     auto transcript = produce_mocked_transcript(multivariate_d, num_public_inputs);
 
@@ -336,11 +420,24 @@ TEST(Sumcheck, ProverAndVerifierLonger)
     std::array<FF, multivariate_n> lagrange_last  = { 0,  0,  0, 0 };
         // clang-format on
 
-        // These will be owned outside the class, probably by the composer.
-        std::array<std::span<FF>, Multivariates::num> full_polynomials = {
-            w_l,  w_r,  w_o,  z_perm,         q_m,           q_l,         q_r, q_o, q_c, sigma_1, sigma_2, sigma_3,
-            id_1, id_2, id_3, lagrange_first, lagrange_last, z_perm_shift
-        };
+        auto full_polynomials = construct_full_polynomials(w_l,
+                                                           w_r,
+                                                           w_o,
+                                                           z_perm,
+                                                           z_perm_shift,
+                                                           q_m,
+                                                           q_l,
+                                                           q_r,
+                                                           q_o,
+                                                           q_c,
+                                                           sigma_1,
+                                                           sigma_2,
+                                                           sigma_3,
+                                                           id_1,
+                                                           id_2,
+                                                           id_3,
+                                                           lagrange_first,
+                                                           lagrange_last);
 
         auto transcript = produce_mocked_transcript(multivariate_d, num_public_inputs);
 

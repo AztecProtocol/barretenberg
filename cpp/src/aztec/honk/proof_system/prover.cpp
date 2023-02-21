@@ -50,6 +50,8 @@ Prover<settings>::Prover(std::vector<barretenberg::polynomial> wire_polys,
           "../srs_db/ignition")) // TODO(Cody): Need better constructors for prover.
 // , queue(proving_key.get(), &transcript) // TODO(Adrian): explore whether it's needed
 {
+    // TODO(luke): this can be done programmatically once the ordering is better specified in the enum, i.e.
+    // precomputed, witness, shifted.
     using POLYNOMIAL = bonk::StandardArithmetization::POLYNOMIAL;
     prover_polynomials[POLYNOMIAL::Q_C] = key->polynomial_cache.get("q_c_lagrange");
     prover_polynomials[POLYNOMIAL::Q_L] = key->polynomial_cache.get("q_1_lagrange");
