@@ -1,7 +1,6 @@
 #include "prover.hpp"
 #include "honk/composer/standard_honk_composer.hpp"
 #include "polynomials/polynomial.hpp"
-#include "proof_system/types/polynomial_manifest.hpp"
 
 #include <srs/reference_string/file_reference_string.hpp>
 #include <array>
@@ -16,28 +15,6 @@ namespace honk_prover_tests {
 template <class Fscalar> class ProverTests : public testing::Test {
 
   public:
-    /**
-     * @brief Simple test of Prover instantiation. This is handy while were in the Honk PoC building phase but may
-     * eventually be unnecessary.
-     *
-     */
-    // static void test_prover_instantiation()
-    // {
-    //     // Define some mock inputs for ProvingKey constructor
-    //     size_t num_gates = 8;
-    //     size_t num_public_inputs = 0;
-    //     auto reference_string = std::make_shared<waffle::FileReferenceString>(num_gates + 1, "../srs_db/ignition");
-
-    //     // Instatiate a proving_key and make a pointer to it
-    //     auto proving_key =
-    //         std::make_shared<waffle::proving_key>(num_gates, num_public_inputs, reference_string, waffle::STANDARD);
-
-    //     std::vector<barretenberg::polynomial> witness_polynomials;
-
-    //     // Instantiate a Prover with the proving_key pointer
-    //     auto honk_prover = StandardProver(witness_polynomials, proving_key);
-    // };
-
     /**
      * @brief Test the correctness of the computation of the permutation grand product polynomial z_permutation
      * @details This test compares a simple, unoptimized, easily readable calculation of the grand product z_permutation
@@ -82,20 +59,17 @@ template <class Fscalar> class ProverTests : public testing::Test {
             proving_key->polynomial_cache.put(sigma_id, std::move(sigma_poly));
         }
 
-        // Workaround for now
-        for (auto& entry : proving_key->polynomial_manifest.get()) {
-            polynomial poly(proving_key->circuit_size);
-            std::string label(entry.polynomial_label);
-            if (entry.source == waffle::SELECTOR || entry.source == waffle::OTHER) {
-                proving_key->polynomial_cache.put(label, std::move(poly));
-            }
-        }
-        polynomial id_1_lagrange(proving_key->circuit_size);
-        proving_key->polynomial_cache.put("id_1_lagrange", std::move(id_1_lagrange));
-        polynomial id_2_lagrange(proving_key->circuit_size);
-        proving_key->polynomial_cache.put("id_2_lagrange", std::move(id_2_lagrange));
-        polynomial id_3_lagrange(proving_key->circuit_size);
-        proving_key->polynomial_cache.put("id_3_lagrange", std::move(id_3_lagrange));
+        // Add some empty polynomials to make Prover constructor happy; not used in the z_perm calculation
+        proving_key->polynomial_cache.put("id_1_lagrange", polynomial(proving_key->circuit_size));
+        proving_key->polynomial_cache.put("id_2_lagrange", polynomial(proving_key->circuit_size));
+        proving_key->polynomial_cache.put("id_3_lagrange", polynomial(proving_key->circuit_size));
+        proving_key->polynomial_cache.put("q_1_lagrange", polynomial(proving_key->circuit_size));
+        proving_key->polynomial_cache.put("q_2_lagrange", polynomial(proving_key->circuit_size));
+        proving_key->polynomial_cache.put("q_3_lagrange", polynomial(proving_key->circuit_size));
+        proving_key->polynomial_cache.put("q_m_lagrange", polynomial(proving_key->circuit_size));
+        proving_key->polynomial_cache.put("q_c_lagrange", polynomial(proving_key->circuit_size));
+        proving_key->polynomial_cache.put("L_first_lagrange", polynomial(proving_key->circuit_size));
+        proving_key->polynomial_cache.put("L_last_lagrange", polynomial(proving_key->circuit_size));
 
         // Instantiate a Prover with pointer to the proving_key just constructed
         auto honk_prover = StandardProver(wires, proving_key);
@@ -177,11 +151,6 @@ template <class Fscalar> class ProverTests : public testing::Test {
 
 typedef testing::Types<barretenberg::fr> FieldTypes;
 TYPED_TEST_SUITE(ProverTests, FieldTypes);
-
-// TYPED_TEST(ProverTests, prover_instantiation)
-// {
-//     TestFixture::test_prover_instantiation();
-// }
 
 TYPED_TEST(ProverTests, grand_product_construction)
 {
