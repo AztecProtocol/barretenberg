@@ -1,6 +1,7 @@
 #include "standard_honk_composer.hpp"
 #include "common/assert.hpp"
 #include "numeric/uint256/uint256.hpp"
+#include "proof_system/flavor/flavor.hpp"
 #include <cstdint>
 #include <honk/proof_system/prover.hpp>
 #include <honk/sumcheck/polynomials/multivariates.hpp>
@@ -393,6 +394,8 @@ TEST(standard_honk_composer, test_check_sumcheck_relations_correctness)
 
     // Transpose the polynomials so that each entry of the vector contains an array of polynomial entries at that
     // index
+    std::array<Univariate<fr, SumCheckRound::MAX_RELATION_LENGTH>, bonk::StandardArithmetization::NUM_POLYNOMIALS>
+        univariate_array;
     for (size_t i = 0; i < prover.key->circuit_size; i++) {
         // We only fill in the first element of each univariate with the value of an entry from the original poynomial
         StandardUnivariate w_1_univariate(0);
@@ -431,24 +434,28 @@ TEST(standard_honk_composer, test_check_sumcheck_relations_correctness)
         L_first_univariate.value_at(0) = L_first[i];
         StandardUnivariate L_last_univariate(0);
         L_last_univariate.value_at(0) = L_last[i];
-        sumcheck_typed_polynomial_vector.push_back({ w_1_univariate,
-                                                     w_2_univariate,
-                                                     w_3_univariate,
-                                                     z_perm_univariate,
-                                                     q_m_univariate,
-                                                     q_1_univariate,
-                                                     q_2_univariate,
-                                                     q_3_univariate,
-                                                     q_c_univariate,
-                                                     sigma_1_univariate,
-                                                     sigma_2_univariate,
-                                                     sigma_3_univariate,
-                                                     id_1_univariate,
-                                                     id_2_univariate,
-                                                     id_3_univariate,
-                                                     L_first_univariate,
-                                                     L_last_univariate,
-                                                     z_perm_shift_univariate });
+
+        using POLYNOMIAL = bonk::StandardArithmetization::POLYNOMIAL;
+        univariate_array[POLYNOMIAL::W_L] = w_1_univariate;
+        univariate_array[POLYNOMIAL::W_R] = w_2_univariate;
+        univariate_array[POLYNOMIAL::W_O] = w_3_univariate;
+        univariate_array[POLYNOMIAL::Z_PERM] = z_perm_univariate;
+        univariate_array[POLYNOMIAL::Z_PERM_SHIFT] = z_perm_shift_univariate;
+        univariate_array[POLYNOMIAL::Q_M] = q_m_univariate;
+        univariate_array[POLYNOMIAL::Q_L] = q_1_univariate;
+        univariate_array[POLYNOMIAL::Q_R] = q_2_univariate;
+        univariate_array[POLYNOMIAL::Q_O] = q_3_univariate;
+        univariate_array[POLYNOMIAL::Q_C] = q_c_univariate;
+        univariate_array[POLYNOMIAL::SIGMA_1] = sigma_1_univariate;
+        univariate_array[POLYNOMIAL::SIGMA_2] = sigma_2_univariate;
+        univariate_array[POLYNOMIAL::SIGMA_3] = sigma_3_univariate;
+        univariate_array[POLYNOMIAL::ID_1] = id_1_univariate;
+        univariate_array[POLYNOMIAL::ID_2] = id_2_univariate;
+        univariate_array[POLYNOMIAL::ID_3] = id_3_univariate;
+        univariate_array[POLYNOMIAL::LAGRANGE_FIRST] = L_first_univariate;
+        univariate_array[POLYNOMIAL::LAGRANGE_LAST] = L_last_univariate;
+
+        sumcheck_typed_polynomial_vector.push_back(univariate_array);
     }
     // Check all relations at all indices
     for (size_t i = 0; i < prover.key->circuit_size; i++) {
