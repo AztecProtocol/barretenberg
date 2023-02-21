@@ -9,11 +9,6 @@ struct StandardArithmetization {
     // NOTE(luke): maybe eventually this becomes 3 enums, precomputed, witness, and shifted. That would allow
     // 'iterating' thrrough them easily.
     enum POLYNOMIAL {
-        /* --- WITNESS POLYNOMIALS --- */
-        W_L,
-        W_R,
-        W_O,
-        Z_PERM,
         /* --- PRECOMPUTED POLYNOMIALS --- */
         Q_C,
         Q_L,
@@ -28,6 +23,11 @@ struct StandardArithmetization {
         ID_3,
         LAGRANGE_FIRST,
         LAGRANGE_LAST, // = LAGRANGE_N-1 whithout ZK, but can be less
+        /* --- WITNESS POLYNOMIALS --- */
+        W_L,
+        W_R,
+        W_O,
+        Z_PERM,
         /* --- SHIFTED POLYNOMIALS --- */
         Z_PERM_SHIFT,
         COUNT

@@ -224,7 +224,8 @@ TEST(Sumcheck, PolynomialNormalization)
     FF hand_computed_value = l_0 * w_l[0] + l_1 * w_l[1] + l_2 * w_l[2] + l_3 * w_l[3] + l_4 * w_l[4] + l_5 * w_l[5] +
                              l_6 * w_l[6] + l_7 * w_l[7];
 
-    EXPECT_EQ(hand_computed_value, sumcheck.multivariates.folded_polynomials[0][0]);
+    size_t w_l_idx = bonk::StandardArithmetization::POLYNOMIAL::W_L;
+    EXPECT_EQ(hand_computed_value, sumcheck.multivariates.folded_polynomials[w_l_idx][0]);
 }
 
 TEST(Sumcheck, Prover)
