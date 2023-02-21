@@ -1,4 +1,6 @@
 #pragma once
+#include <array>
+#include <string>
 #include <common/log.hpp>
 #include <transcript/manifest.hpp>
 
