@@ -148,6 +148,10 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     std::vector<FF> opening_point;
     std::vector<MLEOpeningClaim> opening_claims;
     std::vector<MLEOpeningClaim> opening_claims_shifted;
+    opening_claims.resize(bonk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS,
+                          MLEOpeningClaim(Commitment::one(), Fr::one()));
+    opening_claims_shifted.resize(bonk::StandardArithmetization::NUM_SHIFTED_POLYNOMIALS,
+                                  MLEOpeningClaim(Commitment::one(), Fr::one()));
 
     // Construct MLE opening point
     // Note: for consistency the evaluation point must be constructed as u = (u_d,...,u_1)
@@ -166,62 +170,65 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     // Construct non-shifted witness claims
     commitment = transcript.get_group_element("W_1");
     evaluation = multivariate_evaluations[POLYNOMIAL::W_L];
-    opening_claims.emplace_back(commitment, evaluation);
+    opening_claims[POLYNOMIAL::W_L] = MLEOpeningClaim(commitment, evaluation);
     commitment = transcript.get_group_element("W_2");
     evaluation = multivariate_evaluations[POLYNOMIAL::W_R];
-    opening_claims.emplace_back(commitment, evaluation);
+    opening_claims[POLYNOMIAL::W_R] = MLEOpeningClaim(commitment, evaluation);
     commitment = transcript.get_group_element("W_3");
     evaluation = multivariate_evaluations[POLYNOMIAL::W_O];
-    opening_claims.emplace_back(commitment, evaluation);
+    opening_claims[POLYNOMIAL::W_O] = MLEOpeningClaim(commitment, evaluation);
     commitment = transcript.get_group_element("Z_PERM");
     evaluation = multivariate_evaluations[POLYNOMIAL::Z_PERM];
-    opening_claims.emplace_back(commitment, evaluation);
+    opening_claims[POLYNOMIAL::Z_PERM] = MLEOpeningClaim(commitment, evaluation);
 
     // Construct (non-shifted) precomputed poly claims
     commitment = key->commitments["Q_M"];
     evaluation = multivariate_evaluations[POLYNOMIAL::Q_M];
-    opening_claims.emplace_back(commitment, evaluation);
+    opening_claims[POLYNOMIAL::Q_M] = MLEOpeningClaim(commitment, evaluation);
     commitment = key->commitments["Q_1"];
     evaluation = multivariate_evaluations[POLYNOMIAL::Q_L];
-    opening_claims.emplace_back(commitment, evaluation);
+    opening_claims[POLYNOMIAL::Q_L] = MLEOpeningClaim(commitment, evaluation);
     commitment = key->commitments["Q_2"];
     evaluation = multivariate_evaluations[POLYNOMIAL::Q_R];
-    opening_claims.emplace_back(commitment, evaluation);
+    opening_claims[POLYNOMIAL::Q_R] = MLEOpeningClaim(commitment, evaluation);
     commitment = key->commitments["Q_3"];
     evaluation = multivariate_evaluations[POLYNOMIAL::Q_O];
-    opening_claims.emplace_back(commitment, evaluation);
+    opening_claims[POLYNOMIAL::Q_O] = MLEOpeningClaim(commitment, evaluation);
     commitment = key->commitments["Q_C"];
     evaluation = multivariate_evaluations[POLYNOMIAL::Q_C];
-    opening_claims.emplace_back(commitment, evaluation);
+    opening_claims[POLYNOMIAL::Q_C] = MLEOpeningClaim(commitment, evaluation);
     commitment = key->commitments["SIGMA_1"];
     evaluation = multivariate_evaluations[POLYNOMIAL::SIGMA_1];
-    opening_claims.emplace_back(commitment, evaluation);
+    opening_claims[POLYNOMIAL::SIGMA_1] = MLEOpeningClaim(commitment, evaluation);
     commitment = key->commitments["SIGMA_2"];
     evaluation = multivariate_evaluations[POLYNOMIAL::SIGMA_2];
-    opening_claims.emplace_back(commitment, evaluation);
+    opening_claims[POLYNOMIAL::SIGMA_2] = MLEOpeningClaim(commitment, evaluation);
     commitment = key->commitments["SIGMA_3"];
     evaluation = multivariate_evaluations[POLYNOMIAL::SIGMA_3];
-    opening_claims.emplace_back(commitment, evaluation);
+    opening_claims[POLYNOMIAL::SIGMA_3] = MLEOpeningClaim(commitment, evaluation);
     commitment = key->commitments["ID_1"];
     evaluation = multivariate_evaluations[POLYNOMIAL::ID_1];
-    opening_claims.emplace_back(commitment, evaluation);
+    opening_claims[POLYNOMIAL::ID_1] = MLEOpeningClaim(commitment, evaluation);
     commitment = key->commitments["ID_2"];
     evaluation = multivariate_evaluations[POLYNOMIAL::ID_2];
-    opening_claims.emplace_back(commitment, evaluation);
+    opening_claims[POLYNOMIAL::ID_2] = MLEOpeningClaim(commitment, evaluation);
     commitment = key->commitments["ID_3"];
     evaluation = multivariate_evaluations[POLYNOMIAL::ID_3];
-    opening_claims.emplace_back(commitment, evaluation);
+    opening_claims[POLYNOMIAL::ID_3] = MLEOpeningClaim(commitment, evaluation);
     commitment = key->commitments["LAGRANGE_FIRST"];
     evaluation = multivariate_evaluations[POLYNOMIAL::LAGRANGE_FIRST];
-    opening_claims.emplace_back(commitment, evaluation);
+    opening_claims[POLYNOMIAL::LAGRANGE_FIRST] = MLEOpeningClaim(commitment, evaluation);
     commitment = key->commitments["LAGRANGE_LAST"];
     evaluation = multivariate_evaluations[POLYNOMIAL::LAGRANGE_LAST];
-    opening_claims.emplace_back(commitment, evaluation);
+    opening_claims[POLYNOMIAL::LAGRANGE_LAST] = MLEOpeningClaim(commitment, evaluation);
 
     // Constructed shifted claims
     commitment = transcript.get_group_element("Z_PERM");
     evaluation = multivariate_evaluations[POLYNOMIAL::Z_PERM_SHIFT];
-    opening_claims_shifted.emplace_back(commitment, evaluation);
+    // TODO(luke): Doing this funny offset since the shifted claims are separated from the unshifted in the PCS input
+    // but there is only a single enum for polys. This should go away once the PCS a single array for all claims.
+    size_t OFFSET = bonk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
+    opening_claims_shifted[POLYNOMIAL::Z_PERM_SHIFT - OFFSET] = MLEOpeningClaim(commitment, evaluation);
 
     // Reconstruct the Gemini Proof from the transcript
     GeminiProof gemini_proof;
