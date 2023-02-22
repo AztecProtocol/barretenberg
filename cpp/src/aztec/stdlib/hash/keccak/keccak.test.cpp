@@ -8,7 +8,7 @@
 using namespace barretenberg;
 using namespace plonk;
 
-typedef waffle::UltraComposer Composer;
+typedef plonk::UltraComposer Composer;
 typedef stdlib::byte_array<Composer> byte_array;
 typedef stdlib::public_witness_t<Composer> public_witness_t;
 typedef stdlib::field_t<Composer> field_ct;
@@ -184,7 +184,7 @@ TEST(stdlib_keccak, test_single_block)
     composer.print_num_gates();
 
     auto prover = composer.create_prover();
-    std::cout << "prover n = " << prover.n << std::endl;
+    std::cout << "prover circuit_size = " << prover.key->circuit_size << std::endl;
     auto verifier = composer.create_verifier();
 
     auto proof = prover.construct_proof();

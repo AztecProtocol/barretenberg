@@ -4,9 +4,9 @@
 #include <stdlib/primitives/packed_byte_array/packed_byte_array.hpp>
 #include <stdlib/primitives/byte_array/byte_array.hpp>
 
-namespace waffle {
+namespace plonk {
 class UltraComposer;
-} // namespace waffle
+} // namespace plonk
 
 namespace plonk {
 namespace stdlib {
@@ -183,7 +183,7 @@ template <typename Composer> class keccak {
     }
 };
 
-extern template class keccak<waffle::UltraComposer>;
+extern template class keccak<plonk::UltraComposer>;
 
 } // namespace stdlib
 } // namespace plonk

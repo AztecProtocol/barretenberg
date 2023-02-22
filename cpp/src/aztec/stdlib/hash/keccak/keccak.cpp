@@ -614,7 +614,7 @@ template <typename Composer> stdlib::byte_array<Composer> keccak<Composer>::hash
     return result;
 }
 
-template class keccak<waffle::UltraComposer>;
+template class keccak<plonk::UltraComposer>;
 
 } // namespace stdlib
 } // namespace plonk
