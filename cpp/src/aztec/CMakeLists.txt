@@ -55,6 +55,8 @@ if(BENCHMARKS)
     add_subdirectory(benchmark)
 endif()
 
+include(GNUInstallDirs)
+
 if(WASM)
     # Well, this is awkward. We can't build a wasm module by just linking to the libraries as that produces, nothing.
     # There are a couple of other ways to avoiding listing all the object files here and leveraging the dependency
@@ -105,6 +107,10 @@ if(WASM)
         VERBATIM
     )
 
+    if(INSTALL_BARRETENBERG)
+        install(TARGETS barretenberg.wasm DESTINATION ${CMAKE_INSTALL_BINDIR})
+    endif()
+
     # For use when compiling dependent cpp projects for WASM
     message(STATUS "Compiling all-in-one barretenberg WASM archive")
     add_library(
@@ -131,7 +137,6 @@ if(WASM)
         $<TARGET_OBJECTS:stdlib_aes128_objects>
         $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
     )
-
 else()
     # For use when compiling dependent cpp projects
     message(STATUS "Compiling all-in-one barretenberg archive")
@@ -160,4 +165,13 @@ else()
         $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
         $<TARGET_OBJECTS:env_objects>
     )
+
+    if(INSTALL_BARRETENBERG)
+        install(
+            TARGETS barretenberg barretenberg_headers
+            EXPORT barretenbergTargets
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            FILE_SET HEADERS DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        )
+    endif()
 endif()
