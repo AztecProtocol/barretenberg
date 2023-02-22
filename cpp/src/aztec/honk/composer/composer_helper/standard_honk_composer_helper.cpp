@@ -64,7 +64,6 @@ std::shared_ptr<waffle::verification_key> StandardHonkComposerHelper<CircuitCons
  * @tparam Program settings needed to establish if w_4 is being used.
  * */
 template <typename CircuitConstructor>
-template <size_t program_width>
 void StandardHonkComposerHelper<CircuitConstructor>::compute_witness_base(const CircuitConstructor& circuit_constructor,
                                                                           const size_t minimum_circuit_size)
 {
