@@ -69,7 +69,7 @@ template <typename Composer> class join_split : public testing::Test {
 };
 
 using ComposerTypes =
-    testing::Types<waffle::UltraComposer, waffle::TurboComposer, waffle::StandardComposer, honk::StandardHonkComposer>;
+    testing::Types<plonk::UltraComposer, plonk::TurboComposer, plonk::StandardComposer, honk::StandardHonkComposer>;
 
 TYPED_TEST_SUITE(join_split, ComposerTypes);
 
