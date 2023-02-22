@@ -30,6 +30,10 @@ using FF = barretenberg::fr;
 const size_t NUM_POLYNOMIALS = bonk::StandardArithmetization::NUM_POLYNOMIALS;
 using POLYNOMIAL = bonk::StandardArithmetization::POLYNOMIAL;
 
+/**
+ * @brief Place polynomials into full_polynomials in the order determined by the StandardArithmetization enum.
+ *
+ */
 template <class FF, size_t N>
 std::array<std::span<FF>, NUM_POLYNOMIALS> construct_full_polynomials(std::array<FF, N>& w_l,
                                                                       std::array<FF, N>& w_r,
@@ -129,7 +133,6 @@ Transcript produce_mocked_transcript(size_t multivariate_d, size_t num_public_in
     return transcript;
 }
 
-// TODO(luke): Make all of these tests use StandardArithmetization enum for ordering of full_polynomials.
 TEST(Sumcheck, PolynomialNormalization)
 {
     // Todo(Cody): We should not use real constants like this in the tests, at least not in so many of them.
@@ -219,8 +222,7 @@ TEST(Sumcheck, PolynomialNormalization)
     FF hand_computed_value = l_0 * w_l[0] + l_1 * w_l[1] + l_2 * w_l[2] + l_3 * w_l[3] + l_4 * w_l[4] + l_5 * w_l[5] +
                              l_6 * w_l[6] + l_7 * w_l[7];
 
-    size_t w_l_idx = bonk::StandardArithmetization::POLYNOMIAL::W_L;
-    EXPECT_EQ(hand_computed_value, sumcheck.folded_polynomials[w_l_idx][0]);
+    EXPECT_EQ(hand_computed_value, sumcheck.folded_polynomials[POLYNOMIAL::W_L][0]);
 }
 
 TEST(Sumcheck, Prover)

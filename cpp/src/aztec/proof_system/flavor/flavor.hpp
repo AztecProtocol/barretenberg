@@ -8,8 +8,15 @@
 // TODO(Cody): "bonk" is short for "both plonk and honk". Just need a short and non-vague temporary name.
 namespace bonk {
 struct StandardArithmetization {
-    // NOTE(luke): maybe eventually this becomes 3 enums, precomputed, witness, and shifted. That would allow
-    // 'iterating' thrrough them easily.
+    /**
+     * @brief All of the multivariate polynomials used by the Standard Honk Prover.
+     * @details The polynomials are broken into three categories: precomputed, witness, and shifted.
+     * This separation must be maintained to allow for programmatic access, but the ordering of the
+     * polynomials can be permuted within each category if necessary. Polynomials can also be added
+     * or removed (assuming consistency with the prover algorithm) but the constants describing the
+     * number of poynomials in each category must be manually updated.
+     *
+     */
     enum POLYNOMIAL {
         /* --- PRECOMPUTED POLYNOMIALS --- */
         Q_C,
@@ -32,7 +39,8 @@ struct StandardArithmetization {
         Z_PERM,
         /* --- SHIFTED POLYNOMIALS --- */
         Z_PERM_SHIFT,
-        COUNT
+        /* --- --- */
+        COUNT // for programmatic determination of NUM_POLYNOMIALS
     };
 
     static constexpr size_t NUM_POLYNOMIALS = POLYNOMIAL::COUNT;
@@ -43,7 +51,7 @@ struct StandardArithmetization {
     // *** WARNING: The order of this array must be manually updated to match POLYNOMIAL enum ***
     // TODO(luke): This is a temporary measure to associate the above enum with sting tags. Its only needed because
     // the
-    // polynomials/commitments in the prover/verifier are stored in maps. This storage should be converted to simple
+    // polynomials/commitments in the prover/verifier are stored in maps. This storage could be converted to simple
     // arrays at which point these string tags can be removed.
     inline static const std::array<std::string, 18> ENUM_TO_COMM = {
         "Q_C",           "Q_1",     "Q_2",  "Q_3",  "Q_M",    "SIGMA_1",

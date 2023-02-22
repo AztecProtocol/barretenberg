@@ -27,18 +27,12 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
 
     /**
     *
-    * @brief A container for all of the Honk polynomials (wire and selector polynomials, grand product, and much more).
-    * These polynomials all low-degree extensions over H^d with H = {0, 1} (where d = ceil(log(number of gates))), hence
-    * they are multilinear polynomials in d variables. As such, it is efficient to store these polynomials in terms of
-    * univariate degree-1 polynomials.
-
-    * Suppose now the Honk polynomials (multilinear in d variables) are called P_1, ..., P_N. At initialization,
+    * @brief (folded_polynomials) Suppose the Honk polynomials (multilinear in d variables) are called P_1, ..., P_N.
+    * At initialization,
     * we think of these as lying in a two-dimensional array, where each column records the value of one P_i on H^d.
-    After
-    * the first round, the array will be updated ('folded'), so that the first n/2 rows will represent the evaluations
-    * P_i(X1, ..., X_{d-1}, u_d) as a low-degree extension on H^{d-1}. In reality, we elude copying all of the
-    polynomial-
-    * defining data by only populating folded_multivariates after the first round. I.e.:
+    * After the first round, the array will be updated ('folded'), so that the first n/2 rows will represent the
+    * evaluations P_i(X1, ..., X_{d-1}, u_d) as a low-degree extension on H^{d-1}. In reality, we elude copying all
+    * of the polynomial-defining data by only populating folded_multivariates after the first round. I.e.:
 
         We imagine all of the defining polynomial data in a matrix like this:
                     | P_1 | P_2 | P_3 | P_4 | ... | P_N | N = number of multivariatesk
@@ -125,7 +119,7 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
      *
      * @details
      */
-    void execute_prover(auto full_polynomials)
+    void execute_prover(auto full_polynomials) // pass by value, not by reference
     {
         // First round
         // This populates folded_polynomials.
@@ -158,7 +152,7 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
             round.round_size = round.round_size >> 1;
         }
 
-        // Extract multivariate evaluations from folded_polynomials and add to transcript
+        // Final round: Extract multivariate evaluations from folded_polynomials and add to transcript
         std::array<FF, bonk::StandardArithmetization::NUM_POLYNOMIALS> multivariate_evaluations;
         for (size_t i = 0; i < bonk::StandardArithmetization::NUM_POLYNOMIALS; ++i) {
             multivariate_evaluations[i] = folded_polynomials[i][0];

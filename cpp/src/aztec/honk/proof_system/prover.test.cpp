@@ -71,7 +71,7 @@ template <class Fscalar> class ProverTests : public testing::Test {
         proving_key->polynomial_cache.put("L_first_lagrange", polynomial(proving_key->circuit_size));
         proving_key->polynomial_cache.put("L_last_lagrange", polynomial(proving_key->circuit_size));
 
-        // Instantiate a Prover with pointer to the proving_key just constructed
+        // Instantiate a Prover with wire polynomials and pointer to the proving_key just constructed
         auto wires_copy = wires;
         auto honk_prover = StandardProver(std::move(wires_copy), proving_key);
 

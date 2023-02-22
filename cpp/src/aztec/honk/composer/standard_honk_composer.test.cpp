@@ -70,7 +70,7 @@ TEST(standard_honk_composer, test_sigma_and_id_correctness)
         for (size_t j = 0; j < composer.program_width; ++j) {
             std::string index = std::to_string(j + 1);
             const auto& permutation_polynomial = proving_key->polynomial_cache.get("sigma_" + index + "_lagrange");
-            const auto& witness_polynomial = composer.composer_helper.witness_polynomials[j];
+            const auto& witness_polynomial = composer.composer_helper.wire_polynomials[j];
             const auto& id_polynomial = proving_key->polynomial_cache.get("id_" + index + "_lagrange");
             // left = ∏ᵢ,ⱼ(ωᵢ,ⱼ + β⋅ind(i,j) + γ)
             // right = ∏ᵢ,ⱼ(ωᵢ,ⱼ + β⋅σ(i,j) + γ)

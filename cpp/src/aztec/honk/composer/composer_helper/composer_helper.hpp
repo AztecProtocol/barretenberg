@@ -21,7 +21,7 @@ template <typename CircuitConstructor> class ComposerHelper {
     static constexpr size_t NUM_RANDOMIZED_GATES = 2; // equal to the number of multilinear evaluations leaked
     static constexpr size_t program_width = CircuitConstructor::program_width;
     std::shared_ptr<bonk::proving_key> circuit_proving_key;
-    std::vector<barretenberg::polynomial> witness_polynomials;
+    std::vector<barretenberg::polynomial> wire_polynomials;
     std::shared_ptr<bonk::verification_key> circuit_verification_key;
     // TODO(kesha): we need to put this into the commitment key, so that the composer doesn't have to handle srs at all
     std::shared_ptr<bonk::ReferenceStringFactory> crs_factory_;

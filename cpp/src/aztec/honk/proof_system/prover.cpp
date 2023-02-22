@@ -28,6 +28,7 @@ namespace honk {
 using Fr = barretenberg::fr;
 using Commitment = barretenberg::g1::affine_element;
 using Polynomial = barretenberg::Polynomial<Fr>;
+using POLYNOMIAL = bonk::StandardArithmetization::POLYNOMIAL;
 
 /**
  * Create Prover from proving key, witness and manifest.
@@ -49,9 +50,8 @@ Prover<settings>::Prover(std::vector<barretenberg::polynomial>&& wire_polys,
           "../srs_db/ignition")) // TODO(Cody): Need better constructors for prover.
 // , queue(proving_key.get(), &transcript) // TODO(Adrian): explore whether it's needed
 {
-    // TODO(luke): this can be done programmatically once the ordering is better specified in the enum, i.e.
-    // precomputed, witness, shifted.
-    using POLYNOMIAL = bonk::StandardArithmetization::POLYNOMIAL;
+    // Note(luke): This could be done programmatically with some hacks but this isnt too bad and its nice to see the
+    // polys laid out explicitly.
     prover_polynomials[POLYNOMIAL::Q_C] = key->polynomial_cache.get("q_c_lagrange");
     prover_polynomials[POLYNOMIAL::Q_L] = key->polynomial_cache.get("q_1_lagrange");
     prover_polynomials[POLYNOMIAL::Q_R] = key->polynomial_cache.get("q_2_lagrange");
@@ -85,8 +85,7 @@ template <typename settings> void Prover<settings>::compute_wire_commitments()
     for (size_t i = 0; i < settings::program_width; ++i) {
         auto commitment = commitment_key->commit(wire_polynomials[i]);
 
-        std::string commit_tag = "W_" + std::to_string(i + 1);
-        transcript.add_element(commit_tag, commitment.to_buffer());
+        transcript.add_element("W_" + std::to_string(i + 1), commitment.to_buffer());
     }
 }
 
@@ -244,8 +243,8 @@ template <typename settings> void Prover<settings>::execute_wire_commitments_rou
     // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
     compute_wire_commitments();
 
-    // Add public inputs to transcript
-    const Polynomial& public_wires_source = wire_polynomials[1]; // w_2_lagrange
+    // Add public inputs to transcript from the second wire polynomial
+    const Polynomial& public_wires_source = wire_polynomials[1];
 
     std::vector<Fr> public_wires;
     for (size_t i = 0; i < key->num_public_inputs; ++i) {
@@ -292,8 +291,8 @@ template <typename settings> void Prover<settings>::execute_grand_product_comput
     auto commitment = commitment_key->commit(z_permutation);
     transcript.add_element("Z_PERM", commitment.to_buffer());
 
-    prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::Z_PERM] = z_permutation;
-    prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::Z_PERM_SHIFT] = z_permutation.shifted();
+    prover_polynomials[POLYNOMIAL::Z_PERM] = z_permutation;
+    prover_polynomials[POLYNOMIAL::Z_PERM_SHIFT] = z_permutation.shifted();
 }
 
 /**
@@ -347,9 +346,6 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     std::vector<MLEOpeningClaim> opening_claims_shifted;
     std::vector<std::span<Fr>> multivariate_polynomials;
     std::vector<std::span<Fr>> multivariate_polynomials_shifted;
-    // TODO(luke): Currently feeding in mock commitments for non-WITNESS polynomials. This may be sufficient for simple
-    // proof verification since the other commitments are only needed to produce 'claims' in gemini.reduce_prove, they
-    // are not needed in the proof itself.
 
     // Construct MLE opening point
     // Note: for consistency the evaluation point must be constructed as u = (u_d,...,u_1)
@@ -361,18 +357,18 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     // Get vector of multivariate evaluations produced by Sumcheck
     auto multivariate_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
 
-    // Collect NON-shifted and shifted polynomials and opening claims based on enum
+    // Collect NON-shifted and shifted polynomials and opening claims based on enum.
+    auto mock_commitment = Commitment::one(); // prover does not require genuine commitments
     for (size_t i = 0; i < bonk::StandardArithmetization::NUM_POLYNOMIALS; ++i) {
         if (i < bonk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS) {
             multivariate_polynomials.push_back(prover_polynomials[i]);
-            opening_claims.emplace_back(Commitment::one(), multivariate_evaluations[i]);
+            opening_claims.emplace_back(mock_commitment, multivariate_evaluations[i]);
         } else { // shifted polynomials/claims
-            // Note: we must provide the NON-shifted polynomial but the shifted evaluation
-            // TODO(luke): Change the Gemini interface to take the shifted version of the poly then this can just use
-            // index 'i'.
-            multivariate_polynomials_shifted.push_back(
-                prover_polynomials[bonk::StandardArithmetization::POLYNOMIAL::Z_PERM]);
-            opening_claims_shifted.emplace_back(Commitment::one(), multivariate_evaluations[i]);
+            // Note: we must provide the NON-shifted polynomial but the shifted evaluation.
+            // TODO(luke): This is a bit hard-coded for standard Honk right now. Can do away with this after changing
+            // Gemini interface to accept shifted polynomials.
+            multivariate_polynomials_shifted.push_back(prover_polynomials[POLYNOMIAL::Z_PERM]);
+            opening_claims_shifted.emplace_back(mock_commitment, multivariate_evaluations[i]);
         }
     }
 

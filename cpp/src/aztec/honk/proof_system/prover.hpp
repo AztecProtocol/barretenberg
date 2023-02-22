@@ -55,6 +55,7 @@ template <typename settings> class Prover {
 
     std::shared_ptr<pcs::kzg::CommitmentKey> commitment_key;
 
+    // Container for spans of all polynomials required by the prover (i.e. all multivariates evaluated by Sumcheck).
     std::array<std::span<Fr>, bonk::StandardArithmetization::POLYNOMIAL::COUNT> prover_polynomials;
 
     // Honk only needs a small portion of the functionality but may be fine to use existing work_queue

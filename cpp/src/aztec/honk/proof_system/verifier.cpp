@@ -93,9 +93,9 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     using MLEOpeningClaim = pcs::MLEOpeningClaim<pcs::kzg::Params>;
     using GeminiProof = pcs::gemini::Proof<pcs::kzg::Params>;
     using POLYNOMIAL = bonk::StandardArithmetization::POLYNOMIAL;
-    size_t NUM_UNSHIFTED = bonk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
-    size_t NUM_SHIFTED = bonk::StandardArithmetization::NUM_SHIFTED_POLYNOMIALS;
-    size_t NUM_PRECOMPUTED = bonk::StandardArithmetization::NUM_PRECOMPUTED_POLYNOMIALS;
+    const size_t NUM_UNSHIFTED = bonk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
+    const size_t NUM_SHIFTED = bonk::StandardArithmetization::NUM_SHIFTED_POLYNOMIALS;
+    const size_t NUM_PRECOMPUTED = bonk::StandardArithmetization::NUM_PRECOMPUTED_POLYNOMIALS;
 
     key->program_width = program_settings::program_width;
 
@@ -173,7 +173,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
         }
     }
 
-    // Constructed shifted claims
+    // Constructed shifted opening claims
     Commitment commitment = transcript.get_group_element("Z_PERM");
     Fr evaluation = multivariate_evaluations[POLYNOMIAL::Z_PERM_SHIFT];
     opening_claims_shifted.emplace_back(commitment, evaluation);

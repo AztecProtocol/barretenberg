@@ -85,6 +85,7 @@ std::shared_ptr<bonk::verification_key> ComposerHelper<CircuitConstructor>::comp
     // TODO(kesha): Dirty hack for now. Need to actually make commitment-agnositc
     auto commitment_key = pcs::kzg::CommitmentKey(proving_key->circuit_size, "../srs_db/ignition");
 
+    // Compute and store commitments to all precomputed polynomials
     key->commitments["Q_M"] = commitment_key.commit(proving_key->polynomial_cache.get("q_m_lagrange"));
     key->commitments["Q_1"] = commitment_key.commit(proving_key->polynomial_cache.get("q_1_lagrange"));
     key->commitments["Q_2"] = commitment_key.commit(proving_key->polynomial_cache.get("q_2_lagrange"));
@@ -145,24 +146,22 @@ void ComposerHelper<CircuitConstructor>::compute_witness_base(const CircuitConst
     for (size_t j = 0; j < program_width; ++j) {
         // Initialize the polynomial with all the actual copies variable values
         // Expect all values to be set to 0 initially
-        polynomial w_lagrange(subgroup_size);
+        // Construct wire polynomials in place
+        auto& wire_lagrange = wire_polynomials.emplace_back(polynomial(subgroup_size));
 
         // Place all public inputs at the start of w_l and w_r.
         // All selectors at these indices are set to 0 so these values are not constrained at all.
         if ((j == 0) || (j == 1)) {
             for (size_t i = 0; i < num_public_inputs; ++i) {
-                w_lagrange[i] = circuit_constructor.get_variable(public_inputs[i]);
+                wire_lagrange[i] = circuit_constructor.get_variable(public_inputs[i]);
             }
         }
 
         // Assign the variable values (which are pointed-to by the `w_` wires) to the wire witness polynomials
         // `poly_w_`, shifted to make room for the public inputs at the beginning.
         for (size_t i = 0; i < num_gates; ++i) {
-            w_lagrange[num_public_inputs + i] = circuit_constructor.get_variable(w[j][i]);
+            wire_lagrange[num_public_inputs + i] = circuit_constructor.get_variable(w[j][i]);
         }
-        // Add wires to witness_polynomials (eventually move rather than copy)
-        witness_polynomials.emplace_back(w_lagrange);
-        std::string index = std::to_string(j + 1);
     }
 
     computed_witness = true;
@@ -247,7 +246,7 @@ StandardUnrolledProver ComposerHelper<CircuitConstructor>::create_unrolled_prove
 
     size_t num_sumcheck_rounds(circuit_proving_key->log_circuit_size);
     auto manifest = Flavor::create_unrolled_manifest(circuit_constructor.public_inputs.size(), num_sumcheck_rounds);
-    StandardUnrolledProver output_state(std::move(witness_polynomials), circuit_proving_key, manifest);
+    StandardUnrolledProver output_state(std::move(wire_polynomials), circuit_proving_key, manifest);
 
     // TODO(Cody): This should be more generic
     std::unique_ptr<pcs::kzg::CommitmentKey> kate_commitment_key =
