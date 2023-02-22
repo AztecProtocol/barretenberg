@@ -163,8 +163,6 @@ void ComposerHelper<CircuitConstructor>::compute_witness_base(const CircuitConst
         // Add wires to witness_polynomials (eventually move rather than copy)
         witness_polynomials.emplace_back(w_lagrange);
         std::string index = std::to_string(j + 1);
-        // TODO(luke): wires no longer need to be added to PK. need to alter some tests before removing though.
-        circuit_proving_key->polynomial_cache.put("w_" + index + "_lagrange", std::move(w_lagrange));
     }
 
     computed_witness = true;
@@ -220,32 +218,6 @@ std::shared_ptr<bonk::verification_key> ComposerHelper<CircuitConstructor>::comp
     return circuit_verification_key;
 }
 
-/**
- * Create verifier: compute verification key,
- * initialize verifier with it and an initial manifest and initialize commitment_scheme.
- *
- * @return The verifier.
- * */
-// TODO(Cody): This should go away altogether.
-template <typename CircuitConstructor>
-StandardVerifier ComposerHelper<CircuitConstructor>::create_verifier(const CircuitConstructor& circuit_constructor)
-{
-    auto verification_key = compute_verification_key(circuit_constructor);
-    // TODO figure out types, actually
-    // circuit_verification_key->composer_type = type;
-
-    // TODO: initialize verifier according to manifest and key
-    // Verifier output_state(circuit_verification_key, create_manifest(public_inputs.size()));
-    StandardVerifier output_state;
-    // TODO: Do we need a commitment scheme defined here?
-    // std::unique_ptr<KateCommitmentScheme<standard_settings>> kate_commitment_scheme =
-    //    std::make_unique<KateCommitmentScheme<standard_settings>>();
-
-    // output_state.commitment_scheme = std::move(kate_commitment_scheme);
-
-    return output_state;
-}
-
 template <typename CircuitConstructor>
 StandardUnrolledVerifier ComposerHelper<CircuitConstructor>::create_unrolled_verifier(
     const CircuitConstructor& circuit_constructor)
@@ -275,52 +247,13 @@ StandardUnrolledProver ComposerHelper<CircuitConstructor>::create_unrolled_prove
 
     size_t num_sumcheck_rounds(circuit_proving_key->log_circuit_size);
     auto manifest = Flavor::create_unrolled_manifest(circuit_constructor.public_inputs.size(), num_sumcheck_rounds);
-    StandardUnrolledProver output_state(witness_polynomials, circuit_proving_key, manifest);
+    StandardUnrolledProver output_state(std::move(witness_polynomials), circuit_proving_key, manifest);
 
     // TODO(Cody): This should be more generic
     std::unique_ptr<pcs::kzg::CommitmentKey> kate_commitment_key =
         std::make_unique<pcs::kzg::CommitmentKey>(circuit_proving_key->circuit_size, "../srs_db/ignition");
 
     output_state.commitment_key = std::move(kate_commitment_key);
-
-    return output_state;
-}
-/**
- * Create prover.
- *  1. Compute the starting polynomials (q_l, etc, sigma, witness polynomials).
- *  2. Initialize StandardProver with them.
- *  3. Add Permutation and arithmetic widgets to the prover.
- *  4. Add KateCommitmentScheme to the prover.
- *
- * @return Initialized prover.
- * */
-template <typename CircuitConstructor>
-StandardProver ComposerHelper<CircuitConstructor>::create_prover(const CircuitConstructor& circuit_constructor)
-{
-    // Compute q_l, etc. and sigma polynomials.
-    compute_proving_key(circuit_constructor);
-
-    // Compute witness polynomials.
-    compute_witness(circuit_constructor);
-    // TODO: Initialize prover properly
-    // Prover output_state(circuit_proving_key, create_manifest(public_inputs.size()));
-    StandardProver output_state(witness_polynomials, circuit_proving_key);
-    // Initialize constraints
-
-    // std::unique_ptr<ProverPermutationWidget<3, false>> permutation_widget =
-    //     std::make_unique<ProverPermutationWidget<3, false>>(circuit_proving_key.get());
-
-    // std::unique_ptr<ProverArithmeticWidget<standard_settings>> arithmetic_widget =
-    //     std::make_unique<ProverArithmeticWidget<standard_settings>>(circuit_proving_key.get());
-
-    // output_state.random_widgets.emplace_back(std::move(permutation_widget));
-    // output_state.transition_widgets.emplace_back(std::move(arithmetic_widget));
-
-    // Is commitment scheme going to stay a part of the prover? Why is it here?
-    // std::unique_ptr<KateCommitmentScheme<standard_settings>> kate_commitment_scheme =
-    //    std::make_unique<KateCommitmentScheme<standard_settings>>();
-
-    // output_state.commitment_scheme = std::move(kate_commitment_scheme);
 
     return output_state;
 }

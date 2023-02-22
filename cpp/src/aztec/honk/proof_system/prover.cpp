@@ -38,11 +38,11 @@ using Polynomial = barretenberg::Polynomial<Fr>;
  * @tparam settings Settings class.
  * */
 template <typename settings>
-Prover<settings>::Prover(std::vector<barretenberg::polynomial> wire_polys,
+Prover<settings>::Prover(std::vector<barretenberg::polynomial>&& wire_polys,
                          std::shared_ptr<bonk::proving_key> input_key,
                          const transcript::Manifest& input_manifest)
     : transcript(input_manifest, settings::hash_type, settings::num_challenge_bytes)
-    , wire_polynomials(std::move(wire_polys)) // TODO(luke): move these properly
+    , wire_polynomials(wire_polys) // TODO(luke): move these properly
     , key(input_key)
     , commitment_key(std::make_unique<pcs::kzg::CommitmentKey>(
           input_key->circuit_size,

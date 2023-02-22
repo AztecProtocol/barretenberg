@@ -55,18 +55,6 @@ template <typename CircuitConstructor> class ComposerHelper {
         compute_witness_base<program_width>(circuit_constructor);
     }
 
-    StandardVerifier create_verifier(const CircuitConstructor& circuit_constructor);
-    /**
-     * Preprocess the circuit. Delegates to create_prover.
-     *
-     * @return A new initialized prover.
-     */
-    StandardProver preprocess(const CircuitConstructor& circuit_constructor)
-    {
-        return create_prover(circuit_constructor);
-    };
-    StandardProver create_prover(const CircuitConstructor& circuit_constructor);
-
     StandardUnrolledVerifier create_unrolled_verifier(const CircuitConstructor& circuit_constructor);
 
     template <typename Flavor>

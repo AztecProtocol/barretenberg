@@ -196,8 +196,8 @@ template <class FF> class VerifierTests : public testing::Test {
 
         // TODO(Cody): This should be more generic
         std::vector<barretenberg::polynomial> witness_polynomials;
-        StandardUnrolledProver prover =
-            StandardUnrolledProver(witness_polynomials, proving_key, create_manifest(0, proving_key->log_circuit_size));
+        StandardUnrolledProver prover = StandardUnrolledProver(
+            std::move(witness_polynomials), proving_key, create_manifest(0, proving_key->log_circuit_size));
 
         std::unique_ptr<pcs::kzg::CommitmentKey> kate_commitment_key =
             std::make_unique<pcs::kzg::CommitmentKey>(proving_key->circuit_size, "../srs_db/ignition");
