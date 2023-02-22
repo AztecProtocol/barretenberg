@@ -159,8 +159,8 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
         }
 
         // Extract multivariate evaluations from folded_polynomials and add to transcript
-        std::array<FF, bonk::STANDARD_HONK_TOTAL_NUM_POLYS> multivariate_evaluations;
-        for (size_t i = 0; i < bonk::STANDARD_HONK_TOTAL_NUM_POLYS; ++i) {
+        std::array<FF, bonk::StandardArithmetization::NUM_POLYNOMIALS> multivariate_evaluations;
+        for (size_t i = 0; i < bonk::StandardArithmetization::NUM_POLYNOMIALS; ++i) {
             multivariate_evaluations[i] = folded_polynomials[i][0];
         }
         transcript.add_element("multivariate_evaluations", to_buffer(multivariate_evaluations));

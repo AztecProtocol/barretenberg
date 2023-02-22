@@ -80,32 +80,26 @@ template <typename CircuitConstructor>
 std::shared_ptr<bonk::verification_key> ComposerHelper<CircuitConstructor>::compute_verification_key_base(
     std::shared_ptr<bonk::proving_key> const& proving_key, std::shared_ptr<bonk::VerifierReferenceString> const& vrs)
 {
-    auto circuit_verification_key = std::make_shared<bonk::verification_key>(
+    auto key = std::make_shared<bonk::verification_key>(
         proving_key->circuit_size, proving_key->num_public_inputs, vrs, proving_key->composer_type);
     // TODO(kesha): Dirty hack for now. Need to actually make commitment-agnositc
     auto commitment_key = pcs::kzg::CommitmentKey(proving_key->circuit_size, "../srs_db/ignition");
 
-    for (size_t i = 0; i < proving_key->polynomial_manifest.size(); ++i) {
-        const auto& poly_info = proving_key->polynomial_manifest[i];
+    key->commitments["Q_M"] = commitment_key.commit(proving_key->polynomial_cache.get("q_m_lagrange"));
+    key->commitments["Q_1"] = commitment_key.commit(proving_key->polynomial_cache.get("q_1_lagrange"));
+    key->commitments["Q_2"] = commitment_key.commit(proving_key->polynomial_cache.get("q_2_lagrange"));
+    key->commitments["Q_3"] = commitment_key.commit(proving_key->polynomial_cache.get("q_3_lagrange"));
+    key->commitments["Q_C"] = commitment_key.commit(proving_key->polynomial_cache.get("q_c_lagrange"));
+    key->commitments["SIGMA_1"] = commitment_key.commit(proving_key->polynomial_cache.get("sigma_1_lagrange"));
+    key->commitments["SIGMA_2"] = commitment_key.commit(proving_key->polynomial_cache.get("sigma_2_lagrange"));
+    key->commitments["SIGMA_3"] = commitment_key.commit(proving_key->polynomial_cache.get("sigma_3_lagrange"));
+    key->commitments["ID_1"] = commitment_key.commit(proving_key->polynomial_cache.get("id_1_lagrange"));
+    key->commitments["ID_2"] = commitment_key.commit(proving_key->polynomial_cache.get("id_2_lagrange"));
+    key->commitments["ID_3"] = commitment_key.commit(proving_key->polynomial_cache.get("id_3_lagrange"));
+    key->commitments["LAGRANGE_FIRST"] = commitment_key.commit(proving_key->polynomial_cache.get("L_first_lagrange"));
+    key->commitments["LAGRANGE_LAST"] = commitment_key.commit(proving_key->polynomial_cache.get("L_last_lagrange"));
 
-        const std::string poly_label(poly_info.polynomial_label);
-        const std::string selector_commitment_label(poly_info.commitment_label);
-
-        if (poly_info.source == bonk::PolynomialSource::SELECTOR ||
-            poly_info.source == bonk::PolynomialSource::PERMUTATION ||
-            poly_info.source == bonk::PolynomialSource::OTHER) {
-
-            // Commit to the constraint selector polynomial and insert the commitment in the verification key.
-
-            auto poly_commitment = commitment_key.commit(proving_key->polynomial_cache.get(poly_label));
-            circuit_verification_key->commitments.insert({ selector_commitment_label, poly_commitment });
-        }
-    }
-
-    // Set the polynomial manifest in verification key.
-    circuit_verification_key->polynomial_manifest = bonk::PolynomialManifest(proving_key->composer_type);
-
-    return circuit_verification_key;
+    return key;
 }
 
 /**
