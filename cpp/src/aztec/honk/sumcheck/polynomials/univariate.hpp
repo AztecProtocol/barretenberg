@@ -319,6 +319,11 @@ std::array<T, sizeof...(Is)> array_to_array_aux(const std::array<U, N>& elements
  * @brief Given an std::array<U,N>, returns an std::array<T,N>, by calling the (explicit) constructor T(U).
  *
  * @details https://stackoverflow.com/a/32175958
+ * The main use case is to convert an array of `Univariate` into `UnivariateView`. The main use case would be to let
+ * Sumcheck decide the required degree of the relation evaluation, rather than hardcoding it inside the relation. The
+ * `_aux` version could also be used to create an array of only the polynomials required by the relation, and it could
+ * help us implement the optimization where we extend each edge only up to the maximum degree that is required over all
+ * relations (for example, `L_LAST` only needs degree 3).
  *
  * @tparam T Output type
  * @tparam U Input type (deduced from `elements`)
@@ -330,32 +335,6 @@ template <typename T, typename U, std::size_t N> std::array<T, N> array_to_array
 {
     // Calls the aux method that uses the index sequence to unpack all values in `elements`
     return array_to_array_aux<T, U, N>(elements, std::make_index_sequence<N>());
-};
-
-/**
- * @brief Given an array of Univariates, create a new array containing only the i-th evaluations
- * of all the univariates.
- *
- * @note Not really optimized, mainly used for testing that the relations evaluate to the same value when
- * evaluated as Univariates, Expressions, or index-by-index
- *
- * @tparam FF field (deduced from `univariates`)
- * @tparam NUM_UNIVARIATES number of univariates in the input array (deduced from `univariates`)
- * @tparam univariate_length number of evaluations (deduced from `univariates`)
- * @param univariates array of Univariates
- * @param i index of the evaluations we want to take from each univariate
- * @return std::array<FF, NUM_UNIVARIATES> such that result[j] = univariates[j].value_at(i)
- */
-template <typename FF, std::size_t NUM_UNIVARIATES, size_t univariate_length>
-std::array<FF, NUM_UNIVARIATES> transposed_univariate_array_at(
-    const std::array<Univariate<FF, univariate_length>, NUM_UNIVARIATES>& univariates, size_t i)
-{
-    ASSERT(i < univariate_length);
-    std::array<FF, NUM_UNIVARIATES> result;
-    for (size_t j = 0; j < NUM_UNIVARIATES; ++j) {
-        result[j] = univariates[j].value_at(i);
-    }
-    return result;
 };
 
 } // namespace honk::sumcheck

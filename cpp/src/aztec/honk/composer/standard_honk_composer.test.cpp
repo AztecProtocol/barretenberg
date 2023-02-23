@@ -358,27 +358,27 @@ TEST(StandardHonkComposer, SumcheckRelationCorrectness)
     // get the transposition.
     // Ex: polynomial_spans[3][i] returns the i-th coefficient of the third polynomial
     // in the list below
-    std::array<std::span<const fr>, num_polynomials> univariate_array;
+    std::array<std::span<const fr>, num_polynomials> evaluations_array;
 
     using POLYNOMIAL = bonk::StandardArithmetization::POLYNOMIAL;
-    univariate_array[POLYNOMIAL::W_L] = prover.wire_polynomials[0];
-    univariate_array[POLYNOMIAL::W_R] = prover.wire_polynomials[1];
-    univariate_array[POLYNOMIAL::W_O] = prover.wire_polynomials[2];
-    univariate_array[POLYNOMIAL::Z_PERM] = z_perm_poly;
-    univariate_array[POLYNOMIAL::Z_PERM_SHIFT] = z_perm_poly.shifted();
-    univariate_array[POLYNOMIAL::Q_M] = prover.key->polynomial_cache.get("q_m_lagrange");
-    univariate_array[POLYNOMIAL::Q_L] = prover.key->polynomial_cache.get("q_1_lagrange");
-    univariate_array[POLYNOMIAL::Q_R] = prover.key->polynomial_cache.get("q_2_lagrange");
-    univariate_array[POLYNOMIAL::Q_O] = prover.key->polynomial_cache.get("q_3_lagrange");
-    univariate_array[POLYNOMIAL::Q_C] = prover.key->polynomial_cache.get("q_c_lagrange");
-    univariate_array[POLYNOMIAL::SIGMA_1] = prover.key->polynomial_cache.get("sigma_1_lagrange");
-    univariate_array[POLYNOMIAL::SIGMA_2] = prover.key->polynomial_cache.get("sigma_2_lagrange");
-    univariate_array[POLYNOMIAL::SIGMA_3] = prover.key->polynomial_cache.get("sigma_3_lagrange");
-    univariate_array[POLYNOMIAL::ID_1] = prover.key->polynomial_cache.get("id_1_lagrange");
-    univariate_array[POLYNOMIAL::ID_2] = prover.key->polynomial_cache.get("id_2_lagrange");
-    univariate_array[POLYNOMIAL::ID_3] = prover.key->polynomial_cache.get("id_3_lagrange");
-    univariate_array[POLYNOMIAL::LAGRANGE_FIRST] = prover.key->polynomial_cache.get("L_first_lagrange");
-    univariate_array[POLYNOMIAL::LAGRANGE_LAST] = prover.key->polynomial_cache.get("L_last_lagrange");
+    evaluations_array[POLYNOMIAL::W_L] = prover.wire_polynomials[0];
+    evaluations_array[POLYNOMIAL::W_R] = prover.wire_polynomials[1];
+    evaluations_array[POLYNOMIAL::W_O] = prover.wire_polynomials[2];
+    evaluations_array[POLYNOMIAL::Z_PERM] = z_perm_poly;
+    evaluations_array[POLYNOMIAL::Z_PERM_SHIFT] = z_perm_poly.shifted();
+    evaluations_array[POLYNOMIAL::Q_M] = prover.key->polynomial_cache.get("q_m_lagrange");
+    evaluations_array[POLYNOMIAL::Q_L] = prover.key->polynomial_cache.get("q_1_lagrange");
+    evaluations_array[POLYNOMIAL::Q_R] = prover.key->polynomial_cache.get("q_2_lagrange");
+    evaluations_array[POLYNOMIAL::Q_O] = prover.key->polynomial_cache.get("q_3_lagrange");
+    evaluations_array[POLYNOMIAL::Q_C] = prover.key->polynomial_cache.get("q_c_lagrange");
+    evaluations_array[POLYNOMIAL::SIGMA_1] = prover.key->polynomial_cache.get("sigma_1_lagrange");
+    evaluations_array[POLYNOMIAL::SIGMA_2] = prover.key->polynomial_cache.get("sigma_2_lagrange");
+    evaluations_array[POLYNOMIAL::SIGMA_3] = prover.key->polynomial_cache.get("sigma_3_lagrange");
+    evaluations_array[POLYNOMIAL::ID_1] = prover.key->polynomial_cache.get("id_1_lagrange");
+    evaluations_array[POLYNOMIAL::ID_2] = prover.key->polynomial_cache.get("id_2_lagrange");
+    evaluations_array[POLYNOMIAL::ID_3] = prover.key->polynomial_cache.get("id_3_lagrange");
+    evaluations_array[POLYNOMIAL::LAGRANGE_FIRST] = prover.key->polynomial_cache.get("L_first_lagrange");
+    evaluations_array[POLYNOMIAL::LAGRANGE_LAST] = prover.key->polynomial_cache.get("L_last_lagrange");
 
     // Construct the round for applying sumcheck relations and results for storing computed results
     auto relations = std::tuple(honk::sumcheck::ArithmeticRelation<fr>(),
@@ -387,24 +387,23 @@ TEST(StandardHonkComposer, SumcheckRelationCorrectness)
 
     fr result = 0;
     for (size_t i = 0; i < prover.key->circuit_size; i++) {
-        // We only fill in the first element of each univariate with the value of an entry from the original poynomial
-        // // Compute an array containing all the evaluations at a given row i
-        std::array<fr, num_polynomials> transposed;
+        // Compute an array containing all the evaluations at a given row i
+        std::array<fr, num_polynomials> evaluations_at_index_i;
         for (size_t j = 0; j < num_polynomials; ++j) {
-            transposed[j] = univariate_array[j][i];
+            evaluations_at_index_i[j] = evaluations_array[j][i];
         }
 
         // For each relation, call the `accumulate_relation_evaluation` over all witness/selector values at the
         // i-th row/vertex of the hypercube.
         // We use ASSERT_EQ instead of EXPECT_EQ so that the tests stops at the first index at which the result is not
         // 0, since result = 0 + C(transposed), which we expect will equal 0.
-        std::get<0>(relations).add_full_relation_value_contribution(result, transposed, params);
+        std::get<0>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
         ASSERT_EQ(result, 0);
 
-        std::get<1>(relations).add_full_relation_value_contribution(result, transposed, params);
+        std::get<1>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
         ASSERT_EQ(result, 0);
 
-        std::get<2>(relations).add_full_relation_value_contribution(result, transposed, params);
+        std::get<2>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
         ASSERT_EQ(result, 0);
     }
 }
