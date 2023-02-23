@@ -58,20 +58,7 @@ struct poly_triple {
     barretenberg::fr q_o;
     barretenberg::fr q_c;
 
-    friend bool operator==(poly_triple const& lhs, poly_triple const& rhs)
-    {
-        // clang-format off
-        return
-            lhs.a == rhs.a &&
-            lhs.b == rhs.b &&
-            lhs.c == rhs.c &&
-            lhs.q_m == rhs.q_m &&
-            lhs.q_l == rhs.q_l &&
-            lhs.q_r == rhs.q_r &&
-            lhs.q_o == rhs.q_o &&
-            lhs.q_c == rhs.q_c;
-        // clang-format on
-    }
+    friend bool operator==(poly_triple const& lhs, poly_triple const& rhs) = default;
 };
 
 template <typename B> inline void read(B& buf, poly_triple& constraint)
