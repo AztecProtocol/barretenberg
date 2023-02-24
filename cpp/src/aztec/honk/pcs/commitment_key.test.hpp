@@ -81,19 +81,28 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
 
     Fr random_element() { return Fr::random_element(engine); }
 
-    std::pair<Fr, Fr> random_eval(const Polynomial& polynomial)
+    OpeningPair<Params> random_eval(const Polynomial& polynomial)
     {
         Fr x{ random_element() };
         Fr y{ polynomial.evaluate(x) };
         return { x, y };
     }
 
-    std::pair<OpeningClaim<Params>, Polynomial> random_claim(const size_t n)
+    // std::pair<OpeningClaim<Params>, Polynomial> random_claim(const size_t n)
+    // {
+    //     auto p = random_polynomial(n);
+    //     auto [x, y] = random_eval(p);
+    //     auto c = commit(p);
+    //     return { { c, x, y }, p };
+    // };
+
+    std::pair<OpeningClaimModified<Params>, Polynomial> random_claim_modified(const size_t n)
     {
-        auto p = random_polynomial(n);
-        auto [x, y] = random_eval(p);
-        auto c = commit(p);
-        return { { c, x, y }, p };
+        auto polynomial = random_polynomial(n);
+        auto opening_pair = random_eval(polynomial);
+        auto commitment = commit(polynomial);
+        auto opening_claim = OpeningClaimModified<Params>{ opening_pair, commitment };
+        return { opening_claim, polynomial };
     };
 
     std::vector<Fr> random_evaluation_point(const size_t num_variables)
@@ -112,6 +121,23 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
         EXPECT_EQ(y, y_expected) << "OpeningClaim: evaluations mismatch";
         Commitment c_expected = commit(witness);
         EXPECT_EQ(c, c_expected) << "OpeningClaim: commitment mismatch";
+    }
+
+    void verify_opening_claim_modified(const OpeningClaimModified<Params>& claim, const Polynomial& witness)
+    {
+        auto& commitment = claim.commitment;
+        auto& [x, y] = claim.opening_pair;
+        Fr y_expected = witness.evaluate(x);
+        EXPECT_EQ(y, y_expected) << "OpeningClaim: evaluations mismatch";
+        Commitment commitment_expected = commit(witness);
+        EXPECT_EQ(commitment, commitment_expected) << "OpeningClaim: commitment mismatch";
+    }
+
+    void verify_opening_pair(const OpeningPair<Params>& opening_pair, const Polynomial& witness)
+    {
+        auto& [x, y] = opening_pair;
+        Fr y_expected = witness.evaluate(x);
+        EXPECT_EQ(y, y_expected) << "OpeningPair: evaluations mismatch";
     }
 
     /**
@@ -166,6 +192,39 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
 
         for (size_t j = 0; j < num_claims; ++j) {
             this->verify_opening_claim(multi_claims[j], witnesses[j]);
+        }
+    }
+
+    /**
+     * @brief Ensures that a 'BatchOpeningClaim' is correct by checking that
+     * - all evaluations are correct by recomputing them from each witness polynomial.
+     * - commitments are correct by recomputing a commitment from each witness polynomial.
+     * - each 'queries' is a subset of 'all_queries' and 'all_queries' is the union of all 'queries'
+     * - each 'commitment' of each 'SubClaim' appears only once.
+     */
+    void verify_batch_opening_claim_modified(std::span<const OpeningClaimModified<Params>> multi_claims,
+                                             std::span<const Polynomial> witnesses)
+    {
+        const size_t num_claims = multi_claims.size();
+        ASSERT_EQ(witnesses.size(), num_claims);
+
+        for (size_t j = 0; j < num_claims; ++j) {
+            this->verify_opening_claim_modified(multi_claims[j], witnesses[j]);
+        }
+    }
+
+    /**
+     * @brief Ensures that a set of opening pairs is correct by checking that evaluations are
+     * correct by recomputing them from each witness polynomial.
+     */
+    void verify_batch_opening_pair(std::span<const OpeningPair<Params>> opening_pairs,
+                                   std::span<const Polynomial> witnesses)
+    {
+        const size_t num_pairs = opening_pairs.size();
+        ASSERT_EQ(witnesses.size(), num_pairs);
+
+        for (size_t j = 0; j < num_pairs; ++j) {
+            this->verify_opening_pair(opening_pairs[j], witnesses[j]);
         }
     }
 

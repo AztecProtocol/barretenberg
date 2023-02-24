@@ -33,6 +33,13 @@ template <typename Params> using Proof = typename Params::Commitment;
 template <typename Params> using OutputClaim = OpeningClaim<Params>;
 
 /**
+ * @brief Single opening claim ([G], r, 0) so that G(r) = 0
+ *
+ * @tparam Params CommitmentScheme parameters
+ */
+template <typename Params> using OutputClaimModified = OpeningPair<Params>;
+
+/**
  * @brief Polynomial G(X) = Q(X) - ∑ₖ ẑₖ(r)⋅( Bₖ(X) − Tₖ(z) )
  *
  * @tparam Params CommitmentScheme parameters
@@ -49,6 +56,17 @@ template <typename Params> struct ProverOutput {
     OutputClaim<Params> claim;
     OutputWitness<Params> witness;
     Proof<Params> proof;
+};
+
+/**
+ * @brief Prover output (claim=([G], r, 0), witness = G(X), proof = [Q])
+ * that can be passed on to a univariate opening protocol.
+ *
+ * @tparam Params CommitmentScheme parameters
+ */
+template <typename Params> struct ProverOutputModified {
+    OutputClaimModified<Params> opening_pair;
+    OutputWitness<Params> witness;
 };
 
 } // namespace honk::pcs::shplonk

@@ -4,6 +4,78 @@
 
 namespace honk::pcs {
 /**
+ * @brief Opening pair (r,v) for some witness polynomial p(X) such that p(r) = v
+ *
+ * @tparam Params for the given commitment scheme
+ */
+template <typename Params> class OpeningPair {
+    using Fr = typename Params::Fr;
+
+  public:
+    Fr query;      // r
+    Fr evaluation; // v = p(r)
+
+    /**
+     * @brief inefficiently check that the claim is correct by evaluating the polynomial in r.
+     *
+     * @param ck CommitmentKey used
+     * @param polynomial the claimed witness polynomial p(X)
+     * @return C = Commit(p(X)) && p(r) = v
+     */
+    bool verify(const barretenberg::Polynomial<Fr>& polynomial) const
+    {
+        Fr real_eval = polynomial.evaluate(query);
+        return static_cast<bool>(real_eval == evaluation);
+    };
+
+    bool operator==(const OpeningPair& other) const = default;
+};
+
+/**
+ * @brief Unverified claim (C,r,v) for some witness polynomial p(X) such that
+ *  - C = Commit(p(X))
+ *  - p(r) = v
+ *
+ * @tparam Params for the given commitment scheme
+ */
+template <typename Params> class OpeningClaimModified {
+    using CK = typename Params::CK;
+    using Commitment = typename Params::Commitment;
+    using Fr = typename Params::Fr;
+
+  public:
+    // (query r, evaluation v = p(r))
+    OpeningPair<Params> opening_pair;
+    // commitment to univariate polynomial p(X)
+    Commitment commitment;
+
+    /**
+     * @brief inefficiently check that the claim is correct by recomputing the commitment
+     * and evaluating the polynomial in r.
+     *
+     * @param ck CommitmentKey used
+     * @param polynomial the claimed witness polynomial p(X)
+     * @return C = Commit(p(X)) && p(r) = v
+     */
+    bool verify(CK* ck, const barretenberg::Polynomial<Fr>& polynomial) const
+    {
+        Fr real_eval = polynomial.evaluate(opening_pair.query);
+        if (real_eval != opening_pair.evaluation) {
+            return false;
+        }
+        // Note: real_commitment is a raw type, while commitment may be a linear combination.
+        auto real_commitment = ck->commit(polynomial);
+        if (real_commitment != commitment) {
+            // if (commitment != real_commitment) {
+            return false;
+        }
+        return true;
+    };
+
+    bool operator==(const OpeningClaimModified& other) const = default;
+};
+
+/**
  * @brief Unverified claim (C,r,v) for some witness polynomial p(X) such that
  *  - C = Commit(p(X))
  *  - p(r) = v

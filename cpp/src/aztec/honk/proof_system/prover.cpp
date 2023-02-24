@@ -10,18 +10,16 @@
 #include <span>
 #include <utility>
 #include <vector>
-#include "common/assert.hpp"
 #include "ecc/curves/bn254/fr.hpp"
 #include "ecc/curves/bn254/g1.hpp"
-#include <honk/sumcheck/relations/arithmetic_relation.hpp>
-#include <honk/sumcheck/relations/grand_product_computation_relation.hpp>
-#include <honk/sumcheck/relations/grand_product_initialization_relation.hpp>
-#include "honk/pcs/gemini/gemini.hpp"
 #include "polynomials/polynomial.hpp"
 #include "proof_system/flavor/flavor.hpp"
 #include "transcript/transcript_wrappers.hpp"
 #include <string>
 #include <honk/pcs/claim.hpp>
+#include <honk/sumcheck/relations/arithmetic_relation.hpp>
+#include <honk/sumcheck/relations/grand_product_computation_relation.hpp>
+#include <honk/sumcheck/relations/grand_product_initialization_relation.hpp>
 
 namespace honk {
 
@@ -311,7 +309,6 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
 {
     // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
 
-    using Transcript = transcript::StandardTranscript;
     using Sumcheck = sumcheck::Sumcheck<Fr,
                                         Transcript,
                                         sumcheck::ArithmeticRelation,
@@ -334,18 +331,15 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
  * */
 template <typename settings> void Prover<settings>::execute_univariatization_round()
 {
-    using Gemini = pcs::gemini::MultilinearReductionScheme<pcs::kzg::Params>;
-    using MLEOpeningClaim = pcs::MLEOpeningClaim<pcs::kzg::Params>;
-
     // Construct inputs for Gemini:
     // - Multivariate opening point u = (u_0, ..., u_{d-1})
     // - MLE opening claim = {commitment, eval} for each multivariate and shifted multivariate polynomial
     // - Pointers to multivariate and shifted multivariate polynomials
     std::vector<Fr> opening_point;
-    std::vector<MLEOpeningClaim> opening_claims;
-    std::vector<MLEOpeningClaim> opening_claims_shifted;
+    std::vector<Fr> multivariate_evals;
+    std::vector<Fr> multivariate_evals_shifted;
     std::vector<std::span<Fr>> multivariate_polynomials;
-    std::vector<std::span<Fr>> multivariate_polynomials_shifted;
+    std::vector<std::span<Fr>> multivariate_polynomials_to_be_shifted;
 
     // Construct MLE opening point
     for (size_t round_idx = 0; round_idx < key->log_circuit_size; round_idx++) {
@@ -357,27 +351,26 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     auto multivariate_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
 
     // Collect NON-shifted and shifted polynomials and opening claims based on enum.
-    auto mock_commitment = Commitment::one(); // prover does not require genuine commitments
     for (size_t i = 0; i < bonk::StandardArithmetization::NUM_POLYNOMIALS; ++i) {
         if (i < bonk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS) {
             multivariate_polynomials.push_back(prover_polynomials[i]);
-            opening_claims.emplace_back(mock_commitment, multivariate_evaluations[i]);
+            multivariate_evals.emplace_back(multivariate_evaluations[i]);
         } else { // shifted polynomials/claims
             // Note: we must provide the NON-shifted polynomial but the shifted evaluation.
             // TODO(luke): This is a bit hard-coded for standard Honk right now. Can do away with this after changing
             // Gemini interface to accept shifted polynomials.
-            multivariate_polynomials_shifted.push_back(prover_polynomials[POLYNOMIAL::Z_PERM]);
-            opening_claims_shifted.emplace_back(mock_commitment, multivariate_evaluations[i]);
+            multivariate_polynomials_to_be_shifted.push_back(prover_polynomials[POLYNOMIAL::Z_PERM]);
+            multivariate_evals_shifted.emplace_back(multivariate_evaluations[i]);
         }
     }
 
-    gemini_output = Gemini::reduce_prove(commitment_key,
-                                         opening_point,
-                                         opening_claims,
-                                         opening_claims_shifted,
-                                         multivariate_polynomials,
-                                         multivariate_polynomials_shifted,
-                                         &transcript);
+    gemini_output = Gemini::reduce_prove_modified(commitment_key,
+                                                  opening_point,
+                                                  multivariate_evals,
+                                                  multivariate_evals_shifted,
+                                                  multivariate_polynomials,
+                                                  multivariate_polynomials_to_be_shifted,
+                                                  &transcript);
 }
 
 /**
@@ -405,8 +398,8 @@ template <typename settings> void Prover<settings>::execute_pcs_evaluation_round
  * */
 template <typename settings> void Prover<settings>::execute_shplonk_round()
 {
-    using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<pcs::kzg::Params>;
-    shplonk_output = Shplonk::reduce_prove(commitment_key, gemini_output.claim, gemini_output.witness, &transcript);
+    shplonk_output = Shplonk::reduce_prove_modified(
+        commitment_key, gemini_output.opening_pairs, gemini_output.witnesses, &transcript);
 }
 
 /**
@@ -421,15 +414,7 @@ template <typename settings> void Prover<settings>::execute_shplonk_round()
  * */
 template <typename settings> void Prover<settings>::execute_kzg_round()
 {
-    // Note(luke): Fiat-Shamir to get "z" challenge is done in Shplonk::reduce_prove
-    // TODO(luke): Get KZG opening point [W]_1
-    using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
-    using KzgOutput = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>::Output;
-    KzgOutput kzg_output = KZG::reduce_prove(commitment_key, shplonk_output.claim, shplonk_output.witness);
-
-    auto W_commitment = static_cast<Commitment>(kzg_output.proof).to_buffer();
-
-    transcript.add_element("W", W_commitment);
+    KZG::reduce_prove_modified(commitment_key, shplonk_output.opening_pair, shplonk_output.witness, &transcript);
 }
 
 template <typename settings> plonk::proof& Prover<settings>::export_proof()

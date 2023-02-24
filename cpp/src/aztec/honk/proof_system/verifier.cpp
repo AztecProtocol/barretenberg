@@ -80,15 +80,12 @@ template <typename program_settings> Verifier<program_settings>& Verifier<progra
 */
 template <typename program_settings> bool Verifier<program_settings>::verify_proof(const plonk::proof& proof)
 {
-
     using FF = typename program_settings::fr;
-    using Commitment = barretenberg::g1::affine_element;
+    using Commitment = barretenberg::g1::element;
     using Transcript = typename program_settings::Transcript;
     using Gemini = pcs::gemini::MultilinearReductionScheme<pcs::kzg::Params>;
     using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<pcs::kzg::Params>;
     using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
-    using MLEOpeningClaim = pcs::MLEOpeningClaim<pcs::kzg::Params>;
-    using GeminiProof = pcs::gemini::Proof<pcs::kzg::Params>;
     using POLYNOMIAL = bonk::StandardArithmetization::POLYNOMIAL;
     const size_t NUM_UNSHIFTED = bonk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
     const size_t NUM_PRECOMPUTED = bonk::StandardArithmetization::NUM_PRECOMPUTED_POLYNOMIALS;
@@ -145,8 +142,10 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     // - Multivariate opening point u = (u_0, ..., u_{d-1})
     // - MLE opening claim = {commitment, eval} for each multivariate and shifted multivariate polynomial
     std::vector<FF> opening_point;
-    std::vector<MLEOpeningClaim> opening_claims;
-    std::vector<MLEOpeningClaim> opening_claims_shifted;
+    std::vector<FF> multivariate_evals;
+    std::vector<FF> multivariate_evals_shifted;
+    std::vector<Commitment> multivariate_commitments;
+    std::vector<Commitment> multivariate_commitments_to_be_shifted;
 
     // Construct MLE opening point
     // Note: for consistency the evaluation point must be constructed as u = (u_0,...,u_{d-1})
@@ -160,50 +159,44 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
 
     // Construct NON-shifted opening claims
     for (size_t i = 0; i < NUM_UNSHIFTED; ++i) {
+        multivariate_evals.emplace_back(multivariate_evaluations[i]);
         if (i < NUM_PRECOMPUTED) { // if precomputed, commitment comes from verification key
-            Commitment commitment = key->commitments[bonk::StandardArithmetization::ENUM_TO_COMM[i]];
-            opening_claims.emplace_back(commitment, multivariate_evaluations[i]);
+            multivariate_commitments.emplace_back(key->commitments[bonk::StandardArithmetization::ENUM_TO_COMM[i]]);
         } else { // if witness, commitment comes from prover (via transcript)
-            Commitment commitment = transcript.get_group_element(bonk::StandardArithmetization::ENUM_TO_COMM[i]);
-            opening_claims.emplace_back(commitment, multivariate_evaluations[i]);
+            multivariate_commitments.emplace_back(
+                transcript.get_group_element(bonk::StandardArithmetization::ENUM_TO_COMM[i]));
         }
     }
 
     // Constructed shifted opening claims
-    Commitment commitment = transcript.get_group_element("Z_PERM");
-    Fr evaluation = multivariate_evaluations[POLYNOMIAL::Z_PERM_SHIFT];
-    opening_claims_shifted.emplace_back(commitment, evaluation);
+    multivariate_evals_shifted.emplace_back(multivariate_evaluations[POLYNOMIAL::Z_PERM_SHIFT]);
+    multivariate_commitments_to_be_shifted.emplace_back(transcript.get_group_element("Z_PERM"));
 
     // Reconstruct the Gemini Proof from the transcript
-    GeminiProof gemini_proof;
-
-    for (size_t i = 1; i < key->log_circuit_size; i++) {
-        std::string label = "FOLD_" + std::to_string(i);
-        gemini_proof.commitments.emplace_back(transcript.get_group_element(label));
-    };
-
-    for (size_t i = 0; i < key->log_circuit_size; i++) {
-        std::string label = "a_" + std::to_string(i);
-        gemini_proof.evals.emplace_back(transcript.get_field_element(label));
-    };
+    auto gemini_proof = Gemini::reconstruct_proof_from_transcript(&transcript, key->log_circuit_size);
 
     // Produce a Gemini claim consisting of:
     // - d+1 commitments [Fold_{r}^(0)], [Fold_{-r}^(0)], and [Fold^(l)], l = 1:d-1
     // - d+1 evaluations a_0_pos, and a_l, l = 0:d-1
-    auto gemini_claim =
-        Gemini::reduce_verify(opening_point, opening_claims, opening_claims_shifted, gemini_proof, &transcript);
+    auto gemini_claim = Gemini::reduce_verify_modified(opening_point,
+                                                       multivariate_evals,
+                                                       multivariate_evals_shifted,
+                                                       multivariate_commitments,
+                                                       multivariate_commitments_to_be_shifted,
+                                                       gemini_proof,
+                                                       &transcript);
 
     // Reconstruct the Shplonk Proof (commitment [Q]) from the transcript
     auto shplonk_proof = transcript.get_group_element("Q");
 
     // Produce a Shplonk claim: commitment [Q] - [Q_z], evaluation zero (at random challenge z)
-    auto shplonk_claim = Shplonk::reduce_verify(gemini_claim, shplonk_proof, &transcript);
+    auto shplonk_claim = Shplonk::reduce_verify_modified(gemini_claim, shplonk_proof, &transcript);
 
     // Reconstruct the KZG Proof (commitment [W]_1) from the transcript
     auto kzg_proof = transcript.get_group_element("W");
 
     // Aggregate inputs [Q] - [Q_z] and [W] into an 'accumulator' (can perform pairing check on result)
-    auto kzg_claim = KZG::reduce_verify(shplonk_claim, kzg_proof);
+    auto kzg_claim = KZG::reduce_verify_modified(shplonk_claim, kzg_proof);
 
     // Do final pairing check
     bool pairing_result = kzg_claim.verify(kate_verification_key.get());

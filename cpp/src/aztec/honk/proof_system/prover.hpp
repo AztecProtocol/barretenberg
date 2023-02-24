@@ -1,8 +1,8 @@
 #pragma once
 #include "ecc/curves/bn254/fr.hpp"
+#include "honk/pcs/shplonk/shplonk.hpp"
 #include "polynomials/polynomial.hpp"
 #include "proof_system/flavor/flavor.hpp"
-#include "proof_system/polynomial_cache/polynomial_cache.hpp"
 #include <array>
 #include <proof_system/proving_key/proving_key.hpp>
 #include <honk/pcs/commitment_key.hpp>
@@ -14,6 +14,12 @@
 #include <span>
 #include <unordered_map>
 #include <vector>
+#include <algorithm>
+#include <cstddef>
+#include <memory>
+#include <utility>
+#include <string>
+#include <honk/pcs/claim.hpp>
 
 namespace honk {
 
@@ -74,8 +80,13 @@ template <typename settings> class Prover {
     // This makes 'settings' accesible from Prover
     using settings_ = settings;
 
-    pcs::gemini::ProverOutput<pcs::kzg::Params> gemini_output;
-    pcs::shplonk::ProverOutput<pcs::kzg::Params> shplonk_output;
+    pcs::gemini::ProverOutputModified<pcs::kzg::Params> gemini_output;
+    pcs::shplonk::ProverOutputModified<pcs::kzg::Params> shplonk_output;
+
+    using Transcript = transcript::StandardTranscript;
+    using Gemini = pcs::gemini::MultilinearReductionScheme<pcs::kzg::Params>;
+    using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<pcs::kzg::Params>;
+    using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
 
   private:
     plonk::proof proof;
