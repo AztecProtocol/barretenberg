@@ -364,13 +364,13 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
         }
     }
 
-    gemini_output = Gemini::reduce_prove_modified(commitment_key,
-                                                  opening_point,
-                                                  multivariate_evals,
-                                                  multivariate_evals_shifted,
-                                                  multivariate_polynomials,
-                                                  multivariate_polynomials_to_be_shifted,
-                                                  &transcript);
+    gemini_output = Gemini::reduce_prove(commitment_key,
+                                         opening_point,
+                                         multivariate_evals,
+                                         multivariate_evals_shifted,
+                                         multivariate_polynomials,
+                                         multivariate_polynomials_to_be_shifted,
+                                         &transcript);
 }
 
 /**
@@ -398,8 +398,8 @@ template <typename settings> void Prover<settings>::execute_pcs_evaluation_round
  * */
 template <typename settings> void Prover<settings>::execute_shplonk_round()
 {
-    shplonk_output = Shplonk::reduce_prove_modified(
-        commitment_key, gemini_output.opening_pairs, gemini_output.witnesses, &transcript);
+    shplonk_output =
+        Shplonk::reduce_prove(commitment_key, gemini_output.opening_pairs, gemini_output.witnesses, &transcript);
 }
 
 /**
@@ -414,7 +414,7 @@ template <typename settings> void Prover<settings>::execute_shplonk_round()
  * */
 template <typename settings> void Prover<settings>::execute_kzg_round()
 {
-    KZG::reduce_prove_modified(commitment_key, shplonk_output.opening_pair, shplonk_output.witness, &transcript);
+    KZG::reduce_prove(commitment_key, shplonk_output.opening_pair, shplonk_output.witness, &transcript);
 }
 
 template <typename settings> plonk::proof& Prover<settings>::export_proof()

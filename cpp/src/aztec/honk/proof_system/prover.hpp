@@ -80,8 +80,8 @@ template <typename settings> class Prover {
     // This makes 'settings' accesible from Prover
     using settings_ = settings;
 
-    pcs::gemini::ProverOutputModified<pcs::kzg::Params> gemini_output;
-    pcs::shplonk::ProverOutputModified<pcs::kzg::Params> shplonk_output;
+    pcs::gemini::ProverOutput<pcs::kzg::Params> gemini_output;
+    pcs::shplonk::ProverOutput<pcs::kzg::Params> shplonk_output;
 
     using Transcript = transcript::StandardTranscript;
     using Gemini = pcs::gemini::MultilinearReductionScheme<pcs::kzg::Params>;

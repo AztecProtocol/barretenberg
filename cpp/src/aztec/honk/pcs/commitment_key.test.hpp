@@ -88,20 +88,12 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
         return { x, y };
     }
 
-    // std::pair<OpeningClaim<Params>, Polynomial> random_claim(const size_t n)
-    // {
-    //     auto p = random_polynomial(n);
-    //     auto [x, y] = random_eval(p);
-    //     auto c = commit(p);
-    //     return { { c, x, y }, p };
-    // };
-
-    std::pair<OpeningClaimModified<Params>, Polynomial> random_claim_modified(const size_t n)
+    std::pair<OpeningClaim<Params>, Polynomial> random_claim(const size_t n)
     {
         auto polynomial = random_polynomial(n);
         auto opening_pair = random_eval(polynomial);
         auto commitment = commit(polynomial);
-        auto opening_claim = OpeningClaimModified<Params>{ opening_pair, commitment };
+        auto opening_claim = OpeningClaim<Params>{ opening_pair, commitment };
         return { opening_claim, polynomial };
     };
 
@@ -115,15 +107,6 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
     }
 
     void verify_opening_claim(const OpeningClaim<Params>& claim, const Polynomial& witness)
-    {
-        auto& [c, x, y] = claim;
-        Fr y_expected = witness.evaluate(x);
-        EXPECT_EQ(y, y_expected) << "OpeningClaim: evaluations mismatch";
-        Commitment c_expected = commit(witness);
-        EXPECT_EQ(c, c_expected) << "OpeningClaim: commitment mismatch";
-    }
-
-    void verify_opening_claim_modified(const OpeningClaimModified<Params>& claim, const Polynomial& witness)
     {
         auto& commitment = claim.commitment;
         auto& [x, y] = claim.opening_pair;
@@ -147,43 +130,6 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
      * - each 'queries' is a subset of 'all_queries' and 'all_queries' is the union of all 'queries'
      * - each 'commitment' of each 'SubClaim' appears only once.
      */
-    void verify_batch_opening_claim(std::span<const MultiOpeningClaim<Params>> multi_claims,
-                                    std::span<const Polynomial> witnesses)
-    {
-        size_t idx = 0;
-
-        for (const auto& [queries, openings] : multi_claims) {
-            const size_t num_queries = queries.size();
-
-            for (const auto& [commitment, evals] : openings) {
-                // compare commitment against recomputed commitment from witness
-                Commitment commitment_expected = commit(witnesses[idx]);
-                EXPECT_EQ(commitment, commitment_expected)
-                    << "BatchOpeningClaim idx=" << idx << ": commitment mismatch";
-                EXPECT_EQ(evals.size(), num_queries)
-                    << "BatchOpeningClaim idx=" << idx << ": evaluation/query size mismatch";
-
-                // check evaluations for each point in queries
-                for (size_t i = 0; i < num_queries; ++i) {
-
-                    // check evaluation
-                    Fr eval_expected = witnesses[idx].evaluate(queries[i]);
-                    EXPECT_EQ(evals[i], eval_expected)
-                        << "BatchOpeningClaim idx=" << idx << ": evaluation " << i << " mismatch";
-                }
-
-                ++idx;
-            }
-        }
-    }
-
-    /**
-     * @brief Ensures that a 'BatchOpeningClaim' is correct by checking that
-     * - all evaluations are correct by recomputing them from each witness polynomial.
-     * - commitments are correct by recomputing a commitment from each witness polynomial.
-     * - each 'queries' is a subset of 'all_queries' and 'all_queries' is the union of all 'queries'
-     * - each 'commitment' of each 'SubClaim' appears only once.
-     */
     void verify_batch_opening_claim(std::span<const OpeningClaim<Params>> multi_claims,
                                     std::span<const Polynomial> witnesses)
     {
@@ -192,24 +138,6 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
 
         for (size_t j = 0; j < num_claims; ++j) {
             this->verify_opening_claim(multi_claims[j], witnesses[j]);
-        }
-    }
-
-    /**
-     * @brief Ensures that a 'BatchOpeningClaim' is correct by checking that
-     * - all evaluations are correct by recomputing them from each witness polynomial.
-     * - commitments are correct by recomputing a commitment from each witness polynomial.
-     * - each 'queries' is a subset of 'all_queries' and 'all_queries' is the union of all 'queries'
-     * - each 'commitment' of each 'SubClaim' appears only once.
-     */
-    void verify_batch_opening_claim_modified(std::span<const OpeningClaimModified<Params>> multi_claims,
-                                             std::span<const Polynomial> witnesses)
-    {
-        const size_t num_claims = multi_claims.size();
-        ASSERT_EQ(witnesses.size(), num_claims);
-
-        for (size_t j = 0; j < num_claims; ++j) {
-            this->verify_opening_claim_modified(multi_claims[j], witnesses[j]);
         }
     }
 

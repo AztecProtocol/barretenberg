@@ -18,17 +18,8 @@ namespace honk::pcs::kzg {
 template <class Params> class BilinearAccumulationTest : public CommitmentTest<Params> {
   public:
     using Fr = typename Params::Fr;
-
     using Commitment = typename Params::Commitment;
     using Polynomial = barretenberg::Polynomial<Fr>;
-
-    using Accumulator = BilinearAccumulator<Params>;
-
-    void verify_accumulators(const Accumulator& prover_acc, const Accumulator& verifier_acc)
-    {
-        EXPECT_EQ(prover_acc, verifier_acc) << "BilinearAccumulation: accumulator mismatch";
-        EXPECT_TRUE(prover_acc.verify(this->vk())) << "BilinearAccumulation: pairing check failed";
-    }
 };
 
 TYPED_TEST_SUITE(BilinearAccumulationTest, CommitmentSchemeParams);
@@ -52,14 +43,14 @@ TYPED_TEST(BilinearAccumulationTest, single)
     auto evaluation = witness.evaluate(query);
     auto opening_pair = OpeningPair<TypeParam>{ query, evaluation };
 
-    KZG::reduce_prove_modified(this->ck(), opening_pair, witness, transcript);
+    KZG::reduce_prove(this->ck(), opening_pair, witness, transcript);
 
     // Reconstruct the KZG Proof (commitment [W]) from the transcript
     auto kzg_proof = transcript->get_group_element("W");
 
-    auto opening_claim = OpeningClaimModified<TypeParam>{ opening_pair, commitment };
+    auto opening_claim = OpeningClaim<TypeParam>{ opening_pair, commitment };
 
-    auto kzg_claim = KZG::reduce_verify_modified(opening_claim, kzg_proof);
+    auto kzg_claim = KZG::reduce_verify(opening_claim, kzg_proof);
 
     bool verified = kzg_claim.verify(this->vk());
 
@@ -78,7 +69,7 @@ TYPED_TEST(BilinearAccumulationTest, single)
  * to those polynomials.
  *
  */
-TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShiftModified)
+TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
 {
     using Transcript = transcript::StandardTranscript;
     using Shplonk = shplonk::SingleBatchOpeningScheme<TypeParam>;
@@ -123,24 +114,23 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShiftModified)
     // Gemini prover output:
     // - opening pairs: d+1 pairs (r, a_0_pos) and (-r^{2^l}, a_l), l = 0:d-1
     // - witness: the d+1 polynomials Fold_{r}^(0), Fold_{-r}^(0), Fold^(l), l = 1:d-1
-    auto gemini_prover_output = Gemini::reduce_prove_modified(this->ck(),
-                                                              mle_opening_point,
-                                                              multilinear_evals,
-                                                              multilinear_evals_shifted,
-                                                              multilinear_polynomials,
-                                                              multilinear_polynomials_to_be_shifted,
-                                                              transcript);
+    auto gemini_prover_output = Gemini::reduce_prove(this->ck(),
+                                                     mle_opening_point,
+                                                     multilinear_evals,
+                                                     multilinear_evals_shifted,
+                                                     multilinear_polynomials,
+                                                     multilinear_polynomials_to_be_shifted,
+                                                     transcript);
 
     // Shplonk prover output:
     // - opening pair: (z_challenge, 0)
     // - witness: polynomial Q - Q_z
-    auto shplonk_prover_output = Shplonk::reduce_prove_modified(
+    auto shplonk_prover_output = Shplonk::reduce_prove(
         this->ck(), gemini_prover_output.opening_pairs, gemini_prover_output.witnesses, transcript);
 
     // KZG prover:
     // - Adds commitment [W] to transcript
-    KZG::reduce_prove_modified(
-        this->ck(), shplonk_prover_output.opening_pair, shplonk_prover_output.witness, transcript);
+    KZG::reduce_prove(this->ck(), shplonk_prover_output.opening_pair, shplonk_prover_output.witness, transcript);
 
     // Run the full verifier PCS protocol with genuine opening claims (genuine commitment, genuine evaluation)
 
@@ -157,21 +147,20 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShiftModified)
 
     // Gemini verifier output:
     // - claim: d+1 commitments to Fold_{r}^(0), Fold_{-r}^(0), Fold^(l), d+1 evaluations a_0_pos, a_l, l = 0:d-1
-    auto gemini_verifier_claim = Gemini::reduce_verify_modified(mle_opening_point,
-                                                                multilinear_evals,
-                                                                multilinear_evals_shifted,
-                                                                multilinear_commitments,
-                                                                multilinear_commitments_to_be_shifted,
-                                                                gemini_proof,
-                                                                transcript);
+    auto gemini_verifier_claim = Gemini::reduce_verify(mle_opening_point,
+                                                       multilinear_evals,
+                                                       multilinear_evals_shifted,
+                                                       multilinear_commitments,
+                                                       multilinear_commitments_to_be_shifted,
+                                                       gemini_proof,
+                                                       transcript);
 
     // Shplonk verifier claim: commitment [Q] - [Q_z], opening point (z_challenge, 0)
-    const auto shplonk_verifier_claim =
-        Shplonk::reduce_verify_modified(gemini_verifier_claim, shplonk_proof, transcript);
+    const auto shplonk_verifier_claim = Shplonk::reduce_verify(gemini_verifier_claim, shplonk_proof, transcript);
 
     // KZG verifier:
     // aggregates inputs [Q] - [Q_z] and [W] into an 'accumulator' (can perform pairing check on result)
-    auto kzg_claim = KZG::reduce_verify_modified(shplonk_verifier_claim, kzg_proof);
+    auto kzg_claim = KZG::reduce_verify(shplonk_verifier_claim, kzg_proof);
 
     // Final pairing check: e([Q] - [Q_z] + z[W], [1]_2) = e([W], [x]_2)
     bool verified = kzg_claim.verify(this->vk());

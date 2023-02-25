@@ -178,25 +178,25 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     // Produce a Gemini claim consisting of:
     // - d+1 commitments [Fold_{r}^(0)], [Fold_{-r}^(0)], and [Fold^(l)], l = 1:d-1
     // - d+1 evaluations a_0_pos, and a_l, l = 0:d-1
-    auto gemini_claim = Gemini::reduce_verify_modified(opening_point,
-                                                       multivariate_evals,
-                                                       multivariate_evals_shifted,
-                                                       multivariate_commitments,
-                                                       multivariate_commitments_to_be_shifted,
-                                                       gemini_proof,
-                                                       &transcript);
+    auto gemini_claim = Gemini::reduce_verify(opening_point,
+                                              multivariate_evals,
+                                              multivariate_evals_shifted,
+                                              multivariate_commitments,
+                                              multivariate_commitments_to_be_shifted,
+                                              gemini_proof,
+                                              &transcript);
 
     // Reconstruct the Shplonk Proof (commitment [Q]) from the transcript
     auto shplonk_proof = transcript.get_group_element("Q");
 
     // Produce a Shplonk claim: commitment [Q] - [Q_z], evaluation zero (at random challenge z)
-    auto shplonk_claim = Shplonk::reduce_verify_modified(gemini_claim, shplonk_proof, &transcript);
+    auto shplonk_claim = Shplonk::reduce_verify(gemini_claim, shplonk_proof, &transcript);
 
     // Reconstruct the KZG Proof (commitment [W]_1) from the transcript
     auto kzg_proof = transcript.get_group_element("W");
 
     // Aggregate inputs [Q] - [Q_z] and [W] into an 'accumulator' (can perform pairing check on result)
-    auto kzg_claim = KZG::reduce_verify_modified(shplonk_claim, kzg_proof);
+    auto kzg_claim = KZG::reduce_verify(shplonk_claim, kzg_proof);
 
     // Do final pairing check
     bool pairing_result = kzg_claim.verify(kate_verification_key.get());
