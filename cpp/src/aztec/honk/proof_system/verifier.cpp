@@ -86,7 +86,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     using Gemini = pcs::gemini::MultilinearReductionScheme<pcs::kzg::Params>;
     using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<pcs::kzg::Params>;
     using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
-    using POLYNOMIAL = bonk::StandardArithmetization::POLYNOMIAL;
+    // using POLYNOMIAL = bonk::StandardArithmetization::POLYNOMIAL;
     const size_t NUM_UNSHIFTED = bonk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
     const size_t NUM_PRECOMPUTED = bonk::StandardArithmetization::NUM_PRECOMPUTED_POLYNOMIALS;
 
@@ -142,8 +142,8 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     // - Multivariate opening point u = (u_0, ..., u_{d-1})
     // - MLE opening claim = {commitment, eval} for each multivariate and shifted multivariate polynomial
     std::vector<FF> opening_point;
-    std::vector<FF> multivariate_evals;
-    std::vector<FF> multivariate_evals_shifted;
+    // std::vector<FF> multivariate_evals;
+    // std::vector<FF> multivariate_evals_shifted;
     std::vector<Commitment> multivariate_commitments;
     std::vector<Commitment> multivariate_commitments_to_be_shifted;
 
@@ -159,7 +159,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
 
     // Construct NON-shifted opening claims
     for (size_t i = 0; i < NUM_UNSHIFTED; ++i) {
-        multivariate_evals.emplace_back(multivariate_evaluations[i]);
+        // multivariate_evals.emplace_back(multivariate_evaluations[i]);
         if (i < NUM_PRECOMPUTED) { // if precomputed, commitment comes from verification key
             multivariate_commitments.emplace_back(key->commitments[bonk::StandardArithmetization::ENUM_TO_COMM[i]]);
         } else { // if witness, commitment comes from prover (via transcript)
@@ -169,7 +169,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     }
 
     // Constructed shifted opening claims
-    multivariate_evals_shifted.emplace_back(multivariate_evaluations[POLYNOMIAL::Z_PERM_SHIFT]);
+    // multivariate_evals_shifted.emplace_back(multivariate_evaluations[POLYNOMIAL::Z_PERM_SHIFT]);
     multivariate_commitments_to_be_shifted.emplace_back(transcript.get_group_element("Z_PERM"));
 
     // Reconstruct the Gemini Proof from the transcript
@@ -179,8 +179,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     // - d+1 commitments [Fold_{r}^(0)], [Fold_{-r}^(0)], and [Fold^(l)], l = 1:d-1
     // - d+1 evaluations a_0_pos, and a_l, l = 0:d-1
     auto gemini_claim = Gemini::reduce_verify(opening_point,
-                                              multivariate_evals,
-                                              multivariate_evals_shifted,
+                                              multivariate_evaluations,
                                               multivariate_commitments,
                                               multivariate_commitments_to_be_shifted,
                                               gemini_proof,

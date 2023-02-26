@@ -71,6 +71,7 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
     using KZG = UnivariateOpeningScheme<TypeParam>;
     using Fr = typename TypeParam::Fr;
     using Commitment = typename TypeParam::Commitment;
+    using Polynomial = typename barretenberg::Polynomial<Fr>;
 
     const size_t n = 16;
     const size_t log_n = 4;
@@ -78,6 +79,8 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
     // Instantiate a transcript from the real Honk manifest, then mock the inputs prior to Gemini.
     auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
     transcript->mock_inputs_prior_to_challenge("rho");
+    transcript->apply_fiat_shamir("rho");
+    const Fr rho = Fr::serialize_from_buffer(transcript->get_challenge("rho").begin());
 
     // Generate multilinear polynomials, their commitments (genuine and mocked) and evaluations (genuine) at a random
     // point.
@@ -94,14 +97,20 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
     auto eval2_shift = poly2.evaluate_mle(mle_opening_point, true);
 
     // Collect multilinear polynomials and their evaluations for input to prover
-    std::vector<Fr> multilinear_evals = { eval1, eval2 };
-    std::vector<Fr> multilinear_evals_shifted = { eval2_shift };
+    std::vector<Fr> multilinear_evaluations = { eval1, eval2, eval2_shift };
     std::vector<std::span<Fr>> multilinear_polynomials = { poly1, poly2 };
     std::vector<std::span<Fr>> multilinear_polynomials_to_be_shifted = { poly2 };
 
     // Collect multilinear polynomial commitments for input to verifier
     std::vector<Commitment> multilinear_commitments = { commitment1, commitment2 };
     std::vector<Commitment> multilinear_commitments_to_be_shifted = { commitment2 };
+
+    std::vector<Fr> rhos = Gemini::powers_of_rho(rho, multilinear_evaluations.size());
+    Polynomial batched_unshifted(n);
+    Polynomial batched_to_be_shifted(n);
+    batched_unshifted.add_scaled(poly1, rhos[0]);
+    batched_unshifted.add_scaled(poly2, rhos[1]);
+    batched_to_be_shifted.add_scaled(poly2, rhos[2]);
 
     // Run the full prover PCS protocol:
 
@@ -110,10 +119,10 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
     // - witness: the d+1 polynomials Fold_{r}^(0), Fold_{-r}^(0), Fold^(l), l = 1:d-1
     auto gemini_prover_output = Gemini::reduce_prove(this->ck(),
                                                      mle_opening_point,
-                                                     multilinear_evals,
-                                                     multilinear_evals_shifted,
-                                                     multilinear_polynomials,
-                                                     multilinear_polynomials_to_be_shifted,
+                                                     multilinear_evaluations,
+                                                     std::move(batched_unshifted),
+                                                     std::move(batched_to_be_shifted),
+                                                     rhos,
                                                      transcript);
 
     // Shplonk prover output:
@@ -142,8 +151,7 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
     // Gemini verifier output:
     // - claim: d+1 commitments to Fold_{r}^(0), Fold_{-r}^(0), Fold^(l), d+1 evaluations a_0_pos, a_l, l = 0:d-1
     auto gemini_verifier_claim = Gemini::reduce_verify(mle_opening_point,
-                                                       multilinear_evals,
-                                                       multilinear_evals_shifted,
+                                                       multilinear_evaluations,
                                                        multilinear_commitments,
                                                        multilinear_commitments_to_be_shifted,
                                                        gemini_proof,

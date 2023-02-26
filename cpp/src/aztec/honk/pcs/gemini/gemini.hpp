@@ -91,20 +91,7 @@ template <typename Params> struct Proof {
 template <typename Params> using OutputClaim = std::vector<OpeningClaim<Params>>;
 
 /**
- * @brief Univariate opening claims for multiple polynomials,
- * each opened at a single different point (size = m+1).
- *
- * [
- *   (C₀₊ , A₀  ( r)       ,  r )
- *   (C₀₋ , A₀  (-r)       , -r )
- *   (C₁  , A₁  (-r²)      , -r²)
- *   ...
- *   (Cₘ₋₁, Aₘ₋₁(-r^{2ᵐ⁻¹}), -r^{2ᵐ⁻¹})
- * ]
- * where
- *   C₀₊ is a simulated commitment to A₀ partially evaluated at r
- *   C₀₋ is a simulated commitment to A₀ partially evaluated at -r
- *
+ * @brief Vector of opening pairs {r, v = p(r)}
  * @tparam Params CommitmentScheme parameters
  */
 template <typename Params> using OutputPair = std::vector<OpeningPair<Params>>;
@@ -157,72 +144,34 @@ template <typename Params> class MultilinearReductionScheme {
      *
      * @param ck is the commitment key for creating the new commitments
      * @param mle_opening_point = u =(u₀,...,uₘ₋₁) is the MLE opening point
-     * @param claims a set of MLE claims for the same point u
-     * @param mle_witness_polynomials the MLE polynomials for each evaluation.
-     *      Internally, it contains a reference to the non-shifted polynomial.
+     * @param evaluations evaluations of each multivariate at the point u
+     * @param polynomials_f the unshifted multivariate polynomials
+     * @param polynomials_g the to-be-shifted multivariate polynomials
      * @param transcript
-     * @return Output (result_claims, proof, folded_witness_polynomials)
+     * @return Output (opening pairs, folded_witness_polynomials)
      *
      */
     static ProverOutput<Params> reduce_prove(std::shared_ptr<CK> ck,
                                              std::span<const Fr> mle_opening_point,
-                                             std::span<const Fr> evaluations_f,               /* unshifted */
-                                             std::span<const Fr> evaluations_g,               /* shifted */
-                                             const std::vector<std::span<Fr>>& polynomials_f, /* unshifted */
-                                             const std::vector<std::span<Fr>>& polynomials_g, /* to-be-shifted */
+                                             std::span<const Fr> evaluations,          /* all */
+                                             const Polynomial&& batched_shifted,       /* unshifted */
+                                             const Polynomial&& batched_to_be_shifted, /* to-be-shifted */
+                                             std::span<Fr> rhos,                       /* to-be-shifted */
                                              const auto& transcript)
     {
         const size_t num_variables = mle_opening_point.size(); // m
-        const size_t n = 1 << num_variables;
-        const size_t num_polys_f = polynomials_f.size();
-        const size_t num_polys_g = polynomials_g.size();
-        const size_t num_polys = num_polys_f + num_polys_g;
-        ASSERT(evaluations_f.size() == num_polys_f);
-        ASSERT(evaluations_g.size() == num_polys_g);
 
-        // Generate batching challenge ρ and powers 1,ρ,…,ρᵐ⁻¹
-        transcript->apply_fiat_shamir("rho");
-        Fr rho = Fr::serialize_from_buffer(transcript->get_challenge("rho").begin());
-        const std::vector<Fr> rhos = powers_of_rho(rho, num_polys);
-        std::span<const Fr> rhos_span{ rhos };
-        std::span rhos_f = rhos_span.subspan(0, num_polys_f);
-        std::span rhos_g = rhos_span.subspan(num_polys_f, num_polys_g);
-
-        // Allocate m+1 witness polynomials
+        // Allocate space for m+1 Fold polynomials
         //
         // At the end, the first two will contain the batched polynomial
         // partially evaluated at the challenges r,-r.
         // The other m-1 polynomials correspond to the foldings of A₀
-        std::vector<Polynomial> result_witness_polynomials;
-        result_witness_polynomials.reserve(num_variables + 1);
-
-        // Create the batched polynomials
+        std::vector<Polynomial> fold_polynomials;
+        fold_polynomials.reserve(num_variables + 1);
         // F(X) = ∑ⱼ ρʲ   fⱼ(X)
+        Polynomial& batched_F = fold_polynomials.emplace_back(batched_shifted);
         // G(X) = ∑ⱼ ρᵏ⁺ʲ gⱼ(X)
-        // using powers of the challenge ρ.
-        //
-        // In what follows, we use indices j, k for non-shifted and shifted polynomials respectively.
-        //
-        // We separate A₀(X) into two polynomials F(X), G↺(X)
-        // such that A₀(X) = F(X) + G↺(X) = F(X) + G(X)/X.
-
-        //  F(X) = ∑ⱼ ρʲ fⱼ(X)
-        Polynomial& batched_F = result_witness_polynomials.emplace_back(Polynomial(n));
-        for (size_t j = 0; j < num_polys_f; ++j) {
-            const size_t n_j = polynomials_f[j].size();
-            ASSERT(n_j <= n);
-            // F(X) += ρʲ fⱼ(X)
-            batched_F.add_scaled(polynomials_f[j], rhos_f[j]);
-        }
-
-        //  G(X) = ∑ⱼ ρʲ gⱼ(X)
-        Polynomial& batched_G = result_witness_polynomials.emplace_back(Polynomial(n));
-        for (size_t j = 0; j < num_polys_g; ++j) {
-            const size_t n_j = polynomials_g[j].size();
-            ASSERT(n_j <= n);
-            // G(X) += ρʲ gⱼ(X)
-            batched_G.add_scaled(polynomials_g[j], rhos_g[j]);
-        }
+        Polynomial& batched_G = fold_polynomials.emplace_back(batched_to_be_shifted);
 
         // A₀(X) = F(X) + G↺(X) = F(X) + G(X)/X.
         Polynomial A_0(batched_F);
@@ -241,7 +190,7 @@ template <typename Params> class MultilinearReductionScheme {
             const size_t n_l = 1 << (num_variables - l - 1);
 
             // A_l_fold = Aₗ₊₁(X) = (1-uₗ)⋅even(Aₗ)(X) + uₗ⋅odd(Aₗ)(X)
-            Fr* A_l_fold = result_witness_polynomials.emplace_back(Polynomial(n_l)).get_coefficients();
+            Fr* A_l_fold = fold_polynomials.emplace_back(Polynomial(n_l)).get_coefficients();
 
             // fold the previous polynomial with odd and even parts
             for (size_t i = 0; i < n_l; ++i) {
@@ -263,7 +212,7 @@ template <typename Params> class MultilinearReductionScheme {
         std::vector<Commitment> commitments;
         commitments.reserve(num_variables - 1);
         for (size_t l = 0; l < num_variables - 1; ++l) {
-            commitments.emplace_back(ck->commit(result_witness_polynomials[l + 2]));
+            commitments.emplace_back(ck->commit(fold_polynomials[l + 2]));
             transcript->add_element("FOLD_" + std::to_string(l + 1),
                                     static_cast<CommitmentAffine>(commitments[l]).to_buffer());
         }
@@ -272,8 +221,8 @@ template <typename Params> class MultilinearReductionScheme {
          * Generate evaluation challenge r, and compute rₗ = r^{2ˡ} for l = 0, 1, ..., m-1
          */
         transcript->apply_fiat_shamir("r");
-        const Fr r = Fr::serialize_from_buffer(transcript->get_challenge("r").begin());
-        std::vector<Fr> r_squares = squares_of_r(r, num_variables);
+        const Fr r_challenge = Fr::serialize_from_buffer(transcript->get_challenge("r").begin());
+        std::vector<Fr> r_squares = squares_of_r(r_challenge, num_variables);
 
         /*
          * Compute the witness polynomials for the resulting claim
@@ -284,7 +233,7 @@ template <typename Params> class MultilinearReductionScheme {
          */
 
         // 2 simulated polynomials and (m-1) polynomials from this round
-        Fr r_inv = r.invert();
+        Fr r_inv = r_challenge.invert();
         // G(X) *= r⁻¹
         batched_G *= r_inv;
 
@@ -293,7 +242,7 @@ template <typename Params> class MultilinearReductionScheme {
         // tmp     = A₀(X) (&tmp     == &A_0)
         // A_0_pos = F(X)  (&A_0_pos == &batched_F)
         Polynomial& tmp = A_0;
-        Polynomial& A_0_pos = result_witness_polynomials[0];
+        Polynomial& A_0_pos = fold_polynomials[0];
 
         tmp = batched_F;
         // A₀₊(X) = F(X) + G(X)/r, s.t. A₀₊(r) = A₀(r)
@@ -303,7 +252,7 @@ template <typename Params> class MultilinearReductionScheme {
         // After the swap, we have
         // tmp = G(X)/r
         // A_0_neg = F(X) (since &batched_F == &A_0_neg)
-        Polynomial& A_0_neg = result_witness_polynomials[1];
+        Polynomial& A_0_neg = fold_polynomials[1];
 
         // A₀₋(X) = F(X) - G(X)/r, s.t. A₀₋(-r) = A₀(-r)
         A_0_neg -= tmp;
@@ -315,7 +264,7 @@ template <typename Params> class MultilinearReductionScheme {
         std::vector<Fr> fold_polynomial_evals;
         fold_polynomial_evals.reserve(num_variables);
         for (size_t l = 0; l < num_variables; ++l) {
-            const Polynomial& A_l = result_witness_polynomials[l + 1];
+            const Polynomial& A_l = fold_polynomials[l + 1];
 
             fold_polynomial_evals.emplace_back(A_l.evaluate(-r_squares[l]));
             transcript->add_element("a_" + std::to_string(l), fold_polynomial_evals[l].to_buffer());
@@ -324,20 +273,19 @@ template <typename Params> class MultilinearReductionScheme {
         /*
          * Compute evaluation A₀(r)
          */
-        auto a_0_pos =
-            compute_eval_pos(evaluations_f, evaluations_g, mle_opening_point, rhos, r_squares, fold_polynomial_evals);
+        auto a_0_pos = compute_eval_pos(evaluations, mle_opening_point, rhos, r_squares, fold_polynomial_evals);
 
-        std::vector<OpeningPair<Params>> result_pairs;
-        result_pairs.reserve(num_variables + 1);
+        std::vector<OpeningPair<Params>> fold_poly_opening_pairs;
+        fold_poly_opening_pairs.reserve(num_variables + 1);
 
         // ( [A₀₊], r, A₀(r) )
-        result_pairs.emplace_back(OpeningPair<Params>{ r, a_0_pos });
+        fold_poly_opening_pairs.emplace_back(OpeningPair<Params>{ r_challenge, a_0_pos });
         // ([A₀₋], -r, Aₗ(−r^{2ˡ}) )
         for (size_t l = 0; l < num_variables; ++l) {
-            result_pairs.emplace_back(OpeningPair<Params>{ -r_squares[l], fold_polynomial_evals[l] });
+            fold_poly_opening_pairs.emplace_back(OpeningPair<Params>{ -r_squares[l], fold_polynomial_evals[l] });
         }
 
-        return { result_pairs, std::move(result_witness_polynomials) };
+        return { fold_poly_opening_pairs, std::move(fold_polynomials) };
     };
 
     /**
@@ -345,24 +293,22 @@ template <typename Params> class MultilinearReductionScheme {
      * is correct, and returns univariate polynomial opening claims to be checked later
      *
      * @param mle_opening_point the MLE evaluation point for all claims
-     * @param claims MLE claims with (C, v) and C is a univariate commitment
-     * @param claims_shifted MLE claims with (C, v↺) and C is a univariate commitment
-     *      to the non-shifted polynomial
+     * @param evaluations evaluations of each multivariate at the point u
+     * @param commitments_f commitments to unshifted multivariate polynomials
+     * @param commitments_g commitments to to-be-shifted multivariate polynomials
      * @param proof commitments to the m-1 folded polynomials, and alleged evaluations.
      * @param transcript
-     * @return BatchOpeningClaim
+     * @return Fold polynomial opening claims
      */
-    // TODO(luke): make the input MLEOpeningClaims again?
     static OutputClaim<Params> reduce_verify(std::span<const Fr> mle_opening_point,     /* u */
-                                             std::span<const Fr> evaluations_f,         /* unshifted */
-                                             std::span<const Fr> evaluations_g,         /* shifted */
+                                             std::span<const Fr> evaluations,           /* all */
                                              std::span<const Commitment> commitments_f, /* unshifted */
                                              std::span<const Commitment> commitments_g, /* to-be-shifted */
                                              const Proof<Params>& proof,
                                              const auto& transcript)
     {
         const size_t num_variables = mle_opening_point.size();
-        const size_t num_claims = evaluations_f.size() + evaluations_g.size();
+        const size_t num_claims = evaluations.size();
 
         // compute vector of powers of batching challenge ρ
         const Fr rho = Fr::serialize_from_buffer(transcript->get_challenge("rho").begin());
@@ -372,27 +318,26 @@ template <typename Params> class MultilinearReductionScheme {
         const Fr r = Fr::serialize_from_buffer(transcript->get_challenge("r").begin());
         std::vector<Fr> r_squares = squares_of_r(r, num_variables);
 
-        auto a_0_pos =
-            compute_eval_pos(evaluations_f, evaluations_g, mle_opening_point, rhos, r_squares, proof.evaluations);
+        auto a_0_pos = compute_eval_pos(evaluations, mle_opening_point, rhos, r_squares, proof.evaluations);
 
         // C₀_r_pos = ∑ⱼ ρʲ⋅[fⱼ] + r⁻¹⋅∑ⱼ ρᵏ⁺ʲ [gⱼ]
         // C₀_r_pos = ∑ⱼ ρʲ⋅[fⱼ] - r⁻¹⋅∑ⱼ ρᵏ⁺ʲ [gⱼ]
         auto [c0_r_pos, c0_r_neg] = compute_simulated_commitments(commitments_f, commitments_g, rhos, r);
 
-        std::vector<OpeningClaim<Params>> result_claims;
-        result_claims.reserve(num_variables + 1);
+        std::vector<OpeningClaim<Params>> fold_polynomial_opening_claims;
+        fold_polynomial_opening_claims.reserve(num_variables + 1);
 
         // ( [A₀₊], r, A₀(r) )
-        result_claims.emplace_back(OpeningClaim<Params>{ { r, a_0_pos }, c0_r_pos });
+        fold_polynomial_opening_claims.emplace_back(OpeningClaim<Params>{ { r, a_0_pos }, c0_r_pos });
         // ( [A₀₋], -r, A₀(-r) )
-        result_claims.emplace_back(OpeningClaim<Params>{ { -r, proof.evaluations[0] }, c0_r_neg });
+        fold_polynomial_opening_claims.emplace_back(OpeningClaim<Params>{ { -r, proof.evaluations[0] }, c0_r_neg });
         for (size_t l = 0; l < num_variables - 1; ++l) {
             // ([A₀₋], −r^{2ˡ}, Aₗ(−r^{2ˡ}) )
-            result_claims.emplace_back(
+            fold_polynomial_opening_claims.emplace_back(
                 OpeningClaim<Params>{ { -r_squares[l + 1], proof.evaluations[l + 1] }, proof.commitments[l] });
         }
 
-        return result_claims;
+        return fold_polynomial_opening_claims;
     };
 
     /**
@@ -419,45 +364,45 @@ template <typename Params> class MultilinearReductionScheme {
         return proof;
     }
 
+    static std::vector<Fr> powers_of_rho(const Fr rho, const size_t num_powers)
+    {
+        std::vector<Fr> rhos = { Fr(1), rho };
+        rhos.reserve(num_powers);
+        for (size_t j = 2; j < num_powers; j++) {
+            rhos.emplace_back(rhos[j - 1] * rho);
+        }
+        return rhos;
+    };
+
   private:
     /**
      * @brief computes the output pair given the transcript.
      * This method is common for both prover and verifier.
      *
-     * @param claims_f set of input claims for non-shifted evaluations
-     * @param claims_g set of input claims for shifted evaluations
+     * @param evaluations evaluations of each multivariate
      * @param mle_vars MLE opening point u
      * @param rhos powers of the initial batching challenge ρ
      * @param r_squares squares of r, r², ..., r^{2ᵐ⁻¹}
-     * @param proof the proof produced by the prover
-     * @return OutputClaim<Params>
+     * @return evaluation A₀(r)
      */
-    static Fr compute_eval_pos(std::span<const Fr> evaluations_f,
-                               std::span<const Fr> evaluations_g,
+    static Fr compute_eval_pos(std::span<const Fr> evaluations,
                                std::span<const Fr> mle_vars,
                                std::span<const Fr> rhos,
                                std::span<const Fr> r_squares,
-                               std::span<const Fr> folded_polynomial_evals)
+                               std::span<const Fr> fold_polynomial_evals)
     {
         const size_t num_variables = mle_vars.size();
-        const size_t num_claims_f = evaluations_f.size();
-        const size_t num_claims_g = evaluations_g.size();
+        const size_t num_claims = evaluations.size();
 
-        const auto& evals = folded_polynomial_evals;
+        const auto& evals = fold_polynomial_evals;
 
         // compute the batched MLE evaluation
         // v = ∑ⱼ ρʲ vⱼ + ∑ⱼ ρᵏ⁺ʲ v↺ⱼ
         Fr mle_eval{ Fr::zero() };
 
-        // add non-shifted evaluations
-        std::span rhos_f = rhos.subspan(0, num_claims_f);
-        for (size_t j = 0; j < num_claims_f; ++j) {
-            mle_eval += evaluations_f[j] * rhos_f[j];
-        }
-        // add shifted evaluations
-        std::span rhos_g = rhos.subspan(num_claims_f, num_claims_g);
-        for (size_t j = 0; j < num_claims_g; ++j) {
-            mle_eval += evaluations_g[j] * rhos_g[j];
+        // construct batched evaluation
+        for (size_t j = 0; j < num_claims; ++j) {
+            mle_eval += evaluations[j] * rhos[j];
         }
 
         // For l = m, ..., 1
@@ -478,16 +423,6 @@ template <typename Params> class MultilinearReductionScheme {
         }
 
         return eval_pos; // return A₀(r)
-    };
-
-    static std::vector<Fr> powers_of_rho(const Fr rho, const size_t num_powers)
-    {
-        std::vector<Fr> rhos = { Fr(1), rho };
-        rhos.reserve(num_powers);
-        for (size_t j = 2; j < num_powers; j++) {
-            rhos.emplace_back(rhos[j - 1] * rho);
-        }
-        return rhos;
     };
 
     static std::vector<Fr> squares_of_r(const Fr r, const size_t num_squares)

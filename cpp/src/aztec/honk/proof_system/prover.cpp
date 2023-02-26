@@ -296,14 +296,11 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
  * */
 template <typename settings> void Prover<settings>::execute_univariatization_round()
 {
-    // Construct inputs for Gemini
-    std::vector<Fr> opening_point;                                     // u = (u_0, ..., u_{d-1})
-    std::vector<Fr> multivariate_evals;                                // evaluation of each un-shifted multivariate
-    std::vector<Fr> multivariate_evals_shifted;                        // evaluation of each shifted multivariate
-    std::vector<std::span<Fr>> multivariate_polynomials;               // span of each multivariate
-    std::vector<std::span<Fr>> multivariate_polynomials_to_be_shifted; // to-be-shifted multivariates
+    const size_t NUM_POLYNOMIALS = bonk::StandardArithmetization::NUM_POLYNOMIALS;
+    const size_t NUM_UNSHIFTED_POLYS = bonk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
 
-    // Construct MLE opening point "u"
+    // Construct MLE opening point u = (u_0, ..., u_{d-1})
+    std::vector<Fr> opening_point; // u
     for (size_t round_idx = 0; round_idx < key->log_circuit_size; round_idx++) {
         std::string label = "u_" + std::to_string(round_idx);
         opening_point.emplace_back(transcript.get_challenge_field_element(label));
@@ -312,25 +309,26 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     // Get vector of multivariate evaluations produced by Sumcheck
     auto multivariate_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
 
-    // Collect polynomials (unshifted/to-be-shifted) and evaluations (unshifted/shifted)
-    for (size_t i = 0; i < bonk::StandardArithmetization::NUM_POLYNOMIALS; ++i) {
-        if (i < bonk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS) {
-            multivariate_polynomials.push_back(prover_polynomials[i]);
-            multivariate_evals.emplace_back(multivariate_evaluations[i]);
-        } else { // shifted/to-be-shifted
-            // Note: we provide the UN-shifted polynomial but the shifted evaluation.
-            multivariate_polynomials_to_be_shifted.push_back(prover_polynomials[POLYNOMIAL::Z_PERM]);
-            multivariate_evals_shifted.emplace_back(multivariate_evaluations[i]);
-        }
+    // Generate batching challenge ρ and powers 1,ρ,…,ρᵐ⁻¹
+    transcript.apply_fiat_shamir("rho");
+    Fr rho = Fr::serialize_from_buffer(transcript.get_challenge("rho").begin());
+    std::vector<Fr> rhos = Gemini::powers_of_rho(rho, NUM_POLYNOMIALS);
+
+    // Construct batched polynomials
+    Polynomial batched_unshifted(key->circuit_size); // batched unshifted polynomials
+    for (size_t i = 0; i < NUM_UNSHIFTED_POLYS; ++i) {
+        batched_unshifted.add_scaled(prover_polynomials[i], rhos[i]);
     }
+    Polynomial batched_to_be_shifted(key->circuit_size); // batched to-be-shifted polynomials
+    batched_to_be_shifted.add_scaled(prover_polynomials[POLYNOMIAL::Z_PERM], rhos[NUM_UNSHIFTED_POLYS]);
 
     // Compute d+1 Fold polynomials and their evaluations
     gemini_output = Gemini::reduce_prove(commitment_key,
                                          opening_point,
-                                         multivariate_evals,
-                                         multivariate_evals_shifted,
-                                         multivariate_polynomials,
-                                         multivariate_polynomials_to_be_shifted,
+                                         multivariate_evaluations,
+                                         std::move(batched_unshifted),
+                                         std::move(batched_to_be_shifted),
+                                         rhos,
                                          &transcript);
 }
 

@@ -152,6 +152,7 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
         ASSERT_EQ(witnesses.size(), num_pairs);
 
         for (size_t j = 0; j < num_pairs; ++j) {
+            info("pair ", j);
             this->verify_opening_pair(opening_pairs[j], witnesses[j]);
         }
     }
