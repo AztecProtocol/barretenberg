@@ -9,24 +9,25 @@
 
 namespace honk::pcs::gemini {
 
-using Transcript = transcript::StandardTranscript;
-
 template <class Params> class GeminiTest : public CommitmentTest<Params> {
     using Gemini = MultilinearReductionScheme<Params>;
     using Fr = typename Params::Fr;
     using Commitment = typename Params::Commitment;
 
   public:
-    void execute_and_verify_gemini_protocol(size_t log_n,
-                                            std::vector<Fr> multilinear_evaluation_point,
-                                            std::vector<Fr> multilinear_evals,
-                                            std::vector<Fr> multilinear_evals_shifted,
-                                            std::vector<std::span<Fr>> multilinear_polynomials,
-                                            std::vector<std::span<Fr>> multilinear_polynomials_to_be_shifted,
-                                            std::vector<Commitment> multilinear_commitments,
-                                            std::vector<Commitment> multilinear_commitments_to_be_shifted,
-                                            auto transcript)
+    void execute_gemini_and_verify_claims(size_t log_n,
+                                          std::vector<Fr> multilinear_evaluation_point,
+                                          std::vector<Fr> multilinear_evals,
+                                          std::vector<Fr> multilinear_evals_shifted,
+                                          std::vector<std::span<Fr>> multilinear_polynomials,
+                                          std::vector<std::span<Fr>> multilinear_polynomials_to_be_shifted,
+                                          std::vector<Commitment> multilinear_commitments,
+                                          std::vector<Commitment> multilinear_commitments_to_be_shifted)
     {
+        using Transcript = transcript::StandardTranscript;
+        auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
+        transcript->mock_inputs_prior_to_challenge("rho");
+
         // Compute:
         // - (d+1) opening pairs: {r, \hat{a}_0}, {-r^{2^i}, a_i}, i = 0, ..., d-1
         // - (d+1) Fold polynomials Fold_{r}^(0), Fold_{-r}^(0), and Fold^(i), i = 0, ..., d-1
@@ -78,9 +79,6 @@ TYPED_TEST(GeminiTest, Single)
     const size_t n = 16;
     const size_t log_n = 4;
 
-    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
-    transcript->mock_inputs_prior_to_challenge("rho");
-
     auto u = this->random_evaluation_point(log_n);
     auto poly = this->random_polynomial(n);
     auto commitment = this->commit(poly);
@@ -94,15 +92,14 @@ TYPED_TEST(GeminiTest, Single)
     std::vector<Commitment> multilinear_commitments = { commitment };
     std::vector<Commitment> multilinear_commitments_to_be_shifted = {};
 
-    this->execute_and_verify_gemini_protocol(log_n,
-                                             u,
-                                             multilinear_evals,
-                                             multilinear_evals_shifted,
-                                             multilinear_polynomials,
-                                             multilinear_polynomials_to_be_shifted,
-                                             multilinear_commitments,
-                                             multilinear_commitments_to_be_shifted,
-                                             transcript);
+    this->execute_gemini_and_verify_claims(log_n,
+                                           u,
+                                           multilinear_evals,
+                                           multilinear_evals_shifted,
+                                           multilinear_polynomials,
+                                           multilinear_polynomials_to_be_shifted,
+                                           multilinear_commitments,
+                                           multilinear_commitments_to_be_shifted);
 }
 
 TYPED_TEST(GeminiTest, SingleShift)
@@ -112,9 +109,6 @@ TYPED_TEST(GeminiTest, SingleShift)
 
     const size_t n = 16;
     const size_t log_n = 4;
-
-    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
-    transcript->mock_inputs_prior_to_challenge("rho");
 
     auto u = this->random_evaluation_point(log_n);
 
@@ -133,15 +127,14 @@ TYPED_TEST(GeminiTest, SingleShift)
     std::vector<Commitment> multilinear_commitments = {};
     std::vector<Commitment> multilinear_commitments_to_be_shifted = { commitment };
 
-    this->execute_and_verify_gemini_protocol(log_n,
-                                             u,
-                                             multilinear_evals,
-                                             multilinear_evals_shifted,
-                                             multilinear_polynomials,
-                                             multilinear_polynomials_to_be_shifted,
-                                             multilinear_commitments,
-                                             multilinear_commitments_to_be_shifted,
-                                             transcript);
+    this->execute_gemini_and_verify_claims(log_n,
+                                           u,
+                                           multilinear_evals,
+                                           multilinear_evals_shifted,
+                                           multilinear_polynomials,
+                                           multilinear_polynomials_to_be_shifted,
+                                           multilinear_commitments,
+                                           multilinear_commitments_to_be_shifted);
 }
 
 TYPED_TEST(GeminiTest, Double)
@@ -151,9 +144,6 @@ TYPED_TEST(GeminiTest, Double)
 
     const size_t n = 16;
     const size_t log_n = 4;
-
-    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
-    transcript->mock_inputs_prior_to_challenge("rho");
 
     auto u = this->random_evaluation_point(log_n);
 
@@ -174,15 +164,14 @@ TYPED_TEST(GeminiTest, Double)
     std::vector<Commitment> multilinear_commitments = { commitment1, commitment2 };
     std::vector<Commitment> multilinear_commitments_to_be_shifted = {};
 
-    this->execute_and_verify_gemini_protocol(log_n,
-                                             u,
-                                             multilinear_evals,
-                                             multilinear_evals_shifted,
-                                             multilinear_polynomials,
-                                             multilinear_polynomials_to_be_shifted,
-                                             multilinear_commitments,
-                                             multilinear_commitments_to_be_shifted,
-                                             transcript);
+    this->execute_gemini_and_verify_claims(log_n,
+                                           u,
+                                           multilinear_evals,
+                                           multilinear_evals_shifted,
+                                           multilinear_polynomials,
+                                           multilinear_polynomials_to_be_shifted,
+                                           multilinear_commitments,
+                                           multilinear_commitments_to_be_shifted);
 }
 
 TYPED_TEST(GeminiTest, DoubleWithShift)
@@ -207,9 +196,6 @@ TYPED_TEST(GeminiTest, DoubleWithShift)
     auto eval2 = poly2.evaluate_mle(u);
     auto eval2_shift = poly2.evaluate_mle(u, true);
 
-    auto transcript = std::make_shared<Transcript>(StandardHonk::create_unrolled_manifest(0, log_n));
-    transcript->mock_inputs_prior_to_challenge("rho");
-
     // Collect multilinear polynomials evaluations, and commitments for input to prover/verifier
     std::vector<Fr> multilinear_evals = { eval1, eval2 };
     std::vector<Fr> multilinear_evals_shifted = { eval2_shift };
@@ -218,15 +204,14 @@ TYPED_TEST(GeminiTest, DoubleWithShift)
     std::vector<Commitment> multilinear_commitments = { commitment1, commitment2 };
     std::vector<Commitment> multilinear_commitments_to_be_shifted = { commitment2 };
 
-    this->execute_and_verify_gemini_protocol(log_n,
-                                             u,
-                                             multilinear_evals,
-                                             multilinear_evals_shifted,
-                                             multilinear_polynomials,
-                                             multilinear_polynomials_to_be_shifted,
-                                             multilinear_commitments,
-                                             multilinear_commitments_to_be_shifted,
-                                             transcript);
+    this->execute_gemini_and_verify_claims(log_n,
+                                           u,
+                                           multilinear_evals,
+                                           multilinear_evals_shifted,
+                                           multilinear_polynomials,
+                                           multilinear_polynomials_to_be_shifted,
+                                           multilinear_commitments,
+                                           multilinear_commitments_to_be_shifted);
 }
 
 } // namespace honk::pcs::gemini

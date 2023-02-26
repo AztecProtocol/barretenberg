@@ -199,7 +199,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     auto kzg_claim = KZG::reduce_verify(shplonk_claim, kzg_proof);
 
     // Do final pairing check
-    bool pairing_result = kzg_claim.verify(kate_verification_key.get());
+    bool pairing_result = kzg_claim.verify(kate_verification_key);
 
     bool result = sumcheck_result && pairing_result;
 

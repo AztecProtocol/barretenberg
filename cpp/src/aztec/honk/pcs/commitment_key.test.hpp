@@ -38,17 +38,17 @@ template <typename CK> inline std::shared_ptr<CK> CreateCommitmentKey()
     return std::make_shared<CK>();
 }
 
-template <class VK> inline VK* CreateVerificationKey();
+template <class VK> inline std::shared_ptr<VK> CreateVerificationKey();
 
-template <> inline kzg::VerificationKey* CreateVerificationKey<kzg::VerificationKey>()
+template <> inline std::shared_ptr<kzg::VerificationKey> CreateVerificationKey<kzg::VerificationKey>()
 {
-    return new kzg::VerificationKey(kzg_srs_path);
+    return std::make_shared<kzg::VerificationKey>(kzg_srs_path);
 }
 
-template <typename VK> inline VK* CreateVerificationKey()
+template <typename VK> inline std::shared_ptr<VK> CreateVerificationKey()
 // requires std::default_initializable<VK>
 {
-    return new VK();
+    return std::make_shared<VK>();
 }
 
 template <typename Params> class CommitmentTest : public ::testing::Test {
@@ -66,7 +66,7 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
     {}
 
     std::shared_ptr<CK> ck() { return commitment_key; }
-    VK* vk() { return verification_key; }
+    std::shared_ptr<VK> vk() { return verification_key; }
 
     Commitment commit(const Polynomial& polynomial) { return commitment_key->commit(polynomial); }
 
@@ -175,19 +175,16 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
     // Per-test-suite tear-down.
     // Called after the last test in this test suite.
     // Can be omitted if not needed.
-    static void TearDownTestSuite()
-    {
-        delete verification_key;
-        verification_key = nullptr;
-    }
+    static void TearDownTestSuite() {}
 
     static typename std::shared_ptr<typename Params::CK> commitment_key;
-    static typename Params::VK* verification_key;
+    static typename std::shared_ptr<typename Params::VK> verification_key;
 };
 
 template <typename Params>
 typename std::shared_ptr<typename Params::CK> CommitmentTest<Params>::commitment_key = nullptr;
-template <typename Params> typename Params::VK* CommitmentTest<Params>::verification_key = nullptr;
+template <typename Params>
+typename std::shared_ptr<typename Params::VK> CommitmentTest<Params>::verification_key = nullptr;
 
 using CommitmentSchemeParams = ::testing::Types<kzg::Params>;
 // IMPROVEMENT: reinstate typed-tests for multiple field types, i.e.:

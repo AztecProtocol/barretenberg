@@ -67,21 +67,21 @@ template <typename Params> class SingleBatchOpeningScheme {
         Commitment Q_commitment = ck->commit(Q);
         transcript->add_element("Q", static_cast<CommitmentAffine>(Q_commitment).to_buffer());
 
-        // generate random evaluation challenge zeta_challenge
+        // generate random evaluation challenge "z"
         transcript->apply_fiat_shamir("z");
-        const Fr zeta_challenge = Fr::serialize_from_buffer(transcript->get_challenge("z").begin());
+        const Fr z_challenge = Fr::serialize_from_buffer(transcript->get_challenge("z").begin());
 
         // {ẑⱼ(r)}ⱼ , where ẑⱼ(r) = 1/zⱼ(r) = 1/(r - xⱼ)
         std::vector<Fr> inverse_vanishing_evals;
         inverse_vanishing_evals.reserve(num_opening_pairs);
         {
-            for (const auto& pair_j : opening_pairs) {
-                inverse_vanishing_evals.emplace_back(zeta_challenge - pair_j.query);
+            for (const auto& pair : opening_pairs) {
+                inverse_vanishing_evals.emplace_back(z_challenge - pair.query);
             }
             Fr::batch_invert(inverse_vanishing_evals);
         }
 
-        // G(X) = Q(X) - ∑ⱼ ρʲ ⋅ ( fⱼ(X) − vⱼ) / ( r − xⱼ ),
+        // G(X) = Q(X) - Q_z(X) = Q(X) - ∑ⱼ ρʲ ⋅ ( fⱼ(X) − vⱼ) / ( r − xⱼ ),
         // s.t. G(r) = 0
         Polynomial& G = Q;
 
@@ -102,7 +102,8 @@ template <typename Params> class SingleBatchOpeningScheme {
             current_nu *= nu;
         }
 
-        return { .opening_pair = { .query = zeta_challenge, .evaluation = Fr::zero() }, .witness = std::move(G) };
+        // Return opening pair (z, 0) and polynomial G(X) = Q(X) - Q_z(X)
+        return { .opening_pair = { .query = z_challenge, .evaluation = Fr::zero() }, .witness = std::move(G) };
     };
 
     /**
@@ -120,7 +121,7 @@ template <typename Params> class SingleBatchOpeningScheme {
     {
         const size_t num_claims = claims.size();
         const Fr nu = Fr::serialize_from_buffer(transcript->get_challenge("nu").begin());
-        const Fr zeta_challenge = Fr::serialize_from_buffer(transcript->get_challenge("z").begin());
+        const Fr z_challenge = Fr::serialize_from_buffer(transcript->get_challenge("z").begin());
 
         // compute simulated commitment to [G] as a linear combination of
         // [Q], { [fⱼ] }, [1]:
@@ -139,7 +140,7 @@ template <typename Params> class SingleBatchOpeningScheme {
         inverse_vanishing_evals.reserve(num_claims);
         {
             for (const auto& claim : claims) {
-                inverse_vanishing_evals.emplace_back(zeta_challenge - claim.opening_pair.query);
+                inverse_vanishing_evals.emplace_back(z_challenge - claim.opening_pair.query);
             }
             Fr::batch_invert(inverse_vanishing_evals);
         }
@@ -162,8 +163,8 @@ template <typename Params> class SingleBatchOpeningScheme {
         // [G] += G₀⋅[1] = [G] + (∑ⱼ ρʲ ⋅ vⱼ / ( r − xⱼ ))⋅[1]
         G_commitment += Commitment::one() * G_commitment_constant;
 
-        // return { .commitment = G_commitment, .opening_point = zeta_challenge, .eval = Fr::zero() };
-        return { { zeta_challenge, Fr::zero() }, G_commitment };
+        // Return opening pair (z, 0) and commitment [G]
+        return { { z_challenge, Fr::zero() }, G_commitment };
     };
 };
 } // namespace honk::pcs::shplonk
