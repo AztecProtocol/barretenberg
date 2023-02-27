@@ -135,8 +135,8 @@ TEST(Sumcheck, PolynomialNormalization)
     // Todo(Cody): We should not use real constants like this in the tests, at least not in so many of them.
     const size_t multivariate_d(3);
     const size_t multivariate_n(1 << multivariate_d);
-    ;
     const size_t num_public_inputs(1);
+
     std::array<FF, multivariate_n> w_l;
     std::array<FF, multivariate_n> w_r;
     std::array<FF, multivariate_n> w_o;
@@ -215,7 +215,7 @@ TEST(Sumcheck, PolynomialNormalization)
      challenges u_i. What does this mean?
 
      Here we show that if the multivariate is F(X0, X1, X2) defined as above, then what we get is F(u0, u1, u2) and not,
-     say F(u3,u2,u1). This is in accordance with Adrian's thesis (cf page 9).
+     say F(u2, u1, u0). This is in accordance with Adrian's thesis (cf page 9).
       */
 
     // Get the values of the Lagrange basis polys L_i defined
@@ -297,16 +297,7 @@ TEST(Sumcheck, Prover)
                                                            lagrange_first,
                                                            lagrange_last);
 
-    FF u_0 = transcript.get_challenge_field_element("u_0");
-    FF u_1 = transcript.get_challenge_field_element("u_1");
-    std::vector<FF> expected_values;
-    for (auto& polynomial : full_polynomials) {
-        // using knowledge of inputs here to derive the evaluation
-        FF expected = polynomial[0] * (FF(1) - u_0) + polynomial[1] * u_0;
-        expected *= (FF(1) - u_1);
-        expected_values.emplace_back(expected);
-    }
-
+        auto transcript = produce_mocked_transcript(multivariate_d, num_public_inputs);
         auto sumcheck = Sumcheck<FF,
                                  Transcript,
                                  ArithmeticRelation,
@@ -314,19 +305,17 @@ TEST(Sumcheck, Prover)
                                  GrandProductInitializationRelation>(multivariate_n, transcript);
 
         sumcheck.execute_prover(full_polynomials);
-
+        FF u_0 = transcript.get_challenge_field_element("u_0");
         FF u_1 = transcript.get_challenge_field_element("u_1");
-        FF u_2 = transcript.get_challenge_field_element("u_2");
         std::vector<FF> expected_values;
         for (auto& polynomial : full_polynomials) {
             // using knowledge of inputs here to derive the evaluation
-            FF expected_lo = polynomial[0] * (FF(1) - u_2) + polynomial[1] * u_2;
+            FF expected_lo = polynomial[0] * (FF(1) - u_0) + polynomial[1] * u_0;
             expected_lo *= (FF(1) - u_1);
-            FF expected_hi = polynomial[2] * (FF(1) - u_2) + polynomial[3] * u_2;
+            FF expected_hi = polynomial[2] * (FF(1) - u_0) + polynomial[3] * u_0;
             expected_hi *= u_1;
             expected_values.emplace_back(expected_lo + expected_hi);
         }
-
         // pull the sumcheck-produced multivariate evals out of the transcript
         auto sumcheck_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
         for (size_t poly_idx = 0; poly_idx < NUM_POLYNOMIALS; poly_idx++) {
