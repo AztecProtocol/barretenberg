@@ -50,6 +50,7 @@ add_subdirectory(plonk)
 add_subdirectory(stdlib)
 add_subdirectory(join_split_example)
 add_subdirectory(lagrange_base_gen)
+add_subdirectory(acir_format)
 
 if(BENCHMARKS)
     add_subdirectory(benchmark)
@@ -80,6 +81,7 @@ if(WASM)
         $<TARGET_OBJECTS:stdlib_pedersen_objects>
         $<TARGET_OBJECTS:stdlib_blake2s_objects>
         $<TARGET_OBJECTS:stdlib_blake3s_objects>
+        $<TARGET_OBJECTS:acir_format_objects>
     )
 
     # With binaryen installed, it seems its wasm backend optimiser gets invoked automatically.
@@ -130,6 +132,7 @@ if(WASM)
         $<TARGET_OBJECTS:stdlib_sha256_objects>
         $<TARGET_OBJECTS:stdlib_aes128_objects>
         $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
+        $<TARGET_OBJECTS:acir_format_objects>
     )
 
 else()
@@ -158,6 +161,7 @@ else()
         $<TARGET_OBJECTS:stdlib_sha256_objects>
         $<TARGET_OBJECTS:stdlib_aes128_objects>
         $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
+        $<TARGET_OBJECTS:acir_format_objects>
         $<TARGET_OBJECTS:env_objects>
     )
 endif()
