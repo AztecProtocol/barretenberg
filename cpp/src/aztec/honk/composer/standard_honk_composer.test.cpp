@@ -344,7 +344,7 @@ TEST(standard_honk_composer, test_check_sumcheck_relations_correctness)
     const auto public_inputs = composer.circuit_constructor.get_public_inputs();
     auto public_input_delta = compute_public_input_delta<fr>(public_inputs, beta, gamma, prover.key->circuit_size);
 
-    constexpr size_t num_polynomials = bonk::StandardArithmetization::NUM_POLYNOMIALS;
+    // constexpr size_t num_polynomials = bonk::StandardArithmetization::NUM_POLYNOMIALS;
     // Retrieve polynomials from proving key
     polynomial z_perm = prover.key->polynomial_cache.get("z_perm_lagrange");
     polynomial w_1 = prover.key->polynomial_cache.get("w_1_lagrange");

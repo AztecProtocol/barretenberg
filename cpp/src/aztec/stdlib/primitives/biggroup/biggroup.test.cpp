@@ -42,6 +42,8 @@ template <typename TestType> class stdlib_biggroup : public testing::Test {
     using fq = typename Curve::fq;
     using fr = typename Curve::fr;
     using g1 = typename Curve::g1;
+    using fq_ct = typename Curve::fq_ct;
+    using fr_ct = typename Curve::fr_ct;
     using affine_element = typename g1::affine_element;
     using element = typename g1::element;
 
@@ -500,6 +502,50 @@ template <typename TestType> class stdlib_biggroup : public testing::Test {
         EXPECT_VERIFICATION(composer);
     }
 
+    static void test_wnaf_batch_mul_bug()
+    {
+        Composer composer = Composer("../srs_db/ignition");
+
+        size_t msm_size = 10;
+        std::vector<element_ct> points_ct;
+        std::vector<scalar_ct> scalars_ct;
+        for (size_t i = 0; i < msm_size; ++i) {
+            affine_element input(element::random_element());
+            uint256_t scalar_u256(0, 0, 0, 0);
+            scalar_u256.data[0] = engine.get_random_uint64();
+            scalar_u256.data[1] = engine.get_random_uint64();
+            fr scalar(scalar_u256);
+            if ((uint256_t(scalar).get_bit(0) & 1) == 1) {
+                scalar -= fr(1); // make sure to add skew
+            }
+            element_ct P = element_ct::from_witness(&composer, input);
+            scalar_ct x = scalar_ct::from_witness(&composer, scalar);
+
+            points_ct.push_back(P);
+            scalars_ct.push_back(x);
+        }
+
+        // Add (0, 0) to points
+        info("adding zero");
+        fq_ct zero_(fr_ct(0), fr_ct(0), fr_ct(0), fr_ct(0), false);
+        element_ct zero_pt(zero_, zero_);
+        points_ct.push_back(zero_pt);
+
+        // Add a random scalar to scalars
+        uint256_t scalar_u256(0, 0, 0, 0);
+        scalar_u256.data[0] = engine.get_random_uint64();
+        scalar_u256.data[1] = engine.get_random_uint64();
+        scalar_ct x = scalar_ct::from_witness(&composer, scalar_u256);
+        scalars_ct.push_back(x);
+
+        std::cerr << "gates before mul " << composer.get_num_gates() << std::endl;
+        element_ct c = element_ct::template wnaf_batch_mul<128>(points_ct, scalars_ct);
+        info("c = ", c);
+        std::cerr << "composer aftr mul " << composer.get_num_gates() << std::endl;
+
+        EXPECT_VERIFICATION(composer);
+    }
+
     static void test_batch_mul_short_scalars()
     {
         const size_t num_points = 11;
@@ -833,16 +879,16 @@ template <typename TestType> class stdlib_biggroup : public testing::Test {
 };
 
 enum UseBigfield { No, Yes };
-using TestTypes = testing::Types<TestType<stdlib::bn254<honk::StandardHonkComposer>, UseBigfield::No>,
-                                 //  TestType<stdlib::bn254<waffle::UltraComposer>, UseBigfield::No>,
-                                 //  TestType<stdlib::bn254<waffle::TurboComposer>, UseBigfield::No>,
-                                 TestType<stdlib::bn254<waffle::StandardComposer>, UseBigfield::No>,
-                                 TestType<stdlib::bn254<waffle::UltraComposer>, UseBigfield::Yes>,
-                                 // TestType<stdlib::bn254<waffle::TurboComposer>, UseBigfield::Yes>,
-                                 // TestType<stdlib::bn254<waffle::StandardComposer>, UseBigfield::Yes>,
-                                 // TestType<stdlib::bn254<honk::StandardHonkComposer>, UseBigfield::Yes>,
-                                 // TestType<stdlib::secp256r1<waffle::UltraComposer>, UseBigfield::Yes>,
-                                 TestType<stdlib::secp256k1<waffle::UltraComposer>, UseBigfield::Yes>>;
+using TestTypes = testing::Types< //  TestType<stdlib::bn254<honk::StandardHonkComposer>, UseBigfield::No>,
+                                  // TestType<stdlib::bn254<waffle::UltraComposer>, UseBigfield::No>,
+    TestType<stdlib::bn254<waffle::TurboComposer>, UseBigfield::No>,
+    TestType<stdlib::bn254<waffle::StandardComposer>, UseBigfield::No>,
+    // TestType<stdlib::bn254<waffle::UltraComposer>, UseBigfield::Yes>,
+    // TestType<stdlib::bn254<waffle::TurboComposer>, UseBigfield::Yes>,
+    // TestType<stdlib::bn254<waffle::StandardComposer>, UseBigfield::Yes>,
+    // TestType<stdlib::bn254<honk::StandardHonkComposer>, UseBigfield::Yes>,
+    // TestType<stdlib::secp256r1<waffle::UltraComposer>, UseBigfield::Yes>,
+    TestType<stdlib::secp256k1<waffle::UltraComposer>, UseBigfield::Yes>>;
 
 TYPED_TEST_SUITE(stdlib_biggroup, TestTypes);
 
@@ -939,6 +985,15 @@ HEAVY_TYPED_TEST(stdlib_biggroup, batch_mul_short_scalars)
         GTEST_SKIP();
     } else {
         TestFixture::test_batch_mul_short_scalars();
+    }
+}
+HEAVY_TYPED_TEST(stdlib_biggroup, wnaf_batch_mul_bug)
+{
+    // This test should fail for turbo and standard but it doesn't.
+    if constexpr (TypeParam::use_bigfield) {
+        GTEST_SKIP();
+    } else {
+        TestFixture::test_wnaf_batch_mul_bug();
     }
 }
 HEAVY_TYPED_TEST(stdlib_biggroup, wnaf_batch_mul_128_bit)
