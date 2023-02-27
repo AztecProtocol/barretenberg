@@ -1,4 +1,5 @@
 #include "schnorr.hpp"
+#include <array>
 #include <crypto/pedersen/pedersen.hpp>
 #include <ecc/curves/grumpkin/grumpkin.hpp>
 #include <stdlib/hash/blake2s/blake2s.hpp>
@@ -265,12 +266,16 @@ point<C> variable_base_mul(const point<C>& pub_key, const point<C>& current_accu
 }
 
 /**
- * @brief Verify a signature (s, e)  i.e., compute e' = hash(([s]g + [e]pub).x | message) and check that e' == e.
+ * @brief Make the computations needed to verify a signature (s, e),  i.e., compute
+ *          e' = hash(([s]g + [e]pub).x | message)
+          and return e'.
  *
  * @details TurboPlonk: ~10850 gates (~4k for variable_base_mul, ~6k for blake2s) for a string of length < 32.
  */
 template <typename C>
-bool_t<C> verify_signature(const byte_array<C>& message, const point<C>& pub_key, const signature_bits<C>& sig)
+std::array<field_t<C>, 2> verify_signature_internal(const byte_array<C>& message,
+                                                    const point<C>& pub_key,
+                                                    const signature_bits<C>& sig)
 {
     // Compute [s]g, where s = (s_lo, s_hi) and g = G1::one.
     point<C> R_1 = group<C>::fixed_base_scalar_mul(sig.s_lo, sig.s_hi);
@@ -294,7 +299,35 @@ bool_t<C> verify_signature(const byte_array<C>& message, const point<C>& pub_key
     field_t<C> output_hi(output.slice(0, 16));
     field_t<C> output_lo(output.slice(16, 16));
 
-    bool_t<C> valid = output_lo == sig.e_lo && output_hi == sig.e_hi;
+    return { output_lo, output_hi };
+}
+
+/**
+ * @brief Verify that a signature (s, e) is valid, i.e., compute
+ *          e' = hash(([s]g + [e]pub).x | message)
+ *        and check that
+ *          e' == e is true.
+ */
+template <typename C>
+void verify_signature(const byte_array<C>& message, const point<C>& pub_key, const signature_bits<C>& sig)
+{
+    auto [output_lo, output_hi] = verify_signature_internal(message, pub_key, sig);
+    output_lo.assert_equal(sig.e_lo, "signature verification failed on low limb");
+    output_hi.assert_equal(sig.e_hi, "signature verification failed on high limb");
+}
+
+/**
+ * @brief Attempt to verify a signature (s, e) and return the result, i.e., compute
+ *          e' = hash(([s]g + [e]pub).x | message)
+ *        and return the boolean witness e' == e.
+ */
+template <typename C>
+bool_t<C> signature_verification_result(const byte_array<C>& message,
+                                        const point<C>& pub_key,
+                                        const signature_bits<C>& sig)
+{
+    auto [output_lo, output_hi] = verify_signature_internal(message, pub_key, sig);
+    bool_t<C> valid = (output_lo == sig.e_lo) && (output_hi == sig.e_hi);
     return valid;
 }
 
@@ -312,11 +345,27 @@ template point<plonk::TurboComposer> variable_base_mul<plonk::TurboComposer>(con
                                                                              const point<plonk::TurboComposer>&,
                                                                              const wnaf_record<plonk::TurboComposer>&);
 
-template bool_t<plonk::TurboComposer> verify_signature<plonk::TurboComposer>(
+template std::array<field_t<plonk::TurboComposer>, 2> verify_signature_internal<plonk::TurboComposer>(
     const byte_array<plonk::TurboComposer>&,
     const point<plonk::TurboComposer>&,
     const signature_bits<plonk::TurboComposer>&);
-template bool_t<plonk::UltraComposer> verify_signature<plonk::UltraComposer>(
+template std::array<field_t<plonk::UltraComposer>, 2> verify_signature_internal<plonk::UltraComposer>(
+    const byte_array<plonk::UltraComposer>&,
+    const point<plonk::UltraComposer>&,
+    const signature_bits<plonk::UltraComposer>&);
+
+template void verify_signature<plonk::TurboComposer>(const byte_array<plonk::TurboComposer>&,
+                                                     const point<plonk::TurboComposer>&,
+                                                     const signature_bits<plonk::TurboComposer>&);
+template void verify_signature<plonk::UltraComposer>(const byte_array<plonk::UltraComposer>&,
+                                                     const point<plonk::UltraComposer>&,
+                                                     const signature_bits<plonk::UltraComposer>&);
+
+template bool_t<plonk::TurboComposer> signature_verification_result<plonk::TurboComposer>(
+    const byte_array<plonk::TurboComposer>&,
+    const point<plonk::TurboComposer>&,
+    const signature_bits<plonk::TurboComposer>&);
+template bool_t<plonk::UltraComposer> signature_verification_result<plonk::UltraComposer>(
     const byte_array<plonk::UltraComposer>&,
     const point<plonk::UltraComposer>&,
     const signature_bits<plonk::UltraComposer>&);
