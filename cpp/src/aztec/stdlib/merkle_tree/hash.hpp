@@ -15,7 +15,7 @@ namespace merkle_tree {
 
 inline barretenberg::fr compress_native(barretenberg::fr const& lhs, barretenberg::fr const& rhs)
 {
-    if (waffle::SYSTEM_COMPOSER == waffle::PLOOKUP) {
+    if (plonk::SYSTEM_COMPOSER == plonk::PLOOKUP) {
         return crypto::pedersen_hash::lookup::hash_multiple({ lhs, rhs });
     } else {
         return crypto::pedersen_hash::hash_multiple({ lhs, rhs });

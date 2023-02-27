@@ -139,7 +139,7 @@ field_t<C> pedersen_plookup_commitment<C>::compress(const std::vector<std::pair<
     return commit(inputs, hash_indices).x;
 }
 
-template class pedersen_plookup_commitment<waffle::UltraComposer>;
+template class pedersen_plookup_commitment<plonk::UltraComposer>;
 
 } // namespace stdlib
 } // namespace plonk
