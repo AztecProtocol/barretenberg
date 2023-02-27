@@ -111,13 +111,14 @@ void create_schnorr_verify_constraints(plonk::TurboComposer& composer, const Sch
 
     // This seems to fail if the signature is not correct.
     // What would be the point of the boolean then?
-    bool signature_result = stdlib::schnorr::verify_signature(message, pub_key, sig);
+    bool_ct signature_result = stdlib::schnorr::signature_verification_result(message, pub_key, sig);
     // signature_result does not return a witness, as the whole circuit will
     // fail, given a wrong signature.
     //
     // We therefore necessarily have a witness disconnect here
 
-    auto result_bool = composer.add_variable(signature_result == true);
+    // TODO(Blaine): This seems wrong
+    auto result_bool = composer.add_variable(signature_result.witness_bool == true);
 
     composer.copy_from_to(result_bool, input.result);
 }
@@ -141,5 +142,3 @@ template <typename B> inline void write(B& buf, SchnorrConstraint const& constra
     write(buf, constraint.public_key_y);
     write(buf, constraint.result);
 }
-
-
