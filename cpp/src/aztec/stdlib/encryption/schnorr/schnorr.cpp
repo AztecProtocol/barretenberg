@@ -312,8 +312,8 @@ template <typename C>
 void verify_signature(const byte_array<C>& message, const point<C>& pub_key, const signature_bits<C>& sig)
 {
     auto [output_lo, output_hi] = verify_signature_internal(message, pub_key, sig);
-    output_lo.assert_equal(sig.e_lo, "signature verification failed on low limb");
-    output_hi.assert_equal(sig.e_hi, "signature verification failed on high limb");
+    output_lo.assert_equal(sig.e_lo, "verify signature failed");
+    output_hi.assert_equal(sig.e_hi, "verify signature failed");
 }
 
 /**
