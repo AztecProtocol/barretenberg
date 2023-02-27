@@ -80,14 +80,8 @@ template <typename B> inline void write(B& buf, Blake2sInput const& constraint)
     write(buf, constraint.num_bits);
 }
 
-inline bool operator==(Blake2sInput const& lhs, Blake2sInput const& rhs)
-{
-    // clang-format off
-    return
-        lhs.witness == rhs.witness &&
-        lhs.num_bits == rhs.num_bits;
-    // clang-format on
-}
+inline bool operator==(Blake2sInput const& lhs, Blake2sInput const& rhs) = default;
+
 template <typename B> inline void read(B& buf, Blake2sConstraint& constraint)
 {
     using serialize::read;
@@ -102,11 +96,4 @@ template <typename B> inline void write(B& buf, Blake2sConstraint const& constra
     write(buf, constraint.result);
 }
 
-inline bool operator==(Blake2sConstraint const& lhs, Blake2sConstraint const& rhs)
-{
-    // clang-format off
-    return
-        lhs.inputs == rhs.inputs &&
-        lhs.result == rhs.result;
-    // clang-format on
-}
+inline bool operator==(Blake2sConstraint const& lhs, Blake2sConstraint const& rhs) = default;

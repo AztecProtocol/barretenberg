@@ -510,25 +510,6 @@ template <typename B> inline void write(B& buf, acir_format const& data)
     write(buf, data.constraints);
 }
 
-inline bool operator==(acir_format const& lhs, acir_format const& rhs)
-{
-    // clang-format off
-    return
-        lhs.varnum == rhs.varnum &&
-        lhs.public_inputs == rhs.public_inputs &&
-        lhs.logic_constraints == rhs.logic_constraints &&
-        lhs.range_constraints == rhs.range_constraints &&
-        lhs.sha256_constraints == rhs.sha256_constraints &&
-        lhs.merkle_membership_constraints == rhs.merkle_membership_constraints &&
-        // lhs.merkle_insert_constraints == rhs.merkle_insert_constraints &&
-        lhs.schnorr_constraints == rhs.schnorr_constraints &&
-        lhs.ecdsa_constraints == rhs.ecdsa_constraints &&
-        lhs.blake2s_constraints == rhs.blake2s_constraints &&
-        lhs.pedersen_constraints == rhs.pedersen_constraints &&
-        lhs.hash_to_field_constraints == rhs.hash_to_field_constraints &&
-        lhs.fixed_base_scalar_mul_constraints == rhs.fixed_base_scalar_mul_constraints &&
-        lhs.constraints == rhs.constraints;
-    // clang-format on
-}
+inline bool operator==(acir_format const& lhs, acir_format const& rhs) = default;
 
 } // namespace acir_format

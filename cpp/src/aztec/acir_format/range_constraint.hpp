@@ -20,11 +20,4 @@ template <typename B> inline void write(B& buf, RangeConstraint const& constrain
     write(buf, constraint.num_bits);
 }
 
-inline bool operator==(RangeConstraint const& lhs, RangeConstraint const& rhs)
-{
-    // clang-format off
-    return
-        lhs.witness == rhs.witness &&
-        lhs.num_bits == rhs.num_bits;
-    // clang-format on
-}
+inline bool operator==(RangeConstraint const& lhs, RangeConstraint const& rhs) = default;

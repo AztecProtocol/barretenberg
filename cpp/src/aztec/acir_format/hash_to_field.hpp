@@ -81,14 +81,8 @@ template <typename B> inline void write(B& buf, HashToFieldInput const& constrai
     write(buf, constraint.num_bits);
 }
 
-inline bool operator==(HashToFieldInput const& lhs, HashToFieldInput const& rhs)
-{
-    // clang-format off
-    return
-        lhs.witness == rhs.witness &&
-        lhs.num_bits == rhs.num_bits;
-    // clang-format on
-}
+inline bool operator==(HashToFieldInput const& lhs, HashToFieldInput const& rhs) = default;
+
 template <typename B> inline void read(B& buf, HashToFieldConstraint& constraint)
 {
     using serialize::read;
@@ -103,11 +97,4 @@ template <typename B> inline void write(B& buf, HashToFieldConstraint const& con
     write(buf, constraint.result);
 }
 
-inline bool operator==(HashToFieldConstraint const& lhs, HashToFieldConstraint const& rhs)
-{
-    // clang-format off
-    return
-        lhs.inputs == rhs.inputs &&
-        lhs.result == rhs.result;
-    // clang-format on
-}
+inline bool operator==(HashToFieldConstraint const& lhs, HashToFieldConstraint const& rhs) = default;

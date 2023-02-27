@@ -140,14 +140,4 @@ template <typename B> inline void write(B& buf, SchnorrConstraint const& constra
     write(buf, constraint.result);
 }
 
-inline bool operator==(SchnorrConstraint const& lhs, SchnorrConstraint const& rhs)
-{
-    // clang-format off
-    return
-        lhs.message == rhs.message &&
-        lhs.signature == rhs.signature &&
-        lhs.public_key_x == rhs.public_key_x &&
-        lhs.public_key_y == rhs.public_key_y &&
-        lhs.result == rhs.result;
-    // clang-format on
-}
+inline bool operator==(SchnorrConstraint const& lhs, SchnorrConstraint const& rhs) = default;

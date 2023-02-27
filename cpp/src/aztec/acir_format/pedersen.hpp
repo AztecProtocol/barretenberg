@@ -53,12 +53,4 @@ template <typename B> inline void write(B& buf, PedersenConstraint const& constr
     read(buf, constraint.result_y);
 }
 
-inline bool operator==(PedersenConstraint const& lhs, PedersenConstraint const& rhs)
-{
-    // clang-format off
-    return
-        lhs.scalars == rhs.scalars &&
-        lhs.result_x == rhs.result_x &&
-        lhs.result_y == rhs.result_y;
-    // clang-format on
-}
+inline bool operator==(PedersenConstraint const& lhs, PedersenConstraint const& rhs) = default;

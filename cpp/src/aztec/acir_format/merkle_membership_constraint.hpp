@@ -81,14 +81,4 @@ template <typename B> inline void write(B& buf, MerkleMembershipConstraint const
     write(buf, constraint.index);
 }
 
-inline bool operator==(MerkleMembershipConstraint const& lhs, MerkleMembershipConstraint const& rhs)
-{
-    // clang-format off
-    return
-        lhs.root == rhs.root &&
-        lhs.leaf == rhs.leaf &&
-        lhs.result == rhs.result &&
-        lhs.index == rhs.index &&
-        lhs.hash_path == rhs.hash_path;
-    // clang-format on
-}
+inline bool operator==(MerkleMembershipConstraint const& lhs, MerkleMembershipConstraint const& rhs) = default;

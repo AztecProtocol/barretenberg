@@ -52,15 +52,5 @@ template <typename B> inline void write(B& buf, LogicConstraint const& constrain
     write(buf, constraint.is_xor_gate);
 }
 
-inline bool operator==(LogicConstraint const& lhs, LogicConstraint const& rhs)
-{
-    // clang-format off
-    return
-        lhs.a == rhs.a &&
-        lhs.b == rhs.b &&
-        lhs.result == rhs.result &&
-        lhs.num_bits == rhs.num_bits &&
-        lhs.is_xor_gate == rhs.is_xor_gate;
-    // clang-format on
-}
+inline bool operator==(LogicConstraint const& lhs, LogicConstraint const& rhs) = default;
 } // namespace acir_format

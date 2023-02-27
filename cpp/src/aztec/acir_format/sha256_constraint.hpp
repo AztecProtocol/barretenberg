@@ -83,14 +83,8 @@ template <typename B> inline void write(B& buf, Sha256Input const& constraint)
     write(buf, constraint.num_bits);
 }
 
-inline bool operator==(Sha256Input const& lhs, Sha256Input const& rhs)
-{
-    // clang-format off
-    return
-        lhs.witness == rhs.witness &&
-        lhs.num_bits == rhs.num_bits;
-    // clang-format on
-}
+inline bool operator==(Sha256Input const& lhs, Sha256Input const& rhs) = default;
+
 template <typename B> inline void read(B& buf, Sha256Constraint& constraint)
 {
     using serialize::read;
@@ -105,11 +99,4 @@ template <typename B> inline void write(B& buf, Sha256Constraint const& constrai
     write(buf, constraint.result);
 }
 
-inline bool operator==(Sha256Constraint const& lhs, Sha256Constraint const& rhs)
-{
-    // clang-format off
-    return
-        lhs.inputs == rhs.inputs &&
-        lhs.result == rhs.result;
-    // clang-format on
-}
+inline bool operator==(Sha256Constraint const& lhs, Sha256Constraint const& rhs) = default;

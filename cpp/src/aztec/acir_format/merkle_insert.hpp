@@ -85,15 +85,4 @@ template <typename B> inline void write(B& buf, MerkleInsertConstraint const& co
     write(buf, constraint.index);
 }
 
-inline bool operator==(MerkleInsertConstraint const& lhs, MerkleInsertConstraint const& rhs)
-{
-    // clang-format off
-    return
-        lhs.old_root == rhs.old_root &&
-        lhs.new_root == rhs.new_root &&
-        lhs.old_leaf == rhs.old_leaf &&
-        lhs.new_leaf == rhs.new_leaf &&
-        lhs.index == rhs.index &&
-        lhs.hash_path == rhs.hash_path;
-    // clang-format on
-}
+inline bool operator==(MerkleInsertConstraint const& lhs, MerkleInsertConstraint const& rhs) = default;

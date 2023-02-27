@@ -47,12 +47,4 @@ template <typename B> inline void write(B& buf, FixedBaseScalarMul const& constr
     write(buf, constraint.pub_key_y);
 }
 
-inline bool operator==(FixedBaseScalarMul const& lhs, FixedBaseScalarMul const& rhs)
-{
-    // clang-format off
-    return
-        lhs.scalar == rhs.scalar &&
-        lhs.pub_key_x == rhs.pub_key_x &&
-        lhs.pub_key_y == rhs.pub_key_y;
-    // clang-format on
-}
+inline bool operator==(FixedBaseScalarMul const& lhs, FixedBaseScalarMul const& rhs) = default;
