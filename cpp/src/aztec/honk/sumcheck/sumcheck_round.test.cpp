@@ -77,17 +77,15 @@ std::array<std::span<FF>, NUM_POLYNOMIALS> construct_full_polynomials(std::array
 
 // The below two methods are used in the test ComputeUnivariateProver
 static Univariate<FF, max_relation_length> compute_round_univariate(
-    std::array<std::array<FF, input_polynomial_length>, bonk::StandardArithmetization::NUM_POLYNOMIALS>&
-        input_polynomials,
+    std::array<std::array<FF, input_polynomial_length>, NUM_POLYNOMIALS>& input_polynomials,
     const RelationParameters<FF>& relation_parameters)
 {
-    const size_t num_polys(bonk::StandardArithmetization::NUM_POLYNOMIALS);
     size_t round_size = 1;
     auto relations = std::tuple(
         ArithmeticRelation<FF>(), GrandProductComputationRelation<FF>(), GrandProductInitializationRelation<FF>());
     // Improvement(Cody): This is ugly? Maye supply some/all of this data through "flavor" class?
     auto round = SumcheckRound<FF,
-                               num_polys,
+                               NUM_POLYNOMIALS,
                                ArithmeticRelation,
                                GrandProductComputationRelation,
                                GrandProductInitializationRelation>(round_size, relations);
@@ -135,15 +133,13 @@ static Univariate<FF, max_relation_length> compute_round_univariate(
 }
 
 static Univariate<FF, max_relation_length> compute_expected_round_univariate(
-    std::array<Univariate<FF, input_polynomial_length>, bonk::StandardArithmetization::NUM_POLYNOMIALS>&
-        input_univariates,
+    std::array<Univariate<FF, input_polynomial_length>, NUM_POLYNOMIALS>& input_univariates,
     const RelationParameters<FF>& relation_parameters)
 {
     BarycentricData<FF, input_polynomial_length, max_relation_length> barycentric_2_to_max =
         BarycentricData<FF, input_polynomial_length, max_relation_length>();
-    std::array<Univariate<FF, max_relation_length>, bonk::StandardArithmetization::NUM_POLYNOMIALS>
-        extended_univariates;
-    for (size_t i = 0; i < bonk::StandardArithmetization::NUM_POLYNOMIALS; ++i) {
+    std::array<Univariate<FF, max_relation_length>, NUM_POLYNOMIALS> extended_univariates;
+    for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
         extended_univariates[i] = barycentric_2_to_max.extend(input_univariates[i]);
     }
     auto w_l_univariate = Univariate<FF, max_relation_length>(extended_univariates[0]);
@@ -187,10 +183,9 @@ static Univariate<FF, max_relation_length> compute_expected_round_univariate(
 }
 
 // The below two methods are used in the test ComputeUnivariateVerifier
-static FF compute_full_purported_value(std::array<FF, bonk::StandardArithmetization::NUM_POLYNOMIALS>& input_values,
+static FF compute_full_purported_value(std::array<FF, NUM_POLYNOMIALS>& input_values,
                                        const RelationParameters<FF>& relation_parameters)
 {
-    const size_t num_polys(bonk::StandardArithmetization::NUM_POLYNOMIALS);
     std::vector<FF> purported_evaluations;
     purported_evaluations.resize(NUM_POLYNOMIALS);
     purported_evaluations[POLYNOMIAL::W_L] = input_values[0];
@@ -214,7 +209,7 @@ static FF compute_full_purported_value(std::array<FF, bonk::StandardArithmetizat
     auto relations = std::tuple(
         ArithmeticRelation<FF>(), GrandProductComputationRelation<FF>(), GrandProductInitializationRelation<FF>());
     auto round = SumcheckRound<FF,
-                               num_polys,
+                               NUM_POLYNOMIALS,
                                ArithmeticRelation,
                                GrandProductComputationRelation,
                                GrandProductInitializationRelation>(relations);
@@ -224,9 +219,8 @@ static FF compute_full_purported_value(std::array<FF, bonk::StandardArithmetizat
     return full_purported_value;
 }
 
-static FF compute_full_purported_value_expected(
-    std::array<FF, bonk::StandardArithmetization::NUM_POLYNOMIALS>& input_values,
-    const RelationParameters<FF>& relation_parameters)
+static FF compute_full_purported_value_expected(std::array<FF, NUM_POLYNOMIALS>& input_values,
+                                                const RelationParameters<FF>& relation_parameters)
 {
     FF w_l = input_values[0];
     FF w_r = input_values[1];
@@ -267,9 +261,8 @@ TEST(SumcheckRound, ComputeUnivariateProver)
 {
     auto run_test = [](bool is_random_input) {
         if (is_random_input) {
-            std::array<std::array<FF, input_polynomial_length>, bonk::StandardArithmetization::NUM_POLYNOMIALS>
-                input_polynomials;
-            for (size_t i = 0; i < bonk::StandardArithmetization::NUM_POLYNOMIALS; ++i) {
+            std::array<std::array<FF, input_polynomial_length>, NUM_POLYNOMIALS> input_polynomials;
+            for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
                 input_polynomials[i] = { FF::random_element(), FF::random_element() };
             }
             const RelationParameters<FF> relation_parameters =
@@ -280,26 +273,23 @@ TEST(SumcheckRound, ComputeUnivariateProver)
                                         .public_input_delta = FF::random_element() };
             auto round_univariate = compute_round_univariate(input_polynomials, relation_parameters);
             // Compute round_univariate manually
-            std::array<Univariate<FF, input_polynomial_length>, bonk::StandardArithmetization::NUM_POLYNOMIALS>
-                input_univariates;
-            for (size_t i = 0; i < bonk::StandardArithmetization::NUM_POLYNOMIALS; ++i) {
+            std::array<Univariate<FF, input_polynomial_length>, NUM_POLYNOMIALS> input_univariates;
+            for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
                 input_univariates[i] = Univariate<FF, input_polynomial_length>(input_polynomials[i]);
             }
             auto expected_round_univariate = compute_expected_round_univariate(input_univariates, relation_parameters);
             EXPECT_EQ(round_univariate, expected_round_univariate);
         } else {
-            std::array<std::array<FF, input_polynomial_length>, bonk::StandardArithmetization::NUM_POLYNOMIALS>
-                input_polynomials;
-            for (size_t i = 0; i < bonk::StandardArithmetization::NUM_POLYNOMIALS; ++i) {
+            std::array<std::array<FF, input_polynomial_length>, NUM_POLYNOMIALS> input_polynomials;
+            for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
                 input_polynomials[i] = { 1, 2 };
             }
             const RelationParameters<FF> relation_parameters =
                 RelationParameters<FF>{ .zeta = 1, .alpha = 1, .beta = 1, .gamma = 1, .public_input_delta = 1 };
             auto round_univariate = compute_round_univariate(input_polynomials, relation_parameters);
             // Compute round_univariate manually
-            std::array<Univariate<FF, input_polynomial_length>, bonk::StandardArithmetization::NUM_POLYNOMIALS>
-                input_univariates;
-            for (size_t i = 0; i < bonk::StandardArithmetization::NUM_POLYNOMIALS; ++i) {
+            std::array<Univariate<FF, input_polynomial_length>, NUM_POLYNOMIALS> input_univariates;
+            for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
                 input_univariates[i] = Univariate<FF, input_polynomial_length>(input_polynomials[i]);
             }
             // expected_round_univariate = { 6, 26, 66, 132, 230, 366 }
@@ -315,8 +305,8 @@ TEST(SumcheckRound, ComputeUnivariateVerifier)
 {
     auto run_test = [](bool is_random_input) {
         if (is_random_input) {
-            std::array<FF, bonk::StandardArithmetization::NUM_POLYNOMIALS> input_values;
-            for (size_t i = 0; i < bonk::StandardArithmetization::NUM_POLYNOMIALS; ++i) {
+            std::array<FF, NUM_POLYNOMIALS> input_values;
+            for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
                 input_values[i] = FF::random_element();
             }
             const RelationParameters<FF> relation_parameters =
@@ -331,8 +321,8 @@ TEST(SumcheckRound, ComputeUnivariateVerifier)
                 compute_full_purported_value_expected(input_values, relation_parameters);
             EXPECT_EQ(full_purported_value, expected_full_purported_value);
         } else {
-            std::array<FF, bonk::StandardArithmetization::NUM_POLYNOMIALS> input_values;
-            for (size_t i = 0; i < bonk::StandardArithmetization::NUM_POLYNOMIALS; ++i) {
+            std::array<FF, NUM_POLYNOMIALS> input_values;
+            for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
                 input_values[i] = FF(2);
             }
             const RelationParameters<FF> relation_parameters =
