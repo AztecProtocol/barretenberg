@@ -11,6 +11,8 @@ struct LogicConstraint {
     uint32_t result;
     uint32_t num_bits;
     uint32_t is_xor_gate;
+
+    friend bool operator==(LogicConstraint const& lhs, LogicConstraint const& rhs) = default;
 };
 
 void create_logic_gate(TurboComposer& composer,
@@ -51,6 +53,4 @@ template <typename B> inline void write(B& buf, LogicConstraint const& constrain
     write(buf, constraint.num_bits);
     write(buf, constraint.is_xor_gate);
 }
-
-inline bool operator==(LogicConstraint const& lhs, LogicConstraint const& rhs) = default;
 } // namespace acir_format

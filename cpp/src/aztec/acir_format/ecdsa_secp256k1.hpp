@@ -110,6 +110,8 @@ struct EcdsaSecp256k1Constraint {
     // This is the computed signature
     //
     std::vector<uint32_t> signature;
+
+    friend bool operator==(EcdsaSecp256k1Constraint const& lhs, EcdsaSecp256k1Constraint const& rhs) = default;
 };
 
 void create_ecdsa_verify_constraints(plonk::TurboComposer& composer, const EcdsaSecp256k1Constraint& input)
@@ -154,5 +156,3 @@ template <typename B> inline void write(B& buf, EcdsaSecp256k1Constraint const& 
     write(buf, constraint.pub_y_indices);
     write(buf, constraint.result);
 }
-
-inline bool operator==(EcdsaSecp256k1Constraint const& lhs, EcdsaSecp256k1Constraint const& rhs) = default;

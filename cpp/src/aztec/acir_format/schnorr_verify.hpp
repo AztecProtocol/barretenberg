@@ -85,6 +85,8 @@ struct SchnorrConstraint {
     // This is the computed signature
     //
     std::vector<uint32_t> signature;
+
+    friend bool operator==(SchnorrConstraint const& lhs, SchnorrConstraint const& rhs) = default;
 };
 
 void create_schnorr_verify_constraints(plonk::TurboComposer& composer, const SchnorrConstraint& input)
@@ -140,4 +142,4 @@ template <typename B> inline void write(B& buf, SchnorrConstraint const& constra
     write(buf, constraint.result);
 }
 
-inline bool operator==(SchnorrConstraint const& lhs, SchnorrConstraint const& rhs) = default;
+

@@ -20,6 +20,8 @@ struct PedersenConstraint {
     std::vector<uint32_t> scalars;
     uint32_t result_x;
     uint32_t result_y;
+
+    friend bool operator==(PedersenConstraint const& lhs, PedersenConstraint const& rhs) = default;
 };
 
 void create_pedersen_constraint(plonk::TurboComposer& composer, const PedersenConstraint& input)
@@ -52,5 +54,3 @@ template <typename B> inline void write(B& buf, PedersenConstraint const& constr
     read(buf, constraint.result_x);
     read(buf, constraint.result_y);
 }
-
-inline bool operator==(PedersenConstraint const& lhs, PedersenConstraint const& rhs) = default;

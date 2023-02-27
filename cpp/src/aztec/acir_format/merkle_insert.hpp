@@ -22,6 +22,8 @@ struct MerkleInsertConstraint {
     uint32_t old_leaf;               // Single field element -- field_t
     uint32_t new_leaf;               // Single field element -- field_t
     uint32_t index;
+
+    friend bool operator==(MerkleInsertConstraint const& lhs, MerkleInsertConstraint const& rhs) = default;
 };
 
 void create_merkle_insert_constraint(plonk::TurboComposer& composer, const MerkleInsertConstraint& input)
@@ -85,4 +87,3 @@ template <typename B> inline void write(B& buf, MerkleInsertConstraint const& co
     write(buf, constraint.index);
 }
 
-inline bool operator==(MerkleInsertConstraint const& lhs, MerkleInsertConstraint const& rhs) = default;

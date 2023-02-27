@@ -28,11 +28,15 @@ uint32_t round_to_nearest_byte(uint32_t num_bits)
 struct Sha256Input {
     uint32_t witness;
     uint32_t num_bits;
+
+    friend bool operator==(Sha256Input const& lhs, Sha256Input const& rhs) = default;
 };
 
 struct Sha256Constraint {
     std::vector<Sha256Input> inputs;
     std::vector<uint32_t> result;
+
+    friend bool operator==(Sha256Constraint const& lhs, Sha256Constraint const& rhs) = default;
 };
 
 // This function does not work (properly) because the stdlib:sha256 function is not working correctly for 512 bits
@@ -83,8 +87,6 @@ template <typename B> inline void write(B& buf, Sha256Input const& constraint)
     write(buf, constraint.num_bits);
 }
 
-inline bool operator==(Sha256Input const& lhs, Sha256Input const& rhs) = default;
-
 template <typename B> inline void read(B& buf, Sha256Constraint& constraint)
 {
     using serialize::read;
@@ -99,4 +101,4 @@ template <typename B> inline void write(B& buf, Sha256Constraint const& constrai
     write(buf, constraint.result);
 }
 
-inline bool operator==(Sha256Constraint const& lhs, Sha256Constraint const& rhs) = default;
+}

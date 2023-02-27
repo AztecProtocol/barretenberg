@@ -4,6 +4,8 @@
 struct RangeConstraint {
     uint32_t witness;
     uint32_t num_bits;
+
+    friend bool operator==(RangeConstraint const& lhs, RangeConstraint const& rhs) = default;
 };
 
 template <typename B> inline void read(B& buf, RangeConstraint& constraint)
@@ -19,5 +21,3 @@ template <typename B> inline void write(B& buf, RangeConstraint const& constrain
     write(buf, constraint.witness);
     write(buf, constraint.num_bits);
 }
-
-inline bool operator==(RangeConstraint const& lhs, RangeConstraint const& rhs) = default;

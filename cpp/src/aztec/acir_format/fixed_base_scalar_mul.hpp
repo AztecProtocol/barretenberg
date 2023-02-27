@@ -19,6 +19,8 @@ struct FixedBaseScalarMul {
     uint32_t scalar;
     uint32_t pub_key_x;
     uint32_t pub_key_y;
+
+    friend bool operator==(FixedBaseScalarMul const& lhs, FixedBaseScalarMul const& rhs) = default;
 };
 
 void create_fixed_base_constraint(plonk::TurboComposer& composer, const FixedBaseScalarMul& input)
@@ -46,5 +48,3 @@ template <typename B> inline void write(B& buf, FixedBaseScalarMul const& constr
     write(buf, constraint.pub_key_x);
     write(buf, constraint.pub_key_y);
 }
-
-inline bool operator==(FixedBaseScalarMul const& lhs, FixedBaseScalarMul const& rhs) = default;

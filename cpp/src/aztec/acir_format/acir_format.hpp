@@ -37,6 +37,8 @@ struct acir_format {
     // A standard plonk arithmetic constraint, as defined in the poly_triple struct, consists of selector values
     // for q_M,q_L,q_R,q_O,q_C and indices of three variables taking the role of left, right and output wire
     std::vector<poly_triple> constraints;
+
+    friend bool operator==(acir_format const& lhs, acir_format const& rhs) = default;
 };
 
 void read_witness(TurboComposer& composer, std::vector<barretenberg::fr> witness)
@@ -480,7 +482,5 @@ template <typename B> inline void write(B& buf, acir_format const& data)
     write(buf, data.fixed_base_scalar_mul_constraints);
     write(buf, data.constraints);
 }
-
-inline bool operator==(acir_format const& lhs, acir_format const& rhs) = default;
 
 } // namespace acir_format

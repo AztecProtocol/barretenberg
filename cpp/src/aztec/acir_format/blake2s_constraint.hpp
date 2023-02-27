@@ -28,11 +28,15 @@ uint32_t blake_round_to_nearest_byte(uint32_t num_bits)
 struct Blake2sInput {
     uint32_t witness;
     uint32_t num_bits;
+
+    friend bool operator==(Blake2sInput const& lhs, Blake2sInput const& rhs) = default;
 };
 
 struct Blake2sConstraint {
     std::vector<Blake2sInput> inputs;
     std::vector<uint32_t> result;
+
+    friend bool operator==(Blake2sConstraint const& lhs, Blake2sConstraint const& rhs) = default;
 };
 
 void create_blake2s_constraints(plonk::TurboComposer& composer, const Blake2sConstraint& constraint)
@@ -80,8 +84,6 @@ template <typename B> inline void write(B& buf, Blake2sInput const& constraint)
     write(buf, constraint.num_bits);
 }
 
-inline bool operator==(Blake2sInput const& lhs, Blake2sInput const& rhs) = default;
-
 template <typename B> inline void read(B& buf, Blake2sConstraint& constraint)
 {
     using serialize::read;
@@ -96,4 +98,4 @@ template <typename B> inline void write(B& buf, Blake2sConstraint const& constra
     write(buf, constraint.result);
 }
 
-inline bool operator==(Blake2sConstraint const& lhs, Blake2sConstraint const& rhs) = default;
+}
