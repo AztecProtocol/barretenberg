@@ -165,12 +165,4 @@ template <typename B> inline void write(B& buf, EcdsaSecp256k1Constraint const& 
     write(buf, constraint.result);
 }
 
-inline bool operator==(EcdsaSecp256k1Constraint const& lhs, EcdsaSecp256k1Constraint const& rhs)
-{
-    // clang-format off
-    return
-        lhs.message == rhs.message &&
-        lhs.signature == rhs.signature &&
-        lhs.result == rhs.result;
-    // clang-format on
-}
+inline bool operator==(EcdsaSecp256k1Constraint const& lhs, EcdsaSecp256k1Constraint const& rhs) = default;
