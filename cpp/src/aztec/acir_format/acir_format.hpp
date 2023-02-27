@@ -19,7 +19,7 @@ using namespace barretenberg;
 
 namespace waffle {
 
-struct standard_format {
+struct acir_format {
     // The number of witnesses in the circuit
     uint32_t varnum;
 
@@ -49,7 +49,7 @@ void read_witness(TurboComposer& composer, std::vector<barretenberg::fr> witness
     }
 }
 
-void create_circuit(TurboComposer& composer, const standard_format& constraint_system)
+void create_circuit(TurboComposer& composer, const acir_format& constraint_system)
 {
     if (constraint_system.public_inputs.size() > constraint_system.varnum) {
         std::cout << "too many public inputs!" << std::endl;
@@ -129,7 +129,7 @@ void create_circuit(TurboComposer& composer, const standard_format& constraint_s
     }
 }
 
-TurboComposer create_circuit(const standard_format& constraint_system,
+TurboComposer create_circuit(const acir_format& constraint_system,
                              std::unique_ptr<waffle::ReferenceStringFactory>&& crs_factory)
 {
     if (constraint_system.public_inputs.size() > constraint_system.varnum) {
@@ -214,7 +214,7 @@ TurboComposer create_circuit(const standard_format& constraint_system,
     return composer;
 }
 
-TurboComposer create_circuit_with_witness(const standard_format& constraint_system,
+TurboComposer create_circuit_with_witness(const acir_format& constraint_system,
                                           std::vector<fr> witness,
                                           std::unique_ptr<ReferenceStringFactory>&& crs_factory)
 {
@@ -302,7 +302,7 @@ TurboComposer create_circuit_with_witness(const standard_format& constraint_syst
 
     return composer;
 }
-TurboComposer create_circuit_with_witness(const standard_format& constraint_system, std::vector<fr> witness)
+TurboComposer create_circuit_with_witness(const acir_format& constraint_system, std::vector<fr> witness)
 {
     if (constraint_system.public_inputs.size() > constraint_system.varnum) {
         std::cout << "too many public inputs!" << std::endl;
@@ -388,9 +388,7 @@ TurboComposer create_circuit_with_witness(const standard_format& constraint_syst
 
     return composer;
 }
-void create_circuit_with_witness(TurboComposer& composer,
-                                 const standard_format& constraint_system,
-                                 std::vector<fr> witness)
+void create_circuit_with_witness(TurboComposer& composer, const acir_format& constraint_system, std::vector<fr> witness)
 {
     if (constraint_system.public_inputs.size() > constraint_system.varnum) {
         std::cout << "too many public inputs!" << std::endl;
@@ -474,7 +472,7 @@ void create_circuit_with_witness(TurboComposer& composer,
 }
 
 // Serialisation
-template <typename B> inline void read(B& buf, standard_format& data)
+template <typename B> inline void read(B& buf, acir_format& data)
 {
     using serialize::read;
     read(buf, data.varnum);
@@ -493,7 +491,7 @@ template <typename B> inline void read(B& buf, standard_format& data)
     read(buf, data.constraints);
 }
 
-template <typename B> inline void write(B& buf, standard_format const& data)
+template <typename B> inline void write(B& buf, acir_format const& data)
 {
     using serialize::write;
     write(buf, data.varnum);
@@ -512,7 +510,7 @@ template <typename B> inline void write(B& buf, standard_format const& data)
     write(buf, data.constraints);
 }
 
-inline bool operator==(standard_format const& lhs, standard_format const& rhs)
+inline bool operator==(acir_format const& lhs, acir_format const& rhs)
 {
     // clang-format off
     return
