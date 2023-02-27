@@ -11,7 +11,6 @@
 #include "ecdsa_secp256k1.hpp"
 #include "merkle_membership_constraint.hpp"
 #include "pedersen.hpp"
-#include "arithmetic_constraint.hpp"
 #include "hash_to_field.hpp"
 
 using namespace barretenberg;
