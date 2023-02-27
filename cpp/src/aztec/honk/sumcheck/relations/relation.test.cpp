@@ -257,8 +257,8 @@ TYPED_TEST(SumcheckRelation, GrandProductComputationRelation)
         const auto& sigma_2 = extended_edges[MULTIVARIATE::SIGMA_2];
         const auto& sigma_3 = extended_edges[MULTIVARIATE::SIGMA_3];
         const auto& id_1 = extended_edges[MULTIVARIATE::ID_1];
-        const auto& id_2 = extended_edges[MULTIVARIATE::ID_1];
-        const auto& id_3 = extended_edges[MULTIVARIATE::ID_1];
+        const auto& id_2 = extended_edges[MULTIVARIATE::ID_2];
+        const auto& id_3 = extended_edges[MULTIVARIATE::ID_3];
         const auto& z_perm = extended_edges[MULTIVARIATE::Z_PERM];
         const auto& z_perm_shift = extended_edges[MULTIVARIATE::Z_PERM_SHIFT];
         const auto& lagrange_first = extended_edges[MULTIVARIATE::LAGRANGE_FIRST];
@@ -274,7 +274,7 @@ TYPED_TEST(SumcheckRelation, GrandProductComputationRelation)
 
         TestFixture::validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
     };
-    // run_test(/* is_random_input=*/true);
+    run_test(/* is_random_input=*/true);
     run_test(/* is_random_input=*/false);
 };
 
