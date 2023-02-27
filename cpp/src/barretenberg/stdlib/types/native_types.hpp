@@ -56,9 +56,9 @@ struct NativeTypes {
     // typedef crypto::schnorr::signature signature;
 
     typedef stdlib::recursion::native_recursion_output AggregationObject;
-    typedef waffle::verification_key_data VKData;
-    typedef waffle::verification_key VK;
-    typedef waffle::plonk_proof Proof;
+    typedef bonk::verification_key_data VKData;
+    typedef bonk::verification_key VK;
+    typedef plonk::proof Proof;
 
     /// TODO: lots of these compress / commit functions aren't actually used: remove them.
 
