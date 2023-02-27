@@ -255,7 +255,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
         auto prover = composer.create_prover();
 
         auto verifier = composer.create_verifier();
-        waffle::plonk_proof proof = prover.construct_proof();
+        auto proof = prover.construct_proof();
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
     }
@@ -274,7 +274,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
         auto prover = composer.create_prover();
 
         auto verifier = composer.create_verifier();
-        waffle::plonk_proof proof = prover.construct_proof();
+        auto proof = prover.construct_proof();
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
     }
