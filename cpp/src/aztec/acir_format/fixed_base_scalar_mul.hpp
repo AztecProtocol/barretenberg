@@ -15,6 +15,8 @@ typedef plonk::stdlib::byte_array<plonk::TurboComposer> byte_array;
 using namespace barretenberg;
 using namespace plonk;
 
+namespace acir_format {
+
 struct FixedBaseScalarMul {
     uint32_t scalar;
     uint32_t pub_key_x;
@@ -48,3 +50,5 @@ template <typename B> inline void write(B& buf, FixedBaseScalarMul const& constr
     write(buf, constraint.pub_key_x);
     write(buf, constraint.pub_key_y);
 }
+
+} // namespace acir_format

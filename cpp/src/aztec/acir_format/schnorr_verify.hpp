@@ -9,6 +9,8 @@
 using namespace plonk::stdlib::types;
 using namespace barretenberg;
 
+namespace acir_format {
+
 crypto::schnorr::signature convert_signature(plonk::TurboComposer& composer, std::vector<uint32_t> signature)
 {
 
@@ -142,3 +144,5 @@ template <typename B> inline void write(B& buf, SchnorrConstraint const& constra
     write(buf, constraint.public_key_y);
     write(buf, constraint.result);
 }
+
+} // namespace acir_format

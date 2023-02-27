@@ -10,6 +10,8 @@
 using namespace plonk::stdlib::types;
 using namespace barretenberg;
 
+namespace acir_format {
+
 // Rounds a number to the nearest multiple of 8
 uint32_t round_to_nearest_mul_8(uint32_t num_bits)
 {
@@ -101,4 +103,4 @@ template <typename B> inline void write(B& buf, Sha256Constraint const& constrai
     write(buf, constraint.result);
 }
 
-}
+} // namespace acir_format

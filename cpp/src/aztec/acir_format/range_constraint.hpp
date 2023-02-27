@@ -1,6 +1,8 @@
 #pragma once
 #include <common/serialize.hpp>
 
+namespace acir_format {
+
 struct RangeConstraint {
     uint32_t witness;
     uint32_t num_bits;
@@ -21,3 +23,5 @@ template <typename B> inline void write(B& buf, RangeConstraint const& constrain
     write(buf, constraint.witness);
     write(buf, constraint.num_bits);
 }
+
+} // namespace acir_format

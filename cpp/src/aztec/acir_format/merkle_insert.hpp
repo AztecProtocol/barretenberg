@@ -9,11 +9,13 @@
 
 using namespace plonk::stdlib::types;
 using namespace plonk::stdlib::merkle_tree;
-typedef plonk::stdlib::field_t<plonk::TurboComposer> field_t;
-typedef plonk::stdlib::byte_array<plonk::TurboComposer> byte_array;
-
 using namespace barretenberg;
 using namespace plonk;
+
+namespace acir_format {
+
+typedef plonk::stdlib::field_t<plonk::TurboComposer> field_t;
+typedef plonk::stdlib::byte_array<plonk::TurboComposer> byte_array;
 
 struct MerkleInsertConstraint {
     std::vector<uint32_t> hash_path; // Vector of pairs of hashpaths. eg indices 0,1 denotes the pair (0,1)
@@ -87,3 +89,4 @@ template <typename B> inline void write(B& buf, MerkleInsertConstraint const& co
     write(buf, constraint.index);
 }
 
+} // namespace acir_format

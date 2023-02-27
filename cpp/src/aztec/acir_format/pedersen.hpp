@@ -8,12 +8,13 @@
 #include <stdlib/primitives/byte_array/byte_array.hpp>
 
 using namespace plonk::stdlib::types;
+using namespace barretenberg;
+using namespace plonk;
+
+namespace acir_format {
 
 typedef plonk::stdlib::field_t<plonk::TurboComposer> field_t;
 typedef plonk::stdlib::byte_array<plonk::TurboComposer> byte_array;
-
-using namespace barretenberg;
-using namespace plonk;
 
 // P = xG + bH
 struct PedersenConstraint {
@@ -54,3 +55,5 @@ template <typename B> inline void write(B& buf, PedersenConstraint const& constr
     read(buf, constraint.result_x);
     read(buf, constraint.result_y);
 }
+
+} // namespace acir_format

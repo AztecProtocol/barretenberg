@@ -12,6 +12,8 @@
 using namespace plonk::stdlib::types;
 using namespace barretenberg;
 
+namespace acir_format {
+
 crypto::ecdsa::signature ecdsa_convert_signature(plonk::TurboComposer& composer, std::vector<uint32_t> signature)
 {
 
@@ -156,3 +158,5 @@ template <typename B> inline void write(B& buf, EcdsaSecp256k1Constraint const& 
     write(buf, constraint.pub_y_indices);
     write(buf, constraint.result);
 }
+
+} // namespace acir_format

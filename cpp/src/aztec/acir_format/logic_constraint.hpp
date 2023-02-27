@@ -53,4 +53,5 @@ template <typename B> inline void write(B& buf, LogicConstraint const& constrain
     write(buf, constraint.num_bits);
     write(buf, constraint.is_xor_gate);
 }
+
 } // namespace acir_format
