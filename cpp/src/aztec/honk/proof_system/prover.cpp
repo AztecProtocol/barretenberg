@@ -314,7 +314,7 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     Fr rho = Fr::serialize_from_buffer(transcript.get_challenge("rho").begin());
     std::vector<Fr> rhos = Gemini::powers_of_rho(rho, NUM_POLYNOMIALS);
 
-    // Construct batched polynomials
+    // Batch the unshifted polynomials and the to-be-shifted polynomials using ρ
     Polynomial batched_unshifted(key->circuit_size); // batched unshifted polynomials
     for (size_t i = 0; i < NUM_UNSHIFTED_POLYS; ++i) {
         batched_unshifted.add_scaled(prover_polynomials[i], rhos[i]);

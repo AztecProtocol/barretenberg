@@ -39,15 +39,15 @@ TYPED_TEST(ShplonkTest, GeminiShplonk)
 
     // Collect multilinear polynomials evaluations, and commitments for input to prover/verifier
     std::vector<Fr> multilinear_evaluations = { eval };
-    std::vector<std::span<Fr>> multilinear_polynomials = { poly };
-    std::vector<std::span<Fr>> multilinear_polynomials_to_be_shifted = {};
-    std::vector<Commitment> multilinear_commitments = { commitment };
-    std::vector<Commitment> multilinear_commitments_to_be_shifted = {};
 
     std::vector<Fr> rhos = Gemini::powers_of_rho(rho, multilinear_evaluations.size());
+
     Polynomial batched_unshifted(n);
     Polynomial batched_to_be_shifted(n);
     batched_unshifted.add_scaled(poly, rhos[0]);
+
+    Commitment batched_commitment_unshifted = commitment * rhos[0];
+    Commitment batched_commitment_to_be_shifted = Commitment::zero();
 
     auto gemini_prover_output = Gemini::reduce_prove(this->ck(),
                                                      u,
@@ -69,8 +69,8 @@ TYPED_TEST(ShplonkTest, GeminiShplonk)
 
     auto gemini_verifier_claim = Gemini::reduce_verify(u,
                                                        multilinear_evaluations,
-                                                       multilinear_commitments,
-                                                       multilinear_commitments_to_be_shifted,
+                                                       batched_commitment_unshifted,
+                                                       batched_commitment_to_be_shifted,
                                                        gemini_proof,
                                                        transcript);
 

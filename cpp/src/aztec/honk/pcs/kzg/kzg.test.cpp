@@ -96,14 +96,8 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
     auto eval2 = poly2.evaluate_mle(mle_opening_point);
     auto eval2_shift = poly2.evaluate_mle(mle_opening_point, true);
 
-    // Collect multilinear polynomials and their evaluations for input to prover
+    // Collect multilinear evaluations for input to prover
     std::vector<Fr> multilinear_evaluations = { eval1, eval2, eval2_shift };
-    std::vector<std::span<Fr>> multilinear_polynomials = { poly1, poly2 };
-    std::vector<std::span<Fr>> multilinear_polynomials_to_be_shifted = { poly2 };
-
-    // Collect multilinear polynomial commitments for input to verifier
-    std::vector<Commitment> multilinear_commitments = { commitment1, commitment2 };
-    std::vector<Commitment> multilinear_commitments_to_be_shifted = { commitment2 };
 
     std::vector<Fr> rhos = Gemini::powers_of_rho(rho, multilinear_evaluations.size());
     Polynomial batched_unshifted(n);
@@ -111,6 +105,11 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
     batched_unshifted.add_scaled(poly1, rhos[0]);
     batched_unshifted.add_scaled(poly2, rhos[1]);
     batched_to_be_shifted.add_scaled(poly2, rhos[2]);
+
+    Commitment batched_commitment_unshifted = Commitment::zero();
+    Commitment batched_commitment_to_be_shifted = Commitment::zero();
+    batched_commitment_unshifted = commitment1 * rhos[0] + commitment2 * rhos[1];
+    batched_commitment_to_be_shifted = commitment2 * rhos[2];
 
     // Run the full prover PCS protocol:
 
@@ -152,8 +151,8 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
     // - claim: d+1 commitments to Fold_{r}^(0), Fold_{-r}^(0), Fold^(l), d+1 evaluations a_0_pos, a_l, l = 0:d-1
     auto gemini_verifier_claim = Gemini::reduce_verify(mle_opening_point,
                                                        multilinear_evaluations,
-                                                       multilinear_commitments,
-                                                       multilinear_commitments_to_be_shifted,
+                                                       batched_commitment_unshifted,
+                                                       batched_commitment_to_be_shifted,
                                                        gemini_proof,
                                                        transcript);
 

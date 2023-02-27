@@ -33,14 +33,18 @@ template <class Params> class GeminiTest : public CommitmentTest<Params> {
         std::vector<Fr> rhos = Gemini::powers_of_rho(rho, multilinear_evaluations.size());
         Polynomial batched_unshifted(1 << log_n);
         Polynomial batched_to_be_shifted(1 << log_n);
+        Commitment batched_commitment_unshifted = Commitment::zero();
+        Commitment batched_commitment_to_be_shifted = Commitment::zero();
         const size_t num_unshifted = multilinear_polynomials.size();
         const size_t num_shifted = multilinear_polynomials_to_be_shifted.size();
         for (size_t i = 0; i < num_unshifted; ++i) {
             batched_unshifted.add_scaled(multilinear_polynomials[i], rhos[i]);
+            batched_commitment_unshifted += multilinear_commitments[i] * rhos[i];
         }
         for (size_t i = 0; i < num_shifted; ++i) {
             size_t rho_idx = num_unshifted + i;
             batched_to_be_shifted.add_scaled(multilinear_polynomials_to_be_shifted[i], rhos[rho_idx]);
+            batched_commitment_to_be_shifted += multilinear_commitments_to_be_shifted[i] * rhos[rho_idx];
         }
 
         // Compute:
@@ -68,8 +72,8 @@ template <class Params> class GeminiTest : public CommitmentTest<Params> {
         // Aggregate: d+1 opening pairs and d+1 Fold poly commitments into verifier claim
         auto verifier_claim = Gemini::reduce_verify(multilinear_evaluation_point,
                                                     multilinear_evaluations,
-                                                    multilinear_commitments,
-                                                    multilinear_commitments_to_be_shifted,
+                                                    batched_commitment_unshifted,
+                                                    batched_commitment_to_be_shifted,
                                                     gemini_proof,
                                                     transcript);
 

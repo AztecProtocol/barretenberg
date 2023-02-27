@@ -87,6 +87,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<pcs::kzg::Params>;
     using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
     // using POLYNOMIAL = bonk::StandardArithmetization::POLYNOMIAL;
+    const size_t NUM_POLYNOMIALS = bonk::StandardArithmetization::NUM_POLYNOMIALS;
     const size_t NUM_UNSHIFTED = bonk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
     const size_t NUM_PRECOMPUTED = bonk::StandardArithmetization::NUM_PRECOMPUTED_POLYNOMIALS;
 
@@ -142,10 +143,8 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     // - Multivariate opening point u = (u_0, ..., u_{d-1})
     // - MLE opening claim = {commitment, eval} for each multivariate and shifted multivariate polynomial
     std::vector<FF> opening_point;
-    // std::vector<FF> multivariate_evals;
-    // std::vector<FF> multivariate_evals_shifted;
-    std::vector<Commitment> multivariate_commitments;
-    std::vector<Commitment> multivariate_commitments_to_be_shifted;
+    auto batched_commitment_unshifted = Commitment::zero();
+    auto batched_commitment_to_be_shifted = Commitment::zero();
 
     // Construct MLE opening point
     // Note: for consistency the evaluation point must be constructed as u = (u_0,...,u_{d-1})
@@ -157,20 +156,22 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     // Get vector of multivariate evaluations produced by Sumcheck
     auto multivariate_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
 
-    // Construct NON-shifted opening claims
+    Fr rho = Fr::serialize_from_buffer(transcript.get_challenge("rho").begin());
+    std::vector<Fr> rhos = Gemini::powers_of_rho(rho, NUM_POLYNOMIALS);
+
+    // Construct batched NON-shifted commitment
     for (size_t i = 0; i < NUM_UNSHIFTED; ++i) {
-        // multivariate_evals.emplace_back(multivariate_evaluations[i]);
+        Commitment commitment;
         if (i < NUM_PRECOMPUTED) { // if precomputed, commitment comes from verification key
-            multivariate_commitments.emplace_back(key->commitments[bonk::StandardArithmetization::ENUM_TO_COMM[i]]);
+            commitment = key->commitments[bonk::StandardArithmetization::ENUM_TO_COMM[i]];
         } else { // if witness, commitment comes from prover (via transcript)
-            multivariate_commitments.emplace_back(
-                transcript.get_group_element(bonk::StandardArithmetization::ENUM_TO_COMM[i]));
+            commitment = transcript.get_group_element(bonk::StandardArithmetization::ENUM_TO_COMM[i]);
         }
+        batched_commitment_unshifted += commitment * rhos[i];
     }
 
-    // Constructed shifted opening claims
-    // multivariate_evals_shifted.emplace_back(multivariate_evaluations[POLYNOMIAL::Z_PERM_SHIFT]);
-    multivariate_commitments_to_be_shifted.emplace_back(transcript.get_group_element("Z_PERM"));
+    // Constructed batched to-be-shifted commitment
+    batched_commitment_to_be_shifted = transcript.get_group_element("Z_PERM") * rhos[NUM_UNSHIFTED];
 
     // Reconstruct the Gemini Proof from the transcript
     auto gemini_proof = Gemini::reconstruct_proof_from_transcript(&transcript, key->log_circuit_size);
@@ -180,8 +181,8 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     // - d+1 evaluations a_0_pos, and a_l, l = 0:d-1
     auto gemini_claim = Gemini::reduce_verify(opening_point,
                                               multivariate_evaluations,
-                                              multivariate_commitments,
-                                              multivariate_commitments_to_be_shifted,
+                                              batched_commitment_unshifted,
+                                              batched_commitment_to_be_shifted,
                                               gemini_proof,
                                               &transcript);
 

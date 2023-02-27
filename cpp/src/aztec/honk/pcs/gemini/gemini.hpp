@@ -294,16 +294,16 @@ template <typename Params> class MultilinearReductionScheme {
      *
      * @param mle_opening_point the MLE evaluation point for all claims
      * @param evaluations evaluations of each multivariate at the point u
-     * @param commitments_f commitments to unshifted multivariate polynomials
-     * @param commitments_g commitments to to-be-shifted multivariate polynomials
+     * @param batched_f batched commitment to unshifted polynomials
+     * @param batched_g batched commitment to to-be-shifted polynomials
      * @param proof commitments to the m-1 folded polynomials, and alleged evaluations.
      * @param transcript
      * @return Fold polynomial opening claims
      */
-    static OutputClaim<Params> reduce_verify(std::span<const Fr> mle_opening_point,     /* u */
-                                             std::span<const Fr> evaluations,           /* all */
-                                             std::span<const Commitment> commitments_f, /* unshifted */
-                                             std::span<const Commitment> commitments_g, /* to-be-shifted */
+    static OutputClaim<Params> reduce_verify(std::span<const Fr> mle_opening_point, /* u */
+                                             std::span<const Fr> evaluations,       /* all */
+                                             Commitment batched_f,                  /* unshifted */
+                                             Commitment batched_g,                  /* to-be-shifted */
                                              const Proof<Params>& proof,
                                              const auto& transcript)
     {
@@ -322,7 +322,7 @@ template <typename Params> class MultilinearReductionScheme {
 
         // C₀_r_pos = ∑ⱼ ρʲ⋅[fⱼ] + r⁻¹⋅∑ⱼ ρᵏ⁺ʲ [gⱼ]
         // C₀_r_pos = ∑ⱼ ρʲ⋅[fⱼ] - r⁻¹⋅∑ⱼ ρᵏ⁺ʲ [gⱼ]
-        auto [c0_r_pos, c0_r_neg] = compute_simulated_commitments(commitments_f, commitments_g, rhos, r);
+        auto [c0_r_pos, c0_r_neg] = compute_simulated_commitments(batched_f, batched_g, r);
 
         std::vector<OpeningClaim<Params>> fold_polynomial_opening_claims;
         fold_polynomial_opening_claims.reserve(num_variables + 1);
@@ -438,40 +438,20 @@ template <typename Params> class MultilinearReductionScheme {
     /**
      * @brief Computes two commitments to A₀ partially evaluated in r and -r.
      *
-     * @param claims_f array of claims containing commitments to non-shifted polynomials
-     * @param claims_g array of claims containing commitments to shifted polynomials
-     * @param rhos vector of m powers of rho used for linear combination
+     * @param batched_f batched commitment to non-shifted polynomials
+     * @param batched_g batched commitment to to-be-shifted polynomials
      * @param r evaluation point at which we have partially evaluated A₀ at r and -r.
      * @return std::pair<Commitment, Commitment>  c0_r_pos, c0_r_neg
      */
-    static std::pair<Commitment, Commitment> compute_simulated_commitments(std::span<const Commitment> commitments_f,
-                                                                           std::span<const Commitment> commitments_g,
-                                                                           std::span<const Fr> rhos,
+    static std::pair<Commitment, Commitment> compute_simulated_commitments(Commitment& batched_f,
+                                                                           Commitment& batched_g,
                                                                            Fr r)
     {
-        const size_t num_commitments_f = commitments_f.size();
-        const size_t num_commitments_g = commitments_g.size();
-
-        Fr r_inv = r.invert();
-
-        // Commitment to F(X), G(X)
-        Commitment batched_f = Commitment::zero();
-        std::span rhos_f = rhos.subspan(0, num_commitments_f);
-        for (size_t j = 0; j < num_commitments_f; ++j) {
-            batched_f += commitments_f[j] * rhos_f[j];
-        }
-
-        // Commitment to G(X)
-        Commitment batched_g = Commitment::zero();
-        std::span rhos_g = rhos.subspan(num_commitments_f, num_commitments_g);
-        for (size_t j = 0; j < num_commitments_g; ++j) {
-            batched_g += commitments_g[j] * rhos_g[j];
-        }
-
         // C₀ᵣ₊ = [F] + r⁻¹⋅[G]
         Commitment C0_r_pos = batched_f;
         // C₀ᵣ₋ = [F] - r⁻¹⋅[G]
         Commitment C0_r_neg = batched_f;
+        Fr r_inv = r.invert();
         if (!batched_g.is_point_at_infinity()) {
             batched_g *= r_inv;
             C0_r_pos += batched_g;
