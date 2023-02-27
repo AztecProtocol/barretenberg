@@ -6,26 +6,12 @@
 #include <crypto/sha256/sha256.hpp>
 #include <stdlib/types/types.hpp>
 #include <stdlib/primitives/packed_byte_array/packed_byte_array.hpp>
+#include "round.hpp"
 
 using namespace plonk::stdlib::types;
 using namespace barretenberg;
 
 namespace acir_format {
-
-// Rounds a number to the nearest multiple of 8
-uint32_t round_to_nearest_mul_8(uint32_t num_bits)
-{
-    uint32_t remainder = num_bits % 8;
-    if (remainder == 0)
-        return num_bits;
-
-    return num_bits + 8 - remainder;
-}
-// Rounds the number of bits to the nearest byte
-uint32_t round_to_nearest_byte(uint32_t num_bits)
-{
-    return round_to_nearest_mul_8(num_bits) / 8;
-}
 
 struct Sha256Input {
     uint32_t witness;

@@ -5,26 +5,12 @@
 #include <stdlib/types/types.hpp>
 #include <stdlib/merkle_tree/hash.hpp>
 #include <stdlib/hash/blake2s/blake2s.hpp>
+#include "round.hpp"
 
 using namespace plonk::stdlib::types;
 using namespace barretenberg;
 
 namespace acir_format {
-
-// Rounds a number to the nearest multiple of 8
-uint32_t hash_round_to_nearest_mul_8(uint32_t num_bits)
-{
-    uint32_t remainder = num_bits % 8;
-    if (remainder == 0)
-        return num_bits;
-
-    return num_bits + 8 - remainder;
-}
-// Rounds the number of bits to the nearest byte
-uint32_t hash_round_to_nearest_byte(uint32_t num_bits)
-{
-    return hash_round_to_nearest_mul_8(num_bits) / 8;
-}
 
 struct HashToFieldInput {
     uint32_t witness;
@@ -53,7 +39,7 @@ void create_hash_to_field_constraints(plonk::TurboComposer& composer, const Hash
         auto num_bits = witness_index_num_bits.num_bits;
 
         // XXX: The implementation requires us to truncate the element to the nearest byte and not bit
-        auto num_bytes = hash_round_to_nearest_byte(num_bits);
+        auto num_bytes = round_to_nearest_byte(num_bits);
 
         field_ct element = field_ct::from_witness_index(&composer, witness_index);
         byte_array_ct element_bytes(element, num_bytes);
