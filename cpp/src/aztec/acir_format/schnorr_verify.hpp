@@ -9,7 +9,7 @@
 using namespace plonk::stdlib::types;
 using namespace barretenberg;
 
-crypto::schnorr::signature convert_signature(waffle::TurboComposer& composer, std::vector<uint32_t> signature)
+crypto::schnorr::signature convert_signature(plonk::TurboComposer& composer, std::vector<uint32_t> signature)
 {
 
     crypto::schnorr::signature signature_cr;
@@ -46,7 +46,7 @@ crypto::schnorr::signature convert_signature(waffle::TurboComposer& composer, st
 // vector of bytes here, assumes that the witness indices point to a field element which can be represented
 // with just a byte.
 // notice that this function truncates each field_element to a byte
-byte_array_ct vector_of_bytes_to_byte_array(waffle::TurboComposer& composer, std::vector<uint32_t> vector_of_bytes)
+byte_array_ct vector_of_bytes_to_byte_array(plonk::TurboComposer& composer, std::vector<uint32_t> vector_of_bytes)
 {
     byte_array_ct arr(&composer);
 
@@ -62,7 +62,7 @@ byte_array_ct vector_of_bytes_to_byte_array(waffle::TurboComposer& composer, std
     }
     return arr;
 }
-witness_ct index_to_witness(waffle::TurboComposer& composer, uint32_t index)
+witness_ct index_to_witness(plonk::TurboComposer& composer, uint32_t index)
 {
     fr value = composer.get_variable(index);
     return witness_ct(&composer, value);
@@ -87,7 +87,7 @@ struct SchnorrConstraint {
     std::vector<uint32_t> signature;
 };
 
-void create_schnorr_verify_constraints(waffle::TurboComposer& composer, const SchnorrConstraint& input)
+void create_schnorr_verify_constraints(plonk::TurboComposer& composer, const SchnorrConstraint& input)
 {
 
     auto new_sig = convert_signature(composer, input.signature);

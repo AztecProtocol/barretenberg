@@ -3,7 +3,7 @@
 #include <plonk/composer/composer_base.hpp>
 #include <plonk/composer/turbo_composer.hpp>
 
-namespace waffle {
+namespace acir_format {
 
 struct LogicConstraint {
     uint32_t a;
@@ -63,4 +63,4 @@ inline bool operator==(LogicConstraint const& lhs, LogicConstraint const& rhs)
         lhs.is_xor_gate == rhs.is_xor_gate;
     // clang-format on
 }
-} // namespace waffle
+} // namespace acir_format

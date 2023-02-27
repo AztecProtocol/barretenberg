@@ -10,8 +10,8 @@
 
 using namespace plonk::stdlib::types;
 using namespace plonk::stdlib::merkle_tree;
-typedef plonk::stdlib::field_t<waffle::TurboComposer> field_t;
-typedef plonk::stdlib::byte_array<waffle::TurboComposer> byte_array;
+typedef plonk::stdlib::field_t<plonk::TurboComposer> field_t;
+typedef plonk::stdlib::byte_array<plonk::TurboComposer> byte_array;
 
 using namespace barretenberg;
 using namespace plonk;
@@ -24,7 +24,7 @@ struct MerkleMembershipConstraint {
     uint32_t index;
 };
 
-void create_merkle_check_membership_constraint(waffle::TurboComposer& composer, const MerkleMembershipConstraint& input)
+void create_merkle_check_membership_constraint(plonk::TurboComposer& composer, const MerkleMembershipConstraint& input)
 {
     /// Convert value from a witness index into a field element.
     /// This is the hash of the message. In Barretenberg, this would be input.value = hash_value(message)
@@ -40,7 +40,7 @@ void create_merkle_check_membership_constraint(waffle::TurboComposer& composer, 
     /// We are given the HashPath as a Vec<fr>
     /// We want to first convert it into a Vec<(fr, fr)> then cast this to hash_path
     /// struct which requires the method create_witness_hashpath
-    hash_path<waffle::TurboComposer> hash_path;
+    hash_path<plonk::TurboComposer> hash_path;
 
     // In Noir we accept a hash path that only contains one hash per tree level
     // It is ok to reuse the leaf as it will be overridden in check_subtree_membership when computing the current root

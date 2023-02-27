@@ -9,8 +9,8 @@
 
 using namespace plonk::stdlib::types;
 
-typedef plonk::stdlib::field_t<waffle::TurboComposer> field_t;
-typedef plonk::stdlib::byte_array<waffle::TurboComposer> byte_array;
+typedef plonk::stdlib::field_t<plonk::TurboComposer> field_t;
+typedef plonk::stdlib::byte_array<plonk::TurboComposer> byte_array;
 
 using namespace barretenberg;
 using namespace plonk;
@@ -21,7 +21,7 @@ struct FixedBaseScalarMul {
     uint32_t pub_key_y;
 };
 
-void create_fixed_base_constraint(waffle::TurboComposer& composer, const FixedBaseScalarMul& input)
+void create_fixed_base_constraint(plonk::TurboComposer& composer, const FixedBaseScalarMul& input)
 {
 
     field_t scalar_as_field = field_t::from_witness_index(&composer, input.scalar);

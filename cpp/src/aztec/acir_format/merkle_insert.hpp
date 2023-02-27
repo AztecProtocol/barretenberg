@@ -9,8 +9,8 @@
 
 using namespace plonk::stdlib::types;
 using namespace plonk::stdlib::merkle_tree;
-typedef plonk::stdlib::field_t<waffle::TurboComposer> field_t;
-typedef plonk::stdlib::byte_array<waffle::TurboComposer> byte_array;
+typedef plonk::stdlib::field_t<plonk::TurboComposer> field_t;
+typedef plonk::stdlib::byte_array<plonk::TurboComposer> byte_array;
 
 using namespace barretenberg;
 using namespace plonk;
@@ -24,7 +24,7 @@ struct MerkleInsertConstraint {
     uint32_t index;
 };
 
-void create_merkle_insert_constraint(waffle::TurboComposer& composer, const MerkleInsertConstraint& input)
+void create_merkle_insert_constraint(plonk::TurboComposer& composer, const MerkleInsertConstraint& input)
 {
     /// Convert leaves from a witness index into a byte array.
     field_t old_leaf = field_t::from_witness_index(&composer, input.old_leaf);
@@ -44,7 +44,7 @@ void create_merkle_insert_constraint(waffle::TurboComposer& composer, const Merk
     /// We are given the HashPath as a Vec<fr>
     /// We want to first convert it into a Vec<(fr, fr)> then cast this to hash_path
     /// struct which requires the method create_witness_hashpath
-    hash_path<waffle::TurboComposer> hash_path;
+    hash_path<plonk::TurboComposer> hash_path;
 
     for (size_t i = 0; i < input.hash_path.size(); i = i + 2) {
         field_t left = field_t::from_witness_index(&composer, input.hash_path[i]);

@@ -17,7 +17,7 @@
 
 using namespace barretenberg;
 
-namespace waffle {
+namespace acir_format {
 
 struct acir_format {
     // The number of witnesses in the circuit
@@ -130,7 +130,7 @@ void create_circuit(TurboComposer& composer, const acir_format& constraint_syste
 }
 
 TurboComposer create_circuit(const acir_format& constraint_system,
-                             std::unique_ptr<waffle::ReferenceStringFactory>&& crs_factory)
+                             std::unique_ptr<bonk::ReferenceStringFactory>&& crs_factory)
 {
     if (constraint_system.public_inputs.size() > constraint_system.varnum) {
         std::cout << "too many public inputs!" << std::endl;
@@ -531,4 +531,4 @@ inline bool operator==(acir_format const& lhs, acir_format const& rhs)
     // clang-format on
 }
 
-} // namespace waffle
+} // namespace acir_format

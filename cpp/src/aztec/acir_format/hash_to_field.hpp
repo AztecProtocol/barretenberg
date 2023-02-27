@@ -34,7 +34,7 @@ struct HashToFieldConstraint {
     uint32_t result;
 };
 
-void create_hash_to_field_constraints(waffle::TurboComposer& composer, const HashToFieldConstraint constraint)
+void create_hash_to_field_constraints(plonk::TurboComposer& composer, const HashToFieldConstraint constraint)
 {
 
     // // Create byte array struct
@@ -59,7 +59,7 @@ void create_hash_to_field_constraints(waffle::TurboComposer& composer, const Has
     // Hash To Field using blake2s.
     // Note: It does not need to be blake2s in the future
 
-    byte_array_ct out_bytes = plonk::stdlib::blake2s<waffle::TurboComposer>(arr);
+    byte_array_ct out_bytes = plonk::stdlib::blake2s<plonk::TurboComposer>(arr);
     field_t out(out_bytes);
 
     field_t normalised_out = out.normalize();

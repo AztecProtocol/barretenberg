@@ -1,7 +1,7 @@
 #pragma once
 #include <common/serialize.hpp>
 
-namespace waffle {
+namespace acir_format {
 
 template <typename B> inline void read(B& buf, poly_triple& constraint)
 {
@@ -29,4 +29,4 @@ template <typename B> inline void write(B& buf, poly_triple const& constraint)
     write(buf, constraint.q_c);
 }
 
-} // namespace waffle
+} // namespace acir_format

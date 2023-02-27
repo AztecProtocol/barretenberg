@@ -35,7 +35,7 @@ struct Blake2sConstraint {
     std::vector<uint32_t> result;
 };
 
-void create_blake2s_constraints(waffle::TurboComposer& composer, const Blake2sConstraint& constraint)
+void create_blake2s_constraints(plonk::TurboComposer& composer, const Blake2sConstraint& constraint)
 {
 
     // // Create byte array struct
@@ -56,7 +56,7 @@ void create_blake2s_constraints(waffle::TurboComposer& composer, const Blake2sCo
         arr.write(element_bytes);
     }
 
-    byte_array_ct output_bytes = plonk::stdlib::blake2s<waffle::TurboComposer>(arr);
+    byte_array_ct output_bytes = plonk::stdlib::blake2s<plonk::TurboComposer>(arr);
 
     // Convert byte array to vector of field_t
     auto bytes = output_bytes.bytes();

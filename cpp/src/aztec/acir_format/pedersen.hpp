@@ -9,8 +9,8 @@
 
 using namespace plonk::stdlib::types;
 
-typedef plonk::stdlib::field_t<waffle::TurboComposer> field_t;
-typedef plonk::stdlib::byte_array<waffle::TurboComposer> byte_array;
+typedef plonk::stdlib::field_t<plonk::TurboComposer> field_t;
+typedef plonk::stdlib::byte_array<plonk::TurboComposer> byte_array;
 
 using namespace barretenberg;
 using namespace plonk;
@@ -22,7 +22,7 @@ struct PedersenConstraint {
     uint32_t result_y;
 };
 
-void create_pedersen_constraint(waffle::TurboComposer& composer, const PedersenConstraint& input)
+void create_pedersen_constraint(plonk::TurboComposer& composer, const PedersenConstraint& input)
 {
     std::vector<field_t> scalars;
 

@@ -37,7 +37,7 @@ struct Sha256Constraint {
 
 // This function does not work (properly) because the stdlib:sha256 function is not working correctly for 512 bits
 // pair<witness_index, bits>
-void create_sha256_constraints(waffle::TurboComposer& composer, const Sha256Constraint& constraint)
+void create_sha256_constraints(plonk::TurboComposer& composer, const Sha256Constraint& constraint)
 {
 
     // // Create byte array struct
@@ -59,7 +59,7 @@ void create_sha256_constraints(waffle::TurboComposer& composer, const Sha256Cons
     }
 
     // Compute sha256
-    byte_array_ct output_bytes = plonk::stdlib::sha256<waffle::TurboComposer>(arr);
+    byte_array_ct output_bytes = plonk::stdlib::sha256<plonk::TurboComposer>(arr);
 
     // Convert byte array to vector of field_t
     auto bytes = output_bytes.bytes();
