@@ -21,12 +21,6 @@ namespace test_honk_verifier {
 
 template <class FF> class VerifierTests : public testing::Test {
   public:
-    // TODO(luke): replace this with an appropriate mock honk manifest
-    static transcript::Manifest create_manifest(const size_t num_public_inputs, const size_t num_sumcheck_rounds)
-    {
-        return honk::StandardHonk::create_manifest(num_public_inputs, num_sumcheck_rounds);
-    }
-
     static StandardVerifier generate_verifier(std::shared_ptr<bonk::proving_key> circuit_proving_key)
     {
         std::array<fr*, 8> poly_coefficients;
@@ -67,7 +61,7 @@ template <class FF> class VerifierTests : public testing::Test {
         circuit_verification_key->commitments.insert({ "SIGMA_2", commitments[6] });
         circuit_verification_key->commitments.insert({ "SIGMA_3", commitments[7] });
 
-        StandardVerifier verifier(circuit_verification_key, create_manifest(0, circuit_proving_key->log_circuit_size));
+        StandardVerifier verifier(circuit_verification_key);
 
         // TODO(luke): set verifier PCS ala the following:
         // std::unique_ptr<KateCommitmentScheme<standard_settings>> kate_commitment_scheme =
@@ -196,8 +190,7 @@ template <class FF> class VerifierTests : public testing::Test {
 
         // TODO(Cody): This should be more generic
         std::vector<barretenberg::polynomial> witness_polynomials;
-        auto prover = StandardProver(
-            std::move(witness_polynomials), proving_key, create_manifest(0, proving_key->log_circuit_size));
+        auto prover = StandardProver(std::move(witness_polynomials), proving_key);
 
         std::unique_ptr<pcs::kzg::CommitmentKey> kate_commitment_key =
             std::make_unique<pcs::kzg::CommitmentKey>(proving_key->circuit_size, "../srs_db/ignition");

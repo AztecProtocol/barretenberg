@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <honk/proof_system/prover.hpp>
 #include <honk/sumcheck/sumcheck_round.hpp>
+#include <honk/sumcheck/relations/arithmetic_relation.hpp>
 #include <honk/sumcheck/relations/grand_product_computation_relation.hpp>
 #include <honk/sumcheck/relations/grand_product_initialization_relation.hpp>
 #include <honk/utils/public_inputs.hpp>
@@ -335,7 +336,6 @@ TEST(StandardHonkComposer, SumcheckRelationCorrectness)
     // Generate beta and gamma
     fr beta = fr::random_element();
     fr gamma = fr::random_element();
-    fr zeta = fr::random_element();
 
     // Compute public input delta
     const auto public_inputs = composer.circuit_constructor.get_public_inputs();
@@ -343,8 +343,6 @@ TEST(StandardHonkComposer, SumcheckRelationCorrectness)
         honk::compute_public_input_delta<fr>(public_inputs, beta, gamma, prover.key->circuit_size);
 
     sumcheck::RelationParameters<fr> params{
-        .zeta = zeta,
-        .alpha = fr::one(),
         .beta = beta,
         .gamma = gamma,
         .public_input_delta = public_input_delta,
@@ -397,13 +395,13 @@ TEST(StandardHonkComposer, SumcheckRelationCorrectness)
         // i-th row/vertex of the hypercube.
         // We use ASSERT_EQ instead of EXPECT_EQ so that the tests stops at the first index at which the result is not
         // 0, since result = 0 + C(transposed), which we expect will equal 0.
-        std::get<0>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        result = std::get<0>(relations).evaluate_full_relation_value_contribution(evaluations_at_index_i, params);
         ASSERT_EQ(result, 0);
 
-        std::get<1>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        result = std::get<1>(relations).evaluate_full_relation_value_contribution(evaluations_at_index_i, params);
         ASSERT_EQ(result, 0);
 
-        std::get<2>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        result = std::get<2>(relations).evaluate_full_relation_value_contribution(evaluations_at_index_i, params);
         ASSERT_EQ(result, 0);
     }
 }

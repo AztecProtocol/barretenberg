@@ -60,9 +60,8 @@ template <typename FF> class GrandProductComputationRelation : public Relation<F
                  scaling_factor;
     };
 
-    void add_full_relation_value_contribution(FF& full_honk_relation_value,
-                                              auto& purported_evaluations,
-                                              const RelationParameters<FF>& relation_parameters) const
+    static FF evaluate_full_relation_value_contribution(const auto& purported_evaluations,
+                                                        const RelationParameters<FF>& relation_parameters)
     {
         const auto& beta = relation_parameters.beta;
         const auto& gamma = relation_parameters.gamma;
@@ -83,8 +82,7 @@ template <typename FF> class GrandProductComputationRelation : public Relation<F
         auto lagrange_last = purported_evaluations[MULTIVARIATE::LAGRANGE_LAST];
 
         // Contribution (1)
-        full_honk_relation_value +=
-            ((z_perm + lagrange_first) * (w_1 + beta * id_1 + gamma) * (w_2 + beta * id_2 + gamma) *
+        return ((z_perm + lagrange_first) * (w_1 + beta * id_1 + gamma) * (w_2 + beta * id_2 + gamma) *
                  (w_3 + beta * id_3 + gamma) -
              (z_perm_shift + lagrange_last * public_input_delta) * (w_1 + beta * sigma_1 + gamma) *
                  (w_2 + beta * sigma_2 + gamma) * (w_3 + beta * sigma_3 + gamma));

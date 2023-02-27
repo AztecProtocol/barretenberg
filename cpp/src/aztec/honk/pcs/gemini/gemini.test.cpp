@@ -23,11 +23,7 @@ template <class Params> class GeminiTest : public CommitmentTest<Params> {
                                           std::vector<Commitment> multilinear_commitments,
                                           std::vector<Commitment> multilinear_commitments_to_be_shifted)
     {
-        using Transcript = transcript::StandardTranscript;
-        auto transcript = std::make_shared<Transcript>(StandardHonk::create_manifest(0, log_n));
-        transcript->mock_inputs_prior_to_challenge("rho");
-        transcript->apply_fiat_shamir("rho");
-        const Fr rho = Fr::serialize_from_buffer(transcript->get_challenge("rho").begin());
+        const Fr rho = Fr::random_element();
 
         std::vector<Fr> rhos = Gemini::powers_of_rho(rho, multilinear_evaluations.size());
 
@@ -52,6 +48,7 @@ template <class Params> class GeminiTest : public CommitmentTest<Params> {
             batched_to_be_shifted.add_scaled(multilinear_polynomials_to_be_shifted[i], rhos[rho_idx]);
             batched_commitment_to_be_shifted += multilinear_commitments_to_be_shifted[i] * rhos[rho_idx];
         }
+        auto prover_transcript = ProverTranscript<Fr>::init_empty();
 
         // Compute:
         // - (d+1) opening pairs: {r, \hat{a}_0}, {-r^{2^i}, a_i}, i = 0, ..., d-1
@@ -60,15 +57,13 @@ template <class Params> class GeminiTest : public CommitmentTest<Params> {
                                                   multilinear_evaluation_point,
                                                   std::move(batched_unshifted),
                                                   std::move(batched_to_be_shifted),
-                                                  transcript);
+                                                  prover_transcript);
 
         // Check that the Fold polynomials have been evaluated correctly in the prover
         this->verify_batch_opening_pair(prover_output.opening_pairs, prover_output.witnesses);
 
-        // Construct a Gemini proof object consisting of
-        // - d Fold poly evaluations a_0, ..., a_{d-1}
-        // - (d-1) Fold polynomial commitments [Fold^(1)], ..., [Fold^(d-1)]
-        auto gemini_proof = Gemini::reconstruct_proof_from_transcript(transcript, log_n);
+        auto verifier_transcript = VerifierTranscript<Fr>::init_empty(prover_transcript);
+        [[maybe_unused]] const Fr _ = verifier_transcript.get_challenge("rho");
 
         // Compute:
         // - Single opening pair: {r, \hat{a}_0}
@@ -78,8 +73,7 @@ template <class Params> class GeminiTest : public CommitmentTest<Params> {
                                                     batched_evaluation,
                                                     batched_commitment_unshifted,
                                                     batched_commitment_to_be_shifted,
-                                                    gemini_proof,
-                                                    transcript);
+                                                    verifier_transcript);
 
         // Check equality of the opening pairs computed by prover and verifier
         for (size_t i = 0; i < (log_n + 1); ++i) {

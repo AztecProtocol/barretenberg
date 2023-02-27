@@ -49,9 +49,8 @@ template <typename FF> class ArithmeticRelation : public Relation<FF> {
         evals += tmp;
     };
 
-    void add_full_relation_value_contribution(FF& full_honk_relation_value,
-                                              const auto& purported_evaluations,
-                                              const RelationParameters<FF>&) const
+    static FF evaluate_full_relation_value_contribution(const auto& purported_evaluations,
+                                                        const RelationParameters<FF>&)
     {
         auto w_l = purported_evaluations[MULTIVARIATE::W_L];
         auto w_r = purported_evaluations[MULTIVARIATE::W_R];
@@ -62,10 +61,11 @@ template <typename FF> class ArithmeticRelation : public Relation<FF> {
         auto q_o = purported_evaluations[MULTIVARIATE::Q_O];
         auto q_c = purported_evaluations[MULTIVARIATE::Q_C];
 
-        full_honk_relation_value += w_l * (q_m * w_r + q_l);
-        full_honk_relation_value += q_r * w_r;
-        full_honk_relation_value += q_o * w_o;
-        full_honk_relation_value += q_c;
+        FF eval = w_l * (q_m * w_r + q_l);
+        eval += q_r * w_r;
+        eval += q_o * w_o;
+        eval += q_c;
+        return eval;
     };
 };
 } // namespace honk::sumcheck

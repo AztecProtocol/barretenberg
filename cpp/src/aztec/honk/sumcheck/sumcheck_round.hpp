@@ -60,12 +60,9 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     static constexpr size_t NUM_RELATIONS = sizeof...(Relations);
     static constexpr size_t MAX_RELATION_LENGTH = std::max({ Relations<FF>::RELATION_LENGTH... });
 
-    FF target_total_sum = 0;
-
     // TODO(Cody): this barycentric stuff should be more built-in?
     std::tuple<BarycentricData<FF, Relations<FF>::RELATION_LENGTH, MAX_RELATION_LENGTH>...> barycentric_utils;
     std::tuple<Univariate<FF, Relations<FF>::RELATION_LENGTH>...> univariate_accumulators;
-    std::array<FF, NUM_RELATIONS> evaluations;
     std::array<Univariate<FF, MAX_RELATION_LENGTH>, num_multivariates> extended_edges;
     std::array<Univariate<FF, MAX_RELATION_LENGTH>, NUM_RELATIONS> extended_univariates;
 
@@ -79,18 +76,6 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
         , barycentric_utils(BarycentricData<FF, Relations<FF>::RELATION_LENGTH, MAX_RELATION_LENGTH>()...)
         , univariate_accumulators(Univariate<FF, Relations<FF>::RELATION_LENGTH>()...)
     {}
-
-    // Verifier constructor
-    explicit SumcheckRound(auto relations)
-        : relations(relations)
-        // TODO(Cody): this is a hack; accumulators not needed by verifier
-        , univariate_accumulators(Univariate<FF, Relations<FF>::RELATION_LENGTH>()...)
-    {
-        // FF's default constructor may not initialize to zero (e.g., barretenberg::fr), hence we can't rely on
-        // aggregate initialization of the evaluations array.
-        std::fill(evaluations.begin(), evaluations.end(), FF(0));
-    };
-
     /**
      * @brief After computing the round univariate, it is necessary to zero-out the accumulators used to compute it.
      */
@@ -181,30 +166,6 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
         }
     }
 
-    // TODO(Cody): make private
-    // TODO(Cody): make uniform with accumulate_relation_univariates
-    /**
-     * @brief Calculate the contribution of each relation to the expected value of the full Honk relation.
-     *
-     * @details For each relation, use the purported values (supplied by the prover) of the multivariates to calculate
-     * a contribution to the purported value of the full Honk relation. These are stored in `evaluations`. Adding these
-     * together, with appropriate scaling factors, produces the expected value of the full Honk relation. This value is
-     * checked against the final value of the target total sum (called sigma_0 in the thesis).
-     */
-    template <size_t relation_idx = 0>
-    // TODO(Cody): Input should be an array? Then challenge container has to know array length.
-    void accumulate_relation_evaluations(std::vector<FF>& purported_evaluations,
-                                         const RelationParameters<FF>& relation_parameters)
-    {
-        std::get<relation_idx>(relations).add_full_relation_value_contribution(
-            evaluations[relation_idx], purported_evaluations, relation_parameters);
-
-        // Repeat for the next relation.
-        if constexpr (relation_idx + 1 < NUM_RELATIONS) {
-            accumulate_relation_evaluations<relation_idx + 1>(purported_evaluations, relation_parameters);
-        }
-    }
-
     /**
      * @brief After executing each widget on each edge, producing a tuple of univariates of differing lenghths,
      * extend all univariates to the max of the lenghths required by the largest relation.
@@ -229,7 +190,8 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
      */
     Univariate<FF, MAX_RELATION_LENGTH> compute_univariate(auto& polynomials,
                                                            const RelationParameters<FF>& relation_parameters,
-                                                           const PowUnivariate<FF>& pow_univariate)
+                                                           const PowUnivariate<FF>& pow_univariate,
+                                                           const FF alpha)
     {
         // For each edge_idx = 2i, we need to multiply the whole contribution by zeta^{2^{2i}}
         // This means that each univariate for each relation needs an extra multiplication.
@@ -245,78 +207,11 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
             pow_challenge *= pow_univariate.zeta_pow_sqr;
         }
 
-        auto result = batch_over_relations<Univariate<FF, MAX_RELATION_LENGTH>>(relation_parameters.alpha);
+        auto result = batch_over_relations<Univariate<FF, MAX_RELATION_LENGTH>>(alpha);
 
         reset_accumulators<>();
 
         return result;
-    }
-
-    /**
-     * @brief Calculate the contribution of each relation to the expected value of the full Honk relation.
-     *
-     * @details For each relation, use the purported values (supplied by the prover) of the multivariates to calculate
-     * a contribution to the purported value of the full Honk relation. These are stored in `evaluations`. Adding these
-     * together, with appropriate scaling factors, produces the expected value of the full Honk relation. This value is
-     * checked against the final value of the target total sum, defined as sigma_d.
-     */
-    // TODO(Cody): Input should be an array? Then challenge container has to know array length.
-    FF compute_full_honk_relation_purported_value(std::vector<FF>& purported_evaluations,
-                                                  const RelationParameters<FF>& relation_parameters,
-                                                  const PowUnivariate<FF>& pow_univariate)
-    {
-        accumulate_relation_evaluations<>(purported_evaluations, relation_parameters);
-
-        // IMPROVEMENT(Cody): Reuse functions from univariate_accumulators batching?
-        FF running_challenge = 1;
-        FF output = 0;
-        for (auto& evals : evaluations) {
-            output += evals * running_challenge;
-            running_challenge *= relation_parameters.alpha;
-        }
-        output *= pow_univariate.partial_evaluation_constant;
-
-        return output;
-    }
-
-    /**
-     * @brief check if S^{l}(0) + S^{l}(1) = S^{l-1}(u_{l-1}) = sigma_{l} (or 0 if l=0)
-     *
-     * @param univariate T^{l}(X), the round univariate that is equal to S^{l}(X)/( (1−X) + X⋅ζ^{ 2^l } )
-     */
-    bool check_sum(Univariate<FF, MAX_RELATION_LENGTH>& univariate, const PowUnivariate<FF>& pow_univariate)
-    {
-        // S^{l}(0) = ( (1−0) + 0⋅ζ^{ 2^l } ) ⋅ T^{l}(0) = T^{l}(0)
-        // S^{l}(1) = ( (1−1) + 1⋅ζ^{ 2^l } ) ⋅ T^{l}(1) = ζ^{ 2^l } ⋅ T^{l}(1)
-        FF total_sum = univariate.value_at(0) + (pow_univariate.zeta_pow * univariate.value_at(1));
-        // target_total_sum = sigma_{l} = 
-        bool sumcheck_round_failed = (target_total_sum != total_sum);
-        round_failed = round_failed || sumcheck_round_failed;
-        return !sumcheck_round_failed;
-    };
-
-    /**
-     * @brief After checking that the univariate is good for this round, compute the next target sum.
-     *
-     * @param univariate T^l(X), given by its evaluations over {0,1,2,...},
-     * equal to S^{l}(X)/( (1−X) + X⋅ζ^{ 2^l } )
-     * @param round_challenge u_l
-     * @return FF sigma_{l+1} = S^l(u_l)
-     */
-    FF compute_next_target_sum(Univariate<FF, MAX_RELATION_LENGTH>& univariate,
-                               FF& round_challenge,
-                               const PowUnivariate<FF>& pow_univariate)
-    {
-        // IMPROVEMENT(Cody): Use barycentric static method, maybe implement evaluation as member
-        // function on Univariate.
-        auto barycentric = BarycentricData<FF, MAX_RELATION_LENGTH, MAX_RELATION_LENGTH>();
-        // Evaluate T^{l}(u_{l})
-        target_total_sum = barycentric.evaluate(univariate, round_challenge);
-        // Evaluate (1−u_l) + u_l ⋅ ζ^{2^l} )
-        FF pow_monomial_eval = pow_univariate.univariate_eval(round_challenge);
-        // sigma_{l+1} = S^l(u_l) = (1−u_l) + u_l⋅ζ^{2^l} ) ⋅ T^{l}(u_l)
-        target_total_sum *= pow_monomial_eval;
-        return target_total_sum;
     }
 };
 } // namespace honk::sumcheck

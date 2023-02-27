@@ -1,16 +1,22 @@
 #pragma once
+
+#include "honk/sumcheck/relations/relation.hpp"
+#include "honk/sumcheck/sumcheck.hpp"
+#include "honk/transcript/transcript.hpp"
+#include <honk/pcs/commitment_key.hpp>
+#include <honk/pcs/gemini/gemini.hpp>
+#include <honk/pcs/shplonk/shplonk_single.hpp>
+#include <honk/pcs/kzg/kzg.hpp>
+
 #include "ecc/curves/bn254/fr.hpp"
 #include "honk/pcs/shplonk/shplonk.hpp"
 #include "polynomials/polynomial.hpp"
 #include "proof_system/flavor/flavor.hpp"
-#include <array>
 #include <proof_system/proving_key/proving_key.hpp>
-#include <honk/pcs/commitment_key.hpp>
 #include <plonk/proof_system/types/proof.hpp>
 #include <plonk/proof_system/types/program_settings.hpp>
-#include <honk/pcs/gemini/gemini.hpp>
-#include <honk/pcs/shplonk/shplonk_single.hpp>
-#include <honk/pcs/kzg/kzg.hpp>
+
+#include <array>
 #include <span>
 #include <unordered_map>
 #include <vector>
@@ -23,15 +29,13 @@
 
 namespace honk {
 
-using Fr = barretenberg::fr;
-
 template <typename settings> class Prover {
+
+    using Fr = barretenberg::fr;
 
   public:
     // TODO(luke): update this appropriately to work with Honk Manifest
-    Prover(std::vector<barretenberg::polynomial>&& wire_polys,
-           std::shared_ptr<bonk::proving_key> input_key = nullptr,
-           const transcript::Manifest& manifest = transcript::Manifest());
+    Prover(std::vector<barretenberg::polynomial>&& wire_polys, std::shared_ptr<bonk::proving_key> input_key = nullptr);
 
     void execute_preamble_round();
     void execute_wire_commitments_round();
@@ -52,10 +56,14 @@ template <typename settings> class Prover {
     plonk::proof& export_proof();
     plonk::proof& construct_proof();
 
-    transcript::StandardTranscript transcript;
+    ProverTranscript<Fr> transcript;
+
+    std::vector<Fr> public_inputs;
 
     std::vector<barretenberg::polynomial> wire_polynomials;
     barretenberg::polynomial z_permutation;
+
+    sumcheck::RelationParameters<Fr> relation_parameters;
 
     std::shared_ptr<bonk::proving_key> key;
 
@@ -80,6 +88,7 @@ template <typename settings> class Prover {
     // This makes 'settings' accesible from Prover
     using settings_ = settings;
 
+    sumcheck::SumcheckOutput<Fr> sumcheck_output;
     pcs::gemini::ProverOutput<pcs::kzg::Params> gemini_output;
     pcs::shplonk::ProverOutput<pcs::kzg::Params> shplonk_output;
 

@@ -1,23 +1,17 @@
 #pragma once
-#include "../../plonk/proof_system/types/proof.hpp"
-#include "./program_settings.hpp"
-#include "../../proof_system/verification_key/verification_key.hpp"
-#include <transcript/manifest.hpp>
-#include <plonk/proof_system/commitment_scheme/commitment_scheme.hpp>
-#include "../sumcheck/sumcheck.hpp"
-#include "../sumcheck/relations/arithmetic_relation.hpp"
 #include "honk/pcs/commitment_key.hpp"
-#include "proof_system/flavor/flavor.hpp"
 #include <honk/pcs/gemini/gemini.hpp>
 #include <honk/pcs/shplonk/shplonk_single.hpp>
 #include <honk/pcs/kzg/kzg.hpp>
+#include "honk/proof_system/program_settings.hpp"
+#include "plonk/proof_system/types/proof.hpp"
+#include <cstdint>
 
 namespace honk {
 template <typename program_settings> class Verifier {
 
   public:
-    Verifier(std::shared_ptr<bonk::verification_key> verifier_key = nullptr,
-             const transcript::Manifest& manifest = honk::StandardHonk::create_manifest(0));
+    Verifier(std::shared_ptr<bonk::verification_key> verifier_key = nullptr);
     Verifier(Verifier&& other);
     Verifier(const Verifier& other) = delete;
     Verifier& operator=(const Verifier& other) = delete;
@@ -29,7 +23,6 @@ template <typename program_settings> class Verifier {
     // so it's easy to extract particular elements without looking at the manifest and counting
     // numbers of bytes, for instance.
     bool verify_proof(const plonk::proof& proof);
-    transcript::Manifest manifest;
 
     std::shared_ptr<bonk::verification_key> key;
     std::map<std::string, barretenberg::g1::affine_element> kate_g1_elements;
