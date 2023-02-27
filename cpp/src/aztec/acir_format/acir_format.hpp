@@ -1,4 +1,3 @@
-#pragma once
 #include <common/serialize.hpp>
 #include <plonk/composer/composer_base.hpp>
 #include <plonk/composer/turbo_composer.hpp>
