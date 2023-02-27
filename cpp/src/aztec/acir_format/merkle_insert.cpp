@@ -35,14 +35,6 @@ void create_merkle_insert_constraint(plonk::TurboComposer& composer, const Merkl
         hash_path.push_back(std::make_pair(left, right));
     }
 
-    // void update_membership(field_t<Composer> const& new_root,
-    //                        field_t<Composer> const& new_value,
-    //                        field_t<Composer> const& old_root,
-    //                        hash_path<Composer> const& old_hashes,
-    //                        field_t<Composer> const& old_value,
-    //                        bit_vector<Composer> const& index,
-    //                        std::string const& msg = "update_membership")
-
     update_membership(new_root, new_leaf, old_root, hash_path, old_leaf, index_arr_bits);
 }
 
