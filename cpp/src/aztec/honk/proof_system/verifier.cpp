@@ -150,12 +150,18 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
         opening_point.emplace_back(transcript.get_challenge_field_element(label));
     }
 
-    // Get vector of multivariate evaluations produced by Sumcheck
-    auto multivariate_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
-
     // Compute powers of batching challenge rho
     Fr rho = Fr::serialize_from_buffer(transcript.get_challenge("rho").begin());
     std::vector<Fr> rhos = Gemini::powers_of_rho(rho, NUM_POLYNOMIALS);
+
+    // Get vector of multivariate evaluations produced by Sumcheck
+    auto multivariate_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
+
+    // Compute batched multivariate evaluation
+    Fr batched_evaluation = Fr::zero();
+    for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
+        batched_evaluation += multivariate_evaluations[i] * rhos[i];
+    }
 
     // Construct batched commitment for NON-shifted polynomials
     for (size_t i = 0; i < NUM_UNSHIFTED; ++i) {
@@ -178,10 +184,9 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     // - d+1 commitments [Fold_{r}^(0)], [Fold_{-r}^(0)], and [Fold^(l)], l = 1:d-1
     // - d+1 evaluations a_0_pos, and a_l, l = 0:d-1
     auto gemini_claim = Gemini::reduce_verify(opening_point,
-                                              multivariate_evaluations,
+                                              batched_evaluation,
                                               batched_commitment_unshifted,
                                               batched_commitment_to_be_shifted,
-                                              rhos,
                                               gemini_proof,
                                               &transcript);
 

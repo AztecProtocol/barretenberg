@@ -306,29 +306,34 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
         opening_point.emplace_back(transcript.get_challenge_field_element(label));
     }
 
-    // Get vector of multivariate evaluations produced by Sumcheck
-    auto multivariate_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
-
     // Generate batching challenge ρ and powers 1,ρ,…,ρᵐ⁻¹
     transcript.apply_fiat_shamir("rho");
     Fr rho = Fr::serialize_from_buffer(transcript.get_challenge("rho").begin());
     std::vector<Fr> rhos = Gemini::powers_of_rho(rho, NUM_POLYNOMIALS);
 
-    // Batch the unshifted polynomials and the to-be-shifted polynomials using ρ
-    Polynomial batched_unshifted(key->circuit_size); // batched unshifted polynomials
-    for (size_t i = 0; i < NUM_UNSHIFTED_POLYS; ++i) {
-        batched_unshifted.add_scaled(prover_polynomials[i], rhos[i]);
+    // Get vector of multivariate evaluations produced by Sumcheck
+    auto multivariate_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
+
+    // Compute batched multivariate evaluation
+    Fr batched_evaluation = Fr::zero();
+    for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
+        batched_evaluation += multivariate_evaluations[i] * rhos[i];
     }
-    Polynomial batched_to_be_shifted(key->circuit_size); // batched to-be-shifted polynomials
-    batched_to_be_shifted.add_scaled(prover_polynomials[POLYNOMIAL::Z_PERM], rhos[NUM_UNSHIFTED_POLYS]);
+
+    // Batch the unshifted polynomials and the to-be-shifted polynomials using ρ
+    Polynomial batched_poly_unshifted(key->circuit_size); // batched unshifted polynomials
+    for (size_t i = 0; i < NUM_UNSHIFTED_POLYS; ++i) {
+        batched_poly_unshifted.add_scaled(prover_polynomials[i], rhos[i]);
+    }
+    Polynomial batched_poly_to_be_shifted(key->circuit_size); // batched to-be-shifted polynomials
+    batched_poly_to_be_shifted.add_scaled(prover_polynomials[POLYNOMIAL::Z_PERM], rhos[NUM_UNSHIFTED_POLYS]);
 
     // Compute d+1 Fold polynomials and their evaluations
     gemini_output = Gemini::reduce_prove(commitment_key,
                                          opening_point,
-                                         multivariate_evaluations,
-                                         std::move(batched_unshifted),
-                                         std::move(batched_to_be_shifted),
-                                         rhos,
+                                         batched_evaluation,
+                                         std::move(batched_poly_unshifted),
+                                         std::move(batched_poly_to_be_shifted),
                                          &transcript);
 }
 

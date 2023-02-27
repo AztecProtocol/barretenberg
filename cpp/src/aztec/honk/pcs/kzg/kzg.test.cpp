@@ -100,12 +100,21 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
     std::vector<Fr> multilinear_evaluations = { eval1, eval2, eval2_shift };
 
     std::vector<Fr> rhos = Gemini::powers_of_rho(rho, multilinear_evaluations.size());
+
+    // Compute batched multivariate evaluation
+    Fr batched_evaluation = Fr::zero();
+    for (size_t i = 0; i < rhos.size(); ++i) {
+        batched_evaluation += multilinear_evaluations[i] * rhos[i];
+    }
+
+    // Compute batched polynomials
     Polynomial batched_unshifted(n);
     Polynomial batched_to_be_shifted(n);
     batched_unshifted.add_scaled(poly1, rhos[0]);
     batched_unshifted.add_scaled(poly2, rhos[1]);
     batched_to_be_shifted.add_scaled(poly2, rhos[2]);
 
+    // Compute batched commitments
     Commitment batched_commitment_unshifted = Commitment::zero();
     Commitment batched_commitment_to_be_shifted = Commitment::zero();
     batched_commitment_unshifted = commitment1 * rhos[0] + commitment2 * rhos[1];
@@ -118,10 +127,9 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
     // - witness: the d+1 polynomials Fold_{r}^(0), Fold_{-r}^(0), Fold^(l), l = 1:d-1
     auto gemini_prover_output = Gemini::reduce_prove(this->ck(),
                                                      mle_opening_point,
-                                                     multilinear_evaluations,
+                                                     batched_evaluation,
                                                      std::move(batched_unshifted),
                                                      std::move(batched_to_be_shifted),
-                                                     rhos,
                                                      transcript);
 
     // Shplonk prover output:
@@ -150,10 +158,9 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
     // Gemini verifier output:
     // - claim: d+1 commitments to Fold_{r}^(0), Fold_{-r}^(0), Fold^(l), d+1 evaluations a_0_pos, a_l, l = 0:d-1
     auto gemini_verifier_claim = Gemini::reduce_verify(mle_opening_point,
-                                                       multilinear_evaluations,
+                                                       batched_evaluation,
                                                        batched_commitment_unshifted,
                                                        batched_commitment_to_be_shifted,
-                                                       rhos,
                                                        gemini_proof,
                                                        transcript);
 

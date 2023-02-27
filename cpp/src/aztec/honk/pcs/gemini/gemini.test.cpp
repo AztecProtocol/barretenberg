@@ -31,6 +31,13 @@ template <class Params> class GeminiTest : public CommitmentTest<Params> {
         const Fr rho = Fr::serialize_from_buffer(transcript->get_challenge("rho").begin());
 
         std::vector<Fr> rhos = Gemini::powers_of_rho(rho, multilinear_evaluations.size());
+
+        // Compute batched multivariate evaluation
+        Fr batched_evaluation = Fr::zero();
+        for (size_t i = 0; i < multilinear_evaluations.size(); ++i) {
+            batched_evaluation += multilinear_evaluations[i] * rhos[i];
+        }
+
         Polynomial batched_unshifted(1 << log_n);
         Polynomial batched_to_be_shifted(1 << log_n);
         Commitment batched_commitment_unshifted = Commitment::zero();
@@ -52,10 +59,9 @@ template <class Params> class GeminiTest : public CommitmentTest<Params> {
         // - (d+1) Fold polynomials Fold_{r}^(0), Fold_{-r}^(0), and Fold^(i), i = 0, ..., d-1
         auto prover_output = Gemini::reduce_prove(this->ck(),
                                                   multilinear_evaluation_point,
-                                                  multilinear_evaluations,
+                                                  batched_evaluation,
                                                   std::move(batched_unshifted),
                                                   std::move(batched_to_be_shifted),
-                                                  rhos,
                                                   transcript);
 
         // Check that the Fold polynomials have been evaluated correctly in the prover
@@ -71,10 +77,9 @@ template <class Params> class GeminiTest : public CommitmentTest<Params> {
         // - 2 partially evaluated Fold polynomial commitments [Fold_{r}^(0)] and [Fold_{-r}^(0)]
         // Aggregate: d+1 opening pairs and d+1 Fold poly commitments into verifier claim
         auto verifier_claim = Gemini::reduce_verify(multilinear_evaluation_point,
-                                                    multilinear_evaluations,
+                                                    batched_evaluation,
                                                     batched_commitment_unshifted,
                                                     batched_commitment_to_be_shifted,
-                                                    rhos,
                                                     gemini_proof,
                                                     transcript);
 

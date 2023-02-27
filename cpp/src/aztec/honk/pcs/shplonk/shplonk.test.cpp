@@ -42,6 +42,9 @@ TYPED_TEST(ShplonkTest, GeminiShplonk)
 
     std::vector<Fr> rhos = Gemini::powers_of_rho(rho, multilinear_evaluations.size());
 
+    // Compute batched multivariate evaluation
+    Fr batched_evaluation = multilinear_evaluations[0] * rhos[0];
+
     Polynomial batched_unshifted(n);
     Polynomial batched_to_be_shifted(n);
     batched_unshifted.add_scaled(poly, rhos[0]);
@@ -49,13 +52,8 @@ TYPED_TEST(ShplonkTest, GeminiShplonk)
     Commitment batched_commitment_unshifted = commitment * rhos[0];
     Commitment batched_commitment_to_be_shifted = Commitment::zero();
 
-    auto gemini_prover_output = Gemini::reduce_prove(this->ck(),
-                                                     u,
-                                                     multilinear_evaluations,
-                                                     std::move(batched_unshifted),
-                                                     std::move(batched_to_be_shifted),
-                                                     rhos,
-                                                     transcript);
+    auto gemini_prover_output = Gemini::reduce_prove(
+        this->ck(), u, batched_evaluation, std::move(batched_unshifted), std::move(batched_to_be_shifted), transcript);
 
     const auto [prover_opening_pair, shplonk_prover_witness] = Shplonk::reduce_prove(
         this->ck(), gemini_prover_output.opening_pairs, gemini_prover_output.witnesses, transcript);
@@ -68,10 +66,9 @@ TYPED_TEST(ShplonkTest, GeminiShplonk)
     auto gemini_proof = Gemini::reconstruct_proof_from_transcript(transcript, log_n);
 
     auto gemini_verifier_claim = Gemini::reduce_verify(u,
-                                                       multilinear_evaluations,
+                                                       batched_evaluation,
                                                        batched_commitment_unshifted,
                                                        batched_commitment_to_be_shifted,
-                                                       rhos,
                                                        gemini_proof,
                                                        transcript);
 
