@@ -110,10 +110,6 @@ struct EcdsaSecp256k1Constraint {
     // This is the computed signature
     //
     std::vector<uint32_t> signature;
-
-    // secp256k1::g1::affine_element pub_key;
-
-    // crypto::ecdsa::signature sig;
 };
 
 void create_ecdsa_verify_constraints(plonk::TurboComposer& composer, const EcdsaSecp256k1Constraint& input)
@@ -135,12 +131,6 @@ void create_ecdsa_verify_constraints(plonk::TurboComposer& composer, const Ecdsa
                                                         stdlib::byte_array<plonk::TurboComposer>(&composer, ss) };
 
     auto pub_key = secp256k1_ct::g1_ct(pub_key_x_fq, pub_key_y_fq);
-
-    // stdlib::bool_t<waffle::TurboComposer> signature_result = stdlib::ecdsa::
-    //     verify_signature<waffle::TurboComposer, stdlib::secp256k::fq, stdlib::secp256k::fr, stdlib::secp256k::g1>(
-    //         message, pub_key, sig);
-
-    // auto result_bool = composer.add_variable(signature_result.get_value() == true);
 
     composer.copy_from_to(false, input.result);
 }
