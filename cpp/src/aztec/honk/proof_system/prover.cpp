@@ -356,8 +356,7 @@ template <typename settings> void Prover<settings>::execute_shplonk_round()
 }
 
 /**
- * - Get "z" challenge.
- * - Compute KZG quotient [W]_1.
+ * - Compute KZG quotient commitment [W]_1.
  *
  * */
 template <typename settings> void Prover<settings>::execute_kzg_round()

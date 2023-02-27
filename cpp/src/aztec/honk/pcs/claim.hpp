@@ -15,19 +15,6 @@ template <typename Params> class OpeningPair {
     Fr query;      // r
     Fr evaluation; // v = p(r)
 
-    /**
-     * @brief inefficiently check that the claim is correct by evaluating the polynomial in r.
-     *
-     * @param ck CommitmentKey used
-     * @param polynomial the claimed witness polynomial p(X)
-     * @return C = Commit(p(X)) && p(r) = v
-     */
-    bool verify(const barretenberg::Polynomial<Fr>& polynomial) const
-    {
-        Fr real_eval = polynomial.evaluate(query);
-        return static_cast<bool>(real_eval == evaluation);
-    };
-
     bool operator==(const OpeningPair& other) const = default;
 };
 

@@ -145,8 +145,9 @@ template <typename Params> class MultilinearReductionScheme {
      * @param ck is the commitment key for creating the new commitments
      * @param mle_opening_point = u =(u₀,...,uₘ₋₁) is the MLE opening point
      * @param evaluations evaluations of each multivariate at the point u
-     * @param polynomials_f the unshifted multivariate polynomials
-     * @param polynomials_g the to-be-shifted multivariate polynomials
+     * @param batched_shifted batch polynomial constructed from the unshifted multivariates
+     * @param batched_to_be_shifted batch polynomial constructed from the to-be-shifted multivariates
+     * @param rhos powers of batching challenge ρ
      * @param transcript
      * @return Output (opening pairs, folded_witness_polynomials)
      *
@@ -156,7 +157,7 @@ template <typename Params> class MultilinearReductionScheme {
                                              std::span<const Fr> evaluations,          /* all */
                                              const Polynomial&& batched_shifted,       /* unshifted */
                                              const Polynomial&& batched_to_be_shifted, /* to-be-shifted */
-                                             std::span<Fr> rhos,                       /* to-be-shifted */
+                                             std::span<Fr> rhos,
                                              const auto& transcript)
     {
         const size_t num_variables = mle_opening_point.size(); // m
@@ -270,9 +271,7 @@ template <typename Params> class MultilinearReductionScheme {
             transcript->add_element("a_" + std::to_string(l), fold_polynomial_evals[l].to_buffer());
         }
 
-        /*
-         * Compute evaluation A₀(r)
-         */
+        // Compute evaluation A₀(r)
         auto a_0_pos = compute_eval_pos(evaluations, mle_opening_point, rhos, r_squares, fold_polynomial_evals);
 
         std::vector<OpeningPair<Params>> fold_poly_opening_pairs;
@@ -292,39 +291,37 @@ template <typename Params> class MultilinearReductionScheme {
      * @brief Checks that all MLE evaluations vⱼ contained in the list of m MLE opening claims
      * is correct, and returns univariate polynomial opening claims to be checked later
      *
-     * @param mle_opening_point the MLE evaluation point for all claims
+     * @param mle_opening_point the MLE evaluation point u
      * @param evaluations evaluations of each multivariate at the point u
      * @param batched_f batched commitment to unshifted polynomials
      * @param batched_g batched commitment to to-be-shifted polynomials
+     * @param rhos powers of batching challenge ρ
      * @param proof commitments to the m-1 folded polynomials, and alleged evaluations.
      * @param transcript
      * @return Fold polynomial opening claims
      */
     static OutputClaim<Params> reduce_verify(std::span<const Fr> mle_opening_point, /* u */
                                              std::span<const Fr> evaluations,       /* all */
-                                             Commitment batched_f,                  /* unshifted */
-                                             Commitment batched_g,                  /* to-be-shifted */
+                                             Commitment& batched_f,                 /* unshifted */
+                                             Commitment& batched_g,                 /* to-be-shifted */
+                                             std::span<Fr> rhos,
                                              const Proof<Params>& proof,
                                              const auto& transcript)
     {
         const size_t num_variables = mle_opening_point.size();
-        const size_t num_claims = evaluations.size();
-
-        // compute vector of powers of batching challenge ρ
-        const Fr rho = Fr::serialize_from_buffer(transcript->get_challenge("rho").begin());
-        std::vector<Fr> rhos = powers_of_rho(rho, num_claims);
 
         // compute vector of powers of random evaluation point r
         const Fr r = Fr::serialize_from_buffer(transcript->get_challenge("r").begin());
         std::vector<Fr> r_squares = squares_of_r(r, num_variables);
 
+        // Compute evaluation A₀(r)
         auto a_0_pos = compute_eval_pos(evaluations, mle_opening_point, rhos, r_squares, proof.evaluations);
 
         // C₀_r_pos = ∑ⱼ ρʲ⋅[fⱼ] + r⁻¹⋅∑ⱼ ρᵏ⁺ʲ [gⱼ]
         // C₀_r_pos = ∑ⱼ ρʲ⋅[fⱼ] - r⁻¹⋅∑ⱼ ρᵏ⁺ʲ [gⱼ]
         auto [c0_r_pos, c0_r_neg] = compute_simulated_commitments(batched_f, batched_g, r);
 
-        std::vector<OpeningClaim<Params>> fold_polynomial_opening_claims;
+        OutputClaim<Params> fold_polynomial_opening_claims;
         fold_polynomial_opening_claims.reserve(num_variables + 1);
 
         // ( [A₀₊], r, A₀(r) )

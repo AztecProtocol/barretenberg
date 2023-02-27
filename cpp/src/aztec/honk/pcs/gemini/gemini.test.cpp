@@ -74,6 +74,7 @@ template <class Params> class GeminiTest : public CommitmentTest<Params> {
                                                     multilinear_evaluations,
                                                     batched_commitment_unshifted,
                                                     batched_commitment_to_be_shifted,
+                                                    rhos,
                                                     gemini_proof,
                                                     transcript);
 
