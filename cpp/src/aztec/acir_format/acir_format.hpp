@@ -10,7 +10,6 @@
 #include "schnorr_verify.hpp"
 #include "ecdsa_secp256k1.hpp"
 #include "merkle_membership_constraint.hpp"
-// #include "merkle_insert.hpp"
 #include "pedersen.hpp"
 #include "arithmetic_constraint.hpp"
 #include "hash_to_field.hpp"
@@ -38,7 +37,6 @@ struct acir_format {
     // A standard plonk arithmetic constraint, as defined in the poly_triple struct, consists of selector values
     // for q_M,q_L,q_R,q_O,q_C and indices of three variables taking the role of left, right and output wire
     std::vector<poly_triple> constraints;
-    // std::vector<MerkleInsertConstraint> merkle_insert_constraints;
 };
 
 void read_witness(TurboComposer& composer, std::vector<barretenberg::fr> witness)
@@ -92,11 +90,6 @@ void create_circuit(TurboComposer& composer, const acir_format& constraint_syste
     for (const auto& constraint : constraint_system.merkle_membership_constraints) {
         create_merkle_check_membership_constraint(composer, constraint);
     }
-
-    // // Add merkle insert constraints
-    // for (const auto& constraint : constraint_system.merkle_insert_constraints) {
-    //     create_merkle_insert_constraint(composer, constraint);
-    // }
 
     // Add schnorr constraints
     for (const auto& constraint : constraint_system.schnorr_constraints) {
@@ -175,11 +168,6 @@ TurboComposer create_circuit(const acir_format& constraint_system,
     for (const auto& constraint : constraint_system.merkle_membership_constraints) {
         create_merkle_check_membership_constraint(composer, constraint);
     }
-
-    // Add merkle insert constraints
-    // for (const auto& constraint : constraint_system.merkle_insert_constraints) {
-    //     create_merkle_insert_constraint(composer, constraint);
-    // }
 
     // Add schnorr constraints
     for (const auto& constraint : constraint_system.schnorr_constraints) {
@@ -265,11 +253,6 @@ TurboComposer create_circuit_with_witness(const acir_format& constraint_system,
         create_merkle_check_membership_constraint(composer, constraint);
     }
 
-    // Add merkle insert constraints
-    // for (const auto& constraint : constraint_system.merkle_insert_constraints) {
-    //     create_merkle_insert_constraint(composer, constraint);
-    // }
-
     // Add schnorr constraints
     for (const auto& constraint : constraint_system.schnorr_constraints) {
         create_schnorr_verify_constraints(composer, constraint);
@@ -351,11 +334,6 @@ TurboComposer create_circuit_with_witness(const acir_format& constraint_system, 
         create_merkle_check_membership_constraint(composer, constraint);
     }
 
-    // Add merkle insert constraints
-    // for (const auto& constraint : constraint_system.merkle_insert_constraints) {
-    //     create_merkle_insert_constraint(composer, constraint);
-    // }
-
     // Add schnorr constraints
     for (const auto& constraint : constraint_system.schnorr_constraints) {
         create_schnorr_verify_constraints(composer, constraint);
@@ -435,11 +413,6 @@ void create_circuit_with_witness(TurboComposer& composer, const acir_format& con
         create_merkle_check_membership_constraint(composer, constraint);
     }
 
-    // Add merkle insert constraints
-    // for (const auto& constraint : constraint_system.merkle_insert_constraints) {
-    //     create_merkle_insert_constraint(composer, constraint);
-    // }
-
     // Add schnorr constraints
     for (const auto& constraint : constraint_system.schnorr_constraints) {
         create_schnorr_verify_constraints(composer, constraint);
@@ -481,7 +454,6 @@ template <typename B> inline void read(B& buf, acir_format& data)
     read(buf, data.range_constraints);
     read(buf, data.sha256_constraints);
     read(buf, data.merkle_membership_constraints);
-    // read(buf, data.merkle_insert_constraints);
     read(buf, data.schnorr_constraints);
     read(buf, data.ecdsa_constraints);
     read(buf, data.blake2s_constraints);
@@ -500,7 +472,6 @@ template <typename B> inline void write(B& buf, acir_format const& data)
     write(buf, data.range_constraints);
     write(buf, data.sha256_constraints);
     write(buf, data.merkle_membership_constraints);
-    // write(buf, data.merkle_insert_constraints);
     write(buf, data.schnorr_constraints);
     write(buf, data.ecdsa_constraints);
     write(buf, data.blake2s_constraints);
