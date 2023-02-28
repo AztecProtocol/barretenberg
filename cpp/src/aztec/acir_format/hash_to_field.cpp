@@ -9,11 +9,11 @@ namespace acir_format {
 void create_hash_to_field_constraints(plonk::TurboComposer& composer, const HashToFieldConstraint constraint)
 {
 
-    // // Create byte array struct
+    // Create byte array struct
     byte_array_ct arr(&composer);
 
-    // // Get the witness assignment for each witness index
-    // // Write the witness assignment to the byte_array
+    // Get the witness assignment for each witness index
+    // Write the witness assignment to the byte_array
     for (const auto& witness_index_num_bits : constraint.inputs) {
         auto witness_index = witness_index_num_bits.witness;
         auto num_bits = witness_index_num_bits.num_bits;

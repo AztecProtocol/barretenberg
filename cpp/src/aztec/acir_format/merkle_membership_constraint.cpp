@@ -9,20 +9,20 @@ namespace acir_format {
 
 void create_merkle_check_membership_constraint(plonk::TurboComposer& composer, const MerkleMembershipConstraint& input)
 {
-    /// Convert value from a witness index into a field element.
-    /// This is the hash of the message. In Barretenberg, this would be input.value = hash_value(message)
+    // Convert value from a witness index into a field element.
+    // This is the hash of the message. In Barretenberg, this would be input.value = hash_value(message)
     field_ct leaf = field_ct::from_witness_index(&composer, input.leaf);
 
-    /// Convert index from a witness index into a byte array
+    // Convert index from a witness index into a byte array
     field_ct index_field = field_ct::from_witness_index(&composer, input.index);
     auto index_bits = index_field.decompose_into_bits();
 
-    /// Convert root into a field_ct
+    // Convert root into a field_ct
     field_ct root = field_ct::from_witness_index(&composer, input.root);
 
-    /// We are given the HashPath as a Vec<fr>
-    /// We want to first convert it into a Vec<(fr, fr)> then cast this to hash_path
-    /// struct which requires the method create_witness_hashpath
+    // We are given the HashPath as a Vec<fr>
+    // We want to first convert it into a Vec<(fr, fr)> then cast this to hash_path
+    // struct which requires the method create_witness_hashpath
     hash_path<plonk::TurboComposer> hash_path;
 
     // In Noir we accept a hash path that only contains one hash per tree level
