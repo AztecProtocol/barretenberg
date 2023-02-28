@@ -16,7 +16,7 @@ struct HashToFieldConstraint {
     friend bool operator==(HashToFieldConstraint const& lhs, HashToFieldConstraint const& rhs) = default;
 };
 
-void create_hash_to_field_constraints(plonk::TurboComposer& composer, const HashToFieldConstraint constraint);
+void create_hash_to_field_constraints(plonk::TurboComposer& composer, HashToFieldConstraint constraint);
 
 template <typename B> inline void read(B& buf, HashToFieldInput& constraint);
 

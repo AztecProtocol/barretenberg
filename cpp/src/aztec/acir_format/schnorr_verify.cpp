@@ -61,7 +61,7 @@ byte_array_ct vector_of_bytes_to_byte_array(plonk::TurboComposer& composer, std:
 witness_ct index_to_witness(plonk::TurboComposer& composer, uint32_t index)
 {
     fr value = composer.get_variable(index);
-    return witness_ct(&composer, value);
+    return { &composer, value };
 }
 
 void create_schnorr_verify_constraints(plonk::TurboComposer& composer, const SchnorrConstraint& input)

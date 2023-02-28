@@ -28,7 +28,7 @@ void create_merkle_check_membership_constraint(plonk::TurboComposer& composer, c
     // It is ok to reuse the leaf as it will be overridden in check_subtree_membership when computing the current root
     // at each tree level
     for (size_t i = 0; i < input.hash_path.size(); i++) {
-        if (index_bits[i].get_value() == false) {
+        if (!index_bits[i].get_value()) {
             field_ct left = leaf;
             field_ct right = field_ct::from_witness_index(&composer, input.hash_path[i]);
             hash_path.push_back(std::make_pair(left, right));

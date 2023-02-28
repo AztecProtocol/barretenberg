@@ -8,8 +8,9 @@ namespace acir_format {
 uint32_t round_to_nearest_mul_8(uint32_t num_bits)
 {
     uint32_t remainder = num_bits % 8;
-    if (remainder == 0)
+    if (remainder == 0) {
         return num_bits;
+    }
 
     return num_bits + 8 - remainder;
 }

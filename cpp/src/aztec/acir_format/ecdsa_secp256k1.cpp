@@ -56,7 +56,7 @@ secp256k1_ct::g1_ct ecdsa_convert_inputs(plonk::TurboComposer* ctx, const secp25
                                      barretenberg::fr(y_u256.slice(secp256k1_ct::fq_ct::NUM_LIMB_BITS * 2,
                                                                    secp256k1_ct::fq_ct::NUM_LIMB_BITS * 4))));
 
-    return secp256k1_ct::g1_ct(x, y);
+    return { x, y };
 }
 
 // vector of bytes here, assumes that the witness indices point to a field element which can be represented
@@ -81,7 +81,7 @@ byte_array_ct ecdsa_vector_of_bytes_to_byte_array(plonk::TurboComposer& composer
 witness_ct ecdsa_index_to_witness(plonk::TurboComposer& composer, uint32_t index)
 {
     fr value = composer.get_variable(index);
-    return witness_ct(&composer, value);
+    return { &composer, value };
 }
 
 void create_ecdsa_verify_constraints(plonk::TurboComposer& composer, const EcdsaSecp256k1Constraint& input)
