@@ -50,7 +50,7 @@ add_subdirectory(plonk)
 add_subdirectory(stdlib)
 add_subdirectory(join_split_example)
 add_subdirectory(lagrange_base_gen)
-add_subdirectory(acir_format)
+add_subdirectory(dsl)
 
 if(BENCHMARKS)
     add_subdirectory(benchmark)
