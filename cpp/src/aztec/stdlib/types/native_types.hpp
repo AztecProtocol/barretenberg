@@ -3,13 +3,14 @@
 #include <crypto/pedersen_commitment/pedersen.hpp>
 #include <crypto/generators/generator_data.hpp>
 #include <crypto/schnorr/schnorr.hpp>
+#include <crypto/ecdsa/ecdsa.hpp>
 #include <ecc/curves/bn254/fq.hpp>
 #include <ecc/curves/bn254/fr.hpp>
 #include <ecc/curves/bn254/g1.hpp>
 #include <ecc/curves/grumpkin/grumpkin.hpp>
 #include <numeric/uint256/uint256.hpp>
 #include <proof_system/verification_key/verification_key.hpp>
-#include <plonk/proof_system/types/plonk_proof.hpp>
+#include <plonk/proof_system/types/proof.hpp>
 #include <stdlib/recursion/verifier/verifier.hpp>
 
 // #include <stdlib/primitives/bit_array/bit_array.hpp>
@@ -54,6 +55,7 @@ struct NativeTypes {
     // typedef packed_byte_array packed_byte_array;
 
     // typedef crypto::schnorr::signature signature;
+    typedef crypto::ecdsa::signature ecdsa_signature;
 
     typedef stdlib::recursion::native_recursion_output AggregationObject;
     typedef bonk::verification_key_data VKData;

@@ -1,6 +1,7 @@
 #pragma once
 #include <stdlib/primitives/address/address.hpp>
 #include <stdlib/encryption/schnorr/schnorr.hpp>
+#include <stdlib/encryption/ecdsa/ecdsa.hpp>
 #include <stdlib/primitives/bigfield/bigfield.hpp>
 #include <stdlib/primitives/biggroup/biggroup.hpp>
 #include <stdlib/primitives/bit_array/bit_array.hpp>
@@ -53,6 +54,7 @@ template <typename Composer> struct CircuitTypes {
     // typedef packed_byte_array<Composer> packed_byte_array;
 
     // typedef stdlib::schnorr::signature_bits<Composer> signature;
+    typedef stdlib::ecdsa::signature<Composer> ecdsa_signature;
 
     typedef stdlib::recursion::recursion_output<bn254> AggregationObject;
     typedef stdlib::recursion::verification_key<bn254> VK;

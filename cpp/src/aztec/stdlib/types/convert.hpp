@@ -57,6 +57,12 @@ typename CT<Composer>::bn254_point to_ct(Composer& composer, typename NT::bn254_
 };
 
 template <typename Composer>
+typename CT<Composer>::ecdsa_signature to_ct(Composer& composer, typename NT::ecdsa_signature const& e)
+{
+    return CT<Composer>::ecdsa_signature::from_witness<Composer>(&composer, e);
+};
+
+template <typename Composer>
 std::optional<typename CT<Composer>::boolean> to_ct(Composer& composer, std::optional<typename NT::boolean> const& e)
 {
     return e ? std::make_optional<typename CT<Composer>::boolean>(to_ct(composer, *e)) : std::nullopt;
@@ -79,6 +85,13 @@ std::optional<typename CT<Composer>::grumpkin_point> to_ct(Composer& composer,
                                                            std::optional<typename NT::grumpkin_point> const& e)
 {
     return e ? std::make_optional<typename CT<Composer>::grumpkin_point>(to_ct(composer, *e)) : std::nullopt;
+};
+
+template <typename Composer>
+std::optional<typename CT<Composer>::ecdsa_signature> to_ct(Composer& composer,
+                                                            std::optional<typename NT::ecdsa_signature> const& e)
+{
+    return e ? std::make_optional<typename CT<Composer>::ecdsa_signature>(to_ct(&composer, e)) : std::nullopt;
 };
 
 template <typename Composer>
@@ -155,6 +168,13 @@ template <typename Composer> typename NT::bn254_point to_nt(typename CT<Composer
     return e.get_value();
 };
 
+template <typename Composer> typename NT::ecdsa_signature to_nt(typename CT<Composer>::ecdsa_signature const& e)
+{
+    std::vector<uint8_t> r_bytes = e.r.get_value();
+    std::vector<uint8_t> s_bytes = e.s.get_value();
+    return NT::ecdsa_signature{ r_bytes, s_bytes };
+};
+
 template <typename Composer>
 std::optional<typename NT::boolean> to_nt(std::optional<typename CT<Composer>::boolean> const& e)
 {
@@ -176,6 +196,12 @@ template <typename Composer>
 std::optional<typename NT::grumpkin_point> to_nt(std::optional<typename CT<Composer>::grumpkin_point> const& e)
 {
     return e ? std::make_optional<typename NT::grumpkin_point>(to_nt<Composer>(*e)) : std::nullopt;
+};
+
+template <typename Composer>
+std::optional<typename NT::ecdsa_signature> to_nt(std::optional<typename CT<Composer>::ecdsa_signature> const& e)
+{
+    return e ? std::make_optional<typename NT::ecdsa_signature>(to_nt<Composer>(*e)) : std::nullopt;
 };
 
 template <typename Composer> std::vector<typename NT::fr> to_nt(std::vector<typename CT<Composer>::fr> const& vec)
