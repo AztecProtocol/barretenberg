@@ -1,3 +1,4 @@
+#pragma once
 #include "logic_constraint.hpp"
 #include "range_constraint.hpp"
 #include "sha256_constraint.hpp"

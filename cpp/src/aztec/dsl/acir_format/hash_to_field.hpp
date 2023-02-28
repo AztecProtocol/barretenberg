@@ -1,3 +1,4 @@
+#pragma once
 #include <stdlib/types/types.hpp>
 
 namespace acir_format {
