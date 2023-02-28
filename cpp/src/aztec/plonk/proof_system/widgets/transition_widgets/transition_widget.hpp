@@ -211,12 +211,8 @@ class EvaluationGetter : public BaseGetter<Field, Transcript, Settings, num_widg
  * @tparam num_widget_relations
  * @tparam representation
  */
-template <typename Field,
-          class Transcript,
-          class Settings,
-          size_t num_widget_relations,
-          PolynomialRepresentation representation>
-class PolynomialGetter : public BaseGetter<Field, Transcript, Settings, num_widget_relations> {
+template <typename Field, class Transcript, class Settings, size_t num_widget_relations>
+class FFTGetter : public BaseGetter<Field, Transcript, Settings, num_widget_relations> {
   protected:
     typedef containers::poly_ptr_map<Field> poly_ptr_map;
 
@@ -226,16 +222,10 @@ class PolynomialGetter : public BaseGetter<Field, Transcript, Settings, num_widg
         poly_ptr_map result;
         std::string label_suffix;
 
-        // Set block_mask and index_shift based on the polynomial representation
-        if (PolynomialRepresentation::MONOMIAL == representation) {
-            label_suffix = ""; // no suffix for monomial representation
-            result.block_mask = key->small_domain.size - 1;
-            result.index_shift = 1;
-        } else if (PolynomialRepresentation::COSET_FFT == representation) {
-            label_suffix = "_fft"; // coset evaluation form has suffix "_fft"
-            result.block_mask = key->large_domain.size - 1;
-            result.index_shift = 4; // for coset fft, x->ω*x corresponds to shift by 4
-        }
+        // Set block_mask and index_shift
+        label_suffix = "_fft"; // coset evaluation form has suffix "_fft"
+        result.block_mask = key->large_domain.size - 1;
+        result.index_shift = 4; // for coset fft, x->ω*x corresponds to shift by 4
 
         // Construct the container of pointers to the required polynomials
         for (size_t i = 0; i < key->polynomial_manifest.size(); ++i) {
@@ -297,20 +287,9 @@ class TransitionWidget : public TransitionWidgetBase<Field> {
   public:
     typedef getters::EvaluationGetter<Field, transcript::StandardTranscript, Settings, num_independent_relations>
         EvaluationGetter;
-    typedef getters::PolynomialGetter<Field,
-                                      transcript::StandardTranscript,
-                                      Settings,
-                                      num_independent_relations,
-                                      PolynomialRepresentation::COSET_FFT>
-        FFTGetter;
-    typedef getters::PolynomialGetter<Field,
-                                      transcript::StandardTranscript,
-                                      Settings,
-                                      num_independent_relations,
-                                      PolynomialRepresentation::MONOMIAL>
-        MonomialGetter;
+    typedef getters::FFTGetter<Field, transcript::StandardTranscript, Settings, num_independent_relations> FFTGetter;
+
     typedef KernelBase<Field, FFTGetter, poly_ptr_map> FFTKernel;
-    typedef KernelBase<Field, MonomialGetter, poly_ptr_map> MonomialKernel;
     typedef KernelBase<Field, EvaluationGetter, poly_array> EvaluationKernel;
 
     TransitionWidget(proving_key* _key = nullptr)

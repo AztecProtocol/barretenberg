@@ -9,8 +9,6 @@ namespace bonk {
 
 enum PolynomialSource { WITNESS, SELECTOR, PERMUTATION, OTHER };
 
-enum PolynomialRepresentation { MONOMIAL, COSET_FFT };
-
 enum EvaluationType { NON_SHIFTED, SHIFTED };
 
 enum PolynomialIndex {
