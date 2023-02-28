@@ -789,14 +789,27 @@ Verifier StandardComposer::create_verifier()
     return output_state;
 }
 
+/**
+ * Create prover.
+ *  1. Compute the starting polynomials (q_l, etc, sigma, witness polynomials).
+ *  2. Initialize Prover with them.
+ *  3. Add Permutation and arithmetic widgets to the prover.
+ *  4. Add KateCommitmentScheme to the prover.
+ *
+ * @return Initialized prover.
+ * */
 Prover StandardComposer::create_prover()
 {
+    // Compute q_l, etc. and sigma polynomials.
     compute_proving_key();
+
+    // Compute witness polynomials.
     compute_witness();
     Prover output_state(circuit_proving_key, create_manifest(public_inputs.size()));
 
     std::unique_ptr<ProverPermutationWidget<3, false>> permutation_widget =
         std::make_unique<ProverPermutationWidget<3, false>>(circuit_proving_key.get());
+
     std::unique_ptr<ProverArithmeticWidget<standard_settings>> arithmetic_widget =
         std::make_unique<ProverArithmeticWidget<standard_settings>>(circuit_proving_key.get());
 
