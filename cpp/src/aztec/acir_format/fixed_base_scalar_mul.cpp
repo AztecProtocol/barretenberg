@@ -9,7 +9,7 @@ namespace acir_format {
 void create_fixed_base_constraint(plonk::TurboComposer& composer, const FixedBaseScalarMul& input)
 {
 
-    field_t scalar_as_field = field_t::from_witness_index(&composer, input.scalar);
+    field_ct scalar_as_field = field_ct::from_witness_index(&composer, input.scalar);
     auto public_key = group_ct::fixed_base_scalar_mul_g1<254>(scalar_as_field);
 
     composer.copy_from_to(public_key.x.witness_index, input.pub_key_x);

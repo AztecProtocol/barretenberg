@@ -11,14 +11,14 @@ void create_merkle_check_membership_constraint(plonk::TurboComposer& composer, c
 {
     /// Convert value from a witness index into a field element.
     /// This is the hash of the message. In Barretenberg, this would be input.value = hash_value(message)
-    field_t leaf = field_t::from_witness_index(&composer, input.leaf);
+    field_ct leaf = field_ct::from_witness_index(&composer, input.leaf);
 
     /// Convert index from a witness index into a byte array
-    field_t index_field = field_t::from_witness_index(&composer, input.index);
+    field_ct index_field = field_ct::from_witness_index(&composer, input.index);
     auto index_bits = index_field.decompose_into_bits();
 
-    /// Convert root into a field_t
-    field_t root = field_t::from_witness_index(&composer, input.root);
+    /// Convert root into a field_ct
+    field_ct root = field_ct::from_witness_index(&composer, input.root);
 
     /// We are given the HashPath as a Vec<fr>
     /// We want to first convert it into a Vec<(fr, fr)> then cast this to hash_path
@@ -30,12 +30,12 @@ void create_merkle_check_membership_constraint(plonk::TurboComposer& composer, c
     // at each tree level
     for (size_t i = 0; i < input.hash_path.size(); i++) {
         if (index_bits[i].get_value() == false) {
-            field_t left = leaf;
-            field_t right = field_t::from_witness_index(&composer, input.hash_path[i]);
+            field_ct left = leaf;
+            field_ct right = field_ct::from_witness_index(&composer, input.hash_path[i]);
             hash_path.push_back(std::make_pair(left, right));
         } else {
-            field_t left = field_t::from_witness_index(&composer, input.hash_path[i]);
-            field_t right = leaf;
+            field_ct left = field_ct::from_witness_index(&composer, input.hash_path[i]);
+            field_ct right = leaf;
             hash_path.push_back(std::make_pair(left, right));
         }
     }
