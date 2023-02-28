@@ -1,7 +1,5 @@
 #include "round.hpp"
 
-using namespace barretenberg;
-
 namespace acir_format {
 
 // Rounds a number to the nearest multiple of 8
