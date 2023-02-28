@@ -149,7 +149,6 @@ template <typename Params> class SingleBatchOpeningScheme {
         for (size_t j = 0; j < num_claims; ++j) {
             // (Cⱼ, xⱼ, vⱼ)
             const auto& [opening_pair, commitment] = claims[j];
-            // const auto& [query, evaluation, commitment] = claims[j];
 
             Fr scaling_factor = current_nu * inverse_vanishing_evals[j]; // = ρʲ / ( r − xⱼ )
 

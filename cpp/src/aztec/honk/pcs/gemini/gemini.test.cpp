@@ -4,7 +4,7 @@
 #include "polynomials/polynomial.hpp"
 #include <cstddef>
 #include <gtest/gtest.h>
-#include <gtest/internal/gtest-type-util.h>
+// #include <gtest/internal/gtest-type-util.h>
 #include <span>
 
 namespace honk::pcs::gemini {
@@ -59,7 +59,6 @@ template <class Params> class GeminiTest : public CommitmentTest<Params> {
         // - (d+1) Fold polynomials Fold_{r}^(0), Fold_{-r}^(0), and Fold^(i), i = 0, ..., d-1
         auto prover_output = Gemini::reduce_prove(this->ck(),
                                                   multilinear_evaluation_point,
-                                                  batched_evaluation,
                                                   std::move(batched_unshifted),
                                                   std::move(batched_to_be_shifted),
                                                   transcript);

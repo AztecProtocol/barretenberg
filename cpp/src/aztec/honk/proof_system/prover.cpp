@@ -314,12 +314,6 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     // Get vector of multivariate evaluations produced by Sumcheck
     auto multivariate_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
 
-    // Compute batched multivariate evaluation
-    Fr batched_evaluation = Fr::zero();
-    for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
-        batched_evaluation += multivariate_evaluations[i] * rhos[i];
-    }
-
     // Batch the unshifted polynomials and the to-be-shifted polynomials using ρ
     Polynomial batched_poly_unshifted(key->circuit_size); // batched unshifted polynomials
     for (size_t i = 0; i < NUM_UNSHIFTED_POLYS; ++i) {
@@ -331,7 +325,6 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     // Compute d+1 Fold polynomials and their evaluations
     gemini_output = Gemini::reduce_prove(commitment_key,
                                          opening_point,
-                                         batched_evaluation,
                                          std::move(batched_poly_unshifted),
                                          std::move(batched_poly_to_be_shifted),
                                          &transcript);

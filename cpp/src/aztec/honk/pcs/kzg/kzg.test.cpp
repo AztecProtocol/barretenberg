@@ -125,12 +125,8 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
     // Gemini prover output:
     // - opening pairs: d+1 pairs (r, a_0_pos) and (-r^{2^l}, a_l), l = 0:d-1
     // - witness: the d+1 polynomials Fold_{r}^(0), Fold_{-r}^(0), Fold^(l), l = 1:d-1
-    auto gemini_prover_output = Gemini::reduce_prove(this->ck(),
-                                                     mle_opening_point,
-                                                     batched_evaluation,
-                                                     std::move(batched_unshifted),
-                                                     std::move(batched_to_be_shifted),
-                                                     transcript);
+    auto gemini_prover_output = Gemini::reduce_prove(
+        this->ck(), mle_opening_point, std::move(batched_unshifted), std::move(batched_to_be_shifted), transcript);
 
     // Shplonk prover output:
     // - opening pair: (z_challenge, 0)

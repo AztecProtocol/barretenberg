@@ -72,33 +72,9 @@ template <typename Params> struct Proof {
 };
 
 /**
- * @brief Univariate opening claims for multiple polynomials,
- * each opened at a single different point (size = m+1).
- *
- * [
- *   (C₀₊ , A₀  ( r)       ,  r )
- *   (C₀₋ , A₀  (-r)       , -r )
- *   (C₁  , A₁  (-r²)      , -r²)
- *   ...
- *   (Cₘ₋₁, Aₘ₋₁(-r^{2ᵐ⁻¹}), -r^{2ᵐ⁻¹})
- * ]
- * where
- *   C₀₊ is a simulated commitment to A₀ partially evaluated at r
- *   C₀₋ is a simulated commitment to A₀ partially evaluated at -r
- *
- * @tparam Params CommitmentScheme parameters
- */
-template <typename Params> using OutputClaim = std::vector<OpeningClaim<Params>>;
-
-/**
- * @brief Vector of opening pairs {r, v = p(r)}
- * @tparam Params CommitmentScheme parameters
- */
-template <typename Params> using OutputPair = std::vector<OpeningPair<Params>>;
-
-/**
- * @brief Univariate witness polynomials for opening all the
- *
+ * @brief Prover output (evalutation pair, witness) that can be passed on to Shplonk batch opening.
+ * @details Evaluation pairs {r, A₀₊(r)}, {-r, A₀₋(-r)}, {-r^{2^j}, Aⱼ(-r^{2^j)}, j = [1, ..., m-1]
+ * and witness (Fold) polynomials
  * [
  *   A₀₊(X) = F(X) + r⁻¹⋅G(X)
  *   A₀₋(X) = F(X) - r⁻¹⋅G(X)
@@ -106,28 +82,11 @@ template <typename Params> using OutputPair = std::vector<OpeningPair<Params>>;
  *   ...
  *   Aₘ₋₁(X) = (1-uₘ₋₂)⋅even(Aₘ₋₂)(X) + uₘ₋₂⋅odd(Aₘ₋₂)(X)
  * ]
- * where
- *           /  r ⁻¹ ⋅ fⱼ(X)  if fⱼ is a shift
- * fⱼ₊(X) = |
- *           \  fⱼ(X)         otherwise
- *
- *           / (-r)⁻¹ ⋅ fⱼ(X) if fⱼ is a shift
- * fⱼ₋(X) = |
- *           \  fⱼ(X)         otherwise
- *
- *
- * @tparam Params CommitmentScheme parameters
- */
-template <typename Params> using OutputWitness = std::vector<barretenberg::Polynomial<typename Params::Fr>>;
-
-/**
- * @brief Prover output (evalutation pair, witness) that can be passed on to Shplonk batch opening.
- *
  * @tparam Params CommitmentScheme parameters
  */
 template <typename Params> struct ProverOutput {
-    OutputPair<Params> opening_pairs;
-    OutputWitness<Params> witnesses;
+    std::vector<OpeningPair<Params>> opening_pairs;
+    std::vector<barretenberg::Polynomial<typename Params::Fr>> witnesses;
 };
 
 template <typename Params> class MultilinearReductionScheme {
@@ -143,8 +102,7 @@ template <typename Params> class MultilinearReductionScheme {
      * @brief reduces claims about multiple (shifted) MLE evaluation
      *
      * @param ck is the commitment key for creating the new commitments
-     * @param mle_opening_point = u = (u₀,...,uₘ₋₁) is the MLE opening point
-     * @param batched_evaluation batched evaluation from multivariate evals at the point u
+     * @param mle_opening_point u = (u₀,...,uₘ₋₁) is the MLE opening point
      * @param batched_shifted batch polynomial constructed from the unshifted multivariates
      * @param batched_to_be_shifted batch polynomial constructed from the to-be-shifted multivariates
      * @param transcript
@@ -153,7 +111,6 @@ template <typename Params> class MultilinearReductionScheme {
      */
     static ProverOutput<Params> reduce_prove(std::shared_ptr<CK> ck,
                                              std::span<const Fr> mle_opening_point,
-                                             const Fr batched_evaluation,              /* all */
                                              const Polynomial&& batched_shifted,       /* unshifted */
                                              const Polynomial&& batched_to_be_shifted, /* to-be-shifted */
                                              const auto& transcript)
@@ -257,7 +214,7 @@ template <typename Params> class MultilinearReductionScheme {
         A_0_neg -= tmp;
 
         /*
-         * Compute the m evaluations a_0 = Fold_{-r}^(0)(-r), and a_l = Fold^(l)(-r^{2^l}), l = 1, ..., m-1.
+         * Compute the m+1 evaluations Aₗ(−r^{2ˡ}), l = 0, ..., m-1.
          * Add them to the transcript
          */
         std::vector<Fr> fold_polynomial_evals;
@@ -270,14 +227,14 @@ template <typename Params> class MultilinearReductionScheme {
         }
 
         // Compute evaluation A₀(r)
-        auto a_0_pos = compute_eval_pos(batched_evaluation, mle_opening_point, r_squares, fold_polynomial_evals);
+        auto a_0_pos = fold_polynomials[0].evaluate(r_challenge);
 
         std::vector<OpeningPair<Params>> fold_poly_opening_pairs;
         fold_poly_opening_pairs.reserve(num_variables + 1);
 
-        // ( [A₀₊], r, A₀(r) )
+        // ( r, A₀(r) )
         fold_poly_opening_pairs.emplace_back(OpeningPair<Params>{ r_challenge, a_0_pos });
-        // ([A₀₋], -r, Aₗ(−r^{2ˡ}) )
+        // (-r, Aₗ(−r^{2ˡ}) )
         for (size_t l = 0; l < num_variables; ++l) {
             fold_poly_opening_pairs.emplace_back(OpeningPair<Params>{ -r_squares[l], fold_polynomial_evals[l] });
         }
@@ -295,14 +252,15 @@ template <typename Params> class MultilinearReductionScheme {
      * @param batched_g batched commitment to to-be-shifted polynomials
      * @param proof commitments to the m-1 folded polynomials, and alleged evaluations.
      * @param transcript
-     * @return Fold polynomial opening claims
+     * @return Fold polynomial opening claims: (r, A₀(r), C₀₊), (-r, A₀(-r), C₀₋), and
+     * (Cⱼ, Aⱼ(-r^{2ʲ}), -r^{2}), j = [1, ..., m-1]
      */
-    static OutputClaim<Params> reduce_verify(std::span<const Fr> mle_opening_point, /* u */
-                                             const Fr batched_evaluation,           /* all */
-                                             Commitment& batched_f,                 /* unshifted */
-                                             Commitment& batched_g,                 /* to-be-shifted */
-                                             const Proof<Params>& proof,
-                                             const auto& transcript)
+    static std::vector<OpeningClaim<Params>> reduce_verify(std::span<const Fr> mle_opening_point, /* u */
+                                                           const Fr batched_evaluation,           /* all */
+                                                           Commitment& batched_f,                 /* unshifted */
+                                                           Commitment& batched_g,                 /* to-be-shifted */
+                                                           const Proof<Params>& proof,
+                                                           const auto& transcript)
     {
         const size_t num_variables = mle_opening_point.size();
 
@@ -317,7 +275,7 @@ template <typename Params> class MultilinearReductionScheme {
         // C₀_r_pos = ∑ⱼ ρʲ⋅[fⱼ] - r⁻¹⋅∑ⱼ ρᵏ⁺ʲ [gⱼ]
         auto [c0_r_pos, c0_r_neg] = compute_simulated_commitments(batched_f, batched_g, r);
 
-        OutputClaim<Params> fold_polynomial_opening_claims;
+        std::vector<OpeningClaim<Params>> fold_polynomial_opening_claims;
         fold_polynomial_opening_claims.reserve(num_variables + 1);
 
         // ( [A₀₊], r, A₀(r) )

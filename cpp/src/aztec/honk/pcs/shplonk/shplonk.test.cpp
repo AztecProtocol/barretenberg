@@ -52,8 +52,8 @@ TYPED_TEST(ShplonkTest, GeminiShplonk)
     Commitment batched_commitment_unshifted = commitment * rhos[0];
     Commitment batched_commitment_to_be_shifted = Commitment::zero();
 
-    auto gemini_prover_output = Gemini::reduce_prove(
-        this->ck(), u, batched_evaluation, std::move(batched_unshifted), std::move(batched_to_be_shifted), transcript);
+    auto gemini_prover_output =
+        Gemini::reduce_prove(this->ck(), u, std::move(batched_unshifted), std::move(batched_to_be_shifted), transcript);
 
     const auto [prover_opening_pair, shplonk_prover_witness] = Shplonk::reduce_prove(
         this->ck(), gemini_prover_output.opening_pairs, gemini_prover_output.witnesses, transcript);
