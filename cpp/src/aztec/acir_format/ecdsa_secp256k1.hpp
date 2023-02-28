@@ -1,15 +1,4 @@
-#include <common/serialize.hpp>
-#include <common/assert.hpp>
-#include <plonk/composer/composer_base.hpp>
-#include <plonk/composer/turbo_composer.hpp>
-#include <stdlib/encryption/ecdsa/ecdsa.hpp>
-#include <crypto/ecdsa/ecdsa.hpp>
 #include <stdlib/types/types.hpp>
-#include <stdlib/primitives/packed_byte_array/packed_byte_array.hpp>
-#include <ecc/curves/secp256k1/secp256k1.hpp>
-
-using namespace plonk::stdlib::types;
-using namespace barretenberg;
 
 namespace acir_format {
 

@@ -1,8 +1,6 @@
 #include "fixed_base_scalar_mul.hpp"
 
 using namespace plonk::stdlib::types;
-using namespace barretenberg;
-using namespace plonk;
 
 namespace acir_format {
 

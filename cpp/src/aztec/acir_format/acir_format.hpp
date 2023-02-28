@@ -1,6 +1,3 @@
-#include <common/serialize.hpp>
-#include <plonk/composer/composer_base.hpp>
-#include <plonk/composer/turbo_composer.hpp>
 #include "logic_constraint.hpp"
 #include "range_constraint.hpp"
 #include "sha256_constraint.hpp"
@@ -11,8 +8,6 @@
 #include "merkle_membership_constraint.hpp"
 #include "pedersen.hpp"
 #include "hash_to_field.hpp"
-
-using namespace barretenberg;
 
 namespace acir_format {
 

@@ -1,8 +1,8 @@
 #include "sha256_constraint.hpp"
 #include "round.hpp"
+#include <stdlib/hash/sha256/sha256.hpp>
 
 using namespace plonk::stdlib::types;
-using namespace barretenberg;
 
 namespace acir_format {
 

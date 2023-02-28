@@ -1,7 +1,4 @@
-#include <plonk/composer/composer_base.hpp>
-#include <plonk/composer/turbo_composer.hpp>
-
-using namespace barretenberg;
+#include <stdlib/types/types.hpp>
 
 namespace acir_format {
 

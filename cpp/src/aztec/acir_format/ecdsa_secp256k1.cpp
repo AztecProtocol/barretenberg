@@ -1,7 +1,8 @@
 #include "ecdsa_secp256k1.hpp"
+#include <crypto/ecdsa/ecdsa.hpp>
+#include <stdlib/encryption/ecdsa/ecdsa.hpp>
 
 using namespace plonk::stdlib::types;
-using namespace barretenberg;
 
 namespace acir_format {
 

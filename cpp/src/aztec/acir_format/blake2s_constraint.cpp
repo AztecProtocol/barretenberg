@@ -2,7 +2,6 @@
 #include "round.hpp"
 
 using namespace plonk::stdlib::types;
-using namespace barretenberg;
 
 namespace acir_format {
 

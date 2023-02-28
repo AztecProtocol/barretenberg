@@ -1,7 +1,7 @@
 #include "schnorr_verify.hpp"
+#include <crypto/schnorr/schnorr.hpp>
 
 using namespace plonk::stdlib::types;
-using namespace barretenberg;
 
 namespace acir_format {
 

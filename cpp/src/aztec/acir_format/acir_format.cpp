@@ -1,7 +1,5 @@
 #include "acir_format.hpp"
 
-using namespace barretenberg;
-
 namespace acir_format {
 
 void read_witness(TurboComposer& composer, std::vector<barretenberg::fr> witness)

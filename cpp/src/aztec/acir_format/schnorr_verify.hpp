@@ -1,13 +1,4 @@
-#include <common/serialize.hpp>
-#include <common/assert.hpp>
-#include <plonk/composer/composer_base.hpp>
-#include <plonk/composer/turbo_composer.hpp>
-#include <stdlib/encryption/schnorr/schnorr.hpp>
 #include <stdlib/types/types.hpp>
-#include <stdlib/primitives/packed_byte_array/packed_byte_array.hpp>
-
-using namespace plonk::stdlib::types;
-using namespace barretenberg;
 
 namespace acir_format {
 

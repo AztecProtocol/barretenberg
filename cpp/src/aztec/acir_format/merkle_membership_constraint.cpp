@@ -1,9 +1,8 @@
 #include "merkle_membership_constraint.hpp"
+#include <stdlib/merkle_tree/index.hpp>
 
 using namespace plonk::stdlib::types;
 using namespace plonk::stdlib::merkle_tree;
-using namespace barretenberg;
-using namespace plonk;
 
 namespace acir_format {
 

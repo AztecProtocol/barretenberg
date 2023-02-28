@@ -1,14 +1,4 @@
-#include <common/serialize.hpp>
-#include <common/assert.hpp>
-#include <plonk/composer/composer_base.hpp>
-#include <plonk/composer/turbo_composer.hpp>
-#include <stdlib/merkle_tree/membership.hpp>
 #include <stdlib/types/types.hpp>
-
-using namespace plonk::stdlib::types;
-using namespace plonk::stdlib::merkle_tree;
-using namespace barretenberg;
-using namespace plonk;
 
 namespace acir_format {
 
