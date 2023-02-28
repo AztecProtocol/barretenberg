@@ -104,7 +104,7 @@ void create_ecdsa_verify_constraints(plonk::TurboComposer& composer, const Ecdsa
 
     auto pub_key = secp256k1_ct::g1_ct(pub_key_x_fq, pub_key_y_fq);
 
-    composer.copy_from_to(false, input.result);
+    composer.assert_equal(false, input.result);
 }
 
 template <typename B> inline void read(B& buf, EcdsaSecp256k1Constraint& constraint)

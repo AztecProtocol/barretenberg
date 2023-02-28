@@ -10,8 +10,8 @@ void create_fixed_base_constraint(plonk::TurboComposer& composer, const FixedBas
     field_ct scalar_as_field = field_ct::from_witness_index(&composer, input.scalar);
     auto public_key = group_ct::fixed_base_scalar_mul_g1<254>(scalar_as_field);
 
-    composer.copy_from_to(public_key.x.witness_index, input.pub_key_x);
-    composer.copy_from_to(public_key.y.witness_index, input.pub_key_y);
+    composer.assert_equal(public_key.x.witness_index, input.pub_key_x);
+    composer.assert_equal(public_key.y.witness_index, input.pub_key_y);
 }
 
 template <typename B> inline void read(B& buf, FixedBaseScalarMul& constraint)

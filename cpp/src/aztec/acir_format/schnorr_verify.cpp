@@ -95,7 +95,7 @@ void create_schnorr_verify_constraints(plonk::TurboComposer& composer, const Sch
     // TODO(Blaine): This seems wrong
     auto result_bool = composer.add_variable(signature_result.witness_bool == true);
 
-    composer.copy_from_to(result_bool, input.result);
+    composer.assert_equal(result_bool, input.result);
 }
 
 template <typename B> inline void read(B& buf, SchnorrConstraint& constraint)

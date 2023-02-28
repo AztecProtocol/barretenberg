@@ -15,8 +15,8 @@ void create_pedersen_constraint(plonk::TurboComposer& composer, const PedersenCo
     }
     auto point = pedersen::commit(scalars);
 
-    composer.copy_from_to(point.x.witness_index, input.result_x);
-    composer.copy_from_to(point.y.witness_index, input.result_y);
+    composer.assert_equal(point.x.witness_index, input.result_x);
+    composer.assert_equal(point.y.witness_index, input.result_y);
 }
 
 template <typename B> inline void read(B& buf, PedersenConstraint& constraint)

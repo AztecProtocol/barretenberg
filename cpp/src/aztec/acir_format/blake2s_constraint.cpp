@@ -32,7 +32,7 @@ void create_blake2s_constraints(plonk::TurboComposer& composer, const Blake2sCon
     auto bytes = output_bytes.bytes();
 
     for (size_t i = 0; i < bytes.size(); ++i) {
-        composer.copy_from_to(bytes[i].normalize().witness_index, constraint.result[i]);
+        composer.assert_equal(bytes[i].normalize().witness_index, constraint.result[i]);
     }
 }
 
