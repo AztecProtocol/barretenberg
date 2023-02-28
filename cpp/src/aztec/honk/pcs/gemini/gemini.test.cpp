@@ -4,7 +4,6 @@
 #include "polynomials/polynomial.hpp"
 #include <cstddef>
 #include <gtest/gtest.h>
-// #include <gtest/internal/gtest-type-util.h>
 #include <span>
 
 namespace honk::pcs::gemini {
