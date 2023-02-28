@@ -1,42 +1,38 @@
 
-#include "standard_example.hpp"
+#include "turbo_proofs.hpp"
+#include "plonk/proof_system/types/proof.hpp"
 #include <common/log.hpp>
-// #include <plonk/composer/turbo/compute_verification_key.hpp>
 #include <plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp>
 #include <proof_system/proving_key/serialize.hpp>
-#include <standard_format/standard_format.hpp>
+#include <dsl/acir_format/acir_format.hpp>
 #include <stdlib/types/types.hpp>
 #include <srs/reference_string/pippenger_reference_string.hpp>
-// #include <plonk/proof_system/verification_key/sol_gen.hpp>
-// #include <plonk/proof_system/verification_key/verification_key.hpp>
 #include <sstream>
 #include <iostream>
 #include <common/streams.hpp>
 
-namespace rollup {
-namespace proofs {
-namespace standard_example {
+using namespace plonk::stdlib::types;
 
-using namespace plonk;
+namespace turbo_proofs {
 
-static std::shared_ptr<waffle::proving_key> proving_key;
-static std::shared_ptr<waffle::verification_key> verification_key;
-static std::shared_ptr<waffle::standard_format> constraint_system;
+static std::shared_ptr<bonk::proving_key> proving_key;
+static std::shared_ptr<bonk::verification_key> verification_key;
+static std::shared_ptr<acir_format::acir_format> constraint_system;
 
 void c_init_circuit_def(uint8_t const* constraint_system_buf)
 {
-    auto cs = from_buffer<waffle::standard_format>(constraint_system_buf);
+    auto cs = from_buffer<acir_format::acir_format>(constraint_system_buf);
     init_circuit(cs);
 }
-void init_circuit(waffle::standard_format cs)
+void init_circuit(acir_format::acir_format cs)
 {
-    constraint_system = std::make_shared<waffle::standard_format>(cs);
+    constraint_system = std::make_shared<acir_format::acir_format>(cs);
 }
 
 uint32_t c_get_circuit_size(uint8_t const* constraint_system_buf)
 {
-    auto constraint_system = from_buffer<waffle::standard_format>(constraint_system_buf);
-    auto crs_factory = std::make_unique<waffle::ReferenceStringFactory>();
+    auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
+    auto crs_factory = std::make_unique<bonk::ReferenceStringFactory>();
     auto composer = create_circuit(constraint_system, std::move(crs_factory));
 
     auto prover = composer.create_prover();
@@ -47,50 +43,50 @@ uint32_t c_get_circuit_size(uint8_t const* constraint_system_buf)
 
 uint32_t c_get_exact_circuit_size(uint8_t const* constraint_system_buf)
 {
-    auto constraint_system = from_buffer<waffle::standard_format>(constraint_system_buf);
-    auto crs_factory = std::make_unique<waffle::ReferenceStringFactory>();
+    auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
+    auto crs_factory = std::make_unique<bonk::ReferenceStringFactory>();
     auto composer = create_circuit(constraint_system, std::move(crs_factory));
 
     auto num_gates = composer.get_num_gates();
     return static_cast<uint32_t>(num_gates);
 }
 
-void init_proving_key(std::unique_ptr<waffle::ReferenceStringFactory>&& crs_factory)
+void init_proving_key(std::unique_ptr<bonk::ReferenceStringFactory>&& crs_factory)
 {
     auto composer = create_circuit(*constraint_system, std::move(crs_factory));
     proving_key = composer.compute_proving_key();
 }
 
-void init_verification_key(std::unique_ptr<waffle::ReferenceStringFactory>&& crs_factory)
+void init_verification_key(std::unique_ptr<bonk::ReferenceStringFactory>&& crs_factory)
 {
     if (!proving_key) {
         std::abort();
     }
     // Patch the 'nothing' reference string fed to init_proving_key.
-    proving_key->reference_string = crs_factory->get_prover_crs(proving_key->n);
+    // TODO(Blaine): Is this correct?
+    proving_key->reference_string = crs_factory->get_prover_crs(proving_key->circuit_size);
 
-    verification_key =
-        plonk::stdlib::types::Composer::compute_verification_key_base(proving_key, crs_factory->get_verifier_crs());
+    verification_key = Composer::compute_verification_key_base(proving_key, crs_factory->get_verifier_crs());
 }
 
-Prover new_prover(std::vector<fr> witness)
+plonk::TurboProver new_prover(std::vector<fr> witness)
 {
     Composer composer(proving_key, nullptr);
     create_circuit_with_witness(composer, *constraint_system, witness);
 
     info("composer gates: ", composer.get_num_gates());
 
-    Prover prover = composer.create_prover();
+    plonk::TurboProver prover = composer.create_prover();
 
     return prover;
 }
 
-bool verify_proof(waffle::plonk_proof const& proof)
+bool verify_proof(plonk::proof const& proof)
 {
-    Verifier verifier(verification_key, Composer::create_manifest(verification_key->num_public_inputs));
+    TurboVerifier verifier(verification_key, Composer::create_manifest(verification_key->num_public_inputs));
 
-    std::unique_ptr<waffle::KateCommitmentScheme<waffle::turbo_settings>> kate_commitment_scheme =
-        std::make_unique<waffle::KateCommitmentScheme<waffle::turbo_settings>>();
+    std::unique_ptr<KateCommitmentScheme<turbo_settings>> kate_commitment_scheme =
+        std::make_unique<KateCommitmentScheme<turbo_settings>>();
     verifier.commitment_scheme = std::move(kate_commitment_scheme);
 
     return verifier.verify_proof(proof);
@@ -103,9 +99,9 @@ size_t c_composer__new_proof(void* pippenger,
                              uint8_t** proof_data_buf)
 {
 
-    auto constraint_system = from_buffer<waffle::standard_format>(constraint_system_buf);
+    auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
 
-    auto crs_factory = std::make_unique<waffle::PippengerReferenceStringFactory>(
+    auto crs_factory = std::make_unique<PippengerReferenceStringFactory>(
         reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), g2x);
 
     auto witness = from_buffer<std::vector<fr>>(witness_buf);
@@ -116,7 +112,7 @@ size_t c_composer__new_proof(void* pippenger,
     // aligned_free((void*)constraint_system_buf);
 
     auto prover = composer.create_prover();
-    auto heapProver = new Prover(std::move(prover));
+    auto heapProver = new TurboProver(std::move(prover));
     auto& proof_data = heapProver->construct_proof().proof_data;
     *proof_data_buf = proof_data.data();
 
@@ -131,11 +127,11 @@ bool c_composer__verify_proof(
     try {
 #endif
 
-        auto constraint_system = from_buffer<waffle::standard_format>(constraint_system_buf);
-        auto crs_factory = std::make_unique<waffle::PippengerReferenceStringFactory>(
+        auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
+        auto crs_factory = std::make_unique<PippengerReferenceStringFactory>(
             reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), g2x);
         auto composer = create_circuit(constraint_system, std::move(crs_factory));
-        waffle::plonk_proof pp = { std::vector<uint8_t>(proof, proof + length) };
+        plonk::proof pp = { std::vector<uint8_t>(proof, proof + length) };
 
         auto verifier = composer.create_verifier();
 
@@ -155,8 +151,8 @@ uint32_t c_composer__smart_contract(void* pippenger,
                                     uint8_t const* constraint_system_buf,
                                     uint8_t** output_buf)
 {
-    auto constraint_system = from_buffer<waffle::standard_format>(constraint_system_buf);
-    auto crs_factory = std::make_unique<waffle::PippengerReferenceStringFactory>(
+    auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
+    auto crs_factory = std::make_unique<PippengerReferenceStringFactory>(
         reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), g2x);
     auto composer = create_circuit(constraint_system, std::move(crs_factory));
 
@@ -174,10 +170,10 @@ uint32_t c_composer__smart_contract(void* pippenger,
 
 size_t c_init_proving_key(uint8_t const* constraint_system_buf, uint8_t const** pk_buf)
 {
-    auto constraint_system = from_buffer<waffle::standard_format>(constraint_system_buf);
+    auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
     // We know that we don't actually need any CRS to create a proving key, so just feed in a nothing.
     // Hacky, but, right now it needs *something*.
-    auto crs_factory = std::make_unique<waffle::ReferenceStringFactory>();
+    auto crs_factory = std::make_unique<ReferenceStringFactory>();
     auto composer = create_circuit(constraint_system, std::move(crs_factory));
     auto proving_key = composer.compute_proving_key();
 
@@ -199,22 +195,23 @@ size_t c_init_proving_key(uint8_t const* constraint_system_buf, uint8_t const** 
 
 size_t c_init_verification_key(void* pippenger, uint8_t const* g2x, uint8_t const* pk_buf, uint8_t const** vk_buf)
 {
-    std::shared_ptr<waffle::ProverReferenceString> crs;
-    waffle::proving_key_data pk_data;
+    std::shared_ptr<ProverReferenceString> crs;
+    bonk::proving_key_data pk_data;
     read(pk_buf, pk_data);
-    auto proving_key = std::make_shared<waffle::proving_key>(std::move(pk_data), crs);
+    auto proving_key = std::make_shared<bonk::proving_key>(std::move(pk_data), crs);
 
-    auto crs_factory = std::make_unique<waffle::PippengerReferenceStringFactory>(
+    auto crs_factory = std::make_unique<PippengerReferenceStringFactory>(
         reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), g2x);
-    proving_key->reference_string = crs_factory->get_prover_crs(proving_key->n);
+    // TODO(Blaine): Is this correct?
+    proving_key->reference_string = crs_factory->get_prover_crs(proving_key->circuit_size);
 
-    waffle::TurboComposer composer(proving_key, nullptr);
+    TurboComposer composer(proving_key, nullptr);
     auto verification_key =
         plonk::stdlib::types::Composer::compute_verification_key_base(proving_key, crs_factory->get_verifier_crs());
 
     // The composer_type has not yet been set. We need to set the composer_type for when we later read in and
     // construct the verification key so that we have the correct polynomial manifest
-    verification_key->composer_type = waffle::ComposerType::TURBO;
+    verification_key->composer_type = ComposerType::TURBO;
 
     auto buffer = to_buffer(*verification_key);
     auto raw_buf = (uint8_t*)malloc(buffer.size());
@@ -231,24 +228,25 @@ size_t c_new_proof(void* pippenger,
                    uint8_t const* witness_buf,
                    uint8_t** proof_data_buf)
 {
-    auto constraint_system = from_buffer<waffle::standard_format>(constraint_system_buf);
+    auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
 
-    std::shared_ptr<waffle::ProverReferenceString> crs;
-    waffle::proving_key_data pk_data;
+    std::shared_ptr<ProverReferenceString> crs;
+    bonk::proving_key_data pk_data;
     read(pk_buf, pk_data);
-    auto proving_key = std::make_shared<waffle::proving_key>(std::move(pk_data), crs);
+    auto proving_key = std::make_shared<bonk::proving_key>(std::move(pk_data), crs);
 
     auto witness = from_buffer<std::vector<fr>>(witness_buf);
 
-    auto crs_factory = std::make_unique<waffle::PippengerReferenceStringFactory>(
+    auto crs_factory = std::make_unique<PippengerReferenceStringFactory>(
         reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), g2x);
-    proving_key->reference_string = crs_factory->get_prover_crs(proving_key->n);
+    // TODO(Blaine): Is this correct?
+    proving_key->reference_string = crs_factory->get_prover_crs(proving_key->circuit_size);
 
-    waffle::TurboComposer composer(proving_key, nullptr);
+    TurboComposer composer(proving_key, nullptr);
     create_circuit_with_witness(composer, constraint_system, witness);
 
     auto prover = composer.create_prover();
-    auto heapProver = new Prover(std::move(prover));
+    auto heapProver = new TurboProver(std::move(prover));
     auto& proof_data = heapProver->construct_proof().proof_data;
     *proof_data_buf = proof_data.data();
 
@@ -263,16 +261,16 @@ bool c_verify_proof(
 #ifndef __wasm__
     try {
 #endif
-        auto constraint_system = from_buffer<waffle::standard_format>(constraint_system_buf);
+        auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
 
-        auto crs = std::make_shared<waffle::VerifierMemReferenceString>(g2x);
-        waffle::verification_key_data vk_data;
+        auto crs = std::make_shared<VerifierMemReferenceString>(g2x);
+        bonk::verification_key_data vk_data;
         read(vk_buf, vk_data);
-        auto verification_key = std::make_shared<waffle::verification_key>(std::move(vk_data), crs);
+        auto verification_key = std::make_shared<bonk::verification_key>(std::move(vk_data), crs);
 
-        waffle::TurboComposer composer(nullptr, verification_key);
+        TurboComposer composer(nullptr, verification_key);
         create_circuit(composer, constraint_system);
-        waffle::plonk_proof pp = { std::vector<uint8_t>(proof, proof + length) };
+        plonk::proof pp = { std::vector<uint8_t>(proof, proof + length) };
 
         auto verifier = composer.create_verifier();
 
@@ -286,6 +284,4 @@ bool c_verify_proof(
     return verified;
 }
 
-} // namespace standard_example
-} // namespace proofs
-} // namespace rollup
+} // namespace turbo_proofs

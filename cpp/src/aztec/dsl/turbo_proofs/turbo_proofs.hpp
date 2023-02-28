@@ -1,30 +1,19 @@
-#pragma once
-#include <srs/reference_string/pippenger_reference_string.hpp>
 #include <stdlib/types/types.hpp>
-// #include <dsl/standard_format/standard_format.hpp>
+#include <dsl/acir_format/acir_format.hpp>
 
-// This forward declaration is needed or else we get duplicate symbol errors
-namespace waffle {
-struct standard_format;
-}
+namespace turbo_proofs {
 
-namespace rollup {
-namespace proofs {
-namespace standard_example {
+void init_circuit(acir_format::acir_format cs);
 
-using namespace plonk::stdlib::types;
+void init_proving_key(std::unique_ptr<bonk::ReferenceStringFactory>&& crs_factory);
 
-void init_circuit(waffle::standard_format cs);
-
-void init_proving_key(std::unique_ptr<waffle::ReferenceStringFactory>&& crs_factory);
-
-void init_verification_key(std::unique_ptr<waffle::ReferenceStringFactory>&& crs_factory);
+void init_verification_key(std::unique_ptr<bonk::ReferenceStringFactory>&& crs_factory);
 
 void build_circuit(plonk::stdlib::types::Composer& composer);
 
-plonk::stdlib::types::Prover new_prover(std::vector<fr> witness);
+TurboProver new_prover(std::vector<fr> witness);
 
-bool verify_proof(waffle::plonk_proof const& proof);
+bool verify_proof(plonk::proof const& proof);
 // Ideally we want the c_bind file to call a C++ method with C++ arguments
 // However, we are getting duplicate definition problems when c_bind imports
 // standard_format
@@ -56,6 +45,4 @@ size_t c_new_proof(void* pippenger,
 bool c_verify_proof(
     uint8_t const* g2x, uint8_t const* vk_buf, uint8_t const* constraint_system_buf, uint8_t* proof, uint32_t length);
 
-} // namespace standard_example
-} // namespace proofs
-} // namespace rollup
+} // namespace turbo_proofs
