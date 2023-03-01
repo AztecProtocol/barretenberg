@@ -4,7 +4,7 @@
 #include <crypto/pedersen/generator_data.hpp>
 
 using namespace barretenberg;
-using namespace honk;
+using namespace bonk;
 
 namespace {
 auto& engine = numeric::random::get_debug_engine();

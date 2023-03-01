@@ -4,36 +4,39 @@ namespace plonk {
 class StandardComposer;
 class TurboComposer;
 class UltraComposer;
+
+class StandardPlonkComposer;
 } // namespace plonk
 
 namespace honk {
 class StandardHonkComposer;
-class StandardPlonkComposer;
 } // namespace honk
 
+namespace bonk {}
+
 #define EXTERN_STDLIB_TYPE(stdlib_type)                                                                                \
-    extern template class stdlib_type<waffle::StandardComposer>;                                                       \
+    extern template class stdlib_type<plonk::StandardComposer>;                                                        \
     extern template class stdlib_type<honk::StandardHonkComposer>;                                                     \
-    extern template class stdlib_type<honk::StandardPlonkComposer>;                                                    \
-    extern template class stdlib_type<waffle::TurboComposer>;                                                          \
-    extern template class stdlib_type<waffle::UltraComposer>;
+    extern template class stdlib_type<plonk::StandardPlonkComposer>;                                                   \
+    extern template class stdlib_type<plonk::TurboComposer>;                                                           \
+    extern template class stdlib_type<plonk::UltraComposer>;
 
 #define EXTERN_STDLIB_TYPE_VA(stdlib_type, ...)                                                                        \
-    extern template class stdlib_type<waffle::StandardComposer, __VA_ARGS__>;                                          \
-    extern template class stdlib_type<honk::StandardPlonkComposer, __VA_ARGS__>;                                       \
-    extern template class stdlib_type<waffle::TurboComposer, __VA_ARGS__>;                                             \
-    extern template class stdlib_type<waffle::UltraComposer, __VA_ARGS__>;
+    extern template class stdlib_type<plonk::StandardComposer, __VA_ARGS__>;                                           \
+    extern template class stdlib_type<plonk::StandardPlonkComposer, __VA_ARGS__>;                                      \
+    extern template class stdlib_type<plonk::TurboComposer, __VA_ARGS__>;                                              \
+    extern template class stdlib_type<plonk::UltraComposer, __VA_ARGS__>;
 
 #define EXTERN_STDLIB_BASIC_TYPE(stdlib_type)                                                                          \
-    extern template class stdlib_type<waffle::StandardComposer>;                                                       \
-    extern template class stdlib_type<honk::StandardPlonkComposer>;                                                    \
-    extern template class stdlib_type<waffle::TurboComposer>;
+    extern template class stdlib_type<plonk::StandardComposer>;                                                        \
+    extern template class stdlib_type<plonk::StandardPlonkComposer>;                                                   \
+    extern template class stdlib_type<plonk::TurboComposer>;
 
 #define EXTERN_STDLIB_BASIC_TYPE_VA(stdlib_type, ...)                                                                  \
     extern template class stdlib_type<honk::StandardHonkComposer, __VA_ARGS__>;                                        \
-    extern template class stdlib_type<honk::StandardPlonkComposer, __VA_ARGS__>;                                       \
-    extern template class stdlib_type<waffle::StandardComposer, __VA_ARGS__>;                                          \
-    extern template class stdlib_type<waffle::TurboComposer, __VA_ARGS__>;
+    extern template class stdlib_type<plonk::StandardPlonkComposer, __VA_ARGS__>;                                      \
+    extern template class stdlib_type<plonk::StandardComposer, __VA_ARGS__>;                                           \
+    extern template class stdlib_type<plonk::TurboComposer, __VA_ARGS__>;
 
 #define EXTERN_STDLIB_ULTRA_TYPE(stdlib_type) extern template class stdlib_type<plonk::UltraComposer>;
 

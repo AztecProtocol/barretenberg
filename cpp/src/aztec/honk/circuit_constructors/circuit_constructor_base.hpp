@@ -4,7 +4,7 @@
 #include <utility>
 
 using namespace bonk;
-namespace honk {
+namespace bonk {
 static constexpr uint32_t DUMMY_TAG = 0;
 
 template <size_t program_width_> class CircuitConstructorBase {
@@ -236,7 +236,7 @@ template <size_t program_width_> class CircuitConstructorBase {
     }
 };
 
-} // namespace honk
+} // namespace bonk
 
 // TODO(Cody): This may need updating, to deal with the new gate we used to ensure that non multivariate is zero?
 /**

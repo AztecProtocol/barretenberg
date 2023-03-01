@@ -1,7 +1,7 @@
 #include "composer_helper_lib.hpp"
 #include <honk/pcs/commitment_key.hpp>
 #include <honk/circuit_constructors/standard_circuit_constructor.hpp>
-namespace honk {
+namespace bonk {
 
 /**
  * @brief Initialize proving key and load the crs
@@ -11,14 +11,14 @@ namespace honk {
  * @param minimum_circuit_size The minimum size of polynomials without randomized elements
  * @param num_randomized_gates Number of gates with randomized witnesses
  * @param composer_type The type of composer we are using
- * @return std::shared_ptr<waffle::proving_key>
+ * @return std::shared_ptr<bonk::proving_key>
  */
 template <typename CircuitConstructor>
-std::shared_ptr<waffle::proving_key> initialize_proving_key(const CircuitConstructor& circuit_constructor,
-                                                            waffle::ReferenceStringFactory* crs_factory,
-                                                            const size_t minimum_circuit_size,
-                                                            const size_t num_randomized_gates,
-                                                            waffle::ComposerType composer_type)
+std::shared_ptr<bonk::proving_key> initialize_proving_key(const CircuitConstructor& circuit_constructor,
+                                                          bonk::ReferenceStringFactory* crs_factory,
+                                                          const size_t minimum_circuit_size,
+                                                          const size_t num_randomized_gates,
+                                                          plonk::ComposerType composer_type)
 {
     const size_t num_gates = circuit_constructor.num_gates;
     std::span<const uint32_t> public_inputs = circuit_constructor.public_inputs;
@@ -31,7 +31,7 @@ std::shared_ptr<waffle::proving_key> initialize_proving_key(const CircuitConstru
 
     auto crs = crs_factory->get_prover_crs(subgroup_size + 1);
 
-    return std::make_shared<waffle::proving_key>(subgroup_size, num_public_inputs, crs, composer_type);
+    return std::make_shared<bonk::proving_key>(subgroup_size, num_public_inputs, crs, composer_type);
 }
 
 /**
@@ -43,7 +43,7 @@ std::shared_ptr<waffle::proving_key> initialize_proving_key(const CircuitConstru
  */
 template <typename CircuitConstructor>
 void put_selectors_in_polynomial_cache(const CircuitConstructor& circuit_constructor,
-                                       waffle::proving_key* circuit_proving_key)
+                                       bonk::proving_key* circuit_proving_key)
 {
     const size_t num_public_inputs = circuit_constructor.public_inputs.size();
     for (size_t j = 0; j < circuit_constructor.num_selectors; ++j) {
@@ -76,7 +76,7 @@ void put_selectors_in_polynomial_cache(const CircuitConstructor& circuit_constru
  * @param key Pointer to the proving key
  * @param selector_properties Names of selectors
  */
-void compute_monomial_selector_forms_and_put_into_cache(waffle::proving_key* circuit_proving_key,
+void compute_monomial_selector_forms_and_put_into_cache(bonk::proving_key* circuit_proving_key,
                                                         std::vector<SelectorProperties> selector_properties)
 {
     for (size_t i = 0; i < selector_properties.size(); i++) {
@@ -114,7 +114,7 @@ template <typename CircuitConstructor>
 void compute_witness_base_common(const CircuitConstructor& circuit_constructor,
                                  const size_t minimum_circuit_size,
                                  const size_t number_of_randomized_gates,
-                                 waffle::proving_key* circuit_proving_key)
+                                 bonk::proving_key* circuit_proving_key)
 {
     const size_t program_width = CircuitConstructor::program_width;
     const size_t num_gates = circuit_constructor.num_gates;
@@ -169,14 +169,13 @@ void compute_witness_base_common(const CircuitConstructor& circuit_constructor,
  * (1) commitments to the selector, permutation, and lagrange (first/last) polynomials,
  * (2) sets the polynomial manifest using the data from proving key.
  */
-std::shared_ptr<waffle::verification_key> compute_verification_key_base_common(
-    std::shared_ptr<waffle::proving_key> const& proving_key,
-    std::shared_ptr<waffle::VerifierReferenceString> const& vrs)
+std::shared_ptr<bonk::verification_key> compute_verification_key_base_common(
+    std::shared_ptr<bonk::proving_key> const& proving_key, std::shared_ptr<bonk::VerifierReferenceString> const& vrs)
 {
-    auto circuit_verification_key = std::make_shared<waffle::verification_key>(
+    auto circuit_verification_key = std::make_shared<bonk::verification_key>(
         proving_key->circuit_size, proving_key->num_public_inputs, vrs, proving_key->composer_type);
     // TODO(kesha): Dirty hack for now. Need to actually make commitment-agnositc
-    auto commitment_key = pcs::kzg::CommitmentKey(proving_key->circuit_size, "../srs_db/ignition");
+    auto commitment_key = honk::pcs::kzg::CommitmentKey(proving_key->circuit_size, "../srs_db/ignition");
 
     for (size_t i = 0; i < proving_key->polynomial_manifest.size(); ++i) {
         const auto& poly_info = proving_key->polynomial_manifest[i];
@@ -184,9 +183,9 @@ std::shared_ptr<waffle::verification_key> compute_verification_key_base_common(
         const std::string poly_label(poly_info.polynomial_label);
         const std::string selector_commitment_label(poly_info.commitment_label);
 
-        if (poly_info.source == waffle::PolynomialSource::SELECTOR ||
-            poly_info.source == waffle::PolynomialSource::PERMUTATION ||
-            poly_info.source == waffle::PolynomialSource::OTHER) {
+        if (poly_info.source == bonk::PolynomialSource::SELECTOR ||
+            poly_info.source == bonk::PolynomialSource::PERMUTATION ||
+            poly_info.source == bonk::PolynomialSource::OTHER) {
             // Fetch the polynomial in its vector form.
 
             // Commit to the constraint selector polynomial and insert the commitment in the verification key.
@@ -197,23 +196,19 @@ std::shared_ptr<waffle::verification_key> compute_verification_key_base_common(
     }
 
     // Set the polynomial manifest in verification key.
-    circuit_verification_key->polynomial_manifest = waffle::PolynomialManifest(proving_key->composer_type);
+    circuit_verification_key->polynomial_manifest = bonk::PolynomialManifest(proving_key->composer_type);
 
     return circuit_verification_key;
 }
 
-template std::shared_ptr<waffle::proving_key> initialize_proving_key<StandardCircuitConstructor>(
-    const StandardCircuitConstructor&,
-    waffle::ReferenceStringFactory*,
-    const size_t,
-    const size_t,
-    waffle::ComposerType);
+template std::shared_ptr<bonk::proving_key> initialize_proving_key<StandardCircuitConstructor>(
+    const StandardCircuitConstructor&, bonk::ReferenceStringFactory*, const size_t, const size_t, plonk::ComposerType);
 template void put_selectors_in_polynomial_cache<StandardCircuitConstructor>(const StandardCircuitConstructor&,
-                                                                            waffle::proving_key*);
+                                                                            bonk::proving_key*);
 template void compute_witness_base_common<StandardCircuitConstructor>(const StandardCircuitConstructor&,
                                                                       const size_t,
 
                                                                       const size_t,
-                                                                      waffle::proving_key*);
+                                                                      bonk::proving_key*);
 
-} // namespace honk
+} // namespace bonk

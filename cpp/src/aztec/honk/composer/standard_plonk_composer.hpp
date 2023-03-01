@@ -6,16 +6,17 @@
 #include <transcript/manifest.hpp>
 #include <proof_system/flavor/flavor.hpp>
 
-namespace honk {
+namespace plonk {
 /**
- * @brief Standard Honk Composer has everything required to construct a prover and verifier, just as the legacy classes.
+ * @brief Standard Plonk Composer has everything required to construct a prover and verifier, just as the legacy
+ * classes.
  *
  * @details However, it has a lot of its logic separated into subclasses and simply proxies the calls.
  *
  */
 class StandardPlonkComposer {
   public:
-    static constexpr waffle::ComposerType type = waffle::ComposerType::STANDARD;
+    static constexpr plonk::ComposerType type = plonk::ComposerType::STANDARD;
 
     static constexpr size_t UINT_LOG2_BASE = 2;
     // An instantiation of the circuit constructor that only depends on arithmetization, not  on the proof system
@@ -39,18 +40,17 @@ class StandardPlonkComposer {
 
     StandardPlonkComposer(std::string const& crs_path, const size_t size_hint = 0)
         : StandardPlonkComposer(
-              std::unique_ptr<waffle::ReferenceStringFactory>(new waffle::FileReferenceStringFactory(crs_path)),
+              std::unique_ptr<bonk::ReferenceStringFactory>(new bonk::FileReferenceStringFactory(crs_path)),
               size_hint){};
 
-    StandardPlonkComposer(std::shared_ptr<waffle::ReferenceStringFactory> const& crs_factory,
-                          const size_t size_hint = 0)
+    StandardPlonkComposer(std::shared_ptr<bonk::ReferenceStringFactory> const& crs_factory, const size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(crs_factory)
         , num_gates(circuit_constructor.num_gates)
         , variables(circuit_constructor.variables)
 
     {}
-    StandardPlonkComposer(std::unique_ptr<waffle::ReferenceStringFactory>&& crs_factory, const size_t size_hint = 0)
+    StandardPlonkComposer(std::unique_ptr<bonk::ReferenceStringFactory>&& crs_factory, const size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(std::move(crs_factory))
         , num_gates(circuit_constructor.num_gates)
@@ -58,8 +58,8 @@ class StandardPlonkComposer {
 
     {}
 
-    StandardPlonkComposer(std::shared_ptr<waffle::proving_key> const& p_key,
-                          std::shared_ptr<waffle::verification_key> const& v_key,
+    StandardPlonkComposer(std::shared_ptr<bonk::proving_key> const& p_key,
+                          std::shared_ptr<bonk::verification_key> const& v_key,
                           size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(p_key, v_key)
@@ -175,12 +175,12 @@ class StandardPlonkComposer {
 
     /**Proof and verification-related methods*/
 
-    std::shared_ptr<waffle::proving_key> compute_proving_key()
+    std::shared_ptr<bonk::proving_key> compute_proving_key()
     {
         return composer_helper.compute_proving_key(circuit_constructor);
     }
 
-    std::shared_ptr<waffle::verification_key> compute_verification_key()
+    std::shared_ptr<bonk::verification_key> compute_verification_key()
     {
         return composer_helper.compute_verification_key(circuit_constructor);
     }
@@ -189,7 +189,7 @@ class StandardPlonkComposer {
 
     void compute_witness() { composer_helper.compute_witness(circuit_constructor); };
     // TODO(Cody): This will not be needed, but maybe something is required for ComposerHelper to be generic?
-    waffle::Verifier create_verifier() { return composer_helper.create_verifier(circuit_constructor); }
+    plonk::Verifier create_verifier() { return composer_helper.create_verifier(circuit_constructor); }
     /**
      * Preprocess the circuit. Delegates to create_prover.
      *
@@ -200,15 +200,15 @@ class StandardPlonkComposer {
      *
      * @return A new initialized prover.
      */
-    waffle::Prover preprocess() { return composer_helper.create_prover(circuit_constructor); };
-    waffle::Prover create_prover() { return composer_helper.create_prover(circuit_constructor); };
-    waffle::UnrolledVerifier create_unrolled_verifier()
+    plonk::Prover preprocess() { return composer_helper.create_prover(circuit_constructor); };
+    plonk::Prover create_prover() { return composer_helper.create_prover(circuit_constructor); };
+    plonk::UnrolledVerifier create_unrolled_verifier()
     {
         return composer_helper.create_unrolled_verifier(circuit_constructor);
     }
-    waffle::UnrolledProver create_unrolled_prover()
+    plonk::UnrolledProver create_unrolled_prover()
     {
-        return composer_helper.create_unrolled_prover<honk::StandardHonk>(circuit_constructor);
+        return composer_helper.create_unrolled_prover(circuit_constructor);
     };
 
     static transcript::Manifest create_manifest(const size_t num_public_inputs)
@@ -225,6 +225,5 @@ class StandardPlonkComposer {
     bool failed() const { return circuit_constructor.failed(); };
     const std::string& err() const { return circuit_constructor.err(); };
     void failure(std::string msg) { circuit_constructor.failure(msg); }
-
-}; // namespace waffle
-} // namespace honk
+};
+} // namespace plonk

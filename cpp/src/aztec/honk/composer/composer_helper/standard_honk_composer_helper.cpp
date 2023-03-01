@@ -24,7 +24,7 @@ namespace honk {
  * @return Pointer to the initialized proving key updated with selector polynomials.
  * */
 template <typename CircuitConstructor>
-std::shared_ptr<waffle::proving_key> StandardHonkComposerHelper<CircuitConstructor>::compute_proving_key_base(
+std::shared_ptr<bonk::proving_key> StandardHonkComposerHelper<CircuitConstructor>::compute_proving_key_base(
     const CircuitConstructor& constructor, const size_t minimum_circuit_size, const size_t num_randomized_gates)
 {
     // Initialize circuit_proving_key
@@ -33,7 +33,7 @@ std::shared_ptr<waffle::proving_key> StandardHonkComposerHelper<CircuitConstruct
                                                  crs_factory_.get(),
                                                  minimum_circuit_size,
                                                  num_randomized_gates,
-                                                 waffle::ComposerType::STANDARD_HONK);
+                                                 plonk::ComposerType::STANDARD_HONK);
     // Compute lagrange selectors
     put_selectors_in_polynomial_cache(constructor, circuit_proving_key.get());
 
@@ -47,9 +47,8 @@ std::shared_ptr<waffle::proving_key> StandardHonkComposerHelper<CircuitConstruct
  */
 
 template <typename CircuitConstructor>
-std::shared_ptr<waffle::verification_key> StandardHonkComposerHelper<CircuitConstructor>::compute_verification_key_base(
-    std::shared_ptr<waffle::proving_key> const& proving_key,
-    std::shared_ptr<waffle::VerifierReferenceString> const& vrs)
+std::shared_ptr<bonk::verification_key> StandardHonkComposerHelper<CircuitConstructor>::compute_verification_key_base(
+    std::shared_ptr<bonk::proving_key> const& proving_key, std::shared_ptr<bonk::VerifierReferenceString> const& vrs)
 {
     return compute_verification_key_base_common(proving_key, vrs);
 }
@@ -84,14 +83,14 @@ void StandardHonkComposerHelper<CircuitConstructor>::compute_witness_base(const 
  * */
 
 template <typename CircuitConstructor>
-std::shared_ptr<waffle::proving_key> StandardHonkComposerHelper<CircuitConstructor>::compute_proving_key(
+std::shared_ptr<bonk::proving_key> StandardHonkComposerHelper<CircuitConstructor>::compute_proving_key(
     const CircuitConstructor& circuit_constructor)
 {
     if (circuit_proving_key) {
         return circuit_proving_key;
     }
     // Compute q_l, q_r, q_o, etc polynomials
-    StandardHonkComposerHelper::compute_proving_key_base(circuit_constructor, waffle::ComposerType::STANDARD_HONK);
+    StandardHonkComposerHelper::compute_proving_key_base(circuit_constructor, plonk::ComposerType::STANDARD_HONK);
 
     // Compute sigma polynomials (we should update that late)
     compute_standard_honk_sigma_permutations<CircuitConstructor::program_width>(circuit_constructor,
@@ -109,7 +108,7 @@ std::shared_ptr<waffle::proving_key> StandardHonkComposerHelper<CircuitConstruct
  * @return Pointer to created circuit verification key.
  * */
 template <typename CircuitConstructor>
-std::shared_ptr<waffle::verification_key> StandardHonkComposerHelper<CircuitConstructor>::compute_verification_key(
+std::shared_ptr<bonk::verification_key> StandardHonkComposerHelper<CircuitConstructor>::compute_verification_key(
     const CircuitConstructor& circuit_constructor)
 {
     if (circuit_verification_key) {
@@ -163,31 +162,6 @@ StandardProver ComposerHelper<CircuitConstructor>::create_prover(const CircuitCo
 
     return output_state;
 }
-/**
- * Create prover.
- *  1. Compute the starting polynomials (q_l, etc, sigma, witness polynomials).
- *  2. Initialize StandardProver with them.
- *  3. Add Permutation and arithmetic widgets to the prover.
- *  4. Add KateCommitmentScheme to the prover.
- *
- * @return Initialized prover.
- * */
-template <typename CircuitConstructor>
-StandardProver StandardHonkComposerHelper<CircuitConstructor>::create_prover(
-    const CircuitConstructor& circuit_constructor)
-{
-    // Compute q_l, etc. and sigma polynomials.
-    compute_proving_key(circuit_constructor);
-
-    // Compute witness polynomials.
-    compute_witness(circuit_constructor);
-    // TODO: Initialize prover properly
-    // Prover output_state(circuit_proving_key, create_manifest(public_inputs.size()));
-    StandardProver output_state(circuit_proving_key);
-
-    return output_state;
-}
-
 template class ComposerHelper<StandardCircuitConstructor>;
 template StandardProver ComposerHelper<StandardCircuitConstructor>::create_prover<StandardHonk>(
     const StandardCircuitConstructor& circuit_constructor);

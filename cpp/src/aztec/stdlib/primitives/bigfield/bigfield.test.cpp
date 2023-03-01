@@ -860,11 +860,11 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
 };
 
 // Define types for which the above tests will be constructed.
-typedef testing::Types<waffle::UltraComposer,
-                       waffle::TurboComposer,
-                       waffle::StandardComposer,
+typedef testing::Types<plonk::UltraComposer,
+                       plonk::TurboComposer,
+                       plonk::StandardComposer,
                        honk::StandardHonkComposer,
-                       honk::StandardPlonkComposer>
+                       plonk::StandardPlonkComposer>
     ComposerTypes;
 
 // Define the suite of tests.

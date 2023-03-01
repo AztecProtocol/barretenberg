@@ -3,7 +3,7 @@
 #include <proof_system/verification_key/verification_key.hpp>
 #include <polynomials/polynomial_arithmetic.hpp>
 #include <polynomials/polynomial.hpp>
-namespace honk {
+namespace bonk {
 struct SelectorProperties {
     std::string name;
     bool requires_lagrange_base_polynomial = false; // does the prover need the raw lagrange-base selector values?
@@ -17,14 +17,14 @@ struct SelectorProperties {
  * @param minimum_circuit_size The minimum size of polynomials without randomized elements
  * @param num_randomized_gates Number of gates with randomized witnesses
  * @param composer_type The type of composer we are using
- * @return std::shared_ptr<waffle::proving_key>
+ * @return std::shared_ptr<bonk::proving_key>
  */
 template <typename CircuitConstructor>
-std::shared_ptr<waffle::proving_key> initialize_proving_key(const CircuitConstructor& circuit_constructor,
-                                                            waffle::ReferenceStringFactory* crs_factory,
-                                                            const size_t minimum_circuit_size,
-                                                            const size_t num_randomized_gates,
-                                                            waffle::ComposerType composer_type);
+std::shared_ptr<bonk::proving_key> initialize_proving_key(const CircuitConstructor& circuit_constructor,
+                                                          bonk::ReferenceStringFactory* crs_factory,
+                                                          const size_t minimum_circuit_size,
+                                                          const size_t num_randomized_gates,
+                                                          plonk::ComposerType composer_type);
 
 /**
  * @brief Construct lagrange selector polynomials from ciruit selector information and put into polynomial cache
@@ -34,7 +34,7 @@ std::shared_ptr<waffle::proving_key> initialize_proving_key(const CircuitConstru
  * @param key Pointer to the proving key
  */
 template <typename CircuitConstructor>
-void put_selectors_in_polynomial_cache(const CircuitConstructor& circuit_constructor, waffle::proving_key* key);
+void put_selectors_in_polynomial_cache(const CircuitConstructor& circuit_constructor, bonk::proving_key* key);
 
 /**
  * @brief Retrieve lagrange forms of selector polynomials and compute monomial and coset-monomial forms and put into
@@ -43,7 +43,7 @@ void put_selectors_in_polynomial_cache(const CircuitConstructor& circuit_constru
  * @param key Pointer to the proving key
  * @param selector_properties Names of selectors
  */
-void compute_monomial_selector_forms_and_put_into_cache(waffle::proving_key* key,
+void compute_monomial_selector_forms_and_put_into_cache(bonk::proving_key* key,
                                                         std::vector<SelectorProperties> selector_properties);
 
 /**
@@ -59,15 +59,14 @@ template <typename CircuitConstructor>
 void compute_witness_base_common(const CircuitConstructor& circuit_constructor,
                                  const size_t minimum_circuit_size,
                                  const size_t number_of_randomized_gates,
-                                 waffle::proving_key* circuit_proving_key);
+                                 bonk::proving_key* circuit_proving_key);
 
 /**
  * @brief Computes the verification key by computing the:
  * (1) commitments to the selector, permutation, and lagrange (first/last) polynomials,
  * (2) sets the polynomial manifest using the data from proving key.
  */
-std::shared_ptr<waffle::verification_key> compute_verification_key_base_common(
-    std::shared_ptr<waffle::proving_key> const& proving_key,
-    std::shared_ptr<waffle::VerifierReferenceString> const& vrs);
+std::shared_ptr<bonk::verification_key> compute_verification_key_base_common(
+    std::shared_ptr<bonk::proving_key> const& proving_key, std::shared_ptr<bonk::VerifierReferenceString> const& vrs);
 
-} // namespace honk
+} // namespace bonk

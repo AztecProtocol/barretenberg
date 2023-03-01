@@ -11,7 +11,7 @@
 #include <cstdint>
 #include <string>
 
-namespace honk {
+namespace bonk {
 
 /**
  * Compute proving key base.
@@ -28,14 +28,14 @@ namespace honk {
  * @return Pointer to the initialized proving key updated with selector polynomials.
  * */
 template <typename CircuitConstructor>
-std::shared_ptr<waffle::proving_key> StandardPlonkComposerHelper<CircuitConstructor>::compute_proving_key_base(
+std::shared_ptr<bonk::proving_key> StandardPlonkComposerHelper<CircuitConstructor>::compute_proving_key_base(
     const CircuitConstructor& constructor, const size_t minimum_circuit_size, const size_t num_randomized_gates)
 {
 
     // Initialize circuit_proving_key
     // TODO: replace composer types.
     circuit_proving_key = initialize_proving_key(
-        constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, waffle::ComposerType::STANDARD);
+        constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, plonk::ComposerType::STANDARD);
     // Compute lagrange selectors
     put_selectors_in_polynomial_cache(constructor, circuit_proving_key.get());
     // Compute selectors in monomial form
@@ -51,9 +51,8 @@ std::shared_ptr<waffle::proving_key> StandardPlonkComposerHelper<CircuitConstruc
  */
 
 template <typename CircuitConstructor>
-std::shared_ptr<waffle::verification_key> StandardPlonkComposerHelper<
-    CircuitConstructor>::compute_verification_key_base(std::shared_ptr<waffle::proving_key> const& proving_key,
-                                                       std::shared_ptr<waffle::VerifierReferenceString> const& vrs)
+std::shared_ptr<bonk::verification_key> StandardPlonkComposerHelper<CircuitConstructor>::compute_verification_key_base(
+    std::shared_ptr<bonk::proving_key> const& proving_key, std::shared_ptr<bonk::VerifierReferenceString> const& vrs)
 {
 
     return compute_verification_key_base_common(proving_key, vrs);
@@ -90,18 +89,18 @@ void StandardPlonkComposerHelper<CircuitConstructor>::compute_witness_base(
  * */
 
 template <typename CircuitConstructor>
-std::shared_ptr<waffle::proving_key> StandardPlonkComposerHelper<CircuitConstructor>::compute_proving_key(
+std::shared_ptr<bonk::proving_key> StandardPlonkComposerHelper<CircuitConstructor>::compute_proving_key(
     const CircuitConstructor& circuit_constructor)
 {
     if (circuit_proving_key) {
         return circuit_proving_key;
     }
     // Compute q_l, q_r, q_o, etc polynomials
-    StandardPlonkComposerHelper::compute_proving_key_base(circuit_constructor, waffle::ComposerType::STANDARD_HONK);
+    StandardPlonkComposerHelper::compute_proving_key_base(circuit_constructor, plonk::ComposerType::STANDARD_HONK);
 
     // Compute sigma polynomials (we should update that late)
-    compute_standard_plonk_sigma_permutations<CircuitConstructor::program_width>(circuit_constructor,
-                                                                                 circuit_proving_key.get());
+    bonk::compute_standard_plonk_sigma_permutations<CircuitConstructor::program_width>(circuit_constructor,
+                                                                                       circuit_proving_key.get());
 
     circuit_proving_key->recursive_proof_public_input_indices =
         std::vector<uint32_t>(recursive_proof_public_input_indices.begin(), recursive_proof_public_input_indices.end());
@@ -116,7 +115,7 @@ std::shared_ptr<waffle::proving_key> StandardPlonkComposerHelper<CircuitConstruc
  * @return Pointer to created circuit verification key.
  * */
 template <typename CircuitConstructor>
-std::shared_ptr<waffle::verification_key> StandardPlonkComposerHelper<CircuitConstructor>::compute_verification_key(
+std::shared_ptr<bonk::verification_key> StandardPlonkComposerHelper<CircuitConstructor>::compute_verification_key(
     const CircuitConstructor& circuit_constructor)
 {
     if (circuit_verification_key) {
@@ -144,15 +143,15 @@ std::shared_ptr<waffle::verification_key> StandardPlonkComposerHelper<CircuitCon
  * */
 // TODO(Cody): This should go away altogether.
 template <typename CircuitConstructor>
-waffle::Verifier StandardPlonkComposerHelper<CircuitConstructor>::create_verifier(
+plonk::Verifier StandardPlonkComposerHelper<CircuitConstructor>::create_verifier(
     const CircuitConstructor& circuit_constructor)
 {
     auto verification_key = compute_verification_key(circuit_constructor);
 
-    waffle::Verifier output_state(circuit_verification_key, create_manifest(circuit_constructor.public_inputs.size()));
+    plonk::Verifier output_state(circuit_verification_key, create_manifest(circuit_constructor.public_inputs.size()));
 
-    std::unique_ptr<waffle::KateCommitmentScheme<waffle::standard_settings>> kate_commitment_scheme =
-        std::make_unique<waffle::KateCommitmentScheme<waffle::standard_settings>>();
+    std::unique_ptr<plonk::KateCommitmentScheme<plonk::standard_settings>> kate_commitment_scheme =
+        std::make_unique<plonk::KateCommitmentScheme<plonk::standard_settings>>();
 
     output_state.commitment_scheme = std::move(kate_commitment_scheme);
 
@@ -160,15 +159,15 @@ waffle::Verifier StandardPlonkComposerHelper<CircuitConstructor>::create_verifie
 }
 
 template <typename CircuitConstructor>
-waffle::UnrolledVerifier StandardPlonkComposerHelper<CircuitConstructor>::create_unrolled_verifier(
+plonk::UnrolledVerifier StandardPlonkComposerHelper<CircuitConstructor>::create_unrolled_verifier(
     const CircuitConstructor& circuit_constructor)
 {
     compute_verification_key(circuit_constructor);
-    waffle::UnrolledVerifier output_state(circuit_verification_key,
-                                          create_unrolled_manifest(circuit_constructor.public_inputs.size()));
+    plonk::UnrolledVerifier output_state(circuit_verification_key,
+                                         create_unrolled_manifest(circuit_constructor.public_inputs.size()));
 
-    std::unique_ptr<waffle::KateCommitmentScheme<waffle::unrolled_standard_settings>> kate_commitment_scheme =
-        std::make_unique<waffle::KateCommitmentScheme<waffle::unrolled_standard_settings>>();
+    std::unique_ptr<plonk::KateCommitmentScheme<plonk::unrolled_standard_settings>> kate_commitment_scheme =
+        std::make_unique<plonk::KateCommitmentScheme<plonk::unrolled_standard_settings>>();
 
     output_state.commitment_scheme = std::move(kate_commitment_scheme);
 
@@ -176,27 +175,26 @@ waffle::UnrolledVerifier StandardPlonkComposerHelper<CircuitConstructor>::create
 }
 
 template <typename CircuitConstructor>
-template <typename Flavor>
 // TODO(Cody): this file should be generic with regard to flavor/arithmetization/whatever.
-waffle::UnrolledProver StandardPlonkComposerHelper<CircuitConstructor>::create_unrolled_prover(
+plonk::UnrolledProver StandardPlonkComposerHelper<CircuitConstructor>::create_unrolled_prover(
     const CircuitConstructor& circuit_constructor)
 {
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
 
-    waffle::UnrolledProver output_state(circuit_proving_key,
-                                        create_unrolled_manifest(circuit_constructor.public_inputs.size()));
+    plonk::UnrolledProver output_state(circuit_proving_key,
+                                       create_unrolled_manifest(circuit_constructor.public_inputs.size()));
 
-    std::unique_ptr<waffle::ProverPermutationWidget<3, false>> permutation_widget =
-        std::make_unique<waffle::ProverPermutationWidget<3, false>>(circuit_proving_key.get());
-    std::unique_ptr<waffle::ProverArithmeticWidget<waffle::unrolled_standard_settings>> arithmetic_widget =
-        std::make_unique<waffle::ProverArithmeticWidget<waffle::unrolled_standard_settings>>(circuit_proving_key.get());
+    std::unique_ptr<plonk::ProverPermutationWidget<3, false>> permutation_widget =
+        std::make_unique<plonk::ProverPermutationWidget<3, false>>(circuit_proving_key.get());
+    std::unique_ptr<plonk::ProverArithmeticWidget<plonk::unrolled_standard_settings>> arithmetic_widget =
+        std::make_unique<plonk::ProverArithmeticWidget<plonk::unrolled_standard_settings>>(circuit_proving_key.get());
 
     output_state.random_widgets.emplace_back(std::move(permutation_widget));
     output_state.transition_widgets.emplace_back(std::move(arithmetic_widget));
 
-    std::unique_ptr<waffle::KateCommitmentScheme<waffle::unrolled_standard_settings>> kate_commitment_scheme =
-        std::make_unique<waffle::KateCommitmentScheme<waffle::unrolled_standard_settings>>();
+    std::unique_ptr<plonk::KateCommitmentScheme<plonk::unrolled_standard_settings>> kate_commitment_scheme =
+        std::make_unique<plonk::KateCommitmentScheme<plonk::unrolled_standard_settings>>();
 
     output_state.commitment_scheme = std::move(kate_commitment_scheme);
 
@@ -212,7 +210,7 @@ waffle::UnrolledProver StandardPlonkComposerHelper<CircuitConstructor>::create_u
  * @return Initialized prover.
  * */
 template <typename CircuitConstructor>
-waffle::Prover StandardPlonkComposerHelper<CircuitConstructor>::create_prover(
+plonk::Prover StandardPlonkComposerHelper<CircuitConstructor>::create_prover(
     const CircuitConstructor& circuit_constructor)
 {
     // Compute q_l, etc. and sigma polynomials.
@@ -221,19 +219,19 @@ waffle::Prover StandardPlonkComposerHelper<CircuitConstructor>::create_prover(
     // Compute witness polynomials.
     compute_witness(circuit_constructor);
 
-    waffle::Prover output_state(circuit_proving_key, create_manifest(circuit_constructor.public_inputs.size()));
+    plonk::Prover output_state(circuit_proving_key, create_manifest(circuit_constructor.public_inputs.size()));
 
-    std::unique_ptr<waffle::ProverPermutationWidget<3, false>> permutation_widget =
-        std::make_unique<waffle::ProverPermutationWidget<3, false>>(circuit_proving_key.get());
+    std::unique_ptr<plonk::ProverPermutationWidget<3, false>> permutation_widget =
+        std::make_unique<plonk::ProverPermutationWidget<3, false>>(circuit_proving_key.get());
 
-    std::unique_ptr<waffle::ProverArithmeticWidget<waffle::standard_settings>> arithmetic_widget =
-        std::make_unique<waffle::ProverArithmeticWidget<waffle::standard_settings>>(circuit_proving_key.get());
+    std::unique_ptr<plonk::ProverArithmeticWidget<plonk::standard_settings>> arithmetic_widget =
+        std::make_unique<plonk::ProverArithmeticWidget<plonk::standard_settings>>(circuit_proving_key.get());
 
     output_state.random_widgets.emplace_back(std::move(permutation_widget));
     output_state.transition_widgets.emplace_back(std::move(arithmetic_widget));
 
-    std::unique_ptr<waffle::KateCommitmentScheme<waffle::standard_settings>> kate_commitment_scheme =
-        std::make_unique<waffle::KateCommitmentScheme<waffle::standard_settings>>();
+    std::unique_ptr<plonk::KateCommitmentScheme<plonk::standard_settings>> kate_commitment_scheme =
+        std::make_unique<plonk::KateCommitmentScheme<plonk::standard_settings>>();
 
     output_state.commitment_scheme = std::move(kate_commitment_scheme);
 
@@ -241,6 +239,4 @@ waffle::Prover StandardPlonkComposerHelper<CircuitConstructor>::create_prover(
 }
 
 template class StandardPlonkComposerHelper<StandardCircuitConstructor>;
-template waffle::UnrolledProver StandardPlonkComposerHelper<StandardCircuitConstructor>::create_unrolled_prover<
-    StandardHonk>(const StandardCircuitConstructor& circuit_constructor);
-} // namespace honk
+} // namespace bonk

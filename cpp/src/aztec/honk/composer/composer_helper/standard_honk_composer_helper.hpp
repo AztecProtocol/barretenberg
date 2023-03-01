@@ -29,18 +29,17 @@ template <typename CircuitConstructor> class StandardHonkComposerHelper {
     std::shared_ptr<bonk::ReferenceStringFactory> crs_factory_;
     bool computed_witness = false;
     StandardHonkComposerHelper()
-        : StandardHonkComposerHelper(std::shared_ptr<waffle::ReferenceStringFactory>(
-              new waffle::FileReferenceStringFactory("../srs_db/ignition")))
+        : StandardHonkComposerHelper(
+              std::shared_ptr<bonk::ReferenceStringFactory>(new bonk::FileReferenceStringFactory("../srs_db/ignition")))
     {}
-    StandardHonkComposerHelper(std::shared_ptr<waffle::ReferenceStringFactory> crs_factory)
+    StandardHonkComposerHelper(std::shared_ptr<bonk::ReferenceStringFactory> crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
 
-    StandardHonkComposerHelper(std::unique_ptr<waffle::ReferenceStringFactory>&& crs_factory)
+    StandardHonkComposerHelper(std::unique_ptr<bonk::ReferenceStringFactory>&& crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
-    StandardHonkComposerHelper(std::shared_ptr<waffle::proving_key> p_key,
-                               std::shared_ptr<waffle::verification_key> v_key)
+    StandardHonkComposerHelper(std::shared_ptr<bonk::proving_key> p_key, std::shared_ptr<bonk::verification_key> v_key)
         : circuit_proving_key(std::move(p_key))
         , circuit_verification_key(std::move(v_key))
     {}
