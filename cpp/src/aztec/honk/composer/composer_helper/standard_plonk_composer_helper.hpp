@@ -89,9 +89,6 @@ template <typename CircuitConstructor> class StandardPlonkComposerHelper {
     };
     plonk::Prover create_prover(const CircuitConstructor& circuit_constructor);
 
-    plonk::UnrolledVerifier create_unrolled_verifier(const CircuitConstructor& circuit_constructor);
-
-    plonk::UnrolledProver create_unrolled_prover(const CircuitConstructor& circuit_constructor);
     // TODO(Adrian): Seems error prone to provide the number of randomized gates
     // Cody: Where should this go? In the flavor (or whatever that becomes)?
     std::shared_ptr<bonk::proving_key> compute_proving_key_base(
@@ -113,50 +110,6 @@ template <typename CircuitConstructor> class StandardPlonkComposerHelper {
      * @return Constructed manifest.
      * */
     static transcript::Manifest create_manifest(const size_t num_public_inputs)
-    {
-        // add public inputs....
-        constexpr size_t g1_size = 64;
-        constexpr size_t fr_size = 32;
-        const size_t public_input_size = fr_size * num_public_inputs;
-        const transcript::Manifest output = transcript::Manifest(
-
-            { transcript::Manifest::RoundManifest(
-                  { { "circuit_size", 4, true }, { "public_input_size", 4, true } }, "init", 1),
-
-              transcript::Manifest::RoundManifest({}, "eta", 0),
-
-              transcript::Manifest::RoundManifest(
-                  {
-                      { "public_inputs", public_input_size, false },
-                      { "W_1", g1_size, false },
-                      { "W_2", g1_size, false },
-                      { "W_3", g1_size, false },
-                  },
-                  "beta",
-                  2),
-              transcript::Manifest::RoundManifest({ { "Z_PERM", g1_size, false } }, "alpha", 1),
-              transcript::Manifest::RoundManifest(
-                  { { "T_1", g1_size, false }, { "T_2", g1_size, false }, { "T_3", g1_size, false } }, "z", 1),
-
-              transcript::Manifest::RoundManifest(
-                  {
-                      { "w_1", fr_size, false, 0 },
-                      { "w_2", fr_size, false, 1 },
-                      { "w_3", fr_size, false, 2 },
-                      { "sigma_1", fr_size, false, 3 },
-                      { "sigma_2", fr_size, false, 4 },
-                      { "z_perm_omega", fr_size, false, -1 },
-                  },
-                  "nu",
-                  bonk::STANDARD_UNROLLED_MANIFEST_SIZE - 6,
-                  true),
-
-              transcript::Manifest::RoundManifest(
-                  { { "PI_Z", g1_size, false }, { "PI_Z_OMEGA", g1_size, false } }, "separator", 1) });
-        return output;
-    }
-
-    static transcript::Manifest create_unrolled_manifest(const size_t num_public_inputs)
     {
         constexpr size_t g1_size = 64;
         constexpr size_t fr_size = 32;
@@ -225,7 +178,7 @@ template <typename CircuitConstructor> class StandardPlonkComposerHelper {
                     { .name = "z_perm_omega", .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = -1 },
                 },
                 /* challenge_name = */ "nu",
-                /* num_challenges_in = */ bonk::STANDARD_UNROLLED_MANIFEST_SIZE,
+                /* num_challenges_in = */ STANDARD_MANIFEST_SIZE,
                 /* map_challenges_in = */ true),
 
               // Round 6

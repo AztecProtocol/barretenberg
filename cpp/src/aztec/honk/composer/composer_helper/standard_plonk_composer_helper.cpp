@@ -163,48 +163,6 @@ plonk::Verifier StandardPlonkComposerHelper<CircuitConstructor>::create_verifier
     return output_state;
 }
 
-template <typename CircuitConstructor>
-plonk::UnrolledVerifier StandardPlonkComposerHelper<CircuitConstructor>::create_unrolled_verifier(
-    const CircuitConstructor& circuit_constructor)
-{
-    compute_verification_key(circuit_constructor);
-    plonk::UnrolledVerifier output_state(circuit_verification_key,
-                                         create_unrolled_manifest(circuit_constructor.public_inputs.size()));
-
-    std::unique_ptr<plonk::KateCommitmentScheme<plonk::unrolled_standard_settings>> kate_commitment_scheme =
-        std::make_unique<plonk::KateCommitmentScheme<plonk::unrolled_standard_settings>>();
-
-    output_state.commitment_scheme = std::move(kate_commitment_scheme);
-
-    return output_state;
-}
-
-template <typename CircuitConstructor>
-// TODO(Cody): this file should be generic with regard to flavor/arithmetization/whatever.
-plonk::UnrolledProver StandardPlonkComposerHelper<CircuitConstructor>::create_unrolled_prover(
-    const CircuitConstructor& circuit_constructor)
-{
-    compute_proving_key(circuit_constructor);
-    compute_witness(circuit_constructor);
-
-    plonk::UnrolledProver output_state(circuit_proving_key,
-                                       create_unrolled_manifest(circuit_constructor.public_inputs.size()));
-
-    std::unique_ptr<plonk::ProverPermutationWidget<3, false>> permutation_widget =
-        std::make_unique<plonk::ProverPermutationWidget<3, false>>(circuit_proving_key.get());
-    std::unique_ptr<plonk::ProverArithmeticWidget<plonk::unrolled_standard_settings>> arithmetic_widget =
-        std::make_unique<plonk::ProverArithmeticWidget<plonk::unrolled_standard_settings>>(circuit_proving_key.get());
-
-    output_state.random_widgets.emplace_back(std::move(permutation_widget));
-    output_state.transition_widgets.emplace_back(std::move(arithmetic_widget));
-
-    std::unique_ptr<plonk::KateCommitmentScheme<plonk::unrolled_standard_settings>> kate_commitment_scheme =
-        std::make_unique<plonk::KateCommitmentScheme<plonk::unrolled_standard_settings>>();
-
-    output_state.commitment_scheme = std::move(kate_commitment_scheme);
-
-    return output_state;
-}
 /**
  * Create prover.
  *  1. Compute the starting polynomials (q_l, etc, sigma, witness polynomials).

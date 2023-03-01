@@ -202,24 +202,12 @@ class StandardPlonkComposer {
      */
     plonk::Prover preprocess() { return composer_helper.create_prover(circuit_constructor); };
     plonk::Prover create_prover() { return composer_helper.create_prover(circuit_constructor); };
-    plonk::UnrolledVerifier create_unrolled_verifier()
-    {
-        return composer_helper.create_unrolled_verifier(circuit_constructor);
-    }
-    plonk::UnrolledProver create_unrolled_prover()
-    {
-        return composer_helper.create_unrolled_prover(circuit_constructor);
-    };
 
     static transcript::Manifest create_manifest(const size_t num_public_inputs)
     {
         return StandardPlonkComposerHelper<StandardCircuitConstructor>::create_manifest(num_public_inputs);
     }
 
-    static transcript::Manifest create_unrolled_manifest(const size_t num_public_inputs)
-    {
-        return StandardPlonkComposerHelper<StandardCircuitConstructor>::create_unrolled_manifest(num_public_inputs);
-    }
     size_t& num_gates;
     std::vector<barretenberg::fr>& variables;
     bool failed() const { return circuit_constructor.failed(); };

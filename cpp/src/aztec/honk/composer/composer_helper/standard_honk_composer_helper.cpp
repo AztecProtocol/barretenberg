@@ -145,7 +145,8 @@ std::shared_ptr<bonk::verification_key> StandardHonkComposerHelper<CircuitConstr
 }
 
 template <typename CircuitConstructor>
-StandardVerifier ComposerHelper<CircuitConstructor>::create_verifier(const CircuitConstructor& circuit_constructor)
+StandardVerifier StandardHonkComposerHelper<CircuitConstructor>::create_verifier(
+    const CircuitConstructor& circuit_constructor)
 {
     compute_verification_key(circuit_constructor);
     StandardVerifier output_state(
@@ -164,7 +165,8 @@ StandardVerifier ComposerHelper<CircuitConstructor>::create_verifier(const Circu
 template <typename CircuitConstructor>
 template <typename Flavor>
 // TODO(Cody): this file should be generic with regard to flavor/arithmetization/whatever.
-StandardProver ComposerHelper<CircuitConstructor>::create_prover(const CircuitConstructor& circuit_constructor)
+StandardProver StandardHonkComposerHelper<CircuitConstructor>::create_prover(
+    const CircuitConstructor& circuit_constructor)
 {
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
@@ -181,7 +183,7 @@ StandardProver ComposerHelper<CircuitConstructor>::create_prover(const CircuitCo
 
     return output_state;
 }
-template class ComposerHelper<StandardCircuitConstructor>;
-template StandardProver ComposerHelper<StandardCircuitConstructor>::create_prover<StandardHonk>(
+template class StandardHonkComposerHelper<StandardCircuitConstructor>;
+template StandardProver StandardHonkComposerHelper<StandardCircuitConstructor>::create_prover<StandardHonk>(
     const StandardCircuitConstructor& circuit_constructor);
 } // namespace honk
