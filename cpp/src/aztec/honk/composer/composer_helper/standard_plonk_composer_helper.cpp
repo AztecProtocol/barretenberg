@@ -75,9 +75,14 @@ void StandardPlonkComposerHelper<CircuitConstructor>::compute_witness_base(
     if (computed_witness) {
         return;
     }
-    compute_witness_base_common(
-        circuit_constructor, minimum_circuit_size, NUM_RANDOMIZED_GATES, circuit_proving_key.get());
+    auto wire_polynomial_evaluations =
+        compute_witness_base_common(circuit_constructor, minimum_circuit_size, NUM_RANDOMIZED_GATES);
 
+    for (size_t j = 0; j < program_width; ++j) {
+        std::string index = std::to_string(j + 1);
+        circuit_proving_key->polynomial_cache.put("w_" + index + "_lagrange",
+                                                  std::move(wire_polynomial_evaluations[j]));
+    }
     computed_witness = true;
 }
 

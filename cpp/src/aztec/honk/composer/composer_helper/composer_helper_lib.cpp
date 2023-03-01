@@ -111,10 +111,9 @@ void compute_monomial_selector_forms_and_put_into_cache(bonk::proving_key* circu
  * @tparam Program settings needed to establish if w_4 is being used.
  * */
 template <typename CircuitConstructor>
-void compute_witness_base_common(const CircuitConstructor& circuit_constructor,
-                                 const size_t minimum_circuit_size,
-                                 const size_t number_of_randomized_gates,
-                                 bonk::proving_key* circuit_proving_key)
+std::vector<barretenberg::polynomial> compute_witness_base_common(const CircuitConstructor& circuit_constructor,
+                                                                  const size_t minimum_circuit_size,
+                                                                  const size_t number_of_randomized_gates)
 {
     const size_t program_width = CircuitConstructor::program_width;
     const size_t num_gates = circuit_constructor.num_gates;
@@ -138,7 +137,7 @@ void compute_witness_base_common(const CircuitConstructor& circuit_constructor,
     if constexpr (program_width > 3) {
         w[3] = circuit_constructor.w_4;
     }
-
+    std::vector<barretenberg::polynomial> wires;
     // Note: randomness is added to 3 of the last 4 positions in plonk/proof_system/prover/prover.cpp
     // StandardProverBase::execute_preamble_round().
     for (size_t j = 0; j < program_width; ++j) {
@@ -159,9 +158,9 @@ void compute_witness_base_common(const CircuitConstructor& circuit_constructor,
         for (size_t i = 0; i < num_gates; ++i) {
             w_lagrange[num_public_inputs + i] = circuit_constructor.get_variable(w[j][i]);
         }
-        std::string index = std::to_string(j + 1);
-        circuit_proving_key->polynomial_cache.put("w_" + index + "_lagrange", std::move(w_lagrange));
+        wires.push_back(std::move(w_lagrange));
     }
+    return wires;
 }
 
 /**
@@ -205,10 +204,7 @@ template std::shared_ptr<bonk::proving_key> initialize_proving_key<StandardCircu
     const StandardCircuitConstructor&, bonk::ReferenceStringFactory*, const size_t, const size_t, plonk::ComposerType);
 template void put_selectors_in_polynomial_cache<StandardCircuitConstructor>(const StandardCircuitConstructor&,
                                                                             bonk::proving_key*);
-template void compute_witness_base_common<StandardCircuitConstructor>(const StandardCircuitConstructor&,
-                                                                      const size_t,
-
-                                                                      const size_t,
-                                                                      bonk::proving_key*);
+template std::vector<barretenberg::polynomial> compute_witness_base_common<StandardCircuitConstructor>(
+    const StandardCircuitConstructor&, const size_t, const size_t);
 
 } // namespace bonk

@@ -69,8 +69,7 @@ void StandardHonkComposerHelper<CircuitConstructor>::compute_witness_base(const 
     if (computed_witness) {
         return;
     }
-    compute_witness_base_common(
-        circuit_constructor, minimum_circuit_size, NUM_RANDOMIZED_GATES, circuit_proving_key.get());
+    wire_polynomials = compute_witness_base_common(circuit_constructor, minimum_circuit_size, NUM_RANDOMIZED_GATES);
 
     computed_witness = true;
 }

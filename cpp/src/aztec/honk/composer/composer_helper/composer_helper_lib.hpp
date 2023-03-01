@@ -56,10 +56,9 @@ void compute_monomial_selector_forms_and_put_into_cache(bonk::proving_key* key,
  * @tparam Program settings needed to establish if w_4 is being used.
  * */
 template <typename CircuitConstructor>
-void compute_witness_base_common(const CircuitConstructor& circuit_constructor,
-                                 const size_t minimum_circuit_size,
-                                 const size_t number_of_randomized_gates,
-                                 bonk::proving_key* circuit_proving_key);
+std::vector<barretenberg::polynomial> compute_witness_base_common(const CircuitConstructor& circuit_constructor,
+                                                                  const size_t minimum_circuit_size,
+                                                                  const size_t number_of_randomized_gates);
 
 /**
  * @brief Computes the verification key by computing the:
