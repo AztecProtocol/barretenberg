@@ -3,6 +3,7 @@
 #include "../composers/composers_fwd.hpp"
 #include "../field/field.hpp"
 #include "../safe_uint/safe_uint.hpp"
+#include "honk/composer/standard_honk_composer.hpp"
 namespace plonk {
 namespace stdlib {
 
@@ -10,7 +11,7 @@ template <typename ComposerContext> class byte_array {
   public:
     typedef std::vector<field_t<ComposerContext>> bytes_t;
 
-    byte_array(ComposerContext* parent_context);
+    byte_array(ComposerContext* parent_context = nullptr);
     byte_array(ComposerContext* parent_context, size_t const n);
     byte_array(ComposerContext* parent_context, std::string const& input);
     byte_array(ComposerContext* parent_context, std::vector<uint8_t> const& input);
@@ -37,7 +38,14 @@ template <typename ComposerContext> class byte_array {
 
     explicit operator field_t<ComposerContext>() const;
 
+    field_t<ComposerContext> operator[](const size_t index) const
+    {
+        assert(values.size() > 0);
+        return values[index];
+    }
+
     byte_array& write(byte_array const& other);
+    byte_array& write_at(byte_array const& other, size_t index);
 
     byte_array slice(size_t offset) const;
     byte_array slice(size_t offset, size_t length) const;
@@ -50,6 +58,18 @@ template <typename ComposerContext> class byte_array {
     bool_t<ComposerContext> get_bit(size_t index) const;
 
     void set_bit(size_t index, bool_t<ComposerContext> const& value);
+
+    void set_byte(size_t index, const field_t<ComposerContext>& byte_val)
+    {
+        ASSERT(index < values.size());
+        values[index] = byte_val;
+    }
+
+    void set_context(ComposerContext* ctx)
+    {
+        ASSERT(context == nullptr);
+        context = ctx;
+    }
 
     ComposerContext* get_context() const { return context; }
 
@@ -83,6 +103,7 @@ inline std::ostream& operator<<(std::ostream& os, byte_array<ComposerContext> co
 }
 
 EXTERN_STDLIB_TYPE(byte_array);
+extern template class byte_array<honk::StandardHonkComposer>;
 
 } // namespace stdlib
 } // namespace plonk

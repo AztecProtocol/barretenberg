@@ -1,5 +1,6 @@
 #pragma once
 #include <crypto/keccak/keccak.hpp>
+#include "./element.hpp"
 
 namespace barretenberg {
 namespace group_elements {
@@ -22,10 +23,8 @@ constexpr affine_element<Fq, Fr, T>::affine_element(affine_element&& other) noex
 {}
 
 template <class Fq, class Fr, class T>
-
 template <typename BaseField, typename CompileTimeEnabled>
-constexpr std::pair<bool, affine_element<Fq, Fr, T>> affine_element<Fq, Fr, T>::deserialize(
-    const uint256_t& compressed) noexcept
+constexpr affine_element<Fq, Fr, T> affine_element<Fq, Fr, T>::from_compressed(const uint256_t& compressed) noexcept
 {
     uint256_t x_coordinate = compressed;
     x_coordinate.data[3] = x_coordinate.data[3] & (~0x8000000000000000ULL);
@@ -38,12 +37,20 @@ constexpr std::pair<bool, affine_element<Fq, Fr, T>> affine_element<Fq, Fr, T>::
     }
     auto [is_quadratic_remainder, y] = y2.sqrt();
     if (!is_quadratic_remainder) {
-        return std::make_pair(false, affine_element(Fq::zero(), Fq::zero()));
+        return affine_element(Fq::zero(), Fq::zero());
     }
     if (uint256_t(y).get_bit(0) != y_bit) {
         y = -y;
     }
-    return std::make_pair(true, affine_element(x, y));
+
+    return affine_element<Fq, Fr, T>(x, y);
+}
+
+template <class Fq, class Fr, class T>
+constexpr affine_element<Fq, Fr, T> affine_element<Fq, Fr, T>::operator+(
+    const affine_element<Fq, Fr, T>& other) const noexcept
+{
+    return affine_element(element<Fq, Fr, T>(*this) + element<Fq, Fr, T>(other));
 }
 
 template <class Fq, class Fr, class T>
@@ -61,16 +68,24 @@ constexpr affine_element<Fq, Fr, T>& affine_element<Fq, Fr, T>::operator=(affine
     y = other.y;
     return *this;
 }
+
 template <class Fq, class Fr, class T>
 template <typename BaseField, typename CompileTimeEnabled>
 
-constexpr affine_element<Fq, Fr, T>::operator uint256_t() const noexcept
+constexpr uint256_t affine_element<Fq, Fr, T>::compress() const noexcept
 {
     uint256_t out(x);
-    if (y.from_montgomery_form().get_bit(0)) {
+    if (uint256_t(y).get_bit(0)) {
         out.data[3] = out.data[3] | 0x8000000000000000ULL;
     }
     return out;
+}
+
+template <class Fq, class Fr, class T> affine_element<Fq, Fr, T> affine_element<Fq, Fr, T>::infinity()
+{
+    affine_element e;
+    e.self_set_infinity();
+    return e;
 }
 
 template <class Fq, class Fr, class T>
@@ -154,15 +169,38 @@ constexpr bool affine_element<Fq, Fr, T>::operator>(const affine_element& other)
 }
 
 template <class Fq, class Fr, class T>
-template <typename BaseField, typename CompileTimeEnabled>
-std::pair<bool, affine_element<Fq, Fr, T>> affine_element<Fq, Fr, T>::hash_to_curve(const uint64_t seed) noexcept
+affine_element<Fq, Fr, T> affine_element<Fq, Fr, T>::hash_to_curve(const uint64_t seed) noexcept
 {
     static_assert(T::can_hash_to_curve == true);
 
     Fq input(seed, 0, 0, 0);
     keccak256 c = hash_field_element((uint64_t*)&input.data[0]);
-    uint256_t compressed{ c.word64s[0], c.word64s[1], c.word64s[2], c.word64s[3] };
-    return deserialize(compressed);
+    uint256_t hash{ c.word64s[0], c.word64s[1], c.word64s[2], c.word64s[3] };
+
+    uint256_t x_coordinate = hash;
+
+    if constexpr (Fq::modulus.data[3] < 0x8000000000000000ULL) {
+        x_coordinate.data[3] = x_coordinate.data[3] & (~0x8000000000000000ULL);
+    }
+
+    bool y_bit = hash.get_bit(255);
+
+    Fq x_out = Fq(x_coordinate);
+    Fq y_out = (x_out.sqr() * x_out + T::b);
+    if constexpr (T::has_a) {
+        y_out += (x_out * T::a);
+    }
+
+    // When the sqrt of y_out doesn't exist, return 0.
+    auto [is_quadratic_remainder, y_out_] = y_out.sqrt();
+    if (!is_quadratic_remainder) {
+        return affine_element(Fq::zero(), Fq::zero());
+    }
+    if (uint256_t(y_out_).get_bit(0) != y_bit) {
+        y_out_ = -y_out_;
+    }
+
+    return affine_element<Fq, Fr, T>(x_out, y_out_);
 }
 } // namespace group_elements
 } // namespace barretenberg

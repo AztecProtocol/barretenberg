@@ -1,19 +1,26 @@
-#include "../../types/turbo.hpp"
+#include "../../types/types.hpp"
+#include "honk/composer/standard_honk_composer.hpp"
+#include "stdlib/primitives/witness/witness.hpp"
 #include <common/test.hpp>
 #include <numeric/random/engine.hpp>
 
 using namespace barretenberg;
-using namespace plonk::stdlib::types::turbo;
-
+// using namespace plonk::stdlib::types;
+namespace stdlib_group_tests {
 namespace {
 auto& engine = numeric::random::get_debug_engine();
 }
+
+using Composer = honk::StandardHonkComposer;
+using witness_ct = plonk::stdlib::witness_t<Composer>;
+using field_ct = plonk::stdlib::field_t<Composer>;
+using group_ct = plonk::stdlib::group<Composer>;
 
 TEST(stdlib_group, test_fixed_base_scalar_mul)
 {
     auto scalar = uint256_t(123, 0, 0, 0);
     auto priv_key = grumpkin::fr(scalar);
-    auto pub_key = crypto::pedersen::get_generator_data(crypto::pedersen::DEFAULT_GEN_1).generator * priv_key;
+    auto pub_key = crypto::generators::get_generator_data(crypto::generators::DEFAULT_GEN_1).generator * priv_key;
 
     Composer composer;
     auto priv_key_witness = field_ct(witness_ct(&composer, fr(scalar)));
@@ -23,7 +30,7 @@ TEST(stdlib_group, test_fixed_base_scalar_mul)
     EXPECT_EQ(result.x.get_value(), pub_key.x);
     EXPECT_EQ(result.y.get_value(), pub_key.y);
 
-    auto native_result = crypto::pedersen::fixed_base_scalar_mul<128>(barretenberg::fr(scalar), 0);
+    auto native_result = crypto::generators::fixed_base_scalar_mul<128>(barretenberg::fr(scalar), 0);
     EXPECT_EQ(native_result.x, pub_key.x);
     EXPECT_EQ(native_result.y, pub_key.y);
 
@@ -32,7 +39,7 @@ TEST(stdlib_group, test_fixed_base_scalar_mul)
     printf("composer gates = %zu\n", composer.get_num_gates());
     auto verifier = composer.create_verifier();
 
-    waffle::plonk_proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool proof_result = verifier.verify_proof(proof);
     EXPECT_EQ(proof_result, true);
@@ -51,11 +58,11 @@ TEST(stdlib_group, test_fixed_base_scalar_mul_zero_fails)
     printf("composer gates = %zu\n", composer.get_num_gates());
     auto verifier = composer.create_verifier();
 
-    waffle::plonk_proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool proof_result = verifier.verify_proof(proof);
     EXPECT_EQ(proof_result, false);
-    EXPECT_EQ(composer.err, "input scalar to fixed_base_scalar_mul_internal cannot be 0");
+    EXPECT_EQ(composer.err(), "input scalar to fixed_base_scalar_mul_internal cannot be 0");
 }
 
 TEST(stdlib_group, test_fixed_base_scalar_mul_with_two_limbs)
@@ -81,8 +88,9 @@ TEST(stdlib_group, test_fixed_base_scalar_mul_with_two_limbs)
     printf("composer gates = %zu\n", composer.get_num_gates());
     auto verifier = composer.create_verifier();
 
-    waffle::plonk_proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool proof_result = verifier.verify_proof(proof);
     EXPECT_EQ(proof_result, true);
 }
+} // namespace stdlib_group_tests

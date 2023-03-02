@@ -1,23 +1,25 @@
 #pragma once
 #include <map>
-#include <plonk/reference_string/reference_string.hpp>
+#include <srs/reference_string/reference_string.hpp>
 #include <polynomials/evaluation_domain.hpp>
 
-#include <plonk/proof_system/types/polynomial_manifest.hpp>
+#include <proof_system/types/polynomial_manifest.hpp>
 
-#include <plonk/proof_system/utils/linearizer.hpp>
 #include <plonk/proof_system/utils/kate_verification.hpp>
 #include <plonk/proof_system/public_inputs/public_inputs.hpp>
-#include <plonk/proof_system/utils/linearizer.hpp>
 
 #include <polynomials/polynomial_arithmetic.hpp>
 
 #include <ecc/curves/bn254/fq12.hpp>
 #include <ecc/curves/bn254/pairing.hpp>
-#include <crypto/pedersen/pedersen.hpp>
+#include <crypto/pedersen_commitment/pedersen.hpp>
+#include <crypto/pedersen_commitment/pedersen_lookup.hpp>
 
 #include "../../primitives/uint/uint.hpp"
-#include "../../hash/pedersen/pedersen.hpp"
+#include "../../primitives/memory/rom_table.hpp"
+#include "../../commitment/pedersen/pedersen.hpp"
+#include "../../commitment/pedersen/pedersen_plookup.hpp"
+#include "../../primitives/curves/bn254.hpp"
 
 namespace plonk {
 namespace stdlib {
@@ -52,21 +54,39 @@ template <typename Composer> struct evaluation_domain {
 
     field_t<Composer> compress() const
     {
-        field_t<Composer> out = pedersen<Composer>::compress({
-            root,
-            domain,
-            generator,
-        });
-        return out;
+        if constexpr (Composer::type == ComposerType::PLOOKUP) {
+            field_t<Composer> out = pedersen_plookup_commitment<Composer>::compress({
+                root,
+                domain,
+                generator,
+            });
+            return out;
+        } else {
+            field_t<Composer> out = pedersen_commitment<Composer>::compress({
+                root,
+                domain,
+                generator,
+            });
+            return out;
+        }
     }
 
     static barretenberg::fr compress_native(const barretenberg::evaluation_domain& input)
     {
-        barretenberg::fr out = crypto::pedersen::compress_native({
-            input.root,
-            input.domain,
-            input.generator,
-        });
+        barretenberg::fr out;
+        if constexpr (Composer::type == ComposerType::PLOOKUP) {
+            out = crypto::pedersen_commitment::lookup::compress_native({
+                input.root,
+                input.domain,
+                input.generator,
+            });
+        } else {
+            out = crypto::pedersen_commitment::compress_native({
+                input.root,
+                input.domain,
+                input.generator,
+            });
+        }
         return out;
     }
 
@@ -79,65 +99,90 @@ template <typename Composer> struct evaluation_domain {
     uint32<Composer> size;
 };
 
-// stdlib verification key
-// converts a verification key into a standard library type, instantiating the key's parameters
-// as circuit variables. This allows the recursive verifier to accept arbitrary verification keys,
-// where the circuit being verified is not fixed as part of the recursive circuit
+/**
+ * @brief Converts a 'native' verification key into a standard library type, instantiating the `input_key` parameter as
+ * circuit variables. This allows the recursive verifier to accept arbitrary verification keys, where the circuit being
+ * verified is not fixed as part of the recursive circuit.
+ */
 template <typename Curve> struct verification_key {
     using Composer = typename Curve::Composer;
     static std::shared_ptr<verification_key> from_witness(Composer* ctx,
-                                                          const std::shared_ptr<waffle::verification_key>& input_key)
+                                                          const std::shared_ptr<bonk::verification_key>& input_key)
     {
         std::shared_ptr<verification_key> key = std::make_shared<verification_key>();
+        // Native data:
+        key->context = ctx;
         key->base_key = input_key;
-        key->n = witness_t<Composer>(ctx, barretenberg::fr(input_key->n));
+        key->reference_string = input_key->reference_string;
+        key->polynomial_manifest = input_key->polynomial_manifest;
+
+        // Circuit types:
+        key->n = witness_t<Composer>(ctx, barretenberg::fr(input_key->circuit_size));
         key->num_public_inputs = witness_t<Composer>(ctx, input_key->num_public_inputs);
         key->domain = evaluation_domain<Composer>::from_witness(ctx, input_key->domain);
-        key->reference_string = input_key->reference_string;
-        for (const auto& [tag, value] : input_key->constraint_selectors) {
-            key->constraint_selectors.insert({ tag, Curve::g1_ct::from_witness(ctx, value) });
+
+        for (const auto& [tag, value] : input_key->commitments) {
+            key->commitments.insert({ tag, Curve::g1_ct::from_witness(ctx, value) });
         }
-        for (const auto& [tag, value] : input_key->permutation_selectors) {
-            key->permutation_selectors.insert({ tag, Curve::g1_ct::from_witness(ctx, value) });
-        }
-        key->polynomial_manifest = input_key->polynomial_manifest;
 
         return key;
     }
 
     static std::shared_ptr<verification_key> from_constants(Composer* ctx,
-                                                            const std::shared_ptr<waffle::verification_key>& input_key)
+                                                            const std::shared_ptr<bonk::verification_key>& input_key)
     {
         std::shared_ptr<verification_key> key = std::make_shared<verification_key>();
+        key->context = ctx;
         key->base_key = input_key;
-        key->n = field_t<Composer>(ctx, input_key->n);
+        key->n = field_t<Composer>(ctx, input_key->circuit_size);
         key->num_public_inputs = field_t<Composer>(ctx, input_key->num_public_inputs);
 
         key->domain = evaluation_domain<Composer>::from_constants(ctx, input_key->domain);
 
         key->reference_string = input_key->reference_string;
 
-        for (const auto& [tag, value] : input_key->constraint_selectors) {
-            key->constraint_selectors.insert({ tag, typename Curve::g1_ct(value) });
+        for (const auto& [tag, value] : input_key->commitments) {
+            key->commitments.insert({ tag, typename Curve::g1_ct(value) });
         }
-        for (const auto& [tag, value] : input_key->permutation_selectors) {
-            key->permutation_selectors.insert({ tag, typename Curve::g1_ct(value) });
-        }
+
         key->polynomial_manifest = input_key->polynomial_manifest;
 
         return key;
     }
 
-    void validate_key_is_in_set(const std::vector<std::shared_ptr<waffle::verification_key>>& keys_in_set)
+    void validate_key_is_in_set(const std::vector<std::shared_ptr<bonk::verification_key>>& keys_in_set)
     {
         const auto circuit_key_compressed = compress();
-        bool_t<Composer> is_valid(false);
-        for (const auto& key : keys_in_set) {
-            barretenberg::fr compressed = compress_native(key);
-            is_valid = is_valid || (circuit_key_compressed == compressed);
-        }
+        bool found = false;
+        // if we're using Plookup, use a ROM table to index the keys
+        if constexpr (Composer::type == ComposerType::PLOOKUP) {
+            field_t<Composer> key_index(witness_t<Composer>(context, 0));
+            std::vector<field_t<Composer>> compressed_keys;
+            for (size_t i = 0; i < keys_in_set.size(); ++i) {
+                barretenberg::fr compressed = compress_native(keys_in_set[i]);
+                compressed_keys.emplace_back(compressed);
+                if (compressed == circuit_key_compressed.get_value()) {
+                    key_index = witness_t<Composer>(context, i);
+                    found = true;
+                }
+            }
+            if (!found) {
+                context->failure(
+                    "verification_key::validate_key_is_in_set failed - input key is not in the provided set!");
+            }
+            rom_table<Composer> key_table(compressed_keys);
 
-        is_valid.assert_equal(true);
+            const auto output_key = key_table[key_index];
+            output_key.assert_equal(circuit_key_compressed);
+        } else {
+            bool_t<Composer> is_valid(false);
+            for (const auto& key : keys_in_set) {
+                barretenberg::fr compressed = compress_native(key);
+                is_valid = is_valid || (circuit_key_compressed == compressed);
+            }
+
+            is_valid.assert_equal(true);
+        }
     }
 
   private:
@@ -148,17 +193,7 @@ template <typename Curve> struct verification_key {
         std::vector<field_t<Composer>> key_witnesses;
         key_witnesses.push_back(compressed_domain);
         key_witnesses.push_back(num_public_inputs);
-        for (const auto& [tag, selector] : constraint_selectors) {
-            key_witnesses.push_back(selector.x.binary_basis_limbs[0].element);
-            key_witnesses.push_back(selector.x.binary_basis_limbs[1].element);
-            key_witnesses.push_back(selector.x.binary_basis_limbs[2].element);
-            key_witnesses.push_back(selector.x.binary_basis_limbs[3].element);
-            key_witnesses.push_back(selector.y.binary_basis_limbs[0].element);
-            key_witnesses.push_back(selector.y.binary_basis_limbs[1].element);
-            key_witnesses.push_back(selector.y.binary_basis_limbs[2].element);
-            key_witnesses.push_back(selector.y.binary_basis_limbs[3].element);
-        }
-        for (const auto& [tag, selector] : permutation_selectors) {
+        for (const auto& [tag, selector] : commitments) {
             key_witnesses.push_back(selector.x.binary_basis_limbs[0].element);
             key_witnesses.push_back(selector.x.binary_basis_limbs[1].element);
             key_witnesses.push_back(selector.x.binary_basis_limbs[2].element);
@@ -169,16 +204,20 @@ template <typename Curve> struct verification_key {
             key_witnesses.push_back(selector.y.binary_basis_limbs[3].element);
         }
 
-        field_t<Composer> compressed_key = pedersen<Composer>::compress(key_witnesses);
-
+        field_t<Composer> compressed_key;
+        if constexpr (Composer::type == ComposerType::PLOOKUP) {
+            compressed_key = pedersen_plookup_commitment<Composer>::compress(key_witnesses);
+        } else {
+            compressed_key = pedersen_commitment<Composer>::compress(key_witnesses);
+        }
         return compressed_key;
     }
 
-    barretenberg::fr compress_native(const std::shared_ptr<waffle::verification_key>& key)
+    barretenberg::fr compress_native(const std::shared_ptr<bonk::verification_key>& key)
     {
         barretenberg::fr compressed_domain = evaluation_domain<Composer>::compress_native(key->domain);
 
-        constexpr size_t num_limb_bits = 68; // TODO GET FROM BIGFIELD
+        constexpr size_t num_limb_bits = bn254<plonk::UltraComposer>::fq_ct::NUM_LIMB_BITS;
         const auto split_bigfield_limbs = [](const uint256_t& element) {
             std::vector<barretenberg::fr> limbs;
             limbs.push_back(element.slice(0, num_limb_bits));
@@ -191,7 +230,7 @@ template <typename Curve> struct verification_key {
         std::vector<barretenberg::fr> key_witnesses;
         key_witnesses.push_back(compressed_domain);
         key_witnesses.push_back(key->num_public_inputs);
-        for (const auto& [tag, selector] : key->constraint_selectors) {
+        for (const auto& [tag, selector] : key->commitments) {
             const auto x_limbs = split_bigfield_limbs(selector.x);
             const auto y_limbs = split_bigfield_limbs(selector.y);
 
@@ -205,41 +244,35 @@ template <typename Curve> struct verification_key {
             key_witnesses.push_back(y_limbs[2]);
             key_witnesses.push_back(y_limbs[3]);
         }
-        for (const auto& [tag, selector] : key->permutation_selectors) {
-            const auto x_limbs = split_bigfield_limbs(selector.x);
-            const auto y_limbs = split_bigfield_limbs(selector.y);
-
-            key_witnesses.push_back(x_limbs[0]);
-            key_witnesses.push_back(x_limbs[1]);
-            key_witnesses.push_back(x_limbs[2]);
-            key_witnesses.push_back(x_limbs[3]);
-
-            key_witnesses.push_back(y_limbs[0]);
-            key_witnesses.push_back(y_limbs[1]);
-            key_witnesses.push_back(y_limbs[2]);
-            key_witnesses.push_back(y_limbs[3]);
+        barretenberg::fr compressed_key;
+        if constexpr (Composer::type == ComposerType::PLOOKUP) {
+            compressed_key = crypto::pedersen_commitment::lookup::compress_native(key_witnesses);
+        } else {
+            compressed_key = crypto::pedersen_commitment::compress_native(key_witnesses);
         }
-        barretenberg::fr compressed_key = crypto::pedersen::compress_native(key_witnesses);
         return compressed_key;
     }
 
   public:
+    // Circuit Types:
     field_t<Composer> n;
     field_t<Composer> num_public_inputs;
     field_t<Composer> z_pow_n;
 
     evaluation_domain<Composer> domain;
 
-    std::shared_ptr<waffle::VerifierReferenceString> reference_string;
+    std::map<std::string, typename Curve::g1_ct> commitments;
 
-    std::map<std::string, typename Curve::g1_ct> constraint_selectors;
-    std::map<std::string, typename Curve::g1_ct> permutation_selectors;
+    // Native data:
 
-    waffle::PolynomialManifest polynomial_manifest;
+    std::shared_ptr<bonk::VerifierReferenceString> reference_string;
+
+    bonk::PolynomialManifest polynomial_manifest;
 
     size_t program_width = 4;
 
-    std::shared_ptr<waffle::verification_key> base_key;
+    std::shared_ptr<bonk::verification_key> base_key;
+    Composer* context;
 };
 
 } // namespace recursion

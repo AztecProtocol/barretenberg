@@ -2,6 +2,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <vector>
+#include <common/throw_or_abort.hpp>
+#include <iostream>
 
 #include "../uint256/uint256.hpp"
 
@@ -30,6 +32,9 @@ inline std::vector<uint64_t> slice_input_using_variable_bases(const uint256_t in
     uint256_t target = input;
     std::vector<uint64_t> slices;
     for (size_t i = 0; i < bases.size(); ++i) {
+        if (target >= bases[i] && i == bases.size() - 1) {
+            throw_or_abort(format("Last key slice greater than ", bases[i]));
+        }
         slices.push_back((target % bases[i]).data[0]);
         target /= bases[i];
     }

@@ -1,18 +1,16 @@
 #pragma once
-#include "../types/plonk_proof.hpp"
+#include "../types/proof.hpp"
 #include "../types/program_settings.hpp"
-#include "../verification_key/verification_key.hpp"
 #include "../widgets/random_widgets/random_widget.hpp"
-#include <plonk/transcript/manifest.hpp>
-#include <plonk/transcript/transcript_wrappers.hpp>
+#include <transcript/manifest.hpp>
 #include <plonk/proof_system/commitment_scheme/commitment_scheme.hpp>
 
-namespace waffle {
+namespace plonk {
 template <typename program_settings> class VerifierBase {
 
   public:
     VerifierBase(std::shared_ptr<verification_key> verifier_key = nullptr,
-                 const transcript::Manifest& manifest = transcript::Manifest({}));
+                 const transcript::Manifest& manifest = transcript::Manifest());
     VerifierBase(VerifierBase&& other);
     VerifierBase(const VerifierBase& other) = delete;
     VerifierBase& operator=(const VerifierBase& other) = delete;
@@ -21,7 +19,7 @@ template <typename program_settings> class VerifierBase {
     bool validate_commitments();
     bool validate_scalars();
 
-    bool verify_proof(const waffle::plonk_proof& proof);
+    bool verify_proof(const plonk::proof& proof);
     transcript::Manifest manifest;
 
     std::shared_ptr<verification_key> key;
@@ -30,20 +28,14 @@ template <typename program_settings> class VerifierBase {
     std::unique_ptr<CommitmentScheme> commitment_scheme;
 };
 
-extern template class VerifierBase<unrolled_standard_verifier_settings>;
-extern template class VerifierBase<unrolled_turbo_verifier_settings>;
 extern template class VerifierBase<standard_verifier_settings>;
-extern template class VerifierBase<unrolled_plookup_verifier_settings>;
 extern template class VerifierBase<turbo_verifier_settings>;
-extern template class VerifierBase<plookup_verifier_settings>;
-extern template class VerifierBase<generalized_permutation_verifier_settings>;
+extern template class VerifierBase<ultra_verifier_settings>;
+extern template class VerifierBase<ultra_to_standard_verifier_settings>;
 
-typedef VerifierBase<unrolled_standard_verifier_settings> UnrolledVerifier;
-typedef VerifierBase<unrolled_turbo_verifier_settings> UnrolledTurboVerifier;
 typedef VerifierBase<standard_verifier_settings> Verifier;
 typedef VerifierBase<turbo_verifier_settings> TurboVerifier;
-typedef VerifierBase<plookup_verifier_settings> PlookupVerifier;
-typedef VerifierBase<unrolled_plookup_verifier_settings> UnrolledPlookupVerifier;
-typedef VerifierBase<generalized_permutation_verifier_settings> GenPermVerifier;
+typedef VerifierBase<ultra_verifier_settings> UltraVerifier;
+typedef VerifierBase<ultra_to_standard_verifier_settings> UltraToStandardVerifier;
 
-} // namespace waffle
+} // namespace plonk

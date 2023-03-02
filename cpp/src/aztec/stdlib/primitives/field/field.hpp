@@ -2,6 +2,7 @@
 #include <functional>
 #include "../composers/composers_fwd.hpp"
 #include "../witness/witness.hpp"
+#include "honk/composer/standard_honk_composer.hpp"
 #include <common/assert.hpp>
 
 namespace plonk {
@@ -45,15 +46,14 @@ template <typename ComposerContext> class field_t {
         witness_index = IS_CONSTANT;
     }
 
-    field_t(uint256_t const& value)
-        : context(nullptr)
-    {
-        additive_constant = barretenberg::fr(value);
-        multiplicative_constant = barretenberg::fr(0);
-        witness_index = IS_CONSTANT;
-    }
-
     field_t(const barretenberg::fr& value)
+        : context(nullptr)
+        , additive_constant(value)
+        , multiplicative_constant(barretenberg::fr(1))
+        , witness_index(IS_CONSTANT)
+    {}
+
+    field_t(const uint256_t& value)
         : context(nullptr)
         , additive_constant(value)
         , multiplicative_constant(barretenberg::fr(1))
@@ -83,7 +83,7 @@ template <typename ComposerContext> class field_t {
 
     static field_t from_witness_index(ComposerContext* parent_context, const uint32_t witness_index);
 
-    explicit operator bool_t<ComposerContext>();
+    explicit operator bool_t<ComposerContext>() const;
 
     field_t& operator=(const field_t& other)
     {
@@ -103,6 +103,13 @@ template <typename ComposerContext> class field_t {
         return *this;
     }
 
+    static field_t copy_as_new_witness(ComposerContext& context, field_t const& other)
+    {
+        auto result = field_t<ComposerContext>(witness_t<ComposerContext>(&context, other.get_value()));
+        result.assert_equal(other, "field_t::copy_as_new_witness, assert_equal");
+        return result;
+    }
+
     field_t operator+(const field_t& other) const;
     field_t operator-(const field_t& other) const;
     field_t operator*(const field_t& other) const;
@@ -110,6 +117,9 @@ template <typename ComposerContext> class field_t {
     field_t divide_no_zero_check(const field_t& other) const;
 
     field_t sqr() const { return operator*(*this); }
+
+    // N.B. we implicitly range-constrain 'other' to be a 32-bit integer!
+    field_t pow(const field_t& exponent) const;
 
     field_t operator+=(const field_t& other)
     {
@@ -131,6 +141,21 @@ template <typename ComposerContext> class field_t {
         *this = *this / other;
         return *this;
     }
+
+    // Prefix increment (++x)
+    field_t& operator++()
+    {
+        *this = *this + 1;
+        return *this;
+    };
+
+    // Postfix increment (x++)
+    field_t operator++(int)
+    {
+        field_t this_before_operation = field_t(*this);
+        *this = *this + 1;
+        return this_before_operation;
+    };
 
     field_t invert() const { return (field_t(1) / field_t(*this)).normalize(); }
 
@@ -181,6 +206,7 @@ template <typename ComposerContext> class field_t {
                                                const bool_t<ComposerContext>& t1,
                                                const bool_t<ComposerContext>& t0);
 
+    static void evaluate_linear_identity(const field_t& a, const field_t& b, const field_t& c, const field_t& d);
     static void evaluate_polynomial_identity(const field_t& a, const field_t& b, const field_t& c, const field_t& d);
 
     static field_t accumulate(const std::vector<field_t>& to_add);
@@ -197,11 +223,17 @@ template <typename ComposerContext> class field_t {
     bool_t<ComposerContext> operator!=(const field_t& other) const;
 
     /**
-     * normalize returns a field_t element where `multiplicative_constant = 1` and `additive_constant = 0`
-     * i.e. the value is defined entirely by the composer variable that `witness_index` points to
-     * If the witness_index is ever needed, `normalize` should be called first
+     * normalize returns a field_t element with equivalent value to `this`, but where `multiplicative_constant = 1` and
+     *`additive_constant = 0`.
+     * I.e. the returned value is defined entirely by the composer variable that `witness_index` points to (no scaling
+     * factors).
      *
-     * Will cost 1 constraint if the field element is not already normalized (or is constant)
+     * If the witness_index of `this` is ever needed, `normalize` should be called first.
+     *
+     * Will cost 1 constraint if the field element is not already normalized, as a new witness value would need to be
+     * created.
+     * Constants do not need to be normalized, as there is no underlying 'witness'; a constant's value is
+     * wholly tracked by `this.additive_constant`, so we definitely don't want to set that to 0!
      **/
     field_t normalize() const;
 
@@ -228,14 +260,20 @@ template <typename ComposerContext> class field_t {
     void set_public() const { context->set_public_input(normalize().witness_index); }
 
     /**
-     * Create a witness form a constant. This way the value of the witness is fixed and public.
-     **/
-    void convert_constant_to_witness(ComposerContext* ctx)
+     * Create a witness form a constant. This way the value of the witness is fixed and public (public, because the
+     * value becomes hard-coded as an element of the q_c selector vector).
+     */
+    void convert_constant_to_fixed_witness(ComposerContext* ctx)
     {
         ASSERT(witness_index == IS_CONSTANT);
         context = ctx;
         (*this) = field_t<ComposerContext>(witness_t<ComposerContext>(context, get_value()));
         context->fix_witness(witness_index, get_value());
+    }
+
+    static field_t from_witness(ComposerContext* ctx, const barretenberg::fr& input)
+    {
+        return field_t(witness_t<ComposerContext>(ctx, input));
     }
 
     /**
@@ -251,56 +289,65 @@ template <typename ComposerContext> class field_t {
 
     uint32_t get_witness_index() const { return witness_index; }
 
-    mutable ComposerContext* context = nullptr;
-
     std::vector<bool_t<ComposerContext>> decompose_into_bits(
         const size_t num_bits = 256,
         std::function<witness_t<ComposerContext>(ComposerContext* ctx, uint64_t, uint256_t)> get_bit =
             [](ComposerContext* ctx, uint64_t j, uint256_t val) {
                 return witness_t<ComposerContext>(ctx, val.get_bit(j));
             }) const;
+
+    mutable ComposerContext* context = nullptr;
+
     /**
-     * additive_constant, multiplicative_constant are constant scaling factors applied to a field_t object.
+     * `additive_constant` and `multiplicative_constant` are constant scaling factors applied to a field_t object.
+     *
+     * The 'value' represented by a field_t is calculated as:
+     *   - For `field_t`s with `witness_index = IS_CONSTANT`:
+     *       `this.additive_constant`
+     *   - For non-constant `field_t`s:
+     *       `this.context->variables[this.witness_index] * this.multiplicative_constant + this.additive_constant`
+     *
      * We track these scaling factors, because we can apply the same scaling factors to Plonk wires when creating
-     *gates. i.e. if we want to multiply a wire by a constant, or add a constant, we do not need to add extra gates
-     *to do this. Instead, we track the scaling factors, and apply them to the relevant wires when adding
-     *constraints
+     * gates. I.e. if we want to multiply a wire by a constant, or add a constant, we do not need to add extra gates
+     * to do this. Instead, we track the scaling factors, and apply them to the relevant wires when adding
+     * constraints.
      *
-     * This also makes constant field_t objects effectively free. Where 'constant' is a circuit constant, not a C++
-     *constant! e.g. the following 3 lines of code add 0 constraints into a circuit:
+     * This also makes constant field_t objects effectively free. (Where 'constant' is a circuit constant, not a C++
+     * constant!).
+     * E.g. the following 3 lines of code add 0 constraints into a circuit:
      *
-     * field_t foo = 1;
-     * field_t bar = 5;
-     * field_t bar *= foo;
+     *    field_t foo = 1;
+     *    field_t bar = 5;
+     *    field_t bar *= foo;
      *
      * Similarly if we add in:
      *
-     * field_t zip = witness_t(context, 10);
-     * zip *= bar + foo;
+     *    field_t zip = witness_t(context, 10);
+     *    zip *= bar + foo;
      *
      * The above adds 0 constraints, the only effect is that `zip`'s scaling factors have been modified. However if
-     *we now add:
+     * we now add:
      *
-     * field_t zap = witness_t(context, 50);
-     * zip *= zap;
+     *    field_t zap = witness_t(context, 50);
+     *    zip *= zap;
      *
-     * This will add a constraint, as both zip and zap map to circuit witnesses
+     * This will add a constraint, as both zip and zap map to circuit witnesses.
      **/
     mutable barretenberg::fr additive_constant;
     mutable barretenberg::fr multiplicative_constant;
 
     /**
-     * Every composer object contains a list of 'witnesses', circuit variables that can be assigned to wires when
-     *creating constraints `witness_index` describes a location in this container. i.e. it 'points' to a circuit
-     *variable
+     * Every composer object contains a vector `variables` (a.k.a. 'witnesses'); circuit variables that can be
+     * assigned to wires when creating constraints. `witness_index` describes a location in this container. I.e. it
+     * 'points' to a circuit variable.
      *
      * A witness is not the same thing as a 'wire' in a circuit. Multiple wires can be assigned to the same witness via
-     *Plonk's copy constraints. Alternatively, a witness might not be assigned to any wires! This case would be similar
-     *to an unused variable in a regular program
+     * Plonk's copy constraints. Alternatively, a witness might not be assigned to any wires! This case would be similar
+     * to an unused variable in a regular program
      *
-     * e.g. if we write `field_t foo = witness_t(context, 100)`, this will add the value `100` into `context`'s list of
-     *circuit variables. However if we do not use `foo` in any operations, then this value will never be assigned to a
-     *wire in a circuit
+     * E.g. if we write `field_t foo = witness_t(context, 100)`, this will add the value `100` into `context`'s list of
+     * circuit `variables`. However if we do not use `foo` in any operations, then this value will never be assigned to
+     * a wire in a circuit.
      *
      * For a more in depth example, consider the following code:
      *
@@ -308,25 +355,25 @@ template <typename ComposerContext> class field_t {
      * field_t bar = witness_t(context, 50);
      * field_t baz = foo * (bar + 7);
      *
-     * This will add 3 new circuit witnesses (10, 50, 570). One constraint will also be created, that validates `baz`
-     *has been correctly constructed The composer will assign `foo, bar, baz` to wires `w_1, w_2, w_3` in a gate, and
-     *check that:
+     * This will add 3 new circuit witnesses (10, 50, 570) to `variables`. One constraint will also be created, that
+     * validates `baz` has been correctly constructed. The composer will assign `foo, bar, baz` to wires `w_1, w_2, w_3`
+     * in a new gate which checks that:
      *
      *      w_1 * w_2 + w_1 * 7 - w_3 = 0
      *
      * If any of `foo, bar, baz` are used in future arithmetic, copy constraints will be automatically applied,
-     * this ensure that all gate wires that map to `foo`, for example, will contain the same value
+     * this ensure that all gate wires that map to `foo`, for example, will contain the same value.
      *
      * If witness_index == IS_CONSTANT, the object represents a constant value.
-     * i.e. a value that's hardcoded in the circuit, that a prover cannot change by modifying their witness transcript
+     * i.e. a value that's hardcoded in the circuit, that a prover cannot change by modifying their witness transcript.
      *
      * A Plonk gate is a mix of witness values and selector values. e.g. the regular PLONK arithmetic gate checks that:
      *
      *      w_1 * w_2 * q_m + w_1 * q_1 + w_2 * w_2 + w_3 * q_3 + q_c = 0
      *
-     * The `w` value are wires, the `q` values are selector constants. If a field object contains a witness index, it
-     *will be assigned to `w` values when constraints are applied. If it's a circuit constant, it will be assigned to
-     *`q` values
+     * The `w` value are wires, the `q` values are selector constants. If a field object contains a `witness_index`, it
+     * will be assigned to `w` values when constraints are applied. If it's a circuit constant, it will be assigned to
+     * `q` values.
      *
      * TLDR: witness_index is a pseudo pointer to a circuit witness
      **/
@@ -340,5 +387,6 @@ template <typename ComposerContext> inline std::ostream& operator<<(std::ostream
 
 EXTERN_STDLIB_TYPE(field_t);
 
+extern template class field_t<honk::StandardHonkComposer>;
 } // namespace stdlib
 } // namespace plonk

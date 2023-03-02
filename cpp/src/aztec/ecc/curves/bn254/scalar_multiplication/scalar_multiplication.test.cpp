@@ -18,7 +18,6 @@ namespace {
 auto& engine = numeric::random::get_debug_engine();
 }
 
-// TODO: refactor pippenger tests. These are a hot mess...
 TEST(scalar_multiplication, reduce_buckets_simple)
 {
     constexpr size_t num_points = 128;
@@ -511,16 +510,26 @@ TEST(scalar_multiplication, endomorphism_split)
     fr* k2_t = (fr*)&scalar.data[2];
 
     fr::split_into_endomorphism_scalars(scalar, *k1_t, *k2_t);
-
+    // The compiler really doesn't like what we're doing here,
+    // and disabling the array-bounds error project-wide seems unsafe.
+    // The large macro blocks are here to warn that we should be careful when
+    // aliasing the arguments to split_into_endomorphism_scalars
+#if !defined(__clang__) && defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#endif
     fr k1{ (*k1_t).data[0], (*k1_t).data[1], 0, 0 };
     fr k2{ (*k2_t).data[0], (*k2_t).data[1], 0, 0 };
-
+#if !defined(__clang__) && defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
     g1::element result;
     g1::element t1 = g1::affine_one * k1;
-    g1::affine_element beta = g1::affine_one;
-    beta.x = beta.x * fq::beta();
-    beta.y = -beta.y;
-    g1::element t2 = beta * k2;
+    g1::affine_element generator = g1::affine_one;
+    fq beta = fq::cube_root_of_unity();
+    generator.x = generator.x * beta;
+    generator.y = -generator.y;
+    g1::element t2 = generator * k2;
     result = t1 + t2;
 
     EXPECT_EQ(result == expected, true);

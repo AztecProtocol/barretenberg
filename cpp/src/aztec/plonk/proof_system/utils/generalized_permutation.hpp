@@ -3,14 +3,14 @@
 #include <polynomials/iterate_over_domain.hpp>
 #include <polynomials/polynomial.hpp>
 
-namespace waffle {
+namespace plonk {
 template <typename program_settings>
 inline void compute_gen_permutation_lagrange_base_single(barretenberg::polynomial& output,
                                                          const std::vector<uint32_t>& permutation,
                                                          const barretenberg::evaluation_domain& small_domain)
 {
-    if (output.get_size() < permutation.size()) {
-        output.resize_unsafe(permutation.size());
+    if (output.size() < permutation.size()) {
+        throw_or_abort("Permutation polynomial size is insufficient to store permutations.");
     }
     // permutation encoding:
     // low 28 bits defines the location in witness polynomial
@@ -63,4 +63,4 @@ inline void compute_gen_permutation_lagrange_base_single(barretenberg::polynomia
     }
     ITERATE_OVER_DOMAIN_END;
 }
-} // namespace waffle
+} // namespace plonk

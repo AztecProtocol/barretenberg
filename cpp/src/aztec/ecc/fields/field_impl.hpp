@@ -2,6 +2,7 @@
 #include <common/throw_or_abort.hpp>
 #include <numeric/bitop/get_msb.hpp>
 #include <numeric/random/engine.hpp>
+#include <span>
 #include <type_traits>
 #include <vector>
 #include "field_impl_generic.hpp"
@@ -35,6 +36,7 @@ template <class T> constexpr field<T> field<T>::operator*(const field& other) co
 {
     if constexpr (BBERG_NO_ASM || (T::modulus_3 >= 0x4000000000000000ULL) ||
                   (T::modulus_1 == 0 && T::modulus_2 == 0 && T::modulus_3 == 0)) {
+        // >= 255-bits or <= 64-bits.
         return montgomery_mul(other);
     } else {
         if (std::is_constant_evaluated()) {
@@ -48,6 +50,7 @@ template <class T> constexpr field<T> field<T>::operator*=(const field& other) n
 {
     if constexpr (BBERG_NO_ASM || (T::modulus_3 >= 0x4000000000000000ULL) ||
                   (T::modulus_1 == 0 && T::modulus_2 == 0 && T::modulus_3 == 0)) {
+        // >= 255-bits or <= 64-bits.
         *this = operator*(other);
     } else {
         if (std::is_constant_evaluated()) {
@@ -124,6 +127,17 @@ template <class T> constexpr field<T> field<T>::operator+=(const field& other) n
         }
     }
     return *this;
+}
+
+template <class T> constexpr field<T> field<T>::operator++() noexcept
+{
+    return *this += 1;
+}
+
+template <class T> constexpr field<T> field<T>::operator++(int) noexcept
+{
+    // TODO check if this is correct.
+    return *this += 1;
 }
 
 /**
@@ -352,6 +366,13 @@ template <class T> constexpr field<T> field<T>::invert() const noexcept
 
 template <class T> void field<T>::batch_invert(field* coeffs, const size_t n) noexcept
 {
+    batch_invert(std::span{ coeffs, n });
+}
+
+template <class T> void field<T>::batch_invert(std::span<field> coeffs) noexcept
+{
+    const size_t n = coeffs.size();
+
     std::vector<field> temporaries;
     std::vector<bool> skipped;
     temporaries.reserve(n);
@@ -360,7 +381,7 @@ template <class T> void field<T>::batch_invert(field* coeffs, const size_t n) no
     field accumulator = one();
     for (size_t i = 0; i < n; ++i) {
         temporaries.emplace_back(accumulator);
-        if (coeffs[i] == field(0)) {
+        if (coeffs[i].is_zero()) {
             skipped.emplace_back(true);
         } else {
             skipped.emplace_back(false);

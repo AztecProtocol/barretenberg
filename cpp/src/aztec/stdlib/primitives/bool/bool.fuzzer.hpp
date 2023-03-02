@@ -1,6 +1,5 @@
 #include <numeric/random/engine.hpp>
 #include <stdlib/primitives/bit_array/bit_array.hpp>
-#include "../../../rollup/constants.hpp"
 
 // This is a global variable, so that the execution handling class could alter it and signal to the input tester that
 // the input should fail
@@ -801,7 +800,7 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
  */
 extern "C" size_t LLVMFuzzerCustomMutator(uint8_t* Data, size_t Size, size_t MaxSize, unsigned int Seed)
 {
-    using FuzzerClass = BoolFuzzBase<waffle::StandardComposer>;
+    using FuzzerClass = BoolFuzzBase<plonk::StandardComposer>;
     auto fast_random = FastRandom(Seed);
     auto size_occupied = ArithmeticFuzzHelper<FuzzerClass>::MutateInstructionBuffer(Data, Size, MaxSize, fast_random);
     if ((fast_random.next() % 200) < fuzzer_havoc_settings.GEN_LLVM_POST_MUTATION_PROB) {
@@ -822,7 +821,7 @@ extern "C" size_t LLVMFuzzerCustomCrossOver(const uint8_t* Data1,
                                             size_t MaxOutSize,
                                             unsigned int Seed)
 {
-    using FuzzerClass = BoolFuzzBase<waffle::StandardComposer>;
+    using FuzzerClass = BoolFuzzBase<plonk::StandardComposer>;
     auto fast_random = FastRandom(Seed);
     auto vecA = ArithmeticFuzzHelper<FuzzerClass>::parseDataIntoInstructions(Data1, Size1);
     auto vecB = ArithmeticFuzzHelper<FuzzerClass>::parseDataIntoInstructions(Data2, Size2);

@@ -1,19 +1,19 @@
 #pragma once
-#include "../../transcript/transcript_wrappers.hpp"
-#include "../proving_key/proving_key.hpp"
-#include "../types/plonk_proof.hpp"
+#include "../../../proof_system/proving_key/proving_key.hpp"
+#include "../types/proof.hpp"
 #include "../types/program_settings.hpp"
 #include "../widgets/random_widgets/random_widget.hpp"
-#include "./work_queue.hpp"
+#include "../../../proof_system/work_queue/work_queue.hpp"
 #include "../widgets/transition_widgets/transition_widget.hpp"
 #include "../commitment_scheme/commitment_scheme.hpp"
-namespace waffle {
+using namespace plonk;
+namespace plonk {
 
 template <typename settings> class ProverBase {
 
   public:
     ProverBase(std::shared_ptr<proving_key> input_key = nullptr,
-               const transcript::Manifest& manifest = transcript::Manifest({}));
+               const transcript::Manifest& manifest = transcript::Manifest());
     ProverBase(ProverBase&& other);
     ProverBase(const ProverBase& other) = delete;
     ProverBase& operator=(const ProverBase& other) = delete;
@@ -29,17 +29,19 @@ template <typename settings> class ProverBase {
 
     void add_polynomial_evaluations_to_transcript();
     void compute_batch_opening_polynomials();
-    void compute_wire_pre_commitments();
-    void compute_quotient_pre_commitment();
+    void compute_wire_commitments();
+    void compute_quotient_commitments();
+    void init_quotient_polynomials();
     void compute_opening_elements();
+    void add_plookup_memory_records_to_w_4();
 
-    void compute_linearisation_coefficients();
+    void compute_quotient_evaluation();
     void add_blinding_to_quotient_polynomial_parts();
     void compute_lagrange_1_fft();
-    waffle::plonk_proof& export_proof();
-    waffle::plonk_proof& construct_proof();
+    plonk::proof& export_proof();
+    plonk::proof& construct_proof();
 
-    size_t get_circuit_size() const { return n; }
+    size_t get_circuit_size() const { return circuit_size; }
 
     void flush_queued_work_items() { queue.flush_queue(); }
 
@@ -53,6 +55,11 @@ template <typename settings> class ProverBase {
     size_t get_scalar_multiplication_size(const size_t work_item_number) const
     {
         return queue.get_scalar_multiplication_size(work_item_number);
+    }
+
+    bool get_scalar_multiplication_type(const size_t work_item_number) const
+    {
+        return queue.get_scalar_multiplication_type(work_item_number);
     }
 
     barretenberg::fr* get_ifft_data(const size_t work_item_number) const
@@ -82,7 +89,7 @@ template <typename settings> class ProverBase {
 
     void reset();
 
-    size_t n;
+    size_t circuit_size;
 
     std::vector<std::unique_ptr<ProverRandomWidget>> random_widgets;
     std::vector<std::unique_ptr<widget::TransitionWidgetBase<barretenberg::fr>>> transition_widgets;
@@ -94,21 +101,18 @@ template <typename settings> class ProverBase {
     work_queue queue;
 
   private:
-    waffle::plonk_proof proof;
+    plonk::proof proof;
 };
-extern template class ProverBase<unrolled_standard_settings>;
-extern template class ProverBase<unrolled_turbo_settings>;
 extern template class ProverBase<standard_settings>;
 extern template class ProverBase<turbo_settings>;
-extern template class ProverBase<plookup_settings>;
+extern template class ProverBase<ultra_settings>;
+extern template class ProverBase<ultra_to_standard_settings>;
 
-typedef ProverBase<unrolled_standard_settings> UnrolledProver;
-typedef ProverBase<unrolled_turbo_settings> UnrolledTurboProver;
-typedef ProverBase<unrolled_plookup_settings> UnrolledPlookupProver;
-typedef ProverBase<unrolled_turbo_settings> UnrolledGenPermProver;
 typedef ProverBase<standard_settings> Prover;
 typedef ProverBase<turbo_settings> TurboProver;
-typedef ProverBase<plookup_settings> PlookupProver;
-typedef ProverBase<turbo_settings> GenPermProver;
+typedef ProverBase<ultra_settings> UltraProver; // TODO(Mike): maybe just return a templated proverbase so that I don't
+                                                // need separate casees for ultra vs ultra_to_standard...???
+                                                // TODO(Cody): Make this into an issue?
+typedef ProverBase<ultra_to_standard_settings> UltraToStandardProver;
 
-} // namespace waffle
+} // namespace plonk

@@ -104,9 +104,10 @@ namespace scalar_multiplication {
 void generate_pippenger_point_table(g1::affine_element* points, g1::affine_element* table, size_t num_points)
 {
     // iterate backwards, so that `points` and `table` can point to the same memory location
+    fq beta = fq::cube_root_of_unity();
     for (size_t i = num_points - 1; i < num_points; --i) {
         table[i * 2] = points[i];
-        table[i * 2 + 1].x = fq::beta() * points[i].x;
+        table[i * 2 + 1].x = beta * points[i].x;
         table[i * 2 + 1].y = -points[i].y;
     }
 }
@@ -552,7 +553,6 @@ uint32_t construct_addition_chains(affine_product_runtime_state& state, bool emp
         state.bit_offsets[i] = 0;
     }
 
-    // TODO: measure whether this is useful. `count_bits` has a nasty nested loop that,
     // theoretically, can be unrolled using templated methods.
     // However, explicitly unrolling the loop by using recursive template calls was slower!
     // Inner loop is currently bounded by a constexpr variable, need to see what the compiler does with that...
@@ -880,7 +880,7 @@ g1::element pippenger(fr* scalars,
     if (num_initial_points <= threshold) {
         std::vector<g1::element> exponentiation_results(num_initial_points);
         // might as well multithread this...
-        // TODO: implement Strauss algorithm for small numbers of points.
+        // Possible optimization: use group::batch_mul_with_endomorphism here.
 #ifndef NO_MULTITHREADING
 #pragma omp parallel for
 #endif
@@ -932,6 +932,15 @@ g1::element pippenger_unsafe(fr* scalars,
                              pippenger_runtime_state& state)
 {
     return pippenger(scalars, points, num_initial_points, state, false);
+}
+g1::element pippenger_without_endomorphism_basis_points(fr* scalars,
+                                                        g1::affine_element* points,
+                                                        const size_t num_initial_points,
+                                                        pippenger_runtime_state& state)
+{
+    std::vector<g1::affine_element> G_mod(num_initial_points * 2);
+    barretenberg::scalar_multiplication::generate_pippenger_point_table(points, &G_mod[0], num_initial_points);
+    return pippenger(scalars, &G_mod[0], num_initial_points, state, false);
 }
 } // namespace scalar_multiplication
 } // namespace barretenberg

@@ -1,7 +1,7 @@
 #include <numeric/uint256/uint256.hpp>
 #include <numeric/random/engine.hpp>
 #include <stdlib/primitives/safe_uint/safe_uint.hpp>
-#include "../../../rollup/constants.hpp"
+#include <ecc/curves/grumpkin/grumpkin.hpp>
 
 // This is a global variable, so that the execution handling class could alter it and signal to the input tester that
 // the input should fail
@@ -1249,7 +1249,7 @@ template <typename Composer> class SafeUintFuzzBase {
             // Check assert conditions
             if ((lsb > msb) || (msb > 252) ||
                 (static_cast<uint256_t>(stack[first_index].suint.get_value()) >=
-                 (static_cast<uint256_t>(1) << rollup::MAX_NO_WRAP_INTEGER_BIT_LENGTH))) {
+                 (static_cast<uint256_t>(1) << grumpkin::MAX_NO_WRAP_INTEGER_BIT_LENGTH))) {
                 return 0;
             }
             PRINT_SLICE(first_index, lsb, msb, stack)
@@ -1417,7 +1417,7 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
  */
 extern "C" size_t LLVMFuzzerCustomMutator(uint8_t* Data, size_t Size, size_t MaxSize, unsigned int Seed)
 {
-    using FuzzerClass = SafeUintFuzzBase<waffle::StandardComposer>;
+    using FuzzerClass = SafeUintFuzzBase<plonk::StandardComposer>;
     auto fast_random = FastRandom(Seed);
     auto size_occupied = ArithmeticFuzzHelper<FuzzerClass>::MutateInstructionBuffer(Data, Size, MaxSize, fast_random);
     if ((fast_random.next() % 200) < fuzzer_havoc_settings.GEN_LLVM_POST_MUTATION_PROB) {
@@ -1438,7 +1438,7 @@ extern "C" size_t LLVMFuzzerCustomCrossOver(const uint8_t* Data1,
                                             size_t MaxOutSize,
                                             unsigned int Seed)
 {
-    using FuzzerClass = SafeUintFuzzBase<waffle::StandardComposer>;
+    using FuzzerClass = SafeUintFuzzBase<plonk::StandardComposer>;
     auto fast_random = FastRandom(Seed);
     auto vecA = ArithmeticFuzzHelper<FuzzerClass>::parseDataIntoInstructions(Data1, Size1);
     auto vecB = ArithmeticFuzzHelper<FuzzerClass>::parseDataIntoInstructions(Data2, Size2);
