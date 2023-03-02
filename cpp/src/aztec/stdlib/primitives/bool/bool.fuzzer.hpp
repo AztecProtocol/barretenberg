@@ -11,7 +11,7 @@ bool circuit_should_fail = false;
 FastRandom VarianceRNG(0);
 
 // Enable this definition, when you want to find out the instructions that caused a failure
-// #define SHOW_INFORMATION 1
+//#define SHOW_INFORMATION 1
 
 #define OPERATION_TYPE_SIZE 1
 
@@ -71,9 +71,7 @@ template <typename Composer> class BoolFuzzBase {
          * @param rng PRNG used
          * @return A random instruction
          */
-        template <typename T>
-        inline static Instruction generateRandom(T& rng)
-            requires SimpleRng<T>
+        template <typename T> inline static Instruction generateRandom(T& rng) requires SimpleRng<T>
         {
             // Choose which instruction we are going to generate
             OPCODE instruction_opcode = static_cast<OPCODE>(rng.next() % (OPCODE::_LAST));
@@ -130,8 +128,9 @@ template <typename Composer> class BoolFuzzBase {
          * @return Mutated instruction
          */
         template <typename T>
-        inline static Instruction mutateInstruction(Instruction instruction, T& rng, HavocSettings& havoc_config)
-            requires SimpleRng<T>
+        inline static Instruction mutateInstruction(Instruction instruction,
+                                                    T& rng,
+                                                    HavocSettings& havoc_config) requires SimpleRng<T>
         {
             (void)rng;
             (void)havoc_config;

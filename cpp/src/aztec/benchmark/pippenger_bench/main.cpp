@@ -5,10 +5,10 @@
 #include <srs/reference_string/file_reference_string.hpp>
 #include <polynomials/polynomial_arithmetic.hpp>
 
-// #include <valgrind/callgrind.h>
-//  CALLGRIND_START_INSTRUMENTATION;
-//  CALLGRIND_STOP_INSTRUMENTATION;
-//  CALLGRIND_DUMP_STATS;
+//#include <valgrind/callgrind.h>
+// CALLGRIND_START_INSTRUMENTATION;
+// CALLGRIND_STOP_INSTRUMENTATION;
+// CALLGRIND_DUMP_STATS;
 
 using namespace barretenberg;
 

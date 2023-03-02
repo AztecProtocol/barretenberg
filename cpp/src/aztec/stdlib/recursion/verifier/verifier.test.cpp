@@ -115,8 +115,9 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         constexpr bool is_ultra_to_ultra = std::is_same<OuterComposer, plonk::UltraComposer>::value;
         typedef typename std::conditional<is_ultra_to_ultra, plonk::UltraProver, plonk::UltraToStandardProver>::type
             ProverOfInnerCircuit;
-        typedef typename std::conditional<is_ultra_to_ultra, plonk::UltraVerifier, plonk::UltraToStandardVerifier>::type
-            VerifierOfInnerProof;
+        typedef
+            typename std::conditional<is_ultra_to_ultra, plonk::UltraVerifier, plonk::UltraToStandardVerifier>::type
+                VerifierOfInnerProof;
         typedef
             typename std::conditional<is_ultra_to_ultra, recursive_settings, ultra_to_standard_recursive_settings>::type
                 RecursiveSettings;

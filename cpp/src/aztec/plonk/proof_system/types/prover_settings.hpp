@@ -55,4 +55,4 @@ class ultra_to_standard_settings : public ultra_settings {
     static constexpr transcript::HashType hash_type = transcript::HashType::PedersenBlake3s;
 };
 
-} // namespace plonk
+} // namespace waffle
