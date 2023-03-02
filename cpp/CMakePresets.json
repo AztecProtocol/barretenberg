@@ -14,7 +14,8 @@
       "generator": "Ninja",
       "environment": {
         "CC": "clang",
-        "CXX": "clang++"
+        "CXX": "clang++",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
     {
