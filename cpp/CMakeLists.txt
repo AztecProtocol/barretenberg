@@ -85,6 +85,7 @@ else()
 endif()
 
 if(COVERAGE)
+
     # We've only set up LLVM coverage
     if(NOT(CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
         message(FATAL_ERROR "Creating coverage is only available for clang")
