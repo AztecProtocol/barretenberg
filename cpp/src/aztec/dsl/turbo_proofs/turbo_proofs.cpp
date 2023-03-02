@@ -60,7 +60,6 @@ void init_verification_key(std::unique_ptr<bonk::ReferenceStringFactory>&& crs_f
         std::abort();
     }
     // Patch the 'nothing' reference string fed to init_proving_key.
-    // TODO(Blaine): Is this correct?
     proving_key->reference_string = crs_factory->get_prover_crs(proving_key->circuit_size);
 
     verification_key = Composer::compute_verification_key_base(proving_key, crs_factory->get_verifier_crs());
@@ -199,7 +198,6 @@ size_t c_init_verification_key(void* pippenger, uint8_t const* g2x, uint8_t cons
 
     auto crs_factory = std::make_unique<PippengerReferenceStringFactory>(
         reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), nullptr, g2x);
-    // TODO(Blaine): Is this correct?
     proving_key->reference_string = crs_factory->get_prover_crs(proving_key->circuit_size);
 
     TurboComposer composer(proving_key, nullptr);
@@ -236,7 +234,6 @@ size_t c_new_proof(void* pippenger,
 
     auto crs_factory = std::make_unique<PippengerReferenceStringFactory>(
         reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), nullptr, g2x);
-    // TODO(Blaine): Is this correct?
     proving_key->reference_string = crs_factory->get_prover_crs(proving_key->circuit_size);
 
     TurboComposer composer(proving_key, nullptr);
