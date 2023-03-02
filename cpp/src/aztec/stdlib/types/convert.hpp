@@ -59,7 +59,7 @@ typename CT<Composer>::bn254_point to_ct(Composer& composer, typename NT::bn254_
 template <typename Composer>
 typename CT<Composer>::ecdsa_signature to_ct(Composer& composer, typename NT::ecdsa_signature const& e)
 {
-    return CT<Composer>::ecdsa_signature::from_witness<Composer>(&composer, e);
+    return CT<Composer>::ecdsa_signature::template from_witness<Composer>(&composer, e);
 };
 
 template <typename Composer>
