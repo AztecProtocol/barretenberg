@@ -2,7 +2,7 @@
 #include <ecc/curves/bn254/fr.hpp>
 #include <vector>
 
-namespace plonk {
+namespace waffle {
 template <typename Field>
 Field compute_public_input_delta(const std::vector<Field>& inputs,
                                  const Field& beta,

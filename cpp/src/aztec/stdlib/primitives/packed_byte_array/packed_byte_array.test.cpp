@@ -2,11 +2,7 @@
 #include "../byte_array/byte_array.hpp"
 
 #include <gtest/gtest.h>
-// test currently doesn't construct or verify proof, but hey, why not.
-#include <honk/composer/standard_honk_composer.hpp>
-// #include <plonk/composer/standard_composer.hpp>
-// #include <plonk/composer/turbo_composer.hpp>
-// #include <plonk/composer/ultra_composer.hpp>
+#include <plonk/composer/turbo_composer.hpp>
 
 #include <numeric/random/engine.hpp>
 
@@ -17,14 +13,14 @@ using namespace plonk;
 namespace {
 auto& engine = numeric::random::get_debug_engine();
 }
-typedef stdlib::packed_byte_array<honk::StandardHonkComposer> packed_byte_array;
-typedef stdlib::byte_array<honk::StandardHonkComposer> byte_array;
+typedef stdlib::packed_byte_array<waffle::TurboComposer> packed_byte_array;
+typedef stdlib::byte_array<waffle::TurboComposer> byte_array;
 
 TEST(packed_byte_array, string_constructor_and_get_value_consistency)
 {
     std::string input = "the quick brown fox jumped over the lazy dog.";
 
-    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+    waffle::TurboComposer composer = waffle::TurboComposer();
 
     packed_byte_array arr(&composer, input);
 
@@ -37,7 +33,7 @@ TEST(packed_byte_array, byte_array_constructor_consistency)
 {
     std::string input = "the quick brown fox jumped over the lazy dog.";
 
-    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+    waffle::TurboComposer composer = waffle::TurboComposer();
 
     byte_array arr(&composer, input);
     packed_byte_array converted(arr);
@@ -50,7 +46,7 @@ TEST(packed_byte_array, byte_array_cast_consistency)
 {
     std::string input = "the quick brown fox jumped over the lazy dog.";
 
-    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+    waffle::TurboComposer composer = waffle::TurboComposer();
 
     packed_byte_array arr(&composer, input);
     byte_array converted(arr);
@@ -74,7 +70,7 @@ TEST(packed_byte_array, unverified_byte_slices)
         uint32s.push_back(result);
     }
 
-    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+    waffle::TurboComposer composer = waffle::TurboComposer();
 
     packed_byte_array arr(&composer, bytes);
 
@@ -97,7 +93,7 @@ TEST(packed_byte_array, check_append_uint8)
         bytes.push_back(engine.get_random_uint8());
     }
 
-    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+    waffle::TurboComposer composer = waffle::TurboComposer();
     packed_byte_array arr(&composer, bytes);
 
     // append upto size (16x)
@@ -152,7 +148,7 @@ TEST(packed_byte_array, check_append_uint32)
         uint32s.push_back(result);
     }
 
-    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+    waffle::TurboComposer composer = waffle::TurboComposer();
     packed_byte_array arr(&composer, bytes);
 
     // append over size (16x) (this creates new limb internally)

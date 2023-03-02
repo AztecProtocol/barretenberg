@@ -1,17 +1,17 @@
 #include "standard_composer.hpp"
-#include "plonk/proof_system/types/prover_settings.hpp"
 #include <ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp>
 #include <numeric/bitop/get_msb.hpp>
+#include <plonk/composer/standard/compute_verification_key.hpp>
 #include <plonk/proof_system/widgets/transition_widgets/arithmetic_widget.hpp>
 #include <plonk/proof_system/widgets/random_widgets/permutation_widget.hpp>
+#include <plonk/proof_system/types/polynomial_manifest.hpp>
 #include <plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp>
 #include <unordered_set>
 #include <unordered_map>
 
 using namespace barretenberg;
-using namespace bonk;
 
-namespace plonk {
+namespace waffle {
 #define STANDARD_SELECTOR_REFS                                                                                         \
     auto& q_m = selectors[StandardSelectors::QM];                                                                      \
     auto& q_c = selectors[StandardSelectors::QC];                                                                      \
@@ -39,7 +39,7 @@ void StandardComposer::create_add_gate(const add_triple& in)
     q_3.emplace_back(in.c_scaling);
     q_c.emplace_back(in.const_scaling);
 
-    ++num_gates;
+    ++n;
 }
 
 /**
@@ -92,7 +92,7 @@ void StandardComposer::create_balanced_add_gate(const add_quad& in)
     q_3.emplace_back(fr::neg_one());
     q_c.emplace_back(fr::zero());
 
-    ++num_gates;
+    ++n;
 
     w_l.emplace_back(temp_idx);
     w_r.emplace_back(in.c);
@@ -103,7 +103,7 @@ void StandardComposer::create_balanced_add_gate(const add_quad& in)
     q_3.emplace_back(in.d_scaling);
     q_c.emplace_back(in.const_scaling);
 
-    ++num_gates;
+    ++n;
 
     // in.d must be between 0 and 3
     // i.e. in.d * (in.d - 1) * (in.d - 2) = 0
@@ -118,7 +118,7 @@ void StandardComposer::create_balanced_add_gate(const add_quad& in)
     q_3.emplace_back(fr::neg_one());
     q_c.emplace_back(fr::zero());
 
-    ++num_gates;
+    ++n;
 
     constexpr fr neg_two = -fr(2);
     w_l.emplace_back(temp_2_idx);
@@ -130,7 +130,7 @@ void StandardComposer::create_balanced_add_gate(const add_quad& in)
     q_3.emplace_back(fr::zero());
     q_c.emplace_back(fr::zero());
 
-    ++num_gates;
+    ++n;
 }
 
 void StandardComposer::create_big_add_gate_with_bit_extraction(const add_quad& in)
@@ -208,7 +208,7 @@ void StandardComposer::create_mul_gate(const mul_triple& in)
     q_3.emplace_back(in.c_scaling);
     q_c.emplace_back(in.const_scaling);
 
-    ++num_gates;
+    ++n;
 }
 
 /**
@@ -232,7 +232,7 @@ void StandardComposer::create_bool_gate(const uint32_t variable_index)
     q_3.emplace_back(fr::neg_one());
     q_c.emplace_back(fr::zero());
 
-    ++num_gates;
+    ++n;
 }
 
 /**
@@ -254,7 +254,7 @@ void StandardComposer::create_poly_gate(const poly_triple& in)
     q_3.emplace_back(in.q_o);
     q_c.emplace_back(in.q_c);
 
-    ++num_gates;
+    ++n;
 }
 
 void StandardComposer::create_fixed_group_add_gate_with_init(const fixed_group_add_quad& in,
@@ -486,14 +486,14 @@ void StandardComposer::create_fixed_group_add_gate(const fixed_group_add_quad& i
 
 void StandardComposer::create_fixed_group_add_gate_final(const add_quad& in)
 {
-    fixed_group_add_quad final_round_quad{ .a = in.a,
-                                           .b = in.b,
-                                           .c = in.c,
-                                           .d = in.d,
-                                           .q_x_1 = fr::zero(),
-                                           .q_x_2 = fr::zero(),
-                                           .q_y_1 = fr::zero(),
-                                           .q_y_2 = fr::zero() };
+    waffle::fixed_group_add_quad final_round_quad{ .a = in.a,
+                                                   .b = in.b,
+                                                   .c = in.c,
+                                                   .d = in.d,
+                                                   .q_x_1 = fr::zero(),
+                                                   .q_x_2 = fr::zero(),
+                                                   .q_y_1 = fr::zero(),
+                                                   .q_y_2 = fr::zero() };
     create_fixed_group_add_gate(final_round_quad);
 }
 
@@ -557,14 +557,14 @@ std::vector<uint32_t> StandardComposer::decompose_into_base4_accumulators(const 
     return accumulators;
 }
 
-accumulator_triple StandardComposer::create_logic_constraint(const uint32_t a,
-                                                             const uint32_t b,
-                                                             const size_t num_bits,
-                                                             const bool is_xor_gate)
+waffle::accumulator_triple StandardComposer::create_logic_constraint(const uint32_t a,
+                                                                     const uint32_t b,
+                                                                     const size_t num_bits,
+                                                                     const bool is_xor_gate)
 {
     assert_valid_variables({ a, b });
 
-    accumulator_triple accumulators;
+    waffle::accumulator_triple accumulators;
 
     const uint256_t left_witness_value(get_variable(a));
     const uint256_t right_witness_value(get_variable(b));
@@ -694,28 +694,32 @@ void StandardComposer::fix_witness(const uint32_t witness_index, const barretenb
     q_2.emplace_back(fr::zero());
     q_3.emplace_back(fr::zero());
     q_c.emplace_back(-witness_value);
-    ++num_gates;
+    ++n;
 }
 
 uint32_t StandardComposer::put_constant_variable(const barretenberg::fr& variable)
 {
-    if (constant_variable_indices.contains(variable)) {
-        return constant_variable_indices.at(variable);
+    if (constant_variables.count(variable) == 1) {
+        return constant_variables.at(variable);
     } else {
 
         uint32_t variable_index = add_variable(variable);
         fix_witness(variable_index, variable);
-        constant_variable_indices.insert({ variable, variable_index });
+        constant_variables.insert({ variable, variable_index });
         return variable_index;
     }
 }
 
-accumulator_triple StandardComposer::create_and_constraint(const uint32_t a, const uint32_t b, const size_t num_bits)
+waffle::accumulator_triple StandardComposer::create_and_constraint(const uint32_t a,
+                                                                   const uint32_t b,
+                                                                   const size_t num_bits)
 {
     return create_logic_constraint(a, b, num_bits, false);
 }
 
-accumulator_triple StandardComposer::create_xor_constraint(const uint32_t a, const uint32_t b, const size_t num_bits)
+waffle::accumulator_triple StandardComposer::create_xor_constraint(const uint32_t a,
+                                                                   const uint32_t b,
+                                                                   const size_t num_bits)
 {
     return create_logic_constraint(a, b, num_bits, true);
 }
@@ -739,7 +743,6 @@ std::shared_ptr<proving_key> StandardComposer::compute_proving_key()
 
     circuit_proving_key->recursive_proof_public_input_indices =
         std::vector<uint32_t>(recursive_proof_public_input_indices.begin(), recursive_proof_public_input_indices.end());
-    // What does this line do exactly?
     circuit_proving_key->contains_recursive_proof = contains_recursive_proof;
     return circuit_proving_key;
 }
@@ -758,7 +761,7 @@ std::shared_ptr<verification_key> StandardComposer::compute_verification_key()
     }
 
     circuit_verification_key =
-        ComposerBase::compute_verification_key_base(circuit_proving_key, crs_factory_->get_verifier_crs());
+        waffle::standard_composer::compute_verification_key(circuit_proving_key, crs_factory_->get_verifier_crs());
     circuit_verification_key->composer_type = type;
     circuit_verification_key->recursive_proof_public_input_indices =
         std::vector<uint32_t>(recursive_proof_public_input_indices.begin(), recursive_proof_public_input_indices.end());
@@ -773,12 +776,19 @@ std::shared_ptr<verification_key> StandardComposer::compute_verification_key()
  * */
 void StandardComposer::compute_witness()
 {
-    ComposerBase::compute_witness_base<standard_settings::program_width>();
+    ComposerBase::compute_witness_base<standard_settings>();
 }
 
+/**
+ * Create verifier: compute verification key,
+ * initialize verifier with it and an initial manifest and initialize commitment_scheme.
+ *
+ * @return The verifier.
+ * */
 Verifier StandardComposer::create_verifier()
 {
     compute_verification_key();
+    circuit_verification_key->composer_type = type;
     Verifier output_state(circuit_verification_key, create_manifest(public_inputs.size()));
 
     std::unique_ptr<KateCommitmentScheme<standard_settings>> kate_commitment_scheme =
@@ -789,6 +799,40 @@ Verifier StandardComposer::create_verifier()
     return output_state;
 }
 
+UnrolledVerifier StandardComposer::create_unrolled_verifier()
+{
+    compute_verification_key();
+    UnrolledVerifier output_state(circuit_verification_key, create_unrolled_manifest(public_inputs.size()));
+
+    std::unique_ptr<KateCommitmentScheme<unrolled_standard_settings>> kate_commitment_scheme =
+        std::make_unique<KateCommitmentScheme<unrolled_standard_settings>>();
+
+    output_state.commitment_scheme = std::move(kate_commitment_scheme);
+
+    return output_state;
+}
+
+UnrolledProver StandardComposer::create_unrolled_prover()
+{
+    compute_proving_key();
+    compute_witness();
+    UnrolledProver output_state(circuit_proving_key, create_unrolled_manifest(public_inputs.size()));
+
+    std::unique_ptr<ProverPermutationWidget<3, false>> permutation_widget =
+        std::make_unique<ProverPermutationWidget<3, false>>(circuit_proving_key.get());
+    std::unique_ptr<ProverArithmeticWidget<unrolled_standard_settings>> arithmetic_widget =
+        std::make_unique<ProverArithmeticWidget<unrolled_standard_settings>>(circuit_proving_key.get());
+
+    output_state.random_widgets.emplace_back(std::move(permutation_widget));
+    output_state.transition_widgets.emplace_back(std::move(arithmetic_widget));
+
+    std::unique_ptr<KateCommitmentScheme<unrolled_standard_settings>> kate_commitment_scheme =
+        std::make_unique<KateCommitmentScheme<unrolled_standard_settings>>();
+
+    output_state.commitment_scheme = std::move(kate_commitment_scheme);
+
+    return output_state;
+}
 /**
  * Create prover.
  *  1. Compute the starting polynomials (q_l, etc, sigma, witness polynomials).
@@ -826,8 +870,9 @@ Prover StandardComposer::create_prover()
 
 void StandardComposer::assert_equal_constant(uint32_t const a_idx, fr const& b, std::string const& msg)
 {
-    if (variables[a_idx] != b && !failed()) {
-        failure(msg);
+    if (variables[a_idx] != b && !failed) {
+        failed = true;
+        err = msg;
     }
     auto b_idx = put_constant_variable(b);
     assert_equal(a_idx, b_idx, msg);
@@ -845,7 +890,7 @@ bool StandardComposer::check_circuit()
 
     fr gate_sum;
     fr left, right, output;
-    for (size_t i = 0; i < num_gates; i++) {
+    for (size_t i = 0; i < n; i++) {
         gate_sum = fr::zero();
         left = get_variable(w_l[i]);
         right = get_variable(w_r[i]);
@@ -856,4 +901,4 @@ bool StandardComposer::check_circuit()
     }
     return true;
 }
-} // namespace plonk
+} // namespace waffle

@@ -33,8 +33,6 @@
 #include <vector>
 #include <map>
 #include <iostream>
-#include <common/log.hpp>
-#include <optional>
 
 #ifndef __i386__
 __extension__ using uint128_t = unsigned __int128;
@@ -310,33 +308,6 @@ template <typename B, typename T, typename U> inline void write(B& buf, std::map
     for (auto const& kv : value) {
         write(buf, kv);
     }
-}
-
-// Read std::optional<T>.
-template <typename B, typename T> inline void read(B& it, std::optional<T>& opt_value)
-{
-    bool is_nullopt;
-    read(it, is_nullopt);
-    if (is_nullopt) {
-        opt_value = std::nullopt;
-        return;
-    }
-    T value;
-    read(it, value);
-    opt_value = T(value);
-}
-
-// Write std::optional<T>.
-// Note: It takes up a different amount of space, depending on whether it's std::nullopt or populated with an actual
-// value.
-template <typename B, typename T> inline void write(B& buf, std::optional<T> const& opt_value)
-{
-    if (opt_value) {
-        write(buf, false); // is not nullopt
-        write(buf, *opt_value);
-        return;
-    }
-    write(buf, true); // is nullopt
 }
 
 } // namespace std

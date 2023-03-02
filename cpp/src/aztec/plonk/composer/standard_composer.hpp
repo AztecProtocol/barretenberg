@@ -1,13 +1,17 @@
 #pragma once
 #include "composer_base.hpp"
-#include <transcript/manifest.hpp>
-#include <srs/reference_string/file_reference_string.hpp>
+#include <plonk/reference_string/file_reference_string.hpp>
+#include <plonk/transcript/manifest.hpp>
+namespace waffle {
+enum StandardSelectors {
+    QM = 0,
+    QC = 1,
+    Q1 = 2,
+    Q2 = 3,
+    Q3 = 4,
+};
 
-using namespace bonk;
-namespace plonk {
-enum StandardSelectors { QM, QC, Q1, Q2, Q3, NUM };
-
-inline std::vector<ComposerBase::SelectorProperties> standard_selector_properties()
+inline std::vector<ComposerBase::SelectorProperties> standard_sel_props()
 {
     std::vector<ComposerBase::SelectorProperties> result{
         { "q_m", false }, { "q_c", false }, { "q_1", false }, { "q_2", false }, { "q_3", false },
@@ -18,12 +22,10 @@ inline std::vector<ComposerBase::SelectorProperties> standard_selector_propertie
 class StandardComposer : public ComposerBase {
   public:
     static constexpr ComposerType type = ComposerType::STANDARD;
-    static constexpr merkle::HashType merkle_hash_type = merkle::HashType::FIXED_BASE_PEDERSEN;
-    static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
     static constexpr size_t UINT_LOG2_BASE = 2;
 
     StandardComposer(const size_t size_hint = 0)
-        : ComposerBase(StandardSelectors::NUM, size_hint, standard_selector_properties())
+        : ComposerBase(5, size_hint, standard_sel_props())
     {
         w_l.reserve(size_hint);
         w_r.reserve(size_hint);
@@ -31,10 +33,10 @@ class StandardComposer : public ComposerBase {
         zero_idx = put_constant_variable(barretenberg::fr::zero());
     };
 
-    StandardComposer(const size_t num_selectors,
+    StandardComposer(const size_t selector_num,
                      const size_t size_hint,
                      const std::vector<SelectorProperties> selector_properties)
-        : ComposerBase(num_selectors, size_hint, selector_properties)
+        : ComposerBase(selector_num, size_hint, selector_properties)
     {
         w_l.reserve(size_hint);
         w_r.reserve(size_hint);
@@ -47,7 +49,7 @@ class StandardComposer : public ComposerBase {
                            size_hint){};
 
     StandardComposer(std::shared_ptr<ReferenceStringFactory> const& crs_factory, const size_t size_hint = 0)
-        : ComposerBase(crs_factory, StandardSelectors::NUM, size_hint, standard_selector_properties())
+        : ComposerBase(crs_factory, 5, size_hint, standard_sel_props())
     {
         w_l.reserve(size_hint);
         w_r.reserve(size_hint);
@@ -57,7 +59,7 @@ class StandardComposer : public ComposerBase {
     }
 
     StandardComposer(std::unique_ptr<ReferenceStringFactory>&& crs_factory, const size_t size_hint = 0)
-        : ComposerBase(std::move(crs_factory), StandardSelectors::NUM, size_hint, standard_selector_properties())
+        : ComposerBase(std::move(crs_factory), 5, size_hint, standard_sel_props())
     {
         w_l.reserve(size_hint);
         w_r.reserve(size_hint);
@@ -68,7 +70,7 @@ class StandardComposer : public ComposerBase {
     StandardComposer(std::shared_ptr<proving_key> const& p_key,
                      std::shared_ptr<verification_key> const& v_key,
                      size_t size_hint = 0)
-        : ComposerBase(p_key, v_key, StandardSelectors::NUM, size_hint, standard_selector_properties())
+        : ComposerBase(p_key, v_key, 5, size_hint, standard_sel_props())
     {
         w_l.reserve(size_hint);
         w_r.reserve(size_hint);
@@ -88,7 +90,15 @@ class StandardComposer : public ComposerBase {
     virtual std::shared_ptr<verification_key> compute_verification_key() override;
     virtual void compute_witness() override;
     Verifier create_verifier();
+    /**
+     * Preprocess the circuit. Delegates to create_prover.
+     *
+     * @return A new initialized prover.
+     */
+    Prover preprocess() { return create_prover(); };
     Prover create_prover();
+    UnrolledVerifier create_unrolled_verifier();
+    UnrolledProver create_unrolled_prover();
 
     void create_add_gate(const add_triple& in) override;
     void create_mul_gate(const mul_triple& in) override;
@@ -110,17 +120,14 @@ class StandardComposer : public ComposerBase {
                                                             const size_t num_bits,
                                                             std::string const& msg = "create_range_constraint");
 
-    void create_range_constraint(const uint32_t variable_index,
-                                 const size_t num_bits,
-                                 std::string const& msg = "create_range_constraint")
-    {
-        decompose_into_base4_accumulators(variable_index, num_bits, msg);
-    }
-
+    std::vector<uint32_t> create_range_constraint(const uint32_t witness_index,
+                                                  const size_t num_bits,
+                                                  std::string const& msg = "create_range_constraint");
     void add_recursive_proof(const std::vector<uint32_t>& proof_output_witness_indices)
     {
         if (contains_recursive_proof) {
-            failure("added recursive proof when one already exists");
+            failed = true;
+            err = "added recursive proof when one already exists";
         }
         contains_recursive_proof = true;
 
@@ -144,94 +151,103 @@ class StandardComposer : public ComposerBase {
 
     size_t get_num_constant_gates() const override { return 0; }
 
-    // These are variables that we have used a gate on, to enforce that they are
-    // equal to a defined value.
-    std::map<barretenberg::fr, uint32_t> constant_variable_indices;
+    // these are variables that we have used a gate on, to enforce that they are
+    // equal to a defined value
+    std::map<barretenberg::fr, uint32_t> constant_variables;
 
+    /**
+     * Create a manifest, which specifies proof rounds, elements and who supplies them.
+     *
+     * @param num_public_inputs The number of public inputs.
+     *
+     * @return Constructed manifest.
+     * */
     static transcript::Manifest create_manifest(const size_t num_public_inputs)
     {
+        // add public inputs....
         constexpr size_t g1_size = 64;
         constexpr size_t fr_size = 32;
         const size_t public_input_size = fr_size * num_public_inputs;
-        /*  A RoundManifest describes data that will be put in or extracted from a transcript.
-            Here we have 7 RoundManifests. */
         const transcript::Manifest output = transcript::Manifest(
-            { // clang-format off
-
-              // Round 0
+            { transcript::Manifest::RoundManifest(
+                  { { "circuit_size", 4, true }, { "public_input_size", 4, true } }, "init", 1),
+              transcript::Manifest::RoundManifest({}, "eta", 0),
               transcript::Manifest::RoundManifest(
-                { 
-                  { .name = "circuit_size",      .num_bytes = 4, .derived_by_verifier = true },
-                  { .name = "public_input_size", .num_bytes = 4, .derived_by_verifier = true }
-                },
-                /* challenge_name = */ "init",
-                /* num_challenges_in = */ 1),
-
-              // Round 1
+                  {
+                      { "public_inputs", public_input_size, false },
+                      { "W_1", g1_size, false },
+                      { "W_2", g1_size, false },
+                      { "W_3", g1_size, false },
+                  },
+                  "beta",
+                  2),
+              transcript::Manifest::RoundManifest({ { "Z_PERM", g1_size, false } }, "alpha", 1),
               transcript::Manifest::RoundManifest(
-                {}, 
-                /* challenge_name = */ "eta", 
-                /* num_challenges_in = */ 0),
-
-              // Round 2
+                  { { "T_1", g1_size, false }, { "T_2", g1_size, false }, { "T_3", g1_size, false } }, "z", 1),
               transcript::Manifest::RoundManifest(
-                {
-                    { .name = "public_inputs", .num_bytes = public_input_size, .derived_by_verifier = false },
-                    { .name = "W_1",           .num_bytes = g1_size,           .derived_by_verifier = false },
-                    { .name = "W_2",           .num_bytes = g1_size,           .derived_by_verifier = false },
-                    { .name = "W_3",           .num_bytes = g1_size,           .derived_by_verifier = false },
-                },
-                /* challenge_name = */ "beta",
-                /* num_challenges_in = */ 2),
-
-              // Round 3
+                  {
+                      { "w_1", fr_size, false, 0 },
+                      { "w_2", fr_size, false, 1 },
+                      { "w_3", fr_size, false, 2 },
+                      { "sigma_1", fr_size, false, 3 },
+                      { "sigma_2", fr_size, false, 4 },
+                      { "z_perm_omega", fr_size, false, -1 },
+                  },
+                  "nu",
+                  6,
+                  true),
               transcript::Manifest::RoundManifest(
-                { { .name = "Z_PERM", .num_bytes = g1_size, .derived_by_verifier = false } }, 
-                /* challenge_name = */ "alpha",
-                /* num_challenges_in = */ 1),
+                  { { "PI_Z", g1_size, false }, { "PI_Z_OMEGA", g1_size, false } }, "separator", 1) });
+        return output;
+    }
 
-              // Round 4
+    static transcript::Manifest create_unrolled_manifest(const size_t num_public_inputs)
+    {
+        // add public inputs....
+        constexpr size_t g1_size = 64;
+        constexpr size_t fr_size = 32;
+        const size_t public_input_size = fr_size * num_public_inputs;
+        const transcript::Manifest output = transcript::Manifest(
+            { transcript::Manifest::RoundManifest(
+                  { { "circuit_size", 4, true }, { "public_input_size", 4, true } }, "init", 1),
+              transcript::Manifest::RoundManifest({}, "eta", 0),
               transcript::Manifest::RoundManifest(
-                { { .name = "T_1", .num_bytes = g1_size, .derived_by_verifier = false },
-                  { .name = "T_2", .num_bytes = g1_size, .derived_by_verifier = false },
-                  { .name = "T_3", .num_bytes = g1_size, .derived_by_verifier = false } },
-                /* challenge_name = */ "z",
-                /* num_challenges_in = */ 1),
-
-              // Round 5
+                  {
+                      { "public_inputs", public_input_size, false },
+                      { "W_1", g1_size, false },
+                      { "W_2", g1_size, false },
+                      { "W_3", g1_size, false },
+                  },
+                  "beta",
+                  2),
+              transcript::Manifest::RoundManifest({ { "Z_PERM", g1_size, false } }, "alpha", 1),
               transcript::Manifest::RoundManifest(
-                {
-                    { .name = "t",            .num_bytes = fr_size, .derived_by_verifier = true,  .challenge_map_index = -1 },
-                    { .name = "w_1",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 0 },
-                    { .name = "w_2",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 1 },
-                    { .name = "w_3",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 2 },
-                    { .name = "sigma_1",      .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 3 },
-                    { .name = "sigma_2",      .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 4 },
-                    { .name = "sigma_3",      .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 5 },
-                    { .name = "q_1",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 6 },
-                    { .name = "q_2",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 7 },
-                    { .name = "q_3",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 8 },
-                    { .name = "q_m",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 9 },
-                    { .name = "q_c",          .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 10 },
-                    { .name = "z_perm",       .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = 11 },
-                    { .name = "z_perm_omega", .num_bytes = fr_size, .derived_by_verifier = false, .challenge_map_index = -1 },
-                },
-                /* challenge_name = */ "nu",
-                /* num_challenges_in = */ STANDARD_MANIFEST_SIZE,
-                /* map_challenges_in = */ true),
-
-              // Round 6
+                  { { "T_1", g1_size, false }, { "T_2", g1_size, false }, { "T_3", g1_size, false } }, "z", 1),
               transcript::Manifest::RoundManifest(
-                { { .name = "PI_Z",       .num_bytes = g1_size, .derived_by_verifier = false },
-                  { .name = "PI_Z_OMEGA", .num_bytes = g1_size, .derived_by_verifier = false } },
-                /* challenge_name = */ "separator",
-                /* num_challenges_in = */ 1) }
-
-            // clang-format off
-    );
+                  {
+                      { "t", fr_size, true, -1 },
+                      { "w_1", fr_size, false, 0 },
+                      { "w_2", fr_size, false, 1 },
+                      { "w_3", fr_size, false, 2 },
+                      { "sigma_1", fr_size, false, 3 },
+                      { "sigma_2", fr_size, false, 4 },
+                      { "sigma_3", fr_size, false, 5 },
+                      { "q_1", fr_size, false, 6 },
+                      { "q_2", fr_size, false, 7 },
+                      { "q_3", fr_size, false, 8 },
+                      { "q_m", fr_size, false, 9 },
+                      { "q_c", fr_size, false, 10 },
+                      { "z_perm", fr_size, false, 11 },
+                      { "z_perm_omega", fr_size, false, -1 },
+                  },
+                  "nu",
+                  12,
+                  true),
+              transcript::Manifest::RoundManifest(
+                  { { "PI_Z", g1_size, false }, { "PI_Z_OMEGA", g1_size, false } }, "separator", 1) });
         return output;
     }
 
     bool check_circuit();
 };
-} // namespace plonk
+} // namespace waffle

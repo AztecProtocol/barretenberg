@@ -6,11 +6,13 @@
 #include <unordered_map>
 
 #include <polynomials/iterate_over_domain.hpp>
+#include "../../types/polynomial_manifest.hpp"
 #include "../../types/prover_settings.hpp"
-#include "../../../../proof_system/proving_key/proving_key.hpp"
-#include "../../../../proof_system/work_queue/work_queue.hpp"
-using namespace bonk;
-namespace plonk {
+#include "../../proving_key/proving_key.hpp"
+#include "../../verification_key/verification_key.hpp"
+#include "../../prover/work_queue.hpp"
+
+namespace waffle {
 
 namespace widget {
 enum ChallengeIndex {
@@ -41,7 +43,7 @@ template <class Field, size_t num_widget_relations> struct challenge_array {
 template <class Field> using poly_array = std::array<std::pair<Field, Field>, PolynomialIndex::MAX_NUM_POLYNOMIALS>;
 
 template <class Field> struct poly_ptr_map {
-    std::unordered_map<PolynomialIndex, std::span<Field>> coefficients;
+    std::unordered_map<PolynomialIndex, Field*> coefficients;
     size_t block_mask;
     size_t index_shift;
 };
@@ -50,25 +52,7 @@ template <class Field> using coefficient_array = std::array<Field, PolynomialInd
 
 } // namespace containers
 
-/**
- * @brief Getters are various classes that are used to retrieve / query various object needed during the proof
- *
- * @details You can query:
- * Challenges;
- * Polynomial evaluations;
- * Polynomials is monomial form;
- * Polynomials in lagrange form;
- *
- */
 namespace getters {
-/**
- * @brief Implements loading challenges from the transcript and computing powers of α, which is later used in widgets
- *
- * @tparam Field Base field
- * @tparam Transcript Transcript class
- * @tparam Settings Configuration
- * @tparam num_widget_relations How many powers of α are needed
- */
 template <class Field, class Transcript, class Settings, size_t num_widget_relations> class BaseGetter {
   protected:
     typedef containers::challenge_array<Field, num_widget_relations> challenge_array;
@@ -108,17 +92,18 @@ template <class Field, class Transcript, class Settings, size_t num_widget_relat
          * proof will fail if some widget uses an uninitialized challenge.         *
          *
          * */
-
         auto add_challenge = [transcript,
                               &result](const auto label, const auto tag, const bool required, const size_t index = 0) {
-            ASSERT(!required || transcript.has_challenge(label));
-            if (transcript.has_challenge(label)) {
-                ASSERT(index < transcript.get_num_challenges(label));
+            if (required) { // if we are supposed to use the challenge, we pick it from transcript, otherwise we use a
+                            // random value
+                ASSERT(index < transcript.get_num_challenges(
+                                   label)); // We fail this assertion only if the required challenge doesn't exist yet
                 result.elements[tag] = transcript.get_challenge_field_element(label, index);
             } else {
                 result.elements[tag] = barretenberg::fr::random_element();
             }
         };
+
         add_challenge("alpha", ALPHA, required_challenges & CHALLENGE_BIT_ALPHA);
         add_challenge("beta", BETA, required_challenges & CHALLENGE_BIT_BETA);
         add_challenge("beta", GAMMA, required_challenges & CHALLENGE_BIT_GAMMA, 1);
@@ -140,15 +125,6 @@ template <class Field, class Transcript, class Settings, size_t num_widget_relat
     }
 };
 
-/**
- * @brief Implements loading polynomial openings from transcript in addition to BaseGetter's loading challenges from the
- * transcript and computing powers of α
- *
- * @tparam Field Base field
- * @tparam Transcript Transcript class
- * @tparam Settings Configuration
- * @tparam num_widget_relations How many powers of α are needed
- */
 template <class Field, class Transcript, class Settings, size_t num_widget_relations>
 class EvaluationGetter : public BaseGetter<Field, Transcript, Settings, num_widget_relations> {
   protected:
@@ -175,13 +151,7 @@ class EvaluationGetter : public BaseGetter<Field, Transcript, Settings, num_widg
         }
         return polynomials[id].first;
     }
-    /**
-     * @brief Return an array with poly
-     *
-     * @param polynomial_manifest
-     * @param transcript
-     * @return poly_array
-     */
+
     static poly_array get_polynomial_evaluations(const polynomial_manifest& polynomial_manifest,
                                                  const Transcript& transcript)
     {
@@ -189,8 +159,11 @@ class EvaluationGetter : public BaseGetter<Field, Transcript, Settings, num_widg
         for (size_t i = 0; i < polynomial_manifest.size(); ++i) {
             auto info = polynomial_manifest[i];
             const std::string label(info.polynomial_label);
-            result[info.index].first = transcript.get_field_element(label);
-
+            if (!info.is_linearised || !Settings::use_linearisation) {
+                result[info.index].first = transcript.get_field_element(label);
+            } else {
+                result[info.index].first = 0;
+            }
             if (info.requires_shifted_evaluation) {
                 result[info.index].second = transcript.get_field_element(label + "_omega");
             } else {
@@ -203,7 +176,8 @@ class EvaluationGetter : public BaseGetter<Field, Transcript, Settings, num_widg
 
 /**
  * @brief Provides access to polynomials (monomial or coset FFT) for use in widgets
- * @details Coset FFT access is needed in quotient construction.
+ * @details Coset FFT access is needed in quotient construction and monomial access is
+ * for construction of linearization polynomial
  *
  * @tparam Field
  * @tparam Transcript
@@ -211,8 +185,12 @@ class EvaluationGetter : public BaseGetter<Field, Transcript, Settings, num_widg
  * @tparam num_widget_relations
  * @tparam representation
  */
-template <typename Field, class Transcript, class Settings, size_t num_widget_relations>
-class FFTGetter : public BaseGetter<Field, Transcript, Settings, num_widget_relations> {
+template <typename Field,
+          class Transcript,
+          class Settings,
+          size_t num_widget_relations,
+          PolynomialRepresentation representation>
+class PolynomialGetter : public BaseGetter<Field, Transcript, Settings, num_widget_relations> {
   protected:
     typedef containers::poly_ptr_map<Field> poly_ptr_map;
 
@@ -222,17 +200,23 @@ class FFTGetter : public BaseGetter<Field, Transcript, Settings, num_widget_rela
         poly_ptr_map result;
         std::string label_suffix;
 
-        // Set block_mask and index_shift
-        label_suffix = "_fft"; // coset evaluation form has suffix "_fft"
-        result.block_mask = key->large_domain.size - 1;
-        result.index_shift = 4; // for coset fft, x->ω*x corresponds to shift by 4
+        // Set block_mask and index_shift based on the polynomial representation
+        if (PolynomialRepresentation::MONOMIAL == representation) {
+            label_suffix = ""; // no suffix for monomial representation
+            result.block_mask = key->small_domain.size - 1;
+            result.index_shift = 1;
+        } else if (PolynomialRepresentation::COSET_FFT == representation) {
+            label_suffix = "_fft"; // coset evaluation form has suffix "_fft"
+            result.block_mask = key->large_domain.size - 1;
+            result.index_shift = 4; // for coset fft, x->ω*x corresponds to shift by 4
+        }
 
         // Construct the container of pointers to the required polynomials
         for (size_t i = 0; i < key->polynomial_manifest.size(); ++i) {
             auto info_ = key->polynomial_manifest[i];
             if (required_polynomial_ids.contains(info_.index)) {
                 std::string label = std::string(info_.polynomial_label) + label_suffix;
-                result.coefficients[info_.index] = key->polynomial_cache.get(label);
+                result.coefficients[info_.index] = &key->polynomial_cache.get(label)[0];
             }
         }
         return result;
@@ -270,6 +254,7 @@ template <class Field> class TransitionWidgetBase {
     virtual ~TransitionWidgetBase() {}
 
     virtual Field compute_quotient_contribution(const Field&, const transcript::StandardTranscript&) = 0;
+    virtual Field compute_linear_contribution(const Field&, const transcript::StandardTranscript&, Field*) = 0;
 
   public:
     proving_key* key;
@@ -287,9 +272,20 @@ class TransitionWidget : public TransitionWidgetBase<Field> {
   public:
     typedef getters::EvaluationGetter<Field, transcript::StandardTranscript, Settings, num_independent_relations>
         EvaluationGetter;
-    typedef getters::FFTGetter<Field, transcript::StandardTranscript, Settings, num_independent_relations> FFTGetter;
-
+    typedef getters::PolynomialGetter<Field,
+                                      transcript::StandardTranscript,
+                                      Settings,
+                                      num_independent_relations,
+                                      PolynomialRepresentation::COSET_FFT>
+        FFTGetter;
+    typedef getters::PolynomialGetter<Field,
+                                      transcript::StandardTranscript,
+                                      Settings,
+                                      num_independent_relations,
+                                      PolynomialRepresentation::MONOMIAL>
+        MonomialGetter;
     typedef KernelBase<Field, FFTGetter, poly_ptr_map> FFTKernel;
+    typedef KernelBase<Field, MonomialGetter, poly_ptr_map> MonomialKernel;
     typedef KernelBase<Field, EvaluationGetter, poly_array> EvaluationKernel;
 
     TransitionWidget(proving_key* _key = nullptr)
@@ -329,13 +325,48 @@ class TransitionWidget : public TransitionWidgetBase<Field> {
         Field sum_of_linear_terms = FFTKernel::sum_linear_terms(polynomials, challenges, linear_terms, i);
 
         // populate split quotient components
-        Field& quotient_term =
-            key->quotient_polynomial_parts[i >> key->small_domain.log2_size][i & (key->circuit_size - 1)];
+        Field& quotient_term = key->quotient_polynomial_parts[i >> key->small_domain.log2_size][i & (key->n - 1)];
         quotient_term += sum_of_linear_terms;
         FFTKernel::compute_non_linear_terms(polynomials, challenges, quotient_term, i);
         ITERATE_OVER_DOMAIN_END;
 
         return FFTGetter::update_alpha(challenges, FFTKernel::num_independent_relations);
+    }
+
+    Field compute_linear_contribution(const Field& alpha_base,
+                                      const transcript::StandardTranscript& transcript,
+                                      Field* linear_poly) override
+    {
+        challenge_array challenges = MonomialGetter::get_challenges(transcript,
+                                                                    alpha_base,
+                                                                    EvaluationKernel::quotient_required_challenges |
+                                                                        MonomialKernel::quotient_required_challenges);
+
+        if constexpr (!Settings::use_linearisation) {
+            return MonomialGetter::update_alpha(challenges, FFTKernel::num_independent_relations);
+        }
+        auto* key = TransitionWidgetBase<Field>::key;
+
+        // Get the set IDs for the polynomials required by the widget
+        auto& required_polynomial_ids = MonomialKernel::get_required_polynomial_ids();
+
+        // Construct the map of pointers to the required polynomials
+        poly_ptr_map polynomials = MonomialGetter::get_polynomials(key, required_polynomial_ids);
+        poly_array polynomial_evaluations =
+            EvaluationGetter::get_polynomial_evaluations(key->polynomial_manifest, transcript);
+
+        coefficient_array linear_terms;
+        EvaluationKernel::compute_linear_terms(polynomial_evaluations, challenges, linear_terms);
+
+        ITERATE_OVER_DOMAIN_START(key->small_domain);
+        linear_poly[i] += MonomialKernel::sum_linear_terms(polynomials, challenges, linear_terms, i);
+        ITERATE_OVER_DOMAIN_END;
+
+        if (Settings::use_linearisation) {
+            EvaluationKernel::compute_non_linear_terms(polynomial_evaluations, challenges, linear_poly[0]);
+        }
+
+        return MonomialGetter::update_alpha(challenges, FFTKernel::num_independent_relations);
     }
 };
 
@@ -355,35 +386,47 @@ class GenericVerifierWidget {
     static Field compute_quotient_evaluation_contribution(typename Transcript::Key* key,
                                                           const Field& alpha_base,
                                                           const Transcript& transcript,
-                                                          Field& quotient_numerator_eval)
+                                                          Field& r_0)
     {
         poly_array polynomial_evaluations =
             EvaluationGetter::get_polynomial_evaluations(key->polynomial_manifest, transcript);
         challenge_array challenges =
             EvaluationGetter::get_challenges(transcript, alpha_base, EvaluationKernel::quotient_required_challenges);
 
-        // As in the permutation widget, we have vestiges of the linearization trick: the code first computes what
-        // would be the contribution with linearization, then completes that smaller sum to the full contribution
-        // without linearization.
-        coefficient_array linear_terms;
-        EvaluationKernel::compute_linear_terms(polynomial_evaluations, challenges, linear_terms);
-        quotient_numerator_eval += EvaluationKernel::sum_linear_terms(polynomial_evaluations, challenges, linear_terms);
-        EvaluationKernel::compute_non_linear_terms(polynomial_evaluations, challenges, quotient_numerator_eval);
-
+        if constexpr (!Settings::use_linearisation) {
+            coefficient_array linear_terms;
+            EvaluationKernel::compute_linear_terms(polynomial_evaluations, challenges, linear_terms);
+            r_0 += EvaluationKernel::sum_linear_terms(polynomial_evaluations, challenges, linear_terms);
+            EvaluationKernel::compute_non_linear_terms(polynomial_evaluations, challenges, r_0);
+        } else {
+            EvaluationKernel::compute_non_linear_terms(polynomial_evaluations, challenges, r_0);
+        }
         return EvaluationGetter::update_alpha(challenges, num_independent_relations);
     }
 
-    static Field append_scalar_multiplication_inputs(typename Transcript::Key*,
+    static Field append_scalar_multiplication_inputs(typename Transcript::Key* key,
                                                      const Field& alpha_base,
                                                      const Transcript& transcript,
-                                                     std::map<std::string, Field>&)
+                                                     std::map<std::string, Field>& scalars)
     {
         challenge_array challenges = EvaluationGetter::get_challenges(transcript,
                                                                       alpha_base,
                                                                       EvaluationKernel::quotient_required_challenges |
                                                                           EvaluationKernel::update_required_challenges);
+        if (!Settings::use_linearisation) {
+            return EvaluationGetter::update_alpha(challenges, num_independent_relations);
+        }
+
+        poly_array polynomial_evaluations =
+            EvaluationGetter::get_polynomial_evaluations(key->polynomial_manifest, transcript);
+
+        coefficient_array linear_terms;
+        EvaluationKernel::compute_linear_terms(polynomial_evaluations, challenges, linear_terms);
+
+        EvaluationKernel::update_kate_opening_scalars(linear_terms, scalars, challenges);
+
         return EvaluationGetter::update_alpha(challenges, num_independent_relations);
     }
 };
 } // namespace widget
-} // namespace plonk
+} // namespace waffle

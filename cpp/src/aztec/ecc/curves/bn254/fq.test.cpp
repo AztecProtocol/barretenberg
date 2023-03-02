@@ -267,8 +267,7 @@ TEST(fq, beta)
     fq x = fq::random_element();
 
     fq beta_x = { x.data[0], x.data[1], x.data[2], x.data[3] };
-    fq beta = fq::cube_root_of_unity();
-    beta_x = beta_x * beta;
+    beta_x = beta_x * fq::beta();
 
     // compute x^3
     fq x_cubed;
@@ -357,7 +356,7 @@ TEST(fq, split_into_endomorphism_scalars)
     k1.self_to_montgomery_form();
     k2.self_to_montgomery_form();
 
-    result = k2 * fq::cube_root_of_unity();
+    result = k2 * fq::beta();
     result = k1 - result;
 
     result.self_from_montgomery_form();
@@ -379,8 +378,7 @@ TEST(fq, split_into_endomorphism_scalars_simple)
     k1.self_to_montgomery_form();
     k2.self_to_montgomery_form();
 
-    fq beta = fq::cube_root_of_unity();
-    result = k2 * beta;
+    result = k2 * fq::beta();
     result = k1 - result;
 
     result.self_from_montgomery_form();

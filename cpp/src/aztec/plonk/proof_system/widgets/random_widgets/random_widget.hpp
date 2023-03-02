@@ -1,6 +1,7 @@
 #pragma once
-#include "../../../../transcript/transcript.hpp"
-#include "../../../../proof_system/work_queue/work_queue.hpp"
+#include "../../../transcript/transcript_wrappers.hpp"
+#include "../../verification_key/verification_key.hpp"
+#include "../../prover/work_queue.hpp"
 #include <ecc/curves/bn254/fr.hpp>
 
 #include <map>
@@ -8,7 +9,7 @@ namespace transcript {
 class Transcript;
 }
 
-namespace bonk {
+namespace waffle {
 
 struct proving_key;
 
@@ -48,8 +49,11 @@ class ProverRandomWidget {
 
     virtual barretenberg::fr compute_quotient_contribution(const barretenberg::fr& alpha_base,
                                                            const transcript::StandardTranscript& transcript) = 0;
+    virtual barretenberg::fr compute_linear_contribution(const barretenberg::fr& alpha_base,
+                                                         const transcript::StandardTranscript& transcript,
+                                                         barretenberg::polynomial& r) = 0;
 
     proving_key* key;
 };
 
-} // namespace bonk
+} // namespace waffle

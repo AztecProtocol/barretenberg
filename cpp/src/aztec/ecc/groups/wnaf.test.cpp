@@ -163,8 +163,7 @@ TEST(wnaf, wnaf_fixed_with_endo_split)
     recover_fixed_wnaf(endo_wnaf, endo_skew, k2_recovered.data[1], k2_recovered.data[0], 5);
 
     fr result;
-    fr lambda = fr::cube_root_of_unity();
-    result = k2_recovered * lambda;
+    result = k2_recovered * fr::beta();
     result = k1_recovered - result;
 
     EXPECT_EQ(result, k);

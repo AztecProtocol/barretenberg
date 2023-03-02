@@ -8,6 +8,7 @@ namespace merkle_tree {
 
 using namespace barretenberg;
 
+class LevelDbStore;
 class MemoryStore;
 
 template <typename Store> class MerkleTree {
@@ -95,7 +96,10 @@ template <typename Store> class MerkleTree {
     uint8_t tree_id_;
 };
 
+extern template class MerkleTree<LevelDbStore>;
 extern template class MerkleTree<MemoryStore>;
+
+typedef MerkleTree<LevelDbStore> LevelDbTree;
 
 } // namespace merkle_tree
 } // namespace stdlib

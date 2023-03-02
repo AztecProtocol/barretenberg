@@ -1,7 +1,7 @@
 #include <numeric/uint256/uint256.hpp>
 #include <numeric/random/engine.hpp>
 #include <stdlib/primitives/safe_uint/safe_uint.hpp>
-#include <ecc/curves/grumpkin/grumpkin.hpp>
+#include "../../../rollup/constants.hpp"
 
 // This is a global variable, so that the execution handling class could alter it and signal to the input tester that
 // the input should fail
@@ -13,7 +13,7 @@ bool circuit_should_fail = false;
 FastRandom VarianceRNG(0);
 
 // Enable this definition, when you want to find out the instructions that caused a failure
-//#define SHOW_INFORMATION 1
+// #define SHOW_INFORMATION 1
 
 #ifdef SHOW_INFORMATION
 #define PRINT_TWO_ARG_INSTRUCTION(first_index, second_index, vector, operation_name, preposition)                      \
@@ -186,7 +186,9 @@ template <typename Composer> class SafeUintFuzzBase {
          * @param rng PRNG used
          * @return A random instruction
          */
-        template <typename T> inline static Instruction generateRandom(T& rng) requires SimpleRng<T>
+        template <typename T>
+        inline static Instruction generateRandom(T& rng)
+            requires SimpleRng<T>
         {
             // Choose which instruction we are going to generate
             OPCODE instruction_opcode = static_cast<OPCODE>(rng.next() % (OPCODE::_LAST));
@@ -281,7 +283,8 @@ template <typename Composer> class SafeUintFuzzBase {
          * @return Mutated element
          */
         template <typename T>
-        inline static fr mutateFieldElement(fr e, T& rng, HavocSettings& havoc_config) requires SimpleRng<T>
+        inline static fr mutateFieldElement(fr e, T& rng, HavocSettings& havoc_config)
+            requires SimpleRng<T>
         {
             // With a certain probability, we apply changes to the Montgomery form, rather than the plain form. This has
             // merit, since the computation is performed in montgomery form and comparisons are often performed in it,
@@ -374,9 +377,8 @@ template <typename Composer> class SafeUintFuzzBase {
          * @return Mutated instruction
          */
         template <typename T>
-        inline static Instruction mutateInstruction(Instruction instruction,
-                                                    T& rng,
-                                                    HavocSettings& havoc_config) requires SimpleRng<T>
+        inline static Instruction mutateInstruction(Instruction instruction, T& rng, HavocSettings& havoc_config)
+            requires SimpleRng<T>
         {
 #define PUT_RANDOM_BYTE_IF_LUCKY(variable)                                                                             \
     if (rng.next() & 1) {                                                                                              \
@@ -1247,7 +1249,7 @@ template <typename Composer> class SafeUintFuzzBase {
             // Check assert conditions
             if ((lsb > msb) || (msb > 252) ||
                 (static_cast<uint256_t>(stack[first_index].suint.get_value()) >=
-                 (static_cast<uint256_t>(1) << grumpkin::MAX_NO_WRAP_INTEGER_BIT_LENGTH))) {
+                 (static_cast<uint256_t>(1) << rollup::MAX_NO_WRAP_INTEGER_BIT_LENGTH))) {
                 return 0;
             }
             PRINT_SLICE(first_index, lsb, msb, stack)
@@ -1415,7 +1417,7 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
  */
 extern "C" size_t LLVMFuzzerCustomMutator(uint8_t* Data, size_t Size, size_t MaxSize, unsigned int Seed)
 {
-    using FuzzerClass = SafeUintFuzzBase<plonk::StandardComposer>;
+    using FuzzerClass = SafeUintFuzzBase<waffle::StandardComposer>;
     auto fast_random = FastRandom(Seed);
     auto size_occupied = ArithmeticFuzzHelper<FuzzerClass>::MutateInstructionBuffer(Data, Size, MaxSize, fast_random);
     if ((fast_random.next() % 200) < fuzzer_havoc_settings.GEN_LLVM_POST_MUTATION_PROB) {
@@ -1436,7 +1438,7 @@ extern "C" size_t LLVMFuzzerCustomCrossOver(const uint8_t* Data1,
                                             size_t MaxOutSize,
                                             unsigned int Seed)
 {
-    using FuzzerClass = SafeUintFuzzBase<plonk::StandardComposer>;
+    using FuzzerClass = SafeUintFuzzBase<waffle::StandardComposer>;
     auto fast_random = FastRandom(Seed);
     auto vecA = ArithmeticFuzzHelper<FuzzerClass>::parseDataIntoInstructions(Data1, Size1);
     auto vecB = ArithmeticFuzzHelper<FuzzerClass>::parseDataIntoInstructions(Data2, Size2);

@@ -14,8 +14,7 @@
 */
 #pragma once
 
-#include <cstdint>
-#include <cstddef>
+#include <stdint.h>
 #include <vector>
 
 namespace blake2 {

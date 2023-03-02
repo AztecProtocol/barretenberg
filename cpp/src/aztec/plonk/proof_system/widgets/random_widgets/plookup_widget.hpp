@@ -1,7 +1,7 @@
 #pragma once
 #include "random_widget.hpp"
 
-namespace plonk {
+namespace waffle {
 template <typename Field,
           typename Group,
           typename Transcript,
@@ -13,12 +13,14 @@ class VerifierPlookupWidget {
     static Field compute_quotient_evaluation_contribution(typename Transcript::Key*,
                                                           const Field& alpha_base,
                                                           const Transcript& transcript,
-                                                          Field& quotient_numerator_eval);
+                                                          Field& r_0,
+                                                          const bool use_linearisation);
 
     static Field append_scalar_multiplication_inputs(typename Transcript::Key*,
                                                      const Field& alpha_base,
                                                      const Transcript& transcript,
-                                                     std::map<std::string, Field>& scalars);
+                                                     std::map<std::string, Field>& scalars,
+                                                     const bool use_linearisation);
 };
 
 extern template class VerifierPlookupWidget<barretenberg::fr,
@@ -34,9 +36,9 @@ class ProverPlookupWidget : public ProverRandomWidget {
     inline ProverPlookupWidget& operator=(const ProverPlookupWidget& other);
     inline ProverPlookupWidget& operator=(ProverPlookupWidget&& other);
 
-    inline void compute_sorted_list_polynomial(transcript::StandardTranscript& transcript);
+    inline void compute_sorted_list_commitment(transcript::StandardTranscript& transcript);
 
-    inline void compute_grand_product_polynomial(transcript::StandardTranscript& transcript);
+    inline void compute_grand_product_commitment(transcript::StandardTranscript& transcript);
 
     inline void compute_round_commitments(transcript::StandardTranscript& transcript,
                                           const size_t round_number,
@@ -44,8 +46,11 @@ class ProverPlookupWidget : public ProverRandomWidget {
 
     inline barretenberg::fr compute_quotient_contribution(const barretenberg::fr& alpha_base,
                                                           const transcript::StandardTranscript& transcript) override;
+    inline barretenberg::fr compute_linear_contribution(const barretenberg::fr& alpha_base,
+                                                        const transcript::StandardTranscript& transcript,
+                                                        barretenberg::polynomial& r) override;
 };
 
-} // namespace plonk
+} // namespace waffle
 
 #include "./plookup_widget_impl.hpp"

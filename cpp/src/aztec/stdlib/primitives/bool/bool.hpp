@@ -1,7 +1,6 @@
 #pragma once
 #include "../composers/composers_fwd.hpp"
 #include "../witness/witness.hpp"
-#include "honk/composer/standard_honk_composer.hpp"
 
 namespace plonk {
 namespace stdlib {
@@ -52,11 +51,7 @@ template <typename ComposerContext> class bool_t {
     // assertions
     void assert_equal(const bool_t& rhs, std::string const& msg = "bool_t::assert_equal") const;
 
-    static bool_t conditional_assign(const bool_t<ComposerContext>& predicate, const bool_t& lhs, const bool_t& rhs);
-
     void must_imply(const bool_t& other, std::string const& msg = "bool_t::must_imply") const;
-
-    void must_imply(const std::vector<std::pair<bool_t, std::string>>& conds) const;
 
     bool get_value() const { return witness_bool ^ witness_inverted; }
 
@@ -78,7 +73,6 @@ template <typename T> inline std::ostream& operator<<(std::ostream& os, bool_t<T
 }
 
 EXTERN_STDLIB_TYPE(bool_t);
-extern template class bool_t<honk::StandardHonkComposer>;
 
 } // namespace stdlib
 } // namespace plonk

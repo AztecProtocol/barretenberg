@@ -1,8 +1,7 @@
 #include "schnorr.hpp"
-#include <crypto/pedersen_commitment/pedersen.hpp>
+#include <crypto/pedersen/pedersen.hpp>
 #include <ecc/curves/grumpkin/grumpkin.hpp>
 #include <stdlib/hash/blake2s/blake2s.hpp>
-#include <stdlib/commitment/pedersen/pedersen.hpp>
 
 #include "../../primitives/composers/composers.hpp"
 
@@ -156,12 +155,13 @@ point<C> variable_base_mul(const point<C>& pub_key, const point<C>& current_accu
     grumpkin::g1::affine_element pub_key_native(pub_key.x.get_value(), pub_key.y.get_value());
     grumpkin::g1::affine_element current_accumulator_native(current_accumulator.x.get_value(),
                                                             current_accumulator.y.get_value());
+    ASSERT(pub_key_native.on_curve() && current_accumulator_native.on_curve());
 
     field_t<C> two(pub_key.x.context, 2);
 
-    // Various elliptic curve point additions that follow assume that the two points are distinct and not mutually
+    // Various elliptic curve point additions that follow assume we that the two points are distinct and not mutually
     // inverse. collision_offset is chosen to prevent a malicious prover from exploiting this assumption.
-    grumpkin::g1::affine_element collision_offset = crypto::generators::get_generator_data(DEFAULT_GEN_1).generator;
+    grumpkin::g1::affine_element collision_offset = crypto::pedersen::get_generator_data(DEFAULT_GEN_1).generator;
     grumpkin::g1::affine_element collision_end = collision_offset * grumpkin::fr(uint256_t(1) << 129);
 
     const bool init = current_accumulator.x.get_value() == pub_key.x.get_value();
@@ -286,43 +286,39 @@ void verify_signature(const byte_array<C>& message, const point<C>& pub_key, con
 
     // build input (pedersen(([s]g + [e]pub).x | pub.x | pub.y) | message) to hash function
     // pedersen hash ([r].x | pub.x) to make sure the size of `hash_input` is <= 64 bytes for a 32 byte message
-    byte_array<C> hash_input(stdlib::pedersen_commitment<C>::compress({ x_3, pub_key.x, pub_key.y }));
+    byte_array<C> hash_input(stdlib::pedersen<C>::compress({ x_3, pub_key.x, pub_key.y }));
     hash_input.write(message);
 
     // compute  e' = hash(([s]g + [e]pub).x | message)
     byte_array<C> output = blake2s(hash_input);
 
+    // verify that e' == e
     field_t<C> output_hi(output.slice(0, 16));
     field_t<C> output_lo(output.slice(16, 16));
     output_lo.assert_equal(sig.e_lo, "verify signature failed");
     output_hi.assert_equal(sig.e_hi, "verify signature failed");
 }
 
-template wnaf_record<plonk::TurboComposer> convert_field_into_wnaf<plonk::TurboComposer>(
-    plonk::TurboComposer* context, const field_t<plonk::TurboComposer>& limb);
+template wnaf_record<waffle::TurboComposer> convert_field_into_wnaf<waffle::TurboComposer>(
+    waffle::TurboComposer* context, const field_t<waffle::TurboComposer>& limb);
 
-template wnaf_record<plonk::UltraComposer> convert_field_into_wnaf<plonk::UltraComposer>(
-    plonk::UltraComposer* context, const field_t<plonk::UltraComposer>& limb);
+template point<waffle::TurboComposer> variable_base_mul(const point<waffle::TurboComposer>& pub_key,
+                                                        const field_t<waffle::TurboComposer>& low_bits,
+                                                        const field_t<waffle::TurboComposer>& high_bits);
 
-template point<plonk::TurboComposer> variable_base_mul(const point<plonk::TurboComposer>& pub_key,
-                                                       const field_t<plonk::TurboComposer>& low_bits,
-                                                       const field_t<plonk::TurboComposer>& high_bits);
+template point<waffle::TurboComposer> variable_base_mul<waffle::TurboComposer>(
+    const point<waffle::TurboComposer>&,
+    const point<waffle::TurboComposer>&,
+    const wnaf_record<waffle::TurboComposer>&);
 
-template point<plonk::TurboComposer> variable_base_mul<plonk::TurboComposer>(const point<plonk::TurboComposer>&,
-                                                                             const point<plonk::TurboComposer>&,
-                                                                             const wnaf_record<plonk::TurboComposer>&);
+template void verify_signature<waffle::TurboComposer>(const byte_array<waffle::TurboComposer>&,
+                                                      const point<waffle::TurboComposer>&,
+                                                      const signature_bits<waffle::TurboComposer>&);
 
-template void verify_signature<plonk::TurboComposer>(const byte_array<plonk::TurboComposer>&,
-                                                     const point<plonk::TurboComposer>&,
-                                                     const signature_bits<plonk::TurboComposer>&);
-template void verify_signature<plonk::UltraComposer>(const byte_array<plonk::UltraComposer>&,
-                                                     const point<plonk::UltraComposer>&,
-                                                     const signature_bits<plonk::UltraComposer>&);
-
-template signature_bits<plonk::TurboComposer> convert_signature<plonk::TurboComposer>(
-    plonk::TurboComposer*, const crypto::schnorr::signature&);
-template signature_bits<plonk::UltraComposer> convert_signature<plonk::UltraComposer>(
-    plonk::UltraComposer*, const crypto::schnorr::signature&);
+template signature_bits<waffle::TurboComposer> convert_signature<waffle::TurboComposer>(
+    waffle::TurboComposer*, const crypto::schnorr::signature&);
+template signature_bits<waffle::PlookupComposer> convert_signature<waffle::PlookupComposer>(
+    waffle::PlookupComposer*, const crypto::schnorr::signature&);
 } // namespace schnorr
 } // namespace stdlib
 } // namespace plonk

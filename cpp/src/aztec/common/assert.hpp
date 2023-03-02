@@ -10,12 +10,8 @@
         true ? static_cast<void>(0) : static_cast<void>((expression));                                                 \
     }
 
-// NOLINTBEGIN
-
 #if NDEBUG
 #define ASSERT(expression) DONT_EVALUATE((expression))
 #else
 #define ASSERT(expression) assert((expression))
 #endif // NDEBUG
-
-// NOLINTEND

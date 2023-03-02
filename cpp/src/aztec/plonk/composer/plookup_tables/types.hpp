@@ -5,9 +5,8 @@
 
 #include <ecc/curves/bn254/fr.hpp>
 
-namespace plookup {
-
-enum BasicTableId {
+namespace waffle {
+enum PlookupBasicTableId {
     XOR,
     AND,
     PEDERSEN,
@@ -29,45 +28,10 @@ enum BasicTableId {
     SHA256_BASE16_ROTATE6,
     SHA256_BASE16_ROTATE7,
     SHA256_BASE16_ROTATE8,
-    UINT_XOR_ROTATE0,
-    UINT_AND_ROTATE0,
-    BN254_XLO_BASIC,
-    BN254_XHI_BASIC,
-    BN254_YLO_BASIC,
-    BN254_YHI_BASIC,
-    BN254_XYPRIME_BASIC,
-    BN254_XLO_ENDO_BASIC,
-    BN254_XHI_ENDO_BASIC,
-    BN254_XYPRIME_ENDO_BASIC,
-    SECP256K1_XLO_BASIC,
-    SECP256K1_XHI_BASIC,
-    SECP256K1_YLO_BASIC,
-    SECP256K1_YHI_BASIC,
-    SECP256K1_XYPRIME_BASIC,
-    SECP256K1_XLO_ENDO_BASIC,
-    SECP256K1_XHI_ENDO_BASIC,
-    SECP256K1_XYPRIME_ENDO_BASIC,
-    BLAKE_XOR_ROTATE0,
-    BLAKE_XOR_ROTATE0_SLICE5_MOD4,
-    BLAKE_XOR_ROTATE1,
-    BLAKE_XOR_ROTATE2,
-    BLAKE_XOR_ROTATE4,
-    PEDERSEN_29_SMALL,
-    PEDERSEN_28,
-    PEDERSEN_27,
-    PEDERSEN_26,
-    PEDERSEN_25,
-    PEDERSEN_24,
-    PEDERSEN_23,
-    PEDERSEN_22,
-    PEDERSEN_21,
-    PEDERSEN_20,
-    PEDERSEN_19,
-    PEDERSEN_18,
     PEDERSEN_17,
     PEDERSEN_16,
     PEDERSEN_15,
-    PEDERSEN_14_SMALL,
+    PEDERSEN_14,
     PEDERSEN_13,
     PEDERSEN_12,
     PEDERSEN_11,
@@ -82,74 +46,33 @@ enum BasicTableId {
     PEDERSEN_2,
     PEDERSEN_1,
     PEDERSEN_0,
-    PEDERSEN_IV_BASE,
-    KECCAK_INPUT,
-    KECCAK_THETA,
-    KECCAK_RHO,
-    KECCAK_CHI,
-    KECCAK_OUTPUT,
-    KECCAK_RHO_1,
-    KECCAK_RHO_2,
-    KECCAK_RHO_3,
-    KECCAK_RHO_4,
-    KECCAK_RHO_5,
-    KECCAK_RHO_6,
-    KECCAK_RHO_7,
-    KECCAK_RHO_8,
-    KECCAK_RHO_9,
+    UINT_XOR_ROTATE0,
+    UINT_AND_ROTATE0,
 };
 
-enum MultiTableId {
-    SHA256_CH_INPUT,
-    SHA256_CH_OUTPUT,
-    SHA256_MAJ_INPUT,
-    SHA256_MAJ_OUTPUT,
-    SHA256_WITNESS_INPUT,
-    SHA256_WITNESS_OUTPUT,
-    AES_NORMALIZE,
-    AES_INPUT,
-    AES_SBOX,
-    PEDERSEN_LEFT_HI,
-    PEDERSEN_LEFT_LO,
-    PEDERSEN_RIGHT_HI,
-    PEDERSEN_RIGHT_LO,
-    UINT32_XOR,
-    UINT32_AND,
-    BN254_XLO,
-    BN254_XHI,
-    BN254_YLO,
-    BN254_YHI,
-    BN254_XYPRIME,
-    BN254_XLO_ENDO,
-    BN254_XHI_ENDO,
-    BN254_XYPRIME_ENDO,
-    SECP256K1_XLO,
-    SECP256K1_XHI,
-    SECP256K1_YLO,
-    SECP256K1_YHI,
-    SECP256K1_XYPRIME,
-    SECP256K1_XLO_ENDO,
-    SECP256K1_XHI_ENDO,
-    SECP256K1_XYPRIME_ENDO,
-    BLAKE_XOR,
-    BLAKE_XOR_ROTATE_16,
-    BLAKE_XOR_ROTATE_8,
-    BLAKE_XOR_ROTATE_7,
-    PEDERSEN_IV,
-    KECCAK_THETA_OUTPUT,
-    KECCAK_CHI_OUTPUT,
-    KECCAK_FORMAT_INPUT,
-    KECCAK_FORMAT_OUTPUT,
-    KECCAK_NORMALIZE_AND_ROTATE,
-    NUM_MULTI_TABLES = KECCAK_NORMALIZE_AND_ROTATE + 25,
+enum PlookupMultiTableId {
+    SHA256_CH_INPUT = 0,
+    SHA256_CH_OUTPUT = 1,
+    SHA256_MAJ_INPUT = 2,
+    SHA256_MAJ_OUTPUT = 3,
+    SHA256_WITNESS_INPUT = 4,
+    SHA256_WITNESS_OUTPUT = 5,
+    AES_NORMALIZE = 6,
+    AES_INPUT = 7,
+    AES_SBOX = 8,
+    PEDERSEN_LEFT = 9,
+    PEDERSEN_RIGHT = 10,
+    UINT32_XOR = 11,
+    UINT32_AND = 12,
+    NUM_MULTI_TABLES = 13,
 };
 
-struct MultiTable {
+struct PlookupMultiTable {
     std::vector<barretenberg::fr> column_1_coefficients;
     std::vector<barretenberg::fr> column_2_coefficients;
     std::vector<barretenberg::fr> column_3_coefficients;
-    MultiTableId id;
-    std::vector<BasicTableId> lookup_ids;
+    PlookupMultiTableId id;
+    std::vector<PlookupBasicTableId> lookup_ids;
     std::vector<uint64_t> slice_sizes;
     std::vector<barretenberg::fr> column_1_step_sizes;
     std::vector<barretenberg::fr> column_2_step_sizes;
@@ -180,10 +103,10 @@ struct MultiTable {
     }
 
   public:
-    MultiTable(const barretenberg::fr& col_1_repeated_coeff,
-               const barretenberg::fr& col_2_repeated_coeff,
-               const barretenberg::fr& col_3_repeated_coeff,
-               const size_t num_lookups)
+    PlookupMultiTable(const barretenberg::fr& col_1_repeated_coeff,
+                      const barretenberg::fr& col_2_repeated_coeff,
+                      const barretenberg::fr& col_3_repeated_coeff,
+                      const size_t num_lookups)
     {
         column_1_coefficients.emplace_back(1);
         column_2_coefficients.emplace_back(1);
@@ -196,9 +119,9 @@ struct MultiTable {
         }
         init_step_sizes();
     }
-    MultiTable(const std::vector<barretenberg::fr>& col_1_coeffs,
-               const std::vector<barretenberg::fr>& col_2_coeffs,
-               const std::vector<barretenberg::fr>& col_3_coeffs)
+    PlookupMultiTable(const std::vector<barretenberg::fr>& col_1_coeffs,
+                      const std::vector<barretenberg::fr>& col_2_coeffs,
+                      const std::vector<barretenberg::fr>& col_3_coeffs)
         : column_1_coefficients(col_1_coeffs)
         , column_2_coefficients(col_2_coeffs)
         , column_3_coefficients(col_3_coeffs)
@@ -206,12 +129,12 @@ struct MultiTable {
         init_step_sizes();
     }
 
-    MultiTable(){};
-    MultiTable(const MultiTable& other) = default;
-    MultiTable(MultiTable&& other) = default;
+    PlookupMultiTable(){};
+    PlookupMultiTable(const PlookupMultiTable& other) = default;
+    PlookupMultiTable(PlookupMultiTable&& other) = default;
 
-    MultiTable& operator=(const MultiTable& other) = default;
-    MultiTable& operator=(MultiTable&& other) = default;
+    PlookupMultiTable& operator=(const PlookupMultiTable& other) = default;
+    PlookupMultiTable& operator=(PlookupMultiTable&& other) = default;
 };
 
 // struct PlookupLargeKeyTable {
@@ -230,7 +153,7 @@ struct MultiTable {
 //         }
 //     };
 
-//     BasicTableId id;
+//     PlookupBasicTableId id;
 //     size_t table_index;
 //     size_t size;
 //     bool use_twin_keys;
@@ -258,7 +181,7 @@ struct MultiTable {
 //         std::array<barretenberg::fr, 3> to_sorted_list_components() const { return { key, values[0], values[0] }; }
 //     }
 
-//     BasicTableId id;
+//     PlookupBasicTableId id;
 //     size_t table_index;
 //     size_t size;
 //     bool use_twin_keys;
@@ -275,13 +198,7 @@ struct MultiTable {
 
 // }
 
-/**
- * @brief The structure contains the most basic table serving one function (for, example an xor table)
- *
- * @details You can find initialization example at ../ultra_composer.cpp#UltraComposer::initialize_precomputed_table(..)
- *
- */
-struct BasicTable {
+struct PlookupBasicTable {
     struct KeyEntry {
         std::array<uint256_t, 2> key{ 0, 0 };
         std::array<barretenberg::fr, 2> value{ barretenberg::fr(0), barretenberg::fr(0) };
@@ -300,12 +217,9 @@ struct BasicTable {
         }
     };
 
-    // Unique id of the table which is used to look it up, when we need its functionality. One of BasicTableId enum
-    BasicTableId id;
+    PlookupBasicTableId id;
     size_t table_index;
-    // The size of the table
     size_t size;
-    // This means that we are using two inputs to look up stuff, not translate a single entry into another one.
     bool use_twin_keys;
 
     barretenberg::fr column_1_step_size = barretenberg::fr(0);
@@ -319,31 +233,11 @@ struct BasicTable {
     std::array<barretenberg::fr, 2> (*get_values_from_key)(const std::array<uint64_t, 2>);
 };
 
-enum ColumnIdx { C1, C2, C3 };
+struct PlookupReadData {
+    std::vector<PlookupBasicTable::KeyEntry> key_entries;
 
-/**
- * @brief Container type for lookup table reads.
- *
- * @tparam DataType: a native or stdlib field type, or the witness index type uint32_t
- *
- * @details We us this approach to indexing, using enums, rather than to make member variables column_i, to minimize
- * code changes; both non-const and const versions are in use.
- *
- * The inner index, i.e., the index of each vector v in the array `columns`, could also be treated as an enum, but that
- * might be messier. Note that v[0] represents a full accumulated sum, v[1] represents one step before that,
- * and so on. See the documentation of the native version of get_lookup_accumulators.
- *
- */
-template <class DataType> class ReadData {
-  public:
-    ReadData() = default;
-    std::vector<DataType>& operator[](ColumnIdx idx) { return columns[static_cast<size_t>(idx)]; };
-    const std::vector<DataType>& operator[](ColumnIdx idx) const { return columns[static_cast<size_t>(idx)]; };
-
-    std::vector<BasicTable::KeyEntry> key_entries;
-
-  private:
-    std::array<std::vector<DataType>, 3> columns;
+    std::vector<barretenberg::fr> column_1_accumulator_values;
+    std::vector<barretenberg::fr> column_2_accumulator_values;
+    std::vector<barretenberg::fr> column_3_accumulator_values;
 };
-
-} // namespace plookup
+} // namespace waffle

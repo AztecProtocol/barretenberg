@@ -1,13 +1,14 @@
 #pragma once
+#include "../../transcript/transcript_wrappers.hpp"
 #include "../../../polynomials/polynomial_arithmetic.hpp"
-#include "../../../proof_system/work_queue/work_queue.hpp"
+#include "../prover/work_queue.hpp"
 #include "../../../polynomials/polynomial.hpp"
 #include "../types/commitment_open_proof.hpp"
 #include "../types/program_settings.hpp"
 
 using namespace barretenberg;
 
-namespace plonk {
+namespace waffle {
 
 class CommitmentScheme {
   public:
@@ -35,16 +36,17 @@ class CommitmentScheme {
 
     virtual void batch_open(const transcript::StandardTranscript& transcript,
                             work_queue& queue,
-                            std::shared_ptr<bonk::proving_key> input_key = nullptr) = 0;
+                            std::shared_ptr<proving_key> input_key = nullptr) = 0;
 
     virtual void batch_verify(const transcript::StandardTranscript& transcript,
                               std::map<std::string, g1::affine_element>& kate_g1_elements,
                               std::map<std::string, fr>& kate_fr_elements,
-                              std::shared_ptr<bonk::verification_key> input_key = nullptr) = 0;
+                              std::shared_ptr<verification_key> input_key = nullptr,
+                              const barretenberg::fr& r_0 = 0) = 0;
 
     virtual void add_opening_evaluations_to_transcript(transcript::StandardTranscript& trancript,
-                                                       std::shared_ptr<bonk::proving_key> input_key = nullptr,
+                                                       std::shared_ptr<proving_key> input_key = nullptr,
                                                        bool in_lagrange_form = false) = 0;
 };
 
-} // namespace plonk
+} // namespace waffle

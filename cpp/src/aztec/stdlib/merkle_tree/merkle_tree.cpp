@@ -1,5 +1,6 @@
 #include "merkle_tree.hpp"
 #include "hash.hpp"
+#include "leveldb_store.hpp"
 #include "memory_store.hpp"
 #include <common/net.hpp>
 #include <iostream>
@@ -288,6 +289,9 @@ template <typename Store> void MerkleTree<Store>::remove(fr const& key)
     store_.del(key.to_buffer());
 }
 
+#ifndef __wasm__
+template class MerkleTree<LevelDbStore>;
+#endif
 template class MerkleTree<MemoryStore>;
 
 } // namespace merkle_tree

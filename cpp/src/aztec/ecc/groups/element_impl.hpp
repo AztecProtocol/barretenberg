@@ -485,16 +485,6 @@ template <class Fq, class Fr, class T> constexpr element<Fq, Fr, T> element<Fq, 
     return element(converted);
 }
 
-template <class Fq, class Fr, class T> element<Fq, Fr, T> element<Fq, Fr, T>::infinity()
-{
-    element<Fq, Fr, T> e;
-    e.self_set_infinity();
-    if (!e.is_point_at_infinity()) {
-        info("yup, it's infinity");
-    };
-    return e;
-}
-
 template <class Fq, class Fr, class T> constexpr element<Fq, Fr, T> element<Fq, Fr, T>::set_infinity() const noexcept
 {
     element result(*this);
@@ -653,7 +643,6 @@ element<Fq, Fr, T> element<Fq, Fr, T>::mul_with_endomorphism(const Fr& exponent)
     uint64_t wnaf_entry;
     uint64_t index;
     bool sign;
-    Fq beta = Fq::cube_root_of_unity();
 
     for (size_t i = 0; i < num_rounds * 2; ++i) {
         wnaf_entry = wnaf_table[i];
@@ -663,7 +652,7 @@ element<Fq, Fr, T> element<Fq, Fr, T>::mul_with_endomorphism(const Fr& exponent)
         auto to_add = lookup_table[static_cast<size_t>(index)];
         to_add.y.self_conditional_negate(sign ^ is_odd);
         if (is_odd) {
-            to_add.x *= beta;
+            to_add.x *= Fq::beta();
         }
         work_element += to_add;
 
@@ -679,7 +668,7 @@ element<Fq, Fr, T> element<Fq, Fr, T>::mul_with_endomorphism(const Fr& exponent)
         work_element += temporary;
     }
 
-    temporary = { lookup_table[0].x * beta, lookup_table[0].y, lookup_table[0].z };
+    temporary = { lookup_table[0].x * Fq::beta(), lookup_table[0].y, lookup_table[0].z };
 
     if (endo_skew) {
         work_element += temporary;
@@ -798,8 +787,6 @@ std::vector<affine_element<Fq, Fr, T>> element<Fq, Fr, T>::batch_mul_with_endomo
     uint64_t wnaf_entry;
     uint64_t index;
     bool sign;
-    Fq beta = Fq::cube_root_of_unity();
-
     for (size_t i = 0; i < 2; ++i) {
         for (size_t j = 0; j < num_points; ++j) {
             wnaf_entry = wnaf_table[i];
@@ -809,7 +796,7 @@ std::vector<affine_element<Fq, Fr, T>> element<Fq, Fr, T>::batch_mul_with_endomo
             auto to_add = lookup_table[static_cast<size_t>(index)][j];
             to_add.y.self_conditional_negate(sign ^ is_odd);
             if (is_odd) {
-                to_add.x *= beta;
+                to_add.x *= Fq::beta();
             }
             if (i == 0) {
                 work_elements[j] = to_add;
@@ -834,7 +821,7 @@ std::vector<affine_element<Fq, Fr, T>> element<Fq, Fr, T>::batch_mul_with_endomo
             auto to_add = lookup_table[static_cast<size_t>(index)][j];
             to_add.y.self_conditional_negate(sign ^ is_odd);
             if (is_odd) {
-                to_add.x *= beta;
+                to_add.x *= Fq::beta();
             }
             temp_point_vector[j] = to_add;
         }
@@ -851,7 +838,7 @@ std::vector<affine_element<Fq, Fr, T>> element<Fq, Fr, T>::batch_mul_with_endomo
     if (endo_skew) {
         for (size_t j = 0; j < num_points; ++j) {
             temp_point_vector[j] = lookup_table[0][j];
-            temp_point_vector[j].x *= beta;
+            temp_point_vector[j].x *= Fq::beta();
         }
         batch_affine_add(&temp_point_vector[0], &work_elements[0]);
     }

@@ -1,19 +1,17 @@
 #include "bool.hpp"
-#include "plonk/proof_system/constants.hpp"
 #include <gtest/gtest.h>
-// #include <plonk/composer/standard_composer.hpp>
-#include <honk/composer/standard_honk_composer.hpp>
+#include <plonk/composer/standard_composer.hpp>
 
 namespace test_stdlib_bool {
 using namespace barretenberg;
 using namespace plonk;
 
-typedef stdlib::bool_t<honk::StandardHonkComposer> bool_t;
-typedef stdlib::witness_t<honk::StandardHonkComposer> witness_t;
+typedef stdlib::bool_t<waffle::StandardComposer> bool_t;
+typedef stdlib::witness_t<waffle::StandardComposer> witness_t;
 
 TEST(stdlib_bool, test_basic_operations)
 {
-    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+    waffle::StandardComposer composer = waffle::StandardComposer();
     bool_t a(&composer);
     bool_t b(&composer);
     a = stdlib::witness_t(&composer, barretenberg::fr::one());
@@ -25,52 +23,33 @@ TEST(stdlib_bool, test_basic_operations)
     bool_t e = a | d;    // e = 1 = a
     bool_t f = e ^ b;    // f = 0
     d = (!f) & a;        // d = 1
-    auto prover = composer.create_prover();
-    // if constexpr (Composer::type == plonk::ComposerType::STANDARD_HONK) {
-    EXPECT_EQ(prover.wire_polynomials[0][3], fr(1));
-    EXPECT_EQ(prover.wire_polynomials[1][3], fr(1));
-    EXPECT_EQ(prover.wire_polynomials[2][3], fr(1));
-    EXPECT_EQ(prover.wire_polynomials[0][4], fr(0));
-    EXPECT_EQ(prover.wire_polynomials[1][4], fr(0));
-    EXPECT_EQ(prover.wire_polynomials[2][4], fr(0));
-    EXPECT_EQ(prover.wire_polynomials[0][5], fr(1));
-    EXPECT_EQ(prover.wire_polynomials[1][5], fr(0));
-    EXPECT_EQ(prover.wire_polynomials[2][5], fr(1));
-    EXPECT_EQ(prover.wire_polynomials[0][6], fr(1));
-    EXPECT_EQ(prover.wire_polynomials[1][6], fr(0));
-    EXPECT_EQ(prover.wire_polynomials[2][6], fr(1));
-    EXPECT_EQ(prover.wire_polynomials[0][7], fr(1));
-    EXPECT_EQ(prover.wire_polynomials[1][7], fr(0));
-    EXPECT_EQ(prover.wire_polynomials[2][7], fr(0));
-    EXPECT_EQ(prover.wire_polynomials[0][8], fr(0));
-    EXPECT_EQ(prover.wire_polynomials[1][8], fr(1));
-    EXPECT_EQ(prover.wire_polynomials[2][8], fr(1));
-    // } else {
-    //     EXPECT_EQ(prover.key->polynomial_cache.get("w_1_lagrange")[1], fr(1));
-    //     EXPECT_EQ(prover.key->polynomial_cache.get("w_2_lagrange")[1], fr(1));
-    //     EXPECT_EQ(prover.key->polynomial_cache.get("w_3_lagrange")[1], fr(1));
-    //     EXPECT_EQ(prover.key->polynomial_cache.get("w_1_lagrange")[2], fr(0));
-    //     EXPECT_EQ(prover.key->polynomial_cache.get("w_2_lagrange")[2], fr(0));
-    //     EXPECT_EQ(prover.key->polynomial_cache.get("w_3_lagrange")[2], fr(0));
-    //     EXPECT_EQ(prover.key->polynomial_cache.get("w_1_lagrange")[3], fr(1));
-    //     EXPECT_EQ(prover.key->polynomial_cache.get("w_2_lagrange")[3], fr(0));
-    //     EXPECT_EQ(prover.key->polynomial_cache.get("w_3_lagrange")[3], fr(1));
-    //     EXPECT_EQ(prover.key->polynomial_cache.get("w_1_lagrange")[4], fr(1));
-    //     EXPECT_EQ(prover.key->polynomial_cache.get("w_2_lagrange")[4], fr(0));
-    //     EXPECT_EQ(prover.key->polynomial_cache.get("w_3_lagrange")[4], fr(1));
-    //     EXPECT_EQ(prover.key->polynomial_cache.get("w_1_lagrange")[5], fr(1));
-    //     EXPECT_EQ(prover.key->polynomial_cache.get("w_2_lagrange")[5], fr(0));
-    //     EXPECT_EQ(prover.key->polynomial_cache.get("w_3_lagrange")[5], fr(0));
-    //     EXPECT_EQ(prover.key->polynomial_cache.get("w_1_lagrange")[6], fr(0));
-    //     EXPECT_EQ(prover.key->polynomial_cache.get("w_2_lagrange")[6], fr(1));
-    //     EXPECT_EQ(prover.key->polynomial_cache.get("w_3_lagrange")[6], fr(1));
-    // }
-    EXPECT_EQ(prover.key->circuit_size, 16UL);
+    waffle::Prover prover = composer.preprocess();
+
+    EXPECT_EQ(prover.key->polynomial_cache.get("w_1_lagrange")[1], fr(1));
+    EXPECT_EQ(prover.key->polynomial_cache.get("w_2_lagrange")[1], fr(1));
+    EXPECT_EQ(prover.key->polynomial_cache.get("w_3_lagrange")[1], fr(1));
+    EXPECT_EQ(prover.key->polynomial_cache.get("w_1_lagrange")[2], fr(0));
+    EXPECT_EQ(prover.key->polynomial_cache.get("w_2_lagrange")[2], fr(0));
+    EXPECT_EQ(prover.key->polynomial_cache.get("w_3_lagrange")[2], fr(0));
+    EXPECT_EQ(prover.key->polynomial_cache.get("w_1_lagrange")[3], fr(1));
+    EXPECT_EQ(prover.key->polynomial_cache.get("w_2_lagrange")[3], fr(0));
+    EXPECT_EQ(prover.key->polynomial_cache.get("w_3_lagrange")[3], fr(1));
+    EXPECT_EQ(prover.key->polynomial_cache.get("w_1_lagrange")[4], fr(1));
+    EXPECT_EQ(prover.key->polynomial_cache.get("w_2_lagrange")[4], fr(0));
+    EXPECT_EQ(prover.key->polynomial_cache.get("w_3_lagrange")[4], fr(1));
+    EXPECT_EQ(prover.key->polynomial_cache.get("w_1_lagrange")[5], fr(1));
+    EXPECT_EQ(prover.key->polynomial_cache.get("w_2_lagrange")[5], fr(0));
+    EXPECT_EQ(prover.key->polynomial_cache.get("w_3_lagrange")[5], fr(0));
+    EXPECT_EQ(prover.key->polynomial_cache.get("w_1_lagrange")[6], fr(0));
+    EXPECT_EQ(prover.key->polynomial_cache.get("w_2_lagrange")[6], fr(1));
+    EXPECT_EQ(prover.key->polynomial_cache.get("w_3_lagrange")[6], fr(1));
+
+    EXPECT_EQ(prover.n, 16UL);
 }
 
 TEST(stdlib_bool, xor)
 {
-    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+    waffle::StandardComposer composer = waffle::StandardComposer();
     for (size_t j = 0; j < 4; ++j) {
         bool lhs_constant = (bool)(j % 2);
         bool rhs_constant = (bool)(j > 1 ? true : false);
@@ -84,10 +63,10 @@ TEST(stdlib_bool, xor)
             EXPECT_EQ(c.get_value(), a.get_value() ^ b.get_value());
         }
     }
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
+    waffle::Prover prover = composer.preprocess();
+    waffle::Verifier verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    waffle::plonk_proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -95,7 +74,7 @@ TEST(stdlib_bool, xor)
 
 TEST(stdlib_bool, xor_constants)
 {
-    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+    waffle::StandardComposer composer = waffle::StandardComposer();
     for (size_t i = 0; i < 32; ++i) {
         bool_t a = witness_t(&composer, (bool)(i % 2));
         bool_t b = witness_t(&composer, (bool)(i % 3 == 1));
@@ -112,10 +91,10 @@ TEST(stdlib_bool, xor_constants)
             a ^ b;
         }
     }
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
+    waffle::Prover prover = composer.preprocess();
+    waffle::Verifier verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    waffle::plonk_proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -123,7 +102,7 @@ TEST(stdlib_bool, xor_constants)
 
 TEST(stdlib_bool, xor_twin_constants)
 {
-    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+    waffle::StandardComposer composer = waffle::StandardComposer();
     bool_t c;
     for (size_t i = 0; i < 32; ++i) {
         bool_t a(&composer, (i % 1) == 0);
@@ -142,10 +121,10 @@ TEST(stdlib_bool, xor_twin_constants)
             c = c ^ a ^ b;
         }
     }
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
+    waffle::Prover prover = composer.preprocess();
+    waffle::Verifier verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    waffle::plonk_proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -153,15 +132,15 @@ TEST(stdlib_bool, xor_twin_constants)
 
 // TEST(stdlib_bool, logical_and)
 // {
-//     honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+//     waffle::StandardComposer composer = waffle::StandardComposer();
 //     bool_t a = witness_t(&composer, 1);
 //     bool_t b = witness_t(&composer, 1);
 //     (!a) && (!b);
 
-//     auto prover = composer.create_prover();
-//     auto verifier = composer.create_verifier();
+//     waffle::Prover prover = composer.preprocess();
+//     waffle::Verifier verifier = composer.create_verifier();
 
-//     plonk::proof proof = prover.construct_proof();
+//     waffle::plonk_proof proof = prover.construct_proof();
 
 //     bool result = verifier.verify_proof(proof);
 //     EXPECT_EQ(result, true);
@@ -169,16 +148,16 @@ TEST(stdlib_bool, xor_twin_constants)
 
 TEST(stdlib_bool, and)
 {
-    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+    waffle::StandardComposer composer = waffle::StandardComposer();
     for (size_t i = 0; i < 32; ++i) {
         bool_t a = witness_t(&composer, (bool)(i % 1));
         bool_t b = witness_t(&composer, (bool)(i % 2 == 1));
         a& b;
     }
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
+    waffle::Prover prover = composer.preprocess();
+    waffle::Verifier verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    waffle::plonk_proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -186,7 +165,7 @@ TEST(stdlib_bool, and)
 
 TEST(stdlib_bool, and_constants)
 {
-    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+    waffle::StandardComposer composer = waffle::StandardComposer();
     for (size_t i = 0; i < 32; ++i) {
         bool_t a = witness_t(&composer, (bool)(i % 2));
         bool_t b = witness_t(&composer, (bool)(i % 3 == 1));
@@ -203,10 +182,10 @@ TEST(stdlib_bool, and_constants)
             a& b;
         }
     }
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
+    waffle::Prover prover = composer.preprocess();
+    waffle::Verifier verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    waffle::plonk_proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -214,16 +193,16 @@ TEST(stdlib_bool, and_constants)
 
 TEST(stdlib_bool, or)
 {
-    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+    waffle::StandardComposer composer = waffle::StandardComposer();
     for (size_t i = 0; i < 32; ++i) {
         bool_t a = witness_t(&composer, (bool)(i % 2));
         bool_t b = witness_t(&composer, (bool)(i % 3 == 1));
         a | b;
     }
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
+    waffle::Prover prover = composer.preprocess();
+    waffle::Verifier verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    waffle::plonk_proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -231,7 +210,7 @@ TEST(stdlib_bool, or)
 
 TEST(stdlib_bool, or_constants)
 {
-    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+    waffle::StandardComposer composer = waffle::StandardComposer();
     for (size_t i = 0; i < 32; ++i) {
         bool_t a = witness_t(&composer, (bool)(i % 2));
         bool_t b = witness_t(&composer, (bool)(i % 3 == 1));
@@ -248,10 +227,10 @@ TEST(stdlib_bool, or_constants)
             a | b;
         }
     }
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
+    waffle::Prover prover = composer.preprocess();
+    waffle::Verifier verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    waffle::plonk_proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -259,7 +238,7 @@ TEST(stdlib_bool, or_constants)
 
 TEST(stdlib_bool, eq)
 {
-    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+    waffle::StandardComposer composer = waffle::StandardComposer();
     bool a_alt[32];
     bool b_alt[32];
     bool c_alt[32];
@@ -300,10 +279,10 @@ TEST(stdlib_bool, eq)
         EXPECT_EQ(c[i].get_value(), c_alt[i]);
         EXPECT_EQ(d[i].get_value(), d_alt[i]);
     }
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
+    waffle::Prover prover = composer.preprocess();
+    waffle::Verifier verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    waffle::plonk_proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -311,7 +290,7 @@ TEST(stdlib_bool, eq)
 
 TEST(stdlib_bool, implies)
 {
-    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+    waffle::StandardComposer composer = waffle::StandardComposer();
     for (size_t j = 0; j < 4; ++j) {
         bool lhs_constant = (bool)(j % 2);
         bool rhs_constant = (bool)(j > 1 ? true : false);
@@ -325,10 +304,10 @@ TEST(stdlib_bool, implies)
             EXPECT_EQ(c.get_value(), !a.get_value() || b.get_value());
         }
     }
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
+    waffle::Prover prover = composer.preprocess();
+    waffle::Verifier verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    waffle::plonk_proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -336,7 +315,7 @@ TEST(stdlib_bool, implies)
 
 TEST(stdlib_bool, implies_both_ways)
 {
-    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+    waffle::StandardComposer composer = waffle::StandardComposer();
     for (size_t j = 0; j < 4; ++j) {
         bool lhs_constant = (bool)(j % 2);
         bool rhs_constant = (bool)(j > 1 ? true : false);
@@ -350,10 +329,10 @@ TEST(stdlib_bool, implies_both_ways)
             EXPECT_EQ(c.get_value(), !(a.get_value() ^ b.get_value()));
         }
     }
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
+    waffle::Prover prover = composer.preprocess();
+    waffle::Verifier verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    waffle::plonk_proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -361,7 +340,7 @@ TEST(stdlib_bool, implies_both_ways)
 
 TEST(stdlib_bool, test_simple_proof)
 {
-    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+    waffle::StandardComposer composer = waffle::StandardComposer();
     bool_t a(&composer);
     bool_t b(&composer);
     a = stdlib::witness_t(&composer, barretenberg::fr::one());
@@ -384,10 +363,10 @@ TEST(stdlib_bool, test_simple_proof)
         a = b;
         f = b;
     }
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
+    waffle::Prover prover = composer.preprocess();
+    waffle::Verifier verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    waffle::plonk_proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -395,7 +374,7 @@ TEST(stdlib_bool, test_simple_proof)
 
 TEST(stdlib_bool, normalize)
 {
-    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+    waffle::StandardComposer composer = waffle::StandardComposer();
 
     auto generate_constraints = [&composer](bool value, bool is_constant, bool is_inverted) {
         bool_t a = is_constant ? bool_t(&composer, value) : witness_t(&composer, value);
@@ -413,11 +392,11 @@ TEST(stdlib_bool, normalize)
     generate_constraints(true, true, false);
     generate_constraints(true, true, true);
 
-    auto prover = composer.create_prover();
+    waffle::Prover prover = composer.preprocess();
 
-    auto verifier = composer.create_verifier();
+    waffle::Verifier verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    waffle::plonk_proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);

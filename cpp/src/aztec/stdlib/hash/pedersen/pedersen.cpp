@@ -1,13 +1,32 @@
-#include <ecc/curves/grumpkin/grumpkin.hpp>
 #include "pedersen.hpp"
 #include "pedersen_plookup.hpp"
+#include <crypto/pedersen/pedersen.hpp>
+#include <ecc/curves/grumpkin/grumpkin.hpp>
+
 #include "../../primitives/composers/composers.hpp"
+#include "../../primitives/packed_byte_array/packed_byte_array.hpp"
 
 namespace plonk {
 namespace stdlib {
 
 using namespace barretenberg;
-using namespace crypto::pedersen_hash;
+using namespace crypto::pedersen;
+
+namespace {
+/**
+ * Adds two group elements using elliptic curve addition.
+ **/
+template <typename C> point<C> add_points(const point<C>& first, const point<C>& second)
+{
+    field_t<C> lhs = second.y - first.y;
+    field_t<C> rhs = second.x - first.x;
+    // since we are adding multiples of different generators, creating a zero denum is as hard as DL
+    field_t<C> lambda = lhs.divide_no_zero_check(rhs);
+    field_t<C> x_3 = lambda * lambda - second.x - first.x;
+    field_t<C> y_3 = lambda * (first.x - x_3) - first.y;
+    return { x_3, y_3 };
+}
+} // namespace
 
 /**
  * Description of function:
@@ -37,15 +56,16 @@ using namespace crypto::pedersen_hash;
  * Full documentation: https://hackmd.io/gRsmqUGkSDOCI9O22qWXBA?view
  **/
 template <typename C>
-point<C> pedersen_hash<C>::hash_single_internal(const field_t& in,
-                                                const generator_index_t hash_index,
-                                                const bool validate_input_is_in_field)
+point<C> pedersen<C>::hash_single(const field_t& in,
+                                  const generator_index_t hash_index,
+                                  const bool validate_input_is_in_field)
 {
     C* ctx = in.context;
+
     field_t scalar = in.normalize();
 
     if (in.is_constant()) {
-        const auto hash_native = crypto::pedersen_hash::hash_single(in.get_value(), hash_index).normalize();
+        const auto hash_native = crypto::pedersen::hash_single(in.get_value(), hash_index).normalize();
         return { field_t(ctx, hash_native.x), field_t(ctx, hash_native.y) };
     }
 
@@ -61,8 +81,8 @@ point<C> pedersen_hash<C>::hash_single_internal(const field_t& in,
     //   initial_exponent = ((num_bits & 1) == 1) ? num_bits - 1: num_bits;
     // this may require updating the logic around accumulator_offset
     constexpr size_t initial_exponent = num_bits;
-    const auto gen_data = crypto::generators::get_generator_data(hash_index);
-    const crypto::generators::fixed_base_ladder* ladder = gen_data.get_hash_ladder(num_bits);
+    const auto gen_data = crypto::pedersen::get_generator_data(hash_index);
+    const crypto::pedersen::fixed_base_ladder* ladder = gen_data.get_hash_ladder(num_bits);
     grumpkin::g1::affine_element skew_generator = gen_data.skew_generator;
 
     // Here n = num_quads = 127.
@@ -141,10 +161,10 @@ point<C> pedersen_hash<C>::hash_single_internal(const field_t& in,
 
     grumpkin::g1::element::batch_normalize(&multiplication_transcript[0], num_quads + 1);
 
-    fixed_group_init_quad init_quad{ origin_points[0].x,
-                                     (origin_points[0].x - origin_points[1].x),
-                                     origin_points[0].y,
-                                     (origin_points[0].y - origin_points[1].y) };
+    waffle::fixed_group_init_quad init_quad{ origin_points[0].x,
+                                             (origin_points[0].x - origin_points[1].x),
+                                             origin_points[0].y,
+                                             (origin_points[0].y - origin_points[1].y) };
 
     /**
      * Fill the gates as following:
@@ -177,7 +197,7 @@ point<C> pedersen_hash<C>::hash_single_internal(const field_t& in,
     fr x_alpha = accumulator_offset;
     std::vector<uint32_t> accumulator_witnesses;
     for (size_t i = 0; i < num_quads; ++i) {
-        fixed_group_add_quad round_quad;
+        waffle::fixed_group_add_quad round_quad;
         round_quad.d = ctx->add_variable(accumulator_transcript[i]);
         round_quad.a = ctx->add_variable(multiplication_transcript[i].x);
         round_quad.b = ctx->add_variable(multiplication_transcript[i].y);
@@ -202,56 +222,23 @@ point<C> pedersen_hash<C>::hash_single_internal(const field_t& in,
         if (i > 0) {
             ctx->create_fixed_group_add_gate(round_quad);
         } else {
-            if constexpr (C::type == plonk::PLOOKUP &&
-                          (C::merkle_hash_type == plonk::merkle::HashType::FIXED_BASE_PEDERSEN ||
-                           C::commitment_type == plonk::pedersen::CommitmentType::FIXED_BASE_PEDERSEN)) {
-                /* In TurboComposer, the selector q_5 is used to show that w_1 and w_2 are properly initialized to the
-                 * coordinates of P_s = (-s + 4^n)[g]. In UltraPlonK, we have removed q_5 for overall efficiency (it
-                 * would only be used here in this gate), but this presents us a cost in the present circuit: we must
-                 * use an additional gate to perform part of the initialization. Since q_5 is only involved in the
-                 * x-coordinate initialization (in the notation of the widget, Constraint 5), we only perform that part
-                 * of the initialization with additional gates, letting Constraints 4 and 6  be handled in the Ultra
-                 * version of the widget as in the Turbo verison.
-                 * x-coordinate initialization constraint (Pi = origin_points[i] for i = 0,1):
-                 * c * (P0.x - x_0) + (P0.x - P1.x) * (1 - a_0))
-                 *     = -c * x_0 + c * P0.x - (P0.x - P1.x) * a_0 + (P0.x - P1.x)
-                 * In present terms, x_0 = round_quad.a, c = round_quad.c, P0.x = init_quad.q_x_1,
-                 *                   a_0 = round_quad.d,                   P0.x - P1.x = init_quad.q_x_2,
-                 * so we want to impose the constraint:
-                 * 0 = -round_quad.a * round_quad.c
-                 *        + init_quad.q_x_1 * round_quad.c
-                 *        - init_quad.q_x_2 * round_quad.d
-                 *        + init_quad.q_x_2
-                 * */
-                mul_quad x_init_quad{ .a = round_quad.a,
-                                      .b = round_quad.c,
-                                      .c = 0,
-                                      .d = round_quad.d,
-                                      .mul_scaling = -1,
-                                      .a_scaling = 0,
-                                      .b_scaling = init_quad.q_x_1,
-                                      .c_scaling = 0,
-                                      .d_scaling = -init_quad.q_x_2,
-                                      .const_scaling = init_quad.q_x_2 };
-                ctx->create_big_mul_gate(x_init_quad);
-            }
             ctx->create_fixed_group_add_gate_with_init(round_quad, init_quad);
-        };
+        }
 
         accumulator_witnesses.push_back(round_quad.d);
     }
 
     // In Turbo PLONK, this effectively just adds the last row of the table as witnesses.
     // In Standard PLONK, this also creates the constraint involving the final two rows.
-    add_quad add_quad{ ctx->add_variable(multiplication_transcript[num_quads].x),
-                       ctx->add_variable(multiplication_transcript[num_quads].y),
-                       ctx->add_variable(x_alpha),
-                       ctx->add_variable(accumulator_transcript[num_quads]),
-                       fr::zero(),
-                       fr::zero(),
-                       fr::zero(),
-                       fr::zero(),
-                       fr::zero() };
+    waffle::add_quad add_quad{ ctx->add_variable(multiplication_transcript[num_quads].x),
+                               ctx->add_variable(multiplication_transcript[num_quads].y),
+                               ctx->add_variable(x_alpha),
+                               ctx->add_variable(accumulator_transcript[num_quads]),
+                               fr::zero(),
+                               fr::zero(),
+                               fr::zero(),
+                               fr::zero(),
+                               fr::zero() };
     ctx->create_fixed_group_add_gate_final(add_quad);
     accumulator_witnesses.push_back(add_quad.d);
 
@@ -261,7 +248,7 @@ point<C> pedersen_hash<C>::hash_single_internal(const field_t& in,
     result.y = field_t(ctx);
     result.y.witness_index = add_quad.b;
 
-    field_t::from_witness_index(ctx, add_quad.d).assert_equal(in, "pedersen: d != in");
+    field_t::from_witness_index(ctx, add_quad.d).assert_equal(in, "pedersen d != in");
 
     if (validate_input_is_in_field) {
         validate_wnaf_is_in_field(ctx, accumulator_witnesses);
@@ -270,45 +257,11 @@ point<C> pedersen_hash<C>::hash_single_internal(const field_t& in,
 }
 
 /**
- * Compute pedersen hash of the field element `in` using either lookup tables or its WNAF representation.
- *
- * Full documentation: https://hackmd.io/gRsmqUGkSDOCI9O22qWXBA?view
- **/
-template <typename C>
-point<C> pedersen_hash<C>::hash_single(const field_t& in,
-                                       const generator_index_t hash_index,
-                                       const bool validate_input_is_in_field)
-{
-    if constexpr (C::type == ComposerType::PLOOKUP && C::merkle_hash_type == merkle::HashType::LOOKUP_PEDERSEN) {
-        return pedersen_plookup_hash<C>::hash_single(in, hash_index.index == 0);
-    }
-
-    return pedersen_hash<C>::hash_single_internal(in, hash_index, validate_input_is_in_field);
-}
-
-/**
- * Subsidiary function used by the Pedersen commitment gadget to "hash" a field element.
- *
- * Full documentation: https://hackmd.io/gRsmqUGkSDOCI9O22qWXBA?view
- **/
-template <typename C>
-point<C> pedersen_hash<C>::commit_single(const field_t& in,
-                                         const generator_index_t hash_index,
-                                         const bool validate_input_is_in_field)
-{
-    if constexpr (C::type == ComposerType::PLOOKUP && C::commitment_type == pedersen::CommitmentType::LOOKUP_PEDERSEN) {
-        return pedersen_plookup_hash<C>::hash_single(in, hash_index.index == 0);
-    }
-
-    return pedersen_hash<C>::hash_single_internal(in, hash_index, validate_input_is_in_field);
-}
-
-/**
  * Check the wnaf sum is smaller than the circuit modulus
  *
  * When we compute a scalar mul e.g. x * [1], we decompose `x` into an accumulating sum of 2-bit non-adjacent form
- * values. In `hash_single`, we validate that the sum of the 2-bit NAFs (`w`) equals x. But we only check that `w == x
- * mod r` where r is the circuit modulus.
+ *values. In `hash_single`, we validate that the sum of the 2-bit NAFs (`w`) equals x. But we only check that `w == x
+ *mod r` where r is the circuit modulus.
  *
  * If we require the pedersen hash to be injective, we must ensure that `w < r`.
  * Typically this is required for all instances where `w` represents a field element.
@@ -316,7 +269,7 @@ point<C> pedersen_hash<C>::commit_single(const field_t& in,
  *
  * Total cost is ~36 gates
  **/
-template <typename C> void pedersen_hash<C>::validate_wnaf_is_in_field(C* ctx, const std::vector<uint32_t>& accumulator)
+template <typename C> void pedersen<C>::validate_wnaf_is_in_field(C* ctx, const std::vector<uint32_t>& accumulator)
 {
     /**
      * To validate that `w < r`, we use schoolbook subtraction
@@ -366,7 +319,7 @@ template <typename C> void pedersen_hash<C>::validate_wnaf_is_in_field(C* ctx, c
      *
      *    We can extract w.hi from accumulator[64], but we need to remove the contribution from the wnaf skew
      *    We can extract w.lo by subtracting w.hi * 2^{126} from the final accumulator (the final accumulator will be
-     *    equal to `w`)
+     *equal to `w`)
      *
      * 2. Compute y.lo = (r.lo - w.lo) + 2^{126} (the 2^126 constant ensures this is positive)
      *    r.lo is the least significant 126 bits of r
@@ -387,7 +340,7 @@ template <typename C> void pedersen_hash<C>::validate_wnaf_is_in_field(C* ctx, c
      * 6. Range constrain y.hi to be a 128-bit integer
      *
      * We slice the low limb to be 126 bits so that both our range checks can be over 128-bit integers (if the range is
-     * a multiple of 8 we save 1 gate per range check)
+     *a multiple of 8 we save 1 gate per range check)
      *
      * The following table describes the range of values the above terms can take, if w < r
      *
@@ -443,7 +396,7 @@ template <typename C> void pedersen_hash<C>::validate_wnaf_is_in_field(C* ctx, c
      *
      * Therefore  the 2^{-254} term in accumulator[0] will translate to a value of `1` when `input` is computed
      * This corresponds to `input` being an even number (without a skew term, wnaf represenatations can only express odd
-     * numbers)
+     *numbers)
      *
      * We need to factor out this skew term from w.hi as it is part of w.lo
      *
@@ -474,29 +427,11 @@ template <typename C> void pedersen_hash<C>::validate_wnaf_is_in_field(C* ctx, c
 
     field_t y_lo = (-reconstructed_input).add_two(high_limb_with_skew * shift + (r_lo + shift), is_even);
 
-    field_t y_overlap;
-    if constexpr (C::type == ComposerType::PLOOKUP) {
-        // carve out the 2 high bits from y_lo and instantiate as y_overlap
-        const uint256_t y_lo_value = y_lo.get_value();
-        const uint256_t y_overlap_value = y_lo_value >> 126;
-        y_overlap = witness_t(ctx, y_overlap_value);
+    // Validate y.lo is a 128-bit integer
+    const auto y_lo_accumulators = ctx->decompose_into_base4_accumulators(y_lo.normalize().witness_index, 128);
 
-        // Validate y.lo is a 128-bit integer
-        field_t y_remainder = y_lo - (y_overlap * field_t(uint256_t(1ULL) << 126));
-        y_overlap.create_range_constraint(2,
-                                          "pedersen: range constraint on y_overlap fails in validate_wnaf_is_in_field");
-        y_remainder.create_range_constraint(
-            126, "pedersen: range constraint on y_remainder fails in validate_wnaf_is_in_field");
-        y_overlap = y_overlap - 1;
-    } else {
-        // Validate y.lo is a 128-bit integer
-        const auto y_lo_accumulators = ctx->decompose_into_base4_accumulators(
-            y_lo.normalize().witness_index,
-            128,
-            "pedersen: range constraint on y_lo fails in validate_wnaf_is_in_field");
-        // Extract y.overlap, the 2 most significant bits of y.lo
-        y_overlap = field_t::from_witness_index(ctx, y_lo_accumulators[0]) - 1;
-    }
+    // Extract y.overlap, the 2 most significant bits of y.lo
+    field_t y_overlap = field_t::from_witness_index(ctx, y_lo_accumulators[0]) - 1;
 
     /**
      *                                           -126
@@ -507,27 +442,10 @@ template <typename C> void pedersen_hash<C>::validate_wnaf_is_in_field(C* ctx, c
     field_t y_hi = (-is_even * fr(uint256_t(1) << 126).invert()).add_two(-high_limb_with_skew, y_overlap + (r_hi));
 
     // Validate y.hi is a 128-bit integer
-    y_hi.create_range_constraint(128, "pedersen: range constraint on y_lo fails in validate_wnaf_is_in_field");
+    ctx->decompose_into_base4_accumulators(y_hi.normalize().witness_index, 128);
 }
 
-/**
- * Adds two group elements using elliptic curve addition.
- **/
-template <typename C> point<C> pedersen_hash<C>::add_points(const point& first, const point& second)
-{
-    field_t lhs = second.y - first.y;
-    field_t rhs = second.x - first.x;
-    // since we are adding multiples of different generators, creating a zero denum is as hard as DL
-    field_t lambda = lhs.divide_no_zero_check(rhs);
-    field_t x_3 = lambda * lambda - second.x - first.x;
-    field_t y_3 = lambda * (first.x - x_3) - first.y;
-    return { x_3, y_3 };
-}
-
-/**
- * Accumulate a set of group elements using simple elliptic curve addition.
- */
-template <typename C> point<C> pedersen_hash<C>::accumulate(const std::vector<point>& to_accumulate)
+template <typename C> point<C> pedersen<C>::accumulate(const std::vector<point>& to_accumulate)
 {
     if (to_accumulate.size() == 0) {
         return point{ 0, 0 };
@@ -540,26 +458,86 @@ template <typename C> point<C> pedersen_hash<C>::accumulate(const std::vector<po
     return accumulator;
 }
 
+// called unsafe because allowing the option of not validating the input elements are unique, i.e. <r
 template <typename C>
-field_t<C> pedersen_hash<C>::hash_multiple(const std::vector<field_t>& inputs,
-                                           const size_t hash_index,
-                                           const bool validate_inputs_in_field)
+field_t<C> pedersen<C>::compress_unsafe(const field_t& in_left,
+                                        const field_t& in_right,
+                                        const size_t hash_index,
+                                        const bool validate_input_is_in_field)
 {
-    if constexpr (C::type == plonk::ComposerType::PLOOKUP &&
-                  C::merkle_hash_type == plonk::merkle::HashType::LOOKUP_PEDERSEN) {
-        return pedersen_plookup_hash<C>::hash_multiple(inputs, hash_index);
+    if constexpr (C::type == waffle::ComposerType::PLOOKUP) {
+        return pedersen_plookup<C>::compress(in_left, in_right);
+    }
+
+    std::vector<point> accumulators;
+    generator_index_t index_1 = { hash_index, 0 };
+    generator_index_t index_2 = { hash_index, 1 };
+    accumulators.push_back(hash_single(in_left, index_1, validate_input_is_in_field));
+    accumulators.push_back(hash_single(in_right, index_2, validate_input_is_in_field));
+    return accumulate(accumulators).x;
+}
+
+template <typename C> point<C> pedersen<C>::commit(const std::vector<field_t>& inputs, const size_t hash_index)
+{
+    if constexpr (C::type == waffle::ComposerType::PLOOKUP) {
+        return pedersen_plookup<C>::commit(inputs);
     }
 
     std::vector<point> to_accumulate;
     for (size_t i = 0; i < inputs.size(); ++i) {
         generator_index_t index = { hash_index, i };
-        to_accumulate.push_back(pedersen_hash<C>::hash_single(inputs[i], index, validate_inputs_in_field));
+        to_accumulate.push_back(hash_single(inputs[i], index));
     }
-    point result = pedersen_hash<C>::accumulate(to_accumulate);
-    return result.x;
+    return accumulate(to_accumulate);
 }
 
-INSTANTIATE_STDLIB_TYPE(pedersen_hash);
+template <typename C> field_t<C> pedersen<C>::compress(const std::vector<field_t>& inputs, const size_t hash_index)
+{
+    if (C::type == waffle::ComposerType::PLOOKUP) {
+        // TODO handle hash index in plookup. This is a tricky problem but
+        // we can defer solving it until we migrate to UltraPlonk
+        return pedersen_plookup<C>::compress(inputs);
+    }
+    return commit(inputs, hash_index).x;
+}
+
+// If the input values are all zero, we return the array length instead of `0`
+// This is because we require the inputs to regular pedersen compression function are nonzero (we use this method to
+// hash the base layer of our merkle trees)
+template <typename C> field_t<C> pedersen<C>::compress(const byte_array& input)
+{
+    if constexpr (C::type == waffle::ComposerType::PLOOKUP) {
+        return pedersen_plookup<C>::compress(packed_byte_array(input));
+    }
+    const size_t num_bytes = input.size();
+    const size_t bytes_per_element = 31;
+    size_t num_elements = (num_bytes % bytes_per_element != 0) + (num_bytes / bytes_per_element);
+
+    std::vector<field_t> elements;
+    for (size_t i = 0; i < num_elements; ++i) {
+        size_t bytes_to_slice = 0;
+        if (i == num_elements - 1) {
+            bytes_to_slice = num_bytes - (i * bytes_per_element);
+        } else {
+            bytes_to_slice = bytes_per_element;
+        }
+        field_t element = static_cast<field_t>(input.slice(i * bytes_per_element, bytes_to_slice));
+        elements.emplace_back(element);
+    }
+    field_t compressed = compress(elements, 0);
+
+    bool_t is_zero(true);
+    for (const auto& element : elements) {
+        is_zero = is_zero && element.is_zero();
+    }
+
+    field_t output = field_t::conditional_assign(is_zero, field_t(num_bytes), compressed);
+    return output;
+}
+
+template class pedersen<waffle::StandardComposer>;
+template class pedersen<waffle::TurboComposer>;
+template class pedersen<waffle::PlookupComposer>;
 
 } // namespace stdlib
 } // namespace plonk

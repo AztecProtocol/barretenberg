@@ -1,7 +1,7 @@
 #pragma once
 #include "random_widget.hpp"
 
-namespace plonk {
+namespace waffle {
 template <typename Field,
           typename Group,
           typename Transcript,
@@ -13,12 +13,16 @@ class VerifierPermutationWidget {
     static Field compute_quotient_evaluation_contribution(typename Transcript::Key*,
                                                           const Field& alpha_base,
                                                           const Transcript& transcript,
-                                                          Field& quotient_numerator_eval,
+                                                          Field& r_0,
+                                                          const bool use_linearisation,
                                                           const bool idpolys = false);
 
     static Field append_scalar_multiplication_inputs(typename Transcript::Key*,
                                                      const Field& alpha_base,
-                                                     const Transcript& transcript);
+                                                     const Transcript& transcript,
+                                                     std::map<std::string, Field>& scalars,
+                                                     const bool use_linearisation,
+                                                     const bool idpolys = false);
 };
 
 extern template class VerifierPermutationWidget<barretenberg::fr,
@@ -40,8 +44,11 @@ class ProverPermutationWidget : public ProverRandomWidget {
 
     barretenberg::fr compute_quotient_contribution(const barretenberg::fr& alpha_base,
                                                    const transcript::StandardTranscript& transcript) override;
+    barretenberg::fr compute_linear_contribution(const barretenberg::fr& alpha_base,
+                                                 const transcript::StandardTranscript& transcript,
+                                                 barretenberg::polynomial& r) override;
 };
 
-} // namespace plonk
+} // namespace waffle
 
 #include "./permutation_widget_impl.hpp"

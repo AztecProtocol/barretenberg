@@ -2,28 +2,9 @@
 
 #include "./transition_widget.hpp"
 
-namespace plonk {
+namespace waffle {
 namespace widget {
 
-/**
- * @brief Core class implementing the arithmetic gate in Turbo plonk
- *
- * @details ArithmethicKernel provides the logic that implements the standard arithmetic transition (the following
- * doens't represent the whole arithmetic transition formula)
- * q_arith * (q_m * w_1 * w_2 + q_1 * w_1 + q_2 * w_2 + q_3 * w_3 + q_4 * w_4 + q_5 *(w_4 - 2) * (w_4 - 1) * w_4 + q_c)
- * = 0
- *
- * So it extends beyond standard plonk and is enabled by the arithmetic selector. The q_5 selector is used to ensure the
- * value at wire w_4 is in range {0, 1, 2}.
- *
- * Additionally, the gadget contains a nonlinear term, which is enabled by setting q_arith to 2. This gadget is used to
- * emit the highest bit of the difference (w_3 - 4 * w_4) and is supposed to be used in conjunction with TurboPlonk base
- * 4 decomposition.
- *
- * @tparam Field The basic field in which the elements operates
- * @tparam Getters The class providing functions that access evaluations of polynomials at indices
- * @tparam PolyContainer Container for the polynomials or their simulation
- */
 template <class Field, class Getters, typename PolyContainer> class TurboArithmeticKernel {
   public:
     static constexpr size_t num_independent_relations = 2;
@@ -33,9 +14,7 @@ template <class Field, class Getters, typename PolyContainer> class TurboArithme
     static constexpr uint8_t update_required_challenges = CHALLENGE_BIT_ALPHA;
 
   private:
-    // A structure with various challenges, even though only alpha is used here.
     typedef containers::challenge_array<Field, num_independent_relations> challenge_array;
-    // Type for the linear terms of the transition
     typedef containers::coefficient_array<Field> coefficient_array;
 
   public:
@@ -49,36 +28,20 @@ template <class Field, class Getters, typename PolyContainer> class TurboArithme
     inline static bool gate_enabled(PolyContainer& polynomials, const size_t i = 0)
     {
         const Field& q_arith =
-            Getters::template get_value<EvaluationType::NON_SHIFTED, bonk::PolynomialIndex::Q_ARITHMETIC>(polynomials,
-                                                                                                          i);
+            Getters::template get_value<EvaluationType::NON_SHIFTED, PolynomialIndex::Q_ARITHMETIC_SELECTOR>(
+                polynomials, i);
         return !q_arith.is_zero();
     }
-
-    inline static std::set<bonk::PolynomialIndex> const& get_required_polynomial_ids()
+    inline static std::set<PolynomialIndex> const& get_required_polynomial_ids()
     {
-        static const std::set<bonk::PolynomialIndex> required_polynomial_ids = {
-            bonk::PolynomialIndex::Q_1, bonk::PolynomialIndex::Q_2,          bonk::PolynomialIndex::Q_3,
-            bonk::PolynomialIndex::Q_4, bonk::PolynomialIndex::Q_5,          bonk::PolynomialIndex::Q_M,
-            bonk::PolynomialIndex::Q_C, bonk::PolynomialIndex::Q_ARITHMETIC, bonk::PolynomialIndex::W_1,
-            bonk::PolynomialIndex::W_2, bonk::PolynomialIndex::W_3,          bonk::PolynomialIndex::W_4
+        static const std::set<PolynomialIndex> required_polynomial_ids = {
+            PolynomialIndex::Q_1, PolynomialIndex::Q_2, PolynomialIndex::Q_3, PolynomialIndex::Q_4,
+            PolynomialIndex::Q_5, PolynomialIndex::Q_M, PolynomialIndex::Q_C, PolynomialIndex::Q_ARITHMETIC_SELECTOR,
+            PolynomialIndex::W_1, PolynomialIndex::W_2, PolynomialIndex::W_3, PolynomialIndex::W_4
         };
         return required_polynomial_ids;
     }
 
-    /**
-     * @brief Computes the linear terms.
-     *
-     * @details  Multiplies the values at the first and second wire, puts the product and all the wires into the
-     * linear terms multiplied by appropriate selector values, the fifth linear term is polynomial vanishing on
-     * values {0, 1, 2} for w_4
-     *
-     * Uses only the alpha challenge
-     *
-     * @param polynomials Polynomials from which the values of wires are obtained
-     * @param challenges Challenge array, but only alpha challenge is used
-     * @param linear_terms Container for results of computation
-     * @param i Index at which the wire values are sampled.
-     */
     inline static void compute_linear_terms(PolyContainer& polynomials,
                                             const challenge_array& challenges,
                                             coefficient_array& linear_terms,
@@ -87,17 +50,17 @@ template <class Field, class Getters, typename PolyContainer> class TurboArithme
         constexpr barretenberg::fr minus_two(-2);
         const Field& alpha = challenges.elements[ChallengeIndex::ALPHA];
         const Field& w_1 =
-            Getters::template get_value<EvaluationType::NON_SHIFTED, bonk::PolynomialIndex::W_1>(polynomials, i);
+            Getters::template get_value<EvaluationType::NON_SHIFTED, PolynomialIndex::W_1>(polynomials, i);
         const Field& w_2 =
-            Getters::template get_value<EvaluationType::NON_SHIFTED, bonk::PolynomialIndex::W_2>(polynomials, i);
+            Getters::template get_value<EvaluationType::NON_SHIFTED, PolynomialIndex::W_2>(polynomials, i);
         const Field& w_3 =
-            Getters::template get_value<EvaluationType::NON_SHIFTED, bonk::PolynomialIndex::W_3>(polynomials, i);
+            Getters::template get_value<EvaluationType::NON_SHIFTED, PolynomialIndex::W_3>(polynomials, i);
         const Field& w_4 =
-            Getters::template get_value<EvaluationType::NON_SHIFTED, bonk::PolynomialIndex::W_4>(polynomials, i);
+            Getters::template get_value<EvaluationType::NON_SHIFTED, PolynomialIndex::W_4>(polynomials, i);
 
         const Field& q_arith =
-            Getters::template get_value<EvaluationType::NON_SHIFTED, bonk::PolynomialIndex::Q_ARITHMETIC>(polynomials,
-                                                                                                          i);
+            Getters::template get_value<EvaluationType::NON_SHIFTED, PolynomialIndex::Q_ARITHMETIC_SELECTOR>(
+                polynomials, i);
 
         Field T0;
         Field T1;
@@ -130,15 +93,6 @@ template <class Field, class Getters, typename PolyContainer> class TurboArithme
         linear_terms[6] = q_arith;
     }
 
-    /**
-     * @brief Compute the non-linear term that is enabled by q_arith==2 and allows getting information about whether the
-     * highest bit is set in w_3 - 4*w_4
-     *
-     * @param polynomials Containers with polynomials or their simulation
-     * @param challenges Challenge arrey (we are only using alpha)
-     * @param quotient Reference to quotient, which will be updated with the non-linear term
-     * @param i Index at which the wires/seclectors are evaluated
-     */
     inline static void compute_non_linear_terms(PolyContainer& polynomials,
                                                 const challenge_array& challenges,
                                                 Field& quotient,
@@ -147,12 +101,12 @@ template <class Field, class Getters, typename PolyContainer> class TurboArithme
         constexpr barretenberg::fr minus_seven(-7);
 
         const Field& w_3 =
-            Getters::template get_value<EvaluationType::NON_SHIFTED, bonk::PolynomialIndex::W_3>(polynomials, i);
+            Getters::template get_value<EvaluationType::NON_SHIFTED, PolynomialIndex::W_3>(polynomials, i);
         const Field& w_4 =
-            Getters::template get_value<EvaluationType::NON_SHIFTED, bonk::PolynomialIndex::W_4>(polynomials, i);
+            Getters::template get_value<EvaluationType::NON_SHIFTED, PolynomialIndex::W_4>(polynomials, i);
         const Field& q_arith =
-            Getters::template get_value<EvaluationType::NON_SHIFTED, bonk::PolynomialIndex::Q_ARITHMETIC>(polynomials,
-                                                                                                          i);
+            Getters::template get_value<EvaluationType::NON_SHIFTED, PolynomialIndex::Q_ARITHMETIC_SELECTOR>(
+                polynomials, i);
         const Field& alpha_base = challenges.alpha_powers[0];
 
         Field T1;
@@ -225,16 +179,6 @@ template <class Field, class Getters, typename PolyContainer> class TurboArithme
         quotient += T1;
     }
 
-    /**
-     * @brief Scales all the linear terms by appropriate selectors, sums the, scales by alpha and returns the result
-     *
-     * @param polynomials Container with polynomials or their simulation
-     * @param challenges A structure with various challenges
-     * @param linear_terms Precomputed linear terms to be scaled and summed
-     * @param i The index at which selector/witness values are sampled
-     * @return Field Scaled sum of values
-     *
-     */
     inline static Field sum_linear_terms(PolyContainer& polynomials,
                                          const challenge_array& challenges,
                                          coefficient_array& linear_terms,
@@ -242,19 +186,19 @@ template <class Field, class Getters, typename PolyContainer> class TurboArithme
     {
         const Field& alpha_base = challenges.alpha_powers[0];
         const Field& q_1 =
-            Getters::template get_value<EvaluationType::NON_SHIFTED, bonk::PolynomialIndex::Q_1>(polynomials, i);
+            Getters::template get_value<EvaluationType::NON_SHIFTED, PolynomialIndex::Q_1>(polynomials, i);
         const Field& q_2 =
-            Getters::template get_value<EvaluationType::NON_SHIFTED, bonk::PolynomialIndex::Q_2>(polynomials, i);
+            Getters::template get_value<EvaluationType::NON_SHIFTED, PolynomialIndex::Q_2>(polynomials, i);
         const Field& q_3 =
-            Getters::template get_value<EvaluationType::NON_SHIFTED, bonk::PolynomialIndex::Q_3>(polynomials, i);
+            Getters::template get_value<EvaluationType::NON_SHIFTED, PolynomialIndex::Q_3>(polynomials, i);
         const Field& q_4 =
-            Getters::template get_value<EvaluationType::NON_SHIFTED, bonk::PolynomialIndex::Q_4>(polynomials, i);
+            Getters::template get_value<EvaluationType::NON_SHIFTED, PolynomialIndex::Q_4>(polynomials, i);
         const Field& q_5 =
-            Getters::template get_value<EvaluationType::NON_SHIFTED, bonk::PolynomialIndex::Q_5>(polynomials, i);
+            Getters::template get_value<EvaluationType::NON_SHIFTED, PolynomialIndex::Q_5>(polynomials, i);
         const Field& q_m =
-            Getters::template get_value<EvaluationType::NON_SHIFTED, bonk::PolynomialIndex::Q_M>(polynomials, i);
+            Getters::template get_value<EvaluationType::NON_SHIFTED, PolynomialIndex::Q_M>(polynomials, i);
         const Field& q_c =
-            Getters::template get_value<EvaluationType::NON_SHIFTED, bonk::PolynomialIndex::Q_C>(polynomials, i);
+            Getters::template get_value<EvaluationType::NON_SHIFTED, PolynomialIndex::Q_C>(polynomials, i);
 
         Field result = linear_terms[0] * q_m;
         result += (linear_terms[1] * q_1);
@@ -267,13 +211,6 @@ template <class Field, class Getters, typename PolyContainer> class TurboArithme
         return result;
     }
 
-    /**
-     * @brief Compute the scaled values of openings
-     *
-     * @param linear_terms The original computed linear terms of the product and wires
-     * @param scalars A map where we put the values
-     * @param challenges Challenges where we get the alpha
-     */
     inline static void update_kate_opening_scalars(coefficient_array& linear_terms,
                                                    std::map<std::string, Field>& scalars,
                                                    const challenge_array& challenges)
@@ -292,21 +229,11 @@ template <class Field, class Getters, typename PolyContainer> class TurboArithme
 
 } // namespace widget
 
-/**
- * @brief Turbo plonk arithmetic widget for the prover. Provides standard plonk gate transition
- *
- * @tparam Settings
- */
 template <typename Settings>
 using ProverTurboArithmeticWidget = widget::TransitionWidget<barretenberg::fr, Settings, widget::TurboArithmeticKernel>;
 
-/**
- * @brief Turbo plonk arithmetic widget for the verifier. Provides standard plonk gate transition
- *
- * @tparam Settings
- */
 template <typename Field, typename Group, typename Transcript, typename Settings>
 using VerifierTurboArithmeticWidget =
     widget::GenericVerifierWidget<Field, Transcript, Settings, widget::TurboArithmeticKernel>;
 
-} // namespace plonk
+} // namespace waffle

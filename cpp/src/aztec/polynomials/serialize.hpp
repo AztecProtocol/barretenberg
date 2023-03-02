@@ -6,9 +6,10 @@ namespace barretenberg {
 // Highly optimised read / write of polynomials in little endian montgomery form.
 template <typename B> inline void read(B& buf, polynomial& p)
 {
+    p = polynomial();
     uint32_t size;
     serialize::read(buf, size);
-    p = polynomial(size);
+    p.resize_unsafe(size);
     memcpy(&p[0], buf, size * sizeof(fr));
 
     if (!is_little_endian()) {
@@ -28,7 +29,7 @@ template <typename B> inline void read(B& buf, polynomial& p)
 
 inline void write(uint8_t*& buf, polynomial const& p)
 {
-    auto size = p.size();
+    auto size = p.get_size();
     serialize::write(buf, static_cast<uint32_t>(size));
     memcpy(&buf[0], &p[0], size * sizeof(fr));
     buf += size * sizeof(fr);
@@ -36,7 +37,7 @@ inline void write(uint8_t*& buf, polynomial const& p)
 
 inline void write(std::vector<uint8_t>& buf, polynomial const& p)
 {
-    auto size = p.size();
+    auto size = p.get_size();
     serialize::write(buf, static_cast<uint32_t>(size));
     auto len = (size * sizeof(fr));
     buf.resize(buf.size() + len);
@@ -46,9 +47,10 @@ inline void write(std::vector<uint8_t>& buf, polynomial const& p)
 
 inline void read(std::istream& is, polynomial& p)
 {
+    p = polynomial();
     uint32_t size;
     serialize::read(is, size);
-    p = polynomial(size);
+    p.resize_unsafe(size);
     is.read((char*)&p[0], (std::streamsize)(size * sizeof(fr)));
 
     if (!is_little_endian()) {
@@ -67,7 +69,7 @@ inline void read(std::istream& is, polynomial& p)
 
 inline void write(std::ostream& os, polynomial const& p)
 {
-    auto size = p.size();
+    auto size = p.get_size();
     auto len = size * sizeof(fr);
     serialize::write(os, static_cast<uint32_t>(size));
     os.write((char*)&p[0], (std::streamsize)len);

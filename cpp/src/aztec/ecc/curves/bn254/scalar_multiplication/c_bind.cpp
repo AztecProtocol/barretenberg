@@ -5,7 +5,12 @@
 
 using namespace barretenberg;
 
+#ifdef EMSCRIPTEN
+#include <emscripten.h>
+#define WASM_EXPORT EMSCRIPTEN_KEEPALIVE
+#else
 #define WASM_EXPORT __attribute__((visibility("default")))
+#endif
 
 extern "C" {
 

@@ -1,8 +1,10 @@
 #include "../composers/composers.hpp"
 #include "uint.hpp"
 
+// #pragma GCC diagnostic ignored "-Wunused-variable"
+// #pragma GCC diagnostic ignored "-Wunused-parameter"
+
 using namespace barretenberg;
-using namespace bonk;
 
 namespace plonk {
 namespace stdlib {
@@ -80,7 +82,7 @@ uint<Composer, Native> uint<Composer, Native>::operator+(const uint& other) cons
      * is {0, 1, 2}.
      **/
 
-    const add_quad gate{
+    const waffle::add_quad gate{
         .a = witness_index,
         .b = other.witness_index,
         .c = ctx->add_variable(remainder),
@@ -161,7 +163,7 @@ uint<Composer, Native> uint<Composer, Native>::operator-(const uint& other) cons
     //   witness - other_witness - remainder - 2**width . overflow + (2**width + constant_term) == 0
     // and
     //   overflow in {0, 1, 2}
-    const add_quad gate{
+    const waffle::add_quad gate{
         .a = lhs_idx,
         .b = rhs_idx,
         .c = ctx->add_variable(remainder),
@@ -232,7 +234,7 @@ uint<Composer, Native> uint<Composer, Native>::operator*(const uint& other) cons
      *      ab + a const_b + b const_a - r - (2**width) overflow + (const_a const_b % 2**width) == 0
      */
 
-    const mul_quad gate{
+    const waffle::mul_quad gate{
         .a = witness_index, // a
         .b = rhs_idx,       // b
         .c = ctx->add_variable(remainder),
@@ -246,14 +248,14 @@ uint<Composer, Native> uint<Composer, Native>::operator*(const uint& other) cons
     };
 
     ctx->create_big_mul_gate(gate);
-    constrain_accumulators(context, gate.d, width + 2, "arithmetic: uint mul overflow too large.");
+    constrain_accumulators(context, gate.d, width + 2);
 
     uint<Composer, Native> result(ctx);
 
     // Manually normalize the result. We do this here, and not for operator+, because
     // it is much easier to overflow the 252-bit modulus using multiplications. It is
     // left to the circuit writer keep track of overflows when using addition.
-    result.accumulators = constrain_accumulators(ctx, gate.c, width, "arithmetic: uint mul remainder too large.");
+    result.accumulators = constrain_accumulators(ctx, gate.c);
     result.witness_index = result.accumulators[num_accumulators() - 1];
     result.witness_status = WitnessStatus::OK;
 
@@ -344,16 +346,16 @@ std::pair<uint<Composer, Native>, uint<Composer, Native>> uint<Composer, Native>
 
     // constraint: qb + const_b q + 0 b - a + r - const_a == 0
     // i.e., a + const_a = q(b + const_b) + r
-    const mul_quad division_gate{ .a = quotient_idx,  // q
-                                  .b = divisor_idx,   // b
-                                  .c = dividend_idx,  // a
-                                  .d = remainder_idx, // r
-                                  .mul_scaling = fr::one(),
-                                  .a_scaling = other.additive_constant,
-                                  .b_scaling = fr::zero(),
-                                  .c_scaling = fr::neg_one(),
-                                  .d_scaling = fr::one(),
-                                  .const_scaling = -fr(additive_constant) };
+    const waffle::mul_quad division_gate{ .a = quotient_idx,  // q
+                                          .b = divisor_idx,   // b
+                                          .c = dividend_idx,  // a
+                                          .d = remainder_idx, // r
+                                          .mul_scaling = fr::one(),
+                                          .a_scaling = other.additive_constant,
+                                          .b_scaling = fr::zero(),
+                                          .c_scaling = fr::neg_one(),
+                                          .d_scaling = fr::one(),
+                                          .const_scaling = -fr(additive_constant) };
     ctx->create_big_mul_gate(division_gate);
 
     // set delta = (b + const_b - r - 1)
@@ -361,51 +363,49 @@ std::pair<uint<Composer, Native>, uint<Composer, Native>> uint<Composer, Native>
     const uint32_t delta_idx = ctx->add_variable(delta);
 
     // constraint: b - r - delta + const_b - 1 == 0
-    const add_triple delta_gate{ .a = divisor_idx,
-                                 .b = remainder_idx,
-                                 .c = delta_idx,
-                                 .a_scaling = fr::one(),
-                                 .b_scaling = fr::neg_one(),
-                                 .c_scaling = fr::neg_one(),
-                                 .const_scaling = other.additive_constant + fr::neg_one() };
+    const waffle::add_triple delta_gate{ .a = divisor_idx,
+                                         .b = remainder_idx,
+                                         .c = delta_idx,
+                                         .a_scaling = fr::one(),
+                                         .b_scaling = fr::neg_one(),
+                                         .c_scaling = fr::neg_one(),
+                                         .const_scaling = other.additive_constant + fr::neg_one() };
 
     ctx->create_add_gate(delta_gate);
 
     // validate delta is in the correct range
-    ctx->decompose_into_base4_accumulators(delta_idx, width, "arithmetic: divmod delta range constraint fails.");
+    field_t<Composer>::from_witness_index(ctx, delta_idx).create_range_constraint(width);
 
     // normalize witness quotient and remainder
     // minimal bit range for quotient: from 0 (in case a = b-1) to width (when b = 1).
     uint<Composer, Native> quotient(ctx);
-    quotient.accumulators = ctx->decompose_into_base4_accumulators(
-        quotient_idx, width, "arithmetic: divmod quotient range constraint fails.");
+    quotient.accumulators = ctx->decompose_into_base4_accumulators(quotient_idx, width);
     quotient.witness_index = quotient.accumulators[(width >> 1) - 1];
     quotient.witness_status = WitnessStatus::OK;
 
     // constrain remainder to lie in [0, 2^width-1]
     uint<Composer, Native> remainder(ctx);
-    remainder.accumulators = ctx->decompose_into_base4_accumulators(
-        remainder_idx, width, "arithmetic: divmod remaidner range constraint fails.");
+    remainder.accumulators = ctx->decompose_into_base4_accumulators(remainder_idx, width);
     remainder.witness_index = remainder.accumulators[(width >> 1) - 1];
     remainder.witness_status = WitnessStatus::OK;
 
     return std::make_pair(quotient, remainder);
 }
 
-template class uint<plonk::TurboComposer, uint8_t>;
-template class uint<plonk::TurboComposer, uint16_t>;
-template class uint<plonk::TurboComposer, uint32_t>;
-template class uint<plonk::TurboComposer, uint64_t>;
+template class uint<waffle::PlookupComposer, uint8_t>;
+template class uint<waffle::PlookupComposer, uint16_t>;
+template class uint<waffle::PlookupComposer, uint32_t>;
+template class uint<waffle::PlookupComposer, uint64_t>;
 
-template class uint<plonk::StandardComposer, uint8_t>;
-template class uint<plonk::StandardComposer, uint16_t>;
-template class uint<plonk::StandardComposer, uint32_t>;
-template class uint<plonk::StandardComposer, uint64_t>;
+template class uint<waffle::TurboComposer, uint8_t>;
+template class uint<waffle::TurboComposer, uint16_t>;
+template class uint<waffle::TurboComposer, uint32_t>;
+template class uint<waffle::TurboComposer, uint64_t>;
 
-template class uint<honk::StandardHonkComposer, uint8_t>;
-template class uint<honk::StandardHonkComposer, uint16_t>;
-template class uint<honk::StandardHonkComposer, uint32_t>;
-template class uint<honk::StandardHonkComposer, uint64_t>;
+template class uint<waffle::StandardComposer, uint8_t>;
+template class uint<waffle::StandardComposer, uint16_t>;
+template class uint<waffle::StandardComposer, uint32_t>;
+template class uint<waffle::StandardComposer, uint64_t>;
 
 } // namespace stdlib
 } // namespace plonk

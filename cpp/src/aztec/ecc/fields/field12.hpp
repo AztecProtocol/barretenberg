@@ -220,8 +220,7 @@ template <typename quadratic_field, typename base_field, typename Fq12Params> cl
 
     constexpr field12 cyclotomic_squared() const
     {
-        // Possible Optimization: The cyclotomic squaring can be implemented more than efficiently
-        // than the generic squaring.
+        // TODO: write more efficient version...
         return sqr();
     }
 

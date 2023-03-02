@@ -1,6 +1,7 @@
 #include <numeric/random/engine.hpp>
 #include <stdlib/primitives/byte_array/byte_array.hpp>
 #include <stdlib/primitives/safe_uint/safe_uint.hpp>
+#include "../../../rollup/constants.hpp"
 
 #define MAX_ARRAY_SIZE 128
 
@@ -14,7 +15,7 @@ bool circuit_should_fail = false;
 FastRandom VarianceRNG(0);
 
 // Enable this definition, when you want to find out the instructions that caused a failure
-//#define SHOW_INFORMATION 1
+// #define SHOW_INFORMATION 1
 
 #define OPERATION_TYPE_SIZE 1
 
@@ -104,7 +105,9 @@ template <typename Composer> class ByteArrayFuzzBase {
          * @param rng PRNG used
          * @return A random instruction
          */
-        template <typename T> inline static Instruction generateRandom(T& rng) requires SimpleRng<T>
+        template <typename T>
+        inline static Instruction generateRandom(T& rng)
+            requires SimpleRng<T>
         {
             // Choose which instruction we are going to generate
             OPCODE instruction_opcode = static_cast<OPCODE>(rng.next() % (OPCODE::_LAST));
@@ -174,9 +177,8 @@ template <typename Composer> class ByteArrayFuzzBase {
          * @return Mutated instruction
          */
         template <typename T>
-        inline static Instruction mutateInstruction(Instruction instruction,
-                                                    T& rng,
-                                                    HavocSettings& havoc_config) requires SimpleRng<T>
+        inline static Instruction mutateInstruction(Instruction instruction, T& rng, HavocSettings& havoc_config)
+            requires SimpleRng<T>
         {
             (void)rng;
             (void)havoc_config;
@@ -927,7 +929,7 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
  */
 extern "C" size_t LLVMFuzzerCustomMutator(uint8_t* Data, size_t Size, size_t MaxSize, unsigned int Seed)
 {
-    using FuzzerClass = ByteArrayFuzzBase<plonk::StandardComposer>;
+    using FuzzerClass = ByteArrayFuzzBase<waffle::StandardComposer>;
     auto fast_random = FastRandom(Seed);
     auto size_occupied = ArithmeticFuzzHelper<FuzzerClass>::MutateInstructionBuffer(Data, Size, MaxSize, fast_random);
     if ((fast_random.next() % 200) < fuzzer_havoc_settings.GEN_LLVM_POST_MUTATION_PROB) {
@@ -948,7 +950,7 @@ extern "C" size_t LLVMFuzzerCustomCrossOver(const uint8_t* Data1,
                                             size_t MaxOutSize,
                                             unsigned int Seed)
 {
-    using FuzzerClass = ByteArrayFuzzBase<plonk::StandardComposer>;
+    using FuzzerClass = ByteArrayFuzzBase<waffle::StandardComposer>;
     auto fast_random = FastRandom(Seed);
     auto vecA = ArithmeticFuzzHelper<FuzzerClass>::parseDataIntoInstructions(Data1, Size1);
     auto vecB = ArithmeticFuzzHelper<FuzzerClass>::parseDataIntoInstructions(Data2, Size2);

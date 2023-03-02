@@ -1,16 +1,24 @@
 #pragma once
 #include "composer_base.hpp"
 
-using namespace bonk;
-
-namespace plonk {
+namespace waffle {
 class TurboComposer : public ComposerBase {
   public:
     static constexpr ComposerType type = ComposerType::TURBO;
-    static constexpr merkle::HashType merkle_hash_type = merkle::HashType::FIXED_BASE_PEDERSEN;
-    static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
     static constexpr size_t UINT_LOG2_BASE = 2;
-    enum TurboSelectors { QM, QC, Q1, Q2, Q3, Q4, Q5, QARITH, QFIXED, QRANGE, QLOGIC, NUM };
+    enum TurboSelectors {
+        QM = 0,
+        QC = 1,
+        Q1 = 2,
+        Q2 = 3,
+        Q3 = 4,
+        Q4 = 5,
+        Q5 = 6,
+        QARITH = 7,
+        QECC_1 = 8,
+        QRANGE = 9,
+        QLOGIC = 10,
+    };
 
     TurboComposer();
     TurboComposer(std::string const& crs_path, const size_t size_hint = 0);
@@ -28,6 +36,9 @@ class TurboComposer : public ComposerBase {
 
     TurboProver create_prover();
     TurboVerifier create_verifier();
+
+    UnrolledTurboProver create_unrolled_prover();
+    UnrolledTurboVerifier create_unrolled_verifier();
 
     void create_add_gate(const add_triple& in) override;
 
@@ -49,7 +60,8 @@ class TurboComposer : public ComposerBase {
     void add_recursive_proof(const std::vector<uint32_t>& proof_output_witness_indices)
     {
         if (contains_recursive_proof) {
-            failure("added recursive proof when one already exists");
+            failed = true;
+            err = "added recursive proof when one already exists";
         }
         contains_recursive_proof = true;
 
@@ -63,13 +75,7 @@ class TurboComposer : public ComposerBase {
 
     std::vector<uint32_t> decompose_into_base4_accumulators(const uint32_t witness_index,
                                                             const size_t num_bits,
-                                                            std::string const& msg);
-
-    void create_range_constraint(const uint32_t variable_index, const size_t num_bits, std::string const& msg)
-    {
-        decompose_into_base4_accumulators(variable_index, num_bits, msg);
-    }
-
+                                                            std::string const& msg = "create_range_contraint");
     accumulator_triple create_logic_constraint(const uint32_t a,
                                                const uint32_t b,
                                                const size_t num_bits,
@@ -85,8 +91,9 @@ class TurboComposer : public ComposerBase {
                                const barretenberg::fr& b,
                                std::string const& msg = "assert_equal_constant")
     {
-        if (variables[a_idx] != b && !failed()) {
-            failure(msg);
+        if (variables[a_idx] != b && !failed) {
+            failed = true;
+            err = msg;
         }
         auto b_idx = put_constant_variable(b);
         assert_equal(a_idx, b_idx, msg);
@@ -102,7 +109,7 @@ class TurboComposer : public ComposerBase {
     }
 
     // these are variables that we have used a gate on, to enforce that they are equal to a defined value
-    std::map<barretenberg::fr, uint32_t> constant_variable_indices;
+    std::map<barretenberg::fr, uint32_t> constant_variables;
 
     static transcript::Manifest create_manifest(const size_t num_public_inputs)
     {
@@ -113,9 +120,7 @@ class TurboComposer : public ComposerBase {
         const transcript::Manifest output = transcript::Manifest(
             { transcript::Manifest::RoundManifest(
                   { { "circuit_size", 4, true }, { "public_input_size", 4, true } }, "init", 1),
-
               transcript::Manifest::RoundManifest({}, "eta", 0),
-
               transcript::Manifest::RoundManifest(
                   {
                       { "public_inputs", public_input_size, false },
@@ -136,7 +141,62 @@ class TurboComposer : public ComposerBase {
                   },
                   "z",
                   1),
+              transcript::Manifest::RoundManifest(
+                  {
+                      { "w_1", fr_size, false, 0 },
+                      { "w_2", fr_size, false, 1 },
+                      { "w_3", fr_size, false, 2 },
+                      { "w_4", fr_size, false, 3 },
+                      { "sigma_1", fr_size, false, 4 },
+                      { "sigma_2", fr_size, false, 5 },
+                      { "sigma_3", fr_size, false, 6 },
+                      { "q_arith", fr_size, false, 7 },
+                      { "q_ecc_1", fr_size, false, 8 },
+                      { "q_c", fr_size, false, 9 },
+                      { "z_perm_omega", fr_size, false, -1 },
+                      { "w_1_omega", fr_size, false, 0 },
+                      { "w_2_omega", fr_size, false, 1 },
+                      { "w_3_omega", fr_size, false, 2 },
+                      { "w_4_omega", fr_size, false, 3 },
+                  },
+                  "nu",
+                  11,
+                  true),
+              transcript::Manifest::RoundManifest(
+                  { { "PI_Z", g1_size, false }, { "PI_Z_OMEGA", g1_size, false } }, "separator", 1) });
+        return output;
+    }
 
+    static transcript::Manifest create_unrolled_manifest(const size_t num_public_inputs)
+    {
+        // add public inputs....
+        constexpr size_t g1_size = 64;
+        constexpr size_t fr_size = 32;
+        const size_t public_input_size = fr_size * num_public_inputs;
+        const transcript::Manifest output = transcript::Manifest(
+            { transcript::Manifest::RoundManifest(
+                  { { "circuit_size", 4, true }, { "public_input_size", 4, true } }, "init", 1),
+              transcript::Manifest::RoundManifest({}, "eta", 0),
+              transcript::Manifest::RoundManifest(
+                  {
+                      { "public_inputs", public_input_size, false },
+                      { "W_1", g1_size, false },
+                      { "W_2", g1_size, false },
+                      { "W_3", g1_size, false },
+                      { "W_4", g1_size, false },
+                  },
+                  "beta",
+                  2),
+              transcript::Manifest::RoundManifest({ { "Z_PERM", g1_size, false } }, "alpha", 1),
+              transcript::Manifest::RoundManifest(
+                  {
+                      { "T_1", g1_size, false },
+                      { "T_2", g1_size, false },
+                      { "T_3", g1_size, false },
+                      { "T_4", g1_size, false },
+                  },
+                  "z",
+                  1),
               transcript::Manifest::RoundManifest(
                   {
                       { "t", fr_size, true, -1 },         { "w_1", fr_size, false, 0 },
@@ -148,18 +208,16 @@ class TurboComposer : public ComposerBase {
                       { "q_4", fr_size, false, 11 },      { "q_5", fr_size, false, 12 },
                       { "q_m", fr_size, false, 13 },      { "q_c", fr_size, false, 14 },
                       { "q_arith", fr_size, false, 15 },  { "q_logic", fr_size, false, 16 },
-                      { "q_range", fr_size, false, 17 },  { "q_fixed_base", fr_size, false, 18 },
+                      { "q_range", fr_size, false, 17 },  { "q_ecc_1", fr_size, false, 18 },
                       { "z_perm", fr_size, false, 19 },   { "z_perm_omega", fr_size, false, 19 },
                       { "w_1_omega", fr_size, false, 0 }, { "w_2_omega", fr_size, false, 1 },
                       { "w_3_omega", fr_size, false, 2 }, { "w_4_omega", fr_size, false, 3 },
                   },
                   "nu",
-                  TURBO_MANIFEST_SIZE,
+                  20,
                   true),
-
               transcript::Manifest::RoundManifest(
                   { { "PI_Z", g1_size, false }, { "PI_Z_OMEGA", g1_size, false } }, "separator", 3) });
-
         return output;
     }
 };
@@ -187,7 +245,7 @@ class CheckGetter {
         size_t actual_index = index;
         if constexpr (EvaluationType::SHIFTED == value_type) {
             actual_index += 1;
-            if (actual_index >= composer.num_gates) {
+            if (actual_index >= composer.n) {
                 return zero;
             }
         }
@@ -206,14 +264,14 @@ class CheckGetter {
             return composer.selectors[TurboComposer::TurboSelectors::QM][actual_index];
         case PolynomialIndex::Q_C:
             return composer.selectors[TurboComposer::TurboSelectors::QC][actual_index];
-        case PolynomialIndex::Q_ARITHMETIC:
+        case PolynomialIndex::Q_ARITHMETIC_SELECTOR:
             return composer.selectors[TurboComposer::TurboSelectors::QARITH][actual_index];
-        case PolynomialIndex::Q_LOGIC:
+        case PolynomialIndex::Q_LOGIC_SELECTOR:
             return composer.selectors[TurboComposer::TurboSelectors::QLOGIC][actual_index];
-        case PolynomialIndex::Q_RANGE:
+        case PolynomialIndex::Q_RANGE_SELECTOR:
             return composer.selectors[TurboComposer::TurboSelectors::QRANGE][actual_index];
-        case PolynomialIndex::Q_FIXED_BASE:
-            return composer.selectors[TurboComposer::TurboSelectors::QFIXED][actual_index];
+        case PolynomialIndex::Q_FIXED_BASE_SELECTOR:
+            return composer.selectors[TurboComposer::TurboSelectors::QECC_1][actual_index];
         case PolynomialIndex::W_1:
             return composer.get_variable_reference(composer.w_l[actual_index]);
         case PolynomialIndex::W_2:
@@ -227,8 +285,8 @@ class CheckGetter {
     }
 };
 
-using TurboArithmeticChecker = plonk::widget::TurboArithmeticKernel<barretenberg::fr, CheckGetter, TurboComposer>;
-using TurboRangeChecker = plonk::widget::TurboRangeKernel<barretenberg::fr, CheckGetter, TurboComposer>;
-using TurboLogicChecker = plonk::widget::TurboLogicKernel<barretenberg::fr, CheckGetter, TurboComposer>;
-using TurboFixedBaseChecker = plonk::widget::TurboFixedBaseKernel<barretenberg::fr, CheckGetter, TurboComposer>;
-} // namespace plonk
+using TurboArithmeticChecker = waffle::widget::TurboArithmeticKernel<barretenberg::fr, CheckGetter, TurboComposer>;
+using TurboRangeChecker = waffle::widget::TurboRangeKernel<barretenberg::fr, CheckGetter, TurboComposer>;
+using TurboLogicChecker = waffle::widget::TurboLogicKernel<barretenberg::fr, CheckGetter, TurboComposer>;
+using TurboFixedBaseChecker = waffle::widget::TurboFixedBaseKernel<barretenberg::fr, CheckGetter, TurboComposer>;
+} // namespace waffle

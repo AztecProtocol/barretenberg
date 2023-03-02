@@ -1,8 +1,8 @@
 #include <numeric/uint256/uint256.hpp>
 #include <numeric/random/engine.hpp>
 #include <stdlib/primitives/field/field.hpp>
+#include "../../../rollup/constants.hpp"
 #include <stdlib/primitives/bool/bool.hpp>
-#include <ecc/curves/grumpkin/grumpkin.hpp>
 #include <ecc/curves/bn254/fr.hpp>
 
 // This is a global variable, so that the execution handling class could alter it and signal to the input tester
@@ -10,13 +10,13 @@
 bool circuit_should_fail = false;
 
 #define HAVOC_TESTING
-//#define DISABLE_DIVISION 1
+// #define DISABLE_DIVISION 1
 #include <common/fuzzer.hpp>
 FastRandom VarianceRNG(0);
 
-//#define DISABLE_DIVISION
-// Enable this definition, when you want to find out the instructions that caused a failure
-//#define SHOW_INFORMATION 1
+// #define DISABLE_DIVISION
+//  Enable this definition, when you want to find out the instructions that caused a failure
+// #define SHOW_INFORMATION 1
 
 #ifdef SHOW_INFORMATION
 #define PRINT_SINGLE_ARG_INSTRUCTION(first_index, vector, operation_name, preposition)                                 \
@@ -234,7 +234,9 @@ template <typename Composer> class FieldBase {
          * @param rng PRNG used
          * @return A random instruction
          */
-        template <typename T> inline static Instruction generateRandom(T& rng) requires SimpleRng<T>
+        template <typename T>
+        inline static Instruction generateRandom(T& rng)
+            requires SimpleRng<T>
         {
             // Choose which instruction we are going to generate
             OPCODE instruction_opcode = static_cast<OPCODE>(rng.next() % (OPCODE::_LAST));
@@ -333,7 +335,8 @@ template <typename Composer> class FieldBase {
          * @return Mutated element
          */
         template <typename T>
-        inline static fr mutateFieldElement(fr e, T& rng, HavocSettings& havoc_config) requires SimpleRng<T>
+        inline static fr mutateFieldElement(fr e, T& rng, HavocSettings& havoc_config)
+            requires SimpleRng<T>
         {
             // With a certain probability, we apply changes to the Montgomery form, rather than the plain form. This
             // has merit, since the computation is performed in montgomery form and comparisons are often performed
@@ -429,9 +432,8 @@ template <typename Composer> class FieldBase {
          * @return Mutated instruction
          */
         template <typename T>
-        inline static Instruction mutateInstruction(Instruction instruction,
-                                                    T& rng,
-                                                    HavocSettings& havoc_config) requires SimpleRng<T>
+        inline static Instruction mutateInstruction(Instruction instruction, T& rng, HavocSettings& havoc_config)
+            requires SimpleRng<T>
         {
 #define PUT_RANDOM_BYTE_IF_LUCKY(variable)                                                                             \
     if (rng.next() & 1) {                                                                                              \
@@ -1025,7 +1027,7 @@ template <typename Composer> class FieldBase {
                  *
                  * TEST(stdlib_field, test_construct_via_bool_t)
                  * {
-                 *     plonk::StandardComposer composer = plonk::StandardComposer();
+                 *     waffle::StandardComposer composer = waffle::StandardComposer();
                  *     field_t a(witness_t(&composer, fr(uint256_t{0xf396b678452ebf15, 0x82ae10893982638b,
                  * 0xdf185a29c65fbf80, 0x1d18b2de99e48308}))); field_t b = a - a; field_t c(static_cast<bool_t>(b));
                  *     std::cout << c.get_value() << std::endl;
@@ -1575,7 +1577,7 @@ template <typename Composer> class FieldBase {
             // Check assert conditions
             if ((lsb > msb) || (msb > 252) ||
                 (static_cast<uint256_t>(stack[first_index].f().get_value()) >=
-                 (static_cast<uint256_t>(1) << grumpkin::MAX_NO_WRAP_INTEGER_BIT_LENGTH))) {
+                 (static_cast<uint256_t>(1) << rollup::MAX_NO_WRAP_INTEGER_BIT_LENGTH))) {
                 return 0;
             }
             PRINT_SLICE(first_index, lsb, msb, stack)
@@ -1977,7 +1979,7 @@ extern "C" int LLVMFuzzerInitialize(int* argc, char*** argv)
  */
 extern "C" size_t LLVMFuzzerCustomMutator(uint8_t* Data, size_t Size, size_t MaxSize, unsigned int Seed)
 {
-    using FuzzerClass = FieldBase<plonk::StandardComposer>;
+    using FuzzerClass = FieldBase<waffle::StandardComposer>;
     auto fast_random = FastRandom(Seed);
     auto size_occupied = ArithmeticFuzzHelper<FuzzerClass>::MutateInstructionBuffer(Data, Size, MaxSize, fast_random);
     if ((fast_random.next() % 200) < fuzzer_havoc_settings.GEN_LLVM_POST_MUTATION_PROB) {
@@ -1998,7 +2000,7 @@ extern "C" size_t LLVMFuzzerCustomCrossOver(const uint8_t* Data1,
                                             size_t MaxOutSize,
                                             unsigned int Seed)
 {
-    using FuzzerClass = FieldBase<plonk::StandardComposer>;
+    using FuzzerClass = FieldBase<waffle::StandardComposer>;
     auto fast_random = FastRandom(Seed);
     auto vecA = ArithmeticFuzzHelper<FuzzerClass>::parseDataIntoInstructions(Data1, Size1);
     auto vecB = ArithmeticFuzzHelper<FuzzerClass>::parseDataIntoInstructions(Data2, Size2);

@@ -1,9 +1,7 @@
 #pragma once
 #include <iomanip>
 #include <ostream>
-#include <map>
 #include <vector>
-#include <optional>
 
 namespace std {
 
@@ -37,7 +35,7 @@ inline std::ostream& operator<<(std::ostream& os, std::vector<T> const& arr)
     for (auto element : arr) {
         os << ' ' << element << '\n';
     }
-    os << "]";
+    os << "]\n";
     return os;
 }
 
@@ -62,27 +60,6 @@ template <typename T, size_t S> inline std::ostream& operator<<(std::ostream& os
     }
     os << " ]";
     os.flags(f);
-    return os;
-}
-
-template <typename T, typename U> inline std::ostream& operator<<(std::ostream& os, std::pair<T, U> const& pair)
-{
-    os << "(" << pair.first << ", " << pair.second << ")";
-    return os;
-}
-
-template <typename T> inline std::ostream& operator<<(std::ostream& os, std::optional<T> const& opt)
-{
-    return opt ? os << *opt : os << "std::nullopt";
-}
-
-template <typename T, typename U> inline std::ostream& operator<<(std::ostream& os, std::map<T, U> const& map)
-{
-    os << "[\n";
-    for (const auto& elem : map) {
-        os << " " << elem.first << ": " << elem.second << "\n";
-    }
-    os << "]";
     return os;
 }
 
