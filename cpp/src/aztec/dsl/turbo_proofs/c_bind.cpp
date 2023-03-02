@@ -39,7 +39,7 @@ WASM_EXPORT void standard_example__init_verification_key(void* pippenger_ptr, ui
 {
 
     auto crs_factory = std::make_unique<PippengerReferenceStringFactory>(
-        reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger_ptr), g2x);
+        reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger_ptr), nullptr, g2x);
     turbo_proofs::init_verification_key(std::move(crs_factory));
 }
 

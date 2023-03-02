@@ -1,15 +1,12 @@
 
 #include "turbo_proofs.hpp"
-#include "plonk/proof_system/types/proof.hpp"
+#include <plonk/proof_system/types/proof.hpp>
 #include <common/log.hpp>
 #include <plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp>
 #include <proof_system/proving_key/serialize.hpp>
 #include <dsl/acir_format/acir_format.hpp>
 #include <stdlib/types/types.hpp>
 #include <srs/reference_string/pippenger_reference_string.hpp>
-#include <sstream>
-#include <iostream>
-#include <common/streams.hpp>
 
 using namespace plonk::stdlib::types;
 
@@ -102,7 +99,7 @@ size_t c_composer__new_proof(void* pippenger,
     auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
 
     auto crs_factory = std::make_unique<PippengerReferenceStringFactory>(
-        reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), g2x);
+        reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), nullptr, g2x);
 
     auto witness = from_buffer<std::vector<fr>>(witness_buf);
     auto composer = create_circuit_with_witness(constraint_system, witness, std::move(crs_factory));
@@ -129,7 +126,7 @@ bool c_composer__verify_proof(
 
         auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
         auto crs_factory = std::make_unique<PippengerReferenceStringFactory>(
-            reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), g2x);
+            reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), nullptr, g2x);
         auto composer = create_circuit(constraint_system, std::move(crs_factory));
         plonk::proof pp = { std::vector<uint8_t>(proof, proof + length) };
 
@@ -153,7 +150,7 @@ uint32_t c_composer__smart_contract(void* pippenger,
 {
     auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
     auto crs_factory = std::make_unique<PippengerReferenceStringFactory>(
-        reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), g2x);
+        reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), nullptr, g2x);
     auto composer = create_circuit(constraint_system, std::move(crs_factory));
 
     auto verification_key = composer.compute_verification_key();
@@ -201,7 +198,7 @@ size_t c_init_verification_key(void* pippenger, uint8_t const* g2x, uint8_t cons
     auto proving_key = std::make_shared<bonk::proving_key>(std::move(pk_data), crs);
 
     auto crs_factory = std::make_unique<PippengerReferenceStringFactory>(
-        reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), g2x);
+        reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), nullptr, g2x);
     // TODO(Blaine): Is this correct?
     proving_key->reference_string = crs_factory->get_prover_crs(proving_key->circuit_size);
 
@@ -238,7 +235,7 @@ size_t c_new_proof(void* pippenger,
     auto witness = from_buffer<std::vector<fr>>(witness_buf);
 
     auto crs_factory = std::make_unique<PippengerReferenceStringFactory>(
-        reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), g2x);
+        reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), nullptr, g2x);
     // TODO(Blaine): Is this correct?
     proving_key->reference_string = crs_factory->get_prover_crs(proving_key->circuit_size);
 
