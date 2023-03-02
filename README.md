@@ -26,7 +26,6 @@ RUN git clone -b release/10.x --depth 1 https://github.com/llvm/llvm-project.git
 Run the bootstrap script. (The bootstrap script will build both the native and wasm versions of barretenberg)
 
 ```
-cd cpp
 ./bootstrap.sh
 ```
 
@@ -124,11 +123,13 @@ wasmtime --dir=.. ./bin/ecc_tests
 For detailed instructions look in cpp/docs/Fuzzing.md
 
 To build:
+
 ```
 mkdir build-fuzzing && cd build-fuzzing
 cmake -DTOOLCHAIN=x86_64-linux-clang -DFUZZING=ON ..
 cmake --build . --parallel
 ```
+
 Fuzzing build turns off building tests and benchmarks, since they are incompatible with libfuzzer interface.
 
 To turn on address sanitizer add `-DADDRESS_SANITIZER=ON`. Note that address sanitizer can be used to explore crashes.
@@ -139,6 +140,7 @@ Note that the fuzzer can be orders of magnitude slower with ASan (2-3x slower) o
 ### Test coverage build
 
 To build:
+
 ```
 mkdir build-coverage && cd build-coverage
 cmake -DTOOLCHAIN=x86_64-linux-clang -DCOVERAGE=ON -DCMAKE_BUILD_TYPE=Debug ..
@@ -146,11 +148,13 @@ cmake --build . --parallel
 ```
 
 Then run tests (on the mainframe always use taskset and nice to limit your influence on the server. Profiling instrumentation is very heavy):
+
 ```
 taskset 0xffffff nice -n10 make test
 ```
 
 And generate report:
+
 ```
 make create_full_coverage_report
 ```
@@ -160,4 +164,5 @@ The report will land in the build directory in the all_test_coverage_report dire
 Alternatively you can build separate test binaries, e.g. honk_tests or numeric_tests and run **make test** just for them or even just for a single test. Then the report will just show coverage for those binaries
 
 ### VS Code configuration
+
 A default configuration for VS Code is provided by the file [`barretenberg.code-workspace`](barretenberg.code-workspace). These settings can be overridden by placing configuration files in `.vscode/`.
