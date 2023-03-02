@@ -15,8 +15,25 @@ struct MerkleInsertConstraint {
 
 void create_merkle_insert_constraint(plonk::TurboComposer& composer, const MerkleInsertConstraint& input);
 
-template <typename B> inline void read(B& buf, MerkleInsertConstraint& constraint);
+template <typename B> inline void read(B& buf, MerkleInsertConstraint& constraint)
+{
+    using serialize::read;
+    read(buf, constraint.hash_path);
+    read(buf, constraint.old_root);
+    read(buf, constraint.new_root);
+    read(buf, constraint.old_leaf);
+    read(buf, constraint.new_leaf);
+    read(buf, constraint.index);
+}
 
-template <typename B> inline void write(B& buf, MerkleInsertConstraint const& constraint);
-
+template <typename B> inline void write(B& buf, MerkleInsertConstraint const& constraint)
+{
+    using serialize::write;
+    write(buf, constraint.hash_path);
+    write(buf, constraint.old_root);
+    write(buf, constraint.new_root);
+    write(buf, constraint.old_leaf);
+    write(buf, constraint.new_leaf);
+    write(buf, constraint.index);
+}
 } // namespace acir_format

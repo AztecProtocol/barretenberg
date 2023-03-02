@@ -107,24 +107,4 @@ void create_ecdsa_verify_constraints(plonk::TurboComposer& composer, const Ecdsa
     composer.assert_equal(false, input.result);
 }
 
-template <typename B> inline void read(B& buf, EcdsaSecp256k1Constraint& constraint)
-{
-    using serialize::read;
-    read(buf, constraint.message);
-    read(buf, constraint.signature);
-    read(buf, constraint.pub_x_indices);
-    read(buf, constraint.pub_y_indices);
-    read(buf, constraint.result);
-}
-
-template <typename B> inline void write(B& buf, EcdsaSecp256k1Constraint const& constraint)
-{
-    using serialize::write;
-    write(buf, constraint.message);
-    write(buf, constraint.signature);
-    write(buf, constraint.pub_x_indices);
-    write(buf, constraint.pub_y_indices);
-    write(buf, constraint.result);
-}
-
 } // namespace acir_format

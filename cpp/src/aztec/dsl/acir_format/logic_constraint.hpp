@@ -20,8 +20,23 @@ void xor_gate(TurboComposer& composer, uint32_t a, uint32_t b, uint32_t result, 
 
 void and_gate(TurboComposer& composer, uint32_t a, uint32_t b, uint32_t result, size_t num_bits);
 
-template <typename B> inline void read(B& buf, LogicConstraint& constraint);
+template <typename B> inline void read(B& buf, LogicConstraint& constraint)
+{
+    using serialize::read;
+    read(buf, constraint.a);
+    read(buf, constraint.b);
+    read(buf, constraint.result);
+    read(buf, constraint.num_bits);
+    read(buf, constraint.is_xor_gate);
+}
 
-template <typename B> inline void write(B& buf, LogicConstraint const& constraint);
-
+template <typename B> inline void write(B& buf, LogicConstraint const& constraint)
+{
+    using serialize::write;
+    write(buf, constraint.a);
+    write(buf, constraint.b);
+    write(buf, constraint.result);
+    write(buf, constraint.num_bits);
+    write(buf, constraint.is_xor_gate);
+}
 } // namespace acir_format

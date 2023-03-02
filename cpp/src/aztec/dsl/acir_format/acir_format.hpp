@@ -53,8 +53,40 @@ void create_circuit_with_witness(TurboComposer& composer,
                                  std::vector<fr> witness);
 
 // Serialisation
-template <typename B> inline void read(B& buf, acir_format& data);
+template <typename B> inline void read(B& buf, acir_format& data)
+{
+    using serialize::read;
+    read(buf, data.varnum);
+    read(buf, data.public_inputs);
+    read(buf, data.logic_constraints);
+    read(buf, data.range_constraints);
+    read(buf, data.sha256_constraints);
+    read(buf, data.merkle_membership_constraints);
+    read(buf, data.schnorr_constraints);
+    read(buf, data.ecdsa_constraints);
+    read(buf, data.blake2s_constraints);
+    read(buf, data.pedersen_constraints);
+    read(buf, data.hash_to_field_constraints);
+    read(buf, data.fixed_base_scalar_mul_constraints);
+    read(buf, data.constraints);
+}
 
-template <typename B> inline void write(B& buf, acir_format const& data);
+template <typename B> inline void write(B& buf, acir_format const& data)
+{
+    using serialize::write;
+    write(buf, data.varnum);
+    write(buf, data.public_inputs);
+    write(buf, data.logic_constraints);
+    write(buf, data.range_constraints);
+    write(buf, data.sha256_constraints);
+    write(buf, data.merkle_membership_constraints);
+    write(buf, data.schnorr_constraints);
+    write(buf, data.ecdsa_constraints);
+    write(buf, data.blake2s_constraints);
+    write(buf, data.pedersen_constraints);
+    write(buf, data.hash_to_field_constraints);
+    write(buf, data.fixed_base_scalar_mul_constraints);
+    write(buf, data.constraints);
+}
 
 } // namespace acir_format

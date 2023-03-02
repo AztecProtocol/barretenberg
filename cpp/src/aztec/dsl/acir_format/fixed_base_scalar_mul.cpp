@@ -14,20 +14,4 @@ void create_fixed_base_constraint(plonk::TurboComposer& composer, const FixedBas
     composer.assert_equal(public_key.y.witness_index, input.pub_key_y);
 }
 
-template <typename B> inline void read(B& buf, FixedBaseScalarMul& constraint)
-{
-    using serialize::read;
-    read(buf, constraint.scalar);
-    read(buf, constraint.pub_key_x);
-    read(buf, constraint.pub_key_y);
-}
-
-template <typename B> inline void write(B& buf, FixedBaseScalarMul const& constraint)
-{
-    using serialize::write;
-    write(buf, constraint.scalar);
-    write(buf, constraint.pub_key_x);
-    write(buf, constraint.pub_key_y);
-}
-
 } // namespace acir_format

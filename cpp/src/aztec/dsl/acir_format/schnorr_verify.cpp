@@ -98,24 +98,4 @@ void create_schnorr_verify_constraints(plonk::TurboComposer& composer, const Sch
     composer.assert_equal(result_bool, input.result);
 }
 
-template <typename B> inline void read(B& buf, SchnorrConstraint& constraint)
-{
-    using serialize::read;
-    read(buf, constraint.message);
-    read(buf, constraint.signature);
-    read(buf, constraint.public_key_x);
-    read(buf, constraint.public_key_y);
-    read(buf, constraint.result);
-}
-
-template <typename B> inline void write(B& buf, SchnorrConstraint const& constraint)
-{
-    using serialize::write;
-    write(buf, constraint.message);
-    write(buf, constraint.signature);
-    write(buf, constraint.public_key_x);
-    write(buf, constraint.public_key_y);
-    write(buf, constraint.result);
-}
-
 } // namespace acir_format

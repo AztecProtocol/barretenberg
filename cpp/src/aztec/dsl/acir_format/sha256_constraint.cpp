@@ -40,32 +40,4 @@ void create_sha256_constraints(plonk::TurboComposer& composer, const Sha256Const
     }
 }
 
-template <typename B> inline void read(B& buf, Sha256Input& constraint)
-{
-    using serialize::read;
-    read(buf, constraint.witness);
-    read(buf, constraint.num_bits);
-}
-
-template <typename B> inline void write(B& buf, Sha256Input const& constraint)
-{
-    using serialize::write;
-    write(buf, constraint.witness);
-    write(buf, constraint.num_bits);
-}
-
-template <typename B> inline void read(B& buf, Sha256Constraint& constraint)
-{
-    using serialize::read;
-    read(buf, constraint.inputs);
-    read(buf, constraint.result);
-}
-
-template <typename B> inline void write(B& buf, Sha256Constraint const& constraint)
-{
-    using serialize::write;
-    write(buf, constraint.inputs);
-    write(buf, constraint.result);
-}
-
 } // namespace acir_format

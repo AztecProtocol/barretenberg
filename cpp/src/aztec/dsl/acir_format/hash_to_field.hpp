@@ -19,12 +19,32 @@ struct HashToFieldConstraint {
 
 void create_hash_to_field_constraints(plonk::TurboComposer& composer, HashToFieldConstraint constraint);
 
-template <typename B> inline void read(B& buf, HashToFieldInput& constraint);
+template <typename B> inline void read(B& buf, HashToFieldInput& constraint)
+{
+    using serialize::read;
+    read(buf, constraint.witness);
+    read(buf, constraint.num_bits);
+}
 
-template <typename B> inline void write(B& buf, HashToFieldInput const& constraint);
+template <typename B> inline void write(B& buf, HashToFieldInput const& constraint)
+{
+    using serialize::write;
+    write(buf, constraint.witness);
+    write(buf, constraint.num_bits);
+}
 
-template <typename B> inline void read(B& buf, HashToFieldConstraint& constraint);
+template <typename B> inline void read(B& buf, HashToFieldConstraint& constraint)
+{
+    using serialize::read;
+    read(buf, constraint.inputs);
+    read(buf, constraint.result);
+}
 
-template <typename B> inline void write(B& buf, HashToFieldConstraint const& constraint);
+template <typename B> inline void write(B& buf, HashToFieldConstraint const& constraint)
+{
+    using serialize::write;
+    write(buf, constraint.inputs);
+    write(buf, constraint.result);
+}
 
 } // namespace acir_format

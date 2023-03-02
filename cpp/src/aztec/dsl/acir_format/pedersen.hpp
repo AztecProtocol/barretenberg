@@ -14,8 +14,20 @@ struct PedersenConstraint {
 
 void create_pedersen_constraint(plonk::TurboComposer& composer, const PedersenConstraint& input);
 
-template <typename B> inline void read(B& buf, PedersenConstraint& constraint);
+template <typename B> inline void read(B& buf, PedersenConstraint& constraint)
+{
+    using serialize::read;
+    read(buf, constraint.scalars);
+    read(buf, constraint.result_x);
+    read(buf, constraint.result_y);
+}
 
-template <typename B> inline void write(B& buf, PedersenConstraint const& constraint);
+template <typename B> inline void write(B& buf, PedersenConstraint const& constraint)
+{
+    using serialize::write;
+    write(buf, constraint.scalars);
+    read(buf, constraint.result_x);
+    read(buf, constraint.result_y);
+}
 
 } // namespace acir_format

@@ -15,8 +15,24 @@ struct MerkleMembershipConstraint {
 
 void create_merkle_check_membership_constraint(plonk::TurboComposer& composer, const MerkleMembershipConstraint& input);
 
-template <typename B> inline void read(B& buf, MerkleMembershipConstraint& constraint);
+template <typename B> inline void read(B& buf, MerkleMembershipConstraint& constraint)
+{
+    using serialize::read;
+    read(buf, constraint.hash_path);
+    read(buf, constraint.root);
+    read(buf, constraint.leaf);
+    read(buf, constraint.result);
+    read(buf, constraint.index);
+}
 
-template <typename B> inline void write(B& buf, MerkleMembershipConstraint const& constraint);
+template <typename B> inline void write(B& buf, MerkleMembershipConstraint const& constraint)
+{
+    using serialize::write;
+    write(buf, constraint.hash_path);
+    write(buf, constraint.root);
+    write(buf, constraint.leaf);
+    write(buf, constraint.result);
+    write(buf, constraint.index);
+}
 
 } // namespace acir_format
