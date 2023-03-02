@@ -11,6 +11,7 @@
       "displayName": "Build with Clang",
       "description": "Build with globally installed Clang",
       "binaryDir": "build",
+      "generator": "Ninja",
       "environment": {
         "CC": "clang",
         "CXX": "clang++"
