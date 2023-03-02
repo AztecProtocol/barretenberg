@@ -84,18 +84,11 @@ void create_schnorr_verify_constraints(plonk::TurboComposer& composer, const Sch
 
     schnorr::signature_bits sig = stdlib::schnorr::convert_signature(&composer, new_sig);
 
-    // This seems to fail if the signature is not correct.
-    // What would be the point of the boolean then?
     bool_ct signature_result = stdlib::schnorr::signature_verification_result(message, pub_key, sig);
-    // signature_result does not return a witness, as the whole circuit will
-    // fail, given a wrong signature.
-    //
-    // We therefore necessarily have a witness disconnect here
 
-    // TODO(Blaine): This seems wrong
-    auto result_bool = composer.add_variable(signature_result.witness_bool == true);
+    bool_ct signature_result_normalized = signature_result.normalize();
 
-    composer.assert_equal(result_bool, input.result);
+    composer.assert_equal(signature_result_normalized.witness_index, input.result);
 }
 
 } // namespace acir_format

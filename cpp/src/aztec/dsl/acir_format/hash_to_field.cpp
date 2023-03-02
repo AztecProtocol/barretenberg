@@ -31,9 +31,8 @@ void create_hash_to_field_constraints(plonk::TurboComposer& composer, const Hash
     // Note: It does not need to be blake2s in the future
 
     byte_array_ct out_bytes = plonk::stdlib::blake2s<plonk::TurboComposer>(arr);
-    // TODO(Blaine): Switched this from field_t to field_ct, is it correct?
+
     field_ct out(out_bytes);
-    // TODO(Blaine): Switched this from field_t to field_ct, is it correct?
     field_ct normalised_out = out.normalize();
 
     composer.assert_equal(normalised_out.witness_index, constraint.result);
