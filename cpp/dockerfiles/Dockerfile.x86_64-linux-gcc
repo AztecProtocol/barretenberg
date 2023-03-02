@@ -4,6 +4,7 @@ RUN apk update \
     && apk add --no-cache \
         build-base \
         cmake \
+        ninja \
         git \
         curl
 WORKDIR /usr/src/barretenberg/cpp

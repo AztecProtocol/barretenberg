@@ -6,6 +6,7 @@ RUN apk update \
         clang15 \
         openmp-dev \
         cmake \
+        ninja \
         git \
         curl \
         perl
