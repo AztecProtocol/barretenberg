@@ -1,7 +1,7 @@
 # barretenberg
 # copyright 2019 Spilsbury Holdings Ltd
 
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.24)
 
 include(cmake/toolchain.cmake)
 
@@ -15,6 +15,10 @@ option(DISABLE_ADX "Disable ADX assembly variant" OFF)
 option(MULTITHREADING "Enable multi-threading" ON)
 option(TESTING "Build tests" ON)
 option(BENCHMARKS "Build benchmarks" ON)
+option(FUZZING "Build fuzzing harnesses" OFF)
+option(DISABLE_TBB "Intel Thread Building Blocks" ON)
+option(COVERAGE "Enable collecting coverage from tests" OFF)
+option(ENABLE_HEAVY_TESTS "Enable heavy tests when collecting coverage" OFF)
 
 if(ARM)
     message(STATUS "Compiling for ARM.")
@@ -22,6 +26,7 @@ if(ARM)
     set(DISABLE_ADX ON)
     set(RUN_HAVE_STD_REGEX 0)
     set(RUN_HAVE_POSIX_REGEX 0)
+    set(DISABLE_TBB 0)
 endif()
 
 if(FUZZING)
@@ -45,6 +50,7 @@ if(FUZZING)
 
     set(HANDROLLED_WASM OFF)
     set(BENCHMARKS OFF)
+    set(MULTITHREADING OFF)
     set(TESTING OFF)
 endif()
 
@@ -66,7 +72,43 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_CXX_EXTENSIONS ON)
 
+if(COVERAGE)
+
+    # We've only set up LLVM coverage
+    if(NOT(CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
+        message(FATAL_ERROR "Creating coverage is only available for clang")
+    endif()
+
+    # Get major clang version
+    string(REPLACE "." ";" VERSION_LIST ${CMAKE_CXX_COMPILER_VERSION})
+    list(GET VERSION_LIST 0 CLANG_VERSION_MAJOR)
+
+    # Find llvm-profdata
+    set(PROFDATA_EXECUTABLE_NAME "llvm-profdata-${CLANG_VERSION_MAJOR}")
+    find_program(PROFDATA_EXECUTABLE ${PROFDATA_EXECUTABLE_NAME})
+    if(PROFDATA_EXECUTABLE MATCHES "NOTFOUND")
+        message(FATAL_ERROR "Couldn't find ${PROFDATA_EXECUTABLE_NAME}")
+    endif()
+
+    # Find llvm-cov
+    set(COV_EXECUTABLE_NAME "llvm-cov-${CLANG_VERSION_MAJOR}")
+    find_program(COV_EXECUTABLE ${COV_EXECUTABLE_NAME})
+    if(COV_EXECUTABLE MATCHES "NOTFOUND")
+        message(FATAL_ERROR "Couldn't find ${COV_EXECUTABLE_NAME}")
+    endif()
+
+    # Add profiling compile options and disable optimisations
+    add_compile_options(-fprofile-instr-generate -fcoverage-mapping -O0)
+
+    # Add a custom target for creating the report
+    add_custom_target(create_full_coverage_report
+    COMMAND "${CMAKE_SOURCE_DIR}/scripts/collect_coverage_information.sh" ${PROFDATA_EXECUTABLE} ${COV_EXECUTABLE}
+    VERBATIM
+    )
+endif() 
+
 include(cmake/build.cmake)
+include(GNUInstallDirs)
 include(cmake/arch.cmake)
 include(cmake/threading.cmake)
 include(cmake/gtest.cmake)
