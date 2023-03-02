@@ -213,11 +213,6 @@ elseif(EMSCRIPTEN)
     get_target_property(COMPILE_OPTIONS barretenberg COMPILE_OPTIONS)
     get_target_property(LINK_OPTIONS barretenberg LINK_OPTIONS)
     add_custom_command(TARGET barretenberg POST_BUILD COMMAND echo built with compiler flags: ${COMPILE_OPTIONS} linker flags: ${LINK_OPTIONS})
-    #target_link_options(
-    #    barretenberg.wasm # Note: output has double .wasm ending
-    #    PRIVATE
-    #    -nostartfiles -Wl,--no-entry -Wl,--export-dynamic -Wl,--import-memory -Wl,--allow-undefined -Wl,--stack-first -Wl,-z,stack-size=1048576
-    #)
 else()
     # For use when compiling dependent cpp projects
     message(STATUS "Compiling all-in-one barretenberg archive")
