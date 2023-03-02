@@ -31,6 +31,11 @@ function(barretenberg_module MODULE_NAME)
             $<TARGET_OBJECTS:${MODULE_NAME}_objects>
         )
 
+        if(EMSCRIPTEN)
+            # complicated to link libraries for emscripten with proper debugging
+            # just link source to one target
+            set(${MODULE_NAME}_source ${SOURCE_FILES} CACHE INTERNAL ${MODULE_NAME}_source)
+        endif()
         target_link_libraries(
             ${MODULE_NAME}
             PUBLIC

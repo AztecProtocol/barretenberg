@@ -68,8 +68,4 @@ cd ./src
 curl -s -L https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-$WASI_VERSION/wasi-sdk-$WASI_VERSION.0-$OS.tar.gz | tar zxfv -
 cd ..
 
-# Build WASM.
-mkdir -p build-wasm && cd build-wasm
-cmake -DTOOLCHAIN=wasm-linux-clang ..
-cmake --build . --parallel --target barretenberg.wasm
-cd ..
+./build_wasm.sh

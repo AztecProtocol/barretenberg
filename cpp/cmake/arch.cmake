@@ -5,6 +5,6 @@ if(HANDROLLED_WASM)
     add_compile_options(-fno-exceptions -fno-slp-vectorize)
 endif()
 
-if(NOT HANDROLLED_WASM AND NOT APPLE AND NOT ARM)
+if(NOT HANDROLLED_WASM AND NOT EMSCRIPTEN AND NOT APPLE AND NOT ARM)
     add_compile_options(-march=skylake)
 endif()

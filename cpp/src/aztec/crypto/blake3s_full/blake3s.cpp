@@ -207,7 +207,7 @@ INLINE size_t left_len(size_t content_len)
     // Subtract 1 to reserve at least one byte for the right side. content_len
     // should always be greater than BLAKE3_CHUNK_LEN.
     size_t full_chunks = (content_len - 1) / BLAKE3_CHUNK_LEN;
-    return round_down_to_power_of_2(full_chunks) * BLAKE3_CHUNK_LEN;
+    return ((size_t)round_down_to_power_of_2(full_chunks)) * BLAKE3_CHUNK_LEN;
 }
 
 // Use SIMD parallelism to hash up to MAX_SIMD_DEGREE chunks at the same time
@@ -569,7 +569,7 @@ void blake3_hasher_update(blake3_hasher* self, const void* input, size_t input_l
     // Because we might need to break up the input to form powers of 2, or to
     // evenly divide what we already have, this part runs in a loop.
     while (input_len > BLAKE3_CHUNK_LEN) {
-        size_t subtree_len = round_down_to_power_of_2(input_len);
+        size_t subtree_len = (size_t)round_down_to_power_of_2(input_len);
         uint64_t count_so_far = self->chunk.chunk_counter * BLAKE3_CHUNK_LEN;
         // Shrink the subtree_len until it evenly divides the count so far. We know
         // that subtree_len itself is a power of 2, so we can use a bitmasking

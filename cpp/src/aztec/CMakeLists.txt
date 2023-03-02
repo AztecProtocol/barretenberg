@@ -153,48 +153,35 @@ elseif(EMSCRIPTEN)
     # TODO(AD): Is this still the best way for emscripten?
     add_executable(
         barretenberg
-        ${srs_source}
         ${numeric_source}
+        ${srs_source}
+        ${ecc_source}
+        ${crypto_generators_source}
+        ${crypto_blake2s_source}
+        ${crypto_blake3s_source}
+        ${crypto_blake3s_full_source}
+        ${crypto_keccak_source}
+        ${crypto_pedersen_commitment_source}
+        ${crypto_pedersen_hash_source}
+        ${crypto_schnorr_source}
         ${crypto_sha256_source}
         ${crypto_aes128_source}
-        ${crypto_blake2s_source}
-        ${crypto_keccak_source}
-        ${crypto_schnorr_source}
-        ${crypto_pedersen_source}
-        ${ecc_source}
         ${polynomials_source}
+        ${proof_system_source}
+        ${transcript_source}
+        ${honk_source}
         ${plonk_source}
-        ${stdlib_primitives_source}
-        ${stdlib_schnorr_source}
-        ${stdlib_pedersen_source}
         ${stdlib_blake2s_source}
-        ${rollup_proofs_inner_proof_data_source}
-        ${rollup_proofs_notes_source}
-        ${rollup_proofs_account_source}
-        ${rollup_proofs_join_split_source}
+        ${stdlib_blake3s_source}
+        ${stdlib_pedersen_hash_source}
+        ${stdlib_sha256_source}
+        ${stdlib_keccak_source}
+        ${stdlib_pedersen_commitment_source}
+        ${stdlib_schnorr_source}
+        ${stdlib_aes128_source}
+        ${stdlib_primitives_source}
+        ${stdlib_merkle_tree_source}
     )
-    # target_link_libraries(
-    #     barretenberg.wasm
-    #     srs
-    #     numeric
-    #     crypto_sha256
-    #     crypto_aes128
-    #     crypto_blake2s
-    #     crypto_keccak
-    #     crypto_schnorr
-    #     crypto_pedersen
-    #     ecc
-    #     polynomials
-    #     plonk
-    #     stdlib_primitives
-    #     stdlib_schnorr
-    #     stdlib_pedersen
-    #     stdlib_blake2s
-    #     rollup_proofs_inner_proof_data
-    #     rollup_proofs_notes
-    #     rollup_proofs_account
-    #     rollup_proofs_join_split
-    # )
     target_compile_options(
         barretenberg
         PRIVATE
@@ -218,40 +205,11 @@ elseif(EMSCRIPTEN)
     target_link_options(
         barretenberg
         PRIVATE
-        #-sSTANDALONE_WASM
-        # enable function name section in WASM
-        --profiling-funcs
-        # minimal builds with debug info
-        -Os -g
-        -sASSERTIONS
+        -sASYNCIFY
         -sWARN_ON_UNDEFINED_SYMBOLS=0
-        -nostartfiles 
-        -Wl,--no-entry 
-        -Wl,--export-dynamic 
-        -Wl,--import-memory 
-        -Wl,--stack-first
-        -Wl,-z,stack-size=1048576)
+        -nostartfiles -O2 -Wl,--no-entry -Wl,--export-dynamic -Wl,--import-memory -Wl,--allow-undefined -Wl,-z,stack-size=1048576
+    )
 
-    message(
-        ${srs_source}
-        ${numeric_source}
-        ${crypto_sha256_source}
-        ${crypto_aes128_source}
-        ${crypto_blake2s_source}
-        ${crypto_keccak_source}
-        ${crypto_schnorr_source}
-        ${crypto_pedersen_source}
-        ${ecc_source}
-        ${polynomials_source}
-        ${plonk_source}
-        ${stdlib_primitives_source}
-        ${stdlib_schnorr_source}
-        ${stdlib_pedersen_source}
-        ${stdlib_blake2s_source}
-        ${rollup_proofs_inner_proof_data_source}
-        ${rollup_proofs_notes_source}
-        ${rollup_proofs_account_source}
-        ${rollup_proofs_join_split_source})
     get_target_property(COMPILE_OPTIONS barretenberg COMPILE_OPTIONS)
     get_target_property(LINK_OPTIONS barretenberg LINK_OPTIONS)
     add_custom_command(TARGET barretenberg POST_BUILD COMMAND echo built with compiler flags: ${COMPILE_OPTIONS} linker flags: ${LINK_OPTIONS})
