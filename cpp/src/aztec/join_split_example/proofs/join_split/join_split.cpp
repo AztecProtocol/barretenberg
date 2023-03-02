@@ -64,7 +64,7 @@ void init_verification_key(std::shared_ptr<bonk::VerifierMemReferenceString> con
     verification_key = std::make_shared<bonk::verification_key>(std::move(vk_data), crs);
 }
 
-plonk::TurboProver new_join_split_prover(join_split_tx const& tx, bool mock)
+plonk::stdlib::types::Prover new_join_split_prover(join_split_tx const& tx, bool mock)
 {
     Composer composer(proving_key, nullptr);
     join_split_circuit(composer, tx);
@@ -89,7 +89,8 @@ plonk::TurboProver new_join_split_prover(join_split_tx const& tx, bool mock)
 
 bool verify_proof(plonk::proof const& proof)
 {
-    plonk::TurboVerifier verifier(verification_key, Composer::create_manifest(verification_key->num_public_inputs));
+    plonk::stdlib::types::Verifier verifier(verification_key,
+                                            Composer::create_manifest(verification_key->num_public_inputs));
 
     std::unique_ptr<plonk::KateCommitmentScheme<plonk::turbo_settings>> kate_commitment_scheme =
         std::make_unique<plonk::KateCommitmentScheme<plonk::turbo_settings>>();
