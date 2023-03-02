@@ -3,13 +3,14 @@
 #include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
 #include "barretenberg/crypto/generators/generator_data.hpp"
 #include "barretenberg/crypto/schnorr/schnorr.hpp"
+#include "barretenberg/crypto/ecdsa/ecdsa.hpp"
 #include "barretenberg/ecc/curves/bn254/fq.hpp"
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 #include "barretenberg/numeric/uint256/uint256.hpp"
 #include "barretenberg/proof_system/verification_key/verification_key.hpp"
-#include "barretenberg/plonk/proof_system/types/plonk_proof.hpp"
+#include "barretenberg/plonk/proof_system/types/proof.hpp"
 #include "barretenberg/stdlib/recursion/verifier/verifier.hpp"
 
 // #include "barretenberg/stdlib/primitives/bit_array/bit_array.hpp"
@@ -54,6 +55,7 @@ struct NativeTypes {
     // typedef packed_byte_array packed_byte_array;
 
     // typedef crypto::schnorr::signature signature;
+    typedef crypto::ecdsa::signature ecdsa_signature;
 
     typedef stdlib::recursion::native_recursion_output AggregationObject;
     typedef bonk::verification_key_data VKData;
