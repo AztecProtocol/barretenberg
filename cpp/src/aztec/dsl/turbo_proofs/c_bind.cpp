@@ -2,8 +2,6 @@
 #include "turbo_proofs.hpp"
 #include <cstdint>
 
-using namespace plonk::stdlib::types;
-
 #define WASM_EXPORT __attribute__((visibility("default")))
 
 extern "C" {

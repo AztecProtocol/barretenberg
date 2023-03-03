@@ -1,4 +1,4 @@
-#include <stdlib/types/types.hpp>
+#include <cstdint>
 
 namespace acir_format {
 

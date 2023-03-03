@@ -1,6 +1,7 @@
 #include "ecdsa_secp256k1.hpp"
-#include <crypto/ecdsa/ecdsa.hpp>
-#include <stdlib/encryption/ecdsa/ecdsa.hpp>
+#include "crypto/ecdsa/ecdsa.hpp"
+#include "stdlib/encryption/ecdsa/ecdsa.hpp"
+#include "stdlib/types/types.hpp"
 
 using namespace plonk::stdlib::types;
 

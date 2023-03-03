@@ -1,5 +1,5 @@
-#include <stdlib/types/types.hpp>
-#include <dsl/acir_format/acir_format.hpp>
+#include <cstdint>
+#include <cstddef>
 
 namespace turbo_proofs {
 

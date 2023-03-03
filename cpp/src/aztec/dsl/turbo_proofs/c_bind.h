@@ -1,5 +1,5 @@
 #include <cstdint>
-#include <stddef.h>
+#include <cstddef>
 
 #define WASM_EXPORT __attribute__((visibility("default")))
 

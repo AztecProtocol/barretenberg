@@ -1,5 +1,7 @@
 #pragma once
-#include <stdlib/types/types.hpp>
+#include <cstdint>
+#include <vector>
+#include "plonk/composer/turbo_composer.hpp"
 
 namespace acir_format {
 

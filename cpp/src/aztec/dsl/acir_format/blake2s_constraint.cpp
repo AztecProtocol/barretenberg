@@ -1,5 +1,6 @@
 #include "blake2s_constraint.hpp"
 #include "round.hpp"
+#include "stdlib/types/types.hpp"
 
 using namespace plonk::stdlib::types;
 

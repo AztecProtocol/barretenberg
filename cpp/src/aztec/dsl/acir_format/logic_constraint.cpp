@@ -1,7 +1,5 @@
 #include "logic_constraint.hpp"
 
-using namespace plonk::stdlib::types;
-
 namespace acir_format {
 
 void create_logic_gate(TurboComposer& composer,

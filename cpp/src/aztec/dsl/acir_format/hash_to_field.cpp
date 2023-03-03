@@ -1,5 +1,6 @@
 #include "hash_to_field.hpp"
 #include "round.hpp"
+#include "stdlib/types/types.hpp"
 
 using namespace plonk::stdlib::types;
 

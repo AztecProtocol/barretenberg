@@ -1,4 +1,5 @@
 #include "fixed_base_scalar_mul.hpp"
+#include "stdlib/types/types.hpp"
 
 using namespace plonk::stdlib::types;
 

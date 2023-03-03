@@ -1,5 +1,6 @@
 #pragma once
-#include <stdlib/types/types.hpp>
+#include <cstdint>
+#include "common/serialize.hpp"
 
 namespace acir_format {
 

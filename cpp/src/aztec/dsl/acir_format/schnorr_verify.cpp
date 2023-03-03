@@ -1,5 +1,6 @@
 #include "schnorr_verify.hpp"
-#include <crypto/schnorr/schnorr.hpp>
+#include "crypto/schnorr/schnorr.hpp"
+#include "stdlib/types/types.hpp"
 
 using namespace plonk::stdlib::types;
 

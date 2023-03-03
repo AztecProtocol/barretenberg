@@ -1,5 +1,6 @@
 #include "merkle_membership_constraint.hpp"
-#include <stdlib/merkle_tree/index.hpp>
+#include "stdlib/merkle_tree/membership.hpp"
+#include "stdlib/types/types.hpp"
 
 using namespace plonk::stdlib::types;
 using namespace plonk::stdlib::merkle_tree;

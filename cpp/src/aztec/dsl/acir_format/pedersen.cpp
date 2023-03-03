@@ -1,4 +1,5 @@
 #include "pedersen.hpp"
+#include "stdlib/types/types.hpp"
 
 using namespace plonk::stdlib::types;
 
