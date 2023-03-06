@@ -3,7 +3,6 @@
     "*.tf": "terraform",
     "*.tfvars": "terraform",
     "Makefile.*": "makefile",
-    "iosfwd": "cpp",
-    "vector": "cpp"
+    "iosfwd": "cpp"
   }
 }
