@@ -105,14 +105,14 @@ void create_ecdsa_verify_constraints(plonk::TurboComposer& composer, const Ecdsa
 
     auto pub_key = secp256k1_ct::g1_ct(pub_key_x_fq, pub_key_y_fq);
 
-    //TODO: crypto-dev to verify calculation of the signature result is correct
+    //TODO: crypto-dev to verify calculation and constraining of the signature result is correct
     bool_ct signature_result = stdlib::ecdsa::
         verify_signature<plonk::TurboComposer, secp256k1_ct::fq_ct, secp256k1_ct::fr_ct, secp256k1_ct::g1_ct>(
             message, pub_key, sig);
 
     auto result_bool = composer.add_variable(signature_result.get_value() == true);
 
-    composer.assert_equal(false, input.result);
+    composer.assert_equal(result_bool, input.result);
 }
 
 } // namespace acir_format
