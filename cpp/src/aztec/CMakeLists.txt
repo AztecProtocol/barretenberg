@@ -174,5 +174,18 @@ else()
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             FILE_SET HEADERS DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         )
+
+        set(pkg_config "${PROJECT_BINARY_DIR}/barretenberg.pc")
+
+        configure_file(
+            "${PROJECT_SOURCE_DIR}/cmake/barretenberg.pc.in"
+            "${pkg_config}"
+            @ONLY
+        )
+
+        install(
+            FILES "${pkg_config}"
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
+        )
     endif()
 endif()
