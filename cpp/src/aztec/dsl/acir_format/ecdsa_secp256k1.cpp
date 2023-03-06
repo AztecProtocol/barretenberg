@@ -105,9 +105,9 @@ void create_ecdsa_verify_constraints(plonk::TurboComposer& composer, const Ecdsa
 
     auto pub_key = secp256k1_ct::g1_ct(pub_key_x_fq, pub_key_y_fq);
 
-    //TODO: crypto-dev to verify calculation and constraining of the signature result is correct
-    bool_ct signature_result = stdlib::ecdsa::
-        verify_signature<plonk::TurboComposer, secp256k1_ct::fq_ct, secp256k1_ct::fr_ct, secp256k1_ct::g1_ct>(
+    // TODO: crypto-dev to verify calculation and constraining of the signature result is correct
+    bool_ct signature_result =
+        stdlib::ecdsa::verify_signature<plonk::TurboComposer, secp256k1_ct::fq, secp256k1_ct::fr, secp256k1_ct::g1>(
             message, pub_key, sig);
 
     auto result_bool = composer.add_variable(signature_result.get_value() == true);
