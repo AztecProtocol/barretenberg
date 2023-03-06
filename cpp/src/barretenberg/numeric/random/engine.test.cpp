@@ -1,7 +1,7 @@
 #include "engine.hpp"
 #include <gtest/gtest.h>
-#include <barretenberg/common/log.hpp>
-#include <barretenberg/common/streams.hpp>
+#include "barretenberg/common/log.hpp"
+#include "barretenberg/common/streams.hpp"
 
 TEST(engine, get_random_uint64)
 {

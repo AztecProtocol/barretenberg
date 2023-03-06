@@ -1,7 +1,7 @@
 #include "./pedersen_lookup.hpp"
 #include "./convert_buffer_to_field.hpp"
 
-#include <barretenberg/ecc/curves/grumpkin/grumpkin.hpp>
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 
 namespace crypto {
 namespace pedersen {

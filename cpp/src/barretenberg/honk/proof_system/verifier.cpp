@@ -1,10 +1,10 @@
 #include <cmath>
-#include <barretenberg/common/throw_or_abort.hpp>
+#include "barretenberg/common/throw_or_abort.hpp"
 #include <cstddef>
 #include <memory>
-#include <barretenberg/plonk/proof_system/constants.hpp>
+#include "barretenberg/plonk/proof_system/constants.hpp"
 #include "./verifier.hpp"
-#include <barretenberg/plonk/proof_system/public_inputs/public_inputs.hpp>
+#include "barretenberg/plonk/proof_system/public_inputs/public_inputs.hpp"
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/honk/pcs/gemini/gemini.hpp"
@@ -12,16 +12,16 @@
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "barretenberg/proof_system/polynomial_cache/polynomial_cache.hpp"
-#include <barretenberg/ecc/curves/bn254/fq12.hpp>
-#include <barretenberg/ecc/curves/bn254/pairing.hpp>
-#include <barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp>
-#include <barretenberg/polynomials/polynomial_arithmetic.hpp>
-#include <barretenberg/honk/composer/composer_helper/permutation_helper.hpp>
+#include "barretenberg/ecc/curves/bn254/fq12.hpp"
+#include "barretenberg/ecc/curves/bn254/pairing.hpp"
+#include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
+#include "barretenberg/polynomials/polynomial_arithmetic.hpp"
+#include "barretenberg/honk/composer/composer_helper/permutation_helper.hpp"
 #include <math.h>
 #include <string>
-#include <barretenberg/honk/utils/power_polynomial.hpp>
-#include <barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp>
-#include <barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp>
+#include "barretenberg/honk/utils/power_polynomial.hpp"
+#include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
 
 using namespace barretenberg;
 using namespace honk::sumcheck;

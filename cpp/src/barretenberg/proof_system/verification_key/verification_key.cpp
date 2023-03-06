@@ -1,4 +1,4 @@
-#include <barretenberg/crypto/sha256/sha256.hpp>
+#include "barretenberg/crypto/sha256/sha256.hpp"
 #include "verification_key.hpp"
 #include "../../plonk/proof_system/constants.hpp"
 

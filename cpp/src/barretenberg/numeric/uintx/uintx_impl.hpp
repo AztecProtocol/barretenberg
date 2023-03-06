@@ -1,5 +1,5 @@
 #pragma once
-#include <barretenberg/common/assert.hpp>
+#include "barretenberg/common/assert.hpp"
 
 template <class base_uint>
 constexpr std::pair<uintx<base_uint>, uintx<base_uint>> uintx<base_uint>::divmod(const uintx& b) const

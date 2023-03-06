@@ -1,15 +1,15 @@
-#include <barretenberg/proof_system/flavor/flavor.hpp>
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "sumcheck_round.hpp"
 #include "relations/arithmetic_relation.hpp"
 #include "relations/grand_product_computation_relation.hpp"
 #include "relations/grand_product_initialization_relation.hpp"
 #include "polynomials/univariate.hpp"
-#include <barretenberg/ecc/curves/bn254/fr.hpp>
-#include <barretenberg/numeric/random/engine.hpp>
+#include "barretenberg/ecc/curves/bn254/fr.hpp"
+#include "barretenberg/numeric/random/engine.hpp"
 
 #include <tuple>
 
-#include <barretenberg/common/mem.hpp>
+#include "barretenberg/common/mem.hpp"
 #include <gtest/gtest.h>
 /**
  * We want to test if the univariate (S_l in the thesis) computed by the prover in a particular round is correct. We

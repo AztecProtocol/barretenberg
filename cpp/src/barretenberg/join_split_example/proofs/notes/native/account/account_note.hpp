@@ -1,6 +1,6 @@
 #pragma once
-#include <barretenberg/ecc/curves/grumpkin/grumpkin.hpp>
-#include <barretenberg/crypto/pedersen/pedersen.hpp>
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
+#include "barretenberg/crypto/pedersen/pedersen.hpp"
 #include "../../constants.hpp"
 
 namespace join_split_example {

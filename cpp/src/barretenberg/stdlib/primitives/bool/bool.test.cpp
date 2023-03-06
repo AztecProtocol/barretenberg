@@ -2,7 +2,7 @@
 #include "barretenberg/plonk/proof_system/constants.hpp"
 #include <gtest/gtest.h>
 // #include <plonk/composer/standard_composer.hpp>
-#include <barretenberg/honk/composer/standard_honk_composer.hpp>
+#include "barretenberg/honk/composer/standard_honk_composer.hpp"
 
 namespace test_stdlib_bool {
 using namespace barretenberg;

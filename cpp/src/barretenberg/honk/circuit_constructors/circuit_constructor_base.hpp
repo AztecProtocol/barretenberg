@@ -1,6 +1,6 @@
 #pragma once
-#include <barretenberg/proof_system/composer/composer_base.hpp>
-#include <barretenberg/ecc/curves/bn254/fr.hpp>
+#include "barretenberg/proof_system/composer/composer_base.hpp"
+#include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include <utility>
 
 using namespace bonk;

@@ -1,6 +1,6 @@
 #pragma once
 #include "claim_note.hpp"
-#include <barretenberg/crypto/pedersen/pedersen.hpp>
+#include "barretenberg/crypto/pedersen/pedersen.hpp"
 #include "../../constants.hpp"
 
 namespace join_split_example {

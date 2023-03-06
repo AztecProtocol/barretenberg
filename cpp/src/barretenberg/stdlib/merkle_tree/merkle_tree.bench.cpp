@@ -2,7 +2,7 @@
 #include "memory_store.hpp"
 #include "merkle_tree.hpp"
 #include <benchmark/benchmark.h>
-#include <barretenberg/numeric/random/engine.hpp>
+#include "barretenberg/numeric/random/engine.hpp"
 
 using namespace benchmark;
 using namespace plonk::stdlib::merkle_tree;

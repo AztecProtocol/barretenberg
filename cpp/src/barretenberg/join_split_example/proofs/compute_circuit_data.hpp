@@ -4,8 +4,8 @@
 #include "../constants.hpp"
 #include <fstream>
 #include <sys/stat.h>
-#include <barretenberg/common/timer.hpp>
-#include <barretenberg/proof_system/proving_key/serialize.hpp>
+#include "barretenberg/common/timer.hpp"
+#include "barretenberg/proof_system/proving_key/serialize.hpp"
 
 #ifndef __wasm__
 #include <filesystem>

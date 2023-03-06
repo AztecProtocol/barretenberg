@@ -7,8 +7,8 @@
 #include <algorithm>
 
 #include "../commitment_key.test.hpp"
-#include <barretenberg/honk/pcs/claim.hpp>
-#include <barretenberg/polynomials/polynomial.hpp>
+#include "barretenberg/honk/pcs/claim.hpp"
+#include "barretenberg/polynomials/polynomial.hpp"
 namespace honk::pcs::shplonk {
 template <class Params> class ShplonkTest : public CommitmentTest<Params> {};
 

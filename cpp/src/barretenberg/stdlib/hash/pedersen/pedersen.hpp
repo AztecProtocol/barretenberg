@@ -1,5 +1,5 @@
 #pragma once
-#include <barretenberg/crypto/pedersen/pedersen.hpp>
+#include "barretenberg/crypto/pedersen/pedersen.hpp"
 #include "../../primitives/composers/composers_fwd.hpp"
 #include "../../primitives/field/field.hpp"
 #include "../../primitives/point/point.hpp"

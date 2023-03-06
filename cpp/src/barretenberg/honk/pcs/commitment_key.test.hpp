@@ -8,9 +8,9 @@
 #include <memory>
 #include <string_view>
 
-#include <barretenberg/polynomials/polynomial.hpp>
-#include <barretenberg/srs/reference_string/file_reference_string.hpp>
-#include <barretenberg/ecc/curves/bn254/g1.hpp>
+#include "barretenberg/polynomials/polynomial.hpp"
+#include "barretenberg/srs/reference_string/file_reference_string.hpp"
+#include "barretenberg/ecc/curves/bn254/g1.hpp"
 
 #include "../oracle/oracle.hpp"
 #include "../../transcript/transcript_wrappers.hpp"

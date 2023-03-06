@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include <barretenberg/ecc/curves/bn254/fr.hpp>
-#include <barretenberg/polynomials/polynomial.hpp>
-#include <barretenberg/proof_system/proving_key/proving_key.hpp>
+#include "barretenberg/ecc/curves/bn254/fr.hpp"
+#include "barretenberg/polynomials/polynomial.hpp"
+#include "barretenberg/proof_system/proving_key/proving_key.hpp"
 
 #include <algorithm>
 #include <cstdint>

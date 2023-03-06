@@ -1,5 +1,5 @@
 #pragma once
-#include <barretenberg/common/throw_or_abort.hpp>
+#include "barretenberg/common/throw_or_abort.hpp"
 
 #include "types.hpp"
 #include "sha256.hpp"

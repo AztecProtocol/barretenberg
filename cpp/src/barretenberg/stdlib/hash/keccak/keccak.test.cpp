@@ -1,8 +1,8 @@
 #include "keccak.hpp"
-#include <barretenberg/crypto/keccak/keccak.hpp>
+#include "barretenberg/crypto/keccak/keccak.hpp"
 #include <gtest/gtest.h>
-#include <barretenberg/plonk/composer/ultra_composer.hpp>
-#include <barretenberg/numeric/random/engine.hpp>
+#include "barretenberg/plonk/composer/ultra_composer.hpp"
+#include "barretenberg/numeric/random/engine.hpp"
 #include "../../primitives/plookup/plookup.hpp"
 
 using namespace barretenberg;

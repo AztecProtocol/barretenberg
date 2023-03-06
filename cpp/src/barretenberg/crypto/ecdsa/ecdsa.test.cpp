@@ -1,7 +1,7 @@
 #include "ecdsa.hpp"
-#include <barretenberg/ecc/curves/grumpkin/grumpkin.hpp>
-#include <barretenberg/ecc/curves/secp256r1/secp256r1.hpp>
-#include <barretenberg/common/serialize.hpp>
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
+#include "barretenberg/ecc/curves/secp256r1/secp256r1.hpp"
+#include "barretenberg/common/serialize.hpp"
 #include <gtest/gtest.h>
 
 using namespace barretenberg;

@@ -1,8 +1,8 @@
 #pragma once
 #include <map>
-#include <barretenberg/srs/reference_string/reference_string.hpp>
-#include <barretenberg/polynomials/evaluation_domain.hpp>
-#include <barretenberg/crypto/sha256/sha256.hpp>
+#include "barretenberg/srs/reference_string/reference_string.hpp"
+#include "barretenberg/polynomials/evaluation_domain.hpp"
+#include "barretenberg/crypto/sha256/sha256.hpp"
 #include "../../proof_system/types/polynomial_manifest.hpp"
 
 namespace bonk {

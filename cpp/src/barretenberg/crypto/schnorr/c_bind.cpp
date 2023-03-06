@@ -1,7 +1,7 @@
 #include "schnorr.hpp"
 #include "multisig.hpp"
 
-#include <barretenberg/ecc/curves/grumpkin/grumpkin.hpp>
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 
 #define WASM_EXPORT __attribute__((visibility("default")))
 

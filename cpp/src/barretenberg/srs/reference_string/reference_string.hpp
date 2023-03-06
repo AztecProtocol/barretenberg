@@ -1,8 +1,8 @@
 #pragma once
 
-#include <barretenberg/common/mem.hpp>
-#include <barretenberg/ecc/curves/bn254/g1.hpp>
-#include <barretenberg/ecc/curves/bn254/g2.hpp>
+#include "barretenberg/common/mem.hpp"
+#include "barretenberg/ecc/curves/bn254/g1.hpp"
+#include "barretenberg/ecc/curves/bn254/g2.hpp"
 
 #include <cstddef>
 

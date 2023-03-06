@@ -1,5 +1,5 @@
 #pragma once
-#include <barretenberg/ecc/curves/secp256k1/secp256k1.hpp>
+#include "barretenberg/ecc/curves/secp256k1/secp256k1.hpp"
 
 namespace plonk {
 namespace stdlib {

@@ -5,12 +5,12 @@
  *
  */
 
-#include <barretenberg/polynomials/polynomial_arithmetic.hpp>
-#include <barretenberg/polynomials/polynomial.hpp>
-#include <barretenberg/srs/reference_string/file_reference_string.hpp>
-#include <barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp>
-#include <barretenberg/ecc/curves/bn254/pairing.hpp>
-#include <barretenberg/numeric/bitop/pow.hpp>
+#include "barretenberg/polynomials/polynomial_arithmetic.hpp"
+#include "barretenberg/polynomials/polynomial.hpp"
+#include "barretenberg/srs/reference_string/file_reference_string.hpp"
+#include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
+#include "barretenberg/ecc/curves/bn254/pairing.hpp"
+#include "barretenberg/numeric/bitop/pow.hpp"
 
 #include <string_view>
 #include <memory>

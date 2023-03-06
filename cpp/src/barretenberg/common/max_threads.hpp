@@ -4,7 +4,7 @@
 #ifndef NO_MULTITHREADING
 #include <omp.h>
 #endif
-#include <barretenberg/numeric/bitop/get_msb.hpp>
+#include "barretenberg/numeric/bitop/get_msb.hpp"
 
 namespace max_threads {
 //

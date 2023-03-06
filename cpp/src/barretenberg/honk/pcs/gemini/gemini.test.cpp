@@ -1,7 +1,7 @@
 #include "gemini.hpp"
 
 #include "../commitment_key.test.hpp"
-#include <barretenberg/polynomials/polynomial.hpp>
+#include "barretenberg/polynomials/polynomial.hpp"
 #include <cstddef>
 #include <gtest/gtest.h>
 #include <span>

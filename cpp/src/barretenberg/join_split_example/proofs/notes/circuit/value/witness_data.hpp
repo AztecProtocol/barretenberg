@@ -1,5 +1,5 @@
 #pragma once
-#include <barretenberg/stdlib/types/types.hpp>
+#include "barretenberg/stdlib/types/types.hpp"
 #include "../../native/value/value_note.hpp"
 #include "../../constants.hpp"
 

@@ -4,12 +4,12 @@
 #include <memory.h>
 #include <string>
 
-#include <barretenberg/ecc/curves/grumpkin/grumpkin.hpp>
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 
-#include <barretenberg/crypto/hashers/hashers.hpp>
+#include "barretenberg/crypto/hashers/hashers.hpp"
 
-#include <barretenberg/common/serialize.hpp>
-#include <barretenberg/common/streams.hpp>
+#include "barretenberg/common/serialize.hpp"
+#include "barretenberg/common/streams.hpp"
 
 namespace crypto {
 namespace schnorr {

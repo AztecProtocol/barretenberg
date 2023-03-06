@@ -3,14 +3,14 @@
 #include "../bigfield/bigfield.hpp"
 #include "../byte_array/byte_array.hpp"
 #include "../field/field.hpp"
-#include <barretenberg/ecc/curves/bn254/g1.hpp>
+#include "barretenberg/ecc/curves/bn254/g1.hpp"
 
 #include "../composers/composers_fwd.hpp"
 #include "../memory/rom_table.hpp"
 #include "../memory/twin_rom_table.hpp"
-#include <barretenberg/ecc/curves/secp256k1/secp256k1.hpp>
-#include <barretenberg/ecc/curves/secp256r1/secp256r1.hpp>
-#include <barretenberg/ecc/curves/bn254/g1.hpp>
+#include "barretenberg/ecc/curves/secp256k1/secp256k1.hpp"
+#include "barretenberg/ecc/curves/secp256r1/secp256r1.hpp"
+#include "barretenberg/ecc/curves/bn254/g1.hpp"
 
 #include "../composers/composers_fwd.hpp"
 

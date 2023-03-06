@@ -1,6 +1,6 @@
 #pragma once
 
-#include <barretenberg/plonk/proof_system/types/program_settings.hpp>
+#include "barretenberg/plonk/proof_system/types/program_settings.hpp"
 
 #include "../transcript/transcript.hpp"
 

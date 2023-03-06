@@ -1,5 +1,5 @@
 #pragma once
-#include <barretenberg/ecc/curves/grumpkin/grumpkin.hpp>
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 
 namespace join_split_example {
 namespace proofs {

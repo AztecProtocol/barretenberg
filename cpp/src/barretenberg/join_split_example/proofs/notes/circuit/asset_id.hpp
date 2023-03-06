@@ -1,5 +1,5 @@
 #pragma once
-#include <barretenberg/stdlib/types/types.hpp>
+#include "barretenberg/stdlib/types/types.hpp"
 
 namespace join_split_example::proofs::notes::circuit {
 

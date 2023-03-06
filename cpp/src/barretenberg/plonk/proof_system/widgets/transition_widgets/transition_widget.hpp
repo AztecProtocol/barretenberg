@@ -5,7 +5,7 @@
 #include <set>
 #include <unordered_map>
 
-#include <barretenberg/polynomials/iterate_over_domain.hpp>
+#include "barretenberg/polynomials/iterate_over_domain.hpp"
 #include "../../types/prover_settings.hpp"
 #include "../../../../proof_system/proving_key/proving_key.hpp"
 #include "../../../../proof_system/work_queue/work_queue.hpp"

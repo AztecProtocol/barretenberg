@@ -3,7 +3,7 @@
 #include <array>
 #include <vector>
 #include <string>
-#include <barretenberg/plonk/proof_system/constants.hpp>
+#include "barretenberg/plonk/proof_system/constants.hpp"
 // ToDo(Arijit): The below namespace should be plonk once all the honk related stuffs are moved out
 namespace bonk {
 

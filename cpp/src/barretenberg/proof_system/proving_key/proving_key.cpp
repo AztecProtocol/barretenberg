@@ -1,7 +1,7 @@
 #include "proving_key.hpp"
-#include <barretenberg/polynomials/polynomial_arithmetic.hpp>
-#include <barretenberg/common/throw_or_abort.hpp>
-#include <barretenberg/numeric/bitop/get_msb.hpp>
+#include "barretenberg/polynomials/polynomial_arithmetic.hpp"
+#include "barretenberg/common/throw_or_abort.hpp"
+#include "barretenberg/numeric/bitop/get_msb.hpp"
 namespace bonk {
 
 // In all the constructors below, the pippenger_runtime_state takes (n + 1) as the input

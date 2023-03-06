@@ -6,12 +6,12 @@
 #include "barretenberg/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/transcript/transcript.hpp"
 #include "verifier.hpp"
-#include <barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp>
+#include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include <gtest/gtest.h>
-#include <barretenberg/srs/reference_string/file_reference_string.hpp>
-#include <barretenberg/polynomials/polynomial_arithmetic.hpp>
-#include <barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp>
-#include <barretenberg/honk/composer/composer_helper/permutation_helper.hpp>
+#include "barretenberg/srs/reference_string/file_reference_string.hpp"
+#include "barretenberg/polynomials/polynomial_arithmetic.hpp"
+#include "barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp"
+#include "barretenberg/honk/composer/composer_helper/permutation_helper.hpp"
 #include <vector>
 
 using namespace barretenberg;

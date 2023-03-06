@@ -1,5 +1,5 @@
 #pragma once
-#include <barretenberg/crypto/schnorr/schnorr.hpp>
+#include "barretenberg/crypto/schnorr/schnorr.hpp"
 #include "../../primitives/field/field.hpp"
 #include "../../primitives/bool/bool.hpp"
 #include "../../primitives/witness/witness.hpp"

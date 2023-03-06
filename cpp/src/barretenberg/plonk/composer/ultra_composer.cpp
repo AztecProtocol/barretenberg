@@ -1,18 +1,18 @@
 #include "ultra_composer.hpp"
 
-#include <barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp>
-#include <barretenberg/numeric/bitop/get_msb.hpp>
+#include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
+#include "barretenberg/numeric/bitop/get_msb.hpp"
 #include <algorithm>
 #include <optional>
-#include <barretenberg/plonk/proof_system/widgets/transition_widgets/plookup_arithmetic_widget.hpp>
-#include <barretenberg/plonk/proof_system/widgets/transition_widgets/turbo_logic_widget.hpp>
-#include <barretenberg/plonk/proof_system/widgets/transition_widgets/genperm_sort_widget.hpp>
-#include <barretenberg/plonk/proof_system/widgets/transition_widgets/elliptic_widget.hpp>
-#include <barretenberg/plonk/proof_system/widgets/transition_widgets/plookup_auxiliary_widget.hpp>
-#include <barretenberg/plonk/proof_system/widgets/random_widgets/permutation_widget.hpp>
-#include <barretenberg/plonk/proof_system/widgets/random_widgets/plookup_widget.hpp>
-#include <barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp>
-#include <barretenberg/srs/reference_string/file_reference_string.hpp>
+#include "barretenberg/plonk/proof_system/widgets/transition_widgets/plookup_arithmetic_widget.hpp"
+#include "barretenberg/plonk/proof_system/widgets/transition_widgets/turbo_logic_widget.hpp"
+#include "barretenberg/plonk/proof_system/widgets/transition_widgets/genperm_sort_widget.hpp"
+#include "barretenberg/plonk/proof_system/widgets/transition_widgets/elliptic_widget.hpp"
+#include "barretenberg/plonk/proof_system/widgets/transition_widgets/plookup_auxiliary_widget.hpp"
+#include "barretenberg/plonk/proof_system/widgets/random_widgets/permutation_widget.hpp"
+#include "barretenberg/plonk/proof_system/widgets/random_widgets/plookup_widget.hpp"
+#include "barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp"
+#include "barretenberg/srs/reference_string/file_reference_string.hpp"
 
 #include "plookup_tables/types.hpp"
 #include "plookup_tables/plookup_tables.hpp"

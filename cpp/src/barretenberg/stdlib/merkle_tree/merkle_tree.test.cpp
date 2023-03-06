@@ -1,10 +1,10 @@
 #include "merkle_tree.hpp"
 #include "memory_store.hpp"
 #include "memory_tree.hpp"
-#include <barretenberg/common/streams.hpp>
-#include <barretenberg/common/test.hpp>
-#include <barretenberg/numeric/random/engine.hpp>
-#include <barretenberg/stdlib/types/types.hpp>
+#include "barretenberg/common/streams.hpp"
+#include "barretenberg/common/test.hpp"
+#include "barretenberg/numeric/random/engine.hpp"
+#include "barretenberg/stdlib/types/types.hpp"
 
 using namespace barretenberg;
 using namespace plonk::stdlib::merkle_tree;

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <barretenberg/numeric/uint256/uint256.hpp>
-#include <barretenberg/numeric/uintx/uintx.hpp>
+#include "barretenberg/numeric/uint256/uint256.hpp"
+#include "barretenberg/numeric/uintx/uintx.hpp"
 #include <tuple>
 
 #include "../composers/composers.hpp"

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../claim.hpp"
-#include <barretenberg/polynomials/polynomial.hpp>
+#include "barretenberg/polynomials/polynomial.hpp"
 
 #include <memory>
 #include <utility>

@@ -1,4 +1,4 @@
-#include <barretenberg/ecc/curves/grumpkin/grumpkin.hpp>
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 #include <gtest/gtest.h>
 
 #include "./multisig.hpp"

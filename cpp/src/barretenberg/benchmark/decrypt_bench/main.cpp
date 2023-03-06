@@ -1,4 +1,4 @@
-#include <barretenberg/ecc/curves/grumpkin/grumpkin.hpp>
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 #include <chrono>
 
 int main(int, char**)

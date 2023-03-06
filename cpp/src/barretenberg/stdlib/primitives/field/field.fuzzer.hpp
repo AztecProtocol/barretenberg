@@ -1,9 +1,9 @@
-#include <barretenberg/numeric/uint256/uint256.hpp>
-#include <barretenberg/numeric/random/engine.hpp>
-#include <barretenberg/stdlib/primitives/field/field.hpp>
-#include <barretenberg/stdlib/primitives/bool/bool.hpp>
-#include <barretenberg/ecc/curves/grumpkin/grumpkin.hpp>
-#include <barretenberg/ecc/curves/bn254/fr.hpp>
+#include "barretenberg/numeric/uint256/uint256.hpp"
+#include "barretenberg/numeric/random/engine.hpp"
+#include "barretenberg/stdlib/primitives/field/field.hpp"
+#include "barretenberg/stdlib/primitives/bool/bool.hpp"
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
+#include "barretenberg/ecc/curves/bn254/fr.hpp"
 
 // This is a global variable, so that the execution handling class could alter it and signal to the input tester
 // that the input should fail
@@ -11,7 +11,7 @@ bool circuit_should_fail = false;
 
 #define HAVOC_TESTING
 // #define DISABLE_DIVISION 1
-#include <barretenberg/common/fuzzer.hpp>
+#include "barretenberg/common/fuzzer.hpp"
 FastRandom VarianceRNG(0);
 
 // #define DISABLE_DIVISION

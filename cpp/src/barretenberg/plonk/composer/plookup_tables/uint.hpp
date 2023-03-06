@@ -2,7 +2,7 @@
 
 #include "./types.hpp"
 
-#include <barretenberg/numeric/bitop/rotate.hpp>
+#include "barretenberg/numeric/bitop/rotate.hpp"
 
 namespace plookup {
 namespace uint_tables {

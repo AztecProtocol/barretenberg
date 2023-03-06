@@ -1,4 +1,4 @@
-#include <barretenberg/common/test.hpp>
+#include "barretenberg/common/test.hpp"
 #include <type_traits>
 
 #include "../bigfield/bigfield.hpp"
@@ -7,12 +7,12 @@
 #include "../field/field.hpp"
 #include "barretenberg/honk/composer/standard_honk_composer.hpp"
 
-#include <barretenberg/stdlib/primitives/curves/bn254.hpp>
-#include <barretenberg/stdlib/primitives/curves/secp256r1.hpp>
-#include <barretenberg/stdlib/primitives/curves/secp256k1.hpp>
+#include "barretenberg/stdlib/primitives/curves/bn254.hpp"
+#include "barretenberg/stdlib/primitives/curves/secp256r1.hpp"
+#include "barretenberg/stdlib/primitives/curves/secp256k1.hpp"
 
 #include <memory>
-#include <barretenberg/numeric/random/engine.hpp>
+#include "barretenberg/numeric/random/engine.hpp"
 
 namespace test_stdlib_biggroup {
 namespace {

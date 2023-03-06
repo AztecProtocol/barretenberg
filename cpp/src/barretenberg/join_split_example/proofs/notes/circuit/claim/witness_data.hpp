@@ -1,5 +1,5 @@
 #pragma once
-#include <barretenberg/stdlib/types/types.hpp>
+#include "barretenberg/stdlib/types/types.hpp"
 #include "../../native/claim/claim_note.hpp"
 #include "../../native/claim/claim_note_tx_data.hpp"
 #include "../../constants.hpp"

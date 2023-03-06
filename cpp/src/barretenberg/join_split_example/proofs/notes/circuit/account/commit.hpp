@@ -1,5 +1,5 @@
 #pragma once
-#include <barretenberg/stdlib/types/types.hpp>
+#include "barretenberg/stdlib/types/types.hpp"
 #include "../../constants.hpp"
 
 namespace join_split_example {

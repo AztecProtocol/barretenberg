@@ -1,9 +1,9 @@
 #include "./scalar_multiplication.hpp"
 
-#include <barretenberg/common/throw_or_abort.hpp>
-#include <barretenberg/common/mem.hpp>
-#include <barretenberg/common/max_threads.hpp>
-#include <barretenberg/numeric/bitop/get_msb.hpp>
+#include "barretenberg/common/throw_or_abort.hpp"
+#include "barretenberg/common/mem.hpp"
+#include "barretenberg/common/max_threads.hpp"
+#include "barretenberg/numeric/bitop/get_msb.hpp"
 
 #include <array>
 #include <cstddef>

@@ -1,5 +1,5 @@
-#include <barretenberg/stdlib/encryption/schnorr/schnorr.hpp>
-#include <barretenberg/stdlib/hash/pedersen/pedersen.hpp>
+#include "barretenberg/stdlib/encryption/schnorr/schnorr.hpp"
+#include "barretenberg/stdlib/hash/pedersen/pedersen.hpp"
 
 namespace join_split_example {
 namespace proofs {

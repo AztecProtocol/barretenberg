@@ -2,13 +2,13 @@
 #include "join_split.hpp"
 #include "compute_signing_data.hpp"
 #include "../mock/mock_circuit.hpp"
-#include <barretenberg/common/streams.hpp>
-#include <barretenberg/common/mem.hpp>
-#include <barretenberg/common/container.hpp>
+#include "barretenberg/common/streams.hpp"
+#include "barretenberg/common/mem.hpp"
+#include "barretenberg/common/container.hpp"
 #include <cstdint>
-#include <barretenberg/ecc/curves/grumpkin/grumpkin.hpp>
-#include <barretenberg/srs/reference_string/pippenger_reference_string.hpp>
-#include <barretenberg/proof_system/proving_key/serialize.hpp>
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
+#include "barretenberg/srs/reference_string/pippenger_reference_string.hpp"
+#include "barretenberg/proof_system/proving_key/serialize.hpp"
 #include <sstream>
 
 using namespace barretenberg;

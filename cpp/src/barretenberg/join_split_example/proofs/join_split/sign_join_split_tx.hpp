@@ -1,5 +1,5 @@
 #pragma once
-#include <barretenberg/crypto/schnorr/schnorr.hpp>
+#include "barretenberg/crypto/schnorr/schnorr.hpp"
 #include "../notes/native/value/value_note.hpp"
 #include "join_split_tx.hpp"
 

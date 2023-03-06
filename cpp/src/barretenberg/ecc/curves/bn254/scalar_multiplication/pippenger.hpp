@@ -1,7 +1,7 @@
 #pragma once
 #include "./scalar_multiplication.hpp"
-#include <barretenberg/common/mem.hpp>
-#include <barretenberg/common/max_threads.hpp>
+#include "barretenberg/common/mem.hpp"
+#include "barretenberg/common/max_threads.hpp"
 
 #ifndef NO_MULTITHREADING
 #include <omp.h>

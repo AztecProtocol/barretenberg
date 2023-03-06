@@ -1,9 +1,9 @@
 #pragma once
 #include "../notes/native/claim/claim_note_tx_data.hpp"
 #include "../notes/native/value/value_note.hpp"
-#include <barretenberg/crypto/schnorr/schnorr.hpp>
-#include <barretenberg/stdlib/merkle_tree/hash_path.hpp>
-#include <barretenberg/stdlib/types/types.hpp>
+#include "barretenberg/crypto/schnorr/schnorr.hpp"
+#include "barretenberg/stdlib/merkle_tree/hash_path.hpp"
+#include "barretenberg/stdlib/types/types.hpp"
 
 namespace join_split_example {
 namespace proofs {

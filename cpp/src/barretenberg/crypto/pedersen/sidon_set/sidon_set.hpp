@@ -3,9 +3,9 @@
 #include <array>
 #include <vector>
 
-#include <barretenberg/numeric/uintx/uintx.hpp>
-#include <barretenberg/ecc/fields/field.hpp>
-#include <barretenberg/ecc/fields/field2.hpp>
+#include "barretenberg/numeric/uintx/uintx.hpp"
+#include "barretenberg/ecc/fields/field.hpp"
+#include "barretenberg/ecc/fields/field2.hpp"
 
 namespace crypto {
 

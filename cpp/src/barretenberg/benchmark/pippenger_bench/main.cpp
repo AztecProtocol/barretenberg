@@ -1,9 +1,9 @@
 #include <chrono>
-#include <barretenberg/common/assert.hpp>
+#include "barretenberg/common/assert.hpp"
 #include <cstdlib>
-#include <barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp>
-#include <barretenberg/srs/reference_string/file_reference_string.hpp>
-#include <barretenberg/polynomials/polynomial_arithmetic.hpp>
+#include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
+#include "barretenberg/srs/reference_string/file_reference_string.hpp"
+#include "barretenberg/polynomials/polynomial_arithmetic.hpp"
 
 // #include <valgrind/callgrind.h>
 //  CALLGRIND_START_INSTRUMENTATION;

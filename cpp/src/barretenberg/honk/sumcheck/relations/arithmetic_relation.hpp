@@ -2,7 +2,7 @@
 #include <array>
 #include <tuple>
 
-#include <barretenberg/proof_system/flavor/flavor.hpp>
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "../polynomials/univariate.hpp"
 #include "relation.hpp"
 

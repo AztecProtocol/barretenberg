@@ -5,7 +5,7 @@
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 
-#include <barretenberg/common/assert.hpp>
+#include "barretenberg/common/assert.hpp"
 #include <memory>
 #include <vector>
 

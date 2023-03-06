@@ -1,11 +1,11 @@
 #include "evaluation_domain.hpp"
-#include <barretenberg/ecc/curves/grumpkin/grumpkin.hpp>
-#include <barretenberg/common/assert.hpp>
-#include <barretenberg/common/mem.hpp>
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
+#include "barretenberg/common/assert.hpp"
+#include "barretenberg/common/mem.hpp"
 #include <math.h>
 #include <memory.h>
-#include <barretenberg/numeric/bitop/get_msb.hpp>
-#include <barretenberg/common/max_threads.hpp>
+#include "barretenberg/numeric/bitop/get_msb.hpp"
+#include "barretenberg/common/max_threads.hpp"
 
 #ifndef NO_MULTITHREADING
 #include "omp.h"

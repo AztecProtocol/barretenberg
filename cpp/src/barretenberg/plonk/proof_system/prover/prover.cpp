@@ -2,9 +2,9 @@
 #include "../public_inputs/public_inputs.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include <chrono>
-#include <barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp>
-#include <barretenberg/polynomials/iterate_over_domain.hpp>
-#include <barretenberg/polynomials/polynomial_arithmetic.hpp>
+#include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
+#include "barretenberg/polynomials/iterate_over_domain.hpp"
+#include "barretenberg/polynomials/polynomial_arithmetic.hpp"
 
 using namespace barretenberg;
 

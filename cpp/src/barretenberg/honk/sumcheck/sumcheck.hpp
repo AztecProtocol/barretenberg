@@ -1,17 +1,17 @@
 #pragma once
 #include "barretenberg/common/serialize.hpp"
 #include <array>
-#include <barretenberg/honk/utils/public_inputs.hpp>
+#include "barretenberg/honk/utils/public_inputs.hpp"
 #include "barretenberg/common/throw_or_abort.hpp"
 #include "sumcheck_round.hpp"
 #include "polynomials/univariate.hpp"
-#include <barretenberg/proof_system/flavor/flavor.hpp>
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include <algorithm>
 #include <cstddef>
 #include <span>
 #include <string>
 #include <vector>
-#include <barretenberg/honk/proof_system/prover.hpp>
+#include "barretenberg/honk/proof_system/prover.hpp"
 namespace honk::sumcheck {
 template <typename FF, class Transcript, template <class> class... Relations> class Sumcheck {
 

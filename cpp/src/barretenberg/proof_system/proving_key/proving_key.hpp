@@ -1,12 +1,12 @@
 #pragma once
-#include <barretenberg/ecc/curves/bn254/scalar_multiplication/runtime_states.hpp>
+#include "barretenberg/ecc/curves/bn254/scalar_multiplication/runtime_states.hpp"
 #include <map>
-#include <barretenberg/polynomials/evaluation_domain.hpp>
-#include <barretenberg/polynomials/polynomial.hpp>
+#include "barretenberg/polynomials/evaluation_domain.hpp"
+#include "barretenberg/polynomials/polynomial.hpp"
 
-#include <barretenberg/srs/reference_string/reference_string.hpp>
-#include <barretenberg/plonk/proof_system/constants.hpp>
-#include <barretenberg/proof_system/types/polynomial_manifest.hpp>
+#include "barretenberg/srs/reference_string/reference_string.hpp"
+#include "barretenberg/plonk/proof_system/constants.hpp"
+#include "barretenberg/proof_system/types/polynomial_manifest.hpp"
 #include <unordered_map>
 
 #include "../polynomial_cache/polynomial_cache.hpp"

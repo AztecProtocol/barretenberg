@@ -1,7 +1,7 @@
 #pragma once
 
-#include <barretenberg/numeric/uint256/uint256.hpp>
-#include <barretenberg/common/serialize.hpp>
+#include "barretenberg/numeric/uint256/uint256.hpp"
+#include "barretenberg/common/serialize.hpp"
 #include "../hmac/hmac.hpp"
 
 namespace crypto {

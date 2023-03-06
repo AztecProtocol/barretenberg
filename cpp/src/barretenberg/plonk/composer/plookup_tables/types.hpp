@@ -3,7 +3,7 @@
 #include <vector>
 #include <array>
 
-#include <barretenberg/ecc/curves/bn254/fr.hpp>
+#include "barretenberg/ecc/curves/bn254/fr.hpp"
 
 namespace plookup {
 

@@ -14,8 +14,8 @@
 #include <cstdint>
 #include <iomanip>
 #include <iostream>
-#include <barretenberg/common/assert.hpp>
-#include <barretenberg/common/throw_or_abort.hpp>
+#include "barretenberg/common/assert.hpp"
+#include "barretenberg/common/throw_or_abort.hpp"
 #include "../uint256/uint256.hpp"
 
 namespace numeric {

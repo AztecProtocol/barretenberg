@@ -1,7 +1,7 @@
 #include "safe_uint.hpp"
 #include "../bool/bool.hpp"
 #include "../composers/composers.hpp"
-#include <barretenberg/ecc/curves/grumpkin/grumpkin.hpp>
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 
 namespace plonk {
 namespace stdlib {

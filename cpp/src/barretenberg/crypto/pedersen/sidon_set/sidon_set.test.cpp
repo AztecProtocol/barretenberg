@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include <barretenberg/numeric/bitop/get_msb.hpp>
-#include <barretenberg/numeric/random/engine.hpp>
+#include "barretenberg/numeric/bitop/get_msb.hpp"
+#include "barretenberg/numeric/random/engine.hpp"
 
 #include "./sidon_set.hpp"
 

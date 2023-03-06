@@ -1,15 +1,15 @@
 #include <benchmark/benchmark.h>
-#include <barretenberg/common/mem.hpp>
-#include <barretenberg/ecc/curves/bn254/fq.hpp>
-#include <barretenberg/ecc/curves/bn254/fr.hpp>
-#include <barretenberg/ecc/curves/bn254/g1.hpp>
-#include <barretenberg/ecc/curves/bn254/g2.hpp>
-#include <barretenberg/ecc/curves/bn254/pairing.hpp>
-#include <barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp>
-#include <barretenberg/ecc/groups/wnaf.hpp>
-#include <barretenberg/numeric/bitop/get_msb.hpp>
-#include <barretenberg/polynomials/polynomial_arithmetic.hpp>
-#include <barretenberg/srs/io.hpp>
+#include "barretenberg/common/mem.hpp"
+#include "barretenberg/ecc/curves/bn254/fq.hpp"
+#include "barretenberg/ecc/curves/bn254/fr.hpp"
+#include "barretenberg/ecc/curves/bn254/g1.hpp"
+#include "barretenberg/ecc/curves/bn254/g2.hpp"
+#include "barretenberg/ecc/curves/bn254/pairing.hpp"
+#include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
+#include "barretenberg/ecc/groups/wnaf.hpp"
+#include "barretenberg/numeric/bitop/get_msb.hpp"
+#include "barretenberg/polynomials/polynomial_arithmetic.hpp"
+#include "barretenberg/srs/io.hpp"
 
 using namespace benchmark;
 using namespace barretenberg;

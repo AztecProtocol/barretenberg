@@ -1,6 +1,6 @@
 #pragma once
 
-#include <barretenberg/polynomials/polynomial.hpp>
+#include "barretenberg/polynomials/polynomial.hpp"
 
 namespace honk::pcs {
 /**

@@ -1,16 +1,16 @@
 #pragma once
-#include <barretenberg/ecc/curves/bn254/fr.hpp>
-#include <barretenberg/honk/pcs/shplonk/shplonk.hpp>
-#include <barretenberg/polynomials/polynomial.hpp>
-#include <barretenberg/proof_system/flavor/flavor.hpp>
+#include "barretenberg/ecc/curves/bn254/fr.hpp"
+#include "barretenberg/honk/pcs/shplonk/shplonk.hpp"
+#include "barretenberg/polynomials/polynomial.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include <array>
-#include <barretenberg/proof_system/proving_key/proving_key.hpp>
-#include <barretenberg/honk/pcs/commitment_key.hpp>
-#include <barretenberg/plonk/proof_system/types/proof.hpp>
-#include <barretenberg/plonk/proof_system/types/program_settings.hpp>
-#include <barretenberg/honk/pcs/gemini/gemini.hpp>
-#include <barretenberg/honk/pcs/shplonk/shplonk_single.hpp>
-#include <barretenberg/honk/pcs/kzg/kzg.hpp>
+#include "barretenberg/proof_system/proving_key/proving_key.hpp"
+#include "barretenberg/honk/pcs/commitment_key.hpp"
+#include "barretenberg/plonk/proof_system/types/proof.hpp"
+#include "barretenberg/plonk/proof_system/types/program_settings.hpp"
+#include "barretenberg/honk/pcs/gemini/gemini.hpp"
+#include "barretenberg/honk/pcs/shplonk/shplonk_single.hpp"
+#include "barretenberg/honk/pcs/kzg/kzg.hpp"
 #include <span>
 #include <unordered_map>
 #include <vector>
@@ -19,7 +19,7 @@
 #include <memory>
 #include <utility>
 #include <string>
-#include <barretenberg/honk/pcs/claim.hpp>
+#include "barretenberg/honk/pcs/claim.hpp"
 
 namespace honk {
 

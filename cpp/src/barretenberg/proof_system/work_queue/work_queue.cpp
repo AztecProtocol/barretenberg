@@ -1,7 +1,7 @@
 #include "work_queue.hpp"
 
-#include <barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp>
-#include <barretenberg/polynomials/polynomial_arithmetic.hpp>
+#include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
+#include "barretenberg/polynomials/polynomial_arithmetic.hpp"
 
 namespace bonk {
 

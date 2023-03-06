@@ -1,5 +1,5 @@
 #include "plookup_tables.hpp"
-#include <barretenberg/common/constexpr_utils.hpp>
+#include "barretenberg/common/constexpr_utils.hpp"
 
 namespace plookup {
 

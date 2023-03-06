@@ -3,8 +3,8 @@
 #include "../../primitives/curves/secp256k1.hpp"
 #include "ecdsa.hpp"
 
-#include <barretenberg/crypto/ecdsa/ecdsa.hpp>
-#include <barretenberg/common/test.hpp>
+#include "barretenberg/crypto/ecdsa/ecdsa.hpp"
+#include "barretenberg/common/test.hpp"
 
 using namespace barretenberg;
 using namespace plonk;

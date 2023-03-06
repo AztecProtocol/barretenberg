@@ -1,7 +1,7 @@
 #pragma once
-#include <barretenberg/common/map.hpp>
-#include <barretenberg/stdlib/primitives/field/field.hpp>
-#include <barretenberg/stdlib/hash/pedersen/pedersen.hpp>
+#include "barretenberg/common/map.hpp"
+#include "barretenberg/stdlib/primitives/field/field.hpp"
+#include "barretenberg/stdlib/hash/pedersen/pedersen.hpp"
 
 namespace join_split_example {
 namespace proofs {

@@ -4,9 +4,9 @@
 #pragma once
 #include "reference_string.hpp"
 
-#include <barretenberg/ecc/curves/bn254/g1.hpp>
-#include <barretenberg/ecc/curves/bn254/g2.hpp>
-#include <barretenberg/ecc/curves/bn254/scalar_multiplication/pippenger.hpp>
+#include "barretenberg/ecc/curves/bn254/g1.hpp"
+#include "barretenberg/ecc/curves/bn254/g2.hpp"
+#include "barretenberg/ecc/curves/bn254/scalar_multiplication/pippenger.hpp"
 
 #include <utility>
 #include <cstddef>

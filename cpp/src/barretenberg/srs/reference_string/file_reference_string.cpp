@@ -1,7 +1,7 @@
 #include "file_reference_string.hpp"
 #include "../io.hpp"
 
-#include <barretenberg/ecc/curves/bn254/pairing.hpp>
+#include "barretenberg/ecc/curves/bn254/pairing.hpp"
 
 namespace bonk {
 

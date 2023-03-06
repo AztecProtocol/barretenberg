@@ -1,7 +1,7 @@
 #include "./sha256.hpp"
 #include <array>
-#include <barretenberg/common/assert.hpp>
-#include <barretenberg/common/net.hpp>
+#include "barretenberg/common/assert.hpp"
+#include "barretenberg/common/net.hpp"
 #include <memory.h>
 
 namespace sha256 {

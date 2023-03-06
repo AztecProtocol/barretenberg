@@ -1,8 +1,8 @@
 #include "sha256.hpp"
 #include <benchmark/benchmark.h>
-#include <barretenberg/ecc/curves/bn254/fr.hpp>
-#include <barretenberg/plonk/composer/ultra_composer.hpp>
-#include <barretenberg/stdlib/types/types.hpp>
+#include "barretenberg/ecc/curves/bn254/fr.hpp"
+#include "barretenberg/plonk/composer/ultra_composer.hpp"
+#include "barretenberg/stdlib/types/types.hpp"
 
 using namespace benchmark;
 using namespace plonk::stdlib::types;

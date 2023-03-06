@@ -1,9 +1,9 @@
 #pragma once
 
-#include <barretenberg/crypto/aes128/aes128.hpp>
-#include <barretenberg/numeric/uint256/uint256.hpp>
-#include <barretenberg/numeric/bitop/rotate.hpp>
-#include <barretenberg/numeric/bitop/sparse_form.hpp>
+#include "barretenberg/crypto/aes128/aes128.hpp"
+#include "barretenberg/numeric/uint256/uint256.hpp"
+#include "barretenberg/numeric/bitop/rotate.hpp"
+#include "barretenberg/numeric/bitop/sparse_form.hpp"
 
 #include "types.hpp"
 #include "sparse.hpp"

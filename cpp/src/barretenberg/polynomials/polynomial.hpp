@@ -1,9 +1,9 @@
 #pragma once
 #include "evaluation_domain.hpp"
 #include <cstddef>
-#include <barretenberg/ecc/curves/grumpkin/grumpkin.hpp>
-#include <barretenberg/common/mem.hpp>
-#include <barretenberg/common/timer.hpp>
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
+#include "barretenberg/common/mem.hpp"
+#include "barretenberg/common/timer.hpp"
 #include <fstream>
 #include <concepts>
 #include <span>

@@ -1,7 +1,7 @@
 #include "mock_circuit.hpp"
 #include "../join_split/join_split_tx.hpp"
-#include <barretenberg/common/test.hpp>
-#include <barretenberg/stdlib/types/types.hpp>
+#include "barretenberg/common/test.hpp"
+#include "barretenberg/stdlib/types/types.hpp"
 
 using namespace plonk::stdlib::types;
 

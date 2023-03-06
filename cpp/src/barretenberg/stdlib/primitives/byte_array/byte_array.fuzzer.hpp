@@ -1,6 +1,6 @@
-#include <barretenberg/numeric/random/engine.hpp>
-#include <barretenberg/stdlib/primitives/byte_array/byte_array.hpp>
-#include <barretenberg/stdlib/primitives/safe_uint/safe_uint.hpp>
+#include "barretenberg/numeric/random/engine.hpp"
+#include "barretenberg/stdlib/primitives/byte_array/byte_array.hpp"
+#include "barretenberg/stdlib/primitives/safe_uint/safe_uint.hpp"
 
 #define MAX_ARRAY_SIZE 128
 
@@ -10,7 +10,7 @@ bool circuit_should_fail = false;
 
 #define HAVOC_TESTING
 
-#include <barretenberg/common/fuzzer.hpp>
+#include "barretenberg/common/fuzzer.hpp"
 FastRandom VarianceRNG(0);
 
 // Enable this definition, when you want to find out the instructions that caused a failure

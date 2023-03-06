@@ -5,11 +5,11 @@
 #include "../../../transcript/transcript.hpp"
 #include "barretenberg/plonk/composer/standard_composer.hpp"
 #include "verifier.hpp"
-#include <barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp>
+#include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include <gtest/gtest.h>
-#include <barretenberg/srs/reference_string/file_reference_string.hpp>
-#include <barretenberg/polynomials/polynomial_arithmetic.hpp>
-#include <barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp>
+#include "barretenberg/srs/reference_string/file_reference_string.hpp"
+#include "barretenberg/polynomials/polynomial_arithmetic.hpp"
+#include "barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp"
 
 namespace verifier_helpers {
 

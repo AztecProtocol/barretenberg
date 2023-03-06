@@ -2,8 +2,8 @@
 #include "join_split_tx.hpp"
 #include "../notes/circuit/value/witness_data.hpp"
 #include "../notes/circuit/claim/witness_data.hpp"
-#include <barretenberg/crypto/schnorr/schnorr.hpp>
-#include <barretenberg/stdlib/types/types.hpp>
+#include "barretenberg/crypto/schnorr/schnorr.hpp"
+#include "barretenberg/stdlib/types/types.hpp"
 
 namespace join_split_example {
 namespace proofs {

@@ -2,7 +2,7 @@
 #include "barretenberg/honk/composer/standard_honk_composer.hpp"
 #include <functional>
 #include <gtest/gtest.h>
-#include <barretenberg/numeric/random/engine.hpp>
+#include "barretenberg/numeric/random/engine.hpp"
 
 using namespace barretenberg;
 using namespace plonk;

@@ -1,6 +1,6 @@
 #include "polynomial_cache.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
-#include <barretenberg/common/streams.hpp>
+#include "barretenberg/common/streams.hpp"
 
 namespace bonk {
 

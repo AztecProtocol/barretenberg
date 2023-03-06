@@ -1,5 +1,5 @@
 #pragma once
-#include <barretenberg/ecc/curves/bn254/fr.hpp>
+#include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include <vector>
 
 namespace plonk {

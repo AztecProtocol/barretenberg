@@ -1,8 +1,8 @@
 #include "blake2s.hpp"
 #include "blake2s_plookup.hpp"
-#include <barretenberg/crypto/blake2s/blake2s.hpp>
+#include "barretenberg/crypto/blake2s/blake2s.hpp"
 #include <gtest/gtest.h>
-#include <barretenberg/stdlib/types/types.hpp>
+#include "barretenberg/stdlib/types/types.hpp"
 
 using namespace barretenberg;
 using namespace plonk;

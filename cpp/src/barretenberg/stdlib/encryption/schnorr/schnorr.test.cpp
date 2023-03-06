@@ -1,8 +1,8 @@
 #include "schnorr.hpp"
-#include <barretenberg/crypto/pedersen/pedersen.hpp>
-#include <barretenberg/ecc/curves/grumpkin/grumpkin.hpp>
+#include "barretenberg/crypto/pedersen/pedersen.hpp"
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 #include <gtest/gtest.h>
-#include <barretenberg/stdlib/types/types.hpp>
+#include "barretenberg/stdlib/types/types.hpp"
 
 namespace test_stdlib_schnorr {
 

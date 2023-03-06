@@ -1,10 +1,10 @@
 #pragma once
-#include <barretenberg/ecc/curves/bn254/fr.hpp>
-#include <barretenberg/proof_system/composer/composer_base.hpp>
-#include <barretenberg/plonk/proof_system/prover/prover.hpp>
-#include <barretenberg/plonk/proof_system/verifier/verifier.hpp>
-#include <barretenberg/plonk/proof_system/types/prover_settings.hpp>
-#include <barretenberg/srs/reference_string/file_reference_string.hpp>
+#include "barretenberg/ecc/curves/bn254/fr.hpp"
+#include "barretenberg/proof_system/composer/composer_base.hpp"
+#include "barretenberg/plonk/proof_system/prover/prover.hpp"
+#include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
+#include "barretenberg/plonk/proof_system/types/prover_settings.hpp"
+#include "barretenberg/srs/reference_string/file_reference_string.hpp"
 
 namespace plonk {
 static constexpr uint32_t DUMMY_TAG = 0;

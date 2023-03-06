@@ -1,9 +1,9 @@
 #include "blake3s.hpp"
 #include "blake3s_plookup.hpp"
-#include <barretenberg/crypto/blake3s/blake3s.hpp>
+#include "barretenberg/crypto/blake3s/blake3s.hpp"
 #include <gtest/gtest.h>
-#include <barretenberg/plonk/composer/turbo_composer.hpp>
-#include <barretenberg/plonk/composer/ultra_composer.hpp>
+#include "barretenberg/plonk/composer/turbo_composer.hpp"
+#include "barretenberg/plonk/composer/ultra_composer.hpp"
 
 using namespace barretenberg;
 using namespace plonk;

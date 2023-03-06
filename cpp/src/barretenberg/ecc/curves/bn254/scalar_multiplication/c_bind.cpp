@@ -1,3 +1,4 @@
+#include "scalar_multiplication.hpp"
 #include "pippenger.hpp"
 #include "barretenberg/common/mem.hpp"
 

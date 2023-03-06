@@ -1,6 +1,6 @@
 #pragma once
 #include <stddef.h>
-#include <barretenberg/numeric/uint256/uint256.hpp>
+#include "barretenberg/numeric/uint256/uint256.hpp"
 #include "../../constants.hpp"
 
 namespace join_split_example {

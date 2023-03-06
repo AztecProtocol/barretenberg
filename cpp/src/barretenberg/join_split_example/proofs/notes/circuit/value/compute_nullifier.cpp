@@ -1,6 +1,6 @@
 #include "compute_nullifier.hpp"
 #include "../../constants.hpp"
-#include <barretenberg/stdlib/types/types.hpp>
+#include "barretenberg/stdlib/types/types.hpp"
 
 namespace join_split_example {
 namespace proofs {

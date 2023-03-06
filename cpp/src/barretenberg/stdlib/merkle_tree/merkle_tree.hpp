@@ -1,6 +1,6 @@
 #pragma once
 #include "hash_path.hpp"
-#include <barretenberg/stdlib/primitives/field/field.hpp>
+#include "barretenberg/stdlib/primitives/field/field.hpp"
 
 namespace plonk {
 namespace stdlib {

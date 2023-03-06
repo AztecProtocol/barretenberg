@@ -1,6 +1,6 @@
 #pragma once
 #include <array>
-#include <barretenberg/ecc/curves/grumpkin/grumpkin.hpp>
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 #include "./generator_data.hpp"
 #include "./fixed_base_scalar_mul.hpp"
 

@@ -4,7 +4,7 @@
 #include "../biggroup/biggroup.hpp"
 #include "../field/field.hpp"
 
-#include <barretenberg/ecc/curves/secp256r1/secp256r1.hpp>
+#include "barretenberg/ecc/curves/secp256r1/secp256r1.hpp"
 
 namespace plonk {
 namespace stdlib {

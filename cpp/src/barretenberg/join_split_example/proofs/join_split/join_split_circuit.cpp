@@ -5,7 +5,7 @@
 #include "../notes/circuit/account/account_note.hpp"
 #include "../notes/circuit/claim/claim_note.hpp"
 #include "verify_signature.hpp"
-#include <barretenberg/stdlib/merkle_tree/membership.hpp>
+#include "barretenberg/stdlib/merkle_tree/membership.hpp"
 
 namespace join_split_example {
 namespace proofs {

@@ -1,14 +1,14 @@
 #include "plookup.hpp"
 #include "../byte_array/byte_array.hpp"
 #include <gtest/gtest.h>
-#include <barretenberg/plonk/composer/ultra_composer.hpp>
-#include <barretenberg/numeric/random/engine.hpp>
-#include <barretenberg/numeric/bitop/rotate.hpp>
-#include <barretenberg/crypto/pedersen/pedersen_lookup.hpp>
-#include <barretenberg/stdlib/primitives/biggroup/biggroup.hpp>
-#include <barretenberg/stdlib/primitives/bigfield/bigfield.hpp>
-#include <barretenberg/stdlib/primitives/uint/uint.hpp>
-#include <barretenberg/stdlib/primitives/curves/secp256k1.hpp>
+#include "barretenberg/plonk/composer/ultra_composer.hpp"
+#include "barretenberg/numeric/random/engine.hpp"
+#include "barretenberg/numeric/bitop/rotate.hpp"
+#include "barretenberg/crypto/pedersen/pedersen_lookup.hpp"
+#include "barretenberg/stdlib/primitives/biggroup/biggroup.hpp"
+#include "barretenberg/stdlib/primitives/bigfield/bigfield.hpp"
+#include "barretenberg/stdlib/primitives/uint/uint.hpp"
+#include "barretenberg/stdlib/primitives/curves/secp256k1.hpp"
 
 namespace test_stdlib_plookups {
 using namespace barretenberg;

@@ -1,5 +1,5 @@
-#include <barretenberg/common/test.hpp>
-#include <barretenberg/common/log.hpp>
+#include "barretenberg/common/test.hpp"
+#include "barretenberg/common/log.hpp"
 #include <gtest/gtest.h>
 
 #include "polynomial_store.hpp"

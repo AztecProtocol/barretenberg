@@ -1,7 +1,7 @@
 #include "hash.hpp"
 #include <gtest/gtest.h>
-#include <barretenberg/stdlib/hash/pedersen/pedersen.hpp>
-#include <barretenberg/stdlib/types/types.hpp>
+#include "barretenberg/stdlib/hash/pedersen/pedersen.hpp"
+#include "barretenberg/stdlib/types/types.hpp"
 
 using namespace barretenberg;
 using namespace plonk::stdlib::types;

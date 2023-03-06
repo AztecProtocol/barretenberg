@@ -1,9 +1,9 @@
 #include "ipa.hpp"
-#include <barretenberg/common/mem.hpp>
+#include "barretenberg/common/mem.hpp"
 #include <gtest/gtest.h>
-#include <barretenberg/polynomials/polynomial_arithmetic.hpp>
-#include <barretenberg/polynomials/polynomial.hpp>
-#include <barretenberg/ecc/curves/bn254/fq12.hpp>
+#include "barretenberg/polynomials/polynomial_arithmetic.hpp"
+#include "barretenberg/polynomials/polynomial.hpp"
+#include "barretenberg/ecc/curves/bn254/fq12.hpp"
 using namespace barretenberg;
 
 TEST(honk_commitment_scheme, ipa_commit)

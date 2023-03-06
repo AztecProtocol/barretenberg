@@ -1,6 +1,6 @@
 #pragma once
 #include "../bitop/get_msb.hpp"
-#include <barretenberg/common/assert.hpp>
+#include "barretenberg/common/assert.hpp"
 
 namespace numeric {
 

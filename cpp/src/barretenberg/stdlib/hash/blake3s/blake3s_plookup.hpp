@@ -1,9 +1,9 @@
 #pragma once
 #include <array>
-#include <barretenberg/plonk/composer/plookup_tables/plookup_tables.hpp>
-#include <barretenberg/stdlib/primitives/uint/uint.hpp>
+#include "barretenberg/plonk/composer/plookup_tables/plookup_tables.hpp"
+#include "barretenberg/stdlib/primitives/uint/uint.hpp"
 
-#include <barretenberg/numeric/bitop/sparse_form.hpp>
+#include "barretenberg/numeric/bitop/sparse_form.hpp"
 
 #include "../../primitives/field/field.hpp"
 #include "../../primitives/composers/composers_fwd.hpp"

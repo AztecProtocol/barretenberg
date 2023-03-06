@@ -1,11 +1,11 @@
 #include "polynomial_arithmetic.hpp"
 #include "iterate_over_domain.hpp"
-#include <barretenberg/common/assert.hpp>
-#include <barretenberg/common/mem.hpp>
+#include "barretenberg/common/assert.hpp"
+#include "barretenberg/common/mem.hpp"
 #include <math.h>
 #include <memory.h>
-#include <barretenberg/numeric/bitop/get_msb.hpp>
-#include <barretenberg/common/max_threads.hpp>
+#include "barretenberg/numeric/bitop/get_msb.hpp"
+#include "barretenberg/common/max_threads.hpp"
 
 namespace barretenberg::polynomial_arithmetic {
 

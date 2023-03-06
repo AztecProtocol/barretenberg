@@ -1,8 +1,8 @@
 #pragma once
 
 #include "./transcript.hpp"
-#include <barretenberg/ecc/curves/bn254/fr.hpp>
-#include <barretenberg/ecc/curves/bn254/g1.hpp>
+#include "barretenberg/ecc/curves/bn254/fr.hpp"
+#include "barretenberg/ecc/curves/bn254/g1.hpp"
 #include <unordered_map>
 
 namespace transcript {

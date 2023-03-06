@@ -4,7 +4,7 @@
 #include "./value_note.hpp"
 #include "../../native/value/compute_nullifier.hpp"
 #include "../../native/value/value_note.hpp"
-#include <barretenberg/stdlib/types/types.hpp>
+#include "barretenberg/stdlib/types/types.hpp"
 
 using namespace join_split_example::proofs::notes;
 using namespace plonk::stdlib::types;

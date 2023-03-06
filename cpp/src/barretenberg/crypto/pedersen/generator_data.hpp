@@ -1,7 +1,7 @@
 #pragma once
 #include <array>
 #include <tuple>
-#include <barretenberg/ecc/curves/grumpkin/grumpkin.hpp>
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 
 namespace crypto {
 namespace pedersen {

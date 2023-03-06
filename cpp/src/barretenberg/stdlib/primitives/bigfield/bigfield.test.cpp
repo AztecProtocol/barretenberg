@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
-#include <barretenberg/numeric/random/engine.hpp>
+#include "barretenberg/numeric/random/engine.hpp"
 
-#include <barretenberg/ecc/curves/bn254/fq.hpp>
-#include <barretenberg/ecc/curves/bn254/fr.hpp>
+#include "barretenberg/ecc/curves/bn254/fq.hpp"
+#include "barretenberg/ecc/curves/bn254/fr.hpp"
 
 #include "../bool/bool.hpp"
 #include "../byte_array/byte_array.hpp"
@@ -12,13 +12,13 @@
 #include "barretenberg/honk/composer/standard_honk_composer.hpp"
 #include "barretenberg/honk/composer/standard_plonk_composer.hpp"
 
-#include <barretenberg/stdlib/primitives/curves/bn254.hpp>
-#include <barretenberg/plonk/proof_system/prover/prover.hpp>
-#include <barretenberg/plonk/proof_system/verifier/verifier.hpp>
+#include "barretenberg/stdlib/primitives/curves/bn254.hpp"
+#include "barretenberg/plonk/proof_system/prover/prover.hpp"
+#include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
 
 #include <memory>
 #include <utility>
-#include <barretenberg/polynomials/polynomial_arithmetic.hpp>
+#include "barretenberg/polynomials/polynomial_arithmetic.hpp"
 
 namespace test_stdlib_bigfield {
 using namespace barretenberg;

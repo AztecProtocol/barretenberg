@@ -1,5 +1,5 @@
 #pragma once
-#include <barretenberg/stdlib/primitives/byte_array/byte_array.hpp>
+#include "barretenberg/stdlib/primitives/byte_array/byte_array.hpp"
 
 namespace plonk {
 class TurboComposer;

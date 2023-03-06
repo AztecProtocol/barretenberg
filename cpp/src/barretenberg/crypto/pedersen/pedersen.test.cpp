@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <barretenberg/common/streams.hpp>
+#include "barretenberg/common/streams.hpp"
 #include "./pedersen.hpp"
 
 using namespace crypto::pedersen;

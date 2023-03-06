@@ -3,7 +3,7 @@
 #include "memory_store.hpp"
 #include "memory_tree.hpp"
 #include <gtest/gtest.h>
-#include <barretenberg/stdlib/types/types.hpp>
+#include "barretenberg/stdlib/types/types.hpp"
 
 using namespace barretenberg;
 using namespace plonk::stdlib::types;

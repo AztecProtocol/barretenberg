@@ -1,8 +1,8 @@
 #include "mem_reference_string.hpp"
 #include "../io.hpp"
 
-#include <barretenberg/common/streams.hpp>
-#include <barretenberg/ecc/curves/bn254/pairing.hpp>
+#include "barretenberg/common/streams.hpp"
+#include "barretenberg/ecc/curves/bn254/pairing.hpp"
 
 #include <sstream>
 

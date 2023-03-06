@@ -1,5 +1,5 @@
 #pragma once
-#include <barretenberg/crypto/pedersen/pedersen.hpp>
+#include "barretenberg/crypto/pedersen/pedersen.hpp"
 #include "../../constants.hpp"
 
 namespace join_split_example {

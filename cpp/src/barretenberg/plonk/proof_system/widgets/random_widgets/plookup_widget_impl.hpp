@@ -1,11 +1,11 @@
 #pragma once
 
-#include <barretenberg/proof_system/proving_key/proving_key.hpp>
-#include <barretenberg/transcript/transcript.hpp>
-#include <barretenberg/polynomials/iterate_over_domain.hpp>
-#include <barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp>
-#include <barretenberg/polynomials/polynomial_arithmetic.hpp>
-#include <barretenberg/common/mem.hpp>
+#include "barretenberg/proof_system/proving_key/proving_key.hpp"
+#include "barretenberg/transcript/transcript.hpp"
+#include "barretenberg/polynomials/iterate_over_domain.hpp"
+#include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
+#include "barretenberg/polynomials/polynomial_arithmetic.hpp"
+#include "barretenberg/common/mem.hpp"
 
 namespace plonk {
 

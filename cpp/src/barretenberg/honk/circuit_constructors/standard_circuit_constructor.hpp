@@ -1,7 +1,7 @@
 #pragma once
 #include "circuit_constructor_base.hpp"
-#include <barretenberg/plonk/proof_system/constants.hpp>
-#include <barretenberg/proof_system/flavor/flavor.hpp>
+#include "barretenberg/plonk/proof_system/constants.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 
 namespace bonk {
 enum StandardSelectors { QM, Q1, Q2, Q3, QC, NUM };

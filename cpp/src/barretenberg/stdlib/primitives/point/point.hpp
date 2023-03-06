@@ -1,6 +1,6 @@
 #pragma once
 
-#include <barretenberg/ecc/curves/grumpkin/grumpkin.hpp>
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 
 #include "../field/field.hpp"
 

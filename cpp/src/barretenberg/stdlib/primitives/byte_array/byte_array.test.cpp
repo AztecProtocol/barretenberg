@@ -1,8 +1,8 @@
 #include "byte_array.hpp"
 #include <gtest/gtest.h>
-#include <barretenberg/honk/composer/standard_honk_composer.hpp>
-#include <barretenberg/plonk/composer/turbo_composer.hpp>
-#include <barretenberg/plonk/composer/ultra_composer.hpp>
+#include "barretenberg/honk/composer/standard_honk_composer.hpp"
+#include "barretenberg/plonk/composer/turbo_composer.hpp"
+#include "barretenberg/plonk/composer/ultra_composer.hpp"
 
 // ULTRATODO: make these typed tests
 namespace test_stdlib_byte_array {

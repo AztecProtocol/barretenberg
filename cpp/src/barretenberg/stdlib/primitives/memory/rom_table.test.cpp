@@ -2,9 +2,9 @@
 
 #include <gtest/gtest.h>
 
-#include <barretenberg/numeric/random/engine.hpp>
+#include "barretenberg/numeric/random/engine.hpp"
 
-#include <barretenberg/plonk/composer/ultra_composer.hpp>
+#include "barretenberg/plonk/composer/ultra_composer.hpp"
 
 namespace test_stdlib_rom_array {
 using namespace barretenberg;

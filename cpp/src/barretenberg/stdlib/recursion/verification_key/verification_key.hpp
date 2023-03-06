@@ -1,19 +1,19 @@
 #pragma once
 #include <map>
-#include <barretenberg/srs/reference_string/reference_string.hpp>
-#include <barretenberg/polynomials/evaluation_domain.hpp>
+#include "barretenberg/srs/reference_string/reference_string.hpp"
+#include "barretenberg/polynomials/evaluation_domain.hpp"
 
-#include <barretenberg/proof_system/types/polynomial_manifest.hpp>
+#include "barretenberg/proof_system/types/polynomial_manifest.hpp"
 
-#include <barretenberg/plonk/proof_system/utils/kate_verification.hpp>
-#include <barretenberg/plonk/proof_system/public_inputs/public_inputs.hpp>
+#include "barretenberg/plonk/proof_system/utils/kate_verification.hpp"
+#include "barretenberg/plonk/proof_system/public_inputs/public_inputs.hpp"
 
-#include <barretenberg/polynomials/polynomial_arithmetic.hpp>
+#include "barretenberg/polynomials/polynomial_arithmetic.hpp"
 
-#include <barretenberg/ecc/curves/bn254/fq12.hpp>
-#include <barretenberg/ecc/curves/bn254/pairing.hpp>
-#include <barretenberg/crypto/pedersen/pedersen.hpp>
-#include <barretenberg/crypto/pedersen/pedersen_lookup.hpp>
+#include "barretenberg/ecc/curves/bn254/fq12.hpp"
+#include "barretenberg/ecc/curves/bn254/pairing.hpp"
+#include "barretenberg/crypto/pedersen/pedersen.hpp"
+#include "barretenberg/crypto/pedersen/pedersen_lookup.hpp"
 
 #include "../../primitives/uint/uint.hpp"
 #include "../../primitives/memory/rom_table.hpp"

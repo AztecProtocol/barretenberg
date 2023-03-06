@@ -1,7 +1,7 @@
 #pragma once
 #include <numeric>
-#include <barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp>
-#include <barretenberg/stdlib/primitives/curves/bn254.hpp>
+#include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
+#include "barretenberg/stdlib/primitives/curves/bn254.hpp"
 
 // Suggested by Zac: Future optimisations
 // 1: write a program that generates a large set of generator points (2^23?) and writes to a file on disk

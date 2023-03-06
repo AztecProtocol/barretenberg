@@ -2,7 +2,7 @@
 #include <functional>
 #include "../bool/bool.hpp"
 #include "../composers/composers.hpp"
-#include <barretenberg/ecc/curves/grumpkin/grumpkin.hpp>
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 
 using namespace bonk;
 

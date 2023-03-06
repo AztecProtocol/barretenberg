@@ -1,13 +1,13 @@
 #include "relation.hpp"
-#include <barretenberg/proof_system/flavor/flavor.hpp>
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "arithmetic_relation.hpp"
 #include "grand_product_initialization_relation.hpp"
 #include "grand_product_computation_relation.hpp"
 #include "../polynomials/univariate.hpp"
 #include "../polynomials/barycentric_data.hpp"
 
-#include <barretenberg/ecc/curves/bn254/fr.hpp>
-#include <barretenberg/numeric/random/engine.hpp>
+#include "barretenberg/ecc/curves/bn254/fr.hpp"
+#include "barretenberg/numeric/random/engine.hpp"
 
 #include <gtest/gtest.h>
 using namespace honk::sumcheck;

@@ -5,7 +5,7 @@
 #include <array>
 #include <iomanip>
 #include <ostream>
-#include <barretenberg/ecc/curves/bn254/fr.hpp>
+#include "barretenberg/ecc/curves/bn254/fr.hpp"
 
 namespace sha256 {
 

@@ -1,13 +1,13 @@
 #include "sha256.hpp"
-#include <barretenberg/common/test.hpp>
-#include <barretenberg/crypto/sha256/sha256.hpp>
-#include <barretenberg/plonk/composer/standard_composer.hpp>
-#include <barretenberg/plonk/composer/plookup_tables/plookup_tables.hpp>
-#include <barretenberg/stdlib/types/types.hpp>
+#include "barretenberg/common/test.hpp"
+#include "barretenberg/crypto/sha256/sha256.hpp"
+#include "barretenberg/plonk/composer/standard_composer.hpp"
+#include "barretenberg/plonk/composer/plookup_tables/plookup_tables.hpp"
+#include "barretenberg/stdlib/types/types.hpp"
 
-#include <barretenberg/numeric/random/engine.hpp>
-#include <barretenberg/numeric/bitop/rotate.hpp>
-#include <barretenberg/numeric/bitop/sparse_form.hpp>
+#include "barretenberg/numeric/random/engine.hpp"
+#include "barretenberg/numeric/bitop/rotate.hpp"
+#include "barretenberg/numeric/bitop/sparse_form.hpp"
 
 namespace {
 auto& engine = numeric::random::get_debug_engine();

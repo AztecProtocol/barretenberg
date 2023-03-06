@@ -1,8 +1,8 @@
 #include "barycentric_data.hpp"
-#include <barretenberg/ecc/curves/bn254/fr.hpp>
+#include "barretenberg/ecc/curves/bn254/fr.hpp"
 
 #include <gtest/gtest.h>
-#include <barretenberg/numeric/random/engine.hpp>
+#include "barretenberg/numeric/random/engine.hpp"
 
 using namespace honk::sumcheck;
 namespace test_sumcheck_polynomials {

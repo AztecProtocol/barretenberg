@@ -3,11 +3,11 @@
 #include "index.hpp"
 #include "../notes/native/index.hpp"
 #include "join_split_circuit.hpp"
-#include <barretenberg/common/streams.hpp>
-#include <barretenberg/common/test.hpp>
+#include "barretenberg/common/streams.hpp"
+#include "barretenberg/common/test.hpp"
 #include <gtest/gtest.h>
-#include <barretenberg/proof_system/proving_key/serialize.hpp>
-#include <barretenberg/stdlib/merkle_tree/index.hpp>
+#include "barretenberg/proof_system/proving_key/serialize.hpp"
+#include "barretenberg/stdlib/merkle_tree/index.hpp"
 
 namespace join_split_example::proofs::join_split {
 

@@ -1,10 +1,10 @@
 #pragma once
-#include <barretenberg/common/net.hpp>
-#include <barretenberg/crypto/blake2s/blake2s.hpp>
-#include <barretenberg/crypto/pedersen/pedersen.hpp>
-#include <barretenberg/stdlib/hash/blake2s/blake2s.hpp>
-#include <barretenberg/stdlib/hash/pedersen/pedersen.hpp>
-#include <barretenberg/stdlib/primitives/field/field.hpp>
+#include "barretenberg/common/net.hpp"
+#include "barretenberg/crypto/blake2s/blake2s.hpp"
+#include "barretenberg/crypto/pedersen/pedersen.hpp"
+#include "barretenberg/stdlib/hash/blake2s/blake2s.hpp"
+#include "barretenberg/stdlib/hash/pedersen/pedersen.hpp"
+#include "barretenberg/stdlib/primitives/field/field.hpp"
 #include <vector>
 
 namespace plonk {

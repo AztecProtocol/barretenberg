@@ -1,6 +1,6 @@
 #include "engine.hpp"
 #include <array>
-#include <barretenberg/common/assert.hpp>
+#include "barretenberg/common/assert.hpp"
 #include <functional>
 #include <random>
 

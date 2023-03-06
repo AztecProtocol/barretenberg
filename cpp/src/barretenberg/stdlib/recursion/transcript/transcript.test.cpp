@@ -1,10 +1,10 @@
 #include "transcript.hpp"
 #include <gtest/gtest.h>
 
-#include <barretenberg/ecc/curves/bn254/fr.hpp>
-#include <barretenberg/ecc/curves/bn254/g1.hpp>
+#include "barretenberg/ecc/curves/bn254/fr.hpp"
+#include "barretenberg/ecc/curves/bn254/g1.hpp"
 
-#include <barretenberg/transcript/transcript.hpp>
+#include "barretenberg/transcript/transcript.hpp"
 
 using namespace plonk;
 

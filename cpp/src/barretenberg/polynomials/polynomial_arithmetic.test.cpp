@@ -1,6 +1,6 @@
 #include "polynomial_arithmetic.hpp"
 #include <algorithm>
-#include <barretenberg/common/mem.hpp>
+#include "barretenberg/common/mem.hpp"
 #include <cstddef>
 #include <gtest/gtest.h>
 #include <utility>

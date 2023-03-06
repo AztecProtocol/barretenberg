@@ -1,5 +1,5 @@
 #pragma once
-#include <barretenberg/ecc/curves/types.hpp>
+#include "barretenberg/ecc/curves/types.hpp"
 #include "../bigfield/bigfield.hpp"
 #include "../biggroup/biggroup.hpp"
 #include "../field/field.hpp"

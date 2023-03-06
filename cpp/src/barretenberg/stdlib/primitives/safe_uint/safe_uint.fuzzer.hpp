@@ -1,7 +1,7 @@
-#include <barretenberg/numeric/uint256/uint256.hpp>
-#include <barretenberg/numeric/random/engine.hpp>
-#include <barretenberg/stdlib/primitives/safe_uint/safe_uint.hpp>
-#include <barretenberg/ecc/curves/grumpkin/grumpkin.hpp>
+#include "barretenberg/numeric/uint256/uint256.hpp"
+#include "barretenberg/numeric/random/engine.hpp"
+#include "barretenberg/stdlib/primitives/safe_uint/safe_uint.hpp"
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 
 // This is a global variable, so that the execution handling class could alter it and signal to the input tester that
 // the input should fail
@@ -9,7 +9,7 @@ bool circuit_should_fail = false;
 
 #define HAVOC_TESTING
 
-#include <barretenberg/common/fuzzer.hpp>
+#include "barretenberg/common/fuzzer.hpp"
 FastRandom VarianceRNG(0);
 
 // Enable this definition, when you want to find out the instructions that caused a failure

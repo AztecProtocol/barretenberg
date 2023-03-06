@@ -1,5 +1,5 @@
 #include "prover.hpp"
-#include <barretenberg/env/data_store.hpp>
+#include "barretenberg/env/data_store.hpp"
 
 #define WASM_EXPORT __attribute__((visibility("default")))
 

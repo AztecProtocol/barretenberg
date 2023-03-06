@@ -1,6 +1,6 @@
 #pragma once
-#include <barretenberg/plonk/composer/composer_base.hpp>
-#include <barretenberg/ecc/curves/bn254/fr.hpp>
+#include "barretenberg/plonk/composer/composer_base.hpp"
+#include "barretenberg/ecc/curves/bn254/fr.hpp"
 
 namespace plonk {
 namespace stdlib {

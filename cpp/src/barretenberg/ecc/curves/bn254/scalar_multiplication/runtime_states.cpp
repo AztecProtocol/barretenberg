@@ -1,8 +1,8 @@
 #include "runtime_states.hpp"
 
-#include <barretenberg/common/mem.hpp>
-#include <barretenberg/common/max_threads.hpp>
-#include <barretenberg/numeric/bitop/get_msb.hpp>
+#include "barretenberg/common/mem.hpp"
+#include "barretenberg/common/max_threads.hpp"
+#include "barretenberg/numeric/bitop/get_msb.hpp"
 
 #ifndef NO_MULTITHREADING
 #include <omp.h>

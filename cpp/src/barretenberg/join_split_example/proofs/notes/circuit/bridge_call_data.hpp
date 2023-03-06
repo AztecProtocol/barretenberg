@@ -1,5 +1,5 @@
 #pragma once
-#include <barretenberg/stdlib/types/types.hpp>
+#include "barretenberg/stdlib/types/types.hpp"
 #include "../native/bridge_call_data.hpp"
 #include "./asset_id.hpp"
 #include "../constants.hpp"

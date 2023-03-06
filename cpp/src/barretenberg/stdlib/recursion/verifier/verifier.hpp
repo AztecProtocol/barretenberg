@@ -7,13 +7,13 @@
 
 #include "../transcript/transcript.hpp"
 
-#include <barretenberg/plonk/proof_system/utils/kate_verification.hpp>
-#include <barretenberg/plonk/proof_system/public_inputs/public_inputs.hpp>
+#include "barretenberg/plonk/proof_system/utils/kate_verification.hpp"
+#include "barretenberg/plonk/proof_system/public_inputs/public_inputs.hpp"
 
-#include <barretenberg/polynomials/polynomial_arithmetic.hpp>
+#include "barretenberg/polynomials/polynomial_arithmetic.hpp"
 
-#include <barretenberg/ecc/curves/bn254/fq12.hpp>
-#include <barretenberg/ecc/curves/bn254/pairing.hpp>
+#include "barretenberg/ecc/curves/bn254/fq12.hpp"
+#include "barretenberg/ecc/curves/bn254/pairing.hpp"
 
 namespace plonk {
 namespace stdlib {

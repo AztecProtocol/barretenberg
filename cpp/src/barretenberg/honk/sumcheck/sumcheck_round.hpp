@@ -1,5 +1,5 @@
 #pragma once
-#include <barretenberg/common/log.hpp>
+#include "barretenberg/common/log.hpp"
 #include <array>
 #include <algorithm>
 #include <tuple>

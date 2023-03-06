@@ -1,7 +1,7 @@
 #include "bit_array.hpp"
 #include <gtest/gtest.h>
-#include <barretenberg/numeric/random/engine.hpp>
-#include <barretenberg/honk/composer/standard_honk_composer.hpp>
+#include "barretenberg/numeric/random/engine.hpp"
+#include "barretenberg/honk/composer/standard_honk_composer.hpp"
 // #include <plonk/composer/standard_composer.hpp>
 
 namespace test_stdlib_bit_array {

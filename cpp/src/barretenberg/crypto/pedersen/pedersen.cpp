@@ -1,6 +1,6 @@
 #include "./pedersen.hpp"
 #include "./convert_buffer_to_field.hpp"
-#include <barretenberg/common/throw_or_abort.hpp>
+#include "barretenberg/common/throw_or_abort.hpp"
 #include <iostream>
 #ifndef NO_MULTITHREADING
 #include <omp.h>

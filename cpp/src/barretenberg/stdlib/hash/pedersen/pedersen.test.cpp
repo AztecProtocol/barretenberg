@@ -1,11 +1,11 @@
 #include "pedersen.hpp"
 #include "pedersen_plookup.hpp"
-#include <barretenberg/crypto/pedersen/pedersen.hpp>
-#include <barretenberg/crypto/pedersen/pedersen_lookup.hpp>
-#include <barretenberg/ecc/curves/grumpkin/grumpkin.hpp>
-#include <barretenberg/numeric/random/engine.hpp>
-#include <barretenberg/common/test.hpp>
-#include <barretenberg/stdlib/primitives/curves/bn254.hpp>
+#include "barretenberg/crypto/pedersen/pedersen.hpp"
+#include "barretenberg/crypto/pedersen/pedersen_lookup.hpp"
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
+#include "barretenberg/numeric/random/engine.hpp"
+#include "barretenberg/common/test.hpp"
+#include "barretenberg/stdlib/primitives/curves/bn254.hpp"
 
 namespace test_stdlib_pedersen {
 using namespace barretenberg;

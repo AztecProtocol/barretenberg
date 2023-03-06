@@ -2,11 +2,11 @@
 
 #include "join_split.hpp"
 
-#include <barretenberg/common/streams.hpp>
-#include <barretenberg/crypto/schnorr/schnorr.hpp>
-#include <barretenberg/numeric/random/engine.hpp>
-#include <barretenberg/srs/reference_string/pippenger_reference_string.hpp>
-#include <barretenberg/srs/io.hpp>
+#include "barretenberg/common/streams.hpp"
+#include "barretenberg/crypto/schnorr/schnorr.hpp"
+#include "barretenberg/numeric/random/engine.hpp"
+#include "barretenberg/srs/reference_string/pippenger_reference_string.hpp"
+#include "barretenberg/srs/io.hpp"
 
 #include <fstream>
 #include <gtest/gtest.h>

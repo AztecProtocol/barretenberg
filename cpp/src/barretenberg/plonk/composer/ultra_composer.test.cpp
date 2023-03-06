@@ -1,9 +1,9 @@
-#include <barretenberg/stdlib/primitives/plookup/plookup.hpp>
+#include "barretenberg/stdlib/primitives/plookup/plookup.hpp"
 #include "ultra_composer.hpp"
-#include <barretenberg/crypto/pedersen/pedersen.hpp>
+#include "barretenberg/crypto/pedersen/pedersen.hpp"
 #include <gtest/gtest.h>
-#include <barretenberg/numeric/bitop/get_msb.hpp>
-#include <barretenberg/numeric/uintx/uintx.hpp>
+#include "barretenberg/numeric/bitop/get_msb.hpp"
+#include "barretenberg/numeric/uintx/uintx.hpp"
 #include "../proof_system/widgets/random_widgets/plookup_widget.hpp"
 #include "./plookup_tables/sha256.hpp"
 

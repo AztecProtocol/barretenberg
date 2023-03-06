@@ -1,10 +1,10 @@
 #include "blake2s.hpp"
 #include "blake2s_plookup.hpp"
 #include "blake_util.hpp"
-#include <barretenberg/plonk/composer/standard_composer.hpp>
-#include <barretenberg/plonk/composer/turbo_composer.hpp>
-#include <barretenberg/plonk/composer/ultra_composer.hpp>
-#include <barretenberg/stdlib/primitives/uint/uint.hpp>
+#include "barretenberg/plonk/composer/standard_composer.hpp"
+#include "barretenberg/plonk/composer/turbo_composer.hpp"
+#include "barretenberg/plonk/composer/ultra_composer.hpp"
+#include "barretenberg/stdlib/primitives/uint/uint.hpp"
 
 namespace plonk {
 namespace stdlib {

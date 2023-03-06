@@ -1,8 +1,8 @@
 #include "schnorr.hpp"
 #include <array>
-#include <barretenberg/crypto/pedersen/pedersen.hpp>
-#include <barretenberg/ecc/curves/grumpkin/grumpkin.hpp>
-#include <barretenberg/stdlib/hash/blake2s/blake2s.hpp>
+#include "barretenberg/crypto/pedersen/pedersen.hpp"
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
+#include "barretenberg/stdlib/hash/blake2s/blake2s.hpp"
 
 #include "../../primitives/composers/composers.hpp"
 

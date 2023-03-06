@@ -1,12 +1,12 @@
 #include "sha256_plookup.hpp"
 
-#include <barretenberg/plonk/composer/plookup_tables/plookup_tables.hpp>
-#include <barretenberg/plonk/composer/plookup_tables/sha256.hpp>
-#include <barretenberg/plonk/composer/ultra_composer.hpp>
-#include <barretenberg/stdlib/primitives/bit_array/bit_array.hpp>
-#include <barretenberg/stdlib/primitives/field/field.hpp>
-#include <barretenberg/stdlib/primitives/uint/uint.hpp>
-#include <barretenberg/stdlib/primitives/plookup/plookup.hpp>
+#include "barretenberg/plonk/composer/plookup_tables/plookup_tables.hpp"
+#include "barretenberg/plonk/composer/plookup_tables/sha256.hpp"
+#include "barretenberg/plonk/composer/ultra_composer.hpp"
+#include "barretenberg/stdlib/primitives/bit_array/bit_array.hpp"
+#include "barretenberg/stdlib/primitives/field/field.hpp"
+#include "barretenberg/stdlib/primitives/uint/uint.hpp"
+#include "barretenberg/stdlib/primitives/plookup/plookup.hpp"
 
 using namespace barretenberg;
 

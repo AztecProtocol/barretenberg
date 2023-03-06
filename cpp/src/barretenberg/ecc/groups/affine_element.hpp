@@ -1,8 +1,8 @@
 #pragma once
-#include <barretenberg/numeric/uint256/uint256.hpp>
+#include "barretenberg/numeric/uint256/uint256.hpp"
 #include <vector>
 #include <type_traits>
-#include <barretenberg/ecc/curves/bn254/fq2.hpp>
+#include "barretenberg/ecc/curves/bn254/fq2.hpp"
 
 namespace barretenberg {
 namespace group_elements {

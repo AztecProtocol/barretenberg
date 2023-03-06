@@ -1,6 +1,6 @@
 #pragma once
 
-#include <barretenberg/numeric/bitop/rotate.hpp>
+#include "barretenberg/numeric/bitop/rotate.hpp"
 
 #include "types.hpp"
 #include "sparse.hpp"

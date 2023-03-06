@@ -1,6 +1,6 @@
 #include "compute_signing_data.hpp"
 #include "../notes/native/index.hpp"
-#include <barretenberg/crypto/pedersen/pedersen.hpp>
+#include "barretenberg/crypto/pedersen/pedersen.hpp"
 
 namespace join_split_example {
 namespace proofs {

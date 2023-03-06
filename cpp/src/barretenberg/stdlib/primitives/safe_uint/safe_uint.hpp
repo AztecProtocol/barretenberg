@@ -3,7 +3,7 @@
 #include "../composers/composers_fwd.hpp"
 #include "../witness/witness.hpp"
 #include "../bool/bool.hpp"
-#include <barretenberg/common/assert.hpp>
+#include "barretenberg/common/assert.hpp"
 #include "../field/field.hpp"
 #include "barretenberg/honk/composer/standard_honk_composer.hpp"
 

@@ -1,13 +1,13 @@
 #include "pippenger.hpp"
 #include "scalar_multiplication.hpp"
 #include <chrono>
-#include <barretenberg/common/test.hpp>
-#include <barretenberg/srs/io.hpp>
+#include "barretenberg/common/test.hpp"
+#include "barretenberg/srs/io.hpp"
 #include <vector>
 
-#include <barretenberg/numeric/random/engine.hpp>
+#include "barretenberg/numeric/random/engine.hpp"
 
-#include <barretenberg/common/mem.hpp>
+#include "barretenberg/common/mem.hpp"
 
 #define BARRETENBERG_SRS_PATH "../srs_db/ignition"
 

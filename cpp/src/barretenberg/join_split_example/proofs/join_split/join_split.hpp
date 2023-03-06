@@ -1,7 +1,7 @@
 #pragma once
 #include "join_split_tx.hpp"
-#include <barretenberg/srs/reference_string/mem_reference_string.hpp>
-#include <barretenberg/stdlib/types/types.hpp>
+#include "barretenberg/srs/reference_string/mem_reference_string.hpp"
+#include "barretenberg/stdlib/types/types.hpp"
 
 namespace join_split_example {
 namespace proofs {

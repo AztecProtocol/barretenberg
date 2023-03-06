@@ -1,8 +1,8 @@
 #pragma once
 #include <array>
 #include <string>
-#include <barretenberg/common/log.hpp>
-#include <barretenberg/transcript/manifest.hpp>
+#include "barretenberg/common/log.hpp"
+#include "barretenberg/transcript/manifest.hpp"
 
 #define STANDARD_HONK_WIDTH 3
 // TODO(Cody): "bonk" is short for "both plonk and honk". Just need a short and non-vague temporary name.

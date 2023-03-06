@@ -1,8 +1,8 @@
 #pragma once
 #include "./mock/mock_circuit.hpp"
-#include <barretenberg/ecc/curves/bn254/fq12.hpp>
-#include <barretenberg/ecc/curves/bn254/pairing.hpp>
-#include <barretenberg/stdlib/recursion/verifier/verifier.hpp>
+#include "barretenberg/ecc/curves/bn254/fq12.hpp"
+#include "barretenberg/ecc/curves/bn254/pairing.hpp"
+#include "barretenberg/stdlib/recursion/verifier/verifier.hpp"
 
 namespace join_split_example {
 namespace proofs {

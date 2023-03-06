@@ -1,5 +1,5 @@
 #include "polynomial_store.hpp"
-#include <barretenberg/env/data_store.hpp>
+#include "barretenberg/env/data_store.hpp"
 
 namespace bonk {
 

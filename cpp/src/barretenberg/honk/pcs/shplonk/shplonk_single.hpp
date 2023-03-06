@@ -1,7 +1,7 @@
 #pragma once
-#include <barretenberg/honk/pcs/claim.hpp>
+#include "barretenberg/honk/pcs/claim.hpp"
 #include "shplonk.hpp"
-#include <barretenberg/honk/pcs/commitment_key.hpp>
+#include "barretenberg/honk/pcs/commitment_key.hpp"
 
 namespace honk::pcs::shplonk {
 

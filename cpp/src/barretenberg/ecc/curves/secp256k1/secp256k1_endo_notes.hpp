@@ -1,6 +1,6 @@
 #pragma once
 
-#include <barretenberg/numeric/uintx/uintx.hpp>
+#include "barretenberg/numeric/uintx/uintx.hpp"
 #include "secp256k1.hpp"
 
 namespace secp256k1_params {

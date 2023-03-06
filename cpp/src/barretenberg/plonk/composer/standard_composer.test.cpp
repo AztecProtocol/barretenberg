@@ -1,8 +1,8 @@
 #include "standard_composer.hpp"
 #include <gtest/gtest.h>
-#include <barretenberg/crypto/pedersen/pedersen.hpp>
-#include <barretenberg/crypto/pedersen/generator_data.hpp>
-#include <barretenberg/proof_system/proving_key/serialize.hpp>
+#include "barretenberg/crypto/pedersen/pedersen.hpp"
+#include "barretenberg/crypto/pedersen/generator_data.hpp"
+#include "barretenberg/proof_system/proving_key/serialize.hpp"
 
 using namespace barretenberg;
 using namespace bonk;

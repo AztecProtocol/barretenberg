@@ -2,13 +2,13 @@
 #include <cstddef>
 #include <gtest/gtest.h>
 #include "safe_uint.hpp"
-#include <barretenberg/numeric/random/engine.hpp>
+#include "barretenberg/numeric/random/engine.hpp"
 #include "../byte_array/byte_array.hpp"
-#include <barretenberg/honk/composer/standard_honk_composer.hpp>
+#include "barretenberg/honk/composer/standard_honk_composer.hpp"
 // #include <plonk/composer/standard_composer.hpp>
 // #include <plonk/composer/ultra_composer.hpp>
 // #include <plonk/composer/turbo_composer.hpp>
-#include <barretenberg/stdlib/types/types.hpp>
+#include "barretenberg/stdlib/types/types.hpp"
 
 namespace {
 auto& engine = numeric::random::get_debug_engine();
