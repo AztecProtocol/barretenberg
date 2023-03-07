@@ -2,12 +2,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 # Enable the following warnings project wide.
-# If any compilation issues arise in the future, they should not be silenced here but rather in the 
+# If any compilation issues arise in the future, they should not be silenced here but rather in the
 # module's own CMakeLists.txt by adding conditional compilation flags like the following
 # ```
-#   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-#     target_compile_options(crypto_blake3s_full_objects PRIVATE -Wno-error=shorten-64-to-32)
-#   endif()
+# if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+# target_compile_options(crypto_blake3s_full_objects PRIVATE -Wno-error=shorten-64-to-32)
+# endif()
 # ```
 # Specifying `-Wno-${ERROR_NAME}` will silence the error completely.
 # To preserve the warning, but prevent them from causing the build to fail,
@@ -16,6 +16,7 @@ add_compile_options(-Werror -Wall -Wextra -Wconversion -Wsign-conversion -Wfatal
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-fconstexpr-steps=100000000)
+
     if(MEMORY_CHECKS)
         message(STATUS "Compiling with memory checks.")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
@@ -37,6 +38,7 @@ else()
     message(STATUS "Using optimized assembly for field arithmetic.")
 endif()
 
+add_subdirectory(common)
 add_subdirectory(env)
 add_subdirectory(numeric)
 add_subdirectory(srs)
@@ -49,11 +51,12 @@ add_subdirectory(honk)
 add_subdirectory(plonk)
 add_subdirectory(stdlib)
 add_subdirectory(join_split_example)
-add_subdirectory(lagrange_base_gen)
 
 if(BENCHMARKS)
     add_subdirectory(benchmark)
 endif()
+
+include(GNUInstallDirs)
 
 if(WASM)
     # Well, this is awkward. We can't build a wasm module by just linking to the libraries as that produces, nothing.
@@ -94,6 +97,7 @@ if(WASM)
     )
 
     find_program(WASM_OPT wasm-opt)
+
     if(NOT WASM_OPT)
         message(FATAL_ERROR "wasm-opt executable not found. Please install binaryen.")
     endif()
@@ -104,6 +108,10 @@ if(WASM)
         COMMAND wasm-opt "$<TARGET_FILE:barretenberg.wasm>" -O2 --asyncify -o "$<TARGET_FILE:barretenberg.wasm>"
         VERBATIM
     )
+
+    if(INSTALL_BARRETENBERG)
+        install(TARGETS barretenberg.wasm DESTINATION ${CMAKE_INSTALL_BINDIR})
+    endif()
 
     # For use when compiling dependent cpp projects for WASM
     message(STATUS "Compiling all-in-one barretenberg WASM archive")
@@ -131,7 +139,6 @@ if(WASM)
         $<TARGET_OBJECTS:stdlib_aes128_objects>
         $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
     )
-
 else()
     # For use when compiling dependent cpp projects
     message(STATUS "Compiling all-in-one barretenberg archive")
@@ -160,4 +167,33 @@ else()
         $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
         $<TARGET_OBJECTS:env_objects>
     )
+
+    if(INSTALL_BARRETENBERG)
+        # The `install` function takes targets to install in different destinations on the system.
+        install(
+            TARGETS barretenberg barretenberg_headers
+            # We also give it an optional export name in case something wants to target the install.
+            EXPORT barretenbergTargets
+            # The ARCHIVE output signifies static libraries that should be installed
+            # and we use the GNUInstallDirs location to install into the standard system library location
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            # The FILE_SET output is used instead of PUBLIC_HEADER & PRIVATE_HEADER outputs because
+            # our headers don't have a clear delineation between public & private, but we still use
+            # the GNUInstallDirs location to install into the standard system header location
+            FILE_SET HEADERS DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        )
+
+        set(pkg_config "${PROJECT_BINARY_DIR}/barretenberg.pc")
+
+        configure_file(
+            "${PROJECT_SOURCE_DIR}/cmake/barretenberg.pc.in"
+            "${pkg_config}"
+            @ONLY
+        )
+
+        install(
+            FILES "${pkg_config}"
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
+        )
+    endif()
 endif()

@@ -19,7 +19,8 @@ struct proving_key_data {
     uint32_t num_public_inputs;
     bool contains_recursive_proof;
     std::vector<uint32_t> recursive_proof_public_input_indices;
-    std::vector<uint32_t> memory_records;
+    std::vector<uint32_t> memory_read_records;
+    std::vector<uint32_t> memory_write_records;
     PolynomialCache polynomial_cache;
 };
 
@@ -48,7 +49,9 @@ struct proving_key {
     size_t num_public_inputs;
     bool contains_recursive_proof = false;
     std::vector<uint32_t> recursive_proof_public_input_indices;
-    std::vector<uint32_t> memory_records; // Used by UltraComposer only; for ROM.
+    std::vector<uint32_t> memory_read_records;  // Used by UltraComposer only; for ROM, RAM reads.
+    std::vector<uint32_t> memory_write_records; // Used by UltraComposer only, for RAM writes.
+
     // Note: low-memory prover functionality can be achieved by uncommenting the lines below
     // which allow the polynomial cache to write polynomials to file as necessary. Similar
     // lines must also be uncommented in constructor.
@@ -60,9 +63,8 @@ struct proving_key {
     barretenberg::evaluation_domain small_domain;
     barretenberg::evaluation_domain large_domain;
 
-    // The reference_string object contains monomial as well as lagrange SRS. We can access them using:
+    // The reference_string object contains the monomial SRS. We can access it using:
     // Monomial SRS: reference_string->get_monomial_points()
-    // Lagrange SRS: reference_string->get_lagrange_points()
     std::shared_ptr<ProverReferenceString> reference_string;
 
     barretenberg::polynomial quotient_polynomial_parts[plonk::NUM_QUOTIENT_PARTS];
