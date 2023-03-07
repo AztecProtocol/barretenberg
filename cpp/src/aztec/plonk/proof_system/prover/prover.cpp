@@ -300,21 +300,16 @@ template <typename settings> void ProverBase<settings>::execute_second_round()
                 fr::random_element();
         }
 
-        // convert w_4 to the coefficient form.
-        queue.add_to_queue({
-            .work_type = work_queue::WorkType::IFFT,
-            .mul_scalars = nullptr,
-            .tag = wire_tag,
-            .constant = 0,
-            .index = 0,
-        });
-
-        barretenberg::polynomial& w_4_monomial(key->polynomial_cache.get(wire_tag));
+        // compute poly w_4 from w_4_lagrange and add it to the cache
+        barretenberg::polynomial w_4(key->circuit_size);
+        barretenberg::polynomial_arithmetic::copy_polynomial(&w_4_lagrange[0], &w_4[0], circuit_size, circuit_size);
+        w_4.ifft(key->small_domain);
+        key->polynomial_cache.put(wire_tag, std::move(w_4));
 
         // commit to w_4 using the monomial srs.
         queue.add_to_queue({
             .work_type = work_queue::WorkType::SCALAR_MULTIPLICATION,
-            .mul_scalars = w_4_monomial.get_coefficients(),
+            .mul_scalars = key->polynomial_cache.get(wire_tag).get_coefficients(),
             .tag = "W_4",
             .constant = work_queue::MSMType::MONOMIAL_N_PLUS_ONE,
             .index = 0,
