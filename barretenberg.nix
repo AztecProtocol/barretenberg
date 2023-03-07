@@ -1,11 +1,11 @@
 { llvmPackages, cmake, lib, callPackage, binaryen }:
 let
-  stdenv = llvmPackages.stdenv;
+  libcxxStdenv = llvmPackages.libcxxStdenv;
   optionals = lib.lists.optionals;
-  targetPlatform = stdenv.targetPlatform;
+  targetPlatform = libcxxStdenv.targetPlatform;
   toolchain_file = ./cpp/cmake/toolchains/${targetPlatform.system}.cmake;
 in
-stdenv.mkDerivation
+libcxxStdenv.mkDerivation
 {
   pname = "libbarretenberg";
   version = "0.1.0";
