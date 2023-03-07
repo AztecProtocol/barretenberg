@@ -11,7 +11,9 @@ namespace stdlib {
  *
  * @details Dynamic arrays require a maximum size when created, that cannot be exceeded.
  *          Read and write operations cost 3.25 UltraPlonk gates.
- *          Each dynamic array requires an additional 3.25 * maximum_size number of gates
+ *          Each dynamic array requires an additional 3.25 * maximum_size number of gates.
+ *          If the dynamic array also requires a unique range constraint table due to its length (e.g. not a power of
+ * 2), this will add an additional (maximum_size / 6) gates.
  *
  * @tparam Composer
  * @param composer
