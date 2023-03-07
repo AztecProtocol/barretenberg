@@ -428,7 +428,7 @@ template <typename settings> void ProverBase<settings>::execute_fourth_round()
 #endif
 
     // The parts of the quotient polynomial t(X) are stored as 4 separate polynomials in
-    // the code. However, operations such as dividing by the psuedo vanishing polynomial
+    // the code. However, operations such as dividing by the pseudo vanishing polynomial
     // as well as iFFT (coset) are to be performed on the polynomial t(X) as a whole.
     // We avoid redundant copy of the parts t_1, t_2, t_3, t_4 and instead just tweak the
     // relevant functions to work on quotient polynomial parts.
