@@ -29,7 +29,7 @@ template <typename settings> class Prover {
 
   public:
     Prover(std::vector<barretenberg::polynomial>&& wire_polys,
-           std::shared_ptr<bonk::proving_key> input_key = nullptr,
+           const std::shared_ptr<bonk::proving_key>& input_key = nullptr,
            const transcript::Manifest& manifest = transcript::Manifest());
 
     void execute_preamble_round();
@@ -58,15 +58,13 @@ template <typename settings> class Prover {
 
     std::shared_ptr<bonk::proving_key> key;
 
-    std::shared_ptr<pcs::kzg::CommitmentKey> commitment_key;
-
     // Container for spans of all polynomials required by the prover (i.e. all multivariates evaluated by Sumcheck).
     std::array<std::span<Fr>, bonk::StandardArithmetization::POLYNOMIAL::COUNT> prover_polynomials;
 
     // Honk only needs a small portion of the functionality but may be fine to use existing work_queue
     // NOTE: this is not currently in use, but it may well be used in the future.
     // TODO(Adrian): Uncomment when we need this again.
-    // bonk::work_queue queue;
+    work_queue queue;
     // void flush_queued_work_items() { queue.flush_queue(); }
     // bonk::work_queue::work_item_info get_queued_work_item_info() const {
     //     return queue.get_queued_work_item_info();
@@ -75,6 +73,8 @@ template <typename settings> class Prover {
     // {
     //     return queue.get_scalar_multiplication_size(work_item_number);
     // }
+
+    std::shared_ptr<pcs::kzg::CommitmentKey> commitment_key;
 
     // This makes 'settings' accesible from Prover
     using settings_ = settings;

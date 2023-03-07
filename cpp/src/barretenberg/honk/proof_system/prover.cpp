@@ -38,11 +38,12 @@ using POLYNOMIAL = bonk::StandardArithmetization::POLYNOMIAL;
  * */
 template <typename settings>
 Prover<settings>::Prover(std::vector<barretenberg::polynomial>&& wire_polys,
-                         std::shared_ptr<bonk::proving_key> input_key,
+                         const std::shared_ptr<bonk::proving_key>& input_key,
                          const transcript::Manifest& input_manifest)
     : transcript(input_manifest, settings::hash_type, settings::num_challenge_bytes)
     , wire_polynomials(wire_polys)
     , key(input_key)
+    , queue(input_key.get(), &transcript) // TODO(Adrian): explore whether it's needed
     , commitment_key(std::make_unique<pcs::kzg::CommitmentKey>(
           input_key->circuit_size,
           "../srs_db/ignition")) // TODO(Cody): Need better constructors for prover.
@@ -69,16 +70,15 @@ Prover<settings>::Prover(std::vector<barretenberg::polynomial>&& wire_polys,
 }
 
 /**
- * - Commit to wires 1,2,3
- * - Add PI to transcript (I guess PI will stay in w_2 for now?)
+ * - Add work of committing to wires 1,2,3 to the work queue
+ * - Note: Commitments are automatically added to transcript by the queue
  *
  * */
 template <typename settings> void Prover<settings>::compute_wire_commitments()
 {
     for (size_t i = 0; i < settings::program_width; ++i) {
-        auto commitment = commitment_key->commit(wire_polynomials[i]);
-
-        transcript.add_element("W_" + std::to_string(i + 1), commitment.to_buffer());
+        std::string label = "W_" + std::to_string(i + 1);
+        commitment_key->queue_commitment(wire_polynomials[i], label, queue);
     }
 }
 
@@ -375,7 +375,7 @@ template <typename settings> plonk::proof& Prover<settings>::construct_proof()
 
     // Compute wire commitments; Add PI to transcript
     execute_wire_commitments_round();
-    // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
+    queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
 
     // Currently a no-op; may execute some "random widgets", commit to W_4, do RAM/ROM stuff
     // if this prover structure is kept when we bring tables to Honk.

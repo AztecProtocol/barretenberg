@@ -64,6 +64,27 @@ class CommitmentKey {
             const_cast<Fr*>(polynomial.data()), srs.get_monomial_points(), degree, pippenger_runtime_state);
     };
 
+    /**
+     * @brief Add computation of a polynomial commitment to the provided work queue
+     *
+     * @param polynomial a univariate polynomial p(X) = ∑ᵢ aᵢ⋅Xⁱ ()
+     * @return Commitment computed as C = [p(x)] = ∑ᵢ aᵢ⋅[xⁱ]₁
+     */
+    void queue_commitment(Polynomial& polynomial, std::string& commitment_tag, bonk::work_queue& work_queue)
+    {
+        ASSERT(polynomial.size() <= srs.get_monomial_size());
+
+        Fr* coefficients = const_cast<Fr*>(polynomial.data());
+
+        work_queue.add_to_queue({
+            .work_type = bonk::work_queue::WorkType::SCALAR_MULTIPLICATION,
+            .mul_scalars = coefficients,
+            .tag = commitment_tag,
+            .constant = bonk::work_queue::MSMType::MONOMIAL_N,
+            .index = 0,
+        });
+    };
+
   private:
     barretenberg::scalar_multiplication::pippenger_runtime_state pippenger_runtime_state;
     bonk::FileReferenceString srs;
