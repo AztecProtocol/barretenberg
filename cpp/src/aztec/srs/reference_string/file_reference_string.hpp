@@ -37,7 +37,7 @@ class FileReferenceString : public ProverReferenceString {
   public:
     FileReferenceString(const size_t num_points, std::string const& path)
         : num_points(num_points)
-        , pippenger_(path, num_points, false)
+        , pippenger_(path, num_points)
     {}
 
     g1::affine_element* get_monomial_points() override { return pippenger_.get_point_table(); }
