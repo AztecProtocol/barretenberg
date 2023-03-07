@@ -286,7 +286,7 @@ TEST(stdlib_transcript, validate_transcript)
 
     auto verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    bonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);

@@ -30,7 +30,7 @@ void generate_test_plonk_circuit(plonk::StandardComposer& composer, size_t num_g
 
 plonk::Prover provers[NUM_CIRCUITS];
 plonk::Verifier verifiers[NUM_CIRCUITS];
-plonk::proof proofs[NUM_CIRCUITS];
+bonk::proof proofs[NUM_CIRCUITS];
 
 void construct_witnesses_bench(State& state) noexcept
 {

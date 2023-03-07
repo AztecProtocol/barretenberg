@@ -41,12 +41,12 @@ Prover<settings>::Prover(std::vector<barretenberg::polynomial>&& wire_polys,
                          std::shared_ptr<bonk::proving_key> input_key,
                          const transcript::Manifest& input_manifest)
     : transcript(input_manifest, settings::hash_type, settings::num_challenge_bytes)
-    , wire_polynomials(wire_polys) // TODO(luke): move these properly
+    , wire_polynomials(wire_polys)
     , key(input_key)
     , commitment_key(std::make_unique<pcs::kzg::CommitmentKey>(
           input_key->circuit_size,
           "../srs_db/ignition")) // TODO(Cody): Need better constructors for prover.
-// , queue(proving_key.get(), &transcript) // TODO(Adrian): explore whether it's needed
+// , queue(proving_key.get(), &transcript)
 {
     // Note(luke): This could be done programmatically with some hacks but this isnt too bad and its nice to see the
     // polys laid out explicitly.
@@ -362,13 +362,13 @@ template <typename settings> void Prover<settings>::execute_kzg_round()
     KZG::reduce_prove(commitment_key, shplonk_output.opening_pair, shplonk_output.witness, &transcript);
 }
 
-template <typename settings> plonk::proof& Prover<settings>::export_proof()
+template <typename settings> bonk::proof& Prover<settings>::export_proof()
 {
     proof.proof_data = transcript.export_transcript();
     return proof;
 }
 
-template <typename settings> plonk::proof& Prover<settings>::construct_proof()
+template <typename settings> bonk::proof& Prover<settings>::construct_proof()
 {
     // Add circuit size and public input size to transcript.
     execute_preamble_round();
@@ -420,7 +420,6 @@ template <typename settings> plonk::proof& Prover<settings>::construct_proof()
     return export_proof();
 }
 
-// TODO(luke): Need to define a 'standard_settings' analog for Standard Honk
 template class Prover<plonk::standard_settings>;
 
 } // namespace honk

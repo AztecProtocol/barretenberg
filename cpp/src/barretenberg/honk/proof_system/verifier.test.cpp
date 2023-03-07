@@ -21,7 +21,6 @@ namespace test_honk_verifier {
 
 template <class FF> class VerifierTests : public testing::Test {
   public:
-    // TODO(luke): replace this with an appropriate mock honk manifest
     static transcript::Manifest create_manifest(const size_t num_public_inputs, const size_t num_sumcheck_rounds)
     {
         return honk::StandardHonk::create_manifest(num_public_inputs, num_sumcheck_rounds);
@@ -69,7 +68,6 @@ template <class FF> class VerifierTests : public testing::Test {
 
         StandardVerifier verifier(circuit_verification_key, create_manifest(0, circuit_proving_key->log_circuit_size));
 
-        // TODO(luke): set verifier PCS ala the following:
         // std::unique_ptr<KateCommitmentScheme<standard_settings>> kate_commitment_scheme =
         //     std::make_unique<KateCommitmentScheme<standard_settings>>();
         // verifier.commitment_scheme = std::move(kate_commitment_scheme);
@@ -77,8 +75,7 @@ template <class FF> class VerifierTests : public testing::Test {
         return verifier;
     }
 
-    // TODO: this example is adapted from a corresponding PlonK verifier test. Needs to be
-    // updated further as the Honk PoC comes together.
+    // Note: this example is adapted from a corresponding PlonK verifier test.
     static StandardProver generate_test_data(const size_t n)
     {
         // Create some constraints that satisfy our arithmetic circuit relation
@@ -166,7 +163,6 @@ template <class FF> class VerifierTests : public testing::Test {
         polynomial sigma_2(proving_key->circuit_size);
         polynomial sigma_3(proving_key->circuit_size);
 
-        // TODO(luke): This is part of the permutation functionality that needs to be updated for honk
         // plonk::compute_permutation_lagrange_base_single<standard_settings>(sigma_1, sigma_1_mapping,
         // proving_key->small_domain); plonk::compute_permutation_lagrange_base_single<standard_settings>(sigma_2,
         // sigma_2_mapping, proving_key->small_domain);
@@ -213,6 +209,7 @@ TYPED_TEST_SUITE(VerifierTests, FieldTypes);
 
 // This test is modeled after a corresponding test for the Plonk Verifier. As is the case there, this test relies on
 // valid proof construction which makes the scope quite large. Not really a unit test but a nice test nonetheless.
+// TODO(Luke/Cody): Make this a meaningful test (or remove altogether)
 TYPED_TEST(VerifierTests, VerifyArithmeticProofSmall)
 {
     GTEST_SKIP() << "It's good to have a standalone test, but for now we just rely on composer tests.";
@@ -223,7 +220,7 @@ TYPED_TEST(VerifierTests, VerifyArithmeticProofSmall)
     StandardVerifier verifier = TestFixture::generate_verifier(prover.key);
 
     // construct proof
-    plonk::proof proof = prover.construct_proof();
+    bonk::proof proof = prover.construct_proof();
 
     // verify proof
     bool result = verifier.verify_proof(proof);

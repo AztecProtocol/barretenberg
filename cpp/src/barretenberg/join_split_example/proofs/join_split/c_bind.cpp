@@ -104,7 +104,7 @@ WASM_EXPORT void join_split__delete_prover(void* prover)
 
 WASM_EXPORT bool join_split__verify_proof(uint8_t* proof, uint32_t length)
 {
-    plonk::proof pp = { std::vector<uint8_t>(proof, proof + length) };
+    bonk::proof pp = { std::vector<uint8_t>(proof, proof + length) };
     return verify_proof(pp);
 }
 }

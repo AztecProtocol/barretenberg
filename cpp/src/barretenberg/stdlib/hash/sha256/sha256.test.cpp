@@ -116,7 +116,7 @@ TEST(stdlib_sha256, test_duplicate_proving_key)
     plonk::stdlib::sha256(input);
     auto prover = first_composer.create_prover();
     auto verifier = first_composer.create_verifier();
-    plonk::proof proof_one = prover.construct_proof();
+    bonk::proof proof_one = prover.construct_proof();
     bool proof_result_one = verifier.verify_proof(proof_one);
     EXPECT_EQ(proof_result_one, true);
     auto proving_key = prover.key;
@@ -129,7 +129,7 @@ TEST(stdlib_sha256, test_duplicate_proving_key)
     plonk::stdlib::sha256(input2);
     auto second_prover = second_composer.create_prover();
     auto second_verifier = second_composer.create_verifier();
-    plonk::proof proof_two = second_prover.construct_proof();
+    bonk::proof proof_two = second_prover.construct_proof();
     bool proof_result_two = second_verifier.verify_proof(proof_two);
     EXPECT_EQ(proof_result_two, true);
 }
@@ -160,7 +160,7 @@ TEST(stdlib_sha256, test_duplicate_proving_key)
 //     auto prover = composer.create_prover();
 
 //     auto verifier = composer.create_verifier();
-//     plonk::proof proof = prover.construct_proof();
+//     bonk::proof proof = prover.construct_proof();
 //     bool proof_result = verifier.verify_proof(proof);
 //     EXPECT_EQ(proof_result, true);
 // }
@@ -193,7 +193,7 @@ TEST(stdlib_sha256, test_plookup_55_bytes)
 
     auto verifier = composer.create_verifier();
     printf("constructing proof \n");
-    plonk::proof proof = prover.construct_proof();
+    bonk::proof proof = prover.construct_proof();
     printf("constructed proof \n");
     bool proof_result = verifier.verify_proof(proof);
     EXPECT_EQ(proof_result, true);
@@ -224,7 +224,7 @@ TEST(stdlib_sha256, test_55_bytes)
 
     auto verifier = composer.create_verifier();
     printf("constructing proof \n");
-    plonk::proof proof = prover.construct_proof();
+    bonk::proof proof = prover.construct_proof();
     printf("constructed proof \n");
     bool proof_result = verifier.verify_proof(proof);
     EXPECT_EQ(proof_result, true);
@@ -254,7 +254,7 @@ TEST(stdlib_sha256, test_NIST_vector_one_packed_byte_array)
 
     auto verifier = composer.create_verifier();
     printf("constructing proof \n");
-    plonk::proof proof = prover.construct_proof();
+    bonk::proof proof = prover.construct_proof();
     printf("constructed proof \n");
 
     bool proof_result = verifier.verify_proof(proof);
@@ -288,7 +288,7 @@ TEST(stdlib_sha256, test_NIST_vector_one)
 
     auto verifier = composer.create_verifier();
     printf("constructing proof \n");
-    plonk::proof proof = prover.construct_proof();
+    bonk::proof proof = prover.construct_proof();
     printf("constructed proof \n");
 
     bool proof_result = verifier.verify_proof(proof);
@@ -319,7 +319,7 @@ TEST(stdlib_sha256, test_NIST_vector_two)
 
     auto verifier = composer.create_verifier();
     printf("constructing proof \n");
-    plonk::proof proof = prover.construct_proof();
+    bonk::proof proof = prover.construct_proof();
     printf("constructed proof \n");
 
     bool proof_result = verifier.verify_proof(proof);
@@ -351,7 +351,7 @@ TEST(stdlib_sha256, test_NIST_vector_three)
 
     auto verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    bonk::proof proof = prover.construct_proof();
 
     bool proof_result = verifier.verify_proof(proof);
     EXPECT_EQ(proof_result, true);
@@ -382,7 +382,7 @@ TEST(stdlib_sha256, test_NIST_vector_four)
     printf("composer gates = %zu\n", composer.get_num_gates());
     auto verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    bonk::proof proof = prover.construct_proof();
 
     bool proof_result = verifier.verify_proof(proof);
     EXPECT_EQ(proof_result, true);
@@ -426,7 +426,7 @@ HEAVY_TEST(stdlib_sha256, test_NIST_vector_five)
     printf("composer gates = %zu\n", composer.get_num_gates());
     auto verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    bonk::proof proof = prover.construct_proof();
 
     bool proof_result = verifier.verify_proof(proof);
     EXPECT_EQ(proof_result, true);

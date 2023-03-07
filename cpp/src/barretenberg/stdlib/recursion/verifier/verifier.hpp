@@ -196,7 +196,7 @@ template <typename Curve, typename program_settings>
 recursion_output<Curve> verify_proof(typename Curve::Composer* context,
                                      std::shared_ptr<verification_key<Curve>> key,
                                      const transcript::Manifest& manifest,
-                                     const plonk::proof& proof,
+                                     const bonk::proof& proof,
                                      const recursion_output<Curve> previous_output = recursion_output<Curve>())
 {
     using fr_ct = typename Curve::fr_ct;

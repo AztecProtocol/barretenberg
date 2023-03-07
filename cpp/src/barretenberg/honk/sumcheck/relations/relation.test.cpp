@@ -32,7 +32,6 @@ template <class FF> class SumcheckRelation : public testing::Test {
     template <size_t t> using Univariate = Univariate<FF, t>;
     template <size_t t> using UnivariateView = UnivariateView<FF, t>;
     using POLYNOMIAL = bonk::StandardArithmetization::POLYNOMIAL;
-    // TODO(luke): may want to make this more flexible/genericzs
     // TODO(Adrian): Accept FULL_RELATION_LENGTH as a template parameter for this function only, so that the test can
     // decide to which degree the polynomials must be extended. Possible accept an existing list of "edges" and extend
     // them to the degree.
@@ -107,7 +106,7 @@ template <class FF> class SumcheckRelation : public testing::Test {
      *
      * @note Not really optimized, mainly used for testing that the relations evaluate to the same value when
      * evaluated as Univariates, Expressions, or index-by-index
-     * @todo Maybe this is more helpful as part of a `check_logic` function.
+     * @todo(Adrian) Maybe this is more helpful as part of a `check_logic` function.
      *
      * @tparam NUM_UNIVARIATES number of univariates in the input array (deduced from `univariates`)
      * @tparam univariate_length number of evaluations (deduced from `univariates`)

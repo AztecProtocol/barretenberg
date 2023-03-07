@@ -238,7 +238,8 @@ template <size_t program_width_> class CircuitConstructorBase {
 
 } // namespace bonk
 
-// TODO(Cody): This may need updating, to deal with the new gate we used to ensure that non multivariate is zero?
+// TODO(Cody)(OUTDATED): This may need updating, to deal with the new gate we used to ensure that non multivariate is
+// zero?
 /**
  * Composer Example: Pythagorean triples.
  *

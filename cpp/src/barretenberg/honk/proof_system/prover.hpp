@@ -49,8 +49,8 @@ template <typename settings> class Prover {
 
     void construct_prover_polynomials();
 
-    plonk::proof& export_proof();
-    plonk::proof& construct_proof();
+    bonk::proof& export_proof();
+    bonk::proof& construct_proof();
 
     transcript::StandardTranscript transcript;
 
@@ -89,10 +89,9 @@ template <typename settings> class Prover {
     using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
 
   private:
-    plonk::proof proof;
+    bonk::proof proof;
 };
 
-// TODO(luke): need equivalent notion of settings for Honk
 extern template class Prover<plonk::standard_settings>;
 
 using StandardProver = Prover<plonk::standard_settings>;

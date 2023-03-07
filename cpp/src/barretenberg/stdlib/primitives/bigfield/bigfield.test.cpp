@@ -58,7 +58,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         (void)tval2;
         auto prover = composer.create_prover();
         auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
         bool proof_result = verifier.verify_proof(proof);
         EXPECT_EQ(proof_result, true);
     }
@@ -73,7 +73,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         (void)tval2;
         auto prover = composer.create_prover();
         auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
         bool proof_result = verifier.verify_proof(proof);
         EXPECT_EQ(proof_result, true);
     }
@@ -137,7 +137,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         }
         auto prover = composer.create_prover();
         auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
         bool proof_result = verifier.verify_proof(proof);
         EXPECT_EQ(proof_result, true);
     }
@@ -178,7 +178,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         }
         auto prover = composer.create_prover();
         auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
         bool proof_result = verifier.verify_proof(proof);
         EXPECT_EQ(proof_result, true);
     }
@@ -227,7 +227,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         }
         auto prover = composer.create_prover();
         auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
         bool proof_result = verifier.verify_proof(proof);
         EXPECT_EQ(proof_result, true);
     }
@@ -300,7 +300,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         };
         auto prover = composer.create_prover();
         auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
         bool proof_result = verifier.verify_proof(proof);
         EXPECT_EQ(proof_result, true);
     }
@@ -358,7 +358,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         };
         auto prover = composer.create_prover();
         auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
         bool proof_result = verifier.verify_proof(proof);
         EXPECT_EQ(proof_result, true);
     }
@@ -405,7 +405,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         }
         auto prover = composer.create_prover();
         auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
         bool proof_result = verifier.verify_proof(proof);
         EXPECT_EQ(proof_result, true);
     }
@@ -450,7 +450,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         }
         auto prover = composer.create_prover();
         auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
         bool proof_result = verifier.verify_proof(proof);
         EXPECT_EQ(proof_result, true);
     }
@@ -490,7 +490,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         }
         auto prover = composer.create_prover();
         auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
         bool proof_result = verifier.verify_proof(proof);
         EXPECT_EQ(proof_result, true);
     }
@@ -527,7 +527,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         }
         auto prover = composer.create_prover();
         auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
         bool proof_result = verifier.verify_proof(proof);
         EXPECT_EQ(proof_result, true);
     }
@@ -567,7 +567,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         }
         auto prover = composer.create_prover();
         auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
         bool proof_result = verifier.verify_proof(proof);
         EXPECT_EQ(proof_result, true);
     }
@@ -593,7 +593,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
 
             auto prover = composer.create_prover();
             auto verifier = composer.create_verifier();
-            plonk::proof proof = prover.construct_proof();
+            bonk::proof proof = prover.construct_proof();
             bool proof_result = verifier.verify_proof(proof);
             EXPECT_EQ(proof_result, true);
         }
@@ -639,7 +639,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         }
         auto prover = composer.create_prover();
         auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
         bool proof_result = verifier.verify_proof(proof);
         EXPECT_EQ(proof_result, true);
     }
@@ -689,7 +689,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         }
         auto prover = composer.create_prover();
         auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
         bool proof_result = verifier.verify_proof(proof);
         EXPECT_EQ(proof_result, true);
     }
@@ -723,7 +723,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         }
         auto prover = composer.create_prover();
         auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
         bool proof_result = verifier.verify_proof(proof);
         EXPECT_EQ(proof_result, true);
     }
@@ -757,7 +757,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         }
         auto prover = composer.create_prover();
         auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
         bool proof_result = verifier.verify_proof(proof);
         EXPECT_EQ(proof_result, true);
     }
@@ -788,7 +788,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         }
         auto prover = composer.create_prover();
         auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
         bool proof_result = verifier.verify_proof(proof);
         EXPECT_EQ(proof_result, true);
     }
@@ -986,7 +986,7 @@ TYPED_TEST(stdlib_bigfield, division_context)
 //     }
 //     auto prover = composer.create_prover();
 //     auto verifier = composer.create_verifier();
-//     plonk::proof proof = prover.construct_proof();
+//     bonk::proof proof = prover.construct_proof();
 //     bool proof_result = verifier.verify_proof(proof);
 //     EXPECT_EQ(proof_result, true);
 // }
@@ -1034,7 +1034,7 @@ TYPED_TEST(stdlib_bigfield, division_context)
 //     composer.process_range_lists();
 //     plonk::PlookupProver prover = composer.create_prover();
 //     plonk::PlookupVerifier verifier = composer.create_verifier();
-//     plonk::proof proof = prover.construct_proof();
+//     bonk::proof proof = prover.construct_proof();
 //     bool proof_result = verifier.verify_proof(proof);
 //     EXPECT_EQ(proof_result, true);
 // }
@@ -1074,7 +1074,7 @@ TYPED_TEST(stdlib_bigfield, division_context)
 //     composer.process_range_lists();
 //     plonk::PlookupProver prover = composer.create_prover();
 //     plonk::PlookupVerifier verifier = composer.create_verifier();
-//     plonk::proof proof = prover.construct_proof();
+//     bonk::proof proof = prover.construct_proof();
 //     bool proof_result = verifier.verify_proof(proof);
 //     EXPECT_EQ(proof_result, true);
 // }

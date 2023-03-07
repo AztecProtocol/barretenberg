@@ -16,7 +16,6 @@ namespace honk::sumcheck {
 template <typename FF, class Transcript, template <class> class... Relations> class Sumcheck {
 
   public:
-    // TODO(luke): this value is needed here but also lives in sumcheck_round
     static constexpr size_t MAX_RELATION_LENGTH = std::max({ Relations<FF>::RELATION_LENGTH... });
 
     std::array<FF, bonk::StandardArithmetization::NUM_POLYNOMIALS> purported_evaluations;

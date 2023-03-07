@@ -87,7 +87,7 @@ TEST(stdlib_bool, xor)
     auto prover = composer.create_prover();
     auto verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    bonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -115,7 +115,7 @@ TEST(stdlib_bool, xor_constants)
     auto prover = composer.create_prover();
     auto verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    bonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -145,7 +145,7 @@ TEST(stdlib_bool, xor_twin_constants)
     auto prover = composer.create_prover();
     auto verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    bonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -161,7 +161,7 @@ TEST(stdlib_bool, xor_twin_constants)
 //     auto prover = composer.create_prover();
 //     auto verifier = composer.create_verifier();
 
-//     plonk::proof proof = prover.construct_proof();
+//     bonk::proof proof = prover.construct_proof();
 
 //     bool result = verifier.verify_proof(proof);
 //     EXPECT_EQ(result, true);
@@ -178,7 +178,7 @@ TEST(stdlib_bool, and)
     auto prover = composer.create_prover();
     auto verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    bonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -206,7 +206,7 @@ TEST(stdlib_bool, and_constants)
     auto prover = composer.create_prover();
     auto verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    bonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -223,7 +223,7 @@ TEST(stdlib_bool, or)
     auto prover = composer.create_prover();
     auto verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    bonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -251,7 +251,7 @@ TEST(stdlib_bool, or_constants)
     auto prover = composer.create_prover();
     auto verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    bonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -303,7 +303,7 @@ TEST(stdlib_bool, eq)
     auto prover = composer.create_prover();
     auto verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    bonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -328,7 +328,7 @@ TEST(stdlib_bool, implies)
     auto prover = composer.create_prover();
     auto verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    bonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -353,7 +353,7 @@ TEST(stdlib_bool, implies_both_ways)
     auto prover = composer.create_prover();
     auto verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    bonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -387,7 +387,7 @@ TEST(stdlib_bool, test_simple_proof)
     auto prover = composer.create_prover();
     auto verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    bonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -417,7 +417,7 @@ TEST(stdlib_bool, normalize)
 
     auto verifier = composer.create_verifier();
 
-    plonk::proof proof = prover.construct_proof();
+    bonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);

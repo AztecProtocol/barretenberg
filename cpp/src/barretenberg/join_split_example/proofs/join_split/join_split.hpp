@@ -23,7 +23,7 @@ void init_verification_key(std::shared_ptr<bonk::VerifierMemReferenceString> con
 
 plonk::TurboProver new_join_split_prover(join_split_tx const& tx, bool mock);
 
-bool verify_proof(plonk::proof const& proof);
+bool verify_proof(bonk::proof const& proof);
 
 std::shared_ptr<bonk::proving_key> get_proving_key();
 

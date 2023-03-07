@@ -2,8 +2,6 @@
 
 namespace honk::sumcheck {
 
-template <typename Fr> class Relation {}; // TODO(Cody): Use or eventually remove.
-
 // TODO(Adrian): Remove zeta, alpha as they are not used by the relations.
 template <typename FF> struct RelationParameters {
     FF zeta;

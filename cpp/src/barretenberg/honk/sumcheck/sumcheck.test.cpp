@@ -327,7 +327,6 @@ TEST(Sumcheck, Prover)
 }
 
 // TODO(Cody): write standalone test of the verifier.
-// TODO(luke): test possibly made obsolete by test ProverAndVerifierLonger
 TEST(Sumcheck, ProverAndVerifier)
 {
     const size_t multivariate_d(1);

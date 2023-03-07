@@ -53,7 +53,7 @@ template <typename TestType> class stdlib_biggroup : public testing::Test {
         info("creating verifier");
         auto verifier = composer.create_verifier();
         info("creating proof");
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
         bool verified = verifier.verify_proof(proof);
         EXPECT_EQ(verified, expected_result);
     };

@@ -45,7 +45,7 @@ class join_split_js_parity_tests : public ::testing::Test {
         }
     }
 
-    plonk::proof sign_and_create_proof(join_split_tx& tx, key_pair const& signing_key)
+    bonk::proof sign_and_create_proof(join_split_tx& tx, key_pair const& signing_key)
     {
         tx.signature = sign_join_split_tx(tx, signing_key);
 

@@ -96,7 +96,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
 
             auto prover = composer.create_prover();
             auto verifier = composer.create_verifier();
-            plonk::proof proof = prover.construct_proof();
+            bonk::proof proof = prover.construct_proof();
             bool verified = verifier.verify_proof(proof);
             EXPECT_EQ(verified, expect_verified);
             if (verified != expect_verified) {
@@ -173,7 +173,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
             EXPECT_EQ(y.get_value(), 1);
 
             auto prover = composer.create_prover();
-            plonk::proof proof = prover.construct_proof();
+            bonk::proof proof = prover.construct_proof();
             auto verifier = composer.create_verifier();
             bool result = verifier.verify_proof(proof);
 
@@ -200,7 +200,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
 
         EXPECT_EQ(prover.key->circuit_size, 32UL);
         auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
     }
@@ -236,7 +236,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
         auto prover = composer.create_prover();
 
         auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
     }
@@ -258,7 +258,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
         EXPECT_EQ(prover.key->circuit_size, 32UL);
         auto verifier = composer.create_verifier();
 
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
 
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
@@ -282,7 +282,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
 
         auto prover = composer.create_prover();
         auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
         bool verified = verifier.verify_proof(proof);
 
         for (size_t i = 0; i < composer.variables.size(); i++) {
@@ -309,7 +309,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
         EXPECT_EQ(prover.key->circuit_size, 16UL);
         auto verifier = composer.create_verifier();
 
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
 
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
@@ -333,7 +333,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
         EXPECT_EQ(prover.key->circuit_size, 16UL);
         auto verifier = composer.create_verifier();
 
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
 
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
@@ -358,7 +358,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
         EXPECT_EQ(prover.key->circuit_size, 16UL);
         auto verifier = composer.create_verifier();
 
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
 
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
@@ -375,7 +375,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
 
         auto verifier = composer.create_verifier();
 
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
 
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
@@ -421,7 +421,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
 
         auto verifier = composer.create_verifier();
 
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
 
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
@@ -476,7 +476,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
 
         auto verifier = composer.create_verifier();
 
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
 
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
@@ -509,7 +509,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
 
         auto verifier = composer.create_verifier();
 
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
 
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
@@ -535,7 +535,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
 
         auto verifier = composer.create_verifier();
 
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
 
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
@@ -561,7 +561,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
 
         auto verifier = composer.create_verifier();
 
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
 
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
@@ -589,7 +589,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
 
         auto verifier = composer.create_verifier();
 
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
 
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
@@ -634,7 +634,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
 
         auto verifier = composer.create_verifier();
 
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
 
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
@@ -679,7 +679,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
 
             auto prover = composer.create_prover();
             auto verifier = composer.create_verifier();
-            plonk::proof proof = prover.construct_proof();
+            bonk::proof proof = prover.construct_proof();
             bool verified = verifier.verify_proof(proof);
             ASSERT_TRUE(verified);
         };
@@ -710,7 +710,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
 
             auto prover = composer.create_prover();
             auto verifier = composer.create_verifier();
-            plonk::proof proof = prover.construct_proof();
+            bonk::proof proof = prover.construct_proof();
             bool verified = verifier.verify_proof(proof);
             ASSERT_FALSE(verified);
         };
@@ -735,7 +735,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
 
         auto prover = composer.create_prover();
         auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
         info("composer gates = ", composer.get_num_gates());
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
@@ -757,7 +757,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
 
         auto prover = composer.create_prover();
         auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
+        bonk::proof proof = prover.construct_proof();
         info("composer gates = ", composer.get_num_gates());
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, false);

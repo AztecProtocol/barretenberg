@@ -38,8 +38,8 @@ template <typename settings> class ProverBase {
     void compute_quotient_evaluation();
     void add_blinding_to_quotient_polynomial_parts();
     void compute_lagrange_1_fft();
-    plonk::proof& export_proof();
-    plonk::proof& construct_proof();
+    bonk::proof& export_proof();
+    bonk::proof& construct_proof();
 
     size_t get_circuit_size() const { return circuit_size; }
 
@@ -96,7 +96,7 @@ template <typename settings> class ProverBase {
     work_queue queue;
 
   private:
-    plonk::proof proof;
+    bonk::proof proof;
 };
 extern template class ProverBase<standard_settings>;
 extern template class ProverBase<turbo_settings>;

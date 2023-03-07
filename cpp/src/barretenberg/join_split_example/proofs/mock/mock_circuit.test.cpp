@@ -21,7 +21,7 @@ TEST(mock_circuit_tests, test_simple_circuit)
     mock_circuit(composer, public_inputs);
 
     auto prover = composer.create_prover();
-    plonk::proof proof = prover.construct_proof();
+    bonk::proof proof = prover.construct_proof();
 
     std::cout << "gates: " << composer.get_num_gates() << std::endl;
     std::cout << "proof size: " << proof.proof_data.size() << std::endl;

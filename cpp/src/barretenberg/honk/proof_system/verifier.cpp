@@ -77,7 +77,7 @@ template <typename program_settings> Verifier<program_settings>& Verifier<progra
         [Q]_1,
         [W]_1
 */
-template <typename program_settings> bool Verifier<program_settings>::verify_proof(const plonk::proof& proof)
+template <typename program_settings> bool Verifier<program_settings>::verify_proof(const bonk::proof& proof)
 {
     using FF = typename program_settings::fr;
     using Commitment = barretenberg::g1::element;

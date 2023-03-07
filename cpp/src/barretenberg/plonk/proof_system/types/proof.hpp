@@ -2,10 +2,10 @@
 #include <cstdint>
 #include <vector>
 
-namespace plonk {
+namespace bonk {
 
 struct proof {
     std::vector<uint8_t> proof_data;
 };
 
-} // namespace plonk
+} // namespace bonk

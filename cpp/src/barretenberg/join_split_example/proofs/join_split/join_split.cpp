@@ -87,7 +87,7 @@ plonk::TurboProver new_join_split_prover(join_split_tx const& tx, bool mock)
     }
 }
 
-bool verify_proof(plonk::proof const& proof)
+bool verify_proof(bonk::proof const& proof)
 {
     plonk::TurboVerifier verifier(verification_key, Composer::create_manifest(verification_key->num_public_inputs));
 
