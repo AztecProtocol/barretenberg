@@ -43,6 +43,19 @@ template <typename Composer> struct lagrange_evaluations {
     field_t<Composer> vanishing_poly;
 };
 
+template <typename Curve> void validate_element_on_curve(const typename Curve::g1_ct& element_, std::string label)
+{
+    typename Curve::Composer* ctx = element_.get_context();
+    if (!element_.get_value().on_curve()) {
+        std::cerr << label << " not on curve!" << std::endl;
+    }
+    if (element_.get_value().is_point_at_infinity()) {
+        std::cerr << label << " is point at infinity! Error!" << std::endl;
+        ctx->failure(label + " is point at infinity");
+    }
+    element_.validate_on_curve();
+}
+
 template <typename Curve, typename Transcript, typename program_settings>
 void populate_kate_element_map(typename Curve::Composer* ctx,
                                typename Transcript::Key* key,
@@ -75,15 +88,7 @@ void populate_kate_element_map(typename Curve::Composer* ctx,
         case bonk::PolynomialSource::SELECTOR:
         case bonk::PolynomialSource::PERMUTATION: {
             const auto element = key->commitments.at(label);
-            // TODO: with user-defined circuits, we will need verify that the point
-            // lies on the curve with constraints
-            if (!element.get_value().on_curve()) {
-                std::cerr << label << " commitment not on curve!" << std::endl;
-            }
-            if (element.get_value().is_point_at_infinity()) {
-                std::cerr << label << " commitment is point at infinity! Error!" << std::endl;
-                ctx->failure("commitment " + label + " is point at infinity");
-            }
+            validate_element_on_curve<Curve>(element, label);
             kate_g1_elements.insert({ label, element });
             break;
         }
@@ -333,9 +338,11 @@ recursion_output<Curve> verify_proof(typename Curve::Composer* context,
     if (previous_output.has_data) {
         fr_ct random_separator = transcript.get_challenge_field_element("separator", 1);
 
+        // validate_element_on_curve(previous_output.P0, "previous_output: P0");
         opening_elements.push_back(previous_output.P0);
         opening_scalars.push_back(random_separator);
 
+        // validate_element_on_curve(previous_output.P1, "previous_output: P1");
         rhs_elements.push_back(
             (-(previous_output.P1)).reduce()); // TODO: use .normalize() instead? (As per defi bridge project)
         rhs_scalars.push_back(random_separator);
@@ -378,10 +385,14 @@ recursion_output<Curve> verify_proof(typename Curve::Composer* context,
                                                       key->base_key->recursive_proof_public_input_indices[14],
                                                       key->base_key->recursive_proof_public_input_indices[15]);
 
-        opening_elements.push_back(g1_ct(x0, y0));
+        g1_ct p0_element = g1_ct(x0, y0);
+        validate_element_on_curve<Curve>(p0_element, "recursion_element: P0");
+        opening_elements.push_back(p0_element);
         opening_scalars.push_back(recursion_separator_challenge);
 
-        rhs_elements.push_back((-g1_ct(x1, y1)).normalize());
+        g1_ct p1_element = -g1_ct(x1, y1);
+        validate_element_on_curve<Curve>(p1_element, "recursion_element: P1");
+        rhs_elements.push_back(p1_element.normalize());
         rhs_scalars.push_back(recursion_separator_challenge);
     }
 
