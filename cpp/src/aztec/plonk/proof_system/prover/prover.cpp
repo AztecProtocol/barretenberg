@@ -300,21 +300,23 @@ template <typename settings> void ProverBase<settings>::execute_second_round()
                 fr::random_element();
         }
 
-        // commit to w_4 using Lagrange srs.
-        queue.add_to_queue({
-            .work_type = work_queue::WorkType::SCALAR_MULTIPLICATION,
-            .mul_scalars = w_4_lagrange.get_coefficients(),
-            .tag = "W_4",
-            .constant = work_queue::MSMType::LAGRANGE_N,
-            .index = 0,
-        });
-
         // convert w_4 to the coefficient form.
         queue.add_to_queue({
             .work_type = work_queue::WorkType::IFFT,
             .mul_scalars = nullptr,
             .tag = wire_tag,
             .constant = 0,
+            .index = 0,
+        });
+
+        barretenberg::polynomial& w_4_monomial(key->polynomial_cache.get(wire_tag));
+
+        // commit to w_4 using the monomial srs.
+        queue.add_to_queue({
+            .work_type = work_queue::WorkType::SCALAR_MULTIPLICATION,
+            .mul_scalars = w_4_monomial.get_coefficients(),
+            .tag = "W_4",
+            .constant = work_queue::MSMType::MONOMIAL_N,
             .index = 0,
         });
     }
