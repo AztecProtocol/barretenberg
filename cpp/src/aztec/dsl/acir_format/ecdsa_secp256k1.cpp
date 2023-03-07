@@ -103,16 +103,20 @@ void create_ecdsa_verify_constraints(plonk::TurboComposer& composer, const Ecdsa
     stdlib::ecdsa::signature<plonk::TurboComposer> sig{ stdlib::byte_array<plonk::TurboComposer>(&composer, rr),
                                                         stdlib::byte_array<plonk::TurboComposer>(&composer, ss) };
 
-    auto pub_key = secp256k1_ct::g1_ct(pub_key_x_fq, pub_key_y_fq);
+    pub_key_x_fq.assert_is_in_field();
+    pub_key_y_fq.assert_is_in_field();
 
-    // TODO: crypto-dev to verify calculation and constraining of the signature result is correct
-    bool_ct signature_result = stdlib::ecdsa::
-        verify_signature<plonk::TurboComposer, secp256k1_ct::fq_ct, secp256k1_ct::bigfr_ct, secp256k1_ct::g1_bigfr_ct>(
-            message, pub_key, sig);
+    // TODO: crypto-dev to fix calculation and constraining of the signature result is correct
+    // the above line is currently a placeholder as unused variabels are not allowed in the build
+    // auto pub_key = secp256k1_ct::g1_ct(pub_key_x_fq, pub_key_y_fq);
+    // bool_ct signature_result = stdlib::ecdsa::
+    //     verify_signature<plonk::TurboComposer, secp256k1_ct::fq_ct, secp256k1_ct::bigfr_ct,
+    //     secp256k1_ct::g1_bigfr_ct>(
+    //         message, pub_key, sig);
 
-    auto result_bool = composer.add_variable(signature_result.get_value() == true);
+    // auto result_bool = composer.add_variable(signature_result.get_value() == true);
 
-    composer.assert_equal(result_bool, input.result);
+    composer.assert_equal(false, input.result);
 }
 
 } // namespace acir_format
