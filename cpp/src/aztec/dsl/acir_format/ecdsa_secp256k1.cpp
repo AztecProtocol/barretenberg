@@ -42,8 +42,6 @@ crypto::ecdsa::signature ecdsa_convert_signature(plonk::TurboComposer& composer,
     return signature_cr;
 }
 
-// fq, fr, g1
-
 secp256k1_ct::g1_ct ecdsa_convert_inputs(plonk::TurboComposer* ctx, const secp256k1::g1::affine_element& input)
 {
     uint256_t x_u256(input.x);
@@ -106,17 +104,17 @@ void create_ecdsa_verify_constraints(plonk::TurboComposer& composer, const Ecdsa
     pub_key_x_fq.assert_is_in_field();
     pub_key_y_fq.assert_is_in_field();
 
-    // TODO: crypto-dev to fix calculation and constraining of the signature result is correct
-    // the above line is currently a placeholder as unused variabels are not allowed in the build
-    // auto pub_key = secp256k1_ct::g1_ct(pub_key_x_fq, pub_key_y_fq);
-    // bool_ct signature_result = stdlib::ecdsa::
-    //     verify_signature<plonk::TurboComposer, secp256k1_ct::fq_ct, secp256k1_ct::bigfr_ct,
-    //     secp256k1_ct::g1_bigfr_ct>(
-    //         message, pub_key, sig);
+    secp256k1_ct::g1_bigfr_ct public_key = secp256k1_ct::g1_bigfr_ct(pub_key_x_fq, pub_key_y_fq);
 
-    // auto result_bool = composer.add_variable(signature_result.get_value() == true);
+    bool_ct signature_result = stdlib::ecdsa::verify_signature<plonk::TurboComposer,
+                                                               secp256k1_ct,
+                                                               secp256k1_ct::fq_ct,
+                                                               secp256k1_ct::bigfr_ct,
+                                                               secp256k1_ct::g1_bigfr_ct>(message, public_key, sig);
 
-    composer.assert_equal(false, input.result);
+    bool_ct signature_result_normalized = signature_result.normalize();
+
+    composer.assert_equal(signature_result_normalized.witness_index, input.result);
 }
 
 } // namespace acir_format
