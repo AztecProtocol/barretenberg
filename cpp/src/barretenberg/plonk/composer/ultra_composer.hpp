@@ -506,7 +506,7 @@ class UltraComposer : public ComposerBase {
     std::vector<RamTranscript> ram_arrays;
 
     /**
-     * @brief Each entry in rom_arrays represents an independent ROM table.
+     * @brief Each entry in ram_arrays represents an independent ROM table.
      * RomTranscript tracks the current table state,
      * as well as the 'records' produced by each read operation.
      * Used in `compute_proving_key` to generate consistency check gates required to validate the ROM read history
