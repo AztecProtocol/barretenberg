@@ -24,6 +24,8 @@ class UltraComposer : public ComposerBase {
     static constexpr size_t DEFAULT_PLOOKUP_RANGE_SIZE = (1 << DEFAULT_PLOOKUP_RANGE_BITNUM) - 1;
     static constexpr size_t DEFAULT_NON_NATIVE_FIELD_LIMB_BITS = 68;
     static constexpr uint32_t UNINITIALIZED_MEMORY_RECORD = UINT32_MAX;
+    static constexpr size_t NUMBER_OF_GATES_PER_RAM_ACCESS = 2;
+    static constexpr size_t NUMBER_OF_ARITHMETIC_GATES_PER_RAM_ARRAY = 1;
 
     struct non_native_field_witnesses {
         // first 4 array elements = limbs
@@ -253,20 +255,24 @@ class UltraComposer : public ComposerBase {
         constexpr size_t gate_width = ultra_settings::program_width;
         // each RAM gate adds +2 extra gates due to the ram reads being copied to a sorted list set,
         // as well as an extra gate to validate timestamps
+        std::vector<size_t> ram_timestamps;
+        std::vector<size_t> ram_range_sizes;
+        std::vector<size_t> ram_range_exists;
         for (size_t i = 0; i < ram_arrays.size(); ++i) {
             for (size_t j = 0; j < ram_arrays[i].state.size(); ++j) {
                 if (ram_arrays[i].state[j] == UNINITIALIZED_MEMORY_RECORD) {
-                    ramcount += 2;
+                    ramcount += NUMBER_OF_GATES_PER_RAM_ACCESS;
                 }
             }
-            ramcount += (ram_arrays[i].records.size() * 2);
-            ramcount += 1; // we add an addition gate after procesing a ram array
+            ramcount += (ram_arrays[i].records.size() * NUMBER_OF_GATES_PER_RAM_ACCESS);
+            ramcount += NUMBER_OF_ARITHMETIC_GATES_PER_RAM_ARRAY; // we add an addition gate after procesing a ram array
 
             // there will be 'max_timestamp' number of range checks, need to calculate.
             const auto max_timestamp = ram_arrays[i].access_count - 1;
 
-            // TODO: if a range check of length `max_timestamp` already exists, this will be innacurate!
-            // TODO: fix this
+            // if a range check of length `max_timestamp` already exists, we are double counting.
+            // We record `ram_timestamps` to detect and correct for this error when we process range lists.
+            ram_timestamps.push_back(max_timestamp);
             size_t padding = (gate_width - (max_timestamp % gate_width)) % gate_width;
             if (max_timestamp == gate_width)
                 padding += gate_width;
@@ -275,7 +281,9 @@ class UltraComposer : public ComposerBase {
             size_t ram_range_check_gate_count = (ram_range_check_list_size / gate_width);
             ram_range_check_gate_count += 1; // we need to add 1 extra addition gates for every distinct range list
 
-            ramcount += ram_range_check_gate_count;
+            ram_range_sizes.push_back(ram_range_check_gate_count);
+            ram_range_exists.push_back(false);
+            // rangecount += ram_range_check_gate_count;
         }
         for (const auto& list : range_lists) {
             auto list_size = list.second.variable_indices.size();
@@ -283,8 +291,20 @@ class UltraComposer : public ComposerBase {
             if (list.second.variable_indices.size() == gate_width)
                 padding += gate_width;
             list_size += padding;
+
+            for (size_t i = 0; i < ram_timestamps.size(); ++i) {
+                if (list.second.target_range == ram_timestamps[i]) {
+                    ram_range_exists[i] = true;
+                }
+            }
             rangecount += (list_size / gate_width);
             rangecount += 1; // we need to add 1 extra addition gates for every distinct range list
+        }
+        // update rangecount to include the ram range checks the composer will eventually be creating
+        for (size_t i = 0; i < ram_range_sizes.size(); ++i) {
+            if (!ram_range_exists[i]) {
+                rangecount += ram_range_sizes[i];
+            }
         }
     }
 
