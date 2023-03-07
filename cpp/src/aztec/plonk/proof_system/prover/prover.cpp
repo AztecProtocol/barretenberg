@@ -210,7 +210,6 @@ template <typename settings> void ProverBase<settings>::execute_preamble_round()
     }
 
     // perform an IFFT so that the "w_i" polynomial cache will contain the monomial form
-    const size_t end = settings::is_plookup ? (settings::program_width - 1) : settings::program_width;
     for (size_t i = 0; i < end; ++i) {
         std::string wire_tag = "w_" + std::to_string(i + 1);
         queue.add_to_queue({
