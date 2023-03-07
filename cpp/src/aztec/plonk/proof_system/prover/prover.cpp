@@ -316,7 +316,7 @@ template <typename settings> void ProverBase<settings>::execute_second_round()
             .work_type = work_queue::WorkType::SCALAR_MULTIPLICATION,
             .mul_scalars = w_4_monomial.get_coefficients(),
             .tag = "W_4",
-            .constant = work_queue::MSMType::MONOMIAL_N,
+            .constant = work_queue::MSMType::MONOMIAL_N_PLUS_ONE,
             .index = 0,
         });
     }
