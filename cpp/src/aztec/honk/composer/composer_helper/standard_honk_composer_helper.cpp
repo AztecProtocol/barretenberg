@@ -83,13 +83,13 @@ std::shared_ptr<bonk::verification_key> StandardHonkComposerHelper<CircuitConstr
  * @tparam Program settings needed to establish if w_4 is being used.
  * */
 template <typename CircuitConstructor>
-void StandardHonkComposerHelper<CircuitConstructor>::compute_witness_base(const CircuitConstructor& circuit_constructor,
-                                                                          const size_t minimum_circuit_size)
+void StandardHonkComposerHelper<CircuitConstructor>::compute_witness(const CircuitConstructor& circuit_constructor,
+                                                                     const size_t minimum_circuit_size)
 {
     if (computed_witness) {
         return;
     }
-    wire_polynomials = compute_witness_base_common(circuit_constructor, minimum_circuit_size, NUM_RANDOMIZED_GATES);
+    wire_polynomials = compute_witness_base(circuit_constructor, minimum_circuit_size, NUM_RANDOMIZED_GATES);
 
     computed_witness = true;
 }

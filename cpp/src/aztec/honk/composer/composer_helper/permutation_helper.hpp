@@ -41,7 +41,7 @@ struct cycle_node {
  *
  */
 struct permutation_subgroup_element {
-    uint32_t subgroup_index = 0;
+    uint32_t row_index = 0;
     uint8_t column_index = 0;
     bool is_public_input = false;
     bool is_tag = false;
@@ -142,7 +142,7 @@ std::array<std::vector<permutation_subgroup_element>, program_width> compute_bas
 
         for (size_t j = 0; j < key->circuit_size; ++j) {
             sigma_mappings[i].emplace_back(permutation_subgroup_element{
-                .subgroup_index = (uint32_t)j, .column_index = (uint8_t)i, .is_public_input = false, .is_tag = false });
+                .row_index = (uint32_t)j, .column_index = (uint8_t)i, .is_public_input = false, .is_tag = false });
         }
     }
 
@@ -160,10 +160,9 @@ std::array<std::vector<permutation_subgroup_element>, program_width> compute_bas
             const uint32_t current_column = current_cycle_node.wire_index;
             const uint32_t next_column = next_cycle_node.wire_index;
             // Point current node to the next node
-            sigma_mappings[current_column][current_row] = { .subgroup_index = next_row,
-                                                            .column_index = (uint8_t)next_column,
-                                                            .is_public_input = false,
-                                                            .is_tag = false };
+            sigma_mappings[current_column][current_row] = {
+                .row_index = next_row, .column_index = (uint8_t)next_column, .is_public_input = false, .is_tag = false
+            };
         }
     }
 
@@ -171,7 +170,7 @@ std::array<std::vector<permutation_subgroup_element>, program_width> compute_bas
     const uint32_t num_public_inputs = static_cast<uint32_t>(circuit_constructor.public_inputs.size());
 
     for (size_t i = 0; i < num_public_inputs; ++i) {
-        sigma_mappings[0][i].subgroup_index = static_cast<uint32_t>(i);
+        sigma_mappings[0][i].row_index = static_cast<uint32_t>(i);
         sigma_mappings[0][i].column_index = 0;
         sigma_mappings[0][i].is_public_input = true;
     }
@@ -212,13 +211,13 @@ void compute_honk_style_sigma_lagrange_polynomials_from_mapping(
             // These indices are chosen so they can easily be computed by the verifier. They can expect the running
             // product to be equal to the "public input delta" that is computed in <honk/utils/public_inputs.hpp>
             current_sigma_polynomial[i] =
-                -barretenberg::fr(current_mapping.subgroup_index + 1 + num_gates * current_mapping.column_index);
+                -barretenberg::fr(current_mapping.row_index + 1 + num_gates * current_mapping.column_index);
         } else {
             ASSERT(!current_mapping.is_tag);
             // For the regular permutation we simply point to the next location by setting the evaluation to its
             // index
             current_sigma_polynomial[i] =
-                barretenberg::fr(current_mapping.subgroup_index + num_gates * current_mapping.column_index);
+                barretenberg::fr(current_mapping.row_index + num_gates * current_mapping.column_index);
         }
         ITERATE_OVER_DOMAIN_END;
     }
@@ -264,7 +263,7 @@ inline void compute_standard_plonk_lagrange_polynomial(barretenberg::polynomial&
     // We first have to accomodate for the fact that `roots` only contains *half* of our subgroup elements. This is
     // because ω^{n/2} = -ω and we don't want to perform redundant work computing roots of unity.
 
-    size_t raw_idx = permutation[i].subgroup_index;
+    size_t raw_idx = permutation[i].row_index;
 
     // Step 1: is `raw_idx` >= (n / 2)? if so, we will need to index `-roots[raw_idx - subgroup_size / 2]` instead
     // of `roots[raw_idx]`
@@ -337,7 +336,7 @@ void compute_standard_plonk_sigma_lagrange_polynomials_from_mapping(
  * @tparam program_width Number of wires
  * @param key Pointer to the proving key
  */
-template <size_t program_width> void compute_monomial_sigma_polynomials(bonk::proving_key* key)
+template <size_t program_width> void compute_sigma_polynomials_monomial_and_coset_fft(bonk::proving_key* key)
 {
     for (size_t i = 0; i < program_width; ++i) {
 
@@ -423,7 +422,7 @@ void compute_standard_plonk_sigma_permutations(CircuitConstructor& circuit_const
     // Compute Plonk-style sigma polynomials from the mapping
     compute_standard_plonk_sigma_lagrange_polynomials_from_mapping(sigma_mappings, key);
     // Compute their monomial and coset versions
-    compute_monomial_sigma_polynomials<program_width>(key);
+    compute_sigma_polynomials_monomial_and_coset_fft<program_width>(key);
 }
 
 /**

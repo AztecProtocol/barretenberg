@@ -43,8 +43,8 @@ void put_selectors_in_polynomial_cache(const CircuitConstructor& circuit_constru
  * @param key Pointer to the proving key
  * @param selector_properties Names of selectors
  */
-void compute_monomial_selector_forms_and_put_into_cache(bonk::proving_key* key,
-                                                        std::vector<SelectorProperties> selector_properties);
+void compute_monomial_and_coset_selector_forms(bonk::proving_key* key,
+                                               std::vector<SelectorProperties> selector_properties);
 
 /**
  * Compute witness polynomials (w_1, w_2, w_3, w_4) and put them into polynomial cache
@@ -56,9 +56,9 @@ void compute_monomial_selector_forms_and_put_into_cache(bonk::proving_key* key,
  * @tparam Program settings needed to establish if w_4 is being used.
  * */
 template <typename CircuitConstructor>
-std::vector<barretenberg::polynomial> compute_witness_base_common(const CircuitConstructor& circuit_constructor,
-                                                                  const size_t minimum_circuit_size,
-                                                                  const size_t number_of_randomized_gates);
+std::vector<barretenberg::polynomial> compute_witness_base(const CircuitConstructor& circuit_constructor,
+                                                           const size_t minimum_circuit_size,
+                                                           const size_t number_of_randomized_gates);
 
 /**
  * @brief Computes the verification key by computing the:

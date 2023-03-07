@@ -52,8 +52,6 @@ template <typename CircuitConstructor> class StandardHonkComposerHelper {
     std::shared_ptr<bonk::proving_key> compute_proving_key(const CircuitConstructor& circuit_constructor);
     std::shared_ptr<bonk::verification_key> compute_verification_key(const CircuitConstructor& circuit_constructor);
 
-    void compute_witness(const CircuitConstructor& circuit_constructor) { compute_witness_base(circuit_constructor); }
-
     StandardVerifier create_verifier(const CircuitConstructor& circuit_constructor);
 
     template <typename Flavor> StandardProver create_prover(const CircuitConstructor& circuit_constructor);
@@ -70,7 +68,7 @@ template <typename CircuitConstructor> class StandardHonkComposerHelper {
         std::shared_ptr<bonk::proving_key> const& proving_key,
         std::shared_ptr<bonk::VerifierReferenceString> const& vrs);
 
-    void compute_witness_base(const CircuitConstructor& circuit_constructor, const size_t minimum_circuit_size = 0);
+    void compute_witness(const CircuitConstructor& circuit_constructor, const size_t minimum_circuit_size = 0);
 };
 
 } // namespace honk

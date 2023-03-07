@@ -39,7 +39,7 @@ std::shared_ptr<bonk::proving_key> StandardPlonkComposerHelper<CircuitConstructo
     // Compute lagrange selectors
     put_selectors_in_polynomial_cache(constructor, circuit_proving_key.get());
     // Compute selectors in monomial form
-    compute_monomial_selector_forms_and_put_into_cache(circuit_proving_key.get(), standard_selector_properties());
+    compute_monomial_and_coset_selector_forms(circuit_proving_key.get(), standard_selector_properties());
 
     return circuit_proving_key;
 }
@@ -68,15 +68,15 @@ std::shared_ptr<bonk::verification_key> StandardPlonkComposerHelper<CircuitConst
  * @tparam Program settings needed to establish if w_4 is being used.
  * */
 template <typename CircuitConstructor>
-void StandardPlonkComposerHelper<CircuitConstructor>::compute_witness_base(
-    const CircuitConstructor& circuit_constructor, const size_t minimum_circuit_size)
+void StandardPlonkComposerHelper<CircuitConstructor>::compute_witness(const CircuitConstructor& circuit_constructor,
+                                                                      const size_t minimum_circuit_size)
 {
 
     if (computed_witness) {
         return;
     }
     auto wire_polynomial_evaluations =
-        compute_witness_base_common(circuit_constructor, minimum_circuit_size, NUM_RANDOMIZED_GATES);
+        compute_witness_base(circuit_constructor, minimum_circuit_size, NUM_RANDOMIZED_GATES);
 
     for (size_t j = 0; j < program_width; ++j) {
         std::string index = std::to_string(j + 1);

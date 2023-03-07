@@ -1,3 +1,9 @@
+/**
+ * @file composer_helper_lib.cpp
+ * @brief Contains implementations of some of the functions used both by Honk and Plonk-style composers (excluding
+ * permutation functions)
+ *
+ */
 #include "composer_helper_lib.hpp"
 #include <honk/pcs/commitment_key.hpp>
 #include <honk/circuit_constructors/standard_circuit_constructor.hpp>
@@ -76,8 +82,8 @@ void put_selectors_in_polynomial_cache(const CircuitConstructor& circuit_constru
  * @param key Pointer to the proving key
  * @param selector_properties Names of selectors
  */
-void compute_monomial_selector_forms_and_put_into_cache(bonk::proving_key* circuit_proving_key,
-                                                        std::vector<SelectorProperties> selector_properties)
+void compute_monomial_and_coset_selector_forms(bonk::proving_key* circuit_proving_key,
+                                               std::vector<SelectorProperties> selector_properties)
 {
     for (size_t i = 0; i < selector_properties.size(); i++) {
         // Compute monomial form of selector polynomial
@@ -111,9 +117,9 @@ void compute_monomial_selector_forms_and_put_into_cache(bonk::proving_key* circu
  * @tparam Program settings needed to establish if w_4 is being used.
  * */
 template <typename CircuitConstructor>
-std::vector<barretenberg::polynomial> compute_witness_base_common(const CircuitConstructor& circuit_constructor,
-                                                                  const size_t minimum_circuit_size,
-                                                                  const size_t number_of_randomized_gates)
+std::vector<barretenberg::polynomial> compute_witness_base(const CircuitConstructor& circuit_constructor,
+                                                           const size_t minimum_circuit_size,
+                                                           const size_t number_of_randomized_gates)
 {
     const size_t program_width = CircuitConstructor::program_width;
     const size_t num_gates = circuit_constructor.num_gates;
@@ -204,7 +210,7 @@ template std::shared_ptr<bonk::proving_key> initialize_proving_key<StandardCircu
     const StandardCircuitConstructor&, bonk::ReferenceStringFactory*, const size_t, const size_t, plonk::ComposerType);
 template void put_selectors_in_polynomial_cache<StandardCircuitConstructor>(const StandardCircuitConstructor&,
                                                                             bonk::proving_key*);
-template std::vector<barretenberg::polynomial> compute_witness_base_common<StandardCircuitConstructor>(
+template std::vector<barretenberg::polynomial> compute_witness_base<StandardCircuitConstructor>(
     const StandardCircuitConstructor&, const size_t, const size_t);
 
 } // namespace bonk
