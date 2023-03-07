@@ -66,7 +66,6 @@ template <typename settings> ProverBase<settings>& ProverBase<settings>::operato
 /**
  * - Compute wire commitments and add them to the transcript.
  * - Add public_inputs from w_2_fft to transcript.
- * - We use Lagrange srs to commit to wire polynomials (in their Lagrange form).
  *
  * @tparam settings Program settings.
  * */
@@ -77,9 +76,11 @@ template <typename settings> void ProverBase<settings>::compute_wire_commitments
     for (size_t i = 0; i < end; ++i) {
         std::string wire_tag = "w_" + std::to_string(i + 1);
         std::string commit_tag = "W_" + std::to_string(i + 1);
-        barretenberg::fr* coefficients = key->polynomial_cache.get(wire_tag + "_lagrange").get_coefficients();
+        barretenberg::fr* coefficients = key->polynomial_cache.get(wire_tag).get_coefficients();
+
         // This automatically saves the computed point to the transcript
-        commitment_scheme->commit(coefficients, commit_tag, work_queue::MSMType::LAGRANGE_N, queue);
+        fr domain_size_flag = i > 2 ? work_queue::MSMType::MONOMIAL_N : work_queue::MSMType::MONOMIAL_N_PLUS_ONE;
+        commitment_scheme->commit(coefficients, commit_tag, domain_size_flag, queue);
     }
 
     // add public inputs
@@ -207,6 +208,19 @@ template <typename settings> void ProverBase<settings>::execute_preamble_round()
 
         key->polynomial_cache.put(wire_tag + "_lagrange", std::move(wire_lagrange));
     }
+
+    // perform an IFFT so that the "w_i" polynomial cache will contain the monomial form
+    const size_t end = settings::is_plookup ? (settings::program_width - 1) : settings::program_width;
+    for (size_t i = 0; i < end; ++i) {
+        std::string wire_tag = "w_" + std::to_string(i + 1);
+        queue.add_to_queue({
+            .work_type = work_queue::WorkType::IFFT,
+            .mul_scalars = nullptr,
+            .tag = wire_tag,
+            .constant = 0,
+            .index = 0,
+        });
+    }
 }
 
 /**
@@ -242,19 +256,6 @@ template <typename settings> void ProverBase<settings>::execute_first_round()
     start = std::chrono::steady_clock::now();
 #endif
     compute_wire_commitments();
-
-    // perfom an IFFT so that the "w_i" polynomials will contain the monomial form
-    const size_t end = settings::is_plookup ? (settings::program_width - 1) : settings::program_width;
-    for (size_t i = 0; i < end; ++i) {
-        std::string wire_tag = "w_" + std::to_string(i + 1);
-        queue.add_to_queue({
-            .work_type = work_queue::WorkType::IFFT,
-            .mul_scalars = nullptr,
-            .tag = wire_tag,
-            .constant = 0,
-            .index = 0,
-        });
-    }
 
     for (auto& widget : random_widgets) {
         widget->compute_round_commitments(transcript, 1, queue);
