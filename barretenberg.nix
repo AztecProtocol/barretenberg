@@ -1,5 +1,7 @@
 { overrideCC, llvmPackages, cmake, lib, callPackage, binaryen, gcc11 }:
 let
+  # As per https://discourse.nixos.org/t/gcc11stdenv-and-clang/17734/7
+  # But it seems to break the wasm build
   stdenv = overrideCC llvmPackages.stdenv (llvmPackages.clang.override { gccForLibs = gcc11.cc; });
   optionals = lib.lists.optionals;
   targetPlatform = stdenv.targetPlatform;
