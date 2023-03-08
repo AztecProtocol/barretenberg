@@ -197,7 +197,7 @@ void work_queue::process_queue()
         // most expensive op
         case WorkType::SCALAR_MULTIPLICATION: {
 
-            auto msm_size = static_cast<size_t>(item.constant);
+            auto msm_size = static_cast<size_t>(static_cast<uint256_t>(item.constant));
 
             ASSERT(msm_size <= key->reference_string->get_monomial_size());
 
