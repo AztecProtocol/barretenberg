@@ -221,7 +221,7 @@ template <typename settings> void Prover<settings>::execute_preamble_round()
  * */
 template <typename settings> void Prover<settings>::execute_wire_commitments_round()
 {
-    // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
+    queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
     compute_wire_commitments();
 
     // Add public inputs to transcript from the second wire polynomial
@@ -251,16 +251,16 @@ template <typename settings> void Prover<settings>::execute_tables_round()
  * */
 template <typename settings> void Prover<settings>::execute_grand_product_computation_round()
 {
-    // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
+    queue.flush_queue();
 
     transcript.apply_fiat_shamir("beta");
 
     auto beta = transcript.get_challenge_field_element("beta", 0);
     auto gamma = transcript.get_challenge_field_element("beta", 1);
     z_permutation = compute_grand_product_polynomial(beta, gamma);
-    // The actual polynomial is of length n+1, but commitment key is just n, so we need to limit it
-    auto commitment = commitment_key->commit(z_permutation);
-    transcript.add_element("Z_PERM", commitment.to_buffer());
+
+    std::string label = "Z_PERM";
+    commitment_key->queue_commitment(z_permutation, label, queue);
 
     prover_polynomials[POLYNOMIAL::Z_PERM] = z_permutation;
     prover_polynomials[POLYNOMIAL::Z_PERM_SHIFT] = z_permutation.shifted();
@@ -387,7 +387,7 @@ template <typename settings> plonk::proof& Prover<settings>::construct_proof()
     // Fiat-Shamir: beta & gamma
     // Compute grand product(s) and commitments.
     execute_grand_product_computation_round();
-    // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
+    queue.process_queue();
 
     // Fiat-Shamir: alpha
     // Run sumcheck subprotocol.
