@@ -1,4 +1,5 @@
 #include "./transcript_wrappers.hpp"
+#include "manifest.hpp"
 #include <vector>
 
 namespace transcript {
