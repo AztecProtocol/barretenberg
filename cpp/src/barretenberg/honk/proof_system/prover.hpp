@@ -24,6 +24,7 @@
 namespace honk {
 
 using Fr = barretenberg::fr;
+using Polynomial = barretenberg::Polynomial<Fr>;
 
 template <typename settings> class Prover {
 
@@ -60,6 +61,9 @@ template <typename settings> class Prover {
 
     // Container for spans of all polynomials required by the prover (i.e. all multivariates evaluated by Sumcheck).
     std::array<std::span<Fr>, bonk::StandardArithmetization::POLYNOMIAL::COUNT> prover_polynomials;
+
+    std::vector<Polynomial> fold_polynomials;
+    std::vector<Fr> opening_point; // MLE opening point 'u'
 
     // Honk only needs a small portion of the functionality but may be fine to use existing work_queue
     // NOTE: this is not currently in use, but it may well be used in the future.

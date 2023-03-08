@@ -290,16 +290,18 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
 
 /**
  * - Get rho challenge
- * - Compute d+1 Fold polynomials and their evaluations.
- *
+ * - Compute d-1 polynomials Fold^(i), i = 1, ..., d-1.
+ * - Add computation of commitments [Fold_i], i = 1, ..., d-1 to work queue.
+ * - Note: The (d-1)-many [Fold_i] are added to the transcript by the queue.
  * */
 template <typename settings> void Prover<settings>::execute_univariatization_round()
 {
+    queue.flush_queue(); // not necessary?
+
     const size_t NUM_POLYNOMIALS = bonk::StandardArithmetization::NUM_POLYNOMIALS;
     const size_t NUM_UNSHIFTED_POLYS = bonk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
 
     // Construct MLE opening point u = (u_0, ..., u_{d-1})
-    std::vector<Fr> opening_point; // u
     for (size_t round_idx = 0; round_idx < key->log_circuit_size; round_idx++) {
         std::string label = "u_" + std::to_string(round_idx);
         opening_point.emplace_back(transcript.get_challenge_field_element(label));
@@ -308,6 +310,7 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     // Generate batching challenge ρ and powers 1,ρ,…,ρᵐ⁻¹
     transcript.apply_fiat_shamir("rho");
     Fr rho = Fr::serialize_from_buffer(transcript.get_challenge("rho").begin());
+    info("rho = ", rho);
     std::vector<Fr> rhos = Gemini::powers_of_rho(rho, NUM_POLYNOMIALS);
 
     // Get vector of multivariate evaluations produced by Sumcheck
@@ -321,23 +324,40 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     Polynomial batched_poly_to_be_shifted(key->circuit_size); // batched to-be-shifted polynomials
     batched_poly_to_be_shifted.add_scaled(prover_polynomials[POLYNOMIAL::Z_PERM], rhos[NUM_UNSHIFTED_POLYS]);
 
+    // Reserve space for d+1 Fold polynomials
+    //
+    // At the end, the first two will contain the batched polynomial
+    // partially evaluated at the challenges r,-r.
+    // The other d-1 polynomials correspond to the foldings of A₀
+    fold_polynomials.reserve(key->log_circuit_size + 1);
+    fold_polynomials.emplace_back(batched_poly_unshifted);
+    fold_polynomials.emplace_back(batched_poly_to_be_shifted);
+
     // Compute d+1 Fold polynomials and their evaluations
-    gemini_output = Gemini::reduce_prove(commitment_key,
-                                         opening_point,
-                                         std::move(batched_poly_unshifted),
-                                         std::move(batched_poly_to_be_shifted),
-                                         &transcript);
+    Gemini::compute_fold_polynomials(opening_point, fold_polynomials);
+
+    for (size_t l = 0; l < key->log_circuit_size - 1; ++l) {
+        std::string label = "FOLD_" + std::to_string(l + 1);
+        commitment_key->queue_commitment(fold_polynomials[l + 2], label, queue);
+    }
 }
 
 /**
  * - Do Fiat-Shamir to get "r" challenge
- * - Compute evaluations of folded polynomials.
+ * - Compute remaining two partially evaluated Fold polynomials Fold_{r}^(0) and Fold_{-r}^(0).
+ * - Compute and aggregate opening pairs (query, evaluation) for each of d Fold polynomials.
+ * - Add d-many Fold evaluations a_i, i = 0, ..., d-1 to the transcript, excluding eval of Fold_{r}^(0)
  * */
 template <typename settings> void Prover<settings>::execute_pcs_evaluation_round()
 {
-    // TODO(luke): This functionality is performed within Gemini::reduce_prove(), called in the previous round. In the
-    // future we could (1) split the Gemini functionality to match the round structure defined here, or (2) remove this
-    // function from the prover. The former may be necessary to maintain the work_queue paradigm.
+    transcript.apply_fiat_shamir("r");
+    const Fr r_challenge = Fr::serialize_from_buffer(transcript.get_challenge("r").begin());
+
+    gemini_output = Gemini::compute_fold_polynomial_evals(opening_point, std::move(fold_polynomials), r_challenge);
+
+    for (size_t l = 0; l < key->log_circuit_size; ++l) {
+        transcript.add_element("a_" + std::to_string(l), gemini_output.opening_pairs[l + 1].evaluation.to_buffer());
+    }
 }
 
 /**
@@ -398,7 +418,7 @@ template <typename settings> plonk::proof& Prover<settings>::construct_proof()
     // Fiat-Shamir: rho
     // Compute Fold polynomials and their commitments.
     execute_univariatization_round();
-    // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
+    queue.process_queue();
 
     // Fiat-Shamir: r
     // Compute Fold evaluations

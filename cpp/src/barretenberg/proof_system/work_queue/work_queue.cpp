@@ -1,4 +1,5 @@
 #include "work_queue.hpp"
+#include "common/assert.hpp"
 
 #include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"
@@ -198,36 +199,14 @@ void work_queue::process_queue()
             // We use the variable work_item::constant to set the size of the multi-scalar multiplication.
             // Note that a size (n+1) MSM is always needed to commit to the quotient polynomial parts t_1, t_2
             // and t_3 for Standard/Turbo/Ultra due to the addition of blinding factors
-            size_t msm_size = 0;
-            barretenberg::g1::affine_element* srs_points;
-            switch (static_cast<size_t>(uint256_t(item.constant))) {
-            case MSMType::MONOMIAL_N: {
-                if (key->reference_string->get_monomial_size() < key->small_domain.size) {
-                    info("MSM: Monomial reference string size: ",
-                         key->reference_string->get_monomial_size(),
-                         ", required size: ",
-                         key->small_domain.size);
-                }
-                msm_size = key->small_domain.size;
-                srs_points = key->reference_string->get_monomial_points();
-                break;
-            }
-            case MSMType::MONOMIAL_N_PLUS_ONE: {
-                if (key->reference_string->get_monomial_size() < key->small_domain.size + 1) {
-                    info("MSM: Monomial reference string size: ",
-                         key->reference_string->get_monomial_size(),
-                         ", required size: ",
-                         key->small_domain.size + 1);
-                }
-                msm_size = key->small_domain.size + 1;
-                srs_points = key->reference_string->get_monomial_points();
-                break;
-            }
-            default: {
-                info("Incorrect item constant value: ", static_cast<size_t>(uint256_t(item.constant)));
-                srs_points = key->reference_string->get_monomial_points();
-            }
-            }
+            size_t msm_size = static_cast<size_t>(uint256_t(item.constant));
+            info("msm_size = ", msm_size);
+            info("monomial_size = ", key->reference_string->get_monomial_size());
+            ASSERT(msm_size > 0);
+            ASSERT(msm_size <= key->reference_string->get_monomial_size());
+
+            barretenberg::g1::affine_element* srs_points = key->reference_string->get_monomial_points();
+            ;
 
             // Run pippenger multi-scalar multiplication.
             auto runtime_state = barretenberg::scalar_multiplication::pippenger_runtime_state(msm_size);

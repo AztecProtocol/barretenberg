@@ -80,7 +80,7 @@ class CommitmentKey {
             .work_type = bonk::work_queue::WorkType::SCALAR_MULTIPLICATION,
             .mul_scalars = coefficients,
             .tag = commitment_tag,
-            .constant = bonk::work_queue::MSMType::MONOMIAL_N,
+            .constant = polynomial.size(),
             .index = 0,
         });
     };
