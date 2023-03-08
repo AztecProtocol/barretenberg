@@ -1,5 +1,6 @@
-{ llvmPackages, stdenv, cmake, lib, callPackage, binaryen }:
+{ llvmPackages, cmake, lib, callPackage, binaryen }:
 let
+  stdenv = llvmPackages.stdenv;
   optionals = lib.lists.optionals;
   targetPlatform = stdenv.targetPlatform;
   toolchain_file = ./cpp/cmake/toolchains/${targetPlatform.system}.cmake;
