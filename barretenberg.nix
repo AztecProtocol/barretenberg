@@ -1,6 +1,6 @@
-{ llvmPackages, cmake, lib, callPackage, binaryen }:
+{ overrideCC, llvmPackages, cmake, lib, callPackage, binaryen, gcc11 }:
 let
-  stdenv = llvmPackages.stdenv;
+  stdenv = overrideCC llvmPackages.stdenv (llvmPackages.clang.override { gccForLibs = gcc11.cc; });
   optionals = lib.lists.optionals;
   targetPlatform = stdenv.targetPlatform;
   toolchain_file = ./cpp/cmake/toolchains/${targetPlatform.system}.cmake;
