@@ -4,9 +4,6 @@
 #include <gtest/gtest.h>
 // test currently doesn't construct or verify proof, but hey, why not.
 #include "barretenberg/honk/composer/standard_honk_composer.hpp"
-// #include <plonk/composer/standard_composer.hpp>
-// #include <plonk/composer/turbo_composer.hpp>
-// #include <plonk/composer/ultra_composer.hpp>
 
 #include "barretenberg/numeric/random/engine.hpp"
 
