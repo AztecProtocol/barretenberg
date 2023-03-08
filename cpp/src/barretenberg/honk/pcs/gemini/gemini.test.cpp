@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <gtest/gtest.h>
 #include <span>
+#include <vector>
 
 namespace honk::pcs::gemini {
 
@@ -12,6 +13,7 @@ template <class Params> class GeminiTest : public CommitmentTest<Params> {
     using Gemini = MultilinearReductionScheme<Params>;
     using Fr = typename Params::Fr;
     using Commitment = typename Params::Commitment;
+    using CommitmentAffine = typename Params::C;
     using Polynomial = typename barretenberg::Polynomial<Fr>;
 
   public:
@@ -37,30 +39,47 @@ template <class Params> class GeminiTest : public CommitmentTest<Params> {
             batched_evaluation += multilinear_evaluations[i] * rhos[i];
         }
 
-        Polynomial batched_unshifted(1 << log_n);
-        Polynomial batched_to_be_shifted(1 << log_n);
+        Polynomial batched_poly_unshifted(1 << log_n);
+        Polynomial batched_poly_to_be_shifted(1 << log_n);
         Commitment batched_commitment_unshifted = Commitment::zero();
         Commitment batched_commitment_to_be_shifted = Commitment::zero();
         const size_t num_unshifted = multilinear_polynomials.size();
         const size_t num_shifted = multilinear_polynomials_to_be_shifted.size();
         for (size_t i = 0; i < num_unshifted; ++i) {
-            batched_unshifted.add_scaled(multilinear_polynomials[i], rhos[i]);
+            batched_poly_unshifted.add_scaled(multilinear_polynomials[i], rhos[i]);
             batched_commitment_unshifted += multilinear_commitments[i] * rhos[i];
         }
         for (size_t i = 0; i < num_shifted; ++i) {
             size_t rho_idx = num_unshifted + i;
-            batched_to_be_shifted.add_scaled(multilinear_polynomials_to_be_shifted[i], rhos[rho_idx]);
+            batched_poly_to_be_shifted.add_scaled(multilinear_polynomials_to_be_shifted[i], rhos[rho_idx]);
             batched_commitment_to_be_shifted += multilinear_commitments_to_be_shifted[i] * rhos[rho_idx];
         }
+
+        std::vector<Polynomial> fold_polynomials;
+        fold_polynomials.emplace_back(batched_poly_unshifted);
+        fold_polynomials.emplace_back(batched_poly_to_be_shifted);
 
         // Compute:
         // - (d+1) opening pairs: {r, \hat{a}_0}, {-r^{2^i}, a_i}, i = 0, ..., d-1
         // - (d+1) Fold polynomials Fold_{r}^(0), Fold_{-r}^(0), and Fold^(i), i = 0, ..., d-1
-        auto prover_output = Gemini::reduce_prove(this->ck(),
-                                                  multilinear_evaluation_point,
-                                                  std::move(batched_unshifted),
-                                                  std::move(batched_to_be_shifted),
-                                                  transcript);
+        Gemini::compute_fold_polynomials(multilinear_evaluation_point, fold_polynomials);
+
+        for (size_t l = 0; l < log_n - 1; ++l) {
+            std::string label = "FOLD_" + std::to_string(l + 1);
+            auto commitment = this->ck()->commit(fold_polynomials[l + 2]);
+            transcript->add_element(label, static_cast<CommitmentAffine>(commitment).to_buffer());
+        }
+
+        transcript->apply_fiat_shamir("r");
+        const Fr r_challenge = Fr::serialize_from_buffer(transcript->get_challenge("r").begin());
+
+        auto prover_output = Gemini::compute_fold_polynomial_evals(
+            multilinear_evaluation_point, std::move(fold_polynomials), r_challenge);
+
+        for (size_t l = 0; l < log_n; ++l) {
+            transcript->add_element("a_" + std::to_string(l),
+                                    prover_output.opening_pairs[l + 1].evaluation.to_buffer());
+        }
 
         // Check that the Fold polynomials have been evaluated correctly in the prover
         this->verify_batch_opening_pair(prover_output.opening_pairs, prover_output.witnesses);
