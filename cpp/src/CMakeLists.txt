@@ -38,6 +38,7 @@ else()
     message(STATUS "Using optimized assembly for field arithmetic.")
 endif()
 
+add_subdirectory(barretenberg/common)
 add_subdirectory(barretenberg/env)
 add_subdirectory(barretenberg/numeric)
 add_subdirectory(barretenberg/srs)
