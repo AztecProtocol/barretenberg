@@ -14,6 +14,7 @@
 #include "barretenberg/stdlib/primitives/bigfield/bigfield.hpp"
 #include "barretenberg/stdlib/primitives/biggroup/biggroup.hpp"
 #include "barretenberg/stdlib/hash/pedersen/pedersen.hpp"
+#include "batrretenberg/stdlib/hash/pedersen/pedersen_plookup.hpp"
 #include "barretenberg/stdlib/merkle_tree/hash_path.hpp"
 #include "barretenberg/stdlib/encryption/schnorr/schnorr.hpp"
 #include "barretenberg/stdlib/primitives/curves/bn254.hpp"

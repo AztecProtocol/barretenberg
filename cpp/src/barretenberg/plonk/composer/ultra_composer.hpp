@@ -11,7 +11,7 @@ class UltraComposer : public ComposerBase {
 
   public:
     static constexpr ComposerType type = ComposerType::PLOOKUP;
-    static constexpr MerkleHashType merkle_hash_type = MerkleHashType::FIXED_BASE_PEDERSEN;
+    static constexpr MerkleHashType merkle_hash_type = MerkleHashType::LOOKUP_PEDERSEN;
     static constexpr size_t NUM_RESERVED_GATES = 4; // This must be >= num_roots_cut_out_of_vanishing_polynomial
                                                     // See the comment in plonk/proof_system/prover/prover.cpp
                                                     // ProverBase::compute_quotient_commitments() for why 4 exactly.
@@ -137,7 +137,7 @@ class UltraComposer : public ComposerBase {
         std::vector<RomRecord> records;
     };
 
-    enum UltraSelectors { QM, QC, Q1, Q2, Q3, Q4, QARITH, QFIXED, QSORT, QELLIPTIC, QAUX, QLOOKUPTYPE, NUM };
+    enum UltraSelectors { QM, QC, Q1, Q2, Q3, Q4, QARITH, QSORT, QELLIPTIC, QAUX, QLOOKUPTYPE, NUM };
 
     UltraComposer();
     UltraComposer(std::string const& crs_path, const size_t size_hint = 0);
@@ -169,10 +169,6 @@ class UltraComposer : public ComposerBase {
     void create_mul_gate(const mul_triple& in) override;
     void create_bool_gate(const uint32_t a) override;
     void create_poly_gate(const poly_triple& in) override;
-    void create_fixed_group_add_gate(const fixed_group_add_quad& in);
-    void create_fixed_group_add_gate_with_init(const fixed_group_add_quad& in, const fixed_group_init_quad& init);
-    void create_fixed_group_add_gate_final(const add_quad& in);
-
     void create_ecc_add_gate(const ecc_add_gate& in);
 
     void fix_witness(const uint32_t witness_index, const barretenberg::fr& witness_value);
@@ -521,6 +517,17 @@ class UltraComposer : public ComposerBase {
     std::vector<uint32_t> recursive_proof_public_input_indices;
     bool contains_recursive_proof = false;
 
+    /**
+     * Program Manifests
+     **/
+
+    /**
+     * @brief Create a manifest object
+     *
+     * @note UltraPlonk manifest does not use linearisation trick
+     * @param num_public_inputs
+     * @return transcript::Manifest
+     */
     static transcript::Manifest create_manifest(const size_t num_public_inputs)
     {
         // add public inputs....
@@ -595,7 +602,6 @@ class UltraComposer : public ComposerBase {
                       { "q_sort", fr_size, false, 14 },     // *
                       { "q_elliptic", fr_size, false, 15 }, // *
                       { "q_aux", fr_size, false, 16 },
-                      { "q_fixed_base", fr_size, false, 30 },
                       { "sigma_1", fr_size, false, 17 },
                       { "sigma_2", fr_size, false, 18 },
                       { "sigma_3", fr_size, false, 19 },
@@ -635,6 +641,23 @@ class UltraComposer : public ComposerBase {
                   ) });
 
         return output;
+    }
+
+    // @note 'unrolled' means "don't use linearisation techniques from the plonk paper".
+    /**
+     * @brief Create a unrolled manifest object
+     *
+     * @note UP rolled/unrolled manifests are the same. Difference between regulur && unrolled Prover/Verifier is that
+     * unrolled Prover/Verifier uses 16-byte challenges and a SNARK-friendly hash algorithm to generate challenges.
+     * (i.e. unrolled Prover/Verifier is used in recursive setting)
+     *
+     * TODO: remove linearisation trick entirely from barretenberg and relabel `unrolled` to `recursive`!
+     * @param num_public_inputs
+     * @return transcript::Manifest
+     */
+    static transcript::Manifest create_unrolled_manifest(const size_t num_public_inputs)
+    {
+        return create_manifest(num_public_inputs);
     }
 };
 } // namespace plonk

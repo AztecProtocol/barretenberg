@@ -2,6 +2,7 @@
 #include "pedersen_plookup.hpp"
 #include "barretenberg/crypto/pedersen/pedersen.hpp"
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
+#include "pedersen_gates.hpp"
 
 #include "../../primitives/composers/composers.hpp"
 #include "../../primitives/packed_byte_array/packed_byte_array.hpp"
@@ -195,6 +196,7 @@ point<C> pedersen<C>::hash_single(const field_t& in,
      *
      * where x_{α,i} is decided based on the corresponding quad value.
      */
+    pedersen_gates<C> gates(ctx);
     fr x_alpha = accumulator_offset;
     std::vector<uint32_t> accumulator_witnesses;
     for (size_t i = 0; i < num_quads; ++i) {
@@ -221,7 +223,7 @@ point<C> pedersen<C>::hash_single(const field_t& in,
         round_quad.q_y_2 = ladder[i + 1].q_y_2;
 
         if (i > 0) {
-            ctx->create_fixed_group_add_gate(round_quad);
+            gates.create_fixed_group_add_gate(round_quad);
         } else {
             if constexpr (C::type == plonk::PLOOKUP &&
                           C::merkle_hash_type == plonk::MerkleHashType::FIXED_BASE_PEDERSEN) {
@@ -255,7 +257,7 @@ point<C> pedersen<C>::hash_single(const field_t& in,
                                       .const_scaling = init_quad.q_x_2 };
                 ctx->create_big_mul_gate(x_init_quad);
             }
-            ctx->create_fixed_group_add_gate_with_init(round_quad, init_quad);
+            gates.create_fixed_group_add_gate_with_init(round_quad, init_quad);
         };
 
         accumulator_witnesses.push_back(round_quad.d);
@@ -272,7 +274,7 @@ point<C> pedersen<C>::hash_single(const field_t& in,
                        fr::zero(),
                        fr::zero(),
                        fr::zero() };
-    ctx->create_fixed_group_add_gate_final(add_quad);
+    gates.create_fixed_group_add_gate_final(add_quad);
     accumulator_witnesses.push_back(add_quad.d);
 
     point result;
