@@ -1,15 +1,10 @@
-{ overrideCC, llvmPackages, cmake, lib, callPackage, binaryen, gcc11 }:
+{ llvmPackages, stdenv, cmake, lib, callPackage, binaryen }:
 let
   optionals = lib.lists.optionals;
-  targetPlatform = llvmPackages.stdenv.targetPlatform;
-  buildEnv =
-    if (targetPlatform.isLinux) then
-      overrideCC llvmPackages.stdenv (llvmPackages.clang.override { gccForLibs = gcc11.cc; })
-    else
-      llvmPackages.stdenv;
+  targetPlatform = stdenv.targetPlatform;
   toolchain_file = ./cpp/cmake/toolchains/${targetPlatform.system}.cmake;
 in
-buildEnv.mkDerivation
+stdenv.mkDerivation
 {
   pname = "libbarretenberg";
   version = "0.1.0";

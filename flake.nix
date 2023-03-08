@@ -12,7 +12,11 @@
       barretenbergOverlay = self: super: {
         # It seems that llvmPackages_11 can't build WASI, so default to llvmPackages_12
         barretenberg = super.callPackage ./barretenberg.nix {
-          llvmPackages = self.llvmPackages_12;
+          stdenv =
+            if (self.stdenv.targetPlatform.isLinux) then
+              with self; overrideCC llvmPackages_12.stdenv (llvmPackages.clang.override { gccForLibs = gcc11.cc; })
+            else
+              self.llvmPackages_12.stdenv;
         };
       };
     in
@@ -50,16 +54,16 @@
         in
         rec {
           packages = {
-            llvm11 = pkgs.barretenberg.override {
-              llvmPackages = pkgs.llvmPackages_11;
-            };
+            # llvm11 = pkgs.barretenberg.override {
+            #   llvmPackages = pkgs.llvmPackages_11;
+            # };
             llvm12 = pkgs.barretenberg;
-            llvm13 = pkgs.barretenberg.override {
-              llvmPackages = pkgs.llvmPackages_13;
-            };
-            llvm14 = pkgs.barretenberg.override {
-              llvmPackages = pkgs.llvmPackages_14;
-            };
+            # llvm13 = pkgs.barretenberg.override {
+            #   llvmPackages = pkgs.llvmPackages_13;
+            # };
+            # llvm14 = pkgs.barretenberg.override {
+            #   llvmPackages = pkgs.llvmPackages_14;
+            # };
             wasm32 = pkgs.pkgsCross.wasi32.barretenberg;
 
             # Defaulting to llvm12 so we can ensure consistent shells
