@@ -98,6 +98,15 @@ template <typename Params> class MultilinearReductionScheme {
     using Polynomial = barretenberg::Polynomial<Fr>;
 
   public:
+    /**
+     * @brief Computes d-1 fold polynomials Fold_i, i = 1, ..., d-1
+     *
+     * @param mle_opening_point u = (u₀,...,uₘ₋₁) is the MLE opening point
+     * @param fold_polynomials vector of polynomials whose first two elements are F(X) = ∑ⱼ ρʲfⱼ(X)
+     * and G(X) = ∑ⱼ ρᵏ⁺ʲ gⱼ(X), i.e. the batched unshifted polynomials and the batched to-be-shifted
+     * polynomials. This function populates the next d-1 elements with Fold_i, i = 1, ..., d-1.
+     *
+     */
     static void compute_fold_polynomials(std::span<const Fr> mle_opening_point, auto& fold_polynomials)
     {
         const size_t num_variables = mle_opening_point.size(); // m
@@ -141,8 +150,16 @@ template <typename Params> class MultilinearReductionScheme {
         }
     };
 
+    /**
+     * @brief Computes/aggragates d+1 Fold polynomials and their opening pairs (query, evaluation)
+     *
+     * @param mle_opening_point u = (u₀,...,uₘ₋₁) is the MLE opening point
+     * @param fold_polynomials vector of polynomials whose first two elements are F(X) = ∑ⱼ ρʲfⱼ(X)
+     * and G(X) = ∑ⱼ ρᵏ⁺ʲ gⱼ(X), and the next d-1 elements are Fold_i, i = 1, ..., d-1.
+     * @param r_challenge univariate opening challenge
+     */
     static ProverOutput<Params> compute_fold_polynomial_evals(std::span<const Fr> mle_opening_point,
-                                                              auto&& fold_polynomials, /* unshifted */
+                                                              std::vector<Polynomial>&& fold_polynomials,
                                                               const Fr& r_challenge)
     {
         const size_t num_variables = mle_opening_point.size(); // m
@@ -282,8 +299,6 @@ template <typename Params> class MultilinearReductionScheme {
         transcript->apply_fiat_shamir("r");
         const Fr r_challenge = Fr::serialize_from_buffer(transcript->get_challenge("r").begin());
         std::vector<Fr> r_squares = squares_of_r(r_challenge, num_variables);
-
-        info("r_challenge = ", r_challenge);
 
         /*
          * Compute the witness polynomials for the resulting claim

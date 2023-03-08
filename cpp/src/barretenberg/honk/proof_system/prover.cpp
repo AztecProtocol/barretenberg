@@ -221,7 +221,7 @@ template <typename settings> void Prover<settings>::execute_preamble_round()
  * */
 template <typename settings> void Prover<settings>::execute_wire_commitments_round()
 {
-    queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
+    queue.flush_queue();
     compute_wire_commitments();
 
     // Add public inputs to transcript from the second wire polynomial
@@ -296,7 +296,7 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
  * */
 template <typename settings> void Prover<settings>::execute_univariatization_round()
 {
-    queue.flush_queue(); // not necessary?
+    queue.flush_queue();
 
     const size_t NUM_POLYNOMIALS = bonk::StandardArithmetization::NUM_POLYNOMIALS;
     const size_t NUM_UNSHIFTED_POLYS = bonk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
@@ -310,7 +310,6 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     // Generate batching challenge ρ and powers 1,ρ,…,ρᵐ⁻¹
     transcript.apply_fiat_shamir("rho");
     Fr rho = Fr::serialize_from_buffer(transcript.get_challenge("rho").begin());
-    info("rho = ", rho);
     std::vector<Fr> rhos = Gemini::powers_of_rho(rho, NUM_POLYNOMIALS);
 
     // Get vector of multivariate evaluations produced by Sumcheck
@@ -333,7 +332,7 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     fold_polynomials.emplace_back(batched_poly_unshifted);
     fold_polynomials.emplace_back(batched_poly_to_be_shifted);
 
-    // Compute d+1 Fold polynomials and their evaluations
+    // Compute d-1 polynomials Fold^(i), i = 1, ..., d-1.
     Gemini::compute_fold_polynomials(opening_point, fold_polynomials);
 
     for (size_t l = 0; l < key->log_circuit_size - 1; ++l) {
@@ -395,7 +394,7 @@ template <typename settings> plonk::proof& Prover<settings>::construct_proof()
 
     // Compute wire commitments; Add PI to transcript
     execute_wire_commitments_round();
-    queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
+    queue.process_queue();
 
     // Currently a no-op; may execute some "random widgets", commit to W_4, do RAM/ROM stuff
     // if this prover structure is kept when we bring tables to Honk.

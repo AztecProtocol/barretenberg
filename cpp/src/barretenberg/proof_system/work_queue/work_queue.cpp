@@ -196,17 +196,12 @@ void work_queue::process_queue()
         switch (item.work_type) {
         // most expensive op
         case WorkType::SCALAR_MULTIPLICATION: {
-            // We use the variable work_item::constant to set the size of the multi-scalar multiplication.
-            // Note that a size (n+1) MSM is always needed to commit to the quotient polynomial parts t_1, t_2
-            // and t_3 for Standard/Turbo/Ultra due to the addition of blinding factors
-            size_t msm_size = static_cast<size_t>(uint256_t(item.constant));
-            info("msm_size = ", msm_size);
-            info("monomial_size = ", key->reference_string->get_monomial_size());
-            ASSERT(msm_size > 0);
+
+            auto msm_size = static_cast<size_t>(item.constant);
+
             ASSERT(msm_size <= key->reference_string->get_monomial_size());
 
             barretenberg::g1::affine_element* srs_points = key->reference_string->get_monomial_points();
-            ;
 
             // Run pippenger multi-scalar multiplication.
             auto runtime_state = barretenberg::scalar_multiplication::pippenger_runtime_state(msm_size);
