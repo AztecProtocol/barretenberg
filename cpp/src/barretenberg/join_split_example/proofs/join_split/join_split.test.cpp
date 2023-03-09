@@ -360,7 +360,7 @@ class join_split_tests : public ::testing::Test {
         return tx;
     }
 
-    bonk::proof sign_and_create_proof(join_split_tx& tx, key_pair const& signing_key)
+    plonk::proof sign_and_create_proof(join_split_tx& tx, key_pair const& signing_key)
     {
         tx.signature = sign_join_split_tx(tx, signing_key);
 

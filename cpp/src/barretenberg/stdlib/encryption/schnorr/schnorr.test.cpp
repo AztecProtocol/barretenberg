@@ -38,7 +38,7 @@ auto run_scalar_mul_test = [](grumpkin::fr scalar_mont, bool expect_verify) {
     info("composer gates = %zu\n", composer.get_num_gates());
     auto verifier = composer.create_verifier();
 
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, expect_verify);
@@ -157,7 +157,7 @@ TEST(stdlib_schnorr, convert_field_into_wnaf)
     info("composer gates = %zu\n", composer.get_num_gates());
     auto verifier = composer.create_verifier();
 
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -211,7 +211,7 @@ TEST(stdlib_schnorr, verify_signature)
         auto prover = composer.create_prover();
         info("composer gates = %zu\n", composer.get_num_gates());
         auto verifier = composer.create_verifier();
-        bonk::proof proof = prover.construct_proof();
+        plonk::proof proof = prover.construct_proof();
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
     }
@@ -257,7 +257,7 @@ TEST(stdlib_schnorr, verify_signature_failure)
     info("composer gates = %zu\n", composer.get_num_gates());
     auto verifier = composer.create_verifier();
 
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool verification_result = verifier.verify_proof(proof);
     EXPECT_EQ(verification_result, false);
@@ -294,7 +294,7 @@ TEST(stdlib_schnorr, signature_verification_result)
     plonk::stdlib::types::Prover prover = composer.create_prover();
     info("composer gates = %zu\n", composer.get_num_gates());
     plonk::stdlib::types::Verifier verifier = composer.create_verifier();
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
 }
@@ -338,7 +338,7 @@ TEST(stdlib_schnorr, signature_verification_result_failure)
     plonk::stdlib::types::Prover prover = composer.create_prover();
     info("composer gates = %zu\n", composer.get_num_gates());
     plonk::stdlib::types::Verifier verifier = composer.create_verifier();
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
     bool verification_result = verifier.verify_proof(proof);
     EXPECT_EQ(verification_result, true);
 }

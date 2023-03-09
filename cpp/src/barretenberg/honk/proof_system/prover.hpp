@@ -48,8 +48,8 @@ template <typename settings> class Prover {
 
     void construct_prover_polynomials();
 
-    bonk::proof& export_proof();
-    bonk::proof& construct_proof();
+    plonk::proof& export_proof();
+    plonk::proof& construct_proof();
 
     transcript::StandardTranscript transcript;
 
@@ -88,7 +88,7 @@ template <typename settings> class Prover {
     using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
 
   private:
-    bonk::proof proof;
+    plonk::proof proof;
 };
 
 extern template class Prover<plonk::standard_settings>;

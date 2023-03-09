@@ -136,7 +136,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
             verification_key_pt::from_witness(&outer_composer, verification_key_native);
 
         info("Constructing the ultra (inner) proof ...");
-        bonk::proof recursive_proof = prover.construct_proof();
+        plonk::proof recursive_proof = prover.construct_proof();
 
         {
             // Native check is mainly for comparison vs circuit version of the verifier.
@@ -188,7 +188,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         std::shared_ptr<verification_key_pt> verification_key =
             verification_key_pt::from_witness(&outer_composer, verification_key_native);
 
-        bonk::proof recursive_proof_a = prover.construct_proof();
+        plonk::proof recursive_proof_a = prover.construct_proof();
 
         transcript::Manifest recursive_manifest = InnerComposer::create_manifest(prover.key->num_public_inputs);
 
@@ -206,7 +206,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         std::shared_ptr<verification_key_pt> verification_key_b =
             verification_key_pt::from_witness(&outer_composer, verification_key_b_raw);
 
-        bonk::proof recursive_proof_b = prover.construct_proof();
+        plonk::proof recursive_proof_b = prover.construct_proof();
 
         stdlib::recursion::recursion_output<outer_curve> output =
             stdlib::recursion::verify_proof<outer_curve, RecursiveSettings>(
@@ -263,7 +263,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
             }
         }
 
-        bonk::proof recursive_proof = proof_type ? prover_a.construct_proof() : prover_b.construct_proof();
+        plonk::proof recursive_proof = proof_type ? prover_a.construct_proof() : prover_b.construct_proof();
 
         transcript::Manifest recursive_manifest = InnerComposer::create_manifest(prover_a.key->num_public_inputs);
 
@@ -314,7 +314,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         auto verifier = outer_composer.create_verifier();
 
         info("creating outer proof for outer circuit");
-        bonk::proof proof = prover.construct_proof();
+        plonk::proof proof = prover.construct_proof();
         info("created outer proof");
 
         info("verifying the outer proof");
@@ -359,7 +359,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         auto verifier = outer_composer.create_verifier();
 
         info("creating outer proof for outer circuit");
-        bonk::proof proof = prover.construct_proof();
+        plonk::proof proof = prover.construct_proof();
         info("created outer proof");
 
         info("verifying the outer proof");
@@ -413,7 +413,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         auto verifier = outer_composer.create_verifier();
 
         std::cout << "validated. creating proof" << std::endl;
-        bonk::proof proof = prover.construct_proof();
+        plonk::proof proof = prover.construct_proof();
         std::cout << "created proof" << std::endl;
 
         bool result = verifier.verify_proof(proof);
@@ -461,7 +461,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
         auto verifier = outer_composer.create_verifier();
 
-        bonk::proof proof = prover.construct_proof();
+        plonk::proof proof = prover.construct_proof();
 
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
@@ -508,7 +508,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
         auto verifier = outer_composer.create_verifier();
 
-        bonk::proof proof = prover.construct_proof();
+        plonk::proof proof = prover.construct_proof();
 
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
@@ -553,7 +553,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
         auto verifier = outer_composer.create_verifier();
 
-        bonk::proof proof = prover.construct_proof();
+        plonk::proof proof = prover.construct_proof();
 
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, false);
@@ -598,7 +598,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
         auto verifier = outer_composer.create_verifier();
 
-        bonk::proof proof = prover.construct_proof();
+        plonk::proof proof = prover.construct_proof();
 
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);

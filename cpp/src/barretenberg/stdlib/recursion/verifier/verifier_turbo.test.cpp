@@ -76,7 +76,7 @@ template <typename OuterComposer> class stdlib_verifier_turbo : public testing::
         const auto verification_key_raw = inner_composer_a.compute_verification_key();
         std::shared_ptr<verification_key_pt> verification_key =
             verification_key_pt::from_witness(&outer_composer, verification_key_raw);
-        bonk::proof recursive_proof_a = prover.construct_proof();
+        plonk::proof recursive_proof_a = prover.construct_proof();
 
         transcript::Manifest recursive_manifest = InnerComposer::create_manifest(prover.key->num_public_inputs);
 
@@ -89,7 +89,7 @@ template <typename OuterComposer> class stdlib_verifier_turbo : public testing::
         const auto verification_key_b_raw = inner_composer_b.compute_verification_key();
         std::shared_ptr<verification_key_pt> verification_key_b =
             verification_key_pt::from_witness(&outer_composer, verification_key_b_raw);
-        bonk::proof recursive_proof_b = prover_b.construct_proof();
+        plonk::proof recursive_proof_b = prover_b.construct_proof();
 
         stdlib::recursion::recursion_output<outer_curve> output =
             stdlib::recursion::verify_proof<outer_curve, recursive_settings>(
@@ -154,7 +154,7 @@ template <typename OuterComposer> class stdlib_verifier_turbo : public testing::
                 verification_key->validate_key_is_in_set({ verification_key_raw_a, verification_key_raw_b });
             }
         }
-        bonk::proof recursive_proof = proof_type ? prover_a.construct_proof() : prover_b.construct_proof();
+        plonk::proof recursive_proof = proof_type ? prover_a.construct_proof() : prover_b.construct_proof();
         transcript::Manifest recursive_manifest = InnerComposer::create_manifest(prover_a.key->num_public_inputs);
         stdlib::recursion::recursion_output<outer_curve> output =
             stdlib::recursion::verify_proof<outer_curve, recursive_settings>(
@@ -200,7 +200,7 @@ template <typename OuterComposer> class stdlib_verifier_turbo : public testing::
         auto verifier = outer_composer.create_verifier();
 
         std::cout << "validated. creating proof" << std::endl;
-        bonk::proof proof = prover.construct_proof();
+        plonk::proof proof = prover.construct_proof();
         std::cout << "created proof" << std::endl;
 
         bool result = verifier.verify_proof(proof);
@@ -251,7 +251,7 @@ template <typename OuterComposer> class stdlib_verifier_turbo : public testing::
         auto verifier = outer_composer.create_verifier();
 
         std::cout << "validated. creating proof" << std::endl;
-        bonk::proof proof = prover.construct_proof();
+        plonk::proof proof = prover.construct_proof();
         std::cout << "created proof" << std::endl;
 
         bool result = verifier.verify_proof(proof);
@@ -299,7 +299,7 @@ template <typename OuterComposer> class stdlib_verifier_turbo : public testing::
 
         auto verifier = outer_composer.create_verifier();
 
-        bonk::proof proof = prover.construct_proof();
+        plonk::proof proof = prover.construct_proof();
 
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
@@ -346,7 +346,7 @@ template <typename OuterComposer> class stdlib_verifier_turbo : public testing::
 
         auto verifier = outer_composer.create_verifier();
 
-        bonk::proof proof = prover.construct_proof();
+        plonk::proof proof = prover.construct_proof();
 
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
@@ -391,7 +391,7 @@ template <typename OuterComposer> class stdlib_verifier_turbo : public testing::
 
         auto verifier = outer_composer.create_verifier();
 
-        bonk::proof proof = prover.construct_proof();
+        plonk::proof proof = prover.construct_proof();
 
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, false);
@@ -436,7 +436,7 @@ template <typename OuterComposer> class stdlib_verifier_turbo : public testing::
 
         auto verifier = outer_composer.create_verifier();
 
-        bonk::proof proof = prover.construct_proof();
+        plonk::proof proof = prover.construct_proof();
 
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);

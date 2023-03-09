@@ -361,13 +361,13 @@ template <typename settings> void Prover<settings>::execute_kzg_round()
     KZG::reduce_prove(commitment_key, shplonk_output.opening_pair, shplonk_output.witness, &transcript);
 }
 
-template <typename settings> bonk::proof& Prover<settings>::export_proof()
+template <typename settings> plonk::proof& Prover<settings>::export_proof()
 {
     proof.proof_data = transcript.export_transcript();
     return proof;
 }
 
-template <typename settings> bonk::proof& Prover<settings>::construct_proof()
+template <typename settings> plonk::proof& Prover<settings>::construct_proof()
 {
     // Add circuit size and public input size to transcript.
     execute_preamble_round();

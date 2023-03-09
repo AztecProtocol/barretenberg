@@ -249,7 +249,7 @@ TEST(verifier, verify_arithmetic_proof_small)
     auto verifier = verifier_helpers::generate_verifier(state.key);
 
     // construct proof
-    bonk::proof proof = state.construct_proof();
+    plonk::proof proof = state.construct_proof();
 
     // verify proof
     bool result = verifier.verify_proof(proof);
@@ -267,7 +267,7 @@ TEST(verifier, verify_arithmetic_proof)
     auto verifier = verifier_helpers::generate_verifier(state.key);
 
     // construct proof
-    bonk::proof proof = state.construct_proof();
+    plonk::proof proof = state.construct_proof();
 
     // verify proof
     bool result = verifier.verify_proof(proof);
@@ -285,7 +285,7 @@ TEST(verifier, verify_damaged_proof)
     auto verifier = verifier_helpers::generate_verifier(state.key);
 
     // Create empty proof
-    bonk::proof proof = {};
+    plonk::proof proof = {};
 
     // verify proof
     EXPECT_ANY_THROW(verifier.verify_proof(proof));

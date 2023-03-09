@@ -522,7 +522,7 @@ TEST(turbo_composer, range_constraint_fail)
 
     auto verifier = composer.create_verifier();
 
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
 

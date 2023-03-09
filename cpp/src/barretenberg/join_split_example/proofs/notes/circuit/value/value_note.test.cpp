@@ -36,7 +36,7 @@ TEST(value_note, commits)
     printf("composer gates = %zu\n", composer.get_num_gates());
     auto verifier = composer.create_verifier();
 
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool proof_result = verifier.verify_proof(proof);
     EXPECT_EQ(proof_result, true);
@@ -70,7 +70,7 @@ TEST(value_note, commits_with_0_value)
     printf("composer gates = %zu\n", composer.get_num_gates());
     auto verifier = composer.create_verifier();
 
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool proof_result = verifier.verify_proof(proof);
     EXPECT_EQ(proof_result, true);
@@ -102,7 +102,7 @@ TEST(value_note, commit_with_oversized_asset_id_fails)
     printf("composer gates = %zu\n", composer.get_num_gates());
     auto verifier = composer.create_verifier();
 
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool proof_result = verifier.verify_proof(proof);
     EXPECT_EQ(proof_result, false);

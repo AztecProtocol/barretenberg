@@ -558,13 +558,13 @@ template <typename settings> void ProverBase<settings>::compute_lagrange_1_fft()
     key->polynomial_cache.put("lagrange_1_fft", std::move(lagrange_1_fft));
 }
 
-template <typename settings> bonk::proof& ProverBase<settings>::export_proof()
+template <typename settings> plonk::proof& ProverBase<settings>::export_proof()
 {
     proof.proof_data = transcript.export_transcript();
     return proof;
 }
 
-template <typename settings> bonk::proof& ProverBase<settings>::construct_proof()
+template <typename settings> plonk::proof& ProverBase<settings>::construct_proof()
 {
     // Execute init round. Randomize witness polynomials.
     execute_preamble_round();

@@ -19,7 +19,7 @@ template <typename program_settings> class VerifierBase {
     bool validate_commitments();
     bool validate_scalars();
 
-    bool verify_proof(const bonk::proof& proof);
+    bool verify_proof(const plonk::proof& proof);
     transcript::Manifest manifest;
 
     std::shared_ptr<verification_key> key;

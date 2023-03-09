@@ -23,7 +23,7 @@ template <typename program_settings> class Verifier {
     Verifier& operator=(const Verifier& other) = delete;
     Verifier& operator=(Verifier&& other);
 
-    bool verify_proof(const bonk::proof& proof);
+    bool verify_proof(const plonk::proof& proof);
     transcript::Manifest manifest;
 
     std::shared_ptr<bonk::verification_key> key;

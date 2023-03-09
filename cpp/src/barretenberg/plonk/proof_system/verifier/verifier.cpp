@@ -36,7 +36,7 @@ VerifierBase<program_settings>& VerifierBase<program_settings>::operator=(Verifi
     return *this;
 }
 
-template <typename program_settings> bool VerifierBase<program_settings>::verify_proof(const bonk::proof& proof)
+template <typename program_settings> bool VerifierBase<program_settings>::verify_proof(const plonk::proof& proof)
 {
     // This function verifies a PLONK proof for given program settings.
     // A PLONK proof for standard PLONK is of the form:

@@ -111,7 +111,7 @@ bool turbo_verify_proof(
 
         TurboComposer composer(nullptr, verification_key);
         create_circuit(composer, constraint_system);
-        bonk::proof pp = { std::vector<uint8_t>(proof, proof + length) };
+        plonk::proof pp = { std::vector<uint8_t>(proof, proof + length) };
 
         auto verifier = composer.create_verifier();
 

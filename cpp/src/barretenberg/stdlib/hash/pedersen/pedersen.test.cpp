@@ -161,7 +161,7 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
         printf("composer gates = %zu\n", composer.get_num_gates());
         auto verifier = composer.create_verifier();
 
-        bonk::proof proof = prover.construct_proof();
+        plonk::proof proof = prover.construct_proof();
 
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
@@ -206,7 +206,7 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
         printf("composer gates = %zu\n", composer.get_num_gates());
         auto verifier = composer.create_verifier();
 
-        bonk::proof proof = prover.construct_proof();
+        plonk::proof proof = prover.construct_proof();
 
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
@@ -274,7 +274,7 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
         printf("composer gates = %zu\n", composer.get_num_gates());
         auto verifier = composer.create_verifier();
 
-        bonk::proof proof = prover.construct_proof();
+        plonk::proof proof = prover.construct_proof();
 
         bool result = verifier.verify_proof(proof);
         EXPECT_EQ(result, true);
@@ -304,7 +304,7 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
         printf("composer gates = %zu\n", composer.get_num_gates());
         auto verifier = composer.create_verifier();
 
-        bonk::proof proof = prover.construct_proof();
+        plonk::proof proof = prover.construct_proof();
 
         bool proof_result = verifier.verify_proof(proof);
         EXPECT_EQ(proof_result, true);
@@ -360,7 +360,7 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
         printf("composer gates = %zu\n", composer.get_num_gates());
         auto verifier = composer.create_verifier();
 
-        bonk::proof proof = prover.construct_proof();
+        plonk::proof proof = prover.construct_proof();
 
         bool proof_result = verifier.verify_proof(proof);
         EXPECT_EQ(proof_result, true);
@@ -473,7 +473,7 @@ TEST(stdlib_pedersen, test_pedersen_plookup)
     printf("composer gates = %zu\n", composer.get_num_gates());
     auto verifier = composer.create_verifier();
 
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool proof_result = verifier.verify_proof(proof);
     EXPECT_EQ(proof_result, true);
@@ -505,7 +505,7 @@ TEST(stdlib_pedersen, test_compress_many_plookup)
     printf("composer gates = %zu\n", composer.get_num_gates());
     auto verifier = composer.create_verifier();
 
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool proof_result = verifier.verify_proof(proof);
     EXPECT_EQ(proof_result, true);
@@ -536,7 +536,7 @@ TEST(stdlib_pedersen, test_merkle_damgard_compress_plookup)
     printf("composer gates = %zu\n", composer.get_num_gates());
     auto verifier = composer.create_verifier();
 
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool proof_result = verifier.verify_proof(proof);
     EXPECT_EQ(proof_result, true);

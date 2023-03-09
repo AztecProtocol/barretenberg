@@ -19,7 +19,7 @@ TEST(standard_composer, base_case)
     plonk::Prover prover = composer.create_prover();
     plonk::Verifier verifier = composer.create_verifier();
 
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
     EXPECT_EQ(result, true);
@@ -47,7 +47,7 @@ TEST(standard_composer, composer_from_serialized_keys)
     plonk::Prover prover = composer2.create_prover();
     plonk::Verifier verifier = composer2.create_verifier();
 
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -106,7 +106,7 @@ TEST(standard_composer, test_add_gate_proofs)
 
     plonk::Verifier verifier = composer.create_verifier();
 
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
     EXPECT_EQ(result, true);
@@ -185,7 +185,7 @@ TEST(standard_composer, test_mul_gate_proofs)
 
     plonk::Verifier verifier = composer.create_verifier();
 
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
@@ -227,7 +227,7 @@ TEST(standard_composer, range_constraint)
 
     plonk::Verifier verifier = composer.create_verifier();
 
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
 
@@ -247,7 +247,7 @@ TEST(standard_composer, range_constraint_fail)
 
     plonk::Verifier verifier = composer.create_verifier();
 
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
 
@@ -318,7 +318,7 @@ TEST(standard_composer, and_constraint)
 
     plonk::Verifier verifier = composer.create_verifier();
 
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
 
@@ -388,7 +388,7 @@ TEST(standard_composer, xor_constraint)
 
     plonk::Verifier verifier = composer.create_verifier();
 
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
 
@@ -432,7 +432,7 @@ TEST(standard_composer, big_add_gate_with_bit_extract)
 
     plonk::Verifier verifier = composer.create_verifier();
 
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
 
@@ -449,7 +449,7 @@ TEST(standard_composer, test_range_constraint_fail)
 
     plonk::Verifier verifier = composer.create_verifier();
 
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
 
@@ -545,7 +545,7 @@ TEST(standard_composer, test_fixed_group_add_gate_with_init)
 
     plonk::Verifier verifier = composer.create_verifier();
 
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
 
@@ -668,7 +668,7 @@ TEST(standard_composer, test_fixed_group_add_gate)
 
     plonk::Verifier verifier = composer.create_verifier();
 
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     bool result = verifier.verify_proof(proof);
 

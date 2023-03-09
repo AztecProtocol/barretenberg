@@ -49,7 +49,7 @@ void generate_test_pedersen_circuit(plonk::TurboComposer& turbo_composer, size_t
 
 plonk::TurboProver pedersen_provers[NUM_CIRCUITS];
 plonk::TurboVerifier pedersen_verifiers[NUM_CIRCUITS];
-bonk::proof pedersen_proofs[NUM_CIRCUITS];
+plonk::proof pedersen_proofs[NUM_CIRCUITS];
 
 grumpkin::fq pedersen_function(const size_t count)
 {

@@ -220,7 +220,7 @@ TYPED_TEST(VerifierTests, VerifyArithmeticProofSmall)
     StandardVerifier verifier = TestFixture::generate_verifier(prover.key);
 
     // construct proof
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
 
     // verify proof
     bool result = verifier.verify_proof(proof);

@@ -415,7 +415,7 @@ TEST(StandardHonkComposer, BaseCase)
     composer.circuit_constructor.add_variable(a);
 
     auto prover = composer.create_prover();
-    bonk::proof proof = prover.construct_proof();
+    plonk::proof proof = prover.construct_proof();
     auto verifier = composer.create_verifier();
     bool verified = verifier.verify_proof(proof);
     ASSERT_TRUE(verified);
@@ -445,7 +445,7 @@ TEST(StandardHonkComposer, TwoGates)
 
         auto prover = composer.create_prover();
 
-        bonk::proof proof = prover.construct_proof();
+        plonk::proof proof = prover.construct_proof();
         auto verifier = composer.create_verifier();
         bool verified = verifier.verify_proof(proof);
         EXPECT_EQ(verified, expect_verified);
