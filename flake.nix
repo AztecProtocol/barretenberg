@@ -34,6 +34,7 @@
               } ++ optional (pkgs.hostPlatform.isx86_64 && pkgs.hostPlatform.isDarwin) {
                 name = "cross-aarch64";
                 value = pkgs.pkgsCross.aarch64-darwin.barretenberg.override {
+                  # llvmPackages_12 seems to fail when we try to cross-compile but llvmPackages_11 works
                   llvmPackages = pkgs.llvmPackages_11;
                 };
               }
