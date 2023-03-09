@@ -33,7 +33,9 @@
                 value = pkgs.pkgsCross.aarch64-multiplatform.barretenberg;
               } ++ optional (pkgs.hostPlatform.isx86_64 && pkgs.hostPlatform.isDarwin) {
                 name = "cross-aarch64";
-                value = pkgs.pkgsCross.aarch64-darwin.barretenberg;
+                value = pkgs.pkgsCross.aarch64-darwin.barretenberg.override {
+                  llvmPackages = pkgs.llvmPackages_11;
+                };
               }
             );
 
