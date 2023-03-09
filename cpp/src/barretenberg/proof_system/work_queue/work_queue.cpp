@@ -1,6 +1,6 @@
 #include "work_queue.hpp"
-#include "common/assert.hpp"
-#include "numeric/uint256/uint256.hpp"
+#include "barretenberg/common/assert.hpp"
+#include "barretenberg/numeric/uint256/uint256.hpp"
 
 #include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"

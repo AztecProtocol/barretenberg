@@ -11,6 +11,7 @@
 #include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/ecc/curves/bn254/pairing.hpp"
 #include "barretenberg/numeric/bitop/pow.hpp"
+#include "barretenberg/proof_system/work_queue/work_queue.hpp"
 
 #include <string_view>
 #include <memory>
