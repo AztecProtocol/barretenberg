@@ -59,6 +59,8 @@ template <typename settings> class Prover {
 
     std::shared_ptr<bonk::proving_key> key;
 
+    std::shared_ptr<pcs::kzg::CommitmentKey> commitment_key;
+
     // Container for spans of all polynomials required by the prover (i.e. all multivariates evaluated by Sumcheck).
     std::array<std::span<Fr>, bonk::StandardArithmetization::POLYNOMIAL::COUNT> prover_polynomials;
 
@@ -66,8 +68,6 @@ template <typename settings> class Prover {
     std::vector<Fr> opening_point;            // MLE opening point 'u'
 
     work_queue queue;
-
-    std::shared_ptr<pcs::kzg::CommitmentKey> commitment_key;
 
     // This makes 'settings' accesible from Prover
     using settings_ = settings;

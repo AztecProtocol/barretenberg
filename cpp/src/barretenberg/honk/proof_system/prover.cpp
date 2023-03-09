@@ -43,11 +43,10 @@ Prover<settings>::Prover(std::vector<barretenberg::polynomial>&& wire_polys,
     : transcript(input_manifest, settings::hash_type, settings::num_challenge_bytes)
     , wire_polynomials(wire_polys)
     , key(input_key)
-    , queue(input_key.get(), &transcript) // TODO(Adrian): explore whether it's needed
     , commitment_key(std::make_unique<pcs::kzg::CommitmentKey>(
           input_key->circuit_size,
           "../srs_db/ignition")) // TODO(Cody): Need better constructors for prover.
-// , queue(proving_key.get(), &transcript)
+    , queue(input_key.get(), &transcript)
 {
     // Note(luke): This could be done programmatically with some hacks but this isnt too bad and its nice to see the
     // polys laid out explicitly.
@@ -323,11 +322,9 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     Polynomial batched_poly_to_be_shifted(key->circuit_size); // batched to-be-shifted polynomials
     batched_poly_to_be_shifted.add_scaled(prover_polynomials[POLYNOMIAL::Z_PERM], rhos[NUM_UNSHIFTED_POLYS]);
 
-    // Reserve space for d+1 Fold polynomials
-    //
-    // At the end, the first two will contain the batched polynomial
-    // partially evaluated at the challenges r,-r.
-    // The other d-1 polynomials correspond to the foldings of A₀
+    // Reserve space for d+1 Fold polynomials. At the end of this round, the last d-1 polynomials will
+    // correspond to Fold^(i). At the end of the full Gemini prover protocol, the first two will
+    // be the partially evaluated Fold polynomials Fold_{r}^(0) and Fold_{-r}^(0).
     fold_polynomials.reserve(key->log_circuit_size + 1);
     fold_polynomials.emplace_back(batched_poly_unshifted);
     fold_polynomials.emplace_back(batched_poly_to_be_shifted);

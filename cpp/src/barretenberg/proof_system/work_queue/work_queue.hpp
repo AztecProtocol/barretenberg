@@ -8,7 +8,6 @@ class work_queue {
 
   public:
     enum WorkType { FFT, SMALL_FFT, IFFT, SCALAR_MULTIPLICATION };
-    enum MSMType { MONOMIAL_N, MONOMIAL_N_PLUS_ONE };
 
     struct work_item_info {
         uint32_t num_scalar_multiplications;

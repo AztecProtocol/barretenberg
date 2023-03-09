@@ -1,5 +1,6 @@
 #include "work_queue.hpp"
 #include "common/assert.hpp"
+#include "numeric/uint256/uint256.hpp"
 
 #include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"
@@ -51,7 +52,7 @@ size_t work_queue::get_scalar_multiplication_size(const size_t work_item_number)
     for (const auto& item : work_item_queue) {
         if (item.work_type == WorkType::SCALAR_MULTIPLICATION) {
             if (count == work_item_number) {
-                return (item.constant == MSMType::MONOMIAL_N_PLUS_ONE) ? key->circuit_size + 1 : key->circuit_size;
+                return static_cast<size_t>(static_cast<uint256_t>(item.constant));
             }
             ++count;
         }

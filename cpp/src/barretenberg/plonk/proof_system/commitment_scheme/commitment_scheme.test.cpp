@@ -116,7 +116,7 @@ TEST(commitment_scheme, kate_batch_open)
     for (size_t k = 0; k < t; ++k) {
         challenges[k] = fr::random_element();
         tags[k] = "W_" + std::to_string(k + 1);
-        item_constants[k] = fr(n);
+        item_constants[k] = n;
     }
 
     // compute opening polynomials W_1, W_2, ..., W_t
