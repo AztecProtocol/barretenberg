@@ -210,6 +210,11 @@ The file ./Doxyfile is a config for doxygen. There are tons of options. For exam
 
 To generate the documentation: `doxygen Doxyfile`
 
-To browse the generated documentaiton, a good starting point is: ./doxydoc/html/annotated.html
+To browse the generated documentation, a good starting point is: ./doxydoc/html/index.html
 
 Reference: http://web.evolbio.mpg.de/~boettcher//other/2016/creating_source_graph.html
+
+#### Notes
+All words that contain a dot (.) that is not the last character in the word are considered to be file names. If the word is indeed the name of a documented input file, a link will automatically be created to the documentation of that file.
+
+Large delimiters (`\big(`, `\left(`, also the `cases` environment) are not natively supported.
