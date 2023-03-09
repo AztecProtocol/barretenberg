@@ -29,10 +29,10 @@
           crossTargets = builtins.listToAttrs
             (
               [ ] ++ optional (pkgs.hostPlatform.isx86_64 && pkgs.hostPlatform.isLinux) {
-                name = "cross-${pkgs.pkgsCross.aarch64-multiplatform-musl.system}";
-                value = pkgs.pkgsCross.aarch64-multiplatform-musl.pkgsLLVM.barretenberg;
+                name = "cross-aarch64";
+                value = pkgs.pkgsCross.aarch64-multiplatform.barretenberg;
               } ++ optional (pkgs.hostPlatform.isx86_64 && pkgs.hostPlatform.isDarwin) {
-                name = "cross-${pkgs.pkgsCross.aarch64-darwin.system}";
+                name = "cross-aarch64";
                 value = pkgs.pkgsCross.aarch64-darwin.barretenberg;
               }
             );

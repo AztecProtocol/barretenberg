@@ -10,7 +10,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        target: [llvm12, wasm32, cross-aarch64-linux]
+        target: [llvm12, wasm32, cross-aarch64]
 
     steps:
       - name: Checkout
