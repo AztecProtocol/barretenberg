@@ -2,7 +2,8 @@
 let
   # As per https://discourse.nixos.org/t/gcc11stdenv-and-clang/17734/7
   # But it seems to break the wasm build
-  stdenv = overrideCC llvmPackages.stdenv (llvmPackages.clang.override { gccForLibs = gcc11.cc; });
+  # stdenv = overrideCC llvmPackages.stdenv (llvmPackages.clang.override { gccForLibs = gcc11.cc; });
+  stdenv = llvmPackages.libcxxStdenv;
   optionals = lib.lists.optionals;
   targetPlatform = stdenv.targetPlatform;
   toolchain_file = ./cpp/cmake/toolchains/${targetPlatform.system}.cmake;
