@@ -174,26 +174,19 @@ template <typename Params> class MultilinearReductionScheme {
         // Compute univariate opening queries rₗ = r^{2ˡ} for l = 0, 1, ..., m-1
         std::vector<Fr> r_squares = squares_of_r(r_challenge, num_variables);
 
-        // 2 simulated polynomials and (m-1) polynomials from this round
+        // Compute G/r
         Fr r_inv = r_challenge.invert();
-        // G(X) *= r⁻¹
         batched_G *= r_inv;
 
-        // To avoid an extra allocation, we reuse the following polynomials
-        // but rename them to represent the result.
-        // tmp     = A₀(X) (&tmp     == &A_0)
-        // A_0_pos = F(X)  (&A_0_pos == &batched_F)
+        // Construct A₀₊ = F + G/r and A₀₋ = F - G/r in place in fold_polynomials
         Polynomial tmp = batched_F;
         Polynomial& A_0_pos = fold_polynomials[0];
 
-        // tmp = batched_F;
         // A₀₊(X) = F(X) + G(X)/r, s.t. A₀₊(r) = A₀(r)
         A_0_pos += batched_G;
 
+        // Perform a swap so that tmp = G(X)/r and A_0_neg = F(X)
         std::swap(tmp, batched_G);
-        // After the swap, we have
-        // tmp = G(X)/r
-        // A_0_neg = F(X) (since &batched_F == &A_0_neg)
         Polynomial& A_0_neg = fold_polynomials[1];
 
         // A₀₋(X) = F(X) - G(X)/r, s.t. A₀₋(-r) = A₀(-r)
@@ -202,14 +195,11 @@ template <typename Params> class MultilinearReductionScheme {
         std::vector<OpeningPair<Params>> fold_poly_opening_pairs;
         fold_poly_opening_pairs.reserve(num_variables + 1);
 
-        // Compute opening pair {r, A₀(r)}
+        // Compute first opening pair {r, A₀(r)}
         fold_poly_opening_pairs.emplace_back(
             OpeningPair<Params>{ r_challenge, fold_polynomials[0].evaluate(r_challenge) });
 
-        /*
-         * Compute the remaining m opening pairs {−r^{2ˡ}, Aₗ(−r^{2ˡ})}, l = 0, ..., m-1.
-         * Add them to the transcript
-         */
+        // Compute the remaining m opening pairs {−r^{2ˡ}, Aₗ(−r^{2ˡ})}, l = 0, ..., m-1.
         for (size_t l = 0; l < num_variables; ++l) {
             fold_poly_opening_pairs.emplace_back(
                 OpeningPair<Params>{ -r_squares[l], fold_polynomials[l + 1].evaluate(-r_squares[l]) });

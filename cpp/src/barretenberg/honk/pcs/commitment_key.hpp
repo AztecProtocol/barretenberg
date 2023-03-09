@@ -65,10 +65,9 @@ class CommitmentKey {
     };
 
     /**
-     * @brief Add computation of a polynomial commitment to the provided work queue
+     * @brief Add computation of commitment C = [p(x)] = ∑ᵢ aᵢ⋅[xⁱ]₁ to the provided work queue
      *
      * @param polynomial a univariate polynomial p(X) = ∑ᵢ aᵢ⋅Xⁱ ()
-     * @return Commitment computed as C = [p(x)] = ∑ᵢ aᵢ⋅[xⁱ]₁
      */
     void queue_commitment(Polynomial& polynomial, std::string& commitment_tag, bonk::work_queue& work_queue)
     {
