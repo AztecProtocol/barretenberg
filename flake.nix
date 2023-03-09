@@ -30,7 +30,7 @@
             (
               [ ] ++ optional (pkgs.hostPlatform.isx86_64 && pkgs.hostPlatform.isLinux) {
                 name = "cross-aarch64";
-                value = pkgs.pkgsCross.aarch64-multiplatform.barretenberg;
+                value = pkgs.pkgsCross.aarch64-multiplatform-musl.pkgsLLVM.barretenberg;
               } ++ optional (pkgs.hostPlatform.isx86_64 && pkgs.hostPlatform.isDarwin) {
                 name = "cross-aarch64";
                 value = pkgs.pkgsCross.aarch64-darwin.barretenberg.override {
