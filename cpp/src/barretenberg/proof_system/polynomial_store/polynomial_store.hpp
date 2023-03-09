@@ -6,7 +6,7 @@
 #include <map>
 namespace bonk {
 
-template <typename Fr> class PolynomialContainer {
+template <typename Fr> class PolynomialStore {
 
     using Polynomial = barretenberg::Polynomial<Fr>;
 
@@ -14,8 +14,12 @@ template <typename Fr> class PolynomialContainer {
     std::map<std::string, Polynomial> polynomial_map;
 
   public:
+    PolynomialStore() = default;
+    PolynomialStore(PolynomialStore&& other) noexcept = default;
+    PolynomialStore(PolynomialStore& other) noexcept = default;
+
     /**
-     * @brief Transfer ownership of a polynomial to the PolynomialContainer
+     * @brief Transfer ownership of a polynomial to the PolynomialStore
      *
      * @param key sting ID of the polynomial
      * @param value a Polynomial
@@ -23,7 +27,7 @@ template <typename Fr> class PolynomialContainer {
     inline void put(std::string const& key, Polynomial&& value) { polynomial_map[key] = std::move(value); };
 
     /**
-     * @brief Get a reference to a polynomial in the PolynomialContainer. Will throw exception if the
+     * @brief Get a reference to a polynomial in the PolynomialStore. Will throw exception if the
      * key does not exist in the map
      *
      * @param key sting ID of the polynomial
@@ -43,7 +47,7 @@ template <typename Fr> class PolynomialContainer {
     };
 
     /**
-     * @brief Get the current size (bytes) of all polynomials in the PolynomialContainer
+     * @brief Get the current size (bytes) of all polynomials in the PolynomialStore
      *
      * @return size_t
      */
@@ -57,13 +61,13 @@ template <typename Fr> class PolynomialContainer {
     };
 
     /**
-     * @brief Print a summary of the PolynomialContainer contents
+     * @brief Print a summary of the PolynomialStore contents
      *
      */
     inline void print()
     {
         double size_in_mb = static_cast<double>(get_size_in_bytes()) / 1e6;
-        info("\n PolynomialContainer contents (total size ", size_in_mb, " MB):");
+        info("\n PolynomialStore contents (total size ", size_in_mb, " MB):");
         for (auto& entry : polynomial_map) {
             size_t entry_bytes = entry.second.size() * sizeof(Fr);
             info(entry.first, " (", entry_bytes, " bytes): \t", entry.second);
