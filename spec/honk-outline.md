@@ -1,4 +1,4 @@
-$$
+<!-- $$
 \newcommand{\shift}{\circlearrowleft}
 \newcommand{\Fold}{\text{Fold}}
 \newcommand{\GeminiFold}{\text{GeminiFold}}
@@ -126,4 +126,4 @@ Here is a table representing the prover's algorithm:
 |                             |                                                                                 | $\nu$             |
 | Shplonk opening             | $[Q]_1$                                                                         |                   |
 |                             |                                                                                 | $z$               |
-| KZG quotient                | $[W]_1$                                                                         |                   |
+| KZG quotient                | $[W]_1$                                                                         |                   | -->
