@@ -97,7 +97,8 @@ void compute_monomial_and_coset_selector_forms(bonk::proving_key* circuit_provin
         barretenberg::polynomial selector_poly_fft(selector_poly, circuit_proving_key->circuit_size * 4 + 4);
         selector_poly_fft.coset_fft(circuit_proving_key->large_domain);
 
-        // Note(Kesha): Lagrange polynomials could be deleted from cache here since they are no longer needed.
+        // TODO(#215)(Luke/Kesha): Lagrange polynomials could be deleted from cache here since they are no longer
+        // needed.
 
         circuit_proving_key->polynomial_cache.put(selector_properties[i].name, std::move(selector_poly));
         circuit_proving_key->polynomial_cache.put(selector_properties[i].name + "_fft", std::move(selector_poly_fft));

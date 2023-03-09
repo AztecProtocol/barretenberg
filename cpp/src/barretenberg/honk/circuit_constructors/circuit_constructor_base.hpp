@@ -30,7 +30,7 @@ template <size_t program_width_> class CircuitConstructorBase {
     uint32_t current_tag = DUMMY_TAG;
     // The permutation on variable tags. See
     // https://github.com/AztecProtocol/plonk-with-lookups-private/blob/new-stuff/GenPermuations.pdf
-    // DOCTODO(#216): replace with the relevant wiki link.
+    // DOCTODO(#231): replace with the relevant wiki link.
     std::map<uint32_t, uint32_t> tau;
 
     size_t num_selectors;
@@ -198,7 +198,7 @@ template <size_t program_width_> class CircuitConstructorBase {
     virtual void assert_equal(const uint32_t a_idx, const uint32_t b_idx, std::string const& msg = "assert_equal");
 
     // TODO(#216)(Adrian): This method should belong in the ComposerHelper, where the number of reserved gates can be
-    // correctly set. Cody: I don't know, this method is about circuit construction, seems like it should be here.
+    // correctly set.
     size_t get_circuit_subgroup_size(const size_t num_gates) const
     {
         auto log2_n = static_cast<size_t>(numeric::get_msb(num_gates));
@@ -238,6 +238,7 @@ template <size_t program_width_> class CircuitConstructorBase {
 
 } // namespace bonk
 
+// TODO(#217)(Cody): This will need updating based on the approach we take to ensure no multivariate is zero.
 /**
  * Composer Example: Pythagorean triples.
  *
