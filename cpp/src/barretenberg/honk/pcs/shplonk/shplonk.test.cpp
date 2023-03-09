@@ -32,8 +32,7 @@ TYPED_TEST(ShplonkTest, ShplonkSimple)
     transcript->mock_inputs_prior_to_challenge("nu");
 
     // Generate two random (unrelated) polynomials of two different sizes, as well as their evaluations at a (single but
-    // different) random point and their commitments. In the real Honk protocol, these polynomials and commitments would
-    // come from the Gemini prover and verifier respectively.
+    // different) random point and their commitments.
     const auto r1 = Fr::random_element();
     auto poly1 = this->random_polynomial(n);
     const auto eval1 = poly1.evaluate(r1);

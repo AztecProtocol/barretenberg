@@ -71,6 +71,7 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
     using KZG = UnivariateOpeningScheme<TypeParam>;
     using Fr = typename TypeParam::Fr;
     using Commitment = typename TypeParam::Commitment;
+    using CommitmentAffine = typename TypeParam::C;
     using Polynomial = typename barretenberg::Polynomial<Fr>;
 
     const size_t n = 16;
@@ -114,6 +115,10 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
     batched_unshifted.add_scaled(poly2, rhos[1]);
     batched_to_be_shifted.add_scaled(poly2, rhos[2]);
 
+    std::vector<Polynomial> fold_polynomials;
+    fold_polynomials.emplace_back(batched_unshifted);
+    fold_polynomials.emplace_back(batched_to_be_shifted);
+
     // Compute batched commitments
     Commitment batched_commitment_unshifted = Commitment::zero();
     Commitment batched_commitment_to_be_shifted = Commitment::zero();
@@ -125,8 +130,25 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
     // Gemini prover output:
     // - opening pairs: d+1 pairs (r, a_0_pos) and (-r^{2^l}, a_l), l = 0:d-1
     // - witness: the d+1 polynomials Fold_{r}^(0), Fold_{-r}^(0), Fold^(l), l = 1:d-1
-    auto gemini_prover_output = Gemini::reduce_prove(
-        this->ck(), mle_opening_point, std::move(batched_unshifted), std::move(batched_to_be_shifted), transcript);
+
+    Gemini::compute_fold_polynomials(mle_opening_point, fold_polynomials);
+
+    for (size_t l = 0; l < log_n - 1; ++l) {
+        std::string label = "FOLD_" + std::to_string(l + 1);
+        auto commitment = this->ck()->commit(fold_polynomials[l + 2]);
+        transcript->add_element(label, static_cast<CommitmentAffine>(commitment).to_buffer());
+    }
+
+    transcript->apply_fiat_shamir("r");
+    const Fr r_challenge = Fr::serialize_from_buffer(transcript->get_challenge("r").begin());
+
+    auto gemini_prover_output =
+        Gemini::compute_fold_polynomial_evals(mle_opening_point, std::move(fold_polynomials), r_challenge);
+
+    for (size_t l = 0; l < log_n; ++l) {
+        transcript->add_element("a_" + std::to_string(l),
+                                gemini_prover_output.opening_pairs[l + 1].evaluation.to_buffer());
+    }
 
     // Shplonk prover output:
     // - opening pair: (z_challenge, 0)
