@@ -1,9 +1,13 @@
 { overrideCC, stdenv, llvmPackages, cmake, ninja, lib, callPackage, binaryen, gcc11 }:
 let
   targetPlatform = stdenv.targetPlatform;
-  # As per https://discourse.nixos.org/t/gcc11stdenv-and-clang/17734/7 but it seems to break the wasm build
-  # so we check to see if the targetPlatform is wasm and just the llvmPackages.stdenv
-  buildEnv = llvmPackages.stdenv;
+  buildEnv =
+    if (stdenv.targetPlatform.isLinux && stdenv.targetPlatform.isAarch64) then
+    # As per https://discourse.nixos.org/t/gcc11stdenv-and-clang/17734/7 since it seems that aarch64-linux uses
+    # gcc9 instead of gcc11 for the C++ stdlib, while all other targets we support provide the correct libstdc++
+      overrideCC llvmPackages.stdenv (llvmPackages.clang.override { gccForLibs = gcc11.cc; })
+    else
+      llvmPackages.stdenv;
   # buildEnv =
   #   if (stdenv.targetPlatform.isWasm) then
   #     llvmPackages.stdenv
