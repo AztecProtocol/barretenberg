@@ -2,7 +2,7 @@
 
 namespace honk::sumcheck {
 
-// TODO(Adrian): Remove zeta, alpha as they are not used by the relations.
+// TODO(#226)(Adrian): Remove zeta, alpha as they are not used by the relations.
 template <typename FF> struct RelationParameters {
     FF zeta;
     FF alpha;

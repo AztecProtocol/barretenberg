@@ -62,14 +62,14 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
 
     FF target_total_sum = 0;
 
-    // TODO(Cody): this barycentric stuff should be more built-in?
+    // TODO(#224)(Cody): this barycentric stuff should be more built-in?
     std::tuple<BarycentricData<FF, Relations<FF>::RELATION_LENGTH, MAX_RELATION_LENGTH>...> barycentric_utils;
     std::tuple<Univariate<FF, Relations<FF>::RELATION_LENGTH>...> univariate_accumulators;
     std::array<FF, NUM_RELATIONS> evaluations;
     std::array<Univariate<FF, MAX_RELATION_LENGTH>, num_multivariates> extended_edges;
     std::array<Univariate<FF, MAX_RELATION_LENGTH>, NUM_RELATIONS> extended_univariates;
 
-    // TODO(Cody): this should go away and we should use constexpr method to extend
+    // TODO(#224)(Cody): this should go away and we should use constexpr method to extend
     BarycentricData<FF, 2, MAX_RELATION_LENGTH> barycentric_2_to_max = BarycentricData<FF, 2, MAX_RELATION_LENGTH>();
 
     // Prover constructor
@@ -206,7 +206,7 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
      * together, with appropriate scaling factors, produces the expected value of the full Honk relation. This value is
      * checked against the final value of the target total sum, defined as sigma_d.
      */
-    // TODO(Cody): Input should be an array?
+    // TODO(#224)(Cody): Input should be an array?
     FF compute_full_honk_relation_purported_value(std::vector<FF>& purported_evaluations,
                                                   const RelationParameters<FF>& relation_parameters,
                                                   const PowUnivariate<FF>& pow_univariate)
@@ -293,7 +293,7 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
         }
     }
 
-    // TODO(Cody): make uniform with accumulate_relation_univariates
+    // TODO(#224)(Cody): make uniform with accumulate_relation_univariates
     /**
      * @brief Calculate the contribution of each relation to the expected value of the full Honk relation.
      *
@@ -303,7 +303,7 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
      * checked against the final value of the target total sum (called sigma_0 in the thesis).
      */
     template <size_t relation_idx = 0>
-    // TODO(Cody): Input should be an array?
+    // TODO(#224)(Cody): Input should be an array?
     void accumulate_relation_evaluations(std::vector<FF>& purported_evaluations,
                                          const RelationParameters<FF>& relation_parameters)
     {

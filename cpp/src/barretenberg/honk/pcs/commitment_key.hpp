@@ -24,7 +24,7 @@ namespace kzg {
  * The SRS is given as a list of 𝔾₁ points
  *  { [xʲ]₁ }ⱼ where 'x' is unknown.
  *
- * TODO(Adrian): This class should take ownership of the SRS, and handle reading the file from disk.
+ * TODO(#218)(Adrian): This class should take ownership of the SRS, and handle reading the file from disk.
  */
 class CommitmentKey {
     using Fr = typename barretenberg::g1::Fr;

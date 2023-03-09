@@ -190,7 +190,7 @@ template <class FF> class VerifierTests : public testing::Test {
         proving_key->polynomial_cache.put("q_m_lagrange", std::move(q_m));
         proving_key->polynomial_cache.put("q_c_lagrange", std::move(q_c));
 
-        // TODO(Cody): This should be more generic
+        // TODO(#223)(Cody): This should be more generic
         std::vector<barretenberg::polynomial> witness_polynomials;
         auto prover = StandardProver(
             std::move(witness_polynomials), proving_key, create_manifest(0, proving_key->log_circuit_size));
@@ -209,7 +209,7 @@ TYPED_TEST_SUITE(VerifierTests, FieldTypes);
 
 // This test is modeled after a corresponding test for the Plonk Verifier. As is the case there, this test relies on
 // valid proof construction which makes the scope quite large. Not really a unit test but a nice test nonetheless.
-// TODO(Luke/Cody): Make this a meaningful test (or remove altogether)
+// TODO(#223)(Luke/Cody): Make this a meaningful test (or remove altogether)
 TYPED_TEST(VerifierTests, VerifyArithmeticProofSmall)
 {
     GTEST_SKIP() << "It's good to have a standalone test, but for now we just rely on composer tests.";

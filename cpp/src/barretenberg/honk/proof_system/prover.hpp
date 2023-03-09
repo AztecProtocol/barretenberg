@@ -28,7 +28,6 @@ using Fr = barretenberg::fr;
 template <typename settings> class Prover {
 
   public:
-    // TODO(luke): update this appropriately to work with Honk Manifest
     Prover(std::vector<barretenberg::polynomial>&& wire_polys,
            std::shared_ptr<bonk::proving_key> input_key = nullptr,
            const transcript::Manifest& manifest = transcript::Manifest());
