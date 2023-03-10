@@ -4,33 +4,42 @@
 #include "barretenberg/polynomials/polynomial.hpp"
 #include <cstddef>
 #include <map>
+#include <string>
+#include <unordered_map>
 namespace bonk {
-
+/**
+ * @brief Basic storage class for Polynomials
+ *
+ * @tparam Fr
+ */
 template <typename Fr> class PolynomialStore {
 
     using Polynomial = barretenberg::Polynomial<Fr>;
 
   private:
-    std::map<std::string, Polynomial> polynomial_map;
+    std::unordered_map<std::string, Polynomial> polynomial_map;
 
   public:
     PolynomialStore() = default;
-    PolynomialStore(PolynomialStore&& other) noexcept = default;
     PolynomialStore(PolynomialStore& other) noexcept = default;
+    PolynomialStore(PolynomialStore&& other) noexcept = default;
+    PolynomialStore& operator=(const PolynomialStore& other) = default;
+    PolynomialStore& operator=(PolynomialStore&& other) noexcept = default;
+    ~PolynomialStore() = default;
 
     /**
      * @brief Transfer ownership of a polynomial to the PolynomialStore
      *
-     * @param key sting ID of the polynomial
+     * @param key string ID of the polynomial
      * @param value a Polynomial
      */
     inline void put(std::string const& key, Polynomial&& value) { polynomial_map[key] = std::move(value); };
 
     /**
-     * @brief Get a reference to a polynomial in the PolynomialStore. Will throw exception if the
+     * @brief Get a reference to a polynomial in the PolynomialStore; will throw exception if the
      * key does not exist in the map
      *
-     * @param key sting ID of the polynomial
+     * @param key string ID of the polynomial
      * @return Polynomial&; a reference to the polynomial associated with the given key
      */
     inline Polynomial& get(std::string const& key) { return polynomial_map.at(key); };
@@ -74,6 +83,13 @@ template <typename Fr> class PolynomialStore {
         }
         info();
     }
+
+    // Allow for const range based for loop
+    typename std::unordered_map<std::string, Polynomial>::const_iterator begin() const
+    {
+        return polynomial_map.begin();
+    }
+    typename std::unordered_map<std::string, Polynomial>::const_iterator end() const { return polynomial_map.end(); }
 };
 
 } // namespace bonk
