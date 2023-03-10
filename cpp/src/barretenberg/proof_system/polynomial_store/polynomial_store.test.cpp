@@ -105,7 +105,7 @@ TEST(PolynomialStore, RangeBasedFor)
     EXPECT_TRUE(std::ranges::range<PolynomialStore<Fr>>);
 
     // For example ...
-    Polynomial polynomial_sum;
+    Polynomial polynomial_sum(size);
     for (const auto& [key, polynomial] : polynomial_store) {
         polynomial_sum += polynomial;
     }
