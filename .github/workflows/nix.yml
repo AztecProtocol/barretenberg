@@ -34,5 +34,5 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: libbarretenberg-${{ matrix.os }}-${{ matrix.target }}.tar.gz
+          name: libbarretenberg-${{ runner.os }}-${{ matrix.target }}.tar.gz
           path: ./libbarretenberg.tar.gz
