@@ -4,6 +4,7 @@
 namespace plonk {
 
 enum ComposerType {
+    DUMMY,
     STANDARD,
     TURBO,
     PLOOKUP,
