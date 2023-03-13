@@ -11,6 +11,12 @@ namespace proof_system::plonk {
 class UltraPlonkComposer {
 
   public:
+    static constexpr ComposerType type = ComposerType::STANDARD;
+    static constexpr merkle::HashType merkle_hash_type = merkle::HashType::LOOKUP_PEDERSEN;
+    static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
+
+    static constexpr size_t UINT_LOG2_BASE = 2;
+
     // An instantiation of the circuit constructor that only depends on arithmetization, not  on the proof system
     UltraCircuitConstructor circuit_constructor;
     // Composer helper contains all proof-related material that is separate from circuit creation such as:

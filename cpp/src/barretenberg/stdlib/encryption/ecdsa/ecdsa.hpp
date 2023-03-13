@@ -1,6 +1,6 @@
 #pragma once
 
-#include <crypto/ecdsa/ecdsa.hpp>
+#include "barretenberg/crypto/ecdsa/ecdsa.hpp"
 #include "../../primitives/byte_array/byte_array.hpp"
 #include "../../primitives/composers/composers_fwd.hpp"
 
