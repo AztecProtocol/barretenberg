@@ -2,7 +2,7 @@
 #include "../hashers/hashers.hpp"
 #include <array>
 #include <string>
-#include <ecc/curves/secp256k1/secp256k1.hpp>
+#include "barretenberg/ecc/curves/secp256k1/secp256k1.hpp"
 
 namespace crypto {
 namespace ecdsa {

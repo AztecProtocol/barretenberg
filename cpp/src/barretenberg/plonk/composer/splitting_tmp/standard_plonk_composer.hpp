@@ -17,6 +17,8 @@ namespace plonk {
 class StandardPlonkComposer {
   public:
     static constexpr plonk::ComposerType type = plonk::ComposerType::STANDARD;
+    static constexpr merkle::HashType merkle_hash_type = merkle::HashType::FIXED_BASE_PEDERSEN;
+    static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
 
     static constexpr size_t UINT_LOG2_BASE = 2;
     // An instantiation of the circuit constructor that only depends on arithmetization, not  on the proof system
