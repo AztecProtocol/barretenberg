@@ -14,7 +14,7 @@ void create_pedersen_constraint(plonk::TurboComposer& composer, const PedersenCo
         field_ct scalar_as_field = field_ct::from_witness_index(&composer, scalar);
         scalars.push_back(scalar_as_field);
     }
-    auto point = pedersen::commit(scalars);
+    auto point = pedersen_commitment::commit(scalars);
 
     composer.assert_equal(point.x.witness_index, input.result_x);
     composer.assert_equal(point.y.witness_index, input.result_y);
