@@ -1,6 +1,12 @@
 name: Nix builds
 
-on: [push]
+on:
+  push:
+    branches:
+      - phated/**
+  schedule:
+    - cron: "0 2 * * *" # run at 2 AM UTC
+  workflow_dispatch:
 
 # This will cancel previous runs when a branch or PR is updated
 concurrency:
