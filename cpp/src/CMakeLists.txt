@@ -86,6 +86,8 @@ if(WASM)
         $<TARGET_OBJECTS:stdlib_blake3s_objects>
         $<TARGET_OBJECTS:acir_format_objects>
         $<TARGET_OBJECTS:turbo_proofs_objects>
+        $<TARGET_OBJECTS:transcript_objects>
+        $<TARGET_OBJECTS:proof_system_objects>
     )
 
     # With binaryen installed, it seems its wasm backend optimiser gets invoked automatically.
@@ -143,6 +145,8 @@ if(WASM)
         $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
         $<TARGET_OBJECTS:acir_format_objects>
         $<TARGET_OBJECTS:turbo_proofs_objects>
+        $<TARGET_OBJECTS:transcript_objects>
+        $<TARGET_OBJECTS:proof_system_objects>
     )
 else()
     # For use when compiling dependent cpp projects
@@ -172,6 +176,8 @@ else()
         $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
         $<TARGET_OBJECTS:acir_format_objects>
         $<TARGET_OBJECTS:turbo_proofs_objects>
+        $<TARGET_OBJECTS:transcript_objects>
+        $<TARGET_OBJECTS:proof_system_objects>
         $<TARGET_OBJECTS:env_objects>
     )
 
