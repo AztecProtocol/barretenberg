@@ -1,2 +1,4 @@
 add_subdirectory(acir_format)
 add_subdirectory(turbo_proofs)
+add_subdirectory(ultra_acir_format)
+add_subdirectory(ultra_proofs)
