@@ -41,7 +41,7 @@ void create_circuit(Composer& composer, const acir_format& constraint_system)
 
     // Add range constraint
     for (const auto& constraint : constraint_system.range_constraints) {
-        composer.decompose_into_base4_accumulators(constraint.witness, constraint.num_bits, "");
+        composer.create_range_constraint(constraint.witness, constraint.num_bits, "");
     }
 
     // Add sha256 constraints
@@ -119,7 +119,7 @@ Composer create_circuit(const acir_format& constraint_system,
 
     // Add range constraint
     for (const auto& constraint : constraint_system.range_constraints) {
-        composer.decompose_into_base4_accumulators(constraint.witness, constraint.num_bits, "");
+        composer.create_range_constraint(constraint.witness, constraint.num_bits, "");
     }
 
     // Add sha256 constraints
@@ -203,7 +203,7 @@ Composer create_circuit_with_witness(const acir_format& constraint_system,
 
     // Add range constraint
     for (const auto& constraint : constraint_system.range_constraints) {
-        composer.decompose_into_base4_accumulators(constraint.witness, constraint.num_bits, "");
+        composer.create_range_constraint(constraint.witness, constraint.num_bits, "");
     }
 
     // Add sha256 constraints
@@ -284,7 +284,7 @@ Composer create_circuit_with_witness(const acir_format& constraint_system, std::
 
     // Add range constraint
     for (const auto& constraint : constraint_system.range_constraints) {
-        composer.decompose_into_base4_accumulators(constraint.witness, constraint.num_bits, "");
+        composer.create_range_constraint(constraint.witness, constraint.num_bits, "");
     }
 
     // Add sha256 constraints
@@ -363,7 +363,7 @@ void create_circuit_with_witness(Composer& composer, const acir_format& constrai
 
     // Add range constraint
     for (const auto& constraint : constraint_system.range_constraints) {
-        composer.decompose_into_base4_accumulators(constraint.witness, constraint.num_bits, "");
+        composer.create_range_constraint(constraint.witness, constraint.num_bits, "");
     }
 
     // Add sha256 constraints

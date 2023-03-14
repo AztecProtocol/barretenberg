@@ -64,7 +64,7 @@ void init_verification_key(std::shared_ptr<bonk::VerifierMemReferenceString> con
     verification_key = std::make_shared<bonk::verification_key>(std::move(vk_data), crs);
 }
 
-plonk::TurboProver new_join_split_prover(join_split_tx const& tx, bool mock)
+plonk::UltraProver new_join_split_prover(join_split_tx const& tx, bool mock)
 {
     Composer composer(proving_key, nullptr);
     join_split_circuit(composer, tx);

@@ -87,7 +87,7 @@ size_t new_proof(void* pippenger,
     create_circuit_with_witness(composer, constraint_system, witness);
 
     auto prover = composer.create_prover();
-    auto heapProver = new TurboProver(std::move(prover));
+    auto heapProver = new UltraProver(std::move(prover));
     auto& proof_data = heapProver->construct_proof().proof_data;
     *proof_data_buf = proof_data.data();
 
