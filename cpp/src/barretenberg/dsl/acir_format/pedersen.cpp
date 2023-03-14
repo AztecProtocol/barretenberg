@@ -1,11 +1,8 @@
 #include "pedersen.hpp"
-#include "barretenberg/stdlib/types/types.hpp"
-
-using namespace plonk::stdlib::types;
 
 namespace acir_format {
 
-void create_pedersen_constraint(plonk::TurboComposer& composer, const PedersenConstraint& input)
+void create_pedersen_constraint(Composer& composer, const PedersenConstraint& input)
 {
     std::vector<field_ct> scalars;
 
