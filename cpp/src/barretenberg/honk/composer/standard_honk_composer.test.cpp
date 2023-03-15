@@ -1,15 +1,15 @@
 #include "standard_honk_composer.hpp"
-#include "barretenberg/honk/sumcheck/relations/relation.hpp"
 #include "barretenberg/numeric/uint256/uint256.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
-#include <cstdint>
 #include "barretenberg/honk/proof_system/prover.hpp"
-#include "barretenberg/honk/sumcheck/sumcheck_round.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/arithmetic_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/relation.hpp"
 #include "barretenberg/honk/utils/public_inputs.hpp"
 
 #include <gtest/gtest.h>
+#include <cstdint>
 
 using namespace honk;
 
@@ -335,7 +335,6 @@ TEST(StandardHonkComposer, SumcheckRelationCorrectness)
     // Generate beta and gamma
     fr beta = fr::random_element();
     fr gamma = fr::random_element();
-    fr zeta = fr::random_element();
 
     // Compute public input delta
     const auto public_inputs = composer.circuit_constructor.get_public_inputs();
@@ -343,8 +342,6 @@ TEST(StandardHonkComposer, SumcheckRelationCorrectness)
         honk::compute_public_input_delta<fr>(public_inputs, beta, gamma, prover.key->circuit_size);
 
     sumcheck::RelationParameters<fr> params{
-        .zeta = zeta,
-        .alpha = fr::one(),
         .beta = beta,
         .gamma = gamma,
         .public_input_delta = public_input_delta,
@@ -380,11 +377,6 @@ TEST(StandardHonkComposer, SumcheckRelationCorrectness)
     evaluations_array[POLYNOMIAL::LAGRANGE_FIRST] = prover.key->polynomial_store.get("L_first_lagrange");
     evaluations_array[POLYNOMIAL::LAGRANGE_LAST] = prover.key->polynomial_store.get("L_last_lagrange");
 
-    // Construct the round for applying sumcheck relations and results for storing computed results
-    auto relations = std::tuple(honk::sumcheck::ArithmeticRelation<fr>(),
-                                honk::sumcheck::GrandProductComputationRelation<fr>(),
-                                honk::sumcheck::GrandProductInitializationRelation<fr>());
-
     fr result = 0;
     for (size_t i = 0; i < prover.key->circuit_size; i++) {
         // Compute an array containing all the evaluations at a given row i
@@ -397,13 +389,16 @@ TEST(StandardHonkComposer, SumcheckRelationCorrectness)
         // i-th row/vertex of the hypercube.
         // We use ASSERT_EQ instead of EXPECT_EQ so that the tests stops at the first index at which the result is not
         // 0, since result = 0 + C(transposed), which we expect will equal 0.
-        std::get<0>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        result = honk::sumcheck::ArithmeticRelation<fr>::evaluate_full_relation_value_contribution(
+            evaluations_at_index_i, params);
         ASSERT_EQ(result, 0);
 
-        std::get<1>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        result = honk::sumcheck::GrandProductComputationRelation<fr>::evaluate_full_relation_value_contribution(
+            evaluations_at_index_i, params);
         ASSERT_EQ(result, 0);
 
-        std::get<2>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        result = honk::sumcheck::GrandProductInitializationRelation<fr>::evaluate_full_relation_value_contribution(
+            evaluations_at_index_i, params);
         ASSERT_EQ(result, 0);
     }
 }

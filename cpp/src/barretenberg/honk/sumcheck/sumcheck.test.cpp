@@ -1,22 +1,21 @@
 #include "sumcheck.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
-#include "barretenberg/transcript/transcript_wrappers.hpp"
 #include "relations/arithmetic_relation.hpp"
 #include "relations/grand_product_computation_relation.hpp"
 #include "relations/grand_product_initialization_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/relation.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/transcript/transcript_wrappers.hpp"
 #include "barretenberg/transcript/manifest.hpp"
-#include <array>
-#include <cstddef>
-#include <cstdint>
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
-#include <gtest/internal/gtest-internal.h>
 #include "barretenberg/numeric/random/engine.hpp"
 
 #include <initializer_list>
 #include <gtest/gtest.h>
 #include <string>
-#include <sys/types.h>
 #include <vector>
+#include <array>
+#include <cstddef>
+#include <cstdint>
 
 using namespace honk;
 using namespace honk::sumcheck;
@@ -196,19 +195,15 @@ TEST(Sumcheck, PolynomialNormalization)
                                                        lagrange_first,
                                                        lagrange_last);
 
+    using Sumcheck =
+        Sumcheck<FF, ArithmeticRelation, GrandProductComputationRelation, GrandProductInitializationRelation>;
     auto transcript = produce_mocked_transcript(multivariate_d, num_public_inputs);
 
-    auto sumcheck = Sumcheck<FF,
-                             Transcript,
-                             ArithmeticRelation,
-                             GrandProductComputationRelation,
-                             GrandProductInitializationRelation>(multivariate_n, transcript);
+    auto [evaluation_points, evals] = Sumcheck::execute_prover(multivariate_d, {}, full_polynomials, transcript);
 
-    sumcheck.execute_prover(full_polynomials);
-
-    FF u_0 = transcript.get_challenge_field_element("u_0");
-    FF u_1 = transcript.get_challenge_field_element("u_1");
-    FF u_2 = transcript.get_challenge_field_element("u_2");
+    FF u_0 = evaluation_points[0];
+    FF u_1 = evaluation_points[1];
+    FF u_2 = evaluation_points[2];
 
     /* sumcheck.execute_prover() terminates with sumcheck.multivariates.folded_polynoimals as an array such that
      * sumcheck.multivariates.folded_polynoimals[i][0] is the evaluatioin of the i'th multivariate at the vector of
@@ -238,7 +233,7 @@ TEST(Sumcheck, PolynomialNormalization)
                               l_2 * full_polynomials[i][2] + l_3 * full_polynomials[i][3] +
                               l_4 * full_polynomials[i][4] + l_5 * full_polynomials[i][5] +
                               l_6 * full_polynomials[i][6] + l_7 * full_polynomials[i][7];
-        EXPECT_EQ(hand_computed_value, sumcheck.folded_polynomials[i][0]);
+        EXPECT_EQ(hand_computed_value, evals[i]);
     }
 }
 
@@ -298,15 +293,12 @@ TEST(Sumcheck, Prover)
                                                            lagrange_last);
 
         auto transcript = produce_mocked_transcript(multivariate_d, num_public_inputs);
-        auto sumcheck = Sumcheck<FF,
-                                 Transcript,
-                                 ArithmeticRelation,
-                                 GrandProductComputationRelation,
-                                 GrandProductInitializationRelation>(multivariate_n, transcript);
+        using Sumcheck =
+            Sumcheck<FF, ArithmeticRelation, GrandProductComputationRelation, GrandProductInitializationRelation>;
 
-        sumcheck.execute_prover(full_polynomials);
-        FF u_0 = transcript.get_challenge_field_element("u_0");
-        FF u_1 = transcript.get_challenge_field_element("u_1");
+        auto [evaluation_points, evals] = Sumcheck::execute_prover(multivariate_d, {}, full_polynomials, transcript);
+        FF u_0 = evaluation_points[0];
+        FF u_1 = evaluation_points[1];
         std::vector<FF> expected_values;
         for (auto& polynomial : full_polynomials) {
             // using knowledge of inputs here to derive the evaluation
@@ -316,10 +308,8 @@ TEST(Sumcheck, Prover)
             expected_hi *= u_1;
             expected_values.emplace_back(expected_lo + expected_hi);
         }
-        // pull the sumcheck-produced multivariate evals out of the transcript
-        auto sumcheck_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
         for (size_t poly_idx = 0; poly_idx < NUM_POLYNOMIALS; poly_idx++) {
-            EXPECT_EQ(sumcheck_evaluations[poly_idx], expected_values[poly_idx]);
+            EXPECT_EQ(evals[poly_idx], expected_values[poly_idx]);
         }
     };
     run_test(/* is_random_input=*/false);
@@ -330,7 +320,6 @@ TEST(Sumcheck, Prover)
 TEST(Sumcheck, ProverAndVerifier)
 {
     const size_t multivariate_d(1);
-    const size_t multivariate_n(1 << multivariate_d);
     const size_t num_public_inputs(1);
 
     std::array<FF, 2> w_l = { 0, 1 };
@@ -371,24 +360,16 @@ TEST(Sumcheck, ProverAndVerifier)
                                                        lagrange_first,
                                                        lagrange_last);
 
+    using Sumcheck =
+        Sumcheck<FF, ArithmeticRelation, GrandProductComputationRelation, GrandProductInitializationRelation>;
+
     auto transcript = produce_mocked_transcript(multivariate_d, num_public_inputs);
 
-    auto sumcheck_prover = Sumcheck<FF,
-                                    Transcript,
-                                    ArithmeticRelation,
-                                    GrandProductComputationRelation,
-                                    GrandProductInitializationRelation>(multivariate_n, transcript);
+    auto prover_output = Sumcheck::execute_prover(multivariate_d, {}, full_polynomials, transcript);
 
-    sumcheck_prover.execute_prover(full_polynomials);
-
-    auto sumcheck_verifier = Sumcheck<FF,
-                                      Transcript,
-                                      ArithmeticRelation,
-                                      GrandProductComputationRelation,
-                                      GrandProductInitializationRelation>(transcript);
-
-    bool verified = sumcheck_verifier.execute_verifier();
-    ASSERT_TRUE(verified);
+    auto verifier_output = Sumcheck::execute_verifier(multivariate_d, {}, transcript);
+    ASSERT_TRUE(verifier_output.has_value());
+    ASSERT_EQ(prover_output, *verifier_output);
 }
 
 // TODO(#225): make the inputs to this test more interesting, e.g. num_public_inputs > 0 and non-trivial permutations
@@ -443,24 +424,16 @@ TEST(Sumcheck, ProverAndVerifierLonger)
                                                            lagrange_first,
                                                            lagrange_last);
 
+        using Sumcheck =
+            Sumcheck<FF, ArithmeticRelation, GrandProductComputationRelation, GrandProductInitializationRelation>;
+
         auto transcript = produce_mocked_transcript(multivariate_d, num_public_inputs);
 
-        auto sumcheck_prover = Sumcheck<FF,
-                                        Transcript,
-                                        ArithmeticRelation,
-                                        GrandProductComputationRelation,
-                                        GrandProductInitializationRelation>(multivariate_n, transcript);
+        auto prover_output = Sumcheck::execute_prover(multivariate_d, {}, full_polynomials, transcript);
 
-        sumcheck_prover.execute_prover(full_polynomials);
+        auto verifier_output = Sumcheck::execute_verifier(multivariate_d, {}, transcript);
 
-        auto sumcheck_verifier = Sumcheck<FF,
-                                          Transcript,
-                                          ArithmeticRelation,
-                                          GrandProductComputationRelation,
-                                          GrandProductInitializationRelation>(transcript);
-
-        bool verified = sumcheck_verifier.execute_verifier();
-        EXPECT_EQ(verified, expect_verified);
+        EXPECT_EQ(verifier_output.has_value(), expect_verified);
     };
 
     run_test(/* expect_verified=*/true);

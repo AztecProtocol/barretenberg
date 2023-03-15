@@ -1,32 +1,25 @@
 #include "prover.hpp"
+#include "barretenberg/honk/sumcheck/sumcheck.hpp"
+#include "barretenberg/honk/pcs/commitment_key.hpp"
+#include "barretenberg/ecc/curves/bn254/fr.hpp"
+#include "barretenberg/honk/sumcheck/relations/arithmetic_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
+#include "barretenberg/honk/utils/public_inputs.hpp"
+#include "barretenberg/polynomials/polynomial.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/transcript/transcript_wrappers.hpp"
+
+#include <string>
+#include <array>
 #include <algorithm>
 #include <cstddef>
-#include "barretenberg/honk/sumcheck/sumcheck.hpp" // will need
-#include <array>
-#include "barretenberg/honk/sumcheck/polynomials/univariate.hpp" // will go away
-#include "barretenberg/honk/utils/power_polynomial.hpp"
-#include "barretenberg/honk/pcs/commitment_key.hpp"
 #include <memory>
 #include <span>
 #include <utility>
 #include <vector>
-#include "barretenberg/ecc/curves/bn254/fr.hpp"
-#include "barretenberg/ecc/curves/bn254/g1.hpp"
-#include "barretenberg/honk/sumcheck/relations/arithmetic_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
-#include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
-#include "barretenberg/transcript/transcript_wrappers.hpp"
-#include <string>
-#include "barretenberg/honk/pcs/claim.hpp"
 
 namespace honk {
-
-using Fr = barretenberg::fr;
-using Commitment = barretenberg::g1::affine_element;
-using Polynomial = barretenberg::Polynomial<Fr>;
-using POLYNOMIAL = bonk::StandardArithmetization::POLYNOMIAL;
 
 /**
  * Create Prover from proving key, witness and manifest.
@@ -37,7 +30,7 @@ using POLYNOMIAL = bonk::StandardArithmetization::POLYNOMIAL;
  * @tparam settings Settings class.
  * */
 template <typename settings>
-Prover<settings>::Prover(std::vector<barretenberg::polynomial>&& wire_polys,
+Prover<settings>::Prover(std::vector<Polynomial>&& wire_polys,
                          std::shared_ptr<bonk::proving_key> input_key,
                          const transcript::Manifest& input_manifest)
     : transcript(input_manifest, settings::hash_type, settings::num_challenge_bytes)
@@ -66,6 +59,13 @@ Prover<settings>::Prover(std::vector<barretenberg::polynomial>&& wire_polys,
     prover_polynomials[POLYNOMIAL::W_L] = wire_polynomials[0];
     prover_polynomials[POLYNOMIAL::W_R] = wire_polynomials[1];
     prover_polynomials[POLYNOMIAL::W_O] = wire_polynomials[2];
+
+    // Add public inputs to transcript from the second wire polynomial
+    std::span<Fr> public_wires_source = prover_polynomials[POLYNOMIAL::W_R];
+
+    for (size_t i = 0; i < key->num_public_inputs; ++i) {
+        public_inputs.emplace_back(public_wires_source[i]);
+    }
 }
 
 /**
@@ -109,10 +109,11 @@ template <typename settings> void Prover<settings>::compute_wire_commitments()
  * one batch inversion (at the expense of more multiplications)
  */
 // TODO(#222)(luke): Parallelize
-template <typename settings> Polynomial Prover<settings>::compute_grand_product_polynomial(Fr beta, Fr gamma)
+template <typename settings>
+barretenberg::Polynomial<barretenberg::fr> Prover<settings>::compute_grand_product_polynomial(Fr beta, Fr gamma)
 {
     using barretenberg::polynomial_arithmetic::copy_polynomial;
-    static const size_t program_width = settings::program_width;
+    constexpr size_t program_width = settings::program_width;
 
     // Allocate scratch space for accumulators
     std::array<Fr*, program_width> numerator_accumulator;
@@ -224,14 +225,8 @@ template <typename settings> void Prover<settings>::execute_wire_commitments_rou
     // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
     compute_wire_commitments();
 
-    // Add public inputs to transcript from the second wire polynomial
-    const Polynomial& public_wires_source = wire_polynomials[1];
-
-    std::vector<Fr> public_wires;
-    for (size_t i = 0; i < key->num_public_inputs; ++i) {
-        public_wires.push_back(public_wires_source[i]);
-    }
-    transcript.add_element("public_inputs", ::to_buffer(public_wires));
+    // Add public inputs to transcript
+    transcript.add_element("public_inputs", ::to_buffer(public_inputs));
 }
 
 /**
@@ -257,6 +252,15 @@ template <typename settings> void Prover<settings>::execute_grand_product_comput
 
     auto beta = transcript.get_challenge_field_element("beta", 0);
     auto gamma = transcript.get_challenge_field_element("beta", 1);
+
+    auto public_input_delta = compute_public_input_delta<Fr>(public_inputs, beta, gamma, key->circuit_size);
+
+    relation_parameters = sumcheck::RelationParameters<Fr>{
+        .beta = beta,
+        .gamma = gamma,
+        .public_input_delta = public_input_delta,
+    };
+
     z_permutation = compute_grand_product_polynomial(beta, gamma);
     // The actual polynomial is of length n+1, but commitment key is just n, so we need to limit it
     auto commitment = commitment_key->commit(z_permutation);
@@ -276,16 +280,14 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
     // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
 
     using Sumcheck = sumcheck::Sumcheck<Fr,
-                                        Transcript,
                                         sumcheck::ArithmeticRelation,
                                         sumcheck::GrandProductComputationRelation,
                                         sumcheck::GrandProductInitializationRelation>;
 
     transcript.apply_fiat_shamir("alpha");
 
-    auto sumcheck = Sumcheck(key->circuit_size, transcript);
-
-    sumcheck.execute_prover(prover_polynomials);
+    sumcheck_output =
+        Sumcheck::execute_prover(key->log_circuit_size, relation_parameters, prover_polynomials, transcript);
 }
 
 /**
@@ -298,20 +300,13 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     const size_t NUM_POLYNOMIALS = bonk::StandardArithmetization::NUM_POLYNOMIALS;
     const size_t NUM_UNSHIFTED_POLYS = bonk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
 
-    // Construct MLE opening point u = (u_0, ..., u_{d-1})
-    std::vector<Fr> opening_point; // u
-    for (size_t round_idx = 0; round_idx < key->log_circuit_size; round_idx++) {
-        std::string label = "u_" + std::to_string(round_idx);
-        opening_point.emplace_back(transcript.get_challenge_field_element(label));
-    }
-
     // Generate batching challenge ρ and powers 1,ρ,…,ρᵐ⁻¹
     transcript.apply_fiat_shamir("rho");
     Fr rho = Fr::serialize_from_buffer(transcript.get_challenge("rho").begin());
     std::vector<Fr> rhos = Gemini::powers_of_rho(rho, NUM_POLYNOMIALS);
 
     // Get vector of multivariate evaluations produced by Sumcheck
-    auto multivariate_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
+    auto [opening_point, multivariate_evaluations] = sumcheck_output;
 
     // Batch the unshifted polynomials and the to-be-shifted polynomials using ρ
     Polynomial batched_poly_unshifted(key->circuit_size); // batched unshifted polynomials

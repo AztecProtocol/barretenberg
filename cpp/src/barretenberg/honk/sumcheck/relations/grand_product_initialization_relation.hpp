@@ -35,14 +35,13 @@ template <typename FF> class GrandProductInitializationRelation {
         evals += (lagrange_last * z_perm_shift) * scaling_factor;
     };
 
-    void add_full_relation_value_contribution(FF& full_honk_relation_value,
-                                              auto& purported_evaluations,
-                                              const RelationParameters<FF>&) const
+    static FF evaluate_full_relation_value_contribution(const auto& purported_evaluations,
+                                                        const RelationParameters<FF>&)
     {
         auto z_perm_shift = purported_evaluations[MULTIVARIATE::Z_PERM_SHIFT];
         auto lagrange_last = purported_evaluations[MULTIVARIATE::LAGRANGE_LAST];
 
-        full_honk_relation_value += lagrange_last * z_perm_shift;
-    };
+        return lagrange_last * z_perm_shift;
+    }
 };
 } // namespace honk::sumcheck

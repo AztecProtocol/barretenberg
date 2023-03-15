@@ -1,34 +1,33 @@
 #pragma once
-#include "barretenberg/ecc/curves/bn254/fr.hpp"
-#include "barretenberg/honk/pcs/shplonk/shplonk.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
-#include <array>
-#include "barretenberg/proof_system/proving_key/proving_key.hpp"
+#include "barretenberg/honk/sumcheck/sumcheck.hpp"
+#include "barretenberg/honk/sumcheck/relations/relation.hpp"
 #include "barretenberg/honk/pcs/commitment_key.hpp"
-#include "barretenberg/plonk/proof_system/types/proof.hpp"
-#include "barretenberg/plonk/proof_system/types/program_settings.hpp"
 #include "barretenberg/honk/pcs/gemini/gemini.hpp"
 #include "barretenberg/honk/pcs/shplonk/shplonk_single.hpp"
+#include "barretenberg/honk/pcs/shplonk/shplonk.hpp"
 #include "barretenberg/honk/pcs/kzg/kzg.hpp"
+#include "barretenberg/transcript/transcript_wrappers.hpp"
+#include "barretenberg/plonk/proof_system/types/proof.hpp"
+#include "barretenberg/proof_system/proving_key/proving_key.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/plonk/proof_system/types/prover_settings.hpp"
+
+#include <array>
 #include <span>
-#include <unordered_map>
 #include <vector>
-#include <algorithm>
-#include <cstddef>
 #include <memory>
-#include <utility>
-#include <string>
-#include "barretenberg/honk/pcs/claim.hpp"
 
 namespace honk {
 
-using Fr = barretenberg::fr;
-
 template <typename settings> class Prover {
 
+    using Fr = barretenberg::fr;
+    using Polynomial = barretenberg::Polynomial<Fr>;
+    using POLYNOMIAL = bonk::StandardArithmetization::POLYNOMIAL;
+
   public:
-    Prover(std::vector<barretenberg::polynomial>&& wire_polys,
+    Prover(std::vector<Polynomial>&& wire_polys,
            std::shared_ptr<bonk::proving_key> input_key = nullptr,
            const transcript::Manifest& manifest = transcript::Manifest());
 
@@ -44,7 +43,7 @@ template <typename settings> class Prover {
 
     void compute_wire_commitments();
 
-    barretenberg::polynomial compute_grand_product_polynomial(Fr beta, Fr gamma);
+    Polynomial compute_grand_product_polynomial(Fr beta, Fr gamma);
 
     void construct_prover_polynomials();
 
@@ -53,8 +52,12 @@ template <typename settings> class Prover {
 
     transcript::StandardTranscript transcript;
 
-    std::vector<barretenberg::polynomial> wire_polynomials;
-    barretenberg::polynomial z_permutation;
+    std::vector<Fr> public_inputs;
+
+    std::vector<Polynomial> wire_polynomials;
+    Polynomial z_permutation;
+
+    sumcheck::RelationParameters<Fr> relation_parameters;
 
     std::shared_ptr<bonk::proving_key> key;
 
@@ -79,6 +82,7 @@ template <typename settings> class Prover {
     // This makes 'settings' accesible from Prover
     using settings_ = settings;
 
+    sumcheck::SumcheckOutput<Fr> sumcheck_output;
     pcs::gemini::ProverOutput<pcs::kzg::Params> gemini_output;
     pcs::shplonk::ProverOutput<pcs::kzg::Params> shplonk_output;
 

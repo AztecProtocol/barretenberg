@@ -93,9 +93,7 @@ template <class FF> class SumcheckRelation : public testing::Test {
      */
     RelationParameters<FF> compute_mock_relation_parameters()
     {
-        return { .zeta = FF::random_element(),
-                 .alpha = FF::random_element(),
-                 .beta = FF::random_element(),
+        return { .beta = FF::random_element(),
                  .gamma = FF::random_element(),
                  .public_input_delta = FF::random_element() };
     }
@@ -151,8 +149,8 @@ template <class FF> class SumcheckRelation : public testing::Test {
             // Get an array of the same size as `extended_edges` with only the i-th element of each extended edge.
             std::array evals_i = transposed_univariate_array_at(extended_edges, i);
             // Evaluate the relation
-            relation.add_full_relation_value_contribution(
-                expected_evals_index.value_at(i), evals_i, relation_parameters);
+            expected_evals_index.value_at(i) =
+                relation.evaluate_full_relation_value_contribution(evals_i, relation_parameters);
         }
         EXPECT_EQ(expected_evals, expected_evals_index);
 
