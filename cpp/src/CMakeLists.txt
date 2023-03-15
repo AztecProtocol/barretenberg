@@ -51,7 +51,7 @@ add_subdirectory(barretenberg/honk)
 add_subdirectory(barretenberg/plonk)
 add_subdirectory(barretenberg/stdlib)
 add_subdirectory(barretenberg/join_split_example)
-add_subdirectory(barretenberg/dsl)
+# add_subdirectory(barretenberg/dsl)
 
 if(BENCHMARKS)
     add_subdirectory(barretenberg/benchmark)
@@ -90,8 +90,8 @@ if(WASM)
         $<TARGET_OBJECTS:stdlib_pedersen_commitment_objects>
         $<TARGET_OBJECTS:stdlib_blake2s_objects>
         $<TARGET_OBJECTS:stdlib_blake3s_objects>
-        $<TARGET_OBJECTS:acir_format_objects>
-        $<TARGET_OBJECTS:turbo_proofs_objects>
+        # $<TARGET_OBJECTS:acir_format_objects>
+        # $<TARGET_OBJECTS:turbo_proofs_objects>
         $<TARGET_OBJECTS:stdlib_sha256_objects>
         $<TARGET_OBJECTS:stdlib_aes128_objects>
         $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
@@ -156,8 +156,8 @@ if(WASM)
         $<TARGET_OBJECTS:stdlib_sha256_objects>
         $<TARGET_OBJECTS:stdlib_aes128_objects>
         $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
-        $<TARGET_OBJECTS:acir_format_objects>
-        $<TARGET_OBJECTS:turbo_proofs_objects>
+        # $<TARGET_OBJECTS:acir_format_objects>
+        # $<TARGET_OBJECTS:turbo_proofs_objects>
     )
 else()
     # For use when compiling dependent cpp projects
@@ -191,8 +191,8 @@ else()
         $<TARGET_OBJECTS:stdlib_sha256_objects>
         $<TARGET_OBJECTS:stdlib_aes128_objects>
         $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
-        $<TARGET_OBJECTS:acir_format_objects>
-        $<TARGET_OBJECTS:turbo_proofs_objects>
+        # $<TARGET_OBJECTS:acir_format_objects>
+        # $<TARGET_OBJECTS:turbo_proofs_objects>
         $<TARGET_OBJECTS:env_objects>
     )
 
