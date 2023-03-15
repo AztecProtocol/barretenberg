@@ -180,6 +180,26 @@ struct StandardHonk {
             /* challenge_name = */ "separator",
             /* num_challenges_in */ 1));
 
+        // IPA
+        std::vector<transcript::Manifest::ManifestEntry> aux_generator_entries;
+        aux_generator_entries.emplace_back(transcript::Manifest::ManifestEntry(
+              { .name = "commitment", .num_bytes = g1_size, .derived_by_verifier = false }));
+        aux_generator_entries.emplace_back(transcript::Manifest::ManifestEntry(
+              { .name = "challenge_point", .num_bytes = fr_size, .derived_by_verifier = false }));
+        aux_generator_entries.emplace_back(transcript::Manifest::ManifestEntry(
+              { .name = "eval", .num_bytes = fr_size, .derived_by_verifier = false }));            
+        manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
+            aux_generator_entries,
+            /* challenge_name = */ "aux",
+            /* num_challenges_in */ 1));    
+        manifest_rounds.emplace_back(
+            transcript::Manifest::RoundManifest(
+            {
+              { .name = "aux_generator", .num_bytes = g1_size, .derived_by_verifier = false }
+            },
+            /* challenge_name = */ "",
+            /* num_challenges_in */ 0));
+
         // clang-format on
 
         auto output = transcript::Manifest(manifest_rounds);

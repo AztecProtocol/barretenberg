@@ -40,7 +40,7 @@ template <typename Params> class InnerProductArgument {
         Fr challenge_point;
         Fr evaluation;
         size_t poly_degree;
-        element aux_generator;            // To be removed
+        // element aux_generator;            // To be removed
         std::vector<Fr> round_challenges; // To be removed
     };
 
@@ -54,7 +54,10 @@ template <typename Params> class InnerProductArgument {
      * @return a Proof, containing information required to verify whether the commitment is computed correctly and
      * the polynomial evaluation is correct in the given challenge point.
      */
-    static Proof reduce_prove(std::shared_ptr<CK> ck, const PubInput& pub_input, const Polynomial& polynomial)
+    static Proof reduce_prove(std::shared_ptr<CK> ck,
+                              const PubInput& pub_input,
+                              const Polynomial& polynomial,
+                              const auto& transcript)
     {
         Proof proof;
         auto& challenge_point = pub_input.challenge_point;
@@ -62,14 +65,25 @@ template <typename Params> class InnerProductArgument {
         const size_t poly_degree = pub_input.poly_degree;
         // To check poly_degree is greater than zero and a power of two
         // TODO(#220)(Arijit): To accomodate non power of two poly_degree
+
         ASSERT((poly_degree > 0) && (!(poly_degree & (poly_degree - 1))) &&
                "The poly_degree should be positive and a power of two");
-        auto& aux_generator = pub_input.aux_generator;
-        auto a_vec = polynomial;
-        // TODO(#220)(Arijit): to make it more efficient by directly using G_vector for the input points when i = 0 and write the
-        // output points to G_vec_local. Then use G_vec_local for rounds where i>0, this can be done after we use SRS
-        // instead of G_vector.
+        // Compute aux_generator (U) and add it to the transcript
+        transcript->add_element("commitment", static_cast<affine_element>(pub_input.commitment).to_buffer());
+        transcript->add_element("challenge_point", static_cast<Fr>(challenge_point).to_buffer());
+        transcript->add_element("eval", static_cast<Fr>(pub_input.evaluation).to_buffer());
+
+        // generate random evaluation challenge "z"
+        transcript->apply_fiat_shamir("aux");
+        const Fr aux_challenge = Fr::serialize_from_buffer(transcript->get_challenge("aux").begin());
         auto srs_elements = ck->srs.get_monomial_points();
+        const auto aux_generator = srs_elements[poly_degree] * aux_challenge; // pub_input.aux_generator;
+        transcript->add_element("aux_generator", static_cast<affine_element>(aux_generator).to_buffer());
+        auto a_vec = polynomial;
+        // TODO(#220)(Arijit): to make it more efficient by directly using G_vector for the input points when i = 0 and
+        // write the output points to G_vec_local. Then use G_vec_local for rounds where i>0, this can be done after we
+        // use SRS instead of G_vector.
+
         std::vector<affine_element> G_vec_local(poly_degree);
         for (size_t i = 0; i < poly_degree; i++) {
             G_vec_local[i] = srs_elements[i];
@@ -162,7 +176,10 @@ template <typename Params> class InnerProductArgument {
      *
      * @return true/false depending on if the proof verifies
      */
-    static bool reduce_verify(std::shared_ptr<VK> vk, const Proof& proof, const PubInput& pub_input)
+    static bool reduce_verify(std::shared_ptr<VK> vk,
+                              const Proof& proof,
+                              const PubInput& pub_input,
+                              const auto& transcript)
     {
         // Local copies of public inputs
         auto& a_zero = proof.a_zero;
@@ -170,7 +187,8 @@ template <typename Params> class InnerProductArgument {
         auto& challenge_point = pub_input.challenge_point;
         auto& evaluation = pub_input.evaluation;
         auto& poly_degree = pub_input.poly_degree;
-        auto& aux_generator = pub_input.aux_generator;
+        element aux_generator = transcript->get_group_element("aux_generator");
+        // auto& aux_generator = pub_input.aux_generator;
 
         // Compute C_prime
         element C_prime = commitment + (aux_generator * evaluation);
