@@ -7,20 +7,20 @@
 extern "C" {
 
 // Get the exact circuit size for the constraint system.
-WASM_EXPORT uint32_t get_exact_circuit_size(uint8_t const* constraint_system_buf)
+WASM_EXPORT uint32_t c_get_exact_circuit_size(uint8_t const* constraint_system_buf)
 {
     return proofs::get_exact_circuit_size(constraint_system_buf);
 }
 
-WASM_EXPORT size_t init_proving_key(uint8_t const* constraint_system_buf, uint8_t const** pk_buf)
+WASM_EXPORT size_t c_init_proving_key(uint8_t const* constraint_system_buf, uint8_t const** pk_buf)
 {
     return proofs::init_proving_key(constraint_system_buf, pk_buf);
 }
 
-WASM_EXPORT size_t init_verification_key(void* pippenger,
-                                         uint8_t const* g2x,
-                                         uint8_t const* pk_buf,
-                                         uint8_t const** vk_buf)
+WASM_EXPORT size_t c_init_verification_key(void* pippenger,
+                                           uint8_t const* g2x,
+                                           uint8_t const* pk_buf,
+                                           uint8_t const** vk_buf)
 {
     return proofs::init_verification_key(pippenger, g2x, pk_buf, vk_buf);
 }
