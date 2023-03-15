@@ -183,7 +183,7 @@ struct StandardHonk {
         // IPA
         std::vector<transcript::Manifest::ManifestEntry> aux_generator_entries;
         aux_generator_entries.emplace_back(transcript::Manifest::ManifestEntry(
-              { .name = "commitment", .num_bytes = g1_size, .derived_by_verifier = false }));
+              { .name = "Commitment", .num_bytes = g1_size, .derived_by_verifier = false }));
         aux_generator_entries.emplace_back(transcript::Manifest::ManifestEntry(
               { .name = "challenge_point", .num_bytes = fr_size, .derived_by_verifier = false }));
         aux_generator_entries.emplace_back(transcript::Manifest::ManifestEntry(
@@ -195,10 +195,10 @@ struct StandardHonk {
         manifest_rounds.emplace_back(
             transcript::Manifest::RoundManifest(
             {
-              { .name = "aux_generator", .num_bytes = g1_size, .derived_by_verifier = false }
+              { .name = "Aux_generator", .num_bytes = g1_size, .derived_by_verifier = false }
             },
-            /* challenge_name = */ "",
-            /* num_challenges_in */ 0));
+            /* challenge_name = */ "aux_2",
+            /* num_challenges_in */ 1));
 
         // clang-format on
 

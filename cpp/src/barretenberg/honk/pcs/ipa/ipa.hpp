@@ -69,7 +69,7 @@ template <typename Params> class InnerProductArgument {
         ASSERT((poly_degree > 0) && (!(poly_degree & (poly_degree - 1))) &&
                "The poly_degree should be positive and a power of two");
         // Compute aux_generator (U) and add it to the transcript
-        transcript->add_element("commitment", static_cast<affine_element>(pub_input.commitment).to_buffer());
+        transcript->add_element("Commitment", static_cast<affine_element>(pub_input.commitment).to_buffer());
         transcript->add_element("challenge_point", static_cast<Fr>(challenge_point).to_buffer());
         transcript->add_element("eval", static_cast<Fr>(pub_input.evaluation).to_buffer());
 
@@ -78,7 +78,7 @@ template <typename Params> class InnerProductArgument {
         const Fr aux_challenge = Fr::serialize_from_buffer(transcript->get_challenge("aux").begin());
         auto srs_elements = ck->srs.get_monomial_points();
         const auto aux_generator = srs_elements[poly_degree] * aux_challenge; // pub_input.aux_generator;
-        transcript->add_element("aux_generator", static_cast<affine_element>(aux_generator).to_buffer());
+        transcript->add_element("Aux_generator", static_cast<affine_element>(aux_generator).to_buffer());
         auto a_vec = polynomial;
         // TODO(#220)(Arijit): to make it more efficient by directly using G_vector for the input points when i = 0 and
         // write the output points to G_vec_local. Then use G_vec_local for rounds where i>0, this can be done after we
@@ -187,7 +187,7 @@ template <typename Params> class InnerProductArgument {
         auto& challenge_point = pub_input.challenge_point;
         auto& evaluation = pub_input.evaluation;
         auto& poly_degree = pub_input.poly_degree;
-        element aux_generator = transcript->get_group_element("aux_generator");
+        element aux_generator = transcript->get_group_element("Aux_generator");
         // auto& aux_generator = pub_input.aux_generator;
 
         // Compute C_prime
