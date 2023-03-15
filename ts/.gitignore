@@ -1,4 +1,4 @@
-node_modules
-yarn-error.log
-.yarn
 dest
+node_modules
+src/wasm/barretenberg.wasm
+src/wasm/node/node_worker.js
