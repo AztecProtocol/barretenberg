@@ -33,35 +33,35 @@ TYPED_TEST(IpaCommitmentTest, commit)
     EXPECT_EQ(expected.normalize(), commitment.normalize());
 }
 
-// TYPED_TEST(IpaCommitmentTest, open)
-// {
-//     // Transcript
-//     using Transcript = transcript::StandardTranscript;
-//     auto transcript = std::make_shared<Transcript>(StandardHonk::create_manifest(0));
-//     transcript->mock_inputs_prior_to_challenge("separator");
-//     transcript->apply_fiat_shamir("separator");
+TYPED_TEST(IpaCommitmentTest, open)
+{
+    // Transcript
+    using Transcript = transcript::StandardTranscript;
+    auto transcript = std::make_shared<Transcript>(StandardHonk::create_manifest(0));
+    transcript->mock_inputs_prior_to_challenge("separator");
+    transcript->apply_fiat_shamir("separator");
 
-//     using IPA = InnerProductArgument<TypeParam>;
-//     using PubInput = typename IPA::PubInput;
-//     // generate a random polynomial, degree needs to be a power of two
-//     size_t n = 128;
-//     auto poly = this->random_polynomial(n);
-//     auto [x, eval] = this->random_eval(poly);
-//     barretenberg::g1::element commitment = this->commit(poly);
-//     PubInput pub_input;
-//     pub_input.commitment = commitment;
-//     pub_input.challenge_point = x;
-//     pub_input.evaluation = eval;
-//     pub_input.poly_degree = n;
-//     // auto aux_scalar = fr::random_element();
-//     // pub_input.aux_generator = barretenberg::g1::one * aux_scalar;
-//     const size_t log_n = static_cast<size_t>(numeric::get_msb(n));
-//     pub_input.round_challenges = std::vector<barretenberg::fr>(log_n);
-//     for (size_t i = 0; i < log_n; i++) {
-//         pub_input.round_challenges[i] = barretenberg::fr::random_element();
-//     }
-//     auto proof = IPA::reduce_prove(this->ck(), pub_input, poly, transcript);
-//     auto result = IPA::reduce_verify(this->vk(), proof, pub_input, transcript);
-//     EXPECT_TRUE(result);
-// }
+    using IPA = InnerProductArgument<TypeParam>;
+    using PubInput = typename IPA::PubInput;
+    // generate a random polynomial, degree needs to be a power of two
+    size_t n = 128;
+    auto poly = this->random_polynomial(n);
+    auto [x, eval] = this->random_eval(poly);
+    barretenberg::g1::element commitment = this->commit(poly);
+    PubInput pub_input;
+    pub_input.commitment = commitment;
+    pub_input.challenge_point = x;
+    pub_input.evaluation = eval;
+    pub_input.poly_degree = n;
+    // auto aux_scalar = fr::random_element();
+    // pub_input.aux_generator = barretenberg::g1::one * aux_scalar;
+    const size_t log_n = static_cast<size_t>(numeric::get_msb(n));
+    pub_input.round_challenges = std::vector<barretenberg::fr>(log_n);
+    for (size_t i = 0; i < log_n; i++) {
+        pub_input.round_challenges[i] = barretenberg::fr::random_element();
+    }
+    auto proof = IPA::reduce_prove(this->ck(), pub_input, poly, transcript);
+    auto result = IPA::reduce_verify(this->vk(), proof, pub_input, transcript);
+    EXPECT_TRUE(result);
+}
 } // namespace honk::pcs::ipa
