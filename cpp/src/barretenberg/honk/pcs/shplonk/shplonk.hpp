@@ -20,12 +20,6 @@
 namespace honk::pcs::shplonk {
 
 /**
- * @brief Single commitment to  Q(X) = ∑ₖ ( Bₖ(X) − Tₖ(X) ) / zₖ(X)
- *
- */
-template <typename Params> using Proof = typename Params::Commitment;
-
-/**
  * @brief Polynomial G(X) = Q(X) - ∑ₖ ẑₖ(r)⋅( Bₖ(X) − Tₖ(z) )
  *
  * @tparam Params CommitmentScheme parameters

@@ -1,6 +1,5 @@
 #include "standard_honk_composer_helper.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 
@@ -148,10 +147,7 @@ StandardVerifier StandardHonkComposerHelper<CircuitConstructor>::create_verifier
     const CircuitConstructor& circuit_constructor)
 {
     compute_verification_key(circuit_constructor);
-    StandardVerifier output_state(
-        circuit_verification_key,
-        honk::StandardHonk::create_manifest(circuit_constructor.public_inputs.size(),
-                                            numeric::get_msb(circuit_verification_key->circuit_size)));
+    StandardVerifier output_state(circuit_verification_key);
 
     // TODO(Cody): This should be more generic
     auto kate_verification_key = std::make_unique<pcs::kzg::VerificationKey>("../srs_db/ignition");
@@ -170,9 +166,7 @@ StandardProver StandardHonkComposerHelper<CircuitConstructor>::create_prover(
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
 
-    size_t num_sumcheck_rounds(circuit_proving_key->log_circuit_size);
-    auto manifest = Flavor::create_manifest(circuit_constructor.public_inputs.size(), num_sumcheck_rounds);
-    StandardProver output_state(std::move(wire_polynomials), circuit_proving_key, manifest);
+    StandardProver output_state(std::move(wire_polynomials), circuit_proving_key);
 
     // TODO(Cody): This should be more generic
     std::unique_ptr<pcs::kzg::CommitmentKey> kate_commitment_key =

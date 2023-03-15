@@ -1,5 +1,8 @@
 #pragma once
 
+#include "claim.hpp"
+#include "commitment_key.hpp"
+
 #include <cstddef>
 #include <gtest/gtest.h>
 
@@ -7,17 +10,6 @@
 #include <algorithm>
 #include <memory>
 #include <string_view>
-
-#include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/srs/reference_string/file_reference_string.hpp"
-#include "barretenberg/ecc/curves/bn254/g1.hpp"
-
-#include "../oracle/oracle.hpp"
-#include "../../transcript/transcript_wrappers.hpp"
-#include "../../proof_system/flavor/flavor.hpp"
-
-#include "claim.hpp"
-#include "commitment_key.hpp"
 
 namespace honk::pcs {
 namespace {
@@ -66,9 +58,8 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
     using VK = typename Params::VK;
 
     using Fr = typename Params::Fr;
-    using Commitment = typename Params::Commitment;
+    using CommitmentAffine = typename Params::C;
     using Polynomial = typename Params::Polynomial;
-    using Transcript = transcript::StandardTranscript;
 
   public:
     CommitmentTest()
@@ -78,7 +69,7 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
     std::shared_ptr<CK> ck() { return commitment_key; }
     std::shared_ptr<VK> vk() { return verification_key; }
 
-    Commitment commit(const Polynomial& polynomial) { return commitment_key->commit(polynomial); }
+    CommitmentAffine commit(const Polynomial& polynomial) { return commitment_key->commit(polynomial); }
 
     Polynomial random_polynomial(const size_t n)
     {
@@ -122,7 +113,7 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
         auto& [x, y] = claim.opening_pair;
         Fr y_expected = witness.evaluate(x);
         EXPECT_EQ(y, y_expected) << "OpeningClaim: evaluations mismatch";
-        Commitment commitment_expected = commit(witness);
+        CommitmentAffine commitment_expected = commit(witness);
         EXPECT_EQ(commitment, commitment_expected) << "OpeningClaim: commitment mismatch";
     }
 
@@ -196,10 +187,7 @@ typename std::shared_ptr<typename Params::CK> CommitmentTest<Params>::commitment
 template <typename Params>
 typename std::shared_ptr<typename Params::VK> CommitmentTest<Params>::verification_key = nullptr;
 
-using CommitmentSchemeParams = ::testing::Types<kzg::Params>;
+using CommitmentSchemeParams = ::testing::Types<kzg::Params, fake::Params<grumpkin::g1>>;
 using IpaCommitmentSchemeParams = ::testing::Types<ipa::Params>;
-// IMPROVEMENT: reinstate typed-tests for multiple field types, i.e.:
-// using CommitmentSchemeParams =
-//     ::testing::Types<fake::Params<barretenberg::g1>, fake::Params<grumpkin::g1>, kzg::Params>;
 
 } // namespace honk::pcs

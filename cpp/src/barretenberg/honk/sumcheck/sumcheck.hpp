@@ -3,7 +3,7 @@
 #include "relations/relation.hpp"
 #include "polynomials/pow.hpp"
 #include "polynomials/univariate.hpp"
-#include "barretenberg/common/serialize.hpp"
+#include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 
@@ -89,11 +89,9 @@ template <typename FF, template <class> class... Relations> class Sumcheck {
     static SumcheckOutput<FF> execute_prover(const size_t multivariate_d,
                                              const RelationParameters<FF>& relation_parameters,
                                              auto full_polynomials, // pass by value, not by reference
-                                             auto& transcript)
+                                             ProverTranscript<FF>& transcript)
     {
-        const FF alpha = FF::serialize_from_buffer(transcript.get_challenge("alpha").begin());
-        const FF zeta = FF::serialize_from_buffer(transcript.get_challenge("alpha", 1).begin());
-
+        auto [alpha, zeta] = transcript.get_challenges("Sumcheck:alpha", "Sumcheck:zeta");
         /**
          * Suppose the Honk `full_polynomials` (multilinear in d variables) are called P_1, ..., P_{NUM_POLYNOMIALS}.
          * At initialization, we think of these as lying in a two-dimensional array, where each column records the value
@@ -151,12 +149,12 @@ template <typename FF, template <class> class... Relations> class Sumcheck {
             // Multiply by [(1-X) + ζ^{ 2^{l} } X] to obtain the full round univariate S_l(X).
             RoundUnivariate round_univariate = SumcheckRound<FF, NUM_POLYNOMIALS, Relations...>::compute_univariate(
                 round_polynomials, round_size, relation_parameters, pow_univariate, alpha);
-            transcript.add_element("univariate_" + std::to_string(round_idx), round_univariate.to_buffer());
+            std::string round_univariate_label = "Sumcheck:T_" + std::to_string(round_idx);
+            transcript.send_to_verifier(round_univariate_label, round_univariate);
 
             // Get the challenge
-            auto challenge_label = "u_" + std::to_string(round_idx);
-            transcript.apply_fiat_shamir(challenge_label);
-            FF round_challenge = FF::serialize_from_buffer(transcript.get_challenge(challenge_label).begin());
+            std::string round_challenge_label = "Sumcheck:u_" + std::to_string(round_idx);
+            const FF round_challenge = transcript.get_challenge(round_challenge_label);
             evaluation_points.emplace_back(round_challenge);
 
             // Perform partial evaluation of the round polynomials, in the evaluation point u_l
@@ -175,7 +173,7 @@ template <typename FF, template <class> class... Relations> class Sumcheck {
             ASSERT(partially_evaluated_polynomials[i].size() == 1);
             multivariate_evaluations[i] = partially_evaluated_polynomials[i][0];
         }
-        transcript.add_element("multivariate_evaluations", to_buffer(multivariate_evaluations));
+        transcript.send_to_verifier("Sumcheck:evaluations", multivariate_evaluations);
 
         return SumcheckOutput<FF>{ .evaluation_point = evaluation_points, .evaluations = multivariate_evaluations };
     };
@@ -189,8 +187,7 @@ template <typename FF, template <class> class... Relations> class Sumcheck {
                                                               const RelationParameters<FF>& relation_parameters,
                                                               auto& transcript)
     {
-        const FF alpha = FF::serialize_from_buffer(transcript.get_challenge("alpha").begin());
-        const FF zeta = FF::serialize_from_buffer(transcript.get_challenge("alpha", 1).begin());
+        auto [alpha, zeta] = transcript.get_challenges("Sumcheck:alpha", "Sumcheck:zeta");
 
         PowUnivariate<FF> pow_univariate(zeta);
 
@@ -205,8 +202,8 @@ template <typename FF, template <class> class... Relations> class Sumcheck {
         FF target_sum{ 0 };
         for (size_t round_idx = 0; round_idx < multivariate_d; ++round_idx) {
             // Obtain the round univariate from the transcript
-            auto T_l = RoundUnivariate::serialize_from_buffer(
-                &transcript.get_element("univariate_" + std::to_string(round_idx))[0]);
+            std::string round_univariate_label = "Sumcheck:T_" + std::to_string(round_idx);
+            auto T_l = transcript.template receive_from_prover<RoundUnivariate>(round_univariate_label);
 
             // The "real" round polynomial S_l(X) is ( (1−X) + X⋅ζ^{ 2^{l} } ) ⋅ T_l(X)
             // S_l(0) + S_l(1) = T^{l}(0) + ζ^{ 2^{l} } ⋅ T^{l}(1), since
@@ -220,7 +217,8 @@ template <typename FF, template <class> class... Relations> class Sumcheck {
             }
 
             // Get the next challenge point and store it.
-            FF u_l = FF::serialize_from_buffer(transcript.get_challenge("u_" + std::to_string(round_idx)).begin());
+            std::string round_challenge_label = "Sumcheck:u_" + std::to_string(round_idx);
+            auto u_l = transcript.get_challenge(round_challenge_label);
             evaluation_points.emplace_back(u_l);
 
             // Compute next target_sum
@@ -233,9 +231,8 @@ template <typename FF, template <class> class... Relations> class Sumcheck {
         }
 
         // Final round
-        auto purported_evaluations_vec = transcript.get_field_element_vector("multivariate_evaluations");
-        std::array<FF, NUM_POLYNOMIALS> purported_evaluations{};
-        std::copy_n(purported_evaluations_vec.begin(), NUM_POLYNOMIALS, purported_evaluations.begin());
+        auto purported_evaluations =
+            transcript.template receive_from_prover<std::array<FF, NUM_POLYNOMIALS>>("Sumcheck:evaluations");
 
         // The full Honk identity evaluated in the opening point u.
         FF full_eval = compute_full_evaluation(

@@ -1,16 +1,13 @@
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 #include "barretenberg/plonk/proof_system/constants.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "prover.hpp"
 #include "barretenberg/proof_system/proving_key/proving_key.hpp"
-#include "barretenberg/transcript/transcript.hpp"
 #include "verifier.hpp"
 #include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include <gtest/gtest.h>
 #include "barretenberg/srs/reference_string/file_reference_string.hpp"
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"
-#include "barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp"
 #include "barretenberg/honk/composer/composer_helper/permutation_helper.hpp"
 #include <vector>
 
@@ -21,11 +18,6 @@ namespace test_honk_verifier {
 
 template <class FF> class VerifierTests : public testing::Test {
   public:
-    static transcript::Manifest create_manifest(const size_t num_public_inputs, const size_t num_sumcheck_rounds)
-    {
-        return honk::StandardHonk::create_manifest(num_public_inputs, num_sumcheck_rounds);
-    }
-
     static StandardVerifier generate_verifier(std::shared_ptr<bonk::proving_key> circuit_proving_key)
     {
         std::array<fr*, 8> poly_coefficients;
@@ -66,7 +58,7 @@ template <class FF> class VerifierTests : public testing::Test {
         circuit_verification_key->commitments.insert({ "SIGMA_2", commitments[6] });
         circuit_verification_key->commitments.insert({ "SIGMA_3", commitments[7] });
 
-        StandardVerifier verifier(circuit_verification_key, create_manifest(0, circuit_proving_key->log_circuit_size));
+        StandardVerifier verifier(circuit_verification_key);
 
         // std::unique_ptr<KateCommitmentScheme<standard_settings>> kate_commitment_scheme =
         //     std::make_unique<KateCommitmentScheme<standard_settings>>();
@@ -192,8 +184,7 @@ template <class FF> class VerifierTests : public testing::Test {
 
         // TODO(#223)(Cody): This should be more generic
         std::vector<barretenberg::polynomial> witness_polynomials;
-        auto prover = StandardProver(
-            std::move(witness_polynomials), proving_key, create_manifest(0, proving_key->log_circuit_size));
+        auto prover = StandardProver(std::move(witness_polynomials), proving_key);
 
         std::unique_ptr<pcs::kzg::CommitmentKey> kate_commitment_key =
             std::make_unique<pcs::kzg::CommitmentKey>(proving_key->circuit_size, "../srs_db/ignition");

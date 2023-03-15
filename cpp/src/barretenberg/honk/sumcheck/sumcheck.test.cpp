@@ -4,8 +4,7 @@
 #include "relations/grand_product_initialization_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/relation.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
-#include "barretenberg/transcript/transcript_wrappers.hpp"
-#include "barretenberg/transcript/manifest.hpp"
+#include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/numeric/random/engine.hpp"
 
@@ -19,7 +18,6 @@
 
 using namespace honk;
 using namespace honk::sumcheck;
-using Transcript = transcript::StandardTranscript;
 using FF = barretenberg::fr;
 const size_t NUM_POLYNOMIALS = bonk::StandardArithmetization::NUM_POLYNOMIALS;
 using POLYNOMIAL = bonk::StandardArithmetization::POLYNOMIAL;
@@ -73,68 +71,11 @@ std::array<std::span<FF>, NUM_POLYNOMIALS> construct_full_polynomials(std::array
     return full_polynomials;
 }
 
-Transcript produce_mocked_transcript(size_t multivariate_d, size_t num_public_inputs)
-{
-    // Create a mock manifest containing only elements needed for testing Sumcheck
-    constexpr size_t fr_size = 32;
-    const size_t multivariate_n(1 << multivariate_d);
-    const size_t public_input_size = fr_size * num_public_inputs;
-    std::vector<transcript::Manifest::RoundManifest> manifest_rounds;
-    manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
-        { { .name = "circuit_size", .num_bytes = 4, .derived_by_verifier = true },
-          { .name = "public_input_size", .num_bytes = 4, .derived_by_verifier = true } },
-        /* challenge_name = */ "init",
-        /* num_challenges_in = */ 1));
-
-    manifest_rounds.emplace_back(transcript::Manifest::RoundManifest({ /* this is a noop */ },
-                                                                     /* challenge_name = */ "alpha",
-                                                                     /* num_challenges_in = */ 2));
-    manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
-        { { .name = "public_inputs", .num_bytes = public_input_size, .derived_by_verifier = false } },
-        /* challenge_name = */ "beta",
-        /* num_challenges_in = */ 2) // also produce "gamma"
-    );
-
-    for (size_t i = 0; i < multivariate_d; i++) {
-        auto label = std::to_string(i);
-        manifest_rounds.emplace_back(
-            transcript::Manifest::RoundManifest({ { .name = "univariate_" + label,
-                                                    .num_bytes = fr_size * honk::StandardHonk::MAX_RELATION_LENGTH,
-                                                    .derived_by_verifier = false } },
-                                                /* challenge_name = */ "u_" + label,
-                                                /* num_challenges_in = */ 1));
-    }
-
-    // Create a transcript from the mock manifest
-    auto transcript = Transcript(transcript::Manifest(manifest_rounds));
-
-    transcript.add_element("circuit_size",
-                           { static_cast<uint8_t>(multivariate_n >> 24),
-                             static_cast<uint8_t>(multivariate_n >> 16),
-                             static_cast<uint8_t>(multivariate_n >> 8),
-                             static_cast<uint8_t>(multivariate_n) });
-
-    transcript.add_element("public_input_size",
-                           { static_cast<uint8_t>(num_public_inputs >> 24),
-                             static_cast<uint8_t>(num_public_inputs >> 16),
-                             static_cast<uint8_t>(num_public_inputs >> 8),
-                             static_cast<uint8_t>(num_public_inputs) });
-
-    transcript.apply_fiat_shamir("init");
-    transcript.apply_fiat_shamir("alpha");
-    std::vector<uint8_t> public_inputs_buf(public_input_size, 1); // arbitrary buffer of 1's
-    transcript.add_element("public_inputs", public_inputs_buf);
-    transcript.apply_fiat_shamir("beta");
-
-    return transcript;
-}
-
 TEST(Sumcheck, PolynomialNormalization)
 {
     // TODO(#225)(Cody): We should not use real constants like this in the tests, at least not in so many of them.
     const size_t multivariate_d(3);
     const size_t multivariate_n(1 << multivariate_d);
-    const size_t num_public_inputs(1);
 
     std::array<FF, multivariate_n> w_l;
     std::array<FF, multivariate_n> w_r;
@@ -197,9 +138,9 @@ TEST(Sumcheck, PolynomialNormalization)
 
     using Sumcheck =
         Sumcheck<FF, ArithmeticRelation, GrandProductComputationRelation, GrandProductInitializationRelation>;
-    auto transcript = produce_mocked_transcript(multivariate_d, num_public_inputs);
+    auto prover_transcript = ProverTranscript<FF>::init_empty();
 
-    auto [evaluation_points, evals] = Sumcheck::execute_prover(multivariate_d, {}, full_polynomials, transcript);
+    auto [evaluation_points, evals] = Sumcheck::execute_prover(multivariate_d, {}, full_polynomials, prover_transcript);
 
     FF u_0 = evaluation_points[0];
     FF u_1 = evaluation_points[1];
@@ -242,7 +183,6 @@ TEST(Sumcheck, Prover)
     auto run_test = [](bool is_random_input) {
         const size_t multivariate_d(2);
         const size_t multivariate_n(1 << multivariate_d);
-        const size_t num_public_inputs(1);
         std::array<std::array<FF, multivariate_n>, NUM_POLYNOMIALS> input_polynomials;
         if (is_random_input) {
             for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
@@ -292,11 +232,12 @@ TEST(Sumcheck, Prover)
                                                            lagrange_first,
                                                            lagrange_last);
 
-        auto transcript = produce_mocked_transcript(multivariate_d, num_public_inputs);
+        auto prover_transcript = ProverTranscript<FF>::init_empty();
         using Sumcheck =
             Sumcheck<FF, ArithmeticRelation, GrandProductComputationRelation, GrandProductInitializationRelation>;
 
-        auto [evaluation_points, evals] = Sumcheck::execute_prover(multivariate_d, {}, full_polynomials, transcript);
+        auto [evaluation_points, evals] =
+            Sumcheck::execute_prover(multivariate_d, {}, full_polynomials, prover_transcript);
         FF u_0 = evaluation_points[0];
         FF u_1 = evaluation_points[1];
         std::vector<FF> expected_values;
@@ -320,7 +261,6 @@ TEST(Sumcheck, Prover)
 TEST(Sumcheck, ProverAndVerifier)
 {
     const size_t multivariate_d(1);
-    const size_t num_public_inputs(1);
 
     std::array<FF, 2> w_l = { 0, 1 };
     std::array<FF, 2> w_r = { 0, 1 };
@@ -363,11 +303,13 @@ TEST(Sumcheck, ProverAndVerifier)
     using Sumcheck =
         Sumcheck<FF, ArithmeticRelation, GrandProductComputationRelation, GrandProductInitializationRelation>;
 
-    auto transcript = produce_mocked_transcript(multivariate_d, num_public_inputs);
+    auto prover_transcript = ProverTranscript<FF>::init_empty();
 
-    auto prover_output = Sumcheck::execute_prover(multivariate_d, {}, full_polynomials, transcript);
+    auto prover_output = Sumcheck::execute_prover(multivariate_d, {}, full_polynomials, prover_transcript);
 
-    auto verifier_output = Sumcheck::execute_verifier(multivariate_d, {}, transcript);
+    auto verifier_transcript = VerifierTranscript<FF>::init_empty(prover_transcript);
+
+    auto verifier_output = Sumcheck::execute_verifier(multivariate_d, {}, verifier_transcript);
     ASSERT_TRUE(verifier_output.has_value());
     ASSERT_EQ(prover_output, *verifier_output);
 }
@@ -378,7 +320,6 @@ TEST(Sumcheck, ProverAndVerifierLonger)
     auto run_test = [](bool expect_verified) {
         const size_t multivariate_d(2);
         const size_t multivariate_n(1 << multivariate_d);
-        const size_t num_public_inputs(0);
 
         // clang-format off
     std::array<FF, multivariate_n> w_l;
@@ -427,11 +368,13 @@ TEST(Sumcheck, ProverAndVerifierLonger)
         using Sumcheck =
             Sumcheck<FF, ArithmeticRelation, GrandProductComputationRelation, GrandProductInitializationRelation>;
 
-        auto transcript = produce_mocked_transcript(multivariate_d, num_public_inputs);
+        auto prover_transcript = ProverTranscript<FF>::init_empty();
 
-        auto prover_output = Sumcheck::execute_prover(multivariate_d, {}, full_polynomials, transcript);
+        auto prover_output = Sumcheck::execute_prover(multivariate_d, {}, full_polynomials, prover_transcript);
 
-        auto verifier_output = Sumcheck::execute_verifier(multivariate_d, {}, transcript);
+        auto verifier_transcript = VerifierTranscript<FF>::init_empty(prover_transcript);
+
+        auto verifier_output = Sumcheck::execute_verifier(multivariate_d, {}, verifier_transcript);
 
         EXPECT_EQ(verifier_output.has_value(), expect_verified);
     };

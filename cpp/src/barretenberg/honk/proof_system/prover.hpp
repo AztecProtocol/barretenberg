@@ -1,4 +1,5 @@
 #pragma once
+#include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck.hpp"
 #include "barretenberg/honk/sumcheck/relations/relation.hpp"
@@ -7,7 +8,6 @@
 #include "barretenberg/honk/pcs/shplonk/shplonk_single.hpp"
 #include "barretenberg/honk/pcs/shplonk/shplonk.hpp"
 #include "barretenberg/honk/pcs/kzg/kzg.hpp"
-#include "barretenberg/transcript/transcript_wrappers.hpp"
 #include "barretenberg/plonk/proof_system/types/proof.hpp"
 #include "barretenberg/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
@@ -27,9 +27,7 @@ template <typename settings> class Prover {
     using POLYNOMIAL = bonk::StandardArithmetization::POLYNOMIAL;
 
   public:
-    Prover(std::vector<Polynomial>&& wire_polys,
-           std::shared_ptr<bonk::proving_key> input_key = nullptr,
-           const transcript::Manifest& manifest = transcript::Manifest());
+    Prover(std::vector<Polynomial>&& wire_polys, std::shared_ptr<bonk::proving_key> input_key = nullptr);
 
     void execute_preamble_round();
     void execute_wire_commitments_round();
@@ -50,7 +48,7 @@ template <typename settings> class Prover {
     plonk::proof& export_proof();
     plonk::proof& construct_proof();
 
-    transcript::StandardTranscript transcript;
+    ProverTranscript<Fr> transcript;
 
     std::vector<Fr> public_inputs;
 
@@ -86,7 +84,6 @@ template <typename settings> class Prover {
     pcs::gemini::ProverOutput<pcs::kzg::Params> gemini_output;
     pcs::shplonk::ProverOutput<pcs::kzg::Params> shplonk_output;
 
-    using Transcript = transcript::StandardTranscript;
     using Gemini = pcs::gemini::MultilinearReductionScheme<pcs::kzg::Params>;
     using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<pcs::kzg::Params>;
     using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;

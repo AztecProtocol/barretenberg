@@ -22,23 +22,19 @@
 
 namespace honk {
 template <typename program_settings>
-Verifier<program_settings>::Verifier(std::shared_ptr<bonk::verification_key> verifier_key,
-                                     const transcript::Manifest& input_manifest)
-    : manifest(input_manifest)
-    , key(verifier_key)
+Verifier<program_settings>::Verifier(std::shared_ptr<bonk::verification_key> verifier_key)
+    : key(verifier_key)
 {}
 
 template <typename program_settings>
 Verifier<program_settings>::Verifier(Verifier&& other)
-    : manifest(other.manifest)
-    , key(other.key)
+    : key(other.key)
     , kate_verification_key(std::move(other.kate_verification_key))
 {}
 
 template <typename program_settings> Verifier<program_settings>& Verifier<program_settings>::operator=(Verifier&& other)
 {
     key = other.key;
-    manifest = other.manifest;
     kate_verification_key = (std::move(other.kate_verification_key));
     kate_g1_elements.clear();
     kate_fr_elements.clear();
@@ -91,57 +87,36 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
 
     constexpr auto width = program_settings::program_width;
 
-    const auto circuit_size = static_cast<uint32_t>(key->circuit_size);
-    const auto num_public_inputs = static_cast<uint32_t>(key->num_public_inputs);
-    const size_t log_n(numeric::get_msb(circuit_size));
-    // Add the proof data to the transcript, according to the manifest. Also initialise the transcript's hash type
-    // and challenge bytes.
-    auto transcript = transcript::StandardTranscript(
-        proof.proof_data, manifest, program_settings::hash_type, program_settings::num_challenge_bytes);
+    VerifierTranscript<typename program_settings::fr> transcript{ proof.proof_data };
 
-    // Add the circuit size and the number of public inputs) to the transcript.
-    transcript.add_element("circuit_size",
-                           { static_cast<uint8_t>(circuit_size >> 24),
-                             static_cast<uint8_t>(circuit_size >> 16),
-                             static_cast<uint8_t>(circuit_size >> 8),
-                             static_cast<uint8_t>(circuit_size) });
+    // TODO(Adrian): Change the initialization of the transcript to take the VK hash? Also need to add the
+    // commitments...
+    const auto circuit_size = transcript.template receive_from_prover<uint32_t>("circuit_size");
+    const auto public_input_size = transcript.template receive_from_prover<uint32_t>("public_input_size");
+    const size_t log_n = numeric::get_msb(circuit_size);
 
-    transcript.add_element("public_input_size",
-                           { static_cast<uint8_t>(num_public_inputs >> 24),
-                             static_cast<uint8_t>(num_public_inputs >> 16),
-                             static_cast<uint8_t>(num_public_inputs >> 8),
-                             static_cast<uint8_t>(num_public_inputs) });
-
-    // Compute challenges from the proof data, based on the manifest, using the Fiat-Shamir heuristic
-    transcript.apply_fiat_shamir("init");
-    transcript.apply_fiat_shamir("eta");
-    transcript.apply_fiat_shamir("beta");
-    transcript.apply_fiat_shamir("alpha");
-    for (size_t idx = 0; idx < log_n; idx++) {
-        transcript.apply_fiat_shamir("u_" + std::to_string(idx));
+    if (circuit_size != key->circuit_size) {
+        return false;
     }
-    transcript.apply_fiat_shamir("rho");
-    transcript.apply_fiat_shamir("r");
-    transcript.apply_fiat_shamir("nu");
-    transcript.apply_fiat_shamir("z");
-    transcript.apply_fiat_shamir("separator");
+    if (public_input_size != key->num_public_inputs) {
+        return false;
+    }
 
-    std::vector<FF> public_inputs = many_from_buffer<FF>(transcript.get_element("public_inputs"));
-    ASSERT(public_inputs.size() == num_public_inputs);
+    std::vector<FF> public_inputs;
+    for (size_t i = 0; i < public_input_size; ++i) {
+        auto public_input_i = transcript.template receive_from_prover<FF>("public_inputs_" + std::to_string(i));
+        public_inputs.emplace_back(public_input_i);
+    }
 
     // Get commitments to the wires
     std::array<CommitmentAffine, width> wire_commitments;
     for (size_t i = 0; i < width; ++i) {
-        wire_commitments[i] =
-            transcript.get_group_element(bonk::StandardArithmetization::ENUM_TO_COMM[NUM_PRECOMPUTED + i]);
+        wire_commitments[i] = transcript.template receive_from_prover<CommitmentAffine>("W_" + std::to_string(i + 1));
     }
 
-    // Get commitment to Z_PERM
-    auto z_permutation_commitment = transcript.get_group_element("Z_PERM");
-
     // Get permutation challenges
-    const FF beta = FF::serialize_from_buffer(transcript.get_challenge("beta").begin());
-    const FF gamma = FF::serialize_from_buffer(transcript.get_challenge("beta", 1).begin());
+    auto [beta, gamma] = transcript.get_challenges("beta", "gamma");
+
     const FF public_input_delta = compute_public_input_delta<FF>(public_inputs, beta, gamma, circuit_size);
 
     sumcheck::RelationParameters<FF> relation_parameters{
@@ -149,6 +124,8 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
         .gamma = gamma,
         .public_input_delta = public_input_delta,
     };
+    // Get commitment to Z_PERM
+    auto z_permutation_commitment = transcript.template receive_from_prover<CommitmentAffine>("Z_PERM");
 
     // TODO(Cody): Compute some basic public polys like id(X), pow(X), and any required Lagrange polys
 
@@ -170,7 +147,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     // - batched unshifted and to-be-shifted polynomial commitments
 
     // Compute powers of batching challenge rho
-    FF rho = FF::serialize_from_buffer(transcript.get_challenge("rho").begin());
+    FF rho = transcript.get_challenge("rho");
     std::vector<FF> rhos = Gemini::powers_of_rho(rho, NUM_POLYNOMIALS);
 
     // Compute batched multivariate evaluation
@@ -198,30 +175,17 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     // Construct batched commitment for to-be-shifted polynomials (for now only Z_PERM)
     Commitment batched_commitment_to_be_shifted = z_permutation_commitment * rhos[NUM_UNSHIFTED];
 
-    // Reconstruct the Gemini Proof from the transcript
-    auto gemini_proof = Gemini::reconstruct_proof_from_transcript(&transcript, log_n);
-
     // Produce a Gemini claim consisting of:
     // - d+1 commitments [Fold_{r}^(0)], [Fold_{-r}^(0)], and [Fold^(l)], l = 1:d-1
     // - d+1 evaluations a_0_pos, and a_l, l = 0:d-1
-    auto gemini_claim = Gemini::reduce_verify(opening_point,
-                                              batched_evaluation,
-                                              batched_commitment_unshifted,
-                                              batched_commitment_to_be_shifted,
-                                              gemini_proof,
-                                              &transcript);
-
-    // Reconstruct the Shplonk Proof (commitment [Q]) from the transcript
-    auto shplonk_proof = transcript.get_group_element("Q");
+    auto gemini_claim = Gemini::reduce_verify(
+        opening_point, batched_evaluation, batched_commitment_unshifted, batched_commitment_to_be_shifted, transcript);
 
     // Produce a Shplonk claim: commitment [Q] - [Q_z], evaluation zero (at random challenge z)
-    auto shplonk_claim = Shplonk::reduce_verify(gemini_claim, shplonk_proof, &transcript);
-
-    // Reconstruct the KZG Proof (commitment [W]_1) from the transcript
-    auto kzg_proof = transcript.get_group_element("W");
+    auto shplonk_claim = Shplonk::reduce_verify(gemini_claim, transcript);
 
     // Aggregate inputs [Q] - [Q_z] and [W] into an 'accumulator' (can perform pairing check on result)
-    auto kzg_claim = KZG::reduce_verify(shplonk_claim, kzg_proof);
+    auto kzg_claim = KZG::reduce_verify(shplonk_claim, transcript);
 
     // Do final pairing check
     bool pairing_result = kzg_claim.verify(kate_verification_key);

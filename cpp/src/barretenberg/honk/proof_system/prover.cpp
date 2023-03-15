@@ -8,7 +8,6 @@
 #include "barretenberg/honk/utils/public_inputs.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
-#include "barretenberg/transcript/transcript_wrappers.hpp"
 
 #include <string>
 #include <array>
@@ -31,10 +30,8 @@ namespace honk {
  * */
 template <typename settings>
 Prover<settings>::Prover(std::vector<Polynomial>&& wire_polys,
-                         std::shared_ptr<bonk::proving_key> input_key,
-                         const transcript::Manifest& input_manifest)
-    : transcript(input_manifest, settings::hash_type, settings::num_challenge_bytes)
-    , wire_polynomials(wire_polys)
+                         std::shared_ptr<bonk::proving_key> input_key)
+    : wire_polynomials(wire_polys) // TODO(luke): move these properly
     , key(input_key)
     , commitment_key(std::make_unique<pcs::kzg::CommitmentKey>(
           input_key->circuit_size,
@@ -78,7 +75,7 @@ template <typename settings> void Prover<settings>::compute_wire_commitments()
     for (size_t i = 0; i < settings::program_width; ++i) {
         auto commitment = commitment_key->commit(wire_polynomials[i]);
 
-        transcript.add_element("W_" + std::to_string(i + 1), commitment.to_buffer());
+        transcript.send_to_verifier("W_" + std::to_string(i + 1), commitment);
     }
 }
 
@@ -178,8 +175,8 @@ barretenberg::Polynomial<barretenberg::fr> Prover<settings>::compute_grand_produ
     // Construct permutation polynomial 'z_perm' in lagrange form as:
     // z_perm = [0 numerator_accumulator[0][0] numerator_accumulator[0][1] ... numerator_accumulator[0][n-2] 0]
     Polynomial z_perm(key->circuit_size);
-    // We'll need to shift this polynomial to the left by dividing it by X in gemini, so the the 0-th coefficient should
-    // stay zero
+    // We'll need to shift this polynomial to the left by dividing it by X in gemini, so the the 0-th coefficient
+    // should stay zero
     copy_polynomial(numerator_accumulator[0], &z_perm[1], key->circuit_size - 1, key->circuit_size - 1);
 
     // free memory allocated for scratch space
@@ -201,19 +198,16 @@ template <typename settings> void Prover<settings>::execute_preamble_round()
 
     // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
 
-    transcript.add_element("circuit_size",
-                           { static_cast<uint8_t>(key->circuit_size >> 24),
-                             static_cast<uint8_t>(key->circuit_size >> 16),
-                             static_cast<uint8_t>(key->circuit_size >> 8),
-                             static_cast<uint8_t>(key->circuit_size) });
+    const auto circuit_size = static_cast<uint32_t>(key->circuit_size);
+    const auto num_public_inputs = static_cast<uint32_t>(key->num_public_inputs);
 
-    transcript.add_element("public_input_size",
-                           { static_cast<uint8_t>(key->num_public_inputs >> 24),
-                             static_cast<uint8_t>(key->num_public_inputs >> 16),
-                             static_cast<uint8_t>(key->num_public_inputs >> 8),
-                             static_cast<uint8_t>(key->num_public_inputs) });
+    transcript.send_to_verifier("circuit_size", circuit_size);
+    transcript.send_to_verifier("public_input_size", num_public_inputs);
 
-    transcript.apply_fiat_shamir("init");
+    for (size_t i = 0; i < key->num_public_inputs; ++i) {
+        auto public_input_i = public_inputs[i];
+        transcript.send_to_verifier("public_input_" + std::to_string(i), public_input_i);
+    }
 }
 
 /**
@@ -222,11 +216,9 @@ template <typename settings> void Prover<settings>::execute_preamble_round()
  * */
 template <typename settings> void Prover<settings>::execute_wire_commitments_round()
 {
+
     // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
     compute_wire_commitments();
-
-    // Add public inputs to transcript
-    transcript.add_element("public_inputs", ::to_buffer(public_inputs));
 }
 
 /**
@@ -235,7 +227,7 @@ template <typename settings> void Prover<settings>::execute_wire_commitments_rou
 template <typename settings> void Prover<settings>::execute_tables_round()
 {
     // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
-    transcript.apply_fiat_shamir("eta");
+    // transcript.apply_fiat_shamir("eta");
 
     // No operations are needed here for Standard Honk
 }
@@ -248,11 +240,7 @@ template <typename settings> void Prover<settings>::execute_grand_product_comput
 {
     // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
 
-    transcript.apply_fiat_shamir("beta");
-
-    auto beta = transcript.get_challenge_field_element("beta", 0);
-    auto gamma = transcript.get_challenge_field_element("beta", 1);
-
+    auto [beta, gamma] = transcript.get_challenges("beta", "gamma");
     auto public_input_delta = compute_public_input_delta<Fr>(public_inputs, beta, gamma, key->circuit_size);
 
     relation_parameters = sumcheck::RelationParameters<Fr>{
@@ -264,7 +252,8 @@ template <typename settings> void Prover<settings>::execute_grand_product_comput
     z_permutation = compute_grand_product_polynomial(beta, gamma);
     // The actual polynomial is of length n+1, but commitment key is just n, so we need to limit it
     auto commitment = commitment_key->commit(z_permutation);
-    transcript.add_element("Z_PERM", commitment.to_buffer());
+
+    transcript.send_to_verifier("Z_PERM", commitment);
 
     prover_polynomials[POLYNOMIAL::Z_PERM] = z_permutation;
     prover_polynomials[POLYNOMIAL::Z_PERM_SHIFT] = z_permutation.shifted();
@@ -284,8 +273,6 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
                                         sumcheck::GrandProductComputationRelation,
                                         sumcheck::GrandProductInitializationRelation>;
 
-    transcript.apply_fiat_shamir("alpha");
-
     sumcheck_output =
         Sumcheck::execute_prover(key->log_circuit_size, relation_parameters, prover_polynomials, transcript);
 }
@@ -301,8 +288,7 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     const size_t NUM_UNSHIFTED_POLYS = bonk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
 
     // Generate batching challenge ρ and powers 1,ρ,…,ρᵐ⁻¹
-    transcript.apply_fiat_shamir("rho");
-    Fr rho = Fr::serialize_from_buffer(transcript.get_challenge("rho").begin());
+    Fr rho = transcript.get_challenge("rho");
     std::vector<Fr> rhos = Gemini::powers_of_rho(rho, NUM_POLYNOMIALS);
 
     // Get vector of multivariate evaluations produced by Sumcheck
@@ -321,7 +307,7 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
                                          opening_point,
                                          std::move(batched_poly_unshifted),
                                          std::move(batched_poly_to_be_shifted),
-                                         &transcript);
+                                         transcript);
 }
 
 /**
@@ -330,9 +316,9 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
  * */
 template <typename settings> void Prover<settings>::execute_pcs_evaluation_round()
 {
-    // TODO(luke): This functionality is performed within Gemini::reduce_prove(), called in the previous round. In the
-    // future we could (1) split the Gemini functionality to match the round structure defined here, or (2) remove this
-    // function from the prover. The former may be necessary to maintain the work_queue paradigm.
+    // TODO(luke): This functionality is performed within Gemini::reduce_prove(), called in the previous round. In
+    // the future we could (1) split the Gemini functionality to match the round structure defined here, or (2)
+    // remove this function from the prover. The former may be necessary to maintain the work_queue paradigm.
 }
 
 /**
@@ -344,7 +330,7 @@ template <typename settings> void Prover<settings>::execute_pcs_evaluation_round
 template <typename settings> void Prover<settings>::execute_shplonk_round()
 {
     shplonk_output =
-        Shplonk::reduce_prove(commitment_key, gemini_output.opening_pairs, gemini_output.witnesses, &transcript);
+        Shplonk::reduce_prove(commitment_key, gemini_output.opening_pairs, gemini_output.witnesses, transcript);
 }
 
 /**
@@ -353,12 +339,12 @@ template <typename settings> void Prover<settings>::execute_shplonk_round()
  * */
 template <typename settings> void Prover<settings>::execute_kzg_round()
 {
-    KZG::reduce_prove(commitment_key, shplonk_output.opening_pair, shplonk_output.witness, &transcript);
+    KZG::reduce_prove(commitment_key, shplonk_output.opening_pair, shplonk_output.witness, transcript);
 }
 
 template <typename settings> plonk::proof& Prover<settings>::export_proof()
 {
-    proof.proof_data = transcript.export_transcript();
+    proof.proof_data = transcript.proof_data;
     return proof;
 }
 
