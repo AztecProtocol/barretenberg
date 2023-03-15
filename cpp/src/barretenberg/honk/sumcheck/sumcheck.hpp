@@ -8,6 +8,7 @@
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 
 #include <algorithm>
+#include <optional>
 #include <array>
 #include <cstddef>
 #include <span>
@@ -78,7 +79,6 @@ template <typename FF, template <class> class... Relations> class Sumcheck {
     static constexpr size_t NUM_POLYNOMIALS = bonk::StandardArithmetization::NUM_POLYNOMIALS;
 
     using RoundUnivariate = Univariate<FF, MAX_RELATION_LENGTH>;
-    using SumcheckRound = SumcheckRound<FF, NUM_POLYNOMIALS, Relations...>;
 
     /**
      * @brief Compute univariate restriction place in transcript, generate challenge, fold,... repeat until final round,
@@ -149,7 +149,7 @@ template <typename FF, template <class> class... Relations> class Sumcheck {
             const size_t round_size = 1 << (multivariate_d - round_idx);
             // Write the round univariate T_l(X) to the transcript
             // Multiply by [(1-X) + ζ^{ 2^{l} } X] to obtain the full round univariate S_l(X).
-            RoundUnivariate round_univariate = SumcheckRound::compute_univariate(
+            RoundUnivariate round_univariate = SumcheckRound<FF, NUM_POLYNOMIALS, Relations...>::compute_univariate(
                 round_polynomials, round_size, relation_parameters, pow_univariate, alpha);
             transcript.add_element("univariate_" + std::to_string(round_idx), round_univariate.to_buffer());
 

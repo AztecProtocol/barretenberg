@@ -83,11 +83,11 @@ static Univariate<FF, max_relation_length> compute_round_univariate(
 {
     size_t round_size = 1;
     // Improvement(Cody): This is ugly? Maye supply some/all of this data through "flavor" class?
-    using SumcheckRound = SumcheckRound<FF,
-                                        NUM_POLYNOMIALS,
-                                        ArithmeticRelation,
-                                        GrandProductComputationRelation,
-                                        GrandProductInitializationRelation>;
+    using Round = SumcheckRound<FF,
+                                NUM_POLYNOMIALS,
+                                ArithmeticRelation,
+                                GrandProductComputationRelation,
+                                GrandProductInitializationRelation>;
     auto w_l = input_polynomials[0];
     auto w_r = input_polynomials[1];
     auto w_o = input_polynomials[2];
@@ -127,7 +127,7 @@ static Univariate<FF, max_relation_length> compute_round_univariate(
                                                        lagrange_last);
     PowUnivariate<FF> pow_zeta(1);
     Univariate<FF, max_relation_length> round_univariate =
-        SumcheckRound::compute_univariate(full_polynomials, round_size, relation_parameters, pow_zeta, alpha);
+        Round::compute_univariate(full_polynomials, round_size, relation_parameters, pow_zeta, alpha);
     return round_univariate;
 }
 
