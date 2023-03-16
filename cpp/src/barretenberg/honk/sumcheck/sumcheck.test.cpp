@@ -241,6 +241,7 @@ TEST(Sumcheck, Prover)
                                                            lagrange_last);
 
         auto transcript = ProverTranscript<FF>::init_empty();
+
         auto sumcheck = Sumcheck<FF,
                                  ProverTranscript<FF>,
                                  ArithmeticRelation,
@@ -269,6 +270,8 @@ TEST(Sumcheck, Prover)
 }
 
 // TODO(#223)(Cody): write standalone test of the verifier.
+// Note(luke): This test (and ProverAndVerifierLonger) are slighly misleading in that they include the grand product
+// realtions but do not test their correctness due to the choice of zero polynomials for sigma, id etc.
 TEST(Sumcheck, ProverAndVerifier)
 {
     const size_t multivariate_d(1);
@@ -311,6 +314,12 @@ TEST(Sumcheck, ProverAndVerifier)
                                                        id_3,
                                                        lagrange_first,
                                                        lagrange_last);
+    // Set aribitrary random relation parameters
+    sumcheck::RelationParameters<FF> relation_parameters{
+        .beta = FF::random_element(),
+        .gamma = FF::random_element(),
+        .public_input_delta = FF::one(),
+    };
 
     auto prover_transcript = ProverTranscript<FF>::init_empty();
 
@@ -320,7 +329,7 @@ TEST(Sumcheck, ProverAndVerifier)
                                     GrandProductComputationRelation,
                                     GrandProductInitializationRelation>(multivariate_n, prover_transcript);
 
-    auto prover_output = sumcheck_prover.execute_prover(full_polynomials, {});
+    auto prover_output = sumcheck_prover.execute_prover(full_polynomials, relation_parameters);
 
     auto verifier_transcript = VerifierTranscript<FF>::init_empty(prover_transcript);
 
@@ -330,7 +339,7 @@ TEST(Sumcheck, ProverAndVerifier)
                                       GrandProductComputationRelation,
                                       GrandProductInitializationRelation>(multivariate_n, verifier_transcript);
 
-    std::optional verifier_output = sumcheck_verifier.execute_verifier({});
+    std::optional verifier_output = sumcheck_verifier.execute_verifier(relation_parameters);
 
     ASSERT_TRUE(verifier_output.has_value());
     ASSERT_EQ(prover_output, *verifier_output);
@@ -387,6 +396,13 @@ TEST(Sumcheck, ProverAndVerifierLonger)
                                                            lagrange_first,
                                                            lagrange_last);
 
+        // Set aribitrary random relation parameters
+        sumcheck::RelationParameters<FF> relation_parameters{
+            .beta = FF::random_element(),
+            .gamma = FF::random_element(),
+            .public_input_delta = FF::one(),
+        };
+
         auto prover_transcript = ProverTranscript<FF>::init_empty();
 
         auto sumcheck_prover = Sumcheck<FF,
@@ -395,7 +411,7 @@ TEST(Sumcheck, ProverAndVerifierLonger)
                                         GrandProductComputationRelation,
                                         GrandProductInitializationRelation>(multivariate_n, prover_transcript);
 
-        auto prover_output = sumcheck_prover.execute_prover(full_polynomials, {});
+        auto prover_output = sumcheck_prover.execute_prover(full_polynomials, relation_parameters);
 
         auto verifier_transcript = VerifierTranscript<FF>::init_empty(prover_transcript);
 
@@ -405,7 +421,7 @@ TEST(Sumcheck, ProverAndVerifierLonger)
                                           GrandProductComputationRelation,
                                           GrandProductInitializationRelation>(multivariate_n, verifier_transcript);
 
-        std::optional verifier_output = sumcheck_verifier.execute_verifier({});
+        std::optional verifier_output = sumcheck_verifier.execute_verifier(relation_parameters);
 
         EXPECT_EQ(verifier_output.has_value(), expect_verified);
     };

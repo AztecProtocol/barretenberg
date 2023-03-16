@@ -23,6 +23,7 @@
 #include "barretenberg/honk/utils/power_polynomial.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
+#include <optional>
 
 using namespace barretenberg;
 using namespace honk::sumcheck;
@@ -147,9 +148,6 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     }
 
     auto [multivariate_query, multivariate_evaluations] = *sumcheck_output;
-
-    // auto multivariate_query = sumcheck_output.multivariate_query;
-    // auto multivariate_evaluations = sumcheck_output.evaluations;
 
     // Execute Gemini/Shplonk verification:
 

@@ -210,7 +210,8 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     // TODO(#224)(Cody): Input should be an array?
     FF compute_full_honk_relation_purported_value(std::span<const FF> purported_evaluations,
                                                   const RelationParameters<FF>& relation_parameters,
-                                                  const PowUnivariate<FF>& pow_univariate)
+                                                  const PowUnivariate<FF>& pow_univariate,
+                                                  const FF alpha)
     {
         accumulate_relation_evaluations<>(purported_evaluations, relation_parameters);
 
@@ -219,7 +220,7 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
         FF output = 0;
         for (auto& evals : evaluations) {
             output += evals * running_challenge;
-            running_challenge *= relation_parameters.alpha;
+            running_challenge *= alpha;
         }
         output *= pow_univariate.partial_evaluation_constant;
 

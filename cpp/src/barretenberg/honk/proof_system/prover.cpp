@@ -276,11 +276,8 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
                                         sumcheck::GrandProductComputationRelation,
                                         sumcheck::GrandProductInitializationRelation>;
 
-    // transcript.apply_fiat_shamir("alpha");
-
     auto sumcheck = Sumcheck(key->circuit_size, transcript);
 
-    // TODO(luke): should sumcheck_output be replaced by simply multivariate_query?
     sumcheck_output = sumcheck.execute_prover(prover_polynomials, relation_parameters);
 }
 

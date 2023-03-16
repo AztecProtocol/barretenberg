@@ -15,6 +15,8 @@
 #include <vector>
 #include "barretenberg/honk/proof_system/prover.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck_output.hpp"
+#include <optional>
+
 namespace honk::sumcheck {
 
 template <typename FF, class Transcript, template <class> class... Relations> class Sumcheck {
@@ -180,7 +182,6 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
 
         auto [alpha, zeta] = transcript.get_challenges("Sumcheck:alpha", "Sumcheck:zeta");
 
-        // const auto relation_parameters = retrieve_proof_parameters();
         PowUnivariate<FF> pow_univariate(zeta);
         // All but final round.
         // target_total_sum is initialized to zero then mutated in place.
@@ -216,7 +217,7 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
             transcript.template receive_from_prover<std::array<FF, NUM_POLYNOMIALS>>("Sumcheck:evaluations");
 
         FF full_honk_relation_purported_value = round.compute_full_honk_relation_purported_value(
-            purported_evaluations, relation_parameters, pow_univariate);
+            purported_evaluations, relation_parameters, pow_univariate, alpha);
         verified = verified && (full_honk_relation_purported_value == round.target_total_sum);
         if (!verified) {
             return std::nullopt;
