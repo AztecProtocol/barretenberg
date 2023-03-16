@@ -24,6 +24,7 @@
 #include "barretenberg/honk/utils/power_polynomial.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
+#include <optional>
 
 using namespace barretenberg;
 using namespace honk::sumcheck;
