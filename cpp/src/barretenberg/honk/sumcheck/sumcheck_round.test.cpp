@@ -128,7 +128,7 @@ static Univariate<FF, max_relation_length> compute_round_univariate(
                                                        lagrange_last);
     PowUnivariate<FF> pow_zeta(relation_parameters.zeta);
     Univariate<FF, max_relation_length> round_univariate =
-        round.compute_univariate(full_polynomials, relation_parameters, pow_zeta);
+        round.compute_univariate(full_polynomials, relation_parameters, pow_zeta, relation_parameters.alpha);
     return round_univariate;
 }
 

@@ -16,15 +16,13 @@ namespace honk {
 template <typename program_settings> class Verifier {
 
   public:
-    Verifier(std::shared_ptr<bonk::verification_key> verifier_key = nullptr,
-             const transcript::Manifest& manifest = honk::StandardHonk::create_manifest(0));
+    Verifier(std::shared_ptr<bonk::verification_key> verifier_key = nullptr);
     Verifier(Verifier&& other);
     Verifier(const Verifier& other) = delete;
     Verifier& operator=(const Verifier& other) = delete;
     Verifier& operator=(Verifier&& other);
 
     bool verify_proof(const plonk::proof& proof);
-    transcript::Manifest manifest;
 
     std::shared_ptr<bonk::verification_key> key;
     std::map<std::string, barretenberg::g1::affine_element> kate_g1_elements;

@@ -1,6 +1,8 @@
 #pragma once
 #include "barretenberg/common/serialize.hpp"
 #include <array>
+#include "barretenberg/honk/sumcheck/relations/relation.hpp"
+#include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/honk/utils/public_inputs.hpp"
 #include "barretenberg/common/throw_or_abort.hpp"
 #include "sumcheck_round.hpp"
@@ -12,17 +14,23 @@
 #include <string>
 #include <vector>
 #include "barretenberg/honk/proof_system/prover.hpp"
+#include "barretenberg/honk/sumcheck/sumcheck_output.hpp"
 namespace honk::sumcheck {
+
 template <typename FF, class Transcript, template <class> class... Relations> class Sumcheck {
 
   public:
     static constexpr size_t MAX_RELATION_LENGTH = std::max({ Relations<FF>::RELATION_LENGTH... });
+    static constexpr size_t NUM_POLYNOMIALS = bonk::StandardArithmetization::NUM_POLYNOMIALS;
 
-    std::array<FF, bonk::StandardArithmetization::NUM_POLYNOMIALS> purported_evaluations;
+    std::array<FF, NUM_POLYNOMIALS> purported_evaluations;
     Transcript& transcript;
     const size_t multivariate_n;
     const size_t multivariate_d;
-    SumcheckRound<FF, bonk::StandardArithmetization::NUM_POLYNOMIALS, Relations...> round;
+    SumcheckRound<FF, NUM_POLYNOMIALS, Relations...> round;
+
+    // TODO(luke): The prover and verifier need a different type of trascript which is why Adrian made it an input to
+    // those respective functions and removed it as a template parameter. This could be done fairly minimally.
 
     /**
     *
@@ -53,10 +61,13 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
     * NOTE: With ~40 columns, prob only want to allocate 256 EdgeGroup's at once to keep stack under 1MB?
     * TODO(#224)(Cody): might want to just do C-style multidimensional array? for guaranteed adjacency?
     */
-    std::array<std::vector<FF>, bonk::StandardArithmetization::NUM_POLYNOMIALS> folded_polynomials;
+    std::array<std::vector<FF>, NUM_POLYNOMIALS> folded_polynomials;
+    // the
+    std::vector<FF> multivariate_query;                       // multivariate query point u = (u_0, ..., u_{d-1})
+    std::array<FF, NUM_POLYNOMIALS> multivariate_evaluations; // multivariate evaluations at 'u'
 
     // prover instantiates sumcheck with circuit size and transcript
-    Sumcheck(size_t multivariate_n, Transcript& transcript)
+    Sumcheck(size_t multivariate_n, ProverTranscript<FF>& transcript)
         : transcript(transcript)
         , multivariate_n(multivariate_n)
         , multivariate_d(numeric::get_msb(multivariate_n))
@@ -65,15 +76,13 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
         for (auto& polynomial : folded_polynomials) {
             polynomial.resize(multivariate_n >> 1);
         }
+        multivariate_query.reserve(multivariate_d);
     };
 
     // verifier instantiates with transcript alone
-    explicit Sumcheck(Transcript& transcript)
+    explicit Sumcheck(size_t multivariate_n, VerifierTranscript<FF>& transcript)
         : transcript(transcript)
-        , multivariate_n([](std::vector<uint8_t> buffer) {
-            return static_cast<size_t>(buffer[3]) + (static_cast<size_t>(buffer[2]) << 8) +
-                   (static_cast<size_t>(buffer[1]) << 16) + (static_cast<size_t>(buffer[0]) << 24);
-        }(transcript.get_element("circuit_size")))
+        , multivariate_n(multivariate_n)
         , multivariate_d(numeric::get_msb(multivariate_n))
         , round(std::tuple(Relations<FF>()...))
     {
@@ -118,19 +127,22 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
      *
      * @details
      */
-    void execute_prover(auto full_polynomials) // pass by value, not by reference
+    SumcheckOutput<FF> execute_prover(
+        auto full_polynomials, const RelationParameters<FF>& relation_parameters) // pass by value, not by reference
     {
         // First round
         // This populates folded_polynomials.
 
-        const auto relation_parameters = retrieve_proof_parameters();
-        PowUnivariate<FF> pow_univariate(relation_parameters.zeta);
+        auto [alpha, zeta] = transcript.get_challenges("Sumcheck:alpha", "Sumcheck:zeta");
 
-        auto round_univariate = round.compute_univariate(full_polynomials, relation_parameters, pow_univariate);
-        transcript.add_element("univariate_0", round_univariate.to_buffer());
-        std::string challenge_label = "u_0";
-        transcript.apply_fiat_shamir(challenge_label);
-        FF round_challenge = FF::serialize_from_buffer(transcript.get_challenge(challenge_label).begin());
+        // const auto relation_parameters = retrieve_proof_parameters();
+        PowUnivariate<FF> pow_univariate(zeta);
+
+        // TODO(luke): this logic can just be incorporated into the loop below w/ round_idx = 0
+        auto round_univariate = round.compute_univariate(full_polynomials, relation_parameters, pow_univariate, alpha);
+        transcript.send_to_verifier("Sumcheck:univariate_0", round_univariate);
+        FF round_challenge = transcript.get_challenge("Sumcheck:u_0");
+        multivariate_query.emplace_back(round_challenge);
         fold(full_polynomials, multivariate_n, round_challenge);
         pow_univariate.partially_evaluate(round_challenge);
         round.round_size = round.round_size >> 1; // TODO(#224)(Cody): Maybe fold should do this and release memory?
@@ -139,22 +151,22 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
         // We operate on folded_polynomials in place.
         for (size_t round_idx = 1; round_idx < multivariate_d; round_idx++) {
             // Write the round univariate to the transcript
-            round_univariate = round.compute_univariate(folded_polynomials, relation_parameters, pow_univariate);
-            transcript.add_element("univariate_" + std::to_string(round_idx), round_univariate.to_buffer());
-            challenge_label = "u_" + std::to_string(round_idx);
-            transcript.apply_fiat_shamir(challenge_label);
-            FF round_challenge = FF::serialize_from_buffer(transcript.get_challenge(challenge_label).begin());
+            round_univariate = round.compute_univariate(folded_polynomials, relation_parameters, pow_univariate, alpha);
+            transcript.send_to_verifier("Sumcheck:univariate_" + std::to_string(round_idx), round_univariate);
+            FF round_challenge = transcript.get_challenge("Sumcheck:u_" + std::to_string(round_idx));
+            multivariate_query.emplace_back(round_challenge);
             fold(folded_polynomials, round.round_size, round_challenge);
             pow_univariate.partially_evaluate(round_challenge);
             round.round_size = round.round_size >> 1;
         }
 
         // Final round: Extract multivariate evaluations from folded_polynomials and add to transcript
-        std::array<FF, bonk::StandardArithmetization::NUM_POLYNOMIALS> multivariate_evaluations;
-        for (size_t i = 0; i < bonk::StandardArithmetization::NUM_POLYNOMIALS; ++i) {
+        for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
             multivariate_evaluations[i] = folded_polynomials[i][0];
         }
-        transcript.add_element("multivariate_evaluations", to_buffer(multivariate_evaluations));
+        transcript.send_to_verifier("multivariate_evaluations", multivariate_evaluations);
+
+        return { multivariate_query, multivariate_evaluations };
     };
 
     /**
@@ -162,12 +174,14 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
      * round, then use purported evaluations to generate purported full Honk relation value and check against final
      * target sum.
      */
-    bool execute_verifier()
+    std::optional<SumcheckOutput<FF>> execute_verifier(const RelationParameters<FF>& relation_parameters)
     {
         bool verified(true);
 
-        const auto relation_parameters = retrieve_proof_parameters();
-        PowUnivariate<FF> pow_univariate(relation_parameters.zeta);
+        auto [alpha, zeta] = transcript.get_challenges("Sumcheck:alpha", "Sumcheck:zeta");
+
+        // const auto relation_parameters = retrieve_proof_parameters();
+        PowUnivariate<FF> pow_univariate(zeta);
         // All but final round.
         // target_total_sum is initialized to zero then mutated in place.
 
@@ -175,29 +189,40 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
             throw_or_abort("Number of variables in multivariate is 0.");
         }
 
+        std::vector<FF> multivariate_query;
+        multivariate_query.reserve(multivariate_d);
+
         for (size_t round_idx = 0; round_idx < multivariate_d; round_idx++) {
             // Obtain the round univariate from the transcript
-            auto round_univariate = Univariate<FF, MAX_RELATION_LENGTH>::serialize_from_buffer(
-                &transcript.get_element("univariate_" + std::to_string(round_idx))[0]);
+            std::string round_univariate_label = "Sumcheck:univariate_" + std::to_string(round_idx);
+            auto round_univariate =
+                transcript.template receive_from_prover<Univariate<FF, MAX_RELATION_LENGTH>>(round_univariate_label);
+
             bool checked = round.check_sum(round_univariate, pow_univariate);
             verified = verified && checked;
-            FF round_challenge =
-                FF::serialize_from_buffer(transcript.get_challenge("u_" + std::to_string(round_idx)).begin());
+            FF round_challenge = transcript.get_challenge("Sumcheck:u_" + std::to_string(round_idx));
+            multivariate_query.emplace_back(round_challenge);
 
             round.compute_next_target_sum(round_univariate, round_challenge, pow_univariate);
             pow_univariate.partially_evaluate(round_challenge);
 
             if (!verified) {
-                return false;
+                return std::nullopt;
             }
         }
 
         // Final round
-        auto purported_evaluations = transcript.get_field_element_vector("multivariate_evaluations");
+        auto purported_evaluations =
+            transcript.template receive_from_prover<std::array<FF, NUM_POLYNOMIALS>>("Sumcheck:evaluations");
+
         FF full_honk_relation_purported_value = round.compute_full_honk_relation_purported_value(
             purported_evaluations, relation_parameters, pow_univariate);
         verified = verified && (full_honk_relation_purported_value == round.target_total_sum);
-        return verified;
+        if (!verified) {
+            return std::nullopt;
+        }
+
+        return SumcheckOutput<FF>{ multivariate_query, purported_evaluations };
     };
 
     // TODO(#224)(Cody): Rename. fold is not descriptive, and it's already in use in the Gemini context.
@@ -223,7 +248,6 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
     {
         // after the first round, operate in place on folded_polynomials
         for (size_t j = 0; j < polynomials.size(); ++j) {
-            // for (size_t j = 0; j < bonk::StandardArithmetization::NUM_POLYNOMIALS; ++j) {
             for (size_t i = 0; i < round_size; i += 2) {
                 folded_polynomials[j][i >> 1] =
                     polynomials[j][i] + round_challenge * (polynomials[j][i + 1] - polynomials[j][i]);
