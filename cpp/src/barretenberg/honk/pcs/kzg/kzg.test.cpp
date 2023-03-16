@@ -62,6 +62,7 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
     using Gemini = gemini::MultilinearReductionScheme<TypeParam>;
     using KZG = UnivariateOpeningScheme<TypeParam>;
     using Fr = typename TypeParam::Fr;
+    // using Transcript = ProverTranscript<Fr>;
     using Commitment = typename TypeParam::Commitment;
     using Polynomial = typename barretenberg::Polynomial<Fr>;
 
