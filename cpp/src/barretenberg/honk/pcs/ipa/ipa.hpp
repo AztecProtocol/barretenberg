@@ -40,8 +40,7 @@ template <typename Params> class InnerProductArgument {
         Fr challenge_point;
         Fr evaluation;
         size_t poly_degree;
-        // element aux_generator;            // To be removed
-        std::vector<Fr> round_challenges; // To be removed
+        // std::vector<Fr> round_challenges; // To be removed
     };
 
     /**
@@ -77,8 +76,7 @@ template <typename Params> class InnerProductArgument {
         transcript->apply_fiat_shamir("aux");
         const Fr aux_challenge = Fr::serialize_from_buffer(transcript->get_challenge("aux").begin());
         auto srs_elements = ck->srs.get_monomial_points();
-        const auto aux_generator = srs_elements[poly_degree] * aux_challenge; // pub_input.aux_generator;
-        transcript->add_element("Aux_generator", static_cast<affine_element>(aux_generator).to_buffer());
+        const auto aux_generator = srs_elements[poly_degree] * aux_challenge;
         auto a_vec = polynomial;
         // TODO(#220)(Arijit): to make it more efficient by directly using G_vector for the input points when i = 0 and
         // write the output points to G_vec_local. Then use G_vec_local for rounds where i>0, this can be done after we
@@ -125,9 +123,13 @@ template <typename Params> class InnerProductArgument {
 
             L_elements[i] = affine_element(partial_L);
             R_elements[i] = affine_element(partial_R);
-
+            // Using Fiat-Shamir
+            auto label = std::to_string(i);
+            transcript->add_element("L_" + label, static_cast<affine_element>(partial_L).to_buffer());
+            transcript->add_element("R_" + label, static_cast<affine_element>(partial_R).to_buffer());
+            transcript->apply_fiat_shamir("ir_" + label);
             // Generate the round challenge. TODO(#220)(Arijit): Use Fiat-Shamir
-            const Fr round_challenge = pub_input.round_challenges[i];
+            const Fr round_challenge = Fr::serialize_from_buffer(transcript->get_challenge("ir_" + label).begin());
             const Fr round_challenge_inv = round_challenge.invert();
 
             // Update the vectors a_vec, b_vec and G_vec.
@@ -187,8 +189,9 @@ template <typename Params> class InnerProductArgument {
         auto& challenge_point = pub_input.challenge_point;
         auto& evaluation = pub_input.evaluation;
         auto& poly_degree = pub_input.poly_degree;
-        element aux_generator = transcript->get_group_element("Aux_generator");
-        // auto& aux_generator = pub_input.aux_generator;
+        const Fr aux_challenge = Fr::serialize_from_buffer(transcript->get_challenge("aux").begin());
+        auto srs_elements = vk->srs.get_monomial_points();
+        const auto aux_generator = srs_elements[poly_degree] * aux_challenge;
 
         // Compute C_prime
         element C_prime = commitment + (aux_generator * evaluation);
@@ -197,11 +200,12 @@ template <typename Params> class InnerProductArgument {
         const size_t log_poly_degree = static_cast<size_t>(numeric::get_msb(poly_degree));
         std::vector<Fr> round_challenges(log_poly_degree);
         for (size_t i = 0; i < log_poly_degree; i++) {
-            round_challenges[i] = pub_input.round_challenges[i];
+            auto label = std::to_string(i);
+            round_challenges[i] = Fr::serialize_from_buffer(transcript->get_challenge("ir_" + label).begin());
         }
         std::vector<Fr> round_challenges_inv(log_poly_degree);
         for (size_t i = 0; i < log_poly_degree; i++) {
-            round_challenges_inv[i] = pub_input.round_challenges[i];
+            round_challenges_inv[i] = round_challenges[i];
         }
         Fr::batch_invert(&round_challenges_inv[0], log_poly_degree);
         std::vector<affine_element> L_vec(log_poly_degree);
@@ -254,7 +258,6 @@ template <typename Params> class InnerProductArgument {
             }
             s_vec[i] = s_vec_scalar;
         }
-        auto srs_elements = vk->srs.get_monomial_points();
         // Copy the G_vector to local memory.
         std::vector<affine_element> G_vec_local(poly_degree);
         for (size_t i = 0; i < poly_degree; i++) {

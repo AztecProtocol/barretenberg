@@ -21,7 +21,7 @@ template <class Params> class IpaCommitmentTest : public CommitmentTest<Params> 
 
 // Creating mock manifest to test only the IPA PCS
 
-static transcript::Manifest create_mock_manifest()
+static transcript::Manifest create_mock_manifest(const size_t num_ipa_rounds)
 {
     constexpr size_t g1_size = 64;
     constexpr size_t fr_size = 32;
@@ -37,10 +37,18 @@ static transcript::Manifest create_mock_manifest()
     manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(aux_generator_entries,
                                                                      /* challenge_name = */ "aux",
                                                                      /* num_challenges_in */ 1));
-    manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
-        { { .name = "Aux_generator", .num_bytes = g1_size, .derived_by_verifier = false } },
-        /* challenge_name = */ "",
-        /* num_challenges_in */ 0));
+    std::vector<transcript::Manifest::ManifestEntry> ipa_round_challenges_entries;
+    for (size_t i = 0; i < num_ipa_rounds; i++) {
+        auto label = std::to_string(i);
+        ipa_round_challenges_entries.emplace_back(transcript::Manifest::ManifestEntry(
+            { .name = "L_" + label, .num_bytes = g1_size, .derived_by_verifier = false }));
+        ipa_round_challenges_entries.emplace_back(transcript::Manifest::ManifestEntry(
+            { .name = "R_" + label, .num_bytes = g1_size, .derived_by_verifier = false }));
+        manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(ipa_round_challenges_entries,
+                                                                         /* challenge_name = */ "ir_" + label,
+                                                                         /* num_challenges_in */ 1));
+        ipa_round_challenges_entries.clear();
+    };
 
     auto output = transcript::Manifest(manifest_rounds);
     return output;
@@ -63,10 +71,6 @@ TYPED_TEST(IpaCommitmentTest, commit)
 
 TYPED_TEST(IpaCommitmentTest, open)
 {
-    // Transcript
-    using Transcript = transcript::StandardTranscript;
-    auto transcript = std::make_shared<Transcript>(create_mock_manifest());
-
     using IPA = InnerProductArgument<TypeParam>;
     using PubInput = typename IPA::PubInput;
     // generate a random polynomial, degree needs to be a power of two
@@ -82,10 +86,8 @@ TYPED_TEST(IpaCommitmentTest, open)
     // auto aux_scalar = fr::random_element();
     // pub_input.aux_generator = barretenberg::g1::one * aux_scalar;
     const size_t log_n = static_cast<size_t>(numeric::get_msb(n));
-    pub_input.round_challenges = std::vector<barretenberg::fr>(log_n);
-    for (size_t i = 0; i < log_n; i++) {
-        pub_input.round_challenges[i] = barretenberg::fr::random_element();
-    }
+    using Transcript = transcript::StandardTranscript;
+    auto transcript = std::make_shared<Transcript>(create_mock_manifest(log_n));
     auto proof = IPA::reduce_prove(this->ck(), pub_input, poly, transcript);
     auto result = IPA::reduce_verify(this->vk(), proof, pub_input, transcript);
     EXPECT_TRUE(result);
