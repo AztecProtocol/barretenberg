@@ -22,6 +22,8 @@ uint32_t get_exact_circuit_size(uint8_t const* constraint_system_buf)
 size_t init_proving_key(uint8_t const* constraint_system_buf, uint8_t const** pk_buf)
 {
     auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
+    printf("read in constraint system to init pk\n");
+
     // We know that we don't actually need any CRS to create a proving key, so just feed in a nothing.
     // Hacky, but, right now it needs *something*.
     auto crs_factory = std::make_unique<ReferenceStringFactory>();
@@ -70,12 +72,15 @@ size_t new_proof(void* pippenger,
                  uint8_t const* witness_buf,
                  uint8_t** proof_data_buf)
 {
+    printf("got into new_proof\n");
     auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
+    printf("read in constraint system\n");
 
     std::shared_ptr<ProverReferenceString> crs;
     bonk::proving_key_data pk_data;
     read(pk_buf, pk_data);
     auto proving_key = std::make_shared<bonk::proving_key>(std::move(pk_data), crs);
+    printf("read in proving_key\n");
 
     auto witness = from_buffer<std::vector<fr>>(witness_buf);
 
@@ -84,9 +89,14 @@ size_t new_proof(void* pippenger,
     proving_key->reference_string = crs_factory->get_prover_crs(proving_key->circuit_size);
 
     Composer composer(proving_key, nullptr);
+    printf("we got a composer object\n");
+
     create_circuit_with_witness(composer, constraint_system, witness);
+    printf("created circuit with witness\n");
 
     auto prover = composer.create_prover();
+    printf("created a prover\n");
+
     auto heapProver = new UltraProver(std::move(prover));
     auto& proof_data = heapProver->construct_proof().proof_data;
     *proof_data_buf = proof_data.data();
