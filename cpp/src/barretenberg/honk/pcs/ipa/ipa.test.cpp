@@ -6,6 +6,7 @@
 #include "barretenberg/ecc/curves/bn254/fq12.hpp"
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/honk/pcs/commitment_key.test.hpp"
+#include "barretenberg/transcript/manifest.hpp"
 using namespace barretenberg;
 namespace honk::pcs::ipa {
 
@@ -17,6 +18,33 @@ template <class Params> class IpaCommitmentTest : public CommitmentTest<Params> 
     using VK = typename Params::VK;
     using Polynomial = barretenberg::Polynomial<Fr>;
 };
+
+// Creating mock manifest to test only the IPA PCS
+
+static transcript::Manifest create_mock_manifest()
+{
+    constexpr size_t g1_size = 64;
+    constexpr size_t fr_size = 32;
+    std::vector<transcript::Manifest::RoundManifest> manifest_rounds;
+
+    std::vector<transcript::Manifest::ManifestEntry> aux_generator_entries;
+    aux_generator_entries.emplace_back(transcript::Manifest::ManifestEntry(
+        { .name = "Commitment", .num_bytes = g1_size, .derived_by_verifier = false }));
+    aux_generator_entries.emplace_back(transcript::Manifest::ManifestEntry(
+        { .name = "challenge_point", .num_bytes = fr_size, .derived_by_verifier = false }));
+    aux_generator_entries.emplace_back(
+        transcript::Manifest::ManifestEntry({ .name = "eval", .num_bytes = fr_size, .derived_by_verifier = false }));
+    manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(aux_generator_entries,
+                                                                     /* challenge_name = */ "aux",
+                                                                     /* num_challenges_in */ 1));
+    manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
+        { { .name = "Aux_generator", .num_bytes = g1_size, .derived_by_verifier = false } },
+        /* challenge_name = */ "",
+        /* num_challenges_in */ 0));
+
+    auto output = transcript::Manifest(manifest_rounds);
+    return output;
+}
 
 TYPED_TEST_SUITE(IpaCommitmentTest, IpaCommitmentSchemeParams);
 
@@ -37,9 +65,7 @@ TYPED_TEST(IpaCommitmentTest, open)
 {
     // Transcript
     using Transcript = transcript::StandardTranscript;
-    auto transcript = std::make_shared<Transcript>(StandardHonk::create_manifest(0));
-    transcript->mock_inputs_prior_to_challenge("separator");
-    transcript->apply_fiat_shamir("separator");
+    auto transcript = std::make_shared<Transcript>(create_mock_manifest());
 
     using IPA = InnerProductArgument<TypeParam>;
     using PubInput = typename IPA::PubInput;
