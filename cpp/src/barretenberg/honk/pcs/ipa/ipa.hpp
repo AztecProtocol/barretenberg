@@ -32,51 +32,42 @@ template <typename Params> class InnerProductArgument {
         std::vector<affine_element> R_vec;
         Fr a_zero;
     };
-    // To contain the public inputs for IPA proof
-    // For now we are including the aux_generator and round_challenges in public input. They will be computed by the
-    // prover and the verifier by Fiat-Shamir when the challengeGenerator is defined.
-    struct PubInput {
-        element commitment;
-        Fr challenge_point;
-        Fr evaluation;
-        size_t poly_degree;
-        // std::vector<Fr> round_challenges; // To be removed
-    };
-
     /**
      * @brief Compute a proof for opening a single polynomial at a single evaluation point
      *
      * @param ck The commitment key containing srs and pippenger_runtime_state for computing MSM
-     * @param pub_input Data required to compute the opening proof. See spec for more details
+     * @param opening_pair OpeningPair = {r, v = polynomial(r)}
      * @param polynomial The witness polynomial whose opening proof needs to be computed
      *
      * @return a Proof, containing information required to verify whether the commitment is computed correctly and
      * the polynomial evaluation is correct in the given challenge point.
      */
     static Proof reduce_prove(std::shared_ptr<CK> ck,
-                              const PubInput& pub_input,
+                              const OpeningPair<Params>& opening_pair,
                               const Polynomial& polynomial,
                               const auto& transcript)
     {
         Proof proof;
-        auto& challenge_point = pub_input.challenge_point;
+        auto& challenge_point = opening_pair.query;
         ASSERT(challenge_point != 0 && "The challenge point should not be zero");
-        const size_t poly_degree = pub_input.poly_degree;
+        const size_t poly_degree = polynomial.size();
         // To check poly_degree is greater than zero and a power of two
         // TODO(#220)(Arijit): To accomodate non power of two poly_degree
 
         ASSERT((poly_degree > 0) && (!(poly_degree & (poly_degree - 1))) &&
                "The poly_degree should be positive and a power of two");
-        // Compute aux_generator (U) and add it to the transcript
-        transcript->add_element("Commitment", static_cast<affine_element>(pub_input.commitment).to_buffer());
-        transcript->add_element("challenge_point", static_cast<Fr>(challenge_point).to_buffer());
-        transcript->add_element("eval", static_cast<Fr>(pub_input.evaluation).to_buffer());
 
-        // generate random evaluation challenge "z"
-        transcript->apply_fiat_shamir("aux");
-        const Fr aux_challenge = Fr::serialize_from_buffer(transcript->get_challenge("aux").begin());
+        auto commitment = ck->commit(polynomial);
+        auto& evaluation = opening_pair.evaluation;
+        transcript->add_element("ipa_commitment", static_cast<affine_element>(commitment).to_buffer());
+        transcript->add_element("ipa_challenge_point", static_cast<Fr>(challenge_point).to_buffer());
+        transcript->add_element("ipa_eval", static_cast<Fr>(evaluation).to_buffer());
+        transcript->apply_fiat_shamir("ipa_aux");
+
+        const Fr aux_challenge = Fr::serialize_from_buffer(transcript->get_challenge("ipa_aux").begin());
         auto srs_elements = ck->srs.get_monomial_points();
         const auto aux_generator = srs_elements[poly_degree] * aux_challenge;
+
         auto a_vec = polynomial;
         // TODO(#220)(Arijit): to make it more efficient by directly using G_vector for the input points when i = 0 and
         // write the output points to G_vec_local. Then use G_vec_local for rounds where i>0, this can be done after we
@@ -127,9 +118,9 @@ template <typename Params> class InnerProductArgument {
             auto label = std::to_string(i);
             transcript->add_element("L_" + label, static_cast<affine_element>(partial_L).to_buffer());
             transcript->add_element("R_" + label, static_cast<affine_element>(partial_R).to_buffer());
-            transcript->apply_fiat_shamir("ir_" + label);
-            // Generate the round challenge. TODO(#220)(Arijit): Use Fiat-Shamir
-            const Fr round_challenge = Fr::serialize_from_buffer(transcript->get_challenge("ir_" + label).begin());
+            transcript->apply_fiat_shamir("ipa_round_" + label);
+            const Fr round_challenge =
+                Fr::serialize_from_buffer(transcript->get_challenge("ipa_round_" + label).begin());
             const Fr round_challenge_inv = round_challenge.invert();
 
             // Update the vectors a_vec, b_vec and G_vec.
@@ -173,23 +164,25 @@ template <typename Params> class InnerProductArgument {
      * @brief Verify the correctness of a Proof
      *
      * @param vk Verification_key containing srs and pippenger_runtime_state to be used for MSM
-     * @param proof The proof containg L_vec, R_vec and a_zero
-     * @param pub_input Data required to verify the proof
+     * @param claim OpeningClaim contains the commitment, challenge, and the evaluation
+     * @param proof Proof containg L_vec, R_vec and a_zero
+     * @param transcript Transcript containing the round challenges and the aux challenge
      *
      * @return true/false depending on if the proof verifies
      */
     static bool reduce_verify(std::shared_ptr<VK> vk,
+                              const OpeningClaim<Params>& claim,
                               const Proof& proof,
-                              const PubInput& pub_input,
                               const auto& transcript)
     {
-        // Local copies of public inputs
+        // Local copies of claim
         auto& a_zero = proof.a_zero;
-        auto& commitment = pub_input.commitment;
-        auto& challenge_point = pub_input.challenge_point;
-        auto& evaluation = pub_input.evaluation;
-        auto& poly_degree = pub_input.poly_degree;
-        const Fr aux_challenge = Fr::serialize_from_buffer(transcript->get_challenge("aux").begin());
+        auto& commitment = claim.commitment;
+        auto& challenge_point = claim.opening_pair.query;
+        auto& evaluation = claim.opening_pair.evaluation;
+        const auto& log_poly_degree = static_cast<size_t>(proof.L_vec.size());
+        const auto& poly_degree = static_cast<size_t>(Fr(2).pow(log_poly_degree));
+        const Fr aux_challenge = Fr::serialize_from_buffer(transcript->get_challenge("ipa_aux").begin());
         auto srs_elements = vk->srs.get_monomial_points();
         const auto aux_generator = srs_elements[poly_degree] * aux_challenge;
 
@@ -197,11 +190,10 @@ template <typename Params> class InnerProductArgument {
         element C_prime = commitment + (aux_generator * evaluation);
 
         // Compute the round challeneges and their inverses.
-        const size_t log_poly_degree = static_cast<size_t>(numeric::get_msb(poly_degree));
         std::vector<Fr> round_challenges(log_poly_degree);
         for (size_t i = 0; i < log_poly_degree; i++) {
             auto label = std::to_string(i);
-            round_challenges[i] = Fr::serialize_from_buffer(transcript->get_challenge("ir_" + label).begin());
+            round_challenges[i] = Fr::serialize_from_buffer(transcript->get_challenge("ipa_round_" + label).begin());
         }
         std::vector<Fr> round_challenges_inv(log_poly_degree);
         for (size_t i = 0; i < log_poly_degree; i++) {
@@ -259,6 +251,7 @@ template <typename Params> class InnerProductArgument {
             s_vec[i] = s_vec_scalar;
         }
         // Copy the G_vector to local memory.
+        // Todo remove local copy
         std::vector<affine_element> G_vec_local(poly_degree);
         for (size_t i = 0; i < poly_degree; i++) {
             G_vec_local[i] = srs_elements[i];

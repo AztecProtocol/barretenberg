@@ -29,13 +29,13 @@ static transcript::Manifest create_mock_manifest(const size_t num_ipa_rounds)
 
     std::vector<transcript::Manifest::ManifestEntry> aux_generator_entries;
     aux_generator_entries.emplace_back(transcript::Manifest::ManifestEntry(
-        { .name = "Commitment", .num_bytes = g1_size, .derived_by_verifier = false }));
+        { .name = "ipa_commitment", .num_bytes = g1_size, .derived_by_verifier = false }));
     aux_generator_entries.emplace_back(transcript::Manifest::ManifestEntry(
-        { .name = "challenge_point", .num_bytes = fr_size, .derived_by_verifier = false }));
-    aux_generator_entries.emplace_back(
-        transcript::Manifest::ManifestEntry({ .name = "eval", .num_bytes = fr_size, .derived_by_verifier = false }));
+        { .name = "ipa_challenge_point", .num_bytes = fr_size, .derived_by_verifier = false }));
+    aux_generator_entries.emplace_back(transcript::Manifest::ManifestEntry(
+        { .name = "ipa_eval", .num_bytes = fr_size, .derived_by_verifier = false }));
     manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(aux_generator_entries,
-                                                                     /* challenge_name = */ "aux",
+                                                                     /* challenge_name = */ "ipa_aux",
                                                                      /* num_challenges_in */ 1));
     std::vector<transcript::Manifest::ManifestEntry> ipa_round_challenges_entries;
     for (size_t i = 0; i < num_ipa_rounds; i++) {
@@ -45,7 +45,7 @@ static transcript::Manifest create_mock_manifest(const size_t num_ipa_rounds)
         ipa_round_challenges_entries.emplace_back(transcript::Manifest::ManifestEntry(
             { .name = "R_" + label, .num_bytes = g1_size, .derived_by_verifier = false }));
         manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(ipa_round_challenges_entries,
-                                                                         /* challenge_name = */ "ir_" + label,
+                                                                         /* challenge_name = */ "ipa_round_" + label,
                                                                          /* num_challenges_in */ 1));
         ipa_round_challenges_entries.clear();
     };
@@ -72,24 +72,20 @@ TYPED_TEST(IpaCommitmentTest, commit)
 TYPED_TEST(IpaCommitmentTest, open)
 {
     using IPA = InnerProductArgument<TypeParam>;
-    using PubInput = typename IPA::PubInput;
     // generate a random polynomial, degree needs to be a power of two
     size_t n = 128;
-    auto poly = this->random_polynomial(n);
-    auto [x, eval] = this->random_eval(poly);
-    barretenberg::g1::element commitment = this->commit(poly);
-    PubInput pub_input;
-    pub_input.commitment = commitment;
-    pub_input.challenge_point = x;
-    pub_input.evaluation = eval;
-    pub_input.poly_degree = n;
-    // auto aux_scalar = fr::random_element();
-    // pub_input.aux_generator = barretenberg::g1::one * aux_scalar;
     const size_t log_n = static_cast<size_t>(numeric::get_msb(n));
     using Transcript = transcript::StandardTranscript;
     auto transcript = std::make_shared<Transcript>(create_mock_manifest(log_n));
-    auto proof = IPA::reduce_prove(this->ck(), pub_input, poly, transcript);
-    auto result = IPA::reduce_verify(this->vk(), proof, pub_input, transcript);
+    auto poly = this->random_polynomial(n);
+    auto [challenge_point, eval] = this->random_eval(poly);
+    barretenberg::g1::element commitment = this->commit(poly);
+
+    auto opening_pair = OpeningPair<TypeParam>{ challenge_point, eval };
+    auto opening_claim = OpeningClaim<TypeParam>{ opening_pair, commitment };
+
+    auto proof = IPA::reduce_prove(this->ck(), opening_pair, poly, transcript);
+    auto result = IPA::reduce_verify(this->vk(), opening_claim, proof, transcript);
     EXPECT_TRUE(result);
 }
 } // namespace honk::pcs::ipa
