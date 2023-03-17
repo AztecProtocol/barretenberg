@@ -32,6 +32,7 @@ template <typename Params> class InnerProductArgument {
         std::vector<affine_element> R_vec;
         Fr a_zero;
     };
+
     /**
      * @brief Compute a proof for opening a single polynomial at a single evaluation point
      *
@@ -175,7 +176,6 @@ template <typename Params> class InnerProductArgument {
                               const Proof& proof,
                               const auto& transcript)
     {
-        // Local copies of claim
         auto& a_zero = proof.a_zero;
         auto& commitment = claim.commitment;
         auto& challenge_point = claim.opening_pair.query;
