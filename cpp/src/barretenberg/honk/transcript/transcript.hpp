@@ -16,30 +16,40 @@
 
 namespace honk {
 
-// class TranscriptSummary {
-//     struct RoundData {
-//         std::vector<std::string> challenge_label;
-//         std::vector<std::pair<std::string, size_t>> entries;
-//     };
+class TranscriptManifest {
+    struct RoundData {
+        std::vector<std::string> challenge_label;
+        std::vector<std::pair<std::string, size_t>> entries;
 
-//     std::map<size_t, RoundData> manifest;
+        bool operator==(const RoundData& other) const = default;
+    };
 
-//     void print() {
-//         for (size_t i = 0; i < manifest.size(); ++i) {
-//             info("Round: ", i);
-//             info("challenge: ", manifest[i].challenge_label[0]);
-//             for (auto& entry : manifest[i].entries) {
-//                 info("\t", entry.first);
-//             }
-//         }
-//     }
-// };
+    std::map<size_t, RoundData> manifest;
 
-struct RoundData {
-    std::vector<std::string> challenge_label;
-    std::vector<std::pair<std::string, size_t>> entries;
+  public:
+    void print()
+    {
+        for (auto& round : manifest) {
+            info("Round: ", round.first);
+            for (auto& label : round.second.challenge_label) {
+                info("\tchallenge: ", label);
+            }
+            for (auto& entry : round.second.entries) {
+                info("\telement (", entry.second, "): ", entry.first);
+            }
+        }
+    }
 
-    bool operator==(const RoundData& other) const = default;
+    template <typename... Strings> void add_challenge(size_t round, Strings&... labels)
+    {
+        manifest[round].challenge_label = { labels... };
+    }
+    void add_entry(size_t round, std::string element_label, size_t element_size)
+    {
+        manifest[round].entries.emplace_back(element_label, element_size);
+    }
+
+    bool operator==(const TranscriptManifest& other) const = default;
 };
 
 /**
@@ -56,7 +66,9 @@ template <typename FF> class BaseTranscript {
     size_t round_number = 0;
     std::array<uint8_t, HASH_OUTPUT_SIZE> previous_challenge_buffer{};
     std::vector<uint8_t> current_round_data;
-    std::map<size_t, RoundData> manifest;
+
+    // "Manifest" object that records a summary of the transcript interactions
+    TranscriptManifest manifest;
 
     /**
      * @brief Compute c_next = H( Compress(c_prev || round_buffer) )
@@ -102,7 +114,8 @@ template <typename FF> class BaseTranscript {
     {
         (void)label;
 
-        manifest[round_number].entries.emplace_back(label, element_bytes.size());
+        // Add an entry to the current round of the manifest
+        manifest.add_entry(round_number, label, element_bytes.size());
 
         current_round_data.insert(current_round_data.end(), element_bytes.begin(), element_bytes.end());
     }
@@ -123,10 +136,8 @@ template <typename FF> class BaseTranscript {
         // Ensure we have enough entropy from the hash function to construct each challenge.
         static_assert(bytes_per_challenge >= MIN_BYTES_PER_CHALLENGE, "requested too many challenges in this round");
 
-        // TODO(Adrian): Add the challenge names to the map.
-        // ((void)labels, ...);
-        // std::array<std::string, num_challenges> challenge_labels = labels...;
-        manifest[round_number].challenge_label = { labels... };
+        // Add challenge labels for current round to the manifest
+        manifest.add_challenge(round_number, labels...);
 
         // Compute the new challenge buffer from which we derive the challenges.
         auto next_challenge_buffer = get_next_challenge_buffer();
@@ -156,20 +167,9 @@ template <typename FF> class BaseTranscript {
 
     FF get_challenge(const std::string& label) { return get_challenges(label)[0]; }
 
-    [[nodiscard]] std::map<size_t, RoundData> get_manifest() const { return manifest; };
+    [[nodiscard]] TranscriptManifest get_manifest() const { return manifest; };
 
-    void print()
-    {
-        for (auto& round : manifest) {
-            info("Round: ", round.first);
-            for (auto& label : round.second.challenge_label) {
-                info("\tchallenge: ", label);
-            }
-            for (auto& entry : round.second.entries) {
-                info("\telement (", entry.second, "): ", entry.first);
-            }
-        }
-    }
+    void print() { manifest.print(); }
 };
 
 template <typename FF> class ProverTranscript : public BaseTranscript<FF> {

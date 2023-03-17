@@ -15,13 +15,13 @@ using namespace honk;
 template <typename FF> class TranscriptTest : public testing::Test {
   public:
     /**
-     * @brief Construct a manifest for a standard Honk proof with n = 8, (d = 3)
+     * @brief Construct a manifest for a standard Honk proof
      *
-     * @return std::map<size_t, RoundData>
+     * @return TranscriptManifest
      */
-    std::map<size_t, RoundData> construct_standard_honk_manifest(size_t circuit_size)
+    TranscriptManifest construct_standard_honk_manifest(size_t circuit_size)
     {
-        std::map<size_t, RoundData> manifest_expected;
+        TranscriptManifest manifest_expected;
 
         size_t log_n(numeric::get_msb(circuit_size));
 
@@ -31,55 +31,52 @@ template <typename FF> class TranscriptTest : public testing::Test {
         size_t size_uni = max_relation_length * size_FF;
         size_t size_evals = StandardArithmetization::NUM_POLYNOMIALS * size_FF;
 
-        // clang-format off
-
         size_t round = 0;
-        manifest_expected[round].entries = {                {"circuit_size", 4},
-                                                            {"public_input_size", 4},
-                                                            {"public_input_0", size_FF},
-                                                            {"W_1", size_G},
-                                                            {"W_2", size_G},
-                                                            {"W_3", size_G} };
-        manifest_expected[round].challenge_label =          {"beta", "gamma"};
+        manifest_expected.add_entry(round, "circuit_size", 4);
+        manifest_expected.add_entry(round, "public_input_size", 4);
+        manifest_expected.add_entry(round, "public_input_0", size_FF);
+        manifest_expected.add_entry(round, "W_1", size_G);
+        manifest_expected.add_entry(round, "W_2", size_G);
+        manifest_expected.add_entry(round, "W_3", size_G);
+        manifest_expected.add_challenge(round, "beta", "gamma");
 
         round++;
-        manifest_expected[round].entries = {                {"Z_PERM", size_G} };
-        manifest_expected[round].challenge_label =          {"Sumcheck:alpha", "Sumcheck:zeta"};
-        
+        manifest_expected.add_entry(round, "Z_PERM", size_G);
+        manifest_expected.add_challenge(round, "Sumcheck:alpha", "Sumcheck:zeta");
+
         for (size_t i = 0; i < log_n; ++i) {
             round++;
             std::string idx = std::to_string(i);
-            manifest_expected[round].entries = {            {"Sumcheck:univariate_" + idx, size_uni} };
-            manifest_expected[round].challenge_label =      {"Sumcheck:u_" + idx};
+            manifest_expected.add_entry(round, "Sumcheck:univariate_" + idx, size_uni);
+            std::string label = "Sumcheck:u_" + idx;
+            manifest_expected.add_challenge(round, label);
         }
 
         round++;
-        manifest_expected[round].entries = {                {"multivariate_evaluations", size_evals} };
-        manifest_expected[round].challenge_label =          {"rho"};
+        manifest_expected.add_entry(round, "multivariate_evaluations", size_evals);
+        manifest_expected.add_challenge(round, "rho");
 
         round++;
         for (size_t i = 1; i < log_n; ++i) {
             std::string idx = std::to_string(i);
-            manifest_expected[round].entries.emplace_back   ("Gemini:FOLD_" + idx, size_G ); 
+            manifest_expected.add_entry(round, "Gemini:FOLD_" + idx, size_G);
         }
-        manifest_expected[round].challenge_label =          {"Gemini:r"};
+        manifest_expected.add_challenge(round, "Gemini:r");
 
         round++;
         for (size_t i = 0; i < log_n; ++i) {
             std::string idx = std::to_string(i);
-            manifest_expected[round].entries.emplace_back   ("Gemini:a_" + idx, size_FF ); 
+            manifest_expected.add_entry(round, "Gemini:a_" + idx, size_FF);
         }
-        manifest_expected[round].challenge_label =          {"Shplonk:nu"};
+        manifest_expected.add_challenge(round, "Shplonk:nu");
 
         round++;
-        manifest_expected[round].entries = {                {"Shplonk:Q", size_G} };
-        manifest_expected[round].challenge_label =          {"Shplonk:z"};
-        
-        round++;
-        manifest_expected[round].entries = {                {"KZG:W", size_G} };
-        manifest_expected[round].challenge_label =          {}; // no challenge
+        manifest_expected.add_entry(round, "Shplonk:Q", size_G);
+        manifest_expected.add_challenge(round, "Shplonk:z");
 
-        // clang-format on
+        round++;
+        manifest_expected.add_entry(round, "KZG:W", size_G);
+        manifest_expected.add_challenge(round); // no challenge
 
         return manifest_expected;
     }
@@ -100,18 +97,18 @@ TYPED_TEST(TranscriptTest, StandardHonkManifest)
     composer.circuit_constructor.add_variable(a);
     composer.circuit_constructor.add_public_variable(a);
 
+    // Automatically generate a transcript manifest by constructing a proof
     auto prover = composer.create_prover();
     plonk::proof proof = prover.construct_proof();
+
+    // Check that the prover generated manifest agrees with the expectation
+    auto manifest_expected = TestFixture::construct_standard_honk_manifest(prover.key->circuit_size);
+    ASSERT_EQ(prover.transcript.get_manifest(), manifest_expected);
+
+    // If the proof verifies, the verifier manifest must have matched that of the prover
     auto verifier = composer.create_verifier();
     bool verified = verifier.verify_proof(proof);
     ASSERT_TRUE(verified);
-
-    auto manifest_expected = TestFixture::construct_standard_honk_manifest(prover.key->circuit_size);
-
-    // Uncomment to see a summary printout of the transcript
-    // prover.transcript.print();
-
-    ASSERT_EQ(prover.transcript.get_manifest(), manifest_expected);
 }
 
 /**
@@ -187,7 +184,7 @@ TYPED_TEST(TranscriptTest, ProverAndVerifierBasic)
 }
 
 /**
- * @brief Demonstrate that the verifier is not explicitly restricted from deviating from the 'manifest'
+ * @brief Demonstrate extent to which verifier transcript is flexible / constrained
  *
  */
 TYPED_TEST(TranscriptTest, VerifierMistake)
