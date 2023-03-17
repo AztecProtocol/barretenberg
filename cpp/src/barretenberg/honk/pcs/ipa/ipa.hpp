@@ -35,11 +35,11 @@ template <typename Params> class InnerProductArgument {
     /**
      * @brief Compute a proof for opening a single polynomial at a single evaluation point
      *
-     * @param ck The commitment key containing srs and pippenger_runtime_state for computing MSM
-     * @param opening_pair OpeningPair = {r, v = polynomial(r)}
+     * @param ck Commitment key contains srs and pippenger_runtime_state for computing MSM
+     * @param opening_pair OpeningPair = {challenge_point, evaluation = polynomial(challenge_point)}
      * @param polynomial The witness polynomial whose opening proof needs to be computed
      *
-     * @return a Proof, containing information required to verify whether the commitment is computed correctly and
+     * @return a Proof, contains information required to verify whether the commitment is computed correctly and
      * the polynomial evaluation is correct in the given challenge point.
      */
     static Proof reduce_prove(std::shared_ptr<CK> ck,
@@ -163,10 +163,10 @@ template <typename Params> class InnerProductArgument {
     /**
      * @brief Verify the correctness of a Proof
      *
-     * @param vk Verification_key containing srs and pippenger_runtime_state to be used for MSM
+     * @param vk Verification_key contains the srs and pippenger_runtime_state to be used for MSM
      * @param claim OpeningClaim contains the commitment, challenge, and the evaluation
-     * @param proof Proof containg L_vec, R_vec and a_zero
-     * @param transcript Transcript containing the round challenges and the aux challenge
+     * @param proof Proof contains L_vec, R_vec, and a_zero
+     * @param transcript Transcript contains the round challenges and the aux challenge
      *
      * @return true/false depending on if the proof verifies
      */
@@ -250,14 +250,9 @@ template <typename Params> class InnerProductArgument {
             }
             s_vec[i] = s_vec_scalar;
         }
-        // Copy the G_vector to local memory.
-        // Todo remove local copy
-        std::vector<affine_element> G_vec_local(poly_degree);
-        for (size_t i = 0; i < poly_degree; i++) {
-            G_vec_local[i] = srs_elements[i];
-        }
+
         auto G_zero = barretenberg::scalar_multiplication::pippenger_without_endomorphism_basis_points(
-            &s_vec[0], &G_vec_local[0], poly_degree, vk->pippenger_runtime_state);
+            &s_vec[0], &srs_elements[0], poly_degree, vk->pippenger_runtime_state);
         element right_hand_side = G_zero * a_zero;
         Fr a_zero_b_zero = a_zero * b_zero;
         right_hand_side += aux_generator * a_zero_b_zero;
