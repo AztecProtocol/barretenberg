@@ -134,6 +134,8 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
      * @brief Extract round univariate, check sum, generate challenge, compute next target sum..., repeat until final
      * round, then use purported evaluations to generate purported full Honk relation value and check against final
      * target sum.
+     *
+     * @details If verification fails, returns std::nullopt, otherwise returns SumcheckOutput
      */
     std::optional<SumcheckOutput<FF>> execute_verifier(const RelationParameters<FF>& relation_parameters)
     {

@@ -201,6 +201,12 @@ template <typename FF> class ProverTranscript : public BaseTranscript<FF> {
         BaseTranscript<FF>::consume_prover_element_bytes(label, element_bytes);
     }
 
+    /**
+     * @brief For testing: initializes transcript with some arbitrary data so that a challenge can be generated after
+     * initialization
+     *
+     * @return ProverTranscript
+     */
     static ProverTranscript init_empty()
     {
         ProverTranscript<FF> transcript;
@@ -221,6 +227,13 @@ template <class FF> class VerifierTranscript : public BaseTranscript<FF> {
         : proof_data_(proof_data.begin(), proof_data.end())
     {}
 
+    /**
+     * @brief For testing: initializes transcript based on proof data then receives junk data produced by
+     * ProverTranscript::init_empty()
+     *
+     * @param transcript
+     * @return VerifierTranscript
+     */
     static VerifierTranscript init_empty(const ProverTranscript<FF>& transcript)
     {
         VerifierTranscript<FF> verifier_transcript{ transcript.proof_data };
