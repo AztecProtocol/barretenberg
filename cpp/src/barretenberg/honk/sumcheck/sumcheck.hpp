@@ -72,7 +72,6 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
         for (auto& polynomial : folded_polynomials) {
             polynomial.resize(multivariate_n >> 1);
         }
-        multivariate_query.reserve(multivariate_d);
     };
 
     // verifier instantiates sumcheck with circuit size and a verifier transcript

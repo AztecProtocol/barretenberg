@@ -71,6 +71,7 @@ template <typename FF> class BaseTranscript {
     size_t round_number = 0;
     std::array<uint8_t, HASH_OUTPUT_SIZE> previous_challenge_buffer{}; // default-initialized to zeros
     std::vector<uint8_t> current_round_data;
+    std::map<size_t, RoundData> manifest;
 
     // "Manifest" object that records a summary of the transcript interactions
     TranscriptManifest manifest;
