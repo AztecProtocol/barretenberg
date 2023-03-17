@@ -262,6 +262,7 @@ template <typename Params> class MultilinearReductionScheme {
     {
         const size_t num_variables = mle_opening_point.size();
 
+        // Get polynomials Fold_i, i = 1,...,m-1 from transcript
         std::vector<CommitmentAffine> commitments;
         commitments.reserve(num_variables - 1);
         for (size_t i = 0; i < num_variables - 1; ++i) {
@@ -304,30 +305,6 @@ template <typename Params> class MultilinearReductionScheme {
 
         return fold_polynomial_opening_claims;
     };
-
-    /**
-     * @brief Reconstruct Gemini proof from transcript
-     *
-     * @param transcript
-     * @return Proof
-     * @details Proof consists of:
-     * - d Fold poly evaluations a_0, ..., a_{d-1}
-     * - (d-1) Fold polynomial commitments [Fold^(1)], ..., [Fold^(d-1)]
-     */
-    static Proof<Params> reconstruct_proof_from_transcript(const auto& transcript, const size_t log_n)
-    {
-        Proof<Params> proof;
-        for (size_t i = 0; i < log_n; i++) {
-            std::string label = "a_" + std::to_string(i);
-            proof.evaluations.emplace_back(transcript->get_field_element(label));
-        };
-        for (size_t i = 1; i < log_n; i++) {
-            std::string label = "FOLD_" + std::to_string(i);
-            proof.commitments.emplace_back(transcript->get_group_element(label));
-        };
-
-        return proof;
-    }
 
     static std::vector<Fr> powers_of_rho(const Fr rho, const size_t num_powers)
     {

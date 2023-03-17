@@ -271,7 +271,7 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
     // queue.flush_queue(); // NOTE: Don't remove; we may reinstate the queue
 
     using Sumcheck = sumcheck::Sumcheck<Fr,
-                                        Transcript,
+                                        ProverTranscript<Fr>,
                                         sumcheck::ArithmeticRelation,
                                         sumcheck::GrandProductComputationRelation,
                                         sumcheck::GrandProductInitializationRelation>;

@@ -31,9 +31,6 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
     const size_t multivariate_d;
     SumcheckRound<FF, NUM_POLYNOMIALS, Relations...> round;
 
-    // TODO(luke): The prover and verifier need a different type of trascript which is why Adrian made it an input to
-    // those respective functions and removed it as a template parameter. This could be done fairly minimally.
-
     /**
     *
     * @brief (folded_polynomials) Suppose the Honk polynomials (multilinear in d variables) are called P_1, ..., P_N.
@@ -64,11 +61,8 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
     * TODO(#224)(Cody): might want to just do C-style multidimensional array? for guaranteed adjacency?
     */
     std::array<std::vector<FF>, NUM_POLYNOMIALS> folded_polynomials;
-    // the
-    std::vector<FF> multivariate_query;                       // multivariate query point u = (u_0, ..., u_{d-1})
-    std::array<FF, NUM_POLYNOMIALS> multivariate_evaluations; // multivariate evaluations at 'u'
 
-    // prover instantiates sumcheck with circuit size and transcript
+    // prover instantiates sumcheck with circuit size and a prover transcript
     Sumcheck(size_t multivariate_n, ProverTranscript<FF>& transcript)
         : transcript(transcript)
         , multivariate_n(multivariate_n)
@@ -78,50 +72,14 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
         for (auto& polynomial : folded_polynomials) {
             polynomial.resize(multivariate_n >> 1);
         }
-        multivariate_query.reserve(multivariate_d);
     };
 
-    // verifier instantiates with transcript alone
+    // verifier instantiates sumcheck with circuit size and a verifier transcript
     explicit Sumcheck(size_t multivariate_n, VerifierTranscript<FF>& transcript)
         : transcript(transcript)
         , multivariate_n(multivariate_n)
         , multivariate_d(numeric::get_msb(multivariate_n))
-        , round(std::tuple(Relations<FF>()...))
-    {
-        for (auto& polynomial : folded_polynomials) {
-            polynomial.resize(multivariate_n >> 1);
-        }
-    };
-
-    /**
-     * @brief Get all the challenges and computed parameters used in sumcheck in a convenient format
-     *
-     * @return RelationParameters<FF>
-     */
-    RelationParameters<FF> retrieve_proof_parameters()
-    {
-        const FF alpha = FF::serialize_from_buffer(transcript.get_challenge("alpha").begin());
-        const FF zeta = FF::serialize_from_buffer(transcript.get_challenge("alpha", 1).begin());
-        const FF beta = FF::serialize_from_buffer(transcript.get_challenge("beta").begin());
-        const FF gamma = FF::serialize_from_buffer(transcript.get_challenge("beta", 1).begin());
-        const auto public_input_size_vector = transcript.get_element("public_input_size");
-        const size_t public_input_size = (static_cast<size_t>(public_input_size_vector[0]) << 24) |
-                                         (static_cast<size_t>(public_input_size_vector[1]) << 16) |
-                                         (static_cast<size_t>(public_input_size_vector[2]) << 8) |
-
-                                         static_cast<size_t>(public_input_size_vector[3]);
-        const auto circut_size_vector = transcript.get_element("circuit_size");
-        const size_t n = (static_cast<size_t>(circut_size_vector[0]) << 24) |
-                         (static_cast<size_t>(circut_size_vector[1]) << 16) |
-                         (static_cast<size_t>(circut_size_vector[2]) << 8) | static_cast<size_t>(circut_size_vector[3]);
-        std::vector<FF> public_inputs = many_from_buffer<FF>(transcript.get_element("public_inputs"));
-        ASSERT(public_inputs.size() == public_input_size);
-        FF public_input_delta = honk::compute_public_input_delta<FF>(public_inputs, beta, gamma, n);
-        const RelationParameters<FF> relation_parameters = RelationParameters<FF>{
-            .zeta = zeta, .alpha = alpha, .beta = beta, .gamma = gamma, .public_input_delta = public_input_delta
-        };
-        return relation_parameters;
-    }
+        , round(std::tuple(Relations<FF>()...)){};
 
     /**
      * @brief Compute univariate restriction place in transcript, generate challenge, fold,... repeat until final round,
@@ -132,15 +90,15 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
     SumcheckOutput<FF> execute_prover(
         auto full_polynomials, const RelationParameters<FF>& relation_parameters) // pass by value, not by reference
     {
-        // First round
-        // This populates folded_polynomials.
-
         auto [alpha, zeta] = transcript.get_challenges("Sumcheck:alpha", "Sumcheck:zeta");
 
-        // const auto relation_parameters = retrieve_proof_parameters();
         PowUnivariate<FF> pow_univariate(zeta);
 
-        // TODO(luke): this logic can just be incorporated into the loop below w/ round_idx = 0
+        std::vector<FF> multivariate_query;
+        multivariate_query.reserve(multivariate_d);
+
+        // First round
+        // This populates folded_polynomials.
         auto round_univariate = round.compute_univariate(full_polynomials, relation_parameters, pow_univariate, alpha);
         transcript.send_to_verifier("Sumcheck:univariate_0", round_univariate);
         FF round_challenge = transcript.get_challenge("Sumcheck:u_0");
@@ -163,6 +121,7 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
         }
 
         // Final round: Extract multivariate evaluations from folded_polynomials and add to transcript
+        std::array<FF, NUM_POLYNOMIALS> multivariate_evaluations;
         for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
             multivariate_evaluations[i] = folded_polynomials[i][0];
         }

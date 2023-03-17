@@ -118,6 +118,7 @@ template <typename Params> class SingleBatchOpeningScheme {
         const size_t num_claims = claims.size();
 
         const Fr nu = transcript.get_challenge("Shplonk:nu");
+
         auto Q_commitment = transcript.template receive_from_prover<CommitmentAffine>("Shplonk:Q");
 
         const Fr z_challenge = transcript.get_challenge("Shplonk:z");

@@ -88,7 +88,6 @@ template <typename settings> class Prover {
     pcs::gemini::ProverOutput<pcs::kzg::Params> gemini_output;
     pcs::shplonk::ProverOutput<pcs::kzg::Params> shplonk_output;
 
-    using Transcript = ProverTranscript<Fr>;
     using Gemini = pcs::gemini::MultilinearReductionScheme<pcs::kzg::Params>;
     using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<pcs::kzg::Params>;
     using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;

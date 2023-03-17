@@ -23,7 +23,6 @@
 #include "barretenberg/honk/utils/power_polynomial.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
-#include <optional>
 
 using namespace barretenberg;
 using namespace honk::sumcheck;
@@ -80,7 +79,6 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     using FF = typename program_settings::fr;
     using Commitment = barretenberg::g1::element;
     using CommitmentAffine = barretenberg::g1::affine_element;
-    using Transcript = VerifierTranscript<Fr>;
     using Gemini = pcs::gemini::MultilinearReductionScheme<pcs::kzg::Params>;
     using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<pcs::kzg::Params>;
     using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
@@ -90,12 +88,9 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
 
     constexpr auto program_width = program_settings::program_width;
 
-    // const size_t log_n(numeric::get_msb(key->circuit_size));
+    VerifierTranscript<FF> transcript{ proof.proof_data };
 
-    VerifierTranscript<typename program_settings::fr> transcript{ proof.proof_data };
-
-    // TODO(Adrian): Change the initialization of the transcript to take the VK hash? Also need to add the
-    // commitments...
+    // TODO(Adrian): Change the initialization of the transcript to take the VK hash?
     const auto circuit_size = transcript.template receive_from_prover<uint32_t>("circuit_size");
     const auto public_input_size = transcript.template receive_from_prover<uint32_t>("public_input_size");
 
@@ -136,13 +131,13 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
 
     // Execute Sumcheck Verifier
     auto sumcheck = Sumcheck<FF,
-                             Transcript,
+                             VerifierTranscript<FF>,
                              ArithmeticRelation,
                              GrandProductComputationRelation,
                              GrandProductInitializationRelation>(circuit_size, transcript);
     std::optional sumcheck_output = sumcheck.execute_verifier(relation_parameters);
 
-    // Abort if sumcheck failed and returned nothing
+    // If Sumcheck does not return an output, sumcheck verification has failed
     if (!sumcheck_output.has_value()) {
         return false;
     }

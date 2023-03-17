@@ -10,9 +10,37 @@
 #include <cstdint>
 #include <span>
 #include <string>
+#include <utility>
 #include <vector>
+#include <map>
 
 namespace honk {
+
+// class TranscriptSummary {
+//     struct RoundData {
+//         std::vector<std::string> challenge_label;
+//         std::vector<std::pair<std::string, size_t>> entries;
+//     };
+
+//     std::map<size_t, RoundData> manifest;
+
+//     void print() {
+//         for (size_t i = 0; i < manifest.size(); ++i) {
+//             info("Round: ", i);
+//             info("challenge: ", manifest[i].challenge_label[0]);
+//             for (auto& entry : manifest[i].entries) {
+//                 info("\t", entry.first);
+//             }
+//         }
+//     }
+// };
+
+struct RoundData {
+    std::vector<std::string> challenge_label;
+    std::vector<std::pair<std::string, size_t>> entries;
+
+    bool operator==(const RoundData& other) const = default;
+};
 
 /**
  * @brief Common transcript functionality for both parties. Stores the data for the current round, as well as the
@@ -28,6 +56,7 @@ template <typename FF> class BaseTranscript {
     size_t round_number = 0;
     std::array<uint8_t, HASH_OUTPUT_SIZE> previous_challenge_buffer{};
     std::vector<uint8_t> current_round_data;
+    std::map<size_t, RoundData> manifest;
 
     /**
      * @brief Compute c_next = H( Compress(c_prev || round_buffer) )
@@ -73,6 +102,8 @@ template <typename FF> class BaseTranscript {
     {
         (void)label;
 
+        manifest[round_number].entries.emplace_back(label, element_bytes.size());
+
         current_round_data.insert(current_round_data.end(), element_bytes.begin(), element_bytes.end());
     }
 
@@ -93,7 +124,9 @@ template <typename FF> class BaseTranscript {
         static_assert(bytes_per_challenge >= MIN_BYTES_PER_CHALLENGE, "requested too many challenges in this round");
 
         // TODO(Adrian): Add the challenge names to the map.
-        ((void)labels, ...);
+        // ((void)labels, ...);
+        // std::array<std::string, num_challenges> challenge_labels = labels...;
+        manifest[round_number].challenge_label = { labels... };
 
         // Compute the new challenge buffer from which we derive the challenges.
         auto next_challenge_buffer = get_next_challenge_buffer();
@@ -122,6 +155,21 @@ template <typename FF> class BaseTranscript {
     }
 
     FF get_challenge(const std::string& label) { return get_challenges(label)[0]; }
+
+    [[nodiscard]] std::map<size_t, RoundData> get_manifest() const { return manifest; };
+
+    void print()
+    {
+        for (auto& round : manifest) {
+            info("Round: ", round.first);
+            for (auto& label : round.second.challenge_label) {
+                info("\tchallenge: ", label);
+            }
+            for (auto& entry : round.second.entries) {
+                info("\telement (", entry.second, "): ", entry.first);
+            }
+        }
+    }
 };
 
 template <typename FF> class ProverTranscript : public BaseTranscript<FF> {
@@ -156,7 +204,7 @@ template <typename FF> class ProverTranscript : public BaseTranscript<FF> {
     static ProverTranscript init_empty()
     {
         ProverTranscript<FF> transcript;
-        constexpr uint32_t init{ 42 };
+        constexpr uint32_t init{ 42 }; // arbitrary
         transcript.send_to_verifier("Init", init);
         return transcript;
     };
