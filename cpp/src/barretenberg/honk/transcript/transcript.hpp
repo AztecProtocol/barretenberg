@@ -214,12 +214,11 @@ template <class FF> class VerifierTranscript : public BaseTranscript<FF> {
 
     /// Contains the raw data sent by the prover.
     const std::vector<uint8_t> proof_data_;
-    typename std::vector<uint8_t>::const_iterator read_iterator_;
+    size_t num_bytes_read_ = 0;
 
   public:
     explicit VerifierTranscript(const std::vector<uint8_t>& proof_data)
         : proof_data_(proof_data.begin(), proof_data.end())
-        , read_iterator_(proof_data_.cbegin())
     {}
 
     static VerifierTranscript init_empty(const ProverTranscript<FF>& transcript)
@@ -240,10 +239,10 @@ template <class FF> class VerifierTranscript : public BaseTranscript<FF> {
     template <class T> T receive_from_prover(const std::string& label)
     {
         constexpr size_t element_size = sizeof(T);
-        ASSERT(read_iterator_ + element_size <= proof_data_.end());
+        ASSERT(num_bytes_read_ + element_size <= proof_data_.size());
 
-        std::span<const uint8_t> element_bytes{ read_iterator_, element_size };
-        read_iterator_ += element_size;
+        auto element_bytes = std::span{ proof_data_ }.subspan(num_bytes_read_, element_size);
+        num_bytes_read_ += element_size;
 
         BaseTranscript<FF>::consume_prover_element_bytes(label, element_bytes);
 
