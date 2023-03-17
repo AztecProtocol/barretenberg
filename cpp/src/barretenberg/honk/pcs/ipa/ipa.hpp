@@ -181,7 +181,8 @@ template <typename Params> class InnerProductArgument {
         auto& challenge_point = claim.opening_pair.query;
         auto& evaluation = claim.opening_pair.evaluation;
         const auto& log_poly_degree = static_cast<size_t>(proof.L_vec.size());
-        const auto& poly_degree = static_cast<size_t>(Fr(2).pow(log_poly_degree));
+        const auto& poly_degree = static_cast<size_t>(static_cast<uint64_t>(Fr(2).pow(log_poly_degree)));
+
         const Fr aux_challenge = Fr::serialize_from_buffer(transcript->get_challenge("ipa_aux").begin());
         auto srs_elements = vk->srs.get_monomial_points();
         const auto aux_generator = srs_elements[poly_degree] * aux_challenge;
