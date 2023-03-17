@@ -1,4 +1,5 @@
-# Implement cahe-optimised, parallelisable pippenger implementation 
+# Pippenger's Algorithm
+Goal: implement cahe-optimised, parallelisable pippenger implementation 
 
 ## The problem 
 
