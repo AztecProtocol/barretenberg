@@ -856,8 +856,8 @@ UltraToStandardProver UltraComposer::create_ultra_to_standard_prover()
     std::unique_ptr<ProverPlookupArithmeticWidget<ultra_to_standard_settings>> arithmetic_widget =
         std::make_unique<ProverPlookupArithmeticWidget<ultra_to_standard_settings>>(circuit_proving_key.get());
 
-    std::unique_ptr<ProverGenPermSortWidget<unrolled_ultra_settings>> sort_widget =
-        std::make_unique<ProverGenPermSortWidget<unrolled_ultra_settings>>(circuit_proving_key.get());
+    std::unique_ptr<ProverGenPermSortWidget<ultra_to_standard_settings>> sort_widget =
+        std::make_unique<ProverGenPermSortWidget<ultra_to_standard_settings>>(circuit_proving_key.get());
 
     std::unique_ptr<ProverEllipticWidget<ultra_to_standard_settings>> elliptic_widget =
         std::make_unique<ProverEllipticWidget<ultra_to_standard_settings>>(circuit_proving_key.get());

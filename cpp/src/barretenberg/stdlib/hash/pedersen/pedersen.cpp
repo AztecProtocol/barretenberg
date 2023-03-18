@@ -518,10 +518,6 @@ field_t<C> pedersen<C>::compress_unsafe(const field_t& in_left,
                                         const size_t hash_index,
                                         const bool validate_input_is_in_field)
 {
-    if constexpr (C::type == ComposerType::PLOOKUP && C::merkle_hash_type == plonk::MerkleHashType::LOOKUP_PEDERSEN) {
-        return pedersen_plookup<C>::compress({ in_left, in_right });
-    }
-
     std::vector<point> accumulators;
     generator_index_t index_1 = { hash_index, 0 };
     generator_index_t index_2 = { hash_index, 1 };
@@ -532,10 +528,6 @@ field_t<C> pedersen<C>::compress_unsafe(const field_t& in_left,
 
 template <typename C> point<C> pedersen<C>::commit(const std::vector<field_t>& inputs, const size_t hash_index)
 {
-    if constexpr (C::type == ComposerType::PLOOKUP && C::merkle_hash_type == plonk::MerkleHashType::LOOKUP_PEDERSEN) {
-        return pedersen_plookup<C>::commit(inputs, hash_index);
-    }
-
     std::vector<point> to_accumulate;
     for (size_t i = 0; i < inputs.size(); ++i) {
         generator_index_t index = { hash_index, i };
@@ -546,10 +538,6 @@ template <typename C> point<C> pedersen<C>::commit(const std::vector<field_t>& i
 
 template <typename C> field_t<C> pedersen<C>::compress(const std::vector<field_t>& inputs, const size_t hash_index)
 {
-    if constexpr (C::type == ComposerType::PLOOKUP && C::merkle_hash_type == plonk::MerkleHashType::LOOKUP_PEDERSEN) {
-        return pedersen_plookup<C>::compress(inputs, hash_index);
-    }
-
     return commit(inputs, hash_index).x;
 }
 

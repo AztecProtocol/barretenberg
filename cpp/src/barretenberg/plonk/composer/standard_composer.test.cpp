@@ -540,3 +540,4 @@ TEST(standard_composer, test_check_circuit_broken)
     bool result = composer.check_circuit();
     EXPECT_EQ(result, false);
 }
+} // namespace plonk
