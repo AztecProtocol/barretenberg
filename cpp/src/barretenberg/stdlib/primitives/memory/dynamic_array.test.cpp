@@ -17,8 +17,8 @@ auto& engine = numeric::random::get_debug_engine();
 }
 
 // Defining ultra-specific types for local testing.
-using Composer = waffle::UltraComposer;
-using bool_ct = stdlib::bool_t<waffle::UltraComposer>;
+using Composer = plonk::UltraComposer;
+using bool_ct = stdlib::bool_t<plonk::UltraComposer>;
 using field_ct = stdlib::field_t<Composer>;
 using witness_ct = stdlib::witness_t<Composer>;
 using DynamicArray_ct = stdlib::DynamicArray<Composer>;

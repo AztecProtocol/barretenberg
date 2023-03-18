@@ -25,7 +25,7 @@ template <typename Composer> class pedersen_gates {
     using fixed_group_add_quad = bonk::fixed_group_add_quad;
     using fixed_group_init_quad = bonk::fixed_group_init_quad;
     using add_quad = bonk::add_quad;
-    using ComposerType = waffle::ComposerType;
+    using ComposerType = plonk::ComposerType;
 
     Composer* context;
     fixed_group_add_quad previous_add_quad;

@@ -143,22 +143,22 @@ inline void output_vk_sol_ultra(std::ostream& os, std::shared_ptr<verification_k
  */
 inline void output_vk_sol(std::ostream& os, std::shared_ptr<verification_key> const& key, std::string const& class_name)
 {
-    waffle::ComposerType composer_type = static_cast<waffle::ComposerType>(key->composer_type);
+    plonk::ComposerType composer_type = static_cast<plonk::ComposerType>(key->composer_type);
     switch (composer_type) {
-    case waffle::ComposerType::STANDARD: {
+    case plonk::ComposerType::STANDARD: {
         return output_vk_sol_standard(os, key, class_name);
         break;
     }
-    // case waffle::ComposerType::TURBO: {
+    // case plonk::ComposerType::TURBO: {
     //     return output_vk_sol_turbo(os, key, class_name);
     //     break;
     // }
-    case waffle::ComposerType::PLOOKUP: {
+    case plonk::ComposerType::PLOOKUP: {
         return output_vk_sol_ultra(os, key, class_name);
         break;
     }
     default: {
-        std::cerr << "waffle::output_vk_sol unsupported composer type. Defaulting to standard composer" << std::endl;
+        std::cerr << "bonk::output_vk_sol unsupported composer type. Defaulting to standard composer" << std::endl;
         return output_vk_sol_standard(os, key, class_name);
     }
     }
