@@ -114,6 +114,7 @@ template <typename Curve> class recursive_turbo_verifier_settings : public plonk
 
     typedef plonk::turbo_settings base_settings;
 
+    typedef plonk::VerifierTurboFixedBaseWidget<fr_ct, g1, Transcript_pt, base_settings> TurboFixedBaseWidget;
     typedef plonk::VerifierTurboArithmeticWidget<fr_ct, g1, Transcript_pt, base_settings> TurboArithmeticWidget;
     typedef plonk::VerifierTurboRangeWidget<fr_ct, g1, Transcript_pt, base_settings> TurboRangeWidget;
     typedef plonk::VerifierTurboLogicWidget<fr_ct, g1, Transcript_pt, base_settings> TurboLogicWidget;
@@ -131,6 +132,9 @@ template <typename Curve> class recursive_turbo_verifier_settings : public plonk
         updated_alpha =
             TurboArithmeticWidget::append_scalar_multiplication_inputs(key, updated_alpha, transcript, scalars);
 
+        updated_alpha =
+            TurboFixedBaseWidget::append_scalar_multiplication_inputs(key, updated_alpha, transcript, scalars);
+
         updated_alpha = TurboRangeWidget::append_scalar_multiplication_inputs(key, updated_alpha, transcript, scalars);
 
         updated_alpha = TurboLogicWidget::append_scalar_multiplication_inputs(key, updated_alpha, transcript, scalars);
@@ -145,6 +149,8 @@ template <typename Curve> class recursive_turbo_verifier_settings : public plonk
         auto updated_alpha_base = PermutationWidget::compute_quotient_evaluation_contribution(
             key, alpha_base, transcript, quotient_numerator_eval);
         updated_alpha_base = TurboArithmeticWidget::compute_quotient_evaluation_contribution(
+            key, updated_alpha_base, transcript, quotient_numerator_eval);
+        updated_alpha_base = TurboFixedBaseWidget::compute_quotient_evaluation_contribution(
             key, updated_alpha_base, transcript, quotient_numerator_eval);
         updated_alpha_base = TurboRangeWidget::compute_quotient_evaluation_contribution(
             key, updated_alpha_base, transcript, quotient_numerator_eval);
