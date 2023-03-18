@@ -2,15 +2,15 @@
 
 #include <gtest/gtest.h>
 
-#include <numeric/random/engine.hpp>
+#include "barretenberg/numeric/random/engine.hpp"
 
-#include <plonk/composer/ultra_composer.hpp>
+#include "barretenberg/plonk/composer/ultra_composer.hpp"
 
 namespace test_stdlib_ram_table {
 using namespace plonk;
 
 // Defining ultra-specific types for local testing.
-using Composer = waffle::UltraComposer;
+using Composer = plonk::UltraComposer;
 using field_ct = stdlib::field_t<Composer>;
 using witness_ct = stdlib::witness_t<Composer>;
 using ram_table_ct = stdlib::ram_table<Composer>;
