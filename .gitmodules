@@ -1,0 +1,3 @@
+[submodule "build-system"]
+	path = build-system
+	url = https://github.com/aztecprotocol/build-system
