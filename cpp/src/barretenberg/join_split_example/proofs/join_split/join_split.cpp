@@ -89,10 +89,10 @@ plonk::UltraProver new_join_split_prover(join_split_tx const& tx, bool mock)
 
 bool verify_proof(plonk::proof const& proof)
 {
-    plonk::TurboVerifier verifier(verification_key, Composer::create_manifest(verification_key->num_public_inputs));
+    plonk::UltraVerifier verifier(verification_key, Composer::create_manifest(verification_key->num_public_inputs));
 
-    std::unique_ptr<plonk::KateCommitmentScheme<plonk::turbo_settings>> kate_commitment_scheme =
-        std::make_unique<plonk::KateCommitmentScheme<plonk::turbo_settings>>();
+    std::unique_ptr<plonk::KateCommitmentScheme<plonk::ultra_settings>> kate_commitment_scheme =
+        std::make_unique<plonk::KateCommitmentScheme<plonk::ultra_settings>>();
     verifier.commitment_scheme = std::move(kate_commitment_scheme);
 
     return verifier.verify_proof(proof);

@@ -329,9 +329,13 @@ template <typename settings> void ProverBase<settings>::execute_second_round()
  * */
 template <typename settings> void ProverBase<settings>::execute_third_round()
 {
+    printf("inside execute_third_round\n");
+
     queue.flush_queue();
+    printf("flushed queue\n");
 
     transcript.apply_fiat_shamir("beta");
+    printf("applied fiat shamir to beta\n");
 
 #ifdef DEBUG_TIMING
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
@@ -344,10 +348,16 @@ template <typename settings> void ProverBase<settings>::execute_third_round()
 #ifdef DEBUG_TIMING
     start = std::chrono::steady_clock::now();
 #endif
-    for (auto& widget : random_widgets) {
-        widget->compute_round_commitments(transcript, 3, queue);
+    try {
+        for (auto& widget : random_widgets) {
+            widget->compute_round_commitments(transcript, 3, queue);
+        }
+    } catch (const std::exception& error) {
+        std::cerr << "caught error in compute_round_commitments\n";
+        std::cerr << error.what() << std::endl;
+        ;
     }
-
+    printf("applied random widgets\n");
     for (size_t i = 0; i < settings::program_width; ++i) {
         std::string wire_tag = "w_" + std::to_string(i + 1);
         queue.add_to_queue({
@@ -370,8 +380,11 @@ template <typename settings> void ProverBase<settings>::execute_third_round()
  */
 template <typename settings> void ProverBase<settings>::execute_fourth_round()
 {
+    printf("inside execute_fourth_round\n");
     queue.flush_queue();
     transcript.apply_fiat_shamir("alpha");
+    printf("applied fiat shamir to alpha\n");
+
 #ifdef DEBUG_TIMING
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 #endif
@@ -566,34 +579,114 @@ template <typename settings> plonk::proof& ProverBase<settings>::export_proof()
 
 template <typename settings> plonk::proof& ProverBase<settings>::construct_proof()
 {
+    // auto manifest = transcript.get_manifest();
+    // auto num_rounds = manifest.get_num_rounds();
+    // printf("num_rounds: %zu\n", num_rounds);
+
+    // for (size_t current_round = 0; current_round < num_rounds; current_round++) {
+    //     printf("current_round: %zu\n", current_round);
+    //     for (auto manifest_element : manifest.get_round_manifest(current_round).elements) {
+    //         printf("manifest_element.name: %s\n", manifest_element.name.c_str());
+    //     }
+    // }
+
+    printf("creating proof\n");
+
+    auto transcript_elems = transcript.elements;
+    std::cout << "num transcript elems in map: " << transcript_elems.size() << std::endl;
+
+    std::map<std::string, std::vector<uint8_t>>::iterator it;
+    for (it = transcript_elems.begin(); it != transcript_elems.end(); it++) {
+        // std::cout << it->first    // string (key)
+        //         << ':'
+        //         << it->second   // string's value
+        //         << std::endl;
+        std::cout << it->first << ' ' << std::endl;
+    }
+
     // Execute init round. Randomize witness polynomials.
     execute_preamble_round();
     queue.process_queue();
+    printf("done: execute_preamble_round\n");
+
+    transcript_elems = transcript.elements;
+    std::cout << "num transcript elems in map: " << transcript_elems.size() << std::endl;
+
+    // std::map<std::string, std::vector<uint8_t>>::iterator it;
+    for (it = transcript_elems.begin(); it != transcript_elems.end(); it++) {
+        // std::cout << it->first    // string (key)
+        //         << ':'
+        //         << it->second   // string's value
+        //         << std::endl;
+        std::cout << it->first << ' ' << std::endl;
+    }
 
     // Compute wire precommitments and sometimes random widget round commitments
     execute_first_round();
     queue.process_queue();
+    printf("done: execute_first_round\n");
+
+    transcript_elems = transcript.elements;
+    std::cout << "num transcript elems in map: " << transcript_elems.size() << std::endl;
+
+    // std::map<std::string, std::vector<uint8_t>>::iterator it;
+    for (it = transcript_elems.begin(); it != transcript_elems.end(); it++) {
+        // std::cout << it->first    // string (key)
+        //         << ':'
+        //         << it->second   // string's value
+        //         << std::endl;
+        std::cout << it->first << ' ' << std::endl;
+    }
 
     // Fiat-Shamir eta + execute random widgets.
     execute_second_round();
     queue.process_queue();
+    printf("done: execute_second_round\n");
+
+    transcript_elems = transcript.elements;
+    std::cout << "num transcript elems in map: " << transcript_elems.size() << std::endl;
+
+    // std::map<std::string, std::vector<uint8_t>>::iterator it;
+    for (it = transcript_elems.begin(); it != transcript_elems.end(); it++) {
+        // std::cout << it->first    // string (key)
+        //         << ':'
+        //         << it->second   // string's value
+        //         << std::endl;
+        std::cout << it->first << ' ' << std::endl;
+    }
 
     // Fiat-Shamir beta & gamma, execute random widgets (Permutation widget is executed here)
     // and fft the witnesses
     execute_third_round();
     queue.process_queue();
+    printf("done: execute_third_round\n");
+
+    transcript_elems = transcript.elements;
+    std::cout << "num transcript elems in map: " << transcript_elems.size() << std::endl;
+
+    // std::map<std::string, std::vector<uint8_t>>::iterator it;
+    for (it = transcript_elems.begin(); it != transcript_elems.end(); it++) {
+        // std::cout << it->first    // string (key)
+        //         << ':'
+        //         << it->second   // string's value
+        //         << std::endl;
+        std::cout << it->first << ' ' << std::endl;
+    }
 
     // Fiat-Shamir alpha, compute & commit to quotient polynomial.
     execute_fourth_round();
     queue.process_queue();
+    printf("done: execute_fourth_round\n");
 
     execute_fifth_round();
+    printf("done: execute_fifth_round\n");
 
     execute_sixth_round();
     queue.process_queue();
+    printf("done: execute_sixth_round\n");
 
     queue.flush_queue();
-
+    printf("about to export proof\n");
     return export_proof();
 }
 

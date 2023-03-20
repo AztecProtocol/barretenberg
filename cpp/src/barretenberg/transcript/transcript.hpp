@@ -105,12 +105,13 @@ class Transcript {
 
     void print();
 
+    std::map<std::string, std::vector<uint8_t>> elements;
+
   private:
     // The round of the protocol
     size_t current_round = 0;
     size_t num_challenge_bytes;
     HashType hasher;
-    std::map<std::string, std::vector<uint8_t>> elements;
 
     std::map<std::string, std::vector<challenge>> challenges;
 

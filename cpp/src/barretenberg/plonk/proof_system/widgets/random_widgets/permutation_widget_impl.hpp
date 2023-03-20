@@ -57,10 +57,12 @@ template <size_t program_width, bool idpolys, const size_t num_roots_cut_out_of_
 void ProverPermutationWidget<program_width, idpolys, num_roots_cut_out_of_vanishing_polynomial>::
     compute_round_commitments(transcript::StandardTranscript& transcript, const size_t round_number, work_queue& queue)
 {
+    printf("got into compute_round_commitments\n");
+    printf("perm\n");
     if (round_number != 3) {
         return;
     }
-
+    // printf("got into compute_round_commitments\n");
     // Allocate scratch space in memory for computation of lagrange form of permutation polynomial
     // 'z_perm'. Elements 2,...,n of z_perm are constructed in place in accumulators[0]. (The first
     // element of z_perm is one, i.e. z_perm[0] == 1). The remaining accumulators are used only as scratch

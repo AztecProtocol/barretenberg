@@ -195,6 +195,12 @@ void Transcript::apply_fiat_shamir(const std::string& challenge_name /*, const b
         info_togglable("\t element name: ", manifest_element.name);
         info_togglable(
             "\t element exists and is unique: ", (elements.count(manifest_element.name) == 1) ? "true" : "false", "\n");
+
+        printf("**************************************************\n");
+        printf("elements.count: %zu\n", elements.count(manifest_element.name));
+        printf("manifest_element.name: %s\n", manifest_element.name.c_str());
+        printf("**************************************************\n");
+
         ASSERT(elements.count(manifest_element.name) == 1);
 
         std::vector<uint8_t>& element_data = elements.at(manifest_element.name);
@@ -395,6 +401,7 @@ std::vector<uint8_t> Transcript::get_element(const std::string& element_name) co
 {
     // printf("getting element %s \n", element_name.c_str());
     ASSERT(elements.count(element_name) == 1);
+    // printf("elements.count(element_name) == %zu \n", elements.count(element_name));
     return elements.at(element_name);
 }
 

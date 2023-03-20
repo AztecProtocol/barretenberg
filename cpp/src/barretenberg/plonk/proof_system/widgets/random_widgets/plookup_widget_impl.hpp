@@ -138,13 +138,39 @@ void ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>::compute_gra
     for (size_t k = 1; k < 4; ++k) {
         accumulators[k] = static_cast<fr*>(aligned_alloc(64, sizeof(fr) * n));
     }
+    polynomial s_lagrange;
+    fr* column_1_step_size;
+    fr* column_2_step_size;
+    fr* column_3_step_size;
+    try {
+        s_lagrange = key->polynomial_store.get("s_lagrange");
+    } catch (const std::exception& error) {
+        std::cerr << "caught error for key->polynomial_store.get s_lagrange\n";
+        std::cerr << error.what() << std::endl;
+        ;
+    }
 
-    polynomial s_lagrange = key->polynomial_store.get("s_lagrange");
-
-    const fr* column_1_step_size = key->polynomial_store.get("q_2_lagrange").get_coefficients();
-    const fr* column_2_step_size = key->polynomial_store.get("q_m_lagrange").get_coefficients();
-    const fr* column_3_step_size = key->polynomial_store.get("q_c_lagrange").get_coefficients();
-
+    try {
+        column_1_step_size = key->polynomial_store.get("q_2_lagrange").get_coefficients();
+    } catch (const std::exception& error) {
+        std::cerr << "caught error for key->polynomial_store.get q_2_lagrange\n";
+        std::cerr << error.what() << std::endl;
+        ;
+    }
+    try {
+        column_2_step_size = key->polynomial_store.get("q_m_lagrange").get_coefficients();
+    } catch (const std::exception& error) {
+        std::cerr << "caught error for key->polynomial_store.get q_m_lagrange\n";
+        std::cerr << error.what() << std::endl;
+        ;
+    }
+    try {
+        column_3_step_size = key->polynomial_store.get("q_c_lagrange").get_coefficients();
+    } catch (const std::exception& error) {
+        std::cerr << "caught error for key->polynomial_store.get q_c_lagrange\n";
+        std::cerr << error.what() << std::endl;
+        ;
+    }
     fr eta = fr::serialize_from_buffer(transcript.get_challenge("eta").begin());
     fr eta_sqr = eta.sqr();
     fr eta_cube = eta_sqr * eta;
@@ -152,18 +178,48 @@ void ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>::compute_gra
     fr beta = fr::serialize_from_buffer(transcript.get_challenge("beta").begin());
     fr gamma = fr::serialize_from_buffer(transcript.get_challenge("beta", 1).begin());
     std::array<const fr*, 3> lagrange_base_wires;
-    std::array<const fr*, 4> lagrange_base_tables{
-        key->polynomial_store.get("table_value_1_lagrange").get_coefficients(),
-        key->polynomial_store.get("table_value_2_lagrange").get_coefficients(),
-        key->polynomial_store.get("table_value_3_lagrange").get_coefficients(),
-        key->polynomial_store.get("table_value_4_lagrange").get_coefficients(),
-    };
+    std::array<const fr*, 4> lagrange_base_tables;
+    try {
+        // std::array<const fr*, 4> lagrange_base_tables{
+        //     key->polynomial_store.get("table_value_1_lagrange").get_coefficients(),
+        //     key->polynomial_store.get("table_value_2_lagrange").get_coefficients(),
+        //     key->polynomial_store.get("table_value_3_lagrange").get_coefficients(),
+        //     key->polynomial_store.get("table_value_4_lagrange").get_coefficients(),
+        // };
+        for (size_t i = 0; i < 4; ++i) {
+            lagrange_base_tables[i] =
+                key->polynomial_store.get("table_value_" + std::to_string(i + 1) + "_lagrange").get_coefficients();
+        }
+    } catch (const std::exception& error) {
+        std::cerr << "caught error for key->polynomial_store.get table_value_*_lagrange\n";
+        std::cerr << error.what() << std::endl;
+    }
+    fr* lookup_selector;
+    fr* lookup_index_selector;
+    try {
+        lookup_selector = key->polynomial_store.get("table_type_lagrange").get_coefficients();
+    } catch (const std::exception& error) {
+        std::cerr << "caught error for key->polynomial_store.get table_type_lagrange\n";
+        std::cerr << error.what() << std::endl;
+        ;
+    }
+    try {
+        lookup_index_selector = key->polynomial_store.get("q_3_lagrange").get_coefficients();
+    } catch (const std::exception& error) {
+        std::cerr << "caught error for key->polynomial_store.get q_3_lagrange\n";
+        std::cerr << error.what() << std::endl;
+        ;
+    }
 
-    const fr* lookup_selector = key->polynomial_store.get("table_type_lagrange").get_coefficients();
-    const fr* lookup_index_selector = key->polynomial_store.get("q_3_lagrange").get_coefficients();
-    for (size_t i = 0; i < 3; ++i) {
-        lagrange_base_wires[i] =
-            key->polynomial_store.get("w_" + std::to_string(i + 1) + "_lagrange").get_coefficients();
+    try {
+        for (size_t i = 0; i < 3; ++i) {
+            lagrange_base_wires[i] =
+                key->polynomial_store.get("w_" + std::to_string(i + 1) + "_lagrange").get_coefficients();
+        }
+    } catch (const std::exception& error) {
+        std::cerr << "caught error for lagrange_base_wires\n";
+        std::cerr << error.what() << std::endl;
+        ;
     }
 
     const fr beta_constant = beta + fr(1);                // (1 + β)
@@ -349,6 +405,8 @@ template <const size_t num_roots_cut_out_of_vanishing_polynomial>
 void ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>::compute_round_commitments(
     transcript::StandardTranscript& transcript, const size_t round_number, work_queue& queue)
 {
+    printf("got into compute_round_commitments\n");
+    printf("plookup\n");
     if (round_number == 2) {
         compute_sorted_list_polynomial(transcript);
         const polynomial& s = key->polynomial_store.get("s");
@@ -374,10 +432,17 @@ void ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>::compute_rou
         return;
     }
     if (round_number == 3) {
-        compute_grand_product_polynomial(transcript);
+        try {
+            compute_grand_product_polynomial(transcript);
+        } catch (const std::exception& error) {
+            std::cerr << "caught error in compute_grand_product_polynomial(transcript)\n";
+            std::cerr << error.what() << std::endl;
+            ;
+        }
+
+        // try {
         const polynomial& z = key->polynomial_store.get("z_lookup");
 
-        // Commit to z_lookup:
         queue.add_to_queue({
             .work_type = work_queue::WorkType::SCALAR_MULTIPLICATION,
             .mul_scalars = z.get_coefficients(),
@@ -394,6 +459,27 @@ void ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>::compute_rou
             .constant = barretenberg::fr(0),
             .index = 0,
         });
+        // } catch (const std::exception &error) {
+        //     std::cerr << "caught error in key->polynomial_store.get\n";
+        //     std::cerr << error.what() << std::endl;;
+        // }
+        // Commit to z_lookup:
+        // queue.add_to_queue({
+        //     .work_type = work_queue::WorkType::SCALAR_MULTIPLICATION,
+        //     .mul_scalars = z.get_coefficients(),
+        //     .tag = "Z_LOOKUP",
+        //     .constant = barretenberg::fr(0),
+        //     .index = 0,
+        // });
+
+        // // Compute the coset FFT of 'z_lookup' for use in quotient poly construction
+        // queue.add_to_queue({
+        //     .work_type = work_queue::WorkType::FFT,
+        //     .mul_scalars = nullptr,
+        //     .tag = "z_lookup",
+        //     .constant = barretenberg::fr(0),
+        //     .index = 0,
+        // });
 
         return;
     }

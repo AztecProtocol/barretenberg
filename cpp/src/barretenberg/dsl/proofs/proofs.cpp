@@ -26,9 +26,13 @@ size_t init_proving_key(uint8_t const* constraint_system_buf, uint8_t const** pk
 
     // We know that we don't actually need any CRS to create a proving key, so just feed in a nothing.
     // Hacky, but, right now it needs *something*.
-    auto crs_factory = std::make_unique<ReferenceStringFactory>();
+    auto crs_factory = std::make_unique<bonk::ReferenceStringFactory>();
     auto composer = create_circuit(constraint_system, std::move(crs_factory));
+    printf("composer type %u\n", composer.type);
     auto proving_key = composer.compute_proving_key();
+    printf("computed proving key\n");
+    printf("polynomial store: \n");
+    proving_key.get()->polynomial_store.print();
 
     auto buffer = to_buffer(*proving_key);
     auto raw_buf = (uint8_t*)malloc(buffer.size());
@@ -45,7 +49,7 @@ size_t init_verification_key(void* pippenger, uint8_t const* g2x, uint8_t const*
     read(pk_buf, pk_data);
     auto proving_key = std::make_shared<bonk::proving_key>(std::move(pk_data), crs);
 
-    auto crs_factory = std::make_unique<PippengerReferenceStringFactory>(
+    auto crs_factory = std::make_unique<bonk::PippengerReferenceStringFactory>(
         reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), g2x);
     proving_key->reference_string = crs_factory->get_prover_crs(proving_key->circuit_size);
 
@@ -55,7 +59,7 @@ size_t init_verification_key(void* pippenger, uint8_t const* g2x, uint8_t const*
 
     // The composer_type has not yet been set. We need to set the composer_type for when we later read in and
     // construct the verification key so that we have the correct polynomial manifest
-    verification_key->composer_type = ComposerType::TURBO;
+    verification_key->composer_type = ComposerType::PLOOKUP;
 
     auto buffer = to_buffer(*verification_key);
     auto raw_buf = (uint8_t*)malloc(buffer.size());
@@ -81,24 +85,29 @@ size_t new_proof(void* pippenger,
     read(pk_buf, pk_data);
     auto proving_key = std::make_shared<bonk::proving_key>(std::move(pk_data), crs);
     printf("read in proving_key\n");
+    printf("polynomial store: \n");
+    proving_key.get()->polynomial_store.print();
 
     auto witness = from_buffer<std::vector<fr>>(witness_buf);
 
-    auto crs_factory = std::make_unique<PippengerReferenceStringFactory>(
+    auto crs_factory = std::make_unique<bonk::PippengerReferenceStringFactory>(
         reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), g2x);
     proving_key->reference_string = crs_factory->get_prover_crs(proving_key->circuit_size);
 
     Composer composer(proving_key, nullptr);
+    printf("composer type %u\n", composer.type);
     printf("we got a composer object\n");
 
     create_circuit_with_witness(composer, constraint_system, witness);
     printf("created circuit with witness\n");
 
     auto prover = composer.create_prover();
-    printf("created a prover\n");
+    printf("created a prover NO heap prover\n");
 
-    auto heapProver = new UltraProver(std::move(prover));
+    auto heapProver = new plonk::UltraProver(std::move(prover));
     auto& proof_data = heapProver->construct_proof().proof_data;
+    printf("constructed proof \n");
+
     *proof_data_buf = proof_data.data();
 
     return proof_data.size();
@@ -114,7 +123,7 @@ bool verify_proof(
 #endif
         auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
 
-        auto crs = std::make_shared<VerifierMemReferenceString>(g2x);
+        auto crs = std::make_shared<bonk::VerifierMemReferenceString>(g2x);
         bonk::verification_key_data vk_data;
         read(vk_buf, vk_data);
         auto verification_key = std::make_shared<bonk::verification_key>(std::move(vk_data), crs);
