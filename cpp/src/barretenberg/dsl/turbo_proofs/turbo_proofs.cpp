@@ -70,25 +70,36 @@ size_t turbo_new_proof(void* pippenger,
                        uint8_t const* witness_buf,
                        uint8_t** proof_data_buf)
 {
+    (void)witness_buf;
     auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
+    // std::cout << constraint_system << std::endl;
 
     std::shared_ptr<ProverReferenceString> crs;
     bonk::proving_key_data pk_data;
     read(pk_buf, pk_data);
     auto proving_key = std::make_shared<bonk::proving_key>(std::move(pk_data), crs);
+    proving_key->polynomial_store.print();
 
-    auto witness = from_buffer<std::vector<fr>>(witness_buf);
+    auto witness = { fr(0), fr(0), fr(0) };
 
     auto crs_factory = std::make_unique<PippengerReferenceStringFactory>(
         reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), g2x);
+    std::cout << proving_key->circuit_size << std::endl;
     proving_key->reference_string = crs_factory->get_prover_crs(proving_key->circuit_size);
 
     TurboComposer composer(proving_key, nullptr);
     create_circuit_with_witness(composer, constraint_system, witness);
-
+    for (size_t i = 0; i < composer.num_selectors; i++) {
+        std::cout << composer.selectors[i] << std::endl;
+    }
+    std::cout << composer.w_l << std::endl;
+    std::cout << composer.w_o << std::endl;
+    std::cout << composer.w_r << std::endl;
+    std::cout << composer.w_4 << std::endl;
     auto prover = composer.create_prover();
     auto heapProver = new TurboProver(std::move(prover));
     auto& proof_data = heapProver->construct_proof().proof_data;
+    std::cout << proof_data << std::endl;
     *proof_data_buf = proof_data.data();
 
     return proof_data.size();
@@ -97,6 +108,7 @@ size_t turbo_new_proof(void* pippenger,
 bool turbo_verify_proof(
     uint8_t const* g2x, uint8_t const* vk_buf, uint8_t const* constraint_system_buf, uint8_t* proof, uint32_t length)
 {
+    std::cout << "CAN WE SEE THIS?" << std::endl;
     bool verified = false;
 
 #ifndef __wasm__

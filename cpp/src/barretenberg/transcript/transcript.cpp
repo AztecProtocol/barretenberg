@@ -12,6 +12,7 @@
 #include <iomanip>
 #include <iostream>
 #include <vector>
+#include "barretenberg/common/streams.hpp"
 
 namespace transcript {
 
@@ -202,6 +203,10 @@ void Transcript::apply_fiat_shamir(const std::string& challenge_name /*, const b
             ASSERT(manifest_element.num_bytes == element_data.size());
         }
         buffer.insert(buffer.end(), element_data.begin(), element_data.end());
+        if (challenge_name == "beta") {
+            std::cout << manifest_element.name << std::endl;
+            std::cout << element_data << std::endl;
+        }
     }
 
     std::vector<challenge> round_challenges;

@@ -202,8 +202,7 @@ template <typename settings> void ProverBase<settings>::execute_preamble_round()
         const size_t w_randomness = 3;
         ASSERT(w_randomness < settings::num_roots_cut_out_of_vanishing_polynomial);
         for (size_t k = 0; k < w_randomness; ++k) {
-            wire_lagrange.at(circuit_size - settings::num_roots_cut_out_of_vanishing_polynomial + k) =
-                fr::random_element();
+            wire_lagrange.at(circuit_size - settings::num_roots_cut_out_of_vanishing_polynomial + k) = fr(k);
         }
 
         key->polynomial_store.put(wire_tag + "_lagrange", std::move(wire_lagrange));
@@ -296,8 +295,7 @@ template <typename settings> void ProverBase<settings>::execute_second_round()
         ASSERT(w_randomness < settings::num_roots_cut_out_of_vanishing_polynomial);
         for (size_t k = 0; k < w_randomness; ++k) {
             // Blinding
-            w_4_lagrange.at(circuit_size - settings::num_roots_cut_out_of_vanishing_polynomial + k) =
-                fr::random_element();
+            w_4_lagrange.at(circuit_size - settings::num_roots_cut_out_of_vanishing_polynomial + k) = fr(k);
         }
 
         // compute poly w_4 from w_4_lagrange and add it to the cache
@@ -332,7 +330,7 @@ template <typename settings> void ProverBase<settings>::execute_third_round()
     queue.flush_queue();
 
     transcript.apply_fiat_shamir("beta");
-
+    std::cout << transcript.get_challenge_field_element("beta") << std::endl;
 #ifdef DEBUG_TIMING
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 #endif
@@ -538,7 +536,7 @@ template <typename settings> void ProverBase<settings>::add_blinding_to_quotient
     // For details, please head to: https://hackmd.io/JiyexiqRQJW55TMRrBqp1g.
     for (size_t i = 0; i < settings::program_width - 1; i++) {
         // Note that only program_width-1 random elements are required for full blinding
-        fr quotient_randomness = fr::random_element();
+        fr quotient_randomness = fr(i);
 
         key->quotient_polynomial_parts[i][key->circuit_size] +=
             quotient_randomness;                                         // update coefficient of X^n'th term
