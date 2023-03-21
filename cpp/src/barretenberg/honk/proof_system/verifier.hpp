@@ -28,6 +28,7 @@ template <typename program_settings> class Verifier {
     std::map<std::string, barretenberg::g1::affine_element> kate_g1_elements;
     std::map<std::string, barretenberg::fr> kate_fr_elements;
     std::shared_ptr<pcs::kzg::VerificationKey> kate_verification_key;
+    VerifierTranscript<typename program_settings::fr> transcript;
 };
 
 extern template class Verifier<honk::standard_verifier_settings>;

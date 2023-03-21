@@ -2,6 +2,7 @@
 #include "barretenberg/common/throw_or_abort.hpp"
 #include <cstddef>
 #include <memory>
+#include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/plonk/proof_system/constants.hpp"
 #include "./verifier.hpp"
 #include "barretenberg/plonk/proof_system/public_inputs/public_inputs.hpp"
@@ -88,7 +89,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
 
     constexpr auto program_width = program_settings::program_width;
 
-    VerifierTranscript<FF> transcript{ proof.proof_data };
+    transcript = VerifierTranscript<FF>{ proof.proof_data };
 
     // TODO(Adrian): Change the initialization of the transcript to take the VK hash?
     const auto circuit_size = transcript.template receive_from_prover<uint32_t>("circuit_size");
@@ -103,7 +104,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
 
     std::vector<FF> public_inputs;
     for (size_t i = 0; i < public_input_size; ++i) {
-        auto public_input_i = transcript.template receive_from_prover<FF>("public_inputs_" + std::to_string(i));
+        auto public_input_i = transcript.template receive_from_prover<FF>("public_input_" + std::to_string(i));
         public_inputs.emplace_back(public_input_i);
     }
 

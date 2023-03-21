@@ -13,6 +13,7 @@
 #include <utility>
 #include <vector>
 #include <map>
+#include <algorithm>
 
 namespace honk {
 
@@ -49,6 +50,10 @@ class TranscriptManifest {
         manifest[round].entries.emplace_back(element_label, element_size);
     }
 
+    [[nodiscard]] size_t size() const { return manifest.size(); }
+
+    RoundData operator[](const size_t& round) { return manifest[round]; };
+
     bool operator==(const TranscriptManifest& other) const = default;
 };
 
@@ -64,7 +69,7 @@ template <typename FF> class BaseTranscript {
     static constexpr size_t MIN_BYTES_PER_CHALLENGE = 128 / 8; // 128 bit challenges
 
     size_t round_number = 0;
-    std::array<uint8_t, HASH_OUTPUT_SIZE> previous_challenge_buffer{};
+    std::array<uint8_t, HASH_OUTPUT_SIZE> previous_challenge_buffer{}; // default-initialized to zeros
     std::vector<uint8_t> current_round_data;
 
     // "Manifest" object that records a summary of the transcript interactions
@@ -193,8 +198,9 @@ template <typename FF> class ProverTranscript : public BaseTranscript<FF> {
     template <class T> void send_to_verifier(const std::string& label, const T& element)
     {
         using serialize::write;
-        // DANGER: When serializing an affine_element, we write the x and y coordinates
-        // but this is annowing to deal with right now.
+        // TODO(Adrian): Ensure that serialization of affine elements (including point at infinity) is consistent.
+        // TODO(Adrian): Consider restricting serialization (via concepts) to types T for which sizeof(T) reliably
+        // returns the size of T in bytes. (E.g. this is true for std::array but not for std::vector).
         auto element_bytes = to_buffer(element);
         proof_data.insert(proof_data.end(), element_bytes.begin(), element_bytes.end());
 
@@ -219,10 +225,12 @@ template <typename FF> class ProverTranscript : public BaseTranscript<FF> {
 template <class FF> class VerifierTranscript : public BaseTranscript<FF> {
 
     /// Contains the raw data sent by the prover.
-    const std::vector<uint8_t> proof_data_;
+    std::vector<uint8_t> proof_data_;
     size_t num_bytes_read_ = 0;
 
   public:
+    VerifierTranscript() = default;
+
     explicit VerifierTranscript(const std::vector<uint8_t>& proof_data)
         : proof_data_(proof_data.begin(), proof_data.end())
     {}
@@ -243,8 +251,6 @@ template <class FF> class VerifierTranscript : public BaseTranscript<FF> {
 
     /**
      * @brief Reads the next element of type `T` from the transcript, with a predefined label.
-     *
-     * @details
      *
      * @param label Human readable name for the challenge.
      * @return deserialized element of type T

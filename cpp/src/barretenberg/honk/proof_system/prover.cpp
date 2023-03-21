@@ -305,7 +305,7 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
 
     // Compute d+1 Fold polynomials and their evaluations
     gemini_output = Gemini::reduce_prove(commitment_key,
-                                         sumcheck_output.multivariate_query,
+                                         sumcheck_output.challenge_point,
                                          std::move(batched_poly_unshifted),
                                          std::move(batched_poly_to_be_shifted),
                                          transcript);

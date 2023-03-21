@@ -279,7 +279,7 @@ template <typename Params> class MultilinearReductionScheme {
         std::vector<Fr> evaluations;
         evaluations.reserve(num_variables);
         for (size_t i = 0; i < num_variables; ++i) {
-            auto eval = transcript.template receive_from_prover<Fr>("Gemini:a_" + std::to_string(i + 1));
+            auto eval = transcript.template receive_from_prover<Fr>("Gemini:a_" + std::to_string(i));
             evaluations.emplace_back(eval);
         }
 

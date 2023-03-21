@@ -125,7 +125,7 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
         for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
             multivariate_evaluations[i] = folded_polynomials[i][0];
         }
-        transcript.send_to_verifier("multivariate_evaluations", multivariate_evaluations);
+        transcript.send_to_verifier("Sumcheck:evaluations", multivariate_evaluations);
 
         return { multivariate_query, multivariate_evaluations };
     };
