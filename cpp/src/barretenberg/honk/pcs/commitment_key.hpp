@@ -256,10 +256,10 @@ class VerificationKey {
     VerificationKey() = delete;
 
     /**
-     * @brief Construct a new Kate Commitment Key object from existing SRS
-     *
-     *
-     * @param verifier_srs verifier G2 point
+     * @brief Construct a new IPA Verification Key object from existing SRS. srs and pippenger_runtime_state are set
+     * public to be used in 'reduce_verify` method for MSM
+     * @param num_points
+     * @param path
      */
     VerificationKey(const size_t num_points, std::string_view path)
         : pippenger_runtime_state(num_points)
