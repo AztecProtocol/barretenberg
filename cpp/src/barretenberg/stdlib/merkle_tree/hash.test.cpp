@@ -1,6 +1,7 @@
 #include "hash.hpp"
 #include <gtest/gtest.h>
 #include "barretenberg/stdlib/hash/pedersen/pedersen.hpp"
+#include "stdlib/merkle_tree/membership.hpp"
 #include "barretenberg/stdlib/types/types.hpp"
 
 using namespace barretenberg;
@@ -16,6 +17,24 @@ TEST(stdlib_merkle_tree_hash, compress_native_vs_circuit)
     if constexpr (Composer::type == ComposerType::PLOOKUP) {
         zz = crypto::pedersen_hash::lookup::hash_multiple({ x, x }); // uses lookup tables
     }
+
+    EXPECT_EQ(z.get_value(), zz);
+}
+
+TEST(stdlib_merkle_tree_hash, compute_tree_root_native_vs_circuit)
+{
+    Composer composer = Composer();
+    std::vector<fr> inputs;
+    std::vector<field_ct> inputs_ct;
+    for (size_t i = 0; i < 16; i++) {
+        auto input = fr::random_element();
+        auto input_ct = witness_ct(&composer, input);
+        inputs.push_back(input);
+        inputs_ct.push_back(input_ct);
+    }
+
+    field_ct z = plonk::stdlib::merkle_tree::compute_tree_root<Composer>(inputs_ct);
+    auto zz = plonk::stdlib::merkle_tree::compute_tree_root_native(inputs);
 
     EXPECT_EQ(z.get_value(), zz);
 }

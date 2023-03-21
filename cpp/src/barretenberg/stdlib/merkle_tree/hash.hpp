@@ -32,12 +32,11 @@ inline barretenberg::fr compute_tree_root_native(std::vector<barretenberg::fr> c
 {
     // Check if the input vector size is a power of 2.
     ASSERT(input.size() > 0);
-    ASSERT(!(input.size() & (input.size() - 1)) == true);
+    ASSERT(numeric::is_power_of_two(input.size()));
     auto layer = input;
     while (layer.size() > 1) {
         std::vector<barretenberg::fr> next_layer(layer.size() / 2);
         for (size_t i = 0; i < next_layer.size(); ++i) {
-            next_layer[i] = crypto::pedersen_hash::hash_multiple({ layer[i * 2], layer[i * 2 + 1] });
             if (plonk::SYSTEM_COMPOSER == plonk::PLOOKUP) {
                 next_layer[i] = crypto::pedersen_hash::lookup::hash_multiple({ layer[i * 2], layer[i * 2 + 1] });
             } else {
