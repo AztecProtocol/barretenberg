@@ -1,7 +1,7 @@
 #include "hash.hpp"
 #include <gtest/gtest.h>
 #include "barretenberg/stdlib/hash/pedersen/pedersen.hpp"
-#include "stdlib/merkle_tree/membership.hpp"
+#include "barretenberg/stdlib/merkle_tree/membership.hpp"
 #include "barretenberg/stdlib/types/types.hpp"
 
 using namespace barretenberg;
