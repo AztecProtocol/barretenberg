@@ -22,6 +22,33 @@ inline barretenberg::fr compress_native(barretenberg::fr const& lhs, barretenber
     }
 }
 
+/**
+ * Computes the root of a tree with leaves given as the vector `input`.
+ *
+ * @param input: vector of leaf values.
+ * @returns root as field
+ */
+inline barretenberg::fr compute_tree_root_native(std::vector<barretenberg::fr> const& input)
+{
+    // Check if the input vector size is a power of 2.
+    ASSERT(input.size() > 0);
+    ASSERT(numeric::is_power_of_two(input.size()));
+    auto layer = input;
+    while (layer.size() > 1) {
+        std::vector<barretenberg::fr> next_layer(layer.size() / 2);
+        for (size_t i = 0; i < next_layer.size(); ++i) {
+            if (plonk::SYSTEM_COMPOSER == plonk::PLOOKUP) {
+                next_layer[i] = crypto::pedersen_hash::lookup::hash_multiple({ layer[i * 2], layer[i * 2 + 1] });
+            } else {
+                next_layer[i] = crypto::pedersen_hash::hash_multiple({ layer[i * 2], layer[i * 2 + 1] });
+            }
+        }
+        layer = std::move(next_layer);
+    }
+
+    return layer[0];
+}
+
 } // namespace merkle_tree
 } // namespace stdlib
 } // namespace proof_system::plonk
