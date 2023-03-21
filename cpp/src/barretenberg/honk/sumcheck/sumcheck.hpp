@@ -94,15 +94,15 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
 
         PowUnivariate<FF> pow_univariate(zeta);
 
-        std::vector<FF> multivariate_query;
-        multivariate_query.reserve(multivariate_d);
+        std::vector<FF> multivariate_challenge;
+        multivariate_challenge.reserve(multivariate_d);
 
         // First round
         // This populates folded_polynomials.
         auto round_univariate = round.compute_univariate(full_polynomials, relation_parameters, pow_univariate, alpha);
         transcript.send_to_verifier("Sumcheck:univariate_0", round_univariate);
         FF round_challenge = transcript.get_challenge("Sumcheck:u_0");
-        multivariate_query.emplace_back(round_challenge);
+        multivariate_challenge.emplace_back(round_challenge);
         fold(full_polynomials, multivariate_n, round_challenge);
         pow_univariate.partially_evaluate(round_challenge);
         round.round_size = round.round_size >> 1; // TODO(#224)(Cody): Maybe fold should do this and release memory?
@@ -114,7 +114,7 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
             round_univariate = round.compute_univariate(folded_polynomials, relation_parameters, pow_univariate, alpha);
             transcript.send_to_verifier("Sumcheck:univariate_" + std::to_string(round_idx), round_univariate);
             FF round_challenge = transcript.get_challenge("Sumcheck:u_" + std::to_string(round_idx));
-            multivariate_query.emplace_back(round_challenge);
+            multivariate_challenge.emplace_back(round_challenge);
             fold(folded_polynomials, round.round_size, round_challenge);
             pow_univariate.partially_evaluate(round_challenge);
             round.round_size = round.round_size >> 1;
@@ -127,7 +127,7 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
         }
         transcript.send_to_verifier("Sumcheck:evaluations", multivariate_evaluations);
 
-        return { multivariate_query, multivariate_evaluations };
+        return { multivariate_challenge, multivariate_evaluations };
     };
 
     /**
@@ -151,8 +151,8 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
             throw_or_abort("Number of variables in multivariate is 0.");
         }
 
-        std::vector<FF> multivariate_query;
-        multivariate_query.reserve(multivariate_d);
+        std::vector<FF> multivariate_challenge;
+        multivariate_challenge.reserve(multivariate_d);
 
         for (size_t round_idx = 0; round_idx < multivariate_d; round_idx++) {
             // Obtain the round univariate from the transcript
@@ -163,7 +163,7 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
             bool checked = round.check_sum(round_univariate, pow_univariate);
             verified = verified && checked;
             FF round_challenge = transcript.get_challenge("Sumcheck:u_" + std::to_string(round_idx));
-            multivariate_query.emplace_back(round_challenge);
+            multivariate_challenge.emplace_back(round_challenge);
 
             round.compute_next_target_sum(round_univariate, round_challenge, pow_univariate);
             pow_univariate.partially_evaluate(round_challenge);
@@ -184,7 +184,7 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
             return std::nullopt;
         }
 
-        return SumcheckOutput<FF>{ multivariate_query, purported_evaluations };
+        return SumcheckOutput<FF>{ multivariate_challenge, purported_evaluations };
     };
 
     // TODO(#224)(Cody): Rename. fold is not descriptive, and it's already in use in the Gemini context.

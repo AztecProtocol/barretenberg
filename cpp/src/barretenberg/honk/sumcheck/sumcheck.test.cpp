@@ -148,11 +148,11 @@ TEST(Sumcheck, PolynomialNormalization)
                              GrandProductComputationRelation,
                              GrandProductInitializationRelation>(multivariate_n, transcript);
 
-    auto [multivariate_query, evaluations] = sumcheck.execute_prover(full_polynomials, {});
+    auto [multivariate_challenge, evaluations] = sumcheck.execute_prover(full_polynomials, {});
 
-    FF u_0 = multivariate_query[0];
-    FF u_1 = multivariate_query[1];
-    FF u_2 = multivariate_query[2];
+    FF u_0 = multivariate_challenge[0];
+    FF u_1 = multivariate_challenge[1];
+    FF u_2 = multivariate_challenge[2];
 
     /* sumcheck.execute_prover() terminates with sumcheck.multivariates.folded_polynoimals as an array such that
      * sumcheck.multivariates.folded_polynoimals[i][0] is the evaluatioin of the i'th multivariate at the vector of
@@ -248,9 +248,9 @@ TEST(Sumcheck, Prover)
                                  GrandProductComputationRelation,
                                  GrandProductInitializationRelation>(multivariate_n, transcript);
 
-        auto [multivariate_query, evaluations] = sumcheck.execute_prover(full_polynomials, {});
-        FF u_0 = multivariate_query[0];
-        FF u_1 = multivariate_query[1];
+        auto [multivariate_challenge, evaluations] = sumcheck.execute_prover(full_polynomials, {});
+        FF u_0 = multivariate_challenge[0];
+        FF u_1 = multivariate_challenge[1];
         std::vector<FF> expected_values;
         for (auto& polynomial : full_polynomials) {
             // using knowledge of inputs here to derive the evaluation
