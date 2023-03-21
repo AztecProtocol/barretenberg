@@ -100,6 +100,116 @@ template <typename Params> class MultilinearReductionScheme {
 
   public:
     /**
+     * @brief Computes d-1 fold polynomials Fold_i, i = 1, ..., d-1
+     *
+     * @param mle_opening_point u = (u₀,...,uₘ₋₁) is the MLE opening point
+     * @param fold_polynomials (m + 1) - many polynomials. The first two are assumed initialized to F(X) = ∑ⱼ ρʲfⱼ(X)
+     * and G(X) = ∑ⱼ ρᵏ⁺ʲ gⱼ(X), i.e. the batched unshifted polynomials and the batched to-be-shifted polynomials. This
+     * function populates the next d-1 elements with Fold_i, i = 1, ..., d-1.
+     *
+     */
+    static void compute_fold_polynomials(std::span<const Fr> mle_opening_point, auto& fold_polynomials)
+    {
+        const size_t num_variables = mle_opening_point.size(); // m
+
+        Polynomial& batched_F = fold_polynomials[0]; // F(X) = ∑ⱼ ρʲ   fⱼ(X)
+        Polynomial& batched_G = fold_polynomials[1]; // G(X) = ∑ⱼ ρᵏ⁺ʲ gⱼ(X)
+
+        // A₀(X) = F(X) + G↺(X) = F(X) + G(X)/X.
+        Polynomial A_0(batched_F);
+        A_0 += batched_G.shifted();
+
+        // Create the folded polynomials A₁(X),…,Aₘ₋₁(X)
+        //
+        // A_l = Aₗ(X) is the polynomial being folded
+        // in the first iteration, we take the batched polynomial
+        // in the next iteration, it is the previously folded one
+        Fr* A_l = A_0.get_coefficients();
+        for (size_t l = 0; l < num_variables - 1; ++l) {
+            const Fr u_l = mle_opening_point[l];
+
+            // size of the previous polynomial/2
+            const size_t n_l = 1 << (num_variables - l - 1);
+
+            // A_l_fold = Aₗ₊₁(X) = (1-uₗ)⋅even(Aₗ)(X) + uₗ⋅odd(Aₗ)(X)
+            Fr* A_l_fold = fold_polynomials.emplace_back(Polynomial(n_l)).get_coefficients();
+
+            // fold the previous polynomial with odd and even parts
+            for (size_t i = 0; i < n_l; ++i) {
+                // TODO(#219)(Adrian) parallelize
+
+                // fold(Aₗ)[i] = (1-uₗ)⋅even(Aₗ)[i] + uₗ⋅odd(Aₗ)[i]
+                //            = (1-uₗ)⋅Aₗ[2i]      + uₗ⋅Aₗ[2i+1]
+                //            = Aₗ₊₁[i]
+                A_l_fold[i] = A_l[i << 1] + u_l * (A_l[(i << 1) + 1] - A_l[i << 1]);
+            }
+
+            // set Aₗ₊₁ = Aₗ for the next iteration
+            A_l = A_l_fold;
+        }
+    };
+
+    /**
+     * @brief Computes/aggragates d+1 Fold polynomials and their opening pairs (challenge, evaluation)
+     *
+     * @details This function assumes that, upon input, last d-1 entries in fold_polynomials are Fold_i.
+     * The first two entries are assumed to be, respectively, the batched unshifted and batched to-be-shifted
+     * polynomials F(X) = ∑ⱼ ρʲfⱼ(X) and G(X) = ∑ⱼ ρᵏ⁺ʲ gⱼ(X). This function completes the computation
+     * of the first two Fold polynomials as F + G/r and F - G/r. It then evaluates each of the d+1
+     * fold polynomials at, respectively, the points r, rₗ = r^{2ˡ} for l = 0, 1, ..., d-1.
+     *
+     * @param mle_opening_point u = (u₀,...,uₘ₋₁) is the MLE opening point
+     * @param fold_polynomials vector of polynomials whose first two elements are F(X) = ∑ⱼ ρʲfⱼ(X)
+     * and G(X) = ∑ⱼ ρᵏ⁺ʲ gⱼ(X), and the next d-1 elements are Fold_i, i = 1, ..., d-1.
+     * @param r_challenge univariate opening challenge
+     */
+    static ProverOutput<Params> compute_fold_polynomial_evaluations(std::span<const Fr> mle_opening_point,
+                                                                    std::vector<Polynomial>&& fold_polynomials,
+                                                                    const Fr& r_challenge)
+    {
+        const size_t num_variables = mle_opening_point.size(); // m
+
+        Polynomial& batched_F = fold_polynomials[0]; // F(X) = ∑ⱼ ρʲ   fⱼ(X)
+        Polynomial& batched_G = fold_polynomials[1]; // G(X) = ∑ⱼ ρᵏ⁺ʲ gⱼ(X)
+
+        // Compute univariate opening queries rₗ = r^{2ˡ} for l = 0, 1, ..., m-1
+        std::vector<Fr> r_squares = squares_of_r(r_challenge, num_variables);
+
+        // Compute G/r
+        Fr r_inv = r_challenge.invert();
+        batched_G *= r_inv;
+
+        // Construct A₀₊ = F + G/r and A₀₋ = F - G/r in place in fold_polynomials
+        Polynomial tmp = batched_F;
+        Polynomial& A_0_pos = fold_polynomials[0];
+
+        // A₀₊(X) = F(X) + G(X)/r, s.t. A₀₊(r) = A₀(r)
+        A_0_pos += batched_G;
+
+        // Perform a swap so that tmp = G(X)/r and A_0_neg = F(X)
+        std::swap(tmp, batched_G);
+        Polynomial& A_0_neg = fold_polynomials[1];
+
+        // A₀₋(X) = F(X) - G(X)/r, s.t. A₀₋(-r) = A₀(-r)
+        A_0_neg -= tmp;
+
+        std::vector<OpeningPair<Params>> fold_poly_opening_pairs;
+        fold_poly_opening_pairs.reserve(num_variables + 1);
+
+        // Compute first opening pair {r, A₀(r)}
+        fold_poly_opening_pairs.emplace_back(
+            OpeningPair<Params>{ r_challenge, fold_polynomials[0].evaluate(r_challenge) });
+
+        // Compute the remaining m opening pairs {−r^{2ˡ}, Aₗ(−r^{2ˡ})}, l = 0, ..., m-1.
+        for (size_t l = 0; l < num_variables; ++l) {
+            fold_poly_opening_pairs.emplace_back(
+                OpeningPair<Params>{ -r_squares[l], fold_polynomials[l + 1].evaluate(-r_squares[l]) });
+        }
+
+        return { fold_poly_opening_pairs, std::move(fold_polynomials) };
+    };
+
+    /**
      * @brief reduces claims about multiple (shifted) MLE evaluation
      *
      * @param ck is the commitment key for creating the new commitments

@@ -33,9 +33,9 @@ TYPED_TEST(BilinearAccumulationTest, single)
 
     auto witness = this->random_polynomial(n);
     auto commitment = this->commit(witness);
-    auto query = Fr::random_element();
-    auto evaluation = witness.evaluate(query);
-    auto opening_pair = OpeningPair<TypeParam>{ query, evaluation };
+    auto challenge = Fr::random_element();
+    auto evaluation = witness.evaluate(challenge);
+    auto opening_pair = OpeningPair<TypeParam>{ challenge, evaluation };
     auto opening_claim = OpeningClaim<TypeParam>{ opening_pair, commitment };
 
     auto prover_transcript = ProverTranscript<Fr>::init_empty();
