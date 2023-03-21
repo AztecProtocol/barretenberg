@@ -198,8 +198,7 @@ namespace ipa {
 
 /**
  * @brief CommitmentKey object over a group 𝔾₁, using a structured reference string (SRS).
- * The SRS is given as a list of 𝔾₁ points
- *  { [xʲ]₁ }ⱼ where 'x' is unknown.
+ * The SRS is given as a list of 𝔾₁ points { [xʲ]₁ }ⱼ where 'x' is unknown.
  *
  * @todo This class should take ownership of the SRS, and handle reading the file from disk.
  */
@@ -216,7 +215,7 @@ class CommitmentKey {
     CommitmentKey() = delete;
 
     /**
-     * @brief Construct a new Kate Commitment Key object from existing SRS
+     * @brief Construct a new IPA Commitment Key object from existing SRS
      *
      * @param n
      * @param path
