@@ -32,7 +32,7 @@
  *   v  = ∑ ρʲ⋅vⱼ + ∑ ρᵏ⁺ʲ⋅v↺ⱼ = F(u) + G↺(u)
  *
  * The prover then creates the folded polynomials A₀, ..., Aₘ₋₁,
- * commits and opens them at different points, as univariates.
+ * and opens them at different points, as univariates.
  *
  * We open A₀ as univariate at r and -r.
  * Since A₀ = F + G↺, but the verifier only has commitments to the gⱼs,
@@ -47,30 +47,6 @@
  * since they are linear-combinations of the commitments [fⱼ] and [gⱼ].
  */
 namespace honk::pcs::gemini {
-
-/**
- * @brief A Gemini proof contains the m-1 commitments to the
- * folded univariates, and corresponding evaluations
- * at -r, -r², …, r^{2ᵐ⁻¹}.
- *
- * The evaluations allow the verifier to reconstruct the evaluation of A₀(r).
- *
- * @tparam Params CommitmentScheme parameters
- */
-template <typename Params> struct Proof {
-    /** @brief Commitments to folded polynomials (size = m-1)
-     *
-     * [ C₁, …,  Cₘ₋₁], where Cₗ = commit(Aₗ(X)) of size 2ᵐ⁻ˡ
-     */
-    std::vector<typename Params::Commitment> commitments;
-
-    /**
-     * @brief Evaluations of batched and folded polynomials (size m)
-     *
-     * [A₀(-r) , ..., Aₘ₋₁(-r^{2ᵐ⁻¹})]
-     */
-    std::vector<typename Params::Fr> evaluations;
-};
 
 /**
  * @brief Prover output (evalutation pair, witness) that can be passed on to Shplonk batch opening.
@@ -97,6 +73,8 @@ template <typename Params> class MultilinearReductionScheme {
     using Commitment = typename Params::Commitment;
     using CommitmentAffine = typename Params::C;
     using Polynomial = barretenberg::Polynomial<Fr>;
+    using OpeningPair = OpeningPair<Params>;
+    using OpeningClaim = OpeningClaim<Params>;
 
   public:
     /**
@@ -193,17 +171,16 @@ template <typename Params> class MultilinearReductionScheme {
         // A₀₋(X) = F(X) - G(X)/r, s.t. A₀₋(-r) = A₀(-r)
         A_0_neg -= tmp;
 
-        std::vector<OpeningPair<Params>> fold_poly_opening_pairs;
+        std::vector<OpeningPair> fold_poly_opening_pairs;
         fold_poly_opening_pairs.reserve(num_variables + 1);
 
         // Compute first opening pair {r, A₀(r)}
-        fold_poly_opening_pairs.emplace_back(
-            OpeningPair<Params>{ r_challenge, fold_polynomials[0].evaluate(r_challenge) });
+        fold_poly_opening_pairs.emplace_back(OpeningPair{ r_challenge, fold_polynomials[0].evaluate(r_challenge) });
 
         // Compute the remaining m opening pairs {−r^{2ˡ}, Aₗ(−r^{2ˡ})}, l = 0, ..., m-1.
         for (size_t l = 0; l < num_variables; ++l) {
             fold_poly_opening_pairs.emplace_back(
-                OpeningPair<Params>{ -r_squares[l], fold_polynomials[l + 1].evaluate(-r_squares[l]) });
+                OpeningPair{ -r_squares[l], fold_polynomials[l + 1].evaluate(-r_squares[l]) });
         }
 
         return { fold_poly_opening_pairs, std::move(fold_polynomials) };
@@ -222,11 +199,11 @@ template <typename Params> class MultilinearReductionScheme {
      * @return Fold polynomial opening claims: (r, A₀(r), C₀₊), (-r, A₀(-r), C₀₋), and
      * (Cⱼ, Aⱼ(-r^{2ʲ}), -r^{2}), j = [1, ..., m-1]
      */
-    static std::vector<OpeningClaim<Params>> reduce_verify(std::span<const Fr> mle_opening_point, /* u */
-                                                           const Fr batched_evaluation,           /* all */
-                                                           Commitment& batched_f,                 /* unshifted */
-                                                           Commitment& batched_g,                 /* to-be-shifted */
-                                                           VerifierTranscript<Fr>& transcript)
+    static std::vector<OpeningClaim> reduce_verify(std::span<const Fr> mle_opening_point, /* u */
+                                                   const Fr batched_evaluation,           /* all */
+                                                   Commitment& batched_f,                 /* unshifted */
+                                                   Commitment& batched_g,                 /* to-be-shifted */
+                                                   VerifierTranscript<Fr>& transcript)
     {
         const size_t num_variables = mle_opening_point.size();
 
@@ -258,17 +235,17 @@ template <typename Params> class MultilinearReductionScheme {
         // C₀_r_pos = ∑ⱼ ρʲ⋅[fⱼ] - r⁻¹⋅∑ⱼ ρᵏ⁺ʲ [gⱼ]
         auto [c0_r_pos, c0_r_neg] = compute_simulated_commitments(batched_f, batched_g, r);
 
-        std::vector<OpeningClaim<Params>> fold_polynomial_opening_claims;
+        std::vector<OpeningClaim> fold_polynomial_opening_claims;
         fold_polynomial_opening_claims.reserve(num_variables + 1);
 
         // ( [A₀₊], r, A₀(r) )
-        fold_polynomial_opening_claims.emplace_back(OpeningClaim<Params>{ { r, a_0_pos }, c0_r_pos });
+        fold_polynomial_opening_claims.emplace_back(OpeningClaim{ { r, a_0_pos }, c0_r_pos });
         // ( [A₀₋], -r, A₀(-r) )
-        fold_polynomial_opening_claims.emplace_back(OpeningClaim<Params>{ { -r, evaluations[0] }, c0_r_neg });
+        fold_polynomial_opening_claims.emplace_back(OpeningClaim{ { -r, evaluations[0] }, c0_r_neg });
         for (size_t l = 0; l < num_variables - 1; ++l) {
             // ([A₀₋], −r^{2ˡ}, Aₗ(−r^{2ˡ}) )
             fold_polynomial_opening_claims.emplace_back(
-                OpeningClaim<Params>{ { -r_squares[l + 1], evaluations[l + 1] }, commitments[l] });
+                OpeningClaim{ { -r_squares[l + 1], evaluations[l + 1] }, commitments[l] });
         }
 
         return fold_polynomial_opening_claims;
