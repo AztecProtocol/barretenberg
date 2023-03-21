@@ -47,9 +47,9 @@ namespace plonk {
 std::vector<ComposerBase::SelectorProperties> ultra_selector_properties()
 {
     std::vector<ComposerBase::SelectorProperties> result{
-        { "q_m", true },         { "q_c", true },    { "q_1", true },        { "q_2", true },
-        { "q_3", true },         { "q_4", false },   { "q_arith", false },   { "q_sort", false },
-        { "q_elliptic", false }, { "q_aux", false }, { "table_type", true },
+        { "q_m", true },        { "q_c", true },   { "q_1", true },        { "q_2", true },
+        { "q_3", true },        { "q_4", true },   { "q_arith", true },    { "q_sort", true },
+        { "q_elliptic", true }, { "q_aux", true }, { "table_type", true },
     };
     return result;
 }
