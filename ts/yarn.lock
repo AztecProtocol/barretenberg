@@ -13,8 +13,8 @@
 "@aztec/eslint-config@file:.yalc/@aztec/eslint-config":
   version "0.0.0"
   dependencies:
-    "@aztec/eslint-config" "link:../../../../../Library/Caches/Yarn/v6/npm-@aztec-eslint-config-0.0.0-9317466a-7689-439f-856d-734ea1fb04cb-1679507192450/yarn-project/eslint-config"
-    "@aztec/wasm-worker" "link:../../../../../Library/Caches/Yarn/v6/npm-@aztec-eslint-config-0.0.0-9317466a-7689-439f-856d-734ea1fb04cb-1679507192450/yarn-project/wasm-worker"
+    "@aztec/eslint-config" "link:../../../../../Library/Caches/Yarn/v6/npm-@aztec-eslint-config-0.0.0-196a79ca-777d-444a-a2e0-0fb37fb94b99-1679518517340/yarn-project/eslint-config"
+    "@aztec/wasm-worker" "link:../../../../../Library/Caches/Yarn/v6/npm-@aztec-eslint-config-0.0.0-196a79ca-777d-444a-a2e0-0fb37fb94b99-1679518517340/yarn-project/wasm-worker"
     "@typescript-eslint/eslint-plugin" "^5.38.0"
     "@typescript-eslint/parser" "^5.38.0"
     eslint "^8.21.0"
@@ -29,7 +29,11 @@
 "@aztec/log@*", "@aztec/log@file:.yalc/@aztec/log":
   version "0.0.0"
 
-"@aztec/wasm-worker@file:.yalc/@aztec/wasm-worker":
+"@aztec/wasm-worker@link:yarn-project/wasm-worker":
+  version "0.0.0"
+  uid ""
+
+"@aztec/wasm@file:.yalc/@aztec/wasm":
   version "0.0.0"
   dependencies:
     "@aztec/log" "*"
@@ -39,10 +43,6 @@
     levelup "^5.1.1"
     memdown "^6.1.1"
     tslib "^2.4.0"
-
-"@aztec/wasm-worker@link:yarn-project/wasm-worker":
-  version "0.0.0"
-  uid ""
 
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.12.13", "@babel/code-frame@^7.18.6":
   version "7.18.6"

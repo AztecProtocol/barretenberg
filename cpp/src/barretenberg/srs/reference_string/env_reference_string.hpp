@@ -17,11 +17,6 @@
 
 #include <utility>
 #include <cstddef>
-
-namespace barretenberg::pairing {
-struct miller_lines;
-} // namespace barretenberg::pairing
-
 namespace bonk {
 
 using namespace barretenberg;

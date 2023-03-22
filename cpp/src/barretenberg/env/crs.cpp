@@ -1,10 +1,13 @@
 #include <_types/_uint8_t.h>
 #include <fstream>
 
+#include "crs.hpp"
+
 #include "barretenberg/srs/reference_string/file_reference_string.hpp"
 #include "barretenberg/ecc/curves/bn254/scalar_multiplication/c_bind.hpp"
 
 const int NUM_POINTS_IN_TRANSCRIPT = 5040001;
+
 
 extern "C" {
 /**
