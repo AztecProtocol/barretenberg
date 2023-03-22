@@ -171,7 +171,7 @@ export class BarretenbergWasm {
    * @param arr - The data to write.
    * @param offset - The address to write data at.
    */
-  public writeMemory(arr: Uint8Array, offset: number) {
+  public writeMemory(offset: number, arr: Uint8Array) {
     this.wasm.writeMemory(offset, arr);
   }
 
