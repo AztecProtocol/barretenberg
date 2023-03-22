@@ -113,6 +113,9 @@ TEST(acir_format, test_acir_format)
     // };
 
     auto verifier = composer.create_verifier();
+    std::cout << "g2x" << std::endl;
+    std::cout << verifier.key->reference_string->get_g2x() << std::endl;
+    std::cout << verifier.key->sha256_hash() << std::endl;
 
     EXPECT_EQ(verifier.verify_proof(proof), true);
 }

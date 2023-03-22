@@ -75,12 +75,15 @@ template <typename program_settings> bool VerifierBase<program_settings>::verify
     transcript.apply_fiat_shamir("z");
 
     const auto alpha = fr::serialize_from_buffer(transcript.get_challenge("alpha").begin());
+    std::cout << "alpha verifier challenge" << std::endl;
+    std::cout << alpha << std::endl;
     const auto zeta = fr::serialize_from_buffer(
         transcript.get_challenge("z")
             .begin()); // `zeta` is the name being given to the "Fraktur" (gothic) z from the plonk paper, so as not to
                        // confuse us with the z permutation polynomial and Z_H vanishing polynomial.
                        // You could use a unicode "latin small letter ezh with curl" (ʓ) to get close, if you wanted.
-
+    std::cout << "zeta verifier challenge" << std::endl;
+    std::cout << zeta << std::endl;
     // Compute the evaluations of the lagrange polynomials L_1(X) and L_{n - k}(X) at X = ʓ.
     // Also computes the evaluation of the vanishing polynomial Z_H*(X) at X = ʓ.
     // Here k = num_roots_cut_out_of_the_vanishing_polynomial and n is the size of the evaluation domain.
@@ -103,6 +106,8 @@ template <typename program_settings> bool VerifierBase<program_settings>::verify
     fr t_numerator_eval(0);
     program_settings::compute_quotient_evaluation_contribution(key.get(), alpha, transcript, t_numerator_eval);
     fr t_eval = t_numerator_eval * lagrange_evals.vanishing_poly.invert();
+    std::cout << "t val verifier challenge" << std::endl;
+    std::cout << t_eval << std::endl;
     transcript.add_element("t", t_eval.to_buffer());
 
     transcript.apply_fiat_shamir("nu");
@@ -229,10 +234,18 @@ template <typename program_settings> bool VerifierBase<program_settings>::verify
         { P[0].x, P[0].y },
         { P[1].x, P[1].y },
     };
+    std::cout << "p0 & p1" << std::endl;
+    std::cout << P[0] << std::endl;
+    std::cout << P[1] << std::endl;
 
     // The final pairing check of step 12.
     barretenberg::fq12 result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
         P_affine, key->reference_string->get_precomputed_g2_lines(), 2);
+
+    std::cout << "result" << std::endl;
+    std::cout << result.c0.c0 << std::endl;
+    std::cout << result.c0.c1 << std::endl;
+    std::cout << result.c0.c2 << std::endl;
 
     return (result == barretenberg::fq12::one());
 }

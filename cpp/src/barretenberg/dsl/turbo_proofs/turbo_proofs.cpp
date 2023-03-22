@@ -117,17 +117,25 @@ bool turbo_verify_proof(
         auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
 
         auto crs = std::make_shared<VerifierMemReferenceString>(g2x);
+        std::cout << "g2x" << std::endl;
+        std::cout << crs->get_g2x() << std::endl;
+
         bonk::verification_key_data vk_data;
         read(vk_buf, vk_data);
         auto verification_key = std::make_shared<bonk::verification_key>(std::move(vk_data), crs);
+        std::cout << verification_key->sha256_hash() << std::endl;
 
         TurboComposer composer(nullptr, verification_key);
         create_circuit(composer, constraint_system);
         plonk::proof pp = { std::vector<uint8_t>(proof, proof + length) };
+        std::cout << "verifier proof" << std::endl;
+        std::cout << pp.proof_data << std::endl;
 
         auto verifier = composer.create_verifier();
 
         verified = verifier.verify_proof(pp);
+        std::cout << "verified" << std::endl;
+        std::cout << verified << std::endl;
 #ifndef __wasm__
     } catch (const std::exception& e) {
         verified = false;

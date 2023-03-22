@@ -396,6 +396,8 @@ template <typename settings> void ProverBase<settings>::execute_fourth_round()
     std::cerr << "compute permutation grand product coeffs: " << diff.count() << "ms" << std::endl;
 #endif
     fr alpha_base = fr::serialize_from_buffer(transcript.get_challenge("alpha").begin());
+    std::cout << "alpha prover challenge" << std::endl;
+    std::cout << alpha_base << std::endl;
 
     // Compute FFT of lagrange polynomial L_1 (needed in random widgets only)
     compute_lagrange_1_fft();
@@ -495,6 +497,8 @@ template <typename settings> void ProverBase<settings>::compute_quotient_evaluat
 {
 
     fr zeta = fr::serialize_from_buffer(transcript.get_challenge("z").begin());
+    std::cout << "zeta prover challenge" << std::endl;
+    std::cout << zeta << std::endl;
 
     commitment_scheme->add_opening_evaluations_to_transcript(transcript, key, false);
 
@@ -515,6 +519,8 @@ template <typename settings> void ProverBase<settings>::compute_quotient_evaluat
         scalar *= zeta_pow_n;
     }
 
+    std::cout << "t val prover challenge" << std::endl;
+    std::cout << t_eval << std::endl;
     transcript.add_element("t", t_eval.to_buffer());
 }
 

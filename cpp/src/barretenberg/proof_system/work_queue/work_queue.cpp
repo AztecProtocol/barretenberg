@@ -236,6 +236,10 @@ void work_queue::process_queue()
             auto runtime_state = barretenberg::scalar_multiplication::pippenger_runtime_state(msm_size);
             barretenberg::g1::affine_element result(barretenberg::scalar_multiplication::pippenger_unsafe(
                 item.mul_scalars, srs_points, msm_size, runtime_state));
+            std::cout << item.tag << std::endl;
+            for (size_t i = 0; i < 8; i++) {
+                std::cout << item.mul_scalars[i] << std::endl;
+            }
 
             transcript->add_element(item.tag, result.to_buffer());
 
