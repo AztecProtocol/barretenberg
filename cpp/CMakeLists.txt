@@ -9,6 +9,7 @@ project(
     VERSION 0.1.0
     LANGUAGES CXX C
 )
+set(MULTITHREADING OFF)
 
 option(DISABLE_ASM "Disable custom assembly" OFF)
 option(DISABLE_ADX "Disable ADX assembly variant" OFF)
