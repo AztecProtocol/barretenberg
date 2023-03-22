@@ -45,7 +45,7 @@ template <typename Params> class InnerProductArgument {
      */
     static Proof reduce_prove(std::shared_ptr<CK> ck,
                               const OpeningPair<Params>& opening_pair,
-                              const Polynomial& polynomial,
+                              const Polynomial&& polynomial,
                               const auto& transcript)
     {
         Proof proof;
@@ -189,7 +189,7 @@ template <typename Params> class InnerProductArgument {
 
         // Compute C_prime
         element C_prime = commitment + (aux_generator * evaluation);
-
+        info("I am after c_prime");
         // Compute the round challeneges and their inverses.
         std::vector<Fr> round_challenges(log_poly_degree);
         for (size_t i = 0; i < log_poly_degree; i++) {
@@ -251,14 +251,59 @@ template <typename Params> class InnerProductArgument {
             }
             s_vec[i] = s_vec_scalar;
         }
-
+        info("before G_zero");
         auto G_zero = barretenberg::scalar_multiplication::pippenger_without_endomorphism_basis_points(
             &s_vec[0], &srs_elements[0], poly_degree, vk->pippenger_runtime_state);
         element right_hand_side = G_zero * a_zero;
         Fr a_zero_b_zero = a_zero * b_zero;
         right_hand_side += aux_generator * a_zero_b_zero;
+        info("before return");
         return (C_zero.normalize() == right_hand_side.normalize());
     }
-};
+
+    // Method for batch_prove
+    // static std::pair<std::vector<OpeningClaim<Params>>, std::vector<Proof>>
+    static bool batch_prove_and_verify(std::shared_ptr<CK> ck,
+                                       std::shared_ptr<VK> vk,
+                                       const size_t& num_rows,
+                                       const std::array<Polynomial, 1>& polynomials,
+                                       const std::vector<Fr>& opening_challenges,
+                                       const auto& transcript)
+    {
+        bool result = true;
+        for (size_t i = 0; i < num_rows; ++i) {
+            // Polynomial current_poly(poly_size);
+            // current_poly.add_scaled(polynomials[i], Fr(1));
+            // info("current_poly = ", current_poly);
+            auto current_opening_challenge = opening_challenges[i];
+            auto current_opening_pair =
+                OpeningPair<Params>{ current_opening_challenge, polynomials[i].evaluate(current_opening_challenge) };
+            auto current_proof = reduce_prove(ck, current_opening_pair, std::move(polynomials[i]), transcript);
+            info("proof.a_0 = ", current_proof.a_zero);
+            element current_commitment = ck->commit(polynomials[i]);
+            info("I am after commit");
+            auto current_claim = OpeningClaim<Params>{ current_opening_pair, current_commitment };
+            auto current_result = reduce_verify(vk, current_claim, current_proof, transcript);
+            result = result && current_result;
+        }
+        return result; // std::make_pair(opening_claims, proofs);
+    }
+
+    // Method for batch_verify
+    // static bool batch_verify(std::shared_ptr<VK> vk,
+    //                          const size_t& num_proofs,
+    //                          const std::vector<OpeningClaim<Params>>& opening_claims,
+    //                          const std::vector<Proof>& proofs,
+    //                          const auto& transcript)
+    // {
+    //     bool result = true;
+    //     info("I am before verify");
+    //     for (size_t i = 0; i < num_proofs; ++i) {
+    //         auto current_result = reduce_verify(vk, opening_claims[i], proofs[i], transcript);
+    //         result = result && current_result;
+    //     }
+    //     return result;
+    // }
+}; // class InnerProductArgument
 
 } // namespace honk::pcs::ipa

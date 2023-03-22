@@ -11,6 +11,7 @@ using namespace barretenberg;
 namespace honk::pcs::ipa {
 
 template <class Params> class IpaCommitmentTest : public CommitmentTest<Params> {
+  public:
     using Fr = typename Params::Fr;
     using element = typename Params::Commitment;
     using affine_element = typename Params::C;
@@ -84,8 +85,44 @@ TYPED_TEST(IpaCommitmentTest, open)
     auto opening_pair = OpeningPair<TypeParam>{ challenge_point, eval };
     auto opening_claim = OpeningClaim<TypeParam>{ opening_pair, commitment };
 
-    auto proof = IPA::reduce_prove(this->ck(), opening_pair, poly, transcript);
+    auto proof = IPA::reduce_prove(this->ck(), opening_pair, std::move(poly), transcript);
     auto result = IPA::reduce_verify(this->vk(), opening_claim, proof, transcript);
     EXPECT_TRUE(result);
 }
+/*
+ * In the below test, we create a 2d array of Polynomials P[i][j] of dimension t * m.
+ * we use t random challenge points (z_1, z_2,..., z_t).
+ * The polynomial Q_i to be opened at challenge point z_i is given as
+ * Q_i = \sum_{j = 0}^{m-1} \gamma_i^{j} * P[i][j]
+ * t = num_rows
+ * m = num_polys_per_row
+ */
+TYPED_TEST(IpaCommitmentTest, batch_open)
+{
+    using IPA = InnerProductArgument<TypeParam>;
+    using Polynomial = barretenberg::Polynomial<Fr>;
+    size_t poly_size = 128;
+    const size_t log_n = static_cast<size_t>(numeric::get_msb(poly_size));
+    using Transcript = transcript::StandardTranscript;
+    auto transcript = std::make_shared<Transcript>(create_mock_manifest(log_n));
+    size_t num_rows = 1;
+    // size_t num_polys_per_row = 5;
+    std::array<Polynomial, 1> polynomials;
+    for (size_t i = 0; i < num_rows; ++i) {
+        polynomials[i] = this->random_polynomial(poly_size);
+    }
+
+    std::vector<Fr> opening_challenges(num_rows);
+    for (size_t i = 0; i < num_rows; ++i) {
+        opening_challenges[i] = Fr::random_element();
+    }
+    auto result =
+        IPA::batch_prove_and_verify(this->ck(), this->vk(), num_rows, polynomials, opening_challenges, transcript);
+    // opening_claims = output.first;
+    // proofs = output.second;
+    // info("before batch_verify");
+    // auto result = IPA::batch_verify(this->vk(), num_rows, opening_claims, proofs, transcript);
+    EXPECT_TRUE(result);
+}
+
 } // namespace honk::pcs::ipa
