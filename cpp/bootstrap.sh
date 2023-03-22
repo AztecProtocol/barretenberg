@@ -1,19 +1,19 @@
 #!/bin/bash
 set -eu
 
-# # Clean.
-# rm -rf ./build
-# rm -rf ./build-wasm
-# rm -rf ./src/wasi-sdk-*
+# Clean.
+rm -rf ./build
+rm -rf ./build-wasm
+rm -rf ./src/wasi-sdk-*
 
 # Install formatting git hook.
-# HOOKS_DIR=$(git rev-parse --git-path hooks)
+HOOKS_DIR=$(git rev-parse --git-path hooks)
 # The pre-commit script will live in a barretenberg-specific hooks directory
 # That may be just in the top level of this repository,
 # or may be in a .git/modules/barretenberg subdirectory when this is actually a submodule
 # Either way, running `git rev-parse --show-toplevel` from the hooks directory gives the path to barretenberg
-# echo "cd \$(git rev-parse --show-toplevel)/cpp && ./format.sh staged" > $HOOKS_DIR/pre-commit
-# chmod +x $HOOKS_DIR/pre-commit
+echo "cd \$(git rev-parse --show-toplevel)/cpp && ./format.sh staged" > $HOOKS_DIR/pre-commit
+chmod +x $HOOKS_DIR/pre-commit
 
 # Determine system.
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -25,10 +25,10 @@ else
   exit 1
 fi
 
-# # Download ignition transcripts.
-# cd ./srs_db
-# ./download_ignition.sh 3
-# cd ..
+# Download ignition transcripts.
+cd ./srs_db
+./download_ignition.sh 3
+cd ..
 
 # Pick native toolchain file.
 ARCH=$(uname -m)
@@ -59,9 +59,9 @@ echo "# Building with preset: $PRESET"
 echo "# When running cmake directly, remember to use: --build --preset $PRESET"
 echo "#################################"
 
-# # Build native.
-# cmake --preset $PRESET -DCMAKE_BUILD_TYPE=RelWithAssert
-# cmake --build --preset $PRESET ${@/#/--target }
+# Build native.
+cmake --preset $PRESET -DCMAKE_BUILD_TYPE=RelWithAssert
+cmake --build --preset $PRESET ${@/#/--target }
 
 # Install the webassembly toolchain.
 WASI_VERSION=12
