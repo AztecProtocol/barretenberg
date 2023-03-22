@@ -89,6 +89,11 @@ void create_circuit(Composer& composer, const acir_format& constraint_system)
     for (const auto& constraint : constraint_system.hash_to_field_constraints) {
         create_hash_to_field_constraints(composer, constraint);
     }
+
+    // Add block constraints
+    for (const auto& constraint : constraint_system.block_constraints) {
+        create_block_constraints(composer, constraint);
+    }
 }
 
 Composer create_circuit(const acir_format& constraint_system,
