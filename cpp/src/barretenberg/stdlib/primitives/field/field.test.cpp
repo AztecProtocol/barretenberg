@@ -1,5 +1,6 @@
 #include "../bool/bool.hpp"
 #include "field.hpp"
+#include "array.hpp"
 #include "barretenberg/plonk/proof_system/constants.hpp"
 #include <gtest/gtest.h>
 #include "barretenberg/honk/composer/standard_honk_composer.hpp"
@@ -971,6 +972,231 @@ template <typename Composer> class stdlib_field : public testing::Test {
         bool proof_result = verifier.verify_proof(proof);
         EXPECT_EQ(proof_result, true);
     }
+
+    static void test_array_length()
+    {
+        Composer composer = Composer();
+
+        constexpr size_t ARRAY_LEN = 10;
+        std::array<fr, ARRAY_LEN> values;
+        std::array<field_ct, ARRAY_LEN> values_ct;
+
+        constexpr size_t filled = 6;
+        for (size_t i = 0; i < filled; i++) {
+            values[i] = fr::random_element();
+            values_ct[i] = witness_ct(&composer, values[i]);
+        }
+        auto filled_len = array_length<Composer>(values_ct);
+        EXPECT_EQ(filled_len.get_value(), filled);
+
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
+        auto proof = prover.construct_proof();
+        info("composer gates = ", composer.get_num_gates());
+        bool proof_result = verifier.verify_proof(proof);
+        EXPECT_EQ(proof_result, true);
+    }
+
+    static void test_array_pop()
+    {
+        Composer composer = Composer();
+
+        constexpr size_t ARRAY_LEN = 10;
+        std::array<fr, ARRAY_LEN> values;
+        std::array<field_ct, ARRAY_LEN> values_ct;
+
+        constexpr size_t filled = 6;
+        for (size_t i = 0; i < filled; i++) {
+            values[i] = fr::random_element();
+            values_ct[i] = witness_ct(&composer, values[i]);
+        }
+        auto popped = array_pop<Composer>(values_ct);
+        EXPECT_EQ(popped.get_value(), values[filled - 1]);
+
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
+        auto proof = prover.construct_proof();
+        info("composer gates = ", composer.get_num_gates());
+        bool proof_result = verifier.verify_proof(proof);
+        EXPECT_EQ(proof_result, true);
+    };
+
+    static void test_array_pop_from_empty()
+    {
+        Composer composer = Composer();
+
+        constexpr size_t ARRAY_LEN = 10;
+        std::array<fr, ARRAY_LEN> values;
+        std::array<field_ct, ARRAY_LEN> values_ct;
+
+        constexpr size_t filled = 0;
+        for (size_t i = 0; i < filled; i++) {
+            values[i] = fr::random_element();
+            values_ct[i] = witness_ct(&composer, values[i]);
+        }
+        for (size_t i = filled; i < ARRAY_LEN; i++) {
+            values[i] = 0;
+            values_ct[i] = witness_ct(&composer, values[i]);
+        }
+
+        auto popped = array_pop<Composer>(values_ct);
+        EXPECT_EQ(popped.get_value(), 0);
+
+        EXPECT_EQ(composer.failed(), true);
+        EXPECT_EQ(composer.err(), "array_pop cannot pop from an empty array");
+    };
+
+    static void test_array_push()
+    {
+        Composer composer = Composer();
+
+        constexpr size_t ARRAY_LEN = 10;
+        std::array<fr, ARRAY_LEN> values;
+        std::array<field_ct, ARRAY_LEN> values_ct;
+
+        constexpr size_t filled = 6;
+        for (size_t i = 0; i < filled; i++) {
+            values[i] = fr::random_element();
+            values_ct[i] = witness_ct(&composer, values[i]);
+        }
+        for (size_t i = filled; i < ARRAY_LEN; i++) {
+            values[i] = 0;
+            values_ct[i] = witness_ct(&composer, values[i]);
+        }
+
+        auto value_ct = field_ct(&composer, fr::random_element());
+        array_push<Composer>(values_ct, value_ct);
+        EXPECT_EQ(value_ct.get_value(), values_ct[filled].get_value());
+
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
+        auto proof = prover.construct_proof();
+        info("composer gates = ", composer.get_num_gates());
+        bool proof_result = verifier.verify_proof(proof);
+        EXPECT_EQ(proof_result, true);
+    }
+
+    static void test_array_push_optional()
+    {
+        Composer composer = Composer();
+
+        constexpr size_t ARRAY_LEN = 10;
+        std::array<std::optional<fr>, ARRAY_LEN> values;
+        std::array<std::optional<field_ct>, ARRAY_LEN> values_ct;
+
+        // Fill the array with some values
+        for (size_t i = 0; i < ARRAY_LEN; i++) {
+            values[i] = std::nullopt;
+            values_ct[i] = std::nullopt;
+        }
+
+        // Push some values into the array
+        size_t num_pushes = 0;
+        for (size_t i = 0; i < ARRAY_LEN; i++) {
+            auto value = field_ct(&composer, fr::random_element());
+            size_t idx = array_push<Composer>(values_ct, value);
+            EXPECT_TRUE(values_ct[idx].has_value());
+            EXPECT_EQ(values_ct[idx].value().get_value(), value.get_value());
+            num_pushes++;
+        }
+
+        // Make sure the array is full now
+        try {
+            auto value = field_ct(&composer, fr::random_element());
+            array_push<Composer>(values_ct, value);
+            FAIL() << "array_push should have thrown an exception when trying to push to a full array";
+        } catch (std::runtime_error& e) {
+            EXPECT_EQ(e.what(), std::string("array_push cannot push to a full array"));
+        }
+
+        EXPECT_EQ(num_pushes, ARRAY_LEN);
+
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
+        auto proof = prover.construct_proof();
+        info("composer gates = ", composer.get_num_gates());
+        bool proof_result = verifier.verify_proof(proof);
+        EXPECT_EQ(proof_result, true);
+    }
+
+    static void test_array_push_shared_ptr()
+    {
+        constexpr size_t ARRAY_LEN = 5;
+        std::array<std::shared_ptr<int>, ARRAY_LEN> arr;
+        for (size_t i = 0; i < arr.size(); ++i) {
+            arr[i] = nullptr;
+        }
+
+        // Fill the array up to capacity
+        for (size_t i = 0; i < arr.size(); ++i) {
+            arr[i] = std::make_shared<int>(i);
+        }
+
+        // Attempt to push a value to the array
+        std::shared_ptr<int> new_value = std::make_shared<int>(42);
+        EXPECT_THROW(array_push<Composer>(arr, new_value), std::runtime_error);
+
+        // Ensure that the array was not modified
+        for (size_t i = 0; i < arr.size(); ++i) {
+            EXPECT_NE(arr[i], new_value);
+        }
+    }
+
+    static void test_is_array_empty()
+    {
+        Composer composer = Composer();
+
+        constexpr size_t ARRAY_LEN = 10;
+        std::array<fr, ARRAY_LEN> values;
+        std::array<field_ct, ARRAY_LEN> values_ct;
+
+        // Test non-empty array
+        constexpr size_t filled = 3;
+        for (size_t i = 0; i < filled; i++) {
+            values[i] = fr::random_element();
+            values_ct[i] = witness_ct(&composer, values[i]);
+        }
+        for (size_t i = filled; i < ARRAY_LEN; i++) {
+            values[i] = 0;
+            values_ct[i] = witness_ct(&composer, values[i]);
+        }
+        auto is_empty = is_array_empty<Composer>(values_ct);
+        EXPECT_EQ(is_empty.get_value(), false);
+
+        // Test empty array
+        for (size_t i = 0; i < ARRAY_LEN; i++) {
+            values[i] = 0;
+            values_ct[i] = witness_ct(&composer, values[i]);
+        }
+        is_empty = is_array_empty<Composer>(values_ct);
+        EXPECT_EQ(is_empty.get_value(), true);
+
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
+        auto proof = prover.construct_proof();
+        info("composer gates = ", composer.get_num_gates());
+        bool proof_result = verifier.verify_proof(proof);
+        EXPECT_EQ(proof_result, true);
+    };
+
+    static void test_push_array_to_array()
+    {
+        Composer composer = Composer();
+
+        std::array<field_ct, 4> source = { 1, 2 };
+        std::array<field_ct, 8> target = { 3, 4, 6, 8, 0, 0, 0, 0 };
+        push_array_to_array<Composer>(source, target);
+
+        // Check that the source array has been inserted into the first available index of the target array.
+        ASSERT(target[0].get_value() == 3);
+        ASSERT(target[1].get_value() == 4);
+        ASSERT(target[2].get_value() == 6);
+        ASSERT(target[3].get_value() == 8);
+        ASSERT(target[4].get_value() == 1);
+        ASSERT(target[5].get_value() == 2);
+        ASSERT(target[6].get_value() == 0);
+        ASSERT(target[7].get_value() == 0);
+    }
 };
 
 typedef testing::Types<plonk::UltraComposer, plonk::TurboComposer, plonk::StandardComposer, honk::StandardHonkComposer>
@@ -1097,5 +1323,29 @@ TYPED_TEST(stdlib_field, test_pow_exponent_out_of_range)
 TYPED_TEST(stdlib_field, test_copy_as_new_witness)
 {
     TestFixture::test_copy_as_new_witness();
+}
+TYPED_TEST(stdlib_field, test_array_len)
+{
+    TestFixture::test_array_length();
+}
+TYPED_TEST(stdlib_field, test_array_pop)
+{
+    TestFixture::test_array_pop();
+}
+TYPED_TEST(stdlib_field, test_array_pop_from_empty)
+{
+    TestFixture::test_array_pop_from_empty();
+}
+TYPED_TEST(stdlib_field, test_array_push)
+{
+    TestFixture::test_array_push();
+}
+TYPED_TEST(stdlib_field, test_array_push_optional)
+{
+    TestFixture::test_array_push_optional();
+}
+TYPED_TEST(stdlib_field, test_array_push_array_to_array)
+{
+    TestFixture::test_push_array_to_array();
 }
 } // namespace test_stdlib_field
