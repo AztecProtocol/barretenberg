@@ -1,8 +1,31 @@
 #include "barretenberg/crypto/sha256/sha256.hpp"
+#include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
 #include "verification_key.hpp"
 #include "../../plonk/proof_system/constants.hpp"
 
 namespace bonk {
+
+/**
+ * @brief Compress the verification key data.
+ *
+ * @details Native pedersen compression of VK data that is truly core to a VK.
+ * Omits recursion proof flag and recursion input indices as they are not really
+ * core to the VK itself.
+ *
+ * @param hash_index generator index to use during pedersen compression
+ * @returns a field containing the compression
+ */
+barretenberg::fr verification_key_data::compress_native(const size_t hash_index)
+{
+    std::vector<barretenberg::fr> preimage_data;
+    preimage_data.emplace_back(circuit_size);
+    preimage_data.emplace_back(num_public_inputs);
+    for (auto& commitment_entry : commitments) {
+        preimage_data.emplace_back(commitment_entry.second.x);
+        preimage_data.emplace_back(commitment_entry.second.y);
+    }
+    return crypto::pedersen_commitment::compress_native(preimage_data, hash_index);
+}
 
 verification_key::verification_key(const size_t num_gates,
                                    const size_t num_inputs,
