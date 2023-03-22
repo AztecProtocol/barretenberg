@@ -56,9 +56,7 @@ void create_circuit_with_witness(Composer& composer, const acir_format& constrai
 // Serialisation
 template <typename B> inline void read(B& buf, acir_format& data)
 {
-    printf("about to read in acir_format 1\n");
     using serialize::read;
-    printf("about to read in acir_format 2\n");
     read(buf, data.varnum);
     read(buf, data.public_inputs);
     read(buf, data.logic_constraints);

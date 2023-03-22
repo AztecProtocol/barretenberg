@@ -12,6 +12,11 @@ WASM_EXPORT uint32_t c_get_exact_circuit_size(uint8_t const* constraint_system_b
     return proofs::get_exact_circuit_size(constraint_system_buf);
 }
 
+WASM_EXPORT uint32_t c_get_total_circuit_size(uint8_t const* constraint_system_buf)
+{
+    return proofs::get_total_circuit_size(constraint_system_buf);
+}
+
 WASM_EXPORT size_t c_init_proving_key(uint8_t const* constraint_system_buf, uint8_t const** pk_buf)
 {
     return proofs::init_proving_key(constraint_system_buf, pk_buf);

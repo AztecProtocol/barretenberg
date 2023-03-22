@@ -6,7 +6,7 @@
 extern "C" {
 
 WASM_EXPORT uint32_t c_get_exact_circuit_size(uint8_t const* constraint_system_buf);
-
+WASM_EXPORT uint32_t c_get_total_circuit_size(uint8_t const* constraint_system_buf);
 // Construct composer using prover and verifier key buffers
 WASM_EXPORT size_t c_init_proving_key(uint8_t const* constraint_system_buf, uint8_t const** pk_buf);
 WASM_EXPORT size_t c_init_verification_key(void* pippenger,
