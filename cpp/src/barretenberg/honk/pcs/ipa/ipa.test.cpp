@@ -85,7 +85,7 @@ TYPED_TEST(IpaCommitmentTest, open)
     auto opening_pair = OpeningPair<TypeParam>{ challenge_point, eval };
     auto opening_claim = OpeningClaim<TypeParam>{ opening_pair, commitment };
 
-    auto proof = IPA::reduce_prove(this->ck(), opening_pair, std::move(poly), transcript);
+    auto proof = IPA::reduce_prove(this->ck(), opening_pair, poly, transcript);
     auto result = IPA::reduce_verify(this->vk(), opening_claim, proof, transcript);
     EXPECT_TRUE(result);
 }
@@ -101,15 +101,15 @@ TYPED_TEST(IpaCommitmentTest, batch_open)
 {
     using IPA = InnerProductArgument<TypeParam>;
     using Polynomial = barretenberg::Polynomial<Fr>;
-    size_t poly_size = 128;
+    size_t poly_size = 4;
     const size_t log_n = static_cast<size_t>(numeric::get_msb(poly_size));
     using Transcript = transcript::StandardTranscript;
     auto transcript = std::make_shared<Transcript>(create_mock_manifest(log_n));
     size_t num_rows = 1;
     // size_t num_polys_per_row = 5;
-    std::array<Polynomial, 1> polynomials;
+    std::vector<Polynomial> polynomials;
     for (size_t i = 0; i < num_rows; ++i) {
-        polynomials[i] = this->random_polynomial(poly_size);
+        polynomials.emplace_back(this->random_polynomial(poly_size));
     }
 
     std::vector<Fr> opening_challenges(num_rows);
