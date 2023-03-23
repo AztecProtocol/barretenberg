@@ -88,14 +88,15 @@ TEST(fr, sub)
 
 TEST(fr, plus_equals)
 {
-    fr result{ 0x5def, 0x00, 0x00, 0x00 };
-    result += 2;
-    fr expected{ 0x7def, 0x00, 0x00, 0x00 };
-    EXPECT_EQ((result == expected), true);
+    fr a{ 0x5def, 0x00, 0x00, 0x00 };
+    fr a_copy = a;
+    a += 2;
+    fr expected = a_copy + 2;
+    EXPECT_EQ((a == expected), true);
 
-    result += 3;
-    expected = fr{ 0xadef, 0x00, 0x00, 0x00 };
-    EXPECT_EQ((result == expected), true);
+    a += 3;
+    expected = a_copy + 5;
+    EXPECT_EQ((a == expected), true);
 }
 
 TEST(fr, prefix_increment)
