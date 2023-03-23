@@ -1,6 +1,7 @@
 #pragma once
 #include <map>
 #include "barretenberg/srs/reference_string/reference_string.hpp"
+#include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/polynomials/evaluation_domain.hpp"
 #include "barretenberg/crypto/sha256/sha256.hpp"
 #include "barretenberg/plonk/proof_system/types/polynomial_manifest.hpp"
@@ -14,6 +15,8 @@ struct verification_key_data {
     std::map<std::string, barretenberg::g1::affine_element> commitments;
     bool contains_recursive_proof = false;
     std::vector<uint32_t> recursive_proof_public_input_indices;
+
+    barretenberg::fr compress_native(size_t const hash_index = 0);
 };
 
 template <typename B> inline void read(B& buf, verification_key_data& key)
