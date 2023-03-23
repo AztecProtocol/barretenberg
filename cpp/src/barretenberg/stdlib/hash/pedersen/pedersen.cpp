@@ -2,6 +2,7 @@
 #include "pedersen_plookup.hpp"
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 #include "../../primitives/composers/composers.hpp"
+#include "pedersen_gates.hpp"
 
 namespace plonk {
 namespace stdlib {
