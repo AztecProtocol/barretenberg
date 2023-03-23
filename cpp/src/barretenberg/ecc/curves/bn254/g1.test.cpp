@@ -145,6 +145,15 @@ TEST(g1, add_exception_test_infinity)
     EXPECT_EQ(rhs == result, true);
 }
 
+TEST(g1, test_infinity)
+{
+    g1::affine_element inf_affine = g1::affine_element::infinity();
+    EXPECT_EQ(inf_affine.is_point_at_infinity(), true);
+
+    g1::element inf_element = g1::element::infinity();
+    EXPECT_EQ(inf_element.is_point_at_infinity(), true);
+}
+
 TEST(g1, add_exception_test_dbl)
 {
     g1::element lhs = g1::element::random_element();
