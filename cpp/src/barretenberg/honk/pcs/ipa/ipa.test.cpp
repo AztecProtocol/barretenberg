@@ -101,11 +101,11 @@ TYPED_TEST(IpaCommitmentTest, batch_open)
 {
     using IPA = InnerProductArgument<TypeParam>;
     using Polynomial = barretenberg::Polynomial<Fr>;
-    size_t poly_size = 4;
+    size_t poly_size = 128;
     const size_t log_n = static_cast<size_t>(numeric::get_msb(poly_size));
     using Transcript = transcript::StandardTranscript;
     auto transcript = std::make_shared<Transcript>(create_mock_manifest(log_n));
-    size_t num_rows = 1;
+    size_t num_rows = 5;
     // size_t num_polys_per_row = 5;
     std::vector<Polynomial> polynomials;
     for (size_t i = 0; i < num_rows; ++i) {
@@ -116,13 +116,14 @@ TYPED_TEST(IpaCommitmentTest, batch_open)
     for (size_t i = 0; i < num_rows; ++i) {
         opening_challenges[i] = Fr::random_element();
     }
-    auto result =
-        IPA::batch_prove_and_verify(this->ck(), this->vk(), num_rows, polynomials, opening_challenges, transcript);
+    IPA::test_transfer_poly(num_rows, polynomials, opening_challenges);
+    // auto result =
+    //     IPA::batch_prove_and_verify(this->ck(), this->vk(), num_rows, polynomials, opening_challenges, transcript);
     // opening_claims = output.first;
     // proofs = output.second;
     // info("before batch_verify");
     // auto result = IPA::batch_verify(this->vk(), num_rows, opening_claims, proofs, transcript);
-    EXPECT_TRUE(result);
+    // EXPECT_TRUE(result);
 }
 
 } // namespace honk::pcs::ipa

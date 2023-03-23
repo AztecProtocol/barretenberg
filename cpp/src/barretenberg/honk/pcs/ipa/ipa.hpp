@@ -290,6 +290,17 @@ template <typename Params> class InnerProductArgument {
         return result; // std::make_pair(opening_claims, proofs);
     }
 
+    static void test_transfer_poly(const size_t& num_rows,
+                                   const std::vector<Polynomial>& polynomials,
+                                   const std::vector<Fr>& opening_challenges)
+    {
+        for (size_t i = 0; i < num_rows; ++i) {
+            Polynomial current_poly = polynomials[i];
+            auto current_opening_challenge = opening_challenges[i];
+            info("evaluation = ", current_poly.evaluate(current_opening_challenge), " for i = ", i);
+        }
+    }
+
     // Method for batch_verify
     // static bool batch_verify(std::shared_ptr<VK> vk,
     //                          const size_t& num_proofs,
@@ -305,6 +316,7 @@ template <typename Params> class InnerProductArgument {
     //     }
     //     return result;
     // }
+
 }; // class InnerProductArgument
 
 } // namespace honk::pcs::ipa
