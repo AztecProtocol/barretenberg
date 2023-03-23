@@ -18,6 +18,7 @@ namespace bonk {
 barretenberg::fr verification_key_data::compress_native(const size_t hash_index)
 {
     std::vector<barretenberg::fr> preimage_data;
+    preimage_data.emplace_back(composer_type);
     preimage_data.emplace_back(circuit_size);
     preimage_data.emplace_back(num_public_inputs);
     for (auto& commitment_entry : commitments) {
@@ -97,6 +98,7 @@ verification_key& verification_key::operator=(verification_key&& other)
 sha256::hash verification_key::sha256_hash()
 {
     std::vector<uint256_t> vk_data;
+    vk_data.emplace_back(composer_type);
     vk_data.emplace_back(circuit_size);
     vk_data.emplace_back(num_public_inputs);
     for (auto& commitment_entry : commitments) {
