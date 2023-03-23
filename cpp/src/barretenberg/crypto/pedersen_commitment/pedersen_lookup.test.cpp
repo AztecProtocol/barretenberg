@@ -16,6 +16,28 @@ auto compute_expected(const grumpkin::fq exponent, size_t generator_offset)
     const auto lambda = grumpkin::fr::cube_root_of_unity();
     const auto mask = crypto::pedersen_hash::lookup::PEDERSEN_TABLE_SIZE - 1;
 
+    /**
+     * Given an input scalar x, we split it into 9-bit slices:
+     * x = ( x_28 || x_27 || ... || x_2 || x_1 || x_0 )
+     *
+     * Note that the last slice x_28 is a 2-bit slice. Total = 2 + 9 * 28 = 254 bits.
+     *
+     * Algorithm:
+     *     hash = O;
+     *     hash += x_0 * G_0  +  x_1 * λ * G_0;
+     *     hash += x_2 * G_1  +  x_2 * λ * G_1;
+     *     ...
+     *     ...
+     *     hash += x_26 * G_13  +  x_27 * λ * G_13;
+     *     hash += x_27 * G_14;
+     *
+     * Our lookup tables stores the following:
+     *     1 -> (G_0, (λ * G_0))
+     *     2 -> (2G_0, 2(λ * G_0))
+     *     3 -> (3G_0, 3(λ * G_0))
+     *     ...
+     *   512 -> (512G_0, 512(λ * G_0))
+     */
     for (size_t i = 0; i < (crypto::pedersen_hash::lookup::NUM_PEDERSEN_TABLES / 2); ++i) {
         const auto slice_a = static_cast<size_t>(bits.data[0] & mask) + 1;
         bits >>= crypto::pedersen_hash::lookup::BITS_PER_TABLE;
