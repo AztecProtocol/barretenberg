@@ -166,7 +166,11 @@ export class Crs {
   }
 
   /**
+<<<<<<< HEAD
    * G2 points data for verification key.
+=======
+   * G2 points data for verification key
+>>>>>>> origin/master
    * @returns The points data.
    */
   getG2Data(): Uint8Array {
