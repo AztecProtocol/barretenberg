@@ -82,7 +82,6 @@ export class BarretenbergWasm {
         get_data: this.wrapAsyncImportFn(
           async (keyAddr: number, lengthOutAddr: number) => {
             const key = wasm.getMemoryAsString(keyAddr);
-            // We are in the initial code path. Start the async fetch of data, return the promise.
             wasm.getLogger()(`get_data: key: ${key}`);
             const data = await store.get(key);
             if (!data) {
