@@ -955,15 +955,14 @@ template <typename Composer> class stdlib_field : public testing::Test {
         barretenberg::fr value(engine.get_random_uint256());
         field_ct value_ct = witness_ct(&composer, value);
 
-        field_ct first_copy(&composer, value_ct.get_value());
+        field_ct first_copy = witness_ct(&composer, value_ct.get_value());
         field_ct second_copy = field_ct::copy_as_new_witness(composer, value_ct);
 
         EXPECT_EQ(value_ct.get_value(), value);
         EXPECT_EQ(first_copy.get_value(), value);
         EXPECT_EQ(second_copy.get_value(), value);
-        EXPECT_NE(value_ct.get_witness_index(), first_copy.get_witness_index());
-        EXPECT_EQ(first_copy.get_witness_index(), uint32_t(-1));
-        EXPECT_EQ(value_ct.get_witness_index() + 1, second_copy.get_witness_index());
+        EXPECT_EQ(value_ct.get_witness_index() + 1, first_copy.get_witness_index());
+        EXPECT_EQ(value_ct.get_witness_index() + 2, second_copy.get_witness_index());
 
         auto prover = composer.create_prover();
         auto verifier = composer.create_verifier();
