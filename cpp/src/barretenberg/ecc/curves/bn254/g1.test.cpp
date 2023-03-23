@@ -169,6 +169,19 @@ TEST(g1, add_exception_test_dbl)
     EXPECT_EQ(result == expected, true);
 }
 
+TEST(g1, add_affine_test)
+{
+    g1::element lhs = g1::element::random_element();
+    g1::affine_element lhs_affine = g1::affine_element(lhs);
+
+    g1::element rhs = g1::element::random_element();
+    g1::affine_element rhs_affine = g1::affine_element(rhs);
+
+    g1::element expected = lhs + rhs;
+    g1::affine_element result = lhs_affine + rhs_affine;
+    EXPECT_EQ(g1::element(result) == expected, true);
+}
+
 TEST(g1, add_dbl_consistency)
 {
     g1::element a = g1::element::random_element();
