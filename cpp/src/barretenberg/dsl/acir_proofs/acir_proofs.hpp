@@ -1,5 +1,6 @@
 #include <cstdint>
 #include <cstddef>
+#include "barretenberg/stdlib/types/types.hpp"
 
 namespace acir_proofs {
 
@@ -16,5 +17,9 @@ size_t new_proof(void* pippenger,
                  uint8_t** proof_data_buf);
 bool verify_proof(
     uint8_t const* g2x, uint8_t const* vk_buf, uint8_t const* constraint_system_buf, uint8_t* proof, uint32_t length);
-
+proof_system::plonk::stdlib::types::Prover* new_prover(void* pippenger,
+                                                       uint8_t const* g2x,
+                                                       uint8_t const* pk_buf,
+                                                       uint8_t const* constraint_system_buf,
+                                                       uint8_t const* witness_buf);
 } // namespace acir_proofs
