@@ -86,6 +86,34 @@ TEST(fr, sub)
     EXPECT_EQ((result == expected), true);
 }
 
+TEST(fr, plus_equals)
+{
+    fr result{ 0x5def, 0x00, 0x00, 0x00 };
+    result += 2;
+    fr expected{ 0x7def, 0x00, 0x00, 0x00 };
+    EXPECT_EQ((result == expected), true);
+
+    result += 3;
+    expected = fr{ 0xadef, 0x00, 0x00, 0x00 };
+    EXPECT_EQ((result == expected), true);
+}
+
+TEST(fr, prefix_increment)
+{
+    fr a{ 0x5def, 0x00, 0x00, 0x00 };
+    fr b = ++a;
+    EXPECT_EQ(b, a);
+}
+
+TEST(fr, postfix_increment)
+{
+    fr a{ 0x5def, 0x00, 0x00, 0x00 };
+    fr a_old = a;
+    fr b = a++;
+    EXPECT_EQ(b, a_old);
+    EXPECT_EQ(a, a_old + 1);
+}
+
 TEST(fr, to_montgomery_form)
 {
     fr result{ 0x01, 0x00, 0x00, 0x00 };
