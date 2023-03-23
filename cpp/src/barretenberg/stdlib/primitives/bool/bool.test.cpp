@@ -1,7 +1,7 @@
 #include "bool.hpp"
 #include "barretenberg/plonk/proof_system/constants.hpp"
 #include <gtest/gtest.h>
-// #include <plonk/composer/standard_composer.hpp>
+#include "barretenberg/plonk/composer/standard_composer.hpp"
 #include "barretenberg/honk/composer/standard_honk_composer.hpp"
 
 namespace test_stdlib_bool {
@@ -357,6 +357,85 @@ TEST(stdlib_bool, implies_both_ways)
 
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
+}
+
+TEST(stdlib_bool, must_imply)
+{
+    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+    for (size_t j = 0; j < 4; ++j) {
+        bool lhs_constant = (bool)(j % 2);
+        bool rhs_constant = (bool)(j > 1 ? true : false);
+
+        for (size_t i = 4; i < 14; i += 2) {
+            // If a number is divisible by 2 and 3, it is divisible by 6
+            bool two = (bool)(i % 2);
+            bool three = (bool)(i % 3);
+            bool six = (bool)(i % 6);
+            bool a_val = (two && three);
+            bool b_val = six;
+            bool_t a = lhs_constant ? bool_t(a_val) : (witness_t(&composer, a_val));
+            bool_t b = rhs_constant ? bool_t(b_val) : (witness_t(&composer, b_val));
+            a.must_imply(b);
+        }
+    }
+    auto prover = composer.create_prover();
+    auto verifier = composer.create_verifier();
+
+    plonk::proof proof = prover.construct_proof();
+
+    bool result = verifier.verify_proof(proof);
+    EXPECT_EQ(result, true);
+}
+
+TEST(stdlib_bool, must_imply_multiple)
+{
+    typedef stdlib::bool_t<plonk::StandardComposer> bool_t;
+    typedef stdlib::witness_t<plonk::StandardComposer> witness_t;
+
+    plonk::StandardComposer composer = plonk::StandardComposer();
+
+    /**
+     * Define g(x) = 2x + 12
+     * if x is divisible by both 4 and 6:
+     *     => g(x) > 0
+     *     => g(x) is even
+     *     => g(x) >= 12
+     *     => g(x) is a multiple of 6
+     */
+    auto g = [](size_t x) { return 2 * x + 12; };
+
+    for (size_t j = 0; j < 3; ++j) { // ignore when both lhs and rhs are constants
+        bool lhs_constant = (bool)(j % 2);
+        bool rhs_constant = (bool)(j > 1 ? true : false);
+
+        for (size_t x = 10; x < 18; x += 2) {
+            std::vector<std::pair<bool_t, std::string>> conditions;
+            bool four = (bool)(x % 4 == 0);
+            bool six = (bool)(x % 6 == 0);
+
+            bool_t a = lhs_constant ? bool_t(four) : (witness_t(&composer, four));
+            bool_t b = rhs_constant ? bool_t(six) : (witness_t(&composer, six));
+
+            auto g_x = g(x);
+            conditions.push_back(std::make_pair(g_x > 0, "g(x) > 0"));
+            conditions.push_back(std::make_pair(g_x % 2 == 0, "g(x) is even"));
+            conditions.push_back(std::make_pair(g_x >= 12, "g(x) >= 12"));
+            conditions.push_back(std::make_pair(g_x % 6 == 0, "g(x) is a multiple of 6"));
+
+            (a && b).must_imply(conditions);
+
+            if (composer.failed()) {
+                EXPECT_EQ(composer.err(), "multi implication fail: g(x) is a multiple of 6");
+            } else {
+                auto prover = composer.create_prover();
+                auto verifier = composer.create_verifier();
+
+                plonk::proof proof = prover.construct_proof();
+                bool result = verifier.verify_proof(proof);
+                EXPECT_EQ(result, true);
+            }
+        }
+    }
 }
 
 TEST(stdlib_bool, test_simple_proof)

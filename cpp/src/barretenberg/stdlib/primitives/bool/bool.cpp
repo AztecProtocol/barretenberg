@@ -461,8 +461,38 @@ void bool_t<ComposerContext>::must_imply(const bool_t& other, std::string const&
 template <typename ComposerContext>
 void bool_t<ComposerContext>::must_imply(const std::vector<std::pair<bool_t, std::string>>& conds) const
 {
-    bool_t acc = true; // will accumulate the conjunctions of each condition (i.e. `&&` of each)
+    // Extract the composer
+    const bool_t this_bool = *this;
+    ComposerContext* ctx = this_bool.get_context();
+    bool composer_found = (ctx != nullptr);
+    for (size_t i = 0; i < conds.size(); i++) {
+        if (!composer_found) {
+            ctx = conds[i].first.get_context();
+            composer_found = (ctx != nullptr);
+        }
+    }
+
+    // If no composer is found, all of the bool_t's must be constants.
+    // In that case, we enforce a static assertion to check must_imply condition holds.
+    // If all of your inputs do this function are constants and they don't obey a condition,
+    // this function will panic at those static assertions.
+    if (!composer_found) {
+        bool is_const = this_bool.is_constant();
+        bool result = !this_bool.get_value();
+        bool acc = true;
+        for (size_t i = 0; i < conds.size(); i++) {
+            is_const &= conds[i].first.is_constant();
+            acc &= conds[i].first.get_value();
+        }
+        result |= acc;
+        ASSERT(is_const == true);
+        ASSERT(result == true);
+    }
+
+    bool_t acc = witness_t(ctx, true); // will accumulate the conjunctions of each condition (i.e. `&&` of each)
     const bool this_val = this->get_value();
+    bool error_found = false;
+    std::string error_msg;
 
     for (size_t i = 0; i < conds.size(); ++i) {
         const bool_t& cond = conds[i].first;
@@ -470,16 +500,15 @@ void bool_t<ComposerContext>::must_imply(const std::vector<std::pair<bool_t, std
         const bool cond_val = cond.get_value();
 
         // If this does NOT imply that, throw the error msg of that condition.
-        if (!(!this_val || cond_val)) {
-            // TODO: make it so the first failure message given to the composer persists, and cannot be overwritten by
-            // subsequent failure msgs.
-            context->failure(msg);
+        if (!(!this_val || cond_val) && !error_found) {
+            error_found = true;
+            error_msg = msg;
         }
 
         acc &= cond;
     }
 
-    (this->implies(acc)).assert_equal(true, "multi implication fail");
+    (this->implies(acc)).assert_equal(true, format("multi implication fail: ", error_msg));
 }
 
 // A "double-implication" (<=>),
