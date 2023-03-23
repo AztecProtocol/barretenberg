@@ -12,7 +12,6 @@ extern "C" {
 /**
  * @brief In WASM, loads the verifier reference string.
  * Used in native code to quickly create an in-memory reference string.
- * @param circuit_size The size of the circuit.
  */
 uint8_t* env_load_verifier_crs() {
     std::ifstream transcript;
@@ -32,7 +31,7 @@ uint8_t* env_load_verifier_crs() {
  * @brief In WASM, loads the prover reference string.
  * Provided as a utility for c-binds to implement a ReferenceStringFactory.
  * In native code, not intended to be used.
- * @param circuit_size The size of the circuit.
+ * @param num_points The number of points to load.
  */
 uint8_t* env_load_prover_crs(size_t num_points) {
     // Note: This implementation is only meant to be instructive.

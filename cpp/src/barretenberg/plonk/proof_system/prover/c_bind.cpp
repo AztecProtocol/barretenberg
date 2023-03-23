@@ -40,6 +40,7 @@ WASM_EXPORT void* test_env_load_verifier_crs()
 }
 /**
  * @brief Simple wrapper for env_load_verifier_crs. 
+ * @param The number of points to load of the prover CRS.
  * @return The CRS.
  */
 WASM_EXPORT void* test_env_load_prover_crs(size_t num_points)

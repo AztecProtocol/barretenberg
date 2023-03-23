@@ -9,7 +9,6 @@
 /**
  * @brief In WASM, loads the verifier reference string.
  * Used in native code to quickly create an in-memory reference string.
- * @param circuit_size The size of the circuit.
  * @returns An array of two g2 points.
  */
 extern "C" uint8_t* env_load_verifier_crs();
