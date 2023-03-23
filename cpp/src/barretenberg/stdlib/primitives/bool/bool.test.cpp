@@ -389,10 +389,7 @@ TEST(stdlib_bool, must_imply)
 
 TEST(stdlib_bool, must_imply_multiple)
 {
-    typedef stdlib::bool_t<plonk::StandardComposer> bool_t;
-    typedef stdlib::witness_t<plonk::StandardComposer> witness_t;
-
-    plonk::StandardComposer composer = plonk::StandardComposer();
+    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
 
     /**
      * Define g(x) = 2x + 12
