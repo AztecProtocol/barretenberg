@@ -1,5 +1,6 @@
 #pragma once
 #include "field.hpp"
+#include "../safe_uint/safe_uint.hpp"
 #include "../bool/bool.hpp"
 
 namespace plonk {
@@ -110,14 +111,11 @@ void push_array_to_array(std::array<field_t<Composer>, size_1> const& source,
     // TODO: inefficient to get length this way within this function. Probably best to inline the checks that we need
     // into the below loops directly.
     field_t<Composer> target_length = array_length<Composer>(target);
-    field_t<Composer> source_length = array_length<Composer>(source);
     field_t<Composer> target_capacity = field_t<Composer>(target.size());
     const field_t<Composer> overflow_capacity = target_capacity + 1;
 
-    // TODO: using safe_uint for an underflow check, do:
-    // remaining_target_capacity = target_capacity.subtract(target_length + source_length);
-
-    // ASSERT(target_capacity.get_value() + 1 > target_length.get_value() + source_length.get_value());
+    // ASSERT(uint256_t(target_capacity.get_value()) + 1 >
+    //        uint256_t(target_length.get_value()) + uint256_t(source_length.get_value()));
 
     field_t<Composer> j_ct = 0; // circuit-type index for the inner loop
     field_t<Composer> next_target_index = target_length;

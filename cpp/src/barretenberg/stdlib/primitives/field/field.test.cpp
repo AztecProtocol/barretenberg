@@ -1196,6 +1196,44 @@ template <typename Composer> class stdlib_field : public testing::Test {
         ASSERT(target[5].get_value() == 2);
         ASSERT(target[6].get_value() == 0);
         ASSERT(target[7].get_value() == 0);
+
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
+        auto proof = prover.construct_proof();
+        info("composer gates = ", composer.get_num_gates());
+        bool proof_result = verifier.verify_proof(proof);
+        EXPECT_EQ(proof_result, true);
+    }
+
+    static void test_push_array_to_array_full()
+    {
+        Composer composer = Composer();
+
+        std::array<fr, 4> source = { 1, 2 };
+        std::array<fr, 8> target = { 3, 4, 6, 8, 7, 9, 5, 0 };
+        std::array<field_ct, 4> source_ct;
+        std::array<field_ct, 8> target_ct;
+        for (size_t i = 0; i < source.size(); i++) {
+            source_ct[i] = witness_ct(&composer, source[i]);
+        }
+        for (size_t i = 0; i < target.size(); i++) {
+            target_ct[i] = witness_ct(&composer, target[i]);
+        }
+
+        push_array_to_array<Composer>(source_ct, target_ct);
+
+        // Check that the target array is unchanged as the push operation failed
+        ASSERT(target_ct[0].get_value() == 3);
+        ASSERT(target_ct[1].get_value() == 4);
+        ASSERT(target_ct[2].get_value() == 6);
+        ASSERT(target_ct[3].get_value() == 8);
+        ASSERT(target_ct[4].get_value() == 7);
+        ASSERT(target_ct[5].get_value() == 9);
+        ASSERT(target_ct[6].get_value() == 5);
+        ASSERT(target_ct[7].get_value() == 0);
+
+        EXPECT_EQ(composer.failed(), true);
+        EXPECT_EQ(composer.err(), "push_array_to_array target array capacity exceeded");
     }
 };
 
@@ -1347,5 +1385,9 @@ TYPED_TEST(stdlib_field, test_array_push_optional)
 TYPED_TEST(stdlib_field, test_array_push_array_to_array)
 {
     TestFixture::test_push_array_to_array();
+}
+TYPED_TEST(stdlib_field, test_array_push_array_to_array_full)
+{
+    TestFixture::test_push_array_to_array_full();
 }
 } // namespace test_stdlib_field
