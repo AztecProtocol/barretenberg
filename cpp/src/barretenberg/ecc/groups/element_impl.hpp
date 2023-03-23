@@ -489,9 +489,6 @@ template <class Fq, class Fr, class T> element<Fq, Fr, T> element<Fq, Fr, T>::in
 {
     element<Fq, Fr, T> e;
     e.self_set_infinity();
-    if (!e.is_point_at_infinity()) {
-        info("yup, it's infinity");
-    };
     return e;
 }
 

@@ -136,8 +136,9 @@ template <class T> constexpr field<T> field<T>::operator++() noexcept
 
 template <class T> constexpr field<T> field<T>::operator++(int) noexcept
 {
-    // TODO check if this is correct.
-    return *this += 1;
+    field<T> value_before_incrementing = *this;
+    *this += 1;
+    return value_before_incrementing;
 }
 
 /**
