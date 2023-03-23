@@ -947,6 +947,31 @@ template <typename Composer> class stdlib_field : public testing::Test {
         EXPECT_EQ(composer.failed(), true);
         EXPECT_EQ(composer.err(), "field_t::pow exponent accumulator incorrect");
     };
+
+    static void test_copy_as_new_witness()
+    {
+        Composer composer = Composer();
+
+        barretenberg::fr value(engine.get_random_uint256());
+        field_ct value_ct = witness_ct(&composer, value);
+
+        field_ct first_copy(&composer, value_ct.get_value());
+        field_ct second_copy = field_ct::copy_as_new_witness(composer, value_ct);
+
+        EXPECT_EQ(value_ct.get_value(), value);
+        EXPECT_EQ(first_copy.get_value(), value);
+        EXPECT_EQ(second_copy.get_value(), value);
+        EXPECT_NE(value_ct.get_witness_index(), first_copy.get_witness_index());
+        EXPECT_EQ(first_copy.get_witness_index(), uint32_t(-1));
+        EXPECT_EQ(value_ct.get_witness_index() + 1, second_copy.get_witness_index());
+
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
+        auto proof = prover.construct_proof();
+        info("composer gates = ", composer.get_num_gates());
+        bool proof_result = verifier.verify_proof(proof);
+        EXPECT_EQ(proof_result, true);
+    }
 };
 
 typedef testing::Types<plonk::UltraComposer, plonk::TurboComposer, plonk::StandardComposer, honk::StandardHonkComposer>
@@ -1069,5 +1094,9 @@ TYPED_TEST(stdlib_field, test_pow_exponent_constant)
 TYPED_TEST(stdlib_field, test_pow_exponent_out_of_range)
 {
     TestFixture::test_pow_exponent_out_of_range();
+}
+TYPED_TEST(stdlib_field, test_copy_as_new_witness)
+{
+    TestFixture::test_copy_as_new_witness();
 }
 } // namespace test_stdlib_field
