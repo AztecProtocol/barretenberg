@@ -8,6 +8,10 @@ namespace test_stdlib_bool {
 using namespace barretenberg;
 using namespace plonk;
 
+namespace {
+auto& engine = numeric::random::get_debug_engine();
+}
+
 typedef stdlib::bool_t<honk::StandardHonkComposer> bool_t;
 typedef stdlib::witness_t<honk::StandardHonkComposer> witness_t;
 
@@ -463,6 +467,36 @@ TEST(stdlib_bool, must_imply_multiple_fails)
         EXPECT_EQ(composer.failed(), true);
         EXPECT_EQ(composer.err(), "multi implication fail: x > 18");
     }
+}
+
+TEST(stdlib_bool, conditional_assign)
+{
+    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+    for (size_t j = 0; j < 4; ++j) {
+        bool lhs_constant = (bool)(j % 2);
+        bool rhs_constant = (bool)(j > 1 ? true : false);
+
+        const uint256_t x = (uint256_t(1) << 128) - 1;
+        const uint256_t val = engine.get_random_uint256();
+
+        bool condition = (val % 2 == 0);
+        bool right = x < val;
+        bool left = x > val;
+        bool_t l_ct = lhs_constant ? bool_t(left) : (witness_t(&composer, left));
+        bool_t r_ct = rhs_constant ? bool_t(right) : (witness_t(&composer, right));
+        bool_t cond = (witness_t(&composer, condition));
+
+        auto result = bool_t::conditional_assign(cond, l_ct, r_ct);
+
+        EXPECT_EQ(result.get_value(), condition ? left : right);
+    }
+    auto prover = composer.create_prover();
+    auto verifier = composer.create_verifier();
+
+    plonk::proof proof = prover.construct_proof();
+    info("composer gates = ", composer.get_num_gates());
+    bool result = verifier.verify_proof(proof);
+    EXPECT_EQ(result, true);
 }
 
 TEST(stdlib_bool, test_simple_proof)
