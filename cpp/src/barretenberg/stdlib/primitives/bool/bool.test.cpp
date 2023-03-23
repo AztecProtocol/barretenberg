@@ -435,6 +435,36 @@ TEST(stdlib_bool, must_imply_multiple)
     }
 }
 
+TEST(stdlib_bool, must_imply_multiple_fails)
+{
+    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+
+    /**
+     * Given x = 15:
+     * (x > 10)
+     *  => (x > 8)
+     *  => (x > 5)
+     *  ≠> (x > 18)
+     */
+    for (size_t j = 0; j < 2; ++j) { // ignore when both lhs and rhs are constants
+        bool is_constant = (bool)(j % 2);
+
+        size_t x = 15;
+        bool main = (bool)(x > 10);
+        bool_t main_ct = is_constant ? bool_t(main) : (witness_t(&composer, main));
+
+        std::vector<std::pair<bool_t, std::string>> conditions;
+        conditions.push_back(std::make_pair(witness_t(&composer, x > 8), "x > 8"));
+        conditions.push_back(std::make_pair(witness_t(&composer, x > 5), "x > 5"));
+        conditions.push_back(std::make_pair(witness_t(&composer, x > 18), "x > 18"));
+
+        main_ct.must_imply(conditions);
+
+        EXPECT_EQ(composer.failed(), true);
+        EXPECT_EQ(composer.err(), "multi implication fail: x > 18");
+    }
+}
+
 TEST(stdlib_bool, test_simple_proof)
 {
     honk::StandardHonkComposer composer = honk::StandardHonkComposer();
