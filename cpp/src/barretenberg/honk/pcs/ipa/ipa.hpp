@@ -263,12 +263,12 @@ template <typename Params> class InnerProductArgument {
 
     // Method for batch_prove
     // static std::pair<std::vector<OpeningClaim<Params>>, std::vector<Proof>>
-    static bool batch_prove_and_verify(std::shared_ptr<CK> ck,
-                                       std::shared_ptr<VK> vk,
-                                       const size_t& num_rows,
-                                       const std::vector<Polynomial>& polynomials,
-                                       const std::vector<Fr>& opening_challenges,
-                                       const auto& transcript)
+    static void batch_prove_and_verify( // std::shared_ptr<CK> ck,
+                                        // std::shared_ptr<VK> vk,
+        const size_t& num_rows,
+        const std::vector<Polynomial>& polynomials,
+        const std::vector<Fr>& opening_challenges
+        /*const auto& transcript*/)
     {
         bool result = true;
         for (size_t i = 0; i < num_rows; ++i) {
@@ -279,15 +279,16 @@ template <typename Params> class InnerProductArgument {
             auto current_opening_challenge = opening_challenges[i];
             auto current_opening_pair =
                 OpeningPair<Params>{ current_opening_challenge, current_poly.evaluate(current_opening_challenge) };
-            auto current_proof = reduce_prove(ck, current_opening_pair, current_poly, transcript);
-            info("proof.a_0 = ", current_proof.a_zero);
-            element current_commitment = ck->commit(current_poly);
-            info("I am after commit");
-            auto current_claim = OpeningClaim<Params>{ current_opening_pair, current_commitment };
-            auto current_result = reduce_verify(vk, current_claim, current_proof, transcript);
-            result = result && current_result;
+            info("challenge = ", current_opening_pair.query);
+            // auto current_proof = reduce_prove(ck, current_opening_pair, current_poly, transcript);
+            // info("proof.a_0 = ", current_proof.a_zero , " and i = ", i);
+            // element current_commitment = ck->commit(current_poly);
+            // info("I am after commit");
+            // auto current_claim = OpeningClaim<Params>{ current_opening_pair, current_commitment };
+            // auto current_result = reduce_verify(vk, current_claim, current_proof, transcript);
+            // result = result && current_result;
         }
-        return result; // std::make_pair(opening_claims, proofs);
+        // return result; // std::make_pair(opening_claims, proofs);
     }
 
     static void test_transfer_poly(const size_t& num_rows,

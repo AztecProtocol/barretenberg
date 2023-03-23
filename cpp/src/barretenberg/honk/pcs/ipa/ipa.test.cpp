@@ -116,9 +116,8 @@ TYPED_TEST(IpaCommitmentTest, batch_open)
     for (size_t i = 0; i < num_rows; ++i) {
         opening_challenges[i] = Fr::random_element();
     }
-    IPA::test_transfer_poly(num_rows, polynomials, opening_challenges);
-    // auto result =
-    //     IPA::batch_prove_and_verify(this->ck(), this->vk(), num_rows, polynomials, opening_challenges, transcript);
+    // IPA::test_transfer_poly(num_rows, polynomials, opening_challenges);
+    IPA::batch_prove_and_verify(num_rows, polynomials, opening_challenges);
     // opening_claims = output.first;
     // proofs = output.second;
     // info("before batch_verify");
