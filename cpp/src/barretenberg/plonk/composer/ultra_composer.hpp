@@ -200,7 +200,22 @@ class UltraComposer : public ComposerBase {
              *      gates. No arithemtic gate => size imbalance between sorted and non-sorted sets. Checking for this
              *      and throwing an error would require a refactor of the Composer to catelog all 'orphan' variables not
              *      assigned to gates.
+             *
+             * TODO(Suyash):
+             *    The following is a temporary fix to make sure the range constraints on numbers with
+             *    num_bits <= DEFAULT_PLOOKUP_RANGE_BITNUM is correctly enforced in the circuit.
+             *    Longer term, as Zac says, we would need to refactor the composer to fix this.
              **/
+            create_poly_gate(poly_triple{
+                .a = variable_index,
+                .b = variable_index,
+                .c = variable_index,
+                .q_m = 0,
+                .q_l = 1,
+                .q_r = -1,
+                .q_o = 0,
+                .q_c = 0,
+            });
             create_new_range_constraint(variable_index, 1ULL << num_bits, msg);
         } else {
             decompose_into_default_range(variable_index, num_bits, DEFAULT_PLOOKUP_RANGE_BITNUM, msg);
@@ -497,7 +512,8 @@ class UltraComposer : public ComposerBase {
      * @brief Each entry in ram_arrays represents an independent RAM table.
      * RamTranscript tracks the current table state,
      * as well as the 'records' produced by each read and write operation.
-     * Used in `compute_proving_key` to generate consistency check gates required to validate the RAM read/write history
+     * Used in `compute_proving_key` to generate consistency check gates required to validate the RAM read/write
+     * history
      */
     std::vector<RamTranscript> ram_arrays;
 
@@ -647,9 +663,9 @@ class UltraComposer : public ComposerBase {
     /**
      * @brief Create a unrolled manifest object
      *
-     * @note UP rolled/unrolled manifests are the same. Difference between regulur && unrolled Prover/Verifier is that
-     * unrolled Prover/Verifier uses 16-byte challenges and a SNARK-friendly hash algorithm to generate challenges.
-     * (i.e. unrolled Prover/Verifier is used in recursive setting)
+     * @note UP rolled/unrolled manifests are the same. Difference between regulur && unrolled Prover/Verifier is
+     * that unrolled Prover/Verifier uses 16-byte challenges and a SNARK-friendly hash algorithm to generate
+     * challenges. (i.e. unrolled Prover/Verifier is used in recursive setting)
      *
      * TODO: remove linearisation trick entirely from barretenberg and relabel `unrolled` to `recursive`!
      * @param num_public_inputs
