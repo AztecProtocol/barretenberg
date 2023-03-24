@@ -42,6 +42,7 @@ void create_circuit(Composer& composer, const acir_format& constraint_system)
     // Add range constraint
     for (const auto& constraint : constraint_system.range_constraints) {
         composer.create_range_constraint(constraint.witness, constraint.num_bits, "");
+        // composer.decompose_into_default_range(constraint.witness, constraint.num_bits, 4, "");
     }
 
     // Add sha256 constraints
