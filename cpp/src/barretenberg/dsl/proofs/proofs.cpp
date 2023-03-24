@@ -99,11 +99,6 @@ size_t new_proof(void* pippenger,
     auto proving_key = std::make_shared<bonk::proving_key>(std::move(pk_data), crs);
 
     auto witness = from_buffer<std::vector<fr>>(witness_buf);
-    // std::vector<uint8_t> witness_new_buf = to_buffer(witness);
-    // std::cout << "got witness_buf" << std::endl;
-    // for (size_t i = 0; i < witness_new_buf.size(); i++) {
-    //     std::cout << unsigned(witness_new_buf[i]) << ", ";
-    // }
 
     auto crs_factory = std::make_unique<PippengerReferenceStringFactory>(
         reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), g2x);
