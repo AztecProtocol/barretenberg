@@ -95,8 +95,10 @@ template <typename FF> class BaseTranscript {
         }
         full_buffer.insert(full_buffer.end(), current_round_data.begin(), current_round_data.end());
 
-        // Optionally pre-hash the full buffer to minimize the amount of data passed to the cryptographic hash function.
+        // Pre-hash the full buffer to minimize the amount of data passed to the cryptographic hash function.
         // Only a collision-resistant hash-function like Pedersen is required for this step.
+        // Note: this pre-hashing is an efficiency trick that may be discareded if using a SNARK-friendly or in contexts
+        // (eg smart contract verification) where the cost of elliptic curve operations is high.
         std::vector<uint8_t> compressed_buffer = to_buffer(crypto::pedersen::compress_native(full_buffer));
 
         // Use a strong hash function to derive the new challenge_buffer.
