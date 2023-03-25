@@ -259,6 +259,10 @@ template <typename Curve> struct verification_key {
     field_t<Composer> num_public_inputs;
     field_t<Composer> z_pow_n;
 
+    // NOTE: This does not strictly need to be a circuit type. It can be used to check in the circuit
+    // if a proof contains any aggregated state.
+    bool_t<Composer> contains_recursive_proof;
+
     evaluation_domain<Composer> domain;
 
     std::map<std::string, typename Curve::g1_ct> commitments;
