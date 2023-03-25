@@ -353,6 +353,10 @@ recursion_output<Curve> verify_proof(typename Curve::Composer* context,
         rhs_scalars.push_back(random_separator);
     }
 
+    // Check if recursive proof information is correctly set.
+    key->contains_recursive_proof.assert_equal(key->base_key->contains_recursive_proof,
+                                               "contains_recursive_proof is incorrectly set");
+
     /**
      * N.B. if this key contains a recursive proof, then ALL potential verification keys being verified by the outer
      *circuit must ALSO contain a recursive proof (this is not a concern if the key is being generated from circuit
