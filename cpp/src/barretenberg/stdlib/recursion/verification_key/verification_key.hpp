@@ -120,6 +120,7 @@ template <typename Curve> struct verification_key {
         key->n = witness_t<Composer>(ctx, barretenberg::fr(input_key->circuit_size));
         key->num_public_inputs = witness_t<Composer>(ctx, input_key->num_public_inputs);
         key->domain = evaluation_domain<Composer>::from_witness(ctx, input_key->domain);
+        key->contains_recursive_proof = witness_t<Composer>(ctx, input_key->contains_recursive_proof);
 
         for (const auto& [tag, value] : input_key->commitments) {
             key->commitments.insert({ tag, Curve::g1_ct::from_witness(ctx, value) });
@@ -136,6 +137,7 @@ template <typename Curve> struct verification_key {
         key->base_key = input_key;
         key->n = field_t<Composer>(ctx, input_key->circuit_size);
         key->num_public_inputs = field_t<Composer>(ctx, input_key->num_public_inputs);
+        key->contains_recursive_proof = bool_t<Composer>(ctx, input_key->contains_recursive_proof);
 
         key->domain = evaluation_domain<Composer>::from_constants(ctx, input_key->domain);
 
