@@ -1,2 +1,2 @@
 add_subdirectory(acir_format)
-add_subdirectory(proofs)
+add_subdirectory(acir_proofs)
