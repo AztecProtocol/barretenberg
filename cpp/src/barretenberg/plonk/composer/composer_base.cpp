@@ -40,13 +40,13 @@ void ComposerBase::assert_equal(const uint32_t a_variable_idx, const uint32_t b_
 }
 
 /**
- * Compute wire copy cycles
+ * @brief Compute wire copy cycles
  *
- * First set all wire_copy_cycles corresponding to public_inputs to point to themselves.
+ * @details First set all wire_copy_cycles corresponding to public_inputs to point to themselves.
  * Then go through all witnesses in w_l, w_r, w_o and w_4 (if program width is > 3) and
  * add them to cycles of their real indexes.
  *
- * @tparam program_width Program width
+ * @tparam program_width The number of wires
  * */
 template <size_t program_width> void ComposerBase::compute_wire_copy_cycles()
 {
@@ -86,7 +86,7 @@ template <size_t program_width> void ComposerBase::compute_wire_copy_cycles()
 }
 
 /**
- * Compute sigma and id permutation polynomials in lagrange base.
+ * @brief Compute sigma and id permutation polynomials in lagrange base.
  *
  * @param key Proving key.
  *
