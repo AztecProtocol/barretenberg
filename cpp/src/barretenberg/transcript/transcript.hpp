@@ -45,7 +45,7 @@ class Transcript {
     /**
      * Create a new transcript for Prover based on the manifest.
      *
-     * @param input_manifes The manifest with round descriptions.
+     * @param input_manifest The manifest with round descriptions.
      * @param hash_type The hash to use for Fiat-Shamir.
      * @param challenge_bytes The number of bytes per challenge to generate.
      *
