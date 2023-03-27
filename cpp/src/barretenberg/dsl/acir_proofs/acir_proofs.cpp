@@ -10,12 +10,8 @@ using namespace plonk::stdlib::types;
 
 namespace acir_proofs {
 
-uint32_t get_solidity_verifier(uint8_t const* g2x,
-                               uint8_t const* vk_buf,
-                               uint8_t const* constraint_system_buf,
-                               uint8_t** output_buf)
+uint32_t get_solidity_verifier(uint8_t const* g2x, uint8_t const* vk_buf, uint8_t** output_buf)
 {
-    auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
     auto crs = std::make_shared<VerifierMemReferenceString>(g2x);
     bonk::verification_key_data vk_data;
     read(vk_buf, vk_data);
