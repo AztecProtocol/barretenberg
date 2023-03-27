@@ -4,10 +4,33 @@
 #include "barretenberg/dsl/acir_format/acir_format.hpp"
 #include "barretenberg/stdlib/types/types.hpp"
 #include "barretenberg/srs/reference_string/pippenger_reference_string.hpp"
+#include "barretenberg/proof_system/verification_key/sol_gen.hpp"
 
 using namespace plonk::stdlib::types;
 
 namespace acir_proofs {
+
+uint32_t get_solidity_verifier(uint8_t const* g2x,
+                               uint8_t const* vk_buf,
+                               uint8_t const* constraint_system_buf,
+                               uint8_t** output_buf)
+{
+    auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
+    auto crs = std::make_shared<VerifierMemReferenceString>(g2x);
+    bonk::verification_key_data vk_data;
+    read(vk_buf, vk_data);
+    auto verification_key = std::make_shared<bonk::verification_key>(std::move(vk_data), crs);
+
+    std::ostringstream stream;
+    // TODO(blaine): Should we just use "Verifier" generically?
+    output_vk_sol(stream, verification_key, "UltraVerifier");
+
+    auto content_str = stream.str();
+    std::vector<uint8_t> buffer(content_str.begin(), content_str.end());
+
+    *output_buf = buffer.data();
+    return static_cast<uint32_t>(buffer.size());
+}
 
 uint32_t get_exact_circuit_size(uint8_t const* constraint_system_buf)
 {
