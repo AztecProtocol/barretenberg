@@ -3,6 +3,7 @@
 #include "barretenberg/plonk/composer/standard_composer.hpp"
 #include "barretenberg/plonk/composer/turbo_composer.hpp"
 #include "barretenberg/plonk/composer/ultra_composer.hpp"
+#include "barretenberg/plonk/composer/plookup_tables/plookup_tables.hpp"
 #include "barretenberg/stdlib/primitives/bigfield/bigfield.hpp"
 #include "barretenberg/stdlib/primitives/biggroup/biggroup.hpp"
 #include "barretenberg/stdlib/primitives/bit_array/bit_array.hpp"
@@ -77,6 +78,7 @@ typedef stdlib::pedersen<Composer> pedersen;
 typedef stdlib::group<Composer> group_ct;
 typedef stdlib::bn254<Composer> bn254;
 typedef stdlib::secp256k1<Composer> secp256k1_ct;
+typedef stdlib::plookup_read plookup_read_ct;
 
 namespace merkle_tree {
 using namespace stdlib::merkle_tree;
