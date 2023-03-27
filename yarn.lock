@@ -51,9 +51,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@aztec/foundation@workspace:.yalc/@aztec/foundation, @aztec/foundation@workspace:^":
+"@aztec/foundation@workspace:^, @aztec/foundation@workspace:foundation":
   version: 0.0.0-use.local
-  resolution: "@aztec/foundation@workspace:.yalc/@aztec/foundation"
+  resolution: "@aztec/foundation@workspace:foundation"
   dependencies:
     "@jest/globals": ^29.4.3
     "@koa/cors": ^4.0.0

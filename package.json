@@ -5,13 +5,13 @@
   "scripts": {
     "docs": "typedoc --out docs/dist && cd docs && yarn serve",
     "test": "cd ts && yarn test",
-    "build": "cd ts && yarn build",
+    "build": "cd foundation && yarn && yarn build && cd ../ts && yarn build",
     "formatting": "cd ts && yarn formatting",
     "formatting:fix": "cd ts && yarn formatting:fix"
   },
   "workspaces": [
     "ts",
-    ".yalc/*/*"
+    "foundation"
   ],
   "prettier": "@aztec/foundation/prettier",
   "devDependencies": {
