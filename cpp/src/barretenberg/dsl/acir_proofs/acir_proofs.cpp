@@ -1,5 +1,5 @@
 
-#include "proofs.hpp"
+#include "acir_proofs.hpp"
 #include "barretenberg/proof_system/proving_key/serialize.hpp"
 #include "barretenberg/dsl/acir_format/acir_format.hpp"
 #include "barretenberg/stdlib/types/types.hpp"
@@ -7,7 +7,7 @@
 
 using namespace plonk::stdlib::types;
 
-namespace proofs {
+namespace acir_proofs {
 
 uint32_t get_exact_circuit_size(uint8_t const* constraint_system_buf)
 {
@@ -147,4 +147,4 @@ bool verify_proof(
     return verified;
 }
 
-} // namespace proofs
+} // namespace acir_proofs

@@ -1,5 +1,5 @@
 barretenberg_module(
-    proofs
+    acir_proofs
     acir_format
     plonk
 )
