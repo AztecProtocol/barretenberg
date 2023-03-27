@@ -1,9 +1,25 @@
 declare const $transferable: unique symbol;
+/**
+ * A descriptor representing a payload with transferable components.
+ * These components will have ownership transfered when published on an event bus.
+ */
 export interface TransferDescriptor<T = any> {
+    /**
+     * Marked as transferable.
+     */
     [$transferable]: true;
+    /**
+     * The payload with the transferable objects.
+     */
     send: T;
+    /**
+     * The objects to transfer.
+     */
     transferables: Transferable[];
 }
+/**
+ *
+ */
 export declare function isTransferDescriptor(thing: any): thing is TransferDescriptor;
 /**
  * Mark a transferable object as such, so it will no be serialized and
@@ -18,8 +34,8 @@ export declare function isTransferDescriptor(thing: any): thing is TransferDescr
  * The transferable object cannot be accessed by this thread again
  * unless the receiving thread transfers it back again!
  *
- * @param transferable Array buffer, message port or similar.
- * @see <https://developers.google.com/web/updates/2011/12/Transferable-Objects-Lightning-Fast>
+ * @param transferable - Array buffer, message port or similar.
+ * @see https://developers.google.com/web/updates/2011/12/Transferable-Objects-Lightning-Fast
  */
 export declare function Transfer<T>(transferable: Transferable): TransferDescriptor<T>;
 /**
@@ -36,8 +52,8 @@ export declare function Transfer<T>(transferable: Transferable): TransferDescrip
  * The transferable object cannot be accessed by this thread again
  * unless the receiving thread transfers it back again!
  *
- * @param transferable Array buffer, message port or similar.
- * @see <https://developers.google.com/web/updates/2011/12/Transferable-Objects-Lightning-Fast>
+ * @param transferable - Array buffer, message port or similar.
+ * @see https://developers.google.com/web/updates/2011/12/Transferable-Objects-Lightning-Fast
  */
 export declare function Transfer<T>(payload: T, transferables: Transferable[]): TransferDescriptor<T>;
 export {};
