@@ -15,8 +15,8 @@ Polynomial compute_permutation_grand_product(std::shared_ptr<bonk::proving_key>&
                                              std::vector<Polynomial>& wire_polynomials,
                                              Fr beta,
                                              Fr gamma);
-// Polynomial compute_lookup_grand_product_polynomial(auto& key, Fr eta, Fr beta, Fr gamma);
 
-// plonk::proof& export_proof();
+template <size_t program_width>
+Polynomial compute_lookup_grand_product_polynomial(auto& key, Fr eta, Fr beta, Fr gamma);
 
 } // namespace honk::prover_library

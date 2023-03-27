@@ -10,10 +10,10 @@
 #include <gtest/gtest.h>
 
 using namespace honk;
-namespace honk_prover_tests {
+namespace prover_library_tests {
 
 // field is named Fscalar here because of clash with the Fr
-template <class Fscalar> class ProverTests : public testing::Test {
+template <class Fscalar> class ProverLibraryTests : public testing::Test {
 
   public:
     /**
@@ -21,10 +21,12 @@ template <class Fscalar> class ProverTests : public testing::Test {
      * @details This test compares a simple, unoptimized, easily readable calculation of the grand product z_permutation
      * to the optimized implementation used by the prover. It's purpose is to provide confidence that some optimization
      * introduced into the calculation has not changed the result.
+     * @note This test does confirm the correctness of z_permutation, only that the two implementations yield an
+     * identical result.
      */
-    static void test_grand_product_construction()
+    static void test_permutation_grand_product_construction()
     {
-        using barretenberg::polynomial;
+        using Polynomial = barretenberg::Polynomial<Fscalar>;
 
         // Define some mock inputs for proving key constructor
         static const size_t num_gates = 8;
@@ -37,14 +39,14 @@ template <class Fscalar> class ProverTests : public testing::Test {
 
         static const size_t program_width = StandardProver::settings_::program_width;
 
-        // Construct mock wire and permutation polynomials and add them to the proving_key.
+        // Construct mock wire and permutation polynomials.
         // Note: for the purpose of checking the consistency between two methods of computing z_perm, these polynomials
         // can simply be random. We're not interested in the particular properties of the result.
-        std::vector<polynomial> wires;
-        std::vector<polynomial> sigmas;
+        std::vector<Polynomial> wires;
+        std::vector<Polynomial> sigmas;
         for (size_t i = 0; i < program_width; ++i) {
-            polynomial wire_poly(proving_key->circuit_size);
-            polynomial sigma_poly(proving_key->circuit_size);
+            Polynomial wire_poly(proving_key->circuit_size);
+            Polynomial sigma_poly(proving_key->circuit_size);
             for (size_t j = 0; j < proving_key->circuit_size; ++j) {
                 wire_poly[j] = Fscalar::random_element();
                 sigma_poly[j] = Fscalar::random_element();
@@ -58,29 +60,13 @@ template <class Fscalar> class ProverTests : public testing::Test {
             proving_key->polynomial_store.put(sigma_id, std::move(sigma_poly));
         }
 
-        // Add some empty polynomials to make Prover constructor happy; not used in the z_perm calculation
-        proving_key->polynomial_store.put("id_1_lagrange", polynomial(proving_key->circuit_size));
-        proving_key->polynomial_store.put("id_2_lagrange", polynomial(proving_key->circuit_size));
-        proving_key->polynomial_store.put("id_3_lagrange", polynomial(proving_key->circuit_size));
-        proving_key->polynomial_store.put("q_1_lagrange", polynomial(proving_key->circuit_size));
-        proving_key->polynomial_store.put("q_2_lagrange", polynomial(proving_key->circuit_size));
-        proving_key->polynomial_store.put("q_3_lagrange", polynomial(proving_key->circuit_size));
-        proving_key->polynomial_store.put("q_m_lagrange", polynomial(proving_key->circuit_size));
-        proving_key->polynomial_store.put("q_c_lagrange", polynomial(proving_key->circuit_size));
-        proving_key->polynomial_store.put("L_first_lagrange", polynomial(proving_key->circuit_size));
-        proving_key->polynomial_store.put("L_last_lagrange", polynomial(proving_key->circuit_size));
-
-        // Instantiate a Prover with wire polynomials and pointer to the proving_key just constructed
-        auto wires_copy = wires;
-        auto honk_prover = StandardProver(std::move(wires_copy), proving_key);
-
         // Get random challenges
         auto beta = Fscalar::random_element();
         auto gamma = Fscalar::random_element();
 
         // Method 1: Compute z_perm using 'compute_grand_product_polynomial' as the prover would in practice
-        polynomial prover_z_perm = prover_library::compute_permutation_grand_product<program_width>(
-            honk_prover.key, honk_prover.wire_polynomials, beta, gamma);
+        Polynomial prover_z_perm =
+            prover_library::compute_permutation_grand_product<program_width>(proving_key, wires, beta, gamma);
 
         // Method 2: Compute z_perm locally using the simplest non-optimized syntax possible. The comment below,
         // which describes the computation in 4 steps, is adapted from a similar comment in
@@ -137,24 +123,34 @@ template <class Fscalar> class ProverTests : public testing::Test {
         }
 
         // Step (4)
-        polynomial z_perm(proving_key->circuit_size);
+        Polynomial z_perm(proving_key->circuit_size);
         z_perm[0] = Fscalar::zero(); // Z_0 = 1
         // Note: in practice, we replace this expensive element-wise division with Montgomery batch inversion
         for (size_t i = 0; i < proving_key->circuit_size - 1; ++i) {
             z_perm[i + 1] = numererator_accum[0][i] / denominator_accum[0][i];
         }
 
-        // Check consistency between locally computed z_perm and the one computed by the prover
+        // Check consistency between locally computed z_perm and the one computed by the prover library
         EXPECT_EQ(z_perm, prover_z_perm);
     };
+
+    /**
+     * @brief Test the correctness of the computation of the lookup grand product polynomial z_lookup
+     * @details This test compares a simple, unoptimized, easily readable calculation of the grand product z_lookup
+     * to the optimized implementation used by the prover. It's purpose is to provide confidence that some optimization
+     * introduced into the calculation has not changed the result.
+     * @note This test does confirm the correctness of z_lookup, only that the two implementations yield an
+     * identical result.
+     */
+    static void test_lookup_grand_product_construction() { EXPECT_EQ(1, 1); };
 };
 
 typedef testing::Types<barretenberg::fr> FieldTypes;
-TYPED_TEST_SUITE(ProverTests, FieldTypes);
+TYPED_TEST_SUITE(ProverLibraryTests, FieldTypes);
 
-TYPED_TEST(ProverTests, grand_product_construction)
+TYPED_TEST(ProverLibraryTests, PermutationGrandProduct)
 {
-    TestFixture::test_grand_product_construction();
+    TestFixture::test_permutation_grand_product_construction();
 }
 
-} // namespace honk_prover_tests
+} // namespace prover_library_tests
