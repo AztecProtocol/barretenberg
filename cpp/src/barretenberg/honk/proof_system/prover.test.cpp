@@ -1,4 +1,5 @@
 #include "prover.hpp"
+#include "prover_library.hpp"
 #include "barretenberg/honk/composer/standard_honk_composer.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 
@@ -52,10 +53,8 @@ template <class Fscalar> class ProverTests : public testing::Test {
             wires.emplace_back(wire_poly);
             sigmas.emplace_back(sigma_poly);
 
-            // Add polys to proving_key; to be used by the prover in constructing it's own z_perm
-            std::string wire_id = "w_" + std::to_string(i + 1) + "_lagrange";
+            // Add sigma polys to proving_key; to be used by the prover in constructing it's own z_perm
             std::string sigma_id = "sigma_" + std::to_string(i + 1) + "_lagrange";
-            proving_key->polynomial_store.put(wire_id, std::move(wire_poly));
             proving_key->polynomial_store.put(sigma_id, std::move(sigma_poly));
         }
 
@@ -80,7 +79,8 @@ template <class Fscalar> class ProverTests : public testing::Test {
         auto gamma = Fscalar::random_element();
 
         // Method 1: Compute z_perm using 'compute_grand_product_polynomial' as the prover would in practice
-        polynomial prover_z_perm = honk_prover.compute_grand_product_polynomial(beta, gamma);
+        polynomial prover_z_perm = prover_library::compute_permutation_grand_product<program_width>(
+            honk_prover.key, honk_prover.wire_polynomials, beta, gamma);
 
         // Method 2: Compute z_perm locally using the simplest non-optimized syntax possible. The comment below,
         // which describes the computation in 4 steps, is adapted from a similar comment in

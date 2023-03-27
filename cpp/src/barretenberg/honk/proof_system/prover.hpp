@@ -23,6 +23,7 @@
 #include <utility>
 #include <string>
 #include "barretenberg/honk/pcs/claim.hpp"
+#include "barretenberg/honk/proof_system/prover_library.hpp"
 
 namespace honk {
 
@@ -46,8 +47,6 @@ template <typename settings> class Prover {
 
     void compute_wire_commitments();
 
-    barretenberg::polynomial compute_grand_product_polynomial(Fr beta, Fr gamma);
-
     void construct_prover_polynomials();
 
     plonk::proof& export_proof();
@@ -61,6 +60,7 @@ template <typename settings> class Prover {
 
     std::vector<barretenberg::polynomial> wire_polynomials;
     barretenberg::polynomial z_permutation;
+    barretenberg::polynomial z_lookup;
 
     std::shared_ptr<bonk::proving_key> key;
 
