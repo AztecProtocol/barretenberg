@@ -1,0 +1,1 @@
+{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../../src/aztec-address/index.ts"],"names":[],"mappings":";AAEA,qBAAa,YAAY;IAIX,OAAO,CAAC,MAAM;IAH1B,OAAc,aAAa,SAAM;IACjC,OAAc,IAAI,eAA8D;gBAE5D,MAAM,EAAE,MAAM;WAMpB,UAAU,CAAC,OAAO,EAAE,MAAM;WAI1B,MAAM;IAIb,MAAM,CAAC,GAAG,EAAE,YAAY;IAIxB,QAAQ;IAIR,QAAQ;IAIR,aAAa;CAIrB"}

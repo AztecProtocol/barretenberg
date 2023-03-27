@@ -1,6 +1,6 @@
 require('@rushstack/eslint-patch/modern-module-resolution');
 
 module.exports = {
-  extends: [require('@aztec/eslint-config')],
+  extends: ['@aztec/foundation/eslint'],
   parserOptions: { tsconfigRootDir: __dirname },
 };

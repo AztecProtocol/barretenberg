@@ -13,7 +13,8 @@
     "build:dev": "tsc -b tsconfig.dest.json --watch",
     "clean": "rm -rf ./dest .tsbuildinfo",
     "bundle-deps": "yalc add @aztec/foundation",
-    "formatting": "run -T prettier --check ./src && run -T eslint --max-warnings 0 ./src",
+    "formatting": "prettier --check ./src && eslint --max-warnings 0 ./src",
+    "formatting:fix": "prettier -w ./src",
     "test": "NODE_NO_WARNINGS=1 node --experimental-vm-modules $(yarn bin jest) --no-cache --passWithNoTests",
     "test-debug": "NODE_NO_WARNINGS=1 node --inspect-brk --experimental-vm-modules $(yarn bin jest) --no-cache --passWithNoTests --runInBand"
   },
@@ -31,7 +32,7 @@
     "rootDir": "./src"
   },
   "dependencies": {
-    "@aztec/foundation": "file:.yalc/@aztec/foundation",
+    "@aztec/foundation": "workspace:^",
     "cross-fetch": "^3.1.5",
     "detect-node": "^2.1.0",
     "eslint": "^8.35.0",
