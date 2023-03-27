@@ -12,7 +12,7 @@ void read_witness(Composer& composer, std::vector<barretenberg::fr> witness)
 
 void create_circuit(Composer& composer, const acir_format& constraint_system)
 {
-    std::cout << "2" << std::endl;
+    std::cout << "5" << std::endl;
 
     if (constraint_system.public_inputs.size() > constraint_system.varnum) {
         std::cout << "too many public inputs!" << std::endl;
