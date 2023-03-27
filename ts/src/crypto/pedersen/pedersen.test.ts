@@ -1,4 +1,4 @@
-import { BarretenbergWasm } from '../../wasm/index.js';
+import { BarretenbergWasm } from '../../wasm/barretenberg_wasm.js';
 import { pedersenGetHashTree } from './pedersen.js';
 
 describe('pedersen', () => {
