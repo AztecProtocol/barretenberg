@@ -2,7 +2,11 @@
   "name": "@aztec/barretenberg.js",
   "version": "0.0.0",
   "type": "module",
-  "exports": "./dest/index.js",
+  "exports": {
+    "./crs": "./dest/crs/index.js",
+    "./crypto": "./dest/crypto/index.js",
+    "./wasm": "./dest/wasm/index.js"
+  },
   "typedoc": {
     "entryPoint": "./src/index.ts",
     "displayName": "Barretenberg.js",
