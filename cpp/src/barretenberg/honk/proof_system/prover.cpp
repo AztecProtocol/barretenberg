@@ -85,6 +85,120 @@ template <typename settings> void Prover<settings>::compute_wire_commitments()
 }
 
 /**
+ * @brief Compute the permutation grand product polynomial \f$\Zperm(Xf)\f$
+ *
+ * @details The grand product polynomial is defined via Lagrange interpolation by specifying
+ *     \f[ Z(ω^i) =
+ *          \frac
+ *           {\prod_{k=1}^{i}\prod_{j=1}^{\numwires} (w_j(ω^k) + β         \ID_j(ω^k) + γ )}
+ *           {\prod_{k=1}^{i}\prod_{j=1}^{\numwires} (w_j(ω^k) + β S_{\sigma, j}(ω^k) + γ)}
+ *                                                   \qquad i=1,\ldots,\numgates.         \f]
+ * One argues that the polynomial is well formed by showing that
+ *     \f[   Z(X)  ⋅ \prod_{j=1}^{\numwires} (w_j(X) +          β \ID_j(X) + γ)
+ *         = Z(Xω) ⋅ \prod_{j=1}^{\numwires} (w_j(X) + β  S_{\sigma, j}(X) + γ), \f]
+ * on \f$H\f$ and showing that
+ *  \f[Z(ω^\numgates) = 1.\f]
+ */
+// TODO(#222)(luke): Parallelize
+template <typename settings> Polynomial Prover<settings>::compute_grand_product_polynomial(Fr beta, Fr gamma)
+{
+    /**
+     * Notation: ω^k is written as evaluation at `k` as in `(k)`, and this corresponds to extracting the
+     *           `k`-th index of a vector.
+     *
+     * Step 1) Compute the 2*program_width length-n polynomials \f$A_i\f$ and \f$B_i\f$
+     *
+     * Step 2) Compute the 2*program_width length-n polynomials \f$\prod A_i(j)\f$ and \f$\prod B_i(j)\f$
+     *
+     * Step 3) Compute the two length-n polynomials defined by
+     *          \f$\numer[i] = ∏ A_1(j)⋅A_2(j)⋅A_3(j)\f$, and \f$\denom[i] = ∏ B_1(j)⋅B_2(j)⋅B_3(j)\f$
+     *
+     * Step 4) Compute \f$\Zperm[i+1] = \numer[i]/\denom[i]\f$ (recall: \f$\Zperm[0] = 1\f$)
+     *
+     * Note: Step (4) utilizes Montgomery batch inversion to replace n-many inversions with
+     * one batch inversion (at the expense of more multiplications)
+     * @todo This is function is shared, right? So move out of `honk` namespace.
+     */
+    using barretenberg::polynomial_arithmetic::copy_polynomial;
+    static const size_t program_width = settings::program_width;
+
+    // Allocate scratch space for accumulators
+    std::array<Fr*, program_width> numerator_accumulator;
+    std::array<Fr*, program_width> denominator_accumulator;
+    for (size_t i = 0; i < program_width; ++i) {
+        numerator_accumulator[i] = static_cast<Fr*>(aligned_alloc(64, sizeof(Fr) * key->circuit_size));
+        denominator_accumulator[i] = static_cast<Fr*>(aligned_alloc(64, sizeof(Fr) * key->circuit_size));
+    }
+
+    // Populate wire and permutation polynomials
+    std::array<std::span<const Fr>, program_width> wires;
+    std::array<std::span<const Fr>, program_width> sigmas;
+    for (size_t i = 0; i < program_width; ++i) {
+        std::string sigma_id = "sigma_" + std::to_string(i + 1) + "_lagrange";
+        wires[i] = wire_polynomials[i];
+        sigmas[i] = key->polynomial_store.get(sigma_id);
+    }
+
+    // Step (1)
+    // TODO(#222)(kesha): Change the order to engage automatic prefetching and get rid of redundant computation
+    for (size_t i = 0; i < key->circuit_size; ++i) {
+        for (size_t k = 0; k < program_width; ++k) {
+            // Note(luke): this idx could be replaced by proper ID polys if desired
+            Fr idx = k * key->circuit_size + i;
+            numerator_accumulator[k][i] = wires[k][i] + (idx * beta) + gamma;            // w_k(i) + β.(k*n+i) + γ
+            denominator_accumulator[k][i] = wires[k][i] + (sigmas[k][i] * beta) + gamma; // w_k(i) + β.σ_k(i) + γ
+        }
+    }
+
+    // Step (2)
+    for (size_t k = 0; k < program_width; ++k) {
+        for (size_t i = 0; i < key->circuit_size - 1; ++i) {
+            numerator_accumulator[k][i + 1] *= numerator_accumulator[k][i];
+            denominator_accumulator[k][i + 1] *= denominator_accumulator[k][i];
+        }
+    }
+
+    // Step (3)
+    for (size_t i = 0; i < key->circuit_size; ++i) {
+        for (size_t k = 1; k < program_width; ++k) {
+            numerator_accumulator[0][i] *= numerator_accumulator[k][i];
+            denominator_accumulator[0][i] *= denominator_accumulator[k][i];
+        }
+    }
+
+    // Step (4)
+    // Use Montgomery batch inversion to compute z_perm[i+1] = numerator_accumulator[0][i] /
+    // denominator_accumulator[0][i]. At the end of this computation, the quotient numerator_accumulator[0] /
+    // denominator_accumulator[0] is stored in numerator_accumulator[0].
+    Fr* inversion_coefficients = &denominator_accumulator[1][0]; // arbitrary scratch space
+    Fr inversion_accumulator = Fr::one();
+    for (size_t i = 0; i < key->circuit_size; ++i) {
+        inversion_coefficients[i] = numerator_accumulator[0][i] * inversion_accumulator;
+        inversion_accumulator *= denominator_accumulator[0][i];
+    }
+    inversion_accumulator = inversion_accumulator.invert(); // perform single inversion per thread
+    for (size_t i = key->circuit_size - 1; i != std::numeric_limits<size_t>::max(); --i) {
+        numerator_accumulator[0][i] = inversion_accumulator * inversion_coefficients[i];
+        inversion_accumulator *= denominator_accumulator[0][i];
+    }
+
+    // Construct permutation polynomial 'z_perm' in lagrange form as:
+    // z_perm = [0 numerator_accumulator[0][0] numerator_accumulator[0][1] ... numerator_accumulator[0][n-2] 0]
+    Polynomial z_perm(key->circuit_size);
+    // We'll need to shift this polynomial to the left by dividing it by X in gemini, so the the 0-th coefficient should
+    // stay zero
+    copy_polynomial(numerator_accumulator[0], &z_perm[1], key->circuit_size - 1, key->circuit_size - 1);
+
+    // free memory allocated for scratch space
+    for (size_t k = 0; k < program_width; ++k) {
+        aligned_free(numerator_accumulator[k]);
+        aligned_free(denominator_accumulator[k]);
+    }
+
+    return z_perm;
+}
+
+/**
  * - Add circuit size, public input size, and public inputs to transcript
  *
  * */
@@ -309,7 +423,7 @@ template <typename settings> plonk::proof& Prover<settings>::construct_proof()
 }
 //! [ConstructProof]
 
-
+// TODO(luke): Need to define a 'standard_settings' analog for Standard Honk
 template class Prover<plonk::standard_settings>;
 
 } // namespace proof_system::honk
