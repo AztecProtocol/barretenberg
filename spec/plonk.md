@@ -1,4 +1,5 @@
 # PlonK
+\tableofcontents
 
 We describe the PlonK variants as implemented in Barretenberg. This differs from what is described in \cite PlonK in several respects. These include:
  - The presence of custom gates (see...); in particular
@@ -29,32 +30,21 @@ The generic PlonK verifier is implemented in plonk::VerifierBase::verify_proof()
 
 TODO: Some combo of: update comments in code; excerpt those comments here; move this up as an intro section and / or split some of the discussion into prover and verifier comments.
 
-Standing notation: \f$H \subset \bF\f$ is the \f$\numgates\f$-th roots of 1, and \f$\omega\f$ is a fixted generator of \f$H\f$.
-
 ...
-
-The original grand product argument of \cite PlonK allows us to prove that copy constraints hold between the wire polynomials \f$ w_1, \ldots, w_{n_{\text{wires}}}\f$ on \f$H\f$. The copy constraints are equivalent to a decomposition of the disjoint union \f$\bigsqcup^\numwires H\f$ into into disjoint subsets, which is equivalent to the cycle decomposition of a permutation on \f$\bigsqcup^\numwires H\f$. To implement this permutation, we choose \f$k_{-1}=1, k_0, \ldots, k_{\numwires-2}\in \bF\f$ such that \f$k_i H \cap k_j H = \emptyset\f$, and we use \f$\bigcup_{i=-1}^{\numwires-2}k_i H \subset \bF\f$ as the implementation of the disjoint union (we call the \f$k_i\f$'s "coset generators"). The functions plonk::ComposerBase::compute_wire_copy_cycles and plonk::ComposerBase::compute_sigma_permutations collect the permutation data from the circuit, while plonk::compute_permutation_lagrange_base_single realizes this permutation using polynomials \f$S_{\sigma,1},\ldots, S_{\sigma,\numwires}\f$. If the copy cycle permutation \f$\sigma\f$ maps \f$w_{j}(\omega^{i_1})\f$ to \f$w_{\ell}(\omega^{i_2})\f$, then we set
+## Original argument
+The original grand product argument of \cite PlonK allows us to prove that copy constraints hold between the wire polynomials \f$ w_1, \ldots, w_{n_{\text{wires}}}\f$ on \f$H\f$. The copy constraints are equivalent to a decomposition of the disjoint union \f$\bigsqcup^\numwires H\f$ into into disjoint subsets, which is equivalent to the cycle decomposition of a permutation on \f$\bigsqcup^\numwires H\f$. To implement this permutation, we choose \f$k_{-1}=1, k_0, \ldots, k_{\numwires-2}\in \bF\f$ such that \f$k_i H \cap k_j H = \emptyset\f$, and we use \f$\bigcup_{i=-1}^{\numwires-2}k_i H \subset \bF\f$ as the implementation of the disjoint union (we call the \f$k_i\f$'s "coset generators"; see, e.g., barretenberg::Bn254FrParams::coset_generators_0, which specifies a 64-bit limb of 8 coset generators). The functions plonk::ComposerBase::compute_wire_copy_cycles and plonk::ComposerBase::compute_sigma_permutations collect the permutation data from the circuit, while plonk::compute_permutation_lagrange_base_single realizes this permutation using polynomials \f$S_{\sigma,1},\ldots, S_{\sigma,\numwires}\f$. If the copy cycle permutation \f$\sigma\f$ maps \f$w_{j}(\omega^{i_1})\f$ to \f$w_{\ell}(\omega^{i_2})\f$, then we set
 \f[S_{\sigma,j}(\omega^{i_1}) := k_{\ell-2} \omega^{i_2}.\f] 
-Varying over all values of \f$i_1\f$, this defines \f$S_{\sigma,j}\f$ by Lagrange interpolation. We similary represent the identity permutaion using polynomials \f$\ID_{1},\ldots, \ID_{\numwires}\f$ defined by
+Varying over all values of \f$i_1\f$, this defines \f$S_{\sigma,j}\f$ by Lagrange interpolation. We similary represent the identity permutation using polynomials \f$\ID_{1},\ldots, \ID_{\numwires}\f$ defined by
 \f[\ID_{j}(\omega^i) = k_{j-2}\omega^i.\f] 
 By an application of the Schwartz-Zippel lemma, the verifier is convinced that the copy constraints hold if the identity
 \f[
 \prod_{k=0}^{\numgates-1}\prod_{j=1}^{\numwires} (w_j(\omega^k) + \beta \ID_j(\omega^k) + \gamma) =
 \prod_{k=0}^{\numgates-1}\prod_{j=1}^{\numwires} (w_j(\omega^k) + \beta   S_{\sigma, j}(\omega^k) + \gamma)
 \f]
-holds for \f$\beta,\gamma\in\bF\f$ that were generated in a uniformly random manner. This fact is argued by defining a grand product polynomial via interpolation from 
-\f[
-Z(\omega^i) = \frac
-{\prod_{k=1}^{i}\prod_{j=1}^{\numwires} (w_j(\omega^k) + \beta \ID_j(\omega^k) + \gamma)}
-{\prod_{k=1}^{i}\prod_{j=1}^{\numwires} (w_j(\omega^k) + \beta   S_{\sigma, j}(\omega^k) + \gamma)}
-\qquad i=1,\ldots,\numgates, \f]
-arguing that the polynomial is well formed by showing that
-\f[
-Z(X)       \cdot \prod_{j=1}^{\numwires} (w_j(X) + \beta \ID_j(X) + \gamma) 
- =
-Z(X\omega) \cdot \prod_{j=1}^{\numwires} (w_j(X) + \beta   S_{\sigma, j}(X) + \gamma),
-\f]
-on \f$H\f$ and showing that \f$Z(\omega^\numgates) = 1.\f$
+holds for \f$\beta,\gamma\in\bF\f$ that were generated in a uniformly random manner. This fact is argued by defining a grand product polynomial.
+
+@copydetails honk::Prover::compute_grand_product_polynomial.
+
 
 ## Public Inputs
 Following \cite PlonKVIP, we include public inputs into our protocol by modifying the grand product argument of \cite PlonK. This has the advantage of allowing all selector polynomials to be preprocessed, as opposed to the original handling of public inputs in \cite PlonK, which required altering the selector \f$q_c\f$. A summary of our approach is as follows. We will reserve the first \f$\numpub\f$-many rows of the execution trace for special gates to store these public inputs. To use the public inputs elsewhere in the circuit, one uses copy constraints with these first \f$\numpub\f$-gates. This construction is not sufficient for a secure protocol, as the verifier needs to verify that that the correct public information was used, but the verifier has only the commitments to their blindings. To solve this, we modify the grand product argument to involve a term \f$\Delta_{\PI}\f$ which is supplied by both the prover and the verifier. We now describe our protocol in more detail.
@@ -134,4 +124,4 @@ Z(\omega^i) :=
 as "breaking" the valid copy cycle.  This is something we explicitly do in plonk::ComposerBase::compute_sigma_permutations. -->
 The modified protocol assumes this modified grand product, and adds a relation to enforce that \f$Z(\omega^\numgates) =  \Delta_\PI.\f$
 
-This is computed by the prover in plonk::ProverPermutationWidget::compute_quotient_contribution, and by the verifier in plonk::VerifierPermutationWidget::compute_quotient_evaluation_contribution, via a call to plonk::compute_public_input_delta in both cases..
+This is computed by the prover in plonk::ProverPermutationWidget::compute_quotient_contribution, and by the verifier in plonk::VerifierPermutationWidget::compute_quotient_evaluation_contribution, via a call to plonk::compute_public_input_delta in both cases.
