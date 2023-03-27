@@ -6,6 +6,7 @@
 #include "../../primitives/field/field.hpp"
 
 #include "../transcript/transcript.hpp"
+#include "../aggregation_state/aggregation_state.hpp"
 
 #include "barretenberg/plonk/proof_system/utils/kate_verification.hpp"
 #include "barretenberg/plonk/proof_system/public_inputs/public_inputs.hpp"
@@ -18,35 +19,6 @@
 namespace plonk {
 namespace stdlib {
 namespace recursion {
-
-template <typename Curve> struct recursion_output {
-    typename Curve::g1_ct P0;
-    typename Curve::g1_ct P1;
-    // the public inputs of the inner ciruit are now private inputs of the outer circuit!
-    std::vector<typename Curve::fr_ct> public_inputs;
-    std::vector<uint32_t> proof_witness_indices;
-    bool has_data = false;
-
-    void add_proof_outputs_as_public_inputs()
-    {
-        ASSERT(proof_witness_indices.size() > 0);
-
-        auto* context = P0.get_context();
-
-        context->add_recursive_proof(proof_witness_indices);
-    }
-};
-
-// Native version of the recursion_output of the stdlib, for passing into/between circuits.
-// TODO: this isn't really in the right place, but wasn't sure where to put it?
-struct native_recursion_output {
-    typename barretenberg::g1::affine_element P0 = barretenberg::g1::affine_one;
-    typename barretenberg::g1::affine_element P1 = barretenberg::g1::affine_one;
-    // the public inputs of the inner ciruit are now private inputs of the outer circuit!
-    std::vector<barretenberg::fr> public_inputs;
-    std::vector<uint32_t> proof_witness_indices;
-    bool has_data = false;
-};
 
 template <typename Composer> struct lagrange_evaluations {
     field_t<Composer> l_start;
@@ -204,11 +176,11 @@ lagrange_evaluations<typename Curve::Composer> get_lagrange_evaluations(
  * which includes detailed comments.
  */
 template <typename Curve, typename program_settings>
-recursion_output<Curve> verify_proof(typename Curve::Composer* context,
-                                     std::shared_ptr<verification_key<Curve>> key,
-                                     const transcript::Manifest& manifest,
-                                     const plonk::proof& proof,
-                                     const recursion_output<Curve> previous_output = recursion_output<Curve>())
+aggregation_state<Curve> verify_proof(typename Curve::Composer* context,
+                                      std::shared_ptr<verification_key<Curve>> key,
+                                      const transcript::Manifest& manifest,
+                                      const plonk::proof& proof,
+                                      const aggregation_state<Curve> previous_output = aggregation_state<Curve>())
 {
     using fr_ct = typename Curve::fr_ct;
     using fq_ct = typename Curve::fq_ct;
@@ -432,7 +404,7 @@ recursion_output<Curve> verify_proof(typename Curve::Composer* context,
         rhs.y.binary_basis_limbs[3].element.normalize().witness_index,
     };
 
-    return recursion_output<Curve>{
+    return aggregation_state<Curve>{
         opening_result, rhs, transcript.get_field_element_vector("public_inputs"), proof_witness_indices, true,
     };
 }
