@@ -15,7 +15,7 @@ inline void read(uint8_t const*& it, proof& data)
     read(it, data.proof_data);
 };
 
-template <typename B> inline void write(B& buf, proof& data)
+template <typename B> inline void write(B& buf, proof const& data)
 {
     using serialize::write;
     write(buf, data.proof_data);
