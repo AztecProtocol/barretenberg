@@ -192,11 +192,11 @@ namespace proof_system::plonk {
  * the memory cells on the second column map to our public inputs. We can then use traditional copy constraints to map
  * these cells to other locations in program memory.
  **/
-** / template <typename Field>
-     Field compute_public_input_delta(const std::vector<Field>& public_inputs,
-                                      const Field& beta,
-                                      const Field& gamma,
-                                      const Field& subgroup_generator)
+template <typename Field>
+Field compute_public_input_delta(const std::vector<Field>& public_inputs,
+                                 const Field& beta,
+                                 const Field& gamma,
+                                 const Field& subgroup_generator)
 {
     Field numerator = Field(1);
     Field denominator = Field(1);
