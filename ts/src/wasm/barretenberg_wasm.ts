@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { AsyncCallState, AsyncFnState, NodeDataStore, WasmModule, WebDataStore } from '@aztec/foundation/wasm';
 
 import isNode from 'detect-node';
@@ -5,6 +6,14 @@ import { readFile } from 'fs/promises';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
+=======
+import isNode from 'detect-node';
+
+import { AsyncCallState, AsyncFnState, NodeDataStore, WasmModule, WebDataStore } from '@aztec/wasm';
+import { readFile } from 'fs/promises';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+>>>>>>> master
 import { numToUInt32LE } from './serialize.js';
 import { Crs } from '../crs/index.js';
 
