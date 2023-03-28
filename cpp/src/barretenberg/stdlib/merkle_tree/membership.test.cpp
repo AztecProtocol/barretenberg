@@ -9,6 +9,10 @@ using namespace barretenberg;
 using namespace plonk::stdlib::types;
 using namespace plonk::stdlib::merkle_tree;
 
+namespace {
+auto& engine = numeric::random::get_debug_engine();
+}
+
 TEST(stdlib_merkle_tree, test_check_membership)
 {
     MemoryStore store;
@@ -206,38 +210,37 @@ TEST(stdlib_merkle_tree, test_tree)
 
 TEST(stdlib_merkle_tree, test_update_memberships)
 {
-    constexpr size_t depth = 3;
+    constexpr size_t depth = 4;
     MemoryStore store;
     MerkleTree tree(store, depth);
-    MemoryTree mem_tree(depth);
 
     Composer composer = Composer();
 
-    constexpr size_t filled = 6;
+    constexpr size_t filled = (1UL << depth) / 2;
     std::vector<fr> filled_values;
     for (size_t i = 0; i < filled; i++) {
-        uint256_t val = 10; // small value for testing
+        uint256_t val = fr::random_element();
         tree.update_element(i, val);
         filled_values.push_back(val);
     }
 
     // old state
     fr old_root = tree.root();
-    std::vector<size_t> old_indices = { 2 };
+    std::vector<size_t> old_indices = { 0, 2, 5, 7 };
 
     std::vector<fr> old_values;
     std::vector<fr_hash_path> old_hash_paths;
     for (size_t i = 0; i < old_indices.size(); i++) {
-        old_values.push_back(filled_values[i]);
-        old_hash_paths.push_back(tree.get_hash_path(old_indices[i]));
+        old_values.push_back(filled_values[old_indices[i]]);
     }
 
     // new state
     std::vector<fr> new_values;
     std::vector<fr> new_roots;
     for (size_t i = 0; i < old_indices.size(); i++) {
-        uint256_t val = fr::random_element(); // random value for testing
+        uint256_t val = fr::random_element();
         new_values.push_back(val);
+        old_hash_paths.push_back(tree.get_hash_path(old_indices[i]));
         new_roots.push_back(tree.update_element(old_indices[i], new_values[i]));
     }
 
@@ -262,8 +265,6 @@ TEST(stdlib_merkle_tree, test_update_memberships)
     }
 
     update_memberships(old_root_ct, new_roots_ct, new_values_ct, old_values_ct, old_hash_paths_ct, old_indices_ct);
-
-    info("err = ", composer.err());
 
     auto prover = composer.create_prover();
     printf("composer gates = %zu\n", composer.get_num_gates());

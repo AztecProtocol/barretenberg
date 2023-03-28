@@ -34,7 +34,7 @@ class MemoryTree {
 
     fr root() const { return root_; }
 
-  protected:
+  public:
     size_t depth_;
     size_t total_size_;
     barretenberg::fr root_;
