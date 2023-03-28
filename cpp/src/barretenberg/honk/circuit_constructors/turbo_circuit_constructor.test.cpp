@@ -14,7 +14,6 @@ TEST(turbo_circuit_constructor, base_case)
     TurboCircuitConstructor circuit_constructor = TurboCircuitConstructor();
     fr a = fr::one();
     circuit_constructor.add_public_variable(a);
-
     bool result = circuit_constructor.check_circuit();
     EXPECT_EQ(result, true);
 }

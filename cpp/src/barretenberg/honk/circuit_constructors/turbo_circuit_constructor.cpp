@@ -795,10 +795,310 @@ uint32_t TurboCircuitConstructor::put_constant_variable(const barretenberg::fr& 
         return variable_index;
     }
 }
-
-inline fr TurboCircuitConstructor::arithmetic_gate_evaluation(const size_t i, const fr alpha_base)
+/**
+ * @brief Just an arithemtic gate zero-equality test, but with base set to 1
+ *
+ * @param gate_index
+ * @return true Evaluation is zero
+ * @return false Evaluation is not zero
+ */
+inline bool TurboCircuitConstructor::lazy_arithmetic_gate_check(const size_t gate_index)
 {
-    ASSERT(i < num_gates);
+    return arithmetic_gate_evaluation(gate_index, fr::one()).is_zero();
+}
+
+/**
+ * @brief Separately checks individual conditions that make up the fixed base gate
+ *
+ * @param gate_index Gate index
+ * @return bool
+ */
+inline bool TurboCircuitConstructor::lazy_fixed_base_gate_check(const size_t gate_index)
+{
+    ASSERT(gate_index < num_gates);
+
+    constexpr barretenberg::fr grumpkin_curve_b(-17);
+    constexpr barretenberg::fr nine(9);
+    TURBO_SELECTOR_REFS;
+    (void)q_1;
+    (void)q_2;
+    (void)q_3;
+    (void)q_4;
+    (void)q_5;
+    (void)q_c;
+    (void)q_m;
+    (void)q_arith;
+    (void)q_range;
+    (void)q_logic;
+    // Get witness values
+    fr wire_1_shifted;
+    fr wire_2_shifted;
+    fr wire_3_shifted;
+    fr wire_4_shifted;
+    const fr wire_1_value = get_variable(w_l[gate_index]);
+    const fr wire_2_value = get_variable(w_r[gate_index]);
+    const fr wire_3_value = get_variable(w_o[gate_index]);
+    const fr wire_4_value = get_variable(w_4[gate_index]);
+    if ((gate_index + 1) < num_gates) {
+        wire_1_shifted = get_variable(w_l[gate_index + 1]);
+        wire_2_shifted = get_variable(w_r[gate_index + 1]);
+        wire_3_shifted = get_variable(w_o[gate_index + 1]);
+        wire_4_shifted = get_variable(w_4[gate_index + 1]);
+    } else {
+        wire_1_shifted = fr::zero();
+        wire_2_shifted = fr::zero();
+        wire_3_shifted = fr::zero();
+        wire_4_shifted = fr::zero();
+    }
+
+    // Get selector values
+    const fr q_c_value = q_c[gate_index];
+    const fr q_fixed_base_value = q_fixed_base[gate_index];
+    const fr q_m_value = q_m[gate_index];
+    const fr q_1_value = q_1[gate_index];
+    const fr q_2_value = q_2[gate_index];
+    const fr q_3_value = q_3[gate_index];
+    const fr q_4_value = q_4[gate_index];
+    const fr q_5_value = q_5[gate_index];
+
+    // Compute, optimizing multiplications (different fromt the way we used in widgets, since the linearization
+    // trick is no more)
+
+    fr delta = wire_4_shifted - (wire_4_value + wire_4_value + wire_4_value + wire_4_value);
+    fr delta_squared = delta.sqr();
+
+    // accumulator_identity = (δ + 3)(δ + 1)(δ - 1)(δ - 3)
+    if (delta_squared != nine && delta_squared != fr::one()) {
+        return false;
+    }
+
+    // Check x_alpha_identity
+    if (!(delta_squared * q_1_value + q_2_value - wire_3_shifted).is_zero()) {
+        return false;
+    }
+
+    fr T0 = wire_1_shifted + wire_1_value + wire_3_shifted;
+    fr T1 = (wire_3_shifted - wire_1_value).sqr();
+    T0 = T0 * T1;
+
+    T1 = wire_3_shifted.sqr() * wire_3_shifted;
+    fr T2 = wire_2_value.sqr();
+    T1 = T1 + T2;
+    T1 = -(T1 + grumpkin_curve_b);
+
+    T2 = delta * wire_2_value * q_fixed_base_value;
+    T2 = T2 + T2;
+    fr T3_part = delta * wire_3_shifted * q_3_value;
+    fr T3 = T3_part * wire_2_value;
+    T3 = T3 + T3;
+
+    // x_accumulator_identity = α^2 *
+    // [(w_1,ω + w_1 + w_3,ω) * (w_3,ω - w_1)^2 - (b + w_3,ω^3 + w_2^2) +  2δ * w_2 * q_fixed_base]
+    if (!(T0 + T1 + T2 + T3).is_zero()) {
+        return false;
+    }
+    T0 = (wire_2_shifted + wire_2_value) * (wire_3_shifted - wire_1_value);
+    T1 = wire_1_value - wire_1_shifted;
+    T2 = wire_2_value - (q_fixed_base_value * delta);
+    T1 = T1 * (T2 - T3_part);
+
+    // y_accumulator_identity = α^3 *
+    // [(w_2,ω + w_2) * (w_3,ω - w_1) + (w_1 - w_1,ω) * (w_2 - q_fixed_base * δ)]
+
+    if (!(T0 + T1).is_zero()) {
+        return false;
+    }
+
+    if (!q_c_value.is_zero()) {
+        T0 = wire_4_value - fr::one();
+        T1 = T0 - wire_3_value;
+
+        if (!T0.is_zero() && !T1.is_zero()) {
+            return false;
+        }
+        T0 = wire_3_value * (q_4_value - wire_1_value) + (fr::one() - wire_4_value) * q_5_value;
+        if (!T0.is_zero()) {
+            return false;
+        }
+        T0 = q_c_value * (fr::one() - wire_4_value);
+        T1 = wire_2_value * wire_3_value;
+        fr y_init_identity = (T0 - T1 + q_m_value * wire_3_value);
+        if (!y_init_identity.is_zero()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * @brief Check if the logic gate should pass. (Checks xor or and of values)
+ *
+ * @param gate_index Gate index
+ * @return fr
+ */
+inline bool TurboCircuitConstructor::lazy_logic_gate_check(const size_t gate_index)
+{
+
+    ASSERT(gate_index < num_gates);
+
+    TURBO_SELECTOR_REFS;
+    (void)q_1;
+    (void)q_2;
+    (void)q_3;
+    (void)q_4;
+    (void)q_5;
+    (void)q_c;
+    (void)q_m;
+    (void)q_arith;
+    (void)q_range;
+    (void)q_fixed_base;
+    fr wire_1_shifted;
+    fr wire_2_shifted;
+    fr wire_4_shifted;
+    const fr wire_1_value = get_variable(w_l[gate_index]);
+    const fr wire_2_value = get_variable(w_r[gate_index]);
+    const fr wire_4_value = get_variable(w_4[gate_index]);
+    if ((gate_index + 1) < num_gates) {
+        wire_1_shifted = get_variable(w_l[gate_index + 1]);
+        wire_2_shifted = get_variable(w_r[gate_index + 1]);
+        wire_4_shifted = get_variable(w_4[gate_index + 1]);
+    } else {
+        wire_1_shifted = fr::zero();
+        wire_2_shifted = fr::zero();
+        wire_4_shifted = fr::zero();
+    }
+
+    // Get selector values
+    const fr q_c_value = q_c[gate_index];
+    const fr q_logic_value = q_logic[gate_index];
+    constexpr fr two(2);
+    constexpr fr three(3);
+    constexpr fr minus_one = -fr::one();
+
+    fr delta_sum;
+    fr delta_squared_sum;
+    fr T0;
+    fr T1;
+    fr T2;
+    fr T3;
+    fr T4;
+    fr identity;
+
+    // T0 = a
+    T0 = wire_1_value + wire_1_value;
+    T0 += T0;
+    T0 = wire_1_shifted - T0;
+
+    if (!T0.is_zero() && T0 != fr::one() && T0 != two && T0 != three) {
+        return false;
+    }
+    // T1 = b
+    T1 = wire_2_value + wire_2_value;
+    T1 += T1;
+    T1 = wire_2_shifted - T1;
+
+    if (!T1.is_zero() && T1 != fr::one() && T1 != two && T1 != three) {
+        return false;
+    }
+
+    // T2 = c
+    T2 = wire_4_value + wire_4_value;
+    T2 += T2;
+    T2 = wire_4_shifted - T2;
+
+    if (!T2.is_zero() && T2 != fr::one() && T2 != two && T2 != three) {
+        return false;
+    }
+    uint64_t a = uint256_t(T0).data[0];
+    uint64_t b = uint256_t(T1).data[0];
+    uint64_t c = uint256_t(T2).data[0];
+
+    if (q_c_value == fr::one() && q_logic_value == fr::one()) {
+        return (a & b) == c;
+    }
+
+    if (q_c_value == minus_one && q_logic_value == minus_one) {
+        return (a ^ b) == c;
+    }
+    return false;
+}
+/**
+ * @brief Check if the range gate should pass (checks that all the differences are 0,1,2 or 3)
+ *
+ * @param gate_index Gate index
+ * @return bool
+ */
+inline bool TurboCircuitConstructor::lazy_range_gate_check(const size_t gate_index)
+{
+
+    ASSERT(gate_index < num_gates);
+
+    TURBO_SELECTOR_REFS;
+    (void)q_1;
+    (void)q_2;
+    (void)q_3;
+    (void)q_4;
+    (void)q_5;
+    (void)q_c;
+    (void)q_m;
+    (void)q_range;
+    (void)q_arith;
+    (void)q_logic;
+    (void)q_fixed_base;
+    fr wire_4_shifted;
+    const fr wire_1_value = get_variable(w_l[gate_index]);
+    const fr wire_2_value = get_variable(w_r[gate_index]);
+    const fr wire_3_value = get_variable(w_o[gate_index]);
+    const fr wire_4_value = get_variable(w_4[gate_index]);
+    if ((gate_index + 1) < num_gates) {
+        wire_4_shifted = get_variable(w_4[gate_index + 1]);
+    } else {
+        wire_4_shifted = fr::zero();
+    }
+    constexpr barretenberg::fr two(2);
+    constexpr barretenberg::fr three(3);
+
+    fr delta_1 = wire_4_value + wire_4_value;
+    delta_1 += delta_1;
+    delta_1 = (wire_3_value - delta_1).reduce_once();
+    if (!delta_1.is_zero() && delta_1 != fr::one() && delta_1 != two && delta_1 != three) {
+        return false;
+    }
+
+    fr delta_2 = wire_3_value + wire_3_value;
+    delta_2 += delta_2;
+    delta_2 = wire_2_value - delta_2;
+
+    if (!delta_2.is_zero() && delta_2 != fr::one() && delta_2 != two && delta_2 != three) {
+        return false;
+    }
+    fr delta_3 = wire_2_value + wire_2_value;
+    delta_3 += delta_3;
+    delta_3 = wire_1_value - delta_3;
+
+    if (!delta_3.is_zero() && delta_3 != fr::one() && delta_3 != two && delta_3 != three) {
+        return false;
+    }
+    fr delta_4 = wire_1_value + wire_1_value;
+    delta_4 += delta_4;
+    delta_4 = wire_4_shifted - delta_4;
+
+    if (!delta_4.is_zero() && delta_4 != fr::one() && delta_4 != two && delta_4 != three) {
+        return false;
+    }
+
+    return true;
+}
+/**
+ * @brief Evaluate the contribution of the arithmetic gate constraint
+ *
+ * @param gate_index Gate index
+ * @param alpha_base The base value that the whole evaluation is multiplied by
+ * @return fr
+ */
+inline fr TurboCircuitConstructor::arithmetic_gate_evaluation(const size_t gate_index, const fr alpha_base)
+{
+    ASSERT(gate_index < num_gates);
 
     TURBO_SELECTOR_REFS;
 
@@ -809,10 +1109,10 @@ inline fr TurboCircuitConstructor::arithmetic_gate_evaluation(const size_t i, co
     (void)q_4;
     (void)q_fixed_base;
     constexpr fr two = fr::one() + fr::one();
-    const fr wire_1_value = get_variable(w_l[i]);
-    const fr wire_2_value = get_variable(w_r[i]);
-    const fr wire_3_value = get_variable(w_o[i]);
-    const fr wire_4_value = get_variable(w_4[i]);
+    const fr wire_1_value = get_variable(w_l[gate_index]);
+    const fr wire_2_value = get_variable(w_r[gate_index]);
+    const fr wire_3_value = get_variable(w_o[gate_index]);
+    const fr wire_4_value = get_variable(w_4[gate_index]);
 
     // T2  = Δ
     fr T2 = wire_4_value + wire_4_value;
@@ -837,15 +1137,24 @@ inline fr TurboCircuitConstructor::arithmetic_gate_evaluation(const size_t i, co
     // T2 = 9.Δ^2 - 2.Δ^3 - 7.Δ
     T2 *= T4;
 
-    return alpha_base * q_arith[i] *
-           (wire_1_value * (q_m[i] * wire_2_value + q_1[i]) + q_2[i] * wire_2_value + q_3[i] * wire_3_value +
-            wire_4_value * (q_4[i] + q_5[i] * (wire_4_value - two) * (wire_4_value - fr::one())) + q_c[i] +
-            (q_arith[i] - 1) * T2);
+    return alpha_base * q_arith[gate_index] *
+           (wire_1_value * (q_m[gate_index] * wire_2_value + q_1[gate_index]) + q_2[gate_index] * wire_2_value +
+            q_3[gate_index] * wire_3_value +
+            wire_4_value * (q_4[gate_index] + q_5[gate_index] * (wire_4_value - two) * (wire_4_value - fr::one())) +
+            q_c[gate_index] + (q_arith[gate_index] - 1) * T2);
 }
-inline fr TurboCircuitConstructor::range_gate_evaluation(const size_t i, const fr alpha_base, const fr alpha)
+/**
+ * @brief Evaluate the contribution of the range gate constraint
+ *
+ * @param gate_index Gate index
+ * @param alpha_base The base value that the whole evaluation is multiplied by
+ * @param alpha An element used as a separator of individual subrelations
+ * @return fr
+ */
+inline fr TurboCircuitConstructor::range_gate_evaluation(const size_t gate_index, const fr alpha_base, const fr alpha)
 {
 
-    ASSERT(i < num_gates);
+    ASSERT(gate_index < num_gates);
 
     TURBO_SELECTOR_REFS;
     (void)q_1;
@@ -859,12 +1168,12 @@ inline fr TurboCircuitConstructor::range_gate_evaluation(const size_t i, const f
     (void)q_logic;
     (void)q_fixed_base;
     fr wire_4_shifted;
-    const fr wire_1_value = get_variable(w_l[i]);
-    const fr wire_2_value = get_variable(w_r[i]);
-    const fr wire_3_value = get_variable(w_o[i]);
-    const fr wire_4_value = get_variable(w_4[i]);
-    if ((i + 1) < num_gates) {
-        wire_4_shifted = get_variable(w_4[i + 1]);
+    const fr wire_1_value = get_variable(w_l[gate_index]);
+    const fr wire_2_value = get_variable(w_r[gate_index]);
+    const fr wire_3_value = get_variable(w_o[gate_index]);
+    const fr wire_4_value = get_variable(w_4[gate_index]);
+    if ((gate_index + 1) < num_gates) {
+        wire_4_shifted = get_variable(w_4[gate_index + 1]);
     } else {
         wire_4_shifted = fr::zero();
     }
@@ -927,12 +1236,20 @@ inline fr TurboCircuitConstructor::range_gate_evaluation(const size_t i, const f
     T0 *= alpha_d;
     range_accumulator += T0;
 
-    return q_range[i] * range_accumulator;
+    return q_range[gate_index] * range_accumulator;
 }
-inline fr TurboCircuitConstructor::logic_gate_evaluation(const size_t i, const fr alpha_base, const fr alpha)
+/**
+ * @brief Evaluate the contribution of the logic gate constraint
+ *
+ * @param gate_index Gate index
+ * @param alpha_base The base value the whole evaluation is multiplied by
+ * @param alpha The element used as separator for individual subrelations
+ * @return fr
+ */
+inline fr TurboCircuitConstructor::logic_gate_evaluation(const size_t gate_index, const fr alpha_base, const fr alpha)
 {
 
-    ASSERT(i < num_gates);
+    ASSERT(gate_index < num_gates);
 
     TURBO_SELECTOR_REFS;
     (void)q_1;
@@ -948,14 +1265,14 @@ inline fr TurboCircuitConstructor::logic_gate_evaluation(const size_t i, const f
     fr wire_1_shifted;
     fr wire_2_shifted;
     fr wire_4_shifted;
-    const fr wire_1_value = get_variable(w_l[i]);
-    const fr wire_2_value = get_variable(w_r[i]);
-    const fr wire_3_value = get_variable(w_o[i]);
-    const fr wire_4_value = get_variable(w_4[i]);
-    if ((i + 1) < num_gates) {
-        wire_1_shifted = get_variable(w_l[i + 1]);
-        wire_2_shifted = get_variable(w_r[i + 1]);
-        wire_4_shifted = get_variable(w_4[i + 1]);
+    const fr wire_1_value = get_variable(w_l[gate_index]);
+    const fr wire_2_value = get_variable(w_r[gate_index]);
+    const fr wire_3_value = get_variable(w_o[gate_index]);
+    const fr wire_4_value = get_variable(w_4[gate_index]);
+    if ((gate_index + 1) < num_gates) {
+        wire_1_shifted = get_variable(w_l[gate_index + 1]);
+        wire_2_shifted = get_variable(w_r[gate_index + 1]);
+        wire_4_shifted = get_variable(w_4[gate_index + 1]);
     } else {
         wire_1_shifted = fr::zero();
         wire_2_shifted = fr::zero();
@@ -963,7 +1280,7 @@ inline fr TurboCircuitConstructor::logic_gate_evaluation(const size_t i, const f
     }
 
     // Get selector values
-    const fr q_c_value = q_c[i];
+    const fr q_c_value = q_c[gate_index];
     constexpr fr six(6);
     constexpr fr eighty_one(81);
     constexpr fr eighty_three(83);
@@ -1098,11 +1415,20 @@ inline fr TurboCircuitConstructor::logic_gate_evaluation(const size_t i, const f
     // identity = q_logic * alpha_base * (identity + T2)
     identity += T2;
     identity *= alpha_base;
-    return identity * q_logic[i];
+    return identity * q_logic[gate_index];
 }
-inline fr TurboCircuitConstructor::fixed_base_gate_evaluation(const size_t i, const std::vector<fr>& alpha_powers)
+
+/**
+ * @brief Evaluates the contribution of the fixed_base constraint
+ *
+ * @param gate_index Gate index
+ * @param alpha_powers A vector with alpha_base and alpha_base*α^{i} for enough i
+ * @return fr
+ */
+inline fr TurboCircuitConstructor::fixed_base_gate_evaluation(const size_t gate_index,
+                                                              const std::vector<fr>& alpha_powers)
 {
-    ASSERT(i < num_gates);
+    ASSERT(gate_index < num_gates);
 
     constexpr barretenberg::fr grumpkin_curve_b(-17);
     constexpr barretenberg::fr three(3);
@@ -1122,15 +1448,15 @@ inline fr TurboCircuitConstructor::fixed_base_gate_evaluation(const size_t i, co
     fr wire_2_shifted;
     fr wire_3_shifted;
     fr wire_4_shifted;
-    const fr wire_1_value = get_variable(w_l[i]);
-    const fr wire_2_value = get_variable(w_r[i]);
-    const fr wire_3_value = get_variable(w_o[i]);
-    const fr wire_4_value = get_variable(w_4[i]);
-    if ((i + 1) < num_gates) {
-        wire_1_shifted = get_variable(w_l[i + 1]);
-        wire_2_shifted = get_variable(w_r[i + 1]);
-        wire_3_shifted = get_variable(w_o[i + 1]);
-        wire_4_shifted = get_variable(w_4[i + 1]);
+    const fr wire_1_value = get_variable(w_l[gate_index]);
+    const fr wire_2_value = get_variable(w_r[gate_index]);
+    const fr wire_3_value = get_variable(w_o[gate_index]);
+    const fr wire_4_value = get_variable(w_4[gate_index]);
+    if ((gate_index + 1) < num_gates) {
+        wire_1_shifted = get_variable(w_l[gate_index + 1]);
+        wire_2_shifted = get_variable(w_r[gate_index + 1]);
+        wire_3_shifted = get_variable(w_o[gate_index + 1]);
+        wire_4_shifted = get_variable(w_4[gate_index + 1]);
     } else {
         wire_1_shifted = fr::zero();
         wire_2_shifted = fr::zero();
@@ -1139,14 +1465,14 @@ inline fr TurboCircuitConstructor::fixed_base_gate_evaluation(const size_t i, co
     }
 
     // Get selector values
-    const fr q_c_value = q_c[i];
-    const fr q_fixed_base_value = q_fixed_base[i];
-    const fr q_m_value = q_m[i];
-    const fr q_1_value = q_1[i];
-    const fr q_2_value = q_2[i];
-    const fr q_3_value = q_3[i];
-    const fr q_4_value = q_4[i];
-    const fr q_5_value = q_5[i];
+    const fr q_c_value = q_c[gate_index];
+    const fr q_fixed_base_value = q_fixed_base[gate_index];
+    const fr q_m_value = q_m[gate_index];
+    const fr q_1_value = q_1[gate_index];
+    const fr q_2_value = q_2[gate_index];
+    const fr q_3_value = q_3[gate_index];
+    const fr q_4_value = q_4[gate_index];
+    const fr q_5_value = q_5[gate_index];
 
     // Compute, optimizing multiplications (different fromt the way we used in widgets, since the linearization
     // trick is no more)
@@ -1218,6 +1544,37 @@ inline fr TurboCircuitConstructor::fixed_base_gate_evaluation(const size_t i, co
  * */
 bool TurboCircuitConstructor::check_circuit()
 {
+    TURBO_SELECTOR_REFS;
+    (void)q_1;
+    (void)q_2;
+    (void)q_3;
+    (void)q_4;
+    (void)q_5;
+    (void)q_c;
+    (void)q_m;
+    (void)q_logic;
+    (void)q_range;
+    (void)q_arith;
+    (void)q_fixed_base;
+
+//#define LAZY_CIRCUIT_CHECKS
+#ifdef LAZY_CIRCUIT_CHECKS
+    for (size_t i = 0; i < num_gates; i++) {
+        if (!q_arith[i].is_zero() && !lazy_arithmetic_gate_check(i)) {
+            return false;
+        }
+        if (!q_fixed_base[i].is_zero() && !lazy_fixed_base_gate_check(i)) {
+            return false;
+        }
+        if (!q_range[i].is_zero() && !lazy_range_gate_check(i)) {
+            return false;
+        }
+        if (!q_logic[i].is_zero() && !lazy_logic_gate_check(i)) {
+            return false;
+        }
+    }
+    return true;
+#else
     // Initialize each of the kernels
     const fr alpha_base = fr::random_element();
     const fr alpha = fr::random_element();
@@ -1257,6 +1614,8 @@ bool TurboCircuitConstructor::check_circuit()
         }
     }
     return true;
+
+#endif
 }
 
 } // namespace bonk

@@ -5,14 +5,16 @@
 
 namespace bonk {
 
-enum TurboSelectors { QM, QC, Q1, Q2, Q3, Q4, Q5, QARITH, QFIXED, QRANGE, QLOGIC, NUM };
 inline std::vector<std::string> turbo_selector_names()
 {
-    std::vector<std::string> result{ "q_m", "q_c",     "q_1",     "q_2",     "q_3",    "q_4",
-                                     "q_5", "q_arith", "q_fixed", "q_range", "q_logic" };
+    std::vector<std::string> result{ "q_m", "q_c",     "q_1",          "q_2",     "q_3",    "q_4",
+                                     "q_5", "q_arith", "q_fixed_base", "q_range", "q_logic" };
     return result;
 }
 class TurboCircuitConstructor : public CircuitConstructorBase<TURBO_BONK_WIDTH> {
+
+    enum TurboSelectors { QM, QC, Q1, Q2, Q3, Q4, Q5, QARITH, QFIXED, QRANGE, QLOGIC, NUM };
+
   public:
     static constexpr plonk::ComposerType type = plonk::ComposerType::TURBO;
     static constexpr size_t UINT_LOG2_BASE = 2;
@@ -45,10 +47,11 @@ class TurboCircuitConstructor : public CircuitConstructorBase<TURBO_BONK_WIDTH> 
     barretenberg::fr range_gate_evaluation(const size_t index,
                                            const barretenberg::fr alpha_bas,
                                            const barretenberg::fr alpha);
-    // bool lazy_arithmetic_gate_evaluation_is_zero(size_t index);
-    // bool lazy_fixed_base_gate_evaluation_is_zero(size_t index);
-    // bool lazy_logic_gate_evaluation_is_zero(size_t index);
-    // bool lazy_range_gate_evaluation_is_zero(size_t index);
+
+    bool lazy_arithmetic_gate_check(const size_t gate_index);
+    bool lazy_fixed_base_gate_check(const size_t gate_index);
+    bool lazy_logic_gate_check(const size_t gate_index);
+    bool lazy_range_gate_check(const size_t gate_index);
 
     bool check_circuit();
 
