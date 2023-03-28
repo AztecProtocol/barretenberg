@@ -75,9 +75,6 @@ template <typename FF> class BaseTranscript {
     // "Manifest" object that records a summary of the transcript interactions
     TranscriptManifest manifest;
 
-    // "Manifest" object that records a summary of the transcript interactions
-    TranscriptManifest manifest;
-
     /**
      * @brief Compute c_next = H( Compress(c_prev || round_buffer) )
      *
