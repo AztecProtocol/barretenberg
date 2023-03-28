@@ -149,6 +149,17 @@ void update_membership(field_t<Composer> const& new_root,
     assert_check_membership(new_root, old_hashes, new_value, index, true, msg + "_new_value");
 }
 
+/**
+ * Asserts if the state transitions on updating multiple existing leaves with new values.
+ *
+ * @param old_root: The root of the merkle tree before it was updated,
+ * @param new_roots: New roots after each existing leaf was updated,
+ * @param new_values: The new values that are inserted in the existing leaves,
+ * @param old_values: The values of the existing leaves that were updated,
+ * @param old_paths: The hash path from the given index right before a given existing leaf is updated,
+ * @param old_indicies: Indices of the existing leaves that need to be updated,
+ * @tparam Composer: type of composer.
+ */
 template <typename Composer>
 field_t<Composer> update_memberships(field_t<Composer> old_root,
                                      std::vector<field_t<Composer>> const& new_roots,
