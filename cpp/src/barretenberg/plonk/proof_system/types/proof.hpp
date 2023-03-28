@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <vector>
 #include "barretenberg/common/serialize.hpp"
+#include "barretenberg/common/streams.hpp"
 
 namespace plonk {
 
@@ -23,11 +24,7 @@ template <typename B> inline void write(B& buf, proof const& data)
 
 inline std::ostream& operator<<(std::ostream& os, proof const& data)
 {
-    os << "[\n ";
-    for (size_t i = 0; i < data.proof_data.size(); ++i) {
-        os << data.proof_data[i] << " ";
-    }
-    os << "]\n";
+    os << data.proof_data << "\n";
     return os;
 }
 
