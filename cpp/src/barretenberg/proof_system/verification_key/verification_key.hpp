@@ -113,4 +113,15 @@ template <typename B> inline void write(B& buf, verification_key const& key)
     write(buf, key.recursive_proof_public_input_indices);
 }
 
+template <typename B> inline void write(B& buf, std::shared_ptr<verification_key> const& key)
+{
+    using serialize::write;
+    write(buf, key->composer_type);
+    write(buf, static_cast<uint32_t>(key->circuit_size));
+    write(buf, static_cast<uint32_t>(key->num_public_inputs));
+    write(buf, key->commitments);
+    write(buf, key->contains_recursive_proof);
+    write(buf, key->recursive_proof_public_input_indices);
+}
+
 } // namespace bonk
