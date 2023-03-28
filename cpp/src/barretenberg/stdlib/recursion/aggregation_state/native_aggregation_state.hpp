@@ -27,7 +27,7 @@ inline void read(uint8_t const*& it, native_aggregation_state& state)
 
     read(it, state.P0);
     read(it, state.P1);
-    info(it, state.public_inputs);
+    read(it, state.public_inputs);
     read(it, state.proof_witness_indices);
     read(it, state.has_data);
 };
