@@ -187,7 +187,7 @@ template <typename Curve> struct verification_key {
         }
     }
 
-  private:
+  public:
     field_t<Composer> compress()
     {
         field_t<Composer> compressed_domain = domain.compress();

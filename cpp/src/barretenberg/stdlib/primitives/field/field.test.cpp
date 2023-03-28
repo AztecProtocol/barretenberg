@@ -1235,6 +1235,52 @@ template <typename Composer> class stdlib_field : public testing::Test {
         EXPECT_EQ(composer.failed(), true);
         EXPECT_EQ(composer.err(), "push_array_to_array target array capacity exceeded");
     }
+
+    class MockClass {
+      public:
+        MockClass()
+            : m_a(field_ct(0))
+            , m_b(field_ct(0))
+        {}
+        MockClass(uint32_t a, uint32_t b)
+            : m_a(field_ct(a))
+            , m_b(field_ct(b))
+        {}
+
+        bool is_empty() const { return m_a == 0 && m_b == 0; }
+
+        void conditional_select(bool_ct const& condition, MockClass const& other)
+        {
+            m_a = field_ct::conditional_assign(condition, other.m_a, m_a);
+            m_b = field_ct::conditional_assign(condition, other.m_b, m_b);
+        }
+
+      private:
+        field_ct m_a;
+        field_ct m_b;
+    };
+
+    void test_array_push_generic()
+    {
+        info("lol");
+        UltraComposer composer = UltraComposer();
+
+        constexpr size_t SIZE = 5;
+        std::array<MockClass, SIZE> arr{};
+
+        // Push values into the array
+        field_ct::template array_push<Composer, MockClass, SIZE>(arr, MockClass(1, 10));
+        field_ct::template array_push<Composer, MockClass, SIZE>(arr, MockClass(2, 20));
+        field_ct::template array_push<Composer, MockClass, SIZE>(arr, MockClass(3, 30));
+
+        // Check the values in the array
+        EXPECT_EQ(arr[0].get_value(), 1);
+        EXPECT_EQ(arr[1].get_value(), 2);
+        EXPECT_EQ(arr[2].get_value(), 3);
+
+        // Try to push another value, which should fail
+        EXPECT_THROW(array_push<Composer>(arr, MockClass(4)), std::runtime_error);
+    }
 };
 
 typedef testing::Types<plonk::UltraComposer, plonk::TurboComposer, plonk::StandardComposer, honk::StandardHonkComposer>
@@ -1381,6 +1427,10 @@ TYPED_TEST(stdlib_field, test_array_push)
 TYPED_TEST(stdlib_field, test_array_push_optional)
 {
     TestFixture::test_array_push_optional();
+}
+TYPED_TEST(stdlib_field, test_array_push_generic)
+{
+    TestFixture::test_array_push_generic();
 }
 TYPED_TEST(stdlib_field, test_array_push_array_to_array)
 {

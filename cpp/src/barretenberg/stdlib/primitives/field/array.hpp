@@ -85,6 +85,18 @@ inline size_t array_push(std::array<std::shared_ptr<T>, SIZE>& arr, std::shared_
     throw_or_abort("array_push cannot push to a full array");
 };
 
+template <typename Composer, typename T, size_t SIZE> inline void array_push(std::array<T, SIZE>& arr, T const& value)
+{
+    bool_t<Composer> already_pushed = false;
+    for (size_t i = 0; i < arr.size(); ++i) {
+        bool_t<Composer> is_zero = arr[i].is_empty();
+        arr[i].conditional_select(!already_pushed && is_zero, value);
+
+        already_pushed |= is_zero;
+    }
+    already_pushed.assert_equal(true, "array_push cannot push to a full array");
+};
+
 /**
  * Note: this assumes `0` always means 'not used', so be careful. If you actually want `0` to be counted, you'll need
  * something else.
