@@ -1,4 +1,5 @@
 #include "prover_library.hpp"
+#include <span>
 
 namespace honk::prover_library {
 
@@ -114,12 +115,15 @@ Polynomial compute_permutation_grand_product(std::shared_ptr<bonk::proving_key>&
 }
 
 template <size_t program_width>
-Polynomial compute_lookup_grand_product_polynomial(auto& key, auto& wire_polynomials, Fr eta, Fr beta, Fr gamma)
+Polynomial compute_lookup_grand_product(std::shared_ptr<bonk::proving_key>& key,
+                                        std::vector<Polynomial>& wire_polynomials,
+                                        Polynomial& s_lagrange,
+                                        Fr eta,
+                                        Fr beta,
+                                        Fr gamma)
 {
-    (void)wire_polynomials;
-
-    Fr eta_sqr = eta.sqr();
-    Fr eta_cube = eta_sqr * eta;
+    const Fr eta_sqr = eta.sqr();
+    const Fr eta_cube = eta_sqr * eta;
 
     const size_t circuit_size = key->circuit_size;
 
@@ -133,26 +137,28 @@ Polynomial compute_lookup_grand_product_polynomial(auto& key, auto& wire_polynom
         accumulators[i] = Polynomial{ key->circuit_size };
     }
 
-    Polynomial s_lagrange = key->polynomial_store.get("s_lagrange");
+    // // TODO(luke): this was making a copy before - was that just an oversight?
+    // std::span<const Fr> s_lagrange = key->polynomial_store.get("s_lagrange");
 
-    const Fr* column_1_step_size = key->polynomial_store.get("q_2_lagrange").get_coefficients();
-    const Fr* column_2_step_size = key->polynomial_store.get("q_m_lagrange").get_coefficients();
-    const Fr* column_3_step_size = key->polynomial_store.get("q_c_lagrange").get_coefficients();
+    std::span<const Fr> column_1_step_size = key->polynomial_store.get("q_2_lagrange");
+    std::span<const Fr> column_2_step_size = key->polynomial_store.get("q_m_lagrange");
+    std::span<const Fr> column_3_step_size = key->polynomial_store.get("q_c_lagrange");
 
-    std::array<const Fr*, 3> lagrange_base_wires;
-    std::array<const Fr*, 4> lagrange_base_tables{
-        key->polynomial_store.get("table_value_1_lagrange").get_coefficients(),
-        key->polynomial_store.get("table_value_2_lagrange").get_coefficients(),
-        key->polynomial_store.get("table_value_3_lagrange").get_coefficients(),
-        key->polynomial_store.get("table_value_4_lagrange").get_coefficients(),
+    // Utilize three wires; this is not tied to program width
+    std::array<std::span<const Fr>, 3> wires;
+    for (size_t i = 0; i < 3; ++i) {
+        wires[i] = wire_polynomials[i];
+    }
+
+    std::array<std::span<const Fr>, 4> tables{
+        key->polynomial_store.get("table_value_1_lagrange"),
+        key->polynomial_store.get("table_value_2_lagrange"),
+        key->polynomial_store.get("table_value_3_lagrange"),
+        key->polynomial_store.get("table_value_4_lagrange"),
     };
 
-    const Fr* lookup_selector = key->polynomial_store.get("table_type_lagrange").get_coefficients();
-    const Fr* lookup_index_selector = key->polynomial_store.get("q_3_lagrange").get_coefficients();
-    for (size_t i = 0; i < 3; ++i) {
-        lagrange_base_wires[i] =
-            key->polynomial_store.get("w_" + std::to_string(i + 1) + "_lagrange").get_coefficients();
-    }
+    std::span<const Fr> lookup_selector = key->polynomial_store.get("table_type_lagrange");
+    std::span<const Fr> lookup_index_selector = key->polynomial_store.get("q_3_lagrange");
 
     const Fr beta_constant = beta + Fr(1);                // (1 + β)
     const Fr gamma_beta_constant = gamma * beta_constant; // γ(1 + β)
@@ -183,22 +189,21 @@ Polynomial compute_lookup_grand_product_polynomial(auto& key, auto& wire_polynom
     // Note: block_mask is used for efficient modulus, i.e. i % N := i & (N-1), for N = 2^k
     const size_t block_mask = key->small_domain.size - 1;
     // Initialize 't(X)' to be used in an expression of the form t(X) + β*t(Xω)
-    Fr next_table = lagrange_base_tables[0][0] + lagrange_base_tables[1][0] * eta +
-                    lagrange_base_tables[2][0] * eta_sqr + lagrange_base_tables[3][0] * eta_cube;
+    Fr next_table = tables[0][0] + tables[1][0] * eta + tables[2][0] * eta_sqr + tables[3][0] * eta_cube;
 
     for (size_t i = 0; i < circuit_size; ++i) {
 
         // Compute i'th element of f via Horner (see definition of f above)
         T0 = lookup_index_selector[i];
         T0 *= eta;
-        T0 += lagrange_base_wires[2][(i + 1) & block_mask] * column_3_step_size[i];
-        T0 += lagrange_base_wires[2][i];
+        T0 += wires[2][(i + 1) & block_mask] * column_3_step_size[i];
+        T0 += wires[2][i];
         T0 *= eta;
-        T0 += lagrange_base_wires[1][(i + 1) & block_mask] * column_2_step_size[i];
-        T0 += lagrange_base_wires[1][i];
+        T0 += wires[1][(i + 1) & block_mask] * column_2_step_size[i];
+        T0 += wires[1][i];
         T0 *= eta;
-        T0 += lagrange_base_wires[0][(i + 1) & block_mask] * column_1_step_size[i];
-        T0 += lagrange_base_wires[0][i];
+        T0 += wires[0][(i + 1) & block_mask] * column_1_step_size[i];
+        T0 += wires[0][i];
         T0 *= lookup_selector[i];
 
         // Set i'th element of polynomial q_lookup*f + γ
@@ -206,13 +211,13 @@ Polynomial compute_lookup_grand_product_polynomial(auto& key, auto& wire_polynom
         accumulators[0][i] += gamma;
 
         // Compute i'th element of t via Horner
-        T0 = lagrange_base_tables[3][(i + 1) & block_mask];
+        T0 = tables[3][(i + 1) & block_mask];
         T0 *= eta;
-        T0 += lagrange_base_tables[2][(i + 1) & block_mask];
+        T0 += tables[2][(i + 1) & block_mask];
         T0 *= eta;
-        T0 += lagrange_base_tables[1][(i + 1) & block_mask];
+        T0 += tables[1][(i + 1) & block_mask];
         T0 *= eta;
-        T0 += lagrange_base_tables[0][(i + 1) & block_mask];
+        T0 += tables[0][(i + 1) & block_mask];
 
         // Set i'th element of polynomial (t + βt(Xω) + γ(1 + β))
         accumulators[1][i] = T0 * beta + next_table;
@@ -294,5 +299,7 @@ Polynomial compute_lookup_grand_product_polynomial(auto& key, auto& wire_polynom
 
 template Polynomial compute_permutation_grand_product<plonk::standard_settings::program_width>(
     std::shared_ptr<bonk::proving_key>&, std::vector<Polynomial>&, Fr, Fr);
+template Polynomial compute_lookup_grand_product<plonk::standard_settings::program_width>(
+    std::shared_ptr<bonk::proving_key>&, std::vector<Polynomial>&, Polynomial&, Fr, Fr, Fr);
 
 } // namespace honk::prover_library

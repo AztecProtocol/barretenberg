@@ -17,6 +17,11 @@ Polynomial compute_permutation_grand_product(std::shared_ptr<bonk::proving_key>&
                                              Fr gamma);
 
 template <size_t program_width>
-Polynomial compute_lookup_grand_product_polynomial(auto& key, Fr eta, Fr beta, Fr gamma);
+Polynomial compute_lookup_grand_product(std::shared_ptr<bonk::proving_key>& key,
+                                        std::vector<Polynomial>& wire_polynomials,
+                                        Polynomial& s_lagrange,
+                                        Fr eta,
+                                        Fr beta,
+                                        Fr gamma);
 
 } // namespace honk::prover_library
