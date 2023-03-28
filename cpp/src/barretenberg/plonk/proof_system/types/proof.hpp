@@ -2,7 +2,6 @@
 #include <cstdint>
 #include <vector>
 #include "barretenberg/common/serialize.hpp"
-#include "barretenberg/common/streams.hpp"
 
 namespace plonk {
 
