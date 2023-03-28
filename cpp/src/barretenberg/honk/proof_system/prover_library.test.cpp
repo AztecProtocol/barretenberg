@@ -302,11 +302,11 @@ template <class FF> class ProverLibraryTests : public testing::Test {
 
     /**
      * @brief Check consistency of the computation of the sorted list accumulator
-     * @details This test compares a simple, unoptimized, easily readable calculation of the grand product z_lookup
+     * @details This test compares a simple, unoptimized, easily readable calculation of the sorted list accumulator
      * to the optimized implementation used by the prover. It's purpose is to provide confidence that some optimization
      * introduced into the calculation has not changed the result.
-     * @note This test does confirm the correctness of z_lookup, only that the two implementations yield an
-     * identical result.
+     * @note This test does confirm the correctness of the sorted list accumulator, only that the two implementations
+     * yield an identical result.
      */
     static void test_sorted_list_accumulator_construction()
     {
@@ -330,14 +330,14 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         Polynomial sorted_list_accumulator =
             prover_library::compute_sorted_list_accumulator(proving_key, sorted_list_polynomials, eta);
 
-        // Method 2: Compute local sorted list accumulator simply and efficiently
+        // Method 2: Compute local sorted list accumulator simply and inefficiently
         const Fr eta_sqr = eta.sqr();
         const Fr eta_cube = eta_sqr * eta;
 
         // Compute s = s_1 + η*s_2 + η²*s_3 + η³*s_4
-        Polynomial sorted_list_accumulator_expected{ circuit_size };
+        Polynomial sorted_list_accumulator_expected{ sorted_list_polynomials[0] };
         for (size_t i = 0; i < circuit_size; ++i) {
-            sorted_list_accumulator_expected[i] += sorted_list_polynomials[0][i] + sorted_list_polynomials[1][i] * eta +
+            sorted_list_accumulator_expected[i] += sorted_list_polynomials[1][i] * eta +
                                                    sorted_list_polynomials[2][i] * eta_sqr +
                                                    sorted_list_polynomials[3][i] * eta_cube;
         }
