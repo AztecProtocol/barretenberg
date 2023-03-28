@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 #include <vector>
+#include <ostream>
+#include <iomanip>
 #include "barretenberg/common/serialize.hpp"
 
 namespace plonk {
