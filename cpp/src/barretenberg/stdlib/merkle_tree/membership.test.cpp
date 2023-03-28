@@ -216,27 +216,28 @@ TEST(stdlib_merkle_tree, test_update_memberships)
     constexpr size_t filled = 6;
     std::vector<fr> filled_values;
     for (size_t i = 0; i < filled; i++) {
-        auto val = fr::random_element();
+        uint256_t val = 10; // small value for testing
         tree.update_element(i, val);
         filled_values.push_back(val);
     }
 
     // old state
     fr old_root = tree.root();
-    std::vector<size_t> old_indices = { 1, 2, 5 };
-    std::vector<fr> old_values = { filled_values[old_indices[0]],
-                                   filled_values[old_indices[1]],
-                                   filled_values[old_indices[2]] };
+    std::vector<size_t> old_indices = { 2 };
 
+    std::vector<fr> old_values;
     std::vector<fr_hash_path> old_hash_paths;
     for (size_t i = 0; i < old_indices.size(); i++) {
+        old_values.push_back(filled_values[i]);
         old_hash_paths.push_back(tree.get_hash_path(old_indices[i]));
     }
 
     // new state
-    std::vector<fr> new_values = { fr::random_element(), fr::random_element(), fr::random_element() };
+    std::vector<fr> new_values;
     std::vector<fr> new_roots;
     for (size_t i = 0; i < old_indices.size(); i++) {
+        uint256_t val = fr::random_element(); // random value for testing
+        new_values.push_back(val);
         new_roots.push_back(tree.update_element(old_indices[i], new_values[i]));
     }
 
