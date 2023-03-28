@@ -60,7 +60,6 @@ template <typename settings> class Prover {
 
     std::vector<barretenberg::polynomial> wire_polynomials;
     barretenberg::polynomial z_permutation;
-    barretenberg::polynomial z_lookup;
 
     std::shared_ptr<bonk::proving_key> key;
 

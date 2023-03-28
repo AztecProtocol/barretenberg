@@ -1,6 +1,6 @@
+#include "barretenberg/plonk/proof_system/types/prover_settings.hpp"
 #include "prover.hpp"
 #include "prover_library.hpp"
-#include "barretenberg/honk/composer/standard_honk_composer.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 
 #include "barretenberg/srs/reference_string/file_reference_string.hpp"
@@ -42,7 +42,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
      * @note This test does confirm the correctness of z_permutation, only that the two implementations yield an
      * identical result.
      */
-    static void test_permutation_grand_product_construction()
+    template <size_t program_width> static void test_permutation_grand_product_construction()
     {
         // Define some mock inputs for proving key constructor
         static const size_t num_gates = 8;
@@ -53,7 +53,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         auto proving_key = std::make_shared<bonk::proving_key>(
             num_gates, num_public_inputs, reference_string, plonk::ComposerType::STANDARD_HONK);
 
-        static const size_t program_width = StandardProver::settings_::program_width;
+        // static const size_t program_width = StandardProver::settings_::program_width;
 
         // Construct mock wire and permutation polynomials.
         // Note: for the purpose of checking the consistency between two methods of computing z_perm, these polynomials
@@ -162,8 +162,6 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         auto proving_key = std::make_shared<bonk::proving_key>(
             circuit_size, num_public_inputs, reference_string, plonk::ComposerType::STANDARD_HONK);
 
-        static const size_t program_width = StandardProver::settings_::program_width;
-
         // Construct mock wire and permutation polynomials.
         // Note: for the purpose of checking the consistency between two methods of computing z_perm, these polynomials
         // can simply be random. We're not interested in the particular properties of the result.
@@ -198,10 +196,16 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         auto eta = FF::random_element();
 
         // Method 1: Compute z_lookup using the prover library method
-        Polynomial z_lookup = prover_library::compute_lookup_grand_product<program_width>(
-            proving_key, wires, s_lagrange, eta, beta, gamma);
+        Polynomial z_lookup =
+            prover_library::compute_lookup_grand_product(proving_key, wires, s_lagrange, eta, beta, gamma);
 
-        // Method 2: Compute z_lookup locally in a way that is simple to read (but inefficient)
+        // Method 2: Compute the lookup grand product polynomial Z_lookup:
+        //
+        //                   ∏(1 + β) ⋅ ∏(q_lookup*f_k + γ) ⋅ ∏(t_k + βt_{k+1} + γ(1 + β))
+        // Z_lookup(X_j) = -----------------------------------------------------------------
+        //                                   ∏(s_k + βs_{k+1} + γ(1 + β))
+        //
+        // in a way that is simple to read (but inefficient). See prover library method for more details.
         const Fr eta_sqr = eta.sqr();
         const Fr eta_cube = eta_sqr * eta;
 
@@ -210,27 +214,8 @@ template <class FF> class ProverLibraryTests : public testing::Test {
             accumulators[i] = Polynomial{ circuit_size };
         }
 
-        // Step 1: Compute polynomials f, t and s and incorporate them into terms that are ultimately needed
-        // to construct the grand product polynomial Z_lookup(X):
-        // Note 1: In what follows, 't' is associated with table values (and is not to be confused with the
-        // quotient polynomial, also refered to as 't' elsewhere). Polynomial 's' is the sorted  concatenation
-        // of the witnesses and the table values.
-        // Note 2: Evaluation at Xω is indicated explicitly, e.g. 'p(Xω)'; evaluation at X is simply omitted, e.g. 'p'
-        //
-        // 1a.   Compute f, then set accumulators[0] = (q_lookup*f + γ), where
-        //
-        //         f = (w_1 + q_2*w_1(Xω)) + η(w_2 + q_m*w_2(Xω)) + η²(w_3 + q_c*w_3(Xω)) + η³q_index.
-        //      Note that q_2, q_m, and q_c are just the selectors from Standard Plonk that have been repurposed
-        //      in the context of the plookup gate to represent 'shift' values. For example, setting each of the
-        //      q_* in f to 2^8 facilitates operations on 32-bit values via four operations on 8-bit values. See
-        //      Ultra documentation for details.
-        //
-        // 1b.   Compute t, then set accumulators[1] = (t + βt(Xω) + γ(1 + β)), where t = t_1 + ηt_2 + η²t_3 + η³t_4
-        //
-        // 1c.   Set accumulators[2] = (1 + β)
-        //
-        // 1d.   Compute s, then set accumulators[3] = (s + βs(Xω) + γ(1 + β)), where s = s_1 + ηs_2 + η²s_3 + η³s_4
-        //
+        // Step (1)
+
         // Note: block_mask is used for efficient modulus, i.e. i % N := i & (N-1), for N = 2^k
         const size_t block_mask = circuit_size - 1;
         // Initialize 't(X)' to be used in an expression of the form t(X) + β*t(Xω)
@@ -264,27 +249,14 @@ template <class FF> class ProverLibraryTests : public testing::Test {
             table_i = table_i_plus_1;
         }
 
-        // Step 2: Compute the constituent product components of Z_lookup(X).
-        // Let ∏ := Prod_{k<j}. Let f_k, t_k and s_k now represent the k'th component of the polynomials f,t and s
-        // defined above. We compute the following four product polynomials needed to construct the grand product
-        // Z_lookup(X).
-        // 1.   accumulators[0][j] = ∏ (q_lookup*f_k + γ)
-        // 2.   accumulators[1][j] = ∏ (t_k + βt_{k+1} + γ(1 + β))
-        // 3.   accumulators[2][j] = ∏ (1 + β)
-        // 4.   accumulators[3][j] = ∏ (s_k + βs_{k+1} + γ(1 + β))
-        // Note: This is a small multithreading bottleneck, as we have only 4 parallelizable processes.
+        // Step (2)
         for (auto& accum : accumulators) {
             for (size_t i = 0; i < circuit_size - 1; ++i) {
                 accum[i + 1] *= accum[i];
             }
         }
 
-        // Step 3: Combine the accumulator product elements to construct Z_lookup(X).
-        //
-        //                  ∏ (1 + β) ⋅ ∏ (q_lookup*f_k + γ) ⋅ ∏ (t_k + βt_{k+1} + γ(1 + β))
-        //  Z_lookup = --------------------------------------------------------------------------
-        //                                  ∏ (s_k + βs_{k+1} + γ(1 + β))
-        //
+        // Step (3)
         Polynomial z_lookup_expected(circuit_size);
         z_lookup_expected[0] = FF::zero(); // Z_lookup_0 = 0
 
@@ -351,7 +323,8 @@ TYPED_TEST_SUITE(ProverLibraryTests, FieldTypes);
 
 TYPED_TEST(ProverLibraryTests, PermutationGrandProduct)
 {
-    TestFixture::test_permutation_grand_product_construction();
+    TestFixture::template test_permutation_grand_product_construction<plonk::standard_settings::program_width>();
+    TestFixture::template test_permutation_grand_product_construction<plonk::ultra_settings::program_width>();
 }
 
 TYPED_TEST(ProverLibraryTests, LookupGrandProduct)

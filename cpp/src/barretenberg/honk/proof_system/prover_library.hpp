@@ -16,10 +16,9 @@ Polynomial compute_permutation_grand_product(std::shared_ptr<bonk::proving_key>&
                                              Fr beta,
                                              Fr gamma);
 
-template <size_t program_width>
 Polynomial compute_lookup_grand_product(std::shared_ptr<bonk::proving_key>& key,
                                         std::vector<Polynomial>& wire_polynomials,
-                                        Polynomial& s_lagrange,
+                                        Polynomial& sorted_list_accumulator,
                                         Fr eta,
                                         Fr beta,
                                         Fr gamma);

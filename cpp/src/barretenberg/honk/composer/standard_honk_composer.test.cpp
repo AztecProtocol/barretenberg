@@ -8,7 +8,6 @@
 #include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
 #include "barretenberg/honk/utils/public_inputs.hpp"
-// #include "barretenberg/honk/proof_system/prover_library.hpp"
 
 #include <gtest/gtest.h>
 
