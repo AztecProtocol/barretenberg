@@ -13,7 +13,7 @@ NullifierMemoryTree::NullifierMemoryTree(size_t depth)
     hashes_.resize(total_size_ * 2 - 2);
 
     // Build the entire tree.
-    leaf zero_leaf = { 0, 0, 0 };
+    nullifier_leaf zero_leaf = { 0, 0, 0 };
     leaves_.push_back(zero_leaf);
     auto current = zero_leaf.hash();
     update_element(0, current);
@@ -22,7 +22,7 @@ NullifierMemoryTree::NullifierMemoryTree(size_t depth)
         for (size_t i = 0; i < layer_size; ++i) {
             hashes_[offset + i] = current;
         }
-        current = compress_native(current, current);
+        current = hash_pair_native(current, current);
     }
 
     root_ = current;
@@ -35,9 +35,9 @@ fr NullifierMemoryTree::update_element(fr const& value)
     bool is_already_present;
     std::tie(current, is_already_present) = find_closest_leaf(leaves_, value);
 
-    leaf new_leaf = { .value = value,
-                      .nextIndex = leaves_[current].nextIndex,
-                      .nextValue = leaves_[current].nextValue };
+    nullifier_leaf new_leaf = { .value = value,
+                                .nextIndex = leaves_[current].nextIndex,
+                                .nextValue = leaves_[current].nextValue };
     if (!is_already_present) {
         // Update the current leaf to point it to the new leaf
         leaves_[current].nextIndex = leaves_.size();

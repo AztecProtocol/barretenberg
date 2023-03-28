@@ -18,7 +18,7 @@ void print_tree(const size_t depth, std::vector<fr> hashes, std::string const& m
     }
 }
 
-bool check_hash_path(const fr& root, const fr_hash_path& path, const leaf& leaf_value, const size_t idx)
+bool check_hash_path(const fr& root, const fr_hash_path& path, const nullifier_leaf& leaf_value, const size_t idx)
 {
     auto current = leaf_value.hash();
     size_t depth_ = path.size();
@@ -26,7 +26,7 @@ bool check_hash_path(const fr& root, const fr_hash_path& path, const leaf& leaf_
     for (size_t i = 0; i < depth_; ++i) {
         fr left = (index & 1) ? path[i].first : current;
         fr right = (index & 1) ? current : path[i].second;
-        current = compress_native(left, right);
+        current = hash_pair_native(left, right);
         index >>= 1;
     }
     return current == root;
@@ -47,7 +47,7 @@ TEST(crypto_nullifier_tree, test_nullifier_memory)
      *  nextIdx   0       0       0       0        0       0       0       0
      *  nextVal   0       0       0       0        0       0       0       0
      */
-    leaf zero_leaf = { 0, 0, 0 };
+    nullifier_leaf zero_leaf = { 0, 0, 0 };
     EXPECT_EQ(tree.get_leaves().size(), 1);
     EXPECT_EQ(tree.get_leaves()[0], zero_leaf);
 
@@ -62,8 +62,8 @@ TEST(crypto_nullifier_tree, test_nullifier_memory)
      */
     tree.update_element(30);
     EXPECT_EQ(tree.get_leaves().size(), 2);
-    EXPECT_EQ(tree.get_leaves()[0].hash(), leaf({ 0, 1, 30 }).hash());
-    EXPECT_EQ(tree.get_leaves()[1].hash(), leaf({ 30, 0, 0 }).hash());
+    EXPECT_EQ(tree.get_leaves()[0].hash(), nullifier_leaf({ 0, 1, 30 }).hash());
+    EXPECT_EQ(tree.get_leaves()[1].hash(), nullifier_leaf({ 30, 0, 0 }).hash());
 
     /**
      * Add new value 10:
@@ -76,9 +76,9 @@ TEST(crypto_nullifier_tree, test_nullifier_memory)
      */
     tree.update_element(10);
     EXPECT_EQ(tree.get_leaves().size(), 3);
-    EXPECT_EQ(tree.get_leaves()[0].hash(), leaf({ 0, 2, 10 }).hash());
-    EXPECT_EQ(tree.get_leaves()[1].hash(), leaf({ 30, 0, 0 }).hash());
-    EXPECT_EQ(tree.get_leaves()[2].hash(), leaf({ 10, 1, 30 }).hash());
+    EXPECT_EQ(tree.get_leaves()[0].hash(), nullifier_leaf({ 0, 2, 10 }).hash());
+    EXPECT_EQ(tree.get_leaves()[1].hash(), nullifier_leaf({ 30, 0, 0 }).hash());
+    EXPECT_EQ(tree.get_leaves()[2].hash(), nullifier_leaf({ 10, 1, 30 }).hash());
 
     /**
      * Add new value 20:
@@ -91,18 +91,18 @@ TEST(crypto_nullifier_tree, test_nullifier_memory)
      */
     tree.update_element(20);
     EXPECT_EQ(tree.get_leaves().size(), 4);
-    EXPECT_EQ(tree.get_leaves()[0].hash(), leaf({ 0, 2, 10 }).hash());
-    EXPECT_EQ(tree.get_leaves()[1].hash(), leaf({ 30, 0, 0 }).hash());
-    EXPECT_EQ(tree.get_leaves()[2].hash(), leaf({ 10, 3, 20 }).hash());
-    EXPECT_EQ(tree.get_leaves()[3].hash(), leaf({ 20, 1, 30 }).hash());
+    EXPECT_EQ(tree.get_leaves()[0].hash(), nullifier_leaf({ 0, 2, 10 }).hash());
+    EXPECT_EQ(tree.get_leaves()[1].hash(), nullifier_leaf({ 30, 0, 0 }).hash());
+    EXPECT_EQ(tree.get_leaves()[2].hash(), nullifier_leaf({ 10, 3, 20 }).hash());
+    EXPECT_EQ(tree.get_leaves()[3].hash(), nullifier_leaf({ 20, 1, 30 }).hash());
 
     // Adding the same value must not affect anything
     tree.update_element(20);
     EXPECT_EQ(tree.get_leaves().size(), 4);
-    EXPECT_EQ(tree.get_leaves()[0].hash(), leaf({ 0, 2, 10 }).hash());
-    EXPECT_EQ(tree.get_leaves()[1].hash(), leaf({ 30, 0, 0 }).hash());
-    EXPECT_EQ(tree.get_leaves()[2].hash(), leaf({ 10, 3, 20 }).hash());
-    EXPECT_EQ(tree.get_leaves()[3].hash(), leaf({ 20, 1, 30 }).hash());
+    EXPECT_EQ(tree.get_leaves()[0].hash(), nullifier_leaf({ 0, 2, 10 }).hash());
+    EXPECT_EQ(tree.get_leaves()[1].hash(), nullifier_leaf({ 30, 0, 0 }).hash());
+    EXPECT_EQ(tree.get_leaves()[2].hash(), nullifier_leaf({ 10, 3, 20 }).hash());
+    EXPECT_EQ(tree.get_leaves()[3].hash(), nullifier_leaf({ 20, 1, 30 }).hash());
 
     /**
      * Add new value 50:
@@ -115,11 +115,11 @@ TEST(crypto_nullifier_tree, test_nullifier_memory)
      */
     tree.update_element(50);
     EXPECT_EQ(tree.get_leaves().size(), 5);
-    EXPECT_EQ(tree.get_leaves()[0].hash(), leaf({ 0, 2, 10 }).hash());
-    EXPECT_EQ(tree.get_leaves()[1].hash(), leaf({ 30, 4, 50 }).hash());
-    EXPECT_EQ(tree.get_leaves()[2].hash(), leaf({ 10, 3, 20 }).hash());
-    EXPECT_EQ(tree.get_leaves()[3].hash(), leaf({ 20, 1, 30 }).hash());
-    EXPECT_EQ(tree.get_leaves()[4].hash(), leaf({ 50, 0, 0 }).hash());
+    EXPECT_EQ(tree.get_leaves()[0].hash(), nullifier_leaf({ 0, 2, 10 }).hash());
+    EXPECT_EQ(tree.get_leaves()[1].hash(), nullifier_leaf({ 30, 4, 50 }).hash());
+    EXPECT_EQ(tree.get_leaves()[2].hash(), nullifier_leaf({ 10, 3, 20 }).hash());
+    EXPECT_EQ(tree.get_leaves()[3].hash(), nullifier_leaf({ 20, 1, 30 }).hash());
+    EXPECT_EQ(tree.get_leaves()[4].hash(), nullifier_leaf({ 50, 0, 0 }).hash());
 
     // Manually compute the node values
     auto e000 = tree.get_leaves()[0].hash();
@@ -127,18 +127,18 @@ TEST(crypto_nullifier_tree, test_nullifier_memory)
     auto e010 = tree.get_leaves()[2].hash();
     auto e011 = tree.get_leaves()[3].hash();
     auto e100 = tree.get_leaves()[4].hash();
-    auto e101 = leaf({ 0, 0, 0 }).hash();
-    auto e110 = leaf({ 0, 0, 0 }).hash();
-    auto e111 = leaf({ 0, 0, 0 }).hash();
+    auto e101 = nullifier_leaf({ 0, 0, 0 }).hash();
+    auto e110 = nullifier_leaf({ 0, 0, 0 }).hash();
+    auto e111 = nullifier_leaf({ 0, 0, 0 }).hash();
 
-    auto e00 = compress_native(e000, e001);
-    auto e01 = compress_native(e010, e011);
-    auto e10 = compress_native(e100, e101);
-    auto e11 = compress_native(e110, e111);
+    auto e00 = hash_pair_native(e000, e001);
+    auto e01 = hash_pair_native(e010, e011);
+    auto e10 = hash_pair_native(e100, e101);
+    auto e11 = hash_pair_native(e110, e111);
 
-    auto e0 = compress_native(e00, e01);
-    auto e1 = compress_native(e10, e11);
-    auto root = compress_native(e0, e1);
+    auto e0 = hash_pair_native(e00, e01);
+    auto e1 = hash_pair_native(e10, e11);
+    auto root = hash_pair_native(e0, e1);
 
     // Check the hash path at index 2 and 3
     // Note: This merkle proof would also serve as a non-membership proof of values in (10, 20) and (20, 30)
@@ -167,7 +167,7 @@ TEST(crypto_nullifier_tree, test_nullifier_tree)
     constexpr size_t depth = 8;
     NullifierMemoryTree tree(depth);
 
-    leaf zero_leaf = { 0, 0, 0 };
+    nullifier_leaf zero_leaf = { 0, 0, 0 };
     EXPECT_EQ(tree.get_leaves().size(), 1);
     EXPECT_EQ(tree.get_leaves()[0].hash(), zero_leaf.hash());
 

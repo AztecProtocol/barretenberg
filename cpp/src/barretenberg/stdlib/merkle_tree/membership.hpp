@@ -149,6 +149,24 @@ void update_membership(field_t<Composer> const& new_root,
     assert_check_membership(new_root, old_hashes, new_value, index, true, msg + "_new_value");
 }
 
+template <typename Composer>
+field_t<Composer> update_memberships(field_t<Composer> old_root,
+                                     std::vector<field_t<Composer>> const& new_roots,
+                                     std::vector<field_t<Composer>> const& new_values,
+                                     std::vector<field_t<Composer>> const& old_values,
+                                     std::vector<hash_path<Composer>> const& old_paths,
+                                     std::vector<bit_vector<Composer>> const& old_indicies)
+{
+    for (size_t i = 0; i < old_indicies.size(); i++) {
+        update_membership(
+            new_roots[i], new_values[i], old_root, old_paths[i], old_values[i], old_indicies[i], "update_memberships");
+
+        old_root = new_roots[i];
+    }
+
+    return old_root;
+}
+
 /**
  * Asserts if old and new state of the tree is correct after a subtree-update.
  *

@@ -78,14 +78,14 @@ class NullifierMemoryTree : public MemoryTree {
     fr update_element(fr const& value);
 
     const std::vector<barretenberg::fr>& get_hashes() { return hashes_; }
-    const std::vector<leaf>& get_leaves() { return leaves_; }
+    const std::vector<nullifier_leaf>& get_leaves() { return leaves_; }
 
   private:
     using MemoryTree::depth_;
     using MemoryTree::hashes_;
     using MemoryTree::root_;
     using MemoryTree::total_size_;
-    std::vector<leaf> leaves_;
+    std::vector<nullifier_leaf> leaves_;
 };
 
 } // namespace merkle_tree

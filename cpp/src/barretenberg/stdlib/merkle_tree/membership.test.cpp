@@ -203,3 +203,71 @@ TEST(stdlib_merkle_tree, test_tree)
     bool result = verifier.verify_proof(proof);
     EXPECT_EQ(result, true);
 }
+
+TEST(stdlib_merkle_tree, test_update_memberships)
+{
+    constexpr size_t depth = 3;
+    MemoryStore store;
+    MerkleTree tree(store, depth);
+    MemoryTree mem_tree(depth);
+
+    Composer composer = Composer();
+
+    constexpr size_t filled = 6;
+    std::vector<fr> filled_values;
+    for (size_t i = 0; i < filled; i++) {
+        auto val = fr::random_element();
+        tree.update_element(i, val);
+        filled_values.push_back(val);
+    }
+
+    // old state
+    fr old_root = tree.root();
+    std::vector<size_t> old_indices = { 1, 2, 5 };
+    std::vector<fr> old_values = { filled_values[old_indices[0]],
+                                   filled_values[old_indices[1]],
+                                   filled_values[old_indices[2]] };
+
+    std::vector<fr_hash_path> old_hash_paths;
+    for (size_t i = 0; i < old_indices.size(); i++) {
+        old_hash_paths.push_back(tree.get_hash_path(old_indices[i]));
+    }
+
+    // new state
+    std::vector<fr> new_values = { fr::random_element(), fr::random_element(), fr::random_element() };
+    std::vector<fr> new_roots;
+    for (size_t i = 0; i < old_indices.size(); i++) {
+        new_roots.push_back(tree.update_element(old_indices[i], new_values[i]));
+    }
+
+    // old state circuit types
+    field_ct old_root_ct = witness_ct(&composer, old_root);
+    std::vector<bit_vector<Composer>> old_indices_ct;
+    std::vector<field_ct> old_values_ct;
+    std::vector<hash_path<Composer>> old_hash_paths_ct;
+
+    // new state circuit types
+    std::vector<field_ct> new_values_ct;
+    std::vector<field_ct> new_roots_ct;
+
+    for (size_t i = 0; i < old_indices.size(); i++) {
+        auto idx_vec = field_ct(witness_ct(&composer, uint256_t(old_indices[i]))).decompose_into_bits(depth);
+        old_indices_ct.push_back(idx_vec);
+        old_values_ct.push_back(witness_ct(&composer, old_values[i]));
+        old_hash_paths_ct.push_back(create_witness_hash_path(composer, old_hash_paths[i]));
+
+        new_values_ct.push_back(witness_ct(&composer, new_values[i]));
+        new_roots_ct.push_back(witness_ct(&composer, new_roots[i]));
+    }
+
+    update_memberships(old_root_ct, new_roots_ct, new_values_ct, old_values_ct, old_hash_paths_ct, old_indices_ct);
+
+    info("err = ", composer.err());
+
+    auto prover = composer.create_prover();
+    printf("composer gates = %zu\n", composer.get_num_gates());
+    auto verifier = composer.create_verifier();
+    plonk::proof proof = prover.construct_proof();
+    bool result = verifier.verify_proof(proof);
+    EXPECT_EQ(result, true);
+}

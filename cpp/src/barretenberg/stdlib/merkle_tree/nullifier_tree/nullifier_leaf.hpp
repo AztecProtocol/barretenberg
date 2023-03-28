@@ -8,12 +8,12 @@ namespace merkle_tree {
 using namespace barretenberg;
 typedef uint256_t index_t;
 
-struct leaf {
+struct nullifier_leaf {
     fr value;
     index_t nextIndex;
     fr nextValue;
 
-    bool operator==(leaf const&) const = default;
+    bool operator==(nullifier_leaf const&) const = default;
 
     std::ostream& operator<<(std::ostream& os)
     {
@@ -37,14 +37,10 @@ struct leaf {
         write(buf, nextValue);
     }
 
-    barretenberg::fr hash() const
-    {
-        // TODO: FIX FIX FIX
-        return crypto::pedersen_commitment::compress_native({ value, nextIndex, nextValue });
-    }
+    barretenberg::fr hash() const { return stdlib::merkle_tree::hash_multiple_native({ value, nextIndex, nextValue }); }
 };
 
-inline std::pair<size_t, bool> find_closest_leaf(std::vector<leaf> const& leaves_, fr const& new_value)
+inline std::pair<size_t, bool> find_closest_leaf(std::vector<nullifier_leaf> const& leaves_, fr const& new_value)
 {
     std::vector<uint256_t> diff;
     bool repeated = false;

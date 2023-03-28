@@ -29,13 +29,13 @@ NullifierTree<Store>::NullifierTree(Store& store, size_t depth, uint8_t tree_id)
 
     // Compute the zero values at each layer.
     // Insert the zero leaf to the `leaves` and also to the tree at index 0.
-    auto zero_leaf = leaf{ .value = 0, .nextIndex = 0, .nextValue = 0 };
+    auto zero_leaf = nullifier_leaf{ .value = 0, .nextIndex = 0, .nextValue = 0 };
     leaves.push_back(zero_leaf);
     auto current = zero_leaf.hash();
     update_element(0, current);
     for (size_t i = 0; i < depth; ++i) {
         zero_hashes_[i] = current;
-        current = compress_native(current, current);
+        current = hash_pair_native(current, current);
     }
 }
 
@@ -53,7 +53,9 @@ template <typename Store> fr NullifierTree<Store>::update_element(fr const& valu
     bool is_already_present;
     std::tie(current, is_already_present) = find_closest_leaf(leaves, value);
 
-    leaf new_leaf = { .value = value, .nextIndex = leaves[current].nextIndex, .nextValue = leaves[current].nextValue };
+    nullifier_leaf new_leaf = { .value = value,
+                                .nextIndex = leaves[current].nextIndex,
+                                .nextValue = leaves[current].nextValue };
     if (!is_already_present) {
         // Update the current leaf to point it to the new leaf
         leaves[current].nextIndex = leaves.size();
