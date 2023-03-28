@@ -128,17 +128,13 @@ Polynomial compute_lookup_grand_product(std::shared_ptr<bonk::proving_key>& key,
     const size_t circuit_size = key->circuit_size;
 
     // Allocate 4 length n 'accumulator' polynomials. accumulators[0] will be used to construct
-    // z_lookup (lagrange base) in place. The
-    // remaining 3 are needed only locally in the construction of z_lookup.
+    // z_lookup (lagrange base) in place.
     // Note: The magic number 4 here comes from the structure of the grand product and is not related to the program
     // width.
     std::array<Polynomial, 4> accumulators;
     for (size_t i = 0; i < 4; ++i) {
         accumulators[i] = Polynomial{ key->circuit_size };
     }
-
-    // // TODO(luke): this was making a copy before - was that just an oversight?
-    // std::span<const Fr> s_lagrange = key->polynomial_store.get("s_lagrange");
 
     std::span<const Fr> column_1_step_size = key->polynomial_store.get("q_2_lagrange");
     std::span<const Fr> column_2_step_size = key->polynomial_store.get("q_m_lagrange");
@@ -290,11 +286,36 @@ Polynomial compute_lookup_grand_product(std::shared_ptr<bonk::proving_key>& key,
 
     Polynomial z_lookup(key->circuit_size);
     // Initialize 0th coefficient to 0 to ensure z_perm is left-shiftable via division by X in gemini
-    z_lookup[0] = 0;
+    z_lookup[0] = Fr::zero();
     barretenberg::polynomial_arithmetic::copy_polynomial(
         accumulators[0].data(), &z_lookup[1], key->circuit_size - 1, key->circuit_size - 1);
 
     return z_lookup;
+}
+
+Polynomial compute_sorted_list_accumulator(std::shared_ptr<bonk::proving_key>& key,
+                                           std::vector<Polynomial>& sorted_list_polynomials,
+                                           Fr eta)
+{
+    const size_t circuit_size = key->circuit_size;
+
+    barretenberg::polynomial sorted_list_accumulator(sorted_list_polynomials[0]);
+    std::span<const Fr> s_2 = sorted_list_polynomials[1];
+    std::span<const Fr> s_3 = sorted_list_polynomials[2];
+    std::span<const Fr> s_4 = sorted_list_polynomials[3];
+
+    // Construct s = s_1 + η*s_2 + η²*s_3 + η³*s_4 via Horner, i.e. s = s_1 + η(s_2 + η(s_3 + η*s_4))
+    for (size_t i = 0; i < circuit_size; ++i) {
+        Fr T0 = s_4[i];
+        T0 *= eta;
+        T0 += s_3[i];
+        T0 *= eta;
+        T0 += s_2[i];
+        T0 *= eta;
+        sorted_list_accumulator[i] += T0;
+    }
+
+    return sorted_list_accumulator;
 }
 
 template Polynomial compute_permutation_grand_product<plonk::standard_settings::program_width>(

@@ -35,7 +35,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
     }
 
     /**
-     * @brief Test the correctness of the computation of the permutation grand product polynomial z_permutation
+     * @brief Check consistency of the computation of the permutation grand product polynomial z_permutation.
      * @details This test compares a simple, unoptimized, easily readable calculation of the grand product z_permutation
      * to the optimized implementation used by the prover. It's purpose is to provide confidence that some optimization
      * introduced into the calculation has not changed the result.
@@ -144,7 +144,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
     };
 
     /**
-     * @brief Test the correctness of the computation of the lookup grand product polynomial z_lookup
+     * @brief Check consistency of the computation of the lookup grand product polynomial z_lookup.
      * @details This test compares a simple, unoptimized, easily readable calculation of the grand product z_lookup
      * to the optimized implementation used by the prover. It's purpose is to provide confidence that some optimization
      * introduced into the calculation has not changed the result.
@@ -197,14 +197,11 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         auto gamma = FF::random_element();
         auto eta = FF::random_element();
 
-        // Method 1: Compute z_perm using 'compute_grand_product_polynomial' as the prover would in practice
+        // Method 1: Compute z_lookup using the prover library method
         Polynomial z_lookup = prover_library::compute_lookup_grand_product<program_width>(
             proving_key, wires, s_lagrange, eta, beta, gamma);
 
-        // ----------------------------------------------------------------
-
-        const Fr beta_constant = beta + Fr(1);                // (1 + β)
-        const Fr gamma_beta_constant = gamma * beta_constant; // γ(1 + β)
+        // Method 2: Compute z_lookup locally in a way that is simple to read (but inefficient)
         const Fr eta_sqr = eta.sqr();
         const Fr eta_cube = eta_sqr * eta;
 
@@ -234,54 +231,37 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         //
         // 1d.   Compute s, then set accumulators[3] = (s + βs(Xω) + γ(1 + β)), where s = s_1 + ηs_2 + η²s_3 + η³s_4
         //
-
-        Fr T0;
         // Note: block_mask is used for efficient modulus, i.e. i % N := i & (N-1), for N = 2^k
         const size_t block_mask = circuit_size - 1;
         // Initialize 't(X)' to be used in an expression of the form t(X) + β*t(Xω)
-        Fr next_table = tables[0][0] + tables[1][0] * eta + tables[2][0] * eta_sqr + tables[3][0] * eta_cube;
-
+        Fr table_i = tables[0][0] + tables[1][0] * eta + tables[2][0] * eta_sqr + tables[3][0] * eta_cube;
         for (size_t i = 0; i < circuit_size; ++i) {
+            size_t shift_idx = (i + 1) & block_mask;
 
-            // Compute i'th element of f via Horner (see definition of f above)
-            T0 = lookup_index_selector[i];
-            T0 *= eta;
-            T0 += wires[2][(i + 1) & block_mask] * column_3_step_size[i];
-            T0 += wires[2][i];
-            T0 *= eta;
-            T0 += wires[1][(i + 1) & block_mask] * column_2_step_size[i];
-            T0 += wires[1][i];
-            T0 *= eta;
-            T0 += wires[0][(i + 1) & block_mask] * column_1_step_size[i];
-            T0 += wires[0][i];
-            T0 *= lookup_selector[i];
+            // f = (w_1 + q_2*w_1(Xω)) + η(w_2 + q_m*w_2(Xω)) + η²(w_3 + q_c*w_3(Xω)) + η³q_index.
+            Fr f_i = (wires[0][i] + wires[0][shift_idx] * column_1_step_size[i]) +
+                     (wires[1][i] + wires[1][shift_idx] * column_2_step_size[i]) * eta +
+                     (wires[2][i] + wires[2][shift_idx] * column_3_step_size[i]) * eta_sqr +
+                     eta_cube * lookup_index_selector[i];
 
-            // Set i'th element of polynomial q_lookup*f + γ
-            accumulators[0][i] = T0;
-            accumulators[0][i] += gamma;
+            // q_lookup * f + γ
+            accumulators[0][i] = lookup_selector[i] * f_i + gamma;
 
-            // Compute i'th element of t via Horner
-            T0 = tables[3][(i + 1) & block_mask];
-            T0 *= eta;
-            T0 += tables[2][(i + 1) & block_mask];
-            T0 *= eta;
-            T0 += tables[1][(i + 1) & block_mask];
-            T0 *= eta;
-            T0 += tables[0][(i + 1) & block_mask];
+            // t = t_1 + ηt_2 + η²t_3 + η³t_4
+            Fr table_i_plus_1 = tables[0][shift_idx] + eta * tables[1][shift_idx] + eta_sqr * tables[2][shift_idx] +
+                                eta_cube * tables[3][shift_idx];
 
-            // Set i'th element of polynomial (t + βt(Xω) + γ(1 + β))
-            accumulators[1][i] = T0 * beta + next_table;
-            next_table = T0;
-            accumulators[1][i] += gamma_beta_constant;
+            // t + βt(Xω) + γ(1 + β)
+            accumulators[1][i] = table_i + table_i_plus_1 * beta + gamma * (Fr::one() + beta);
 
-            // Set value of this accumulator to (1 + β)
-            accumulators[2][i] = beta_constant;
+            // (1 + β)
+            accumulators[2][i] = Fr::one() + beta;
 
-            // Set i'th element of polynomial (s + βs(Xω) + γ(1 + β))
-            accumulators[3][i] = s_lagrange[(i + 1) & block_mask];
-            accumulators[3][i] *= beta;
-            accumulators[3][i] += s_lagrange[i];
-            accumulators[3][i] += gamma_beta_constant;
+            // s + βs(Xω) + γ(1 + β)
+            accumulators[3][i] = s_lagrange[i] + beta * s_lagrange[shift_idx] + gamma * (Fr::one() + beta);
+
+            // Set t(X_i) for next iteration
+            table_i = table_i_plus_1;
         }
 
         // Step 2: Compute the constituent product components of Z_lookup(X).
@@ -301,50 +281,68 @@ template <class FF> class ProverLibraryTests : public testing::Test {
 
         // Step 3: Combine the accumulator product elements to construct Z_lookup(X).
         //
-        //                      ∏ (1 + β) ⋅ ∏ (q_lookup*f_k + γ) ⋅ ∏ (t_k + βt_{k+1} + γ(1 + β))
-        //  Z_lookup(g^j) = --------------------------------------------------------------------------
-        //                                      ∏ (s_k + βs_{k+1} + γ(1 + β))
+        //                  ∏ (1 + β) ⋅ ∏ (q_lookup*f_k + γ) ⋅ ∏ (t_k + βt_{k+1} + γ(1 + β))
+        //  Z_lookup = --------------------------------------------------------------------------
+        //                                  ∏ (s_k + βs_{k+1} + γ(1 + β))
         //
-        // Note: Montgomery batch inversion is used to efficiently compute the coefficients of Z_lookup
-        // rather than peforming n individual inversions. I.e. we first compute the double product P_n:
-        //
-        // P_n := ∏_{j<n} ∏_{k<j} S_k, where S_k = (s_k + βs_{k+1} + γ(1 + β))
-        //
-        // and then compute the inverse on P_n. Then we work back to front to obtain terms of the form
-        // 1/∏_{k<i} S_i that appear in Z_lookup, using the fact that P_i/P_{i+1} = 1/∏_{k<i} S_i. (Note
-        // that once we have 1/P_n, we can compute 1/P_{n-1} as (1/P_n) * ∏_{k<n} S_i, and
-        // so on).
-
-        // Compute Z_lookup using Montgomery batch inversion
-        // Note: This loop sets the values of z_lookup[i] for i = 1,...,(n-1), (Recall accumulators[0][i] = z_lookup[i +
-        // 1])
-
-        // Compute <Z_lookup numerator> * ∏_{j<i}∏_{k<j}S_k
-        Fr inversion_accumulator = Fr::one();
-        for (size_t i = 0; i < circuit_size - 1; ++i) {
-            accumulators[0][i] *= accumulators[2][i];
-            accumulators[0][i] *= accumulators[1][i];
-            accumulators[0][i] *= inversion_accumulator;
-            inversion_accumulator *= accumulators[3][i];
-        }
-        inversion_accumulator = inversion_accumulator.invert(); // invert
-
-        // Compute [Z_lookup numerator] * ∏_{j<i}∏_{k<j}S_k / ∏_{j<i+1}∏_{k<j}S_k = <Z_lookup numerator> /
-        // ∏_{k<i}S_k
-        for (size_t i = circuit_size - 2; i != std::numeric_limits<size_t>::max(); --i) {
-            // N.B. accumulators[0][i] = z_lookup[i + 1]
-            // We can avoid fully reducing z_lookup[i + 1] as the inverse fft will take care of that for us
-            accumulators[0][i] *= inversion_accumulator;
-            inversion_accumulator *= accumulators[3][i];
-        }
-
         Polynomial z_lookup_expected(circuit_size);
-        // Initialize 0th coefficient to 0 to ensure z_perm is left-shiftable via division by X in gemini
-        z_lookup_expected[0] = 0;
-        barretenberg::polynomial_arithmetic::copy_polynomial(
-            accumulators[0].data(), &z_lookup_expected[1], circuit_size - 1, circuit_size - 1);
+        z_lookup_expected[0] = FF::zero(); // Z_lookup_0 = 0
+
+        // Compute the numerator in accumulators[0]; The denominator is in accumulators[3]
+        for (size_t i = 0; i < circuit_size - 1; ++i) {
+            accumulators[0][i] *= accumulators[1][i] * accumulators[2][i];
+        }
+        // Compute Z_lookup_i, i = [1, n-1]
+        for (size_t i = 0; i < circuit_size - 1; ++i) {
+            z_lookup_expected[i + 1] = accumulators[0][i] / accumulators[3][i];
+        }
 
         EXPECT_EQ(z_lookup, z_lookup_expected);
+    };
+
+    /**
+     * @brief Check consistency of the computation of the sorted list accumulator
+     * @details This test compares a simple, unoptimized, easily readable calculation of the grand product z_lookup
+     * to the optimized implementation used by the prover. It's purpose is to provide confidence that some optimization
+     * introduced into the calculation has not changed the result.
+     * @note This test does confirm the correctness of z_lookup, only that the two implementations yield an
+     * identical result.
+     */
+    static void test_sorted_list_accumulator_construction()
+    {
+        // Construct a proving_key
+        static const size_t circuit_size = 8;
+        static const size_t num_public_inputs = 0;
+        auto reference_string = std::make_shared<bonk::FileReferenceString>(circuit_size + 1, "../srs_db/ignition");
+        auto proving_key = std::make_shared<bonk::proving_key>(
+            circuit_size, num_public_inputs, reference_string, plonk::ComposerType::STANDARD_HONK);
+
+        // Get random challenge eta
+        auto eta = FF::random_element();
+
+        // Construct mock sorted list polynomials.
+        std::vector<Polynomial> sorted_list_polynomials;
+        for (size_t i = 0; i < 4; ++i) {
+            sorted_list_polynomials.emplace_back(get_random_polynomial(circuit_size));
+        }
+
+        // Method 1: computed sorted list accumulator polynomial using prover library method
+        Polynomial sorted_list_accumulator =
+            prover_library::compute_sorted_list_accumulator(proving_key, sorted_list_polynomials, eta);
+
+        // Method 2: Compute local sorted list accumulator simply and efficiently
+        const Fr eta_sqr = eta.sqr();
+        const Fr eta_cube = eta_sqr * eta;
+
+        // Compute s = s_1 + η*s_2 + η²*s_3 + η³*s_4
+        Polynomial sorted_list_accumulator_expected{ circuit_size };
+        for (size_t i = 0; i < circuit_size; ++i) {
+            sorted_list_accumulator_expected[i] += sorted_list_polynomials[0][i] + sorted_list_polynomials[1][i] * eta +
+                                                   sorted_list_polynomials[2][i] * eta_sqr +
+                                                   sorted_list_polynomials[3][i] * eta_cube;
+        }
+
+        EXPECT_EQ(sorted_list_accumulator, sorted_list_accumulator_expected);
     };
 };
 
@@ -359,6 +357,11 @@ TYPED_TEST(ProverLibraryTests, PermutationGrandProduct)
 TYPED_TEST(ProverLibraryTests, LookupGrandProduct)
 {
     TestFixture::test_lookup_grand_product_construction();
+}
+
+TYPED_TEST(ProverLibraryTests, SortedListAccumulator)
+{
+    TestFixture::test_sorted_list_accumulator_construction();
 }
 
 } // namespace prover_library_tests

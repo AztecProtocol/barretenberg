@@ -24,4 +24,8 @@ Polynomial compute_lookup_grand_product(std::shared_ptr<bonk::proving_key>& key,
                                         Fr beta,
                                         Fr gamma);
 
+Polynomial compute_sorted_list_accumulator(std::shared_ptr<bonk::proving_key>& key,
+                                           std::vector<Polynomial>& sorted_list_polynomials,
+                                           Fr eta);
+
 } // namespace honk::prover_library
