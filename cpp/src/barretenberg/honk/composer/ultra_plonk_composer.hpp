@@ -1,6 +1,7 @@
 #pragma once
 #include "barretenberg/plonk/composer/composer_base.hpp"
 #include "barretenberg/plonk/composer/plookup_tables/plookup_tables.hpp"
+#include "barretenberg/honk/circuit_constructors/ultra_circuit_constructor.hpp"
 #include <optional>
 
 using namespace bonk;
@@ -10,6 +11,8 @@ namespace plonk {
 class UltraPlonkComposer : public ComposerBase {
 
   public:
+    UltraCircuitConstructor circuit_constructor;
+
     static constexpr ComposerType type = ComposerType::PLOOKUP;
     static constexpr MerkleHashType merkle_hash_type = MerkleHashType::LOOKUP_PEDERSEN;
     static constexpr size_t NUM_RESERVED_GATES = 4; // This must be >= num_roots_cut_out_of_vanishing_polynomial
@@ -159,6 +162,7 @@ class UltraPlonkComposer : public ComposerBase {
     UltraToStandardProver create_ultra_to_standard_prover();
     UltraToStandardVerifier create_ultra_to_standard_verifier();
 
+    // void create_add_gate(const add_triple& in) override { circuit_constructor.create_add_gate(in); }
     void create_add_gate(const add_triple& in) override;
 
     void create_big_add_gate(const add_quad& in, const bool use_next_gate_w_4 = false);
