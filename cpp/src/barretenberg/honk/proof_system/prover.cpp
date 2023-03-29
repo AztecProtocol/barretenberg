@@ -303,15 +303,16 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
     Polynomial batched_poly_to_be_shifted(key->circuit_size); // batched to-be-shifted polynomials
     batched_poly_to_be_shifted.add_scaled(prover_polynomials[POLYNOMIAL::Z_PERM], rhos[NUM_UNSHIFTED_POLYS]);
 
-    // Reserve space for d+1 Fold polynomials. At the end of this round, the last d-1 polynomials will
-    // correspond to Fold^(i). At the end of the full Gemini prover protocol, the first two will
-    // be the partially evaluated Fold polynomials Fold_{r}^(0) and Fold_{-r}^(0).
-    fold_polynomials.reserve(key->log_circuit_size + 1);
-    fold_polynomials.emplace_back(batched_poly_unshifted);
-    fold_polynomials.emplace_back(batched_poly_to_be_shifted);
+    // // Reserve space for d+1 Fold polynomials. At the end of this round, the last d-1 polynomials will
+    // // correspond to Fold^(i). At the end of the full Gemini prover protocol, the first two will
+    // // be the partially evaluated Fold polynomials Fold_{r}^(0) and Fold_{-r}^(0).
+    // fold_polynomials.reserve(key->log_circuit_size + 1);
+    // fold_polynomials.emplace_back(batched_poly_unshifted);
+    // fold_polynomials.emplace_back(batched_poly_to_be_shifted);
 
     // Compute d-1 polynomials Fold^(i), i = 1, ..., d-1.
-    Gemini::compute_fold_polynomials(sumcheck_output.challenge_point, fold_polynomials);
+    fold_polynomials = Gemini::compute_fold_polynomials(
+        sumcheck_output.challenge_point, std::move(batched_poly_unshifted), std::move(batched_poly_to_be_shifted));
 
     // Compute and add to trasnscript the commitments [Fold^(i)], i = 1, ..., d-1
     for (size_t l = 0; l < key->log_circuit_size - 1; ++l) {

@@ -102,10 +102,6 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
     batched_unshifted.add_scaled(poly2, rhos[1]);
     batched_to_be_shifted.add_scaled(poly2, rhos[2]);
 
-    std::vector<Polynomial> fold_polynomials;
-    fold_polynomials.emplace_back(batched_unshifted);
-    fold_polynomials.emplace_back(batched_to_be_shifted);
-
     // Compute batched commitments
     Commitment batched_commitment_unshifted = Commitment::zero();
     Commitment batched_commitment_to_be_shifted = Commitment::zero();
@@ -119,7 +115,8 @@ TYPED_TEST(BilinearAccumulationTest, GeminiShplonkKzgWithShift)
     // Compute:
     // - (d+1) opening pairs: {r, \hat{a}_0}, {-r^{2^i}, a_i}, i = 0, ..., d-1
     // - (d+1) Fold polynomials Fold_{r}^(0), Fold_{-r}^(0), and Fold^(i), i = 0, ..., d-1
-    Gemini::compute_fold_polynomials(mle_opening_point, fold_polynomials);
+    auto fold_polynomials = Gemini::compute_fold_polynomials(
+        mle_opening_point, std::move(batched_unshifted), std::move(batched_to_be_shifted));
 
     for (size_t l = 0; l < log_n - 1; ++l) {
         std::string label = "FOLD_" + std::to_string(l + 1);

@@ -78,18 +78,27 @@ template <typename Params> class MultilinearReductionScheme {
     /**
      * @brief Computes d-1 fold polynomials Fold_i, i = 1, ..., d-1
      *
-     * @param mle_opening_point u = (u₀,...,uₘ₋₁) is the MLE opening point
-     * @param fold_polynomials (m + 1) - many polynomials. The first two are assumed initialized to F(X) = ∑ⱼ ρʲfⱼ(X)
-     * and G(X) = ∑ⱼ ρᵏ⁺ʲ gⱼ(X), i.e. the batched unshifted polynomials and the batched to-be-shifted polynomials. This
-     * function populates the next d-1 elements with Fold_i, i = 1, ..., d-1.
-     *
+     * @param mle_opening_point multilinear opening point 'u'
+     * @param batched_unshifted F(X) = ∑ⱼ ρʲ   fⱼ(X)
+     * @param batched_to_be_shifted G(X) = ∑ⱼ ρᵏ⁺ʲ gⱼ(X)
+     * @return std::vector<Polynomial>
      */
-    static void compute_fold_polynomials(std::span<const Fr> mle_opening_point, auto& fold_polynomials)
+    static std::vector<Polynomial> compute_fold_polynomials(std::span<const Fr> mle_opening_point,
+                                                            const Polynomial&& batched_unshifted,
+                                                            const Polynomial&& batched_to_be_shifted)
     {
         const size_t num_variables = mle_opening_point.size(); // m
 
-        Polynomial& batched_F = fold_polynomials[0]; // F(X) = ∑ⱼ ρʲ   fⱼ(X)
-        Polynomial& batched_G = fold_polynomials[1]; // G(X) = ∑ⱼ ρᵏ⁺ʲ gⱼ(X)
+        // Allocate space for m+1 Fold polynomials
+        //
+        // The first two are populated here with the batched unshifted and to-be-shifted polynomial respectively.
+        // They will eventually contain the full batched polynomial A₀ partially evaluated at the challenges r,-r.
+        // This function populates the other m-1 polynomials with the foldings of A₀.
+        std::vector<Polynomial> fold_polynomials;
+        fold_polynomials.reserve(num_variables + 1);
+
+        Polynomial& batched_F = fold_polynomials.emplace_back(batched_unshifted);     // F(X) = ∑ⱼ ρʲ   fⱼ(X)
+        Polynomial& batched_G = fold_polynomials.emplace_back(batched_to_be_shifted); // G(X) = ∑ⱼ ρᵏ⁺ʲ gⱼ(X)
 
         // A₀(X) = F(X) + G↺(X) = F(X) + G(X)/X.
         Polynomial A_0(batched_F);
@@ -123,6 +132,8 @@ template <typename Params> class MultilinearReductionScheme {
             // set Aₗ₊₁ = Aₗ for the next iteration
             A_l = A_l_fold;
         }
+
+        return fold_polynomials;
     };
 
     /**
