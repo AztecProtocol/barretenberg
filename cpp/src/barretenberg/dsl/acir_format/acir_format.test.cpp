@@ -4,6 +4,115 @@
 #include <vector>
 #include "barretenberg/common/streams.hpp"
 
+TEST(acir_format, test_logic_gate_from_noir_circuit)
+{
+    /**
+     * constraints produced by Noir program:
+     * fn main(x : u32, y : pub u32) {
+     * let z = x ^ y;
+     *
+     * constrain z != 10;
+     * }
+     **/
+    acir_format::RangeConstraint range_a{
+        .witness = 1,
+        .num_bits = 32,
+    };
+    acir_format::RangeConstraint range_b{
+        .witness = 2,
+        .num_bits = 32,
+    };
+
+    acir_format::LogicConstraint logic_constraint{
+        .a = 1,
+        .b = 2,
+        .result = 3,
+        .num_bits = 32,
+        .is_xor_gate = 1,
+    };
+    poly_triple expr_a{
+        .a = 3,
+        .b = 4,
+        .c = 0,
+        .q_m = 0,
+        .q_l = 1,
+        .q_r = -1,
+        .q_o = 0,
+        .q_c = -10,
+    };
+    poly_triple expr_b{
+        .a = 4,
+        .b = 5,
+        .c = 6,
+        .q_m = 1,
+        .q_l = 0,
+        .q_r = 0,
+        .q_o = -1,
+        .q_c = 0,
+    };
+    poly_triple expr_c{
+        .a = 4,
+        .b = 6,
+        .c = 4,
+        .q_m = 1,
+        .q_l = 0,
+        .q_r = 0,
+        .q_o = -1,
+        .q_c = 0,
+
+    };
+    poly_triple expr_d{
+        .a = 6,
+        .b = 0,
+        .c = 0,
+        .q_m = 0,
+        .q_l = -1,
+        .q_r = 0,
+        .q_o = 0,
+        .q_c = 1,
+    };
+    // EXPR [ (1, _4, _5) (-1, _6) 0 ]
+    // EXPR [ (1, _4, _6) (-1, _4) 0 ]
+    // EXPR [ (-1, _6) 1 ]
+    std::cout << "made struct" << std::endl;
+
+    acir_format::acir_format constraint_system{
+        .varnum = 7,
+        .public_inputs = { 2 },
+        .fixed_base_scalar_mul_constraints = {},
+        .logic_constraints = { logic_constraint },
+        .range_constraints = { range_a, range_b },
+        .schnorr_constraints = {},
+        .ecdsa_constraints = {},
+        .sha256_constraints = {},
+        .blake2s_constraints = {},
+        .hash_to_field_constraints = {},
+        .pedersen_constraints = {},
+        .merkle_membership_constraints = {},
+        .constraints = { expr_a, expr_b, expr_c, expr_d },
+    };
+
+    uint256_t inverse_of_five = fr(5).invert();
+    auto composer = acir_format::create_circuit_with_witness(constraint_system,
+                                                             {
+                                                                 5,
+                                                                 10,
+                                                                 15,
+                                                                 5,
+                                                                 inverse_of_five,
+                                                                 1,
+                                                             });
+
+    std::cout << "made composer" << std::endl;
+
+    auto prover = composer.create_prover();
+    auto proof = prover.construct_proof();
+
+    auto verifier = composer.create_verifier();
+
+    EXPECT_EQ(verifier.verify_proof(proof), true);
+}
+
 TEST(acir_format, test_logic_gates)
 {
     std::cout << "in the logic gate test" << std::endl;
