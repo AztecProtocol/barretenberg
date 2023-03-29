@@ -11,6 +11,7 @@ namespace merkle_tree {
 using namespace barretenberg;
 
 typedef std::vector<std::pair<fr, fr>> fr_hash_path;
+typedef std::vector<fr> fr_frontier_path;
 template <typename Ctx> using hash_path = std::vector<std::pair<field_t<Ctx>, field_t<Ctx>>>;
 
 inline fr_hash_path get_new_hash_path(fr_hash_path const& old_path, uint128_t index, fr const& value)
