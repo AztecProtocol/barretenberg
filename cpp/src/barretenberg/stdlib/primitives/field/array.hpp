@@ -61,6 +61,10 @@ void array_push(std::array<field_t<Composer>, SIZE>& arr, field_t<Composer> cons
     already_pushed.assert_equal(true, "array_push cannot push to a full array");
 };
 
+/**
+ * Note: this assumes `0` always means 'not used', so be careful. If you actually want `0` to be counted, you'll need
+ * something else.
+ */
 template <typename Composer, size_t SIZE>
 inline size_t array_push(std::array<std::optional<field_t<Composer>>, SIZE>& arr, field_t<Composer> const& value)
 {
@@ -73,6 +77,10 @@ inline size_t array_push(std::array<std::optional<field_t<Composer>>, SIZE>& arr
     throw_or_abort("array_push cannot push to a full array");
 };
 
+/**
+ * Note: this assumes `0` always means 'not used', so be careful. If you actually want `0` to be counted, you'll need
+ * something else.
+ */
 template <typename T, size_t SIZE>
 inline size_t array_push(std::array<std::shared_ptr<T>, SIZE>& arr, std::shared_ptr<T> const& value)
 {
@@ -85,6 +93,10 @@ inline size_t array_push(std::array<std::shared_ptr<T>, SIZE>& arr, std::shared_
     throw_or_abort("array_push cannot push to a full array");
 };
 
+/**
+ * Note: this assumes `0` always means 'not used', so be careful. If you actually want `0` to be counted, you'll need
+ * something else.
+ */
 template <typename Composer, typename T, size_t SIZE> inline void array_push(std::array<T, SIZE>& arr, T const& value)
 {
     bool_t<Composer> already_pushed = false;
