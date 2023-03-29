@@ -102,6 +102,8 @@ template <typename Composer> class address_t {
 
     bool_t<Composer> operator==(const address_t& other) const { return this->to_field() == other.to_field(); }
 
+    bool_t<Composer> operator!=(const address_t& other) const { return this->to_field() != other.to_field(); }
+
     field_t<Composer> to_field() const { return address_; }
 
     fr get_value() const { return address_.get_value(); };
