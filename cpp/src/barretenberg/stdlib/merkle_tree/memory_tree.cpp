@@ -19,7 +19,7 @@ MemoryTree::MemoryTree(size_t depth)
         for (size_t i = 0; i < layer_size; ++i) {
             hashes_[offset + i] = current;
         }
-        current = compress_native(current, current);
+        current = hash_pair_native(current, current);
     }
 
     root_ = current;
@@ -48,7 +48,7 @@ fr MemoryTree::update_element(size_t index, fr const& value)
     for (size_t i = 0; i < depth_; ++i) {
         hashes_[offset + index] = current;
         index &= (~0ULL) - 1;
-        current = compress_native(hashes_[offset + index], hashes_[offset + index + 1]);
+        current = hash_pair_native(hashes_[offset + index], hashes_[offset + index + 1]);
         offset += layer_size;
         layer_size >>= 1;
         index >>= 1;
