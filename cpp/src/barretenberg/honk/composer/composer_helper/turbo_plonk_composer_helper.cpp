@@ -42,15 +42,14 @@ std::shared_ptr<bonk::proving_key> TurboPlonkComposerHelper<CircuitConstructor>:
                                                  minimum_circuit_size,
                                                  num_randomized_gates,
                                                  plonk::ComposerType::TURBO);
-    // Compute lagrange selectors
+
     construct_lagrange_selector_forms(circuit_constructor, circuit_proving_key.get());
-    // Make all selectors nonzero
+
     enforce_nonzero_polynomial_selectors(circuit_constructor, circuit_proving_key.get());
 
-    // Compute selectors in monomial form
     compute_monomial_and_coset_selector_forms(circuit_proving_key.get(), turbo_selector_properties());
 
-    // Compute sigma polynomials (we should update that late)
+    // Compute sigma polynomials (TODO(kesha): we should update that late)
     bonk::compute_standard_plonk_sigma_permutations<CircuitConstructor::program_width>(circuit_constructor,
                                                                                        circuit_proving_key.get());
     circuit_proving_key->recursive_proof_public_input_indices =
@@ -131,18 +130,12 @@ plonk::TurboProver TurboPlonkComposerHelper<CircuitConstructor>::create_prover(
 
     plonk::TurboProver output_state(circuit_proving_key, create_manifest(circuit_constructor.public_inputs.size()));
 
-    std::unique_ptr<ProverPermutationWidget<4, false>> permutation_widget =
-        std::make_unique<ProverPermutationWidget<4, false>>(circuit_proving_key.get());
+    auto permutation_widget = std::make_unique<ProverPermutationWidget<4, false>>(circuit_proving_key.get());
 
-    std::unique_ptr<ProverTurboRangeWidget<turbo_settings>> range_widget =
-        std::make_unique<ProverTurboRangeWidget<turbo_settings>>(circuit_proving_key.get());
-    std::unique_ptr<ProverTurboLogicWidget<turbo_settings>> logic_widget =
-        std::make_unique<ProverTurboLogicWidget<turbo_settings>>(circuit_proving_key.get());
-
-    std::unique_ptr<ProverTurboArithmeticWidget<turbo_settings>> arithmetic_widget =
-        std::make_unique<ProverTurboArithmeticWidget<turbo_settings>>(circuit_proving_key.get());
-    std::unique_ptr<ProverTurboFixedBaseWidget<turbo_settings>> fixed_base_widget =
-        std::make_unique<ProverTurboFixedBaseWidget<turbo_settings>>(circuit_proving_key.get());
+    auto arithmetic_widget = std::make_unique<ProverTurboArithmeticWidget<turbo_settings>>(circuit_proving_key.get());
+    auto fixed_base_widget = std::make_unique<ProverTurboFixedBaseWidget<turbo_settings>>(circuit_proving_key.get());
+    auto range_widget = std::make_unique<ProverTurboRangeWidget<turbo_settings>>(circuit_proving_key.get());
+    auto logic_widget = std::make_unique<ProverTurboLogicWidget<turbo_settings>>(circuit_proving_key.get());
 
     output_state.random_widgets.emplace_back(std::move(permutation_widget));
 

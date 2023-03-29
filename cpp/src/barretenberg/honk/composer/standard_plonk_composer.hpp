@@ -29,7 +29,7 @@ class StandardPlonkComposer {
 
     // Leaving it in for now just in case
     bool contains_recursive_proof = false;
-    static constexpr size_t program_width = STANDARD_BONK_WIDTH;
+    static constexpr size_t program_width = STANDARD_WIDTH;
 
     /**Standard methods*/
 
@@ -187,7 +187,6 @@ class StandardPlonkComposer {
      *
      * @return A new initialized prover.
      */
-    plonk::Prover preprocess() { return composer_helper.create_prover(circuit_constructor); };
     plonk::Prover create_prover() { return composer_helper.create_prover(circuit_constructor); };
 
     static transcript::Manifest create_manifest(const size_t num_public_inputs)

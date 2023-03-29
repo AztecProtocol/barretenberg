@@ -11,7 +11,7 @@ inline std::vector<std::string> turbo_selector_names()
                                      "q_5", "q_arith", "q_fixed_base", "q_range", "q_logic" };
     return result;
 }
-class TurboCircuitConstructor : public CircuitConstructorBase<TURBO_BONK_WIDTH> {
+class TurboCircuitConstructor : public CircuitConstructorBase<TURBO_WIDTH> {
 
     enum TurboSelectors { QM, QC, Q1, Q2, Q3, Q4, Q5, QARITH, QFIXED, QRANGE, QLOGIC, NUM };
 

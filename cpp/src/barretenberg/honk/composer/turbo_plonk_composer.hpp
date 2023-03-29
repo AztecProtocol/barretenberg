@@ -46,16 +46,13 @@ class TurboPlonkComposer {
         : circuit_constructor(size_hint)
         , composer_helper(crs_factory)
         , num_gates(circuit_constructor.num_gates)
-        , variables(circuit_constructor.variables)
+        , variables(circuit_constructor.variables){};
 
-    {}
     TurboPlonkComposer(std::unique_ptr<bonk::ReferenceStringFactory>&& crs_factory, const size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(std::move(crs_factory))
         , num_gates(circuit_constructor.num_gates)
-        , variables(circuit_constructor.variables)
-
-    {}
+        , variables(circuit_constructor.variables){};
 
     TurboPlonkComposer(std::shared_ptr<bonk::proving_key> const& p_key,
                        std::shared_ptr<bonk::verification_key> const& v_key,
@@ -63,8 +60,7 @@ class TurboPlonkComposer {
         : circuit_constructor(size_hint)
         , composer_helper(p_key, v_key)
         , num_gates(circuit_constructor.num_gates)
-        , variables(circuit_constructor.variables)
-    {}
+        , variables(circuit_constructor.variables){};
 
     TurboPlonkComposer(const TurboPlonkComposer& other) = delete;
     TurboPlonkComposer(TurboPlonkComposer&& other) = default;
@@ -198,7 +194,6 @@ class TurboPlonkComposer {
      *
      * @return A new initialized prover.
      */
-    plonk::TurboProver preprocess() { return composer_helper.create_prover(circuit_constructor); };
     plonk::TurboProver create_prover() { return composer_helper.create_prover(circuit_constructor); };
 
     static transcript::Manifest create_manifest(const size_t num_public_inputs)
