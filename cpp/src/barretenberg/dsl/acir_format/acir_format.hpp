@@ -11,8 +11,6 @@
 #include "hash_to_field.hpp"
 #include "barretenberg/stdlib/types/types.hpp"
 
-using namespace plonk::stdlib::types;
-
 namespace acir_format {
 
 struct acir_format {

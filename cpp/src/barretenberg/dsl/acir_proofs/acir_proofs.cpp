@@ -44,18 +44,7 @@ uint32_t get_total_circuit_size(uint8_t const* constraint_system_buf)
     auto crs_factory = std::make_unique<bonk::ReferenceStringFactory>();
     auto composer = create_circuit(constraint_system, std::move(crs_factory));
 
-    size_t tables_size = 0;
-    size_t lookups_size = 0;
-    for (const auto& table : composer.lookup_tables) {
-        tables_size += table.size;
-        lookups_size += table.lookup_gates.size();
-    }
-
-    auto minimum_circuit_size = tables_size + lookups_size;
-    auto num_filled_gates = composer.get_num_gates() + composer.public_inputs.size();
-    const size_t total_num_gates = std::max(minimum_circuit_size, num_filled_gates);
-
-    return static_cast<uint32_t>(total_num_gates);
+    return static_cast<uint32_t>(composer.get_total_circuit_size());
 }
 
 size_t init_proving_key(uint8_t const* constraint_system_buf, uint8_t const** pk_buf)
@@ -129,7 +118,7 @@ size_t new_proof(void* pippenger,
 
     auto prover = composer.create_prover();
 
-    auto heapProver = new UltraProver(std::move(prover));
+    auto heapProver = new stdlib::types::Prover(std::move(prover));
     auto& proof_data = heapProver->construct_proof().proof_data;
     *proof_data_buf = proof_data.data();
 
