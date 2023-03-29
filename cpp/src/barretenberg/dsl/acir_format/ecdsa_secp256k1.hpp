@@ -2,8 +2,6 @@
 #include <vector>
 #include "barretenberg/stdlib/types/types.hpp"
 
-using namespace plonk::stdlib::types;
-
 namespace acir_format {
 
 struct EcdsaSecp256k1Constraint {
@@ -30,7 +28,7 @@ struct EcdsaSecp256k1Constraint {
     friend bool operator==(EcdsaSecp256k1Constraint const& lhs, EcdsaSecp256k1Constraint const& rhs) = default;
 };
 
-void create_ecdsa_verify_constraints(Composer& composer, const EcdsaSecp256k1Constraint& input);
+void create_ecdsa_verify_constraints(plonk::stdlib::types::Composer& composer, const EcdsaSecp256k1Constraint& input);
 
 template <typename B> inline void read(B& buf, EcdsaSecp256k1Constraint& constraint)
 {

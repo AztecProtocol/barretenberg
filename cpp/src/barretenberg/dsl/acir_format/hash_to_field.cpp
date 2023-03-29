@@ -1,6 +1,8 @@
 #include "hash_to_field.hpp"
 #include "round.hpp"
 
+using namespace plonk::stdlib::types;
+
 namespace acir_format {
 
 void create_hash_to_field_constraints(Composer& composer, const HashToFieldConstraint constraint)

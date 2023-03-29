@@ -2,6 +2,8 @@
 #include "round.hpp"
 #include "barretenberg/stdlib/hash/sha256/sha256.hpp"
 
+using namespace plonk::stdlib::types;
+
 namespace acir_format {
 
 // This function does not work (properly) because the stdlib:sha256 function is not working correctly for 512 bits

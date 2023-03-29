@@ -1,5 +1,7 @@
 #include "pedersen.hpp"
 
+using namespace plonk::stdlib::types;
+
 namespace acir_format {
 
 void create_pedersen_constraint(Composer& composer, const PedersenConstraint& input)

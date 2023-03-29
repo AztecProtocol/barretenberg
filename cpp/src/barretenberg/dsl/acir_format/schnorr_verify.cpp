@@ -1,6 +1,8 @@
 #include "schnorr_verify.hpp"
 #include "barretenberg/crypto/schnorr/schnorr.hpp"
 
+using namespace plonk::stdlib::types;
+
 namespace acir_format {
 
 crypto::schnorr::signature convert_signature(Composer& composer, std::vector<uint32_t> signature)

@@ -2,8 +2,6 @@
 #include <vector>
 #include "barretenberg/stdlib/types/types.hpp"
 
-using namespace plonk::stdlib::types;
-
 namespace acir_format {
 
 struct SchnorrConstraint {
@@ -27,7 +25,7 @@ struct SchnorrConstraint {
     friend bool operator==(SchnorrConstraint const& lhs, SchnorrConstraint const& rhs) = default;
 };
 
-void create_schnorr_verify_constraints(Composer& composer, const SchnorrConstraint& input);
+void create_schnorr_verify_constraints(plonk::stdlib::types::Composer& composer, const SchnorrConstraint& input);
 
 template <typename B> inline void read(B& buf, SchnorrConstraint& constraint)
 {

@@ -1,5 +1,7 @@
 #include "acir_format.hpp"
 
+using namespace plonk::stdlib::types;
+
 namespace acir_format {
 
 void read_witness(Composer& composer, std::vector<barretenberg::fr> witness)

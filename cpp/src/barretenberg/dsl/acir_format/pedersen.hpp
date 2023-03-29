@@ -2,8 +2,6 @@
 #include <vector>
 #include "barretenberg/stdlib/types/types.hpp"
 
-using namespace plonk::stdlib::types;
-
 namespace acir_format {
 
 // P = xG + bH
@@ -15,7 +13,7 @@ struct PedersenConstraint {
     friend bool operator==(PedersenConstraint const& lhs, PedersenConstraint const& rhs) = default;
 };
 
-void create_pedersen_constraint(Composer& composer, const PedersenConstraint& input);
+void create_pedersen_constraint(plonk::stdlib::types::Composer& composer, const PedersenConstraint& input);
 
 template <typename B> inline void read(B& buf, PedersenConstraint& constraint)
 {

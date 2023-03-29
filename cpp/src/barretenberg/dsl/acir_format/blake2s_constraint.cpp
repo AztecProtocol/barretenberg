@@ -1,6 +1,8 @@
 #include "blake2s_constraint.hpp"
 #include "round.hpp"
 
+using namespace plonk::stdlib::types;
+
 namespace acir_format {
 
 void create_blake2s_constraints(Composer& composer, const Blake2sConstraint& constraint)
