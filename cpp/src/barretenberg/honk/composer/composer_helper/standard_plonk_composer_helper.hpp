@@ -8,8 +8,8 @@
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/proof_system/verification_key/verification_key.hpp"
 #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
-#include "composer_helper_lib.hpp"
-#include "permutation_helper.hpp"
+#include "barretenberg/proof_system/composer/composer_helper_lib.hpp"
+#include "barretenberg/proof_system/composer/permutation_helper.hpp"
 
 #include <utility>
 

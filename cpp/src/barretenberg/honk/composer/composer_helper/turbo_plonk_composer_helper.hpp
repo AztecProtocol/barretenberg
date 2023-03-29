@@ -1,6 +1,6 @@
 #pragma once
 
-#include "composer_helper_lib.hpp"
+#include "barretenberg/proof_system/composer/composer_helper_lib.hpp"
 #include "barretenberg/srs/reference_string/file_reference_string.hpp"
 #include "barretenberg/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"

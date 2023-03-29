@@ -17,7 +17,7 @@
 #include "barretenberg/ecc/curves/bn254/pairing.hpp"
 #include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"
-#include "barretenberg/honk/composer/composer_helper/permutation_helper.hpp"
+#include "barretenberg/proof_system/composer/permutation_helper.hpp"
 #include <math.h>
 #include <optional>
 #include <string>

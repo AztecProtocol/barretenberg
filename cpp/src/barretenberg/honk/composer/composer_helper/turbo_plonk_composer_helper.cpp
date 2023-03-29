@@ -10,7 +10,7 @@
 #include "barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp"
 #include "barretenberg/plonk/proof_system/widgets/transition_widgets/transition_widget.hpp"
 #include "barretenberg/plonk/proof_system/widgets/transition_widgets/turbo_arithmetic_widget.hpp"
-#include "permutation_helper.hpp"
+#include "barretenberg/proof_system/composer/permutation_helper.hpp"
 using namespace barretenberg;
 
 namespace bonk {

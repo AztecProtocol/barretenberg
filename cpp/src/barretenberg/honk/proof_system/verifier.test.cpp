@@ -11,7 +11,7 @@
 #include "barretenberg/srs/reference_string/file_reference_string.hpp"
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"
 #include "barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp"
-#include "barretenberg/honk/composer/composer_helper/permutation_helper.hpp"
+#include "barretenberg/proof_system/composer/permutation_helper.hpp"
 #include <vector>
 
 using namespace barretenberg;
