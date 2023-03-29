@@ -18,6 +18,7 @@ option(BENCHMARKS "Build benchmarks" ON)
 option(FUZZING "Build fuzzing harnesses" OFF)
 option(DISABLE_TBB "Intel Thread Building Blocks" ON)
 option(COVERAGE "Enable collecting coverage from tests" OFF)
+option(SERIALIZE_CANARY "Build with serialize canary" OFF)
 option(ENABLE_HEAVY_TESTS "Enable heavy tests when collecting coverage" OFF)
 option(INSTALL_BARRETENBERG "Enable installation of barretenberg. (Projects embedding barretenberg may want to turn this OFF.)" ON)
 option(USE_TURBO "Enable the use of TurboPlonk in barretenberg." OFF)
@@ -37,6 +38,10 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64" OR CMAKE_SYSTEM_PROCESSOR MATCHES "a
     set(RUN_HAVE_STD_REGEX 0)
     set(RUN_HAVE_POSIX_REGEX 0)
     set(DISABLE_TBB 0)
+endif()
+
+if(SERIALIZE_CANARY)
+    add_definitions(-DENABLE_SERIALIZE_CANARY)
 endif()
 
 if(FUZZING)
