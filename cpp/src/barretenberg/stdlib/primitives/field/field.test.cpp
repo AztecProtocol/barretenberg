@@ -3,6 +3,7 @@
 #include "array.hpp"
 #include "barretenberg/plonk/proof_system/constants.hpp"
 #include <gtest/gtest.h>
+#include <utility>
 #include "barretenberg/honk/composer/standard_honk_composer.hpp"
 #include "barretenberg/plonk/composer/standard_composer.hpp"
 #include "barretenberg/plonk/composer/ultra_composer.hpp"
@@ -1242,12 +1243,14 @@ template <typename Composer> class stdlib_field : public testing::Test {
             : m_a(field_ct(0))
             , m_b(field_ct(0))
         {}
-        MockClass(uint32_t a, uint32_t b)
-            : m_a(field_ct(a))
-            , m_b(field_ct(b))
+        MockClass(field_ct a, field_ct b)
+            : m_a(a)
+            , m_b(b)
         {}
 
-        bool is_empty() const { return m_a == 0 && m_b == 0; }
+        bool_ct is_empty() const { return m_a == 0 && m_b == 0; }
+
+        std::pair<field_ct, field_ct> get_values() { return std::make_pair(m_a, m_b); }
 
         void conditional_select(bool_ct const& condition, MockClass const& other)
         {
@@ -1262,24 +1265,51 @@ template <typename Composer> class stdlib_field : public testing::Test {
 
     void test_array_push_generic()
     {
-        info("lol");
-        UltraComposer composer = UltraComposer();
+        Composer composer = Composer();
 
         constexpr size_t SIZE = 5;
         std::array<MockClass, SIZE> arr{};
 
         // Push values into the array
-        field_ct::template array_push<Composer, MockClass, SIZE>(arr, MockClass(1, 10));
-        field_ct::template array_push<Composer, MockClass, SIZE>(arr, MockClass(2, 20));
-        field_ct::template array_push<Composer, MockClass, SIZE>(arr, MockClass(3, 30));
+        plonk::stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 1), witness_ct(&composer, 10)));
+        plonk::stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 2), witness_ct(&composer, 20)));
+        plonk::stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 3), witness_ct(&composer, 30)));
 
         // Check the values in the array
-        EXPECT_EQ(arr[0].get_value(), 1);
-        EXPECT_EQ(arr[1].get_value(), 2);
-        EXPECT_EQ(arr[2].get_value(), 3);
+        EXPECT_EQ(arr[0].get_values().first.get_value(), 1);
+        EXPECT_EQ(arr[0].get_values().second.get_value(), 10);
+        EXPECT_EQ(arr[1].get_values().first.get_value(), 2);
+        EXPECT_EQ(arr[1].get_values().second.get_value(), 20);
+        EXPECT_EQ(arr[2].get_values().first.get_value(), 3);
+        EXPECT_EQ(arr[2].get_values().second.get_value(), 30);
 
-        // Try to push another value, which should fail
-        EXPECT_THROW(array_push<Composer>(arr, MockClass(4)), std::runtime_error);
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
+        auto proof = prover.construct_proof();
+        info("composer gates = ", composer.get_num_gates());
+        bool proof_result = verifier.verify_proof(proof);
+        EXPECT_EQ(proof_result, true);
+    }
+
+    void test_array_push_generic_full()
+    {
+        Composer composer = Composer();
+
+        constexpr size_t SIZE = 5;
+        std::array<MockClass, SIZE> arr{};
+
+        // Push values into the array
+        plonk::stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 1), witness_ct(&composer, 10)));
+        plonk::stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 2), witness_ct(&composer, 20)));
+        plonk::stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 3), witness_ct(&composer, 30)));
+        plonk::stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 4), witness_ct(&composer, 40)));
+        plonk::stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 5), witness_ct(&composer, 50)));
+
+        // Try to push into a full array
+        plonk::stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 6), witness_ct(&composer, 60)));
+
+        EXPECT_EQ(composer.failed(), true);
+        EXPECT_EQ(composer.err(), "array_push cannot push to a full array");
     }
 };
 
@@ -1431,6 +1461,10 @@ TYPED_TEST(stdlib_field, test_array_push_optional)
 TYPED_TEST(stdlib_field, test_array_push_generic)
 {
     TestFixture::test_array_push_generic();
+}
+TYPED_TEST(stdlib_field, test_array_push_generic_full)
+{
+    TestFixture::test_array_push_generic_full();
 }
 TYPED_TEST(stdlib_field, test_array_push_array_to_array)
 {
