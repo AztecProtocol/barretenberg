@@ -187,7 +187,7 @@ template <typename Curve> struct verification_key {
         }
     }
 
-  private:
+  public:
     field_t<Composer> compress()
     {
         field_t<Composer> compressed_domain = domain.compress();
@@ -215,7 +215,7 @@ template <typename Curve> struct verification_key {
         return compressed_key;
     }
 
-    barretenberg::fr compress_native(const std::shared_ptr<plonk::verification_key>& key)
+    static barretenberg::fr compress_native(const std::shared_ptr<plonk::verification_key>& key)
     {
         barretenberg::fr compressed_domain = evaluation_domain<Composer>::compress_native(key->domain);
 
