@@ -1,6 +1,6 @@
 #pragma once
 #include "composer_helper/turbo_plonk_composer_helper.hpp"
-#include "barretenberg/honk/circuit_constructors/turbo_circuit_constructor.hpp"
+#include "barretenberg/proof_system/circuit_constructors/turbo_circuit_constructor.hpp"
 using namespace bonk;
 namespace plonk {
 /**
