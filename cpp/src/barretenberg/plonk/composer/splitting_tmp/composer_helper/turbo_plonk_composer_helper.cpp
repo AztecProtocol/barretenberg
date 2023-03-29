@@ -13,7 +13,7 @@
 #include "barretenberg/proof_system/composer/permutation_helper.hpp"
 using namespace barretenberg;
 
-namespace bonk {
+namespace plonk {
 
 /**
  * Compute proving key
@@ -177,4 +177,4 @@ plonk::TurboVerifier TurboPlonkComposerHelper<CircuitConstructor>::create_verifi
 }
 
 template class TurboPlonkComposerHelper<TurboCircuitConstructor>;
-} // namespace bonk
+} // namespace plonk

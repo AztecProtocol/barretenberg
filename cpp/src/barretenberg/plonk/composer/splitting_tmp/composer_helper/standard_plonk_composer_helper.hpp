@@ -13,7 +13,7 @@
 
 #include <utility>
 
-namespace bonk {
+namespace plonk {
 // TODO(Kesha): change initializations to specify this parameter
 // Cody: What does this mean?
 template <typename CircuitConstructor> class StandardPlonkComposerHelper {
@@ -171,4 +171,4 @@ template <typename CircuitConstructor> class StandardPlonkComposerHelper {
     }
 };
 
-} // namespace bonk
+} // namespace plonk

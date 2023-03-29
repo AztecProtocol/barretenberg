@@ -6,7 +6,7 @@
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
 #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
 
-namespace bonk {
+namespace plonk {
 template <typename CircuitConstructor> class TurboPlonkComposerHelper {
   public:
     static constexpr size_t NUM_RANDOMIZED_GATES = 2; // equal to the number of multilinear evaluations leaked
@@ -132,4 +132,4 @@ template <typename CircuitConstructor> class TurboPlonkComposerHelper {
         return output;
     }
 };
-} // namespace bonk
+} // namespace plonk

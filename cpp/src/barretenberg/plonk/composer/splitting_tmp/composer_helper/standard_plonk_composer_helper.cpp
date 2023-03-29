@@ -11,7 +11,7 @@
 #include <cstdint>
 #include <string>
 
-namespace bonk {
+namespace plonk {
 
 /**
  * Compute witness polynomials (w_1, w_2, w_3, w_4).
@@ -173,4 +173,4 @@ plonk::Prover StandardPlonkComposerHelper<CircuitConstructor>::create_prover(
 }
 
 template class StandardPlonkComposerHelper<StandardCircuitConstructor>;
-} // namespace bonk
+} // namespace plonk
