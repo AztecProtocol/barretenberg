@@ -342,6 +342,20 @@ class UltraComposer : public ComposerBase {
         return count + romcount + ramcount + rangecount;
     }
 
+    virtual size_t get_total_circuit_size() const override
+    {
+        size_t tables_size = 0;
+        size_t lookups_size = 0;
+        for (const auto& table : lookup_tables) {
+            tables_size += table.size;
+            lookups_size += table.lookup_gates.size();
+        }
+
+        auto minimum_circuit_size = tables_size + lookups_size;
+        auto num_filled_gates = num_gates + public_inputs.size();
+        return std::max(minimum_circuit_size, num_filled_gates);
+    }
+
     virtual void print_num_gates() const override
     {
         size_t count = 0;

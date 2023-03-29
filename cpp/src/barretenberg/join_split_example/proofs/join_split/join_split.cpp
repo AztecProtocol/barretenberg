@@ -23,7 +23,7 @@ void init_proving_key(std::shared_ptr<bonk::ReferenceStringFactory> const& crs_f
     join_split_tx tx = noop_tx();
 
     if (!mock) {
-        Composer composer(crs_factory);
+        stdlib::types::Composer composer(crs_factory);
         join_split_circuit(composer, tx);
         proving_key = composer.compute_proving_key();
     } else {
@@ -64,7 +64,7 @@ void init_verification_key(std::shared_ptr<bonk::VerifierMemReferenceString> con
     verification_key = std::make_shared<bonk::verification_key>(std::move(vk_data), crs);
 }
 
-plonk::UltraProver new_join_split_prover(join_split_tx const& tx, bool mock)
+stdlib::types::Prover new_join_split_prover(join_split_tx const& tx, bool mock)
 {
     Composer composer(proving_key, nullptr);
     join_split_circuit(composer, tx);
