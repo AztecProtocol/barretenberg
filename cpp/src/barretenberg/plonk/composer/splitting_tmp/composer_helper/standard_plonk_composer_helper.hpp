@@ -171,4 +171,4 @@ template <typename CircuitConstructor> class StandardPlonkComposerHelper {
     }
 };
 
-} // namespace honk
+} // namespace bonk
