@@ -1,6 +1,5 @@
 #include "standard_plonk_composer_helper.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 #include "barretenberg/plonk/proof_system/widgets/transition_widgets/arithmetic_widget.hpp"

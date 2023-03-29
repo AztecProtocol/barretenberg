@@ -1,7 +1,7 @@
 #include "standard_honk_composer.hpp"
 #include "barretenberg/honk/sumcheck/relations/relation.hpp"
 #include "barretenberg/numeric/uint256/uint256.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/honk/flavor/flavor.hpp"
 #include <cstdint>
 #include "barretenberg/honk/proof_system/prover.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck_round.hpp"

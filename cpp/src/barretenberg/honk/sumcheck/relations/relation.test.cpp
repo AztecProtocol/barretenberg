@@ -1,5 +1,5 @@
 #include "relation.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/honk/flavor/flavor.hpp"
 #include "arithmetic_relation.hpp"
 #include "grand_product_initialization_relation.hpp"
 #include "grand_product_computation_relation.hpp"

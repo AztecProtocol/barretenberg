@@ -7,7 +7,7 @@
 #include "barretenberg/common/throw_or_abort.hpp"
 #include "sumcheck_round.hpp"
 #include "polynomials/univariate.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/honk/flavor/flavor.hpp"
 #include <algorithm>
 #include <cstddef>
 #include <span>

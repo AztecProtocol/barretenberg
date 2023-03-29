@@ -1,4 +1,4 @@
-#include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/honk/flavor/flavor.hpp"
 #include "sumcheck_round.hpp"
 #include "relations/arithmetic_relation.hpp"
 #include "relations/grand_product_computation_relation.hpp"
