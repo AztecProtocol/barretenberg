@@ -9,6 +9,8 @@ namespace plonk {
 
 struct proof {
     std::vector<uint8_t> proof_data;
+
+    bool operator==(proof const& other) const = default;
 };
 
 inline void read(uint8_t const*& it, proof& data)
