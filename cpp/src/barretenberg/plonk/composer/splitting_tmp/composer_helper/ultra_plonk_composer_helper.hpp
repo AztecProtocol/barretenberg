@@ -1,22 +1,28 @@
 #pragma once
 
-#include "barretenberg/plonk/composer/plookup_tables/types.hpp"
+#include "barretenberg/proof_system/composer/composer_helper_lib.hpp"
 #include "barretenberg/srs/reference_string/file_reference_string.hpp"
 #include "barretenberg/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
 #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
-#include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
-#include "barretenberg/honk/pcs/commitment_key.hpp"
-#include "barretenberg/proof_system/verification_key/verification_key.hpp"
-#include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
-#include "barretenberg/proof_system/composer/composer_base.hpp"
-#include "barretenberg/proof_system/composer/composer_helper_lib.hpp"
-#include "barretenberg/proof_system/composer/permutation_helper.hpp"
+
+// #include "barretenberg/plonk/composer/plookup_tables/types.hpp"
+// #include "barretenberg/srs/reference_string/file_reference_string.hpp"
+// #include "barretenberg/proof_system/proving_key/proving_key.hpp"
+// #include "barretenberg/plonk/proof_system/prover/prover.hpp"
+// #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
+// #include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
+// #include "barretenberg/honk/pcs/commitment_key.hpp"
+// #include "barretenberg/proof_system/verification_key/verification_key.hpp"
+// #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
+// #include "barretenberg/proof_system/composer/composer_base.hpp"
+// #include "barretenberg/proof_system/composer/composer_helper_lib.hpp"
+// #include "barretenberg/proof_system/composer/permutation_helper.hpp"
 
 #include <cstddef>
 #include <utility>
 
-namespace bonk {
+namespace plonk {
 // TODO(Kesha): change initializations to specify this parameter
 // Cody: What does this mean?
 template <typename CircuitConstructor> class UltraPlonkComposerHelper {
@@ -90,4 +96,4 @@ template <typename CircuitConstructor> class UltraPlonkComposerHelper {
     void add_table_column_selector_poly_to_proving_key(polynomial& small, const std::string& tag);
 };
 
-} // namespace bonk
+} // namespace plonk

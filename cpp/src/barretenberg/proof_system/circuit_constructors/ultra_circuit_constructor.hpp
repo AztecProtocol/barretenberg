@@ -1,4 +1,5 @@
 #pragma once
+#include "barretenberg/proof_system/types/polynomial_manifest.hpp"
 #include "circuit_constructor_base.hpp"
 #include "barretenberg/plonk/proof_system/constants.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
@@ -143,7 +144,7 @@ inline std::vector<std::string> ultra_selector_names()
     return result;
 }
 
-class UltraCircuitConstructor : public CircuitConstructorBase<STANDARD_WIDTH> {
+class UltraCircuitConstructor : public CircuitConstructorBase<TURBO_WIDTH> {
     enum UltraSelectors { QM, QC, Q1, Q2, Q3, Q4, QARITH, QSORT, QELLIPTIC, QAUX, QLOOKUPTYPE, NUM };
 
   public:
