@@ -5,7 +5,6 @@ using namespace plonk::stdlib::types;
 
 namespace acir_format {
 
-// TODO(maxim): This doesn't work correctly
 void create_logic_gate(Composer& composer,
                        const uint32_t a,
                        const uint32_t b,

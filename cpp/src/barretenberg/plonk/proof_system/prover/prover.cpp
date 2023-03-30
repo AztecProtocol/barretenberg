@@ -414,20 +414,8 @@ template <typename settings> void ProverBase<settings>::execute_fourth_round()
 #endif
     }
 
-    for (size_t i = 0; i < key->circuit_size; ++i) {
-        info("quotient 0", key->quotient_polynomial_parts[0][i]);
-        info("quotient 1", key->quotient_polynomial_parts[1][i]);
-        info("quotient 2", key->quotient_polynomial_parts[2][i]);
-        info("quotient 3", key->quotient_polynomial_parts[3][i]);
-    }
     for (auto& widget : transition_widgets) {
         alpha_base = widget->compute_quotient_contribution(alpha_base, transcript);
-    }
-    for (size_t i = 0; i < key->circuit_size; ++i) {
-        info("final quotient 0", key->quotient_polynomial_parts[0][i]);
-        info("final quotient 1", key->quotient_polynomial_parts[1][i]);
-        info("final quotient 2", key->quotient_polynomial_parts[2][i]);
-        info("final quotient 3", key->quotient_polynomial_parts[3][i]);
     }
 #ifdef DEBUG_TIMING
     start = std::chrono::steady_clock::now();
@@ -458,12 +446,6 @@ template <typename settings> void ProverBase<settings>::execute_fourth_round()
 
     // Manually copy the (n + 1)th coefficient of t_3 for StandardPlonk from t_4.
     // This is because the degree of t_3 for StandardPlonk is n.
-    for (size_t i = 0; i < key->circuit_size; ++i) {
-        info("quotient after ifft 0 ", quotient_poly_parts[0][i]);
-        info("quotient after ifft 1 ", quotient_poly_parts[1][i]);
-        info("quotient after ifft 2 ", quotient_poly_parts[2][i]);
-        info("quotient after ifft 3 ", quotient_poly_parts[3][i]);
-    }
     if (settings::program_width == 3) {
         key->quotient_polynomial_parts[2][circuit_size] = key->quotient_polynomial_parts[3][0];
         key->quotient_polynomial_parts[3][0] = 0;
