@@ -27,8 +27,8 @@ template <typename B> inline void write(B& buf, PedersenConstraint const& constr
 {
     using serialize::write;
     write(buf, constraint.scalars);
-    read(buf, constraint.result_x);
-    read(buf, constraint.result_y);
+    write(buf, constraint.result_x);
+    write(buf, constraint.result_y);
 }
 
 } // namespace acir_format
