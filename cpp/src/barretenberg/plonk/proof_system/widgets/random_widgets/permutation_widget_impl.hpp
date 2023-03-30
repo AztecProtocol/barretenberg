@@ -426,6 +426,7 @@ barretenberg::fr ProverPermutationWidget<program_width, idpolys, num_roots_cut_o
         barretenberg::fr denominator;
         barretenberg::fr numerator;
         for (size_t i = start; i < end; ++i) {
+            info("wire_ffts", wire_ffts[0][i]);
             wire_plus_gamma = gamma + wire_ffts[0][i];
 
             // Numerator computation

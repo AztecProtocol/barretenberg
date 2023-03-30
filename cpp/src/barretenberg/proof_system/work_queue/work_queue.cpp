@@ -1,5 +1,6 @@
 #include "work_queue.hpp"
 
+#include "barretenberg/common/log.hpp"
 #include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"
 
@@ -237,6 +238,8 @@ void work_queue::process_queue()
             barretenberg::g1::affine_element result(barretenberg::scalar_multiplication::pippenger_unsafe(
                 item.mul_scalars, srs_points, msm_size, runtime_state));
 
+            // std::cout << item.tag << " : " << result << std::endl;
+            info(item.tag, " : ", result);
             transcript->add_element(item.tag, result.to_buffer());
 
             break;
