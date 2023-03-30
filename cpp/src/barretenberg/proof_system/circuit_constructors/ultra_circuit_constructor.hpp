@@ -161,6 +161,27 @@ class UltraCircuitConstructor : public CircuitConstructorBase<STANDARD_WIDTH> {
     std::vector<plookup::MultiTable> lookup_multi_tables;
     std::map<uint64_t, RangeList> range_lists; // DOCTODO: explain this.
 
+    /**
+     * @brief Each entry in ram_arrays represents an independent RAM table.
+     * RamTranscript tracks the current table state,
+     * as well as the 'records' produced by each read and write operation.
+     * Used in `compute_proving_key` to generate consistency check gates required to validate the RAM read/write history
+     */
+    std::vector<RamTranscript> ram_arrays;
+
+    /**
+     * @brief Each entry in ram_arrays represents an independent ROM table.
+     * RomTranscript tracks the current table state,
+     * as well as the 'records' produced by each read operation.
+     * Used in `compute_proving_key` to generate consistency check gates required to validate the ROM read history
+     */
+    std::vector<RomTranscript> rom_arrays;
+
+    // Stores gate index of ROM and RAM reads (required by proving key)
+    std::vector<uint32_t> memory_read_records;
+    // Stores gate index of RAM writes (required by proving key)
+    std::vector<uint32_t> memory_write_records;
+
     UltraCircuitConstructor(const size_t size_hint = 0)
         : CircuitConstructorBase(ultra_selector_names(), UltraSelectors::NUM, size_hint)
     {

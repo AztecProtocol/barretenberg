@@ -8,6 +8,7 @@
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
 #include "barretenberg/proof_system/circuit_constructors/turbo_circuit_constructor.hpp"
+#include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
 namespace bonk {
 
 /**
@@ -238,5 +239,15 @@ std::shared_ptr<bonk::verification_key> compute_verification_key_common(
 
 COMPILE_FOR_CIRCUIT_CONSTRUCTOR(StandardCircuitConstructor)
 COMPILE_FOR_CIRCUIT_CONSTRUCTOR(TurboCircuitConstructor)
+COMPILE_FOR_CIRCUIT_CONSTRUCTOR(UltraCircuitConstructor)
+
+// template std::shared_ptr<bonk::proving_key> initialize_proving_key<UltraCircuitConstructor>(                           \
+//         const UltraCircuitConstructor&, bonk::ReferenceStringFactory*, const size_t, const size_t, plonk::ComposerType);   \
+//     template void construct_lagrange_selector_forms<UltraCircuitConstructor>(const UltraCircuitConstructor&,                   \
+//                                                                          bonk::proving_key*);                          \
+//     template std::vector<barretenberg::polynomial> compute_witness_base<UltraCircuitConstructor>(                          \
+//         const UltraCircuitConstructor&, const size_t, const size_t);                                                       \
+//     template void enforce_nonzero_polynomial_selectors<UltraCircuitConstructor>(const UltraCircuitConstructor& constructor,    \
+//                                                                             bonk::proving_key* circuit_proving_key);
 
 } // namespace bonk

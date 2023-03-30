@@ -17,6 +17,7 @@
 #include <initializer_list>
 #include <cstdint>
 #include <cstddef>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -49,6 +50,7 @@ struct permutation_subgroup_element {
 using CyclicPermutation = std::vector<cycle_node>;
 
 namespace {
+
 /**
  * Compute all CyclicPermutations of the circuit. Each CyclicPermutation represents the indices of the values in the
  * witness wires that must have the same value.
@@ -326,6 +328,60 @@ void compute_standard_plonk_sigma_lagrange_polynomials_from_mapping(
     }
 }
 
+// TODO(luke): There is some duplication now that I;ve added these more general methods. Resolve this.
+/**
+ * @brief Compute lagrange polynomial from mapping (used for sigmas or ids)
+ *
+ * @tparam program_width
+ * @param mappings
+ * @param label
+ * @param key
+ */
+template <size_t program_width>
+void compute_plonk_permutation_lagrange_polynomials_from_mapping(
+    std::string label,
+    std::array<std::vector<permutation_subgroup_element>, program_width>& mappings,
+    bonk::proving_key* key)
+{
+    for (size_t i = 0; i < program_width; i++) {
+        std::string index = std::to_string(i + 1);
+        barretenberg::polynomial polynomial_lagrange(key->circuit_size);
+        compute_standard_plonk_lagrange_polynomial(polynomial_lagrange, mappings[i], key->small_domain);
+        key->polynomial_store.put(label + "_" + index + "_lagrange", std::move(polynomial_lagrange));
+    }
+}
+
+/**
+ * @brief Given the base label of program_width-many lagrange polynomials, compute monomial and coset-FFT
+ *
+ * @details Lagrange polynomials must exist in key. Monomial and coset-FFT are added to key.
+ *
+ * @tparam program_width
+ * @param label
+ * @param key
+ */
+template <size_t program_width>
+void compute_monomial_and_coset_fft_from_lagrange(std::string label, bonk::proving_key* key)
+{
+    for (size_t i = 0; i < program_width; ++i) {
+
+        // Construct permutation polynomials in lagrange base
+        std::string base_label = label + "_" + std::to_string(i + 1);
+
+        barretenberg::polynomial polynomial_lagrange = key->polynomial_store.get(base_label + "_lagrange");
+        // Compute permutation polynomial monomial form
+        barretenberg::polynomial polynomial_monomial(key->circuit_size);
+        barretenberg::polynomial_arithmetic::ifft(&polynomial_lagrange[0], &polynomial_monomial[0], key->small_domain);
+
+        // Compute permutation polynomial coset FFT form
+        barretenberg::polynomial polynomial_fft(polynomial_monomial, key->large_domain.size);
+        polynomial_fft.coset_fft(key->large_domain);
+
+        key->polynomial_store.put(base_label, std::move(polynomial_monomial));
+        key->polynomial_store.put(base_label + "_fft", std::move(polynomial_fft));
+    }
+}
+
 /**
  * @brief Compute the monomial and coset version of each sigma polynomial
  *
@@ -440,6 +496,98 @@ inline void compute_first_and_last_lagrange_polynomials(auto key) // proving_key
     lagrange_polynomial_n_min_1[n - 1] = 1;
     key->polynomial_store.put("L_first_lagrange", std::move(lagrange_polynomial_0));
     key->polynomial_store.put("L_last_lagrange", std::move(lagrange_polynomial_n_min_1));
+}
+
+/**
+ * @brief Compute generalized permutation sigmas and ids for ultra plonk
+ *
+ * @tparam program_width
+ * @tparam CircuitConstructor
+ * @param circuit_constructor
+ * @param key
+ * @return std::array<std::vector<permutation_subgroup_element>, program_width>
+ */
+template <size_t program_width, typename CircuitConstructor>
+void compute_plonk_generalized_sigma_permutations(const CircuitConstructor& circuit_constructor, bonk::proving_key* key)
+{
+    // Compute wire copy cycles for public and private variables
+    auto wire_copy_cycles = compute_wire_copy_cycles<program_width>(circuit_constructor);
+    std::array<std::vector<permutation_subgroup_element>, program_width> sigma_mappings;
+    std::array<std::vector<permutation_subgroup_element>, program_width> id_mappings;
+
+    // Instantiate the sigma and id mappings by reserving enough space and pushing 'default' permutation subgroup
+    // elements that point to themselves.
+    for (size_t i = 0; i < program_width; ++i) {
+        sigma_mappings[i].reserve(key->circuit_size);
+        id_mappings[i].reserve(key->circuit_size);
+    }
+    for (size_t i = 0; i < program_width; ++i) {
+        for (size_t j = 0; j < key->circuit_size; ++j) {
+            sigma_mappings[i].emplace_back(permutation_subgroup_element{
+                .row_index = (uint32_t)j, .column_index = (uint8_t)i, .is_public_input = false, .is_tag = false });
+
+            id_mappings[i].emplace_back(permutation_subgroup_element{
+                .row_index = (uint32_t)j, .column_index = (uint8_t)i, .is_public_input = false, .is_tag = false });
+        }
+    }
+
+    // Represents the index of a variable in circuit_constructor.variables
+    std::span<const uint32_t> real_variable_tags = circuit_constructor.real_variable_tags;
+    const std::map<uint32_t, uint32_t>& tau = circuit_constructor.tau;
+
+    // Go through all wire cycles and update sigma and id mappings to point to the next element
+    // within each cycle as well as set the appropriate tags
+    for (size_t i = 0; i < wire_copy_cycles.size(); ++i) {
+        for (size_t j = 0; j < wire_copy_cycles[i].size(); ++j) {
+            cycle_node current_cycle_node = wire_copy_cycles[i][j];
+            size_t next_cycle_node_index = j == wire_copy_cycles[i].size() - 1 ? 0 : j + 1;
+            cycle_node next_cycle_node = wire_copy_cycles[i][next_cycle_node_index];
+            const auto current_row = current_cycle_node.gate_index;
+            const auto next_row = next_cycle_node.gate_index;
+
+            const uint32_t current_column = current_cycle_node.wire_index;
+            const uint32_t next_column = next_cycle_node.wire_index;
+
+            sigma_mappings[current_column][current_row] = {
+                .row_index = next_row, .column_index = (uint8_t)next_column, .is_public_input = false, .is_tag = false
+            };
+
+            bool first_node, last_node;
+
+            first_node = j == 0;
+            last_node = next_cycle_node_index == 0;
+            if (first_node) {
+                id_mappings[current_column][current_row].is_tag = true;
+                id_mappings[current_column][current_row].row_index = (real_variable_tags[i]);
+            }
+            if (last_node) {
+                sigma_mappings[current_column][current_row].is_tag = true;
+
+                // TODO: yikes, std::maps are expensive. Can we find a way to get rid of this?
+                sigma_mappings[current_column][current_row].row_index = tau.at(real_variable_tags[i]);
+            }
+        }
+    }
+
+    const uint32_t num_public_inputs = static_cast<uint32_t>(circuit_constructor.public_inputs.size());
+
+    // This corresponds in the paper to modifying sigma to sigma' with the zeta_i values; this enforces public input
+    // consistency
+    for (size_t i = 0; i < num_public_inputs; ++i) {
+        sigma_mappings[0][i].row_index = static_cast<uint32_t>(i);
+        sigma_mappings[0][i].column_index = 0;
+        sigma_mappings[0][i].is_public_input = true;
+        if (sigma_mappings[0][i].is_tag) {
+            std::cerr << "MAPPING IS BOTH A TAG AND A PUBLIC INPUT" << std::endl;
+        }
+    }
+
+    // Compute Plonk-style sigma and ID polynomials from the corresponding mapping
+    compute_plonk_permutation_lagrange_polynomials_from_mapping("sigma", sigma_mappings, key);
+    compute_plonk_permutation_lagrange_polynomials_from_mapping("id", id_mappings, key);
+    // Compute the monomial and coset-ffts
+    compute_monomial_and_coset_fft_from_lagrange<program_width>("sigma", key);
+    compute_monomial_and_coset_fft_from_lagrange<program_width>("id", key);
 }
 
 } // namespace bonk

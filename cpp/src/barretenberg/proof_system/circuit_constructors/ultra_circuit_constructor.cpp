@@ -412,23 +412,6 @@ uint32_t UltraCircuitConstructor::put_constant_variable(const barretenberg::fr& 
     }
 }
 
-// void UltraCircuitConstructor::initialize_precomputed_table(
-//     const plookup::BasicTableId id,
-//     bool (*generator)(std::vector<fr>&, std ::vector<fr>&, std::vector<fr>&),
-//     std::array<fr, 2> (*get_values_from_key)(const std::array<uint64_t, 2>))
-// {
-//     for (auto table : lookup_tables) {
-//         ASSERT(table.id != id);
-//     }
-//     plookup::BasicTable new_table;
-//     new_table.id = id;
-//     new_table.table_index = lookup_tables.size() + 1;
-//     new_table.use_twin_keys = generator(new_table.column_1, new_table.column_2, new_table.column_3);
-//     new_table.size = new_table.column_1.size();
-//     new_table.get_values_from_key = get_values_from_key;
-//     lookup_tables.emplace_back(new_table);
-// }
-
 plookup::BasicTable& UltraCircuitConstructor::get_table(const plookup::BasicTableId id)
 {
     for (plookup::BasicTable& table : lookup_tables) {

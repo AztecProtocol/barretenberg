@@ -1,5 +1,6 @@
 #pragma once
 
+#include "barretenberg/plonk/composer/plookup_tables/types.hpp"
 #include "barretenberg/srs/reference_string/file_reference_string.hpp"
 #include "barretenberg/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
@@ -12,6 +13,7 @@
 #include "barretenberg/proof_system/composer/composer_helper_lib.hpp"
 #include "barretenberg/proof_system/composer/permutation_helper.hpp"
 
+#include <cstddef>
 #include <utility>
 
 namespace bonk {
@@ -31,6 +33,15 @@ template <typename CircuitConstructor> class UltraPlonkComposerHelper {
     bool contains_recursive_proof = false;
     bool computed_witness = false;
     bool circuit_finalised = false; // TODO(luke): Does this belong here or does this break our separation..
+
+    // std::vector<plookup::BasicTable> lookup_tables; // TODO(luke): Does this belong here?
+    // std::vector<plookup::MultiTable> lookup_multi_tables; // TODO(luke): Does this belong here?
+
+    // This variable controls the amount with which the lookup table and witness values need to be shifted
+    // above to make room for adding randomness into the permutation and witness polynomials in the plookup widget.
+    // This must be (num_roots_cut_out_of_the_vanishing_polynomial - 1), since the variable num_roots_cut_out_of_
+    // vanishing_polynomial cannot be trivially fetched here, I am directly setting this to 4 - 1 = 3.
+    static constexpr size_t s_randomness = 0; // TODO(luke): In Plonk this vaue is 3. Ok to just set to zero for now?
 
     UltraPlonkComposerHelper()
         : UltraPlonkComposerHelper("../srs_db/ignition")
@@ -71,8 +82,12 @@ template <typename CircuitConstructor> class UltraPlonkComposerHelper {
         return result;
     }
 
+    [[nodiscard]] size_t get_num_selectors() { return ultra_selector_properties().size(); }
+
     std::shared_ptr<bonk::proving_key> compute_proving_key(const CircuitConstructor& circuit_constructor);
     std::shared_ptr<bonk::verification_key> compute_verification_key(const CircuitConstructor& circuit_constructor);
+
+    void add_table_column_selector_poly_to_proving_key(polynomial& small, const std::string& tag);
 };
 
 } // namespace bonk
