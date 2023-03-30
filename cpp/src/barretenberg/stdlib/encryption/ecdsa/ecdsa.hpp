@@ -21,9 +21,13 @@ bool_t<Composer> verify_signature(const stdlib::byte_array<Composer>& message,
 template <typename Composer>
 static signature<Composer> from_witness(Composer* ctx, const crypto::ecdsa::signature& input)
 {
-    byte_array x(ctx, input.r);
-    byte_array y(ctx, input.s);
-    signature<Composer> out(x, y);
+    std::vector<uint8_t> r_vec(std::begin(input.r), std::end(input.r));
+    std::vector<uint8_t> s_vec(std::begin(input.s), std::end(input.s));
+    stdlib::byte_array<Composer> r(ctx, r_vec);
+    stdlib::byte_array<Composer> s(ctx, s_vec);
+    signature<Composer> out;
+    out.r = r;
+    out.s = s;
     return out;
 }
 
