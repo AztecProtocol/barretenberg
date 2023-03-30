@@ -19,6 +19,15 @@ struct native_aggregation_state {
     std::vector<barretenberg::fr> public_inputs;
     std::vector<uint32_t> proof_witness_indices;
     bool has_data = false;
+
+    bool operator==(native_aggregation_state const& other) const
+    {
+        return P0 == other.P0 && 
+               P1 == other.P1 &&
+               public_inputs == other.public_inputs && 
+               proof_witness_indices == other.proof_witness_indices && 
+               has_data == other.has_data;
+    };
 };
 
 inline void read(uint8_t const*& it, native_aggregation_state& state)
@@ -32,7 +41,7 @@ inline void read(uint8_t const*& it, native_aggregation_state& state)
     read(it, state.has_data);
 };
 
-template <typename B> inline void write(B& buf, native_aggregation_state const& state)
+template <typename B>  inline void write(B& buf, native_aggregation_state const& state)
 {
     using serialize::write;
     write(buf, state.P0);
@@ -42,21 +51,13 @@ template <typename B> inline void write(B& buf, native_aggregation_state const& 
     write(buf, state.has_data);
 }
 
-inline std::ostream& operator<<(std::ostream& os, native_aggregation_state const& obj)
+ inline std::ostream& operator<<(std::ostream& os, native_aggregation_state const& obj)
 {
-    os << "P0: " << obj.P0 << "\n"
-       << "P1: " << obj.P1 << "\n"
-       << "public_inputs: [\n";
-    for (size_t i = 0; i < obj.public_inputs.size(); i++) {
-        os << "  " << i << ": " << obj.public_inputs[i] << "\n";
-    }
-    os << "]\n"
-       << "proof_witness_indices: [\n";
-    for (size_t i = 0; i < obj.proof_witness_indices.size(); i++) {
-        os << "  " << i << ": " << obj.proof_witness_indices[i] << "\n";
-    }
-    os << "has_data: " << obj.has_data << "\n";
-    return os;
+    return os << "P0: " << obj.P0 << "\n"
+        << "P1: " << obj.P1 << "\n"
+        << "public_inputs: " << obj.public_inputs << "\n"
+        << "proof_witness_indices: " << obj.proof_witness_indices << "\n"
+        << "has_data: " << obj.has_data << "\n";
 };
 
 } // namespace recursion
