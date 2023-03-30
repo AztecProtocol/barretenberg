@@ -143,7 +143,7 @@ inline std::vector<std::string> ultra_selector_names()
     return result;
 }
 
-class UltraCircuitConstructor : public CircuitConstructorBase<STANDARD_HONK_WIDTH> {
+class UltraCircuitConstructor : public CircuitConstructorBase<STANDARD_WIDTH> {
     enum UltraSelectors { QM, QC, Q1, Q2, Q3, Q4, QARITH, QSORT, QELLIPTIC, QAUX, QLOOKUPTYPE, NUM };
 
   public:
@@ -162,9 +162,15 @@ class UltraCircuitConstructor : public CircuitConstructorBase<STANDARD_HONK_WIDT
     std::map<uint64_t, RangeList> range_lists; // DOCTODO: explain this.
 
     UltraCircuitConstructor(const size_t size_hint = 0)
-        : CircuitConstructorBase(ultra_selector_names(), UltraSelectors::NUM, size_hint){
-
-        };
+        : CircuitConstructorBase(ultra_selector_names(), UltraSelectors::NUM, size_hint)
+    {
+        w_l.reserve(size_hint);
+        w_r.reserve(size_hint);
+        w_o.reserve(size_hint);
+        w_4.reserve(size_hint);
+        zero_idx = put_constant_variable(0);
+        tau.insert({ DUMMY_TAG, DUMMY_TAG });
+    };
 
     UltraCircuitConstructor(const UltraCircuitConstructor& other) = delete;
     UltraCircuitConstructor(UltraCircuitConstructor&& other) = default;

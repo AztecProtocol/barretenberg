@@ -1,7 +1,8 @@
 #pragma once
 #include "barretenberg/plonk/composer/composer_base.hpp"
 #include "barretenberg/plonk/composer/plookup_tables/plookup_tables.hpp"
-#include "barretenberg/honk/circuit_constructors/ultra_circuit_constructor.hpp"
+#include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
+#include "barretenberg/plonk/composer/splitting_tmp/composer_helper/ultra_plonk_composer_helper.hpp"
 #include <optional>
 
 using namespace bonk;
@@ -11,7 +12,13 @@ namespace plonk {
 class UltraPlonkComposer : public ComposerBase {
 
   public:
+    // An instantiation of the circuit constructor that only depends on arithmetization, not  on the proof system
     UltraCircuitConstructor circuit_constructor;
+    // Composer helper contains all proof-related material that is separate from circuit creation such as:
+    // 1) Proving and verification keys
+    // 2) CRS
+    // 3) Converting variables to witness vectors/polynomials
+    UltraPlonkComposerHelper<UltraCircuitConstructor> composer_helper;
 
     static constexpr ComposerType type = ComposerType::PLOOKUP;
     static constexpr MerkleHashType merkle_hash_type = MerkleHashType::LOOKUP_PEDERSEN;
@@ -154,7 +161,13 @@ class UltraPlonkComposer : public ComposerBase {
 
     std::shared_ptr<proving_key> compute_proving_key() override;
     std::shared_ptr<verification_key> compute_verification_key() override;
+    // std::shared_ptr<bonk::verification_key> compute_verification_key() override
+    // {
+    //     return composer_helper.compute_verification_key(circuit_constructor);
+    // }
     void compute_witness() override;
+
+    void finalize_circuit();
 
     UltraProver create_prover();
     UltraVerifier create_verifier();

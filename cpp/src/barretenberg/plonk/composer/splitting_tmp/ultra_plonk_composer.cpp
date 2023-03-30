@@ -44,7 +44,7 @@ namespace plonk {
     auto& q_aux = selectors[UltraSelectors::QAUX];                                                                     \
     auto& q_lookup_type = selectors[UltraSelectors::QLOOKUPTYPE];
 
-std::vector<ComposerBase::SelectorProperties> ultra_selector_properties()
+std::vector<ComposerBase::SelectorProperties> ultra_plonk_selector_properties()
 {
     // When reading and writing the proving key from a buffer we must precompute the Lagrange form of certain selector
     // polynomials. In order to avoid a new selector type and definitions in the polynomial manifest, we can instead
@@ -73,7 +73,7 @@ UltraPlonkComposer::UltraPlonkComposer(std::string const& crs_path, const size_t
 
 UltraPlonkComposer::UltraPlonkComposer(std::shared_ptr<ReferenceStringFactory> const& crs_factory,
                                        const size_t size_hint)
-    : ComposerBase(crs_factory, UltraSelectors::NUM, size_hint, ultra_selector_properties())
+    : ComposerBase(crs_factory, UltraSelectors::NUM, size_hint, ultra_plonk_selector_properties())
 {
     w_l.reserve(size_hint);
     w_r.reserve(size_hint);
@@ -86,7 +86,7 @@ UltraPlonkComposer::UltraPlonkComposer(std::shared_ptr<ReferenceStringFactory> c
 UltraPlonkComposer::UltraPlonkComposer(std::shared_ptr<proving_key> const& p_key,
                                        std::shared_ptr<verification_key> const& v_key,
                                        size_t size_hint)
-    : ComposerBase(p_key, v_key, UltraSelectors::NUM, size_hint, ultra_selector_properties())
+    : ComposerBase(p_key, v_key, UltraSelectors::NUM, size_hint, ultra_plonk_selector_properties())
 {
     w_r.reserve(size_hint);
     w_4.reserve(size_hint);
@@ -504,10 +504,8 @@ void UltraPlonkComposer::add_table_column_selector_poly_to_proving_key(polynomia
     circuit_proving_key->polynomial_store.put(tag + "_fft", std::move(selector_poly_coset_form));
 }
 
-std::shared_ptr<proving_key> UltraPlonkComposer::compute_proving_key()
+void UltraPlonkComposer::finalize_circuit()
 {
-    ULTRA_SELECTOR_REFS;
-
     /**
      * First of all, add the gates related to ROM arrays and range lists.
      * Note that the total number of rows in an UltraPlonk program can be divided as following:
@@ -538,6 +536,11 @@ std::shared_ptr<proving_key> UltraPlonkComposer::compute_proving_key()
         process_range_lists();
         circuit_finalised = true;
     }
+}
+
+std::shared_ptr<proving_key> UltraPlonkComposer::compute_proving_key()
+{
+    ULTRA_SELECTOR_REFS;
 
     if (circuit_proving_key) {
         return circuit_proving_key;
@@ -809,6 +812,8 @@ void UltraPlonkComposer::compute_witness()
 
 UltraProver UltraPlonkComposer::create_prover()
 {
+    finalize_circuit();
+
     compute_proving_key();
     compute_witness();
 
