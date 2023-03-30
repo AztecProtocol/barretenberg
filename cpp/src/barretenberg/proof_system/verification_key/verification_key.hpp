@@ -114,3 +114,17 @@ template <typename B> inline void write(B& buf, verification_key const& key)
 }
 
 } // namespace bonk
+
+namespace std {
+
+template <typename NCT> std::ostream& operator<<(std::ostream& os, verification_key const& key)
+{
+    return os << "composer_type: " << kernel_data.composer_type << "\n"
+              << "circuit_size: " << kernel_data.circuit_size << "\n"
+              << "num_public_inputs: " << kernel_data.num_public_inputs << "\n"
+              << "commitments: " << kernel_data.commitments << "\n"
+              << "contains_recursive_proof: " << kernel_data.contains_recursive_proof << "\n"
+              << "recursive_proof_public_input_indices: " << kernel_data.recursive_proof_public_input_indices << "\n";
+}
+
+} // namespace std
