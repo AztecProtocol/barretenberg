@@ -58,6 +58,7 @@ inline barretenberg::fr compute_tree_root_native(std::vector<barretenberg::fr> c
     return layer[0];
 }
 
+// TODO write test
 inline std::vector<barretenberg::fr> compute_tree_native(std::vector<barretenberg::fr> const& input)
 {
     // Check if the input vector size is a power of 2.
