@@ -515,6 +515,38 @@ TEST(stdlib_pedersen, test_merkle_damgard_compress_plookup)
 {
     plonk::UltraComposer composer = plonk::UltraComposer();
 
+    std::vector<fr> input_values{
+        fr::random_element(), fr::random_element(), fr::random_element(),
+        fr::random_element(), fr::random_element(), fr::random_element(),
+    };
+    std::vector<field_ct> inputs;
+    for (const auto& input : input_values) {
+        inputs.emplace_back(witness_ct(&composer, input));
+    }
+    field_ct iv = witness_ct(&composer, fr(10));
+
+    auto result = stdlib::pedersen_plookup<plonk::UltraComposer>::merkle_damgard_compress(inputs, iv);
+
+    auto expected = crypto::pedersen::lookup::merkle_damgard_compress(input_values, 10);
+
+    EXPECT_EQ(result.x.get_value(), expected.normalize().x);
+    EXPECT_EQ(result.y.get_value(), expected.normalize().y);
+
+    auto prover = composer.create_prover();
+
+    printf("composer gates = %zu\n", composer.get_num_gates());
+    auto verifier = composer.create_verifier();
+
+    plonk::proof proof = prover.construct_proof();
+
+    bool proof_result = verifier.verify_proof(proof);
+    EXPECT_EQ(proof_result, true);
+}
+
+TEST(stdlib_pedersen, test_merkle_damgard_compress_plookup_zero_one)
+{
+    plonk::UltraComposer composer = plonk::UltraComposer();
+
     std::vector<fr> input_values{ 0, 1 };
     std::vector<field_ct> inputs;
     for (const auto& input : input_values) {
