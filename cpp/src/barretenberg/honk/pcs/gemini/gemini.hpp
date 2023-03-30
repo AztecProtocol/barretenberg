@@ -84,8 +84,8 @@ template <typename Params> class MultilinearReductionScheme {
      * @return std::vector<Polynomial>
      */
     static std::vector<Polynomial> compute_fold_polynomials(std::span<const Fr> mle_opening_point,
-                                                            const Polynomial&& batched_unshifted,
-                                                            const Polynomial&& batched_to_be_shifted)
+                                                            Polynomial&& batched_unshifted,
+                                                            Polynomial&& batched_to_be_shifted)
     {
         const size_t num_variables = mle_opening_point.size(); // m
 
@@ -97,8 +97,9 @@ template <typename Params> class MultilinearReductionScheme {
         std::vector<Polynomial> fold_polynomials;
         fold_polynomials.reserve(num_variables + 1);
 
-        Polynomial& batched_F = fold_polynomials.emplace_back(batched_unshifted);     // F(X) = ∑ⱼ ρʲ   fⱼ(X)
-        Polynomial& batched_G = fold_polynomials.emplace_back(batched_to_be_shifted); // G(X) = ∑ⱼ ρᵏ⁺ʲ gⱼ(X)
+        // F(X) = ∑ⱼ ρʲ fⱼ(X) and G(X) = ∑ⱼ ρᵏ⁺ʲ gⱼ(X)
+        Polynomial& batched_F = fold_polynomials.emplace_back(std::move(batched_unshifted));
+        Polynomial& batched_G = fold_polynomials.emplace_back(std::move(batched_to_be_shifted));
 
         // A₀(X) = F(X) + G↺(X) = F(X) + G(X)/X.
         Polynomial A_0(batched_F);
