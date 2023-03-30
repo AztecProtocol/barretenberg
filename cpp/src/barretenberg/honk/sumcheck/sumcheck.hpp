@@ -23,7 +23,7 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
 
   public:
     static constexpr size_t MAX_RELATION_LENGTH = std::max({ Relations<FF>::RELATION_LENGTH... });
-    static constexpr size_t NUM_POLYNOMIALS = bonk::StandardArithmetization::NUM_POLYNOMIALS;
+    static constexpr size_t NUM_POLYNOMIALS = honk::StandardArithmetization::NUM_POLYNOMIALS;
 
     std::array<FF, NUM_POLYNOMIALS> purported_evaluations;
     Transcript& transcript;

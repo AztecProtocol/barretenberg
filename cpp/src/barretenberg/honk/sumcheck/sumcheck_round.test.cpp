@@ -24,8 +24,8 @@ using namespace honk::sumcheck;
 const size_t max_relation_length = 5;
 const size_t input_polynomial_length = 2;
 using FF = barretenberg::fr;
-const size_t NUM_POLYNOMIALS = bonk::StandardArithmetization::NUM_POLYNOMIALS;
-using POLYNOMIAL = bonk::StandardArithmetization::POLYNOMIAL;
+const size_t NUM_POLYNOMIALS = honk::StandardArithmetization::NUM_POLYNOMIALS;
+using POLYNOMIAL = honk::StandardArithmetization::POLYNOMIAL;
 
 namespace test_sumcheck_round {
 /**

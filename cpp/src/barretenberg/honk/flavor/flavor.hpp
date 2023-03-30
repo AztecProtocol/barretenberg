@@ -4,8 +4,8 @@
 #include "barretenberg/common/log.hpp"
 #include "barretenberg/transcript/manifest.hpp"
 
-// TODO(Cody): "bonk" is short for "both plonk and honk". Just need a short and non-vague temporary name.
-namespace bonk {
+namespace honk {
+// TODO(Cody) This _should_ be shared with Plonk, but it isn't.
 struct StandardArithmetization {
     /**
      * @brief All of the multivariate polynomials used by the Standard Honk Prover.
@@ -58,12 +58,12 @@ struct StandardArithmetization {
         "LAGRANGE_LAST", "W_1",     "W_2",  "W_3",  "Z_PERM", "Z_PERM_SHIFT"
     };
 };
-} // namespace bonk
+} // namespace honk
 
 namespace honk {
 struct StandardHonk {
   public:
-    using Arithmetization = bonk::StandardArithmetization;
+    using Arithmetization = honk::StandardArithmetization;
     using MULTIVARIATE = Arithmetization::POLYNOMIAL;
     // // TODO(Cody): Where to specify? is this polynomial manifest size?
     // static constexpr size_t STANDARD_HONK_MANIFEST_SIZE = 16;
@@ -134,7 +134,7 @@ struct StandardHonk {
         // Round 5 + num_sumcheck_rounds
         manifest_rounds.emplace_back(transcript::Manifest::RoundManifest(
             {
-              { .name = "multivariate_evaluations",     .num_bytes = fr_size * bonk::StandardArithmetization::NUM_POLYNOMIALS, .derived_by_verifier = false, .challenge_map_index = 0 },
+              { .name = "multivariate_evaluations",     .num_bytes = fr_size * honk::StandardArithmetization::NUM_POLYNOMIALS, .derived_by_verifier = false, .challenge_map_index = 0 },
             },
             /* challenge_name = */ "rho",
             /* num_challenges_in = */ 1)); /* TODO(Cody): magic number! Where should this be specified? */
