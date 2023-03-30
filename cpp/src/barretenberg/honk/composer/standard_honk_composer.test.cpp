@@ -348,7 +348,7 @@ TEST(StandardHonkComposer, SumcheckRelationCorrectness)
         .public_input_delta = public_input_delta,
     };
 
-    constexpr size_t num_polynomials = bonk::StandardArithmetization::NUM_POLYNOMIALS;
+    constexpr size_t num_polynomials = honk::StandardArithmetization::NUM_POLYNOMIALS;
     // Compute grand product polynomial
     polynomial z_perm_poly = prover_library::compute_permutation_grand_product<program_width>(
         prover.key, prover.wire_polynomials, beta, gamma);
