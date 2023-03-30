@@ -224,8 +224,8 @@ Polynomial compute_lookup_grand_product(std::shared_ptr<bonk::proving_key>& key,
     std::span<const Fr> lookup_selector = key->polynomial_store.get("table_type_lagrange");
     std::span<const Fr> lookup_index_selector = key->polynomial_store.get("q_3_lagrange");
 
-    const Fr beta_constant = beta + Fr(1);                // (1 + β)
-    const Fr gamma_beta_constant = gamma * beta_constant; // γ(1 + β)
+    const Fr beta_plus_one = beta + Fr(1);                      // (1 + β)
+    const Fr gamma_times_beta_plus_one = gamma * beta_plus_one; // γ(1 + β)
 
     // Step (1)
 
@@ -266,16 +266,16 @@ Polynomial compute_lookup_grand_product(std::shared_ptr<bonk::proving_key>& key,
         // Set i'th element of polynomial (t + βt(Xω) + γ(1 + β))
         accumulators[1][i] = T0 * beta + next_table;
         next_table = T0;
-        accumulators[1][i] += gamma_beta_constant;
+        accumulators[1][i] += gamma_times_beta_plus_one;
 
         // Set value of this accumulator to (1 + β)
-        accumulators[2][i] = beta_constant;
+        accumulators[2][i] = beta_plus_one;
 
         // Set i'th element of polynomial (s + βs(Xω) + γ(1 + β))
         accumulators[3][i] = sorted_list_accumulator[(i + 1) & block_mask];
         accumulators[3][i] *= beta;
         accumulators[3][i] += sorted_list_accumulator[i];
-        accumulators[3][i] += gamma_beta_constant;
+        accumulators[3][i] += gamma_times_beta_plus_one;
     }
 
     // Step (2)
