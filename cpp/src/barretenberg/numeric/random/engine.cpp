@@ -11,8 +11,11 @@ namespace {
 auto generate_random_data()
 {
     std::array<unsigned int, 32> random_data;
-    std::random_device source;
-    std::generate(std::begin(random_data), std::end(random_data), std::ref(source));
+    for (unsigned int i = 0; i < random_data.size(); i++) {
+        random_data[i] = 100;
+    }
+    // std::random_device source;
+    // std::generate(std::begin(random_data), std::end(random_data), std::ref(source));
     return random_data;
 }
 } // namespace
