@@ -7,8 +7,9 @@ namespace {
 // The number of unique base points with default main index with precomputed ladders
 #ifdef __wasm__
 constexpr size_t num_default_generators = 64;
-constexpr size_t num_generators_per_hash_index = 8;
-constexpr size_t num_hash_indices = 16;
+constexpr size_t num_generators_per_hash_index = 16;
+constexpr size_t num_hash_indices = 32;
+// TODO need to resolve memory out of bounds when these are too high
 #else
 constexpr size_t num_default_generators = 2048;
 constexpr size_t num_hash_indices = 32;
