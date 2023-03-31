@@ -30,7 +30,7 @@ class MemoryTree {
 
     fr_hash_path get_hash_path(size_t index);
 
-    fr_frontier_path get_frontier_path(size_t index);
+    fr_sibling_path get_sibling_path(size_t index);
 
     fr update_element(size_t index, fr const& value);
 

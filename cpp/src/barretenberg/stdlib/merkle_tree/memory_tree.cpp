@@ -40,9 +40,9 @@ fr_hash_path MemoryTree::get_hash_path(size_t index)
     return path;
 }
 
-fr_frontier_path MemoryTree::get_frontier_path(size_t index)
+fr_sibling_path MemoryTree::get_sibling_path(size_t index)
 {
-    fr_frontier_path path(depth_);
+    fr_sibling_path path(depth_);
     size_t offset = 0;
     size_t layer_size = total_size_;
     for (size_t i = 0; i < depth_; i++) {
