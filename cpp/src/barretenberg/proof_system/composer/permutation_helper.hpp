@@ -305,29 +305,6 @@ inline void compute_standard_plonk_lagrange_polynomial(barretenberg::polynomial&
     ITERATE_OVER_DOMAIN_END;
 }
 
-/**
- * @brief Given a permutation mapping, compute sigma permutations polynomials in lagrange form and put them in the
- * polynomial cache
- *
- * @details Iterate over the mapping of each wire and calla  function, translating this mapping into lagrange
- * evaluations.
- *
- * @tparam program_width The number of wires
- * @param sigma_mappings At table with permutation information
- * @param key Pointer to the proving key
- */
-template <size_t program_width>
-void compute_standard_plonk_sigma_lagrange_polynomials_from_mapping(
-    std::array<std::vector<permutation_subgroup_element>, program_width>& sigma_mappings, bonk::proving_key* key)
-{
-    for (size_t i = 0; i < program_width; i++) {
-        std::string index = std::to_string(i + 1);
-        barretenberg::polynomial sigma_polynomial_lagrange(key->circuit_size);
-        compute_standard_plonk_lagrange_polynomial(sigma_polynomial_lagrange, sigma_mappings[i], key->small_domain);
-        key->polynomial_store.put("sigma_" + index + "_lagrange", std::move(sigma_polynomial_lagrange));
-    }
-}
-
 // TODO(luke): There is some duplication now that I;ve added these more general methods. Resolve this.
 /**
  * @brief Compute lagrange polynomial from mapping (used for sigmas or ids)
@@ -352,38 +329,7 @@ void compute_plonk_permutation_lagrange_polynomials_from_mapping(
 }
 
 /**
- * @brief Given the base label of program_width-many lagrange polynomials, compute monomial and coset-FFT
- *
- * @details Lagrange polynomials must exist in key. Monomial and coset-FFT are added to key.
- *
- * @tparam program_width
- * @param label
- * @param key
- */
-template <size_t program_width>
-void compute_monomial_and_coset_fft_from_lagrange(std::string label, bonk::proving_key* key)
-{
-    for (size_t i = 0; i < program_width; ++i) {
-
-        // Construct permutation polynomials in lagrange base
-        std::string base_label = label + "_" + std::to_string(i + 1);
-
-        barretenberg::polynomial polynomial_lagrange = key->polynomial_store.get(base_label + "_lagrange");
-        // Compute permutation polynomial monomial form
-        barretenberg::polynomial polynomial_monomial(key->circuit_size);
-        barretenberg::polynomial_arithmetic::ifft(&polynomial_lagrange[0], &polynomial_monomial[0], key->small_domain);
-
-        // Compute permutation polynomial coset FFT form
-        barretenberg::polynomial polynomial_fft(polynomial_monomial, key->large_domain.size);
-        polynomial_fft.coset_fft(key->large_domain);
-
-        key->polynomial_store.put(base_label, std::move(polynomial_monomial));
-        key->polynomial_store.put(base_label + "_fft", std::move(polynomial_fft));
-    }
-}
-
-/**
- * @brief Compute the monomial and coset version of each sigma polynomial
+ * @brief Compute the monomial and coset-fft version of each lagrange polynomial of the given label
  *
  * @details For Plonk we need the monomial and coset form of the polynomials, so we retrieve the lagrange form from
  * polynomial cache, compute FFT versions and put them in the cache
@@ -391,14 +337,18 @@ void compute_monomial_and_coset_fft_from_lagrange(std::string label, bonk::provi
  * @tparam program_width Number of wires
  * @param key Pointer to the proving key
  */
-template <size_t program_width> void compute_sigma_polynomials_monomial_and_coset_fft(bonk::proving_key* key)
+template <size_t program_width>
+void compute_monomial_and_coset_fft_polynomials_from_lagrange(std::string base_label, bonk::proving_key* key)
 {
+    // std::string base = label;
+    // std::string base = "sigma";
     for (size_t i = 0; i < program_width; ++i) {
 
         // Construct permutation polynomials in lagrange base
         std::string index = std::to_string(i + 1);
 
-        barretenberg::polynomial sigma_polynomial_lagrange = key->polynomial_store.get("sigma_" + index + "_lagrange");
+        barretenberg::polynomial sigma_polynomial_lagrange =
+            key->polynomial_store.get(base_label + "_" + index + "_lagrange");
         // Compute permutation polynomial monomial form
         barretenberg::polynomial sigma_polynomial(key->circuit_size);
         barretenberg::polynomial_arithmetic::ifft(
@@ -408,8 +358,8 @@ template <size_t program_width> void compute_sigma_polynomials_monomial_and_cose
         barretenberg::polynomial sigma_fft(sigma_polynomial, key->large_domain.size);
         sigma_fft.coset_fft(key->large_domain);
 
-        key->polynomial_store.put("sigma_" + index, std::move(sigma_polynomial));
-        key->polynomial_store.put("sigma_" + index + "_fft", std::move(sigma_fft));
+        key->polynomial_store.put(base_label + "_" + index, std::move(sigma_polynomial));
+        key->polynomial_store.put(base_label + "_" + index + "_fft", std::move(sigma_fft));
     }
 }
 
@@ -476,9 +426,9 @@ void compute_standard_plonk_sigma_permutations(CircuitConstructor& circuit_const
     // Compute the permutation table specifying which element becomes which
     auto sigma_mappings = compute_basic_bonk_sigma_permutations<program_width>(circuit_constructor, key);
     // Compute Plonk-style sigma polynomials from the mapping
-    compute_standard_plonk_sigma_lagrange_polynomials_from_mapping(sigma_mappings, key);
+    compute_plonk_permutation_lagrange_polynomials_from_mapping("sigma", sigma_mappings, key);
     // Compute their monomial and coset versions
-    compute_sigma_polynomials_monomial_and_coset_fft<program_width>(key);
+    compute_monomial_and_coset_fft_polynomials_from_lagrange<program_width>("sigma", key);
 }
 
 /**
@@ -534,6 +484,7 @@ void compute_plonk_generalized_sigma_permutations(const CircuitConstructor& circ
     // Represents the index of a variable in circuit_constructor.variables
     std::span<const uint32_t> real_variable_tags = circuit_constructor.real_variable_tags;
     const std::map<uint32_t, uint32_t>& tau = circuit_constructor.tau;
+    (void)tau;
 
     // Go through all wire cycles and update sigma and id mappings to point to the next element
     // within each cycle as well as set the appropriate tags
@@ -582,12 +533,12 @@ void compute_plonk_generalized_sigma_permutations(const CircuitConstructor& circ
         }
     }
 
-    // Compute Plonk-style sigma and ID polynomials from the corresponding mapping
+    // Compute Plonk-style sigma and ID polynomials from the corresponding mappings
     compute_plonk_permutation_lagrange_polynomials_from_mapping("sigma", sigma_mappings, key);
     compute_plonk_permutation_lagrange_polynomials_from_mapping("id", id_mappings, key);
-    // Compute the monomial and coset-ffts
-    compute_monomial_and_coset_fft_from_lagrange<program_width>("sigma", key);
-    compute_monomial_and_coset_fft_from_lagrange<program_width>("id", key);
+    // Compute the monomial and coset-ffts for sigmas and IDs
+    compute_monomial_and_coset_fft_polynomials_from_lagrange<program_width>("sigma", key);
+    compute_monomial_and_coset_fft_polynomials_from_lagrange<program_width>("id", key);
 }
 
 } // namespace bonk
