@@ -3,6 +3,18 @@
 
 namespace arithmetization {
 
+/**
+ * @brief Specify the structure of a CircuitConstructor
+ *
+ * @details This is typically passed as a template argument specifying the structure of a circuit constructor. It
+ * should only ever contain this sort of data. In particular, it should not contain data that is particular to any
+ * proving system.
+ * @remark It may make sense to say this is only partial arithmetization data, with the full data being
+ * constained in the circuit constructor. We could change the name of this class if it conflicts with common usage.
+ *
+ * @tparam _num_wires
+ * @tparam _num_selectors
+ */
 template <size_t _num_wires, size_t _num_selectors> struct Arithmetization {
     static constexpr size_t num_wires = _num_wires;
     static constexpr size_t num_selectors = _num_selectors;
