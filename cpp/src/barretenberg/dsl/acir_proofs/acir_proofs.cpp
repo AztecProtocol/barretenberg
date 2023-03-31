@@ -10,7 +10,7 @@ using namespace plonk::stdlib::types;
 
 namespace acir_proofs {
 
-uint32_t get_solidity_verifier(uint8_t const* g2x, uint8_t const* vk_buf, uint8_t** output_buf)
+size_t get_solidity_verifier(uint8_t const* g2x, uint8_t const* vk_buf, uint8_t** output_buf)
 {
     auto crs = std::make_shared<VerifierMemReferenceString>(g2x);
     bonk::verification_key_data vk_data;
@@ -18,14 +18,15 @@ uint32_t get_solidity_verifier(uint8_t const* g2x, uint8_t const* vk_buf, uint8_
     auto verification_key = std::make_shared<bonk::verification_key>(std::move(vk_data), crs);
 
     std::ostringstream stream;
-    // TODO(blaine): Should we just use "Verifier" generically?
-    output_vk_sol(stream, verification_key, "UltraVerifier");
+    // TODO(blaine): Should we just use "VerificationKey" generically?
+    output_vk_sol(stream, verification_key, "UltraVerificationKey");
 
     auto content_str = stream.str();
-    std::vector<uint8_t> buffer(content_str.begin(), content_str.end());
+    auto raw_buf = (uint8_t*)malloc(content_str.size());
+    memcpy(raw_buf, (void*)content_str.data(), content_str.size());
+    *output_buf = raw_buf;
 
-    *output_buf = buffer.data();
-    return static_cast<uint32_t>(buffer.size());
+    return content_str.size();
 }
 
 uint32_t get_exact_circuit_size(uint8_t const* constraint_system_buf)

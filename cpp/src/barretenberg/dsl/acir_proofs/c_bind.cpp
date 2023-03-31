@@ -6,7 +6,7 @@
 
 extern "C" {
 
-WASM_EXPORT uint32_t acir_proofs_get_solidity_verifier(uint8_t const* g2x, uint8_t const* vk_buf, uint8_t** output_buf)
+WASM_EXPORT size_t acir_proofs_get_solidity_verifier(uint8_t const* g2x, uint8_t const* vk_buf, uint8_t** output_buf)
 {
     return acir_proofs::get_solidity_verifier(g2x, vk_buf, output_buf);
 }
