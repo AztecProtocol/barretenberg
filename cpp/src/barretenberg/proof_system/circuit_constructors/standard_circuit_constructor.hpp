@@ -53,7 +53,6 @@ class StandardCircuitConstructor : public CircuitConstructorBase<arithmetization
     StandardCircuitConstructor(const StandardCircuitConstructor& other) = delete;
     StandardCircuitConstructor(StandardCircuitConstructor&& other) = default;
     StandardCircuitConstructor& operator=(const StandardCircuitConstructor& other) = delete;
-    // StandardCircuitConstructor& operator=(StandardCircuitConstructor&& other) = default;
     ~StandardCircuitConstructor() override = default;
 
     void assert_equal_constant(uint32_t const a_idx,

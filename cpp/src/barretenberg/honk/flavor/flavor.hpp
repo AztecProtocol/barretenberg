@@ -64,7 +64,7 @@ struct StandardArithmetization {
 namespace honk {
 struct StandardHonk {
   public:
-    // This whole file is broken; changes here are anticipation a follow-up rework of the flavor specificaiton.
+    // This whole file is broken; changes here are in anticipation of a follow-up rework of the flavor specificaiton.
     using Arithmetization = arithmetization::Standard;
     using MULTIVARIATE = honk::StandardArithmetization::POLYNOMIAL;
     // // TODO(Cody): Where to specify? is this polynomial manifest size?

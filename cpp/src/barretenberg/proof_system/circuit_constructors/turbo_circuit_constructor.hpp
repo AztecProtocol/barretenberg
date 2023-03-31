@@ -39,7 +39,6 @@ class TurboCircuitConstructor : public CircuitConstructorBase<arithmetization::T
 
     TurboCircuitConstructor(const size_t size_hint = 0);
     TurboCircuitConstructor(TurboCircuitConstructor&& other) = default;
-    // TurboCircuitConstructor& operator=(TurboCircuitConstructor&& other) = default;
     ~TurboCircuitConstructor() {}
 
     void create_add_gate(const add_triple& in);
