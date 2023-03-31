@@ -14,8 +14,6 @@ inline std::vector<std::string> turbo_selector_names()
 }
 class TurboCircuitConstructor : public CircuitConstructorBase<arithmetization::Turbo> {
 
-    enum TurboSelectors { QM, QC, Q1, Q2, Q3, Q4, Q5, QARITH, QFIXED, QRANGE, QLOGIC, NUM };
-
   public:
     std::vector<uint32_t>& w_l = std::get<0>(wires);
     std::vector<uint32_t>& w_r = std::get<1>(wires);

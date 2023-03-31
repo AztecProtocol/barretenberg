@@ -794,14 +794,6 @@ inline bool TurboCircuitConstructor::lazy_fixed_base_gate_check(const size_t gat
 
     constexpr barretenberg::fr grumpkin_curve_b(-17);
     constexpr barretenberg::fr nine(9);
-    auto& q_m = selectors[TurboSelectors::QM];
-    auto& q_c = selectors[TurboSelectors::QC];
-    auto& q_1 = selectors[TurboSelectors::Q1];
-    auto& q_2 = selectors[TurboSelectors::Q2];
-    auto& q_3 = selectors[TurboSelectors::Q3];
-    auto& q_4 = selectors[TurboSelectors::Q4];
-    auto& q_5 = selectors[TurboSelectors::Q5];
-    auto& q_fixed_base = selectors[TurboSelectors::QFIXED];
 
     // Get witness values
     fr wire_1_shifted;
@@ -913,9 +905,6 @@ inline bool TurboCircuitConstructor::lazy_logic_gate_check(const size_t gate_ind
 {
 
     ASSERT(gate_index < num_gates);
-
-    auto& q_c = selectors[TurboSelectors::QC];
-    auto& q_logic = selectors[TurboSelectors::QLOGIC];
 
     fr wire_1_shifted;
     fr wire_2_shifted;
@@ -1053,15 +1042,6 @@ inline fr TurboCircuitConstructor::arithmetic_gate_evaluation(const size_t gate_
 {
     ASSERT(gate_index < num_gates);
 
-    auto& q_m = selectors[TurboSelectors::QM];
-    auto& q_c = selectors[TurboSelectors::QC];
-    auto& q_1 = selectors[TurboSelectors::Q1];
-    auto& q_2 = selectors[TurboSelectors::Q2];
-    auto& q_3 = selectors[TurboSelectors::Q3];
-    auto& q_4 = selectors[TurboSelectors::Q4];
-    auto& q_5 = selectors[TurboSelectors::Q5];
-    auto& q_arith = selectors[TurboSelectors::QARITH];
-
     constexpr barretenberg::fr minus_seven(-7);
 
     constexpr fr two = fr::one() + fr::one();
@@ -1111,8 +1091,6 @@ inline fr TurboCircuitConstructor::range_gate_evaluation(const size_t gate_index
 {
 
     ASSERT(gate_index < num_gates);
-
-    auto& q_range = selectors[TurboSelectors::QRANGE];
 
     fr wire_4_shifted;
     const fr wire_1_value = get_variable(w_l[gate_index]);
@@ -1197,9 +1175,6 @@ inline fr TurboCircuitConstructor::logic_gate_evaluation(const size_t gate_index
 {
 
     ASSERT(gate_index < num_gates);
-
-    auto& q_c = selectors[TurboSelectors::QC];
-    auto& q_logic = selectors[TurboSelectors::QLOGIC];
 
     fr wire_1_shifted;
     fr wire_2_shifted;
@@ -1371,14 +1346,6 @@ inline fr TurboCircuitConstructor::fixed_base_gate_evaluation(const size_t gate_
 
     constexpr barretenberg::fr grumpkin_curve_b(-17);
     constexpr barretenberg::fr three(3);
-    auto& q_m = selectors[TurboSelectors::QM];
-    auto& q_c = selectors[TurboSelectors::QC];
-    auto& q_1 = selectors[TurboSelectors::Q1];
-    auto& q_2 = selectors[TurboSelectors::Q2];
-    auto& q_3 = selectors[TurboSelectors::Q3];
-    auto& q_4 = selectors[TurboSelectors::Q4];
-    auto& q_5 = selectors[TurboSelectors::Q5];
-    auto& q_fixed_base = selectors[TurboSelectors::QFIXED];
 
     // Get witness values
     fr wire_1_shifted;
