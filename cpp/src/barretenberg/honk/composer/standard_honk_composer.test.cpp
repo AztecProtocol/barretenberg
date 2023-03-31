@@ -14,6 +14,53 @@
 using namespace proof_system::honk;
 
 namespace test_standard_honk_composer {
+TEST(StandardHonkComposer, BaseCase)
+{
+    auto composer = StandardHonkComposer();
+    fr a = 1;
+    composer.circuit_constructor.add_variable(a);
+
+    auto prover = composer.create_prover();
+    plonk::proof proof = prover.construct_proof();
+    auto verifier = composer.create_verifier();
+    bool verified = verifier.verify_proof(proof);
+    ASSERT_TRUE(verified);
+}
+
+TEST(StandardHonkComposer, TwoGates)
+{
+    auto run_test = [](bool expect_verified) {
+        auto composer = StandardHonkComposer();
+
+        // 1 + 1 - 2 = 0
+        uint32_t w_l_1_idx;
+        if (expect_verified) {
+            w_l_1_idx = composer.circuit_constructor.add_variable(1);
+        } else {
+            w_l_1_idx = composer.circuit_constructor.add_variable(0);
+        }
+        uint32_t w_r_1_idx = composer.circuit_constructor.add_variable(1);
+        uint32_t w_o_1_idx = composer.circuit_constructor.add_variable(2);
+        composer.create_add_gate({ w_l_1_idx, w_r_1_idx, w_o_1_idx, 1, 1, -1, 0 });
+
+        // 2 * 2 - 4 = 0
+        uint32_t w_l_2_idx = composer.circuit_constructor.add_variable(2);
+        uint32_t w_r_2_idx = composer.circuit_constructor.add_variable(2);
+        uint32_t w_o_2_idx = composer.circuit_constructor.add_variable(4);
+        composer.create_mul_gate({ w_l_2_idx, w_r_2_idx, w_o_2_idx, 1, -1, 0 });
+
+        auto prover = composer.create_prover();
+
+        plonk::proof proof = prover.construct_proof();
+        auto verifier = composer.create_verifier();
+        bool verified = verifier.verify_proof(proof);
+        EXPECT_EQ(verified, expect_verified);
+    };
+
+    run_test(/* expect_verified=*/true);
+    run_test(/* expect_verified=*/false);
+}
+
 /**
  * @brief The goal of this test is to check that the sigma permutation vectors for honk are generated correctly.
  *
@@ -304,50 +351,106 @@ TEST(StandardHonkComposer, VerificationKeyCreation)
               composer.circuit_constructor.selectors.size() + composer.num_wires * 2 + 2);
 }
 
-TEST(StandardHonkComposer, BaseCase)
+/**
+ * @brief A test taking sumcheck relations and applying them to the witness and selector polynomials to ensure that the
+ * realtions are correct.
+ *
+ * TODO(Kesha): We'll have to update this function once we add zk, since the relation will be incorrect for he first few
+ * indices
+ *
+ */
+TEST(StandardHonkComposer, SumcheckRelationCorrectness)
 {
-    auto composer = StandardHonkComposer();
-    fr a = 1;
-    composer.circuit_constructor.add_variable(a);
-
+    // Create a composer and a dummy circuit with a few gates
+    StandardHonkComposer composer = StandardHonkComposer();
+    static const size_t num_wires = StandardHonkComposer::num_wires;
+    fr a = fr::one();
+    // Using the public variable to check that public_input_delta is computed and added to the relation correctly
+    uint32_t a_idx = composer.add_public_variable(a);
+    fr b = fr::one();
+    fr c = a + b;
+    fr d = a + c;
+    uint32_t b_idx = composer.add_variable(b);
+    uint32_t c_idx = composer.add_variable(c);
+    uint32_t d_idx = composer.add_variable(d);
+    for (size_t i = 0; i < 16; i++) {
+        composer.create_add_gate({ a_idx, b_idx, c_idx, fr::one(), fr::one(), fr::neg_one(), fr::zero() });
+        composer.create_add_gate({ d_idx, c_idx, a_idx, fr::one(), fr::neg_one(), fr::neg_one(), fr::zero() });
+    }
+    // Create a prover (it will compute proving key and witness)
     auto prover = composer.create_prover();
-    plonk::proof proof = prover.construct_proof();
-    auto verifier = composer.create_verifier();
-    bool verified = verifier.verify_proof(proof);
-    ASSERT_TRUE(verified);
-}
 
-TEST(StandardHonkComposer, TwoGates)
-{
-    auto run_test = [](bool expect_verified) {
-        auto composer = StandardHonkComposer();
+    // Generate beta and gamma
+    fr beta = fr::random_element();
+    fr gamma = fr::random_element();
 
-        // 1 + 1 - 2 = 0
-        uint32_t w_l_1_idx;
-        if (expect_verified) {
-            w_l_1_idx = composer.circuit_constructor.add_variable(1);
-        } else {
-            w_l_1_idx = composer.circuit_constructor.add_variable(0);
-        }
-        uint32_t w_r_1_idx = composer.circuit_constructor.add_variable(1);
-        uint32_t w_o_1_idx = composer.circuit_constructor.add_variable(2);
-        composer.create_add_gate({ w_l_1_idx, w_r_1_idx, w_o_1_idx, 1, 1, -1, 0 });
+    // Compute public input delta
+    const auto public_inputs = composer.circuit_constructor.get_public_inputs();
+    auto public_input_delta =
+        honk::compute_public_input_delta<fr>(public_inputs, beta, gamma, prover.key->circuit_size);
 
-        // 2 * 2 - 4 = 0
-        uint32_t w_l_2_idx = composer.circuit_constructor.add_variable(2);
-        uint32_t w_r_2_idx = composer.circuit_constructor.add_variable(2);
-        uint32_t w_o_2_idx = composer.circuit_constructor.add_variable(4);
-        composer.create_mul_gate({ w_l_2_idx, w_r_2_idx, w_o_2_idx, 1, -1, 0 });
-
-        auto prover = composer.create_prover();
-
-        plonk::proof proof = prover.construct_proof();
-        auto verifier = composer.create_verifier();
-        bool verified = verifier.verify_proof(proof);
-        EXPECT_EQ(verified, expect_verified);
+    sumcheck::RelationParameters<fr> params{
+        .beta = beta,
+        .gamma = gamma,
+        .public_input_delta = public_input_delta,
     };
 
-    run_test(/* expect_verified=*/true);
-    run_test(/* expect_verified=*/false);
+    constexpr size_t num_polynomials = proof_system::honk::StandardArithmetization::NUM_POLYNOMIALS;
+    // Compute grand product polynomial
+    polynomial z_perm_poly =
+        prover_library::compute_permutation_grand_product<num_wires>(prover.key, prover.wire_polynomials, beta, gamma);
+
+    // Create an array of spans to the underlying polynomials to more easily
+    // get the transposition.
+    // Ex: polynomial_spans[3][i] returns the i-th coefficient of the third polynomial
+    // in the list below
+    std::array<std::span<const fr>, num_polynomials> evaluations_array;
+
+    using POLYNOMIAL = proof_system::honk::StandardArithmetization::POLYNOMIAL;
+    evaluations_array[POLYNOMIAL::W_L] = prover.wire_polynomials[0];
+    evaluations_array[POLYNOMIAL::W_R] = prover.wire_polynomials[1];
+    evaluations_array[POLYNOMIAL::W_O] = prover.wire_polynomials[2];
+    evaluations_array[POLYNOMIAL::Z_PERM] = z_perm_poly;
+    evaluations_array[POLYNOMIAL::Z_PERM_SHIFT] = z_perm_poly.shifted();
+    evaluations_array[POLYNOMIAL::Q_M] = prover.key->polynomial_store.get("q_m_lagrange");
+    evaluations_array[POLYNOMIAL::Q_L] = prover.key->polynomial_store.get("q_1_lagrange");
+    evaluations_array[POLYNOMIAL::Q_R] = prover.key->polynomial_store.get("q_2_lagrange");
+    evaluations_array[POLYNOMIAL::Q_O] = prover.key->polynomial_store.get("q_3_lagrange");
+    evaluations_array[POLYNOMIAL::Q_C] = prover.key->polynomial_store.get("q_c_lagrange");
+    evaluations_array[POLYNOMIAL::SIGMA_1] = prover.key->polynomial_store.get("sigma_1_lagrange");
+    evaluations_array[POLYNOMIAL::SIGMA_2] = prover.key->polynomial_store.get("sigma_2_lagrange");
+    evaluations_array[POLYNOMIAL::SIGMA_3] = prover.key->polynomial_store.get("sigma_3_lagrange");
+    evaluations_array[POLYNOMIAL::ID_1] = prover.key->polynomial_store.get("id_1_lagrange");
+    evaluations_array[POLYNOMIAL::ID_2] = prover.key->polynomial_store.get("id_2_lagrange");
+    evaluations_array[POLYNOMIAL::ID_3] = prover.key->polynomial_store.get("id_3_lagrange");
+    evaluations_array[POLYNOMIAL::LAGRANGE_FIRST] = prover.key->polynomial_store.get("L_first_lagrange");
+    evaluations_array[POLYNOMIAL::LAGRANGE_LAST] = prover.key->polynomial_store.get("L_last_lagrange");
+
+    // Construct the round for applying sumcheck relations and results for storing computed results
+    auto relations = std::tuple(honk::sumcheck::ArithmeticRelation<fr>(),
+                                honk::sumcheck::GrandProductComputationRelation<fr>(),
+                                honk::sumcheck::GrandProductInitializationRelation<fr>());
+
+    fr result = 0;
+    for (size_t i = 0; i < prover.key->circuit_size; i++) {
+        // Compute an array containing all the evaluations at a given row i
+        std::array<fr, num_polynomials> evaluations_at_index_i;
+        for (size_t j = 0; j < num_polynomials; ++j) {
+            evaluations_at_index_i[j] = evaluations_array[j][i];
+        }
+
+        // For each relation, call the `accumulate_relatiozn_evaluation` over all witness/selector values at the
+        // i-th row/vertex of the hypercube.
+        // We use ASSERT_EQ instead of EXPECT_EQ so that the tests stops at the first index at which the result is not
+        // 0, since result = 0 + C(transposed), which we expect will equal 0.
+        std::get<0>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        ASSERT_EQ(result, 0);
+
+        std::get<1>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        ASSERT_EQ(result, 0);
+
+        std::get<2>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        ASSERT_EQ(result, 0);
+    }
 }
 } // namespace test_standard_honk_composer

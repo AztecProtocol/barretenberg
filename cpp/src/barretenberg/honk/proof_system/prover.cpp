@@ -38,6 +38,7 @@ using POLYNOMIAL = proof_system::honk::StandardArithmetization::POLYNOMIAL;
  *
  * @tparam settings Settings class.
  * */
+// TODO(Cody): both input types are foo& in prototype
 template <typename settings>
 Prover<settings>::Prover(std::vector<barretenberg::polynomial>&& wire_polys,
                          const std::shared_ptr<plonk::proving_key> input_key)
@@ -47,6 +48,22 @@ Prover<settings>::Prover(std::vector<barretenberg::polynomial>&& wire_polys,
 {
     // Note(luke): This could be done programmatically with some hacks but this isnt too bad and its nice to see the
     // polys laid out explicitly.
+    // prover_polynomials.q_c = key->polynomial_store.get("q_c_lagrange");
+    // prover_polynomials.q_l = key->polynomial_store.get("q_1_lagrange");
+    // prover_polynomials.q_r = key->polynomial_store.get("q_2_lagrange");
+    // prover_polynomials.q_o = key->polynomial_store.get("q_3_lagrange");
+    // prover_polynomials.q_m = key->polynomial_store.get("q_m_lagrange");
+    // prover_polynomials.sigma_1 = key->polynomial_store.get("sigma_1_lagrange");
+    // prover_polynomials.sigma_2 = key->polynomial_store.get("sigma_2_lagrange");
+    // prover_polynomials.sigma_3 = key->polynomial_store.get("sigma_3_lagrange");
+    // prover_polynomials.id_1 = key->polynomial_store.get("id_1_lagrange");
+    // prover_polynomials.id_2 = key->polynomial_store.get("id_2_lagrange");
+    // prover_polynomials.id_3 = key->polynomial_store.get("id_3_lagrange");
+    // prover_polynomials.lagrange_first = key->polynomial_store.get("L_first_lagrange");
+    // prover_polynomials.lagrange_last = key->polynomial_store.get("L_last_lagrange");
+    // prover_polynomials.w_l = wire_polynomials[0];
+    // prover_polynomials.w_r = wire_polynomials[1];
+    // prover_polynomials.w_o = wire_polynomials[2];template <typename settings>
     prover_polynomials[POLYNOMIAL::Q_C] = key->polynomial_store.get("q_c_lagrange");
     prover_polynomials[POLYNOMIAL::Q_L] = key->polynomial_store.get("q_1_lagrange");
     prover_polynomials[POLYNOMIAL::Q_R] = key->polynomial_store.get("q_2_lagrange");
