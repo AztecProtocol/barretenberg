@@ -34,7 +34,7 @@ template <size_t _num_wires, size_t _num_selectors> struct Arithmetization {
 
 // These are not magic numbers and they should not be written with global constants. These paraters are not accessible
 // through clearly named static class members.
-using Standard = Arithmetization<3, 5>;
-using Turbo = Arithmetization<4, 11>;
+using Standard = Arithmetization</*num_wires =*/3, /*num_selectors =*/5>;
+using Turbo = Arithmetization</*num_wires =*/4, /*num_selectors =*/11>;
 
 } // namespace arithmetization
