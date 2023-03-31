@@ -183,6 +183,8 @@ class UltraCircuitConstructor : public CircuitConstructorBase<TURBO_WIDTH> {
     // Stores gate index of RAM writes (required by proving key)
     std::vector<uint32_t> memory_write_records;
 
+    bool circuit_finalised = false;
+
     UltraCircuitConstructor(const size_t size_hint = 0)
         : CircuitConstructorBase(ultra_selector_names(), UltraSelectors::NUM, size_hint)
     {
@@ -199,6 +201,8 @@ class UltraCircuitConstructor : public CircuitConstructorBase<TURBO_WIDTH> {
     UltraCircuitConstructor& operator=(const UltraCircuitConstructor& other) = delete;
     UltraCircuitConstructor& operator=(UltraCircuitConstructor&& other) = default;
     ~UltraCircuitConstructor() override = default;
+
+    void finalize_circuit();
 
     void create_add_gate(const add_triple& in) override;
 

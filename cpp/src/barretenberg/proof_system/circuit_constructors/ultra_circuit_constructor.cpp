@@ -18,6 +18,40 @@ namespace bonk {
     auto& q_aux = selectors[UltraSelectors::QAUX];                                                                     \
     auto& q_lookup_type = selectors[UltraSelectors::QLOOKUPTYPE];
 
+void UltraCircuitConstructor::finalize_circuit()
+{
+    /**
+     * First of all, add the gates related to ROM arrays and range lists.
+     * Note that the total number of rows in an UltraPlonk program can be divided as following:
+     *  1. arithmetic gates:  n_computation (includes all computation gates)
+     *  2. rom/memory gates:  n_rom
+     *  3. range list gates:  n_range
+     *  4. public inputs:     n_pub
+     *
+     * Now we have two variables referred to as `n` in the code:
+     *  1. ComposerBase::n => refers to the size of the witness of a given program,
+     *  2. proving_key::n => the next power of two ≥ total witness size.
+     *
+     * In this case, we have composer.num_gates = n_computation before we execute the following two functions.
+     * After these functions are executed, the composer's `n` is incremented to include the ROM
+     * and range list gates. Therefore we have:
+     * composer.num_gates = n_computation + n_rom + n_range.
+     *
+     * Its necessary to include the (n_rom + n_range) gates at this point because if we already have a
+     * proving key, and we just return it without including these ROM and range list gates, the overall
+     * circuit size would not be correct (resulting in the code crashing while performing FFT operations).
+     *
+     * Therefore, we introduce a boolean flag `circuit_finalised` here. Once we add the rom and range gates,
+     * our circuit is finalised, and we must not to execute these functions again.
+     */
+    if (!circuit_finalised) {
+        process_ROM_arrays(public_inputs.size());
+        process_RAM_arrays(public_inputs.size());
+        process_range_lists();
+        circuit_finalised = true;
+    }
+}
+
 /**
  * @brief Create an addition gate, where in.a * in.a_scaling + in.b * in.b_scaling + in.c * in.c_scaling +
  * in.const_scaling = 0
@@ -679,11 +713,11 @@ void UltraCircuitConstructor::process_range_list(const RangeList& list)
     create_sort_constraint_with_edges(indices, 0, list.target_range);
 }
 
-// void UltraCircuitConstructor::process_range_lists()
-// {
-//     for (const auto& i : range_lists)
-//         process_range_list(i.second);
-// }
+void UltraCircuitConstructor::process_range_lists()
+{
+    for (const auto& i : range_lists)
+        process_range_list(i.second);
+}
 
 /*
  Create range constraint:
@@ -1866,34 +1900,35 @@ void UltraCircuitConstructor::create_final_sorted_RAM_gate(RamRecord& record, co
 //     return ram_arrays.size() - 1;
 // }
 
-// /**
-//  * @brief Initialize a RAM cell to equal `value_witness`
-//  *
-//  * @param ram_id The index of the ROM array, which cell we are initializing
-//  * @param index_value The index of the cell within the array (an actual index, not a witness index)
-//  * @param value_witness The index of the witness with the value that should be in the
-//  */
-// void UltraCircuitConstructor::init_RAM_element(const size_t ram_id, const size_t index_value, const uint32_t
-// value_witness)
-// {
-//     ASSERT(ram_arrays.size() > ram_id);
-//     RamTranscript& ram_array = ram_arrays[ram_id];
-//     const uint32_t index_witness = (index_value == 0) ? zero_idx : put_constant_variable((uint64_t)index_value);
-//     ASSERT(ram_array.state.size() > index_value);
-//     ASSERT(ram_array.state[index_value] == UNINITIALIZED_MEMORY_RECORD);
-//     RamRecord new_record{ .index_witness = index_witness,
-//                           .timestamp_witness = put_constant_variable((uint64_t)ram_array.access_count),
-//                           .value_witness = value_witness,
-//                           .index = static_cast<uint32_t>(index_value), // TODO: size_t?
-//                           .timestamp = static_cast<uint32_t>(ram_array.access_count),
-//                           .access_type = RamRecord::AccessType::WRITE,
-//                           .record_witness = 0,
-//                           .gate_index = 0 };
-//     ram_array.state[index_value] = value_witness;
-//     ram_array.access_count++;
-//     create_RAM_gate(new_record);
-//     ram_array.records.emplace_back(new_record);
-// }
+/**
+ * @brief Initialize a RAM cell to equal `value_witness`
+ *
+ * @param ram_id The index of the ROM array, which cell we are initializing
+ * @param index_value The index of the cell within the array (an actual index, not a witness index)
+ * @param value_witness The index of the witness with the value that should be in the
+ */
+void UltraCircuitConstructor::init_RAM_element(const size_t ram_id,
+                                               const size_t index_value,
+                                               const uint32_t value_witness)
+{
+    ASSERT(ram_arrays.size() > ram_id);
+    RamTranscript& ram_array = ram_arrays[ram_id];
+    const uint32_t index_witness = (index_value == 0) ? zero_idx : put_constant_variable((uint64_t)index_value);
+    ASSERT(ram_array.state.size() > index_value);
+    ASSERT(ram_array.state[index_value] == UNINITIALIZED_MEMORY_RECORD);
+    RamRecord new_record{ .index_witness = index_witness,
+                          .timestamp_witness = put_constant_variable((uint64_t)ram_array.access_count),
+                          .value_witness = value_witness,
+                          .index = static_cast<uint32_t>(index_value), // TODO: size_t?
+                          .timestamp = static_cast<uint32_t>(ram_array.access_count),
+                          .access_type = RamRecord::AccessType::WRITE,
+                          .record_witness = 0,
+                          .gate_index = 0 };
+    ram_array.state[index_value] = value_witness;
+    ram_array.access_count++;
+    create_RAM_gate(new_record);
+    ram_array.records.emplace_back(new_record);
+}
 
 // uint32_t UltraCircuitConstructor::read_RAM_array(const size_t ram_id, const uint32_t index_witness)
 // {
@@ -1999,28 +2034,28 @@ void UltraCircuitConstructor::create_final_sorted_RAM_gate(RamRecord& record, co
 //     rom_array.records.emplace_back(new_record);
 // }
 
-// void UltraCircuitConstructor::set_ROM_element_pair(const size_t rom_id,
-//                                               const size_t index_value,
-//                                               const std::array<uint32_t, 2>& value_witnesses)
-// {
-//     ASSERT(rom_arrays.size() > rom_id);
-//     RomTranscript& rom_array = rom_arrays[rom_id];
-//     const uint32_t index_witness = (index_value == 0) ? zero_idx : put_constant_variable((uint64_t)index_value);
-//     ASSERT(rom_array.state.size() > index_value);
-//     ASSERT(rom_array.state[index_value][0] == UNINITIALIZED_MEMORY_RECORD);
-//     RomRecord new_record{
-//         .index_witness = index_witness,
-//         .value_column1_witness = value_witnesses[0],
-//         .value_column2_witness = value_witnesses[1],
-//         .index = static_cast<uint32_t>(index_value),
-//         .record_witness = 0,
-//         .gate_index = 0,
-//     };
-//     rom_array.state[index_value][0] = value_witnesses[0];
-//     rom_array.state[index_value][1] = value_witnesses[1];
-//     create_ROM_gate(new_record);
-//     rom_array.records.emplace_back(new_record);
-// }
+void UltraCircuitConstructor::set_ROM_element_pair(const size_t rom_id,
+                                                   const size_t index_value,
+                                                   const std::array<uint32_t, 2>& value_witnesses)
+{
+    ASSERT(rom_arrays.size() > rom_id);
+    RomTranscript& rom_array = rom_arrays[rom_id];
+    const uint32_t index_witness = (index_value == 0) ? zero_idx : put_constant_variable((uint64_t)index_value);
+    ASSERT(rom_array.state.size() > index_value);
+    ASSERT(rom_array.state[index_value][0] == UNINITIALIZED_MEMORY_RECORD);
+    RomRecord new_record{
+        .index_witness = index_witness,
+        .value_column1_witness = value_witnesses[0],
+        .value_column2_witness = value_witnesses[1],
+        .index = static_cast<uint32_t>(index_value),
+        .record_witness = 0,
+        .gate_index = 0,
+    };
+    rom_array.state[index_value][0] = value_witnesses[0];
+    rom_array.state[index_value][1] = value_witnesses[1];
+    create_ROM_gate(new_record);
+    rom_array.records.emplace_back(new_record);
+}
 
 // uint32_t UltraCircuitConstructor::read_ROM_array(const size_t rom_id, const uint32_t index_witness)
 // {
@@ -2076,245 +2111,244 @@ void UltraCircuitConstructor::create_final_sorted_RAM_gate(RamRecord& record, co
 //     return value_witnesses;
 // }
 
-// /**
-//  * @brief Compute additional gates required to validate ROM reads. Called when generating the proving key
-//  *
-//  * @param rom_id The id of the ROM table
-//  * @param gate_offset_from_public_inputs Required to track the gate position of where we're adding extra gates
-//  */
-// void UltraCircuitConstructor::process_ROM_array(const size_t rom_id, const size_t gate_offset_from_public_inputs)
-// {
-//     auto& rom_array = rom_arrays[rom_id];
-//     const auto read_tag = get_new_tag();        // current_tag + 1;
-//     const auto sorted_list_tag = get_new_tag(); // current_tag + 2;
-//     create_tag(read_tag, sorted_list_tag);
-//     create_tag(sorted_list_tag, read_tag);
+/**
+ * @brief Compute additional gates required to validate ROM reads. Called when generating the proving key
+ *
+ * @param rom_id The id of the ROM table
+ * @param gate_offset_from_public_inputs Required to track the gate position of where we're adding extra gates
+ */
+void UltraCircuitConstructor::process_ROM_array(const size_t rom_id, const size_t gate_offset_from_public_inputs)
+{
+    auto& rom_array = rom_arrays[rom_id];
+    const auto read_tag = get_new_tag();        // current_tag + 1;
+    const auto sorted_list_tag = get_new_tag(); // current_tag + 2;
+    create_tag(read_tag, sorted_list_tag);
+    create_tag(sorted_list_tag, read_tag);
 
-//     // Make sure that every cell has been initialized
-//     for (size_t i = 0; i < rom_array.state.size(); ++i) {
-//         if (rom_array.state[i][0] == UNINITIALIZED_MEMORY_RECORD) {
-//             set_ROM_element_pair(rom_id, static_cast<uint32_t>(i), { zero_idx, zero_idx });
-//         }
-//     }
+    // Make sure that every cell has been initialized
+    for (size_t i = 0; i < rom_array.state.size(); ++i) {
+        if (rom_array.state[i][0] == UNINITIALIZED_MEMORY_RECORD) {
+            set_ROM_element_pair(rom_id, static_cast<uint32_t>(i), { zero_idx, zero_idx });
+        }
+    }
 
-// #ifdef NO_TBB
-//     std::sort(rom_array.records.begin(), rom_array.records.end());
-// #else
-//     std::sort(std::execution::par_unseq, rom_array.records.begin(), rom_array.records.end());
-// #endif
+#ifdef NO_TBB
+    std::sort(rom_array.records.begin(), rom_array.records.end());
+#else
+    std::sort(std::execution::par_unseq, rom_array.records.begin(), rom_array.records.end());
+#endif
 
-//     for (const RomRecord& record : rom_array.records) {
-//         const auto index = record.index;
-//         const auto value1 = get_variable(record.value_column1_witness);
-//         const auto value2 = get_variable(record.value_column2_witness);
-//         const auto index_witness = add_variable(fr((uint64_t)index));
-//         const auto value1_witness = add_variable(value1);
-//         const auto value2_witness = add_variable(value2);
-//         RomRecord sorted_record{
-//             .index_witness = index_witness,
-//             .value_column1_witness = value1_witness,
-//             .value_column2_witness = value2_witness,
-//             .index = index,
-//             .record_witness = 0,
-//             .gate_index = 0,
-//         };
-//         create_sorted_ROM_gate(sorted_record);
+    for (const RomRecord& record : rom_array.records) {
+        const auto index = record.index;
+        const auto value1 = get_variable(record.value_column1_witness);
+        const auto value2 = get_variable(record.value_column2_witness);
+        const auto index_witness = add_variable(fr((uint64_t)index));
+        const auto value1_witness = add_variable(value1);
+        const auto value2_witness = add_variable(value2);
+        RomRecord sorted_record{
+            .index_witness = index_witness,
+            .value_column1_witness = value1_witness,
+            .value_column2_witness = value2_witness,
+            .index = index,
+            .record_witness = 0,
+            .gate_index = 0,
+        };
+        create_sorted_ROM_gate(sorted_record);
 
-//         assign_tag(record.record_witness, read_tag);
-//         assign_tag(sorted_record.record_witness, sorted_list_tag);
+        assign_tag(record.record_witness, read_tag);
+        assign_tag(sorted_record.record_witness, sorted_list_tag);
 
-//         // For ROM/RAM gates, the 'record' wire value (wire column 4) is a linear combination of the first 3 wire
-//         // values. However...the record value uses the random challenge 'eta', generated after the first 3 wires are
-//         // committed to. i.e. we can't compute the record witness here because we don't know what `eta` is! Take the
-//         // gate indices of the two rom gates (original read gate + sorted gate) and store in `memory_records`. Once
-//         we
-//         // generate the `eta` challenge, we'll use `memory_records` to figure out which gates need a record wire
-//         value
-//         // to be computed.
-//         // record (w4) = w3 * eta^3 + w2 * eta^2 + w1 * eta + read_write_flag (0 for reads, 1 for writes)
-//         // Separate containers used to store gate indices of reads and writes. Need to differentiate because of
-//         // `read_write_flag` (N.B. all ROM accesses are considered reads. Writes are for RAM operations)
-//         memory_read_records.push_back(static_cast<uint32_t>(sorted_record.gate_index +
-//         gate_offset_from_public_inputs)); memory_read_records.push_back(static_cast<uint32_t>(record.gate_index +
-//         gate_offset_from_public_inputs));
-//     }
-//     // One of the checks we run on the sorted list, is to validate the difference between
-//     // the index field across two gates is either 0 or 1.
-//     // If we add a dummy gate at the end of the sorted list, where we force the first wire to
-//     // equal `m + 1`, where `m` is the maximum allowed index in the sorted list,
-//     // we have validated that all ROM reads are correctly constrained
-//     fr max_index_value((uint64_t)rom_array.state.size());
-//     uint32_t max_index = add_variable(max_index_value);
-//     create_big_add_gate({
-//         max_index,
-//         zero_idx,
-//         zero_idx,
-//         zero_idx,
-//         1,
-//         0,
-//         0,
-//         0,
-//         -max_index_value,
-//     });
-//     // N.B. If the above check holds, we know the sorted list begins with an index value of 0,
-//     // because the first cell is explicitly initialized using zero_idx as the index field.
-// }
+        // For ROM/RAM gates, the 'record' wire value (wire column 4) is a linear combination of the first 3 wire
+        // values. However...the record value uses the random challenge 'eta', generated after the first 3 wires are
+        // committed to. i.e. we can't compute the record witness here because we don't know what `eta` is! Take the
+        // gate indices of the two rom gates (original read gate + sorted gate) and store in `memory_records`. Once
+        // we
+        // generate the `eta` challenge, we'll use `memory_records` to figure out which gates need a record wire
+        // value
+        // to be computed.
+        // record (w4) = w3 * eta^3 + w2 * eta^2 + w1 * eta + read_write_flag (0 for reads, 1 for writes)
+        // Separate containers used to store gate indices of reads and writes. Need to differentiate because of
+        // `read_write_flag` (N.B. all ROM accesses are considered reads. Writes are for RAM operations)
+        memory_read_records.push_back(static_cast<uint32_t>(sorted_record.gate_index + gate_offset_from_public_inputs));
+        memory_read_records.push_back(static_cast<uint32_t>(record.gate_index + gate_offset_from_public_inputs));
+    }
+    // One of the checks we run on the sorted list, is to validate the difference between
+    // the index field across two gates is either 0 or 1.
+    // If we add a dummy gate at the end of the sorted list, where we force the first wire to
+    // equal `m + 1`, where `m` is the maximum allowed index in the sorted list,
+    // we have validated that all ROM reads are correctly constrained
+    fr max_index_value((uint64_t)rom_array.state.size());
+    uint32_t max_index = add_variable(max_index_value);
+    create_big_add_gate({
+        max_index,
+        zero_idx,
+        zero_idx,
+        zero_idx,
+        1,
+        0,
+        0,
+        0,
+        -max_index_value,
+    });
+    // N.B. If the above check holds, we know the sorted list begins with an index value of 0,
+    // because the first cell is explicitly initialized using zero_idx as the index field.
+}
 
-// /**
-//  * @brief Compute additional gates required to validate RAM read/writes. Called when generating the proving key
-//  *
-//  * @param ram_id The id of the RAM table
-//  * @param gate_offset_from_public_inputs Required to track the gate position of where we're adding extra gates
-//  */
-// void UltraCircuitConstructor::process_RAM_array(const size_t ram_id, const size_t gate_offset_from_public_inputs)
-// {
-//     RamTranscript& ram_array = ram_arrays[ram_id];
-//     const auto access_tag = get_new_tag();      // current_tag + 1;
-//     const auto sorted_list_tag = get_new_tag(); // current_tag + 2;
-//     create_tag(access_tag, sorted_list_tag);
-//     create_tag(sorted_list_tag, access_tag);
+/**
+ * @brief Compute additional gates required to validate RAM read/writes. Called when generating the proving key
+ *
+ * @param ram_id The id of the RAM table
+ * @param gate_offset_from_public_inputs Required to track the gate position of where we're adding extra gates
+ */
+void UltraCircuitConstructor::process_RAM_array(const size_t ram_id, const size_t gate_offset_from_public_inputs)
+{
+    RamTranscript& ram_array = ram_arrays[ram_id];
+    const auto access_tag = get_new_tag();      // current_tag + 1;
+    const auto sorted_list_tag = get_new_tag(); // current_tag + 2;
+    create_tag(access_tag, sorted_list_tag);
+    create_tag(sorted_list_tag, access_tag);
 
-//     // Make sure that every cell has been initialized
-//     // TODO: throw some kind of error here? Circuit should initialize all RAM elements to prevent errors.
-//     // e.g. if a RAM record is uninitialized but the index of that record is a function of public/private inputs,
-//     // different public iputs will produce different circuit constraints.
-//     for (size_t i = 0; i < ram_array.state.size(); ++i) {
-//         if (ram_array.state[i] == UNINITIALIZED_MEMORY_RECORD) {
-//             init_RAM_element(ram_id, static_cast<uint32_t>(i), zero_idx);
-//         }
-//     }
+    // Make sure that every cell has been initialized
+    // TODO: throw some kind of error here? Circuit should initialize all RAM elements to prevent errors.
+    // e.g. if a RAM record is uninitialized but the index of that record is a function of public/private inputs,
+    // different public iputs will produce different circuit constraints.
+    for (size_t i = 0; i < ram_array.state.size(); ++i) {
+        if (ram_array.state[i] == UNINITIALIZED_MEMORY_RECORD) {
+            init_RAM_element(ram_id, static_cast<uint32_t>(i), zero_idx);
+        }
+    }
 
-// #ifdef NO_TBB
-//     std::sort(ram_array.records.begin(), ram_array.records.end());
-// #else
-//     std::sort(std::execution::par_unseq, ram_array.records.begin(), ram_array.records.end());
-// #endif
+#ifdef NO_TBB
+    std::sort(ram_array.records.begin(), ram_array.records.end());
+#else
+    std::sort(std::execution::par_unseq, ram_array.records.begin(), ram_array.records.end());
+#endif
 
-//     // Iterate over all but final RAM record.
-//     for (size_t i = 0; i < ram_array.records.size(); ++i) {
-//         const RamRecord& record = ram_array.records[i];
+    // Iterate over all but final RAM record.
+    for (size_t i = 0; i < ram_array.records.size(); ++i) {
+        const RamRecord& record = ram_array.records[i];
 
-//         const auto index = record.index;
-//         const auto value = get_variable(record.value_witness);
-//         const auto index_witness = add_variable(fr((uint64_t)index));
-//         const auto timestamp_witess = add_variable(record.timestamp);
-//         const auto value_witness = add_variable(value);
-//         RamRecord sorted_record{
-//             .index_witness = index_witness,
-//             .timestamp_witness = timestamp_witess,
-//             .value_witness = value_witness,
-//             .index = index,
-//             .timestamp = record.timestamp,
-//             .access_type = record.access_type,
-//             .record_witness = 0,
-//             .gate_index = 0,
-//         };
+        const auto index = record.index;
+        const auto value = get_variable(record.value_witness);
+        const auto index_witness = add_variable(fr((uint64_t)index));
+        const auto timestamp_witess = add_variable(record.timestamp);
+        const auto value_witness = add_variable(value);
+        RamRecord sorted_record{
+            .index_witness = index_witness,
+            .timestamp_witness = timestamp_witess,
+            .value_witness = value_witness,
+            .index = index,
+            .timestamp = record.timestamp,
+            .access_type = record.access_type,
+            .record_witness = 0,
+            .gate_index = 0,
+        };
 
-//         // We don't apply the RAM consistency check gate to the final record,
-//         // as this gate expects a RAM record to be present at the next gate
-//         if (i < ram_array.records.size() - 1) {
-//             create_sorted_RAM_gate(sorted_record);
-//         } else {
-//             // For the final record in the sorted list, we do not apply the full consistency check gate.
-//             // Only need to check the index value = RAM array size - 1.
-//             create_final_sorted_RAM_gate(sorted_record, ram_array.state.size());
-//         }
+        // We don't apply the RAM consistency check gate to the final record,
+        // as this gate expects a RAM record to be present at the next gate
+        if (i < ram_array.records.size() - 1) {
+            create_sorted_RAM_gate(sorted_record);
+        } else {
+            // For the final record in the sorted list, we do not apply the full consistency check gate.
+            // Only need to check the index value = RAM array size - 1.
+            create_final_sorted_RAM_gate(sorted_record, ram_array.state.size());
+        }
 
-//         // Assign record/sorted records to tags that we will perform set equivalence checks on
-//         assign_tag(record.record_witness, access_tag);
-//         assign_tag(sorted_record.record_witness, sorted_list_tag);
+        // Assign record/sorted records to tags that we will perform set equivalence checks on
+        assign_tag(record.record_witness, access_tag);
+        assign_tag(sorted_record.record_witness, sorted_list_tag);
 
-//         // For ROM/RAM gates, the 'record' wire value (wire column 4) is a linear combination of the first 3 wire
-//         // values. However...the record value uses the random challenge 'eta', generated after the first 3 wires are
-//         // committed to. i.e. we can't compute the record witness here because we don't know what `eta` is! Take the
-//         // gate indices of the two rom gates (original read gate + sorted gate) and store in `memory_records`. Once
-//         we
-//         // generate the `eta` challenge, we'll use `memory_records` to figure out which gates need a record wire
-//         value
-//         // to be computed.
+        // For ROM/RAM gates, the 'record' wire value (wire column 4) is a linear combination of the first 3 wire
+        // values. However...the record value uses the random challenge 'eta', generated after the first 3 wires are
+        // committed to. i.e. we can't compute the record witness here because we don't know what `eta` is! Take the
+        // gate indices of the two rom gates (original read gate + sorted gate) and store in `memory_records`. Once
+        // we
+        // generate the `eta` challenge, we'll use `memory_records` to figure out which gates need a record wire
+        // value
+        // to be computed.
 
-//         switch (record.access_type) {
-//         case RamRecord::AccessType::READ: {
-//             memory_read_records.push_back(
-//                 static_cast<uint32_t>(sorted_record.gate_index + gate_offset_from_public_inputs));
-//             memory_read_records.push_back(static_cast<uint32_t>(record.gate_index + gate_offset_from_public_inputs));
-//             break;
-//         }
-//         case RamRecord::AccessType::WRITE: {
-//             memory_write_records.push_back(
-//                 static_cast<uint32_t>(sorted_record.gate_index + gate_offset_from_public_inputs));
-//             memory_write_records.push_back(static_cast<uint32_t>(record.gate_index +
-//             gate_offset_from_public_inputs)); break;
-//         }
-//         default: {
-//             ASSERT(false); // shouldn't get here!
-//         }
-//         }
-//     }
+        switch (record.access_type) {
+        case RamRecord::AccessType::READ: {
+            memory_read_records.push_back(
+                static_cast<uint32_t>(sorted_record.gate_index + gate_offset_from_public_inputs));
+            memory_read_records.push_back(static_cast<uint32_t>(record.gate_index + gate_offset_from_public_inputs));
+            break;
+        }
+        case RamRecord::AccessType::WRITE: {
+            memory_write_records.push_back(
+                static_cast<uint32_t>(sorted_record.gate_index + gate_offset_from_public_inputs));
+            memory_write_records.push_back(static_cast<uint32_t>(record.gate_index + gate_offset_from_public_inputs));
+            break;
+        }
+        default: {
+            ASSERT(false); // shouldn't get here!
+        }
+        }
+    }
 
-//     // Step 2: Create gates that validate correctness of RAM timestamps
+    // Step 2: Create gates that validate correctness of RAM timestamps
 
-//     std::vector<uint32_t> timestamp_deltas;
-//     for (size_t i = 0; i < ram_array.records.size() - 1; ++i) {
-//         // create_RAM_timestamp_gate(sorted_records[i], sorted_records[i + 1])
-//         const auto& current = ram_array.records[i];
-//         const auto& next = ram_array.records[i + 1];
+    std::vector<uint32_t> timestamp_deltas;
+    for (size_t i = 0; i < ram_array.records.size() - 1; ++i) {
+        // create_RAM_timestamp_gate(sorted_records[i], sorted_records[i + 1])
+        const auto& current = ram_array.records[i];
+        const auto& next = ram_array.records[i + 1];
 
-//         const bool share_index = current.index == next.index;
+        const bool share_index = current.index == next.index;
 
-//         fr timestamp_delta = 0;
-//         if (share_index) {
-//             ASSERT(next.timestamp > current.timestamp);
-//             timestamp_delta = fr(next.timestamp - current.timestamp);
-//         }
+        fr timestamp_delta = 0;
+        if (share_index) {
+            ASSERT(next.timestamp > current.timestamp);
+            timestamp_delta = fr(next.timestamp - current.timestamp);
+        }
 
-//         uint32_t timestamp_delta_witness = add_variable(timestamp_delta);
+        uint32_t timestamp_delta_witness = add_variable(timestamp_delta);
 
-//         apply_aux_selectors(AUX_SELECTORS::RAM_TIMESTAMP_CHECK);
-//         w_l.emplace_back(current.index_witness);
-//         w_r.emplace_back(current.timestamp_witness);
-//         w_o.emplace_back(timestamp_delta_witness);
-//         w_4.emplace_back(zero_idx);
-//         ++num_gates;
+        apply_aux_selectors(AUX_SELECTORS::RAM_TIMESTAMP_CHECK);
+        w_l.emplace_back(current.index_witness);
+        w_r.emplace_back(current.timestamp_witness);
+        w_o.emplace_back(timestamp_delta_witness);
+        w_4.emplace_back(zero_idx);
+        ++num_gates;
 
-//         // store timestamp offsets for later. Need to apply range checks to them, but calling
-//         // `create_new_range_constraint` can add gates. Would ruin the structure of our sorted timestamp list.
-//         timestamp_deltas.push_back(timestamp_delta_witness);
-//     }
+        // store timestamp offsets for later. Need to apply range checks to them, but calling
+        // `create_new_range_constraint` can add gates. Would ruin the structure of our sorted timestamp list.
+        timestamp_deltas.push_back(timestamp_delta_witness);
+    }
 
-//     // add the index/timestamp values of the last sorted record in an empty add gate.
-//     // (the previous gate will access the wires on this gate and requires them to be those of the last record)
-//     const auto& last = ram_array.records[ram_array.records.size() - 1];
-//     create_big_add_gate({
-//         last.index_witness,
-//         last.timestamp_witness,
-//         zero_idx,
-//         zero_idx,
-//         0,
-//         0,
-//         0,
-//         0,
-//         0,
-//     });
+    // add the index/timestamp values of the last sorted record in an empty add gate.
+    // (the previous gate will access the wires on this gate and requires them to be those of the last record)
+    const auto& last = ram_array.records[ram_array.records.size() - 1];
+    create_big_add_gate({
+        last.index_witness,
+        last.timestamp_witness,
+        zero_idx,
+        zero_idx,
+        0,
+        0,
+        0,
+        0,
+        0,
+    });
 
-//     // Step 3: validate difference in timestamps is monotonically increasing. i.e. is <= maximum timestamp
-//     const size_t max_timestamp = ram_array.access_count - 1;
-//     for (auto& w : timestamp_deltas) {
-//         create_new_range_constraint(w, max_timestamp);
-//     }
-// }
+    // Step 3: validate difference in timestamps is monotonically increasing. i.e. is <= maximum timestamp
+    const size_t max_timestamp = ram_array.access_count - 1;
+    for (auto& w : timestamp_deltas) {
+        create_new_range_constraint(w, max_timestamp);
+    }
+}
 
-// void UltraCircuitConstructor::process_ROM_arrays(const size_t gate_offset_from_public_inputs)
-// {
-//     for (size_t i = 0; i < rom_arrays.size(); ++i) {
-//         process_ROM_array(i, gate_offset_from_public_inputs);
-//     }
-// }
-// void UltraCircuitConstructor::process_RAM_arrays(const size_t gate_offset_from_public_inputs)
-// {
-//     for (size_t i = 0; i < ram_arrays.size(); ++i) {
-//         process_RAM_array(i, gate_offset_from_public_inputs);
-//     }
-// }
+void UltraCircuitConstructor::process_ROM_arrays(const size_t gate_offset_from_public_inputs)
+{
+    for (size_t i = 0; i < rom_arrays.size(); ++i) {
+        process_ROM_array(i, gate_offset_from_public_inputs);
+    }
+}
+void UltraCircuitConstructor::process_RAM_arrays(const size_t gate_offset_from_public_inputs)
+{
+    for (size_t i = 0; i < ram_arrays.size(); ++i) {
+        process_RAM_array(i, gate_offset_from_public_inputs);
+    }
+}
 
 } // namespace bonk
