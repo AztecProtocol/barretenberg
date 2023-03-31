@@ -70,24 +70,26 @@ TEST(ultra_plonk_composer, test_circuit_constructor)
     auto prover = composer.create_prover();
     auto prover_new = composer_new.create_prover();
 
-    // prover.key->polynomial_store.print();
-    // prover_new.key->polynomial_store.print();
-    // info("size = ", prover.key->polynomial_store.size());
-    // info("size = ", prover_new.key->polynomial_store.size());
-
     for (const auto& [key, poly] : prover.key->polynomial_store) {
         if (prover_new.key->polynomial_store.contains(key)) {
-            info(key);
+            // info(key);
             EXPECT_EQ(prover.key->polynomial_store.get(key), prover_new.key->polynomial_store.get(key));
         }
     }
 
-    // auto verifier = composer_new.create_verifier();
+    auto verifier = composer.create_verifier();
+    auto verifier_new = composer_new.create_verifier();
 
-    // auto proof = prover.construct_proof();
+    for (const auto& [key, poly] : verifier.key->commitments) {
+        // info(key);
+        EXPECT_EQ(verifier.key->commitments[key], verifier_new.key->commitments[key]);
+    }
 
-    // bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
-    // EXPECT_EQ(result, true);
+    auto proof = prover.construct_proof();
+    auto proof_new = prover_new.construct_proof();
+
+    bool result_new = verifier_new.verify_proof(proof_new); // instance, prover.reference_string.SRS_T2);
+    EXPECT_EQ(result_new, true);
 }
 
 // TEST(ultra_plonk_composer, test_no_lookup_proof)

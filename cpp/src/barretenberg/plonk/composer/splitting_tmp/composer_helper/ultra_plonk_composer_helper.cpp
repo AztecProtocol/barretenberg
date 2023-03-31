@@ -1,4 +1,7 @@
 #include "ultra_plonk_composer_helper.hpp"
+#include "barretenberg/plonk/proof_system/types/program_settings.hpp"
+#include "barretenberg/plonk/proof_system/types/prover_settings.hpp"
+#include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
 #include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
 #include "barretenberg/proof_system/composer/permutation_helper.hpp"
 #include "barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp"
@@ -176,6 +179,30 @@ UltraProver UltraPlonkComposerHelper<CircuitConstructor>::create_prover(CircuitC
 
     std::unique_ptr<KateCommitmentScheme<ultra_settings>> kate_commitment_scheme =
         std::make_unique<KateCommitmentScheme<ultra_settings>>();
+
+    output_state.commitment_scheme = std::move(kate_commitment_scheme);
+
+    return output_state;
+}
+
+/**
+ * Create verifier: compute verification key,
+ * initialize verifier with it and an initial manifest and initialize commitment_scheme.
+ *
+ * @return The verifier.
+ * */
+// TODO(Cody): This should go away altogether.
+template <typename CircuitConstructor>
+plonk::UltraVerifier UltraPlonkComposerHelper<CircuitConstructor>::create_verifier(
+    const CircuitConstructor& circuit_constructor)
+{
+    auto verification_key = compute_verification_key(circuit_constructor);
+
+    plonk::UltraVerifier output_state(circuit_verification_key,
+                                      create_manifest(circuit_constructor.public_inputs.size()));
+
+    std::unique_ptr<plonk::KateCommitmentScheme<plonk::ultra_settings>> kate_commitment_scheme =
+        std::make_unique<plonk::KateCommitmentScheme<plonk::ultra_settings>>();
 
     output_state.commitment_scheme = std::move(kate_commitment_scheme);
 

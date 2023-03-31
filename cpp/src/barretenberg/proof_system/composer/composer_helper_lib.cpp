@@ -122,7 +122,8 @@ void compute_monomial_and_coset_selector_forms(bonk::proving_key* circuit_provin
         selector_poly_fft.coset_fft(circuit_proving_key->large_domain);
 
         // Remove the selector lagrange forms since they will not be needed beyond this point
-        circuit_proving_key->polynomial_store.remove(selector_properties[i].name + "_lagrange");
+        // TODO(luke): Adjust so these polys are not removed for Ultra or as appropriate
+        // circuit_proving_key->polynomial_store.remove(selector_properties[i].name + "_lagrange");
         circuit_proving_key->polynomial_store.put(selector_properties[i].name, std::move(selector_poly));
         circuit_proving_key->polynomial_store.put(selector_properties[i].name + "_fft", std::move(selector_poly_fft));
     }
