@@ -2,7 +2,6 @@
 #include "../hash.hpp"
 #include "../memory_tree.hpp"
 #include "nullifier_leaf.hpp"
-#include <tuple>
 
 namespace plonk {
 namespace stdlib {

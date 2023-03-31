@@ -1,7 +1,5 @@
 #include "nullifier_memory_tree.hpp"
 #include "../hash.hpp"
-#include "barretenberg/stdlib/merkle_tree/nullifier_tree/nullifier_leaf.hpp"
-#include <utility>
 
 namespace plonk {
 namespace stdlib {
