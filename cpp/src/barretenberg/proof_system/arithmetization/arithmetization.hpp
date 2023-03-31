@@ -1,10 +1,11 @@
+#pragma once
 #include <cstddef>
 
 namespace arithmetization {
 
-template <size_t _num_wires, size_t _num_gates> struct Arithmetization {
-    static constexpr size_t num_wires = 3;
-    static constexpr size_t num_selectors = 7;
+template <size_t _num_wires, size_t _num_selectors> struct Arithmetization {
+    static constexpr size_t num_wires = _num_wires;
+    static constexpr size_t num_selectors = _num_selectors;
     // Note: For even greater modularity, in eace instantiation we could specify a list of components here, where a
     // component is a meaningful collection of functions for creating gates, as in:
     //
@@ -19,7 +20,8 @@ template <size_t _num_wires, size_t _num_gates> struct Arithmetization {
     // trace layout optimizations.
 };
 
-using Standard = Arithmetization<3, 7>;
+// These are not named constants; these constants are not accessible as a static members of a class.
+using Standard = Arithmetization<3, 5>;
 using Turbo = Arithmetization<4, 11>;
 
 } // namespace arithmetization

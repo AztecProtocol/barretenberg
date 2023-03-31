@@ -21,7 +21,7 @@ namespace honk {
 template <typename CircuitConstructor> class StandardHonkComposerHelper {
   public:
     static constexpr size_t NUM_RANDOMIZED_GATES = 2; // equal to the number of multilinear evaluations leaked
-    static constexpr size_t program_width = CircuitConstructor::program_width;
+    static constexpr size_t num_wires = CircuitConstructor::num_wires;
     std::shared_ptr<bonk::proving_key> circuit_proving_key;
     std::vector<barretenberg::polynomial> wire_polynomials;
     std::shared_ptr<bonk::verification_key> circuit_verification_key;
