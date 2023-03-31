@@ -13,7 +13,10 @@ template <typename Arithmetization> class CircuitConstructorBase {
     // Keeping num_wires, at least temporarily, for backward compatibility
     static constexpr size_t program_width = Arithmetization::num_wires;
     static constexpr size_t num_selectors = Arithmetization::num_selectors;
-    std::vector<std::string> selector_names_; // TODO(Cody): Will this go?
+    // TODO(Cody): selector names are used by composer helper. They can therefore be specified through the proving
+    // system flavor. Getting rid of this also lets us get rid of the weird constructor that's uses the selector names
+    // functions
+    std::vector<std::string> selector_names_;
     size_t num_gates = 0;
 
     std::array<std::vector<uint32_t>, num_wires> wires;
