@@ -9,6 +9,7 @@
 #include "barretenberg/plonk/composer/ultra_composer.hpp"
 #include "barretenberg/plonk/composer/turbo_composer.hpp"
 #include "barretenberg/numeric/random/engine.hpp"
+#include "barretenberg/common/streams.hpp"
 
 using namespace proof_system;
 
@@ -1180,40 +1181,14 @@ template <typename Composer> class stdlib_field : public testing::Test {
         EXPECT_EQ(proof_result, true);
     };
 
-    static void test_push_array_to_array()
+    template <size_t size_1, size_t size_2>
+    static auto test_push_array_to_array_helper(Composer& composer,
+                                                std::array<fr, size_1> const& source,
+                                                std::array<fr, size_2> const& target,
+                                                std::array<fr, size_2> const& expected_target)
     {
-        Composer composer = Composer();
-
-        std::array<field_ct, 4> source = { 1, 2 };
-        std::array<field_ct, 8> target = { 3, 4, 6, 8, 0, 0, 0, 0 };
-        push_array_to_array<Composer>(source, target);
-
-        // Check that the source array has been inserted into the first available index of the target array.
-        ASSERT(target[0].get_value() == 3);
-        ASSERT(target[1].get_value() == 4);
-        ASSERT(target[2].get_value() == 6);
-        ASSERT(target[3].get_value() == 8);
-        ASSERT(target[4].get_value() == 1);
-        ASSERT(target[5].get_value() == 2);
-        ASSERT(target[6].get_value() == 0);
-        ASSERT(target[7].get_value() == 0);
-
-        auto prover = composer.create_prover();
-        auto verifier = composer.create_verifier();
-        auto proof = prover.construct_proof();
-        info("composer gates = ", composer.get_num_gates());
-        bool proof_result = verifier.verify_proof(proof);
-        EXPECT_EQ(proof_result, true);
-    }
-
-    static void test_push_array_to_array_full()
-    {
-        Composer composer = Composer();
-
-        std::array<fr, 4> source = { 1, 2 };
-        std::array<fr, 8> target = { 3, 4, 6, 8, 7, 9, 5, 0 };
-        std::array<field_ct, 4> source_ct;
-        std::array<field_ct, 8> target_ct;
+        std::array<field_ct, size_1> source_ct;
+        std::array<field_ct, size_2> target_ct;
         for (size_t i = 0; i < source.size(); i++) {
             source_ct[i] = witness_ct(&composer, source[i]);
         }
@@ -1223,18 +1198,119 @@ template <typename Composer> class stdlib_field : public testing::Test {
 
         push_array_to_array<Composer>(source_ct, target_ct);
 
-        // Check that the target array is unchanged as the push operation failed
-        ASSERT(target_ct[0].get_value() == 3);
-        ASSERT(target_ct[1].get_value() == 4);
-        ASSERT(target_ct[2].get_value() == 6);
-        ASSERT(target_ct[3].get_value() == 8);
-        ASSERT(target_ct[4].get_value() == 7);
-        ASSERT(target_ct[5].get_value() == 9);
-        ASSERT(target_ct[6].get_value() == 5);
-        ASSERT(target_ct[7].get_value() == 0);
+        // Check that the source array has been inserted into the first available index of the target array.
+        for (size_t i = 0; i < target.size(); i++) {
+            ASSERT(target_ct[i].get_value() == expected_target[i]);
+        }
 
-        EXPECT_EQ(composer.failed(), true);
-        EXPECT_EQ(composer.err(), "push_array_to_array target array capacity exceeded");
+        bool proof_result = false;
+        if (composer.err().empty()) {
+            auto prover = composer.create_prover();
+            auto verifier = composer.create_verifier();
+            auto proof = prover.construct_proof();
+            info("composer gates = ", composer.get_num_gates());
+            proof_result = verifier.verify_proof(proof);
+        }
+
+        return std::make_pair(proof_result, composer.err());
+    }
+
+    static void test_push_array_to_array()
+    {
+        {
+            Composer composer = Composer();
+
+            std::array<fr, 4> source = { 1, 0, 0, 0 };
+            std::array<fr, 4> target = { 3, 0, 0, 0 };
+            std::array<fr, 4> expected_target = { 3, 1, 0, 0 };
+            bool proof_res;
+            std::string error;
+            std::tie(proof_res, error) =
+                test_push_array_to_array_helper<4, 4>(composer, source, target, expected_target);
+
+            EXPECT_EQ(proof_res, true);
+        }
+        {
+            Composer composer = Composer();
+
+            std::array<fr, 4> source = { 1, 2, 3, 0 };
+            std::array<fr, 4> target = { 0, 0, 0, 0 };
+            std::array<fr, 4> expected_target = { 1, 2, 3, 0 };
+            bool proof_res;
+            std::string error;
+            std::tie(proof_res, error) =
+                test_push_array_to_array_helper<4, 4>(composer, source, target, expected_target);
+
+            EXPECT_EQ(proof_res, true);
+        }
+        {
+            Composer composer = Composer();
+
+            std::array<fr, 3> source = { 1, 2, 3 };
+            std::array<fr, 6> target = { 4, 5, 6, 0, 0, 0 };
+            std::array<fr, 6> expected_target = { 4, 5, 6, 1, 2, 3 };
+            bool proof_res;
+            std::string error;
+            std::tie(proof_res, error) =
+                test_push_array_to_array_helper<3, 6>(composer, source, target, expected_target);
+
+            EXPECT_EQ(proof_res, true);
+        }
+        {
+            Composer composer = Composer();
+
+            std::array<fr, 5> source = { 1, 2, 3, 4, 5 };
+            std::array<fr, 5> target = { 5, 6, 7, 8, 9 };
+            std::array<fr, 5> expected_target = { 5, 6, 7, 8, 9 };
+            bool proof_res;
+            std::string error;
+            std::tie(proof_res, error) = test_push_array_to_array_helper(composer, source, target, expected_target);
+
+            EXPECT_EQ(proof_res, false);
+            EXPECT_EQ(
+                error,
+                "safe_uint_t range constraint failure: subtract: push_array_to_array target array capacity exceeded");
+        }
+        {
+            Composer composer = Composer();
+
+            std::array<fr, 4> source = { 1, 0, 2, 3 };
+            std::array<fr, 6> target = { 4, 5, 6, 7, 8, 0 };
+            std::array<fr, 6> expected_target = { 4, 5, 6, 7, 8, 0 };
+            bool proof_res;
+            std::string error;
+            std::tie(proof_res, error) = test_push_array_to_array_helper(composer, source, target, expected_target);
+
+            EXPECT_EQ(proof_res, false);
+            EXPECT_EQ(error, "non-zero element in source array after a zero element");
+        }
+        {
+            Composer composer = Composer();
+
+            std::array<fr, 3> source = { 1, 2, 3 };
+            std::array<fr, 6> target = { 4, 5, 0, 6, 7, 8 };
+            std::array<fr, 6> expected_target = { 4, 5, 0, 6, 7, 8 };
+            bool proof_res;
+            std::string error;
+            std::tie(proof_res, error) = test_push_array_to_array_helper(composer, source, target, expected_target);
+
+            EXPECT_EQ(proof_res, false);
+            EXPECT_EQ(error, "non-zero element in target array after a zero element");
+        }
+        {
+            // captures the last composer error
+            Composer composer = Composer();
+
+            std::array<fr, 3> source = { 1, 0, 3 };
+            std::array<fr, 6> target = { 4, 5, 0, 6, 7, 8 };
+            std::array<fr, 6> expected_target = { 4, 5, 0, 6, 7, 8 };
+            bool proof_res;
+            std::string error;
+            std::tie(proof_res, error) = test_push_array_to_array_helper(composer, source, target, expected_target);
+
+            EXPECT_EQ(proof_res, false);
+            EXPECT_EQ(error, "non-zero element in target array after a zero element");
+        }
     }
 
     class MockClass {
@@ -1469,9 +1545,5 @@ TYPED_TEST(stdlib_field, test_array_push_generic_full)
 TYPED_TEST(stdlib_field, test_array_push_array_to_array)
 {
     TestFixture::test_push_array_to_array();
-}
-TYPED_TEST(stdlib_field, test_array_push_array_to_array_full)
-{
-    TestFixture::test_push_array_to_array_full();
 }
 } // namespace test_stdlib_field
