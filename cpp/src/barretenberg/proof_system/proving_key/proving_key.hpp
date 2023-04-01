@@ -36,7 +36,7 @@ struct proving_key {
     proving_key(const size_t num_gates,
                 const size_t num_inputs,
                 std::shared_ptr<ProverReferenceString> const& crs,
-                plonk::ComposerType type);
+                bonk::ComposerType type);
 
     proving_key(std::ostream& is, std::string const& crs_path);
 

@@ -11,7 +11,7 @@ template <typename CircuitConstructor> class TurboPlonkComposerHelper {
   public:
     static constexpr size_t NUM_RANDOMIZED_GATES = 2; // equal to the number of multilinear evaluations leaked
     static constexpr size_t program_width = CircuitConstructor::program_width;
-    static constexpr ComposerType type = ComposerType::TURBO;
+    static constexpr bonk::ComposerType type = bonk::ComposerType::TURBO;
     static constexpr MerkleHashType merkle_hash_type = MerkleHashType::FIXED_BASE_PEDERSEN;
     static constexpr size_t UINT_LOG2_BASE = 2;
     std::shared_ptr<bonk::proving_key> circuit_proving_key;

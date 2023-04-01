@@ -913,7 +913,7 @@ HEAVY_TYPED_TEST(stdlib_biggroup, compute_naf)
 /* These tests only work for UltraComposer */
 HEAVY_TYPED_TEST(stdlib_biggroup, wnaf_batch_mul)
 {
-    if constexpr (TypeParam::Curve::Composer::type == plonk::ComposerType::PLOOKUP) {
+    if constexpr (TypeParam::Curve::Composer::type == bonk::ComposerType::PLOOKUP) {
         TestFixture::test_compute_wnaf();
     } else {
         GTEST_SKIP();

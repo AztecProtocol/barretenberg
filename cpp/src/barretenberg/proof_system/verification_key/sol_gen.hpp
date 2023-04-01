@@ -143,17 +143,17 @@ inline void output_vk_sol_ultra(std::ostream& os, std::shared_ptr<verification_k
  */
 inline void output_vk_sol(std::ostream& os, std::shared_ptr<verification_key> const& key, std::string const& class_name)
 {
-    plonk::ComposerType composer_type = static_cast<plonk::ComposerType>(key->composer_type);
+    bonk::ComposerType composer_type = static_cast<bonk::ComposerType>(key->composer_type);
     switch (composer_type) {
-    case plonk::ComposerType::STANDARD: {
+    case bonk::ComposerType::STANDARD: {
         return output_vk_sol_standard(os, key, class_name);
         break;
     }
-    // case plonk::ComposerType::TURBO: {
+    // case bonk::ComposerType::TURBO: {
     //     return output_vk_sol_turbo(os, key, class_name);
     //     break;
     // }
-    case plonk::ComposerType::PLOOKUP: {
+    case bonk::ComposerType::PLOOKUP: {
         return output_vk_sol_ultra(os, key, class_name);
         break;
     }

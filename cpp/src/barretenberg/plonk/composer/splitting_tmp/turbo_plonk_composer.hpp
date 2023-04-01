@@ -12,7 +12,7 @@ namespace plonk {
  */
 class TurboPlonkComposer {
   public:
-    static constexpr plonk::ComposerType type = plonk::ComposerType::STANDARD;
+    static constexpr bonk::ComposerType type = bonk::ComposerType::STANDARD;
 
     static constexpr size_t UINT_LOG2_BASE = 2;
 

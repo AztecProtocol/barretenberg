@@ -393,14 +393,17 @@ template <class Composer, class Fq, class Fr, class NativeGroup> class element {
         std::array<twin_rom_table<Composer>, 5> coordinates;
     };
 
-    using twin_lookup_table = typename std::
-        conditional<Composer::type == ComposerType::PLOOKUP, lookup_table_plookup<2, void>, lookup_table_base<2>>::type;
+    using twin_lookup_table = typename std::conditional<Composer::type == bonk::ComposerType::PLOOKUP,
+                                                        lookup_table_plookup<2, void>,
+                                                        lookup_table_base<2>>::type;
 
-    using triple_lookup_table = typename std::
-        conditional<Composer::type == ComposerType::PLOOKUP, lookup_table_plookup<3, void>, lookup_table_base<3>>::type;
+    using triple_lookup_table = typename std::conditional<Composer::type == bonk::ComposerType::PLOOKUP,
+                                                          lookup_table_plookup<3, void>,
+                                                          lookup_table_base<3>>::type;
 
-    using quad_lookup_table = typename std::
-        conditional<Composer::type == ComposerType::PLOOKUP, lookup_table_plookup<4, void>, lookup_table_base<4>>::type;
+    using quad_lookup_table = typename std::conditional<Composer::type == bonk::ComposerType::PLOOKUP,
+                                                        lookup_table_plookup<4, void>,
+                                                        lookup_table_base<4>>::type;
 
     /**
      * Creates a pair of 4-bit lookup tables, the former corresponding to 4 input points,
@@ -413,7 +416,7 @@ template <class Composer, class Fq, class Fr, class NativeGroup> class element {
         quad_lookup_table endo_table;
         uint256_t beta_val = barretenberg::field<typename Fq::TParams>::cube_root_of_unity();
         Fq beta(barretenberg::fr(beta_val.slice(0, 136)), barretenberg::fr(beta_val.slice(136, 256)), false);
-        if constexpr (Composer::type == ComposerType::PLOOKUP) {
+        if constexpr (Composer::type == bonk::ComposerType::PLOOKUP) {
             for (size_t i = 0; i < 8; ++i) {
                 endo_table.element_table[i + 8].x = base_table[7 - i].x * beta;
                 endo_table.element_table[i + 8].y = base_table[7 - i].y;
@@ -446,7 +449,7 @@ template <class Composer, class Fq, class Fr, class NativeGroup> class element {
         lookup_table_plookup<5> endo_table;
         uint256_t beta_val = barretenberg::field<typename Fq::TParams>::cube_root_of_unity();
         Fq beta(barretenberg::fr(beta_val.slice(0, 136)), barretenberg::fr(beta_val.slice(136, 256)), false);
-        if constexpr (Composer::type == ComposerType::PLOOKUP) {
+        if constexpr (Composer::type == bonk::ComposerType::PLOOKUP) {
             for (size_t i = 0; i < 16; ++i) {
                 endo_table.element_table[i + 16].x = base_table[15 - i].x * beta;
                 endo_table.element_table[i + 16].y = base_table[15 - i].y;
@@ -935,7 +938,7 @@ template <class Composer, class Fq, class Fr, class NativeGroup> class element {
         bool has_singleton;
     };
 
-    using batch_lookup_table = typename std::conditional<Composer::type == ComposerType::PLOOKUP,
+    using batch_lookup_table = typename std::conditional<Composer::type == bonk::ComposerType::PLOOKUP,
                                                          batch_lookup_table_plookup<>,
                                                          batch_lookup_table_base>::type;
 };

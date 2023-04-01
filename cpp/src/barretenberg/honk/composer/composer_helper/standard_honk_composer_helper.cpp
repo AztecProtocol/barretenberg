@@ -28,11 +28,8 @@ std::shared_ptr<bonk::proving_key> StandardHonkComposerHelper<CircuitConstructor
 {
     // Initialize circuit_proving_key
     // TODO(#229)(Kesha): replace composer types.
-    circuit_proving_key = initialize_proving_key(constructor,
-                                                 crs_factory_.get(),
-                                                 minimum_circuit_size,
-                                                 num_randomized_gates,
-                                                 plonk::ComposerType::STANDARD_HONK);
+    circuit_proving_key = initialize_proving_key(
+        constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, bonk::ComposerType::STANDARD_HONK);
     // Compute lagrange selectors
     construct_lagrange_selector_forms(constructor, circuit_proving_key.get());
 
@@ -108,7 +105,7 @@ std::shared_ptr<bonk::proving_key> StandardHonkComposerHelper<CircuitConstructor
         return circuit_proving_key;
     }
     // Compute q_l, q_r, q_o, etc polynomials
-    StandardHonkComposerHelper::compute_proving_key_base(circuit_constructor, plonk::ComposerType::STANDARD_HONK);
+    StandardHonkComposerHelper::compute_proving_key_base(circuit_constructor, bonk::ComposerType::STANDARD_HONK);
 
     // Compute sigma polynomials (we should update that late)
     compute_standard_honk_sigma_permutations<CircuitConstructor::num_wires>(circuit_constructor,

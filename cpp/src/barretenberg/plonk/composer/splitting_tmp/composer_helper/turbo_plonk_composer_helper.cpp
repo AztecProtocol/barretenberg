@@ -37,11 +37,8 @@ std::shared_ptr<bonk::proving_key> TurboPlonkComposerHelper<CircuitConstructor>:
     const size_t num_randomized_gates = NUM_RANDOMIZED_GATES;
     // Initialize circuit_proving_key
     // TODO(#229)(Kesha): replace composer types.
-    circuit_proving_key = initialize_proving_key(circuit_constructor,
-                                                 crs_factory_.get(),
-                                                 minimum_circuit_size,
-                                                 num_randomized_gates,
-                                                 plonk::ComposerType::TURBO);
+    circuit_proving_key = initialize_proving_key(
+        circuit_constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, bonk::ComposerType::TURBO);
 
     construct_lagrange_selector_forms(circuit_constructor, circuit_proving_key.get());
 

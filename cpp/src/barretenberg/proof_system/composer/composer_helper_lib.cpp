@@ -26,7 +26,7 @@ std::shared_ptr<bonk::proving_key> initialize_proving_key(const CircuitConstruct
                                                           bonk::ReferenceStringFactory* crs_factory,
                                                           const size_t minimum_circuit_size,
                                                           const size_t num_randomized_gates,
-                                                          plonk::ComposerType composer_type)
+                                                          bonk::ComposerType composer_type)
 {
     const size_t num_gates = circuit_constructor.num_gates;
     std::span<const uint32_t> public_inputs = circuit_constructor.public_inputs;
@@ -225,7 +225,7 @@ std::shared_ptr<bonk::verification_key> compute_verification_key_common(
 // Ensure we compile all versions so that there are no issues during linkage
 #define COMPILE_FOR_CIRCUIT_CONSTRUCTOR(circuit_constructor)                                                           \
     template std::shared_ptr<bonk::proving_key> initialize_proving_key<circuit_constructor>(                           \
-        const circuit_constructor&, bonk::ReferenceStringFactory*, const size_t, const size_t, plonk::ComposerType);   \
+        const circuit_constructor&, bonk::ReferenceStringFactory*, const size_t, const size_t, bonk::ComposerType);    \
     template void construct_lagrange_selector_forms<circuit_constructor>(const circuit_constructor&,                   \
                                                                          bonk::proving_key*);                          \
     template std::vector<barretenberg::polynomial> compute_witness_base<circuit_constructor>(                          \

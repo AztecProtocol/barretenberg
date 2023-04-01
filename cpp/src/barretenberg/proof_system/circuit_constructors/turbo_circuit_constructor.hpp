@@ -32,7 +32,7 @@ class TurboCircuitConstructor : public CircuitConstructorBase<arithmetization::T
     std::vector<barretenberg::fr>& q_range = std::get<9>(selectors);
     std::vector<barretenberg::fr>& q_logic = std::get<10>(selectors);
 
-    static constexpr plonk::ComposerType type = plonk::ComposerType::TURBO;
+    static constexpr bonk::ComposerType type = bonk::ComposerType::TURBO;
     static constexpr size_t UINT_LOG2_BASE = 2;
 
     TurboCircuitConstructor(const size_t size_hint = 0);

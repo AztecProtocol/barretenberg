@@ -176,19 +176,19 @@ class PolynomialManifest {
     PolynomialManifest(uint32_t composer_type)
     {
         switch (composer_type) {
-        case plonk::ComposerType::STANDARD: {
+        case bonk::ComposerType::STANDARD: {
             std::copy(standard_polynomial_manifest,
                       standard_polynomial_manifest + STANDARD_MANIFEST_SIZE,
                       std::back_inserter(manifest));
             break;
         };
-        case plonk::ComposerType::TURBO: {
+        case bonk::ComposerType::TURBO: {
             std::copy(turbo_polynomial_manifest,
                       turbo_polynomial_manifest + TURBO_MANIFEST_SIZE,
                       std::back_inserter(manifest));
             break;
         };
-        case plonk::ComposerType::PLOOKUP: {
+        case bonk::ComposerType::PLOOKUP: {
             std::copy(ultra_polynomial_manifest,
                       ultra_polynomial_manifest + ULTRA_MANIFEST_SIZE,
                       std::back_inserter(manifest));
@@ -236,7 +236,7 @@ class PrecomputedPolyList {
                 precomputed_poly_ids.emplace_back(label);
                 precomputed_poly_ids.emplace_back(label + "_fft");
                 // Store all lagrange forms of selector polynomials for ultra
-                if (composer_type == plonk::ComposerType::PLOOKUP) {
+                if (composer_type == bonk::ComposerType::PLOOKUP) {
                     precomputed_poly_ids.emplace_back(label + "_lagrange");
                 }
                 break;

@@ -21,10 +21,11 @@ namespace bonk {
  *
  * Delegates to proving_key::init
  * */
-proving_key::proving_key(const size_t num_gates,
-                         const size_t num_inputs,
-                         std::shared_ptr<ProverReferenceString> const& crs,
-                         plonk::ComposerType type = plonk::STANDARD) // TODO(Cody): Don't use default for Honk
+proving_key::proving_key(
+    const size_t num_gates,
+    const size_t num_inputs,
+    std::shared_ptr<ProverReferenceString> const& crs,
+    bonk::ComposerType type = bonk::ComposerType::STANDARD) // TODO(Cody): Don't use default for Honk
     : composer_type(type)
     , circuit_size(num_gates)
     , log_circuit_size(numeric::get_msb(num_gates))

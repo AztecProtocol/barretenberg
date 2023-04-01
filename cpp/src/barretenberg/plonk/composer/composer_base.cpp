@@ -231,7 +231,7 @@ template <size_t program_width, bool with_tags> void ComposerBase::compute_sigma
  * @param num_reserved_gates The number of reserved gates.
  * @return Pointer to the initialized proving key updated with selector polynomials.
  * */
-std::shared_ptr<proving_key> ComposerBase::compute_proving_key_base(const ComposerType composer_type,
+std::shared_ptr<proving_key> ComposerBase::compute_proving_key_base(const bonk::ComposerType composer_type,
                                                                     const size_t minimum_circuit_size,
                                                                     const size_t num_reserved_gates)
 {

@@ -66,7 +66,7 @@ std::shared_ptr<bonk::proving_key> StandardPlonkComposerHelper<CircuitConstructo
                                                  crs_factory_.get(),
                                                  minimum_circuit_size,
                                                  num_randomized_gates,
-                                                 plonk::ComposerType::STANDARD);
+                                                 bonk::ComposerType::STANDARD);
     // Compute lagrange selectors
     construct_lagrange_selector_forms(circuit_constructor, circuit_proving_key.get());
     // Make all selectors nonzero

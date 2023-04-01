@@ -1,14 +1,7 @@
 #pragma once
 #include <cstdint>
-
+#include "barretenberg/proof_system/types/composer_type.hpp"
 namespace plonk {
-
-enum ComposerType {
-    STANDARD,
-    TURBO,
-    PLOOKUP,
-    STANDARD_HONK, // Todo(Arijit): We should replace STANDARD_HONK outside plonk or the namespace should be bonk
-};
 
 // This variable sets the composer (TURBO or ULTRA) of the entire stdlib and rollup modules.
 // To switch to using a new composer, only changing this variable should activate the new composer
@@ -16,7 +9,7 @@ enum ComposerType {
 #ifdef USE_TURBO
 static constexpr uint32_t SYSTEM_COMPOSER = ComposerType::TURBO;
 #else
-static constexpr uint32_t SYSTEM_COMPOSER = ComposerType::PLOOKUP;
+static constexpr uint32_t SYSTEM_COMPOSER = bonk::ComposerType::PLOOKUP;
 #endif
 
 enum MerkleHashType {

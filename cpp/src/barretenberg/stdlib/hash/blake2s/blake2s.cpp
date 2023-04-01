@@ -119,7 +119,7 @@ template <typename Composer> void blake2s(blake2s_state<Composer>& S, byte_array
 
 template <typename Composer> byte_array<Composer> blake2s(const byte_array<Composer>& input)
 {
-    if constexpr (Composer::type == ComposerType::PLOOKUP) {
+    if constexpr (Composer::type == bonk::ComposerType::PLOOKUP) {
         return blake2s_plookup::blake2s<plonk::UltraComposer>(input);
     }
 

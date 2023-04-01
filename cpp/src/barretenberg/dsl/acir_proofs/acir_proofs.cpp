@@ -83,7 +83,7 @@ size_t init_verification_key(void* pippenger, uint8_t const* g2x, uint8_t const*
 
     // The composer_type has not yet been set. We need to set the composer_type for when we later read in and
     // construct the verification key so that we have the correct polynomial manifest
-    verification_key->composer_type = ComposerType::PLOOKUP;
+    verification_key->composer_type = bonk::ComposerType::PLOOKUP;
 
     auto buffer = to_buffer(*verification_key);
     auto raw_buf = (uint8_t*)malloc(buffer.size());

@@ -15,7 +15,7 @@ namespace honk {
  */
 class StandardHonkComposer {
   public:
-    static constexpr plonk::ComposerType type = plonk::ComposerType::STANDARD_HONK;
+    static constexpr bonk::ComposerType type = bonk::ComposerType::STANDARD_HONK;
 
     static constexpr size_t UINT_LOG2_BASE = 2;
     // An instantiation of the circuit constructor that only depends on arithmetization, not  on the proof system

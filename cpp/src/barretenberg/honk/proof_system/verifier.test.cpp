@@ -83,7 +83,7 @@ template <class FF> class VerifierTests : public testing::Test {
 
         auto crs = std::make_shared<bonk::FileReferenceString>(n + 1, "../srs_db/ignition");
         std::shared_ptr<bonk::proving_key> proving_key =
-            std::make_shared<bonk::proving_key>(n, 0, crs, plonk::STANDARD_HONK);
+            std::make_shared<bonk::proving_key>(n, 0, crs, bonk::ComposerType::STANDARD_HONK);
 
         polynomial w_l(n);
         polynomial w_r(n);

@@ -24,7 +24,7 @@ std::shared_ptr<bonk::proving_key> initialize_proving_key(const CircuitConstruct
                                                           bonk::ReferenceStringFactory* crs_factory,
                                                           const size_t minimum_circuit_size,
                                                           const size_t num_randomized_gates,
-                                                          plonk::ComposerType composer_type);
+                                                          bonk::ComposerType composer_type);
 
 /**
  * @brief Construct lagrange selector polynomials from circuit selector information and put into polynomial cache
