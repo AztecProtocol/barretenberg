@@ -1,8 +1,8 @@
 #pragma once
 #include "composer_helper/turbo_plonk_composer_helper.hpp"
 #include "barretenberg/proof_system/circuit_constructors/turbo_circuit_constructor.hpp"
-using namespace bonk;
-namespace plonk {
+
+namespace proof_system::plonk {
 /**
  * @brief Standard Plonk Composer has everything required to construct a prover and verifier, just as the legacy
  * classes.
@@ -12,7 +12,7 @@ namespace plonk {
  */
 class TurboPlonkComposer {
   public:
-    static constexpr bonk::ComposerType type = bonk::ComposerType::STANDARD;
+    static constexpr proof_system::ComposerType type = proof_system::ComposerType::STANDARD;
 
     static constexpr size_t UINT_LOG2_BASE = 2;
 
@@ -38,17 +38,18 @@ class TurboPlonkComposer {
         , variables(circuit_constructor.variables){};
 
     TurboPlonkComposer(std::string const& crs_path, const size_t size_hint = 0)
-        : TurboPlonkComposer(
-              std::unique_ptr<bonk::ReferenceStringFactory>(new bonk::FileReferenceStringFactory(crs_path)),
-              size_hint){};
+        : TurboPlonkComposer(std::unique_ptr<proof_system::ReferenceStringFactory>(
+                                 new proof_system::FileReferenceStringFactory(crs_path)),
+                             size_hint){};
 
-    TurboPlonkComposer(std::shared_ptr<bonk::ReferenceStringFactory> const& crs_factory, const size_t size_hint = 0)
+    TurboPlonkComposer(std::shared_ptr<proof_system::ReferenceStringFactory> const& crs_factory,
+                       const size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(crs_factory)
         , num_gates(circuit_constructor.num_gates)
         , variables(circuit_constructor.variables){};
 
-    TurboPlonkComposer(std::unique_ptr<bonk::ReferenceStringFactory>&& crs_factory, const size_t size_hint = 0)
+    TurboPlonkComposer(std::unique_ptr<proof_system::ReferenceStringFactory>&& crs_factory, const size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(std::move(crs_factory))
         , num_gates(circuit_constructor.num_gates)
@@ -205,4 +206,4 @@ class TurboPlonkComposer {
     const std::string& err() const { return circuit_constructor.err(); };
     void failure(std::string msg) { circuit_constructor.failure(msg); }
 };
-} // namespace plonk
+} // namespace proof_system::plonk

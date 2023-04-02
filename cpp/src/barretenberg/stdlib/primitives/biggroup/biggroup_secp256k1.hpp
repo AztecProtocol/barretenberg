@@ -5,14 +5,14 @@
  * TODO: we should try to genericize this, but this method is super fiddly and we need it to be efficient!
  *
  **/
-namespace plonk {
+namespace proof_system::plonk {
 namespace stdlib {
 
 template <typename C, class Fq, class Fr, class G>
 template <typename, typename>
 element<C, Fq, Fr, G> element<C, Fq, Fr, G>::secp256k1_ecdsa_mul(const element& pubkey, const Fr& u1, const Fr& u2)
 {
-    if constexpr (C::type != bonk::ComposerType::PLOOKUP) {
+    if constexpr (C::type != proof_system::ComposerType::PLOOKUP) {
         C* ctx = pubkey.get_context();
         return batch_mul({ element::one(ctx), pubkey }, { u1, u2 });
     }
@@ -138,4 +138,4 @@ element<C, Fq, Fr, G> element<C, Fq, Fr, G>::secp256k1_ecdsa_mul(const element& 
     return accumulator;
 }
 } // namespace stdlib
-} // namespace plonk
+} // namespace proof_system::plonk

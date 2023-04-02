@@ -3,7 +3,7 @@
 #include "../../transcript/transcript_wrappers.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 
-namespace bonk {
+namespace proof_system {
 // TODO(Cody): Template by flavor
 class work_queue {
 
@@ -66,4 +66,4 @@ class work_queue {
     transcript::StandardTranscript* transcript;
     std::vector<work_item> work_item_queue;
 };
-} // namespace bonk
+} // namespace proof_system

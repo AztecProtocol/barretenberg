@@ -6,7 +6,7 @@
 #include "barretenberg/transcript/manifest.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 /**
  * @brief Standard Plonk Composer has everything required to construct a prover and verifier, just as the legacy
  * classes.
@@ -16,7 +16,7 @@ namespace plonk {
  */
 class StandardPlonkComposer {
   public:
-    static constexpr bonk::ComposerType type = bonk::ComposerType::STANDARD;
+    static constexpr proof_system::ComposerType type = proof_system::ComposerType::STANDARD;
 
     static constexpr size_t UINT_LOG2_BASE = 2;
     // An instantiation of the circuit constructor that only depends on arithmetization, not  on the proof system
@@ -39,18 +39,20 @@ class StandardPlonkComposer {
         , variables(circuit_constructor.variables){};
 
     StandardPlonkComposer(std::string const& crs_path, const size_t size_hint = 0)
-        : StandardPlonkComposer(
-              std::unique_ptr<bonk::ReferenceStringFactory>(new bonk::FileReferenceStringFactory(crs_path)),
-              size_hint){};
+        : StandardPlonkComposer(std::unique_ptr<proof_system::ReferenceStringFactory>(
+                                    new proof_system::FileReferenceStringFactory(crs_path)),
+                                size_hint){};
 
-    StandardPlonkComposer(std::shared_ptr<bonk::ReferenceStringFactory> const& crs_factory, const size_t size_hint = 0)
+    StandardPlonkComposer(std::shared_ptr<proof_system::ReferenceStringFactory> const& crs_factory,
+                          const size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(crs_factory)
         , num_gates(circuit_constructor.num_gates)
         , variables(circuit_constructor.variables)
 
     {}
-    StandardPlonkComposer(std::unique_ptr<bonk::ReferenceStringFactory>&& crs_factory, const size_t size_hint = 0)
+    StandardPlonkComposer(std::unique_ptr<proof_system::ReferenceStringFactory>&& crs_factory,
+                          const size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(std::move(crs_factory))
         , num_gates(circuit_constructor.num_gates)
@@ -200,4 +202,4 @@ class StandardPlonkComposer {
     const std::string& err() const { return circuit_constructor.err(); };
     void failure(std::string msg) { circuit_constructor.failure(msg); }
 };
-} // namespace plonk
+} // namespace proof_system::plonk

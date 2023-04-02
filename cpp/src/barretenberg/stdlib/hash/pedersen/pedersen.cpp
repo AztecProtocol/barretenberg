@@ -7,12 +7,12 @@
 #include "../../primitives/composers/composers.hpp"
 #include "../../primitives/packed_byte_array/packed_byte_array.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 namespace stdlib {
 
 using namespace barretenberg;
 using namespace crypto::pedersen;
-using namespace bonk;
+using namespace proof_system;
 
 namespace {
 /**
@@ -225,8 +225,8 @@ point<C> pedersen<C>::hash_single(const field_t& in,
         if (i > 0) {
             gates.create_fixed_group_add_gate(round_quad);
         } else {
-            if constexpr (C::type == bonk::ComposerType::PLOOKUP &&
-                          C::merkle_hash_type == plonk::MerkleHashType::FIXED_BASE_PEDERSEN) {
+            if constexpr (C::type == proof_system::ComposerType::PLOOKUP &&
+                          C::merkle_hash_type == proof_system::plonk::MerkleHashType::FIXED_BASE_PEDERSEN) {
                 /* In TurboComposer, the selector q_5 is used to show that w_1 and w_2 are properly initialized to the
                  * coordinates of P_s = (-s + 4^n)[g]. In UltraPlonK, we have removed q_5 for overall efficiency (it
                  * would only be used here in this gate), but this presents us a cost in the present circuit: we must
@@ -463,7 +463,7 @@ template <typename C> void pedersen<C>::validate_wnaf_is_in_field(C* ctx, const 
     field_t y_lo = (-reconstructed_input).add_two(high_limb_with_skew * shift + (r_lo + shift), is_even);
 
     field_t y_overlap;
-    if constexpr (C::type == bonk::ComposerType::PLOOKUP) {
+    if constexpr (C::type == proof_system::ComposerType::PLOOKUP) {
         // carve out the 2 high bits from y_lo and instantiate as y_overlap
         const uint256_t y_lo_value = y_lo.get_value();
         const uint256_t y_overlap_value = y_lo_value >> 126;
@@ -577,4 +577,4 @@ template class pedersen<plonk::TurboComposer>;
 template class pedersen<plonk::UltraComposer>;
 
 } // namespace stdlib
-} // namespace plonk
+} // namespace proof_system::plonk

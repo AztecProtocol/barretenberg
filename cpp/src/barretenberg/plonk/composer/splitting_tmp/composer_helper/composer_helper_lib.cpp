@@ -7,7 +7,7 @@
 #include "composer_helper_lib.hpp"
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 
 /**
  * @brief Retrieve lagrange forms of selector polynomials and compute monomial and coset-monomial forms and put into
@@ -44,12 +44,13 @@ void compute_monomial_and_coset_selector_forms(plonk::proving_key* circuit_provi
  * (2) sets the polynomial manifest using the data from proving key.
  */
 std::shared_ptr<plonk::verification_key> compute_verification_key_common(
-    std::shared_ptr<plonk::proving_key> const& proving_key, std::shared_ptr<bonk::VerifierReferenceString> const& vrs)
+    std::shared_ptr<plonk::proving_key> const& proving_key,
+    std::shared_ptr<proof_system::VerifierReferenceString> const& vrs)
 {
     auto circuit_verification_key = std::make_shared<plonk::verification_key>(
         proving_key->circuit_size, proving_key->num_public_inputs, vrs, proving_key->composer_type);
     // TODO(kesha): Dirty hack for now. Need to actually make commitment-agnositc
-    auto commitment_key = honk::pcs::kzg::CommitmentKey(proving_key->circuit_size, "../srs_db/ignition");
+    auto commitment_key = proof_system::honk::pcs::kzg::CommitmentKey(proving_key->circuit_size, "../srs_db/ignition");
 
     for (size_t i = 0; i < proving_key->polynomial_manifest.size(); ++i) {
         const auto& poly_info = proving_key->polynomial_manifest[i];
@@ -69,9 +70,9 @@ std::shared_ptr<plonk::verification_key> compute_verification_key_common(
     }
 
     // Set the polynomial manifest in verification key.
-    circuit_verification_key->polynomial_manifest = plonk::PolynomialManifest(proving_key->composer_type);
+    circuit_verification_key->polynomial_manifest = proof_system::plonk::PolynomialManifest(proving_key->composer_type);
 
     return circuit_verification_key;
 }
 
-} // namespace plonk
+} // namespace proof_system::plonk

@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 #include "barretenberg/proof_system/types/composer_type.hpp"
-namespace plonk {
+namespace proof_system::plonk {
 
 // This variable sets the composer (TURBO or ULTRA) of the entire stdlib and rollup modules.
 // To switch to using a new composer, only changing this variable should activate the new composer
@@ -9,7 +9,7 @@ namespace plonk {
 #ifdef USE_TURBO
 static constexpr uint32_t SYSTEM_COMPOSER = ComposerType::TURBO;
 #else
-static constexpr uint32_t SYSTEM_COMPOSER = bonk::ComposerType::PLOOKUP;
+static constexpr uint32_t SYSTEM_COMPOSER = proof_system::ComposerType::PLOOKUP;
 #endif
 
 enum MerkleHashType {
@@ -22,4 +22,4 @@ enum MerkleHashType {
 static constexpr uint64_t NUM_LIMB_BITS_IN_FIELD_SIMULATION = 68;
 
 static constexpr uint32_t NUM_QUOTIENT_PARTS = 4;
-} // namespace plonk
+} // namespace proof_system::plonk

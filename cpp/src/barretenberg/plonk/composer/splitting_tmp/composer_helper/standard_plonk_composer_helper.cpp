@@ -12,7 +12,7 @@
 #include <cstdint>
 #include <string>
 
-namespace plonk {
+namespace proof_system::plonk {
 
 /**
  * Compute witness polynomials (w_1, w_2, w_3, w_4).
@@ -64,21 +64,21 @@ std::shared_ptr<plonk::proving_key> StandardPlonkComposerHelper<CircuitConstruct
     const size_t num_randomized_gates = NUM_RANDOMIZED_GATES;
     // Initialize circuit_proving_key
     // TODO(#229)(Kesha): replace composer types.
-    circuit_proving_key = bonk::initialize_proving_key(circuit_constructor,
-                                                       crs_factory_.get(),
-                                                       minimum_circuit_size,
-                                                       num_randomized_gates,
-                                                       bonk::ComposerType::STANDARD);
+    circuit_proving_key = proof_system::initialize_proving_key(circuit_constructor,
+                                                               crs_factory_.get(),
+                                                               minimum_circuit_size,
+                                                               num_randomized_gates,
+                                                               proof_system::ComposerType::STANDARD);
     // Compute lagrange selectors
-    bonk::construct_lagrange_selector_forms(circuit_constructor, circuit_proving_key.get());
+    proof_system::construct_lagrange_selector_forms(circuit_constructor, circuit_proving_key.get());
     // Make all selectors nonzero
-    bonk::enforce_nonzero_polynomial_selectors(circuit_constructor, circuit_proving_key.get());
+    proof_system::enforce_nonzero_polynomial_selectors(circuit_constructor, circuit_proving_key.get());
     // Compute selectors in monomial form
     compute_monomial_and_coset_selector_forms(circuit_proving_key.get(), standard_selector_properties());
 
     // Compute sigma polynomials (we should update that late)
-    bonk::compute_standard_plonk_sigma_permutations<CircuitConstructor::program_width>(circuit_constructor,
-                                                                                       circuit_proving_key.get());
+    proof_system::compute_standard_plonk_sigma_permutations<CircuitConstructor::program_width>(
+        circuit_constructor, circuit_proving_key.get());
 
     circuit_proving_key->recursive_proof_public_input_indices =
         std::vector<uint32_t>(recursive_proof_public_input_indices.begin(), recursive_proof_public_input_indices.end());
@@ -175,4 +175,4 @@ plonk::Prover StandardPlonkComposerHelper<CircuitConstructor>::create_prover(
 }
 
 template class StandardPlonkComposerHelper<StandardCircuitConstructor>;
-} // namespace plonk
+} // namespace proof_system::plonk

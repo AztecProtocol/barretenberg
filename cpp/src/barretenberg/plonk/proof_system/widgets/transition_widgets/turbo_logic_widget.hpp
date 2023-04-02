@@ -2,7 +2,7 @@
 
 #include "./transition_widget.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 namespace widget {
 
 template <class Field, class Getters, typename PolyContainer> class TurboLogicKernel {
@@ -233,4 +233,4 @@ using ProverTurboLogicWidget = widget::TransitionWidget<barretenberg::fr, Settin
 template <typename Field, typename Group, typename Transcript, typename Settings>
 using VerifierTurboLogicWidget = widget::GenericVerifierWidget<Field, Transcript, Settings, widget::TurboLogicKernel>;
 
-} // namespace plonk
+} // namespace proof_system::plonk

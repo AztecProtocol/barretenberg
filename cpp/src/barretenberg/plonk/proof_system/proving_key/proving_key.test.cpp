@@ -10,19 +10,19 @@
 #endif
 
 using namespace barretenberg;
-using namespace bonk;
+using namespace proof_system;
 
 // Test proving key serialization/deserialization to/from buffer
 TEST(proving_key, proving_key_from_serialized_key)
 {
-    plonk::StandardComposer composer = plonk::StandardComposer();
+    plonk::StandardComposer composer = proof_system::plonk::StandardComposer();
     fr a = fr::one();
     composer.add_public_variable(a);
 
     plonk::proving_key& p_key = *composer.compute_proving_key();
     auto pk_buf = to_buffer(p_key);
     auto pk_data = from_buffer<plonk::proving_key_data>(pk_buf);
-    auto crs = std::make_unique<bonk::FileReferenceStringFactory>("../srs_db/ignition");
+    auto crs = std::make_unique<proof_system::FileReferenceStringFactory>("../srs_db/ignition");
     auto proving_key =
         std::make_shared<plonk::proving_key>(std::move(pk_data), crs->get_prover_crs(pk_data.circuit_size + 1));
 
@@ -51,14 +51,14 @@ TEST(proving_key, proving_key_from_serialized_key)
 // Test proving key serialization/deserialization to/from buffer using UltraComposer
 TEST(proving_key, proving_key_from_serialized_key_ultra)
 {
-    plonk::UltraComposer composer = plonk::UltraComposer();
+    plonk::UltraComposer composer = proof_system::plonk::UltraComposer();
     fr a = fr::one();
     composer.add_public_variable(a);
 
     plonk::proving_key& p_key = *composer.compute_proving_key();
     auto pk_buf = to_buffer(p_key);
     auto pk_data = from_buffer<plonk::proving_key_data>(pk_buf);
-    auto crs = std::make_unique<bonk::FileReferenceStringFactory>("../srs_db/ignition");
+    auto crs = std::make_unique<proof_system::FileReferenceStringFactory>("../srs_db/ignition");
     auto proving_key =
         std::make_shared<plonk::proving_key>(std::move(pk_data), crs->get_prover_crs(pk_data.circuit_size + 1));
 
@@ -88,7 +88,7 @@ TEST(proving_key, proving_key_from_serialized_key_ultra)
 #ifndef __wasm__
 TEST(proving_key, proving_key_from_mmaped_key)
 {
-    plonk::StandardComposer composer = plonk::StandardComposer();
+    plonk::StandardComposer composer = proof_system::plonk::StandardComposer();
     fr a = fr::one();
     composer.add_public_variable(a);
 

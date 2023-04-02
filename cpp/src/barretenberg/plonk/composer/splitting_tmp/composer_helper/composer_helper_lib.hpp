@@ -2,7 +2,7 @@
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/plonk/proof_system/verification_key/verification_key.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 struct SelectorProperties {
     std::string name;
     bool requires_lagrange_base_polynomial = false; // does the prover need the raw lagrange-base selector values?
@@ -24,6 +24,7 @@ void compute_monomial_and_coset_selector_forms(plonk::proving_key* key,
  * (2) sets the polynomial manifest using the data from proving key.
  */
 std::shared_ptr<plonk::verification_key> compute_verification_key_common(
-    std::shared_ptr<plonk::proving_key> const& proving_key, std::shared_ptr<bonk::VerifierReferenceString> const& vrs);
+    std::shared_ptr<plonk::proving_key> const& proving_key,
+    std::shared_ptr<proof_system::VerifierReferenceString> const& vrs);
 
-} // namespace plonk
+} // namespace proof_system::plonk

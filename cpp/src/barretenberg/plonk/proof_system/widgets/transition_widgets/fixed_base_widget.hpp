@@ -2,7 +2,7 @@
 
 #include "./transition_widget.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 namespace widget {
 
 /**
@@ -328,4 +328,4 @@ using VerifierTurboFixedBaseWidget =
 template <typename Field, typename Group, typename Transcript, typename Settings>
 using VerifierUltraFixedBaseWidget =
     widget::GenericVerifierWidget<Field, Transcript, Settings, widget::UltraFixedBaseKernel>;
-} // namespace plonk
+} // namespace proof_system::plonk

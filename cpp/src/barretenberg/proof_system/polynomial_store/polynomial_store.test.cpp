@@ -4,7 +4,7 @@
 #include "polynomial_store.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 
-namespace bonk {
+namespace proof_system {
 
 using namespace barretenberg;
 using Fr = barretenberg::fr;
@@ -13,7 +13,7 @@ using Polynomial = barretenberg::Polynomial<Fr>;
 // Test basic put and get functionality
 TEST(PolynomialStore, PutThenGet)
 {
-    bonk::PolynomialStore<Fr> polynomial_store;
+    proof_system::PolynomialStore<Fr> polynomial_store;
 
     // Instantiate a polynomial with random coefficients
     Polynomial poly(1024);
@@ -34,7 +34,7 @@ TEST(PolynomialStore, PutThenGet)
 // Ensure that attempt to access non-existent key throws out_of_range exception
 TEST(PolynomialStore, NonexistentKey)
 {
-    bonk::PolynomialStore<Fr> polynomial_store;
+    proof_system::PolynomialStore<Fr> polynomial_store;
 
     polynomial_store.put("id_1", Polynomial(100));
 
@@ -46,7 +46,7 @@ TEST(PolynomialStore, NonexistentKey)
 // Ensure correct calculation of volume in bytes
 TEST(PolynomialStore, Volume)
 {
-    bonk::PolynomialStore<Fr> polynomial_store;
+    proof_system::PolynomialStore<Fr> polynomial_store;
     size_t size1 = 100;
     size_t size2 = 10;
     size_t size3 = 5000;
@@ -69,7 +69,7 @@ TEST(PolynomialStore, Volume)
 // Ensure that the remove method erases entry and reduces memory
 TEST(PolynomialStore, Remove)
 {
-    bonk::PolynomialStore<Fr> polynomial_store;
+    proof_system::PolynomialStore<Fr> polynomial_store;
     size_t size1 = 100;
     size_t size2 = 500;
     Polynomial poly1(size1);
@@ -93,7 +93,7 @@ TEST(PolynomialStore, Remove)
 // Check that PolynomialStore supports range based for loop
 TEST(PolynomialStore, RangeBasedFor)
 {
-    bonk::PolynomialStore<Fr> polynomial_store;
+    proof_system::PolynomialStore<Fr> polynomial_store;
     size_t size = 100;
     Polynomial poly1(size);
     Polynomial poly2(size);
@@ -102,7 +102,7 @@ TEST(PolynomialStore, RangeBasedFor)
     polynomial_store.put("id_2", std::move(poly2));
 
     // Check that PolynomialStore meets criteria for std::ranges::range
-    EXPECT_TRUE(std::ranges::range<bonk::PolynomialStore<Fr>>);
+    EXPECT_TRUE(std::ranges::range<proof_system::PolynomialStore<Fr>>);
 
     // For example ...
     Polynomial polynomial_sum(size);
@@ -111,4 +111,4 @@ TEST(PolynomialStore, RangeBasedFor)
     }
 }
 
-} // namespace bonk
+} // namespace proof_system

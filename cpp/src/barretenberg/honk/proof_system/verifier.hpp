@@ -12,7 +12,7 @@
 #include "barretenberg/honk/pcs/shplonk/shplonk_single.hpp"
 #include "barretenberg/honk/pcs/kzg/kzg.hpp"
 
-namespace honk {
+namespace proof_system::honk {
 template <typename program_settings> class Verifier {
 
   public:
@@ -35,4 +35,4 @@ extern template class Verifier<honk::standard_verifier_settings>;
 
 typedef Verifier<honk::standard_verifier_settings> StandardVerifier;
 
-} // namespace honk
+} // namespace proof_system::honk

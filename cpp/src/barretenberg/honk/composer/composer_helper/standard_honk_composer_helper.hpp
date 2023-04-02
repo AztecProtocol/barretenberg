@@ -15,7 +15,7 @@
 
 #include <utility>
 
-namespace honk {
+namespace proof_system::honk {
 // TODO(Kesha): change initializations to specify this parameter
 // Cody: What does this mean?
 template <typename CircuitConstructor> class StandardHonkComposerHelper {
@@ -27,17 +27,17 @@ template <typename CircuitConstructor> class StandardHonkComposerHelper {
     std::shared_ptr<plonk::verification_key> circuit_verification_key;
     // TODO(#218)(kesha): we need to put this into the commitment key, so that the composer doesn't have to handle srs
     // at all
-    std::shared_ptr<bonk::ReferenceStringFactory> crs_factory_;
+    std::shared_ptr<proof_system::ReferenceStringFactory> crs_factory_;
     bool computed_witness = false;
     StandardHonkComposerHelper()
-        : StandardHonkComposerHelper(
-              std::shared_ptr<bonk::ReferenceStringFactory>(new bonk::FileReferenceStringFactory("../srs_db/ignition")))
+        : StandardHonkComposerHelper(std::shared_ptr<proof_system::ReferenceStringFactory>(
+              new proof_system::FileReferenceStringFactory("../srs_db/ignition")))
     {}
-    StandardHonkComposerHelper(std::shared_ptr<bonk::ReferenceStringFactory> crs_factory)
+    StandardHonkComposerHelper(std::shared_ptr<proof_system::ReferenceStringFactory> crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
 
-    StandardHonkComposerHelper(std::unique_ptr<bonk::ReferenceStringFactory>&& crs_factory)
+    StandardHonkComposerHelper(std::unique_ptr<proof_system::ReferenceStringFactory>&& crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
     StandardHonkComposerHelper(std::shared_ptr<plonk::proving_key> p_key,
@@ -68,9 +68,9 @@ template <typename CircuitConstructor> class StandardHonkComposerHelper {
 
     static std::shared_ptr<plonk::verification_key> compute_verification_key_base(
         std::shared_ptr<plonk::proving_key> const& proving_key,
-        std::shared_ptr<bonk::VerifierReferenceString> const& vrs);
+        std::shared_ptr<proof_system::VerifierReferenceString> const& vrs);
 
     void compute_witness(const CircuitConstructor& circuit_constructor, const size_t minimum_circuit_size = 0);
 };
 
-} // namespace honk
+} // namespace proof_system::honk

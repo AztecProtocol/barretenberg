@@ -4,13 +4,13 @@
 #include "barretenberg/plonk/proof_system/proving_key/serialize.hpp"
 
 using namespace barretenberg;
-using namespace bonk;
+using namespace proof_system;
 using namespace crypto::pedersen;
 
 namespace {
 auto& engine = numeric::random::get_debug_engine();
 }
-namespace plonk {
+namespace proof_system::plonk {
 TEST(turbo_composer, base_case)
 {
     TurboComposer composer = TurboComposer();
@@ -37,7 +37,7 @@ TEST(turbo_composer, composer_from_serialized_keys)
     auto pk_data = from_buffer<plonk::proving_key_data>(pk_buf);
     auto vk_data = from_buffer<plonk::verification_key_data>(vk_buf);
 
-    auto crs = std::make_unique<bonk::FileReferenceStringFactory>("../srs_db/ignition");
+    auto crs = std::make_unique<proof_system::FileReferenceStringFactory>("../srs_db/ignition");
     auto proving_key =
         std::make_shared<plonk::proving_key>(std::move(pk_data), crs->get_prover_crs(pk_data.circuit_size + 1));
     auto verification_key = std::make_shared<plonk::verification_key>(std::move(vk_data), crs->get_verifier_crs());
@@ -1152,4 +1152,4 @@ TEST(turbo_composer, test_check_circuit_xor)
 
     EXPECT_EQ(result, true);
 }
-} // namespace plonk
+} // namespace proof_system::plonk

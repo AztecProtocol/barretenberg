@@ -5,7 +5,7 @@
 #include "barretenberg/crypto/sha256/sha256.hpp"
 #include "barretenberg/plonk/proof_system/types/polynomial_manifest.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 
 struct verification_key_data {
     uint32_t composer_type;
@@ -45,10 +45,10 @@ inline bool operator==(verification_key_data const& lhs, verification_key_data c
 }
 
 struct verification_key {
-    verification_key(verification_key_data&& data, std::shared_ptr<bonk::VerifierReferenceString> const& crs);
+    verification_key(verification_key_data&& data, std::shared_ptr<proof_system::VerifierReferenceString> const& crs);
     verification_key(const size_t num_gates,
                      const size_t num_inputs,
-                     std::shared_ptr<bonk::VerifierReferenceString> const& crs,
+                     std::shared_ptr<proof_system::VerifierReferenceString> const& crs,
                      uint32_t composer_type);
     verification_key(const verification_key& other);
     verification_key(verification_key&& other);
@@ -65,7 +65,7 @@ struct verification_key {
 
     barretenberg::evaluation_domain domain;
 
-    std::shared_ptr<bonk::VerifierReferenceString> reference_string;
+    std::shared_ptr<proof_system::VerifierReferenceString> reference_string;
 
     std::map<std::string, barretenberg::g1::affine_element> commitments;
 
@@ -91,4 +91,4 @@ template <typename B> inline void write(B& buf, verification_key const& key)
     write(buf, key.recursive_proof_public_input_indices);
 }
 
-} // namespace plonk
+} // namespace proof_system::plonk

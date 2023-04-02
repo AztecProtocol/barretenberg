@@ -7,7 +7,7 @@
  * We use a special case algorithm to split bn254 scalar multipliers into endomorphism scalars
  *
  **/
-namespace plonk {
+namespace proof_system::plonk {
 namespace stdlib {
 
 /**
@@ -37,7 +37,7 @@ element<C, Fq, Fr, G> element<C, Fq, Fr, G>::bn254_endo_batch_mul_with_generator
             break;
         }
     }
-    if constexpr (C::type != bonk::ComposerType::PLOOKUP) {
+    if constexpr (C::type != proof_system::ComposerType::PLOOKUP) {
         // MERGENOTE: these four lines don't have an equivalent in d-b-p
         std::vector<element> modified_big_points = big_points;
         std::vector<Fr> modified_big_scalars = big_scalars;
@@ -422,4 +422,4 @@ element<C, Fq, Fr, G> element<C, Fq, Fr, G>::bn254_endo_batch_mul(const std::vec
     return accumulator;
 }
 } // namespace stdlib
-} // namespace plonk
+} // namespace proof_system::plonk

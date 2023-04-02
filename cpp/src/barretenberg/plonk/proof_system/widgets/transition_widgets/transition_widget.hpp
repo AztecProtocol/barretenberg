@@ -10,8 +10,8 @@
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/proof_system/work_queue/work_queue.hpp"
 
-using namespace bonk;
-namespace plonk {
+using namespace proof_system;
+namespace proof_system::plonk {
 
 namespace widget {
 enum ChallengeIndex {
@@ -387,4 +387,4 @@ class GenericVerifierWidget {
     }
 };
 } // namespace widget
-} // namespace plonk
+} // namespace proof_system::plonk

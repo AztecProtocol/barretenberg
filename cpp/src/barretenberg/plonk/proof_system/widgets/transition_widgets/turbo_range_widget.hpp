@@ -2,7 +2,7 @@
 
 #include "./transition_widget.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 namespace widget {
 
 /*
@@ -209,4 +209,4 @@ using ProverTurboRangeWidget = widget::TransitionWidget<barretenberg::fr, Settin
 template <typename Field, typename Group, typename Transcript, typename Settings>
 using VerifierTurboRangeWidget = widget::GenericVerifierWidget<Field, Transcript, Settings, widget::TurboRangeKernel>;
 
-} // namespace plonk
+} // namespace proof_system::plonk

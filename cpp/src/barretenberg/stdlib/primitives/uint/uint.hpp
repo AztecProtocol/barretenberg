@@ -12,7 +12,7 @@
 #include "barretenberg/plonk/composer/turbo_composer.hpp"
 #include "barretenberg/plonk/composer/ultra_composer.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 namespace stdlib {
 
 /**
@@ -194,19 +194,19 @@ template <typename T, typename w> inline std::ostream& operator<<(std::ostream& 
 }
 
 template <typename ComposerContext>
-using uint8 = typename std::conditional<ComposerContext::type == bonk::ComposerType::PLOOKUP,
+using uint8 = typename std::conditional<ComposerContext::type == proof_system::ComposerType::PLOOKUP,
                                         uint_plookup<ComposerContext, uint8_t>,
                                         uint<ComposerContext, uint8_t>>::type;
 template <typename ComposerContext>
-using uint16 = typename std::conditional<ComposerContext::type == bonk::ComposerType::PLOOKUP,
+using uint16 = typename std::conditional<ComposerContext::type == proof_system::ComposerType::PLOOKUP,
                                          uint_plookup<ComposerContext, uint16_t>,
                                          uint<ComposerContext, uint16_t>>::type;
 template <typename ComposerContext>
-using uint32 = typename std::conditional<ComposerContext::type == bonk::ComposerType::PLOOKUP,
+using uint32 = typename std::conditional<ComposerContext::type == proof_system::ComposerType::PLOOKUP,
                                          uint_plookup<ComposerContext, uint32_t>,
                                          uint<ComposerContext, uint32_t>>::type;
 template <typename ComposerContext>
-using uint64 = typename std::conditional<ComposerContext::type == bonk::ComposerType::PLOOKUP,
+using uint64 = typename std::conditional<ComposerContext::type == proof_system::ComposerType::PLOOKUP,
                                          uint_plookup<ComposerContext, uint64_t>,
                                          uint<ComposerContext, uint64_t>>::type;
 
@@ -216,4 +216,4 @@ EXTERN_STDLIB_BASIC_TYPE_VA(uint, uint32_t);
 EXTERN_STDLIB_BASIC_TYPE_VA(uint, uint64_t);
 
 } // namespace stdlib
-} // namespace plonk
+} // namespace proof_system::plonk

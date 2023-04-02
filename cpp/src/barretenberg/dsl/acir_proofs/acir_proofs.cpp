@@ -6,7 +6,7 @@
 #include "barretenberg/srs/reference_string/pippenger_reference_string.hpp"
 #include "barretenberg/proof_system/verification_key/sol_gen.hpp"
 
-using namespace plonk::stdlib::types;
+using namespace proof_system::plonk::stdlib::types;
 
 namespace acir_proofs {
 
@@ -32,7 +32,7 @@ size_t get_solidity_verifier(uint8_t const* g2x, uint8_t const* vk_buf, uint8_t*
 uint32_t get_exact_circuit_size(uint8_t const* constraint_system_buf)
 {
     auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
-    auto crs_factory = std::make_unique<bonk::ReferenceStringFactory>();
+    auto crs_factory = std::make_unique<proof_system::ReferenceStringFactory>();
     auto composer = create_circuit(constraint_system, std::move(crs_factory));
 
     auto num_gates = composer.get_num_gates();
@@ -83,7 +83,7 @@ size_t init_verification_key(void* pippenger, uint8_t const* g2x, uint8_t const*
 
     // The composer_type has not yet been set. We need to set the composer_type for when we later read in and
     // construct the verification key so that we have the correct polynomial manifest
-    verification_key->composer_type = bonk::ComposerType::PLOOKUP;
+    verification_key->composer_type = proof_system::ComposerType::PLOOKUP;
 
     auto buffer = to_buffer(*verification_key);
     auto raw_buf = (uint8_t*)malloc(buffer.size());

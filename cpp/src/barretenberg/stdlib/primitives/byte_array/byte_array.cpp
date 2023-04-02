@@ -6,7 +6,7 @@
 
 using namespace barretenberg;
 
-namespace plonk {
+namespace proof_system::plonk {
 namespace stdlib {
 
 // ULTRA: Further merging with
@@ -129,7 +129,7 @@ template <typename Composer> byte_array<Composer>::byte_array(const field_t<Comp
             field_t<Composer> y_lo = (-validator) + (s_lo + shift);
 
             field_t<Composer> y_overlap;
-            if constexpr (Composer::type == bonk::ComposerType::PLOOKUP) {
+            if constexpr (Composer::type == proof_system::ComposerType::PLOOKUP) {
                 // carve out the 2 high bits from (y_lo + shifted_high_limb) and instantiate as y_overlap
                 const uint256_t y_lo_value = y_lo.get_value() + shifted_high_limb.get_value();
                 const uint256_t y_overlap_value = y_lo_value >> 128;
@@ -383,4 +383,4 @@ typename byte_array<Composer>::byte_slice byte_array<Composer>::split_byte(const
 INSTANTIATE_STDLIB_TYPE(byte_array);
 
 } // namespace stdlib
-} // namespace plonk
+} // namespace proof_system::plonk

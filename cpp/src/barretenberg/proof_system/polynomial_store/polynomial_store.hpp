@@ -7,7 +7,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace bonk {
+namespace proof_system {
 /**
  * @brief Basic storage class for Polynomials
  *
@@ -98,4 +98,4 @@ template <typename Fr> class PolynomialStore {
     typename std::unordered_map<std::string, Polynomial>::const_iterator end() const { return polynomial_map.end(); }
 };
 
-} // namespace bonk
+} // namespace proof_system

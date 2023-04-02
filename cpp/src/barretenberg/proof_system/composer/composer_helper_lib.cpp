@@ -8,8 +8,8 @@
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
 #include "barretenberg/proof_system/circuit_constructors/turbo_circuit_constructor.hpp"
-#include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
-namespace bonk {
+
+namespace proof_system {
 
 /**
  * @brief Initialize proving key and load the crs
@@ -23,10 +23,10 @@ namespace bonk {
  */
 template <typename CircuitConstructor>
 std::shared_ptr<plonk::proving_key> initialize_proving_key(const CircuitConstructor& circuit_constructor,
-                                                           bonk::ReferenceStringFactory* crs_factory,
+                                                           proof_system::ReferenceStringFactory* crs_factory,
                                                            const size_t minimum_circuit_size,
                                                            const size_t num_randomized_gates,
-                                                           bonk::ComposerType composer_type)
+                                                           proof_system::ComposerType composer_type)
 {
     const size_t num_gates = circuit_constructor.num_gates;
     std::span<const uint32_t> public_inputs = circuit_constructor.public_inputs;
@@ -197,13 +197,14 @@ std::vector<barretenberg::polynomial> compute_witness_base(const CircuitConstruc
 //  * (2) sets the polynomial manifest using the data from proving key.
 //  */
 // std::shared_ptr<plonk::verification_key> compute_verification_key_common(
-//     std::shared_ptr<plonk::proving_key> const& proving_key, std::shared_ptr<bonk::VerifierReferenceString> const&
-//     vrs)
+//     std::shared_ptr<plonk::proving_key> const& proving_key, std::shared_ptr<proof_system::VerifierReferenceString>
+//     const& vrs)
 // {
 //     auto circuit_verification_key = std::make_shared<plonk::verification_key>(
 //         proving_key->circuit_size, proving_key->num_public_inputs, vrs, proving_key->composer_type);
 //     // TODO(kesha): Dirty hack for now. Need to actually make commitment-agnositc
-//     auto commitment_key = honk::pcs::kzg::CommitmentKey(proving_key->circuit_size, "../srs_db/ignition");
+//     auto commitment_key = proof_system::honk::pcs::kzg::CommitmentKey(proving_key->circuit_size,
+//     "../srs_db/ignition");
 
 //     for (size_t i = 0; i < proving_key->polynomial_manifest.size(); ++i) {
 //         const auto& poly_info = proving_key->polynomial_manifest[i];
@@ -211,9 +212,9 @@ std::vector<barretenberg::polynomial> compute_witness_base(const CircuitConstruc
 //         const std::string poly_label(poly_info.polynomial_label);
 //         const std::string selector_commitment_label(poly_info.commitment_label);
 
-//         if (poly_info.source == bonk::PolynomialSource::SELECTOR ||
-//             poly_info.source == bonk::PolynomialSource::PERMUTATION ||
-//             poly_info.source == bonk::PolynomialSource::OTHER) {
+//         if (poly_info.source == proof_system::PolynomialSource::SELECTOR ||
+//             poly_info.source == proof_system::PolynomialSource::PERMUTATION ||
+//             poly_info.source == proof_system::PolynomialSource::OTHER) {
 //             // Fetch the polynomial in its vector form.
 
 //             // Commit to the constraint selector polynomial and insert the commitment in the verification key.
@@ -224,7 +225,8 @@ std::vector<barretenberg::polynomial> compute_witness_base(const CircuitConstruc
 //     }
 
 //     // Set the polynomial manifest in verification key.
-//     circuit_verification_key->polynomial_manifest = plonk::PolynomialManifest(proving_key->composer_type);
+//     circuit_verification_key->polynomial_manifest =
+//     proof_system::plonk::PolynomialManifest(proving_key->composer_type);
 
 //     return circuit_verification_key;
 // }
@@ -232,7 +234,11 @@ std::vector<barretenberg::polynomial> compute_witness_base(const CircuitConstruc
 // Ensure we compile all versions so that there are no issues during linkage
 #define COMPILE_FOR_CIRCUIT_CONSTRUCTOR(circuit_constructor)                                                           \
     template std::shared_ptr<plonk::proving_key> initialize_proving_key<circuit_constructor>(                          \
-        const circuit_constructor&, bonk::ReferenceStringFactory*, const size_t, const size_t, bonk::ComposerType);    \
+        const circuit_constructor&,                                                                                    \
+        proof_system::ReferenceStringFactory*,                                                                         \
+        const size_t,                                                                                                  \
+        const size_t,                                                                                                  \
+        proof_system::ComposerType);                                                                                   \
     template void construct_lagrange_selector_forms<circuit_constructor>(const circuit_constructor&,                   \
                                                                          plonk::proving_key*);                         \
     template std::vector<barretenberg::polynomial> compute_witness_base<circuit_constructor>(                          \
@@ -244,4 +250,4 @@ COMPILE_FOR_CIRCUIT_CONSTRUCTOR(StandardCircuitConstructor)
 COMPILE_FOR_CIRCUIT_CONSTRUCTOR(TurboCircuitConstructor)
 COMPILE_FOR_CIRCUIT_CONSTRUCTOR(UltraCircuitConstructor)
 
-} // namespace bonk
+} // namespace proof_system

@@ -2,7 +2,7 @@
 
 #include "./transition_widget.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 namespace widget {
 
 template <class Field, class Getters, typename PolyContainer> class GenPermSortKernel {
@@ -126,4 +126,4 @@ using ProverGenPermSortWidget = widget::TransitionWidget<barretenberg::fr, Setti
 template <typename Field, typename Group, typename Transcript, typename Settings>
 using VerifierGenPermSortWidget = widget::GenericVerifierWidget<Field, Transcript, Settings, widget::GenPermSortKernel>;
 
-} // namespace plonk
+} // namespace proof_system::plonk

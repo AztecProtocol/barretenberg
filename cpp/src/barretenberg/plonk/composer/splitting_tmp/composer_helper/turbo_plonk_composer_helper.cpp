@@ -13,7 +13,7 @@
 #include "barretenberg/proof_system/composer/permutation_helper.hpp"
 using namespace barretenberg;
 
-namespace plonk {
+namespace proof_system::plonk {
 
 /**
  * Compute proving key
@@ -37,18 +37,21 @@ std::shared_ptr<plonk::proving_key> TurboPlonkComposerHelper<CircuitConstructor>
     const size_t num_randomized_gates = NUM_RANDOMIZED_GATES;
     // Initialize circuit_proving_key
     // TODO(#229)(Kesha): replace composer types.
-    circuit_proving_key = bonk::initialize_proving_key(
-        circuit_constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, bonk::ComposerType::TURBO);
+    circuit_proving_key = proof_system::initialize_proving_key(circuit_constructor,
+                                                               crs_factory_.get(),
+                                                               minimum_circuit_size,
+                                                               num_randomized_gates,
+                                                               proof_system::ComposerType::TURBO);
 
-    bonk::construct_lagrange_selector_forms(circuit_constructor, circuit_proving_key.get());
+    proof_system::construct_lagrange_selector_forms(circuit_constructor, circuit_proving_key.get());
 
-    bonk::enforce_nonzero_polynomial_selectors(circuit_constructor, circuit_proving_key.get());
+    proof_system::enforce_nonzero_polynomial_selectors(circuit_constructor, circuit_proving_key.get());
 
     compute_monomial_and_coset_selector_forms(circuit_proving_key.get(), turbo_selector_properties());
 
     // Compute sigma polynomials (TODO(kesha): we should update that late)
-    bonk::compute_standard_plonk_sigma_permutations<CircuitConstructor::program_width>(circuit_constructor,
-                                                                                       circuit_proving_key.get());
+    proof_system::compute_standard_plonk_sigma_permutations<CircuitConstructor::program_width>(
+        circuit_constructor, circuit_proving_key.get());
     circuit_proving_key->recursive_proof_public_input_indices =
         std::vector<uint32_t>(recursive_proof_public_input_indices.begin(), recursive_proof_public_input_indices.end());
     circuit_proving_key->contains_recursive_proof = contains_recursive_proof;
@@ -175,4 +178,4 @@ plonk::TurboVerifier TurboPlonkComposerHelper<CircuitConstructor>::create_verifi
 }
 
 template class TurboPlonkComposerHelper<TurboCircuitConstructor>;
-} // namespace plonk
+} // namespace proof_system::plonk

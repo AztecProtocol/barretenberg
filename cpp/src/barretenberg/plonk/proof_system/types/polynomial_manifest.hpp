@@ -6,7 +6,7 @@
 #include "barretenberg/plonk/proof_system/constants.hpp"
 // ToDo(Arijit): The below namespace should be plonk once all the honk related stuffs are moved out
 // ToDo(Cody): This is now plonk-specific.
-namespace plonk {
+namespace proof_system::plonk {
 
 enum PolynomialSource { WITNESS, SELECTOR, PERMUTATION, OTHER };
 
@@ -176,19 +176,19 @@ class PolynomialManifest {
     PolynomialManifest(uint32_t composer_type)
     {
         switch (composer_type) {
-        case bonk::ComposerType::STANDARD: {
+        case proof_system::ComposerType::STANDARD: {
             std::copy(standard_polynomial_manifest,
                       standard_polynomial_manifest + STANDARD_MANIFEST_SIZE,
                       std::back_inserter(manifest));
             break;
         };
-        case bonk::ComposerType::TURBO: {
+        case proof_system::ComposerType::TURBO: {
             std::copy(turbo_polynomial_manifest,
                       turbo_polynomial_manifest + TURBO_MANIFEST_SIZE,
                       std::back_inserter(manifest));
             break;
         };
-        case bonk::ComposerType::PLOOKUP: {
+        case proof_system::ComposerType::PLOOKUP: {
             std::copy(ultra_polynomial_manifest,
                       ultra_polynomial_manifest + ULTRA_MANIFEST_SIZE,
                       std::back_inserter(manifest));
@@ -236,7 +236,7 @@ class PrecomputedPolyList {
                 precomputed_poly_ids.emplace_back(label);
                 precomputed_poly_ids.emplace_back(label + "_fft");
                 // Store all lagrange forms of selector polynomials for ultra
-                if (composer_type == bonk::ComposerType::PLOOKUP) {
+                if (composer_type == proof_system::ComposerType::PLOOKUP) {
                     precomputed_poly_ids.emplace_back(label + "_lagrange");
                 }
                 break;
@@ -256,4 +256,4 @@ class PrecomputedPolyList {
     std::string operator[](size_t index) const { return precomputed_poly_ids[index]; }
 };
 
-} // namespace plonk
+} // namespace proof_system::plonk

@@ -2,7 +2,7 @@
 #include "kate_commitment_scheme.hpp"
 #include "../../../polynomials/polynomial_arithmetic.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 
 // Constructors for KateCommitmentScheme
 template <typename settings>
@@ -390,4 +390,4 @@ template class KateCommitmentScheme<standard_settings>;
 template class KateCommitmentScheme<turbo_settings>;
 template class KateCommitmentScheme<ultra_settings>;
 template class KateCommitmentScheme<ultra_to_standard_settings>;
-} // namespace plonk
+} // namespace proof_system::plonk

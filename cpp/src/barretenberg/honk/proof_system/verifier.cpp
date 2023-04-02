@@ -26,9 +26,9 @@
 #include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
 
 using namespace barretenberg;
-using namespace honk::sumcheck;
+using namespace proof_system::honk::sumcheck;
 
-namespace honk {
+namespace proof_system::honk {
 template <typename program_settings>
 Verifier<program_settings>::Verifier(std::shared_ptr<plonk::verification_key> verifier_key)
     : key(verifier_key)
@@ -83,9 +83,9 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     using Gemini = pcs::gemini::MultilinearReductionScheme<pcs::kzg::Params>;
     using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<pcs::kzg::Params>;
     using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
-    const size_t NUM_POLYNOMIALS = honk::StandardArithmetization::NUM_POLYNOMIALS;
-    const size_t NUM_UNSHIFTED = honk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
-    const size_t NUM_PRECOMPUTED = honk::StandardArithmetization::NUM_PRECOMPUTED_POLYNOMIALS;
+    const size_t NUM_POLYNOMIALS = proof_system::honk::StandardArithmetization::NUM_POLYNOMIALS;
+    const size_t NUM_UNSHIFTED = proof_system::honk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
+    const size_t NUM_PRECOMPUTED = proof_system::honk::StandardArithmetization::NUM_PRECOMPUTED_POLYNOMIALS;
 
     constexpr auto num_wires = program_settings::num_wires;
 
@@ -199,4 +199,4 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
 
 template class Verifier<honk::standard_verifier_settings>;
 
-} // namespace honk
+} // namespace proof_system::honk

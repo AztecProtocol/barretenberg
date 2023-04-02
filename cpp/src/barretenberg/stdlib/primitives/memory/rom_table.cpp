@@ -4,12 +4,12 @@
 
 using namespace barretenberg;
 
-namespace plonk {
+namespace proof_system::plonk {
 namespace stdlib {
 
 template <typename Composer> rom_table<Composer>::rom_table(const std::vector<field_pt>& table_entries)
 {
-    static_assert(Composer::type == bonk::ComposerType::PLOOKUP);
+    static_assert(Composer::type == proof_system::ComposerType::PLOOKUP);
     // get the composer context
     for (const auto& entry : table_entries) {
         if (entry.get_context() != nullptr) {
@@ -124,4 +124,4 @@ template <typename Composer> field_t<Composer> rom_table<Composer>::operator[](c
 
 INSTANTIATE_STDLIB_ULTRA_TYPE(rom_table);
 } // namespace stdlib
-} // namespace plonk
+} // namespace proof_system::plonk

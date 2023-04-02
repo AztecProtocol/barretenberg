@@ -5,7 +5,7 @@
 #include "../../primitives/point/point.hpp"
 #include "../../primitives/byte_array/byte_array.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 namespace stdlib {
 
 /**
@@ -22,10 +22,10 @@ namespace stdlib {
  */
 template <typename Composer> class pedersen_gates {
   public:
-    using fixed_group_add_quad = bonk::fixed_group_add_quad;
-    using fixed_group_init_quad = bonk::fixed_group_init_quad;
-    using add_quad = bonk::add_quad;
-    using ComposerType = bonk::ComposerType;
+    using fixed_group_add_quad = proof_system::fixed_group_add_quad;
+    using fixed_group_init_quad = proof_system::fixed_group_init_quad;
+    using add_quad = proof_system::add_quad;
+    using ComposerType = proof_system::ComposerType;
 
     Composer* context;
     fixed_group_add_quad previous_add_quad;
@@ -36,7 +36,7 @@ template <typename Composer> class pedersen_gates {
 
     void create_fixed_group_add_gate(const fixed_group_add_quad& in)
     {
-        if constexpr (Composer::type == bonk::ComposerType::TURBO) {
+        if constexpr (Composer::type == proof_system::ComposerType::TURBO) {
             context->create_fixed_group_add_gate(in);
         } else {
 
@@ -229,7 +229,7 @@ template <typename Composer> class pedersen_gates {
 
     void create_fixed_group_add_gate_with_init(const fixed_group_add_quad& in, const fixed_group_init_quad& init)
     {
-        if constexpr (Composer::type == bonk::ComposerType::TURBO) {
+        if constexpr (Composer::type == proof_system::ComposerType::TURBO) {
             context->create_fixed_group_add_gate_with_init(in, init);
         } else {
             uint32_t x_0_idx = in.a;
@@ -295,7 +295,7 @@ template <typename Composer> class pedersen_gates {
 
     void create_fixed_group_add_gate_final(const add_quad& in)
     {
-        if constexpr (Composer::type == bonk::ComposerType::TURBO) {
+        if constexpr (Composer::type == proof_system::ComposerType::TURBO) {
             context->create_fixed_group_add_gate_final(in);
         } else {
 
@@ -313,4 +313,4 @@ template <typename Composer> class pedersen_gates {
 };
 
 } // namespace stdlib
-} // namespace plonk
+} // namespace proof_system::plonk

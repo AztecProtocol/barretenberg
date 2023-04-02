@@ -7,7 +7,7 @@
 
 using namespace barretenberg;
 
-namespace plonk {
+namespace proof_system::plonk {
 
 class CommitmentScheme {
   public:
@@ -47,4 +47,4 @@ class CommitmentScheme {
                                                        bool in_lagrange_form = false) = 0;
 };
 
-} // namespace plonk
+} // namespace proof_system::plonk

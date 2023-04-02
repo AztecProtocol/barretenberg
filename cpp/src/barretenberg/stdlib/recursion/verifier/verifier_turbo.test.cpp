@@ -9,15 +9,15 @@
 #include "../../hash/pedersen/pedersen.hpp"
 #include "program_settings.hpp"
 
-using namespace plonk;
+using namespace proof_system::plonk;
 
 template <typename OuterComposer> class stdlib_verifier_turbo : public testing::Test {
-    using InnerComposer = plonk::TurboComposer;
+    using InnerComposer = proof_system::plonk::TurboComposer;
 
     typedef stdlib::bn254<InnerComposer> inner_curve;
     typedef stdlib::bn254<OuterComposer> outer_curve;
-    typedef plonk::stdlib::recursion::verification_key<outer_curve> verification_key_pt;
-    typedef plonk::stdlib::recursion::recursive_turbo_verifier_settings<outer_curve> recursive_settings;
+    typedef proof_system::plonk::stdlib::recursion::verification_key<outer_curve> verification_key_pt;
+    typedef proof_system::plonk::stdlib::recursion::recursive_turbo_verifier_settings<outer_curve> recursive_settings;
     typedef inner_curve::fr_ct fr_ct;
     typedef inner_curve::public_witness_ct public_witness_ct;
     typedef inner_curve::witness_ct witness_ct;

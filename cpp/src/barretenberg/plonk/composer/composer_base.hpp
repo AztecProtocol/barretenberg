@@ -6,7 +6,7 @@
 #include "barretenberg/plonk/proof_system/types/prover_settings.hpp"
 #include "barretenberg/srs/reference_string/file_reference_string.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 static constexpr uint32_t DUMMY_TAG = 0;
 class ComposerBase {
   public:
@@ -110,7 +110,7 @@ class ComposerBase {
     virtual size_t get_total_circuit_size() const = 0;
     virtual void print_num_gates() const { std::cout << num_gates << std::endl; }
     virtual size_t get_num_variables() const { return variables.size(); }
-    virtual std::shared_ptr<proving_key> compute_proving_key_base(const bonk::ComposerType type = STANDARD,
+    virtual std::shared_ptr<proving_key> compute_proving_key_base(const proof_system::ComposerType type = STANDARD,
                                                                   const size_t minimum_ciricut_size = 0,
                                                                   const size_t num_reserved_gates = NUM_RESERVED_GATES);
     // This needs to be static as it may be used only to compute the selector commitments.
@@ -350,7 +350,7 @@ extern template void ComposerBase::compute_witness_base<3>(const size_t); // sta
 extern template void ComposerBase::compute_witness_base<4>(const size_t); // turbo and ultra
 extern template void ComposerBase::compute_sigma_permutations<4, true>(proving_key* key);
 
-} // namespace plonk
+} // namespace proof_system::plonk
 
 /**
  * Composer Example: Pythagorean triples.

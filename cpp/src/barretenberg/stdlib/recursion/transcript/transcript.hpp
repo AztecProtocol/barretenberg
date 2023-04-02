@@ -16,7 +16,7 @@
 #include "../../primitives/field/field.hpp"
 #include "../../primitives/witness/witness.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 namespace stdlib {
 namespace recursion {
 template <typename Composer> class Transcript {
@@ -25,7 +25,7 @@ template <typename Composer> class Transcript {
     using witness_pt = witness_t<Composer>;
     using fq_pt = bigfield<Composer, barretenberg::Bn254FqParams>;
     using group_pt = element<Composer, fq_pt, field_pt, barretenberg::g1>;
-    using Key = plonk::stdlib::recursion::verification_key<stdlib::bn254<Composer>>;
+    using Key = proof_system::plonk::stdlib::recursion::verification_key<stdlib::bn254<Composer>>;
 
     Transcript(Composer* in_context, const transcript::Manifest input_manifest)
         : context(in_context)
@@ -246,7 +246,7 @@ template <typename Composer> class Transcript {
         }
 
         field_pt T0;
-        if constexpr (Composer::type == bonk::ComposerType::PLOOKUP) {
+        if constexpr (Composer::type == proof_system::ComposerType::PLOOKUP) {
             T0 = stdlib::pedersen_plookup<Composer>::compress(compression_buffer);
         } else {
             T0 = stdlib::pedersen<Composer>::compress(compression_buffer);
@@ -404,4 +404,4 @@ template <typename Composer> class Transcript {
 };
 } // namespace recursion
 } // namespace stdlib
-} // namespace plonk
+} // namespace proof_system::plonk

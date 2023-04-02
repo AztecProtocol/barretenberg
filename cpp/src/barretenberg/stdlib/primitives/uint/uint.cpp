@@ -2,9 +2,9 @@
 #include "../composers/composers.hpp"
 
 using namespace barretenberg;
-using namespace bonk;
+using namespace proof_system;
 
-namespace plonk {
+namespace proof_system::plonk {
 namespace stdlib {
 
 /**
@@ -16,7 +16,7 @@ std::vector<uint32_t> uint<Composer, Native>::constrain_accumulators(Composer* c
                                                                      const size_t num_bits,
                                                                      std::string const& msg) const
 {
-    if constexpr (Composer::type == bonk::ComposerType::PLOOKUP) {
+    if constexpr (Composer::type == proof_system::ComposerType::PLOOKUP) {
         // TODO: manage higher bit ranges
         const auto sequence =
             plookup_read::get_lookup_accumulators(plookup::MultiTableId::UINT32_XOR,
@@ -317,7 +317,7 @@ template <typename Composer, typename Native> bool_t<Composer> uint<Composer, Na
     uint256_t quad =
         uint256_t(context->get_variable(right_idx)) - uint256_t(context->get_variable(left_idx)) * uint256_t(4);
 
-    if constexpr (Composer::type == bonk::ComposerType::PLOOKUP) {
+    if constexpr (Composer::type == proof_system::ComposerType::PLOOKUP) {
         uint256_t lo_bit = quad & 1;
         uint256_t hi_bit = (quad & 2) >> 1;
         // difference in quads = 0, 1, 2, 3 = delta
@@ -405,4 +405,4 @@ INSTANTIATE_STDLIB_BASIC_TYPE_VA(uint, uint32_t);
 INSTANTIATE_STDLIB_BASIC_TYPE_VA(uint, uint64_t);
 
 } // namespace stdlib
-} // namespace plonk
+} // namespace proof_system::plonk

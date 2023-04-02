@@ -1,6 +1,6 @@
 #pragma once
 
-namespace plonk {
+namespace proof_system::plonk {
 namespace stdlib {
 
 /**
@@ -15,7 +15,7 @@ element<C, Fq, Fr, G> element<C, Fq, Fr, G>::wnaf_batch_mul(const std::vector<el
 {
     constexpr size_t WNAF_SIZE = 4;
     ASSERT(points.size() == scalars.size());
-    if constexpr (C::type != bonk::ComposerType::PLOOKUP) {
+    if constexpr (C::type != proof_system::ComposerType::PLOOKUP) {
         return batch_mul(points, scalars, max_num_bits);
     }
 
@@ -61,4 +61,4 @@ element<C, Fq, Fr, G> element<C, Fq, Fr, G>::wnaf_batch_mul(const std::vector<el
     return accumulator;
 }
 } // namespace stdlib
-} // namespace plonk
+} // namespace proof_system::plonk

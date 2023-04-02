@@ -1,4 +1,4 @@
-namespace bonk {
+namespace proof_system {
 
 /**
  * Write a solidity file containing the vk params to the given stream.
@@ -143,24 +143,24 @@ inline void output_vk_sol_ultra(std::ostream& os, std::shared_ptr<verification_k
  */
 inline void output_vk_sol(std::ostream& os, std::shared_ptr<verification_key> const& key, std::string const& class_name)
 {
-    bonk::ComposerType composer_type = static_cast<bonk::ComposerType>(key->composer_type);
+    proof_system::ComposerType composer_type = static_cast<proof_system::ComposerType>(key->composer_type);
     switch (composer_type) {
-    case bonk::ComposerType::STANDARD: {
+    case proof_system::ComposerType::STANDARD: {
         return output_vk_sol_standard(os, key, class_name);
         break;
     }
-    // case bonk::ComposerType::TURBO: {
+    // case proof_system::ComposerType::TURBO: {
     //     return output_vk_sol_turbo(os, key, class_name);
     //     break;
     // }
-    case bonk::ComposerType::PLOOKUP: {
+    case proof_system::ComposerType::PLOOKUP: {
         return output_vk_sol_ultra(os, key, class_name);
         break;
     }
     default: {
-        std::cerr << "bonk::output_vk_sol unsupported composer type. Defaulting to standard composer" << std::endl;
+        std::cerr << "proof_system::output_vk_sol unsupported composer type. Defaulting to standard composer" << std::endl;
         return output_vk_sol_standard(os, key, class_name);
     }
     }
 }
-} // namespace bonk
+} // namespace proof_system

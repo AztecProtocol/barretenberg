@@ -1,3 +1,3 @@
 #include "barretenberg/common/fuzzer_constants.hpp"
-constexpr uint64_t FuzzerComposerTypes = bonk::ComposerType::Standard | bonk::ComposerType::Turbo;
+constexpr uint64_t FuzzerComposerTypes = proof_system::ComposerType::Standard | proof_system::ComposerType::Turbo;
 #include "field.fuzzer.hpp"

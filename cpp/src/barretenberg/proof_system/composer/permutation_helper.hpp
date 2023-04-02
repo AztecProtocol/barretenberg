@@ -21,7 +21,7 @@
 #include <utility>
 #include <vector>
 
-namespace bonk {
+namespace proof_system {
 
 /**
  * @brief cycle_node represents the index of a value of the circuit.
@@ -131,7 +131,7 @@ std::vector<CyclicPermutation> compute_wire_copy_cycles(const CircuitConstructor
  * @param key Pointer to the proving key
  */
 template <size_t program_width, typename CircuitConstructor>
-std::array<std::vector<permutation_subgroup_element>, program_width> compute_basic_bonk_sigma_permutations(
+std::array<std::vector<permutation_subgroup_element>, program_width> compute_basic_proof_system_sigma_permutations(
     const CircuitConstructor& circuit_constructor, plonk::proving_key* key)
 {
     // Compute wire copy cycles (cycles of permutations)
@@ -403,7 +403,7 @@ template <size_t program_width, typename CircuitConstructor>
 void compute_standard_honk_sigma_permutations(CircuitConstructor& circuit_constructor, plonk::proving_key* key)
 {
     // Compute the permutation table specifying which element becomes which
-    auto sigma_mappings = compute_basic_bonk_sigma_permutations<program_width>(circuit_constructor, key);
+    auto sigma_mappings = compute_basic_proof_system_sigma_permutations<program_width>(circuit_constructor, key);
     // Compute Honk-style sigma polynomial fromt the permutation table
     compute_honk_style_sigma_lagrange_polynomials_from_mapping(sigma_mappings, key);
 }
@@ -420,7 +420,7 @@ template <size_t program_width, typename CircuitConstructor>
 void compute_standard_plonk_sigma_permutations(CircuitConstructor& circuit_constructor, plonk::proving_key* key)
 {
     // Compute the permutation table specifying which element becomes which
-    auto sigma_mappings = compute_basic_bonk_sigma_permutations<program_width>(circuit_constructor, key);
+    auto sigma_mappings = compute_basic_proof_system_sigma_permutations<program_width>(circuit_constructor, key);
     // Compute Plonk-style sigma polynomials from the mapping
     compute_plonk_permutation_lagrange_polynomials_from_mapping("sigma", sigma_mappings, key);
     // Compute their monomial and coset versions
@@ -536,4 +536,4 @@ void compute_plonk_generalized_sigma_permutations(const CircuitConstructor& circ
     compute_monomial_and_coset_fft_polynomials_from_lagrange<program_width>("id", key);
 }
 
-} // namespace bonk
+} // namespace proof_system

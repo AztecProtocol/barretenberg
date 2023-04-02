@@ -4,7 +4,7 @@
 #include "barretenberg/plonk/proof_system/constants.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 
-namespace bonk {
+namespace proof_system {
 inline std::vector<std::string> standard_selector_names()
 {
     std::vector<std::string> result{ "q_m", "q_1", "q_2", "q_3", "q_c" };
@@ -23,7 +23,8 @@ class StandardCircuitConstructor : public CircuitConstructorBase<arithmetization
     std::vector<barretenberg::fr>& q_3 = std::get<3>(selectors);
     std::vector<barretenberg::fr>& q_c = std::get<4>(selectors);
 
-    static constexpr bonk::ComposerType type = bonk::ComposerType::STANDARD_HONK; // TODO(Cody): Get rid of this.
+    static constexpr proof_system::ComposerType type =
+        proof_system::ComposerType::STANDARD_HONK; // TODO(Cody): Get rid of this.
     static constexpr size_t UINT_LOG2_BASE = 2;
 
     // These are variables that we have used a gate on, to enforce that they are
@@ -101,4 +102,4 @@ class StandardCircuitConstructor : public CircuitConstructorBase<arithmetization
 
     bool check_circuit();
 };
-} // namespace bonk
+} // namespace proof_system

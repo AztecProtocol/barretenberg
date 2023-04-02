@@ -3,8 +3,7 @@
 #include "barretenberg/transcript/manifest.hpp"
 #include "barretenberg/srs/reference_string/file_reference_string.hpp"
 
-using namespace bonk;
-namespace plonk {
+namespace proof_system::plonk {
 enum StandardSelectors { QM, QC, Q1, Q2, Q3, NUM };
 
 inline std::vector<ComposerBase::SelectorProperties> standard_selector_properties()
@@ -17,7 +16,7 @@ inline std::vector<ComposerBase::SelectorProperties> standard_selector_propertie
 
 class StandardComposer : public ComposerBase {
   public:
-    static constexpr bonk::ComposerType type = bonk::ComposerType::STANDARD;
+    static constexpr proof_system::ComposerType type = proof_system::ComposerType::STANDARD;
     static constexpr MerkleHashType merkle_hash_type = MerkleHashType::FIXED_BASE_PEDERSEN;
     static constexpr size_t UINT_LOG2_BASE = 2;
 
@@ -230,4 +229,4 @@ class StandardComposer : public ComposerBase {
 
     bool check_circuit();
 };
-} // namespace plonk
+} // namespace proof_system::plonk

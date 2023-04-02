@@ -2,7 +2,7 @@
 #include "barretenberg/plonk/proof_system/types/prover_settings.hpp"
 #include <span>
 
-namespace honk::prover_library {
+namespace proof_system::honk::prover_library {
 
 using Fr = barretenberg::fr;
 using Polynomial = barretenberg::Polynomial<Fr>;
@@ -357,4 +357,4 @@ template Polynomial compute_permutation_grand_product<plonk::standard_settings::
 template Polynomial compute_permutation_grand_product<plonk::ultra_settings::program_width>(
     std::shared_ptr<plonk::proving_key>&, std::vector<Polynomial>&, Fr, Fr);
 
-} // namespace honk::prover_library
+} // namespace proof_system::honk::prover_library

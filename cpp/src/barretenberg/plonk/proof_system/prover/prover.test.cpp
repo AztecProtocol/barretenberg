@@ -65,7 +65,7 @@ sigma_3 = [39, 23, 4, 40, 41, 25, 33, 36, 37, 42, 43, 44, 45, 46, 47, 48]
 ```
 */
 using namespace barretenberg;
-using namespace plonk;
+using namespace proof_system::plonk;
 
 namespace prover_helpers {
 
@@ -112,9 +112,9 @@ plonk::Prover generate_test_data(const size_t n)
 
     // even indices = mul gates, odd incides = add gates
 
-    auto reference_string = std::make_shared<bonk::FileReferenceString>(n + 1, "../srs_db/ignition");
+    auto reference_string = std::make_shared<proof_system::FileReferenceString>(n + 1, "../srs_db/ignition");
     std::shared_ptr<proving_key> key =
-        std::make_shared<proving_key>(n, 0, reference_string, bonk::ComposerType::STANDARD);
+        std::make_shared<proving_key>(n, 0, reference_string, proof_system::ComposerType::STANDARD);
 
     polynomial w_l(n);
     polynomial w_r(n);
@@ -277,7 +277,7 @@ plonk::Prover generate_test_data(const size_t n)
     std::unique_ptr<KateCommitmentScheme<standard_settings>> kate_commitment_scheme =
         std::make_unique<KateCommitmentScheme<standard_settings>>();
 
-    plonk::Prover state = plonk::Prover(key, create_manifest());
+    plonk::Prover state = proof_system::plonk::Prover(key, create_manifest());
     state.random_widgets.emplace_back(std::move(permutation_widget));
     state.transition_widgets.emplace_back(std::move(widget));
     state.commitment_scheme = std::move(kate_commitment_scheme);

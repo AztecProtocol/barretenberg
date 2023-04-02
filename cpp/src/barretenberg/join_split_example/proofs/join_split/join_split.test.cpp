@@ -122,8 +122,8 @@ constexpr bool CIRCUIT_CHANGE_EXPECTED = false;
 #endif
 
 using namespace barretenberg;
-using namespace plonk::stdlib::types;
-using namespace plonk::stdlib::merkle_tree;
+using namespace proof_system::plonk::stdlib::types;
+using namespace proof_system::plonk::stdlib::merkle_tree;
 using namespace join_split_example::proofs::notes::native;
 using key_pair = join_split_example::fixtures::grumpkin_key_pair;
 
@@ -139,9 +139,9 @@ class join_split_tests : public ::testing::Test {
     static constexpr size_t ACCOUNT_INDEX = 14;
     static void SetUpTestCase()
     {
-        auto null_crs_factory = std::make_shared<bonk::ReferenceStringFactory>();
+        auto null_crs_factory = std::make_shared<proof_system::ReferenceStringFactory>();
         init_proving_key(null_crs_factory, false);
-        auto crs_factory = std::make_unique<bonk::FileReferenceStringFactory>("../srs_db/ignition");
+        auto crs_factory = std::make_unique<proof_system::FileReferenceStringFactory>("../srs_db/ignition");
         init_verification_key(std::move(crs_factory));
         info("vk hash: ", get_verification_key()->sha256_hash());
     }

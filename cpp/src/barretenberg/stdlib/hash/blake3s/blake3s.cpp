@@ -5,7 +5,7 @@
 #include "barretenberg/stdlib/primitives/uint/uint.hpp"
 #include "../blake2s/blake_util.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 namespace stdlib {
 
 namespace blake3_internal {
@@ -246,7 +246,7 @@ using namespace blake3_internal;
 
 template <typename Composer> byte_array<Composer> blake3s(const byte_array<Composer>& input)
 {
-    if constexpr (Composer::type == bonk::ComposerType::PLOOKUP) {
+    if constexpr (Composer::type == proof_system::ComposerType::PLOOKUP) {
         return blake3s_plookup::blake3s<plonk::UltraComposer>(input);
     }
 
@@ -264,4 +264,4 @@ template byte_array<plonk::TurboComposer> blake3s(const byte_array<plonk::TurboC
 template byte_array<plonk::UltraComposer> blake3s(const byte_array<plonk::UltraComposer>& input);
 
 } // namespace stdlib
-} // namespace plonk
+} // namespace proof_system::plonk

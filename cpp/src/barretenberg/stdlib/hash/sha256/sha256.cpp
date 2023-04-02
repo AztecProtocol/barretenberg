@@ -5,7 +5,7 @@
 #include "barretenberg/plonk/composer/ultra_composer.hpp"
 #include "barretenberg/stdlib/primitives/bit_array/bit_array.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 namespace stdlib {
 namespace internal {
 constexpr uint32_t init_constants[8]{ 0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
@@ -139,7 +139,7 @@ template <typename Composer> byte_array<Composer> sha256_block(const byte_array<
 
 template <typename Composer> packed_byte_array<Composer> sha256(const packed_byte_array<Composer>& input)
 {
-    if constexpr (Composer::type == bonk::ComposerType::PLOOKUP) {
+    if constexpr (Composer::type == proof_system::ComposerType::PLOOKUP) {
         return sha256_plookup::sha256(input);
     }
     typedef field_t<Composer> field_pt;
@@ -186,4 +186,4 @@ template packed_byte_array<plonk::StandardComposer> sha256(const packed_byte_arr
 template packed_byte_array<plonk::TurboComposer> sha256(const packed_byte_array<plonk::TurboComposer>& input);
 template packed_byte_array<plonk::UltraComposer> sha256(const packed_byte_array<plonk::UltraComposer>& input);
 } // namespace stdlib
-} // namespace plonk
+} // namespace proof_system::plonk

@@ -3,7 +3,7 @@
 #include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"
 
-namespace bonk {
+namespace proof_system {
 
 work_queue::work_queue(plonk::proving_key* prover_key, transcript::StandardTranscript* prover_transcript)
     : key(prover_key)
@@ -305,4 +305,4 @@ std::vector<work_queue::work_item> work_queue::get_queue() const
     return work_item_queue;
 }
 
-} // namespace bonk
+} // namespace proof_system

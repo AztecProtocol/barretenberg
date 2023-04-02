@@ -21,7 +21,7 @@
 #include "../../hash/pedersen/pedersen_plookup.hpp"
 #include "../../primitives/curves/bn254.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 namespace stdlib {
 namespace recursion {
 
@@ -54,7 +54,7 @@ template <typename Composer> struct evaluation_domain {
 
     field_t<Composer> compress() const
     {
-        if constexpr (Composer::type == bonk::ComposerType::PLOOKUP) {
+        if constexpr (Composer::type == proof_system::ComposerType::PLOOKUP) {
             field_t<Composer> out = pedersen_plookup<Composer>::compress({
                 root,
                 domain,
@@ -74,7 +74,7 @@ template <typename Composer> struct evaluation_domain {
     static barretenberg::fr compress_native(const barretenberg::evaluation_domain& input)
     {
         barretenberg::fr out;
-        if constexpr (Composer::type == bonk::ComposerType::PLOOKUP) {
+        if constexpr (Composer::type == proof_system::ComposerType::PLOOKUP) {
             out = crypto::pedersen::lookup::compress_native({
                 input.root,
                 input.domain,
@@ -155,7 +155,7 @@ template <typename Curve> struct verification_key {
         const auto circuit_key_compressed = compress();
         bool found = false;
         // if we're using Plookup, use a ROM table to index the keys
-        if constexpr (Composer::type == bonk::ComposerType::PLOOKUP) {
+        if constexpr (Composer::type == proof_system::ComposerType::PLOOKUP) {
             field_t<Composer> key_index(witness_t<Composer>(context, 0));
             std::vector<field_t<Composer>> compressed_keys;
             for (size_t i = 0; i < keys_in_set.size(); ++i) {
@@ -205,7 +205,7 @@ template <typename Curve> struct verification_key {
         }
 
         field_t<Composer> compressed_key;
-        if constexpr (Composer::type == bonk::ComposerType::PLOOKUP) {
+        if constexpr (Composer::type == proof_system::ComposerType::PLOOKUP) {
             compressed_key = pedersen_plookup<Composer>::compress(key_witnesses);
         } else {
             compressed_key = pedersen<Composer>::compress(key_witnesses);
@@ -245,7 +245,7 @@ template <typename Curve> struct verification_key {
             key_witnesses.push_back(y_limbs[3]);
         }
         barretenberg::fr compressed_key;
-        if constexpr (Composer::type == bonk::ComposerType::PLOOKUP) {
+        if constexpr (Composer::type == proof_system::ComposerType::PLOOKUP) {
             compressed_key = crypto::pedersen::lookup::compress_native(key_witnesses);
         } else {
             compressed_key = crypto::pedersen::compress_native(key_witnesses);
@@ -265,7 +265,7 @@ template <typename Curve> struct verification_key {
 
     // Native data:
 
-    std::shared_ptr<bonk::VerifierReferenceString> reference_string;
+    std::shared_ptr<proof_system::VerifierReferenceString> reference_string;
 
     PolynomialManifest polynomial_manifest;
 
@@ -277,4 +277,4 @@ template <typename Curve> struct verification_key {
 
 } // namespace recursion
 } // namespace stdlib
-} // namespace plonk
+} // namespace proof_system::plonk

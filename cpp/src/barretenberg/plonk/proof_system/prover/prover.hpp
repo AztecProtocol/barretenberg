@@ -7,7 +7,7 @@
 #include "../widgets/transition_widgets/transition_widget.hpp"
 #include "../commitment_scheme/commitment_scheme.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 
 template <typename settings> class ProverBase {
 
@@ -110,4 +110,4 @@ typedef ProverBase<ultra_settings> UltraProver; // TODO(Mike): maybe just return
                                                 // TODO(Cody): Make this into an issue?
 typedef ProverBase<ultra_to_standard_settings> UltraToStandardProver;
 
-} // namespace plonk
+} // namespace proof_system::plonk

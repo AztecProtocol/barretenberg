@@ -25,7 +25,7 @@
 #include "barretenberg/honk/pcs/claim.hpp"
 #include "barretenberg/honk/proof_system/prover_library.hpp"
 
-namespace honk {
+namespace proof_system::honk {
 
 using Fr = barretenberg::fr;
 using Polynomial = Polynomial<Fr>;
@@ -74,9 +74,9 @@ template <typename settings> class Prover {
     // Honk only needs a small portion of the functionality but may be fine to use existing work_queue
     // NOTE: this is not currently in use, but it may well be used in the future.
     // TODO(Adrian): Uncomment when we need this again.
-    // bonk::work_queue queue;
+    // proof_system::work_queue queue;
     // void flush_queued_work_items() { queue.flush_queue(); }
-    // bonk::work_queue::work_item_info get_queued_work_item_info() const {
+    // proof_system::work_queue::work_item_info get_queued_work_item_info() const {
     //     return queue.get_queued_work_item_info();
     // }
     // size_t get_scalar_multiplication_size(const size_t work_item_number) const
@@ -103,4 +103,4 @@ extern template class Prover<plonk::standard_settings>;
 
 using StandardProver = Prover<plonk::standard_settings>;
 
-} // namespace honk
+} // namespace proof_system::honk

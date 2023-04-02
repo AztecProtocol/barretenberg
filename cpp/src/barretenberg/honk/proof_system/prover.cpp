@@ -22,12 +22,12 @@
 #include <string>
 #include "barretenberg/honk/pcs/claim.hpp"
 
-namespace honk {
+namespace proof_system::honk {
 
 using Fr = barretenberg::fr;
 using Commitment = barretenberg::g1::affine_element;
 using Polynomial = barretenberg::Polynomial<Fr>;
-using POLYNOMIAL = honk::StandardArithmetization::POLYNOMIAL;
+using POLYNOMIAL = proof_system::honk::StandardArithmetization::POLYNOMIAL;
 
 /**
  * Create Prover from proving key, witness and manifest.
@@ -182,8 +182,8 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
  * */
 template <typename settings> void Prover<settings>::execute_univariatization_round()
 {
-    const size_t NUM_POLYNOMIALS = honk::StandardArithmetization::NUM_POLYNOMIALS;
-    const size_t NUM_UNSHIFTED_POLYS = honk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
+    const size_t NUM_POLYNOMIALS = proof_system::honk::StandardArithmetization::NUM_POLYNOMIALS;
+    const size_t NUM_UNSHIFTED_POLYS = proof_system::honk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
 
     // Generate batching challenge ρ and powers 1,ρ,…,ρᵐ⁻¹
     Fr rho = transcript.get_challenge("rho");
@@ -317,4 +317,4 @@ template <typename settings> plonk::proof& Prover<settings>::construct_proof()
 
 template class Prover<plonk::standard_settings>;
 
-} // namespace honk
+} // namespace proof_system::honk

@@ -4,7 +4,7 @@
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 
-namespace bonk {
+namespace proof_system {
 
 /**
  * @brief Initialize proving key and load the crs
@@ -18,10 +18,10 @@ namespace bonk {
  */
 template <typename CircuitConstructor>
 std::shared_ptr<plonk::proving_key> initialize_proving_key(const CircuitConstructor& circuit_constructor,
-                                                           bonk::ReferenceStringFactory* crs_factory,
+                                                           proof_system::ReferenceStringFactory* crs_factory,
                                                            const size_t minimum_circuit_size,
                                                            const size_t num_randomized_gates,
-                                                           bonk::ComposerType composer_type);
+                                                           proof_system::ComposerType composer_type);
 
 /**
  * @brief Construct lagrange selector polynomials from circuit selector information and put into polynomial cache
@@ -73,7 +73,7 @@ std::vector<barretenberg::polynomial> compute_witness_base(const CircuitConstruc
 //  * (2) sets the polynomial manifest using the data from proving key.
 //  */
 // std::shared_ptr<plonk::verification_key> compute_verification_key_common(
-//     std::shared_ptr<plonk::proving_key> const& proving_key, std::shared_ptr<bonk::VerifierReferenceString> const&
-//     vrs);
+//     std::shared_ptr<plonk::proving_key> const& proving_key, std::shared_ptr<proof_system::VerifierReferenceString>
+//     const& vrs);
 
-} // namespace bonk
+} // namespace proof_system

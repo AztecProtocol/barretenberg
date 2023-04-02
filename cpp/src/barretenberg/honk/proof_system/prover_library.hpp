@@ -5,7 +5,7 @@
 #include "barretenberg/plonk/proof_system/types/proof.hpp"
 #include "barretenberg/plonk/proof_system/types/program_settings.hpp"
 
-namespace honk::prover_library {
+namespace proof_system::honk::prover_library {
 
 using Fr = barretenberg::fr;
 using Polynomial = barretenberg::Polynomial<Fr>;
@@ -27,4 +27,4 @@ Polynomial compute_sorted_list_accumulator(std::shared_ptr<plonk::proving_key>& 
                                            std::vector<Polynomial>& sorted_list_polynomials,
                                            Fr eta);
 
-} // namespace honk::prover_library
+} // namespace proof_system::honk::prover_library
