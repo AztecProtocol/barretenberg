@@ -10,8 +10,8 @@ namespace join_split {
 using namespace plonk;
 using namespace plonk::stdlib::merkle_tree;
 
-static std::shared_ptr<bonk::proving_key> proving_key;
-static std::shared_ptr<bonk::verification_key> verification_key;
+static std::shared_ptr<plonk::proving_key> proving_key;
+static std::shared_ptr<plonk::verification_key> verification_key;
 
 void init_proving_key(std::shared_ptr<bonk::ReferenceStringFactory> const& crs_factory, bool mock)
 {
@@ -35,10 +35,10 @@ void init_proving_key(std::shared_ptr<bonk::ReferenceStringFactory> const& crs_f
     }
 }
 
-void init_proving_key(std::shared_ptr<bonk::ProverReferenceString> const& crs, bonk::proving_key_data&& pk_data)
+void init_proving_key(std::shared_ptr<bonk::ProverReferenceString> const& crs, plonk::proving_key_data&& pk_data)
 {
     release_key();
-    proving_key = std::make_shared<bonk::proving_key>(std::move(pk_data), crs);
+    proving_key = std::make_shared<plonk::proving_key>(std::move(pk_data), crs);
 }
 
 void release_key()
@@ -59,9 +59,9 @@ void init_verification_key(std::unique_ptr<bonk::ReferenceStringFactory>&& crs_f
 }
 
 void init_verification_key(std::shared_ptr<bonk::VerifierMemReferenceString> const& crs,
-                           bonk::verification_key_data&& vk_data)
+                           plonk::verification_key_data&& vk_data)
 {
-    verification_key = std::make_shared<bonk::verification_key>(std::move(vk_data), crs);
+    verification_key = std::make_shared<plonk::verification_key>(std::move(vk_data), crs);
 }
 
 stdlib::types::Prover new_join_split_prover(join_split_tx const& tx, bool mock)
@@ -104,12 +104,12 @@ bool verify_proof(plonk::proof const& proof)
     return verifier.verify_proof(proof);
 }
 
-std::shared_ptr<bonk::proving_key> get_proving_key()
+std::shared_ptr<plonk::proving_key> get_proving_key()
 {
     return proving_key;
 }
 
-std::shared_ptr<bonk::verification_key> get_verification_key()
+std::shared_ptr<plonk::verification_key> get_verification_key()
 {
     return verification_key;
 }

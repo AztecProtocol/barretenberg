@@ -6,7 +6,7 @@
 #include "barretenberg/plonk/proof_system/constants.hpp"
 // ToDo(Arijit): The below namespace should be plonk once all the honk related stuffs are moved out
 // ToDo(Cody): This is now plonk-specific.
-namespace bonk {
+namespace plonk {
 
 enum PolynomialSource { WITNESS, SELECTOR, PERMUTATION, OTHER };
 
@@ -87,7 +87,7 @@ struct PolynomialDescriptor {
     std::string_view polynomial_label;
     bool requires_shifted_evaluation;
     PolynomialSource source;
-    bonk::PolynomialIndex index;
+    PolynomialIndex index;
 };
 
 static constexpr size_t STANDARD_MANIFEST_SIZE = 12;
@@ -256,4 +256,4 @@ class PrecomputedPolyList {
     std::string operator[](size_t index) const { return precomputed_poly_ids[index]; }
 };
 
-} // namespace bonk
+} // namespace plonk

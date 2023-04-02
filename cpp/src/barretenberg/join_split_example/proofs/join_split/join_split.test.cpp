@@ -6,7 +6,7 @@
 #include "barretenberg/common/streams.hpp"
 #include "barretenberg/common/test.hpp"
 #include <gtest/gtest.h>
-#include "barretenberg/proof_system/proving_key/serialize.hpp"
+#include "barretenberg/plonk/proof_system/proving_key/serialize.hpp"
 #include "barretenberg/stdlib/merkle_tree/index.hpp"
 
 namespace join_split_example::proofs::join_split {

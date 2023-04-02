@@ -1,13 +1,10 @@
 #pragma once
-#include "barretenberg/proof_system/proving_key/proving_key.hpp"
-#include "barretenberg/proof_system/verification_key/verification_key.hpp"
+#include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
+#include "barretenberg/plonk/proof_system/verification_key/verification_key.hpp"
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
+
 namespace bonk {
-struct SelectorProperties {
-    std::string name;
-    bool requires_lagrange_base_polynomial = false; // does the prover need the raw lagrange-base selector values?
-};
 
 /**
  * @brief Initialize proving key and load the crs
@@ -17,14 +14,14 @@ struct SelectorProperties {
  * @param minimum_circuit_size The minimum size of polynomials without randomized elements
  * @param num_randomized_gates Number of gates with randomized witnesses
  * @param composer_type The type of composer we are using
- * @return std::shared_ptr<bonk::proving_key>
+ * @return std::shared_ptr<plonk::proving_key>
  */
 template <typename CircuitConstructor>
-std::shared_ptr<bonk::proving_key> initialize_proving_key(const CircuitConstructor& circuit_constructor,
-                                                          bonk::ReferenceStringFactory* crs_factory,
-                                                          const size_t minimum_circuit_size,
-                                                          const size_t num_randomized_gates,
-                                                          bonk::ComposerType composer_type);
+std::shared_ptr<plonk::proving_key> initialize_proving_key(const CircuitConstructor& circuit_constructor,
+                                                           bonk::ReferenceStringFactory* crs_factory,
+                                                           const size_t minimum_circuit_size,
+                                                           const size_t num_randomized_gates,
+                                                           bonk::ComposerType composer_type);
 
 /**
  * @brief Construct lagrange selector polynomials from circuit selector information and put into polynomial cache
@@ -34,7 +31,7 @@ std::shared_ptr<bonk::proving_key> initialize_proving_key(const CircuitConstruct
  * @param key Pointer to the proving key
  */
 template <typename CircuitConstructor>
-void construct_lagrange_selector_forms(const CircuitConstructor& circuit_constructor, bonk::proving_key* key);
+void construct_lagrange_selector_forms(const CircuitConstructor& circuit_constructor, plonk::proving_key* key);
 
 /**
  * @brief Fill the last index of each selector polynomial in lagrange form with a non-zero value
@@ -44,17 +41,17 @@ void construct_lagrange_selector_forms(const CircuitConstructor& circuit_constru
  * @param key Pointer to the proving key
  */
 template <typename CircuitConstructor>
-void enforce_nonzero_polynomial_selectors(const CircuitConstructor& circuit_constructor, bonk::proving_key* key);
+void enforce_nonzero_polynomial_selectors(const CircuitConstructor& circuit_constructor, plonk::proving_key* key);
 
-/**
- * @brief Retrieve lagrange forms of selector polynomials and compute monomial and coset-monomial forms and put into
- * cache
- *
- * @param key Pointer to the proving key
- * @param selector_properties Names of selectors
- */
-void compute_monomial_and_coset_selector_forms(bonk::proving_key* key,
-                                               std::vector<SelectorProperties> selector_properties);
+// /**
+//  * @brief Retrieve lagrange forms of selector polynomials and compute monomial and coset-monomial forms and put into
+//  * cache
+//  *
+//  * @param key Pointer to the proving key
+//  * @param selector_properties Names of selectors
+//  */
+// void compute_monomial_and_coset_selector_forms(plonk::proving_key* key,
+//                                                std::vector<SelectorProperties> selector_properties);
 
 /**
  * Compute witness polynomials (w_1, w_2, w_3, w_4) and put them into polynomial cache
@@ -70,12 +67,13 @@ std::vector<barretenberg::polynomial> compute_witness_base(const CircuitConstruc
                                                            const size_t minimum_circuit_size,
                                                            const size_t number_of_randomized_gates);
 
-/**
- * @brief Computes the verification key by computing the:
- * (1) commitments to the selector, permutation, and lagrange (first/last) polynomials,
- * (2) sets the polynomial manifest using the data from proving key.
- */
-std::shared_ptr<bonk::verification_key> compute_verification_key_common(
-    std::shared_ptr<bonk::proving_key> const& proving_key, std::shared_ptr<bonk::VerifierReferenceString> const& vrs);
+// /**
+//  * @brief Computes the verification key by computing the:
+//  * (1) commitments to the selector, permutation, and lagrange (first/last) polynomials,
+//  * (2) sets the polynomial manifest using the data from proving key.
+//  */
+// std::shared_ptr<plonk::verification_key> compute_verification_key_common(
+//     std::shared_ptr<plonk::proving_key> const& proving_key, std::shared_ptr<bonk::VerifierReferenceString> const&
+//     vrs);
 
 } // namespace bonk

@@ -1,12 +1,12 @@
 #include "barretenberg/crypto/sha256/sha256.hpp"
 #include "verification_key.hpp"
-#include "../../plonk/proof_system/constants.hpp"
+#include "barretenberg/plonk/proof_system/constants.hpp"
 
-namespace bonk {
+namespace plonk {
 
 verification_key::verification_key(const size_t num_gates,
                                    const size_t num_inputs,
-                                   std::shared_ptr<VerifierReferenceString> const& crs,
+                                   std::shared_ptr<bonk::VerifierReferenceString> const& crs,
                                    uint32_t composer_type_)
     : composer_type(composer_type_)
     , circuit_size(num_gates)
@@ -17,7 +17,8 @@ verification_key::verification_key(const size_t num_gates,
     , polynomial_manifest(composer_type)
 {}
 
-verification_key::verification_key(verification_key_data&& data, std::shared_ptr<VerifierReferenceString> const& crs)
+verification_key::verification_key(verification_key_data&& data,
+                                   std::shared_ptr<bonk::VerifierReferenceString> const& crs)
     : composer_type(data.composer_type)
     , circuit_size(data.circuit_size)
     , log_circuit_size(numeric::get_msb(data.circuit_size))
@@ -87,4 +88,4 @@ sha256::hash verification_key::sha256_hash()
     return sha256::sha256(to_buffer(vk_data));
 }
 
-} // namespace bonk
+} // namespace plonk

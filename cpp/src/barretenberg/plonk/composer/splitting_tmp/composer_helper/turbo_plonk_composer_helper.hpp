@@ -1,8 +1,9 @@
 #pragma once
 
+#include "barretenberg/plonk/composer/splitting_tmp/composer_helper/composer_helper_lib.hpp"
 #include "barretenberg/proof_system/composer/composer_helper_lib.hpp"
 #include "barretenberg/srs/reference_string/file_reference_string.hpp"
-#include "barretenberg/proof_system/proving_key/proving_key.hpp"
+#include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
 #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
 
@@ -14,8 +15,8 @@ template <typename CircuitConstructor> class TurboPlonkComposerHelper {
     static constexpr bonk::ComposerType type = bonk::ComposerType::TURBO;
     static constexpr MerkleHashType merkle_hash_type = MerkleHashType::FIXED_BASE_PEDERSEN;
     static constexpr size_t UINT_LOG2_BASE = 2;
-    std::shared_ptr<bonk::proving_key> circuit_proving_key;
-    std::shared_ptr<bonk::verification_key> circuit_verification_key;
+    std::shared_ptr<plonk::proving_key> circuit_proving_key;
+    std::shared_ptr<plonk::verification_key> circuit_verification_key;
 
     // TODO(#218)(kesha): we need to put this into the commitment key, so that the composer doesn't have to handle srs
     // at all
@@ -36,7 +37,7 @@ template <typename CircuitConstructor> class TurboPlonkComposerHelper {
     TurboPlonkComposerHelper(std::unique_ptr<bonk::ReferenceStringFactory>&& crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
-    TurboPlonkComposerHelper(std::shared_ptr<bonk::proving_key> p_key, std::shared_ptr<bonk::verification_key> v_key)
+    TurboPlonkComposerHelper(std::shared_ptr<plonk::proving_key> p_key, std::shared_ptr<plonk::verification_key> v_key)
         : circuit_proving_key(std::move(p_key))
         , circuit_verification_key(std::move(v_key))
     {}
@@ -50,7 +51,7 @@ template <typename CircuitConstructor> class TurboPlonkComposerHelper {
 
     TurboProver create_prover(const CircuitConstructor& circuit_constructor);
     TurboVerifier create_verifier(const CircuitConstructor& circuit_constructor);
-    inline std::vector<bonk::SelectorProperties> turbo_selector_properties()
+    inline std::vector<SelectorProperties> turbo_selector_properties()
     {
         const std::vector<SelectorProperties> result{
             { "q_m", false },          { "q_c", false },     { "q_1", false },     { "q_2", false },

@@ -24,15 +24,15 @@ template <typename settings> class KateCommitmentScheme : public CommitmentSchem
 
     void batch_open(const transcript::StandardTranscript& transcript,
                     work_queue& queue,
-                    std::shared_ptr<bonk::proving_key> input_key = nullptr) override;
+                    std::shared_ptr<plonk::proving_key> input_key = nullptr) override;
 
     void batch_verify(const transcript::StandardTranscript& transcript,
                       std::map<std::string, g1::affine_element>& kate_g1_elements,
                       std::map<std::string, fr>& kate_fr_elements,
-                      std::shared_ptr<bonk::verification_key> input_key = nullptr) override;
+                      std::shared_ptr<plonk::verification_key> input_key = nullptr) override;
 
     void add_opening_evaluations_to_transcript(transcript::StandardTranscript& transcript,
-                                               std::shared_ptr<bonk::proving_key> input_key = nullptr,
+                                               std::shared_ptr<plonk::proving_key> input_key = nullptr,
                                                bool in_lagrange_form = false) override;
 
   private:

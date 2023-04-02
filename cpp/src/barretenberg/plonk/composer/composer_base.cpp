@@ -1,5 +1,5 @@
 #include "composer_base.hpp"
-#include "barretenberg/proof_system/proving_key/proving_key.hpp"
+#include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/plonk/proof_system/utils/permutation.hpp"
 
 namespace plonk {

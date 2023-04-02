@@ -30,7 +30,7 @@ using namespace honk::sumcheck;
 
 namespace honk {
 template <typename program_settings>
-Verifier<program_settings>::Verifier(std::shared_ptr<bonk::verification_key> verifier_key)
+Verifier<program_settings>::Verifier(std::shared_ptr<plonk::verification_key> verifier_key)
     : key(verifier_key)
 {}
 

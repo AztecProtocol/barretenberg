@@ -3,7 +3,9 @@
 #include "verification_key.hpp"
 
 using namespace barretenberg;
-using namespace bonk;
+using namespace plonk;
+
+namespace plonk::test_verification_key {
 
 TEST(verification_key, buffer_serialization)
 {
@@ -41,3 +43,4 @@ TEST(verification_key, stream_serialization)
 
     EXPECT_EQ(key, result);
 }
+} // namespace plonk::test_verification_key

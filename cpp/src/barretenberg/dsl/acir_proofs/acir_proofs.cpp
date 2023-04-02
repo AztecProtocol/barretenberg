@@ -69,9 +69,9 @@ size_t init_proving_key(uint8_t const* constraint_system_buf, uint8_t const** pk
 size_t init_verification_key(void* pippenger, uint8_t const* g2x, uint8_t const* pk_buf, uint8_t const** vk_buf)
 {
     std::shared_ptr<ProverReferenceString> crs;
-    bonk::proving_key_data pk_data;
+    plonk::proving_key_data pk_data;
     read(pk_buf, pk_data);
-    auto proving_key = std::make_shared<bonk::proving_key>(std::move(pk_data), crs);
+    auto proving_key = std::make_shared<plonk::proving_key>(std::move(pk_data), crs);
 
     auto crs_factory = std::make_unique<PippengerReferenceStringFactory>(
         reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), g2x);
@@ -103,9 +103,9 @@ size_t new_proof(void* pippenger,
     auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
 
     std::shared_ptr<ProverReferenceString> crs;
-    bonk::proving_key_data pk_data;
+    plonk::proving_key_data pk_data;
     read(pk_buf, pk_data);
-    auto proving_key = std::make_shared<bonk::proving_key>(std::move(pk_data), crs);
+    auto proving_key = std::make_shared<plonk::proving_key>(std::move(pk_data), crs);
 
     auto witness = from_buffer<std::vector<fr>>(witness_buf);
 
@@ -136,9 +136,9 @@ bool verify_proof(
 #endif
         auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
         auto crs = std::make_shared<VerifierMemReferenceString>(g2x);
-        bonk::verification_key_data vk_data;
+        plonk::verification_key_data vk_data;
         read(vk_buf, vk_data);
-        auto verification_key = std::make_shared<bonk::verification_key>(std::move(vk_data), crs);
+        auto verification_key = std::make_shared<plonk::verification_key>(std::move(vk_data), crs);
 
         Composer composer(nullptr, verification_key);
         create_circuit(composer, constraint_system);

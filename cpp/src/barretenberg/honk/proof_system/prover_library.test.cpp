@@ -50,7 +50,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         auto reference_string = std::make_shared<bonk::FileReferenceString>(num_gates + 1, "../srs_db/ignition");
 
         // Instatiate a proving_key and make a pointer to it. This will be used to instantiate a Prover.
-        auto proving_key = std::make_shared<bonk::proving_key>(
+        auto proving_key = std::make_shared<plonk::proving_key>(
             num_gates, num_public_inputs, reference_string, bonk::ComposerType::STANDARD_HONK);
 
         // static const size_t program_width = StandardProver::settings_::program_width;
@@ -159,7 +159,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         auto reference_string = std::make_shared<bonk::FileReferenceString>(circuit_size + 1, "../srs_db/ignition");
 
         // Instatiate a proving_key and make a pointer to it. This will be used to instantiate a Prover.
-        auto proving_key = std::make_shared<bonk::proving_key>(
+        auto proving_key = std::make_shared<plonk::proving_key>(
             circuit_size, num_public_inputs, reference_string, bonk::ComposerType::STANDARD_HONK);
 
         // Construct mock wire and permutation polynomials.
@@ -286,7 +286,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         static const size_t circuit_size = 8;
         static const size_t num_public_inputs = 0;
         auto reference_string = std::make_shared<bonk::FileReferenceString>(circuit_size + 1, "../srs_db/ignition");
-        auto proving_key = std::make_shared<bonk::proving_key>(
+        auto proving_key = std::make_shared<plonk::proving_key>(
             circuit_size, num_public_inputs, reference_string, bonk::ComposerType::STANDARD_HONK);
 
         // Get random challenge eta

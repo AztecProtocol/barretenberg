@@ -8,7 +8,7 @@
 #include <cstdint>
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 #include "barretenberg/srs/reference_string/pippenger_reference_string.hpp"
-#include "barretenberg/proof_system/proving_key/serialize.hpp"
+#include "barretenberg/plonk/proof_system/proving_key/serialize.hpp"
 #include <sstream>
 
 using namespace barretenberg;
@@ -30,7 +30,7 @@ WASM_EXPORT void join_split__init_proving_key(bool mock)
 WASM_EXPORT void join_split__init_proving_key_from_buffer(uint8_t const* pk_buf)
 {
     std::shared_ptr<bonk::ProverReferenceString> crs;
-    bonk::proving_key_data pk_data;
+    plonk::proving_key_data pk_data;
     read(pk_buf, pk_data);
     init_proving_key(crs, std::move(pk_data));
 }
@@ -78,7 +78,7 @@ WASM_EXPORT void join_split__init_verification_key(void* pippenger, uint8_t cons
 WASM_EXPORT void join_split__init_verification_key_from_buffer(uint8_t const* vk_buf, uint8_t const* g2x)
 {
     auto crs = std::make_shared<bonk::VerifierMemReferenceString>(g2x);
-    bonk::verification_key_data vk_data;
+    plonk::verification_key_data vk_data;
     read(vk_buf, vk_data);
     init_verification_key(crs, std::move(vk_data));
 }

@@ -23,7 +23,7 @@ namespace honk {
  * @return Pointer to the initialized proving key updated with selector polynomials.
  * */
 template <typename CircuitConstructor>
-std::shared_ptr<bonk::proving_key> StandardHonkComposerHelper<CircuitConstructor>::compute_proving_key_base(
+std::shared_ptr<plonk::proving_key> StandardHonkComposerHelper<CircuitConstructor>::compute_proving_key_base(
     const CircuitConstructor& constructor, const size_t minimum_circuit_size, const size_t num_randomized_gates)
 {
     // Initialize circuit_proving_key
@@ -43,10 +43,10 @@ std::shared_ptr<bonk::proving_key> StandardHonkComposerHelper<CircuitConstructor
  */
 
 template <typename CircuitConstructor>
-std::shared_ptr<bonk::verification_key> StandardHonkComposerHelper<CircuitConstructor>::compute_verification_key_base(
-    std::shared_ptr<bonk::proving_key> const& proving_key, std::shared_ptr<bonk::VerifierReferenceString> const& vrs)
+std::shared_ptr<plonk::verification_key> StandardHonkComposerHelper<CircuitConstructor>::compute_verification_key_base(
+    std::shared_ptr<plonk::proving_key> const& proving_key, std::shared_ptr<bonk::VerifierReferenceString> const& vrs)
 {
-    auto key = std::make_shared<bonk::verification_key>(
+    auto key = std::make_shared<plonk::verification_key>(
         proving_key->circuit_size, proving_key->num_public_inputs, vrs, proving_key->composer_type);
     // TODO(kesha): Dirty hack for now. Need to actually make commitment-agnositc
     auto commitment_key = pcs::kzg::CommitmentKey(proving_key->circuit_size, "../srs_db/ignition");
@@ -98,7 +98,7 @@ void StandardHonkComposerHelper<CircuitConstructor>::compute_witness(const Circu
  * */
 
 template <typename CircuitConstructor>
-std::shared_ptr<bonk::proving_key> StandardHonkComposerHelper<CircuitConstructor>::compute_proving_key(
+std::shared_ptr<plonk::proving_key> StandardHonkComposerHelper<CircuitConstructor>::compute_proving_key(
     const CircuitConstructor& circuit_constructor)
 {
     if (circuit_proving_key) {
@@ -123,7 +123,7 @@ std::shared_ptr<bonk::proving_key> StandardHonkComposerHelper<CircuitConstructor
  * @return Pointer to created circuit verification key.
  * */
 template <typename CircuitConstructor>
-std::shared_ptr<bonk::verification_key> StandardHonkComposerHelper<CircuitConstructor>::compute_verification_key(
+std::shared_ptr<plonk::verification_key> StandardHonkComposerHelper<CircuitConstructor>::compute_verification_key(
     const CircuitConstructor& circuit_constructor)
 {
     if (circuit_verification_key) {

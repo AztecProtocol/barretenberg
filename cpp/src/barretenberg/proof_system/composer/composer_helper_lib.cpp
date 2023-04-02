@@ -19,14 +19,14 @@ namespace bonk {
  * @param minimum_circuit_size The minimum size of polynomials without randomized elements
  * @param num_randomized_gates Number of gates with randomized witnesses
  * @param composer_type The type of composer we are using
- * @return std::shared_ptr<bonk::proving_key>
+ * @return std::shared_ptr<plonk::proving_key>
  */
 template <typename CircuitConstructor>
-std::shared_ptr<bonk::proving_key> initialize_proving_key(const CircuitConstructor& circuit_constructor,
-                                                          bonk::ReferenceStringFactory* crs_factory,
-                                                          const size_t minimum_circuit_size,
-                                                          const size_t num_randomized_gates,
-                                                          bonk::ComposerType composer_type)
+std::shared_ptr<plonk::proving_key> initialize_proving_key(const CircuitConstructor& circuit_constructor,
+                                                           bonk::ReferenceStringFactory* crs_factory,
+                                                           const size_t minimum_circuit_size,
+                                                           const size_t num_randomized_gates,
+                                                           bonk::ComposerType composer_type)
 {
     const size_t num_gates = circuit_constructor.num_gates;
     std::span<const uint32_t> public_inputs = circuit_constructor.public_inputs;
@@ -39,7 +39,7 @@ std::shared_ptr<bonk::proving_key> initialize_proving_key(const CircuitConstruct
 
     auto crs = crs_factory->get_prover_crs(subgroup_size + 1);
 
-    return std::make_shared<bonk::proving_key>(subgroup_size, num_public_inputs, crs, composer_type);
+    return std::make_shared<plonk::proving_key>(subgroup_size, num_public_inputs, crs, composer_type);
 }
 
 /**
@@ -51,7 +51,7 @@ std::shared_ptr<bonk::proving_key> initialize_proving_key(const CircuitConstruct
  */
 template <typename CircuitConstructor>
 void construct_lagrange_selector_forms(const CircuitConstructor& circuit_constructor,
-                                       bonk::proving_key* circuit_proving_key)
+                                       plonk::proving_key* circuit_proving_key)
 {
     const size_t num_public_inputs = circuit_constructor.public_inputs.size();
     for (size_t j = 0; j < circuit_constructor.num_selectors; ++j) {
@@ -84,7 +84,7 @@ void construct_lagrange_selector_forms(const CircuitConstructor& circuit_constru
  */
 template <typename CircuitConstructor>
 void enforce_nonzero_polynomial_selectors(const CircuitConstructor& circuit_constructor,
-                                          bonk::proving_key* circuit_proving_key)
+                                          plonk::proving_key* circuit_proving_key)
 {
     for (size_t j = 0; j < circuit_constructor.num_selectors; ++j) {
         auto current_selector =
@@ -95,34 +95,39 @@ void enforce_nonzero_polynomial_selectors(const CircuitConstructor& circuit_cons
     }
 }
 
-/**
- * @brief Retrieve lagrange forms of selector polynomials and compute monomial and coset-monomial forms and put into
- * cache
- *
- * @param key Pointer to the proving key
- * @param selector_properties Names of selectors
- */
-void compute_monomial_and_coset_selector_forms(bonk::proving_key* circuit_proving_key,
-                                               std::vector<SelectorProperties> selector_properties)
-{
-    for (size_t i = 0; i < selector_properties.size(); i++) {
-        // Compute monomial form of selector polynomial
-        auto& selector_poly_lagrange =
-            circuit_proving_key->polynomial_store.get(selector_properties[i].name + "_lagrange");
-        barretenberg::polynomial selector_poly(circuit_proving_key->circuit_size);
-        barretenberg::polynomial_arithmetic::ifft(
-            &selector_poly_lagrange[0], &selector_poly[0], circuit_proving_key->small_domain);
+// /**
+//  * @brief Retrieve lagrange forms of selector polynomials and compute monomial and coset-monomial forms and put into
+//  * cache
+//  *
+//  * @note This function also deletes the lagrange forms of the selectors from memory since they are not needed
+//  * for proof construction once the monomial and coset forms have been computed
+//  *
+//  * @param key Pointer to the proving key
+//  * @param selector_properties Names of selectors
+//  */
+// void compute_monomial_and_coset_selector_forms(plonk::proving_key* circuit_proving_key,
+//                                                std::vector<SelectorProperties> selector_properties)
+// {
+//     for (size_t i = 0; i < selector_properties.size(); i++) {
+//         // Compute monomial form of selector polynomial
 
-        // Compute coset FFT of selector polynomial
-        barretenberg::polynomial selector_poly_fft(selector_poly, circuit_proving_key->circuit_size * 4 + 4);
-        selector_poly_fft.coset_fft(circuit_proving_key->large_domain);
+//         auto& selector_poly_lagrange =
+//             circuit_proving_key->polynomial_store.get(selector_properties[i].name + "_lagrange");
+//         barretenberg::polynomial selector_poly(circuit_proving_key->circuit_size);
+//         barretenberg::polynomial_arithmetic::ifft(
+//             &selector_poly_lagrange[0], &selector_poly[0], circuit_proving_key->small_domain);
 
-        // TODO(luke): For Standard/Turbo, the lagrange polynomials can be removed from the store at this point but this
-        // is not the case for Ultra. Implement?
-        circuit_proving_key->polynomial_store.put(selector_properties[i].name, std::move(selector_poly));
-        circuit_proving_key->polynomial_store.put(selector_properties[i].name + "_fft", std::move(selector_poly_fft));
-    }
-}
+//         // Compute coset FFT of selector polynomial
+//         barretenberg::polynomial selector_poly_fft(selector_poly, circuit_proving_key->circuit_size * 4 + 4);
+//         selector_poly_fft.coset_fft(circuit_proving_key->large_domain);
+
+//         // Remove the selector lagrange forms since they will not be needed beyond this point
+//         circuit_proving_key->polynomial_store.remove(selector_properties[i].name + "_lagrange");
+//         circuit_proving_key->polynomial_store.put(selector_properties[i].name, std::move(selector_poly));
+//         circuit_proving_key->polynomial_store.put(selector_properties[i].name + "_fft",
+//         std::move(selector_poly_fft));
+//     }
+// }
 
 /**
  * Compute witness polynomials (w_1, w_2, w_3, w_4) and put them into polynomial cache
@@ -186,52 +191,54 @@ std::vector<barretenberg::polynomial> compute_witness_base(const CircuitConstruc
     return wires;
 }
 
-/**
- * @brief Computes the verification key by computing the:
- * (1) commitments to the selector, permutation, and lagrange (first/last) polynomials,
- * (2) sets the polynomial manifest using the data from proving key.
- */
-std::shared_ptr<bonk::verification_key> compute_verification_key_common(
-    std::shared_ptr<bonk::proving_key> const& proving_key, std::shared_ptr<bonk::VerifierReferenceString> const& vrs)
-{
-    auto circuit_verification_key = std::make_shared<bonk::verification_key>(
-        proving_key->circuit_size, proving_key->num_public_inputs, vrs, proving_key->composer_type);
-    // TODO(kesha): Dirty hack for now. Need to actually make commitment-agnositc
-    auto commitment_key = honk::pcs::kzg::CommitmentKey(proving_key->circuit_size, "../srs_db/ignition");
+// /**
+//  * @brief Computes the verification key by computing the:
+//  * (1) commitments to the selector, permutation, and lagrange (first/last) polynomials,
+//  * (2) sets the polynomial manifest using the data from proving key.
+//  */
+// std::shared_ptr<plonk::verification_key> compute_verification_key_common(
+//     std::shared_ptr<plonk::proving_key> const& proving_key, std::shared_ptr<bonk::VerifierReferenceString> const&
+//     vrs)
+// {
+//     auto circuit_verification_key = std::make_shared<plonk::verification_key>(
+//         proving_key->circuit_size, proving_key->num_public_inputs, vrs, proving_key->composer_type);
+//     // TODO(kesha): Dirty hack for now. Need to actually make commitment-agnositc
+//     auto commitment_key = honk::pcs::kzg::CommitmentKey(proving_key->circuit_size, "../srs_db/ignition");
 
-    for (size_t i = 0; i < proving_key->polynomial_manifest.size(); ++i) {
-        const auto& poly_info = proving_key->polynomial_manifest[i];
+//     for (size_t i = 0; i < proving_key->polynomial_manifest.size(); ++i) {
+//         const auto& poly_info = proving_key->polynomial_manifest[i];
 
-        const std::string poly_label(poly_info.polynomial_label);
-        const std::string selector_commitment_label(poly_info.commitment_label);
+//         const std::string poly_label(poly_info.polynomial_label);
+//         const std::string selector_commitment_label(poly_info.commitment_label);
 
-        if (poly_info.source == bonk::PolynomialSource::SELECTOR ||
-            poly_info.source == bonk::PolynomialSource::PERMUTATION ||
-            poly_info.source == bonk::PolynomialSource::OTHER) {
-            // Fetch the polynomial in its vector form.
+//         if (poly_info.source == bonk::PolynomialSource::SELECTOR ||
+//             poly_info.source == bonk::PolynomialSource::PERMUTATION ||
+//             poly_info.source == bonk::PolynomialSource::OTHER) {
+//             // Fetch the polynomial in its vector form.
 
-            // Commit to the constraint selector polynomial and insert the commitment in the verification key.
+//             // Commit to the constraint selector polynomial and insert the commitment in the verification key.
 
-            auto poly_commitment = commitment_key.commit(proving_key->polynomial_store.get(poly_label));
-            circuit_verification_key->commitments.insert({ selector_commitment_label, poly_commitment });
-        }
-    }
+//             auto poly_commitment = commitment_key.commit(proving_key->polynomial_store.get(poly_label));
+//             circuit_verification_key->commitments.insert({ selector_commitment_label, poly_commitment });
+//         }
+//     }
 
-    // Set the polynomial manifest in verification key.
-    circuit_verification_key->polynomial_manifest = bonk::PolynomialManifest(proving_key->composer_type);
+//     // Set the polynomial manifest in verification key.
+//     circuit_verification_key->polynomial_manifest = plonk::PolynomialManifest(proving_key->composer_type);
 
-    return circuit_verification_key;
-}
+//     return circuit_verification_key;
+// }
+
 // Ensure we compile all versions so that there are no issues during linkage
 #define COMPILE_FOR_CIRCUIT_CONSTRUCTOR(circuit_constructor)                                                           \
-    template std::shared_ptr<bonk::proving_key> initialize_proving_key<circuit_constructor>(                           \
+    template std::shared_ptr<plonk::proving_key> initialize_proving_key<circuit_constructor>(                          \
         const circuit_constructor&, bonk::ReferenceStringFactory*, const size_t, const size_t, bonk::ComposerType);    \
     template void construct_lagrange_selector_forms<circuit_constructor>(const circuit_constructor&,                   \
-                                                                         bonk::proving_key*);                          \
+                                                                         plonk::proving_key*);                         \
     template std::vector<barretenberg::polynomial> compute_witness_base<circuit_constructor>(                          \
         const circuit_constructor&, const size_t, const size_t);                                                       \
     template void enforce_nonzero_polynomial_selectors<circuit_constructor>(const circuit_constructor& constructor,    \
-                                                                            bonk::proving_key* circuit_proving_key);
+                                                                            plonk::proving_key* circuit_proving_key);
 
 COMPILE_FOR_CIRCUIT_CONSTRUCTOR(StandardCircuitConstructor)
 COMPILE_FOR_CIRCUIT_CONSTRUCTOR(TurboCircuitConstructor)

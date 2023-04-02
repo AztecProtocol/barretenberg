@@ -39,7 +39,7 @@ using POLYNOMIAL = honk::StandardArithmetization::POLYNOMIAL;
  * */
 template <typename settings>
 Prover<settings>::Prover(std::vector<barretenberg::polynomial>&& wire_polys,
-                         std::shared_ptr<bonk::proving_key> input_key)
+                         std::shared_ptr<plonk::proving_key> input_key)
     : wire_polynomials(wire_polys)
     , key(input_key)
     , commitment_key(std::make_unique<pcs::kzg::CommitmentKey>(

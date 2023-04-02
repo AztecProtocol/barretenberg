@@ -5,7 +5,7 @@
 
 namespace bonk {
 
-work_queue::work_queue(proving_key* prover_key, transcript::StandardTranscript* prover_transcript)
+work_queue::work_queue(plonk::proving_key* prover_key, transcript::StandardTranscript* prover_transcript)
     : key(prover_key)
     , transcript(prover_transcript)
     , work_item_queue()

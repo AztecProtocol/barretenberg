@@ -54,8 +54,8 @@ class TurboPlonkComposer {
         , num_gates(circuit_constructor.num_gates)
         , variables(circuit_constructor.variables){};
 
-    TurboPlonkComposer(std::shared_ptr<bonk::proving_key> const& p_key,
-                       std::shared_ptr<bonk::verification_key> const& v_key,
+    TurboPlonkComposer(std::shared_ptr<plonk::proving_key> const& p_key,
+                       std::shared_ptr<plonk::verification_key> const& v_key,
                        size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(p_key, v_key)
@@ -169,12 +169,12 @@ class TurboPlonkComposer {
     barretenberg::fr get_variable(const uint32_t index) const { return circuit_constructor.get_variable(index); }
     /**Proof and verification-related methods*/
 
-    std::shared_ptr<bonk::proving_key> compute_proving_key()
+    std::shared_ptr<plonk::proving_key> compute_proving_key()
     {
         return composer_helper.compute_proving_key(circuit_constructor);
     }
 
-    std::shared_ptr<bonk::verification_key> compute_verification_key()
+    std::shared_ptr<plonk::verification_key> compute_verification_key()
     {
         return composer_helper.compute_verification_key(circuit_constructor);
     }

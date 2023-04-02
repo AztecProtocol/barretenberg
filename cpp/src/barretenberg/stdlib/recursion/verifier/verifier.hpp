@@ -61,7 +61,7 @@ void populate_kate_element_map(typename Curve::Composer* ctx,
         const std::string label(item.commitment_label);
         const std::string poly_label(item.polynomial_label);
         switch (item.source) {
-        case bonk::PolynomialSource::WITNESS: {
+        case PolynomialSource::WITNESS: {
             const auto element = transcript.get_group_element(label);
             ASSERT(element.on_curve());
             if (element.is_point_at_infinity()) {
@@ -72,8 +72,8 @@ void populate_kate_element_map(typename Curve::Composer* ctx,
             kate_g1_elements.insert({ label, g1_ct::from_witness(ctx, element) });
             break;
         }
-        case bonk::PolynomialSource::SELECTOR:
-        case bonk::PolynomialSource::PERMUTATION: {
+        case PolynomialSource::SELECTOR:
+        case PolynomialSource::PERMUTATION: {
             const auto element = key->commitments.at(label);
             // TODO: with user-defined circuits, we will need verify that the point
             // lies on the curve with constraints
@@ -87,7 +87,7 @@ void populate_kate_element_map(typename Curve::Composer* ctx,
             kate_g1_elements.insert({ label, element });
             break;
         }
-        case bonk::PolynomialSource::OTHER: {
+        case PolynomialSource::OTHER: {
             break;
         }
         }

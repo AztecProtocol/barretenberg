@@ -4,7 +4,7 @@
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/honk/flavor/flavor.hpp"
 #include <array>
-#include "barretenberg/proof_system/proving_key/proving_key.hpp"
+#include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/plonk/proof_system/types/proof.hpp"
 #include "barretenberg/plonk/proof_system/types/program_settings.hpp"
@@ -33,7 +33,7 @@ using Polynomial = Polynomial<Fr>;
 template <typename settings> class Prover {
 
   public:
-    Prover(std::vector<barretenberg::polynomial>&& wire_polys, std::shared_ptr<bonk::proving_key> input_key = nullptr);
+    Prover(std::vector<barretenberg::polynomial>&& wire_polys, std::shared_ptr<plonk::proving_key> input_key = nullptr);
 
     void execute_preamble_round();
     void execute_wire_commitments_round();
@@ -61,7 +61,7 @@ template <typename settings> class Prover {
     std::vector<barretenberg::polynomial> wire_polynomials;
     barretenberg::polynomial z_permutation;
 
-    std::shared_ptr<bonk::proving_key> key;
+    std::shared_ptr<plonk::proving_key> key;
 
     std::shared_ptr<pcs::kzg::CommitmentKey> commitment_key;
 
