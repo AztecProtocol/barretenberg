@@ -16,7 +16,9 @@ template <typename Composer, size_t SIZE> field_t<Composer> array_length(std::ar
     field_t<Composer> length = 0;
     bool_t<Composer> hit_zero = false;
     for (const auto& e : arr) {
-        hit_zero |= e == 0;
+        bool_t<Composer> is_zero = e.is_zero();
+        hit_zero.must_imply(is_zero, "Once we've hit the first zero, there must only be zeros thereafter!");
+        hit_zero |= is_zero;
         const field_t<Composer> increment = !hit_zero;
         length += increment;
     }
@@ -129,7 +131,7 @@ typename plonk::stdlib::bool_t<Composer> is_array_empty(std::array<field_t<Compo
  * Fails if the `source` array is too large vs the remaining capacity of the `target` array.
  */
 template <typename Composer, size_t size_1, size_t size_2>
-void push_array_to_array(std::array<field_t<Composer>, size_1> const& source,
+void push_array_to_array_suyash(std::array<field_t<Composer>, size_1> const& source,
                          std::array<field_t<Composer>, size_2>& target)
 {
     ASSERT(target.size() >= source.size());
@@ -170,6 +172,58 @@ void push_array_to_array(std::array<field_t<Composer>, size_1> const& source,
                 is_target_non_zero, target[j], source[i] * !found * !composer_error_found);
             found |= !is_target_non_zero;
         }
+    }
+}
+
+/**
+ * Inserts the `source` array at the first zero-valued index of the `target` array.
+ * Fails if the `source` array is too large vs the remaining capacity of the `target` array.
+ */
+template <typename Composer, size_t size_1, size_t size_2>
+void push_array_to_array(std::array<field_t<Composer>, size_1> const& source,
+                         std::array<field_t<Composer>, size_2>& target)
+{
+    field_t<Composer> target_length = array_length<Composer>(target);
+    const field_t<Composer> overflow_capacity = target.max_size() + 1;
+
+    field_t<Composer> j_ct = 0; // circuit-type index for the inner loop
+    // Find the first empty slot in the target:
+    field_t<Composer> next_target_index = target_length;
+
+    bool_t<Composer> hit_s_zero = false;
+    bool_t<Composer> not_hit_s_zero = true;
+
+    for (size_t i = 0; i < source.max_size(); ++i) {
+        // Loop over each source value we want to push:
+        auto& s = source[i];
+        {
+            auto is_s_zero = s.is_zero();
+            hit_s_zero.must_imply(is_s_zero, "Once we've hit the first source zero, there must only be zeros thereafter!");
+            hit_s_zero |= is_s_zero;
+            not_hit_s_zero = !hit_s_zero;
+        }
+
+        // Triangular loop:
+        for (size_t j = i; j < target.max_size(); ++j) {
+            auto& t = target[j];
+
+            // Check whether we've reached the next target index at which we can push `s`:
+            bool_t<Composer> at_next_target_index = j_ct == next_target_index;
+
+            t = field_t<Composer>::conditional_assign(
+                    at_next_target_index && not_hit_s_zero,
+                    s,
+                    t
+                );
+
+            j_ct++;
+        }
+
+        next_target_index += not_hit_s_zero;
+
+        next_target_index.assert_not_equal(overflow_capacity, "push_array_to_array target array capacity exceeded");
+
+        j_ct = i + 1;
     }
 }
 
