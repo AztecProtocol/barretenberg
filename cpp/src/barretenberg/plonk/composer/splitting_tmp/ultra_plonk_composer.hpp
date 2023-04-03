@@ -22,165 +22,30 @@ class UltraPlonkComposer {
     UltraPlonkComposerHelper<UltraCircuitConstructor> composer_helper;
     size_t& num_gates;
 
-    static constexpr ComposerType type = ComposerType::PLOOKUP;
-    static constexpr MerkleHashType merkle_hash_type = MerkleHashType::LOOKUP_PEDERSEN;
-    static constexpr size_t NUM_RESERVED_GATES = 4; // This must be >= num_roots_cut_out_of_vanishing_polynomial
-                                                    // See the comment in plonk/proof_system/prover/prover.cpp
-                                                    // ProverBase::compute_quotient_commitments() for why 4 exactly.
-    static constexpr size_t UINT_LOG2_BASE = 6;     // DOCTODO: explain what this is, or rename.
-    // The plookup range proof requires work linear in range size, thus cannot be used directly for
-    // large ranges such as 2^64. For such ranges the element will be decomposed into smaller
-    // chuncks according to the parameter below
-    static constexpr size_t DEFAULT_PLOOKUP_RANGE_BITNUM = 14;
-    static constexpr size_t DEFAULT_PLOOKUP_RANGE_STEP_SIZE = 3;
-    static constexpr size_t DEFAULT_PLOOKUP_RANGE_SIZE = (1 << DEFAULT_PLOOKUP_RANGE_BITNUM) - 1;
-    static constexpr size_t DEFAULT_NON_NATIVE_FIELD_LIMB_BITS = 68;
-    static constexpr uint32_t UNINITIALIZED_MEMORY_RECORD = UINT32_MAX;
-    static constexpr size_t NUMBER_OF_GATES_PER_RAM_ACCESS = 2;
-    static constexpr size_t NUMBER_OF_ARITHMETIC_GATES_PER_RAM_ARRAY = 1;
+    UltraPlonkComposer()
+        : UltraPlonkComposer("../srs_db/ignition", 0){};
 
-    struct non_native_field_witnesses {
-        // first 4 array elements = limbs
-        // 5th element = prime basis limb
-        std::array<uint32_t, 5> a;
-        std::array<uint32_t, 5> b;
-        std::array<uint32_t, 5> q;
-        std::array<uint32_t, 5> r;
-        std::array<barretenberg::fr, 5> neg_modulus;
-        barretenberg::fr modulus;
-    };
+    UltraPlonkComposer(std::string const& crs_path, const size_t size_hint)
+        : UltraPlonkComposer(std::unique_ptr<ReferenceStringFactory>(new FileReferenceStringFactory(crs_path)),
+                             size_hint){};
 
-    enum AUX_SELECTORS {
-        NONE,
-        LIMB_ACCUMULATE_1,
-        LIMB_ACCUMULATE_2,
-        NON_NATIVE_FIELD_1,
-        NON_NATIVE_FIELD_2,
-        NON_NATIVE_FIELD_3,
-        RAM_CONSISTENCY_CHECK,
-        ROM_CONSISTENCY_CHECK,
-        RAM_TIMESTAMP_CHECK,
-        ROM_READ,
-        RAM_READ,
-        RAM_WRITE,
-    };
+    UltraPlonkComposer(std::shared_ptr<ReferenceStringFactory> const& crs_factory, const size_t size_hint)
+        : circuit_constructor(size_hint)
+        , composer_helper(crs_factory)
+        , num_gates(circuit_constructor.num_gates){};
 
-    struct RangeList {
-        uint64_t target_range;
-        uint32_t range_tag;
-        uint32_t tau_tag;
-        std::vector<uint32_t> variable_indices;
-    };
-
-    /**
-     * @brief A ROM memory record that can be ordered
-     *
-     *
-     */
-    struct RomRecord {
-        uint32_t index_witness = 0;
-        uint32_t value_column1_witness = 0;
-        uint32_t value_column2_witness = 0;
-        uint32_t index = 0;
-        uint32_t record_witness = 0;
-        size_t gate_index = 0;
-        bool operator<(const RomRecord& other) const { return index < other.index; }
-    };
-
-    /**
-     * @brief A RAM memory record that can be ordered
-     *
-     *
-     */
-    struct RamRecord {
-        enum AccessType {
-            READ,
-            WRITE,
-        };
-        uint32_t index_witness = 0;
-        uint32_t timestamp_witness = 0;
-        uint32_t value_witness = 0;
-        uint32_t index = 0;
-        uint32_t timestamp = 0;
-        AccessType access_type = AccessType::READ; // read or write?
-        uint32_t record_witness = 0;
-        size_t gate_index = 0;
-        bool operator<(const RamRecord& other) const
-        {
-            bool index_test = (index) < (other.index);
-            return index_test || (index == other.index && timestamp < other.timestamp);
-        }
-    };
-
-    /**
-     * @brief Each ram array is an instance of memory transcript. It saves values and indexes for a particular memory
-     * array
-     *
-     *
-     */
-    struct RamTranscript {
-        // Contains the value of each index of the array
-        std::vector<uint32_t> state;
-
-        // A vector of records, each of which contains:
-        // + The constant witness with the index
-        // + The value in the memory slot
-        // + The actual index value
-        std::vector<RamRecord> records;
-
-        // used for RAM records, to compute the timestamp when performing a read/write
-        size_t access_count = 0;
-    };
-
-    /**
-     * @brief Each rom array is an instance of memory transcript. It saves values and indexes for a particular memory
-     * array
-     *
-     *
-     */
-    struct RomTranscript {
-        // Contains the value of each index of the array
-        std::vector<std::array<uint32_t, 2>> state;
-
-        // A vector of records, each of which contains:
-        // + The constant witness with the index
-        // + The value in the memory slot
-        // + The actual index value
-        std::vector<RomRecord> records;
-    };
-
-    enum UltraSelectors { QM, QC, Q1, Q2, Q3, Q4, QARITH, QSORT, QELLIPTIC, QAUX, QLOOKUPTYPE, NUM };
-
-    UltraPlonkComposer();
-    UltraPlonkComposer(std::string const& crs_path, const size_t size_hint = 0);
-    UltraPlonkComposer(std::shared_ptr<ReferenceStringFactory> const& crs_factory, const size_t size_hint = 0);
     UltraPlonkComposer(std::shared_ptr<proving_key> const& p_key,
                        std::shared_ptr<verification_key> const& v_key,
                        size_t size_hint = 0);
     UltraPlonkComposer(UltraPlonkComposer&& other) = default;
     UltraPlonkComposer& operator=(UltraPlonkComposer&& other) = delete;
-    ~UltraPlonkComposer() {}
+    ~UltraPlonkComposer() = default;
+
+    uint32_t get_zero_idx() { return circuit_constructor.zero_idx; }
 
     uint32_t add_variable(const barretenberg::fr& in) { return circuit_constructor.add_variable(in); }
 
     barretenberg::fr get_variable(const uint32_t index) const { return circuit_constructor.get_variable(index); }
-
-    void create_big_add_gate(const add_quad& in) { circuit_constructor.create_big_add_gate(in); }
-
-    std::shared_ptr<bonk::proving_key> compute_proving_key()
-    {
-        return composer_helper.compute_proving_key(circuit_constructor);
-    }
-
-    void compute_witness() { composer_helper.compute_witness(circuit_constructor); };
-
-    // std::shared_ptr<proving_key> compute_proving_key() override;
-    // std::shared_ptr<verification_key> compute_verification_key() override;
-    // std::shared_ptr<bonk::verification_key> compute_verification_key() override
-    // {
-    //     return composer_helper.compute_verification_key(circuit_constructor);
-    // }
-    // void compute_witness() override;
 
     void finalize_circuit() { circuit_constructor.finalize_circuit(); };
 
@@ -190,10 +55,13 @@ class UltraPlonkComposer {
     // UltraToStandardProver create_ultra_to_standard_prover();
     // UltraToStandardVerifier create_ultra_to_standard_verifier();
 
-    // // void create_add_gate(const add_triple& in) override { circuit_constructor.create_add_gate(in); }
-    // void create_add_gate(const add_triple& in) override;
+    void create_add_gate(const add_triple& in) { circuit_constructor.create_add_gate(in); }
 
-    // void create_big_add_gate(const add_quad& in, const bool use_next_gate_w_4 = false);
+    void create_big_add_gate(const add_quad& in, const bool use_next_gate_w_4 = false)
+    {
+        circuit_constructor.create_big_add_gate(in, use_next_gate_w_4);
+    };
+
     // void create_big_add_gate_with_bit_extraction(const add_quad& in);
     // void create_big_mul_gate(const mul_quad& in);
     // void create_balanced_add_gate(const add_quad& in);
@@ -201,7 +69,7 @@ class UltraPlonkComposer {
     // void create_mul_gate(const mul_triple& in) override;
     // void create_bool_gate(const uint32_t a) override;
     // void create_poly_gate(const poly_triple& in) override;
-    // void create_ecc_add_gate(const ecc_add_gate& in);
+    void create_ecc_add_gate(const ecc_add_gate& in) { circuit_constructor.create_ecc_add_gate(in); };
 
     // void fix_witness(const uint32_t witness_index, const barretenberg::fr& witness_value);
 
@@ -218,9 +86,12 @@ class UltraPlonkComposer {
     //     }
     // }
 
-    // void create_new_range_constraint(const uint32_t variable_index,
-    //                                  const uint64_t target_range,
-    //                                  std::string const msg = "create_new_range_constraint");
+    void create_new_range_constraint(const uint32_t variable_index,
+                                     const uint64_t target_range,
+                                     std::string const msg = "create_new_range_constraint")
+    {
+        circuit_constructor.create_new_range_constraint(variable_index, target_range, msg);
+    };
     // void create_range_constraint(const uint32_t variable_index, const size_t num_bits, std::string const& msg)
     // {
     //     if (num_bits <= DEFAULT_PLOOKUP_RANGE_BITNUM) {
@@ -377,6 +248,13 @@ class UltraPlonkComposer {
     //               << ", range " << rangecount << "), pubinp = " << public_inputs.size() << std::endl;
     // }
 
+    void assert_equal(const uint32_t a_variable_idx,
+                      const uint32_t b_variable_idx,
+                      std::string const& msg = "assert_equal")
+    {
+        circuit_constructor.assert_equal(a_variable_idx, b_variable_idx, msg);
+    }
+
     // void assert_equal_constant(const uint32_t a_idx,
     //                            const barretenberg::fr& b,
     //                            std::string const& msg = "assert equal constant")
@@ -411,20 +289,38 @@ class UltraPlonkComposer {
     // /**
     //  * Generalized Permutation Methods
     //  **/
-    // std::vector<uint32_t> decompose_into_default_range(
-    //     const uint32_t variable_index,
-    //     const uint64_t num_bits,
-    //     const uint64_t target_range_bitnum = DEFAULT_PLOOKUP_RANGE_BITNUM,
-    //     std::string const& msg = "decompose_into_default_range");
+    std::vector<uint32_t> decompose_into_default_range(
+        const uint32_t variable_index,
+        const uint64_t num_bits,
+        const uint64_t target_range_bitnum = DEFAULT_PLOOKUP_RANGE_BITNUM,
+        std::string const& msg = "decompose_into_default_range")
+    {
+        return circuit_constructor.decompose_into_default_range(variable_index, num_bits, target_range_bitnum, msg);
+    };
     // std::vector<uint32_t> decompose_into_default_range_better_for_oddlimbnum(
     //     const uint32_t variable_index,
     //     const size_t num_bits,
     //     std::string const& msg = "decompose_into_default_range_better_for_oddlimbnum");
-    // void create_dummy_constraints(const std::vector<uint32_t>& variable_index);
-    // void create_sort_constraint(const std::vector<uint32_t>& variable_index);
-    // void create_sort_constraint_with_edges(const std::vector<uint32_t>& variable_index,
-    //                                        const barretenberg::fr&,
-    //                                        const barretenberg::fr&);
+    void create_dummy_constraints(const std::vector<uint32_t>& variable_index)
+    {
+        circuit_constructor.create_dummy_constraints(variable_index);
+    };
+    void create_sort_constraint(const std::vector<uint32_t>& variable_index)
+    {
+        circuit_constructor.create_sort_constraint(variable_index);
+    };
+    void create_sort_constraint_with_edges(const std::vector<uint32_t>& variable_index,
+                                           const barretenberg::fr& start,
+                                           const barretenberg::fr& end)
+    {
+        circuit_constructor.create_sort_constraint_with_edges(variable_index, start, end);
+    };
+
+    void assign_tag(const uint32_t variable_index, const uint32_t tag)
+    {
+        circuit_constructor.assign_tag(variable_index, tag);
+    }
+
     // void assign_tag(const uint32_t variable_index, const uint32_t tag)
     // {
     //     ASSERT(tag <= current_tag);
@@ -432,12 +328,10 @@ class UltraPlonkComposer {
     //     real_variable_tags[real_variable_index[variable_index]] = tag;
     // }
 
-    // uint32_t create_tag(const uint32_t tag_index, const uint32_t tau_index)
-    // {
-    //     tau.insert({ tag_index, tau_index });
-    //     current_tag++; // Why exactly?
-    //     return current_tag;
-    // }
+    uint32_t create_tag(const uint32_t tag_index, const uint32_t tau_index)
+    {
+        return circuit_constructor.create_tag(tag_index, tau_index);
+    }
 
     // uint32_t get_new_tag()
     // {
@@ -457,14 +351,21 @@ class UltraPlonkComposer {
     // /**
     //  * Non Native Field Arithmetic
     //  **/
-    // void range_constrain_two_limbs(const uint32_t lo_idx,
-    //                                const uint32_t hi_idx,
-    //                                const size_t lo_limb_bits = DEFAULT_NON_NATIVE_FIELD_LIMB_BITS,
-    //                                const size_t hi_limb_bits = DEFAULT_NON_NATIVE_FIELD_LIMB_BITS);
+    void range_constrain_two_limbs(const uint32_t lo_idx,
+                                   const uint32_t hi_idx,
+                                   const size_t lo_limb_bits = DEFAULT_NON_NATIVE_FIELD_LIMB_BITS,
+                                   const size_t hi_limb_bits = DEFAULT_NON_NATIVE_FIELD_LIMB_BITS)
+    {
+        circuit_constructor.range_constrain_two_limbs(lo_idx, hi_idx, lo_limb_bits, hi_limb_bits);
+    };
     // std::array<uint32_t, 2> decompose_non_native_field_double_width_limb(
     //     const uint32_t limb_idx, const size_t num_limb_bits = (2 * DEFAULT_NON_NATIVE_FIELD_LIMB_BITS));
-    // std::array<uint32_t, 2> evaluate_non_native_field_multiplication(
-    //     const non_native_field_witnesses& input, const bool range_constrain_quotient_and_remainder = true);
+    std::array<uint32_t, 2> evaluate_non_native_field_multiplication(
+        const bonk::non_native_field_witnesses& input, const bool range_constrain_quotient_and_remainder = true)
+    {
+        return circuit_constructor.evaluate_non_native_field_multiplication(input,
+                                                                            range_constrain_quotient_and_remainder);
+    };
     // std::array<uint32_t, 2> evaluate_partial_non_native_field_multiplication(const non_native_field_witnesses&
     // input); typedef std::pair<uint32_t, barretenberg::fr> scaled_witness; typedef std::tuple<scaled_witness,
     // scaled_witness, barretenberg::fr> add_simple; std::array<uint32_t, 5> evaluate_non_native_field_subtraction(
@@ -484,14 +385,20 @@ class UltraPlonkComposer {
     //  * Memory
     //  **/
 
-    // // size_t create_RAM_array(const size_t array_size);
-    // size_t create_ROM_array(const size_t array_size);
+    size_t create_RAM_array(const size_t array_size) { return circuit_constructor.create_RAM_array(array_size); };
+    size_t create_ROM_array(const size_t array_size) { return circuit_constructor.create_ROM_array(array_size); };
 
-    // void set_ROM_element(const size_t rom_id, const size_t index_value, const uint32_t value_witness);
+    void set_ROM_element(const size_t rom_id, const size_t index_value, const uint32_t value_witness)
+    {
+        circuit_constructor.set_ROM_element(rom_id, index_value, value_witness);
+    };
     // void set_ROM_element_pair(const size_t rom_id,
     //                           const size_t index_value,
     //                           const std::array<uint32_t, 2>& value_witnesses);
-    // uint32_t read_ROM_array(const size_t rom_id, const uint32_t index_witness);
+    uint32_t read_ROM_array(const size_t rom_id, const uint32_t index_witness)
+    {
+        return circuit_constructor.read_ROM_array(rom_id, index_witness);
+    };
     // std::array<uint32_t, 2> read_ROM_array_pair(const size_t rom_id, const uint32_t index_witness);
     // void create_ROM_gate(RomRecord& record);
     // void create_sorted_ROM_gate(RomRecord& record);
@@ -503,9 +410,18 @@ class UltraPlonkComposer {
     // void create_final_sorted_RAM_gate(RamRecord& record, const size_t ram_array_size);
 
     // size_t create_RAM_array(const size_t array_size);
-    // void init_RAM_element(const size_t ram_id, const size_t index_value, const uint32_t value_witness);
-    // uint32_t read_RAM_array(const size_t ram_id, const uint32_t index_witness);
-    // void write_RAM_array(const size_t ram_id, const uint32_t index_witness, const uint32_t value_witness);
+    void init_RAM_element(const size_t ram_id, const size_t index_value, const uint32_t value_witness)
+    {
+        circuit_constructor.init_RAM_element(ram_id, index_value, value_witness);
+    };
+    uint32_t read_RAM_array(const size_t ram_id, const uint32_t index_witness)
+    {
+        return circuit_constructor.read_RAM_array(ram_id, index_witness);
+    };
+    void write_RAM_array(const size_t ram_id, const uint32_t index_witness, const uint32_t value_witness)
+    {
+        circuit_constructor.write_RAM_array(ram_id, index_witness, value_witness);
+    };
     // void process_RAM_array(const size_t ram_id, const size_t gate_offset_from_public_inputs);
     // void process_RAM_arrays(const size_t gate_offset_from_public_inputs);
 
@@ -553,149 +469,5 @@ class UltraPlonkComposer {
 
     // std::vector<uint32_t> recursive_proof_public_input_indices;
     // bool contains_recursive_proof = false;
-
-    // /**
-    //  * Program Manifests
-    //  **/
-
-    // /**
-    //  * @brief Create a manifest object
-    //  *
-    //  * @note UltraPlonk manifest does not use linearisation trick
-    //  * @param num_public_inputs
-    //  * @return transcript::Manifest
-    //  */
-    // static transcript::Manifest create_manifest(const size_t num_public_inputs)
-    // {
-    //     // add public inputs....
-    //     constexpr size_t g1_size = 64;
-    //     constexpr size_t fr_size = 32;
-    //     const size_t public_input_size = fr_size * num_public_inputs;
-    //     const transcript::Manifest output = transcript::Manifest(
-
-    //         { transcript::Manifest::RoundManifest(
-    //               { // { name, num_bytes, derived_by_verifier }
-    //                 { "circuit_size", 4, true },
-    //                 { "public_input_size", 4, true } },
-    //               "init", // challenge_name
-    //               1       // num_challenges_in
-    //               ),
-
-    //           transcript::Manifest::RoundManifest(
-    //               { // { name, num_bytes, derived_by_verifier }
-    //                 { "public_inputs", public_input_size, false },
-    //                 { "W_1", g1_size, false },
-    //                 { "W_2", g1_size, false },
-    //                 { "W_3", g1_size, false } },
-    //               "eta", // challenge_name
-    //               1      // num_challenges_in
-    //               ),
-
-    //           transcript::Manifest::RoundManifest(
-    //               { // { name, num_bytes, derived_by_verifier }
-    //                 { "W_4", g1_size, false },
-    //                 { "S", g1_size, false } },
-    //               "beta", // challenge_name
-    //               2       // num_challenges_in
-    //               ),
-
-    //           transcript::Manifest::RoundManifest(
-    //               { // { name, num_bytes, derived_by_verifier }
-    //                 { "Z_PERM", g1_size, false },
-    //                 { "Z_LOOKUP", g1_size, false } },
-    //               "alpha", // challenge_name
-    //               1        // num_challenges_in
-    //               ),
-
-    //           transcript::Manifest::RoundManifest(
-    //               { // { name, num_bytes, derived_by_verifier }
-    //                 { "T_1", g1_size, false },
-    //                 { "T_2", g1_size, false },
-    //                 { "T_3", g1_size, false },
-    //                 { "T_4", g1_size, false } },
-    //               "z", // challenge_name
-    //               1    // num_challenges_in
-    //               ),
-
-    //           // N.B. THE SHFITED EVALS (_omega) MUST HAVE THE SAME CHALLENGE INDEX AS THE NON SHIFTED VALUES
-    //           transcript::Manifest::RoundManifest(
-    //               {
-    //                   // { name, num_bytes, derived_by_verifier, challenge_map_index }
-    //                   { "t", fr_size, true, -1 }, // *
-    //                   { "w_1", fr_size, false, 0 },
-    //                   { "w_2", fr_size, false, 1 },
-    //                   { "w_3", fr_size, false, 2 },
-    //                   { "w_4", fr_size, false, 3 },
-    //                   { "s", fr_size, false, 4 },
-    //                   { "z_perm", fr_size, false, 5 }, // *
-    //                   { "z_lookup", fr_size, false, 6 },
-    //                   { "q_1", fr_size, false, 7 },
-    //                   { "q_2", fr_size, false, 8 },
-    //                   { "q_3", fr_size, false, 9 },
-    //                   { "q_4", fr_size, false, 10 },
-    //                   { "q_m", fr_size, false, 11 },
-    //                   { "q_c", fr_size, false, 12 },
-    //                   { "q_arith", fr_size, false, 13 },
-    //                   { "q_sort", fr_size, false, 14 },     // *
-    //                   { "q_elliptic", fr_size, false, 15 }, // *
-    //                   { "q_aux", fr_size, false, 16 },
-    //                   { "sigma_1", fr_size, false, 17 },
-    //                   { "sigma_2", fr_size, false, 18 },
-    //                   { "sigma_3", fr_size, false, 19 },
-    //                   { "sigma_4", fr_size, false, 20 },
-    //                   { "table_value_1", fr_size, false, 21 },
-    //                   { "table_value_2", fr_size, false, 22 },
-    //                   { "table_value_3", fr_size, false, 23 },
-    //                   { "table_value_4", fr_size, false, 24 },
-    //                   { "table_type", fr_size, false, 25 },
-    //                   { "id_1", fr_size, false, 26 },
-    //                   { "id_2", fr_size, false, 27 },
-    //                   { "id_3", fr_size, false, 28 },
-    //                   { "id_4", fr_size, false, 29 },
-    //                   { "w_1_omega", fr_size, false, 0 },
-    //                   { "w_2_omega", fr_size, false, 1 },
-    //                   { "w_3_omega", fr_size, false, 2 },
-    //                   { "w_4_omega", fr_size, false, 3 },
-    //                   { "s_omega", fr_size, false, 4 },
-    //                   { "z_perm_omega", fr_size, false, 5 },
-    //                   { "z_lookup_omega", fr_size, false, 6 },
-    //                   { "table_value_1_omega", fr_size, false, 21 },
-    //                   { "table_value_2_omega", fr_size, false, 22 },
-    //                   { "table_value_3_omega", fr_size, false, 23 },
-    //                   { "table_value_4_omega", fr_size, false, 24 },
-    //               },
-    //               "nu",                // challenge_name
-    //               ULTRA_MANIFEST_SIZE, // num_challenges_in
-    //               true                 // map_challenges_in
-    //               ),
-
-    //           transcript::Manifest::RoundManifest(
-    //               { // { name, num_bytes, derived_by_verifier, challenge_map_index }
-    //                 { "PI_Z", g1_size, false },
-    //                 { "PI_Z_OMEGA", g1_size, false } },
-    //               "separator", // challenge_name
-    //               3            // num_challenges_in
-    //               ) });
-
-    //     return output;
-    // }
-
-    // // @note 'unrolled' means "don't use linearisation techniques from the plonk paper".
-    // /**
-    //  * @brief Create a unrolled manifest object
-    //  *
-    //  * @note UP rolled/unrolled manifests are the same. Difference between regulur && unrolled Prover/Verifier is
-    //  that
-    //  * unrolled Prover/Verifier uses 16-byte challenges and a SNARK-friendly hash algorithm to generate challenges.
-    //  * (i.e. unrolled Prover/Verifier is used in recursive setting)
-    //  *
-    //  * TODO: remove linearisation trick entirely from barretenberg and relabel `unrolled` to `recursive`!
-    //  * @param num_public_inputs
-    //  * @return transcript::Manifest
-    //  */
-    // static transcript::Manifest create_unrolled_manifest(const size_t num_public_inputs)
-    // {
-    //     return create_manifest(num_public_inputs);
-    // }
 };
 } // namespace plonk

@@ -103,18 +103,20 @@ std::vector<CyclicPermutation> compute_wire_copy_cycles(const CircuitConstructor
     }
 
     // Iterate over all variables of the "real" gates, and add a corresponding node to the cycle for that variable
-    for (size_t j = 0; j < program_width; ++j) {
-        for (size_t i = 0; i < num_gates; ++i) {
+    for (size_t i = 0; i < num_gates; ++i) {
+        for (size_t j = 0; j < program_width; ++j) {
             // We are looking at the j-th wire in the i-th row.
             // The value in this position should be equal to the value of the element at index `var_index`
             // of the `constructor.variables` vector.
             // Therefore, we add (i,j) to the cycle at index `var_index` to indicate that w^j_i should have the values
             // constructor.variables[var_index].
+            // info("wire_indices[", j, "][", i, "] = ", wire_indices[j][i]);
             const uint32_t var_index = circuit_constructor.real_variable_index[wire_indices[j][i]];
             const auto wire_index = static_cast<uint32_t>(j);
             const auto gate_index = static_cast<uint32_t>(i + num_public_inputs);
             copy_cycles[var_index].emplace_back(cycle_node{ wire_index, gate_index });
         }
+        // info();
     }
     return copy_cycles;
 }
@@ -465,6 +467,12 @@ void compute_plonk_generalized_sigma_permutations(const CircuitConstructor& circ
     std::array<std::vector<permutation_subgroup_element>, program_width> sigma_mappings;
     std::array<std::vector<permutation_subgroup_element>, program_width> id_mappings;
 
+    // for (auto& val : wire_copy_cycles[0])
+    // {
+    //     info( "gate_index = ", val.gate_index);
+    //     info( "wire_type = ", val.wire_index);
+    // }
+
     // Instantiate the sigma and id mappings by reserving enough space and pushing 'default' permutation subgroup
     // elements that point to themselves.
     for (size_t i = 0; i < program_width; ++i) {
@@ -481,10 +489,9 @@ void compute_plonk_generalized_sigma_permutations(const CircuitConstructor& circ
         }
     }
 
-    // Represents the index of a variable in circuit_constructor.variables
+    // // Represents the index of a variable in circuit_constructor.variables
     std::span<const uint32_t> real_variable_tags = circuit_constructor.real_variable_tags;
-    const std::map<uint32_t, uint32_t>& tau = circuit_constructor.tau;
-    (void)tau;
+    // const std::map<uint32_t, uint32_t>& tau = circuit_constructor.tau;
 
     // Go through all wire cycles and update sigma and id mappings to point to the next element
     // within each cycle as well as set the appropriate tags
@@ -515,7 +522,8 @@ void compute_plonk_generalized_sigma_permutations(const CircuitConstructor& circ
                 sigma_mappings[current_column][current_row].is_tag = true;
 
                 // TODO: yikes, std::maps are expensive. Can we find a way to get rid of this?
-                sigma_mappings[current_column][current_row].row_index = tau.at(real_variable_tags[i]);
+                sigma_mappings[current_column][current_row].row_index =
+                    circuit_constructor.tau.at(real_variable_tags[i]);
             }
         }
     }

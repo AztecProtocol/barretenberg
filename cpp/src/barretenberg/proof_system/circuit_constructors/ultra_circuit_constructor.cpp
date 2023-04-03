@@ -1793,26 +1793,26 @@ void UltraCircuitConstructor::create_sorted_ROM_gate(RomRecord& record)
     ++num_gates;
 }
 
-// /**
-//  * @brief Create a new read-only memory region
-//  *
-//  * @details Creates a transcript object, where the inside memory state array is filled with "uninitialized memory"
-//  and
-//  * and empty memory record array. Puts this object into the vector of ROM arrays.
-//  *
-//  * @param array_size The size of region in elements
-//  * @return size_t The index of the element
-//  */
-// size_t UltraCircuitConstructor::create_ROM_array(const size_t array_size)
-// {
-//     RomTranscript new_transcript;
-//     for (size_t i = 0; i < array_size; ++i) {
-//         new_transcript.state.emplace_back(
-//             std::array<uint32_t, 2>{ UNINITIALIZED_MEMORY_RECORD, UNINITIALIZED_MEMORY_RECORD });
-//     }
-//     rom_arrays.emplace_back(new_transcript);
-//     return rom_arrays.size() - 1;
-// }
+/**
+ * @brief Create a new read-only memory region
+ *
+ * @details Creates a transcript object, where the inside memory state array is filled with "uninitialized memory"
+ and
+ * and empty memory record array. Puts this object into the vector of ROM arrays.
+ *
+ * @param array_size The size of region in elements
+ * @return size_t The index of the element
+ */
+size_t UltraCircuitConstructor::create_ROM_array(const size_t array_size)
+{
+    RomTranscript new_transcript;
+    for (size_t i = 0; i < array_size; ++i) {
+        new_transcript.state.emplace_back(
+            std::array<uint32_t, 2>{ UNINITIALIZED_MEMORY_RECORD, UNINITIALIZED_MEMORY_RECORD });
+    }
+    rom_arrays.emplace_back(new_transcript);
+    return rom_arrays.size() - 1;
+}
 
 /**
  * @brief Gate that performs a read/write operation into a RAM table.
@@ -1880,25 +1880,25 @@ void UltraCircuitConstructor::create_final_sorted_RAM_gate(RamRecord& record, co
     });
 }
 
-// /**
-//  * @brief Create a new updateable memory region
-//  *
-//  * @details Creates a transcript object, where the inside memory state array is filled with "uninitialized memory"
-//  and
-//  * and empty memory record array. Puts this object into the vector of ROM arrays.
-//  *
-//  * @param array_size The size of region in elements
-//  * @return size_t The index of the element
-//  */
-// size_t UltraCircuitConstructor::create_RAM_array(const size_t array_size)
-// {
-//     RamTranscript new_transcript;
-//     for (size_t i = 0; i < array_size; ++i) {
-//         new_transcript.state.emplace_back(UNINITIALIZED_MEMORY_RECORD);
-//     }
-//     ram_arrays.emplace_back(new_transcript);
-//     return ram_arrays.size() - 1;
-// }
+/**
+ * @brief Create a new updateable memory region
+ *
+ * @details Creates a transcript object, where the inside memory state array is filled with "uninitialized memory"
+ and
+ * and empty memory record array. Puts this object into the vector of ROM arrays.
+ *
+ * @param array_size The size of region in elements
+ * @return size_t The index of the element
+ */
+size_t UltraCircuitConstructor::create_RAM_array(const size_t array_size)
+{
+    RamTranscript new_transcript;
+    for (size_t i = 0; i < array_size; ++i) {
+        new_transcript.state.emplace_back(UNINITIALIZED_MEMORY_RECORD);
+    }
+    ram_arrays.emplace_back(new_transcript);
+    return ram_arrays.size() - 1;
+}
 
 /**
  * @brief Initialize a RAM cell to equal `value_witness`
@@ -1930,61 +1930,61 @@ void UltraCircuitConstructor::init_RAM_element(const size_t ram_id,
     ram_array.records.emplace_back(new_record);
 }
 
-// uint32_t UltraCircuitConstructor::read_RAM_array(const size_t ram_id, const uint32_t index_witness)
-// {
-//     ASSERT(ram_arrays.size() > ram_id);
-//     RamTranscript& ram_array = ram_arrays[ram_id];
-//     const uint32_t index = static_cast<uint32_t>(uint256_t(get_variable(index_witness)));
-//     ASSERT(ram_array.state.size() > index);
-//     ASSERT(ram_array.state[index] != UNINITIALIZED_MEMORY_RECORD);
-//     const auto value = get_variable(ram_array.state[index]);
-//     const uint32_t value_witness = add_variable(value);
+uint32_t UltraCircuitConstructor::read_RAM_array(const size_t ram_id, const uint32_t index_witness)
+{
+    ASSERT(ram_arrays.size() > ram_id);
+    RamTranscript& ram_array = ram_arrays[ram_id];
+    const uint32_t index = static_cast<uint32_t>(uint256_t(get_variable(index_witness)));
+    ASSERT(ram_array.state.size() > index);
+    ASSERT(ram_array.state[index] != UNINITIALIZED_MEMORY_RECORD);
+    const auto value = get_variable(ram_array.state[index]);
+    const uint32_t value_witness = add_variable(value);
 
-//     RamRecord new_record{ .index_witness = index_witness,
-//                           .timestamp_witness = put_constant_variable((uint64_t)ram_array.access_count),
-//                           .value_witness = value_witness,
-//                           .index = index,
-//                           .timestamp = static_cast<uint32_t>(ram_array.access_count),
-//                           .access_type = RamRecord::AccessType::READ,
-//                           .record_witness = 0,
-//                           .gate_index = 0 };
-//     create_RAM_gate(new_record);
-//     ram_array.records.emplace_back(new_record);
+    RamRecord new_record{ .index_witness = index_witness,
+                          .timestamp_witness = put_constant_variable((uint64_t)ram_array.access_count),
+                          .value_witness = value_witness,
+                          .index = index,
+                          .timestamp = static_cast<uint32_t>(ram_array.access_count),
+                          .access_type = RamRecord::AccessType::READ,
+                          .record_witness = 0,
+                          .gate_index = 0 };
+    create_RAM_gate(new_record);
+    ram_array.records.emplace_back(new_record);
 
-//     // increment ram array's access count
-//     ram_array.access_count++;
+    // increment ram array's access count
+    ram_array.access_count++;
 
-//     // return witness index of the value in the array
-//     return value_witness;
-// }
+    // return witness index of the value in the array
+    return value_witness;
+}
 
-// void UltraCircuitConstructor::write_RAM_array(const size_t ram_id,
-//                                          const uint32_t index_witness,
-//                                          const uint32_t value_witness)
-// {
-//     ASSERT(ram_arrays.size() > ram_id);
-//     RamTranscript& ram_array = ram_arrays[ram_id];
-//     const uint32_t index = static_cast<uint32_t>(uint256_t(get_variable(index_witness)));
-//     ASSERT(ram_array.state.size() > index);
-//     ASSERT(ram_array.state[index] != UNINITIALIZED_MEMORY_RECORD);
+void UltraCircuitConstructor::write_RAM_array(const size_t ram_id,
+                                              const uint32_t index_witness,
+                                              const uint32_t value_witness)
+{
+    ASSERT(ram_arrays.size() > ram_id);
+    RamTranscript& ram_array = ram_arrays[ram_id];
+    const uint32_t index = static_cast<uint32_t>(uint256_t(get_variable(index_witness)));
+    ASSERT(ram_array.state.size() > index);
+    ASSERT(ram_array.state[index] != UNINITIALIZED_MEMORY_RECORD);
 
-//     RamRecord new_record{ .index_witness = index_witness,
-//                           .timestamp_witness = put_constant_variable((uint64_t)ram_array.access_count),
-//                           .value_witness = value_witness,
-//                           .index = index,
-//                           .timestamp = static_cast<uint32_t>(ram_array.access_count),
-//                           .access_type = RamRecord::AccessType::WRITE,
-//                           .record_witness = 0,
-//                           .gate_index = 0 };
-//     create_RAM_gate(new_record);
-//     ram_array.records.emplace_back(new_record);
+    RamRecord new_record{ .index_witness = index_witness,
+                          .timestamp_witness = put_constant_variable((uint64_t)ram_array.access_count),
+                          .value_witness = value_witness,
+                          .index = index,
+                          .timestamp = static_cast<uint32_t>(ram_array.access_count),
+                          .access_type = RamRecord::AccessType::WRITE,
+                          .record_witness = 0,
+                          .gate_index = 0 };
+    create_RAM_gate(new_record);
+    ram_array.records.emplace_back(new_record);
 
-//     // increment ram array's access count
-//     ram_array.access_count++;
+    // increment ram array's access count
+    ram_array.access_count++;
 
-//     // update Composer's current state of RAM array
-//     ram_array.state[index] = value_witness;
-// }
+    // update Composer's current state of RAM array
+    ram_array.state[index] = value_witness;
+}
 
 /**
  * Initialize a ROM cell to equal `value_witness`
@@ -1993,46 +1993,47 @@ void UltraCircuitConstructor::init_RAM_element(const size_t ram_id,
  * This ensures that, for a given circuit, we know with 100% certainty that EVERY rom cell is initialized
  **/
 
-// /**
-//  * @brief Initialize a rom cell to equal `value_witness`
-//  *
-//  * @param rom_id The index of the ROM array, which cell we are initializing
-//  * @param index_value The index of the cell within the array (an actual index, not a witness index)
-//  * @param value_witness The index of the witness with the value that should be in the
-//  */
-// void UltraCircuitConstructor::set_ROM_element(const size_t rom_id, const size_t index_value, const uint32_t
-// value_witness)
-// {
-//     ASSERT(rom_arrays.size() > rom_id);
-//     RomTranscript& rom_array = rom_arrays[rom_id];
-//     const uint32_t index_witness = (index_value == 0) ? zero_idx : put_constant_variable((uint64_t)index_value);
-//     ASSERT(rom_array.state.size() > index_value);
-//     ASSERT(rom_array.state[index_value][0] == UNINITIALIZED_MEMORY_RECORD);
-//     /**
-//      * The structure MemoryRecord contains the following members in this order:
-//      *   uint32_t index_witness;
-//      *   uint32_t timestamp_witness;
-//      *   uint32_t value_witness;
-//      *   uint32_t index;
-//      *   uint32_t timestamp;
-//      *   uint32_t record_witness;
-//      *   size_t gate_index;
-//      * The second initialization value here is the witness, because in ROM it doesn't matter. We will decouple this
-//      * logic later.
-//      */
-//     RomRecord new_record{
-//         .index_witness = index_witness,
-//         .value_column1_witness = value_witness,
-//         .value_column2_witness = zero_idx,
-//         .index = static_cast<uint32_t>(index_value),
-//         .record_witness = 0,
-//         .gate_index = 0,
-//     };
-//     rom_array.state[index_value][0] = value_witness;
-//     rom_array.state[index_value][1] = zero_idx;
-//     create_ROM_gate(new_record);
-//     rom_array.records.emplace_back(new_record);
-// }
+/**
+ * @brief Initialize a rom cell to equal `value_witness`
+ *
+ * @param rom_id The index of the ROM array, which cell we are initializing
+ * @param index_value The index of the cell within the array (an actual index, not a witness index)
+ * @param value_witness The index of the witness with the value that should be in the
+ */
+void UltraCircuitConstructor::set_ROM_element(const size_t rom_id,
+                                              const size_t index_value,
+                                              const uint32_t value_witness)
+{
+    ASSERT(rom_arrays.size() > rom_id);
+    RomTranscript& rom_array = rom_arrays[rom_id];
+    const uint32_t index_witness = (index_value == 0) ? zero_idx : put_constant_variable((uint64_t)index_value);
+    ASSERT(rom_array.state.size() > index_value);
+    ASSERT(rom_array.state[index_value][0] == UNINITIALIZED_MEMORY_RECORD);
+    /**
+     * The structure MemoryRecord contains the following members in this order:
+     *   uint32_t index_witness;
+     *   uint32_t timestamp_witness;
+     *   uint32_t value_witness;
+     *   uint32_t index;
+     *   uint32_t timestamp;
+     *   uint32_t record_witness;
+     *   size_t gate_index;
+     * The second initialization value here is the witness, because in ROM it doesn't matter. We will decouple this
+     * logic later.
+     */
+    RomRecord new_record{
+        .index_witness = index_witness,
+        .value_column1_witness = value_witness,
+        .value_column2_witness = zero_idx,
+        .index = static_cast<uint32_t>(index_value),
+        .record_witness = 0,
+        .gate_index = 0,
+    };
+    rom_array.state[index_value][0] = value_witness;
+    rom_array.state[index_value][1] = zero_idx;
+    create_ROM_gate(new_record);
+    rom_array.records.emplace_back(new_record);
+}
 
 void UltraCircuitConstructor::set_ROM_element_pair(const size_t rom_id,
                                                    const size_t index_value,
@@ -2057,29 +2058,29 @@ void UltraCircuitConstructor::set_ROM_element_pair(const size_t rom_id,
     rom_array.records.emplace_back(new_record);
 }
 
-// uint32_t UltraCircuitConstructor::read_ROM_array(const size_t rom_id, const uint32_t index_witness)
-// {
-//     ASSERT(rom_arrays.size() > rom_id);
-//     RomTranscript& rom_array = rom_arrays[rom_id];
-//     const uint32_t index = static_cast<uint32_t>(uint256_t(get_variable(index_witness)));
-//     ASSERT(rom_array.state.size() > index);
-//     ASSERT(rom_array.state[index][0] != UNINITIALIZED_MEMORY_RECORD);
-//     const auto value = get_variable(rom_array.state[index][0]);
-//     const uint32_t value_witness = add_variable(value);
-//     RomRecord new_record{
-//         .index_witness = index_witness,
-//         .value_column1_witness = value_witness,
-//         .value_column2_witness = zero_idx,
-//         .index = index,
-//         .record_witness = 0,
-//         .gate_index = 0,
-//     };
-//     create_ROM_gate(new_record);
-//     rom_array.records.emplace_back(new_record);
+uint32_t UltraCircuitConstructor::read_ROM_array(const size_t rom_id, const uint32_t index_witness)
+{
+    ASSERT(rom_arrays.size() > rom_id);
+    RomTranscript& rom_array = rom_arrays[rom_id];
+    const uint32_t index = static_cast<uint32_t>(uint256_t(get_variable(index_witness)));
+    ASSERT(rom_array.state.size() > index);
+    ASSERT(rom_array.state[index][0] != UNINITIALIZED_MEMORY_RECORD);
+    const auto value = get_variable(rom_array.state[index][0]);
+    const uint32_t value_witness = add_variable(value);
+    RomRecord new_record{
+        .index_witness = index_witness,
+        .value_column1_witness = value_witness,
+        .value_column2_witness = zero_idx,
+        .index = index,
+        .record_witness = 0,
+        .gate_index = 0,
+    };
+    create_ROM_gate(new_record);
+    rom_array.records.emplace_back(new_record);
 
-//     // create_read_gate
-//     return value_witness;
-// }
+    // create_read_gate
+    return value_witness;
+}
 
 // std::array<uint32_t, 2> UltraCircuitConstructor::read_ROM_array_pair(const size_t rom_id, const uint32_t
 // index_witness)

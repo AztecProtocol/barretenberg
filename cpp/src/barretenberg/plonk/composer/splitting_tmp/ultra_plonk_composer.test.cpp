@@ -1,7 +1,9 @@
+#include "barretenberg/common/log.hpp"
 #include "barretenberg/stdlib/primitives/plookup/plookup.hpp"
 #include "ultra_plonk_composer.hpp"
 #include "barretenberg/plonk/composer/ultra_composer.hpp"
 #include "barretenberg/crypto/pedersen/pedersen.hpp"
+#include <cstddef>
 #include <gtest/gtest.h>
 #include <string>
 #include "barretenberg/numeric/bitop/get_msb.hpp"
@@ -30,7 +32,8 @@ std::vector<uint32_t> add_variables(UltraPlonkComposer& composer, std::vector<fr
     return res;
 }
 
-TEST(ultra_plonk_composer, test_circuit_constructor)
+// TODO(luke): temporary test for debugging descrepencies between old composer and new one
+TEST(ultra_plonk_composer, debug_composer_decrepencies)
 {
     UltraPlonkComposer composer_new = UltraPlonkComposer();
     UltraComposer composer = UltraComposer();
@@ -92,85 +95,86 @@ TEST(ultra_plonk_composer, test_circuit_constructor)
     EXPECT_EQ(result_new, true);
 }
 
-// TEST(ultra_plonk_composer, test_no_lookup_proof)
+TEST(ultra_plonk_composer, test_no_lookup_proof)
+{
+    UltraPlonkComposer composer = UltraPlonkComposer();
+    // UltraComposer composer = UltraComposer();
+
+    for (size_t i = 0; i < 16; ++i) {
+        for (size_t j = 0; j < 16; ++j) {
+            uint64_t left = static_cast<uint64_t>(j);
+            uint64_t right = static_cast<uint64_t>(i);
+            uint32_t left_idx = composer.add_variable(fr(left));
+            uint32_t right_idx = composer.add_variable(fr(right));
+            uint32_t result_idx = composer.add_variable(fr(left ^ right));
+
+            uint32_t add_idx = composer.add_variable(fr(left) + fr(right) + composer.get_variable(result_idx));
+            composer.create_big_add_gate(
+                { left_idx, right_idx, result_idx, add_idx, fr(1), fr(1), fr(1), fr(-1), fr(0) });
+        }
+    }
+
+    auto prover = composer.create_prover();
+
+    auto verifier = composer.create_verifier();
+
+    auto proof = prover.construct_proof();
+
+    bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
+    EXPECT_EQ(result, true);
+}
+
+TEST(ultra_plonk_composer, test_elliptic_gate)
+{
+    typedef grumpkin::g1::affine_element affine_element;
+    typedef grumpkin::g1::element element;
+    UltraPlonkComposer composer = UltraPlonkComposer();
+
+    affine_element p1 = crypto::pedersen::get_generator_data({ 0, 0 }).generator;
+
+    affine_element p2 = crypto::pedersen::get_generator_data({ 0, 1 }).generator;
+    affine_element p3(element(p1) + element(p2));
+
+    uint32_t x1 = composer.add_variable(p1.x);
+    uint32_t y1 = composer.add_variable(p1.y);
+    uint32_t x2 = composer.add_variable(p2.x);
+    uint32_t y2 = composer.add_variable(p2.y);
+    uint32_t x3 = composer.add_variable(p3.x);
+    uint32_t y3 = composer.add_variable(p3.y);
+
+    ecc_add_gate gate{ x1, y1, x2, y2, x3, y3, 1, 1 };
+    composer.create_ecc_add_gate(gate);
+
+    grumpkin::fq beta = grumpkin::fq::cube_root_of_unity();
+    affine_element p2_endo = p2;
+    p2_endo.x *= beta;
+    p3 = affine_element(element(p1) + element(p2_endo));
+    x3 = composer.add_variable(p3.x);
+    y3 = composer.add_variable(p3.y);
+    gate = ecc_add_gate{ x1, y1, x2, y2, x3, y3, beta, 1 };
+    composer.create_ecc_add_gate(gate);
+
+    p2_endo.x *= beta;
+    p3 = affine_element(element(p1) - element(p2_endo));
+    x3 = composer.add_variable(p3.x);
+    y3 = composer.add_variable(p3.y);
+    gate = ecc_add_gate{ x1, y1, x2, y2, x3, y3, beta.sqr(), -1 };
+    composer.create_ecc_add_gate(gate);
+
+    auto prover = composer.create_prover();
+
+    auto verifier = composer.create_verifier();
+
+    auto proof = prover.construct_proof();
+
+    bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
+    EXPECT_EQ(result, true);
+}
+
+// TEST(ultra_plonk_composer, non_trivial_tag_permutation_debug)
 // {
-//     UltraPlonkComposer composer_new = UltraPlonkComposer();
-//     UltraComposer composer = UltraComposer();
-
-//     for (size_t i = 0; i < 16; ++i) {
-//         for (size_t j = 0; j < 16; ++j) {
-//             uint64_t left = static_cast<uint64_t>(j);
-//             uint64_t right = static_cast<uint64_t>(i);
-//             uint32_t left_idx = composer.add_variable(fr(left));
-//             uint32_t right_idx = composer.add_variable(fr(right));
-//             uint32_t result_idx = composer.add_variable(fr(left ^ right));
-
-//             uint32_t add_idx = composer.add_variable(fr(left) + fr(right) + composer.get_variable(result_idx));
-//             composer.create_big_add_gate(
-//                 { left_idx, right_idx, result_idx, add_idx, fr(1), fr(1), fr(1), fr(-1), fr(0) });
-//         }
-//     }
-
-//     auto prover = composer.create_prover();
-
-//     auto verifier = composer.create_verifier();
-
-//     auto proof = prover.construct_proof();
-
-//     bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
-//     EXPECT_EQ(result, true);
-// }
-
-// TEST(ultra_composer, test_elliptic_gate)
-// {
-//     typedef grumpkin::g1::affine_element affine_element;
-//     typedef grumpkin::g1::element element;
-//     UltraPlonkComposer composer = UltraPlonkComposer();
-
-//     affine_element p1 = crypto::pedersen::get_generator_data({ 0, 0 }).generator;
-
-//     affine_element p2 = crypto::pedersen::get_generator_data({ 0, 1 }).generator;
-//     affine_element p3(element(p1) + element(p2));
-
-//     uint32_t x1 = composer.add_variable(p1.x);
-//     uint32_t y1 = composer.add_variable(p1.y);
-//     uint32_t x2 = composer.add_variable(p2.x);
-//     uint32_t y2 = composer.add_variable(p2.y);
-//     uint32_t x3 = composer.add_variable(p3.x);
-//     uint32_t y3 = composer.add_variable(p3.y);
-
-//     ecc_add_gate gate{ x1, y1, x2, y2, x3, y3, 1, 1 };
-//     composer.create_ecc_add_gate(gate);
-
-//     grumpkin::fq beta = grumpkin::fq::cube_root_of_unity();
-//     affine_element p2_endo = p2;
-//     p2_endo.x *= beta;
-//     p3 = affine_element(element(p1) + element(p2_endo));
-//     x3 = composer.add_variable(p3.x);
-//     y3 = composer.add_variable(p3.y);
-//     gate = ecc_add_gate{ x1, y1, x2, y2, x3, y3, beta, 1 };
-//     composer.create_ecc_add_gate(gate);
-
-//     p2_endo.x *= beta;
-//     p3 = affine_element(element(p1) - element(p2_endo));
-//     x3 = composer.add_variable(p3.x);
-//     y3 = composer.add_variable(p3.y);
-//     gate = ecc_add_gate{ x1, y1, x2, y2, x3, y3, beta.sqr(), -1 };
-//     composer.create_ecc_add_gate(gate);
-
-//     auto prover = composer.create_prover();
-
-//     auto verifier = composer.create_verifier();
-
-//     auto proof = prover.construct_proof();
-
-//     bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
-//     EXPECT_EQ(result, true);
-// }
-
-// TEST(ultra_composer, non_trivial_tag_permutation)
-// {
-//     UltraPlonkComposer composer = UltraPlonkComposer();
+//     auto composer_new = UltraPlonkComposer();
+//     auto composer = UltraComposer();
 //     fr a = fr::random_element();
 //     fr b = -a;
 
@@ -179,8 +183,34 @@ TEST(ultra_plonk_composer, test_circuit_constructor)
 //     auto c_idx = composer.add_variable(b);
 //     auto d_idx = composer.add_variable(a);
 
-//     composer.create_add_gate({ a_idx, b_idx, composer.zero_idx, fr::one(), fr::one(), fr::zero(), fr::zero() });
-//     composer.create_add_gate({ c_idx, d_idx, composer.zero_idx, fr::one(), fr::one(), fr::zero(), fr::zero() });
+//     composer.create_add_gate({ a_idx, b_idx, 0, fr::one(), fr::one(), fr::zero(), fr::zero() });
+//     composer.create_add_gate({ c_idx, d_idx, 0, fr::one(), fr::one(), fr::zero(), fr::zero() });
+
+//     a_idx = composer_new.add_variable(a);
+//     b_idx = composer_new.add_variable(b);
+//     c_idx = composer_new.add_variable(b);
+//     d_idx = composer_new.add_variable(a);
+
+//     composer_new.create_add_gate({ a_idx, b_idx, 0, fr::one(), fr::one(), fr::zero(), fr::zero() });
+//     composer_new.create_add_gate({ c_idx, d_idx, 0, fr::one(), fr::one(), fr::zero(), fr::zero() });
+
+//     // info("composer.num_gates = ", composer.num_gates);
+//     // EXPECT_EQ(composer.num_gates, composer_new.num_gates);
+//     // EXPECT_EQ(true, true);
+
+//     // auto prover = composer.create_prover();
+//     // auto prover_new = composer_new.create_prover();
+
+//     // for (const auto& [key, poly] : prover.key->polynomial_store) {
+//     //     if (prover_new.key->polynomial_store.contains(key)) {
+//     //         info(key);
+//     //         // if (prover.key->polynomial_store.get(key) == prover_new.key->polynomial_store.get(key)) {
+//     info("EQUAL: ", key); }
+//     //         if (prover.key->polynomial_store.get(key) != prover_new.key->polynomial_store.get(key)) {
+//     info("UNEQUAL: ", key);}
+//     //         // EXPECT_EQ(prover.key->polynomial_store.get(key), prover_new.key->polynomial_store.get(key));
+//     //     }
+//     // }
 
 //     composer.create_tag(1, 2);
 //     composer.create_tag(2, 1);
@@ -190,135 +220,72 @@ TEST(ultra_plonk_composer, test_circuit_constructor)
 //     composer.assign_tag(c_idx, 2);
 //     composer.assign_tag(d_idx, 2);
 
+//     composer.create_add_gate({ a_idx, b_idx, composer.zero_idx, fr::one(), fr::neg_one(), fr::zero(), fr::zero() });
+//     composer.create_add_gate({ a_idx, b_idx, composer.zero_idx, fr::one(), fr::neg_one(), fr::zero(), fr::zero() });
+//     composer.create_add_gate({ a_idx, b_idx, composer.zero_idx, fr::one(), fr::neg_one(), fr::zero(), fr::zero() });
 //     // composer.create_add_gate({ a_idx, b_idx, composer.zero_idx, fr::one(), fr::neg_one(), fr::zero(), fr::zero()
 //     });
 //     // composer.create_add_gate({ a_idx, b_idx, composer.zero_idx, fr::one(), fr::neg_one(), fr::zero(), fr::zero()
 //     });
 //     // composer.create_add_gate({ a_idx, b_idx, composer.zero_idx, fr::one(), fr::neg_one(), fr::zero(), fr::zero()
-//     }); auto prover = composer.create_prover(); auto verifier = composer.create_verifier();
-
-//     proof proof = prover.construct_proof();
-
-//     bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
-//     EXPECT_EQ(result, true);
-// }
-// TEST(ultra_composer, non_trivial_tag_permutation_and_cycles)
-// {
-//     UltraPlonkComposer composer = UltraPlonkComposer();
-//     fr a = fr::random_element();
-//     fr c = -a;
-
-//     auto a_idx = composer.add_variable(a);
-//     auto b_idx = composer.add_variable(a);
-//     composer.assert_equal(a_idx, b_idx);
-//     auto c_idx = composer.add_variable(c);
-//     auto d_idx = composer.add_variable(c);
-//     composer.assert_equal(c_idx, d_idx);
-//     auto e_idx = composer.add_variable(a);
-//     auto f_idx = composer.add_variable(a);
-//     composer.assert_equal(e_idx, f_idx);
-//     auto g_idx = composer.add_variable(c);
-//     auto h_idx = composer.add_variable(c);
-//     composer.assert_equal(g_idx, h_idx);
-
-//     composer.create_tag(1, 2);
-//     composer.create_tag(2, 1);
-
-//     composer.assign_tag(a_idx, 1);
-//     composer.assign_tag(c_idx, 1);
-//     composer.assign_tag(e_idx, 2);
-//     composer.assign_tag(g_idx, 2);
-
-//     composer.create_add_gate({ b_idx, a_idx, composer.zero_idx, fr::one(), fr::neg_one(), fr::zero(), fr::zero() });
-//     composer.create_add_gate({ c_idx, g_idx, composer.zero_idx, fr::one(), -fr::one(), fr::zero(), fr::zero() });
-//     composer.create_add_gate({ e_idx, f_idx, composer.zero_idx, fr::one(), -fr::one(), fr::zero(), fr::zero() });
-
-//     // composer.create_add_gate({ a_idx, b_idx, composer.zero_idx, fr::one(), fr::neg_one(), fr::zero(), fr::zero()
 //     });
 //     // composer.create_add_gate({ a_idx, b_idx, composer.zero_idx, fr::one(), fr::neg_one(), fr::zero(), fr::zero()
 //     });
 //     // composer.create_add_gate({ a_idx, b_idx, composer.zero_idx, fr::one(), fr::neg_one(), fr::zero(), fr::zero()
-//     }); auto prover = composer.create_prover();
+//     });
 
-//     auto verifier = composer.create_verifier();
+//     composer_new.create_tag(1, 2);
+//     composer_new.create_tag(2, 1);
 
-//     proof proof = prover.construct_proof();
+//     composer_new.assign_tag(a_idx, 1);
+//     composer_new.assign_tag(b_idx, 1);
+//     composer_new.assign_tag(c_idx, 2);
+//     composer_new.assign_tag(d_idx, 2);
 
-//     bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
-//     EXPECT_EQ(result, true);
-// }
+//     composer_new.create_add_gate({ a_idx, b_idx, composer_new.get_zero_idx(), fr::one(), fr::neg_one(), fr::zero(),
+//     fr::zero() }); composer_new.create_add_gate({ a_idx, b_idx, composer_new.get_zero_idx(), fr::one(),
+//     fr::neg_one(), fr::zero(), fr::zero() }); composer_new.create_add_gate({ a_idx, b_idx,
+//     composer_new.get_zero_idx(), fr::one(), fr::neg_one(), fr::zero(), fr::zero() });
+//     // composer_new.create_add_gate({ a_idx, b_idx, composer_new.get_zero_idx(), fr::one(), fr::neg_one(),
+//     fr::zero(), fr::zero() });
+//     // composer_new.create_add_gate({ a_idx, b_idx, composer_new.get_zero_idx(), fr::one(), fr::neg_one(),
+//     fr::zero(), fr::zero() });
+//     // composer_new.create_add_gate({ a_idx, b_idx, composer_new.get_zero_idx(), fr::one(), fr::neg_one(),
+//     fr::zero(), fr::zero() });
+//     // composer_new.create_add_gate({ a_idx, b_idx, composer_new.get_zero_idx(), fr::one(), fr::neg_one(),
+//     fr::zero(), fr::zero() });
+//     // composer_new.create_add_gate({ a_idx, b_idx, composer_new.get_zero_idx(), fr::one(), fr::neg_one(),
+//     fr::zero(), fr::zero() });
 
-// TEST(ultra_composer, bad_tag_permutation)
-// {
-//     UltraPlonkComposer composer = UltraPlonkComposer();
-//     fr a = fr::random_element();
-//     fr b = -a;
+//     info("composer.num_gates = ", composer.num_gates);
+//     EXPECT_EQ(composer.num_gates, composer_new.num_gates);
+//     EXPECT_EQ(true, true);
 
-//     auto a_idx = composer.add_variable(a);
-//     auto b_idx = composer.add_variable(b);
-//     auto c_idx = composer.add_variable(b);
-//     auto d_idx = composer.add_variable(a + 1);
-
-//     composer.create_add_gate({ a_idx, b_idx, composer.zero_idx, 1, 1, 0, 0 });
-//     composer.create_add_gate({ c_idx, d_idx, composer.zero_idx, 1, 1, 0, -1 });
-
-//     composer.create_tag(1, 2);
-//     composer.create_tag(2, 1);
-
-//     composer.assign_tag(a_idx, 1);
-//     composer.assign_tag(b_idx, 1);
-//     composer.assign_tag(c_idx, 2);
-//     composer.assign_tag(d_idx, 2);
 //     auto prover = composer.create_prover();
-//     auto verifier = composer.create_verifier();
-//     proof proof = prover.construct_proof();
+//     auto prover_new = composer_new.create_prover();
 
-//     bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
-//     EXPECT_EQ(result, false);
-// }
+//     for (const auto& [key, poly] : prover.key->polynomial_store) {
+//         if (prover_new.key->polynomial_store.contains(key)) {
+//             // info(key);
+//             // if (prover.key->polynomial_store.get(key) == prover_new.key->polynomial_store.get(key)) { info("EQUAL:
+//             ", key); } if (prover.key->polynomial_store.get(key) != prover_new.key->polynomial_store.get(key)) {
+//             info("UNEQUAL: ", key);}
+//             // EXPECT_EQ(prover.key->polynomial_store.get(key), prover_new.key->polynomial_store.get(key));
+//         }
+//     }
 
-// // same as above but with turbocomposer to check reason of failue is really tag mismatch
-// TEST(ultra_composer, bad_tag_turbo_permutation)
-// {
-//     UltraPlonkComposer composer = UltraPlonkComposer();
-//     fr a = fr::random_element();
-//     fr b = -a;
+//     info(prover.key->circuit_size);
+//     for (size_t i = 0; i < prover.key->circuit_size; ++i) {
+//         info(prover.key->polynomial_store.get("sigma_1_lagrange")[i]);
+//     }
+//     info();
 
-//     auto a_idx = composer.add_variable(a);
-//     auto b_idx = composer.add_variable(b);
-//     auto c_idx = composer.add_variable(b);
-//     auto d_idx = composer.add_variable(a + 1);
+//     info(prover_new.key->circuit_size);
+//     for (size_t i = 0; i < prover_new.key->circuit_size; ++i) {
+//         info(prover_new.key->polynomial_store.get("sigma_1_lagrange")[i]);
+//     }
 
-//     composer.create_add_gate({ a_idx, b_idx, composer.zero_idx, 1, 1, 0, 0 });
-//     composer.create_add_gate({ c_idx, d_idx, composer.zero_idx, 1, 1, 0, -1 });
-
-//     // composer.create_add_gate({ a_idx, b_idx, composer.zero_idx, fr::one(), fr::neg_one(), fr::zero(), fr::zero()
-//     });
-//     // composer.create_add_gate({ a_idx, b_idx, composer.zero_idx, fr::one(), fr::neg_one(), fr::zero(), fr::zero()
-//     });
-//     // composer.create_add_gate({ a_idx, b_idx, composer.zero_idx, fr::one(), fr::neg_one(), fr::zero(), fr::zero()
-//     }); auto prover = composer.create_prover(); auto verifier = composer.create_verifier();
-
-//     proof proof = prover.construct_proof();
-
-//     bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
-//     EXPECT_EQ(result, true);
-// }
-
-// TEST(ultra_composer, sort_widget)
-// {
-//     UltraPlonkComposer composer = UltraPlonkComposer();
-//     fr a = fr::one();
-//     fr b = fr(2);
-//     fr c = fr(3);
-//     fr d = fr(4);
-
-//     auto a_idx = composer.add_variable(a);
-//     auto b_idx = composer.add_variable(b);
-//     auto c_idx = composer.add_variable(c);
-//     auto d_idx = composer.add_variable(d);
-//     composer.create_sort_constraint({ a_idx, b_idx, c_idx, d_idx });
-//     auto prover = composer.create_prover();
+//     // auto prover = composer.create_prover();
 //     auto verifier = composer.create_verifier();
 
 //     proof proof = prover.construct_proof();
@@ -327,401 +294,550 @@ TEST(ultra_plonk_composer, test_circuit_constructor)
 //     EXPECT_EQ(result, true);
 // }
 
-// TEST(ultra_composer, sort_with_edges_gate)
-// {
+TEST(ultra_plonk_composer, non_trivial_tag_permutation)
+{
+    UltraPlonkComposer composer = UltraPlonkComposer();
+    fr a = fr::random_element();
+    fr b = -a;
 
-//     fr a = fr::one();
-//     fr b = fr(2);
-//     fr c = fr(3);
-//     fr d = fr(4);
-//     fr e = fr(5);
-//     fr f = fr(6);
-//     fr g = fr(7);
-//     fr h = fr(8);
+    auto a_idx = composer.add_variable(a);
+    auto b_idx = composer.add_variable(b);
+    auto c_idx = composer.add_variable(b);
+    auto d_idx = composer.add_variable(a);
 
-//     {
-//         UltraPlonkComposer composer = UltraPlonkComposer();
-//         auto a_idx = composer.add_variable(a);
-//         auto b_idx = composer.add_variable(b);
-//         auto c_idx = composer.add_variable(c);
-//         auto d_idx = composer.add_variable(d);
-//         auto e_idx = composer.add_variable(e);
-//         auto f_idx = composer.add_variable(f);
-//         auto g_idx = composer.add_variable(g);
-//         auto h_idx = composer.add_variable(h);
-//         composer.create_sort_constraint_with_edges({ a_idx, b_idx, c_idx, d_idx, e_idx, f_idx, g_idx, h_idx }, a, h);
-//         auto prover = composer.create_prover();
-//         auto verifier = composer.create_verifier();
+    composer.create_add_gate({ a_idx, b_idx, composer.get_zero_idx(), fr::one(), fr::one(), fr::zero(), fr::zero() });
+    composer.create_add_gate({ c_idx, d_idx, composer.get_zero_idx(), fr::one(), fr::one(), fr::zero(), fr::zero() });
 
-//         proof proof = prover.construct_proof();
+    composer.create_tag(1, 2);
+    composer.create_tag(2, 1);
 
-//         bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
-//         EXPECT_EQ(result, true);
-//     }
+    composer.assign_tag(a_idx, 1);
+    composer.assign_tag(b_idx, 1);
+    composer.assign_tag(c_idx, 2);
+    composer.assign_tag(d_idx, 2);
 
-//     {
-//         UltraPlonkComposer composer = UltraPlonkComposer();
-//         auto a_idx = composer.add_variable(a);
-//         auto b_idx = composer.add_variable(b);
-//         auto c_idx = composer.add_variable(c);
-//         auto d_idx = composer.add_variable(d);
-//         auto e_idx = composer.add_variable(e);
-//         auto f_idx = composer.add_variable(f);
-//         auto g_idx = composer.add_variable(g);
-//         auto h_idx = composer.add_variable(h);
-//         composer.create_sort_constraint_with_edges({ a_idx, b_idx, c_idx, d_idx, e_idx, f_idx, g_idx, h_idx }, a, g);
-//         auto prover = composer.create_prover();
-//         auto verifier = composer.create_verifier();
+    auto prover = composer.create_prover();
+    auto verifier = composer.create_verifier();
 
-//         proof proof = prover.construct_proof();
+    proof proof = prover.construct_proof();
 
-//         bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
-//         EXPECT_EQ(result, false);
-//     }
-//     {
-//         UltraPlonkComposer composer = UltraPlonkComposer();
-//         auto a_idx = composer.add_variable(a);
-//         auto b_idx = composer.add_variable(b);
-//         auto c_idx = composer.add_variable(c);
-//         auto d_idx = composer.add_variable(d);
-//         auto e_idx = composer.add_variable(e);
-//         auto f_idx = composer.add_variable(f);
-//         auto g_idx = composer.add_variable(g);
-//         auto h_idx = composer.add_variable(h);
-//         composer.create_sort_constraint_with_edges({ a_idx, b_idx, c_idx, d_idx, e_idx, f_idx, g_idx, h_idx }, b, h);
-//         auto prover = composer.create_prover();
-//         auto verifier = composer.create_verifier();
+    bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
+    EXPECT_EQ(result, true);
+}
 
-//         proof proof = prover.construct_proof();
+TEST(ultra_plonk_composer, non_trivial_tag_permutation_and_cycles)
+{
+    UltraPlonkComposer composer = UltraPlonkComposer();
+    fr a = fr::random_element();
+    fr c = -a;
 
-//         bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
-//         EXPECT_EQ(result, false);
-//     }
-//     {
-//         UltraPlonkComposer composer = UltraPlonkComposer();
-//         auto a_idx = composer.add_variable(a);
-//         auto c_idx = composer.add_variable(c);
-//         auto d_idx = composer.add_variable(d);
-//         auto e_idx = composer.add_variable(e);
-//         auto f_idx = composer.add_variable(f);
-//         auto g_idx = composer.add_variable(g);
-//         auto h_idx = composer.add_variable(h);
-//         auto b2_idx = composer.add_variable(fr(15));
-//         composer.create_sort_constraint_with_edges({ a_idx, b2_idx, c_idx, d_idx, e_idx, f_idx, g_idx, h_idx }, b,
-//         h); auto prover = composer.create_prover(); auto verifier = composer.create_verifier();
+    auto a_idx = composer.add_variable(a);
+    auto b_idx = composer.add_variable(a);
+    composer.assert_equal(a_idx, b_idx);
+    auto c_idx = composer.add_variable(c);
+    auto d_idx = composer.add_variable(c);
+    composer.assert_equal(c_idx, d_idx);
+    auto e_idx = composer.add_variable(a);
+    auto f_idx = composer.add_variable(a);
+    composer.assert_equal(e_idx, f_idx);
+    auto g_idx = composer.add_variable(c);
+    auto h_idx = composer.add_variable(c);
+    composer.assert_equal(g_idx, h_idx);
 
-//         proof proof = prover.construct_proof();
+    composer.create_tag(1, 2);
+    composer.create_tag(2, 1);
 
-//         bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
-//         EXPECT_EQ(result, false);
-//     }
-//     {
-//         UltraPlonkComposer composer = UltraPlonkComposer();
-//         auto idx = add_variables(composer, { 1,  2,  5,  6,  7,  10, 11, 13, 16, 17, 20, 22, 22, 25,
-//                                              26, 29, 29, 32, 32, 33, 35, 38, 39, 39, 42, 42, 43, 45 });
-//         composer.create_sort_constraint_with_edges(idx, 1, 45);
-//         auto prover = composer.create_prover();
-//         auto verifier = composer.create_verifier();
+    composer.assign_tag(a_idx, 1);
+    composer.assign_tag(c_idx, 1);
+    composer.assign_tag(e_idx, 2);
+    composer.assign_tag(g_idx, 2);
 
-//         proof proof = prover.construct_proof();
+    composer.create_add_gate(
+        { b_idx, a_idx, composer.get_zero_idx(), fr::one(), fr::neg_one(), fr::zero(), fr::zero() });
+    composer.create_add_gate({ c_idx, g_idx, composer.get_zero_idx(), fr::one(), -fr::one(), fr::zero(), fr::zero() });
+    composer.create_add_gate({ e_idx, f_idx, composer.get_zero_idx(), fr::one(), -fr::one(), fr::zero(), fr::zero() });
 
-//         bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
-//         EXPECT_EQ(result, true);
-//     }
-//     {
-//         UltraPlonkComposer composer = UltraPlonkComposer();
-//         auto idx = add_variables(composer, { 1,  2,  5,  6,  7,  10, 11, 13, 16, 17, 20, 22, 22, 25,
-//                                              26, 29, 29, 32, 32, 33, 35, 38, 39, 39, 42, 42, 43, 45 });
+    auto prover = composer.create_prover();
 
-//         composer.create_sort_constraint_with_edges(idx, 1, 29);
-//         auto prover = composer.create_prover();
-//         auto verifier = composer.create_verifier();
-//         proof proof = prover.construct_proof();
+    auto verifier = composer.create_verifier();
 
-//         bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
-//         EXPECT_EQ(result, false);
-//     }
-// }
+    proof proof = prover.construct_proof();
 
-// TEST(ultra_composer, range_constraint)
-// {
-//     {
-//         UltraPlonkComposer composer = UltraPlonkComposer();
-//         auto indices = add_variables(composer, { 1, 2, 3, 4, 5, 6, 7, 8 });
-//         for (size_t i = 0; i < indices.size(); i++) {
-//             composer.create_new_range_constraint(indices[i], 8);
-//         }
-//         // auto ind = {a_idx,b_idx,c_idx,d_idx,e_idx,f_idx,g_idx,h_idx};
-//         composer.create_sort_constraint(indices);
-//         auto prover = composer.create_prover();
-//         auto verifier = composer.create_verifier();
+    bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
+    EXPECT_EQ(result, true);
+}
 
-//         proof proof = prover.construct_proof();
+TEST(ultra_plonk_composer, bad_tag_permutation)
+{
+    UltraPlonkComposer composer = UltraPlonkComposer();
+    fr a = fr::random_element();
+    fr b = -a;
 
-//         bool result = verifier.verify_proof(proof);
-//         EXPECT_EQ(result, true);
-//     }
-//     {
-//         UltraPlonkComposer composer = UltraPlonkComposer();
-//         auto indices = add_variables(composer, { 3 });
-//         for (size_t i = 0; i < indices.size(); i++) {
-//             composer.create_new_range_constraint(indices[i], 3);
-//         }
-//         // auto ind = {a_idx,b_idx,c_idx,d_idx,e_idx,f_idx,g_idx,h_idx};
-//         composer.create_dummy_constraints(indices);
-//         auto prover = composer.create_prover();
-//         auto verifier = composer.create_verifier();
+    auto a_idx = composer.add_variable(a);
+    auto b_idx = composer.add_variable(b);
+    auto c_idx = composer.add_variable(b);
+    auto d_idx = composer.add_variable(a + 1);
 
-//         proof proof = prover.construct_proof();
+    composer.create_add_gate({ a_idx, b_idx, composer.get_zero_idx(), 1, 1, 0, 0 });
+    composer.create_add_gate({ c_idx, d_idx, composer.get_zero_idx(), 1, 1, 0, -1 });
 
-//         bool result = verifier.verify_proof(proof);
-//         EXPECT_EQ(result, true);
-//     }
-//     {
-//         UltraPlonkComposer composer = UltraPlonkComposer();
-//         auto indices = add_variables(composer, { 1, 2, 3, 4, 5, 6, 8, 25 });
-//         for (size_t i = 0; i < indices.size(); i++) {
-//             composer.create_new_range_constraint(indices[i], 8);
-//         }
-//         composer.create_sort_constraint(indices);
-//         auto prover = composer.create_prover();
-//         auto verifier = composer.create_verifier();
+    composer.create_tag(1, 2);
+    composer.create_tag(2, 1);
 
-//         proof proof = prover.construct_proof();
+    composer.assign_tag(a_idx, 1);
+    composer.assign_tag(b_idx, 1);
+    composer.assign_tag(c_idx, 2);
+    composer.assign_tag(d_idx, 2);
+    auto prover = composer.create_prover();
+    auto verifier = composer.create_verifier();
+    proof proof = prover.construct_proof();
 
-//         bool result = verifier.verify_proof(proof);
-//         EXPECT_EQ(result, false);
-//     }
-//     {
-//         UltraPlonkComposer composer = UltraPlonkComposer();
-//         auto indices =
-//             add_variables(composer, { 1, 2, 3, 4, 5, 6, 10, 8, 15, 11, 32, 21, 42, 79, 16, 10, 3, 26, 19, 51 });
-//         for (size_t i = 0; i < indices.size(); i++) {
-//             composer.create_new_range_constraint(indices[i], 128);
-//         }
-//         composer.create_dummy_constraints(indices);
-//         auto prover = composer.create_prover();
-//         auto verifier = composer.create_verifier();
+    bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
+    EXPECT_EQ(result, false);
+}
 
-//         proof proof = prover.construct_proof();
+// same as above but with turbocomposer to check reason of failue is really tag mismatch
+TEST(ultra_plonk_composer, bad_tag_turbo_permutation)
+{
+    UltraPlonkComposer composer = UltraPlonkComposer();
+    fr a = fr::random_element();
+    fr b = -a;
 
-//         bool result = verifier.verify_proof(proof);
-//         EXPECT_EQ(result, true);
-//     }
-//     {
-//         UltraPlonkComposer composer = UltraPlonkComposer();
-//         auto indices =
-//             add_variables(composer, { 1, 2, 3, 80, 5, 6, 29, 8, 15, 11, 32, 21, 42, 79, 16, 10, 3, 26, 13, 14 });
-//         for (size_t i = 0; i < indices.size(); i++) {
-//             composer.create_new_range_constraint(indices[i], 79);
-//         }
-//         composer.create_dummy_constraints(indices);
-//         auto prover = composer.create_prover();
-//         auto verifier = composer.create_verifier();
+    auto a_idx = composer.add_variable(a);
+    auto b_idx = composer.add_variable(b);
+    auto c_idx = composer.add_variable(b);
+    auto d_idx = composer.add_variable(a + 1);
 
-//         proof proof = prover.construct_proof();
+    composer.create_add_gate({ a_idx, b_idx, composer.get_zero_idx(), 1, 1, 0, 0 });
+    composer.create_add_gate({ c_idx, d_idx, composer.get_zero_idx(), 1, 1, 0, -1 });
 
-//         bool result = verifier.verify_proof(proof);
-//         EXPECT_EQ(result, false);
-//     }
-//     {
-//         UltraPlonkComposer composer = UltraPlonkComposer();
-//         auto indices =
-//             add_variables(composer, { 1, 0, 3, 80, 5, 6, 29, 8, 15, 11, 32, 21, 42, 79, 16, 10, 3, 26, 13, 14 });
-//         for (size_t i = 0; i < indices.size(); i++) {
-//             composer.create_new_range_constraint(indices[i], 79);
-//         }
-//         composer.create_dummy_constraints(indices);
-//         auto prover = composer.create_prover();
-//         auto verifier = composer.create_verifier();
+    auto prover = composer.create_prover();
 
-//         proof proof = prover.construct_proof();
+    auto verifier = composer.create_verifier();
 
-//         bool result = verifier.verify_proof(proof);
-//         EXPECT_EQ(result, false);
-//     }
-// }
+    proof proof = prover.construct_proof();
 
-// TEST(ultra_composer, range_with_gates)
-// {
+    bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
+    EXPECT_EQ(result, true);
+}
 
-//     UltraPlonkComposer composer = UltraPlonkComposer();
-//     auto idx = add_variables(composer, { 1, 2, 3, 4, 5, 6, 7, 8 });
-//     for (size_t i = 0; i < idx.size(); i++) {
-//         composer.create_new_range_constraint(idx[i], 8);
-//     }
+TEST(ultra_plonk_composer, sort_widget)
+{
+    UltraPlonkComposer composer = UltraPlonkComposer();
+    fr a = fr::one();
+    fr b = fr(2);
+    fr c = fr(3);
+    fr d = fr(4);
 
-//     composer.create_add_gate({ idx[0], idx[1], composer.zero_idx, fr::one(), fr::one(), fr::zero(), -3 });
-//     composer.create_add_gate({ idx[2], idx[3], composer.zero_idx, fr::one(), fr::one(), fr::zero(), -7 });
-//     composer.create_add_gate({ idx[4], idx[5], composer.zero_idx, fr::one(), fr::one(), fr::zero(), -11 });
-//     composer.create_add_gate({ idx[6], idx[7], composer.zero_idx, fr::one(), fr::one(), fr::zero(), -15 });
-//     auto prover = composer.create_prover();
-//     auto verifier = composer.create_verifier();
+    auto a_idx = composer.add_variable(a);
+    auto b_idx = composer.add_variable(b);
+    auto c_idx = composer.add_variable(c);
+    auto d_idx = composer.add_variable(d);
+    composer.create_sort_constraint({ a_idx, b_idx, c_idx, d_idx });
+    auto prover = composer.create_prover();
+    auto verifier = composer.create_verifier();
 
-//     proof proof = prover.construct_proof();
-//     bool result = verifier.verify_proof(proof);
-//     EXPECT_EQ(result, true);
-// }
+    proof proof = prover.construct_proof();
 
-// TEST(ultra_composer, range_with_gates_where_range_is_not_a_power_of_two)
-// {
-//     UltraPlonkComposer composer = UltraPlonkComposer();
-//     auto idx = add_variables(composer, { 1, 2, 3, 4, 5, 6, 7, 8 });
-//     for (size_t i = 0; i < idx.size(); i++) {
-//         composer.create_new_range_constraint(idx[i], 12);
-//     }
+    bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
+    EXPECT_EQ(result, true);
+}
 
-//     composer.create_add_gate({ idx[0], idx[1], composer.zero_idx, fr::one(), fr::one(), fr::zero(), -3 });
-//     composer.create_add_gate({ idx[2], idx[3], composer.zero_idx, fr::one(), fr::one(), fr::zero(), -7 });
-//     composer.create_add_gate({ idx[4], idx[5], composer.zero_idx, fr::one(), fr::one(), fr::zero(), -11 });
-//     composer.create_add_gate({ idx[6], idx[7], composer.zero_idx, fr::one(), fr::one(), fr::zero(), -15 });
-//     auto prover = composer.create_prover();
-//     auto verifier = composer.create_verifier();
+TEST(ultra_plonk_composer, sort_with_edges_gate)
+{
 
-//     proof proof = prover.construct_proof();
-//     bool result = verifier.verify_proof(proof);
-//     EXPECT_EQ(result, true);
-// }
+    fr a = fr::one();
+    fr b = fr(2);
+    fr c = fr(3);
+    fr d = fr(4);
+    fr e = fr(5);
+    fr f = fr(6);
+    fr g = fr(7);
+    fr h = fr(8);
 
-// TEST(ultra_composer, sort_widget_complex)
-// {
-//     {
+    {
+        UltraPlonkComposer composer = UltraPlonkComposer();
+        auto a_idx = composer.add_variable(a);
+        auto b_idx = composer.add_variable(b);
+        auto c_idx = composer.add_variable(c);
+        auto d_idx = composer.add_variable(d);
+        auto e_idx = composer.add_variable(e);
+        auto f_idx = composer.add_variable(f);
+        auto g_idx = composer.add_variable(g);
+        auto h_idx = composer.add_variable(h);
+        composer.create_sort_constraint_with_edges({ a_idx, b_idx, c_idx, d_idx, e_idx, f_idx, g_idx, h_idx }, a, h);
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
 
-//         UltraPlonkComposer composer = UltraPlonkComposer();
-//         std::vector<fr> a = { 1, 3, 4, 7, 7, 8, 11, 14, 15, 15, 18, 19, 21, 21, 24, 25, 26, 27, 30, 32 };
-//         std::vector<uint32_t> ind;
-//         for (size_t i = 0; i < a.size(); i++)
-//             ind.emplace_back(composer.add_variable(a[i]));
-//         composer.create_sort_constraint(ind);
-//         auto prover = composer.create_prover();
-//         auto verifier = composer.create_verifier();
+        proof proof = prover.construct_proof();
 
-//         proof proof = prover.construct_proof();
+        bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
+        EXPECT_EQ(result, true);
+    }
 
-//         bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
-//         EXPECT_EQ(result, true);
-//     }
-//     {
+    {
+        UltraPlonkComposer composer = UltraPlonkComposer();
+        auto a_idx = composer.add_variable(a);
+        auto b_idx = composer.add_variable(b);
+        auto c_idx = composer.add_variable(c);
+        auto d_idx = composer.add_variable(d);
+        auto e_idx = composer.add_variable(e);
+        auto f_idx = composer.add_variable(f);
+        auto g_idx = composer.add_variable(g);
+        auto h_idx = composer.add_variable(h);
+        composer.create_sort_constraint_with_edges({ a_idx, b_idx, c_idx, d_idx, e_idx, f_idx, g_idx, h_idx }, a, g);
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
 
-//         UltraPlonkComposer composer = UltraPlonkComposer();
-//         std::vector<fr> a = { 1, 3, 4, 7, 7, 8, 16, 14, 15, 15, 18, 19, 21, 21, 24, 25, 26, 27, 30, 32 };
-//         std::vector<uint32_t> ind;
-//         for (size_t i = 0; i < a.size(); i++)
-//             ind.emplace_back(composer.add_variable(a[i]));
-//         composer.create_sort_constraint(ind);
-//         auto prover = composer.create_prover();
-//         auto verifier = composer.create_verifier();
+        proof proof = prover.construct_proof();
 
-//         proof proof = prover.construct_proof();
+        bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
+        EXPECT_EQ(result, false);
+    }
+    {
+        UltraPlonkComposer composer = UltraPlonkComposer();
+        auto a_idx = composer.add_variable(a);
+        auto b_idx = composer.add_variable(b);
+        auto c_idx = composer.add_variable(c);
+        auto d_idx = composer.add_variable(d);
+        auto e_idx = composer.add_variable(e);
+        auto f_idx = composer.add_variable(f);
+        auto g_idx = composer.add_variable(g);
+        auto h_idx = composer.add_variable(h);
+        composer.create_sort_constraint_with_edges({ a_idx, b_idx, c_idx, d_idx, e_idx, f_idx, g_idx, h_idx }, b, h);
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
 
-//         bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
-//         EXPECT_EQ(result, false);
-//     }
-// }
-// TEST(ultra_composer, sort_widget_neg)
-// {
-//     UltraPlonkComposer composer = UltraPlonkComposer();
-//     fr a = fr::one();
-//     fr b = fr(2);
-//     fr c = fr(3);
-//     fr d = fr(8);
+        proof proof = prover.construct_proof();
 
-//     auto a_idx = composer.add_variable(a);
-//     auto b_idx = composer.add_variable(b);
-//     auto c_idx = composer.add_variable(c);
-//     auto d_idx = composer.add_variable(d);
-//     composer.create_sort_constraint({ a_idx, b_idx, c_idx, d_idx });
-//     auto prover = composer.create_prover();
-//     auto verifier = composer.create_verifier();
+        bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
+        EXPECT_EQ(result, false);
+    }
+    {
+        UltraPlonkComposer composer = UltraPlonkComposer();
+        auto a_idx = composer.add_variable(a);
+        auto c_idx = composer.add_variable(c);
+        auto d_idx = composer.add_variable(d);
+        auto e_idx = composer.add_variable(e);
+        auto f_idx = composer.add_variable(f);
+        auto g_idx = composer.add_variable(g);
+        auto h_idx = composer.add_variable(h);
+        auto b2_idx = composer.add_variable(fr(15));
+        composer.create_sort_constraint_with_edges({ a_idx, b2_idx, c_idx, d_idx, e_idx, f_idx, g_idx, h_idx }, b, h);
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
 
-//     proof proof = prover.construct_proof();
+        proof proof = prover.construct_proof();
 
-//     bool result = verifier.verify_proof(proof);
-//     EXPECT_EQ(result, false);
-// }
-// TEST(ultra_composer, composed_range_constraint)
-// {
-//     UltraPlonkComposer composer = UltraPlonkComposer();
-//     auto c = fr::random_element();
-//     auto d = uint256_t(c).slice(0, 133);
-//     auto e = fr(d);
-//     auto a_idx = composer.add_variable(fr(e));
-//     composer.create_add_gate({ a_idx, composer.zero_idx, composer.zero_idx, 1, 0, 0, -fr(e) });
-//     composer.decompose_into_default_range(a_idx, 134);
-//     auto prover = composer.create_prover();
-//     auto verifier = composer.create_verifier();
+        bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
+        EXPECT_EQ(result, false);
+    }
+    {
+        UltraPlonkComposer composer = UltraPlonkComposer();
+        auto idx = add_variables(composer, { 1,  2,  5,  6,  7,  10, 11, 13, 16, 17, 20, 22, 22, 25,
+                                             26, 29, 29, 32, 32, 33, 35, 38, 39, 39, 42, 42, 43, 45 });
+        composer.create_sort_constraint_with_edges(idx, 1, 45);
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
 
-//     proof proof = prover.construct_proof();
+        proof proof = prover.construct_proof();
 
-//     bool result = verifier.verify_proof(proof);
-//     EXPECT_EQ(result, true);
-// }
+        bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
+        EXPECT_EQ(result, true);
+    }
+    {
+        UltraPlonkComposer composer = UltraPlonkComposer();
+        auto idx = add_variables(composer, { 1,  2,  5,  6,  7,  10, 11, 13, 16, 17, 20, 22, 22, 25,
+                                             26, 29, 29, 32, 32, 33, 35, 38, 39, 39, 42, 42, 43, 45 });
 
-// TEST(ultra_composer, non_native_field_multiplication)
-// {
-//     UltraPlonkComposer composer = UltraPlonkComposer();
+        composer.create_sort_constraint_with_edges(idx, 1, 29);
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
+        proof proof = prover.construct_proof();
 
-//     fq a = fq::random_element();
-//     fq b = fq::random_element();
-//     uint256_t modulus = fq::modulus;
+        bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
+        EXPECT_EQ(result, false);
+    }
+}
 
-//     uint1024_t a_big = uint512_t(uint256_t(a));
-//     uint1024_t b_big = uint512_t(uint256_t(b));
-//     uint1024_t p_big = uint512_t(uint256_t(modulus));
+TEST(ultra_plonk_composer, range_constraint)
+{
+    {
+        UltraPlonkComposer composer = UltraPlonkComposer();
+        auto indices = add_variables(composer, { 1, 2, 3, 4, 5, 6, 7, 8 });
+        for (size_t i = 0; i < indices.size(); i++) {
+            composer.create_new_range_constraint(indices[i], 8);
+        }
 
-//     uint1024_t q_big = (a_big * b_big) / p_big;
-//     uint1024_t r_big = (a_big * b_big) % p_big;
+        composer.create_sort_constraint(indices);
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
 
-//     uint256_t q(q_big.lo.lo);
-//     uint256_t r(r_big.lo.lo);
+        proof proof = prover.construct_proof();
 
-//     const auto split_into_limbs = [&](const uint512_t& input) {
-//         constexpr size_t NUM_BITS = 68;
-//         std::array<fr, 5> limbs;
-//         limbs[0] = input.slice(0, NUM_BITS).lo;
-//         limbs[1] = input.slice(NUM_BITS * 1, NUM_BITS * 2).lo;
-//         limbs[2] = input.slice(NUM_BITS * 2, NUM_BITS * 3).lo;
-//         limbs[3] = input.slice(NUM_BITS * 3, NUM_BITS * 4).lo;
-//         limbs[4] = fr(input.lo);
-//         return limbs;
-//     };
+        bool result = verifier.verify_proof(proof);
+        EXPECT_EQ(result, true);
+    }
+    {
+        UltraPlonkComposer composer = UltraPlonkComposer();
+        auto indices = add_variables(composer, { 3 });
+        for (size_t i = 0; i < indices.size(); i++) {
+            composer.create_new_range_constraint(indices[i], 3);
+        }
 
-//     const auto get_limb_witness_indices = [&](const std::array<fr, 5>& limbs) {
-//         std::array<uint32_t, 5> limb_indices;
-//         limb_indices[0] = composer.add_variable(limbs[0]);
-//         limb_indices[1] = composer.add_variable(limbs[1]);
-//         limb_indices[2] = composer.add_variable(limbs[2]);
-//         limb_indices[3] = composer.add_variable(limbs[3]);
-//         limb_indices[4] = composer.add_variable(limbs[4]);
-//         return limb_indices;
-//     };
-//     const uint512_t BINARY_BASIS_MODULUS = uint512_t(1) << (68 * 4);
-//     auto modulus_limbs = split_into_limbs(BINARY_BASIS_MODULUS - uint512_t(modulus));
+        composer.create_dummy_constraints(indices);
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
 
-//     const auto a_indices = get_limb_witness_indices(split_into_limbs(uint256_t(a)));
-//     const auto b_indices = get_limb_witness_indices(split_into_limbs(uint256_t(b)));
-//     const auto q_indices = get_limb_witness_indices(split_into_limbs(uint256_t(q)));
-//     const auto r_indices = get_limb_witness_indices(split_into_limbs(uint256_t(r)));
+        proof proof = prover.construct_proof();
 
-//     UltraPlonkComposer::non_native_field_witnesses inputs{
-//         a_indices, b_indices, q_indices, r_indices, modulus_limbs, fr(uint256_t(modulus)),
-//     };
-//     const auto [lo_1_idx, hi_1_idx] = composer.evaluate_non_native_field_multiplication(inputs);
-//     composer.range_constrain_two_limbs(lo_1_idx, hi_1_idx, 70, 70);
+        bool result = verifier.verify_proof(proof);
+        EXPECT_EQ(result, true);
+    }
+    {
+        UltraPlonkComposer composer = UltraPlonkComposer();
+        auto indices = add_variables(composer, { 1, 2, 3, 4, 5, 6, 8, 25 });
+        for (size_t i = 0; i < indices.size(); i++) {
+            composer.create_new_range_constraint(indices[i], 8);
+        }
+        composer.create_sort_constraint(indices);
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
 
-//     auto prover = composer.create_prover();
-//     auto verifier = composer.create_verifier();
+        proof proof = prover.construct_proof();
 
-//     proof proof = prover.construct_proof();
+        bool result = verifier.verify_proof(proof);
+        EXPECT_EQ(result, false);
+    }
+    {
+        UltraPlonkComposer composer = UltraPlonkComposer();
+        auto indices =
+            add_variables(composer, { 1, 2, 3, 4, 5, 6, 10, 8, 15, 11, 32, 21, 42, 79, 16, 10, 3, 26, 19, 51 });
+        for (size_t i = 0; i < indices.size(); i++) {
+            composer.create_new_range_constraint(indices[i], 128);
+        }
+        composer.create_dummy_constraints(indices);
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
 
-//     bool result = verifier.verify_proof(proof);
-//     EXPECT_EQ(result, true);
-// }
+        proof proof = prover.construct_proof();
+
+        bool result = verifier.verify_proof(proof);
+        EXPECT_EQ(result, true);
+    }
+    {
+        UltraPlonkComposer composer = UltraPlonkComposer();
+        auto indices =
+            add_variables(composer, { 1, 2, 3, 80, 5, 6, 29, 8, 15, 11, 32, 21, 42, 79, 16, 10, 3, 26, 13, 14 });
+        for (size_t i = 0; i < indices.size(); i++) {
+            composer.create_new_range_constraint(indices[i], 79);
+        }
+        composer.create_dummy_constraints(indices);
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
+
+        proof proof = prover.construct_proof();
+
+        bool result = verifier.verify_proof(proof);
+        EXPECT_EQ(result, false);
+    }
+    {
+        UltraPlonkComposer composer = UltraPlonkComposer();
+        auto indices =
+            add_variables(composer, { 1, 0, 3, 80, 5, 6, 29, 8, 15, 11, 32, 21, 42, 79, 16, 10, 3, 26, 13, 14 });
+        for (size_t i = 0; i < indices.size(); i++) {
+            composer.create_new_range_constraint(indices[i], 79);
+        }
+        composer.create_dummy_constraints(indices);
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
+
+        proof proof = prover.construct_proof();
+
+        bool result = verifier.verify_proof(proof);
+        EXPECT_EQ(result, false);
+    }
+}
+
+TEST(ultra_plonk_composer, range_with_gates)
+{
+
+    UltraPlonkComposer composer = UltraPlonkComposer();
+    auto idx = add_variables(composer, { 1, 2, 3, 4, 5, 6, 7, 8 });
+    for (size_t i = 0; i < idx.size(); i++) {
+        composer.create_new_range_constraint(idx[i], 8);
+    }
+
+    composer.create_add_gate({ idx[0], idx[1], composer.get_zero_idx(), fr::one(), fr::one(), fr::zero(), -3 });
+    composer.create_add_gate({ idx[2], idx[3], composer.get_zero_idx(), fr::one(), fr::one(), fr::zero(), -7 });
+    composer.create_add_gate({ idx[4], idx[5], composer.get_zero_idx(), fr::one(), fr::one(), fr::zero(), -11 });
+    composer.create_add_gate({ idx[6], idx[7], composer.get_zero_idx(), fr::one(), fr::one(), fr::zero(), -15 });
+    auto prover = composer.create_prover();
+    auto verifier = composer.create_verifier();
+
+    proof proof = prover.construct_proof();
+    bool result = verifier.verify_proof(proof);
+    EXPECT_EQ(result, true);
+}
+
+TEST(ultra_plonk_composer, range_with_gates_where_range_is_not_a_power_of_two)
+{
+    UltraPlonkComposer composer = UltraPlonkComposer();
+    auto idx = add_variables(composer, { 1, 2, 3, 4, 5, 6, 7, 8 });
+    for (size_t i = 0; i < idx.size(); i++) {
+        composer.create_new_range_constraint(idx[i], 12);
+    }
+
+    composer.create_add_gate({ idx[0], idx[1], composer.get_zero_idx(), fr::one(), fr::one(), fr::zero(), -3 });
+    composer.create_add_gate({ idx[2], idx[3], composer.get_zero_idx(), fr::one(), fr::one(), fr::zero(), -7 });
+    composer.create_add_gate({ idx[4], idx[5], composer.get_zero_idx(), fr::one(), fr::one(), fr::zero(), -11 });
+    composer.create_add_gate({ idx[6], idx[7], composer.get_zero_idx(), fr::one(), fr::one(), fr::zero(), -15 });
+    auto prover = composer.create_prover();
+    auto verifier = composer.create_verifier();
+
+    proof proof = prover.construct_proof();
+    bool result = verifier.verify_proof(proof);
+    EXPECT_EQ(result, true);
+}
+
+TEST(ultra_plonk_composer, sort_widget_complex)
+{
+    {
+        UltraPlonkComposer composer = UltraPlonkComposer();
+        std::vector<fr> a = { 1, 3, 4, 7, 7, 8, 11, 14, 15, 15, 18, 19, 21, 21, 24, 25, 26, 27, 30, 32 };
+        std::vector<uint32_t> ind;
+        for (size_t i = 0; i < a.size(); i++)
+            ind.emplace_back(composer.add_variable(a[i]));
+        composer.create_sort_constraint(ind);
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
+
+        proof proof = prover.construct_proof();
+
+        bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
+        EXPECT_EQ(result, true);
+    }
+    {
+        UltraPlonkComposer composer = UltraPlonkComposer();
+        std::vector<fr> a = { 1, 3, 4, 7, 7, 8, 16, 14, 15, 15, 18, 19, 21, 21, 24, 25, 26, 27, 30, 32 };
+        std::vector<uint32_t> ind;
+        for (size_t i = 0; i < a.size(); i++)
+            ind.emplace_back(composer.add_variable(a[i]));
+        composer.create_sort_constraint(ind);
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
+
+        proof proof = prover.construct_proof();
+
+        bool result = verifier.verify_proof(proof); // instance, prover.reference_string.SRS_T2);
+        EXPECT_EQ(result, false);
+    }
+}
+
+TEST(ultra_plonk_composer, sort_widget_neg)
+{
+    UltraPlonkComposer composer = UltraPlonkComposer();
+    fr a = fr::one();
+    fr b = fr(2);
+    fr c = fr(3);
+    fr d = fr(8);
+
+    auto a_idx = composer.add_variable(a);
+    auto b_idx = composer.add_variable(b);
+    auto c_idx = composer.add_variable(c);
+    auto d_idx = composer.add_variable(d);
+    composer.create_sort_constraint({ a_idx, b_idx, c_idx, d_idx });
+    auto prover = composer.create_prover();
+    auto verifier = composer.create_verifier();
+
+    proof proof = prover.construct_proof();
+
+    bool result = verifier.verify_proof(proof);
+    EXPECT_EQ(result, false);
+}
+
+TEST(ultra_plonk_composer, composed_range_constraint)
+{
+    UltraPlonkComposer composer = UltraPlonkComposer();
+    auto c = fr::random_element();
+    auto d = uint256_t(c).slice(0, 133);
+    auto e = fr(d);
+    auto a_idx = composer.add_variable(fr(e));
+    composer.create_add_gate({ a_idx, composer.get_zero_idx(), composer.get_zero_idx(), 1, 0, 0, -fr(e) });
+    composer.decompose_into_default_range(a_idx, 134);
+    auto prover = composer.create_prover();
+    auto verifier = composer.create_verifier();
+
+    proof proof = prover.construct_proof();
+
+    bool result = verifier.verify_proof(proof);
+    EXPECT_EQ(result, true);
+}
+
+TEST(ultra_plonk_composer, non_native_field_multiplication)
+{
+    UltraPlonkComposer composer = UltraPlonkComposer();
+
+    fq a = fq::random_element();
+    fq b = fq::random_element();
+    uint256_t modulus = fq::modulus;
+
+    uint1024_t a_big = uint512_t(uint256_t(a));
+    uint1024_t b_big = uint512_t(uint256_t(b));
+    uint1024_t p_big = uint512_t(uint256_t(modulus));
+
+    uint1024_t q_big = (a_big * b_big) / p_big;
+    uint1024_t r_big = (a_big * b_big) % p_big;
+
+    uint256_t q(q_big.lo.lo);
+    uint256_t r(r_big.lo.lo);
+
+    const auto split_into_limbs = [&](const uint512_t& input) {
+        constexpr size_t NUM_BITS = 68;
+        std::array<fr, 5> limbs;
+        limbs[0] = input.slice(0, NUM_BITS).lo;
+        limbs[1] = input.slice(NUM_BITS * 1, NUM_BITS * 2).lo;
+        limbs[2] = input.slice(NUM_BITS * 2, NUM_BITS * 3).lo;
+        limbs[3] = input.slice(NUM_BITS * 3, NUM_BITS * 4).lo;
+        limbs[4] = fr(input.lo);
+        return limbs;
+    };
+
+    const auto get_limb_witness_indices = [&](const std::array<fr, 5>& limbs) {
+        std::array<uint32_t, 5> limb_indices;
+        limb_indices[0] = composer.add_variable(limbs[0]);
+        limb_indices[1] = composer.add_variable(limbs[1]);
+        limb_indices[2] = composer.add_variable(limbs[2]);
+        limb_indices[3] = composer.add_variable(limbs[3]);
+        limb_indices[4] = composer.add_variable(limbs[4]);
+        return limb_indices;
+    };
+    const uint512_t BINARY_BASIS_MODULUS = uint512_t(1) << (68 * 4);
+    auto modulus_limbs = split_into_limbs(BINARY_BASIS_MODULUS - uint512_t(modulus));
+
+    const auto a_indices = get_limb_witness_indices(split_into_limbs(uint256_t(a)));
+    const auto b_indices = get_limb_witness_indices(split_into_limbs(uint256_t(b)));
+    const auto q_indices = get_limb_witness_indices(split_into_limbs(uint256_t(q)));
+    const auto r_indices = get_limb_witness_indices(split_into_limbs(uint256_t(r)));
+
+    bonk::non_native_field_witnesses inputs{
+        a_indices, b_indices, q_indices, r_indices, modulus_limbs, fr(uint256_t(modulus)),
+    };
+    const auto [lo_1_idx, hi_1_idx] = composer.evaluate_non_native_field_multiplication(inputs);
+    composer.range_constrain_two_limbs(lo_1_idx, hi_1_idx, 70, 70);
+
+    auto prover = composer.create_prover();
+    auto verifier = composer.create_verifier();
+
+    proof proof = prover.construct_proof();
+
+    bool result = verifier.verify_proof(proof);
+    EXPECT_EQ(result, true);
+}
 
 TEST(ultra_plonk_composer, rom)
 {
-    // UltraPlonkComposer composer = UltraPlonkComposer();
-    UltraComposer composer = UltraComposer();
+    UltraPlonkComposer composer = UltraPlonkComposer();
 
     uint32_t rom_values[8]{
         composer.add_variable(fr::random_element()), composer.add_variable(fr::random_element()),
@@ -769,8 +885,7 @@ TEST(ultra_plonk_composer, rom)
 
 TEST(ultra_plonk_composer, ram)
 {
-    // UltraPlonkComposer composer = UltraPlonkComposer();
-    UltraComposer composer = UltraComposer();
+    UltraPlonkComposer composer = UltraPlonkComposer();
 
     uint32_t ram_values[8]{
         composer.add_variable(fr::random_element()), composer.add_variable(fr::random_element()),
@@ -816,9 +931,9 @@ TEST(ultra_plonk_composer, ram)
         true);
     composer.create_big_add_gate(
         {
-            composer.zero_idx,
-            composer.zero_idx,
-            composer.zero_idx,
+            composer.get_zero_idx(),
+            composer.get_zero_idx(),
+            composer.get_zero_idx(),
             e_idx,
             0,
             0,

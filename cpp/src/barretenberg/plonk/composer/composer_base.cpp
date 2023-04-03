@@ -81,6 +81,11 @@ template <size_t program_width> void ComposerBase::compute_wire_copy_cycles()
             const auto w_4_index = real_variable_index[w_4[i]];
             wire_copy_cycles[static_cast<size_t>(w_4_index)].emplace_back(static_cast<uint32_t>(i + num_public_inputs),
                                                                           WireType::FOURTH);
+            // info("w_1_index = ", w_1_index);
+            // info("w_2_index = ", w_2_index);
+            // info("w_3_index = ", w_3_index);
+            // info("w_4_index = ", w_4_index);
+            // info();
         }
     }
 }
@@ -105,6 +110,12 @@ template <size_t program_width, bool with_tags> void ComposerBase::compute_sigma
     compute_wire_copy_cycles<program_width>();
     std::array<std::vector<permutation_subgroup_element>, program_width> sigma_mappings;
     std::array<std::vector<permutation_subgroup_element>, program_width> id_mappings;
+
+    // for (auto& val : wire_copy_cycles[0])
+    // {
+    //     info( "gate_index = ", val.gate_index);
+    //     info( "wire_type = ", static_cast<uint32_t>(val.wire_type) >> 30U);
+    // }
 
     // Instantiate the sigma and id mappings by reserving enough space and pushing 'default' permutation subgroup
     // elements that point to themselves.

@@ -7,6 +7,7 @@
 #include "barretenberg/plonk/composer/plookup_tables/types.hpp"
 #include "barretenberg/plonk/composer/plookup_tables/plookup_tables.hpp"
 #include "barretenberg/plonk/proof_system/types/prover_settings.hpp"
+#include <optional>
 
 namespace bonk {
 

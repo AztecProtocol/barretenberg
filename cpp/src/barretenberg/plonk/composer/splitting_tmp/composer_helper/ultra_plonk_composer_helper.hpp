@@ -27,7 +27,9 @@ namespace plonk {
 // Cody: What does this mean?
 template <typename CircuitConstructor> class UltraPlonkComposerHelper {
   public:
-    static constexpr size_t NUM_RANDOMIZED_GATES = 2; // equal to the number of multilinear evaluations leaked
+    // TODO(luke): NUM_RANDOMIZED_GATES corresponds (at least in part) to NUM_RESERVED_GATES (in ultra composer) when
+    // determining circuit size next power of 2. I'm setting in to 4 for now to match that value. Clarify this.
+    static constexpr size_t NUM_RANDOMIZED_GATES = 4; // equal to the number of multilinear evaluations leaked
     static constexpr size_t program_width = CircuitConstructor::program_width;
     std::shared_ptr<bonk::proving_key> circuit_proving_key;
     std::shared_ptr<bonk::verification_key> circuit_verification_key;
