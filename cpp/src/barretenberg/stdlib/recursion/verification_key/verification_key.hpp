@@ -188,7 +188,7 @@ template <typename Curve> struct verification_key {
     }
 
   public:
-    field_t<Composer> compress()
+    field_t<Composer> compress(size_t const hash_index = 0)
     {
         field_t<Composer> compressed_domain = domain.compress();
 
@@ -208,9 +208,9 @@ template <typename Curve> struct verification_key {
 
         field_t<Composer> compressed_key;
         if constexpr (Composer::type == ComposerType::PLOOKUP) {
-            compressed_key = pedersen_plookup_commitment<Composer>::compress(key_witnesses);
+            compressed_key = pedersen_plookup_commitment<Composer>::compress(key_witnesses, hash_index);
         } else {
-            compressed_key = pedersen_commitment<Composer>::compress(key_witnesses);
+            compressed_key = pedersen_commitment<Composer>::compress(key_witnesses, hash_index);
         }
         return compressed_key;
     }
