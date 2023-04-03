@@ -7,9 +7,9 @@ namespace plonk {
 namespace stdlib {
 
 /**
- * @brief Constrants a logical AND or XOR over a variable number of bits.
+ * @brief A logical AND or XOR over a variable number of bits.
  *
- * Defaults to basic Composer method if not using plookup-compatible composer
+ * @details Defaults to basic Composer method if not using plookup-compatible composer
  *
  * @tparam Composer
  * @param a

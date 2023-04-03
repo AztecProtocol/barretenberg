@@ -5,8 +5,6 @@
 namespace plonk {
 namespace stdlib {
 
-// A runtime-defined read-only memory table. Table entries must be initialized in the constructor.
-// N.B. Only works with the UltraComposer at the moment!
 template <typename Composer> class logic {
   private:
     typedef field_t<Composer> field_pt;
