@@ -44,9 +44,10 @@ inline std::pair<size_t, bool> find_closest_leaf(std::vector<nullifier_leaf> con
 {
     std::vector<uint256_t> diff;
     bool repeated = false;
+    auto new_value_ = uint256_t(new_value);
+
     for (size_t i = 0; i < leaves_.size(); i++) {
         auto leaf_value_ = uint256_t(leaves_[i].value);
-        auto new_value_ = uint256_t(new_value);
         if (leaf_value_ > new_value_) {
             diff.push_back(leaf_value_);
         } else if (leaf_value_ == new_value_) {
