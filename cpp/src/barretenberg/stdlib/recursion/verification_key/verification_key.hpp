@@ -192,25 +192,26 @@ template <typename Curve> struct verification_key {
     {
         field_t<Composer> compressed_domain = domain.compress();
 
-        std::vector<field_t<Composer>> key_witnesses;
-        key_witnesses.push_back(compressed_domain);
-        key_witnesses.push_back(num_public_inputs);
+        std::vector<field_t<Composer>> preimage_data;
+        preimage_data.push_back(Composer::type);
+        preimage_data.push_back(compressed_domain);
+        preimage_data.push_back(num_public_inputs);
         for (const auto& [tag, selector] : commitments) {
-            key_witnesses.push_back(selector.x.binary_basis_limbs[0].element);
-            key_witnesses.push_back(selector.x.binary_basis_limbs[1].element);
-            key_witnesses.push_back(selector.x.binary_basis_limbs[2].element);
-            key_witnesses.push_back(selector.x.binary_basis_limbs[3].element);
-            key_witnesses.push_back(selector.y.binary_basis_limbs[0].element);
-            key_witnesses.push_back(selector.y.binary_basis_limbs[1].element);
-            key_witnesses.push_back(selector.y.binary_basis_limbs[2].element);
-            key_witnesses.push_back(selector.y.binary_basis_limbs[3].element);
+            preimage_data.push_back(selector.x.binary_basis_limbs[0].element);
+            preimage_data.push_back(selector.x.binary_basis_limbs[1].element);
+            preimage_data.push_back(selector.x.binary_basis_limbs[2].element);
+            preimage_data.push_back(selector.x.binary_basis_limbs[3].element);
+            preimage_data.push_back(selector.y.binary_basis_limbs[0].element);
+            preimage_data.push_back(selector.y.binary_basis_limbs[1].element);
+            preimage_data.push_back(selector.y.binary_basis_limbs[2].element);
+            preimage_data.push_back(selector.y.binary_basis_limbs[3].element);
         }
 
         field_t<Composer> compressed_key;
         if constexpr (Composer::type == ComposerType::PLOOKUP) {
-            compressed_key = pedersen_plookup_commitment<Composer>::compress(key_witnesses, hash_index);
+            compressed_key = pedersen_plookup_commitment<Composer>::compress(preimage_data, hash_index);
         } else {
-            compressed_key = pedersen_commitment<Composer>::compress(key_witnesses, hash_index);
+            compressed_key = pedersen_commitment<Composer>::compress(preimage_data, hash_index);
         }
         return compressed_key;
     }

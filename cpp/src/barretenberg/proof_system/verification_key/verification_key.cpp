@@ -1,5 +1,6 @@
 #include "barretenberg/crypto/sha256/sha256.hpp"
 #include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
+#include "barretenberg/crypto/pedersen_commitment/pedersen_lookup.hpp"
 #include "barretenberg/polynomials/evaluation_domain.hpp"
 #include "verification_key.hpp"
 #include "../../plonk/proof_system/constants.hpp"
