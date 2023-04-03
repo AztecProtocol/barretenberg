@@ -79,8 +79,9 @@ class NullifierMemoryTree : public MemoryTree {
 
     const std::vector<barretenberg::fr>& get_hashes() { return hashes_; }
     const std::vector<nullifier_leaf>& get_leaves() { return leaves_; }
+    const nullifier_leaf& get_leaf(size_t index) { return leaves_[index]; }
 
-  private:
+  protected:
     using MemoryTree::depth_;
     using MemoryTree::hashes_;
     using MemoryTree::root_;
