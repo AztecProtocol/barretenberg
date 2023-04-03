@@ -230,7 +230,6 @@ template <typename Curve> struct verification_key {
         };
 
         std::vector<barretenberg::fr> preimage_data;
-        // TODO: put composer type in here.
         preimage_data.push_back(Composer::type);
         preimage_data.push_back(compressed_domain);
         preimage_data.push_back(key->num_public_inputs);
@@ -252,7 +251,7 @@ template <typename Curve> struct verification_key {
         if constexpr (Composer::type == ComposerType::PLOOKUP) {
             compressed_key = crypto::pedersen_commitment::lookup::compress_native(preimage_data, hash_index);
         } else {
-            compressed_key = crypto::pedersen_commitment::compress_native(preimage_data, hash_index); // TODO: we need a hash index here!
+            compressed_key = crypto::pedersen_commitment::compress_native(preimage_data, hash_index);
         }
         return compressed_key;
     }
