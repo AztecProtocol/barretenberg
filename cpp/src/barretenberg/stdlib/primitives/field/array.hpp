@@ -131,55 +131,6 @@ typename plonk::stdlib::bool_t<Composer> is_array_empty(std::array<field_t<Compo
  * Fails if the `source` array is too large vs the remaining capacity of the `target` array.
  */
 template <typename Composer, size_t size_1, size_t size_2>
-void push_array_to_array_suyash(std::array<field_t<Composer>, size_1> const& source,
-                         std::array<field_t<Composer>, size_2>& target)
-{
-    ASSERT(target.size() >= source.size());
-    field_t<Composer> source_length = array_length<Composer>(source);
-    field_t<Composer> target_length = array_length<Composer>(target);
-
-    // Check if the `source` array is too large vs the remaining capacity of the `target` array
-    auto source_length_safe = safe_uint_t<Composer>(source_length, sizeof(size_t) * 8, "source_array_len");
-    auto target_length_safe = safe_uint_t<Composer>(target_length, sizeof(size_t) * 8, "target_array_len");
-    auto target_capacity_safe =
-        safe_uint_t<Composer>(field_t<Composer>(target.size()), sizeof(size_t) * 8, "target_array_capacity");
-    target_capacity_safe.subtract((source_length_safe + target_length_safe),
-                                  sizeof(size_t) * 8,
-                                  "push_array_to_array target array capacity exceeded");
-
-    // Ensure that all the elements after the first zero-element in target are zero
-    field_t<Composer> num_non_zero_in_target = 0;
-    for (size_t i = 0; i < size_2; i++) {
-        num_non_zero_in_target += !target[i].is_zero();
-    }
-    num_non_zero_in_target.assert_equal(target_length_safe, "non-zero element in target array after a zero element");
-
-    // Ensure that all the elements after the first zero-element in source are zero
-    field_t<Composer> num_non_zero_in_source = 0;
-    for (size_t i = 0; i < size_1; i++) {
-        num_non_zero_in_source += !source[i].is_zero();
-    }
-    num_non_zero_in_source.assert_equal(source_length_safe, "non-zero element in source array after a zero element");
-
-    // Finally, insert only non-zero elements from source into target
-    bool_t<Composer> composer_error_found = !source_length.get_context()->err().empty();
-    for (size_t i = 0; i < source.size(); i++) {
-        bool_t<Composer> found = false;
-
-        for (size_t j = i; j < target.size(); j++) {
-            bool_t<Composer> is_target_non_zero = !target[j].is_zero();
-            target[j] = field_t<Composer>::conditional_assign(
-                is_target_non_zero, target[j], source[i] * !found * !composer_error_found);
-            found |= !is_target_non_zero;
-        }
-    }
-}
-
-/**
- * Inserts the `source` array at the first zero-valued index of the `target` array.
- * Fails if the `source` array is too large vs the remaining capacity of the `target` array.
- */
-template <typename Composer, size_t size_1, size_t size_2>
 void push_array_to_array(std::array<field_t<Composer>, size_1> const& source,
                          std::array<field_t<Composer>, size_2>& target)
 {
@@ -198,7 +149,8 @@ void push_array_to_array(std::array<field_t<Composer>, size_1> const& source,
         auto& s = source[i];
         {
             auto is_s_zero = s.is_zero();
-            hit_s_zero.must_imply(is_s_zero, "Once we've hit the first source zero, there must only be zeros thereafter!");
+            hit_s_zero.must_imply(is_s_zero,
+                                  "Once we've hit the first source zero, there must only be zeros thereafter!");
             hit_s_zero |= is_s_zero;
             not_hit_s_zero = !hit_s_zero;
         }
@@ -210,11 +162,7 @@ void push_array_to_array(std::array<field_t<Composer>, size_1> const& source,
             // Check whether we've reached the next target index at which we can push `s`:
             bool_t<Composer> at_next_target_index = j_ct == next_target_index;
 
-            t = field_t<Composer>::conditional_assign(
-                    at_next_target_index && not_hit_s_zero,
-                    s,
-                    t
-                );
+            t = field_t<Composer>::conditional_assign(at_next_target_index && not_hit_s_zero, s, t);
 
             j_ct++;
         }

@@ -29,7 +29,6 @@ template <typename Composer> class stdlib_array : public testing::Test {
     typedef stdlib::public_witness_t<Composer> public_witness_ct;
 
   public:
-
     // TODO: empty array and singleton array edge cases for all array functions.
 
     static void test_array_length()
@@ -70,9 +69,10 @@ template <typename Composer> class stdlib_array : public testing::Test {
             values_ct[i] = witness_ct(&composer, values[i]);
         }
 
-        // Put a zero in the middle of the array, so that the array_length function complains that all zeros thereafter should be zero.
+        // Put a zero in the middle of the array, so that the array_length function complains that all zeros thereafter
+        // should be zero.
         values_ct[4] = 0;
-        
+
         array_length<Composer>(values_ct);
 
         EXPECT_EQ(composer.failed(), true);
@@ -277,7 +277,6 @@ template <typename Composer> class stdlib_array : public testing::Test {
             target_ct[i] = witness_ct(&composer, target[i]);
         }
 
-        // push_array_to_array_suyash<Composer>(source_ct, target_ct);
         push_array_to_array<Composer>(source_ct, target_ct);
 
         // Check that the source array has been inserted into the first available index of the target array.
@@ -286,9 +285,8 @@ template <typename Composer> class stdlib_array : public testing::Test {
                 EXPECT_EQ(target_ct[i].get_value(), expected_target[i]);
             }
         }
-        
+
         bool proof_result = false;
-        info("composer err: ", composer.err());
         if (composer.err().empty()) {
             auto prover = composer.create_prover();
             auto verifier = composer.create_verifier();
@@ -316,12 +314,11 @@ template <typename Composer> class stdlib_array : public testing::Test {
         };
         bool proof_result;
         std::string error;
-        std::tie(proof_result, error) =
-            test_push_array_to_array_helper(composer, source, target, expected_target);
+        std::tie(proof_result, error) = test_push_array_to_array_helper(composer, source, target, expected_target);
 
         EXPECT_TRUE(proof_result);
     }
-    
+
     static void test_pata_same_size_not_full_to_not_full()
     {
         Composer composer = Composer();
@@ -331,8 +328,7 @@ template <typename Composer> class stdlib_array : public testing::Test {
         std::array<fr, 4> expected_target = { 3, 1, 0, 0 };
         bool proof_result;
         std::string error;
-        std::tie(proof_result, error) =
-            test_push_array_to_array_helper(composer, source, target, expected_target);
+        std::tie(proof_result, error) = test_push_array_to_array_helper(composer, source, target, expected_target);
 
         EXPECT_TRUE(proof_result);
     }
@@ -346,8 +342,7 @@ template <typename Composer> class stdlib_array : public testing::Test {
         std::array<fr, 4> expected_target = { 1, 2, 3, 4 };
         bool proof_result;
         std::string error;
-        std::tie(proof_result, error) =
-            test_push_array_to_array_helper(composer, source, target, expected_target);
+        std::tie(proof_result, error) = test_push_array_to_array_helper(composer, source, target, expected_target);
 
         EXPECT_TRUE(proof_result);
     }
@@ -361,12 +356,10 @@ template <typename Composer> class stdlib_array : public testing::Test {
         std::array<fr, 4> expected_target = { 1, 2, 3, 0 };
         bool proof_result;
         std::string error;
-        std::tie(proof_result, error) =
-            test_push_array_to_array_helper(composer, source, target, expected_target);
+        std::tie(proof_result, error) = test_push_array_to_array_helper(composer, source, target, expected_target);
 
         EXPECT_TRUE(proof_result);
     }
-
 
     static void test_pata_smaller_source_full_to_not_full()
     {
@@ -377,8 +370,7 @@ template <typename Composer> class stdlib_array : public testing::Test {
         std::array<fr, 6> expected_target = { 4, 5, 6, 1, 2, 3 };
         bool proof_result;
         std::string error;
-        std::tie(proof_result, error) =
-            test_push_array_to_array_helper(composer, source, target, expected_target);
+        std::tie(proof_result, error) = test_push_array_to_array_helper(composer, source, target, expected_target);
 
         EXPECT_TRUE(proof_result);
     }
@@ -392,8 +384,7 @@ template <typename Composer> class stdlib_array : public testing::Test {
         std::array<fr, 1> expected_target = { 1 };
         bool proof_result;
         std::string error;
-        std::tie(proof_result, error) =
-            test_push_array_to_array_helper(composer, source, target, expected_target);
+        std::tie(proof_result, error) = test_push_array_to_array_helper(composer, source, target, expected_target);
 
         EXPECT_TRUE(proof_result);
     }
@@ -408,12 +399,11 @@ template <typename Composer> class stdlib_array : public testing::Test {
         bool proof_result;
         std::string error;
         bool expect_fail = true;
-        std::tie(proof_result, error) = test_push_array_to_array_helper(composer, source, target, expected_target, expect_fail);
+        std::tie(proof_result, error) =
+            test_push_array_to_array_helper(composer, source, target, expected_target, expect_fail);
 
         EXPECT_FALSE(proof_result);
-        EXPECT_EQ(
-            error,
-            "push_array_to_array target array capacity exceeded");
+        EXPECT_EQ(error, "push_array_to_array target array capacity exceeded");
     }
 
     static void test_pata_nonzero_after_zero_source_fails()
@@ -426,7 +416,8 @@ template <typename Composer> class stdlib_array : public testing::Test {
         bool proof_result;
         std::string error;
         bool expect_fail = true;
-        std::tie(proof_result, error) = test_push_array_to_array_helper(composer, source, target, expected_target, expect_fail);
+        std::tie(proof_result, error) =
+            test_push_array_to_array_helper(composer, source, target, expected_target, expect_fail);
 
         EXPECT_FALSE(proof_result);
         EXPECT_EQ(error, "Once we've hit the first source zero, there must only be zeros thereafter!");
@@ -442,11 +433,12 @@ template <typename Composer> class stdlib_array : public testing::Test {
         bool proof_result;
         std::string error;
         bool expect_fail = true;
-        std::tie(proof_result, error) = test_push_array_to_array_helper(composer, source, target, expected_target, expect_fail);
+        std::tie(proof_result, error) =
+            test_push_array_to_array_helper(composer, source, target, expected_target, expect_fail);
 
         EXPECT_FALSE(proof_result);
         EXPECT_EQ(error, "Once we've hit the first source zero, there must only be zeros thereafter!");
-        }
+    }
 
     static void test_pata_nonzero_after_zero_target_fails()
     {
@@ -458,7 +450,8 @@ template <typename Composer> class stdlib_array : public testing::Test {
         bool proof_result;
         std::string error;
         bool expect_fail = true;
-        std::tie(proof_result, error) = test_push_array_to_array_helper(composer, source, target, expected_target, expect_fail);
+        std::tie(proof_result, error) =
+            test_push_array_to_array_helper(composer, source, target, expected_target, expect_fail);
 
         EXPECT_FALSE(proof_result);
         EXPECT_EQ(error, "Once we've hit the first zero, there must only be zeros thereafter!");
@@ -474,14 +467,15 @@ template <typename Composer> class stdlib_array : public testing::Test {
         bool proof_result;
         std::string error;
         bool expect_fail = true;
-        std::tie(proof_result, error) = test_push_array_to_array_helper(composer, source, target, expected_target, expect_fail);
+        std::tie(proof_result, error) =
+            test_push_array_to_array_helper(composer, source, target, expected_target, expect_fail);
 
         EXPECT_FALSE(proof_result);
         EXPECT_EQ(error, "Once we've hit the first zero, there must only be zeros thereafter!");
     }
 
     class MockClass {
-    public:
+      public:
         MockClass()
             : m_a(field_ct(0))
             , m_b(field_ct(0))
@@ -501,7 +495,7 @@ template <typename Composer> class stdlib_array : public testing::Test {
             m_b = field_ct::conditional_assign(condition, other.m_b, m_b);
         }
 
-    private:
+      private:
         field_ct m_a;
         field_ct m_b;
     };
