@@ -28,11 +28,8 @@ std::shared_ptr<plonk::proving_key> StandardHonkComposerHelper<CircuitConstructo
 {
     // Initialize circuit_proving_key
     // TODO(#229)(Kesha): replace composer types.
-    circuit_proving_key = initialize_proving_key(constructor,
-                                                 crs_factory_.get(),
-                                                 minimum_circuit_size,
-                                                 num_randomized_gates,
-                                                 proof_system::ComposerType::STANDARD_HONK);
+    circuit_proving_key = initialize_proving_key(
+        constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, ComposerType::STANDARD_HONK);
     // Compute lagrange selectors
     construct_lagrange_selector_forms(constructor, circuit_proving_key.get());
 
@@ -47,8 +44,7 @@ std::shared_ptr<plonk::proving_key> StandardHonkComposerHelper<CircuitConstructo
 
 template <typename CircuitConstructor>
 std::shared_ptr<plonk::verification_key> StandardHonkComposerHelper<CircuitConstructor>::compute_verification_key_base(
-    std::shared_ptr<plonk::proving_key> const& proving_key,
-    std::shared_ptr<proof_system::VerifierReferenceString> const& vrs)
+    std::shared_ptr<plonk::proving_key> const& proving_key, std::shared_ptr<VerifierReferenceString> const& vrs)
 {
     auto key = std::make_shared<plonk::verification_key>(
         proving_key->circuit_size, proving_key->num_public_inputs, vrs, proving_key->composer_type);
@@ -109,8 +105,7 @@ std::shared_ptr<plonk::proving_key> StandardHonkComposerHelper<CircuitConstructo
         return circuit_proving_key;
     }
     // Compute q_l, q_r, q_o, etc polynomials
-    StandardHonkComposerHelper::compute_proving_key_base(circuit_constructor,
-                                                         proof_system::ComposerType::STANDARD_HONK);
+    StandardHonkComposerHelper::compute_proving_key_base(circuit_constructor, ComposerType::STANDARD_HONK);
 
     // Compute sigma polynomials (we should update that late)
     compute_standard_honk_sigma_permutations<CircuitConstructor::num_wires>(circuit_constructor,

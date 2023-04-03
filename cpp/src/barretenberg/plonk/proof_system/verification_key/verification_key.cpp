@@ -6,7 +6,7 @@ namespace proof_system::plonk {
 
 verification_key::verification_key(const size_t num_gates,
                                    const size_t num_inputs,
-                                   std::shared_ptr<proof_system::VerifierReferenceString> const& crs,
+                                   std::shared_ptr<VerifierReferenceString> const& crs,
                                    uint32_t composer_type_)
     : composer_type(composer_type_)
     , circuit_size(num_gates)
@@ -17,8 +17,7 @@ verification_key::verification_key(const size_t num_gates,
     , polynomial_manifest(composer_type)
 {}
 
-verification_key::verification_key(verification_key_data&& data,
-                                   std::shared_ptr<proof_system::VerifierReferenceString> const& crs)
+verification_key::verification_key(verification_key_data&& data, std::shared_ptr<VerifierReferenceString> const& crs)
     : composer_type(data.composer_type)
     , circuit_size(data.circuit_size)
     , log_circuit_size(numeric::get_msb(data.circuit_size))

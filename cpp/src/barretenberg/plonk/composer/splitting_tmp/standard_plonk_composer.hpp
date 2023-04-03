@@ -16,7 +16,7 @@ namespace proof_system::plonk {
  */
 class StandardPlonkComposer {
   public:
-    static constexpr proof_system::ComposerType type = proof_system::ComposerType::STANDARD;
+    static constexpr ComposerType type = ComposerType::STANDARD;
 
     static constexpr size_t UINT_LOG2_BASE = 2;
     // An instantiation of the circuit constructor that only depends on arithmetization, not  on the proof system
@@ -39,20 +39,18 @@ class StandardPlonkComposer {
         , variables(circuit_constructor.variables){};
 
     StandardPlonkComposer(std::string const& crs_path, const size_t size_hint = 0)
-        : StandardPlonkComposer(std::unique_ptr<proof_system::ReferenceStringFactory>(
-                                    new proof_system::FileReferenceStringFactory(crs_path)),
-                                size_hint){};
+        : StandardPlonkComposer(
+              std::unique_ptr<ReferenceStringFactory>(new proof_system::FileReferenceStringFactory(crs_path)),
+              size_hint){};
 
-    StandardPlonkComposer(std::shared_ptr<proof_system::ReferenceStringFactory> const& crs_factory,
-                          const size_t size_hint = 0)
+    StandardPlonkComposer(std::shared_ptr<ReferenceStringFactory> const& crs_factory, const size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(crs_factory)
         , num_gates(circuit_constructor.num_gates)
         , variables(circuit_constructor.variables)
 
     {}
-    StandardPlonkComposer(std::unique_ptr<proof_system::ReferenceStringFactory>&& crs_factory,
-                          const size_t size_hint = 0)
+    StandardPlonkComposer(std::unique_ptr<ReferenceStringFactory>&& crs_factory, const size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(std::move(crs_factory))
         , num_gates(circuit_constructor.num_gates)

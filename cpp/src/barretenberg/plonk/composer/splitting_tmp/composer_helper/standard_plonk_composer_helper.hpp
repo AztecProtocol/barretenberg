@@ -8,7 +8,6 @@
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/plonk/proof_system/verification_key/verification_key.hpp"
 #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
-#include "barretenberg/proof_system/composer/permutation_helper.hpp"
 #include "barretenberg/plonk/composer/splitting_tmp/composer_helper/composer_helper_lib.hpp"
 #include <utility>
 
@@ -23,22 +22,21 @@ template <typename CircuitConstructor> class StandardPlonkComposerHelper {
     std::shared_ptr<plonk::verification_key> circuit_verification_key;
     // TODO(#218)(kesha): we need to put this into the commitment key, so that the composer doesn't have to handle srs
     // at all
-    std::shared_ptr<proof_system::ReferenceStringFactory> crs_factory_;
+    std::shared_ptr<ReferenceStringFactory> crs_factory_;
 
     std::vector<uint32_t> recursive_proof_public_input_indices;
     bool contains_recursive_proof = false;
     bool computed_witness = false;
 
     StandardPlonkComposerHelper()
-        : StandardPlonkComposerHelper(std::shared_ptr<proof_system::ReferenceStringFactory>(
+        : StandardPlonkComposerHelper(std::shared_ptr<ReferenceStringFactory>(
               new proof_system::FileReferenceStringFactory("../srs_db/ignition")))
     {}
-
-    StandardPlonkComposerHelper(std::shared_ptr<proof_system::ReferenceStringFactory> crs_factory)
+    StandardPlonkComposerHelper(std::shared_ptr<ReferenceStringFactory> crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
 
-    StandardPlonkComposerHelper(std::unique_ptr<proof_system::ReferenceStringFactory>&& crs_factory)
+    StandardPlonkComposerHelper(std::unique_ptr<ReferenceStringFactory>&& crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
     StandardPlonkComposerHelper(std::shared_ptr<plonk::proving_key> p_key,

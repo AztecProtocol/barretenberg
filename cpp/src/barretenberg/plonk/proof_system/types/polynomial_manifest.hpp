@@ -4,8 +4,7 @@
 #include <vector>
 #include <string>
 #include "barretenberg/plonk/proof_system/constants.hpp"
-// ToDo(Arijit): The below namespace should be plonk once all the honk related stuffs are moved out
-// ToDo(Cody): This is now plonk-specific.
+
 namespace proof_system::plonk {
 
 enum PolynomialSource { WITNESS, SELECTOR, PERMUTATION, OTHER };
@@ -176,19 +175,19 @@ class PolynomialManifest {
     PolynomialManifest(uint32_t composer_type)
     {
         switch (composer_type) {
-        case proof_system::ComposerType::STANDARD: {
+        case ComposerType::STANDARD: {
             std::copy(standard_polynomial_manifest,
                       standard_polynomial_manifest + STANDARD_MANIFEST_SIZE,
                       std::back_inserter(manifest));
             break;
         };
-        case proof_system::ComposerType::TURBO: {
+        case ComposerType::TURBO: {
             std::copy(turbo_polynomial_manifest,
                       turbo_polynomial_manifest + TURBO_MANIFEST_SIZE,
                       std::back_inserter(manifest));
             break;
         };
-        case proof_system::ComposerType::PLOOKUP: {
+        case ComposerType::PLOOKUP: {
             std::copy(ultra_polynomial_manifest,
                       ultra_polynomial_manifest + ULTRA_MANIFEST_SIZE,
                       std::back_inserter(manifest));
@@ -236,7 +235,7 @@ class PrecomputedPolyList {
                 precomputed_poly_ids.emplace_back(label);
                 precomputed_poly_ids.emplace_back(label + "_fft");
                 // Store all lagrange forms of selector polynomials for ultra
-                if (composer_type == proof_system::ComposerType::PLOOKUP) {
+                if (composer_type == ComposerType::PLOOKUP) {
                     precomputed_poly_ids.emplace_back(label + "_lagrange");
                 }
                 break;

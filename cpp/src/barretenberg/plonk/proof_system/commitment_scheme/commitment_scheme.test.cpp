@@ -36,9 +36,9 @@ TEST(commitment_scheme, kate_open)
     plonk::KateCommitmentScheme<turbo_settings> newKate;
 
     // std::shared_ptr<ReferenceStringFactory> crs_factory = (new FileReferenceStringFactory("../srs_db/ignition"));
-    auto file_crs = std::make_shared<proof_system::FileReferenceStringFactory>("../srs_db/ignition");
+    auto file_crs = std::make_shared<FileReferenceStringFactory>("../srs_db/ignition");
     auto crs = file_crs->get_prover_crs(n);
-    auto circuit_proving_key = std::make_shared<proving_key>(n, 0, crs, proof_system::ComposerType::STANDARD);
+    auto circuit_proving_key = std::make_shared<proving_key>(n, 0, crs, ComposerType::STANDARD);
     work_queue queue(circuit_proving_key.get(), &inp_tx);
 
     newKate.commit(&coeffs[0], "F_COMM", 0, queue);
@@ -93,9 +93,9 @@ TEST(commitment_scheme, kate_batch_open)
     transcript::StandardTranscript inp_tx = transcript::StandardTranscript(transcript::Manifest());
     plonk::KateCommitmentScheme<turbo_settings> newKate;
 
-    auto file_crs = std::make_shared<proof_system::FileReferenceStringFactory>("../srs_db/ignition");
+    auto file_crs = std::make_shared<FileReferenceStringFactory>("../srs_db/ignition");
     auto crs = file_crs->get_prover_crs(n);
-    auto circuit_proving_key = std::make_shared<proving_key>(n, 0, crs, proof_system::ComposerType::STANDARD);
+    auto circuit_proving_key = std::make_shared<proving_key>(n, 0, crs, ComposerType::STANDARD);
     work_queue queue(circuit_proving_key.get(), &inp_tx);
 
     // commit to individual polynomials

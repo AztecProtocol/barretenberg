@@ -8,7 +8,7 @@ namespace proof_system::plonk {
 class UltraComposer : public ComposerBase {
 
   public:
-    static constexpr proof_system::ComposerType type = proof_system::ComposerType::PLOOKUP;
+    static constexpr ComposerType type = ComposerType::PLOOKUP;
     static constexpr MerkleHashType merkle_hash_type = MerkleHashType::LOOKUP_PEDERSEN;
     static constexpr size_t NUM_RESERVED_GATES = 4; // This must be >= num_roots_cut_out_of_vanishing_polynomial
                                                     // See the comment in plonk/proof_system/prover/prover.cpp

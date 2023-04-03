@@ -4,7 +4,7 @@
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 
 namespace proof_system {
-// TODO(Cody): Template by flavor
+// TODO(Cody): Template by flavor?
 class work_queue {
 
   public:

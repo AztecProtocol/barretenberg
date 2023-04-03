@@ -12,7 +12,7 @@ template <typename CircuitConstructor> class TurboPlonkComposerHelper {
   public:
     static constexpr size_t NUM_RANDOMIZED_GATES = 2; // equal to the number of multilinear evaluations leaked
     static constexpr size_t program_width = CircuitConstructor::program_width;
-    static constexpr proof_system::ComposerType type = proof_system::ComposerType::TURBO;
+    static constexpr ComposerType type = ComposerType::TURBO;
     static constexpr MerkleHashType merkle_hash_type = MerkleHashType::FIXED_BASE_PEDERSEN;
     static constexpr size_t UINT_LOG2_BASE = 2;
     std::shared_ptr<plonk::proving_key> circuit_proving_key;
@@ -20,21 +20,21 @@ template <typename CircuitConstructor> class TurboPlonkComposerHelper {
 
     // TODO(#218)(kesha): we need to put this into the commitment key, so that the composer doesn't have to handle srs
     // at all
-    std::shared_ptr<proof_system::ReferenceStringFactory> crs_factory_;
+    std::shared_ptr<ReferenceStringFactory> crs_factory_;
 
     std::vector<uint32_t> recursive_proof_public_input_indices;
     bool contains_recursive_proof = false;
 
     bool computed_witness = false;
     TurboPlonkComposerHelper()
-        : TurboPlonkComposerHelper(std::shared_ptr<proof_system::ReferenceStringFactory>(
+        : TurboPlonkComposerHelper(std::shared_ptr<ReferenceStringFactory>(
               new proof_system::FileReferenceStringFactory("../srs_db/ignition")))
     {}
 
-    TurboPlonkComposerHelper(std::shared_ptr<proof_system::ReferenceStringFactory> crs_factory)
+    TurboPlonkComposerHelper(std::shared_ptr<ReferenceStringFactory> crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
-    TurboPlonkComposerHelper(std::unique_ptr<proof_system::ReferenceStringFactory>&& crs_factory)
+    TurboPlonkComposerHelper(std::unique_ptr<ReferenceStringFactory>&& crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
     TurboPlonkComposerHelper(std::shared_ptr<plonk::proving_key> p_key, std::shared_ptr<plonk::verification_key> v_key)

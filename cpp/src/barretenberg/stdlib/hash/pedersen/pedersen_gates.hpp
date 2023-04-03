@@ -25,7 +25,6 @@ template <typename Composer> class pedersen_gates {
     using fixed_group_add_quad = proof_system::fixed_group_add_quad;
     using fixed_group_init_quad = proof_system::fixed_group_init_quad;
     using add_quad = proof_system::add_quad;
-    using ComposerType = proof_system::ComposerType;
 
     Composer* context;
     fixed_group_add_quad previous_add_quad;
@@ -36,7 +35,7 @@ template <typename Composer> class pedersen_gates {
 
     void create_fixed_group_add_gate(const fixed_group_add_quad& in)
     {
-        if constexpr (Composer::type == proof_system::ComposerType::TURBO) {
+        if constexpr (Composer::type == ComposerType::TURBO) {
             context->create_fixed_group_add_gate(in);
         } else {
 
@@ -229,7 +228,7 @@ template <typename Composer> class pedersen_gates {
 
     void create_fixed_group_add_gate_with_init(const fixed_group_add_quad& in, const fixed_group_init_quad& init)
     {
-        if constexpr (Composer::type == proof_system::ComposerType::TURBO) {
+        if constexpr (Composer::type == ComposerType::TURBO) {
             context->create_fixed_group_add_gate_with_init(in, init);
         } else {
             uint32_t x_0_idx = in.a;
@@ -295,7 +294,7 @@ template <typename Composer> class pedersen_gates {
 
     void create_fixed_group_add_gate_final(const add_quad& in)
     {
-        if constexpr (Composer::type == proof_system::ComposerType::TURBO) {
+        if constexpr (Composer::type == ComposerType::TURBO) {
             context->create_fixed_group_add_gate_final(in);
         } else {
 

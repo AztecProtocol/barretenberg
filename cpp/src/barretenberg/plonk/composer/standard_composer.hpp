@@ -16,7 +16,7 @@ inline std::vector<ComposerBase::SelectorProperties> standard_selector_propertie
 
 class StandardComposer : public ComposerBase {
   public:
-    static constexpr proof_system::ComposerType type = proof_system::ComposerType::STANDARD;
+    static constexpr ComposerType type = ComposerType::STANDARD;
     static constexpr MerkleHashType merkle_hash_type = MerkleHashType::FIXED_BASE_PEDERSEN;
     static constexpr size_t UINT_LOG2_BASE = 2;
 

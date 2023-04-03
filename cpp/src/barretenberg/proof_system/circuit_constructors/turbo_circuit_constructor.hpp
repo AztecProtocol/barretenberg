@@ -1,8 +1,8 @@
 #pragma once
 #include <array>
 #include "circuit_constructor_base.hpp"
-#include "barretenberg/plonk/proof_system/constants.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/proof_system/types/composer_type.hpp"
 
 namespace proof_system {
 
@@ -32,7 +32,7 @@ class TurboCircuitConstructor : public CircuitConstructorBase<arithmetization::T
     std::vector<barretenberg::fr>& q_range = std::get<9>(selectors);
     std::vector<barretenberg::fr>& q_logic = std::get<10>(selectors);
 
-    static constexpr proof_system::ComposerType type = proof_system::ComposerType::TURBO;
+    static constexpr ComposerType type = ComposerType::TURBO;
     static constexpr size_t UINT_LOG2_BASE = 2;
 
     TurboCircuitConstructor(const size_t size_hint = 0);

@@ -48,9 +48,8 @@ WASM_EXPORT void* test_env_load_prover_crs(size_t num_points)
 {
     return env_load_prover_crs(num_points);
 }
-typedef std::
-    conditional_t<plonk::SYSTEM_COMPOSER == proof_system::ComposerType::TURBO, plonk::TurboProver, plonk::UltraProver>
-        WasmProver;
+typedef std::conditional_t<plonk::SYSTEM_COMPOSER == ComposerType::TURBO, plonk::TurboProver, plonk::UltraProver>
+    WasmProver;
 
 WASM_EXPORT void prover_process_queue(WasmProver* prover)
 {

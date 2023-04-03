@@ -83,9 +83,9 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     using Gemini = pcs::gemini::MultilinearReductionScheme<pcs::kzg::Params>;
     using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<pcs::kzg::Params>;
     using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
-    const size_t NUM_POLYNOMIALS = proof_system::honk::StandardArithmetization::NUM_POLYNOMIALS;
-    const size_t NUM_UNSHIFTED = proof_system::honk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
-    const size_t NUM_PRECOMPUTED = proof_system::honk::StandardArithmetization::NUM_PRECOMPUTED_POLYNOMIALS;
+    const size_t NUM_POLYNOMIALS = honk::StandardArithmetization::NUM_POLYNOMIALS;
+    const size_t NUM_UNSHIFTED = honk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
+    const size_t NUM_PRECOMPUTED = honk::StandardArithmetization::NUM_PRECOMPUTED_POLYNOMIALS;
 
     constexpr auto num_wires = program_settings::num_wires;
 

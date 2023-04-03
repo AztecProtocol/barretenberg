@@ -26,7 +26,7 @@ TEST(stdlib_bool, test_basic_operations)
     bool_t f = e ^ b;    // f = 0
     d = (!f) & a;        // d = 1
     auto prover = composer.create_prover();
-    // if constexpr (Composer::type == proof_system::ComposerType::STANDARD_HONK) {
+    // if constexpr (Composer::type == ComposerType::STANDARD_HONK) {
     EXPECT_EQ(prover.wire_polynomials[0][3], fr(1));
     EXPECT_EQ(prover.wire_polynomials[1][3], fr(1));
     EXPECT_EQ(prover.wire_polynomials[2][3], fr(1));

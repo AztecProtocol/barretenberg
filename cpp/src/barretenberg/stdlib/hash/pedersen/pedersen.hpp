@@ -12,10 +12,10 @@ constexpr uint64_t WNAF_MASK = crypto::pedersen::WNAF_MASK;
 
 template <typename ComposerContext> class pedersen {
   private:
-    typedef proof_system::plonk::stdlib::field_t<ComposerContext> field_t;
-    typedef proof_system::plonk::stdlib::point<ComposerContext> point;
-    typedef proof_system::plonk::stdlib::byte_array<ComposerContext> byte_array;
-    typedef proof_system::plonk::stdlib::bool_t<ComposerContext> bool_t;
+    typedef stdlib::field_t<ComposerContext> field_t;
+    typedef stdlib::point<ComposerContext> point;
+    typedef stdlib::byte_array<ComposerContext> byte_array;
+    typedef stdlib::bool_t<ComposerContext> bool_t;
 
     static point hash_single(const field_t& in,
                              const crypto::pedersen::generator_index_t hash_index,

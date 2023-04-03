@@ -76,7 +76,7 @@ uint_native rotate(uint_native value, size_t rotation)
                     : value;
 }
 template <typename Composer> class stdlib_uint : public testing::Test {
-    typedef typename std::conditional<Composer::type == proof_system::ComposerType::PLOOKUP,
+    typedef typename std::conditional<Composer::type == ComposerType::PLOOKUP,
                                       stdlib::uint_plookup<Composer, uint_native>,
                                       stdlib::uint<Composer, uint_native>>::type uint_ct;
     typedef stdlib::bool_t<Composer> bool_ct;

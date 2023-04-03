@@ -59,7 +59,7 @@ TYPED_TEST(MultivariatesTests, FoldTwoRoundsSpecial)
     std::array<FF, 4> f0 = { v00, v10, v01, v11 };
 
     auto full_polynomials = std::array<std::span<FF>, 1>({ f0 });
-    auto transcript = proof_system::honk::ProverTranscript<FF>::init_empty();
+    auto transcript = honk::ProverTranscript<FF>::init_empty();
     auto sumcheck = Sumcheck<FF, Transcript, ArithmeticRelation>(multivariate_n, transcript);
 
     FF round_challenge_0 = { 0x6c7301b49d85a46c, 0x44311531e39c64f6, 0xb13d66d8d6c1a24c, 0x04410c360230a295 };
@@ -94,7 +94,7 @@ TYPED_TEST(MultivariatesTests, FoldTwoRoundsGeneric)
     std::array<FF, 4> f0 = { v00, v10, v01, v11 };
 
     auto full_polynomials = std::array<std::span<FF>, 1>({ f0 });
-    auto transcript = proof_system::honk::ProverTranscript<FF>::init_empty();
+    auto transcript = honk::ProverTranscript<FF>::init_empty();
     auto sumcheck = Sumcheck<FF, Transcript, ArithmeticRelation>(multivariate_n, transcript);
 
     FF round_challenge_0 = FF::random_element();
@@ -153,7 +153,7 @@ TYPED_TEST(MultivariatesTests, FoldThreeRoundsSpecial)
     std::array<FF, 8> f0 = { v000, v100, v010, v110, v001, v101, v011, v111 };
 
     auto full_polynomials = std::array<std::span<FF>, 1>({ f0 });
-    auto transcript = proof_system::honk::ProverTranscript<FF>::init_empty();
+    auto transcript = honk::ProverTranscript<FF>::init_empty();
     auto sumcheck = Sumcheck<FF, Transcript, ArithmeticRelation>(multivariate_n, transcript);
 
     FF round_challenge_0 = 1;
@@ -202,7 +202,7 @@ TYPED_TEST(MultivariatesTests, FoldThreeRoundsGeneric)
     std::array<FF, 8> f0 = { v000, v100, v010, v110, v001, v101, v011, v111 };
 
     auto full_polynomials = std::array<std::span<FF>, 1>({ f0 });
-    auto transcript = proof_system::honk::ProverTranscript<FF>::init_empty();
+    auto transcript = honk::ProverTranscript<FF>::init_empty();
     auto sumcheck = Sumcheck<FF, Transcript, ArithmeticRelation>(multivariate_n, transcript);
 
     FF round_challenge_0 = FF::random_element();
@@ -261,7 +261,7 @@ TYPED_TEST(MultivariatesTests, FoldThreeRoundsGenericMultiplePolys)
     std::array<FF, 8> f2 = { v000[2], v100[2], v010[2], v110[2], v001[2], v101[2], v011[2], v111[2] };
 
     auto full_polynomials = std::array<std::span<FF>, 3>{ f0, f1, f2 };
-    auto transcript = proof_system::honk::ProverTranscript<FF>::init_empty();
+    auto transcript = honk::ProverTranscript<FF>::init_empty();
     auto sumcheck = Sumcheck<FF, Transcript, ArithmeticRelation>(multivariate_n, transcript);
 
     std::array<FF, 3> expected_q1;

@@ -39,7 +39,7 @@ TEST(stdlib_blake2s, test_single_block)
 
 TEST(stdlib_blake2s, test_single_block_plookup)
 {
-    plonk::UltraComposer composer = proof_system::plonk::UltraComposer();
+    plonk::UltraComposer composer = UltraComposer();
     std::string input = "abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz01";
     std::vector<uint8_t> input_v(input.begin(), input.end());
 
@@ -87,7 +87,7 @@ TEST(stdlib_blake2s, test_double_block)
 
 TEST(stdlib_blake2s, test_double_block_plookup)
 {
-    plonk::UltraComposer composer = proof_system::plonk::UltraComposer();
+    plonk::UltraComposer composer = UltraComposer();
     std::string input = "abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789";
     std::vector<uint8_t> input_v(input.begin(), input.end());
 

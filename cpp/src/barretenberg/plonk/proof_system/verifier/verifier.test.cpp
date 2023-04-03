@@ -40,7 +40,7 @@ plonk::Verifier generate_verifier(std::shared_ptr<proving_key> circuit_proving_k
                                              state));
     }
 
-    auto crs = std::make_shared<proof_system::VerifierFileReferenceString>("../srs_db/ignition");
+    auto crs = std::make_shared<VerifierFileReferenceString>("../srs_db/ignition");
     std::shared_ptr<verification_key> circuit_verification_key =
         std::make_shared<verification_key>(circuit_proving_key->circuit_size,
                                            circuit_proving_key->num_public_inputs,
@@ -76,8 +76,8 @@ plonk::Prover generate_test_data(const size_t n)
 
     // even indices = mul gates, odd incides = add gates
 
-    auto crs = std::make_shared<proof_system::FileReferenceString>(n + 1, "../srs_db/ignition");
-    std::shared_ptr<proving_key> key = std::make_shared<proving_key>(n, 0, crs, proof_system::ComposerType::STANDARD);
+    auto crs = std::make_shared<FileReferenceString>(n + 1, "../srs_db/ignition");
+    std::shared_ptr<proving_key> key = std::make_shared<proving_key>(n, 0, crs, ComposerType::STANDARD);
 
     polynomial w_l(n);
     polynomial w_r(n);
@@ -232,7 +232,7 @@ plonk::Prover generate_test_data(const size_t n)
     std::unique_ptr<KateCommitmentScheme<standard_settings>> kate_commitment_scheme =
         std::make_unique<KateCommitmentScheme<standard_settings>>();
 
-    plonk::Prover state = proof_system::plonk::Prover(std::move(key), plonk::StandardComposer::create_manifest(0));
+    plonk::Prover state = plonk::Prover(std::move(key), plonk::StandardComposer::create_manifest(0));
     state.random_widgets.emplace_back(std::move(permutation_widget));
     state.transition_widgets.emplace_back(std::move(widget));
     state.commitment_scheme = std::move(kate_commitment_scheme);

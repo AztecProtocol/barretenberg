@@ -13,7 +13,7 @@ auto& engine = numeric::random::get_debug_engine();
 
 TEST(standard_plonk_composer_splitting_tmp, base_case)
 {
-    plonk::StandardPlonkComposer composer = proof_system::plonk::StandardPlonkComposer();
+    plonk::StandardPlonkComposer composer = plonk::StandardPlonkComposer();
     fr a = fr::one();
     composer.add_public_variable(a);
     plonk::Prover prover = composer.create_prover();
@@ -27,7 +27,7 @@ TEST(standard_plonk_composer_splitting_tmp, base_case)
 
 TEST(standard_plonk_composer_splitting_tmp, composer_from_serialized_keys)
 {
-    plonk::StandardPlonkComposer composer = proof_system::plonk::StandardPlonkComposer();
+    plonk::StandardPlonkComposer composer = plonk::StandardPlonkComposer();
     fr a = fr::one();
     composer.add_public_variable(a);
 
@@ -36,12 +36,12 @@ TEST(standard_plonk_composer_splitting_tmp, composer_from_serialized_keys)
     auto pk_data = from_buffer<plonk::proving_key_data>(pk_buf);
     auto vk_data = from_buffer<plonk::verification_key_data>(vk_buf);
 
-    auto crs = std::make_unique<proof_system::FileReferenceStringFactory>("../srs_db/ignition");
+    auto crs = std::make_unique<FileReferenceStringFactory>("../srs_db/ignition");
     auto proving_key =
         std::make_shared<plonk::proving_key>(std::move(pk_data), crs->get_prover_crs(pk_data.circuit_size + 1));
     auto verification_key = std::make_shared<plonk::verification_key>(std::move(vk_data), crs->get_verifier_crs());
 
-    plonk::StandardPlonkComposer composer2 = proof_system::plonk::StandardPlonkComposer(proving_key, verification_key);
+    plonk::StandardPlonkComposer composer2 = plonk::StandardPlonkComposer(proving_key, verification_key);
     composer2.add_public_variable(a);
 
     plonk::Prover prover = composer2.create_prover();
@@ -55,7 +55,7 @@ TEST(standard_plonk_composer_splitting_tmp, composer_from_serialized_keys)
 
 TEST(standard_plonk_composer_splitting_tmp, test_add_gate_proofs)
 {
-    plonk::StandardPlonkComposer composer = proof_system::plonk::StandardPlonkComposer();
+    plonk::StandardPlonkComposer composer = plonk::StandardPlonkComposer();
     fr a = fr::one();
     uint32_t a_idx = composer.add_public_variable(a);
     fr b = fr::one();
@@ -114,7 +114,7 @@ TEST(standard_plonk_composer_splitting_tmp, test_add_gate_proofs)
 
 TEST(standard_plonk_composer_splitting_tmp, test_mul_gate_proofs)
 {
-    plonk::StandardPlonkComposer composer = proof_system::plonk::StandardPlonkComposer();
+    plonk::StandardPlonkComposer composer = plonk::StandardPlonkComposer();
     fr q[7]{ fr::random_element(), fr::random_element(), fr::random_element(), fr::random_element(),
              fr::random_element(), fr::random_element(), fr::random_element() };
     fr q_inv[7]{
@@ -193,7 +193,7 @@ TEST(standard_plonk_composer_splitting_tmp, test_mul_gate_proofs)
 
 TEST(standard_plonk_composer_splitting_tmp, range_constraint)
 {
-    plonk::StandardPlonkComposer composer = proof_system::plonk::StandardPlonkComposer();
+    plonk::StandardPlonkComposer composer = plonk::StandardPlonkComposer();
 
     for (size_t i = 0; i < 10; ++i) {
         uint32_t value = engine.get_random_uint32();
@@ -236,7 +236,7 @@ TEST(standard_plonk_composer_splitting_tmp, range_constraint)
 
 TEST(standard_plonk_composer_splitting_tmp, range_constraint_fail)
 {
-    plonk::StandardPlonkComposer composer = proof_system::plonk::StandardPlonkComposer();
+    plonk::StandardPlonkComposer composer = plonk::StandardPlonkComposer();
 
     uint64_t value = 0xffffff;
     uint32_t witness_index = composer.add_variable(fr(value));
@@ -256,7 +256,7 @@ TEST(standard_plonk_composer_splitting_tmp, range_constraint_fail)
 
 TEST(standard_plonk_composer_splitting_tmp, and_constraint)
 {
-    plonk::StandardPlonkComposer composer = proof_system::plonk::StandardPlonkComposer();
+    plonk::StandardPlonkComposer composer = plonk::StandardPlonkComposer();
 
     for (size_t i = 0; i < /*10*/ 1; ++i) {
         uint32_t left_value = engine.get_random_uint32();
@@ -327,7 +327,7 @@ TEST(standard_plonk_composer_splitting_tmp, and_constraint)
 
 TEST(standard_plonk_composer_splitting_tmp, xor_constraint)
 {
-    plonk::StandardPlonkComposer composer = proof_system::plonk::StandardPlonkComposer();
+    plonk::StandardPlonkComposer composer = plonk::StandardPlonkComposer();
 
     for (size_t i = 0; i < /*10*/ 1; ++i) {
         uint32_t left_value = engine.get_random_uint32();
@@ -397,7 +397,7 @@ TEST(standard_plonk_composer_splitting_tmp, xor_constraint)
 
 TEST(standard_plonk_composer_splitting_tmp, big_add_gate_with_bit_extract)
 {
-    plonk::StandardPlonkComposer composer = proof_system::plonk::StandardPlonkComposer();
+    plonk::StandardPlonkComposer composer = plonk::StandardPlonkComposer();
 
     const auto generate_constraints = [&composer](uint32_t quad_value) {
         uint32_t quad_accumulator_left =
@@ -441,7 +441,7 @@ TEST(standard_plonk_composer_splitting_tmp, big_add_gate_with_bit_extract)
 
 TEST(standard_plonk_composer_splitting_tmp, test_range_constraint_fail)
 {
-    plonk::StandardPlonkComposer composer = proof_system::plonk::StandardPlonkComposer();
+    plonk::StandardPlonkComposer composer = plonk::StandardPlonkComposer();
     uint32_t witness_index = composer.add_variable(fr::neg_one());
     composer.decompose_into_base4_accumulators(witness_index, 32);
 
@@ -458,7 +458,7 @@ TEST(standard_plonk_composer_splitting_tmp, test_range_constraint_fail)
 
 TEST(standard_plonk_composer_splitting_tmp, test_check_circuit_correct)
 {
-    plonk::StandardPlonkComposer composer = proof_system::plonk::StandardPlonkComposer();
+    plonk::StandardPlonkComposer composer = plonk::StandardPlonkComposer();
     fr a = fr::one();
     uint32_t a_idx = composer.add_public_variable(a);
     fr b = fr::one();
@@ -478,7 +478,7 @@ TEST(standard_plonk_composer_splitting_tmp, test_check_circuit_correct)
 
 TEST(standard_plonk_composer_splitting_tmp, test_check_circuit_broken)
 {
-    plonk::StandardPlonkComposer composer = proof_system::plonk::StandardPlonkComposer();
+    plonk::StandardPlonkComposer composer = plonk::StandardPlonkComposer();
     fr a = fr::one();
     uint32_t a_idx = composer.add_public_variable(a);
     fr b = fr::one();

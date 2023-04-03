@@ -26,7 +26,7 @@ template <typename Composer> struct verify_result {
 
 template <typename Composer>
 inline bool pairing_check(plonk::stdlib::recursion::recursion_output<plonk::stdlib::bn254<Composer>> recursion_output,
-                          std::shared_ptr<proof_system::VerifierReferenceString> const& srs)
+                          std::shared_ptr<VerifierReferenceString> const& srs)
 {
     g1::affine_element P[2];
     P[0].x = barretenberg::fq(recursion_output.P0.x.get_value().lo);

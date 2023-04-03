@@ -1,10 +1,10 @@
 
 #include "acir_proofs.hpp"
-#include "barretenberg/proof_system/proving_key/serialize.hpp"
+#include "barretenberg/plonk/proof_system/proving_key/serialize.hpp"
 #include "barretenberg/dsl/acir_format/acir_format.hpp"
 #include "barretenberg/stdlib/types/types.hpp"
 #include "barretenberg/srs/reference_string/pippenger_reference_string.hpp"
-#include "barretenberg/proof_system/verification_key/sol_gen.hpp"
+#include "barretenberg/plonk/proof_system/verification_key/sol_gen.hpp"
 
 using namespace proof_system::plonk::stdlib::types;
 
@@ -13,9 +13,9 @@ namespace acir_proofs {
 size_t get_solidity_verifier(uint8_t const* g2x, uint8_t const* vk_buf, uint8_t** output_buf)
 {
     auto crs = std::make_shared<VerifierMemReferenceString>(g2x);
-    bonk::verification_key_data vk_data;
+    proof_system::plonk::verification_key_data vk_data;
     read(vk_buf, vk_data);
-    auto verification_key = std::make_shared<bonk::verification_key>(std::move(vk_data), crs);
+    auto verification_key = std::make_shared<proof_system::plonk::verification_key>(std::move(vk_data), crs);
 
     std::ostringstream stream;
     // TODO(blaine): Should we just use "VerificationKey" generically?
@@ -42,7 +42,7 @@ uint32_t get_exact_circuit_size(uint8_t const* constraint_system_buf)
 uint32_t get_total_circuit_size(uint8_t const* constraint_system_buf)
 {
     auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
-    auto crs_factory = std::make_unique<bonk::ReferenceStringFactory>();
+    auto crs_factory = std::make_unique<proof_system::ReferenceStringFactory>();
     auto composer = create_circuit(constraint_system, std::move(crs_factory));
 
     return static_cast<uint32_t>(composer.get_total_circuit_size());
@@ -138,7 +138,7 @@ bool verify_proof(
         auto crs = std::make_shared<VerifierMemReferenceString>(g2x);
         plonk::verification_key_data vk_data;
         read(vk_buf, vk_data);
-        auto verification_key = std::make_shared<plonk::verification_key>(std::move(vk_data), crs);
+        auto verification_key = std::make_shared<proof_system::plonk::verification_key>(std::move(vk_data), crs);
 
         Composer composer(nullptr, verification_key);
         create_circuit(composer, constraint_system);

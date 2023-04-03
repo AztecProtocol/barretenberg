@@ -453,7 +453,8 @@ inline void compute_first_and_last_lagrange_polynomials(auto key) // proving_key
  * @return std::array<std::vector<permutation_subgroup_element>, program_width>
  */
 template <size_t program_width, typename CircuitConstructor>
-void compute_plonk_generalized_sigma_permutations(const CircuitConstructor& circuit_constructor, bonk::proving_key* key)
+void compute_plonk_generalized_sigma_permutations(const CircuitConstructor& circuit_constructor,
+                                                  plonk::proving_key* key)
 {
     // Compute wire copy cycles for public and private variables
     auto wire_copy_cycles = compute_wire_copy_cycles<program_width>(circuit_constructor);

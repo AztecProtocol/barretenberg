@@ -8,9 +8,8 @@ using namespace barretenberg;
 extern "C" {
 
 // TODO(Cody): Removed "unrolled" here when the time comes, if it does.
-typedef std::
-    conditional_t<plonk::SYSTEM_COMPOSER == proof_system::ComposerType::TURBO, plonk::TurboProver, plonk::UltraProver>
-        WasmUnrolledProver;
+typedef std::conditional_t<plonk::SYSTEM_COMPOSER == ComposerType::TURBO, plonk::TurboProver, plonk::UltraProver>
+    WasmUnrolledProver;
 
 WASM_EXPORT void unrolled_prover_process_queue(WasmUnrolledProver* prover)
 {

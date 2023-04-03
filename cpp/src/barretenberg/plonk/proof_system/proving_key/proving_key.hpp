@@ -20,7 +20,7 @@ struct proving_key_data {
     std::vector<uint32_t> recursive_proof_public_input_indices;
     std::vector<uint32_t> memory_read_records;
     std::vector<uint32_t> memory_write_records;
-    proof_system::PolynomialStore<barretenberg::fr> polynomial_store;
+    PolynomialStore<barretenberg::fr> polynomial_store;
 };
 
 struct proving_key {
@@ -31,12 +31,12 @@ struct proving_key {
         RELATIVE_LOOKUP,
     };
 
-    proving_key(proving_key_data&& data, std::shared_ptr<proof_system::ProverReferenceString> const& crs);
+    proving_key(proving_key_data&& data, std::shared_ptr<ProverReferenceString> const& crs);
 
     proving_key(const size_t num_gates,
                 const size_t num_inputs,
-                std::shared_ptr<proof_system::ProverReferenceString> const& crs,
-                proof_system::ComposerType type);
+                std::shared_ptr<ProverReferenceString> const& crs,
+                ComposerType type);
 
     proving_key(std::ostream& is, std::string const& crs_path);
 
@@ -51,14 +51,14 @@ struct proving_key {
     std::vector<uint32_t> memory_read_records;  // Used by UltraComposer only; for ROM, RAM reads.
     std::vector<uint32_t> memory_write_records; // Used by UltraComposer only, for RAM writes.
 
-    proof_system::PolynomialStore<barretenberg::fr> polynomial_store;
+    PolynomialStore<barretenberg::fr> polynomial_store;
 
     barretenberg::evaluation_domain small_domain;
     barretenberg::evaluation_domain large_domain;
 
     // The reference_string object contains the monomial SRS. We can access it using:
     // Monomial SRS: reference_string->get_monomial_points()
-    std::shared_ptr<proof_system::ProverReferenceString> reference_string;
+    std::shared_ptr<ProverReferenceString> reference_string;
 
     barretenberg::polynomial quotient_polynomial_parts[plonk::NUM_QUOTIENT_PARTS];
 

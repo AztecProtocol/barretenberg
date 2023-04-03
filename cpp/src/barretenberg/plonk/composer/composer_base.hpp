@@ -110,7 +110,7 @@ class ComposerBase {
     virtual size_t get_total_circuit_size() const = 0;
     virtual void print_num_gates() const { std::cout << num_gates << std::endl; }
     virtual size_t get_num_variables() const { return variables.size(); }
-    virtual std::shared_ptr<proving_key> compute_proving_key_base(const proof_system::ComposerType type = STANDARD,
+    virtual std::shared_ptr<proving_key> compute_proving_key_base(const ComposerType type = STANDARD,
                                                                   const size_t minimum_ciricut_size = 0,
                                                                   const size_t num_reserved_gates = NUM_RESERVED_GATES);
     // This needs to be static as it may be used only to compute the selector commitments.

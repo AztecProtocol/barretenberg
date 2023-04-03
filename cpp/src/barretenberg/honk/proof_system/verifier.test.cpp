@@ -50,7 +50,7 @@ template <class FF> class VerifierTests : public testing::Test {
                                                  prover));
         }
 
-        auto crs = std::make_shared<proof_system::VerifierFileReferenceString>("../srs_db/ignition");
+        auto crs = std::make_shared<VerifierFileReferenceString>("../srs_db/ignition");
         auto circuit_verification_key =
             std::make_shared<plonk::verification_key>(circuit_proving_key->circuit_size,
                                                       circuit_proving_key->num_public_inputs,
@@ -82,9 +82,9 @@ template <class FF> class VerifierTests : public testing::Test {
         // Create some constraints that satisfy our arithmetic circuit relation
         // even indices = mul gates, odd incides = add gates
 
-        auto crs = std::make_shared<proof_system::FileReferenceString>(n + 1, "../srs_db/ignition");
+        auto crs = std::make_shared<FileReferenceString>(n + 1, "../srs_db/ignition");
         std::shared_ptr<plonk::proving_key> proving_key =
-            std::make_shared<plonk::proving_key>(n, 0, crs, proof_system::ComposerType::STANDARD_HONK);
+            std::make_shared<plonk::proving_key>(n, 0, crs, ComposerType::STANDARD_HONK);
 
         polynomial w_l(n);
         polynomial w_r(n);
@@ -178,8 +178,8 @@ template <class FF> class VerifierTests : public testing::Test {
         proving_key->polynomial_store.put("sigma_2_lagrange", std::move(sigma_2_lagrange_base));
         proving_key->polynomial_store.put("sigma_3_lagrange", std::move(sigma_3_lagrange_base));
 
-        proof_system::compute_standard_honk_id_polynomials<3>(proving_key);
-        proof_system::compute_first_and_last_lagrange_polynomials(proving_key);
+        compute_standard_honk_id_polynomials<3>(proving_key);
+        compute_first_and_last_lagrange_polynomials(proving_key);
 
         proving_key->polynomial_store.put("w_1_lagrange", std::move(w_l));
         proving_key->polynomial_store.put("w_2_lagrange", std::move(w_r));

@@ -4,7 +4,7 @@
 namespace proof_system::plonk {
 class TurboComposer : public ComposerBase {
   public:
-    static constexpr proof_system::ComposerType type = proof_system::ComposerType::TURBO;
+    static constexpr ComposerType type = ComposerType::TURBO;
     static constexpr MerkleHashType merkle_hash_type = MerkleHashType::FIXED_BASE_PEDERSEN;
     static constexpr size_t UINT_LOG2_BASE = 2;
     enum TurboSelectors { QM, QC, Q1, Q2, Q3, Q4, Q5, QARITH, QFIXED, QRANGE, QLOGIC, NUM };
@@ -227,10 +227,8 @@ class CheckGetter {
     }
 };
 
-using TurboArithmeticChecker =
-    proof_system::plonk::widget::TurboArithmeticKernel<barretenberg::fr, CheckGetter, TurboComposer>;
-using TurboRangeChecker = proof_system::plonk::widget::TurboRangeKernel<barretenberg::fr, CheckGetter, TurboComposer>;
-using TurboLogicChecker = proof_system::plonk::widget::TurboLogicKernel<barretenberg::fr, CheckGetter, TurboComposer>;
-using TurboFixedBaseChecker =
-    proof_system::plonk::widget::TurboFixedBaseKernel<barretenberg::fr, CheckGetter, TurboComposer>;
+using TurboArithmeticChecker = widget::TurboArithmeticKernel<barretenberg::fr, CheckGetter, TurboComposer>;
+using TurboRangeChecker = widget::TurboRangeKernel<barretenberg::fr, CheckGetter, TurboComposer>;
+using TurboLogicChecker = widget::TurboLogicKernel<barretenberg::fr, CheckGetter, TurboComposer>;
+using TurboFixedBaseChecker = widget::TurboFixedBaseKernel<barretenberg::fr, CheckGetter, TurboComposer>;
 } // namespace proof_system::plonk

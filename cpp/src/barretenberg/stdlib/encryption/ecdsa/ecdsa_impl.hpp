@@ -33,7 +33,7 @@ bool_t<Composer> verify_signature(const stdlib::byte_array<Composer>& message,
     Fr u2 = r / s;
 
     G1 result;
-    if constexpr (Composer::type == proof_system::ComposerType::PLOOKUP) {
+    if constexpr (Composer::type == ComposerType::PLOOKUP) {
         ASSERT(Curve::type == proof_system::CurveType::SECP256K1);
         public_key.validate_on_curve();
         result = G1::secp256k1_ecdsa_mul(public_key, u1, u2);

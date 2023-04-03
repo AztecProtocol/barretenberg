@@ -7,6 +7,7 @@
 #include "barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp"
 #include "barretenberg/proof_system/composer/composer_helper_lib.hpp"
 #include "barretenberg/plonk/composer/splitting_tmp/composer_helper/composer_helper_lib.hpp"
+#include "barretenberg/proof_system/composer/permutation_helper.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -64,21 +65,18 @@ std::shared_ptr<plonk::proving_key> StandardPlonkComposerHelper<CircuitConstruct
     const size_t num_randomized_gates = NUM_RANDOMIZED_GATES;
     // Initialize circuit_proving_key
     // TODO(#229)(Kesha): replace composer types.
-    circuit_proving_key = proof_system::initialize_proving_key(circuit_constructor,
-                                                               crs_factory_.get(),
-                                                               minimum_circuit_size,
-                                                               num_randomized_gates,
-                                                               proof_system::ComposerType::STANDARD);
+    circuit_proving_key = proof_system::initialize_proving_key(
+        circuit_constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, ComposerType::STANDARD);
     // Compute lagrange selectors
-    proof_system::construct_lagrange_selector_forms(circuit_constructor, circuit_proving_key.get());
+    construct_lagrange_selector_forms(circuit_constructor, circuit_proving_key.get());
     // Make all selectors nonzero
-    proof_system::enforce_nonzero_polynomial_selectors(circuit_constructor, circuit_proving_key.get());
+    enforce_nonzero_polynomial_selectors(circuit_constructor, circuit_proving_key.get());
     // Compute selectors in monomial form
     compute_monomial_and_coset_selector_forms(circuit_proving_key.get(), standard_selector_properties());
 
     // Compute sigma polynomials (we should update that late)
-    proof_system::compute_standard_plonk_sigma_permutations<CircuitConstructor::program_width>(
-        circuit_constructor, circuit_proving_key.get());
+    compute_standard_plonk_sigma_permutations<CircuitConstructor::program_width>(circuit_constructor,
+                                                                                 circuit_proving_key.get());
 
     circuit_proving_key->recursive_proof_public_input_indices =
         std::vector<uint32_t>(recursive_proof_public_input_indices.begin(), recursive_proof_public_input_indices.end());

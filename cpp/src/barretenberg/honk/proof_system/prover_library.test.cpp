@@ -47,12 +47,11 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         // Define some mock inputs for proving key constructor
         static const size_t num_gates = 8;
         static const size_t num_public_inputs = 0;
-        auto reference_string =
-            std::make_shared<proof_system::FileReferenceString>(num_gates + 1, "../srs_db/ignition");
+        auto reference_string = std::make_shared<FileReferenceString>(num_gates + 1, "../srs_db/ignition");
 
         // Instatiate a proving_key and make a pointer to it. This will be used to instantiate a Prover.
         auto proving_key = std::make_shared<plonk::proving_key>(
-            num_gates, num_public_inputs, reference_string, proof_system::ComposerType::STANDARD_HONK);
+            num_gates, num_public_inputs, reference_string, ComposerType::STANDARD_HONK);
 
         // static const size_t program_width = StandardProver::settings_::program_width;
 
@@ -157,12 +156,11 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         // Define some mock inputs for proving key constructor
         static const size_t circuit_size = 8;
         static const size_t num_public_inputs = 0;
-        auto reference_string =
-            std::make_shared<proof_system::FileReferenceString>(circuit_size + 1, "../srs_db/ignition");
+        auto reference_string = std::make_shared<FileReferenceString>(circuit_size + 1, "../srs_db/ignition");
 
         // Instatiate a proving_key and make a pointer to it. This will be used to instantiate a Prover.
         auto proving_key = std::make_shared<plonk::proving_key>(
-            circuit_size, num_public_inputs, reference_string, proof_system::ComposerType::STANDARD_HONK);
+            circuit_size, num_public_inputs, reference_string, ComposerType::STANDARD_HONK);
 
         // Construct mock wire and permutation polynomials.
         // Note: for the purpose of checking the consistency between two methods of computing z_perm, these polynomials
@@ -287,10 +285,9 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         // Construct a proving_key
         static const size_t circuit_size = 8;
         static const size_t num_public_inputs = 0;
-        auto reference_string =
-            std::make_shared<proof_system::FileReferenceString>(circuit_size + 1, "../srs_db/ignition");
+        auto reference_string = std::make_shared<FileReferenceString>(circuit_size + 1, "../srs_db/ignition");
         auto proving_key = std::make_shared<plonk::proving_key>(
-            circuit_size, num_public_inputs, reference_string, proof_system::ComposerType::STANDARD_HONK);
+            circuit_size, num_public_inputs, reference_string, ComposerType::STANDARD_HONK);
 
         // Get random challenge eta
         auto eta = FF::random_element();

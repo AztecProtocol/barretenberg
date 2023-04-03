@@ -9,7 +9,7 @@ namespace proof_system::plonk {
 #ifdef USE_TURBO
 static constexpr uint32_t SYSTEM_COMPOSER = ComposerType::TURBO;
 #else
-static constexpr uint32_t SYSTEM_COMPOSER = proof_system::ComposerType::PLOOKUP;
+static constexpr uint32_t SYSTEM_COMPOSER = ComposerType::PLOOKUP;
 #endif
 
 enum MerkleHashType {
