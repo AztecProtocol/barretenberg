@@ -42,16 +42,7 @@ template <typename Fr> class PolynomialStore {
      * @param key string ID of the polynomial
      * @return Polynomial&; a reference to the polynomial associated with the given key
      */
-    inline Polynomial& get(std::string const& key)
-    {
-        // TODO(luke): This if-else is for debugging - undo!
-        if (polynomial_map.contains(key)) {
-            return polynomial_map.at(key);
-        } else {
-            info("Key does not exist: ", key);
-            return polynomial_map[key];
-        }
-    };
+    inline Polynomial& get(std::string const& key) { return polynomial_map.at(key); };
 
     /**
      * @brief Erase the polynomial with the given key from the map if it exists. (ASSERT that it does)
@@ -63,16 +54,6 @@ template <typename Fr> class PolynomialStore {
         ASSERT(polynomial_map.contains(key));
         polynomial_map.erase(key);
     };
-
-    /**
-     * @brief Check if a key is contained in the store
-     */
-    inline bool contains(std::string const& key) const { return polynomial_map.contains(key); };
-
-    /**
-     * @brief Get size of underlying map
-     */
-    inline size_t size() const { return polynomial_map.size(); };
 
     /**
      * @brief Get the current size (bytes) of all polynomials in the PolynomialStore
@@ -102,6 +83,10 @@ template <typename Fr> class PolynomialStore {
         }
         info();
     }
+
+    // Basic map methods
+    bool contains(std::string const& key) { return polynomial_map.contains(key); };
+    size_t size() { return polynomial_map.size(); };
 
     // Allow for const range based for loop
     typename std::unordered_map<std::string, Polynomial>::const_iterator begin() const
