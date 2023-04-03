@@ -215,7 +215,7 @@ template <typename Curve> struct verification_key {
         return compressed_key;
     }
 
-    static barretenberg::fr compress_native(const std::shared_ptr<bonk::verification_key>& key)
+    static barretenberg::fr compress_native(const std::shared_ptr<bonk::verification_key>& key, const size_t hash_index = 0)
     {
         barretenberg::fr compressed_domain = evaluation_domain<Composer>::compress_native(key->domain);
 
@@ -229,28 +229,30 @@ template <typename Curve> struct verification_key {
             return limbs;
         };
 
-        std::vector<barretenberg::fr> key_witnesses;
-        key_witnesses.push_back(compressed_domain);
-        key_witnesses.push_back(key->num_public_inputs);
+        std::vector<barretenberg::fr> preimage_data;
+        // TODO: put composer type in here.
+        preimage_data.push_back(Composer::type);
+        preimage_data.push_back(compressed_domain);
+        preimage_data.push_back(key->num_public_inputs);
         for (const auto& [tag, selector] : key->commitments) {
             const auto x_limbs = split_bigfield_limbs(selector.x);
             const auto y_limbs = split_bigfield_limbs(selector.y);
 
-            key_witnesses.push_back(x_limbs[0]);
-            key_witnesses.push_back(x_limbs[1]);
-            key_witnesses.push_back(x_limbs[2]);
-            key_witnesses.push_back(x_limbs[3]);
+            preimage_data.push_back(x_limbs[0]);
+            preimage_data.push_back(x_limbs[1]);
+            preimage_data.push_back(x_limbs[2]);
+            preimage_data.push_back(x_limbs[3]);
 
-            key_witnesses.push_back(y_limbs[0]);
-            key_witnesses.push_back(y_limbs[1]);
-            key_witnesses.push_back(y_limbs[2]);
-            key_witnesses.push_back(y_limbs[3]);
+            preimage_data.push_back(y_limbs[0]);
+            preimage_data.push_back(y_limbs[1]);
+            preimage_data.push_back(y_limbs[2]);
+            preimage_data.push_back(y_limbs[3]);
         }
         barretenberg::fr compressed_key;
         if constexpr (Composer::type == ComposerType::PLOOKUP) {
-            compressed_key = crypto::pedersen_commitment::lookup::compress_native(key_witnesses);
+            compressed_key = crypto::pedersen_commitment::lookup::compress_native(preimage_data, hash_index);
         } else {
-            compressed_key = crypto::pedersen_commitment::compress_native(key_witnesses);
+            compressed_key = crypto::pedersen_commitment::compress_native(preimage_data, hash_index); // TODO: we need a hash index here!
         }
         return compressed_key;
     }

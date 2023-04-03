@@ -1,9 +1,22 @@
 #include "barretenberg/crypto/sha256/sha256.hpp"
 #include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
+#include "barretenberg/polynomials/evaluation_domain.hpp"
 #include "verification_key.hpp"
 #include "../../plonk/proof_system/constants.hpp"
 
 namespace bonk {
+
+barretenberg::fr compress_native_evaluation_domain(barretenberg::evaluation_domain const& domain) {
+    barretenberg::fr out;
+
+    out = crypto::pedersen_commitment::compress_native({
+        domain.root,
+        domain.domain,
+        domain.generator,
+    });
+    
+    return out;
+}
 
 /**
  * @brief Compress the verification key data.
@@ -17,14 +30,45 @@ namespace bonk {
  */
 barretenberg::fr verification_key_data::compress_native(const size_t hash_index)
 {
+    barretenberg::evaluation_domain domain = evaluation_domain(circuit_size);
+    barretenberg::fr compressed_domain = compress_native_evaluation_domain(domain);
+
+    constexpr size_t num_limb_bits = plonk::NUM_LIMB_BITS_IN_FIELD_SIMULATION;
+
+    const auto split_bigfield_limbs = [](const uint256_t& element) {
+        std::vector<barretenberg::fr> limbs;
+        limbs.push_back(element.slice(0, num_limb_bits));
+        limbs.push_back(element.slice(num_limb_bits, num_limb_bits * 2));
+        limbs.push_back(element.slice(num_limb_bits * 2, num_limb_bits * 3));
+        limbs.push_back(element.slice(num_limb_bits * 3, num_limb_bits * 4));
+        return limbs;
+    };
+
     std::vector<barretenberg::fr> preimage_data;
     preimage_data.emplace_back(composer_type);
-    preimage_data.emplace_back(circuit_size);
+    preimage_data.emplace_back(compressed_domain);
     preimage_data.emplace_back(num_public_inputs);
-    for (auto& commitment_entry : commitments) {
-        preimage_data.emplace_back(commitment_entry.second.x);
-        preimage_data.emplace_back(commitment_entry.second.y);
+    // for (auto& commitment_entry : commitments) {
+    //     preimage_data.emplace_back(commitment_entry.second.x);
+    //     preimage_data.emplace_back(commitment_entry.second.y);
+    // }
+    for (const auto& [tag, selector] : this->commitments) {
+        const auto x_limbs = split_bigfield_limbs(selector.x);
+        const auto y_limbs = split_bigfield_limbs(selector.y);
+
+        preimage_data.push_back(x_limbs[0]);
+        preimage_data.push_back(x_limbs[1]);
+        preimage_data.push_back(x_limbs[2]);
+        preimage_data.push_back(x_limbs[3]);
+
+        preimage_data.push_back(y_limbs[0]);
+        preimage_data.push_back(y_limbs[1]);
+        preimage_data.push_back(y_limbs[2]);
+        preimage_data.push_back(y_limbs[3]);
     }
+
+    // NOTE: this does not do the PLOOKUP version of the hash. 
+    // TODO: implement this!
     return crypto::pedersen_commitment::compress_native(preimage_data, hash_index);
 }
 

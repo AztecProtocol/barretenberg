@@ -38,7 +38,7 @@ template <typename Fr> class EvaluationDomain {
 
     const std::vector<Fr*>& get_round_roots() const { return round_roots; };
     const std::vector<Fr*>& get_inverse_round_roots() const { return inverse_round_roots; }
-
+    
     size_t size;        // n, always a power of 2
     size_t num_threads; // num_threads * thread_size = size
     size_t thread_size;
