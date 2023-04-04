@@ -10,10 +10,7 @@
   outputs = { self, nixpkgs, flake-utils }:
     let
       barretenbergOverlay = self: super: {
-        # It seems that llvmPackages_11 can't build WASI, so default to llvmPackages_12
-        barretenberg = super.callPackage ./barretenberg.nix {
-          llvmPackages = self.llvmPackages_12;
-        };
+        barretenberg = super.callPackage ./barretenberg.nix { };
         barretenberg-wasm = super.callPackage ./barretenberg-wasm.nix { };
       };
     in
@@ -34,10 +31,7 @@
                 value = pkgs.pkgsCross.aarch64-multiplatform-musl.pkgsLLVM.barretenberg;
               } ++ optional (pkgs.hostPlatform.isx86_64 && pkgs.hostPlatform.isDarwin) {
                 name = "cross-aarch64";
-                value = pkgs.pkgsCross.aarch64-darwin.barretenberg.override {
-                  # llvmPackages_12 seems to fail when we try to cross-compile but llvmPackages_11 works
-                  llvmPackages = pkgs.llvmPackages_11;
-                };
+                value = pkgs.pkgsCross.aarch64-darwin.barretenberg;
               }
             );
 
@@ -54,10 +48,10 @@
         in
         rec {
           packages = {
-            llvm11 = pkgs.barretenberg.override {
-              llvmPackages = pkgs.llvmPackages_11;
+            llvm11 = pkgs.barretenberg;
+            llvm12 = pkgs.barretenberg.override {
+              llvmPackages = pkgs.llvmPackages_12;
             };
-            llvm12 = pkgs.barretenberg;
             llvm13 = pkgs.barretenberg.override {
               llvmPackages = pkgs.llvmPackages_13;
             };
@@ -66,8 +60,7 @@
             };
             wasm32 = pkgs.barretenberg-wasm;
 
-            # Defaulting to llvm12 so we can ensure consistent shells
-            default = packages.llvm12;
+            default = packages.llvm11;
           } // crossTargets;
 
           # Provide legacyPackages with our overlay so we can run
@@ -88,6 +81,7 @@
 
             wasm32 = pkgs.mkShell.override
               {
+                # TODO: This derivations forces wasi-sdk 12 so the stdenv will have the wrong tools
                 stdenv = packages.wasm32.stdenv;
               }
               ({
