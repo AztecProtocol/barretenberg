@@ -111,6 +111,26 @@ if(WASM)
         -nostartfiles -O2 -Wl,--no-entry -Wl,--export-dynamic -Wl,--import-memory -Wl,--allow-undefined -Wl,--stack-first -Wl,-z,stack-size=1048576
     )
 
+    add_executable(
+        a3crypto.wasm
+        $<TARGET_OBJECTS:numeric_objects>
+        $<TARGET_OBJECTS:crypto_sha256_objects>
+        $<TARGET_OBJECTS:crypto_aes128_objects>
+        $<TARGET_OBJECTS:crypto_blake2s_objects>
+        $<TARGET_OBJECTS:crypto_blake3s_objects>
+        $<TARGET_OBJECTS:crypto_keccak_objects>
+        $<TARGET_OBJECTS:crypto_schnorr_objects>
+        $<TARGET_OBJECTS:crypto_pedersen_hash_objects>
+        $<TARGET_OBJECTS:crypto_pedersen_commitment_objects>
+        $<TARGET_OBJECTS:ecc_objects>
+    )
+
+    target_link_options(
+        a3crypto.wasm
+        PRIVATE
+        -nostartfiles -O2 -Wl,--no-entry -Wl,--export-dynamic -Wl,--import-memory -Wl,--allow-undefined -Wl,--stack-first -Wl,-z,stack-size=1048576
+    )
+
     find_program(WASM_OPT wasm-opt)
 
     if(NOT WASM_OPT)
@@ -121,6 +141,13 @@ if(WASM)
         TARGET barretenberg.wasm
         POST_BUILD
         COMMAND wasm-opt "$<TARGET_FILE:barretenberg.wasm>" -O2 --asyncify -o "$<TARGET_FILE:barretenberg.wasm>"
+        VERBATIM
+    )
+
+    add_custom_command(
+        TARGET a3crypto.wasm
+        POST_BUILD
+        COMMAND wasm-opt "$<TARGET_FILE:a3crypto.wasm>" -O2 --asyncify -o "$<TARGET_FILE:a3crypto.wasm>"
         VERBATIM
     )
 
