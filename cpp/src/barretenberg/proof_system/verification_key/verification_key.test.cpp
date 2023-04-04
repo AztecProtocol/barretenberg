@@ -24,7 +24,6 @@ verification_key_data rand_vk_data() {
     vk_data.commitments["test2"] = g1::element::random_element();
     vk_data.commitments["foo1"] = g1::element::random_element();
     vk_data.commitments["foo2"] = g1::element::random_element();
-    info("test0 vk_data commitments: ", vk_data.commitments);
     return vk_data;
 }
 
