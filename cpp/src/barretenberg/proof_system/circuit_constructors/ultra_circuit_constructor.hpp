@@ -1,4 +1,5 @@
 #pragma once
+#include "barretenberg/proof_system/arithmetization/arithmetization.hpp"
 #include "barretenberg/proof_system/types/polynomial_manifest.hpp"
 #include "circuit_constructor_base.hpp"
 #include "barretenberg/plonk/proof_system/constants.hpp"
@@ -145,10 +146,25 @@ inline std::vector<std::string> ultra_selector_names()
     return result;
 }
 
-class UltraCircuitConstructor : public CircuitConstructorBase<TURBO_WIDTH> {
-    enum UltraSelectors { QM, QC, Q1, Q2, Q3, Q4, QARITH, QSORT, QELLIPTIC, QAUX, QLOOKUPTYPE, NUM };
-
+class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::Ultra> {
   public:
+    std::vector<uint32_t>& w_l = std::get<0>(wires);
+    std::vector<uint32_t>& w_r = std::get<1>(wires);
+    std::vector<uint32_t>& w_o = std::get<2>(wires);
+    std::vector<uint32_t>& w_4 = std::get<3>(wires);
+
+    std::vector<barretenberg::fr>& q_m = std::get<0>(selectors);
+    std::vector<barretenberg::fr>& q_c = std::get<1>(selectors);
+    std::vector<barretenberg::fr>& q_1 = std::get<2>(selectors);
+    std::vector<barretenberg::fr>& q_2 = std::get<3>(selectors);
+    std::vector<barretenberg::fr>& q_3 = std::get<4>(selectors);
+    std::vector<barretenberg::fr>& q_4 = std::get<5>(selectors);
+    std::vector<barretenberg::fr>& q_arith = std::get<6>(selectors);
+    std::vector<barretenberg::fr>& q_sort = std::get<7>(selectors);
+    std::vector<barretenberg::fr>& q_elliptic = std::get<8>(selectors);
+    std::vector<barretenberg::fr>& q_aux = std::get<9>(selectors);
+    std::vector<barretenberg::fr>& q_lookup_type = std::get<10>(selectors);
+
     // TODO(#216)(Kesha): replace this with Honk enums after we have a verifier and no longer depend on plonk
     // prover/verifier
     static constexpr plonk::ComposerType type = plonk::ComposerType::STANDARD_HONK;
@@ -187,7 +203,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<TURBO_WIDTH> {
     bool circuit_finalised = false;
 
     UltraCircuitConstructor(const size_t size_hint = 0)
-        : CircuitConstructorBase(ultra_selector_names(), UltraSelectors::NUM, size_hint)
+        : CircuitConstructorBase(ultra_selector_names(), size_hint)
     {
         w_l.reserve(size_hint);
         w_r.reserve(size_hint);
@@ -200,7 +216,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<TURBO_WIDTH> {
     UltraCircuitConstructor(const UltraCircuitConstructor& other) = delete;
     UltraCircuitConstructor(UltraCircuitConstructor&& other) = default;
     UltraCircuitConstructor& operator=(const UltraCircuitConstructor& other) = delete;
-    UltraCircuitConstructor& operator=(UltraCircuitConstructor&& other) = default;
+    UltraCircuitConstructor& operator=(UltraCircuitConstructor&& other) = delete;
     ~UltraCircuitConstructor() override = default;
 
     void finalize_circuit();

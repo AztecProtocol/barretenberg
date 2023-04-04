@@ -5,18 +5,6 @@
 using namespace barretenberg;
 
 namespace bonk {
-#define ULTRA_SELECTOR_REFS                                                                                            \
-    auto& q_m = selectors[UltraSelectors::QM];                                                                         \
-    auto& q_c = selectors[UltraSelectors::QC];                                                                         \
-    auto& q_1 = selectors[UltraSelectors::Q1];                                                                         \
-    auto& q_2 = selectors[UltraSelectors::Q2];                                                                         \
-    auto& q_3 = selectors[UltraSelectors::Q3];                                                                         \
-    auto& q_4 = selectors[UltraSelectors::Q4];                                                                         \
-    auto& q_arith = selectors[UltraSelectors::QARITH];                                                                 \
-    auto& q_sort = selectors[UltraSelectors::QSORT];                                                                   \
-    auto& q_elliptic = selectors[UltraSelectors::QELLIPTIC];                                                           \
-    auto& q_aux = selectors[UltraSelectors::QAUX];                                                                     \
-    auto& q_lookup_type = selectors[UltraSelectors::QLOOKUPTYPE];
 
 void UltraCircuitConstructor::finalize_circuit()
 {
@@ -62,7 +50,6 @@ void UltraCircuitConstructor::finalize_circuit()
  */
 void UltraCircuitConstructor::create_add_gate(const add_triple& in)
 {
-    ULTRA_SELECTOR_REFS
     assert_valid_variables({ in.a, in.b, in.c });
 
     w_l.emplace_back(in.a);
@@ -93,7 +80,6 @@ void UltraCircuitConstructor::create_add_gate(const add_triple& in)
  */
 void UltraCircuitConstructor::create_big_add_gate(const add_quad& in, const bool include_next_gate_w_4)
 {
-    ULTRA_SELECTOR_REFS
     assert_valid_variables({ in.a, in.b, in.c, in.d });
 
     w_l.emplace_back(in.a);
@@ -185,7 +171,6 @@ void UltraCircuitConstructor::create_big_add_gate_with_bit_extraction(const add_
  */
 void UltraCircuitConstructor::create_big_mul_gate(const mul_quad& in)
 {
-    ULTRA_SELECTOR_REFS
     assert_valid_variables({ in.a, in.b, in.c, in.d });
 
     w_l.emplace_back(in.a);
@@ -210,7 +195,6 @@ void UltraCircuitConstructor::create_big_mul_gate(const mul_quad& in)
 // Can be used to normalize a 32-bit addition
 void UltraCircuitConstructor::create_balanced_add_gate(const add_quad& in)
 {
-    ULTRA_SELECTOR_REFS
     assert_valid_variables({ in.a, in.b, in.c, in.d });
 
     w_l.emplace_back(in.a);
@@ -251,7 +235,6 @@ void UltraCircuitConstructor::create_balanced_add_gate(const add_quad& in)
  */
 void UltraCircuitConstructor::create_mul_gate(const mul_triple& in)
 {
-    ULTRA_SELECTOR_REFS
     assert_valid_variables({ in.a, in.b, in.c });
 
     w_l.emplace_back(in.a);
@@ -278,7 +261,6 @@ void UltraCircuitConstructor::create_mul_gate(const mul_triple& in)
  */
 void UltraCircuitConstructor::create_bool_gate(const uint32_t variable_index)
 {
-    ULTRA_SELECTOR_REFS
     assert_valid_variables({ variable_index });
 
     w_l.emplace_back(variable_index);
@@ -307,7 +289,6 @@ void UltraCircuitConstructor::create_bool_gate(const uint32_t variable_index)
  */
 void UltraCircuitConstructor::create_poly_gate(const poly_triple& in)
 {
-    ULTRA_SELECTOR_REFS
     assert_valid_variables({ in.a, in.b, in.c });
 
     w_l.emplace_back(in.a);
@@ -348,8 +329,6 @@ void UltraCircuitConstructor::create_ecc_add_gate(const ecc_add_gate& in)
      * | -- | -- | x4 | y4 |
      *
      **/
-
-    ULTRA_SELECTOR_REFS
 
     assert_valid_variables({ in.x1, in.x2, in.x3, in.y1, in.y2, in.y3 });
 
@@ -413,7 +392,6 @@ void UltraCircuitConstructor::create_ecc_add_gate(const ecc_add_gate& in)
  */
 void UltraCircuitConstructor::fix_witness(const uint32_t witness_index, const barretenberg::fr& witness_value)
 {
-    ULTRA_SELECTOR_REFS
     assert_valid_variables({ witness_index });
 
     w_l.emplace_back(witness_index);
@@ -467,7 +445,7 @@ plookup::ReadData<uint32_t> UltraCircuitConstructor::create_gates_from_plookup_a
     const uint32_t key_a_index,
     std::optional<uint32_t> key_b_index)
 {
-    ULTRA_SELECTOR_REFS;
+    ;
     const auto& multi_table = plookup::create_table(id);
     const size_t num_lookups = read_values[plookup::ColumnIdx::C1].size();
     plookup::ReadData<uint32_t> read_data;
@@ -734,7 +712,6 @@ void UltraCircuitConstructor::process_range_lists()
 // Check for a sequence of variables that neighboring differences are at most 3 (used for batched range checkj)
 void UltraCircuitConstructor::create_sort_constraint(const std::vector<uint32_t>& variable_index)
 {
-    ULTRA_SELECTOR_REFS
     constexpr size_t gate_width = plonk::ultra_settings::program_width;
     ASSERT(variable_index.size() % gate_width == 0);
     assert_valid_variables(variable_index);
@@ -781,7 +758,6 @@ void UltraCircuitConstructor::create_sort_constraint(const std::vector<uint32_t>
 // multiples of three
 void UltraCircuitConstructor::create_dummy_constraints(const std::vector<uint32_t>& variable_index)
 {
-    ULTRA_SELECTOR_REFS
     std::vector<uint32_t> padded_list = variable_index;
     constexpr size_t gate_width = plonk::ultra_settings::program_width;
     const uint64_t padding = (gate_width - (padded_list.size() % gate_width)) % gate_width;
@@ -816,7 +792,6 @@ void UltraCircuitConstructor::create_sort_constraint_with_edges(const std::vecto
                                                                 const fr& start,
                                                                 const fr& end)
 {
-    ULTRA_SELECTOR_REFS
     // Convenient to assume size is at least 8 (gate_width = 4) for separate gates for start and end conditions
     constexpr size_t gate_width = plonk::ultra_settings::program_width;
     ASSERT(variable_index.size() % gate_width == 0 && variable_index.size() > gate_width);
@@ -997,7 +972,7 @@ std::vector<uint32_t> UltraCircuitConstructor::decompose_into_default_range_bett
  */
 void UltraCircuitConstructor::apply_aux_selectors(const AUX_SELECTORS type)
 {
-    ULTRA_SELECTOR_REFS;
+    ;
     q_aux.emplace_back(type == AUX_SELECTORS::NONE ? 0 : 1);
     q_sort.emplace_back(0);
     q_lookup_type.emplace_back(0);
@@ -1549,8 +1524,6 @@ std::array<uint32_t, 5> UltraCircuitConstructor::evaluate_non_native_field_addit
     const auto z_3 = add_variable(z_3value);
     const auto z_p = add_variable(z_pvalue);
 
-    ULTRA_SELECTOR_REFS
-
     /**
      *   we want the following layout in program memory
      *   (x - y = z)
@@ -1676,8 +1649,6 @@ std::array<uint32_t, 5> UltraCircuitConstructor::evaluate_non_native_field_subtr
     const auto z_2 = add_variable(z_2value);
     const auto z_3 = add_variable(z_3value);
     const auto z_p = add_variable(z_pvalue);
-
-    ULTRA_SELECTOR_REFS
 
     /**
      *   we want the following layout in program memory
