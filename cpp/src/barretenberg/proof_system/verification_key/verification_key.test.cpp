@@ -52,7 +52,7 @@ void expect_compressions_ne(verification_key_data vk0_data, verification_key_dat
 {
     EXPECT_NE(vk0_data.compress_native(0), vk1_data.compress_native(0));
     EXPECT_NE(vk0_data.compress_native(15), vk1_data.compress_native(15));
-    // ne hash indeces still lead to ne compressions
+    // ne hash indices still lead to ne compressions
     EXPECT_NE(vk0_data.compress_native(0), vk1_data.compress_native(15));
     EXPECT_NE(vk0_data.compress_native(14), vk1_data.compress_native(15));
 }
@@ -106,7 +106,7 @@ TEST(verification_key, compression_inequality_composer_type)
 
 TEST(verification_key, compression_inequality_different_circuit_size) \
 {
-    verification_key_data vk0_data = rand__data();
+    verification_key_data vk0_data = rand_vk_data();
     verification_key_data vk1_data = vk0_data;
     vk0_data.circuit_size = 4096;
     expect_compressions_ne(vk0_data, vk1_data);

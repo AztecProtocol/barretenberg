@@ -391,6 +391,8 @@ TEST(stdlib_bool, must_imply)
     EXPECT_EQ(result, true);
 }
 
+// TODO: must_imply failure case
+
 TEST(stdlib_bool, must_imply_multiple)
 {
     honk::StandardHonkComposer composer = honk::StandardHonkComposer();
