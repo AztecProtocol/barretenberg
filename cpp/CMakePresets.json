@@ -44,7 +44,7 @@
       "name": "clang15-dbg",
       "displayName": "Debugging build with Clang-15",
       "description": "Build with globally installed Clang-15 in debug mode",
-      "inherits": "default",
+      "inherits": "clang15",
       "environment": {
         "CC": "clang-15",
         "CXX": "clang++-15",
