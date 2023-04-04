@@ -35,7 +35,11 @@ buildEnv.mkDerivation
     [ "-DCMAKE_BUILD_TYPE=RelWithAssert" ];
 
   NIX_CFLAGS_COMPILE =
-    optionals targetPlatform.isDarwin [ " -fno-aligned-allocation" ];
+    optionals targetPlatform.isDarwin [ " -fno-aligned-allocation" ]
+    ++ optionals targetPlatform.isWasm [ "-D_WASI_EMULATED_PROCESS_CLOCKS" ];
+
+  NIX_LDFLAGS =
+    optionals targetPlatform.isWasm [ "-lwasi-emulated-process-clocks" ];
 
   enableParallelBuilding = true;
 }
