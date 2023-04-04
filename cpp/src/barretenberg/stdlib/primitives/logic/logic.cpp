@@ -23,6 +23,7 @@ field_t<Composer> logic<Composer>::create_logic_constraint(field_pt& a, field_pt
 {
     // can't extend past field size!
     ASSERT(num_bits < 254);
+    ASSERT(num_bits > 0);
     if (a.is_constant() && b.is_constant()) {
         uint256_t a_native(a.get_value());
         uint256_t b_native(b.get_value());
@@ -48,6 +49,9 @@ field_t<Composer> logic<Composer>::create_logic_constraint(field_pt& a, field_pt
         uint256_t left(a.get_value());
         uint256_t right(b.get_value());
 
+        field_pt a_accumulator(barretenberg::fr::zero());
+        field_pt b_accumulator(barretenberg::fr::zero());
+
         field_pt res(ctx, 0);
         for (size_t i = 0; i < num_chunks; ++i) {
             uint256_t left_chunk = left & ((uint256_t(1) << 32) - 1);
@@ -66,18 +70,32 @@ field_t<Composer> logic<Composer>::create_logic_constraint(field_pt& a, field_pt
             }
 
             uint256_t scaling_factor = uint256_t(1) << (32 * i);
+            a_accumulator += a_chunk * scaling_factor;
+            b_accumulator += b_chunk * scaling_factor;
             res += result_chunk * scaling_factor;
 
             if (i == num_chunks - 1) {
                 const size_t final_num_bits = num_bits - (i * 32);
                 if (final_num_bits != 32) {
-                    ctx->create_range_constraint(a_chunk.witness_index, final_num_bits, "bad range on a");
-                    ctx->create_range_constraint(b_chunk.witness_index, final_num_bits, "bad range on b");
+                    ctx->create_range_constraint(a_chunk.witness_index,
+                                                 final_num_bits,
+                                                 "stdlib logic: bad range on final chunk of left operand");
+                    ctx->create_range_constraint(b_chunk.witness_index,
+                                                 final_num_bits,
+                                                 "stdlib logic: bad range on final chunk of right operand");
                 }
             }
 
             left = left >> 32;
             right = right >> 32;
+
+            info("slicing to ", static_cast<uint8_t>(num_bits - 1));
+
+            field_pt a_slice = a.slice(static_cast<uint8_t>(num_bits - 1), 0)[1];
+            field_pt b_slice = b.slice(static_cast<uint8_t>(num_bits - 1), 0)[1];
+
+            a_slice.assert_equal(a_accumulator, "stdlib logic: failed to reconstruct left operand");
+            b_slice.assert_equal(b_accumulator, "stdlib logic: failed to reconstruct right operand");
         }
 
         return res;
