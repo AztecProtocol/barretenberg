@@ -9,9 +9,13 @@
 
   outputs = { self, nixpkgs, flake-utils }:
     let
-      barretenbergOverlay = self: super: {
-        barretenberg = super.callPackage ./barretenberg.nix { };
-        barretenberg-wasm = super.callPackage ./barretenberg-wasm.nix { };
+      barretenbergOverlay = final: prev: {
+        barretenberg = prev.callPackage ./barretenberg.nix { };
+        barretenberg-wasm = prev.callPackage ./barretenberg-wasm.nix { };
+        barretenberg-transcript00 = prev.fetchurl {
+          url = "http://aztec-ignition.s3.amazonaws.com/MAIN%20IGNITION/monomial/transcript00.dat";
+          sha256 = "sha256-D5SzlCb1pX0aF3QmJPfTFwoy4Z1sXhbyAigUOdvkhpU=";
+        };
       };
     in
     flake-utils.lib.eachDefaultSystem
