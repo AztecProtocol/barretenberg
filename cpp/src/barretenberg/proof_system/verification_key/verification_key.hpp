@@ -116,13 +116,12 @@ template <typename B> inline void write(B& buf, verification_key const& key)
 
 inline std::ostream& operator<<(std::ostream& os, verification_key const& key)
 {
-    return os
-        << "key.composer_type: " << key.composer_type << "\n"
-        << "key.circuit_size: " << static_cast<uint32_t>(key.circuit_size) << "\n"
-        << "key.num_public_inputs: " << static_cast<uint32_t>(key.num_public_inputs) << "\n"
-        << "key.commitments: " << key.commitments << "\n"
-        << "key.contains_recursive_proof: " << key.contains_recursive_proof << "\n"
-        << "key.recursive_proof_public_input_indices: " << key.recursive_proof_public_input_indices << "\n";
+    return os << "key.composer_type: " << key.composer_type << "\n"
+              << "key.circuit_size: " << static_cast<uint32_t>(key.circuit_size) << "\n"
+              << "key.num_public_inputs: " << static_cast<uint32_t>(key.num_public_inputs) << "\n"
+              << "key.commitments: " << key.commitments << "\n"
+              << "key.contains_recursive_proof: " << key.contains_recursive_proof << "\n"
+              << "key.recursive_proof_public_input_indices: " << key.recursive_proof_public_input_indices << "\n";
 };
 
 } // namespace bonk
