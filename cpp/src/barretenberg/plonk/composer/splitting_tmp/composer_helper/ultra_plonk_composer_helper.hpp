@@ -6,19 +6,6 @@
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
 #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
 
-// #include "barretenberg/plonk/composer/plookup_tables/types.hpp"
-// #include "barretenberg/srs/reference_string/file_reference_string.hpp"
-// #include "barretenberg/proof_system/proving_key/proving_key.hpp"
-// #include "barretenberg/plonk/proof_system/prover/prover.hpp"
-// #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
-// #include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
-// #include "barretenberg/honk/pcs/commitment_key.hpp"
-// #include "barretenberg/proof_system/verification_key/verification_key.hpp"
-// #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
-// #include "barretenberg/proof_system/composer/composer_base.hpp"
-// #include "barretenberg/proof_system/composer/composer_helper_lib.hpp"
-// #include "barretenberg/proof_system/composer/permutation_helper.hpp"
-
 #include <cstddef>
 #include <utility>
 
@@ -27,8 +14,11 @@ namespace plonk {
 // Cody: What does this mean?
 template <typename CircuitConstructor> class UltraPlonkComposerHelper {
   public:
-    // TODO(luke): NUM_RANDOMIZED_GATES corresponds (at least in part) to NUM_RESERVED_GATES (in ultra composer) when
-    // determining circuit size next power of 2. I'm setting in to 4 for now to match that value. Clarify this.
+    // TODO(luke): In the split composers, NUM_RANDOMIZED_GATES has replaced NUM_RESERVED_GATES (in some places) to
+    // determine the next-power-of-2 circuit size. (There are some places in this composer that still use
+    // NUM_RESERVED_GATES). Therefore for consistency within this composer itself, and consistency with the original
+    // Ultra Composer, this value must match that of NUM_RESERVED_GATES. This issue needs to be reconciled
+    // simultaneously here and in the other split composers.
     static constexpr size_t NUM_RANDOMIZED_GATES = 4; // equal to the number of multilinear evaluations leaked
     static constexpr size_t program_width = CircuitConstructor::program_width;
     std::shared_ptr<bonk::proving_key> circuit_proving_key;
@@ -40,25 +30,15 @@ template <typename CircuitConstructor> class UltraPlonkComposerHelper {
     std::vector<uint32_t> recursive_proof_public_input_indices;
     bool contains_recursive_proof = false;
     bool computed_witness = false;
-    bool circuit_finalised = false; // TODO(luke): Does this belong here or does this break our separation..
-
-    // std::vector<plookup::BasicTable> lookup_tables; // TODO(luke): Does this belong here?
-    // std::vector<plookup::MultiTable> lookup_multi_tables; // TODO(luke): Does this belong here?
 
     // This variable controls the amount with which the lookup table and witness values need to be shifted
     // above to make room for adding randomness into the permutation and witness polynomials in the plookup widget.
     // This must be (num_roots_cut_out_of_the_vanishing_polynomial - 1), since the variable num_roots_cut_out_of_
     // vanishing_polynomial cannot be trivially fetched here, I am directly setting this to 4 - 1 = 3.
-    static constexpr size_t s_randomness = 0; // TODO(luke): In Plonk this vaue is 3. Ok to just set to zero for now?
+    // Note: Set to 0 until ZK is added
+    static constexpr size_t s_randomness = 0;
 
-    UltraPlonkComposerHelper()
-        : UltraPlonkComposerHelper("../srs_db/ignition")
-    {}
-
-    UltraPlonkComposerHelper(std::string const& crs_path)
-        : UltraPlonkComposerHelper(std::unique_ptr<ReferenceStringFactory>(new FileReferenceStringFactory(crs_path))){};
-
-    UltraPlonkComposerHelper(std::shared_ptr<ReferenceStringFactory> const crs_factory)
+    explicit UltraPlonkComposerHelper(std::shared_ptr<ReferenceStringFactory> crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
 
@@ -67,9 +47,11 @@ template <typename CircuitConstructor> class UltraPlonkComposerHelper {
         , circuit_verification_key(std::move(v_key))
     {}
 
-    UltraPlonkComposerHelper(UltraPlonkComposerHelper&& other) = default;
-    UltraPlonkComposerHelper& operator=(UltraPlonkComposerHelper&& other) = default;
-    ~UltraPlonkComposerHelper() {}
+    UltraPlonkComposerHelper(UltraPlonkComposerHelper&& other) noexcept = default;
+    UltraPlonkComposerHelper(UltraPlonkComposerHelper const& other) noexcept = default;
+    UltraPlonkComposerHelper& operator=(UltraPlonkComposerHelper&& other) noexcept = default;
+    UltraPlonkComposerHelper& operator=(UltraPlonkComposerHelper const& other) noexcept = default;
+    ~UltraPlonkComposerHelper() = default;
 
     std::vector<bonk::SelectorProperties> ultra_selector_properties()
     {
@@ -117,7 +99,7 @@ template <typename CircuitConstructor> class UltraPlonkComposerHelper {
         constexpr size_t g1_size = 64;
         constexpr size_t fr_size = 32;
         const size_t public_input_size = fr_size * num_public_inputs;
-        const transcript::Manifest output = transcript::Manifest(
+        transcript::Manifest output = transcript::Manifest(
 
             { transcript::Manifest::RoundManifest(
                   { // { name, num_bytes, derived_by_verifier }

@@ -110,13 +110,11 @@ std::vector<CyclicPermutation> compute_wire_copy_cycles(const CircuitConstructor
             // of the `constructor.variables` vector.
             // Therefore, we add (i,j) to the cycle at index `var_index` to indicate that w^j_i should have the values
             // constructor.variables[var_index].
-            // info("wire_indices[", j, "][", i, "] = ", wire_indices[j][i]);
             const uint32_t var_index = circuit_constructor.real_variable_index[wire_indices[j][i]];
             const auto wire_index = static_cast<uint32_t>(j);
             const auto gate_index = static_cast<uint32_t>(i + num_public_inputs);
             copy_cycles[var_index].emplace_back(cycle_node{ wire_index, gate_index });
         }
-        // info();
     }
     return copy_cycles;
 }
@@ -307,7 +305,6 @@ inline void compute_standard_plonk_lagrange_polynomial(barretenberg::polynomial&
     ITERATE_OVER_DOMAIN_END;
 }
 
-// TODO(luke): There is some duplication now that I;ve added these more general methods. Resolve this.
 /**
  * @brief Compute lagrange polynomial from mapping (used for sigmas or ids)
  *
@@ -340,17 +337,14 @@ void compute_plonk_permutation_lagrange_polynomials_from_mapping(
  * @param key Pointer to the proving key
  */
 template <size_t program_width>
-void compute_monomial_and_coset_fft_polynomials_from_lagrange(std::string base_label, bonk::proving_key* key)
+void compute_monomial_and_coset_fft_polynomials_from_lagrange(std::string label, bonk::proving_key* key)
 {
-    // std::string base = label;
-    // std::string base = "sigma";
     for (size_t i = 0; i < program_width; ++i) {
+        std::string index = std::to_string(i + 1);
+        std::string prefix = label + "_" + index;
 
         // Construct permutation polynomials in lagrange base
-        std::string index = std::to_string(i + 1);
-
-        barretenberg::polynomial sigma_polynomial_lagrange =
-            key->polynomial_store.get(base_label + "_" + index + "_lagrange");
+        barretenberg::polynomial sigma_polynomial_lagrange = key->polynomial_store.get(prefix + "_lagrange");
         // Compute permutation polynomial monomial form
         barretenberg::polynomial sigma_polynomial(key->circuit_size);
         barretenberg::polynomial_arithmetic::ifft(
@@ -360,8 +354,8 @@ void compute_monomial_and_coset_fft_polynomials_from_lagrange(std::string base_l
         barretenberg::polynomial sigma_fft(sigma_polynomial, key->large_domain.size);
         sigma_fft.coset_fft(key->large_domain);
 
-        key->polynomial_store.put(base_label + "_" + index, std::move(sigma_polynomial));
-        key->polynomial_store.put(base_label + "_" + index + "_fft", std::move(sigma_fft));
+        key->polynomial_store.put(prefix, std::move(sigma_polynomial));
+        key->polynomial_store.put(prefix + "_fft", std::move(sigma_fft));
     }
 }
 
@@ -441,7 +435,6 @@ void compute_standard_plonk_sigma_permutations(CircuitConstructor& circuit_const
 inline void compute_first_and_last_lagrange_polynomials(auto key) // proving_key* and share_ptr<proving_key>
 {
     const size_t n = key->circuit_size;
-    // info("Computing Lagrange basis polys, the  value of n is: ",/s n);
     barretenberg::polynomial lagrange_polynomial_0(n);
     barretenberg::polynomial lagrange_polynomial_n_min_1(n);
     lagrange_polynomial_0[0] = 1;
@@ -466,12 +459,6 @@ void compute_plonk_generalized_sigma_permutations(const CircuitConstructor& circ
     auto wire_copy_cycles = compute_wire_copy_cycles<program_width>(circuit_constructor);
     std::array<std::vector<permutation_subgroup_element>, program_width> sigma_mappings;
     std::array<std::vector<permutation_subgroup_element>, program_width> id_mappings;
-
-    // for (auto& val : wire_copy_cycles[0])
-    // {
-    //     info( "gate_index = ", val.gate_index);
-    //     info( "wire_type = ", val.wire_index);
-    // }
 
     // Instantiate the sigma and id mappings by reserving enough space and pushing 'default' permutation subgroup
     // elements that point to themselves.
