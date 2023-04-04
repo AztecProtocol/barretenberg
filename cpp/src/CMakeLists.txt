@@ -111,8 +111,10 @@ if(WASM)
         -nostartfiles -O2 -Wl,--no-entry -Wl,--export-dynamic -Wl,--import-memory -Wl,--allow-undefined -Wl,--stack-first -Wl,-z,stack-size=1048576
     )
 
+    # Repeat the above but for the smaller primitives.wasm
+    # Used in packages where we don't need the full contents of barretenberg
     add_executable(
-        a3crypto.wasm
+        primitives.wasm
         $<TARGET_OBJECTS:numeric_objects>
         $<TARGET_OBJECTS:crypto_sha256_objects>
         $<TARGET_OBJECTS:crypto_aes128_objects>
@@ -126,7 +128,7 @@ if(WASM)
     )
 
     target_link_options(
-        a3crypto.wasm
+        primitives.wasm
         PRIVATE
         -nostartfiles -O2 -Wl,--no-entry -Wl,--export-dynamic -Wl,--import-memory -Wl,--allow-undefined -Wl,--stack-first -Wl,-z,stack-size=1048576
     )
@@ -145,9 +147,9 @@ if(WASM)
     )
 
     add_custom_command(
-        TARGET a3crypto.wasm
+        TARGET primitives.wasm
         POST_BUILD
-        COMMAND wasm-opt "$<TARGET_FILE:a3crypto.wasm>" -O2 --asyncify -o "$<TARGET_FILE:a3crypto.wasm>"
+        COMMAND wasm-opt "$<TARGET_FILE:primitives.wasm>" -O2 -o "$<TARGET_FILE:primitives.wasm>"
         VERBATIM
     )
 
