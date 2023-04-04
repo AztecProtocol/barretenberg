@@ -119,6 +119,8 @@ if(WASM)
         # version of wasi-sdk is used.
         #
         # This list is starting as the required wasm functions that Noir needs but can be expanded in the future.
+        -Wl,--export=bbmalloc
+        -Wl,--export=bbfree
         -Wl,--export=blake2s_to_field
         -Wl,--export=acir_proofs_get_solidity_verifier
         -Wl,--export=acir_proofs_get_exact_circuit_size
