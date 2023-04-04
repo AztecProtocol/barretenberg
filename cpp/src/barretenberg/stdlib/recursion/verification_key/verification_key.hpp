@@ -5,7 +5,6 @@
 
 #include "barretenberg/plonk/proof_system/types/polynomial_manifest.hpp"
 
-#include "barretenberg/plonk/proof_system/utils/kate_verification.hpp"
 #include "barretenberg/plonk/proof_system/public_inputs/public_inputs.hpp"
 
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"
@@ -188,34 +187,36 @@ template <typename Curve> struct verification_key {
     }
 
   public:
-    field_t<Composer> compress()
+    field_t<Composer> compress(size_t const hash_index = 0)
     {
         field_t<Composer> compressed_domain = domain.compress();
 
-        std::vector<field_t<Composer>> key_witnesses;
-        key_witnesses.push_back(compressed_domain);
-        key_witnesses.push_back(num_public_inputs);
+        std::vector<field_t<Composer>> preimage_data;
+        preimage_data.push_back(Composer::type);
+        preimage_data.push_back(compressed_domain);
+        preimage_data.push_back(num_public_inputs);
         for (const auto& [tag, selector] : commitments) {
-            key_witnesses.push_back(selector.x.binary_basis_limbs[0].element);
-            key_witnesses.push_back(selector.x.binary_basis_limbs[1].element);
-            key_witnesses.push_back(selector.x.binary_basis_limbs[2].element);
-            key_witnesses.push_back(selector.x.binary_basis_limbs[3].element);
-            key_witnesses.push_back(selector.y.binary_basis_limbs[0].element);
-            key_witnesses.push_back(selector.y.binary_basis_limbs[1].element);
-            key_witnesses.push_back(selector.y.binary_basis_limbs[2].element);
-            key_witnesses.push_back(selector.y.binary_basis_limbs[3].element);
+            preimage_data.push_back(selector.x.binary_basis_limbs[0].element);
+            preimage_data.push_back(selector.x.binary_basis_limbs[1].element);
+            preimage_data.push_back(selector.x.binary_basis_limbs[2].element);
+            preimage_data.push_back(selector.x.binary_basis_limbs[3].element);
+            preimage_data.push_back(selector.y.binary_basis_limbs[0].element);
+            preimage_data.push_back(selector.y.binary_basis_limbs[1].element);
+            preimage_data.push_back(selector.y.binary_basis_limbs[2].element);
+            preimage_data.push_back(selector.y.binary_basis_limbs[3].element);
         }
 
         field_t<Composer> compressed_key;
         if constexpr (Composer::type == ComposerType::PLOOKUP) {
-            compressed_key = pedersen_plookup_commitment<Composer>::compress(key_witnesses);
+            compressed_key = pedersen_plookup_commitment<Composer>::compress(preimage_data, hash_index);
         } else {
-            compressed_key = pedersen_commitment<Composer>::compress(key_witnesses);
+            compressed_key = pedersen_commitment<Composer>::compress(preimage_data, hash_index);
         }
         return compressed_key;
     }
 
-    static barretenberg::fr compress_native(const std::shared_ptr<plonk::verification_key>& key)
+    static barretenberg::fr compress_native(const std::shared_ptr<plonk::verification_key>& key,
+                                            const size_t hash_index = 0)
     {
         barretenberg::fr compressed_domain = evaluation_domain<Composer>::compress_native(key->domain);
 
@@ -229,28 +230,30 @@ template <typename Curve> struct verification_key {
             return limbs;
         };
 
-        std::vector<barretenberg::fr> key_witnesses;
-        key_witnesses.push_back(compressed_domain);
-        key_witnesses.push_back(key->num_public_inputs);
+        std::vector<barretenberg::fr> preimage_data;
+        preimage_data.push_back(Composer::type);
+        preimage_data.push_back(compressed_domain);
+        preimage_data.push_back(key->num_public_inputs);
         for (const auto& [tag, selector] : key->commitments) {
             const auto x_limbs = split_bigfield_limbs(selector.x);
             const auto y_limbs = split_bigfield_limbs(selector.y);
 
-            key_witnesses.push_back(x_limbs[0]);
-            key_witnesses.push_back(x_limbs[1]);
-            key_witnesses.push_back(x_limbs[2]);
-            key_witnesses.push_back(x_limbs[3]);
+            preimage_data.push_back(x_limbs[0]);
+            preimage_data.push_back(x_limbs[1]);
+            preimage_data.push_back(x_limbs[2]);
+            preimage_data.push_back(x_limbs[3]);
 
-            key_witnesses.push_back(y_limbs[0]);
-            key_witnesses.push_back(y_limbs[1]);
-            key_witnesses.push_back(y_limbs[2]);
-            key_witnesses.push_back(y_limbs[3]);
+            preimage_data.push_back(y_limbs[0]);
+            preimage_data.push_back(y_limbs[1]);
+            preimage_data.push_back(y_limbs[2]);
+            preimage_data.push_back(y_limbs[3]);
         }
+
         barretenberg::fr compressed_key;
         if constexpr (Composer::type == ComposerType::PLOOKUP) {
-            compressed_key = crypto::pedersen_commitment::lookup::compress_native(key_witnesses);
+            compressed_key = crypto::pedersen_commitment::lookup::compress_native(preimage_data, hash_index);
         } else {
-            compressed_key = crypto::pedersen_commitment::compress_native(key_witnesses);
+            compressed_key = crypto::pedersen_commitment::compress_native(preimage_data, hash_index);
         }
         return compressed_key;
     }
