@@ -21,9 +21,12 @@ namespace bonk {
  */
 barretenberg::fr compress_native_evaluation_domain(barretenberg::evaluation_domain const& domain,
                                                    plonk::ComposerType composer_type)
+{
+    barretenberg::fr out;
     if (composer_type == plonk::ComposerType::PLOOKUP) {
         out = crypto::pedersen_commitment::lookup::compress_native({
             domain.root,
+            domain.domain,
             domain.generator,
         });
     } else {
