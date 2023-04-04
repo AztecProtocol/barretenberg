@@ -26,7 +26,7 @@ verification_key_data rand_vk_data(plonk::ComposerType composer_type)
     return key_data;
 }
 
-TEST(stdlib_verification_key, native_compress_comparison)
+TEST(stdlib_verification_key, compress_native_comparison)
 {
     // Compute compression of native verification key (i.e. vk_data)
     auto crs = std::make_unique<bonk::FileReferenceStringFactory>("../srs_db/ignition");
