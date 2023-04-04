@@ -1,9 +1,43 @@
 #include "barretenberg/crypto/sha256/sha256.hpp"
 #include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
+#include "barretenberg/crypto/pedersen_commitment/pedersen_lookup.hpp"
+#include "barretenberg/polynomials/evaluation_domain.hpp"
 #include "verification_key.hpp"
 #include "../../plonk/proof_system/constants.hpp"
 
 namespace bonk {
+
+/**
+ * @brief Hashes the evaluation domain to match the 'circuit' approach taken in
+ * stdlib/recursion/verification_key/verification_key.hpp.
+ * @note: in that reference file, the circuit-equivalent of this function is a _method_ of the `evaluation_domain'
+ * struct. But we cannot do that with the native `barretenberg::evaluation_domain` type unfortunately, because it's
+ * defined in polynomials/evaluation_domain.hpp, and `polynomial` is a bberg library which does not depend on `crypto`
+ * in its CMakeLists.txt file. (We'd need `crypto` to be able to call native pedersen functions).
+ *
+ * @param domain to compress
+ * @param composer_type to use when choosing pedersen compression function
+ * @return barretenberg::fr compression of the evaluation domain as a field
+ */
+barretenberg::fr compress_native_evaluation_domain(barretenberg::evaluation_domain const& domain,
+                                                   plonk::ComposerType composer_type)
+{
+    barretenberg::fr out;
+    if (composer_type == plonk::ComposerType::PLOOKUP) {
+        out = crypto::pedersen_commitment::lookup::compress_native({
+            domain.root,
+            domain.domain,
+            domain.generator,
+        });
+    } else {
+        out = crypto::pedersen_commitment::compress_native({
+            domain.root,
+            domain.domain,
+            domain.generator,
+        });
+    }
+    return out;
+}
 
 /**
  * @brief Compress the verification key data.
@@ -17,15 +51,46 @@ namespace bonk {
  */
 barretenberg::fr verification_key_data::compress_native(const size_t hash_index)
 {
+    barretenberg::evaluation_domain domain = evaluation_domain(circuit_size);
+    barretenberg::fr compressed_domain = compress_native_evaluation_domain(domain, plonk::ComposerType(composer_type));
+
+    constexpr size_t num_limb_bits = plonk::NUM_LIMB_BITS_IN_FIELD_SIMULATION;
+
+    const auto split_bigfield_limbs = [](const uint256_t& element) {
+        std::vector<barretenberg::fr> limbs;
+        limbs.push_back(element.slice(0, num_limb_bits));
+        limbs.push_back(element.slice(num_limb_bits, num_limb_bits * 2));
+        limbs.push_back(element.slice(num_limb_bits * 2, num_limb_bits * 3));
+        limbs.push_back(element.slice(num_limb_bits * 3, num_limb_bits * 4));
+        return limbs;
+    };
+
     std::vector<barretenberg::fr> preimage_data;
     preimage_data.emplace_back(composer_type);
-    preimage_data.emplace_back(circuit_size);
+    preimage_data.emplace_back(compressed_domain);
     preimage_data.emplace_back(num_public_inputs);
-    for (auto& commitment_entry : commitments) {
-        preimage_data.emplace_back(commitment_entry.second.x);
-        preimage_data.emplace_back(commitment_entry.second.y);
+    for (const auto& [tag, selector] : commitments) {
+        const auto x_limbs = split_bigfield_limbs(selector.x);
+        const auto y_limbs = split_bigfield_limbs(selector.y);
+
+        preimage_data.push_back(x_limbs[0]);
+        preimage_data.push_back(x_limbs[1]);
+        preimage_data.push_back(x_limbs[2]);
+        preimage_data.push_back(x_limbs[3]);
+
+        preimage_data.push_back(y_limbs[0]);
+        preimage_data.push_back(y_limbs[1]);
+        preimage_data.push_back(y_limbs[2]);
+        preimage_data.push_back(y_limbs[3]);
     }
-    return crypto::pedersen_commitment::compress_native(preimage_data, hash_index);
+
+    barretenberg::fr compressed_key;
+    if (plonk::ComposerType(composer_type) == plonk::ComposerType::PLOOKUP) {
+        compressed_key = crypto::pedersen_commitment::lookup::compress_native(preimage_data, hash_index);
+    } else {
+        compressed_key = crypto::pedersen_commitment::compress_native(preimage_data, hash_index);
+    }
+    return compressed_key;
 }
 
 verification_key::verification_key(const size_t num_gates,
