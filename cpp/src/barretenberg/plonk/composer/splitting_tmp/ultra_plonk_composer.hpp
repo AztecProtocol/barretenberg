@@ -280,11 +280,14 @@ class UltraPlonkComposer {
     // plookup::BasicTable& get_table(const plookup::BasicTableId id);
     // plookup::MultiTable& create_table(const plookup::MultiTableId id);
 
-    // plookup::ReadData<uint32_t> create_gates_from_plookup_accumulators(
-    //     const plookup::MultiTableId& id,
-    //     const plookup::ReadData<barretenberg::fr>& read_values,
-    //     const uint32_t key_a_index,
-    //     std::optional<uint32_t> key_b_index = std::nullopt);
+    plookup::ReadData<uint32_t> create_gates_from_plookup_accumulators(
+        const plookup::MultiTableId& id,
+        const plookup::ReadData<barretenberg::fr>& read_values,
+        const uint32_t key_a_index,
+        std::optional<uint32_t> key_b_index = std::nullopt)
+    {
+        return circuit_constructor.create_gates_from_plookup_accumulators(id, read_values, key_a_index, key_b_index);
+    };
 
     // /**
     //  * Generalized Permutation Methods

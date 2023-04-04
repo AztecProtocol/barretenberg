@@ -445,7 +445,6 @@ plookup::ReadData<uint32_t> UltraCircuitConstructor::create_gates_from_plookup_a
     const uint32_t key_a_index,
     std::optional<uint32_t> key_b_index)
 {
-    ;
     const auto& multi_table = plookup::create_table(id);
     const size_t num_lookups = read_values[plookup::ColumnIdx::C1].size();
     plookup::ReadData<uint32_t> read_data;
@@ -972,7 +971,6 @@ std::vector<uint32_t> UltraCircuitConstructor::decompose_into_default_range_bett
  */
 void UltraCircuitConstructor::apply_aux_selectors(const AUX_SELECTORS type)
 {
-    ;
     q_aux.emplace_back(type == AUX_SELECTORS::NONE ? 0 : 1);
     q_sort.emplace_back(0);
     q_lookup_type.emplace_back(0);
