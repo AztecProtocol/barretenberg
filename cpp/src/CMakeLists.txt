@@ -103,7 +103,7 @@ if(WASM)
         barretenberg.wasm
         PRIVATE
         -nostartfiles
-        -O2
+        -O0
         -Wl,--strip-all
         -Wl,--no-entry
         -Wl,--import-memory
