@@ -15,7 +15,8 @@ using namespace bonk;
  *
  * @return verification_key_data randomly generated
  */
-verification_key_data rand_vk_data() {
+verification_key_data rand_vk_data()
+{
     verification_key_data key_data;
     key_data.composer_type = static_cast<uint32_t>(plonk::ComposerType::STANDARD);
     key_data.circuit_size = 1024; // not random - must be power of 2
@@ -103,7 +104,7 @@ TEST(verification_key, compression_inequality_composer_type)
     expect_compressions_ne(key0_data, key1_data);
 }
 
-TEST(verification_key, compression_inequality_different_circuit_size) \
+TEST(verification_key, compression_inequality_different_circuit_size)
 {
     verification_key_data key0_data = rand_vk_data();
     verification_key_data key1_data = key0_data;
@@ -111,7 +112,7 @@ TEST(verification_key, compression_inequality_different_circuit_size) \
     expect_compressions_ne(key0_data, key1_data);
 }
 
-TEST(verification_key, compression_inequality_different_num_public_inputs) \
+TEST(verification_key, compression_inequality_different_num_public_inputs)
 {
     verification_key_data key0_data = rand_vk_data();
     verification_key_data key1_data = key0_data;
@@ -119,7 +120,7 @@ TEST(verification_key, compression_inequality_different_num_public_inputs) \
     expect_compressions_ne(key0_data, key1_data);
 }
 
-TEST(verification_key, compression_inequality_different_commitments) \
+TEST(verification_key, compression_inequality_different_commitments)
 {
     verification_key_data key0_data = rand_vk_data();
     verification_key_data key1_data = key0_data;
@@ -127,7 +128,7 @@ TEST(verification_key, compression_inequality_different_commitments) \
     expect_compressions_ne(key0_data, key1_data);
 }
 
-TEST(verification_key, compression_inequality_different_num_commitments) \
+TEST(verification_key, compression_inequality_different_num_commitments)
 {
     verification_key_data key0_data = rand_vk_data();
     verification_key_data key1_data = key0_data;
@@ -135,7 +136,7 @@ TEST(verification_key, compression_inequality_different_num_commitments) \
     expect_compressions_ne(key0_data, key1_data);
 }
 
-TEST(verification_key, compression_equality_different_contains_recursive_proof) \
+TEST(verification_key, compression_equality_different_contains_recursive_proof)
 {
     verification_key_data key0_data = rand_vk_data();
     verification_key_data key1_data = key0_data;
@@ -144,7 +145,7 @@ TEST(verification_key, compression_equality_different_contains_recursive_proof) 
     expect_compressions_eq(key0_data, key1_data);
 }
 
-TEST(verification_key, compression_equality_different_recursive_proof_public_input_indices) \
+TEST(verification_key, compression_equality_different_recursive_proof_public_input_indices)
 {
     verification_key_data key0_data = rand_vk_data();
     verification_key_data key1_data = key0_data;

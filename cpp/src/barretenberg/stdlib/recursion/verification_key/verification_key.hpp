@@ -5,7 +5,6 @@
 
 #include "barretenberg/proof_system/types/polynomial_manifest.hpp"
 
-#include "barretenberg/plonk/proof_system/utils/kate_verification.hpp"
 #include "barretenberg/plonk/proof_system/public_inputs/public_inputs.hpp"
 
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"
@@ -216,7 +215,8 @@ template <typename Curve> struct verification_key {
         return compressed_key;
     }
 
-    static barretenberg::fr compress_native(const std::shared_ptr<bonk::verification_key>& key, const size_t hash_index = 0)
+    static barretenberg::fr compress_native(const std::shared_ptr<bonk::verification_key>& key,
+                                            const size_t hash_index = 0)
     {
         barretenberg::fr compressed_domain = evaluation_domain<Composer>::compress_native(key->domain);
 
@@ -248,6 +248,7 @@ template <typename Curve> struct verification_key {
             preimage_data.push_back(y_limbs[2]);
             preimage_data.push_back(y_limbs[3]);
         }
+
         barretenberg::fr compressed_key;
         if constexpr (Composer::type == ComposerType::PLOOKUP) {
             compressed_key = crypto::pedersen_commitment::lookup::compress_native(preimage_data, hash_index);
