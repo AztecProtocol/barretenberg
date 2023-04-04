@@ -115,11 +115,13 @@ if(WASM)
     # Used in packages where we don't need the full contents of barretenberg
     add_executable(
         primitives.wasm
+        $<TARGET_OBJECTS:srs_objects>
         $<TARGET_OBJECTS:numeric_objects>
         $<TARGET_OBJECTS:crypto_sha256_objects>
         $<TARGET_OBJECTS:crypto_aes128_objects>
         $<TARGET_OBJECTS:crypto_blake2s_objects>
         $<TARGET_OBJECTS:crypto_blake3s_objects>
+        $<TARGET_OBJECTS:crypto_generators_objects>
         $<TARGET_OBJECTS:crypto_keccak_objects>
         $<TARGET_OBJECTS:crypto_schnorr_objects>
         $<TARGET_OBJECTS:crypto_pedersen_hash_objects>
