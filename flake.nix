@@ -14,6 +14,7 @@
         barretenberg = super.callPackage ./barretenberg.nix {
           llvmPackages = self.llvmPackages_12;
         };
+        barretenberg-wasm = super.callPackage ./barretenberg-wasm.nix { };
       };
     in
     flake-utils.lib.eachDefaultSystem
@@ -63,7 +64,7 @@
             llvm14 = pkgs.barretenberg.override {
               llvmPackages = pkgs.llvmPackages_14;
             };
-            wasm32 = pkgs.pkgsCross.wasi32.barretenberg;
+            wasm32 = pkgs.barretenberg-wasm;
 
             # Defaulting to llvm12 so we can ensure consistent shells
             default = packages.llvm12;
