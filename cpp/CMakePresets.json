@@ -46,8 +46,6 @@
       "description": "Build with globally installed Clang-15 in debug mode",
       "inherits": "clang15",
       "environment": {
-        "CC": "clang-15",
-        "CXX": "clang++-15",
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },
