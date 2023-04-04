@@ -20,8 +20,7 @@ namespace plonk {
  * elsewhere.
  */
 template <typename CircuitConstructor>
-void UltraPlonkComposerHelper<CircuitConstructor>::compute_witness(CircuitConstructor& circuit_constructor,
-                                                                   const size_t minimum_circuit_size)
+void UltraPlonkComposerHelper<CircuitConstructor>::compute_witness(CircuitConstructor& circuit_constructor)
 {
     if (computed_witness) {
         return;
@@ -51,8 +50,7 @@ void UltraPlonkComposerHelper<CircuitConstructor>::compute_witness(CircuitConstr
 
     // TODO(luke): subgroup size was already computed above but compute_witness_base computes it again. If we pass in
     // NUM_RANDOMIZED_GATES (as in the other split composers) the resulting sizes can differ. Reconcile this.
-    auto wire_polynomial_evaluations =
-        compute_witness_base(circuit_constructor, minimum_circuit_size, NUM_RANDOMIZED_GATES);
+    auto wire_polynomial_evaluations = compute_witness_base(circuit_constructor, total_num_gates, NUM_RANDOMIZED_GATES);
 
     for (size_t j = 0; j < program_width; ++j) {
         std::string index = std::to_string(j + 1);
@@ -225,10 +223,6 @@ std::shared_ptr<proving_key> UltraPlonkComposerHelper<CircuitConstructor>::compu
         tables_size += table.size;
         lookups_size += table.lookup_gates.size();
     }
-
-    info("fake proving key tables_size = ", tables_size);
-    info("fake proving key lookups_size = ", lookups_size);
-    info("fake proving key num_gates = ", circuit_constructor.num_gates);
 
     const size_t minimum_circuit_size = tables_size + lookups_size;
     const size_t num_randomized_gates = NUM_RANDOMIZED_GATES;

@@ -35,8 +35,7 @@ template <typename CircuitConstructor> class UltraPlonkComposerHelper {
     // above to make room for adding randomness into the permutation and witness polynomials in the plookup widget.
     // This must be (num_roots_cut_out_of_the_vanishing_polynomial - 1), since the variable num_roots_cut_out_of_
     // vanishing_polynomial cannot be trivially fetched here, I am directly setting this to 4 - 1 = 3.
-    // Note: Set to 0 until ZK is added
-    static constexpr size_t s_randomness = 0;
+    static constexpr size_t s_randomness = 3;
 
     explicit UltraPlonkComposerHelper(std::shared_ptr<ReferenceStringFactory> crs_factory)
         : crs_factory_(std::move(crs_factory))
@@ -79,7 +78,7 @@ template <typename CircuitConstructor> class UltraPlonkComposerHelper {
     std::shared_ptr<bonk::proving_key> compute_proving_key(const CircuitConstructor& circuit_constructor);
     std::shared_ptr<bonk::verification_key> compute_verification_key(const CircuitConstructor& circuit_constructor);
 
-    void compute_witness(CircuitConstructor& circuit_constructor, const size_t minimum_circuit_size = 0);
+    void compute_witness(CircuitConstructor& circuit_constructor);
 
     UltraProver create_prover(CircuitConstructor& circuit_constructor);
     UltraVerifier create_verifier(const CircuitConstructor& circuit_constructor);
