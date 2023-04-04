@@ -102,10 +102,43 @@ if(WASM)
     target_link_options(
         barretenberg.wasm
         PRIVATE
-        -nostartfiles -O2 -Wl,--no-entry -Wl,--export-dynamic -Wl,--import-memory -Wl,--allow-undefined -Wl,--stack-first -Wl,-z,stack-size=1048576
+        -nostartfiles
+        -O2
+        -Wl,--strip-all
+        -Wl,--no-entry
+        -Wl,--import-memory
+        -Wl,--allow-undefined
+        -Wl,--stack-first
+        -Wl,-z,stack-size=1048576
+        # TODO(blaine): Figure out how to get `visibility("default")` attribute to work with wasm exports
+        # so we don't need to list everything we want exported.
+        #
+        # Currently, an absurd amount of symbols are exported, which results in a bloated wasm module
+        # that imports filesystem APIs and other things that stop us from upgrading wasi-sdk. However,
+        # if we limit the exports with the `--export` flag, we get a module that works no matter which
+        # version of wasi-sdk is used.
+        #
+        # This list is starting as the required wasm functions that Noir needs but can be expanded in the future.
+        -Wl,--export=blake2s_to_field
+        -Wl,--export=acir_proofs_get_solidity_verifier
+        -Wl,--export=acir_proofs_get_exact_circuit_size
+        -Wl,--export=acir_proofs_get_total_circuit_size
+        -Wl,--export=acir_proofs_init_proving_key
+        -Wl,--export=acir_proofs_init_verification_key
+        -Wl,--export=acir_proofs_new_proof
+        -Wl,--export=acir_proofs_verify_proof
+        -Wl,--export=pedersen_plookup_compress_fields
+        -Wl,--export=pedersen_plookup_compress
+        -Wl,--export=pedersen_plookup_commit
+        -Wl,--export=new_pippenger
+        -Wl,--export=compute_public_key
+        -Wl,--export=construct_signature
+        -Wl,--export=construct_signature
+        -Wl,--export=verify_signature
     )
 
     # TODO(blaine): Figure out how to Asyncify the wasm output.
+    #
     # Binaryen's Asyncify transform produces wasm that has too many local variables to run in a WebAssembly
     # instance. This likely would be "solved" by enabling the optimizations to reduce the number of locals,
     # but using any optimization level results in a wasm file that takes an unusable amount of time to solve the
