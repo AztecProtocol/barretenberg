@@ -63,7 +63,7 @@ barretenberg::fr verification_key_data::compress_native(const size_t hash_index)
     preimage_data.emplace_back(composer_type);
     preimage_data.emplace_back(compressed_domain);
     preimage_data.emplace_back(num_public_inputs);
-    for (const auto& [tag, selector] : this->commitments) {
+    for (const auto& [tag, selector] : commitments) {
         const auto x_limbs = split_bigfield_limbs(selector.x);
         const auto y_limbs = split_bigfield_limbs(selector.y);
 
