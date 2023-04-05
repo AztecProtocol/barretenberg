@@ -53,6 +53,23 @@ template <typename Composer> class stdlib_array : public testing::Test {
         EXPECT_EQ(proof_result, true);
     }
 
+    static void test_array_length_null()
+    {
+        Composer composer = Composer();
+
+        std::array<field_ct, 0> values_ct;
+        auto filled_len = array_length<Composer>(values_ct);
+        EXPECT_EQ(filled_len.get_value(), 0);
+        EXPECT_TRUE(filled_len.is_constant());
+
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
+        auto proof = prover.construct_proof();
+        info("composer gates = ", composer.get_num_gates());
+        bool proof_result = verifier.verify_proof(proof);
+        EXPECT_EQ(proof_result, true);
+    }
+
     static void test_array_length_fails()
     {
         Composer composer = Composer();
@@ -285,7 +302,7 @@ template <typename Composer> class stdlib_array : public testing::Test {
         }
 
         bool proof_result = false;
-        if (composer.err().empty()) {
+        if (!composer.failed()) {
             auto prover = composer.create_prover();
             auto verifier = composer.create_verifier();
             auto proof = prover.construct_proof();
@@ -615,6 +632,10 @@ TYPED_TEST_SUITE(stdlib_array, ComposerTypes);
 TYPED_TEST(stdlib_array, test_array_length)
 {
     TestFixture::test_array_length();
+}
+TYPED_TEST(stdlib_array, test_array_length_null)
+{
+    TestFixture::test_array_length_null();
 }
 TYPED_TEST(stdlib_array, test_array_length_fails)
 {
