@@ -2,10 +2,10 @@ import { FileCrs, SRS_DEV_PATH } from '../crs/index.js';
 import { BarretenbergWasm } from './barretenberg_wasm.js';
 
 describe('basic barretenberg smoke test', () => {
-  const wasm: BarretenbergWasm = new BarretenbergWasm();
+  let wasm: BarretenbergWasm;
 
   beforeAll(async () => {
-    await wasm.init();
+    wasm = await BarretenbergWasm.new();
   });
 
   it('should correctly pass CRS data through env_load_verifier_crs', async () => {

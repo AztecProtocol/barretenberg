@@ -1,4 +1,4 @@
-import { WasmModule } from '@aztec/foundation/wasm';
+import { WasmModule } from './module/index.js';
 
 import isNode from 'detect-node';
 import { readFile } from 'fs/promises';
@@ -40,7 +40,7 @@ export class BarretenbergWasm {
     await barretenberg.init(initial);
     return barretenberg;
   }
-  constructor(private crs: Crs, private loggerName?: string) {}
+  constructor(private crs: Crs) {}
 
   /**
    * We need to let bb.js know about the CRS.
@@ -96,8 +96,7 @@ export class BarretenbergWasm {
           return crsPtr;
         },
         memory: module.getRawMemory(),
-      }),
-      this.loggerName,
+      })
     );
     await wasm.init(initial, maximum);
   }
