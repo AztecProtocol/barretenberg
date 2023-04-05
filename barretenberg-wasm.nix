@@ -1,14 +1,7 @@
-{ stdenv, cmake, ninja, binaryen, fetchzip }:
+{ stdenv, cmake, ninja, binaryen, callPackage }:
 let
-  hostPlatform = stdenv.hostPlatform;
   toolchain_file = ./cpp/cmake/toolchains/wasm32-wasi.cmake;
-  WASI_VERSION = "12";
-  OS = if hostPlatform.isDarwin then "macos" else if hostPlatform.isLinux then "linux" else "";
-  HASH = if hostPlatform.isDarwin then "sha256-zDlPPmH1mtpA66LZ8iS5AVZUWL5DY3v9YLs3qNN7y1U=" else if hostPlatform.isLinux then "sha256-ctDMbtbjFGwRbudp+eONU912trHtI1gyQVtBCmFeIFw=" else "";
-  wasisdk = fetchzip {
-    url = "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${WASI_VERSION}/wasi-sdk-${WASI_VERSION}.0-${OS}.tar.gz";
-    sha256 = HASH;
-  };
+  wasi-sdk = callPackage ./wasi-sdk.nix { };
 in
 stdenv.mkDerivation
 {
@@ -17,7 +10,7 @@ stdenv.mkDerivation
 
   src = ./cpp;
 
-  nativeBuildInputs = [ cmake ninja binaryen ];
+  nativeBuildInputs = [ cmake ninja binaryen wasi-sdk ];
 
   buildInputs = [ ];
 
@@ -25,11 +18,11 @@ stdenv.mkDerivation
     "-DTESTING=OFF"
     "-DBENCHMARKS=OFF"
     "-DCMAKE_TOOLCHAIN_FILE=${toolchain_file}"
-    "-DCMAKE_C_COMPILER=${wasisdk}/bin/clang-11"
-    "-DCMAKE_CXX_COMPILER=${wasisdk}/bin/clang-11"
-    "-DCMAKE_AR=${wasisdk}/bin/llvm-ar"
-    "-DCMAKE_RANLIB=${wasisdk}/bin/llvm-ranlib"
-    "-DCMAKE_SYSROOT=${wasisdk}/share/wasi-sysroot"
+    "-DCMAKE_C_COMPILER=${wasi-sdk}/bin/clang"
+    "-DCMAKE_CXX_COMPILER=${wasi-sdk}/bin/clang++"
+    "-DCMAKE_AR=${wasi-sdk}/bin/llvm-ar"
+    "-DCMAKE_RANLIB=${wasi-sdk}/bin/llvm-ranlib"
+    "-DCMAKE_SYSROOT=${wasi-sdk}/share/wasi-sysroot"
     "-DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER"
     "-DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY"
     "-DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY"
