@@ -12,10 +12,13 @@ pkgs.stdenv.mkDerivation {
   dontConfigure = true;
   dontStrip = true;
 
-  autoPatchelfIgnoreMissingDeps = [ "libstdc++.so.6" ];
+  # autoPatchelfIgnoreMissingDeps = [ "libstdc++.so.6" ];
 
   nativeBuildInputs =
     lib.optional stdenv.isLinux (with pkgs; [ autoPatchelfHook ]);
+
+  buildInputs =
+    lib.optional stdenv.isLinux [ stdenv.cc.cc.lib ];
 
   installPhase = ''
     mkdir -p $out/{bin,lib,share}
