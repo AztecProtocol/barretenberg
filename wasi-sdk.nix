@@ -27,7 +27,7 @@ pkgs.stdenv.mkDerivation {
       mapSystem = system:
         if system == "x86_64-linux" then {
           tarballSuffix = "linux";
-          hash = "sha256-ctDMbtbjFGwRbudp+eONU912trHtI1gyQVtBCmFeIFw=";
+          hash = "sha256-+kdpTXW/b86Y++eScZMpiyXuA9reJ/ykU9fdUwN4lzo=";
         } else {
           tarballSuffix = "macos";
           hash = "sha256-juJfnD/eYY/upcV62tOFFSYmeEtra1L7Vj5e2DK/U+8=";
