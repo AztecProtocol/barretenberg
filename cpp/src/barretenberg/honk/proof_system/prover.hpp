@@ -44,7 +44,6 @@ template <typename settings> class Prover {
     void execute_pcs_evaluation_round();
     void execute_shplonk_batched_quotient_round();
     void execute_shplonk_partial_evaluation_round();
-    // void execute_shplonk_round();
     void execute_kzg_round();
 
     void compute_wire_commitments();

@@ -319,7 +319,6 @@ template <typename settings> plonk::proof& Prover<settings>::construct_proof()
     // Compute Shplonk batched quotient commitment
     execute_shplonk_batched_quotient_round();
     execute_shplonk_partial_evaluation_round();
-    // execute_shplonk_round();
     // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
 
     // Fiat-Shamir: z
