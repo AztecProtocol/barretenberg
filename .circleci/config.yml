@@ -209,18 +209,6 @@ jobs:
           command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert 3 stdlib_recursion_tests --gtest_filter=-*turbo*
       - *save_logs
 
-  stdlib-verification-key-tests:
-    docker:
-      - image: aztecprotocol/alpine-build-image
-    resource_class: small
-    steps:
-      - *checkout
-      - *setup_env
-      - run:
-          name: "Test"
-          command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert 3 stdlib_recursion_tests --gtest_filter=-*verification_key*
-      - *save_logs
-
   join-split-tests:
     docker:
       - image: aztecprotocol/alpine-build-image
