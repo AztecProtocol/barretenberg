@@ -12,7 +12,7 @@ pkgs.stdenv.mkDerivation {
   dontConfigure = true;
   dontStrip = true;
 
-  autoPatchelfIgnoreMissingDeps = [ "libstdc++" ];
+  autoPatchelfIgnoreMissingDeps = [ "libstdc++.so.6" ];
 
   nativeBuildInputs =
     lib.optional stdenv.isLinux (with pkgs; [ autoPatchelfHook ]);
