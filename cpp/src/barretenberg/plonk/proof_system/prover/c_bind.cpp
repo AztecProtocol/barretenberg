@@ -7,31 +7,8 @@
 using namespace barretenberg;
 
 extern "C" {
-
 /**
- * Called by `barretenberg_wasm.test.ts` to test the asyncify intrumentation and logic that
- * allows for WASM code to make calls to async code in JS.
- */
-WASM_EXPORT void* test_async_func(size_t size, int val)
-{
-    {
-        info("setting ", size, " bytes of data...");
-        auto addr = malloc(size);
-        memset(addr, val, size);
-        set_data("some_key", addr, size);
-        free(addr);
-        info("done.");
-    }
-    {
-        size_t length;
-        void* addr = get_data("some_key", &length);
-        info("data addr: ", addr, " length: ", length);
-        // aligned_free(addr);
-        return addr;
-    }
-}
-/**
- * @brief Simple wrapper for env_load_verifier_crs. 
+ * @brief Simple wrapper for env_load_verifier_crs.
  * @return The CRS.
  */
 WASM_EXPORT void* test_env_load_verifier_crs()
@@ -39,7 +16,7 @@ WASM_EXPORT void* test_env_load_verifier_crs()
     return env_load_verifier_crs();
 }
 /**
- * @brief Simple wrapper for env_load_verifier_crs. 
+ * @brief Simple wrapper for env_load_verifier_crs.
  * @param The number of points to load of the prover CRS.
  * @return The CRS.
  */
