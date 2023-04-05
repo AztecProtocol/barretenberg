@@ -29,8 +29,6 @@ template <typename Composer> class stdlib_array : public testing::Test {
     typedef stdlib::public_witness_t<Composer> public_witness_ct;
 
   public:
-    // TODO: empty array and singleton array edge cases for all array functions.
-
     static void test_array_length()
     {
         Composer composer = Composer();
@@ -375,6 +373,36 @@ template <typename Composer> class stdlib_array : public testing::Test {
         EXPECT_TRUE(proof_result);
     }
 
+    static void test_pata_null_source()
+    {
+        // null means array size is 0
+        Composer composer = Composer();
+
+        std::array<fr, 0> source;
+        std::array<fr, 4> target = { 1, 2, 0, 0 };
+        std::array<fr, 4> expected_target = { 1, 2, 0, 0 };
+        bool proof_result;
+        std::string error;
+        std::tie(proof_result, error) = test_push_array_to_array_helper(composer, source, target, expected_target);
+
+        EXPECT_TRUE(proof_result);
+    }
+
+    static void test_pata_null_target_fails()
+    {
+        Composer composer = Composer();
+
+        std::array<fr, 4> source = { 1, 2, 0, 0 };
+        std::array<fr, 0> target;
+        std::array<fr, 0> expected_target;
+        bool proof_result;
+        std::string error;
+        std::tie(proof_result, error) = test_push_array_to_array_helper(composer, source, target, expected_target);
+
+        EXPECT_FALSE(proof_result);
+        EXPECT_EQ(error, "push_array_to_array target array capacity exceeded");
+    }
+
     static void test_pata_singletons_full_to_not_full()
     {
         Composer composer = Composer();
@@ -387,6 +415,35 @@ template <typename Composer> class stdlib_array : public testing::Test {
         std::tie(proof_result, error) = test_push_array_to_array_helper(composer, source, target, expected_target);
 
         EXPECT_TRUE(proof_result);
+    }
+
+    static void test_pata_singletons_not_full_to_full()
+    {
+        Composer composer = Composer();
+
+        std::array<fr, 1> source = { 0 };
+        std::array<fr, 1> target = { 1 };
+        std::array<fr, 1> expected_target = { 1 };
+        bool proof_result;
+        std::string error;
+        std::tie(proof_result, error) = test_push_array_to_array_helper(composer, source, target, expected_target);
+
+        EXPECT_TRUE(proof_result);
+    }
+
+    static void test_pata_singletons_full_to_full()
+    {
+        Composer composer = Composer();
+
+        std::array<fr, 1> source = { 2 };
+        std::array<fr, 1> target = { 1 };
+        std::array<fr, 1> expected_target = { 1 };
+        bool proof_result;
+        std::string error;
+        std::tie(proof_result, error) = test_push_array_to_array_helper(composer, source, target, expected_target);
+
+        EXPECT_FALSE(proof_result);
+        EXPECT_EQ(error, "push_array_to_array target array capacity exceeded");
     }
 
     static void test_pata_same_size_full_to_full_fails()
@@ -608,9 +665,25 @@ TYPED_TEST(stdlib_array, test_pata_smaller_source_full_to_not_full)
 {
     TestFixture::test_pata_smaller_source_full_to_not_full();
 }
+TYPED_TEST(stdlib_array, test_pata_null_source)
+{
+    TestFixture::test_pata_null_source();
+}
+TYPED_TEST(stdlib_array, test_pata_null_target_fails)
+{
+    TestFixture::test_pata_null_target_fails();
+}
 TYPED_TEST(stdlib_array, test_pata_singletons_full_to_not_full)
 {
     TestFixture::test_pata_singletons_full_to_not_full();
+}
+TYPED_TEST(stdlib_array, test_pata_singletons_not_full_to_full)
+{
+    TestFixture::test_pata_singletons_not_full_to_full();
+}
+TYPED_TEST(stdlib_array, test_pata_singletons_full_to_full)
+{
+    TestFixture::test_pata_singletons_full_to_full();
 }
 TYPED_TEST(stdlib_array, test_pata_same_size_full_to_full_fails)
 {
