@@ -4,9 +4,10 @@ let
   toolchain_file = ./cpp/cmake/toolchains/wasm32-wasi.cmake;
   WASI_VERSION = "12";
   OS = if hostPlatform.isDarwin then "macos" else if hostPlatform.isLinux then "linux" else "";
+  HASH = if hostPlatform.isDarwin then "sha256-zDlPPmH1mtpA66LZ8iS5AVZUWL5DY3v9YLs3qNN7y1U=" else if hostPlatform.isLinux then "sha256-ctDMbtbjFGwRbudp+eONU912trHtI1gyQVtBCmFeIFw=" else "";
   wasisdk = fetchzip {
     url = "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${WASI_VERSION}/wasi-sdk-${WASI_VERSION}.0-${OS}.tar.gz";
-    sha256 = "sha256-zDlPPmH1mtpA66LZ8iS5AVZUWL5DY3v9YLs3qNN7y1U=";
+    sha256 = HASH;
   };
 in
 stdenv.mkDerivation
