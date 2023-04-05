@@ -391,7 +391,26 @@ TEST(stdlib_bool, must_imply)
     EXPECT_EQ(result, true);
 }
 
-// TODO: must_imply failure case
+TEST(stdlib_bool, must_imply_fails)
+{
+    honk::StandardHonkComposer composer = honk::StandardHonkComposer();
+    for (size_t j = 0; j < 3; ++j) { // ignore the case when both lhs and rhs are constants
+        bool lhs_constant = (bool)(j % 2);
+        bool rhs_constant = (bool)(j > 1 ? true : false);
+
+        // If a number is divisible by 2 and 3, it is divisible by 6
+        // => 8 is not divisible by 3, so it must not be divisible by 6
+        const size_t i = 8;
+        bool a_val = (bool)(i % 2 == 0);
+        bool b_val = (bool)(i % 6 == 0);
+        bool_t a = lhs_constant ? bool_t(a_val) : (witness_t(&composer, a_val));
+        bool_t b = rhs_constant ? bool_t(b_val) : (witness_t(&composer, b_val));
+        a.must_imply(b, "div by 2 does not imply div by 8");
+
+        EXPECT_EQ(composer.failed(), true);
+        EXPECT_EQ(composer.err(), "div by 2 does not imply div by 8");
+    }
+}
 
 TEST(stdlib_bool, must_imply_multiple)
 {
