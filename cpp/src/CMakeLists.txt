@@ -111,6 +111,30 @@ if(WASM)
         -nostartfiles -O2 -Wl,--no-entry -Wl,--export-dynamic -Wl,--import-memory -Wl,--allow-undefined -Wl,--stack-first -Wl,-z,stack-size=1048576
     )
 
+    # Repeat the above but for the smaller primitives.wasm
+    # Used in packages where we don't need the full contents of barretenberg
+    add_executable(
+        primitives.wasm
+        $<TARGET_OBJECTS:srs_objects>
+        $<TARGET_OBJECTS:numeric_objects>
+        $<TARGET_OBJECTS:crypto_sha256_objects>
+        $<TARGET_OBJECTS:crypto_aes128_objects>
+        $<TARGET_OBJECTS:crypto_blake2s_objects>
+        $<TARGET_OBJECTS:crypto_blake3s_objects>
+        $<TARGET_OBJECTS:crypto_generators_objects>
+        $<TARGET_OBJECTS:crypto_keccak_objects>
+        $<TARGET_OBJECTS:crypto_schnorr_objects>
+        $<TARGET_OBJECTS:crypto_pedersen_hash_objects>
+        $<TARGET_OBJECTS:crypto_pedersen_commitment_objects>
+        $<TARGET_OBJECTS:ecc_objects>
+    )
+
+    target_link_options(
+        primitives.wasm
+        PRIVATE
+        -nostartfiles -O2 -Wl,--no-entry -Wl,--export-dynamic -Wl,--import-memory -Wl,--allow-undefined -Wl,--stack-first -Wl,-z,stack-size=1048576
+    )
+
     find_program(WASM_OPT wasm-opt)
 
     if(NOT WASM_OPT)
@@ -121,6 +145,13 @@ if(WASM)
         TARGET barretenberg.wasm
         POST_BUILD
         COMMAND wasm-opt "$<TARGET_FILE:barretenberg.wasm>" -O2 --asyncify -o "$<TARGET_FILE:barretenberg.wasm>"
+        VERBATIM
+    )
+
+    add_custom_command(
+        TARGET primitives.wasm
+        POST_BUILD
+        COMMAND wasm-opt "$<TARGET_FILE:primitives.wasm>" -O2 -o "$<TARGET_FILE:primitives.wasm>"
         VERBATIM
     )
 
