@@ -32,6 +32,10 @@ jobs:
           nix_path: nixpkgs=channel:nixos-22.11
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Check nix flake
+        run: |
+          nix flake check
+
       - name: Build barretenberg as ${{ matrix.target }}
         run: |
           nix build -L .#${{ matrix.target }}
