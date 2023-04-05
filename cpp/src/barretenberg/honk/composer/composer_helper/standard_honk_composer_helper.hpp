@@ -29,6 +29,7 @@ template <typename CircuitConstructor> class StandardHonkComposerHelper {
     // at all
     std::shared_ptr<ReferenceStringFactory> crs_factory_;
     bool computed_witness = false;
+    // TODO(Luke): use make_shared
     StandardHonkComposerHelper()
         : StandardHonkComposerHelper(std::shared_ptr<ReferenceStringFactory>(
               new proof_system::FileReferenceStringFactory("../srs_db/ignition")))
