@@ -1,4 +1,5 @@
 #include "hash.hpp"
+#include "memory_tree.hpp"
 #include <gtest/gtest.h>
 #include "barretenberg/stdlib/hash/pedersen/pedersen.hpp"
 #include "barretenberg/stdlib/merkle_tree/membership.hpp"
@@ -34,4 +35,25 @@ TEST(stdlib_merkle_tree_hash, compute_tree_root_native_vs_circuit)
     auto zz = plonk::stdlib::merkle_tree::compute_tree_root_native(inputs);
 
     EXPECT_EQ(z.get_value(), zz);
+}
+
+TEST(stdlib_merkle_tree_hash, compute_tree_native)
+{
+    constexpr size_t depth = 2;
+    stdlib::merkle_tree::MemoryTree mem_tree(depth);
+
+    std::vector<fr> leaves;
+    for (size_t i = 0; i < (size_t(1) << depth); i++) {
+        auto input = fr::random_element();
+        leaves.push_back(input);
+        mem_tree.update_element(i, input);
+    }
+
+    std::vector<fr> tree_vector = plonk::stdlib::merkle_tree::compute_tree_native(leaves);
+
+    // Check if the tree vector matches the memory tree hashes
+    for (size_t i = 0; i < tree_vector.size() - 1; i++) {
+        EXPECT_EQ(tree_vector[i], mem_tree.hashes_[i]);
+    }
+    EXPECT_EQ(tree_vector.back(), mem_tree.root());
 }
