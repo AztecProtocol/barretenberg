@@ -1,4 +1,5 @@
-# https://github.com/ereslibre/nixities/blob/2c60af777fc863f90e6e4eeffcf3465def93a1f3/packages/wasi-sdk/default.nix
+# Copied from https://github.com/ereslibre/nixities/blob/2c60af777fc863f90e6e4eeffcf3465def93a1f3/packages/wasi-sdk/default.nix
+# with a fix for the autoPatchelfHook needing libstdc++.so and some refactor
 { lib, pkgs, stdenv }:
 let
   pname = "wasi-sdk";
@@ -12,11 +13,11 @@ pkgs.stdenv.mkDerivation {
   dontConfigure = true;
   dontStrip = true;
 
-  # autoPatchelfIgnoreMissingDeps = [ "libstdc++.so.6" ];
-
   nativeBuildInputs =
     lib.optional stdenv.isLinux (with pkgs; [ autoPatchelfHook ]);
 
+  # Needed by autoPatchelfHook to have libstdc++
+  # see https://discourse.nixos.org/t/autopatchelfhook-not-patching-all-dependencies/14634/6
   buildInputs =
     lib.optional stdenv.isLinux [ stdenv.cc.cc.lib ];
 
@@ -29,28 +30,19 @@ pkgs.stdenv.mkDerivation {
 
   src =
     let
-      mapSystem = system:
-        if system == "x86_64-linux" then {
-          tarballSuffix = "linux";
-          hash = "sha256-+kdpTXW/b86Y++eScZMpiyXuA9reJ/ykU9fdUwN4lzo=";
-        } else {
-          tarballSuffix = "macos";
+      tarball =
+        if stdenv.hostPlatform.isDarwin then {
+          suffix = "macos";
           hash = "sha256-juJfnD/eYY/upcV62tOFFSYmeEtra1L7Vj5e2DK/U+8=";
+        } else {
+          suffix = "linux";
+          hash = "sha256-+kdpTXW/b86Y++eScZMpiyXuA9reJ/ykU9fdUwN4lzo=";
         };
     in
-    (if builtins.elem stdenv.hostPlatform.system [
-      "x86_64-linux"
-      "x86_64-darwin"
-      "aarch64-darwin"
-    ] then
-      let system = mapSystem stdenv.hostPlatform.system;
-      in pkgs.fetchurl {
-        url =
-          "https://github.com/WebAssembly/${pname}/releases/download/${pname}-${version}/${pname}-${version}.0-${system.tarballSuffix}.tar.gz";
-        hash = system.hash;
-      }
-    else
-      throw "unsupported system");
 
-  meta = { platforms = [ "x86_64-linux" "x86_64-darwin" "aarch64-darwin" ]; };
+    pkgs.fetchurl {
+      url =
+        "https://github.com/WebAssembly/${pname}/releases/download/${pname}-${version}/${pname}-${version}.0-${tarball.suffix}.tar.gz";
+      hash = tarball.hash;
+    };
 }
