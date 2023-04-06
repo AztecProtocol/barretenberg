@@ -10,6 +10,7 @@
 #define BARRETENBERG_SRS_PATH "../srs_db/ignition"
 
 using namespace benchmark;
+using namespace proof_system::plonk;
 
 constexpr size_t NUM_CIRCUITS = 10;
 

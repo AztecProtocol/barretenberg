@@ -4,15 +4,15 @@
 #include "../../primitives/point/point.hpp"
 #include "../../primitives/packed_byte_array/packed_byte_array.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 namespace stdlib {
 
 template <typename ComposerContext> class pedersen_plookup_commitment {
   private:
-    typedef plonk::stdlib::field_t<ComposerContext> field_t;
-    typedef plonk::stdlib::point<ComposerContext> point;
-    typedef plonk::stdlib::packed_byte_array<ComposerContext> packed_byte_array;
-    typedef plonk::stdlib::bool_t<ComposerContext> bool_t;
+    typedef stdlib::field_t<ComposerContext> field_t;
+    typedef stdlib::point<ComposerContext> point;
+    typedef stdlib::packed_byte_array<ComposerContext> packed_byte_array;
+    typedef stdlib::bool_t<ComposerContext> bool_t;
 
   public:
     static point commit(const std::vector<field_t>& inputs, const size_t hash_index = 0);
@@ -38,6 +38,6 @@ template <typename ComposerContext> class pedersen_plookup_commitment {
     static point compress_to_point(const field_t& left, const field_t& right);
 };
 
-extern template class pedersen_plookup_commitment<plonk::UltraComposer>;
+extern template class pedersen_plookup_commitment<UltraComposer>;
 } // namespace stdlib
-} // namespace plonk
+} // namespace proof_system::plonk

@@ -87,7 +87,7 @@ struct verification_key {
 
 template <typename B> inline void read(B& buf, verification_key& key)
 {
-    auto env_crs = std::make_unique<bonk::EnvReferenceStringFactory>();
+    auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
     using serialize::read;
     verification_key_data vk_data;
     read(buf, vk_data);
@@ -96,7 +96,7 @@ template <typename B> inline void read(B& buf, verification_key& key)
 
 template <typename B> inline void read(B& buf, std::shared_ptr<verification_key>& key)
 {
-    auto env_crs = std::make_unique<bonk::EnvReferenceStringFactory>();
+    auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
     using serialize::read;
     verification_key_data vk_data;
     read(buf, vk_data);

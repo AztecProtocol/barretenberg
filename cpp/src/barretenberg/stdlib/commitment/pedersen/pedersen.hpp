@@ -7,17 +7,17 @@
 
 using namespace crypto::generators;
 
-namespace plonk {
+namespace proof_system::plonk {
 namespace stdlib {
 
 constexpr uint64_t WNAF_MASK = crypto::generators::WNAF_MASK;
 
 template <typename ComposerContext> class pedersen_commitment {
   private:
-    typedef plonk::stdlib::field_t<ComposerContext> field_t;
-    typedef plonk::stdlib::point<ComposerContext> point;
-    typedef plonk::stdlib::byte_array<ComposerContext> byte_array;
-    typedef plonk::stdlib::bool_t<ComposerContext> bool_t;
+    typedef stdlib::field_t<ComposerContext> field_t;
+    typedef stdlib::point<ComposerContext> point;
+    typedef stdlib::byte_array<ComposerContext> byte_array;
+    typedef stdlib::bool_t<ComposerContext> bool_t;
 
   public:
     static point commit(const std::vector<field_t>& inputs, const size_t hash_index = 0);
@@ -56,4 +56,4 @@ template <typename ComposerContext> class pedersen_commitment {
 EXTERN_STDLIB_TYPE(pedersen_commitment);
 
 } // namespace stdlib
-} // namespace plonk
+} // namespace proof_system::plonk

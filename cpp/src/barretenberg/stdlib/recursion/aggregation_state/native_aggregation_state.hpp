@@ -1,8 +1,9 @@
 #pragma once
 #include "barretenberg/ecc/groups/affine_element.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
+#include "barretenberg/common/streams.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 namespace stdlib {
 namespace recursion {
 
@@ -22,11 +23,8 @@ struct native_aggregation_state {
 
     bool operator==(native_aggregation_state const& other) const
     {
-        return P0 == other.P0 && 
-               P1 == other.P1 &&
-               public_inputs == other.public_inputs && 
-               proof_witness_indices == other.proof_witness_indices && 
-               has_data == other.has_data;
+        return P0 == other.P0 && P1 == other.P1 && public_inputs == other.public_inputs &&
+               proof_witness_indices == other.proof_witness_indices && has_data == other.has_data;
     };
 };
 
@@ -41,7 +39,7 @@ inline void read(uint8_t const*& it, native_aggregation_state& state)
     read(it, state.has_data);
 };
 
-template <typename B>  inline void write(B& buf, native_aggregation_state const& state)
+template <typename B> inline void write(B& buf, native_aggregation_state const& state)
 {
     using serialize::write;
     write(buf, state.P0);
@@ -51,15 +49,15 @@ template <typename B>  inline void write(B& buf, native_aggregation_state const&
     write(buf, state.has_data);
 }
 
- inline std::ostream& operator<<(std::ostream& os, native_aggregation_state const& obj)
+inline std::ostream& operator<<(std::ostream& os, native_aggregation_state const& obj)
 {
     return os << "P0: " << obj.P0 << "\n"
-        << "P1: " << obj.P1 << "\n"
-        << "public_inputs: " << obj.public_inputs << "\n"
-        << "proof_witness_indices: " << obj.proof_witness_indices << "\n"
-        << "has_data: " << obj.has_data << "\n";
+              << "P1: " << obj.P1 << "\n"
+              << "public_inputs: " << obj.public_inputs << "\n"
+              << "proof_witness_indices: " << obj.proof_witness_indices << "\n"
+              << "has_data: " << obj.has_data << "\n";
 };
 
 } // namespace recursion
 } // namespace stdlib
-} // namespace plonk
+} // namespace proof_system::plonk

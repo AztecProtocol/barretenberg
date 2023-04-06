@@ -1,7 +1,7 @@
 #pragma once
 #include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 namespace stdlib {
 namespace merkle_tree {
 
@@ -63,4 +63,4 @@ inline std::pair<size_t, bool> find_closest_leaf(std::vector<nullifier_leaf> con
 
 } // namespace merkle_tree
 } // namespace stdlib
-} // namespace plonk
+} // namespace proof_system::plonk

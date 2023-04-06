@@ -7,7 +7,7 @@
 #include "../../primitives/composers/composers.hpp"
 #include "../../primitives/plookup/plookup.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 namespace stdlib {
 
 using namespace barretenberg;
@@ -139,7 +139,7 @@ field_t<C> pedersen_plookup_commitment<C>::compress(const std::vector<std::pair<
     return commit(inputs, hash_indices).x;
 }
 
-template class pedersen_plookup_commitment<plonk::UltraComposer>;
+template class pedersen_plookup_commitment<UltraComposer>;
 
 } // namespace stdlib
-} // namespace plonk
+} // namespace proof_system::plonk
