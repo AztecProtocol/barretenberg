@@ -17,7 +17,6 @@
 #include <initializer_list>
 #include <cstdint>
 #include <cstddef>
-#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
