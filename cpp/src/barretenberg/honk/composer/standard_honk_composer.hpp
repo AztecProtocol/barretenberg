@@ -17,22 +17,22 @@ namespace proof_system::honk {
  */
 class StandardHonkComposer {
   public:
-    static constexpr ComposerType type = ComposerType::STANDARD_HONK;
-    static constexpr merkle::HashType merkle_hash_type = merkle::HashType::LOOKUP_PEDERSEN;
-    static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
+    using Flavor = flavor::Standard;
+    using CircuitConstructor = StandardCircuitConstructor;
+    static constexpr ComposerType type = ComposerType::STANDARD_HONK; // TODO(Cody): Get rid of this.
 
     static constexpr size_t UINT_LOG2_BASE = 2;
     // An instantiation of the circuit constructor that only depends on arithmetization, not  on the proof system
-    StandardCircuitConstructor circuit_constructor;
+    CircuitConstructor circuit_constructor;
     // Composer helper contains all proof-related material that is separate from circuit creation such as:
     // 1) Proving and verification keys
     // 2) CRS
     // 3) Converting variables to witness vectors/polynomials
-    StandardHonkComposerHelper<StandardCircuitConstructor> composer_helper;
+    StandardHonkComposerHelper composer_helper;
 
     // Leaving it in for now just in case
     bool contains_recursive_proof = false;
-    static constexpr size_t num_wires = StandardCircuitConstructor::num_wires;
+    static constexpr size_t num_wires = CircuitConstructor::num_wires;
 
     /**Standard methods*/
 
@@ -180,7 +180,7 @@ class StandardHonkComposer {
     void compute_witness() { composer_helper.compute_witness(circuit_constructor); };
 
     StandardVerifier create_verifier() { return composer_helper.create_verifier(circuit_constructor); }
-    StandardProver create_prover() { return composer_helper.create_prover<honk::StandardHonk>(circuit_constructor); };
+    StandardProver create_prover() { return composer_helper.create_prover(circuit_constructor); };
 
     size_t& num_gates;
     std::vector<barretenberg::fr>& variables;

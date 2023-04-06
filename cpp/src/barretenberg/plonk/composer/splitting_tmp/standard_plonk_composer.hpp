@@ -29,7 +29,7 @@ class StandardPlonkComposer {
     // 1) Proving and verification keys
     // 2) CRS
     // 3) Converting variables to witness vectors/polynomials
-    StandardPlonkComposerHelper<StandardCircuitConstructor> composer_helper;
+    StandardPlonkComposerHelper composer_helper;
 
     // Leaving it in for now just in case
     bool contains_recursive_proof = false;
@@ -195,7 +195,7 @@ class StandardPlonkComposer {
 
     static transcript::Manifest create_manifest(const size_t num_public_inputs)
     {
-        return StandardPlonkComposerHelper<StandardCircuitConstructor>::create_manifest(num_public_inputs);
+        return StandardPlonkComposerHelper::create_manifest(num_public_inputs);
     }
 
     size_t& num_gates;

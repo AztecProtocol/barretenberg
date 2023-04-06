@@ -1,7 +1,6 @@
 #pragma once
 #include <array>
 #include "circuit_constructor_base.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "barretenberg/proof_system/types/composer_type.hpp"
 
 namespace proof_system {

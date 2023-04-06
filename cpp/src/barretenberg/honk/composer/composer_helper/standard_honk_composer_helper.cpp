@@ -1,6 +1,7 @@
 #include "standard_honk_composer_helper.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/honk/flavor/flavor.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 
@@ -22,16 +23,15 @@ namespace proof_system::honk {
  * @param num_reserved_gates The number of reserved gates.
  * @return Pointer to the initialized proving key updated with selector polynomials.
  * */
-template <typename CircuitConstructor>
-std::shared_ptr<plonk::proving_key> StandardHonkComposerHelper<CircuitConstructor>::compute_proving_key_base(
+std::shared_ptr<plonk::proving_key> StandardHonkComposerHelper::compute_proving_key_base(
     const CircuitConstructor& constructor, const size_t minimum_circuit_size, const size_t num_randomized_gates)
 {
     // Initialize circuit_proving_key
     // TODO(#229)(Kesha): replace composer types.
-    circuit_proving_key = initialize_proving_key(
+    circuit_proving_key = initialize_proving_key<Flavor>(
         constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, ComposerType::STANDARD_HONK);
     // Compute lagrange selectors
-    construct_lagrange_selector_forms(constructor, circuit_proving_key.get());
+    construct_selector_polynomials(constructor, circuit_proving_key.get());
 
     return circuit_proving_key;
 }
@@ -155,18 +155,17 @@ StandardVerifier StandardHonkComposerHelper<CircuitConstructor>::create_verifier
     return output_state;
 }
 
-template <typename CircuitConstructor>
+// template <typename CircuitConstructor>
 template <typename Flavor>
 // TODO(Cody): this file should be generic with regard to flavor/arithmetization/whatever.
-StandardProver StandardHonkComposerHelper<CircuitConstructor>::create_prover(
+StandardProver StandardHonkComposerHelper<typename Flavor::CircuitConstructor>::create_prover(
     const CircuitConstructor& circuit_constructor)
 {
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
 
     size_t num_sumcheck_rounds(circuit_proving_key->log_circuit_size);
-    // TODO(luke): what is this manifest? Remove?
-    auto manifest = Flavor::create_manifest(circuit_constructor.public_inputs.size(), num_sumcheck_rounds);
+    // auto manifest = Flavor::create_manifest(circuit_constructor.public_inputs.size(), num_sumcheck_rounds);
     StandardProver output_state(std::move(wire_polynomials), circuit_proving_key);
 
     return output_state;

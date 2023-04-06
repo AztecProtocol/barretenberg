@@ -1,4 +1,5 @@
 #pragma once
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "barretenberg/plonk/composer/composer_base.hpp"
 #include "barretenberg/plonk/composer/plookup_tables/plookup_tables.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
@@ -23,7 +24,7 @@ class UltraPlonkComposer {
     // 1) Proving and verification keys
     // 2) CRS
     // 3) Converting variables to witness vectors/polynomials
-    UltraPlonkComposerHelper<UltraCircuitConstructor> composer_helper;
+    UltraPlonkComposerHelper composer_helper;
     size_t& num_gates;
 
     UltraPlonkComposer()

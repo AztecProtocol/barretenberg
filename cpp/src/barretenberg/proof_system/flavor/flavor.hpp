@@ -1,11 +1,17 @@
 #pragma once
 #include <array>
+#include <concepts>
 #include <span>
 #include <string>
 #include <type_traits>
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
+#include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
+#include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
+#include "barretenberg/proof_system/circuit_constructors/turbo_circuit_constructor.hpp"
+#include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
+#include "barretenberg/srs/reference_string/reference_string.hpp"
 
 // could be shared, but will it?
 namespace proof_system::honk::flavor {
@@ -22,13 +28,21 @@ template <typename T, size_t NUM_ENTITIES> class Data {
     typename DataType::iterator end() { return _data.end(); };
 
     consteval size_t size() { return _data.size(); };
+
+    // Data(size_t initial_size)
+    // {
+    //     for (auto& entity : _data) {
+    //         entity = T(initial_size);
+    //     };
+    // }
 };
 
 class Standard {
+  public:
+    using CircuitConstructor = proof_system::StandardCircuitConstructor;
     static constexpr size_t NUM_ALL_ENTITIES = 18;
     static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 13;
 
-  public:
     using FF = barretenberg::fr;
     using Polynomial = barretenberg::Polynomial<FF>;
     using PolynomialView = std::span<FF>;
@@ -36,7 +50,8 @@ class Standard {
     using Commitment = G1;
     using CommitmentView = G1; // TODO(Cody): make a pointer?
 
-    template <typename T> class PrecomputedData : Data<T, NUM_PRECOMPUTED_ENTITIES> {
+    // TODO(Cody): Made this public derivation so that I could populate selector polys from circuit constructor.
+    template <typename T> class PrecomputedData : public Data<T, NUM_PRECOMPUTED_ENTITIES> {
       public:
         T& q_m = std::get<0>(this->_data);
         T& q_l = std::get<1>(this->_data);
@@ -51,10 +66,28 @@ class Standard {
         T& id_3 = std::get<10>(this->_data);
         T& lagrange_first = std::get<11>(this->_data);
         T& lagrange_last = std::get<12>(this->_data); // = LAGRANGE_N-1 whithout ZK, but can be less
+
+        std::array<std::span<FF>, 5> get_selectors() { return { q_m, q_l, q_r, q_o, q_c }; };
     };
 
-    // these can differ, but it's ideal to share co
-    using ProvingKey = PrecomputedData<Polynomial>;
+    // TODO(Cody): Made this public derivation so that I could iterate through the selectors
+
+    class ProvingKey : public PrecomputedData<Polynomial> {
+      public:
+        const size_t circuit_size;
+        const size_t num_inputs;
+        std::shared_ptr<ProverReferenceString> crs;
+        const ComposerType type; // TODO(Cody): Get rid of this
+
+        ProvingKey(const size_t circuit_size,
+                   const size_t num_inputs,
+                   std::shared_ptr<ProverReferenceString> const& crs,
+                   ComposerType type)
+            : circuit_size(circuit_size)
+            , num_inputs(num_inputs)
+            , crs(crs)
+            , type(type){};
+    };
     using VerificationKey = PrecomputedData<Commitment>;
 
     template <typename T> struct AllData : Data<T, NUM_ALL_ENTITIES> {
@@ -123,3 +156,32 @@ class Standard {
     };
 };
 } // namespace proof_system::honk::flavor
+
+namespace proof_system::plonk::flavor {
+struct Standard {
+    using CircuitConstructor = proof_system::StandardCircuitConstructor;
+    using ProvingKey = plonk::proving_key;
+};
+
+struct Turbo {
+    using CircuitConstructor = proof_system::TurboCircuitConstructor;
+    using ProvingKey = plonk::proving_key;
+};
+
+struct Ultra {
+    using CircuitConstructor = proof_system::UltraCircuitConstructor;
+    using ProvingKey = plonk::proving_key;
+};
+} // namespace proof_system::plonk::flavor
+
+namespace proof_system {
+
+// Helper
+template <typename T, typename... U> concept IsAnyOf = (std::same_as<T, U> || ...);
+
+template <typename T>
+concept IsPlonkFlavor = IsAnyOf<T, plonk::flavor::Standard, plonk::flavor::Turbo, plonk::flavor::Ultra>;
+
+template <typename T> concept IsHonkFlavor = IsAnyOf<T, honk::flavor::Standard>;
+
+} // namespace proof_system

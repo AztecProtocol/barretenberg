@@ -29,8 +29,7 @@ namespace proof_system::plonk {
  *
  * @return Pointer to the initialized proving key updated with selector polynomials.
  * */
-template <typename CircuitConstructor>
-std::shared_ptr<plonk::proving_key> TurboPlonkComposerHelper<CircuitConstructor>::compute_proving_key(
+std::shared_ptr<plonk::proving_key> TurboPlonkComposerHelper::compute_proving_key(
     const CircuitConstructor& circuit_constructor)
 {
     if (circuit_proving_key) {
@@ -40,12 +39,12 @@ std::shared_ptr<plonk::proving_key> TurboPlonkComposerHelper<CircuitConstructor>
     const size_t num_randomized_gates = NUM_RANDOMIZED_GATES;
     // Initialize circuit_proving_key
     // TODO(#229)(Kesha): replace composer types.
-    circuit_proving_key = initialize_proving_key(
+    circuit_proving_key = initialize_proving_key<Flavor>(
         circuit_constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, ComposerType::TURBO);
 
-    construct_lagrange_selector_forms(circuit_constructor, circuit_proving_key.get());
+    construct_selector_polynomials<Flavor>(circuit_constructor, circuit_proving_key.get());
 
-    enforce_nonzero_polynomial_selectors(circuit_constructor, circuit_proving_key.get());
+    enforce_nonzero_selector_polynomials<Flavor>(circuit_constructor, circuit_proving_key.get());
 
     compute_monomial_and_coset_selector_forms(circuit_proving_key.get(), turbo_selector_properties());
 
@@ -63,8 +62,7 @@ std::shared_ptr<plonk::proving_key> TurboPlonkComposerHelper<CircuitConstructor>
  *
  * @return Pointer to created circuit verification key.
  * */
-template <typename CircuitConstructor>
-std::shared_ptr<plonk::verification_key> TurboPlonkComposerHelper<CircuitConstructor>::compute_verification_key(
+std::shared_ptr<plonk::verification_key> TurboPlonkComposerHelper::compute_verification_key(
     const CircuitConstructor& circuit_constructor)
 {
     if (circuit_verification_key) {
@@ -92,16 +90,15 @@ std::shared_ptr<plonk::verification_key> TurboPlonkComposerHelper<CircuitConstru
  *
  * @tparam Program settings needed to establish if w_4 is being used.
  * */
-template <typename CircuitConstructor>
-void TurboPlonkComposerHelper<CircuitConstructor>::compute_witness(const CircuitConstructor& circuit_constructor,
-                                                                   const size_t minimum_circuit_size)
+void TurboPlonkComposerHelper::compute_witness(const CircuitConstructor& circuit_constructor,
+                                               const size_t minimum_circuit_size)
 {
 
     if (computed_witness) {
         return;
     }
     auto wire_polynomial_evaluations =
-        compute_witness_base(circuit_constructor, minimum_circuit_size, NUM_RANDOMIZED_GATES);
+        construct_wire_polynomials_base<Flavor>(circuit_constructor, minimum_circuit_size, NUM_RANDOMIZED_GATES);
 
     for (size_t j = 0; j < program_width; ++j) {
         std::string index = std::to_string(j + 1);
@@ -119,9 +116,7 @@ void TurboPlonkComposerHelper<CircuitConstructor>::compute_witness(const Circuit
  *
  * @return Initialized prover.
  * */
-template <typename CircuitConstructor>
-plonk::TurboProver TurboPlonkComposerHelper<CircuitConstructor>::create_prover(
-    const CircuitConstructor& circuit_constructor)
+plonk::TurboProver TurboPlonkComposerHelper::create_prover(const CircuitConstructor& circuit_constructor)
 {
     // Compute q_l, etc. and sigma polynomials.
     compute_proving_key(circuit_constructor);
@@ -160,9 +155,7 @@ plonk::TurboProver TurboPlonkComposerHelper<CircuitConstructor>::create_prover(
  * @return The verifier.
  * */
 // TODO(Cody): This should go away altogether.
-template <typename CircuitConstructor>
-plonk::TurboVerifier TurboPlonkComposerHelper<CircuitConstructor>::create_verifier(
-    const CircuitConstructor& circuit_constructor)
+plonk::TurboVerifier TurboPlonkComposerHelper::create_verifier(const CircuitConstructor& circuit_constructor)
 {
     auto verification_key = compute_verification_key(circuit_constructor);
 
@@ -177,5 +170,4 @@ plonk::TurboVerifier TurboPlonkComposerHelper<CircuitConstructor>::create_verifi
     return output_state;
 }
 
-template class TurboPlonkComposerHelper<TurboCircuitConstructor>;
 } // namespace proof_system::plonk

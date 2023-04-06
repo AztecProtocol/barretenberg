@@ -1,16 +1,21 @@
 #include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/srs/reference_string/reference_string.hpp"
 #include <cstddef>
 #include <gtest/gtest.h>
 
 #pragma GCC diagnostic ignored "-Wunused-local-typedefs"
 #pragma GCC diagnostic ignored "-Wunused-variable"
 
-namespace test_flavor {
+namespace proof_system::test_flavor {
 TEST(Flavor, Standard)
 {
     using Flavor = proof_system::honk::flavor::Standard;
     using FF = Flavor::FF;
-    Flavor::ProvingKey proving_key;
+    Flavor::ProvingKey proving_key = []() {
+        auto crs_factory = ReferenceStringFactory();
+        auto crs = crs_factory.get_prover_crs(4);
+        return Flavor::ProvingKey(/*circuit_size=*/4, /*num_inputs=*/0, crs, ComposerType::STANDARD);
+    }();
     Flavor::VerificationKey verification_key;
     Flavor::ProverPolynomials prover_polynomials;
     Flavor::VerifierCommitments verifier_commitments;
@@ -79,4 +84,4 @@ TEST(Flavor, Standard)
     };
 }
 
-} // namespace test_flavor
+} // namespace proof_system::test_flavor

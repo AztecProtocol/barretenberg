@@ -3,7 +3,6 @@
 #include "barretenberg/plonk/proof_system/types/polynomial_manifest.hpp"
 #include "circuit_constructor_base.hpp"
 #include "barretenberg/plonk/proof_system/constants.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "barretenberg/proof_system/types/merkle_hash_type.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/plonk/composer/plookup_tables/types.hpp"

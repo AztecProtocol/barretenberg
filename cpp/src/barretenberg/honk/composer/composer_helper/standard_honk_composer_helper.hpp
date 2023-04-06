@@ -12,14 +12,15 @@
 #include "barretenberg/proof_system/arithmetization/gate_data.hpp"
 #include "barretenberg/proof_system/composer/composer_helper_lib.hpp"
 #include "barretenberg/proof_system/composer/permutation_helper.hpp"
-
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include <utility>
 
 namespace proof_system::honk {
-// TODO(Kesha): change initializations to specify this parameter
-// Cody: What does this mean?
-template <typename CircuitConstructor> class StandardHonkComposerHelper {
+class StandardHonkComposerHelper {
   public:
+    using Flavor = flavor::Standard;
+    using CircuitConstructor = typename Flavor::CircuitConstructor;
+
     static constexpr size_t NUM_RANDOMIZED_GATES = 2; // equal to the number of multilinear evaluations leaked
     static constexpr size_t num_wires = CircuitConstructor::num_wires;
     std::shared_ptr<plonk::proving_key> circuit_proving_key;
@@ -57,7 +58,7 @@ template <typename CircuitConstructor> class StandardHonkComposerHelper {
 
     StandardVerifier create_verifier(const CircuitConstructor& circuit_constructor);
 
-    template <typename Flavor> StandardProver create_prover(const CircuitConstructor& circuit_constructor);
+    StandardProver create_prover(const CircuitConstructor& circuit_constructor);
 
     // TODO(#216)(Adrian): Seems error prone to provide the number of randomized gates
     // Cody: Where should this go? In the flavor (or whatever that becomes)?

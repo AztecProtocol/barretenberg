@@ -6,6 +6,7 @@
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
 #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
+#include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
 
 #include <cstddef>
 #include <utility>
@@ -13,8 +14,11 @@
 namespace proof_system::plonk {
 // TODO(Kesha): change initializations to specify this parameter
 // Cody: What does this mean?
-template <typename CircuitConstructor> class UltraPlonkComposerHelper {
+class UltraPlonkComposerHelper {
   public:
+    using Flavor = plonk::flavor::Ultra;
+    using CircuitConstructor = UltraCircuitConstructor;
+
     // TODO(luke): In the split composers, NUM_RANDOMIZED_GATES has replaced NUM_RESERVED_GATES (in some places) to
     // determine the next-power-of-2 circuit size. (There are some places in this composer that still use
     // NUM_RESERVED_GATES). Therefore for consistency within this composer itself, and consistency with the original
