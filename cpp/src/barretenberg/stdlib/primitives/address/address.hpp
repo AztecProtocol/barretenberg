@@ -7,17 +7,17 @@
 #include "barretenberg/stdlib/primitives/point/point.hpp"
 #include "barretenberg/stdlib/primitives/witness/witness.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 namespace stdlib {
 
 using barretenberg::fr;
 using numeric::uint256_t;
-using plonk::stdlib::bool_t;
-using plonk::stdlib::field_t;
-using plonk::stdlib::group;
-using plonk::stdlib::pedersen_commitment;
-using plonk::stdlib::point;
-using plonk::stdlib::witness_t;
+using stdlib::bool_t;
+using stdlib::field_t;
+using stdlib::group;
+using stdlib::pedersen_commitment;
+using stdlib::point;
+using stdlib::witness_t;
 
 // Native type
 class address {
@@ -139,4 +139,4 @@ template <typename Composer> class address_t {
 };
 
 } // namespace stdlib
-} // namespace plonk
+} // namespace proof_system::plonk
