@@ -15,7 +15,6 @@ template <typename ComposerContext> class pedersen_hash {
   private:
     typedef stdlib::field_t<ComposerContext> field_t;
     typedef stdlib::point<ComposerContext> point;
-    typedef stdlib::byte_array<ComposerContext> byte_array;
     typedef stdlib::bool_t<ComposerContext> bool_t;
 
   private:

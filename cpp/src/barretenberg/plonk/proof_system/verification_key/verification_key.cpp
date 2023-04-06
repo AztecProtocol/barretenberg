@@ -20,10 +20,10 @@ namespace proof_system::plonk {
  * @return barretenberg::fr compression of the evaluation domain as a field
  */
 barretenberg::fr compress_native_evaluation_domain(barretenberg::evaluation_domain const& domain,
-                                                   plonk::ComposerType composer_type)
+                                                   proof_system::ComposerType composer_type)
 {
     barretenberg::fr out;
-    if (composer_type == plonk::ComposerType::PLOOKUP) {
+    if (composer_type == proof_system::ComposerType::PLOOKUP) {
         out = crypto::pedersen_commitment::lookup::compress_native({
             domain.root,
             domain.domain,
@@ -52,7 +52,8 @@ barretenberg::fr compress_native_evaluation_domain(barretenberg::evaluation_doma
 barretenberg::fr verification_key_data::compress_native(const size_t hash_index)
 {
     barretenberg::evaluation_domain domain = evaluation_domain(circuit_size);
-    barretenberg::fr compressed_domain = compress_native_evaluation_domain(domain, plonk::ComposerType(composer_type));
+    barretenberg::fr compressed_domain =
+        compress_native_evaluation_domain(domain, proof_system::ComposerType(composer_type));
 
     constexpr size_t num_limb_bits = plonk::NUM_LIMB_BITS_IN_FIELD_SIMULATION;
 
@@ -85,7 +86,7 @@ barretenberg::fr verification_key_data::compress_native(const size_t hash_index)
     }
 
     barretenberg::fr compressed_key;
-    if (plonk::ComposerType(composer_type) == plonk::ComposerType::PLOOKUP) {
+    if (proof_system::ComposerType(composer_type) == proof_system::ComposerType::PLOOKUP) {
         compressed_key = crypto::pedersen_commitment::lookup::compress_native(preimage_data, hash_index);
     } else {
         compressed_key = crypto::pedersen_commitment::compress_native(preimage_data, hash_index);

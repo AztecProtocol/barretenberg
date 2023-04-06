@@ -3,6 +3,8 @@
 #include "barretenberg/plonk/composer/plookup_tables/plookup_tables.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
 #include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
+#include "barretenberg/proof_system/types/merkle_hash_type.hpp"
+#include "barretenberg/proof_system/types/pedersen_commitment_type.hpp"
 #include "barretenberg/plonk/composer/splitting_tmp/composer_helper/ultra_plonk_composer_helper.hpp"
 #include <optional>
 

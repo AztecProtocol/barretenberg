@@ -5,6 +5,8 @@
 #include "barretenberg/srs/reference_string/file_reference_string.hpp"
 #include "barretenberg/transcript/manifest.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/proof_system/types/merkle_hash_type.hpp"
+#include "barretenberg/proof_system/types/pedersen_commitment_type.hpp"
 
 namespace proof_system::plonk {
 /**

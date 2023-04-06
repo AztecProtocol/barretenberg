@@ -548,8 +548,7 @@ field_t<C> pedersen_hash<C>::hash_multiple(const std::vector<field_t>& inputs,
                                            const size_t hash_index,
                                            const bool validate_inputs_in_field)
 {
-    if constexpr (C::type == plonk::ComposerType::PLOOKUP &&
-                  C::merkle_hash_type == plonk::merkle::HashType::LOOKUP_PEDERSEN) {
+    if constexpr (C::type == ComposerType::PLOOKUP && C::merkle_hash_type == merkle::HashType::LOOKUP_PEDERSEN) {
         return pedersen_plookup_hash<C>::hash_multiple(inputs, hash_index);
     }
 

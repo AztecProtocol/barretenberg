@@ -9,7 +9,7 @@
 
 namespace test_stdlib_pedersen {
 using namespace barretenberg;
-using namespace plonk;
+using namespace proof_system::plonk;
 namespace {
 auto& engine = numeric::random::get_debug_engine();
 }

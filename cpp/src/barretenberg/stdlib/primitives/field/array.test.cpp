@@ -9,8 +9,6 @@
 #include "barretenberg/plonk/composer/turbo_composer.hpp"
 #include "barretenberg/numeric/random/engine.hpp"
 
-using namespace bonk;
-
 namespace test_stdlib_array {
 
 namespace {
@@ -20,7 +18,7 @@ auto& engine = numeric::random::get_debug_engine();
 template <class T> void ignore_unused(T&) {} // use to ignore unused variables in lambdas
 
 using namespace barretenberg;
-using namespace plonk;
+using namespace proof_system::plonk;
 
 template <typename Composer> class stdlib_array : public testing::Test {
     typedef stdlib::bool_t<Composer> bool_ct;
@@ -582,9 +580,9 @@ template <typename Composer> class stdlib_array : public testing::Test {
         std::array<MockClass, SIZE> arr{};
 
         // Push values into the array
-        plonk::stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 1), witness_ct(&composer, 10)));
-        plonk::stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 2), witness_ct(&composer, 20)));
-        plonk::stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 3), witness_ct(&composer, 30)));
+        stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 1), witness_ct(&composer, 10)));
+        stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 2), witness_ct(&composer, 20)));
+        stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 3), witness_ct(&composer, 30)));
 
         // Check the values in the array
         EXPECT_EQ(arr[0].get_values().first.get_value(), 1);
@@ -610,14 +608,14 @@ template <typename Composer> class stdlib_array : public testing::Test {
         std::array<MockClass, SIZE> arr{};
 
         // Push values into the array
-        plonk::stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 1), witness_ct(&composer, 10)));
-        plonk::stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 2), witness_ct(&composer, 20)));
-        plonk::stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 3), witness_ct(&composer, 30)));
-        plonk::stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 4), witness_ct(&composer, 40)));
-        plonk::stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 5), witness_ct(&composer, 50)));
+        stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 1), witness_ct(&composer, 10)));
+        stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 2), witness_ct(&composer, 20)));
+        stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 3), witness_ct(&composer, 30)));
+        stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 4), witness_ct(&composer, 40)));
+        stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 5), witness_ct(&composer, 50)));
 
         // Try to push into a full array
-        plonk::stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 6), witness_ct(&composer, 60)));
+        stdlib::array_push<Composer>(arr, MockClass(witness_ct(&composer, 6), witness_ct(&composer, 60)));
 
         EXPECT_EQ(composer.failed(), true);
         EXPECT_EQ(composer.err(), "array_push cannot push to a full array");

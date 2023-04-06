@@ -1,7 +1,7 @@
 #pragma once
 #include "../../primitives/field/field.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 namespace stdlib {
 namespace recursion {
 
@@ -23,11 +23,9 @@ template <typename Curve> struct aggregation_state {
 
     typename Curve::bool_ct operator==(aggregation_state const& other) const
     {
-        return P0 == other.P0 && 
-               P1 == other.P1 &&
-               public_inputs == other.public_inputs && 
+        return P0 == other.P0 && P1 == other.P1 && public_inputs == other.public_inputs &&
                proof_witness_indices == other.proof_witness_indices;
-            //    has_data == other.has_data; can't compare as native
+        //    has_data == other.has_data; can't compare as native
     };
 
     void add_proof_outputs_as_public_inputs()
@@ -41,36 +39,36 @@ template <typename Curve> struct aggregation_state {
 };
 
 template <typename Curve> void read(uint8_t const*& it, aggregation_state<Curve>& as)
-    {
-        using serialize::read;
+{
+    using serialize::read;
 
-        read(it, as.P0);
-        read(it, as.P1);
-        read(it, as.public_inputs);
-        read(it, as.proof_witness_indices);
-        read(it, as.has_data);
-    };
+    read(it, as.P0);
+    read(it, as.P1);
+    read(it, as.public_inputs);
+    read(it, as.proof_witness_indices);
+    read(it, as.has_data);
+};
 
-    template <typename Curve> void write(std::vector<uint8_t>& buf, aggregation_state<Curve> const& as)
-    {
-        using serialize::write;
+template <typename Curve> void write(std::vector<uint8_t>& buf, aggregation_state<Curve> const& as)
+{
+    using serialize::write;
 
-        write(buf, as.P0);
-        write(buf, as.P1);
-        write(buf, as.public_inputs);
-        write(buf, as.proof_witness_indices);
-        write(buf, as.has_data);
-    };
+    write(buf, as.P0);
+    write(buf, as.P1);
+    write(buf, as.public_inputs);
+    write(buf, as.proof_witness_indices);
+    write(buf, as.has_data);
+};
 
-    template <typename NCT> std::ostream& operator<<(std::ostream& os, aggregation_state<NCT> const& as)
-    {
-        return os << "P0: " << as.P0 << "\n"
-                << "P1: " << as.P1 << "\n"
-                << "public_inputs: " << as.public_inputs << "\n"
-                << "proof_witness_indices: " << as.proof_witness_indices << "\n"
-                << "has_data: " << as.has_data << "\n";
-    }
+template <typename NCT> std::ostream& operator<<(std::ostream& os, aggregation_state<NCT> const& as)
+{
+    return os << "P0: " << as.P0 << "\n"
+              << "P1: " << as.P1 << "\n"
+              << "public_inputs: " << as.public_inputs << "\n"
+              << "proof_witness_indices: " << as.proof_witness_indices << "\n"
+              << "has_data: " << as.has_data << "\n";
+}
 
 } // namespace recursion
 } // namespace stdlib
-} // namespace plonk
+} // namespace proof_system::plonk

@@ -6,7 +6,7 @@
 #include "../../primitives/composers/composers.hpp"
 #include "../../primitives/packed_byte_array/packed_byte_array.hpp"
 
-namespace plonk {
+namespace proof_system::plonk {
 namespace stdlib {
 
 using namespace barretenberg;
@@ -137,4 +137,4 @@ template <typename C> field_t<C> pedersen_commitment<C>::compress(const byte_arr
 INSTANTIATE_STDLIB_TYPE(pedersen_commitment);
 
 } // namespace stdlib
-} // namespace plonk
+} // namespace proof_system::plonk
