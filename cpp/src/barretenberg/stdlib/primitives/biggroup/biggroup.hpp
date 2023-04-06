@@ -221,6 +221,14 @@ template <class Composer, class Fq, class Fr, class NativeGroup> class element {
     template <size_t wnaf_size, size_t staggered_lo_offset = 0, size_t staggered_hi_offset = 0>
     static secp256k1_wnaf_pair compute_secp256k1_endo_wnaf(const Fr& scalar);
 
+    std::vector<field_t<Composer>> get_coordinate_limbs() const
+    {
+        std::vector<field_t<Composer>> output = x.get_limbs();
+        std::vector<field_t<Composer>> y_limbs = y.get_limbs();
+        output.insert(output.end(), y_limbs.begin(), y_limbs.end());
+        return output;
+    }
+
     Composer* get_context() const
     {
         if (x.context != nullptr) {

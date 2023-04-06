@@ -312,6 +312,15 @@ template <typename Composer, typename T> class bigfield {
         prime_basis_limb.fix_witness();
     }
 
+    std::vector<field_t<Composer>> get_limbs() const
+    {
+        std::vector<field_t<Composer>> output;
+        for (auto& limb : binary_basis_limbs) {
+            output.push_back(limb.element);
+        }
+        return output;
+    }
+
     Composer* get_context() const { return context; }
 
     static constexpr uint512_t get_maximum_unreduced_value(const size_t num_products = 1)

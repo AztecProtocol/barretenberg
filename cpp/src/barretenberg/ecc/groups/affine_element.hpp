@@ -3,6 +3,8 @@
 #include <vector>
 #include <type_traits>
 #include "barretenberg/ecc/curves/bn254/fq2.hpp"
+#include "barretenberg/plonk/proof_system/constants.hpp"
+#include "barretenberg/ecc/curves/bn254/fr.hpp"
 
 namespace barretenberg {
 namespace group_elements {
@@ -40,6 +42,26 @@ template <typename Fq, typename Fr, typename Params> class alignas(64) affine_el
     template <typename BaseField = Fq,
               typename CompileTimeEnabled = std::enable_if_t<(BaseField::modulus >> 255) == uint256_t(0), void>>
     constexpr uint256_t compress() const noexcept;
+
+    std::vector<barretenberg::fr> get_coordinate_limbs() const
+    {
+        constexpr size_t num_limb_bits = plonk::NUM_LIMB_BITS_IN_FIELD_SIMULATION;
+        const auto split_bigfield_limbs = [](const uint256_t& element) {
+            std::vector<barretenberg::fr> limbs;
+            limbs.push_back(element.slice(0, num_limb_bits));
+            limbs.push_back(element.slice(num_limb_bits, num_limb_bits * 2));
+            limbs.push_back(element.slice(num_limb_bits * 2, num_limb_bits * 3));
+            limbs.push_back(element.slice(num_limb_bits * 3, num_limb_bits * 4));
+            return limbs;
+        };
+
+        std::vector<barretenberg::fr> x_limbs = split_bigfield_limbs(this->x);
+        std::vector<barretenberg::fr> y_limbs = split_bigfield_limbs(this->y);
+        std::vector<barretenberg::fr> output;
+        output.insert(output.end(), x_limbs.begin(), x_limbs.end());
+        output.insert(output.end(), y_limbs.begin(), y_limbs.end());
+        return output;
+    }
 
     static affine_element infinity();
     constexpr affine_element set_infinity() const noexcept;
