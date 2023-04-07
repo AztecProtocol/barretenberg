@@ -10,6 +10,9 @@ namespace proof_system::honk {
 // Currently only one type of work queue operation but there will likely be others related to Sumcheck
 enum WorkType { SCALAR_MULTIPLICATION };
 
+// TODO(luke): This Params template parameter is the same type expected by e.g. components of the PCS. Eventually it
+// should be replaced by some sort of Flavor concept that contains info about the Field etc. This should be resolved
+// at the same time as the similar patterns in Gemini etc.
 template <typename Params> class work_queue {
 
     using CommitmentKey = typename Params::CK;
@@ -27,7 +30,7 @@ template <typename Params> class work_queue {
     };
 
   private:
-    std::shared_ptr<proof_system::plonk::proving_key> key;
+    std::shared_ptr<proof_system::plonk::proving_key> proving_key;
     // TODO(luke): Consider handling all transcript interactions in the prover rather than embedding them in the queue.
     proof_system::honk::ProverTranscript<FF>& transcript;
     CommitmentKey commitment_key;
@@ -36,9 +39,10 @@ template <typename Params> class work_queue {
   public:
     explicit work_queue(std::shared_ptr<proof_system::plonk::proving_key>& proving_key,
                         proof_system::honk::ProverTranscript<FF>& prover_transcript)
-        : key(proving_key)
+        : proving_key(proving_key)
         , transcript(prover_transcript)
-        , commitment_key(key->circuit_size, "../srs_db/ignition"){}; // TODO(luke): make this properly parameterized
+        , commitment_key(proving_key->circuit_size,
+                         "../srs_db/ignition"){}; // TODO(luke): make this properly parameterized
 
     work_queue(const work_queue& other) = default;
     work_queue(work_queue&& other) noexcept = default;
