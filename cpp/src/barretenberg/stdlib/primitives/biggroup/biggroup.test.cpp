@@ -830,6 +830,26 @@ template <typename TestType> class stdlib_biggroup : public testing::Test {
 
         EXPECT_VERIFICATION(composer);
     }
+
+    static void test_get_coordinate_limbs()
+    {
+        Composer composer = Composer();
+        size_t num_repetitions = 1;
+        for (size_t i = 0; i < num_repetitions; ++i) {
+            affine_element input_a(element::random_element());
+
+            element_ct a = element_ct::from_witness(&composer, input_a);
+
+            auto limbs_ct = a.get_coordinate_limbs();
+            auto limbs = a.get_value().get_coordinate_limbs();
+
+            for (size_t i = 0; i < limbs.size(); i++) {
+                EXPECT_EQ(limbs_ct[i].get_value(), limbs[i]);
+            }
+        }
+
+        EXPECT_VERIFICATION(composer);
+    }
 };
 
 enum UseBigfield { No, Yes };
@@ -895,6 +915,11 @@ HEAVY_TYPED_TEST(stdlib_biggroup, double_montgomery_ladder)
 {
 
     TestFixture::test_double_montgomery_ladder();
+}
+
+HEAVY_TYPED_TEST(stdlib_biggroup, get_coordinate_limbs)
+{
+    TestFixture::test_get_coordinate_limbs();
 }
 
 HEAVY_TYPED_TEST(stdlib_biggroup, compute_naf)

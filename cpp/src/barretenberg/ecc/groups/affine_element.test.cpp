@@ -61,6 +61,8 @@ template <typename G1> class test_affine_element : public testing::Test {
         }
     }
 
+    static void test_get_limbs() { affine_element P = affine_element(element::random_element()); }
+
     // Regression test to ensure that the point at infinity is not equal to its coordinate-wise reduction, which may lie
     // on the curve, depending on the y-coordinate.
     // TODO: add corresponding typed test class
@@ -99,5 +101,22 @@ TEST(affine_element, infinity_ordering_regression)
 
     P.self_set_infinity();
     EXPECT_NE(P < Q, Q < P);
+}
+
+TEST(affine_element, get_coordinate_limbs)
+{
+    secp256k1::fq x(uint256_t{ 0x0000000000000001, 0xa00000000000001a, 0xb00000000000011b, 0xc00000000000111c });
+    secp256k1::fq y(uint256_t{ 0x0000000000000002, 0xd00000000000002d, 0xe00000000000022e, 0xf00000000000222f });
+    secp256k1::g1::affine_element P(x, y);
+
+    std::vector<barretenberg::fr> limbs = P.get_coordinate_limbs();
+    EXPECT_EQ(uint256_t(limbs[0]), uint256_t(0x0000000000000001, 0xa, 0, 0));
+    EXPECT_EQ(uint256_t(limbs[1]), uint256_t(0xba00000000000001, 0x1, 0, 0));
+    EXPECT_EQ(uint256_t(limbs[2]), uint256_t(0x1cb0000000000001, 0x1, 0, 0));
+    EXPECT_EQ(uint256_t(limbs[3]), uint256_t(0x000c000000000001, 0x0, 0, 0));
+    EXPECT_EQ(uint256_t(limbs[4]), uint256_t(0x0000000000000002, 0xd, 0, 0));
+    EXPECT_EQ(uint256_t(limbs[5]), uint256_t(0xed00000000000002, 0x2, 0, 0));
+    EXPECT_EQ(uint256_t(limbs[6]), uint256_t(0x2fe0000000000002, 0x2, 0, 0));
+    EXPECT_EQ(uint256_t(limbs[7]), uint256_t(0x000f000000000002, 0x0, 0, 0));
 }
 } // namespace test_affine_element

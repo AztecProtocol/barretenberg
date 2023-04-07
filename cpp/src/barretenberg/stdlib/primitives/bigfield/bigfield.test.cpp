@@ -13,6 +13,7 @@
 #include "barretenberg/plonk/composer/splitting_tmp/standard_plonk_composer.hpp"
 
 #include "barretenberg/stdlib/primitives/curves/bn254.hpp"
+#include "barretenberg/stdlib/primitives/curves/secp256k1.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
 #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
 
@@ -39,6 +40,7 @@ auto& engine = numeric::random::get_debug_engine();
 template <typename Composer> class stdlib_bigfield : public testing::Test {
 
     typedef stdlib::bn254<Composer> bn254;
+    typedef stdlib::secp256k1<Composer> secp256k1_ct;
 
     typedef typename bn254::fr_ct fr_ct;
     typedef typename bn254::fq_ct fq_ct;
@@ -857,6 +859,25 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         fq_ct ret = fq_ct::div_check_denominator_nonzero({}, a_ct);
         EXPECT_NE(ret.get_context(), nullptr);
     }
+
+    static void test_get_limbs()
+    {
+        auto composer = Composer();
+        secp256k1::fq a(uint256_t{ 0x0000000000000001, 0xa00000000000001a, 0xb00000000000011b, 0xc00000000000111c });
+        typename secp256k1_ct::fq_ct a_ct(&composer, a);
+
+        std::vector<fr_ct> limbs_ct = a_ct.get_limbs();
+        EXPECT_EQ(uint256_t(limbs_ct[0].get_value()), uint256_t(0x0000000000000001, 0xa, 0, 0));
+        EXPECT_EQ(uint256_t(limbs_ct[1].get_value()), uint256_t(0xba00000000000001, 0x1, 0, 0));
+        EXPECT_EQ(uint256_t(limbs_ct[2].get_value()), uint256_t(0x1cb0000000000001, 0x1, 0, 0));
+        EXPECT_EQ(uint256_t(limbs_ct[3].get_value()), uint256_t(0x000c000000000001, 0x0, 0, 0));
+
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
+        auto proof = prover.construct_proof();
+        bool proof_result = verifier.verify_proof(proof);
+        EXPECT_EQ(proof_result, true);
+    }
 };
 
 // Define types for which the above tests will be constructed.
@@ -946,6 +967,11 @@ TYPED_TEST(stdlib_bigfield, conditional_select_regression)
 TYPED_TEST(stdlib_bigfield, division_context)
 {
     TestFixture::test_division_context();
+}
+
+TYPED_TEST(stdlib_bigfield, get_limbs)
+{
+    TestFixture::test_get_limbs();
 }
 
 // // This test was disabled before the refactor to use TYPED_TEST's/
