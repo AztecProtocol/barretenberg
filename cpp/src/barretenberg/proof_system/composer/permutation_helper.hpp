@@ -130,7 +130,7 @@ std::vector<CyclicPermutation> compute_wire_copy_cycles(const CircuitConstructor
  * @brief Compute the traditional or generalized permutation mapping
  *
  * @details Computes the mappings from which the sigma polynomials (and conditionally, the id polynomials)
- * can be computed. The output is proving system agnostic. with
+ * can be computed. The output is proving system agnostic.
  *
  * @tparam program_width The number of wires
  * @tparam generalized (bool) Triggers use of gen perm tags and computation of id mappings when true
@@ -198,7 +198,7 @@ PermutationMapping<program_width> compute_permutation_mapping(const CircuitConst
                 if (last_node) {
                     mapping.sigmas[current_column][current_row].is_tag = true;
 
-                    // TODO: yikes, std::maps are expensive. Can we find a way to get rid of this?
+                    // TODO(Zac): yikes, std::maps (tau) are expensive. Can we find a way to get rid of this?
                     mapping.sigmas[current_column][current_row].row_index =
                         circuit_constructor.tau.at(real_variable_tags[cycle_index]);
                 }
@@ -207,7 +207,7 @@ PermutationMapping<program_width> compute_permutation_mapping(const CircuitConst
         cycle_index++;
     }
 
-    // Add informationa about public inputs to the computation
+    // Add information about public inputs to the computation
     const uint32_t num_public_inputs = static_cast<uint32_t>(circuit_constructor.public_inputs.size());
 
     for (size_t i = 0; i < num_public_inputs; ++i) {
