@@ -45,7 +45,7 @@ template <typename Fq, typename Fr, typename Params> class alignas(64) affine_el
 
     std::vector<barretenberg::fr> get_coordinate_limbs() const
     {
-        constexpr size_t num_limb_bits = plonk::NUM_LIMB_BITS_IN_FIELD_SIMULATION;
+        constexpr size_t num_limb_bits = proof_system::plonk::NUM_LIMB_BITS_IN_FIELD_SIMULATION;
         const auto split_bigfield_limbs = [](const uint256_t& element) {
             std::vector<barretenberg::fr> limbs;
             limbs.push_back(element.slice(0, num_limb_bits));
