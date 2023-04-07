@@ -214,6 +214,9 @@ PermutationMapping<program_width> compute_permutation_mapping(const CircuitConst
         mapping.sigmas[0][i].row_index = static_cast<uint32_t>(i);
         mapping.sigmas[0][i].column_index = 0;
         mapping.sigmas[0][i].is_public_input = true;
+        if (mapping.sigmas[0][i].is_tag) {
+            std::cerr << "MAPPING IS BOTH A TAG AND A PUBLIC INPUT" << std::endl;
+        }
     }
     return mapping;
 }
