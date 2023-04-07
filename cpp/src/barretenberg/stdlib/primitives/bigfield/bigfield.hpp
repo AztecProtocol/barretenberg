@@ -312,6 +312,11 @@ template <typename Composer, typename T> class bigfield {
         prime_basis_limb.fix_witness();
     }
 
+    /**
+     * @brief Get the binary basis limbs of a bigfield scalar.
+     *
+     * @return vector of the binary basis limbs (circuit type)
+     */
     std::vector<field_t<Composer>> get_limbs() const
     {
         std::vector<field_t<Composer>> output;

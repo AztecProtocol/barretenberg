@@ -43,6 +43,11 @@ template <typename Fq, typename Fr, typename Params> class alignas(64) affine_el
               typename CompileTimeEnabled = std::enable_if_t<(BaseField::modulus >> 255) == uint256_t(0), void>>
     constexpr uint256_t compress() const noexcept;
 
+    /**
+     * @brief Get the limbs of the x and y coordinates of the group element.
+     *
+     * @return vector of the limbs of x, y coordinates (size 8)
+     */
     std::vector<barretenberg::fr> get_coordinate_limbs() const
     {
         constexpr size_t num_limb_bits = proof_system::plonk::NUM_LIMB_BITS_IN_FIELD_SIMULATION;
