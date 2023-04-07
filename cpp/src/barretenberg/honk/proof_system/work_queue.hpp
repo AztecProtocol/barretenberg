@@ -16,7 +16,6 @@ template <typename Params> class work_queue {
     using FF = typename Params::Fr;
     using Commitment = typename Params::C;
 
-  public:
     struct work_item_info {
         uint32_t num_scalar_multiplications;
     };
@@ -27,12 +26,19 @@ template <typename Params> class work_queue {
         std::string label;
     };
 
+  private:
+    std::shared_ptr<proof_system::plonk::proving_key> key;
+    // TODO(luke): Consider handling all transcript interactions in the prover rather than embedding them in the queue.
+    proof_system::honk::ProverTranscript<FF>& transcript;
+    CommitmentKey commitment_key;
+    std::vector<work_item> work_item_queue;
+
+  public:
     explicit work_queue(std::shared_ptr<proof_system::plonk::proving_key>& proving_key,
-                        proof_system::honk::ProverTranscript<FF>& prover_transcript,
-                        std::shared_ptr<CommitmentKey>& commitment_key)
+                        proof_system::honk::ProverTranscript<FF>& prover_transcript)
         : key(proving_key)
         , transcript(prover_transcript)
-        , commitment_key(commitment_key){};
+        , commitment_key(key->circuit_size, "../srs_db/ignition"){}; // TODO(luke): make this properly parameterized
 
     work_queue(const work_queue& other) = default;
     work_queue(work_queue&& other) noexcept = default;
@@ -95,15 +101,10 @@ template <typename Params> class work_queue {
 
     void flush_queue() { work_item_queue = std::vector<work_item>(); };
 
-    void add_to_queue(const work_item& item)
+    void add_commitment(std::span<FF> polynomial, std::string label)
     {
-        // Note: currently no difference between wasm and native but may be in the future
-#if defined(__wasm__)
-        work_item_queue.push_back(item);
-#else
-        work_item_queue.push_back(item);
-#endif
-    };
+        add_to_queue({ SCALAR_MULTIPLICATION, polynomial, label });
+    }
 
     void process_queue()
     {
@@ -113,7 +114,7 @@ template <typename Params> class work_queue {
             case WorkType::SCALAR_MULTIPLICATION: {
 
                 // Run pippenger multi-scalar multiplication.
-                auto commitment = commitment_key->commit(item.mul_scalars);
+                auto commitment = commitment_key.commit(item.mul_scalars);
 
                 transcript.send_to_verifier(item.label, commitment);
 
@@ -129,10 +130,14 @@ template <typename Params> class work_queue {
     [[nodiscard]] std::vector<work_item> get_queue() const { return work_item_queue; };
 
   private:
-    std::shared_ptr<proof_system::plonk::proving_key> key;
-    // TODO(luke): Consider handling all transcript interactions in the prover rather than embedding them in the queue.
-    proof_system::honk::ProverTranscript<FF>& transcript;
-    std::shared_ptr<CommitmentKey>& commitment_key;
-    std::vector<work_item> work_item_queue;
+    void add_to_queue(const work_item& item)
+    {
+        // Note: currently no difference between wasm and native but may be in the future
+#if defined(__wasm__)
+        work_item_queue.push_back(item);
+#else
+        work_item_queue.push_back(item);
+#endif
+    };
 };
 } // namespace proof_system::honk

@@ -43,10 +43,7 @@ Prover<settings>::Prover(std::vector<barretenberg::polynomial>&& wire_polys,
                          const std::shared_ptr<plonk::proving_key> input_key)
     : wire_polynomials(wire_polys)
     , key(input_key)
-    , commitment_key(std::make_unique<pcs::kzg::CommitmentKey>(
-          input_key->circuit_size,
-          "../srs_db/ignition")) // TODO(Cody): Need better constructors for prover.
-    , queue(key, transcript, commitment_key)
+    , queue(key, transcript)
 {
     // Note(luke): This could be done programmatically with some hacks but this isnt too bad and its nice to see the
     // polys laid out explicitly.
@@ -83,9 +80,7 @@ Prover<settings>::Prover(std::vector<barretenberg::polynomial>&& wire_polys,
 template <typename settings> void Prover<settings>::compute_wire_commitments()
 {
     for (size_t i = 0; i < settings::Arithmetization::num_wires; ++i) {
-        queue.add_to_queue({ .work_type = WorkType::SCALAR_MULTIPLICATION,
-                             .mul_scalars = wire_polynomials[i],
-                             .label = "W_" + std::to_string(i + 1) });
+        queue.add_commitment(wire_polynomials[i], "W_" + std::to_string(i + 1));
     }
 }
 
@@ -143,8 +138,7 @@ template <typename settings> void Prover<settings>::execute_grand_product_comput
     z_permutation =
         prover_library::compute_permutation_grand_product<settings::program_width>(key, wire_polynomials, beta, gamma);
 
-    queue.add_to_queue(
-        { .work_type = WorkType::SCALAR_MULTIPLICATION, .mul_scalars = z_permutation, .label = "Z_PERM" });
+    queue.add_commitment(z_permutation, "Z_PERM");
 
     prover_polynomials[POLYNOMIAL::Z_PERM] = z_permutation;
     prover_polynomials[POLYNOMIAL::Z_PERM_SHIFT] = z_permutation.shifted();
@@ -196,9 +190,7 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
 
     // Compute and add to trasnscript the commitments [Fold^(i)], i = 1, ..., d-1
     for (size_t l = 0; l < key->log_circuit_size - 1; ++l) {
-        queue.add_to_queue({ .work_type = WorkType::SCALAR_MULTIPLICATION,
-                             .mul_scalars = fold_polynomials[l + 2],
-                             .label = "Gemini:FOLD_" + std::to_string(l + 1) });
+        queue.add_commitment(fold_polynomials[l + 2], "Gemini:FOLD_" + std::to_string(l + 1));
     }
 }
 
@@ -234,8 +226,7 @@ template <typename settings> void Prover<settings>::execute_shplonk_batched_quot
         Shplonk::compute_batched_quotient(gemini_output.opening_pairs, gemini_output.witnesses, nu_challenge);
 
     // commit to Q(X) and add [Q] to the transcript
-    auto Q_commitment = commitment_key->commit(batched_quotient_Q);
-    transcript.send_to_verifier("Shplonk:Q", Q_commitment);
+    queue.add_commitment(batched_quotient_Q, "Shplonk:Q");
 }
 
 /**
@@ -255,7 +246,8 @@ template <typename settings> void Prover<settings>::execute_shplonk_partial_eval
  * */
 template <typename settings> void Prover<settings>::execute_kzg_round()
 {
-    KZG::reduce_prove(commitment_key, shplonk_output.opening_pair, shplonk_output.witness, transcript);
+    quotient_W = KZG::compute_opening_proof_polynomial(shplonk_output.opening_pair, shplonk_output.witness);
+    queue.add_commitment(quotient_W, "KZG:W");
 }
 
 template <typename settings> plonk::proof& Prover<settings>::export_proof()
@@ -298,14 +290,18 @@ template <typename settings> plonk::proof& Prover<settings>::construct_proof()
     execute_pcs_evaluation_round();
 
     // Fiat-Shamir: nu
-    // Compute Shplonk batched quotient commitment
+    // Compute Shplonk batched quotient commitment Q
     execute_shplonk_batched_quotient_round();
+    queue.process_queue();
+
+    // Fiat-Shamir: z
+    // Compute partial evaluation Q_z
     execute_shplonk_partial_evaluation_round();
-    // queue.process_queue(); // NOTE: Don't remove; we may reinstate the queue
 
     // Fiat-Shamir: z
     // Compute KZG quotient commitment
     execute_kzg_round();
+    queue.process_queue();
 
     return export_proof();
 }

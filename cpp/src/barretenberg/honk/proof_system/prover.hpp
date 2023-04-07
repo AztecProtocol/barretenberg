@@ -65,13 +65,16 @@ template <typename settings> class Prover {
 
     std::shared_ptr<plonk::proving_key> key;
 
-    std::shared_ptr<pcs::kzg::CommitmentKey> commitment_key;
-
     // Container for spans of all polynomials required by the prover (i.e. all multivariates evaluated by Sumcheck).
     std::array<std::span<Fr>, honk::StandardArithmetization::POLYNOMIAL::COUNT> prover_polynomials;
 
     // Container for d + 1 Fold polynomials produced by Gemini
     std::vector<Polynomial> fold_polynomials;
+
+    Polynomial batched_quotient_Q; // batched quotient poly computed by Shplonk
+    Fr nu_challenge;               // needed in both Shplonk rounds
+
+    Polynomial quotient_W;
 
     work_queue<pcs::kzg::Params> queue;
 
