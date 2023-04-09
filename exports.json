@@ -1,0 +1,212 @@
+[
+  {
+    "functionName": "pedersen__init",
+    "inArgs": [],
+    "outArgs": []
+  },
+  {
+    "functionName": "pedersen__compress_fields",
+    "inArgs": [
+      {
+        "name": "left",
+        "type": "fr::in_buf"
+      },
+      {
+        "name": "right",
+        "type": "fr::in_buf"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "result",
+        "type": "fr::out_buf"
+      }
+    ]
+  },
+  {
+    "functionName": "pedersen_plookup_compress_fields",
+    "inArgs": [
+      {
+        "name": "left",
+        "type": "fr::in_buf"
+      },
+      {
+        "name": "right",
+        "type": "fr::in_buf"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "result",
+        "type": "fr::out_buf"
+      }
+    ]
+  },
+  {
+    "functionName": "pedersen__compress",
+    "inArgs": [
+      {
+        "name": "inputs_buffer",
+        "type": "fr::vec_in_buf"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "output",
+        "type": "fr::out_buf"
+      }
+    ]
+  },
+  {
+    "functionName": "pedersen_plookup_compress",
+    "inArgs": [
+      {
+        "name": "inputs_buffer",
+        "type": "fr::vec_in_buf"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "output",
+        "type": "fr::out_buf"
+      }
+    ]
+  },
+  {
+    "functionName": "pedersen__compress_with_hash_index",
+    "inArgs": [
+      {
+        "name": "inputs_buffer",
+        "type": "fr::vec_in_buf"
+      },
+      {
+        "name": "hash_index",
+        "type": "const uint32_t *"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "output",
+        "type": "fr::out_buf"
+      }
+    ]
+  },
+  {
+    "functionName": "pedersen__commit",
+    "inArgs": [
+      {
+        "name": "inputs_buffer",
+        "type": "fr::vec_in_buf"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "output",
+        "type": "fr::out_buf"
+      }
+    ]
+  },
+  {
+    "functionName": "pedersen_plookup_commit",
+    "inArgs": [
+      {
+        "name": "inputs_buffer",
+        "type": "fr::vec_in_buf"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "output",
+        "type": "fr::out_buf"
+      }
+    ]
+  },
+  {
+    "functionName": "pedersen__buffer_to_field",
+    "inArgs": [
+      {
+        "name": "data",
+        "type": "const uint8_t *"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "r",
+        "type": "fr::out_buf"
+      }
+    ]
+  },
+  {
+    "functionName": "pedersen_hash__init",
+    "inArgs": [],
+    "outArgs": []
+  },
+  {
+    "functionName": "pedersen__hash_pair",
+    "inArgs": [
+      {
+        "name": "left",
+        "type": "fr::in_buf"
+      },
+      {
+        "name": "right",
+        "type": "fr::in_buf"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "result",
+        "type": "fr::out_buf"
+      }
+    ]
+  },
+  {
+    "functionName": "pedersen__hash_multiple",
+    "inArgs": [
+      {
+        "name": "inputs_buffer",
+        "type": "fr::vec_in_buf"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "output",
+        "type": "fr::out_buf"
+      }
+    ]
+  },
+  {
+    "functionName": "pedersen__hash_multiple_with_hash_index",
+    "inArgs": [
+      {
+        "name": "inputs_buffer",
+        "type": "fr::vec_in_buf"
+      },
+      {
+        "name": "hash_index",
+        "type": "const uint32_t *"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "output",
+        "type": "fr::out_buf"
+      }
+    ]
+  },
+  {
+    "functionName": "pedersen__hash_to_tree",
+    "inArgs": [
+      {
+        "name": "data",
+        "type": "fr::vec_in_buf"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "out",
+        "type": "fr::vec_out_buf"
+      }
+    ]
+  }
+]

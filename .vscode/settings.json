@@ -104,7 +104,8 @@
     "charconv": "cpp",
     "span": "cpp",
     "*.inc": "cpp",
-    "*.macros": "cpp"
+    "*.macros": "cpp",
+    "cuchar": "cpp"
   },
   "solidity.compileUsingRemoteVersion": "v0.6.10+commit.00c0fcaf",
   "search.exclude": {
@@ -115,7 +116,8 @@
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "eslint.nodePath": "ts/.yarn/sdks",
   "prettier.prettierPath": "ts/.yarn/sdks/prettier/index.js",
-  "[cpp]": { // doesn't conflict with barratenberg.code-workspace settings.
+  "[cpp]": {
+    // doesn't conflict with barratenberg.code-workspace settings.
     "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
   },
   "[terraform]": {

@@ -24,6 +24,11 @@
 namespace barretenberg {
 template <class Params> struct alignas(32) field {
   public:
+    typedef uint8_t const* in_buf;
+    typedef uint8_t const* vec_in_buf;
+    typedef uint8_t* out_buf;
+    typedef uint8_t** vec_out_buf;
+
     // We don't initialize data by default since we'd lose a lot of time on pointless initializations.
     field() noexcept {}
 
