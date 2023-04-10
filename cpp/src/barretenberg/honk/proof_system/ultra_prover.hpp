@@ -27,30 +27,65 @@
 
 namespace proof_system::honk {
 
-// TODO(luke): The naming here is awkward. The Standard Honk prover is called "Prover" and aliased as StandardProver. To
-// be consistent with that convention outside of the prover class itself, I've called this class UltraHonkProver and use
-// the alias UltraProver externally. Resolve.
+// using Fr = barretenberg::fr;
+// using Polynomial = Polynomial<Fr>;
+
+// TODO(luke): UltraHonkProver is probably bad name but this allows use of UltraProver elsewhere. Resolve.
 template <typename settings> class UltraHonkProver {
 
     using Fr = barretenberg::fr;
-    using Polynomial = barretenberg::Polynomial<Fr>;
-    using Commitment = barretenberg::g1::affine_element;
-    using POLYNOMIAL = proof_system::honk::StandardArithmetization::POLYNOMIAL;
+    using Polynomial = Polynomial<Fr>;
 
   public:
     UltraHonkProver(std::vector<barretenberg::polynomial>&& wire_polys,
                     std::shared_ptr<plonk::proving_key> input_key = nullptr);
+
+    void execute_preamble_round();
+    void execute_wire_commitments_round();
+    void execute_tables_round();
+    void execute_grand_product_computation_round();
+    void execute_relation_check_rounds();
+    void execute_univariatization_round();
+    void execute_pcs_evaluation_round();
+    void execute_shplonk_round();
+    void execute_kzg_round();
+
+    void compute_wire_commitments();
+
+    void construct_prover_polynomials();
 
     plonk::proof& export_proof();
     plonk::proof& construct_proof();
 
     ProverTranscript<Fr> transcript;
 
+    std::vector<Fr> public_inputs;
+
+    sumcheck::RelationParameters<Fr> relation_parameters;
+
     std::vector<barretenberg::polynomial> wire_polynomials;
+    barretenberg::polynomial z_permutation;
 
     std::shared_ptr<plonk::proving_key> key;
 
-    work_queue<pcs::kzg::Params> queue;
+    std::shared_ptr<pcs::kzg::CommitmentKey> commitment_key;
+
+    // Container for spans of all polynomials required by the prover (i.e. all multivariates evaluated by Sumcheck).
+    std::array<std::span<Fr>, honk::StandardArithmetization::POLYNOMIAL::COUNT> prover_polynomials;
+
+    // Container for d + 1 Fold polynomials produced by Gemini
+    std::vector<Polynomial> fold_polynomials;
+
+    // This makes 'settings' accesible from UltraHonkProver
+    using settings_ = settings;
+
+    sumcheck::SumcheckOutput<Fr> sumcheck_output;
+    pcs::gemini::ProverOutput<pcs::kzg::Params> gemini_output;
+    pcs::shplonk::ProverOutput<pcs::kzg::Params> shplonk_output;
+
+    using Gemini = pcs::gemini::MultilinearReductionScheme<pcs::kzg::Params>;
+    using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<pcs::kzg::Params>;
+    using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
 
   private:
     plonk::proof proof;

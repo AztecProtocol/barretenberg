@@ -27,11 +27,10 @@
 #include "barretenberg/honk/proof_system/work_queue.hpp"
 
 namespace proof_system::honk {
-
-using Fr = barretenberg::fr;
-using Polynomial = Polynomial<Fr>;
-
 template <typename settings> class Prover {
+
+    using Fr = barretenberg::fr;
+    using Polynomial = Polynomial<Fr>;
 
   public:
     Prover(std::vector<barretenberg::polynomial>&& wire_polys, std::shared_ptr<plonk::proving_key> input_key = nullptr);

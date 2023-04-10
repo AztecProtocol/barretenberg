@@ -15,10 +15,12 @@
 namespace proof_system::honk {
 
 /**
- * @brief Compute witness polynomials
+ * @brief Computes `this.witness`, which is basiclly a set of polynomials mapped-to by strings.
  *
- * TODO(luke): The wire polynomials are returned directly whereas the sorted list polys are added to the proving
- * key. This should be made consistent once Cody's Flavor work is settled.
+ * Note: this doesn't actually compute the _entire_ witness. Things missing: randomness for blinding both the wires
+ and
+ * sorted `s` poly, lookup rows of the wire witnesses, the values of `z_lookup`, `z`. These are all calculated
+ * elsewhere.
  */
 template <typename CircuitConstructor>
 void UltraHonkComposerHelper<CircuitConstructor>::compute_witness(CircuitConstructor& circuit_constructor)
@@ -49,12 +51,21 @@ void UltraHonkComposerHelper<CircuitConstructor>::compute_witness(CircuitConstru
         circuit_constructor.w_4.emplace_back(circuit_constructor.zero_idx);
     }
 
-    // TODO(#340)(luke): within compute_witness_base, the 3rd argument is used in the calculation of the dyadic circuit
-    // size (subgroup_size). Here (and in other split composers) we're passing in NUM_RANDOMIZED_GATES, but elsewhere,
-    // e.g. directly above, we use NUM_RESERVED_GATES in a similar role. Therefore, these two constants must be equal
-    // for everything to be consistent. What we should do is compute the dyadic circuit size once and for all then pass
-    // that around rather than computing in multiple places.
+    info("circuit_constructor.w_l.size() = ", circuit_constructor.w_l.size());
+    info("filled_gates = ", filled_gates);
+    info("total_num_gates = ", total_num_gates);
+    info("subgroup_size = ", subgroup_size);
+    info("circuit_constructor.w_l[2786] = ", circuit_constructor.w_l[2786]);
+    // info("circuit_constructor.w_l.end() = ", circuit_constructor.w_l.end());
+
+    // TODO(luke): subgroup size was already computed above but compute_witness_base computes it again. If we pass in
+    // NUM_RANDOMIZED_GATES (as in the other split composers) the resulting sizes can differ. Reconcile this.
     wire_polynomials = compute_witness_base(circuit_constructor, total_num_gates, NUM_RANDOMIZED_GATES);
+
+    info("circuit_constructor.w_l.size() = ", circuit_constructor.w_l.size());
+    info("circuit_constructor.w_l[2786] = ", circuit_constructor.w_l[2786]);
+    info("circuit_constructor.w_l[4095] = ", circuit_constructor.w_l[4095]);
+    // info("circuit_constructor.w_l.end() = ", circuit_constructor.w_l.end());
 
     polynomial s_1(subgroup_size);
     polynomial s_2(subgroup_size);
@@ -62,9 +73,11 @@ void UltraHonkComposerHelper<CircuitConstructor>::compute_witness(CircuitConstru
     polynomial s_4(subgroup_size);
     polynomial z_lookup(subgroup_size + 1); // Only instantiated in this function; nothing assigned.
 
-    // Save space for adding random scalars in the s polynomial later. The subtracted 1 allows us to insert a `1` at the
-    // end, to ensure the evaluations (and hence coefficients) aren't all 0. See ComposerBase::compute_proving_key_base
-    // for further explanation, as a similar trick is done there.
+    // Save space for adding random scalars in the s polynomial later.
+    // The subtracted 1 allows us to insert a `1` at the end, to ensure the evaluations (and hence coefficients)
+    // aren't
+    // all 0.
+    // See ComposerBase::compute_proving_key_base for further explanation, as a similar trick is done there.
     size_t count = subgroup_size - tables_size - lookups_size - s_randomness - 1;
     for (size_t i = 0; i < count; ++i) {
         s_1[i] = 0;
@@ -201,6 +214,7 @@ std::shared_ptr<plonk::proving_key> UltraHonkComposerHelper<CircuitConstructor>:
 
     construct_lagrange_selector_forms(circuit_constructor, circuit_proving_key.get());
 
+    // TODO(luke): was there some question as to whether we would take this same strategy for Honk?
     enforce_nonzero_polynomial_selectors(circuit_constructor, circuit_proving_key.get());
 
     compute_honk_generalized_sigma_permutations<CircuitConstructor::program_width>(circuit_constructor,
