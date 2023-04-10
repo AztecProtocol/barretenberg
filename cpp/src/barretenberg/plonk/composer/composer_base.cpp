@@ -404,12 +404,19 @@ template <size_t program_width> void ComposerBase::compute_witness_base(const si
             fr::__copy(get_variable(w_4[i - public_inputs.size()]), w_4_lagrange.at(i));
     }
 
+    info("Normal: public_inputs.size() = ", public_inputs.size());
+    info("Normal: w_l[1] = ", w_l[1]);
+    info("Normal: w_1_lagrange[1] = ", w_1_lagrange[1]);
+
     circuit_proving_key->polynomial_store.put("w_1_lagrange", std::move(w_1_lagrange));
     circuit_proving_key->polynomial_store.put("w_2_lagrange", std::move(w_2_lagrange));
     circuit_proving_key->polynomial_store.put("w_3_lagrange", std::move(w_3_lagrange));
     if (program_width > 3) {
         circuit_proving_key->polynomial_store.put("w_4_lagrange", std::move(w_4_lagrange));
     }
+
+    info("Normal: polynomial_store.get(w_1_lagrange)[1] = ",
+         circuit_proving_key->polynomial_store.get("w_1_lagrange")[1]);
 
     computed_witness = true;
 }

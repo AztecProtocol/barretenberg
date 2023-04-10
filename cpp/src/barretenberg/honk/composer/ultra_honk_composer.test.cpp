@@ -71,6 +71,7 @@ void check_consistency(honk::UltraProver& honk_prover, plonk::UltraProver& plonk
     for (auto& entry : honk_store) {
         std::string key = entry.first;
         if (plonk_store.contains(key)) {
+            // info(key);
 
             bool polys_equal = (honk_store.get(key) == plonk_store.get(key));
             if (polys_equal) {
@@ -79,6 +80,9 @@ void check_consistency(honk::UltraProver& honk_prover, plonk::UltraProver& plonk
             if (!polys_equal) {
                 info("UNEQUAL: ", key);
             }
+            // bool size_equal = (honk_store.get(key).size() == plonk_store.get(key).size());
+            // if(size_equal) { info("Size Equal: ", key); }
+            // if(!size_equal) { info("Size UNEQUAL: ", key); }
         }
     }
 
@@ -876,7 +880,6 @@ TEST(UltraHonkComposer, rom)
     auto honk_prover = honk_composer.create_prover();
     auto plonk_prover = plonk_composer.create_prover();
 
-    check_consistency(honk_prover, plonk_prover);
     verify_consistency(honk_prover, plonk_prover);
 }
 
