@@ -39,7 +39,8 @@ void create_merkle_check_membership_constraint(Composer& composer, const MerkleM
         }
     }
 
-    auto exists = check_subtree_membership(root, hash_path, leaf, index_bits, 0);
+    // auto exists = check_subtree_membership(root, hash_path, leaf, index_bits, 0);
+    auto exists = check_subtree_membership_plookup(root, hash_path, leaf, index_bits, 0);
     composer.assert_equal_constant(exists.witness_index, fr::one());
 }
 
