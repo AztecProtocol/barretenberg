@@ -49,11 +49,11 @@ void UltraHonkComposerHelper<CircuitConstructor>::compute_witness(CircuitConstru
         circuit_constructor.w_4.emplace_back(circuit_constructor.zero_idx);
     }
 
-    // TODO(luke): within compute_witness_base, the 3rd argument is used in the calculation of the dyadic circuit size
-    // (subgroup_size). Here (and in other split composers) we're passing in NUM_RANDOMIZED_GATES, but elsewhere, e.g.
-    // directly above, we use NUM_RESERVED_GATES in a similar role. Therefore, these two constants must be equal for
-    // everything to be consistent. What we should do is compute the dyadic circuit size once and for all then pass that
-    // around rather than computing in multiple places.
+    // TODO(#340)(luke): within compute_witness_base, the 3rd argument is used in the calculation of the dyadic circuit
+    // size (subgroup_size). Here (and in other split composers) we're passing in NUM_RANDOMIZED_GATES, but elsewhere,
+    // e.g. directly above, we use NUM_RESERVED_GATES in a similar role. Therefore, these two constants must be equal
+    // for everything to be consistent. What we should do is compute the dyadic circuit size once and for all then pass
+    // that around rather than computing in multiple places.
     wire_polynomials = compute_witness_base(circuit_constructor, total_num_gates, NUM_RANDOMIZED_GATES);
 
     polynomial s_1(subgroup_size);
