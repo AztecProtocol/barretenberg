@@ -114,18 +114,6 @@ std::vector<barretenberg::polynomial> compute_witness_base(const CircuitConstruc
     const size_t subgroup_size =
         circuit_constructor.get_circuit_subgroup_size(num_constraints + number_of_randomized_gates);
 
-    // // TODO(luke):
-    // for (size_t i = num_gates; i < subgroup_size; ++i) {
-    //     circuit_constructor.w_l.emplace_back(circuit_constructor.zero_idx);
-    //     circuit_constructor.w_r.emplace_back(circuit_constructor.zero_idx);
-    //     circuit_constructor.w_o.emplace_back(circuit_constructor.zero_idx);
-    // }
-    // if (program_width > 3) {
-    //     for (size_t i = num_gates; i < subgroup_size; ++i) {
-    //         circuit_constructor.w_4.emplace_back(circuit_constructor.zero_idx);
-    //     }
-    // }
-
     // construct a view over all the wire's variable indices
     // w[j][i] is the index of the variable in the j-th wire, at gate i
     // Each array should be of size `num_gates`
@@ -136,10 +124,6 @@ std::vector<barretenberg::polynomial> compute_witness_base(const CircuitConstruc
     if constexpr (program_width > 3) {
         w[3] = circuit_constructor.w_4;
     }
-
-    info("New: num_public_inputs = ", num_public_inputs);
-    info("New: w_l[1] = ", circuit_constructor.w_l[1]);
-
     std::vector<barretenberg::polynomial> wires;
     // Note: randomness is added to 3 of the last 4 positions in plonk/proof_system/prover/prover.cpp
     // StandardProverBase::execute_preamble_round().
@@ -161,12 +145,8 @@ std::vector<barretenberg::polynomial> compute_witness_base(const CircuitConstruc
         for (size_t i = 0; i < num_gates; ++i) {
             w_lagrange[num_public_inputs + i] = circuit_constructor.get_variable(w[j][i]);
         }
-        if (j == 0) {
-            info("New: w_lagrange[1] = ", w_lagrange[1]);
-        }
         wires.push_back(std::move(w_lagrange));
     }
-    info("New: wires[0][1] = ", wires[0][1]);
     return wires;
 }
 } // namespace proof_system

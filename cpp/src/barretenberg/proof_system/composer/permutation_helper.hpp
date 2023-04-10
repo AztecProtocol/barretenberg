@@ -524,7 +524,7 @@ void compute_honk_generalized_sigma_permutations(const CircuitConstructor& circu
     auto mapping = compute_permutation_mapping<program_width, true>(circuit_constructor, key);
 
     // Compute Plonk-style sigma and ID polynomials from the corresponding mappings
-    // TODO(luke): Change these to Honk style!
+    // TODO(luke): Change these to Honk style! (The only difference is we don't need any fancy coset logic)
     compute_plonk_permutation_lagrange_polynomials_from_mapping("sigma", mapping.sigmas, key);
     compute_plonk_permutation_lagrange_polynomials_from_mapping("id", mapping.ids, key);
 }

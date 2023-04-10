@@ -27,14 +27,14 @@
 
 namespace proof_system::honk {
 
-// using Fr = barretenberg::fr;
-// using Polynomial = Polynomial<Fr>;
-
-// TODO(luke): UltraHonkProver is probably bad name but this allows use of UltraProver elsewhere. Resolve.
+// TODO(luke): UltraHonkProver is bad name but this allows use of UltraProver elsewhere (consistent with
+// StandardProver). Resolve.
 template <typename settings> class UltraHonkProver {
 
     using Fr = barretenberg::fr;
-    using Polynomial = Polynomial<Fr>;
+    using Polynomial = barretenberg::Polynomial<Fr>;
+    using Commitment = barretenberg::g1::affine_element;
+    using POLYNOMIAL = proof_system::honk::StandardArithmetization::POLYNOMIAL;
 
   public:
     UltraHonkProver(std::vector<barretenberg::polynomial>&& wire_polys,
