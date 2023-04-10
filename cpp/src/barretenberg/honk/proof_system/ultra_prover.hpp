@@ -24,16 +24,21 @@
 #include <string>
 #include "barretenberg/honk/pcs/claim.hpp"
 #include "barretenberg/honk/proof_system/prover_library.hpp"
-#include "barretenberg/honk/proof_system/work_queue.hpp"
 
 namespace proof_system::honk {
-template <typename settings> class Prover {
+
+// using Fr = barretenberg::fr;
+// using Polynomial = Polynomial<Fr>;
+
+// TODO(luke): UltraHonkProver is probably bad name but this allows use of UltraProver elsewhere. Resolve.
+template <typename settings> class UltraHonkProver {
 
     using Fr = barretenberg::fr;
     using Polynomial = Polynomial<Fr>;
 
   public:
-    Prover(std::vector<barretenberg::polynomial>&& wire_polys, std::shared_ptr<plonk::proving_key> input_key = nullptr);
+    UltraHonkProver(std::vector<barretenberg::polynomial>&& wire_polys,
+                    std::shared_ptr<plonk::proving_key> input_key = nullptr);
 
     void execute_preamble_round();
     void execute_wire_commitments_round();
@@ -42,8 +47,7 @@ template <typename settings> class Prover {
     void execute_relation_check_rounds();
     void execute_univariatization_round();
     void execute_pcs_evaluation_round();
-    void execute_shplonk_batched_quotient_round();
-    void execute_shplonk_partial_evaluation_round();
+    void execute_shplonk_round();
     void execute_kzg_round();
 
     void compute_wire_commitments();
@@ -64,20 +68,15 @@ template <typename settings> class Prover {
 
     std::shared_ptr<plonk::proving_key> key;
 
+    std::shared_ptr<pcs::kzg::CommitmentKey> commitment_key;
+
     // Container for spans of all polynomials required by the prover (i.e. all multivariates evaluated by Sumcheck).
     std::array<std::span<Fr>, honk::StandardArithmetization::POLYNOMIAL::COUNT> prover_polynomials;
 
     // Container for d + 1 Fold polynomials produced by Gemini
     std::vector<Polynomial> fold_polynomials;
 
-    Polynomial batched_quotient_Q; // batched quotient poly computed by Shplonk
-    Fr nu_challenge;               // needed in both Shplonk rounds
-
-    Polynomial quotient_W;
-
-    work_queue<pcs::kzg::Params> queue;
-
-    // This makes 'settings' accesible from Prover
+    // This makes 'settings' accesible from UltraHonkProver
     using settings_ = settings;
 
     sumcheck::SumcheckOutput<Fr> sumcheck_output;
@@ -92,8 +91,8 @@ template <typename settings> class Prover {
     plonk::proof proof;
 };
 
-extern template class Prover<plonk::standard_settings>;
+extern template class UltraHonkProver<plonk::ultra_settings>;
 
-using StandardProver = Prover<plonk::standard_settings>;
+using UltraProver = UltraHonkProver<plonk::ultra_settings>;
 
 } // namespace proof_system::honk

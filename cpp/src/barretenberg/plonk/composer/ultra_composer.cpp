@@ -719,8 +719,19 @@ void UltraComposer::compute_witness()
         w_4.emplace_back(zero_idx);
     }
 
+    // info("w_l.size() = ", w_l.size());
+    // info("filled_gates = ", filled_gates);
+    // info("total_num_gates = ", total_num_gates);
+    // info("subgroup_size = ", subgroup_size);
+    // info("w_l[2786] = ", w_l[2786]);
+    // info("w_l[4095] = ", w_l[4095]);
+
     // Create and store polynomials which interpolate the wire values (variable values pointed-to by the `w_`s).
     ComposerBase::compute_witness_base<ultra_settings::program_width>(total_num_gates);
+
+    // info("w_l.size() = ", w_l.size());
+    // info("w_l[2786] = ", w_l[2786]);
+    // info("w_l[4095] = ", w_l[4095]);
 
     polynomial s_1(subgroup_size);
     polynomial s_2(subgroup_size);

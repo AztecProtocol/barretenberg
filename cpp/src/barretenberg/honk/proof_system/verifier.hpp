@@ -15,6 +15,9 @@
 namespace proof_system::honk {
 template <typename program_settings> class Verifier {
 
+    using Fr = barretenberg::fr;
+    using Polynomial = Polynomial<Fr>;
+
   public:
     Verifier(std::shared_ptr<plonk::verification_key> verifier_key = nullptr);
     Verifier(Verifier&& other);
