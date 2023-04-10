@@ -67,9 +67,10 @@ export class BarretenbergWasm extends EventEmitter {
       // use for web). There is a web friendly one but I ran into some troubles, plus they're a bit bloated.
       // So, for now we remain "stuck" on wasi 12...
 
-      /* eslint-disable camelcase */
+      // eslint-disable-next-line camelcase
       wasi_snapshot_preview1: {
         ...getEmptyWasiSdk(str => this.debug(str)),
+        // eslint-disable-next-line camelcase
         random_get: (arr: any, length: number) => {
           arr = arr >>> 0;
           const heap = this.getMemory();
@@ -128,6 +129,7 @@ export class BarretenbergWasm extends EventEmitter {
           //   Buffer.from(wasm.getMemorySlice(dataAddr, dataAddr + dataLength))
           // );
         }),
+        // eslint-disable-next-line camelcase
         env_load_verifier_crs: this.wrapAsyncImportFn(async () => {
           // TODO optimize
           const crs = new Crs(0);

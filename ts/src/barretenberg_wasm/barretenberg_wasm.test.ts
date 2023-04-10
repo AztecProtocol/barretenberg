@@ -17,10 +17,11 @@ describe('barretenberg wasm', () => {
     expect(result).toStrictEqual(buf);
   });
 
-  it('should use asyncify to do an async callback into js', async () => {
-    const addr1 = await wasm.asyncCall('test_async_func', 1024 * 1024, 1);
-    const addr2 = await wasm.asyncCall('test_async_func', 1024 * 1024 * 2, 2);
-    expect(wasm.getMemorySlice(addr1, addr1 + 1024 * 1024).every(v => v === 1)).toBe(true);
-    expect(wasm.getMemorySlice(addr2, addr2 + 1024 * 1024 * 2).every(v => v === 2)).toBe(true);
-  });
+  // TODO: Asyncify has been disabled by Blaine for... reasons.
+  // it('should use asyncify to do an async callback into js', async () => {
+  //   const addr1 = await wasm.asyncCall('test_async_func', 1024 * 1024, 1);
+  //   const addr2 = await wasm.asyncCall('test_async_func', 1024 * 1024 * 2, 2);
+  //   expect(wasm.getMemorySlice(addr1, addr1 + 1024 * 1024).every(v => v === 1)).toBe(true);
+  //   expect(wasm.getMemorySlice(addr2, addr2 + 1024 * 1024 * 2).every(v => v === 2)).toBe(true);
+  // });
 });

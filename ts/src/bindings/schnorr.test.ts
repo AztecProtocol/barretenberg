@@ -1,8 +1,7 @@
-import { randomBytes } from 'crypto';
 import { TextEncoder } from 'util';
 import { Buffer128, Buffer32, Fr, Point } from '../types/index.js';
 import {
-  pedersenHashInit,
+  pedersenInit,
   schnorrComputePublicKey,
   schnorrConstructSignature,
   schnorrMultisigCombineSignatures,
@@ -19,7 +18,7 @@ describe('schnorr', () => {
 
   beforeAll(() => {
     // wasm.on('log', console.log);
-    pedersenHashInit();
+    pedersenInit();
   });
 
   it('should verify signature', () => {

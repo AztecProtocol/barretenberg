@@ -46,7 +46,8 @@ WASM_EXPORT void schnorr__verify_signature(
 {
     auto pubk = from_buffer<grumpkin::g1::affine_element>(pub_key);
     auto message = from_buffer<std::string>(message_buf);
-    std::array<uint8_t, 32> s, e;
+    std::array<uint8_t, 32> s;
+    std::array<uint8_t, 32> e;
     std::copy(sig_s, sig_s + 32, s.begin());
     std::copy(sig_e, sig_e + 32, e.begin());
     crypto::schnorr::signature sig = { s, e };
@@ -72,8 +73,7 @@ WASM_EXPORT void schnorr__multisig_validate_and_combine_signer_pubkeys(uint8_t c
                                                                        bool* success)
 {
     using multisig = crypto::schnorr::multisig<grumpkin::g1, KeccakHasher, Blake2sHasher>;
-    std::vector<multisig::MultiSigPublicKey> pubkeys =
-        from_buffer<std::vector<multisig::MultiSigPublicKey>>(signer_pubkey_buf);
+    auto pubkeys = from_buffer<std::vector<multisig::MultiSigPublicKey>>(signer_pubkey_buf);
 
     auto combined_key = multisig::validate_and_combine_signer_pubkeys(pubkeys);
 
