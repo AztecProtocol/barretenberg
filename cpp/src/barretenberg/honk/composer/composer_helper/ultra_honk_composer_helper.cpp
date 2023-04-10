@@ -51,21 +51,9 @@ void UltraHonkComposerHelper<CircuitConstructor>::compute_witness(CircuitConstru
         circuit_constructor.w_4.emplace_back(circuit_constructor.zero_idx);
     }
 
-    info("circuit_constructor.w_l.size() = ", circuit_constructor.w_l.size());
-    info("filled_gates = ", filled_gates);
-    info("total_num_gates = ", total_num_gates);
-    info("subgroup_size = ", subgroup_size);
-    info("circuit_constructor.w_l[2786] = ", circuit_constructor.w_l[2786]);
-    // info("circuit_constructor.w_l.end() = ", circuit_constructor.w_l.end());
-
     // TODO(luke): subgroup size was already computed above but compute_witness_base computes it again. If we pass in
     // NUM_RANDOMIZED_GATES (as in the other split composers) the resulting sizes can differ. Reconcile this.
     wire_polynomials = compute_witness_base(circuit_constructor, total_num_gates, NUM_RANDOMIZED_GATES);
-
-    info("circuit_constructor.w_l.size() = ", circuit_constructor.w_l.size());
-    info("circuit_constructor.w_l[2786] = ", circuit_constructor.w_l[2786]);
-    info("circuit_constructor.w_l[4095] = ", circuit_constructor.w_l[4095]);
-    // info("circuit_constructor.w_l.end() = ", circuit_constructor.w_l.end());
 
     polynomial s_1(subgroup_size);
     polynomial s_2(subgroup_size);

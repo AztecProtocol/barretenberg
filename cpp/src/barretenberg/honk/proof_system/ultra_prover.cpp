@@ -24,11 +24,6 @@
 
 namespace proof_system::honk {
 
-using Fr = barretenberg::fr;
-using Commitment = barretenberg::g1::affine_element;
-using Polynomial = barretenberg::Polynomial<Fr>;
-using POLYNOMIAL = proof_system::honk::StandardArithmetization::POLYNOMIAL;
-
 /**
  * Create UltraHonkProver from proving key, witness and manifest.
  *
