@@ -1,26 +1,6 @@
 import ts from 'typescript';
 import fs from 'fs';
-
-const typeMap: { [key: string]: string } = {
-  'fr::in_buf': 'Fr',
-  'fr::out_buf': 'Fr',
-  'fr::vec_in_buf': 'Fr[]',
-  'fr::vec_out_buf': 'Fr[]',
-  void: 'void',
-  'const uint8_t *': 'Buffer',
-  'uint8_t **': 'Buffer',
-  /* eslint-disable-next-line camelcase */
-  uint32_t: 'number',
-  'const uint32_t *': 'number',
-};
-
-const deserializerMap: { [key: string]: string } = {
-  'fr::out_buf': 'Fr',
-  'fr::vec_out_buf': 'VectorDeserializer(Fr)',
-  'uint8_t **': 'BufferDeserializer()',
-  /* eslint-disable-next-line camelcase */
-  uint32_t: 'NumberDeserializer()',
-};
+import { mapDeserializer, mapType } from './mappings.js';
 
 interface Arg {
   name: string;
@@ -72,6 +52,7 @@ function generateCode(filename: string) {
         ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier('BufferDeserializer')),
         ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier('NumberDeserializer')),
         ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier('VectorDeserializer')),
+        ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier('BoolDeserializer')),
       ]),
     ),
     ts.factory.createStringLiteral('../serialize/index.js'),
@@ -84,6 +65,10 @@ function generateCode(filename: string) {
       undefined,
       ts.factory.createNamedImports([
         ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier('Fr')),
+        ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier('Fq')),
+        ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier('Point')),
+        ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier('Buffer32')),
+        ts.factory.createImportSpecifier(false, undefined, ts.factory.createIdentifier('Buffer128')),
       ]),
     ),
     ts.factory.createStringLiteral('../types/index.js'),
@@ -148,7 +133,7 @@ function generateCode(filename: string) {
                 ])
               : undefined,
             /* expression */ ts.factory.createArrayLiteralExpression(
-              outArgs.map(arg => ts.factory.createIdentifier(deserializerMap[arg.type])),
+              outArgs.map(arg => ts.factory.createIdentifier(mapDeserializer(arg.type))),
             ),
           ),
         ],
@@ -252,13 +237,6 @@ function toCamelCase(input: string): string {
 
   // Join the camelCasedWords array back into a single string
   return camelCasedWords.join('');
-}
-
-function mapType(type: string) {
-  if (typeMap[type]) {
-    return typeMap[type];
-  }
-  throw new Error(`Unknown type: ${type}`);
 }
 
 generateCode(process.argv[2] || '../exports.json');

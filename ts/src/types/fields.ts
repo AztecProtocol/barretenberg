@@ -3,6 +3,7 @@ import { toBigIntBE, toBufferBE } from 'bigint-buffer';
 import { BufferReader } from '../serialize/index.js';
 
 export class Fr {
+  static ZERO = new Fr(0n);
   static MODULUS = 0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001n;
   static MAX_VALUE = this.MODULUS - 1n;
   static SIZE_IN_BYTES = 32;
@@ -21,6 +22,11 @@ export class Fr {
   static fromBuffer(buffer: Uint8Array | Buffer | BufferReader) {
     const reader = BufferReader.asReader(buffer);
     return new this(toBigIntBE(reader.readBytes(this.SIZE_IN_BYTES)));
+  }
+
+  static fromBufferReduce(buffer: Uint8Array | Buffer | BufferReader) {
+    const reader = BufferReader.asReader(buffer);
+    return new this(toBigIntBE(reader.readBytes(this.SIZE_IN_BYTES)) % Fr.MODULUS);
   }
 
   static fromString(str: string) {
@@ -60,9 +66,14 @@ export class Fq {
     return new this(r);
   }
 
-  static fromBuffer(buffer: Buffer | BufferReader) {
+  static fromBuffer(buffer: Uint8Array | Buffer | BufferReader) {
     const reader = BufferReader.asReader(buffer);
     return new this(toBigIntBE(reader.readBytes(this.SIZE_IN_BYTES)));
+  }
+
+  static fromBufferReduce(buffer: Uint8Array | Buffer | BufferReader) {
+    const reader = BufferReader.asReader(buffer);
+    return new this(toBigIntBE(reader.readBytes(this.SIZE_IN_BYTES)) % Fr.MODULUS);
   }
 
   static fromString(str: string) {

@@ -23,7 +23,7 @@ export class HeapAllocator {
         this.wasm.writeMemory(ptr, buf);
         return ptr;
       } else {
-        const ptr = this.wasm.call('bb_malloc', buf.length);
+        const ptr = this.wasm.call('bbmalloc', buf.length);
         this.wasm.writeMemory(ptr, buf);
         this.allocs.push(ptr);
         return ptr;
@@ -40,7 +40,7 @@ export class HeapAllocator {
       if (size <= this.outScratchRemaining) {
         return (this.outScratchRemaining -= size);
       } else {
-        const ptr = this.wasm.call('bb_malloc', size);
+        const ptr = this.wasm.call('bbmalloc', size);
         this.allocs.push(ptr);
         return ptr;
       }

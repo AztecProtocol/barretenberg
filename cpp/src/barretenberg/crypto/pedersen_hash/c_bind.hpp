@@ -6,9 +6,9 @@
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #define WASM_EXPORT __attribute__((visibility("default")))
 
-using namespace barretenberg;
-
 extern "C" {
+
+using namespace barretenberg;
 
 WASM_EXPORT void pedersen_hash__init();
 

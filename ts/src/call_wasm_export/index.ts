@@ -2,7 +2,7 @@ import { BarretenbergWasm } from '../barretenberg_wasm/barretenberg_wasm.js';
 import { HeapAllocator } from './heap_allocator.js';
 import { Bufferable, OutputType } from '../serialize/index.js';
 
-const wasm = await BarretenbergWasm.new();
+export const wasm = await BarretenbergWasm.new();
 
 /**
  * Calls a WASM export function, handles allocating/freeing of memory, and serializing/deserializing to types.
@@ -14,6 +14,7 @@ const wasm = await BarretenbergWasm.new();
  * Output args must come after input args.
  * All input data is big-endian.
  * All output data is big-endian, except output heap alloc pointers.
+ * As integer types are converted to/from big-endian form, we shouldn't have to worry about memory alignment. (SURE?)
  * All functions should return void.
  * This binding function is responsible for allocating argument memory (including output memory).
  * Variable length output args are allocated on the heap, and the resulting pointer is written to the output arg ptr,

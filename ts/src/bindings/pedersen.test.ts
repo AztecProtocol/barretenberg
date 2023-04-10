@@ -15,7 +15,7 @@ import {
   pedersenPlookupCompressFields,
 } from './index.js';
 
-describe('test generated bindings', () => {
+describe('pedersen', () => {
   beforeAll(() => {
     pedersenHashInit();
   });

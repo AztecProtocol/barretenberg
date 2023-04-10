@@ -1,9 +1,14 @@
 #include <cstdint>
 #include <cstddef>
+#include "barretenberg/ecc/curves/bn254/fr.hpp"
 
 #define WASM_EXPORT __attribute__((visibility("default")))
 
 extern "C" {
 
-WASM_EXPORT void blake2s_to_field(uint8_t const* data, size_t length, uint8_t* r);
+using namespace barretenberg;
+
+WASM_EXPORT void blake2s(uint8_t const* data, out_buf32 r);
+
+WASM_EXPORT void blake2s_to_field(uint8_t const* data, fr::out_buf r);
 }

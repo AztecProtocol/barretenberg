@@ -5,8 +5,19 @@ export interface OutputType<T = any> {
   fromBuffer: (b: Uint8Array | BufferReader) => T;
 }
 
+export function BoolDeserializer(): OutputType {
+  return {
+    SIZE_IN_BYTES: 1,
+    fromBuffer: (buf: Uint8Array | BufferReader) => {
+      const reader = BufferReader.asReader(buf);
+      return reader.readBoolean();
+    },
+  };
+}
+
 export function NumberDeserializer(): OutputType {
   return {
+    SIZE_IN_BYTES: 4,
     fromBuffer: (buf: Uint8Array | BufferReader) => {
       const reader = BufferReader.asReader(buf);
       return reader.readNumber();
