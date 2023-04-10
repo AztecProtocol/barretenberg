@@ -110,6 +110,7 @@ template <typename Fq, typename Fr, typename Params> class alignas(64) affine_el
                 write(buffer, uint256_t(1) << 255);
             }
         } else {
+            // TODO: Why is y-bytes before x-bytes?
             Fq::serialize_to_buffer(value.y, buffer);
             Fq::serialize_to_buffer(value.x, buffer + sizeof(Fq));
         }
