@@ -17,6 +17,10 @@ namespace proof_system::honk {
  */
 class StandardHonkComposer {
   public:
+    // TODO(Cody): This should go in flavor or something.
+    static constexpr merkle::HashType merkle_hash_type = merkle::HashType::LOOKUP_PEDERSEN;
+    static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
+
     using Flavor = flavor::Standard;
     using CircuitConstructor = StandardCircuitConstructor;
     using ProvingKey = typename Flavor::ProvingKey;

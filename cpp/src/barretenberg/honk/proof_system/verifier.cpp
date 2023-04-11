@@ -153,11 +153,11 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     auto batched_commitment_to_be_shifted = Commitment::zero();
 
     // Compute powers of batching challenge rho
-    Fr rho = transcript.get_challenge("rho");
-    std::vector<Fr> rhos = Gemini::powers_of_rho(rho, NUM_POLYNOMIALS);
+    FF rho = transcript.get_challenge("rho");
+    std::vector<FF> rhos = Gemini::powers_of_rho(rho, NUM_POLYNOMIALS);
 
     // Compute batched multivariate evaluation
-    Fr batched_evaluation = Fr::zero();
+    FF batched_evaluation = FF::zero();
     for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
         batched_evaluation += multivariate_evaluations[i] * rhos[i];
     }

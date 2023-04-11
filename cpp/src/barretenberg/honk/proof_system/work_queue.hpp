@@ -1,7 +1,6 @@
 #pragma once
 
 #include "barretenberg/honk/transcript/transcript.hpp"
-#include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include <cstddef>
 #include <memory>
 
@@ -30,19 +29,15 @@ template <typename Params> class work_queue {
     };
 
   private:
-    std::shared_ptr<proof_system::plonk::proving_key> proving_key;
     // TODO(luke): Consider handling all transcript interactions in the prover rather than embedding them in the queue.
     proof_system::honk::ProverTranscript<FF>& transcript;
     CommitmentKey commitment_key;
     std::vector<work_item> work_item_queue;
 
   public:
-    explicit work_queue(std::shared_ptr<proof_system::plonk::proving_key>& proving_key,
-                        proof_system::honk::ProverTranscript<FF>& prover_transcript)
-        : proving_key(proving_key)
-        , transcript(prover_transcript)
-        , commitment_key(proving_key->circuit_size,
-                         "../srs_db/ignition"){}; // TODO(luke): make this properly parameterized
+    explicit work_queue(size_t circuit_size, proof_system::honk::ProverTranscript<FF>& prover_transcript)
+        : transcript(prover_transcript)
+        , commitment_key(circuit_size, "../srs_db/ignition"){}; // TODO(luke): make this properly parameterized
 
     work_queue(const work_queue& other) = default;
     work_queue(work_queue&& other) noexcept = default;

@@ -4,6 +4,7 @@
 #include <span>
 #include <string>
 #include <type_traits>
+#include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
@@ -31,6 +32,43 @@ template <typename T, size_t NUM_ENTITIES> class Data {
     consteval size_t size() { return _data.size(); };
 };
 
+class Ultra {
+  public:
+    using CircuitConstructor = proof_system::UltraCircuitConstructor;
+    static constexpr size_t num_wires = CircuitConstructor::num_wires;
+    // static constexpr size_t NUM_ALL_ENTITIES = 18;
+    // static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 13;
+
+    using FF = barretenberg::fr;
+    using Polynomial = barretenberg::Polynomial<FF>;
+    using PolynomialView = std::span<FF>;
+    using G1 = barretenberg::g1;
+    using Commitment = G1;
+    using CommitmentView = G1; // TODO(Cody): make a pointer?
+    using PCSParams = pcs::kzg::Params;
+
+    class ProvingKey {
+      public:
+        const size_t circuit_size;
+        const size_t log_circuit_size; // TODO(Cody)
+        const size_t num_public_inputs;
+        std::shared_ptr<ProverReferenceString> crs;
+        EvaluationDomain<FF> evaluation_domain;
+        const ComposerType composer_type; // TODO(Cody): Get rid of this
+
+        ProvingKey(const size_t circuit_size,
+                   const size_t num_public_inputs,
+                   std::shared_ptr<ProverReferenceString> const& crs,
+                   ComposerType composer_type)
+            : circuit_size(circuit_size)
+            , log_circuit_size(numeric::get_msb(circuit_size))
+            , num_public_inputs(num_public_inputs)
+            , crs(crs)
+            , evaluation_domain(circuit_size, circuit_size)
+            , composer_type(composer_type){};
+    };
+};
+
 class Standard {
   public:
     using CircuitConstructor = proof_system::StandardCircuitConstructor;
@@ -44,6 +82,7 @@ class Standard {
     using G1 = barretenberg::g1;
     using Commitment = G1;
     using CommitmentView = G1; // TODO(Cody): make a pointer?
+    using PCSParams = pcs::kzg::Params;
 
     // TODO(Cody): Made this public derivation so that I could populate selector polys from circuit constructor.
     template <typename T> class PrecomputedData : public Data<T, NUM_PRECOMPUTED_ENTITIES> {

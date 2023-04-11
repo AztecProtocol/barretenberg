@@ -19,32 +19,27 @@
 #include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/honk/flavor/flavor.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "barretenberg/transcript/transcript_wrappers.hpp"
 #include <string>
 #include "barretenberg/honk/pcs/claim.hpp"
 
 namespace proof_system::honk {
 
-using Fr = barretenberg::fr;
-using Commitment = barretenberg::g1::affine_element;
-using Polynomial = barretenberg::Polynomial<Fr>;
-using POLYNOMIAL = proof_system::honk::StandardArithmetization::POLYNOMIAL;
-
 /**
  * Create Prover from proving key, witness and manifest.
  *
  * @param input_key Proving key.
- * @param input_manifest Input manifest
+ * @param input_manifest Input manifestxo
  *
  * @tparam settings Settings class.
  * */
 // TODO(Cody): both input types are foo& in prototype
-template <typename settings>
-Prover<settings>::Prover(std::vector<barretenberg::polynomial>&& wire_polys,
-                         const std::shared_ptr<plonk::proving_key> input_key)
+template <typename Flavor>
+Prover<Flavor>::Prover(std::vector<Polynomial>&& wire_polys, const std::shared_ptr<ProvingKey> input_key)
     : wire_polynomials(wire_polys)
     , key(input_key)
-    , queue(key, transcript)
+    , queue(input_key->circuit_size, transcript)
 {
     // Note(luke): This could be done programmatically with some hacks but this isnt too bad and its nice to see the
     // polys laid out explicitly.
@@ -63,26 +58,28 @@ Prover<settings>::Prover(std::vector<barretenberg::polynomial>&& wire_polys,
     // prover_polynomials.lagrange_last = key->polynomial_store.get("L_last_lagrange");
     // prover_polynomials.w_l = wire_polynomials[0];
     // prover_polynomials.w_r = wire_polynomials[1];
-    // prover_polynomials.w_o = wire_polynomials[2];template <typename settings>
-    prover_polynomials[POLYNOMIAL::Q_C] = key->polynomial_store.get("q_c_lagrange");
-    prover_polynomials[POLYNOMIAL::Q_L] = key->polynomial_store.get("q_1_lagrange");
-    prover_polynomials[POLYNOMIAL::Q_R] = key->polynomial_store.get("q_2_lagrange");
-    prover_polynomials[POLYNOMIAL::Q_O] = key->polynomial_store.get("q_3_lagrange");
-    prover_polynomials[POLYNOMIAL::Q_M] = key->polynomial_store.get("q_m_lagrange");
-    prover_polynomials[POLYNOMIAL::SIGMA_1] = key->polynomial_store.get("sigma_1_lagrange");
-    prover_polynomials[POLYNOMIAL::SIGMA_2] = key->polynomial_store.get("sigma_2_lagrange");
-    prover_polynomials[POLYNOMIAL::SIGMA_3] = key->polynomial_store.get("sigma_3_lagrange");
-    prover_polynomials[POLYNOMIAL::ID_1] = key->polynomial_store.get("id_1_lagrange");
-    prover_polynomials[POLYNOMIAL::ID_2] = key->polynomial_store.get("id_2_lagrange");
-    prover_polynomials[POLYNOMIAL::ID_3] = key->polynomial_store.get("id_3_lagrange");
-    prover_polynomials[POLYNOMIAL::LAGRANGE_FIRST] = key->polynomial_store.get("L_first_lagrange");
-    prover_polynomials[POLYNOMIAL::LAGRANGE_LAST] = key->polynomial_store.get("L_last_lagrange");
-    prover_polynomials[POLYNOMIAL::W_L] = wire_polynomials[0];
-    prover_polynomials[POLYNOMIAL::W_R] = wire_polynomials[1];
-    prover_polynomials[POLYNOMIAL::W_O] = wire_polynomials[2];
+    // prover_polynomials.w_o = wire_polynomials[2];template <typename Flavor>
+
+    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::Q_C] = key->polynomial_store.get("q_c_lagrange");
+    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::Q_L] = key->polynomial_store.get("q_1_lagrange");
+    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::Q_R] = key->polynomial_store.get("q_2_lagrange");
+    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::Q_O] = key->polynomial_store.get("q_3_lagrange");
+    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::Q_M] = key->polynomial_store.get("q_m_lagrange");
+    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::SIGMA_1] = key->polynomial_store.get("sigma_1_lagrange");
+    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::SIGMA_2] = key->polynomial_store.get("sigma_2_lagrange");
+    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::SIGMA_3] = key->polynomial_store.get("sigma_3_lagrange");
+    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::ID_1] = key->polynomial_store.get("id_1_lagrange");
+    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::ID_2] = key->polynomial_store.get("id_2_lagrange");
+    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::ID_3] = key->polynomial_store.get("id_3_lagrange");
+    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::LAGRANGE_FIRST] =
+    //     key->polynomial_store.get("L_first_lagrange");
+    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::LAGRANGE_LAST] =
+    // key->polynomial_store.get("L_last_lagrange"); prover_polynomials[honk::StandardHonk::MULTIVARIATE::W_L] =
+    // wire_polynomials[0]; prover_polynomials[honk::StandardHonk::MULTIVARIATE::W_R] = wire_polynomials[1];
+    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::W_O] = wire_polynomials[2];
 
     // Add public inputs to transcript from the second wire polynomial
-    std::span<Fr> public_wires_source = prover_polynomials[POLYNOMIAL::W_R];
+    std::span<FF> public_wires_source = prover_polynomials[honk::StandardHonk::MULTIVARIATE::W_R];
 
     for (size_t i = 0; i < key->num_public_inputs; ++i) {
         public_inputs.emplace_back(public_wires_source[i]);
@@ -94,9 +91,10 @@ Prover<settings>::Prover(std::vector<barretenberg::polynomial>&& wire_polys,
  * - Add PI to transcript (I guess PI will stay in w_2 for now?)
  *
  * */
-template <typename settings> void Prover<settings>::compute_wire_commitments()
+template <typename Flavor> void Prover<Flavor>::compute_wire_commitments()
 {
-    for (size_t i = 0; i < settings::Arithmetization::num_wires; ++i) {
+    for (size_t i = 0; i < Flavor::num_wires; ++i) {
+        // WORKTODO
         queue.add_commitment(wire_polynomials[i], "W_" + std::to_string(i + 1));
     }
 }
@@ -105,7 +103,7 @@ template <typename settings> void Prover<settings>::compute_wire_commitments()
  * - Add circuit size, public input size, and public inputs to transcript
  *
  * */
-template <typename settings> void Prover<settings>::execute_preamble_round()
+template <typename Flavor> void Prover<Flavor>::execute_preamble_round()
 {
     const auto circuit_size = static_cast<uint32_t>(key->circuit_size);
     const auto num_public_inputs = static_cast<uint32_t>(key->num_public_inputs);
@@ -122,7 +120,7 @@ template <typename settings> void Prover<settings>::execute_preamble_round()
 /**
  * - compute wire commitments
  * */
-template <typename settings> void Prover<settings>::execute_wire_commitments_round()
+template <typename Flavor> void Prover<Flavor>::execute_wire_commitments_round()
 {
     compute_wire_commitments();
 }
@@ -130,7 +128,7 @@ template <typename settings> void Prover<settings>::execute_wire_commitments_rou
 /**
  * For Standard Honk, this is a non-op (just like for Standard/Turbo Plonk).
  * */
-template <typename settings> void Prover<settings>::execute_tables_round()
+template <typename Flavor> void Prover<Flavor>::execute_tables_round()
 {
     // No operations are needed here for Standard Honk
 }
@@ -139,26 +137,25 @@ template <typename settings> void Prover<settings>::execute_tables_round()
  * - Do Fiat-Shamir to get "beta" challenge (Note: gamma = beta^2)
  * - Compute grand product polynomial (permutation only) and commitment
  * */
-template <typename settings> void Prover<settings>::execute_grand_product_computation_round()
+template <typename Flavor> void Prover<Flavor>::execute_grand_product_computation_round()
 {
     // Compute and store parameters required by relations in Sumcheck
     auto [beta, gamma] = transcript.get_challenges("beta", "gamma");
 
-    auto public_input_delta = compute_public_input_delta<Fr>(public_inputs, beta, gamma, key->circuit_size);
+    auto public_input_delta = compute_public_input_delta<FF>(public_inputs, beta, gamma, key->circuit_size);
 
-    relation_parameters = sumcheck::RelationParameters<Fr>{
+    relation_parameters = sumcheck::RelationParameters<FF>{
         .beta = beta,
         .gamma = gamma,
         .public_input_delta = public_input_delta,
     };
 
-    z_permutation =
-        prover_library::compute_permutation_grand_product<settings::program_width>(key, wire_polynomials, beta, gamma);
+    z_permutation = prover_library::compute_permutation_grand_product<Flavor>(key, wire_polynomials, beta, gamma);
 
     queue.add_commitment(z_permutation, "Z_PERM");
 
-    prover_polynomials[POLYNOMIAL::Z_PERM] = z_permutation;
-    prover_polynomials[POLYNOMIAL::Z_PERM_SHIFT] = z_permutation.shifted();
+    prover_polynomials[honk::StandardHonk::MULTIVARIATE::Z_PERM] = z_permutation;
+    prover_polynomials[honk::StandardHonk::MULTIVARIATE::Z_PERM_SHIFT] = z_permutation.shifted();
 }
 
 /**
@@ -166,10 +163,10 @@ template <typename settings> void Prover<settings>::execute_grand_product_comput
  * - Run Sumcheck resulting in u = (u_1,...,u_d) challenges and all
  *   evaluations at u being calculated.
  * */
-template <typename settings> void Prover<settings>::execute_relation_check_rounds()
+template <typename Flavor> void Prover<Flavor>::execute_relation_check_rounds()
 {
-    using Sumcheck = sumcheck::Sumcheck<Fr,
-                                        ProverTranscript<Fr>,
+    using Sumcheck = sumcheck::Sumcheck<FF,
+                                        ProverTranscript<FF>,
                                         sumcheck::ArithmeticRelation,
                                         sumcheck::GrandProductComputationRelation,
                                         sumcheck::GrandProductInitializationRelation>;
@@ -184,14 +181,14 @@ template <typename settings> void Prover<settings>::execute_relation_check_round
  * - Compute d+1 Fold polynomials and their evaluations.
  *
  * */
-template <typename settings> void Prover<settings>::execute_univariatization_round()
+template <typename Flavor> void Prover<Flavor>::execute_univariatization_round()
 {
     const size_t NUM_POLYNOMIALS = proof_system::honk::StandardArithmetization::NUM_POLYNOMIALS;
     const size_t NUM_UNSHIFTED_POLYS = proof_system::honk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
 
     // Generate batching challenge ρ and powers 1,ρ,…,ρᵐ⁻¹
-    Fr rho = transcript.get_challenge("rho");
-    std::vector<Fr> rhos = Gemini::powers_of_rho(rho, NUM_POLYNOMIALS);
+    FF rho = transcript.get_challenge("rho");
+    std::vector<FF> rhos = Gemini::powers_of_rho(rho, NUM_POLYNOMIALS);
 
     // Batch the unshifted polynomials and the to-be-shifted polynomials using ρ
     Polynomial batched_poly_unshifted(key->circuit_size); // batched unshifted polynomials
@@ -199,7 +196,8 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
         batched_poly_unshifted.add_scaled(prover_polynomials[i], rhos[i]);
     }
     Polynomial batched_poly_to_be_shifted(key->circuit_size); // batched to-be-shifted polynomials
-    batched_poly_to_be_shifted.add_scaled(prover_polynomials[POLYNOMIAL::Z_PERM], rhos[NUM_UNSHIFTED_POLYS]);
+    batched_poly_to_be_shifted.add_scaled(prover_polynomials[honk::StandardHonk::MULTIVARIATE::Z_PERM],
+                                          rhos[NUM_UNSHIFTED_POLYS]);
 
     // Compute d-1 polynomials Fold^(i), i = 1, ..., d-1.
     fold_polynomials = Gemini::compute_fold_polynomials(
@@ -217,9 +215,9 @@ template <typename settings> void Prover<settings>::execute_univariatization_rou
  * - Compute and aggregate opening pairs (challenge, evaluation) for each of d Fold polynomials.
  * - Add d-many Fold evaluations a_i, i = 0, ..., d-1 to the transcript, excluding eval of Fold_{r}^(0)
  * */
-template <typename settings> void Prover<settings>::execute_pcs_evaluation_round()
+template <typename Flavor> void Prover<Flavor>::execute_pcs_evaluation_round()
 {
-    const Fr r_challenge = transcript.get_challenge("Gemini:r");
+    const FF r_challenge = transcript.get_challenge("Gemini:r");
 
     gemini_output = Gemini::compute_fold_polynomial_evaluations(
         sumcheck_output.challenge_point, std::move(fold_polynomials), r_challenge);
@@ -235,7 +233,7 @@ template <typename settings> void Prover<settings>::execute_pcs_evaluation_round
  * - Do Fiat-Shamir to get "nu" challenge.
  * - Compute commitment [Q]_1
  * */
-template <typename settings> void Prover<settings>::execute_shplonk_batched_quotient_round()
+template <typename Flavor> void Prover<Flavor>::execute_shplonk_batched_quotient_round()
 {
     nu_challenge = transcript.get_challenge("Shplonk:nu");
 
@@ -250,9 +248,9 @@ template <typename settings> void Prover<settings>::execute_shplonk_batched_quot
  * - Do Fiat-Shamir to get "z" challenge.
  * - Compute polynomial Q(X) - Q_z(X)
  * */
-template <typename settings> void Prover<settings>::execute_shplonk_partial_evaluation_round()
+template <typename Flavor> void Prover<Flavor>::execute_shplonk_partial_evaluation_round()
 {
-    const Fr z_challenge = transcript.get_challenge("Shplonk:z");
+    const FF z_challenge = transcript.get_challenge("Shplonk:z");
     shplonk_output = Shplonk::compute_partially_evaluated_batched_quotient(
         gemini_output.opening_pairs, gemini_output.witnesses, std::move(batched_quotient_Q), nu_challenge, z_challenge);
 }
@@ -261,19 +259,19 @@ template <typename settings> void Prover<settings>::execute_shplonk_partial_eval
  * - Compute KZG quotient commitment [W]_1.
  *
  * */
-template <typename settings> void Prover<settings>::execute_kzg_round()
+template <typename Flavor> void Prover<Flavor>::execute_kzg_round()
 {
     quotient_W = KZG::compute_opening_proof_polynomial(shplonk_output.opening_pair, shplonk_output.witness);
     queue.add_commitment(quotient_W, "KZG:W");
 }
 
-template <typename settings> plonk::proof& Prover<settings>::export_proof()
+template <typename Flavor> plonk::proof& Prover<Flavor>::export_proof()
 {
     proof.proof_data = transcript.proof_data;
     return proof;
 }
 
-template <typename settings> plonk::proof& Prover<settings>::construct_proof()
+template <typename Flavor> plonk::proof& Prover<Flavor>::construct_proof()
 {
     // Add circuit size and public input size to transcript.
     execute_preamble_round();
@@ -323,6 +321,6 @@ template <typename settings> plonk::proof& Prover<settings>::construct_proof()
     return export_proof();
 }
 
-template class Prover<plonk::standard_settings>;
+template class Prover<flavor::Standard>;
 
 } // namespace proof_system::honk
