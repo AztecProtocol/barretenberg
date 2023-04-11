@@ -61,8 +61,6 @@ template <typename G1> class test_affine_element : public testing::Test {
         }
     }
 
-    static void test_get_limbs() { affine_element P = affine_element(element::random_element()); }
-
     // Regression test to ensure that the point at infinity is not equal to its coordinate-wise reduction, which may lie
     // on the curve, depending on the y-coordinate.
     // TODO: add corresponding typed test class
