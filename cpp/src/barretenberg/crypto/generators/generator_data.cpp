@@ -205,7 +205,7 @@ const fixed_base_ladder* get_ladder_internal(std::array<fixed_base_ladder, quad_
 std::vector<std::unique_ptr<generator_data>> const& init_generator_data()
 {
     static std::vector<std::unique_ptr<generator_data>> global_generator_data;
-    if (inited) {
+    if (inited && (global_generator_data.size() == size_of_generator_data_array)) {
         return global_generator_data;
     }
     std::vector<grumpkin::g1::affine_element> generators;
