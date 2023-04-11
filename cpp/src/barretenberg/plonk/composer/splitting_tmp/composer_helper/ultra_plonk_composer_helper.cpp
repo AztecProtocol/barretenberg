@@ -235,8 +235,7 @@ std::shared_ptr<proving_key> UltraPlonkComposerHelper::compute_proving_key(
 
     compute_monomial_and_coset_selector_forms(circuit_proving_key.get(), ultra_selector_properties());
 
-    compute_plonk_generalized_sigma_permutations<CircuitConstructor::program_width>(circuit_constructor,
-                                                                                    circuit_proving_key.get());
+    compute_plonk_generalized_sigma_permutations<Flavor>(circuit_constructor, circuit_proving_key.get());
 
     const size_t subgroup_size = circuit_proving_key->circuit_size;
 

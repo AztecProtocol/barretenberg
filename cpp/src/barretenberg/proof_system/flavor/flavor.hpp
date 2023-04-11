@@ -7,6 +7,7 @@
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
+#include "barretenberg/polynomials/evaluation_domain.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
 #include "barretenberg/proof_system/circuit_constructors/turbo_circuit_constructor.hpp"
@@ -28,18 +29,12 @@ template <typename T, size_t NUM_ENTITIES> class Data {
     typename DataType::iterator end() { return _data.end(); };
 
     consteval size_t size() { return _data.size(); };
-
-    // Data(size_t initial_size)
-    // {
-    //     for (auto& entity : _data) {
-    //         entity = T(initial_size);
-    //     };
-    // }
 };
 
 class Standard {
   public:
     using CircuitConstructor = proof_system::StandardCircuitConstructor;
+    static constexpr size_t num_wires = CircuitConstructor::num_wires;
     static constexpr size_t NUM_ALL_ENTITIES = 18;
     static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 13;
 
@@ -68,6 +63,8 @@ class Standard {
         T& lagrange_last = std::get<12>(this->_data); // = LAGRANGE_N-1 whithout ZK, but can be less
 
         std::array<std::span<FF>, 5> get_selectors() { return { q_m, q_l, q_r, q_o, q_c }; };
+        std::array<std::span<FF>, 3> get_sigma_polynomials() { return { sigma_1, sigma_2, sigma_3 }; };
+        std::array<std::span<FF>, 3> get_id_polynomials() { return { id_1, id_2, id_3 }; };
     };
 
     // TODO(Cody): Made this public derivation so that I could iterate through the selectors
@@ -75,18 +72,21 @@ class Standard {
     class ProvingKey : public PrecomputedData<Polynomial> {
       public:
         const size_t circuit_size;
-        const size_t num_inputs;
+        const size_t log_circuit_size = 0; // TODO(Cody)
+        const size_t num_public_inputs;
         std::shared_ptr<ProverReferenceString> crs;
-        const ComposerType type; // TODO(Cody): Get rid of this
+        EvaluationDomain<FF> evaluation_domain;
+        const ComposerType composer_type; // TODO(Cody): Get rid of this
 
         ProvingKey(const size_t circuit_size,
-                   const size_t num_inputs,
+                   const size_t num_public_inputs,
                    std::shared_ptr<ProverReferenceString> const& crs,
-                   ComposerType type)
+                   ComposerType composer_type)
             : circuit_size(circuit_size)
-            , num_inputs(num_inputs)
+            , num_public_inputs(num_public_inputs)
             , crs(crs)
-            , type(type){};
+            , evaluation_domain(circuit_size, circuit_size)
+            , composer_type(composer_type){};
     };
     using VerificationKey = PrecomputedData<Commitment>;
 
@@ -161,16 +161,19 @@ namespace proof_system::plonk::flavor {
 struct Standard {
     using CircuitConstructor = proof_system::StandardCircuitConstructor;
     using ProvingKey = plonk::proving_key;
+    static constexpr size_t num_wires = CircuitConstructor::num_wires;
 };
 
 struct Turbo {
     using CircuitConstructor = proof_system::TurboCircuitConstructor;
     using ProvingKey = plonk::proving_key;
+    static constexpr size_t num_wires = CircuitConstructor::num_wires;
 };
 
 struct Ultra {
     using CircuitConstructor = proof_system::UltraCircuitConstructor;
     using ProvingKey = plonk::proving_key;
+    static constexpr size_t num_wires = CircuitConstructor::num_wires;
 };
 } // namespace proof_system::plonk::flavor
 

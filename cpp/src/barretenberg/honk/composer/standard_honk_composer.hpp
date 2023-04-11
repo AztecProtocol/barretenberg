@@ -19,6 +19,7 @@ class StandardHonkComposer {
   public:
     using Flavor = flavor::Standard;
     using CircuitConstructor = StandardCircuitConstructor;
+    using ProvingKey = typename Flavor::ProvingKey;
     static constexpr ComposerType type = ComposerType::STANDARD_HONK; // TODO(Cody): Get rid of this.
 
     static constexpr size_t UINT_LOG2_BASE = 2;
@@ -61,7 +62,7 @@ class StandardHonkComposer {
 
     {}
 
-    StandardHonkComposer(std::shared_ptr<plonk::proving_key> const& p_key,
+    StandardHonkComposer(std::shared_ptr<ProvingKey> const& p_key,
                          std::shared_ptr<plonk::verification_key> const& v_key,
                          size_t size_hint = 0)
         : circuit_constructor(size_hint)
@@ -165,7 +166,7 @@ class StandardHonkComposer {
 
     /**Proof and verification-related methods*/
 
-    std::shared_ptr<plonk::proving_key> compute_proving_key()
+    std::shared_ptr<ProvingKey> compute_proving_key()
     {
         return composer_helper.compute_proving_key(circuit_constructor);
     }

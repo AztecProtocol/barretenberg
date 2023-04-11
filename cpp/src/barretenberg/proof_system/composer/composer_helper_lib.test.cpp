@@ -15,7 +15,7 @@ class ComposerLibTests : public ::testing::Test {
     Flavor::ProvingKey proving_key = []() {
         auto crs_factory = ReferenceStringFactory();
         auto crs = crs_factory.get_prover_crs(4);
-        return Flavor::ProvingKey(/*circuit_size=*/4, /*num_inputs=*/0, crs, ComposerType::STANDARD);
+        return Flavor::ProvingKey(/*circuit_size=*/4, /*num_public_inputs=*/0, crs, ComposerType::STANDARD);
     }();
 };
 
@@ -33,7 +33,7 @@ TEST_F(ComposerLibTests, InitializeProvingKey)
                                              /*num_randomized_gates=*/2,
                                              ComposerType::STANDARD);
     EXPECT_EQ(pk->circuit_size, 8);
-    EXPECT_EQ(pk->num_inputs, 0);
+    EXPECT_EQ(pk->num_public_inputs, 0);
 }
 
 TEST_F(ComposerLibTests, ConstructSelectors)

@@ -73,8 +73,7 @@ std::shared_ptr<plonk::proving_key> StandardPlonkComposerHelper::compute_proving
     compute_monomial_and_coset_selector_forms(circuit_proving_key.get(), standard_selector_properties());
 
     // Compute sigma polynomials (we should update that late)
-    compute_standard_plonk_sigma_permutations<CircuitConstructor::program_width>(circuit_constructor,
-                                                                                 circuit_proving_key.get());
+    compute_standard_plonk_sigma_permutations<Flavor>(circuit_constructor, circuit_proving_key.get());
 
     circuit_proving_key->recursive_proof_public_input_indices =
         std::vector<uint32_t>(recursive_proof_public_input_indices.begin(), recursive_proof_public_input_indices.end());
