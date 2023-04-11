@@ -72,7 +72,7 @@ class Standard {
     class ProvingKey : public PrecomputedData<Polynomial> {
       public:
         const size_t circuit_size;
-        const size_t log_circuit_size = 0; // TODO(Cody)
+        const size_t log_circuit_size; // TODO(Cody)
         const size_t num_public_inputs;
         std::shared_ptr<ProverReferenceString> crs;
         EvaluationDomain<FF> evaluation_domain;
@@ -83,6 +83,7 @@ class Standard {
                    std::shared_ptr<ProverReferenceString> const& crs,
                    ComposerType composer_type)
             : circuit_size(circuit_size)
+            , log_circuit_size(numeric::get_msb(circuit_size))
             , num_public_inputs(num_public_inputs)
             , crs(crs)
             , evaluation_domain(circuit_size, circuit_size)
