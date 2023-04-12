@@ -1,3 +1,4 @@
+#include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
 #include "relation.hpp"
 #include "barretenberg/honk/flavor/flavor.hpp"
 #include "arithmetic_relation.hpp"
@@ -372,6 +373,50 @@ TYPED_TEST(RelationConsistency, GrandProductComputationRelationUltra)
                           (z_perm_shift + lagrange_last * public_input_delta) * (w_1 + sigma_1 * beta + gamma) *
                               (w_2 + sigma_2 * beta + gamma) * (w_3 + sigma_3 * beta + gamma) *
                               (w_4 + sigma_4 * beta + gamma);
+
+    TestFixture::template validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
+};
+
+TYPED_TEST(RelationConsistency, UltraArithmeticRelation)
+{
+    SUMCHECK_RELATION_TYPE_ALIASES
+    using MULTIVARIATE = honk::UltraArithmetization::POLYNOMIAL;
+
+    static constexpr size_t FULL_RELATION_LENGTH = 6;
+    static const size_t NUM_POLYNOMIALS = proof_system::honk::UltraArithmetization::COUNT;
+
+    const auto relation_parameters = TestFixture::compute_mock_relation_parameters();
+    std::array<Univariate<FF, FULL_RELATION_LENGTH>, NUM_POLYNOMIALS> extended_edges;
+    std::array<Univariate<FF, INPUT_UNIVARIATE_LENGTH>, NUM_POLYNOMIALS> input_polynomials;
+
+    // input_univariates are random polynomials of degree one
+    for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
+        input_polynomials[i] = Univariate<FF, INPUT_UNIVARIATE_LENGTH>({ FF::random_element(), FF::random_element() });
+    }
+    extended_edges = TestFixture::template compute_mock_extended_edges<FULL_RELATION_LENGTH>(input_polynomials);
+
+    auto relation = UltraArithmeticRelation<FF>();
+
+    // Extract the extended edges for manual computation of relation contribution
+    const auto& w_1 = extended_edges[MULTIVARIATE::W_L];
+    const auto& w_2 = extended_edges[MULTIVARIATE::W_R];
+    const auto& w_3 = extended_edges[MULTIVARIATE::W_O];
+    const auto& w_4 = extended_edges[MULTIVARIATE::W_4];
+    const auto& w_4_shift = extended_edges[MULTIVARIATE::W_4_SHIFT];
+    const auto& q_m = extended_edges[MULTIVARIATE::Q_M];
+    const auto& q_l = extended_edges[MULTIVARIATE::Q_L];
+    const auto& q_r = extended_edges[MULTIVARIATE::Q_R];
+    const auto& q_o = extended_edges[MULTIVARIATE::Q_O];
+    const auto& q_4 = extended_edges[MULTIVARIATE::Q_4];
+    const auto& q_c = extended_edges[MULTIVARIATE::Q_C];
+    const auto& q_arith = extended_edges[MULTIVARIATE::QARITH];
+
+    static const FF neg_half = FF(-2).invert();
+
+    auto expected_evals = (q_arith - 3) * (q_m * w_2 * w_1) * neg_half;
+    expected_evals += (q_l * w_1) + (q_r * w_2) + (q_o * w_3) + (q_4 * w_4) + q_c;
+    expected_evals += (q_arith - 1) * w_4_shift;
+    expected_evals *= q_arith;
 
     TestFixture::template validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
 };

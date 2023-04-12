@@ -233,6 +233,7 @@ struct UltraArithmetization {
         Z_PERM,
         Z_LOOKUP,
         /* --- SHIFTED POLYNOMIALS --- */
+        W_4_SHIFT,
         Z_PERM_SHIFT,
         Z_LOOKUP_SHIFT,
         /* --- --- */

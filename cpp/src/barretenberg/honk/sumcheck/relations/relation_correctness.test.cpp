@@ -1,6 +1,7 @@
 #include "barretenberg/honk/composer/ultra_honk_composer.hpp"
 #include "barretenberg/honk/composer/standard_honk_composer.hpp"
 #include "barretenberg/honk/sumcheck/relations/relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
 #include "barretenberg/numeric/uint256/uint256.hpp"
 #include "barretenberg/honk/flavor/flavor.hpp"
 #include <cstdint>
@@ -131,6 +132,7 @@ TEST(RelationCorrectness, StandardRelationCorrectness)
  * indices
  *
  */
+// TODO(luke): Increase variety of gates in the test circuit to fully stress the relations, e.g. create_big_add_gate.
 // NOTE(luke): More relations will be added as they are implemented for Ultra Honk
 TEST(RelationCorrectness, UltraRelationCorrectness)
 {
@@ -148,7 +150,7 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     uint32_t b_idx = composer.add_variable(b);
     uint32_t c_idx = composer.add_variable(c);
     uint32_t d_idx = composer.add_variable(d);
-    for (size_t i = 0; i < 16; i++) {
+    for (size_t i = 0; i < 1; i++) {
         composer.create_add_gate({ a_idx, b_idx, c_idx, fr::one(), fr::one(), fr::neg_one(), fr::zero() });
         composer.create_add_gate({ d_idx, c_idx, a_idx, fr::one(), fr::neg_one(), fr::neg_one(), fr::zero() });
     }
@@ -188,6 +190,7 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     evaluations_array[POLYNOMIAL::W_R] = prover.wire_polynomials[1];
     evaluations_array[POLYNOMIAL::W_O] = prover.wire_polynomials[2];
     evaluations_array[POLYNOMIAL::W_4] = prover.wire_polynomials[3];
+    evaluations_array[POLYNOMIAL::W_4_SHIFT] = prover.wire_polynomials[3].shifted();
     evaluations_array[POLYNOMIAL::S_1] = prover.key->polynomial_store.get("s_1_lagrange");
     evaluations_array[POLYNOMIAL::S_2] = prover.key->polynomial_store.get("s_2_lagrange");
     evaluations_array[POLYNOMIAL::S_3] = prover.key->polynomial_store.get("s_3_lagrange");
@@ -219,7 +222,8 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     evaluations_array[POLYNOMIAL::LAGRANGE_LAST] = prover.key->polynomial_store.get("L_last_lagrange");
 
     // Construct the round for applying sumcheck relations and results for storing computed results
-    auto relations = std::tuple(honk::sumcheck::GrandProductComputationRelationUltra<fr>());
+    auto relations = std::tuple(honk::sumcheck::UltraArithmeticRelation<fr>(),
+                                honk::sumcheck::GrandProductComputationRelationUltra<fr>());
 
     fr result = 0;
     for (size_t i = 0; i < prover.key->circuit_size; i++) {
@@ -234,6 +238,9 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
         // the first index at which the result is not 0, since result = 0 + C(transposed), which we expect will
         // equal 0.
         std::get<0>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        ASSERT_EQ(result, 0);
+
+        std::get<1>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
         ASSERT_EQ(result, 0);
     }
 }

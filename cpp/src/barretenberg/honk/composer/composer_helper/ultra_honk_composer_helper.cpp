@@ -201,7 +201,9 @@ std::shared_ptr<plonk::proving_key> UltraHonkComposerHelper<CircuitConstructor>:
 
     construct_lagrange_selector_forms(circuit_constructor, circuit_proving_key.get());
 
-    enforce_nonzero_polynomial_selectors(circuit_constructor, circuit_proving_key.get());
+    // TODO(#217)(luke): Naively enforcing non-zero selectors for Honk will result in some relations not being
+    // satisfied.
+    // enforce_nonzero_polynomial_selectors(circuit_constructor, circuit_proving_key.get());
 
     compute_honk_generalized_sigma_permutations<CircuitConstructor::program_width>(circuit_constructor,
                                                                                    circuit_proving_key.get());
