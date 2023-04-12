@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 const typeMap: { [key: string]: string } = {
   'fr::in_buf': 'Fr',
   'fr::out_buf': 'Fr',
@@ -9,11 +10,8 @@ const typeMap: { [key: string]: string } = {
   'fq::vec_out_buf': 'Fq[]',
   'const uint8_t *': 'Buffer',
   'uint8_t **': 'Buffer',
-  /* eslint-disable-next-line camelcase */
   in_buf32: 'Buffer32',
-  /* eslint-disable-next-line camelcase */
   out_buf32: 'Buffer32',
-  /* eslint-disable-next-line camelcase */
   uint32_t: 'number',
   'const uint32_t *': 'number',
   'affine_element::in_buf': 'Point',
@@ -34,9 +32,7 @@ const deserializerMap: { [key: string]: string } = {
   'fq::out_buf': 'Fq',
   'fq::vec_out_buf': 'VectorDeserializer(Fq)',
   'uint8_t **': 'BufferDeserializer()',
-  /* eslint-disable-next-line camelcase */
   out_buf32: 'Buffer32',
-  /* eslint-disable-next-line camelcase */
   uint32_t: 'NumberDeserializer()',
   'affine_element::out_buf': 'Point',
   'bool *': 'BoolDeserializer()',
@@ -51,6 +47,8 @@ export function mapType(type: string) {
   }
   throw new Error(`Unknown type: ${type}`);
 }
+
+export const mapRustType = mapType;
 
 export function mapDeserializer(type: string) {
   if (deserializerMap[type]) {

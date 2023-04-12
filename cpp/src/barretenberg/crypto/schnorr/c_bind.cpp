@@ -9,14 +9,14 @@ using affine_element = grumpkin::g1::affine_element;
 using multisig = crypto::schnorr::multisig<grumpkin::g1, KeccakHasher, Blake2sHasher>;
 using multisig_public_key = typename multisig::MultiSigPublicKey;
 
-WASM_EXPORT void schnorr__compute_public_key(uint8_t const* private_key, uint8_t* public_key_buf)
+WASM_EXPORT void schnorr_compute_public_key(uint8_t const* private_key, uint8_t* public_key_buf)
 {
     auto priv_key = from_buffer<grumpkin::fr>(private_key);
     grumpkin::g1::affine_element pub_key = grumpkin::g1::one * priv_key;
     write(public_key_buf, pub_key);
 }
 
-WASM_EXPORT void schnorr__negate_public_key(uint8_t const* public_key_buffer, uint8_t* output)
+WASM_EXPORT void schnorr_negate_public_key(uint8_t const* public_key_buffer, uint8_t* output)
 {
     // Negate the public key (effectively negating the y-coordinate of the public key) and return the resulting public
     // key.
@@ -24,13 +24,10 @@ WASM_EXPORT void schnorr__negate_public_key(uint8_t const* public_key_buffer, ui
     barretenberg::group_elements::write(output, -account_public_key);
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wunused-variable"
-WASM_EXPORT void schnorr__construct_signature(uint8_t const* message_buf,
-                                              uint8_t const* private_key,
-                                              uint8_t* s,
-                                              uint8_t* e)
+WASM_EXPORT void schnorr_construct_signature(uint8_t const* message_buf,
+                                             uint8_t const* private_key,
+                                             uint8_t* s,
+                                             uint8_t* e)
 {
     auto message = from_buffer<std::string>(message_buf);
     auto priv_key = from_buffer<grumpkin::fr>(private_key);
@@ -41,7 +38,7 @@ WASM_EXPORT void schnorr__construct_signature(uint8_t const* message_buf,
     write(e, sig.e);
 }
 
-WASM_EXPORT void schnorr__verify_signature(
+WASM_EXPORT void schnorr_verify_signature(
     uint8_t const* message_buf, uint8_t const* pub_key, uint8_t const* sig_s, uint8_t const* sig_e, bool* result)
 {
     auto pubk = from_buffer<grumpkin::g1::affine_element>(pub_key);
@@ -55,7 +52,7 @@ WASM_EXPORT void schnorr__verify_signature(
         crypto::schnorr::verify_signature<Blake2sHasher, grumpkin::fq, grumpkin::fr, grumpkin::g1>(message, pubk, sig);
 }
 
-WASM_EXPORT void schnorr__multisig_create_multisig_public_key(uint8_t const* private_key, uint8_t* multisig_pubkey_buf)
+WASM_EXPORT void schnorr_multisig_create_multisig_public_key(uint8_t const* private_key, uint8_t* multisig_pubkey_buf)
 {
     using multisig = crypto::schnorr::multisig<grumpkin::g1, KeccakHasher, Blake2sHasher>;
     using multisig_public_key = typename multisig::MultiSigPublicKey;
@@ -68,9 +65,9 @@ WASM_EXPORT void schnorr__multisig_create_multisig_public_key(uint8_t const* pri
     write(multisig_pubkey_buf, agg_pubkey);
 }
 
-WASM_EXPORT void schnorr__multisig_validate_and_combine_signer_pubkeys(uint8_t const* signer_pubkey_buf,
-                                                                       affine_element::out_buf combined_key_buf,
-                                                                       bool* success)
+WASM_EXPORT void schnorr_multisig_validate_and_combine_signer_pubkeys(uint8_t const* signer_pubkey_buf,
+                                                                      affine_element::out_buf combined_key_buf,
+                                                                      bool* success)
 {
     using multisig = crypto::schnorr::multisig<grumpkin::g1, KeccakHasher, Blake2sHasher>;
     auto pubkeys = from_buffer<std::vector<multisig::MultiSigPublicKey>>(signer_pubkey_buf);
@@ -86,8 +83,8 @@ WASM_EXPORT void schnorr__multisig_validate_and_combine_signer_pubkeys(uint8_t c
     }
 }
 
-WASM_EXPORT void schnorr__multisig_construct_signature_round_1(uint8_t* round_one_public_output_buf,
-                                                               uint8_t* round_one_private_output_buf)
+WASM_EXPORT void schnorr_multisig_construct_signature_round_1(uint8_t* round_one_public_output_buf,
+                                                              uint8_t* round_one_private_output_buf)
 {
     using multisig = crypto::schnorr::multisig<grumpkin::g1, KeccakHasher, Blake2sHasher>;
 
@@ -96,13 +93,13 @@ WASM_EXPORT void schnorr__multisig_construct_signature_round_1(uint8_t* round_on
     write(round_one_private_output_buf, private_output);
 }
 
-WASM_EXPORT void schnorr__multisig_construct_signature_round_2(uint8_t const* message_buf,
-                                                               uint8_t const* private_key,
-                                                               uint8_t const* signer_round_one_private_buf,
-                                                               uint8_t const* signer_pubkeys_buf,
-                                                               uint8_t const* round_one_public_buf,
-                                                               uint8_t* round_two_buf,
-                                                               bool* success)
+WASM_EXPORT void schnorr_multisig_construct_signature_round_2(uint8_t const* message_buf,
+                                                              uint8_t const* private_key,
+                                                              uint8_t const* signer_round_one_private_buf,
+                                                              uint8_t const* signer_pubkeys_buf,
+                                                              uint8_t const* round_one_public_buf,
+                                                              uint8_t* round_two_buf,
+                                                              bool* success)
 {
     using multisig = crypto::schnorr::multisig<grumpkin::g1, KeccakHasher, Blake2sHasher>;
     auto message = from_buffer<std::string>(message_buf);
@@ -125,13 +122,13 @@ WASM_EXPORT void schnorr__multisig_construct_signature_round_2(uint8_t const* me
     }
 }
 
-WASM_EXPORT void schnorr__multisig_combine_signatures(uint8_t const* message_buf,
-                                                      uint8_t const* signer_pubkeys_buf,
-                                                      uint8_t const* round_one_buf,
-                                                      uint8_t const* round_two_buf,
-                                                      uint8_t* s,
-                                                      uint8_t* e,
-                                                      bool* success)
+WASM_EXPORT void schnorr_multisig_combine_signatures(uint8_t const* message_buf,
+                                                     uint8_t const* signer_pubkeys_buf,
+                                                     uint8_t const* round_one_buf,
+                                                     uint8_t const* round_two_buf,
+                                                     uint8_t* s,
+                                                     uint8_t* e,
+                                                     bool* success)
 {
     using multisig = crypto::schnorr::multisig<grumpkin::g1, KeccakHasher, Blake2sHasher>;
 

@@ -1,11 +1,11 @@
 [
   {
-    "functionName": "pedersen__init",
+    "functionName": "pedersen_init",
     "inArgs": [],
     "outArgs": []
   },
   {
-    "functionName": "pedersen__compress_fields",
+    "functionName": "pedersen_compress_fields",
     "inArgs": [
       {
         "name": "left",
@@ -43,7 +43,7 @@
     ]
   },
   {
-    "functionName": "pedersen__compress",
+    "functionName": "pedersen_compress",
     "inArgs": [
       {
         "name": "inputs_buffer",
@@ -73,7 +73,7 @@
     ]
   },
   {
-    "functionName": "pedersen__compress_with_hash_index",
+    "functionName": "pedersen_compress_with_hash_index",
     "inArgs": [
       {
         "name": "inputs_buffer",
@@ -92,7 +92,7 @@
     ]
   },
   {
-    "functionName": "pedersen__commit",
+    "functionName": "pedersen_commit",
     "inArgs": [
       {
         "name": "inputs_buffer",
@@ -122,7 +122,7 @@
     ]
   },
   {
-    "functionName": "pedersen__buffer_to_field",
+    "functionName": "pedersen_buffer_to_field",
     "inArgs": [
       {
         "name": "data",
@@ -137,12 +137,12 @@
     ]
   },
   {
-    "functionName": "pedersen_hash__init",
+    "functionName": "pedersen_hash_init",
     "inArgs": [],
     "outArgs": []
   },
   {
-    "functionName": "pedersen__hash_pair",
+    "functionName": "pedersen_hash_pair",
     "inArgs": [
       {
         "name": "left",
@@ -161,7 +161,7 @@
     ]
   },
   {
-    "functionName": "pedersen__hash_multiple",
+    "functionName": "pedersen_hash_multiple",
     "inArgs": [
       {
         "name": "inputs_buffer",
@@ -176,7 +176,7 @@
     ]
   },
   {
-    "functionName": "pedersen__hash_multiple_with_hash_index",
+    "functionName": "pedersen_hash_multiple_with_hash_index",
     "inArgs": [
       {
         "name": "inputs_buffer",
@@ -195,7 +195,7 @@
     ]
   },
   {
-    "functionName": "pedersen__hash_to_tree",
+    "functionName": "pedersen_hash_to_tree",
     "inArgs": [
       {
         "name": "data",
@@ -240,7 +240,7 @@
     ]
   },
   {
-    "functionName": "schnorr__compute_public_key",
+    "functionName": "schnorr_compute_public_key",
     "inArgs": [
       {
         "name": "private_key",
@@ -255,7 +255,7 @@
     ]
   },
   {
-    "functionName": "schnorr__negate_public_key",
+    "functionName": "schnorr_negate_public_key",
     "inArgs": [
       {
         "name": "public_key_buffer",
@@ -270,7 +270,7 @@
     ]
   },
   {
-    "functionName": "schnorr__construct_signature",
+    "functionName": "schnorr_construct_signature",
     "inArgs": [
       {
         "name": "message",
@@ -293,7 +293,7 @@
     ]
   },
   {
-    "functionName": "schnorr__verify_signature",
+    "functionName": "schnorr_verify_signature",
     "inArgs": [
       {
         "name": "message",
@@ -320,7 +320,7 @@
     ]
   },
   {
-    "functionName": "schnorr__multisig_create_multisig_public_key",
+    "functionName": "schnorr_multisig_create_multisig_public_key",
     "inArgs": [
       {
         "name": "private_key",
@@ -335,7 +335,7 @@
     ]
   },
   {
-    "functionName": "schnorr__multisig_validate_and_combine_signer_pubkeys",
+    "functionName": "schnorr_multisig_validate_and_combine_signer_pubkeys",
     "inArgs": [
       {
         "name": "signer_pubkey_buf",
@@ -354,7 +354,7 @@
     ]
   },
   {
-    "functionName": "schnorr__multisig_construct_signature_round_1",
+    "functionName": "schnorr_multisig_construct_signature_round_1",
     "inArgs": [],
     "outArgs": [
       {
@@ -368,7 +368,7 @@
     ]
   },
   {
-    "functionName": "schnorr__multisig_construct_signature_round_2",
+    "functionName": "schnorr_multisig_construct_signature_round_2",
     "inArgs": [
       {
         "name": "message",
@@ -403,7 +403,7 @@
     ]
   },
   {
-    "functionName": "schnorr__multisig_combine_signatures",
+    "functionName": "schnorr_multisig_combine_signatures",
     "inArgs": [
       {
         "name": "message",
