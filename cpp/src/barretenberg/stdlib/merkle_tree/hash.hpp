@@ -15,20 +15,22 @@ namespace merkle_tree {
 
 inline barretenberg::fr hash_pair_native(barretenberg::fr const& lhs, barretenberg::fr const& rhs)
 {
-    if (plonk::SYSTEM_COMPOSER == ComposerType::PLOOKUP) {
-        return crypto::pedersen_hash::lookup::hash_multiple({ lhs, rhs }); // uses lookup tables
-    } else {
-        return crypto::pedersen_hash::hash_multiple({ lhs, rhs }); // uses fixed-base multiplication gate
-    }
+    info("system composer: ", plonk::SYSTEM_COMPOSER);
+    // if (plonk::SYSTEM_COMPOSER == ComposerType::PLOOKUP) {
+    // return crypto::pedersen_hash::lookup::hash_multiple({ lhs, rhs }); // uses lookup tables
+    // } else {
+    return crypto::pedersen_hash::hash_multiple({ lhs, rhs }); // uses fixed-base multiplication gate
+    // }
 }
 
 inline barretenberg::fr hash_multiple_native(std::vector<barretenberg::fr> const& inputs)
 {
-    if (plonk::SYSTEM_COMPOSER == ComposerType::PLOOKUP) {
-        return crypto::pedersen_hash::lookup::hash_multiple(inputs); // uses lookup tables
-    } else {
-        return crypto::pedersen_hash::hash_multiple(inputs); // uses fixed-base multiplication gate
-    }
+    info("system composer: ", plonk::SYSTEM_COMPOSER);
+    // if (plonk::SYSTEM_COMPOSER == ComposerType::PLOOKUP) {
+    // return crypto::pedersen_hash::lookup::hash_multiple(inputs); // uses lookup tables
+    // } else {
+    return crypto::pedersen_hash::hash_multiple(inputs); // uses fixed-base multiplication gate
+    // }
 }
 
 /**
