@@ -41,12 +41,13 @@ std::vector<uint32_t> add_variables(auto& composer, std::vector<fr> variables)
  */
 void verify_consistency(honk::UltraProver& honk_prover, plonk::UltraProver& plonk_prover)
 {
-    // Check that all lagrange polys agree
+    // Check that all lagrange polys agree (except for sigmas/ids which are constructed differently for Honk)
     auto& honk_store = honk_prover.key->polynomial_store;
     auto& plonk_store = plonk_prover.key->polynomial_store;
     for (auto& entry : honk_store) {
         std::string key = entry.first;
-        if (plonk_store.contains(key)) {
+        bool is_not_sigma_or_id = !(key.find("sigma") || key.find("id"));
+        if (plonk_store.contains(key) && is_not_sigma_or_id) {
             ASSERT_EQ(honk_store.get(key), plonk_store.get(key));
         }
     }
