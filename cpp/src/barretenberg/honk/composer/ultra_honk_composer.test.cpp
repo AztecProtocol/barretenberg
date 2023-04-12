@@ -41,17 +41,16 @@ std::vector<uint32_t> add_variables(auto& composer, std::vector<fr> variables)
  */
 // NOTE: Currently only checking witness polynomials (wires, sorted lists) and table polys. The permutation polys
 // are computed differently between plonk and honk and we do not enforce non-zero selectors in Honk so the final
-// element will disagree.
+// element in the selectors will disagree.
 void verify_consistency(honk::UltraProver& honk_prover, plonk::UltraProver& plonk_prover)
 {
-    // Check that all lagrange polys agree (except for sigmas/ids which are constructed differently for Honk)
+    // Check that all lagrange polys agree
     auto& honk_store = honk_prover.key->polynomial_store;
     auto& plonk_store = plonk_prover.key->polynomial_store;
     for (auto& entry : honk_store) {
         std::string key = entry.first;
         bool is_sorted_table = (key.find("s_") != std::string::npos);
         bool is_table = (key.find("table_value_") != std::string::npos);
-        // bool is_not_selector = (key.find("sigma") == std::string::npos) && (key.find("id") == std::string::npos);
         if (plonk_store.contains(key) && (is_sorted_table || is_table)) {
             ASSERT_EQ(honk_store.get(key), plonk_store.get(key));
         }
@@ -155,7 +154,6 @@ TEST(UltraHonkComposer, create_gates_from_plookup_accumulators)
     auto honk_prover = honk_composer.create_prover();
     auto plonk_prover = plonk_composer.create_prover();
 
-    check_consistency(honk_prover, plonk_prover);
     verify_consistency(honk_prover, plonk_prover);
 }
 

@@ -258,8 +258,8 @@ void compute_honk_style_permutation_lagrange_polynomials_from_mapping(
             current_permutation_poly[i] =
                 -barretenberg::fr(current_mapping.row_index + 1 + num_gates * current_mapping.column_index);
         } else if (current_mapping.is_tag) {
-            // TODO(luke): enough to simply make these disjoint from non-tag values?
-            current_permutation_poly[i] = barretenberg::fr::zero();
+            // Set evaluations to (arbitrary) values disjoint from non-tag values
+            current_permutation_poly[i] = num_gates * program_width + current_mapping.row_index;
         } else {
             // For the regular permutation we simply point to the next location by setting the evaluation to its
             // index

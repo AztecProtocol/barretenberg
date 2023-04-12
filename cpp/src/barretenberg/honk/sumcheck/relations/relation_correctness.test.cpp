@@ -19,7 +19,7 @@ using namespace proof_system::honk;
 namespace test_honk_relations {
 
 /**
- * @brief Test the correctness of the Standard Honk rleations
+ * @brief Test the correctness of the Standard Honk relations
  *
  * @details Check that the constraints encoded by the relations are satisfied by the polynomials produced by the
  * Standard Honk Composer for a real circuit.
@@ -124,7 +124,7 @@ TEST(RelationCorrectness, StandardRelationCorrectness)
 }
 
 /**
- * @brief Test the correctness of the Ultra Honk rleations
+ * @brief Test the correctness of the Ultra Honk relations
  *
  * @details Check that the constraints encoded by the relations are satisfied by the polynomials produced by the
  * Ultra Honk Composer for a real circuit.
