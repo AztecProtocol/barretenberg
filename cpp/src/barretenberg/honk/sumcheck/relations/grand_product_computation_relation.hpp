@@ -82,6 +82,21 @@ template <typename FF> class GrandProductComputationRelation {
         auto lagrange_first = purported_evaluations[MULTIVARIATE::LAGRANGE_FIRST];
         auto lagrange_last = purported_evaluations[MULTIVARIATE::LAGRANGE_LAST];
 
+        info("public_input_delta = ", public_input_delta);
+        info("w_1 = ", w_1);
+        info("w_2 = ", w_2);
+        info("w_3 = ", w_3);
+        info("sigma_1 = ", sigma_1);
+        info("sigma_2 = ", sigma_2);
+        info("sigma_3 = ", sigma_3);
+        info("id_1 = ", id_1);
+        info("id_2 = ", id_2);
+        info("id_3 = ", id_3);
+        info("z_perm = ", z_perm);
+        info("z_perm_shift = ", z_perm_shift);
+        info("lagrange_first = ", lagrange_first);
+        info("lagrange_last = ", lagrange_last);
+
         // Contribution (1)
         full_honk_relation_value +=
             ((z_perm + lagrange_first) * (w_1 + beta * id_1 + gamma) * (w_2 + beta * id_2 + gamma) *
@@ -169,12 +184,36 @@ template <typename FF> class GrandProductComputationRelationUltra {
         auto lagrange_first = purported_evaluations[MULTIVARIATE::LAGRANGE_FIRST];
         auto lagrange_last = purported_evaluations[MULTIVARIATE::LAGRANGE_LAST];
 
+        info("w_1 = ", w_1);
+        info("w_2 = ", w_2);
+        info("w_3 = ", w_3);
+        info("w_4 = ", w_4);
+        info("sigma_1 = ", sigma_1);
+        info("sigma_2 = ", sigma_2);
+        info("sigma_3 = ", sigma_3);
+        info("sigma_4 = ", sigma_4);
+        info("id_1 = ", id_1);
+        info("id_2 = ", id_2);
+        info("id_3 = ", id_3);
+        info("id_4 = ", id_4);
+        info("z_perm = ", z_perm);
+        info("z_perm_shift = ", z_perm_shift);
+        info("lagrange_first = ", lagrange_first);
+        info("lagrange_last = ", lagrange_last);
+
         // Contribution (1)
-        full_honk_relation_value +=
-            ((z_perm + lagrange_first) * (w_1 + beta * id_1 + gamma) * (w_2 + beta * id_2 + gamma) *
-                 (w_3 + beta * id_3 + gamma) * (w_4 + beta * id_4 + gamma) -
-             (z_perm_shift + lagrange_last * public_input_delta) * (w_1 + beta * sigma_1 + gamma) *
-                 (w_2 + beta * sigma_2 + gamma) * (w_3 + beta * sigma_3 + gamma) * (w_4 + beta * sigma_4 + gamma));
+        auto lhs = (z_perm + lagrange_first) * (w_1 + beta * id_1 + gamma) * (w_2 + beta * id_2 + gamma) *
+                   (w_3 + beta * id_3 + gamma) * (w_4 + beta * id_4 + gamma);
+        auto rhs = (z_perm_shift + lagrange_last * public_input_delta) * (w_1 + beta * sigma_1 + gamma) *
+                   (w_2 + beta * sigma_2 + gamma) * (w_3 + beta * sigma_3 + gamma) * (w_4 + beta * sigma_4 + gamma);
+        info("lhs = ", lhs);
+        info("rhs = ", rhs);
+        full_honk_relation_value += lhs - rhs;
+        // full_honk_relation_value +=
+        //     ((z_perm + lagrange_first) * (w_1 + beta * id_1 + gamma) * (w_2 + beta * id_2 + gamma) *
+        //          (w_3 + beta * id_3 + gamma) * (w_4 + beta * id_4 + gamma) -
+        //      (z_perm_shift + lagrange_last * public_input_delta) * (w_1 + beta * sigma_1 + gamma) *
+        //          (w_2 + beta * sigma_2 + gamma) * (w_3 + beta * sigma_3 + gamma) * (w_4 + beta * sigma_4 + gamma));
     };
 };
 } // namespace proof_system::honk::sumcheck
