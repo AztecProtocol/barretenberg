@@ -23,12 +23,10 @@ using namespace proof_system::honk::sumcheck;
  * extends them (using barycentric formula) to six evaluation points, and stores them to an array of polynomials.
  */
 static const size_t INPUT_UNIVARIATE_LENGTH = 2;
-// static constexpr size_t FULL_RELATION_LENGTH = 5;
-// static const size_t NUM_POLYNOMIALS = proof_system::honk::StandardArithmetization::NUM_POLYNOMIALS;
 
 namespace proof_system::honk_relation_tests {
 
-template <class FF> class SumcheckRelation : public testing::Test {
+template <class FF> class RelationConsistency : public testing::Test {
   public:
     template <size_t t> using Univariate = Univariate<FF, t>;
     template <size_t t> using UnivariateView = UnivariateView<FF, t>;
@@ -169,11 +167,11 @@ template <class FF> class SumcheckRelation : public testing::Test {
     };
 };
 using FieldTypes = testing::Types<barretenberg::fr>;
-TYPED_TEST_SUITE(SumcheckRelation, FieldTypes);
+TYPED_TEST_SUITE(RelationConsistency, FieldTypes);
 
 #define SUMCHECK_RELATION_TYPE_ALIASES using FF = TypeParam;
 
-TYPED_TEST(SumcheckRelation, ArithmeticRelation)
+TYPED_TEST(RelationConsistency, ArithmeticRelation)
 {
     SUMCHECK_RELATION_TYPE_ALIASES
     using MULTIVARIATE = honk::StandardArithmetization::POLYNOMIAL;
@@ -220,7 +218,7 @@ TYPED_TEST(SumcheckRelation, ArithmeticRelation)
     run_test(/* is_random_input=*/false);
 };
 
-TYPED_TEST(SumcheckRelation, GrandProductComputationRelation)
+TYPED_TEST(RelationConsistency, GrandProductComputationRelation)
 {
     SUMCHECK_RELATION_TYPE_ALIASES
     using MULTIVARIATE = honk::StandardArithmetization::POLYNOMIAL;
@@ -286,7 +284,7 @@ TYPED_TEST(SumcheckRelation, GrandProductComputationRelation)
     run_test(/* is_random_input=*/false);
 };
 
-TYPED_TEST(SumcheckRelation, GrandProductInitializationRelation)
+TYPED_TEST(RelationConsistency, GrandProductInitializationRelation)
 {
     SUMCHECK_RELATION_TYPE_ALIASES
     using MULTIVARIATE = honk::StandardArithmetization::POLYNOMIAL;
@@ -326,7 +324,7 @@ TYPED_TEST(SumcheckRelation, GrandProductInitializationRelation)
     run_test(/* is_random_input=*/false);
 };
 
-TYPED_TEST(SumcheckRelation, GrandProductComputationRelationUltra)
+TYPED_TEST(RelationConsistency, GrandProductComputationRelationUltra)
 {
     SUMCHECK_RELATION_TYPE_ALIASES
     using MULTIVARIATE = honk::UltraArithmetization::POLYNOMIAL;
