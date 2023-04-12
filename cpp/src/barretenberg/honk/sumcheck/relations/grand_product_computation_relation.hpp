@@ -93,7 +93,7 @@ template <typename FF> class GrandProductComputationRelation {
 
 // TODO(luke): With Cody's Flavor work it should be easier to create a simple templated relation
 // for handling arbitrary width. For now I'm duplicating the width 3 logic for width 4.
-template <typename FF> class GrandProductComputationRelationUltra {
+template <typename FF> class UltraGrandProductComputationRelation {
   public:
     // 1 + polynomial degree of this relation
     static constexpr size_t RELATION_LENGTH = 6;
