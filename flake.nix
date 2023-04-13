@@ -12,6 +12,8 @@
       barretenbergOverlay = final: prev: {
         barretenberg = prev.callPackage ./barretenberg.nix { };
         barretenberg-wasm = prev.callPackage ./barretenberg-wasm.nix { };
+        barretenberg-wasm-debug = prev.callPackage ./barretenberg-wasm.nix { debug = true; };
+
         barretenberg-transcript00 = prev.fetchurl {
           url = "http://aztec-ignition.s3.amazonaws.com/MAIN%20IGNITION/monomial/transcript00.dat";
           sha256 = "sha256-D5SzlCb1pX0aF3QmJPfTFwoy4Z1sXhbyAigUOdvkhpU=";
@@ -63,6 +65,15 @@
               llvmPackages = pkgs.llvmPackages_14;
             };
             wasm32 = pkgs.barretenberg-wasm;
+
+            # Produced artifact will referrence source files from
+            # `/build/...` path which is incorrect in context of debugger loading those sources
+            # Use 
+            # GDB's set substitute-path 
+            # LLDB's set target.source-map
+            # Chrome's [C/C++ DevTools Support (DWARF)](https://chrome.google.com/webstore/detail/cc%20%20-devtools-support-dwa/pdcpmagijalfljmkmjngeonclgbbannb)
+            # to correct it
+            wasm32-debug = pkgs.barretenberg-wasm-debug;
 
             default = packages.llvm11;
           } // crossTargets;
