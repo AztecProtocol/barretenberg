@@ -7,6 +7,7 @@
 #include "schnorr_verify.hpp"
 #include "ecdsa_secp256k1.hpp"
 #include "merkle_membership_constraint.hpp"
+#include "recursion_constraint.hpp"
 #include "pedersen.hpp"
 #include "hash_to_field.hpp"
 #include "barretenberg/stdlib/types/types.hpp"
@@ -29,6 +30,8 @@ struct acir_format {
     std::vector<HashToFieldConstraint> hash_to_field_constraints;
     std::vector<PedersenConstraint> pedersen_constraints;
     std::vector<MerkleMembershipConstraint> merkle_membership_constraints;
+    std::vector<RecursionConstraint> recursion_constraints;
+
     // A standard plonk arithmetic constraint, as defined in the poly_triple struct, consists of selector values
     // for q_M,q_L,q_R,q_O,q_C and indices of three variables taking the role of left, right and output wire
     std::vector<poly_triple> constraints;

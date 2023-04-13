@@ -86,6 +86,11 @@ void create_circuit(Composer& composer, const acir_format& constraint_system)
     for (const auto& constraint : constraint_system.hash_to_field_constraints) {
         create_hash_to_field_constraints(composer, constraint);
     }
+
+    // Add recursion constraints
+    for (const auto& constraint : constraint_system.recursion_constraints) {
+        create_recursion_constraints(composer, constraint);
+    }
 }
 
 Composer create_circuit(const acir_format& constraint_system,
@@ -163,6 +168,11 @@ Composer create_circuit(const acir_format& constraint_system,
     // Add hash to field constraints
     for (const auto& constraint : constraint_system.hash_to_field_constraints) {
         create_hash_to_field_constraints(composer, constraint);
+    }
+
+    // Add recursion constraints
+    for (const auto& constraint : constraint_system.recursion_constraints) {
+        create_recursion_constraints(composer, constraint);
     }
 
     return composer;
@@ -249,6 +259,10 @@ Composer create_circuit_with_witness(const acir_format& constraint_system,
         create_hash_to_field_constraints(composer, constraint);
     }
 
+    // Add recursion constraints
+    for (const auto& constraint : constraint_system.recursion_constraints) {
+        create_recursion_constraints(composer, constraint);
+    }
     return composer;
 }
 Composer create_circuit_with_witness(const acir_format& constraint_system, std::vector<fr> witness)
@@ -330,6 +344,10 @@ Composer create_circuit_with_witness(const acir_format& constraint_system, std::
         create_hash_to_field_constraints(composer, constraint);
     }
 
+    // Add recursion constraints
+    for (const auto& constraint : constraint_system.recursion_constraints) {
+        create_recursion_constraints(composer, constraint);
+    }
     return composer;
 }
 void create_circuit_with_witness(Composer& composer, const acir_format& constraint_system, std::vector<fr> witness)
@@ -407,6 +425,11 @@ void create_circuit_with_witness(Composer& composer, const acir_format& constrai
     // Add hash to field constraints
     for (const auto& constraint : constraint_system.hash_to_field_constraints) {
         create_hash_to_field_constraints(composer, constraint);
+    }
+
+    // Add recursion constraints
+    for (const auto& constraint : constraint_system.recursion_constraints) {
+        create_recursion_constraints(composer, constraint);
     }
 }
 
