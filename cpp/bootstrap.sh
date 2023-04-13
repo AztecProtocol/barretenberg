@@ -64,7 +64,7 @@ cmake --preset $PRESET -DCMAKE_BUILD_TYPE=RelWithAssert
 cmake --build --preset $PRESET ${@/#/--target }
 
 # Install the webassembly toolchain.
-WASI_VERSION=12
+WASI_VERSION=20
 cd ./src
 curl -s -L https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-$WASI_VERSION/wasi-sdk-$WASI_VERSION.0-$OS.tar.gz | tar zxfv -
 cd ..
