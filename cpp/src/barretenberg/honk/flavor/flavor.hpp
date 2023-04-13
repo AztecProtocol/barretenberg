@@ -14,7 +14,7 @@ struct StandardArithmetization {
      * This separation must be maintained to allow for programmatic access, but the ordering of the
      * polynomials can be permuted within each category if necessary. Polynomials can also be added
      * or removed (assuming consistency with the prover algorithm) but the constants describing the
-     * number of poynomials in each category must be manually updated.
+     * number of polynomials in each category must be manually updated.
      *
      */
     enum POLYNOMIAL {
@@ -195,7 +195,7 @@ struct UltraArithmetization {
      * This separation must be maintained to allow for programmatic access, but the ordering of the
      * polynomials can be permuted within each category if necessary. Polynomials can also be added
      * or removed (assuming consistency with the prover algorithm) but the constants describing the
-     * number of poynomials in each category must be manually updated.
+     * number of polynomials in each category must be manually updated.
      *
      */
     enum POLYNOMIAL {
