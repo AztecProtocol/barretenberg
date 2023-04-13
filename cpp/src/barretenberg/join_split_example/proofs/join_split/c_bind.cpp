@@ -1,3 +1,6 @@
+#include <cstdint>
+#include <sstream>
+
 #include "c_bind.h"
 #include "join_split.hpp"
 #include "compute_signing_data.hpp"
@@ -5,14 +8,13 @@
 #include "barretenberg/common/streams.hpp"
 #include "barretenberg/common/mem.hpp"
 #include "barretenberg/common/container.hpp"
-#include <cstdint>
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 #include "barretenberg/srs/reference_string/pippenger_reference_string.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/serialize.hpp"
-#include <sstream>
+#include "barretenberg/join_split_example/types.hpp"
 
 using namespace barretenberg;
-using namespace proof_system::plonk::stdlib::types;
+// using namespace proof_system::plonk::stdlib;
 using namespace join_split_example::proofs::join_split;
 
 #define WASM_EXPORT __attribute__((visibility("default")))
@@ -103,13 +105,13 @@ WASM_EXPORT void* join_split__new_prover(uint8_t const* join_split_buf, bool moc
 {
     auto tx = from_buffer<join_split_tx>(join_split_buf);
     auto prover = new_join_split_prover(tx, mock);
-    auto heapProver = new stdlib::types::Prover(std::move(prover));
+    auto heapProver = new join_split_example::Prover(std::move(prover));
     return heapProver;
 }
 
 WASM_EXPORT void join_split__delete_prover(void* prover)
 {
-    delete reinterpret_cast<plonk::stdlib::types::Prover*>(prover);
+    delete reinterpret_cast<join_split_example::Prover*>(prover);
 }
 
 WASM_EXPORT bool join_split__verify_proof(uint8_t* proof, uint32_t length)

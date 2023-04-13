@@ -1,8 +1,8 @@
 #include "pedersen.hpp"
 
-using namespace proof_system::plonk::stdlib::types;
-
 namespace acir_format {
+
+using namespace proof_system::plonk;
 
 void create_pedersen_constraint(Composer& composer, const PedersenConstraint& input)
 {

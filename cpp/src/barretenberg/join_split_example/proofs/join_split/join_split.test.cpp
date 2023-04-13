@@ -1,3 +1,5 @@
+#include <gtest/gtest.h>
+
 #include "../../constants.hpp"
 #include "../inner_proof_data/inner_proof_data.hpp"
 #include "index.hpp"
@@ -5,9 +7,9 @@
 #include "join_split_circuit.hpp"
 #include "barretenberg/common/streams.hpp"
 #include "barretenberg/common/test.hpp"
-#include <gtest/gtest.h>
 #include "barretenberg/plonk/proof_system/proving_key/serialize.hpp"
 #include "barretenberg/stdlib/merkle_tree/index.hpp"
+#include "barretenberg/join_split_example/types.hpp"
 
 namespace join_split_example::proofs::join_split {
 
@@ -98,14 +100,14 @@ TYPED_TEST(join_split, deposit)
 
     BenchmarkInfoCollator benchmark_collator;
     Timer timer;
-    auto prover = composer.create_ultra_with_keccak_prover();
+    auto prover = composer.create_prover();
     auto build_time = timer.toString();
     benchmark_collator.benchmark_info_deferred(
         GET_COMPOSER_NAME_STRING(Composer::type), "Core", "join split", "Build time", build_time);
 
     auto proof = prover.construct_proof();
 
-    auto verifier = composer.create_ultra_with_keccak_verifier();
+    auto verifier = composer.create_verifier();
     bool verified = verifier.verify_proof(proof);
 
     ASSERT_TRUE(verified);
@@ -122,7 +124,7 @@ constexpr bool CIRCUIT_CHANGE_EXPECTED = false;
 #endif
 
 using namespace barretenberg;
-using namespace proof_system::plonk::stdlib::types;
+using namespace proof_system::plonk::stdlib;
 using namespace proof_system::plonk::stdlib::merkle_tree;
 using namespace join_split_example::proofs::notes::native;
 using key_pair = join_split_example::fixtures::grumpkin_key_pair;

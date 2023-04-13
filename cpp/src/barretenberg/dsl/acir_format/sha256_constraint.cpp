@@ -1,10 +1,11 @@
 #include "sha256_constraint.hpp"
 #include "round.hpp"
 #include "barretenberg/stdlib/hash/sha256/sha256.hpp"
-
-using namespace proof_system::plonk::stdlib::types;
+#include "barretenberg/dsl/types.hpp"
 
 namespace acir_format {
+
+// using namespace ;
 
 // This function does not work (properly) because the stdlib:sha256 function is not working correctly for 512 bits
 // pair<witness_index, bits>
