@@ -2,7 +2,6 @@
 #include "acir_proofs.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/serialize.hpp"
 #include "barretenberg/dsl/acir_format/acir_format.hpp"
-#include "barretenberg/stdlib/types/types.hpp"
 #include "barretenberg/srs/reference_string/pippenger_reference_string.hpp"
 #include "barretenberg/plonk/proof_system/verification_key/sol_gen.hpp"
 
@@ -100,26 +99,8 @@ size_t new_proof(void* pippenger,
                  uint8_t const* witness_buf,
                  uint8_t** proof_data_buf)
 {
-    auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
+    auto heapProver = new_prover(pippenger, g2x, pk_buf, constraint_system_buf, witness_buf);
 
-    std::shared_ptr<ProverReferenceString> crs;
-    plonk::proving_key_data pk_data;
-    read(pk_buf, pk_data);
-    auto proving_key = std::make_shared<plonk::proving_key>(std::move(pk_data), crs);
-
-    auto witness = from_buffer<std::vector<fr>>(witness_buf);
-
-    auto crs_factory = std::make_unique<PippengerReferenceStringFactory>(
-        reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), g2x);
-    proving_key->reference_string = crs_factory->get_prover_crs(proving_key->circuit_size);
-
-    Composer composer(proving_key, nullptr);
-
-    create_circuit_with_witness(composer, constraint_system, witness);
-
-    auto prover = composer.create_prover();
-
-    auto heapProver = new stdlib::types::Prover(std::move(prover));
     auto& proof_data = heapProver->construct_proof().proof_data;
     *proof_data_buf = proof_data.data();
 
@@ -156,4 +137,31 @@ bool verify_proof(
     return verified;
 }
 
+stdlib::types::Prover* new_prover(void* pippenger,
+                        uint8_t const* g2x,
+                        uint8_t const* pk_buf,
+                        uint8_t const* constraint_system_buf,
+                        uint8_t const* witness_buf)
+{
+   auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
+
+    std::shared_ptr<ProverReferenceString> crs;
+    plonk::proving_key_data pk_data;
+    read(pk_buf, pk_data);
+    auto proving_key = std::make_shared<plonk::proving_key>(std::move(pk_data), crs);
+
+    auto witness = from_buffer<std::vector<fr>>(witness_buf);
+
+    auto crs_factory = std::make_unique<PippengerReferenceStringFactory>(
+        reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), g2x);
+    proving_key->reference_string = crs_factory->get_prover_crs(proving_key->circuit_size);
+
+    Composer composer(proving_key, nullptr);
+
+    create_circuit_with_witness(composer, constraint_system, witness);
+
+    auto prover = composer.create_prover();
+    auto heapProver = new stdlib::types::Prover(std::move(prover));
+    return heapProver;
+}
 } // namespace acir_proofs

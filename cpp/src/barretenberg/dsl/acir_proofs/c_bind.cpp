@@ -50,4 +50,18 @@ WASM_EXPORT bool acir_proofs_verify_proof(
 {
     return acir_proofs::verify_proof(g2x, vk_buf, constraint_system_buf, proof, length);
 }
+
+WASM_EXPORT void* acir_proofs_new_prover(void* pippenger,
+                                         uint8_t const* g2x,
+                                         uint8_t const* pk_buf,
+                                         uint8_t const* constraint_system_buf,
+                                         uint8_t const* witness_buf)
+{
+    return acir_proofs::new_prover(pippenger, g2x, pk_buf, constraint_system_buf, witness_buf);
+};
+
+WASM_EXPORT void acir_proofs_delete_prover(void* prover)
+{
+    delete reinterpret_cast<proof_system::plonk::stdlib::types::Prover*>(prover);
+}
 }
