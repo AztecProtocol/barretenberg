@@ -1,5 +1,7 @@
 #include "verifier.hpp"
 #include "barretenberg/common/test.hpp"
+#include "barretenberg/plonk/composer/ultra_composer.hpp"
+#include "barretenberg/plonk/proof_system/prover/prover.hpp"
 #include "barretenberg/transcript/transcript.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/serialize.hpp"
 #include "barretenberg/stdlib/primitives/curves/bn254.hpp"
@@ -8,6 +10,7 @@
 #include "../../hash/blake3s/blake3s.hpp"
 #include "../../hash/pedersen/pedersen.hpp"
 #include "program_settings.hpp"
+#include <type_traits>
 
 using namespace proof_system::plonk;
 
@@ -307,11 +310,36 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
         info("creating prover for outer circuit");
         info("composer gates = ", outer_composer.get_num_gates());
-        auto prover = outer_composer.create_prover();
+
+        using OuterProverType = std::conditional_t<
+            std::is_same_v<OuterComposer, plonk::UltraComposer>,
+            plonk::UltraWithKeccakProver,
+            std::conditional_t<std::is_same_v<OuterComposer, plonk::TurboComposer>, plonk::TurboProver, plonk::Prover>>;
+
+        OuterProverType prover;
+        if constexpr (std::is_same_v<OuterComposer, plonk::UltraComposer>) {
+            prover = outer_composer.create_ultra_with_keccak_prover();
+        } else {
+            prover = outer_composer.create_prover();
+        }
+
         info("created prover for outer circuit");
 
         info("creating verifier for outer proof");
-        auto verifier = outer_composer.create_verifier();
+
+        using OuterVerifierType =
+            std::conditional_t<std::is_same_v<OuterComposer, plonk::UltraComposer>,
+                               plonk::UltraWithKeccakVerifier,
+                               std::conditional_t<std::is_same_v<OuterComposer, plonk::TurboComposer>,
+                                                  plonk::TurboVerifier,
+                                                  plonk::Verifier>>;
+
+        OuterVerifierType verifier;
+        if constexpr (std::is_same_v<OuterComposer, plonk::UltraComposer>) {
+            verifier = outer_composer.create_ultra_with_keccak_verifier();
+        } else {
+            verifier = outer_composer.create_verifier();
+        }
 
         info("creating outer proof for outer circuit");
         plonk::proof proof = prover.construct_proof();
