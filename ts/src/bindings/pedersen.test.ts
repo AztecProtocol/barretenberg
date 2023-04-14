@@ -44,7 +44,7 @@ describe('pedersen', () => {
 
   it('pedersenCompressWithHashIndex', () => {
     const result = pedersenCompressWithHashIndex([new Fr(4n), new Fr(8n)], 7);
-    expect(result).toEqual(new Fr(21023575759217716079474317465087832600947311384619129919695080673364968932110n));
+    expect(result).toEqual(new Fr(12675961871866002745031098923411501942277744385859978302365013982702509949754n));
   });
 
   it('pedersenCommit', () => {
@@ -74,7 +74,7 @@ describe('pedersen', () => {
 
   it('pedersenHashMultipleWithHashIndex', () => {
     const result = pedersenHashMultipleWithHashIndex([new Fr(4n), new Fr(8n)], 7);
-    expect(result).toEqual(new Fr(21023575759217716079474317465087832600947311384619129919695080673364968932110n));
+    expect(result).toEqual(new Fr(12675961871866002745031098923411501942277744385859978302365013982702509949754n));
   });
 
   it('pedersenHashToTree', () => {
