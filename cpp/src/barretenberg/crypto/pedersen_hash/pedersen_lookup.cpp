@@ -1,6 +1,7 @@
 #include "./pedersen_lookup.hpp"
 
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
+#include "barretenberg/common/mem.hpp"
 
 namespace crypto {
 namespace pedersen_hash {
@@ -14,52 +15,58 @@ static bool inited = false;
 
 void init_single_lookup_table(const size_t index)
 {
-    std::vector<grumpkin::g1::element> temp;
-    temp.reserve(PEDERSEN_TABLE_SIZE);
+    grumpkin::g1::element* temp_memory =
+        static_cast<grumpkin::g1::element*>(aligned_alloc(64, sizeof(grumpkin::g1::element) * PEDERSEN_TABLE_SIZE));
     pedersen_tables[index].reserve(PEDERSEN_TABLE_SIZE);
 
     const auto& generator = generators[index];
     for (size_t i = 0; i < PEDERSEN_TABLE_SIZE; ++i) {
-        temp.emplace_back(generator * grumpkin::fr(i + 1));
+        temp_memory[i] = (generator * grumpkin::fr(i + 1));
     }
-    grumpkin::g1::element::batch_normalize(&temp[0], PEDERSEN_TABLE_SIZE);
+    grumpkin::g1::element::batch_normalize(&temp_memory[0], PEDERSEN_TABLE_SIZE);
 
-    for (const auto& element : temp) {
-        pedersen_tables[index].emplace_back(element);
+    for (size_t i = 0; i < PEDERSEN_TABLE_SIZE; i++) {
+        pedersen_tables[index].emplace_back(temp_memory[i]);
     }
+
+    aligned_free(temp_memory);
 }
 
 void init_small_lookup_table(const size_t index)
 {
-    std::vector<grumpkin::g1::element> temp;
-    temp.reserve(PEDERSEN_SMALL_TABLE_SIZE);
+    grumpkin::g1::element* temp_memory = static_cast<grumpkin::g1::element*>(
+        aligned_alloc(64, sizeof(grumpkin::g1::element) * PEDERSEN_SMALL_TABLE_SIZE));
     pedersen_tables[index].reserve(PEDERSEN_SMALL_TABLE_SIZE);
 
     const auto& generator = generators[index];
     for (size_t i = 0; i < PEDERSEN_SMALL_TABLE_SIZE; ++i) {
-        temp.emplace_back(generator * grumpkin::fr(i + 1));
+        temp_memory[i] = (generator * grumpkin::fr(i + 1));
     }
-    grumpkin::g1::element::batch_normalize(&temp[0], PEDERSEN_SMALL_TABLE_SIZE);
+    grumpkin::g1::element::batch_normalize(&temp_memory[0], PEDERSEN_SMALL_TABLE_SIZE);
 
-    for (const auto& element : temp) {
-        pedersen_tables[index].emplace_back(element);
+    for (size_t i = 0; i < PEDERSEN_SMALL_TABLE_SIZE; i++) {
+        pedersen_tables[index].emplace_back(temp_memory[i]);
     }
+
+    aligned_free(temp_memory);
 }
 
 void init_iv_lookup_table()
 {
-    std::vector<grumpkin::g1::element> temp;
-    temp.reserve(PEDERSEN_IV_TABLE_SIZE);
+    grumpkin::g1::element* temp_memory =
+        static_cast<grumpkin::g1::element*>(aligned_alloc(64, sizeof(grumpkin::g1::element) * PEDERSEN_IV_TABLE_SIZE));
     pedersen_iv_table.reserve(PEDERSEN_IV_TABLE_SIZE);
 
     for (size_t i = 0; i < PEDERSEN_IV_TABLE_SIZE; ++i) {
-        temp.emplace_back(grumpkin::g1::affine_one * grumpkin::fr(i + 1));
+        temp_memory[i] = (grumpkin::g1::affine_one * grumpkin::fr(i + 1));
     }
-    grumpkin::g1::element::batch_normalize(&temp[0], PEDERSEN_IV_TABLE_SIZE);
+    grumpkin::g1::element::batch_normalize(&temp_memory[0], PEDERSEN_IV_TABLE_SIZE);
 
-    for (const auto& element : temp) {
-        pedersen_iv_table.emplace_back(element);
+    for (size_t i = 0; i < PEDERSEN_IV_TABLE_SIZE; i++) {
+        pedersen_iv_table.emplace_back(temp_memory[i]);
     }
+
+    aligned_free(temp_memory);
 }
 
 void init()
