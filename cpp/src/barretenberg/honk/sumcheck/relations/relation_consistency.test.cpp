@@ -96,9 +96,12 @@ template <class FF> class RelationConsistency : public testing::Test {
      */
     RelationParameters<FF> compute_mock_relation_parameters()
     {
-        return { .beta = FF::random_element(),
-                 .gamma = FF::random_element(),
-                 .public_input_delta = FF::random_element() };
+        // return { .eta = FF::random_element(),
+        //          .beta = FF::random_element(),
+        //          .gamma = FF::random_element(),
+        //          .public_input_delta = FF::random_element(),
+        //          .lookup_grand_product_delta = FF::random_element() };
+        return { .eta = 1, .beta = 2, .gamma = 3, .public_input_delta = 4, .lookup_grand_product_delta = 5 };
     }
 
     /**
@@ -506,16 +509,22 @@ TYPED_TEST(RelationConsistency, LookupGrandProductComputationRelation)
 
     auto relation = LookupGrandProductComputationRelation<FF>();
 
-    const auto eta = FF::one(); // TODO(luke): add to relation params
+    const auto eta = relation_parameters.eta;
     const auto beta = relation_parameters.beta;
     const auto gamma = relation_parameters.gamma;
+    auto grand_product_delta = relation_parameters.lookup_grand_product_delta;
+
+    info("eta = ", eta);
+    info("beta = ", beta);
+    info("gamma = ", gamma);
+    info("public_input_delta = ", relation_parameters.public_input_delta);
+    info("grand_product_delta = ", grand_product_delta);
 
     // Extract the extended edges for manual computation of relation contribution
     auto one_plus_beta = FF::one() + beta;
     auto gamma_by_one_plus_beta = gamma * one_plus_beta;
     auto eta_sqr = eta * eta;
     auto eta_cube = eta_sqr * eta;
-    auto delta_factor = gamma_by_one_plus_beta.pow(8);
 
     const auto& w_1 = extended_edges[MULTIVARIATE::W_1];
     const auto& w_2 = extended_edges[MULTIVARIATE::W_2];
@@ -558,8 +567,8 @@ TYPED_TEST(RelationConsistency, LookupGrandProductComputationRelation)
     // Compute the expected result using a simple to read version of the relation expression
     auto expected_evals = (z_lookup + lagrange_first) * (q_lookup * wire_accum + gamma) *
                           (table_accum + table_accum_shift * beta + gamma_by_one_plus_beta) * one_plus_beta;
-    expected_evals -=
-        (z_lookup_shift + lagrange_last * delta_factor) * (s_accum + s_accum_shift * beta + gamma_by_one_plus_beta);
+    expected_evals -= (z_lookup_shift + lagrange_last * grand_product_delta) *
+                      (s_accum + s_accum_shift * beta + gamma_by_one_plus_beta);
 
     TestFixture::template validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
 };

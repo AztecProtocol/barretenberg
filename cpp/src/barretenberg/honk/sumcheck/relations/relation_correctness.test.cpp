@@ -13,7 +13,7 @@
 #include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/lookup_grand_product_computation_relation.hpp"
-#include "barretenberg/honk/utils/public_inputs.hpp"
+#include "barretenberg/honk/utils/grand_product_delta.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 
 // DEBUG
@@ -193,7 +193,7 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     // plonk_prover.construct_proof();
 
     // Generate eta, beta and gamma
-    fr eta = fr::one(); // TODO(luke): add this to relation params
+    fr eta = fr::random_element();
     fr beta = fr::random_element();
     fr gamma = fr::random_element();
 
@@ -201,13 +201,17 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     const auto public_inputs = composer.circuit_constructor.get_public_inputs();
     auto public_input_delta =
         honk::compute_public_input_delta<fr>(public_inputs, beta, gamma, prover.key->circuit_size);
+    auto lookup_grand_product_delta =
+        honk::compute_lookup_grand_product_delta<fr>(beta, gamma, prover.key->circuit_size);
 
     // info("public_input_delta = ", public_input_delta);
 
     sumcheck::RelationParameters<fr> params{
+        .eta = eta,
         .beta = beta,
         .gamma = gamma,
         .public_input_delta = public_input_delta,
+        .lookup_grand_product_delta = lookup_grand_product_delta,
     };
 
     constexpr size_t num_polynomials = proof_system::honk::UltraArithmetization::COUNT;

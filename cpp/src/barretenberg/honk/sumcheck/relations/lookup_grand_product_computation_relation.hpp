@@ -27,15 +27,15 @@ template <typename FF> class LookupGrandProductComputationRelation {
                                       const RelationParameters<FF>& relation_parameters,
                                       const FF& scaling_factor) const
     {
-        const auto& eta = FF::one(); // TODO(luke): add to relation params
+        const auto& eta = relation_parameters.eta;
         const auto& beta = relation_parameters.beta;
         const auto& gamma = relation_parameters.gamma;
+        const auto& grand_product_delta = relation_parameters.lookup_grand_product_delta;
 
-        auto one_plus_beta = FF::one() + beta;
-        auto gamma_by_one_plus_beta = gamma * one_plus_beta;
-        auto eta_sqr = eta * eta;
-        auto eta_cube = eta_sqr * eta;
-        auto delta_factor = gamma_by_one_plus_beta.pow(8);
+        const auto one_plus_beta = FF::one() + beta;
+        const auto gamma_by_one_plus_beta = gamma * one_plus_beta;
+        const auto eta_sqr = eta * eta;
+        const auto eta_cube = eta_sqr * eta;
 
         auto w_1 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_1]);
         auto w_2 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_2]);
@@ -82,8 +82,8 @@ template <typename FF> class LookupGrandProductComputationRelation {
         tmp *= (table_accum + table_accum_shift * beta + gamma_by_one_plus_beta);
         tmp *= one_plus_beta;
         tmp *= (z_lookup + lagrange_first);
-        tmp -=
-            (z_lookup_shift + lagrange_last * delta_factor) * (s_accum + s_accum_shift * beta + gamma_by_one_plus_beta);
+        tmp -= (z_lookup_shift + lagrange_last * grand_product_delta) *
+               (s_accum + s_accum_shift * beta + gamma_by_one_plus_beta);
         evals += tmp * scaling_factor;
     };
 
@@ -91,15 +91,15 @@ template <typename FF> class LookupGrandProductComputationRelation {
                                               auto& purported_evaluations,
                                               const RelationParameters<FF>& relation_parameters) const
     {
-        const auto& eta = FF::one(); // TODO(luke): add to relation params
+        const auto& eta = relation_parameters.eta;
         const auto& beta = relation_parameters.beta;
         const auto& gamma = relation_parameters.gamma;
+        const auto& grand_product_delta = relation_parameters.lookup_grand_product_delta;
 
-        auto one_plus_beta = FF::one() + beta;
-        auto gamma_by_one_plus_beta = gamma * one_plus_beta;
-        auto eta_sqr = eta * eta;
-        auto eta_cube = eta_sqr * eta;
-        auto delta_factor = gamma_by_one_plus_beta.pow(8);
+        const auto one_plus_beta = FF::one() + beta;
+        const auto gamma_by_one_plus_beta = gamma * one_plus_beta;
+        const auto eta_sqr = eta * eta;
+        const auto eta_cube = eta_sqr * eta;
 
         auto w_1 = purported_evaluations[MULTIVARIATE::W_1];
         auto w_2 = purported_evaluations[MULTIVARIATE::W_2];
@@ -145,8 +145,8 @@ template <typename FF> class LookupGrandProductComputationRelation {
         tmp *= (table_accum + beta * table_accum_shift + gamma_by_one_plus_beta);
         tmp *= one_plus_beta;
         tmp *= (z_lookup + lagrange_first);
-        tmp -=
-            (z_lookup_shift + lagrange_last * delta_factor) * (s_accum + beta * s_accum_shift + gamma_by_one_plus_beta);
+        tmp -= (z_lookup_shift + lagrange_last * grand_product_delta) *
+               (s_accum + beta * s_accum_shift + gamma_by_one_plus_beta);
         full_honk_relation_value += tmp;
     };
 };
