@@ -119,9 +119,9 @@ template <typename FF> class UltraGrandProductComputationRelation {
         const auto& gamma = relation_parameters.gamma;
         const auto& public_input_delta = relation_parameters.public_input_delta;
 
-        auto w_1 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_L]);
-        auto w_2 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_R]);
-        auto w_3 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_O]);
+        auto w_1 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_1]);
+        auto w_2 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_2]);
+        auto w_3 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_3]);
         auto w_4 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_4]);
         auto sigma_1 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::SIGMA_1]);
         auto sigma_2 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::SIGMA_2]);
@@ -152,9 +152,9 @@ template <typename FF> class UltraGrandProductComputationRelation {
         const auto& gamma = relation_parameters.gamma;
         const auto& public_input_delta = relation_parameters.public_input_delta;
 
-        auto w_1 = purported_evaluations[MULTIVARIATE::W_L];
-        auto w_2 = purported_evaluations[MULTIVARIATE::W_R];
-        auto w_3 = purported_evaluations[MULTIVARIATE::W_O];
+        auto w_1 = purported_evaluations[MULTIVARIATE::W_1];
+        auto w_2 = purported_evaluations[MULTIVARIATE::W_2];
+        auto w_3 = purported_evaluations[MULTIVARIATE::W_3];
         auto w_4 = purported_evaluations[MULTIVARIATE::W_4];
         auto sigma_1 = purported_evaluations[MULTIVARIATE::SIGMA_1];
         auto sigma_2 = purported_evaluations[MULTIVARIATE::SIGMA_2];

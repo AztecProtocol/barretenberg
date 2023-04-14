@@ -33,13 +33,13 @@ template <typename FF> class UltraArithmeticRelationSecondary {
         // OPTIMIZATION?: Karatsuba in general, at least for some degrees?
         //       See https://hackmd.io/xGLuj6biSsCjzQnYN-pEiA?both
 
-        auto w_l = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_L]);
+        auto w_1 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_1]);
         auto w_4 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_4]);
-        auto w_l_shift = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_1_SHIFT]);
+        auto w_1_shift = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_1_SHIFT]);
         auto q_m = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_M]);
         auto q_arith = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::QARITH]);
 
-        auto tmp = w_l + w_4 - w_l_shift + q_m;
+        auto tmp = w_1 + w_4 - w_1_shift + q_m;
         tmp *= (q_arith - 2);
         tmp *= (q_arith - 1);
         tmp *= q_arith;
@@ -51,13 +51,13 @@ template <typename FF> class UltraArithmeticRelationSecondary {
                                               const auto& purported_evaluations,
                                               const RelationParameters<FF>&) const
     {
-        auto w_l = purported_evaluations[MULTIVARIATE::W_L];
+        auto w_1 = purported_evaluations[MULTIVARIATE::W_1];
         auto w_4 = purported_evaluations[MULTIVARIATE::W_4];
-        auto w_l_shift = purported_evaluations[MULTIVARIATE::W_1_SHIFT];
+        auto w_1_shift = purported_evaluations[MULTIVARIATE::W_1_SHIFT];
         auto q_m = purported_evaluations[MULTIVARIATE::Q_M];
         auto q_arith = purported_evaluations[MULTIVARIATE::QARITH];
 
-        auto tmp = w_l + w_4 - w_l_shift + q_m;
+        auto tmp = w_1 + w_4 - w_1_shift + q_m;
         tmp *= (q_arith - 2);
         tmp *= (q_arith - 1);
         tmp *= q_arith;

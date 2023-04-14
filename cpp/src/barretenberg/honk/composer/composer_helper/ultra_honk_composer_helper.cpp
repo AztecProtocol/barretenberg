@@ -256,29 +256,31 @@ std::shared_ptr<plonk::proving_key> UltraHonkComposerHelper<CircuitConstructor>:
         ++offset;
     }
 
-    // // In the case of using UltraPlonkComposer for a circuit which does _not_ make use of any lookup tables, all
-    // four
-    // // table columns would be all zeros. This would result in these polys' commitments all being the point at
-    // infinity
-    // // (which is bad because our point arithmetic assumes we'll never operate on the point at infinity). To avoid
-    // this,
-    // // we set the last evaluation of each poly to be nonzero. The last `num_roots_cut_out_of_vanishing_poly = 4`
-    // // evaluations are ignored by constraint checks; we arbitrarily choose the very-last evaluation to be nonzero.
-    // See
-    // // ComposerBase::compute_proving_key_base for further explanation, as a similar trick is done there. We could
-    // // have chosen `1` for each such evaluation here, but that would have resulted in identical commitments for
-    // // all four columns. We don't want to have equal commitments, because biggroup operations assume no points are
-    // // equal, so if we tried to verify an ultra proof in a circuit, the biggroup operations would fail. To combat
-    // // this, we just choose distinct values:
-    size_t num_selectors = circuit_constructor.num_selectors;
-    ASSERT(offset == subgroup_size - 1);
-    auto unique_last_value = num_selectors + 1; // Note: in compute_proving_key_base, moments earlier, each selector
-                                                // vector was given a unique last value from 1..num_selectors. So we
-                                                // avoid those values and continue the count, to ensure uniqueness.
-    poly_q_table_column_1[subgroup_size - 1] = unique_last_value;
-    poly_q_table_column_2[subgroup_size - 1] = ++unique_last_value;
-    poly_q_table_column_3[subgroup_size - 1] = ++unique_last_value;
-    poly_q_table_column_4[subgroup_size - 1] = ++unique_last_value;
+    // TODO(#217)(luke): Similar to the selectors, enforcing non-zero values by inserting an arbitrary final element
+    // in the table polys will result in some relations failing. Address this with issue #217.
+    // // // In the case of using UltraPlonkComposer for a circuit which does _not_ make use of any lookup tables, all
+    // // four
+    // // // table columns would be all zeros. This would result in these polys' commitments all being the point at
+    // // infinity
+    // // // (which is bad because our point arithmetic assumes we'll never operate on the point at infinity). To avoid
+    // // this,
+    // // // we set the last evaluation of each poly to be nonzero. The last `num_roots_cut_out_of_vanishing_poly = 4`
+    // // // evaluations are ignored by constraint checks; we arbitrarily choose the very-last evaluation to be nonzero.
+    // // See
+    // // // ComposerBase::compute_proving_key_base for further explanation, as a similar trick is done there. We could
+    // // // have chosen `1` for each such evaluation here, but that would have resulted in identical commitments for
+    // // // all four columns. We don't want to have equal commitments, because biggroup operations assume no points are
+    // // // equal, so if we tried to verify an ultra proof in a circuit, the biggroup operations would fail. To combat
+    // // // this, we just choose distinct values:
+    // size_t num_selectors = circuit_constructor.num_selectors;
+    // ASSERT(offset == subgroup_size - 1);
+    // auto unique_last_value = num_selectors + 1; // Note: in compute_proving_key_base, moments earlier, each selector
+    //                                             // vector was given a unique last value from 1..num_selectors. So we
+    //                                             // avoid those values and continue the count, to ensure uniqueness.
+    // poly_q_table_column_1[subgroup_size - 1] = unique_last_value;
+    // poly_q_table_column_2[subgroup_size - 1] = ++unique_last_value;
+    // poly_q_table_column_3[subgroup_size - 1] = ++unique_last_value;
+    // poly_q_table_column_4[subgroup_size - 1] = ++unique_last_value;
 
     circuit_proving_key->polynomial_store.put("table_value_1_lagrange", std::move(poly_q_table_column_1));
     circuit_proving_key->polynomial_store.put("table_value_2_lagrange", std::move(poly_q_table_column_2));

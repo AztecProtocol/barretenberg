@@ -1,3 +1,4 @@
+#include "barretenberg/honk/sumcheck/relations/lookup_grand_product_computation_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation_secondary.hpp"
 #include "relation.hpp"
@@ -347,15 +348,15 @@ TYPED_TEST(RelationConsistency, UltraArithmeticRelation)
     auto relation = UltraArithmeticRelation<FF>();
 
     // Extract the extended edges for manual computation of relation contribution
-    const auto& w_1 = extended_edges[MULTIVARIATE::W_L];
-    const auto& w_2 = extended_edges[MULTIVARIATE::W_R];
-    const auto& w_3 = extended_edges[MULTIVARIATE::W_O];
+    const auto& w_1 = extended_edges[MULTIVARIATE::W_1];
+    const auto& w_2 = extended_edges[MULTIVARIATE::W_2];
+    const auto& w_3 = extended_edges[MULTIVARIATE::W_3];
     const auto& w_4 = extended_edges[MULTIVARIATE::W_4];
     const auto& w_4_shift = extended_edges[MULTIVARIATE::W_4_SHIFT];
     const auto& q_m = extended_edges[MULTIVARIATE::Q_M];
-    const auto& q_l = extended_edges[MULTIVARIATE::Q_L];
-    const auto& q_r = extended_edges[MULTIVARIATE::Q_R];
-    const auto& q_o = extended_edges[MULTIVARIATE::Q_O];
+    const auto& q_l = extended_edges[MULTIVARIATE::Q_1];
+    const auto& q_r = extended_edges[MULTIVARIATE::Q_2];
+    const auto& q_o = extended_edges[MULTIVARIATE::Q_3];
     const auto& q_4 = extended_edges[MULTIVARIATE::Q_4];
     const auto& q_c = extended_edges[MULTIVARIATE::Q_C];
     const auto& q_arith = extended_edges[MULTIVARIATE::QARITH];
@@ -391,7 +392,7 @@ TYPED_TEST(RelationConsistency, UltraArithmeticRelationSecondary)
     auto relation = UltraArithmeticRelationSecondary<FF>();
 
     // Extract the extended edges for manual computation of relation contribution
-    const auto& w_1 = extended_edges[MULTIVARIATE::W_L];
+    const auto& w_1 = extended_edges[MULTIVARIATE::W_1];
     const auto& w_4 = extended_edges[MULTIVARIATE::W_4];
     const auto& w_1_shift = extended_edges[MULTIVARIATE::W_1_SHIFT];
     const auto& q_m = extended_edges[MULTIVARIATE::Q_M];
@@ -458,9 +459,9 @@ TYPED_TEST(RelationConsistency, UltraGrandProductComputationRelation)
     const auto& public_input_delta = relation_parameters.public_input_delta;
 
     // Extract the extended edges for manual computation of relation contribution
-    const auto& w_1 = extended_edges[MULTIVARIATE::W_L];
-    const auto& w_2 = extended_edges[MULTIVARIATE::W_R];
-    const auto& w_3 = extended_edges[MULTIVARIATE::W_O];
+    const auto& w_1 = extended_edges[MULTIVARIATE::W_1];
+    const auto& w_2 = extended_edges[MULTIVARIATE::W_2];
+    const auto& w_3 = extended_edges[MULTIVARIATE::W_3];
     const auto& w_4 = extended_edges[MULTIVARIATE::W_4];
     const auto& sigma_1 = extended_edges[MULTIVARIATE::SIGMA_1];
     const auto& sigma_2 = extended_edges[MULTIVARIATE::SIGMA_2];
@@ -481,6 +482,84 @@ TYPED_TEST(RelationConsistency, UltraGrandProductComputationRelation)
                           (z_perm_shift + lagrange_last * public_input_delta) * (w_1 + sigma_1 * beta + gamma) *
                               (w_2 + sigma_2 * beta + gamma) * (w_3 + sigma_3 * beta + gamma) *
                               (w_4 + sigma_4 * beta + gamma);
+
+    TestFixture::template validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
+};
+
+TYPED_TEST(RelationConsistency, LookupGrandProductComputationRelation)
+{
+    SUMCHECK_RELATION_TYPE_ALIASES
+    using MULTIVARIATE = honk::UltraArithmetization::POLYNOMIAL;
+
+    static constexpr size_t FULL_RELATION_LENGTH = 6;
+    static const size_t NUM_POLYNOMIALS = proof_system::honk::UltraArithmetization::COUNT;
+
+    const auto relation_parameters = TestFixture::compute_mock_relation_parameters();
+    std::array<Univariate<FF, FULL_RELATION_LENGTH>, NUM_POLYNOMIALS> extended_edges;
+    std::array<Univariate<FF, INPUT_UNIVARIATE_LENGTH>, NUM_POLYNOMIALS> input_polynomials;
+
+    // input_univariates are random polynomials of degree one
+    for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
+        input_polynomials[i] = Univariate<FF, INPUT_UNIVARIATE_LENGTH>({ FF::random_element(), FF::random_element() });
+    }
+    extended_edges = TestFixture::template compute_mock_extended_edges<FULL_RELATION_LENGTH>(input_polynomials);
+
+    auto relation = LookupGrandProductComputationRelation<FF>();
+
+    const auto eta = FF::one(); // TODO(luke): add to relation params
+    const auto beta = relation_parameters.beta;
+    const auto gamma = relation_parameters.gamma;
+
+    // Extract the extended edges for manual computation of relation contribution
+    auto one_plus_beta = FF::one() + beta;
+    auto gamma_by_one_plus_beta = gamma * one_plus_beta;
+    auto eta_sqr = eta * eta;
+    auto eta_cube = eta_sqr * eta;
+    auto delta_factor = gamma_by_one_plus_beta.pow(8);
+
+    const auto& w_1 = extended_edges[MULTIVARIATE::W_1];
+    const auto& w_2 = extended_edges[MULTIVARIATE::W_2];
+    const auto& w_3 = extended_edges[MULTIVARIATE::W_3];
+
+    const auto& w_1_shift = extended_edges[MULTIVARIATE::W_1_SHIFT];
+    const auto& w_2_shift = extended_edges[MULTIVARIATE::W_2_SHIFT];
+    const auto& w_3_shift = extended_edges[MULTIVARIATE::W_3_SHIFT];
+
+    const auto& table_1 = extended_edges[MULTIVARIATE::TABLE_1];
+    const auto& table_2 = extended_edges[MULTIVARIATE::TABLE_2];
+    const auto& table_3 = extended_edges[MULTIVARIATE::TABLE_3];
+    const auto& table_4 = extended_edges[MULTIVARIATE::TABLE_4];
+
+    const auto& table_1_shift = extended_edges[MULTIVARIATE::TABLE_1_SHIFT];
+    const auto& table_2_shift = extended_edges[MULTIVARIATE::TABLE_2_SHIFT];
+    const auto& table_3_shift = extended_edges[MULTIVARIATE::TABLE_3_SHIFT];
+    const auto& table_4_shift = extended_edges[MULTIVARIATE::TABLE_3_SHIFT];
+
+    const auto& s_accum = extended_edges[MULTIVARIATE::S_ACCUM];
+    const auto& s_accum_shift = extended_edges[MULTIVARIATE::S_ACCUM_SHIFT];
+    const auto& z_lookup = extended_edges[MULTIVARIATE::Z_LOOKUP];
+    const auto& z_lookup_shift = extended_edges[MULTIVARIATE::Z_LOOKUP_SHIFT];
+
+    const auto& table_index = extended_edges[MULTIVARIATE::Q_3];
+    const auto& column_1_step_size = extended_edges[MULTIVARIATE::Q_2];
+    const auto& column_2_step_size = extended_edges[MULTIVARIATE::Q_M];
+    const auto& column_3_step_size = extended_edges[MULTIVARIATE::Q_C];
+    const auto& q_lookup = extended_edges[MULTIVARIATE::QLOOKUPTYPE];
+
+    const auto& lagrange_first = extended_edges[MULTIVARIATE::LAGRANGE_FIRST];
+    const auto& lagrange_last = extended_edges[MULTIVARIATE::LAGRANGE_LAST];
+
+    auto wire_accum = (w_1 + column_1_step_size * w_1_shift) + (w_2 + column_2_step_size * w_2_shift) * eta +
+                      (w_3 + column_3_step_size * w_3_shift) * eta_sqr + table_index * eta_cube;
+
+    auto table_accum = table_1 + table_2 * eta + table_3 * eta_sqr + table_4 * eta_cube;
+    auto table_accum_shift = table_1_shift + table_2_shift * eta + table_3_shift * eta_sqr + table_4_shift * eta_cube;
+
+    // Compute the expected result using a simple to read version of the relation expression
+    auto expected_evals = (z_lookup + lagrange_first) * (q_lookup * wire_accum + gamma) *
+                          (table_accum + table_accum_shift * beta + gamma_by_one_plus_beta) * one_plus_beta;
+    expected_evals -=
+        (z_lookup_shift + lagrange_last * delta_factor) * (s_accum + s_accum_shift * beta + gamma_by_one_plus_beta);
 
     TestFixture::template validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
 };
