@@ -15,6 +15,7 @@ export async function fetchCode() {
   if (isNode) {
     const __dirname = dirname(fileURLToPath(import.meta.url));
     return await readFile(__dirname + '/barretenberg.wasm');
+    // return await readFile('/mnt/user-data/charlie/min_wasm/maincpp.wasm');
   } else {
     const res = await fetch('/barretenberg.wasm');
     return Buffer.from(await res.arrayBuffer());
@@ -159,7 +160,10 @@ export class BarretenbergWasm extends EventEmitter {
       this.module = module;
     }
 
-    this.asyncCallState.init(this.memory, this.call.bind(this), this.debug.bind(this));
+    // Init all global/static data.
+    this.call('_initialize');
+
+    // this.asyncCallState.init(this.memory, this.call.bind(this), this.debug.bind(this));
   }
 
   public exports(): any {

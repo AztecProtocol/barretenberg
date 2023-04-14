@@ -5,6 +5,8 @@ describe('barretenberg wasm', () => {
 
   beforeAll(async () => {
     wasm = await BarretenbergWasm.new();
+    wasm.on('log', console.log);
+    console.log('beforall complete');
   });
 
   it('should new malloc, transfer and slice mem', () => {
@@ -16,6 +18,18 @@ describe('barretenberg wasm', () => {
     const result = Buffer.from(wasm.getMemorySlice(ptr, ptr + length));
     expect(result).toStrictEqual(buf);
   });
+
+  // it('foo', () => {
+  //   console.log('enter foo');
+  //   const ptr = wasm.call('foo', 2, 3);
+  //   console.log(ptr);
+  // });
+
+  // it('foo2', () => {
+  //   console.log('enter foo2');
+  //   const ptr = wasm.call('foo', 2, 3);
+  //   console.log(ptr);
+  // });
 
   // TODO: Asyncify has been disabled by Blaine for... reasons.
   // it('should use asyncify to do an async callback into js', async () => {

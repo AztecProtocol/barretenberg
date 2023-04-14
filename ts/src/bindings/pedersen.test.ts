@@ -1,3 +1,4 @@
+import { wasm } from '../call_wasm_export/index.js';
 import { Fr } from '../types/index.js';
 import {
   pedersenBufferToField,
@@ -18,6 +19,7 @@ import {
 describe('pedersen', () => {
   beforeAll(() => {
     pedersenHashInit();
+    wasm.on('log', console.log);
   });
 
   it('pedersenCompressFields', () => {

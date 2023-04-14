@@ -110,7 +110,11 @@ export function schnorrMultisigCreateMultisigPublicKey(privateKey: Fq): Buffer12
 }
 
 export function schnorrMultisigValidateAndCombineSignerPubkeys(signerPubkeyBuf: Buffer128[]): [Point, boolean] {
-  const result = callWasmExport('schnorr_multisig_validate_and_combine_signer_pubkeys', [signerPubkeyBuf], [Point, BoolDeserializer()]);
+  const result = callWasmExport(
+    'schnorr_multisig_validate_and_combine_signer_pubkeys',
+    [signerPubkeyBuf],
+    [Point, BoolDeserializer()],
+  );
   return result as any;
 }
 
@@ -119,13 +123,31 @@ export function schnorrMultisigConstructSignatureRound1(): [Buffer128, Buffer128
   return result as any;
 }
 
-export function schnorrMultisigConstructSignatureRound2(message: Buffer, privateKey: Fq, signerRoundOnePrivateBuf: Buffer128, signerPubkeysBuf: Buffer128[], roundOnePublicBuf: Buffer128[]): [Fq, boolean] {
-  const result = callWasmExport('schnorr_multisig_construct_signature_round_2', [message, privateKey, signerRoundOnePrivateBuf, signerPubkeysBuf, roundOnePublicBuf], [Fq, BoolDeserializer()]);
+export function schnorrMultisigConstructSignatureRound2(
+  message: Buffer,
+  privateKey: Fq,
+  signerRoundOnePrivateBuf: Buffer128,
+  signerPubkeysBuf: Buffer128[],
+  roundOnePublicBuf: Buffer128[],
+): [Fq, boolean] {
+  const result = callWasmExport(
+    'schnorr_multisig_construct_signature_round_2',
+    [message, privateKey, signerRoundOnePrivateBuf, signerPubkeysBuf, roundOnePublicBuf],
+    [Fq, BoolDeserializer()],
+  );
   return result as any;
 }
 
-export function schnorrMultisigCombineSignatures(message: Buffer, signerPubkeysBuf: Buffer128[], roundOneBuf: Buffer128[], roundTwoBuf: Fr[]): [Buffer32, Buffer32, boolean] {
-  const result = callWasmExport('schnorr_multisig_combine_signatures', [message, signerPubkeysBuf, roundOneBuf, roundTwoBuf], [Buffer32, Buffer32, BoolDeserializer()]);
+export function schnorrMultisigCombineSignatures(
+  message: Buffer,
+  signerPubkeysBuf: Buffer128[],
+  roundOneBuf: Buffer128[],
+  roundTwoBuf: Fr[],
+): [Buffer32, Buffer32, boolean] {
+  const result = callWasmExport(
+    'schnorr_multisig_combine_signatures',
+    [message, signerPubkeysBuf, roundOneBuf, roundTwoBuf],
+    [Buffer32, Buffer32, BoolDeserializer()],
+  );
   return result as any;
 }
-
