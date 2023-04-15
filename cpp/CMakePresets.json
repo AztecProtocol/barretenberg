@@ -100,25 +100,34 @@
     {
       "name": "wasm",
       "displayName": "Build for WASM",
-      "description": "Build with a specific wasm-sdk to create wasm",
+      "description": "Build with wasi-sdk to create wasm",
       "binaryDir": "build-wasm",
       "generator": "Ninja",
       "toolchainFile": "cmake/toolchains/wasm32-wasi.cmake",
       "environment": {
-        "CC": "clang-16",
-        "CXX": "clang++-16"
+        "WASI_SDK_PREFIX": "${sourceDir}/src/wasi-sdk-20.0",
+        "CC": "$env{WASI_SDK_PREFIX}/bin/clang",
+        "CXX": "$env{WASI_SDK_PREFIX}/bin/clang++",
+        "AR": "$env{WASI_SDK_PREFIX}/bin/llvm-ar",
+        "RANLIB": "$env{WASI_SDK_PREFIX}/bin/llvm-ranlib"
       },
       "cacheVariables": {
-        "CMAKE_SYSROOT": "/mnt/user-data/charlie/min_wasm/wasi-sdk/build/install/opt/wasi-sdk/share/wasi-sysroot",
-        "CMAKE_EXE_LINKER_FLAGS": "-resource-dir /mnt/user-data/charlie/min_wasm/wasi-sdk/build/install/opt/wasi-sdk/lib/clang/16 -L/mnt/user-data/charlie/min_wasm/wasi-sdk/build/install/opt/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasi",
+        "CMAKE_SYSROOT": "$env{WASI_SDK_PREFIX}/share/wasi-sysroot",
         "CMAKE_FIND_ROOT_PATH_MODE_PROGRAM": "NEVER",
         "CMAKE_FIND_ROOT_PATH_MODE_LIBRARY": "ONLY",
         "CMAKE_FIND_ROOT_PATH_MODE_INCLUDE": "ONLY",
         "CMAKE_FIND_ROOT_PATH_MODE_PACKAGE": "ONLY",
         "CMAKE_C_COMPILER_WORKS": "ON",
-        "CMAKE_CXX_COMPILER_WORKS": "ON",
-        "CMAKE_C_COMPILER_TARGET": "wasm32",
-        "CMAKE_CXX_COMPILER_TARGET": "wasm32"
+        "CMAKE_CXX_COMPILER_WORKS": "ON"
+      }
+    },
+    {
+      "name": "wasm-dbg",
+      "displayName": "Build for debug WASM",
+      "description": "Build with wasi-sdk to create debug wasm",
+      "inherits": "wasm",
+      "environment": {
+        "CMAKE_BUILD_TYPE": "Debug"
       }
     }
   ],
@@ -172,6 +181,13 @@
     {
       "name": "wasm",
       "configurePreset": "wasm",
+      "inheritConfigureEnvironment": true,
+      "jobs": 0,
+      "targets": ["barretenberg.wasm"]
+    },
+    {
+      "name": "wasm-dbg",
+      "configurePreset": "wasm-dbg",
       "inheritConfigureEnvironment": true,
       "jobs": 0,
       "targets": ["barretenberg.wasm"]

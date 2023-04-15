@@ -27,6 +27,11 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     add_compile_options(-fconstexpr-ops-limit=100000000)
 endif()
 
+# We enable -O1 level optimsations, even when compiling debug wasm, otherwise we get "local count too large" at runtime.
+if(WASM)
+    add_compile_options($<$<CONFIG:Debug>:-O1>)
+endif()
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 # I feel this should be limited to ecc, however it's currently used in headers that go across libraries,
@@ -59,81 +64,60 @@ endif()
 
 include(GNUInstallDirs)
 
+message(STATUS "Compiling all-in-one barretenberg archive")
+add_library(
+    barretenberg
+    STATIC
+    $<TARGET_OBJECTS:transcript_objects>
+    $<TARGET_OBJECTS:srs_objects>
+    $<TARGET_OBJECTS:numeric_objects>
+    $<TARGET_OBJECTS:crypto_sha256_objects>
+    $<TARGET_OBJECTS:crypto_aes128_objects>
+    $<TARGET_OBJECTS:crypto_blake2s_objects>
+    $<TARGET_OBJECTS:crypto_blake3s_objects>
+    $<TARGET_OBJECTS:crypto_keccak_objects>
+    $<TARGET_OBJECTS:crypto_schnorr_objects>
+    $<TARGET_OBJECTS:crypto_generators_objects>
+    $<TARGET_OBJECTS:crypto_pedersen_hash_objects>
+    $<TARGET_OBJECTS:crypto_pedersen_commitment_objects>
+    $<TARGET_OBJECTS:ecc_objects>
+    $<TARGET_OBJECTS:polynomials_objects>
+    $<TARGET_OBJECTS:plonk_objects>
+    $<TARGET_OBJECTS:honk_objects>
+    $<TARGET_OBJECTS:proof_system_objects>
+    $<TARGET_OBJECTS:stdlib_primitives_objects>
+    $<TARGET_OBJECTS:stdlib_schnorr_objects>
+    $<TARGET_OBJECTS:stdlib_pedersen_hash_objects>
+    $<TARGET_OBJECTS:stdlib_pedersen_commitment_objects>
+    $<TARGET_OBJECTS:stdlib_blake2s_objects>
+    $<TARGET_OBJECTS:stdlib_blake3s_objects>
+    $<TARGET_OBJECTS:stdlib_sha256_objects>
+    $<TARGET_OBJECTS:stdlib_aes128_objects>
+    $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
+    $<TARGET_OBJECTS:acir_format_objects>
+    $<TARGET_OBJECTS:acir_proofs_objects>
+    $<TARGET_OBJECTS:env_objects>
+)
+
 if(WASM)
-    # Well, this is awkward. We can't build a wasm module by just linking to the libraries as that produces, nothing.
-    # There are a couple of other ways to avoiding listing all the object files here and leveraging the dependency
-    # tree, but they come with the problem that they will import the 'env' object files. We explicitly want to avoid
-    # that as functions in 'env' should be implemented in JS itself.
-    # It turns out that just explicitly telling the wasm module which object files to include was easiest.
-    add_executable(
-        barretenberg.wasm
-        $<TARGET_OBJECTS:transcript_objects>
-        $<TARGET_OBJECTS:srs_objects>
-        $<TARGET_OBJECTS:numeric_objects>
-        $<TARGET_OBJECTS:crypto_sha256_objects>
-        $<TARGET_OBJECTS:crypto_aes128_objects>
-        $<TARGET_OBJECTS:crypto_blake2s_objects>
-        $<TARGET_OBJECTS:crypto_blake3s_objects>
-        $<TARGET_OBJECTS:crypto_keccak_objects>
-        $<TARGET_OBJECTS:crypto_schnorr_objects>
-        $<TARGET_OBJECTS:crypto_generators_objects>
-        $<TARGET_OBJECTS:crypto_pedersen_hash_objects>
-        $<TARGET_OBJECTS:crypto_pedersen_commitment_objects>
-        $<TARGET_OBJECTS:ecc_objects>
-        $<TARGET_OBJECTS:polynomials_objects>
-        $<TARGET_OBJECTS:plonk_objects>
-        $<TARGET_OBJECTS:honk_objects>
-        $<TARGET_OBJECTS:proof_system_objects>
-        $<TARGET_OBJECTS:stdlib_primitives_objects>
-        $<TARGET_OBJECTS:stdlib_schnorr_objects>
-        $<TARGET_OBJECTS:stdlib_pedersen_hash_objects>
-        $<TARGET_OBJECTS:stdlib_pedersen_commitment_objects>
-        $<TARGET_OBJECTS:stdlib_blake2s_objects>
-        $<TARGET_OBJECTS:stdlib_blake3s_objects>
-        $<TARGET_OBJECTS:stdlib_sha256_objects>
-        $<TARGET_OBJECTS:stdlib_aes128_objects>
-        $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
-        $<TARGET_OBJECTS:acir_format_objects>
-        $<TARGET_OBJECTS:acir_proofs_objects>
-        $<TARGET_OBJECTS:stdlib_sha256_objects>
-        $<TARGET_OBJECTS:stdlib_aes128_objects>
-        $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
-        $<TARGET_OBJECTS:env_objects>
-    )
+    # Create an inline dummy source file as add_executable needs something.
+    set(DUMMY_SOURCE_FILE "${CMAKE_CURRENT_BINARY_DIR}/dummy.cpp")
+    file(WRITE ${DUMMY_SOURCE_FILE} "")
+
+    add_executable(barretenberg.wasm dummy.cpp)
+
+    target_link_libraries(barretenberg.wasm barretenberg)
 
     # With binaryen installed, it seems its wasm backend optimiser gets invoked automatically.
     # Due to either a bug in the optimiser, or non-standards compliant c++ in crypto/aes, tests start failing with
     # -O3 level optimisations. We force down to -O2 for current workaround.
-    # Presumably the -O3 when compiling the object files is fine as it's llvms IR optimiser.
-    # The backend optimiser is presumably triggered after linking.
+    # TODO: Time has passed, check if this is still needed.
+    set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+
     target_link_options(
         barretenberg.wasm
         PRIVATE
-        -nostartfiles -O2 -Wl,--no-entry -Wl,--export-dynamic -Wl,--import-memory -Wl,--allow-undefined -Wl,--stack-first -Wl,-z,stack-size=1048576
-    )
-
-    # Repeat the above but for the smaller primitives.wasm
-    # Used in packages where we don't need the full contents of barretenberg
-    add_executable(
-        primitives.wasm
-        $<TARGET_OBJECTS:srs_objects>
-        $<TARGET_OBJECTS:numeric_objects>
-        $<TARGET_OBJECTS:crypto_sha256_objects>
-        $<TARGET_OBJECTS:crypto_aes128_objects>
-        $<TARGET_OBJECTS:crypto_blake2s_objects>
-        $<TARGET_OBJECTS:crypto_blake3s_objects>
-        $<TARGET_OBJECTS:crypto_generators_objects>
-        $<TARGET_OBJECTS:crypto_keccak_objects>
-        $<TARGET_OBJECTS:crypto_schnorr_objects>
-        $<TARGET_OBJECTS:crypto_pedersen_hash_objects>
-        $<TARGET_OBJECTS:crypto_pedersen_commitment_objects>
-        $<TARGET_OBJECTS:ecc_objects>
-    )
-
-    target_link_options(
-        primitives.wasm
-        PRIVATE
-        -nostartfiles -O2 -Wl,--no-entry -Wl,--export-dynamic -Wl,--import-memory -Wl,--allow-undefined -Wl,--stack-first -Wl,-z,stack-size=1048576
+        -nostartfiles -Wl,--whole-archive -Wl,--no-entry -Wl,--export-dynamic -Wl,--import-memory -Wl,--allow-undefined -Wl,--stack-first -Wl,-z,stack-size=1048576
     )
 
     # TODO(blaine): Figure out how to Asyncify the wasm output.
@@ -154,88 +138,10 @@ if(WASM)
     #     VERBATIM
     # )
 
-    add_custom_command(
-        TARGET primitives.wasm
-        POST_BUILD
-        COMMAND wasm-opt "$<TARGET_FILE:primitives.wasm>" -O2 -o "$<TARGET_FILE:primitives.wasm>"
-        VERBATIM
-    )
-
     if(INSTALL_BARRETENBERG)
         install(TARGETS barretenberg.wasm DESTINATION ${CMAKE_INSTALL_BINDIR})
     endif()
-
-    # For use when compiling dependent cpp projects for WASM
-    message(STATUS "Compiling all-in-one barretenberg WASM archive")
-    add_library(
-        barretenberg
-        STATIC
-        $<TARGET_OBJECTS:transcript_objects>
-        $<TARGET_OBJECTS:srs_objects>
-        $<TARGET_OBJECTS:numeric_objects>
-        $<TARGET_OBJECTS:crypto_sha256_objects>
-        $<TARGET_OBJECTS:crypto_aes128_objects>
-        $<TARGET_OBJECTS:crypto_blake2s_objects>
-        $<TARGET_OBJECTS:crypto_blake3s_objects>
-        $<TARGET_OBJECTS:crypto_keccak_objects>
-        $<TARGET_OBJECTS:crypto_schnorr_objects>
-        $<TARGET_OBJECTS:crypto_generators_objects>
-        $<TARGET_OBJECTS:crypto_pedersen_hash_objects>
-        $<TARGET_OBJECTS:crypto_pedersen_commitment_objects>
-        $<TARGET_OBJECTS:ecc_objects>
-        $<TARGET_OBJECTS:polynomials_objects>
-        $<TARGET_OBJECTS:plonk_objects>
-        $<TARGET_OBJECTS:honk_objects>
-        $<TARGET_OBJECTS:proof_system_objects>
-        $<TARGET_OBJECTS:stdlib_primitives_objects>
-        $<TARGET_OBJECTS:stdlib_schnorr_objects>
-        $<TARGET_OBJECTS:stdlib_pedersen_hash_objects>
-        $<TARGET_OBJECTS:stdlib_pedersen_commitment_objects>
-        $<TARGET_OBJECTS:stdlib_blake2s_objects>
-        $<TARGET_OBJECTS:stdlib_blake3s_objects>
-        $<TARGET_OBJECTS:stdlib_sha256_objects>
-        $<TARGET_OBJECTS:stdlib_aes128_objects>
-        $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
-        $<TARGET_OBJECTS:acir_format_objects>
-        $<TARGET_OBJECTS:acir_proofs_objects>
-    )
 else()
-    # For use when compiling dependent cpp projects
-    message(STATUS "Compiling all-in-one barretenberg archive")
-    add_library(
-        barretenberg
-        STATIC
-        $<TARGET_OBJECTS:transcript_objects>
-        $<TARGET_OBJECTS:srs_objects>
-        $<TARGET_OBJECTS:numeric_objects>
-        $<TARGET_OBJECTS:crypto_sha256_objects>
-        $<TARGET_OBJECTS:crypto_aes128_objects>
-        $<TARGET_OBJECTS:crypto_blake2s_objects>
-        $<TARGET_OBJECTS:crypto_blake3s_objects>
-        $<TARGET_OBJECTS:crypto_keccak_objects>
-        $<TARGET_OBJECTS:crypto_schnorr_objects>
-        $<TARGET_OBJECTS:crypto_generators_objects>
-        $<TARGET_OBJECTS:crypto_pedersen_hash_objects>
-        $<TARGET_OBJECTS:crypto_pedersen_commitment_objects>
-        $<TARGET_OBJECTS:ecc_objects>
-        $<TARGET_OBJECTS:polynomials_objects>
-        $<TARGET_OBJECTS:plonk_objects>
-        $<TARGET_OBJECTS:honk_objects>
-        $<TARGET_OBJECTS:proof_system_objects>
-        $<TARGET_OBJECTS:stdlib_primitives_objects>
-        $<TARGET_OBJECTS:stdlib_schnorr_objects>
-        $<TARGET_OBJECTS:stdlib_pedersen_hash_objects>
-        $<TARGET_OBJECTS:stdlib_pedersen_commitment_objects>
-        $<TARGET_OBJECTS:stdlib_blake2s_objects>
-        $<TARGET_OBJECTS:stdlib_blake3s_objects>
-        $<TARGET_OBJECTS:stdlib_sha256_objects>
-        $<TARGET_OBJECTS:stdlib_aes128_objects>
-        $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
-        $<TARGET_OBJECTS:acir_format_objects>
-        $<TARGET_OBJECTS:acir_proofs_objects>
-        $<TARGET_OBJECTS:env_objects>
-    )
-
     if(INSTALL_BARRETENBERG)
         # The `install` function takes targets to install in different destinations on the system.
         install(

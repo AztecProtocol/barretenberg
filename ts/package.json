@@ -15,7 +15,7 @@
     "formatting": "prettier --check ./src && eslint --max-warnings 0 ./src",
     "formatting:fix": "prettier -w ./src",
     "test": "NODE_NO_WARNINGS=1 node --experimental-vm-modules $(yarn bin jest) --no-cache --passWithNoTests",
-    "test-debug": "NODE_NO_WARNINGS=1 node --inspect-brk --experimental-vm-modules $(yarn bin jest) --no-cache --passWithNoTests --runInBand"
+    "test-debug": "NODE_NO_WARNINGS=1 node --inspect-brk=0.0.0.0 --experimental-vm-modules $(yarn bin jest) --no-cache --passWithNoTests --runInBand"
   },
   "jest": {
     "preset": "ts-jest/presets/default-esm",
@@ -44,6 +44,7 @@
     "@types/detect-node": "^2.0.0",
     "@types/jest": "^29.4.0",
     "@types/node": "^18.7.23",
+    "@types/source-map-support": "^0.5.6",
     "@typescript-eslint/eslint-plugin": "^5.54.1",
     "@typescript-eslint/parser": "^5.54.1",
     "eslint": "^8.35.0",

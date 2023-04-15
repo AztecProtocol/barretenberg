@@ -23,6 +23,7 @@ __metadata:
     "@types/detect-node": ^2.0.0
     "@types/jest": ^29.4.0
     "@types/node": ^18.7.23
+    "@types/source-map-support": ^0.5.6
     "@typescript-eslint/eslint-plugin": ^5.54.1
     "@typescript-eslint/parser": ^5.54.1
     bigint-buffer: ^1.1.5
@@ -1057,6 +1058,15 @@ __metadata:
   version: 7.3.13
   resolution: "@types/semver@npm:7.3.13"
   checksum: 00c0724d54757c2f4bc60b5032fe91cda6410e48689633d5f35ece8a0a66445e3e57fa1d6e07eb780f792e82ac542948ec4d0b76eb3484297b79bd18b8cf1cb0
+  languageName: node
+  linkType: hard
+
+"@types/source-map-support@npm:^0.5.6":
+  version: 0.5.6
+  resolution: "@types/source-map-support@npm:0.5.6"
+  dependencies:
+    source-map: ^0.6.0
+  checksum: b2b52b3e4901e52df30ebd23056885a352462c0d6fd73418e793684665a7602168e7c337241f0391562e8c1051ff37cbcb9b7d775990ee1f2a0d8a6ffa2cb22a
   languageName: node
   linkType: hard
 
