@@ -4,6 +4,7 @@
 #include "barretenberg/plonk/proof_system/types/prover_settings.hpp"
 // #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
 #include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
+#include "barretenberg/proof_system/composer/composer_helper_lib.hpp"
 #include "barretenberg/proof_system/composer/permutation_helper.hpp"
 #include "barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp"
 
@@ -20,8 +21,7 @@ namespace proof_system::honk {
  * TODO(luke): The wire polynomials are returned directly whereas the sorted list polys are added to the proving
  * key. This should be made consistent once Cody's Flavor work is settled.
  */
-template <typename CircuitConstructor>
-void UltraHonkComposerHelper<CircuitConstructor>::compute_witness(CircuitConstructor& circuit_constructor)
+void UltraHonkComposerHelper::compute_witness(CircuitConstructor& circuit_constructor)
 {
     if (computed_witness) {
         return;
@@ -40,8 +40,8 @@ void UltraHonkComposerHelper<CircuitConstructor>::compute_witness(CircuitConstru
     const size_t subgroup_size = circuit_constructor.get_circuit_subgroup_size(total_num_gates + NUM_RESERVED_GATES);
 
     // Pad the wires (pointers to `witness_indices` of the `variables` vector).
-    // Note: the remaining NUM_RESERVED_GATES indices are padded with zeros within `compute_witness_base` (called
-    // next).
+    // Note: the remaining NUM_RESERVED_GATES indices are padded with zeros within `construct_wire_polynomials_base`
+    // (called next).
     for (size_t i = filled_gates; i < total_num_gates; ++i) {
         circuit_constructor.w_l.emplace_back(circuit_constructor.zero_idx);
         circuit_constructor.w_r.emplace_back(circuit_constructor.zero_idx);
@@ -49,12 +49,13 @@ void UltraHonkComposerHelper<CircuitConstructor>::compute_witness(CircuitConstru
         circuit_constructor.w_4.emplace_back(circuit_constructor.zero_idx);
     }
 
-    // TODO(#340)(luke): within compute_witness_base, the 3rd argument is used in the calculation of the dyadic circuit
-    // size (subgroup_size). Here (and in other split composers) we're passing in NUM_RANDOMIZED_GATES, but elsewhere,
-    // e.g. directly above, we use NUM_RESERVED_GATES in a similar role. Therefore, these two constants must be equal
-    // for everything to be consistent. What we should do is compute the dyadic circuit size once and for all then pass
-    // that around rather than computing in multiple places.
-    wire_polynomials = compute_witness_base(circuit_constructor, total_num_gates, NUM_RANDOMIZED_GATES);
+    // TODO(#340)(luke): within construct_wire_polynomials_base, the 3rd argument is used in the calculation of the
+    // dyadic circuit size (subgroup_size). Here (and in other split composers) we're passing in NUM_RANDOMIZED_GATES,
+    // but elsewhere, e.g. directly above, we use NUM_RESERVED_GATES in a similar role. Therefore, these two constants
+    // must be equal for everything to be consistent. What we should do is compute the dyadic circuit size once and for
+    // all then pass that around rather than computing in multiple places.
+    wire_polynomials =
+        construct_wire_polynomials_base<Flavor>(circuit_constructor, total_num_gates, NUM_RANDOMIZED_GATES);
 
     polynomial s_1(subgroup_size);
     polynomial s_2(subgroup_size);
@@ -130,18 +131,18 @@ void UltraHonkComposerHelper<CircuitConstructor>::compute_witness(CircuitConstru
         ++count;
     }
 
-    // TODO(luke): Adding these to the key for now but this is inconsistent since these are 'witness' polys. Need
-    // to see what becomes of the proving key before making a decision here.
-    circuit_proving_key->polynomial_store.put("s_1_lagrange", std::move(s_1));
-    circuit_proving_key->polynomial_store.put("s_2_lagrange", std::move(s_2));
-    circuit_proving_key->polynomial_store.put("s_3_lagrange", std::move(s_3));
-    circuit_proving_key->polynomial_store.put("s_4_lagrange", std::move(s_4));
+    // WORK TODO
+    // // TODO(luke): Adding these to the key for now but this is inconsistent since these are 'witness' polys. Need
+    // // to see what becomes of the proving key before making a decision here.
+    // circuit_proving_key->polynomial_store.put("s_1_lagrange", std::move(s_1));
+    // circuit_proving_key->polynomial_store.put("s_2_lagrange", std::move(s_2));
+    // circuit_proving_key->polynomial_store.put("s_3_lagrange", std::move(s_3));
+    // circuit_proving_key->polynomial_store.put("s_4_lagrange", std::move(s_4));
 
     computed_witness = true;
 }
 
-template <typename CircuitConstructor>
-UltraProver UltraHonkComposerHelper<CircuitConstructor>::create_prover(CircuitConstructor& circuit_constructor)
+UltraProver UltraHonkComposerHelper::create_prover(CircuitConstructor& circuit_constructor)
 {
     finalize_circuit(circuit_constructor);
 
@@ -160,8 +161,7 @@ UltraProver UltraHonkComposerHelper<CircuitConstructor>::create_prover(CircuitCo
 //  * @return The verifier.
 //  * */
 // // TODO(Cody): This should go away altogether.
-// template <typename CircuitConstructor>
-// plonk::UltraVerifier UltraHonkComposerHelper<CircuitConstructor>::create_verifier(
+// plonk::UltraVerifier UltraHonkComposerHelper::create_verifier(
 //     const CircuitConstructor& circuit_constructor)
 // {
 //     auto verification_key = compute_verification_key(circuit_constructor);
@@ -177,8 +177,7 @@ UltraProver UltraHonkComposerHelper<CircuitConstructor>::create_prover(CircuitCo
 //     return output_state;
 // }
 
-template <typename CircuitConstructor>
-std::shared_ptr<plonk::proving_key> UltraHonkComposerHelper<CircuitConstructor>::compute_proving_key(
+std::shared_ptr<UltraHonkComposerHelper::Flavor::ProvingKey> UltraHonkComposerHelper::compute_proving_key(
     const CircuitConstructor& circuit_constructor)
 {
     if (circuit_proving_key) {
@@ -196,17 +195,16 @@ std::shared_ptr<plonk::proving_key> UltraHonkComposerHelper<CircuitConstructor>:
     const size_t num_randomized_gates = NUM_RANDOMIZED_GATES;
     // Initialize circuit_proving_key
     // TODO(#229)(Kesha): replace composer types.
-    circuit_proving_key = initialize_proving_key(
+    circuit_proving_key = initialize_proving_key<Flavor>(
         circuit_constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, ComposerType::PLOOKUP);
 
-    construct_lagrange_selector_forms(circuit_constructor, circuit_proving_key.get());
+    construct_selector_polynomials<Flavor>(circuit_constructor, circuit_proving_key.get());
 
     // TODO(#217)(luke): Naively enforcing non-zero selectors for Honk will result in some relations not being
     // satisfied.
     // enforce_nonzero_polynomial_selectors(circuit_constructor, circuit_proving_key.get());
 
-    compute_honk_generalized_sigma_permutations<CircuitConstructor::program_width>(circuit_constructor,
-                                                                                   circuit_proving_key.get());
+    compute_honk_generalized_sigma_permutations<Flavor>(circuit_constructor, circuit_proving_key.get());
 
     compute_first_and_last_lagrange_polynomials(circuit_proving_key.get());
 
@@ -280,26 +278,30 @@ std::shared_ptr<plonk::proving_key> UltraHonkComposerHelper<CircuitConstructor>:
     poly_q_table_column_3[subgroup_size - 1] = ++unique_last_value;
     poly_q_table_column_4[subgroup_size - 1] = ++unique_last_value;
 
-    circuit_proving_key->polynomial_store.put("table_value_1_lagrange", std::move(poly_q_table_column_1));
-    circuit_proving_key->polynomial_store.put("table_value_2_lagrange", std::move(poly_q_table_column_2));
-    circuit_proving_key->polynomial_store.put("table_value_3_lagrange", std::move(poly_q_table_column_3));
-    circuit_proving_key->polynomial_store.put("table_value_4_lagrange", std::move(poly_q_table_column_4));
+    // WORKTODO
+    // circuit_proving_key->polynomial_store.put("table_value_1_lagrange", std::move(poly_q_table_column_1));
+    // circuit_proving_key->polynomial_store.put("table_value_2_lagrange", std::move(poly_q_table_column_2));
+    // circuit_proving_key->polynomial_store.put("table_value_3_lagrange", std::move(poly_q_table_column_3));
+    // circuit_proving_key->polynomial_store.put("table_value_4_lagrange", std::move(poly_q_table_column_4));
 
-    // Copy memory read/write record data into proving key. Prover needs to know which gates contain a read/write
-    // 'record' witness on the 4th wire. This wire value can only be fully computed once the first 3 wire polynomials
-    // have been committed to. The 4th wire on these gates will be a random linear combination of the first 3 wires,
-    // using the plookup challenge `eta`
-    std::copy(circuit_constructor.memory_read_records.begin(),
-              circuit_constructor.memory_read_records.end(),
-              std::back_inserter(circuit_proving_key->memory_read_records));
-    std::copy(circuit_constructor.memory_write_records.begin(),
-              circuit_constructor.memory_write_records.end(),
-              std::back_inserter(circuit_proving_key->memory_write_records));
+    // WORKTODO
+    // // Copy memory read/write record data into proving key. Prover needs to know which gates contain a read/write
+    // // 'record' witness on the 4th wire. This wire value can only be fully computed once the first 3 wire polynomials
+    // // have been committed to. The 4th wire on these gates will be a random linear combination of the first 3 wires,
+    // // using the plookup challenge `eta`
+    // std::copy(circuit_constructor.memory_read_records.begin(),
+    //           circuit_constructor.memory_read_records.end(),
+    //           std::back_inserter(circuit_proving_key->memory_read_records));
+    // std::copy(circuit_constructor.memory_write_records.begin(),
+    //           circuit_constructor.memory_write_records.end(),
+    //           std::back_inserter(circuit_proving_key->memory_write_records));
 
-    circuit_proving_key->recursive_proof_public_input_indices =
-        std::vector<uint32_t>(recursive_proof_public_input_indices.begin(), recursive_proof_public_input_indices.end());
+    // WORKTODO
+    // circuit_proving_key->recursive_proof_public_input_indices =
+    //     std::vector<uint32_t>(recursive_proof_public_input_indices.begin(),
+    //     recursive_proof_public_input_indices.end());
 
-    circuit_proving_key->contains_recursive_proof = contains_recursive_proof;
+    // circuit_proving_key->contains_recursive_proof = contains_recursive_proof;
 
     return circuit_proving_key;
 }
@@ -309,8 +311,7 @@ std::shared_ptr<plonk::proving_key> UltraHonkComposerHelper<CircuitConstructor>:
 //  *
 //  * @return Pointer to created circuit verification key.
 //  * */
-// template <typename CircuitConstructor>
-// std::shared_ptr<plonk::verification_key> UltraHonkComposerHelper<CircuitConstructor>::compute_verification_key(
+// std::shared_ptr<plonk::verification_key> UltraHonkComposerHelper::compute_verification_key(
 //     const CircuitConstructor& circuit_constructor)
 // {
 //     if (circuit_verification_key) {
@@ -335,8 +336,7 @@ std::shared_ptr<plonk::proving_key> UltraHonkComposerHelper<CircuitConstructor>:
 //     return circuit_verification_key;
 // }
 
-// template <typename CircuitConstructor>
-// void UltraHonkComposerHelper<CircuitConstructor>::add_table_column_selector_poly_to_proving_key(
+// void UltraHonkComposerHelper::add_table_column_selector_poly_to_proving_key(
 //     polynomial& selector_poly_lagrange_form, const std::string& tag)
 // {
 //     polynomial selector_poly_lagrange_form_copy(selector_poly_lagrange_form, circuit_proving_key->small_domain.size);
@@ -352,5 +352,4 @@ std::shared_ptr<plonk::proving_key> UltraHonkComposerHelper<CircuitConstructor>:
 //     circuit_proving_key->polynomial_store.put(tag + "_fft", std::move(selector_poly_coset_form));
 // }
 
-template class UltraHonkComposerHelper<UltraCircuitConstructor>;
 } // namespace proof_system::honk

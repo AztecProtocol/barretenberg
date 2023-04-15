@@ -16,7 +16,7 @@ class UltraHonkComposer {
     // 1) Proving and verification keys
     // 2) CRS
     // 3) Converting variables to witness vectors/polynomials
-    UltraHonkComposerHelper<UltraCircuitConstructor> composer_helper;
+    UltraHonkComposerHelper composer_helper;
     size_t& num_gates;
 
     UltraHonkComposer()

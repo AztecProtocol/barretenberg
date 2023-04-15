@@ -32,12 +32,12 @@ namespace proof_system::honk {
  *
  * @tparam settings Settings class.
  * */
-template <typename settings>
-UltraHonkProver<settings>::UltraHonkProver(std::vector<barretenberg::polynomial>&& wire_polys,
-                                           std::shared_ptr<plonk::proving_key> input_key)
+template <typename Flavor>
+UltraHonkProver<Flavor>::UltraHonkProver(std::vector<barretenberg::polynomial>&& wire_polys,
+                                         std::shared_ptr<typename Flavor::ProvingKey> input_key)
     : wire_polynomials(wire_polys)
     , key(input_key)
-    , queue(key, transcript)
+    , queue(input_key->circuit_size, transcript)
 {}
 
 template <typename settings> plonk::proof& UltraHonkProver<settings>::export_proof()
@@ -51,6 +51,6 @@ template <typename settings> plonk::proof& UltraHonkProver<settings>::construct_
     return export_proof();
 }
 
-template class UltraHonkProver<plonk::ultra_settings>;
+template class UltraHonkProver<honk::flavor::Ultra>;
 
 } // namespace proof_system::honk

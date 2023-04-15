@@ -229,15 +229,10 @@ PermutationMapping<Flavor::num_wires> compute_permutation_mapping(
  * @param permutation_mappings A table with information about permuting each element
  * @param key Pointer to the proving key
  */
-// MERGECONFLICT
-// template <size_t program_width>
-// void compute_honk_style_permutation_lagrange_polynomials_from_mapping(
-//     std::string label,
-//     std::array<std::vector<permutation_subgroup_element>, program_width>& permutation_mappings,
-//     plonk::proving_key* key)
 template <typename Flavor>
-void compute_honk_style_sigma_lagrange_polynomials_from_mapping(
-    std::array<std::vector<permutation_subgroup_element>, Flavor::num_wires>& sigma_mappings,
+void compute_honk_style_permutation_lagrange_polynomials_from_mapping(
+    std::string label,
+    std::array<std::vector<permutation_subgroup_element>, Flavor::num_wires>& permutation_mappings,
     typename Flavor::ProvingKey* proving_key)
 {
     const size_t num_gates = proving_key->circuit_size;
@@ -245,11 +240,14 @@ void compute_honk_style_sigma_lagrange_polynomials_from_mapping(
     std::array<barretenberg::polynomial, Flavor::num_wires> permutation_poly; // sigma or ID poly
 
     size_t wire_index = 0;
-    for (auto& sigma_polynomial : proving_key->get_sigma_polynomials()) {
+    for (auto& current_permutation_poly : proving_key->get_sigma_polynomials()) {
+        // permutation_poly[wire_index] = barretenberg::polynomial(num_gates);
+        // auto& current_permutation_poly = permutation_poly[wire_index];
+
         auto new_poly = barretenberg::polynomial(num_gates); // WORKTODO
-        current_sigma_polynomial = new_poly;
+        current_permutation_poly = new_poly;
         ITERATE_OVER_DOMAIN_START(proving_key->evaluation_domain);
-        const auto& current_mapping = sigma_mappings[wire_index][i];
+        const auto& current_mapping = permutation_mappings[wire_index][i];
         if (current_mapping.is_public_input) {
             // We intentionally want to break the cycles of the public input variables.
             // During the witness generation, the left and right wire polynomials at index i contain the i-th public
@@ -263,7 +261,7 @@ void compute_honk_style_sigma_lagrange_polynomials_from_mapping(
                 -barretenberg::fr(current_mapping.row_index + 1 + num_gates * current_mapping.column_index);
         } else if (current_mapping.is_tag) {
             // Set evaluations to (arbitrary) values disjoint from non-tag values
-            current_permutation_poly[i] = num_gates * program_width + current_mapping.row_index;
+            current_permutation_poly[i] = num_gates * Flavor::num_wires + current_mapping.row_index;
         } else {
             // For the regular permutation we simply point to the next location by setting the evaluation to its
             // index
@@ -272,14 +270,15 @@ void compute_honk_style_sigma_lagrange_polynomials_from_mapping(
         }
         ITERATE_OVER_DOMAIN_END;
     }
+    static_cast<void>(label);
     // MERGECONFLICT
     // // Save to polynomial cache
-    // for (size_t j = 0; j < program_width; j++) {
+    // for (size_t j = 0; j < Flavor::num_wires; j++) {
     //     std::string index = std::to_string(j + 1);
     //     key->polynomial_store.put(label + "_" + index + "_lagrange", std::move(permutation_poly[j]));
-        wire_index++;
-    }
+    wire_index++;
 }
+} // namespace
 
 /**
  * Compute sigma permutation polynomial in lagrange base
@@ -455,7 +454,7 @@ void compute_standard_honk_sigma_permutations(const typename Flavor::CircuitCons
     // Compute the permutation table specifying which element becomes which
     auto mapping = compute_permutation_mapping<Flavor, /*generalized=*/false>(circuit_constructor, proving_key);
     // Compute Honk-style sigma polynomial from the permutation table
-    compute_honk_style_permutation_lagrange_polynomials_from_mapping<Flavor>(mapping.sigmas, proving_key);
+    compute_honk_style_permutation_lagrange_polynomials_from_mapping<Flavor>("sigma", mapping.sigmas, proving_key);
 }
 
 /**
@@ -519,24 +518,24 @@ void compute_plonk_generalized_sigma_permutations(const typename Flavor::Circuit
     compute_monomial_and_coset_fft_polynomials_from_lagrange<Flavor::num_wires>("id", key);
 }
 
-// MERGECONFLICT what is this?
 /**
  * @brief Compute generalized permutation sigmas and ids for ultra plonk
  *
  * @tparam program_width
  * @tparam CircuitConstructor
  * @param circuit_constructor
- * @param key
+ * @param proving_key
  * @return std::array<std::vector<permutation_subgroup_element>, program_width>
  */
-template <size_t program_width, typename CircuitConstructor>
-void compute_honk_generalized_sigma_permutations(const CircuitConstructor& circuit_constructor, plonk::proving_key* key)
+template <typename Flavor>
+void compute_honk_generalized_sigma_permutations(const typename Flavor::CircuitConstructor& circuit_constructor,
+                                                 typename Flavor::ProvingKey* proving_key)
 {
-    auto mapping = compute_permutation_mapping<program_width, true>(circuit_constructor, key);
+    auto mapping = compute_permutation_mapping<Flavor, true>(circuit_constructor, proving_key);
 
     // Compute Honk-style sigma and ID polynomials from the corresponding mappings
-    compute_honk_style_permutation_lagrange_polynomials_from_mapping("sigma", mapping.sigmas, key);
-    compute_honk_style_permutation_lagrange_polynomials_from_mapping("id", mapping.ids, key);
+    compute_honk_style_permutation_lagrange_polynomials_from_mapping<Flavor>("sigma", mapping.sigmas, proving_key);
+    compute_honk_style_permutation_lagrange_polynomials_from_mapping<Flavor>("id", mapping.ids, proving_key);
 }
 
 } // namespace proof_system

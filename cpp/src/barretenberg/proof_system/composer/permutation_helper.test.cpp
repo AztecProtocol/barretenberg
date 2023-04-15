@@ -70,7 +70,8 @@ TEST_F(PermutationHelperTests, ComputePermutationMapping)
 TEST_F(PermutationHelperTests, ComputeHonkStyleSigmaLagrangePolynomialsFromMapping)
 {
     auto mapping = compute_permutation_mapping<Flavor, /*generalized=*/false>(circuit_constructor, proving_key.get());
-    compute_honk_style_sigma_lagrange_polynomials_from_mapping<Flavor>(mapping.sigmas, proving_key.get());
+    compute_honk_style_permutation_lagrange_polynomials_from_mapping<Flavor>(
+        "label", mapping.sigmas, proving_key.get());
 }
 
 TEST_F(PermutationHelperTests, ComputeStandardAuxPolynomials)

@@ -11,6 +11,7 @@
 #include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
 #include "barretenberg/honk/utils/public_inputs.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 
 #include <gtest/gtest.h>
 
@@ -32,7 +33,7 @@ TEST(RelationCorrectness, StandardRelationCorrectness)
 {
     // Create a composer and a dummy circuit with a few gates
     auto composer = StandardHonkComposer();
-    static const size_t num_wires = StandardHonkComposer::num_wires;
+    // static const size_t num_wires = StandardHonkComposer::num_wires;
     fr a = fr::one();
     // Using the public variable to check that public_input_delta is computed and added to the relation correctly
     uint32_t a_idx = composer.add_public_variable(a);
@@ -66,8 +67,8 @@ TEST(RelationCorrectness, StandardRelationCorrectness)
 
     constexpr size_t num_polynomials = proof_system::honk::StandardArithmetization::NUM_POLYNOMIALS;
     // Compute grand product polynomial
-    polynomial z_perm_poly =
-        prover_library::compute_permutation_grand_product<num_wires>(prover.key, prover.wire_polynomials, beta, gamma);
+    polynomial z_perm_poly = prover_library::compute_permutation_grand_product<honk::flavor::Standard>(
+        prover.key, prover.wire_polynomials, beta, gamma);
 
     // Create an array of spans to the underlying polynomials to more easily
     // get the transposition.
@@ -139,7 +140,7 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
 {
     // Create a composer and a dummy circuit with a few gates
     auto composer = UltraHonkComposer();
-    static const size_t num_wires = 4;
+    // static const size_t num_wires = 4;
     fr a = fr::one();
     // Using the public variable to check that public_input_delta is computed and added to the relation correctly
     // TODO(luke): add method "add_public_variable" to UH composer
@@ -177,8 +178,8 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
 
     constexpr size_t num_polynomials = proof_system::honk::UltraArithmetization::COUNT;
     // Compute grand product polynomial
-    auto z_perm_poly =
-        prover_library::compute_permutation_grand_product<num_wires>(prover.key, prover.wire_polynomials, beta, gamma);
+    auto z_perm_poly = prover_library::compute_permutation_grand_product<honk::flavor::Ultra>(
+        prover.key, prover.wire_polynomials, beta, gamma);
 
     // Create an array of spans to the underlying polynomials to more easily
     // get the transposition.

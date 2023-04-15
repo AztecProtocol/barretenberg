@@ -24,31 +24,32 @@
 #include <string>
 #include "barretenberg/honk/pcs/claim.hpp"
 #include "barretenberg/honk/proof_system/prover_library.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 
 namespace proof_system::honk {
 
 // TODO(luke): The naming here is awkward. The Standard Honk prover is called "Prover" and aliased as StandardProver. To
 // be consistent with that convention outside of the prover class itself, I've called this class UltraHonkProver and use
 // the alias UltraProver externally. Resolve.
-template <typename settings> class UltraHonkProver {
+template <typename Flavor> class UltraHonkProver {
 
-    using Fr = barretenberg::fr;
-    using Polynomial = barretenberg::Polynomial<Fr>;
-    using Commitment = barretenberg::g1::affine_element;
-    using POLYNOMIAL = proof_system::honk::StandardArithmetization::POLYNOMIAL;
+    using FF = typename Flavor::FF;
+    using PCSParams = typename Flavor::PCSParams;
+    using ProvingKey = typename Flavor::ProvingKey;
+    using Polynomial = typename Flavor::Polynomial;
 
   public:
     UltraHonkProver(std::vector<barretenberg::polynomial>&& wire_polys,
-                    std::shared_ptr<plonk::proving_key> input_key = nullptr);
+                    std::shared_ptr<ProvingKey> input_key = nullptr);
 
     plonk::proof& export_proof();
     plonk::proof& construct_proof();
 
-    ProverTranscript<Fr> transcript;
+    ProverTranscript<FF> transcript;
 
     std::vector<barretenberg::polynomial> wire_polynomials;
 
-    std::shared_ptr<plonk::proving_key> key;
+    std::shared_ptr<ProvingKey> key;
 
     work_queue<pcs::kzg::Params> queue;
 
@@ -56,8 +57,8 @@ template <typename settings> class UltraHonkProver {
     plonk::proof proof;
 };
 
-extern template class UltraHonkProver<plonk::ultra_settings>;
+extern template class UltraHonkProver<honk::flavor::Ultra>;
 
-using UltraProver = UltraHonkProver<plonk::ultra_settings>;
+using UltraProver = UltraHonkProver<honk::flavor::Ultra>;
 
 } // namespace proof_system::honk
