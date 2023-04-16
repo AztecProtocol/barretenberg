@@ -183,6 +183,48 @@ aggregation_state<Curve> verify_proof(typename Curve::Composer* context,
                                       const plonk::proof& proof,
                                       const aggregation_state<Curve> previous_output = aggregation_state<Curve>())
 {
+    using Composer = typename Curve::Composer;
+
+    key->program_width = program_settings::program_width;
+
+    Transcript<Composer> transcript = Transcript<Composer>(context, proof.proof_data, manifest);
+
+    return verify_proof_<Curve, program_settings>(context, key, transcript, previous_output);
+}
+
+/**
+ * Refer to src/barretenberg/plonk/proof_system/verifier/verifier.cpp verify_proof() for the native implementation,
+ * which includes detailed comments.
+ */
+template <typename Curve, typename program_settings>
+aggregation_state<Curve> verify_proof(typename Curve::Composer* context,
+                                      const transcript::Manifest& manifest,
+                                      std::shared_ptr<VerifierReferenceString> const& crs,
+                                      const std::vector<typename Curve::fr_ct>& key,
+                                      const std::vector<typename Curve::fr_ct>& proof,
+                                      const aggregation_state<Curve> previous_output = aggregation_state<Curve>())
+{
+    using Composer = typename Curve::Composer;
+
+    std::shared_ptr<verification_key<Curve>> vkey = verification_key<Curve>::from_field_pt_vector(context, crs, key);
+    vkey->program_width = program_settings::program_width;
+
+    const size_t num_public_inputs = static_cast<size_t>(uint256_t(vkey->num_public_inputs.get_value()).data[0]);
+    Transcript<Composer> transcript = Transcript<Composer>(context, manifest, proof, num_public_inputs);
+
+    return verify_proof_<Curve, program_settings>(context, vkey, transcript, previous_output);
+}
+
+/**
+ * Refer to src/barretenberg/plonk/proof_system/verifier/verifier.cpp verify_proof() for the native implementation,
+ * which includes detailed comments.
+ */
+template <typename Curve, typename program_settings>
+aggregation_state<Curve> verify_proof_(typename Curve::Composer* context,
+                                       std::shared_ptr<verification_key<Curve>> key,
+                                       Transcript<typename Curve::Composer>& transcript,
+                                       const aggregation_state<Curve> previous_output = aggregation_state<Curve>())
+{
     using fr_ct = typename Curve::fr_ct;
     using fq_ct = typename Curve::fq_ct;
     using g1_ct = typename Curve::g1_ct;
@@ -190,7 +232,6 @@ aggregation_state<Curve> verify_proof(typename Curve::Composer* context,
 
     key->program_width = program_settings::program_width;
 
-    Transcript<Composer> transcript = Transcript<Composer>(context, proof.proof_data, manifest);
     std::map<std::string, g1_ct> kate_g1_elements;
     std::map<std::string, fr_ct> kate_fr_elements_at_zeta;
     std::map<std::string, fr_ct> kate_fr_elements_at_zeta_large;

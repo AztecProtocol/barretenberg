@@ -55,6 +55,10 @@ struct verification_key {
                      const size_t num_inputs,
                      std::shared_ptr<VerifierReferenceString> const& crs,
                      uint32_t composer_type);
+    verification_key(const std::vector<barretenberg::fr>& key_as_fields,
+                     std::shared_ptr<VerifierReferenceString> const& crs,
+                     uint32_t composer_type_);
+
     verification_key(const verification_key& other);
     verification_key(verification_key&& other);
     verification_key& operator=(verification_key&& other);
@@ -62,6 +66,7 @@ struct verification_key {
     ~verification_key() = default;
 
     sha256::hash sha256_hash();
+    std::vector<barretenberg::fr> export_transcript_in_recursion_format();
 
     uint32_t composer_type;
     size_t circuit_size;

@@ -25,6 +25,19 @@ namespace stdlib {
 namespace recursion {
 
 template <typename Composer> struct evaluation_domain {
+    static evaluation_domain from_field_pt_vector(const std::vector<field_t<Composer>>& fields)
+    {
+        evaluation_domain domain;
+        domain.root = fields[0];
+        domain.root_inverse = domain.root.invert();
+        domain.domain = fields[1];
+        domain.domain_inverse = domain.domain.invert();
+        domain.generator = fields[2];
+        domain.generator_inverse = domain.generator.invert();
+        domain.size = domain.domain;
+        return domain;
+    }
+
     static evaluation_domain from_witness(Composer* ctx, const barretenberg::evaluation_domain& input)
     {
         evaluation_domain domain;
@@ -105,6 +118,50 @@ template <typename Composer> struct evaluation_domain {
  */
 template <typename Curve> struct verification_key {
     using Composer = typename Curve::Composer;
+
+    static std::shared_ptr<verification_key> from_field_pt_vector(Composer* ctx,
+                                                                  std::shared_ptr<VerifierReferenceString> const& crs,
+                                                                  const std::vector<field_t<Composer>>& fields)
+    {
+        std::vector<fr> fields_raw;
+        for (const auto& f : fields) {
+            fields_raw.emplace_back(f.get_value());
+            std::cout << "f: " << f.get_value() << std::endl;
+        }
+        std::cout << "a" << std::endl;
+        std::shared_ptr<verification_key> key = std::make_shared<verification_key>();
+        std::cout << "b" << std::endl;
+        key->context = ctx;
+        key->base_key = std::make_shared<proof_system::plonk::verification_key>(fields_raw, crs, Composer::type);
+        std::cout << "c" << std::endl;
+
+        key->reference_string = key->base_key->reference_string;
+        key->polynomial_manifest = PolynomialManifest(Composer::type);
+        key->domain = evaluation_domain<Composer>::from_field_pt_vector({ fields[0], fields[1], fields[2] });
+
+        key->n = fields[3];
+        key->num_public_inputs = fields[4];
+        key->contains_recursive_proof = bool_t<Composer>(fields[5]);
+
+        size_t count = 6;
+        for (const auto& descriptor : key->polynomial_manifest.get()) {
+            if (descriptor.source == PolynomialSource::SELECTOR || descriptor.source == PolynomialSource::PERMUTATION) {
+
+                const auto x_lo = fields[count++];
+                const auto x_hi = fields[count++];
+                const auto y_lo = fields[count++];
+                const auto y_hi = fields[count++];
+                const typename Curve::fq_ct x(x_lo, x_hi);
+                const typename Curve::fq_ct y(y_lo, y_hi);
+                const typename Curve::g1_ct element(x, y);
+
+                key->commitments.insert({ std::string(descriptor.commitment_label), element });
+            }
+        }
+        std::cout << "d" << std::endl;
+        return key;
+    }
+
     static std::shared_ptr<verification_key> from_witness(Composer* ctx,
                                                           const std::shared_ptr<plonk::verification_key>& input_key)
     {

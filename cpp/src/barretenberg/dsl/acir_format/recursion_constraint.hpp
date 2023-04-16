@@ -27,8 +27,8 @@ namespace acir_format {
  */
 struct RecursionConstraint {
     static constexpr size_t AGGREGATION_OBJECT_SIZE = 16; // 16 field elements
-    plonk::verification_key_data verification_key_data;
-    plonk::proof proof;
+    std::vector<uint32_t> key;
+    std::vector<uint32_t> proof;
     bool is_aggregation_object_nonzero;
     uint32_t public_input;
     std::array<uint32_t, AGGREGATION_OBJECT_SIZE> input_aggregation_object;
@@ -42,7 +42,7 @@ void create_recursion_constraints(plonk::stdlib::types::Composer& composer, cons
 template <typename B> inline void read(B& buf, RecursionConstraint& constraint)
 {
     using serialize::read;
-    read(buf, constraint.verification_key_data);
+    read(buf, constraint.key);
     read(buf, constraint.proof);
     read(buf, constraint.is_aggregation_object_nonzero);
     read(buf, constraint.public_input);
@@ -53,7 +53,7 @@ template <typename B> inline void read(B& buf, RecursionConstraint& constraint)
 template <typename B> inline void write(B& buf, RecursionConstraint const& constraint)
 {
     using serialize::write;
-    write(buf, constraint.verification_key_data);
+    write(buf, constraint.key);
     write(buf, constraint.proof);
     write(buf, constraint.is_aggregation_object_nonzero);
     write(buf, constraint.public_input);

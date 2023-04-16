@@ -93,6 +93,18 @@ size_t init_verification_key(void* pippenger, uint8_t const* g2x, uint8_t const*
     return buffer.size();
 }
 
+// void serialize_proof_into_field_elements(uint8_t** proof_data_buf)
+// {
+// }
+
+// void serialize_verification_key_into_field_elements(uint8_t** vk_buf)
+// {
+//     plonk::verification_key key;
+//     read(vk_buf, key);
+
+//     // do the serialize thing...
+// }
+
 size_t new_proof(void* pippenger,
                  uint8_t const* g2x,
                  uint8_t const* pk_buf,

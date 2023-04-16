@@ -117,8 +117,8 @@ TEST(RecursionConstraint, TestRecursionConstraint)
     auto inner_proof = inner_prover.construct_proof();
     auto inner_verifier = inner_composer.create_verifier();
 
-    std::vector<uint8_t> keybuf;
-    write(keybuf, *(inner_verifier.key));
+    // std::vector<uint8_t> keybuf;
+    // write(keybuf, *(inner_verifier.key));
 
     std::array<uint32_t, acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE> output_vars;
     for (size_t i = 0; i < 16; ++i) {
@@ -126,13 +126,31 @@ TEST(RecursionConstraint, TestRecursionConstraint)
         // variable idx 2-18 = output_vars
         output_vars[i] = (static_cast<uint32_t>(i + 2));
     }
-    verification_key_data keydata;
-    uint8_t const* vk_buf = &keybuf[0];
-    read(vk_buf, keydata);
+    // verification_key_data keydata;
+    // uint8_t const* vk_buf = &keybuf[0];
+    // read(vk_buf, keydata);
 
+    transcript::StandardTranscript transcript(
+        inner_proof.proof_data, Composer::create_manifest(1), transcript::HashType::PlookupPedersenBlake3s, 16);
+
+    const std::vector<barretenberg::fr> proof_witnesses = transcript.export_transcript_in_recursion_format();
+    const std::vector<barretenberg::fr> key_witnesses = inner_verifier.key->export_transcript_in_recursion_format();
+
+    std::vector<uint32_t> proof_indices;
+    const size_t proof_size = proof_witnesses.size();
+
+    for (size_t i = 0; i < proof_size; ++i) {
+        proof_indices.emplace_back(static_cast<uint32_t>(i + 18));
+    }
+
+    std::vector<uint32_t> key_indices;
+    const size_t key_size = key_witnesses.size();
+    for (size_t i = 0; i < key_size; ++i) {
+        key_indices.emplace_back(static_cast<uint32_t>(i + 18 + proof_size));
+    }
     acir_format::RecursionConstraint recursion_constraint{
-        .verification_key_data = keydata,
-        .proof = inner_proof,
+        .key = key_indices,
+        .proof = proof_indices,
         .is_aggregation_object_nonzero = false,
         .public_input = 1,
         .input_aggregation_object = {},
@@ -140,12 +158,18 @@ TEST(RecursionConstraint, TestRecursionConstraint)
     };
 
     std::vector<fr> witness;
-    for (size_t i = 0; i < 18; ++i) {
+    for (size_t i = 0; i < 17; ++i) {
         witness.emplace_back(0);
+    }
+    for (const auto& wit : proof_witnesses) {
+        witness.emplace_back(wit);
+    }
+    for (const auto& wit : key_witnesses) {
+        witness.emplace_back(wit);
     }
 
     acir_format::acir_format constraint_system{
-        .varnum = 18,
+        .varnum = static_cast<uint32_t>(witness.size() + 1),
         .public_inputs = { 1 },
         .fixed_base_scalar_mul_constraints = {},
         .logic_constraints = {},

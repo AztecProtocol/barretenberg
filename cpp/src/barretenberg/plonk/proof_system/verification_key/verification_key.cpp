@@ -107,6 +107,31 @@ verification_key::verification_key(const size_t num_gates,
     , polynomial_manifest(composer_type)
 {}
 
+verification_key::verification_key(const std::vector<barretenberg::fr>& key_as_fields,
+                                   std::shared_ptr<VerifierReferenceString> const& crs,
+                                   uint32_t composer_type_)
+{
+    composer_type = composer_type_;
+    polynomial_manifest = PolynomialManifest(composer_type);
+    reference_string = crs;
+    // std::cout << "key as field = " << key_as_fields[3] << std::endl;
+    // for (const auto& f : key_as_fields) {
+    //     std::cout << "f : " << f << std::endl;
+    // }
+    circuit_size = static_cast<size_t>(uint256_t(key_as_fields[3]));
+
+    std::cout << "circuit size = " << circuit_size << std::endl;
+
+    log_circuit_size = numeric::get_msb(circuit_size);
+    num_public_inputs = static_cast<size_t>(uint256_t(key_as_fields[4]));
+    contains_recursive_proof = static_cast<size_t>(uint256_t(key_as_fields[5]));
+    domain = evaluation_domain(circuit_size);
+
+    // ADD THE COMITMENTS DERP DERP DERP
+    // AS WELL AS RECURSIVE PROOF PUBLIC INPUT INDICES?
+    //
+}
+
 verification_key::verification_key(verification_key_data&& data, std::shared_ptr<VerifierReferenceString> const& crs)
     : composer_type(data.composer_type)
     , circuit_size(data.circuit_size)
@@ -176,6 +201,41 @@ sha256::hash verification_key::sha256_hash()
         vk_data.emplace_back(index);
     }
     return sha256::sha256(to_buffer(vk_data));
+}
+
+std::vector<barretenberg::fr> verification_key::export_transcript_in_recursion_format()
+{
+    std::vector<fr> output;
+    output.emplace_back(domain.root);
+    output.emplace_back(domain.domain);
+    output.emplace_back(domain.generator);
+    output.emplace_back(circuit_size);
+    output.emplace_back(num_public_inputs);
+    output.emplace_back(contains_recursive_proof);
+
+    for (auto& commitment_entry : commitments) {
+        std::cout << "key = " << commitment_entry.first << std::endl;
+        std::cout << "value = " << commitment_entry.second << std::endl;
+    }
+    for (const auto& descriptor : polynomial_manifest.get()) {
+        if (descriptor.source == PolynomialSource::SELECTOR || descriptor.source == PolynomialSource::PERMUTATION) {
+            std::cout << "key =  " << descriptor.commitment_label << std::endl;
+            const auto element = commitments.at(std::string(descriptor.commitment_label));
+            std::cout << "read" << std::endl;
+            const uint256_t x = element.x;
+            const uint256_t y = element.y;
+            const barretenberg::fr x_lo = x.slice(0, 136);
+            const barretenberg::fr x_hi = x.slice(136, 272);
+            const barretenberg::fr y_lo = y.slice(0, 136);
+            const barretenberg::fr y_hi = y.slice(136, 272);
+            output.emplace_back(x_lo);
+            output.emplace_back(x_hi);
+            output.emplace_back(y_lo);
+            output.emplace_back(y_hi);
+        }
+    }
+
+    return output;
 }
 
 } // namespace proof_system::plonk

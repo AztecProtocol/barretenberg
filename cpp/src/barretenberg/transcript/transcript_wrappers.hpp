@@ -56,6 +56,46 @@ class StandardTranscript : public Transcript {
 
     // TODO(luke): temporary function for debugging
     barretenberg::fr get_mock_challenge() { return barretenberg::fr::random_element(); };
+
+    /**
+     * @brief Returns transcript represented as a vector of barretenberg::fr.
+     *        Used to represent recursive proofs (i.e. proof represented as circuit-native field elements)
+     *
+     * @return std::vector<barretenberg::fr>
+     */
+    std::vector<barretenberg::fr> export_transcript_in_recursion_format()
+    {
+        std::vector<barretenberg::fr> fields;
+        const auto num_rounds = get_manifest().get_num_rounds();
+        for (size_t i = 0; i < num_rounds; ++i) {
+            for (auto manifest_element : get_manifest().get_round_manifest(i).elements) {
+                if (!manifest_element.derived_by_verifier) {
+                    if (manifest_element.num_bytes == 32 && manifest_element.name != "public_inputs") {
+                        fields.emplace_back(get_field_element(manifest_element.name));
+                    } else if (manifest_element.num_bytes == 64 && manifest_element.name != "public_inputs") {
+                        const auto group_element = get_group_element(manifest_element.name);
+                        const uint256_t x = group_element.x;
+                        const uint256_t y = group_element.y;
+                        const barretenberg::fr x_lo = x.slice(0, 136);
+                        const barretenberg::fr x_hi = x.slice(136, 272);
+                        const barretenberg::fr y_lo = y.slice(0, 136);
+                        const barretenberg::fr y_hi = y.slice(136, 272);
+                        fields.emplace_back(x_lo);
+                        fields.emplace_back(x_hi);
+                        fields.emplace_back(y_lo);
+                        fields.emplace_back(y_hi);
+                    } else {
+                        ASSERT(manifest_element.name == "public_inputs");
+                        const auto public_inputs_vector = get_field_element_vector(manifest_element.name);
+                        for (const auto& ele : public_inputs_vector) {
+                            fields.emplace_back(ele);
+                        }
+                    }
+                }
+            }
+        }
+        return fields;
+    }
 };
 
 } // namespace transcript

@@ -24,10 +24,6 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
     // Construct an in-circuit representation of the verification key.
     // For now, the v-key is a circuit constant and is fixed for the circuit.
     // (We may need a separate recursion opcode for this to vary, or add more config witnesses to this opcode)
-    auto data_clone = input.verification_key_data;
-    std::shared_ptr<plonk::verification_key> key =
-        std::make_shared<plonk::verification_key>(std::move(data_clone), env_crs->get_verifier_crs());
-    std::shared_ptr<verification_key_ct> circuit_key = verification_key_ct::from_constants(&composer, key);
     const auto& aggregation_input = input.input_aggregation_object;
     aggregation_state_ct previous_aggregation;
 
@@ -53,10 +49,20 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
     }
 
     transcript::Manifest manifest = Composer::create_unrolled_manifest(1);
+    std::vector<field_ct> key_fields;
+    key_fields.reserve(input.key.size());
+    for (const auto& idx : input.key) {
+        key_fields.emplace_back(field_ct::from_witness_index(&composer, idx));
+    }
+    std::vector<field_ct> proof_fields;
+    proof_fields.reserve(input.proof.size());
+    for (const auto& idx : input.proof) {
+        proof_fields.emplace_back(field_ct::from_witness_index(&composer, idx));
+    }
 
     // recursively verify the proof
     aggregation_state_ct result = proof_system::plonk::stdlib::recursion::verify_proof<bn254, noir_recursive_settings>(
-        &composer, circuit_key, manifest, input.proof, previous_aggregation);
+        &composer, manifest, env_crs->get_verifier_crs(), key_fields, proof_fields, previous_aggregation);
 
     // Assign the output aggregation object to the proof public inputs (16 field elements representing two G1 points)
     result.add_proof_outputs_as_public_inputs();
