@@ -1,4 +1,4 @@
-#include "barretenberg/honk/sumcheck/relations/lookup_grand_product_computation_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/lookup_grand_product_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation_secondary.hpp"
 #include "relation.hpp"
@@ -96,12 +96,11 @@ template <class FF> class RelationConsistency : public testing::Test {
      */
     RelationParameters<FF> compute_mock_relation_parameters()
     {
-        // return { .eta = FF::random_element(),
-        //          .beta = FF::random_element(),
-        //          .gamma = FF::random_element(),
-        //          .public_input_delta = FF::random_element(),
-        //          .lookup_grand_product_delta = FF::random_element() };
-        return { .eta = 1, .beta = 2, .gamma = 3, .public_input_delta = 4, .lookup_grand_product_delta = 5 };
+        return { .eta = FF::random_element(),
+                 .beta = FF::random_element(),
+                 .gamma = FF::random_element(),
+                 .public_input_delta = FF::random_element(),
+                 .lookup_grand_product_delta = FF::random_element() };
     }
 
     /**
@@ -351,15 +350,15 @@ TYPED_TEST(RelationConsistency, UltraArithmeticRelation)
     auto relation = UltraArithmeticRelation<FF>();
 
     // Extract the extended edges for manual computation of relation contribution
-    const auto& w_1 = extended_edges[MULTIVARIATE::W_1];
-    const auto& w_2 = extended_edges[MULTIVARIATE::W_2];
-    const auto& w_3 = extended_edges[MULTIVARIATE::W_3];
+    const auto& w_1 = extended_edges[MULTIVARIATE::W_L];
+    const auto& w_2 = extended_edges[MULTIVARIATE::W_R];
+    const auto& w_3 = extended_edges[MULTIVARIATE::W_O];
     const auto& w_4 = extended_edges[MULTIVARIATE::W_4];
     const auto& w_4_shift = extended_edges[MULTIVARIATE::W_4_SHIFT];
     const auto& q_m = extended_edges[MULTIVARIATE::Q_M];
-    const auto& q_l = extended_edges[MULTIVARIATE::Q_1];
-    const auto& q_r = extended_edges[MULTIVARIATE::Q_2];
-    const auto& q_o = extended_edges[MULTIVARIATE::Q_3];
+    const auto& q_l = extended_edges[MULTIVARIATE::Q_L];
+    const auto& q_r = extended_edges[MULTIVARIATE::Q_R];
+    const auto& q_o = extended_edges[MULTIVARIATE::Q_O];
     const auto& q_4 = extended_edges[MULTIVARIATE::Q_4];
     const auto& q_c = extended_edges[MULTIVARIATE::Q_C];
     const auto& q_arith = extended_edges[MULTIVARIATE::QARITH];
@@ -395,7 +394,7 @@ TYPED_TEST(RelationConsistency, UltraArithmeticRelationSecondary)
     auto relation = UltraArithmeticRelationSecondary<FF>();
 
     // Extract the extended edges for manual computation of relation contribution
-    const auto& w_1 = extended_edges[MULTIVARIATE::W_1];
+    const auto& w_1 = extended_edges[MULTIVARIATE::W_L];
     const auto& w_4 = extended_edges[MULTIVARIATE::W_4];
     const auto& w_1_shift = extended_edges[MULTIVARIATE::W_1_SHIFT];
     const auto& q_m = extended_edges[MULTIVARIATE::Q_M];
@@ -462,9 +461,9 @@ TYPED_TEST(RelationConsistency, UltraGrandProductComputationRelation)
     const auto& public_input_delta = relation_parameters.public_input_delta;
 
     // Extract the extended edges for manual computation of relation contribution
-    const auto& w_1 = extended_edges[MULTIVARIATE::W_1];
-    const auto& w_2 = extended_edges[MULTIVARIATE::W_2];
-    const auto& w_3 = extended_edges[MULTIVARIATE::W_3];
+    const auto& w_1 = extended_edges[MULTIVARIATE::W_L];
+    const auto& w_2 = extended_edges[MULTIVARIATE::W_R];
+    const auto& w_3 = extended_edges[MULTIVARIATE::W_O];
     const auto& w_4 = extended_edges[MULTIVARIATE::W_4];
     const auto& sigma_1 = extended_edges[MULTIVARIATE::SIGMA_1];
     const auto& sigma_2 = extended_edges[MULTIVARIATE::SIGMA_2];
@@ -526,9 +525,9 @@ TYPED_TEST(RelationConsistency, LookupGrandProductComputationRelation)
     auto eta_sqr = eta * eta;
     auto eta_cube = eta_sqr * eta;
 
-    const auto& w_1 = extended_edges[MULTIVARIATE::W_1];
-    const auto& w_2 = extended_edges[MULTIVARIATE::W_2];
-    const auto& w_3 = extended_edges[MULTIVARIATE::W_3];
+    const auto& w_1 = extended_edges[MULTIVARIATE::W_L];
+    const auto& w_2 = extended_edges[MULTIVARIATE::W_R];
+    const auto& w_3 = extended_edges[MULTIVARIATE::W_O];
 
     const auto& w_1_shift = extended_edges[MULTIVARIATE::W_1_SHIFT];
     const auto& w_2_shift = extended_edges[MULTIVARIATE::W_2_SHIFT];
@@ -549,8 +548,8 @@ TYPED_TEST(RelationConsistency, LookupGrandProductComputationRelation)
     const auto& z_lookup = extended_edges[MULTIVARIATE::Z_LOOKUP];
     const auto& z_lookup_shift = extended_edges[MULTIVARIATE::Z_LOOKUP_SHIFT];
 
-    const auto& table_index = extended_edges[MULTIVARIATE::Q_3];
-    const auto& column_1_step_size = extended_edges[MULTIVARIATE::Q_2];
+    const auto& table_index = extended_edges[MULTIVARIATE::Q_O];
+    const auto& column_1_step_size = extended_edges[MULTIVARIATE::Q_R];
     const auto& column_2_step_size = extended_edges[MULTIVARIATE::Q_M];
     const auto& column_3_step_size = extended_edges[MULTIVARIATE::Q_C];
     const auto& q_lookup = extended_edges[MULTIVARIATE::QLOOKUPTYPE];

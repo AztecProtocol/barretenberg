@@ -35,15 +35,15 @@ template <typename FF> class UltraArithmeticRelation {
         // OPTIMIZATION?: Karatsuba in general, at least for some degrees?
         //       See https://hackmd.io/xGLuj6biSsCjzQnYN-pEiA?both
 
-        auto w_l = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_1]);
-        auto w_r = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_2]);
-        auto w_o = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_3]);
+        auto w_l = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_L]);
+        auto w_r = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_R]);
+        auto w_o = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_O]);
         auto w_4 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_4]);
         auto w_4_shift = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_4_SHIFT]);
         auto q_m = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_M]);
-        auto q_l = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_1]);
-        auto q_r = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_2]);
-        auto q_o = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_3]);
+        auto q_l = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_L]);
+        auto q_r = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_R]);
+        auto q_o = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_O]);
         auto q_4 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_4]);
         auto q_c = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_C]);
         auto q_arith = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::QARITH]);
@@ -62,15 +62,15 @@ template <typename FF> class UltraArithmeticRelation {
                                               const auto& purported_evaluations,
                                               const RelationParameters<FF>&) const
     {
-        auto w_l = purported_evaluations[MULTIVARIATE::W_1];
-        auto w_r = purported_evaluations[MULTIVARIATE::W_2];
-        auto w_o = purported_evaluations[MULTIVARIATE::W_3];
+        auto w_l = purported_evaluations[MULTIVARIATE::W_L];
+        auto w_r = purported_evaluations[MULTIVARIATE::W_R];
+        auto w_o = purported_evaluations[MULTIVARIATE::W_O];
         auto w_4 = purported_evaluations[MULTIVARIATE::W_4];
         auto w_4_shift = purported_evaluations[MULTIVARIATE::W_4_SHIFT];
         auto q_m = purported_evaluations[MULTIVARIATE::Q_M];
-        auto q_l = purported_evaluations[MULTIVARIATE::Q_1];
-        auto q_r = purported_evaluations[MULTIVARIATE::Q_2];
-        auto q_o = purported_evaluations[MULTIVARIATE::Q_3];
+        auto q_l = purported_evaluations[MULTIVARIATE::Q_L];
+        auto q_r = purported_evaluations[MULTIVARIATE::Q_R];
+        auto q_o = purported_evaluations[MULTIVARIATE::Q_O];
         auto q_4 = purported_evaluations[MULTIVARIATE::Q_4];
         auto q_c = purported_evaluations[MULTIVARIATE::Q_C];
         auto q_arith = purported_evaluations[MULTIVARIATE::QARITH];

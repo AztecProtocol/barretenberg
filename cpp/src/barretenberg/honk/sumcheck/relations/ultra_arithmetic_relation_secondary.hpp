@@ -33,7 +33,7 @@ template <typename FF> class UltraArithmeticRelationSecondary {
         // OPTIMIZATION?: Karatsuba in general, at least for some degrees?
         //       See https://hackmd.io/xGLuj6biSsCjzQnYN-pEiA?both
 
-        auto w_1 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_1]);
+        auto w_1 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_L]);
         auto w_4 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_4]);
         auto w_1_shift = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_1_SHIFT]);
         auto q_m = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_M]);
@@ -51,7 +51,7 @@ template <typename FF> class UltraArithmeticRelationSecondary {
                                               const auto& purported_evaluations,
                                               const RelationParameters<FF>&) const
     {
-        auto w_1 = purported_evaluations[MULTIVARIATE::W_1];
+        auto w_1 = purported_evaluations[MULTIVARIATE::W_L];
         auto w_4 = purported_evaluations[MULTIVARIATE::W_4];
         auto w_1_shift = purported_evaluations[MULTIVARIATE::W_1_SHIFT];
         auto q_m = purported_evaluations[MULTIVARIATE::Q_M];

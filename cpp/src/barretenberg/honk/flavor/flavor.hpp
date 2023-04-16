@@ -201,9 +201,9 @@ struct UltraArithmetization {
     enum POLYNOMIAL {
         /* --- PRECOMPUTED POLYNOMIALS --- */
         Q_C,
-        Q_1,
-        Q_2,
-        Q_3,
+        Q_L,
+        Q_R,
+        Q_O,
         Q_4,
         Q_M,
         QARITH,
@@ -226,9 +226,9 @@ struct UltraArithmetization {
         LAGRANGE_FIRST,
         LAGRANGE_LAST, // = LAGRANGE_N-1 whithout ZK, but can be less
         /* --- WITNESS POLYNOMIALS --- */
-        W_1,
-        W_2,
-        W_3,
+        W_L,
+        W_R,
+        W_O,
         W_4,
         S_1,
         S_2,

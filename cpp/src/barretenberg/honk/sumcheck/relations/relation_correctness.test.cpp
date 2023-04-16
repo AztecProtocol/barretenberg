@@ -12,7 +12,7 @@
 #include "barretenberg/honk/sumcheck/sumcheck_round.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/lookup_grand_product_computation_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/lookup_grand_product_relation.hpp"
 #include "barretenberg/honk/utils/grand_product_delta.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 
@@ -252,9 +252,9 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     std::array<std::span<const fr>, num_polynomials> evaluations_array;
 
     using POLYNOMIAL = proof_system::honk::UltraArithmetization::POLYNOMIAL;
-    evaluations_array[POLYNOMIAL::W_1] = prover.wire_polynomials[0];
-    evaluations_array[POLYNOMIAL::W_2] = prover.wire_polynomials[1];
-    evaluations_array[POLYNOMIAL::W_3] = prover.wire_polynomials[2];
+    evaluations_array[POLYNOMIAL::W_L] = prover.wire_polynomials[0];
+    evaluations_array[POLYNOMIAL::W_R] = prover.wire_polynomials[1];
+    evaluations_array[POLYNOMIAL::W_O] = prover.wire_polynomials[2];
     evaluations_array[POLYNOMIAL::W_4] = prover.wire_polynomials[3];
     evaluations_array[POLYNOMIAL::W_1_SHIFT] = prover.wire_polynomials[0].shifted();
     evaluations_array[POLYNOMIAL::W_2_SHIFT] = prover.wire_polynomials[1].shifted();
@@ -276,9 +276,9 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     evaluations_array[POLYNOMIAL::Z_LOOKUP_SHIFT] = z_lookup.shifted();
 
     evaluations_array[POLYNOMIAL::Q_M] = prover.key->polynomial_store.get("q_m_lagrange");
-    evaluations_array[POLYNOMIAL::Q_1] = prover.key->polynomial_store.get("q_1_lagrange");
-    evaluations_array[POLYNOMIAL::Q_2] = prover.key->polynomial_store.get("q_2_lagrange");
-    evaluations_array[POLYNOMIAL::Q_3] = prover.key->polynomial_store.get("q_3_lagrange");
+    evaluations_array[POLYNOMIAL::Q_L] = prover.key->polynomial_store.get("q_1_lagrange");
+    evaluations_array[POLYNOMIAL::Q_R] = prover.key->polynomial_store.get("q_2_lagrange");
+    evaluations_array[POLYNOMIAL::Q_O] = prover.key->polynomial_store.get("q_3_lagrange");
     evaluations_array[POLYNOMIAL::Q_4] = prover.key->polynomial_store.get("q_4_lagrange");
     evaluations_array[POLYNOMIAL::Q_C] = prover.key->polynomial_store.get("q_c_lagrange");
     evaluations_array[POLYNOMIAL::QARITH] = prover.key->polynomial_store.get("q_arith_lagrange");

@@ -37,9 +37,9 @@ template <typename FF> class LookupGrandProductComputationRelation {
         const auto eta_sqr = eta * eta;
         const auto eta_cube = eta_sqr * eta;
 
-        auto w_1 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_1]);
-        auto w_2 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_2]);
-        auto w_3 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_3]);
+        auto w_1 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_L]);
+        auto w_2 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_R]);
+        auto w_3 = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_O]);
 
         auto w_1_shift = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_1_SHIFT]);
         auto w_2_shift = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::W_2_SHIFT]);
@@ -61,8 +61,8 @@ template <typename FF> class LookupGrandProductComputationRelation {
         auto z_lookup = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Z_LOOKUP]);
         auto z_lookup_shift = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Z_LOOKUP_SHIFT]);
 
-        auto table_index = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_3]);
-        auto column_1_step_size = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_2]);
+        auto table_index = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_O]);
+        auto column_1_step_size = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_R]);
         auto column_2_step_size = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_M]);
         auto column_3_step_size = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Q_C]);
         auto q_lookup = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::QLOOKUPTYPE]);
@@ -101,9 +101,9 @@ template <typename FF> class LookupGrandProductComputationRelation {
         const auto eta_sqr = eta * eta;
         const auto eta_cube = eta_sqr * eta;
 
-        auto w_1 = purported_evaluations[MULTIVARIATE::W_1];
-        auto w_2 = purported_evaluations[MULTIVARIATE::W_2];
-        auto w_3 = purported_evaluations[MULTIVARIATE::W_3];
+        auto w_1 = purported_evaluations[MULTIVARIATE::W_L];
+        auto w_2 = purported_evaluations[MULTIVARIATE::W_R];
+        auto w_3 = purported_evaluations[MULTIVARIATE::W_O];
 
         auto w_1_shift = purported_evaluations[MULTIVARIATE::W_1_SHIFT];
         auto w_2_shift = purported_evaluations[MULTIVARIATE::W_2_SHIFT];
@@ -124,8 +124,8 @@ template <typename FF> class LookupGrandProductComputationRelation {
         auto z_lookup = purported_evaluations[MULTIVARIATE::Z_LOOKUP];
         auto z_lookup_shift = purported_evaluations[MULTIVARIATE::Z_LOOKUP_SHIFT];
 
-        auto table_index = purported_evaluations[MULTIVARIATE::Q_3];
-        auto column_1_step_size = purported_evaluations[MULTIVARIATE::Q_2];
+        auto table_index = purported_evaluations[MULTIVARIATE::Q_O];
+        auto column_1_step_size = purported_evaluations[MULTIVARIATE::Q_R];
         auto column_2_step_size = purported_evaluations[MULTIVARIATE::Q_M];
         auto column_3_step_size = purported_evaluations[MULTIVARIATE::Q_C];
         auto q_lookup = purported_evaluations[MULTIVARIATE::QLOOKUPTYPE];
@@ -148,6 +148,45 @@ template <typename FF> class LookupGrandProductComputationRelation {
         tmp -= (z_lookup_shift + lagrange_last * grand_product_delta) *
                (s_accum + beta * s_accum_shift + gamma_by_one_plus_beta);
         full_honk_relation_value += tmp;
+    };
+};
+
+template <typename FF> class LookupGrandProductInitializationRelation {
+  public:
+    // 1 + polynomial degree of this relation
+    static constexpr size_t RELATION_LENGTH = 4; // deg(z_lookup * wire_accum * q_lookup) = 3
+    using MULTIVARIATE = proof_system::honk::UltraArithmetization::POLYNOMIAL;
+
+    /**
+     * @brief Compute contribution of the lookup grand prod relation for a given edge (internal function)
+     *
+     * @details This the relation confirms correct initialization of the lookup grand
+     * product polynomial Z_lookup with Z_lookup[circuit_size] = 0.
+     *
+     * @param evals transformed to `evals + C(extended_edges(X)...)*scaling_factor`
+     * @param extended_edges an std::array containing the fully extended Univariate edges.
+     * @param parameters contains beta, gamma, and public_input_delta, ....
+     * @param scaling_factor optional term to scale the evaluation before adding to evals.
+     */
+    inline void add_edge_contribution(Univariate<FF, RELATION_LENGTH>& evals,
+                                      const auto& extended_edges,
+                                      const RelationParameters<FF>& /*unused*/,
+                                      const FF& scaling_factor) const
+    {
+        auto z_lookup_shift = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::Z_LOOKUP_SHIFT]);
+        auto lagrange_last = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::LAGRANGE_LAST]);
+
+        evals += (lagrange_last * z_lookup_shift) * scaling_factor;
+    };
+
+    void add_full_relation_value_contribution(FF& full_honk_relation_value,
+                                              auto& purported_evaluations,
+                                              const RelationParameters<FF>& /*unused*/) const
+    {
+        auto z_lookup_shift = purported_evaluations[MULTIVARIATE::Z_LOOKUP_SHIFT];
+        auto lagrange_last = purported_evaluations[MULTIVARIATE::LAGRANGE_LAST];
+
+        full_honk_relation_value += lagrange_last * z_lookup_shift;
     };
 };
 } // namespace proof_system::honk::sumcheck
