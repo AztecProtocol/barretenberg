@@ -315,9 +315,10 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
                                 honk::sumcheck::UltraArithmeticRelationSecondary<fr>(),
                                 honk::sumcheck::UltraGrandProductInitializationRelation<fr>(),
                                 honk::sumcheck::UltraGrandProductComputationRelation<fr>(),
-                                honk::sumcheck::LookupGrandProductComputationRelation<fr>());
+                                honk::sumcheck::LookupGrandProductComputationRelation<fr>(),
+                                honk::sumcheck::LookupGrandProductInitializationRelation<fr>());
 
-    info("CIRCUIT SIZE = ", prover.key->circuit_size);
+    // info("CIRCUIT SIZE = ", prover.key->circuit_size);
 
     fr result = 0;
     for (size_t i = 0; i < prover.key->circuit_size; i++) {
@@ -344,6 +345,9 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
         ASSERT_EQ(result, 0);
 
         std::get<4>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        ASSERT_EQ(result, 0);
+
+        std::get<5>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
         ASSERT_EQ(result, 0);
     }
 }

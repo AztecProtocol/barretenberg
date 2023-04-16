@@ -513,12 +513,6 @@ TYPED_TEST(RelationConsistency, LookupGrandProductComputationRelation)
     const auto gamma = relation_parameters.gamma;
     auto grand_product_delta = relation_parameters.lookup_grand_product_delta;
 
-    info("eta = ", eta);
-    info("beta = ", beta);
-    info("gamma = ", gamma);
-    info("public_input_delta = ", relation_parameters.public_input_delta);
-    info("grand_product_delta = ", grand_product_delta);
-
     // Extract the extended edges for manual computation of relation contribution
     auto one_plus_beta = FF::one() + beta;
     auto gamma_by_one_plus_beta = gamma * one_plus_beta;
@@ -568,6 +562,36 @@ TYPED_TEST(RelationConsistency, LookupGrandProductComputationRelation)
                           (table_accum + table_accum_shift * beta + gamma_by_one_plus_beta) * one_plus_beta;
     expected_evals -= (z_lookup_shift + lagrange_last * grand_product_delta) *
                       (s_accum + s_accum_shift * beta + gamma_by_one_plus_beta);
+
+    TestFixture::template validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
+};
+
+TYPED_TEST(RelationConsistency, LookupGrandProductInitializationRelation)
+{
+    SUMCHECK_RELATION_TYPE_ALIASES
+    using MULTIVARIATE = honk::UltraArithmetization::POLYNOMIAL;
+
+    static constexpr size_t FULL_RELATION_LENGTH = 6;
+    static const size_t NUM_POLYNOMIALS = proof_system::honk::UltraArithmetization::COUNT;
+
+    const auto relation_parameters = TestFixture::compute_mock_relation_parameters();
+    std::array<Univariate<FF, FULL_RELATION_LENGTH>, NUM_POLYNOMIALS> extended_edges;
+    std::array<Univariate<FF, INPUT_UNIVARIATE_LENGTH>, NUM_POLYNOMIALS> input_polynomials;
+
+    // input_univariates are random polynomials of degree one
+    for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
+        input_polynomials[i] = Univariate<FF, INPUT_UNIVARIATE_LENGTH>({ FF::random_element(), FF::random_element() });
+    }
+    extended_edges = TestFixture::template compute_mock_extended_edges<FULL_RELATION_LENGTH>(input_polynomials);
+
+    auto relation = LookupGrandProductInitializationRelation<FF>();
+
+    // Extract the extended edges for manual computation of relation contribution
+    const auto& z_lookup_shift = extended_edges[MULTIVARIATE::Z_LOOKUP_SHIFT];
+    const auto& lagrange_last = extended_edges[MULTIVARIATE::LAGRANGE_LAST];
+
+    // Compute the expected result using a simple to read version of the relation expression
+    auto expected_evals = z_lookup_shift * lagrange_last;
 
     TestFixture::template validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
 };
