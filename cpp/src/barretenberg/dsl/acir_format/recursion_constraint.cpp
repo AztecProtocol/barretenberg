@@ -1,5 +1,4 @@
 #include "recursion_constraint.hpp"
-#include "barretenberg/plonk/proof_system/verification_key/verification_key.hpp"
 #include "barretenberg/stdlib/recursion/aggregation_state/aggregation_state.hpp"
 #include "barretenberg/stdlib/recursion/verifier/verifier.hpp"
 
@@ -62,7 +61,7 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
 
     // recursively verify the proof
     aggregation_state_ct result = proof_system::plonk::stdlib::recursion::verify_proof<bn254, noir_recursive_settings>(
-        &composer, manifest, env_crs->get_verifier_crs(), key_fields, proof_fields, previous_aggregation);
+        &composer, manifest, key_fields, proof_fields, previous_aggregation);
 
     // Assign the output aggregation object to the proof public inputs (16 field elements representing two G1 points)
     result.add_proof_outputs_as_public_inputs();

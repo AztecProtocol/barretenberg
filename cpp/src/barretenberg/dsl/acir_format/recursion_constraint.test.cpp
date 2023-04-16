@@ -134,7 +134,7 @@ TEST(RecursionConstraint, TestRecursionConstraint)
         inner_proof.proof_data, Composer::create_manifest(1), transcript::HashType::PlookupPedersenBlake3s, 16);
 
     const std::vector<barretenberg::fr> proof_witnesses = transcript.export_transcript_in_recursion_format();
-    const std::vector<barretenberg::fr> key_witnesses = inner_verifier.key->export_transcript_in_recursion_format();
+    const std::vector<barretenberg::fr> key_witnesses = inner_verifier.key->export_key_in_recursion_format();
 
     std::vector<uint32_t> proof_indices;
     const size_t proof_size = proof_witnesses.size();
