@@ -430,3 +430,5 @@ typedef uint8_t const* in_buf64;
 typedef uint8_t* out_buf64;
 typedef uint8_t const* in_buf128;
 typedef uint8_t* out_buf128;
+typedef uint8_t const* in_str_buf;
+typedef uint8_t* out_str_buf;

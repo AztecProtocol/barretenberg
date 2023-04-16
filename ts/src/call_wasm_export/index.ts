@@ -25,10 +25,24 @@ export function callWasmExport(funcName: string, inArgs: Bufferable[], outTypes:
   const alloc = new HeapAllocator(wasm);
   const inPtrs = alloc.copyToMemory(inArgs);
   const outPtrs = alloc.getOutputPtrs(outTypes);
-
   wasm.call(funcName, ...inPtrs, ...outPtrs);
+  const outArgs = deserializeOutputArgs(outTypes, outPtrs, alloc);
+  alloc.freeAll();
+  return outArgs;
+}
 
-  const outArgs = outTypes.map((t, i) => {
+export async function asyncCallWasmExport(funcName: string, inArgs: Bufferable[], outTypes: OutputType[]) {
+  const alloc = new HeapAllocator(wasm);
+  const inPtrs = alloc.copyToMemory(inArgs);
+  const outPtrs = alloc.getOutputPtrs(outTypes);
+  await wasm.asyncCall(funcName, ...inPtrs, ...outPtrs);
+  const outArgs = deserializeOutputArgs(outTypes, outPtrs, alloc);
+  alloc.freeAll();
+  return outArgs;
+}
+
+function deserializeOutputArgs(outTypes: OutputType[], outPtrs: number[], alloc: HeapAllocator) {
+  return outTypes.map((t, i) => {
     if (t.SIZE_IN_BYTES) {
       return t.fromBuffer(wasm.getMemorySlice(outPtrs[i]));
     }
@@ -36,8 +50,4 @@ export function callWasmExport(funcName: string, inArgs: Bufferable[], outTypes:
     alloc.addOutputPtr(ptr);
     return t.fromBuffer(wasm.getMemorySlice(ptr));
   });
-
-  alloc.freeAll();
-
-  return outArgs;
 }

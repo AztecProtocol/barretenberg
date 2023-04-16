@@ -68,6 +68,7 @@ message(STATUS "Compiling all-in-one barretenberg archive")
 add_library(
     barretenberg
     STATIC
+    $<TARGET_OBJECTS:common_objects>
     $<TARGET_OBJECTS:transcript_objects>
     $<TARGET_OBJECTS:srs_objects>
     $<TARGET_OBJECTS:numeric_objects>
@@ -125,18 +126,18 @@ if(WASM)
     # instance. This likely would be "solved" by enabling the optimizations to reduce the number of locals,
     # but using any optimization level results in a wasm file that takes an unusable amount of time to solve the
     # most simple prood.
-    # find_program(WASM_OPT wasm-opt)
+    find_program(WASM_OPT wasm-opt)
 
-    # if(NOT WASM_OPT)
-    #     message(FATAL_ERROR "wasm-opt executable not found. Please install binaryen.")
-    # endif()
+    if(NOT WASM_OPT)
+        message(FATAL_ERROR "wasm-opt executable not found. Please install binaryen.")
+    endif()
 
-    # add_custom_command(
-    #     TARGET barretenberg.wasm
-    #     POST_BUILD
-    #     COMMAND wasm-opt "$<TARGET_FILE:barretenberg.wasm>" -O0 --asyncify -o "$<TARGET_FILE:barretenberg.wasm>"
-    #     VERBATIM
-    # )
+    add_custom_command(
+        TARGET barretenberg.wasm
+        POST_BUILD
+        COMMAND wasm-opt "$<TARGET_FILE:barretenberg.wasm>" -Oz --asyncify -o "$<TARGET_FILE:barretenberg.wasm>"
+        VERBATIM
+    )
 
     if(INSTALL_BARRETENBERG)
         install(TARGETS barretenberg.wasm DESTINATION ${CMAKE_INSTALL_BINDIR})

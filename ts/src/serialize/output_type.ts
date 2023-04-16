@@ -42,3 +42,12 @@ export function BufferDeserializer(): OutputType {
     },
   };
 }
+
+export function StringDeserializer(): OutputType {
+  return {
+    fromBuffer: (buf: Uint8Array | BufferReader) => {
+      const reader = BufferReader.asReader(buf);
+      return reader.readString();
+    },
+  };
+}

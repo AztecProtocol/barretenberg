@@ -57,6 +57,7 @@ def process_files(files: List[str]) -> List[dict]:
                                 'type': arg.type.spelling,
                             } for arg in node.get_arguments() if not (arg.type.get_canonical().get_pointee().is_const_qualified() or arg.type.get_canonical().is_const_qualified())
                         ],
+                        'isAsync': any(t.spelling == 'ASYNC' for t in node.get_tokens())
                     }
                     result.append(func)
             except ValueError as e:
