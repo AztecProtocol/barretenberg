@@ -3,3 +3,5 @@
 ./cpp/src/barretenberg/crypto/blake2s/c_bind.hpp
 ./cpp/src/barretenberg/crypto/schnorr/c_bind.hpp
 ./cpp/src/barretenberg/env/c_bind.hpp
+./cpp/src/barretenberg/ecc/c_bind.hpp
+./cpp/src/barretenberg/plonk/c_bind.hpp

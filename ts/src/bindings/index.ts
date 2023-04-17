@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { callWasmExport, asyncCallWasmExport } from '../call_wasm_export/index.js';
 import { BufferDeserializer, NumberDeserializer, VectorDeserializer, BoolDeserializer } from '../serialize/index.js';
-import { Fr, Fq, Point, Buffer32, Buffer128 } from '../types/index.js';
+import { Fr, Fq, Point, Buffer32, Buffer128, Ptr } from '../types/index.js';
 
 export function pedersenInit(): void {
   const result = callWasmExport('pedersen_init', [], []);
@@ -159,5 +159,40 @@ export async function envSetData(keyBuf: string, buffer: Buffer): Promise<void> 
 
 export async function envGetData(keyBuf: string): Promise<Buffer> {
   const result = await asyncCallWasmExport('env_get_data', [keyBuf], [BufferDeserializer()]);
+  return result[0];
+}
+
+export function eccNewPippenger(points: Ptr, numPoints: number): Ptr {
+  const result = callWasmExport('ecc_new_pippenger', [points, numPoints], [Ptr]);
+  return result[0];
+}
+
+export function eccDeletePippenger(pippenger: Ptr): void {
+  const result = callWasmExport('ecc_delete_pippenger', [pippenger], []);
+  return;
+}
+
+export function eccPippengerUnsafe(pippengerPtr: Ptr, scalarsPtr: Ptr, from: number, range: number): Point {
+  const result = callWasmExport('ecc_pippenger_unsafe', [pippengerPtr, scalarsPtr, from, range], [Point]);
+  return result[0];
+}
+
+export function eccG1Sum(pointsPtr: Ptr, numPoints: number): Point {
+  const result = callWasmExport('ecc_g1_sum', [pointsPtr, numPoints], [Point]);
+  return result[0];
+}
+
+export function plonkProverProcessQueue(prover: Ptr): void {
+  const result = callWasmExport('plonk_prover_process_queue', [prover], []);
+  return;
+}
+
+export function plonkProverGetCircuitSize(prover: Ptr): number {
+  const result = callWasmExport('plonk_prover_get_circuit_size', [prover], [NumberDeserializer()]);
+  return result[0];
+}
+
+export function plonkProverExportProof(prover: Ptr): Buffer {
+  const result = callWasmExport('plonk_prover_export_proof', [prover], [BufferDeserializer()]);
   return result[0];
 }

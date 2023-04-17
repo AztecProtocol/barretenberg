@@ -398,6 +398,16 @@ template <typename T> std::vector<uint8_t> to_buffer(T const& value)
     return buf;
 }
 
+template <typename T> uint8_t* to_heap_buffer(T const& value)
+{
+    using serialize::write;
+    std::vector<uint8_t> buf;
+    write(buf, value);
+    auto* ptr = (uint8_t*)aligned_alloc(64, buf.size());
+    write(ptr, buf);
+    return ptr;
+}
+
 template <typename T> std::vector<T> many_from_buffer(std::vector<uint8_t> const& buffer)
 {
     const size_t num_elements = buffer.size() / sizeof(T);

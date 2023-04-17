@@ -11,7 +11,7 @@ export function generateTypeScriptCode(filename: string) {
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { callWasmExport, asyncCallWasmExport } from '../call_wasm_export/index.js';
 import { BufferDeserializer, NumberDeserializer, VectorDeserializer, BoolDeserializer } from '../serialize/index.js';
-import { Fr, Fq, Point, Buffer32, Buffer128 } from '../types/index.js';
+import { Fr, Fq, Point, Buffer32, Buffer128, Ptr } from '../types/index.js';
 `;
 
   for (const { functionName, inArgs, outArgs, isAsync } of functionDeclarations) {

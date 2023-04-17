@@ -492,5 +492,127 @@
       }
     ],
     "isAsync": true
+  },
+  {
+    "functionName": "ecc_new_pippenger",
+    "inArgs": [
+      {
+        "name": "points",
+        "type": "const void *"
+      },
+      {
+        "name": "num_points",
+        "type": "const uint32_t *"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "out_ptr",
+        "type": "void **"
+      }
+    ],
+    "isAsync": false
+  },
+  {
+    "functionName": "ecc_delete_pippenger",
+    "inArgs": [
+      {
+        "name": "pippenger",
+        "type": "const void *"
+      }
+    ],
+    "outArgs": [],
+    "isAsync": false
+  },
+  {
+    "functionName": "ecc_pippenger_unsafe",
+    "inArgs": [
+      {
+        "name": "pippenger_ptr",
+        "type": "const void *"
+      },
+      {
+        "name": "scalars_ptr",
+        "type": "const void *"
+      },
+      {
+        "name": "from",
+        "type": "const uint32_t *"
+      },
+      {
+        "name": "range",
+        "type": "const uint32_t *"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "result_ptr",
+        "type": "affine_element::out_buf"
+      }
+    ],
+    "isAsync": false
+  },
+  {
+    "functionName": "ecc_g1_sum",
+    "inArgs": [
+      {
+        "name": "points_ptr",
+        "type": "const void *"
+      },
+      {
+        "name": "num_points",
+        "type": "const uint32_t *"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "result_ptr",
+        "type": "affine_element::out_buf"
+      }
+    ],
+    "isAsync": false
+  },
+  {
+    "functionName": "plonk_prover_process_queue",
+    "inArgs": [
+      {
+        "name": "prover",
+        "type": "const void *"
+      }
+    ],
+    "outArgs": [],
+    "isAsync": false
+  },
+  {
+    "functionName": "plonk_prover_get_circuit_size",
+    "inArgs": [
+      {
+        "name": "prover",
+        "type": "const void *"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "out",
+        "type": "uint32_t *"
+      }
+    ],
+    "isAsync": false
+  },
+  {
+    "functionName": "plonk_prover_export_proof",
+    "inArgs": [
+      {
+        "name": "prover",
+        "type": "const void *"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "proof_data_buf",
+        "type": "uint8_t **"
+      }
+    ],
+    "isAsync": false
   }
 ]
