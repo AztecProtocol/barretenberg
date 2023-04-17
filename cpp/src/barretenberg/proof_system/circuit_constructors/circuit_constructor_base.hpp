@@ -9,6 +9,9 @@ static constexpr uint32_t DUMMY_TAG = 0;
 
 template <typename Arithmetization> class CircuitConstructorBase {
   public:
+    // TODO(Cody): This needs to be templated to allow constructing circuits over Grumpkin. For now, adding FF here
+    // since the flavor can extract it.
+    using FF = barretenberg::fr;
     static constexpr size_t num_wires = Arithmetization::num_wires;
     // Keeping num_wires, at least temporarily, for backward compatibility
     static constexpr size_t program_width = Arithmetization::num_wires;
