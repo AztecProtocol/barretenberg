@@ -127,9 +127,9 @@ TEST(crypto_nullifier_tree, test_nullifier_memory)
     auto e010 = tree.get_leaves()[2].hash();
     auto e011 = tree.get_leaves()[3].hash();
     auto e100 = tree.get_leaves()[4].hash();
-    auto e101 = nullifier_leaf({ 0, 0, 0 }).hash();
-    auto e110 = nullifier_leaf({ 0, 0, 0 }).hash();
-    auto e111 = nullifier_leaf({ 0, 0, 0 }).hash();
+    auto e101 = NullifierLeaf::zero().hash();
+    auto e110 = NullifierLeaf::zero().hash();
+    auto e111 = NullifierLeaf::zero().hash();
 
     auto e00 = hash_pair_native(e000, e001);
     auto e01 = hash_pair_native(e010, e011);
@@ -190,8 +190,10 @@ TEST(crypto_nullifier_tree, test_nullifier_tree)
     const auto& leaves = tree.get_leaves();
     std::vector<uint256_t> differences;
     for (size_t i = 0; i < leaves.size(); i++) {
-        uint256_t diff_hi = abs_diff(uint256_t(new_member), uint256_t(leaves[i].value));
-        uint256_t diff_lo = abs_diff(uint256_t(new_member), uint256_t(leaves[i].nextValue));
+        uint256_t diff_hi =
+            abs_diff(uint256_t(new_member), uint256_t(leaves[i].has_value() ? leaves[i].unwrap().value : 0));
+        uint256_t diff_lo =
+            abs_diff(uint256_t(new_member), uint256_t(leaves[i].has_value() ? leaves[i].unwrap().nextValue : 0));
         differences.push_back(diff_hi + diff_lo);
     }
     auto it = std::min_element(differences.begin(), differences.end());
@@ -199,5 +201,5 @@ TEST(crypto_nullifier_tree, test_nullifier_tree)
 
     // Merkle proof at `index` proves non-membership of `new_member`
     auto hash_path = tree.get_hash_path(index);
-    EXPECT_TRUE(check_hash_path(tree.root(), hash_path, leaves[index], index));
+    EXPECT_TRUE(check_hash_path(tree.root(), hash_path, leaves[index].unwrap(), index));
 }

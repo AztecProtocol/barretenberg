@@ -3,6 +3,7 @@
 
 namespace proof_system::plonk {
 namespace stdlib {
+
 namespace merkle_tree {
 
 using namespace barretenberg;
@@ -40,14 +41,59 @@ struct nullifier_leaf {
     barretenberg::fr hash() const { return stdlib::merkle_tree::hash_multiple_native({ value, nextIndex, nextValue }); }
 };
 
-inline std::pair<size_t, bool> find_closest_leaf(std::vector<nullifier_leaf> const& leaves_, fr const& new_value)
+/**
+ * @brief Wrapper for the Nullifier leaf class that allows for 0 values
+ *
+ */
+// TODO: clean up semantics
+class NullifierLeaf {
+
+  public:
+    NullifierLeaf(nullifier_leaf value)
+        : data(value)
+    {}
+    NullifierLeaf()
+        : data(std::nullopt)
+    {}
+
+    bool operator==(NullifierLeaf const&) const = default;
+
+    bool has_value() const { return data.has_value(); }
+
+    nullifier_leaf unwrap() const { return data.value(); }
+
+    void set(nullifier_leaf value) { data.emplace(value); }
+
+    // TODO: work out how to serialise this whole object
+    barretenberg::fr hash() const
+    {
+        if (data.has_value()) {
+            return data.value().hash();
+        } else {
+            return barretenberg::fr::zero();
+        }
+    }
+
+    static NullifierLeaf zero() { return NullifierLeaf(); }
+
+  private:
+    std::optional<nullifier_leaf> data;
+};
+
+inline std::pair<size_t, bool> find_closest_leaf(std::vector<NullifierLeaf> const& leaves_, fr const& new_value)
 {
     std::vector<uint256_t> diff;
     bool repeated = false;
     auto new_value_ = uint256_t(new_value);
 
     for (size_t i = 0; i < leaves_.size(); i++) {
-        auto leaf_value_ = uint256_t(leaves_[i].value);
+
+        if (!leaves_[i].has_value()) {
+            diff.push_back(new_value_);
+            continue;
+        }
+
+        auto leaf_value_ = uint256_t(leaves_[i].unwrap().value);
         if (leaf_value_ > new_value_) {
             diff.push_back(leaf_value_);
         } else if (leaf_value_ == new_value_) {
