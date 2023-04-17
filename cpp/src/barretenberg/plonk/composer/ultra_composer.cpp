@@ -1845,6 +1845,7 @@ std::array<uint32_t, 2> UltraComposer::decompose_non_native_field_double_width_l
     const uint256_t value = get_variable(limb_idx);
     const uint256_t low = value & LIMB_MASK;
     const uint256_t hi = value >> DEFAULT_NON_NATIVE_FIELD_LIMB_BITS;
+    // WTF(kesha): What is this supposed to do? Unless uint256_t has failed, this should always work
     ASSERT(low + (hi << DEFAULT_NON_NATIVE_FIELD_LIMB_BITS) == value);
 
     const uint32_t low_idx = add_variable(low);

@@ -609,5 +609,26 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
     void write_RAM_array(const size_t ram_id, const uint32_t index_witness, const uint32_t value_witness);
     void process_RAM_array(const size_t ram_id, const size_t gate_offset_from_public_inputs);
     void process_RAM_arrays(const size_t gate_offset_from_public_inputs);
+
+    // Circuit evaluation methods
+
+    fr compute_arithmetic_identity(fr q_arith_value,
+                                   fr q_1_value,
+                                   fr q_2_value,
+                                   fr q_3_value,
+                                   fr q_4_value,
+                                   fr q_m_value,
+                                   fr q_c_value,
+                                   fr w_1_value,
+                                   fr w_2_value,
+                                   fr w_3_value,
+                                   fr w_4_value,
+                                   fr w_1_shifted_value,
+                                   fr w_4_shifted_value,
+                                   const fr alpha_base,
+                                   const fr alpha);
+    fr arithmetic_gate_evaluation(const size_t gate_index, const fr alpha_base);
+
+    bool check_circuit();
 };
 } // namespace proof_system
