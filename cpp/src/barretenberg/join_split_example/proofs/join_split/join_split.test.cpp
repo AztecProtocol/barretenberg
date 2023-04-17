@@ -802,17 +802,12 @@ TEST_F(join_split_tests, test_0_input_notes_and_detect_circuit_change)
 
     EXPECT_TRUE(result.valid);
 
-// The below part detects any changes in the join-split circuit
-#ifdef USE_TURBO
-    constexpr uint32_t CIRCUIT_GATE_COUNT = 59175;
-    constexpr uint32_t GATES_NEXT_POWER_OF_TWO = 65536;
-    const uint256_t VK_HASH("095cbe8f1b09690713d5161708b5ea77119575884e3cfab14f7364b9f1ba7faa");
-#else
+    // The below part detects any changes in the join-split circuit
+
     constexpr uint32_t CIRCUIT_GATE_COUNT = 185573;
     constexpr uint32_t GATES_NEXT_POWER_OF_TWO = 524288;
     const uint256_t VK_HASH("13eb88883e80efb9bf306af2962cd1a49e9fa1b0bfb2d4b563b95217a17bcc74");
 
-#endif
     auto number_of_gates_js = result.number_of_gates;
     auto vk_hash_js = get_verification_key()->sha256_hash();
 
@@ -2625,11 +2620,8 @@ TEST_F(join_split_tests, serialized_proving_key_size)
 {
     uint8_t* ptr;
     auto len = join_split__get_new_proving_key_data(&ptr);
-#ifdef USE_TURBO
-    EXPECT_LE(len, 2 * 170 * 1024 * 1024);
-#else
+
     EXPECT_LE(len, 2315258552);
-#endif
 }
 
 } // namespace join_split_example::proofs::join_split

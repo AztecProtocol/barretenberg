@@ -92,13 +92,8 @@ bool verify_proof(plonk::proof const& proof)
 {
     Verifier verifier(verification_key, Composer::create_manifest(verification_key->num_public_inputs));
 
-#ifdef USE_TURBO
-    std::unique_ptr<plonk::KateCommitmentScheme<plonk::turbo_settings>> kate_commitment_scheme =
-        std::make_unique<plonk::KateCommitmentScheme<plonk::turbo_settings>>();
-#else
     std::unique_ptr<plonk::KateCommitmentScheme<plonk::ultra_settings>> kate_commitment_scheme =
         std::make_unique<plonk::KateCommitmentScheme<plonk::ultra_settings>>();
-#endif
     verifier.commitment_scheme = std::move(kate_commitment_scheme);
 
     return verifier.verify_proof(proof);
