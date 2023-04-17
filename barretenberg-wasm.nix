@@ -1,4 +1,4 @@
-{ lib, stdenv, cmake, ninja, binaryen, callPackage, debug ? false }:
+{ lib, stdenv, cmake, ninja, binaryen, callPackage, DEBUG ? false }:
 let
   optionals = lib.lists.optionals;
 
