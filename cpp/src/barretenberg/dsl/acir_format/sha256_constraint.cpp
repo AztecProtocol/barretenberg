@@ -5,8 +5,6 @@
 
 namespace acir_format {
 
-// using namespace ;
-
 // This function does not work (properly) because the stdlib:sha256 function is not working correctly for 512 bits
 // pair<witness_index, bits>
 void create_sha256_constraints(Composer& composer, const Sha256Constraint& constraint)

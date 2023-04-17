@@ -14,7 +14,6 @@
 #include "barretenberg/join_split_example/types.hpp"
 
 using namespace barretenberg;
-// using namespace proof_system::plonk::stdlib;
 using namespace join_split_example::proofs::join_split;
 
 #define WASM_EXPORT __attribute__((visibility("default")))
