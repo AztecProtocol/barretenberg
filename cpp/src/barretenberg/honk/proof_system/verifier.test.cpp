@@ -181,7 +181,7 @@
 //         proving_key->polynomial_store.put("sigma_3_lagrange", std::move(sigma_3_lagrange_base));
 
 //         compute_standard_honk_id_polynomials<honk::flavor::Standard>(proving_key);
-//         compute_first_and_last_lagrange_polynomials(proving_key);
+//         compute_first_and_last_lagrange_polynomials<honk::flavor::Standard>(proving_key);
 
 //         proving_key->polynomial_store.put("w_1_lagrange", std::move(w_l));
 //         proving_key->polynomial_store.put("w_2_lagrange", std::move(w_r));

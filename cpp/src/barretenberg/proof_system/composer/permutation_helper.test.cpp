@@ -71,14 +71,14 @@ TEST_F(PermutationHelperTests, ComputeHonkStyleSigmaLagrangePolynomialsFromMappi
 {
     auto mapping = compute_permutation_mapping<Flavor, /*generalized=*/false>(circuit_constructor, proving_key.get());
     compute_honk_style_permutation_lagrange_polynomials_from_mapping<Flavor>(
-        "label", mapping.sigmas, proving_key.get());
+        proving_key->get_sigma_polynomials(), mapping.sigmas, proving_key.get());
 }
 
 TEST_F(PermutationHelperTests, ComputeStandardAuxPolynomials)
 {
     compute_standard_honk_id_polynomials<Flavor>(proving_key);
     compute_standard_honk_sigma_permutations<Flavor>(circuit_constructor, proving_key.get());
-    compute_first_and_last_lagrange_polynomials(proving_key);
+    compute_first_and_last_lagrange_polynomials<Flavor>(proving_key);
 }
 
 } // namespace proof_system::test_composer_lib

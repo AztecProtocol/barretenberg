@@ -231,21 +231,17 @@ PermutationMapping<Flavor::num_wires> compute_permutation_mapping(
  */
 template <typename Flavor>
 void compute_honk_style_permutation_lagrange_polynomials_from_mapping(
-    std::string label,
+    std::vector<typename Flavor::PolynomialView> permutation_polynomials, // sigma or ID poly
     std::array<std::vector<permutation_subgroup_element>, Flavor::num_wires>& permutation_mappings,
     typename Flavor::ProvingKey* proving_key)
 {
     const size_t num_gates = proving_key->circuit_size;
 
-    std::array<barretenberg::polynomial, Flavor::num_wires> permutation_poly; // sigma or ID poly
-
     size_t wire_index = 0;
-    for (auto& current_permutation_poly : proving_key->get_sigma_polynomials()) {
-        // permutation_poly[wire_index] = barretenberg::polynomial(num_gates);
-        // auto& current_permutation_poly = permutation_poly[wire_index];
-
-        auto new_poly = barretenberg::polynomial(num_gates); // WORKTODO
+    for (auto& current_permutation_poly : permutation_polynomials) {
+        auto new_poly = typename Flavor::Polynomial(num_gates); // TODO(Cody): Cleanly allocate in pk?
         current_permutation_poly = new_poly;
+
         ITERATE_OVER_DOMAIN_START(proving_key->evaluation_domain);
         const auto& current_mapping = permutation_mappings[wire_index][i];
         if (current_mapping.is_public_input) {
@@ -270,7 +266,7 @@ void compute_honk_style_permutation_lagrange_polynomials_from_mapping(
         }
         ITERATE_OVER_DOMAIN_END;
     }
-    static_cast<void>(label);
+    // static_cast<void>(label);
     // MERGECONFLICT
     // // Save to polynomial cache
     // for (size_t j = 0; j < Flavor::num_wires; j++) {
@@ -422,10 +418,10 @@ template <typename Flavor>
 void compute_standard_honk_id_polynomials(auto proving_key) // TODO(Cody): proving_key* and shared_ptr<proving_key>
 {
     // Fill id polynomials with default values
-    // WORKTODO: Allocate polynomial space in proving key constructor.
+    // TODO(Cody): Allocate polynomial space in proving key constructor.
     size_t coset_idx = 0;
     for (auto& id_poly : proving_key->get_id_polynomials()) {
-        barretenberg::polynomial new_poly(proving_key->circuit_size);
+        typename Flavor::Polynomial new_poly(proving_key->circuit_size);
         for (size_t i = 0; i < proving_key->circuit_size; ++i) {
             new_poly[i] = coset_idx * proving_key->circuit_size + i;
         }
@@ -454,7 +450,8 @@ void compute_standard_honk_sigma_permutations(const typename Flavor::CircuitCons
     // Compute the permutation table specifying which element becomes which
     auto mapping = compute_permutation_mapping<Flavor, /*generalized=*/false>(circuit_constructor, proving_key);
     // Compute Honk-style sigma polynomial from the permutation table
-    compute_honk_style_permutation_lagrange_polynomials_from_mapping<Flavor>("sigma", mapping.sigmas, proving_key);
+    compute_honk_style_permutation_lagrange_polynomials_from_mapping<Flavor>(
+        proving_key->get_sigma_polynomials(), mapping.sigmas, proving_key);
 }
 
 /**
@@ -482,12 +479,11 @@ void compute_standard_plonk_sigma_permutations(const typename Flavor::CircuitCon
  *
  * @param key Proving key where we will save the polynomials
  */
-inline void compute_first_and_last_lagrange_polynomials(
-    auto proving_key) // TODO(Cody) proving_key* and share_ptr<proving_key>
+template <typename Flavor> inline void compute_first_and_last_lagrange_polynomials(auto proving_key)
 {
     const size_t n = proving_key->circuit_size;
-    barretenberg::polynomial lagrange_polynomial_0(n); // WORKTODO
-    barretenberg::polynomial lagrange_polynomial_n_min_1(n);
+    typename Flavor::Polynomial lagrange_polynomial_0(n);
+    typename Flavor::Polynomial lagrange_polynomial_n_min_1(n);
     lagrange_polynomial_0[0] = 1;
     proving_key->lagrange_first = lagrange_polynomial_0;
 
@@ -534,8 +530,10 @@ void compute_honk_generalized_sigma_permutations(const typename Flavor::CircuitC
     auto mapping = compute_permutation_mapping<Flavor, true>(circuit_constructor, proving_key);
 
     // Compute Honk-style sigma and ID polynomials from the corresponding mappings
-    compute_honk_style_permutation_lagrange_polynomials_from_mapping<Flavor>("sigma", mapping.sigmas, proving_key);
-    compute_honk_style_permutation_lagrange_polynomials_from_mapping<Flavor>("id", mapping.ids, proving_key);
+    compute_honk_style_permutation_lagrange_polynomials_from_mapping<Flavor>(
+        proving_key->get_sigma_polynomials(), mapping.sigmas, proving_key);
+    compute_honk_style_permutation_lagrange_polynomials_from_mapping<Flavor>(
+        proving_key->get_id_polynomials(), mapping.ids, proving_key);
 }
 
 } // namespace proof_system

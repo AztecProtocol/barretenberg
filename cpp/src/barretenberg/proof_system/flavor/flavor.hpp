@@ -97,6 +97,7 @@ class Standard {
     static constexpr size_t num_wires = CircuitConstructor::num_wires;
     static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 18;
     static constexpr size_t NUM_ALL_ENTITIES = 13;
+    static constexpr size_t minimum_circuit_size = 3; // TODO(Cody): what is this?/s
 
     // TODO(Cody): Made this public derivation so that I could populate selector
     // polys from circuit constructor.
@@ -199,6 +200,7 @@ class Ultra {
     static constexpr size_t num_wires = CircuitConstructor::num_wires;
     static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 18;
     static constexpr size_t NUM_ALL_ENTITIES = 13;
+    static constexpr size_t minimum_circuit_size = 3; // TODO(Cody): what is this?
 
     // TODO(Cody): Made this public derivation so that I could populate selector
     // polys from circuit constructor.

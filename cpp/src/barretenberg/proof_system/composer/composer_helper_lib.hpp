@@ -38,13 +38,13 @@ std::shared_ptr<typename Flavor::ProvingKey> initialize_proving_key(
 }
 
 /**
- * @brief Construct lagrange selector polynomials from ciruit selector information and put into polynomial cache
+ * @brief Construct selector polynomials from ciruit selector information and put into polynomial cache
  *
  * @tparam CircuitConstructor The class holding the circuit
  * @param circuit_constructor The object holding the circuit
  * @param key Pointer to the proving key
  */
-template <typename Flavor> // TODO(Cody): Always Lagrange
+template <typename Flavor>
 void construct_selector_polynomials(const typename Flavor::CircuitConstructor& circuit_constructor,
                                     typename Flavor::ProvingKey* proving_key)
 {

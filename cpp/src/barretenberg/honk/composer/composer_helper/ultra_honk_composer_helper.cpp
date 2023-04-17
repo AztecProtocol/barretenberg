@@ -206,7 +206,7 @@ std::shared_ptr<UltraHonkComposerHelper::Flavor::ProvingKey> UltraHonkComposerHe
 
     compute_honk_generalized_sigma_permutations<Flavor>(circuit_constructor, circuit_proving_key.get());
 
-    compute_first_and_last_lagrange_polynomials(circuit_proving_key.get());
+    compute_first_and_last_lagrange_polynomials<Flavor>(circuit_proving_key.get());
 
     const size_t subgroup_size = circuit_proving_key->circuit_size;
 
