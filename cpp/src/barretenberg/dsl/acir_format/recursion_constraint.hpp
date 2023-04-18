@@ -26,7 +26,7 @@ namespace acir_format {
  * @param output_aggregation_object Witness indecies of the aggregation object produced by recursive verification
  *
  * @note If input_aggregation_object witness indices are all zero, we interpret this to mean that the inner proof does
- * NOT contai
+ * NOT contain
  */
 struct RecursionConstraint {
     static constexpr size_t AGGREGATION_OBJECT_SIZE = 16; // 16 field elements

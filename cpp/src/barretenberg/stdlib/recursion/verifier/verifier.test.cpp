@@ -277,6 +277,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
   public:
     static void test_recursive_proof_composition()
     {
+        auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
         InnerComposer inner_composer = InnerComposer("../srs_db/ignition");
         OuterComposer outer_composer = OuterComposer("../srs_db/ignition");
         std::vector<barretenberg::fr> inner_inputs{ barretenberg::fr::random_element(),
@@ -294,7 +295,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         P[1].y = barretenberg::fq(circuit_output.aggregation_state.P1.y.get_value().lo);
 
         barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
-            P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
+            P, env_crs->get_verifier_crs()->get_precomputed_g2_lines(), 2);
 
         EXPECT_EQ(circuit_output.aggregation_state.public_inputs[0].get_value(), inner_inputs[0]);
         EXPECT_EQ(circuit_output.aggregation_state.public_inputs[1].get_value(), inner_inputs[1]);
@@ -326,6 +327,8 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
     static void test_recursive_proof_composition_ultra_no_tables()
     {
+        auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
+
         InnerComposer inner_composer = InnerComposer("../srs_db/ignition");
         OuterComposer outer_composer = OuterComposer("../srs_db/ignition");
 
@@ -342,7 +345,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         P[1].y = barretenberg::fq(circuit_output.aggregation_state.P1.y.get_value().lo);
 
         barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
-            P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
+            P, env_crs->get_verifier_crs()->get_precomputed_g2_lines(), 2);
 
         EXPECT_EQ(inner_proof_result, barretenberg::fq12::one());
 
@@ -375,6 +378,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
             return; // We only care about running this test for turbo and ultra outer circuits, since in practice the
                     // only circuits which verify >1 proof are ultra or turbo circuits. Standard uses so many gates
                     // (16m) that it's a waste of time testing it.
+        auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
 
         InnerComposer inner_composer_a = InnerComposer("../srs_db/ignition");
         InnerComposer inner_composer_b = InnerComposer("../srs_db/ignition");
@@ -396,7 +400,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         P[1].x = barretenberg::fq(circuit_output.aggregation_state.P1.x.get_value().lo);
         P[1].y = barretenberg::fq(circuit_output.aggregation_state.P1.y.get_value().lo);
         barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
-            P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
+            P, env_crs->get_verifier_crs()->get_precomputed_g2_lines(), 2);
 
         EXPECT_EQ(circuit_output.aggregation_state.public_inputs[0].get_value(), inner_inputs[0]);
         EXPECT_EQ(circuit_output.aggregation_state.public_inputs[1].get_value(), inner_inputs[1]);
@@ -434,6 +438,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         std::vector<barretenberg::fr> inner_inputs_b{ barretenberg::fr::random_element(),
                                                       barretenberg::fr::random_element(),
                                                       barretenberg::fr::random_element() };
+        auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
 
         create_inner_circuit(inner_composer_a, inner_inputs_a);
         create_alternate_inner_circuit(inner_composer_b, inner_inputs_b);
@@ -447,7 +452,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         P[1].x = barretenberg::fq(circuit_output.aggregation_state.P1.x.get_value().lo);
         P[1].y = barretenberg::fq(circuit_output.aggregation_state.P1.y.get_value().lo);
         barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
-            P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
+            P, env_crs->get_verifier_crs()->get_precomputed_g2_lines(), 2);
 
         EXPECT_EQ(circuit_output.aggregation_state.public_inputs[0].get_value(), inner_inputs_a[0]);
         EXPECT_EQ(circuit_output.aggregation_state.public_inputs[1].get_value(), inner_inputs_a[1]);
@@ -487,6 +492,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         auto circuit_output =
             create_outer_circuit_with_variable_inner_circuit(inner_composer_a, inner_composer_b, outer_composer, false);
         g1::affine_element P[2];
+        auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
 
         P[0].x = barretenberg::fq(circuit_output.aggregation_state.P0.x.get_value().lo);
         P[0].y = barretenberg::fq(circuit_output.aggregation_state.P0.y.get_value().lo);
@@ -494,7 +500,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         P[1].y = barretenberg::fq(circuit_output.aggregation_state.P1.y.get_value().lo);
 
         barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
-            P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
+            P, env_crs->get_verifier_crs()->get_precomputed_g2_lines(), 2);
 
         EXPECT_EQ(circuit_output.aggregation_state.public_inputs[0].get_value(), inner_inputs_b[0]);
         EXPECT_EQ(circuit_output.aggregation_state.public_inputs[1].get_value(), inner_inputs_b[1]);
@@ -529,6 +535,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
         create_inner_circuit(inner_composer_a, inner_inputs_a);
         create_alternate_inner_circuit(inner_composer_b, inner_inputs_b);
+        auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
 
         auto circuit_output = create_outer_circuit_with_variable_inner_circuit(
             inner_composer_a, inner_composer_b, outer_composer, true, true);
@@ -539,7 +546,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         P[1].x = barretenberg::fq(circuit_output.aggregation_state.P1.x.get_value().lo);
         P[1].y = barretenberg::fq(circuit_output.aggregation_state.P1.y.get_value().lo);
         barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
-            P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
+            P, env_crs->get_verifier_crs()->get_precomputed_g2_lines(), 2);
 
         EXPECT_EQ(circuit_output.aggregation_state.public_inputs[0].get_value(), inner_inputs_a[0]);
         EXPECT_EQ(circuit_output.aggregation_state.public_inputs[1].get_value(), inner_inputs_a[1]);
@@ -561,6 +568,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
     static void test_recursive_proof_composition_with_constant_verification_key()
     {
+        auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
         InnerComposer inner_composer_a = InnerComposer("../srs_db/ignition");
         InnerComposer inner_composer_b = InnerComposer("../srs_db/ignition");
         OuterComposer outer_composer = OuterComposer("../srs_db/ignition");
@@ -584,7 +592,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         P[1].x = barretenberg::fq(circuit_output.aggregation_state.P1.x.get_value().lo);
         P[1].y = barretenberg::fq(circuit_output.aggregation_state.P1.y.get_value().lo);
         barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
-            P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
+            P, env_crs->get_verifier_crs()->get_precomputed_g2_lines(), 2);
 
         EXPECT_EQ(circuit_output.aggregation_state.public_inputs[0].get_value(), inner_inputs_a[0]);
         EXPECT_EQ(circuit_output.aggregation_state.public_inputs[1].get_value(), inner_inputs_a[1]);
