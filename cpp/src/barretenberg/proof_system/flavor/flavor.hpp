@@ -66,9 +66,14 @@ template <typename PrecomputedData, typename FF> class BaseProvingKey : public P
         composer_type(composer_type){};
 };
 
+/**
+ * @brief Collect all entities (really, views of these) from the protocol in one place.
+ * @details No need for a distinction between storage and view classes here.
+ *
+ * @tparam PrecomputedData
+ */
 template <typename PrecomputedData> using BaseVerificationKey = PrecomputedData;
-
-template <typename T, size_t NUM_ALL_ENTITIES> class BaseAllData {
+template <typename T, size_t NUM_ALL_ENTITIES> class BaseAllData : public Data<T, T, NUM_ALL_ENTITIES> {
   public:
     virtual std::vector<T> get_not_to_be_shifted() = 0;
     virtual std::vector<T> get_to_be_shifted() = 0;
@@ -95,8 +100,8 @@ class Standard {
     using PCSParams = pcs::kzg::Params;
 
     static constexpr size_t num_wires = CircuitConstructor::num_wires;
-    static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 18;
-    static constexpr size_t NUM_ALL_ENTITIES = 13;
+    static constexpr size_t NUM_ALL_ENTITIES = 18;
+    static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 13;
     static constexpr size_t minimum_circuit_size = 3; // TODO(Cody): what is this?/s
 
     // TODO(Cody): Made this public derivation so that I could populate selector
@@ -127,7 +132,7 @@ class Standard {
 
     using VerificationKey = BaseVerificationKey<PrecomputedData<Commitment, CommitmentView>>;
 
-    template <typename T> class AllData : BaseAllData<T, NUM_ALL_ENTITIES> {
+    template <typename T> class AllData : public BaseAllData<T, NUM_ALL_ENTITIES> {
       public:
         T& w_l = std::get<0>(this->_data);
         T& w_r = std::get<1>(this->_data);
@@ -198,8 +203,8 @@ class Ultra {
     using PCSParams = pcs::kzg::Params;
 
     static constexpr size_t num_wires = CircuitConstructor::num_wires;
-    static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 18;
-    static constexpr size_t NUM_ALL_ENTITIES = 13;
+    static constexpr size_t NUM_ALL_ENTITIES = 18;
+    static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 13;
     static constexpr size_t minimum_circuit_size = 3; // TODO(Cody): what is this?
 
     // TODO(Cody): Made this public derivation so that I could populate selector
