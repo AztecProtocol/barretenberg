@@ -1,7 +1,7 @@
-FROM 278380418400.dkr.ecr.us-east-2.amazonaws.com/barretenberg-x86_64-linux-clang
+FROM 278380418400.dkr.ecr.us-east-2.amazonaws.com/barretenberg-x86_64-linux-clang-assert
 
-FROM ubuntu:focal as builder
-RUN apt-get update && apt install -y git curl
+FROM alpine:3.17 as builder
+RUN apk update && apk add git curl bash build-base openmp-dev
 
 COPY --from=0 /usr/src/barretenberg/cpp/build/bin /usr/src/barretenberg/cpp/build/bin
 COPY --from=0 /usr/src/barretenberg/cpp/srs_db /usr/src/barretenberg/cpp/srs_db
@@ -9,10 +9,8 @@ WORKDIR /usr/src/barretenberg/sol
 RUN git init
 COPY . .
 
-RUN ls /usr/src/barretenberg/cpp/build/bin
-
-RUN ./scripts/install_foundry.sh
-ENV PATH="/usr/src/barretenberg/sol/.foundry/bin:${PATH}"
+# Copy forge binary directly from foundry
+COPY --from=ghcr.io/foundry-rs/foundry:latest /usr/local/bin/forge /usr/local/bin/forge
 
 RUN forge install --no-commit \
   https://github.com/foundry-rs/forge-std \
