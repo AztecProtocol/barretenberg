@@ -127,9 +127,9 @@ TEST(crypto_nullifier_tree, test_nullifier_memory)
     auto e010 = tree.get_leaves()[2].hash();
     auto e011 = tree.get_leaves()[3].hash();
     auto e100 = tree.get_leaves()[4].hash();
-    auto e101 = NullifierLeaf::zero().hash();
-    auto e110 = NullifierLeaf::zero().hash();
-    auto e111 = NullifierLeaf::zero().hash();
+    auto e101 = WrappedNullifierLeaf::zero().hash();
+    auto e110 = WrappedNullifierLeaf::zero().hash();
+    auto e111 = WrappedNullifierLeaf::zero().hash();
 
     auto e00 = hash_pair_native(e000, e001);
     auto e01 = hash_pair_native(e010, e011);

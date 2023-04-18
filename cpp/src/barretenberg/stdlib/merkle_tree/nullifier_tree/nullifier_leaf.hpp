@@ -45,26 +45,47 @@ struct nullifier_leaf {
  * @brief Wrapper for the Nullifier leaf class that allows for 0 values
  *
  */
-// TODO: clean up semantics
-class NullifierLeaf {
+class WrappedNullifierLeaf {
 
   public:
-    NullifierLeaf(nullifier_leaf value)
+    // Initialise with a nullifier leaf
+    WrappedNullifierLeaf(nullifier_leaf value)
         : data(value)
     {}
-    NullifierLeaf()
+    // Initialise an empty leaf
+    WrappedNullifierLeaf()
         : data(std::nullopt)
     {}
 
-    bool operator==(NullifierLeaf const&) const = default;
+    bool operator==(WrappedNullifierLeaf const&) const = default;
 
+    /**
+     * @brief Pass through the underlying std::optional method
+     *
+     * @return true
+     * @return false
+     */
     bool has_value() const { return data.has_value(); }
 
+    /**
+     * @brief Return the wrapped nullifier_leaf object
+     *
+     * @return nullifier_leaf
+     */
     nullifier_leaf unwrap() const { return data.value(); }
 
+    /**
+     * @brief Set the wrapped nullifier_leaf object value
+     *
+     * @param value
+     */
     void set(nullifier_leaf value) { data.emplace(value); }
 
-    // TODO: work out how to serialise this whole object
+    /**
+     * @brief Return the hash of the wrapped object, other return the zero hash of 0
+     *
+     * @return barretenberg::fr
+     */
     barretenberg::fr hash() const
     {
         if (data.has_value()) {
@@ -74,13 +95,19 @@ class NullifierLeaf {
         }
     }
 
-    static NullifierLeaf zero() { return NullifierLeaf(); }
+    /**
+     * @brief Generate a zero leaf (call the constructor with no arguments)
+     *
+     * @return NullifierLeaf
+     */
+    static WrappedNullifierLeaf zero() { return WrappedNullifierLeaf(); }
 
   private:
+    // Underlying data
     std::optional<nullifier_leaf> data;
 };
 
-inline std::pair<size_t, bool> find_closest_leaf(std::vector<NullifierLeaf> const& leaves_, fr const& new_value)
+inline std::pair<size_t, bool> find_closest_leaf(std::vector<WrappedNullifierLeaf> const& leaves_, fr const& new_value)
 {
     std::vector<uint256_t> diff;
     bool repeated = false;

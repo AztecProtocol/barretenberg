@@ -13,7 +13,7 @@ NullifierMemoryTree::NullifierMemoryTree(size_t depth)
     hashes_.resize(total_size_ * 2 - 2);
 
     // Build the entire tree and fill with 0 hashes.
-    auto current = NullifierLeaf::zero().hash();
+    auto current = WrappedNullifierLeaf::zero().hash();
     size_t layer_size = total_size_;
     for (size_t offset = 0; offset < hashes_.size(); offset += layer_size, layer_size /= 2) {
         for (size_t i = 0; i < layer_size; ++i) {
@@ -23,7 +23,7 @@ NullifierMemoryTree::NullifierMemoryTree(size_t depth)
     }
 
     // Insert the initial leaf at index 0
-    auto initial_leaf = NullifierLeaf(nullifier_leaf{ .value = 0, .nextIndex = 0, .nextValue = 0 });
+    auto initial_leaf = WrappedNullifierLeaf(nullifier_leaf{ .value = 0, .nextIndex = 0, .nextValue = 0 });
     leaves_.push_back(initial_leaf);
     root_ = update_element(0, initial_leaf.hash());
 }
