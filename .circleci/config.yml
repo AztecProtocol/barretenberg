@@ -144,8 +144,8 @@ jobs:
       - *checkout
       - *setup_env
       - run:
-        name: "Test"
-        command: build sol
+          name: "Test"
+          command: build sol
 
   barretenberg-tests:
     docker:
