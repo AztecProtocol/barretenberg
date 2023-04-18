@@ -23,6 +23,7 @@ plookup::ReadData<field_t<Composer>> plookup_<Composer>::get_lookup_accumulators
     Composer* ctx = key_a.get_context() ? key_a.get_context() : key_b.get_context();
     const plookup::ReadData<barretenberg::fr> lookup_data =
         plookup::get_lookup_accumulators(id, key_a.get_value(), key_b.get_value(), is_2_to_1_lookup);
+    info(lookup_data[ColumnIdx::C3][0], "<-- this should be 32 bits!");
 
     const bool is_key_a_constant = key_a.is_constant();
     plookup::ReadData<field_t<Composer>> lookup;

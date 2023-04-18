@@ -38,8 +38,8 @@ template <typename Composer> class stdlib_logic : public testing::Test {
             auto build_circuit = [&](size_t num_bits) {
                 uint256_t mask = (uint256_t(1) << num_bits) - 1;
 
-                uint256_t a = engine.get_random_uint256() & mask;
-                uint256_t b = engine.get_random_uint256() & mask;
+                uint256_t a = engine.get_random_uint256() /* & mask */;
+                uint256_t b = engine.get_random_uint256() /* & mask */;
 
                 field_ct x = witness_ct(&composer, a);
                 field_ct y = witness_ct(&composer, b);
@@ -48,7 +48,7 @@ template <typename Composer> class stdlib_logic : public testing::Test {
                 field_ct y_const(&composer, b);
 
                 if (test_xor) {
-                    uint256_t xor_expected = a ^ b;
+                    uint256_t xor_expected = (a ^ b) & mask;
                     field_ct xor_result = stdlib::logic<Composer>::create_logic_constraint(x, y, num_bits, test_xor);
                     // info("  ", composer.num_gates);
                     // field_ct xor_result_left_constant =
@@ -66,7 +66,7 @@ template <typename Composer> class stdlib_logic : public testing::Test {
                     // EXPECT_EQ(uint256_t(xor_result_right_constant.get_value()), xor_expected);
                     // EXPECT_EQ(uint256_t(xor_result_both_constant.get_value()), xor_expected);
                     // } else {
-                    uint256_t and_expected = a & b;
+                    uint256_t and_expected = (a & b) & mask;
                     field_ct and_result = stdlib::logic<Composer>::create_logic_constraint(x, y, num_bits, !test_xor);
                     // info("  ", composer.num_gates);
                     // field_ct and_result_left_constant =
