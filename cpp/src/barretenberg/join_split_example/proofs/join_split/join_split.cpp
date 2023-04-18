@@ -35,14 +35,14 @@ void init_proving_key(std::shared_ptr<proof_system::ReferenceStringFactory> cons
     }
 }
 
-void init_proving_key(std::shared_ptr<proof_system::ProverReferenceString> const& crs,
-                      plonk::proving_key_data&& pk_data)
-{
-    release_key();
-    proving_key = std::make_shared<plonk::proving_key>(std::move(pk_data), crs);
-}
+// void init_proving_key(std::shared_ptr<proof_system::ProverReferenceString> const& crs,
+//                       plonk::proving_key_data&& pk_data)
+// {
+//     release_proving_key();
+//     proving_key = std::make_shared<plonk::proving_key>(std::move(pk_data), crs);
+// }
 
-void release_key()
+void release_proving_key()
 {
     proving_key.reset();
 }
@@ -59,11 +59,11 @@ void init_verification_key(std::unique_ptr<proof_system::ReferenceStringFactory>
         plonk::stdlib::types::Composer::compute_verification_key_base(proving_key, crs_factory->get_verifier_crs());
 }
 
-void init_verification_key(std::shared_ptr<proof_system::VerifierMemReferenceString> const& crs,
-                           plonk::verification_key_data&& vk_data)
-{
-    verification_key = std::make_shared<plonk::verification_key>(std::move(vk_data), crs);
-}
+// void init_verification_key(std::shared_ptr<proof_system::VerifierMemReferenceString> const& crs,
+//                            plonk::verification_key_data&& vk_data)
+// {
+//     verification_key = std::make_shared<plonk::verification_key>(std::move(vk_data), crs);
+// }
 
 stdlib::types::Prover new_join_split_prover(join_split_tx const& tx, bool mock)
 {

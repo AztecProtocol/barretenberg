@@ -22,7 +22,7 @@ TEST(stdlib_blake2s, test_single_block)
     byte_array_ct input_arr(&composer, input_v);
     byte_array_ct output = stdlib::blake2s(input_arr);
 
-    std::vector<uint8_t> expected = blake2::blake2s(input_v);
+    auto expected = blake2::blake2s(input_v);
 
     EXPECT_EQ(output.get_value(), expected);
 

@@ -12,19 +12,19 @@ extern "C" {
 using Prover =
     std::conditional_t<plonk::SYSTEM_COMPOSER == ComposerType::TURBO, plonk::TurboProver, plonk::UltraProver>;
 
-WASM_EXPORT void plonk_prover_process_queue(void const* prover)
+WASM_EXPORT void plonk_prover_process_queue(in_ptr prover)
 {
     ((Prover*)prover)->queue.process_queue();
 }
 
-WASM_EXPORT void plonk_prover_get_circuit_size(void const* prover, uint32_t* out)
+WASM_EXPORT void plonk_prover_get_circuit_size(in_ptr prover, uint32_t* out)
 {
     uint32_t size = (uint32_t)((Prover*)prover)->get_circuit_size();
     auto* dst = (uint8_t*)out;
     serialize::write(dst, size);
 }
 
-WASM_EXPORT void plonk_prover_export_proof(void const* prover, uint8_t** proof_data_buf)
+WASM_EXPORT void plonk_prover_export_proof(in_ptr prover, uint8_t** proof_data_buf)
 {
     auto& proof_data = ((Prover*)prover)->export_proof().proof_data;
     *proof_data_buf = to_heap_buffer(proof_data);

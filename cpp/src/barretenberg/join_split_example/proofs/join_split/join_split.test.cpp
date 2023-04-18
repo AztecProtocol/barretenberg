@@ -2615,19 +2615,4 @@ TEST_F(join_split_tests, test_send_two_virtual_notes_full_proof)
     EXPECT_TRUE(verify_proof(proof));
 }
 
-// *************************************************************************************************************
-// Miscellaneous
-// *************************************************************************************************************
-
-TEST_F(join_split_tests, serialized_proving_key_size)
-{
-    uint8_t* ptr;
-    auto len = join_split__get_new_proving_key_data(&ptr);
-#ifdef USE_TURBO
-    EXPECT_LE(len, 2 * 170 * 1024 * 1024);
-#else
-    EXPECT_LE(len, 2315258552);
-#endif
-}
-
 } // namespace join_split_example::proofs::join_split

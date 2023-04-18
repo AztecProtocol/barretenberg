@@ -36,11 +36,16 @@ class Pippenger {
   public:
     /**
      * Expects points to be buffer of size as per point_table_size().
-     * It expects the crs to start at points[1], and it fills in affine_one at points[0].
+     * Expects the points buffer to be in big-endian form.
      * The crs undergoes a byteswap, and then the point table is generated.
      */
     Pippenger(g1::affine_element* points, size_t num_points);
 
+    /**
+     * Will create a new buffer as per point_table_size(), and will copy points into it.
+     * Expects the points buffer to be in big-endian form.
+     * The crs undergoes a byteswap, and then the point table is generated.
+     */
     Pippenger(uint8_t const* points, size_t num_points);
 
     Pippenger(std::string const& path, size_t num_points);

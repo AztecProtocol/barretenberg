@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 const typeMap: { [key: string]: string } = {
-  'const void *': 'Ptr',
-  'void **': 'Ptr',
+  in_ptr: 'Ptr',
+  out_ptr: 'Ptr',
   'fr::in_buf': 'Fr',
   'fr::out_buf': 'Fr',
   'fr::vec_in_buf': 'Fr[]',
@@ -31,7 +31,7 @@ const typeMap: { [key: string]: string } = {
 };
 
 const deserializerMap: { [key: string]: string } = {
-  'void **': 'Ptr',
+  out_ptr: 'Ptr',
   'fr::out_buf': 'Fr',
   'fr::vec_out_buf': 'VectorDeserializer(Fr)',
   'fq::out_buf': 'Fq',

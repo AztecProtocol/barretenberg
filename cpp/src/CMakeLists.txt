@@ -57,6 +57,7 @@ add_subdirectory(barretenberg/plonk)
 add_subdirectory(barretenberg/stdlib)
 add_subdirectory(barretenberg/join_split_example)
 add_subdirectory(barretenberg/dsl)
+add_subdirectory(barretenberg/examples)
 
 if(BENCHMARKS)
     add_subdirectory(barretenberg/benchmark)
@@ -98,6 +99,7 @@ add_library(
     $<TARGET_OBJECTS:acir_format_objects>
     $<TARGET_OBJECTS:acir_proofs_objects>
     $<TARGET_OBJECTS:env_objects>
+    $<TARGET_OBJECTS:examples_objects>
 )
 
 if(WASM)
@@ -132,12 +134,12 @@ if(WASM)
         message(FATAL_ERROR "wasm-opt executable not found. Please install binaryen.")
     endif()
 
-    add_custom_command(
-        TARGET barretenberg.wasm
-        POST_BUILD
-        COMMAND wasm-opt "$<TARGET_FILE:barretenberg.wasm>" -Oz --asyncify -o "$<TARGET_FILE:barretenberg.wasm>"
-        VERBATIM
-    )
+    #add_custom_command(
+    #    TARGET barretenberg.wasm
+    #    POST_BUILD
+    #    COMMAND wasm-opt "$<TARGET_FILE:barretenberg.wasm>" -Oz --asyncify -o "$<TARGET_FILE:barretenberg.wasm>"
+    #    VERBATIM
+    #)
 
     if(INSTALL_BARRETENBERG)
         install(TARGETS barretenberg.wasm DESTINATION ${CMAKE_INSTALL_BINDIR})

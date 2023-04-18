@@ -5,3 +5,4 @@
 ./cpp/src/barretenberg/env/c_bind.hpp
 ./cpp/src/barretenberg/ecc/c_bind.hpp
 ./cpp/src/barretenberg/plonk/c_bind.hpp
+./cpp/src/barretenberg/examples/c_bind.hpp

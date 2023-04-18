@@ -31,6 +31,8 @@ class ProverReferenceString {
     virtual size_t get_monomial_size() const = 0;
 };
 
+// A placeholder factory. Exists because composers need to be given a factory at construction time.
+// TODO: Refactor Composer code to only need CRS when actually needed.
 class ReferenceStringFactory {
   public:
     ReferenceStringFactory() = default;

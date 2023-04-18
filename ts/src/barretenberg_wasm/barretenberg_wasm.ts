@@ -45,7 +45,7 @@ export class BarretenbergWasm extends EventEmitter {
    * 20 pages by default. 20*2**16 > 1mb stack size plus other overheads.
    * 8192 maximum by default. 512mb.
    */
-  public async init(module?: WebAssembly.Module, initial = 25, maximum = 8192) {
+  public async init(module?: WebAssembly.Module, initial = 25, maximum = 2 ** 16) {
     this.debug(
       `initial mem: ${initial} pages, ${(initial * 2 ** 16) / (1024 * 1024)}mb. max mem: ${maximum} pages, ${
         (maximum * 2 ** 16) / (1024 * 1024)

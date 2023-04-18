@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <cstring>
 
 namespace {
 std::map<std::string, std::vector<uint8_t>> store;
@@ -20,7 +21,7 @@ uint8_t* get_data(char const* key, size_t* length_out)
     std::string k = key;
     if (store.contains(key)) {
         *length_out = store[k].size();
-        auto* ptr = bbmalloc(*length_out);
+        auto* ptr = aligned_alloc(64, *length_out);
         std::memcpy(ptr, store[k].data(), *length_out);
     }
     *length_out = 0;

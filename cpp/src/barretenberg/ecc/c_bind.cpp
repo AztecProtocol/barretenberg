@@ -1,23 +1,26 @@
 #include "c_bind.hpp"
 #include "./curves/bn254//scalar_multiplication/scalar_multiplication.hpp"
 #include "./curves/bn254//scalar_multiplication/pippenger.hpp"
+#include <barretenberg/srs/io.hpp>
 
 using namespace barretenberg;
 
 extern "C" {
 
-WASM_EXPORT void ecc_new_pippenger(void const* points, uint32_t const* num_points, void** out_ptr)
+WASM_EXPORT void ecc_new_pippenger(uint8_t const* points, uint32_t const* num_points_buf, out_ptr out)
 {
-    *out_ptr = new scalar_multiplication::Pippenger((g1::affine_element*)points, ntohl(*num_points));
+    auto points_vec = from_buffer<std::vector<uint8_t>>(points);
+    auto num_points = ntohl(*num_points_buf);
+    *out = new scalar_multiplication::Pippenger(points_vec.data(), num_points);
 }
 
-WASM_EXPORT void ecc_delete_pippenger(void const* pippenger)
+WASM_EXPORT void ecc_delete_pippenger(in_ptr pippenger)
 {
-    delete (scalar_multiplication::Pippenger*)(pippenger);
+    delete (scalar_multiplication::Pippenger*)(*pippenger);
 }
 
-WASM_EXPORT void ecc_pippenger_unsafe(void const* pippenger_ptr,
-                                      void const* scalars_ptr,
+WASM_EXPORT void ecc_pippenger_unsafe(in_ptr pippenger_ptr,
+                                      in_ptr scalars_ptr,
                                       uint32_t const* from_ptr,
                                       uint32_t const* range_ptr,
                                       affine_element::out_buf result_ptr)
@@ -25,14 +28,14 @@ WASM_EXPORT void ecc_pippenger_unsafe(void const* pippenger_ptr,
     uint32_t from = ntohl(*from_ptr);
     uint32_t range = ntohl(*range_ptr);
     scalar_multiplication::pippenger_runtime_state state(range);
-    auto pippenger = (scalar_multiplication::Pippenger*)(pippenger_ptr);
-    auto result = pippenger->pippenger_unsafe((fr*)scalars_ptr, from, range);
+    auto pippenger = (scalar_multiplication::Pippenger*)(*pippenger_ptr);
+    auto result = pippenger->pippenger_unsafe((fr*)*scalars_ptr, from, range);
     write(result_ptr, static_cast<g1::affine_element>(result));
 }
 
-WASM_EXPORT void ecc_g1_sum(void const* points_ptr, uint32_t const* num_points_ptr, affine_element::out_buf result_ptr)
+WASM_EXPORT void ecc_g1_sum(in_ptr points_ptr, uint32_t const* num_points_ptr, affine_element::out_buf result_ptr)
 {
-    auto points = (g1::element*)(points_ptr);
+    auto points = (g1::element*)(*points_ptr);
     uint32_t num_points = ntohl(*num_points_ptr);
     g1::element initial;
     initial.self_set_infinity();

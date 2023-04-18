@@ -1,4 +1,5 @@
 #pragma once
+#include "barretenberg/crypto/sha256/sha256.hpp"
 #include "proving_key.hpp"
 #include "barretenberg/polynomials/serialize.hpp"
 #include "barretenberg/common/throw_or_abort.hpp"
@@ -53,6 +54,12 @@ template <typename B> inline void write(B& buf, proving_key const& key)
         const barretenberg::polynomial& value = ((proving_key&)key).polynomial_store.get(poly_id);
         write(buf, poly_id);
         write(buf, value);
+        // TODO: I'm see this polynomial serializing differently between WASM and native. Mem corruption? Something
+        // else?
+        // if (poly_id == "q_range_fft") {
+        //     info(poly_id, " hash: ", sha256::sha256(to_buffer(value)));
+        //     info(to_buffer(value));
+        // }
     }
 
     write(buf, key.contains_recursive_proof);

@@ -1,5 +1,6 @@
 #include "pippenger.hpp"
 #include "barretenberg/srs/io.hpp"
+
 namespace barretenberg {
 namespace scalar_multiplication {
 

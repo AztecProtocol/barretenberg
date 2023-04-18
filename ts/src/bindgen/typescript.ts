@@ -15,36 +15,40 @@ import { Fr, Fq, Point, Buffer32, Buffer128, Ptr } from '../types/index.js';
 `;
 
   for (const { functionName, inArgs, outArgs, isAsync } of functionDeclarations) {
-    const parameters = inArgs.map(({ name, type }) => `${toCamelCase(name)}: ${mapType(type)}`).join(', ');
-    const inArgsVar = `[${inArgs.map(arg => toCamelCase(arg.name)).join(', ')}]`;
-    const outTypesVar = `[${outArgs.map(arg => mapDeserializer(arg.type)).join(', ')}]`;
-    const wasmCall = `const result = ${
-      isAsync ? 'await asyncC' : 'c'
-    }allWasmExport('${functionName}', ${inArgsVar}, ${outTypesVar});`;
+    try {
+      const parameters = inArgs.map(({ name, type }) => `${toCamelCase(name)}: ${mapType(type)}`).join(', ');
+      const inArgsVar = `[${inArgs.map(arg => toCamelCase(arg.name)).join(', ')}]`;
+      const outTypesVar = `[${outArgs.map(arg => mapDeserializer(arg.type)).join(', ')}]`;
+      const wasmCall = `const result = ${
+        isAsync ? 'await asyncC' : 'c'
+      }allWasmExport('${functionName}', ${inArgsVar}, ${outTypesVar});`;
 
-    const n = outArgs.length;
-    const returnStmt = n === 0 ? 'return;' : n === 1 ? 'return result[0];' : 'return result as any;';
-    const returnType =
-      outArgs.length === 0
-        ? 'void'
-        : outArgs.length === 1
-        ? `${mapType(outArgs[0].type)}`
-        : `[${outArgs.map(a => mapType(a.type)).join(', ')}]`;
+      const n = outArgs.length;
+      const returnStmt = n === 0 ? 'return;' : n === 1 ? 'return result[0];' : 'return result as any;';
+      const returnType =
+        outArgs.length === 0
+          ? 'void'
+          : outArgs.length === 1
+          ? `${mapType(outArgs[0].type)}`
+          : `[${outArgs.map(a => mapType(a.type)).join(', ')}]`;
 
-    if (isAsync) {
-      output += `
+      if (isAsync) {
+        output += `
 export async function ${toCamelCase(functionName)}(${parameters}): Promise<${returnType}> {
   ${wasmCall}
   ${returnStmt}
 }
 `;
-    } else {
-      output += `
+      } else {
+        output += `
 export function ${toCamelCase(functionName)}(${parameters}): ${returnType} {
   ${wasmCall}
   ${returnStmt}
 }
 `;
+      }
+    } catch (err: any) {
+      throw new Error(`Function ${functionName}: ${err.message}`);
     }
   }
 

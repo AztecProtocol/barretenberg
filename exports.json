@@ -498,7 +498,7 @@
     "inArgs": [
       {
         "name": "points",
-        "type": "const void *"
+        "type": "const uint8_t *"
       },
       {
         "name": "num_points",
@@ -507,8 +507,8 @@
     ],
     "outArgs": [
       {
-        "name": "out_ptr",
-        "type": "void **"
+        "name": "out",
+        "type": "out_ptr"
       }
     ],
     "isAsync": false
@@ -518,7 +518,7 @@
     "inArgs": [
       {
         "name": "pippenger",
-        "type": "const void *"
+        "type": "in_ptr"
       }
     ],
     "outArgs": [],
@@ -529,11 +529,11 @@
     "inArgs": [
       {
         "name": "pippenger_ptr",
-        "type": "const void *"
+        "type": "in_ptr"
       },
       {
         "name": "scalars_ptr",
-        "type": "const void *"
+        "type": "in_ptr"
       },
       {
         "name": "from",
@@ -557,7 +557,7 @@
     "inArgs": [
       {
         "name": "points_ptr",
-        "type": "const void *"
+        "type": "in_ptr"
       },
       {
         "name": "num_points",
@@ -577,7 +577,7 @@
     "inArgs": [
       {
         "name": "prover",
-        "type": "const void *"
+        "type": "in_ptr"
       }
     ],
     "outArgs": [],
@@ -588,7 +588,7 @@
     "inArgs": [
       {
         "name": "prover",
-        "type": "const void *"
+        "type": "in_ptr"
       }
     ],
     "outArgs": [
@@ -604,13 +604,33 @@
     "inArgs": [
       {
         "name": "prover",
-        "type": "const void *"
+        "type": "in_ptr"
       }
     ],
     "outArgs": [
       {
         "name": "proof_data_buf",
         "type": "uint8_t **"
+      }
+    ],
+    "isAsync": false
+  },
+  {
+    "functionName": "examples_simple_create_and_verify_proof",
+    "inArgs": [
+      {
+        "name": "pippenger",
+        "type": "in_ptr"
+      },
+      {
+        "name": "g2x",
+        "type": "const uint8_t *"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "valid",
+        "type": "bool *"
       }
     ],
     "isAsync": false
