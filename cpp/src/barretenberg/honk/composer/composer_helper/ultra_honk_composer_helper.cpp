@@ -272,7 +272,7 @@ std::shared_ptr<plonk::proving_key> UltraHonkComposerHelper<CircuitConstructor>:
     // // this, we just choose distinct values:
 
     // TODO(#217)(luke): Similar to the selectors, enforcing non-zero values by inserting an arbitrary final element
-    // in the table polys will result in some relations failing. Address this with issue #217.
+    // in the table polys will result in lookup relations not being satisfied. Address this with issue #217.
     // size_t num_selectors = circuit_constructor.num_selectors;
     // ASSERT(offset == subgroup_size - 1);
     // auto unique_last_value = num_selectors + 1; // Note: in compute_proving_key_base, moments earlier, each selector

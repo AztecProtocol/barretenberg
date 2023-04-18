@@ -53,7 +53,7 @@ template <typename FF> class LookupGrandProductComputationRelation {
         auto table_1_shift = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::TABLE_1_SHIFT]);
         auto table_2_shift = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::TABLE_2_SHIFT]);
         auto table_3_shift = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::TABLE_3_SHIFT]);
-        auto table_4_shift = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::TABLE_3_SHIFT]);
+        auto table_4_shift = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::TABLE_4_SHIFT]);
 
         auto s_accum = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::S_ACCUM]);
         auto s_accum_shift = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::S_ACCUM_SHIFT]);
@@ -154,7 +154,7 @@ template <typename FF> class LookupGrandProductComputationRelation {
 template <typename FF> class LookupGrandProductInitializationRelation {
   public:
     // 1 + polynomial degree of this relation
-    static constexpr size_t RELATION_LENGTH = 4; // deg(z_lookup * wire_accum * q_lookup) = 3
+    static constexpr size_t RELATION_LENGTH = 3; // deg(lagrange_last * z_lookup_shift) = 2
     using MULTIVARIATE = proof_system::honk::UltraArithmetization::POLYNOMIAL;
 
     /**

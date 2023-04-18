@@ -535,7 +535,7 @@ TYPED_TEST(RelationConsistency, LookupGrandProductComputationRelation)
     const auto& table_1_shift = extended_edges[MULTIVARIATE::TABLE_1_SHIFT];
     const auto& table_2_shift = extended_edges[MULTIVARIATE::TABLE_2_SHIFT];
     const auto& table_3_shift = extended_edges[MULTIVARIATE::TABLE_3_SHIFT];
-    const auto& table_4_shift = extended_edges[MULTIVARIATE::TABLE_3_SHIFT];
+    const auto& table_4_shift = extended_edges[MULTIVARIATE::TABLE_4_SHIFT];
 
     const auto& s_accum = extended_edges[MULTIVARIATE::S_ACCUM];
     const auto& s_accum_shift = extended_edges[MULTIVARIATE::S_ACCUM_SHIFT];

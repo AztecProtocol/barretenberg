@@ -16,9 +16,6 @@
 #include "barretenberg/honk/utils/grand_product_delta.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 
-// DEBUG
-#include "barretenberg/plonk/composer/ultra_composer.hpp"
-
 #include <gtest/gtest.h>
 #include <string>
 #include <vector>
