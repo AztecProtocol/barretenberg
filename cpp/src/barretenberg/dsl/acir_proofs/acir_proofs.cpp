@@ -144,7 +144,8 @@ size_t serialize_proof_into_field_elements(uint8_t const* proof_data_buf,
  */
 size_t serialize_verification_key_into_field_elements(uint8_t const* g2x,
                                                       uint8_t const* vk_buf,
-                                                      uint8_t** serialized_vk_buf)
+                                                      uint8_t** serialized_vk_buf,
+                                                      uint8_t** serialized_vk_hash_buf)
 {
     auto crs = std::make_shared<VerifierMemReferenceString>(g2x);
     plonk::verification_key_data vk_data;
@@ -154,7 +155,8 @@ size_t serialize_verification_key_into_field_elements(uint8_t const* g2x,
     std::vector<barretenberg::fr> output = vkey->export_key_in_recursion_format();
 
     // NOTE: this output buffer will always have a fixed size! Maybe just precompute?
-    const size_t output_size_bytes = output.size() * sizeof(barretenberg::fr);
+    // Cut off 32 bytes as last element is the verification key hash which is not part of the key :o
+    const size_t output_size_bytes = output.size() * sizeof(barretenberg::fr) - 32;
     auto raw_buf = (uint8_t*)malloc(output_size_bytes);
     // NOTE: currently we dump the fr values into memory in Mongtomery form
     // This is so we don't have to re-convert into Montgomery form when we read these back in.
@@ -164,9 +166,15 @@ size_t serialize_verification_key_into_field_elements(uint8_t const* g2x,
     // for (size_t i = 0; i < output.size(); ++i) {
     //     barretenberg::fr::serialize_to_buffer(output[i], &raw_buf[i * 32]);
     // }
-    memcpy(raw_buf, (void*)output.data(), output_size_bytes);
 
+    // copy all but the vkey hash into raw_buf
+    memcpy(raw_buf, (void*)output.data(), output_size_bytes);
     *serialized_vk_buf = raw_buf;
+
+    // copy the vkey hash into vk_hash_raw_buf
+    auto vk_hash_raw_buf = (uint8_t*)malloc(32);
+    memcpy(vk_hash_raw_buf, (void*)&output[output.size() - 1], 32);
+    *serialized_vk_hash_buf = vk_hash_raw_buf;
 
     return output_size_bytes;
 }

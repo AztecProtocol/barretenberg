@@ -9,6 +9,8 @@ using namespace proof_system::plonk::stdlib::types;
 using verification_key_ct = proof_system::plonk::stdlib::recursion::verification_key<bn254>;
 using aggregation_state_ct = proof_system::plonk::stdlib::recursion::aggregation_state<bn254>;
 using noir_recursive_settings = proof_system::plonk::stdlib::recursion::recursive_ultra_verifier_settings<bn254>;
+using Transcript_ct = proof_system::plonk::stdlib::recursion::Transcript<Composer>;
+
 namespace acir_format {
 
 void generate_dummy_proof() {}
@@ -106,9 +108,16 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
     }
 
     // recursively verify the proof
-    aggregation_state_ct result = proof_system::plonk::stdlib::recursion::
-        verify_proof<bn254, noir_recursive_settings, inner_proof_contains_recursive_proof>(
-            &composer, manifest, key_fields, proof_fields, previous_aggregation);
+    std::shared_ptr<verification_key_ct> vkey =
+        verification_key_ct::template from_field_pt_vector<inner_proof_contains_recursive_proof>(&composer, key_fields);
+    vkey->program_width = noir_recursive_settings::program_width;
+    Transcript_ct transcript(&composer, manifest, proof_fields, 1);
+    aggregation_state_ct result = proof_system::plonk::stdlib::recursion::verify_proof_<bn254, noir_recursive_settings>(
+        &composer, vkey, transcript, previous_aggregation);
+
+    // Assign correct witness value to the verification key hash
+    vkey->compress().assert_equal(field_ct::from_witness_index(&composer, input.key_hash));
+
     // Assign the output aggregation object to the proof public inputs (16 field elements representing two
     // G1 points)
     result.add_proof_outputs_as_public_inputs();

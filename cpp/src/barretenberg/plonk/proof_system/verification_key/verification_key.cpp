@@ -218,6 +218,15 @@ std::vector<barretenberg::fr> verification_key::export_key_in_recursion_format()
         }
     }
 
+    verification_key_data vkey_data{
+        .composer_type = composer_type,
+        .circuit_size = static_cast<uint32_t>(circuit_size),
+        .num_public_inputs = static_cast<uint32_t>(num_public_inputs),
+        .commitments = commitments,
+        .contains_recursive_proof = contains_recursive_proof,
+        .recursive_proof_public_input_indices = recursive_proof_public_input_indices,
+    };
+    output.emplace_back(vkey_data.compress_native(0)); // key_hash
     return output;
 }
 
@@ -262,6 +271,7 @@ std::vector<barretenberg::fr> verification_key::export_dummy_key_in_recursion_fo
             output.emplace_back(y_hi);
         }
     }
+    output.emplace_back(0); // key_hash
 
     return output;
 }

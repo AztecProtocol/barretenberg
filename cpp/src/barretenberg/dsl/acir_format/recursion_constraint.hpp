@@ -33,6 +33,7 @@ struct RecursionConstraint {
     std::vector<uint32_t> key;
     std::vector<uint32_t> proof;
     uint32_t public_input;
+    uint32_t key_hash;
     std::array<uint32_t, AGGREGATION_OBJECT_SIZE> input_aggregation_object;
     std::array<uint32_t, AGGREGATION_OBJECT_SIZE> output_aggregation_object;
 
@@ -57,6 +58,7 @@ template <typename B> inline void read(B& buf, RecursionConstraint& constraint)
     read(buf, constraint.key);
     read(buf, constraint.proof);
     read(buf, constraint.public_input);
+    read(buf, constraint.key_hash);
     read(buf, constraint.input_aggregation_object);
     read(buf, constraint.output_aggregation_object);
 }
@@ -67,6 +69,7 @@ template <typename B> inline void write(B& buf, RecursionConstraint const& const
     write(buf, constraint.key);
     write(buf, constraint.proof);
     write(buf, constraint.public_input);
+    write(buf, constraint.key_hash);
     write(buf, constraint.input_aggregation_object);
     write(buf, constraint.output_aggregation_object);
 }

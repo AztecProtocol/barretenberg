@@ -124,7 +124,7 @@ TEST(RecursionConstraint, TestRecursionConstraint)
     for (size_t i = 0; i < 16; ++i) {
         // variable idx 1 = public input
         // variable idx 2-18 = output_vars
-        output_vars[i] = (static_cast<uint32_t>(i + 2));
+        output_vars[i] = (static_cast<uint32_t>(i + 3));
     }
 
     transcript::StandardTranscript transcript(
@@ -137,24 +137,25 @@ TEST(RecursionConstraint, TestRecursionConstraint)
     const size_t proof_size = proof_witnesses.size();
 
     for (size_t i = 0; i < proof_size; ++i) {
-        proof_indices.emplace_back(static_cast<uint32_t>(i + 18));
+        proof_indices.emplace_back(static_cast<uint32_t>(i + 19));
     }
 
     std::vector<uint32_t> key_indices;
     const size_t key_size = key_witnesses.size();
     for (size_t i = 0; i < key_size; ++i) {
-        key_indices.emplace_back(static_cast<uint32_t>(i + 18 + proof_size));
+        key_indices.emplace_back(static_cast<uint32_t>(i + 19 + proof_size));
     }
     acir_format::RecursionConstraint recursion_constraint{
         .key = key_indices,
         .proof = proof_indices,
         .public_input = 1,
+        .key_hash = 2,
         .input_aggregation_object = {},
         .output_aggregation_object = output_vars,
     };
 
     std::vector<fr> witness;
-    for (size_t i = 0; i < 17; ++i) {
+    for (size_t i = 0; i < 18; ++i) {
         witness.emplace_back(0);
     }
     for (const auto& wit : proof_witnesses) {
