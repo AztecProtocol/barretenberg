@@ -136,6 +136,17 @@ jobs:
           name: "Build"
           command: cond_spot_run_build barretenberg-x86_64-linux-clang-assert 64
 
+  solidity-verifier-tests:
+    docker:
+      - image: aztecprotocol/alpine-build-image
+    resource_class: small
+    steps:
+      - *checkout
+      - *setup_env
+      - run:
+          name: "Test"
+          command: build sol
+
   barretenberg-tests:
     docker:
       - image: aztecprotocol/alpine-build-image
@@ -247,6 +258,7 @@ workflows:
       - x86_64-linux-clang
       - x86_64-linux-clang-assert
       - wasm-linux-clang
+      - solidity-verifier-tests: *bb_test
       - honk-tests: *bb_test
       - barretenberg-tests: *bb_test
       - stdlib-primitives-tests: *bb_test
