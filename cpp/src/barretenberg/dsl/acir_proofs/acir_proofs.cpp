@@ -52,6 +52,8 @@ size_t init_proving_key(uint8_t const* constraint_system_buf, uint8_t const** pk
 {
     auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
 
+    // constraint_system.recursion_constraints[0].
+
     // We know that we don't actually need any CRS to create a proving key, so just feed in a nothing.
     // Hacky, but, right now it needs *something*.
     auto crs_factory = std::make_unique<ReferenceStringFactory>();
@@ -93,17 +95,81 @@ size_t init_verification_key(void* pippenger, uint8_t const* g2x, uint8_t const*
     return buffer.size();
 }
 
-// void serialize_proof_into_field_elements(uint8_t** proof_data_buf)
-// {
-// }
+/**
+ * @brief Takes in a proof buffer and converts into a vector of field elements.
+ *        The Recursion opcode requires the proof serialized as a vector of witnesses.
+ *        Use this method to get the witness values!
+ *
+ * @param proof_data_buf
+ * @param serialized_proof_data_buf
+ */
+size_t serialize_proof_into_field_elements(uint8_t const* proof_data_buf,
+                                           uint8_t** serialized_proof_data_buf,
+                                           size_t proof_data_length)
+{
+    plonk::proof proof = { std::vector<uint8_t>(proof_data_buf, &proof_data_buf[proof_data_length]) };
 
-// void serialize_verification_key_into_field_elements(uint8_t** vk_buf)
-// {
-//     plonk::verification_key key;
-//     read(vk_buf, key);
+    transcript::StandardTranscript transcript(
+        proof.proof_data, Composer::create_manifest(1), transcript::HashType::PlookupPedersenBlake3s, 16);
 
-//     // do the serialize thing...
-// }
+    std::vector<barretenberg::fr> output = transcript.export_transcript_in_recursion_format();
+
+    // NOTE: this output buffer will always have a fixed size! Maybe just precompute?
+    const size_t output_size_bytes = output.size() * sizeof(barretenberg::fr);
+    auto raw_buf = (uint8_t*)malloc(output_size_bytes);
+    // NOTE: currently we dump the fr values into memory in Mongtomery form
+    // This is so we don't have to re-convert into Montgomery form when we read these back in.
+    // I think this makes it easier to handle the data in barretenberg-sys / aztec-backend.
+    // If this is not the case, the commented out serialize code will convert out of Montgomery form before writing to
+    // the buffer
+    // for (size_t i = 0; i < output.size(); ++i) {
+    //     barretenberg::fr::serialize_to_buffer(output[i], &raw_buf[i * 32]);
+    // }
+    // for (size_t i = 0; i < output.size(); ++i) {
+    //     barretenberg::fr::serialize_to_buffer(output[i], &raw_buf[i * 32]);
+    // }
+    memcpy(raw_buf, (void*)output.data(), output_size_bytes);
+    *serialized_proof_data_buf = raw_buf;
+
+    return output_size_bytes;
+}
+
+/**
+ * @brief Takes in a verification key buffer and converts into a vector of field elements.
+ *        The Recursion opcode requires the vk serialized as a vector of witnesses.
+ *        Use this method to get the witness values!
+ *
+ * @param vk_buf
+ * @param serialized_vk_buf
+ */
+size_t serialize_verification_key_into_field_elements(uint8_t const* g2x,
+                                                      uint8_t const* vk_buf,
+                                                      uint8_t** serialized_vk_buf)
+{
+    auto crs = std::make_shared<VerifierMemReferenceString>(g2x);
+    plonk::verification_key_data vk_data;
+    read(vk_buf, vk_data);
+    auto vkey = std::make_shared<proof_system::plonk::verification_key>(std::move(vk_data), crs);
+
+    std::vector<barretenberg::fr> output = vkey->export_key_in_recursion_format();
+
+    // NOTE: this output buffer will always have a fixed size! Maybe just precompute?
+    const size_t output_size_bytes = output.size() * sizeof(barretenberg::fr);
+    auto raw_buf = (uint8_t*)malloc(output_size_bytes);
+    // NOTE: currently we dump the fr values into memory in Mongtomery form
+    // This is so we don't have to re-convert into Montgomery form when we read these back in.
+    // I think this makes it easier to handle the data in barretenberg-sys / aztec-backend.
+    // If this is not the case, the commented out serialize code will convert out of Montgomery form before writing to
+    // the buffer
+    // for (size_t i = 0; i < output.size(); ++i) {
+    //     barretenberg::fr::serialize_to_buffer(output[i], &raw_buf[i * 32]);
+    // }
+    memcpy(raw_buf, (void*)output.data(), output_size_bytes);
+
+    *serialized_vk_buf = raw_buf;
+
+    return output_size_bytes;
+}
 
 size_t new_proof(void* pippenger,
                  uint8_t const* g2x,
@@ -125,12 +191,12 @@ size_t new_proof(void* pippenger,
         reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), g2x);
     proving_key->reference_string = crs_factory->get_prover_crs(proving_key->circuit_size);
 
-    Composer composer(proving_key, nullptr);
+    auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
 
-    create_circuit_with_witness(composer, constraint_system, witness);
+    auto composer = acir_format::create_circuit_with_witness(constraint_system, witness);
 
     auto prover = composer.create_prover();
-
+    auto verifier = composer.create_verifier();
     auto heapProver = new stdlib::types::Prover(std::move(prover));
     auto& proof_data = heapProver->construct_proof().proof_data;
     *proof_data_buf = proof_data.data();

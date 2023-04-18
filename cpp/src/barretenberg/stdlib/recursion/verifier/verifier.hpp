@@ -196,7 +196,7 @@ aggregation_state<Curve> verify_proof(typename Curve::Composer* context,
  * Refer to src/barretenberg/plonk/proof_system/verifier/verifier.cpp verify_proof() for the native implementation,
  * which includes detailed comments.
  */
-template <typename Curve, typename program_settings>
+template <typename Curve, typename program_settings, bool inner_proof_contains_recursive_proof>
 aggregation_state<Curve> verify_proof(typename Curve::Composer* context,
                                       const transcript::Manifest& manifest,
                                       const std::vector<typename Curve::fr_ct>& key,
@@ -205,7 +205,8 @@ aggregation_state<Curve> verify_proof(typename Curve::Composer* context,
 {
     using Composer = typename Curve::Composer;
 
-    std::shared_ptr<verification_key<Curve>> vkey = verification_key<Curve>::from_field_pt_vector(context, key);
+    std::shared_ptr<verification_key<Curve>> vkey =
+        verification_key<Curve>::template from_field_pt_vector<inner_proof_contains_recursive_proof>(context, key);
     vkey->program_width = program_settings::program_width;
 
     const size_t num_public_inputs = static_cast<size_t>(uint256_t(vkey->num_public_inputs.get_value()).data[0]);

@@ -68,7 +68,7 @@ class StandardTranscript : public Transcript {
         std::vector<barretenberg::fr> fields;
         const auto num_rounds = get_manifest().get_num_rounds();
         for (size_t i = 0; i < num_rounds; ++i) {
-            for (auto manifest_element : get_manifest().get_round_manifest(i).elements) {
+            for (const auto& manifest_element : get_manifest().get_round_manifest(i).elements) {
                 if (!manifest_element.derived_by_verifier) {
                     if (manifest_element.num_bytes == 32 && manifest_element.name != "public_inputs") {
                         fields.emplace_back(get_field_element(manifest_element.name));
@@ -89,6 +89,47 @@ class StandardTranscript : public Transcript {
                         const auto public_inputs_vector = get_field_element_vector(manifest_element.name);
                         for (const auto& ele : public_inputs_vector) {
                             fields.emplace_back(ele);
+                        }
+                    }
+                }
+            }
+        }
+        return fields;
+    }
+
+    /**
+     * @brief Get a dummy fake proof for recursion. All elliptic curve group elements are still valid points to prevent
+     * errors being thrown.
+     *
+     * @param manifest
+     * @return std::vector<barretenberg::fr>
+     */
+    static std::vector<barretenberg::fr> export_dummy_transcript_in_recursion_format(const Manifest& manifest)
+    {
+        std::vector<barretenberg::fr> fields;
+        const auto num_rounds = manifest.get_num_rounds();
+        for (size_t i = 0; i < num_rounds; ++i) {
+            for (const auto& manifest_element : manifest.get_round_manifest(i).elements) {
+                if (!manifest_element.derived_by_verifier) {
+                    if (manifest_element.num_bytes == 32 && manifest_element.name != "public_inputs") {
+                        fields.emplace_back(0);
+                    } else if (manifest_element.num_bytes == 64 && manifest_element.name != "public_inputs") {
+                        const auto group_element = barretenberg::g1::affine_one;
+                        const uint256_t x = group_element.x;
+                        const uint256_t y = group_element.y;
+                        const barretenberg::fr x_lo = x.slice(0, 136);
+                        const barretenberg::fr x_hi = x.slice(136, 272);
+                        const barretenberg::fr y_lo = y.slice(0, 136);
+                        const barretenberg::fr y_hi = y.slice(136, 272);
+                        fields.emplace_back(x_lo);
+                        fields.emplace_back(x_hi);
+                        fields.emplace_back(y_lo);
+                        fields.emplace_back(y_hi);
+                    } else {
+                        ASSERT(manifest_element.name == "public_inputs");
+                        const size_t num_public_inputs = manifest_element.num_bytes / 32;
+                        for (size_t j = 0; j < num_public_inputs; ++j) {
+                            fields.emplace_back(0);
                         }
                     }
                 }

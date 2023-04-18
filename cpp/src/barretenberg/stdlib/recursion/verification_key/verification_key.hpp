@@ -29,6 +29,7 @@ template <typename Composer> struct evaluation_domain {
     {
         evaluation_domain domain;
         domain.root = fields[0];
+
         domain.root_inverse = domain.root.invert();
         domain.domain = fields[1];
         domain.domain_inverse = domain.domain.invert();
@@ -119,8 +120,11 @@ template <typename Composer> struct evaluation_domain {
 template <typename Curve> struct verification_key {
     using Composer = typename Curve::Composer;
 
-    static std::shared_ptr<verification_key> from_field_pt_vector(Composer* ctx,
-                                                                  const std::vector<field_t<Composer>>& fields)
+    template <bool inner_proof_contains_recursive_proof = false>
+    static std::shared_ptr<verification_key> from_field_pt_vector(
+        Composer* ctx,
+        const std::vector<field_t<Composer>>& fields,
+        std::array<uint32_t, 16> recursive_proof_public_input_indices = {})
     {
         std::vector<fr> fields_raw;
         std::shared_ptr<verification_key> key = std::make_shared<verification_key>();
@@ -140,9 +144,9 @@ template <typename Curve> struct verification_key {
             key->recursive_proof_public_input_indices.emplace_back(idx);
         }
         // Apply constraints to force the recursive proof information to be circuit constants
-        fields[5].assert_equal(key->contains_recursive_proof);
+        fields[5].assert_equal(inner_proof_contains_recursive_proof);
         for (size_t i = 0; i < 16; ++i) {
-            fields[6 + i].assert_equal(key->recursive_proof_public_input_indices[i]);
+            fields[6 + i].assert_equal(recursive_proof_public_input_indices[i]);
         }
 
         size_t count = 22;
@@ -160,6 +164,7 @@ template <typename Curve> struct verification_key {
                 key->commitments.insert({ std::string(descriptor.commitment_label), element });
             }
         }
+
         return key;
     }
 

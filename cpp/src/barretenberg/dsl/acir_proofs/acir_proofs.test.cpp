@@ -100,11 +100,10 @@ void create_inner_circuit(acir_format::acir_format& constraint_system, std::vect
     witness.emplace_back(1);
 }
 
-static acir_format::acir_format constraint_system;
-static std::vector<fr> witness;
-
 TEST(AcirProofs, TestSerialization)
 {
+    acir_format::acir_format constraint_system;
+    std::vector<fr> witness;
     create_inner_circuit(constraint_system, witness);
 
     std::vector<uint8_t> witness_buf;           // = to_buffer(witness);
@@ -137,4 +136,191 @@ TEST(AcirProofs, TestSerialization)
     bool verified = acir_proofs::verify_proof(
         &g2x_buffer[0], vk_buf, &constraint_system_buf[0], proof_data_buf, static_cast<uint32_t>(proof_length));
     EXPECT_EQ(verified, true);
+}
+
+TEST(AcirProofs, TestSerializationWithRecursion)
+{
+    uint8_t* proof_data_fields = nullptr;
+    uint8_t* vk_fields = nullptr;
+    size_t proof_fields_size = 0;
+    size_t vk_fields_size = 0;
+
+    // inner circuit
+    {
+        acir_format::acir_format constraint_system;
+        std::vector<fr> witness;
+        create_inner_circuit(constraint_system, witness);
+
+        std::vector<uint8_t> witness_buf;           // = to_buffer(witness);
+        std::vector<uint8_t> constraint_system_buf; //
+        write(constraint_system_buf, constraint_system);
+        write(witness_buf, witness);
+
+        uint8_t const* pk_buf = nullptr;
+        acir_proofs::init_proving_key(&constraint_system_buf[0], &pk_buf);
+
+        uint32_t total_circuit_size = acir_proofs::get_total_circuit_size(&constraint_system_buf[0]);
+        uint32_t pow2_size = 1 << (numeric::get_msb(total_circuit_size) + 1);
+        auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
+        auto verifier_crs = env_crs->get_verifier_crs();
+        barretenberg::g2::affine_element g2x = verifier_crs->get_g2x();
+
+        auto* pippenger_ptr_base =
+            new scalar_multiplication::Pippenger(env_load_prover_crs(pow2_size + 1), pow2_size + 1);
+        void* pippenger_ptr = reinterpret_cast<void*>(pippenger_ptr_base);
+
+        std::vector<uint8_t> g2x_buffer(128);
+        io::write_g2_elements_to_buffer(&g2x, (char*)(&g2x_buffer[0]), 1);
+
+        uint8_t const* vk_buf = nullptr;
+        acir_proofs::init_verification_key(pippenger_ptr, &g2x_buffer[0], pk_buf, &vk_buf);
+
+        uint8_t* proof_data_buf = nullptr;
+        size_t proof_length = acir_proofs::new_proof(
+            pippenger_ptr, &g2x_buffer[0], pk_buf, &constraint_system_buf[0], &witness_buf[0], &proof_data_buf);
+        proof_fields_size =
+            acir_proofs::serialize_proof_into_field_elements(proof_data_buf, &proof_data_fields, proof_length);
+        vk_fields_size =
+            acir_proofs::serialize_verification_key_into_field_elements(&g2x_buffer[0], vk_buf, &vk_fields);
+
+        bool verified = acir_proofs::verify_proof(
+            &g2x_buffer[0], vk_buf, &constraint_system_buf[0], proof_data_buf, static_cast<uint32_t>(proof_length));
+        EXPECT_EQ(verified, true);
+
+        delete pippenger_ptr_base;
+        // free((void*)vk_buf);
+        // free((void*)pk_buf);
+    }
+    // outer circuit
+    {
+        std::vector<fr> proof_witnesses(proof_fields_size / 32);
+        std::vector<fr> key_witnesses(vk_fields_size / 32);
+        memcpy(proof_witnesses.data(), (void*)proof_data_fields, proof_fields_size);
+        memcpy(&key_witnesses[0], (void*)vk_fields, vk_fields_size);
+
+        std::vector<uint32_t> proof_indices;
+
+        const size_t proof_size = proof_witnesses.size();
+
+        for (size_t i = 0; i < proof_size; ++i) {
+            proof_indices.emplace_back(static_cast<uint32_t>(i + 18));
+        }
+
+        std::vector<uint32_t> key_indices;
+        const size_t key_size = key_witnesses.size();
+        for (size_t i = 0; i < key_size; ++i) {
+            key_indices.emplace_back(static_cast<uint32_t>(i + 18 + proof_size));
+        }
+
+        std::array<uint32_t, acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE> output_vars;
+        for (size_t i = 0; i < acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE; ++i) {
+            // variable idx 1 = public input
+            // variable idx 2-18 = output_vars
+            output_vars[i] = (static_cast<uint32_t>(i + 2));
+        }
+        acir_format::RecursionConstraint recursion_constraint{
+            .key = key_indices,
+            .proof = proof_indices,
+            .public_input = 1,
+            .input_aggregation_object = {},
+            .output_aggregation_object = output_vars,
+        };
+
+        //     {
+        //   std::vector<fr> witness;
+        //     for (size_t i = 0; i < 17; ++i) {
+        //         witness.emplace_back(0);
+        //     }
+        //     for (const auto& wit : proof_witnesses) {
+        //         witness.emplace_back(wit);
+        //     }
+        //     for (const auto& wit : key_witnesses) {
+        //         witness.emplace_back(wit);
+        //     }
+
+        //             acir_format::acir_format constraint_system{
+        //         .varnum = static_cast<uint32_t>(witness.size() + 1),
+        //         .public_inputs = { 1 },
+        //         .fixed_base_scalar_mul_constraints = {},
+        //         .logic_constraints = {},
+        //         .range_constraints = {},
+        //         .schnorr_constraints = {},
+        //         .ecdsa_constraints = {},
+        //         .sha256_constraints = {},
+        //         .blake2s_constraints = {},
+        //         .hash_to_field_constraints = {},
+        //         .pedersen_constraints = {},
+        //         .merkle_membership_constraints = {},
+        //         .recursion_constraints = { recursion_constraint },
+        //         .constraints = {},
+        //     };
+        //         auto composer = acir_format::create_circuit_with_witness(constraint_system, witness);
+        // auto prover = composer.create_prover();
+
+        // auto proof = prover.construct_proof();
+        // auto verifier = composer.create_verifier();
+        // EXPECT_EQ(verifier.verify_proof(proof), true);
+
+        // EXPECT_EQ(composer.get_variable(1), 10);
+
+        //     }
+        std::vector<fr> witness;
+        for (size_t i = 0; i < 17; ++i) {
+            witness.emplace_back(0);
+        }
+        for (const auto& wit : proof_witnesses) {
+            witness.emplace_back(wit);
+        }
+        for (const auto& wit : key_witnesses) {
+            witness.emplace_back(wit);
+        }
+
+        acir_format::acir_format constraint_system{
+            .varnum = static_cast<uint32_t>(witness.size() + 1),
+            .public_inputs = { 1 },
+            .fixed_base_scalar_mul_constraints = {},
+            .logic_constraints = {},
+            .range_constraints = {},
+            .schnorr_constraints = {},
+            .ecdsa_constraints = {},
+            .sha256_constraints = {},
+            .blake2s_constraints = {},
+            .hash_to_field_constraints = {},
+            .pedersen_constraints = {},
+            .merkle_membership_constraints = {},
+            .recursion_constraints = { recursion_constraint },
+            .constraints = {},
+        };
+
+        std::vector<uint8_t> witness_buf;
+        std::vector<uint8_t> constraint_system_buf;
+        write(constraint_system_buf, constraint_system);
+        write(witness_buf, witness);
+        uint8_t const* pk_buf = nullptr;
+        acir_proofs::init_proving_key(&constraint_system_buf[0], &pk_buf);
+
+        uint32_t total_circuit_size = acir_proofs::get_total_circuit_size(&constraint_system_buf[0]);
+        uint32_t pow2_size = 1 << (numeric::get_msb(total_circuit_size) + 1);
+        auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
+        auto verifier_crs = env_crs->get_verifier_crs();
+        barretenberg::g2::affine_element g2x = verifier_crs->get_g2x();
+
+        auto* pippenger_ptr_base =
+            new scalar_multiplication::Pippenger(env_load_prover_crs(pow2_size + 1), pow2_size + 1);
+        void* pippenger_ptr = reinterpret_cast<void*>(pippenger_ptr_base);
+
+        std::vector<uint8_t> g2x_buffer(128);
+        io::write_g2_elements_to_buffer(&g2x, (char*)(&g2x_buffer[0]), 1);
+
+        uint8_t const* vk_buf = nullptr;
+        acir_proofs::init_verification_key(pippenger_ptr, &g2x_buffer[0], pk_buf, &vk_buf);
+
+        uint8_t* proof_data_buf = nullptr;
+        size_t proof_length = acir_proofs::new_proof(
+            pippenger_ptr, &g2x_buffer[0], pk_buf, &constraint_system_buf[0], &witness_buf[0], &proof_data_buf);
+
+        bool verified = acir_proofs::verify_proof(
+            &g2x_buffer[0], vk_buf, &constraint_system_buf[0], proof_data_buf, static_cast<uint32_t>(proof_length));
+        EXPECT_EQ(verified, true);
+    }
 }

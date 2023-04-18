@@ -73,6 +73,7 @@ template <typename B> inline void read(B& buf, acir_format& data)
     read(buf, data.pedersen_constraints);
     read(buf, data.hash_to_field_constraints);
     read(buf, data.fixed_base_scalar_mul_constraints);
+    read(buf, data.recursion_constraints);
     read(buf, data.constraints);
 }
 
@@ -91,6 +92,7 @@ template <typename B> inline void write(B& buf, acir_format const& data)
     write(buf, data.pedersen_constraints);
     write(buf, data.hash_to_field_constraints);
     write(buf, data.fixed_base_scalar_mul_constraints);
+    write(buf, data.recursion_constraints);
     write(buf, data.constraints);
 }
 

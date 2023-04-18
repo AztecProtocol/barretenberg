@@ -89,7 +89,7 @@ void create_circuit(Composer& composer, const acir_format& constraint_system)
 
     // Add recursion constraints
     for (const auto& constraint : constraint_system.recursion_constraints) {
-        create_recursion_constraints(composer, constraint);
+        create_recursion_constraints<false, false>(composer, constraint);
     }
 }
 
@@ -172,7 +172,7 @@ Composer create_circuit(const acir_format& constraint_system,
 
     // Add recursion constraints
     for (const auto& constraint : constraint_system.recursion_constraints) {
-        create_recursion_constraints(composer, constraint);
+        create_recursion_constraints<false, false>(composer, constraint);
     }
 
     return composer;
@@ -261,7 +261,7 @@ Composer create_circuit_with_witness(const acir_format& constraint_system,
 
     // Add recursion constraints
     for (const auto& constraint : constraint_system.recursion_constraints) {
-        create_recursion_constraints(composer, constraint);
+        create_recursion_constraints<true, false>(composer, constraint);
     }
     return composer;
 }
@@ -346,7 +346,7 @@ Composer create_circuit_with_witness(const acir_format& constraint_system, std::
 
     // Add recursion constraints
     for (const auto& constraint : constraint_system.recursion_constraints) {
-        create_recursion_constraints(composer, constraint);
+        create_recursion_constraints<true, false>(composer, constraint);
     }
     return composer;
 }
@@ -429,7 +429,7 @@ void create_circuit_with_witness(Composer& composer, const acir_format& constrai
 
     // Add recursion constraints
     for (const auto& constraint : constraint_system.recursion_constraints) {
-        create_recursion_constraints(composer, constraint);
+        create_recursion_constraints<true, false>(composer, constraint);
     }
 }
 

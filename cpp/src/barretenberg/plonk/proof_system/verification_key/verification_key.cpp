@@ -221,4 +221,49 @@ std::vector<barretenberg::fr> verification_key::export_key_in_recursion_format()
     return output;
 }
 
+/**
+ * @brief When recursively verifying proofs, we represent the verification key using field elements.
+ *        This method exports the key formatted in the manner our recursive verifier expects.
+ *        A dummy key is used when building a circuit without a valid witness assignment.
+ *        We want the transcript to contain valid G1 points to prevent on-curve errors being thrown.
+ *        We want a non-zero circuit size as this element will be inverted by the circuit
+ *        and we do not want an "inverting 0" error thrown
+ *
+ * @return std::vector<barretenberg::fr>
+ */
+std::vector<barretenberg::fr> verification_key::export_dummy_key_in_recursion_format(
+    const PolynomialManifest& polynomial_manifest, const bool contains_recursive_proof)
+{
+    std::vector<fr> output;
+    output.emplace_back(1); // domain.domain (will be inverted)
+    output.emplace_back(1); // domain.root (will be inverted)
+    output.emplace_back(1); // domain.generator (will be inverted)
+
+    output.emplace_back(1); // circuit size
+    output.emplace_back(1); // num public inputs
+
+    output.emplace_back(contains_recursive_proof); // contains_recursive_proof
+    for (size_t i = 0; i < 16; ++i) {
+        output.emplace_back(0); // recursive_proof_public_input_indices
+    }
+
+    for (const auto& descriptor : polynomial_manifest.get()) {
+        if (descriptor.source == PolynomialSource::SELECTOR || descriptor.source == PolynomialSource::PERMUTATION) {
+            const auto element = barretenberg::g1::affine_one;
+            const uint256_t x = element.x;
+            const uint256_t y = element.y;
+            const barretenberg::fr x_lo = x.slice(0, 136);
+            const barretenberg::fr x_hi = x.slice(136, 272);
+            const barretenberg::fr y_lo = y.slice(0, 136);
+            const barretenberg::fr y_hi = y.slice(136, 272);
+            output.emplace_back(x_lo);
+            output.emplace_back(x_hi);
+            output.emplace_back(y_lo);
+            output.emplace_back(y_hi);
+        }
+    }
+
+    return output;
+}
+
 } // namespace proof_system::plonk

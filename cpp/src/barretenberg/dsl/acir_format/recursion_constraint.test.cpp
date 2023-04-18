@@ -126,9 +126,6 @@ TEST(RecursionConstraint, TestRecursionConstraint)
         // variable idx 2-18 = output_vars
         output_vars[i] = (static_cast<uint32_t>(i + 2));
     }
-    // verification_key_data keydata;
-    // uint8_t const* vk_buf = &keybuf[0];
-    // read(vk_buf, keydata);
 
     transcript::StandardTranscript transcript(
         inner_proof.proof_data, Composer::create_manifest(1), transcript::HashType::PlookupPedersenBlake3s, 16);
@@ -151,7 +148,6 @@ TEST(RecursionConstraint, TestRecursionConstraint)
     acir_format::RecursionConstraint recursion_constraint{
         .key = key_indices,
         .proof = proof_indices,
-        .is_aggregation_object_nonzero = false,
         .public_input = 1,
         .input_aggregation_object = {},
         .output_aggregation_object = output_vars,

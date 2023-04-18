@@ -8,6 +8,12 @@ uint32_t get_exact_circuit_size(uint8_t const* constraint_system_buf);
 uint32_t get_total_circuit_size(uint8_t const* constraint_system_buf);
 size_t init_proving_key(uint8_t const* constraint_system_buf, uint8_t const** pk_buf);
 size_t init_verification_key(void* pippenger, uint8_t const* g2x, uint8_t const* pk_buf, uint8_t const** vk_buf);
+size_t serialize_verification_key_into_field_elements(uint8_t const* g2x,
+                                                      uint8_t const* vk_buf,
+                                                      uint8_t** serialized_vk_buf);
+size_t serialize_proof_into_field_elements(uint8_t const* proof_data_buf,
+                                           uint8_t** serialized_proof_data_buf,
+                                           size_t proof_data_length);
 size_t new_proof(void* pippenger,
                  uint8_t const* g2x,
                  uint8_t const* pk_buf,

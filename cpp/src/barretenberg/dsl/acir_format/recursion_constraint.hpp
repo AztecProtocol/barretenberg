@@ -24,12 +24,14 @@ namespace acir_format {
  * @param public_input The index of the single public input
  * @param input_aggregation_object Witness indices of pre-existing aggregation object (if it exists)
  * @param output_aggregation_object Witness indecies of the aggregation object produced by recursive verification
+ *
+ * @note If input_aggregation_object witness indices are all zero, we interpret this to mean that the inner proof does
+ * NOT contai
  */
 struct RecursionConstraint {
     static constexpr size_t AGGREGATION_OBJECT_SIZE = 16; // 16 field elements
     std::vector<uint32_t> key;
     std::vector<uint32_t> proof;
-    bool is_aggregation_object_nonzero;
     uint32_t public_input;
     std::array<uint32_t, AGGREGATION_OBJECT_SIZE> input_aggregation_object;
     std::array<uint32_t, AGGREGATION_OBJECT_SIZE> output_aggregation_object;
@@ -37,14 +39,23 @@ struct RecursionConstraint {
     friend bool operator==(RecursionConstraint const& lhs, RecursionConstraint const& rhs) = default;
 };
 
+template <bool has_valid_witness_assignment = false, bool inner_proof_contains_recursive_proof = false>
 void create_recursion_constraints(plonk::stdlib::types::Composer& composer, const RecursionConstraint& input);
+
+extern template void create_recursion_constraints<false, false>(plonk::stdlib::types::Composer&,
+                                                                const RecursionConstraint&);
+extern template void create_recursion_constraints<false, true>(plonk::stdlib::types::Composer&,
+                                                               const RecursionConstraint&);
+extern template void create_recursion_constraints<true, false>(plonk::stdlib::types::Composer&,
+                                                               const RecursionConstraint&);
+extern template void create_recursion_constraints<true, true>(plonk::stdlib::types::Composer&,
+                                                              const RecursionConstraint&);
 
 template <typename B> inline void read(B& buf, RecursionConstraint& constraint)
 {
     using serialize::read;
     read(buf, constraint.key);
     read(buf, constraint.proof);
-    read(buf, constraint.is_aggregation_object_nonzero);
     read(buf, constraint.public_input);
     read(buf, constraint.input_aggregation_object);
     read(buf, constraint.output_aggregation_object);
@@ -55,7 +66,6 @@ template <typename B> inline void write(B& buf, RecursionConstraint const& const
     using serialize::write;
     write(buf, constraint.key);
     write(buf, constraint.proof);
-    write(buf, constraint.is_aggregation_object_nonzero);
     write(buf, constraint.public_input);
     write(buf, constraint.input_aggregation_object);
     write(buf, constraint.output_aggregation_object);
