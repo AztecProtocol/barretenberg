@@ -81,7 +81,7 @@ int main(int argc, char** argv)
         info("Only ultra plonk flavour is supported at the moment");
         return 1;
     } else {
-        info("Generating ultra plonk keys");
+        info("Generating ultra plonk keys for ", circuit_flavour, " circuit");
 
         if (circuit_flavour == "blake") {
             generate_keys<UltraComposer, BlakeCircuit<UltraComposer>>(

@@ -17,10 +17,11 @@ template <typename Composer, typename Circuit> void generate_proof(std::string s
 {
     Composer composer = Circuit::generate(srs_path, inputs);
 
-    auto prover = composer.create_prover();
+    // @todo this only works for ultra! Why is ultra part of function name on ultra composer?
+    auto prover = composer.create_ultra_with_keccak_prover();
     auto proof = prover.construct_proof();
     {
-        auto verifier = composer.create_verifier();
+        auto verifier = composer.create_ultra_with_keccak_verifier();
 
         if (!verifier.verify_proof(proof)) {
             throw std::runtime_error("Verification failed");
@@ -62,12 +63,11 @@ int main(int argc, char** argv)
     // @todo dynamically allocate this
     uint256_t inputs[] = { 0, 0, 0, 0, 0 };
 
-    // Ran into issues with the old way of splitting strings. Used this to get around edge cases
     size_t count = 0;
-    std::stringstream s_stream(string_input); // create string stream from the string
+    std::stringstream s_stream(string_input);
     while (s_stream.good()) {
         std::string sub;
-        getline(s_stream, sub, ','); // get first string delimited by comma
+        getline(s_stream, sub, ',');
         if (sub.substr(0, 2) == "0x") {
             sub = sub.substr(2);
         }

@@ -39,14 +39,15 @@ template <typename OuterComposer> class RecursiveCircuit {
 
     static void create_inner_circuit_no_tables(InnerComposer& composer, uint256_t inputs[])
     {
-        field_ct a(witness_ct(&composer, inputs[0]));
+        field_ct a(public_witness_ct(&composer, inputs[0]));
         field_ct b(public_witness_ct(&composer, inputs[1]));
         field_ct c(public_witness_ct(&composer, inputs[2]));
 
         // @note For some reason, if we don't have this line, the circuit fails to verify.
-        // auto c_sq = c * c;
+        auto c_sq = c * c;
 
         c.assert_equal(a + b);
+        c_sq.assert_equal(c * c);
     };
 
     static circuit_outputs create_outer_circuit(InnerComposer& inner_composer, OuterComposer& outer_composer)
