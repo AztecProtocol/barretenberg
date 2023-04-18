@@ -15,7 +15,14 @@ template <typename FF> class LookupGrandProductComputationRelation {
      * @brief Compute contribution of the lookup grand prod relation for a given edge (internal function)
      *
      * @details This the relation confirms faithful calculation of the lookup grand
-     * product polynomial Z_lookup.
+     * product polynomial Z_lookup. The contribution is
+     *      z_lookup * (1 + β) * [q_lookup * f + γ] * (t_accum_k + βt_accum_{k+1} + γ(1 + β)) -
+     *      z_lookup_shift * (s_accum_k + βs_accum_{k+1} + γ(1 + β))
+     * where
+     *      f = (w_1 + q_2*w_1_shift) + η(w_2 + q_m*w_2_shift) + η²(w_3 + q_c*w_3_shift) + η³q_index,
+     *      t_accum = table_1 + ηtable_2 + η²table_3 + η³table_4, and
+     *      s_accum = s_1 + ηs_2 + η²s_3 + η³s_4.
+     * Note: Selectors q_2, q_m and q_c are repurposed as 'column step size' for lookup gates.
      *
      * @param evals transformed to `evals + C(extended_edges(X)...)*scaling_factor`
      * @param extended_edges an std::array containing the fully extended Univariate edges.
@@ -70,10 +77,13 @@ template <typename FF> class LookupGrandProductComputationRelation {
         auto lagrange_first = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::LAGRANGE_FIRST]);
         auto lagrange_last = UnivariateView<FF, RELATION_LENGTH>(extended_edges[MULTIVARIATE::LAGRANGE_LAST]);
 
+        // (w_1 + q_2*w_1_shift) + η(w_2 + q_m*w_2_shift) + η²(w_3 + q_c*w_3_shift) + η³q_index.
         auto wire_accum = (w_1 + column_1_step_size * w_1_shift) + (w_2 + column_2_step_size * w_2_shift) * eta +
                           (w_3 + column_3_step_size * w_3_shift) * eta_sqr + table_index * eta_cube;
 
+        // t_1 + ηt_2 + η²t_3 + η³t_4
         auto table_accum = table_1 + table_2 * eta + table_3 * eta_sqr + table_4 * eta_cube;
+        // t_1_shift + ηt_2_shift + η²t_3_shift + η³t_4_shift
         auto table_accum_shift =
             table_1_shift + table_2_shift * eta + table_3_shift * eta_sqr + table_4_shift * eta_cube;
 
@@ -133,10 +143,13 @@ template <typename FF> class LookupGrandProductComputationRelation {
         auto lagrange_first = purported_evaluations[MULTIVARIATE::LAGRANGE_FIRST];
         auto lagrange_last = purported_evaluations[MULTIVARIATE::LAGRANGE_LAST];
 
+        // (w_1 + q_2*w_1_shift) + η(w_2 + q_m*w_2_shift) + η²(w_3 + q_c*w_3_shift) + η³q_index.
         auto wire_accum = (w_1 + column_1_step_size * w_1_shift) + (w_2 + column_2_step_size * w_2_shift) * eta +
                           (w_3 + column_3_step_size * w_3_shift) * eta_sqr + table_index * eta_cube;
 
+        // t_1 + ηt_2 + η²t_3 + η³t_4
         auto table_accum = table_1 + table_2 * eta + table_3 * eta_sqr + table_4 * eta_cube;
+        // t_1_shift + ηt_2_shift + η²t_3_shift + η³t_4_shift
         auto table_accum_shift =
             table_1_shift + table_2_shift * eta + table_3_shift * eta_sqr + table_4_shift * eta_cube;
 
