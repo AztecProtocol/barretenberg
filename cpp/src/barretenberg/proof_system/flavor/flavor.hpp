@@ -61,9 +61,8 @@ template <typename PrecomputedData, typename FF> class BaseProvingKey : public P
         , log_circuit_size(numeric::get_msb(circuit_size))
         , num_public_inputs(num_public_inputs)
         , crs(crs)
-        ,
-        //   evaluation_domain(circuit_size, circuit_size),
-        composer_type(composer_type){};
+        , evaluation_domain(circuit_size, circuit_size)
+        , composer_type(composer_type){};
 };
 
 /**
