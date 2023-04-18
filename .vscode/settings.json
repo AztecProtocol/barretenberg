@@ -127,6 +127,5 @@
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "cmake.sourceDirectory": "${workspaceFolder}/cpp",
-  "C_Cpp.errorSquiggles": "disabled"
+  "cmake.sourceDirectory": "${workspaceFolder}/cpp"
 }
