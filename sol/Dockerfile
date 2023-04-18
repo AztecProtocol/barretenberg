@@ -1,4 +1,4 @@
-FROM 278380418400.dkr.ecr.us-east-2.amazonaws.com/barretenberg-x86_64-linux-clang
+FROM 278380418400.dkr.ecr.us-east-2.amazonaws.com/barretenberg-x86_64-linux-clang-assert
 
 FROM ubuntu:focal as builder
 RUN apt-get update && apt install -y git curl
