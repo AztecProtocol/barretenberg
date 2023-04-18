@@ -88,15 +88,13 @@ field_t<Composer> logic<Composer>::create_logic_constraint(field_pt& a, field_pt
 
             left = left >> 32;
             right = right >> 32;
-
-            info("slicing to ", static_cast<uint8_t>(num_bits - 1));
-
-            field_pt a_slice = a.slice(static_cast<uint8_t>(num_bits - 1), 0)[1];
-            field_pt b_slice = b.slice(static_cast<uint8_t>(num_bits - 1), 0)[1];
-
-            a_slice.assert_equal(a_accumulator, "stdlib logic: failed to reconstruct left operand");
-            b_slice.assert_equal(b_accumulator, "stdlib logic: failed to reconstruct right operand");
         }
+
+        // info("slicing to ", static_cast<uint8_t>(num_bits - 1));
+        field_pt a_slice = a.slice(static_cast<uint8_t>(num_bits - 1), 0)[1];
+        field_pt b_slice = b.slice(static_cast<uint8_t>(num_bits - 1), 0)[1];
+        a_slice.assert_equal(a_accumulator, "stdlib logic: failed to reconstruct left operand");
+        b_slice.assert_equal(b_accumulator, "stdlib logic: failed to reconstruct right operand");
 
         return res;
     } else {

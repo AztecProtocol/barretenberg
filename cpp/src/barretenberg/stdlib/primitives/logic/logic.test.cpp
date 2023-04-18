@@ -50,7 +50,7 @@ template <typename Composer> class stdlib_logic : public testing::Test {
                 if (test_xor) {
                     uint256_t xor_expected = a ^ b;
                     field_ct xor_result = stdlib::logic<Composer>::create_logic_constraint(x, y, num_bits, test_xor);
-                    info("  ", composer.num_gates);
+                    // info("  ", composer.num_gates);
                     // field_ct xor_result_left_constant =
                     //     stdlib::logic<Composer>::create_logic_constraint(x_const, y, num_bits, test_xor);
                     // info("  ", composer.num_gates);
@@ -65,9 +65,9 @@ template <typename Composer> class stdlib_logic : public testing::Test {
                     // EXPECT_EQ(uint256_t(xor_result_left_constant.get_value()), xor_expected);
                     // EXPECT_EQ(uint256_t(xor_result_right_constant.get_value()), xor_expected);
                     // EXPECT_EQ(uint256_t(xor_result_both_constant.get_value()), xor_expected);
-                } else {
+                    // } else {
                     uint256_t and_expected = a & b;
-                    field_ct and_result = stdlib::logic<Composer>::create_logic_constraint(x, y, num_bits, test_xor);
+                    field_ct and_result = stdlib::logic<Composer>::create_logic_constraint(x, y, num_bits, !test_xor);
                     // info("  ", composer.num_gates);
                     // field_ct and_result_left_constant =
                     //     stdlib::logic<Composer>::create_logic_constraint(x_const, y, num_bits, test_xor);
@@ -86,11 +86,11 @@ template <typename Composer> class stdlib_logic : public testing::Test {
                 }
             };
 
-            for (size_t i = 8; i < 40; i += 8) { // TODO(Cody): extend to 248
+            for (size_t i = 32; i < 48; i += 8) { // TODO(Cody): extend to 248
                 build_circuit(i);
-                info("circuit size when i = ", i, " is ", composer.num_gates);
+                // info("circuit size when i = ", i, " is ", composer.num_gates);
                 if (composer.failed()) {
-                    info(composer.err());
+                    // info(composer.err());
                 }
             }
 
