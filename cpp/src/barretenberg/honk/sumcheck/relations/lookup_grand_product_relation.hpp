@@ -117,7 +117,7 @@ template <typename FF> class LookupGrandProductComputationRelation {
         auto table_1_shift = purported_evaluations[MULTIVARIATE::TABLE_1_SHIFT];
         auto table_2_shift = purported_evaluations[MULTIVARIATE::TABLE_2_SHIFT];
         auto table_3_shift = purported_evaluations[MULTIVARIATE::TABLE_3_SHIFT];
-        auto table_4_shift = purported_evaluations[MULTIVARIATE::TABLE_3_SHIFT];
+        auto table_4_shift = purported_evaluations[MULTIVARIATE::TABLE_4_SHIFT];
 
         auto s_accum = purported_evaluations[MULTIVARIATE::S_ACCUM];
         auto s_accum_shift = purported_evaluations[MULTIVARIATE::S_ACCUM_SHIFT];

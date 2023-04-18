@@ -142,55 +142,55 @@ TEST(RelationCorrectness, StandardRelationCorrectness)
  * indices
  *
  */
-// TODO(luke): Increase variety of gates in the test circuit to fully stress the relations, e.g. create_big_add_gate.
-// NOTE(luke): More relations will be added as they are implemented for Ultra Honk
+// TODO(luke): Ensure all relations are added as they are implemented for Ultra Honk
 TEST(RelationCorrectness, UltraRelationCorrectness)
 {
     // Create a composer and a dummy circuit with a few gates
     auto composer = UltraHonkComposer();
-    // auto plonk_composer = proof_system::plonk::UltraComposer();
 
     static const size_t num_wires = 4;
 
-    {
-        fr a = fr::one();
-        // Using the public variable to check that public_input_delta is computed and added to the relation correctly
-        // TODO(luke): add method "add_public_variable" to UH composer
-        // uint32_t a_idx = composer.add_public_variable(a);
-        uint32_t a_idx = composer.add_variable(a);
-        fr b = fr::one();
-        fr c = a + b;
-        fr d = a + c;
-        uint32_t b_idx = composer.add_variable(b);
-        uint32_t c_idx = composer.add_variable(c);
-        uint32_t d_idx = composer.add_variable(d);
-        for (size_t i = 0; i < 1; i++) {
-            composer.create_add_gate({ a_idx, b_idx, c_idx, fr::one(), fr::one(), fr::neg_one(), fr::zero() });
-            composer.create_add_gate({ d_idx, c_idx, a_idx, fr::one(), fr::neg_one(), fr::neg_one(), fr::zero() });
-        }
+    barretenberg::fr pedersen_input_value = fr::random_element();
+    fr a = fr::one();
+    // Using the public variable to check that public_input_delta is computed and added to the relation correctly
+    // TODO(luke): add method "add_public_variable" to UH composer
+    // uint32_t a_idx = composer.add_public_variable(a);
+    uint32_t a_idx = composer.add_variable(a);
+    fr b = fr::one();
+    fr c = a + b;
+    fr d = a + c;
+    uint32_t b_idx = composer.add_variable(b);
+    uint32_t c_idx = composer.add_variable(c);
+    uint32_t d_idx = composer.add_variable(d);
+    for (size_t i = 0; i < 16; i++) {
+        composer.create_add_gate({ a_idx, b_idx, c_idx, 1, 1, -1, 0 });
+        composer.create_add_gate({ d_idx, c_idx, a_idx, 1, -1, -1, 0 });
     }
-    // {
-    //     fr a = fr::one();
-    //     // Using the public variable to check that public_input_delta is computed and added to the relation correctly
-    //     // TODO(luke): add method "add_public_variable" to UH composer
-    //     // uint32_t a_idx = composer.add_public_variable(a);
-    //     uint32_t a_idx = plonk_composer.add_variable(a);
-    //     fr b = fr::one();
-    //     fr c = a + b;
-    //     fr d = a + c;
-    //     uint32_t b_idx = plonk_composer.add_variable(b);
-    //     uint32_t c_idx = plonk_composer.add_variable(c);
-    //     uint32_t d_idx = plonk_composer.add_variable(d);
-    //     for (size_t i = 0; i < 1; i++) {
-    //         plonk_composer.create_add_gate({ a_idx, b_idx, c_idx, fr::one(), fr::one(), fr::neg_one(), fr::zero() });
-    //         plonk_composer.create_add_gate(
-    //             { d_idx, c_idx, a_idx, fr::one(), fr::neg_one(), fr::neg_one(), fr::zero() });
-    //     }
-    // }
+
+    // Add a big add gate with use of next row to test q_arith = 2
+    fr e = a + b + c + d;
+    uint32_t e_idx = composer.add_variable(e);
+
+    uint32_t zero_idx = composer.get_zero_idx();
+    composer.create_big_add_gate({ a_idx, b_idx, c_idx, d_idx, -1, -1, -1, -1, 0 }, true); // use next row
+    composer.create_big_add_gate({ zero_idx, zero_idx, zero_idx, e_idx, 0, 0, 0, 0, 0 }, false);
+
+    // Add some lookup gates (related to pedersen hashing)
+    const fr input_hi = uint256_t(pedersen_input_value).slice(126, 256);
+    const fr input_lo = uint256_t(pedersen_input_value).slice(0, 126);
+    const auto input_hi_index = composer.add_variable(input_hi);
+    const auto input_lo_index = composer.add_variable(input_lo);
+
+    const auto sequence_data_hi = plookup::get_lookup_accumulators(plookup::MultiTableId::PEDERSEN_LEFT_HI, input_hi);
+    const auto sequence_data_lo = plookup::get_lookup_accumulators(plookup::MultiTableId::PEDERSEN_LEFT_LO, input_lo);
+
+    composer.create_gates_from_plookup_accumulators(
+        plookup::MultiTableId::PEDERSEN_LEFT_HI, sequence_data_hi, input_hi_index);
+    composer.create_gates_from_plookup_accumulators(
+        plookup::MultiTableId::PEDERSEN_LEFT_LO, sequence_data_lo, input_lo_index);
+
     // Create a prover (it will compute proving key and witness)
     auto prover = composer.create_prover();
-    // auto plonk_prover = plonk_composer.create_prover();
-    // plonk_prover.construct_proof();
 
     // Generate eta, beta and gamma
     fr eta = fr::random_element();
@@ -203,8 +203,6 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
         honk::compute_public_input_delta<fr>(public_inputs, beta, gamma, prover.key->circuit_size);
     auto lookup_grand_product_delta =
         honk::compute_lookup_grand_product_delta<fr>(beta, gamma, prover.key->circuit_size);
-
-    // info("public_input_delta = ", public_input_delta);
 
     sumcheck::RelationParameters<fr> params{
         .eta = eta,
@@ -233,17 +231,6 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     // Compute lookup grand product polynomial
     auto z_lookup = prover_library::compute_lookup_grand_product(
         prover.key, prover.wire_polynomials, sorted_list_accumulator, eta, beta, gamma);
-
-    // std::string label = "s_lagrange";
-    // auto poly_plonk = plonk_prover.key->polynomial_store.get(label);
-    // // auto poly_honk = prover.key->polynomial_store.get(label);
-    // auto poly_honk = sorted_list_accumulator;
-    // for (size_t i = 0; i < poly_plonk.size(); ++i) {
-    //     info("val_plonk = ", poly_plonk[i]);
-    //     info("val_honk = ", poly_honk[i], "\n");
-    // }
-
-    // info("delta_factor = ", (gamma * (beta + 1)).pow(fr(4)));
 
     // Create an array of spans to the underlying polynomials to more easily
     // get the transposition.
@@ -317,8 +304,6 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
                                 honk::sumcheck::UltraGrandProductComputationRelation<fr>(),
                                 honk::sumcheck::LookupGrandProductComputationRelation<fr>(),
                                 honk::sumcheck::LookupGrandProductInitializationRelation<fr>());
-
-    // info("CIRCUIT SIZE = ", prover.key->circuit_size);
 
     fr result = 0;
     for (size_t i = 0; i < prover.key->circuit_size; i++) {
