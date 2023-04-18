@@ -62,8 +62,8 @@ TEST(crypto_nullifier_tree, test_nullifier_memory)
      */
     tree.update_element(30);
     EXPECT_EQ(tree.get_leaves().size(), 2);
-    EXPECT_EQ(tree.get_leaves()[0].hash(), nullifier_leaf({ 0, 1, 30 }).hash());
-    EXPECT_EQ(tree.get_leaves()[1].hash(), nullifier_leaf({ 30, 0, 0 }).hash());
+    EXPECT_EQ(tree.get_leaves()[0].hash(), WrappedNullifierLeaf({ 0, 1, 30 }).hash());
+    EXPECT_EQ(tree.get_leaves()[1].hash(), WrappedNullifierLeaf({ 30, 0, 0 }).hash());
 
     /**
      * Add new value 10:
@@ -76,9 +76,9 @@ TEST(crypto_nullifier_tree, test_nullifier_memory)
      */
     tree.update_element(10);
     EXPECT_EQ(tree.get_leaves().size(), 3);
-    EXPECT_EQ(tree.get_leaves()[0].hash(), nullifier_leaf({ 0, 2, 10 }).hash());
-    EXPECT_EQ(tree.get_leaves()[1].hash(), nullifier_leaf({ 30, 0, 0 }).hash());
-    EXPECT_EQ(tree.get_leaves()[2].hash(), nullifier_leaf({ 10, 1, 30 }).hash());
+    EXPECT_EQ(tree.get_leaves()[0].hash(), WrappedNullifierLeaf({ 0, 2, 10 }).hash());
+    EXPECT_EQ(tree.get_leaves()[1].hash(), WrappedNullifierLeaf({ 30, 0, 0 }).hash());
+    EXPECT_EQ(tree.get_leaves()[2].hash(), WrappedNullifierLeaf({ 10, 1, 30 }).hash());
 
     /**
      * Add new value 20:
@@ -91,18 +91,18 @@ TEST(crypto_nullifier_tree, test_nullifier_memory)
      */
     tree.update_element(20);
     EXPECT_EQ(tree.get_leaves().size(), 4);
-    EXPECT_EQ(tree.get_leaves()[0].hash(), nullifier_leaf({ 0, 2, 10 }).hash());
-    EXPECT_EQ(tree.get_leaves()[1].hash(), nullifier_leaf({ 30, 0, 0 }).hash());
-    EXPECT_EQ(tree.get_leaves()[2].hash(), nullifier_leaf({ 10, 3, 20 }).hash());
-    EXPECT_EQ(tree.get_leaves()[3].hash(), nullifier_leaf({ 20, 1, 30 }).hash());
+    EXPECT_EQ(tree.get_leaves()[0].hash(), WrappedNullifierLeaf({ 0, 2, 10 }).hash());
+    EXPECT_EQ(tree.get_leaves()[1].hash(), WrappedNullifierLeaf({ 30, 0, 0 }).hash());
+    EXPECT_EQ(tree.get_leaves()[2].hash(), WrappedNullifierLeaf({ 10, 3, 20 }).hash());
+    EXPECT_EQ(tree.get_leaves()[3].hash(), WrappedNullifierLeaf({ 20, 1, 30 }).hash());
 
     // Adding the same value must not affect anything
     tree.update_element(20);
     EXPECT_EQ(tree.get_leaves().size(), 4);
-    EXPECT_EQ(tree.get_leaves()[0].hash(), nullifier_leaf({ 0, 2, 10 }).hash());
-    EXPECT_EQ(tree.get_leaves()[1].hash(), nullifier_leaf({ 30, 0, 0 }).hash());
-    EXPECT_EQ(tree.get_leaves()[2].hash(), nullifier_leaf({ 10, 3, 20 }).hash());
-    EXPECT_EQ(tree.get_leaves()[3].hash(), nullifier_leaf({ 20, 1, 30 }).hash());
+    EXPECT_EQ(tree.get_leaves()[0].hash(), WrappedNullifierLeaf({ 0, 2, 10 }).hash());
+    EXPECT_EQ(tree.get_leaves()[1].hash(), WrappedNullifierLeaf({ 30, 0, 0 }).hash());
+    EXPECT_EQ(tree.get_leaves()[2].hash(), WrappedNullifierLeaf({ 10, 3, 20 }).hash());
+    EXPECT_EQ(tree.get_leaves()[3].hash(), WrappedNullifierLeaf({ 20, 1, 30 }).hash());
 
     /**
      * Add new value 50:
@@ -115,11 +115,11 @@ TEST(crypto_nullifier_tree, test_nullifier_memory)
      */
     tree.update_element(50);
     EXPECT_EQ(tree.get_leaves().size(), 5);
-    EXPECT_EQ(tree.get_leaves()[0].hash(), nullifier_leaf({ 0, 2, 10 }).hash());
-    EXPECT_EQ(tree.get_leaves()[1].hash(), nullifier_leaf({ 30, 4, 50 }).hash());
-    EXPECT_EQ(tree.get_leaves()[2].hash(), nullifier_leaf({ 10, 3, 20 }).hash());
-    EXPECT_EQ(tree.get_leaves()[3].hash(), nullifier_leaf({ 20, 1, 30 }).hash());
-    EXPECT_EQ(tree.get_leaves()[4].hash(), nullifier_leaf({ 50, 0, 0 }).hash());
+    EXPECT_EQ(tree.get_leaves()[0].hash(), WrappedNullifierLeaf({ 0, 2, 10 }).hash());
+    EXPECT_EQ(tree.get_leaves()[1].hash(), WrappedNullifierLeaf({ 30, 4, 50 }).hash());
+    EXPECT_EQ(tree.get_leaves()[2].hash(), WrappedNullifierLeaf({ 10, 3, 20 }).hash());
+    EXPECT_EQ(tree.get_leaves()[3].hash(), WrappedNullifierLeaf({ 20, 1, 30 }).hash());
+    EXPECT_EQ(tree.get_leaves()[4].hash(), WrappedNullifierLeaf({ 50, 0, 0 }).hash());
 
     // Manually compute the node values
     auto e000 = tree.get_leaves()[0].hash();
@@ -176,7 +176,7 @@ TEST(crypto_nullifier_tree, test_nullifier_memory_appending_zero)
      *  nextIdx   0       0       0       0        0       0       0       0
      *  nextVal   0       0       0       0        0       0       0       0
      */
-    nullifier_leaf zero_leaf = { 0, 0, 0 };
+    WrappedNullifierLeaf zero_leaf = WrappedNullifierLeaf({ 0, 0, 0 });
     EXPECT_EQ(tree.get_leaves().size(), 1);
     EXPECT_EQ(tree.get_leaves()[0], zero_leaf);
 
@@ -191,8 +191,8 @@ TEST(crypto_nullifier_tree, test_nullifier_memory_appending_zero)
      */
     tree.update_element(30);
     EXPECT_EQ(tree.get_leaves().size(), 2);
-    EXPECT_EQ(tree.get_leaves()[0].hash(), NullifierLeaf({ 0, 1, 30 }).hash());
-    EXPECT_EQ(tree.get_leaves()[1].hash(), NullifierLeaf({ 30, 0, 0 }).hash());
+    EXPECT_EQ(tree.get_leaves()[0].hash(), WrappedNullifierLeaf({ 0, 1, 30 }).hash());
+    EXPECT_EQ(tree.get_leaves()[1].hash(), WrappedNullifierLeaf({ 30, 0, 0 }).hash());
 
     /**
      * Add new value 10:
@@ -205,9 +205,9 @@ TEST(crypto_nullifier_tree, test_nullifier_memory_appending_zero)
      */
     tree.update_element(10);
     EXPECT_EQ(tree.get_leaves().size(), 3);
-    EXPECT_EQ(tree.get_leaves()[0].hash(), NullifierLeaf({ 0, 2, 10 }).hash());
-    EXPECT_EQ(tree.get_leaves()[1].hash(), NullifierLeaf({ 30, 0, 0 }).hash());
-    EXPECT_EQ(tree.get_leaves()[2].hash(), NullifierLeaf({ 10, 1, 30 }).hash());
+    EXPECT_EQ(tree.get_leaves()[0].hash(), WrappedNullifierLeaf({ 0, 2, 10 }).hash());
+    EXPECT_EQ(tree.get_leaves()[1].hash(), WrappedNullifierLeaf({ 30, 0, 0 }).hash());
+    EXPECT_EQ(tree.get_leaves()[2].hash(), WrappedNullifierLeaf({ 10, 1, 30 }).hash());
 
     /**
      * Add new value 20:
@@ -220,18 +220,18 @@ TEST(crypto_nullifier_tree, test_nullifier_memory_appending_zero)
      */
     tree.update_element(20);
     EXPECT_EQ(tree.get_leaves().size(), 4);
-    EXPECT_EQ(tree.get_leaves()[0].hash(), NullifierLeaf({ 0, 2, 10 }).hash());
-    EXPECT_EQ(tree.get_leaves()[1].hash(), NullifierLeaf({ 30, 0, 0 }).hash());
-    EXPECT_EQ(tree.get_leaves()[2].hash(), NullifierLeaf({ 10, 3, 20 }).hash());
-    EXPECT_EQ(tree.get_leaves()[3].hash(), NullifierLeaf({ 20, 1, 30 }).hash());
+    EXPECT_EQ(tree.get_leaves()[0].hash(), WrappedNullifierLeaf({ 0, 2, 10 }).hash());
+    EXPECT_EQ(tree.get_leaves()[1].hash(), WrappedNullifierLeaf({ 30, 0, 0 }).hash());
+    EXPECT_EQ(tree.get_leaves()[2].hash(), WrappedNullifierLeaf({ 10, 3, 20 }).hash());
+    EXPECT_EQ(tree.get_leaves()[3].hash(), WrappedNullifierLeaf({ 20, 1, 30 }).hash());
 
     // Adding the same value must not affect anything
     tree.update_element(20);
     EXPECT_EQ(tree.get_leaves().size(), 4);
-    EXPECT_EQ(tree.get_leaves()[0].hash(), NullifierLeaf({ 0, 2, 10 }).hash());
-    EXPECT_EQ(tree.get_leaves()[1].hash(), NullifierLeaf({ 30, 0, 0 }).hash());
-    EXPECT_EQ(tree.get_leaves()[2].hash(), NullifierLeaf({ 10, 3, 20 }).hash());
-    EXPECT_EQ(tree.get_leaves()[3].hash(), NullifierLeaf({ 20, 1, 30 }).hash());
+    EXPECT_EQ(tree.get_leaves()[0].hash(), WrappedNullifierLeaf({ 0, 2, 10 }).hash());
+    EXPECT_EQ(tree.get_leaves()[1].hash(), WrappedNullifierLeaf({ 30, 0, 0 }).hash());
+    EXPECT_EQ(tree.get_leaves()[2].hash(), WrappedNullifierLeaf({ 10, 3, 20 }).hash());
+    EXPECT_EQ(tree.get_leaves()[3].hash(), WrappedNullifierLeaf({ 20, 1, 30 }).hash());
 
     /**
      * Add new value 0:
@@ -244,11 +244,11 @@ TEST(crypto_nullifier_tree, test_nullifier_memory_appending_zero)
      */
     tree.update_element(0);
     EXPECT_EQ(tree.get_leaves().size(), 5);
-    EXPECT_EQ(tree.get_leaves()[0].hash(), NullifierLeaf({ 0, 2, 10 }).hash());
-    EXPECT_EQ(tree.get_leaves()[1].hash(), NullifierLeaf({ 30, 0, 0 }).hash());
-    EXPECT_EQ(tree.get_leaves()[2].hash(), NullifierLeaf({ 10, 3, 20 }).hash());
-    EXPECT_EQ(tree.get_leaves()[3].hash(), NullifierLeaf({ 20, 1, 30 }).hash());
-    EXPECT_EQ(tree.get_leaves()[4].hash(), NullifierLeaf::zero().hash());
+    EXPECT_EQ(tree.get_leaves()[0].hash(), WrappedNullifierLeaf({ 0, 2, 10 }).hash());
+    EXPECT_EQ(tree.get_leaves()[1].hash(), WrappedNullifierLeaf({ 30, 0, 0 }).hash());
+    EXPECT_EQ(tree.get_leaves()[2].hash(), WrappedNullifierLeaf({ 10, 3, 20 }).hash());
+    EXPECT_EQ(tree.get_leaves()[3].hash(), WrappedNullifierLeaf({ 20, 1, 30 }).hash());
+    EXPECT_EQ(tree.get_leaves()[4].hash(), WrappedNullifierLeaf::zero().hash());
 
     /*
      * Add new value 0:
@@ -261,12 +261,12 @@ TEST(crypto_nullifier_tree, test_nullifier_memory_appending_zero)
      */
     tree.update_element(0);
     EXPECT_EQ(tree.get_leaves().size(), 6);
-    EXPECT_EQ(tree.get_leaves()[0].hash(), NullifierLeaf({ 0, 2, 10 }).hash());
-    EXPECT_EQ(tree.get_leaves()[1].hash(), NullifierLeaf({ 30, 0, 0 }).hash());
-    EXPECT_EQ(tree.get_leaves()[2].hash(), NullifierLeaf({ 10, 3, 20 }).hash());
-    EXPECT_EQ(tree.get_leaves()[3].hash(), NullifierLeaf({ 20, 1, 30 }).hash());
-    EXPECT_EQ(tree.get_leaves()[4].hash(), NullifierLeaf::zero().hash());
-    EXPECT_EQ(tree.get_leaves()[5].hash(), NullifierLeaf::zero().hash());
+    EXPECT_EQ(tree.get_leaves()[0].hash(), WrappedNullifierLeaf({ 0, 2, 10 }).hash());
+    EXPECT_EQ(tree.get_leaves()[1].hash(), WrappedNullifierLeaf({ 30, 0, 0 }).hash());
+    EXPECT_EQ(tree.get_leaves()[2].hash(), WrappedNullifierLeaf({ 10, 3, 20 }).hash());
+    EXPECT_EQ(tree.get_leaves()[3].hash(), WrappedNullifierLeaf({ 20, 1, 30 }).hash());
+    EXPECT_EQ(tree.get_leaves()[4].hash(), WrappedNullifierLeaf::zero().hash());
+    EXPECT_EQ(tree.get_leaves()[5].hash(), WrappedNullifierLeaf::zero().hash());
 
     /**
      * Add new value 50:
@@ -279,23 +279,24 @@ TEST(crypto_nullifier_tree, test_nullifier_memory_appending_zero)
      */
     tree.update_element(50);
     EXPECT_EQ(tree.get_leaves().size(), 7);
-    EXPECT_EQ(tree.get_leaves()[0].hash(), NullifierLeaf({ 0, 2, 10 }).hash());
-    EXPECT_EQ(tree.get_leaves()[1].hash(), NullifierLeaf({ 30, 6, 50 }).hash());
-    EXPECT_EQ(tree.get_leaves()[2].hash(), NullifierLeaf({ 10, 3, 20 }).hash());
-    EXPECT_EQ(tree.get_leaves()[3].hash(), NullifierLeaf({ 20, 1, 30 }).hash());
-    EXPECT_EQ(tree.get_leaves()[4].hash(), NullifierLeaf::zero().hash());
-    EXPECT_EQ(tree.get_leaves()[5].hash(), NullifierLeaf::zero().hash());
-    EXPECT_EQ(tree.get_leaves()[6].hash(), NullifierLeaf({ 50, 0, 0 }).hash());
+    EXPECT_EQ(tree.get_leaf(0).hash(), WrappedNullifierLeaf({ 0, 2, 10 }).hash());
+    EXPECT_EQ(tree.get_leaf(1).hash(), WrappedNullifierLeaf({ 30, 6, 50 }).hash());
+    EXPECT_EQ(tree.get_leaf(2).hash(), WrappedNullifierLeaf({ 10, 3, 20 }).hash());
+    EXPECT_EQ(tree.get_leaf(3).hash(), WrappedNullifierLeaf({ 20, 1, 30 }).hash());
+    EXPECT_EQ(tree.get_leaf(4).hash(), WrappedNullifierLeaf::zero().hash());
+    EXPECT_EQ(tree.get_leaf(5).hash(), WrappedNullifierLeaf::zero().hash());
+    EXPECT_EQ(tree.get_leaf(6).hash(), WrappedNullifierLeaf({ 50, 0, 0 }).hash());
+    EXPECT_EQ(tree.get_leaf(7).hash(), WrappedNullifierLeaf::zero().hash());
 
     // Manually compute the node values
-    auto e000 = tree.get_leaves()[0].hash();
-    auto e001 = tree.get_leaves()[1].hash();
-    auto e010 = tree.get_leaves()[2].hash();
-    auto e011 = tree.get_leaves()[3].hash();
-    auto e100 = tree.get_leaves()[4].hash();
-    auto e101 = tree.get_leaves()[5].hash();
-    auto e110 = tree.get_leaves()[6].hash();
-    auto e111 = tree.get_leaves()[7].hash();
+    auto e000 = tree.get_leaf(0).hash();
+    auto e001 = tree.get_leaf(1).hash();
+    auto e010 = tree.get_leaf(2).hash();
+    auto e011 = tree.get_leaf(3).hash();
+    auto e100 = tree.get_leaf(4).hash();
+    auto e101 = tree.get_leaf(5).hash();
+    auto e110 = tree.get_leaf(6).hash();
+    auto e111 = tree.get_leaf(7).hash();
 
     auto e00 = hash_pair_native(e000, e001);
     auto e01 = hash_pair_native(e010, e011);

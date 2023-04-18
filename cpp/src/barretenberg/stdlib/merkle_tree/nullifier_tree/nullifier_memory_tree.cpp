@@ -31,10 +31,10 @@ NullifierMemoryTree::NullifierMemoryTree(size_t depth)
 fr NullifierMemoryTree::update_element(fr const& value)
 {
     // Find the leaf with the value closest and less than `value`
-    
+
     // If value is 0 we simply append 0 a null NullifierLeaf to the tree
     if (value == 0) {
-        NullifierLeaf zero_leaf = NullifierLeaf::zero();
+        auto zero_leaf = WrappedNullifierLeaf::zero();
         leaves_.push_back(zero_leaf);
         return update_element(leaves_.size() - 1, zero_leaf.hash());
     }

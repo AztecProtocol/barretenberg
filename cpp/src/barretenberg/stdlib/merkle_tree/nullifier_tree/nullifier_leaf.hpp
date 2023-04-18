@@ -3,7 +3,6 @@
 
 namespace proof_system::plonk {
 namespace stdlib {
-
 namespace merkle_tree {
 
 using namespace barretenberg;
@@ -86,14 +85,7 @@ class WrappedNullifierLeaf {
      *
      * @return barretenberg::fr
      */
-    barretenberg::fr hash() const
-    {
-        if (data.has_value()) {
-            return data.value().hash();
-        } else {
-            return barretenberg::fr::zero();
-        }
-    }
+    barretenberg::fr hash() const { return data.has_value() ? data.value().hash() : barretenberg::fr::zero(); }
 
     /**
      * @brief Generate a zero leaf (call the constructor with no arguments)
