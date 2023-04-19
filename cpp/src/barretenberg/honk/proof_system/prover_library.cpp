@@ -218,8 +218,6 @@ typename Flavor::Polynomial compute_lookup_grand_product(std::shared_ptr<typenam
     }
 
     // Note: the number of table polys is related to program width but '4' is the only value supported
-    std::vector<FF> temp_vector;
-    std::span<FF> temp_span{ temp_vector };
     std::array<std::span<const FF>, 4> tables{
         key->table_1,
         key->table_2,
@@ -227,12 +225,8 @@ typename Flavor::Polynomial compute_lookup_grand_product(std::shared_ptr<typenam
         key->table_4,
     };
 
-    std::span<const FF> lookup_selector{ temp_vector };
-    std::span<const FF> lookup_index_selector{ temp_vector };
-
-    // WORKTODO
-    // std::span<const FF> lookup_selector = key->polynomial_store.get("table_type_lagrange");
-    // std::span<const FF> lookup_index_selector = key->polynomial_store.get("q_3_lagrange");
+    std::span<const FF> lookup_selector = key->q_lookuptype; // TODO(Cody): this was something called table_type
+    std::span<const FF> lookup_index_selector = key->q_o;
 
     const FF beta_plus_one = beta + FF(1);                      // (1 + β)
     const FF gamma_times_beta_plus_one = gamma * beta_plus_one; // γ(1 + β)

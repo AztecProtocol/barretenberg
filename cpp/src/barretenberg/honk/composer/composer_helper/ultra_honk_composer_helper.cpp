@@ -278,13 +278,12 @@ std::shared_ptr<UltraHonkComposerHelper::Flavor::ProvingKey> UltraHonkComposerHe
     poly_q_table_column_3[subgroup_size - 1] = ++unique_last_value;
     poly_q_table_column_4[subgroup_size - 1] = ++unique_last_value;
 
-    // WORKTODO
-    // circuit_proving_key->polynomial_store.put("table_value_1_lagrange", std::move(poly_q_table_column_1));
-    // circuit_proving_key->polynomial_store.put("table_value_2_lagrange", std::move(poly_q_table_column_2));
-    // circuit_proving_key->polynomial_store.put("table_value_3_lagrange", std::move(poly_q_table_column_3));
-    // circuit_proving_key->polynomial_store.put("table_value_4_lagrange", std::move(poly_q_table_column_4));
+    circuit_proving_key->table_1 = poly_q_table_column_1;
+    circuit_proving_key->table_2 = poly_q_table_column_2;
+    circuit_proving_key->table_3 = poly_q_table_column_3;
+    circuit_proving_key->table_4 = poly_q_table_column_4;
 
-    // WORKTODO
+    // // // WORKTODO
     // // Copy memory read/write record data into proving key. Prover needs to know which gates contain a read/write
     // // 'record' witness on the 4th wire. This wire value can only be fully computed once the first 3 wire polynomials
     // // have been committed to. The 4th wire on these gates will be a random linear combination of the first 3 wires,

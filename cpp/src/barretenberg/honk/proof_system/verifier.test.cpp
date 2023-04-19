@@ -23,11 +23,6 @@
 
 // template <class FF> class VerifierTests : public testing::Test {
 //   public:
-//     static transcript::Manifest create_manifest(const size_t num_public_inputs, const size_t num_sumcheck_rounds)
-//     {
-//         return honk::StandardHonk::create_manifest(num_public_inputs, num_sumcheck_rounds);
-//     }
-
 //     static StandardVerifier generate_verifier(std::shared_ptr<plonk::proving_key> circuit_proving_key)
 //     {
 //         std::array<fr*, 8> poly_coefficients;

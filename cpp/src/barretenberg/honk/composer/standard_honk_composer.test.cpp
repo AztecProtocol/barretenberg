@@ -89,24 +89,22 @@ TEST(StandardHonkComposer, SigmaIDCorrectness)
         barretenberg::fr right = barretenberg::fr::one();
 
         // Let's check that indices are the same and nothing is lost, first
-        for (size_t j = 0; j < composer.num_wires; ++j) {
-            std::string index = std::to_string(j + 1);
-            const auto& sigma_j = barretenberg::polynomial();
-            // WORKTODO
-            // const auto& sigma_j = proving_key->polynomial_store.get("sigma_" + index + "_lagrange");
+        size_t wire_idx = 0;
+        for (auto& sigma_polynomial : proving_key->get_sigma_polynomials()) {
             for (size_t i = 0; i < n; ++i) {
-                left *= (gamma + j * n + i);
-                right *= (gamma + sigma_j[i]);
+                left *= (gamma + wire_idx * n + i);
+                right *= (gamma + sigma_polynomial[i]);
             }
             // Ensure that the public inputs cycles are correctly broken
             // and fix the cycle by adding the extra terms
-            if (j == 0) {
+            if (wire_idx == 0) {
                 for (size_t i = 0; i < num_public_inputs; ++i) {
-                    EXPECT_EQ(sigma_j[i], -fr(i + 1));
+                    EXPECT_EQ(sigma_polynomial[i], -fr(i + 1));
                     left *= (gamma - (i + 1));
                     right *= (gamma + (n + i));
                 }
             }
+            wire_idx++;
         }
 
         EXPECT_EQ(left, right);
@@ -117,21 +115,19 @@ TEST(StandardHonkComposer, SigmaIDCorrectness)
         // Now let's check that witness values correspond to the permutation
         composer.compute_witness();
 
-        for (size_t j = 0; j < composer.num_wires; ++j) {
+        auto sigma_polynomials = proving_key->get_sigma_polynomials();
+        auto id_polynomials = proving_key->get_id_polynomials();
+        for (size_t j = 0; j < StandardHonkComposer::num_wires; ++j) {
             std::string index = std::to_string(j + 1);
-            const auto& permutation_polynomial = barretenberg::polynomial(10);
-            // WORKTODO
-            // const auto& permutation_polynomial = proving_key->polynomial_store.get("sigma_" + index + "_lagrange");
             const auto& witness_polynomial = composer.composer_helper.wire_polynomials[j];
-            const auto& id_polynomial = barretenberg::polynomial(10);
-            // WORKTODO
-            // const auto& id_polynomial = proving_key->polynomial_store.get("id_" + index + "_lagrange");
+            const auto& sigma_polynomial = sigma_polynomials[j];
+            const auto& id_polynomial = id_polynomials[j];
             // left = ∏ᵢ,ⱼ(ωᵢ,ⱼ + β⋅ind(i,j) + γ)
             // right = ∏ᵢ,ⱼ(ωᵢ,ⱼ + β⋅σ(i,j) + γ)
             for (size_t i = 0; i < proving_key->circuit_size; ++i) {
                 const auto current_witness = witness_polynomial[i];
                 left *= current_witness + beta * id_polynomial[i] + gamma;
-                right *= current_witness + beta * permutation_polynomial[i] + gamma;
+                right *= current_witness + beta * sigma_polynomial[i] + gamma;
             }
             // check that the first rows are correctly set to handle public inputs.
             for (size_t i = 0; i < num_public_inputs; ++i) {
@@ -212,9 +208,7 @@ TEST(StandardHonkComposer, LagrangeCorrectness)
     }
     // Compute inner product of random polynomial and the first lagrange polynomial
 
-    auto first_lagrange_polynomial = barretenberg::polynomial(10);
-    // WORKTODO
-    // barretenberg::polynomial first_lagrange_polynomial = proving_key->polynomial_store.get("L_first_lagrange");
+    barretenberg::polynomial first_lagrange_polynomial = proving_key->lagrange_first;
     barretenberg::fr first_product(0);
     for (size_t i = 0; i < proving_key->circuit_size; i++) {
         first_product += random_polynomial[i] * first_lagrange_polynomial[i];
@@ -222,9 +216,7 @@ TEST(StandardHonkComposer, LagrangeCorrectness)
     EXPECT_EQ(first_product, random_polynomial[0]);
 
     // Compute inner product of random polynomial and the last lagrange polynomial
-    auto last_lagrange_polynomial = barretenberg::polynomial(10);
-    // WORKTODO
-    // barretenberg::polynomial last_lagrange_polynomial = proving_key->polynomial_store.get("L_last_lagrange");
+    auto last_lagrange_polynomial = proving_key->lagrange_last;
     barretenberg::fr last_product(0);
     for (size_t i = 0; i < proving_key->circuit_size; i++) {
         last_product += random_polynomial[i] * last_lagrange_polynomial[i];
