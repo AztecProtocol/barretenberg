@@ -31,7 +31,7 @@
   },
   "sol": {
     "buildDir": "sol",
-    "dockerfile": "sol/Dockerfile",
+    "dockerfile": "Dockerfile",
     "rebuildPatterns": ["^sol/"],
     "dependencies": ["barretenberg-x86_64-linux-clang-assert"]
   }
