@@ -47,10 +47,10 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('cpp/*') }}
 
       - name: Build cpp
-        run: ./bootstrap.sh
-        with:
-          path: sol
-
+        run: |
+          cd sol
+          ./bootstrap.sh
+        
       - name: Run Forge tests
         run: |
           forge test --no-match-contract TestBase -vvv
