@@ -14,6 +14,9 @@
 
 // User defined class template specialization
 namespace msgpack::adaptor {
+template <typename T>
+concept AnyType = true;
+
 struct DefineMapArchive {
     template <typename... Args> auto operator()(Args&&... args) const
     {
@@ -29,62 +32,54 @@ struct DefineArchive {
 };
 
 template <typename T>
-concept MapSerializable = requires(T t, DefineMapArchive ar) {
-                              {
-                                  t.serialize_map(ar)
-                                  } -> std::same_as<decltype(t.serialize_map(ar))>;
-                          };
+concept Serializable = requires(T t, DefineMapArchive ar) { t.serialize(ar); };
 template <typename T>
-concept Serializable = requires(T t, const DefineArchive& ar) {
-                           {
-                               t.serialize(ar)
-                               } -> std::same_as<decltype(t.serialize(ar))>;
-                       };
+concept FlatSerializable = requires(T t, const DefineArchive& ar) { t.serialize_flat(ar); };
 
-template <MapSerializable T>
+template <Serializable T>
 // TODO constrain with concept for types that have a msgpack_map() method
 struct convert<T> {
     msgpack::object const& operator()(msgpack::object const& o, T& v) const
     {
-        return v.serialize_map(DefineMapArchive{}).unpack(o);
+        return v.serialize(DefineMapArchive{}).unpack(o);
     }
 };
 
-template <Serializable T>
+template <FlatSerializable T>
 // TODO constrain with concept for types that have a msgpack() method
 struct convert<T> {
     msgpack::object const& operator()(msgpack::object const& o, T& v) const
     {
-        return v.serialize(DefineArchive{}).msgpack_unpack(o);
-    }
-};
-
-template <MapSerializable T> struct pack<T> {
-    template <typename Stream> packer<Stream>& operator()(msgpack::packer<Stream>& o, T const& v) const
-    {
-        const_cast<T&>(v).serialize_map(DefineMapArchive{}).msgpack_pack(o);
-        return o;
+        return v.serialize_flat(DefineArchive{}).msgpack_unpack(o);
     }
 };
 
 template <Serializable T> struct pack<T> {
     template <typename Stream> packer<Stream>& operator()(msgpack::packer<Stream>& o, T const& v) const
     {
-        const_cast<T&>(v).serialize(DefineArchive{}).msgpack_pack(o);
+        const_cast<T&>(v).serialize(DefineMapArchive{}).msgpack_pack(o);
         return o;
     }
 };
 
-template <MapSerializable T> struct object_with_zone<T> {
-    void operator()(msgpack::object::with_zone& o, T const& v) const
+template <FlatSerializable T> struct pack<T> {
+    template <typename Stream> packer<Stream>& operator()(msgpack::packer<Stream>& o, T const& v) const
     {
-        const_cast<T&>(v).serialize_map(DefineMapArchive{}).msgpack_object(&o, o.zone);
+        const_cast<T&>(v).serialize_flat(DefineArchive{}).msgpack_pack(o);
+        return o;
     }
 };
+
 template <Serializable T> struct object_with_zone<T> {
     void operator()(msgpack::object::with_zone& o, T const& v) const
     {
-        const_cast<T&>(v).serialize(DefineArchive{}).msgpack_object(o);
+        const_cast<T&>(v).serialize(DefineMapArchive{}).msgpack_object(&o, o.zone);
+    }
+};
+template <FlatSerializable T> struct object_with_zone<T> {
+    void operator()(msgpack::object::with_zone& o, T const& v) const
+    {
+        const_cast<T&>(v).serialize_flat(DefineArchive{}).msgpack_object(o);
     }
 };
 } // namespace msgpack::adaptor

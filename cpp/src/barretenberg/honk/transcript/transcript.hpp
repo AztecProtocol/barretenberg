@@ -191,7 +191,7 @@ template <typename FF> class ProverTranscript : public BaseTranscript<FF> {
      * @details Serializes the provided object into `proof_data`, and updates the current round state.
      *
      * @param label Description/name of the object being added.
-     * @param element Serializable object that will be added to the transcript
+     * @param element FlatSerializable object that will be added to the transcript
      *
      * @todo Use a concept to only allow certain types to be passed. Requirements are that the object should be
      * serializable.
