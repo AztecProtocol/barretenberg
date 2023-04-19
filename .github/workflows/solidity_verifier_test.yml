@@ -33,9 +33,9 @@ jobs:
 
       - name: Prepare for cpp
         run: |
-          sudo apt update 
-          sudo apt upgrade 
-          sudo apt add --no-cache build-base clang15 openmp-dev cmake ninja git curl perl
+          sudo apt-get update 
+          sudo apt-get upgrade -y 
+          sudo apt-get install -y build-base clang15 openmp-dev cmake ninja git curl perl
 
       - name: Cache Barretenberg
         uses: actions/cache@v3
