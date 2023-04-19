@@ -127,6 +127,8 @@ if [ -n "$LAST_SUCCESSFUL_COMMIT" ]; then
   echo
 fi
 
+docker ps
+
 # Build the actual image and give it a commit tag.
 IMAGE_COMMIT_URI=$ECR_URL/$REPOSITORY:cache-$COMMIT_HASH
 echo "Building image: $IMAGE_COMMIT_URI"
