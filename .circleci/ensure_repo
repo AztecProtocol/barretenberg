@@ -24,8 +24,10 @@ REPOSITORY=$1
 REGION=$2
 REFRESH_LIFECYCLE=$3
 
+echo "Logging in"
 aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT.dkr.ecr.$REGION.amazonaws.com 2> /dev/null
 
+echo "Repository: $REPOSITORY"
 # Create the repository if it doesn't exist.
 if ! aws ecr describe-repositories --region $REGION --repository-names $REPOSITORY > /dev/null 2>&1; then
   echo "Creating repo: $REPOSITORY"
