@@ -6,6 +6,7 @@ shift
 SPEC=$1
 shift
 DOCKERFILE=$(query_manifest dockerfile $REPOSITORY)
+docker --version
 
 cd $(query_manifest buildDir $REPOSITORY)
 
