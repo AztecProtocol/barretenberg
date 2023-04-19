@@ -17,6 +17,12 @@ cd ../cpp/srs_db
 cd ../../sol
 
 echo "Building c++ binaries..."
+cd ../cpp
+cmake --preset clang15
+cmake --build --preset clang15 --target solidity_key_gen solidity_proof_gen
+cd ../sol
+
+echo "Generating keys..."
 ./scripts/init.sh
 
 echo "Formatting code..."
