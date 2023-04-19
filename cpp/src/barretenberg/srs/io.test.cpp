@@ -117,6 +117,18 @@ template <typename T> struct MsgPackSchema {
     }
 };
 
+struct aes__decrypt_buffer_cbc {
+    std::vector<uint8_t> in;
+    std::vector<uint8_t> iv;
+    std::vector<uint8_t> key;
+    size_t length;
+    void operator()() {}
+    auto serialize_flat() {}
+};
+
+auto aes__decrypt_buffer_cbc(uint8_t* in, uint8_t* iv, const uint8_t* key, const size_t length, uint8_t* r) {}
+auto cbind_example() {}
+
 void pretty_print(const auto& obj)
 {
     std::stringstream output;
