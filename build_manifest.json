@@ -25,7 +25,7 @@
   },
   "barretenberg.js": {
     "buildDir": "js",
-    "dockerfile": "js/Dockerfile",
+    "dockerfile": "Dockerfile",
     "rebuildPatterns": ["^js/"],
     "dependencies": ["barretenberg-wasm-linux-clang"]
   },
