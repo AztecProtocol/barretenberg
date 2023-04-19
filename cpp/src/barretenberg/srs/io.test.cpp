@@ -54,24 +54,16 @@ template <typename T> struct MsgPackSchema;
 
 struct DefineMapSchema {
     auto operator()() { return std::make_tuple(); }
-    auto operator()(auto& key, const auto& value)
+    auto operator()(auto key, auto value)
     {
         (void)value; // unused except for type
-        // TODO terrible memory leak hack
-        // since we are serializing proxy objects, these need to exist after this function runs
-        // but we will only print schemas once then end the program, so hack is livable
-        return std::make_tuple(std::ref(key), std::ref(*new MsgPackSchema<std::decay_t<decltype(value)>>()));
+        return std::make_tuple(key, MsgPackSchema<decltype(value)>());
     }
 
-    auto operator()(auto& key, const auto& value, auto&... args)
+    auto operator()(auto key, auto value, auto&... args)
     {
         (void)value; // unused except for type
-        // TODO terrible memory leak hack
-        // since we are serializing proxy objects, these need to exist after this function runs
-        // but we will only print schemas once then end the program, so hack is livable
-        return std::tuple_cat(
-            std::make_tuple(std::ref(key), std::ref(*new MsgPackSchema<std::decay_t<decltype(value)>>())),
-            (*this)(args...));
+        return std::tuple_cat(std::make_tuple(key, MsgPackSchema<decltype(value)>()), (*this)(args...));
     }
 };
 
@@ -88,7 +80,6 @@ template <typename T> const char* schema_name()
     return result;
 }
 
-// TODO in hindsight should have been written against just the msgpack_pack api
 template <typename T> struct MsgPackSchema {
     const char* type_name_string = "__typename";
     const char* type_name = schema_name<T>();
@@ -99,11 +90,11 @@ template <typename T> struct MsgPackSchema {
         T object;
         auto map_definition = object.serialize(ar);
         auto archive_wrapper = [&](auto&... args) { return ar(type_name_string, type_name, args...); };
-        auto create_map_schema = [&](auto&... args) {
-            DefineMapSchema schema;
-            return std::apply(archive_wrapper, schema(args...));
+        auto pack_map_schema = [&](auto&... args) {
+            auto schema = DefineMapSchema{}(args...);
+            std::apply(archive_wrapper, schema).msgpack_pack(packer);
         };
-        std::apply(create_map_schema, map_definition.a).msgpack_pack(packer);
+        std::apply(pack_map_schema, map_definition.a);
     }
     void msgpack_pack(auto& packer) const
         requires msgpack::adaptor::FlatSerializable<T>
