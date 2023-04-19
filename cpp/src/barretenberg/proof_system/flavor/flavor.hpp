@@ -32,8 +32,8 @@ template <typename T, typename TView, size_t NUM_ENTITIES> class Data {
     // TODO(Cody): are these needed?
     Data(const Data&) = default;
     Data(Data&&) = default;
-    virtual Data& operator=(const Data&) = default;
-    virtual Data& operator=(const Data&&) = default;
+    Data& operator=(const Data&) = default;
+    Data& operator=(const Data&&) = default;
 
     T& operator[](size_t idx) { return _data[idx]; };
     typename DataType::iterator begin() { return _data.begin(); };
