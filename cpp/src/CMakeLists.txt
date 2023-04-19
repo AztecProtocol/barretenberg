@@ -27,7 +27,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
     add_compile_options(-fconstexpr-ops-limit=100000000)
 endif()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/msgpack-c/include)
 
 # I feel this should be limited to ecc, however it's currently used in headers that go across libraries,
 # and there currently isn't an easy way to inherit the DDISABLE_SHENANIGANS parameter.
@@ -38,6 +38,7 @@ else()
     message(STATUS "Using optimized assembly for field arithmetic.")
 endif()
 
+set(MSGPACK_USE_BOOST OFF CACHE BOOL "Disable boost" FORCE)
 add_subdirectory(barretenberg/common)
 add_subdirectory(barretenberg/env)
 add_subdirectory(barretenberg/numeric)
@@ -52,9 +53,6 @@ add_subdirectory(barretenberg/plonk)
 add_subdirectory(barretenberg/stdlib)
 add_subdirectory(barretenberg/join_split_example)
 add_subdirectory(barretenberg/dsl)
-add_subdirectory(msgpack-c)
-target_compile_options(msgpack-c PRIVATE -Wno-sign-conversion)
-target_compile_options(jsonconv PRIVATE -Wno-sign-conversion)
 
 if(BENCHMARKS)
     add_subdirectory(barretenberg/benchmark)
@@ -101,7 +99,6 @@ if(WASM)
         $<TARGET_OBJECTS:stdlib_sha256_objects>
         $<TARGET_OBJECTS:stdlib_aes128_objects>
         $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
-        $<TARGET_OBJECTS:msgpack-c>
     )
 
     # With binaryen installed, it seems its wasm backend optimiser gets invoked automatically.
@@ -201,7 +198,6 @@ if(WASM)
         $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
         $<TARGET_OBJECTS:acir_format_objects>
         $<TARGET_OBJECTS:acir_proofs_objects>
-        $<TARGET_OBJECTS:msgpack-c>
     )
 else()
     # For use when compiling dependent cpp projects
@@ -238,7 +234,6 @@ else()
         $<TARGET_OBJECTS:acir_format_objects>
         $<TARGET_OBJECTS:acir_proofs_objects>
         $<TARGET_OBJECTS:env_objects>
-        $<TARGET_OBJECTS:msgpack-c>
     )
 
     if(INSTALL_BARRETENBERG)
