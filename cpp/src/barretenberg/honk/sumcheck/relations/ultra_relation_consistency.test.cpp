@@ -29,15 +29,13 @@ static const size_t INPUT_UNIVARIATE_LENGTH = 2;
 
 namespace proof_system::honk_relation_tests {
 
-class StandardRelationConsistency : public testing::Test {
+class UltraRelationConsistency : public testing::Test {
   public:
-    using Flavor = honk::flavor::Standard;
+    using Flavor = honk::flavor::Ultra;
     using FF = typename Flavor::FF;
     using PurportedEvaluations = typename Flavor::PurportedEvaluations;
-    // template <size_t t> using Univariate = Univariate<FF, t>;
-    // template <size_t t> using UnivariateView = UnivariateView<FF, t>;
-    // WORKTODO: Move MAX_RELATION_LENGTH into Flavor and simplicy this code
 
+    // WORKTODO: Move MAX_RELATION_LENGTH into Flavor and simplicy this code
     template <size_t t> using ExtendedEdges = typename Flavor::template ExtendedEdges<t>;
 
     // TODO(#225)(Adrian): Accept FULL_RELATION_LENGTH as a template parameter for this function only, so that the test
@@ -177,156 +175,163 @@ class StandardRelationConsistency : public testing::Test {
     };
 };
 
-TEST_F(StandardRelationConsistency, ArithmeticRelation)
+TEST_F(UltraRelationConsistency, UltraArithmeticRelation)
 {
-    using Flavor = honk::flavor::Standard;
+    using Flavor = honk::flavor::Ultra;
     using FF = typename Flavor::FF;
-    static constexpr size_t FULL_RELATION_LENGTH = 5;
+    static constexpr size_t FULL_RELATION_LENGTH = 6;
     using ExtendedEdges = typename Flavor::template ExtendedEdges<FULL_RELATION_LENGTH>;
-    static const size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
+    static const size_t NUM_POLYNOMIALS = proof_system::honk::UltraArithmetization::COUNT;
 
     const auto relation_parameters = compute_mock_relation_parameters();
-    auto run_test = [&relation_parameters](bool is_random_input) {
-        std::array<Univariate<FF, INPUT_UNIVARIATE_LENGTH>, NUM_POLYNOMIALS> input_polynomials;
-        ExtendedEdges extended_edges;
-        if (!is_random_input) {
-            // evaluation form, i.e. input_univariate(0) = 1, input_univariate(1) = 2,.. The polynomial is x+1.
-            for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
-                input_polynomials[i] = Univariate<FF, INPUT_UNIVARIATE_LENGTH>({ 1, 2 });
-            }
-            compute_mock_extended_edges<FULL_RELATION_LENGTH>(extended_edges, input_polynomials);
-        } else {
-            // input_univariates are random polynomials of degree one
-            for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
-                input_polynomials[i] =
-                    Univariate<FF, INPUT_UNIVARIATE_LENGTH>({ FF::random_element(), FF::random_element() });
-            }
-            compute_mock_extended_edges<FULL_RELATION_LENGTH>(extended_edges, input_polynomials);
-        };
-        auto relation = ArithmeticRelation<FF>();
-        // Manually compute the expected edge contribution
-        const auto& w_l = extended_edges.w_l;
-        const auto& w_r = extended_edges.w_r;
-        const auto& w_o = extended_edges.w_o;
-        const auto& q_m = extended_edges.q_m;
-        const auto& q_l = extended_edges.q_l;
-        const auto& q_r = extended_edges.q_r;
-        const auto& q_o = extended_edges.q_o;
-        const auto& q_c = extended_edges.q_c;
+    ExtendedEdges extended_edges;
+    std::array<Univariate<FF, INPUT_UNIVARIATE_LENGTH>, NUM_POLYNOMIALS> input_polynomials;
 
-        // We first compute the evaluations using UnivariateViews, with the provided hard-coded formula.
-        // Ensure that expression changes are detected.
-        // expected_evals, length 4, extends to { { 5, 22, 57, 116, 205} } for input polynomial {1, 2}
-        auto expected_evals = (q_m * w_r * w_l) + (q_r * w_r) + (q_l * w_l) + (q_o * w_o) + (q_c);
-        validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
-    };
-    run_test(/* is_random_input=*/true);
-    run_test(/* is_random_input=*/false);
+    // input_univariates are random polynomials of degree one
+    for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
+        input_polynomials[i] = Univariate<FF, INPUT_UNIVARIATE_LENGTH>({ FF::random_element(), FF::random_element() });
+    }
+    compute_mock_extended_edges<FULL_RELATION_LENGTH>(extended_edges, input_polynomials);
+
+    auto relation = UltraArithmeticRelation<FF>();
+
+    // Extract the extended edges for manual computation of relation contribution
+    const auto& w_1 = extended_edges.w_l;
+    const auto& w_2 = extended_edges.w_r;
+    const auto& w_3 = extended_edges.w_o;
+    const auto& w_4 = extended_edges.w_4;
+    const auto& w_4_shift = extended_edges.w_4_shift;
+    const auto& q_m = extended_edges.q_m;
+    const auto& q_l = extended_edges.q_l;
+    const auto& q_r = extended_edges.q_r;
+    const auto& q_o = extended_edges.q_o;
+    const auto& q_4 = extended_edges.q_4;
+    const auto& q_c = extended_edges.q_c;
+    const auto& q_arith = extended_edges.q_arith;
+
+    static const FF neg_half = FF(-2).invert();
+
+    auto expected_evals = (q_arith - 3) * (q_m * w_2 * w_1) * neg_half;
+    expected_evals += (q_l * w_1) + (q_r * w_2) + (q_o * w_3) + (q_4 * w_4) + q_c;
+    expected_evals += (q_arith - 1) * w_4_shift;
+    expected_evals *= q_arith;
+
+    validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
 };
 
-TEST_F(StandardRelationConsistency, GrandProductComputationRelation)
+TEST_F(UltraRelationConsistency, UltraArithmeticRelationSecondary)
 {
-    using Flavor = honk::flavor::Standard;
+    using Flavor = honk::flavor::Ultra;
     using FF = typename Flavor::FF;
-    static constexpr size_t FULL_RELATION_LENGTH = 5;
+    static constexpr size_t FULL_RELATION_LENGTH = 6;
     using ExtendedEdges = typename Flavor::template ExtendedEdges<FULL_RELATION_LENGTH>;
-    static const size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
+    static const size_t NUM_POLYNOMIALS = proof_system::honk::UltraArithmetization::COUNT;
 
     const auto relation_parameters = compute_mock_relation_parameters();
-    auto run_test = [&relation_parameters](bool is_random_input) {
-        ExtendedEdges extended_edges;
-        std::array<Univariate<FF, INPUT_UNIVARIATE_LENGTH>, NUM_POLYNOMIALS> input_polynomials;
-        if (!is_random_input) {
-            // evaluation form, i.e. input_univariate(0) = 1, input_univariate(1) = 2,.. The polynomial is x+1.
-            for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
-                input_polynomials[i] = Univariate<FF, INPUT_UNIVARIATE_LENGTH>({ 1, 2 });
-            }
-            compute_mock_extended_edges<FULL_RELATION_LENGTH>(extended_edges, input_polynomials);
-        } else {
-            // input_univariates are random polynomials of degree one
-            for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
-                input_polynomials[i] =
-                    Univariate<FF, INPUT_UNIVARIATE_LENGTH>({ FF::random_element(), FF::random_element() });
-            }
-            compute_mock_extended_edges<FULL_RELATION_LENGTH>(extended_edges, input_polynomials);
-        };
-        auto relation = GrandProductComputationRelation<FF>();
+    ExtendedEdges extended_edges;
+    std::array<Univariate<FF, INPUT_UNIVARIATE_LENGTH>, NUM_POLYNOMIALS> input_polynomials;
 
-        const auto& beta = relation_parameters.beta;
-        const auto& gamma = relation_parameters.gamma;
-        const auto& public_input_delta = relation_parameters.public_input_delta;
-        // TODO(#225)(luke): Write a test that illustrates the following?
-        // Note: the below z_perm_shift = X^2 will fail because it results in a relation of degree 2*1*1*1 = 5 which
-        // cannot be represented by 5 points. Therefore when we do the calculation then barycentrically extend, we are
-        // effectively exprapolating a 4th degree polynomial instead of the correct 5th degree poly
-        // auto z_perm_shift = Univariate<FF, 5>({ 1, 4, 9, 16, 25 }); // X^2
+    // input_univariates are random polynomials of degree one
+    for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
+        input_polynomials[i] = Univariate<FF, INPUT_UNIVARIATE_LENGTH>({ FF::random_element(), FF::random_element() });
+    }
+    compute_mock_extended_edges<FULL_RELATION_LENGTH>(extended_edges, input_polynomials);
 
-        // Manually compute the expected edge contribution
-        const auto& w_1 = extended_edges.w_l;
-        const auto& w_2 = extended_edges.w_r;
-        const auto& w_3 = extended_edges.w_o;
-        const auto& sigma_1 = extended_edges.sigma_1;
-        const auto& sigma_2 = extended_edges.sigma_2;
-        const auto& sigma_3 = extended_edges.sigma_3;
-        const auto& id_1 = extended_edges.id_1;
-        const auto& id_2 = extended_edges.id_2;
-        const auto& id_3 = extended_edges.id_3;
-        const auto& z_perm = extended_edges.z_perm;
-        const auto& z_perm_shift = extended_edges.z_perm_shift;
-        const auto& lagrange_first = extended_edges.lagrange_first;
-        const auto& lagrange_last = extended_edges.lagrange_last;
+    auto relation = UltraArithmeticRelationSecondary<FF>();
 
-        // We first compute the evaluations using UnivariateViews, with the provided hard-coded formula.
-        // Ensure that expression changes are detected.
-        // expected_evals in the below step { { 27, 250, 1029, 2916, 6655 } } - { { 27, 125, 343, 729, 1331 } }
-        auto expected_evals = (z_perm + lagrange_first) * (w_1 + id_1 * beta + gamma) * (w_2 + id_2 * beta + gamma) *
-                                  (w_3 + id_3 * beta + gamma) -
-                              (z_perm_shift + lagrange_last * public_input_delta) * (w_1 + sigma_1 * beta + gamma) *
-                                  (w_2 + sigma_2 * beta + gamma) * (w_3 + sigma_3 * beta + gamma);
+    // Extract the extended edges for manual computation of relation contribution
+    const auto& w_1 = extended_edges.w_l;
+    const auto& w_4 = extended_edges.w_4;
+    const auto& w_1_shift = extended_edges.w_1_shift;
+    const auto& q_m = extended_edges.q_m;
+    const auto& q_arith = extended_edges.q_arith;
 
-        validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
-    };
-    run_test(/* is_random_input=*/true);
-    run_test(/* is_random_input=*/false);
+    auto expected_evals = (w_1 + w_4 - w_1_shift + q_m);
+    expected_evals *= (q_arith - 2) * (q_arith - 1) * q_arith;
+
+    validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
 };
 
-TEST_F(StandardRelationConsistency, GrandProductInitializationRelation)
+TEST_F(UltraRelationConsistency, UltraGrandProductInitializationRelation)
 {
-    using Flavor = honk::flavor::Standard;
+    using Flavor = honk::flavor::Ultra;
     using FF = typename Flavor::FF;
-    static constexpr size_t FULL_RELATION_LENGTH = 5;
+    using Flavor = honk::flavor::Ultra;
+    static constexpr size_t FULL_RELATION_LENGTH = 6;
+    using ExtendedEdges = typename Flavor::ExtendedEdges<FULL_RELATION_LENGTH>;
+    static const size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
+    auto relation_parameters = compute_mock_relation_parameters();
+    ExtendedEdges extended_edges;
+    std::array<Univariate<FF, INPUT_UNIVARIATE_LENGTH>, NUM_POLYNOMIALS> input_polynomials;
+
+    // input_univariates are random polynomials of degree one
+    for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
+        input_polynomials[i] = Univariate<FF, INPUT_UNIVARIATE_LENGTH>({ FF::random_element(), FF::random_element() });
+    }
+    compute_mock_extended_edges(extended_edges, input_polynomials);
+
+    auto relation = UltraGrandProductInitializationRelation<FF>();
+
+    // Extract the extended edges for manual computation of relation contribution
+    const auto& z_perm_shift = extended_edges.z_perm_shift;
+    const auto& lagrange_last = extended_edges.lagrange_last;
+
+    // Compute the expected result using a simple to read version of the relation expression
+    auto expected_evals = z_perm_shift * lagrange_last;
+
+    validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
+};
+
+TEST_F(UltraRelationConsistency, UltraGrandProductComputationRelation)
+{
+    using Flavor = honk::flavor::Ultra;
+    using FF = typename Flavor::FF;
+    using Flavor = honk::flavor::Ultra;
+    static constexpr size_t FULL_RELATION_LENGTH = 6;
     using ExtendedEdges = typename Flavor::template ExtendedEdges<FULL_RELATION_LENGTH>;
     static const size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
+    auto relation_parameters = compute_mock_relation_parameters();
+    ExtendedEdges extended_edges;
+    std::array<Univariate<FF, INPUT_UNIVARIATE_LENGTH>, NUM_POLYNOMIALS> input_polynomials;
 
-    const auto relation_parameters = compute_mock_relation_parameters();
-    auto run_test = [&relation_parameters](bool is_random_input) {
-        ExtendedEdges extended_edges;
-        std::array<Univariate<FF, INPUT_UNIVARIATE_LENGTH>, NUM_POLYNOMIALS> input_polynomials;
-        if (!is_random_input) {
-            // evaluation form, i.e. input_univariate(0) = 1, input_univariate(1) = 2,.. The polynomial is x+1.
-            for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
-                input_polynomials[i] = Univariate<FF, INPUT_UNIVARIATE_LENGTH>({ 1, 2 });
-            }
-            compute_mock_extended_edges<FULL_RELATION_LENGTH>(extended_edges, input_polynomials);
-        } else {
-            // input_univariates are random polynomials of degree one
-            for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
-                input_polynomials[i] =
-                    Univariate<FF, INPUT_UNIVARIATE_LENGTH>({ FF::random_element(), FF::random_element() });
-            }
-            compute_mock_extended_edges<FULL_RELATION_LENGTH>(extended_edges, input_polynomials);
-        };
-        auto relation = GrandProductInitializationRelation<FF>();
-        const auto& z_perm_shift = extended_edges.z_perm_shift;
-        const auto& lagrange_last = extended_edges.lagrange_last;
-        // We first compute the evaluations using UnivariateViews, with the provided hard-coded formula.
-        // Ensure that expression changes are detected.
-        // expected_evals, lenght 3 (coeff form = x^2 + x), extends to { { 0, 2, 6, 12, 20 } }
-        auto expected_evals = z_perm_shift * lagrange_last;
+    // input_univariates are random polynomials of degree one
+    for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
+        input_polynomials[i] = Univariate<FF, INPUT_UNIVARIATE_LENGTH>({ FF::random_element(), FF::random_element() });
+    }
+    compute_mock_extended_edges(extended_edges, input_polynomials);
 
-        validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
-    };
-    run_test(/* is_random_input=*/true);
-    run_test(/* is_random_input=*/false);
+    auto relation = UltraGrandProductComputationRelation<FF>();
+
+    const auto& beta = relation_parameters.beta;
+    const auto& gamma = relation_parameters.gamma;
+    const auto& public_input_delta = relation_parameters.public_input_delta;
+
+    // Extract the extended edges for manual computation of relation contribution
+    const auto& w_1 = extended_edges.w_l;
+    const auto& w_2 = extended_edges.w_r;
+    const auto& w_3 = extended_edges.w_o;
+    const auto& w_4 = extended_edges.w_4;
+    const auto& sigma_1 = extended_edges.sigma_1;
+    const auto& sigma_2 = extended_edges.sigma_2;
+    const auto& sigma_3 = extended_edges.sigma_3;
+    const auto& sigma_4 = extended_edges.sigma_4;
+    const auto& id_1 = extended_edges.id_1;
+    const auto& id_2 = extended_edges.id_2;
+    const auto& id_3 = extended_edges.id_3;
+    const auto& id_4 = extended_edges.id_4;
+    const auto& z_perm = extended_edges.z_perm;
+    const auto& z_perm_shift = extended_edges.z_perm_shift;
+    const auto& lagrange_first = extended_edges.lagrange_first;
+    const auto& lagrange_last = extended_edges.lagrange_last;
+
+    // Compute the expected result using a simple to read version of the relation expression
+    auto expected_evals = (z_perm + lagrange_first) * (w_1 + id_1 * beta + gamma) * (w_2 + id_2 * beta + gamma) *
+                              (w_3 + id_3 * beta + gamma) * (w_4 + id_4 * beta + gamma) -
+                          (z_perm_shift + lagrange_last * public_input_delta) * (w_1 + sigma_1 * beta + gamma) *
+                              (w_2 + sigma_2 * beta + gamma) * (w_3 + sigma_3 * beta + gamma) *
+                              (w_4 + sigma_4 * beta + gamma);
+
+    validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
 };
+
 } // namespace proof_system::honk_relation_tests

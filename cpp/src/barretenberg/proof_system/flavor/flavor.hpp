@@ -15,9 +15,12 @@
 #include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
 #include "barretenberg/srs/reference_string/reference_string.hpp"
 #include "barretenberg/proof_system/polynomial_store/polynomial_store.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 
+// WORKTODO: Names of these classes
+// WORKTODO: Define special member functions in reasonable way and untangle the bad consequences elsewhere (e.g., in
+// SumcheckOutput)
 namespace proof_system::honk::flavor {
-
 template <typename T, typename TView, size_t NUM_ENTITIES> class Data {
   public:
     using DataType = std::array<T, NUM_ENTITIES>;
@@ -25,17 +28,24 @@ template <typename T, typename TView, size_t NUM_ENTITIES> class Data {
 
     // TODO(Cody): now it's safe to inherit from this... right?
     virtual ~Data() = default;
+    Data() = default;
+    // TODO(Cody): are these needed?
+    Data(const Data&) = default;
+    Data(Data&&) = default;
+    virtual Data& operator=(const Data&) = default;
+    virtual Data& operator=(const Data&&) = default;
 
     T& operator[](size_t idx) { return _data[idx]; };
     typename DataType::iterator begin() { return _data.begin(); };
     typename DataType::iterator end() { return _data.end(); };
 
-    consteval size_t size() { return _data.size(); };
+    size_t size() { return _data.size(); }; // WORKTODO: constexpr
 };
 
 template <typename T, typename TView, size_t NUM_PRECOMPUTED_ENTITIES>
 class BasePrecomputedData : public Data<T, TView, NUM_PRECOMPUTED_ENTITIES> {
   public:
+    BasePrecomputedData() = default;
     virtual std::vector<TView> get_selectors() = 0;
     virtual std::vector<TView> get_sigma_polynomials() = 0;
     virtual std::vector<TView> get_id_polynomials() = 0;
@@ -50,9 +60,10 @@ template <typename PrecomputedData, typename FF> class BaseProvingKey : public P
     const size_t num_public_inputs;
     std::shared_ptr<ProverReferenceString> crs;
     EvaluationDomain<FF> evaluation_domain;
-    const ComposerType composer_type;     // TODO(Cody): Get rid of this
-    PolynomialStore<FF> polynomial_store; // TODO(Cody): Get rid of this
+    const ComposerType composer_type;     // WORKTODO: Get rid of this
+    PolynomialStore<FF> polynomial_store; // WORKTODO: Get rid of this
 
+    BaseProvingKey() = default;
     BaseProvingKey(const size_t circuit_size,
                    const size_t num_public_inputs,
                    std::shared_ptr<ProverReferenceString> const& crs,
@@ -74,6 +85,13 @@ template <typename PrecomputedData, typename FF> class BaseProvingKey : public P
 template <typename PrecomputedData> using BaseVerificationKey = PrecomputedData;
 template <typename T, size_t NUM_ALL_ENTITIES> class BaseAllData : public Data<T, T, NUM_ALL_ENTITIES> {
   public:
+    BaseAllData() { this->_data = {}; }
+
+    BaseAllData(std::array<T, NUM_ALL_ENTITIES> read_evals) { this->_data = read_evals; }
+    // BaseAllData(const BaseAllData& other){this->_data = other.data;};
+    BaseAllData& operator=(const BaseAllData& other) { this->_data = other._data; };
+    BaseAllData& operator=(const BaseAllData&& other) { this->_data = other._data; };
+
     virtual std::vector<T> get_not_to_be_shifted() = 0;
     virtual std::vector<T> get_to_be_shifted() = 0;
 
@@ -91,109 +109,6 @@ class Standard {
   public:
     using CircuitConstructor = StandardCircuitConstructor;
     using FF = barretenberg::fr;
-    using Polynomial = barretenberg::Polynomial<FF>;
-    using PolynomialView = std::span<FF>;
-    using G1 = barretenberg::g1;
-    using Commitment = G1;
-    using CommitmentView = G1; // TODO(Cody): make a pointer?
-    using PCSParams = pcs::kzg::Params;
-
-    static constexpr size_t num_wires = CircuitConstructor::num_wires;
-    static constexpr size_t NUM_ALL_ENTITIES = 18;
-    static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 13;
-    static constexpr size_t minimum_circuit_size = 3; // TODO(Cody): what is this?/s
-
-    // TODO(Cody): Made this public derivation so that I could populate selector
-    // polys from circuit constructor.
-    template <typename T, typename TView>
-    class PrecomputedData : public BasePrecomputedData<T, TView, NUM_PRECOMPUTED_ENTITIES> {
-      public:
-        T& q_m = std::get<0>(this->_data);
-        T& q_l = std::get<1>(this->_data);
-        T& q_r = std::get<2>(this->_data);
-        T& q_o = std::get<3>(this->_data);
-        T& q_c = std::get<4>(this->_data);
-        T& sigma_1 = std::get<5>(this->_data);
-        T& sigma_2 = std::get<6>(this->_data);
-        T& sigma_3 = std::get<7>(this->_data);
-        T& id_1 = std::get<8>(this->_data);
-        T& id_2 = std::get<9>(this->_data);
-        T& id_3 = std::get<10>(this->_data);
-        T& lagrange_first = std::get<11>(this->_data);
-        T& lagrange_last = std::get<12>(this->_data); // = LAGRANGE_N-1 whithout ZK, but can be less
-
-        std::vector<TView> get_selectors() { return { q_m, q_l, q_r, q_o, q_c }; };
-        std::vector<TView> get_sigma_polynomials() { return { sigma_1, sigma_2, sigma_3 }; };
-        std::vector<TView> get_id_polynomials() { return { id_1, id_2, id_3 }; };
-    };
-
-    using ProvingKey = BaseProvingKey<PrecomputedData<Polynomial, PolynomialView>, FF>;
-
-    using VerificationKey = BaseVerificationKey<PrecomputedData<Commitment, CommitmentView>>;
-
-    template <typename T> class AllData : public BaseAllData<T, NUM_ALL_ENTITIES> {
-      public:
-        T& w_l = std::get<0>(this->_data);
-        T& w_r = std::get<1>(this->_data);
-        T& w_o = std::get<2>(this->_data);
-        T& z_perm = std::get<3>(this->_data);
-        T& z_perm_shift = std::get<4>(this->_data);
-        T& q_m = std::get<5>(this->_data);
-        T& q_l = std::get<6>(this->_data);
-        T& q_r = std::get<7>(this->_data);
-        T& q_o = std::get<8>(this->_data);
-        T& q_c = std::get<9>(this->_data);
-        T& sigma_1 = std::get<10>(this->_data);
-        T& sigma_2 = std::get<11>(this->_data);
-        T& sigma_3 = std::get<12>(this->_data);
-        T& id_1 = std::get<13>(this->_data);
-        T& id_2 = std::get<14>(this->_data);
-        T& id_3 = std::get<15>(this->_data);
-        T& lagrange_first = std::get<16>(this->_data);
-        T& lagrange_last = std::get<17>(this->_data);
-
-        std::vector<T> get_not_to_be_shifted()
-        { // ...z_perm_shift is in here?
-            return { w_l,  w_r,  w_o,  z_perm_shift,   q_m,          q_l, q_r, q_o, q_c, sigma_1, sigma_2, sigma_3,
-                     id_1, id_2, id_3, lagrange_first, lagrange_last };
-        };
-
-        std::vector<T> get_to_be_shifted() { return { z_perm }; };
-    };
-
-    // These are classes are views of data living in different entities. They
-    // provide the utility of grouping these and ranged `for` loops over
-    // subsets.
-    using ProverPolynomials = AllData<PolynomialView>;
-    using VerifierCommitments = AllData<CommitmentView>;
-
-    // WORKTODOXIxI: Handle univariates right
-    using ExtendedEdges = AllData<sumcheck::Univariate<FF, 5>>;
-
-    using PurportedEvaluations = AllData<FF>;
-
-    class CommitmentLabels : public AllData<std::string> {
-      public:
-        // this does away with the ENUM_TO_COMM array while preserving the
-        // transcript interface, which takes a string
-        // note: we could consider "enriching" the transcript interface to not use
-        // strings in the future, but I leave it this way for simplicity
-        std::string w_l = "w_l";
-        std::string w_r = "w_r";
-        std::string w_o = "w_o";
-        std::string p_0 = "p_0";
-        std::string p_1 = "p_1";
-        std::string q_0 = "q_0";
-        std::string q_1 = "q_1";
-        std::string s_0 = "s_0";
-    };
-};
-
-class Ultra {
-  public:
-    using CircuitConstructor = UltraCircuitConstructor;
-    using FF = CircuitConstructor::FF;
-
     using Polynomial = barretenberg::Polynomial<FF>;
     using PolynomialView = std::span<FF>;
     using G1 = barretenberg::g1;
@@ -228,16 +143,86 @@ class Ultra {
         std::vector<TView> get_selectors() { return { q_m, q_l, q_r, q_o, q_c }; };
         std::vector<TView> get_sigma_polynomials() { return { sigma_1, sigma_2, sigma_3 }; };
         std::vector<TView> get_id_polynomials() { return { id_1, id_2, id_3 }; };
-    };
 
-    // TODO(Cody): Made this public derivation so that I could iterate through
-    // the selectors
+        virtual ~PrecomputedData() = default;
+        PrecomputedData() = default;
+        // TODO(Cody): are these needed?
+        PrecomputedData(const PrecomputedData& other)
+        {
+            q_m = other.q_m;
+            q_l = other.q_l;
+            q_r = other.q_r;
+            q_o = other.q_o;
+            q_c = other.q_c;
+            sigma_1 = other.sigma_1;
+            sigma_2 = other.sigma_2;
+            sigma_3 = other.sigma_3;
+            id_1 = other.id_1;
+            id_2 = other.id_2;
+            id_3 = other.id_3;
+            lagrange_first = other.lagrange_first;
+            lagrange_last = other.lagrange_last;
+        };
+
+        PrecomputedData(PrecomputedData&& other)
+        {
+            q_m = other.q_m;
+            q_l = other.q_l;
+            q_r = other.q_r;
+            q_o = other.q_o;
+            q_c = other.q_c;
+            sigma_1 = other.sigma_1;
+            sigma_2 = other.sigma_2;
+            sigma_3 = other.sigma_3;
+            id_1 = other.id_1;
+            id_2 = other.id_2;
+            id_3 = other.id_3;
+            lagrange_first = other.lagrange_first;
+            lagrange_last = other.lagrange_last;
+        };
+
+        PrecomputedData& operator=(const PrecomputedData& other)
+        {
+            q_m = other.q_m;
+            q_l = other.q_l;
+            q_r = other.q_r;
+            q_o = other.q_o;
+            q_c = other.q_c;
+            sigma_1 = other.sigma_1;
+            sigma_2 = other.sigma_2;
+            sigma_3 = other.sigma_3;
+            id_1 = other.id_1;
+            id_2 = other.id_2;
+            id_3 = other.id_3;
+            lagrange_first = other.lagrange_first;
+            lagrange_last = other.lagrange_last;
+            return *this;
+        };
+
+        PrecomputedData& operator=(PrecomputedData&& other)
+        {
+            q_m = other.q_m;
+            q_l = other.q_l;
+            q_r = other.q_r;
+            q_o = other.q_o;
+            q_c = other.q_c;
+            sigma_1 = other.sigma_1;
+            sigma_2 = other.sigma_2;
+            sigma_3 = other.sigma_3;
+            id_1 = other.id_1;
+            id_2 = other.id_2;
+            id_3 = other.id_3;
+            lagrange_first = other.lagrange_first;
+            lagrange_last = other.lagrange_last;
+            return *this;
+        };
+    };
 
     using ProvingKey = BaseProvingKey<PrecomputedData<Polynomial, PolynomialView>, FF>;
 
     using VerificationKey = BaseVerificationKey<PrecomputedData<Commitment, CommitmentView>>;
 
-    template <typename T> class AllData : BaseAllData<T, NUM_ALL_ENTITIES> {
+    template <typename T> class AllData : public BaseAllData<T, NUM_ALL_ENTITIES> {
       public:
         T& w_l = std::get<0>(this->_data);
         T& w_r = std::get<1>(this->_data);
@@ -258,13 +243,112 @@ class Ultra {
         T& lagrange_first = std::get<16>(this->_data);
         T& lagrange_last = std::get<17>(this->_data);
 
-        std::vector<T> get_not_to_be_shifted()
+        std::vector<T> get_wires() { return { w_l, w_r, w_o }; };
+
+        std::vector<T> get_not_to_be_shifted() override
         { // ...z_perm_shift is in here?
             return { w_l,  w_r,  w_o,  z_perm_shift,   q_m,          q_l, q_r, q_o, q_c, sigma_1, sigma_2, sigma_3,
                      id_1, id_2, id_3, lagrange_first, lagrange_last };
         };
 
-        std::vector<T> get_to_be_shifted() { return { z_perm }; };
+        std::vector<T> get_to_be_shifted() override { return { z_perm }; };
+
+        AllData() = default;
+        AllData(std::array<T, NUM_ALL_ENTITIES> _data_in)
+        {
+            this->_data = _data_in;
+        }; // WORKTODO: this will break references?
+        virtual ~AllData() = default;
+        // TODO(Cody): are these needed?
+        AllData(const AllData& other)
+        {
+            w_l = other.w_l;
+            w_r = other.w_r;
+            w_o = other.w_o;
+            z_perm = other.z_perm;
+            z_perm_shift = other.z_perm_shift;
+            q_m = other.q_m;
+            q_l = other.q_l;
+            q_r = other.q_r;
+            q_o = other.q_o;
+            q_c = other.q_c;
+            sigma_1 = other.sigma_1;
+            sigma_2 = other.sigma_2;
+            sigma_3 = other.sigma_3;
+            id_1 = other.id_1;
+            id_2 = other.id_2;
+            id_3 = other.id_3;
+            lagrange_first = other.lagrange_first;
+            lagrange_last = other.lagrange_last;
+        };
+
+        AllData(AllData&& other)
+        {
+            w_l = other.w_l;
+            w_r = other.w_r;
+            w_o = other.w_o;
+            z_perm = other.z_perm;
+            z_perm_shift = other.z_perm_shift;
+            q_m = other.q_m;
+            q_l = other.q_l;
+            q_r = other.q_r;
+            q_o = other.q_o;
+            q_c = other.q_c;
+            sigma_1 = other.sigma_1;
+            sigma_2 = other.sigma_2;
+            sigma_3 = other.sigma_3;
+            id_1 = other.id_1;
+            id_2 = other.id_2;
+            id_3 = other.id_3;
+            lagrange_first = other.lagrange_first;
+            lagrange_last = other.lagrange_last;
+        };
+
+        AllData& operator=(const AllData& other)
+        {
+            w_l = other.w_l;
+            w_r = other.w_r;
+            w_o = other.w_o;
+            z_perm = other.z_perm;
+            z_perm_shift = other.z_perm_shift;
+            q_m = other.q_m;
+            q_l = other.q_l;
+            q_r = other.q_r;
+            q_o = other.q_o;
+            q_c = other.q_c;
+            sigma_1 = other.sigma_1;
+            sigma_2 = other.sigma_2;
+            sigma_3 = other.sigma_3;
+            id_1 = other.id_1;
+            id_2 = other.id_2;
+            id_3 = other.id_3;
+            lagrange_first = other.lagrange_first;
+            lagrange_last = other.lagrange_last;
+            return *this;
+        };
+
+        AllData& operator=(AllData&& other)
+        {
+            w_l = other.w_l;
+            w_r = other.w_r;
+            w_o = other.w_o;
+            z_perm = other.z_perm;
+            z_perm_shift = other.z_perm_shift;
+            q_m = other.q_m;
+            q_l = other.q_l;
+            q_r = other.q_r;
+            q_o = other.q_o;
+            q_c = other.q_c;
+            sigma_1 = other.sigma_1;
+            sigma_2 = other.sigma_2;
+            sigma_3 = other.sigma_3;
+            id_1 = other.id_1;
+            id_2 = other.id_2;
+            id_3 = other.id_3;
+            lagrange_first = other.lagrange_first;
+            lagrange_last = other.lagrange_last;
+            return *this;
+        };
     };
 
     // These are classes are views of data living in different entities. They
@@ -273,10 +357,15 @@ class Ultra {
     using ProverPolynomials = AllData<PolynomialView>;
     using VerifierCommitments = AllData<CommitmentView>;
 
-    // TODO: Handle univariates right
-    using ExtendedEdges = AllData<sumcheck::Univariate<FF, 5>>;
+    // WORKTODO: Handle univariates right
+    using FoldedPolynomials = AllData<std::vector<FF>>; // WORKTODO add view class type.
+    template <size_t MAX_RELATION_LENGTH> using ExtendedEdges = AllData<sumcheck::Univariate<FF, MAX_RELATION_LENGTH>>;
 
-    using PurportedEvaluations = AllData<FF>;
+    class PurportedEvaluations : public AllData<FF> {
+      public: // WORKTODO: this is bad
+        PurportedEvaluations() { this->_data = {}; }
+        PurportedEvaluations(std::array<FF, NUM_ALL_ENTITIES> read_evals) { this->_data = read_evals; }
+    };
 
     class CommitmentLabels : public AllData<std::string> {
       public:
@@ -284,16 +373,438 @@ class Ultra {
         // transcript interface, which takes a string
         // note: we could consider "enriching" the transcript interface to not use
         // strings in the future, but I leave it this way for simplicity
-        std::string w_l = "w_l";
-        std::string w_r = "w_r";
-        std::string w_o = "w_o";
-        std::string p_0 = "p_0";
-        std::string p_1 = "p_1";
-        std::string q_0 = "q_0";
-        std::string q_1 = "q_1";
-        std::string s_0 = "s_0";
+
+        // WORKTODO: stick with these names from before?
+        std::string w_l = "W_1";
+        std::string w_r = "W_2";
+        std::string w_o = "W_3";
+        std::string z_perm = "Z_PERM";
     };
 };
+
+class Ultra {
+  public:
+    using CircuitConstructor = UltraCircuitConstructor;
+    using FF = barretenberg::fr;
+    using Polynomial = barretenberg::Polynomial<FF>;
+    using PolynomialView = std::span<FF>;
+    using G1 = barretenberg::g1;
+    using Commitment = G1;
+    using CommitmentView = G1; // TODO(Cody): make a pointer?
+    using PCSParams = pcs::kzg::Params;
+
+    static constexpr size_t num_wires = CircuitConstructor::num_wires;
+    static constexpr size_t NUM_ALL_ENTITIES = 35;
+    static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 25;
+    static constexpr size_t minimum_circuit_size = 3; // TODO(Cody): what is this actually?
+
+    template <typename T, typename TView>
+    class PrecomputedData : public BasePrecomputedData<T, TView, NUM_PRECOMPUTED_ENTITIES> {
+      public:
+        T& q_c = std::get<0>(this->_data);
+        T& q_l = std::get<1>(this->_data);
+        T& q_r = std::get<2>(this->_data);
+        T& q_o = std::get<3>(this->_data);
+        T& q_4 = std::get<4>(this->_data);
+        T& q_m = std::get<5>(this->_data);
+        T& q_arith = std::get<6>(this->_data);
+        T& q_sort = std::get<7>(this->_data);
+        T& q_elliptic = std::get<8>(this->_data);
+        T& q_aux = std::get<9>(this->_data);
+        T& q_lookuptype = std::get<10>(this->_data);
+        T& s_1 = std::get<11>(this->_data); // These shouldn't be in here, right?
+        T& s_2 = std::get<12>(this->_data);
+        T& s_3 = std::get<13>(this->_data);
+        T& s_4 = std::get<14>(this->_data);
+        T& sigma_1 = std::get<15>(this->_data);
+        T& sigma_2 = std::get<16>(this->_data);
+        T& sigma_3 = std::get<17>(this->_data);
+        T& sigma_4 = std::get<18>(this->_data);
+        T& id_1 = std::get<19>(this->_data);
+        T& id_2 = std::get<20>(this->_data);
+        T& id_3 = std::get<21>(this->_data);
+        T& id_4 = std::get<22>(this->_data);
+        T& lagrange_first = std::get<23>(this->_data);
+        T& lagrange_last = std::get<24>(this->_data);
+
+        std::vector<TView> get_selectors()
+        {
+            return { q_c, q_l, q_r, q_o, q_4, q_m, q_arith, q_sort, q_elliptic, q_aux, q_lookuptype };
+        };
+        std::vector<TView> get_sigma_polynomials() { return { sigma_1, sigma_2, sigma_3, sigma_4 }; };
+        std::vector<TView> get_id_polynomials() { return { id_1, id_2, id_3, id_4 }; };
+
+        virtual ~PrecomputedData() = default;
+        PrecomputedData() = default;
+        // TODO(Cody): are these needed?
+        PrecomputedData(const PrecomputedData& other)
+            : q_c(other.q_c)
+            , q_l(other.q_l)
+            , q_r(other.q_r)
+            , q_o(other.q_o)
+            , q_4(other.q_4)
+            , q_m(other.q_m)
+            , q_arith(other.q_arith)
+            , q_sort(other.q_sort)
+            , q_elliptic(other.q_elliptic)
+            , q_aux(other.q_aux)
+            , q_lookuptype(other.q_lookuptype)
+            , s_1(other.s_1)
+            , s_2(other.s_2)
+            , s_3(other.s_3)
+            , s_4(other.s_4)
+            , sigma_1(other.sigma_1)
+            , sigma_2(other.sigma_2)
+            , sigma_3(other.sigma_3)
+            , sigma_4(other.sigma_4)
+            , id_1(other.id_1)
+            , id_2(other.id_2)
+            , id_3(other.id_3)
+            , id_4(other.id_4)
+            , lagrange_first(other.lagrange_first)
+            , lagrange_last(other.lagrange_last){};
+
+        PrecomputedData(PrecomputedData&& other)
+            : q_c(other.q_c)
+            , q_l(other.q_l)
+            , q_r(other.q_r)
+            , q_o(other.q_o)
+            , q_4(other.q_4)
+            , q_m(other.q_m)
+            , q_arith(other.q_arith)
+            , q_sort(other.q_sort)
+            , q_elliptic(other.q_elliptic)
+            , q_aux(other.q_aux)
+            , q_lookuptype(other.q_lookuptype)
+            , s_1(other.s_1)
+            , s_2(other.s_2)
+            , s_3(other.s_3)
+            , s_4(other.s_4)
+            , sigma_1(other.sigma_1)
+            , sigma_2(other.sigma_2)
+            , sigma_3(other.sigma_3)
+            , sigma_4(other.sigma_4)
+            , id_1(other.id_1)
+            , id_2(other.id_2)
+            , id_3(other.id_3)
+            , id_4(other.id_4)
+            , lagrange_first(other.lagrange_first)
+            , lagrange_last(other.lagrange_last){};
+
+        PrecomputedData& operator=(const PrecomputedData& other)
+        // TODO(Cody): Doesn't work for self assignment?
+        {
+            q_c = other.q_c;
+            q_l = other.q_l;
+            q_r = other.q_r;
+            q_o = other.q_o;
+            q_4 = other.q_4;
+            q_m = other.q_m;
+            q_arith = other.q_arith;
+            q_sort = other.q_sort;
+            q_elliptic = other.q_elliptic;
+            q_aux = other.q_aux;
+            q_lookuptype = other.q_lookuptype;
+            s_1 = other.s_1;
+            s_2 = other.s_2;
+            s_3 = other.s_3;
+            s_4 = other.s_4;
+            sigma_1 = other.sigma_1;
+            sigma_2 = other.sigma_2;
+            sigma_3 = other.sigma_3;
+            sigma_4 = other.sigma_4;
+            id_1 = other.id_1;
+            id_2 = other.id_2;
+            id_3 = other.id_3;
+            id_4 = other.id_4;
+            lagrange_first = other.lagrange_first;
+            lagrange_last = other.lagrange_last;
+            return *this;
+        };
+
+        PrecomputedData& operator=(PrecomputedData&& other)
+        {
+            q_c = other.q_c;
+            q_l = other.q_l;
+            q_r = other.q_r;
+            q_o = other.q_o;
+            q_4 = other.q_4;
+            q_m = other.q_m;
+            q_arith = other.q_arith;
+            q_sort = other.q_sort;
+            q_elliptic = other.q_elliptic;
+            q_aux = other.q_aux;
+            q_lookuptype = other.q_lookuptype;
+            s_1 = other.s_1;
+            s_2 = other.s_2;
+            s_3 = other.s_3;
+            s_4 = other.s_4;
+            sigma_1 = other.sigma_1;
+            sigma_2 = other.sigma_2;
+            sigma_3 = other.sigma_3;
+            sigma_4 = other.sigma_4;
+            id_1 = other.id_1;
+            id_2 = other.id_2;
+            id_3 = other.id_3;
+            id_4 = other.id_4;
+            lagrange_first = other.lagrange_first;
+            lagrange_last = other.lagrange_last;
+            return *this;
+        };
+    };
+
+    using ProvingKey = BaseProvingKey<PrecomputedData<Polynomial, PolynomialView>, FF>;
+
+    using VerificationKey = BaseVerificationKey<PrecomputedData<Commitment, CommitmentView>>;
+
+    template <typename T> class AllData : public BaseAllData<T, NUM_ALL_ENTITIES> {
+      public:
+        T& q_c = std::get<0>(this->_data);
+        T& q_l = std::get<1>(this->_data);
+        T& q_r = std::get<2>(this->_data);
+        T& q_o = std::get<3>(this->_data);
+        T& q_4 = std::get<4>(this->_data);
+        T& q_m = std::get<5>(this->_data);
+        T& q_arith = std::get<6>(this->_data);
+        T& q_sort = std::get<7>(this->_data);
+        T& q_elliptic = std::get<8>(this->_data);
+        T& q_aux = std::get<9>(this->_data);
+        T& q_lookuptype = std::get<10>(this->_data);
+        T& sigma_1 = std::get<11>(this->_data);
+        T& sigma_2 = std::get<12>(this->_data);
+        T& sigma_3 = std::get<13>(this->_data);
+        T& sigma_4 = std::get<14>(this->_data);
+        T& id_1 = std::get<15>(this->_data);
+        T& id_2 = std::get<16>(this->_data);
+        T& id_3 = std::get<17>(this->_data);
+        T& id_4 = std::get<18>(this->_data);
+        T& lagrange_first = std::get<19>(this->_data);
+        T& lagrange_last = std::get<20>(this->_data);
+        T& w_l = std::get<21>(this->_data);
+        T& w_r = std::get<22>(this->_data);
+        T& w_o = std::get<23>(this->_data);
+        T& w_4 = std::get<24>(this->_data);
+        T& s_1 = std::get<25>(this->_data);
+        T& s_2 = std::get<26>(this->_data);
+        T& s_3 = std::get<27>(this->_data);
+        T& s_4 = std::get<28>(this->_data);
+        T& z_perm = std::get<29>(this->_data);
+        T& z_lookup = std::get<30>(this->_data);
+        T& w_1_shift = std::get<31>(this->_data);
+        T& w_4_shift = std::get<32>(this->_data);
+        T& z_perm_shift = std::get<33>(this->_data);
+        T& z_lookup_shift = std::get<34>(this->_data);
+
+        std::vector<T> get_wires() { return { w_l, w_r, w_o, w_4 }; };
+
+        std::vector<T> get_not_to_be_shifted() override
+        {
+            return {
+                q_c,           q_l,     q_r,     q_o,     q_4,     q_m,  q_arith, q_sort, q_elliptic, q_aux,
+                q_lookuptype,  sigma_1, sigma_2, sigma_3, sigma_4, id_1, id_2,    id_3,   id_4,       lagrange_first,
+                lagrange_last, w_l,     w_r,     w_o,     w_4,     s_1,  s_2,     s_3,    s_4,        z_perm,
+                z_lookup
+
+            };
+        };
+
+        std::vector<T> get_to_be_shifted() override { return { w_1_shift, w_4_shift, z_perm_shift, z_lookup_shift }; };
+
+        AllData() = default;
+        AllData(std::array<T, NUM_ALL_ENTITIES> _data_in)
+        {
+            this->_data = _data_in;
+        }; // WORKTODO: this will break references?
+        virtual ~AllData() = default;
+        // TODO(Cody): are these needed?
+        AllData(const AllData& other)
+            : q_c(other.q_c)
+            , q_l(other.q_l)
+            , q_r(other.q_r)
+            , q_o(other.q_o)
+            , q_4(other.q_4)
+            , q_m(other.q_m)
+            , q_arith(other.q_arith)
+            , q_sort(other.q_sort)
+            , q_elliptic(other.q_elliptic)
+            , q_aux(other.q_aux)
+            , q_lookuptype(other.q_lookuptype)
+            , sigma_1(other.sigma_1)
+            , sigma_2(other.sigma_2)
+            , sigma_3(other.sigma_3)
+            , sigma_4(other.sigma_4)
+            , id_1(other.id_1)
+            , id_2(other.id_2)
+            , id_3(other.id_3)
+            , id_4(other.id_4)
+            , lagrange_first(other.lagrange_first)
+            , lagrange_last(other.lagrange_last)
+            , w_l(other.w_l)
+            , w_r(other.w_r)
+            , w_o(other.w_o)
+            , w_4(other.w_4)
+            , s_1(other.s_1)
+            , s_2(other.s_2)
+            , s_3(other.s_3)
+            , s_4(other.s_4)
+            , z_perm(other.z_perm)
+            , z_lookup(other.z_lookup)
+            , w_1_shift(other.w_1_shift)
+            , w_4_shift(other.w_4_shift)
+            , z_perm_shift(other.z_perm_shift)
+            , z_lookup_shift(other.z_lookup_shift){};
+
+        AllData(AllData&& other)
+            :
+
+            q_c(other.q_c)
+            , q_l(other.q_l)
+            , q_r(other.q_r)
+            , q_o(other.q_o)
+            , q_4(other.q_4)
+            , q_m(other.q_m)
+            , q_arith(other.q_arith)
+            , q_sort(other.q_sort)
+            , q_elliptic(other.q_elliptic)
+            , q_aux(other.q_aux)
+            , q_lookuptype(other.q_lookuptype)
+            , sigma_1(other.sigma_1)
+            , sigma_2(other.sigma_2)
+            , sigma_3(other.sigma_3)
+            , sigma_4(other.sigma_4)
+            , id_1(other.id_1)
+            , id_2(other.id_2)
+            , id_3(other.id_3)
+            , id_4(other.id_4)
+            , lagrange_first(other.lagrange_first)
+            , lagrange_last(other.lagrange_last)
+            , w_l(other.w_l)
+            , w_r(other.w_r)
+            , w_o(other.w_o)
+            , w_4(other.w_4)
+            , s_1(other.s_1)
+            , s_2(other.s_2)
+            , s_3(other.s_3)
+            , s_4(other.s_4)
+            , z_perm(other.z_perm)
+            , z_lookup(other.z_lookup)
+            , w_1_shift(other.w_1_shift)
+            , w_4_shift(other.w_4_shift)
+            , z_perm_shift(other.z_perm_shift)
+            , z_lookup_shift(other.z_lookup_shift){};
+
+        AllData& operator=(const AllData& other)
+        {
+            q_c = other.q_c;
+            q_l = other.q_l;
+            q_r = other.q_r;
+            q_o = other.q_o;
+            q_4 = other.q_4;
+            q_m = other.q_m;
+            q_arith = other.q_arith;
+            q_sort = other.q_sort;
+            q_elliptic = other.q_elliptic;
+            q_aux = other.q_aux;
+            q_lookuptype = other.q_lookuptype;
+            sigma_1 = other.sigma_1;
+            sigma_2 = other.sigma_2;
+            sigma_3 = other.sigma_3;
+            sigma_4 = other.sigma_4;
+            id_1 = other.id_1;
+            id_2 = other.id_2;
+            id_3 = other.id_3;
+            id_4 = other.id_4;
+            lagrange_first = other.lagrange_first;
+            lagrange_last = other.lagrange_last;
+            w_l = other.w_l;
+            w_r = other.w_r;
+            w_o = other.w_o;
+            w_4 = other.w_4;
+            s_1 = other.s_1;
+            s_2 = other.s_2;
+            s_3 = other.s_3;
+            s_4 = other.s_4;
+            z_perm = other.z_perm;
+            z_lookup = other.z_lookup;
+            w_1_shift = other.w_1_shift;
+            w_4_shift = other.w_4_shift;
+            z_perm_shift = other.z_perm_shift;
+            z_lookup_shift = other.z_lookup_shift;
+            return *this;
+        };
+
+        AllData& operator=(AllData&& other)
+        {
+            q_c = other.q_c;
+            q_l = other.q_l;
+            q_r = other.q_r;
+            q_o = other.q_o;
+            q_4 = other.q_4;
+            q_m = other.q_m;
+            q_arith = other.q_arith;
+            q_sort = other.q_sort;
+            q_elliptic = other.q_elliptic;
+            q_aux = other.q_aux;
+            q_lookuptype = other.q_lookuptype;
+            sigma_1 = other.sigma_1;
+            sigma_2 = other.sigma_2;
+            sigma_3 = other.sigma_3;
+            sigma_4 = other.sigma_4;
+            id_1 = other.id_1;
+            id_2 = other.id_2;
+            id_3 = other.id_3;
+            id_4 = other.id_4;
+            lagrange_first = other.lagrange_first;
+            lagrange_last = other.lagrange_last;
+            w_l = other.w_l;
+            w_r = other.w_r;
+            w_o = other.w_o;
+            w_4 = other.w_4;
+            s_1 = other.s_1;
+            s_2 = other.s_2;
+            s_3 = other.s_3;
+            s_4 = other.s_4;
+            z_perm = other.z_perm;
+            z_lookup = other.z_lookup;
+            w_1_shift = other.w_1_shift;
+            w_4_shift = other.w_4_shift;
+            z_perm_shift = other.z_perm_shift;
+            z_lookup_shift = other.z_lookup_shift;
+            return *this;
+        };
+    };
+
+    // These are classes are views of data living in different entities. They
+    // provide the utility of grouping these and ranged `for` loops over
+    // subsets.
+    using ProverPolynomials = AllData<PolynomialView>;
+    using VerifierCommitments = AllData<CommitmentView>;
+
+    // WORKTODO: Handle univariates right
+    using FoldedPolynomials = AllData<std::vector<FF>>; // WORKTODO add view class type.
+    template <size_t MAX_RELATION_LENGTH> using ExtendedEdges = AllData<sumcheck::Univariate<FF, MAX_RELATION_LENGTH>>;
+
+    class PurportedEvaluations : public AllData<FF> {
+      public:
+        PurportedEvaluations() { this->_data = {}; }
+        PurportedEvaluations(std::array<FF, NUM_ALL_ENTITIES> read_evals) { this->_data = read_evals; }
+    };
+
+    class CommitmentLabels : public AllData<std::string> {
+      public:
+        // this does away with the ENUM_TO_COMM array while preserving the
+        // transcript interface, which takes a string
+        // note: we could consider "enriching" the transcript interface to not use
+        // strings in the future, but I leave it this way for simplicity
+
+        // WORKTODO: stick with these names from before?
+        std::string w_l = "W_1";
+        std::string w_r = "W_2";
+        std::string w_o = "W_3";
+        std::string z_perm = "Z_PERM";
+    };
+};
+
 } // namespace proof_system::honk::flavor
 
 namespace proof_system::plonk::flavor {

@@ -43,43 +43,26 @@ Prover<Flavor>::Prover(std::vector<Polynomial>&& wire_polys, const std::shared_p
 {
     // Note(luke): This could be done programmatically with some hacks but this isnt too bad and its nice to see the
     // polys laid out explicitly.
-    // prover_polynomials.q_c = key->polynomial_store.get("q_c_lagrange");
-    // prover_polynomials.q_l = key->polynomial_store.get("q_1_lagrange");
-    // prover_polynomials.q_r = key->polynomial_store.get("q_2_lagrange");
-    // prover_polynomials.q_o = key->polynomial_store.get("q_3_lagrange");
-    // prover_polynomials.q_m = key->polynomial_store.get("q_m_lagrange");
-    // prover_polynomials.sigma_1 = key->polynomial_store.get("sigma_1_lagrange");
-    // prover_polynomials.sigma_2 = key->polynomial_store.get("sigma_2_lagrange");
-    // prover_polynomials.sigma_3 = key->polynomial_store.get("sigma_3_lagrange");
-    // prover_polynomials.id_1 = key->polynomial_store.get("id_1_lagrange");
-    // prover_polynomials.id_2 = key->polynomial_store.get("id_2_lagrange");
-    // prover_polynomials.id_3 = key->polynomial_store.get("id_3_lagrange");
-    // prover_polynomials.lagrange_first = key->polynomial_store.get("L_first_lagrange");
-    // prover_polynomials.lagrange_last = key->polynomial_store.get("L_last_lagrange");
-    // prover_polynomials.w_l = wire_polynomials[0];
-    // prover_polynomials.w_r = wire_polynomials[1];
-    // prover_polynomials.w_o = wire_polynomials[2];template <typename Flavor>
-
-    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::Q_C] = key->polynomial_store.get("q_c_lagrange");
-    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::Q_L] = key->polynomial_store.get("q_1_lagrange");
-    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::Q_R] = key->polynomial_store.get("q_2_lagrange");
-    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::Q_O] = key->polynomial_store.get("q_3_lagrange");
-    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::Q_M] = key->polynomial_store.get("q_m_lagrange");
-    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::SIGMA_1] = key->polynomial_store.get("sigma_1_lagrange");
-    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::SIGMA_2] = key->polynomial_store.get("sigma_2_lagrange");
-    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::SIGMA_3] = key->polynomial_store.get("sigma_3_lagrange");
-    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::ID_1] = key->polynomial_store.get("id_1_lagrange");
-    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::ID_2] = key->polynomial_store.get("id_2_lagrange");
-    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::ID_3] = key->polynomial_store.get("id_3_lagrange");
-    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::LAGRANGE_FIRST] =
-    //     key->polynomial_store.get("L_first_lagrange");
-    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::LAGRANGE_LAST] =
-    // key->polynomial_store.get("L_last_lagrange"); prover_polynomials[honk::StandardHonk::MULTIVARIATE::W_L] =
-    // wire_polynomials[0]; prover_polynomials[honk::StandardHonk::MULTIVARIATE::W_R] = wire_polynomials[1];
-    // prover_polynomials[honk::StandardHonk::MULTIVARIATE::W_O] = wire_polynomials[2];
+    prover_polynomials.q_c = key->q_c;
+    prover_polynomials.q_l = key->q_l;
+    prover_polynomials.q_r = key->q_r;
+    prover_polynomials.q_o = key->q_o;
+    prover_polynomials.q_m = key->q_m;
+    prover_polynomials.sigma_1 = key->sigma_1;
+    prover_polynomials.sigma_2 = key->sigma_2;
+    prover_polynomials.sigma_3 = key->sigma_3;
+    prover_polynomials.id_1 = key->id_1;
+    prover_polynomials.id_2 = key->id_2;
+    prover_polynomials.id_3 = key->id_3;
+    prover_polynomials.lagrange_first = key->lagrange_first;
+    prover_polynomials.lagrange_last = key->lagrange_last;
+    // WORKTODO: loose coupling here. Also: unique pointers?
+    prover_polynomials.w_l = wire_polys[0];
+    prover_polynomials.w_r = wire_polys[1];
+    prover_polynomials.w_o = wire_polys[2];
 
     // Add public inputs to transcript from the second wire polynomial
-    std::span<FF> public_wires_source = prover_polynomials[honk::StandardHonk::MULTIVARIATE::W_R];
+    std::span<FF> public_wires_source = prover_polynomials.w_r;
 
     for (size_t i = 0; i < key->num_public_inputs; ++i) {
         public_inputs.emplace_back(public_wires_source[i]);
@@ -93,9 +76,10 @@ Prover<Flavor>::Prover(std::vector<Polynomial>&& wire_polys, const std::shared_p
  * */
 template <typename Flavor> void Prover<Flavor>::compute_wire_commitments()
 {
-    for (size_t i = 0; i < Flavor::num_wires; ++i) {
-        // WORKTODO
-        queue.add_commitment(wire_polynomials[i], "W_" + std::to_string(i + 1));
+    size_t wire_idx = 0; // ZIPTODO
+    for (auto& label : commitment_labels.get_wires()) {
+        queue.add_commitment(wire_polynomials[wire_idx], label);
+        wire_idx++;
     }
 }
 
@@ -152,10 +136,10 @@ template <typename Flavor> void Prover<Flavor>::execute_grand_product_computatio
 
     z_permutation = prover_library::compute_permutation_grand_product<Flavor>(key, wire_polynomials, beta, gamma);
 
-    queue.add_commitment(z_permutation, "Z_PERM");
+    queue.add_commitment(z_permutation, commitment_labels.z_perm);
 
-    prover_polynomials[honk::StandardHonk::MULTIVARIATE::Z_PERM] = z_permutation;
-    prover_polynomials[honk::StandardHonk::MULTIVARIATE::Z_PERM_SHIFT] = z_permutation.shifted();
+    prover_polynomials.z_perm = z_permutation;
+    prover_polynomials.z_perm_shift = z_permutation.shifted();
 }
 
 /**
@@ -165,7 +149,7 @@ template <typename Flavor> void Prover<Flavor>::execute_grand_product_computatio
  * */
 template <typename Flavor> void Prover<Flavor>::execute_relation_check_rounds()
 {
-    using Sumcheck = sumcheck::Sumcheck<FF,
+    using Sumcheck = sumcheck::Sumcheck<Flavor,
                                         ProverTranscript<FF>,
                                         sumcheck::ArithmeticRelation,
                                         sumcheck::GrandProductComputationRelation,
@@ -183,8 +167,9 @@ template <typename Flavor> void Prover<Flavor>::execute_relation_check_rounds()
  * */
 template <typename Flavor> void Prover<Flavor>::execute_univariatization_round()
 {
-    const size_t NUM_POLYNOMIALS = proof_system::honk::StandardArithmetization::NUM_POLYNOMIALS;
-    const size_t NUM_UNSHIFTED_POLYS = proof_system::honk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
+    // WORKTODO: make static
+    const size_t NUM_POLYNOMIALS = prover_polynomials.size();
+    const size_t NUM_UNSHIFTED_POLYS = prover_polynomials.get_not_to_be_shifted().size();
 
     // Generate batching challenge ρ and powers 1,ρ,…,ρᵐ⁻¹
     FF rho = transcript.get_challenge("rho");
@@ -192,12 +177,15 @@ template <typename Flavor> void Prover<Flavor>::execute_univariatization_round()
 
     // Batch the unshifted polynomials and the to-be-shifted polynomials using ρ
     Polynomial batched_poly_unshifted(key->circuit_size); // batched unshifted polynomials
-    for (size_t i = 0; i < NUM_UNSHIFTED_POLYS; ++i) {
-        batched_poly_unshifted.add_scaled(prover_polynomials[i], rhos[i]);
+    size_t unshifted_poly_idx = 0;                        // ZIPTODO
+    for (auto& unshifted_poly : prover_polynomials.get_not_to_be_shifted()) {
+        batched_poly_unshifted.add_scaled(unshifted_poly, rhos[unshifted_poly_idx]);
+        unshifted_poly_idx++;
     }
+
+    // TODO(Cody): if generizing this, loop over to-be-shifted.
     Polynomial batched_poly_to_be_shifted(key->circuit_size); // batched to-be-shifted polynomials
-    batched_poly_to_be_shifted.add_scaled(prover_polynomials[honk::StandardHonk::MULTIVARIATE::Z_PERM],
-                                          rhos[NUM_UNSHIFTED_POLYS]);
+    batched_poly_to_be_shifted.add_scaled(prover_polynomials.z_perm, rhos[NUM_UNSHIFTED_POLYS]);
 
     // Compute d-1 polynomials Fold^(i), i = 1, ..., d-1.
     fold_polynomials = Gemini::compute_fold_polynomials(

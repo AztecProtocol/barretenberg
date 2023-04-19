@@ -1,9 +1,17 @@
 #pragma once
+#include <array>
+#include <span>
+#include <unordered_map>
+#include <vector>
+#include <algorithm>
+#include <cstddef>
+#include <memory>
+#include <utility>
+#include <string>
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/honk/pcs/shplonk/shplonk.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/honk/flavor/flavor.hpp"
-#include <array>
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/plonk/proof_system/types/proof.hpp"
@@ -14,14 +22,6 @@
 #include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck_output.hpp"
-#include <span>
-#include <unordered_map>
-#include <vector>
-#include <algorithm>
-#include <cstddef>
-#include <memory>
-#include <utility>
-#include <string>
 #include "barretenberg/honk/pcs/claim.hpp"
 #include "barretenberg/honk/proof_system/prover_library.hpp"
 #include "barretenberg/honk/proof_system/work_queue.hpp"
@@ -35,6 +35,8 @@ template <typename Flavor> class Prover {
     using PCSParams = typename Flavor::PCSParams;
     using ProvingKey = typename Flavor::ProvingKey;
     using Polynomial = typename Flavor::Polynomial;
+    using ProverPolynomials = typename Flavor::ProverPolynomials;
+    using CommitmentLabels = typename Flavor::CommitmentLabels;
 
   public:
     Prover(std::vector<Polynomial>&& wire_polys, std::shared_ptr<ProvingKey> input_key = nullptr);
@@ -69,7 +71,10 @@ template <typename Flavor> class Prover {
     std::shared_ptr<ProvingKey> key;
 
     // Container for spans of all polynomials required by the prover (i.e. all multivariates evaluated by Sumcheck).
-    std::array<std::span<FF>, Flavor::NUM_ALL_ENTITIES> prover_polynomials; // WORKTODO: to be replaced
+    ProverPolynomials prover_polynomials;
+
+    // TODO(Cody): Improve this, or at least make the lables static constexpr?
+    CommitmentLabels commitment_labels;
 
     // Container for d + 1 Fold polynomials produced by Gemini
     std::vector<Polynomial> fold_polynomials;
@@ -81,7 +86,7 @@ template <typename Flavor> class Prover {
 
     work_queue<PCSParams> queue;
 
-    sumcheck::SumcheckOutput<FF> sumcheck_output;
+    sumcheck::SumcheckOutput<Flavor> sumcheck_output;
     pcs::gemini::ProverOutput<PCSParams> gemini_output;
     pcs::shplonk::ProverOutput<PCSParams> shplonk_output;
 

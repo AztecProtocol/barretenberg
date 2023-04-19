@@ -419,7 +419,7 @@ void compute_standard_honk_id_polynomials(auto proving_key) // TODO(Cody): provi
 {
     // Fill id polynomials with default values
     // TODO(Cody): Allocate polynomial space in proving key constructor.
-    size_t coset_idx = 0;
+    size_t coset_idx = 0; // ZIPTODO
     for (auto& id_poly : proving_key->get_id_polynomials()) {
         typename Flavor::Polynomial new_poly(proving_key->circuit_size);
         for (size_t i = 0; i < proving_key->circuit_size; ++i) {

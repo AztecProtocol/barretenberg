@@ -2,6 +2,7 @@
 #include "barretenberg/plonk/proof_system/types/proof.hpp"
 #include "./program_settings.hpp"
 #include "barretenberg/plonk/proof_system/verification_key/verification_key.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "barretenberg/transcript/manifest.hpp"
 #include "barretenberg/plonk/proof_system/commitment_scheme/commitment_scheme.hpp"
 #include "../sumcheck/sumcheck.hpp"
@@ -13,7 +14,7 @@
 #include "barretenberg/honk/pcs/kzg/kzg.hpp"
 
 namespace proof_system::honk {
-template <typename program_settings> class Verifier {
+template <typename Flavor, typename program_settings> class Verifier {
 
   public:
     Verifier(std::shared_ptr<plonk::verification_key> verifier_key = nullptr);
@@ -31,8 +32,8 @@ template <typename program_settings> class Verifier {
     VerifierTranscript<typename program_settings::fr> transcript;
 };
 
-extern template class Verifier<honk::standard_verifier_settings>;
+extern template class Verifier<honk::flavor::Standard, honk::standard_verifier_settings>;
 
-typedef Verifier<honk::standard_verifier_settings> StandardVerifier;
+using StandardVerifier = Verifier<honk::flavor::Standard, honk::standard_verifier_settings>;
 
 } // namespace proof_system::honk

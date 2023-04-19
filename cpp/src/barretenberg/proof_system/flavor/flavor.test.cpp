@@ -19,13 +19,13 @@ TEST(Flavor, Standard)
     Flavor::VerificationKey verification_key;
     Flavor::ProverPolynomials prover_polynomials;
     Flavor::VerifierCommitments verifier_commitments;
-    Flavor::ExtendedEdges edges;
+    Flavor::ExtendedEdges<Flavor::NUM_ALL_ENTITIES> edges;
     Flavor::PurportedEvaluations evals;
     Flavor::CommitmentLabels commitment_labels;
 
     EXPECT_EQ(prover_polynomials.size(), 18);
     EXPECT_EQ(prover_polynomials.size(), prover_polynomials.get_in_order().size());
-    EXPECT_EQ(commitment_labels.w_l, "w_l");
+    EXPECT_EQ(commitment_labels.w_r, "W_2");
 
     auto get_test_polynomial = [](size_t& idx) {
         Flavor::Polynomial poly(4);

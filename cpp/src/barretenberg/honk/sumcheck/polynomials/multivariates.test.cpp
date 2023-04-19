@@ -5,17 +5,17 @@
 #include <gtest/gtest.h>
 #include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/numeric/random/engine.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 
 using namespace proof_system::honk::sumcheck;
 namespace test_sumcheck_polynomials {
 
-template <class FF> class MultivariatesTests : public testing::Test {};
+template <typename Flavor> class MultivariatesTests : public testing::Test {};
 
-using FieldTypes = testing::Types<barretenberg::fr>;
-using Transcript = proof_system::honk::ProverTranscript<barretenberg::fr>;
-TYPED_TEST_SUITE(MultivariatesTests, FieldTypes);
+using Flavors = testing::Types<honk::flavor::Standard>;
+using Transcript = proof_system::honk::ProverTranscript<barretenberg::fr>; // worktodo
 
-#define MULTIVARIATES_TESTS_TYPE_ALIASES using FF = TypeParam;
+TYPED_TEST_SUITE(MultivariatesTests, Flavors);
 
 /*
  * We represent a bivariate f0 as f0(X0, X1). The indexing starts from 0 to match with the round number in sumcheck.
@@ -45,7 +45,8 @@ TYPED_TEST_SUITE(MultivariatesTests, FieldTypes);
  */
 TYPED_TEST(MultivariatesTests, FoldTwoRoundsSpecial)
 {
-    MULTIVARIATES_TESTS_TYPE_ALIASES
+    using Flavor = TypeParam;
+    using FF = typename Flavor::FF;
 
     // values here are chosen to check another test
     const size_t multivariate_d(2);
@@ -60,7 +61,7 @@ TYPED_TEST(MultivariatesTests, FoldTwoRoundsSpecial)
 
     auto full_polynomials = std::array<std::span<FF>, 1>({ f0 });
     auto transcript = honk::ProverTranscript<FF>::init_empty();
-    auto sumcheck = Sumcheck<FF, Transcript, ArithmeticRelation>(multivariate_n, transcript);
+    auto sumcheck = Sumcheck<Flavor, Transcript, ArithmeticRelation>(multivariate_n, transcript);
 
     FF round_challenge_0 = { 0x6c7301b49d85a46c, 0x44311531e39c64f6, 0xb13d66d8d6c1a24c, 0x04410c360230a295 };
     round_challenge_0.self_to_montgomery_form();
@@ -81,7 +82,8 @@ TYPED_TEST(MultivariatesTests, FoldTwoRoundsSpecial)
 
 TYPED_TEST(MultivariatesTests, FoldTwoRoundsGeneric)
 {
-    MULTIVARIATES_TESTS_TYPE_ALIASES
+    using Flavor = TypeParam;
+    using FF = typename Flavor::FF;
 
     const size_t multivariate_d(2);
     const size_t multivariate_n(1 << multivariate_d);
@@ -95,7 +97,7 @@ TYPED_TEST(MultivariatesTests, FoldTwoRoundsGeneric)
 
     auto full_polynomials = std::array<std::span<FF>, 1>({ f0 });
     auto transcript = honk::ProverTranscript<FF>::init_empty();
-    auto sumcheck = Sumcheck<FF, Transcript, ArithmeticRelation>(multivariate_n, transcript);
+    auto sumcheck = Sumcheck<Flavor, Transcript, ArithmeticRelation>(multivariate_n, transcript);
 
     FF round_challenge_0 = FF::random_element();
     FF expected_lo = v00 * (FF(1) - round_challenge_0) + v10 * round_challenge_0;
@@ -136,7 +138,8 @@ TYPED_TEST(MultivariatesTests, FoldTwoRoundsGeneric)
  */
 TYPED_TEST(MultivariatesTests, FoldThreeRoundsSpecial)
 {
-    MULTIVARIATES_TESTS_TYPE_ALIASES
+    using Flavor = TypeParam;
+    using FF = typename Flavor::FF;
 
     const size_t multivariate_d(3);
     const size_t multivariate_n(1 << multivariate_d);
@@ -154,7 +157,7 @@ TYPED_TEST(MultivariatesTests, FoldThreeRoundsSpecial)
 
     auto full_polynomials = std::array<std::span<FF>, 1>({ f0 });
     auto transcript = honk::ProverTranscript<FF>::init_empty();
-    auto sumcheck = Sumcheck<FF, Transcript, ArithmeticRelation>(multivariate_n, transcript);
+    auto sumcheck = Sumcheck<Flavor, Transcript, ArithmeticRelation>(multivariate_n, transcript);
 
     FF round_challenge_0 = 1;
     FF expected_q1 = v000 * (FF(1) - round_challenge_0) + v100 * round_challenge_0; // 2
@@ -185,7 +188,8 @@ TYPED_TEST(MultivariatesTests, FoldThreeRoundsSpecial)
 
 TYPED_TEST(MultivariatesTests, FoldThreeRoundsGeneric)
 {
-    MULTIVARIATES_TESTS_TYPE_ALIASES
+    using Flavor = TypeParam;
+    using FF = typename Flavor::FF;
 
     const size_t multivariate_d(3);
     const size_t multivariate_n(1 << multivariate_d);
@@ -203,7 +207,7 @@ TYPED_TEST(MultivariatesTests, FoldThreeRoundsGeneric)
 
     auto full_polynomials = std::array<std::span<FF>, 1>({ f0 });
     auto transcript = honk::ProverTranscript<FF>::init_empty();
-    auto sumcheck = Sumcheck<FF, Transcript, ArithmeticRelation>(multivariate_n, transcript);
+    auto sumcheck = Sumcheck<Flavor, Transcript, ArithmeticRelation>(multivariate_n, transcript);
 
     FF round_challenge_0 = FF::random_element();
     FF expected_q1 = v000 * (FF(1) - round_challenge_0) + v100 * round_challenge_0;
@@ -234,7 +238,8 @@ TYPED_TEST(MultivariatesTests, FoldThreeRoundsGeneric)
 
 TYPED_TEST(MultivariatesTests, FoldThreeRoundsGenericMultiplePolys)
 {
-    MULTIVARIATES_TESTS_TYPE_ALIASES
+    using Flavor = TypeParam;
+    using FF = typename Flavor::FF;
     const size_t multivariate_d(3);
     const size_t multivariate_n(1 << multivariate_d);
     std::array<FF, 3> v000;
@@ -262,7 +267,7 @@ TYPED_TEST(MultivariatesTests, FoldThreeRoundsGenericMultiplePolys)
 
     auto full_polynomials = std::array<std::span<FF>, 3>{ f0, f1, f2 };
     auto transcript = honk::ProverTranscript<FF>::init_empty();
-    auto sumcheck = Sumcheck<FF, Transcript, ArithmeticRelation>(multivariate_n, transcript);
+    auto sumcheck = Sumcheck<Flavor, Transcript, ArithmeticRelation>(multivariate_n, transcript);
 
     std::array<FF, 3> expected_q1;
     std::array<FF, 3> expected_q2;

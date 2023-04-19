@@ -7,6 +7,7 @@
 #include "polynomials/univariate.hpp"
 #include "polynomials/pow.hpp"
 #include "relations/relation.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 
 namespace proof_system::honk::sumcheck {
 
@@ -50,9 +51,14 @@ namespace proof_system::honk::sumcheck {
  template functions always create different functions, this is guaranteed.
  */
 
-template <class FF, size_t num_multivariates, template <class> class... Relations> class SumcheckRound {
+template <typename Flavor, size_t num_multivariates, template <class> class... Relations> class SumcheckRound {
 
   public:
+    using FF = typename Flavor::FF;
+    template <size_t univariate_length>
+    using ExtendedEdges = typename Flavor::template ExtendedEdges<univariate_length>;
+    using PurportedEvaluations = typename Flavor::PurportedEvaluations;
+
     bool round_failed = false;
     size_t round_size; // a power of 2
 
@@ -66,7 +72,8 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
     std::tuple<BarycentricData<FF, Relations<FF>::RELATION_LENGTH, MAX_RELATION_LENGTH>...> barycentric_utils;
     std::tuple<Univariate<FF, Relations<FF>::RELATION_LENGTH>...> univariate_accumulators;
     std::array<FF, NUM_RELATIONS> evaluations;
-    std::array<Univariate<FF, MAX_RELATION_LENGTH>, num_multivariates> extended_edges;
+    // std::array<Univariate<FF, MAX_RELATION_LENGTH>, num_multivariates> extended_edges;
+    ExtendedEdges<MAX_RELATION_LENGTH> extended_edges; // WORKTODO: alias
     std::array<Univariate<FF, MAX_RELATION_LENGTH>, NUM_RELATIONS> extended_univariates;
 
     // TODO(#224)(Cody): this should go away and we should use constexpr method to extend
@@ -143,11 +150,13 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
      * @details Should only be called externally with relation_idx equal to 0.
      *
      */
-    void extend_edges(auto& multivariates, size_t edge_idx)
+    void extend_edges(auto& multivariates, size_t edge_idx) // WORKTODO: auto can now be ProverPolynomials?
     {
-        for (size_t idx = 0; idx < num_multivariates; idx++) {
-            auto edge = Univariate<FF, 2>({ multivariates[idx][edge_idx], multivariates[idx][edge_idx + 1] });
-            extended_edges[idx] = barycentric_2_to_max.extend(edge);
+        size_t univariate_idx = 0; // ZIPTODO
+        for (auto& poly : multivariates) {
+            auto edge = Univariate<FF, 2>({ poly[edge_idx], poly[edge_idx + 1] });
+            extended_edges[univariate_idx] = barycentric_2_to_max.extend(edge);
+            univariate_idx++;
         }
     }
 
@@ -208,7 +217,7 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
      * checked against the final value of the target total sum, defined as sigma_d.
      */
     // TODO(#224)(Cody): Input should be an array?
-    FF compute_full_honk_relation_purported_value(std::span<const FF> purported_evaluations,
+    FF compute_full_honk_relation_purported_value(PurportedEvaluations purported_evaluations,
                                                   const RelationParameters<FF>& relation_parameters,
                                                   const PowUnivariate<FF>& pow_univariate,
                                                   const FF alpha)
@@ -306,7 +315,7 @@ template <class FF, size_t num_multivariates, template <class> class... Relation
      */
     template <size_t relation_idx = 0>
     // TODO(#224)(Cody): Input should be an array?
-    void accumulate_relation_evaluations(std::span<const FF> purported_evaluations,
+    void accumulate_relation_evaluations(PurportedEvaluations purported_evaluations,
                                          const RelationParameters<FF>& relation_parameters)
     {
         std::get<relation_idx>(relations).add_full_relation_value_contribution(

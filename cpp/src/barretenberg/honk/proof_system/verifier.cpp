@@ -11,6 +11,7 @@
 #include "barretenberg/honk/pcs/kzg/kzg.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 #include "barretenberg/honk/flavor/flavor.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "barretenberg/proof_system/polynomial_store/polynomial_store.hpp"
 #include "barretenberg/ecc/curves/bn254/fq12.hpp"
 #include "barretenberg/ecc/curves/bn254/pairing.hpp"
@@ -28,18 +29,19 @@ using namespace barretenberg;
 using namespace proof_system::honk::sumcheck;
 
 namespace proof_system::honk {
-template <typename program_settings>
-Verifier<program_settings>::Verifier(std::shared_ptr<plonk::verification_key> verifier_key)
+template <typename Flavor, typename program_settings>
+Verifier<Flavor, program_settings>::Verifier(std::shared_ptr<plonk::verification_key> verifier_key)
     : key(verifier_key)
 {}
 
-template <typename program_settings>
-Verifier<program_settings>::Verifier(Verifier&& other)
+template <typename Flavor, typename program_settings>
+Verifier<Flavor, program_settings>::Verifier(Verifier&& other)
     : key(other.key)
     , kate_verification_key(std::move(other.kate_verification_key))
 {}
 
-template <typename program_settings> Verifier<program_settings>& Verifier<program_settings>::operator=(Verifier&& other)
+template <typename Flavor, typename program_settings>
+Verifier<Flavor, program_settings>& Verifier<Flavor, program_settings>::operator=(Verifier&& other)
 {
     key = other.key;
     kate_verification_key = (std::move(other.kate_verification_key));
@@ -74,7 +76,8 @@ template <typename program_settings> Verifier<program_settings>& Verifier<progra
         [Q]_1,
         [W]_1
 */
-template <typename program_settings> bool Verifier<program_settings>::verify_proof(const plonk::proof& proof)
+template <typename Flavor, typename program_settings>
+bool Verifier<Flavor, program_settings>::verify_proof(const plonk::proof& proof)
 {
     using FF = typename program_settings::fr;
     using Commitment = barretenberg::g1::element;
@@ -130,7 +133,7 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     // // TODO(Cody): Compute some basic public polys like id(X), pow(X), and any required Lagrange polys
 
     // Execute Sumcheck Verifier
-    auto sumcheck = Sumcheck<FF,
+    auto sumcheck = Sumcheck<Flavor,
                              VerifierTranscript<FF>,
                              ArithmeticRelation,
                              GrandProductComputationRelation,
@@ -196,6 +199,6 @@ template <typename program_settings> bool Verifier<program_settings>::verify_pro
     return kzg_claim.verify(kate_verification_key);
 }
 
-template class Verifier<honk::standard_verifier_settings>;
+template class Verifier<honk::flavor::Standard, honk::standard_verifier_settings>;
 
 } // namespace proof_system::honk

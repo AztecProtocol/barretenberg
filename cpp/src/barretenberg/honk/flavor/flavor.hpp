@@ -5,6 +5,7 @@
 #include "barretenberg/proof_system/arithmetization/arithmetization.hpp"
 #include "barretenberg/transcript/manifest.hpp"
 
+// WORKTODO: Kill this file finally.
 namespace proof_system::honk {
 // TODO(Cody) This _should_ be shared with Plonk, but it isn't.
 struct StandardArithmetization {
