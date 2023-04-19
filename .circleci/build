@@ -20,7 +20,6 @@ echo "Repository: $REPOSITORY"
 echo "Working directory: $PWD"
 echo "Dockerfile: $DOCKERFILE"
 
-echo "$(query_manifest buildDir $REPOSITORY)"
 cd $(query_manifest buildDir $REPOSITORY)
 
 function fetch_image() {
