@@ -17,10 +17,6 @@ void generate_keys(std::string output_path, std::string srs_path, std::string fl
     uint256_t public_inputs[4] = { 0, 0, 0, 0 };
     Composer composer = Circuit::generate(srs_path, public_inputs);
 
-    (void)output_path;
-    (void)flavour_prefix;
-    (void)circuit_name;
-
     std::shared_ptr<plonk::verification_key> vkey = composer.compute_verification_key();
 
     // Make verification key file upper case
@@ -55,12 +51,6 @@ void generate_keys(std::string output_path, std::string srs_path, std::string fl
 int main(int argc, char** argv)
 {
     std::vector<std::string> args(argv, argv + argc);
-    // if (args.size() < 3)
-    // {
-    //     info(
-    //         "usage: ", args[0], "[path to project root] [srs path]");
-    //     return 1;
-    // }
 
     if (args.size() < 5) {
         info("usage: ", args[0], "[plonk flavour] [circuit flavour] [output path] [srs path]");
@@ -71,9 +61,6 @@ int main(int argc, char** argv)
     const std::string circuit_flavour = args[2];
     const std::string output_path = args[3];
     const std::string srs_path = args[4];
-
-    // const std::string standard_path = project_root_path + "/src/standard";
-    // const std::string ultra_path = project_root_path + "/src/ultra";
 
     // @todo - Add support for unrolled standard verifier. Needs a new solidity verifier contract.
 

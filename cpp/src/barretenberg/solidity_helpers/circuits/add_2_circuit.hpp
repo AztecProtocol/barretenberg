@@ -3,13 +3,6 @@
 #include "barretenberg/stdlib/primitives/uint/uint.hpp"
 #include "barretenberg/stdlib/primitives/bool/bool.hpp"
 
-// #include <stdlib/primitives/field/field.hpp>
-// #include <stdlib/primitives/witness/witness.hpp>
-// #include <stdlib/primitives/uint/uint.hpp>
-// #include <stdlib/primitives/bool/bool.hpp>
-
-// using numeric::uint256_t;
-
 template <typename Composer> class Add2Circuit {
   public:
     typedef stdlib::field_t<Composer> field_ct;

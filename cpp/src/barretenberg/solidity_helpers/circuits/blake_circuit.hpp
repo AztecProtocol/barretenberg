@@ -2,10 +2,6 @@
 #include "barretenberg/stdlib/primitives/witness/witness.hpp"
 #include "barretenberg/stdlib/hash/blake2s/blake2s.hpp"
 
-//#include <stdlib/primitives/field/field.hpp>
-//#include <stdlib/primitives/witness/witness.hpp>
-//#include <stdlib/hash/blake2s/blake2s.hpp>
-
 using namespace proof_system::plonk;
 using namespace proof_system::plonk::stdlib;
 

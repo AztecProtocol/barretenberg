@@ -1,10 +1,6 @@
 #include <iostream>
 #include <bitset>
 
-// TODO Remove
-// const std::string DEFAULT_PROJECT_ROOT_PATH = "../..";
-// const std::string DEFAULT_SRS_PATH = "../../barretenberg/cpp/srs_db/ignition";
-
 std::string bytes_to_hex_string(const std::vector<uint8_t>& input)
 {
     static const char characters[] = "0123456789ABCDEF";

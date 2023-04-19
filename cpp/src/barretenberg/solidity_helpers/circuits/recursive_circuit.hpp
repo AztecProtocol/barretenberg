@@ -6,14 +6,6 @@
 #include "barretenberg/ecc/curves/bn254/fq12.hpp"
 #include "barretenberg/ecc/curves/bn254/pairing.hpp"
 
-//#include <transcript/transcript.hpp>
-//#include <proof_system/proving_key/serialize.hpp>
-//#include <stdlib/primitives/curves/bn254.hpp>
-//#include <stdlib/recursion/verifier/verifier.hpp>
-//#include <stdlib/recursion/verifier/program_settings.hpp>
-//#include <ecc/curves/bn254/fq12.hpp>
-//#include <ecc/curves/bn254/pairing.hpp>
-
 using namespace proof_system::plonk;
 
 using numeric::uint256_t;
