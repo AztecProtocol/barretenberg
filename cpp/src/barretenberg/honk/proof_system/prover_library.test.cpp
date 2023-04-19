@@ -163,7 +163,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
 
         // Instatiate a proving_key and make a pointer to it. This will be used to instantiate a Prover.
         // WORKTODO
-        using Flavor = honk::flavor::Standard;
+        using Flavor = honk::flavor::Ultra;
         auto proving_key = std::make_shared<typename Flavor::ProvingKey>(
             circuit_size, num_public_inputs, reference_string, ComposerType::STANDARD_HONK);
 
@@ -291,7 +291,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         static const size_t circuit_size = 8;
         static const size_t num_public_inputs = 0;
         auto reference_string = std::make_shared<FileReferenceString>(circuit_size + 1, "../srs_db/ignition");
-        using Flavor = honk::flavor::Standard; // WORKTODO
+        using Flavor = honk::flavor::Ultra; // WORKTODO
         auto proving_key = std::make_shared<typename Flavor::ProvingKey>(
             circuit_size, num_public_inputs, reference_string, ComposerType::STANDARD_HONK);
 

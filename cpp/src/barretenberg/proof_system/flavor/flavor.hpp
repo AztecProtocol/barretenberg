@@ -434,8 +434,8 @@ class Ultra {
     using PCSParams = pcs::kzg::Params;
 
     static constexpr size_t num_wires = CircuitConstructor::num_wires;
-    static constexpr size_t NUM_ALL_ENTITIES = 35;
-    static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 25;
+    static constexpr size_t NUM_ALL_ENTITIES = 39;
+    static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 29;
     static constexpr size_t minimum_circuit_size = 3; // TODO(Cody): what is this actually?
 
     template <typename T, typename TView>
@@ -464,8 +464,12 @@ class Ultra {
         T& id_2 = std::get<20>(this->_data);
         T& id_3 = std::get<21>(this->_data);
         T& id_4 = std::get<22>(this->_data);
-        T& lagrange_first = std::get<23>(this->_data);
-        T& lagrange_last = std::get<24>(this->_data);
+        T& table_1 = std::get<23>(this->_data);
+        T& table_2 = std::get<24>(this->_data);
+        T& table_3 = std::get<25>(this->_data);
+        T& table_4 = std::get<26>(this->_data);
+        T& lagrange_first = std::get<27>(this->_data);
+        T& lagrange_last = std::get<28>(this->_data);
 
         std::vector<TView> get_selectors()
         {
@@ -501,6 +505,10 @@ class Ultra {
             , id_2(other.id_2)
             , id_3(other.id_3)
             , id_4(other.id_4)
+            , table_1(other.table_1)
+            , table_2(other.table_2)
+            , table_3(other.table_3)
+            , table_4(other.table_4)
             , lagrange_first(other.lagrange_first)
             , lagrange_last(other.lagrange_last){};
 
@@ -528,6 +536,10 @@ class Ultra {
             , id_2(other.id_2)
             , id_3(other.id_3)
             , id_4(other.id_4)
+            , table_1(other.table_1)
+            , table_2(other.table_2)
+            , table_3(other.table_3)
+            , table_4(other.table_4)
             , lagrange_first(other.lagrange_first)
             , lagrange_last(other.lagrange_last){};
 
@@ -557,6 +569,10 @@ class Ultra {
             id_2 = other.id_2;
             id_3 = other.id_3;
             id_4 = other.id_4;
+            table_1 = other.table_1;
+            table_2 = other.table_2;
+            table_3 = other.table_3;
+            table_4 = other.table_4;
             lagrange_first = other.lagrange_first;
             lagrange_last = other.lagrange_last;
             return *this;
@@ -587,6 +603,10 @@ class Ultra {
             id_2 = other.id_2;
             id_3 = other.id_3;
             id_4 = other.id_4;
+            table_1 = other.table_1;
+            table_2 = other.table_2;
+            table_3 = other.table_3;
+            table_4 = other.table_4;
             lagrange_first = other.lagrange_first;
             lagrange_last = other.lagrange_last;
             return *this;
@@ -638,32 +658,36 @@ class Ultra {
         T& id_2 = std::get<16>(this->_data);
         T& id_3 = std::get<17>(this->_data);
         T& id_4 = std::get<18>(this->_data);
-        T& lagrange_first = std::get<19>(this->_data);
-        T& lagrange_last = std::get<20>(this->_data);
-        T& w_l = std::get<21>(this->_data);
-        T& w_r = std::get<22>(this->_data);
-        T& w_o = std::get<23>(this->_data);
-        T& w_4 = std::get<24>(this->_data);
-        T& s_1 = std::get<25>(this->_data);
-        T& s_2 = std::get<26>(this->_data);
-        T& s_3 = std::get<27>(this->_data);
-        T& s_4 = std::get<28>(this->_data);
-        T& z_perm = std::get<29>(this->_data);
-        T& z_lookup = std::get<30>(this->_data);
-        T& w_1_shift = std::get<31>(this->_data);
-        T& w_4_shift = std::get<32>(this->_data);
-        T& z_perm_shift = std::get<33>(this->_data);
-        T& z_lookup_shift = std::get<34>(this->_data);
+        T& table_1 = std::get<19>(this->_data);
+        T& table_2 = std::get<20>(this->_data);
+        T& table_3 = std::get<21>(this->_data);
+        T& table_4 = std::get<22>(this->_data);
+        T& lagrange_first = std::get<23>(this->_data);
+        T& lagrange_last = std::get<24>(this->_data);
+        T& w_l = std::get<25>(this->_data);
+        T& w_r = std::get<26>(this->_data);
+        T& w_o = std::get<27>(this->_data);
+        T& w_4 = std::get<28>(this->_data);
+        T& s_1 = std::get<29>(this->_data);
+        T& s_2 = std::get<30>(this->_data);
+        T& s_3 = std::get<31>(this->_data);
+        T& s_4 = std::get<32>(this->_data);
+        T& z_perm = std::get<33>(this->_data);
+        T& z_lookup = std::get<34>(this->_data);
+        T& w_1_shift = std::get<35>(this->_data);
+        T& w_4_shift = std::get<36>(this->_data);
+        T& z_perm_shift = std::get<37>(this->_data);
+        T& z_lookup_shift = std::get<38>(this->_data);
 
         std::vector<T> get_wires() { return { w_l, w_r, w_o, w_4 }; };
 
         std::vector<T> get_not_to_be_shifted() override
         {
-            return {
-                q_c,           q_l,     q_r,     q_o,     q_4,     q_m,  q_arith, q_sort, q_elliptic, q_aux,
-                q_lookuptype,  sigma_1, sigma_2, sigma_3, sigma_4, id_1, id_2,    id_3,   id_4,       lagrange_first,
-                lagrange_last, w_l,     w_r,     w_o,     w_4,     s_1,  s_2,     s_3,    s_4,        z_perm,
-                z_lookup
+            return { q_c,           q_l,    q_r,          q_o,     q_4,     q_m,     q_arith, q_sort,
+                     q_elliptic,    q_aux,  q_lookuptype, sigma_1, sigma_2, sigma_3, sigma_4, id_1,
+                     id_2,          id_3,   id_4,         table_1, table_2, table_3, table_4, lagrange_first,
+                     lagrange_last, w_l,    w_r,          w_o,     w_4,     s_1,     s_2,     s_3,
+                     s_4,           z_perm, z_lookup
 
             };
         };
@@ -697,6 +721,10 @@ class Ultra {
             , id_2(other.id_2)
             , id_3(other.id_3)
             , id_4(other.id_4)
+            , table_1(other.table_1)
+            , table_2(other.table_2)
+            , table_3(other.table_3)
+            , table_4(other.table_4)
             , lagrange_first(other.lagrange_first)
             , lagrange_last(other.lagrange_last)
             , w_l(other.w_l)
@@ -736,6 +764,10 @@ class Ultra {
             , id_2(other.id_2)
             , id_3(other.id_3)
             , id_4(other.id_4)
+            , table_1(other.table_1)
+            , table_2(other.table_2)
+            , table_3(other.table_3)
+            , table_4(other.table_4)
             , lagrange_first(other.lagrange_first)
             , lagrange_last(other.lagrange_last)
             , w_l(other.w_l)
@@ -774,6 +806,10 @@ class Ultra {
             id_2 = other.id_2;
             id_3 = other.id_3;
             id_4 = other.id_4;
+            table_1 = other.table_1;
+            table_2 = other.table_2;
+            table_3 = other.table_3;
+            table_4 = other.table_4;
             lagrange_first = other.lagrange_first;
             lagrange_last = other.lagrange_last;
             w_l = other.w_l;
@@ -814,6 +850,10 @@ class Ultra {
             id_2 = other.id_2;
             id_3 = other.id_3;
             id_4 = other.id_4;
+            table_1 = other.table_1;
+            table_2 = other.table_2;
+            table_3 = other.table_3;
+            table_4 = other.table_4;
             lagrange_first = other.lagrange_first;
             lagrange_last = other.lagrange_last;
             w_l = other.w_l;

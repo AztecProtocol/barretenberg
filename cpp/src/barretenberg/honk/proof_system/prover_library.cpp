@@ -207,15 +207,11 @@ typename Flavor::Polynomial compute_lookup_grand_product(std::shared_ptr<typenam
     }
 
     // Obtain column step size values that have been stored in repurposed selctors
-    std::span<const FF> column_1_step_size;
-    std::span<const FF> column_2_step_size;
-    std::span<const FF> column_3_step_size;
-    // WORKTODO
-    // std::span<const FF> column_1_step_size = key->polynomial_store.get("q_2_lagrange");
-    // std::span<const FF> column_2_step_size = key->polynomial_store.get("q_m_lagrange");
-    // std::span<const FF> column_3_step_size = key->polynomial_store.get("q_c_lagrange");
+    std::span<const FF> column_1_step_size = key->q_r;
+    std::span<const FF> column_2_step_size = key->q_m;
+    std::span<const FF> column_3_step_size = key->q_c;
 
-    // Utilize three wires; this is not tied to program width
+    // Utilize three wires even when more are available.
     std::array<std::span<const FF>, 3> wires;
     for (size_t i = 0; i < 3; ++i) {
         wires[i] = wire_polynomials[i];
@@ -225,12 +221,10 @@ typename Flavor::Polynomial compute_lookup_grand_product(std::shared_ptr<typenam
     std::vector<FF> temp_vector;
     std::span<FF> temp_span{ temp_vector };
     std::array<std::span<const FF>, 4> tables{
-        temp_span, temp_span, temp_span, temp_span
-        // WORKDTODO
-        // key->polynomial_store.get("table_value_1_lagrange"),
-        // key->polynomial_store.get("table_value_2_lagrange"),
-        // key->polynomial_store.get("table_value_3_lagrange"),
-        // key->polynomial_store.get("table_value_4_lagrange"),
+        key->table_1,
+        key->table_2,
+        key->table_3,
+        key->table_4,
     };
 
     std::span<const FF> lookup_selector{ temp_vector };
@@ -382,14 +376,6 @@ template honk::flavor::Ultra::Polynomial compute_permutation_grand_product<honk:
     honk::flavor::Ultra::FF,
     honk::flavor::Ultra::FF);
 
-template typename honk::flavor::Standard::Polynomial compute_lookup_grand_product<honk::flavor::Standard>(
-    std::shared_ptr<typename honk::flavor::Standard::ProvingKey>& key,
-    std::vector<typename honk::flavor::Standard::Polynomial>& wire_polynomials,
-    typename honk::flavor::Standard::Polynomial& sorted_list_accumulator,
-    typename honk::flavor::Standard::FF eta,
-    typename honk::flavor::Standard::FF beta,
-    typename honk::flavor::Standard::FF gamma);
-
 template typename honk::flavor::Ultra::Polynomial compute_lookup_grand_product<honk::flavor::Ultra>(
     std::shared_ptr<typename honk::flavor::Ultra::ProvingKey>& key,
     std::vector<typename honk::flavor::Ultra::Polynomial>& wire_polynomials,
@@ -397,11 +383,6 @@ template typename honk::flavor::Ultra::Polynomial compute_lookup_grand_product<h
     typename honk::flavor::Ultra::FF eta,
     typename honk::flavor::Ultra::FF beta,
     typename honk::flavor::Ultra::FF gamma);
-
-template typename honk::flavor::Standard::Polynomial compute_sorted_list_accumulator<honk::flavor::Standard>(
-    std::shared_ptr<typename honk::flavor::Standard::ProvingKey>& key,
-    std::vector<typename honk::flavor::Standard::Polynomial>& sorted_list_polynomials,
-    typename honk::flavor::Standard::FF eta);
 
 template typename honk::flavor::Ultra::Polynomial compute_sorted_list_accumulator<honk::flavor::Ultra>(
     std::shared_ptr<typename honk::flavor::Ultra::ProvingKey>& key,
