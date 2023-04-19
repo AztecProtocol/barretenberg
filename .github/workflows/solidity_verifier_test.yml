@@ -33,11 +33,9 @@ jobs:
 
       - name: Prepare for cpp
         run: |
-          sudo apt update
-          sudo apt install build-essential clang-10 lld-10 libomp-dev libboost-tools-dev libtbb-dev
-          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-10 100
-          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-10 100
-          sudo update-alternatives --install /usr/bin/lld lld /usr/bin/lld-10 100
+          sudo apt update 
+          sudo apk upgrade 
+          sudo apk add --no-cache build-base clang15 openmp-dev cmake ninja git curl perl
 
       - name: Cache Barretenberg
         uses: actions/cache@v3

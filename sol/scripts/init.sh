@@ -4,6 +4,8 @@ cd ../cpp
 cmake --preset clang15
 cmake --build --preset clang15 --target solidity_key_gen solidity_proof_gen
 
+cd ../sol
+
 PLONK_FLAVOUR="ultra"
 SRS_PATH="../cpp/srs_db/ignition"
 OUTPUT_PATH="./src/ultra"
