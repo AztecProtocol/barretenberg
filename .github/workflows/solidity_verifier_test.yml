@@ -13,7 +13,7 @@ jobs:
       fail-fast: true
 
     name: Solidity Verifier Tests
-    runs-on: ubuntu-20.04
+    runs-on: alpine:3.17
     steps:
       - uses: actions/checkout@v3
         with:
@@ -33,8 +33,9 @@ jobs:
 
       - name: Prepare for cpp
         run: |
-          sudo apt-get update 
-          sudo apt-get install -y build-essential clang-15 openmp-dev cmake ninja git curl perl
+          sudo apk update
+          sudo apk upgrade
+          sudo apk add --no-cache build-base clang15 openmp-dev cmake ninja git curl perl
 
       - name: Cache Barretenberg
         uses: actions/cache@v3

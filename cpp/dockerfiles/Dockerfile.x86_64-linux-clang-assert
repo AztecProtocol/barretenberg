@@ -21,4 +21,3 @@ FROM alpine:3.17
 RUN apk update && apk add curl openmp
 COPY --from=builder /usr/src/barretenberg/cpp/srs_db /usr/src/barretenberg/cpp/srs_db
 COPY --from=builder /usr/src/barretenberg/cpp/build/bin/*_tests /usr/src/barretenberg/cpp/build/bin/
-COPY --from=builder /usr/src/barretenberg/cpp/build/bin/solidity* /usr/src/barretenberg/cpp/build/bin/
