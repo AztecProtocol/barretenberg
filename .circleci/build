@@ -70,11 +70,11 @@ if [ -d $ROOT_PATH/$PROJECT_DIR/terraform ]; then
 fi
 
 # Pull latest parents that are not ours.
-echo "$DOCKERHUB_PASSWORD" | docker login -u aztecprotocolci --password-stdin
-PARENTS=$(cat $DOCKERFILE | sed -n -e 's/^FROM \([^[:space:]]\+\).*/\1/p' | grep -v $ECR_DEPLOY_URL | sort | uniq)
-for PARENT in $PARENTS; do
-  fetch_image $PARENT
-done
+#echo "$DOCKERHUB_PASSWORD" | docker login -u aztecprotocolci --password-stdin
+#PARENTS=$(cat $DOCKERFILE | sed -n -e 's/^FROM \([^[:space:]]\+\).*/\1/p' | grep -v $ECR_DEPLOY_URL | sort | uniq)
+#for PARENT in $PARENTS; do
+#  fetch_image $PARENT
+#done
 
 # For each parent that's ours, pull in the latest image.
 PARENTS=$(cat $DOCKERFILE | sed -n -e "s/^FROM $ECR_DEPLOY_URL\/\([^[:space:]]\+\).*/\1/p")
