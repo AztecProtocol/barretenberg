@@ -1,4 +1,21 @@
-FROM 278380418400.dkr.ecr.us-east-2.amazonaws.com/barretenberg-x86_64-linux-clang-assert
+FROM alpine:3.17
+RUN apk update \
+    && apk upgrade \
+    && apk add --no-cache \
+        build-base \
+        clang15 \
+        openmp-dev \
+        cmake \
+        ninja \
+        git \
+        curl \
+        perl
+
+WORKDIR /usr/src/barretenberg/cpp
+
+COPY ./cpp .
+# Build everything to ensure everything builds. All tests will be run from the result of this build.
+RUN cmake --preset default  && cmake --build --preset default --target solidity_key_gen solidity_proof_gen
 
 FROM docker.io/frolvlad/alpine-glibc:alpine-3.16_glibc-2.34 as builder
 RUN apk update && apk add git curl build-base openmp-dev bash
@@ -7,7 +24,7 @@ COPY --from=0 /usr/src/barretenberg/cpp/build/bin /usr/src/barretenberg/cpp/buil
 COPY --from=0 /usr/src/barretenberg/cpp/srs_db /usr/src/barretenberg/cpp/srs_db
 WORKDIR /usr/src/barretenberg/sol
 RUN git init
-COPY . .
+COPY ./sol .
 
 # Copy forge binary directly from foundry
 COPY --from=ghcr.io/foundry-rs/foundry:latest /usr/local/bin/forge /usr/local/bin/forge

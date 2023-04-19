@@ -19,41 +19,5 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
-
-      - name: Run Forge build
-        run: |
-          cd sol
-          forge --version
-          forge build --sizes
-        id: build
-
-      - name: Prepare for cpp
-        run: |
-          wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-          sudo add-apt-repository "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-15 main"
-          sudo apt-get update 
-          sudo apt-get install -y build-essential clang-15 lld-15 libomp-dev libboost-tools-dev libtbb-dev cmake ninja-build git curl perl
-          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-15 100
-          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-15 100
-          sudo update-alternatives --install /usr/bin/lld lld /usr/bin/lld-15 100
-
-      - name: Cache Barretenberg
-        uses: actions/cache@v3
-        id: cache_cpp
-        with:
-          path: cpp
-          key: ${{ runner.os }}-${{ hashFiles('cpp/*') }}
-
-      - name: Bootstrap sol
-        run: |
-          cd sol
-          ./bootstrap.sh
-        
-      - name: Run Forge tests
-        run: |
-          forge test --no-match-contract TestBase -vvv
-        id: test
+      - name: Build docker image
+        run: docker build . -f sol/Dockerfile

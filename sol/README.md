@@ -69,3 +69,10 @@ mstore(0x44, val_3) // add third value after second
 revert(0x00, 0x64)  // revert with a message containing 0x64 bytes defined above
 ```
 When running a test, you will then see the three values `val_1, val_2, val_3` in the console.
+
+# Docker
+To run the docker image, from root run:
+```bash
+# From root 
+docker build . -f sol/Dockerfile
+```
