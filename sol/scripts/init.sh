@@ -1,5 +1,8 @@
 #!/bin/bash
 
+cd ../cpp
+cmake --preset clang15
+cmake --build --preset clang15 --target solidity_key_gen solidity_proof_gen
 
 PLONK_FLAVOUR="ultra"
 SRS_PATH="../cpp/srs_db/ignition"

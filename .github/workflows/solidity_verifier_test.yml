@@ -31,7 +31,7 @@ jobs:
           forge build --sizes
         id: build
 
-      - name: Build cpp
+      - name: Prepare for cpp
         run: |
           sudo apt update
           sudo apt install build-essential clang-10 lld-10 libomp-dev libboost-tools-dev libtbb-dev
@@ -46,7 +46,7 @@ jobs:
           path: cpp
           key: ${{ runner.os }}-${{ hashFiles('cpp/*') }}
 
-      - name: Build cpp
+      - name: Bootstrap sol
         run: |
           cd sol
           ./bootstrap.sh
