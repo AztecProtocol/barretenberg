@@ -28,5 +28,11 @@
     "dockerfile": "js/Dockerfile",
     "rebuildPatterns": ["^js/"],
     "dependencies": ["barretenberg-wasm-linux-clang"]
+  },
+  "sol": {
+    "buildDir": "sol",
+    "dockerfile": "sol/Dockerfile",
+    "rebuildPatterns": ["^sol/"],
+    "dependencies": ["barretenberg-x86_64-linux-clang-assert"]
   }
 }
