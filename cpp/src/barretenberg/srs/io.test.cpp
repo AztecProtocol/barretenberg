@@ -39,7 +39,7 @@ struct MyExampleFlat {
     int a;
     std::string b;
 
-    auto msgpack_flat(auto ar) { return ar(a, b); }
+    void msgpack_flat(auto ar) { ar(a, b); }
 };
 
 struct MyExampleMap {
@@ -47,7 +47,7 @@ struct MyExampleMap {
     std::string b;
     MyExampleFlat flat;
 
-    auto msgpack(auto ar) { return ar(NVP(a), NVP(b), NVP(flat)); }
+    void msgpack(auto ar) { ar(NVP(a), NVP(b), NVP(flat)); }
 };
 
 template <typename T> struct MsgPackSchema;
@@ -86,28 +86,30 @@ template <typename T> struct MsgPackSchema {
     void msgpack_pack(auto& packer) const
         requires msgpack::adaptor::HasMsgPack<T>
     {
-        msgpack::adaptor::DefineMapArchive ar;
         T object;
-        auto map_definition = object.msgpack(ar);
-        auto archive_wrapper = [&](auto&... args) { return ar(type_name_string, type_name, args...); };
-        auto pack_map_schema = [&](auto&... args) {
-            auto schema = DefineMapSchema{}(args...);
-            std::apply(archive_wrapper, schema).msgpack_pack(packer);
-        };
-        std::apply(pack_map_schema, map_definition.a);
+        object.msgpack([&](auto&... args) {
+            msgpack::adaptor::DefineMapArchive ar;
+            auto archive_wrapper = [&](auto&... args) { return ar(type_name_string, type_name, args...); };
+            auto pack_map_schema = [&](auto&... args) {
+                auto schema = DefineMapSchema{}(args...);
+                std::apply(archive_wrapper, schema).msgpack_pack(packer);
+            };
+            std::apply(pack_map_schema, ar(args...).a);
+        });
     }
     void msgpack_pack(auto& packer) const
         requires msgpack::adaptor::HasMsgPackFlat<T>
     {
-        msgpack::adaptor::DefineArchive ar;
         T object;
-        auto array_definition = object.msgpack_flat(ar);
-        auto archive_wrapper = [&](auto&... args) { return ar(type_name, args...); };
-        auto pack_array_schema = [&](auto&... args) {
-            auto schema = std::make_tuple(MsgPackSchema<std::decay_t<decltype(args)>>{}...);
-            std::apply(archive_wrapper, schema).msgpack_pack(packer);
-        };
-        std::apply(pack_array_schema, array_definition.a);
+        object.msgpack_flat([&](auto&... args) {
+            msgpack::adaptor::DefineArchive ar;
+            auto archive_wrapper = [&](auto&... args) { return ar(type_name, args...); };
+            auto pack_array_schema = [&](auto&... args) {
+                auto schema = std::make_tuple(MsgPackSchema<std::decay_t<decltype(args)>>{}...);
+                std::apply(archive_wrapper, schema).msgpack_pack(packer);
+            };
+            std::apply(pack_array_schema, ar(args...).a);
+        });
     }
     void msgpack_pack(auto& packer) const
         requires(!msgpack::adaptor::HasMsgPack<T> && !msgpack::adaptor::HasMsgPackFlat<T>)
@@ -117,14 +119,14 @@ template <typename T> struct MsgPackSchema {
     }
 };
 
-// struct aes__decrypt_buffer_cbc {
-//     std::vector<uint8_t> in;
-//     std::vector<uint8_t> iv;
-//     std::vector<uint8_t> key;
-//     size_t length;
-//     void operator()() {}
-//     auto msgpack_flat() {}
-// };
+struct aes__decrypt_buffer_cbc {
+    std::vector<uint8_t> in;
+    std::vector<uint8_t> iv;
+    std::vector<uint8_t> key;
+    size_t length;
+    void operator()() {}
+    auto msgpack_flat(auto ar) { return ar(in, iv, key, length); }
+};
 
 // auto aes__decrypt_buffer_cbc(uint8_t* in, uint8_t* iv, const uint8_t* key, const size_t length, uint8_t* r) {}
 // auto cbind_example() {}
@@ -146,22 +148,23 @@ TEST(io, myexample)
         MsgPackSchema<MyExampleMap> my_schema;
         pretty_print(my);
         pretty_print(my_schema);
-        //        std::stringstream ss;
-        //        msgpack::pack(ss, my);
-        //
-        //        std::string const& str = ss.str();
-        //        // Write the packed data to a file
-        //        std::ofstream ofs("output.msgpack", std::ios::binary);
-        //        if (ofs) {
-        //            ofs.write(str.data(), (std::streamsize)str.size());
-        //            ofs.close();
-        //            std::cout << "Binary string written to output.msgpack" << std::endl;
-        //        } else {
-        //            std::cerr << "Error: Unable to open output.msgpack" << std::endl;
-        //        }
-        //        msgpack::object_handle oh = msgpack::unpack(str.data(), str.size());
-        //        msgpack::object obj = oh.get();
-        //        std::cout << obj << std::endl;
-        //        assert(obj.as<MyExampleMap>() == my);
+        std::stringstream ss;
+        msgpack::pack(ss, my);
+
+        std::string const& str = ss.str();
+        // Write the packed data to a file
+        std::ofstream ofs("output.msgpack", std::ios::binary);
+        if (ofs) {
+            ofs.write(str.data(), (std::streamsize)str.size());
+            ofs.close();
+            std::cout << "Binary string written to output.msgpack" << std::endl;
+        } else {
+            std::cerr << "Error: Unable to open output.msgpack" << std::endl;
+        }
+        msgpack::object_handle oh = msgpack::unpack(str.data(), str.size());
+        msgpack::object obj = oh.get();
+        std::cout << obj << std::endl;
+        MyExampleMap map = obj.convert();
+        std::cout << map.b << std::endl;
     }
 }
