@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 #include <vector>
 
-using namespace proof_system::plonk::stdlib::types;
+using namespace proof_system::plonk;
 
 void create_inner_circuit(acir_format::acir_format& constraint_system, std::vector<fr>& witness)
 {
@@ -216,8 +216,8 @@ TEST(AcirProofs, TestSerializationWithRecursion)
             key_indices.emplace_back(static_cast<uint32_t>(i + 19 + proof_size));
         }
 
-        std::array<uint32_t, acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE> output_vars;
-        for (size_t i = 0; i < acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE; ++i) {
+        std::array<uint32_t, acir_format::AGGREGATION_OBJECT_SIZE> output_vars;
+        for (size_t i = 0; i < acir_format::AGGREGATION_OBJECT_SIZE; ++i) {
             // variable idx 1 = public input
             // variable idx 2-18 = output_vars
             output_vars[i] = (static_cast<uint32_t>(i + 3));
