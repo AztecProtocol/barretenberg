@@ -4,6 +4,7 @@
 #include "barretenberg/common/mem.hpp"
 #include <gtest/gtest.h>
 #include "msgpack.hpp"
+#include "msgpack-impl.hpp"
 
 using namespace barretenberg;
 
@@ -30,4 +31,41 @@ TEST(io, read_transcript_loads_well_formed_srs)
         EXPECT_EQ(monomials[i].on_curve(), true);
     }
     aligned_free(monomials);
+}
+
+struct MyExampleMap {
+    int a;
+    std::string b;
+
+    auto serialize_map(const auto& ar) { return ar(NVP(a), NVP(b)); }
+};
+
+struct MyExampleFlat {
+    int a;
+    std::string b;
+
+    auto serialize(const auto& ar) { return ar(a, b); }
+};
+
+TEST(io, myexample)
+{
+
+    { // pack, unpack
+        MyExampleMap my{ 42, "Hello" };
+        std::stringstream ss;
+        msgpack::pack(ss, my);
+
+        std::string const& str = ss.str();
+        msgpack::object_handle oh = msgpack::unpack(str.data(), str.size());
+        msgpack::object obj = oh.get();
+        std::cout << obj << std::endl;
+        //        assert(obj.as<MyExampleMap>() == my);
+    }
+    { // create object with zone
+        MyExampleMap my{ 42, "Hello" };
+        msgpack::zone z;
+        msgpack::object obj(my, z);
+        std::cout << obj << std::endl;
+        //        assert(obj.as<MyExampleMap>() == my);
+    }
 }

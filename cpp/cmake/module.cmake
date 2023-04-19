@@ -54,7 +54,6 @@ function(barretenberg_module MODULE_NAME)
             PUBLIC
             ${ARGN}
             ${TBB_IMPORTED_TARGETS}
-            msgpack-c
         )
         list(APPEND lib_targets ${MODULE_NAME})
 
@@ -75,7 +74,6 @@ function(barretenberg_module MODULE_NAME)
             PRIVATE
             GTest::gtest
             ${TBB_IMPORTED_TARGETS}
-            msgpack-c
         )
 
         add_executable(
@@ -117,7 +115,6 @@ function(barretenberg_module MODULE_NAME)
             GTest::gtest
             GTest::gtest_main
             ${TBB_IMPORTED_TARGETS}
-            msgpack-c
         )
 
         if(NOT WASM AND NOT CI)
@@ -187,7 +184,6 @@ function(barretenberg_module MODULE_NAME)
                 ${MODULE_NAME}_${FUZZER_NAME_STEM}_fuzzer
                 PRIVATE
                 ${MODULE_LINK_NAME}
-                msgpack-c
             )
         endforeach()
     endif()
@@ -206,7 +202,6 @@ function(barretenberg_module MODULE_NAME)
             PRIVATE
             benchmark::benchmark
             ${TBB_IMPORTED_TARGETS}
-            msgpack-c
         )
 
         add_executable(
@@ -222,7 +217,6 @@ function(barretenberg_module MODULE_NAME)
             ${ARGN}
             benchmark::benchmark
             ${TBB_IMPORTED_TARGETS}
-            msgpack-c
         )
 
         add_custom_target(
