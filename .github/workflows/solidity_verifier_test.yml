@@ -48,6 +48,8 @@ jobs:
 
       - name: Build cpp
         run: ./bootstrap.sh
+        with:
+          path: sol
 
       - name: Run Forge tests
         run: |
