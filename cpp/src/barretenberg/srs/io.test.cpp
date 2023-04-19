@@ -3,6 +3,7 @@
 #include "io.hpp"
 #include "barretenberg/common/mem.hpp"
 #include <gtest/gtest.h>
+#include "msgpack.hpp"
 
 using namespace barretenberg;
 

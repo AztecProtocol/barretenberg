@@ -149,7 +149,8 @@
         "cmake.configureArgs": [
             "--preset clang15",
             "-G Ninja",
-            "-g"
+            "-g",
+            "-DMULTITHREADING=OFF"
         ],
         "cmake.useCMakePresets": "auto",
     },

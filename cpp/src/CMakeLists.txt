@@ -101,6 +101,7 @@ if(WASM)
         $<TARGET_OBJECTS:stdlib_sha256_objects>
         $<TARGET_OBJECTS:stdlib_aes128_objects>
         $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
+        $<TARGET_OBJECTS:msgpack-c>
     )
 
     # With binaryen installed, it seems its wasm backend optimiser gets invoked automatically.
@@ -200,6 +201,7 @@ if(WASM)
         $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
         $<TARGET_OBJECTS:acir_format_objects>
         $<TARGET_OBJECTS:acir_proofs_objects>
+        $<TARGET_OBJECTS:msgpack-c>
     )
 else()
     # For use when compiling dependent cpp projects
@@ -236,6 +238,7 @@ else()
         $<TARGET_OBJECTS:acir_format_objects>
         $<TARGET_OBJECTS:acir_proofs_objects>
         $<TARGET_OBJECTS:env_objects>
+        $<TARGET_OBJECTS:msgpack-c>
     )
 
     if(INSTALL_BARRETENBERG)
