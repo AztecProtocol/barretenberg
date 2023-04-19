@@ -32,11 +32,11 @@ struct DefineArchive {
 };
 
 template <typename T>
-concept Serializable = requires(T t, DefineMapArchive ar) { t.msgpack(ar); };
+concept HasMsgPack = requires(T t, DefineMapArchive ar) { t.msgpack(ar); };
 template <typename T>
-concept FlatSerializable = requires(T t, const DefineArchive& ar) { t.nsgpack_flat(ar); };
+concept HasMsgPackFlat = requires(T t, const DefineArchive& ar) { t.msgpack_flat(ar); };
 
-template <Serializable T>
+template <HasMsgPack T>
 // TODO constrain with concept for types that have a msgpack_map() method
 struct convert<T> {
     msgpack::object const& operator()(msgpack::object const& o, T& v) const
@@ -45,7 +45,7 @@ struct convert<T> {
     }
 };
 
-template <FlatSerializable T>
+template <HasMsgPackFlat T>
 // TODO constrain with concept for types that have a msgpack() method
 struct convert<T> {
     msgpack::object const& operator()(msgpack::object const& o, T& v) const
@@ -54,7 +54,7 @@ struct convert<T> {
     }
 };
 
-template <Serializable T> struct pack<T> {
+template <HasMsgPack T> struct pack<T> {
     template <typename Stream> packer<Stream>& operator()(msgpack::packer<Stream>& o, T const& v) const
     {
         const_cast<T&>(v).msgpack(DefineMapArchive{}).msgpack_pack(o);
@@ -62,7 +62,7 @@ template <Serializable T> struct pack<T> {
     }
 };
 
-template <FlatSerializable T> struct pack<T> {
+template <HasMsgPackFlat T> struct pack<T> {
     template <typename Stream> packer<Stream>& operator()(msgpack::packer<Stream>& o, T const& v) const
     {
         const_cast<T&>(v).msgpack_flat(DefineArchive{}).msgpack_pack(o);
@@ -70,13 +70,13 @@ template <FlatSerializable T> struct pack<T> {
     }
 };
 
-template <Serializable T> struct object_with_zone<T> {
+template <HasMsgPack T> struct object_with_zone<T> {
     void operator()(msgpack::object::with_zone& o, T const& v) const
     {
         const_cast<T&>(v).msgpack(DefineMapArchive{}).msgpack_object(&o, o.zone);
     }
 };
-template <FlatSerializable T> struct object_with_zone<T> {
+template <HasMsgPackFlat T> struct object_with_zone<T> {
     void operator()(msgpack::object::with_zone& o, T const& v) const
     {
         const_cast<T&>(v).msgpack_flat(DefineArchive{}).msgpack_object(o);

@@ -39,7 +39,7 @@ struct MyExampleFlat {
     int a;
     std::string b;
 
-    auto serialize_flat(auto ar) { return ar(a, b); }
+    auto msgpack_flat(auto ar) { return ar(a, b); }
 };
 
 struct MyExampleMap {
@@ -47,7 +47,7 @@ struct MyExampleMap {
     std::string b;
     MyExampleFlat flat;
 
-    auto serialize(auto ar) { return ar(NVP(a), NVP(b), NVP(flat)); }
+    auto msgpack(auto ar) { return ar(NVP(a), NVP(b), NVP(flat)); }
 };
 
 template <typename T> struct MsgPackSchema;
@@ -84,11 +84,11 @@ template <typename T> struct MsgPackSchema {
     const char* type_name_string = "__typename";
     const char* type_name = schema_name<T>();
     void msgpack_pack(auto& packer) const
-        requires msgpack::adaptor::Serializable<T>
+        requires msgpack::adaptor::HasMsgPack<T>
     {
         msgpack::adaptor::DefineMapArchive ar;
         T object;
-        auto map_definition = object.serialize(ar);
+        auto map_definition = object.msgpack(ar);
         auto archive_wrapper = [&](auto&... args) { return ar(type_name_string, type_name, args...); };
         auto pack_map_schema = [&](auto&... args) {
             auto schema = DefineMapSchema{}(args...);
@@ -97,11 +97,11 @@ template <typename T> struct MsgPackSchema {
         std::apply(pack_map_schema, map_definition.a);
     }
     void msgpack_pack(auto& packer) const
-        requires msgpack::adaptor::FlatSerializable<T>
+        requires msgpack::adaptor::HasMsgPackFlat<T>
     {
         msgpack::adaptor::DefineArchive ar;
         T object;
-        auto array_definition = object.serialize_flat(ar);
+        auto array_definition = object.msgpack_flat(ar);
         auto archive_wrapper = [&](auto&... args) { return ar(type_name, args...); };
         auto pack_array_schema = [&](auto&... args) {
             auto schema = std::make_tuple(MsgPackSchema<std::decay_t<decltype(args)>>{}...);
@@ -110,24 +110,24 @@ template <typename T> struct MsgPackSchema {
         std::apply(pack_array_schema, array_definition.a);
     }
     void msgpack_pack(auto& packer) const
-        requires(!msgpack::adaptor::Serializable<T> && !msgpack::adaptor::FlatSerializable<T>)
+        requires(!msgpack::adaptor::HasMsgPack<T> && !msgpack::adaptor::HasMsgPackFlat<T>)
     {
         packer.pack_str((uint32_t)strlen(type_name));
         packer.pack_str_body(type_name, (uint32_t)strlen(type_name));
     }
 };
 
-struct aes__decrypt_buffer_cbc {
-    std::vector<uint8_t> in;
-    std::vector<uint8_t> iv;
-    std::vector<uint8_t> key;
-    size_t length;
-    void operator()() {}
-    auto serialize_flat() {}
-};
+// struct aes__decrypt_buffer_cbc {
+//     std::vector<uint8_t> in;
+//     std::vector<uint8_t> iv;
+//     std::vector<uint8_t> key;
+//     size_t length;
+//     void operator()() {}
+//     auto msgpack_flat() {}
+// };
 
-auto aes__decrypt_buffer_cbc(uint8_t* in, uint8_t* iv, const uint8_t* key, const size_t length, uint8_t* r) {}
-auto cbind_example() {}
+// auto aes__decrypt_buffer_cbc(uint8_t* in, uint8_t* iv, const uint8_t* key, const size_t length, uint8_t* r) {}
+// auto cbind_example() {}
 
 void pretty_print(const auto& obj)
 {

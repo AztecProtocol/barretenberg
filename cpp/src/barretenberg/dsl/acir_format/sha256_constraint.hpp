@@ -11,7 +11,7 @@ struct Sha256Input {
 
     friend bool operator==(Sha256Input const& lhs, Sha256Input const& rhs) = default;
     // msgpack entry, update with any new fields
-    auto serialize(auto ar) { return ar(NVP(witness), NVP(num_bits)); }
+    auto msgpack(auto ar) { return ar(NVP(witness), NVP(num_bits)); }
 };
 
 struct Sha256Constraint {
@@ -20,7 +20,7 @@ struct Sha256Constraint {
 
     friend bool operator==(Sha256Constraint const& lhs, Sha256Constraint const& rhs) = default;
     // msgpack entry, update with any new fields
-    auto serialize(auto ar) { return ar(NVP(inputs), NVP(result)); }
+    auto msgpack(auto ar) { return ar(NVP(inputs), NVP(result)); }
 };
 
 // This function does not work (properly) because the stdlib:sha256 function is not working correctly for 512 bits

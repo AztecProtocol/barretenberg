@@ -14,7 +14,7 @@ struct LogicConstraint {
     friend bool operator==(LogicConstraint const& lhs, LogicConstraint const& rhs) = default;
 
     // msgpack entry, update with any new fields
-    auto serialize(auto ar) { return ar(NVP(a), NVP(b), NVP(result), NVP(num_bits), NVP(is_xor_gate)); }
+    auto msgpack(auto ar) { return ar(NVP(a), NVP(b), NVP(result), NVP(num_bits), NVP(is_xor_gate)); }
 };
 
 void create_logic_gate(Composer& composer, uint32_t a, uint32_t b, uint32_t result, size_t num_bits, bool is_xor_gate);

@@ -15,7 +15,7 @@ struct signature {
     std::array<uint8_t, 32> r;
     std::array<uint8_t, 32> s;
     // msgpack entry, update with any new fields
-    auto serialize(auto ar) { return ar(NVP(r), NVP(s)); }
+    auto msgpack(auto ar) { return ar(NVP(r), NVP(s)); }
 };
 
 template <typename Hash, typename Fq, typename Fr, typename G1>
