@@ -1,7 +1,7 @@
 FROM 278380418400.dkr.ecr.us-east-2.amazonaws.com/barretenberg-x86_64-linux-clang-assert
 
-FROM alpine:3.17 as builder
-RUN apk update && apk add git curl build-base openmp-dev
+FROM docker.io/frolvlad/alpine-glibc:alpine-3.16_glibc-2.34 as builder
+RUN apk update && apk add git curl build-base openmp-dev bash
 
 COPY --from=0 /usr/src/barretenberg/cpp/build/bin /usr/src/barretenberg/cpp/build/bin
 COPY --from=0 /usr/src/barretenberg/cpp/srs_db /usr/src/barretenberg/cpp/srs_db
