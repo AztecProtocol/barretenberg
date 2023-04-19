@@ -2,13 +2,14 @@
 #include "../../../../fixtures/user_context.hpp"
 #include "../../native/value/value_note.hpp"
 #include "../../constants.hpp"
+#include "barretenberg/join_split_example/types.hpp"
 #include <gtest/gtest.h>
 
+namespace join_split_example {
 using namespace barretenberg;
-using namespace proof_system::plonk::stdlib::types;
+using namespace proof_system::plonk::stdlib;
 using namespace join_split_example::proofs::notes;
 using namespace join_split_example::proofs::notes::circuit::value;
-
 TEST(value_note, commits)
 {
     auto user = join_split_example::fixtures::create_user_context();
@@ -107,3 +108,4 @@ TEST(value_note, commit_with_oversized_asset_id_fails)
     bool proof_result = verifier.verify_proof(proof);
     EXPECT_EQ(proof_result, false);
 }
+} // namespace join_split_example
