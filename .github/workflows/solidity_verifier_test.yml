@@ -1,0 +1,55 @@
+name: solidity-verifier-test
+
+on:
+  - workflow_dispatch
+  - push
+
+env:
+  FOUNDRY_PROFILE: ci
+
+jobs:
+  check:
+    strategy:
+      fail-fast: true
+
+    name: Solidity Verifier Tests
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Run Forge build
+        run: |
+          cd sol
+          forge --version
+          forge build --sizes
+        id: build
+
+      - name: Build cpp
+        run: |
+          sudo apt update
+          sudo apt install build-essential clang-10 lld-10 libomp-dev libboost-tools-dev libtbb-dev
+          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-10 100
+          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-10 100
+          sudo update-alternatives --install /usr/bin/lld lld /usr/bin/lld-10 100
+
+      - name: Cache Barretenberg
+        uses: actions/cache@v3
+        id: cache_cpp
+        with:
+          path: cpp
+          key: ${{ runner.os }}-${{ hashFiles('cpp/*') }}
+
+      - name: Build cpp
+        run: ./bootstrap.sh
+
+      - name: Run Forge tests
+        run: |
+          forge test --no-match-contract TestBase -vvv
+        id: test
