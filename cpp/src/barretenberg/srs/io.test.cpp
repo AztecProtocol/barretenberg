@@ -110,13 +110,14 @@ template <typename T> struct MsgPackSchema {
     {
         msgpack::adaptor::DefineArchive ar;
         T object;
-        auto map_definition = object.serialize_flat(ar);
-        auto archive_wrapper = [&](auto&... args) { return ar(type_name_string, type_name, args...); };
-        auto create_map_schema = [&](auto&... args) {
-            DefineMapSchema schema;
-            return std::apply(archive_wrapper, schema(args...));
+        auto array_definition = object.serialize_flat(ar);
+        auto create_array_schema = [&](auto&... args) {
+            // TODO terrible memory leak hack
+            // but we will only print schemas once then end the program
+            // since we are serializing proxy objects, these need to exist after this function runs
+            return ar(type_name, *new MsgPackSchema<std::decay_t<decltype(args)>>{}...);
         };
-        std::apply(create_map_schema, map_definition.a).msgpack_pack(packer);
+        std::apply(create_array_schema, array_definition.a).msgpack_pack(packer);
     }
     void msgpack_pack(auto& packer) const
         requires(!msgpack::adaptor::Serializable<T> && !msgpack::adaptor::FlatSerializable<T>)
@@ -132,7 +133,6 @@ void pretty_print(const auto& obj)
     msgpack::pack(output, obj);
     std::string output_str = output.str();
     msgpack::object_handle oh = msgpack::unpack(output_str.data(), output_str.size());
-    std::cout << "HEY" << std::endl;
     std::cout << oh.get() << std::endl;
 }
 
