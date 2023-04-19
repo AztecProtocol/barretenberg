@@ -239,8 +239,8 @@ void compute_honk_style_permutation_lagrange_polynomials_from_mapping(
 
     size_t wire_index = 0;
     for (auto& current_permutation_poly : permutation_polynomials) {
-        auto new_poly = typename Flavor::Polynomial(num_gates); // TODO(Cody): Cleanly allocate in pk?
-        current_permutation_poly = new_poly;
+        // auto new_poly = typename Flavor::Polynomial(num_gates); // TODO(Cody): Cleanly allocate in pk?
+        // current_permutation_poly = new_poly;
 
         ITERATE_OVER_DOMAIN_START(proving_key->evaluation_domain);
         const auto& current_mapping = permutation_mappings[wire_index][i];
@@ -421,11 +421,10 @@ void compute_standard_honk_id_polynomials(auto proving_key) // TODO(Cody): provi
     // TODO(Cody): Allocate polynomial space in proving key constructor.
     size_t coset_idx = 0; // ZIPTODO
     for (auto& id_poly : proving_key->get_id_polynomials()) {
-        typename Flavor::Polynomial new_poly(proving_key->circuit_size);
         for (size_t i = 0; i < proving_key->circuit_size; ++i) {
-            new_poly[i] = coset_idx * proving_key->circuit_size + i;
+            id_poly[i] = coset_idx * proving_key->circuit_size + i;
         }
-        id_poly = new_poly;
+        coset_idx++;
     }
 }
 

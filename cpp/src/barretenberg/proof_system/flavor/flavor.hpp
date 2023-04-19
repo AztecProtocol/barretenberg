@@ -55,25 +55,31 @@ class BasePrecomputedData : public Data<T, TView, NUM_PRECOMPUTED_ENTITIES> {
 // the selectors
 template <typename PrecomputedData, typename FF> class BaseProvingKey : public PrecomputedData {
   public:
-    const size_t circuit_size;
-    const size_t log_circuit_size;
-    const size_t num_public_inputs;
+    size_t circuit_size;
+    size_t log_circuit_size;
+    size_t num_public_inputs;
     std::shared_ptr<ProverReferenceString> crs;
     EvaluationDomain<FF> evaluation_domain;
-    const ComposerType composer_type;     // WORKTODO: Get rid of this
+    ComposerType composer_type;           // WORKTODO: Get rid of this
     PolynomialStore<FF> polynomial_store; // WORKTODO: Get rid of this
 
     BaseProvingKey() = default;
-    BaseProvingKey(const size_t circuit_size,
-                   const size_t num_public_inputs,
-                   std::shared_ptr<ProverReferenceString> const& crs,
-                   ComposerType composer_type)
-        : circuit_size(circuit_size)
-        , log_circuit_size(numeric::get_msb(circuit_size))
-        , num_public_inputs(num_public_inputs)
-        , crs(crs)
-        , evaluation_domain(circuit_size, circuit_size)
-        , composer_type(composer_type){};
+    // BaseProvingKey(const size_t circuit_size,
+    //                const size_t num_public_inputs,
+    //                std::shared_ptr<ProverReferenceString> const& crs,
+    //                ComposerType composer_type)
+    //     : circuit_size(circuit_size)
+    //     , log_circuit_size(numeric::get_msb(circuit_size))
+    //     , num_public_inputs(num_public_inputs)
+    //     , crs(crs)
+    //     , evaluation_domain(circuit_size, circuit_size)
+    //     , composer_type(composer_type){
+    //         for (auto& poly : this->_data)
+    //         {
+    //             auto new_poly = PrecomputedData(circuit_size);
+    //             poly = new_poly;
+    //         }
+    //     };
 };
 
 /**
@@ -149,6 +155,7 @@ class Standard {
         // TODO(Cody): are these needed?
         PrecomputedData(const PrecomputedData& other)
         {
+            this->_data = other._data;
             q_m = other.q_m;
             q_l = other.q_l;
             q_r = other.q_r;
@@ -166,6 +173,7 @@ class Standard {
 
         PrecomputedData(PrecomputedData&& other)
         {
+            this->_data = other._data;
             q_m = other.q_m;
             q_l = other.q_l;
             q_r = other.q_r;
@@ -183,6 +191,8 @@ class Standard {
 
         PrecomputedData& operator=(const PrecomputedData& other)
         {
+            this->_data = other._data;
+
             q_m = other.q_m;
             q_l = other.q_l;
             q_r = other.q_r;
@@ -201,6 +211,8 @@ class Standard {
 
         PrecomputedData& operator=(PrecomputedData&& other)
         {
+            this->_data = other._data;
+
             q_m = other.q_m;
             q_l = other.q_l;
             q_r = other.q_r;
@@ -218,7 +230,27 @@ class Standard {
         };
     };
 
-    using ProvingKey = BaseProvingKey<PrecomputedData<Polynomial, PolynomialView>, FF>;
+    class ProvingKey : public BaseProvingKey<PrecomputedData<Polynomial, PolynomialView>, FF> {
+      public:
+        ProvingKey() = default;
+        ProvingKey(const size_t circuit_size,
+                   const size_t num_public_inputs,
+                   std::shared_ptr<ProverReferenceString> const& crs,
+                   ComposerType composer_type)
+        {
+            this->circuit_size = circuit_size;
+            this->log_circuit_size = numeric::get_msb(circuit_size);
+            this->num_public_inputs = num_public_inputs;
+            this->crs = crs;
+            this->evaluation_domain = EvaluationDomain<FF>(circuit_size, circuit_size);
+            this->composer_type = composer_type;
+
+            for (auto& poly : this->_data) {
+                auto new_poly = Polynomial(circuit_size);
+                poly = new_poly;
+            }
+        };
+    };
 
     using VerificationKey = BaseVerificationKey<PrecomputedData<Commitment, CommitmentView>>;
 
@@ -262,6 +294,8 @@ class Standard {
         // TODO(Cody): are these needed?
         AllData(const AllData& other)
         {
+            this->_data = other._data;
+
             w_l = other.w_l;
             w_r = other.w_r;
             w_o = other.w_o;
@@ -284,6 +318,8 @@ class Standard {
 
         AllData(AllData&& other)
         {
+            this->_data = other._data;
+
             w_l = other.w_l;
             w_r = other.w_r;
             w_o = other.w_o;
@@ -306,6 +342,8 @@ class Standard {
 
         AllData& operator=(const AllData& other)
         {
+            this->_data = other._data;
+
             w_l = other.w_l;
             w_r = other.w_r;
             w_o = other.w_o;
@@ -329,6 +367,8 @@ class Standard {
 
         AllData& operator=(AllData&& other)
         {
+            this->_data = other._data;
+
             w_l = other.w_l;
             w_r = other.w_r;
             w_o = other.w_o;
@@ -553,7 +593,27 @@ class Ultra {
         };
     };
 
-    using ProvingKey = BaseProvingKey<PrecomputedData<Polynomial, PolynomialView>, FF>;
+    class ProvingKey : public BaseProvingKey<PrecomputedData<Polynomial, PolynomialView>, FF> {
+      public:
+        ProvingKey() = default;
+        ProvingKey(const size_t circuit_size,
+                   const size_t num_public_inputs,
+                   std::shared_ptr<ProverReferenceString> const& crs,
+                   ComposerType composer_type)
+        {
+            this->circuit_size = circuit_size;
+            this->log_circuit_size = numeric::get_msb(circuit_size);
+            this->num_public_inputs = num_public_inputs;
+            this->crs = crs;
+            this->evaluation_domain = EvaluationDomain<FF>(circuit_size, circuit_size);
+            this->composer_type = composer_type;
+
+            for (auto& poly : this->_data) {
+                auto new_poly = Polynomial(circuit_size);
+                poly = new_poly;
+            }
+        };
+    };
 
     using VerificationKey = BaseVerificationKey<PrecomputedData<Commitment, CommitmentView>>;
 

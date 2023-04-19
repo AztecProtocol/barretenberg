@@ -11,11 +11,23 @@ TEST(Flavor, Standard)
 {
     using Flavor = proof_system::honk::flavor::Standard;
     using FF = Flavor::FF;
-    Flavor::ProvingKey proving_key = []() {
+    using ProvingKey = typename Flavor::ProvingKey;
+
+    ProvingKey proving_key = []() {
         auto crs_factory = ReferenceStringFactory();
         auto crs = crs_factory.get_prover_crs(4);
         return Flavor::ProvingKey(/*circuit_size=*/4, /*num_inputs=*/0, crs, ComposerType::STANDARD);
     }();
+
+    size_t coset_idx = 0;
+    for (auto& id_poly : proving_key.get_id_polynomials()) {
+        typename Flavor::Polynomial new_poly(proving_key.circuit_size);
+        for (size_t i = 0; i < proving_key.circuit_size; ++i) {
+            id_poly[i] = coset_idx * proving_key.circuit_size + i;
+        }
+        coset_idx++;
+    }
+
     Flavor::VerificationKey verification_key;
     Flavor::ProverPolynomials prover_polynomials;
     Flavor::VerifierCommitments verifier_commitments;

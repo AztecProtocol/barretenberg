@@ -12,7 +12,9 @@ using Polynomial = barretenberg::Polynomial<FF>;
 /**
  * @brief Compute the permutation grand product polynomial Z_perm(X)
  * *
- * @detail (This description assumes Flavor::num_wires 3). Z_perm may be defined in terms of its values
+ * @detail (This description assumes Flavor::num_wires 3). Z_perm may be defined in terms of iwires
+wires
+wirests values
  * on X_i = 0,1,...,n-1 as Z_perm[0] = 1 and for i = 1:n-1
  *
  *                  (w_1(j) + β⋅id_1(j) + γ) ⋅ (w_2(j) + β⋅id_2(j) + γ) ⋅ (w_3(j) + β⋅id_3(j) + γ)
@@ -57,23 +59,18 @@ typename Flavor::Polynomial compute_permutation_grand_product(
     }
 
     // Populate wire and permutation polynomials
-    std::array<std::span<const FF>, Flavor::num_wires> wires;
-    std::array<std::span<const FF>, Flavor::num_wires> sigmas;
-    std::array<std::span<const FF>, Flavor::num_wires> ids;
-    for (size_t i = 0; i < Flavor::num_wires; ++i) {
-        std::string sigma_id = "sigma_" + std::to_string(i + 1) + "_lagrange";
-        wires[i] = wire_polynomials[i];
-        // WORKTODO
-        // sigmas[i] = key->polynomial_store.get(sigma_id);
-        // ids[i] = key->polynomial_store.get("id_" + std::to_string(i + 1) + "_lagrange");
-    }
+    // std::array<std::span<const FF>, Flavor::num_wires> wires = wire_polynomials;
+    auto ids = key->get_id_polynomials();
+
+    auto sigmas = key->get_sigma_polynomials();
 
     // Step (1)
     // TODO(#222)(kesha): Change the order to engage automatic prefetching and get rid of redundant computation
     for (size_t i = 0; i < key->circuit_size; ++i) {
         for (size_t k = 0; k < Flavor::num_wires; ++k) {
-            numerator_accumulator[k][i] = wires[k][i] + (ids[k][i] * beta) + gamma;      // w_k(i) + β.id_k(i) + γ
-            denominator_accumulator[k][i] = wires[k][i] + (sigmas[k][i] * beta) + gamma; // w_k(i) + β.σ_k(i) + γ
+            numerator_accumulator[k][i] = wire_polynomials[k][i] + (ids[k][i] * beta) + gamma; // w_k(i) + β.id_k(i) + γ
+            denominator_accumulator[k][i] =
+                wire_polynomials[k][i] + (sigmas[k][i] * beta) + gamma; // w_k(i) + β.σ_k(i) + γ
         }
     }
 
