@@ -206,8 +206,49 @@ inline std::vector<std::string> ultra_selector_names()
     return result;
 }
 
+struct CircuitInTheHead {
+    std::vector<uint32_t> public_inputs;
+    std::vector<barretenberg::fr> variables;
+    // index of next variable in equivalence class (=REAL_VARIABLE if you're last)
+    std::vector<uint32_t> next_var_index;
+    // index of  previous variable in equivalence class (=FIRST if you're in a cycle alone)
+    std::vector<uint32_t> prev_var_index;
+    // indices of corresponding real variables
+    std::vector<uint32_t> real_variable_index;
+    std::vector<uint32_t> real_variable_tags;
+    std::map<barretenberg::fr, uint32_t> constant_variable_indices;
+    std::vector<uint32_t> w_l;
+    std::vector<uint32_t> w_r;
+    std::vector<uint32_t> w_o;
+    std::vector<uint32_t> w_4;
+    std::vector<barretenberg::fr> q_m;
+    std::vector<barretenberg::fr> q_c;
+    std::vector<barretenberg::fr> q_1;
+    std::vector<barretenberg::fr> q_2;
+    std::vector<barretenberg::fr> q_3;
+    std::vector<barretenberg::fr> q_4;
+    std::vector<barretenberg::fr> q_arith;
+    std::vector<barretenberg::fr> q_sort;
+    std::vector<barretenberg::fr> q_elliptic;
+    std::vector<barretenberg::fr> q_aux;
+    std::vector<barretenberg::fr> q_lookup_type;
+    uint32_t current_tag = DUMMY_TAG;
+    std::map<uint32_t, uint32_t> tau;
+
+    std::vector<RamTranscript> ram_arrays;
+    std::vector<RomTranscript> rom_arrays;
+
+    std::vector<uint32_t> memory_read_records;
+    std::vector<uint32_t> memory_write_records;
+    std::map<uint64_t, RangeList> range_lists;
+    size_t num_gates;
+    bool circuit_finalized = false;
+};
 class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::Ultra> {
   public:
+    CircuitInTheHead circuit_in_the_head;
+    // Switch, forcing gates to interact with circuit_in_the_head instead of the regular members
+    bool in_the_head = false;
     std::vector<uint32_t>& w_l = std::get<0>(wires);
     std::vector<uint32_t>& w_r = std::get<1>(wires);
     std::vector<uint32_t>& w_o = std::get<2>(wires);
@@ -282,6 +323,54 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
     UltraCircuitConstructor& operator=(const UltraCircuitConstructor& other) = delete;
     UltraCircuitConstructor& operator=(UltraCircuitConstructor&& other) = delete;
     ~UltraCircuitConstructor() override = default;
+
+    /**
+     * Add a variable to variables
+     *
+     * @details This method proxies to the standard one or add a variable in-the-head
+     *
+     * @param in The value of the variable
+     * @return The index of the new variable in the variables vector
+     */
+    uint32_t add_variable(const barretenberg::fr& in)
+    {
+        if (!in_the_head) {
+            return CircuitConstructorBase<arithmetization::Ultra>::add_variable(in);
+        }
+
+        circuit_in_the_head.variables.emplace_back(in);
+
+        // By default, we assume each new variable belongs in its own copy-cycle. These defaults can be modified later
+        // by `assert_equal`.
+        const uint32_t index = static_cast<uint32_t>(circuit_in_the_head.variables.size()) - 1U;
+        circuit_in_the_head.real_variable_index.emplace_back(index);
+        circuit_in_the_head.next_var_index.emplace_back(REAL_VARIABLE);
+        circuit_in_the_head.prev_var_index.emplace_back(FIRST_VARIABLE_IN_CLASS);
+        circuit_in_the_head.real_variable_tags.emplace_back(DUMMY_TAG);
+        return index;
+    }
+    inline barretenberg::fr get_variable(const uint32_t index) const
+    {
+        if (!in_the_head) {
+            return CircuitConstructorBase<arithmetization::Ultra>::get_variable(index);
+        }
+        ASSERT(circuit_in_the_head.variables.size() > index);
+        return circuit_in_the_head.variables[circuit_in_the_head.real_variable_index[index]];
+    }
+    void assert_valid_variables(const std::vector<uint32_t>& variable_indices)
+    {
+        for (const auto& variable_index : variable_indices) {
+            ASSERT(is_valid_variable(variable_index));
+        }
+    }
+    bool is_valid_variable(uint32_t variable_index)
+    {
+        if (in_the_head) {
+            return variable_index < circuit_in_the_head.variables.size();
+        } else {
+            return variable_index < variables.size();
+        }
+    };
 
     void finalize_circuit();
 
@@ -528,13 +617,28 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
                                            const barretenberg::fr&);
     void assign_tag(const uint32_t variable_index, const uint32_t tag)
     {
-        ASSERT(tag <= current_tag);
-        ASSERT(real_variable_tags[real_variable_index[variable_index]] == DUMMY_TAG);
-        real_variable_tags[real_variable_index[variable_index]] = tag;
+        if (in_the_head) {
+            ASSERT(tag <= circuit_in_the_head.current_tag);
+            auto& current_real_variable_tags = circuit_in_the_head.real_variable_tags;
+            auto& current_real_variable_index = circuit_in_the_head.real_variable_index;
+            ASSERT(current_real_variable_tags[current_real_variable_index[variable_index]] == DUMMY_TAG);
+            current_real_variable_tags[current_real_variable_index[variable_index]] = tag;
+        } else {
+            ASSERT(tag <= current_tag);
+            ASSERT(real_variable_tags[real_variable_index[variable_index]] == DUMMY_TAG);
+            real_variable_tags[real_variable_index[variable_index]] = tag;
+        }
     }
 
     uint32_t create_tag(const uint32_t tag_index, const uint32_t tau_index)
     {
+        if (in_the_head) {
+
+            ASSERT(circuit_in_the_head.current_tag >= current_tag);
+            circuit_in_the_head.tau.insert({ tag_index, tau_index });
+            circuit_in_the_head.current_tag++;
+            return circuit_in_the_head.current_tag;
+        }
         tau.insert({ tag_index, tau_index });
         current_tag++; // Why exactly?
         return current_tag;
@@ -542,6 +646,12 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
 
     uint32_t get_new_tag()
     {
+        if (in_the_head) {
+            // Check that we've reset the circuit in the head before proceeding with the virtual circuit construction
+            ASSERT(circuit_in_the_head.current_tag >= current_tag);
+            circuit_in_the_head.current_tag++;
+            return circuit_in_the_head.current_tag;
+        }
         current_tag++;
         return current_tag;
     }
@@ -610,6 +720,74 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
     void process_RAM_array(const size_t ram_id, const size_t gate_offset_from_public_inputs);
     void process_RAM_arrays(const size_t gate_offset_from_public_inputs);
 
+    /**
+     * @brief Choose whether to use a virual or a real selector/witness/member
+     *
+     * @details For check_circuit we need to instantiate some finalizing gates, but we want to be able to reset the
+     * state back to what it was before. So we create a "circuit-in-the-head". So we need to be able to switch between
+     * an actual implementation and an in-the-head one
+     *
+     * @tparam T The type of the member that is being switched
+     * @param virtual_member The in-the-head instance
+     * @param real_member The real instance
+     * @param in_the_head The switch
+     * @return T& A reference to the in-the-head instance if in_the_head is true, otherwise a reference to the real
+     * instance
+     */
+    template <typename T> inline T& choose_virtual_or_real(T& virtual_member, T& real_member, bool in_the_head)
+    {
+        if (in_the_head) {
+            return virtual_member;
+        } else {
+            return real_member;
+        }
+    }
+
+#define PARENS ()
+// Rescan macro tokens 256 times
+#define EXPAND(arg) EXPAND1(EXPAND1(EXPAND1(EXPAND1(arg))))
+#define EXPAND1(arg) EXPAND2(EXPAND2(EXPAND2(EXPAND2(arg))))
+#define EXPAND2(arg) EXPAND3(EXPAND3(EXPAND3(EXPAND3(arg))))
+#define EXPAND3(arg) EXPAND4(EXPAND4(EXPAND4(EXPAND4(arg))))
+#define EXPAND4(arg) arg
+
+#define FOR_EACH(macro, ...) __VA_OPT__(EXPAND(FOR_EACH_HELPER(macro, __VA_ARGS__)))
+#define FOR_EACH_HELPER(macro, a1, a2, a3, ...)                                                                        \
+    macro(a1, a2, a3) __VA_OPT__(FOR_EACH_AGAIN PARENS(macro, a1, a2, __VA_ARGS__))
+#define FOR_EACH_AGAIN() FOR_EACH_HELPER
+
+#define HEAD(x, ...) x
+#define TAIL(x, ...) __VA_ARGS__
+
+#define ASSIGN_VARIABLE_TO_VIRTUAL_OR_REAL(variable_prefix, switch_name, member)                                       \
+    auto& variable_prefix##member = choose_virtual_or_real(circuit_in_the_head.##member, member, switch_name);         \
+    (void)variable_prefix##member;
+#define CHOOSE_VIRTUAL_OR_REAL_MULTIPLE(variable_prefix, switch_name, member_name, ...)                                \
+    FOR_EACH(ASSIGN_VARIABLE_TO_VIRTUAL_OR_REAL, variable_prefix, switch_name, member_name, __VA_ARGS__)
+#define ENABLE_ALL_IN_THE_HEAD_SWITCHES                                                                                \
+    CHOOSE_VIRTUAL_OR_REAL_MULTIPLE(switched_,                                                                         \
+                                    in_the_head,                                                                       \
+                                    w_l,                                                                               \
+                                    w_r,                                                                               \
+                                    w_o,                                                                               \
+                                    w_4,                                                                               \
+                                    q_m,                                                                               \
+                                    q_1,                                                                               \
+                                    q_2,                                                                               \
+                                    q_3,                                                                               \
+                                    q_c,                                                                               \
+                                    q_arith,                                                                           \
+                                    q_4,                                                                               \
+                                    q_sort,                                                                            \
+                                    q_lookup_type,                                                                     \
+                                    q_elliptic,                                                                        \
+                                    q_aux,                                                                             \
+                                    num_gates,                                                                         \
+                                    ram_arrays,                                                                        \
+                                    rom_arrays,                                                                        \
+                                    memory_read_records,                                                               \
+                                    memory_write_records,                                                              \
+                                    range_lists)
     // Circuit evaluation methods
 
     fr compute_arithmetic_identity(fr q_arith_value,
@@ -628,7 +806,47 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
                                    const fr alpha_base,
                                    const fr alpha);
     fr arithmetic_gate_evaluation(const size_t gate_index, const fr alpha_base);
+    fr compute_auxilary_identity(fr q_aux_value,
+                                 fr q_m_value,
+                                 fr q_1_value,
+                                 fr q_2_value,
+                                 fr q_3_value,
+                                 fr q_4_value,
+                                 fr q_c_value,
+                                 fr q_arith_value,
+                                 fr w_1_value,
+                                 fr w_2_value,
+                                 fr w_3_value,
+                                 fr w_4_value,
+                                 fr w_1_shifted_value,
+                                 fr w_2_shifted_value,
+                                 fr w_3_shifted_value,
+                                 fr w_4_shifted_value,
+                                 fr alpha_base,
+                                 fr alpha,
+                                 fr eta);
+    fr compute_elliptic_identity(fr q_elliptic_value,
+                                 fr q_1_value,
+                                 fr q_3_value,
+                                 fr q_4_value,
+                                 fr w_2_value,
+                                 fr w_3_value,
+                                 fr w_1_shifted_value,
+                                 fr w_2_shifted_value,
+                                 fr w_3_shifted_value,
+                                 fr w_4_shifted_value,
+                                 fr alpha_base,
+                                 fr alpha);
+    fr compute_genperm_sort_identity(fr q_sort_value,
+                                     fr w_1_value,
+                                     fr w_2_value,
+                                     fr w_3_value,
+                                     fr w_4_value,
+                                     fr w_1_shifted_value,
+                                     fr alpha_base,
+                                     fr alpha);
 
+    void reset_circuit_in_the_head();
     bool check_circuit();
 };
 } // namespace proof_system
