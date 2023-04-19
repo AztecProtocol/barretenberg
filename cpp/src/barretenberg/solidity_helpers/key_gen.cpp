@@ -17,7 +17,7 @@ void generate_keys(std::string output_path, std::string srs_path, std::string fl
     uint256_t public_inputs[4] = { 0, 0, 0, 0 };
     Composer composer = Circuit::generate(srs_path, public_inputs);
 
-    std::shared_ptr<plonk::verification_key> verification_key = composer.compute_verification_key();
+    std::shared_ptr<plonk::verification_key> vkey = composer.compute_verification_key();
 
     // Make verification key file upper case
     circuit_name.at(0) = static_cast<char>(std::toupper(static_cast<unsigned char>(circuit_name.at(0))));
@@ -30,7 +30,7 @@ void generate_keys(std::string output_path, std::string srs_path, std::string fl
     {
         auto vk_filename = output_path + "/keys/" + vk_class_name + ".sol";
         std::ofstream os(vk_filename);
-        proof_system::output_vk_sol(os, verification_key, vk_class_name);
+        proof_system::output_vk_sol(os, vkey, vk_class_name);
         info("VK contract written to: ", vk_filename);
     }
 

@@ -14,7 +14,6 @@ PUSH_LABEL=$3
 
 PROJECTS=(
   cpp:barretenberg-cpp:./dockerfiles/Dockerfile.x86_64-linux-clang:barretenberg-x86_64-linux-clang
-  cpp:barretenberg-cpp:./dockerfiles/Dockerfile.x86_64-linux-clang-assert:barretenberg-x86_64-linux-clang-assert
   cpp:barretenberg-cpp:./dockerfiles/Dockerfile.wasm-linux-clang:barretenberg-wasm-linux-clang
   # js:barretenberg-js
 )

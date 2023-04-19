@@ -25,6 +25,8 @@ Run `bootstrap.sh` to clone git submodules, download SRS and generate verificati
 
 Test are performed with a `TestBase` harness, it provides helpers for reading files and printing proofs. The tests also require proofs and verification keys, those are build as part of the `bootstrap.sh`.
 
+Note that foundry is set to just run 1 fuzz run, this is mainly to limit the duty for CI, and then it can be hammered more heavily when needed.
+
 ## How To Run the Tests?
 
 To run all tests, run the following scripts at the root of the repo:
@@ -71,7 +73,7 @@ revert(0x00, 0x64)  // revert with a message containing 0x64 bytes defined above
 When running a test, you will then see the three values `val_1, val_2, val_3` in the console.
 
 # Docker
-To run the docker image, from root run:
+To run the docker image, which will build keygen and proofgen and then run tests, run the following from root:
 ```bash
 # From root 
 docker build . -f sol/Dockerfile
