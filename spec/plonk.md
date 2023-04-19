@@ -33,9 +33,9 @@ TODO: Some combo of: update comments in code; excerpt those comments here; move 
 ...
 ## Original argument
 The original grand product argument of \cite PlonK allows us to prove that copy constraints hold between the wire polynomials \f$ w_1, \ldots, w_{n_{\text{wires}}}\f$ on \f$H\f$. The copy constraints are equivalent to a decomposition of the disjoint union \f$\bigsqcup^\numwires H\f$ into into disjoint subsets, which is equivalent to the cycle decomposition of a permutation on \f$\bigsqcup^\numwires H\f$. To implement this permutation, we choose \f$k_{-1}=1, k_0, \ldots, k_{\numwires-2}\in \bF\f$ such that \f$k_i H \cap k_j H = \emptyset\f$, and we use \f$\bigcup_{i=-1}^{\numwires-2}k_i H \subset \bF\f$ as the implementation of the disjoint union (we call the \f$k_i\f$'s "coset generators"; see, e.g., barretenberg::Bn254FrParams::coset_generators_0, which specifies a 64-bit limb of 8 coset generators). The functions plonk::ComposerBase::compute_wire_copy_cycles and plonk::ComposerBase::compute_sigma_permutations collect the permutation data from the circuit, while plonk::compute_permutation_lagrange_base_single realizes this permutation using polynomials \f$S_{\sigma,1},\ldots, S_{\sigma,\numwires}\f$. If the copy cycle permutation \f$\sigma\f$ maps \f$w_{j}(\omega^{i_1})\f$ to \f$w_{\ell}(\omega^{i_2})\f$, then we set
-\f[S_{\sigma,j}(\omega^{i_1}) := k_{\ell-2} \omega^{i_2}.\f] 
+\f$S_{\sigma,j}(\omega^{i_1}) := k_{\ell-2} \omega^{i_2}\f$ 
 Varying over all values of \f$i_1\f$, this defines \f$S_{\sigma,j}\f$ by Lagrange interpolation. We similary represent the identity permutation using polynomials \f$\ID_{1},\ldots, \ID_{\numwires}\f$ defined by
-\f[\ID_{j}(\omega^i) = k_{j-2}\omega^i.\f] 
+\f$\ID_{j}(\omega^i) = k_{j-2}\omega^i\f$ 
 By an application of the Schwartz-Zippel lemma, the verifier is convinced that the copy constraints hold if the identity
 \f[
 \prod_{k=0}^{\numgates-1}\prod_{j=1}^{\numwires} (w_j(\omega^k) + \beta \ID_j(\omega^k) + \gamma) =

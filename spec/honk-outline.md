@@ -9,7 +9,6 @@ Some notation:
 
 We extend our common notations by defining \f$[F]_1 := \comGem(F)\f$ for \f$F\f$ a multivariate polynomial and \f$[f]_1 := \comKZG(f)\f$ for \f$f\f$ a univariate polynomial.
 
-
 # SRS
 We need an SRS where the \f$i\f$-th element is \f$[x^i]_1\f$.
 
@@ -29,7 +28,7 @@ We need an SRS where the \f$i\f$-th element is \f$[x^i]_1\f$.
     - CHALLENGE: \f$u_\ell\f$
     - Partially evaluate multivariate.
   - Send multilinear evaluations (at \f$u\f$) \f$\bar q_{m,l,r,o,c}\f$, \f$\overline{T}_{1,2,3}\f$, \f$\overline{\zperm}\f$, \f$\bar{ w}_{l,r,o}\f$, (\f$\bar{L}_0\f$, \f$\overline{\mathrm{ID}}\f$), and evaluation of the left shift of \f$\overline{\zperm}\f$. 
-    - Relabel the evaluations to \f$v_0,\ldots,v_{13},v_{14}^\shift\f$, and polynomials to \f$F_0, \ldots, F_{13}, F^\shift_{14}\f$, where \f$F^\shift_{14} = \GP\f$.
+    - Relabel the evaluations to \f$v_0,\ldots,v_{13},v_{14}^{\shift}\f$, and polynomials to \f$F_0, \ldots, F_{13}, F^{\shift}_{14}\f$, where \f$F^{\shift}_{14} = \GP\f$.
 - Gemini:
   - **Note 1**: In what follows, the superscript \f$\cdot^\shift\f$ when decorating an evaluation implies the evaluation of a shifted polynomial. When applied to a polynomial, it implies the polynomial is *to-be-shifted*. (TODO: make this less confusing..)
   - **Note 2**: Although \f$d+1\f$ \f$\Fold\f$ polynomials and their evaluations are computed during the prover portion of Gemini, only \f$d-1\f$ commitments and \f$d\f$ evaluations are added to the transcript. This is sufficient for the verifier to reconstruct the remaining components.
@@ -45,26 +44,26 @@ We need an SRS where the \f$i\f$-th element is \f$[x^i]_1\f$.
   - Add \f$d-1\f$ commitments to transcript: \f$[\Fold^{(1)}], \ldots, [\Fold^{(d-1)}]\f$
   - CHALLENGE: \f$r\f$
   - Compute partially evaluated folded polynomials
-    \f$\f$ \Fold^{(0)}_{r} = F + \tfrac{1}{r}G, \,\,\, \Fold^{(0)}_{-r} = F + \tfrac{1}{-r}G\f$\f$
+    \f$\Fold^{(0)}_{r} = F + \tfrac{1}{r}G\f$ and \f$\Fold^{(0)}_{-r} = F + \tfrac{1}{-r}G\f$
   - Compute \f$d+1\f$ univariate evaluations 
-    \f$\f$\begin{gathered}
+    \f$\begin{gathered}
     a_{0}^+ = \Fold^{(0)}_{r}(r) \\
     a_{0} = \Fold^{(0)}_{-r}(-r) \\
     a_{1} = \Fold^{(1)}(-r^{2}) \\
     \ldots \\
     a_{d-1} = \Fold^{(d-1)}(-r^{2^{d-1}})
-    \end{gathered}\f$\f$
+    \end{gathered}\f$
   - Add \f$d\f$ evaluations to transcript: \f$a_0, \ldots, a_{d-1}\f$
   
 - Shplonk (simplifed):
     - CHALLENGE: \f$\nu\f$ for batching the quotients
     - Compute and commit to batched quotient 
-        \f$\f$ Q(X) = \frac{\Fold^{(0)}_{r}(X) - a_{0}^+}{X-r} + \nu\frac{\Fold^{(0)}_{-r}(X) - a_{0}}{X+r} + \sum_{\ell=1}^{d-1} \nu^{\ell+1} \frac{\Fold^{(\ell)}(X) - a_{\ell}}{X+r^{2^{\ell}}}\f$\f$
+        \f$ Q(X) = \frac{\Fold^{(0)}_{r}(X) - a_{0}^+}{X-r} + \nu\frac{\Fold^{(0)}_{-r}(X) - a_{0}}{X+r} + \sum_{\ell=1}^{d-1} \nu^{\ell+1} \frac{\Fold^{(\ell)}(X) - a_{\ell}}{X+r^{2^{\ell}}}\f$
     - CHALLENGE: \f$z\f$ 
     - Compute the partial evaluation at \f$z\f$ of polynomial \f$Q\f$ 
-        \f$\f$ Q_z(X) =  \frac{\Fold^{(0)}_{r}(X) - a_{0}^+}{z-r} + \nu\frac{\Fold^{(0)}_{-r}(X) - a_{0}}{z+r} + \sum_{\ell=1}^{d-1} \nu^{\ell+1} \frac{\Fold^{(\ell)}(X) - a_{\ell}}{z+r^{2^{\ell}}}\f$\f$
+        \f$ Q_z(X) =  \frac{\Fold^{(0)}_{r}(X) - a_{0}^+}{z-r} + \nu\frac{\Fold^{(0)}_{-r}(X) - a_{0}}{z+r} + \sum_{\ell=1}^{d-1} \nu^{\ell+1} \frac{\Fold^{(\ell)}(X) - a_{\ell}}{z+r^{2^{\ell}}}\f$
     - Compute the quotient polynomial
-        \f$\f$ W(X) = \frac{Q(X)-Q_z(X)}{X-z}\f$\f$
+        \f$ W(X) = \frac{Q(X)-Q_z(X)}{X-z}\f$
 
     
 
@@ -81,14 +80,17 @@ We need an SRS where the \f$i\f$-th element is \f$[x^i]_1\f$.
     where each \f$\overline{\Honk}_\star\f$ is the expected value of \f$\Honk_\star\f$ given the purported (i.e., provider-supplied) and verifier-computed evaluations of the components. This uses all of the sumcheck evaluations as well as \f$\idx(u)\f$ and \f$L_2(u)\f$.
 - Set \f$v = \sum_{i=0}^{13} \rho^i v_i + \rho^{14}v^\shift_{14}\f$ as the batched multi-linear evaluation
 - Compute simulated folded commitments 
-    \f$\f$  [\Fold^{(0)}_{r}] = [F] + \tfrac{1}{r}[G], [\Fold^{(0)}_{-r}] = [F] + \tfrac{1}{-r}[G],\f$\f$
+    \f$  [\Fold^{(0)}_{r}] = [F] + \tfrac{1}{r}[G], [\Fold^{(0)}_{-r}] = [F] + \tfrac{1}{-r}[G],\f$
     where \f$[F] = \sum_{i=0}^{13} \rho^i [F_i]\f$ and \f$[G] = \rho^{14} [F^\shift_{14}]\f$
 - Compute purported evaluation of \f$\Fold^{(0)}(r)\f$ as \f$a_{0}^+ = \GeminiUnfold(u, r, a_{0},\ldots,a_{d-1},v)\f$
 - See [here](https://hackmd.io/VpdZslmHRy-j11qnkebLnA?view) for details of the Gemini verifier *unfold* operation
 - Compute simulated commitment to \f$[Q_z]\f$ 
-    \f$\f$[Q_z] =  \frac{[\Fold^{(0)}_{r}] - a_{0}^+[1]}{z-r} + \nu\frac{[\Fold^{(0)}_{-r}] - a_{0}[1]}{z+r} + \sum_{\ell=1}^{d-1} \nu^{\ell+1} \frac{[\Fold^{(\ell)}] - a_{\ell}[1]}{z+r^{2^{\ell}}}\f$\f$
+    \f[
+      [Q_z] =  \frac{[\Fold^{(0)}_{r}] - a_{0}^+[1]}{z-r} + \nu\frac{[\Fold^{(0)}_{-r}] - a_{0}[1]}{z+r} + \sum_{\ell=1}^{d-1} \nu^{\ell+1} \frac{[\Fold^{(\ell)}] - a_{\ell}[1]}{z+r^{2^{\ell}}}
+      \f]
+
 - Check that 
-   \f$\f$ e([Q] - [Q_z] + z[W], [1]_2])  = e([W], [x]_2) \f$\f$
+   \f$ e([Q] - [Q_z] + z[W], [1]_2)  = e([W], [x]_2) \f$
        (or rearrange for efficiency as in the PlonK paper).
 
 
