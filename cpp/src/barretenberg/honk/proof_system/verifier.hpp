@@ -17,7 +17,7 @@ namespace proof_system::honk {
 template <typename Flavor, typename program_settings> class Verifier {
 
   public:
-    Verifier(std::shared_ptr<plonk::verification_key> verifier_key = nullptr);
+    Verifier(std::shared_ptr<typename Flavor::VerificationKey> verifier_key = nullptr);
     Verifier(Verifier&& other);
     Verifier(const Verifier& other) = delete;
     Verifier& operator=(const Verifier& other) = delete;
@@ -25,7 +25,7 @@ template <typename Flavor, typename program_settings> class Verifier {
 
     bool verify_proof(const plonk::proof& proof);
 
-    std::shared_ptr<plonk::verification_key> key;
+    std::shared_ptr<typename Flavor::VerificationKey> key;
     std::map<std::string, barretenberg::g1::affine_element> kate_g1_elements;
     std::map<std::string, barretenberg::fr> kate_fr_elements;
     std::shared_ptr<pcs::kzg::VerificationKey> kate_verification_key;

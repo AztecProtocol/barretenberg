@@ -16,6 +16,11 @@ class UltraHonkComposer {
     // 1) Proving and verification keys
     // 2) CRS
     // 3) Converting variables to witness vectors/polynomials
+    using Flavor = flavor::Ultra;
+    using CircuitConstructor = UltraCircuitConstructor;
+    using ProvingKey = typename Flavor::ProvingKey;
+    using VerificationKey = typename Flavor::VerificationKey;
+
     UltraHonkComposerHelper composer_helper;
     size_t& num_gates;
 
@@ -31,8 +36,8 @@ class UltraHonkComposer {
         , composer_helper(crs_factory)
         , num_gates(circuit_constructor.num_gates){};
 
-    UltraHonkComposer(std::shared_ptr<plonk::proving_key> const& p_key,
-                      std::shared_ptr<plonk::verification_key> const& v_key,
+    UltraHonkComposer(std::shared_ptr<ProvingKey> const& p_key,
+                      std::shared_ptr<VerificationKey> const& v_key,
                       size_t size_hint = 0);
     UltraHonkComposer(UltraHonkComposer&& other) = default;
     UltraHonkComposer& operator=(UltraHonkComposer&& other) = delete;

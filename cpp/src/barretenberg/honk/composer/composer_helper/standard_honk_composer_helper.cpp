@@ -44,31 +44,29 @@ std::shared_ptr<StandardHonkComposerHelper::ProvingKey> StandardHonkComposerHelp
  * (2) sets the polynomial manifest using the data from proving key.
  */
 
-std::shared_ptr<plonk::verification_key> StandardHonkComposerHelper::compute_verification_key_base(
+std::shared_ptr<StandardHonkComposerHelper::VerificationKey> StandardHonkComposerHelper::compute_verification_key_base(
     std::shared_ptr<StandardHonkComposerHelper::ProvingKey> const& proving_key,
     std::shared_ptr<VerifierReferenceString> const& vrs)
 {
-    auto key = std::make_shared<plonk::verification_key>(
+    auto key = std::make_shared<VerificationKey>(
         proving_key->circuit_size, proving_key->num_public_inputs, vrs, proving_key->composer_type);
     // TODO(kesha): Dirty hack for now. Need to actually make commitment-agnositc
     auto commitment_key = pcs::kzg::CommitmentKey(proving_key->circuit_size, "../srs_db/ignition");
 
-    // // WORKTODO
-    // // Compute and store commitments to all precomputed polynomials
-    // key->commitments["Q_M"] = commitment_key.commit(proving_key->polynomial_store.get("q_m_lagrange"));
-    // key->commitments["Q_1"] = commitment_key.commit(proving_key->polynomial_store.get("q_1_lagrange"));
-    // key->commitments["Q_2"] = commitment_key.commit(proving_key->polynomial_store.get("q_2_lagrange"));
-    // key->commitments["Q_3"] = commitment_key.commit(proving_key->polynomial_store.get("q_3_lagrange"));
-    // key->commitments["Q_C"] = commitment_key.commit(proving_key->polynomial_store.get("q_c_lagrange"));
-    // key->commitments["SIGMA_1"] = commitment_key.commit(proving_key->polynomial_store.get("sigma_1_lagrange"));
-    // key->commitments["SIGMA_2"] = commitment_key.commit(proving_key->polynomial_store.get("sigma_2_lagrange"));
-    // key->commitments["SIGMA_3"] = commitment_key.commit(proving_key->polynomial_store.get("sigma_3_lagrange"));
-    // key->commitments["ID_1"] = commitment_key.commit(proving_key->polynomial_store.get("id_1_lagrange"));
-    // key->commitments["ID_2"] = commitment_key.commit(proving_key->polynomial_store.get("id_2_lagrange"));
-    // key->commitments["ID_3"] = commitment_key.commit(proving_key->polynomial_store.get("id_3_lagrange"));
-    // key->commitments["LAGRANGE_FIRST"] =
-    // commitment_key.commit(proving_key->polynomial_store.get("L_first_lagrange")); key->commitments["LAGRANGE_LAST"] =
-    // commitment_key.commit(proving_key->polynomial_store.get("L_last_lagrange"));
+    // Compute and store commitments to all precomputed polynomials
+    key->q_m = commitment_key.commit(proving_key->q_m);
+    key->q_l = commitment_key.commit(proving_key->q_l);
+    key->q_r = commitment_key.commit(proving_key->q_r);
+    key->q_o = commitment_key.commit(proving_key->q_o);
+    key->q_c = commitment_key.commit(proving_key->q_c);
+    key->sigma_1 = commitment_key.commit(proving_key->sigma_1);
+    key->sigma_2 = commitment_key.commit(proving_key->sigma_2);
+    key->sigma_3 = commitment_key.commit(proving_key->sigma_3);
+    key->id_1 = commitment_key.commit(proving_key->id_1);
+    key->id_2 = commitment_key.commit(proving_key->id_2);
+    key->id_3 = commitment_key.commit(proving_key->id_3);
+    key->lagrange_first = commitment_key.commit(proving_key->lagrange_first);
+    key->lagrange_last = commitment_key.commit(proving_key->lagrange_last);
 
     return key;
 }
@@ -125,7 +123,7 @@ std::shared_ptr<StandardHonkComposerHelper::ProvingKey> StandardHonkComposerHelp
  *
  * @return Pointer to created circuit verification key.
  * */
-std::shared_ptr<plonk::verification_key> StandardHonkComposerHelper::compute_verification_key(
+std::shared_ptr<StandardHonkComposerHelper::VerificationKey> StandardHonkComposerHelper::compute_verification_key(
     const CircuitConstructor& circuit_constructor)
 {
     if (circuit_verification_key) {

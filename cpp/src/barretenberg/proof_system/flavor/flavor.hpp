@@ -46,6 +46,10 @@ template <typename T, typename TView, size_t NUM_ENTITIES> class Data {
 template <typename T, typename TView, size_t NUM_PRECOMPUTED_ENTITIES>
 class BasePrecomputedData : public Data<T, TView, NUM_PRECOMPUTED_ENTITIES> {
   public:
+    size_t circuit_size;
+    size_t log_circuit_size;
+    size_t num_public_inputs;
+    ComposerType composer_type; // WORKTODO: Get rid of this
     BasePrecomputedData() = default;
     virtual std::vector<TView> get_selectors() = 0;
     virtual std::vector<TView> get_sigma_polynomials() = 0;
@@ -56,31 +60,11 @@ class BasePrecomputedData : public Data<T, TView, NUM_PRECOMPUTED_ENTITIES> {
 // the selectors
 template <typename PrecomputedData, typename FF> class BaseProvingKey : public PrecomputedData {
   public:
-    size_t circuit_size;
-    size_t log_circuit_size;
-    size_t num_public_inputs;
     std::shared_ptr<ProverReferenceString> crs;
     EvaluationDomain<FF> evaluation_domain;
-    ComposerType composer_type;           // WORKTODO: Get rid of this
     PolynomialStore<FF> polynomial_store; // WORKTODO: Get rid of this
 
     BaseProvingKey() = default;
-    // BaseProvingKey(const size_t circuit_size,
-    //                const size_t num_public_inputs,
-    //                std::shared_ptr<ProverReferenceString> const& crs,
-    //                ComposerType composer_type)
-    //     : circuit_size(circuit_size)
-    //     , log_circuit_size(numeric::get_msb(circuit_size))
-    //     , num_public_inputs(num_public_inputs)
-    //     , crs(crs)
-    //     , evaluation_domain(circuit_size, circuit_size)
-    //     , composer_type(composer_type){
-    //         for (auto& poly : this->_data)
-    //         {
-    //             auto new_poly = PrecomputedData(circuit_size);
-    //             poly = new_poly;
-    //         }
-    //     };
 };
 
 /**
@@ -89,7 +73,11 @@ template <typename PrecomputedData, typename FF> class BaseProvingKey : public P
  *
  * @tparam PrecomputedData
  */
-template <typename PrecomputedData> using BaseVerificationKey = PrecomputedData;
+template <typename PrecomputedData> class BaseVerificationKey : public PrecomputedData {
+  public:
+    std::shared_ptr<VerifierReferenceString> vrs;
+};
+
 template <typename T, size_t NUM_ALL_ENTITIES> class BaseAllData : public Data<T, T, NUM_ALL_ENTITIES> {
   public:
     BaseAllData() { this->_data = {}; }
@@ -119,8 +107,8 @@ class Standard {
     using Polynomial = barretenberg::Polynomial<FF>;
     using PolynomialView = std::span<FF>;
     using G1 = barretenberg::g1;
-    using Commitment = G1;
-    using CommitmentView = G1; // TODO(Cody): make a pointer?
+    using Commitment = G1::affine_element;
+    using CommitmentView = G1::affine_element; // TODO(Cody): make a pointer?
     using PCSParams = pcs::kzg::Params;
 
     static constexpr size_t num_wires = CircuitConstructor::num_wires;
@@ -146,9 +134,9 @@ class Standard {
         T& lagrange_first = std::get<11>(this->_data);
         T& lagrange_last = std::get<12>(this->_data); // = LAGRANGE_N-1 whithout ZK, but can be less
 
-        std::vector<TView> get_selectors() { return { q_m, q_l, q_r, q_o, q_c }; };
-        std::vector<TView> get_sigma_polynomials() { return { sigma_1, sigma_2, sigma_3 }; };
-        std::vector<TView> get_id_polynomials() { return { id_1, id_2, id_3 }; };
+        std::vector<TView> get_selectors() override { return { q_m, q_l, q_r, q_o, q_c }; };
+        std::vector<TView> get_sigma_polynomials() override { return { sigma_1, sigma_2, sigma_3 }; };
+        std::vector<TView> get_id_polynomials() override { return { id_1, id_2, id_3 }; };
 
         virtual ~PrecomputedData() = default;
         PrecomputedData() = default;
@@ -252,7 +240,26 @@ class Standard {
         };
     };
 
-    using VerificationKey = BaseVerificationKey<PrecomputedData<Commitment, CommitmentView>>;
+    class VerificationKey : public BaseVerificationKey<PrecomputedData<Commitment, CommitmentView>> {
+      public:
+        VerificationKey() = default;
+        VerificationKey(const size_t circuit_size,
+                        const size_t num_public_inputs,
+                        std::shared_ptr<VerifierReferenceString> const& vrs,
+                        ComposerType composer_type)
+        {
+            this->circuit_size = circuit_size;
+            this->log_circuit_size = numeric::get_msb(circuit_size);
+            this->num_public_inputs = num_public_inputs;
+            this->vrs = vrs;
+            this->composer_type = composer_type;
+
+            // for (auto& poly : this->_data) {
+            //     auto new_poly = Polynomial(circuit_size);
+            //     poly = new_poly;
+            // }
+        };
+    };
 
     template <typename T> class AllData : public BaseAllData<T, NUM_ALL_ENTITIES> {
       public:
@@ -431,8 +438,8 @@ class Ultra {
     using Polynomial = barretenberg::Polynomial<FF>;
     using PolynomialView = std::span<FF>;
     using G1 = barretenberg::g1;
-    using Commitment = G1;
-    using CommitmentView = G1; // TODO(Cody): make a pointer?
+    using Commitment = G1::affine_element;
+    using CommitmentView = G1::affine_element; // TODO(Cody): make a pointer?
     using PCSParams = pcs::kzg::Params;
 
     static constexpr size_t num_wires = CircuitConstructor::num_wires;

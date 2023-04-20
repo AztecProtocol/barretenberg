@@ -49,7 +49,6 @@ TEST(StandardHonkComposer, SigmaIDCorrectness)
             for (size_t i = 0; i < n; ++i) {
                 left *= (gamma + wire_idx * n + i);
                 right *= (gamma + sigma_polynomial[i]);
-                info(sigma_polynomial[i], "<-- in test");
             }
             // Ensure that the public inputs cycles are correctly broken
             // and fix the cycle by adding the extra terms
@@ -302,8 +301,7 @@ TEST(StandardHonkComposer, VerificationKeyCreation)
     // There is nothing we can really check apart from the fact that constraint selectors and permutation selectors were
     // committed to, we simply check that the verification key now contains the appropriate number of constraint and
     // permutation selector commitments. This method should work with any future arithemtization.
-    EXPECT_EQ(verification_key->commitments.size(),
-              composer.circuit_constructor.selectors.size() + composer.num_wires * 2 + 2);
+    EXPECT_EQ(verification_key->size(), composer.circuit_constructor.selectors.size() + composer.num_wires * 2 + 2);
 }
 
 TEST(StandardHonkComposer, BaseCase)

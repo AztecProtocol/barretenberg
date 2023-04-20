@@ -19,7 +19,8 @@ class UltraHonkComposerHelper {
   public:
     using Flavor = flavor::Ultra;
     using CircuitConstructor = Flavor::CircuitConstructor;
-    using ProvingKey = Flavor::ProvingKey; // WORKTODO: undo this changed; not needed
+    using ProvingKey = Flavor::ProvingKey;
+    using VerificationKey = Flavor::VerificationKey;
 
     // TODO(#340)(luke): In the split composers, NUM_RANDOMIZED_GATES has replaced NUM_RESERVED_GATES (in some places)
     // to determine the next-power-of-2 circuit size. (There are some places in this composer that still use
@@ -30,7 +31,7 @@ class UltraHonkComposerHelper {
     static constexpr size_t num_wires = CircuitConstructor::num_wires;
     std::vector<barretenberg::polynomial> wire_polynomials;
     std::shared_ptr<ProvingKey> circuit_proving_key;
-    std::shared_ptr<proof_system::plonk::verification_key> circuit_verification_key;
+    std::shared_ptr<VerificationKey> circuit_verification_key;
     // TODO(#218)(kesha): we need to put this into the commitment key, so that the composer doesn't have to handle srs
     // at all
     std::shared_ptr<ReferenceStringFactory> crs_factory_;
@@ -49,7 +50,7 @@ class UltraHonkComposerHelper {
         : crs_factory_(std::move(crs_factory))
     {}
 
-    UltraHonkComposerHelper(std::shared_ptr<ProvingKey> p_key, std::shared_ptr<plonk::verification_key> v_key)
+    UltraHonkComposerHelper(std::shared_ptr<ProvingKey> p_key, std::shared_ptr<VerificationKey> v_key)
         : circuit_proving_key(std::move(p_key))
         , circuit_verification_key(std::move(v_key))
     {}
@@ -63,7 +64,7 @@ class UltraHonkComposerHelper {
     void finalize_circuit(CircuitConstructor& circuit_constructor) { circuit_constructor.finalize_circuit(); };
 
     std::shared_ptr<ProvingKey> compute_proving_key(const CircuitConstructor& circuit_constructor);
-    // std::shared_ptr<plonk::verification_key> compute_verification_key(const CircuitConstructor& circuit_constructor);
+    // std::shared_ptr<VerificationKey> compute_verification_key(const CircuitConstructor& circuit_constructor);
 
     void compute_witness(CircuitConstructor& circuit_constructor);
 

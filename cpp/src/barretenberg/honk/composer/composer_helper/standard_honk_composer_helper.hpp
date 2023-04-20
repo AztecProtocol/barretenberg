@@ -20,13 +20,14 @@ class StandardHonkComposerHelper {
   public:
     using Flavor = flavor::Standard;
     using CircuitConstructor = Flavor::CircuitConstructor;
-    using ProvingKey = Flavor::ProvingKey; // WORKTODO: undo this changed; not needed
+    using ProvingKey = Flavor::ProvingKey;
+    using VerificationKey = Flavor::VerificationKey;
 
     static constexpr size_t NUM_RANDOMIZED_GATES = 2; // equal to the number of multilinear evaluations leaked
     static constexpr size_t num_wires = CircuitConstructor::num_wires;
     std::shared_ptr<ProvingKey> proving_key;
     std::vector<barretenberg::polynomial> wire_polynomials;
-    std::shared_ptr<plonk::verification_key> circuit_verification_key;
+    std::shared_ptr<VerificationKey> circuit_verification_key;
     // TODO(#218)(kesha): we need to put this into the commitment key, so that the composer doesn't have to handle srs
     // at all
     std::shared_ptr<ReferenceStringFactory> crs_factory_;
@@ -44,7 +45,7 @@ class StandardHonkComposerHelper {
         : crs_factory_(std::move(crs_factory))
     {}
     StandardHonkComposerHelper(std::shared_ptr<ProvingKey> p_key,
-                               std::shared_ptr<plonk::verification_key> v_key) // WORKTODO
+                               std::shared_ptr<VerificationKey> v_key) // WORKTODO
         : proving_key(std::move(p_key))
         , circuit_verification_key(std::move(v_key))
     {}
@@ -55,7 +56,7 @@ class StandardHonkComposerHelper {
     ~StandardHonkComposerHelper() = default;
 
     std::shared_ptr<ProvingKey> compute_proving_key(const CircuitConstructor& circuit_constructor);
-    std::shared_ptr<plonk::verification_key> compute_verification_key(const CircuitConstructor& circuit_constructor);
+    std::shared_ptr<VerificationKey> compute_verification_key(const CircuitConstructor& circuit_constructor);
 
     StandardVerifier create_verifier(const CircuitConstructor& circuit_constructor);
 
@@ -68,7 +69,7 @@ class StandardHonkComposerHelper {
                                                          const size_t num_randomized_gates = NUM_RANDOMIZED_GATES);
     // This needs to be static as it may be used only to compute the selector commitments.
 
-    static std::shared_ptr<plonk::verification_key> compute_verification_key_base(
+    static std::shared_ptr<VerificationKey> compute_verification_key_base(
         std::shared_ptr<ProvingKey> const& proving_key, std::shared_ptr<VerifierReferenceString> const& vrs);
 
     void compute_witness(const CircuitConstructor& circuit_constructor, const size_t minimum_circuit_size = 0);

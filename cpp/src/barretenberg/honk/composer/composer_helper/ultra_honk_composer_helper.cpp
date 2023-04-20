@@ -310,7 +310,7 @@ std::shared_ptr<UltraHonkComposerHelper::Flavor::ProvingKey> UltraHonkComposerHe
 //  *
 //  * @return Pointer to created circuit verification key.
 //  * */
-// std::shared_ptr<plonk::verification_key> UltraHonkComposerHelper::compute_verification_key(
+// std::shared_ptr<VerificationKey> UltraHonkComposerHelper::compute_verification_key(
 //     const CircuitConstructor& circuit_constructor)
 // {
 //     if (circuit_verification_key) {
