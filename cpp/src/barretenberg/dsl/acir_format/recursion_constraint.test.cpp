@@ -120,7 +120,8 @@ TEST(RecursionConstraint, TestRecursionConstraint)
     // std::vector<uint8_t> keybuf;
     // write(keybuf, *(inner_verifier.key));
 
-    std::array<uint32_t, acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE> output_vars;
+    // std::array<uint32_t, acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE> output_vars;
+    std::vector<uint32_t> output_vars(acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE);
     for (size_t i = 0; i < 16; ++i) {
         // variable idx 1 = public input
         // variable idx 2-18 = output_vars

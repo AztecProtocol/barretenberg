@@ -8,11 +8,6 @@ namespace acir_format {
 
 using namespace proof_system::plonk;
 
-// using verification_key_ct = proof_system::plonk::stdlib::recursion::verification_key<bn254>;
-// using aggregation_state_ct = proof_system::plonk::stdlib::recursion::aggregation_state<bn254>;
-// using noir_recursive_settings = proof_system::plonk::stdlib::recursion::recursive_ultra_verifier_settings<bn254>;
-// using Transcript_ct = proof_system::plonk::stdlib::recursion::Transcript<Composer>;
-
 void generate_dummy_proof() {}
 /**
  * @brief Add constraints required to recursively verify an UltraPlonk proof
