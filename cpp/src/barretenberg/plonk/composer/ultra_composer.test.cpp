@@ -772,8 +772,8 @@ TYPED_TEST(ultra_composer, range_checks_on_duplicates)
     composer.assert_equal(a, d);
 
     composer.create_new_range_constraint(a, 1000);
-    composer.create_new_range_constraint(b, 1000);
-    composer.create_new_range_constraint(c, 1000);
+    composer.create_new_range_constraint(b, 1001);
+    composer.create_new_range_constraint(c, 999);
     composer.create_new_range_constraint(d, 1000);
 
     composer.create_big_add_gate(

@@ -1218,6 +1218,36 @@ void UltraComposer::create_new_range_constraint(const uint32_t variable_index,
 
     auto& list = range_lists[target_range];
     if (real_variable_tags[real_variable_index[variable_index]] != list.range_tag) {
+
+        if (real_variable_tags[real_variable_index[variable_index]] != DUMMY_TAG) {
+            const auto existing_tag = real_variable_tags[real_variable_index[variable_index]];
+            bool found_tag = false;
+            // existing range?
+            for (const auto& r : range_lists) {
+                if (r.second.range_tag == existing_tag) {
+                    found_tag = true;
+                    if (r.first < target_range) {
+                        // already has a more restrictive range check, skip
+                        return;
+                    } else {
+                        // difficult to remove an existing range check.
+                        // Instead deep-copy the variable and apply a range check to new variable
+                        const uint32_t copied_witness = add_variable(get_variable(variable_index));
+                        create_add_gate({ .a = variable_index,
+                                          .b = copied_witness,
+                                          .c = zero_idx,
+                                          .a_scaling = 1,
+                                          .b_scaling = -1,
+                                          .c_scaling = 0,
+                                          .const_scaling = 0 });
+                        // recursve w. new witness that has no tag attached
+                        create_new_range_constraint(copied_witness, target_range, msg);
+                        return;
+                    }
+                }
+            }
+            ASSERT(found_tag == true);
+        }
         assign_tag(variable_index, list.range_tag);
         list.variable_indices.emplace_back(variable_index);
     }
