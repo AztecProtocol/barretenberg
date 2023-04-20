@@ -63,7 +63,6 @@ void verify_consistency(honk::UltraProver& honk_prover, plonk::UltraProver& plon
         std::string key = entry.first;
         bool is_sorted_table = (key.find("s_") != std::string::npos);
         if (plonk_store.contains(key) && is_sorted_table) {
-            info(key);
             ASSERT_EQ(honk_store.get(key), plonk_store.get(key));
         }
     }

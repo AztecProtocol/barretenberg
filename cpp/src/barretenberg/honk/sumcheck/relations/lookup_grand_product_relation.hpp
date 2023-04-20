@@ -8,7 +8,7 @@ namespace proof_system::honk::sumcheck {
 template <typename FF> class LookupGrandProductComputationRelation {
   public:
     // 1 + polynomial degree of this relation
-    static constexpr size_t RELATION_LENGTH = 4; // deg(z_lookup * wire_accum * q_lookup) = 3
+    static constexpr size_t RELATION_LENGTH = 5; // deg(z_lookup * wire_accum * q_lookup * table) = 4
     using MULTIVARIATE = proof_system::honk::UltraArithmetization::POLYNOMIAL;
 
     /**
