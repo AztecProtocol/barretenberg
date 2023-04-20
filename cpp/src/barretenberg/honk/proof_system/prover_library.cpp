@@ -59,9 +59,7 @@ typename Flavor::Polynomial compute_permutation_grand_product(
     }
 
     // Populate wire and permutation polynomials
-    // std::array<std::span<const FF>, Flavor::num_wires> wires = wire_polynomials;
     auto ids = key->get_id_polynomials();
-
     auto sigmas = key->get_sigma_polynomials();
 
     // Step (1)

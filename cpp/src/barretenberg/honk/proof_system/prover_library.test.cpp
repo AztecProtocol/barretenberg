@@ -61,16 +61,22 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         std::vector<Polynomial> wires;
         std::vector<Polynomial> sigmas;
         std::vector<Polynomial> ids;
+
+        auto populate_span = [](auto& polynomial_view, auto& polynomial) {
+            for (size_t idx = 0; idx < polynomial.size(); idx++) {
+                polynomial_view[idx] = polynomial[idx];
+            }
+        };
+
+        auto sigma_polynomials = proving_key->get_sigma_polynomials();
+        auto id_polynomials = proving_key->get_id_polynomials();
         for (size_t i = 0; i < Flavor::num_wires; ++i) {
             wires.emplace_back(get_random_polynomial(num_gates));
             sigmas.emplace_back(get_random_polynomial(num_gates));
             ids.emplace_back(get_random_polynomial(num_gates));
 
-            // Add sigma/ID polys to proving_key; to be used by the prover in constructing it's own z_perm
-            // std::string sigma_label = "sigma_" + std::to_string(i + 1) + "_lagrange";
-            // proving_key->polynomial_store.put(sigma_label, Polynomial{ sigmas[i] }); // WORKTODO
-            // std::string id_label = "id_" + std::to_string(i + 1) + "_lagrange";
-            // proving_key->polynomial_store.put(id_label, Polynomial{ ids[i] }); // WORKTODO
+            populate_span(sigma_polynomials[i], sigmas[i]);
+            populate_span(id_polynomials[i], ids[i]);
         }
 
         // Get random challenges
@@ -107,13 +113,13 @@ template <class FF> class ProverLibraryTests : public testing::Test {
          */
 
         // Make scratch space for the numerator and denominator accumulators.
-        std::array<std::array<FF, num_gates>, Flavor::num_wires> numererator_accum;
+        std::array<std::array<FF, num_gates>, Flavor::num_wires> numerator_accum;
         std::array<std::array<FF, num_gates>, Flavor::num_wires> denominator_accum;
 
         // Step (1)
         for (size_t i = 0; i < proving_key->circuit_size; ++i) {
             for (size_t k = 0; k < Flavor::num_wires; ++k) {
-                numererator_accum[k][i] = wires[k][i] + (ids[k][i] * beta) + gamma;    // w_k(i) + β.id_k(i) + γ
+                numerator_accum[k][i] = wires[k][i] + (ids[k][i] * beta) + gamma;      // w_k(i) + β.id_k(i) + γ
                 denominator_accum[k][i] = wires[k][i] + (sigmas[k][i] * beta) + gamma; // w_k(i) + β.σ_k(i) + γ
             }
         }
@@ -121,7 +127,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         // Step (2)
         for (size_t k = 0; k < Flavor::num_wires; ++k) {
             for (size_t i = 0; i < proving_key->circuit_size - 1; ++i) {
-                numererator_accum[k][i + 1] *= numererator_accum[k][i];
+                numerator_accum[k][i + 1] *= numerator_accum[k][i];
                 denominator_accum[k][i + 1] *= denominator_accum[k][i];
             }
         }
@@ -129,7 +135,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         // Step (3)
         for (size_t i = 0; i < proving_key->circuit_size; ++i) {
             for (size_t k = 1; k < Flavor::num_wires; ++k) {
-                numererator_accum[0][i] *= numererator_accum[k][i];
+                numerator_accum[0][i] *= numerator_accum[k][i];
                 denominator_accum[0][i] *= denominator_accum[k][i];
             }
         }
@@ -139,7 +145,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         z_permutation_expected[0] = FF::zero(); // Z_0 = 1
         // Note: in practice, we replace this expensive element-wise division with Montgomery batch inversion
         for (size_t i = 0; i < proving_key->circuit_size - 1; ++i) {
-            z_permutation_expected[i + 1] = numererator_accum[0][i] / denominator_accum[0][i];
+            z_permutation_expected[i + 1] = numerator_accum[0][i] / denominator_accum[0][i];
         }
 
         // Check consistency between locally computed z_perm and the one computed by the prover library
