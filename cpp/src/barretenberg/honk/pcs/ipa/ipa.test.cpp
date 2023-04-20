@@ -43,14 +43,19 @@ TYPED_TEST(IpaCommitmentTest, open)
     auto commitment = this->commit(poly);
     const OpeningPair<TypeParam> opening_pair{ x, eval };
 
-    auto prover_transcript = ProverTranscript<Fr>::init_empty();
+    // initialize empty prover transcript
+    ProverTranscript<Fr> prover_transcript;
+
     prover_transcript.send_to_verifier("IPA:C", commitment);
 
     IPA::reduce_prove(this->ck(), opening_pair, poly, prover_transcript);
 
-    auto verifier_transcript = VerifierTranscript<Fr>::init_empty(prover_transcript);
+    // initialize verifier transcript from proof data
+    VerifierTranscript<Fr> verifier_transcript{ prover_transcript.proof_data };
 
     auto result = IPA::reduce_verify(this->vk(), opening_pair, n, verifier_transcript);
     EXPECT_TRUE(result);
+
+    EXPECT_EQ(prover_transcript.get_manifest(), verifier_transcript.get_manifest());
 }
 } // namespace proof_system::honk::pcs::ipa

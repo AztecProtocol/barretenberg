@@ -34,27 +34,25 @@ template <typename Params> class InnerProductArgument {
      * @brief Compute a proof for opening a single polynomial at a single evaluation point
      *
      * @param ck The commitment key containing srs and pippenger_runtime_state for computing MSM
-     * @param pub_input Data required to compute the opening proof. See spec for more details
+     * @param opening_pair (challenge, evaluation)
      * @param polynomial The witness polynomial whose opening proof needs to be computed
-     *
-     * @return a Proof, containing information required to verify whether the commitment is computed correctly and
-     * the polynomial evaluation is correct in the given challenge point.
+     * @param transcript Prover transcript
      */
     static void reduce_prove(std::shared_ptr<CK> ck,
                              const OpeningPair<Params>& opening_pair,
                              const Polynomial& polynomial,
                              ProverTranscript<Fr>& transcript)
     {
-        Fr generator_challenge = transcript.get_challenge("generator_challenge");
+        Fr generator_challenge = transcript.get_challenge("IPA:generator_challenge");
+        auto aux_generator = CommitmentAffine::one() * generator_challenge;
 
-        auto& challenge_point = opening_pair.challenge;
-        ASSERT(challenge_point != 0 && "The challenge point should not be zero");
+        ASSERT(opening_pair.challenge != 0 && "The challenge point should not be zero");
         const size_t poly_degree = polynomial.size();
         // To check poly_degree is greater than zero and a power of two
         // TODO(#220)(Arijit): To accomodate non power of two poly_degree
         ASSERT((poly_degree > 0) && (!(poly_degree & (poly_degree - 1))) &&
                "The poly_degree should be positive and a power of two");
-        auto aux_generator = CommitmentAffine::one() * generator_challenge;
+
         auto a_vec = polynomial;
         // TODO(#220)(Arijit): to make it more efficient by directly using G_vector for the input points when i = 0 and
         // write the output points to G_vec_local. Then use G_vec_local for rounds where i>0, this can be done after we
@@ -72,7 +70,7 @@ template <typename Params> class InnerProductArgument {
         Fr b_power = 1;
         for (size_t i = 0; i < poly_degree; i++) {
             b_vec[i] = b_power;
-            b_power *= challenge_point;
+            b_power *= opening_pair.challenge;
         }
         // Iterate for log_2(poly_degree) rounds to compute the round commitments.
         const size_t log_poly_degree = static_cast<size_t>(numeric::get_msb(poly_degree));
@@ -90,21 +88,18 @@ template <typename Params> class InnerProductArgument {
                 inner_prod_R += a_vec[round_size + j] * b_vec[j];
             }
             // L_i = < a_vec_lo, G_vec_hi > + inner_prod_L * aux_generator
-            Commitment partial_L = barretenberg::scalar_multiplication::pippenger_without_endomorphism_basis_points(
+            L_elements[i] = barretenberg::scalar_multiplication::pippenger_without_endomorphism_basis_points(
                 &a_vec[0], &G_vec_local[round_size], round_size, ck->pippenger_runtime_state);
-            partial_L += aux_generator * inner_prod_L;
+            L_elements[i] += aux_generator * inner_prod_L;
 
             // R_i = < a_vec_hi, G_vec_lo > + inner_prod_R * aux_generator
-            Commitment partial_R = barretenberg::scalar_multiplication::pippenger_without_endomorphism_basis_points(
+            R_elements[i] = barretenberg::scalar_multiplication::pippenger_without_endomorphism_basis_points(
                 &a_vec[round_size], &G_vec_local[0], round_size, ck->pippenger_runtime_state);
-            partial_R += aux_generator * inner_prod_R;
-
-            L_elements[i] = CommitmentAffine(partial_L);
-            R_elements[i] = CommitmentAffine(partial_R);
+            R_elements[i] += aux_generator * inner_prod_R;
 
             std::string index = std::to_string(i);
-            transcript.send_to_verifier("IPA:L_" + index, CommitmentAffine(partial_L));
-            transcript.send_to_verifier("IPA:R_" + index, CommitmentAffine(partial_R));
+            transcript.send_to_verifier("IPA:L_" + index, CommitmentAffine(L_elements[i]));
+            transcript.send_to_verifier("IPA:R_" + index, CommitmentAffine(R_elements[i]));
 
             // Generate the round challenge.
             const Fr round_challenge = transcript.get_challenge("IPA:round_challenge_" + index);
@@ -157,41 +152,31 @@ template <typename Params> class InnerProductArgument {
     {
         auto commitment = transcript.template receive_from_prover<CommitmentAffine>("IPA:C");
 
-        Fr generator_challenge = transcript.get_challenge("generator_challenge");
+        Fr generator_challenge = transcript.get_challenge("IPA:generator_challenge");
         auto aux_generator = CommitmentAffine::one() * generator_challenge;
 
-        // Local copies of public inputs
-        // auto& a_zero = proof.a_zero;
-        auto& challenge_point = opening_pair.challenge;
-        auto& evaluation = opening_pair.evaluation;
         size_t log_poly_degree = numeric::get_msb(poly_degree);
 
         // Compute C_prime
-        Commitment C_prime = commitment + (aux_generator * evaluation);
-
-        // Compute the round challeneges and their inverses.
-        std::vector<CommitmentAffine> L_vec(log_poly_degree);
-        std::vector<CommitmentAffine> R_vec(log_poly_degree);
-        std::vector<Fr> round_challenges(log_poly_degree);
-        std::vector<Fr> round_challenges_inv(log_poly_degree);
-        for (size_t i = 0; i < log_poly_degree; i++) {
-            std::string index = std::to_string(i);
-            L_vec[i] = transcript.template receive_from_prover<CommitmentAffine>("IPA:L_" + index);
-            R_vec[i] = transcript.template receive_from_prover<CommitmentAffine>("IPA:R_" + index);
-            round_challenges[i] = transcript.get_challenge("IPA:round_challenge_" + index);
-            round_challenges_inv[i] = round_challenges[i];
-        }
-        Fr::batch_invert(&round_challenges_inv[0], log_poly_degree);
+        Commitment C_prime = commitment + (aux_generator * opening_pair.evaluation);
 
         // Compute C_zero = C_prime + ∑_{j ∈ [k]} u_j^2L_j + ∑_{j ∈ [k]} u_j^{-2}R_j
         const size_t pippenger_size = 2 * log_poly_degree;
+        std::vector<Fr> round_challenges(log_poly_degree);
+        std::vector<Fr> round_challenges_inv(log_poly_degree);
         std::vector<CommitmentAffine> msm_elements(pippenger_size);
         std::vector<Fr> msm_scalars(pippenger_size);
         for (size_t i = 0; i < log_poly_degree; i++) {
-            msm_elements[2 * i] = L_vec[i];
-            msm_elements[2 * i + 1] = R_vec[i];
-            msm_scalars[2 * i] = round_challenges[i] * round_challenges[i];
-            msm_scalars[2 * i + 1] = round_challenges_inv[i] * round_challenges_inv[i];
+            std::string index = std::to_string(i);
+            auto element_L = transcript.template receive_from_prover<CommitmentAffine>("IPA:L_" + index);
+            auto element_R = transcript.template receive_from_prover<CommitmentAffine>("IPA:R_" + index);
+            round_challenges[i] = transcript.get_challenge("IPA:round_challenge_" + index);
+            round_challenges_inv[i] = round_challenges[i].invert();
+
+            msm_elements[2 * i] = element_L;
+            msm_elements[2 * i + 1] = element_R;
+            msm_scalars[2 * i] = round_challenges[i].sqr();
+            msm_scalars[2 * i + 1] = round_challenges_inv[i].sqr();
         }
         Commitment LR_sums = barretenberg::scalar_multiplication::pippenger_without_endomorphism_basis_points(
             &msm_scalars[0], &msm_elements[0], pippenger_size, vk->pippenger_runtime_state);
@@ -208,7 +193,7 @@ template <typename Params> class InnerProductArgument {
         for (size_t i = 0; i < log_poly_degree; i++) {
             auto exponent = static_cast<uint64_t>(Fr(2).pow(i));
             b_zero *= round_challenges_inv[log_poly_degree - 1 - i] +
-                      (round_challenges[log_poly_degree - 1 - i] * challenge_point.pow(exponent));
+                      (round_challenges[log_poly_degree - 1 - i] * opening_pair.challenge.pow(exponent));
         }
 
         // Compute G_zero
@@ -238,9 +223,8 @@ template <typename Params> class InnerProductArgument {
 
         auto a_zero = transcript.template receive_from_prover<Fr>("IPA:a_0");
 
-        Commitment right_hand_side = G_zero * a_zero;
-        Fr a_zero_b_zero = a_zero * b_zero;
-        right_hand_side += aux_generator * a_zero_b_zero;
+        Commitment right_hand_side = G_zero * a_zero + aux_generator * a_zero * b_zero;
+
         return (C_zero.normalize() == right_hand_side.normalize());
     }
 };
