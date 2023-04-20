@@ -265,8 +265,8 @@ void compute_honk_style_permutation_lagrange_polynomials_from_mapping(
             info(current_permutation_poly[i]);
         }
         // ITERATE_OVER_DOMAIN_END;
+        wire_index++;
     }
-    wire_index++;
 }
 } // namespace
 
