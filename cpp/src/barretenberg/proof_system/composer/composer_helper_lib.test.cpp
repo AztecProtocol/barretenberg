@@ -29,7 +29,7 @@ TEST_F(ComposerLibTests, InitializeProvingKey)
 
     auto pk = initialize_proving_key<Flavor>(circuit_constructor,
                                              &crs_factory,
-                                             /*minimum_circuit_size=*/2,
+                                             /*minimum_circuit_size=*/0,
                                              /*num_randomized_gates=*/2,
                                              ComposerType::STANDARD);
     EXPECT_EQ(pk->circuit_size, 8);

@@ -18,53 +18,6 @@
 using namespace proof_system::honk;
 
 namespace test_standard_honk_composer {
-TEST(StandardHonkComposer, BaseCase)
-{
-    auto composer = StandardHonkComposer();
-    fr a = 1;
-    composer.circuit_constructor.add_variable(a);
-
-    auto prover = composer.create_prover();
-    plonk::proof proof = prover.construct_proof();
-    auto verifier = composer.create_verifier();
-    bool verified = verifier.verify_proof(proof);
-    ASSERT_TRUE(verified);
-}
-
-TEST(StandardHonkComposer, TwoGates)
-{
-    auto run_test = [](bool expect_verified) {
-        auto composer = StandardHonkComposer();
-
-        // 1 + 1 - 2 = 0
-        uint32_t w_l_1_idx;
-        if (expect_verified) {
-            w_l_1_idx = composer.circuit_constructor.add_variable(1);
-        } else {
-            w_l_1_idx = composer.circuit_constructor.add_variable(0);
-        }
-        uint32_t w_r_1_idx = composer.circuit_constructor.add_variable(1);
-        uint32_t w_o_1_idx = composer.circuit_constructor.add_variable(2);
-        composer.create_add_gate({ w_l_1_idx, w_r_1_idx, w_o_1_idx, 1, 1, -1, 0 });
-
-        // 2 * 2 - 4 = 0
-        uint32_t w_l_2_idx = composer.circuit_constructor.add_variable(2);
-        uint32_t w_r_2_idx = composer.circuit_constructor.add_variable(2);
-        uint32_t w_o_2_idx = composer.circuit_constructor.add_variable(4);
-        composer.create_mul_gate({ w_l_2_idx, w_r_2_idx, w_o_2_idx, 1, -1, 0 });
-
-        auto prover = composer.create_prover();
-
-        plonk::proof proof = prover.construct_proof();
-        auto verifier = composer.create_verifier();
-        bool verified = verifier.verify_proof(proof);
-        EXPECT_EQ(verified, expect_verified);
-    };
-
-    run_test(/* expect_verified=*/true);
-    run_test(/* expect_verified=*/false);
-}
-
 /**
  * @brief The goal of this test is to check that the sigma permutation vectors for honk are generated correctly.
  *
@@ -265,13 +218,6 @@ TEST(StandardHonkComposer, AssertEquals)
         auto permutation_length = composer.num_wires * proving_key->circuit_size;
         auto sigma_polynomials = proving_key->get_sigma_polynomials();
 
-        // // Put the sigma polynomials into a vector for easy access
-        // for (size_t i = 0; i < composer.num_wires; i++) {
-        //     std::string index = std::to_string(i + 1);
-        //     // WORKTODO
-        //     // sigma_polynomials.push_back(proving_key->polynomial_store.get("sigma_" + index + "_lagrange"));
-        // }
-
         // Let's compute the maximum cycle
         size_t maximum_cycle = 0;
 
@@ -360,4 +306,50 @@ TEST(StandardHonkComposer, VerificationKeyCreation)
               composer.circuit_constructor.selectors.size() + composer.num_wires * 2 + 2);
 }
 
+TEST(StandardHonkComposer, BaseCase)
+{
+    auto composer = StandardHonkComposer();
+    fr a = 1;
+    composer.circuit_constructor.add_variable(a);
+
+    auto prover = composer.create_prover();
+    plonk::proof proof = prover.construct_proof();
+    auto verifier = composer.create_verifier();
+    bool verified = verifier.verify_proof(proof);
+    ASSERT_TRUE(verified);
+}
+
+TEST(StandardHonkComposer, TwoGates)
+{
+    auto run_test = [](bool expect_verified) {
+        auto composer = StandardHonkComposer();
+
+        // 1 + 1 - 2 = 0
+        uint32_t w_l_1_idx;
+        if (expect_verified) {
+            w_l_1_idx = composer.circuit_constructor.add_variable(1);
+        } else {
+            w_l_1_idx = composer.circuit_constructor.add_variable(0);
+        }
+        uint32_t w_r_1_idx = composer.circuit_constructor.add_variable(1);
+        uint32_t w_o_1_idx = composer.circuit_constructor.add_variable(2);
+        composer.create_add_gate({ w_l_1_idx, w_r_1_idx, w_o_1_idx, 1, 1, -1, 0 });
+
+        // 2 * 2 - 4 = 0
+        uint32_t w_l_2_idx = composer.circuit_constructor.add_variable(2);
+        uint32_t w_r_2_idx = composer.circuit_constructor.add_variable(2);
+        uint32_t w_o_2_idx = composer.circuit_constructor.add_variable(4);
+        composer.create_mul_gate({ w_l_2_idx, w_r_2_idx, w_o_2_idx, 1, -1, 0 });
+
+        auto prover = composer.create_prover();
+
+        plonk::proof proof = prover.construct_proof();
+        auto verifier = composer.create_verifier();
+        bool verified = verifier.verify_proof(proof);
+        EXPECT_EQ(verified, expect_verified);
+    };
+
+    run_test(/* expect_verified=*/true);
+    run_test(/* expect_verified=*/false);
+}
 } // namespace test_standard_honk_composer
