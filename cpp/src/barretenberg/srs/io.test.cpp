@@ -6,6 +6,7 @@
 #include <fstream>
 #include "msgpack.hpp"
 #include "msgpack-impl.hpp"
+#include "barretenberg/crypto/aes128/aes128.hpp"
 #include <cxxabi.h>
 
 using namespace barretenberg;
@@ -81,6 +82,7 @@ template <typename T> const char* schema_name()
 }
 
 template <typename T> struct MsgPackSchema {
+    // A viable reference is needed for define_map
     const char* type_name_string = "__typename";
     const char* type_name = schema_name<T>();
     void msgpack_pack(auto& packer) const
@@ -119,14 +121,20 @@ template <typename T> struct MsgPackSchema {
     }
 };
 
+namespace cbinds {
 struct aes__decrypt_buffer_cbc {
     std::vector<uint8_t> in;
     std::vector<uint8_t> iv;
     std::vector<uint8_t> key;
     size_t length;
-    void operator()() {}
-    auto msgpack_flat(auto ar) { return ar(in, iv, key, length); }
+    void msgpack_flat(auto ar) { ar(in, iv, key, length); }
+    auto operator()()
+    {
+        crypto::aes128::decrypt_buffer_cbc(in.data(), iv.data(), key.data(), length);
+        return in;
+    }
 };
+} // namespace cbinds
 
 // auto aes__decrypt_buffer_cbc(uint8_t* in, uint8_t* iv, const uint8_t* key, const size_t length, uint8_t* r) {}
 // auto cbind_example() {}
