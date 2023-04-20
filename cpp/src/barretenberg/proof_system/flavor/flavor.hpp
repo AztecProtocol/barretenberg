@@ -8,6 +8,7 @@
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
+#include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/polynomials/evaluation_domain.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
@@ -253,11 +254,6 @@ class Standard {
             this->num_public_inputs = num_public_inputs;
             this->vrs = vrs;
             this->composer_type = composer_type;
-
-            // for (auto& poly : this->_data) {
-            //     auto new_poly = Polynomial(circuit_size);
-            //     poly = new_poly;
-            // }
         };
     };
 
@@ -402,7 +398,6 @@ class Standard {
     // provide the utility of grouping these and ranged `for` loops over
     // subsets.
     using ProverPolynomials = AllData<PolynomialView>;
-    using VerifierCommitments = AllData<CommitmentView>;
 
     // WORKTODO: Handle univariates right
     using FoldedPolynomials = AllData<std::vector<FF>>; // WORKTODO add view class type.
@@ -428,6 +423,32 @@ class Standard {
             w_o = "W_3";
             z_perm = "Z_PERM";
         };
+    };
+
+    class VerifierCommitments : public AllData<CommitmentView> {
+      public:
+        VerifierCommitments(std::shared_ptr<VerificationKey> verification_key, VerifierTranscript<FF> transcript)
+        {
+            auto commitment_labels = CommitmentLabels();
+            w_l = transcript.template receive_from_prover<Commitment>(commitment_labels.w_l);
+            w_r = transcript.template receive_from_prover<Commitment>(commitment_labels.w_r);
+            w_o = transcript.template receive_from_prover<Commitment>(commitment_labels.w_o);
+            z_perm = transcript.template receive_from_prover<Commitment>(commitment_labels.z_perm);
+            z_perm_shift = transcript.template receive_from_prover<Commitment>(commitment_labels.z_perm_shift);
+            q_m = verification_key->q_m;
+            q_l = verification_key->q_l;
+            q_r = verification_key->q_r;
+            q_o = verification_key->q_o;
+            q_c = verification_key->q_c;
+            sigma_1 = verification_key->sigma_1;
+            sigma_2 = verification_key->sigma_2;
+            sigma_3 = verification_key->sigma_3;
+            id_1 = verification_key->id_1;
+            id_2 = verification_key->id_2;
+            id_3 = verification_key->id_3;
+            lagrange_first = verification_key->lagrange_first;
+            lagrange_last = verification_key->lagrange_last;
+        }
     };
 };
 

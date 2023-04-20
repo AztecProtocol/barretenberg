@@ -30,7 +30,7 @@ TEST(Flavor, Standard)
 
     Flavor::VerificationKey verification_key;
     Flavor::ProverPolynomials prover_polynomials;
-    Flavor::VerifierCommitments verifier_commitments;
+    // Flavor::VerifierCommitments verifier_commitments;
     Flavor::ExtendedEdges<Flavor::NUM_ALL_ENTITIES> edges;
     Flavor::PurportedEvaluations evals;
     Flavor::CommitmentLabels commitment_labels;

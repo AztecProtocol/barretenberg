@@ -79,19 +79,23 @@ Verifier<Flavor, program_settings>& Verifier<Flavor, program_settings>::operator
 template <typename Flavor, typename program_settings>
 bool Verifier<Flavor, program_settings>::verify_proof(const plonk::proof& proof)
 {
-    using FF = typename program_settings::fr;
+    using FF = typename Flavor::FF;
     using Commitment = barretenberg::g1::element;
-    using CommitmentAffine = barretenberg::g1::affine_element;
+    // using CommitmentAffine = barretenberg::g1::affine_element; // WORKTODO: Commitment (just G1?) vs CommitmentAffine
     using Gemini = pcs::gemini::MultilinearReductionScheme<pcs::kzg::Params>;
     using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<pcs::kzg::Params>;
     using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
-    const size_t NUM_POLYNOMIALS = honk::StandardArithmetization::NUM_POLYNOMIALS;
-    const size_t NUM_UNSHIFTED = honk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
-    const size_t NUM_PRECOMPUTED = honk::StandardArithmetization::NUM_PRECOMPUTED_POLYNOMIALS;
+    using VerifierCommitments = typename Flavor::VerifierCommitments;
 
-    constexpr auto num_wires = program_settings::num_wires;
+    // const size_t NUM_POLYNOMIALS = honk::StandardArithmetization::NUM_POLYNOMIALS;
+    // const size_t NUM_UNSHIFTED = honk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
+    // const size_t NUM_PRECOMPUTED = honk::StandardArithmetization::NUM_PRECOMPUTED_POLYNOMIALS;
+
+    // constexpr auto num_wires = Flavor::num_wires;
 
     transcript = VerifierTranscript<FF>{ proof.proof_data };
+
+    auto commitments = VerifierCommitments(key, transcript);
 
     // TODO(Adrian): Change the initialization of the transcript to take the VK hash?
     const auto circuit_size = transcript.template receive_from_prover<uint32_t>("circuit_size");
@@ -110,11 +114,12 @@ bool Verifier<Flavor, program_settings>::verify_proof(const plonk::proof& proof)
         public_inputs.emplace_back(public_input_i);
     }
 
-    // Get commitments to the wires
-    std::array<CommitmentAffine, num_wires> wire_commitments;
-    for (size_t i = 0; i < num_wires; ++i) {
-        wire_commitments[i] = transcript.template receive_from_prover<CommitmentAffine>("W_" + std::to_string(i + 1));
-    }
+    // // Get commitments to the wires
+    // std::array<CommitmentAffine, num_wires> wire_commitments;
+    // for (size_t i = 0; i < num_wires; ++i) {
+    //     wire_commitments[i] = transcript.template receive_from_prover<CommitmentAffine>("W_" + std::to_string(i +
+    //     1));
+    // }
 
     // Get permutation challenges
     auto [beta, gamma] = transcript.get_challenges("beta", "gamma");
@@ -127,8 +132,8 @@ bool Verifier<Flavor, program_settings>::verify_proof(const plonk::proof& proof)
         .public_input_delta = public_input_delta,
     };
 
-    // Get commitment to Z_PERM
-    auto z_permutation_commitment = transcript.template receive_from_prover<CommitmentAffine>("Z_PERM");
+    // // Get commitment to Z_PERM
+    // auto z_permutation_commitment = transcript.template receive_from_prover<CommitmentAffine>("Z_PERM");
 
     // // TODO(Cody): Compute some basic public polys like id(X), pow(X), and any required Lagrange polys
 
@@ -157,7 +162,7 @@ bool Verifier<Flavor, program_settings>::verify_proof(const plonk::proof& proof)
 
     // Compute powers of batching challenge rho
     FF rho = transcript.get_challenge("rho");
-    std::vector<FF> rhos = Gemini::powers_of_rho(rho, NUM_POLYNOMIALS);
+    std::vector<FF> rhos = Gemini::powers_of_rho(rho, Flavor::NUM_ALL_ENTITIES);
 
     // Compute batched multivariate evaluation
     FF batched_evaluation = FF::zero();
@@ -169,20 +174,16 @@ bool Verifier<Flavor, program_settings>::verify_proof(const plonk::proof& proof)
 
     // Construct batched commitment for NON-shifted polynomials
     size_t commitment_idx = 0;
-    for (auto& commitment : *key) {
+    for (auto& commitment : commitments.get_not_to_be_shifted()) {
         batched_commitment_unshifted += commitment * rhos[commitment_idx];
         commitment_idx++;
     }
-    // add wire commitments
-    for (size_t i = 0; i < num_wires; ++i) {
-        batched_commitment_unshifted += wire_commitments[i] * rhos[NUM_PRECOMPUTED + i];
-    }
-    // add z_permutation commitment
-    batched_commitment_unshifted += z_permutation_commitment * rhos[NUM_PRECOMPUTED + num_wires];
 
     // Construct batched commitment for to-be-shifted polynomials
-    batched_commitment_to_be_shifted = z_permutation_commitment * rhos[NUM_UNSHIFTED];
-
+    for (auto& commitment : commitments.get_to_be_shifted()) {
+        batched_commitment_unshifted += commitment * rhos[commitment_idx];
+        commitment_idx++;
+    }
     // Produce a Gemini claim consisting of:
     // - d+1 commitments [Fold_{r}^(0)], [Fold_{-r}^(0)], and [Fold^(l)], l = 1:d-1
     // - d+1 evaluations a_0_pos, and a_l, l = 0:d-1
