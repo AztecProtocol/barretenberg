@@ -1957,7 +1957,7 @@ void UltraCircuitConstructor::init_RAM_element(const size_t ram_id,
     ASSERT(ram_array.state.size() > index_value);
     ASSERT(ram_array.state[index_value] == UNINITIALIZED_MEMORY_RECORD);
     RamRecord new_record{ .index_witness = index_witness,
-                          .timestamp_witness = put_constant_variable((uint64_t)ram_array.access_count, in_the_head),
+                          .timestamp_witness = put_constant_variable((uint64_t)ram_array.access_count),
                           .value_witness = value_witness,
                           .index = static_cast<uint32_t>(index_value), // TODO: size_t?
                           .timestamp = static_cast<uint32_t>(ram_array.access_count),
@@ -2474,21 +2474,21 @@ void UltraCircuitConstructor::process_RAM_arrays(const size_t gate_offset_from_p
  * @param alpha
  * @return fr
  */
-inline fr compute_arithmetic_identity(fr q_arith_value,
-                                      fr q_1_value,
-                                      fr q_2_value,
-                                      fr q_3_value,
-                                      fr q_4_value,
-                                      fr q_m_value,
-                                      fr q_c_value,
-                                      fr w_1_value,
-                                      fr w_2_value,
-                                      fr w_3_value,
-                                      fr w_4_value,
-                                      fr w_1_shifted_value,
-                                      fr w_4_shifted_value,
-                                      fr alpha_base,
-                                      fr alpha)
+inline fr UltraCircuitConstructor::compute_arithmetic_identity(fr q_arith_value,
+                                                               fr q_1_value,
+                                                               fr q_2_value,
+                                                               fr q_3_value,
+                                                               fr q_4_value,
+                                                               fr q_m_value,
+                                                               fr q_c_value,
+                                                               fr w_1_value,
+                                                               fr w_2_value,
+                                                               fr w_3_value,
+                                                               fr w_4_value,
+                                                               fr w_1_shifted_value,
+                                                               fr w_4_shifted_value,
+                                                               fr alpha_base,
+                                                               fr alpha) const
 {
     constexpr fr neg_half = fr(-2).invert();
     // The main arithmetic identity that gets activated for q_arith_value == 1
@@ -2497,6 +2497,7 @@ inline fr compute_arithmetic_identity(fr q_arith_value,
     arithmetic_identity *= (q_arith_value - 3);
     arithmetic_identity *= neg_half;
     arithmetic_identity += q_1_value;
+    arithmetic_identity *= w_1_value;
     arithmetic_identity += (w_2_value * q_2_value);
     arithmetic_identity += (w_3_value * q_3_value);
     arithmetic_identity += (w_4_value * q_4_value);
@@ -2515,17 +2516,6 @@ inline fr compute_arithmetic_identity(fr q_arith_value,
     final_identity *= q_arith_value;
     final_identity *= alpha_base;
     return final_identity;
-}
-/**
- * @brief Evaluate the contribution of the arithmetic gate constraint
- *
- * @param gate_index Gate index
- * @param alpha_base The base value that the whole evaluation is multiplied by
- * @return fr
- */
-inline fr UltraCircuitConstructor::arithmetic_gate_evaluation(const size_t gate_index, const fr alpha_base)
-{
-    ASSERT(gate_index < num_gates);
 }
 
 /**
@@ -2548,17 +2538,15 @@ inline fr UltraCircuitConstructor::arithmetic_gate_evaluation(const size_t gate_
  * @param alpha
  * @return fr
  */
-inline fr compute_genperm_sort_identity(fr q_sort_value,
-                                        fr w_1_value,
-                                        fr w_2_value,
-                                        fr w_3_value,
-                                        fr w_4_value,
-                                        fr w_1_shifted_value,
-                                        fr alpha_base,
-                                        fr alpha)
+inline fr UltraCircuitConstructor::compute_genperm_sort_identity(fr q_sort_value,
+                                                                 fr w_1_value,
+                                                                 fr w_2_value,
+                                                                 fr w_3_value,
+                                                                 fr w_4_value,
+                                                                 fr w_1_shifted_value,
+                                                                 fr alpha_base,
+                                                                 fr alpha) const
 {
-    constexpr fr minus_two(-2);
-    constexpr fr minus_three(-3);
     // Power of alpha to separate individual delta relations
     // TODO(kesha): This is a repeated computation which can be efficiently optimized
     const fr alpha_a = alpha_base;
@@ -2568,6 +2556,8 @@ inline fr compute_genperm_sort_identity(fr q_sort_value,
 
     // (second - first)*(second - first - 1)*(second - first - 2)*(second - first - 3)
     auto neighbour_difference = [](const fr first, const fr second) {
+        constexpr fr minus_two(-2);
+        constexpr fr minus_three(-3);
         const fr delta = second - first;
         return (delta.sqr() - delta) * (delta + minus_two) * (delta + minus_three);
     };
@@ -2643,18 +2633,18 @@ inline fr compute_genperm_sort_identity(fr q_sort_value,
  * @param w_4_shifted_value y₃
  * @return fr
  */
-inline fr compute_elliptic_identity(fr q_elliptic_value,
-                                    fr q_1_value,
-                                    fr q_3_value,
-                                    fr q_4_value,
-                                    fr w_2_value,
-                                    fr w_3_value,
-                                    fr w_1_shifted_value,
-                                    fr w_2_shifted_value,
-                                    fr w_3_shifted_value,
-                                    fr w_4_shifted_value,
-                                    fr alpha_base,
-                                    fr alpha)
+inline fr UltraCircuitConstructor::compute_elliptic_identity(fr q_elliptic_value,
+                                                             fr q_1_value,
+                                                             fr q_3_value,
+                                                             fr q_4_value,
+                                                             fr w_2_value,
+                                                             fr w_3_value,
+                                                             fr w_1_shifted_value,
+                                                             fr w_2_shifted_value,
+                                                             fr w_3_shifted_value,
+                                                             fr w_4_shifted_value,
+                                                             fr alpha_base,
+                                                             fr alpha) const
 {
     // TODO(kesha): Can this be implemented more efficiently?
     // It seems that Zac wanted to group the elements by selectors to use several linear terms initially,
@@ -2728,25 +2718,25 @@ inline fr compute_elliptic_identity(fr q_elliptic_value,
  *
  */
 
-inline fr compute_auxilary_identity(fr q_aux_value,
-                                    fr q_m_value,
-                                    fr q_1_value,
-                                    fr q_2_value,
-                                    fr q_3_value,
-                                    fr q_4_value,
-                                    fr q_c_value,
-                                    fr q_arith_value,
-                                    fr w_1_value,
-                                    fr w_2_value,
-                                    fr w_3_value,
-                                    fr w_4_value,
-                                    fr w_1_shifted_value,
-                                    fr w_2_shifted_value,
-                                    fr w_3_shifted_value,
-                                    fr w_4_shifted_value,
-                                    fr alpha_base,
-                                    fr alpha,
-                                    fr eta)
+inline fr UltraCircuitConstructor::compute_auxilary_identity(fr q_aux_value,
+                                                             fr q_arith_value,
+                                                             fr q_1_value,
+                                                             fr q_2_value,
+                                                             fr q_3_value,
+                                                             fr q_4_value,
+                                                             fr q_m_value,
+                                                             fr q_c_value,
+                                                             fr w_1_value,
+                                                             fr w_2_value,
+                                                             fr w_3_value,
+                                                             fr w_4_value,
+                                                             fr w_1_shifted_value,
+                                                             fr w_2_shifted_value,
+                                                             fr w_3_shifted_value,
+                                                             fr w_4_shifted_value,
+                                                             fr alpha_base,
+                                                             fr alpha,
+                                                             fr eta) const
 {
     constexpr barretenberg::fr LIMB_SIZE(uint256_t(1) << DEFAULT_NON_NATIVE_FIELD_LIMB_BITS);
     // TODO(kesha): Replace with a constant defined in header
@@ -2997,7 +2987,267 @@ inline fr compute_auxilary_identity(fr q_aux_value,
  * @return true
  * @return false
  */
-bool UltraCircuitConstructor::check_circuit() {}
+bool UltraCircuitConstructor::check_circuit()
+{
+    bool result = true;
+    reset_circuit_in_the_head();
+    in_the_head = true;
+    finalize_circuit();
+    const fr arithmetic_base = fr::random_element();
+    const fr elliptic_base = fr::random_element();
+    const fr genperm_sort_base = fr::random_element();
+    const fr auxillary_base = fr::random_element();
+    const fr alpha = fr::random_element();
+    const fr eta = fr::random_element();
+    const fr eta_sqr = eta.sqr();
+    // We need to update memory records
+    std::unordered_set<size_t> memory_record_gates;
+    for (const auto& gate_idx : circuit_in_the_head.memory_read_records) {
+        memory_record_gates.insert(gate_idx);
+        circuit_in_the_head.variables[circuit_in_the_head.real_variable_index[w_4[gate_idx]]] =
+            circuit_in_the_head.variables[real_variable_index[w_l[gate_idx]]] +
+            circuit_in_the_head.variables[circuit_in_the_head.real_variable_index[w_r[gate_idx]]] * eta +
+            circuit_in_the_head.variables[circuit_in_the_head.real_variable_index[w_o[gate_idx]]] * eta_sqr;
+    }
+    for (const auto& gate_idx : circuit_in_the_head.memory_write_records) {
+        memory_record_gates.insert(gate_idx);
+        variables[real_variable_index[w_4[gate_idx]]] = variables[real_variable_index[w_l[gate_idx]]] +
+                                                        variables[real_variable_index[w_r[gate_idx]]] * eta +
+                                                        variables[real_variable_index[w_o[gate_idx]]] * eta_sqr;
+    }
+
+    struct HashFrTuple {
+        const barretenberg::fr mult_const = barretenberg::fr(uint256_t(0x1337, 0x1336, 0x1335, 0x1334));
+        const barretenberg::fr mc_sqr = mult_const.sqr();
+        const barretenberg::fr mc_cube = mult_const * mc_sqr;
+
+      public:
+        size_t operator()(
+            const std::tuple<barretenberg::fr, barretenberg::fr, barretenberg::fr, barretenberg::fr>& entry) const
+        {
+            return (size_t)((std::get<0>(entry) + mult_const * std::get<1>(entry) + mc_sqr * std::get<2>(entry) +
+                             mc_cube * std::get<3>(entry))
+                                .reduce_once()
+                                .data[0]);
+        }
+    };
+
+    struct EqualFrTuple {
+        const barretenberg::fr mult_const = barretenberg::fr(uint256_t(0xdead, 0xbeef, 0xc0ff, 0xffee));
+        const barretenberg::fr mc_sqr = mult_const.sqr();
+        const barretenberg::fr mc_cube = mult_const * mc_sqr;
+
+      public:
+        bool operator()(
+            const std::tuple<barretenberg::fr, barretenberg::fr, barretenberg::fr, barretenberg::fr>& entry1,
+            const std::tuple<barretenberg::fr, barretenberg::fr, barretenberg::fr, barretenberg::fr>& entry2) const
+        {
+            return entry1 == entry2;
+        }
+    };
+    std::unordered_set<std::tuple<barretenberg::fr, barretenberg::fr, barretenberg::fr, barretenberg::fr>,
+                       HashFrTuple,
+                       EqualFrTuple>
+        table_hash;
+    for (auto& table : lookup_tables) {
+        const fr table_index(table.table_index);
+        for (size_t i = 0; i < table.size; ++i) {
+            const auto components =
+                std::make_tuple(table.column_1[i], table.column_2[i], table.column_3[i], table_index);
+            table_hash.insert(components);
+        }
+    }
+    fr left_tag_product = fr::one();
+    fr right_tag_product = fr::one();
+    const fr tag_gamma = fr::random_element();
+    std::unordered_set<size_t> encountered_variables;
+
+    auto update_tag_check_information = [&](size_t variable_index, fr value) {
+        size_t real_index = circuit_in_the_head.real_variable_index[variable_index];
+        if (encountered_variables.contains(real_index)) {
+            return;
+        }
+        size_t tag_in = circuit_in_the_head.real_variable_tags[real_index];
+        if (tag_in != DUMMY_TAG) {
+            size_t tag_out = circuit_in_the_head.tau.at((uint32_t)tag_in);
+            left_tag_product *= value + tag_gamma * fr(tag_in);
+            right_tag_product *= value + tag_gamma * fr(tag_out);
+            encountered_variables.insert(real_index);
+        }
+    };
+    for (size_t i = 0; i < circuit_in_the_head.num_gates; i++) {
+        fr q_arith_value;
+        fr q_aux_value;
+        fr q_elliptic_value;
+        fr q_sort_value;
+        fr q_lookup_type_value;
+        fr q_1_value;
+        fr q_2_value;
+        fr q_3_value;
+        fr q_4_value;
+        fr q_m_value;
+        fr q_c_value;
+
+        fr w_1_value;
+        fr w_2_value;
+        fr w_3_value;
+        fr w_4_value;
+        fr w_1_real_index;
+        fr w_2_real_index;
+        fr w_3_real_index;
+        fr w_4_real_index;
+        if (i < num_gates) {
+            q_arith_value = q_arith[i];
+            q_aux_value = q_aux[i];
+            q_elliptic_value = q_elliptic[i];
+            q_sort_value = q_sort[i];
+            q_lookup_type_value = q_lookup_type[i];
+            q_1_value = q_1[i];
+            q_2_value = q_2[i];
+            q_3_value = q_3[i];
+            q_4_value = q_4[i];
+            q_m_value = q_m[i];
+            q_c_value = q_c[i];
+            w_1_value = get_variable(w_l[i]);
+            update_tag_check_information(w_l[i], w_1_value);
+            w_2_value = get_variable(w_r[i]);
+            update_tag_check_information(w_r[i], w_2_value);
+            w_3_value = get_variable(w_o[i]);
+            update_tag_check_information(w_o[i], w_3_value);
+            w_4_value = get_variable(w_4[i]);
+            update_tag_check_information(w_4[i], w_4_value);
+
+        } else {
+            size_t offset = i - num_gates;
+            q_arith_value = circuit_in_the_head.q_arith[offset];
+            q_aux_value = circuit_in_the_head.q_aux[offset];
+            q_elliptic_value = circuit_in_the_head.q_elliptic[offset];
+            q_sort_value = circuit_in_the_head.q_sort[offset];
+
+            q_lookup_type_value = circuit_in_the_head.q_lookup_type[i];
+            q_1_value = circuit_in_the_head.q_1[offset];
+            q_2_value = circuit_in_the_head.q_2[offset];
+            q_3_value = circuit_in_the_head.q_3[offset];
+            q_4_value = circuit_in_the_head.q_4[offset];
+            q_m_value = circuit_in_the_head.q_m[offset];
+            q_c_value = circuit_in_the_head.q_c[offset];
+            w_1_value = get_variable(circuit_in_the_head.w_l[offset]);
+            update_tag_check_information(circuit_in_the_head.w_l[offset], w_1_value);
+            w_2_value = get_variable(circuit_in_the_head.w_r[offset]);
+            update_tag_check_information(circuit_in_the_head.w_r[offset], w_2_value);
+            w_3_value = get_variable(circuit_in_the_head.w_o[offset]);
+            update_tag_check_information(circuit_in_the_head.w_o[offset], w_3_value);
+            w_4_value = get_variable(circuit_in_the_head.w_4[offset]);
+            update_tag_check_information(circuit_in_the_head.w_4[offset], w_4_value);
+        }
+        if (memory_record_gates.contains(i)) {
+            w_4_value = w_1_value + eta * w_2_value + eta_sqr * w_3_value;
+        }
+        fr w_1_shifted_value;
+        fr w_2_shifted_value;
+        fr w_3_shifted_value;
+        fr w_4_shifted_value;
+        if (i < (num_gates - 1)) {
+
+            w_1_shifted_value = get_variable(w_l[i + 1]);
+            w_2_shifted_value = get_variable(w_r[i + 1]);
+            w_3_shifted_value = get_variable(w_o[i + 1]);
+            w_4_shifted_value = get_variable(w_4[i + 1]);
+        } else if (i < (circuit_in_the_head.num_gates - 1)) {
+
+            w_1_shifted_value = get_variable(circuit_in_the_head.w_l[i + 1]);
+            w_2_shifted_value = get_variable(circuit_in_the_head.w_r[i + 1]);
+            w_3_shifted_value = get_variable(circuit_in_the_head.w_o[i + 1]);
+            w_4_shifted_value = get_variable(circuit_in_the_head.w_4[i + 1]);
+        } else {
+            w_1_shifted_value = fr::zero();
+            w_2_shifted_value = fr::zero();
+            w_3_shifted_value = fr::zero();
+            w_4_shifted_value = fr::zero();
+        }
+        if (memory_record_gates.contains(i + 1)) {
+            w_4_shifted_value = w_1_shifted_value + eta * w_2_shifted_value + eta_sqr * w_3_shifted_value;
+        }
+        if (!compute_arithmetic_identity(q_arith_value,
+                                         q_1_value,
+                                         q_2_value,
+                                         q_3_value,
+                                         q_4_value,
+                                         q_m_value,
+                                         q_c_value,
+                                         w_1_value,
+                                         w_2_value,
+                                         w_3_value,
+                                         w_4_value,
+                                         w_1_shifted_value,
+                                         w_4_shifted_value,
+                                         arithmetic_base,
+                                         alpha)
+                 .is_zero()) {
+            result = false;
+            break;
+        }
+        if (!compute_auxilary_identity(q_aux_value,
+                                       q_arith_value,
+                                       q_1_value,
+                                       q_2_value,
+                                       q_3_value,
+                                       q_4_value,
+                                       q_m_value,
+                                       q_c_value,
+                                       w_1_value,
+                                       w_2_value,
+                                       w_3_value,
+                                       w_4_value,
+                                       w_1_shifted_value,
+                                       w_2_shifted_value,
+                                       w_3_shifted_value,
+                                       w_4_shifted_value,
+                                       auxillary_base,
+                                       alpha,
+                                       eta)
+                 .is_zero()) {
+            result = false;
+            break;
+        }
+        if (!compute_elliptic_identity(q_elliptic_value,
+                                       q_1_value,
+                                       q_3_value,
+                                       q_4_value,
+                                       w_2_value,
+                                       w_3_value,
+                                       w_1_shifted_value,
+                                       w_2_shifted_value,
+                                       w_3_shifted_value,
+                                       w_4_shifted_value,
+                                       elliptic_base,
+                                       alpha)
+                 .is_zero()) {
+            result = false;
+            break;
+        }
+        if (!compute_genperm_sort_identity(
+                 q_sort_value, w_1_value, w_2_value, w_3_value, w_4_value, w_1_shifted_value, genperm_sort_base, alpha)
+                 .is_zero()) {
+            result = false;
+            break;
+        }
+        if (!q_lookup_type_value.is_zero()) {
+            if (!table_hash.contains(std::make_tuple(w_1_value + q_2_value * w_1_shifted_value,
+                                                     w_2_value + q_m_value * w_2_shifted_value,
+                                                     w_3_value + q_c_value * w_3_shifted_value,
+                                                     q_3_value))) {
+                result = false;
+                break;
+            }
+        }
+    }
+    if (left_tag_product != right_tag_product) {
+        result = false;
+    }
+    in_the_head = false;
+    return result;
+} // namespace proof_system
 
 /**
  * @brief Reset the circuit-in-the-head construction that we use for checking the correctness of the circuit

@@ -332,7 +332,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
      * @param in The value of the variable
      * @return The index of the new variable in the variables vector
      */
-    uint32_t add_variable(const barretenberg::fr& in)
+    uint32_t add_variable(const barretenberg::fr& in) override
     {
         if (!in_the_head) {
             return CircuitConstructorBase<arithmetization::Ultra>::add_variable(in);
@@ -758,9 +758,9 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
 
 #define HEAD(x, ...) x
 #define TAIL(x, ...) __VA_ARGS__
-
+#define IN_THE_HEAD_MEMBER_NAME(member) circuit_in_the_head.member
 #define ASSIGN_VARIABLE_TO_VIRTUAL_OR_REAL(variable_prefix, switch_name, member)                                       \
-    auto& variable_prefix##member = choose_virtual_or_real(circuit_in_the_head.##member, member, switch_name);         \
+    auto& variable_prefix##member = choose_virtual_or_real(IN_THE_HEAD_MEMBER_NAME(member), member, switch_name);      \
     (void)variable_prefix##member;
 #define CHOOSE_VIRTUAL_OR_REAL_MULTIPLE(variable_prefix, switch_name, member_name, ...)                                \
     FOR_EACH(ASSIGN_VARIABLE_TO_VIRTUAL_OR_REAL, variable_prefix, switch_name, member_name, __VA_ARGS__)
@@ -804,16 +804,15 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
                                    fr w_1_shifted_value,
                                    fr w_4_shifted_value,
                                    const fr alpha_base,
-                                   const fr alpha);
-    fr arithmetic_gate_evaluation(const size_t gate_index, const fr alpha_base);
+                                   const fr alpha) const;
     fr compute_auxilary_identity(fr q_aux_value,
-                                 fr q_m_value,
+                                 fr q_arith_value,
                                  fr q_1_value,
                                  fr q_2_value,
                                  fr q_3_value,
                                  fr q_4_value,
+                                 fr q_m_value,
                                  fr q_c_value,
-                                 fr q_arith_value,
                                  fr w_1_value,
                                  fr w_2_value,
                                  fr w_3_value,
@@ -824,7 +823,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
                                  fr w_4_shifted_value,
                                  fr alpha_base,
                                  fr alpha,
-                                 fr eta);
+                                 fr eta) const;
     fr compute_elliptic_identity(fr q_elliptic_value,
                                  fr q_1_value,
                                  fr q_3_value,
@@ -836,7 +835,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
                                  fr w_3_shifted_value,
                                  fr w_4_shifted_value,
                                  fr alpha_base,
-                                 fr alpha);
+                                 fr alpha) const;
     fr compute_genperm_sort_identity(fr q_sort_value,
                                      fr w_1_value,
                                      fr w_2_value,
@@ -844,7 +843,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
                                      fr w_4_value,
                                      fr w_1_shifted_value,
                                      fr alpha_base,
-                                     fr alpha);
+                                     fr alpha) const;
 
     void reset_circuit_in_the_head();
     bool check_circuit();
