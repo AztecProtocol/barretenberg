@@ -4,6 +4,7 @@
 #include <span>
 #include <string>
 #include <type_traits>
+#include <vector>
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
@@ -413,11 +414,13 @@ class Standard {
         // note: we could consider "enriching" the transcript interface to not use
         // strings in the future, but I leave it this way for simplicity
 
-        // WORKTODO: stick with these names from before?
-        std::string w_l = "W_1";
-        std::string w_r = "W_2";
-        std::string w_o = "W_3";
-        std::string z_perm = "Z_PERM";
+        CommitmentLabels()
+        {
+            w_l = "W_1";
+            w_r = "W_2";
+            w_o = "W_3";
+            z_perm = "Z_PERM";
+        };
     };
 };
 
