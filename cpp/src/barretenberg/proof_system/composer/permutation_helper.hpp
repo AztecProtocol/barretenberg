@@ -239,39 +239,33 @@ void compute_honk_style_permutation_lagrange_polynomials_from_mapping(
 
     size_t wire_index = 0;
     for (auto& current_permutation_poly : permutation_polynomials) {
-        // auto new_poly = typename Flavor::Polynomial(num_gates); // TODO(Cody): Cleanly allocate in pk?
-        // current_permutation_poly = new_poly;
-
-        ITERATE_OVER_DOMAIN_START(proving_key->evaluation_domain);
-        const auto& current_mapping = permutation_mappings[wire_index][i];
-        if (current_mapping.is_public_input) {
-            // We intentionally want to break the cycles of the public input variables.
-            // During the witness generation, the left and right wire polynomials at index i contain the i-th public
-            // input. The CyclicPermutation created for these variables always start with (i) -> (n+i), followed by
-            // the indices of the variables in the "real" gates. We make i point to -(i+1), so that the only way of
-            // repairing the cycle is add the mapping
-            //  -(i+1) -> (n+i)
-            // These indices are chosen so they can easily be computed by the verifier. They can expect the running
-            // product to be equal to the "public input delta" that is computed in <honk/utils/public_inputs.hpp>
-            current_permutation_poly[i] =
-                -barretenberg::fr(current_mapping.row_index + 1 + num_gates * current_mapping.column_index);
-        } else if (current_mapping.is_tag) {
-            // Set evaluations to (arbitrary) values disjoint from non-tag values
-            current_permutation_poly[i] = num_gates * Flavor::num_wires + current_mapping.row_index;
-        } else {
-            // For the regular permutation we simply point to the next location by setting the evaluation to its
-            // index
-            current_permutation_poly[i] =
-                barretenberg::fr(current_mapping.row_index + num_gates * current_mapping.column_index);
+        // ITERATE_OVER_DOMAIN_START(proving_key->evaluation_domain);
+        for (size_t i = 0; i < proving_key->circuit_size; i++) {
+            const auto& current_mapping = permutation_mappings[wire_index][i];
+            if (current_mapping.is_public_input) {
+                // We intentionally want to break the cycles of the public input variables.
+                // During the witness generation, the left and right wire polynomials at index i contain the i-th public
+                // input. The CyclicPermutation created for these variables always start with (i) -> (n+i), followed by
+                // the indices of the variables in the "real" gates. We make i point to -(i+1), so that the only way of
+                // repairing the cycle is add the mapping
+                //  -(i+1) -> (n+i)
+                // These indices are chosen so they can easily be computed by the verifier. They can expect the running
+                // product to be equal to the "public input delta" that is computed in <honk/utils/public_inputs.hpp>
+                current_permutation_poly[i] =
+                    -barretenberg::fr(current_mapping.row_index + 1 + num_gates * current_mapping.column_index);
+            } else if (current_mapping.is_tag) {
+                // Set evaluations to (arbitrary) values disjoint from non-tag values
+                current_permutation_poly[i] = num_gates * Flavor::num_wires + current_mapping.row_index;
+            } else {
+                // For the regular permutation we simply point to the next location by setting the evaluation to its
+                // index
+                current_permutation_poly[i] =
+                    barretenberg::fr(current_mapping.row_index + num_gates * current_mapping.column_index);
+            }
+            info(current_permutation_poly[i]);
         }
-        ITERATE_OVER_DOMAIN_END;
+        // ITERATE_OVER_DOMAIN_END;
     }
-    // static_cast<void>(label);
-    // MERGECONFLICT
-    // // Save to polynomial cache
-    // for (size_t j = 0; j < Flavor::num_wires; j++) {
-    //     std::string index = std::to_string(j + 1);
-    //     key->polynomial_store.put(label + "_" + index + "_lagrange", std::move(permutation_poly[j]));
     wire_index++;
 }
 } // namespace

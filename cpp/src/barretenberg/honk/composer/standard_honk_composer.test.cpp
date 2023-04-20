@@ -11,6 +11,8 @@
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 
+#pragma GCC diagnostic ignored "-Wunused-variable"
+
 #include <gtest/gtest.h>
 
 using namespace proof_system::honk;
@@ -94,6 +96,7 @@ TEST(StandardHonkComposer, SigmaIDCorrectness)
             for (size_t i = 0; i < n; ++i) {
                 left *= (gamma + wire_idx * n + i);
                 right *= (gamma + sigma_polynomial[i]);
+                info(sigma_polynomial[i], "<-- in test");
             }
             // Ensure that the public inputs cycles are correctly broken
             // and fix the cycle by adding the extra terms
@@ -115,19 +118,19 @@ TEST(StandardHonkComposer, SigmaIDCorrectness)
         // Now let's check that witness values correspond to the permutation
         composer.compute_witness();
 
-        auto sigma_polynomials = proving_key->get_sigma_polynomials();
+        auto permutation_polynomials = proving_key->get_sigma_polynomials();
         auto id_polynomials = proving_key->get_id_polynomials();
         for (size_t j = 0; j < StandardHonkComposer::num_wires; ++j) {
             std::string index = std::to_string(j + 1);
+            const auto& permutation_polynomial = permutation_polynomials[j];
             const auto& witness_polynomial = composer.composer_helper.wire_polynomials[j];
-            const auto& sigma_polynomial = sigma_polynomials[j];
             const auto& id_polynomial = id_polynomials[j];
             // left = ∏ᵢ,ⱼ(ωᵢ,ⱼ + β⋅ind(i,j) + γ)
             // right = ∏ᵢ,ⱼ(ωᵢ,ⱼ + β⋅σ(i,j) + γ)
             for (size_t i = 0; i < proving_key->circuit_size; ++i) {
                 const auto current_witness = witness_polynomial[i];
                 left *= current_witness + beta * id_polynomial[i] + gamma;
-                right *= current_witness + beta * sigma_polynomial[i] + gamma;
+                right *= current_witness + beta * permutation_polynomial[i] + gamma;
             }
             // check that the first rows are correctly set to handle public inputs.
             for (size_t i = 0; i < num_public_inputs; ++i) {
