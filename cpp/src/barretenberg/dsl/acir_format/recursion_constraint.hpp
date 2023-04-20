@@ -35,10 +35,8 @@ struct RecursionConstraint {
     std::vector<uint32_t> proof;
     uint32_t public_input;
     uint32_t key_hash;
-    // std::array<uint32_t, AGGREGATION_OBJECT_SIZE> input_aggregation_object;
-    // std::array<uint32_t, AGGREGATION_OBJECT_SIZE> output_aggregation_object;
-    std::vector<uint32_t> input_aggregation_object;
-    std::vector<uint32_t> output_aggregation_object;
+    std::array<uint32_t, AGGREGATION_OBJECT_SIZE> input_aggregation_object;
+    std::array<uint32_t, AGGREGATION_OBJECT_SIZE> output_aggregation_object;
 
     friend bool operator==(RecursionConstraint const& lhs, RecursionConstraint const& rhs) = default;
 };

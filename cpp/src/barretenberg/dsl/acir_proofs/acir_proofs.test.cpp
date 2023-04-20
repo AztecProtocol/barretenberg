@@ -216,8 +216,7 @@ TEST(AcirProofs, TestSerializationWithRecursion)
             key_indices.emplace_back(static_cast<uint32_t>(i + 19 + proof_size));
         }
 
-        // std::array<uint32_t, acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE> output_vars;
-        std::vector<uint32_t> output_vars(acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE);
+        std::array<uint32_t, acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE> output_vars;
         for (size_t i = 0; i < acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE; ++i) {
             // variable idx 1 = public input
             // variable idx 2-18 = output_vars
