@@ -17,7 +17,6 @@ constexpr size_t num_generators_per_hash_index = 128;
 #endif
 
 constexpr size_t hash_indices_generator_offset = 2048;
-
 constexpr size_t num_indexed_generators = num_hash_indices * num_generators_per_hash_index;
 constexpr size_t size_of_generator_data_array = hash_indices_generator_offset + num_indexed_generators;
 constexpr size_t num_generator_types = 3;
