@@ -1217,8 +1217,10 @@ void UltraComposer::create_new_range_constraint(const uint32_t variable_index,
     }
 
     auto& list = range_lists[target_range];
-    assign_tag(variable_index, list.range_tag);
-    list.variable_indices.emplace_back(variable_index);
+    if (real_variable_tags[real_variable_index[variable_index]] != list.range_tag) {
+        assign_tag(variable_index, list.range_tag);
+        list.variable_indices.emplace_back(variable_index);
+    }
 }
 
 void UltraComposer::process_range_list(const RangeList& list)
