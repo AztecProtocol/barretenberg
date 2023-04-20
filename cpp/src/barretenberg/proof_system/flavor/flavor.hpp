@@ -933,6 +933,6 @@ template <typename T, typename... U> concept IsAnyOf = (std::same_as<T, U> || ..
 template <typename T>
 concept IsPlonkFlavor = IsAnyOf<T, plonk::flavor::Standard, plonk::flavor::Turbo, plonk::flavor::Ultra>;
 
-template <typename T> concept IsHonkFlavor = IsAnyOf<T, honk::flavor::Standard>;
+template <typename T> concept IsHonkFlavor = IsAnyOf<T, honk::flavor::Standard, honk::flavor::Ultra>;
 
 } // namespace proof_system

@@ -6,6 +6,7 @@
 
 namespace proof_system::honk::prover_library {
 
+// WORKTODO: extract from flavor.
 using FF = barretenberg::fr;
 using Polynomial = barretenberg::Polynomial<FF>;
 
