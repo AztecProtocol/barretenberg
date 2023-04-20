@@ -6,8 +6,6 @@
 
 namespace acir_format {
 
-static constexpr size_t AGGREGATION_OBJECT_SIZE = 16; // 16 field elements
-
 /**
  * @brief RecursionConstraint struct contains information required to recursively verify a proof!
  *
@@ -32,6 +30,7 @@ static constexpr size_t AGGREGATION_OBJECT_SIZE = 16; // 16 field elements
  * NOT contain
  */
 struct RecursionConstraint {
+    static constexpr size_t AGGREGATION_OBJECT_SIZE = 16; // 16 field elements
     std::vector<uint32_t> key;
     std::vector<uint32_t> proof;
     uint32_t public_input;
