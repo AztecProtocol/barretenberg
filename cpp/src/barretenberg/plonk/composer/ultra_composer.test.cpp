@@ -788,7 +788,7 @@ TYPED_TEST(ultra_composer, range_checks_on_duplicates)
             0,
             0,
         },
-        true);
+        false);
 
     TestFixture::prove_and_verify(composer, /*expected_result=*/true);
 }
