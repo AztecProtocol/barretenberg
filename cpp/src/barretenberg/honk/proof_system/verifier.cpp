@@ -29,7 +29,7 @@ using namespace barretenberg;
 using namespace proof_system::honk::sumcheck;
 
 namespace proof_system::honk {
-template <typename Flavor, typename program_settings>
+template <typename Flavor, typename program_settings> // WORKTODO: merge these settings?
 Verifier<Flavor, program_settings>::Verifier(std::shared_ptr<plonk::verification_key> verifier_key)
     : key(verifier_key)
 {}
@@ -167,6 +167,7 @@ bool Verifier<Flavor, program_settings>::verify_proof(const plonk::proof& proof)
 
     // Construct batched commitment for NON-shifted polynomials
     for (size_t i = 0; i < NUM_PRECOMPUTED; ++i) {
+        // WORKTODO: get rid of ENUM_TO_COMM
         auto commitment = key->commitments[honk::StandardArithmetization::ENUM_TO_COMM[i]];
         batched_commitment_unshifted += commitment * rhos[i];
     }

@@ -29,7 +29,6 @@ template <typename Flavor, class Transcript, template <class> class... Relations
     static constexpr size_t MAX_RELATION_LENGTH = std::max({ Relations<FF>::RELATION_LENGTH... });
     static constexpr size_t NUM_POLYNOMIALS = proof_system::honk::StandardArithmetization::NUM_POLYNOMIALS;
 
-    // PurportedEvaluations purported_evaluations(); // TODO
     Transcript& transcript;
     const size_t multivariate_n;
     const size_t multivariate_d;
@@ -64,7 +63,6 @@ template <typename Flavor, class Transcript, template <class> class... Relations
     * NOTE: With ~40 columns, prob only want to allocate 256 EdgeGroup's at once to keep stack under 1MB?
     * TODO(#224)(Cody): might want to just do C-style multidimensional array? for guaranteed adjacency?
     */
-    // std::array<std::vector<FF>, NUM_POLYNOMIALS> folded_polynomials;
     FoldedPolynomials folded_polynomials;
 
     // prover instantiates sumcheck with circuit size and a prover transcript

@@ -72,8 +72,7 @@ template <typename Flavor, size_t num_multivariates, template <class> class... R
     std::tuple<BarycentricData<FF, Relations<FF>::RELATION_LENGTH, MAX_RELATION_LENGTH>...> barycentric_utils;
     std::tuple<Univariate<FF, Relations<FF>::RELATION_LENGTH>...> univariate_accumulators;
     std::array<FF, NUM_RELATIONS> evaluations;
-    // std::array<Univariate<FF, MAX_RELATION_LENGTH>, num_multivariates> extended_edges;
-    ExtendedEdges<MAX_RELATION_LENGTH> extended_edges; // WORKTODO: alias
+    ExtendedEdges<MAX_RELATION_LENGTH> extended_edges;
     std::array<Univariate<FF, MAX_RELATION_LENGTH>, NUM_RELATIONS> extended_univariates;
 
     // TODO(#224)(Cody): this should go away and we should use constexpr method to extend

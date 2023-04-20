@@ -74,6 +74,8 @@ template <typename Flavor> class Prover {
     ProverPolynomials prover_polynomials;
 
     // TODO(Cody): Improve this, or at least make the lables static constexpr?
+    // WORKTODO: Maybe this doesn't really need to be one of the flavor components? There are commitments not
+    // corresponding to ProverPolynomials/entities/whatever.
     CommitmentLabels commitment_labels;
 
     // Container for d + 1 Fold polynomials produced by Gemini
