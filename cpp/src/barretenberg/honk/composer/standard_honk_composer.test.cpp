@@ -263,14 +263,14 @@ TEST(StandardHonkComposer, AssertEquals)
         // Compute the proving key for sigma polynomials
         auto proving_key = composer.compute_proving_key();
         auto permutation_length = composer.num_wires * proving_key->circuit_size;
-        std::vector<polynomial> sigma_polynomials;
+        auto sigma_polynomials = proving_key->get_sigma_polynomials();
 
-        // Put the sigma polynomials into a vector for easy access
-        for (size_t i = 0; i < composer.num_wires; i++) {
-            std::string index = std::to_string(i + 1);
-            // WORKTODO
-            // sigma_polynomials.push_back(proving_key->polynomial_store.get("sigma_" + index + "_lagrange"));
-        }
+        // // Put the sigma polynomials into a vector for easy access
+        // for (size_t i = 0; i < composer.num_wires; i++) {
+        //     std::string index = std::to_string(i + 1);
+        //     // WORKTODO
+        //     // sigma_polynomials.push_back(proving_key->polynomial_store.get("sigma_" + index + "_lagrange"));
+        // }
 
         // Let's compute the maximum cycle
         size_t maximum_cycle = 0;
