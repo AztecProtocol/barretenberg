@@ -43,7 +43,8 @@ class StandardHonkComposerHelper {
     StandardHonkComposerHelper(std::unique_ptr<ReferenceStringFactory>&& crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
-    StandardHonkComposerHelper(std::shared_ptr<ProvingKey> p_key, std::shared_ptr<plonk::verification_key> v_key)
+    StandardHonkComposerHelper(std::shared_ptr<ProvingKey> p_key,
+                               std::shared_ptr<plonk::verification_key> v_key) // WORKTODO
         : proving_key(std::move(p_key))
         , circuit_verification_key(std::move(v_key))
     {}
@@ -63,7 +64,7 @@ class StandardHonkComposerHelper {
     // TODO(#216)(Adrian): Seems error prone to provide the number of randomized gates
     // Cody: Where should this go? In the flavor (or whatever that becomes)?
     std::shared_ptr<ProvingKey> compute_proving_key_base(const CircuitConstructor& circuit_constructor,
-                                                         const size_t minimum_ciricut_size = 0,
+                                                         const size_t minimum_circuit_size = 0,
                                                          const size_t num_randomized_gates = NUM_RANDOMIZED_GATES);
     // This needs to be static as it may be used only to compute the selector commitments.
 

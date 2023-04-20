@@ -17,7 +17,7 @@ namespace proof_system::honk {
  * Compute proving key base.
  *
  * 1. Load crs.
- * 2. Initialize this.proving_key.
+ * 2. Initialize this->proving_key.
  * 3. Create constraint selector polynomials from each of this composer's `selectors` vectors and add them to the
  * proving key.
  *
@@ -53,6 +53,7 @@ std::shared_ptr<plonk::verification_key> StandardHonkComposerHelper::compute_ver
     // TODO(kesha): Dirty hack for now. Need to actually make commitment-agnositc
     auto commitment_key = pcs::kzg::CommitmentKey(proving_key->circuit_size, "../srs_db/ignition");
 
+    // // WORKTODO
     // // Compute and store commitments to all precomputed polynomials
     // key->commitments["Q_M"] = commitment_key.commit(proving_key->polynomial_store.get("q_m_lagrange"));
     // key->commitments["Q_1"] = commitment_key.commit(proving_key->polynomial_store.get("q_1_lagrange"));
@@ -107,8 +108,8 @@ std::shared_ptr<StandardHonkComposerHelper::ProvingKey> StandardHonkComposerHelp
         return proving_key;
     }
     // Compute q_l, q_r, q_o, etc polynomials
-    // WORKTODO(Cody): meaningless constructor here
-    StandardHonkComposerHelper::compute_proving_key_base(circuit_constructor, ComposerType::STANDARD_HONK);
+    StandardHonkComposerHelper::compute_proving_key_base(
+        circuit_constructor, /*minimum_circuit_size=*/0, NUM_RANDOMIZED_GATES);
 
     // Compute sigma polynomials (we should update that late)
     compute_standard_honk_sigma_permutations<Flavor>(circuit_constructor, proving_key.get());
