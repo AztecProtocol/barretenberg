@@ -198,7 +198,7 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     prover_polynomials.w_r = prover.wire_polynomials[1];
     prover_polynomials.w_o = prover.wire_polynomials[2];
     prover_polynomials.w_4 = prover.wire_polynomials[3];
-    prover_polynomials.w_1_shift = prover.wire_polynomials[0].shifted();
+    prover_polynomials.w_l_shift = prover.wire_polynomials[0].shifted();
     prover_polynomials.w_4_shift = prover.wire_polynomials[3].shifted();
     prover_polynomials.s_1 = prover.key->s_1;
     prover_polynomials.s_2 = prover.key->s_2;

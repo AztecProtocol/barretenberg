@@ -88,15 +88,16 @@ template <typename T, size_t NUM_ALL_ENTITIES> class BaseAllData : public Data<T
     BaseAllData& operator=(const BaseAllData& other) { this->_data = other._data; };
     BaseAllData& operator=(const BaseAllData&& other) { this->_data = other._data; };
 
-    virtual std::vector<T> get_not_to_be_shifted() = 0;
+    virtual std::vector<T> get_unshifted() = 0;
     virtual std::vector<T> get_to_be_shifted() = 0;
+    virtual std::vector<T> get_shifted() = 0;
 
     // TODO(Cody): Look for a better solution?
-    std::vector<T> get_in_order()
+    std::vector<T> get_unshifted_then_shifted()
     {
-        std::vector<T> result{ get_not_to_be_shifted() };
-        std::vector<T> to_be_shifted{ get_to_be_shifted() };
-        result.insert(result.end(), to_be_shifted.begin(), to_be_shifted.end());
+        std::vector<T> result{ get_unshifted() };
+        std::vector<T> shifted{ get_shifted() };
+        result.insert(result.end(), shifted.begin(), shifted.end());
         return result;
     };
 };
@@ -281,13 +282,15 @@ class Standard {
 
         std::vector<T> get_wires() { return { w_l, w_r, w_o }; };
 
-        std::vector<T> get_not_to_be_shifted() override
+        std::vector<T> get_unshifted() override
         { // ...z_perm_shift is in here?
             return { w_l,  w_r,  w_o,  z_perm,         q_m,          q_l, q_r, q_o, q_c, sigma_1, sigma_2, sigma_3,
                      id_1, id_2, id_3, lagrange_first, lagrange_last };
         };
 
         std::vector<T> get_to_be_shifted() override { return { z_perm }; };
+
+        std::vector<T> get_shifted() override { return { z_perm_shift }; };
 
         AllData() = default;
         AllData(std::array<T, NUM_ALL_ENTITIES> _data_in)
@@ -423,6 +426,20 @@ class Standard {
             w_r = "W_2";
             w_o = "W_3";
             z_perm = "Z_PERM";
+            z_perm_shift = "__z_perm_shift";
+            q_m = "__q_m";
+            q_l = "__q_l";
+            q_r = "__q_r";
+            q_o = "__q_o";
+            q_c = "__q_c";
+            sigma_1 = "__sigma_1";
+            sigma_2 = "__sigma_2";
+            sigma_3 = "__sigma_3";
+            id_1 = "__id_1";
+            id_2 = "__id_2";
+            id_3 = "__id_3";
+            lagrange_first = "__lagrange_first";
+            lagrange_last = "__lagrange_last";
         };
     };
 
@@ -706,14 +723,14 @@ class Ultra {
         T& s_4 = std::get<32>(this->_data);
         T& z_perm = std::get<33>(this->_data);
         T& z_lookup = std::get<34>(this->_data);
-        T& w_1_shift = std::get<35>(this->_data);
+        T& w_l_shift = std::get<35>(this->_data);
         T& w_4_shift = std::get<36>(this->_data);
         T& z_perm_shift = std::get<37>(this->_data);
         T& z_lookup_shift = std::get<38>(this->_data);
 
         std::vector<T> get_wires() { return { w_l, w_r, w_o, w_4 }; };
 
-        std::vector<T> get_not_to_be_shifted() override
+        std::vector<T> get_unshifted() override
         {
             return { q_c,           q_l,    q_r,          q_o,     q_4,     q_m,     q_arith, q_sort,
                      q_elliptic,    q_aux,  q_lookuptype, sigma_1, sigma_2, sigma_3, sigma_4, id_1,
@@ -724,7 +741,8 @@ class Ultra {
             };
         };
 
-        std::vector<T> get_to_be_shifted() override { return { w_1_shift, w_4_shift, z_perm_shift, z_lookup_shift }; };
+        std::vector<T> get_to_be_shifted() override { return { w_l, w_4, z_perm, z_lookup }; };
+        std::vector<T> get_shifted() override { return { w_l_shift, w_4_shift, z_perm_shift, z_lookup_shift }; };
 
         AllData() = default;
         AllData(std::array<T, NUM_ALL_ENTITIES> _data_in)
@@ -769,7 +787,7 @@ class Ultra {
             , s_4(other.s_4)
             , z_perm(other.z_perm)
             , z_lookup(other.z_lookup)
-            , w_1_shift(other.w_1_shift)
+            , w_l_shift(other.w_l_shift)
             , w_4_shift(other.w_4_shift)
             , z_perm_shift(other.z_perm_shift)
             , z_lookup_shift(other.z_lookup_shift){};
@@ -812,7 +830,7 @@ class Ultra {
             , s_4(other.s_4)
             , z_perm(other.z_perm)
             , z_lookup(other.z_lookup)
-            , w_1_shift(other.w_1_shift)
+            , w_l_shift(other.w_l_shift)
             , w_4_shift(other.w_4_shift)
             , z_perm_shift(other.z_perm_shift)
             , z_lookup_shift(other.z_lookup_shift){};
@@ -854,7 +872,7 @@ class Ultra {
             s_4 = other.s_4;
             z_perm = other.z_perm;
             z_lookup = other.z_lookup;
-            w_1_shift = other.w_1_shift;
+            w_l_shift = other.w_l_shift;
             w_4_shift = other.w_4_shift;
             z_perm_shift = other.z_perm_shift;
             z_lookup_shift = other.z_lookup_shift;
@@ -898,7 +916,7 @@ class Ultra {
             s_4 = other.s_4;
             z_perm = other.z_perm;
             z_lookup = other.z_lookup;
-            w_1_shift = other.w_1_shift;
+            w_l_shift = other.w_l_shift;
             w_4_shift = other.w_4_shift;
             z_perm_shift = other.z_perm_shift;
             z_lookup_shift = other.z_lookup_shift;

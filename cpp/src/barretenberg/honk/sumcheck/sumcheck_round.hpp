@@ -71,7 +71,7 @@ template <typename Flavor, size_t num_multivariates, template <class> class... R
     // TODO(#224)(Cody): this barycentric stuff should be more built-in?
     std::tuple<BarycentricData<FF, Relations<FF>::RELATION_LENGTH, MAX_RELATION_LENGTH>...> barycentric_utils;
     std::tuple<Univariate<FF, Relations<FF>::RELATION_LENGTH>...> univariate_accumulators;
-    std::array<FF, NUM_RELATIONS> evaluations;
+    std::array<FF, NUM_RELATIONS> evaluations; // TODO(Cody): rename to relation_evaluations or something
     ExtendedEdges<MAX_RELATION_LENGTH> extended_edges;
     std::array<Univariate<FF, MAX_RELATION_LENGTH>, NUM_RELATIONS> extended_univariates;
 

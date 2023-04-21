@@ -34,7 +34,7 @@ template <typename FF> class UltraArithmeticRelationSecondary {
 
         auto w_l = UnivariateView<FF, RELATION_LENGTH>(extended_edges.w_l);
         auto w_4 = UnivariateView<FF, RELATION_LENGTH>(extended_edges.w_4);
-        auto w_l_shift = UnivariateView<FF, RELATION_LENGTH>(extended_edges.w_1_shift);
+        auto w_l_shift = UnivariateView<FF, RELATION_LENGTH>(extended_edges.w_l_shift);
         auto q_m = UnivariateView<FF, RELATION_LENGTH>(extended_edges.q_m);
         auto q_arith = UnivariateView<FF, RELATION_LENGTH>(extended_edges.q_arith);
 
@@ -52,7 +52,7 @@ template <typename FF> class UltraArithmeticRelationSecondary {
     {
         auto w_l = purported_evaluations.w_l;
         auto w_4 = purported_evaluations.w_4;
-        auto w_l_shift = purported_evaluations.w_1_shift;
+        auto w_l_shift = purported_evaluations.w_l_shift;
         auto q_m = purported_evaluations.q_m;
         auto q_arith = purported_evaluations.q_arith;
 

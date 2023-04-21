@@ -36,7 +36,7 @@ TEST(Flavor, Standard)
     Flavor::CommitmentLabels commitment_labels;
 
     EXPECT_EQ(prover_polynomials.size(), 18);
-    EXPECT_EQ(prover_polynomials.size(), prover_polynomials.get_in_order().size());
+    EXPECT_EQ(prover_polynomials.size(), prover_polynomials.get_unshifted_then_shifted().size());
     EXPECT_EQ(commitment_labels.w_r, "W_2");
 
     auto get_test_polynomial = [](size_t& idx) {

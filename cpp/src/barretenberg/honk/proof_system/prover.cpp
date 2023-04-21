@@ -169,7 +169,6 @@ template <typename Flavor> void Prover<Flavor>::execute_univariatization_round()
 {
     // WORKTODO: make static
     const size_t NUM_POLYNOMIALS = prover_polynomials.size();
-    const size_t NUM_UNSHIFTED_POLYS = prover_polynomials.get_not_to_be_shifted().size();
 
     // Generate batching challenge ρ and powers 1,ρ,…,ρᵐ⁻¹
     FF rho = transcript.get_challenge("rho");
@@ -177,15 +176,17 @@ template <typename Flavor> void Prover<Flavor>::execute_univariatization_round()
 
     // Batch the unshifted polynomials and the to-be-shifted polynomials using ρ
     Polynomial batched_poly_unshifted(key->circuit_size); // batched unshifted polynomials
-    size_t unshifted_poly_idx = 0;                        // ZIPTODO
-    for (auto& unshifted_poly : prover_polynomials.get_not_to_be_shifted()) {
-        batched_poly_unshifted.add_scaled(unshifted_poly, rhos[unshifted_poly_idx]);
-        unshifted_poly_idx++;
+    size_t poly_idx = 0;                                  // ZIPTODO
+    for (auto& unshifted_poly : prover_polynomials.get_unshifted()) {
+        batched_poly_unshifted.add_scaled(unshifted_poly, rhos[poly_idx]);
+        poly_idx++;
     }
 
-    // TODO(Cody): if generizing this, loop over to-be-shifted.
     Polynomial batched_poly_to_be_shifted(key->circuit_size); // batched to-be-shifted polynomials
-    batched_poly_to_be_shifted.add_scaled(prover_polynomials.z_perm, rhos[NUM_UNSHIFTED_POLYS]);
+    for (auto& to_be_shifted_poly : prover_polynomials.get_to_be_shifted()) {
+        batched_poly_to_be_shifted.add_scaled(to_be_shifted_poly, rhos[poly_idx]);
+        poly_idx++;
+    };
 
     // Compute d-1 polynomials Fold^(i), i = 1, ..., d-1.
     fold_polynomials = Gemini::compute_fold_polynomials(

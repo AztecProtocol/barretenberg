@@ -242,11 +242,11 @@ TEST_F(UltraRelationConsistency, UltraArithmeticRelationSecondary)
     // Extract the extended edges for manual computation of relation contribution
     const auto& w_1 = extended_edges.w_l;
     const auto& w_4 = extended_edges.w_4;
-    const auto& w_1_shift = extended_edges.w_1_shift;
+    const auto& w_l_shift = extended_edges.w_l_shift;
     const auto& q_m = extended_edges.q_m;
     const auto& q_arith = extended_edges.q_arith;
 
-    auto expected_evals = (w_1 + w_4 - w_1_shift + q_m);
+    auto expected_evals = (w_1 + w_4 - w_l_shift + q_m);
     expected_evals *= (q_arith - 2) * (q_arith - 1) * q_arith;
 
     validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);

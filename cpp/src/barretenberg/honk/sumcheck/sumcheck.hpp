@@ -124,6 +124,7 @@ template <typename Flavor, class Transcript, template <class> class... Relations
         }
 
         // Final round: Extract multivariate evaluations from folded_polynomials and add to transcript
+        // WORKTODO: improve loop.
         std::array<FF, NUM_POLYNOMIALS> multivariate_evaluations;
         for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
             multivariate_evaluations[i] = folded_polynomials[i][0];

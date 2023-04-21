@@ -135,6 +135,8 @@ bool Verifier<Flavor, program_settings>::verify_proof(const plonk::proof& proof)
 
     // Get commitment to Z_PERM
     commitments.z_perm = transcript.template receive_from_prover<Commitment>(commitment_labels.z_perm);
+    // commitments.z_perm_shift = commitments.z_perm/* transcript.template
+    // receive_from_prover<Commitment>(commitment_labels.z_perm) */;
 
     // // TODO(Cody): Compute some basic public polys like id(X), pow(X), and any required Lagrange polys
 
@@ -168,22 +170,14 @@ bool Verifier<Flavor, program_settings>::verify_proof(const plonk::proof& proof)
     // Compute batched multivariate evaluation
     FF batched_evaluation = FF::zero();
     size_t evaluation_idx = 0;
-    // for (auto& value : purported_evaluations.get_in_order()) {
-    //     batched_evaluation += value * rhos[evaluation_idx];
-    //     evaluation_idx++;
-    // }
-    for (auto& value : purported_evaluations.get_to_be_shifted()) {
-        batched_evaluation += value * rhos[evaluation_idx];
-        evaluation_idx++;
-    }
-    for (auto& value : purported_evaluations.get_not_to_be_shifted()) {
+    for (auto& value : purported_evaluations.get_unshifted_then_shifted()) {
         batched_evaluation += value * rhos[evaluation_idx];
         evaluation_idx++;
     }
 
     // Construct batched commitment for NON-shifted polynomials
     size_t commitment_idx = 0;
-    for (auto& commitment : commitments.get_not_to_be_shifted()) {
+    for (auto& commitment : commitments.get_unshifted()) {
         batched_commitment_unshifted += commitment * rhos[commitment_idx];
         commitment_idx++;
     }
@@ -193,6 +187,7 @@ bool Verifier<Flavor, program_settings>::verify_proof(const plonk::proof& proof)
         batched_commitment_unshifted += commitment * rhos[commitment_idx];
         commitment_idx++;
     }
+
     // Produce a Gemini claim consisting of:
     // - d+1 commitments [Fold_{r}^(0)], [Fold_{-r}^(0)], and [Fold^(l)], l = 1:d-1
     // - d+1 evaluations a_0_pos, and a_l, l = 0:d-1
