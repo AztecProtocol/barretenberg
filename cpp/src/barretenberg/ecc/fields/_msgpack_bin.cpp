@@ -11,7 +11,7 @@ void read_bin64(const msgpack::object& obj, uint64_t* data, size_t size)
     if (obj.type != msgpack::type::BIN) {
         throw_or_abort("Wrong data type when unpacking bin64");
     }
-    if (obj.via.bin.size != size * sizeof(uint64_t) {
+    if (obj.via.bin.size != size * sizeof(uint64_t)) {
         throw_or_abort("Wrong size data while unpacking bin64");
     }
 
