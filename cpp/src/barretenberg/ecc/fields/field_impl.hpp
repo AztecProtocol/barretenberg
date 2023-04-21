@@ -12,7 +12,7 @@
 #endif
 
 #include "field_impl_generic.hpp"
-#include "barretenberg/common/msgpack_bin.hpp"
+#include "_msgpack_bin.hpp"
 namespace barretenberg {
 
 // template <class T> constexpr void field<T>::butterfly(field& left, field& right) noexcept
@@ -621,7 +621,7 @@ template <class Params> void field<Params>::msgpack_pack(auto& packer) const
 // For serialization
 template <class Params> void field<Params>::msgpack_unpack(auto o)
 {
-    msgpack_read_bin64(o, data, sizeof(data) / sizeof(uint64_t));
+    msgpack::read_bin64(o, data, sizeof(data) / sizeof(uint64_t));
     *this = to_montgomery_form();
 }
 
