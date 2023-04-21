@@ -3,4 +3,4 @@
 	url = git@github.com:AztecProtocol/foundation.git
 [submodule "cpp/src/msgpack-c"]
 	path = cpp/src/msgpack-c
-	url = https://github.com/msgpack/msgpack-c
+	url = https://github.com/AztecProtocol/msgpack-c
