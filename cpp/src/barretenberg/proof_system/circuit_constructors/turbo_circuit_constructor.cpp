@@ -1448,7 +1448,7 @@ inline fr TurboCircuitConstructor::fixed_base_gate_evaluation(const size_t gate_
  * */
 bool TurboCircuitConstructor::check_circuit()
 {
-// #define LAZY_CIRCUIT_CHECKS
+//#define LAZY_CIRCUIT_CHECKS
 #ifdef LAZY_CIRCUIT_CHECKS
     for (size_t i = 0; i < num_gates; i++) {
         if (!q_arith[i].is_zero() && !lazy_arithmetic_gate_check(i)) {
