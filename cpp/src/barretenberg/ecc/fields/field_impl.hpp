@@ -12,13 +12,7 @@
 #endif
 
 #include "field_impl_generic.hpp"
-
-// For serialization
-namespace msgpack::v2 { // Hack, have to forward v2 namespace
-struct object;
-}
-void msgpack_read_bin64(const msgpack::v2::object& obj, uint64_t* data, size_t size);
-
+#include "barretenberg/common/msgpack_bin.hpp"
 namespace barretenberg {
 
 // template <class T> constexpr void field<T>::butterfly(field& left, field& right) noexcept
