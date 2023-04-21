@@ -796,4 +796,40 @@ TEST(ultra_circuit_constructor, range_checks_on_duplicates)
     EXPECT_EQ(result, true);
 }
 
+TEST(ultra_circuit_constructor, check_circuit_showcase)
+{
+    UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+    // check_circuit allows us to check correctness on the go
+
+    uint32_t a = circuit_constructor.add_variable(0xdead);
+    uint32_t b = circuit_constructor.add_variable(0xbeef);
+    // Let's create 2 gates that will bind these 2 variables to be one these two values
+    circuit_constructor.create_poly_gate(
+        { a, a, circuit_constructor.zero_idx, fr(1), -fr(0xdead) - fr(0xbeef), 0, 0, fr(0xdead) * fr(0xbeef) });
+    circuit_constructor.create_poly_gate(
+        { b, b, circuit_constructor.zero_idx, fr(1), -fr(0xdead) - fr(0xbeef), 0, 0, fr(0xdead) * fr(0xbeef) });
+
+    // We can check if this works
+    EXPECT_EQ(circuit_constructor.check_circuit(), true);
+
+    // Now let's create a range constraint for b
+    circuit_constructor.create_new_range_constraint(b, 0xbeef);
+
+    // We can check if this works
+    EXPECT_EQ(circuit_constructor.check_circuit(), true);
+
+    // But what if we now assert b to be equal to a?
+    circuit_constructor.assert_equal(a, b, "Oh no");
+
+    // It fails, because a is 0xdead and it can't fit in the range constraint
+    EXPECT_EQ(circuit_constructor.check_circuit(), false);
+
+    // But if we force them both back to be 0xbeef...
+    uint32_t c = circuit_constructor.add_variable(0xbeef);
+    circuit_constructor.assert_equal(c, b);
+
+    // The circuit will magically pass again
+    EXPECT_EQ(circuit_constructor.check_circuit(), true);
+}
+
 } // namespace proof_system
