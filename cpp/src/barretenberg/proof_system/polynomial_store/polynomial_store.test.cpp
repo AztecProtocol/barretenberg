@@ -102,7 +102,7 @@ TEST(PolynomialStore, RangeBasedFor)
     polynomial_store.put("id_2", std::move(poly2));
 
     // Check that PolynomialStore meets criteria for std::ranges::range
-    //    EXPECT_TRUE(std::ranges::range<PolynomialStore<Fr>>);
+    EXPECT_TRUE(std::ranges::range<PolynomialStore<Fr>>);
 
     // For example ...
     Polynomial polynomial_sum(size);
