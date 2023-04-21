@@ -49,6 +49,7 @@ checkout: &checkout
       git remote add origin $CIRCLE_REPOSITORY_URL
       git fetch --depth 50 --filter=blob:none origin $CIRCLE_SHA1
       git checkout FETCH_HEAD
+      git submodule update --init --recursive
 
 # This build step checks out the code from the benchmark-archive repository. The key is saved in CircleCi environment in base64 format.
 # Initially it just fetches the latest version.

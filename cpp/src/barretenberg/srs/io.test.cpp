@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 #include <fstream>
 #include "msgpack.hpp"
-#include "msgpack-impl.hpp"
+#include "msgpack_impl.hpp"
 #include "barretenberg/crypto/aes128/aes128.hpp"
 
 using namespace barretenberg;
