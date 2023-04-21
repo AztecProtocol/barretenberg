@@ -201,6 +201,13 @@ TEST(AcirProofs, TestSerializationWithRecursion)
         memcpy(proof_witnesses.data(), (void*)proof_data_fields, proof_fields_size);
         memcpy(&key_witnesses[0], (void*)vk_fields, vk_fields_size);
         memcpy(&vk_hash_value, (void*)vk_hash_buf, 32);
+        // for (size_t i = 0; i < proof_fields_size / 32; i++) {
+        //     proof_witnesses[i] = barretenberg::fr::serialize_from_buffer(&proof_data_fields[i * 32]);
+        // }
+        // for (size_t i = 0; i < vk_fields_size / 32; i++) {
+        //     key_witnesses[i] = barretenberg::fr::serialize_from_buffer(&vk_fields[i * 32]);
+        // }
+        // vk_hash_value = barretenberg::fr::serialize_from_buffer(vk_hash_buf);
 
         std::vector<uint32_t> proof_indices;
 
@@ -270,6 +277,13 @@ TEST(AcirProofs, TestSerializationWithRecursion)
             .recursion_constraints = { recursion_constraint },
             .constraints = { vk_equality_constraint },
         };
+
+        // auto composer = acir_format::create_circuit_with_witness(constraint_system, witness);
+        // auto prover = composer.create_prover();
+
+        // auto proof = prover.construct_proof();
+        // auto verifier = composer.create_verifier();
+        // EXPECT_EQ(verifier.verify_proof(proof), true);
 
         std::vector<uint8_t> witness_buf;
         std::vector<uint8_t> constraint_system_buf;

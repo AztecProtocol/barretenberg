@@ -173,6 +173,7 @@ size_t serialize_verification_key_into_field_elements(uint8_t const* g2x,
     auto vk_hash_raw_buf = (uint8_t*)malloc(32);
     memcpy(vk_hash_raw_buf, (void*)&output[output.size() - 1], 32);
     *serialized_vk_hash_buf = vk_hash_raw_buf;
+    // *serialized_vk_hash_buf = &raw_buf[(output.size() - 1) * 32];
 
     return output_size_bytes;
 }
