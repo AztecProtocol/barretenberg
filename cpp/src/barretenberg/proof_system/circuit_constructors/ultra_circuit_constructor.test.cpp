@@ -91,9 +91,11 @@ TEST(ultra_circuit_constructor, create_gates_from_plookup_accumulators)
         EXPECT_EQ(circuit_constructor.get_variable(lookup_witnesses_hi[ColumnIdx::C3][i]),
                   expected_y[i + num_lookups_lo]);
     }
+    auto saved_state = CircuitInTheHead::store_state(circuit_constructor);
     bool result = circuit_constructor.check_circuit();
 
     EXPECT_EQ(result, true);
+    EXPECT_TRUE(saved_state.is_same_state(circuit_constructor));
 }
 TEST(ultra_circuit_constructor, base_case)
 {

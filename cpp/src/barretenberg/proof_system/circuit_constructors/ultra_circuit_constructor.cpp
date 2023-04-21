@@ -44,7 +44,7 @@ void UltraCircuitConstructor::finalize_circuit()
      * our circuit is finalised, and we must not to execute these functions again.
      */
     bool switched_circuit_finalised =
-        (in_the_head && circuit_in_the_head.circuit_finalized) | (!in_the_head && circuit_finalised);
+        (in_the_head && circuit_in_the_head.circuit_finalised) | (!in_the_head && circuit_finalised);
     if (!switched_circuit_finalised) {
         process_non_native_field_multiplications();
         process_ROM_arrays(public_inputs.size());
@@ -1903,8 +1903,9 @@ void UltraCircuitConstructor::create_sorted_RAM_gate(RamRecord& record)
  */
 void UltraCircuitConstructor::create_final_sorted_RAM_gate(RamRecord& record, const size_t ram_array_size)
 {
+    ENABLE_ALL_IN_THE_HEAD_SWITCHES
     record.record_witness = add_variable(0);
-    record.gate_index = num_gates;
+    record.gate_index = switched_num_gates;
 
     create_big_add_gate({
         record.index_witness,
@@ -2982,7 +2983,10 @@ inline fr UltraCircuitConstructor::compute_auxilary_identity(fr q_aux_value,
 }
 
 /**
- * @brief
+ * @brief Check that the circuit is correct in its current state
+ *
+ * @details The method switches the circuit to the "in-the-head" version, finalizes it, checks gates, lookups and
+ * permutations and then switches it back from the in-the-head version, discarding the updates
  *
  * @return true
  * @return false
@@ -2990,9 +2994,12 @@ inline fr UltraCircuitConstructor::compute_auxilary_identity(fr q_aux_value,
 bool UltraCircuitConstructor::check_circuit()
 {
     bool result = true;
-    reset_circuit_in_the_head();
+    // Put the circuit in the head
+    update_circuit_in_the_head();
     in_the_head = true;
+    // Finalize circuit-in-the-head
     finalize_circuit();
+    // Sample randomness
     const fr arithmetic_base = fr::random_element();
     const fr elliptic_base = fr::random_element();
     const fr genperm_sort_base = fr::random_element();
@@ -3000,28 +3007,22 @@ bool UltraCircuitConstructor::check_circuit()
     const fr alpha = fr::random_element();
     const fr eta = fr::random_element();
     const fr eta_sqr = eta.sqr();
-    // We need to update memory records
+
+    // We need to get all memory
     std::unordered_set<size_t> memory_record_gates;
     for (const auto& gate_idx : circuit_in_the_head.memory_read_records) {
         memory_record_gates.insert(gate_idx);
-        circuit_in_the_head.variables[circuit_in_the_head.real_variable_index[w_4[gate_idx]]] =
-            circuit_in_the_head.variables[real_variable_index[w_l[gate_idx]]] +
-            circuit_in_the_head.variables[circuit_in_the_head.real_variable_index[w_r[gate_idx]]] * eta +
-            circuit_in_the_head.variables[circuit_in_the_head.real_variable_index[w_o[gate_idx]]] * eta_sqr;
     }
     for (const auto& gate_idx : circuit_in_the_head.memory_write_records) {
         memory_record_gates.insert(gate_idx);
-        variables[real_variable_index[w_4[gate_idx]]] = variables[real_variable_index[w_l[gate_idx]]] +
-                                                        variables[real_variable_index[w_r[gate_idx]]] * eta +
-                                                        variables[real_variable_index[w_o[gate_idx]]] * eta_sqr;
     }
 
+    // A hashing implementation for quick simulation lookups
     struct HashFrTuple {
         const barretenberg::fr mult_const = barretenberg::fr(uint256_t(0x1337, 0x1336, 0x1335, 0x1334));
         const barretenberg::fr mc_sqr = mult_const.sqr();
         const barretenberg::fr mc_cube = mult_const * mc_sqr;
 
-      public:
         size_t operator()(
             const std::tuple<barretenberg::fr, barretenberg::fr, barretenberg::fr, barretenberg::fr>& entry) const
         {
@@ -3032,12 +3033,9 @@ bool UltraCircuitConstructor::check_circuit()
         }
     };
 
+    // Equality checks for lookup tuples
     struct EqualFrTuple {
-        const barretenberg::fr mult_const = barretenberg::fr(uint256_t(0xdead, 0xbeef, 0xc0ff, 0xffee));
-        const barretenberg::fr mc_sqr = mult_const.sqr();
-        const barretenberg::fr mc_cube = mult_const * mc_sqr;
 
-      public:
         bool operator()(
             const std::tuple<barretenberg::fr, barretenberg::fr, barretenberg::fr, barretenberg::fr>& entry1,
             const std::tuple<barretenberg::fr, barretenberg::fr, barretenberg::fr, barretenberg::fr>& entry2) const
@@ -3045,10 +3043,12 @@ bool UltraCircuitConstructor::check_circuit()
             return entry1 == entry2;
         }
     };
+    // The set of all lookup tuples that are in the tables
     std::unordered_set<std::tuple<barretenberg::fr, barretenberg::fr, barretenberg::fr, barretenberg::fr>,
                        HashFrTuple,
                        EqualFrTuple>
         table_hash;
+    // Prepare the lookup set for use in the circuit
     for (auto& table : lookup_tables) {
         const fr table_index(table.table_index);
         for (size_t i = 0; i < table.size; ++i) {
@@ -3057,13 +3057,21 @@ bool UltraCircuitConstructor::check_circuit()
             table_hash.insert(components);
         }
     }
+
+    // We use a running tag product mechanism to ensure tag correctness
+    // This is the product of (value + γ ⋅ tag)
     fr left_tag_product = fr::one();
+    // This is the product of (value + γ ⋅ tau[tag])
     fr right_tag_product = fr::one();
+    // Randomness for the tag check
     const fr tag_gamma = fr::random_element();
+    // We need to include each variable only once
     std::unordered_set<size_t> encountered_variables;
 
+    // Function to quickly update tag products and encountered variable set by index and value
     auto update_tag_check_information = [&](size_t variable_index, fr value) {
         size_t real_index = circuit_in_the_head.real_variable_index[variable_index];
+        // Check to ensure that we are not including a variable twice
         if (encountered_variables.contains(real_index)) {
             return;
         }
@@ -3075,6 +3083,7 @@ bool UltraCircuitConstructor::check_circuit()
             encountered_variables.insert(real_index);
         }
     };
+    // For each gate
     for (size_t i = 0; i < circuit_in_the_head.num_gates; i++) {
         fr q_arith_value;
         fr q_aux_value;
@@ -3087,7 +3096,6 @@ bool UltraCircuitConstructor::check_circuit()
         fr q_4_value;
         fr q_m_value;
         fr q_c_value;
-
         fr w_1_value;
         fr w_2_value;
         fr w_3_value;
@@ -3096,6 +3104,7 @@ bool UltraCircuitConstructor::check_circuit()
         fr w_2_real_index;
         fr w_3_real_index;
         fr w_4_real_index;
+        // Get the values of selectors and wires and update tag products along the way
         if (i < num_gates) {
             q_arith_value = q_arith[i];
             q_aux_value = q_aux[i];
@@ -3118,12 +3127,13 @@ bool UltraCircuitConstructor::check_circuit()
             update_tag_check_information(w_4[i], w_4_value);
 
         } else {
+            // The in-the-head selector and wire variable indices are not copies of the circuit values, but rather the
+            // continuation of them, so we need to access them at an offset
             size_t offset = i - num_gates;
             q_arith_value = circuit_in_the_head.q_arith[offset];
             q_aux_value = circuit_in_the_head.q_aux[offset];
             q_elliptic_value = circuit_in_the_head.q_elliptic[offset];
             q_sort_value = circuit_in_the_head.q_sort[offset];
-
             q_lookup_type_value = circuit_in_the_head.q_lookup_type[i];
             q_1_value = circuit_in_the_head.q_1[offset];
             q_2_value = circuit_in_the_head.q_2[offset];
@@ -3140,6 +3150,7 @@ bool UltraCircuitConstructor::check_circuit()
             w_4_value = get_variable(circuit_in_the_head.w_4[offset]);
             update_tag_check_information(circuit_in_the_head.w_4[offset], w_4_value);
         }
+        // If we are touching a gate with memory access, we need to update the value of the 4th witness
         if (memory_record_gates.contains(i)) {
             w_4_value = w_1_value + eta * w_2_value + eta_sqr * w_3_value;
         }
@@ -3247,13 +3258,14 @@ bool UltraCircuitConstructor::check_circuit()
     }
     in_the_head = false;
     return result;
-} // namespace proof_system
+}
 
 /**
- * @brief Reset the circuit-in-the-head construction that we use for checking the correctness of the circuit
+ * @brief Reset the circuit-in-the-head construction that we use for checking the correctness of the circuit to the
+ * values in the circuit
  *
  */
-void UltraCircuitConstructor::reset_circuit_in_the_head()
+void UltraCircuitConstructor::update_circuit_in_the_head()
 {
     // Unfortunately we have to copy all variable structures
     circuit_in_the_head.public_inputs = public_inputs;
@@ -3281,18 +3293,18 @@ void UltraCircuitConstructor::reset_circuit_in_the_head()
     // Update current tag in the head to be the same as current real tag
     circuit_in_the_head.current_tag = current_tag;
     // Reset tau
-    circuit_in_the_head.tau.clear();
+    circuit_in_the_head.tau = tau;
     // Copy rom and ram arrays
     circuit_in_the_head.rom_arrays = rom_arrays;
     circuit_in_the_head.ram_arrays = ram_arrays;
 
-    circuit_in_the_head.memory_read_records.clear();
-    circuit_in_the_head.memory_write_records.clear();
+    circuit_in_the_head.memory_read_records = memory_read_records;
+    circuit_in_the_head.memory_write_records = memory_write_records;
     circuit_in_the_head.ram_arrays = ram_arrays;
     circuit_in_the_head.rom_arrays = rom_arrays;
     circuit_in_the_head.range_lists = range_lists;
 
     circuit_in_the_head.num_gates = num_gates;
-    circuit_finalised = false;
+    circuit_in_the_head.circuit_finalised = circuit_finalised;
 }
 } // namespace proof_system

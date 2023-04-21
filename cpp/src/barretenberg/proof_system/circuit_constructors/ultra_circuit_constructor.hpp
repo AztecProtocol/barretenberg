@@ -12,7 +12,6 @@
 #include <optional>
 
 namespace proof_system {
-
 static constexpr ComposerType type = ComposerType::PLOOKUP;
 static constexpr merkle::HashType merkle_hash_type = merkle::HashType::LOOKUP_PEDERSEN;
 static constexpr size_t NUM_RESERVED_GATES = 4; // This must be >= num_roots_cut_out_of_vanishing_polynomial
@@ -120,6 +119,11 @@ struct RangeList {
     uint32_t range_tag;
     uint32_t tau_tag;
     std::vector<uint32_t> variable_indices;
+    bool operator==(const RangeList& other) const noexcept
+    {
+        return target_range == other.target_range && range_tag == other.range_tag && tau_tag == other.tau_tag &&
+               variable_indices == other.variable_indices;
+    }
 };
 
 /**
@@ -135,6 +139,12 @@ struct RomRecord {
     uint32_t record_witness = 0;
     size_t gate_index = 0;
     bool operator<(const RomRecord& other) const { return index < other.index; }
+    bool operator==(const RomRecord& other) const noexcept
+    {
+        return index_witness == other.index_witness && value_column1_witness == other.value_column1_witness &&
+               value_column2_witness == other.value_column2_witness && index == other.index &&
+               record_witness == other.record_witness && gate_index == other.gate_index;
+    }
 };
 
 /**
@@ -160,6 +170,13 @@ struct RamRecord {
         bool index_test = (index) < (other.index);
         return index_test || (index == other.index && timestamp < other.timestamp);
     }
+    bool operator==(const RamRecord& other) const noexcept
+    {
+        return index_witness == other.index_witness && timestamp_witness == other.timestamp_witness &&
+               value_witness == other.value_witness && index == other.index && timestamp == other.timestamp &&
+               access_type == other.access_type && record_witness == other.record_witness &&
+               gate_index == other.gate_index;
+    }
 };
 
 /**
@@ -180,6 +197,11 @@ struct RamTranscript {
 
     // used for RAM records, to compute the timestamp when performing a read/write
     size_t access_count = 0;
+    // Used to check that the state hasn't changed in tests
+    bool operator==(const RamTranscript& other) const noexcept
+    {
+        return (state == other.state && records == other.records && access_count == other.access_count);
+    }
 };
 
 /**
@@ -197,6 +219,12 @@ struct RomTranscript {
     // + The value in the memory slot
     // + The actual index value
     std::vector<RomRecord> records;
+
+    // Used to check that the state hasn't changed in tests
+    bool operator==(const RomTranscript& other) const noexcept
+    {
+        return (state == other.state && records == other.records);
+    }
 };
 
 inline std::vector<std::string> ultra_selector_names()
@@ -206,6 +234,14 @@ inline std::vector<std::string> ultra_selector_names()
     return result;
 }
 
+/**
+ * @brief Circuit-in-the-head is a structure we use to store all the information about the circuit which should be used
+ * during check_circuit method call, but needs to be discarded later
+ *
+ * @details In check_circuit method in UltraCircuitConstructor we want to check that the whole circuit works, but ultra
+ * circuits need to have ram, rom and range gates added in the end for the check to be complete as well as the set
+ * permutation check.
+ */
 struct CircuitInTheHead {
     std::vector<uint32_t> public_inputs;
     std::vector<barretenberg::fr> variables;
@@ -242,10 +278,167 @@ struct CircuitInTheHead {
     std::vector<uint32_t> memory_write_records;
     std::map<uint64_t, RangeList> range_lists;
     size_t num_gates;
-    bool circuit_finalized = false;
+    bool circuit_finalised = false;
+    /**
+     * @brief Stores the state of everything logic-related in the constructor.
+     *
+     * @details We need this function for tests. Specifically, to ensure that we are not changing anything in
+     * check_circuit
+     *
+     * @param circuit_constructor
+     * @return CircuitInTheHead
+     */
+    template <typename CircuitConstructor>
+    static CircuitInTheHead store_state(const CircuitConstructor& circuit_constructor)
+    {
+        CircuitInTheHead stored_state;
+        stored_state.public_inputs = circuit_constructor.public_inputs;
+        stored_state.variables = circuit_constructor.variables;
+
+        stored_state.next_var_index = circuit_constructor.next_var_index;
+
+        stored_state.prev_var_index = circuit_constructor.prev_var_index;
+
+        stored_state.real_variable_index = circuit_constructor.real_variable_index;
+        stored_state.real_variable_tags = circuit_constructor.real_variable_tags;
+        stored_state.constant_variable_indices = circuit_constructor.constant_variable_indices;
+        stored_state.w_l = circuit_constructor.w_l;
+        stored_state.w_r = circuit_constructor.w_r;
+        stored_state.w_o = circuit_constructor.w_o;
+        stored_state.w_4 = circuit_constructor.w_4;
+        stored_state.q_m = circuit_constructor.q_m;
+        stored_state.q_c = circuit_constructor.q_c;
+        stored_state.q_1 = circuit_constructor.q_1;
+        stored_state.q_2 = circuit_constructor.q_2;
+        stored_state.q_3 = circuit_constructor.q_3;
+        stored_state.q_4 = circuit_constructor.q_4;
+        stored_state.q_arith = circuit_constructor.q_arith;
+        stored_state.q_sort = circuit_constructor.q_sort;
+        stored_state.q_elliptic = circuit_constructor.q_elliptic;
+        stored_state.q_aux = circuit_constructor.q_aux;
+        stored_state.q_lookup_type = circuit_constructor.q_lookup_type;
+        stored_state.current_tag = circuit_constructor.current_tag;
+        stored_state.tau = circuit_constructor.tau;
+
+        stored_state.ram_arrays = circuit_constructor.ram_arrays;
+        stored_state.rom_arrays = circuit_constructor.rom_arrays;
+
+        stored_state.memory_read_records = circuit_constructor.memory_read_records;
+        stored_state.memory_write_records = circuit_constructor.memory_write_records;
+        stored_state.range_lists = circuit_constructor.range_lists;
+        stored_state.circuit_finalised = circuit_constructor.circuit_finalised;
+        stored_state.num_gates = circuit_constructor.num_gates;
+        return stored_state;
+    }
+    /**
+     * @brief CHecks that the circuit states is the same as the stored circuit's one
+     *
+     * @param circuit_constructor
+     * @return true
+     * @return false
+     */
+    template <typename CircuitConstructor> bool is_same_state(const CircuitConstructor& circuit_constructor)
+    {
+        if (!(public_inputs == circuit_constructor.public_inputs)) {
+            return false;
+        }
+        if (!(variables == circuit_constructor.variables)) {
+            return false;
+        }
+        if (!(next_var_index == circuit_constructor.next_var_index)) {
+            return false;
+        }
+        if (!(prev_var_index == circuit_constructor.prev_var_index)) {
+            return false;
+        }
+        if (!(real_variable_index == circuit_constructor.real_variable_index)) {
+            return false;
+        }
+        if (!(real_variable_tags == circuit_constructor.real_variable_tags)) {
+            return false;
+        }
+        if (!(constant_variable_indices == circuit_constructor.constant_variable_indices)) {
+            return false;
+        }
+        if (!(w_l == circuit_constructor.w_l)) {
+            return false;
+        }
+        if (!(w_r == circuit_constructor.w_r)) {
+            return false;
+        }
+        if (!(w_o == circuit_constructor.w_o)) {
+            return false;
+        }
+        if (!(w_4 == circuit_constructor.w_4)) {
+            return false;
+        }
+        if (!(q_m == circuit_constructor.q_m)) {
+            return false;
+        }
+        if (!(q_c == circuit_constructor.q_c)) {
+            return false;
+        }
+        if (!(q_1 == circuit_constructor.q_1)) {
+            return false;
+        }
+        if (!(q_2 == circuit_constructor.q_2)) {
+            return false;
+        }
+        if (!(q_3 == circuit_constructor.q_3)) {
+            return false;
+        }
+        if (!(q_4 == circuit_constructor.q_4)) {
+            return false;
+        }
+        if (!(q_arith == circuit_constructor.q_arith)) {
+            return false;
+        }
+        if (!(q_sort == circuit_constructor.q_sort)) {
+            return false;
+        }
+        if (!(q_elliptic == circuit_constructor.q_elliptic)) {
+            return false;
+        }
+        if (!(q_aux == circuit_constructor.q_aux)) {
+            return false;
+        }
+        if (!(q_lookup_type == circuit_constructor.q_lookup_type)) {
+            return false;
+        }
+        if (!(current_tag == circuit_constructor.current_tag)) {
+            return false;
+        }
+        if (!(tau == circuit_constructor.tau)) {
+            return false;
+        }
+        if (!(ram_arrays == circuit_constructor.ram_arrays)) {
+            return false;
+        }
+        if (!(rom_arrays == circuit_constructor.rom_arrays)) {
+            return false;
+        }
+        if (!(memory_read_records == circuit_constructor.memory_read_records)) {
+            return false;
+        }
+        if (!(memory_write_records == circuit_constructor.memory_write_records)) {
+            return false;
+        }
+        if (!(range_lists == circuit_constructor.range_lists)) {
+            return false;
+        }
+        if (!(num_gates == circuit_constructor.num_gates)) {
+            return false;
+        }
+        if (!(circuit_finalised == circuit_constructor.circuit_finalised)) {
+            return false;
+        }
+        return true;
+    }
 };
 class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::Ultra> {
   public:
+    // We use the concept of "Circuit-in-the-head" for the check_circuit method. We have to finalize the circuit to
+    // check it, so we put all the updates in this structure, instead of messing with the circuit itself
     CircuitInTheHead circuit_in_the_head;
     // Switch, forcing gates to interact with circuit_in_the_head instead of the regular members
     bool in_the_head = false;
@@ -349,6 +542,12 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
         circuit_in_the_head.real_variable_tags.emplace_back(DUMMY_TAG);
         return index;
     }
+    /**
+     * @brief Get the variable value from the actual of in-the-head circuit
+     *
+     * @param index
+     * @return barretenberg::fr
+     */
     inline barretenberg::fr get_variable(const uint32_t index) const
     {
         if (!in_the_head) {
@@ -357,12 +556,25 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
         ASSERT(circuit_in_the_head.variables.size() > index);
         return circuit_in_the_head.variables[circuit_in_the_head.real_variable_index[index]];
     }
+
+    /**
+     * @brief Check that variable indices are valid
+     *
+     * @param variable_indices
+     */
     void assert_valid_variables(const std::vector<uint32_t>& variable_indices)
     {
         for (const auto& variable_index : variable_indices) {
             ASSERT(is_valid_variable(variable_index));
         }
     }
+    /**
+     * @brief Checks that the variable index is valid (in the circuit or in the in-the-head circuit)
+     *
+     * @param variable_index
+     * @return true
+     * @return false
+     */
     bool is_valid_variable(uint32_t variable_index)
     {
         if (in_the_head) {
@@ -845,7 +1057,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
                                      fr alpha_base,
                                      fr alpha) const;
 
-    void reset_circuit_in_the_head();
+    void update_circuit_in_the_head();
     bool check_circuit();
 };
 } // namespace proof_system
