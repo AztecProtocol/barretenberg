@@ -177,7 +177,7 @@ bool Verifier<Flavor, program_settings>::verify_proof(const plonk::proof& proof)
 
     // Construct batched commitment for to-be-shifted polynomials
     for (auto& commitment : commitments.get_to_be_shifted()) {
-        batched_commitment_unshifted += commitment * rhos[commitment_idx];
+        batched_commitment_to_be_shifted += commitment * rhos[commitment_idx];
         commitment_idx++;
     }
 

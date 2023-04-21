@@ -373,8 +373,8 @@ TEST(StandardHonkComposer, SumcheckEvaluationsAreCorrect)
     auto prover = composer.create_prover();
     plonk::proof proof = prover.construct_proof();
 
-    // auto verifier = composer.create_verifier();
-    // bool verified = verifier.verify_proof(proof);
-    // ASSERT_TRUE(verified);
+    auto verifier = composer.create_verifier();
+    bool verified = verifier.verify_proof(proof);
+    ASSERT_TRUE(verified);
 }
 } // namespace test_standard_honk_composer
