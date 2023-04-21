@@ -80,12 +80,14 @@ template <typename Flavor, typename program_settings>
 bool Verifier<Flavor, program_settings>::verify_proof(const plonk::proof& proof)
 {
     using FF = typename Flavor::FF;
-    using Commitment = barretenberg::g1::element;
+    using GroupElement = typename Flavor::GroupElement;
+    using Commitment = typename Flavor::Commitment;
     // using CommitmentAffine = barretenberg::g1::affine_element; // WORKTODO: Commitment (just G1?) vs CommitmentAffine
     using Gemini = pcs::gemini::MultilinearReductionScheme<pcs::kzg::Params>;
     using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<pcs::kzg::Params>;
     using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
     using VerifierCommitments = typename Flavor::VerifierCommitments;
+    using CommitmentLabels = typename Flavor::CommitmentLabels;
 
     // const size_t NUM_POLYNOMIALS = honk::StandardArithmetization::NUM_POLYNOMIALS;
     // const size_t NUM_UNSHIFTED = honk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
@@ -96,6 +98,7 @@ bool Verifier<Flavor, program_settings>::verify_proof(const plonk::proof& proof)
     transcript = VerifierTranscript<FF>{ proof.proof_data };
 
     auto commitments = VerifierCommitments(key, transcript);
+    auto commitment_labels = CommitmentLabels();
 
     // TODO(Adrian): Change the initialization of the transcript to take the VK hash?
     const auto circuit_size = transcript.template receive_from_prover<uint32_t>("circuit_size");
@@ -114,12 +117,10 @@ bool Verifier<Flavor, program_settings>::verify_proof(const plonk::proof& proof)
         public_inputs.emplace_back(public_input_i);
     }
 
-    // // Get commitments to the wires
-    // std::array<CommitmentAffine, num_wires> wire_commitments;
-    // for (size_t i = 0; i < num_wires; ++i) {
-    //     wire_commitments[i] = transcript.template receive_from_prover<CommitmentAffine>("W_" + std::to_string(i +
-    //     1));
-    // }
+    // Get commitments to the wires
+    commitments.w_l = transcript.template receive_from_prover<Commitment>(commitment_labels.w_l);
+    commitments.w_r = transcript.template receive_from_prover<Commitment>(commitment_labels.w_r);
+    commitments.w_o = transcript.template receive_from_prover<Commitment>(commitment_labels.w_o);
 
     // Get permutation challenges
     auto [beta, gamma] = transcript.get_challenges("beta", "gamma");
@@ -132,8 +133,8 @@ bool Verifier<Flavor, program_settings>::verify_proof(const plonk::proof& proof)
         .public_input_delta = public_input_delta,
     };
 
-    // // Get commitment to Z_PERM
-    // auto z_permutation_commitment = transcript.template receive_from_prover<CommitmentAffine>("Z_PERM");
+    // Get commitment to Z_PERM
+    commitments.z_perm = transcript.template receive_from_prover<Commitment>(commitment_labels.z_perm);
 
     // // TODO(Cody): Compute some basic public polys like id(X), pow(X), and any required Lagrange polys
 
@@ -157,8 +158,8 @@ bool Verifier<Flavor, program_settings>::verify_proof(const plonk::proof& proof)
     // Construct inputs for Gemini verifier:
     // - Multivariate opening point u = (u_0, ..., u_{d-1})
     // - batched unshifted and to-be-shifted polynomial commitments
-    auto batched_commitment_unshifted = Commitment::zero();
-    auto batched_commitment_to_be_shifted = Commitment::zero();
+    auto batched_commitment_unshifted = GroupElement::zero();
+    auto batched_commitment_to_be_shifted = GroupElement::zero();
 
     // Compute powers of batching challenge rho
     FF rho = transcript.get_challenge("rho");
@@ -167,7 +168,15 @@ bool Verifier<Flavor, program_settings>::verify_proof(const plonk::proof& proof)
     // Compute batched multivariate evaluation
     FF batched_evaluation = FF::zero();
     size_t evaluation_idx = 0;
-    for (auto& value : purported_evaluations) {
+    // for (auto& value : purported_evaluations.get_in_order()) {
+    //     batched_evaluation += value * rhos[evaluation_idx];
+    //     evaluation_idx++;
+    // }
+    for (auto& value : purported_evaluations.get_to_be_shifted()) {
+        batched_evaluation += value * rhos[evaluation_idx];
+        evaluation_idx++;
+    }
+    for (auto& value : purported_evaluations.get_not_to_be_shifted()) {
         batched_evaluation += value * rhos[evaluation_idx];
         evaluation_idx++;
     }

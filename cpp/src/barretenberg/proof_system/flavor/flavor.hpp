@@ -108,6 +108,7 @@ class Standard {
     using Polynomial = barretenberg::Polynomial<FF>;
     using PolynomialView = std::span<FF>;
     using G1 = barretenberg::g1;
+    using GroupElement = G1::element;
     using Commitment = G1::affine_element;
     using CommitmentView = G1::affine_element; // TODO(Cody): make a pointer?
     using PCSParams = pcs::kzg::Params;
@@ -282,7 +283,7 @@ class Standard {
 
         std::vector<T> get_not_to_be_shifted() override
         { // ...z_perm_shift is in here?
-            return { w_l,  w_r,  w_o,  z_perm_shift,   q_m,          q_l, q_r, q_o, q_c, sigma_1, sigma_2, sigma_3,
+            return { w_l,  w_r,  w_o,  z_perm,         q_m,          q_l, q_r, q_o, q_c, sigma_1, sigma_2, sigma_3,
                      id_1, id_2, id_3, lagrange_first, lagrange_last };
         };
 
@@ -429,12 +430,13 @@ class Standard {
       public:
         VerifierCommitments(std::shared_ptr<VerificationKey> verification_key, VerifierTranscript<FF> transcript)
         {
-            auto commitment_labels = CommitmentLabels();
-            w_l = transcript.template receive_from_prover<Commitment>(commitment_labels.w_l);
-            w_r = transcript.template receive_from_prover<Commitment>(commitment_labels.w_r);
-            w_o = transcript.template receive_from_prover<Commitment>(commitment_labels.w_o);
-            z_perm = transcript.template receive_from_prover<Commitment>(commitment_labels.z_perm);
-            z_perm_shift = transcript.template receive_from_prover<Commitment>(commitment_labels.z_perm_shift);
+            static_cast<void>(transcript);
+            // auto commitment_labels = CommitmentLabels();
+            // w_l = transcript.template receive_from_prover<Commitment>(commitment_labels.w_l);
+            // w_r = transcript.template receive_from_prover<Commitment>(commitment_labels.w_r);
+            // w_o = transcript.template receive_from_prover<Commitment>(commitment_labels.w_o);
+            // z_perm = transcript.template receive_from_prover<Commitment>(commitment_labels.z_perm);
+            // z_perm_shift = transcript.template receive_from_prover<Commitment>(commitment_labels.z_perm_shift);
             q_m = verification_key->q_m;
             q_l = verification_key->q_l;
             q_r = verification_key->q_r;
@@ -459,6 +461,7 @@ class Ultra {
     using Polynomial = barretenberg::Polynomial<FF>;
     using PolynomialView = std::span<FF>;
     using G1 = barretenberg::g1;
+    using GroupElement = G1::element;
     using Commitment = G1::affine_element;
     using CommitmentView = G1::affine_element; // TODO(Cody): make a pointer?
     using PCSParams = pcs::kzg::Params;
