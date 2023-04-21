@@ -1,6 +1,5 @@
 #pragma once
-// Meant to be included by cbind compilation units.
-// Avoid including in headers as it msgpack.hpp includes a good deal of headers.
+// Note: heavy header due to serialization logic, don't include if auto parameters will do
 #include <string>
 #include <iostream>
 #include <iomanip>
@@ -68,16 +67,13 @@ template <HasMsgPackFlat T> struct pack<T> {
     }
 };
 
-// template <HasMsgPack T> struct object_with_zone<T> {
-//     void operator()(msgpack::object::with_zone& o, T const& v) const
-//     {
-//         const_cast<T&>(v).msgpack(DefineMapArchive{}).msgpack_object(&o, o.zone);
-//     }
-// };
-// template <HasMsgPackFlat T> struct object_with_zone<T> {
-//     void operator()(msgpack::object::with_zone& o, T const& v) const
-//     {
-//         const_cast<T&>(v).msgpack_flat(DefineArchive{}).msgpack_object(o);
-//     }
-// };
+template <typename... T> struct pack<std::variant<T...>> {
+    template <typename Stream>
+    msgpack::packer<Stream>& operator()(msgpack::packer<Stream>& o, std::variant<T...> const& variant) const
+    {
+        std::visit([&o](auto&& arg) { msgpack::pack(o, arg); }, variant);
+        return o;
+    }
+};
+
 } // namespace msgpack::adaptor

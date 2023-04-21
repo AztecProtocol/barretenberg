@@ -7,7 +7,6 @@
 #include "msgpack.hpp"
 #include "msgpack-impl.hpp"
 #include "barretenberg/crypto/aes128/aes128.hpp"
-#include <cxxabi.h>
 
 using namespace barretenberg;
 
@@ -49,76 +48,6 @@ struct MyExampleMap {
     MyExampleFlat flat;
 
     void msgpack(auto ar) { ar(NVP(a), NVP(b), NVP(flat)); }
-};
-
-template <typename T> struct MsgPackSchema;
-
-struct DefineMapSchema {
-    auto operator()() { return std::make_tuple(); }
-    auto operator()(auto key, auto value)
-    {
-        (void)value; // unused except for type
-        return std::make_tuple(key, MsgPackSchema<decltype(value)>());
-    }
-
-    auto operator()(auto key, auto value, auto&... args)
-    {
-        (void)value; // unused except for type
-        return std::tuple_cat(std::make_tuple(key, MsgPackSchema<decltype(value)>()), (*this)(args...));
-    }
-};
-
-template <typename T> const char* schema_name()
-{
-    const char* result = abi::__cxa_demangle(typeid(T).name(), NULL, NULL, NULL);
-    std::string result_str = result;
-    if (result_str.find("basic_string") != std::string::npos) {
-        return "string";
-    }
-    if (result_str == "i") {
-        return "int";
-    }
-    return result;
-}
-
-template <typename T> struct MsgPackSchema {
-    // A viable reference is needed for define_map
-    const char* type_name_string = "__typename";
-    const char* type_name = schema_name<T>();
-    void msgpack_pack(auto& packer) const
-        requires msgpack::adaptor::HasMsgPack<T>
-    {
-        T object;
-        object.msgpack([&](auto&... args) {
-            msgpack::adaptor::DefineMapArchive ar;
-            auto archive_wrapper = [&](auto&... args) { return ar(type_name_string, type_name, args...); };
-            auto pack_map_schema = [&](auto&... args) {
-                auto schema = DefineMapSchema{}(args...);
-                std::apply(archive_wrapper, schema).msgpack_pack(packer);
-            };
-            std::apply(pack_map_schema, ar(args...).a);
-        });
-    }
-    void msgpack_pack(auto& packer) const
-        requires msgpack::adaptor::HasMsgPackFlat<T>
-    {
-        T object;
-        object.msgpack_flat([&](auto&... args) {
-            msgpack::adaptor::DefineArchive ar;
-            auto archive_wrapper = [&](auto&... args) { return ar(type_name, args...); };
-            auto pack_array_schema = [&](auto&... args) {
-                auto schema = std::make_tuple(MsgPackSchema<std::decay_t<decltype(args)>>{}...);
-                std::apply(archive_wrapper, schema).msgpack_pack(packer);
-            };
-            std::apply(pack_array_schema, ar(args...).a);
-        });
-    }
-    void msgpack_pack(auto& packer) const
-        requires(!msgpack::adaptor::HasMsgPack<T> && !msgpack::adaptor::HasMsgPackFlat<T>)
-    {
-        packer.pack_str((uint32_t)strlen(type_name));
-        packer.pack_str_body(type_name, (uint32_t)strlen(type_name));
-    }
 };
 
 namespace cbinds {

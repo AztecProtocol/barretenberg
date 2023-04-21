@@ -47,6 +47,9 @@ class address {
     friend std::ostream& operator<<(std::ostream& os, address const& v) { return os << v.address_; }
 
     fr to_field() const { return address_; }
+
+    void msgpack_pack(auto& packer) const { address_.msgpack_pack(packer); }
+    void msgpack_unpack(auto const& o) { address_.msgpack_unpack(o); }
 };
 
 template <typename B> void read(B& it, address& addr)
