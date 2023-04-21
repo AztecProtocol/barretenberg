@@ -3,10 +3,6 @@
 #include "io.hpp"
 #include "barretenberg/common/mem.hpp"
 #include <gtest/gtest.h>
-#include <fstream>
-#include "msgpack.hpp"
-#include "msgpack_impl.hpp"
-#include "barretenberg/crypto/aes128/aes128.hpp"
 
 using namespace barretenberg;
 
@@ -33,75 +29,4 @@ TEST(io, read_transcript_loads_well_formed_srs)
         EXPECT_EQ(monomials[i].on_curve(), true);
     }
     aligned_free(monomials);
-}
-
-struct MyExampleFlat {
-    int a;
-    std::string b;
-
-    void msgpack_flat(auto ar) { ar(a, b); }
-};
-
-struct MyExampleMap {
-    int a;
-    std::string b;
-    MyExampleFlat flat;
-
-    void msgpack(auto ar) { ar(NVP(a), NVP(b), NVP(flat)); }
-};
-
-namespace cbinds {
-struct aes__decrypt_buffer_cbc {
-    std::vector<uint8_t> in;
-    std::vector<uint8_t> iv;
-    std::vector<uint8_t> key;
-    size_t length;
-    void msgpack_flat(auto ar) { ar(in, iv, key, length); }
-    auto operator()()
-    {
-        crypto::aes128::decrypt_buffer_cbc(in.data(), iv.data(), key.data(), length);
-        return in;
-    }
-};
-} // namespace cbinds
-
-// auto aes__decrypt_buffer_cbc(uint8_t* in, uint8_t* iv, const uint8_t* key, const size_t length, uint8_t* r) {}
-// auto cbind_example() {}
-
-void pretty_print(const auto& obj)
-{
-    std::stringstream output;
-    msgpack::pack(output, obj);
-    std::string output_str = output.str();
-    msgpack::object_handle oh = msgpack::unpack(output_str.data(), output_str.size());
-    std::cout << oh.get() << std::endl;
-}
-
-TEST(io, myexample)
-{
-
-    { // pack, unpack
-        MyExampleMap my{ 1, "2", { 3, "4" } };
-        MsgPackSchema<MyExampleMap> my_schema;
-        pretty_print(my);
-        pretty_print(my_schema);
-        std::stringstream ss;
-        msgpack::pack(ss, my);
-
-        std::string const& str = ss.str();
-        // Write the packed data to a file
-        std::ofstream ofs("output.msgpack", std::ios::binary);
-        if (ofs) {
-            ofs.write(str.data(), (std::streamsize)str.size());
-            ofs.close();
-            std::cout << "Binary string written to output.msgpack" << std::endl;
-        } else {
-            std::cerr << "Error: Unable to open output.msgpack" << std::endl;
-        }
-        msgpack::object_handle oh = msgpack::unpack(str.data(), str.size());
-        msgpack::object obj = oh.get();
-        std::cout << obj << std::endl;
-        MyExampleMap map = obj.convert();
-        std::cout << map.b << std::endl;
-    }
 }
