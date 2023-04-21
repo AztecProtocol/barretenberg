@@ -1,11 +1,10 @@
 /**
  * @file ultra_circuit_constructor.cpp
- * @author Luke (ledwards2225) and Kesha (Rumata888) (you@domain.com)
+ * @author Luke (ledwards2225) and Kesha (Rumata888)
  * @brief This file contains the implementation of UltraCircuitConstructor class that defines the logic of ultra-style
  * circuits and is intended for the use in UltraHonk and UltraPlonk systems
  *
  * @todo 1) Replace barretenberg::fr with templated FF or Field
- * @todo 2) See the inefficiency in auxilary gate. Delete extra LIMB multiplication and see if something breaks
  *
  */
 #include "ultra_circuit_constructor.hpp"
@@ -655,6 +654,7 @@ void UltraCircuitConstructor::create_new_range_constraint(const uint32_t variabl
                                                           std::string const msg)
 {
     ENABLE_ALL_IN_THE_HEAD_SWITCHES
+
     if (uint256_t(get_variable(variable_index)).data[0] > target_range) {
         if (!failed()) {
             failure(msg);
@@ -664,9 +664,44 @@ void UltraCircuitConstructor::create_new_range_constraint(const uint32_t variabl
         switched_range_lists.insert({ target_range, create_range_list(target_range) });
     }
 
+    const auto existing_tag = switched_real_variable_tags[switched_real_variable_index[variable_index]];
     auto& list = switched_range_lists[target_range];
-    assign_tag(variable_index, list.range_tag);
-    list.variable_indices.emplace_back(variable_index);
+
+    // If the variable's tag matches the target range list's tag, do nothing.
+    if (existing_tag != list.range_tag) {
+        // If the variable is 'untagged' (i.e., it has the dummy tag), assign it the appropriate tag.
+        // Otherwise, find the range for which the variable has already been tagged.
+        if (existing_tag != DUMMY_TAG) {
+            bool found_tag = false;
+            for (const auto& r : range_lists) {
+                if (r.second.range_tag == existing_tag) {
+                    found_tag = true;
+                    if (r.first < target_range) {
+                        // The variable already has a more restrictive range check, so do nothing.
+                        return;
+                    } else {
+                        // The range constraint we are trying to impose is more restrictive than the existing range
+                        // constraint. It would be difficult to remove an existing range check. Instead deep-copy the
+                        // variable and apply a range check to new variable
+                        const uint32_t copied_witness = add_variable(get_variable(variable_index));
+                        create_add_gate({ .a = variable_index,
+                                          .b = copied_witness,
+                                          .c = zero_idx,
+                                          .a_scaling = 1,
+                                          .b_scaling = -1,
+                                          .c_scaling = 0,
+                                          .const_scaling = 0 });
+                        // Recurse with new witness that has no tag attached.
+                        create_new_range_constraint(copied_witness, target_range, msg);
+                        return;
+                    }
+                }
+            }
+            ASSERT(found_tag == true);
+        }
+        assign_tag(variable_index, list.range_tag);
+        list.variable_indices.emplace_back(variable_index);
+    }
 }
 
 void UltraCircuitConstructor::process_range_list(const RangeList& list)
@@ -710,7 +745,8 @@ void UltraCircuitConstructor::process_range_list(const RangeList& list)
 
 void UltraCircuitConstructor::process_range_lists()
 {
-    for (const auto& i : range_lists)
+    ENABLE_ALL_IN_THE_HEAD_SWITCHES
+    for (const auto& i : switched_range_lists)
         process_range_list(i.second);
 }
 
@@ -2343,6 +2379,7 @@ void UltraCircuitConstructor::process_RAM_array(const size_t ram_id, const size_
     // Step 2: Create gates that validate correctness of RAM timestamps
 
     std::vector<uint32_t> timestamp_deltas;
+
     for (size_t i = 0; i < ram_array.records.size() - 1; ++i) {
         // create_RAM_timestamp_gate(sorted_records[i], sorted_records[i + 1])
         const auto& current = ram_array.records[i];
@@ -2384,7 +2421,6 @@ void UltraCircuitConstructor::process_RAM_array(const size_t ram_id, const size_
         0,
         0,
     });
-
     // Step 3: validate difference in timestamps is monotonically increasing. i.e. is <= maximum timestamp
     const size_t max_timestamp = ram_array.access_count - 1;
     for (auto& w : timestamp_deltas) {
@@ -2969,6 +3005,7 @@ inline fr UltraCircuitConstructor::compute_auxilary_identity(fr q_aux_value,
      * The complete RAM/ROM memory identity
      *
      */
+
     fr memory_identity = ROM_consistency_check_identity * q_2_value;
     memory_identity += RAM_timestamp_check_identity * q_4_value;
     memory_identity += memory_record_check * q_m_value;
@@ -2998,7 +3035,9 @@ bool UltraCircuitConstructor::check_circuit()
     update_circuit_in_the_head();
     in_the_head = true;
     // Finalize circuit-in-the-head
+
     finalize_circuit();
+
     // Sample randomness
     const fr arithmetic_base = fr::random_element();
     const fr elliptic_base = fr::random_element();
@@ -3006,15 +3045,15 @@ bool UltraCircuitConstructor::check_circuit()
     const fr auxillary_base = fr::random_element();
     const fr alpha = fr::random_element();
     const fr eta = fr::random_element();
-    const fr eta_sqr = eta.sqr();
 
     // We need to get all memory
-    std::unordered_set<size_t> memory_record_gates;
+    std::unordered_set<size_t> memory_read_record_gates;
+    std::unordered_set<size_t> memory_write_record_gates;
     for (const auto& gate_idx : circuit_in_the_head.memory_read_records) {
-        memory_record_gates.insert(gate_idx);
+        memory_read_record_gates.insert(gate_idx);
     }
     for (const auto& gate_idx : circuit_in_the_head.memory_write_records) {
-        memory_record_gates.insert(gate_idx);
+        memory_write_record_gates.insert(gate_idx);
     }
 
     // A hashing implementation for quick simulation lookups
@@ -3100,10 +3139,7 @@ bool UltraCircuitConstructor::check_circuit()
         fr w_2_value;
         fr w_3_value;
         fr w_4_value;
-        fr w_1_real_index;
-        fr w_2_real_index;
-        fr w_3_real_index;
-        fr w_4_real_index;
+        fr w_4_index;
         // Get the values of selectors and wires and update tag products along the way
         if (i < num_gates) {
             q_arith_value = q_arith[i];
@@ -3124,7 +3160,8 @@ bool UltraCircuitConstructor::check_circuit()
             w_3_value = get_variable(w_o[i]);
             update_tag_check_information(w_o[i], w_3_value);
             w_4_value = get_variable(w_4[i]);
-            update_tag_check_information(w_4[i], w_4_value);
+            // We need to wait before updating tag product for w_4
+            w_4_index = w_4[i];
 
         } else {
             // The in-the-head selector and wire variable indices are not copies of the circuit values, but rather the
@@ -3134,7 +3171,7 @@ bool UltraCircuitConstructor::check_circuit()
             q_aux_value = circuit_in_the_head.q_aux[offset];
             q_elliptic_value = circuit_in_the_head.q_elliptic[offset];
             q_sort_value = circuit_in_the_head.q_sort[offset];
-            q_lookup_type_value = circuit_in_the_head.q_lookup_type[i];
+            q_lookup_type_value = circuit_in_the_head.q_lookup_type[offset];
             q_1_value = circuit_in_the_head.q_1[offset];
             q_2_value = circuit_in_the_head.q_2[offset];
             q_3_value = circuit_in_the_head.q_3[offset];
@@ -3148,12 +3185,18 @@ bool UltraCircuitConstructor::check_circuit()
             w_3_value = get_variable(circuit_in_the_head.w_o[offset]);
             update_tag_check_information(circuit_in_the_head.w_o[offset], w_3_value);
             w_4_value = get_variable(circuit_in_the_head.w_4[offset]);
-            update_tag_check_information(circuit_in_the_head.w_4[offset], w_4_value);
+            // We need to wait before updating tag product for w_4
+            w_4_index = circuit_in_the_head.w_4[offset];
         }
         // If we are touching a gate with memory access, we need to update the value of the 4th witness
-        if (memory_record_gates.contains(i)) {
-            w_4_value = w_1_value + eta * w_2_value + eta_sqr * w_3_value;
+        if (memory_read_record_gates.contains(i)) {
+            w_4_value = ((w_3_value * eta + w_2_value) * eta + w_1_value) * eta;
         }
+        if (memory_write_record_gates.contains(i)) {
+            w_4_value = ((w_3_value * eta + w_2_value) * eta + w_1_value) * eta + fr::one();
+        }
+        // Now we can update the tag product for w_4
+        update_tag_check_information((uint32_t)w_4_index, w_4_value);
         fr w_1_shifted_value;
         fr w_2_shifted_value;
         fr w_3_shifted_value;
@@ -3166,18 +3209,23 @@ bool UltraCircuitConstructor::check_circuit()
             w_4_shifted_value = get_variable(w_4[i + 1]);
         } else if (i < (circuit_in_the_head.num_gates - 1)) {
 
-            w_1_shifted_value = get_variable(circuit_in_the_head.w_l[i + 1]);
-            w_2_shifted_value = get_variable(circuit_in_the_head.w_r[i + 1]);
-            w_3_shifted_value = get_variable(circuit_in_the_head.w_o[i + 1]);
-            w_4_shifted_value = get_variable(circuit_in_the_head.w_4[i + 1]);
+            size_t offset = i - num_gates;
+            w_1_shifted_value = get_variable(circuit_in_the_head.w_l[offset + 1]);
+            w_2_shifted_value = get_variable(circuit_in_the_head.w_r[offset + 1]);
+            w_3_shifted_value = get_variable(circuit_in_the_head.w_o[offset + 1]);
+            w_4_shifted_value = get_variable(circuit_in_the_head.w_4[offset + 1]);
         } else {
             w_1_shifted_value = fr::zero();
             w_2_shifted_value = fr::zero();
             w_3_shifted_value = fr::zero();
             w_4_shifted_value = fr::zero();
         }
-        if (memory_record_gates.contains(i + 1)) {
-            w_4_shifted_value = w_1_shifted_value + eta * w_2_shifted_value + eta_sqr * w_3_shifted_value;
+        if (memory_read_record_gates.contains(i + 1)) {
+            w_4_shifted_value = ((w_3_shifted_value * eta + w_2_shifted_value) * eta + w_1_shifted_value) * eta;
+        }
+        if (memory_write_record_gates.contains(i + 1)) {
+            w_4_shifted_value =
+                ((w_3_shifted_value * eta + w_2_shifted_value) * eta + w_1_shifted_value) * eta + fr::one();
         }
         if (!compute_arithmetic_identity(q_arith_value,
                                          q_1_value,
@@ -3195,6 +3243,9 @@ bool UltraCircuitConstructor::check_circuit()
                                          arithmetic_base,
                                          alpha)
                  .is_zero()) {
+#ifndef FUZZING
+            info("Arithemtic identity fails at gate ", i);
+#endif
             result = false;
             break;
         }
@@ -3218,6 +3269,10 @@ bool UltraCircuitConstructor::check_circuit()
                                        alpha,
                                        eta)
                  .is_zero()) {
+#ifndef FUZZING
+            info("Auxilary identity fails at gate ", i);
+#endif
+
             result = false;
             break;
         }
@@ -3234,12 +3289,19 @@ bool UltraCircuitConstructor::check_circuit()
                                        elliptic_base,
                                        alpha)
                  .is_zero()) {
+#ifndef FUZZING
+            info("Elliptic identity fails at gate ", i);
+#endif
             result = false;
             break;
         }
         if (!compute_genperm_sort_identity(
                  q_sort_value, w_1_value, w_2_value, w_3_value, w_4_value, w_1_shifted_value, genperm_sort_base, alpha)
                  .is_zero()) {
+#ifndef FUZZING
+            info("Genperm sort identity fails at gate ", i);
+#endif
+
             result = false;
             break;
         }
@@ -3248,12 +3310,22 @@ bool UltraCircuitConstructor::check_circuit()
                                                      w_2_value + q_m_value * w_2_shifted_value,
                                                      w_3_value + q_c_value * w_3_shifted_value,
                                                      q_3_value))) {
+#ifndef FUZZING
+                info("Lookup fails at gate ", i);
+#endif
+
                 result = false;
                 break;
             }
         }
     }
     if (left_tag_product != right_tag_product) {
+#ifndef FUZZING
+        if (result) {
+            info("Tag permutation failed");
+        }
+#endif
+
         result = false;
     }
     in_the_head = false;
@@ -3289,6 +3361,7 @@ void UltraCircuitConstructor::update_circuit_in_the_head()
     circuit_in_the_head.q_arith.clear();
     circuit_in_the_head.q_elliptic.clear();
     circuit_in_the_head.q_aux.clear();
+    circuit_in_the_head.q_sort.clear();
     circuit_in_the_head.q_lookup_type.clear();
     // Update current tag in the head to be the same as current real tag
     circuit_in_the_head.current_tag = current_tag;

@@ -831,12 +831,21 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
     {
         if (in_the_head) {
             ASSERT(tag <= circuit_in_the_head.current_tag);
+
             auto& current_real_variable_tags = circuit_in_the_head.real_variable_tags;
             auto& current_real_variable_index = circuit_in_the_head.real_variable_index;
+            // If we've already assigned this tag to this variable, return (can happen due to copy constraints)
+            if (current_real_variable_tags[current_real_variable_index[variable_index]] == tag) {
+                return;
+            }
             ASSERT(current_real_variable_tags[current_real_variable_index[variable_index]] == DUMMY_TAG);
             current_real_variable_tags[current_real_variable_index[variable_index]] = tag;
         } else {
             ASSERT(tag <= current_tag);
+            // If we've already assigned this tag to this variable, return (can happen due to copy constraints)
+            if (real_variable_tags[real_variable_index[variable_index]] == tag) {
+                return;
+            }
             ASSERT(real_variable_tags[real_variable_index[variable_index]] == DUMMY_TAG);
             real_variable_tags[real_variable_index[variable_index]] = tag;
         }
@@ -999,7 +1008,9 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
                                     rom_arrays,                                                                        \
                                     memory_read_records,                                                               \
                                     memory_write_records,                                                              \
-                                    range_lists)
+                                    range_lists,                                                                       \
+                                    real_variable_tags,                                                                \
+                                    real_variable_index)
     // Circuit evaluation methods
 
     fr compute_arithmetic_identity(fr q_arith_value,
