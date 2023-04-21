@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <sstream>
 #include <cassert>
+#include "throw_or_abort.hpp"
 #define MSGPACK_NO_BOOST
 #include <msgpack.hpp>
 
