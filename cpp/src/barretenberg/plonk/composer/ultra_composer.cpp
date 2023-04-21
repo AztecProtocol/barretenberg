@@ -14,10 +14,10 @@
 #include "barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp"
 #include "barretenberg/srs/reference_string/file_reference_string.hpp"
 
-#include "plookup_tables/types.hpp"
-#include "plookup_tables/plookup_tables.hpp"
-#include "plookup_tables/aes128.hpp"
-#include "plookup_tables/sha256.hpp"
+#include "barretenberg/proof_system/plookup_tables/types.hpp"
+#include "barretenberg/proof_system/plookup_tables/plookup_tables.hpp"
+#include "barretenberg/proof_system/plookup_tables/aes128.hpp"
+#include "barretenberg/proof_system/plookup_tables/sha256.hpp"
 
 #ifndef NO_TBB
 #include <tbb/atomic.h>

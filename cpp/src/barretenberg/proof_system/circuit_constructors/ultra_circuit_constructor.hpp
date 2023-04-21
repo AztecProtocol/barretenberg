@@ -6,8 +6,8 @@
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "barretenberg/proof_system/types/merkle_hash_type.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/plonk/composer/plookup_tables/types.hpp"
-#include "barretenberg/plonk/composer/plookup_tables/plookup_tables.hpp"
+#include "barretenberg/proof_system/plookup_tables/types.hpp"
+#include "barretenberg/proof_system/plookup_tables/plookup_tables.hpp"
 #include "barretenberg/plonk/proof_system/types/prover_settings.hpp"
 #include <optional>
 
