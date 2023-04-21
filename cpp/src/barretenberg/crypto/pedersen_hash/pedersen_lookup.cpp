@@ -12,6 +12,8 @@ std::array<std::vector<grumpkin::g1::affine_element>, NUM_PEDERSEN_TABLES> peder
 std::vector<grumpkin::g1::affine_element> pedersen_iv_table;
 std::array<grumpkin::g1::affine_element, NUM_PEDERSEN_TABLES> generators;
 
+// Mutex is not available in the WASM context.
+// WASM runs in a single-thread so this is acceptable.
 #if !defined(__wasm__)
 std::mutex init_mutex;
 #endif
