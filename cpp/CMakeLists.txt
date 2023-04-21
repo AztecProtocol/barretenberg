@@ -68,6 +68,7 @@ if(FUZZING)
     set(MULTITHREADING OFF)
     set(TESTING OFF)
 endif()
+set(MULTITHREADING OFF)
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "wasm32")
     message(STATUS "Compiling for WebAssembly.")

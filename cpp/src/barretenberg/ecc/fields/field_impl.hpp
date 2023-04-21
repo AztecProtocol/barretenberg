@@ -13,6 +13,12 @@
 
 #include "field_impl_generic.hpp"
 
+// For serialization
+namespace msgpack::v2 { // Hack, have to forward v2 namespace
+struct object;
+}
+void msgpack_read_bin64(const msgpack::v2::object& obj, uint64_t* data, size_t size);
+
 namespace barretenberg {
 
 // template <class T> constexpr void field<T>::butterfly(field& left, field& right) noexcept
@@ -605,6 +611,24 @@ template <class T> constexpr field<T> field<T>::multiplicative_generator() noexc
         found = (target.pow(p_minus_one_over_two) == -field(1));
     }
     return target;
+}
+
+// For serialization
+template <class Params> void field<Params>::msgpack_pack(auto& packer) const
+{
+    auto adjusted = from_montgomery_form();
+    uint64_t bin_data[4] = {
+        htonll(adjusted.data[0]), htonll(adjusted.data[1]), htonll(adjusted.data[2]), htonll(adjusted.data[3])
+    };
+    packer.pack_bin(sizeof(bin_data));
+    packer.pack_bin_body((const char*)bin_data, sizeof(bin_data));
+}
+
+// For serialization
+template <class Params> void field<Params>::msgpack_unpack(auto o)
+{
+    msgpack_read_bin64(o, data, sizeof(data) / sizeof(uint64_t));
+    *this = to_montgomery_form();
 }
 
 } // namespace barretenberg
