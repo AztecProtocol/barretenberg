@@ -82,18 +82,11 @@ bool Verifier<Flavor, program_settings>::verify_proof(const plonk::proof& proof)
     using FF = typename Flavor::FF;
     using GroupElement = typename Flavor::GroupElement;
     using Commitment = typename Flavor::Commitment;
-    // using CommitmentAffine = barretenberg::g1::affine_element; // WORKTODO: Commitment (just G1?) vs CommitmentAffine
     using Gemini = pcs::gemini::MultilinearReductionScheme<pcs::kzg::Params>;
     using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<pcs::kzg::Params>;
     using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
     using VerifierCommitments = typename Flavor::VerifierCommitments;
     using CommitmentLabels = typename Flavor::CommitmentLabels;
-
-    // const size_t NUM_POLYNOMIALS = honk::StandardArithmetization::NUM_POLYNOMIALS;
-    // const size_t NUM_UNSHIFTED = honk::StandardArithmetization::NUM_UNSHIFTED_POLYNOMIALS;
-    // const size_t NUM_PRECOMPUTED = honk::StandardArithmetization::NUM_PRECOMPUTED_POLYNOMIALS;
-
-    // constexpr auto num_wires = Flavor::num_wires;
 
     transcript = VerifierTranscript<FF>{ proof.proof_data };
 

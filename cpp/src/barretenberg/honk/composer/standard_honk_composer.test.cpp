@@ -314,6 +314,7 @@ TEST(StandardHonkComposer, BaseCase)
 
     auto prover = composer.create_prover();
     plonk::proof proof = prover.construct_proof();
+    proof.print();
     auto verifier = composer.create_verifier();
     bool verified = verifier.verify_proof(proof);
     ASSERT_TRUE(verified);

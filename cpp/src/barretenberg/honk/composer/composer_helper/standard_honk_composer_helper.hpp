@@ -44,8 +44,7 @@ class StandardHonkComposerHelper {
     StandardHonkComposerHelper(std::unique_ptr<ReferenceStringFactory>&& crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
-    StandardHonkComposerHelper(std::shared_ptr<ProvingKey> p_key,
-                               std::shared_ptr<VerificationKey> v_key) // WORKTODO
+    StandardHonkComposerHelper(std::shared_ptr<ProvingKey> p_key, std::shared_ptr<VerificationKey> v_key)
         : proving_key(std::move(p_key))
         , circuit_verification_key(std::move(v_key))
     {}

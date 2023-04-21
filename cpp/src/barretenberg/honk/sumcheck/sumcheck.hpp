@@ -133,7 +133,7 @@ template <typename Flavor, class Transcript, template <class> class... Relations
         std::array<FF, NUM_POLYNOMIALS> multivariate_evaluations;
         for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
             multivariate_evaluations[i] = folded_polynomials[i][0];
-            info("multivariate_evaluations[", i, "] = ", multivariate_evaluations[i]);
+            // info(multivariate_evaluations[i], "<-- in sumcheck prover");
         }
         transcript.send_to_verifier("Sumcheck:evaluations", multivariate_evaluations);
 
@@ -186,6 +186,10 @@ template <typename Flavor, class Transcript, template <class> class... Relations
         // Final round
         PurportedEvaluations purported_evaluations =
             transcript.template receive_from_prover<std::array<FF, NUM_POLYNOMIALS>>("Sumcheck:evaluations");
+
+        // for (auto& eval : purported_evaluations) {
+        //     info(eval, "<-- in sumcheck verifier");
+        // };
 
         FF full_honk_relation_purported_value = round.compute_full_honk_relation_purported_value(
             purported_evaluations._data, relation_parameters, pow_univariate, alpha);

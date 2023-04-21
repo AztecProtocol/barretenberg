@@ -19,7 +19,7 @@ template <typename Flavor> struct SumcheckOutput {
     SumcheckOutput()
         : purported_evaluations(std::array<FF, Flavor::NUM_ALL_ENTITIES>()){};
 
-    SumcheckOutput(std::vector<FF> _challenge_point, PurportedEvaluations _purported_evaluations)
+    SumcheckOutput(const std::vector<FF>& _challenge_point, const PurportedEvaluations& _purported_evaluations)
         : challenge_point(_challenge_point)
         , purported_evaluations(_purported_evaluations){};
 

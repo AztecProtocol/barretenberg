@@ -161,6 +161,9 @@ template <typename Flavor> void Prover<Flavor>::execute_relation_check_rounds()
     auto sumcheck = Sumcheck(key->circuit_size, transcript);
 
     sumcheck_output = sumcheck.execute_prover(prover_polynomials, relation_parameters);
+    // for (auto& eval : sumcheck_output.purported_evaluations) {
+    //     info(eval);
+    // };
 }
 
 /**
