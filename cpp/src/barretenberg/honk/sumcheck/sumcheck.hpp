@@ -95,6 +95,9 @@ template <typename Flavor, class Transcript, template <class> class... Relations
     {
         auto [alpha, zeta] = transcript.get_challenges("Sumcheck:alpha", "Sumcheck:zeta");
 
+        info("alpha = ", alpha);
+        info("zeta = ", zeta);
+
         PowUnivariate<FF> pow_univariate(zeta);
 
         std::vector<FF> multivariate_challenge;
@@ -105,6 +108,7 @@ template <typename Flavor, class Transcript, template <class> class... Relations
         auto round_univariate = round.compute_univariate(full_polynomials, relation_parameters, pow_univariate, alpha);
         transcript.send_to_verifier("Sumcheck:univariate_0", round_univariate);
         FF round_challenge = transcript.get_challenge("Sumcheck:u_0");
+        info("u_0 = ", round_challenge);
         multivariate_challenge.emplace_back(round_challenge);
         fold(full_polynomials, multivariate_n, round_challenge);
         pow_univariate.partially_evaluate(round_challenge);
@@ -117,6 +121,7 @@ template <typename Flavor, class Transcript, template <class> class... Relations
             round_univariate = round.compute_univariate(folded_polynomials, relation_parameters, pow_univariate, alpha);
             transcript.send_to_verifier("Sumcheck:univariate_" + std::to_string(round_idx), round_univariate);
             FF round_challenge = transcript.get_challenge("Sumcheck:u_" + std::to_string(round_idx));
+            info("u_", round_idx, " = ", round_challenge);
             multivariate_challenge.emplace_back(round_challenge);
             fold(folded_polynomials, round.round_size, round_challenge);
             pow_univariate.partially_evaluate(round_challenge);
@@ -128,6 +133,7 @@ template <typename Flavor, class Transcript, template <class> class... Relations
         std::array<FF, NUM_POLYNOMIALS> multivariate_evaluations;
         for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
             multivariate_evaluations[i] = folded_polynomials[i][0];
+            info("multivariate_evaluations[", i, "] = ", multivariate_evaluations[i]);
         }
         transcript.send_to_verifier("Sumcheck:evaluations", multivariate_evaluations);
 

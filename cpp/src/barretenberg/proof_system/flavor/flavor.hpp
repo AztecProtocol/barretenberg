@@ -261,31 +261,33 @@ class Standard {
 
     template <typename T> class AllData : public BaseAllData<T, NUM_ALL_ENTITIES> {
       public:
-        T& w_l = std::get<0>(this->_data);
-        T& w_r = std::get<1>(this->_data);
-        T& w_o = std::get<2>(this->_data);
-        T& z_perm = std::get<3>(this->_data);
-        T& z_perm_shift = std::get<4>(this->_data);
-        T& q_m = std::get<5>(this->_data);
-        T& q_l = std::get<6>(this->_data);
-        T& q_r = std::get<7>(this->_data);
-        T& q_o = std::get<8>(this->_data);
-        T& q_c = std::get<9>(this->_data);
-        T& sigma_1 = std::get<10>(this->_data);
-        T& sigma_2 = std::get<11>(this->_data);
-        T& sigma_3 = std::get<12>(this->_data);
-        T& id_1 = std::get<13>(this->_data);
-        T& id_2 = std::get<14>(this->_data);
-        T& id_3 = std::get<15>(this->_data);
-        T& lagrange_first = std::get<16>(this->_data);
-        T& lagrange_last = std::get<17>(this->_data);
+        T& q_c = std::get<0>(this->_data);
+        T& q_l = std::get<1>(this->_data);
+        T& q_r = std::get<2>(this->_data);
+        T& q_o = std::get<3>(this->_data);
+        T& q_m = std::get<4>(this->_data);
+        T& sigma_1 = std::get<5>(this->_data);
+        T& sigma_2 = std::get<6>(this->_data);
+        T& sigma_3 = std::get<7>(this->_data);
+        T& id_1 = std::get<8>(this->_data);
+        T& id_2 = std::get<9>(this->_data);
+        T& id_3 = std::get<10>(this->_data);
+        T& lagrange_first = std::get<11>(this->_data);
+        T& lagrange_last = std::get<12>(this->_data);
+        T& w_l = std::get<13>(this->_data);
+        T& w_r = std::get<14>(this->_data);
+        T& w_o = std::get<15>(this->_data);
+        T& z_perm = std::get<16>(this->_data);
+        T& z_perm_shift = std::get<17>(this->_data);
 
         std::vector<T> get_wires() { return { w_l, w_r, w_o }; };
 
         std::vector<T> get_unshifted() override
         { // ...z_perm_shift is in here?
-            return { w_l,  w_r,  w_o,  z_perm,         q_m,          q_l, q_r, q_o, q_c, sigma_1, sigma_2, sigma_3,
-                     id_1, id_2, id_3, lagrange_first, lagrange_last };
+            // return { w_l,  w_r,  w_o,  z_perm,         q_m,          q_l, q_r, q_o, q_c, sigma_1, sigma_2, sigma_3,
+            //          id_1, id_2, id_3, lagrange_first, lagrange_last };
+            return { q_c,           q_l, q_r, q_o, q_m,   sigma_1, sigma_2, sigma_3, id_1, id_2, id_3, lagrange_first,
+                     lagrange_last, w_l, w_r, w_o, z_perm };
         };
 
         std::vector<T> get_to_be_shifted() override { return { z_perm }; };
