@@ -14,7 +14,7 @@ namespace msgpack::adaptor {
 template <HasMsgPack T> struct convert<T> {
     msgpack::object const& operator()(msgpack::object const& o, T& v) const
     {
-        v.msgpack([&](auto&... args) { msgpack::type::define_map{args...}.msgpack_unpack(o); });
+        v.msgpack([&](auto&... args) { msgpack::type::define_map<decltype(args)...>{args...}.msgpack_unpack(o); });
         return o;
     }
 };
@@ -23,7 +23,7 @@ template <HasMsgPack T> struct convert<T> {
 template <HasMsgPack T> struct pack<T> {
     template <typename Stream> packer<Stream>& operator()(msgpack::packer<Stream>& o, T const& v) const
     {
-        const_cast<T&>(v).msgpack([&](auto&... args) { msgpack::type::define_map{args...}.msgpack_pack(o); });
+        const_cast<T&>(v).msgpack([&](auto&... args) { msgpack::type::define_map<decltype(args)...>{args...}.msgpack_pack(o); });
         return o;
     }
 };

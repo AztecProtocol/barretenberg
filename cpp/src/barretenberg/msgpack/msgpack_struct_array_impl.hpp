@@ -15,7 +15,7 @@ namespace msgpack::adaptor {
 template <HasMsgPackFlat T> struct convert<T> {
     msgpack::object const& operator()(msgpack::object const& o, T& v) const
     {
-        v.msgpack_flat([&](auto&... args) {  msgpack::type::define_array{args...}.msgpack_unpack(o); });
+        v.msgpack_flat([&](auto&... args) {  msgpack::type::define_array<decltype(args)...>{args...}.msgpack_unpack(o); });
         return o;
     }
 };
@@ -24,7 +24,7 @@ template <HasMsgPackFlat T> struct convert<T> {
 template <HasMsgPackFlat T> struct pack<T> {
     template <typename Stream> packer<Stream>& operator()(msgpack::packer<Stream>& o, T const& v) const
     {
-        const_cast<T&>(v).msgpack_flat([&](auto&... args) { msgpack::type::define_array{args...}.msgpack_pack(o); });
+        const_cast<T&>(v).msgpack_flat([&](auto&... args) { msgpack::type::define_array<decltype(args)...>{args...}.msgpack_pack(o); });
         return o;
     }
 };
