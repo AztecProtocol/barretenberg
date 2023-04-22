@@ -131,13 +131,12 @@ void UltraHonkComposerHelper::compute_witness(CircuitConstructor& circuit_constr
         ++count;
     }
 
-    // WORK TODO
-    // // TODO(luke): Adding these to the key for now but this is inconsistent since these are 'witness' polys. Need
-    // // to see what becomes of the proving key before making a decision here.
-    // circuit_proving_key->polynomial_store.put("s_1_lagrange", std::move(s_1));
-    // circuit_proving_key->polynomial_store.put("s_2_lagrange", std::move(s_2));
-    // circuit_proving_key->polynomial_store.put("s_3_lagrange", std::move(s_3));
-    // circuit_proving_key->polynomial_store.put("s_4_lagrange", std::move(s_4));
+    // TODO(luke): Adding these to the key for now but this is inconsistent since these are 'witness' polys. Need
+    // to see what becomes of the proving key before making a decision here.
+    circuit_proving_key->sorted_1 = s_1;
+    circuit_proving_key->sorted_2 = s_2;
+    circuit_proving_key->sorted_3 = s_3;
+    circuit_proving_key->sorted_4 = s_4;
 
     computed_witness = true;
 }
@@ -254,20 +253,16 @@ std::shared_ptr<UltraHonkComposerHelper::Flavor::ProvingKey> UltraHonkComposerHe
         ++offset;
     }
 
-    // // In the case of using UltraPlonkComposer for a circuit which does _not_ make use of any lookup tables, all
-    // four
-    // // table columns would be all zeros. This would result in these polys' commitments all being the point at
-    // infinity
-    // // (which is bad because our point arithmetic assumes we'll never operate on the point at infinity). To avoid
-    // this,
-    // // we set the last evaluation of each poly to be nonzero. The last `num_roots_cut_out_of_vanishing_poly = 4`
-    // // evaluations are ignored by constraint checks; we arbitrarily choose the very-last evaluation to be nonzero.
-    // See
-    // // ComposerBase::compute_proving_key_base for further explanation, as a similar trick is done there. We could
-    // // have chosen `1` for each such evaluation here, but that would have resulted in identical commitments for
-    // // all four columns. We don't want to have equal commitments, because biggroup operations assume no points are
-    // // equal, so if we tried to verify an ultra proof in a circuit, the biggroup operations would fail. To combat
-    // // this, we just choose distinct values:
+    // In the case of using UltraPlonkComposer for a circuit which does _not_ make use of any lookup tables, all four
+    // table columns would be all zeros. This would result in these polys' commitments all being the point at infinity
+    // (which is bad because our point arithmetic assumes we'll never operate on the point at infinity). To avoid this,
+    // we set the last evaluation of each poly to be nonzero. The last `num_roots_cut_out_of_vanishing_poly = 4`
+    // evaluations are ignored by constraint checks; we arbitrarily choose the very-last evaluation to be nonzero. See
+    // ComposerBase::compute_proving_key_base for further explanation, as a similar trick is done there. We could
+    // have chosen `1` for each such evaluation here, but that would have resulted in identical commitments for
+    // all four columns. We don't want to have equal commitments, because biggroup operations assume no points are
+    // equal, so if we tried to verify an ultra proof in a circuit, the biggroup operations would fail. To combat
+    // this, we just choose distinct values:
     size_t num_selectors = circuit_constructor.num_selectors;
     ASSERT(offset == subgroup_size - 1);
     auto unique_last_value = num_selectors + 1; // Note: in compute_proving_key_base, moments earlier, each selector

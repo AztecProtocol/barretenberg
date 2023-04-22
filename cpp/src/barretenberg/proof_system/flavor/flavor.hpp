@@ -482,7 +482,7 @@ class Ultra {
 
     static constexpr size_t num_wires = CircuitConstructor::num_wires;
     static constexpr size_t NUM_ALL_ENTITIES = 39;
-    static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 30;
+    static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 29;
 
     template <typename T, typename TView>
     class PrecomputedData : public BasePrecomputedData<T, TView, NUM_PRECOMPUTED_ENTITIES> {
@@ -502,21 +502,20 @@ class Ultra {
         T& sorted_2 = std::get<12>(this->_data);     // WORKTODO: Should rename these to sorted_i
         T& sorted_3 = std::get<13>(this->_data);
         T& sorted_4 = std::get<14>(this->_data);
-        T& sorted_batched = std::get<15>(this->_data); // WORKTODO: rename to sorted_batched
-        T& sigma_1 = std::get<16>(this->_data);
-        T& sigma_2 = std::get<17>(this->_data);
-        T& sigma_3 = std::get<18>(this->_data);
-        T& sigma_4 = std::get<19>(this->_data);
-        T& id_1 = std::get<20>(this->_data);
-        T& id_2 = std::get<21>(this->_data);
-        T& id_3 = std::get<22>(this->_data);
-        T& id_4 = std::get<23>(this->_data);
-        T& table_1 = std::get<24>(this->_data);
-        T& table_2 = std::get<25>(this->_data);
-        T& table_3 = std::get<26>(this->_data);
-        T& table_4 = std::get<27>(this->_data);
-        T& lagrange_first = std::get<28>(this->_data);
-        T& lagrange_last = std::get<29>(this->_data);
+        T& sigma_1 = std::get<15>(this->_data);
+        T& sigma_2 = std::get<16>(this->_data);
+        T& sigma_3 = std::get<17>(this->_data);
+        T& sigma_4 = std::get<18>(this->_data);
+        T& id_1 = std::get<19>(this->_data);
+        T& id_2 = std::get<20>(this->_data);
+        T& id_3 = std::get<21>(this->_data);
+        T& id_4 = std::get<22>(this->_data);
+        T& table_1 = std::get<23>(this->_data);
+        T& table_2 = std::get<24>(this->_data);
+        T& table_3 = std::get<25>(this->_data);
+        T& table_4 = std::get<26>(this->_data);
+        T& lagrange_first = std::get<27>(this->_data);
+        T& lagrange_last = std::get<28>(this->_data);
 
         std::vector<TView> get_selectors()
         {
@@ -786,6 +785,7 @@ class Ultra {
             , sorted_2(other.sorted_2)
             , sorted_3(other.sorted_3)
             , sorted_4(other.sorted_4)
+            // , sorted_batched(other.sorted_batched)
             , z_perm(other.z_perm)
             , z_lookup(other.z_lookup)
             , w_l_shift(other.w_l_shift)
@@ -829,6 +829,7 @@ class Ultra {
             , sorted_2(other.sorted_2)
             , sorted_3(other.sorted_3)
             , sorted_4(other.sorted_4)
+            // , sorted_batched(other.sorted_batched)
             , z_perm(other.z_perm)
             , z_lookup(other.z_lookup)
             , w_l_shift(other.w_l_shift)
@@ -871,6 +872,7 @@ class Ultra {
             sorted_2 = other.sorted_2;
             sorted_3 = other.sorted_3;
             sorted_4 = other.sorted_4;
+            // sorted_batched = other.sorted_batched;
             z_perm = other.z_perm;
             z_lookup = other.z_lookup;
             w_l_shift = other.w_l_shift;
@@ -915,6 +917,7 @@ class Ultra {
             sorted_2 = other.sorted_2;
             sorted_3 = other.sorted_3;
             sorted_4 = other.sorted_4;
+            // sorted_batched = other.sorted_batched;
             z_perm = other.z_perm;
             z_lookup = other.z_lookup;
             w_l_shift = other.w_l_shift;

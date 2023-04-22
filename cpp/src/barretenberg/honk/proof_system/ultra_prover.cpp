@@ -33,7 +33,7 @@ namespace proof_system::honk {
  * @tparam settings Settings class.
  * */
 template <typename Flavor>
-UltraHonkProver<Flavor>::UltraHonkProver(std::vector<barretenberg::polynomial>&& wire_polys,
+UltraHonkProver<Flavor>::UltraHonkProver(std::vector<Polynomial>&& wire_polys,
                                          std::shared_ptr<typename Flavor::ProvingKey> input_key)
     : wire_polynomials(wire_polys)
     , key(input_key)

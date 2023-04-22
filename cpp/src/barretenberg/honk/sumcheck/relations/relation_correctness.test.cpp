@@ -148,7 +148,7 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
 
     // Create a composer and a dummy circuit with a few gates
     auto composer = UltraHonkComposer();
-    // static const size_t num_wires = 4;
+
     fr a = fr::one();
     // Using the public variable to check that public_input_delta is computed and added to the relation correctly
     // TODO(luke): add method "add_public_variable" to UH composer
@@ -204,6 +204,10 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     prover_polynomials.sorted_2 = prover.key->sorted_2;
     prover_polynomials.sorted_3 = prover.key->sorted_3;
     prover_polynomials.sorted_4 = prover.key->sorted_4;
+    prover_polynomials.table_1 = prover.key->table_1;
+    prover_polynomials.table_2 = prover.key->table_2;
+    prover_polynomials.table_3 = prover.key->table_3;
+    prover_polynomials.table_4 = prover.key->table_4;
     prover_polynomials.z_perm = z_perm_poly;
     prover_polynomials.z_perm_shift = z_perm_poly.shifted();
     prover_polynomials.z_lookup = z_perm_poly;

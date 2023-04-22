@@ -39,17 +39,16 @@ template <typename Flavor> class UltraHonkProver {
     using Polynomial = typename Flavor::Polynomial;
 
   public:
-    UltraHonkProver(std::vector<barretenberg::polynomial>&& wire_polys,
-                    std::shared_ptr<ProvingKey> input_key = nullptr);
+    UltraHonkProver(std::vector<Polynomial>&& wire_polys, std::shared_ptr<ProvingKey> input_key = nullptr);
 
     plonk::proof& export_proof();
     plonk::proof& construct_proof();
 
     ProverTranscript<FF> transcript;
 
-    std::vector<barretenberg::polynomial> wire_polynomials;
+    std::vector<Polynomial> wire_polynomials;
 
-    std::shared_ptr<ProvingKey> key;
+    std::shared_ptr<ProvingKey> key; // WORKTODO: rename to proving_key
 
     work_queue<pcs::kzg::Params> queue;
 

@@ -29,7 +29,7 @@
 
 namespace proof_system::honk {
 
-template <typename Flavor> class Prover {
+template <typename Flavor> class Prover { // WORKTODO: Rename to StandardProver or stop templating
 
     using FF = typename Flavor::FF;
     using PCSParams = typename Flavor::PCSParams;
