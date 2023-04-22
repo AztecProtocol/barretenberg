@@ -205,7 +205,7 @@ template <typename Fr> class Polynomial {
     pointer allocate_aligned_memory(const size_t size) const
     {
         std::shared_ptr<Fr[]> ptr(static_cast<Fr*>(aligned_alloc(sizeof(Fr), size)), aligned_free);
-        info("Polynomial allocated ", (void*)ptr.get());
+        // info("Polynomial allocated ", (void*)ptr.get());
         return ptr;
     }
 

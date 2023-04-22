@@ -126,7 +126,7 @@ void KateCommitmentScheme<settings>::generic_batch_open(const fr* src,
         }
 
         // commit to the i-th opened polynomial
-        polynomial offset_poly(std::span(&dest[dest_offset], (size_t)item_constants[i]));
+        polynomial offset_poly(std::span(&dest[dest_offset], (uint32_t)item_constants[i]));
         KateCommitmentScheme::commit(offset_poly.data(), tags[i], item_constants[i], queue);
     }
 }

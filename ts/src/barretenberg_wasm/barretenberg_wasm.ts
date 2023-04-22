@@ -30,6 +30,7 @@ export class BarretenbergWasm extends EventEmitter {
   private instance!: WebAssembly.Instance;
   private asyncCallState = new AsyncCallState();
   public module!: WebAssembly.Module;
+  private memStore: { [key: string]: Uint8Array } = {};
 
   public static async new(initial?: number) {
     const barretenberg = new BarretenbergWasm();
@@ -90,27 +91,44 @@ export class BarretenbergWasm extends EventEmitter {
           const str2 = `${str} (mem: ${(m.length / (1024 * 1024)).toFixed(2)}MB)`;
           this.debug(str2);
         },
+
+        get_data: (keyAddr: number, outBufAddr: number) => {
+          const key = this.stringFromAddress(keyAddr);
+          const data = this.memStore[key];
+          if (!data) {
+            this.debug(`get_data miss ${key}`);
+            return;
+          }
+          this.debug(`get_data hit ${key} ${data.length}`);
+          this.writeMemory(outBufAddr, data);
+        },
+
+        set_data: (keyAddr: number, dataAddr: number, dataLength: number) => {
+          const key = this.stringFromAddress(keyAddr);
+          this.debug(`set_data ${key} ${dataLength}`);
+          this.memStore[key] = this.getMemorySlice(dataAddr, dataAddr + dataLength);
+        },
         /**
          * Read the data associated with the key located at keyAddr.
          * Malloc data within the WASM, copy the data into the WASM, and return the address to the caller.
          * The caller is responsible for taking ownership of (and freeing) the memory at the returned address.
          */
-        get_data: this.wrapAsyncImportFn(async (keyAddr: number, lengthOutAddr: number) => {
-          const key = this.stringFromAddress(keyAddr);
-          const data = await this.store.get(key);
-          if (!data) {
-            this.writeMemory(lengthOutAddr, numToUInt32LE(0));
-            return 0;
-          }
-          const dataAddr = this.call('bbmalloc', data.length);
-          this.writeMemory(lengthOutAddr, numToUInt32LE(data.length));
-          this.writeMemory(dataAddr, data);
-          return dataAddr;
-        }),
-        set_data: this.wrapAsyncImportFn(async (keyAddr: number, dataAddr: number, dataLength: number) => {
-          const key = this.stringFromAddress(keyAddr);
-          await this.store.set(key, Buffer.from(this.getMemorySlice(dataAddr, dataAddr + dataLength)));
-        }),
+        // get_data: this.wrapAsyncImportFn(async (keyAddr: number, lengthOutAddr: number) => {
+        //   const key = this.stringFromAddress(keyAddr);
+        //   const data = await this.store.get(key);
+        //   if (!data) {
+        //     this.writeMemory(lengthOutAddr, numToUInt32LE(0));
+        //     return 0;
+        //   }
+        //   const dataAddr = this.call('bbmalloc', data.length);
+        //   this.writeMemory(lengthOutAddr, numToUInt32LE(data.length));
+        //   this.writeMemory(dataAddr, data);
+        //   return dataAddr;
+        // }),
+        // set_data: this.wrapAsyncImportFn(async (keyAddr: number, dataAddr: number, dataLength: number) => {
+        //   const key = this.stringFromAddress(keyAddr);
+        //   await this.store.set(key, Buffer.from(this.getMemorySlice(dataAddr, dataAddr + dataLength)));
+        // }),
         env_load_verifier_crs: this.wrapAsyncImportFn(async () => {
           // TODO optimize
           const crs = new Crs(0);

@@ -40,7 +40,7 @@ template <typename Fr> class PolynomialStore {
      */
     inline void put(std::string const& key, Polynomial const& value)
     {
-        info("putting polynomial ", key, " ", value.size());
+        // info("putting polynomial ", key, " ", value.size());
         size_t size = value.size();
         polynomial_map[key] = size;
         set_data(key.c_str(), (uint8_t*)value.data().get(), size * sizeof(barretenberg::fr));
@@ -58,26 +58,29 @@ template <typename Fr> class PolynomialStore {
      */
     inline Polynomial get(std::string const& key)
     {
-        size_t length = 0;
-        auto* ptr = get_data(key.c_str(), &length);
-        if (length == 0) {
-            throw std::out_of_range("polynomial not found");
-        }
+        ASSERT(polynomial_map.contains(key));
+        size_t size = polynomial_map[key];
+        // auto* ptr = get_data(key.c_str(), &length);
+        // if (length == 0) {
+        //     throw std::out_of_range("polynomial not found");
+        // }
         // Hmm. This is non trivial due to capcity overhead. Lets do copy for now.
         // Polynomial p((barretenberg::fr*)ptr, length / sizeof(barretenberg::fr));
-        Polynomial p(std::span((barretenberg::fr*)ptr, length / sizeof(barretenberg::fr)));
-        aligned_free(ptr);
+        // Polynomial p(std::span((barretenberg::fr*)ptr, length / sizeof(barretenberg::fr)));
+        // aligned_free(ptr);
+        Polynomial p(size);
+        get_data(key.c_str(), (uint8_t*)p.data().get());
         return p;
     };
 
-    inline std::unordered_map<std::string, Polynomial> get_many(std::vector<std::string> const& keys)
-    {
-        std::unordered_map<std::string, Polynomial> result;
-        for (auto& k : keys) {
-            result[k] = get(k);
-        }
-        return result;
-    }
+    // inline std::unordered_map<std::string, Polynomial> get_many(std::vector<std::string> const& keys)
+    // {
+    //     std::unordered_map<std::string, Polynomial> result;
+    //     for (auto& k : keys) {
+    //         result[k] = get(k);
+    //     }
+    //     return result;
+    // }
 
     /**
      * @brief Erase the polynomial with the given key from the map if it exists. (ASSERT that it does)

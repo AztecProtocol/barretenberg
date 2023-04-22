@@ -7,5 +7,5 @@
 // Takes a copy of buf and saves it associated with key.
 extern "C" void set_data(char const* key, uint8_t const* buf, size_t length);
 
-// Returns a copy of buf associated with key. Caller takes ownership.
-extern "C" uint8_t* get_data(char const* key, size_t* length_out);
+// Copies bytes of data associated with key into out_buf.
+extern "C" void get_data(char const* key, uint8_t* out_buf);

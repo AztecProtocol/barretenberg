@@ -21,12 +21,12 @@ WASM_EXPORT void env_get_data(in_str_buf key_buf, uint8_t** out_ptr)
 {
     auto key = from_buffer<std::string>(key_buf);
     size_t length = 0;
-    auto* ptr = get_data(key.c_str(), &length);
+    // auto* ptr = get_data(key.c_str(), &length);
     *out_ptr = (uint8_t*)aligned_alloc(64, 4 + length);
-    auto vec = std::vector<uint8_t>(ptr, ptr + length);
-    free(ptr);
-    auto* dst = *out_ptr;
-    write(dst, vec);
+    // auto vec = std::vector<uint8_t>(ptr, ptr + length);
+    // free(ptr);
+    // auto* dst = *out_ptr;
+    // write(dst, vec);
 }
 
 /**

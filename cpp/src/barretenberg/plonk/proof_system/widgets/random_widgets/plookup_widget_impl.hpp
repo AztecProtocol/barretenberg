@@ -59,7 +59,6 @@ void ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>::compute_sor
     auto s_3 = key->polynomial_store.get("s_3_lagrange");
     auto s_4 = key->polynomial_store.get("s_4_lagrange");
 
-    info("get challenge etc");
     // Get challenge η
     const auto eta = fr::serialize_from_buffer(transcript.get_challenge("eta", 0).begin());
 
@@ -99,10 +98,8 @@ void ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>::compute_sor
     key->polynomial_store.put("s_lagrange", s_accum);
 
     // Compute the monomial coefficient representation of s
-    info("doing ifft");
     s_accum.ifft(key->small_domain);
     key->polynomial_store.put("s", s_accum);
-    info(s_accum);
 }
 /**
  * @brief Compute the blinded lookup grand product polynomial Z_lookup(X)
