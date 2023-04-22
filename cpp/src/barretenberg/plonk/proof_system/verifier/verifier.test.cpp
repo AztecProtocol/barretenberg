@@ -19,14 +19,14 @@ using namespace proof_system::plonk;
 plonk::Verifier generate_verifier(std::shared_ptr<proving_key> circuit_proving_key)
 {
     std::array<fr*, 8> poly_coefficients;
-    poly_coefficients[0] = circuit_proving_key->polynomial_store.get("q_1").get_coefficients();
-    poly_coefficients[1] = circuit_proving_key->polynomial_store.get("q_2").get_coefficients();
-    poly_coefficients[2] = circuit_proving_key->polynomial_store.get("q_3").get_coefficients();
-    poly_coefficients[3] = circuit_proving_key->polynomial_store.get("q_m").get_coefficients();
-    poly_coefficients[4] = circuit_proving_key->polynomial_store.get("q_c").get_coefficients();
-    poly_coefficients[5] = circuit_proving_key->polynomial_store.get("sigma_1").get_coefficients();
-    poly_coefficients[6] = circuit_proving_key->polynomial_store.get("sigma_2").get_coefficients();
-    poly_coefficients[7] = circuit_proving_key->polynomial_store.get("sigma_3").get_coefficients();
+    poly_coefficients[0] = circuit_proving_key->polynomial_store.get("q_1").data();
+    poly_coefficients[1] = circuit_proving_key->polynomial_store.get("q_2").data();
+    poly_coefficients[2] = circuit_proving_key->polynomial_store.get("q_3").data();
+    poly_coefficients[3] = circuit_proving_key->polynomial_store.get("q_m").data();
+    poly_coefficients[4] = circuit_proving_key->polynomial_store.get("q_c").data();
+    poly_coefficients[5] = circuit_proving_key->polynomial_store.get("sigma_1").data();
+    poly_coefficients[6] = circuit_proving_key->polynomial_store.get("sigma_2").data();
+    poly_coefficients[7] = circuit_proving_key->polynomial_store.get("sigma_3").data();
 
     std::vector<barretenberg::g1::affine_element> commitments;
     scalar_multiplication::pippenger_runtime_state state(circuit_proving_key->circuit_size);

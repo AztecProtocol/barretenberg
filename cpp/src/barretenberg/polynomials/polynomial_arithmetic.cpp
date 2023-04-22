@@ -41,15 +41,14 @@ inline bool is_power_of_two(uint64_t x)
     return x && !(x & (x - 1));
 }
 
-template <typename Fr>
-void copy_polynomial(const Fr* src, Fr* dest, size_t num_src_coefficients, size_t num_target_coefficients)
+template <typename Fr> void copy_polynomial(const Fr* src, Fr* dest, size_t num_src_coefficients, size_t num_tardata)
 {
     // TODO: fiddle around with avx asm to see if we can speed up
     memcpy((void*)dest, (void*)src, num_src_coefficients * sizeof(Fr));
 
-    if (num_target_coefficients > num_src_coefficients) {
+    if (num_tardata > num_src_coefficients) {
         // fill out the polynomial coefficients with zeroes
-        memset((void*)(dest + num_src_coefficients), 0, (num_target_coefficients - num_src_coefficients) * sizeof(Fr));
+        memset((void*)(dest + num_src_coefficients), 0, (num_tardata - num_src_coefficients) * sizeof(Fr));
     }
 }
 

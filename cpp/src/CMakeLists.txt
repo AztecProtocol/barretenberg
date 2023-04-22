@@ -14,6 +14,9 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 # use the flag `-Wno-error=${ERROR_NAME}`
 add_compile_options(-Werror -Wall -Wextra -Wconversion -Wsign-conversion -Wfatal-errors)
 
+# Colourise output.
+add_compile_options(-fcolor-diagnostics)
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-fconstexpr-steps=100000000)
 

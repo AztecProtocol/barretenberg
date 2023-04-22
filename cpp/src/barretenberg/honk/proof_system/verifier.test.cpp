@@ -29,14 +29,14 @@ template <class FF> class VerifierTests : public testing::Test {
     static StandardVerifier generate_verifier(std::shared_ptr<plonk::proving_key> circuit_proving_key)
     {
         std::array<fr*, 8> poly_coefficients;
-        poly_coefficients[0] = circuit_proving_key->polynomial_store.get("q_1_lagrange").get_coefficients();
-        poly_coefficients[1] = circuit_proving_key->polynomial_store.get("q_2_lagrange").get_coefficients();
-        poly_coefficients[2] = circuit_proving_key->polynomial_store.get("q_3_lagrange").get_coefficients();
-        poly_coefficients[3] = circuit_proving_key->polynomial_store.get("q_m_lagrange").get_coefficients();
-        poly_coefficients[4] = circuit_proving_key->polynomial_store.get("q_c_lagrange").get_coefficients();
-        poly_coefficients[5] = circuit_proving_key->polynomial_store.get("sigma_1_lagrange").get_coefficients();
-        poly_coefficients[6] = circuit_proving_key->polynomial_store.get("sigma_2_lagrange").get_coefficients();
-        poly_coefficients[7] = circuit_proving_key->polynomial_store.get("sigma_3_lagrange").get_coefficients();
+        poly_coefficients[0] = circuit_proving_key->polynomial_store.get("q_1_lagrange").data();
+        poly_coefficients[1] = circuit_proving_key->polynomial_store.get("q_2_lagrange").data();
+        poly_coefficients[2] = circuit_proving_key->polynomial_store.get("q_3_lagrange").data();
+        poly_coefficients[3] = circuit_proving_key->polynomial_store.get("q_m_lagrange").data();
+        poly_coefficients[4] = circuit_proving_key->polynomial_store.get("q_c_lagrange").data();
+        poly_coefficients[5] = circuit_proving_key->polynomial_store.get("sigma_1_lagrange").data();
+        poly_coefficients[6] = circuit_proving_key->polynomial_store.get("sigma_2_lagrange").data();
+        poly_coefficients[7] = circuit_proving_key->polynomial_store.get("sigma_3_lagrange").data();
 
         std::vector<barretenberg::g1::affine_element> commitments;
         scalar_multiplication::pippenger_runtime_state prover(circuit_proving_key->circuit_size);

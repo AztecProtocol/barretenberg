@@ -65,7 +65,7 @@ Prover<settings>::Prover(std::vector<barretenberg::polynomial>&& wire_polys,
     prover_polynomials[POLYNOMIAL::W_O] = wire_polynomials[2];
 
     // Add public inputs to transcript from the second wire polynomial
-    std::span<Fr> public_wires_source = prover_polynomials[POLYNOMIAL::W_R];
+    std::span<const Fr> public_wires_source = prover_polynomials[POLYNOMIAL::W_R];
 
     for (size_t i = 0; i < key->num_public_inputs; ++i) {
         public_inputs.emplace_back(public_wires_source[i]);

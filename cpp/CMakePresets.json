@@ -47,6 +47,10 @@
       "inherits": "clang15",
       "environment": {
         "CMAKE_BUILD_TYPE": "Debug"
+      },
+      "cacheVariables": {
+        "ENABLE_ASAN": "ON",
+        "DISABLE_ASM": "ON"
       }
     },
     {

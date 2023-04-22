@@ -66,7 +66,7 @@ template <typename settings> class Prover {
     std::shared_ptr<plonk::proving_key> key;
 
     // Container for spans of all polynomials required by the prover (i.e. all multivariates evaluated by Sumcheck).
-    std::array<std::span<Fr>, honk::StandardArithmetization::POLYNOMIAL::COUNT> prover_polynomials;
+    std::array<std::span<const Fr>, honk::StandardArithmetization::POLYNOMIAL::COUNT> prover_polynomials;
 
     // Container for d + 1 Fold polynomials produced by Gemini
     std::vector<Polynomial> fold_polynomials;
