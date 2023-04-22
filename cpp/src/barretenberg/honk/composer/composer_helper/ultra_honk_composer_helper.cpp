@@ -283,24 +283,21 @@ std::shared_ptr<UltraHonkComposerHelper::Flavor::ProvingKey> UltraHonkComposerHe
     circuit_proving_key->table_3 = poly_q_table_column_3;
     circuit_proving_key->table_4 = poly_q_table_column_4;
 
-    // // // WORKTODO
-    // // Copy memory read/write record data into proving key. Prover needs to know which gates contain a read/write
-    // // 'record' witness on the 4th wire. This wire value can only be fully computed once the first 3 wire polynomials
-    // // have been committed to. The 4th wire on these gates will be a random linear combination of the first 3 wires,
-    // // using the plookup challenge `eta`
-    // std::copy(circuit_constructor.memory_read_records.begin(),
-    //           circuit_constructor.memory_read_records.end(),
-    //           std::back_inserter(circuit_proving_key->memory_read_records));
-    // std::copy(circuit_constructor.memory_write_records.begin(),
-    //           circuit_constructor.memory_write_records.end(),
-    //           std::back_inserter(circuit_proving_key->memory_write_records));
+    // Copy memory read/write record data into proving key. Prover needs to know which gates contain a read/write
+    // 'record' witness on the 4th wire. This wire value can only be fully computed once the first 3 wire polynomials
+    // have been committed to. The 4th wire on these gates will be a random linear combination of the first 3 wires,
+    // using the plookup challenge `eta`
+    std::copy(circuit_constructor.memory_read_records.begin(),
+              circuit_constructor.memory_read_records.end(),
+              std::back_inserter(circuit_proving_key->memory_read_records));
+    std::copy(circuit_constructor.memory_write_records.begin(),
+              circuit_constructor.memory_write_records.end(),
+              std::back_inserter(circuit_proving_key->memory_write_records));
 
-    // WORKTODO
-    // circuit_proving_key->recursive_proof_public_input_indices =
-    //     std::vector<uint32_t>(recursive_proof_public_input_indices.begin(),
-    //     recursive_proof_public_input_indices.end());
+    circuit_proving_key->recursive_proof_public_input_indices =
+        std::vector<uint32_t>(recursive_proof_public_input_indices.begin(), recursive_proof_public_input_indices.end());
 
-    // circuit_proving_key->contains_recursive_proof = contains_recursive_proof;
+    circuit_proving_key->contains_recursive_proof = contains_recursive_proof;
 
     return circuit_proving_key;
 }

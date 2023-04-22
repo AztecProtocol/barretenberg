@@ -200,10 +200,10 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     prover_polynomials.w_4 = prover.wire_polynomials[3];
     prover_polynomials.w_l_shift = prover.wire_polynomials[0].shifted();
     prover_polynomials.w_4_shift = prover.wire_polynomials[3].shifted();
-    prover_polynomials.s_1 = prover.key->s_1;
-    prover_polynomials.s_2 = prover.key->s_2;
-    prover_polynomials.s_3 = prover.key->s_3;
-    prover_polynomials.s_4 = prover.key->s_4;
+    prover_polynomials.sorted_1 = prover.key->sorted_1;
+    prover_polynomials.sorted_2 = prover.key->sorted_2;
+    prover_polynomials.sorted_3 = prover.key->sorted_3;
+    prover_polynomials.sorted_4 = prover.key->sorted_4;
     prover_polynomials.z_perm = z_perm_poly;
     prover_polynomials.z_perm_shift = z_perm_poly.shifted();
     prover_polynomials.z_lookup = z_perm_poly;

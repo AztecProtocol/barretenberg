@@ -34,6 +34,13 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         return random_polynomial;
     }
 
+    static void populate_span(auto& polynomial_view, auto& polynomial)
+    {
+        for (size_t idx = 0; idx < polynomial.size(); idx++) {
+            polynomial_view[idx] = polynomial[idx];
+        }
+    };
+
     /**
      * @brief Check consistency of the computation of the permutation grand product polynomial z_permutation.
      * @details This test compares a simple, unoptimized, easily readable calculation of the grand product z_permutation
@@ -61,12 +68,6 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         std::vector<Polynomial> wires;
         std::vector<Polynomial> sigmas;
         std::vector<Polynomial> ids;
-
-        auto populate_span = [](auto& polynomial_view, auto& polynomial) {
-            for (size_t idx = 0; idx < polynomial.size(); idx++) {
-                polynomial_view[idx] = polynomial[idx];
-            }
-        };
 
         auto sigma_polynomials = proving_key->get_sigma_polynomials();
         auto id_polynomials = proving_key->get_id_polynomials();
@@ -168,7 +169,6 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         auto reference_string = std::make_shared<FileReferenceString>(circuit_size + 1, "../srs_db/ignition");
 
         // Instatiate a proving_key and make a pointer to it. This will be used to instantiate a Prover.
-        // WORKTODO
         using Flavor = honk::flavor::Ultra;
         auto proving_key = std::make_shared<typename Flavor::ProvingKey>(
             circuit_size, num_public_inputs, reference_string, ComposerType::STANDARD_HONK);
@@ -177,29 +177,30 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         // Note: for the purpose of checking the consistency between two methods of computing z_perm, these polynomials
         // can simply be random. We're not interested in the particular properties of the result.
         std::vector<Polynomial> wires;
-        for (size_t i = 0; i < 3; ++i) {
+        for (size_t i = 0; i < Flavor::num_wires - 1; ++i) { // TODO: will this test ever generalize?
             wires.emplace_back(get_random_polynomial(circuit_size));
         }
         std::vector<Polynomial> tables;
-        for (size_t i = 0; i < 4; ++i) {
-            tables.emplace_back(get_random_polynomial(circuit_size));
-            std::string label = "table_value_" + std::to_string(i + 1) + "_lagrange";
-            // proving_key->polynomial_store.put(label, Polynomial{ tables[i] }); // WORKTODO
+        auto table_polynomials = proving_key->get_table_polynomials();
+        for (auto& table_polynomial : table_polynomials) {
+            Polynomial random_polynomial = get_random_polynomial(circuit_size);
+            tables.emplace_back(random_polynomial);
+            populate_span(table_polynomial, random_polynomial);
         }
 
-        auto s_lagrange = get_random_polynomial(circuit_size);
+        auto sorted_batched = get_random_polynomial(circuit_size);
         auto column_1_step_size = get_random_polynomial(circuit_size);
         auto column_2_step_size = get_random_polynomial(circuit_size);
         auto column_3_step_size = get_random_polynomial(circuit_size);
         auto lookup_index_selector = get_random_polynomial(circuit_size);
         auto lookup_selector = get_random_polynomial(circuit_size);
 
-        // proving_key->polynomial_store.put("s_lagrange", Polynomial{ s_lagrange }); // WORKTODO
-        // proving_key->polynomial_store.put("q_2_lagrange", Polynomial{ column_1_step_size }); // WORKTODO
-        // proving_key->polynomial_store.put("q_m_lagrange", Polynomial{ column_2_step_size }); // WORKTODO
-        // proving_key->polynomial_store.put("q_c_lagrange", Polynomial{ column_3_step_size }); // WORKTODO
-        // proving_key->polynomial_store.put("q_3_lagrange", Polynomial{ lookup_index_selector }); // WORKTODO
-        // proving_key->polynomial_store.put("table_type_lagrange", Polynomial{ lookup_selector }); // WORKTODO
+        populate_span(proving_key->sorted_batched, sorted_batched);
+        populate_span(proving_key->q_r, column_1_step_size);
+        populate_span(proving_key->q_m, column_2_step_size);
+        populate_span(proving_key->q_c, column_3_step_size);
+        populate_span(proving_key->q_o, lookup_index_selector);
+        populate_span(proving_key->q_lookuptype, lookup_selector);
 
         // Get random challenges
         auto beta = FF::random_element();
@@ -208,7 +209,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
 
         // Method 1: Compute z_lookup using the prover library method
         Polynomial z_lookup =
-            prover_library::compute_lookup_grand_product<Flavor>(proving_key, wires, s_lagrange, eta, beta, gamma);
+            prover_library::compute_lookup_grand_product<Flavor>(proving_key, wires, sorted_batched, eta, beta, gamma);
 
         // Method 2: Compute the lookup grand product polynomial Z_lookup:
         //
@@ -254,7 +255,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
             accumulators[2][i] = FF::one() + beta;
 
             // s + βs(Xω) + γ(1 + β)
-            accumulators[3][i] = s_lagrange[i] + beta * s_lagrange[shift_idx] + gamma * (FF::one() + beta);
+            accumulators[3][i] = sorted_batched[i] + beta * sorted_batched[shift_idx] + gamma * (FF::one() + beta);
 
             // Set t(X_i) for next iteration
             table_i = table_i_plus_1;
@@ -297,7 +298,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         static const size_t circuit_size = 8;
         static const size_t num_public_inputs = 0;
         auto reference_string = std::make_shared<FileReferenceString>(circuit_size + 1, "../srs_db/ignition");
-        using Flavor = honk::flavor::Ultra; // WORKTODO
+        using Flavor = honk::flavor::Ultra;
         auto proving_key = std::make_shared<typename Flavor::ProvingKey>(
             circuit_size, num_public_inputs, reference_string, ComposerType::STANDARD_HONK);
 

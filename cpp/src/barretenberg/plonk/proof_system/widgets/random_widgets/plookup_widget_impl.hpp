@@ -53,7 +53,7 @@ template <const size_t num_roots_cut_out_of_vanishing_polynomial>
 void ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>::compute_sorted_list_polynomial(
     transcript::StandardTranscript& transcript)
 {
-    barretenberg::polynomial s_accum(key->polynomial_store.get("s_1_lagrange"));
+    barretenberg::polynomial s_accum(key->polynomial_store.get("s_1_lagrange")); // WORKTODO
     std::span<const fr> s_2 = key->polynomial_store.get("s_2_lagrange");
     std::span<const fr> s_3 = key->polynomial_store.get("s_3_lagrange");
     std::span<const fr> s_4 = key->polynomial_store.get("s_4_lagrange");

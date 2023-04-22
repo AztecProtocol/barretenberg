@@ -61,9 +61,10 @@ class BasePrecomputedData : public Data<T, TView, NUM_PRECOMPUTED_ENTITIES> {
 // the selectors
 template <typename PrecomputedData, typename FF> class BaseProvingKey : public PrecomputedData {
   public:
+    bool contains_recursive_proof;
+    std::vector<uint32_t> recursive_proof_public_input_indices;
     std::shared_ptr<ProverReferenceString> crs;
     EvaluationDomain<FF> evaluation_domain;
-    PolynomialStore<FF> polynomial_store; // WORKTODO: Get rid of this
 
     BaseProvingKey() = default;
 };
@@ -450,12 +451,6 @@ class Standard {
         VerifierCommitments(std::shared_ptr<VerificationKey> verification_key, VerifierTranscript<FF> transcript)
         {
             static_cast<void>(transcript);
-            // auto commitment_labels = CommitmentLabels();
-            // w_l = transcript.template receive_from_prover<Commitment>(commitment_labels.w_l);
-            // w_r = transcript.template receive_from_prover<Commitment>(commitment_labels.w_r);
-            // w_o = transcript.template receive_from_prover<Commitment>(commitment_labels.w_o);
-            // z_perm = transcript.template receive_from_prover<Commitment>(commitment_labels.z_perm);
-            // z_perm_shift = transcript.template receive_from_prover<Commitment>(commitment_labels.z_perm_shift);
             q_m = verification_key->q_m;
             q_l = verification_key->q_l;
             q_r = verification_key->q_r;
@@ -487,7 +482,7 @@ class Ultra {
 
     static constexpr size_t num_wires = CircuitConstructor::num_wires;
     static constexpr size_t NUM_ALL_ENTITIES = 39;
-    static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 29;
+    static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 30;
 
     template <typename T, typename TView>
     class PrecomputedData : public BasePrecomputedData<T, TView, NUM_PRECOMPUTED_ENTITIES> {
@@ -502,31 +497,33 @@ class Ultra {
         T& q_sort = std::get<7>(this->_data);
         T& q_elliptic = std::get<8>(this->_data);
         T& q_aux = std::get<9>(this->_data);
-        T& q_lookuptype = std::get<10>(this->_data);
-        T& s_1 = std::get<11>(this->_data); // These shouldn't be in here, right?
-        T& s_2 = std::get<12>(this->_data);
-        T& s_3 = std::get<13>(this->_data);
-        T& s_4 = std::get<14>(this->_data);
-        T& sigma_1 = std::get<15>(this->_data);
-        T& sigma_2 = std::get<16>(this->_data);
-        T& sigma_3 = std::get<17>(this->_data);
-        T& sigma_4 = std::get<18>(this->_data);
-        T& id_1 = std::get<19>(this->_data);
-        T& id_2 = std::get<20>(this->_data);
-        T& id_3 = std::get<21>(this->_data);
-        T& id_4 = std::get<22>(this->_data);
-        T& table_1 = std::get<23>(this->_data);
-        T& table_2 = std::get<24>(this->_data);
-        T& table_3 = std::get<25>(this->_data);
-        T& table_4 = std::get<26>(this->_data);
-        T& lagrange_first = std::get<27>(this->_data);
-        T& lagrange_last = std::get<28>(this->_data);
+        T& q_lookuptype = std::get<10>(this->_data); // WORKTODO: rename
+        T& sorted_1 = std::get<11>(this->_data);     // TODO(Cody) These shouldn't be in here, right?
+        T& sorted_2 = std::get<12>(this->_data);     // WORKTODO: Should rename these to sorted_i
+        T& sorted_3 = std::get<13>(this->_data);
+        T& sorted_4 = std::get<14>(this->_data);
+        T& sorted_batched = std::get<15>(this->_data); // WORKTODO: rename to sorted_batched
+        T& sigma_1 = std::get<16>(this->_data);
+        T& sigma_2 = std::get<17>(this->_data);
+        T& sigma_3 = std::get<18>(this->_data);
+        T& sigma_4 = std::get<19>(this->_data);
+        T& id_1 = std::get<20>(this->_data);
+        T& id_2 = std::get<21>(this->_data);
+        T& id_3 = std::get<22>(this->_data);
+        T& id_4 = std::get<23>(this->_data);
+        T& table_1 = std::get<24>(this->_data);
+        T& table_2 = std::get<25>(this->_data);
+        T& table_3 = std::get<26>(this->_data);
+        T& table_4 = std::get<27>(this->_data);
+        T& lagrange_first = std::get<28>(this->_data);
+        T& lagrange_last = std::get<29>(this->_data);
 
         std::vector<TView> get_selectors()
         {
             return { q_c, q_l, q_r, q_o, q_4, q_m, q_arith, q_sort, q_elliptic, q_aux, q_lookuptype };
         };
         std::vector<TView> get_sigma_polynomials() { return { sigma_1, sigma_2, sigma_3, sigma_4 }; };
+        std::vector<TView> get_table_polynomials() { return { table_1, table_2, table_3, table_4 }; };
         std::vector<TView> get_id_polynomials() { return { id_1, id_2, id_3, id_4 }; };
 
         virtual ~PrecomputedData() = default;
@@ -544,10 +541,10 @@ class Ultra {
             , q_elliptic(other.q_elliptic)
             , q_aux(other.q_aux)
             , q_lookuptype(other.q_lookuptype)
-            , s_1(other.s_1)
-            , s_2(other.s_2)
-            , s_3(other.s_3)
-            , s_4(other.s_4)
+            , sorted_1(other.sorted_1)
+            , sorted_2(other.sorted_2)
+            , sorted_3(other.sorted_3)
+            , sorted_4(other.sorted_4)
             , sigma_1(other.sigma_1)
             , sigma_2(other.sigma_2)
             , sigma_3(other.sigma_3)
@@ -575,10 +572,10 @@ class Ultra {
             , q_elliptic(other.q_elliptic)
             , q_aux(other.q_aux)
             , q_lookuptype(other.q_lookuptype)
-            , s_1(other.s_1)
-            , s_2(other.s_2)
-            , s_3(other.s_3)
-            , s_4(other.s_4)
+            , sorted_1(other.sorted_1)
+            , sorted_2(other.sorted_2)
+            , sorted_3(other.sorted_3)
+            , sorted_4(other.sorted_4)
             , sigma_1(other.sigma_1)
             , sigma_2(other.sigma_2)
             , sigma_3(other.sigma_3)
@@ -608,10 +605,10 @@ class Ultra {
             q_elliptic = other.q_elliptic;
             q_aux = other.q_aux;
             q_lookuptype = other.q_lookuptype;
-            s_1 = other.s_1;
-            s_2 = other.s_2;
-            s_3 = other.s_3;
-            s_4 = other.s_4;
+            sorted_1 = other.sorted_1;
+            sorted_2 = other.sorted_2;
+            sorted_3 = other.sorted_3;
+            sorted_4 = other.sorted_4;
             sigma_1 = other.sigma_1;
             sigma_2 = other.sigma_2;
             sigma_3 = other.sigma_3;
@@ -642,10 +639,10 @@ class Ultra {
             q_elliptic = other.q_elliptic;
             q_aux = other.q_aux;
             q_lookuptype = other.q_lookuptype;
-            s_1 = other.s_1;
-            s_2 = other.s_2;
-            s_3 = other.s_3;
-            s_4 = other.s_4;
+            sorted_1 = other.sorted_1;
+            sorted_2 = other.sorted_2;
+            sorted_3 = other.sorted_3;
+            sorted_4 = other.sorted_4;
             sigma_1 = other.sigma_1;
             sigma_2 = other.sigma_2;
             sigma_3 = other.sigma_3;
@@ -666,6 +663,8 @@ class Ultra {
 
     class ProvingKey : public BaseProvingKey<PrecomputedData<Polynomial, PolynomialView>, FF> {
       public:
+        std::vector<uint32_t> memory_read_records;
+        std::vector<uint32_t> memory_write_records;
         ProvingKey() = default;
         ProvingKey(const size_t circuit_size,
                    const size_t num_public_inputs,
@@ -719,10 +718,10 @@ class Ultra {
         T& w_r = std::get<26>(this->_data);
         T& w_o = std::get<27>(this->_data);
         T& w_4 = std::get<28>(this->_data);
-        T& s_1 = std::get<29>(this->_data);
-        T& s_2 = std::get<30>(this->_data);
-        T& s_3 = std::get<31>(this->_data);
-        T& s_4 = std::get<32>(this->_data);
+        T& sorted_1 = std::get<29>(this->_data);
+        T& sorted_2 = std::get<30>(this->_data);
+        T& sorted_3 = std::get<31>(this->_data);
+        T& sorted_4 = std::get<32>(this->_data);
         T& z_perm = std::get<33>(this->_data);
         T& z_lookup = std::get<34>(this->_data);
         T& w_l_shift = std::get<35>(this->_data);
@@ -734,11 +733,11 @@ class Ultra {
 
         std::vector<T> get_unshifted() override
         {
-            return { q_c,           q_l,    q_r,          q_o,     q_4,     q_m,     q_arith, q_sort,
-                     q_elliptic,    q_aux,  q_lookuptype, sigma_1, sigma_2, sigma_3, sigma_4, id_1,
-                     id_2,          id_3,   id_4,         table_1, table_2, table_3, table_4, lagrange_first,
-                     lagrange_last, w_l,    w_r,          w_o,     w_4,     s_1,     s_2,     s_3,
-                     s_4,           z_perm, z_lookup
+            return { q_c,           q_l,    q_r,          q_o,     q_4,     q_m,      q_arith,  q_sort,
+                     q_elliptic,    q_aux,  q_lookuptype, sigma_1, sigma_2, sigma_3,  sigma_4,  id_1,
+                     id_2,          id_3,   id_4,         table_1, table_2, table_3,  table_4,  lagrange_first,
+                     lagrange_last, w_l,    w_r,          w_o,     w_4,     sorted_1, sorted_2, sorted_3,
+                     sorted_4,      z_perm, z_lookup
 
             };
         };
@@ -783,10 +782,10 @@ class Ultra {
             , w_r(other.w_r)
             , w_o(other.w_o)
             , w_4(other.w_4)
-            , s_1(other.s_1)
-            , s_2(other.s_2)
-            , s_3(other.s_3)
-            , s_4(other.s_4)
+            , sorted_1(other.sorted_1)
+            , sorted_2(other.sorted_2)
+            , sorted_3(other.sorted_3)
+            , sorted_4(other.sorted_4)
             , z_perm(other.z_perm)
             , z_lookup(other.z_lookup)
             , w_l_shift(other.w_l_shift)
@@ -826,10 +825,10 @@ class Ultra {
             , w_r(other.w_r)
             , w_o(other.w_o)
             , w_4(other.w_4)
-            , s_1(other.s_1)
-            , s_2(other.s_2)
-            , s_3(other.s_3)
-            , s_4(other.s_4)
+            , sorted_1(other.sorted_1)
+            , sorted_2(other.sorted_2)
+            , sorted_3(other.sorted_3)
+            , sorted_4(other.sorted_4)
             , z_perm(other.z_perm)
             , z_lookup(other.z_lookup)
             , w_l_shift(other.w_l_shift)
@@ -868,10 +867,10 @@ class Ultra {
             w_r = other.w_r;
             w_o = other.w_o;
             w_4 = other.w_4;
-            s_1 = other.s_1;
-            s_2 = other.s_2;
-            s_3 = other.s_3;
-            s_4 = other.s_4;
+            sorted_1 = other.sorted_1;
+            sorted_2 = other.sorted_2;
+            sorted_3 = other.sorted_3;
+            sorted_4 = other.sorted_4;
             z_perm = other.z_perm;
             z_lookup = other.z_lookup;
             w_l_shift = other.w_l_shift;
@@ -912,10 +911,10 @@ class Ultra {
             w_r = other.w_r;
             w_o = other.w_o;
             w_4 = other.w_4;
-            s_1 = other.s_1;
-            s_2 = other.s_2;
-            s_3 = other.s_3;
-            s_4 = other.s_4;
+            sorted_1 = other.sorted_1;
+            sorted_2 = other.sorted_2;
+            sorted_3 = other.sorted_3;
+            sorted_4 = other.sorted_4;
             z_perm = other.z_perm;
             z_lookup = other.z_lookup;
             w_l_shift = other.w_l_shift;
