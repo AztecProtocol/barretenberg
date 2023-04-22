@@ -4,11 +4,17 @@
 #include <ostream>
 #include <iomanip>
 #include "barretenberg/common/serialize.hpp"
+#include "barretenberg/msgpack/msgpack_nvp_macro.h"
 
 namespace proof_system::plonk {
 
 struct proof {
     std::vector<uint8_t> proof_data;
+    // for serialization: update up with new fields
+    void msgpack(auto ar) {
+        ar(NVP(proof_data));
+    }
+    // TODO redundant with msgpack
 
     bool operator==(proof const& other) const = default;
 };

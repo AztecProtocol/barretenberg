@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <vector>
 #include "barretenberg/stdlib/types/types.hpp"
+#include "barretenberg/msgpack/msgpack_nvp_macro.h"
 
 namespace acir_format {
 

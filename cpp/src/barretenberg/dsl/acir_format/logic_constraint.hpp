@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include "barretenberg/stdlib/types/types.hpp"
+#include "barretenberg/msgpack/msgpack_nvp_macro.h"
 
 namespace acir_format {
 
@@ -14,7 +15,7 @@ struct LogicConstraint {
     friend bool operator==(LogicConstraint const& lhs, LogicConstraint const& rhs) = default;
 
     // msgpack entry, update with any new fields
-    auto msgpack(auto ar) { return ar(NVP(a), NVP(b), NVP(result), NVP(num_bits), NVP(is_xor_gate)); }
+    auto msgpack(auto ar) { return ar(NVP(a, b, result, num_bits, is_xor_gate)); }
 };
 
 void create_logic_gate(plonk::stdlib::types::Composer& composer,

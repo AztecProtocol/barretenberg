@@ -40,8 +40,7 @@
 #ifndef __i386__
 __extension__ using uint128_t = unsigned __int128;
 #endif
-// A simple name-value pair helper for msgpack serialization
-#define NVP(x) #x, x
+
 namespace serialize {
 // Basic integer read / write, to / from raw buffers.
 // Pointers to buffers are advanced by length of type.

@@ -3,6 +3,7 @@
 #include <vector>
 #include <type_traits>
 #include "barretenberg/ecc/curves/bn254/fq2.hpp"
+#include "barretenberg/msgpack/msgpack_nvp_macro.h"
 
 namespace barretenberg {
 namespace group_elements {
@@ -63,6 +64,10 @@ template <typename Fq, typename Fr, typename Params> class alignas(64) affine_el
     constexpr bool operator>(const affine_element& other) const noexcept;
     constexpr bool operator<(const affine_element& other) const noexcept { return (other > *this); }
 
+    // for serialization: update up with new fields
+    void msgpack(auto ar) {
+        ar(NVP(x, y));
+    }
     /**
      * @brief Serialize the point to the given buffer
      *
