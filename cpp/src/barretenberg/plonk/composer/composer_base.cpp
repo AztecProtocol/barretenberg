@@ -192,6 +192,10 @@ template <size_t program_width, bool with_tags> void ComposerBase::compute_sigma
         barretenberg::polynomial sigma_fft(sigma_polynomial, key->large_domain.size);
         sigma_fft.coset_fft(key->large_domain);
 
+        info("sigma_", index, "_polynomial_lagrange: ", sigma_polynomial_lagrange);
+        info("sigma_", index, "_polynomial: ", sigma_polynomial);
+        info("sigma_", index, "_fft: ", sigma_fft);
+
         key->polynomial_store.put("sigma_" + index + "_lagrange", std::move(sigma_polynomial_lagrange));
         key->polynomial_store.put("sigma_" + index, std::move(sigma_polynomial));
         key->polynomial_store.put("sigma_" + index + "_fft", std::move(sigma_fft));

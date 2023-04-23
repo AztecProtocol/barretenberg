@@ -1,4 +1,5 @@
 #pragma once
+#include "barretenberg/crypto/sha256/sha256.hpp"
 #include "evaluation_domain.hpp"
 #include <cstddef>
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
@@ -191,6 +192,11 @@ template <typename Fr> class Polynomial {
     iterator end() { return coefficients_.get() + size_; }
     pointer data() { return coefficients_; }
 
+    std::span<uint8_t> byte_span() const
+    {
+        return std::span<uint8_t>((uint8_t*)coefficients_.get(), size_ * sizeof(fr));
+    }
+
     const_iterator begin() const { return coefficients_.get(); }
     const_iterator end() const { return coefficients_.get() + size_; }
     const_pointer data() const { return coefficients_; }
@@ -224,7 +230,7 @@ template <typename Fr> class Polynomial {
 
 template <typename Fr> inline std::ostream& operator<<(std::ostream& os, Polynomial<Fr> const& p)
 {
-    return os << "[ " << p[0] << ", ... ]";
+    return os << "[ " << p[0] << ", ... ] size: " << p.size() << " hash: " << sha256::sha256(p.byte_span());
 }
 
 // N.B. grumpkin polynomials don't support fast fourier transforms using roots of unity!

@@ -9,9 +9,11 @@ import { AsyncCallState, AsyncFnState } from './async_call_state.js';
 import { Crs } from '../crs/index.js';
 import { NodeDataStore } from './node/node_data_store.js';
 import { WebDataStore } from './browser/web_data_store.js';
-import { numToUInt32LE } from '../serialize/index.js';
+import { createHash } from 'crypto';
 
 EventEmitter.defaultMaxListeners = 30;
+
+const sha256 = (data: Uint8Array) => createHash('sha256').update(data).digest('hex');
 
 export async function fetchCode() {
   if (isNode) {
@@ -99,14 +101,14 @@ export class BarretenbergWasm extends EventEmitter {
             this.debug(`get_data miss ${key}`);
             return;
           }
-          this.debug(`get_data hit ${key} ${data.length}`);
+          // this.debug(`get_data hit ${key} ${data.length}`);
           this.writeMemory(outBufAddr, data);
         },
 
         set_data: (keyAddr: number, dataAddr: number, dataLength: number) => {
           const key = this.stringFromAddress(keyAddr);
-          this.debug(`set_data ${key} ${dataLength}`);
           this.memStore[key] = this.getMemorySlice(dataAddr, dataAddr + dataLength);
+          this.debug(`set_data: ${key} length: ${dataLength} hash: ${sha256(this.memStore[key])}`);
         },
         /**
          * Read the data associated with the key located at keyAddr.

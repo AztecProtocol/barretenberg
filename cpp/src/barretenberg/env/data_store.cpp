@@ -6,6 +6,7 @@
 #include <vector>
 #include <cstring>
 #include <barretenberg/common/log.hpp>
+#include <barretenberg/crypto/sha256/sha256.hpp>
 
 namespace {
 std::map<std::string, std::vector<uint8_t>> store;
@@ -16,8 +17,8 @@ extern "C" {
 void set_data(char const* key, uint8_t const* addr, size_t length)
 {
     std::string k = key;
-    // info("set data: ", key, " length: ", length);
     store[k] = std::vector<uint8_t>(addr, addr + length);
+    info("set data: ", key, " length: ", length, " hash: ", sha256::sha256(store[k]));
 }
 
 void get_data(char const* key, uint8_t* out_buf)
