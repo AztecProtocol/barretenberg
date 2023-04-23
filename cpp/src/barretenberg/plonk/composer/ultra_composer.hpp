@@ -27,7 +27,8 @@ class UltraComposer : public ComposerBase {
     static constexpr uint32_t UNINITIALIZED_MEMORY_RECORD = UINT32_MAX;
     static constexpr size_t NUMBER_OF_GATES_PER_RAM_ACCESS = 2;
     static constexpr size_t NUMBER_OF_ARITHMETIC_GATES_PER_RAM_ARRAY = 1;
-
+    // number of gates created per non-native field operation in process_non_native_field_multiplications
+    static constexpr size_t GATES_PER_NON_NATIVE_FIELD_MULTIPLICATION_ARITHMETIC = 7;
     struct non_native_field_witnesses {
         // first 4 array elements = limbs
         // 5th element = prime basis limb
@@ -38,6 +39,57 @@ class UltraComposer : public ComposerBase {
         std::array<barretenberg::fr, 5> neg_modulus;
         barretenberg::fr modulus;
     };
+
+    /**
+     * @brief Used to store instructions to create non_native_field_multiplication gates.
+     *        We want to cache these (and remove duplicates) as the stdlib code can end up multiplying the same inputs
+     * repeatedly.
+     */
+    struct cached_non_native_field_multiplication {
+        std::array<uint32_t, 5> a;
+        std::array<uint32_t, 5> b;
+        std::array<uint32_t, 5> q;
+        std::array<uint32_t, 5> r;
+        std::array<uint32_t, 6> cross_terms;
+        std::array<barretenberg::fr, 5> neg_modulus;
+
+        bool operator==(const cached_non_native_field_multiplication& other) const
+        {
+            bool valid = true;
+            for (size_t i = 0; i < 5; ++i) {
+                valid = valid && (a[i] == other.a[i]);
+                valid = valid && (b[i] == other.b[i]);
+                valid = valid && (q[i] == other.q[i]);
+                valid = valid && (r[i] == other.r[i]);
+            }
+            return valid;
+        }
+        bool operator<(const cached_non_native_field_multiplication& other) const
+        {
+            if (a < other.a) {
+                return true;
+            }
+            if (a == other.a) {
+                if (b < other.b) {
+                    return true;
+                }
+                if (b == other.b) {
+                    if (q < other.q) {
+                        return true;
+                    }
+                    if (q == other.q) {
+                        if (r < other.r) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+    };
+
+    std::vector<cached_non_native_field_multiplication> cached_non_native_field_multiplications;
+    void process_non_native_field_multiplications();
 
     enum AUX_SELECTORS {
         NONE,
@@ -249,11 +301,10 @@ class UltraComposer : public ComposerBase {
      * @param rangecount return argument, extra gates due to range checks
      * @param romcount return argument, extra gates due to rom reads
      * @param ramcount return argument, extra gates due to ram read/writes
+     * @param nnfcount return argument, extra gates due to queued non native field gates
      */
-    void get_num_gates_split_into_components(size_t& count,
-                                             size_t& rangecount,
-                                             size_t& romcount,
-                                             size_t& ramcount) const
+    void get_num_gates_split_into_components(
+        size_t& count, size_t& rangecount, size_t& romcount, size_t& ramcount, size_t& nnfcount) const
     {
         count = num_gates;
         // each ROM gate adds +1 extra gate due to the rom reads being copied to a sorted list set
@@ -321,6 +372,13 @@ class UltraComposer : public ComposerBase {
                 rangecount += ram_range_sizes[i];
             }
         }
+        std::vector<cached_non_native_field_multiplication> nnf_copy(cached_non_native_field_multiplications);
+        // update nnfcount
+        std::sort(nnf_copy.begin(), nnf_copy.end());
+
+        auto last = std::unique(nnf_copy.begin(), nnf_copy.end());
+        const size_t num_nnf_ops = static_cast<size_t>(std::distance(nnf_copy.begin(), last));
+        nnf_count = num_nnf_ops * GATES_PER_NON_NATIVE_FIELD_MULTIPLICATION_ARITHMETIC;
     }
 
     /**
@@ -342,8 +400,9 @@ class UltraComposer : public ComposerBase {
         size_t rangecount = 0;
         size_t romcount = 0;
         size_t ramcount = 0;
-        get_num_gates_split_into_components(count, rangecount, romcount, ramcount);
-        return count + romcount + ramcount + rangecount;
+        size_t nnfcount = 0;
+        get_num_gates_split_into_components(count, rangecount, romcount, ramcount, nnfcount);
+        return count + romcount + ramcount + rangecount + nnfcount;
     }
 
     virtual size_t get_total_circuit_size() const override
@@ -366,12 +425,13 @@ class UltraComposer : public ComposerBase {
         size_t rangecount = 0;
         size_t romcount = 0;
         size_t ramcount = 0;
-
+        size_t nnfcount = 0;
         get_num_gates_split_into_components(count, rangecount, romcount, ramcount);
 
         size_t total = count + romcount + ramcount + rangecount;
         std::cout << "gates = " << total << " (arith " << count << ", rom " << romcount << ", ram " << ramcount
-                  << ", range " << rangecount << "), pubinp = " << public_inputs.size() << std::endl;
+                  << ", range " << rangecount << ", non native field gates " << nnfcount
+                  << "), pubinp = " << public_inputs.size() << std::endl;
     }
 
     void assert_equal_constant(const uint32_t a_idx,

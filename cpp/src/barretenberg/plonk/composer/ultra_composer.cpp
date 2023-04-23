@@ -531,6 +531,7 @@ std::shared_ptr<proving_key> UltraComposer::compute_proving_key()
      * our circuit is finalised, and we must not to execute these functions again.
      */
     if (!circuit_finalised) {
+        process_non_native_field_multiplications();
         process_ROM_arrays(public_inputs.size());
         process_RAM_arrays(public_inputs.size());
         process_range_lists();
@@ -1886,8 +1887,6 @@ std::array<uint32_t, 2> UltraComposer::evaluate_non_native_field_multiplication(
     constexpr barretenberg::fr LIMB_SHIFT = uint256_t(1) << DEFAULT_NON_NATIVE_FIELD_LIMB_BITS;
     constexpr barretenberg::fr LIMB_SHIFT_2 = uint256_t(1) << (2 * DEFAULT_NON_NATIVE_FIELD_LIMB_BITS);
     constexpr barretenberg::fr LIMB_SHIFT_3 = uint256_t(1) << (3 * DEFAULT_NON_NATIVE_FIELD_LIMB_BITS);
-    constexpr barretenberg::fr LIMB_RSHIFT =
-        barretenberg::fr(1) / barretenberg::fr(uint256_t(1) << DEFAULT_NON_NATIVE_FIELD_LIMB_BITS);
     constexpr barretenberg::fr LIMB_RSHIFT_2 =
         barretenberg::fr(1) / barretenberg::fr(uint256_t(1) << (2 * DEFAULT_NON_NATIVE_FIELD_LIMB_BITS));
 
@@ -1936,82 +1935,127 @@ std::array<uint32_t, 2> UltraComposer::evaluate_non_native_field_multiplication(
         range_constrain_two_limbs(input.q[2], input.q[3]);
     }
 
-    // product gate 1
-    // (lo_0 + q_0(p_0 + p_1*2^b) + q_1(p_0*2^b) - (r_1)2^b)2^-2b - lo_1 = 0
-    create_big_add_gate({ input.q[0],
-                          input.q[1],
-                          input.r[1],
-                          lo_1_idx,
-                          input.neg_modulus[0] + input.neg_modulus[1] * LIMB_SHIFT,
-                          input.neg_modulus[0] * LIMB_SHIFT,
-                          -LIMB_SHIFT,
-                          -LIMB_SHIFT.sqr(),
-                          0 },
-                        true);
-
-    w_l.emplace_back(input.a[1]);
-    w_r.emplace_back(input.b[1]);
-    w_o.emplace_back(input.r[0]);
-    w_4.emplace_back(lo_0_idx);
-    apply_aux_selectors(AUX_SELECTORS::NON_NATIVE_FIELD_1);
-    ++num_gates;
-    w_l.emplace_back(input.a[0]);
-    w_r.emplace_back(input.b[0]);
-    w_o.emplace_back(input.a[3]);
-    w_4.emplace_back(input.b[3]);
-    apply_aux_selectors(AUX_SELECTORS::NON_NATIVE_FIELD_2);
-    ++num_gates;
-    w_l.emplace_back(input.a[2]);
-    w_r.emplace_back(input.b[2]);
-    w_o.emplace_back(input.r[3]);
-    w_4.emplace_back(hi_0_idx);
-    apply_aux_selectors(AUX_SELECTORS::NON_NATIVE_FIELD_3);
-    ++num_gates;
-    w_l.emplace_back(input.a[1]);
-    w_r.emplace_back(input.b[1]);
-    w_o.emplace_back(input.r[2]);
-    w_4.emplace_back(hi_1_idx);
-    apply_aux_selectors(AUX_SELECTORS::NONE);
-    ++num_gates;
-
-    /**
-     * product gate 6
-     *
-     * hi_2 - hi_1 - lo_1 - q[2](p[1].2^b + p[0]) - q[3](p[0].2^b) = 0
-     *
-     **/
-    create_big_add_gate(
-        {
-            input.q[2],
-            input.q[3],
-            lo_1_idx,
-            hi_1_idx,
-            -input.neg_modulus[1] * LIMB_SHIFT - input.neg_modulus[0],
-            -input.neg_modulus[0] * LIMB_SHIFT,
-            -1,
-            -1,
-            0,
-        },
-        true);
-
-    /**
-     * product gate 7
-     *
-     * hi_3 - (hi_2 - q[0](p[3].2^b + p[2]) - q[1](p[2].2^b + p[1])).2^-2b
-     **/
-    create_big_add_gate({
-        hi_3_idx,
-        input.q[0],
-        input.q[1],
-        hi_2_idx,
-        -1,
-        input.neg_modulus[3] * LIMB_RSHIFT + input.neg_modulus[2] * LIMB_RSHIFT_2,
-        input.neg_modulus[2] * LIMB_RSHIFT + input.neg_modulus[1] * LIMB_RSHIFT_2,
-        LIMB_RSHIFT_2,
-        0,
-    });
+    // Add witnesses into the multiplication cache
+    // (when finalising the circuit, we will remove duplicates; several dups produced by biggroup.hpp methods)
+    cached_non_native_field_multiplication cache{
+        .a = input.a,
+        .b = input.b,
+        .q = input.q,
+        .r = input.r,
+        .cross_terms = { lo_0_idx, lo_1_idx, hi_0_idx, hi_1_idx, hi_2_idx, hi_3_idx },
+        .neg_modulus = input.neg_modulus,
+    };
+    cached_non_native_field_multiplications.emplace_back(cache);
 
     return std::array<uint32_t, 2>{ lo_1_idx, hi_3_idx };
+}
+
+/**
+ * @brief Called in `compute_proving_key` when finalizing circuit.
+ * Iterates over the cached_non_native_field_multiplication objects,
+ * removes duplicates, and instantiates the remainder as constraints`
+ */
+void UltraComposer::process_non_native_field_multiplications()
+{
+    std::sort(cached_non_native_field_multiplications.begin(), cached_non_native_field_multiplications.end());
+
+    auto last =
+        std::unique(cached_non_native_field_multiplications.begin(), cached_non_native_field_multiplications.end());
+
+    auto it = cached_non_native_field_multiplications.begin();
+
+    constexpr barretenberg::fr LIMB_SHIFT = uint256_t(1) << DEFAULT_NON_NATIVE_FIELD_LIMB_BITS;
+    constexpr barretenberg::fr LIMB_RSHIFT =
+        barretenberg::fr(1) / barretenberg::fr(uint256_t(1) << DEFAULT_NON_NATIVE_FIELD_LIMB_BITS);
+    constexpr barretenberg::fr LIMB_RSHIFT_2 =
+        barretenberg::fr(1) / barretenberg::fr(uint256_t(1) << (2 * DEFAULT_NON_NATIVE_FIELD_LIMB_BITS));
+
+    // iterate over the cached items and create constraints
+    while (it != last) {
+        const auto input = *it;
+        const auto lo_0_idx = input.cross_terms[0];
+        const auto lo_1_idx = input.cross_terms[1];
+        const auto hi_0_idx = input.cross_terms[2];
+        const auto hi_1_idx = input.cross_terms[3];
+        const auto hi_2_idx = input.cross_terms[4];
+        const auto hi_3_idx = input.cross_terms[5];
+
+        // product gate 1
+        // (lo_0 + q_0(p_0 + p_1*2^b) + q_1(p_0*2^b) - (r_1)2^b)2^-2b - lo_1 = 0
+        create_big_add_gate({ input.q[0],
+                              input.q[1],
+                              input.r[1],
+                              lo_1_idx,
+                              input.neg_modulus[0] + input.neg_modulus[1] * LIMB_SHIFT,
+                              input.neg_modulus[0] * LIMB_SHIFT,
+                              -LIMB_SHIFT,
+                              -LIMB_SHIFT.sqr(),
+                              0 },
+                            true);
+
+        w_l.emplace_back(input.a[1]);
+        w_r.emplace_back(input.b[1]);
+        w_o.emplace_back(input.r[0]);
+        w_4.emplace_back(lo_0_idx);
+        apply_aux_selectors(AUX_SELECTORS::NON_NATIVE_FIELD_1);
+        ++num_gates;
+        w_l.emplace_back(input.a[0]);
+        w_r.emplace_back(input.b[0]);
+        w_o.emplace_back(input.a[3]);
+        w_4.emplace_back(input.b[3]);
+        apply_aux_selectors(AUX_SELECTORS::NON_NATIVE_FIELD_2);
+        ++num_gates;
+        w_l.emplace_back(input.a[2]);
+        w_r.emplace_back(input.b[2]);
+        w_o.emplace_back(input.r[3]);
+        w_4.emplace_back(hi_0_idx);
+        apply_aux_selectors(AUX_SELECTORS::NON_NATIVE_FIELD_3);
+        ++num_gates;
+        w_l.emplace_back(input.a[1]);
+        w_r.emplace_back(input.b[1]);
+        w_o.emplace_back(input.r[2]);
+        w_4.emplace_back(hi_1_idx);
+        apply_aux_selectors(AUX_SELECTORS::NONE);
+        ++num_gates;
+
+        /**
+         * product gate 6
+         *
+         * hi_2 - hi_1 - lo_1 - q[2](p[1].2^b + p[0]) - q[3](p[0].2^b) = 0
+         *
+         **/
+        create_big_add_gate(
+            {
+                input.q[2],
+                input.q[3],
+                lo_1_idx,
+                hi_1_idx,
+                -input.neg_modulus[1] * LIMB_SHIFT - input.neg_modulus[0],
+                -input.neg_modulus[0] * LIMB_SHIFT,
+                -1,
+                -1,
+                0,
+            },
+            true);
+
+        /**
+         * product gate 7
+         *
+         * hi_3 - (hi_2 - q[0](p[3].2^b + p[2]) - q[1](p[2].2^b + p[1])).2^-2b
+         **/
+        create_big_add_gate({
+            hi_3_idx,
+            input.q[0],
+            input.q[1],
+            hi_2_idx,
+            -1,
+            input.neg_modulus[3] * LIMB_RSHIFT + input.neg_modulus[2] * LIMB_RSHIFT_2,
+            input.neg_modulus[2] * LIMB_RSHIFT + input.neg_modulus[1] * LIMB_RSHIFT_2,
+            LIMB_RSHIFT_2,
+            0,
+        });
+        ++it;
+    }
 }
 
 /**
