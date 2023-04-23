@@ -612,7 +612,7 @@ template <class Params> void field<Params>::msgpack_pack(auto& packer) const
 {
     auto adjusted = from_montgomery_form();
     uint64_t bin_data[4] = {
-        htonll(adjusted.data[0]), htonll(adjusted.data[1]), htonll(adjusted.data[2]), htonll(adjusted.data[3])
+        htonll(adjusted.data[3]), htonll(adjusted.data[2]), htonll(adjusted.data[1]), htonll(adjusted.data[0])
     };
     packer.pack_bin(sizeof(bin_data));
     packer.pack_bin_body((const char*)bin_data, sizeof(bin_data));
@@ -621,7 +621,11 @@ template <class Params> void field<Params>::msgpack_pack(auto& packer) const
 // For serialization
 template <class Params> void field<Params>::msgpack_unpack(auto o)
 {
-    msgpack::read_bin64(o, data, sizeof(data) / sizeof(uint64_t));
+    msgpack::read_bin64(o, data, 4);
+    uint64_t reversed[] = {data[3], data[2], data[1], data[0]};
+    for (int i = 0; i < 4; i++) {
+        data[i] = reversed[i];
+    }
     *this = to_montgomery_form();
 }
 
