@@ -8,7 +8,8 @@ describe('simple', () => {
     wasm.on('log', debug('wasm'));
     debug.enable('wasm');
 
-    const crs = new Crs(2 ** 19);
+    // Plus 1 need or ASSERT gets triggered. It was fine in release. Is the assertion wrong?
+    const crs = new Crs(2 ** 19 + 1);
     await crs.init();
     const pippengerPtr = eccNewPippenger(Buffer.from(crs.getG1Data()), crs.numPoints);
     const valid = examplesSimpleCreateAndVerifyProof(pippengerPtr, Buffer.from(crs.getG2Data()));

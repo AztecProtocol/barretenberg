@@ -21,7 +21,7 @@ class work_queue {
 
     struct work_item {
         WorkType work_type;
-        std::shared_ptr<fr[]> mul_scalars;
+        mutable std::shared_ptr<fr[]> mul_scalars;
         std::string tag;
         barretenberg::fr constant;
         const size_t index;

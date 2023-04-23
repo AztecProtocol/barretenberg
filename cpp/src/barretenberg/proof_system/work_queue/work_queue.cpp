@@ -64,11 +64,12 @@ size_t work_queue::get_scalar_multiplication_size(const size_t work_item_number)
 std::shared_ptr<fr[]> work_queue::get_ifft_data(const size_t work_item_number) const
 {
     size_t count = 0;
-    for (const auto& item : work_item_queue) {
+    for (auto& item : work_item_queue) {
         if (item.work_type == WorkType::IFFT) {
             if (count == work_item_number) {
-                auto wire = key->polynomial_store.get(item.tag + "_lagrange");
-                return wire.data();
+                // Rename mul_scalars "data" or something. Hold onto shared_ptr so mem not released.
+                item.mul_scalars = key->polynomial_store.get(item.tag + "_lagrange").data();
+                return item.mul_scalars;
             }
             ++count;
         }
@@ -95,11 +96,13 @@ void work_queue::put_ifft_data(std::shared_ptr<fr[]> result, const size_t work_i
 work_queue::queued_fft_inputs work_queue::get_fft_data(const size_t work_item_number) const
 {
     size_t count = 0;
-    for (const auto& item : work_item_queue) {
+    for (auto& item : work_item_queue) {
         if (item.work_type == WorkType::SMALL_FFT) {
             if (count == work_item_number) {
-                auto wire = key->polynomial_store.get(item.tag);
-                return { wire.data(), key->large_domain.root.pow(static_cast<uint64_t>(item.index)) };
+                // Rename mul_scalars "data" or something. Hold onto shared_ptr so mem not released.
+                item.mul_scalars = key->polynomial_store.get(item.tag).data();
+                auto wire = item.mul_scalars;
+                return { wire, key->large_domain.root.pow(static_cast<uint64_t>(item.index)) };
             }
             ++count;
         }
@@ -152,7 +155,9 @@ void work_queue::flush_queue()
 
 void work_queue::add_to_queue(const work_item& item)
 {
-#if defined(__wasm__)
+    // TODO: Why do we have this? It's caused (me) a lot of confusion over time as it's kind of a hidden deviation.
+    // Somebody please put explanatory comment here in detail.
+#if defined(__wasm__OFF)
     // #if 1
     if (item.work_type == WorkType::FFT) {
         const auto large_root = key->large_domain.root;
@@ -233,6 +238,7 @@ void work_queue::process_queue()
                     old_wire_fft[4 * i + item.index] = wire_copy[i];
                 }
                 old_wire_fft[4 * n + item.index] = wire_copy[0];
+                key->polynomial_store.put(item.tag + "_fft", std::move(old_wire_fft));
             } else {
                 polynomial wire_fft(4 * n + 4);
                 for (size_t i = 0; i < n; ++i) {

@@ -542,8 +542,7 @@ template <class T> constexpr field<T> field<T>::get_root_of_unity(const size_t s
 template <class T> field<T> field<T>::random_element(numeric::random::Engine* engine) noexcept
 {
     if (engine == nullptr) {
-        // TODO: DO NOT MERGE!
-        engine = &numeric::random::get_debug_engine();
+        engine = &numeric::random::get_engine();
     }
 
     uint512_t source = engine->get_random_uint512();

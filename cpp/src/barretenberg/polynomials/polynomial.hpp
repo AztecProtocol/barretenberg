@@ -230,7 +230,19 @@ template <typename Fr> class Polynomial {
 
 template <typename Fr> inline std::ostream& operator<<(std::ostream& os, Polynomial<Fr> const& p)
 {
-    return os << "[ " << p[0] << ", ... ] size: " << p.size() << " hash: " << sha256::sha256(p.byte_span());
+    return os << "[ data\n"
+              << "  " << p[0] << ",\n"
+              << "  " << p[1] << ",\n"
+              << "  ... ,\n"
+              << "  " << p[p.size() - 2] << ",\n"
+              << "  " << p[p.size() - 1] << ",\n"
+              << "] [ capacity\n"
+              << "  " << p[p.size()] << ",\n"
+              << "  " << p[p.capacity() - 1] << ",\n"
+              << "]\n"
+              << " size: " << p.size() << "\n"
+              << " capacity: " << p.capacity() << "\n"
+              << " hash: " << sha256::sha256(p.byte_span());
 }
 
 // N.B. grumpkin polynomials don't support fast fourier transforms using roots of unity!

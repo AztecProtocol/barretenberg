@@ -335,17 +335,6 @@ template <typename settings> void ProverBase<settings>::execute_third_round()
 
     transcript.apply_fiat_shamir("beta");
 
-#ifdef DEBUG_TIMING
-    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-#endif
-#ifdef DEBUG_TIMING
-    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    std::chrono::milliseconds diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    std::cerr << "compute z coefficients: " << diff.count() << "ms" << std::endl;
-#endif
-#ifdef DEBUG_TIMING
-    start = std::chrono::steady_clock::now();
-#endif
     for (auto& widget : random_widgets) {
         widget->compute_round_commitments(transcript, 3, queue);
     }
@@ -360,11 +349,6 @@ template <typename settings> void ProverBase<settings>::execute_third_round()
             .index = 0,
         });
     }
-#ifdef DEBUG_TIMING
-    end = std::chrono::steady_clock::now();
-    diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    std::cerr << "compute z commitment: " << diff.count() << "ms" << std::endl;
-#endif
 }
 
 /**

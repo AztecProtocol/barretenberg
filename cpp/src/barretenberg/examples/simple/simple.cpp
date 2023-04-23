@@ -11,10 +11,10 @@ using namespace stdlib::types;
 
 void build_circuit(Composer& composer)
 {
-    // while (composer.get_num_gates() <= 262144) {
-    plonk::stdlib::pedersen_commitment<Composer>::compress(field_ct(witness_ct(&composer, 1)),
-                                                           field_ct(witness_ct(&composer, 1)));
-    // }
+    while (composer.get_num_gates() <= 262144 / 2) {
+        plonk::stdlib::pedersen_commitment<Composer>::compress(field_ct(witness_ct(&composer, 1)),
+                                                               field_ct(witness_ct(&composer, 1)));
+    }
 }
 
 Composer* create_composer(std::shared_ptr<proof_system::ReferenceStringFactory> const& crs_factory)

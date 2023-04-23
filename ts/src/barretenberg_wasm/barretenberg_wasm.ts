@@ -10,6 +10,7 @@ import { Crs } from '../crs/index.js';
 import { NodeDataStore } from './node/node_data_store.js';
 import { WebDataStore } from './browser/web_data_store.js';
 import { createHash } from 'crypto';
+import { writeFileSync } from 'fs';
 
 EventEmitter.defaultMaxListeners = 30;
 
@@ -109,6 +110,7 @@ export class BarretenbergWasm extends EventEmitter {
           const key = this.stringFromAddress(keyAddr);
           this.memStore[key] = this.getMemorySlice(dataAddr, dataAddr + dataLength);
           this.debug(`set_data: ${key} length: ${dataLength} hash: ${sha256(this.memStore[key])}`);
+          // writeFileSync('/mnt/user-data/charlie/debugging/ts_' + key, this.memStore[key]);
         },
         /**
          * Read the data associated with the key located at keyAddr.

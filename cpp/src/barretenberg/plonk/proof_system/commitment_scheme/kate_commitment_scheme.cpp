@@ -157,21 +157,25 @@ void KateCommitmentScheme<settings>::batch_open(const transcript::StandardTransc
 
     // Add challenge-poly tuples for all polynomials in the manifest
     for (size_t i = 0; i < input_key->polynomial_manifest.size(); ++i) {
-        const auto& info = input_key->polynomial_manifest[i];
-        const std::string poly_label(info.polynomial_label);
+        const auto& info_ = input_key->polynomial_manifest[i];
+        const std::string poly_label(info_.polynomial_label);
+        info("poly_label ", poly_label);
 
         auto poly = input_key->polynomial_store.get(poly_label).data();
 
         const fr nu_challenge = transcript.get_challenge_field_element_from_map("nu", poly_label);
         opened_polynomials_at_zeta.push_back({ poly, nu_challenge });
+        info("nu_challenge ", nu_challenge);
 
-        if (info.requires_shifted_evaluation) {
+        if (info_.requires_shifted_evaluation) {
             const auto nu_challenge = transcript.get_challenge_field_element_from_map("nu", poly_label + "_omega");
             opened_polynomials_at_zeta_omega.push_back({ poly, nu_challenge });
+            info("nu_challenge ", nu_challenge);
         }
     }
 
     const auto zeta = transcript.get_challenge_field_element("z");
+    info("zeta ", zeta);
 
     // Note: the opening poly W_\frak{z} is always size (n + 1) due to blinding
     // of the quotient polynomial
@@ -186,6 +190,7 @@ void KateCommitmentScheme<settings>::batch_open(const transcript::StandardTransc
         const size_t offset = i * input_key->small_domain.size;
         const fr scalar = zeta.pow(static_cast<uint64_t>(offset));
         opened_polynomials_at_zeta.push_back({ input_key->quotient_polynomial_parts[i].data(), scalar });
+        info("pw scalar ", scalar);
     }
 
     // Add up things to get coefficients of opening polynomials.
@@ -203,17 +208,20 @@ void KateCommitmentScheme<settings>::batch_open(const transcript::StandardTransc
     // Adjust the (n + 1)th coefficient of t_{0,1,2}(X) or r(X) (Note: t_4 (Turbo/Ultra) has only n coefficients)
     opening_poly[input_key->circuit_size] = 0;
     const fr zeta_pow_n = zeta.pow(static_cast<uint64_t>(input_key->circuit_size));
+    info("zeta_pow_n ", zeta_pow_n);
 
     const size_t num_deg_n_poly = settings::program_width == 3 ? settings::program_width : settings::program_width - 1;
     fr scalar_mult = 1;
     for (size_t i = 0; i < num_deg_n_poly; i++) {
         opening_poly[input_key->circuit_size] +=
             input_key->quotient_polynomial_parts[i][input_key->circuit_size] * scalar_mult;
+        info("scalar_mult ", scalar_mult);
         scalar_mult *= zeta_pow_n;
     }
 
     // compute the shifted evaluation point \frak{z}*omega
     const auto zeta_omega = zeta * input_key->small_domain.root;
+    info("zeta_omega ", zeta_omega);
 
     // Compute the W_{\zeta}(X) and W_{\zeta \omega}(X) polynomials
     KateCommitmentScheme::compute_opening_polynomial(&opening_poly[0], &opening_poly[0], zeta, input_key->circuit_size);

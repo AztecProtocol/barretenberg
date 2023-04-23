@@ -128,8 +128,10 @@ Engine& get_debug_engine(bool reset)
 
 Engine& get_engine()
 {
-    static RandomEngine engine;
-    return engine;
+    // TODO: WARNING DO NOT MERGE
+    return get_debug_engine();
+    // static RandomEngine engine;
+    // return engine;
 }
 
 } // namespace random
