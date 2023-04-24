@@ -1369,12 +1369,12 @@ void UltraCircuitConstructor::process_non_native_field_multiplications()
     // iterate over the cached items and create constraints
     while (it != last) {
         const auto input = *it;
-        const auto lo_0_idx = input.cross_terms[0];
-        const auto lo_1_idx = input.cross_terms[1];
-        const auto hi_0_idx = input.cross_terms[2];
-        const auto hi_1_idx = input.cross_terms[3];
-        const auto hi_2_idx = input.cross_terms[4];
-        const auto hi_3_idx = input.cross_terms[5];
+        const uint32_t lo_0_idx = input.cross_terms.lo_0_idx;
+        const uint32_t lo_1_idx = input.cross_terms.lo_1_idx;
+        const uint32_t hi_0_idx = input.cross_terms.hi_0_idx;
+        const uint32_t hi_1_idx = input.cross_terms.hi_1_idx;
+        const uint32_t hi_2_idx = input.cross_terms.hi_2_idx;
+        const uint32_t hi_3_idx = input.cross_terms.hi_3_idx;
 
         // product gate 1
         // (lo_0 + q_0(p_0 + p_1*2^b) + q_1(p_0*2^b) - (r_1)2^b)2^-2b - lo_1 = 0

@@ -43,6 +43,15 @@ struct non_native_field_witnesses {
     barretenberg::fr modulus;
 };
 
+struct non_native_field_multiplication_cross_terms {
+    uint32_t lo_0_idx;
+    uint32_t lo_1_idx;
+    uint32_t hi_0_idx;
+    uint32_t hi_1_idx;
+    uint32_t hi_2_idx;
+    uint32_t hi_3_idx;
+};
+
 /**
  * @brief Used to store instructions to create non_native_field_multiplication gates.
  *        We want to cache these (and remove duplicates) as the stdlib code can end up multiplying the same inputs
@@ -53,7 +62,7 @@ struct cached_non_native_field_multiplication {
     std::array<uint32_t, 5> b;
     std::array<uint32_t, 5> q;
     std::array<uint32_t, 5> r;
-    std::array<uint32_t, 6> cross_terms;
+    non_native_field_multiplication_cross_terms cross_terms;
     std::array<barretenberg::fr, 5> neg_modulus;
 
     bool operator==(const cached_non_native_field_multiplication& other) const
