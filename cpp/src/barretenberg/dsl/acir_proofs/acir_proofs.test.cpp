@@ -131,10 +131,10 @@ TEST(AcirProofs, TestSerialization)
 
     uint8_t* proof_data_buf = nullptr;
     size_t proof_length = acir_proofs::new_proof(
-        pippenger_ptr, &g2x_buffer[0], pk_buf, &constraint_system_buf[0], &witness_buf[0], &proof_data_buf);
+        pippenger_ptr, &g2x_buffer[0], pk_buf, &constraint_system_buf[0], &witness_buf[0], &proof_data_buf, true);
 
     bool verified = acir_proofs::verify_proof(
-        &g2x_buffer[0], vk_buf, &constraint_system_buf[0], proof_data_buf, static_cast<uint32_t>(proof_length));
+        &g2x_buffer[0], vk_buf, &constraint_system_buf[0], proof_data_buf, static_cast<uint32_t>(proof_length), true);
     EXPECT_EQ(verified, true);
 }
 
@@ -178,14 +178,18 @@ TEST(AcirProofs, TestSerializationWithRecursion)
 
         uint8_t* proof_data_buf = nullptr;
         size_t proof_length = acir_proofs::new_proof(
-            pippenger_ptr, &g2x_buffer[0], pk_buf, &constraint_system_buf[0], &witness_buf[0], &proof_data_buf);
+            pippenger_ptr, &g2x_buffer[0], pk_buf, &constraint_system_buf[0], &witness_buf[0], &proof_data_buf, true);
         proof_fields_size =
             acir_proofs::serialize_proof_into_field_elements(proof_data_buf, &proof_data_fields, proof_length);
         vk_fields_size = acir_proofs::serialize_verification_key_into_field_elements(
             &g2x_buffer[0], vk_buf, &vk_fields, &vk_hash_buf);
 
-        bool verified = acir_proofs::verify_proof(
-            &g2x_buffer[0], vk_buf, &constraint_system_buf[0], proof_data_buf, static_cast<uint32_t>(proof_length));
+        bool verified = acir_proofs::verify_proof(&g2x_buffer[0],
+                                                  vk_buf,
+                                                  &constraint_system_buf[0],
+                                                  proof_data_buf,
+                                                  static_cast<uint32_t>(proof_length),
+                                                  true);
         EXPECT_EQ(verified, true);
 
         delete pippenger_ptr_base;
@@ -198,27 +202,28 @@ TEST(AcirProofs, TestSerializationWithRecursion)
         fr vk_hash_value;
         std::vector<fr> proof_witnesses(proof_fields_size / 32);
         std::vector<fr> key_witnesses(vk_fields_size / 32);
-        memcpy(proof_witnesses.data(), (void*)proof_data_fields, proof_fields_size);
-        memcpy(&key_witnesses[0], (void*)vk_fields, vk_fields_size);
-        memcpy(&vk_hash_value, (void*)vk_hash_buf, 32);
-        // for (size_t i = 0; i < proof_fields_size / 32; i++) {
-        //     proof_witnesses[i] = barretenberg::fr::serialize_from_buffer(&proof_data_fields[i * 32]);
-        // }
-        // for (size_t i = 0; i < vk_fields_size / 32; i++) {
-        //     key_witnesses[i] = barretenberg::fr::serialize_from_buffer(&vk_fields[i * 32]);
-        // }
-        // vk_hash_value = barretenberg::fr::serialize_from_buffer(vk_hash_buf);
+        // memcpy(proof_witnesses.data(), (void*)proof_data_fields, proof_fields_size);
+        // memcpy(&key_witnesses[0], (void*)vk_fields, vk_fields_size);
+        // memcpy(&vk_hash_value, (void*)vk_hash_buf, 32);
+        for (size_t i = 0; i < proof_fields_size / 32; i++) {
+            proof_witnesses[i] = barretenberg::fr::serialize_from_buffer(&proof_data_fields[i * 32]);
+        }
+        for (size_t i = 0; i < vk_fields_size / 32; i++) {
+            key_witnesses[i] = barretenberg::fr::serialize_from_buffer(&vk_fields[i * 32]);
+        }
+        vk_hash_value = barretenberg::fr::serialize_from_buffer(vk_hash_buf);
 
         std::vector<uint32_t> proof_indices;
 
         const size_t proof_size = proof_witnesses.size();
-
+        std::cout << "proof_size: " << proof_size << std::endl;
         for (size_t i = 0; i < proof_size; ++i) {
             proof_indices.emplace_back(static_cast<uint32_t>(i + 19));
         }
 
         std::vector<uint32_t> key_indices;
         const size_t key_size = key_witnesses.size();
+        std::cout << "key_size: " << key_size << std::endl;
         for (size_t i = 0; i < key_size; ++i) {
             key_indices.emplace_back(static_cast<uint32_t>(i + 19 + proof_size));
         }
@@ -250,6 +255,8 @@ TEST(AcirProofs, TestSerializationWithRecursion)
             .q_c = -vk_hash_value,
         };
 
+        std::cout << "vk_hash_value: " << vk_hash_value << std::endl;
+
         std::vector<fr> witness;
         for (size_t i = 0; i < 18; ++i) {
             witness.emplace_back(0);
@@ -260,6 +267,8 @@ TEST(AcirProofs, TestSerializationWithRecursion)
         for (const auto& wit : key_witnesses) {
             witness.emplace_back(wit);
         }
+
+        std::cout << "witness.size(): " << witness.size() << std::endl;
 
         acir_format::acir_format constraint_system{
             .varnum = static_cast<uint32_t>(witness.size() + 1),
@@ -278,11 +287,11 @@ TEST(AcirProofs, TestSerializationWithRecursion)
             .constraints = { vk_equality_constraint },
         };
 
+        // std::cout << "about to create_circuit_with_witness" << std::endl;
         // auto composer = acir_format::create_circuit_with_witness(constraint_system, witness);
-        // auto prover = composer.create_prover();
-
+        // auto prover = composer.create_ultra_with_keccak_prover();
         // auto proof = prover.construct_proof();
-        // auto verifier = composer.create_verifier();
+        // auto verifier = composer.create_ultra_with_keccak_verifier();
         // EXPECT_EQ(verifier.verify_proof(proof), true);
 
         std::vector<uint8_t> witness_buf;
@@ -291,8 +300,10 @@ TEST(AcirProofs, TestSerializationWithRecursion)
         write(witness_buf, witness);
         uint8_t const* pk_buf = nullptr;
         acir_proofs::init_proving_key(&constraint_system_buf[0], &pk_buf);
+        std::cout << "past init_proving_key" << std::endl;
 
         uint32_t total_circuit_size = acir_proofs::get_total_circuit_size(&constraint_system_buf[0]);
+        std::cout << "got total_circuit_size" << std::endl;
         uint32_t pow2_size = 1 << (numeric::get_msb(total_circuit_size) + 1);
         auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
         auto verifier_crs = env_crs->get_verifier_crs();
@@ -307,21 +318,41 @@ TEST(AcirProofs, TestSerializationWithRecursion)
 
         uint8_t const* vk_buf = nullptr;
         acir_proofs::init_verification_key(pippenger_ptr, &g2x_buffer[0], pk_buf, &vk_buf);
+        std::cout << "past init_verification_key" << std::endl;
 
         uint8_t* proof_data_buf = nullptr;
         size_t proof_length = acir_proofs::new_proof(
-            pippenger_ptr, &g2x_buffer[0], pk_buf, &constraint_system_buf[0], &witness_buf[0], &proof_data_buf);
+            pippenger_ptr, &g2x_buffer[0], pk_buf, &constraint_system_buf[0], &witness_buf[0], &proof_data_buf, false);
+        std::cout << "past new_proof" << std::endl;
 
-        bool verified = acir_proofs::verify_proof(
-            &g2x_buffer[0], vk_buf, &constraint_system_buf[0], proof_data_buf, static_cast<uint32_t>(proof_length));
+        bool verified = acir_proofs::verify_proof(&g2x_buffer[0],
+                                                  vk_buf,
+                                                  &constraint_system_buf[0],
+                                                  proof_data_buf,
+                                                  static_cast<uint32_t>(proof_length),
+                                                  false);
         EXPECT_EQ(verified, true);
+        std::cout << "past verify_proof" << std::endl;
 
         delete pippenger_ptr_base;
+        std::cout << "past delete pippenger_ptr_base" << std::endl;
+
         free((void*)vk_buf);
+        std::cout << "past free vk_buf" << std::endl;
+
         free((void*)pk_buf);
+        std::cout << "past free pk_buf" << std::endl;
+
         free((void*)proof_data_buf);
+        std::cout << "past free proof_data_buf" << std::endl;
+
         free((void*)proof_data_fields);
+        std::cout << "past free proof_data_fields" << std::endl;
+
         free((void*)vk_fields);
-        free((void*)vk_hash_buf);
+        std::cout << "past free vk_fields" << std::endl;
+
+        // free((void*)vk_hash_buf);
+        std::cout << "past free vk_hash_buf" << std::endl;
     }
 }

@@ -37,6 +37,8 @@ using Verifier = std::conditional_t<
     plonk::UltraWithKeccakVerifier,
     std::conditional_t<std::same_as<Composer, plonk::TurboComposer>, plonk::TurboVerifier, plonk::Verifier>>;
 
+using RecursiveProver = plonk::UltraProver;
+
 using witness_ct = proof_system::plonk::stdlib::witness_t<Composer>;
 using public_witness_ct = proof_system::plonk::stdlib::public_witness_t<Composer>;
 using bool_ct = proof_system::plonk::stdlib::bool_t<Composer>;

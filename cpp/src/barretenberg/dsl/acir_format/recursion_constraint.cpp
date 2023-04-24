@@ -56,8 +56,6 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
             composer.assert_equal(composer.add_variable(dummy_field), key_field_idx);
         }
     }
-    // The env_crs should be ok, we use this when generating the constraint system in dsl
-    auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
 
     // Construct an in-circuit representation of the verification key.
     // For now, the v-key is a circuit constant and is fixed for the circuit.

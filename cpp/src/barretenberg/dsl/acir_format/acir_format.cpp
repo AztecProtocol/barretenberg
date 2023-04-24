@@ -112,6 +112,7 @@ Composer create_circuit(const acir_format& constraint_system,
             composer.add_variable(0);
         }
     }
+
     // Add arithmetic gates
     for (const auto& constraint : constraint_system.constraints) {
         composer.create_poly_gate(constraint);

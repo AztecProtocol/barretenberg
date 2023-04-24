@@ -56,14 +56,20 @@ WASM_EXPORT size_t acir_proofs_new_proof(void* pippenger,
                                          uint8_t const* pk_buf,
                                          uint8_t const* constraint_system_buf,
                                          uint8_t const* witness_buf,
-                                         uint8_t** proof_data_buf)
+                                         uint8_t** proof_data_buf,
+                                         bool is_recursive)
 {
-    return acir_proofs::new_proof(pippenger, g2x, pk_buf, constraint_system_buf, witness_buf, proof_data_buf);
+    return acir_proofs::new_proof(
+        pippenger, g2x, pk_buf, constraint_system_buf, witness_buf, proof_data_buf, is_recursive);
 }
 
-WASM_EXPORT bool acir_proofs_verify_proof(
-    uint8_t const* g2x, uint8_t const* vk_buf, uint8_t const* constraint_system_buf, uint8_t* proof, uint32_t length)
+WASM_EXPORT bool acir_proofs_verify_proof(uint8_t const* g2x,
+                                          uint8_t const* vk_buf,
+                                          uint8_t const* constraint_system_buf,
+                                          uint8_t* proof,
+                                          uint32_t length,
+                                          bool is_recursive)
 {
-    return acir_proofs::verify_proof(g2x, vk_buf, constraint_system_buf, proof, length);
+    return acir_proofs::verify_proof(g2x, vk_buf, constraint_system_buf, proof, length, is_recursive);
 }
 }
