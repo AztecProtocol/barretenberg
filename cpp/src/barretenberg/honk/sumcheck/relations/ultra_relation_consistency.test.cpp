@@ -42,54 +42,14 @@ class UltraRelationConsistency : public testing::Test {
     // extend them to the degree.
     template <size_t FULL_RELATION_LENGTH, size_t NUM_POLYNOMIALS>
     static void compute_mock_extended_edges(
-        ExtendedEdges<FULL_RELATION_LENGTH> extended_edges,
-        std::array<Univariate<FF, INPUT_UNIVARIATE_LENGTH>, NUM_POLYNOMIALS>& input_univariates)
+        ExtendedEdges<FULL_RELATION_LENGTH>& extended_edges,
+        std::array<Univariate<FF, INPUT_UNIVARIATE_LENGTH>, NUM_POLYNOMIALS>& input_edges)
     {
         BarycentricData<FF, INPUT_UNIVARIATE_LENGTH, FULL_RELATION_LENGTH> barycentric_2_to_max =
             BarycentricData<FF, INPUT_UNIVARIATE_LENGTH, FULL_RELATION_LENGTH>();
-        std::array<Univariate<FF, FULL_RELATION_LENGTH>, NUM_POLYNOMIALS> extended_univariates;
         for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
-            extended_univariates[i] = barycentric_2_to_max.extend(input_univariates[i]);
+            extended_edges[i] = barycentric_2_to_max.extend(input_edges[i]);
         }
-        auto w_l = Univariate<FF, FULL_RELATION_LENGTH>(extended_univariates[0]);
-        auto w_r = Univariate<FF, FULL_RELATION_LENGTH>(extended_univariates[1]);
-        auto w_o = Univariate<FF, FULL_RELATION_LENGTH>(extended_univariates[2]);
-        auto z_perm = Univariate<FF, FULL_RELATION_LENGTH>(extended_univariates[3]);
-        auto z_perm_shift =
-            Univariate<FF, FULL_RELATION_LENGTH>(extended_univariates[4]); // this is not real shifted data
-        auto q_m = Univariate<FF, FULL_RELATION_LENGTH>(extended_univariates[5]);
-        auto q_l = Univariate<FF, FULL_RELATION_LENGTH>(extended_univariates[6]);
-        auto q_r = Univariate<FF, FULL_RELATION_LENGTH>(extended_univariates[7]);
-        auto q_o = Univariate<FF, FULL_RELATION_LENGTH>(extended_univariates[8]);
-        auto q_c = Univariate<FF, FULL_RELATION_LENGTH>(extended_univariates[9]);
-        auto sigma_1 = Univariate<FF, FULL_RELATION_LENGTH>(extended_univariates[10]);
-        auto sigma_2 = Univariate<FF, FULL_RELATION_LENGTH>(extended_univariates[11]);
-        auto sigma_3 = Univariate<FF, FULL_RELATION_LENGTH>(extended_univariates[12]);
-        auto id_1 = Univariate<FF, FULL_RELATION_LENGTH>(extended_univariates[13]);
-        auto id_2 = Univariate<FF, FULL_RELATION_LENGTH>(extended_univariates[14]);
-        auto id_3 = Univariate<FF, FULL_RELATION_LENGTH>(extended_univariates[15]);
-        auto lagrange_first = Univariate<FF, FULL_RELATION_LENGTH>(extended_univariates[16]);
-        auto lagrange_last = Univariate<FF, FULL_RELATION_LENGTH>(extended_univariates[17]);
-        // Construct extended edges array in order determined by enum
-
-        extended_edges.w_l = w_l;
-        extended_edges.w_r = w_r;
-        extended_edges.w_o = w_o;
-        extended_edges.z_perm = z_perm;
-        extended_edges.z_perm_shift = z_perm_shift;
-        extended_edges.q_m = q_m;
-        extended_edges.q_l = q_l;
-        extended_edges.q_r = q_r;
-        extended_edges.q_o = q_o;
-        extended_edges.q_c = q_c;
-        extended_edges.sigma_1 = sigma_1;
-        extended_edges.sigma_2 = sigma_2;
-        extended_edges.sigma_3 = sigma_3;
-        extended_edges.id_1 = id_1;
-        extended_edges.id_2 = id_2;
-        extended_edges.id_3 = id_3;
-        extended_edges.lagrange_first = lagrange_first;
-        extended_edges.lagrange_last = lagrange_last;
     }
 
     /**
