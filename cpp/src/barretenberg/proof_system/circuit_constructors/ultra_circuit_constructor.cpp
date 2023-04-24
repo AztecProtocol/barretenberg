@@ -1333,7 +1333,7 @@ std::array<uint32_t, 2> UltraCircuitConstructor::queue_non_native_field_multipli
     }
     // Add witnesses into the multiplication cache
     // (when finalising the circuit, we will remove duplicates; several dups produced by biggroup.hpp methods)
-    cached_non_native_field_multiplication cache{
+    cached_non_native_field_multiplication cache_entry{
         .a = input.a,
         .b = input.b,
         .q = input.q,
@@ -1341,7 +1341,7 @@ std::array<uint32_t, 2> UltraCircuitConstructor::queue_non_native_field_multipli
         .cross_terms = { lo_0_idx, lo_1_idx, hi_0_idx, hi_1_idx, hi_2_idx, hi_3_idx },
         .neg_modulus = input.neg_modulus,
     };
-    cached_non_native_field_multiplications.emplace_back(cache);
+    cached_non_native_field_multiplications.emplace_back(cache_entry);
 
     return std::array<uint32_t, 2>{ lo_1_idx, hi_3_idx };
 }
