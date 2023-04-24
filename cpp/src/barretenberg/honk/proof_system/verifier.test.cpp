@@ -2,7 +2,6 @@
 // #include "barretenberg/numeric/bitop/get_msb.hpp"
 // #include "barretenberg/plonk/proof_system/constants.hpp"
 // #include "barretenberg/polynomials/polynomial.hpp"
-// #include "barretenberg/honk/flavor/flavor.hpp"
 // #include "barretenberg/proof_system/flavor/flavor.hpp"
 // #include "prover.hpp"
 // #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"

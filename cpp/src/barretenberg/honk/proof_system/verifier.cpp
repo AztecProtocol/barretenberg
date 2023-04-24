@@ -10,7 +10,6 @@
 #include "barretenberg/honk/pcs/gemini/gemini.hpp"
 #include "barretenberg/honk/pcs/kzg/kzg.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
-#include "barretenberg/honk/flavor/flavor.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "barretenberg/proof_system/polynomial_store/polynomial_store.hpp"
 #include "barretenberg/ecc/curves/bn254/fq12.hpp"

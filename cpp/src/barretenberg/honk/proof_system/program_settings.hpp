@@ -4,7 +4,6 @@
 
 #include "../../transcript/transcript_wrappers.hpp"
 #include "../../plonk/proof_system/types/prover_settings.hpp"
-#include "barretenberg/honk/flavor/flavor.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 
 namespace proof_system::honk {

@@ -4,7 +4,6 @@
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation_secondary.hpp"
 #include "barretenberg/numeric/uint256/uint256.hpp"
-#include "barretenberg/honk/flavor/flavor.hpp"
 #include <cstdint>
 #include "barretenberg/honk/proof_system/prover.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck_round.hpp"

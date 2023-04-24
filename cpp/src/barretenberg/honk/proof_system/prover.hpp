@@ -11,7 +11,6 @@
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/honk/pcs/shplonk/shplonk.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/honk/flavor/flavor.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/plonk/proof_system/types/proof.hpp"

@@ -7,7 +7,6 @@
 #include "barretenberg/common/throw_or_abort.hpp"
 #include "sumcheck_round.hpp"
 #include "polynomials/univariate.hpp"
-#include "barretenberg/honk/flavor/flavor.hpp"
 #include <algorithm>
 #include <cstddef>
 #include <span>
@@ -27,7 +26,7 @@ template <typename Flavor, class Transcript, template <class> class... Relations
     using PurportedEvaluations = typename Flavor::PurportedEvaluations;
 
     static constexpr size_t MAX_RELATION_LENGTH = std::max({ Relations<FF>::RELATION_LENGTH... });
-    static constexpr size_t NUM_POLYNOMIALS = proof_system::honk::StandardArithmetization::NUM_POLYNOMIALS;
+    static constexpr size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
 
     Transcript& transcript;
     const size_t multivariate_n;

@@ -2,7 +2,6 @@
 #include <array>
 #include <tuple>
 
-#include "barretenberg/honk/flavor/flavor.hpp"
 #include "../polynomials/univariate.hpp"
 #include "relation.hpp"
 

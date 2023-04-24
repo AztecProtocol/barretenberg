@@ -2,7 +2,6 @@
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation_secondary.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "relation.hpp"
-#include "barretenberg/honk/flavor/flavor.hpp"
 #include "arithmetic_relation.hpp"
 #include "grand_product_initialization_relation.hpp"
 #include "grand_product_computation_relation.hpp"

@@ -3,6 +3,7 @@
 #include "barretenberg/honk/composer/standard_honk_composer.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <gtest/gtest.h>
@@ -31,7 +32,7 @@ template <typename FF> class TranscriptTest : public testing::Test {
         size_t size_FF = sizeof(FF);
         size_t size_G = 2 * size_FF;
         size_t size_uni = max_relation_length * size_FF;
-        size_t size_evals = StandardArithmetization::NUM_POLYNOMIALS * size_FF;
+        size_t size_evals = flavor::Standard::NUM_ALL_ENTITIES;
 
         size_t round = 0;
         manifest_expected.add_entry(round, "circuit_size", 4);

@@ -1,7 +1,6 @@
 #include "standard_honk_composer_helper.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/honk/flavor/flavor.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"

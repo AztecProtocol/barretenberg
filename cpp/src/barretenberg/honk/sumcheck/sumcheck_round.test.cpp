@@ -1,4 +1,3 @@
-#include "barretenberg/honk/flavor/flavor.hpp"
 #include "sumcheck_round.hpp"
 #include "relations/arithmetic_relation.hpp"
 #include "relations/grand_product_computation_relation.hpp"
@@ -32,10 +31,6 @@ const size_t max_relation_length = 5;
 const size_t input_polynomial_length = 2;
 
 namespace test_sumcheck_round {
-/**
- * @brief Place polynomials into full_polynomials in the order determined by the StandardArithmetization enum.
- *
- */
 template <class FF, size_t N>
 void construct_full_polynomials(ProverPolynomials& full_polynomials,
                                 std::array<FF, N>& w_l,

@@ -8,7 +8,6 @@
 #include "../sumcheck/sumcheck.hpp"
 #include "../sumcheck/relations/arithmetic_relation.hpp"
 #include "barretenberg/honk/pcs/commitment_key.hpp"
-#include "barretenberg/honk/flavor/flavor.hpp"
 #include "barretenberg/honk/pcs/gemini/gemini.hpp"
 #include "barretenberg/honk/pcs/shplonk/shplonk_single.hpp"
 #include "barretenberg/honk/pcs/kzg/kzg.hpp"

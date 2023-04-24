@@ -1,7 +1,6 @@
 #include "standard_honk_composer.hpp"
 #include "barretenberg/honk/sumcheck/relations/relation.hpp"
 #include "barretenberg/numeric/uint256/uint256.hpp"
-#include "barretenberg/honk/flavor/flavor.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <vector>

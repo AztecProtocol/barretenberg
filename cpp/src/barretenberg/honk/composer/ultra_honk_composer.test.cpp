@@ -4,7 +4,6 @@
 // #include "barretenberg/honk/proof_system/ultra_prover.hpp"
 // #include "barretenberg/honk/sumcheck/relations/relation.hpp"
 // #include "barretenberg/numeric/uint256/uint256.hpp"
-// #include "barretenberg/honk/flavor/flavor.hpp"
 // #include <cstddef>
 // #include <cstdint>
 // #include "barretenberg/honk/proof_system/prover.hpp"

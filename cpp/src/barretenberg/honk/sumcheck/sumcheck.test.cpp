@@ -1,6 +1,5 @@
 #include "sumcheck.hpp"
 #include "barretenberg/honk/transcript/transcript.hpp"
-#include "barretenberg/honk/flavor/flavor.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "barretenberg/transcript/transcript_wrappers.hpp"
 #include "relations/arithmetic_relation.hpp"
@@ -26,15 +25,10 @@ using namespace proof_system::honk::sumcheck;
 using Flavor = honk::flavor::Standard; // TODO(Cody): Generalize this test.
 using FF = typename Flavor::FF;
 using ProverPolynomials = typename Flavor::ProverPolynomials;
-const size_t NUM_POLYNOMIALS = proof_system::honk::StandardArithmetization::NUM_POLYNOMIALS;
-using POLYNOMIAL = proof_system::honk::StandardArithmetization::POLYNOMIAL;
+const size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
 
 namespace test_sumcheck_round {
 
-/**
- * @brief Place polynomials into full_polynomials in the order determined by the StandardArithmetization enum.
- *
- */
 template <class FF, size_t N>
 ProverPolynomials construct_full_polynomials(std::array<FF, N>& w_l,
                                              std::array<FF, N>& w_r,

@@ -2,7 +2,6 @@
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation_secondary.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "relation.hpp"
-#include "barretenberg/honk/flavor/flavor.hpp"
 #include "arithmetic_relation.hpp"
 #include "grand_product_initialization_relation.hpp"
 #include "grand_product_computation_relation.hpp"
@@ -181,7 +180,7 @@ TEST_F(UltraRelationConsistency, UltraArithmeticRelation)
     using FF = typename Flavor::FF;
     static constexpr size_t FULL_RELATION_LENGTH = 6;
     using ExtendedEdges = typename Flavor::template ExtendedEdges<FULL_RELATION_LENGTH>;
-    static const size_t NUM_POLYNOMIALS = proof_system::honk::UltraArithmetization::COUNT;
+    static const size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
 
     const auto relation_parameters = compute_mock_relation_parameters();
     ExtendedEdges extended_edges;
@@ -225,7 +224,7 @@ TEST_F(UltraRelationConsistency, UltraArithmeticRelationSecondary)
     using FF = typename Flavor::FF;
     static constexpr size_t FULL_RELATION_LENGTH = 6;
     using ExtendedEdges = typename Flavor::template ExtendedEdges<FULL_RELATION_LENGTH>;
-    static const size_t NUM_POLYNOMIALS = proof_system::honk::UltraArithmetization::COUNT;
+    static const size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
 
     const auto relation_parameters = compute_mock_relation_parameters();
     ExtendedEdges extended_edges;

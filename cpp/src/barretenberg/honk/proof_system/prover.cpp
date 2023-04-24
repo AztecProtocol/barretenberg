@@ -18,7 +18,6 @@
 #include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/honk/flavor/flavor.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "barretenberg/transcript/transcript_wrappers.hpp"
 #include <string>
