@@ -32,7 +32,7 @@ template <typename FF> class TranscriptTest : public testing::Test {
         size_t size_FF = sizeof(FF);
         size_t size_G = 2 * size_FF;
         size_t size_uni = max_relation_length * size_FF;
-        size_t size_evals = flavor::Standard::NUM_ALL_ENTITIES;
+        size_t size_evals = flavor::Standard::NUM_ALL_ENTITIES * size_FF;
 
         size_t round = 0;
         manifest_expected.add_entry(round, "circuit_size", 4);
