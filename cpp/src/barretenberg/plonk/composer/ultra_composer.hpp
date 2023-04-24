@@ -378,7 +378,7 @@ class UltraComposer : public ComposerBase {
 
         auto last = std::unique(nnf_copy.begin(), nnf_copy.end());
         const size_t num_nnf_ops = static_cast<size_t>(std::distance(nnf_copy.begin(), last));
-        nnf_count = num_nnf_ops * GATES_PER_NON_NATIVE_FIELD_MULTIPLICATION_ARITHMETIC;
+        nnfcount = num_nnf_ops * GATES_PER_NON_NATIVE_FIELD_MULTIPLICATION_ARITHMETIC;
     }
 
     /**
@@ -426,7 +426,7 @@ class UltraComposer : public ComposerBase {
         size_t romcount = 0;
         size_t ramcount = 0;
         size_t nnfcount = 0;
-        get_num_gates_split_into_components(count, rangecount, romcount, ramcount);
+        get_num_gates_split_into_components(count, rangecount, romcount, ramcount, nnfcount);
 
         size_t total = count + romcount + ramcount + rangecount;
         std::cout << "gates = " << total << " (arith " << count << ", rom " << romcount << ", ram " << ramcount
