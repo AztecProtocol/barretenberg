@@ -135,7 +135,7 @@ template <typename Composer> class Transcript {
         }
         const size_t bytes_per_element = 31;
 
-        // split work_element into 2 limbs and insert into element_buffer
+        // split element into 2 limbs and insert into element_buffer
         // each entry in element_buffer is 31 bytes
         const auto split = [&](field_pt& work_element,
                                std::vector<field_pt>& element_buffer,
@@ -280,6 +280,9 @@ template <typename Composer> class Transcript {
             round_challenges.push_back(second);
         }
 
+        // This block of code only executes for num_challenges > 2, which (currently) only happens in the nu round when
+        // we need to generate short scalars. In this case, we generate 32-byte challenges and split them in half to get
+        // the relevant challenges.
         for (size_t i = 2; i < num_challenges; i += 2) {
             byte_array<Composer> rolling_buffer = base_hash;
             byte_array<Composer> hash_output;
