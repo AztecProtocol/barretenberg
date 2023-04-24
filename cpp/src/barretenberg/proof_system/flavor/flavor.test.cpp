@@ -1,4 +1,5 @@
 #include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/srs/reference_string/reference_string.hpp"
 #include <cstddef>
 #include <gtest/gtest.h>
@@ -94,6 +95,33 @@ TEST(Flavor, Standard)
         EXPECT_EQ(poly[3], 4 * idx + 3);
         idx++;
     };
+}
+
+// TODO(luke): just playing around with the Flavor classes. These should become demonstrative tests
+TEST(Flavor, General)
+{
+    using Flavor = proof_system::honk::flavor::Standard;
+    using FF = Flavor::FF;
+    using FoldedPolynomials = Flavor::FoldedPolynomials;
+    using Polynomial = Polynomial<FF>;
+
+    FoldedPolynomials polynomials_A;
+    std::vector<FF> random_poly{ 10 };
+    for (auto& coeff : random_poly) {
+        coeff = FF::random_element();
+    }
+
+    info("polynomials_A.size() = ", polynomials_A.size());
+
+    polynomials_A.w_l = random_poly;
+
+    ASSERT_EQ(random_poly, polynomials_A.w_l);
+
+    FoldedPolynomials polynomials_B(polynomials_A);
+    ASSERT_EQ(random_poly, polynomials_B.w_l);
+
+    FoldedPolynomials polynomials_C(std::move(polynomials_B));
+    ASSERT_EQ(random_poly, polynomials_C.w_l);
 }
 
 } // namespace proof_system::test_flavor
