@@ -108,7 +108,7 @@ circuit_data get_circuit_data(std::string const& name,
             info(name, ": Loading proving key: ", pk_path);
             auto pk_stream = std::ifstream(pk_path);
             plonk::proving_key_data pk_data;
-            read_mmap(pk_stream, pk_dir, pk_data);
+            // read_mmap(pk_stream, pk_dir, pk_data);
             data.proving_key =
                 std::make_shared<plonk::proving_key>(std::move(pk_data), srs->get_prover_crs(pk_data.circuit_size + 1));
             data.num_gates = pk_data.circuit_size;
@@ -156,7 +156,7 @@ circuit_data get_circuit_data(std::string const& name,
                 std::filesystem::create_directories(pk_dir.c_str());
                 Timer write_timer;
                 std::ofstream os(pk_path);
-                write_mmap(os, pk_dir, *data.proving_key);
+                // write_mmap(os, pk_dir, *data.proving_key);
                 if (!os.good()) {
                     throw_or_abort(format("Failed to write: ", pk_path));
                 }

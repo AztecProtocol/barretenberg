@@ -128,11 +128,8 @@ template <typename Fr> class PolynomialStore {
     size_t size() { return polynomial_map.size(); };
 
     // Allow for const range based for loop
-    // typename std::unordered_map<std::string, Polynomial>::const_iterator begin() const
-    // {
-    //     return polynomial_map.begin();
-    // }
-    // typename std::unordered_map<std::string, Polynomial>::const_iterator end() const { return polynomial_map.end(); }
+    typename std::unordered_map<std::string, size_t>::const_iterator begin() const { return polynomial_map.begin(); }
+    typename std::unordered_map<std::string, size_t>::const_iterator end() const { return polynomial_map.end(); }
 };
 
 } // namespace proof_system

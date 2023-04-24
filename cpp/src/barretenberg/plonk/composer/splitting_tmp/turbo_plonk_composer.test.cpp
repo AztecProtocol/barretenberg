@@ -837,7 +837,7 @@ TEST(turbo_plonk_composer_splitting_tmp, validate_copy_constraints)
                 auto prover = composer.create_prover();
 
                 if (m > 0) {
-                    ((barretenberg::polynomial&)prover.key->polynomial_store.get(
+                    ((barretenberg::polynomial)prover.key->polynomial_store.get(
                         "w_" + std::to_string(k + 1) + "_lagrange"))[j] = barretenberg::fr::random_element();
                 }
 

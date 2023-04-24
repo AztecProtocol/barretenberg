@@ -18,7 +18,7 @@ using namespace proof_system::plonk;
 
 plonk::Verifier generate_verifier(std::shared_ptr<proving_key> circuit_proving_key)
 {
-    std::array<fr*, 8> poly_coefficients;
+    std::array<std::shared_ptr<fr[]>, 8> poly_coefficients;
     poly_coefficients[0] = circuit_proving_key->polynomial_store.get("q_1").data();
     poly_coefficients[1] = circuit_proving_key->polynomial_store.get("q_2").data();
     poly_coefficients[2] = circuit_proving_key->polynomial_store.get("q_3").data();
@@ -34,7 +34,7 @@ plonk::Verifier generate_verifier(std::shared_ptr<proving_key> circuit_proving_k
 
     for (size_t i = 0; i < 8; ++i) {
         commitments[i] = g1::affine_element(
-            scalar_multiplication::pippenger(poly_coefficients[i],
+            scalar_multiplication::pippenger(poly_coefficients[i].get(),
                                              circuit_proving_key->reference_string->get_monomial_points(),
                                              circuit_proving_key->circuit_size,
                                              state));

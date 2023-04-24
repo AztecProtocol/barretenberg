@@ -41,7 +41,8 @@ TEST(commitment_scheme, kate_open)
     auto circuit_proving_key = std::make_shared<proving_key>(n, 0, crs, ComposerType::STANDARD);
     work_queue queue(circuit_proving_key.get(), &inp_tx);
 
-    newKate.commit(&coeffs[0], "F_COMM", n, queue);
+    std::shared_ptr<fr[]> coeffs_ptr(&coeffs[0], [](fr* p) { delete[] p; });
+    newKate.commit(coeffs_ptr, "F_COMM", n, queue);
     queue.process_queue();
 
     fr y = fr::random_element();
@@ -49,7 +50,8 @@ TEST(commitment_scheme, kate_open)
     fr f = polynomial_arithmetic::evaluate(&coeffs[0], z, n);
 
     newKate.compute_opening_polynomial(&coeffs[0], &W[0], z, n);
-    newKate.commit(&W[0], "W_COMM", n, queue);
+    std::shared_ptr<fr[]> W_ptr(&W[0], [](fr* p) { delete[] p; });
+    newKate.commit(W_ptr, "W_COMM", n, queue);
     queue.process_queue();
 
     // check if W(y)(y - z) = F(y) - F(z)
@@ -101,10 +103,8 @@ TEST(commitment_scheme, kate_batch_open)
     // commit to individual polynomials
     for (size_t k = 0; k < t; ++k) {
         for (size_t j = 0; j < m; ++j) {
-            newKate.commit(&coeffs[k * m * n + j * n],
-                           "F_{" + std::to_string(k + 1) + ", " + std::to_string(j + 1) + "}",
-                           n,
-                           queue);
+            std::shared_ptr<fr[]> coeffs_ptr(&coeffs[k * m * n + j * n], [](fr* p) { delete[] p; });
+            newKate.commit(coeffs_ptr, "F_{" + std::to_string(k + 1) + ", " + std::to_string(j + 1) + "}", n, queue);
         }
     }
     queue.process_queue();

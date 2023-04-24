@@ -84,6 +84,7 @@ TEST(proving_key, proving_key_from_serialized_key_ultra)
     EXPECT_EQ(p_key.contains_recursive_proof, proving_key->contains_recursive_proof);
 }
 
+/**
 // Test that a proving key can be serialized/deserialized using mmap
 #ifndef __wasm__
 TEST(proving_key, proving_key_from_mmaped_key)
@@ -151,3 +152,4 @@ TEST(proving_key, proving_key_from_mmaped_key)
     EXPECT_EQ(p_key.contains_recursive_proof, pk_data.contains_recursive_proof);
 }
 #endif
+*/

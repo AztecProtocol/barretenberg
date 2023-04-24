@@ -28,7 +28,7 @@ template <class FF> class VerifierTests : public testing::Test {
 
     static StandardVerifier generate_verifier(std::shared_ptr<plonk::proving_key> circuit_proving_key)
     {
-        std::array<fr*, 8> poly_coefficients;
+        std::array<std::shared_ptr<fr[]>, 8> poly_coefficients;
         poly_coefficients[0] = circuit_proving_key->polynomial_store.get("q_1_lagrange").data();
         poly_coefficients[1] = circuit_proving_key->polynomial_store.get("q_2_lagrange").data();
         poly_coefficients[2] = circuit_proving_key->polynomial_store.get("q_3_lagrange").data();
@@ -44,7 +44,7 @@ template <class FF> class VerifierTests : public testing::Test {
 
         for (size_t i = 0; i < 8; ++i) {
             commitments[i] = g1::affine_element(
-                scalar_multiplication::pippenger(poly_coefficients[i],
+                scalar_multiplication::pippenger(poly_coefficients[i].get(),
                                                  circuit_proving_key->reference_string->get_monomial_points(),
                                                  circuit_proving_key->circuit_size,
                                                  prover));
