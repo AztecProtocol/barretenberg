@@ -294,7 +294,8 @@ class UltraComposer : public ComposerBase {
      * 1) Current number number of actual gates
      * 2) Number of public inputs, as we'll need to add a gate for each of them
      * 3) Number of Rom array-associated gates
-     * 4) NUmber of range-list associated gates
+     * 4) Number of range-list associated gates
+     * 5) Number of non-native field multiplication gates.
      *
      *
      * @param count return arument, number of existing gates
@@ -386,7 +387,8 @@ class UltraComposer : public ComposerBase {
      * 1) Current number number of actual gates
      * 2) Number of public inputs, as we'll need to add a gate for each of them
      * 3) Number of Rom array-associated gates
-     * 4) NUmber of range-list associated gates
+     * 4) Number of range-list associated gates
+     * 5) Number of non-native field multiplication gates.
      *
      * @return size_t
      */

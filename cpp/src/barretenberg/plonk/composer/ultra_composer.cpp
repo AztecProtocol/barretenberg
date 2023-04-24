@@ -1847,16 +1847,20 @@ std::array<uint32_t, 2> UltraComposer::decompose_non_native_field_double_width_l
 }
 
 /**
- * NON NATIVE FIELD MULTIPLICATION CUSTOM GATE SEQUENCE
+ * @brief Queue up non-native field multiplication data.
  *
- * This method will evaluate the equation (a * b = q * p + r)
- * Where a, b, q, r are all emulated non-native field elements that are each split across 4 distinct witness variables
+ * @details The data queued represents a non-native field multiplication identity a * b = q * p + r,
+ * where a, b, q, r are all emulated non-native field elements that are each split across 4 distinct witness variables.
+ *
+ * Without this queue some functions, such as proof_system::plonk::stdlib::element::double_montgomery_ladder, would
+ * duplicate non-native field operations, which can be quite expensive. We queue up these operations, and remove
+ * duplicates in the circuit finishing stage of the proving key computation.
  *
  * The non-native field modulus, p, is a circuit constant
  *
  * The return value are the witness indices of the two remainder limbs `lo_1, hi_2`
  *
- * N.B. this method does NOT evaluate the prime field component of non-native field multiplications
+ * N.B.: This method does NOT evaluate the prime field component of non-native field multiplications.
  **/
 std::array<uint32_t, 2> UltraComposer::evaluate_non_native_field_multiplication(
     const non_native_field_witnesses& input, const bool range_constrain_quotient_and_remainder)
