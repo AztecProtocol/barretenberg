@@ -1252,7 +1252,7 @@ std::array<uint32_t, 2> UltraCircuitConstructor::decompose_non_native_field_doub
  *
  * N.B.: This method does NOT evaluate the prime field component of non-native field multiplications.
  **/
-std::array<uint32_t, 2> UltraCircuitConstructor::evaluate_non_native_field_multiplication(
+std::array<uint32_t, 2> UltraCircuitConstructor::queue_non_native_field_multiplication(
     const non_native_field_witnesses& input, const bool range_constrain_quotient_and_remainder)
 {
 
