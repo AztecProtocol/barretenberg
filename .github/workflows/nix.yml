@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - phated/*
   schedule:
     - cron: "0 2 * * *" # run at 2 AM UTC
   workflow_dispatch:
@@ -34,9 +35,7 @@ jobs:
 
       - uses: cachix/cachix-action@v12
         with:
-          # TODO: Setup a cache with this name
-          name: barretenberg-cache
-          # TODO: Add this token to secrets
+          name: barretenberg
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
       - name: Check nix flake
