@@ -48,6 +48,7 @@ class address {
 
     fr to_field() const { return address_; }
 
+    // delegate serialization to field
     void msgpack_pack(auto& packer) const { address_.msgpack_pack(packer); }
     void msgpack_unpack(auto const& o) { address_.msgpack_unpack(o); }
 };

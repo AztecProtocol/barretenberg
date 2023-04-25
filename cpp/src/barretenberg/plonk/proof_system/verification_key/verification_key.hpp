@@ -7,7 +7,7 @@
 #include "barretenberg/polynomials/evaluation_domain.hpp"
 #include "barretenberg/crypto/sha256/sha256.hpp"
 #include "barretenberg/plonk/proof_system/types/polynomial_manifest.hpp"
-#include "barretenberg/msgpack/msgpack_concepts.hpp"
+#include "barretenberg/common/msgpack.hpp"
 
 namespace proof_system::plonk {
 
@@ -55,6 +55,7 @@ inline bool operator==(verification_key_data const& lhs, verification_key_data c
 }
 
 struct verification_key {
+    verification_key() = default;
     verification_key(verification_key_data&& data, std::shared_ptr<VerifierReferenceString> const& crs);
     verification_key(const size_t num_gates,
                      const size_t num_inputs,
@@ -148,22 +149,22 @@ inline std::ostream& operator<<(std::ostream& os, verification_key const& key)
 
 } // namespace proof_system::plonk
 
-// annoyingly, if we want to forward declare anything without including heavy msgpack.hpp headers, we need to
-// dig into the internals to do so.
-namespace msgpack {
-inline namespace v3 {
-namespace adaptor {
-template <typename T, typename Enabler> struct convert;
-// hack: since verification_key has no default constructor, we need to unpack the shared ptr directly
-template <> struct convert<std::shared_ptr<proof_system::plonk::verification_key>, void> {
-    auto const& operator()(auto& obj, std::shared_ptr<proof_system::plonk::verification_key>& verification_key_ptr) const
-    {
-        proof_system::plonk::verification_key_data data = obj.convert();
-        auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
-        verification_key_ptr = std::make_shared<proof_system::plonk::verification_key>(std::move(data), env_crs->get_verifier_crs());
-        return obj;
-    }
-};
-}
-}
-}// namespace msgpack::v3::adaptor
+//// annoyingly, if we want to forward declare anything without including heavy msgpack.hpp headers, we need to
+//// dig into the internals to do so.
+//namespace msgpack {
+//inline namespace v3 {
+//namespace adaptor {
+//template <typename T, typename Enabler> struct convert;
+//// hack: since verification_key has no default constructor, we need to unpack the shared ptr directly
+//template <> struct convert<std::shared_ptr<proof_system::plonk::verification_key>, void> {
+//    auto const& operator()(auto& obj, std::shared_ptr<proof_system::plonk::verification_key>& verification_key_ptr) const
+//    {
+//        proof_system::plonk::verification_key_data data = obj.convert();
+//        auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
+//        verification_key_ptr = std::make_shared<proof_system::plonk::verification_key>(std::move(data), env_crs->get_verifier_crs());
+//        return obj;
+//    }
+//};
+//}
+//}
+//}// namespace msgpack::v3::adaptor

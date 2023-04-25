@@ -7,7 +7,7 @@
 #include <cassert>
 #define MSGPACK_NO_BOOST
 #include <msgpack.hpp>
-#include "msgpack_concepts.hpp"
+#include "concepts.hpp"
 
 namespace msgpack::adaptor {
 // reads structs with msgpack() method from a JSON-like dictionary

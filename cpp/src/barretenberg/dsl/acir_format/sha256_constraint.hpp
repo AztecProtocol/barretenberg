@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <vector>
 #include "barretenberg/stdlib/types/types.hpp"
-#include "barretenberg/msgpack/msgpack_nvp_macro.h"
+#include "barretenberg/common/msgpack.hpp"
 
 namespace acir_format {
 
@@ -11,8 +11,8 @@ struct Sha256Input {
     uint32_t num_bits;
 
     friend bool operator==(Sha256Input const& lhs, Sha256Input const& rhs) = default;
-    // msgpack entry, update with any new fields
-    auto msgpack(auto ar) { return ar(NVP(witness), NVP(num_bits)); }
+    // for serialization, update with any new fields
+    MSGPACK(witness, num_bits);
 };
 
 struct Sha256Constraint {
@@ -20,8 +20,8 @@ struct Sha256Constraint {
     std::vector<uint32_t> result;
 
     friend bool operator==(Sha256Constraint const& lhs, Sha256Constraint const& rhs) = default;
-    // msgpack entry, update with any new fields
-    auto msgpack(auto ar) { return ar(NVP(inputs), NVP(result)); }
+    // for serialization, update with any new fields
+    MSGPACK(inputs, result);
 };
 
 // This function does not work (properly) because the stdlib:sha256 function is not working correctly for 512 bits

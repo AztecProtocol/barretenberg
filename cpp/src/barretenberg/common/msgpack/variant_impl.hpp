@@ -1,6 +1,6 @@
 #pragma once
 // Note: Meant to only be included in compilation units that need msgpack
-
+#define MSGPACK_NO_BOOST
 #include <msgpack.hpp>
 #include <variant>
 

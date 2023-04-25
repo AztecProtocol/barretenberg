@@ -12,7 +12,6 @@
 #endif
 
 #include "field_impl_generic.hpp"
-#include "_msgpack_bin.hpp"
 namespace barretenberg {
 
 // template <class T> constexpr void field<T>::butterfly(field& left, field& right) noexcept
@@ -618,10 +617,11 @@ template <class Params> void field<Params>::msgpack_pack(auto& packer) const
     packer.pack_bin_body((const char*)bin_data, sizeof(bin_data));
 }
 
-// For serialization
+// For deserialization
 template <class Params> void field<Params>::msgpack_unpack(auto o)
 {
-    msgpack::read_bin64(o, data, 4);
+    // Trigger msgpack specialization for binary
+    (std::array<uint8_t, sizeof(data)>&)*data = o;
     uint64_t reversed[] = {data[3], data[2], data[1], data[0]};
     for (int i = 0; i < 4; i++) {
         data[i] = reversed[i];

@@ -4,7 +4,7 @@
 #include <ostream>
 #include <iomanip>
 #include "barretenberg/common/serialize.hpp"
-#include "barretenberg/msgpack/msgpack_nvp_macro.h"
+#include "barretenberg/common/msgpack.hpp"
 
 namespace proof_system::plonk {
 

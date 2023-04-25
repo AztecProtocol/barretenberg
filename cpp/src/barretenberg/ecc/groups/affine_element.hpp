@@ -3,7 +3,7 @@
 #include <vector>
 #include <type_traits>
 #include "barretenberg/ecc/curves/bn254/fq2.hpp"
-#include "barretenberg/msgpack/msgpack_nvp_macro.h"
+#include "barretenberg/common/msgpack.hpp"
 
 namespace barretenberg {
 namespace group_elements {
