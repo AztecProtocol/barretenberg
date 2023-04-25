@@ -14,7 +14,6 @@ struct proof {
     void msgpack(auto ar) {
         ar(NVP(proof_data));
     }
-    // TODO redundant with msgpack
 
     bool operator==(proof const& other) const = default;
 };

@@ -15,7 +15,7 @@ template <typename Fr, typename G1> struct key_pair {
 struct signature {
     std::array<uint8_t, 32> r;
     std::array<uint8_t, 32> s;
-    // update with any new fields
+    // for serialization, update with any new fields
     MSGPACK(r, s);
 };
 

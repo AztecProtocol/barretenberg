@@ -1,5 +1,5 @@
 #pragma once
-// Note: heavy header due to serialization logic, don't include if auto parameters will do
+// Note: heavy header due to serialization logic, don't include if msgpack.hpp will do
 #include <string>
 #include <iostream>
 #include <iomanip>
