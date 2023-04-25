@@ -2,11 +2,9 @@
 #include "acir_proofs.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/serialize.hpp"
 #include "barretenberg/dsl/acir_format/acir_format.hpp"
-#include "barretenberg/stdlib/types/types.hpp"
+#include "barretenberg/dsl/types.hpp"
 #include "barretenberg/srs/reference_string/pippenger_reference_string.hpp"
 #include "barretenberg/plonk/proof_system/verification_key/sol_gen.hpp"
-
-using namespace proof_system::plonk::stdlib::types;
 
 namespace acir_proofs {
 
@@ -79,9 +77,9 @@ size_t init_verification_key(void* pippenger, uint8_t const* g2x, uint8_t const*
         reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), g2x);
     proving_key->reference_string = crs_factory->get_prover_crs(proving_key->circuit_size);
 
-    Composer composer(proving_key, nullptr);
+    acir_format::Composer composer(proving_key, nullptr);
     auto verification_key =
-        plonk::stdlib::types::Composer::compute_verification_key_base(proving_key, crs_factory->get_verifier_crs());
+        acir_format::Composer::compute_verification_key_base(proving_key, crs_factory->get_verifier_crs());
 
     // The composer_type has not yet been set. We need to set the composer_type for when we later read in and
     // construct the verification key so that we have the correct polynomial manifest
@@ -110,25 +108,18 @@ size_t serialize_proof_into_field_elements(uint8_t const* proof_data_buf,
     plonk::proof proof = { std::vector<uint8_t>(proof_data_buf, &proof_data_buf[proof_data_length]) };
 
     transcript::StandardTranscript transcript(
-        proof.proof_data, Composer::create_manifest(1), transcript::HashType::PlookupPedersenBlake3s, 16);
+        proof.proof_data, acir_format::Composer::create_manifest(1), transcript::HashType::PlookupPedersenBlake3s, 16);
 
     std::vector<barretenberg::fr> output = transcript.export_transcript_in_recursion_format();
 
     // NOTE: this output buffer will always have a fixed size! Maybe just precompute?
     const size_t output_size_bytes = output.size() * sizeof(barretenberg::fr);
     auto raw_buf = (uint8_t*)malloc(output_size_bytes);
-    // NOTE: currently we dump the fr values into memory in Mongtomery form
-    // This is so we don't have to re-convert into Montgomery form when we read these back in.
-    // I think this makes it easier to handle the data in barretenberg-sys / aztec-backend.
-    // If this is not the case, the commented out serialize code will convert out of Montgomery form before writing to
-    // the buffer
-    // for (size_t i = 0; i < output.size(); ++i) {
-    //     barretenberg::fr::serialize_to_buffer(output[i], &raw_buf[i * 32]);
-    // }
-    // for (size_t i = 0; i < output.size(); ++i) {
-    //     barretenberg::fr::serialize_to_buffer(output[i], &raw_buf[i * 32]);
-    // }
-    memcpy(raw_buf, (void*)output.data(), output_size_bytes);
+
+    // The serialization code below will convert out of Montgomery form before writing to the buffer
+    for (size_t i = 0; i < output.size(); ++i) {
+        barretenberg::fr::serialize_to_buffer(output[i], &raw_buf[i * 32]);
+    }
     *serialized_proof_data_buf = raw_buf;
 
     return output_size_bytes;
@@ -158,23 +149,17 @@ size_t serialize_verification_key_into_field_elements(uint8_t const* g2x,
     // Cut off 32 bytes as last element is the verification key hash which is not part of the key :o
     const size_t output_size_bytes = output.size() * sizeof(barretenberg::fr) - 32;
     auto raw_buf = (uint8_t*)malloc(output_size_bytes);
-    // NOTE: currently we dump the fr values into memory in Mongtomery form
-    // This is so we don't have to re-convert into Montgomery form when we read these back in.
-    // I think this makes it easier to handle the data in barretenberg-sys / aztec-backend.
-    // If this is not the case, the commented out serialize code will convert out of Montgomery form before writing to
-    // the buffer
-    // for (size_t i = 0; i < output.size(); ++i) {
-    //     barretenberg::fr::serialize_to_buffer(output[i], &raw_buf[i * 32]);
-    // }
 
-    // copy all but the vkey hash into raw_buf
-    memcpy(raw_buf, (void*)output.data(), output_size_bytes);
+    // The serialization code below will convert out of Montgomery form before writing to the buffer
+    for (size_t i = 0; i < output.size(); ++i) {
+        barretenberg::fr::serialize_to_buffer(output[i], &raw_buf[i * 32]);
+    }
+
+    // copy the vkey into serialized_vk_buf
     *serialized_vk_buf = raw_buf;
 
-    // copy the vkey hash into vk_hash_raw_buf
-    auto vk_hash_raw_buf = (uint8_t*)malloc(32);
-    memcpy(vk_hash_raw_buf, (void*)&output[output.size() - 1], 32);
-    *serialized_vk_hash_buf = vk_hash_raw_buf;
+    // copy the vkey hash into serialized_vk_hash_buf
+    *serialized_vk_hash_buf = &raw_buf[(output.size() - 1) * 32];
 
     return output_size_bytes;
 }
@@ -184,7 +169,8 @@ size_t new_proof(void* pippenger,
                  uint8_t const* pk_buf,
                  uint8_t const* constraint_system_buf,
                  uint8_t const* witness_buf,
-                 uint8_t** proof_data_buf)
+                 uint8_t** proof_data_buf,
+                 bool is_recursive)
 {
     auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
 
@@ -199,21 +185,33 @@ size_t new_proof(void* pippenger,
         reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), g2x);
     proving_key->reference_string = crs_factory->get_prover_crs(proving_key->circuit_size);
 
-    auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
+    // TODO: either need a context flag for recursive proofs or a new_recursive_proof method that uses regular
+    // UltraProver
+    acir_format::Composer composer(proving_key, nullptr);
 
-    auto composer = acir_format::create_circuit_with_witness(constraint_system, witness);
+    create_circuit_with_witness(composer, constraint_system, witness);
 
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
-    auto heapProver = new stdlib::types::Prover(std::move(prover));
-    auto& proof_data = heapProver->construct_proof().proof_data;
-    *proof_data_buf = proof_data.data();
-
-    return proof_data.size();
+    if (is_recursive) {
+        auto prover = composer.create_prover();
+        auto heapProver = new acir_format::RecursiveProver(std::move(prover));
+        auto& proof_data = heapProver->construct_proof().proof_data;
+        *proof_data_buf = proof_data.data();
+        return proof_data.size();
+    } else {
+        auto prover = composer.create_ultra_with_keccak_prover();
+        auto heapProver = new acir_format::Prover(std::move(prover));
+        auto& proof_data = heapProver->construct_proof().proof_data;
+        *proof_data_buf = proof_data.data();
+        return proof_data.size();
+    }
 }
 
-bool verify_proof(
-    uint8_t const* g2x, uint8_t const* vk_buf, uint8_t const* constraint_system_buf, uint8_t* proof, uint32_t length)
+bool verify_proof(uint8_t const* g2x,
+                  uint8_t const* vk_buf,
+                  uint8_t const* constraint_system_buf,
+                  uint8_t* proof,
+                  uint32_t length,
+                  bool is_recursive)
 {
     bool verified = false;
 
@@ -226,13 +224,21 @@ bool verify_proof(
         read(vk_buf, vk_data);
         auto verification_key = std::make_shared<proof_system::plonk::verification_key>(std::move(vk_data), crs);
 
-        Composer composer(nullptr, verification_key);
+        acir_format::Composer composer(nullptr, verification_key);
         create_circuit(composer, constraint_system);
         plonk::proof pp = { std::vector<uint8_t>(proof, proof + length) };
 
-        auto verifier = composer.create_verifier();
+        // for inner circuit use new prover and verifier method for outer circuit use the normal prover and verifier
+        // TODO: either need a context flag for recursive verify or a new_recursive_verify_proof method that uses
+        // regular UltraVerifier
+        if (is_recursive) {
+            auto verifier = composer.create_verifier();
+            verified = verifier.verify_proof(pp);
+        } else {
+            auto verifier = composer.create_ultra_with_keccak_verifier();
+            verified = verifier.verify_proof(pp);
+        }
 
-        verified = verifier.verify_proof(pp);
 #ifndef __wasm__
     } catch (const std::exception& e) {
         verified = false;

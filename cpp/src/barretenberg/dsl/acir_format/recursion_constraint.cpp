@@ -4,14 +4,9 @@
 #include "barretenberg/stdlib/recursion/verifier/verifier.hpp"
 #include "barretenberg/transcript/transcript_wrappers.hpp"
 
-using namespace proof_system::plonk::stdlib::types;
-
-using verification_key_ct = proof_system::plonk::stdlib::recursion::verification_key<bn254>;
-using aggregation_state_ct = proof_system::plonk::stdlib::recursion::aggregation_state<bn254>;
-using noir_recursive_settings = proof_system::plonk::stdlib::recursion::recursive_ultra_verifier_settings<bn254>;
-using Transcript_ct = proof_system::plonk::stdlib::recursion::Transcript<Composer>;
-
 namespace acir_format {
+
+using namespace proof_system::plonk;
 
 void generate_dummy_proof() {}
 /**
@@ -61,8 +56,6 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
             composer.assert_equal(composer.add_variable(dummy_field), key_field_idx);
         }
     }
-    // The env_crs should be ok, we use this when generating the constraint system in dsl
-    auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
 
     // Construct an in-circuit representation of the verification key.
     // For now, the v-key is a circuit constant and is fixed for the circuit.
@@ -135,9 +128,9 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
     }
 }
 
-template void create_recursion_constraints<false, false>(plonk::stdlib::types::Composer&, const RecursionConstraint&);
-template void create_recursion_constraints<false, true>(plonk::stdlib::types::Composer&, const RecursionConstraint&);
-template void create_recursion_constraints<true, false>(plonk::stdlib::types::Composer&, const RecursionConstraint&);
-template void create_recursion_constraints<true, true>(plonk::stdlib::types::Composer&, const RecursionConstraint&);
+template void create_recursion_constraints<false, false>(Composer&, const RecursionConstraint&);
+template void create_recursion_constraints<false, true>(Composer&, const RecursionConstraint&);
+template void create_recursion_constraints<true, false>(Composer&, const RecursionConstraint&);
+template void create_recursion_constraints<true, true>(Composer&, const RecursionConstraint&);
 
 } // namespace acir_format

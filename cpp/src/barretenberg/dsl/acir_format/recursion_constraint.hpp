@@ -1,7 +1,8 @@
 #pragma once
 #include <vector>
-#include "barretenberg/stdlib/types/types.hpp"
-#include "barretenberg/plonk/proof_system//verification_key/verification_key.hpp"
+// #include "barretenberg/stdlib/types/types.hpp"
+#include "barretenberg/dsl/types.hpp"
+#include "barretenberg/plonk/proof_system/verification_key/verification_key.hpp"
 
 namespace acir_format {
 
@@ -41,16 +42,12 @@ struct RecursionConstraint {
 };
 
 template <bool has_valid_witness_assignment = false, bool inner_proof_contains_recursive_proof = false>
-void create_recursion_constraints(plonk::stdlib::types::Composer& composer, const RecursionConstraint& input);
+void create_recursion_constraints(Composer& composer, const RecursionConstraint& input);
 
-extern template void create_recursion_constraints<false, false>(plonk::stdlib::types::Composer&,
-                                                                const RecursionConstraint&);
-extern template void create_recursion_constraints<false, true>(plonk::stdlib::types::Composer&,
-                                                               const RecursionConstraint&);
-extern template void create_recursion_constraints<true, false>(plonk::stdlib::types::Composer&,
-                                                               const RecursionConstraint&);
-extern template void create_recursion_constraints<true, true>(plonk::stdlib::types::Composer&,
-                                                              const RecursionConstraint&);
+extern template void create_recursion_constraints<false, false>(Composer&, const RecursionConstraint&);
+extern template void create_recursion_constraints<false, true>(Composer&, const RecursionConstraint&);
+extern template void create_recursion_constraints<true, false>(Composer&, const RecursionConstraint&);
+extern template void create_recursion_constraints<true, true>(Composer&, const RecursionConstraint&);
 
 template <typename B> inline void read(B& buf, RecursionConstraint& constraint)
 {

@@ -6,9 +6,9 @@
 #include <gtest/gtest.h>
 #include <vector>
 
-using namespace proof_system::plonk::stdlib::types;
+using namespace proof_system::plonk;
 
-Composer create_inner_circuit()
+acir_format::Composer create_inner_circuit()
 {
     /**
      * constraints produced by Noir program:
@@ -127,8 +127,10 @@ TEST(RecursionConstraint, TestRecursionConstraint)
         output_vars[i] = (static_cast<uint32_t>(i + 3));
     }
 
-    transcript::StandardTranscript transcript(
-        inner_proof.proof_data, Composer::create_manifest(1), transcript::HashType::PlookupPedersenBlake3s, 16);
+    transcript::StandardTranscript transcript(inner_proof.proof_data,
+                                              acir_format::Composer::create_manifest(1),
+                                              transcript::HashType::PlookupPedersenBlake3s,
+                                              16);
 
     const std::vector<barretenberg::fr> proof_witnesses = transcript.export_transcript_in_recursion_format();
     const std::vector<barretenberg::fr> key_witnesses = inner_verifier.key->export_key_in_recursion_format();

@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 #include <vector>
 
-using namespace proof_system::plonk::stdlib::types;
+using namespace proof_system::plonk;
 
 void create_inner_circuit(acir_format::acir_format& constraint_system, std::vector<fr>& witness)
 {
@@ -131,10 +131,10 @@ TEST(AcirProofs, TestSerialization)
 
     uint8_t* proof_data_buf = nullptr;
     size_t proof_length = acir_proofs::new_proof(
-        pippenger_ptr, &g2x_buffer[0], pk_buf, &constraint_system_buf[0], &witness_buf[0], &proof_data_buf);
+        pippenger_ptr, &g2x_buffer[0], pk_buf, &constraint_system_buf[0], &witness_buf[0], &proof_data_buf, true);
 
     bool verified = acir_proofs::verify_proof(
-        &g2x_buffer[0], vk_buf, &constraint_system_buf[0], proof_data_buf, static_cast<uint32_t>(proof_length));
+        &g2x_buffer[0], vk_buf, &constraint_system_buf[0], proof_data_buf, static_cast<uint32_t>(proof_length), true);
     EXPECT_EQ(verified, true);
 }
 
@@ -178,14 +178,18 @@ TEST(AcirProofs, TestSerializationWithRecursion)
 
         uint8_t* proof_data_buf = nullptr;
         size_t proof_length = acir_proofs::new_proof(
-            pippenger_ptr, &g2x_buffer[0], pk_buf, &constraint_system_buf[0], &witness_buf[0], &proof_data_buf);
+            pippenger_ptr, &g2x_buffer[0], pk_buf, &constraint_system_buf[0], &witness_buf[0], &proof_data_buf, true);
         proof_fields_size =
             acir_proofs::serialize_proof_into_field_elements(proof_data_buf, &proof_data_fields, proof_length);
         vk_fields_size = acir_proofs::serialize_verification_key_into_field_elements(
             &g2x_buffer[0], vk_buf, &vk_fields, &vk_hash_buf);
 
-        bool verified = acir_proofs::verify_proof(
-            &g2x_buffer[0], vk_buf, &constraint_system_buf[0], proof_data_buf, static_cast<uint32_t>(proof_length));
+        bool verified = acir_proofs::verify_proof(&g2x_buffer[0],
+                                                  vk_buf,
+                                                  &constraint_system_buf[0],
+                                                  proof_data_buf,
+                                                  static_cast<uint32_t>(proof_length),
+                                                  true);
         EXPECT_EQ(verified, true);
 
         delete pippenger_ptr_base;
@@ -198,14 +202,17 @@ TEST(AcirProofs, TestSerializationWithRecursion)
         fr vk_hash_value;
         std::vector<fr> proof_witnesses(proof_fields_size / 32);
         std::vector<fr> key_witnesses(vk_fields_size / 32);
-        memcpy(proof_witnesses.data(), (void*)proof_data_fields, proof_fields_size);
-        memcpy(&key_witnesses[0], (void*)vk_fields, vk_fields_size);
-        memcpy(&vk_hash_value, (void*)vk_hash_buf, 32);
+        for (size_t i = 0; i < proof_fields_size / 32; i++) {
+            proof_witnesses[i] = barretenberg::fr::serialize_from_buffer(&proof_data_fields[i * 32]);
+        }
+        for (size_t i = 0; i < vk_fields_size / 32; i++) {
+            key_witnesses[i] = barretenberg::fr::serialize_from_buffer(&vk_fields[i * 32]);
+        }
+        vk_hash_value = barretenberg::fr::serialize_from_buffer(vk_hash_buf);
 
         std::vector<uint32_t> proof_indices;
 
         const size_t proof_size = proof_witnesses.size();
-
         for (size_t i = 0; i < proof_size; ++i) {
             proof_indices.emplace_back(static_cast<uint32_t>(i + 19));
         }
@@ -296,10 +303,14 @@ TEST(AcirProofs, TestSerializationWithRecursion)
 
         uint8_t* proof_data_buf = nullptr;
         size_t proof_length = acir_proofs::new_proof(
-            pippenger_ptr, &g2x_buffer[0], pk_buf, &constraint_system_buf[0], &witness_buf[0], &proof_data_buf);
+            pippenger_ptr, &g2x_buffer[0], pk_buf, &constraint_system_buf[0], &witness_buf[0], &proof_data_buf, false);
 
-        bool verified = acir_proofs::verify_proof(
-            &g2x_buffer[0], vk_buf, &constraint_system_buf[0], proof_data_buf, static_cast<uint32_t>(proof_length));
+        bool verified = acir_proofs::verify_proof(&g2x_buffer[0],
+                                                  vk_buf,
+                                                  &constraint_system_buf[0],
+                                                  proof_data_buf,
+                                                  static_cast<uint32_t>(proof_length),
+                                                  false);
         EXPECT_EQ(verified, true);
 
         delete pippenger_ptr_base;
@@ -308,6 +319,5 @@ TEST(AcirProofs, TestSerializationWithRecursion)
         free((void*)proof_data_buf);
         free((void*)proof_data_fields);
         free((void*)vk_fields);
-        free((void*)vk_hash_buf);
     }
 }
