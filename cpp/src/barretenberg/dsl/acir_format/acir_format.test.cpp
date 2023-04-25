@@ -31,6 +31,7 @@ TEST(acir_format, test_a_single_constraint_no_pub_inputs)
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .merkle_membership_constraints = {},
+        .recursion_constraints = {},
         .constraints = { constraint },
     };
 
@@ -129,6 +130,7 @@ TEST(acir_format, test_logic_gate_from_noir_circuit)
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .merkle_membership_constraints = {},
+        .recursion_constraints = {},
         .constraints = { expr_a, expr_b, expr_c, expr_d },
     };
 
@@ -193,6 +195,7 @@ TEST(acir_format, test_schnorr_verify_pass)
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .merkle_membership_constraints = {},
+        .recursion_constraints = {},
         .constraints = { poly_triple{
             .a = schnorr_constraint.result,
             .b = schnorr_constraint.result,
@@ -262,6 +265,7 @@ TEST(acir_format, test_schnorr_verify_small_range)
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .merkle_membership_constraints = {},
+        .recursion_constraints = {},
         .constraints = { poly_triple{
             .a = schnorr_constraint.result,
             .b = schnorr_constraint.result,
