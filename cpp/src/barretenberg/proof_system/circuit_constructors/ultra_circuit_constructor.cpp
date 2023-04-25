@@ -1409,12 +1409,14 @@ std::array<uint32_t, 2> UltraCircuitConstructor::queue_non_native_field_multipli
  */
 void UltraCircuitConstructor::process_non_native_field_multiplications()
 {
-    std::sort(cached_non_native_field_multiplications.begin(), cached_non_native_field_multiplications.end());
+    ENABLE_ALL_IN_THE_HEAD_SWITCHES
+    std::sort(switched_cached_non_native_field_multiplications.begin(),
+              switched_cached_non_native_field_multiplications.end());
 
-    auto last =
-        std::unique(cached_non_native_field_multiplications.begin(), cached_non_native_field_multiplications.end());
+    auto last = std::unique(switched_cached_non_native_field_multiplications.begin(),
+                            switched_cached_non_native_field_multiplications.end());
 
-    auto it = cached_non_native_field_multiplications.begin();
+    auto it = switched_cached_non_native_field_multiplications.begin();
 
     constexpr barretenberg::fr LIMB_SHIFT = uint256_t(1) << DEFAULT_NON_NATIVE_FIELD_LIMB_BITS;
     constexpr barretenberg::fr LIMB_RSHIFT =
@@ -1445,30 +1447,30 @@ void UltraCircuitConstructor::process_non_native_field_multiplications()
                               0 },
                             true);
 
-        w_l.emplace_back(input.a[1]);
-        w_r.emplace_back(input.b[1]);
-        w_o.emplace_back(input.r[0]);
-        w_4.emplace_back(lo_0_idx);
+        switched_w_l.emplace_back(input.a[1]);
+        switched_w_r.emplace_back(input.b[1]);
+        switched_w_o.emplace_back(input.r[0]);
+        switched_w_4.emplace_back(lo_0_idx);
         apply_aux_selectors(AUX_SELECTORS::NON_NATIVE_FIELD_1);
-        ++num_gates;
-        w_l.emplace_back(input.a[0]);
-        w_r.emplace_back(input.b[0]);
-        w_o.emplace_back(input.a[3]);
-        w_4.emplace_back(input.b[3]);
+        ++switched_num_gates;
+        switched_w_l.emplace_back(input.a[0]);
+        switched_w_r.emplace_back(input.b[0]);
+        switched_w_o.emplace_back(input.a[3]);
+        switched_w_4.emplace_back(input.b[3]);
         apply_aux_selectors(AUX_SELECTORS::NON_NATIVE_FIELD_2);
-        ++num_gates;
-        w_l.emplace_back(input.a[2]);
-        w_r.emplace_back(input.b[2]);
-        w_o.emplace_back(input.r[3]);
-        w_4.emplace_back(hi_0_idx);
+        ++switched_num_gates;
+        switched_w_l.emplace_back(input.a[2]);
+        switched_w_r.emplace_back(input.b[2]);
+        switched_w_o.emplace_back(input.r[3]);
+        switched_w_4.emplace_back(hi_0_idx);
         apply_aux_selectors(AUX_SELECTORS::NON_NATIVE_FIELD_3);
-        ++num_gates;
-        w_l.emplace_back(input.a[1]);
-        w_r.emplace_back(input.b[1]);
-        w_o.emplace_back(input.r[2]);
-        w_4.emplace_back(hi_1_idx);
+        ++switched_num_gates;
+        switched_w_l.emplace_back(input.a[1]);
+        switched_w_r.emplace_back(input.b[1]);
+        switched_w_o.emplace_back(input.r[2]);
+        switched_w_4.emplace_back(hi_1_idx);
         apply_aux_selectors(AUX_SELECTORS::NONE);
-        ++num_gates;
+        ++switched_num_gates;
 
         /**
          * product gate 6

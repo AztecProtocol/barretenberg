@@ -174,7 +174,61 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
                                          "q_arith", "q_sort", "q_elliptic", "q_aux", "table_type" };
         return result;
     }
+    struct non_native_field_multiplication_cross_terms {
+        uint32_t lo_0_idx;
+        uint32_t lo_1_idx;
+        uint32_t hi_0_idx;
+        uint32_t hi_1_idx;
+        uint32_t hi_2_idx;
+        uint32_t hi_3_idx;
+    };
+    /**
+     * @brief Used to store instructions to create non_native_field_multiplication gates.
+     *        We want to cache these (and remove duplicates) as the stdlib code can end up multiplying the same inputs
+     * repeatedly.
+     */
+    struct cached_non_native_field_multiplication {
+        std::array<uint32_t, 5> a;
+        std::array<uint32_t, 5> b;
+        std::array<uint32_t, 5> q;
+        std::array<uint32_t, 5> r;
+        non_native_field_multiplication_cross_terms cross_terms;
+        std::array<barretenberg::fr, 5> neg_modulus;
 
+        bool operator==(const cached_non_native_field_multiplication& other) const
+        {
+            bool valid = true;
+            for (size_t i = 0; i < 5; ++i) {
+                valid = valid && (a[i] == other.a[i]);
+                valid = valid && (b[i] == other.b[i]);
+                valid = valid && (q[i] == other.q[i]);
+                valid = valid && (r[i] == other.r[i]);
+            }
+            return valid;
+        }
+        bool operator<(const cached_non_native_field_multiplication& other) const
+        {
+            if (a < other.a) {
+                return true;
+            }
+            if (a == other.a) {
+                if (b < other.b) {
+                    return true;
+                }
+                if (b == other.b) {
+                    if (q < other.q) {
+                        return true;
+                    }
+                    if (q == other.q) {
+                        if (r < other.r) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+    };
     /**
      * @brief Circuit-in-the-head is a structure we use to store all the information about the circuit which should be
      * used during check_circuit method call, but needs to be discarded later
@@ -218,6 +272,10 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
         std::vector<uint32_t> memory_read_records;
         std::vector<uint32_t> memory_write_records;
         std::map<uint64_t, RangeList> range_lists;
+
+        std::vector<UltraCircuitConstructor::cached_non_native_field_multiplication>
+            cached_non_native_field_multiplications;
+
         size_t num_gates;
         bool circuit_finalised = false;
         /**
@@ -269,6 +327,8 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
             stored_state.range_lists = circuit_constructor.range_lists;
             stored_state.circuit_finalised = circuit_constructor.circuit_finalised;
             stored_state.num_gates = circuit_constructor.num_gates;
+            stored_state.cached_non_native_field_multiplications =
+                circuit_constructor.cached_non_native_field_multiplications;
             return stored_state;
         }
         /**
@@ -365,6 +425,10 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
                 return false;
             }
             if (!(range_lists == circuit_constructor.range_lists)) {
+                return false;
+            }
+            if (!(cached_non_native_field_multiplications ==
+                  circuit_constructor.cached_non_native_field_multiplications)) {
                 return false;
             }
             if (!(num_gates == circuit_constructor.num_gates)) {
@@ -944,6 +1008,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
                                     memory_read_records,                                                               \
                                     memory_write_records,                                                              \
                                     range_lists,                                                                       \
+                                    cached_non_native_field_multiplications,                                           \
                                     real_variable_tags,                                                                \
                                     real_variable_index)
     // Circuit evaluation methods
