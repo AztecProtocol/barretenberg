@@ -92,7 +92,7 @@ TEST(ultra_circuit_constructor, create_gates_from_plookup_accumulators)
         EXPECT_EQ(circuit_constructor.get_variable(lookup_witnesses_hi[ColumnIdx::C3][i]),
                   expected_y[i + num_lookups_lo]);
     }
-    auto saved_state = CircuitInTheHead::store_state(circuit_constructor);
+    auto saved_state = UltraCircuitConstructor::CircuitInTheHead::store_state(circuit_constructor);
     bool result = circuit_constructor.check_circuit();
 
     EXPECT_EQ(result, true);
@@ -166,7 +166,7 @@ TEST(ultra_circuit_constructor, test_elliptic_gate)
     gate = ecc_add_gate{ x1, y1, x2, y2, x3, y3, beta.sqr(), -1 };
     circuit_constructor.create_ecc_add_gate(gate);
 
-    auto saved_state = CircuitInTheHead::store_state(circuit_constructor);
+    auto saved_state = UltraCircuitConstructor::CircuitInTheHead::store_state(circuit_constructor);
     bool result = circuit_constructor.check_circuit();
 
     EXPECT_EQ(result, true);
@@ -202,7 +202,7 @@ TEST(ultra_circuit_constructor, non_trivial_tag_permutation)
     circuit_constructor.assign_tag(c_idx, 2);
     circuit_constructor.assign_tag(d_idx, 2);
 
-    auto saved_state = CircuitInTheHead::store_state(circuit_constructor);
+    auto saved_state = UltraCircuitConstructor::CircuitInTheHead::store_state(circuit_constructor);
     bool result = circuit_constructor.check_circuit();
 
     EXPECT_EQ(result, true);
@@ -247,7 +247,7 @@ TEST(ultra_circuit_constructor, non_trivial_tag_permutation_and_cycles)
     circuit_constructor.create_add_gate(
         { e_idx, f_idx, circuit_constructor.zero_idx, fr::one(), -fr::one(), fr::zero(), fr::zero() });
 
-    auto saved_state = CircuitInTheHead::store_state(circuit_constructor);
+    auto saved_state = UltraCircuitConstructor::CircuitInTheHead::store_state(circuit_constructor);
     bool result = circuit_constructor.check_circuit();
 
     EXPECT_EQ(result, true);
@@ -271,7 +271,7 @@ TEST(ultra_circuit_constructor, bad_tag_permutation)
     circuit_constructor.create_add_gate({ a_idx, b_idx, circuit_constructor.zero_idx, 1, 1, 0, 0 });
     circuit_constructor.create_add_gate({ c_idx, d_idx, circuit_constructor.zero_idx, 1, 1, 0, -1 });
 
-    auto saved_state = CircuitInTheHead::store_state(circuit_constructor);
+    auto saved_state = UltraCircuitConstructor::CircuitInTheHead::store_state(circuit_constructor);
     bool result = circuit_constructor.check_circuit();
 
     EXPECT_EQ(result, true);
@@ -640,7 +640,7 @@ TEST(ultra_circuit_constructor, non_native_field_multiplication)
     const auto q_indices = get_limb_witness_indices(split_into_limbs(uint256_t(q)));
     const auto r_indices = get_limb_witness_indices(split_into_limbs(uint256_t(r)));
 
-    proof_system::non_native_field_witnesses inputs{
+    proof_system::UltraCircuitConstructor::non_native_field_witnesses inputs{
         a_indices, b_indices, q_indices, r_indices, modulus_limbs, fr(uint256_t(modulus)),
     };
     const auto [lo_1_idx, hi_1_idx] = circuit_constructor.evaluate_non_native_field_multiplication(inputs);
@@ -753,7 +753,7 @@ TEST(ultra_circuit_constructor, ram)
         },
         false);
 
-    auto saved_state = CircuitInTheHead::store_state(circuit_constructor);
+    auto saved_state = UltraCircuitConstructor::CircuitInTheHead::store_state(circuit_constructor);
     bool result = circuit_constructor.check_circuit();
 
     EXPECT_EQ(result, true);

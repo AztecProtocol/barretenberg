@@ -504,7 +504,7 @@ plookup::ReadData<uint32_t> UltraCircuitConstructor::create_gates_from_plookup_a
  * Generalized Permutation Methods
  **/
 
-RangeList UltraCircuitConstructor::create_range_list(const uint64_t target_range)
+UltraCircuitConstructor::RangeList UltraCircuitConstructor::create_range_list(const uint64_t target_range)
 {
     RangeList result;
     const auto range_tag = get_new_tag(); // current_tag + 1;
