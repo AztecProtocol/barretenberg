@@ -92,6 +92,7 @@ acir_format::Composer create_inner_circuit()
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .merkle_membership_constraints = {},
+        .recursion_constraints = {},
         .constraints = { expr_a, expr_b, expr_c, expr_d },
     };
 
