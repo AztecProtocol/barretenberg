@@ -38,7 +38,6 @@ else()
     message(STATUS "Using optimized assembly for field arithmetic.")
 endif()
 
-set(MSGPACK_USE_BOOST OFF CACHE BOOL "Disable boost" FORCE)
 add_subdirectory(barretenberg/common)
 add_subdirectory(barretenberg/env)
 add_subdirectory(barretenberg/numeric)
