@@ -185,12 +185,11 @@ size_t new_proof(void* pippenger,
         reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), g2x);
     proving_key->reference_string = crs_factory->get_prover_crs(proving_key->circuit_size);
 
-    // TODO: either need a context flag for recursive proofs or a new_recursive_proof method that uses regular
-    // UltraProver
     acir_format::Composer composer(proving_key, nullptr);
 
     create_circuit_with_witness(composer, constraint_system, witness);
 
+    // Either need a context flag for recursive proofs or a new_recursive_proof method that uses regular UltraProver
     if (is_recursive) {
         auto prover = composer.create_prover();
         auto heapProver = new acir_format::RecursiveProver(std::move(prover));
@@ -228,8 +227,8 @@ bool verify_proof(uint8_t const* g2x,
         create_circuit(composer, constraint_system);
         plonk::proof pp = { std::vector<uint8_t>(proof, proof + length) };
 
-        // for inner circuit use new prover and verifier method for outer circuit use the normal prover and verifier
-        // TODO: either need a context flag for recursive verify or a new_recursive_verify_proof method that uses
+        // For inner circuit use recursive prover and verifier, then for outer circuit use the normal prover and
+        // verifier Either need a context flag for recursive verify or a new_recursive_verify_proof method that uses
         // regular UltraVerifier
         if (is_recursive) {
             auto verifier = composer.create_verifier();
