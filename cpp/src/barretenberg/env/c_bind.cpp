@@ -8,7 +8,33 @@
 #include <cstdlib>
 #include <barretenberg/common/serialize.hpp>
 
+#include <pthread.h>
+// #include <stdio.h>
+// #include <string.h>
+
+void* thread_entry_point(void* ctx)
+{
+    auto id = (size_t)ctx;
+    info(" in thread ", id);
+    return nullptr;
+}
+
 extern "C" {
+
+WASM_EXPORT void env_test_pthreads()
+{
+    constexpr size_t NUM_THREADS = 10;
+    pthread_t threads[10];
+    for (size_t i = 0; i < NUM_THREADS; i++) {
+        int ret = pthread_create(&threads[i], nullptr, &thread_entry_point, (void*)i);
+        if (ret != 0) {
+            info("failed to spawn thread: ", ret);
+        }
+    }
+    for (size_t thread : threads) {
+        pthread_join(thread, nullptr);
+    }
+}
 
 WASM_EXPORT void env_set_data(in_str_buf key_buf, uint8_t const* buffer)
 {

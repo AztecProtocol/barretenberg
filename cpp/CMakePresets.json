@@ -133,6 +133,15 @@
       "environment": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
+    },
+    {
+      "name": "wasm-threads",
+      "displayName": "Build for pthread enabled WASM",
+      "description": "Build for pthread enabled WASM",
+      "inherits": "wasm",
+      "environment": {
+        "WASI_SDK_PREFIX": "${sourceDir}/src/wasi-sdk-20.0+threads"
+      }
     }
   ],
   "buildPresets": [
@@ -192,6 +201,13 @@
     {
       "name": "wasm-dbg",
       "configurePreset": "wasm-dbg",
+      "inheritConfigureEnvironment": true,
+      "jobs": 0,
+      "targets": ["barretenberg.wasm"]
+    },
+    {
+      "name": "wasm-threads",
+      "configurePreset": "wasm-threads",
       "inheritConfigureEnvironment": true,
       "jobs": 0,
       "targets": ["barretenberg.wasm"]

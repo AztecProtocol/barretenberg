@@ -33,6 +33,7 @@ endif()
 # We enable -O1 level optimsations, even when compiling debug wasm, otherwise we get "local count too large" at runtime.
 if(WASM)
     add_compile_options($<$<CONFIG:Debug>:-O1>)
+    add_compile_options(--target=wasm32-wasi-threads -pthread)
 endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
@@ -123,7 +124,7 @@ if(WASM)
     target_link_options(
         barretenberg.wasm
         PRIVATE
-        -nostartfiles -Wl,--whole-archive -Wl,--no-entry -Wl,--export-dynamic -Wl,--import-memory -Wl,--allow-undefined -Wl,--stack-first -Wl,-z,stack-size=1048576
+        -pthread --target=wasm32-wasi-threads -nostartfiles -Wl,--verbose,--whole-archive,--no-entry,--export-dynamic,--import-memory,--allow-undefined,--stack-first,-z,stack-size=1048576
     )
 
     # TODO(blaine): Figure out how to Asyncify the wasm output.
