@@ -97,6 +97,7 @@ export class BarretenbergWasm extends EventEmitter {
 
         get_data: (keyAddr: number, outBufAddr: number) => {
           const key = this.stringFromAddress(keyAddr);
+          outBufAddr = outBufAddr >>> 0;
           const data = this.memStore[key];
           if (!data) {
             this.debug(`get_data miss ${key}`);
@@ -108,6 +109,7 @@ export class BarretenbergWasm extends EventEmitter {
 
         set_data: (keyAddr: number, dataAddr: number, dataLength: number) => {
           const key = this.stringFromAddress(keyAddr);
+          dataAddr = dataAddr >>> 0;
           this.memStore[key] = this.getMemorySlice(dataAddr, dataAddr + dataLength);
           this.debug(`set_data: ${key} length: ${dataLength} hash: ${sha256(this.memStore[key])}`);
           // writeFileSync('/mnt/user-data/charlie/debugging/ts_' + key, this.memStore[key]);
