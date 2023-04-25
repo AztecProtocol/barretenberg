@@ -51,7 +51,9 @@ class BasePrecomputedData : public Data<T, TView, NUM_PRECOMPUTED_ENTITIES> {
     size_t log_circuit_size;
     size_t num_public_inputs;
     ComposerType composer_type; // WORKTODO: Get rid of this
-    // BasePrecomputedData() = default;
+
+    // virtual ~BasePrecomputedData() = default;
+
     virtual std::vector<TView> get_selectors() = 0;
     virtual std::vector<TView> get_sigma_polynomials() = 0;
     virtual std::vector<TView> get_id_polynomials() = 0;
@@ -65,8 +67,6 @@ template <typename PrecomputedData, typename FF> class BaseProvingKey : public P
     std::vector<uint32_t> recursive_proof_public_input_indices;
     std::shared_ptr<ProverReferenceString> crs;
     EvaluationDomain<FF> evaluation_domain;
-
-    // BaseProvingKey() = default;
 };
 
 /**
@@ -82,13 +82,6 @@ template <typename PrecomputedData> class BaseVerificationKey : public Precomput
 
 template <typename T, size_t NUM_ALL_ENTITIES> class BaseAllData : public Data<T, T, NUM_ALL_ENTITIES> {
   public:
-    // BaseAllData() { this->_data = {}; }
-
-    // BaseAllData(std::array<T, NUM_ALL_ENTITIES> read_evals) { this->_data = read_evals; }
-    // // BaseAllData(const BaseAllData& other){this->_data = other.data;};
-    // BaseAllData& operator=(const BaseAllData& other) { this->_data = other._data; };
-    // BaseAllData& operator=(const BaseAllData&& other) { this->_data = other._data; };
-
     virtual std::vector<T> get_unshifted() = 0;
     virtual std::vector<T> get_to_be_shifted() = 0;
     virtual std::vector<T> get_shifted() = 0;
@@ -143,83 +136,6 @@ class Standard {
         std::vector<TView> get_id_polynomials() override { return { id_1, id_2, id_3 }; };
 
         virtual ~PrecomputedData() = default;
-        // PrecomputedData() = default;
-        // // TODO(Cody): are these needed?
-        // PrecomputedData(const PrecomputedData& other)
-        // {
-        //     this->_data = other._data;
-        //     q_m = other.q_m;
-        //     q_l = other.q_l;
-        //     q_r = other.q_r;
-        //     q_o = other.q_o;
-        //     q_c = other.q_c;
-        //     sigma_1 = other.sigma_1;
-        //     sigma_2 = other.sigma_2;
-        //     sigma_3 = other.sigma_3;
-        //     id_1 = other.id_1;
-        //     id_2 = other.id_2;
-        //     id_3 = other.id_3;
-        //     lagrange_first = other.lagrange_first;
-        //     lagrange_last = other.lagrange_last;
-        // };
-
-        // PrecomputedData(PrecomputedData&& other)
-        // {
-        //     this->_data = other._data;
-        //     q_m = other.q_m;
-        //     q_l = other.q_l;
-        //     q_r = other.q_r;
-        //     q_o = other.q_o;
-        //     q_c = other.q_c;
-        //     sigma_1 = other.sigma_1;
-        //     sigma_2 = other.sigma_2;
-        //     sigma_3 = other.sigma_3;
-        //     id_1 = other.id_1;
-        //     id_2 = other.id_2;
-        //     id_3 = other.id_3;
-        //     lagrange_first = other.lagrange_first;
-        //     lagrange_last = other.lagrange_last;
-        // };
-
-        // PrecomputedData& operator=(const PrecomputedData& other)
-        // {
-        //     this->_data = other._data;
-
-        //     q_m = other.q_m;
-        //     q_l = other.q_l;
-        //     q_r = other.q_r;
-        //     q_o = other.q_o;
-        //     q_c = other.q_c;
-        //     sigma_1 = other.sigma_1;
-        //     sigma_2 = other.sigma_2;
-        //     sigma_3 = other.sigma_3;
-        //     id_1 = other.id_1;
-        //     id_2 = other.id_2;
-        //     id_3 = other.id_3;
-        //     lagrange_first = other.lagrange_first;
-        //     lagrange_last = other.lagrange_last;
-        //     return *this;
-        // };
-
-        // PrecomputedData& operator=(PrecomputedData&& other)
-        // {
-        //     this->_data = other._data;
-
-        //     q_m = other.q_m;
-        //     q_l = other.q_l;
-        //     q_r = other.q_r;
-        //     q_o = other.q_o;
-        //     q_c = other.q_c;
-        //     sigma_1 = other.sigma_1;
-        //     sigma_2 = other.sigma_2;
-        //     sigma_3 = other.sigma_3;
-        //     id_1 = other.id_1;
-        //     id_2 = other.id_2;
-        //     id_3 = other.id_3;
-        //     lagrange_first = other.lagrange_first;
-        //     lagrange_last = other.lagrange_last;
-        //     return *this;
-        // };
     };
 
     class ProvingKey : public BaseProvingKey<PrecomputedData<Polynomial, PolynomialView>, FF> {
@@ -296,109 +212,27 @@ class Standard {
         std::vector<T> get_shifted() override { return { z_perm_shift }; };
 
         AllData() = default;
-        AllData(std::array<T, NUM_ALL_ENTITIES> _data_in)
-        {
-            this->_data = _data_in;
-        }; // WORKTODO: this will break references?
-        virtual ~AllData() = default;
-        // TODO(Cody): are these needed?
-        AllData(const AllData& other)
-        {
-            this->_data = other._data;
 
-            // w_l = other.w_l;
-            // w_r = other.w_r;
-            // w_o = other.w_o;
-            // z_perm = other.z_perm;
-            // z_perm_shift = other.z_perm_shift;
-            // q_m = other.q_m;
-            // q_l = other.q_l;
-            // q_r = other.q_r;
-            // q_o = other.q_o;
-            // q_c = other.q_c;
-            // sigma_1 = other.sigma_1;
-            // sigma_2 = other.sigma_2;
-            // sigma_3 = other.sigma_3;
-            // id_1 = other.id_1;
-            // id_2 = other.id_2;
-            // id_3 = other.id_3;
-            // lagrange_first = other.lagrange_first;
-            // lagrange_last = other.lagrange_last;
-        };
+        AllData(const AllData& other)
+            : BaseAllData<T, NUM_ALL_ENTITIES>(other){};
 
         AllData(AllData&& other)
-        {
-            this->_data = other._data;
+            : BaseAllData<T, NUM_ALL_ENTITIES>(other){};
 
-            // w_l = other.w_l;
-            // w_r = other.w_r;
-            // w_o = other.w_o;
-            // z_perm = other.z_perm;
-            // z_perm_shift = other.z_perm_shift;
-            // q_m = other.q_m;
-            // q_l = other.q_l;
-            // q_r = other.q_r;
-            // q_o = other.q_o;
-            // q_c = other.q_c;
-            // sigma_1 = other.sigma_1;
-            // sigma_2 = other.sigma_2;
-            // sigma_3 = other.sigma_3;
-            // id_1 = other.id_1;
-            // id_2 = other.id_2;
-            // id_3 = other.id_3;
-            // lagrange_first = other.lagrange_first;
-            // lagrange_last = other.lagrange_last;
-        };
-
+        // TODO(luke): avoiding self assignment (clang warning) here is a bit gross. Is there a better way?
         AllData& operator=(const AllData& other)
         {
-            this->_data = other._data;
-
-            // w_l = other.w_l;
-            // w_r = other.w_r;
-            // w_o = other.w_o;
-            // z_perm = other.z_perm;
-            // z_perm_shift = other.z_perm_shift;
-            // q_m = other.q_m;
-            // q_l = other.q_l;
-            // q_r = other.q_r;
-            // q_o = other.q_o;
-            // q_c = other.q_c;
-            // sigma_1 = other.sigma_1;
-            // sigma_2 = other.sigma_2;
-            // sigma_3 = other.sigma_3;
-            // id_1 = other.id_1;
-            // id_2 = other.id_2;
-            // id_3 = other.id_3;
-            // lagrange_first = other.lagrange_first;
-            // lagrange_last = other.lagrange_last;
+            BaseAllData<T, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
-        };
+        }
 
         AllData& operator=(AllData&& other)
         {
-            this->_data = other._data;
-
-            // w_l = other.w_l;
-            // w_r = other.w_r;
-            // w_o = other.w_o;
-            // z_perm = other.z_perm;
-            // z_perm_shift = other.z_perm_shift;
-            // q_m = other.q_m;
-            // q_l = other.q_l;
-            // q_r = other.q_r;
-            // q_o = other.q_o;
-            // q_c = other.q_c;
-            // sigma_1 = other.sigma_1;
-            // sigma_2 = other.sigma_2;
-            // sigma_3 = other.sigma_3;
-            // id_1 = other.id_1;
-            // id_2 = other.id_2;
-            // id_3 = other.id_3;
-            // lagrange_first = other.lagrange_first;
-            // lagrange_last = other.lagrange_last;
+            BaseAllData<T, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
-        };
+        }
+
+        AllData(std::array<FF, NUM_ALL_ENTITIES> data_in) { this->_data = data_in; }
     };
 
     // These are classes are views of data living in different entities. They
@@ -411,11 +245,6 @@ class Standard {
     template <size_t MAX_RELATION_LENGTH> using ExtendedEdges = AllData<sumcheck::Univariate<FF, MAX_RELATION_LENGTH>>;
 
     using PurportedEvaluations = AllData<FF>;
-    // class PurportedEvaluations : public AllData<FF> {
-    //   public: // WORKTODO: this is bad
-    //     PurportedEvaluations() { this->_data = {}; }
-    //     PurportedEvaluations(std::array<FF, NUM_ALL_ENTITIES> read_evals) { this->_data = read_evals; }
-    // };
 
     class CommitmentLabels : public AllData<std::string> {
       public:

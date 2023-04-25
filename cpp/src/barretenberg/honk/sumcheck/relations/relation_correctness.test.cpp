@@ -248,6 +248,7 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
             evaluations_at_index_i[poly_idx] = polynomial[i];
             poly_idx++;
         }
+        info("i = ", i);
 
         // For each relation, call the `accumulate_relation_evaluation` over all witness/selector values at the
         // i-th row/vertex of the hypercube. We use ASSERT_EQ instead of EXPECT_EQ so that the tests stops at
