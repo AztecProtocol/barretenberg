@@ -54,7 +54,7 @@ class PermutationHelperTests : public ::testing::Test {
      */}
 
     std::shared_ptr<Flavor::ProvingKey> proving_key =
-        initialize_proving_key<Flavor>(circuit_constructor, &crs_factory, 0, 2, ComposerType::STANDARD);
+        initialize_proving_key<Flavor>(circuit_constructor, &crs_factory, 0, 0, ComposerType::STANDARD);
     ;
 };
 
