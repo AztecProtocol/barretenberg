@@ -1,6 +1,7 @@
 #pragma once
 #include "relation.hpp"
 #include "../polynomials/univariate.hpp"
+// TODO(luke): change name of this file to permutation_grand_product_relation(s).hpp and move 'init' relation into it.
 
 namespace proof_system::honk::sumcheck {
 

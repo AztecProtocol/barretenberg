@@ -8,11 +8,11 @@
 #include "barretenberg/honk/sumcheck/sumcheck_round.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
-#include "barretenberg/honk/utils/public_inputs.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 
 #pragma GCC diagnostic ignored "-Wunused-variable"
+#include "barretenberg/honk/utils/grand_product_delta.hpp"
 
 #include <gtest/gtest.h>
 

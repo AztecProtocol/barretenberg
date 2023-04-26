@@ -649,7 +649,7 @@ TYPED_TEST(ultra_composer, non_native_field_multiplication)
     UltraComposer::non_native_field_witnesses inputs{
         a_indices, b_indices, q_indices, r_indices, modulus_limbs, fr(uint256_t(modulus)),
     };
-    const auto [lo_1_idx, hi_1_idx] = composer.evaluate_non_native_field_multiplication(inputs);
+    const auto [lo_1_idx, hi_1_idx] = composer.queue_non_native_field_multiplication(inputs);
     composer.range_constrain_two_limbs(lo_1_idx, hi_1_idx, 70, 70);
 
     TestFixture::prove_and_verify(composer, /*expected_result=*/true);
@@ -756,6 +756,67 @@ TYPED_TEST(ultra_composer, ram)
         false);
 
     TestFixture::prove_and_verify(composer, /*expected_result=*/true);
+}
+
+TYPED_TEST(ultra_composer, range_checks_on_duplicates)
+{
+    UltraComposer composer = UltraComposer();
+
+    uint32_t a = composer.add_variable(100);
+    uint32_t b = composer.add_variable(100);
+    uint32_t c = composer.add_variable(100);
+    uint32_t d = composer.add_variable(100);
+
+    composer.assert_equal(a, b);
+    composer.assert_equal(a, c);
+    composer.assert_equal(a, d);
+
+    composer.create_new_range_constraint(a, 1000);
+    composer.create_new_range_constraint(b, 1001);
+    composer.create_new_range_constraint(c, 999);
+    composer.create_new_range_constraint(d, 1000);
+
+    composer.create_big_add_gate(
+        {
+            a,
+            b,
+            c,
+            d,
+            0,
+            0,
+            0,
+            0,
+            0,
+        },
+        false);
+
+    TestFixture::prove_and_verify(composer, /*expected_result=*/true);
+}
+
+// Ensure copy constraints added on variables smaller than 2^14, which have been previously
+// range constrained, do not break the set equivalence checks because of indices mismatch.
+// 2^14 is DEFAULT_PLOOKUP_RANGE_BITNUM i.e. the maximum size before a variable gets sliced
+// before range constraints are applied to it.
+TEST(ultra_composer, range_constraint_small_variable)
+{
+    auto composer = UltraComposer();
+    uint16_t mask = (1 << 8) - 1;
+    int a = engine.get_random_uint16() & mask;
+    uint32_t a_idx = composer.add_variable(fr(a));
+    uint32_t b_idx = composer.add_variable(fr(a));
+    ASSERT_NE(a_idx, b_idx);
+    uint32_t c_idx = composer.add_variable(fr(a));
+    ASSERT_NE(c_idx, b_idx);
+    composer.create_range_constraint(b_idx, 8, "bad range");
+    composer.assert_equal(a_idx, b_idx);
+    composer.create_range_constraint(c_idx, 8, "bad range");
+    composer.assert_equal(a_idx, c_idx);
+
+    auto prover = composer.create_prover();
+    auto proof = prover.construct_proof();
+    auto verifier = composer.create_verifier();
+    bool result = verifier.verify_proof(proof);
+    EXPECT_EQ(result, true);
 }
 
 } // namespace proof_system::plonk::test_ultra_composer
