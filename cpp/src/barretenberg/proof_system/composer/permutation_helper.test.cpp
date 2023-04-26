@@ -14,9 +14,6 @@ class PermutationHelperTests : public ::testing::Test {
     using FF = typename Flavor::FF;
     Flavor::CircuitConstructor circuit_constructor;
     ReferenceStringFactory crs_factory = ReferenceStringFactory();
-    std::shared_ptr<Flavor::ProvingKey> proving_key = [&]() {
-        return initialize_proving_key<Flavor>(circuit_constructor, &crs_factory, 0, 2, ComposerType::STANDARD);
-    }();
 
     virtual void SetUp()
     {
@@ -55,6 +52,10 @@ class PermutationHelperTests : public ::testing::Test {
           v_4    |   v_8    |    v_12
 
      */}
+
+    std::shared_ptr<Flavor::ProvingKey> proving_key = [&]() {
+        return initialize_proving_key<Flavor>(circuit_constructor, &crs_factory, 0, 2, ComposerType::STANDARD);
+    }();
 };
 
 TEST_F(PermutationHelperTests, ComputeWireCopyCycles)
@@ -64,7 +65,6 @@ TEST_F(PermutationHelperTests, ComputeWireCopyCycles)
 
 TEST_F(PermutationHelperTests, ComputePermutationMapping)
 {
-    GTEST_SKIP() << "This segfaults on CI when run on its own.";
     compute_permutation_mapping<Flavor, /*generalized=*/false>(circuit_constructor, proving_key.get());
 }
 
