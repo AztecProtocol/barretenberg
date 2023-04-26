@@ -49,11 +49,16 @@ TEST(Flavor, Standard)
     };
 
     size_t idx = 0;
-    auto q_c = get_test_polynomial(idx);
+    auto w_l = get_test_polynomial(idx);
+    auto w_r = get_test_polynomial(idx);
+    auto w_o = get_test_polynomial(idx);
+    auto z_perm = get_test_polynomial(idx);
+    auto z_perm_shift = get_test_polynomial(idx);
+    auto q_m = get_test_polynomial(idx);
     auto q_l = get_test_polynomial(idx);
     auto q_r = get_test_polynomial(idx);
     auto q_o = get_test_polynomial(idx);
-    auto q_m = get_test_polynomial(idx);
+    auto q_c = get_test_polynomial(idx);
     auto sigma_1 = get_test_polynomial(idx);
     auto sigma_2 = get_test_polynomial(idx);
     auto sigma_3 = get_test_polynomial(idx);
@@ -62,11 +67,6 @@ TEST(Flavor, Standard)
     auto id_3 = get_test_polynomial(idx);
     auto lagrange_first = get_test_polynomial(idx);
     auto lagrange_last = get_test_polynomial(idx);
-    auto w_l = get_test_polynomial(idx);
-    auto w_r = get_test_polynomial(idx);
-    auto w_o = get_test_polynomial(idx);
-    auto z_perm = get_test_polynomial(idx);
-    auto z_perm_shift = get_test_polynomial(idx);
 
     prover_polynomials.w_l = w_l;
     prover_polynomials.w_r = w_r;
