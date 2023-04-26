@@ -220,12 +220,17 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
         prover_library::compute_permutation_grand_product<Flavor>(prover.key, prover.wire_polynomials, beta, gamma);
 
     // Construct local sorted_list_polynomials to pass to compute_sorted_list_accumulator()
+    // TODO(luke): this clunkiness can be cleaned up once we decide where the sorted polynomials will be stored: proving
+    // key or prover
     std::vector<polynomial> sorted_list_polynomials;
+    auto sorted_polynomials = prover.key->get_sorted_polynomials();
     for (size_t i = 0; i < 4; ++i) {
-        // std::string label = "s_" + std::to_string(i + 1) + "_lagrange";
-        // sorted_list_polynomials.emplace_back(prover.key->polynomial_store.get(label));
         sorted_list_polynomials.emplace_back(prover.key->circuit_size);
+        for (size_t j = 0; j < prover.key->circuit_size; ++j) {
+            sorted_list_polynomials[i][j] = sorted_polynomials[i][j];
+        }
     }
+
     // Compute sorted witness-table accumulator
     auto sorted_list_accumulator =
         prover_library::compute_sorted_list_accumulator<Flavor>(prover.key, sorted_list_polynomials, eta);
