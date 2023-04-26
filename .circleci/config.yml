@@ -269,7 +269,7 @@ workflows:
       - benchmark-aggregator:
           requires:
             - barretenberg-tests
-            - stdlib-primitives-tests
+            - stdlib-tests
             - stdlib-biggroup-tests
             - stdlib-recursion-turbo-tests
             - stdlib-recursion-ultra-tests
