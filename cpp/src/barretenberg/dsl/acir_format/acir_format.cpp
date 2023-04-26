@@ -372,7 +372,7 @@ void create_circuit_with_witness(Composer& composer, const acir_format& constrai
         create_sha256_constraints(composer, constraint);
     }
 
-    // Add merkle membership constraints
+    // Add compute merkle root constraints
     for (const auto& constraint : constraint_system.compute_merkle_root_constraints) {
         create_compute_merkle_root_constraint(composer, constraint);
     }
