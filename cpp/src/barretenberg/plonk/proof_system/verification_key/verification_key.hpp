@@ -20,9 +20,14 @@ struct verification_key_data {
     std::vector<uint32_t> recursive_proof_public_input_indices;
 
     // for serialization: update with any new fields
-    void msgpack(auto ar) {
-        ar(NVP(composer_type, circuit_size, num_public_inputs, commitments, contains_recursive_proof, recursive_proof_public_input_indices));
-    }
+    MSGPACK(
+        composer_type, 
+        circuit_size, 
+        num_public_inputs, 
+        commitments, 
+        contains_recursive_proof, 
+        recursive_proof_public_input_indices
+    );
     barretenberg::fr compress_native(size_t const hash_index = 0);
 };
 
@@ -55,6 +60,7 @@ inline bool operator==(verification_key_data const& lhs, verification_key_data c
 }
 
 struct verification_key {
+    // default constructor needed for msgpack unpack
     verification_key() = default;
     verification_key(verification_key_data&& data, std::shared_ptr<VerifierReferenceString> const& crs);
     verification_key(const size_t num_gates,
@@ -89,6 +95,7 @@ struct verification_key {
     bool contains_recursive_proof = false;
     std::vector<uint32_t> recursive_proof_public_input_indices;
     size_t program_width = 3;
+
     // for serialization: update up with new fields
     void msgpack_pack(auto& packer) const {
         verification_key_data data = {
@@ -148,23 +155,3 @@ inline std::ostream& operator<<(std::ostream& os, verification_key const& key)
 };
 
 } // namespace proof_system::plonk
-
-//// annoyingly, if we want to forward declare anything without including heavy msgpack.hpp headers, we need to
-//// dig into the internals to do so.
-//namespace msgpack {
-//inline namespace v3 {
-//namespace adaptor {
-//template <typename T, typename Enabler> struct convert;
-//// hack: since verification_key has no default constructor, we need to unpack the shared ptr directly
-//template <> struct convert<std::shared_ptr<proof_system::plonk::verification_key>, void> {
-//    auto const& operator()(auto& obj, std::shared_ptr<proof_system::plonk::verification_key>& verification_key_ptr) const
-//    {
-//        proof_system::plonk::verification_key_data data = obj.convert();
-//        auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
-//        verification_key_ptr = std::make_shared<proof_system::plonk::verification_key>(std::move(data), env_crs->get_verifier_crs());
-//        return obj;
-//    }
-//};
-//}
-//}
-//}// namespace msgpack::v3::adaptor

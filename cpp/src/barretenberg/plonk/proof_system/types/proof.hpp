@@ -11,9 +11,7 @@ namespace proof_system::plonk {
 struct proof {
     std::vector<uint8_t> proof_data;
     // for serialization: update up with new fields
-    void msgpack(auto ar) {
-        ar(NVP(proof_data));
-    }
+    MSGPACK(proof_data);
 
     bool operator==(proof const& other) const = default;
 };
