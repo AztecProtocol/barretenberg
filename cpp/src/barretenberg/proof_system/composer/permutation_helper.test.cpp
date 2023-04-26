@@ -14,6 +14,7 @@ class PermutationHelperTests : public ::testing::Test {
     using FF = typename Flavor::FF;
     Flavor::CircuitConstructor circuit_constructor;
     ReferenceStringFactory crs_factory = ReferenceStringFactory();
+    std::shared_ptr<Flavor::ProvingKey> proving_key;
 
     virtual void SetUp()
     {
@@ -38,24 +39,25 @@ class PermutationHelperTests : public ::testing::Test {
         circuit_constructor.create_add_gate({ v_3, v_7, v_11, 0, 0, 0, 0 });
         circuit_constructor.create_add_gate({ v_4, v_8, v_12, 0, 0, 0, 0 });
 
-    /* Execution trace:
-           w_l        w_r       w_o
-        ------------------------------
-        pub1_idx | pub1_idx |    0     <-- public inputs
-        pub2_idx | pub2_idx |    0     <-/
-        zero_idx | zero_idx | zero_idx <-- fix witness for 0
-        one_idx  | zero_idx | zero_idx <-- fix witness for 1
-        one_idx  | one_idx  | one_idx  <-- ensure nonzero selectors... TODO(Cody): redundant now
-          v_1    |   v_5    |    v_9
-          v_2    |   v_6    |    v_10
-          v_3    |   v_7    |    v_11
-          v_4    |   v_8    |    v_12
+        /* Execution trace:
+               w_l        w_r       w_o
+            ------------------------------
+            pub1_idx | pub1_idx |    0     <-- public inputs
+            pub2_idx | pub2_idx |    0     <-/
+            zero_idx | zero_idx | zero_idx <-- fix witness for 0
+            one_idx  | zero_idx | zero_idx <-- fix witness for 1
+            one_idx  | one_idx  | one_idx  <-- ensure nonzero selectors... TODO(Cody): redundant now
+              v_1    |   v_5    |    v_9
+              v_2    |   v_6    |    v_10
+              v_3    |   v_7    |    v_11
+              v_4    |   v_8    |    v_12
 
-     */}
+         */
 
-    std::shared_ptr<Flavor::ProvingKey> proving_key =
-        initialize_proving_key<Flavor>(circuit_constructor, &crs_factory, 0, 0, ComposerType::STANDARD);
-    ;
+        proving_key = initialize_proving_key<Flavor>(circuit_constructor, &crs_factory, 0, 2, ComposerType::STANDARD);
+
+        // construct_selector_polynomials<Flavor>(circuit_constructor, proving_key.get());
+    }
 };
 
 TEST_F(PermutationHelperTests, ComputeWireCopyCycles)
