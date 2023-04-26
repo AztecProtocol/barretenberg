@@ -1,4 +1,4 @@
-stdlib_primitives_tests --gtest_filter=-stdlib_biggroup*
+stdlib_primitives_tests
 stdlib_aes128_tests
 stdlib_blake2s_tests
 stdlib_blake3s_tests
