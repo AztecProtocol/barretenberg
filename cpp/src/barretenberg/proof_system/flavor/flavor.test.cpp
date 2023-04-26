@@ -88,7 +88,16 @@ TEST(Flavor, Standard)
     prover_polynomials.lagrange_last = lagrange_last;
 
     idx = 0;
-    for (auto& poly : prover_polynomials) {
+    for (auto& poly : prover_polynomials.get_wires()) {
+        EXPECT_EQ(poly[0], 4 * idx);
+        EXPECT_EQ(poly[1], 4 * idx + 1);
+        EXPECT_EQ(poly[2], 4 * idx + 2);
+        EXPECT_EQ(poly[3], 4 * idx + 3);
+        idx++;
+    };
+
+    idx = 4; // z_perm_shift is shifted
+    for (auto& poly : prover_polynomials.get_shifted()) {
         EXPECT_EQ(poly[0], 4 * idx);
         EXPECT_EQ(poly[1], 4 * idx + 1);
         EXPECT_EQ(poly[2], 4 * idx + 2);

@@ -53,9 +53,9 @@ class PermutationHelperTests : public ::testing::Test {
 
      */}
 
-    std::shared_ptr<Flavor::ProvingKey> proving_key = [&]() {
-        return initialize_proving_key<Flavor>(circuit_constructor, &crs_factory, 0, 2, ComposerType::STANDARD);
-    }();
+    std::shared_ptr<Flavor::ProvingKey> proving_key =
+        initialize_proving_key<Flavor>(circuit_constructor, &crs_factory, 0, 2, ComposerType::STANDARD);
+    ;
 };
 
 TEST_F(PermutationHelperTests, ComputeWireCopyCycles)
