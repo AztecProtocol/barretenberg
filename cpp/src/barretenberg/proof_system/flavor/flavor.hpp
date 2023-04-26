@@ -317,12 +317,12 @@ class Ultra {
     template <typename T, typename TView>
     class PrecomputedData : public BasePrecomputedData<T, TView, NUM_PRECOMPUTED_ENTITIES> {
       public:
-        T& q_c = std::get<0>(this->_data);
-        T& q_l = std::get<1>(this->_data);
-        T& q_r = std::get<2>(this->_data);
-        T& q_o = std::get<3>(this->_data);
-        T& q_4 = std::get<4>(this->_data);
-        T& q_m = std::get<5>(this->_data);
+        T& q_m = std::get<0>(this->_data);
+        T& q_c = std::get<1>(this->_data);
+        T& q_l = std::get<2>(this->_data);
+        T& q_r = std::get<3>(this->_data);
+        T& q_o = std::get<4>(this->_data);
+        T& q_4 = std::get<5>(this->_data);
         T& q_arith = std::get<6>(this->_data);
         T& q_sort = std::get<7>(this->_data);
         T& q_elliptic = std::get<8>(this->_data);
@@ -349,7 +349,8 @@ class Ultra {
 
         std::vector<TView> get_selectors()
         {
-            return { q_c, q_l, q_r, q_o, q_4, q_m, q_arith, q_sort, q_elliptic, q_aux, q_lookuptype };
+            // return { q_c, q_l, q_r, q_o, q_4, q_m, q_arith, q_sort, q_elliptic, q_aux, q_lookuptype };
+            return { q_m, q_c, q_l, q_r, q_o, q_4, q_arith, q_sort, q_elliptic, q_aux, q_lookuptype };
         };
         std::vector<TView> get_sigma_polynomials() { return { sigma_1, sigma_2, sigma_3, sigma_4 }; };
         std::vector<TView> get_table_polynomials() { return { table_1, table_2, table_3, table_4 }; };
@@ -575,190 +576,27 @@ class Ultra {
         std::vector<T> get_shifted() override { return { w_l_shift, w_4_shift, z_perm_shift, z_lookup_shift }; };
 
         AllData() = default;
-        AllData(std::array<T, NUM_ALL_ENTITIES> _data_in)
-        {
-            this->_data = _data_in;
-        }; // WORKTODO: this will break references?
-        virtual ~AllData() = default;
-        // TODO(Cody): are these needed?
+
         AllData(const AllData& other)
-        // : q_c(other.q_c)
-        // , q_l(other.q_l)
-        // , q_r(other.q_r)
-        // , q_o(other.q_o)
-        // , q_4(other.q_4)
-        // , q_m(other.q_m)
-        // , q_arith(other.q_arith)
-        // , q_sort(other.q_sort)
-        // , q_elliptic(other.q_elliptic)
-        // , q_aux(other.q_aux)
-        // , q_lookuptype(other.q_lookuptype)
-        // , sigma_1(other.sigma_1)
-        // , sigma_2(other.sigma_2)
-        // , sigma_3(other.sigma_3)
-        // , sigma_4(other.sigma_4)
-        // , id_1(other.id_1)
-        // , id_2(other.id_2)
-        // , id_3(other.id_3)
-        // , id_4(other.id_4)
-        // , table_1(other.table_1)
-        // , table_2(other.table_2)
-        // , table_3(other.table_3)
-        // , table_4(other.table_4)
-        // , lagrange_first(other.lagrange_first)
-        // , lagrange_last(other.lagrange_last)
-        // , w_l(other.w_l)
-        // , w_r(other.w_r)
-        // , w_o(other.w_o)
-        // , w_4(other.w_4)
-        // , sorted_1(other.sorted_1)
-        // , sorted_2(other.sorted_2)
-        // , sorted_3(other.sorted_3)
-        // , sorted_4(other.sorted_4)
-        // // , sorted_batched(other.sorted_batched)
-        // , z_perm(other.z_perm)
-        // , z_lookup(other.z_lookup)
-        // , w_l_shift(other.w_l_shift)
-        // , w_4_shift(other.w_4_shift)
-        // , z_perm_shift(other.z_perm_shift)
-        // , z_lookup_shift(other.z_lookup_shift)
-        {
-            this->_data = other._data;
-        };
+            : BaseAllData<T, NUM_ALL_ENTITIES>(other){};
 
         AllData(AllData&& other)
-            :
+            : BaseAllData<T, NUM_ALL_ENTITIES>(other){};
 
-            q_c(other.q_c)
-            , q_l(other.q_l)
-            , q_r(other.q_r)
-            , q_o(other.q_o)
-            , q_4(other.q_4)
-            , q_m(other.q_m)
-            , q_arith(other.q_arith)
-            , q_sort(other.q_sort)
-            , q_elliptic(other.q_elliptic)
-            , q_aux(other.q_aux)
-            , q_lookuptype(other.q_lookuptype)
-            , sigma_1(other.sigma_1)
-            , sigma_2(other.sigma_2)
-            , sigma_3(other.sigma_3)
-            , sigma_4(other.sigma_4)
-            , id_1(other.id_1)
-            , id_2(other.id_2)
-            , id_3(other.id_3)
-            , id_4(other.id_4)
-            , table_1(other.table_1)
-            , table_2(other.table_2)
-            , table_3(other.table_3)
-            , table_4(other.table_4)
-            , lagrange_first(other.lagrange_first)
-            , lagrange_last(other.lagrange_last)
-            , w_l(other.w_l)
-            , w_r(other.w_r)
-            , w_o(other.w_o)
-            , w_4(other.w_4)
-            , sorted_1(other.sorted_1)
-            , sorted_2(other.sorted_2)
-            , sorted_3(other.sorted_3)
-            , sorted_4(other.sorted_4)
-            // , sorted_batched(other.sorted_batched)
-            , z_perm(other.z_perm)
-            , z_lookup(other.z_lookup)
-            , w_l_shift(other.w_l_shift)
-            , w_4_shift(other.w_4_shift)
-            , z_perm_shift(other.z_perm_shift)
-            , z_lookup_shift(other.z_lookup_shift){};
-
+        // TODO(luke): avoiding self assignment (clang warning) here is a bit gross. Is there a better way?
         AllData& operator=(const AllData& other)
         {
-            q_c = other.q_c;
-            q_l = other.q_l;
-            q_r = other.q_r;
-            q_o = other.q_o;
-            q_4 = other.q_4;
-            q_m = other.q_m;
-            q_arith = other.q_arith;
-            q_sort = other.q_sort;
-            q_elliptic = other.q_elliptic;
-            q_aux = other.q_aux;
-            q_lookuptype = other.q_lookuptype;
-            sigma_1 = other.sigma_1;
-            sigma_2 = other.sigma_2;
-            sigma_3 = other.sigma_3;
-            sigma_4 = other.sigma_4;
-            id_1 = other.id_1;
-            id_2 = other.id_2;
-            id_3 = other.id_3;
-            id_4 = other.id_4;
-            table_1 = other.table_1;
-            table_2 = other.table_2;
-            table_3 = other.table_3;
-            table_4 = other.table_4;
-            lagrange_first = other.lagrange_first;
-            lagrange_last = other.lagrange_last;
-            w_l = other.w_l;
-            w_r = other.w_r;
-            w_o = other.w_o;
-            w_4 = other.w_4;
-            sorted_1 = other.sorted_1;
-            sorted_2 = other.sorted_2;
-            sorted_3 = other.sorted_3;
-            sorted_4 = other.sorted_4;
-            // sorted_batched = other.sorted_batched;
-            z_perm = other.z_perm;
-            z_lookup = other.z_lookup;
-            w_l_shift = other.w_l_shift;
-            w_4_shift = other.w_4_shift;
-            z_perm_shift = other.z_perm_shift;
-            z_lookup_shift = other.z_lookup_shift;
+            BaseAllData<T, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
-        };
+        }
 
         AllData& operator=(AllData&& other)
         {
-            q_c = other.q_c;
-            q_l = other.q_l;
-            q_r = other.q_r;
-            q_o = other.q_o;
-            q_4 = other.q_4;
-            q_m = other.q_m;
-            q_arith = other.q_arith;
-            q_sort = other.q_sort;
-            q_elliptic = other.q_elliptic;
-            q_aux = other.q_aux;
-            q_lookuptype = other.q_lookuptype;
-            sigma_1 = other.sigma_1;
-            sigma_2 = other.sigma_2;
-            sigma_3 = other.sigma_3;
-            sigma_4 = other.sigma_4;
-            id_1 = other.id_1;
-            id_2 = other.id_2;
-            id_3 = other.id_3;
-            id_4 = other.id_4;
-            table_1 = other.table_1;
-            table_2 = other.table_2;
-            table_3 = other.table_3;
-            table_4 = other.table_4;
-            lagrange_first = other.lagrange_first;
-            lagrange_last = other.lagrange_last;
-            w_l = other.w_l;
-            w_r = other.w_r;
-            w_o = other.w_o;
-            w_4 = other.w_4;
-            sorted_1 = other.sorted_1;
-            sorted_2 = other.sorted_2;
-            sorted_3 = other.sorted_3;
-            sorted_4 = other.sorted_4;
-            // sorted_batched = other.sorted_batched;
-            z_perm = other.z_perm;
-            z_lookup = other.z_lookup;
-            w_l_shift = other.w_l_shift;
-            w_4_shift = other.w_4_shift;
-            z_perm_shift = other.z_perm_shift;
-            z_lookup_shift = other.z_lookup_shift;
+            BaseAllData<T, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
-        };
+        }
+
+        AllData(std::array<FF, NUM_ALL_ENTITIES> data_in) { this->_data = data_in; }
     };
 
     // These are classes are views of data living in different entities. They
