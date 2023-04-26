@@ -359,6 +359,7 @@ class Ultra {
         std::vector<TView> get_sigma_polynomials() { return { sigma_1, sigma_2, sigma_3, sigma_4 }; };
         std::vector<TView> get_table_polynomials() { return { table_1, table_2, table_3, table_4 }; };
         std::vector<TView> get_id_polynomials() { return { id_1, id_2, id_3, id_4 }; };
+        std::vector<TView> get_sorted_polynomials() { return { sorted_1, sorted_2, sorted_3, sorted_4 }; };
 
         virtual ~PrecomputedData() = default;
     };

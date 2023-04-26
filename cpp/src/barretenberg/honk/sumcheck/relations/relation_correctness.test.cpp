@@ -11,6 +11,7 @@
 #include "barretenberg/honk/sumcheck/sumcheck_round.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/lookup_grand_product_relation.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "barretenberg/honk/utils/grand_product_delta.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
@@ -291,9 +292,9 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     auto relations = std::tuple(honk::sumcheck::UltraArithmeticRelation<fr>(),
                                 honk::sumcheck::UltraArithmeticRelationSecondary<fr>(),
                                 honk::sumcheck::UltraGrandProductInitializationRelation<fr>(),
-                                honk::sumcheck::UltraGrandProductComputationRelation<fr>());
-    // honk::sumcheck::LookupGrandProductComputationRelation<fr>(),
-    // honk::sumcheck::LookupGrandProductInitializationRelation<fr>());
+                                honk::sumcheck::UltraGrandProductComputationRelation<fr>(),
+                                honk::sumcheck::LookupGrandProductComputationRelation<fr>(),
+                                honk::sumcheck::LookupGrandProductInitializationRelation<fr>());
 
     fr result = 0;
     for (size_t i = 0; i < prover.key->circuit_size; i++) {
@@ -304,6 +305,8 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
             evaluations_at_index_i[poly_idx] = polynomial[i];
             poly_idx++;
         }
+
+        info("i = ", i);
 
         // For each relation, call the `accumulate_relation_evaluation` over all witness/selector values at the
         // i-th row/vertex of the hypercube. We use ASSERT_EQ instead of EXPECT_EQ so that the tests stops at
@@ -321,11 +324,11 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
         std::get<3>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
         ASSERT_EQ(result, 0);
 
-        // std::get<4>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
-        // ASSERT_EQ(result, 0);
+        std::get<4>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        ASSERT_EQ(result, 0);
 
-        // std::get<5>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
-        // ASSERT_EQ(result, 0);
+        std::get<5>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        ASSERT_EQ(result, 0);
     }
 }
 
