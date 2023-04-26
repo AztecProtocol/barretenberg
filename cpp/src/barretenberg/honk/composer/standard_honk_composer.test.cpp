@@ -73,10 +73,11 @@ TEST(StandardHonkComposer, SigmaIDCorrectness)
 
         auto permutation_polynomials = proving_key->get_sigma_polynomials();
         auto id_polynomials = proving_key->get_id_polynomials();
+        auto wire_polynomials = proving_key->get_wires();
         for (size_t j = 0; j < StandardHonkComposer::num_wires; ++j) {
             std::string index = std::to_string(j + 1);
             const auto& permutation_polynomial = permutation_polynomials[j];
-            const auto& witness_polynomial = composer.composer_helper.wire_polynomials[j];
+            const auto& witness_polynomial = wire_polynomials[j];
             const auto& id_polynomial = id_polynomials[j];
             // left = ∏ᵢ,ⱼ(ωᵢ,ⱼ + β⋅ind(i,j) + γ)
             // right = ∏ᵢ,ⱼ(ωᵢ,ⱼ + β⋅σ(i,j) + γ)

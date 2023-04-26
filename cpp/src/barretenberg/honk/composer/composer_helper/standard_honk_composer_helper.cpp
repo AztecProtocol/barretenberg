@@ -88,6 +88,10 @@ void StandardHonkComposerHelper::compute_witness(const CircuitConstructor& circu
     wire_polynomials =
         construct_wire_polynomials_base<Flavor>(circuit_constructor, minimum_circuit_size, NUM_RANDOMIZED_GATES);
 
+    proving_key->w_l = wire_polynomials[0];
+    proving_key->w_r = wire_polynomials[1];
+    proving_key->w_o = wire_polynomials[2];
+
     computed_witness = true;
 }
 

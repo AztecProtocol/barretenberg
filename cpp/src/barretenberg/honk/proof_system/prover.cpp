@@ -34,6 +34,7 @@ namespace proof_system::honk {
  * @tparam settings Settings class.
  * */
 // TODO(Cody): both input types are foo& in prototype
+// WORKTODO(luke): remove all trace of wire_poly(nomial)s here
 template <typename Flavor>
 Prover<Flavor>::Prover(std::vector<Polynomial>&& wire_polys, const std::shared_ptr<ProvingKey> input_key)
     : wire_polynomials(wire_polys)
@@ -56,9 +57,9 @@ Prover<Flavor>::Prover(std::vector<Polynomial>&& wire_polys, const std::shared_p
     prover_polynomials.lagrange_first = key->lagrange_first;
     prover_polynomials.lagrange_last = key->lagrange_last;
     // WORKTODO: loose coupling here. Also: unique pointers?
-    prover_polynomials.w_l = wire_polys[0];
-    prover_polynomials.w_r = wire_polys[1];
-    prover_polynomials.w_o = wire_polys[2];
+    prover_polynomials.w_l = key->w_l;
+    prover_polynomials.w_r = key->w_r;
+    prover_polynomials.w_o = key->w_o;
 
     // Add public inputs to transcript from the second wire polynomial
     std::span<FF> public_wires_source = prover_polynomials.w_r;
@@ -76,8 +77,9 @@ Prover<Flavor>::Prover(std::vector<Polynomial>&& wire_polys, const std::shared_p
 template <typename Flavor> void Prover<Flavor>::compute_wire_commitments()
 {
     size_t wire_idx = 0; // ZIPTODO
+    auto wire_polys = key->get_wires();
     for (auto& label : commitment_labels.get_wires()) {
-        queue.add_commitment(wire_polynomials[wire_idx], label);
+        queue.add_commitment(wire_polys[wire_idx], label);
         wire_idx++;
     }
 }
@@ -136,12 +138,23 @@ template <typename Flavor> void Prover<Flavor>::execute_grand_product_computatio
         .public_input_delta = public_input_delta,
     };
 
-    z_permutation = prover_library::compute_permutation_grand_product<Flavor>(key, wire_polynomials, beta, gamma);
+    // WORKTODO(luke): I'm constructing a vector of Polynomials here to pass to compute_permutation_grand_product but
+    // eventually compute_permutation_grand_product will just extract them directly from the key. Just dont want to
+    // break other tests for now.
+    std::vector<Polynomial> wire_polys;
+    for (auto wire : key->get_wires()) {
+        wire_polys.emplace_back(key->circuit_size);
+        for (size_t i = 0; i < key->circuit_size; ++i) {
+            wire_polys.back()[i] = wire[i];
+        }
+    }
 
-    queue.add_commitment(z_permutation, commitment_labels.z_perm);
+    key->z_perm = prover_library::compute_permutation_grand_product<Flavor>(key, wire_polys, beta, gamma);
 
-    prover_polynomials.z_perm = z_permutation;
-    prover_polynomials.z_perm_shift = z_permutation.shifted();
+    queue.add_commitment(key->z_perm, commitment_labels.z_perm);
+
+    prover_polynomials.z_perm = key->z_perm;
+    prover_polynomials.z_perm_shift = key->z_perm.shifted();
 }
 
 /**

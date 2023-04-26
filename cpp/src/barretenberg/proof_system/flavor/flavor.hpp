@@ -111,6 +111,8 @@ class Standard {
     static constexpr size_t num_wires = CircuitConstructor::num_wires;
     static constexpr size_t NUM_ALL_ENTITIES = 18;
     static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 13;
+    // WORKTODO(luke): This number needs to be total witness polys not including shifts.
+    static constexpr size_t NUM_WITNESS_ENTITIES = 4;
 
     // TODO(Cody): Made this public derivation so that I could populate selector
     // polys from circuit constructor.
@@ -138,26 +140,65 @@ class Standard {
         virtual ~PrecomputedData() = default;
     };
 
+    // TODO(luke): this is a WiP
+    template <typename T, typename TView> class WitnessData : public Data<T, TView, NUM_WITNESS_ENTITIES> {
+      public:
+        T& w_l = std::get<0>(this->_data);
+        T& w_r = std::get<1>(this->_data);
+        T& w_o = std::get<2>(this->_data);
+        T& z_perm = std::get<3>(this->_data);
+        // WORKTODO(luke): shifts are awkward because, in the case of polynomials, shifts do not occupy their own
+        // memory, whereas the other witnesses do. Maybe shifts simply arent needed here. T& z_perm_shift =
+        // std::get<3>(this->_data);
+
+        std::vector<TView> get_wires() { return { w_l, w_r, w_o }; };
+
+        virtual ~WitnessData() = default;
+    };
+
+    // WORKTODO(luke): WiP 'Prover Data' concept which is like the Plonk proving key; i.e. precomputed stuff plus
+    // storage for all witness polys
     class ProvingKey : public BaseProvingKey<PrecomputedData<Polynomial, PolynomialView>, FF> {
       public:
+        // Storage for both precomputed polynomials and all witness polynomials (excluding shifts which do not occupy
+        // their own memory)
+        WitnessData<Polynomial, PolynomialView> _witness_data;
+
+        // TODO(luke): I think these will be ok but keep an eye on this.
+        Polynomial& w_l = _witness_data.w_l;
+        Polynomial& w_r = _witness_data.w_r;
+        Polynomial& w_o = _witness_data.w_o;
+        Polynomial& z_perm = _witness_data.z_perm;
+
+        // Stuff that would otherwise be inherited from from BaseProvingKey
+        bool contains_recursive_proof;
+        std::vector<uint32_t> recursive_proof_public_input_indices;
+        std::shared_ptr<ProverReferenceString> crs;
+        EvaluationDomain<FF> evaluation_domain;
+
         ProvingKey() = default;
         ProvingKey(const size_t circuit_size,
                    const size_t num_public_inputs,
                    std::shared_ptr<ProverReferenceString> const& crs,
                    ComposerType composer_type)
+            : crs(crs)
+            , evaluation_domain(EvaluationDomain<FF>(circuit_size, circuit_size))
         {
             this->circuit_size = circuit_size;
             this->log_circuit_size = numeric::get_msb(circuit_size);
             this->num_public_inputs = num_public_inputs;
-            this->crs = crs;
-            this->evaluation_domain = EvaluationDomain<FF>(circuit_size, circuit_size);
             this->composer_type = composer_type;
-
+            // Allocate memory for precomputed polynomials
             for (auto& poly : this->_data) {
-                auto new_poly = Polynomial(circuit_size);
-                poly = new_poly;
+                poly = Polynomial(circuit_size);
+            }
+            // Allocate memory for witness polynomials
+            for (auto& poly : this->_witness_data._data) {
+                poly = Polynomial(circuit_size);
             }
         };
+
+        std::vector<PolynomialView> get_wires() { return _witness_data.get_wires(); };
     };
 
     class VerificationKey : public BaseVerificationKey<PrecomputedData<Commitment, CommitmentView>> {

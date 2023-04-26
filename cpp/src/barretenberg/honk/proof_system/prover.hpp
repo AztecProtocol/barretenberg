@@ -64,8 +64,9 @@ template <typename Flavor> class Prover { // WORKTODO: Rename to StandardProver 
 
     sumcheck::RelationParameters<FF> relation_parameters;
 
+    // WORKTODO(luke): REMOVE (these are no longer used but some external tests still rely on them being set by the
+    // prover)
     std::vector<Polynomial> wire_polynomials;
-    Polynomial z_permutation;
 
     std::shared_ptr<ProvingKey> key;
 
