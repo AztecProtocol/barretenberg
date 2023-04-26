@@ -552,10 +552,18 @@ class Ultra {
         T& sorted_2 = std::get<30>(this->_data);
         T& sorted_3 = std::get<31>(this->_data);
         T& sorted_4 = std::get<32>(this->_data);
+        T& sorted_accum = std::get<32>(this->_data);
         T& z_perm = std::get<33>(this->_data);
         T& z_lookup = std::get<34>(this->_data);
+        T& table_1_shift = std::get<19>(this->_data);
+        T& table_2_shift = std::get<20>(this->_data);
+        T& table_3_shift = std::get<21>(this->_data);
+        T& table_4_shift = std::get<22>(this->_data);
         T& w_l_shift = std::get<35>(this->_data);
+        T& w_r_shift = std::get<35>(this->_data);
+        T& w_o_shift = std::get<35>(this->_data);
         T& w_4_shift = std::get<36>(this->_data);
+        T& sorted_accum_shift = std::get<37>(this->_data);
         T& z_perm_shift = std::get<37>(this->_data);
         T& z_lookup_shift = std::get<38>(this->_data);
 

@@ -154,8 +154,6 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     // Create a composer and a dummy circuit with a few gates
     auto composer = UltraHonkComposer();
 
-    // static const size_t num_wires = 4;
-
     barretenberg::fr pedersen_input_value = fr::random_element();
     fr a = fr::one();
     // Using the public variable to check that public_input_delta is computed and added to the relation correctly
@@ -248,15 +246,23 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     prover_polynomials.w_o = prover.wire_polynomials[2];
     prover_polynomials.w_4 = prover.wire_polynomials[3];
     prover_polynomials.w_l_shift = prover.wire_polynomials[0].shifted();
+    prover_polynomials.w_r_shift = prover.wire_polynomials[1].shifted();
+    prover_polynomials.w_o_shift = prover.wire_polynomials[2].shifted();
     prover_polynomials.w_4_shift = prover.wire_polynomials[3].shifted();
     prover_polynomials.sorted_1 = prover.key->sorted_1;
     prover_polynomials.sorted_2 = prover.key->sorted_2;
     prover_polynomials.sorted_3 = prover.key->sorted_3;
     prover_polynomials.sorted_4 = prover.key->sorted_4;
+    prover_polynomials.sorted_accum = sorted_list_accumulator;
+    prover_polynomials.sorted_accum_shift = sorted_list_accumulator.shifted();
     prover_polynomials.table_1 = prover.key->table_1;
     prover_polynomials.table_2 = prover.key->table_2;
     prover_polynomials.table_3 = prover.key->table_3;
     prover_polynomials.table_4 = prover.key->table_4;
+    prover_polynomials.table_1_shift = prover.key->table_1.shifted();
+    prover_polynomials.table_2_shift = prover.key->table_2.shifted();
+    prover_polynomials.table_3_shift = prover.key->table_3.shifted();
+    prover_polynomials.table_4_shift = prover.key->table_4.shifted();
     prover_polynomials.z_perm = z_permutation;
     prover_polynomials.z_perm_shift = z_permutation.shifted();
     prover_polynomials.z_lookup = z_lookup;
