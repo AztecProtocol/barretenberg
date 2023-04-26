@@ -311,7 +311,9 @@ class Ultra {
     using PCSParams = pcs::kzg::Params;
 
     static constexpr size_t num_wires = CircuitConstructor::num_wires;
-    static constexpr size_t NUM_ALL_ENTITIES = 39;
+    // TODO(luke): sure would be nice if this was computed programtically
+    static constexpr size_t NUM_ALL_ENTITIES = 47;
+    // TODO(luke): what does this need to reflect? e.g. are shifts of precomputed polys counted here?
     static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 29;
 
     template <typename T, typename TView>
@@ -327,9 +329,11 @@ class Ultra {
         T& q_sort = std::get<7>(this->_data);
         T& q_elliptic = std::get<8>(this->_data);
         T& q_aux = std::get<9>(this->_data);
-        T& q_lookuptype = std::get<10>(this->_data); // WORKTODO: rename
-        T& sorted_1 = std::get<11>(this->_data);     // TODO(Cody) These shouldn't be in here, right?
-        T& sorted_2 = std::get<12>(this->_data);     // WORKTODO: Should rename these to sorted_i
+        T& q_lookup = std::get<10>(this->_data);
+        // TODO(luke): these are witness polys (just like the wires) but right now they are stored in the proving key
+        // (unlike the wires which are handles separately and owned by the prover).
+        T& sorted_1 = std::get<11>(this->_data);
+        T& sorted_2 = std::get<12>(this->_data);
         T& sorted_3 = std::get<13>(this->_data);
         T& sorted_4 = std::get<14>(this->_data);
         T& sigma_1 = std::get<15>(this->_data);
@@ -349,146 +353,14 @@ class Ultra {
 
         std::vector<TView> get_selectors()
         {
-            // return { q_c, q_l, q_r, q_o, q_4, q_m, q_arith, q_sort, q_elliptic, q_aux, q_lookuptype };
-            return { q_m, q_c, q_l, q_r, q_o, q_4, q_arith, q_sort, q_elliptic, q_aux, q_lookuptype };
+            // return { q_c, q_l, q_r, q_o, q_4, q_m, q_arith, q_sort, q_elliptic, q_aux, q_lookup };
+            return { q_m, q_c, q_l, q_r, q_o, q_4, q_arith, q_sort, q_elliptic, q_aux, q_lookup };
         };
         std::vector<TView> get_sigma_polynomials() { return { sigma_1, sigma_2, sigma_3, sigma_4 }; };
         std::vector<TView> get_table_polynomials() { return { table_1, table_2, table_3, table_4 }; };
         std::vector<TView> get_id_polynomials() { return { id_1, id_2, id_3, id_4 }; };
 
         virtual ~PrecomputedData() = default;
-        PrecomputedData() = default;
-        // TODO(Cody): are these needed?
-        PrecomputedData(const PrecomputedData& other)
-            : q_c(other.q_c)
-            , q_l(other.q_l)
-            , q_r(other.q_r)
-            , q_o(other.q_o)
-            , q_4(other.q_4)
-            , q_m(other.q_m)
-            , q_arith(other.q_arith)
-            , q_sort(other.q_sort)
-            , q_elliptic(other.q_elliptic)
-            , q_aux(other.q_aux)
-            , q_lookuptype(other.q_lookuptype)
-            , sorted_1(other.sorted_1)
-            , sorted_2(other.sorted_2)
-            , sorted_3(other.sorted_3)
-            , sorted_4(other.sorted_4)
-            , sigma_1(other.sigma_1)
-            , sigma_2(other.sigma_2)
-            , sigma_3(other.sigma_3)
-            , sigma_4(other.sigma_4)
-            , id_1(other.id_1)
-            , id_2(other.id_2)
-            , id_3(other.id_3)
-            , id_4(other.id_4)
-            , table_1(other.table_1)
-            , table_2(other.table_2)
-            , table_3(other.table_3)
-            , table_4(other.table_4)
-            , lagrange_first(other.lagrange_first)
-            , lagrange_last(other.lagrange_last){};
-
-        PrecomputedData(PrecomputedData&& other)
-            : q_c(other.q_c)
-            , q_l(other.q_l)
-            , q_r(other.q_r)
-            , q_o(other.q_o)
-            , q_4(other.q_4)
-            , q_m(other.q_m)
-            , q_arith(other.q_arith)
-            , q_sort(other.q_sort)
-            , q_elliptic(other.q_elliptic)
-            , q_aux(other.q_aux)
-            , q_lookuptype(other.q_lookuptype)
-            , sorted_1(other.sorted_1)
-            , sorted_2(other.sorted_2)
-            , sorted_3(other.sorted_3)
-            , sorted_4(other.sorted_4)
-            , sigma_1(other.sigma_1)
-            , sigma_2(other.sigma_2)
-            , sigma_3(other.sigma_3)
-            , sigma_4(other.sigma_4)
-            , id_1(other.id_1)
-            , id_2(other.id_2)
-            , id_3(other.id_3)
-            , id_4(other.id_4)
-            , table_1(other.table_1)
-            , table_2(other.table_2)
-            , table_3(other.table_3)
-            , table_4(other.table_4)
-            , lagrange_first(other.lagrange_first)
-            , lagrange_last(other.lagrange_last){};
-
-        PrecomputedData& operator=(const PrecomputedData& other)
-        // TODO(Cody): Doesn't work for self assignment?
-        {
-            q_c = other.q_c;
-            q_l = other.q_l;
-            q_r = other.q_r;
-            q_o = other.q_o;
-            q_4 = other.q_4;
-            q_m = other.q_m;
-            q_arith = other.q_arith;
-            q_sort = other.q_sort;
-            q_elliptic = other.q_elliptic;
-            q_aux = other.q_aux;
-            q_lookuptype = other.q_lookuptype;
-            sorted_1 = other.sorted_1;
-            sorted_2 = other.sorted_2;
-            sorted_3 = other.sorted_3;
-            sorted_4 = other.sorted_4;
-            sigma_1 = other.sigma_1;
-            sigma_2 = other.sigma_2;
-            sigma_3 = other.sigma_3;
-            sigma_4 = other.sigma_4;
-            id_1 = other.id_1;
-            id_2 = other.id_2;
-            id_3 = other.id_3;
-            id_4 = other.id_4;
-            table_1 = other.table_1;
-            table_2 = other.table_2;
-            table_3 = other.table_3;
-            table_4 = other.table_4;
-            lagrange_first = other.lagrange_first;
-            lagrange_last = other.lagrange_last;
-            return *this;
-        };
-
-        PrecomputedData& operator=(PrecomputedData&& other)
-        {
-            q_c = other.q_c;
-            q_l = other.q_l;
-            q_r = other.q_r;
-            q_o = other.q_o;
-            q_4 = other.q_4;
-            q_m = other.q_m;
-            q_arith = other.q_arith;
-            q_sort = other.q_sort;
-            q_elliptic = other.q_elliptic;
-            q_aux = other.q_aux;
-            q_lookuptype = other.q_lookuptype;
-            sorted_1 = other.sorted_1;
-            sorted_2 = other.sorted_2;
-            sorted_3 = other.sorted_3;
-            sorted_4 = other.sorted_4;
-            sigma_1 = other.sigma_1;
-            sigma_2 = other.sigma_2;
-            sigma_3 = other.sigma_3;
-            sigma_4 = other.sigma_4;
-            id_1 = other.id_1;
-            id_2 = other.id_2;
-            id_3 = other.id_3;
-            id_4 = other.id_4;
-            table_1 = other.table_1;
-            table_2 = other.table_2;
-            table_3 = other.table_3;
-            table_4 = other.table_4;
-            lagrange_first = other.lagrange_first;
-            lagrange_last = other.lagrange_last;
-            return *this;
-        };
     };
 
     class ProvingKey : public BaseProvingKey<PrecomputedData<Polynomial, PolynomialView>, FF> {
@@ -529,7 +401,7 @@ class Ultra {
         T& q_sort = std::get<7>(this->_data);
         T& q_elliptic = std::get<8>(this->_data);
         T& q_aux = std::get<9>(this->_data);
-        T& q_lookuptype = std::get<10>(this->_data);
+        T& q_lookup = std::get<10>(this->_data);
         T& sigma_1 = std::get<11>(this->_data);
         T& sigma_2 = std::get<12>(this->_data);
         T& sigma_3 = std::get<13>(this->_data);
@@ -552,29 +424,31 @@ class Ultra {
         T& sorted_2 = std::get<30>(this->_data);
         T& sorted_3 = std::get<31>(this->_data);
         T& sorted_4 = std::get<32>(this->_data);
-        T& sorted_accum = std::get<32>(this->_data);
-        T& z_perm = std::get<33>(this->_data);
-        T& z_lookup = std::get<34>(this->_data);
-        T& table_1_shift = std::get<19>(this->_data);
-        T& table_2_shift = std::get<20>(this->_data);
-        T& table_3_shift = std::get<21>(this->_data);
-        T& table_4_shift = std::get<22>(this->_data);
-        T& w_l_shift = std::get<35>(this->_data);
-        T& w_r_shift = std::get<35>(this->_data);
-        T& w_o_shift = std::get<35>(this->_data);
-        T& w_4_shift = std::get<36>(this->_data);
-        T& sorted_accum_shift = std::get<37>(this->_data);
-        T& z_perm_shift = std::get<37>(this->_data);
-        T& z_lookup_shift = std::get<38>(this->_data);
+        T& sorted_accum = std::get<33>(this->_data);
+        T& z_perm = std::get<34>(this->_data);
+        T& z_lookup = std::get<35>(this->_data);
+        // TODO(luke): THese are precomputable but are only ever instantiated as spans so do not need to be stored in
+        // the pkey
+        T& table_1_shift = std::get<36>(this->_data);
+        T& table_2_shift = std::get<37>(this->_data);
+        T& table_3_shift = std::get<38>(this->_data);
+        T& table_4_shift = std::get<39>(this->_data);
+        T& w_l_shift = std::get<40>(this->_data);
+        T& w_r_shift = std::get<41>(this->_data);
+        T& w_o_shift = std::get<42>(this->_data);
+        T& w_4_shift = std::get<43>(this->_data);
+        T& sorted_accum_shift = std::get<44>(this->_data);
+        T& z_perm_shift = std::get<45>(this->_data);
+        T& z_lookup_shift = std::get<46>(this->_data);
 
         std::vector<T> get_wires() { return { w_l, w_r, w_o, w_4 }; };
 
         std::vector<T> get_unshifted() override
         {
-            return { q_c,           q_l,    q_r,          q_o,     q_4,     q_m,      q_arith,  q_sort,
-                     q_elliptic,    q_aux,  q_lookuptype, sigma_1, sigma_2, sigma_3,  sigma_4,  id_1,
-                     id_2,          id_3,   id_4,         table_1, table_2, table_3,  table_4,  lagrange_first,
-                     lagrange_last, w_l,    w_r,          w_o,     w_4,     sorted_1, sorted_2, sorted_3,
+            return { q_c,           q_l,    q_r,      q_o,     q_4,     q_m,      q_arith,  q_sort,
+                     q_elliptic,    q_aux,  q_lookup, sigma_1, sigma_2, sigma_3,  sigma_4,  id_1,
+                     id_2,          id_3,   id_4,     table_1, table_2, table_3,  table_4,  lagrange_first,
+                     lagrange_last, w_l,    w_r,      w_o,     w_4,     sorted_1, sorted_2, sorted_3,
                      sorted_4,      z_perm, z_lookup
 
             };

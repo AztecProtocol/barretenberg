@@ -200,7 +200,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         populate_span(proving_key->q_m, column_2_step_size);
         populate_span(proving_key->q_c, column_3_step_size);
         populate_span(proving_key->q_o, lookup_index_selector);
-        populate_span(proving_key->q_lookuptype, lookup_selector);
+        populate_span(proving_key->q_lookup, lookup_selector);
 
         // Get random challenges
         auto beta = FF::random_element();

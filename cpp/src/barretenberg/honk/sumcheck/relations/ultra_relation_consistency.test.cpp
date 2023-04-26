@@ -1,5 +1,6 @@
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation_secondary.hpp"
+#include "barretenberg/honk/sumcheck/relations/lookup_grand_product_relation.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "relation.hpp"
 #include "arithmetic_relation.hpp"
@@ -289,6 +290,116 @@ TEST_F(UltraRelationConsistency, UltraGrandProductComputationRelation)
                           (z_perm_shift + lagrange_last * public_input_delta) * (w_1 + sigma_1 * beta + gamma) *
                               (w_2 + sigma_2 * beta + gamma) * (w_3 + sigma_3 * beta + gamma) *
                               (w_4 + sigma_4 * beta + gamma);
+
+    validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
+};
+
+TEST_F(UltraRelationConsistency, LookupGrandProductComputationRelation)
+{
+    using Flavor = honk::flavor::Ultra;
+    using FF = typename Flavor::FF;
+    using Flavor = honk::flavor::Ultra;
+    static constexpr size_t FULL_RELATION_LENGTH = 6;
+    using ExtendedEdges = typename Flavor::ExtendedEdges<FULL_RELATION_LENGTH>;
+    static const size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
+    auto relation_parameters = compute_mock_relation_parameters();
+    ExtendedEdges extended_edges;
+    std::array<Univariate<FF, INPUT_UNIVARIATE_LENGTH>, NUM_POLYNOMIALS> input_polynomials;
+
+    // input_univariates are random polynomials of degree one
+    for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
+        input_polynomials[i] = Univariate<FF, INPUT_UNIVARIATE_LENGTH>({ FF::random_element(), FF::random_element() });
+    }
+    compute_mock_extended_edges(extended_edges, input_polynomials);
+
+    auto relation = LookupGrandProductComputationRelation<FF>();
+
+    const auto eta = relation_parameters.eta;
+    const auto beta = relation_parameters.beta;
+    const auto gamma = relation_parameters.gamma;
+    auto grand_product_delta = relation_parameters.lookup_grand_product_delta;
+
+    // Extract the extended edges for manual computation of relation contribution
+    auto one_plus_beta = FF::one() + beta;
+    auto gamma_by_one_plus_beta = gamma * one_plus_beta;
+    auto eta_sqr = eta * eta;
+    auto eta_cube = eta_sqr * eta;
+
+    const auto& w_1 = extended_edges.w_l;
+    const auto& w_2 = extended_edges.w_r;
+    const auto& w_3 = extended_edges.w_o;
+
+    const auto& w_1_shift = extended_edges.w_l_shift;
+    const auto& w_2_shift = extended_edges.w_r_shift;
+    const auto& w_3_shift = extended_edges.w_o_shift;
+
+    const auto& table_1 = extended_edges.table_1;
+    const auto& table_2 = extended_edges.table_2;
+    const auto& table_3 = extended_edges.table_3;
+    const auto& table_4 = extended_edges.table_4;
+
+    const auto& table_1_shift = extended_edges.table_1_shift;
+    const auto& table_2_shift = extended_edges.table_2_shift;
+    const auto& table_3_shift = extended_edges.table_3_shift;
+    const auto& table_4_shift = extended_edges.table_4_shift;
+
+    const auto& s_accum = extended_edges.sorted_accum;
+    const auto& s_accum_shift = extended_edges.sorted_accum_shift;
+    const auto& z_lookup = extended_edges.z_lookup;
+    const auto& z_lookup_shift = extended_edges.z_lookup_shift;
+
+    const auto& table_index = extended_edges.q_o;
+    const auto& column_1_step_size = extended_edges.q_r;
+    const auto& column_2_step_size = extended_edges.q_m;
+    const auto& column_3_step_size = extended_edges.q_c;
+    const auto& q_lookup = extended_edges.q_lookup;
+
+    const auto& lagrange_first = extended_edges.lagrange_first;
+    const auto& lagrange_last = extended_edges.lagrange_last;
+
+    auto wire_accum = (w_1 + column_1_step_size * w_1_shift) + (w_2 + column_2_step_size * w_2_shift) * eta +
+                      (w_3 + column_3_step_size * w_3_shift) * eta_sqr + table_index * eta_cube;
+
+    auto table_accum = table_1 + table_2 * eta + table_3 * eta_sqr + table_4 * eta_cube;
+    auto table_accum_shift = table_1_shift + table_2_shift * eta + table_3_shift * eta_sqr + table_4_shift * eta_cube;
+
+    // Compute the expected result using a simple to read version of the relation expression
+    auto expected_evals = (z_lookup + lagrange_first) * (q_lookup * wire_accum + gamma) *
+                          (table_accum + table_accum_shift * beta + gamma_by_one_plus_beta) * one_plus_beta;
+    expected_evals -= (z_lookup_shift + lagrange_last * grand_product_delta) *
+                      (s_accum + s_accum_shift * beta + gamma_by_one_plus_beta);
+
+    info("expected_evals = ", expected_evals);
+
+    validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
+};
+
+TEST_F(UltraRelationConsistency, LookupGrandProductInitializationRelation)
+{
+    using Flavor = honk::flavor::Ultra;
+    using FF = typename Flavor::FF;
+    using Flavor = honk::flavor::Ultra;
+    static constexpr size_t FULL_RELATION_LENGTH = 6;
+    using ExtendedEdges = typename Flavor::ExtendedEdges<FULL_RELATION_LENGTH>;
+    static const size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
+    auto relation_parameters = compute_mock_relation_parameters();
+    ExtendedEdges extended_edges;
+    std::array<Univariate<FF, INPUT_UNIVARIATE_LENGTH>, NUM_POLYNOMIALS> input_polynomials;
+
+    // input_univariates are random polynomials of degree one
+    for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
+        input_polynomials[i] = Univariate<FF, INPUT_UNIVARIATE_LENGTH>({ FF::random_element(), FF::random_element() });
+    }
+    compute_mock_extended_edges(extended_edges, input_polynomials);
+
+    auto relation = LookupGrandProductInitializationRelation<FF>();
+
+    // Extract the extended edges for manual computation of relation contribution
+    const auto& z_lookup_shift = extended_edges.z_lookup_shift;
+    const auto& lagrange_last = extended_edges.lagrange_last;
+
+    // Compute the expected result using a simple to read version of the relation expression
+    auto expected_evals = z_lookup_shift * lagrange_last;
 
     validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
 };

@@ -224,7 +224,7 @@ typename Flavor::Polynomial compute_lookup_grand_product(std::shared_ptr<typenam
         key->table_4,
     };
 
-    std::span<const FF> lookup_selector = key->q_lookuptype; // TODO(Cody): this was something called table_type
+    std::span<const FF> lookup_selector = key->q_lookup; // TODO(Cody): this was something called table_type
     std::span<const FF> lookup_index_selector = key->q_o;
 
     const FF beta_plus_one = beta + FF(1);                      // (1 + β)

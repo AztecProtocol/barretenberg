@@ -5,7 +5,6 @@
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation_secondary.hpp"
 #include "barretenberg/numeric/uint256/uint256.hpp"
-// #include "barretenberg/honk/flavor/flavor.hpp"
 #include <cstddef>
 #include <cstdint>
 #include "barretenberg/honk/proof_system/prover.hpp"
@@ -13,7 +12,6 @@
 #include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
-#include "barretenberg/honk/sumcheck/relations/lookup_grand_product_relation.hpp"
 #include "barretenberg/honk/utils/grand_product_delta.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 
@@ -277,7 +275,7 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     prover_polynomials.q_sort = prover.key->q_sort;
     prover_polynomials.q_elliptic = prover.key->q_elliptic;
     prover_polynomials.q_aux = prover.key->q_aux;
-    prover_polynomials.q_lookuptype = prover.key->q_lookuptype;
+    prover_polynomials.q_lookup = prover.key->q_lookup;
     prover_polynomials.sigma_1 = prover.key->sigma_1;
     prover_polynomials.sigma_2 = prover.key->sigma_2;
     prover_polynomials.sigma_3 = prover.key->sigma_3;
@@ -288,71 +286,6 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     prover_polynomials.id_4 = prover.key->id_4;
     prover_polynomials.lagrange_first = prover.key->lagrange_first;
     prover_polynomials.lagrange_last = prover.key->lagrange_last;
-
-    // std::array<std::span<const fr>, num_polynomials> evaluations_array;
-
-    // using POLYNOMIAL = proof_system::honk::UltraArithmetization::POLYNOMIAL;
-    // evaluations_array[POLYNOMIAL::W_L] = prover.wire_polynomials[0];
-    // evaluations_array[POLYNOMIAL::W_R] = prover.wire_polynomials[1];
-    // evaluations_array[POLYNOMIAL::W_O] = prover.wire_polynomials[2];
-    // evaluations_array[POLYNOMIAL::W_4] = prover.wire_polynomials[3];
-    // evaluations_array[POLYNOMIAL::W_1_SHIFT] = prover.wire_polynomials[0].shifted();
-    // evaluations_array[POLYNOMIAL::W_2_SHIFT] = prover.wire_polynomials[1].shifted();
-    // evaluations_array[POLYNOMIAL::W_3_SHIFT] = prover.wire_polynomials[2].shifted();
-    // evaluations_array[POLYNOMIAL::W_4_SHIFT] = prover.wire_polynomials[3].shifted();
-
-    // evaluations_array[POLYNOMIAL::S_1] = prover.key->polynomial_store.get("s_1_lagrange");
-    // evaluations_array[POLYNOMIAL::S_2] = prover.key->polynomial_store.get("s_2_lagrange");
-    // evaluations_array[POLYNOMIAL::S_3] = prover.key->polynomial_store.get("s_3_lagrange");
-    // evaluations_array[POLYNOMIAL::S_4] = prover.key->polynomial_store.get("s_4_lagrange");
-
-    // evaluations_array[POLYNOMIAL::S_ACCUM] = sorted_list_accumulator;
-    // evaluations_array[POLYNOMIAL::S_ACCUM_SHIFT] = sorted_list_accumulator.shifted();
-
-    // evaluations_array[POLYNOMIAL::Z_PERM] = z_permutation;
-    // evaluations_array[POLYNOMIAL::Z_PERM_SHIFT] = z_permutation.shifted();
-
-    // evaluations_array[POLYNOMIAL::Z_LOOKUP] = z_lookup;
-    // evaluations_array[POLYNOMIAL::Z_LOOKUP_SHIFT] = z_lookup.shifted();
-
-    // evaluations_array[POLYNOMIAL::Q_M] = prover.key->polynomial_store.get("q_m_lagrange");
-    // evaluations_array[POLYNOMIAL::Q_L] = prover.key->polynomial_store.get("q_1_lagrange");
-    // evaluations_array[POLYNOMIAL::Q_R] = prover.key->polynomial_store.get("q_2_lagrange");
-    // evaluations_array[POLYNOMIAL::Q_O] = prover.key->polynomial_store.get("q_3_lagrange");
-    // evaluations_array[POLYNOMIAL::Q_4] = prover.key->polynomial_store.get("q_4_lagrange");
-    // evaluations_array[POLYNOMIAL::Q_C] = prover.key->polynomial_store.get("q_c_lagrange");
-    // evaluations_array[POLYNOMIAL::QARITH] = prover.key->polynomial_store.get("q_arith_lagrange");
-    // evaluations_array[POLYNOMIAL::QSORT] = prover.key->polynomial_store.get("q_sort_lagrange");
-    // evaluations_array[POLYNOMIAL::QELLIPTIC] = prover.key->polynomial_store.get("q_elliptic_lagrange");
-    // evaluations_array[POLYNOMIAL::QAUX] = prover.key->polynomial_store.get("q_aux_lagrange");
-    // evaluations_array[POLYNOMIAL::QLOOKUPTYPE] = prover.key->polynomial_store.get("table_type_lagrange");
-
-    // evaluations_array[POLYNOMIAL::SIGMA_1] = prover.key->polynomial_store.get("sigma_1_lagrange");
-    // evaluations_array[POLYNOMIAL::SIGMA_2] = prover.key->polynomial_store.get("sigma_2_lagrange");
-    // evaluations_array[POLYNOMIAL::SIGMA_3] = prover.key->polynomial_store.get("sigma_3_lagrange");
-    // evaluations_array[POLYNOMIAL::SIGMA_4] = prover.key->polynomial_store.get("sigma_4_lagrange");
-
-    // evaluations_array[POLYNOMIAL::ID_1] = prover.key->polynomial_store.get("id_1_lagrange");
-    // evaluations_array[POLYNOMIAL::ID_2] = prover.key->polynomial_store.get("id_2_lagrange");
-    // evaluations_array[POLYNOMIAL::ID_3] = prover.key->polynomial_store.get("id_3_lagrange");
-    // evaluations_array[POLYNOMIAL::ID_4] = prover.key->polynomial_store.get("id_4_lagrange");
-
-    // evaluations_array[POLYNOMIAL::TABLE_1] = prover.key->polynomial_store.get("table_value_1_lagrange");
-    // evaluations_array[POLYNOMIAL::TABLE_2] = prover.key->polynomial_store.get("table_value_2_lagrange");
-    // evaluations_array[POLYNOMIAL::TABLE_3] = prover.key->polynomial_store.get("table_value_3_lagrange");
-    // evaluations_array[POLYNOMIAL::TABLE_4] = prover.key->polynomial_store.get("table_value_4_lagrange");
-
-    // evaluations_array[POLYNOMIAL::TABLE_1_SHIFT] =
-    // prover.key->polynomial_store.get("table_value_1_lagrange").shifted();
-    // evaluations_array[POLYNOMIAL::TABLE_2_SHIFT] =
-    // prover.key->polynomial_store.get("table_value_2_lagrange").shifted();
-    // evaluations_array[POLYNOMIAL::TABLE_3_SHIFT] =
-    // prover.key->polynomial_store.get("table_value_3_lagrange").shifted();
-    // evaluations_array[POLYNOMIAL::TABLE_4_SHIFT] =
-    // prover.key->polynomial_store.get("table_value_4_lagrange").shifted();
-
-    // evaluations_array[POLYNOMIAL::LAGRANGE_FIRST] = prover.key->polynomial_store.get("L_first_lagrange");
-    // evaluations_array[POLYNOMIAL::LAGRANGE_LAST] = prover.key->polynomial_store.get("L_last_lagrange");
 
     // Construct the round for applying sumcheck relations and results for storing computed results
     auto relations = std::tuple(honk::sumcheck::UltraArithmeticRelation<fr>(),
