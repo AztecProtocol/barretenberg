@@ -7,10 +7,10 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { AsyncCallState, AsyncFnState } from './async_call_state.js';
 import { Crs } from '../crs/index.js';
-import { NodeDataStore } from './node/node_data_store.js';
-import { WebDataStore } from './browser/web_data_store.js';
+// import { NodeDataStore } from './node/node_data_store.js';
+// import { WebDataStore } from './browser/web_data_store.js';
 import { createHash } from 'crypto';
-import { writeFileSync } from 'fs';
+import { Worker } from 'worker_threads';
 
 EventEmitter.defaultMaxListeners = 30;
 
@@ -18,8 +18,9 @@ const sha256 = (data: Uint8Array) => createHash('sha256').update(data).digest('h
 
 export async function fetchCode() {
   if (isNode) {
-    const __dirname = dirname(fileURLToPath(import.meta.url));
-    return await readFile(__dirname + '/barretenberg.wasm');
+    // const __dirname = dirname(fileURLToPath(import.meta.url));
+    // return await readFile(__dirname + '/barretenberg.wasm');
+    return await readFile('/mnt/user-data/charlie/min_wasm/maincpp.wasm');
   } else {
     const res = await fetch('/barretenberg.wasm');
     return Buffer.from(await res.arrayBuffer());
@@ -27,13 +28,15 @@ export async function fetchCode() {
 }
 
 export class BarretenbergWasm extends EventEmitter {
-  private store = isNode ? new NodeDataStore() : new WebDataStore();
+  // private store = isNode ? new NodeDataStore() : new WebDataStore();
   private memory!: WebAssembly.Memory;
   private heap!: Uint8Array;
   private instance!: WebAssembly.Instance;
   private asyncCallState = new AsyncCallState();
-  public module!: WebAssembly.Module;
   private memStore: { [key: string]: Uint8Array } = {};
+  private threads: Worker[] = [];
+  private nextThread = 0;
+  private nextThreadId = 1;
 
   public static async new(initial?: number) {
     const barretenberg = new BarretenbergWasm();
@@ -46,24 +49,60 @@ export class BarretenbergWasm extends EventEmitter {
   }
 
   /**
-   * 20 pages by default. 20*2**16 > 1mb stack size plus other overheads.
-   * 8192 maximum by default. 512mb.
+   * Init as main thread. Spawn child threads.
    */
-  public async init(module?: WebAssembly.Module, initial = 25, maximum = 2 ** 16) {
-    this.debug(
-      `initial mem: ${initial} pages, ${(initial * 2 ** 16) / (1024 * 1024)}mb. max mem: ${maximum} pages, ${
-        (maximum * 2 ** 16) / (1024 * 1024)
-      }mb`,
-    );
-    this.memory = new WebAssembly.Memory({ initial, maximum });
+  public async init(threads = 4, initial = 25, maximum = 2 ** 16) {
+    const initialMb = (initial * 2 ** 16) / (1024 * 1024);
+    const maxMb = (maximum * 2 ** 16) / (1024 * 1024);
+    this.debug(`main thread initial mem: ${initial} pages, ${initialMb}mb. max mem: ${maximum} pages, ${maxMb}mb`);
+
+    this.memory = new WebAssembly.Memory({ initial, maximum, shared: true });
+
     // Create a view over the memory buffer.
     // We do this once here, as webkit *seems* bugged out and actually shows this as new memory,
-    // thus displaying double. It's only worse if we create views on demand. I haven't established yet if
-    // the bug is also exasperating the termination on mobile due to "excessive memory usage". It could be
-    // that the OS is actually getting an incorrect reading in the same way the memory profiler does...
+    // thus displaying double. It's only worse if we create views on demand.
     // The view will have to be recreated if the memory is grown. See getMemory().
     this.heap = new Uint8Array(this.memory.buffer);
 
+    const { instance, module } = await WebAssembly.instantiate(await fetchCode(), this.getImportObj(this.memory));
+
+    this.instance = instance;
+
+    // Init all global/static data.
+    this.call('_initialize');
+
+    // this.asyncCallState.init(this.memory, this.call.bind(this), this.debug.bind(this));
+
+    // Create worker threads.
+    this.threads = Array.from({ length: threads }).map(() => {
+      // this.debug(`creating worker ${i}`);
+      const __dirname = dirname(fileURLToPath(import.meta.url));
+      const worker = new Worker(__dirname + `/node/barretenberg_thread.ts`);
+      worker.on('message', msg => this.debug(msg));
+      // worker.on('exit', () => this.debug(`worker ${i} exited!`));
+      worker.postMessage({ msg: 'start', data: { module, memory: this.memory } });
+      return worker;
+    });
+  }
+
+  /**
+   * Init as spawned thread.
+   */
+  public async initThread(module: WebAssembly.Module, memory: WebAssembly.Memory) {
+    this.memory = memory;
+    this.heap = new Uint8Array(this.memory.buffer);
+    this.instance = await WebAssembly.instantiate(module, this.getImportObj(this.memory));
+  }
+
+  /**
+   * Called on main thread. Signals child threads to gracefully exit.
+   */
+  public async destroy() {
+    this.threads.forEach(t => t.postMessage({ msg: 'exit' }));
+    await Promise.all(this.threads.map(worker => new Promise(resolve => worker.once('exit', resolve))));
+  }
+
+  private getImportObj(memory: WebAssembly.Memory) {
     /* eslint-disable camelcase */
     const importObj = {
       // We need to implement a part of the wasi api:
@@ -77,6 +116,27 @@ export class BarretenbergWasm extends EventEmitter {
           for (let i = arr; i < arr + length; ++i) {
             heap[i] = randomData[i - arr];
           }
+        },
+        clock_time_get: () => {
+          this.debug('clock_time_get not implemented.');
+        },
+        proc_exit: () => {
+          this.debug('proc_exit not implemented.');
+        },
+        sched_yield: () => {
+          this.debug('sched_yield');
+          process.nextTick(() => {});
+        },
+      },
+      wasi: {
+        'thread-spawn': (arg: number) => {
+          const id = this.nextThreadId++;
+          this.debug(`spawning thread ${id} with arg ${arg}`);
+          this.threads[this.nextThread++ % this.threads.length].postMessage({
+            msg: 'thread',
+            data: { id, arg },
+          });
+          return id;
         },
       },
 
@@ -112,7 +172,6 @@ export class BarretenbergWasm extends EventEmitter {
           dataAddr = dataAddr >>> 0;
           this.memStore[key] = this.getMemorySlice(dataAddr, dataAddr + dataLength);
           this.debug(`set_data: ${key} length: ${dataLength} hash: ${sha256(this.memStore[key])}`);
-          // writeFileSync('/mnt/user-data/charlie/debugging/ts_' + key, this.memStore[key]);
         },
         /**
          * Read the data associated with the key located at keyAddr.
@@ -150,24 +209,12 @@ export class BarretenbergWasm extends EventEmitter {
           this.writeMemory(crsPtr, crs.getG1Data());
           return crsPtr;
         }),
-        memory: this.memory,
+        memory,
       },
     };
     /* eslint-enable camelcase */
 
-    if (module) {
-      this.instance = await WebAssembly.instantiate(module, importObj);
-      this.module = module;
-    } else {
-      const { instance, module } = await WebAssembly.instantiate(await fetchCode(), importObj);
-      this.instance = instance;
-      this.module = module;
-    }
-
-    // Init all global/static data.
-    this.call('_initialize');
-
-    this.asyncCallState.init(this.memory, this.call.bind(this), this.debug.bind(this));
+    return importObj;
   }
 
   public exports(): any {
