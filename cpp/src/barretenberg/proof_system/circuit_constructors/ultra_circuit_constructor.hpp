@@ -237,7 +237,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
      * ultra circuits need to have ram, rom and range gates added in the end for the check to be complete as well as the
      * set permutation check.
      */
-    struct CircuitInTheHead {
+    struct CircuitDataBackup {
         std::vector<uint32_t> public_inputs;
         std::vector<barretenberg::fr> variables;
         // index of next variable in equivalence class (=REAL_VARIABLE if you're last)
@@ -285,12 +285,12 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
          * check_circuit
          *
          * @param circuit_constructor
-         * @return CircuitInTheHead
+         * @return CircuitDataBackup
          */
         template <typename CircuitConstructor>
-        static CircuitInTheHead store_state(const CircuitConstructor& circuit_constructor)
+        static CircuitDataBackup store_full_state(const CircuitConstructor& circuit_constructor)
         {
-            CircuitInTheHead stored_state;
+            CircuitDataBackup stored_state;
             stored_state.public_inputs = circuit_constructor.public_inputs;
             stored_state.variables = circuit_constructor.variables;
 
@@ -330,6 +330,98 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
             stored_state.cached_non_native_field_multiplications =
                 circuit_constructor.cached_non_native_field_multiplications;
             return stored_state;
+        }
+
+        /**
+         * @brief Stores the state of all members of the circuit constructor that are needed to restore the state after
+         * finalizing the circuit.
+         *
+         * @details We need this function for tests. Specifically, to ensure that we are not changing anything in
+         * check_circuit
+         *
+         * @param circuit_constructor
+         * @return CircuitDataBackup
+         */
+        template <typename CircuitConstructor>
+        static CircuitDataBackup store_prefinilized_state(const CircuitConstructor* circuit_constructor)
+        {
+            CircuitDataBackup stored_state;
+            stored_state.public_inputs = circuit_constructor->public_inputs;
+            stored_state.variables = circuit_constructor->variables;
+
+            stored_state.next_var_index = circuit_constructor->next_var_index;
+
+            stored_state.prev_var_index = circuit_constructor->prev_var_index;
+
+            stored_state.real_variable_index = circuit_constructor->real_variable_index;
+            stored_state.real_variable_tags = circuit_constructor->real_variable_tags;
+            stored_state.constant_variable_indices = circuit_constructor->constant_variable_indices;
+            stored_state.current_tag = circuit_constructor->current_tag;
+            stored_state.tau = circuit_constructor->tau;
+
+            stored_state.ram_arrays = circuit_constructor->ram_arrays;
+            stored_state.rom_arrays = circuit_constructor->rom_arrays;
+
+            stored_state.memory_read_records = circuit_constructor->memory_read_records;
+            stored_state.memory_write_records = circuit_constructor->memory_write_records;
+            stored_state.range_lists = circuit_constructor->range_lists;
+            stored_state.circuit_finalised = circuit_constructor->circuit_finalised;
+            stored_state.num_gates = circuit_constructor->num_gates;
+            stored_state.cached_non_native_field_multiplications =
+                circuit_constructor->cached_non_native_field_multiplications;
+
+            return stored_state;
+        }
+
+        /**
+         * @brief Stores the state of all members of the circuit constructor that are needed to restore the state after
+         * finalizing the circuit.
+         *
+         * @details We need this function for tests. Specifically, to ensure that we are not changing anything in
+         * check_circuit
+         *
+         * @param circuit_constructor
+         * @return CircuitDataBackup
+         */
+        template <typename CircuitConstructor> void restore_prefinilized_state(CircuitConstructor* circuit_constructor)
+        {
+            circuit_constructor->public_inputs = public_inputs;
+            circuit_constructor->variables = variables;
+
+            circuit_constructor->next_var_index = next_var_index;
+
+            circuit_constructor->prev_var_index = prev_var_index;
+
+            circuit_constructor->real_variable_index = real_variable_index;
+            circuit_constructor->real_variable_tags = real_variable_tags;
+            circuit_constructor->constant_variable_indices = constant_variable_indices;
+            circuit_constructor->current_tag = current_tag;
+            circuit_constructor->tau = tau;
+
+            circuit_constructor->ram_arrays = ram_arrays;
+            circuit_constructor->rom_arrays = rom_arrays;
+
+            circuit_constructor->memory_read_records = memory_read_records;
+            circuit_constructor->memory_write_records = memory_write_records;
+            circuit_constructor->range_lists = range_lists;
+            circuit_constructor->circuit_finalised = circuit_finalised;
+            circuit_constructor->num_gates = num_gates;
+            circuit_constructor->cached_non_native_field_multiplications = cached_non_native_field_multiplications;
+            circuit_constructor->w_l.resize(num_gates);
+            circuit_constructor->w_r.resize(num_gates);
+            circuit_constructor->w_o.resize(num_gates);
+            circuit_constructor->w_4.resize(num_gates);
+            circuit_constructor->q_m.resize(num_gates);
+            circuit_constructor->q_c.resize(num_gates);
+            circuit_constructor->q_1.resize(num_gates);
+            circuit_constructor->q_2.resize(num_gates);
+            circuit_constructor->q_3.resize(num_gates);
+            circuit_constructor->q_4.resize(num_gates);
+            circuit_constructor->q_arith.resize(num_gates);
+            circuit_constructor->q_sort.resize(num_gates);
+            circuit_constructor->q_elliptic.resize(num_gates);
+            circuit_constructor->q_aux.resize(num_gates);
+            circuit_constructor->q_lookup_type.resize(num_gates);
         }
         /**
          * @brief CHecks that the circuit states is the same as the stored circuit's one
@@ -441,11 +533,6 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
         }
     };
 
-    // We use the concept of "Circuit-in-the-head" for the check_circuit method. We have to finalize the circuit to
-    // check it, so we put all the updates in this structure, instead of messing with the circuit itself
-    CircuitInTheHead circuit_in_the_head;
-    // Switch, forcing gates to interact with circuit_in_the_head instead of the regular members
-    bool in_the_head = false;
     std::vector<uint32_t>& w_l = std::get<0>(wires);
     std::vector<uint32_t>& w_r = std::get<1>(wires);
     std::vector<uint32_t>& w_o = std::get<2>(wires);
@@ -515,73 +602,6 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
     UltraCircuitConstructor& operator=(const UltraCircuitConstructor& other) = delete;
     UltraCircuitConstructor& operator=(UltraCircuitConstructor&& other) = delete;
     ~UltraCircuitConstructor() override = default;
-
-    /**
-     * Add a variable to variables
-     *
-     * @details This method proxies to the standard one or add a variable in-the-head
-     *
-     * @param in The value of the variable
-     * @return The index of the new variable in the variables vector
-     */
-    uint32_t add_variable(const barretenberg::fr& in) override
-    {
-        if (!in_the_head) {
-            return CircuitConstructorBase<arithmetization::Ultra>::add_variable(in);
-        }
-
-        circuit_in_the_head.variables.emplace_back(in);
-
-        // By default, we assume each new variable belongs in its own copy-cycle. These defaults can be modified later
-        // by `assert_equal`.
-        const uint32_t index = static_cast<uint32_t>(circuit_in_the_head.variables.size()) - 1U;
-        circuit_in_the_head.real_variable_index.emplace_back(index);
-        circuit_in_the_head.next_var_index.emplace_back(REAL_VARIABLE);
-        circuit_in_the_head.prev_var_index.emplace_back(FIRST_VARIABLE_IN_CLASS);
-        circuit_in_the_head.real_variable_tags.emplace_back(DUMMY_TAG);
-        return index;
-    }
-    /**
-     * @brief Get the variable value from the actual of in-the-head circuit
-     *
-     * @param index
-     * @return barretenberg::fr
-     */
-    inline barretenberg::fr get_variable(const uint32_t index) const
-    {
-        if (!in_the_head) {
-            return CircuitConstructorBase<arithmetization::Ultra>::get_variable(index);
-        }
-        ASSERT(circuit_in_the_head.variables.size() > index);
-        return circuit_in_the_head.variables[circuit_in_the_head.real_variable_index[index]];
-    }
-
-    /**
-     * @brief Check that variable indices are valid
-     *
-     * @param variable_indices
-     */
-    void assert_valid_variables(const std::vector<uint32_t>& variable_indices)
-    {
-        for (const auto& variable_index : variable_indices) {
-            ASSERT(is_valid_variable(variable_index));
-        }
-    }
-    /**
-     * @brief Checks that the variable index is valid (in the circuit or in the in-the-head circuit)
-     *
-     * @param variable_index
-     * @return true
-     * @return false
-     */
-    bool is_valid_variable(uint32_t variable_index)
-    {
-        if (in_the_head) {
-            return variable_index < circuit_in_the_head.variables.size();
-        } else {
-            return variable_index < variables.size();
-        }
-    };
 
     void finalize_circuit();
 
@@ -828,37 +848,17 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
                                            const barretenberg::fr&);
     void assign_tag(const uint32_t variable_index, const uint32_t tag)
     {
-        if (in_the_head) {
-            ASSERT(tag <= circuit_in_the_head.current_tag);
-
-            auto& current_real_variable_tags = circuit_in_the_head.real_variable_tags;
-            auto& current_real_variable_index = circuit_in_the_head.real_variable_index;
-            // If we've already assigned this tag to this variable, return (can happen due to copy constraints)
-            if (current_real_variable_tags[current_real_variable_index[variable_index]] == tag) {
-                return;
-            }
-            ASSERT(current_real_variable_tags[current_real_variable_index[variable_index]] == DUMMY_TAG);
-            current_real_variable_tags[current_real_variable_index[variable_index]] = tag;
-        } else {
-            ASSERT(tag <= current_tag);
-            // If we've already assigned this tag to this variable, return (can happen due to copy constraints)
-            if (real_variable_tags[real_variable_index[variable_index]] == tag) {
-                return;
-            }
-            ASSERT(real_variable_tags[real_variable_index[variable_index]] == DUMMY_TAG);
-            real_variable_tags[real_variable_index[variable_index]] = tag;
+        ASSERT(tag <= current_tag);
+        // If we've already assigned this tag to this variable, return (can happen due to copy constraints)
+        if (real_variable_tags[real_variable_index[variable_index]] == tag) {
+            return;
         }
+        ASSERT(real_variable_tags[real_variable_index[variable_index]] == DUMMY_TAG);
+        real_variable_tags[real_variable_index[variable_index]] = tag;
     }
 
     uint32_t create_tag(const uint32_t tag_index, const uint32_t tau_index)
     {
-        if (in_the_head) {
-
-            ASSERT(circuit_in_the_head.current_tag >= current_tag);
-            circuit_in_the_head.tau.insert({ tag_index, tau_index });
-            circuit_in_the_head.current_tag++;
-            return circuit_in_the_head.current_tag;
-        }
         tau.insert({ tag_index, tau_index });
         current_tag++; // Why exactly?
         return current_tag;
@@ -866,12 +866,6 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
 
     uint32_t get_new_tag()
     {
-        if (in_the_head) {
-            // Check that we've reset the circuit in the head before proceeding with the virtual circuit construction
-            ASSERT(circuit_in_the_head.current_tag >= current_tag);
-            circuit_in_the_head.current_tag++;
-            return circuit_in_the_head.current_tag;
-        }
         current_tag++;
         return current_tag;
     }
@@ -940,77 +934,6 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
     void process_RAM_array(const size_t ram_id, const size_t gate_offset_from_public_inputs);
     void process_RAM_arrays(const size_t gate_offset_from_public_inputs);
 
-    /**
-     * @brief Choose whether to use a virual or a real selector/witness/member
-     *
-     * @details For check_circuit we need to instantiate some finalizing gates, but we want to be able to reset the
-     * state back to what it was before. So we create a "circuit-in-the-head". So we need to be able to switch between
-     * an actual implementation and an in-the-head one
-     *
-     * @tparam T The type of the member that is being switched
-     * @param virtual_member The in-the-head instance
-     * @param real_member The real instance
-     * @param in_the_head The switch
-     * @return T& A reference to the in-the-head instance if in_the_head is true, otherwise a reference to the real
-     * instance
-     */
-    template <typename T> inline T& choose_virtual_or_real(T& virtual_member, T& real_member, bool in_the_head)
-    {
-        if (in_the_head) {
-            return virtual_member;
-        } else {
-            return real_member;
-        }
-    }
-
-#define PARENS ()
-// Rescan macro tokens 256 times
-#define EXPAND(arg) EXPAND1(EXPAND1(EXPAND1(EXPAND1(arg))))
-#define EXPAND1(arg) EXPAND2(EXPAND2(EXPAND2(EXPAND2(arg))))
-#define EXPAND2(arg) EXPAND3(EXPAND3(EXPAND3(EXPAND3(arg))))
-#define EXPAND3(arg) EXPAND4(EXPAND4(EXPAND4(EXPAND4(arg))))
-#define EXPAND4(arg) arg
-
-#define FOR_EACH(macro, ...) __VA_OPT__(EXPAND(FOR_EACH_HELPER(macro, __VA_ARGS__)))
-#define FOR_EACH_HELPER(macro, a1, a2, a3, ...)                                                                        \
-    macro(a1, a2, a3) __VA_OPT__(FOR_EACH_AGAIN PARENS(macro, a1, a2, __VA_ARGS__))
-#define FOR_EACH_AGAIN() FOR_EACH_HELPER
-
-#define HEAD(x, ...) x
-#define TAIL(x, ...) __VA_ARGS__
-#define IN_THE_HEAD_MEMBER_NAME(member) circuit_in_the_head.member
-#define ASSIGN_VARIABLE_TO_VIRTUAL_OR_REAL(variable_prefix, switch_name, member)                                       \
-    auto& variable_prefix##member = choose_virtual_or_real(IN_THE_HEAD_MEMBER_NAME(member), member, switch_name);      \
-    (void)variable_prefix##member;
-#define CHOOSE_VIRTUAL_OR_REAL_MULTIPLE(variable_prefix, switch_name, member_name, ...)                                \
-    FOR_EACH(ASSIGN_VARIABLE_TO_VIRTUAL_OR_REAL, variable_prefix, switch_name, member_name, __VA_ARGS__)
-#define ENABLE_ALL_IN_THE_HEAD_SWITCHES                                                                                \
-    CHOOSE_VIRTUAL_OR_REAL_MULTIPLE(switched_,                                                                         \
-                                    in_the_head,                                                                       \
-                                    w_l,                                                                               \
-                                    w_r,                                                                               \
-                                    w_o,                                                                               \
-                                    w_4,                                                                               \
-                                    q_m,                                                                               \
-                                    q_1,                                                                               \
-                                    q_2,                                                                               \
-                                    q_3,                                                                               \
-                                    q_c,                                                                               \
-                                    q_arith,                                                                           \
-                                    q_4,                                                                               \
-                                    q_sort,                                                                            \
-                                    q_lookup_type,                                                                     \
-                                    q_elliptic,                                                                        \
-                                    q_aux,                                                                             \
-                                    num_gates,                                                                         \
-                                    ram_arrays,                                                                        \
-                                    rom_arrays,                                                                        \
-                                    memory_read_records,                                                               \
-                                    memory_write_records,                                                              \
-                                    range_lists,                                                                       \
-                                    cached_non_native_field_multiplications,                                           \
-                                    real_variable_tags,                                                                \
-                                    real_variable_index)
     // Circuit evaluation methods
 
     fr compute_arithmetic_identity(fr q_arith_value,

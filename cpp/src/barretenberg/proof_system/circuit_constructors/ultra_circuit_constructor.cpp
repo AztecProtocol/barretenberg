@@ -42,14 +42,12 @@ void UltraCircuitConstructor::finalize_circuit()
      * Therefore, we introduce a boolean flag `circuit_finalised` here. Once we add the rom and range gates,
      * our circuit is finalised, and we must not to execute these functions again.
      */
-    bool switched_circuit_finalised =
-        (in_the_head && circuit_in_the_head.circuit_finalised) | (!in_the_head && circuit_finalised);
-    if (!switched_circuit_finalised) {
+    if (!circuit_finalised) {
         process_non_native_field_multiplications();
         process_ROM_arrays(public_inputs.size());
         process_RAM_arrays(public_inputs.size());
         process_range_lists();
-        switched_circuit_finalised = true;
+        circuit_finalised = true;
     }
 }
 
@@ -93,24 +91,23 @@ void UltraCircuitConstructor::create_add_gate(const add_triple& in)
  */
 void UltraCircuitConstructor::create_big_add_gate(const add_quad& in, const bool include_next_gate_w_4)
 {
-    ENABLE_ALL_IN_THE_HEAD_SWITCHES
     assert_valid_variables({ in.a, in.b, in.c, in.d });
-    switched_w_l.emplace_back(in.a);
-    switched_w_r.emplace_back(in.b);
-    switched_w_o.emplace_back(in.c);
-    switched_w_4.emplace_back(in.d);
-    switched_q_m.emplace_back(0);
-    switched_q_1.emplace_back(in.a_scaling);
-    switched_q_2.emplace_back(in.b_scaling);
-    switched_q_3.emplace_back(in.c_scaling);
-    switched_q_c.emplace_back(in.const_scaling);
-    switched_q_arith.emplace_back(include_next_gate_w_4 ? 2 : 1);
-    switched_q_4.emplace_back(in.d_scaling);
-    switched_q_sort.emplace_back(0);
-    switched_q_lookup_type.emplace_back(0);
-    switched_q_elliptic.emplace_back(0);
-    switched_q_aux.emplace_back(0);
-    ++switched_num_gates;
+    w_l.emplace_back(in.a);
+    w_r.emplace_back(in.b);
+    w_o.emplace_back(in.c);
+    w_4.emplace_back(in.d);
+    q_m.emplace_back(0);
+    q_1.emplace_back(in.a_scaling);
+    q_2.emplace_back(in.b_scaling);
+    q_3.emplace_back(in.c_scaling);
+    q_c.emplace_back(in.const_scaling);
+    q_arith.emplace_back(include_next_gate_w_4 ? 2 : 1);
+    q_4.emplace_back(in.d_scaling);
+    q_sort.emplace_back(0);
+    q_lookup_type.emplace_back(0);
+    q_elliptic.emplace_back(0);
+    q_aux.emplace_back(0);
+    ++num_gates;
 }
 
 /**
@@ -405,37 +402,34 @@ void UltraCircuitConstructor::create_ecc_add_gate(const ecc_add_gate& in)
  */
 void UltraCircuitConstructor::fix_witness(const uint32_t witness_index, const barretenberg::fr& witness_value)
 {
-    ENABLE_ALL_IN_THE_HEAD_SWITCHES
     assert_valid_variables({ witness_index });
 
-    switched_w_l.emplace_back(witness_index);
-    switched_w_r.emplace_back(zero_idx);
-    switched_w_o.emplace_back(zero_idx);
-    switched_w_4.emplace_back(zero_idx);
-    switched_q_m.emplace_back(0);
-    switched_q_1.emplace_back(1);
-    switched_q_2.emplace_back(0);
-    switched_q_3.emplace_back(0);
-    switched_q_c.emplace_back(-witness_value);
-    switched_q_arith.emplace_back(1);
-    switched_q_4.emplace_back(0);
-    switched_q_sort.emplace_back(0);
-    switched_q_lookup_type.emplace_back(0);
-    switched_q_elliptic.emplace_back(0);
-    switched_q_aux.emplace_back(0);
-    ++switched_num_gates;
+    w_l.emplace_back(witness_index);
+    w_r.emplace_back(zero_idx);
+    w_o.emplace_back(zero_idx);
+    w_4.emplace_back(zero_idx);
+    q_m.emplace_back(0);
+    q_1.emplace_back(1);
+    q_2.emplace_back(0);
+    q_3.emplace_back(0);
+    q_c.emplace_back(-witness_value);
+    q_arith.emplace_back(1);
+    q_4.emplace_back(0);
+    q_sort.emplace_back(0);
+    q_lookup_type.emplace_back(0);
+    q_elliptic.emplace_back(0);
+    q_aux.emplace_back(0);
+    ++num_gates;
 }
 
 uint32_t UltraCircuitConstructor::put_constant_variable(const barretenberg::fr& variable)
 {
-    auto& switched_constant_variable_indices =
-        choose_virtual_or_real(circuit_in_the_head.constant_variable_indices, constant_variable_indices, in_the_head);
-    if (switched_constant_variable_indices.contains(variable)) {
+    if (constant_variable_indices.contains(variable)) {
         return constant_variable_indices.at(variable);
     } else {
         uint32_t variable_index = add_variable(variable);
         fix_witness(variable_index, variable);
-        switched_constant_variable_indices.insert({ variable, variable_index });
+        constant_variable_indices.insert({ variable, variable_index });
         return variable_index;
     }
 }
@@ -653,19 +647,18 @@ void UltraCircuitConstructor::create_new_range_constraint(const uint32_t variabl
                                                           const uint64_t target_range,
                                                           std::string const msg)
 {
-    ENABLE_ALL_IN_THE_HEAD_SWITCHES
 
     if (uint256_t(get_variable(variable_index)).data[0] > target_range) {
         if (!failed()) {
             failure(msg);
         }
     }
-    if (switched_range_lists.count(target_range) == 0) {
-        switched_range_lists.insert({ target_range, create_range_list(target_range) });
+    if (range_lists.count(target_range) == 0) {
+        range_lists.insert({ target_range, create_range_list(target_range) });
     }
 
-    const auto existing_tag = switched_real_variable_tags[switched_real_variable_index[variable_index]];
-    auto& list = switched_range_lists[target_range];
+    const auto existing_tag = real_variable_tags[real_variable_index[variable_index]];
+    auto& list = range_lists[target_range];
 
     // If the variable's tag matches the target range list's tag, do nothing.
     if (existing_tag != list.range_tag) {
@@ -745,8 +738,7 @@ void UltraCircuitConstructor::process_range_list(const RangeList& list)
 
 void UltraCircuitConstructor::process_range_lists()
 {
-    ENABLE_ALL_IN_THE_HEAD_SWITCHES
-    for (const auto& i : switched_range_lists)
+    for (const auto& i : range_lists)
         process_range_list(i.second);
 }
 
@@ -811,7 +803,6 @@ void UltraCircuitConstructor::create_sort_constraint(const std::vector<uint32_t>
 // multiples of three
 void UltraCircuitConstructor::create_dummy_constraints(const std::vector<uint32_t>& variable_index)
 {
-    ENABLE_ALL_IN_THE_HEAD_SWITCHES
     std::vector<uint32_t> padded_list = variable_index;
     constexpr size_t gate_width = plonk::ultra_settings::program_width;
     const uint64_t padding = (gate_width - (padded_list.size() % gate_width)) % gate_width;
@@ -822,22 +813,22 @@ void UltraCircuitConstructor::create_dummy_constraints(const std::vector<uint32_
     assert_valid_variables(padded_list);
 
     for (size_t i = 0; i < padded_list.size(); i += gate_width) {
-        switched_w_l.emplace_back(padded_list[i]);
-        switched_w_r.emplace_back(padded_list[i + 1]);
-        switched_w_o.emplace_back(padded_list[i + 2]);
-        switched_w_4.emplace_back(padded_list[i + 3]);
-        ++switched_num_gates;
-        switched_q_m.emplace_back(0);
-        switched_q_1.emplace_back(0);
-        switched_q_2.emplace_back(0);
-        switched_q_3.emplace_back(0);
-        switched_q_c.emplace_back(0);
-        switched_q_arith.emplace_back(0);
-        switched_q_4.emplace_back(0);
-        switched_q_sort.emplace_back(0);
-        switched_q_elliptic.emplace_back(0);
-        switched_q_lookup_type.emplace_back(0);
-        switched_q_aux.emplace_back(0);
+        w_l.emplace_back(padded_list[i]);
+        w_r.emplace_back(padded_list[i + 1]);
+        w_o.emplace_back(padded_list[i + 2]);
+        w_4.emplace_back(padded_list[i + 3]);
+        ++num_gates;
+        q_m.emplace_back(0);
+        q_1.emplace_back(0);
+        q_2.emplace_back(0);
+        q_3.emplace_back(0);
+        q_c.emplace_back(0);
+        q_arith.emplace_back(0);
+        q_4.emplace_back(0);
+        q_sort.emplace_back(0);
+        q_elliptic.emplace_back(0);
+        q_lookup_type.emplace_back(0);
+        q_aux.emplace_back(0);
     }
 }
 
@@ -846,87 +837,86 @@ void UltraCircuitConstructor::create_sort_constraint_with_edges(const std::vecto
                                                                 const fr& start,
                                                                 const fr& end)
 {
-    ENABLE_ALL_IN_THE_HEAD_SWITCHES
     // Convenient to assume size is at least 8 (gate_width = 4) for separate gates for start and end conditions
     constexpr size_t gate_width = plonk::ultra_settings::program_width;
     ASSERT(variable_index.size() % gate_width == 0 && variable_index.size() > gate_width);
     assert_valid_variables(variable_index);
 
     // enforce range checks of first row and starting at start
-    switched_w_l.emplace_back(variable_index[0]);
-    switched_w_r.emplace_back(variable_index[1]);
-    switched_w_o.emplace_back(variable_index[2]);
-    switched_w_4.emplace_back(variable_index[3]);
-    ++switched_num_gates;
-    switched_q_m.emplace_back(0);
-    switched_q_1.emplace_back(1);
-    switched_q_2.emplace_back(0);
-    switched_q_3.emplace_back(0);
-    switched_q_c.emplace_back(-start);
-    switched_q_arith.emplace_back(1);
-    switched_q_4.emplace_back(0);
-    switched_q_sort.emplace_back(1);
-    switched_q_elliptic.emplace_back(0);
-    switched_q_lookup_type.emplace_back(0);
-    switched_q_aux.emplace_back(0);
+    w_l.emplace_back(variable_index[0]);
+    w_r.emplace_back(variable_index[1]);
+    w_o.emplace_back(variable_index[2]);
+    w_4.emplace_back(variable_index[3]);
+    ++num_gates;
+    q_m.emplace_back(0);
+    q_1.emplace_back(1);
+    q_2.emplace_back(0);
+    q_3.emplace_back(0);
+    q_c.emplace_back(-start);
+    q_arith.emplace_back(1);
+    q_4.emplace_back(0);
+    q_sort.emplace_back(1);
+    q_elliptic.emplace_back(0);
+    q_lookup_type.emplace_back(0);
+    q_aux.emplace_back(0);
     // enforce range check for middle rows
     for (size_t i = gate_width; i < variable_index.size() - gate_width; i += gate_width) {
 
-        switched_w_l.emplace_back(variable_index[i]);
-        switched_w_r.emplace_back(variable_index[i + 1]);
-        switched_w_o.emplace_back(variable_index[i + 2]);
-        switched_w_4.emplace_back(variable_index[i + 3]);
-        ++switched_num_gates;
-        switched_q_m.emplace_back(0);
-        switched_q_1.emplace_back(0);
-        switched_q_2.emplace_back(0);
-        switched_q_3.emplace_back(0);
-        switched_q_c.emplace_back(0);
-        switched_q_arith.emplace_back(0);
-        switched_q_4.emplace_back(0);
-        switched_q_sort.emplace_back(1);
-        switched_q_elliptic.emplace_back(0);
-        switched_q_lookup_type.emplace_back(0);
-        switched_q_aux.emplace_back(0);
+        w_l.emplace_back(variable_index[i]);
+        w_r.emplace_back(variable_index[i + 1]);
+        w_o.emplace_back(variable_index[i + 2]);
+        w_4.emplace_back(variable_index[i + 3]);
+        ++num_gates;
+        q_m.emplace_back(0);
+        q_1.emplace_back(0);
+        q_2.emplace_back(0);
+        q_3.emplace_back(0);
+        q_c.emplace_back(0);
+        q_arith.emplace_back(0);
+        q_4.emplace_back(0);
+        q_sort.emplace_back(1);
+        q_elliptic.emplace_back(0);
+        q_lookup_type.emplace_back(0);
+        q_aux.emplace_back(0);
     }
     // enforce range checks of last row and ending at end
     if (variable_index.size() > gate_width) {
-        switched_w_l.emplace_back(variable_index[variable_index.size() - 4]);
-        switched_w_r.emplace_back(variable_index[variable_index.size() - 3]);
-        switched_w_o.emplace_back(variable_index[variable_index.size() - 2]);
-        switched_w_4.emplace_back(variable_index[variable_index.size() - 1]);
-        ++switched_num_gates;
-        switched_q_m.emplace_back(0);
-        switched_q_1.emplace_back(0);
-        switched_q_2.emplace_back(0);
-        switched_q_3.emplace_back(0);
-        switched_q_c.emplace_back(0);
-        switched_q_arith.emplace_back(0);
-        switched_q_4.emplace_back(0);
-        switched_q_sort.emplace_back(1);
-        switched_q_elliptic.emplace_back(0);
-        switched_q_lookup_type.emplace_back(0);
-        switched_q_aux.emplace_back(0);
+        w_l.emplace_back(variable_index[variable_index.size() - 4]);
+        w_r.emplace_back(variable_index[variable_index.size() - 3]);
+        w_o.emplace_back(variable_index[variable_index.size() - 2]);
+        w_4.emplace_back(variable_index[variable_index.size() - 1]);
+        ++num_gates;
+        q_m.emplace_back(0);
+        q_1.emplace_back(0);
+        q_2.emplace_back(0);
+        q_3.emplace_back(0);
+        q_c.emplace_back(0);
+        q_arith.emplace_back(0);
+        q_4.emplace_back(0);
+        q_sort.emplace_back(1);
+        q_elliptic.emplace_back(0);
+        q_lookup_type.emplace_back(0);
+        q_aux.emplace_back(0);
     }
 
     // dummy gate needed because of sort widget's check of next row
     // use this gate to check end condition
-    switched_w_l.emplace_back(variable_index[variable_index.size() - 1]);
-    switched_w_r.emplace_back(zero_idx);
-    switched_w_o.emplace_back(zero_idx);
-    switched_w_4.emplace_back(zero_idx);
-    ++switched_num_gates;
-    switched_q_m.emplace_back(0);
-    switched_q_1.emplace_back(1);
-    switched_q_2.emplace_back(0);
-    switched_q_3.emplace_back(0);
-    switched_q_c.emplace_back(-end);
-    switched_q_arith.emplace_back(1);
-    switched_q_4.emplace_back(0);
-    switched_q_sort.emplace_back(0);
-    switched_q_elliptic.emplace_back(0);
-    switched_q_lookup_type.emplace_back(0);
-    switched_q_aux.emplace_back(0);
+    w_l.emplace_back(variable_index[variable_index.size() - 1]);
+    w_r.emplace_back(zero_idx);
+    w_o.emplace_back(zero_idx);
+    w_4.emplace_back(zero_idx);
+    ++num_gates;
+    q_m.emplace_back(0);
+    q_1.emplace_back(1);
+    q_2.emplace_back(0);
+    q_3.emplace_back(0);
+    q_c.emplace_back(-end);
+    q_arith.emplace_back(1);
+    q_4.emplace_back(0);
+    q_sort.emplace_back(0);
+    q_elliptic.emplace_back(0);
+    q_lookup_type.emplace_back(0);
+    q_aux.emplace_back(0);
 }
 
 // range constraint a value by decomposing it into limbs whose size should be the default range constraint size
@@ -1027,60 +1017,59 @@ std::vector<uint32_t> UltraCircuitConstructor::decompose_into_default_range_bett
  */
 void UltraCircuitConstructor::apply_aux_selectors(const AUX_SELECTORS type)
 {
-    ENABLE_ALL_IN_THE_HEAD_SWITCHES
-    switched_q_aux.emplace_back(type == AUX_SELECTORS::NONE ? 0 : 1);
-    switched_q_sort.emplace_back(0);
-    switched_q_lookup_type.emplace_back(0);
-    switched_q_elliptic.emplace_back(0);
+    q_aux.emplace_back(type == AUX_SELECTORS::NONE ? 0 : 1);
+    q_sort.emplace_back(0);
+    q_lookup_type.emplace_back(0);
+    q_elliptic.emplace_back(0);
     switch (type) {
     case AUX_SELECTORS::LIMB_ACCUMULATE_1: {
-        switched_q_1.emplace_back(0);
-        switched_q_2.emplace_back(0);
-        switched_q_3.emplace_back(1);
-        switched_q_4.emplace_back(1);
-        switched_q_m.emplace_back(0);
-        switched_q_c.emplace_back(0);
-        switched_q_arith.emplace_back(0);
+        q_1.emplace_back(0);
+        q_2.emplace_back(0);
+        q_3.emplace_back(1);
+        q_4.emplace_back(1);
+        q_m.emplace_back(0);
+        q_c.emplace_back(0);
+        q_arith.emplace_back(0);
         break;
     }
     case AUX_SELECTORS::LIMB_ACCUMULATE_2: {
-        switched_q_1.emplace_back(0);
-        switched_q_2.emplace_back(0);
-        switched_q_3.emplace_back(1);
-        switched_q_4.emplace_back(0);
-        switched_q_m.emplace_back(1);
-        switched_q_c.emplace_back(0);
-        switched_q_arith.emplace_back(0);
+        q_1.emplace_back(0);
+        q_2.emplace_back(0);
+        q_3.emplace_back(1);
+        q_4.emplace_back(0);
+        q_m.emplace_back(1);
+        q_c.emplace_back(0);
+        q_arith.emplace_back(0);
         break;
     }
     case AUX_SELECTORS::NON_NATIVE_FIELD_1: {
-        switched_q_1.emplace_back(0);
-        switched_q_2.emplace_back(1);
-        switched_q_3.emplace_back(1);
-        switched_q_4.emplace_back(0);
-        switched_q_m.emplace_back(0);
-        switched_q_c.emplace_back(0);
-        switched_q_arith.emplace_back(0);
+        q_1.emplace_back(0);
+        q_2.emplace_back(1);
+        q_3.emplace_back(1);
+        q_4.emplace_back(0);
+        q_m.emplace_back(0);
+        q_c.emplace_back(0);
+        q_arith.emplace_back(0);
         break;
     }
     case AUX_SELECTORS::NON_NATIVE_FIELD_2: {
-        switched_q_1.emplace_back(0);
-        switched_q_2.emplace_back(1);
-        switched_q_3.emplace_back(0);
-        switched_q_4.emplace_back(1);
-        switched_q_m.emplace_back(0);
-        switched_q_c.emplace_back(0);
-        switched_q_arith.emplace_back(0);
+        q_1.emplace_back(0);
+        q_2.emplace_back(1);
+        q_3.emplace_back(0);
+        q_4.emplace_back(1);
+        q_m.emplace_back(0);
+        q_c.emplace_back(0);
+        q_arith.emplace_back(0);
         break;
     }
     case AUX_SELECTORS::NON_NATIVE_FIELD_3: {
-        switched_q_1.emplace_back(0);
-        switched_q_2.emplace_back(1);
-        switched_q_3.emplace_back(0);
-        switched_q_4.emplace_back(0);
-        switched_q_m.emplace_back(1);
-        switched_q_c.emplace_back(0);
-        switched_q_arith.emplace_back(0);
+        q_1.emplace_back(0);
+        q_2.emplace_back(1);
+        q_3.emplace_back(0);
+        q_4.emplace_back(0);
+        q_m.emplace_back(1);
+        q_c.emplace_back(0);
+        q_arith.emplace_back(0);
         break;
     }
     case AUX_SELECTORS::ROM_CONSISTENCY_CHECK: {
@@ -1088,13 +1077,13 @@ void UltraCircuitConstructor::apply_aux_selectors(const AUX_SELECTORS type)
         // Apply sorted memory read checks with the following additional check:
         // 1. Assert that if index field across two gates does not change, the value field does not change.
         // Used for ROM reads and RAM reads across write/read boundaries
-        switched_q_1.emplace_back(1);
-        switched_q_2.emplace_back(1);
-        switched_q_3.emplace_back(0);
-        switched_q_4.emplace_back(0);
-        switched_q_m.emplace_back(0);
-        switched_q_c.emplace_back(0);
-        switched_q_arith.emplace_back(0);
+        q_1.emplace_back(1);
+        q_2.emplace_back(1);
+        q_3.emplace_back(0);
+        q_4.emplace_back(0);
+        q_m.emplace_back(0);
+        q_c.emplace_back(0);
+        q_arith.emplace_back(0);
         break;
     }
     case AUX_SELECTORS::RAM_CONSISTENCY_CHECK: {
@@ -1103,74 +1092,74 @@ void UltraCircuitConstructor::apply_aux_selectors(const AUX_SELECTORS type)
         // 2. Validate record computation (r = read_write_flag + index * \eta + \timestamp * \eta^2 + value * \eta^3)
         // 3. If adjacent index values across 2 gates does not change, and the next gate's read_write_flag is set to
         // 'read', validate adjacent values do not change Used for ROM reads and RAM reads across read/write boundaries
-        switched_q_1.emplace_back(0);
-        switched_q_2.emplace_back(0);
-        switched_q_3.emplace_back(0);
-        switched_q_4.emplace_back(0);
-        switched_q_m.emplace_back(0);
-        switched_q_c.emplace_back(0);
-        switched_q_arith.emplace_back(1);
+        q_1.emplace_back(0);
+        q_2.emplace_back(0);
+        q_3.emplace_back(0);
+        q_4.emplace_back(0);
+        q_m.emplace_back(0);
+        q_c.emplace_back(0);
+        q_arith.emplace_back(1);
         break;
     }
     case AUX_SELECTORS::RAM_TIMESTAMP_CHECK: {
         // For two adjacent RAM entries that share the same index, validate the timestamp value is monotonically
         // increasing
-        switched_q_1.emplace_back(1);
-        switched_q_2.emplace_back(0);
-        switched_q_3.emplace_back(0);
-        switched_q_4.emplace_back(1);
-        switched_q_m.emplace_back(0);
-        switched_q_c.emplace_back(0);
-        switched_q_arith.emplace_back(0);
+        q_1.emplace_back(1);
+        q_2.emplace_back(0);
+        q_3.emplace_back(0);
+        q_4.emplace_back(1);
+        q_m.emplace_back(0);
+        q_c.emplace_back(0);
+        q_arith.emplace_back(0);
         break;
     }
     case AUX_SELECTORS::ROM_READ: {
         // Memory read gate for reading memory cells.
         // Validates record witness computation (r = read_write_flag + index * \eta + timestamp * \eta^2 + value *
         // \eta^3)
-        switched_q_1.emplace_back(1);
-        switched_q_2.emplace_back(0);
-        switched_q_3.emplace_back(0);
-        switched_q_4.emplace_back(0);
-        switched_q_m.emplace_back(1); // validate record witness is correctly computed
-        switched_q_c.emplace_back(0); // read/write flag stored in switched_q_c
-        switched_q_arith.emplace_back(0);
+        q_1.emplace_back(1);
+        q_2.emplace_back(0);
+        q_3.emplace_back(0);
+        q_4.emplace_back(0);
+        q_m.emplace_back(1); // validate record witness is correctly computed
+        q_c.emplace_back(0); // read/write flag stored in q_c
+        q_arith.emplace_back(0);
         break;
     }
     case AUX_SELECTORS::RAM_READ: {
         // Memory read gate for reading memory cells.
         // Validates record witness computation (r = read_write_flag + index * \eta + timestamp * \eta^2 + value *
         // \eta^3)
-        switched_q_1.emplace_back(1);
-        switched_q_2.emplace_back(0);
-        switched_q_3.emplace_back(0);
-        switched_q_4.emplace_back(0);
-        switched_q_m.emplace_back(1); // validate record witness is correctly computed
-        switched_q_c.emplace_back(0); // read/write flag stored in switched_q_c
-        switched_q_arith.emplace_back(0);
+        q_1.emplace_back(1);
+        q_2.emplace_back(0);
+        q_3.emplace_back(0);
+        q_4.emplace_back(0);
+        q_m.emplace_back(1); // validate record witness is correctly computed
+        q_c.emplace_back(0); // read/write flag stored in q_c
+        q_arith.emplace_back(0);
         break;
     }
     case AUX_SELECTORS::RAM_WRITE: {
         // Memory read gate for writing memory cells.
         // Validates record witness computation (r = read_write_flag + index * \eta + timestamp * \eta^2 + value *
         // \eta^3)
-        switched_q_1.emplace_back(1);
-        switched_q_2.emplace_back(0);
-        switched_q_3.emplace_back(0);
-        switched_q_4.emplace_back(0);
-        switched_q_m.emplace_back(1); // validate record witness is correctly computed
-        switched_q_c.emplace_back(1); // read/write flag stored in switched_q_c
-        switched_q_arith.emplace_back(0);
+        q_1.emplace_back(1);
+        q_2.emplace_back(0);
+        q_3.emplace_back(0);
+        q_4.emplace_back(0);
+        q_m.emplace_back(1); // validate record witness is correctly computed
+        q_c.emplace_back(1); // read/write flag stored in q_c
+        q_arith.emplace_back(0);
         break;
     }
     default: {
-        switched_q_1.emplace_back(0);
-        switched_q_2.emplace_back(0);
-        switched_q_3.emplace_back(0);
-        switched_q_4.emplace_back(0);
-        switched_q_m.emplace_back(0);
-        switched_q_c.emplace_back(0);
-        switched_q_arith.emplace_back(0);
+        q_1.emplace_back(0);
+        q_2.emplace_back(0);
+        q_3.emplace_back(0);
+        q_4.emplace_back(0);
+        q_m.emplace_back(0);
+        q_c.emplace_back(0);
+        q_arith.emplace_back(0);
         break;
     }
     }
@@ -1409,14 +1398,12 @@ std::array<uint32_t, 2> UltraCircuitConstructor::queue_non_native_field_multipli
  */
 void UltraCircuitConstructor::process_non_native_field_multiplications()
 {
-    ENABLE_ALL_IN_THE_HEAD_SWITCHES
-    std::sort(switched_cached_non_native_field_multiplications.begin(),
-              switched_cached_non_native_field_multiplications.end());
+    std::sort(cached_non_native_field_multiplications.begin(), cached_non_native_field_multiplications.end());
 
-    auto last = std::unique(switched_cached_non_native_field_multiplications.begin(),
-                            switched_cached_non_native_field_multiplications.end());
+    auto last =
+        std::unique(cached_non_native_field_multiplications.begin(), cached_non_native_field_multiplications.end());
 
-    auto it = switched_cached_non_native_field_multiplications.begin();
+    auto it = cached_non_native_field_multiplications.begin();
 
     constexpr barretenberg::fr LIMB_SHIFT = uint256_t(1) << DEFAULT_NON_NATIVE_FIELD_LIMB_BITS;
     constexpr barretenberg::fr LIMB_RSHIFT =
@@ -1447,30 +1434,30 @@ void UltraCircuitConstructor::process_non_native_field_multiplications()
                               0 },
                             true);
 
-        switched_w_l.emplace_back(input.a[1]);
-        switched_w_r.emplace_back(input.b[1]);
-        switched_w_o.emplace_back(input.r[0]);
-        switched_w_4.emplace_back(lo_0_idx);
+        w_l.emplace_back(input.a[1]);
+        w_r.emplace_back(input.b[1]);
+        w_o.emplace_back(input.r[0]);
+        w_4.emplace_back(lo_0_idx);
         apply_aux_selectors(AUX_SELECTORS::NON_NATIVE_FIELD_1);
-        ++switched_num_gates;
-        switched_w_l.emplace_back(input.a[0]);
-        switched_w_r.emplace_back(input.b[0]);
-        switched_w_o.emplace_back(input.a[3]);
-        switched_w_4.emplace_back(input.b[3]);
+        ++num_gates;
+        w_l.emplace_back(input.a[0]);
+        w_r.emplace_back(input.b[0]);
+        w_o.emplace_back(input.a[3]);
+        w_4.emplace_back(input.b[3]);
         apply_aux_selectors(AUX_SELECTORS::NON_NATIVE_FIELD_2);
-        ++switched_num_gates;
-        switched_w_l.emplace_back(input.a[2]);
-        switched_w_r.emplace_back(input.b[2]);
-        switched_w_o.emplace_back(input.r[3]);
-        switched_w_4.emplace_back(hi_0_idx);
+        ++num_gates;
+        w_l.emplace_back(input.a[2]);
+        w_r.emplace_back(input.b[2]);
+        w_o.emplace_back(input.r[3]);
+        w_4.emplace_back(hi_0_idx);
         apply_aux_selectors(AUX_SELECTORS::NON_NATIVE_FIELD_3);
-        ++switched_num_gates;
-        switched_w_l.emplace_back(input.a[1]);
-        switched_w_r.emplace_back(input.b[1]);
-        switched_w_o.emplace_back(input.r[2]);
-        switched_w_4.emplace_back(hi_1_idx);
+        ++num_gates;
+        w_l.emplace_back(input.a[1]);
+        w_r.emplace_back(input.b[1]);
+        w_o.emplace_back(input.r[2]);
+        w_4.emplace_back(hi_1_idx);
         apply_aux_selectors(AUX_SELECTORS::NONE);
-        ++switched_num_gates;
+        ++num_gates;
 
         /**
          * product gate 6
@@ -1839,13 +1826,12 @@ void UltraCircuitConstructor::create_ROM_gate(RomRecord& record)
     // Record wire value can't yet be computed
     record.record_witness = add_variable(0);
     apply_aux_selectors(AUX_SELECTORS::ROM_READ);
-    ENABLE_ALL_IN_THE_HEAD_SWITCHES
-    switched_w_l.emplace_back(record.index_witness);
-    switched_w_r.emplace_back(record.value_column1_witness);
-    switched_w_o.emplace_back(record.value_column2_witness);
-    switched_w_4.emplace_back(record.record_witness);
-    record.gate_index = switched_num_gates;
-    ++switched_num_gates;
+    w_l.emplace_back(record.index_witness);
+    w_r.emplace_back(record.value_column1_witness);
+    w_o.emplace_back(record.value_column2_witness);
+    w_4.emplace_back(record.record_witness);
+    record.gate_index = num_gates;
+    ++num_gates;
 }
 
 /**
@@ -1859,13 +1845,12 @@ void UltraCircuitConstructor::create_sorted_ROM_gate(RomRecord& record)
 {
     record.record_witness = add_variable(0);
     apply_aux_selectors(AUX_SELECTORS::ROM_CONSISTENCY_CHECK);
-    ENABLE_ALL_IN_THE_HEAD_SWITCHES
-    switched_w_l.emplace_back(record.index_witness);
-    switched_w_r.emplace_back(record.value_column1_witness);
-    switched_w_o.emplace_back(record.value_column2_witness);
-    switched_w_4.emplace_back(record.record_witness);
-    record.gate_index = switched_num_gates;
-    ++switched_num_gates;
+    w_l.emplace_back(record.index_witness);
+    w_r.emplace_back(record.value_column1_witness);
+    w_o.emplace_back(record.value_column2_witness);
+    w_4.emplace_back(record.record_witness);
+    record.gate_index = num_gates;
+    ++num_gates;
 }
 
 /**
@@ -1904,13 +1889,12 @@ void UltraCircuitConstructor::create_RAM_gate(RamRecord& record)
     record.record_witness = add_variable(0);
     apply_aux_selectors(record.access_type == RamRecord::AccessType::READ ? AUX_SELECTORS::RAM_READ
                                                                           : AUX_SELECTORS::RAM_WRITE);
-    ENABLE_ALL_IN_THE_HEAD_SWITCHES
-    switched_w_l.emplace_back(record.index_witness);
-    switched_w_r.emplace_back(record.timestamp_witness);
-    switched_w_o.emplace_back(record.value_witness);
-    switched_w_4.emplace_back(record.record_witness);
-    record.gate_index = switched_num_gates;
-    ++switched_num_gates;
+    w_l.emplace_back(record.index_witness);
+    w_r.emplace_back(record.timestamp_witness);
+    w_o.emplace_back(record.value_witness);
+    w_4.emplace_back(record.record_witness);
+    record.gate_index = num_gates;
+    ++num_gates;
 }
 
 /**
@@ -1922,15 +1906,14 @@ void UltraCircuitConstructor::create_RAM_gate(RamRecord& record)
  */
 void UltraCircuitConstructor::create_sorted_RAM_gate(RamRecord& record)
 {
-    ENABLE_ALL_IN_THE_HEAD_SWITCHES
     record.record_witness = add_variable(0);
     apply_aux_selectors(AUX_SELECTORS::RAM_CONSISTENCY_CHECK);
-    switched_w_l.emplace_back(record.index_witness);
-    switched_w_r.emplace_back(record.timestamp_witness);
-    switched_w_o.emplace_back(record.value_witness);
-    switched_w_4.emplace_back(record.record_witness);
-    record.gate_index = switched_num_gates;
-    ++switched_num_gates;
+    w_l.emplace_back(record.index_witness);
+    w_r.emplace_back(record.timestamp_witness);
+    w_o.emplace_back(record.value_witness);
+    w_4.emplace_back(record.record_witness);
+    record.gate_index = num_gates;
+    ++num_gates;
 }
 
 /**
@@ -1941,9 +1924,8 @@ void UltraCircuitConstructor::create_sorted_RAM_gate(RamRecord& record)
  */
 void UltraCircuitConstructor::create_final_sorted_RAM_gate(RamRecord& record, const size_t ram_array_size)
 {
-    ENABLE_ALL_IN_THE_HEAD_SWITCHES
     record.record_witness = add_variable(0);
-    record.gate_index = switched_num_gates;
+    record.gate_index = num_gates;
 
     create_big_add_gate({
         record.index_witness,
@@ -1989,9 +1971,8 @@ void UltraCircuitConstructor::init_RAM_element(const size_t ram_id,
                                                const size_t index_value,
                                                const uint32_t value_witness)
 {
-    ENABLE_ALL_IN_THE_HEAD_SWITCHES
-    ASSERT(switched_ram_arrays.size() > ram_id);
-    RamTranscript& ram_array = switched_ram_arrays[ram_id];
+    ASSERT(ram_arrays.size() > ram_id);
+    RamTranscript& ram_array = ram_arrays[ram_id];
     const uint32_t index_witness = (index_value == 0) ? zero_idx : put_constant_variable((uint64_t)index_value);
     ASSERT(ram_array.state.size() > index_value);
     ASSERT(ram_array.state[index_value] == UNINITIALIZED_MEMORY_RECORD);
@@ -2118,8 +2099,7 @@ void UltraCircuitConstructor::set_ROM_element_pair(const size_t rom_id,
                                                    const size_t index_value,
                                                    const std::array<uint32_t, 2>& value_witnesses)
 {
-    auto& switched_rom_arrays = choose_virtual_or_real(circuit_in_the_head.rom_arrays, rom_arrays, in_the_head);
-    ASSERT(switched_rom_arrays.size() > rom_id);
+    ASSERT(rom_arrays.size() > rom_id);
     RomTranscript& rom_array = rom_arrays[rom_id];
     const uint32_t index_witness = (index_value == 0) ? zero_idx : put_constant_variable((uint64_t)index_value);
     ASSERT(rom_array.state.size() > index_value);
@@ -2201,10 +2181,7 @@ uint32_t UltraCircuitConstructor::read_ROM_array(const size_t rom_id, const uint
 void UltraCircuitConstructor::process_ROM_array(const size_t rom_id, const size_t gate_offset_from_public_inputs)
 {
 
-    auto& switched_rom_arrays = choose_virtual_or_real(circuit_in_the_head.rom_arrays, rom_arrays, in_the_head);
-    auto& switched_memory_read_records =
-        choose_virtual_or_real(circuit_in_the_head.memory_read_records, memory_read_records, in_the_head);
-    auto& rom_array = switched_rom_arrays[rom_id];
+    auto& rom_array = rom_arrays[rom_id];
     const auto read_tag = get_new_tag();        // current_tag + 1;
     const auto sorted_list_tag = get_new_tag(); // current_tag + 2;
     create_tag(read_tag, sorted_list_tag);
@@ -2254,10 +2231,8 @@ void UltraCircuitConstructor::process_ROM_array(const size_t rom_id, const size_
         // record (w4) = w3 * eta^3 + w2 * eta^2 + w1 * eta + read_write_flag (0 for reads, 1 for writes)
         // Separate containers used to store gate indices of reads and writes. Need to differentiate because of
         // `read_write_flag` (N.B. all ROM accesses are considered reads. Writes are for RAM operations)
-        switched_memory_read_records.push_back(
-            static_cast<uint32_t>(sorted_record.gate_index + gate_offset_from_public_inputs));
-        switched_memory_read_records.push_back(
-            static_cast<uint32_t>(record.gate_index + gate_offset_from_public_inputs));
+        memory_read_records.push_back(static_cast<uint32_t>(sorted_record.gate_index + gate_offset_from_public_inputs));
+        memory_read_records.push_back(static_cast<uint32_t>(record.gate_index + gate_offset_from_public_inputs));
     }
     // One of the checks we run on the sorted list, is to validate the difference between
     // the index field across two gates is either 0 or 1.
@@ -2291,8 +2266,7 @@ void UltraCircuitConstructor::process_ROM_array(const size_t rom_id, const size_
  */
 void UltraCircuitConstructor::process_RAM_array(const size_t ram_id, const size_t gate_offset_from_public_inputs)
 {
-    ENABLE_ALL_IN_THE_HEAD_SWITCHES
-    RamTranscript& ram_array = switched_ram_arrays[ram_id];
+    RamTranscript& ram_array = ram_arrays[ram_id];
     const auto access_tag = get_new_tag();      // current_tag + 1;
     const auto sorted_list_tag = get_new_tag(); // current_tag + 2;
     create_tag(access_tag, sorted_list_tag);
@@ -2359,17 +2333,15 @@ void UltraCircuitConstructor::process_RAM_array(const size_t ram_id, const size_
 
         switch (record.access_type) {
         case RamRecord::AccessType::READ: {
-            switched_memory_read_records.push_back(
+            memory_read_records.push_back(
                 static_cast<uint32_t>(sorted_record.gate_index + gate_offset_from_public_inputs));
-            switched_memory_read_records.push_back(
-                static_cast<uint32_t>(record.gate_index + gate_offset_from_public_inputs));
+            memory_read_records.push_back(static_cast<uint32_t>(record.gate_index + gate_offset_from_public_inputs));
             break;
         }
         case RamRecord::AccessType::WRITE: {
-            switched_memory_write_records.push_back(
+            memory_write_records.push_back(
                 static_cast<uint32_t>(sorted_record.gate_index + gate_offset_from_public_inputs));
-            switched_memory_write_records.push_back(
-                static_cast<uint32_t>(record.gate_index + gate_offset_from_public_inputs));
+            memory_write_records.push_back(static_cast<uint32_t>(record.gate_index + gate_offset_from_public_inputs));
             break;
         }
         default: {
@@ -2398,11 +2370,11 @@ void UltraCircuitConstructor::process_RAM_array(const size_t ram_id, const size_
         uint32_t timestamp_delta_witness = add_variable(timestamp_delta);
 
         apply_aux_selectors(AUX_SELECTORS::RAM_TIMESTAMP_CHECK);
-        switched_w_l.emplace_back(current.index_witness);
-        switched_w_r.emplace_back(current.timestamp_witness);
-        switched_w_o.emplace_back(timestamp_delta_witness);
-        switched_w_4.emplace_back(zero_idx);
-        ++switched_num_gates;
+        w_l.emplace_back(current.index_witness);
+        w_r.emplace_back(current.timestamp_witness);
+        w_o.emplace_back(timestamp_delta_witness);
+        w_4.emplace_back(zero_idx);
+        ++num_gates;
 
         // store timestamp offsets for later. Need to apply range checks to them, but calling
         // `create_new_range_constraint` can add gates. Would ruin the structure of our sorted timestamp list.
@@ -3033,9 +3005,7 @@ inline fr UltraCircuitConstructor::compute_auxilary_identity(fr q_aux_value,
 bool UltraCircuitConstructor::check_circuit()
 {
     bool result = true;
-    // Put the circuit in the head
-    update_circuit_in_the_head();
-    in_the_head = true;
+    CircuitDataBackup circuit_backup = CircuitDataBackup::store_prefinilized_state(this);
     // Finalize circuit-in-the-head
 
     finalize_circuit();
@@ -3051,10 +3021,10 @@ bool UltraCircuitConstructor::check_circuit()
     // We need to get all memory
     std::unordered_set<size_t> memory_read_record_gates;
     std::unordered_set<size_t> memory_write_record_gates;
-    for (const auto& gate_idx : circuit_in_the_head.memory_read_records) {
+    for (const auto& gate_idx : memory_read_records) {
         memory_read_record_gates.insert(gate_idx);
     }
-    for (const auto& gate_idx : circuit_in_the_head.memory_write_records) {
+    for (const auto& gate_idx : memory_write_records) {
         memory_write_record_gates.insert(gate_idx);
     }
 
@@ -3111,21 +3081,21 @@ bool UltraCircuitConstructor::check_circuit()
 
     // Function to quickly update tag products and encountered variable set by index and value
     auto update_tag_check_information = [&](size_t variable_index, fr value) {
-        size_t real_index = circuit_in_the_head.real_variable_index[variable_index];
+        size_t real_index = real_variable_index[variable_index];
         // Check to ensure that we are not including a variable twice
         if (encountered_variables.contains(real_index)) {
             return;
         }
-        size_t tag_in = circuit_in_the_head.real_variable_tags[real_index];
+        size_t tag_in = real_variable_tags[real_index];
         if (tag_in != DUMMY_TAG) {
-            size_t tag_out = circuit_in_the_head.tau.at((uint32_t)tag_in);
+            size_t tag_out = tau.at((uint32_t)tag_in);
             left_tag_product *= value + tag_gamma * fr(tag_in);
             right_tag_product *= value + tag_gamma * fr(tag_out);
             encountered_variables.insert(real_index);
         }
     };
     // For each gate
-    for (size_t i = 0; i < circuit_in_the_head.num_gates; i++) {
+    for (size_t i = 0; i < num_gates; i++) {
         fr q_arith_value;
         fr q_aux_value;
         fr q_elliptic_value;
@@ -3143,53 +3113,27 @@ bool UltraCircuitConstructor::check_circuit()
         fr w_4_value;
         fr w_4_index;
         // Get the values of selectors and wires and update tag products along the way
-        if (i < num_gates) {
-            q_arith_value = q_arith[i];
-            q_aux_value = q_aux[i];
-            q_elliptic_value = q_elliptic[i];
-            q_sort_value = q_sort[i];
-            q_lookup_type_value = q_lookup_type[i];
-            q_1_value = q_1[i];
-            q_2_value = q_2[i];
-            q_3_value = q_3[i];
-            q_4_value = q_4[i];
-            q_m_value = q_m[i];
-            q_c_value = q_c[i];
-            w_1_value = get_variable(w_l[i]);
-            update_tag_check_information(w_l[i], w_1_value);
-            w_2_value = get_variable(w_r[i]);
-            update_tag_check_information(w_r[i], w_2_value);
-            w_3_value = get_variable(w_o[i]);
-            update_tag_check_information(w_o[i], w_3_value);
-            w_4_value = get_variable(w_4[i]);
-            // We need to wait before updating tag product for w_4
-            w_4_index = w_4[i];
+        q_arith_value = q_arith[i];
+        q_aux_value = q_aux[i];
+        q_elliptic_value = q_elliptic[i];
+        q_sort_value = q_sort[i];
+        q_lookup_type_value = q_lookup_type[i];
+        q_1_value = q_1[i];
+        q_2_value = q_2[i];
+        q_3_value = q_3[i];
+        q_4_value = q_4[i];
+        q_m_value = q_m[i];
+        q_c_value = q_c[i];
+        w_1_value = get_variable(w_l[i]);
+        update_tag_check_information(w_l[i], w_1_value);
+        w_2_value = get_variable(w_r[i]);
+        update_tag_check_information(w_r[i], w_2_value);
+        w_3_value = get_variable(w_o[i]);
+        update_tag_check_information(w_o[i], w_3_value);
+        w_4_value = get_variable(w_4[i]);
+        // We need to wait before updating tag product for w_4
+        w_4_index = w_4[i];
 
-        } else {
-            // The in-the-head selector and wire variable indices are not copies of the circuit values, but rather the
-            // continuation of them, so we need to access them at an offset
-            size_t offset = i - num_gates;
-            q_arith_value = circuit_in_the_head.q_arith[offset];
-            q_aux_value = circuit_in_the_head.q_aux[offset];
-            q_elliptic_value = circuit_in_the_head.q_elliptic[offset];
-            q_sort_value = circuit_in_the_head.q_sort[offset];
-            q_lookup_type_value = circuit_in_the_head.q_lookup_type[offset];
-            q_1_value = circuit_in_the_head.q_1[offset];
-            q_2_value = circuit_in_the_head.q_2[offset];
-            q_3_value = circuit_in_the_head.q_3[offset];
-            q_4_value = circuit_in_the_head.q_4[offset];
-            q_m_value = circuit_in_the_head.q_m[offset];
-            q_c_value = circuit_in_the_head.q_c[offset];
-            w_1_value = get_variable(circuit_in_the_head.w_l[offset]);
-            update_tag_check_information(circuit_in_the_head.w_l[offset], w_1_value);
-            w_2_value = get_variable(circuit_in_the_head.w_r[offset]);
-            update_tag_check_information(circuit_in_the_head.w_r[offset], w_2_value);
-            w_3_value = get_variable(circuit_in_the_head.w_o[offset]);
-            update_tag_check_information(circuit_in_the_head.w_o[offset], w_3_value);
-            w_4_value = get_variable(circuit_in_the_head.w_4[offset]);
-            // We need to wait before updating tag product for w_4
-            w_4_index = circuit_in_the_head.w_4[offset];
-        }
         // If we are touching a gate with memory access, we need to update the value of the 4th witness
         if (memory_read_record_gates.contains(i)) {
             w_4_value = ((w_3_value * eta + w_2_value) * eta + w_1_value) * eta;
@@ -3209,13 +3153,6 @@ bool UltraCircuitConstructor::check_circuit()
             w_2_shifted_value = get_variable(w_r[i + 1]);
             w_3_shifted_value = get_variable(w_o[i + 1]);
             w_4_shifted_value = get_variable(w_4[i + 1]);
-        } else if (i < (circuit_in_the_head.num_gates - 1)) {
-
-            size_t offset = i - num_gates;
-            w_1_shifted_value = get_variable(circuit_in_the_head.w_l[offset + 1]);
-            w_2_shifted_value = get_variable(circuit_in_the_head.w_r[offset + 1]);
-            w_3_shifted_value = get_variable(circuit_in_the_head.w_o[offset + 1]);
-            w_4_shifted_value = get_variable(circuit_in_the_head.w_4[offset + 1]);
         } else {
             w_1_shifted_value = fr::zero();
             w_2_shifted_value = fr::zero();
@@ -3330,56 +3267,8 @@ bool UltraCircuitConstructor::check_circuit()
 
         result = false;
     }
-    in_the_head = false;
+    circuit_backup.restore_prefinilized_state(this);
     return result;
 }
 
-/**
- * @brief Reset the circuit-in-the-head construction that we use for checking the correctness of the circuit to the
- * values in the circuit
- *
- */
-void UltraCircuitConstructor::update_circuit_in_the_head()
-{
-    // Unfortunately we have to copy all variable structures
-    circuit_in_the_head.public_inputs = public_inputs;
-    circuit_in_the_head.variables = variables;
-    circuit_in_the_head.next_var_index = next_var_index;
-    circuit_in_the_head.prev_var_index = prev_var_index;
-    circuit_in_the_head.real_variable_index = real_variable_index;
-    circuit_in_the_head.real_variable_tags = real_variable_tags;
-    circuit_in_the_head.constant_variable_indices = constant_variable_indices;
-    // Reset witness and selector vectors
-    circuit_in_the_head.w_l.clear();
-    circuit_in_the_head.w_r.clear();
-    circuit_in_the_head.w_o.clear();
-    circuit_in_the_head.w_4.clear();
-    circuit_in_the_head.q_m.clear();
-    circuit_in_the_head.q_c.clear();
-    circuit_in_the_head.q_1.clear();
-    circuit_in_the_head.q_2.clear();
-    circuit_in_the_head.q_3.clear();
-    circuit_in_the_head.q_4.clear();
-    circuit_in_the_head.q_arith.clear();
-    circuit_in_the_head.q_elliptic.clear();
-    circuit_in_the_head.q_aux.clear();
-    circuit_in_the_head.q_sort.clear();
-    circuit_in_the_head.q_lookup_type.clear();
-    // Update current tag in the head to be the same as current real tag
-    circuit_in_the_head.current_tag = current_tag;
-    // Reset tau
-    circuit_in_the_head.tau = tau;
-    // Copy rom and ram arrays
-    circuit_in_the_head.rom_arrays = rom_arrays;
-    circuit_in_the_head.ram_arrays = ram_arrays;
-
-    circuit_in_the_head.memory_read_records = memory_read_records;
-    circuit_in_the_head.memory_write_records = memory_write_records;
-    circuit_in_the_head.ram_arrays = ram_arrays;
-    circuit_in_the_head.rom_arrays = rom_arrays;
-    circuit_in_the_head.range_lists = range_lists;
-
-    circuit_in_the_head.num_gates = num_gates;
-    circuit_in_the_head.circuit_finalised = circuit_finalised;
-}
 } // namespace proof_system
