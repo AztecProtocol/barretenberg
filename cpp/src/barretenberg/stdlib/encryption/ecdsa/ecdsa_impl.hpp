@@ -13,6 +13,11 @@ bool_t<Composer> verify_signature(const stdlib::byte_array<Composer>& message,
 {
     Composer* ctx = message.get_context() ? message.get_context() : public_key.x.context;
 
+    // Check if revovery id v is either 27 ot 28.
+    // TODO(Suyash): check with Zac/Kesha/Cody.
+    field_t<Composer>(sig.v).assert_is_in_set({ field_t<Composer>(27), field_t<Composer>(28) },
+                                              "signature is non-standard");
+
     stdlib::byte_array<Composer> hashed_message =
         static_cast<stdlib::byte_array<Composer>>(stdlib::sha256<Composer>(message));
 
