@@ -2353,7 +2353,6 @@ void UltraCircuitConstructor::process_RAM_array(const size_t ram_id, const size_
     // Step 2: Create gates that validate correctness of RAM timestamps
 
     std::vector<uint32_t> timestamp_deltas;
-
     for (size_t i = 0; i < ram_array.records.size() - 1; ++i) {
         // create_RAM_timestamp_gate(sorted_records[i], sorted_records[i + 1])
         const auto& current = ram_array.records[i];
@@ -2415,10 +2414,7 @@ void UltraCircuitConstructor::process_RAM_arrays(const size_t gate_offset_from_p
     }
 }
 
-/**
- * @brief Various methods relating to circuit evaluation
- *
- */
+// Various methods relating to circuit evaluation
 
 /**
  * @brief Arithmetic gate-related methods

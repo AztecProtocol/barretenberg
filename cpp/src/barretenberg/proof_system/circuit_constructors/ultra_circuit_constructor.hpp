@@ -230,12 +230,12 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
         }
     };
     /**
-     * @brief Circuit-in-the-head is a structure we use to store all the information about the circuit which should be
-     * used during check_circuit method call, but needs to be discarded later
-     *
+     * @brief CircuitDataBackup is a structure we use to store all the information about the circuit that is needed to
+     * restore it back to a pre-finalized state
      * @details In check_circuit method in UltraCircuitConstructor we want to check that the whole circuit works, but
      * ultra circuits need to have ram, rom and range gates added in the end for the check to be complete as well as the
-     * set permutation check.
+     * set permutation check, so we finalize the circuit when we check it. This structure allows us to restore the
+     * circuit to the state before the finalization.
      */
     struct CircuitDataBackup {
         std::vector<uint32_t> public_inputs;
@@ -336,9 +336,6 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
          * @brief Stores the state of all members of the circuit constructor that are needed to restore the state after
          * finalizing the circuit.
          *
-         * @details We need this function for tests. Specifically, to ensure that we are not changing anything in
-         * check_circuit
-         *
          * @param circuit_constructor
          * @return CircuitDataBackup
          */
@@ -374,11 +371,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
         }
 
         /**
-         * @brief Stores the state of all members of the circuit constructor that are needed to restore the state after
-         * finalizing the circuit.
-         *
-         * @details We need this function for tests. Specifically, to ensure that we are not changing anything in
-         * check_circuit
+         * @brief Restores circuit constructor to a prefinilized state.
          *
          * @param circuit_constructor
          * @return CircuitDataBackup
@@ -424,7 +417,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
             circuit_constructor->q_lookup_type.resize(num_gates);
         }
         /**
-         * @brief CHecks that the circuit states is the same as the stored circuit's one
+         * @brief Checks that the circuit state is the same as the stored circuit's one
          *
          * @param circuit_constructor
          * @return true
