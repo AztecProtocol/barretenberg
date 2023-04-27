@@ -66,7 +66,7 @@ void construct_selector_polynomials(const typename Flavor::CircuitConstructor& c
             proving_key->polynomial_store.put(circuit_constructor.selector_names_[selector_idx] + "_lagrange",
                                               std::move(selector_poly_lagrange));
         }
-        selector_idx++;
+        ++selector_idx;
     }
 }
 
@@ -89,7 +89,7 @@ void enforce_nonzero_selector_polynomials(const typename Flavor::CircuitConstruc
         size_t idx = 1;
         for (auto selector : proving_key->get_selectors()) {
             selector[selector.size() - 1] = idx;
-            idx++;
+            ++idx;
         }
     } else if constexpr (IsPlonkFlavor<Flavor>) {
         for (size_t idx = 0; idx < circuit_constructor.num_selectors; ++idx) {
@@ -147,7 +147,7 @@ std::vector<barretenberg::polynomial> construct_wire_polynomials_base(
             for (size_t i = 0; i < num_public_inputs; ++i) {
                 w_lagrange[i] = circuit_constructor.get_variable(public_inputs[i]);
             }
-            wire_idx++;
+            ++wire_idx;
         }
 
         // Assign the variable values (which are pointed-to by the `w_` wire_polynomials) to the wire witness

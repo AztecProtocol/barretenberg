@@ -87,7 +87,7 @@ class UltraRelationConsistency : public testing::Test {
         size_t result_idx = 0; // TODO(#391) zip
         for (auto& univariate : univariates) {
             result[result_idx] = univariate.value_at(i);
-            result_idx++;
+            ++result_idx;
         }
         return result;
     };

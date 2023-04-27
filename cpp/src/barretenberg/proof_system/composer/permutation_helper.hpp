@@ -415,7 +415,7 @@ void compute_standard_honk_id_polynomials(auto proving_key) // TODO(Cody): provi
         for (size_t i = 0; i < proving_key->circuit_size; ++i) {
             id_poly[i] = coset_idx * proving_key->circuit_size + i;
         }
-        coset_idx++;
+        ++coset_idx;
     }
 }
 

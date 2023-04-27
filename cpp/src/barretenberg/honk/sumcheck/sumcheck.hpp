@@ -128,13 +128,13 @@ template <typename Flavor, class Transcript, template <class> class... Relations
         }
 
         // Final round: Extract multivariate evaluations from folded_polynomials and add to transcript
-        // WORKTODO: improve loop.
-        std::array<FF, NUM_POLYNOMIALS> multivariate_evaluations;
-        for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
-            multivariate_evaluations[i] = folded_polynomials[i][0];
-            // info(multivariate_evaluations[i], "<-- in sumcheck prover");
+        PurportedEvaluations multivariate_evaluations;
+        size_t evaluation_idx = 0;
+        for (auto& polynomial : folded_polynomials) { // TODO(#391) zip
+            multivariate_evaluations[evaluation_idx] = polynomial[0];
+            ++evaluation_idx;
         }
-        transcript.send_to_verifier("Sumcheck:evaluations", multivariate_evaluations);
+        transcript.send_to_verifier("Sumcheck:evaluations", multivariate_evaluations._data);
 
         return { multivariate_challenge, multivariate_evaluations };
     };

@@ -164,20 +164,20 @@ bool Verifier<Flavor, program_settings>::verify_proof(const plonk::proof& proof)
     size_t evaluation_idx = 0;
     for (auto& value : purported_evaluations.get_unshifted_then_shifted()) {
         batched_evaluation += value * rhos[evaluation_idx];
-        evaluation_idx++;
+        ++evaluation_idx;
     }
 
     // Construct batched commitment for NON-shifted polynomials
     size_t commitment_idx = 0;
     for (auto& commitment : commitments.get_unshifted()) {
         batched_commitment_unshifted += commitment * rhos[commitment_idx];
-        commitment_idx++;
+        ++commitment_idx;
     }
 
     // Construct batched commitment for to-be-shifted polynomials
     for (auto& commitment : commitments.get_to_be_shifted()) {
         batched_commitment_to_be_shifted += commitment * rhos[commitment_idx];
-        commitment_idx++;
+        ++commitment_idx;
     }
 
     // Produce a Gemini claim consisting of:

@@ -115,7 +115,7 @@ TEST(RelationCorrectness, StandardRelationCorrectness)
         size_t poly_idx = 0;
         for (auto& polynomial : prover_polynomials) {
             evaluations_at_index_i[poly_idx] = polynomial[i];
-            poly_idx++;
+            ++poly_idx;
         }
 
         // For each relation, call the `accumulate_relation_evaluation` over all witness/selector values at the
@@ -307,7 +307,7 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
         size_t poly_idx = 0;
         for (auto& polynomial : prover_polynomials) {
             evaluations_at_index_i[poly_idx] = polynomial[i];
-            poly_idx++;
+            ++poly_idx;
         }
 
         info("i = ", i);

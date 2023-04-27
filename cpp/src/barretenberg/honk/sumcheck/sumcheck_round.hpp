@@ -158,7 +158,7 @@ template <typename Flavor, template <class> class... Relations> class SumcheckRo
         for (auto& poly : multivariates) {
             auto edge = Univariate<FF, 2>({ poly[edge_idx], poly[edge_idx + 1] });
             extended_edges[univariate_idx] = barycentric_2_to_max.extend(edge);
-            univariate_idx++;
+            ++univariate_idx;
         }
     }
 

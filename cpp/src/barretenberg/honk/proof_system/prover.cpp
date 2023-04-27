@@ -60,7 +60,7 @@ template <StandardFlavor Flavor> void StandardProver_<Flavor>::compute_wire_comm
     auto wire_polys = key->get_wires();
     for (auto& label : commitment_labels.get_wires()) {
         queue.add_commitment(wire_polys[wire_idx], label);
-        wire_idx++;
+        ++wire_idx;
     }
 }
 
@@ -166,13 +166,13 @@ template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_univariat
     size_t poly_idx = 0;                                  // ZIPTODO
     for (auto& unshifted_poly : prover_polynomials.get_unshifted()) {
         batched_poly_unshifted.add_scaled(unshifted_poly, rhos[poly_idx]);
-        poly_idx++;
+        ++poly_idx;
     }
 
     Polynomial batched_poly_to_be_shifted(key->circuit_size); // batched to-be-shifted polynomials
     for (auto& to_be_shifted_poly : prover_polynomials.get_to_be_shifted()) {
         batched_poly_to_be_shifted.add_scaled(to_be_shifted_poly, rhos[poly_idx]);
-        poly_idx++;
+        ++poly_idx;
     };
 
     // Compute d-1 polynomials Fold^(i), i = 1, ..., d-1.

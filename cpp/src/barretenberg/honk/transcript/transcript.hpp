@@ -267,7 +267,6 @@ template <class FF> class VerifierTranscript : public BaseTranscript<FF> {
 
         T element = from_buffer<T>(element_bytes);
 
-        // info(label, ": ", element);
         return element;
     }
 };

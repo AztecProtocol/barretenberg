@@ -19,7 +19,7 @@ template <typename Arithmetization> class CircuitConstructorBase {
     // TODO(Cody): selector names are used by composer helper. They can therefore be specified through the proving
     // system flavor. Getting rid of this also lets us get rid of the weird constructor that's uses the selector names
     // functions
-    std::vector<std::string> selector_names_; // WORKTODO: needed?
+    std::vector<std::string> selector_names_; // TODO(Cody): These are plonk-only and could go in the plonk flavor.
     size_t num_gates = 0;
 
     std::array<std::vector<uint32_t>, num_wires> wires;

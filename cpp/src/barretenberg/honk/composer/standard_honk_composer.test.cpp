@@ -60,7 +60,7 @@ TEST(StandardHonkComposer, SigmaIDCorrectness)
                     right *= (gamma + (n + i));
                 }
             }
-            wire_idx++;
+            ++wire_idx;
         }
 
         EXPECT_EQ(left, right);

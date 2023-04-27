@@ -17,7 +17,7 @@ TEST(Flavor, Standard)
     ProvingKey proving_key = []() {
         auto crs_factory = ReferenceStringFactory();
         auto crs = crs_factory.get_prover_crs(4);
-        return Flavor::ProvingKey(/*circuit_size=*/4, /*num_inputs=*/0, crs, ComposerType::STANDARD);
+        return Flavor::ProvingKey(/*circuit_size=*/4, /*num_public_inputs=*/0, crs, ComposerType::STANDARD);
     }();
 
     size_t coset_idx = 0;
@@ -26,7 +26,7 @@ TEST(Flavor, Standard)
         for (size_t i = 0; i < proving_key.circuit_size; ++i) {
             id_poly[i] = coset_idx * proving_key.circuit_size + i;
         }
-        coset_idx++;
+        ++coset_idx;
     }
 
     Flavor::VerificationKey verification_key;
@@ -43,7 +43,7 @@ TEST(Flavor, Standard)
     auto get_test_polynomial = [](size_t& idx) {
         Flavor::Polynomial poly(4);
         for (size_t i = 0; i < 4; i++) {
-            poly[i] = idx++;
+            poly[i] = ++idx;
         };
         return poly;
     };
@@ -93,7 +93,7 @@ TEST(Flavor, Standard)
         EXPECT_EQ(poly[1], 4 * idx + 1);
         EXPECT_EQ(poly[2], 4 * idx + 2);
         EXPECT_EQ(poly[3], 4 * idx + 3);
-        idx++;
+        ++idx;
     };
 
     idx = 4; // z_perm_shift is shifted
@@ -102,7 +102,7 @@ TEST(Flavor, Standard)
         EXPECT_EQ(poly[1], 4 * idx + 1);
         EXPECT_EQ(poly[2], 4 * idx + 2);
         EXPECT_EQ(poly[3], 4 * idx + 3);
-        idx++;
+        ++idx;
     };
 }
 

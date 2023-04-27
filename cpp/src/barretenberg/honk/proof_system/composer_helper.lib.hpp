@@ -23,7 +23,7 @@ std::shared_ptr<typename Flavor::VerificationKey> compute_verification_key_commo
     size_t poly_idx = 0; // ZIPTODO
     for (auto& polynomial : proving_key) {
         verification_key[poly_idx] = commitment_key.commit(polynomial);
-        polynomial_idx++;
+        ++polynomial_idx;
     }
 
     return verification_key;
