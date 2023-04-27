@@ -286,24 +286,25 @@ class Standard {
 
         CommitmentLabels()
         {
-            w_l = "W_1";
-            w_r = "W_2";
-            w_o = "W_3";
-            z_perm = "Z_PERM";
-            z_perm_shift = "__z_perm_shift";
-            q_m = "__q_m";
-            q_l = "__q_l";
-            q_r = "__q_r";
-            q_o = "__q_o";
-            q_c = "__q_c";
-            sigma_1 = "__sigma_1";
-            sigma_2 = "__sigma_2";
-            sigma_3 = "__sigma_3";
-            id_1 = "__id_1";
-            id_2 = "__id_2";
-            id_3 = "__id_3";
-            lagrange_first = "__lagrange_first";
-            lagrange_last = "__lagrange_last";
+            constexpr w_l = "W_1";
+            constexpr w_r = "W_2";
+            constexpr w_o = "W_3";
+            const z_perm = "Z_PERM";
+            // The ones beginning with "__" are only used for debugging
+            constexpr z_perm_shift = "__Z_PERM_SHIFT";
+            constexpr q_m = "__Q_M";
+            constexpr q_l = "__Q_L";
+            constexpr q_r = "__Q_R";
+            constexpr q_o = "__Q_O";
+            constexpr q_c = "__Q_C";
+            constexpr sigma_1 = "__SIGMA_1";
+            constexpr sigma_2 = "__SIGMA_2";
+            constexpr sigma_3 = "__SIGMA_3";
+            constexpr id_1 = "__ID_1";
+            constexpr id_2 = "__ID_2";
+            constexpr id_3 = "__ID_3";
+            constexpr lagrange_first = "__LAGRANGE_FIRST";
+            constexpr lagrange_last = "__LAGRANGE_LAST";
         };
     };
 
