@@ -1,5 +1,5 @@
 #include "ecdsa.hpp"
-#include <ecc/curves/secp256k1/secp256k1.hpp>
+#include <barretenberg/ecc/curves/secp256k1/secp256k1.hpp>
 
 #define WASM_EXPORT __attribute__((visibility("default")))
 
