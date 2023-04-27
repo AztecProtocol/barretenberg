@@ -50,7 +50,7 @@ void construct_selector_polynomials(const typename Flavor::CircuitConstructor& c
 {
     const size_t num_public_inputs = circuit_constructor.public_inputs.size();
     // TODO(Cody): Loose coupling here! Would rather build up pk from arithmetizaiton
-    size_t selector_idx = 0; // TODO(#391) zip
+    size_t selector_idx = 0; // ZIPTODO
     for (auto& selector_values : circuit_constructor.selectors) {
         ASSERT(proving_key->circuit_size >= selector_values.size());
 
@@ -135,7 +135,7 @@ std::vector<barretenberg::polynomial> construct_wire_polynomials_base(
     std::vector<barretenberg::polynomial> wire_polynomials;
     // Note: randomness is added to 3 of the last 4 positions in plonk/proof_system/prover/prover.cpp
     // StandardProverBase::execute_preamble_round().
-    size_t wire_idx = 0; // TODO(#391) zip
+    size_t wire_idx = 0; // ZIPTODO
     for (auto& wire : circuit_constructor.wires) {
         // Initialize the polynomial with all the actual copies variable values
         // Expect all values to be set to 0 initially

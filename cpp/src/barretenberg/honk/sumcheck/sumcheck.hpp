@@ -31,7 +31,7 @@ template <typename Flavor, class Transcript, template <class> class... Relations
     Transcript& transcript;
     const size_t multivariate_n;
     const size_t multivariate_d;
-    SumcheckRound<Flavor, NUM_POLYNOMIALS, Relations...> round; // WORKTODO: NUM is in flavor??
+    SumcheckRound<Flavor, Relations...> round;
 
     /**
     *

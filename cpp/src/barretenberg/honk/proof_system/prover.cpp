@@ -56,7 +56,7 @@ StandardProver_<Flavor>::StandardProver_(const std::shared_ptr<ProvingKey> input
  * */
 template <StandardFlavor Flavor> void StandardProver_<Flavor>::compute_wire_commitments()
 {
-    size_t wire_idx = 0; // TODO(#391) zip
+    size_t wire_idx = 0; // ZIPTODO
     auto wire_polys = key->get_wires();
     for (auto& label : commitment_labels.get_wires()) {
         queue.add_commitment(wire_polys[wire_idx], label);
@@ -163,7 +163,7 @@ template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_univariat
 
     // Batch the unshifted polynomials and the to-be-shifted polynomials using ρ
     Polynomial batched_poly_unshifted(key->circuit_size); // batched unshifted polynomials
-    size_t poly_idx = 0;                                  // TODO(#391) zip
+    size_t poly_idx = 0;                                  // ZIPTODO
     for (auto& unshifted_poly : prover_polynomials.get_unshifted()) {
         batched_poly_unshifted.add_scaled(unshifted_poly, rhos[poly_idx]);
         poly_idx++;

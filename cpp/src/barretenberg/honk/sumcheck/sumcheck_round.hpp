@@ -49,9 +49,11 @@ namespace proof_system::honk::sumcheck {
  Note: This class uses recursive function calls with template parameters. This is a common trick that is used to force
  the compiler to unroll loops. The idea is that a function that is only called once will always be inlined, and since
  template functions always create different functions, this is guaranteed.
+
+ @todo TODO(#390): Template only on Flavor? Is it useful to have these decoupled?
  */
 
-template <typename Flavor, size_t num_multivariates, template <class> class... Relations> class SumcheckRound {
+template <typename Flavor, template <class> class... Relations> class SumcheckRound {
 
   public:
     using FF = typename Flavor::FF;
@@ -151,7 +153,7 @@ template <typename Flavor, size_t num_multivariates, template <class> class... R
      */
     void extend_edges(auto& multivariates, size_t edge_idx) // WORKTODO: auto can now be ProverPolynomials?
     {
-        size_t univariate_idx = 0; // TODO(#391) zip
+        size_t univariate_idx = 0; // ZIPTODO
         for (auto& poly : multivariates) {
             auto edge = Univariate<FF, 2>({ poly[edge_idx], poly[edge_idx + 1] });
             extended_edges[univariate_idx] = barycentric_2_to_max.extend(edge);
