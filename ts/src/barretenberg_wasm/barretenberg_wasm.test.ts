@@ -10,12 +10,12 @@ function debug(message: string) {
 describe('barretenberg wasm', () => {
   let wasm!: BarretenbergWasm;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     wasm = await BarretenbergWasm.new();
     wasm.on('log', debug);
   });
 
-  afterEach(async () => {
+  afterAll(async () => {
     await wasm.destroy();
   });
 
@@ -31,5 +31,9 @@ describe('barretenberg wasm', () => {
 
   it('should thread test', () => {
     wasm.call('thread_test');
+  });
+
+  it('async call test', () => {
+    wasm.call('condvar_test');
   });
 });

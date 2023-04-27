@@ -40,6 +40,8 @@ async function start({ module, memory }: any) {
   barretenbergWasm.on('log', debug);
   await barretenbergWasm.initThread(module, memory);
   debug(`worker ${threadId} started.`);
+  // Signal ready.
+  parentPort?.postMessage(threadId);
 }
 
 function runThread({ id, arg }: any) {

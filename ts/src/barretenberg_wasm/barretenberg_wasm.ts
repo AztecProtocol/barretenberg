@@ -73,16 +73,26 @@ export class BarretenbergWasm extends EventEmitter {
 
     // this.asyncCallState.init(this.memory, this.call.bind(this), this.debug.bind(this));
 
-    // Create worker threads.
-    this.threads = Array.from({ length: threads }).map(() => {
-      // this.debug(`creating worker ${i}`);
-      const __dirname = dirname(fileURLToPath(import.meta.url));
-      const worker = new Worker(__dirname + `/node/barretenberg_thread.ts`);
-      worker.on('message', msg => this.debug(msg));
-      // worker.on('exit', () => this.debug(`worker ${i} exited!`));
-      worker.postMessage({ msg: 'start', data: { module, memory: this.memory } });
-      return worker;
-    });
+    // Create worker threads. Returns once all workers have signalled they're ready.
+    this.threads = await Promise.all(
+      Array.from({ length: threads }).map(() => {
+        return new Promise<Worker>(resolve => {
+          // this.debug(`creating worker ${i}`);
+          const __dirname = dirname(fileURLToPath(import.meta.url));
+          const worker = new Worker(__dirname + `/node/barretenberg_thread.ts`);
+          worker.on('message', msg => {
+            if (typeof msg === 'number') {
+              // Worker is ready.
+              resolve(worker);
+              return;
+            }
+            this.debug(msg);
+          });
+          // worker.on('exit', () => this.debug(`worker ${i} exited!`));
+          worker.postMessage({ msg: 'start', data: { module, memory: this.memory } });
+        });
+      }),
+    );
   }
 
   /**
@@ -92,6 +102,8 @@ export class BarretenbergWasm extends EventEmitter {
     this.memory = memory;
     this.heap = new Uint8Array(this.memory.buffer);
     this.instance = await WebAssembly.instantiate(module, this.getImportObj(this.memory));
+
+    // this.asyncCallState.init(this.memory, this.call.bind(this), this.debug.bind(this));
   }
 
   /**
@@ -173,6 +185,15 @@ export class BarretenbergWasm extends EventEmitter {
           this.memStore[key] = this.getMemorySlice(dataAddr, dataAddr + dataLength);
           this.debug(`set_data: ${key} length: ${dataLength} hash: ${sha256(this.memStore[key])}`);
         },
+
+        my_async_func: (acAddr: number) => {
+          this.debug('my_async_func entry');
+          setTimeout(() => {
+            this.debug('my_async_func notifying');
+            this.call('async_complete', acAddr);
+          }, 2000);
+        },
+
         /**
          * Read the data associated with the key located at keyAddr.
          * Malloc data within the WASM, copy the data into the WASM, and return the address to the caller.
