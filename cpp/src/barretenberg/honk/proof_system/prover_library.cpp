@@ -209,12 +209,9 @@ typename Flavor::Polynomial compute_lookup_grand_product(std::shared_ptr<typenam
     std::span<const FF> column_2_step_size = key->q_m;
     std::span<const FF> column_3_step_size = key->q_c;
 
-    // WORKTODO: is this a bit ugly? what should we do here
-    // Utilize three wires even when more are available.
-    std::array<std::span<const FF>, 3> wires;
-    for (size_t i = 0; i < 3; ++i) {
-        wires[i] = key->get_wires()[i];
-    }
+    // We utilize three wires even when more are available.
+    // TODO(#389): const correctness
+    std::array<std::span<FF>, 3> wires = key->get_plookup_read_wires();
 
     // Note: the number of table polys is related to program width but '4' is the only value supported
     std::array<std::span<const FF>, 4> tables{

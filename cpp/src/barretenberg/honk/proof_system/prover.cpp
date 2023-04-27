@@ -33,15 +33,12 @@ namespace proof_system::honk {
  *
  * @tparam settings Settings class.
  * */
-// TODO(Cody): both input types are foo& in prototype
-// WORKTODO(luke): remove all trace of wire_poly(nomial)s here
 template <typename Flavor>
 Prover<Flavor>::Prover(const std::shared_ptr<ProvingKey> input_key)
     : key(input_key)
     , queue(input_key->circuit_size, transcript)
 {
-    // Note(luke): This could be done programmatically with some hacks but this isnt too bad and its nice to see the
-    // polys laid out explicitly.
+
     prover_polynomials.q_c = key->q_c;
     prover_polynomials.q_l = key->q_l;
     prover_polynomials.q_r = key->q_r;
@@ -55,7 +52,6 @@ Prover<Flavor>::Prover(const std::shared_ptr<ProvingKey> input_key)
     prover_polynomials.id_3 = key->id_3;
     prover_polynomials.lagrange_first = key->lagrange_first;
     prover_polynomials.lagrange_last = key->lagrange_last;
-    // WORKTODO: loose coupling here. Also: unique pointers?
     prover_polynomials.w_l = key->w_l;
     prover_polynomials.w_r = key->w_r;
     prover_polynomials.w_o = key->w_o;
@@ -173,8 +169,7 @@ template <typename Flavor> void Prover<Flavor>::execute_relation_check_rounds()
  * */
 template <typename Flavor> void Prover<Flavor>::execute_univariatization_round()
 {
-    // WORKTODO: make static
-    const size_t NUM_POLYNOMIALS = prover_polynomials.size();
+    const size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
 
     // Generate batching challenge ρ and powers 1,ρ,…,ρᵐ⁻¹
     FF rho = transcript.get_challenge("rho");
