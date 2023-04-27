@@ -1,27 +1,12 @@
 #include "prover.hpp"
-#include <algorithm>
-#include <cstddef>
 #include "barretenberg/honk/proof_system/prover_library.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck.hpp"
-#include <array>
-#include "barretenberg/honk/sumcheck/polynomials/univariate.hpp" // will go away
 #include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/honk/utils/power_polynomial.hpp"
-#include "barretenberg/honk/pcs/commitment_key.hpp"
-#include <memory>
-#include <span>
-#include <utility>
-#include <vector>
-#include "barretenberg/ecc/curves/bn254/fr.hpp"
-#include "barretenberg/ecc/curves/bn254/g1.hpp"
 #include "barretenberg/honk/sumcheck/relations/arithmetic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
-#include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
-#include "barretenberg/transcript/transcript_wrappers.hpp"
-#include <string>
-#include "barretenberg/honk/pcs/claim.hpp"
 
 namespace proof_system::honk {
 
@@ -33,8 +18,8 @@ namespace proof_system::honk {
  *
  * @tparam settings Settings class.
  * */
-template <typename Flavor>
-Prover<Flavor>::Prover(const std::shared_ptr<ProvingKey> input_key)
+template <StandardFlavor Flavor>
+StandardProver_<Flavor>::StandardProver_(const std::shared_ptr<ProvingKey> input_key)
     : key(input_key)
     , queue(input_key->circuit_size, transcript)
 {
@@ -69,7 +54,7 @@ Prover<Flavor>::Prover(const std::shared_ptr<ProvingKey> input_key)
  * - Add PI to transcript (I guess PI will stay in w_2 for now?)
  *
  * */
-template <typename Flavor> void Prover<Flavor>::compute_wire_commitments()
+template <StandardFlavor Flavor> void StandardProver_<Flavor>::compute_wire_commitments()
 {
     size_t wire_idx = 0; // ZIPTODO
     auto wire_polys = key->get_wires();
@@ -83,7 +68,7 @@ template <typename Flavor> void Prover<Flavor>::compute_wire_commitments()
  * - Add circuit size, public input size, and public inputs to transcript
  *
  * */
-template <typename Flavor> void Prover<Flavor>::execute_preamble_round()
+template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_preamble_round()
 {
     const auto circuit_size = static_cast<uint32_t>(key->circuit_size);
     const auto num_public_inputs = static_cast<uint32_t>(key->num_public_inputs);
@@ -100,7 +85,7 @@ template <typename Flavor> void Prover<Flavor>::execute_preamble_round()
 /**
  * - compute wire commitments
  * */
-template <typename Flavor> void Prover<Flavor>::execute_wire_commitments_round()
+template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_wire_commitments_round()
 {
     compute_wire_commitments();
 }
@@ -108,7 +93,7 @@ template <typename Flavor> void Prover<Flavor>::execute_wire_commitments_round()
 /**
  * For Standard Honk, this is a non-op (just like for Standard/Turbo Plonk).
  * */
-template <typename Flavor> void Prover<Flavor>::execute_tables_round()
+template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_tables_round()
 {
     // No operations are needed here for Standard Honk
 }
@@ -117,7 +102,7 @@ template <typename Flavor> void Prover<Flavor>::execute_tables_round()
  * - Do Fiat-Shamir to get "beta" challenge (Note: gamma = beta^2)
  * - Compute grand product polynomial (permutation only) and commitment
  * */
-template <typename Flavor> void Prover<Flavor>::execute_grand_product_computation_round()
+template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_grand_product_computation_round()
 {
     // Compute and store parameters required by relations in Sumcheck
     auto [beta, gamma] = transcript.get_challenges("beta", "gamma");
@@ -146,7 +131,7 @@ template <typename Flavor> void Prover<Flavor>::execute_grand_product_computatio
  * - Run Sumcheck resulting in u = (u_1,...,u_d) challenges and all
  *   evaluations at u being calculated.
  * */
-template <typename Flavor> void Prover<Flavor>::execute_relation_check_rounds()
+template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_relation_check_rounds()
 {
     using Sumcheck = sumcheck::Sumcheck<Flavor,
                                         ProverTranscript<FF>,
@@ -167,7 +152,7 @@ template <typename Flavor> void Prover<Flavor>::execute_relation_check_rounds()
  * - Compute d+1 Fold polynomials and their evaluations.
  *
  * */
-template <typename Flavor> void Prover<Flavor>::execute_univariatization_round()
+template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_univariatization_round()
 {
     const size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
 
@@ -206,7 +191,7 @@ template <typename Flavor> void Prover<Flavor>::execute_univariatization_round()
  * - Compute and aggregate opening pairs (challenge, evaluation) for each of d Fold polynomials.
  * - Add d-many Fold evaluations a_i, i = 0, ..., d-1 to the transcript, excluding eval of Fold_{r}^(0)
  * */
-template <typename Flavor> void Prover<Flavor>::execute_pcs_evaluation_round()
+template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_pcs_evaluation_round()
 {
     const FF r_challenge = transcript.get_challenge("Gemini:r");
     info("r = ", r_challenge);
@@ -224,7 +209,7 @@ template <typename Flavor> void Prover<Flavor>::execute_pcs_evaluation_round()
  * - Do Fiat-Shamir to get "nu" challenge.
  * - Compute commitment [Q]_1
  * */
-template <typename Flavor> void Prover<Flavor>::execute_shplonk_batched_quotient_round()
+template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_shplonk_batched_quotient_round()
 {
     nu_challenge = transcript.get_challenge("Shplonk:nu");
     info("nu = ", nu_challenge);
@@ -240,7 +225,7 @@ template <typename Flavor> void Prover<Flavor>::execute_shplonk_batched_quotient
  * - Do Fiat-Shamir to get "z" challenge.
  * - Compute polynomial Q(X) - Q_z(X)
  * */
-template <typename Flavor> void Prover<Flavor>::execute_shplonk_partial_evaluation_round()
+template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_shplonk_partial_evaluation_round()
 {
     const FF z_challenge = transcript.get_challenge("Shplonk:z");
     info("z = ", z_challenge);
@@ -252,19 +237,19 @@ template <typename Flavor> void Prover<Flavor>::execute_shplonk_partial_evaluati
  * - Compute KZG quotient commitment [W]_1.
  *
  * */
-template <typename Flavor> void Prover<Flavor>::execute_kzg_round()
+template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_kzg_round()
 {
     quotient_W = KZG::compute_opening_proof_polynomial(shplonk_output.opening_pair, shplonk_output.witness);
     queue.add_commitment(quotient_W, "KZG:W");
 }
 
-template <typename Flavor> plonk::proof& Prover<Flavor>::export_proof()
+template <StandardFlavor Flavor> plonk::proof& StandardProver_<Flavor>::export_proof()
 {
     proof.proof_data = transcript.proof_data;
     return proof;
 }
 
-template <typename Flavor> plonk::proof& Prover<Flavor>::construct_proof()
+template <StandardFlavor Flavor> plonk::proof& StandardProver_<Flavor>::construct_proof()
 {
     // Add circuit size and public input size to transcript.
     execute_preamble_round();
@@ -314,6 +299,6 @@ template <typename Flavor> plonk::proof& Prover<Flavor>::construct_proof()
     return export_proof();
 }
 
-template class Prover<flavor::Standard>;
+template class StandardProver_<flavor::Standard>;
 
 } // namespace proof_system::honk

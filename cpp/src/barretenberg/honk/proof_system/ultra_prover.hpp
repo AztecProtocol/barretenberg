@@ -1,36 +1,15 @@
 #pragma once
-#include "barretenberg/ecc/curves/bn254/fr.hpp"
-#include "barretenberg/honk/pcs/shplonk/shplonk.hpp"
-#include "barretenberg/polynomials/polynomial.hpp"
-#include <array>
-#include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
-#include "barretenberg/honk/pcs/commitment_key.hpp"
+#include "barretenberg/honk/proof_system/work_queue.hpp"
 #include "barretenberg/plonk/proof_system/types/proof.hpp"
-#include "barretenberg/plonk/proof_system/types/program_settings.hpp"
-#include "barretenberg/honk/pcs/gemini/gemini.hpp"
-#include "barretenberg/honk/pcs/shplonk/shplonk_single.hpp"
-#include "barretenberg/honk/pcs/kzg/kzg.hpp"
 #include "barretenberg/honk/transcript/transcript.hpp"
-#include "barretenberg/honk/sumcheck/sumcheck.hpp"
-#include "barretenberg/honk/sumcheck/sumcheck_output.hpp"
-#include <span>
-#include <unordered_map>
-#include <vector>
-#include <algorithm>
-#include <cstddef>
-#include <memory>
-#include <utility>
-#include <string>
-#include "barretenberg/honk/pcs/claim.hpp"
-#include "barretenberg/honk/proof_system/prover_library.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 
 namespace proof_system::honk {
 
-// TODO(luke): The naming here is awkward. The Standard Honk prover is called "Prover" and aliased as StandardProver. To
-// be consistent with that convention outside of the prover class itself, I've called this class UltraHonkProver and use
-// the alias UltraProver externally. Resolve.
-template <typename Flavor> class UltraHonkProver {
+// We won't compile this class with honk::flavor::Ultra, but we will like want to compile it (at least for testing)
+// with a flavor that uses the curve Grumpkin, or a flavor that does/does not have zk, etc.
+template <typename T> concept UltraFlavor = IsAnyOf<T, honk::flavor::Ultra>;
+template <UltraFlavor Flavor> class UltraProver_ {
 
     using FF = typename Flavor::FF;
     using PCSParams = typename Flavor::PCSParams;
@@ -38,14 +17,14 @@ template <typename Flavor> class UltraHonkProver {
     using Polynomial = typename Flavor::Polynomial;
 
   public:
-    UltraHonkProver(std::shared_ptr<ProvingKey> input_key = nullptr);
+    UltraProver_(std::shared_ptr<ProvingKey> input_key = nullptr);
 
     plonk::proof& export_proof();
     plonk::proof& construct_proof();
 
     ProverTranscript<FF> transcript;
 
-    std::shared_ptr<ProvingKey> key; // WORKTODO: rename to proving_key
+    std::shared_ptr<ProvingKey> key;
 
     work_queue<pcs::kzg::Params> queue;
 
@@ -53,8 +32,8 @@ template <typename Flavor> class UltraHonkProver {
     plonk::proof proof;
 };
 
-extern template class UltraHonkProver<honk::flavor::Ultra>;
+extern template class UltraProver_<honk::flavor::Ultra>;
 
-using UltraProver = UltraHonkProver<honk::flavor::Ultra>;
+using UltraProver = UltraProver_<honk::flavor::Ultra>;
 
 } // namespace proof_system::honk

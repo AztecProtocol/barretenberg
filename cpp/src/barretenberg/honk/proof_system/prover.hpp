@@ -1,34 +1,23 @@
 #pragma once
-#include <array>
-#include <span>
-#include <unordered_map>
-#include <vector>
-#include <algorithm>
-#include <cstddef>
-#include <memory>
-#include <utility>
-#include <string>
-#include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/honk/pcs/shplonk/shplonk.hpp"
-#include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
-#include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/plonk/proof_system/types/proof.hpp"
-#include "barretenberg/plonk/proof_system/types/program_settings.hpp"
 #include "barretenberg/honk/pcs/gemini/gemini.hpp"
 #include "barretenberg/honk/pcs/shplonk/shplonk_single.hpp"
 #include "barretenberg/honk/pcs/kzg/kzg.hpp"
 #include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck_output.hpp"
-#include "barretenberg/honk/pcs/claim.hpp"
 #include "barretenberg/honk/proof_system/prover_library.hpp"
 #include "barretenberg/honk/proof_system/work_queue.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 
 namespace proof_system::honk {
 
-template <typename Flavor> class Prover { // WORKTODO: Rename to StandardProver or stop templating
+// We won't compile this class with honk::flavor::Ultra, but we will like want to compile it (at least for testing)
+// with a flavor that uses the curve Grumpkin, or a flavor that does/does not have zk, etc.
+template <typename T> concept StandardFlavor = IsAnyOf<T, honk::flavor::Standard>;
+
+template <StandardFlavor Flavor> class StandardProver_ {
 
     using FF = typename Flavor::FF;
     using PCSParams = typename Flavor::PCSParams;
@@ -38,7 +27,7 @@ template <typename Flavor> class Prover { // WORKTODO: Rename to StandardProver 
     using CommitmentLabels = typename Flavor::CommitmentLabels;
 
   public:
-    explicit Prover(std::shared_ptr<ProvingKey> input_key = nullptr);
+    explicit StandardProver_(std::shared_ptr<ProvingKey> input_key = nullptr);
 
     void execute_preamble_round();
     void execute_wire_commitments_round();
@@ -96,8 +85,9 @@ template <typename Flavor> class Prover { // WORKTODO: Rename to StandardProver 
     plonk::proof proof;
 };
 
-extern template class Prover<honk::flavor::Standard>;
+extern template class StandardProver_<honk::flavor::Standard>;
 
-using StandardProver = Prover<honk::flavor::Standard>;
+using StandardProver = StandardProver_<honk::flavor::Standard>;
+// using GrumpkinStandardProver = StandardProver_<honk::flavor::StandardGrumpkin>; // e.g.
 
 } // namespace proof_system::honk
