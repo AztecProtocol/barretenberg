@@ -1,8 +1,11 @@
 name: solidity-verifier-test
 
 on:
-  - workflow_dispatch
-  - push
+  workflow_dispatch:
+  push:
+      paths:
+      - 'cpp/**'
+      - 'sol/**'
 
 env:
   FOUNDRY_PROFILE: ci
