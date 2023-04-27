@@ -453,6 +453,9 @@ class Ultra {
         };
 
         std::vector<PolynomialView> get_wires() { return _witness_data.get_wires(); };
+        // The plookup wires that store plookup read data.
+        std::array<PolynomialView, 3> get_plookup_read_wires() { return { w_l, w_r, w_o }; };
+        // The sorted concatenations of table and witness data needed for plookup.
         std::vector<PolynomialView> get_sorted_polynomials() { return _witness_data.get_sorted_polynomials(); };
     };
 
@@ -509,7 +512,6 @@ class Ultra {
         T& z_lookup_shift = std::get<46>(this->_data);
 
         std::vector<T> get_wires() { return { w_l, w_r, w_o, w_4 }; };
-
         std::vector<T> get_unshifted() override
         {
             return { q_c,           q_l,    q_r,      q_o,     q_4,     q_m,      q_arith,  q_sort,
@@ -520,7 +522,6 @@ class Ultra {
 
             };
         };
-
         std::vector<T> get_to_be_shifted() override { return { w_l, w_4, z_perm, z_lookup }; };
         std::vector<T> get_shifted() override { return { w_l_shift, w_4_shift, z_perm_shift, z_lookup_shift }; };
 
