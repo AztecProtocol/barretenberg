@@ -286,25 +286,25 @@ class Standard {
 
         CommitmentLabels()
         {
-            constexpr w_l = "W_1";
-            constexpr w_r = "W_2";
-            constexpr w_o = "W_3";
-            const z_perm = "Z_PERM";
+            w_l = "W_1";
+            w_r = "W_2";
+            w_o = "W_3";
+            z_perm = "Z_PERM";
             // The ones beginning with "__" are only used for debugging
-            constexpr z_perm_shift = "__Z_PERM_SHIFT";
-            constexpr q_m = "__Q_M";
-            constexpr q_l = "__Q_L";
-            constexpr q_r = "__Q_R";
-            constexpr q_o = "__Q_O";
-            constexpr q_c = "__Q_C";
-            constexpr sigma_1 = "__SIGMA_1";
-            constexpr sigma_2 = "__SIGMA_2";
-            constexpr sigma_3 = "__SIGMA_3";
-            constexpr id_1 = "__ID_1";
-            constexpr id_2 = "__ID_2";
-            constexpr id_3 = "__ID_3";
-            constexpr lagrange_first = "__LAGRANGE_FIRST";
-            constexpr lagrange_last = "__LAGRANGE_LAST";
+            z_perm_shift = "__Z_PERM_SHIFT";
+            q_m = "__Q_M";
+            q_l = "__Q_L";
+            q_r = "__Q_R";
+            q_o = "__Q_O";
+            q_c = "__Q_C";
+            sigma_1 = "__SIGMA_1";
+            sigma_2 = "__SIGMA_2";
+            sigma_3 = "__SIGMA_3";
+            id_1 = "__ID_1";
+            id_2 = "__ID_2";
+            id_3 = "__ID_3";
+            lagrange_first = "__LAGRANGE_FIRST";
+            lagrange_last = "__LAGRANGE_LAST";
         };
     };
 
@@ -573,11 +573,58 @@ class Ultra {
         // note: we could consider "enriching" the transcript interface to not use
         // strings in the future, but I leave it this way for simplicity
 
-        // WORKTODO: stick with these names from before?
-        std::string w_l = "W_1";
-        std::string w_r = "W_2";
-        std::string w_o = "W_3";
-        std::string z_perm = "Z_PERM";
+        CommitmentLabels()
+        {
+            w_l = "W_L";
+            w_r = "W_R";
+            w_o = "W_O";
+            w_4 = "W_4";
+            z_perm = "Z_PERM";
+            z_lookup = "Z_LOOKUP";
+
+            // The ones beginning with "__" are only used for debugging
+            q_c = "__Q_C";
+            q_l = "__Q_L";
+            q_r = "__Q_R";
+            q_o = "__Q_O";
+            q_4 = "__Q_4";
+            q_m = "__Q_M";
+            q_arith = "__Q_ARITH";
+            q_sort = "__Q_SORT";
+            q_elliptic = "__Q_ELLIPTIC";
+            q_aux = "__Q_AUX";
+            q_lookup = "__Q_LOOKUP";
+            sigma_1 = "__SIGMA_1";
+            sigma_2 = "__SIGMA_2";
+            sigma_3 = "__SIGMA_3";
+            sigma_4 = "__SIGMA_4";
+            id_1 = "__ID_1";
+            id_2 = "__ID_2";
+            id_3 = "__ID_3";
+            id_4 = "__ID_4";
+            table_1 = "__TABLE_1";
+            table_2 = "__TABLE_2";
+            table_3 = "__TABLE_3";
+            table_4 = "__TABLE_4";
+            lagrange_first = "__LAGRANGE_FIRST";
+            lagrange_last = "__LAGRANGE_LAST";
+            sorted_1 = "__SORTED_1";
+            sorted_2 = "__SORTED_2";
+            sorted_3 = "__SORTED_3";
+            sorted_4 = "__SORTED_4";
+            sorted_accum = "__SORTED_ACCUM";
+            table_1_shift = "__TABLE_1_SHIFT";
+            table_2_shift = "__TABLE_2_SHIFT";
+            table_3_shift = "__TABLE_3_SHIFT";
+            table_4_shift = "__TABLE_4_SHIFT";
+            w_l_shift = "__W_L_SHIFT";
+            w_r_shift = "__W_R_SHIFT";
+            w_o_shift = "__W_O_SHIFT";
+            w_4_shift = "__W_4_SHIFT";
+            sorted_accum_shift = "__SORTED_ACCUM_SHIFT";
+            z_perm_shift = "__Z_PERM_SHIFT";
+            z_lookup_shift = "__Z_LOOKUP_SHIFT";
+        };
     };
 };
 
