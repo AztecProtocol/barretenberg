@@ -149,9 +149,10 @@ template <typename Flavor, template <class> class... Relations> class SumcheckRo
      * entry of relation_evals.
      *
      * @details Should only be called externally with relation_idx equal to 0.
+     * In practice, multivariates is one of ProverPolynomials or FoldedPolynomials.
      *
      */
-    void extend_edges(auto& multivariates, size_t edge_idx) // WORKTODO: auto can now be ProverPolynomials?
+    void extend_edges(auto& multivariates, size_t edge_idx)
     {
         size_t univariate_idx = 0; // ZIPTODO
         for (auto& poly : multivariates) {
