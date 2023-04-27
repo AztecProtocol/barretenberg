@@ -16,7 +16,6 @@
 #include "barretenberg/proof_system/circuit_constructors/turbo_circuit_constructor.hpp"
 #include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
 #include "barretenberg/srs/reference_string/reference_string.hpp"
-#include "barretenberg/proof_system/polynomial_store/polynomial_store.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 
 // WORKTODO: Names of these classes

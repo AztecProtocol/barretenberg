@@ -35,7 +35,7 @@ class UltraRelationConsistency : public testing::Test {
     using FF = typename Flavor::FF;
     using PurportedEvaluations = typename Flavor::PurportedEvaluations;
 
-    // WORKTODO: Move MAX_RELATION_LENGTH into Flavor and simplicy this code
+    // TODO(#390): Move MAX_RELATION_LENGTH into Flavor and simplify this.
     template <size_t t> using ExtendedEdges = typename Flavor::template ExtendedEdges<t>;
 
     // TODO(#225)(Adrian): Accept FULL_RELATION_LENGTH as a template parameter for this function only, so that the test

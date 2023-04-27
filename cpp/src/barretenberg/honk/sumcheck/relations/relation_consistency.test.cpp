@@ -34,9 +34,7 @@ class StandardRelationConsistency : public testing::Test {
     using Flavor = honk::flavor::Standard;
     using FF = typename Flavor::FF;
     using PurportedEvaluations = typename Flavor::PurportedEvaluations;
-    // template <size_t t> using Univariate = Univariate<FF, t>;
-    // template <size_t t> using UnivariateView = UnivariateView<FF, t>;
-    // WORKTODO: Move MAX_RELATION_LENGTH into Flavor and simplicy this code
+    // TODO(#390): Move MAX_RELATION_LENGTH into Flavor and simplify this.
 
     template <size_t t> using ExtendedEdges = typename Flavor::template ExtendedEdges<t>;
 
