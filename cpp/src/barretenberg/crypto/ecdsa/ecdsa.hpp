@@ -35,7 +35,7 @@ inline bool operator==(signature const& lhs, signature const& rhs)
 
 inline std::ostream& operator<<(std::ostream& os, signature const& sig)
 {
-    os << "{ " << sig.r << ", " << sig.s << ", " << sig.v << " }";
+    os << "{ " << sig.r << ", " << sig.s << ", " << static_cast<uint32_t>(sig.v) << " }";
     return os;
 }
 
