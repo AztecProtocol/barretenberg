@@ -8,15 +8,12 @@
 namespace proof_system::honk::prover_library {
 
 template <typename Flavor>
-typename Flavor::Polynomial compute_permutation_grand_product(
-    std::shared_ptr<typename Flavor::ProvingKey>& key,
-    std::vector<typename Flavor::Polynomial>& wire_polynomials,
-    typename Flavor::FF beta,
-    typename Flavor::FF gamma);
+typename Flavor::Polynomial compute_permutation_grand_product(std::shared_ptr<typename Flavor::ProvingKey>& key,
+                                                              typename Flavor::FF beta,
+                                                              typename Flavor::FF gamma);
 
 template <typename Flavor>
 typename Flavor::Polynomial compute_lookup_grand_product(std::shared_ptr<typename Flavor::ProvingKey>& key,
-                                                         std::vector<typename Flavor::Polynomial>& wire_polynomials,
                                                          typename Flavor::Polynomial& sorted_list_accumulator,
                                                          typename Flavor::FF eta,
                                                          typename Flavor::FF beta,

@@ -84,10 +84,10 @@ void verify_consistency(honk::UltraProver& honk_prover, plonk::UltraProver& plon
 
     // Check that all wires agree
     // Note: for Honk, wires are owned directly by the prover. For Plonk they are stored in the key.
-    for (size_t i = 0; i < 4; ++i) {
-        std::string label = "w_" + std::to_string(i + 1) + "_lagrange";
-        ASSERT_EQ(honk_prover.wire_polynomials[i], plonk_prover.key->polynomial_store.get(label));
-    }
+    ASSERT_EQ(honk_prover.key->w_l, plonk_prover.key->polynomial_store.get("w_1_lagrange"));
+    ASSERT_EQ(honk_prover.key->w_r, plonk_prover.key->polynomial_store.get("w_2_lagrange"));
+    ASSERT_EQ(honk_prover.key->w_o, plonk_prover.key->polynomial_store.get("w_3_lagrange"));
+    ASSERT_EQ(honk_prover.key->w_4, plonk_prover.key->polynomial_store.get("w_4_lagrange"));
 }
 
 // /**

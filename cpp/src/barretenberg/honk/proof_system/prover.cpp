@@ -36,9 +36,8 @@ namespace proof_system::honk {
 // TODO(Cody): both input types are foo& in prototype
 // WORKTODO(luke): remove all trace of wire_poly(nomial)s here
 template <typename Flavor>
-Prover<Flavor>::Prover(std::vector<Polynomial>&& wire_polys, const std::shared_ptr<ProvingKey> input_key)
-    : wire_polynomials(wire_polys)
-    , key(input_key)
+Prover<Flavor>::Prover(const std::shared_ptr<ProvingKey> input_key)
+    : key(input_key)
     , queue(input_key->circuit_size, transcript)
 {
     // Note(luke): This could be done programmatically with some hacks but this isnt too bad and its nice to see the
@@ -138,18 +137,7 @@ template <typename Flavor> void Prover<Flavor>::execute_grand_product_computatio
         .public_input_delta = public_input_delta,
     };
 
-    // WORKTODO(luke): I'm constructing a vector of Polynomials here to pass to compute_permutation_grand_product but
-    // eventually compute_permutation_grand_product will just extract them directly from the key. Just dont want to
-    // break other tests for now.
-    std::vector<Polynomial> wire_polys;
-    for (auto wire : key->get_wires()) {
-        wire_polys.emplace_back(key->circuit_size);
-        for (size_t i = 0; i < key->circuit_size; ++i) {
-            wire_polys.back()[i] = wire[i];
-        }
-    }
-
-    key->z_perm = prover_library::compute_permutation_grand_product<Flavor>(key, wire_polys, beta, gamma);
+    key->z_perm = prover_library::compute_permutation_grand_product<Flavor>(key, beta, gamma);
 
     queue.add_commitment(key->z_perm, commitment_labels.z_perm);
 

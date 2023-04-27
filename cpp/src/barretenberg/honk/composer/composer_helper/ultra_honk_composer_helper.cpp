@@ -54,13 +54,19 @@ void UltraHonkComposerHelper::compute_witness(CircuitConstructor& circuit_constr
     // but elsewhere, e.g. directly above, we use NUM_RESERVED_GATES in a similar role. Therefore, these two constants
     // must be equal for everything to be consistent. What we should do is compute the dyadic circuit size once and for
     // all then pass that around rather than computing in multiple places.
-    wire_polynomials =
+    auto wire_polynomials =
         construct_wire_polynomials_base<Flavor>(circuit_constructor, total_num_gates, NUM_RANDOMIZED_GATES);
+
+    circuit_proving_key->w_l = wire_polynomials[0];
+    circuit_proving_key->w_r = wire_polynomials[1];
+    circuit_proving_key->w_o = wire_polynomials[2];
+    circuit_proving_key->w_4 = wire_polynomials[3];
 
     polynomial s_1(subgroup_size);
     polynomial s_2(subgroup_size);
     polynomial s_3(subgroup_size);
     polynomial s_4(subgroup_size);
+    // TODO(luke): The +1 size for z_lookup is not necessary and can lead to confusion. Resolve.
     polynomial z_lookup(subgroup_size + 1); // Only instantiated in this function; nothing assigned.
 
     // Save space for adding random scalars in the s polynomial later. The subtracted 1 allows us to insert a `1` at the
@@ -148,7 +154,7 @@ UltraProver UltraHonkComposerHelper::create_prover(CircuitConstructor& circuit_c
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
 
-    UltraProver output_state(std::move(wire_polynomials), circuit_proving_key);
+    UltraProver output_state(circuit_proving_key);
 
     return output_state;
 }

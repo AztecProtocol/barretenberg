@@ -140,50 +140,40 @@ class Standard {
         virtual ~PrecomputedData() = default;
     };
 
-    // TODO(luke): this is a WiP
+    // Container for all witness polynomials used/constructed by the prover.
+    // Note: shifts are not included here since they do not occupy their own memory
     template <typename T, typename TView> class WitnessData : public Data<T, TView, NUM_WITNESS_ENTITIES> {
       public:
         T& w_l = std::get<0>(this->_data);
         T& w_r = std::get<1>(this->_data);
         T& w_o = std::get<2>(this->_data);
         T& z_perm = std::get<3>(this->_data);
-        // WORKTODO(luke): shifts are awkward because, in the case of polynomials, shifts do not occupy their own
-        // memory, whereas the other witnesses do. Maybe shifts simply arent needed here. T& z_perm_shift =
-        // std::get<3>(this->_data);
 
         std::vector<TView> get_wires() { return { w_l, w_r, w_o }; };
 
         virtual ~WitnessData() = default;
     };
 
-    // WORKTODO(luke): WiP 'Prover Data' concept which is like the Plonk proving key; i.e. precomputed stuff plus
-    // storage for all witness polys
+    // WORKTODO(luke): Proving key now stores all multivariate polynomials used by the prover. Is Pkey still the right
+    // name?
     class ProvingKey : public BaseProvingKey<PrecomputedData<Polynomial, PolynomialView>, FF> {
       public:
-        // Storage for both precomputed polynomials and all witness polynomials (excluding shifts which do not occupy
-        // their own memory)
-        WitnessData<Polynomial, PolynomialView> _witness_data;
+        WitnessData<Polynomial, PolynomialView> _witness_data; // WORKTODO: name?
 
-        // TODO(luke): I think these will be ok but keep an eye on this.
         Polynomial& w_l = _witness_data.w_l;
         Polynomial& w_r = _witness_data.w_r;
         Polynomial& w_o = _witness_data.w_o;
         Polynomial& z_perm = _witness_data.z_perm;
-
-        // Stuff that would otherwise be inherited from from BaseProvingKey
-        bool contains_recursive_proof;
-        std::vector<uint32_t> recursive_proof_public_input_indices;
-        std::shared_ptr<ProverReferenceString> crs;
-        EvaluationDomain<FF> evaluation_domain;
 
         ProvingKey() = default;
         ProvingKey(const size_t circuit_size,
                    const size_t num_public_inputs,
                    std::shared_ptr<ProverReferenceString> const& crs,
                    ComposerType composer_type)
-            : crs(crs)
-            , evaluation_domain(EvaluationDomain<FF>(circuit_size, circuit_size))
         {
+            this->crs = crs;
+            this->evaluation_domain = EvaluationDomain<FF>(circuit_size, circuit_size);
+
             this->circuit_size = circuit_size;
             this->log_circuit_size = numeric::get_msb(circuit_size);
             this->num_public_inputs = num_public_inputs;
@@ -260,7 +250,7 @@ class Standard {
         AllData(AllData&& other)
             : BaseAllData<T, NUM_ALL_ENTITIES>(other){};
 
-        // TODO(luke): avoiding self assignment (clang warning) here is a bit gross. Is there a better way?
+        // WORKTODO(luke): avoiding self assignment (clang warning) here is a bit gross. Is there a better way?
         AllData& operator=(const AllData& other)
         {
             BaseAllData<T, NUM_ALL_ENTITIES>::operator=(other);
@@ -355,7 +345,8 @@ class Ultra {
     // TODO(luke): sure would be nice if this was computed programtically
     static constexpr size_t NUM_ALL_ENTITIES = 47;
     // TODO(luke): what does this need to reflect? e.g. are shifts of precomputed polys counted here?
-    static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 29;
+    static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 25;
+    static constexpr size_t NUM_WITNESS_ENTITIES = 11;
 
     template <typename T, typename TView>
     class PrecomputedData : public BasePrecomputedData<T, TView, NUM_PRECOMPUTED_ENTITIES> {
@@ -371,26 +362,20 @@ class Ultra {
         T& q_elliptic = std::get<8>(this->_data);
         T& q_aux = std::get<9>(this->_data);
         T& q_lookup = std::get<10>(this->_data);
-        // TODO(luke): these are witness polys (just like the wires) but right now they are stored in the proving key
-        // (unlike the wires which are handles separately and owned by the prover).
-        T& sorted_1 = std::get<11>(this->_data);
-        T& sorted_2 = std::get<12>(this->_data);
-        T& sorted_3 = std::get<13>(this->_data);
-        T& sorted_4 = std::get<14>(this->_data);
-        T& sigma_1 = std::get<15>(this->_data);
-        T& sigma_2 = std::get<16>(this->_data);
-        T& sigma_3 = std::get<17>(this->_data);
-        T& sigma_4 = std::get<18>(this->_data);
-        T& id_1 = std::get<19>(this->_data);
-        T& id_2 = std::get<20>(this->_data);
-        T& id_3 = std::get<21>(this->_data);
-        T& id_4 = std::get<22>(this->_data);
-        T& table_1 = std::get<23>(this->_data);
-        T& table_2 = std::get<24>(this->_data);
-        T& table_3 = std::get<25>(this->_data);
-        T& table_4 = std::get<26>(this->_data);
-        T& lagrange_first = std::get<27>(this->_data);
-        T& lagrange_last = std::get<28>(this->_data);
+        T& sigma_1 = std::get<11>(this->_data);
+        T& sigma_2 = std::get<12>(this->_data);
+        T& sigma_3 = std::get<13>(this->_data);
+        T& sigma_4 = std::get<14>(this->_data);
+        T& id_1 = std::get<15>(this->_data);
+        T& id_2 = std::get<16>(this->_data);
+        T& id_3 = std::get<17>(this->_data);
+        T& id_4 = std::get<18>(this->_data);
+        T& table_1 = std::get<19>(this->_data);
+        T& table_2 = std::get<20>(this->_data);
+        T& table_3 = std::get<21>(this->_data);
+        T& table_4 = std::get<22>(this->_data);
+        T& lagrange_first = std::get<23>(this->_data);
+        T& lagrange_last = std::get<24>(this->_data);
 
         std::vector<TView> get_selectors()
         {
@@ -400,33 +385,75 @@ class Ultra {
         std::vector<TView> get_sigma_polynomials() { return { sigma_1, sigma_2, sigma_3, sigma_4 }; };
         std::vector<TView> get_table_polynomials() { return { table_1, table_2, table_3, table_4 }; };
         std::vector<TView> get_id_polynomials() { return { id_1, id_2, id_3, id_4 }; };
-        std::vector<TView> get_sorted_polynomials() { return { sorted_1, sorted_2, sorted_3, sorted_4 }; };
 
         virtual ~PrecomputedData() = default;
     };
 
+    // Container for all witness polys
+    template <typename T, typename TView> class WitnessData : public Data<T, TView, NUM_WITNESS_ENTITIES> {
+      public:
+        T& w_l = std::get<0>(this->_data);
+        T& w_r = std::get<1>(this->_data);
+        T& w_o = std::get<2>(this->_data);
+        T& w_4 = std::get<3>(this->_data);
+        T& sorted_1 = std::get<4>(this->_data);
+        T& sorted_2 = std::get<5>(this->_data);
+        T& sorted_3 = std::get<6>(this->_data);
+        T& sorted_4 = std::get<7>(this->_data);
+        T& sorted_accum = std::get<8>(this->_data);
+        T& z_perm = std::get<9>(this->_data);
+        T& z_lookup = std::get<10>(this->_data);
+
+        std::vector<TView> get_wires() { return { w_l, w_r, w_o, w_4 }; };
+        std::vector<TView> get_sorted_polynomials() { return { sorted_1, sorted_2, sorted_3, sorted_4 }; };
+
+        virtual ~WitnessData() = default;
+    };
+
     class ProvingKey : public BaseProvingKey<PrecomputedData<Polynomial, PolynomialView>, FF> {
       public:
+        WitnessData<Polynomial, PolynomialView> _witness_data;
+
+        Polynomial& w_l = _witness_data.w_l;
+        Polynomial& w_r = _witness_data.w_r;
+        Polynomial& w_o = _witness_data.w_o;
+        Polynomial& w_4 = _witness_data.w_4;
+        Polynomial& sorted_1 = _witness_data.sorted_1;
+        Polynomial& sorted_2 = _witness_data.sorted_2;
+        Polynomial& sorted_3 = _witness_data.sorted_3;
+        Polynomial& sorted_4 = _witness_data.sorted_4;
+        Polynomial& sorted_accum = _witness_data.sorted_accum;
+        Polynomial& z_perm = _witness_data.z_perm;
+        Polynomial& z_lookup = _witness_data.z_lookup;
+
         std::vector<uint32_t> memory_read_records;
         std::vector<uint32_t> memory_write_records;
+
         ProvingKey() = default;
         ProvingKey(const size_t circuit_size,
                    const size_t num_public_inputs,
                    std::shared_ptr<ProverReferenceString> const& crs,
                    ComposerType composer_type)
         {
+            this->crs = crs;
+            this->evaluation_domain = EvaluationDomain<FF>(circuit_size, circuit_size);
+
             this->circuit_size = circuit_size;
             this->log_circuit_size = numeric::get_msb(circuit_size);
             this->num_public_inputs = num_public_inputs;
-            this->crs = crs;
-            this->evaluation_domain = EvaluationDomain<FF>(circuit_size, circuit_size);
             this->composer_type = composer_type;
-
+            // Allocate memory for precomputed polynomials
             for (auto& poly : this->_data) {
-                auto new_poly = Polynomial(circuit_size);
-                poly = new_poly;
+                poly = Polynomial(circuit_size);
+            }
+            // Allocate memory for witness polynomials
+            for (auto& poly : this->_witness_data._data) {
+                poly = Polynomial(circuit_size);
             }
         };
+
+        std::vector<PolynomialView> get_wires() { return _witness_data.get_wires(); };
+        std::vector<PolynomialView> get_sorted_polynomials() { return _witness_data.get_sorted_polynomials(); };
     };
 
     using VerificationKey = BaseVerificationKey<PrecomputedData<Commitment, CommitmentView>>;
@@ -469,8 +496,6 @@ class Ultra {
         T& sorted_accum = std::get<33>(this->_data);
         T& z_perm = std::get<34>(this->_data);
         T& z_lookup = std::get<35>(this->_data);
-        // TODO(luke): THese are precomputable but are only ever instantiated as spans so do not need to be stored in
-        // the pkey
         T& table_1_shift = std::get<36>(this->_data);
         T& table_2_shift = std::get<37>(this->_data);
         T& table_3_shift = std::get<38>(this->_data);

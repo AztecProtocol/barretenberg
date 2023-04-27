@@ -38,7 +38,7 @@ template <typename Flavor> class Prover { // WORKTODO: Rename to StandardProver 
     using CommitmentLabels = typename Flavor::CommitmentLabels;
 
   public:
-    Prover(std::vector<Polynomial>&& wire_polys, std::shared_ptr<ProvingKey> input_key = nullptr);
+    explicit Prover(std::shared_ptr<ProvingKey> input_key = nullptr);
 
     void execute_preamble_round();
     void execute_wire_commitments_round();
@@ -63,10 +63,6 @@ template <typename Flavor> class Prover { // WORKTODO: Rename to StandardProver 
     std::vector<FF> public_inputs;
 
     sumcheck::RelationParameters<FF> relation_parameters;
-
-    // WORKTODO(luke): REMOVE (these are no longer used but some external tests still rely on them being set by the
-    // prover)
-    std::vector<Polynomial> wire_polynomials;
 
     std::shared_ptr<ProvingKey> key;
 

@@ -69,6 +69,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         std::vector<Polynomial> sigmas;
         std::vector<Polynomial> ids;
 
+        auto wire_polynomials = proving_key->get_wires();
         auto sigma_polynomials = proving_key->get_sigma_polynomials();
         auto id_polynomials = proving_key->get_id_polynomials();
         for (size_t i = 0; i < Flavor::num_wires; ++i) {
@@ -76,6 +77,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
             sigmas.emplace_back(get_random_polynomial(num_gates));
             ids.emplace_back(get_random_polynomial(num_gates));
 
+            populate_span(wire_polynomials[i], wires[i]);
             populate_span(sigma_polynomials[i], sigmas[i]);
             populate_span(id_polynomials[i], ids[i]);
         }
@@ -85,8 +87,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         auto gamma = FF::random_element();
 
         // Method 1: Compute z_perm using 'compute_grand_product_polynomial' as the prover would in practice
-        Polynomial z_permutation =
-            prover_library::compute_permutation_grand_product<Flavor>(proving_key, wires, beta, gamma);
+        Polynomial z_permutation = prover_library::compute_permutation_grand_product<Flavor>(proving_key, beta, gamma);
 
         // Method 2: Compute z_perm locally using the simplest non-optimized syntax possible. The comment below,
         // which describes the computation in 4 steps, is adapted from a similar comment in
@@ -174,12 +175,18 @@ template <class FF> class ProverLibraryTests : public testing::Test {
             circuit_size, num_public_inputs, reference_string, ComposerType::STANDARD_HONK);
 
         // Construct mock wire and permutation polynomials.
-        // Note: for the purpose of checking the consistency between two methods of computing z_perm, these polynomials
-        // can simply be random. We're not interested in the particular properties of the result.
+        // Note: for the purpose of checking the consistency between two methods of computing z_lookup, these
+        // polynomials can simply be random. We're not interested in the particular properties of the result.
         std::vector<Polynomial> wires;
-        for (size_t i = 0; i < Flavor::num_wires - 1; ++i) { // TODO: will this test ever generalize?
-            wires.emplace_back(get_random_polynomial(circuit_size));
+        auto wire_polynomials = proving_key->get_wires();
+        // Note(luke): Use of 3 wires is fundamental to the structure of the tables and should not be tied to num_wires
+        // for now
+        for (size_t i = 0; i < 3; ++i) { // TODO(Cody): will this test ever generalize?
+            Polynomial random_polynomial = get_random_polynomial(circuit_size);
+            wires.emplace_back(random_polynomial);
+            populate_span(wire_polynomials[i], random_polynomial);
         }
+
         std::vector<Polynomial> tables;
         auto table_polynomials = proving_key->get_table_polynomials();
         for (auto& table_polynomial : table_polynomials) {
@@ -209,7 +216,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
 
         // Method 1: Compute z_lookup using the prover library method
         Polynomial z_lookup =
-            prover_library::compute_lookup_grand_product<Flavor>(proving_key, wires, sorted_batched, eta, beta, gamma);
+            prover_library::compute_lookup_grand_product<Flavor>(proving_key, sorted_batched, eta, beta, gamma);
 
         // Method 2: Compute the lookup grand product polynomial Z_lookup:
         //

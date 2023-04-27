@@ -40,14 +40,14 @@ wirests values
  */
 // TODO(#222)(luke): Parallelize
 template <typename Flavor>
-typename Flavor::Polynomial compute_permutation_grand_product(
-    std::shared_ptr<typename Flavor::ProvingKey>& key,
-    std::vector<typename Flavor::Polynomial>& wire_polynomials,
-    typename Flavor::FF beta,
-    typename Flavor::FF gamma)
+typename Flavor::Polynomial compute_permutation_grand_product(std::shared_ptr<typename Flavor::ProvingKey>& key,
+                                                              typename Flavor::FF beta,
+                                                              typename Flavor::FF gamma)
 {
     using barretenberg::polynomial_arithmetic::copy_polynomial;
     using Polynomial = typename Flavor::Polynomial;
+
+    auto wire_polynomials = key->get_wires();
 
     // TODO(luke): instantiate z_perm here then make the 0th accum a span of it? avoid extra memory.
 
@@ -184,7 +184,6 @@ typename Flavor::Polynomial compute_permutation_grand_product(
  */
 template <typename Flavor>
 typename Flavor::Polynomial compute_lookup_grand_product(std::shared_ptr<typename Flavor::ProvingKey>& key,
-                                                         std::vector<typename Flavor::Polynomial>& wire_polynomials,
                                                          typename Flavor::Polynomial& sorted_list_accumulator,
                                                          typename Flavor::FF eta,
                                                          typename Flavor::FF beta,
@@ -210,10 +209,11 @@ typename Flavor::Polynomial compute_lookup_grand_product(std::shared_ptr<typenam
     std::span<const FF> column_2_step_size = key->q_m;
     std::span<const FF> column_3_step_size = key->q_c;
 
+    // WORKTODO: is this a bit ugly? what should we do here
     // Utilize three wires even when more are available.
     std::array<std::span<const FF>, 3> wires;
     for (size_t i = 0; i < 3; ++i) {
-        wires[i] = wire_polynomials[i];
+        wires[i] = key->get_wires()[i];
     }
 
     // Note: the number of table polys is related to program width but '4' is the only value supported
@@ -358,20 +358,13 @@ typename Flavor::Polynomial compute_sorted_list_accumulator(
 }
 
 template honk::flavor::Standard::Polynomial compute_permutation_grand_product<honk::flavor::Standard>(
-    std::shared_ptr<honk::flavor::Standard::ProvingKey>&,
-    std::vector<Polynomial>&,
-    honk::flavor::Standard::FF,
-    honk::flavor::Standard::FF);
+    std::shared_ptr<honk::flavor::Standard::ProvingKey>&, honk::flavor::Standard::FF, honk::flavor::Standard::FF);
 
 template honk::flavor::Ultra::Polynomial compute_permutation_grand_product<honk::flavor::Ultra>(
-    std::shared_ptr<honk::flavor::Ultra::ProvingKey>&,
-    std::vector<Polynomial>&,
-    honk::flavor::Ultra::FF,
-    honk::flavor::Ultra::FF);
+    std::shared_ptr<honk::flavor::Ultra::ProvingKey>&, honk::flavor::Ultra::FF, honk::flavor::Ultra::FF);
 
 template typename honk::flavor::Ultra::Polynomial compute_lookup_grand_product<honk::flavor::Ultra>(
     std::shared_ptr<typename honk::flavor::Ultra::ProvingKey>& key,
-    std::vector<typename honk::flavor::Ultra::Polynomial>& wire_polynomials,
     typename honk::flavor::Ultra::Polynomial& sorted_list_accumulator,
     typename honk::flavor::Ultra::FF eta,
     typename honk::flavor::Ultra::FF beta,

@@ -85,7 +85,7 @@ void StandardHonkComposerHelper::compute_witness(const CircuitConstructor& circu
     if (computed_witness) {
         return;
     }
-    wire_polynomials =
+    auto wire_polynomials =
         construct_wire_polynomials_base<Flavor>(circuit_constructor, minimum_circuit_size, NUM_RANDOMIZED_GATES);
 
     proving_key->w_l = wire_polynomials[0];
@@ -161,7 +161,7 @@ StandardProver StandardHonkComposerHelper::create_prover(const CircuitConstructo
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
 
-    StandardProver output_state(std::move(wire_polynomials), proving_key);
+    StandardProver output_state(proving_key);
 
     return output_state;
 }

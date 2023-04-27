@@ -26,7 +26,6 @@ class StandardHonkComposerHelper {
     static constexpr size_t NUM_RANDOMIZED_GATES = 2; // equal to the number of multilinear evaluations leaked
     static constexpr size_t num_wires = CircuitConstructor::num_wires;
     std::shared_ptr<ProvingKey> proving_key;
-    std::vector<barretenberg::polynomial> wire_polynomials; // WORKTODO(luke): REMOVE
     std::shared_ptr<VerificationKey> circuit_verification_key;
     // TODO(#218)(kesha): we need to put this into the commitment key, so that the composer doesn't have to handle srs
     // at all

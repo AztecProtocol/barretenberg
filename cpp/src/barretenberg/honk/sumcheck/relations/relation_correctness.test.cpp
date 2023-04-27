@@ -74,8 +74,8 @@ TEST(RelationCorrectness, StandardRelationCorrectness)
     };
 
     // Compute grand product polynomial
-    polynomial z_permutation = prover_library::compute_permutation_grand_product<honk::flavor::Standard>(
-        prover.key, prover.wire_polynomials, beta, gamma);
+    polynomial z_permutation =
+        prover_library::compute_permutation_grand_product<honk::flavor::Standard>(prover.key, beta, gamma);
 
     // Create an array of spans to the underlying polynomials to more easily
     // get the transposition.
@@ -83,9 +83,9 @@ TEST(RelationCorrectness, StandardRelationCorrectness)
     // in the list below
     ProverPolynomials prover_polynomials;
 
-    prover_polynomials.w_l = prover.wire_polynomials[0];
-    prover_polynomials.w_r = prover.wire_polynomials[1];
-    prover_polynomials.w_o = prover.wire_polynomials[2];
+    prover_polynomials.w_l = prover.key->w_l;
+    prover_polynomials.w_r = prover.key->w_r;
+    prover_polynomials.w_o = prover.key->w_o;
     prover_polynomials.z_perm = z_permutation;
     prover_polynomials.z_perm_shift = z_permutation.shifted();
     prover_polynomials.q_m = prover.key->q_m;
@@ -216,8 +216,7 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     };
 
     // Compute grand product polynomial
-    auto z_permutation =
-        prover_library::compute_permutation_grand_product<Flavor>(prover.key, prover.wire_polynomials, beta, gamma);
+    auto z_permutation = prover_library::compute_permutation_grand_product<Flavor>(prover.key, beta, gamma);
 
     // Construct local sorted_list_polynomials to pass to compute_sorted_list_accumulator()
     // TODO(luke): this clunkiness can be cleaned up once we decide where the sorted polynomials will be stored: proving
@@ -236,8 +235,8 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
         prover_library::compute_sorted_list_accumulator<Flavor>(prover.key, sorted_list_polynomials, eta);
 
     // Compute lookup grand product polynomial
-    auto z_lookup = prover_library::compute_lookup_grand_product<Flavor>(
-        prover.key, prover.wire_polynomials, sorted_list_accumulator, eta, beta, gamma);
+    auto z_lookup =
+        prover_library::compute_lookup_grand_product<Flavor>(prover.key, sorted_list_accumulator, eta, beta, gamma);
 
     // Create an array of spans to the underlying polynomials to more easily
     // get the transposition.
@@ -245,14 +244,14 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     // in the list below
     ProverPolynomials prover_polynomials;
 
-    prover_polynomials.w_l = prover.wire_polynomials[0];
-    prover_polynomials.w_r = prover.wire_polynomials[1];
-    prover_polynomials.w_o = prover.wire_polynomials[2];
-    prover_polynomials.w_4 = prover.wire_polynomials[3];
-    prover_polynomials.w_l_shift = prover.wire_polynomials[0].shifted();
-    prover_polynomials.w_r_shift = prover.wire_polynomials[1].shifted();
-    prover_polynomials.w_o_shift = prover.wire_polynomials[2].shifted();
-    prover_polynomials.w_4_shift = prover.wire_polynomials[3].shifted();
+    prover_polynomials.w_l = prover.key->w_l;
+    prover_polynomials.w_r = prover.key->w_r;
+    prover_polynomials.w_o = prover.key->w_o;
+    prover_polynomials.w_4 = prover.key->w_4;
+    prover_polynomials.w_l_shift = prover.key->w_l.shifted();
+    prover_polynomials.w_r_shift = prover.key->w_r.shifted();
+    prover_polynomials.w_o_shift = prover.key->w_o.shifted();
+    prover_polynomials.w_4_shift = prover.key->w_4.shifted();
     prover_polynomials.sorted_1 = prover.key->sorted_1;
     prover_polynomials.sorted_2 = prover.key->sorted_2;
     prover_polynomials.sorted_3 = prover.key->sorted_3;
