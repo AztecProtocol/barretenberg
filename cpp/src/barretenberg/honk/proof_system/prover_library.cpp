@@ -6,10 +6,6 @@
 
 namespace proof_system::honk::prover_library {
 
-// WORKTODO: extract from flavor.
-using FF = barretenberg::fr;
-using Polynomial = barretenberg::Polynomial<FF>;
-
 /**
  * @brief Compute the permutation grand product polynomial Z_perm(X)
  * *
@@ -45,6 +41,7 @@ typename Flavor::Polynomial compute_permutation_grand_product(std::shared_ptr<ty
                                                               typename Flavor::FF gamma)
 {
     using barretenberg::polynomial_arithmetic::copy_polynomial;
+    using FF = typename Flavor::FF;
     using Polynomial = typename Flavor::Polynomial;
 
     auto wire_polynomials = key->get_wires();
@@ -190,6 +187,9 @@ typename Flavor::Polynomial compute_lookup_grand_product(std::shared_ptr<typenam
                                                          typename Flavor::FF gamma)
 
 {
+    using FF = typename Flavor::FF;
+    using Polynomial = typename Flavor::Polynomial;
+
     const FF eta_sqr = eta.sqr();
     const FF eta_cube = eta_sqr * eta;
 
@@ -336,9 +336,12 @@ typename Flavor::Polynomial compute_sorted_list_accumulator(
     std::vector<typename Flavor::Polynomial>& sorted_list_polynomials,
     typename Flavor::FF eta)
 {
+    using FF = typename Flavor::FF;
+    using Polynomial = typename Flavor::Polynomial;
+
     const size_t circuit_size = key->circuit_size;
 
-    barretenberg::polynomial sorted_list_accumulator(sorted_list_polynomials[0]);
+    Polynomial sorted_list_accumulator(sorted_list_polynomials[0]);
     std::span<const FF> s_2 = sorted_list_polynomials[1];
     std::span<const FF> s_3 = sorted_list_polynomials[2];
     std::span<const FF> s_4 = sorted_list_polynomials[3];
