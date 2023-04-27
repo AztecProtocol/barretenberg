@@ -102,18 +102,19 @@ std::vector<CyclicPermutation> compute_wire_copy_cycles(const typename Flavor::C
     }
 
     // Iterate over all variables of the "real" gates, and add a corresponding node to the cycle for that variable
-    // WORKTODO: ranged for loop
-    for (size_t i = 0; i < num_gates; ++i) {
-        for (size_t j = 0; j < Flavor::num_wires; ++j) {
+    for (size_t gate_idx = 0; gate_idx < num_gates; ++gate_idx) {
+        size_t wire_idx = 0;
+        for (auto& wire : circuit_constructor.wires) {
             // We are looking at the j-th wire in the i-th row.
             // The value in this position should be equal to the value of the element at index `var_index`
             // of the `constructor.variables` vector.
             // Therefore, we add (i,j) to the cycle at index `var_index` to indicate that w^j_i should have the values
             // constructor.variables[var_index].
-            const uint32_t var_index = circuit_constructor.real_variable_index[circuit_constructor.wires[j][i]];
-            const auto wire_index = static_cast<uint32_t>(j);
-            const auto gate_index = static_cast<uint32_t>(i + num_public_inputs);
-            copy_cycles[var_index].emplace_back(cycle_node{ wire_index, gate_index });
+            const uint32_t var_index = circuit_constructor.real_variable_index[wire[gate_idx]];
+            const auto wire_index = static_cast<uint32_t>(wire_idx);
+            const auto shifted_gate_idx = static_cast<uint32_t>(gate_idx + num_public_inputs);
+            copy_cycles[var_index].emplace_back(cycle_node{ wire_index, shifted_gate_idx });
+            ++wire_idx;
         }
     }
     return copy_cycles;
@@ -142,7 +143,7 @@ PermutationMapping<Flavor::num_wires> compute_permutation_mapping(
     PermutationMapping<Flavor::num_wires> mapping;
 
     // Initialize the table of permutations so that every element points to itself
-    // WORKTODO: ranged for loops depending on `generalized`?
+    // TODO(Cody): Loose coupling here
     for (size_t i = 0; i < Flavor::num_wires; ++i) {
         mapping.sigmas[i].reserve(proving_key->circuit_size);
         if constexpr (generalized) {
