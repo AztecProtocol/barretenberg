@@ -151,7 +151,7 @@ template <typename Flavor, size_t num_multivariates, template <class> class... R
      */
     void extend_edges(auto& multivariates, size_t edge_idx) // WORKTODO: auto can now be ProverPolynomials?
     {
-        size_t univariate_idx = 0; // ZIPTODO
+        size_t univariate_idx = 0; // TODO(#391) zip
         for (auto& poly : multivariates) {
             auto edge = Univariate<FF, 2>({ poly[edge_idx], poly[edge_idx + 1] });
             extended_edges[univariate_idx] = barycentric_2_to_max.extend(edge);
