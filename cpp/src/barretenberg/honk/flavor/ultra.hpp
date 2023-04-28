@@ -12,8 +12,6 @@
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/polynomials/evaluation_domain.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
-#include "barretenberg/proof_system/circuit_constructors/turbo_circuit_constructor.hpp"
 #include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
 #include "barretenberg/srs/reference_string/reference_string.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
@@ -29,7 +27,7 @@ class Ultra {
     using G1 = barretenberg::g1;
     using GroupElement = G1::element;
     using Commitment = G1::affine_element;
-    using CommitmentHandle = G1::affine_element; // TODO(Cody): make a pointer?
+    using CommitmentHandle = G1::affine_element;
     using PCSParams = pcs::kzg::Params;
 
     static constexpr size_t num_wires = CircuitConstructor::num_wires;
@@ -68,7 +66,6 @@ class Ultra {
         DataType& lagrange_first = std::get<23>(this->_data);
         DataType& lagrange_last = std::get<24>(this->_data);
 
-        // TODO(#395): return arrays?
         std::vector<HandleType> get_selectors() override
         {
             return { q_m, q_c, q_l, q_r, q_o, q_4, q_arith, q_sort, q_elliptic, q_aux, q_lookup };
@@ -175,9 +172,11 @@ class Ultra {
         AllEntities(AllEntities&& other)
             : AllEntities_<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
 
-        // TODO(luke): avoiding self assignment (clang warning) here is a bit gross. Is there a better way?
         AllEntities& operator=(const AllEntities& other)
         {
+            if (this == &other) {
+                return *this;
+            }
             AllEntities_<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
         }
@@ -188,7 +187,7 @@ class Ultra {
             return *this;
         }
 
-        AllEntities(std::array<FF, NUM_ALL_ENTITIES> data_in) { this->_data = data_in; }
+        ~AllEntities() = default;
     };
 
   public:
@@ -249,16 +248,16 @@ class Ultra {
     using ProverPolynomials = AllEntities<PolynomialHandle, PolynomialHandle>;
     using VerifierCommitments = AllEntities<Commitment, CommitmentHandle>;
 
-    using FoldedPolynomials =
-        AllEntities<std::vector<FF>, PolynomialHandle>; // TODO(Cody): Just reuse ProverPolynomials?
+    using FoldedPolynomials = AllEntities<std::vector<FF>, PolynomialHandle>;
     template <size_t MAX_RELATION_LENGTH>
     using ExtendedEdges =
         AllEntities<sumcheck::Univariate<FF, MAX_RELATION_LENGTH>, sumcheck::Univariate<FF, MAX_RELATION_LENGTH>>;
 
     class PurportedEvaluations : public AllEntities<FF, FF> {
       public:
-        PurportedEvaluations() { this->_data = {}; }
-        PurportedEvaluations(std::array<FF, NUM_ALL_ENTITIES> read_evals) { this->_data = read_evals; }
+        using Base = AllEntities<FF, FF>;
+        using Base::Base;
+        PurportedEvaluations(std::array<FF, NUM_ALL_ENTITIES> _data_in) { this->_data = _data_in; }
     };
 
     class CommitmentLabels : public AllEntities<std::string, std::string> {
@@ -276,7 +275,6 @@ class Ultra {
             w_4 = "W_4";
             z_perm = "Z_PERM";
             z_lookup = "Z_LOOKUP";
-
             // The ones beginning with "__" are only used for debugging
             q_c = "__Q_C";
             q_l = "__Q_L";

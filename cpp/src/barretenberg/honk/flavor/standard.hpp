@@ -137,8 +137,6 @@ class Standard {
         }
 
         ~AllEntities() = default;
-
-        AllEntities(std::array<FF, NUM_ALL_ENTITIES> data_in) { this->_data = data_in; }
     };
 
   public:
@@ -199,13 +197,18 @@ class Standard {
     // subsets.
     using ProverPolynomials = AllEntities<PolynomialHandle, PolynomialHandle>;
 
-    using FoldedPolynomials = AllEntities<std::vector<FF>, PolynomialHandle>; // TODO(#394): use Polynomial class.
+    using FoldedPolynomials = AllEntities<std::vector<FF>, PolynomialHandle>;
     // TODO(#390): Simplify this?
     template <size_t MAX_RELATION_LENGTH>
     using ExtendedEdges =
         AllEntities<sumcheck::Univariate<FF, MAX_RELATION_LENGTH>, sumcheck::Univariate<FF, MAX_RELATION_LENGTH>>;
 
-    using PurportedEvaluations = AllEntities<FF, FF>;
+    class PurportedEvaluations : public AllEntities<FF, FF> {
+      public:
+        using Base = AllEntities<FF, FF>;
+        using Base::Base;
+        PurportedEvaluations(std::array<FF, NUM_ALL_ENTITIES> _data_in) { this->_data = _data_in; }
+    };
 
     class CommitmentLabels : public AllEntities<std::string, std::string> {
       public:

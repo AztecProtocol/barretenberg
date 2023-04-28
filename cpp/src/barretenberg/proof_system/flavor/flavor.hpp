@@ -7,9 +7,11 @@
 #include "barretenberg/proof_system/types/composer_type.hpp"
 
 // WORKTODO: Names of these classes
-// WORKTODO: Define special member functions in reasonable way and untangle the bad consequences elsewhere (e.g., in
-// TODO(#396): Access specifiers
-// TODO(#397): Handle types.
+
+// TODO(#394): Folded polynomials should use polynomial class.
+// TODO(#395): Getters should return arrays?
+// TODO(#396): Access specifiers?
+// TODO(#397): Use more handle types?
 // TODO(#398): Selectors should come from arithmetization.
 /**
  * WORKTODO: Outline what's going on here, explain the data model and how to think about these classes.
