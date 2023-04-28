@@ -1,5 +1,4 @@
 #include "../bool/bool.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "field.hpp"
 #include "array.hpp"
 #include "barretenberg/plonk/proof_system/constants.hpp"

@@ -1,4 +1,4 @@
-#include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/honk/flavor/standard.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/srs/reference_string/reference_string.hpp"
 #include <cstddef>

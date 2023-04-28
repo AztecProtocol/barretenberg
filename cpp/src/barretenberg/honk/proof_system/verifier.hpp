@@ -1,5 +1,5 @@
 #pragma once
-#include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/honk/flavor/standard.hpp"
 #include "barretenberg/plonk/proof_system/types/proof.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck.hpp"
 

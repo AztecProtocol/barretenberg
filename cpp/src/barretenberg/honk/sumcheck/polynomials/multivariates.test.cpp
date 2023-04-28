@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 #include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/numeric/random/engine.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/honk/flavor/standard.hpp"
 
 using namespace proof_system::honk::sumcheck;
 namespace test_sumcheck_polynomials {

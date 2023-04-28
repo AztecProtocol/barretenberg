@@ -6,7 +6,7 @@
 #include "barretenberg/honk/sumcheck/relations/arithmetic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/honk/flavor/standard.hpp"
 
 namespace proof_system::honk {
 

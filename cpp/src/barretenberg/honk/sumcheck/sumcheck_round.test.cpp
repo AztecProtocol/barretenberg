@@ -5,6 +5,7 @@
 #include "polynomials/univariate.hpp"
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/numeric/random/engine.hpp"
+#include "barretenberg/honk/flavor/standard.hpp"
 
 #include <tuple>
 

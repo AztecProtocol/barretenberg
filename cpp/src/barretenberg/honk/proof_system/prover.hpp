@@ -9,7 +9,7 @@
 #include "barretenberg/honk/sumcheck/sumcheck_output.hpp"
 #include "barretenberg/honk/proof_system/prover_library.hpp"
 #include "barretenberg/honk/proof_system/work_queue.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/honk/flavor/standard.hpp"
 
 namespace proof_system::honk {
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/plonk/flavor/flavor.hpp"
 #include "barretenberg/srs/reference_string/file_reference_string.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"

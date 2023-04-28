@@ -7,7 +7,7 @@
 #include "polynomials/univariate.hpp"
 #include "polynomials/pow.hpp"
 #include "relations/relation.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/honk/flavor/ultra.hpp" // WORKTOO
 
 namespace proof_system::honk::sumcheck {
 

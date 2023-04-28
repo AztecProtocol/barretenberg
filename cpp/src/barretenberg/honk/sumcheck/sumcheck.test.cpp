@@ -1,6 +1,6 @@
 #include "sumcheck.hpp"
 #include "barretenberg/honk/transcript/transcript.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/honk/flavor/standard.hpp"
 #include "barretenberg/transcript/transcript_wrappers.hpp"
 #include "relations/arithmetic_relation.hpp"
 #include "relations/grand_product_computation_relation.hpp"

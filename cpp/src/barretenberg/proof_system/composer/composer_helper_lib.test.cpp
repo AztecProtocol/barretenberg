@@ -1,6 +1,6 @@
 #include <array>
 #include <gtest/gtest.h>
-#include "barretenberg/proof_system/flavor/flavor.hpp" // TODO: needed?
+#include "barretenberg/honk/flavor/standard.hpp" // TODO: needed?
 #include "barretenberg/proof_system/composer/composer_helper_lib.hpp"
 #include "barretenberg/proof_system/types/composer_type.hpp"
 #include "barretenberg/srs/reference_string/reference_string.hpp"

@@ -5,10 +5,11 @@ CompileFlags:                     # Tweak the parse settings
 If:
   PathMatch: [src/.*\.hpp, src/.*\.cpp, src/.*\.tcc]
 Diagnostics:
-  # Checks whether we are including unused header files
+  # Value Strict checks whether we are including unused header files
   # Note that some headers may be _implicitly_ used and still
-  # need to be included, so be careful before removing them.
-  UnusedIncludes: Strict
+  # need to be included. This is very noisy, and is probably best used
+  # by occasionally toggling it on.
+  UnusedIncludes: None
 
   # Static analysis configuration
   ClangTidy:

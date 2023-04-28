@@ -1,7 +1,7 @@
 #include "./verifier.hpp"
 #include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/honk/flavor/standard.hpp"
 #include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/honk/utils/power_polynomial.hpp"
 #include "barretenberg/honk/sumcheck/relations/arithmetic_relation.hpp"

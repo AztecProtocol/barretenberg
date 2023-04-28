@@ -1,5 +1,6 @@
-#include "barretenberg/plonk/proof_system/types/prover_settings.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
+
+#include "barretenberg/honk/flavor/standard.hpp"
+#include "barretenberg/honk/flavor/ultra.hpp"
 #include "prover.hpp"
 #include "prover_library.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"

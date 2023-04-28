@@ -1,5 +1,4 @@
 #pragma once
-#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "barretenberg/plonk/composer/composer_base.hpp"
 #include "barretenberg/plonk/composer/plookup_tables/plookup_tables.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"

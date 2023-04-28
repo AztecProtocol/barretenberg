@@ -2,7 +2,7 @@
 #include "barretenberg/honk/proof_system/work_queue.hpp"
 #include "barretenberg/plonk/proof_system/types/proof.hpp"
 #include "barretenberg/honk/transcript/transcript.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/honk/flavor/ultra.hpp"
 
 namespace proof_system::honk {
 

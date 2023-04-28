@@ -1,7 +1,6 @@
 #include "standard_honk_composer_helper.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 #include "barretenberg/srs/reference_string/reference_string.hpp"
@@ -129,24 +128,24 @@ std::shared_ptr<StandardHonkComposerHelper::ProvingKey> StandardHonkComposerHelp
 std::shared_ptr<StandardHonkComposerHelper::VerificationKey> StandardHonkComposerHelper::compute_verification_key(
     const CircuitConstructor& circuit_constructor)
 {
-    if (circuit_verification_key) {
-        return circuit_verification_key;
+    if (verification_key) {
+        return verification_key;
     }
     if (!proving_key) {
         compute_proving_key(circuit_constructor);
     }
 
-    circuit_verification_key =
+    verification_key =
         StandardHonkComposerHelper::compute_verification_key_base(proving_key, crs_factory_->get_verifier_crs());
-    circuit_verification_key->composer_type = proving_key->composer_type;
+    verification_key->composer_type = proving_key->composer_type;
 
-    return circuit_verification_key;
+    return verification_key;
 }
 
 StandardVerifier StandardHonkComposerHelper::create_verifier(const CircuitConstructor& circuit_constructor)
 {
     compute_verification_key(circuit_constructor);
-    StandardVerifier output_state(circuit_verification_key);
+    StandardVerifier output_state(verification_key);
 
     // TODO(Cody): This should be more generic
     auto kate_verification_key = std::make_unique<pcs::kzg::VerificationKey>("../srs_db/ignition");
