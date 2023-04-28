@@ -211,25 +211,11 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     // Compute grand product polynomial
     auto z_permutation = prover_library::compute_permutation_grand_product<Flavor>(prover.key, beta, gamma);
 
-    // Construct local sorted_list_polynomials to pass to compute_sorted_list_accumulator()
-    // TODO(luke): this clunkiness can be cleaned up once we decide where the sorted polynomials will be stored: proving
-    // key or prover
-    std::vector<polynomial> sorted_list_polynomials;
-    auto sorted_polynomials = prover.key->get_sorted_polynomials();
-    for (size_t i = 0; i < 4; ++i) {
-        sorted_list_polynomials.emplace_back(prover.key->circuit_size);
-        for (size_t j = 0; j < prover.key->circuit_size; ++j) {
-            sorted_list_polynomials[i][j] = sorted_polynomials[i][j];
-        }
-    }
-
     // Compute sorted witness-table accumulator
-    auto sorted_list_accumulator =
-        prover_library::compute_sorted_list_accumulator<Flavor>(prover.key, sorted_list_polynomials, eta);
+    prover.key->sorted_accum = prover_library::compute_sorted_list_accumulator<Flavor>(prover.key, eta);
 
     // Compute lookup grand product polynomial
-    auto z_lookup =
-        prover_library::compute_lookup_grand_product<Flavor>(prover.key, sorted_list_accumulator, eta, beta, gamma);
+    auto z_lookup = prover_library::compute_lookup_grand_product<Flavor>(prover.key, eta, beta, gamma);
 
     // Create an array of spans to the underlying polynomials to more easily
     // get the transposition.
@@ -249,8 +235,8 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     prover_polynomials.sorted_2 = prover.key->sorted_2;
     prover_polynomials.sorted_3 = prover.key->sorted_3;
     prover_polynomials.sorted_4 = prover.key->sorted_4;
-    prover_polynomials.sorted_accum = sorted_list_accumulator;
-    prover_polynomials.sorted_accum_shift = sorted_list_accumulator.shifted();
+    prover_polynomials.sorted_accum = prover.key->sorted_accum;
+    prover_polynomials.sorted_accum_shift = prover.key->sorted_accum.shifted();
     prover_polynomials.table_1 = prover.key->table_1;
     prover_polynomials.table_2 = prover.key->table_2;
     prover_polynomials.table_3 = prover.key->table_3;

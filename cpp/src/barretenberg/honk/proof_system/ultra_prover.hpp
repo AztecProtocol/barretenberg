@@ -3,6 +3,8 @@
 #include "barretenberg/plonk/proof_system/types/proof.hpp"
 #include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/honk/flavor/ultra.hpp"
+#include "barretenberg/honk/sumcheck/relations/relation.hpp"
+#include "barretenberg/honk/sumcheck/sumcheck_output.hpp"
 
 namespace proof_system::honk {
 
@@ -15,18 +17,44 @@ template <UltraFlavor Flavor> class UltraProver_ {
     using PCSParams = typename Flavor::PCSParams;
     using ProvingKey = typename Flavor::ProvingKey;
     using Polynomial = typename Flavor::Polynomial;
+    using ProverPolynomials = typename Flavor::ProverPolynomials;
+    using CommitmentLabels = typename Flavor::CommitmentLabels;
 
   public:
-    UltraProver_(std::shared_ptr<ProvingKey> input_key = nullptr);
+    explicit UltraProver_(std::shared_ptr<ProvingKey> input_key = nullptr);
+
+    void execute_preamble_round();
+    void execute_wire_commitments_round();
+    void execute_sorted_list_accumulator_round();
+    void execute_grand_product_computation_round();
+    void execute_relation_check_rounds();
+    void execute_univariatization_round();
+    void execute_pcs_evaluation_round();
+    void execute_shplonk_batched_quotient_round();
+    void execute_shplonk_partial_evaluation_round();
+    void execute_kzg_round();
+
+    void compute_wire_commitments();
 
     plonk::proof& export_proof();
     plonk::proof& construct_proof();
 
     ProverTranscript<FF> transcript;
 
+    std::vector<FF> public_inputs;
+
+    sumcheck::RelationParameters<FF> relation_parameters;
+
     std::shared_ptr<ProvingKey> key;
 
+    // Container for spans of all polynomials required by the prover (i.e. all multivariates evaluated by Sumcheck).
+    ProverPolynomials prover_polynomials;
+
+    CommitmentLabels commitment_labels;
+
     work_queue<pcs::kzg::Params> queue;
+
+    sumcheck::SumcheckOutput<Flavor> sumcheck_output;
 
   private:
     plonk::proof proof;
