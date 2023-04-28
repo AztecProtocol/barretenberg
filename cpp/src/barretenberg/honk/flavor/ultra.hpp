@@ -322,7 +322,7 @@ class Ultra {
 
     // class VerifierCommitments : public AllEntities<Commitment, CommitmentHandle> {
     //   public:
-    //     VerifierCommitments(std::shared_ptr<VerificationKey> verification_key, VerifierTranscript<FF> transcript)
+    //     VerifierCommitments(std::shared_ptr<VerificationKey> verification_key)
     //     {
     //     }
     // };

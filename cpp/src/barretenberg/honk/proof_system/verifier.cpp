@@ -71,7 +71,7 @@ template <typename Flavor> bool StandardVerifier_<Flavor>::verify_proof(const pl
 
     transcript = VerifierTranscript<FF>{ proof.proof_data };
 
-    auto commitments = VerifierCommitments(key, transcript);
+    auto commitments = VerifierCommitments(key);
     auto commitment_labels = CommitmentLabels();
 
     // TODO(Adrian): Change the initialization of the transcript to take the VK hash?

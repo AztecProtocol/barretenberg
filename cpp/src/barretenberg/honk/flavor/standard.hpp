@@ -39,12 +39,20 @@ class Standard {
     using PCSParams = pcs::kzg::Params;
 
     static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
+    // The number of multivariate polynomials on which a sumcheck prover sumcheck operates. We often need containers of
+    // this size to hold related data, so we choose a more agnostic name than `NUM_POLYNOMIALS`
     static constexpr size_t NUM_ALL_ENTITIES = 18;
+    // The number of polynomials that can be precomputed to describe a circuit and aid a prover in constructing a
+    // satisfying assignment of witness. We again choose a neutral name.
     static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 13;
     // The total number of witness entities not including shifts.
     static constexpr size_t NUM_WITNESS_ENTITIES = 4;
 
   private:
+    /**
+     * @brief A base class labelling precomputed entities and particular subsets of interest.
+     * @details Used to build the proving key and verification key.
+     */
     template <typename DataType, typename HandleType>
     class PrecomputedEntities : public PrecomputedEntities_<DataType, HandleType, NUM_PRECOMPUTED_ENTITIES> {
       public:
@@ -69,10 +77,7 @@ class Standard {
 
     /**
      * @brief Container for all witness polynomials used/constructed by the prover.
-     * @details Shifts are not included here since they do not occupy their own memory
-     *
-     * @tparam T
-     * @tparam HandleType
+     * @details Shifts are not included here since they do not occupy their own memory.
      */
     template <typename DataType, typename HandleType>
     class WitnessEntities : public Entities_<DataType, HandleType, NUM_WITNESS_ENTITIES> {
@@ -85,6 +90,12 @@ class Standard {
         std::vector<HandleType> get_wires() { return { w_l, w_r, w_o }; };
     };
 
+    /**
+     * @brief A base class labelling all entities (for instance, all of the polynomials used by the prover during
+     * sumcheck) in this Honk variant along with paritcular subsets of interest.
+     * @details Used to build containers for: the prover's polynomial during sumcheck; the sumcheck's folded
+     * polynomials; the univariates consturcted during during sumcheck; the evaluations produced by sumcheck.
+     */
     template <typename DataType, typename HandleType>
     class AllEntities : public AllEntities_<DataType, HandleType, NUM_ALL_ENTITIES> {
       public:
@@ -109,16 +120,16 @@ class Standard {
 
         std::vector<HandleType> get_wires() override { return { w_l, w_r, w_o }; };
 
+        // Gemin-specific getters.
         std::vector<HandleType> get_unshifted() override
         { // ...z_perm_shift is in here?
             return { q_c,           q_l, q_r, q_o, q_m,   sigma_1, sigma_2, sigma_3, id_1, id_2, id_3, lagrange_first,
                      lagrange_last, w_l, w_r, w_o, z_perm };
         };
-
         std::vector<HandleType> get_to_be_shifted() override { return { z_perm }; };
-
         std::vector<HandleType> get_shifted() override { return { z_perm_shift }; };
 
+        // TODO(Cody): It would be nice to define these constructors once in a base class template.
         AllEntities() = default;
 
         AllEntities(const AllEntities& other)
@@ -146,6 +157,10 @@ class Standard {
     };
 
   public:
+    /**
+     * @brief The proving key is responsible for storing the polynomials used by the prover.
+     * @details Maybe multiple inheritance is reasonable here.
+     */
     class ProvingKey : public ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>, FF> {
       public:
         WitnessEntities<Polynomial, PolynomialHandle> _witness_data;
@@ -181,6 +196,14 @@ class Standard {
         std::vector<PolynomialHandle> get_wires() { return _witness_data.get_wires(); };
     };
 
+    /**
+     * @brief The verificaiton key is responsible for storing the the commitments to the precomputed (non-witnessk)
+     * polynomials used by the verifier.
+     *
+     * @note Note the discrepancy with what sort of data is stored here vs in the proving key. We may want to resolve
+     * that, and split out separate PrecomputedPolynomials/Commitments data for clarity but also for portability of our
+     * circuits.
+     */
     class VerificationKey : public VerificationKey_<PrecomputedEntities<Commitment, CommitmentHandle>> {
       public:
         VerificationKey() = default;
@@ -197,17 +220,29 @@ class Standard {
         };
     };
 
-    // These collect lightweight handles of data living in different entities. They
-    // provide the utility of grouping these and ranged `for` loops over
-    // subsets.
+    /**
+     * @brief A container for polynomials handles; only stores spans.
+     */
     using ProverPolynomials = AllEntities<PolynomialHandle, PolynomialHandle>;
 
+    /**
+     * @brief A container for polynomials produced after the first round of sumcheck.
+     * @todo TODO(#394) Use polynomial classes for guaranteed memory alignment.
+     */
     using FoldedPolynomials = AllEntities<std::vector<FF>, PolynomialHandle>;
-    // TODO(#390): Simplify this?
+
+    /**
+     * @brief A container for univariates produced during the hot loop in sumcheck.
+     * @todo TODO(#390): Simplify this by moving MAX_RELATION_LENGTH?
+     */
     template <size_t MAX_RELATION_LENGTH>
     using ExtendedEdges =
         AllEntities<sumcheck::Univariate<FF, MAX_RELATION_LENGTH>, sumcheck::Univariate<FF, MAX_RELATION_LENGTH>>;
 
+    /**
+     * @brief A container for the polynomials evaluations produced during sumcheck, which are purported to be the
+     * evaluations of polynomials committed in earlier rounds.
+     */
     class PurportedEvaluations : public AllEntities<FF, FF> {
       public:
         using Base = AllEntities<FF, FF>;
@@ -215,6 +250,12 @@ class Standard {
         PurportedEvaluations(std::array<FF, NUM_ALL_ENTITIES> _data_in) { this->_data = _data_in; }
     };
 
+    /**
+     * @brief A container for commitment labels.
+     * @note It's debatable whether this should inherit from AllEntities. since most entries are not strictly needed. It
+     * has, however, been useful during debugging to have these lables avilable.
+     *
+     */
     class CommitmentLabels : public AllEntities<std::string, std::string> {
       public:
         // this does away with the ENUM_TO_COMM array while preserving the
@@ -247,11 +288,14 @@ class Standard {
         };
     };
 
+    /**
+     * @brief A container for all commitments used by the verifier.
+     */
     class VerifierCommitments : public AllEntities<Commitment, CommitmentHandle> {
       public:
-        VerifierCommitments(std::shared_ptr<VerificationKey> verification_key, VerifierTranscript<FF> transcript)
+        VerifierCommitments(std::shared_ptr<VerificationKey> verification_key)
         {
-            static_cast<void>(transcript); // WORKTODO
+            // Initialize pre-computed commitments here, witness commitments during proof verification.
             q_m = verification_key->q_m;
             q_l = verification_key->q_l;
             q_r = verification_key->q_r;

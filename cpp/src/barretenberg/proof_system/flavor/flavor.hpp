@@ -143,7 +143,7 @@ class AllEntities_ : public Entities_<DataType, DataType, NUM_ALL_ENTITIES> {
     virtual std::vector<HandleType> get_to_be_shifted() = 0;
     virtual std::vector<HandleType> get_shifted() = 0;
 
-    // TODO(Cody): Look for a better solution?
+    // Because of how Gemini is written, is importat to put the polynomials out in this order.
     std::vector<HandleType> get_unshifted_then_shifted()
     {
         std::vector<HandleType> result{ get_unshifted() };
