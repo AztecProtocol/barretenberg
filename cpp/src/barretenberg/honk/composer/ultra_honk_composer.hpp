@@ -1,6 +1,7 @@
 #pragma once
 #include <optional>
 #include "barretenberg/honk/proof_system/ultra_prover.hpp"
+#include "barretenberg/honk/proof_system/ultra_verifier.hpp"
 #include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
 #include "barretenberg/honk/composer/composer_helper/ultra_honk_composer_helper.hpp"
 
@@ -51,7 +52,7 @@ class UltraHonkComposer {
     void finalize_circuit() { circuit_constructor.finalize_circuit(); };
 
     UltraProver create_prover() { return composer_helper.create_prover(circuit_constructor); };
-    // UltraVerifier create_verifier() { return composer_helper.create_verifier(circuit_constructor); };
+    UltraVerifier create_verifier() { return composer_helper.create_verifier(circuit_constructor); };
 
     void create_add_gate(const add_triple& in) { circuit_constructor.create_add_gate(in); }
 

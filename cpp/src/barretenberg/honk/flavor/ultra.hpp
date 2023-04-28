@@ -147,7 +147,22 @@ class Ultra {
         std::vector<PolynomialHandle> get_sorted_polynomials() { return _witness_data.get_sorted_polynomials(); };
     };
 
-    using VerificationKey = VerificationKey_<PrecomputedData<Commitment, CommitmentHandle>>;
+    // using VerificationKey = VerificationKey_<PrecomputedData<Commitment, CommitmentHandle>>;
+    class VerificationKey : public VerificationKey_<PrecomputedData<Commitment, CommitmentHandle>> {
+      public:
+        VerificationKey() = default;
+        VerificationKey(const size_t circuit_size,
+                        const size_t num_public_inputs,
+                        std::shared_ptr<VerifierReferenceString> const& vrs,
+                        ComposerType composer_type)
+        {
+            this->circuit_size = circuit_size;
+            this->log_circuit_size = numeric::get_msb(circuit_size);
+            this->num_public_inputs = num_public_inputs;
+            this->vrs = vrs;
+            this->composer_type = composer_type;
+        };
+    };
 
     template <typename DataType, typename HandleType>
     class AllData : public AllData_<DataType, HandleType, NUM_ALL_ENTITIES> {
@@ -245,7 +260,7 @@ class Ultra {
     // provide the utility of grouping these and ranged `for` loops over
     // subsets.
     using ProverPolynomials = AllData<PolynomialHandle, PolynomialHandle>;
-    using VerifierCommitments = AllData<Commitment, CommitmentHandle>;
+    // using VerifierCommitments = AllData<Commitment, CommitmentHandle>;
 
     using FoldedPolynomials = AllData<std::vector<FF>, PolynomialHandle>; // TODO(Cody): Just reuse ProverPolynomials?
     template <size_t MAX_RELATION_LENGTH>
@@ -319,12 +334,38 @@ class Ultra {
         };
     };
 
-    // class VerifierCommitments : public AllData<Commitment, CommitmentHandle> {
-    //   public:
-    //     VerifierCommitments(std::shared_ptr<VerificationKey> verification_key, VerifierTranscript<FF> transcript)
-    //     {
-    //     }
-    // };
+    class VerifierCommitments : public AllData<Commitment, CommitmentHandle> {
+      public:
+        VerifierCommitments(std::shared_ptr<VerificationKey> verification_key, VerifierTranscript<FF> transcript)
+        {
+            static_cast<void>(transcript); // WORKTODO
+            q_m = verification_key->q_m;
+            q_l = verification_key->q_l;
+            q_r = verification_key->q_r;
+            q_o = verification_key->q_o;
+            q_4 = verification_key->q_4;
+            q_c = verification_key->q_c;
+            q_arith = verification_key->q_arith;
+            q_sort = verification_key->q_sort;
+            q_elliptic = verification_key->q_elliptic;
+            q_aux = verification_key->q_aux;
+            q_lookup = verification_key->q_lookup;
+            sigma_1 = verification_key->sigma_1;
+            sigma_2 = verification_key->sigma_2;
+            sigma_3 = verification_key->sigma_3;
+            sigma_4 = verification_key->sigma_4;
+            id_1 = verification_key->id_1;
+            id_2 = verification_key->id_2;
+            id_3 = verification_key->id_3;
+            id_4 = verification_key->id_4;
+            table_1 = verification_key->table_1;
+            table_2 = verification_key->table_2;
+            table_3 = verification_key->table_3;
+            table_4 = verification_key->table_4;
+            lagrange_first = verification_key->lagrange_first;
+            lagrange_last = verification_key->lagrange_last;
+        }
+    };
 };
 
 } // namespace proof_system::honk::flavor

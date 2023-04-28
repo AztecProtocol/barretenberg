@@ -177,6 +177,9 @@ TEST(UltraHonkComposer, test_no_lookup_proof)
 
     auto honk_prover = honk_composer.create_prover();
     auto plonk_prover = plonk_composer.create_prover();
+    honk_composer.create_verifier();
+
+    honk_prover.construct_proof();
 
     verify_consistency(honk_prover, plonk_prover);
 }
