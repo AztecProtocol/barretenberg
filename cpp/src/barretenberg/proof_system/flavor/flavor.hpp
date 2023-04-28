@@ -93,18 +93,18 @@ template <typename PrecomputedData> class BaseVerificationKey : public Precomput
     std::shared_ptr<VerifierReferenceString> vrs;
 };
 
-template <typename DataType, size_t NUM_ALL_ENTITIES>
+template <typename DataType, typename HandleType, size_t NUM_ALL_ENTITIES>
 class BaseAllData : public Data<DataType, DataType, NUM_ALL_ENTITIES> {
   public:
-    virtual std::vector<DataType> get_unshifted() = 0;
-    virtual std::vector<DataType> get_to_be_shifted() = 0;
-    virtual std::vector<DataType> get_shifted() = 0;
+    virtual std::vector<HandleType> get_unshifted() = 0;
+    virtual std::vector<HandleType> get_to_be_shifted() = 0;
+    virtual std::vector<HandleType> get_shifted() = 0;
 
     // TODO(Cody): Look for a better solution?
-    std::vector<DataType> get_unshifted_then_shifted()
+    std::vector<HandleType> get_unshifted_then_shifted()
     {
-        std::vector<DataType> result{ get_unshifted() };
-        std::vector<DataType> shifted{ get_shifted() };
+        std::vector<HandleType> result{ get_unshifted() };
+        std::vector<HandleType> shifted{ get_shifted() };
         result.insert(result.end(), shifted.begin(), shifted.end());
         return result;
     };
@@ -115,7 +115,7 @@ class Standard {
     using CircuitConstructor = StandardCircuitConstructor;
     using FF = barretenberg::fr;
     using Polynomial = barretenberg::Polynomial<FF>;
-    using PolynomialView = std::span<FF>;
+    using PolynomialView = std::span<FF>; // WORKTODO(Cody): rename
     using G1 = barretenberg::g1;
     using GroupElement = G1::element;
     using Commitment = G1::affine_element;
@@ -227,7 +227,8 @@ class Standard {
         };
     };
 
-    template <typename DataType> class AllData : public BaseAllData<DataType, NUM_ALL_ENTITIES> {
+    template <typename DataType, typename HandleType>
+    class AllData : public BaseAllData<DataType, HandleType, NUM_ALL_ENTITIES> {
       public:
         DataType& q_c = std::get<0>(this->_data);
         DataType& q_l = std::get<1>(this->_data);
@@ -248,36 +249,36 @@ class Standard {
         DataType& z_perm = std::get<16>(this->_data);
         DataType& z_perm_shift = std::get<17>(this->_data);
 
-        std::vector<DataType> get_wires() { return { w_l, w_r, w_o }; };
+        std::vector<HandleType> get_wires() { return { w_l, w_r, w_o }; };
 
-        std::vector<DataType> get_unshifted() override
+        std::vector<HandleType> get_unshifted() override
         { // ...z_perm_shift is in here?
             return { q_c,           q_l, q_r, q_o, q_m,   sigma_1, sigma_2, sigma_3, id_1, id_2, id_3, lagrange_first,
                      lagrange_last, w_l, w_r, w_o, z_perm };
         };
 
-        std::vector<DataType> get_to_be_shifted() override { return { z_perm }; };
+        std::vector<HandleType> get_to_be_shifted() override { return { z_perm }; };
 
-        std::vector<DataType> get_shifted() override { return { z_perm_shift }; };
+        std::vector<HandleType> get_shifted() override { return { z_perm_shift }; };
 
         AllData() = default;
 
         AllData(const AllData& other)
-            : BaseAllData<DataType, NUM_ALL_ENTITIES>(other){};
+            : BaseAllData<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
 
         AllData(AllData&& other)
-            : BaseAllData<DataType, NUM_ALL_ENTITIES>(other){};
+            : BaseAllData<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
 
         // WORKTODO(luke): avoiding self assignment (clang warning) here is a bit gross. Is there a better way?
         AllData& operator=(const AllData& other)
         {
-            BaseAllData<DataType, NUM_ALL_ENTITIES>::operator=(other);
+            BaseAllData<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
         }
 
         AllData& operator=(AllData&& other)
         {
-            BaseAllData<DataType, NUM_ALL_ENTITIES>::operator=(other);
+            BaseAllData<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
         }
 
@@ -287,15 +288,17 @@ class Standard {
     // These are classes are views of data living in different entities. They
     // provide the utility of grouping these and ranged `for` loops over
     // subsets.
-    using ProverPolynomials = AllData<PolynomialView>;
+    using ProverPolynomials = AllData<PolynomialView, PolynomialView>;
 
-    // WORKTODO: Handle univariates right
-    using FoldedPolynomials = AllData<std::vector<FF>>; // WORKTODO add view class type.
-    template <size_t MAX_RELATION_LENGTH> using ExtendedEdges = AllData<sumcheck::Univariate<FF, MAX_RELATION_LENGTH>>;
+    using FoldedPolynomials = AllData<std::vector<FF>, PolynomialView>; // TODO(Cody): Just reuse ProverPolynomials?
+    // TODO(#390): Simplify this?
+    template <size_t MAX_RELATION_LENGTH>
+    using ExtendedEdges =
+        AllData<sumcheck::Univariate<FF, MAX_RELATION_LENGTH>, sumcheck::Univariate<FF, MAX_RELATION_LENGTH>>;
 
-    using PurportedEvaluations = AllData<FF>;
+    using PurportedEvaluations = AllData<FF, FF>;
 
-    class CommitmentLabels : public AllData<std::string> {
+    class CommitmentLabels : public AllData<std::string, std::string> {
       public:
         // this does away with the ENUM_TO_COMM array while preserving the
         // transcript interface, which takes a string
@@ -326,11 +329,11 @@ class Standard {
         };
     };
 
-    class VerifierCommitments : public AllData<CommitmentView> {
+    class VerifierCommitments : public AllData<Commitment, CommitmentView> {
       public:
         VerifierCommitments(std::shared_ptr<VerificationKey> verification_key, VerifierTranscript<FF> transcript)
         {
-            static_cast<void>(transcript);
+            static_cast<void>(transcript); // WORKTODO
             q_m = verification_key->q_m;
             q_l = verification_key->q_l;
             q_r = verification_key->q_r;
@@ -481,7 +484,8 @@ class Ultra {
 
     using VerificationKey = BaseVerificationKey<PrecomputedData<Commitment, CommitmentView>>;
 
-    template <typename DataType> class AllData : public BaseAllData<DataType, NUM_ALL_ENTITIES> {
+    template <typename DataType, typename HandleType>
+    class AllData : public BaseAllData<DataType, HandleType, NUM_ALL_ENTITIES> {
       public:
         DataType& q_c = std::get<0>(this->_data);
         DataType& q_l = std::get<1>(this->_data);
@@ -531,8 +535,8 @@ class Ultra {
         DataType& z_perm_shift = std::get<45>(this->_data);
         DataType& z_lookup_shift = std::get<46>(this->_data);
 
-        std::vector<DataType> get_wires() { return { w_l, w_r, w_o, w_4 }; };
-        std::vector<DataType> get_unshifted() override
+        std::vector<HandleType> get_wires() { return { w_l, w_r, w_o, w_4 }; };
+        std::vector<HandleType> get_unshifted() override
         {
             return { q_c,           q_l,    q_r,      q_o,     q_4,     q_m,      q_arith,  q_sort,
                      q_elliptic,    q_aux,  q_lookup, sigma_1, sigma_2, sigma_3,  sigma_4,  id_1,
@@ -542,27 +546,30 @@ class Ultra {
 
             };
         };
-        std::vector<DataType> get_to_be_shifted() override { return { w_l, w_4, z_perm, z_lookup }; };
-        std::vector<DataType> get_shifted() override { return { w_l_shift, w_4_shift, z_perm_shift, z_lookup_shift }; };
+        std::vector<HandleType> get_to_be_shifted() override { return { w_l, w_4, z_perm, z_lookup }; };
+        std::vector<HandleType> get_shifted() override
+        {
+            return { w_l_shift, w_4_shift, z_perm_shift, z_lookup_shift };
+        };
 
         AllData() = default;
 
         AllData(const AllData& other)
-            : BaseAllData<DataType, NUM_ALL_ENTITIES>(other){};
+            : BaseAllData<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
 
         AllData(AllData&& other)
-            : BaseAllData<DataType, NUM_ALL_ENTITIES>(other){};
+            : BaseAllData<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
 
         // TODO(luke): avoiding self assignment (clang warning) here is a bit gross. Is there a better way?
         AllData& operator=(const AllData& other)
         {
-            BaseAllData<DataType, NUM_ALL_ENTITIES>::operator=(other);
+            BaseAllData<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
         }
 
         AllData& operator=(AllData&& other)
         {
-            BaseAllData<DataType, NUM_ALL_ENTITIES>::operator=(other);
+            BaseAllData<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
         }
 
@@ -572,20 +579,21 @@ class Ultra {
     // These are classes are views of data living in different entities. They
     // provide the utility of grouping these and ranged `for` loops over
     // subsets.
-    using ProverPolynomials = AllData<PolynomialView>;
-    using VerifierCommitments = AllData<CommitmentView>;
+    using ProverPolynomials = AllData<PolynomialView, PolynomialView>;
+    using VerifierCommitments = AllData<Commitment, CommitmentView>;
 
-    // WORKTODO: Handle univariates right
-    using FoldedPolynomials = AllData<std::vector<FF>>; // WORKTODO add view class type.
-    template <size_t MAX_RELATION_LENGTH> using ExtendedEdges = AllData<sumcheck::Univariate<FF, MAX_RELATION_LENGTH>>;
+    using FoldedPolynomials = AllData<std::vector<FF>, PolynomialView>; // TODO(Cody): Just reuse ProverPolynomials?
+    template <size_t MAX_RELATION_LENGTH>
+    using ExtendedEdges =
+        AllData<sumcheck::Univariate<FF, MAX_RELATION_LENGTH>, sumcheck::Univariate<FF, MAX_RELATION_LENGTH>>;
 
-    class PurportedEvaluations : public AllData<FF> {
+    class PurportedEvaluations : public AllData<FF, FF> {
       public:
         PurportedEvaluations() { this->_data = {}; }
         PurportedEvaluations(std::array<FF, NUM_ALL_ENTITIES> read_evals) { this->_data = read_evals; }
     };
 
-    class CommitmentLabels : public AllData<std::string> {
+    class CommitmentLabels : public AllData<std::string, std::string> {
       public:
         // this does away with the ENUM_TO_COMM array while preserving the
         // transcript interface, which takes a string
@@ -645,6 +653,13 @@ class Ultra {
             z_lookup_shift = "__Z_LOOKUP_SHIFT";
         };
     };
+
+    // class VerifierCommitments : public AllData<Commitment, CommitmentView> {
+    //   public:
+    //     VerifierCommitments(std::shared_ptr<VerificationKey> verification_key, VerifierTranscript<FF> transcript)
+    //     {
+    //     }
+    // };
 };
 
 } // namespace proof_system::honk::flavor
