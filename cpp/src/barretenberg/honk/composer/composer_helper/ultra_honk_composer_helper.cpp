@@ -1,17 +1,8 @@
 #include "ultra_honk_composer_helper.hpp"
 #include "barretenberg/honk/proof_system/ultra_prover.hpp"
-#include "barretenberg/plonk/proof_system/types/program_settings.hpp"
-#include "barretenberg/plonk/proof_system/types/prover_settings.hpp"
-// #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
 #include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
 #include "barretenberg/proof_system/composer/composer_helper_lib.hpp"
 #include "barretenberg/proof_system/composer/permutation_helper.hpp"
-#include "barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp"
-
-#include <cstddef>
-#include <cstdint>
-#include <string>
-#include <utility>
 
 namespace proof_system::honk {
 

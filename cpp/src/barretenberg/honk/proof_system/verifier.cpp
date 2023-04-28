@@ -1,46 +1,32 @@
-#include <cmath>
-#include "barretenberg/common/throw_or_abort.hpp"
-#include <cstddef>
-#include <memory>
-#include "barretenberg/honk/transcript/transcript.hpp"
 #include "./verifier.hpp"
-#include "barretenberg/plonk/proof_system/public_inputs/public_inputs.hpp"
-#include "barretenberg/ecc/curves/bn254/fr.hpp"
-#include "barretenberg/honk/pcs/commitment_key.hpp"
-#include "barretenberg/honk/pcs/gemini/gemini.hpp"
-#include "barretenberg/honk/pcs/kzg/kzg.hpp"
+#include "barretenberg/honk/transcript/transcript.hpp"
+// #include "barretenberg/honk/pcs/commitment_key.hpp"
+// #include "barretenberg/honk/pcs/gemini/gemini.hpp"
+// #include "barretenberg/honk/pcs/kzg/kzg.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
-#include "barretenberg/proof_system/polynomial_store/polynomial_store.hpp"
-#include "barretenberg/ecc/curves/bn254/fq12.hpp"
-#include "barretenberg/ecc/curves/bn254/pairing.hpp"
 #include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
-#include "barretenberg/polynomials/polynomial_arithmetic.hpp"
-#include "barretenberg/proof_system/composer/permutation_helper.hpp"
-#include <math.h>
-#include <optional>
-#include <string>
 #include "barretenberg/honk/utils/power_polynomial.hpp"
-#include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/arithmetic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
 
 using namespace barretenberg;
 using namespace proof_system::honk::sumcheck;
 
 namespace proof_system::honk {
-template <typename Flavor, typename program_settings> // WORKTODO: merge these settings?
-Verifier<Flavor, program_settings>::Verifier(std::shared_ptr<typename Flavor::VerificationKey> verifier_key)
+template <typename Flavor>
+StandardVerifier_<Flavor>::StandardVerifier_(std::shared_ptr<typename Flavor::VerificationKey> verifier_key)
     : key(verifier_key)
 {}
 
-template <typename Flavor, typename program_settings>
-Verifier<Flavor, program_settings>::Verifier(Verifier&& other)
+template <typename Flavor>
+StandardVerifier_<Flavor>::StandardVerifier_(StandardVerifier_&& other)
     : key(other.key)
     , kate_verification_key(std::move(other.kate_verification_key))
 {}
 
-template <typename Flavor, typename program_settings>
-Verifier<Flavor, program_settings>& Verifier<Flavor, program_settings>::operator=(Verifier&& other)
+template <typename Flavor> StandardVerifier_<Flavor>& StandardVerifier_<Flavor>::operator=(StandardVerifier_&& other)
 {
     key = other.key;
     kate_verification_key = (std::move(other.kate_verification_key));
@@ -75,8 +61,7 @@ Verifier<Flavor, program_settings>& Verifier<Flavor, program_settings>::operator
         [Q]_1,
         [W]_1
 */
-template <typename Flavor, typename program_settings>
-bool Verifier<Flavor, program_settings>::verify_proof(const plonk::proof& proof)
+template <typename Flavor> bool StandardVerifier_<Flavor>::verify_proof(const plonk::proof& proof)
 {
     using FF = typename Flavor::FF;
     using GroupElement = typename Flavor::GroupElement;
@@ -135,9 +120,9 @@ bool Verifier<Flavor, program_settings>::verify_proof(const plonk::proof& proof)
     // Execute Sumcheck Verifier
     auto sumcheck = Sumcheck<Flavor,
                              VerifierTranscript<FF>,
-                             ArithmeticRelation,
-                             GrandProductComputationRelation,
-                             GrandProductInitializationRelation>(circuit_size, transcript);
+                             honk::sumcheck::ArithmeticRelation,
+                             honk::sumcheck::GrandProductComputationRelation,
+                             honk::sumcheck::GrandProductInitializationRelation>(circuit_size, transcript);
     std::optional sumcheck_output = sumcheck.execute_verifier(relation_parameters);
 
     // If Sumcheck does not return an output, sumcheck verification has failed
@@ -199,6 +184,6 @@ bool Verifier<Flavor, program_settings>::verify_proof(const plonk::proof& proof)
     return kzg_claim.verify(kate_verification_key);
 }
 
-template class Verifier<honk::flavor::Standard, honk::standard_verifier_settings>;
+template class StandardVerifier_<honk::flavor::Standard>;
 
 } // namespace proof_system::honk

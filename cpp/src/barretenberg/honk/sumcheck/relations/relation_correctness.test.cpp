@@ -1,24 +1,15 @@
+#include <gtest/gtest.h>
+
 #include "barretenberg/honk/composer/ultra_honk_composer.hpp"
 #include "barretenberg/honk/composer/standard_honk_composer.hpp"
 #include "barretenberg/honk/proof_system/prover_library.hpp"
 #include "barretenberg/honk/sumcheck/relations/relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/arithmetic_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation_secondary.hpp"
-#include "barretenberg/numeric/uint256/uint256.hpp"
-#include <cstddef>
-#include <cstdint>
-#include "barretenberg/honk/proof_system/prover.hpp"
-#include "barretenberg/honk/sumcheck/sumcheck_round.hpp"
-#include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/lookup_grand_product_relation.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
-#include "barretenberg/honk/utils/grand_product_delta.hpp"
-#include "barretenberg/polynomials/polynomial.hpp"
-
-#include <gtest/gtest.h>
-#include <string>
-#include <vector>
 
 using namespace proof_system::honk;
 
@@ -37,6 +28,7 @@ namespace test_honk_relations {
 TEST(RelationCorrectness, StandardRelationCorrectness)
 {
     using Flavor = honk::flavor::Standard;
+    using FF = typename Flavor::FF;
     using ProverPolynomials = typename Flavor::ProverPolynomials;
     using PurportedEvaluations = typename Flavor::PurportedEvaluations;
 
@@ -65,9 +57,9 @@ TEST(RelationCorrectness, StandardRelationCorrectness)
     // Compute public input delta
     const auto public_inputs = composer.circuit_constructor.get_public_inputs();
     auto public_input_delta =
-        honk::compute_public_input_delta<fr>(public_inputs, beta, gamma, prover.key->circuit_size);
+        honk::compute_public_input_delta<FF>(public_inputs, beta, gamma, prover.key->circuit_size);
 
-    sumcheck::RelationParameters<fr> params{
+    sumcheck::RelationParameters<FF> params{
         .beta = beta,
         .gamma = gamma,
         .public_input_delta = public_input_delta,
@@ -103,9 +95,9 @@ TEST(RelationCorrectness, StandardRelationCorrectness)
     prover_polynomials.lagrange_last = prover.key->lagrange_last;
 
     // Construct the round for applying sumcheck relations and results for storing computed results
-    auto relations = std::tuple(honk::sumcheck::ArithmeticRelation<fr>(),
-                                honk::sumcheck::GrandProductComputationRelation<fr>(),
-                                honk::sumcheck::GrandProductInitializationRelation<fr>());
+    auto relations = std::tuple(honk::sumcheck::ArithmeticRelation<FF>(),
+                                honk::sumcheck::GrandProductComputationRelation<FF>(),
+                                honk::sumcheck::GrandProductInitializationRelation<FF>());
 
     fr result = 0;
     for (size_t i = 0; i < prover.key->circuit_size; i++) {
@@ -147,6 +139,7 @@ TEST(RelationCorrectness, StandardRelationCorrectness)
 TEST(RelationCorrectness, UltraRelationCorrectness)
 {
     using Flavor = honk::flavor::Ultra;
+    using FF = typename Flavor::FF;
     using ProverPolynomials = typename Flavor::ProverPolynomials;
     using PurportedEvaluations = typename Flavor::PurportedEvaluations;
 
@@ -203,11 +196,11 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     // Compute public input delta
     const auto public_inputs = composer.circuit_constructor.get_public_inputs();
     auto public_input_delta =
-        honk::compute_public_input_delta<fr>(public_inputs, beta, gamma, prover.key->circuit_size);
+        honk::compute_public_input_delta<FF>(public_inputs, beta, gamma, prover.key->circuit_size);
     auto lookup_grand_product_delta =
-        honk::compute_lookup_grand_product_delta<fr>(beta, gamma, prover.key->circuit_size);
+        honk::compute_lookup_grand_product_delta<FF>(beta, gamma, prover.key->circuit_size);
 
-    sumcheck::RelationParameters<fr> params{
+    sumcheck::RelationParameters<FF> params{
         .eta = eta,
         .beta = beta,
         .gamma = gamma,
@@ -293,12 +286,12 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     prover_polynomials.lagrange_last = prover.key->lagrange_last;
 
     // Construct the round for applying sumcheck relations and results for storing computed results
-    auto relations = std::tuple(honk::sumcheck::UltraArithmeticRelation<fr>(),
-                                honk::sumcheck::UltraArithmeticRelationSecondary<fr>(),
-                                honk::sumcheck::UltraGrandProductInitializationRelation<fr>(),
-                                honk::sumcheck::UltraGrandProductComputationRelation<fr>(),
-                                honk::sumcheck::LookupGrandProductComputationRelation<fr>(),
-                                honk::sumcheck::LookupGrandProductInitializationRelation<fr>());
+    auto relations = std::tuple(honk::sumcheck::UltraArithmeticRelation<FF>(),
+                                honk::sumcheck::UltraArithmeticRelationSecondary<FF>(),
+                                honk::sumcheck::UltraGrandProductInitializationRelation<FF>(),
+                                honk::sumcheck::UltraGrandProductComputationRelation<FF>(),
+                                honk::sumcheck::LookupGrandProductComputationRelation<FF>(),
+                                honk::sumcheck::LookupGrandProductInitializationRelation<FF>());
 
     fr result = 0;
     for (size_t i = 0; i < prover.key->circuit_size; i++) {
