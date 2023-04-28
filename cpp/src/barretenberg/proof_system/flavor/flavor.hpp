@@ -25,12 +25,12 @@ namespace proof_system::honk::flavor {
  * @tparam HandleType The type that will be used to
  * @tparam NUM_ENTITIES The size of the underlying array.
  */
-template <typename DataType, typename HandleType, size_t NUM_ENTITIES> class Data_ {
+template <typename DataType, typename HandleType, size_t NUM_ENTITIES> class Entities_ {
   public:
     using ArrayType = std::array<DataType, NUM_ENTITIES>;
     ArrayType _data;
 
-    virtual ~Data_() = default;
+    virtual ~Entities_() = default;
 
     DataType& operator[](size_t idx) { return _data[idx]; };
     typename ArrayType::iterator begin() { return _data.begin(); };
@@ -40,7 +40,7 @@ template <typename DataType, typename HandleType, size_t NUM_ENTITIES> class Dat
 };
 
 template <typename DataType, typename HandleType, size_t NUM_PRECOMPUTED_ENTITIES>
-class PrecomputedData_ : public Data_<DataType, HandleType, NUM_PRECOMPUTED_ENTITIES> {
+class PrecomputedEntities_ : public Entities_<DataType, HandleType, NUM_PRECOMPUTED_ENTITIES> {
   public:
     size_t circuit_size;
     size_t log_circuit_size;
@@ -54,7 +54,7 @@ class PrecomputedData_ : public Data_<DataType, HandleType, NUM_PRECOMPUTED_ENTI
 
 // TODO(Cody): Made this public derivation so that I could iterate through
 // the selectors
-template <typename PrecomputedData, typename FF> class ProvingKey_ : public PrecomputedData {
+template <typename PrecomputedEntities, typename FF> class ProvingKey_ : public PrecomputedEntities {
   public:
     bool contains_recursive_proof;
     std::vector<uint32_t> recursive_proof_public_input_indices;
@@ -66,15 +66,15 @@ template <typename PrecomputedData, typename FF> class ProvingKey_ : public Prec
  * @brief Collect all entities (really, views of these) from the protocol in one place.
  * @details No need for a distinction between storage and view classes here.
  *
- * @tparam PrecomputedData
+ * @tparam PrecomputedEntities
  */
-template <typename PrecomputedData> class VerificationKey_ : public PrecomputedData {
+template <typename PrecomputedEntities> class VerificationKey_ : public PrecomputedEntities {
   public:
     std::shared_ptr<VerifierReferenceString> vrs;
 };
 
 template <typename DataType, typename HandleType, size_t NUM_ALL_ENTITIES>
-class AllData_ : public Data_<DataType, DataType, NUM_ALL_ENTITIES> {
+class AllEntities_ : public Entities_<DataType, DataType, NUM_ALL_ENTITIES> {
   public:
     virtual std::vector<HandleType> get_unshifted() = 0;
     virtual std::vector<HandleType> get_to_be_shifted() = 0;

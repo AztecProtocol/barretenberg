@@ -27,7 +27,7 @@ class Standard {
     using G1 = barretenberg::g1;
     using GroupElement = G1::element;
     using Commitment = G1::affine_element;
-    using CommitmentHandle = G1::affine_element; // TODO(Cody): make a pointer?
+    using CommitmentHandle = G1::affine_element;
     using PCSParams = pcs::kzg::Params;
 
     static constexpr size_t num_wires = CircuitConstructor::num_wires;
@@ -39,7 +39,7 @@ class Standard {
     // TODO(Cody): Made this public derivation so that I could populate selector
     // polys from circuit constructor.
     template <typename DataType, typename HandleType>
-    class PrecomputedData : public PrecomputedData_<DataType, HandleType, NUM_PRECOMPUTED_ENTITIES> {
+    class PrecomputedEntities : public PrecomputedEntities_<DataType, HandleType, NUM_PRECOMPUTED_ENTITIES> {
       public:
         DataType& q_m = std::get<0>(this->_data);
         DataType& q_l = std::get<1>(this->_data);
@@ -68,7 +68,7 @@ class Standard {
      * @tparam HandleType
      */
     template <typename DataType, typename HandleType>
-    class WitnessData : public Data_<DataType, HandleType, NUM_WITNESS_ENTITIES> {
+    class WitnessEntities : public Entities_<DataType, HandleType, NUM_WITNESS_ENTITIES> {
       public:
         DataType& w_l = std::get<0>(this->_data);
         DataType& w_r = std::get<1>(this->_data);
@@ -78,9 +78,9 @@ class Standard {
         std::vector<HandleType> get_wires() { return { w_l, w_r, w_o }; };
     };
 
-    class ProvingKey : public ProvingKey_<PrecomputedData<Polynomial, PolynomialHandle>, FF> {
+    class ProvingKey : public ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>, FF> {
       public:
-        WitnessData<Polynomial, PolynomialHandle> _witness_data;
+        WitnessEntities<Polynomial, PolynomialHandle> _witness_data;
 
         Polynomial& w_l = _witness_data.w_l;
         Polynomial& w_r = _witness_data.w_r;
@@ -114,7 +114,7 @@ class Standard {
     };
 
     // WORKTODO: verifiercircuitdata
-    class VerificationKey : public VerificationKey_<PrecomputedData<Commitment, CommitmentHandle>> {
+    class VerificationKey : public VerificationKey_<PrecomputedEntities<Commitment, CommitmentHandle>> {
       public:
         VerificationKey() = default;
         VerificationKey(const size_t circuit_size,
@@ -131,7 +131,7 @@ class Standard {
     };
 
     template <typename DataType, typename HandleType>
-    class AllData : public AllData_<DataType, HandleType, NUM_ALL_ENTITIES> {
+    class AllEntities : public AllEntities_<DataType, HandleType, NUM_ALL_ENTITIES> {
       public:
         DataType& q_c = std::get<0>(this->_data);
         DataType& q_l = std::get<1>(this->_data);
@@ -164,43 +164,43 @@ class Standard {
 
         std::vector<HandleType> get_shifted() override { return { z_perm_shift }; };
 
-        AllData() = default;
+        AllEntities() = default;
 
-        AllData(const AllData& other)
-            : AllData_<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
+        AllEntities(const AllEntities& other)
+            : AllEntities_<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
 
-        AllData(AllData&& other)
-            : AllData_<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
+        AllEntities(AllEntities&& other)
+            : AllEntities_<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
 
-        AllData& operator=(const AllData& other)
+        AllEntities& operator=(const AllEntities& other)
         {
-            AllData_<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
+            AllEntities_<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
         }
 
-        AllData& operator=(AllData&& other)
+        AllEntities& operator=(AllEntities&& other)
         {
-            AllData_<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
+            AllEntities_<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
         }
 
-        AllData(std::array<FF, NUM_ALL_ENTITIES> data_in) { this->_data = data_in; }
+        AllEntities(std::array<FF, NUM_ALL_ENTITIES> data_in) { this->_data = data_in; }
     };
 
     // These collect lightweight handles of data living in different entities. They
     // provide the utility of grouping these and ranged `for` loops over
     // subsets.
-    using ProverPolynomials = AllData<PolynomialHandle, PolynomialHandle>;
+    using ProverPolynomials = AllEntities<PolynomialHandle, PolynomialHandle>;
 
-    using FoldedPolynomials = AllData<std::vector<FF>, PolynomialHandle>; // TODO(#394): use Polynomial class.
+    using FoldedPolynomials = AllEntities<std::vector<FF>, PolynomialHandle>; // TODO(#394): use Polynomial class.
     // TODO(#390): Simplify this?
     template <size_t MAX_RELATION_LENGTH>
     using ExtendedEdges =
-        AllData<sumcheck::Univariate<FF, MAX_RELATION_LENGTH>, sumcheck::Univariate<FF, MAX_RELATION_LENGTH>>;
+        AllEntities<sumcheck::Univariate<FF, MAX_RELATION_LENGTH>, sumcheck::Univariate<FF, MAX_RELATION_LENGTH>>;
 
-    using PurportedEvaluations = AllData<FF, FF>;
+    using PurportedEvaluations = AllEntities<FF, FF>;
 
-    class CommitmentLabels : public AllData<std::string, std::string> {
+    class CommitmentLabels : public AllEntities<std::string, std::string> {
       public:
         // this does away with the ENUM_TO_COMM array while preserving the
         // transcript interface, which takes a string
@@ -231,8 +231,8 @@ class Standard {
         };
     };
 
-    // WORKTODO: this should not be an alldata
-    class VerifierCommitments : public AllData<Commitment, CommitmentHandle> {
+    // WORKTODO: this should not be an allEntities
+    class VerifierCommitments : public AllEntities<Commitment, CommitmentHandle> {
       public:
         VerifierCommitments(std::shared_ptr<VerificationKey> verification_key, VerifierTranscript<FF> transcript)
         {

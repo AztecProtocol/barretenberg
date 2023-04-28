@@ -40,7 +40,7 @@ class Ultra {
     static constexpr size_t NUM_WITNESS_ENTITIES = 11;
 
     template <typename DataType, typename HandleType>
-    class PrecomputedData : public PrecomputedData_<DataType, HandleType, NUM_PRECOMPUTED_ENTITIES> {
+    class PrecomputedEntities : public PrecomputedEntities_<DataType, HandleType, NUM_PRECOMPUTED_ENTITIES> {
       public:
         DataType& q_m = std::get<0>(this->_data);
         DataType& q_c = std::get<1>(this->_data);
@@ -80,7 +80,7 @@ class Ultra {
 
     // Container for all witness polys
     template <typename DataType, typename HandleType>
-    class WitnessData : public Data_<DataType, HandleType, NUM_WITNESS_ENTITIES> {
+    class WitnessEntities : public Entities_<DataType, HandleType, NUM_WITNESS_ENTITIES> {
       public:
         DataType& w_l = std::get<0>(this->_data);
         DataType& w_r = std::get<1>(this->_data);
@@ -98,9 +98,9 @@ class Ultra {
         std::vector<HandleType> get_sorted_polynomials() { return { sorted_1, sorted_2, sorted_3, sorted_4 }; };
     };
 
-    class ProvingKey : public ProvingKey_<PrecomputedData<Polynomial, PolynomialHandle>, FF> {
+    class ProvingKey : public ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>, FF> {
       public:
-        WitnessData<Polynomial, PolynomialHandle> _witness_data;
+        WitnessEntities<Polynomial, PolynomialHandle> _witness_data;
 
         Polynomial& w_l = _witness_data.w_l;
         Polynomial& w_r = _witness_data.w_r;
@@ -147,10 +147,10 @@ class Ultra {
         std::vector<PolynomialHandle> get_sorted_polynomials() { return _witness_data.get_sorted_polynomials(); };
     };
 
-    using VerificationKey = VerificationKey_<PrecomputedData<Commitment, CommitmentHandle>>;
+    using VerificationKey = VerificationKey_<PrecomputedEntities<Commitment, CommitmentHandle>>;
 
     template <typename DataType, typename HandleType>
-    class AllData : public AllData_<DataType, HandleType, NUM_ALL_ENTITIES> {
+    class AllEntities : public AllEntities_<DataType, HandleType, NUM_ALL_ENTITIES> {
       public:
         DataType& q_c = std::get<0>(this->_data);
         DataType& q_l = std::get<1>(this->_data);
@@ -217,48 +217,49 @@ class Ultra {
             return { w_l_shift, w_4_shift, z_perm_shift, z_lookup_shift };
         };
 
-        AllData() = default;
+        AllEntities() = default;
 
-        AllData(const AllData& other)
-            : AllData_<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
+        AllEntities(const AllEntities& other)
+            : AllEntities_<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
 
-        AllData(AllData&& other)
-            : AllData_<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
+        AllEntities(AllEntities&& other)
+            : AllEntities_<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
 
         // TODO(luke): avoiding self assignment (clang warning) here is a bit gross. Is there a better way?
-        AllData& operator=(const AllData& other)
+        AllEntities& operator=(const AllEntities& other)
         {
-            AllData_<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
+            AllEntities_<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
         }
 
-        AllData& operator=(AllData&& other)
+        AllEntities& operator=(AllEntities&& other)
         {
-            AllData_<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
+            AllEntities_<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
         }
 
-        AllData(std::array<FF, NUM_ALL_ENTITIES> data_in) { this->_data = data_in; }
+        AllEntities(std::array<FF, NUM_ALL_ENTITIES> data_in) { this->_data = data_in; }
     };
 
     // These collect lightweight handles of data living in different entities. They
     // provide the utility of grouping these and ranged `for` loops over
     // subsets.
-    using ProverPolynomials = AllData<PolynomialHandle, PolynomialHandle>;
-    using VerifierCommitments = AllData<Commitment, CommitmentHandle>;
+    using ProverPolynomials = AllEntities<PolynomialHandle, PolynomialHandle>;
+    using VerifierCommitments = AllEntities<Commitment, CommitmentHandle>;
 
-    using FoldedPolynomials = AllData<std::vector<FF>, PolynomialHandle>; // TODO(Cody): Just reuse ProverPolynomials?
+    using FoldedPolynomials =
+        AllEntities<std::vector<FF>, PolynomialHandle>; // TODO(Cody): Just reuse ProverPolynomials?
     template <size_t MAX_RELATION_LENGTH>
     using ExtendedEdges =
-        AllData<sumcheck::Univariate<FF, MAX_RELATION_LENGTH>, sumcheck::Univariate<FF, MAX_RELATION_LENGTH>>;
+        AllEntities<sumcheck::Univariate<FF, MAX_RELATION_LENGTH>, sumcheck::Univariate<FF, MAX_RELATION_LENGTH>>;
 
-    class PurportedEvaluations : public AllData<FF, FF> {
+    class PurportedEvaluations : public AllEntities<FF, FF> {
       public:
         PurportedEvaluations() { this->_data = {}; }
         PurportedEvaluations(std::array<FF, NUM_ALL_ENTITIES> read_evals) { this->_data = read_evals; }
     };
 
-    class CommitmentLabels : public AllData<std::string, std::string> {
+    class CommitmentLabels : public AllEntities<std::string, std::string> {
       public:
         // this does away with the ENUM_TO_COMM array while preserving the
         // transcript interface, which takes a string
@@ -319,7 +320,7 @@ class Ultra {
         };
     };
 
-    // class VerifierCommitments : public AllData<Commitment, CommitmentHandle> {
+    // class VerifierCommitments : public AllEntities<Commitment, CommitmentHandle> {
     //   public:
     //     VerifierCommitments(std::shared_ptr<VerificationKey> verification_key, VerifierTranscript<FF> transcript)
     //     {
