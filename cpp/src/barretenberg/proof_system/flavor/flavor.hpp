@@ -74,8 +74,6 @@ namespace proof_system::honk::flavor {
 
 /**
  * @brief Base data class, a wrapper for std::array, from which every flavor class ultimately derives.
- * @details Ideally we could derive from std::array, but that is unsafe because std::array's destructor is
- * non-virtual.
  *
  * @tparam T The underlying data type stored in the array
  * @tparam HandleType The type that will be used to
@@ -95,6 +93,10 @@ template <typename DataType, typename HandleType, size_t NUM_ENTITIES> class Ent
     constexpr size_t size() { return NUM_ENTITIES; };
 };
 
+/**
+ * @brief Base class containing circuit-specifying data.
+ *
+ */
 template <typename DataType, typename HandleType, size_t NUM_PRECOMPUTED_ENTITIES>
 class PrecomputedEntities_ : public Entities_<DataType, HandleType, NUM_PRECOMPUTED_ENTITIES> {
   public:
@@ -108,8 +110,13 @@ class PrecomputedEntities_ : public Entities_<DataType, HandleType, NUM_PRECOMPU
     virtual std::vector<HandleType> get_id_polynomials() = 0;
 };
 
-// TODO(Cody): Made this public derivation so that I could iterate through
-// the selectors
+/**
+ * @brief Base proving key class.
+ *
+ * @tparam PrecomputedEntities An instance of PrecomputedEntities_ with polynomial data type and span handle type.
+ * @tparam FF The scalar field on which we will encode our polynomial data. When instantiating, this may be extractable
+ * from the other template paramter.
+ */
 template <typename PrecomputedEntities, typename FF> class ProvingKey_ : public PrecomputedEntities {
   public:
     bool contains_recursive_proof;
@@ -119,10 +126,9 @@ template <typename PrecomputedEntities, typename FF> class ProvingKey_ : public 
 };
 
 /**
- * @brief Collect all entities (really, views of these) from the protocol in one place.
- * @details No need for a distinction between storage and view classes here.
+ * @brief Base verification key class.
  *
- * @tparam PrecomputedEntities
+ * @tparam PrecomputedEntities An instance of PrecomputedEntities_ with affine_element data type and handle type.
  */
 template <typename PrecomputedEntities> class VerificationKey_ : public PrecomputedEntities {
   public:
