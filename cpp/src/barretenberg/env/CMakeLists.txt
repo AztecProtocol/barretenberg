@@ -1,1 +1,1 @@
-barretenberg_module(env)
+barretenberg_module(env ecc)
