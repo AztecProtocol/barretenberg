@@ -10,8 +10,12 @@ namespace proof_system::plonk {
 
 struct proof {
     std::vector<uint8_t> proof_data;
-    // for serialization: update up with new fields
-    MSGPACK(proof_data);
+    void msgpack_pack(auto& packer) const {
+        packer.pack(proof_data);
+    }
+    void msgpack_unpack(auto object) {
+        proof_data = (std::vector<uint8_t>)object;
+    }
 
     bool operator==(proof const& other) const = default;
 };

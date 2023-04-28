@@ -64,9 +64,6 @@ template <typename Fq, typename Fr, typename Params> class alignas(64) affine_el
     constexpr bool operator>(const affine_element& other) const noexcept;
     constexpr bool operator<(const affine_element& other) const noexcept { return (other > *this); }
 
-    // for serialization: update up with new fields
-    MSGPACK(x, y);
-
     /**
      * @brief Serialize the point to the given buffer
      *
@@ -160,6 +157,9 @@ template <typename Fq, typename Fr, typename Params> class alignas(64) affine_el
     }
     Fq x;
     Fq y;
+    // for serialization: update up with new fields
+    MSGPACK(x, y);
+
 };
 
 template <typename B, typename Fq, typename Fr, typename Params> void read(B& it, affine_element<Fq, Fr, Params>& value)

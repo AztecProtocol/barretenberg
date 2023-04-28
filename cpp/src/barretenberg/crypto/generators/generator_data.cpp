@@ -1,5 +1,5 @@
 #include "./generator_data.hpp"
-
+#include <fstream>
 namespace crypto {
 namespace generators {
 namespace {
@@ -207,6 +207,7 @@ std::vector<std::unique_ptr<generator_data>> const& init_generator_data()
     if (inited && (global_generator_data.size() == size_of_generator_data_array)) {
         return global_generator_data;
     }
+
     std::vector<grumpkin::g1::affine_element> generators;
     std::vector<grumpkin::g1::affine_element> aux_generators;
     std::vector<grumpkin::g1::affine_element> skew_generators;
