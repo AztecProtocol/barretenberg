@@ -1,4 +1,5 @@
 #include "../bool/bool.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "field.hpp"
 #include "array.hpp"
 #include "barretenberg/plonk/proof_system/constants.hpp"
@@ -195,6 +196,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
         uint64_t expected = fidget(composer);
         auto prover = composer.create_prover();
 
+        // TODO(Cody): This is a hack and the test should be rewritten.
         if constexpr (Composer::type == ComposerType::STANDARD_HONK) {
             EXPECT_EQ(prover.key->w_o[20], fr(expected));
         } else {
