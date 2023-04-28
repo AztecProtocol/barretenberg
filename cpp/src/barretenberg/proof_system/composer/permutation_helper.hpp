@@ -232,7 +232,7 @@ PermutationMapping<Flavor::num_wires> compute_permutation_mapping(
  */
 template <typename Flavor>
 void compute_honk_style_permutation_lagrange_polynomials_from_mapping(
-    std::vector<typename Flavor::PolynomialView> permutation_polynomials, // sigma or ID poly
+    std::vector<typename Flavor::PolynomialHandle> permutation_polynomials, // sigma or ID poly
     std::array<std::vector<permutation_subgroup_element>, Flavor::num_wires>& permutation_mappings,
     typename Flavor::ProvingKey* proving_key)
 {
