@@ -5,6 +5,7 @@
 #include "barretenberg/dsl/types.hpp"
 #include "barretenberg/srs/reference_string/pippenger_reference_string.hpp"
 #include "barretenberg/plonk/proof_system/verification_key/sol_gen.hpp"
+#include "barretenberg/stdlib/recursion/verifier/verifier.hpp"
 
 namespace acir_proofs {
 
@@ -228,8 +229,9 @@ bool verify_proof(uint8_t const* g2x,
         plonk::proof pp = { std::vector<uint8_t>(proof, proof + length) };
 
         // For inner circuit use recursive prover and verifier, then for outer circuit use the normal prover and
-        // verifier Either need a context flag for recursive verify or a new_recursive_verify_proof method that uses
-        // regular UltraVerifier
+        // verifier.
+        // Either need a context flag for recursive verify or a new_recursive_verify_proof method that uses regular
+        // UltraVerifier
         if (is_recursive) {
             auto verifier = composer.create_verifier();
             verified = verifier.verify_proof(pp);
@@ -245,6 +247,91 @@ bool verify_proof(uint8_t const* g2x,
     }
 #endif
     return verified;
+}
+
+/**
+ * @brief Enables simulation of recursion in the ACVM. In order to be able to simulate execute of ACIR,
+ *        a DSL needs to be able to insert into a circuit's witness the correct output aggregation state of a recursive
+ * verification. The resulting aggergation state is what will be compared against in the recursion constraint.
+ *
+ * @param proof_buf - The proof to be verified
+ * @param proof_length - The length of the proof to enable reading the proof from buffer
+ * @param vk_buf - The verification key of the circuit being verified
+ * @param vk_length - The length of the verification eky to enable reading the proof from buffer
+ * @param public_inputs_buf - The public inputs of the proof being verified. To be included when construct the input
+ * aggregation state
+ * @param input_aggregation_obj_buf - The fields represnting the two G1 points that must be fed into a pairing.
+ *                                    This will be empty if this is the first proof to be recursively.
+ * @param output_aggregation_obj_buf - Two G1 points that the top-level verifier needs to run a pairing upon to complete
+ * verification
+ */
+size_t verify_recursive_proof(uint8_t const* proof_buf,
+                              uint32_t proof_length,
+                              uint8_t const* vk_buf,
+                              uint32_t vk_length,
+                              uint8_t const* public_inputs_buf,
+                              uint8_t const* input_aggregation_obj_buf,
+                              uint8_t** output_aggregation_obj_buf)
+{
+    // TODO: not doing anything with public_inputs_buf right now because we only have one layer of recursion
+    // and the previous aggregation state will be empty. When arbitrary depth recursion is available we will have to
+    // construct the correct input aggregation_state_ct
+    (void)public_inputs_buf;
+    (void)input_aggregation_obj_buf;
+
+    acir_format::aggregation_state_ct previous_aggregation;
+    previous_aggregation.has_data = false;
+
+    std::vector<acir_format::field_ct> proof_fields(proof_length / 32);
+    std::vector<acir_format::field_ct> key_fields(vk_length / 32);
+    for (size_t i = 0; i < proof_length / 32; i++) {
+        proof_fields[i] = acir_format::field_ct(barretenberg::fr::serialize_from_buffer(&proof_buf[i * 32]));
+    }
+    for (size_t i = 0; i < vk_length / 32; i++) {
+        key_fields[i] = acir_format::field_ct(barretenberg::fr::serialize_from_buffer(&vk_buf[i * 32]));
+    }
+
+    acir_format::Composer composer;
+
+    transcript::Manifest manifest = acir_format::Composer::create_unrolled_manifest(1);
+    // We currently only support RecursionConstraint where inner_proof_contains_recursive_proof = false.
+    // We would either need a separate ACIR opcode where inner_proof_contains_recursive_proof = true,
+    // or we need non-witness data to be provided as metadata in the ACIR opcode
+    std::shared_ptr<acir_format::verification_key_ct> vkey =
+        acir_format::verification_key_ct::template from_field_pt_vector<false>(&composer, key_fields);
+    vkey->program_width = acir_format::noir_recursive_settings::program_width;
+    acir_format::Transcript_ct transcript(&composer, manifest, proof_fields, 1);
+    acir_format::aggregation_state_ct result =
+        proof_system::plonk::stdlib::recursion::verify_proof_<acir_format::bn254, acir_format::noir_recursive_settings>(
+            &composer, vkey, transcript, previous_aggregation);
+
+    // just writing the output aggregation G1 elements, and no public inputs, proof witnesses, or any other data
+    const size_t output_size_bytes = 16 * sizeof(barretenberg::fr);
+    auto raw_buf = (uint8_t*)malloc(output_size_bytes);
+
+    for (size_t i = 0; i < 4; ++i) {
+        auto field = result.P0.x.binary_basis_limbs[i].element.get_value();
+        barretenberg::fr::serialize_to_buffer(field, &raw_buf[i * 32]);
+    }
+
+    for (size_t i = 4; i < 8; ++i) {
+        auto field = result.P0.y.binary_basis_limbs[i % 4].element.get_value();
+        barretenberg::fr::serialize_to_buffer(field, &raw_buf[i * 32]);
+    }
+
+    for (size_t i = 8; i < 12; ++i) {
+        auto field = result.P1.x.binary_basis_limbs[i % 4].element.get_value();
+        barretenberg::fr::serialize_to_buffer(field, &raw_buf[i * 32]);
+    }
+
+    for (size_t i = 12; i < 16; ++i) {
+        auto field = result.P1.y.binary_basis_limbs[i % 4].element.get_value();
+        barretenberg::fr::serialize_to_buffer(field, &raw_buf[i * 32]);
+    }
+
+    *output_aggregation_obj_buf = raw_buf;
+
+    return output_size_bytes;
 }
 
 } // namespace acir_proofs

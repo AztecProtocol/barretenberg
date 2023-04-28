@@ -251,6 +251,8 @@ TEST(AcirProofs, TestSerializationWithRecursion)
             .q_c = -vk_hash_value,
         };
 
+        std::cout << "vk_hash_value: " << vk_hash_value << std::endl;
+
         std::vector<fr> witness;
         for (size_t i = 0; i < 18; ++i) {
             witness.emplace_back(0);

@@ -72,4 +72,20 @@ WASM_EXPORT bool acir_proofs_verify_proof(uint8_t const* g2x,
 {
     return acir_proofs::verify_proof(g2x, vk_buf, constraint_system_buf, proof, length, is_recursive);
 }
+WASM_EXPORT size_t acir_proofs_verify_recursive_proof(uint8_t const* proof_buf,
+                                                      uint32_t proof_length,
+                                                      uint8_t const* vk_buf,
+                                                      uint32_t vk_length,
+                                                      uint8_t const* public_inputs_buf,
+                                                      uint8_t const* input_aggregation_obj_buf,
+                                                      uint8_t** output_aggregation_obj_buf)
+{
+    return acir_proofs::verify_recursive_proof(proof_buf,
+                                               proof_length,
+                                               vk_buf,
+                                               vk_length,
+                                               public_inputs_buf,
+                                               input_aggregation_obj_buf,
+                                               output_aggregation_obj_buf);
+}
 }
