@@ -49,7 +49,7 @@ class BasePrecomputedData : public Data<T, TView, NUM_PRECOMPUTED_ENTITIES> {
     size_t circuit_size;
     size_t log_circuit_size;
     size_t num_public_inputs;
-    ComposerType composer_type; // WORKTODO: Get rid of this
+    ComposerType composer_type; // TODO(#392)
 
     // virtual ~BasePrecomputedData() = default;
 
