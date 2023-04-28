@@ -13,8 +13,6 @@
 #include <utility>
 
 namespace proof_system::plonk {
-// TODO(Kesha): change initializations to specify this parameter
-// Cody: What does this mean?
 class StandardPlonkComposerHelper {
   public:
     using Flavor = plonk::flavor::Standard;

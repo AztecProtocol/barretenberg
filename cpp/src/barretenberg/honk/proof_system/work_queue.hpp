@@ -41,8 +41,6 @@ template <typename Params> class work_queue {
 
     work_queue(const work_queue& other) = default;
     work_queue(work_queue&& other) noexcept = default;
-    // work_queue& operator=(const work_queue& other) = delete;
-    // work_queue& operator=(work_queue&& other) = delete;
     ~work_queue() = default;
 
     [[nodiscard]] work_item_info get_queued_work_item_info() const

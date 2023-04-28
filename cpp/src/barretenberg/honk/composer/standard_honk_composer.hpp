@@ -3,7 +3,6 @@
 #include "composer_helper/standard_honk_composer_helper.hpp"
 #include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
 #include "barretenberg/srs/reference_string/file_reference_string.hpp"
-#include "barretenberg/transcript/manifest.hpp"
 #include "barretenberg/proof_system/types/merkle_hash_type.hpp"
 #include "barretenberg/proof_system/types/pedersen_commitment_type.hpp"
 
@@ -16,7 +15,7 @@ namespace proof_system::honk {
  */
 class StandardHonkComposer {
   public:
-    // TODO(Cody): This should go in flavor or something.
+    // TODO(Cody): Put this in the flavor?
     static constexpr merkle::HashType merkle_hash_type = merkle::HashType::LOOKUP_PEDERSEN;
     static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
 

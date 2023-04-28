@@ -109,10 +109,6 @@ template <typename Flavor> bool StandardVerifier_<Flavor>::verify_proof(const pl
 
     // Get commitment to Z_PERM
     commitments.z_perm = transcript.template receive_from_prover<Commitment>(commitment_labels.z_perm);
-    // commitments.z_perm_shift = commitments.z_perm/* transcript.template
-    // receive_from_prover<Commitment>(commitment_labels.z_perm) */;
-
-    // // TODO(Cody): Compute some basic public polys like id(X), pow(X), and any required Lagrange polys
 
     // Execute Sumcheck Verifier
     auto sumcheck = Sumcheck<Flavor,

@@ -61,7 +61,6 @@ class StandardHonkComposerHelper {
     StandardProver create_prover(const CircuitConstructor& circuit_constructor);
 
     // TODO(#216)(Adrian): Seems error prone to provide the number of randomized gates
-    // Cody: Where should this go? In the flavor (or whatever that becomes)?
     std::shared_ptr<ProvingKey> compute_proving_key_base(const CircuitConstructor& circuit_constructor,
                                                          const size_t minimum_circuit_size = 0,
                                                          const size_t num_randomized_gates = NUM_RANDOMIZED_GATES);

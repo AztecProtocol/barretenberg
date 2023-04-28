@@ -58,7 +58,6 @@ template <StandardFlavor Flavor> class StandardProver_ {
     // Container for spans of all polynomials required by the prover (i.e. all multivariates evaluated by Sumcheck).
     ProverPolynomials prover_polynomials;
 
-    // TODO(Cody): Improve this, or at least make the lables static constexpr?
     CommitmentLabels commitment_labels;
 
     // Container for d + 1 Fold polynomials produced by Gemini

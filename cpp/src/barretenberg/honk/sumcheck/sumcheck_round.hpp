@@ -73,7 +73,7 @@ template <typename Flavor, template <class> class... Relations> class SumcheckRo
     // TODO(#224)(Cody): this barycentric stuff should be more built-in?
     std::tuple<BarycentricData<FF, Relations<FF>::RELATION_LENGTH, MAX_RELATION_LENGTH>...> barycentric_utils;
     std::tuple<Univariate<FF, Relations<FF>::RELATION_LENGTH>...> univariate_accumulators;
-    std::array<FF, NUM_RELATIONS> evaluations; // TODO(Cody): rename to relation_evaluations or something
+    std::array<FF, NUM_RELATIONS> relation_evaluations;
     ExtendedEdges<MAX_RELATION_LENGTH> extended_edges;
     std::array<Univariate<FF, MAX_RELATION_LENGTH>, NUM_RELATIONS> extended_univariates;
 
@@ -94,7 +94,7 @@ template <typename Flavor, template <class> class... Relations> class SumcheckRo
     {
         // FF's default constructor may not initialize to zero (e.g., barretenberg::fr), hence we can't rely on
         // aggregate initialization of the evaluations array.
-        std::fill(evaluations.begin(), evaluations.end(), FF(0));
+        std::fill(relation_evaluations.begin(), relation_evaluations.end(), FF(0));
     };
 
     /**
@@ -218,7 +218,6 @@ template <typename Flavor, template <class> class... Relations> class SumcheckRo
      * together, with appropriate scaling factors, produces the expected value of the full Honk relation. This value is
      * checked against the final value of the target total sum, defined as sigma_d.
      */
-    // TODO(#224)(Cody): Input should be an array?
     FF compute_full_honk_relation_purported_value(PurportedEvaluations purported_evaluations,
                                                   const RelationParameters<FF>& relation_parameters,
                                                   const PowUnivariate<FF>& pow_univariate,
@@ -229,7 +228,7 @@ template <typename Flavor, template <class> class... Relations> class SumcheckRo
         // IMPROVEMENT(Cody): Reuse functions from univariate_accumulators batching?
         FF running_challenge = 1;
         FF output = 0;
-        for (auto& evals : evaluations) {
+        for (auto& evals : relation_evaluations) {
             output += evals * running_challenge;
             running_challenge *= alpha;
         }
@@ -321,7 +320,7 @@ template <typename Flavor, template <class> class... Relations> class SumcheckRo
                                          const RelationParameters<FF>& relation_parameters)
     {
         std::get<relation_idx>(relations).add_full_relation_value_contribution(
-            evaluations[relation_idx], purported_evaluations, relation_parameters);
+            relation_evaluations[relation_idx], purported_evaluations, relation_parameters);
 
         // Repeat for the next relation.
         if constexpr (relation_idx + 1 < NUM_RELATIONS) {

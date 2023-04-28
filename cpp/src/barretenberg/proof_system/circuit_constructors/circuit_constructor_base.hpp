@@ -11,15 +11,13 @@ template <typename Arithmetization> class CircuitConstructorBase {
   public:
     // TODO(Cody): This needs to be templated to allow constructing circuits over Grumpkin. For now, adding FF here
     // since the flavor can extract it.
-    using FF = barretenberg::fr; // TODO(Cody): this should be set in Flavor and then passed to Arithmetization.
+    using FF = barretenberg::fr;
     static constexpr size_t num_wires = Arithmetization::num_wires;
     // Keeping num_wires, at least temporarily, for backward compatibility
     static constexpr size_t program_width = Arithmetization::num_wires;
     static constexpr size_t num_selectors = Arithmetization::num_selectors;
-    // TODO(Cody): selector names are used by composer helper. They can therefore be specified through the proving
-    // system flavor. Getting rid of this also lets us get rid of the weird constructor that's uses the selector names
-    // functions
-    std::vector<std::string> selector_names_; // TODO(Cody): These are plonk-only and could go in the plonk flavor.
+
+    std::vector<std::string> selector_names_; // WORKTODO: These are plonk-only and could go in the plonk flavor.
     size_t num_gates = 0;
 
     std::array<std::vector<uint32_t>, num_wires> wires;

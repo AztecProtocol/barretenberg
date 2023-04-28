@@ -19,6 +19,7 @@
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 
 // WORKTODO: Names of these classes
+// WORKTODO: Selectors should come from arithmetization.
 // WORKTODO: Define special member functions in reasonable way and untangle the bad consequences elsewhere (e.g., in
 // SumcheckOutput)
 namespace proof_system::honk::flavor {

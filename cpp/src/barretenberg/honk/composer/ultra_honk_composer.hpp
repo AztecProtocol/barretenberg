@@ -1,9 +1,8 @@
 #pragma once
-#include "barretenberg/plonk/composer/plookup_tables/plookup_tables.hpp"
+#include <optional>
 #include "barretenberg/honk/proof_system/ultra_prover.hpp"
 #include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
 #include "barretenberg/honk/composer/composer_helper/ultra_honk_composer_helper.hpp"
-#include <optional>
 
 namespace proof_system::honk {
 
