@@ -9,8 +9,7 @@ namespace proof_system::honk {
 /**
  * @brief Compute witness polynomials
  *
- * TODO(luke): The wire polynomials are returned directly whereas the sorted list polys are added to the proving
- * key. This should be made consistent once Cody's Flavor work is settled.
+ * WORKTODO Put sorted witness polynomials in pk?
  */
 void UltraHonkComposerHelper::compute_witness(CircuitConstructor& circuit_constructor)
 {
@@ -129,7 +128,7 @@ void UltraHonkComposerHelper::compute_witness(CircuitConstructor& circuit_constr
     }
 
     // TODO(luke): Adding these to the key for now but this is inconsistent since these are 'witness' polys. Need
-    // to see what becomes of the proving key before making a decision here.
+    // to see what becomes of the proving key before making a decision here. // WORKTODO: resolve this?
     circuit_proving_key->sorted_1 = s_1;
     circuit_proving_key->sorted_2 = s_2;
     circuit_proving_key->sorted_3 = s_3;
@@ -156,7 +155,6 @@ UltraProver UltraHonkComposerHelper::create_prover(CircuitConstructor& circuit_c
 //  *
 //  * @return The verifier.
 //  * */
-// // TODO(Cody): This should go away altogether.
 // plonk::UltraVerifier UltraHonkComposerHelper::create_verifier(
 //     const CircuitConstructor& circuit_constructor)
 // {
@@ -190,7 +188,7 @@ std::shared_ptr<UltraHonkComposerHelper::Flavor::ProvingKey> UltraHonkComposerHe
     const size_t minimum_circuit_size = tables_size + lookups_size;
     const size_t num_randomized_gates = NUM_RANDOMIZED_GATES;
     // Initialize circuit_proving_key
-    // TODO(#229)(Kesha): replace composer types.
+    // TODO(#392)(Kesha): replace composer types.
     circuit_proving_key = initialize_proving_key<Flavor>(
         circuit_constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, ComposerType::PLOOKUP);
 

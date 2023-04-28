@@ -13,8 +13,6 @@
 #include <vector>
 
 namespace proof_system::honk {
-// TODO(Kesha): change initializations to specify this parameter
-// Cody: What does this mean?
 class UltraHonkComposerHelper {
   public:
     using Flavor = flavor::Ultra;

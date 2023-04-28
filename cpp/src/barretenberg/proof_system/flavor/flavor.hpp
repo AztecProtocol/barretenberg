@@ -377,7 +377,7 @@ class Ultra {
         T& lagrange_first = std::get<23>(this->_data);
         T& lagrange_last = std::get<24>(this->_data);
 
-        std::vector<TView> get_selectors()
+        std::vector<TView> get_selectors() // WORKTODO: make these arrays?
         {
             // return { q_c, q_l, q_r, q_o, q_4, q_m, q_arith, q_sort, q_elliptic, q_aux, q_lookup };
             return { q_m, q_c, q_l, q_r, q_o, q_4, q_arith, q_sort, q_elliptic, q_aux, q_lookup };

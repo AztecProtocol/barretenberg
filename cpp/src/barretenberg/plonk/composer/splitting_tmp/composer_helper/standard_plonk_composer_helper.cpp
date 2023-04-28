@@ -62,7 +62,7 @@ std::shared_ptr<plonk::proving_key> StandardPlonkComposerHelper::compute_proving
     const size_t minimum_circuit_size = 0;
     const size_t num_randomized_gates = NUM_RANDOMIZED_GATES;
     // Initialize circuit_proving_key
-    // TODO(#229)(Kesha): replace composer types.
+    // TODO(#392)(Kesha): replace composer types.
     circuit_proving_key = proof_system::initialize_proving_key<Flavor>(
         circuit_constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, ComposerType::STANDARD);
     // Compute lagrange selectors
@@ -113,7 +113,6 @@ std::shared_ptr<plonk::verification_key> StandardPlonkComposerHelper::compute_ve
  *
  * @return The verifier.
  * */
-// TODO(Cody): This should go away altogether.
 plonk::Verifier StandardPlonkComposerHelper::create_verifier(const CircuitConstructor& circuit_constructor)
 {
     auto verification_key = compute_verification_key(circuit_constructor);

@@ -12,8 +12,6 @@
 #include <utility>
 
 namespace proof_system::plonk {
-// TODO(Kesha): change initializations to specify this parameter
-// Cody: What does this mean?
 class UltraPlonkComposerHelper {
   public:
     using Flavor = plonk::flavor::Ultra;

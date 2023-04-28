@@ -38,7 +38,7 @@ std::shared_ptr<plonk::proving_key> TurboPlonkComposerHelper::compute_proving_ke
     const size_t minimum_circuit_size = 0;
     const size_t num_randomized_gates = NUM_RANDOMIZED_GATES;
     // Initialize circuit_proving_key
-    // TODO(#229)(Kesha): replace composer types.
+    // TODO(#392)(Kesha): replace composer types.
     circuit_proving_key = initialize_proving_key<Flavor>(
         circuit_constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, ComposerType::TURBO);
 
@@ -153,7 +153,6 @@ plonk::TurboProver TurboPlonkComposerHelper::create_prover(const CircuitConstruc
  *
  * @return The verifier.
  * */
-// TODO(Cody): This should go away altogether.
 plonk::TurboVerifier TurboPlonkComposerHelper::create_verifier(const CircuitConstructor& circuit_constructor)
 {
     auto verification_key = compute_verification_key(circuit_constructor);

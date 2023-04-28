@@ -191,7 +191,6 @@ UltraProver UltraPlonkComposerHelper::create_prover(CircuitConstructor& circuit_
  *
  * @return The verifier.
  * */
-// TODO(Cody): This should go away altogether.
 
 plonk::UltraVerifier UltraPlonkComposerHelper::create_verifier(const CircuitConstructor& circuit_constructor)
 {
@@ -225,7 +224,7 @@ std::shared_ptr<proving_key> UltraPlonkComposerHelper::compute_proving_key(
     const size_t minimum_circuit_size = tables_size + lookups_size;
     const size_t num_randomized_gates = NUM_RANDOMIZED_GATES;
     // Initialize circuit_proving_key
-    // TODO(#229)(Kesha): replace composer types.
+    // TODO(#392)(Kesha): replace composer types.
     circuit_proving_key = initialize_proving_key<Flavor>(
         circuit_constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, ComposerType::PLOOKUP);
 

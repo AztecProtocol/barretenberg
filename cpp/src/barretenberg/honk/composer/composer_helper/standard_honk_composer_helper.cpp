@@ -28,7 +28,7 @@ std::shared_ptr<StandardHonkComposerHelper::ProvingKey> StandardHonkComposerHelp
     const CircuitConstructor& constructor, const size_t minimum_circuit_size, const size_t num_randomized_gates)
 {
     // Initialize proving_key
-    // TODO(#229)(Kesha): replace composer types.
+    // TODO(#392)(Kesha): replace composer types.
     proving_key = initialize_proving_key<Flavor>(
         constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, ComposerType::STANDARD_HONK);
     // Compute lagrange selectors

@@ -1,8 +1,5 @@
 #include "./verifier.hpp"
 #include "barretenberg/honk/transcript/transcript.hpp"
-// #include "barretenberg/honk/pcs/commitment_key.hpp"
-// #include "barretenberg/honk/pcs/gemini/gemini.hpp"
-// #include "barretenberg/honk/pcs/kzg/kzg.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
