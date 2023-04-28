@@ -30,7 +30,7 @@ class Ultra {
     using CommitmentHandle = G1::affine_element;
     using PCSParams = pcs::kzg::Params;
 
-    static constexpr size_t num_wires = CircuitConstructor::num_wires;
+    static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
     static constexpr size_t NUM_ALL_ENTITIES = 47;
     static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 25;
     // The total number of witness entities not including shifts.

@@ -50,8 +50,8 @@ struct permutation_subgroup_element {
     bool is_tag = false;
 };
 
-template <size_t num_wires> struct PermutationMapping {
-    using Mapping = std::array<std::vector<permutation_subgroup_element>, num_wires>;
+template <size_t NUM_WIRES> struct PermutationMapping {
+    using Mapping = std::array<std::vector<permutation_subgroup_element>, NUM_WIRES>;
     Mapping sigmas;
     Mapping ids;
 };
@@ -134,16 +134,16 @@ std::vector<CyclicPermutation> compute_wire_copy_cycles(const typename Flavor::C
  * @return PermutationMapping sigma mapping (and id mapping if generalized == true)
  */
 template <typename Flavor, bool generalized>
-PermutationMapping<Flavor::num_wires> compute_permutation_mapping(
+PermutationMapping<Flavor::NUM_WIRES> compute_permutation_mapping(
     const typename Flavor::CircuitConstructor& circuit_constructor, typename Flavor::ProvingKey* proving_key)
 {
     // Compute wire copy cycles (cycles of permutations)
     auto wire_copy_cycles = compute_wire_copy_cycles<Flavor>(circuit_constructor);
 
-    PermutationMapping<Flavor::num_wires> mapping;
+    PermutationMapping<Flavor::NUM_WIRES> mapping;
 
     // Initialize the table of permutations so that every element points to itself
-    for (size_t i = 0; i < Flavor::num_wires; ++i) { // TODO(#391) zip and split
+    for (size_t i = 0; i < Flavor::NUM_WIRES; ++i) { // TODO(#391) zip and split
         mapping.sigmas[i].reserve(proving_key->circuit_size);
         if constexpr (generalized) {
             mapping.ids[i].reserve(proving_key->circuit_size);
@@ -232,7 +232,7 @@ PermutationMapping<Flavor::num_wires> compute_permutation_mapping(
 template <typename Flavor>
 void compute_honk_style_permutation_lagrange_polynomials_from_mapping(
     std::vector<typename Flavor::PolynomialHandle> permutation_polynomials, // sigma or ID poly
-    std::array<std::vector<permutation_subgroup_element>, Flavor::num_wires>& permutation_mappings,
+    std::array<std::vector<permutation_subgroup_element>, Flavor::NUM_WIRES>& permutation_mappings,
     typename Flavor::ProvingKey* proving_key)
 {
     const size_t num_gates = proving_key->circuit_size;
@@ -254,7 +254,7 @@ void compute_honk_style_permutation_lagrange_polynomials_from_mapping(
                 -barretenberg::fr(current_mapping.row_index + 1 + num_gates * current_mapping.column_index);
         } else if (current_mapping.is_tag) {
             // Set evaluations to (arbitrary) values disjoint from non-tag values
-            current_permutation_poly[i] = num_gates * Flavor::num_wires + current_mapping.row_index;
+            current_permutation_poly[i] = num_gates * Flavor::NUM_WIRES + current_mapping.row_index;
         } else {
             // For the regular permutation we simply point to the next location by setting the evaluation to its
             // index
@@ -461,7 +461,7 @@ void compute_standard_plonk_sigma_permutations(const typename Flavor::CircuitCon
     // Compute Plonk-style sigma polynomials from the mapping
     compute_plonk_permutation_lagrange_polynomials_from_mapping("sigma", mapping.sigmas, key);
     // Compute their monomial and coset versions
-    compute_monomial_and_coset_fft_polynomials_from_lagrange<Flavor::num_wires>("sigma", key);
+    compute_monomial_and_coset_fft_polynomials_from_lagrange<Flavor::NUM_WIRES>("sigma", key);
 }
 
 /**
@@ -500,8 +500,8 @@ void compute_plonk_generalized_sigma_permutations(const typename Flavor::Circuit
     compute_plonk_permutation_lagrange_polynomials_from_mapping("sigma", mapping.sigmas, key);
     compute_plonk_permutation_lagrange_polynomials_from_mapping("id", mapping.ids, key);
     // Compute the monomial and coset-ffts for sigmas and IDs
-    compute_monomial_and_coset_fft_polynomials_from_lagrange<Flavor::num_wires>("sigma", key);
-    compute_monomial_and_coset_fft_polynomials_from_lagrange<Flavor::num_wires>("id", key);
+    compute_monomial_and_coset_fft_polynomials_from_lagrange<Flavor::NUM_WIRES>("sigma", key);
+    compute_monomial_and_coset_fft_polynomials_from_lagrange<Flavor::NUM_WIRES>("id", key);
 }
 
 /**

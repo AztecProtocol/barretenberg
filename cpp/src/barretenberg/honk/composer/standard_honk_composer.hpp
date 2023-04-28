@@ -36,7 +36,7 @@ class StandardHonkComposer {
 
     // Leaving it in for now just in case
     bool contains_recursive_proof = false;
-    static constexpr size_t num_wires = CircuitConstructor::num_wires;
+    static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
 
     /**Standard methods*/
 

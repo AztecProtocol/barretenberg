@@ -73,7 +73,7 @@ TEST(StandardHonkComposer, SigmaIDCorrectness)
         auto permutation_polynomials = proving_key->get_sigma_polynomials();
         auto id_polynomials = proving_key->get_id_polynomials();
         auto wire_polynomials = proving_key->get_wires();
-        for (size_t j = 0; j < StandardHonkComposer::num_wires; ++j) {
+        for (size_t j = 0; j < StandardHonkComposer::NUM_WIRES; ++j) {
             std::string index = std::to_string(j + 1);
             const auto& permutation_polynomial = permutation_polynomials[j];
             const auto& witness_polynomial = wire_polynomials[j];
@@ -215,7 +215,7 @@ TEST(StandardHonkComposer, AssertEquals)
     auto get_maximum_cycle = [](auto& composer) {
         // Compute the proving key for sigma polynomials
         auto proving_key = composer.compute_proving_key();
-        auto permutation_length = composer.num_wires * proving_key->circuit_size;
+        auto permutation_length = composer.NUM_WIRES * proving_key->circuit_size;
         auto sigma_polynomials = proving_key->get_sigma_polynomials();
 
         // Let's compute the maximum cycle
@@ -302,7 +302,7 @@ TEST(StandardHonkComposer, VerificationKeyCreation)
     // There is nothing we can really check apart from the fact that constraint selectors and permutation selectors were
     // committed to, we simply check that the verification key now contains the appropriate number of constraint and
     // permutation selector commitments. This method should work with any future arithemtization.
-    EXPECT_EQ(verification_key->size(), composer.circuit_constructor.selectors.size() + composer.num_wires * 2 + 2);
+    EXPECT_EQ(verification_key->size(), composer.circuit_constructor.selectors.size() + composer.NUM_WIRES * 2 + 2);
 }
 
 TEST(StandardHonkComposer, BaseCase)

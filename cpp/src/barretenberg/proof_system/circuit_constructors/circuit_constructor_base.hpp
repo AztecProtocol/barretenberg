@@ -12,9 +12,9 @@ template <typename Arithmetization> class CircuitConstructorBase {
     // TODO(Cody): This needs to be templated to allow constructing circuits over Grumpkin. For now, adding FF here
     // since the flavor can extract it.
     using FF = barretenberg::fr;
-    static constexpr size_t num_wires = Arithmetization::num_wires;
-    // Keeping num_wires, at least temporarily, for backward compatibility
-    static constexpr size_t program_width = Arithmetization::num_wires;
+    static constexpr size_t NUM_WIRES = Arithmetization::NUM_WIRES;
+    // Keeping NUM_WIRES, at least temporarily, for backward compatibility
+    static constexpr size_t program_width = Arithmetization::NUM_WIRES;
     static constexpr size_t num_selectors = Arithmetization::num_selectors;
 
     // TODO(Cody): These are plonk-specific and could be specified in the plonk flavors.
@@ -22,7 +22,7 @@ template <typename Arithmetization> class CircuitConstructorBase {
     std::vector<std::string> selector_names_;
     size_t num_gates = 0;
 
-    std::array<std::vector<uint32_t>, num_wires> wires;
+    std::array<std::vector<uint32_t>, NUM_WIRES> wires;
     typename Arithmetization::Selectors selectors;
 
     std::vector<uint32_t> public_inputs;

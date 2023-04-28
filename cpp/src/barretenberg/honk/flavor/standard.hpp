@@ -18,6 +18,14 @@
 
 namespace proof_system::honk::flavor {
 
+/**
+ * @brief Standard Honk
+ * @details We built this variant first because it is the most basic. Because of this, it will remain useful for testing
+ * various constructions. Future variants may exist with varying: underlying curve (here we use BN254); commitment
+ * scheme (here we use Gemini + Shplonk + KZG); zero knowlege property (it's not implemented yet, but in the future we
+ * will be able to toggle it on or off).
+ *
+ */
 class Standard {
   public:
     using CircuitConstructor = StandardCircuitConstructor;
@@ -30,15 +38,13 @@ class Standard {
     using CommitmentHandle = G1::affine_element;
     using PCSParams = pcs::kzg::Params;
 
-    static constexpr size_t num_wires = CircuitConstructor::num_wires;
+    static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
     static constexpr size_t NUM_ALL_ENTITIES = 18;
     static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 13;
     // The total number of witness entities not including shifts.
     static constexpr size_t NUM_WITNESS_ENTITIES = 4;
 
   private:
-    // TODO(Cody): Made this public derivation so that I could populate selector
-    // polys from circuit constructor.
     template <typename DataType, typename HandleType>
     class PrecomputedEntities : public PrecomputedEntities_<DataType, HandleType, NUM_PRECOMPUTED_ENTITIES> {
       public:

@@ -26,7 +26,7 @@ class UltraHonkComposerHelper {
     // Ultra Composer, this value must match that of NUM_RESERVED_GATES. This issue needs to be reconciled
     // simultaneously here and in the other split composers.
     static constexpr size_t NUM_RANDOMIZED_GATES = 4; // equal to the number of multilinear evaluations leaked
-    static constexpr size_t num_wires = CircuitConstructor::num_wires;
+    static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
     std::shared_ptr<ProvingKey> proving_key;
     std::shared_ptr<VerificationKey> verification_key;
     // TODO(#218)(kesha): we need to put this into the commitment key, so that the composer doesn't have to handle srs
