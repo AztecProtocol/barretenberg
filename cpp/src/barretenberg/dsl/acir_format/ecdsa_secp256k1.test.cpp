@@ -90,7 +90,7 @@ TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
         .blake2s_constraints = {},
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
-        .merkle_membership_constraints = {},
+        .compute_merkle_root_constraints = {},
         .recursion_constraints = {},
         .constraints = {},
     };
@@ -129,7 +129,7 @@ TEST(ECDSASecp256k1, TestECDSAConstraintFail)
         .blake2s_constraints = {},
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
-        .merkle_membership_constraints = {},
+        .compute_merkle_root_constraints = {},
         .recursion_constraints = {},
         .constraints = {},
     };

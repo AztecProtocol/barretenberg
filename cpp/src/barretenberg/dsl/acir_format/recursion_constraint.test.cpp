@@ -91,7 +91,7 @@ acir_format::Composer create_inner_circuit()
         .blake2s_constraints = {},
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
-        .merkle_membership_constraints = {},
+        .compute_merkle_root_constraints = {},
         .recursion_constraints = {},
         .constraints = { expr_a, expr_b, expr_c, expr_d },
     };
@@ -180,7 +180,7 @@ TEST(RecursionConstraint, TestRecursionConstraint)
         .blake2s_constraints = {},
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
-        .merkle_membership_constraints = {},
+        .compute_merkle_root_constraints = {},
         .recursion_constraints = { recursion_constraint },
         .constraints = {},
     };

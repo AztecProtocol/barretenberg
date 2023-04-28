@@ -86,7 +86,7 @@ void create_inner_circuit(acir_format::acir_format& constraint_system, std::vect
         .blake2s_constraints = {},
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
-        .merkle_membership_constraints = {},
+        .compute_merkle_root_constraints = {},
         .recursion_constraints = {},
         .constraints = { expr_a, expr_b, expr_c, expr_d },
     };
@@ -276,7 +276,7 @@ TEST(AcirProofs, TestSerializationWithRecursion)
             .blake2s_constraints = {},
             .hash_to_field_constraints = {},
             .pedersen_constraints = {},
-            .merkle_membership_constraints = {},
+            .compute_merkle_root_constraints = {},
             .recursion_constraints = { recursion_constraint },
             .constraints = { vk_equality_constraint },
         };
