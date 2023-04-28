@@ -33,12 +33,12 @@ class Ultra {
     using PCSParams = pcs::kzg::Params;
 
     static constexpr size_t num_wires = CircuitConstructor::num_wires;
-    // TODO(luke): sure would be nice if this was computed programtically
     static constexpr size_t NUM_ALL_ENTITIES = 47;
-    // TODO(luke): what does this need to reflect? e.g. are shifts of precomputed polys counted here?
     static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 25;
+    // The total number of witness entities not including shifts.
     static constexpr size_t NUM_WITNESS_ENTITIES = 11;
 
+  private:
     template <typename DataType, typename HandleType>
     class PrecomputedEntities : public PrecomputedEntities_<DataType, HandleType, NUM_PRECOMPUTED_ENTITIES> {
       public:
@@ -97,57 +97,6 @@ class Ultra {
         std::vector<HandleType> get_wires() { return { w_l, w_r, w_o, w_4 }; };
         std::vector<HandleType> get_sorted_polynomials() { return { sorted_1, sorted_2, sorted_3, sorted_4 }; };
     };
-
-    class ProvingKey : public ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>, FF> {
-      public:
-        WitnessEntities<Polynomial, PolynomialHandle> _witness_data;
-
-        Polynomial& w_l = _witness_data.w_l;
-        Polynomial& w_r = _witness_data.w_r;
-        Polynomial& w_o = _witness_data.w_o;
-        Polynomial& w_4 = _witness_data.w_4;
-        Polynomial& sorted_1 = _witness_data.sorted_1;
-        Polynomial& sorted_2 = _witness_data.sorted_2;
-        Polynomial& sorted_3 = _witness_data.sorted_3;
-        Polynomial& sorted_4 = _witness_data.sorted_4;
-        Polynomial& sorted_accum = _witness_data.sorted_accum;
-        Polynomial& z_perm = _witness_data.z_perm;
-        Polynomial& z_lookup = _witness_data.z_lookup;
-
-        std::vector<uint32_t> memory_read_records;
-        std::vector<uint32_t> memory_write_records;
-
-        ProvingKey() = default;
-        ProvingKey(const size_t circuit_size,
-                   const size_t num_public_inputs,
-                   std::shared_ptr<ProverReferenceString> const& crs,
-                   ComposerType composer_type)
-        {
-            this->crs = crs;
-            this->evaluation_domain = EvaluationDomain<FF>(circuit_size, circuit_size);
-
-            this->circuit_size = circuit_size;
-            this->log_circuit_size = numeric::get_msb(circuit_size);
-            this->num_public_inputs = num_public_inputs;
-            this->composer_type = composer_type;
-            // Allocate memory for precomputed polynomials
-            for (auto& poly : this->_data) {
-                poly = Polynomial(circuit_size);
-            }
-            // Allocate memory for witness polynomials
-            for (auto& poly : this->_witness_data._data) {
-                poly = Polynomial(circuit_size);
-            }
-        };
-
-        std::vector<PolynomialHandle> get_wires() { return _witness_data.get_wires(); };
-        // The plookup wires that store plookup read data.
-        std::array<PolynomialHandle, 3> get_table_column_wires() { return { w_l, w_r, w_o }; };
-        // The sorted concatenations of table and witness data needed for plookup.
-        std::vector<PolynomialHandle> get_sorted_polynomials() { return _witness_data.get_sorted_polynomials(); };
-    };
-
-    using VerificationKey = VerificationKey_<PrecomputedEntities<Commitment, CommitmentHandle>>;
 
     template <typename DataType, typename HandleType>
     class AllEntities : public AllEntities_<DataType, HandleType, NUM_ALL_ENTITIES> {
@@ -240,6 +189,58 @@ class Ultra {
 
         AllEntities(std::array<FF, NUM_ALL_ENTITIES> data_in) { this->_data = data_in; }
     };
+
+  public:
+    class ProvingKey : public ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>, FF> {
+      public:
+        WitnessEntities<Polynomial, PolynomialHandle> _witness_data;
+
+        Polynomial& w_l = _witness_data.w_l;
+        Polynomial& w_r = _witness_data.w_r;
+        Polynomial& w_o = _witness_data.w_o;
+        Polynomial& w_4 = _witness_data.w_4;
+        Polynomial& sorted_1 = _witness_data.sorted_1;
+        Polynomial& sorted_2 = _witness_data.sorted_2;
+        Polynomial& sorted_3 = _witness_data.sorted_3;
+        Polynomial& sorted_4 = _witness_data.sorted_4;
+        Polynomial& sorted_accum = _witness_data.sorted_accum;
+        Polynomial& z_perm = _witness_data.z_perm;
+        Polynomial& z_lookup = _witness_data.z_lookup;
+
+        std::vector<uint32_t> memory_read_records;
+        std::vector<uint32_t> memory_write_records;
+
+        ProvingKey() = default;
+        ProvingKey(const size_t circuit_size,
+                   const size_t num_public_inputs,
+                   std::shared_ptr<ProverReferenceString> const& crs,
+                   ComposerType composer_type)
+        {
+            this->crs = crs;
+            this->evaluation_domain = EvaluationDomain<FF>(circuit_size, circuit_size);
+
+            this->circuit_size = circuit_size;
+            this->log_circuit_size = numeric::get_msb(circuit_size);
+            this->num_public_inputs = num_public_inputs;
+            this->composer_type = composer_type;
+            // Allocate memory for precomputed polynomials
+            for (auto& poly : this->_data) {
+                poly = Polynomial(circuit_size);
+            }
+            // Allocate memory for witness polynomials
+            for (auto& poly : this->_witness_data._data) {
+                poly = Polynomial(circuit_size);
+            }
+        };
+
+        std::vector<PolynomialHandle> get_wires() { return _witness_data.get_wires(); };
+        // The plookup wires that store plookup read data.
+        std::array<PolynomialHandle, 3> get_table_column_wires() { return { w_l, w_r, w_o }; };
+        // The sorted concatenations of table and witness data needed for plookup.
+        std::vector<PolynomialHandle> get_sorted_polynomials() { return _witness_data.get_sorted_polynomials(); };
+    };
+
+    using VerificationKey = VerificationKey_<PrecomputedEntities<Commitment, CommitmentHandle>>;
 
     // These collect lightweight handles of data living in different entities. They
     // provide the utility of grouping these and ranged `for` loops over

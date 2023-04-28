@@ -36,6 +36,7 @@ class Standard {
     // The total number of witness entities not including shifts.
     static constexpr size_t NUM_WITNESS_ENTITIES = 4;
 
+  private:
     // TODO(Cody): Made this public derivation so that I could populate selector
     // polys from circuit constructor.
     template <typename DataType, typename HandleType>
@@ -76,58 +77,6 @@ class Standard {
         DataType& z_perm = std::get<3>(this->_data);
 
         std::vector<HandleType> get_wires() { return { w_l, w_r, w_o }; };
-    };
-
-    class ProvingKey : public ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>, FF> {
-      public:
-        WitnessEntities<Polynomial, PolynomialHandle> _witness_data;
-
-        Polynomial& w_l = _witness_data.w_l;
-        Polynomial& w_r = _witness_data.w_r;
-        Polynomial& w_o = _witness_data.w_o;
-        Polynomial& z_perm = _witness_data.z_perm;
-
-        ProvingKey() = default;
-        ProvingKey(const size_t circuit_size,
-                   const size_t num_public_inputs,
-                   std::shared_ptr<ProverReferenceString> const& crs,
-                   ComposerType composer_type)
-        {
-            this->crs = crs;
-            this->evaluation_domain = EvaluationDomain<FF>(circuit_size, circuit_size);
-
-            this->circuit_size = circuit_size;
-            this->log_circuit_size = numeric::get_msb(circuit_size);
-            this->num_public_inputs = num_public_inputs;
-            this->composer_type = composer_type;
-            // Allocate memory for precomputed polynomials
-            for (auto& poly : this->_data) {
-                poly = Polynomial(circuit_size);
-            }
-            // Allocate memory for witness polynomials
-            for (auto& poly : this->_witness_data._data) {
-                poly = Polynomial(circuit_size);
-            }
-        };
-
-        std::vector<PolynomialHandle> get_wires() { return _witness_data.get_wires(); };
-    };
-
-    // WORKTODO: verifiercircuitdata
-    class VerificationKey : public VerificationKey_<PrecomputedEntities<Commitment, CommitmentHandle>> {
-      public:
-        VerificationKey() = default;
-        VerificationKey(const size_t circuit_size,
-                        const size_t num_public_inputs,
-                        std::shared_ptr<VerifierReferenceString> const& vrs,
-                        ComposerType composer_type)
-        {
-            this->circuit_size = circuit_size;
-            this->log_circuit_size = numeric::get_msb(circuit_size);
-            this->num_public_inputs = num_public_inputs;
-            this->vrs = vrs;
-            this->composer_type = composer_type;
-        };
     };
 
     template <typename DataType, typename HandleType>
@@ -185,6 +134,59 @@ class Standard {
         }
 
         AllEntities(std::array<FF, NUM_ALL_ENTITIES> data_in) { this->_data = data_in; }
+    };
+
+  public:
+    class ProvingKey : public ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>, FF> {
+      public:
+        WitnessEntities<Polynomial, PolynomialHandle> _witness_data;
+
+        Polynomial& w_l = _witness_data.w_l;
+        Polynomial& w_r = _witness_data.w_r;
+        Polynomial& w_o = _witness_data.w_o;
+        Polynomial& z_perm = _witness_data.z_perm;
+
+        ProvingKey() = default;
+        ProvingKey(const size_t circuit_size,
+                   const size_t num_public_inputs,
+                   std::shared_ptr<ProverReferenceString> const& crs,
+                   ComposerType composer_type)
+        {
+            this->crs = crs;
+            this->evaluation_domain = EvaluationDomain<FF>(circuit_size, circuit_size);
+
+            this->circuit_size = circuit_size;
+            this->log_circuit_size = numeric::get_msb(circuit_size);
+            this->num_public_inputs = num_public_inputs;
+            this->composer_type = composer_type;
+            // Allocate memory for precomputed polynomials
+            for (auto& poly : this->_data) {
+                poly = Polynomial(circuit_size);
+            }
+            // Allocate memory for witness polynomials
+            for (auto& poly : this->_witness_data._data) {
+                poly = Polynomial(circuit_size);
+            }
+        };
+
+        std::vector<PolynomialHandle> get_wires() { return _witness_data.get_wires(); };
+    };
+
+    // WORKTODO: verifiercircuitdata
+    class VerificationKey : public VerificationKey_<PrecomputedEntities<Commitment, CommitmentHandle>> {
+      public:
+        VerificationKey() = default;
+        VerificationKey(const size_t circuit_size,
+                        const size_t num_public_inputs,
+                        std::shared_ptr<VerifierReferenceString> const& vrs,
+                        ComposerType composer_type)
+        {
+            this->circuit_size = circuit_size;
+            this->log_circuit_size = numeric::get_msb(circuit_size);
+            this->num_public_inputs = num_public_inputs;
+            this->vrs = vrs;
+            this->composer_type = composer_type;
+        };
     };
 
     // These collect lightweight handles of data living in different entities. They
