@@ -175,7 +175,6 @@ class Standard {
         std::vector<PolynomialHandle> get_wires() { return _witness_data.get_wires(); };
     };
 
-    // WORKTODO: verifiercircuitdata
     class VerificationKey : public VerificationKey_<PrecomputedEntities<Commitment, CommitmentHandle>> {
       public:
         VerificationKey() = default;
@@ -242,7 +241,6 @@ class Standard {
         };
     };
 
-    // WORKTODO: this should not be an allEntities
     class VerifierCommitments : public AllEntities<Commitment, CommitmentHandle> {
       public:
         VerifierCommitments(std::shared_ptr<VerificationKey> verification_key, VerifierTranscript<FF> transcript)
