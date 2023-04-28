@@ -621,10 +621,12 @@ template <class Params> void field<Params>::msgpack_pack(auto& packer) const
 template <class Params> void field<Params>::msgpack_unpack(auto o)
 {
     // Trigger msgpack specialization for binary
-    (std::array<uint8_t, sizeof(data)>&)*data = o;
-    uint64_t reversed[] = {data[3], data[2], data[1], data[0]};
+    std::array<uint8_t, sizeof(data)> raw_data = o;
+    // With the binary data, we have to read it as big endian uint64_t's, then correct them to the host endianness
+    uint64_t* cast_data = (uint64_t*)&raw_data[0];
+    uint64_t reversed[] = {ntohll(cast_data[3]), ntohll(cast_data[2]), ntohll(cast_data[1]), ntohll(cast_data[0])};
     for (int i = 0; i < 4; i++) {
-        data[i] = reversed[i];
+        data[i] = reversed[i];  
     }
     *this = to_montgomery_form();
 }
