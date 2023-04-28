@@ -21,6 +21,7 @@
 // WORKTODO: Names of these classes
 // WORKTODO: Selectors should come from arithmetization.
 // WORKTODO: Define special member functions in reasonable way and untangle the bad consequences elsewhere (e.g., in
+// WORKTODO: privacy
 // SumcheckOutput)
 // TODO(Cody): Handle types.
 /**
@@ -42,20 +43,13 @@ template <typename DataType, typename HandleType, size_t NUM_ENTITIES> class Dat
     using ArrayType = std::array<DataType, NUM_ENTITIES>;
     ArrayType _data;
 
-    // TODO(Cody): now it's safe to inherit from this... right?
-    // virtual ~Data() = default;
-    // Data() = default;
-    // // TODO(Cody): are these needed?
-    // Data(const Data&) = default;
-    // Data(Data&&) = default;
-    // Data& operator=(const Data&) = default;
-    // Data& operator=(Data&&) = default;
+    virtual ~Data_() = default;
 
     DataType& operator[](size_t idx) { return _data[idx]; };
     typename ArrayType::iterator begin() { return _data.begin(); };
     typename ArrayType::iterator end() { return _data.end(); };
 
-    size_t size() { return _data.size(); }; // WORKTODO: constexpr
+    constexpr size_t size() { return NUM_ENTITIES; };
 };
 
 template <typename DataType, typename HandleType, size_t NUM_PRECOMPUTED_ENTITIES>
@@ -65,8 +59,6 @@ class PrecomputedData_ : public Data_<DataType, HandleType, NUM_PRECOMPUTED_ENTI
     size_t log_circuit_size;
     size_t num_public_inputs;
     ComposerType composer_type; // TODO(#392)
-
-    // virtual ~BasePrecomputedData() = default;
 
     virtual std::vector<HandleType> get_selectors() = 0;
     virtual std::vector<HandleType> get_sigma_polynomials() = 0;
@@ -116,7 +108,7 @@ class Standard {
     using CircuitConstructor = StandardCircuitConstructor;
     using FF = barretenberg::fr;
     using Polynomial = barretenberg::Polynomial<FF>;
-    using PolynomialHandle = std::span<FF>; // WORKTODO(Cody): rename
+    using PolynomialHandle = std::span<FF>;
     using G1 = barretenberg::g1;
     using GroupElement = G1::element;
     using Commitment = G1::affine_element;
@@ -151,8 +143,6 @@ class Standard {
         std::vector<HandleType> get_selectors() override { return { q_m, q_l, q_r, q_o, q_c }; };
         std::vector<HandleType> get_sigma_polynomials() override { return { sigma_1, sigma_2, sigma_3 }; };
         std::vector<HandleType> get_id_polynomials() override { return { id_1, id_2, id_3 }; };
-
-        virtual ~PrecomputedData() = default;
     };
 
     /**
@@ -171,8 +161,6 @@ class Standard {
         DataType& z_perm = std::get<3>(this->_data);
 
         std::vector<HandleType> get_wires() { return { w_l, w_r, w_o }; };
-
-        virtual ~WitnessData() = default;
     };
 
     // WORKTODO(luke): Proving key now stores all multivariate polynomials used by the prover. Is Pkey still the right
@@ -408,8 +396,6 @@ class Ultra {
         std::vector<HandleType> get_sigma_polynomials() { return { sigma_1, sigma_2, sigma_3, sigma_4 }; };
         std::vector<HandleType> get_table_polynomials() { return { table_1, table_2, table_3, table_4 }; };
         std::vector<HandleType> get_id_polynomials() { return { id_1, id_2, id_3, id_4 }; };
-
-        virtual ~PrecomputedData() = default;
     };
 
     // Container for all witness polys
@@ -430,8 +416,6 @@ class Ultra {
 
         std::vector<HandleType> get_wires() { return { w_l, w_r, w_o, w_4 }; };
         std::vector<HandleType> get_sorted_polynomials() { return { sorted_1, sorted_2, sorted_3, sorted_4 }; };
-
-        virtual ~WitnessData() = default;
     };
 
     class ProvingKey : public ProvingKey_<PrecomputedData<Polynomial, PolynomialHandle>, FF> {
