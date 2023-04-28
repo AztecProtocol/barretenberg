@@ -33,7 +33,7 @@ class Standard {
     static constexpr size_t num_wires = CircuitConstructor::num_wires;
     static constexpr size_t NUM_ALL_ENTITIES = 18;
     static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 13;
-    // WORKTODO(luke): This number needs to be total witness polys not including shifts.
+    // The total number of witness entities not including shifts.
     static constexpr size_t NUM_WITNESS_ENTITIES = 4;
 
     // TODO(Cody): Made this public derivation so that I could populate selector
@@ -78,11 +78,9 @@ class Standard {
         std::vector<HandleType> get_wires() { return { w_l, w_r, w_o }; };
     };
 
-    // WORKTODO(luke): Proving key now stores all multivariate polynomials used by the prover. Is Pkey still the right
-    // name?
     class ProvingKey : public ProvingKey_<PrecomputedData<Polynomial, PolynomialHandle>, FF> {
       public:
-        WitnessData<Polynomial, PolynomialHandle> _witness_data; // WORKTODO: name?
+        WitnessData<Polynomial, PolynomialHandle> _witness_data;
 
         Polynomial& w_l = _witness_data.w_l;
         Polynomial& w_r = _witness_data.w_r;
@@ -115,6 +113,7 @@ class Standard {
         std::vector<PolynomialHandle> get_wires() { return _witness_data.get_wires(); };
     };
 
+    // WORKTODO: verifiercircuitdata
     class VerificationKey : public VerificationKey_<PrecomputedData<Commitment, CommitmentHandle>> {
       public:
         VerificationKey() = default;
@@ -173,7 +172,6 @@ class Standard {
         AllData(AllData&& other)
             : AllData_<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
 
-        // WORKTODO(luke): avoiding self assignment (clang warning) here is a bit gross. Is there a better way?
         AllData& operator=(const AllData& other)
         {
             AllData_<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
@@ -194,7 +192,7 @@ class Standard {
     // subsets.
     using ProverPolynomials = AllData<PolynomialHandle, PolynomialHandle>;
 
-    using FoldedPolynomials = AllData<std::vector<FF>, PolynomialHandle>; // TODO(Cody): Just reuse ProverPolynomials?
+    using FoldedPolynomials = AllData<std::vector<FF>, PolynomialHandle>; // TODO(#394): use Polynomial class.
     // TODO(#390): Simplify this?
     template <size_t MAX_RELATION_LENGTH>
     using ExtendedEdges =
@@ -233,6 +231,7 @@ class Standard {
         };
     };
 
+    // WORKTODO: this should not be an alldata
     class VerifierCommitments : public AllData<Commitment, CommitmentHandle> {
       public:
         VerifierCommitments(std::shared_ptr<VerificationKey> verification_key, VerifierTranscript<FF> transcript)

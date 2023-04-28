@@ -68,7 +68,7 @@ class Ultra {
         DataType& lagrange_first = std::get<23>(this->_data);
         DataType& lagrange_last = std::get<24>(this->_data);
 
-        std::vector<HandleType> get_selectors() // WORKTODO: make these arrays?
+        std::vector<HandleType> get_selectors() // TODO(#395): return arrays?
         {
             // return { q_c, q_l, q_r, q_o, q_4, q_m, q_arith, q_sort, q_elliptic, q_aux, q_lookup };
             return { q_m, q_c, q_l, q_r, q_o, q_4, q_arith, q_sort, q_elliptic, q_aux, q_lookup };
@@ -142,7 +142,7 @@ class Ultra {
 
         std::vector<PolynomialHandle> get_wires() { return _witness_data.get_wires(); };
         // The plookup wires that store plookup read data.
-        std::array<PolynomialHandle, 3> get_plookup_read_wires() { return { w_l, w_r, w_o }; };
+        std::array<PolynomialHandle, 3> get_table_column_wires() { return { w_l, w_r, w_o }; };
         // The sorted concatenations of table and witness data needed for plookup.
         std::vector<PolynomialHandle> get_sorted_polynomials() { return _witness_data.get_sorted_polynomials(); };
     };

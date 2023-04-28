@@ -143,8 +143,7 @@ PermutationMapping<Flavor::num_wires> compute_permutation_mapping(
     PermutationMapping<Flavor::num_wires> mapping;
 
     // Initialize the table of permutations so that every element points to itself
-    // TODO(Cody): Loose coupling here
-    for (size_t i = 0; i < Flavor::num_wires; ++i) {
+    for (size_t i = 0; i < Flavor::num_wires; ++i) { // TODO(#391) zip and split
         mapping.sigmas[i].reserve(proving_key->circuit_size);
         if constexpr (generalized) {
             mapping.ids[i].reserve(proving_key->circuit_size);

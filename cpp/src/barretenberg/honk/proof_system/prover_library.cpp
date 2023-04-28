@@ -211,7 +211,7 @@ typename Flavor::Polynomial compute_lookup_grand_product(std::shared_ptr<typenam
 
     // We utilize three wires even when more are available.
     // TODO(#389): const correctness
-    std::array<std::span<FF>, 3> wires = key->get_plookup_read_wires();
+    std::array<std::span<FF>, 3> wires = key->get_table_column_wires();
 
     // Note: the number of table polys is related to program width but '4' is the only value supported
     std::array<std::span<const FF>, 4> tables{

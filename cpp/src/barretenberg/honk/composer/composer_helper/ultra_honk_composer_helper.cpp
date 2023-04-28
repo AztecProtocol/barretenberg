@@ -9,7 +9,6 @@ namespace proof_system::honk {
 /**
  * @brief Compute witness polynomials
  *
- * WORKTODO Put sorted witness polynomials in pk?
  */
 void UltraHonkComposerHelper::compute_witness(CircuitConstructor& circuit_constructor)
 {
@@ -127,8 +126,6 @@ void UltraHonkComposerHelper::compute_witness(CircuitConstructor& circuit_constr
         ++count;
     }
 
-    // TODO(luke): Adding these to the key for now but this is inconsistent since these are 'witness' polys. Need
-    // to see what becomes of the proving key before making a decision here. // WORKTODO: resolve this?
     proving_key->sorted_1 = s_1;
     proving_key->sorted_2 = s_2;
     proving_key->sorted_3 = s_3;

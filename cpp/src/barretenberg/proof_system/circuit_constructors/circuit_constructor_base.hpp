@@ -17,7 +17,9 @@ template <typename Arithmetization> class CircuitConstructorBase {
     static constexpr size_t program_width = Arithmetization::num_wires;
     static constexpr size_t num_selectors = Arithmetization::num_selectors;
 
-    std::vector<std::string> selector_names_; // WORKTODO: These are plonk-only and could go in the plonk flavor.
+    // TODO(Cody): These are plonk-specific and could be specified in the plonk flavors.
+    // Also, theere is loose coupling with the vectors of SelectorProperties
+    std::vector<std::string> selector_names_;
     size_t num_gates = 0;
 
     std::array<std::vector<uint32_t>, num_wires> wires;

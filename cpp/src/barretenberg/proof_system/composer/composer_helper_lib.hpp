@@ -63,6 +63,7 @@ void construct_selector_polynomials(const typename Flavor::CircuitConstructor& c
         if constexpr (IsHonkFlavor<Flavor>) {
             proving_key->_data[selector_idx] = selector_poly_lagrange;
         } else if constexpr (IsPlonkFlavor<Flavor>) {
+            // TODO(Cody): Loose coupling here of selector_names and selector_properties.
             proving_key->polynomial_store.put(circuit_constructor.selector_names_[selector_idx] + "_lagrange",
                                               std::move(selector_poly_lagrange));
         }
