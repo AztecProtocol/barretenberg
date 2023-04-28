@@ -22,11 +22,24 @@
 // WORKTODO: Selectors should come from arithmetization.
 // WORKTODO: Define special member functions in reasonable way and untangle the bad consequences elsewhere (e.g., in
 // SumcheckOutput)
+/**
+ * WORKTODO: Outline what's going on here, explain the data model and how to think about these classes.
+ *
+ */
 namespace proof_system::honk::flavor {
-template <typename T, typename TView, size_t NUM_ENTITIES> class Data {
+
+/**
+ * @brief Base data class, a wrapper for std::array, from which every flavor class ultimately derives.
+ * @details Ideally we could derive from std::array, but that is unsafe because std::array's destructor is non-virtual.
+ *
+ * @tparam T The underlying data type stored in the array
+ * @tparam HandleType The type that will be used to
+ * @tparam NUM_ENTITIES The size of the underlying array.
+ */
+template <typename DataType, typename HandleType, size_t NUM_ENTITIES> class Data {
   public:
-    using DataType = std::array<T, NUM_ENTITIES>;
-    DataType _data;
+    using ArrayType = std::array<DataType, NUM_ENTITIES>;
+    ArrayType _data;
 
     // TODO(Cody): now it's safe to inherit from this... right?
     // virtual ~Data() = default;
@@ -37,15 +50,15 @@ template <typename T, typename TView, size_t NUM_ENTITIES> class Data {
     // Data& operator=(const Data&) = default;
     // Data& operator=(Data&&) = default;
 
-    T& operator[](size_t idx) { return _data[idx]; };
-    typename DataType::iterator begin() { return _data.begin(); };
-    typename DataType::iterator end() { return _data.end(); };
+    DataType& operator[](size_t idx) { return _data[idx]; };
+    typename ArrayType::iterator begin() { return _data.begin(); };
+    typename ArrayType::iterator end() { return _data.end(); };
 
     size_t size() { return _data.size(); }; // WORKTODO: constexpr
 };
 
-template <typename T, typename TView, size_t NUM_PRECOMPUTED_ENTITIES>
-class BasePrecomputedData : public Data<T, TView, NUM_PRECOMPUTED_ENTITIES> {
+template <typename DataType, typename HandleType, size_t NUM_PRECOMPUTED_ENTITIES>
+class BasePrecomputedData : public Data<DataType, HandleType, NUM_PRECOMPUTED_ENTITIES> {
   public:
     size_t circuit_size;
     size_t log_circuit_size;
@@ -54,9 +67,9 @@ class BasePrecomputedData : public Data<T, TView, NUM_PRECOMPUTED_ENTITIES> {
 
     // virtual ~BasePrecomputedData() = default;
 
-    virtual std::vector<TView> get_selectors() = 0;
-    virtual std::vector<TView> get_sigma_polynomials() = 0;
-    virtual std::vector<TView> get_id_polynomials() = 0;
+    virtual std::vector<HandleType> get_selectors() = 0;
+    virtual std::vector<HandleType> get_sigma_polynomials() = 0;
+    virtual std::vector<HandleType> get_id_polynomials() = 0;
 };
 
 // TODO(Cody): Made this public derivation so that I could iterate through
@@ -80,17 +93,18 @@ template <typename PrecomputedData> class BaseVerificationKey : public Precomput
     std::shared_ptr<VerifierReferenceString> vrs;
 };
 
-template <typename T, size_t NUM_ALL_ENTITIES> class BaseAllData : public Data<T, T, NUM_ALL_ENTITIES> {
+template <typename DataType, size_t NUM_ALL_ENTITIES>
+class BaseAllData : public Data<DataType, DataType, NUM_ALL_ENTITIES> {
   public:
-    virtual std::vector<T> get_unshifted() = 0;
-    virtual std::vector<T> get_to_be_shifted() = 0;
-    virtual std::vector<T> get_shifted() = 0;
+    virtual std::vector<DataType> get_unshifted() = 0;
+    virtual std::vector<DataType> get_to_be_shifted() = 0;
+    virtual std::vector<DataType> get_shifted() = 0;
 
     // TODO(Cody): Look for a better solution?
-    std::vector<T> get_unshifted_then_shifted()
+    std::vector<DataType> get_unshifted_then_shifted()
     {
-        std::vector<T> result{ get_unshifted() };
-        std::vector<T> shifted{ get_shifted() };
+        std::vector<DataType> result{ get_unshifted() };
+        std::vector<DataType> shifted{ get_shifted() };
         result.insert(result.end(), shifted.begin(), shifted.end());
         return result;
     };
@@ -116,40 +130,46 @@ class Standard {
 
     // TODO(Cody): Made this public derivation so that I could populate selector
     // polys from circuit constructor.
-    template <typename T, typename TView>
-    class PrecomputedData : public BasePrecomputedData<T, TView, NUM_PRECOMPUTED_ENTITIES> {
+    template <typename DataType, typename HandleType>
+    class PrecomputedData : public BasePrecomputedData<DataType, HandleType, NUM_PRECOMPUTED_ENTITIES> {
       public:
-        T& q_m = std::get<0>(this->_data);
-        T& q_l = std::get<1>(this->_data);
-        T& q_r = std::get<2>(this->_data);
-        T& q_o = std::get<3>(this->_data);
-        T& q_c = std::get<4>(this->_data);
-        T& sigma_1 = std::get<5>(this->_data);
-        T& sigma_2 = std::get<6>(this->_data);
-        T& sigma_3 = std::get<7>(this->_data);
-        T& id_1 = std::get<8>(this->_data);
-        T& id_2 = std::get<9>(this->_data);
-        T& id_3 = std::get<10>(this->_data);
-        T& lagrange_first = std::get<11>(this->_data);
-        T& lagrange_last = std::get<12>(this->_data); // = LAGRANGE_N-1 whithout ZK, but can be less
+        DataType& q_m = std::get<0>(this->_data);
+        DataType& q_l = std::get<1>(this->_data);
+        DataType& q_r = std::get<2>(this->_data);
+        DataType& q_o = std::get<3>(this->_data);
+        DataType& q_c = std::get<4>(this->_data);
+        DataType& sigma_1 = std::get<5>(this->_data);
+        DataType& sigma_2 = std::get<6>(this->_data);
+        DataType& sigma_3 = std::get<7>(this->_data);
+        DataType& id_1 = std::get<8>(this->_data);
+        DataType& id_2 = std::get<9>(this->_data);
+        DataType& id_3 = std::get<10>(this->_data);
+        DataType& lagrange_first = std::get<11>(this->_data);
+        DataType& lagrange_last = std::get<12>(this->_data); // = LAGRANGE_N-1 whithout ZK, but can be less
 
-        std::vector<TView> get_selectors() override { return { q_m, q_l, q_r, q_o, q_c }; };
-        std::vector<TView> get_sigma_polynomials() override { return { sigma_1, sigma_2, sigma_3 }; };
-        std::vector<TView> get_id_polynomials() override { return { id_1, id_2, id_3 }; };
+        std::vector<HandleType> get_selectors() override { return { q_m, q_l, q_r, q_o, q_c }; };
+        std::vector<HandleType> get_sigma_polynomials() override { return { sigma_1, sigma_2, sigma_3 }; };
+        std::vector<HandleType> get_id_polynomials() override { return { id_1, id_2, id_3 }; };
 
         virtual ~PrecomputedData() = default;
     };
 
-    // Container for all witness polynomials used/constructed by the prover.
-    // Note: shifts are not included here since they do not occupy their own memory
-    template <typename T, typename TView> class WitnessData : public Data<T, TView, NUM_WITNESS_ENTITIES> {
+    /**
+     * @brief Container for all witness polynomials used/constructed by the prover.
+     * @details Shifts are not included here since they do not occupy their own memory
+     *
+     * @tparam T
+     * @tparam HandleType
+     */
+    template <typename DataType, typename HandleType>
+    class WitnessData : public Data<DataType, HandleType, NUM_WITNESS_ENTITIES> {
       public:
-        T& w_l = std::get<0>(this->_data);
-        T& w_r = std::get<1>(this->_data);
-        T& w_o = std::get<2>(this->_data);
-        T& z_perm = std::get<3>(this->_data);
+        DataType& w_l = std::get<0>(this->_data);
+        DataType& w_r = std::get<1>(this->_data);
+        DataType& w_o = std::get<2>(this->_data);
+        DataType& z_perm = std::get<3>(this->_data);
 
-        std::vector<TView> get_wires() { return { w_l, w_r, w_o }; };
+        std::vector<HandleType> get_wires() { return { w_l, w_r, w_o }; };
 
         virtual ~WitnessData() = default;
     };
@@ -207,59 +227,57 @@ class Standard {
         };
     };
 
-    template <typename T> class AllData : public BaseAllData<T, NUM_ALL_ENTITIES> {
+    template <typename DataType> class AllData : public BaseAllData<DataType, NUM_ALL_ENTITIES> {
       public:
-        T& q_c = std::get<0>(this->_data);
-        T& q_l = std::get<1>(this->_data);
-        T& q_r = std::get<2>(this->_data);
-        T& q_o = std::get<3>(this->_data);
-        T& q_m = std::get<4>(this->_data);
-        T& sigma_1 = std::get<5>(this->_data);
-        T& sigma_2 = std::get<6>(this->_data);
-        T& sigma_3 = std::get<7>(this->_data);
-        T& id_1 = std::get<8>(this->_data);
-        T& id_2 = std::get<9>(this->_data);
-        T& id_3 = std::get<10>(this->_data);
-        T& lagrange_first = std::get<11>(this->_data);
-        T& lagrange_last = std::get<12>(this->_data);
-        T& w_l = std::get<13>(this->_data);
-        T& w_r = std::get<14>(this->_data);
-        T& w_o = std::get<15>(this->_data);
-        T& z_perm = std::get<16>(this->_data);
-        T& z_perm_shift = std::get<17>(this->_data);
+        DataType& q_c = std::get<0>(this->_data);
+        DataType& q_l = std::get<1>(this->_data);
+        DataType& q_r = std::get<2>(this->_data);
+        DataType& q_o = std::get<3>(this->_data);
+        DataType& q_m = std::get<4>(this->_data);
+        DataType& sigma_1 = std::get<5>(this->_data);
+        DataType& sigma_2 = std::get<6>(this->_data);
+        DataType& sigma_3 = std::get<7>(this->_data);
+        DataType& id_1 = std::get<8>(this->_data);
+        DataType& id_2 = std::get<9>(this->_data);
+        DataType& id_3 = std::get<10>(this->_data);
+        DataType& lagrange_first = std::get<11>(this->_data);
+        DataType& lagrange_last = std::get<12>(this->_data);
+        DataType& w_l = std::get<13>(this->_data);
+        DataType& w_r = std::get<14>(this->_data);
+        DataType& w_o = std::get<15>(this->_data);
+        DataType& z_perm = std::get<16>(this->_data);
+        DataType& z_perm_shift = std::get<17>(this->_data);
 
-        std::vector<T> get_wires() { return { w_l, w_r, w_o }; };
+        std::vector<DataType> get_wires() { return { w_l, w_r, w_o }; };
 
-        std::vector<T> get_unshifted() override
+        std::vector<DataType> get_unshifted() override
         { // ...z_perm_shift is in here?
-            // return { w_l,  w_r,  w_o,  z_perm,         q_m,          q_l, q_r, q_o, q_c, sigma_1, sigma_2, sigma_3,
-            //          id_1, id_2, id_3, lagrange_first, lagrange_last };
             return { q_c,           q_l, q_r, q_o, q_m,   sigma_1, sigma_2, sigma_3, id_1, id_2, id_3, lagrange_first,
                      lagrange_last, w_l, w_r, w_o, z_perm };
         };
 
-        std::vector<T> get_to_be_shifted() override { return { z_perm }; };
+        std::vector<DataType> get_to_be_shifted() override { return { z_perm }; };
 
-        std::vector<T> get_shifted() override { return { z_perm_shift }; };
+        std::vector<DataType> get_shifted() override { return { z_perm_shift }; };
 
         AllData() = default;
 
         AllData(const AllData& other)
-            : BaseAllData<T, NUM_ALL_ENTITIES>(other){};
+            : BaseAllData<DataType, NUM_ALL_ENTITIES>(other){};
 
         AllData(AllData&& other)
-            : BaseAllData<T, NUM_ALL_ENTITIES>(other){};
+            : BaseAllData<DataType, NUM_ALL_ENTITIES>(other){};
 
         // WORKTODO(luke): avoiding self assignment (clang warning) here is a bit gross. Is there a better way?
         AllData& operator=(const AllData& other)
         {
-            BaseAllData<T, NUM_ALL_ENTITIES>::operator=(other);
+            BaseAllData<DataType, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
         }
 
         AllData& operator=(AllData&& other)
         {
-            BaseAllData<T, NUM_ALL_ENTITIES>::operator=(other);
+            BaseAllData<DataType, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
         }
 
@@ -349,64 +367,65 @@ class Ultra {
     static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 25;
     static constexpr size_t NUM_WITNESS_ENTITIES = 11;
 
-    template <typename T, typename TView>
-    class PrecomputedData : public BasePrecomputedData<T, TView, NUM_PRECOMPUTED_ENTITIES> {
+    template <typename DataType, typename HandleType>
+    class PrecomputedData : public BasePrecomputedData<DataType, HandleType, NUM_PRECOMPUTED_ENTITIES> {
       public:
-        T& q_m = std::get<0>(this->_data);
-        T& q_c = std::get<1>(this->_data);
-        T& q_l = std::get<2>(this->_data);
-        T& q_r = std::get<3>(this->_data);
-        T& q_o = std::get<4>(this->_data);
-        T& q_4 = std::get<5>(this->_data);
-        T& q_arith = std::get<6>(this->_data);
-        T& q_sort = std::get<7>(this->_data);
-        T& q_elliptic = std::get<8>(this->_data);
-        T& q_aux = std::get<9>(this->_data);
-        T& q_lookup = std::get<10>(this->_data);
-        T& sigma_1 = std::get<11>(this->_data);
-        T& sigma_2 = std::get<12>(this->_data);
-        T& sigma_3 = std::get<13>(this->_data);
-        T& sigma_4 = std::get<14>(this->_data);
-        T& id_1 = std::get<15>(this->_data);
-        T& id_2 = std::get<16>(this->_data);
-        T& id_3 = std::get<17>(this->_data);
-        T& id_4 = std::get<18>(this->_data);
-        T& table_1 = std::get<19>(this->_data);
-        T& table_2 = std::get<20>(this->_data);
-        T& table_3 = std::get<21>(this->_data);
-        T& table_4 = std::get<22>(this->_data);
-        T& lagrange_first = std::get<23>(this->_data);
-        T& lagrange_last = std::get<24>(this->_data);
+        DataType& q_m = std::get<0>(this->_data);
+        DataType& q_c = std::get<1>(this->_data);
+        DataType& q_l = std::get<2>(this->_data);
+        DataType& q_r = std::get<3>(this->_data);
+        DataType& q_o = std::get<4>(this->_data);
+        DataType& q_4 = std::get<5>(this->_data);
+        DataType& q_arith = std::get<6>(this->_data);
+        DataType& q_sort = std::get<7>(this->_data);
+        DataType& q_elliptic = std::get<8>(this->_data);
+        DataType& q_aux = std::get<9>(this->_data);
+        DataType& q_lookup = std::get<10>(this->_data);
+        DataType& sigma_1 = std::get<11>(this->_data);
+        DataType& sigma_2 = std::get<12>(this->_data);
+        DataType& sigma_3 = std::get<13>(this->_data);
+        DataType& sigma_4 = std::get<14>(this->_data);
+        DataType& id_1 = std::get<15>(this->_data);
+        DataType& id_2 = std::get<16>(this->_data);
+        DataType& id_3 = std::get<17>(this->_data);
+        DataType& id_4 = std::get<18>(this->_data);
+        DataType& table_1 = std::get<19>(this->_data);
+        DataType& table_2 = std::get<20>(this->_data);
+        DataType& table_3 = std::get<21>(this->_data);
+        DataType& table_4 = std::get<22>(this->_data);
+        DataType& lagrange_first = std::get<23>(this->_data);
+        DataType& lagrange_last = std::get<24>(this->_data);
 
-        std::vector<TView> get_selectors() // WORKTODO: make these arrays?
+        std::vector<HandleType> get_selectors() // WORKTODO: make these arrays?
         {
             // return { q_c, q_l, q_r, q_o, q_4, q_m, q_arith, q_sort, q_elliptic, q_aux, q_lookup };
             return { q_m, q_c, q_l, q_r, q_o, q_4, q_arith, q_sort, q_elliptic, q_aux, q_lookup };
         };
-        std::vector<TView> get_sigma_polynomials() { return { sigma_1, sigma_2, sigma_3, sigma_4 }; };
-        std::vector<TView> get_table_polynomials() { return { table_1, table_2, table_3, table_4 }; };
-        std::vector<TView> get_id_polynomials() { return { id_1, id_2, id_3, id_4 }; };
+        std::vector<HandleType> get_sigma_polynomials() { return { sigma_1, sigma_2, sigma_3, sigma_4 }; };
+        std::vector<HandleType> get_table_polynomials() { return { table_1, table_2, table_3, table_4 }; };
+        std::vector<HandleType> get_id_polynomials() { return { id_1, id_2, id_3, id_4 }; };
 
         virtual ~PrecomputedData() = default;
     };
 
     // Container for all witness polys
-    template <typename T, typename TView> class WitnessData : public Data<T, TView, NUM_WITNESS_ENTITIES> {
+    template <typename DataType, typename HandleType>
+    class WitnessData : public Data<DataType, HandleType, NUM_WITNESS_ENTITIES> {
       public:
-        T& w_l = std::get<0>(this->_data);
-        T& w_r = std::get<1>(this->_data);
-        T& w_o = std::get<2>(this->_data);
-        T& w_4 = std::get<3>(this->_data);
-        T& sorted_1 = std::get<4>(this->_data);
-        T& sorted_2 = std::get<5>(this->_data);
-        T& sorted_3 = std::get<6>(this->_data);
-        T& sorted_4 = std::get<7>(this->_data);
-        T& sorted_accum = std::get<8>(this->_data);
-        T& z_perm = std::get<9>(this->_data);
-        T& z_lookup = std::get<10>(this->_data);
+        DataType& w_l = std::get<0>(this->_data);
+        DataType& w_r = std::get<1>(this->_data);
+        DataType& w_o = std::get<2>(this->_data);
+        DataType& w_4 = std::get<3>(this->_data);
+        DataType& sorted_1 = std::get<4>(this->_data);
+        DataType& sorted_2 = std::get<5>(this->_data);
+        DataType& sorted_3 = std::get<6>(this->_data);
+        DataType& sorted_4 = std::get<7>(this->_data);
+        DataType& sorted_accum = std::get<8>(this->_data);
+        DataType& z_perm = std::get<9>(this->_data);
+        DataType& z_lookup = std::get<10>(this->_data);
 
-        std::vector<TView> get_wires() { return { w_l, w_r, w_o, w_4 }; };
-        std::vector<TView> get_sorted_polynomials() { return { sorted_1, sorted_2, sorted_3, sorted_4 }; };
+        std::vector<HandleType> get_wires() { return { w_l, w_r, w_o, w_4 }; };
+        std::vector<HandleType> get_sorted_polynomials() { return { sorted_1, sorted_2, sorted_3, sorted_4 }; };
 
         virtual ~WitnessData() = default;
     };
@@ -462,58 +481,58 @@ class Ultra {
 
     using VerificationKey = BaseVerificationKey<PrecomputedData<Commitment, CommitmentView>>;
 
-    template <typename T> class AllData : public BaseAllData<T, NUM_ALL_ENTITIES> {
+    template <typename DataType> class AllData : public BaseAllData<DataType, NUM_ALL_ENTITIES> {
       public:
-        T& q_c = std::get<0>(this->_data);
-        T& q_l = std::get<1>(this->_data);
-        T& q_r = std::get<2>(this->_data);
-        T& q_o = std::get<3>(this->_data);
-        T& q_4 = std::get<4>(this->_data);
-        T& q_m = std::get<5>(this->_data);
-        T& q_arith = std::get<6>(this->_data);
-        T& q_sort = std::get<7>(this->_data);
-        T& q_elliptic = std::get<8>(this->_data);
-        T& q_aux = std::get<9>(this->_data);
-        T& q_lookup = std::get<10>(this->_data);
-        T& sigma_1 = std::get<11>(this->_data);
-        T& sigma_2 = std::get<12>(this->_data);
-        T& sigma_3 = std::get<13>(this->_data);
-        T& sigma_4 = std::get<14>(this->_data);
-        T& id_1 = std::get<15>(this->_data);
-        T& id_2 = std::get<16>(this->_data);
-        T& id_3 = std::get<17>(this->_data);
-        T& id_4 = std::get<18>(this->_data);
-        T& table_1 = std::get<19>(this->_data);
-        T& table_2 = std::get<20>(this->_data);
-        T& table_3 = std::get<21>(this->_data);
-        T& table_4 = std::get<22>(this->_data);
-        T& lagrange_first = std::get<23>(this->_data);
-        T& lagrange_last = std::get<24>(this->_data);
-        T& w_l = std::get<25>(this->_data);
-        T& w_r = std::get<26>(this->_data);
-        T& w_o = std::get<27>(this->_data);
-        T& w_4 = std::get<28>(this->_data);
-        T& sorted_1 = std::get<29>(this->_data);
-        T& sorted_2 = std::get<30>(this->_data);
-        T& sorted_3 = std::get<31>(this->_data);
-        T& sorted_4 = std::get<32>(this->_data);
-        T& sorted_accum = std::get<33>(this->_data);
-        T& z_perm = std::get<34>(this->_data);
-        T& z_lookup = std::get<35>(this->_data);
-        T& table_1_shift = std::get<36>(this->_data);
-        T& table_2_shift = std::get<37>(this->_data);
-        T& table_3_shift = std::get<38>(this->_data);
-        T& table_4_shift = std::get<39>(this->_data);
-        T& w_l_shift = std::get<40>(this->_data);
-        T& w_r_shift = std::get<41>(this->_data);
-        T& w_o_shift = std::get<42>(this->_data);
-        T& w_4_shift = std::get<43>(this->_data);
-        T& sorted_accum_shift = std::get<44>(this->_data);
-        T& z_perm_shift = std::get<45>(this->_data);
-        T& z_lookup_shift = std::get<46>(this->_data);
+        DataType& q_c = std::get<0>(this->_data);
+        DataType& q_l = std::get<1>(this->_data);
+        DataType& q_r = std::get<2>(this->_data);
+        DataType& q_o = std::get<3>(this->_data);
+        DataType& q_4 = std::get<4>(this->_data);
+        DataType& q_m = std::get<5>(this->_data);
+        DataType& q_arith = std::get<6>(this->_data);
+        DataType& q_sort = std::get<7>(this->_data);
+        DataType& q_elliptic = std::get<8>(this->_data);
+        DataType& q_aux = std::get<9>(this->_data);
+        DataType& q_lookup = std::get<10>(this->_data);
+        DataType& sigma_1 = std::get<11>(this->_data);
+        DataType& sigma_2 = std::get<12>(this->_data);
+        DataType& sigma_3 = std::get<13>(this->_data);
+        DataType& sigma_4 = std::get<14>(this->_data);
+        DataType& id_1 = std::get<15>(this->_data);
+        DataType& id_2 = std::get<16>(this->_data);
+        DataType& id_3 = std::get<17>(this->_data);
+        DataType& id_4 = std::get<18>(this->_data);
+        DataType& table_1 = std::get<19>(this->_data);
+        DataType& table_2 = std::get<20>(this->_data);
+        DataType& table_3 = std::get<21>(this->_data);
+        DataType& table_4 = std::get<22>(this->_data);
+        DataType& lagrange_first = std::get<23>(this->_data);
+        DataType& lagrange_last = std::get<24>(this->_data);
+        DataType& w_l = std::get<25>(this->_data);
+        DataType& w_r = std::get<26>(this->_data);
+        DataType& w_o = std::get<27>(this->_data);
+        DataType& w_4 = std::get<28>(this->_data);
+        DataType& sorted_1 = std::get<29>(this->_data);
+        DataType& sorted_2 = std::get<30>(this->_data);
+        DataType& sorted_3 = std::get<31>(this->_data);
+        DataType& sorted_4 = std::get<32>(this->_data);
+        DataType& sorted_accum = std::get<33>(this->_data);
+        DataType& z_perm = std::get<34>(this->_data);
+        DataType& z_lookup = std::get<35>(this->_data);
+        DataType& table_1_shift = std::get<36>(this->_data);
+        DataType& table_2_shift = std::get<37>(this->_data);
+        DataType& table_3_shift = std::get<38>(this->_data);
+        DataType& table_4_shift = std::get<39>(this->_data);
+        DataType& w_l_shift = std::get<40>(this->_data);
+        DataType& w_r_shift = std::get<41>(this->_data);
+        DataType& w_o_shift = std::get<42>(this->_data);
+        DataType& w_4_shift = std::get<43>(this->_data);
+        DataType& sorted_accum_shift = std::get<44>(this->_data);
+        DataType& z_perm_shift = std::get<45>(this->_data);
+        DataType& z_lookup_shift = std::get<46>(this->_data);
 
-        std::vector<T> get_wires() { return { w_l, w_r, w_o, w_4 }; };
-        std::vector<T> get_unshifted() override
+        std::vector<DataType> get_wires() { return { w_l, w_r, w_o, w_4 }; };
+        std::vector<DataType> get_unshifted() override
         {
             return { q_c,           q_l,    q_r,      q_o,     q_4,     q_m,      q_arith,  q_sort,
                      q_elliptic,    q_aux,  q_lookup, sigma_1, sigma_2, sigma_3,  sigma_4,  id_1,
@@ -523,27 +542,27 @@ class Ultra {
 
             };
         };
-        std::vector<T> get_to_be_shifted() override { return { w_l, w_4, z_perm, z_lookup }; };
-        std::vector<T> get_shifted() override { return { w_l_shift, w_4_shift, z_perm_shift, z_lookup_shift }; };
+        std::vector<DataType> get_to_be_shifted() override { return { w_l, w_4, z_perm, z_lookup }; };
+        std::vector<DataType> get_shifted() override { return { w_l_shift, w_4_shift, z_perm_shift, z_lookup_shift }; };
 
         AllData() = default;
 
         AllData(const AllData& other)
-            : BaseAllData<T, NUM_ALL_ENTITIES>(other){};
+            : BaseAllData<DataType, NUM_ALL_ENTITIES>(other){};
 
         AllData(AllData&& other)
-            : BaseAllData<T, NUM_ALL_ENTITIES>(other){};
+            : BaseAllData<DataType, NUM_ALL_ENTITIES>(other){};
 
         // TODO(luke): avoiding self assignment (clang warning) here is a bit gross. Is there a better way?
         AllData& operator=(const AllData& other)
         {
-            BaseAllData<T, NUM_ALL_ENTITIES>::operator=(other);
+            BaseAllData<DataType, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
         }
 
         AllData& operator=(AllData&& other)
         {
-            BaseAllData<T, NUM_ALL_ENTITIES>::operator=(other);
+            BaseAllData<DataType, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
         }
 
@@ -652,7 +671,6 @@ struct Ultra {
 
 namespace proof_system {
 
-// Stuff
 template <typename T, typename... U> concept IsAnyOf = (std::same_as<T, U> || ...);
 
 template <typename T>
