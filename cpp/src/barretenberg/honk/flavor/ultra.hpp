@@ -68,14 +68,15 @@ class Ultra {
         DataType& lagrange_first = std::get<23>(this->_data);
         DataType& lagrange_last = std::get<24>(this->_data);
 
-        std::vector<HandleType> get_selectors() // TODO(#395): return arrays?
+        // TODO(#395): return arrays?
+        std::vector<HandleType> get_selectors() override
         {
-            // return { q_c, q_l, q_r, q_o, q_4, q_m, q_arith, q_sort, q_elliptic, q_aux, q_lookup };
             return { q_m, q_c, q_l, q_r, q_o, q_4, q_arith, q_sort, q_elliptic, q_aux, q_lookup };
         };
-        std::vector<HandleType> get_sigma_polynomials() { return { sigma_1, sigma_2, sigma_3, sigma_4 }; };
+        std::vector<HandleType> get_sigma_polynomials() override { return { sigma_1, sigma_2, sigma_3, sigma_4 }; };
+        std::vector<HandleType> get_id_polynomials() override { return { id_1, id_2, id_3, id_4 }; };
+
         std::vector<HandleType> get_table_polynomials() { return { table_1, table_2, table_3, table_4 }; };
-        std::vector<HandleType> get_id_polynomials() { return { id_1, id_2, id_3, id_4 }; };
     };
 
     // Container for all witness polys
@@ -149,7 +150,7 @@ class Ultra {
         DataType& z_perm_shift = std::get<45>(this->_data);
         DataType& z_lookup_shift = std::get<46>(this->_data);
 
-        std::vector<HandleType> get_wires() { return { w_l, w_r, w_o, w_4 }; };
+        std::vector<HandleType> get_wires() override { return { w_l, w_r, w_o, w_4 }; };
         std::vector<HandleType> get_unshifted() override
         {
             return { q_c,           q_l,    q_r,      q_o,     q_4,     q_m,      q_arith,  q_sort,

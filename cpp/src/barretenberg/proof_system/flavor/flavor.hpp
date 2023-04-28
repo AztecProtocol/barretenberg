@@ -76,6 +76,7 @@ template <typename PrecomputedEntities> class VerificationKey_ : public Precompu
 template <typename DataType, typename HandleType, size_t NUM_ALL_ENTITIES>
 class AllEntities_ : public Entities_<DataType, DataType, NUM_ALL_ENTITIES> {
   public:
+    virtual std::vector<HandleType> get_wires() = 0;
     virtual std::vector<HandleType> get_unshifted() = 0;
     virtual std::vector<HandleType> get_to_be_shifted() = 0;
     virtual std::vector<HandleType> get_shifted() = 0;

@@ -101,7 +101,7 @@ class Standard {
         DataType& z_perm = std::get<16>(this->_data);
         DataType& z_perm_shift = std::get<17>(this->_data);
 
-        std::vector<HandleType> get_wires() { return { w_l, w_r, w_o }; };
+        std::vector<HandleType> get_wires() override { return { w_l, w_r, w_o }; };
 
         std::vector<HandleType> get_unshifted() override
         { // ...z_perm_shift is in here?
@@ -123,6 +123,9 @@ class Standard {
 
         AllEntities& operator=(const AllEntities& other)
         {
+            if (this == &other) {
+                return *this;
+            }
             AllEntities_<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
         }
@@ -132,6 +135,8 @@ class Standard {
             AllEntities_<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
         }
+
+        ~AllEntities() = default;
 
         AllEntities(std::array<FF, NUM_ALL_ENTITIES> data_in) { this->_data = data_in; }
     };
@@ -210,6 +215,7 @@ class Standard {
         // strings in the future, but I leave it this way for simplicity
 
         CommitmentLabels()
+            : AllEntities<std::string, std::string>()
         {
             w_l = "W_1";
             w_r = "W_2";
