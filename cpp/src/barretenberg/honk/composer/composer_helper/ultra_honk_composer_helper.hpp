@@ -27,8 +27,8 @@ class UltraHonkComposerHelper {
     // simultaneously here and in the other split composers.
     static constexpr size_t NUM_RANDOMIZED_GATES = 4; // equal to the number of multilinear evaluations leaked
     static constexpr size_t num_wires = CircuitConstructor::num_wires;
-    std::shared_ptr<ProvingKey> circuit_proving_key;
-    std::shared_ptr<VerificationKey> circuit_verification_key;
+    std::shared_ptr<ProvingKey> proving_key;
+    std::shared_ptr<VerificationKey> verification_key;
     // TODO(#218)(kesha): we need to put this into the commitment key, so that the composer doesn't have to handle srs
     // at all
     std::shared_ptr<ReferenceStringFactory> crs_factory_;
@@ -48,8 +48,8 @@ class UltraHonkComposerHelper {
     {}
 
     UltraHonkComposerHelper(std::shared_ptr<ProvingKey> p_key, std::shared_ptr<VerificationKey> v_key)
-        : circuit_proving_key(std::move(p_key))
-        , circuit_verification_key(std::move(v_key))
+        : proving_key(std::move(p_key))
+        , verification_key(std::move(v_key))
     {}
 
     UltraHonkComposerHelper(UltraHonkComposerHelper&& other) noexcept = default;

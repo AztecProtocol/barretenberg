@@ -47,10 +47,10 @@ void UltraHonkComposerHelper::compute_witness(CircuitConstructor& circuit_constr
     auto wire_polynomials =
         construct_wire_polynomials_base<Flavor>(circuit_constructor, total_num_gates, NUM_RANDOMIZED_GATES);
 
-    circuit_proving_key->w_l = wire_polynomials[0];
-    circuit_proving_key->w_r = wire_polynomials[1];
-    circuit_proving_key->w_o = wire_polynomials[2];
-    circuit_proving_key->w_4 = wire_polynomials[3];
+    proving_key->w_l = wire_polynomials[0];
+    proving_key->w_r = wire_polynomials[1];
+    proving_key->w_o = wire_polynomials[2];
+    proving_key->w_4 = wire_polynomials[3];
 
     polynomial s_1(subgroup_size);
     polynomial s_2(subgroup_size);
@@ -129,10 +129,10 @@ void UltraHonkComposerHelper::compute_witness(CircuitConstructor& circuit_constr
 
     // TODO(luke): Adding these to the key for now but this is inconsistent since these are 'witness' polys. Need
     // to see what becomes of the proving key before making a decision here. // WORKTODO: resolve this?
-    circuit_proving_key->sorted_1 = s_1;
-    circuit_proving_key->sorted_2 = s_2;
-    circuit_proving_key->sorted_3 = s_3;
-    circuit_proving_key->sorted_4 = s_4;
+    proving_key->sorted_1 = s_1;
+    proving_key->sorted_2 = s_2;
+    proving_key->sorted_3 = s_3;
+    proving_key->sorted_4 = s_4;
 
     computed_witness = true;
 }
@@ -144,7 +144,7 @@ UltraProver UltraHonkComposerHelper::create_prover(CircuitConstructor& circuit_c
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
 
-    UltraProver output_state(circuit_proving_key);
+    UltraProver output_state(proving_key);
 
     return output_state;
 }
@@ -160,7 +160,7 @@ UltraProver UltraHonkComposerHelper::create_prover(CircuitConstructor& circuit_c
 // {
 //     auto verification_key = compute_verification_key(circuit_constructor);
 
-//     plonk::UltraVerifier output_state(circuit_verification_key,
+//     plonk::UltraVerifier output_state(verification_key,
 //                                       create_manifest(circuit_constructor.public_inputs.size()));
 
 //     std::unique_ptr<plonk::KateCommitmentScheme<plonk::ultra_settings>> kate_commitment_scheme =
@@ -174,8 +174,8 @@ UltraProver UltraHonkComposerHelper::create_prover(CircuitConstructor& circuit_c
 std::shared_ptr<UltraHonkComposerHelper::Flavor::ProvingKey> UltraHonkComposerHelper::compute_proving_key(
     const CircuitConstructor& circuit_constructor)
 {
-    if (circuit_proving_key) {
-        return circuit_proving_key;
+    if (proving_key) {
+        return proving_key;
     }
 
     size_t tables_size = 0;
@@ -187,22 +187,22 @@ std::shared_ptr<UltraHonkComposerHelper::Flavor::ProvingKey> UltraHonkComposerHe
 
     const size_t minimum_circuit_size = tables_size + lookups_size;
     const size_t num_randomized_gates = NUM_RANDOMIZED_GATES;
-    // Initialize circuit_proving_key
+    // Initialize proving_key
     // TODO(#392)(Kesha): replace composer types.
-    circuit_proving_key = initialize_proving_key<Flavor>(
+    proving_key = initialize_proving_key<Flavor>(
         circuit_constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, ComposerType::PLOOKUP);
 
-    construct_selector_polynomials<Flavor>(circuit_constructor, circuit_proving_key.get());
+    construct_selector_polynomials<Flavor>(circuit_constructor, proving_key.get());
 
     // TODO(#217)(luke): Naively enforcing non-zero selectors for Honk will result in some relations not being
     // satisfied.
-    // enforce_nonzero_polynomial_selectors(circuit_constructor, circuit_proving_key.get());
+    // enforce_nonzero_polynomial_selectors(circuit_constructor, proving_key.get());
 
-    compute_honk_generalized_sigma_permutations<Flavor>(circuit_constructor, circuit_proving_key.get());
+    compute_honk_generalized_sigma_permutations<Flavor>(circuit_constructor, proving_key.get());
 
-    compute_first_and_last_lagrange_polynomials<Flavor>(circuit_proving_key.get());
+    compute_first_and_last_lagrange_polynomials<Flavor>(proving_key.get());
 
-    const size_t subgroup_size = circuit_proving_key->circuit_size;
+    const size_t subgroup_size = proving_key->circuit_size;
 
     polynomial poly_q_table_column_1(subgroup_size);
     polynomial poly_q_table_column_2(subgroup_size);
@@ -275,10 +275,10 @@ std::shared_ptr<UltraHonkComposerHelper::Flavor::ProvingKey> UltraHonkComposerHe
     // poly_q_table_column_3[subgroup_size - 1] = ++unique_last_value;
     // poly_q_table_column_4[subgroup_size - 1] = ++unique_last_value;
 
-    circuit_proving_key->table_1 = poly_q_table_column_1;
-    circuit_proving_key->table_2 = poly_q_table_column_2;
-    circuit_proving_key->table_3 = poly_q_table_column_3;
-    circuit_proving_key->table_4 = poly_q_table_column_4;
+    proving_key->table_1 = poly_q_table_column_1;
+    proving_key->table_2 = poly_q_table_column_2;
+    proving_key->table_3 = poly_q_table_column_3;
+    proving_key->table_4 = poly_q_table_column_4;
 
     // Copy memory read/write record data into proving key. Prover needs to know which gates contain a read/write
     // 'record' witness on the 4th wire. This wire value can only be fully computed once the first 3 wire polynomials
@@ -286,17 +286,17 @@ std::shared_ptr<UltraHonkComposerHelper::Flavor::ProvingKey> UltraHonkComposerHe
     // using the plookup challenge `eta`
     std::copy(circuit_constructor.memory_read_records.begin(),
               circuit_constructor.memory_read_records.end(),
-              std::back_inserter(circuit_proving_key->memory_read_records));
+              std::back_inserter(proving_key->memory_read_records));
     std::copy(circuit_constructor.memory_write_records.begin(),
               circuit_constructor.memory_write_records.end(),
-              std::back_inserter(circuit_proving_key->memory_write_records));
+              std::back_inserter(proving_key->memory_write_records));
 
-    circuit_proving_key->recursive_proof_public_input_indices =
+    proving_key->recursive_proof_public_input_indices =
         std::vector<uint32_t>(recursive_proof_public_input_indices.begin(), recursive_proof_public_input_indices.end());
 
-    circuit_proving_key->contains_recursive_proof = contains_recursive_proof;
+    proving_key->contains_recursive_proof = contains_recursive_proof;
 
-    return circuit_proving_key;
+    return proving_key;
 }
 
 // /**
@@ -307,42 +307,42 @@ std::shared_ptr<UltraHonkComposerHelper::Flavor::ProvingKey> UltraHonkComposerHe
 // std::shared_ptr<VerificationKey> UltraHonkComposerHelper::compute_verification_key(
 //     const CircuitConstructor& circuit_constructor)
 // {
-//     if (circuit_verification_key) {
-//         return circuit_verification_key;
+//     if (verification_key) {
+//         return verification_key;
 //     }
 
-//     if (!circuit_proving_key) {
+//     if (!proving_key) {
 //         compute_proving_key(circuit_constructor);
 //     }
-//     circuit_verification_key = compute_verification_key_common(circuit_proving_key,
+//     verification_key = compute_verification_key_common(proving_key,
 //     crs_factory_->get_verifier_crs());
 
-//     circuit_verification_key->composer_type = type; // Invariably plookup for this class.
+//     verification_key->composer_type = type; // Invariably plookup for this class.
 
 //     // See `add_recusrive_proof()` for how this recursive data is assigned.
-//     circuit_verification_key->recursive_proof_public_input_indices =
+//     verification_key->recursive_proof_public_input_indices =
 //         std::vector<uint32_t>(recursive_proof_public_input_indices.begin(),
 //         recursive_proof_public_input_indices.end());
 
-//     circuit_verification_key->contains_recursive_proof = contains_recursive_proof;
+//     verification_key->contains_recursive_proof = contains_recursive_proof;
 
-//     return circuit_verification_key;
+//     return verification_key;
 // }
 
 // void UltraHonkComposerHelper::add_table_column_selector_poly_to_proving_key(
 //     polynomial& selector_poly_lagrange_form, const std::string& tag)
 // {
-//     polynomial selector_poly_lagrange_form_copy(selector_poly_lagrange_form, circuit_proving_key->small_domain.size);
+//     polynomial selector_poly_lagrange_form_copy(selector_poly_lagrange_form, proving_key->small_domain.size);
 
-//     selector_poly_lagrange_form.ifft(circuit_proving_key->small_domain);
+//     selector_poly_lagrange_form.ifft(proving_key->small_domain);
 //     auto& selector_poly_coeff_form = selector_poly_lagrange_form;
 
-//     polynomial selector_poly_coset_form(selector_poly_coeff_form, circuit_proving_key->circuit_size * 4);
-//     selector_poly_coset_form.coset_fft(circuit_proving_key->large_domain);
+//     polynomial selector_poly_coset_form(selector_poly_coeff_form, proving_key->circuit_size * 4);
+//     selector_poly_coset_form.coset_fft(proving_key->large_domain);
 
-//     circuit_proving_key->polynomial_store.put(tag, std::move(selector_poly_coeff_form));
-//     circuit_proving_key->polynomial_store.put(tag + "_lagrange", std::move(selector_poly_lagrange_form_copy));
-//     circuit_proving_key->polynomial_store.put(tag + "_fft", std::move(selector_poly_coset_form));
+//     proving_key->polynomial_store.put(tag, std::move(selector_poly_coeff_form));
+//     proving_key->polynomial_store.put(tag + "_lagrange", std::move(selector_poly_lagrange_form_copy));
+//     proving_key->polynomial_store.put(tag + "_fft", std::move(selector_poly_coset_form));
 // }
 
 } // namespace proof_system::honk
