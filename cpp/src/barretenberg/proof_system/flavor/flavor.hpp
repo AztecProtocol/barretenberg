@@ -22,6 +22,7 @@
 // WORKTODO: Selectors should come from arithmetization.
 // WORKTODO: Define special member functions in reasonable way and untangle the bad consequences elsewhere (e.g., in
 // SumcheckOutput)
+// TODO(Cody): Handle types.
 /**
  * WORKTODO: Outline what's going on here, explain the data model and how to think about these classes.
  *
@@ -36,7 +37,7 @@ namespace proof_system::honk::flavor {
  * @tparam HandleType The type that will be used to
  * @tparam NUM_ENTITIES The size of the underlying array.
  */
-template <typename DataType, typename HandleType, size_t NUM_ENTITIES> class Data {
+template <typename DataType, typename HandleType, size_t NUM_ENTITIES> class Data_ {
   public:
     using ArrayType = std::array<DataType, NUM_ENTITIES>;
     ArrayType _data;
@@ -58,7 +59,7 @@ template <typename DataType, typename HandleType, size_t NUM_ENTITIES> class Dat
 };
 
 template <typename DataType, typename HandleType, size_t NUM_PRECOMPUTED_ENTITIES>
-class BasePrecomputedData : public Data<DataType, HandleType, NUM_PRECOMPUTED_ENTITIES> {
+class PrecomputedData_ : public Data_<DataType, HandleType, NUM_PRECOMPUTED_ENTITIES> {
   public:
     size_t circuit_size;
     size_t log_circuit_size;
@@ -74,7 +75,7 @@ class BasePrecomputedData : public Data<DataType, HandleType, NUM_PRECOMPUTED_EN
 
 // TODO(Cody): Made this public derivation so that I could iterate through
 // the selectors
-template <typename PrecomputedData, typename FF> class BaseProvingKey : public PrecomputedData {
+template <typename PrecomputedData, typename FF> class ProvingKey_ : public PrecomputedData {
   public:
     bool contains_recursive_proof;
     std::vector<uint32_t> recursive_proof_public_input_indices;
@@ -88,13 +89,13 @@ template <typename PrecomputedData, typename FF> class BaseProvingKey : public P
  *
  * @tparam PrecomputedData
  */
-template <typename PrecomputedData> class BaseVerificationKey : public PrecomputedData {
+template <typename PrecomputedData> class VerificationKey_ : public PrecomputedData {
   public:
     std::shared_ptr<VerifierReferenceString> vrs;
 };
 
 template <typename DataType, typename HandleType, size_t NUM_ALL_ENTITIES>
-class BaseAllData : public Data<DataType, DataType, NUM_ALL_ENTITIES> {
+class AllData_ : public Data_<DataType, DataType, NUM_ALL_ENTITIES> {
   public:
     virtual std::vector<HandleType> get_unshifted() = 0;
     virtual std::vector<HandleType> get_to_be_shifted() = 0;
@@ -115,11 +116,11 @@ class Standard {
     using CircuitConstructor = StandardCircuitConstructor;
     using FF = barretenberg::fr;
     using Polynomial = barretenberg::Polynomial<FF>;
-    using PolynomialView = std::span<FF>; // WORKTODO(Cody): rename
+    using PolynomialHandle = std::span<FF>; // WORKTODO(Cody): rename
     using G1 = barretenberg::g1;
     using GroupElement = G1::element;
     using Commitment = G1::affine_element;
-    using CommitmentView = G1::affine_element; // TODO(Cody): make a pointer?
+    using CommitmentHandle = G1::affine_element; // TODO(Cody): make a pointer?
     using PCSParams = pcs::kzg::Params;
 
     static constexpr size_t num_wires = CircuitConstructor::num_wires;
@@ -131,7 +132,7 @@ class Standard {
     // TODO(Cody): Made this public derivation so that I could populate selector
     // polys from circuit constructor.
     template <typename DataType, typename HandleType>
-    class PrecomputedData : public BasePrecomputedData<DataType, HandleType, NUM_PRECOMPUTED_ENTITIES> {
+    class PrecomputedData : public PrecomputedData_<DataType, HandleType, NUM_PRECOMPUTED_ENTITIES> {
       public:
         DataType& q_m = std::get<0>(this->_data);
         DataType& q_l = std::get<1>(this->_data);
@@ -162,7 +163,7 @@ class Standard {
      * @tparam HandleType
      */
     template <typename DataType, typename HandleType>
-    class WitnessData : public Data<DataType, HandleType, NUM_WITNESS_ENTITIES> {
+    class WitnessData : public Data_<DataType, HandleType, NUM_WITNESS_ENTITIES> {
       public:
         DataType& w_l = std::get<0>(this->_data);
         DataType& w_r = std::get<1>(this->_data);
@@ -176,9 +177,9 @@ class Standard {
 
     // WORKTODO(luke): Proving key now stores all multivariate polynomials used by the prover. Is Pkey still the right
     // name?
-    class ProvingKey : public BaseProvingKey<PrecomputedData<Polynomial, PolynomialView>, FF> {
+    class ProvingKey : public ProvingKey_<PrecomputedData<Polynomial, PolynomialHandle>, FF> {
       public:
-        WitnessData<Polynomial, PolynomialView> _witness_data; // WORKTODO: name?
+        WitnessData<Polynomial, PolynomialHandle> _witness_data; // WORKTODO: name?
 
         Polynomial& w_l = _witness_data.w_l;
         Polynomial& w_r = _witness_data.w_r;
@@ -208,10 +209,10 @@ class Standard {
             }
         };
 
-        std::vector<PolynomialView> get_wires() { return _witness_data.get_wires(); };
+        std::vector<PolynomialHandle> get_wires() { return _witness_data.get_wires(); };
     };
 
-    class VerificationKey : public BaseVerificationKey<PrecomputedData<Commitment, CommitmentView>> {
+    class VerificationKey : public VerificationKey_<PrecomputedData<Commitment, CommitmentHandle>> {
       public:
         VerificationKey() = default;
         VerificationKey(const size_t circuit_size,
@@ -228,7 +229,7 @@ class Standard {
     };
 
     template <typename DataType, typename HandleType>
-    class AllData : public BaseAllData<DataType, HandleType, NUM_ALL_ENTITIES> {
+    class AllData : public AllData_<DataType, HandleType, NUM_ALL_ENTITIES> {
       public:
         DataType& q_c = std::get<0>(this->_data);
         DataType& q_l = std::get<1>(this->_data);
@@ -264,33 +265,33 @@ class Standard {
         AllData() = default;
 
         AllData(const AllData& other)
-            : BaseAllData<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
+            : AllData_<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
 
         AllData(AllData&& other)
-            : BaseAllData<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
+            : AllData_<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
 
         // WORKTODO(luke): avoiding self assignment (clang warning) here is a bit gross. Is there a better way?
         AllData& operator=(const AllData& other)
         {
-            BaseAllData<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
+            AllData_<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
         }
 
         AllData& operator=(AllData&& other)
         {
-            BaseAllData<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
+            AllData_<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
         }
 
         AllData(std::array<FF, NUM_ALL_ENTITIES> data_in) { this->_data = data_in; }
     };
 
-    // These are classes are views of data living in different entities. They
+    // These collect lightweight handles of data living in different entities. They
     // provide the utility of grouping these and ranged `for` loops over
     // subsets.
-    using ProverPolynomials = AllData<PolynomialView, PolynomialView>;
+    using ProverPolynomials = AllData<PolynomialHandle, PolynomialHandle>;
 
-    using FoldedPolynomials = AllData<std::vector<FF>, PolynomialView>; // TODO(Cody): Just reuse ProverPolynomials?
+    using FoldedPolynomials = AllData<std::vector<FF>, PolynomialHandle>; // TODO(Cody): Just reuse ProverPolynomials?
     // TODO(#390): Simplify this?
     template <size_t MAX_RELATION_LENGTH>
     using ExtendedEdges =
@@ -329,7 +330,7 @@ class Standard {
         };
     };
 
-    class VerifierCommitments : public AllData<Commitment, CommitmentView> {
+    class VerifierCommitments : public AllData<Commitment, CommitmentHandle> {
       public:
         VerifierCommitments(std::shared_ptr<VerificationKey> verification_key, VerifierTranscript<FF> transcript)
         {
@@ -356,11 +357,11 @@ class Ultra {
     using CircuitConstructor = UltraCircuitConstructor;
     using FF = barretenberg::fr;
     using Polynomial = barretenberg::Polynomial<FF>;
-    using PolynomialView = std::span<FF>;
+    using PolynomialHandle = std::span<FF>;
     using G1 = barretenberg::g1;
     using GroupElement = G1::element;
     using Commitment = G1::affine_element;
-    using CommitmentView = G1::affine_element; // TODO(Cody): make a pointer?
+    using CommitmentHandle = G1::affine_element; // TODO(Cody): make a pointer?
     using PCSParams = pcs::kzg::Params;
 
     static constexpr size_t num_wires = CircuitConstructor::num_wires;
@@ -371,7 +372,7 @@ class Ultra {
     static constexpr size_t NUM_WITNESS_ENTITIES = 11;
 
     template <typename DataType, typename HandleType>
-    class PrecomputedData : public BasePrecomputedData<DataType, HandleType, NUM_PRECOMPUTED_ENTITIES> {
+    class PrecomputedData : public PrecomputedData_<DataType, HandleType, NUM_PRECOMPUTED_ENTITIES> {
       public:
         DataType& q_m = std::get<0>(this->_data);
         DataType& q_c = std::get<1>(this->_data);
@@ -413,7 +414,7 @@ class Ultra {
 
     // Container for all witness polys
     template <typename DataType, typename HandleType>
-    class WitnessData : public Data<DataType, HandleType, NUM_WITNESS_ENTITIES> {
+    class WitnessData : public Data_<DataType, HandleType, NUM_WITNESS_ENTITIES> {
       public:
         DataType& w_l = std::get<0>(this->_data);
         DataType& w_r = std::get<1>(this->_data);
@@ -433,9 +434,9 @@ class Ultra {
         virtual ~WitnessData() = default;
     };
 
-    class ProvingKey : public BaseProvingKey<PrecomputedData<Polynomial, PolynomialView>, FF> {
+    class ProvingKey : public ProvingKey_<PrecomputedData<Polynomial, PolynomialHandle>, FF> {
       public:
-        WitnessData<Polynomial, PolynomialView> _witness_data;
+        WitnessData<Polynomial, PolynomialHandle> _witness_data;
 
         Polynomial& w_l = _witness_data.w_l;
         Polynomial& w_r = _witness_data.w_r;
@@ -475,17 +476,17 @@ class Ultra {
             }
         };
 
-        std::vector<PolynomialView> get_wires() { return _witness_data.get_wires(); };
+        std::vector<PolynomialHandle> get_wires() { return _witness_data.get_wires(); };
         // The plookup wires that store plookup read data.
-        std::array<PolynomialView, 3> get_plookup_read_wires() { return { w_l, w_r, w_o }; };
+        std::array<PolynomialHandle, 3> get_plookup_read_wires() { return { w_l, w_r, w_o }; };
         // The sorted concatenations of table and witness data needed for plookup.
-        std::vector<PolynomialView> get_sorted_polynomials() { return _witness_data.get_sorted_polynomials(); };
+        std::vector<PolynomialHandle> get_sorted_polynomials() { return _witness_data.get_sorted_polynomials(); };
     };
 
-    using VerificationKey = BaseVerificationKey<PrecomputedData<Commitment, CommitmentView>>;
+    using VerificationKey = VerificationKey_<PrecomputedData<Commitment, CommitmentHandle>>;
 
     template <typename DataType, typename HandleType>
-    class AllData : public BaseAllData<DataType, HandleType, NUM_ALL_ENTITIES> {
+    class AllData : public AllData_<DataType, HandleType, NUM_ALL_ENTITIES> {
       public:
         DataType& q_c = std::get<0>(this->_data);
         DataType& q_l = std::get<1>(this->_data);
@@ -555,34 +556,34 @@ class Ultra {
         AllData() = default;
 
         AllData(const AllData& other)
-            : BaseAllData<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
+            : AllData_<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
 
         AllData(AllData&& other)
-            : BaseAllData<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
+            : AllData_<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
 
         // TODO(luke): avoiding self assignment (clang warning) here is a bit gross. Is there a better way?
         AllData& operator=(const AllData& other)
         {
-            BaseAllData<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
+            AllData_<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
         }
 
         AllData& operator=(AllData&& other)
         {
-            BaseAllData<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
+            AllData_<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
         }
 
         AllData(std::array<FF, NUM_ALL_ENTITIES> data_in) { this->_data = data_in; }
     };
 
-    // These are classes are views of data living in different entities. They
+    // These collect lightweight handles of data living in different entities. They
     // provide the utility of grouping these and ranged `for` loops over
     // subsets.
-    using ProverPolynomials = AllData<PolynomialView, PolynomialView>;
-    using VerifierCommitments = AllData<Commitment, CommitmentView>;
+    using ProverPolynomials = AllData<PolynomialHandle, PolynomialHandle>;
+    using VerifierCommitments = AllData<Commitment, CommitmentHandle>;
 
-    using FoldedPolynomials = AllData<std::vector<FF>, PolynomialView>; // TODO(Cody): Just reuse ProverPolynomials?
+    using FoldedPolynomials = AllData<std::vector<FF>, PolynomialHandle>; // TODO(Cody): Just reuse ProverPolynomials?
     template <size_t MAX_RELATION_LENGTH>
     using ExtendedEdges =
         AllData<sumcheck::Univariate<FF, MAX_RELATION_LENGTH>, sumcheck::Univariate<FF, MAX_RELATION_LENGTH>>;
@@ -654,7 +655,7 @@ class Ultra {
         };
     };
 
-    // class VerifierCommitments : public AllData<Commitment, CommitmentView> {
+    // class VerifierCommitments : public AllData<Commitment, CommitmentHandle> {
     //   public:
     //     VerifierCommitments(std::shared_ptr<VerificationKey> verification_key, VerifierTranscript<FF> transcript)
     //     {
