@@ -19,7 +19,7 @@ std::shared_ptr<typename Flavor::VerificationKey> compute_verification_key_commo
 
     auto commitment_key = typename Flavor::PCSParams::CK(proving_key->circuit_size, "../srs_db/ignition");
 
-    size_t poly_idx = 0; // ZIPTODO
+    size_t poly_idx = 0; // TODO(#391) zip
     for (auto& polynomial : proving_key) {
         verification_key[poly_idx] = commitment_key.commit(polynomial);
         ++polynomial_idx;

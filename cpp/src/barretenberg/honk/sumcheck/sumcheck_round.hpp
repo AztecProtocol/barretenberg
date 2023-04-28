@@ -154,7 +154,7 @@ template <typename Flavor, template <class> class... Relations> class SumcheckRo
      */
     void extend_edges(auto& multivariates, size_t edge_idx)
     {
-        size_t univariate_idx = 0; // ZIPTODO
+        size_t univariate_idx = 0; // TODO(#391) zip
         for (auto& poly : multivariates) {
             auto edge = Univariate<FF, 2>({ poly[edge_idx], poly[edge_idx + 1] });
             extended_edges[univariate_idx] = barycentric_2_to_max.extend(edge);
