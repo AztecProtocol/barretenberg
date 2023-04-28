@@ -2,10 +2,14 @@
 #include <benchmark/benchmark.h>
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/plonk/composer/ultra_composer.hpp"
-#include "barretenberg/stdlib/types/types.hpp"
+#include "barretenberg/plonk/proof_system/prover/prover.hpp"
+#include "barretenberg/stdlib/primitives/packed_byte_array/packed_byte_array.hpp"
 
 using namespace benchmark;
-using namespace proof_system::plonk::stdlib::types;
+
+using Composer = proof_system::plonk::UltraComposer;
+using Prover = proof_system::plonk::UltraProver;
+using Verifier = proof_system::plonk::UltraVerifier;
 
 constexpr size_t NUM_HASHES = 8;
 constexpr size_t BYTES_PER_CHUNK = 512;
@@ -24,13 +28,13 @@ void generate_test_plonk_circuit(Composer& composer, size_t num_bytes)
     for (size_t i = 0; i < num_bytes; ++i) {
         in[i] = get_random_char();
     }
-    packed_byte_array_ct input(&composer, in);
-    plonk::stdlib::sha256(input);
+    proof_system::plonk::stdlib::packed_byte_array<Composer> input(&composer, in);
+    proof_system::plonk::stdlib::sha256<Composer>(input);
 }
 
-stdlib::types::Composer composers[NUM_HASHES];
-stdlib::types::Prover provers[NUM_HASHES];
-stdlib::types::Verifier verifiers[NUM_HASHES];
+Composer composers[NUM_HASHES];
+Prover provers[NUM_HASHES];
+Verifier verifiers[NUM_HASHES];
 plonk::proof proofs[NUM_HASHES];
 
 void construct_witnesses_bench(State& state) noexcept

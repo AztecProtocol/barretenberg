@@ -1,5 +1,5 @@
 #include "./generator_data.hpp"
-#include <fstream>
+
 namespace crypto {
 namespace generators {
 namespace {
@@ -9,14 +9,15 @@ namespace {
 constexpr size_t num_default_generators = 64;
 constexpr size_t num_generators_per_hash_index = 16;
 constexpr size_t num_hash_indices = 32;
+constexpr size_t hash_indices_generator_offset = 64;
 // TODO need to resolve memory out of bounds when these are too high
 #else
 constexpr size_t num_default_generators = 2048;
 constexpr size_t num_hash_indices = 32;
 constexpr size_t num_generators_per_hash_index = 128;
+constexpr size_t hash_indices_generator_offset = 2048;
 #endif
 
-constexpr size_t hash_indices_generator_offset = 2048;
 constexpr size_t num_indexed_generators = num_hash_indices * num_generators_per_hash_index;
 constexpr size_t size_of_generator_data_array = hash_indices_generator_offset + num_indexed_generators;
 constexpr size_t num_generator_types = 3;
@@ -204,10 +205,9 @@ const fixed_base_ladder* get_ladder_internal(std::array<fixed_base_ladder, quad_
 std::vector<std::unique_ptr<generator_data>> const& init_generator_data()
 {
     static std::vector<std::unique_ptr<generator_data>> global_generator_data;
-    if (inited && (global_generator_data.size() == size_of_generator_data_array)) {
+    if (inited) {
         return global_generator_data;
     }
-
     std::vector<grumpkin::g1::affine_element> generators;
     std::vector<grumpkin::g1::affine_element> aux_generators;
     std::vector<grumpkin::g1::affine_element> skew_generators;
