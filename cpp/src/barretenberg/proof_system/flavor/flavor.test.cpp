@@ -31,7 +31,6 @@ TEST(Flavor, Standard)
 
     Flavor::VerificationKey verification_key;
     Flavor::ProverPolynomials prover_polynomials;
-    // Flavor::VerifierCommitments verifier_commitments;
     Flavor::ExtendedEdges<Flavor::NUM_ALL_ENTITIES> edges;
     Flavor::PurportedEvaluations evals;
     Flavor::CommitmentLabels commitment_labels;
@@ -43,7 +42,7 @@ TEST(Flavor, Standard)
     auto get_test_polynomial = [](size_t& idx) {
         Flavor::Polynomial poly(4);
         for (size_t i = 0; i < 4; i++) {
-            poly[i] = ++idx;
+            poly[i] = idx++;
         };
         return poly;
     };
