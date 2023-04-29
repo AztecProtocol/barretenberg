@@ -97,8 +97,12 @@ e.g. unpacking
 ```
 
 */
+#include <type_traits>
 #include "msgpack/name_value_pair_macro.hpp"
 #include "msgpack/concepts.hpp"
 
 // Helper for above documented syntax
-#define MSGPACK(...) void msgpack(auto pack_fn) { pack_fn(NVP(__VA_ARGS__)); }
+#define MSGPACK(...) \
+    void msgpack(auto pack_fn) { \
+        pack_fn(NVP(__VA_ARGS__)); \
+    }

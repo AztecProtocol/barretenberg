@@ -9,12 +9,55 @@
 #include <msgpack.hpp>
 #include "concepts.hpp"
 
+namespace msgpack {
+    template <typename Tuple, std::size_t... Is> auto drop_keys_impl(Tuple&& tuple, std::index_sequence<Is...>)
+    {
+        // Expand 0 to n/2 to 1 to n+1 (increments of 2)
+        // Use it to filter the tuple
+        return std::tie(std::get<Is * 2 + 1>(std::forward<Tuple>(tuple))...);
+    }
+
+    template <typename... Args> auto drop_keys(std::tuple<Args...>&& tuple)
+    {
+        static_assert(sizeof...(Args) % 2 == 0, "Tuple must contain an even number of elements");
+        // Compile time sequence of integers from 0 to n/2
+        auto compile_time_0_to_n_div_2 = std::make_index_sequence<sizeof...(Args) / 2>{};
+        return drop_keys_impl(tuple, compile_time_0_to_n_div_2);
+    }
+} // namespace msgpack
+
+namespace msgpack {
+//    template<typename T>
+//    void __static_check_helper(T object) {
+//        auto checker = [&](auto &... values) {
+//            // Make sure we can construct this
+//            T should_not_error{values...};
+//        };
+//        object.msgpack(
+//                [&](auto &... keys_and_values) { std::apply(checker, drop_keys(std::tie(keys_and_values...))); });
+//
+//    }
+    template <typename T, typename... Args>
+    concept MsgpackConstructible = requires(T object, Args... args) {
+        T{args...};
+    };
+}
+
 namespace msgpack::adaptor {
 // reads structs with msgpack() method from a JSON-like dictionary
 template <HasMsgPack T> struct convert<T> {
     msgpack::object const& operator()(msgpack::object const& o, T& v) const
     {
-        v.msgpack([&](auto&... args) { msgpack::type::define_map<decltype(args)...>{args...}.msgpack_unpack(o); });
+        static_assert(std::is_default_constructible_v<T>, "MSGPACK requires default-constructible types");
+        v.msgpack([&](auto&... args) {
+            auto static_checker = [&](auto&... value_args) {
+                static_assert(msgpack::MsgpackConstructible<T, decltype(value_args)...>,
+                    "MSGPACK requires a constructor that can take the types listed in MSGPACK. "
+                    "Type or arg count mismatch, or member initializer constructor not available.");
+            };
+            std::apply(static_checker, drop_keys(std::tie(args...)));
+            msgpack::type::define_map<decltype(args)...>{args...}.msgpack_unpack(o);
+        });
         return o;
     }
 };
@@ -23,7 +66,15 @@ template <HasMsgPack T> struct convert<T> {
 template <HasMsgPack T> struct pack<T> {
     template <typename Stream> packer<Stream>& operator()(msgpack::packer<Stream>& o, T const& v) const
     {
-        const_cast<T&>(v).msgpack([&](auto&... args) { msgpack::type::define_map<decltype(args)...>{args...}.msgpack_pack(o); });
+        static_assert(std::is_default_constructible_v<T>, "T requires a default-constructor for MSGPACK");
+        const_cast<T&>(v).msgpack([&](auto&... args) {
+            auto static_checker = [&](auto &... value_args) {
+                static_assert(msgpack::MsgpackConstructible<T, decltype(value_args)...>,
+                              "T requires a constructor that can take the types listed in MSGPACK. "
+                              "Type or arg count mismatch, or member initializer constructor not available.");
+            };
+            std::apply(static_checker, drop_keys(std::tie(args...)));
+            msgpack::type::define_map<decltype(args)...>{args...}.msgpack_pack(o); });
         return o;
     }
 };
