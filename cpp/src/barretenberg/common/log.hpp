@@ -18,22 +18,6 @@
 
 namespace {
 
-/**
- * @brief Utility for logging a tuple type.
- * 
- * @tparam Stream - The stream type e.g. std::ostringstream
- * @tparam Args - The arguments type list.
- * @param stream The stream.
- * @param args - The argument list.
- * @return Stream& The stream.
- */
-template <typename Stream, typename... Args> Stream& operator<<(Stream& stream, const std::tuple<Args...>& args) {
-    std::apply([&](const auto&... args) {
-        ((stream << args), ...);
-    }, args);
-    return stream;
-}
-
 template <typename... Args> std::string format(Args... args)
 {
     std::ostringstream os;
