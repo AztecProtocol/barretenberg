@@ -1,6 +1,6 @@
 #pragma once
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
-#define WASM_EXPORT __attribute__((visibility("default")))
+#include "barretenberg/common/wasm_export.hpp"
 
 extern "C" {
 

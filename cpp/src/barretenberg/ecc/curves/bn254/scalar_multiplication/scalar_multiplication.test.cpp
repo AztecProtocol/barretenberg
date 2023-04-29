@@ -244,7 +244,7 @@ TEST(scalar_multiplication, reduce_buckets)
     std::cout << "wnaf time: " << diff.count() << "ms" << std::endl;
 
     start = std::chrono::steady_clock::now();
-    scalar_multiplication::organize_buckets(state.point_schedule, state.round_counts, num_points);
+    scalar_multiplication::organize_buckets(state.point_schedule, num_points);
     end = std::chrono::steady_clock::now();
     diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     std::cout << "organize bucket time: " << diff.count() << "ms" << std::endl;
@@ -362,7 +362,7 @@ TEST(scalar_multiplication, DISABLED_reduce_buckets_basic)
     std::cout << "wnaf time: " << diff.count() << "ms" << std::endl;
 
     start = std::chrono::steady_clock::now();
-    scalar_multiplication::organize_buckets(state.point_schedule, state.round_counts, num_points);
+    scalar_multiplication::organize_buckets(state.point_schedule, num_points);
     end = std::chrono::steady_clock::now();
     diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     std::cout << "organize bucket time: " << diff.count() << "ms" << std::endl;
@@ -462,7 +462,7 @@ TEST(scalar_multiplication, construct_addition_chains)
     std::cout << "wnaf time: " << diff.count() << "ms" << std::endl;
 
     start = std::chrono::steady_clock::now();
-    scalar_multiplication::organize_buckets(state.point_schedule, state.round_counts, num_points);
+    scalar_multiplication::organize_buckets(state.point_schedule, num_points);
     end = std::chrono::steady_clock::now();
     diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     std::cout << "organize bucket time: " << diff.count() << "ms" << std::endl;
@@ -555,7 +555,7 @@ TEST(scalar_multiplication, radix_sort)
     uint64_t* wnaf_copy = (uint64_t*)(aligned_alloc(64, sizeof(uint64_t) * target_degree * 2 * num_rounds));
     memcpy((void*)wnaf_copy, (void*)state.point_schedule, sizeof(uint64_t) * target_degree * 2 * num_rounds);
 
-    scalar_multiplication::organize_buckets(state.point_schedule, state.round_counts, target_degree * 2);
+    scalar_multiplication::organize_buckets(state.point_schedule, target_degree * 2);
     for (size_t i = 0; i < num_rounds; ++i) {
         uint64_t* unsorted_wnaf = &wnaf_copy[i * target_degree * 2];
         uint64_t* sorted_wnaf = &state.point_schedule[i * target_degree * 2];

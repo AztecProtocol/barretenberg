@@ -18,9 +18,9 @@ const sha256 = (data: Uint8Array) => createHash('sha256').update(data).digest('h
 
 export async function fetchCode() {
   if (isNode) {
-    // const __dirname = dirname(fileURLToPath(import.meta.url));
-    // return await readFile(__dirname + '/barretenberg.wasm');
-    return await readFile('/mnt/user-data/charlie/min_wasm/maincpp.wasm');
+    const __dirname = dirname(fileURLToPath(import.meta.url));
+    return await readFile(__dirname + '/barretenberg.wasm');
+    // return await readFile('/mnt/user-data/charlie/min_wasm/maincpp.wasm');
   } else {
     const res = await fetch('/barretenberg.wasm');
     return Buffer.from(await res.arrayBuffer());

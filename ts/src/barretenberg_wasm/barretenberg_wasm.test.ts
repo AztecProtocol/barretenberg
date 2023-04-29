@@ -29,11 +29,4 @@ describe('barretenberg wasm', () => {
   //   expect(result).toStrictEqual(buf);
   // });
 
-  it('should thread test', () => {
-    wasm.call('thread_test');
-  });
-
-  it('async call test', () => {
-    wasm.call('condvar_test');
-  });
 });

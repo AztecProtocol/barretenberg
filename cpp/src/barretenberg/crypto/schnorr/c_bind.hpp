@@ -1,8 +1,7 @@
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
+#include "barretenberg/common/wasm_export.hpp"
 #include "multisig.hpp"
-
-#define WASM_EXPORT __attribute__((visibility("default")))
 
 extern "C" {
 

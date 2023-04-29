@@ -1,10 +1,6 @@
 #pragma once
-
-// #include <omp.h>
-#ifndef NO_MULTITHREADING
-#include <omp.h>
-#endif
 #include "barretenberg/numeric/bitop/get_msb.hpp"
+#include <thread>
 
 namespace max_threads {
 //
@@ -16,7 +12,12 @@ namespace max_threads {
 inline size_t compute_num_threads()
 {
 #ifndef NO_MULTITHREADING
-    size_t num_threads = static_cast<size_t>(omp_get_max_threads());
+#ifdef __wasm__
+    // TODO: Call back to host to discover number of webworkers.
+    size_t num_threads = 4;
+#else
+    size_t num_threads = std::thread::hardware_concurrency();
+#endif
 #else
     size_t num_threads = 1;
 #endif

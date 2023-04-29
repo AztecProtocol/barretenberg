@@ -124,7 +124,7 @@ if(WASM)
     target_link_options(
         barretenberg.wasm
         PRIVATE
-        -pthread --target=wasm32-wasi-threads -nostartfiles -Wl,--verbose,--whole-archive,--no-entry,--export-dynamic,--import-memory,--allow-undefined,--stack-first,-z,stack-size=1048576
+        -pthread --target=wasm32-wasi-threads -nostartfiles -Wl,--whole-archive,--no-entry,--export-dynamic,--import-memory,--allow-undefined,--stack-first,-z,stack-size=1048576,--max-memory=4294967296
     )
 
     # TODO(blaine): Figure out how to Asyncify the wasm output.

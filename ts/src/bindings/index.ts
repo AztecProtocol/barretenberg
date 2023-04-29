@@ -129,6 +129,11 @@ export function schnorrMultisigCombineSignatures(message: Buffer, signerPubkeysB
   return result as any;
 }
 
+export function envTestThreads(n: number): number {
+  const result = callWasmExport('env_test_threads', [n], [NumberDeserializer()]);
+  return result[0];
+}
+
 export async function envSetData(keyBuf: string, buffer: Buffer): Promise<void> {
   const result = await asyncCallWasmExport('env_set_data', [keyBuf, buffer], []);
   return;

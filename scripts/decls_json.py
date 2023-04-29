@@ -6,6 +6,12 @@ from typing import List
 
 clang.cindex.Config.set_library_file('/usr/lib/llvm-16/lib/libclang-16.so.1')
 
+def has_annotation(node, annotation):
+    for child in node.get_children():
+        if child.kind == clang.cindex.CursorKind.ANNOTATE_ATTR and annotation in child.spelling:
+            return True
+    return False
+
 def print_diagnostic(diagnostic, file=sys.stdout):
     # color codes for printing
     BLUE = '\033[94m'
@@ -40,7 +46,13 @@ def process_files(files: List[str]) -> List[dict]:
             print_diagnostic(diag, file=sys.stderr)
         for node in tu.cursor.walk_preorder():
             try:
-                if node.kind == clang.cindex.CursorKind.FUNCTION_DECL and any(t.spelling == 'WASM_EXPORT' for t in node.get_tokens()):
+                if node.kind == clang.cindex.CursorKind.FUNCTION_DECL:
+                    # if node.spelling != "env_test_threads":
+                    #     continue
+                    # Only interested in function declarations with WASM_EXPORT token.
+                    if not has_annotation(node, 'wasm_export'):
+                        continue
+
                     if node.result_type.spelling != "void":
                         raise ValueError(f"Error: Function '{node.spelling}' must have a 'void' return type")
                     func = {
@@ -57,7 +69,7 @@ def process_files(files: List[str]) -> List[dict]:
                                 'type': arg.type.spelling,
                             } for arg in node.get_arguments() if not (arg.type.get_canonical().get_pointee().is_const_qualified() or arg.type.get_canonical().is_const_qualified())
                         ],
-                        'isAsync': any(t.spelling == 'ASYNC' for t in node.get_tokens())
+                        'isAsync': has_annotation(node, 'async_wasm_export')
                     }
                     result.append(func)
             except ValueError as e:

@@ -3,12 +3,14 @@
 #include "barretenberg/common/throw_or_abort.hpp"
 #include "barretenberg/common/mem.hpp"
 #include "barretenberg/common/max_threads.hpp"
+#include "barretenberg/common/thread.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 
 #include <array>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <memory>
 
 #include "../../../groups/wnaf.hpp"
 #include "../fq.hpp"
@@ -204,11 +206,7 @@ void compute_wnaf_states(uint64_t* point_schedule,
     const size_t num_rounds = get_num_rounds(num_points);
     const size_t bits_per_bucket = get_optimal_bucket_width(num_initial_points);
     const size_t wnaf_bits = bits_per_bucket + 1;
-#ifndef NO_MULTITHREADING
     const size_t num_threads = max_threads::compute_num_threads();
-#else
-    const size_t num_threads = 1;
-#endif
     const size_t num_initial_points_per_thread = num_initial_points / num_threads;
     const size_t num_points_per_thread = num_points / num_threads;
     std::array<std::array<uint64_t, MAX_NUM_ROUNDS>, MAX_NUM_THREADS> thread_round_counts;
@@ -217,10 +215,8 @@ void compute_wnaf_states(uint64_t* point_schedule,
             thread_round_counts[i][j] = 0;
         }
     }
-#ifndef NO_MULTITHREADING
-#pragma omp parallel for
-#endif
-    for (size_t i = 0; i < num_threads; ++i) {
+
+    auto thread_task = [&](size_t i) {
         fr T0;
         uint64_t* wnaf_table = &point_schedule[(2 * i) * num_initial_points_per_thread];
         const fr* thread_scalars = &scalars[i * num_initial_points_per_thread];
@@ -246,7 +242,9 @@ void compute_wnaf_states(uint64_t* point_schedule,
                                          num_points,
                                          wnaf_bits);
         }
-    }
+    };
+
+    parallel_for(num_threads, thread_task);
 
     for (size_t i = 0; i < num_rounds; ++i) {
         round_counts[i] = 0;
@@ -264,17 +262,18 @@ void compute_wnaf_states(uint64_t* point_schedule,
  *  A multi-threaded sorting algorithm could be more efficient, but the total runtime of `organize_buckets` is <5% of
  *  pippenger's runtime, so not a priority.
  **/
-void organize_buckets(uint64_t* point_schedule, const uint64_t*, const size_t num_points)
+void organize_buckets(uint64_t* point_schedule, const size_t num_points)
 {
     const size_t num_rounds = get_num_rounds(num_points);
-#ifndef NO_MULTITHREADING
-#pragma omp parallel for
-#endif
-    for (size_t i = 0; i < num_rounds; ++i) {
+
+    // Define a lambda function to replace the OpenMP parallel loop
+    auto thread_task = [&](size_t i) {
         scalar_multiplication::process_buckets(&point_schedule[i * num_points],
                                                num_points,
                                                static_cast<uint32_t>(get_optimal_bucket_width(num_points / 2)) + 1);
-    }
+    };
+
+    parallel_for(num_rounds, thread_task);
 }
 
 /**
@@ -305,7 +304,8 @@ void organize_buckets(uint64_t* point_schedule, const uint64_t*, const size_t nu
  * The traditional Jacobian-coordinate formula requires 11.
  *
  * There is a catch though - we need large sequences of independent point additions!
- * i.e. the output from one point addition in the sequence is NOT an input to any other point addition in the sequence.
+ * i.e. the output from one point addition in the sequence is NOT an input to any other point addition in the
+ *sequence.
  *
  * We can re-arrange the Pippenger algorithm to get this property, but it's...complicated
  **/
@@ -329,7 +329,8 @@ void add_affine_points(g1::affine_element* points, const size_t num_points, fq* 
 
     for (size_t i = (num_points)-2; i < num_points; i -= 2) {
         // Memory bandwidth is a bit of a bottleneck here.
-        // There's probably a more elegant way of structuring our data so we don't need to do all of this prefetching
+        // There's probably a more elegant way of structuring our data so we don't need to do all of this
+        // prefetching
         __builtin_prefetch(points + i - 2);
         __builtin_prefetch(points + i - 1);
         __builtin_prefetch(points + ((i + num_points - 2) >> 1));
@@ -381,7 +382,8 @@ void add_affine_points_with_edge_cases(g1::affine_element* points, const size_t 
     }
     for (size_t i = (num_points)-2; i < num_points; i -= 2) {
         // Memory bandwidth is a bit of a bottleneck here.
-        // There's probably a more elegant way of structuring our data so we don't need to do all of this prefetching
+        // There's probably a more elegant way of structuring our data so we don't need to do all of this
+        // prefetching
         __builtin_prefetch(points + i - 2);
         __builtin_prefetch(points + i - 1);
         __builtin_prefetch(points + ((i + num_points - 2) >> 1));
@@ -430,8 +432,8 @@ void evaluate_addition_chains(affine_product_runtime_state& state, const size_t 
 }
 
 /**
- * This is the entry point for our 'find a way of evaluating a giant multi-product using affine coordinates' algorithm
- * By this point, we have already sorted our pippenger buckets. So we have the following situation:
+ * This is the entry point for our 'find a way of evaluating a giant multi-product using affine coordinates'
+ *algorithm By this point, we have already sorted our pippenger buckets. So we have the following situation:
  *
  * 1. We have a defined number of buckets points
  * 2. We have a defined number of points, that need to be added into these bucket points
@@ -443,11 +445,10 @@ void evaluate_addition_chains(affine_product_runtime_state& state, const size_t 
  * This base-2 splitting is useful, because we can take the bucket's associated points, and
  * sort them into pairs, quads, octs etc. These mini-addition sequences are independent from one another,
  * which means that we can use the affine trick to evaluate them.
- * Once we're done, we have effectively reduced the number of points in the bucket to a logarithmic factor of the input.
- * e.g. in the above example, once we've evaluated our pairwise addition of 8, 4 and 2 elements,
- *      we're left with 3 points.
- * The next step is to 'play it again Sam', and recurse back into `reduce_buckets`, with our reduced number of points.
- * We repeat this process until every bucket only has one point assigned to it.
+ * Once we're done, we have effectively reduced the number of points in the bucket to a logarithmic factor of the
+ *input. e.g. in the above example, once we've evaluated our pairwise addition of 8, 4 and 2 elements, we're left
+ *with 3 points. The next step is to 'play it again Sam', and recurse back into `reduce_buckets`, with our reduced
+ *number of points. We repeat this process until every bucket only has one point assigned to it.
  **/
 g1::affine_element* reduce_buckets(affine_product_runtime_state& state, bool first_round, bool handle_edge_cases)
 {
@@ -458,8 +459,8 @@ g1::affine_element* reduce_buckets(affine_product_runtime_state& state, bool fir
     // This sets the upper limit on how many iterations we need to perform in `evaluate_addition_chains`.
     // e.g. if `max_bucket_bits == 3`, then we have at least one bucket with >= 8 points in it.
     // which means we need to repeat our pairwise addition algorithm 3 times
-    // (e.g. add 4 pairs together to get 2 pairs, add those pairs together to get a single pair, which we add to reduce
-    // to our final point)
+    // (e.g. add 4 pairs together to get 2 pairs, add those pairs together to get a single pair, which we add to
+    // reduce to our final point)
     const size_t max_bucket_bits = construct_addition_chains(state, first_round);
 
     // if max_bucket_bits is 0, we're done! we can return
@@ -729,20 +730,17 @@ g1::element evaluate_pippenger_rounds(pippenger_runtime_state& state,
                                       bool handle_edge_cases)
 {
     const size_t num_rounds = get_num_rounds(num_points);
-#ifndef NO_MULTITHREADING
     const size_t num_threads = max_threads::compute_num_threads();
-#else
-    const size_t num_threads = 1;
-#endif
     const size_t bits_per_bucket = get_optimal_bucket_width(num_points / 2);
 
     std::unique_ptr<g1::element[], decltype(&aligned_free)> thread_accumulators(
         static_cast<g1::element*>(aligned_alloc(64, num_threads * sizeof(g1::element))), &aligned_free);
 
-#ifndef NO_MULTITHREADING
-#pragma omp parallel for
-#endif
-    for (size_t j = 0; j < num_threads; ++j) {
+    // #ifndef NO_MULTITHREADING
+    // #pragma omp parallel for
+    // #endif
+    // for (size_t j = 0; j < num_threads; ++j) {
+    auto thread_task = [&](size_t j) {
         thread_accumulators[j].self_set_infinity();
 
         for (size_t i = 0; i < num_rounds; ++i) {
@@ -833,7 +831,9 @@ g1::element evaluate_pippenger_rounds(pippenger_runtime_state& state,
             }
             thread_accumulators[j] += accumulator;
         }
-    }
+    };
+
+    parallel_for(num_threads, thread_task);
 
     g1::element result;
     result.self_set_infinity();
@@ -851,7 +851,7 @@ g1::element pippenger_internal(g1::affine_element* points,
 {
     // multiplication_runtime_state state;
     compute_wnaf_states(state.point_schedule, state.skew_table, state.round_counts, scalars, num_initial_points);
-    organize_buckets(state.point_schedule, state.round_counts, num_initial_points * 2);
+    organize_buckets(state.point_schedule, num_initial_points * 2);
     g1::element result = evaluate_pippenger_rounds(state, points, num_initial_points * 2, handle_edge_cases);
     return result;
 }
@@ -864,12 +864,9 @@ g1::element pippenger(fr* scalars,
 {
     // our windowed non-adjacent form algorthm requires that each thread can work on at least 8 points.
     // If we fall below this theshold, fall back to the traditional scalar multiplication algorithm.
-    // For 8 threads, this neatly coincides with the threshold where Strauss scalar multiplication outperforms Pippenger
-#ifndef NO_MULTITHREADING
-    const size_t threshold = std::max(max_threads::compute_num_threads() * 8, 8UL);
-#else
-    const size_t threshold = 8UL;
-#endif
+    // For 8 threads, this neatly coincides with the threshold where Strauss scalar multiplication outperforms
+    // Pippenger
+    const size_t threshold = max_threads::compute_num_threads() * 8;
 
     if (num_initial_points == 0) {
         g1::element out = g1::one;
@@ -881,12 +878,13 @@ g1::element pippenger(fr* scalars,
         std::vector<g1::element> exponentiation_results(num_initial_points);
         // might as well multithread this...
         // Possible optimization: use group::batch_mul_with_endomorphism here.
-#ifndef NO_MULTITHREADING
-#pragma omp parallel for
-#endif
-        for (size_t i = 0; i < num_initial_points; ++i) {
-            exponentiation_results[i] = g1::element(points[i * 2]) * scalars[i];
-        }
+        // #ifndef NO_MULTITHREADING
+        // #pragma omp parallel for
+        // #endif
+        // for (size_t i = 0; i < num_initial_points; ++i) {
+        auto thread_task = [&](size_t i) { exponentiation_results[i] = g1::element(points[i * 2]) * scalars[i]; };
+
+        parallel_for(num_initial_points, thread_task);
 
         for (size_t i = num_initial_points - 1; i > 0; --i) {
             exponentiation_results[i - 1] += exponentiation_results[i];
@@ -913,8 +911,8 @@ g1::element pippenger(fr* scalars,
 
 /**
  * It's pippenger! But this one has go-faster stripes and a prediliction for questionable life choices.
- * We use affine-addition formula in this method, which paradoxically is ~45% faster than the mixed addition formulae.
- * See `scalar_multiplication.cpp` for a more detailed description.
+ * We use affine-addition formula in this method, which paradoxically is ~45% faster than the mixed addition
+ *formulae. See `scalar_multiplication.cpp` for a more detailed description.
  *
  * It's...unsafe, because we assume that the incomplete addition formula exceptions are not triggered.
  * We don't bother to check for this to avoid conditional branches in a critical section of our code.

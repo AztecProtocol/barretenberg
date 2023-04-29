@@ -463,6 +463,22 @@
     "isAsync": false
   },
   {
+    "functionName": "env_test_threads",
+    "inArgs": [
+      {
+        "name": "n",
+        "type": "const uint32_t *"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "out",
+        "type": "uint32_t *"
+      }
+    ],
+    "isAsync": false
+  },
+  {
     "functionName": "env_set_data",
     "inArgs": [
       {

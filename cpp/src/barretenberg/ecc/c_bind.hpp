@@ -1,7 +1,6 @@
 #include <cstdint>
 #include <barretenberg/ecc/curves/bn254/g1.hpp>
-
-#define WASM_EXPORT __attribute__((visibility("default")))
+#include "barretenberg/common/wasm_export.hpp"
 
 extern "C" {
 

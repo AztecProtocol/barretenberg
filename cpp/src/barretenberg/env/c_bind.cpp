@@ -7,33 +7,32 @@
 #include "crs.hpp"
 #include <cstdlib>
 #include <barretenberg/common/serialize.hpp>
+#include <thread>
 
-#include <pthread.h>
-// #include <stdio.h>
-// #include <string.h>
-
-void* thread_entry_point(void* ctx)
+void thread_test_entry_point(std::atomic<size_t>* v)
 {
-    auto id = (size_t)ctx;
-    info(" in thread ", id);
-    return nullptr;
+    (*v)++;
 }
 
 extern "C" {
 
-WASM_EXPORT void env_test_pthreads()
+WASM_EXPORT void env_test_threads(uint32_t const* n, uint32_t* out)
 {
-    constexpr size_t NUM_THREADS = 10;
-    pthread_t threads[10];
+    size_t NUM_THREADS = ntohl(*n);
+    std::vector<std::thread> threads(NUM_THREADS);
+    std::atomic<size_t> test_var(0);
+
     for (size_t i = 0; i < NUM_THREADS; i++) {
-        int ret = pthread_create(&threads[i], nullptr, &thread_entry_point, (void*)i);
-        if (ret != 0) {
-            info("failed to spawn thread: ", ret);
-        }
+        threads[i] = std::thread(thread_test_entry_point, &test_var);
     }
-    for (size_t thread : threads) {
-        pthread_join(thread, nullptr);
+
+    for (size_t i = 0; i < NUM_THREADS; i++) {
+        // if (threads[i].joinable()) {
+        threads[i].join();
+        // }
     }
+
+    *out = htonl(test_var);
 }
 
 WASM_EXPORT void env_set_data(in_str_buf key_buf, uint8_t const* buffer)

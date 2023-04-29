@@ -140,7 +140,7 @@
       "description": "Build for pthread enabled WASM",
       "inherits": "wasm",
       "environment": {
-        "WASI_SDK_PREFIX": "${sourceDir}/src/wasi-sdk-20.0+threads"
+        "WASI_SDK_PREFIX": "/mnt/user-data/charlie/min_wasm/wasi-sdk/build/install/opt/wasi-sdk"
       }
     }
   ],

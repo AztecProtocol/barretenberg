@@ -1,7 +1,6 @@
 #include <cstdint>
 #include <barretenberg/common/serialize.hpp>
-
-#define WASM_EXPORT __attribute__((visibility("default")))
+#include "barretenberg/common/wasm_export.hpp"
 
 extern "C" {
 
