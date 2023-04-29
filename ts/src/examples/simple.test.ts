@@ -4,12 +4,13 @@ import { BarretenbergBinder } from '../barretenberg_binder/index.js';
 import { Crs } from '../index.js';
 import debug from 'debug';
 
+debug.enable('wasm');
+
 describe('simple', () => {
   let api: BarretenbergApi;
 
   beforeAll(async () => {
-    api = new BarretenbergApi(new BarretenbergBinder(await BarretenbergWasm.new()));
-    api.binder.wasm.on('log', debug('wasm'));
+    api = new BarretenbergApi(new BarretenbergBinder(await BarretenbergWasm.new(8, debug('wasm'))));
   });
 
   afterAll(async () => {
@@ -17,8 +18,6 @@ describe('simple', () => {
   });
 
   it('should construct proof', async () => {
-    debug.enable('wasm');
-
     // Plus 1 need or ASSERT gets triggered. It was fine in release. Is the assertion wrong?
     const crs = new Crs(2 ** 19 + 1);
     await crs.init();

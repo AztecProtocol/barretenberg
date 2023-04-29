@@ -466,7 +466,11 @@
     "functionName": "env_test_threads",
     "inArgs": [
       {
-        "name": "n",
+        "name": "threads",
+        "type": "const uint32_t *"
+      },
+      {
+        "name": "iterations",
         "type": "const uint32_t *"
       }
     ],

@@ -1,10 +1,10 @@
 #include "runtime_states.hpp"
 
 #include "barretenberg/common/mem.hpp"
-#include "barretenberg/common/max_threads.hpp"
+#include "barretenberg/common/thread.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 
-#ifndef NO_MULTITHREADING
+#ifndef NO_OMP_MULTITHREADING
 #include <omp.h>
 #endif
 
@@ -18,11 +18,7 @@ pippenger_runtime_state::pippenger_runtime_state(const size_t num_initial_points
     const size_t num_points_floor = static_cast<size_t>(1ULL << (numeric::get_msb(num_points)));
     const size_t num_buckets = static_cast<size_t>(
         1U << barretenberg::scalar_multiplication::get_optimal_bucket_width(static_cast<size_t>(num_initial_points)));
-#ifndef NO_MULTITHREADING
-    const size_t num_threads = max_threads::compute_num_threads();
-#else
-    const size_t num_threads = 1;
-#endif
+    const size_t num_threads = get_num_cpus_pow2();
     const size_t prefetch_overflow = 16 * num_threads;
     const size_t num_rounds =
         static_cast<size_t>(barretenberg::scalar_multiplication::get_num_rounds(static_cast<size_t>(num_points_floor)));
@@ -40,7 +36,7 @@ pippenger_runtime_state::pippenger_runtime_state(const size_t num_initial_points
     round_counts = (uint64_t*)(aligned_alloc(32, MAX_NUM_ROUNDS * sizeof(uint64_t)));
 
     const size_t points_per_thread = static_cast<size_t>(num_points) / num_threads;
-#ifndef NO_MULTITHREADING
+#ifndef NO_OMP_MULTITHREADING
 #pragma omp parallel for
 #endif
     for (size_t i = 0; i < num_threads; ++i) {

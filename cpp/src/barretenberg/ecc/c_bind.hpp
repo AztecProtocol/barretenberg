@@ -1,6 +1,6 @@
 #include <cstdint>
 #include <barretenberg/ecc/curves/bn254/g1.hpp>
-#include "barretenberg/common/wasm_export.hpp"
+#include <barretenberg/common/wasm_export.hpp>
 
 extern "C" {
 
@@ -17,5 +17,7 @@ WASM_EXPORT void ecc_pippenger_unsafe(in_ptr pippenger_ptr,
                                       uint32_t const* range,
                                       affine_element::out_buf result_ptr);
 
+// TODO: Maybe not needed. It was used originally for pooled pippenger, but now have proper threading
+// we may not need to sum points anymore via api.
 WASM_EXPORT void ecc_g1_sum(in_ptr points_ptr, uint32_t const* num_points, affine_element::out_buf result_ptr);
 }

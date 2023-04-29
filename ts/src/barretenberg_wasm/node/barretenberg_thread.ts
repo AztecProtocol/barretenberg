@@ -2,6 +2,12 @@ import { parentPort, threadId } from 'worker_threads';
 import { BarretenbergWasm } from '../barretenberg_wasm.js';
 // import { writeFileSync } from 'fs';
 
+// import inspector from 'node:inspector';
+// if (threadId === 1) {
+//   inspector.open();
+//   inspector.waitForDebugger();
+// }
+
 if (!parentPort) {
   debug('InvalidWorker');
   throw new Error('InvalidWorker');
@@ -14,7 +20,7 @@ const barretenbergWasm = new BarretenbergWasm();
 function debug(message: string) {
   // const logFilePath = `worker.log`;
   // writeFileSync(logFilePath, message + '\n', { flag: 'a' });
-  parentPort?.postMessage(message);
+  // parentPort?.postMessage(message);
   // console.log(message);
 }
 

@@ -2,7 +2,6 @@
 
 #include "barretenberg/common/throw_or_abort.hpp"
 #include "barretenberg/common/mem.hpp"
-#include "barretenberg/common/max_threads.hpp"
 #include "barretenberg/common/thread.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 
@@ -18,10 +17,6 @@
 #include "../g1.hpp"
 #include "./process_buckets.hpp"
 #include "./runtime_states.hpp"
-
-#ifndef NO_MULTITHREADING
-#include <omp.h>
-#endif
 
 #define BBERG_SCALAR_MULTIPLICATION_FETCH_BLOCK                                                                        \
     __builtin_prefetch(state.points + (state.point_schedule[schedule_it + 16] >> 32ULL));                              \
@@ -206,7 +201,7 @@ void compute_wnaf_states(uint64_t* point_schedule,
     const size_t num_rounds = get_num_rounds(num_points);
     const size_t bits_per_bucket = get_optimal_bucket_width(num_initial_points);
     const size_t wnaf_bits = bits_per_bucket + 1;
-    const size_t num_threads = max_threads::compute_num_threads();
+    const size_t num_threads = get_num_cpus_pow2();
     const size_t num_initial_points_per_thread = num_initial_points / num_threads;
     const size_t num_points_per_thread = num_points / num_threads;
     std::array<std::array<uint64_t, MAX_NUM_ROUNDS>, MAX_NUM_THREADS> thread_round_counts;
@@ -266,7 +261,6 @@ void organize_buckets(uint64_t* point_schedule, const size_t num_points)
 {
     const size_t num_rounds = get_num_rounds(num_points);
 
-    // Define a lambda function to replace the OpenMP parallel loop
     auto thread_task = [&](size_t i) {
         scalar_multiplication::process_buckets(&point_schedule[i * num_points],
                                                num_points,
@@ -730,7 +724,7 @@ g1::element evaluate_pippenger_rounds(pippenger_runtime_state& state,
                                       bool handle_edge_cases)
 {
     const size_t num_rounds = get_num_rounds(num_points);
-    const size_t num_threads = max_threads::compute_num_threads();
+    const size_t num_threads = get_num_cpus_pow2();
     const size_t bits_per_bucket = get_optimal_bucket_width(num_points / 2);
 
     std::unique_ptr<g1::element[], decltype(&aligned_free)> thread_accumulators(
@@ -862,7 +856,7 @@ g1::element pippenger(fr* scalars,
     // If we fall below this theshold, fall back to the traditional scalar multiplication algorithm.
     // For 8 threads, this neatly coincides with the threshold where Strauss scalar multiplication outperforms
     // Pippenger
-    const size_t threshold = max_threads::compute_num_threads() * 8;
+    const size_t threshold = get_num_cpus_pow2() * 8;
 
     if (num_initial_points == 0) {
         g1::element out = g1::one;

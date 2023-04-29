@@ -122,7 +122,8 @@
         "CMAKE_FIND_ROOT_PATH_MODE_INCLUDE": "ONLY",
         "CMAKE_FIND_ROOT_PATH_MODE_PACKAGE": "ONLY",
         "CMAKE_C_COMPILER_WORKS": "ON",
-        "CMAKE_CXX_COMPILER_WORKS": "ON"
+        "CMAKE_CXX_COMPILER_WORKS": "ON",
+        "MULTITHREADING": "OFF"
       }
     },
     {
@@ -140,7 +141,11 @@
       "description": "Build for pthread enabled WASM",
       "inherits": "wasm",
       "environment": {
-        "WASI_SDK_PREFIX": "/mnt/user-data/charlie/min_wasm/wasi-sdk/build/install/opt/wasi-sdk"
+        "WASI_SDK_PREFIX": "/mnt/user-data/charlie/min_wasm/wasi-sdk/build/install/opt/wasi-sdk",
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "cacheVariables": {
+        "MULTITHREADING": "ON"
       }
     }
   ],

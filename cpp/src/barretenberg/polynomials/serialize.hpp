@@ -12,7 +12,7 @@ template <typename B> inline void read(B& buf, polynomial& p)
     memcpy(&p[0], buf, size * sizeof(fr));
 
     if (!is_little_endian()) {
-#ifndef NO_MULTITHREADING
+#ifndef NO_OMP_MULTITHREADING
 #pragma omp parallel for
 #endif
         for (size_t i = 0; i < size; ++i) {
@@ -52,7 +52,7 @@ inline void read(std::istream& is, polynomial& p)
     is.read((char*)&p[0], (std::streamsize)(size * sizeof(fr)));
 
     if (!is_little_endian()) {
-#ifndef NO_MULTITHREADING
+#ifndef NO_OMP_MULTITHREADING
 #pragma omp parallel for
 #endif
         for (size_t i = 0; i < size; ++i) {

@@ -7,23 +7,39 @@
 #include "crs.hpp"
 #include <cstdlib>
 #include <barretenberg/common/serialize.hpp>
+#include <barretenberg/common/timer.hpp>
+#include <barretenberg/crypto/blake2s/blake2s.hpp>
 #include <thread>
 
-void thread_test_entry_point(std::atomic<size_t>* v)
+struct test_threads_data {
+    std::atomic<size_t> counter = 0;
+    size_t iterations = 0;
+};
+
+void thread_test_entry_point(test_threads_data* v)
 {
-    (*v)++;
+    Timer t;
+    info("thread start with counter at: ", static_cast<size_t>(v->counter));
+    std::vector<uint8_t> data(1024);
+    for (size_t i = 0; i < v->iterations; ++i) {
+        blake2::blake2s(data);
+        (v->counter)++;
+    }
+    info("thread end with counter at: ", static_cast<size_t>(v->counter), " ", t.seconds(), "s");
 }
 
 extern "C" {
 
-WASM_EXPORT void env_test_threads(uint32_t const* n, uint32_t* out)
+WASM_EXPORT void env_test_threads(uint32_t const* thread_num, uint32_t const* iterations, uint32_t* out)
 {
-    size_t NUM_THREADS = ntohl(*n);
+    Timer t;
+    size_t NUM_THREADS = ntohl(*thread_num);
     std::vector<std::thread> threads(NUM_THREADS);
-    std::atomic<size_t> test_var(0);
+    test_threads_data test_data;
+    test_data.iterations = ntohl(*iterations) / NUM_THREADS;
 
     for (size_t i = 0; i < NUM_THREADS; i++) {
-        threads[i] = std::thread(thread_test_entry_point, &test_var);
+        threads[i] = std::thread(thread_test_entry_point, &test_data);
     }
 
     for (size_t i = 0; i < NUM_THREADS; i++) {
@@ -32,7 +48,8 @@ WASM_EXPORT void env_test_threads(uint32_t const* n, uint32_t* out)
         // }
     }
 
-    *out = htonl(test_var);
+    info("test complete with counter at: ", static_cast<size_t>(test_data.counter), " ", t.seconds(), "s");
+    *out = htonl(test_data.counter);
 }
 
 WASM_EXPORT void env_set_data(in_str_buf key_buf, uint8_t const* buffer)

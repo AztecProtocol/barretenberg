@@ -1,8 +1,8 @@
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/common/max_threads.hpp"
+#include "barretenberg/common/thread.hpp"
 #include <span>
 
-#ifndef NO_MULTITHREADING
+#ifndef NO_OMP_MULTITHREADING
 #include "omp.h"
 #endif
 namespace proof_system::honk::power_polynomial {
@@ -21,7 +21,7 @@ template <typename Fr> barretenberg::Polynomial<Fr> generate_vector(Fr zeta, siz
     barretenberg::Polynomial<Fr> pow_vector(vector_size);
 
     constexpr size_t usefulness_margin = 4;
-    size_t num_threads = max_threads::compute_num_threads();
+    size_t num_threads = get_num_cpus_pow2();
     if (vector_size < (usefulness_margin * num_threads)) {
         num_threads = 1;
     }
@@ -33,7 +33,7 @@ template <typename Fr> barretenberg::Polynomial<Fr> generate_vector(Fr zeta, siz
         thread_size += 1;
         last_thread_size = vector_size % thread_size;
     }
-#ifndef NO_MULTITHREADING
+#ifndef NO_OMP_MULTITHREADING
 #pragma omp parallel for
 #endif
     for (size_t i = 0; i < num_threads; i++) {

@@ -1,9 +1,9 @@
 #pragma once
 #include "./scalar_multiplication.hpp"
 #include "barretenberg/common/mem.hpp"
-#include "barretenberg/common/max_threads.hpp"
+#include "barretenberg/common/thread.hpp"
 
-#ifndef NO_MULTITHREADING
+#ifndef NO_OMP_MULTITHREADING
 #include <omp.h>
 #endif
 
@@ -12,11 +12,7 @@ namespace scalar_multiplication {
 
 inline size_t point_table_size(size_t num_points)
 {
-#ifndef NO_MULTITHREADING
-    const size_t num_threads = max_threads::compute_num_threads();
-#else
-    const size_t num_threads = 1;
-#endif
+    const size_t num_threads = get_num_cpus_pow2();
     const size_t prefetch_overflow = 16 * num_threads;
 
     return 2 * num_points + prefetch_overflow;

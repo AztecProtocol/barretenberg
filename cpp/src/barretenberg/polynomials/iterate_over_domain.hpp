@@ -27,7 +27,7 @@
 #endif
 
 #if 1
-#ifndef NO_MULTITHREADING
+#ifndef NO_OMP_MULTITHREADING
 #define ITERATE_OVER_DOMAIN_START(domain)                                                                              \
     _Pragma("omp parallel for") for (size_t j = 0; j < domain.num_threads; ++j)                                        \
     {                                                                                                                  \

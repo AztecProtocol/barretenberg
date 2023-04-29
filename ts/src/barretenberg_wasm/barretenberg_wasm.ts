@@ -11,10 +11,15 @@ import { Crs } from '../crs/index.js';
 // import { WebDataStore } from './browser/web_data_store.js';
 import { createHash } from 'crypto';
 import { Worker } from 'worker_threads';
+import os from 'os';
 
 EventEmitter.defaultMaxListeners = 30;
 
 const sha256 = (data: Uint8Array) => createHash('sha256').update(data).digest('hex');
+
+function getNumCpu() {
+  return Math.min(isNode ? os.cpus().length : navigator.hardwareConcurrency, 8);
+}
 
 export async function fetchCode() {
   if (isNode) {
@@ -33,13 +38,16 @@ export class BarretenbergWasm extends EventEmitter {
   private instance!: WebAssembly.Instance;
   private asyncCallState = new AsyncCallState();
   private memStore: { [key: string]: Uint8Array } = {};
-  private threads: Worker[] = [];
-  private nextThread = 0;
+  private workers: Worker[] = [];
+  private nextWorker = 0;
   private nextThreadId = 1;
 
-  public static async new(initial?: number) {
+  public static async new(threads = getNumCpu(), logHandler?: (m: string) => void, initial?: number) {
     const barretenberg = new BarretenbergWasm();
-    await barretenberg.init(undefined, initial);
+    if (logHandler) {
+      barretenberg.on('log', logHandler);
+    }
+    await barretenberg.init(threads, initial);
     return barretenberg;
   }
 
@@ -47,10 +55,14 @@ export class BarretenbergWasm extends EventEmitter {
     super();
   }
 
+  public getNumWorkers() {
+    return this.workers.length;
+  }
+
   /**
    * Init as main thread. Spawn child threads.
    */
-  public async init(threads = 4, initial = 25, maximum = 2 ** 16) {
+  public async init(threads: number, initial = 25, maximum = 2 ** 16) {
     const initialMb = (initial * 2 ** 16) / (1024 * 1024);
     const maxMb = (maximum * 2 ** 16) / (1024 * 1024);
     this.debug(`main thread initial mem: ${initial} pages, ${initialMb}mb. max mem: ${maximum} pages, ${maxMb}mb`);
@@ -67,15 +79,19 @@ export class BarretenbergWasm extends EventEmitter {
     // this.asyncCallState.init(this.memory, this.call.bind(this), this.debug.bind(this));
 
     // Create worker threads. Returns once all workers have signalled they're ready.
-    this.threads = await Promise.all(
-      Array.from({ length: threads }).map(() => {
+    this.workers = await Promise.all(
+      Array.from({ length: threads }).map((_, i) => {
         return new Promise<Worker>(resolve => {
-          // this.debug(`creating worker ${i}`);
+          this.debug(`creating worker ${i}`);
           const __dirname = dirname(fileURLToPath(import.meta.url));
-          const worker = new Worker(__dirname + `/node/barretenberg_thread.ts`);
+          const worker = new Worker(
+            __dirname + `/node/barretenberg_thread.ts`,
+            i === 0 ? { execArgv: ['--inspect-brk=0.0.0.0'] } : {},
+          );
           worker.on('message', msg => {
             if (typeof msg === 'number') {
               // Worker is ready.
+              this.debug(`worker ready ${i}`);
               resolve(worker);
               return;
             }
@@ -102,8 +118,8 @@ export class BarretenbergWasm extends EventEmitter {
    * Called on main thread. Signals child threads to gracefully exit.
    */
   public async destroy() {
-    this.threads.forEach(t => t.postMessage({ msg: 'exit' }));
-    await Promise.all(this.threads.map(worker => new Promise(resolve => worker.once('exit', resolve))));
+    this.workers.forEach(t => t.postMessage({ msg: 'exit' }));
+    await Promise.all(this.workers.map(worker => new Promise(resolve => worker.once('exit', resolve))));
   }
 
   private getImportObj(memory: WebAssembly.Memory) {
@@ -121,16 +137,25 @@ export class BarretenbergWasm extends EventEmitter {
             heap[i] = randomData[i - arr];
           }
         },
-        sched_yield: () => {
-          this.debug('sched_yield');
-          process.nextTick(() => {});
+        clock_time_get: (a1: number, a2: number, out: number) => {
+          out = out >>> 0;
+          const ts = BigInt(new Date().getTime()) * 1000000n;
+          const heap = this.getMemory();
+          const buf = Buffer.alloc(8);
+          buf.writeBigUInt64LE(ts);
+          buf.copy(heap, out);
         },
+        // sched_yield: () => {
+        // this.debug('sched_yield');
+        // process.nextTick(() => {});
+        // return 0;
+        // },
       },
       wasi: {
         'thread-spawn': (arg: number) => {
           const id = this.nextThreadId++;
-          this.debug(`spawning thread ${id} with arg ${arg}`);
-          this.threads[this.nextThread++ % this.threads.length].postMessage({
+          // this.debug(`spawning thread ${id} with arg ${arg}`);
+          this.workers[this.nextWorker++ % this.workers.length].postMessage({
             msg: 'thread',
             data: { id, arg },
           });
@@ -141,6 +166,11 @@ export class BarretenbergWasm extends EventEmitter {
       // These are functions implementations for imports we've defined are needed.
       // The native C++ build defines these in a module called "env". We must implement TypeScript versions here.
       env: {
+        env_hardware_concurrency: () => {
+          // If there are no workers (we're already running as a worker, or the main thread requested no workers)
+          // then we return 1, which should cause any algos using threading to just not create a thread.
+          return this.workers.length || 1;
+        },
         /**
          * The 'info' call we use for logging in C++, calls this under the hood.
          * The native code will just print to std:err (to avoid std::cout which is used for IPC).

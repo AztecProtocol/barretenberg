@@ -173,11 +173,11 @@ void ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>::compute_gra
     const fr beta_constant = beta + fr(1);                // (1 + β)
     const fr gamma_beta_constant = gamma * beta_constant; // γ(1 + β)
 
-#ifndef NO_MULTITHREADING
+#ifndef NO_OMP_MULTITHREADING
 #pragma omp parallel
 #endif
     {
-#ifndef NO_MULTITHREADING
+#ifndef NO_OMP_MULTITHREADING
 #pragma omp for
 #endif
         // Step 1: Compute polynomials f, t and s and incorporate them into terms that are ultimately needed
@@ -265,7 +265,7 @@ void ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>::compute_gra
 // 3.   accumulators[2][j] = ∏ (1 + β)
 // 4.   accumulators[3][j] = ∏ (s_k + βs_{k+1} + γ(1 + β))
 // Note: This is a small multithreading bottleneck, as we have only 4 parallelizable processes.
-#ifndef NO_MULTITHREADING
+#ifndef NO_OMP_MULTITHREADING
 #pragma omp for
 #endif
         for (size_t i = 0; i < 4; ++i) {
@@ -290,7 +290,7 @@ void ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>::compute_gra
 // 1/∏_{k<i} S_i that appear in Z_lookup, using the fact that P_i/P_{i+1} = 1/∏_{k<i} S_i. (Note
 // that once we have 1/P_n, we can compute 1/P_{n-1} as (1/P_n) * ∏_{k<n} S_i, and
 // so on).
-#ifndef NO_MULTITHREADING
+#ifndef NO_OMP_MULTITHREADING
 #pragma omp for
 #endif
         // Compute Z_lookup using Montgomery batch inversion
@@ -478,7 +478,7 @@ barretenberg::fr ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>:
 
     const size_t block_mask = key->large_domain.size - 1;
 
-#ifndef NO_MULTITHREADING
+#ifndef NO_OMP_MULTITHREADING
 #pragma omp parallel for
 #endif
     // Add to the quotient polynomial the components associated with z_lookup

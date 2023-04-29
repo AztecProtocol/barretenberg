@@ -7,6 +7,11 @@
 
 extern "C" {
 
+int32_t __imported_wasi_snapshot_preview1_sched_yield()
+{
+    return 0;
+}
+
 int32_t __imported_wasi_snapshot_preview1_poll_oneoff(int32_t, int32_t, int32_t, int32_t)
 {
     info("poll_oneoff not implemented.");
@@ -54,12 +59,12 @@ int32_t __imported_wasi_snapshot_preview1_environ_sizes_get(int32_t, int32_t)
     return 0;
 }
 
-int32_t __imported_wasi_snapshot_preview1_clock_time_get(int32_t, int64_t, int32_t)
-{
-    info("clock_time_get not implemented.");
-    abort();
-    return 0;
-}
+// int32_t __imported_wasi_snapshot_preview1_clock_time_get(int32_t, int64_t, int32_t)
+// {
+//     info("clock_time_get not implemented.");
+//     abort();
+//     return 0;
+// }
 
 int32_t __imported_wasi_snapshot_preview1_fd_fdstat_get(int32_t, int32_t)
 {

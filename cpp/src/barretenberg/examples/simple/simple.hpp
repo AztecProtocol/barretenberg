@@ -1,6 +1,6 @@
 #pragma once
 #include "barretenberg/plonk/proof_system/types/proof.hpp"
-#include "barretenberg/stdlib/types/ultra.hpp"
+#include "barretenberg/stdlib/types/turbo.hpp"
 
 namespace examples::simple {
 

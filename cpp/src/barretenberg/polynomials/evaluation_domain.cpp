@@ -2,14 +2,9 @@
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 #include "barretenberg/common/assert.hpp"
 #include "barretenberg/common/mem.hpp"
-#include <math.h>
 #include <memory.h>
 #include "barretenberg/numeric/bitop/get_msb.hpp"
-#include "barretenberg/common/max_threads.hpp"
-
-#ifndef NO_MULTITHREADING
-#include "omp.h"
-#endif
+#include "barretenberg/common/thread.hpp"
 
 namespace barretenberg {
 
@@ -18,11 +13,7 @@ constexpr size_t MIN_GROUP_PER_THREAD = 4;
 
 size_t compute_num_threads(const size_t size)
 {
-#ifndef NO_MULTITHREADING
-    size_t num_threads = max_threads::compute_num_threads();
-#else
-    size_t num_threads = 1;
-#endif
+    size_t num_threads = get_num_cpus_pow2();
     if (size <= (num_threads * MIN_GROUP_PER_THREAD)) {
         num_threads = 1;
     }

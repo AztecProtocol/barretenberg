@@ -72,11 +72,7 @@ export class BarretenbergApi {
   }
 
   pedersenHashMultipleWithHashIndex(inputsBuffer: Fr[], hashIndex: number): Fr {
-    const result = this.binder.callWasmExport(
-      'pedersen_hash_multiple_with_hash_index',
-      [inputsBuffer, hashIndex],
-      [Fr],
-    );
+    const result = this.binder.callWasmExport('pedersen_hash_multiple_with_hash_index', [inputsBuffer, hashIndex], [Fr]);
     return result[0];
   }
 
@@ -106,20 +102,12 @@ export class BarretenbergApi {
   }
 
   schnorrConstructSignature(message: Buffer, privateKey: Fr): [Buffer32, Buffer32] {
-    const result = this.binder.callWasmExport(
-      'schnorr_construct_signature',
-      [message, privateKey],
-      [Buffer32, Buffer32],
-    );
+    const result = this.binder.callWasmExport('schnorr_construct_signature', [message, privateKey], [Buffer32, Buffer32]);
     return result as any;
   }
 
   schnorrVerifySignature(message: Buffer, pubKey: Point, sigS: Buffer32, sigE: Buffer32): boolean {
-    const result = this.binder.callWasmExport(
-      'schnorr_verify_signature',
-      [message, pubKey, sigS, sigE],
-      [BoolDeserializer()],
-    );
+    const result = this.binder.callWasmExport('schnorr_verify_signature', [message, pubKey, sigS, sigE], [BoolDeserializer()]);
     return result[0];
   }
 
@@ -129,54 +117,27 @@ export class BarretenbergApi {
   }
 
   schnorrMultisigValidateAndCombineSignerPubkeys(signerPubkeyBuf: Buffer128[]): [Point, boolean] {
-    const result = this.binder.callWasmExport(
-      'schnorr_multisig_validate_and_combine_signer_pubkeys',
-      [signerPubkeyBuf],
-      [Point, BoolDeserializer()],
-    );
+    const result = this.binder.callWasmExport('schnorr_multisig_validate_and_combine_signer_pubkeys', [signerPubkeyBuf], [Point, BoolDeserializer()]);
     return result as any;
   }
 
   schnorrMultisigConstructSignatureRound1(): [Buffer128, Buffer128] {
-    const result = this.binder.callWasmExport(
-      'schnorr_multisig_construct_signature_round_1',
-      [],
-      [Buffer128, Buffer128],
-    );
+    const result = this.binder.callWasmExport('schnorr_multisig_construct_signature_round_1', [], [Buffer128, Buffer128]);
     return result as any;
   }
 
-  schnorrMultisigConstructSignatureRound2(
-    message: Buffer,
-    privateKey: Fq,
-    signerRoundOnePrivateBuf: Buffer128,
-    signerPubkeysBuf: Buffer128[],
-    roundOnePublicBuf: Buffer128[],
-  ): [Fq, boolean] {
-    const result = this.binder.callWasmExport(
-      'schnorr_multisig_construct_signature_round_2',
-      [message, privateKey, signerRoundOnePrivateBuf, signerPubkeysBuf, roundOnePublicBuf],
-      [Fq, BoolDeserializer()],
-    );
+  schnorrMultisigConstructSignatureRound2(message: Buffer, privateKey: Fq, signerRoundOnePrivateBuf: Buffer128, signerPubkeysBuf: Buffer128[], roundOnePublicBuf: Buffer128[]): [Fq, boolean] {
+    const result = this.binder.callWasmExport('schnorr_multisig_construct_signature_round_2', [message, privateKey, signerRoundOnePrivateBuf, signerPubkeysBuf, roundOnePublicBuf], [Fq, BoolDeserializer()]);
     return result as any;
   }
 
-  schnorrMultisigCombineSignatures(
-    message: Buffer,
-    signerPubkeysBuf: Buffer128[],
-    roundOneBuf: Buffer128[],
-    roundTwoBuf: Fr[],
-  ): [Buffer32, Buffer32, boolean] {
-    const result = this.binder.callWasmExport(
-      'schnorr_multisig_combine_signatures',
-      [message, signerPubkeysBuf, roundOneBuf, roundTwoBuf],
-      [Buffer32, Buffer32, BoolDeserializer()],
-    );
+  schnorrMultisigCombineSignatures(message: Buffer, signerPubkeysBuf: Buffer128[], roundOneBuf: Buffer128[], roundTwoBuf: Fr[]): [Buffer32, Buffer32, boolean] {
+    const result = this.binder.callWasmExport('schnorr_multisig_combine_signatures', [message, signerPubkeysBuf, roundOneBuf, roundTwoBuf], [Buffer32, Buffer32, BoolDeserializer()]);
     return result as any;
   }
 
-  envTestThreads(n: number): number {
-    const result = this.binder.callWasmExport('env_test_threads', [n], [NumberDeserializer()]);
+  envTestThreads(threads: number, iterations: number): number {
+    const result = this.binder.callWasmExport('env_test_threads', [threads, iterations], [NumberDeserializer()]);
     return result[0];
   }
 
@@ -226,11 +187,7 @@ export class BarretenbergApi {
   }
 
   examplesSimpleCreateAndVerifyProof(pippenger: Ptr, g2x: Buffer): boolean {
-    const result = this.binder.callWasmExport(
-      'examples_simple_create_and_verify_proof',
-      [pippenger, g2x],
-      [BoolDeserializer()],
-    );
+    const result = this.binder.callWasmExport('examples_simple_create_and_verify_proof', [pippenger, g2x], [BoolDeserializer()]);
     return result[0];
   }
 }

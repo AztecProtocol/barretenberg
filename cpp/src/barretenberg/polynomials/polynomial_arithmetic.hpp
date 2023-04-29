@@ -1,7 +1,7 @@
 #pragma once
 #include "evaluation_domain.hpp"
 
-#ifndef NO_MULTITHREADING
+#ifndef NO_OMP_MULTITHREADING
 #include <omp.h>
 #endif
 
