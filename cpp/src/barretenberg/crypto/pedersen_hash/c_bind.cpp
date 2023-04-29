@@ -56,7 +56,7 @@ WASM_EXPORT void pedersen_hash_to_tree(fr::vec_in_buf data, fr::vec_out_buf out)
     }
 
     auto buf_size = 4 + num_outputs * sizeof(grumpkin::fq);
-    *out = static_cast<uint8_t*>(aligned_alloc(64, buf_size));
+    *out = static_cast<uint8_t*>(malloc(buf_size));
     auto* dst = *out;
     write(dst, fields);
 }

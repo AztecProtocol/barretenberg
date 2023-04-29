@@ -30,7 +30,6 @@ export async function fetchCode() {
 export class BarretenbergWasm extends EventEmitter {
   // private store = isNode ? new NodeDataStore() : new WebDataStore();
   private memory!: WebAssembly.Memory;
-  private heap!: Uint8Array;
   private instance!: WebAssembly.Instance;
   private asyncCallState = new AsyncCallState();
   private memStore: { [key: string]: Uint8Array } = {};
@@ -57,12 +56,6 @@ export class BarretenbergWasm extends EventEmitter {
     this.debug(`main thread initial mem: ${initial} pages, ${initialMb}mb. max mem: ${maximum} pages, ${maxMb}mb`);
 
     this.memory = new WebAssembly.Memory({ initial, maximum, shared: true });
-
-    // Create a view over the memory buffer.
-    // We do this once here, as webkit *seems* bugged out and actually shows this as new memory,
-    // thus displaying double. It's only worse if we create views on demand.
-    // The view will have to be recreated if the memory is grown. See getMemory().
-    this.heap = new Uint8Array(this.memory.buffer);
 
     const { instance, module } = await WebAssembly.instantiate(await fetchCode(), this.getImportObj(this.memory));
 
@@ -100,7 +93,6 @@ export class BarretenbergWasm extends EventEmitter {
    */
   public async initThread(module: WebAssembly.Module, memory: WebAssembly.Memory) {
     this.memory = memory;
-    this.heap = new Uint8Array(this.memory.buffer);
     this.instance = await WebAssembly.instantiate(module, this.getImportObj(this.memory));
 
     // this.asyncCallState.init(this.memory, this.call.bind(this), this.debug.bind(this));
@@ -128,12 +120,6 @@ export class BarretenbergWasm extends EventEmitter {
           for (let i = arr; i < arr + length; ++i) {
             heap[i] = randomData[i - arr];
           }
-        },
-        clock_time_get: () => {
-          this.debug('clock_time_get not implemented.');
-        },
-        proc_exit: () => {
-          this.debug('proc_exit not implemented.');
         },
         sched_yield: () => {
           this.debug('sched_yield');
@@ -288,11 +274,7 @@ export class BarretenbergWasm extends EventEmitter {
   // PRIVATE METHODS
 
   private getMemory() {
-    // If the memory is grown, our view over it will be lost. Recreate the view.
-    if (this.heap.length === 0) {
-      this.heap = new Uint8Array(this.memory.buffer);
-    }
-    return this.heap;
+    return new Uint8Array(this.memory.buffer);
   }
 
   private stringFromAddress(addr: number) {

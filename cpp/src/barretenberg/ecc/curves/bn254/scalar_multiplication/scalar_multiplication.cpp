@@ -736,10 +736,6 @@ g1::element evaluate_pippenger_rounds(pippenger_runtime_state& state,
     std::unique_ptr<g1::element[], decltype(&aligned_free)> thread_accumulators(
         static_cast<g1::element*>(aligned_alloc(64, num_threads * sizeof(g1::element))), &aligned_free);
 
-    // #ifndef NO_MULTITHREADING
-    // #pragma omp parallel for
-    // #endif
-    // for (size_t j = 0; j < num_threads; ++j) {
     auto thread_task = [&](size_t j) {
         thread_accumulators[j].self_set_infinity();
 
@@ -878,10 +874,6 @@ g1::element pippenger(fr* scalars,
         std::vector<g1::element> exponentiation_results(num_initial_points);
         // might as well multithread this...
         // Possible optimization: use group::batch_mul_with_endomorphism here.
-        // #ifndef NO_MULTITHREADING
-        // #pragma omp parallel for
-        // #endif
-        // for (size_t i = 0; i < num_initial_points; ++i) {
         auto thread_task = [&](size_t i) { exponentiation_results[i] = g1::element(points[i * 2]) * scalars[i]; };
 
         parallel_for(num_initial_points, thread_task);

@@ -12,8 +12,7 @@ WASM_EXPORT void blake2s(uint8_t const* data, out_buf32 out)
     std::vector<uint8_t> inputv;
     read(data, inputv);
     auto output = blake2::blake2s(inputv);
-
-    write(out, output);
+    std::copy(output.begin(), output.end(), out);
 }
 
 WASM_EXPORT void blake2s_to_field(uint8_t const* data, fr::out_buf r)

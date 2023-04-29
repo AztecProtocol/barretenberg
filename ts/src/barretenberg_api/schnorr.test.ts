@@ -1,24 +1,20 @@
 import { TextEncoder } from 'util';
 import { Buffer128, Buffer32, Fr, Point } from '../types/index.js';
-import {
-  pedersenInit,
-  schnorrComputePublicKey,
-  schnorrConstructSignature,
-  schnorrMultisigCombineSignatures,
-  schnorrMultisigConstructSignatureRound1,
-  schnorrMultisigConstructSignatureRound2,
-  schnorrMultisigCreateMultisigPublicKey,
-  schnorrMultisigValidateAndCombineSignerPubkeys,
-  schnorrNegatePublicKey,
-  schnorrVerifySignature,
-} from './index.js';
+import { BarretenbergApi } from './index.js';
+import { BarretenbergBinder } from '../barretenberg_binder/index.js';
+import { BarretenbergWasm } from '../barretenberg_wasm/barretenberg_wasm.js';
 
 describe('schnorr', () => {
   const msg = Buffer.from(new TextEncoder().encode('The quick brown dog jumped over the lazy fox.'));
+  let api: BarretenbergApi;
 
-  beforeAll(() => {
-    // wasm.on('log', console.log);
-    pedersenInit();
+  beforeAll(async () => {
+    api = new BarretenbergApi(new BarretenbergBinder(await BarretenbergWasm.new()));
+    api.pedersenInit();
+  });
+
+  afterAll(async () => {
+    await api.destroy();
   });
 
   it('should verify signature', () => {
@@ -28,9 +24,9 @@ describe('schnorr', () => {
         0x29, 0x1a, 0x5e, 0x96, 0xbb, 0x7a, 0x56, 0x63, 0x9e, 0x17, 0x7d, 0x30, 0x1b, 0xeb,
       ]),
     );
-    const pubKey = schnorrComputePublicKey(pk);
-    const [s, e] = schnorrConstructSignature(msg, pk);
-    const verified = schnorrVerifySignature(msg, pubKey, s, e);
+    const pubKey = api.schnorrComputePublicKey(pk);
+    const [s, e] = api.schnorrConstructSignature(msg, pk);
+    const verified = api.schnorrVerifySignature(msg, pubKey, s, e);
 
     expect(verified).toBe(true);
   });
@@ -45,23 +41,23 @@ describe('schnorr', () => {
     const expectedInverted = Point.fromString(expectedInvertedStr);
 
     // negate - should match expected negated key
-    const negatedPublicKey = schnorrNegatePublicKey(publicKey);
+    const negatedPublicKey = api.schnorrNegatePublicKey(publicKey);
     expect(negatedPublicKey.equals(expectedInverted)).toEqual(true);
     // negate again - should be original public key now
-    expect(schnorrNegatePublicKey(negatedPublicKey).equals(publicKey)).toEqual(true);
+    expect(api.schnorrNegatePublicKey(negatedPublicKey).equals(publicKey)).toEqual(true);
   });
 
   it('should create + verify multi signature', () => {
     // set up multisig accounts
     const numSigners = 7;
     const pks = [...Array(numSigners)].map(() => Fr.random());
-    const pubKeys = pks.map(pk => schnorrMultisigCreateMultisigPublicKey(pk));
+    const pubKeys = pks.map(pk => api.schnorrMultisigCreateMultisigPublicKey(pk));
 
     // round one
     const roundOnePublicOutputs: Buffer128[] = [];
     const roundOnePrivateOutputs: Buffer128[] = [];
     for (let i = 0; i < numSigners; ++i) {
-      const [publicOutput, privateOutput] = schnorrMultisigConstructSignatureRound1();
+      const [publicOutput, privateOutput] = api.schnorrMultisigConstructSignatureRound1();
       roundOnePublicOutputs.push(publicOutput);
       roundOnePrivateOutputs.push(privateOutput);
     }
@@ -69,23 +65,29 @@ describe('schnorr', () => {
     // round two
     const roundTwoOutputs = pks.map(
       (pk, i) =>
-        schnorrMultisigConstructSignatureRound2(msg, pk, roundOnePrivateOutputs[i], pubKeys, roundOnePublicOutputs)[0],
+        api.schnorrMultisigConstructSignatureRound2(
+          msg,
+          pk,
+          roundOnePrivateOutputs[i],
+          pubKeys,
+          roundOnePublicOutputs,
+        )[0],
     );
 
     // generate signature
-    const [s, e] = schnorrMultisigCombineSignatures(msg, pubKeys, roundOnePublicOutputs, roundTwoOutputs)!;
-    const [combinedKey] = schnorrMultisigValidateAndCombineSignerPubkeys(pubKeys);
+    const [s, e] = api.schnorrMultisigCombineSignatures(msg, pubKeys, roundOnePublicOutputs, roundTwoOutputs)!;
+    const [combinedKey] = api.schnorrMultisigValidateAndCombineSignerPubkeys(pubKeys);
     expect(combinedKey).not.toEqual(Buffer.alloc(64));
-    const verified = schnorrVerifySignature(msg, combinedKey, s, e);
+    const verified = api.schnorrVerifySignature(msg, combinedKey, s, e);
     expect(verified).toBe(true);
   });
 
   it('should identify invalid multi signature', () => {
     const pks = [...Array(3)].map(() => Fr.random());
-    const pubKeys = pks.map(pk => schnorrMultisigCreateMultisigPublicKey(pk));
-    const [combinedKey] = schnorrMultisigValidateAndCombineSignerPubkeys(pubKeys);
+    const pubKeys = pks.map(pk => api.schnorrMultisigCreateMultisigPublicKey(pk));
+    const [combinedKey] = api.schnorrMultisigValidateAndCombineSignerPubkeys(pubKeys);
 
-    const verified = schnorrVerifySignature(msg, combinedKey, Buffer32.random(), Buffer32.random());
+    const verified = api.schnorrVerifySignature(msg, combinedKey, Buffer32.random(), Buffer32.random());
     expect(verified).toBe(false);
   });
 
@@ -93,13 +95,13 @@ describe('schnorr', () => {
     // set up multisig accounts
     const numSigners = 7;
     const pks = [...Array(numSigners)].map(() => Fr.random());
-    const pubKeys = pks.map(pk => schnorrMultisigCreateMultisigPublicKey(pk));
+    const pubKeys = pks.map(pk => api.schnorrMultisigCreateMultisigPublicKey(pk));
 
     // round one
     const roundOnePublicOutputs: Buffer128[] = [];
     const roundOnePrivateOutputs: Buffer128[] = [];
     for (let i = 0; i < numSigners; ++i) {
-      const [publicOutput, privateOutput] = schnorrMultisigConstructSignatureRound1();
+      const [publicOutput, privateOutput] = api.schnorrMultisigConstructSignatureRound1();
       roundOnePublicOutputs.push(publicOutput);
       roundOnePrivateOutputs.push(privateOutput);
     }
@@ -107,13 +109,19 @@ describe('schnorr', () => {
     // round two
     const roundTwoOutputs = pks.map(
       (pk, i) =>
-        schnorrMultisigConstructSignatureRound2(msg, pk, roundOnePrivateOutputs[i], pubKeys, roundOnePublicOutputs)[0],
+        api.schnorrMultisigConstructSignatureRound2(
+          msg,
+          pk,
+          roundOnePrivateOutputs[i],
+          pubKeys,
+          roundOnePublicOutputs,
+        )[0],
     );
 
     // wrong number of data
     {
       expect(
-        schnorrMultisigCombineSignatures(
+        api.schnorrMultisigCombineSignatures(
           msg,
           pubKeys.slice(0, -1),
           roundOnePublicOutputs.slice(0, -1),
@@ -125,38 +133,38 @@ describe('schnorr', () => {
     // invalid round two output
     {
       const invalidOutputs = [...roundTwoOutputs];
-      invalidOutputs[1] = schnorrMultisigConstructSignatureRound2(
+      invalidOutputs[1] = api.schnorrMultisigConstructSignatureRound2(
         msg,
         pks[2], // <- Wrong private key.
         roundOnePrivateOutputs[1],
         pubKeys,
         roundOnePublicOutputs,
       )[0];
-      expect(schnorrMultisigCombineSignatures(msg, pubKeys, roundOnePublicOutputs, invalidOutputs)[2]).toBe(false);
+      expect(api.schnorrMultisigCombineSignatures(msg, pubKeys, roundOnePublicOutputs, invalidOutputs)[2]).toBe(false);
     }
 
     // contains duplicates
     {
       const invalidOutputs = [...roundTwoOutputs];
       invalidOutputs[1] = roundTwoOutputs[2];
-      expect(schnorrMultisigCombineSignatures(msg, pubKeys, roundOnePublicOutputs, invalidOutputs)[2]).toBe(false);
+      expect(api.schnorrMultisigCombineSignatures(msg, pubKeys, roundOnePublicOutputs, invalidOutputs)[2]).toBe(false);
     }
   });
 
   it('should not create combined key from public keys containing invalid key', () => {
     const pks = [...Array(5)].map(() => Fr.random());
-    const pubKeys = pks.map(pk => schnorrMultisigCreateMultisigPublicKey(pk));
+    const pubKeys = pks.map(pk => api.schnorrMultisigCreateMultisigPublicKey(pk));
 
     // not a valid point
     {
       pubKeys[1] = new Buffer128(Buffer.alloc(128));
-      expect(schnorrMultisigValidateAndCombineSignerPubkeys(pubKeys)[1]).toBe(false);
+      expect(api.schnorrMultisigValidateAndCombineSignerPubkeys(pubKeys)[1]).toBe(false);
     }
 
     // contains duplicates
     {
       pubKeys[1] = pubKeys[2];
-      expect(schnorrMultisigValidateAndCombineSignerPubkeys(pubKeys)[1]).toBe(false);
+      expect(api.schnorrMultisigValidateAndCombineSignerPubkeys(pubKeys)[1]).toBe(false);
     }
   });
 });

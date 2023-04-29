@@ -104,7 +104,6 @@ else()
 endif()
 
 if(COVERAGE)
-
     # We've only set up LLVM coverage
     if(NOT(CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
         message(FATAL_ERROR "Creating coverage is only available for clang")
@@ -147,8 +146,3 @@ include(cmake/gtest.cmake)
 include(cmake/benchmark.cmake)
 include(cmake/module.cmake)
 add_subdirectory(src)
-
-message("C++ compiler implicit include directories: ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES}")
-message("C compiler implicit include directories: ${CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES}")
-message("C++ compiler implicit link directories: ${CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES}")
-message("C compiler implicit link directories: ${CMAKE_C_IMPLICIT_LINK_DIRECTORIES}")

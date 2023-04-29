@@ -469,10 +469,7 @@ barretenberg::fr ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>:
     // Since the second value ("l_1") is used in the algorithm, the test passes.
     // However, if you comment out the following line, suddenly "l_1" becomes the "1st" access
     // which is incorrect, and hence the proof fails for wasm.
-    info("1st access: \nl_1: ", sha256::sha256(key->polynomial_store.get("lagrange_1_fft").byte_span()));
     auto l_1 = key->polynomial_store.get("lagrange_1_fft");
-    info("2nd access: \nl_1: ", sha256::sha256(l_1.byte_span()));
-    info("3rd access: \nl_1: ", sha256::sha256(key->polynomial_store.get("lagrange_1_fft").byte_span()));
     // delta_factor = [γ(1 + β)]^{n-k}
     const fr delta_factor = gamma_beta_constant.pow(key->small_domain.size - num_roots_cut_out_of_vanishing_polynomial);
     const fr alpha_sqr = alpha.sqr();
