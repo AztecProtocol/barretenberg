@@ -4,9 +4,13 @@
 #include "barretenberg/honk/flavor/standard.hpp"
 #include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/honk/utils/power_polynomial.hpp"
-#include "barretenberg/honk/sumcheck/relations/arithmetic_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation_secondary.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/lookup_grand_product_relation.hpp"
+
+#pragma GCC diagnostic ignored "-Wunused-variable"
 
 using namespace barretenberg;
 using namespace proof_system::honk::sumcheck;
@@ -70,6 +74,8 @@ template <typename Flavor> bool UltraVerifier_<Flavor>::verify_proof(const plonk
     using VerifierCommitments = typename Flavor::VerifierCommitments;
     using CommitmentLabels = typename Flavor::CommitmentLabels;
 
+    RelationParameters<FF> relation_parameters;
+
     transcript = VerifierTranscript<FF>{ proof.proof_data };
 
     auto commitments = VerifierCommitments(key, transcript);
@@ -92,33 +98,42 @@ template <typename Flavor> bool UltraVerifier_<Flavor>::verify_proof(const plonk
         public_inputs.emplace_back(public_input_i);
     }
 
-    // // Get commitments to the wires
-    // commitments.w_l = transcript.template receive_from_prover<Commitment>(commitment_labels.w_l);
-    // commitments.w_r = transcript.template receive_from_prover<Commitment>(commitment_labels.w_r);
-    // commitments.w_o = transcript.template receive_from_prover<Commitment>(commitment_labels.w_o);
-    // // commitments.w_o = transcript.template receive_from_prover<Commitment>(commitment_labels.w_o);
+    // Get commitments to first three wires
+    commitments.w_l = transcript.template receive_from_prover<Commitment>(commitment_labels.w_l);
+    commitments.w_r = transcript.template receive_from_prover<Commitment>(commitment_labels.w_r);
+    commitments.w_o = transcript.template receive_from_prover<Commitment>(commitment_labels.w_o);
 
-    // // Get permutation challenges
-    // auto [beta, gamma] = transcript.get_challenges("beta", "gamma");
+    // Get challenge for sorted list batching and wire four memory records
+    auto eta = transcript.get_challenge("eta");
+    relation_parameters.eta = eta;
 
-    // const FF public_input_delta = compute_public_input_delta<FF>(public_inputs, beta, gamma, circuit_size);
+    // Get commitments to sorted list accumulator and fourth wire
+    commitments.sorted_accum = transcript.template receive_from_prover<Commitment>(commitment_labels.sorted_accum);
+    commitments.w_4 = transcript.template receive_from_prover<Commitment>(commitment_labels.w_4);
 
-    // sumcheck::RelationParameters<FF> relation_parameters{
-    //     .beta = beta,
-    //     .gamma = gamma,
-    //     .public_input_delta = public_input_delta,
-    // };
+    // Get permutation challenges
+    auto [beta, gamma] = transcript.get_challenges("beta", "gamma");
 
-    // // Get commitment to Z_PERM
-    // commitments.z_perm = transcript.template receive_from_prover<Commitment>(commitment_labels.z_perm);
+    const FF public_input_delta = compute_public_input_delta<FF>(public_inputs, beta, gamma, circuit_size);
 
-    // // Execute Sumcheck Verifier
-    // auto sumcheck = Sumcheck<Flavor,
-    //                          VerifierTranscript<FF>,
-    //                          honk::sumcheck::ArithmeticRelation,
-    //                          honk::sumcheck::GrandProductComputationRelation,
-    //                          honk::sumcheck::GrandProductInitializationRelation>(circuit_size, transcript);
-    // std::optional sumcheck_output = sumcheck.execute_verifier(relation_parameters);
+    relation_parameters.beta = beta;
+    relation_parameters.gamma = gamma;
+    relation_parameters.public_input_delta = public_input_delta;
+
+    // Get commitment to permutation and lookup grand products
+    commitments.z_perm = transcript.template receive_from_prover<Commitment>(commitment_labels.z_perm);
+    commitments.z_lookup = transcript.template receive_from_prover<Commitment>(commitment_labels.z_lookup);
+
+    // Execute Sumcheck Verifier
+    auto sumcheck = Sumcheck<Flavor,
+                             VerifierTranscript<FF>,
+                             honk::sumcheck::UltraArithmeticRelation,
+                             honk::sumcheck::UltraArithmeticRelationSecondary,
+                             honk::sumcheck::UltraGrandProductComputationRelation,
+                             honk::sumcheck::UltraGrandProductInitializationRelation,
+                             honk::sumcheck::LookupGrandProductComputationRelation,
+                             honk::sumcheck::LookupGrandProductInitializationRelation>(circuit_size, transcript);
+    std::optional sumcheck_output = sumcheck.execute_verifier(relation_parameters);
 
     // // If Sumcheck does not return an output, sumcheck verification has failed
     // if (!sumcheck_output.has_value()) {

@@ -43,6 +43,7 @@ UltraProver_<Flavor>::UltraProver_(std::shared_ptr<typename Flavor::ProvingKey> 
     prover_polynomials.q_l = key->q_l;
     prover_polynomials.q_r = key->q_r;
     prover_polynomials.q_o = key->q_o;
+    prover_polynomials.q_4 = key->q_4;
     prover_polynomials.q_m = key->q_m;
     prover_polynomials.q_arith = key->q_arith;
     prover_polynomials.q_sort = key->q_sort;
@@ -132,18 +133,28 @@ template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_wire_commitment
  * @brief Compute sorted witness-table accumulator
  *
  */
+// WORKTODO: No need to commit to sorted polys? We dont in Plonk
 template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_sorted_list_accumulator_round()
 {
     // Compute and add eta to relation parameters
     auto eta = transcript.get_challenge("eta");
     relation_parameters.eta = eta;
 
-    // Compute sorted witness-table accumulator and its commmitment
+    // Compute sorted witness-table accumulator and its commitment
     key->sorted_accum = prover_library::compute_sorted_list_accumulator<Flavor>(key, eta);
+    queue.add_commitment(key->sorted_accum, commitment_labels.sorted_accum);
 
-    // Finalize wire 4 by adding lookup memory records then commit to it
+    // Finalize fourth wire polynomial by adding lookup memory records, then commit
     prover_library::add_plookup_memory_records_to_wire_4<Flavor>(key, eta);
     queue.add_commitment(key->w_4, commitment_labels.w_4);
+
+    // TODO(luke): Addition of 4th has to wait until here. Move first three to constructor?
+    prover_polynomials.sorted_accum_shift = key->sorted_accum.shifted();
+    prover_polynomials.sorted_accum = key->sorted_accum;
+    prover_polynomials.w_l_shift = key->w_l.shifted();
+    prover_polynomials.w_r_shift = key->w_r.shifted();
+    prover_polynomials.w_o_shift = key->w_o.shifted();
+    prover_polynomials.w_4_shift = key->w_4.shifted();
 }
 
 /**
@@ -203,6 +214,26 @@ template <UltraFlavor Flavor> plonk::proof& UltraProver_<Flavor>::export_proof()
 
 template <UltraFlavor Flavor> plonk::proof& UltraProver_<Flavor>::construct_proof()
 {
+    // Add circuit size public input size and public inputs to transcript.
+    execute_preamble_round();
+
+    // Compute first three wire commitments
+    execute_wire_commitments_round();
+    queue.process_queue();
+
+    // Compute sorted list accumulator and commitment
+    execute_sorted_list_accumulator_round();
+    queue.process_queue();
+
+    // Fiat-Shamir: beta & gamma
+    // Compute grand product(s) and commitments.
+    execute_grand_product_computation_round();
+    queue.process_queue();
+
+    // Fiat-Shamir: alpha
+    // Run sumcheck subprotocol.
+    execute_relation_check_rounds();
+
     return export_proof();
 }
 

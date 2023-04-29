@@ -288,6 +288,7 @@ class Ultra {
             w_4 = "W_4";
             z_perm = "Z_PERM";
             z_lookup = "Z_LOOKUP";
+            sorted_accum = "SORTED_ACCUM";
 
             // The ones beginning with "__" are only used for debugging
             q_c = "__Q_C";
@@ -319,18 +320,6 @@ class Ultra {
             sorted_2 = "__SORTED_2";
             sorted_3 = "__SORTED_3";
             sorted_4 = "__SORTED_4";
-            sorted_accum = "__SORTED_ACCUM";
-            table_1_shift = "__TABLE_1_SHIFT";
-            table_2_shift = "__TABLE_2_SHIFT";
-            table_3_shift = "__TABLE_3_SHIFT";
-            table_4_shift = "__TABLE_4_SHIFT";
-            w_l_shift = "__W_L_SHIFT";
-            w_r_shift = "__W_R_SHIFT";
-            w_o_shift = "__W_O_SHIFT";
-            w_4_shift = "__W_4_SHIFT";
-            sorted_accum_shift = "__SORTED_ACCUM_SHIFT";
-            z_perm_shift = "__Z_PERM_SHIFT";
-            z_lookup_shift = "__Z_LOOKUP_SHIFT";
         };
     };
 
