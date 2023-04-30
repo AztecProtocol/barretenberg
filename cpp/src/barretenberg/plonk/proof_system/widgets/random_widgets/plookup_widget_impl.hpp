@@ -175,156 +175,143 @@ void ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>::compute_gra
     const fr beta_constant = beta + fr(1);                // (1 + β)
     const fr gamma_beta_constant = gamma * beta_constant; // γ(1 + β)
 
-#ifndef NO_OMP_MULTITHREADING
-#pragma omp parallel
-#endif
-    {
-#ifndef NO_OMP_MULTITHREADING
-#pragma omp for
-#endif
-        // Step 1: Compute polynomials f, t and s and incorporate them into terms that are ultimately needed
-        // to construct the grand product polynomial Z_lookup(X):
-        // Note 1: In what follows, 't' is associated with table values (and is not to be confused with the
-        // quotient polynomial, also refered to as 't' elsewhere). Polynomial 's' is the sorted  concatenation
-        // of the witnesses and the table values.
-        // Note 2: Evaluation at Xω is indicated explicitly, e.g. 'p(Xω)'; evaluation at X is simply omitted, e.g. 'p'
-        //
-        // 1a.   Compute f, then set accumulators[0] = (q_lookup*f + γ), where
-        //
-        //         f = (w_1 + q_2*w_1(Xω)) + η(w_2 + q_m*w_2(Xω)) + η²(w_3 + q_c*w_3(Xω)) + η³q_index.
-        //      Note that q_2, q_m, and q_c are just the selectors from Standard Plonk that have been repurposed
-        //      in the context of the plookup gate to represent 'shift' values. For example, setting each of the
-        //      q_* in f to 2^8 facilitates operations on 32-bit values via four operations on 8-bit values. See
-        //      Ultra documentation for details.
-        //
-        // 1b.   Compute t, then set accumulators[1] = (t + βt(Xω) + γ(1 + β)), where t = t_1 + ηt_2 + η²t_3 + η³t_4
-        //
-        // 1c.   Set accumulators[2] = (1 + β)
-        //
-        // 1d.   Compute s, then set accumulators[3] = (s + βs(Xω) + γ(1 + β)), where s = s_1 + ηs_2 + η²s_3 + η³s_4
-        //
-        for (size_t j = 0; j < key->small_domain.num_threads; ++j) {
-            fr T0;
+    // Step 1: Compute polynomials f, t and s and incorporate them into terms that are ultimately needed
+    // to construct the grand product polynomial Z_lookup(X):
+    // Note 1: In what follows, 't' is associated with table values (and is not to be confused with the
+    // quotient polynomial, also refered to as 't' elsewhere). Polynomial 's' is the sorted  concatenation
+    // of the witnesses and the table values.
+    // Note 2: Evaluation at Xω is indicated explicitly, e.g. 'p(Xω)'; evaluation at X is simply omitted, e.g. 'p'
+    //
+    // 1a.   Compute f, then set accumulators[0] = (q_lookup*f + γ), where
+    //
+    //         f = (w_1 + q_2*w_1(Xω)) + η(w_2 + q_m*w_2(Xω)) + η²(w_3 + q_c*w_3(Xω)) + η³q_index.
+    //      Note that q_2, q_m, and q_c are just the selectors from Standard Plonk that have been repurposed
+    //      in the context of the plookup gate to represent 'shift' values. For example, setting each of the
+    //      q_* in f to 2^8 facilitates operations on 32-bit values via four operations on 8-bit values. See
+    //      Ultra documentation for details.
+    //
+    // 1b.   Compute t, then set accumulators[1] = (t + βt(Xω) + γ(1 + β)), where t = t_1 + ηt_2 + η²t_3 + η³t_4
+    //
+    // 1c.   Set accumulators[2] = (1 + β)
+    //
+    // 1d.   Compute s, then set accumulators[3] = (s + βs(Xω) + γ(1 + β)), where s = s_1 + ηs_2 + η²s_3 + η³s_4
+    //
+    parallel_for(key->small_domain.num_threads, [&](size_t j) {
+        fr T0;
 
-            size_t start = j * key->small_domain.thread_size;
-            size_t end = (j + 1) * key->small_domain.thread_size;
+        size_t start = j * key->small_domain.thread_size;
+        size_t end = (j + 1) * key->small_domain.thread_size;
 
-            // Note: block_mask is used for efficient modulus, i.e. i % N := i & (N-1), for N = 2^k
-            const size_t block_mask = key->small_domain.size - 1;
+        // Note: block_mask is used for efficient modulus, i.e. i % N := i & (N-1), for N = 2^k
+        const size_t block_mask = key->small_domain.size - 1;
 
-            // Initialize 't(X)' to be used in an expression of the form t(X) + β*t(Xω)
-            fr next_table = lagrange_base_tables[0][start] + lagrange_base_tables[1][start] * eta +
-                            lagrange_base_tables[2][start] * eta_sqr + lagrange_base_tables[3][start] * eta_cube;
-            for (size_t i = start; i < end; ++i) {
-                // Compute i'th element of f via Horner (see definition of f above)
-                T0 = lookup_index_selector[i];
-                T0 *= eta;
-                T0 += lagrange_base_wires[2][(i + 1) & block_mask] * column_3_step_size[i];
-                T0 += lagrange_base_wires[2][i];
-                T0 *= eta;
-                T0 += lagrange_base_wires[1][(i + 1) & block_mask] * column_2_step_size[i];
-                T0 += lagrange_base_wires[1][i];
-                T0 *= eta;
-                T0 += lagrange_base_wires[0][(i + 1) & block_mask] * column_1_step_size[i];
-                T0 += lagrange_base_wires[0][i];
-                T0 *= lookup_selector[i];
+        // Initialize 't(X)' to be used in an expression of the form t(X) + β*t(Xω)
+        fr next_table = lagrange_base_tables[0][start] + lagrange_base_tables[1][start] * eta +
+                        lagrange_base_tables[2][start] * eta_sqr + lagrange_base_tables[3][start] * eta_cube;
+        for (size_t i = start; i < end; ++i) {
+            // Compute i'th element of f via Horner (see definition of f above)
+            T0 = lookup_index_selector[i];
+            T0 *= eta;
+            T0 += lagrange_base_wires[2][(i + 1) & block_mask] * column_3_step_size[i];
+            T0 += lagrange_base_wires[2][i];
+            T0 *= eta;
+            T0 += lagrange_base_wires[1][(i + 1) & block_mask] * column_2_step_size[i];
+            T0 += lagrange_base_wires[1][i];
+            T0 *= eta;
+            T0 += lagrange_base_wires[0][(i + 1) & block_mask] * column_1_step_size[i];
+            T0 += lagrange_base_wires[0][i];
+            T0 *= lookup_selector[i];
 
-                // Set i'th element of polynomial q_lookup*f + γ
-                accumulators[0][i] = T0;
-                accumulators[0][i] += gamma;
+            // Set i'th element of polynomial q_lookup*f + γ
+            accumulators[0][i] = T0;
+            accumulators[0][i] += gamma;
 
-                // Compute i'th element of t via Horner
-                T0 = lagrange_base_tables[3][(i + 1) & block_mask];
-                T0 *= eta;
-                T0 += lagrange_base_tables[2][(i + 1) & block_mask];
-                T0 *= eta;
-                T0 += lagrange_base_tables[1][(i + 1) & block_mask];
-                T0 *= eta;
-                T0 += lagrange_base_tables[0][(i + 1) & block_mask];
+            // Compute i'th element of t via Horner
+            T0 = lagrange_base_tables[3][(i + 1) & block_mask];
+            T0 *= eta;
+            T0 += lagrange_base_tables[2][(i + 1) & block_mask];
+            T0 *= eta;
+            T0 += lagrange_base_tables[1][(i + 1) & block_mask];
+            T0 *= eta;
+            T0 += lagrange_base_tables[0][(i + 1) & block_mask];
 
-                // Set i'th element of polynomial (t + βt(Xω) + γ(1 + β))
-                accumulators[1][i] = T0 * beta + next_table;
-                next_table = T0;
-                accumulators[1][i] += gamma_beta_constant;
+            // Set i'th element of polynomial (t + βt(Xω) + γ(1 + β))
+            accumulators[1][i] = T0 * beta + next_table;
+            next_table = T0;
+            accumulators[1][i] += gamma_beta_constant;
 
-                // Set value of this accumulator to (1 + β)
-                accumulators[2][i] = beta_constant;
+            // Set value of this accumulator to (1 + β)
+            accumulators[2][i] = beta_constant;
 
-                // Set i'th element of polynomial (s + βs(Xω) + γ(1 + β))
-                accumulators[3][i] = s_lagrange[size_t(i + 1) & (size_t)block_mask];
-                accumulators[3][i] *= beta;
-                accumulators[3][i] += s_lagrange[(size_t)i];
-                accumulators[3][i] += gamma_beta_constant;
-            }
+            // Set i'th element of polynomial (s + βs(Xω) + γ(1 + β))
+            accumulators[3][i] = s_lagrange[size_t(i + 1) & (size_t)block_mask];
+            accumulators[3][i] *= beta;
+            accumulators[3][i] += s_lagrange[(size_t)i];
+            accumulators[3][i] += gamma_beta_constant;
         }
+    });
 
-// Step 2: Compute the constituent product components of Z_lookup(X).
-// Let ∏ := Prod_{k<j}. Let f_k, t_k and s_k now represent the k'th component of the polynomials f,t and s
-// defined above. We compute the following four product polynomials needed to construct the grand product
-// Z_lookup(X).
-// 1.   accumulators[0][j] = ∏ (q_lookup*f_k + γ)
-// 2.   accumulators[1][j] = ∏ (t_k + βt_{k+1} + γ(1 + β))
-// 3.   accumulators[2][j] = ∏ (1 + β)
-// 4.   accumulators[3][j] = ∏ (s_k + βs_{k+1} + γ(1 + β))
-// Note: This is a small multithreading bottleneck, as we have only 4 parallelizable processes.
-#ifndef NO_OMP_MULTITHREADING
-#pragma omp for
-#endif
-        for (size_t i = 0; i < 4; ++i) {
-            fr* coeffs = &accumulators[i][0];
-            for (size_t j = 0; j < key->small_domain.size - 1; ++j) {
-                coeffs[j + 1] *= coeffs[j];
-            }
+    // Step 2: Compute the constituent product components of Z_lookup(X).
+    // Let ∏ := Prod_{k<j}. Let f_k, t_k and s_k now represent the k'th component of the polynomials f,t and s
+    // defined above. We compute the following four product polynomials needed to construct the grand product
+    // Z_lookup(X).
+    // 1.   accumulators[0][j] = ∏ (q_lookup*f_k + γ)
+    // 2.   accumulators[1][j] = ∏ (t_k + βt_{k+1} + γ(1 + β))
+    // 3.   accumulators[2][j] = ∏ (1 + β)
+    // 4.   accumulators[3][j] = ∏ (s_k + βs_{k+1} + γ(1 + β))
+    // Note: This is a small multithreading bottleneck, as we have only 4 parallelizable processes.
+    parallel_for(4, [&](size_t i) {
+        fr* coeffs = &accumulators[i][0];
+        for (size_t j = 0; j < key->small_domain.size - 1; ++j) {
+            coeffs[j + 1] *= coeffs[j];
         }
+    });
 
-// Step 3: Combine the accumulator product elements to construct Z_lookup(X).
-//
-//                      ∏ (1 + β) ⋅ ∏ (q_lookup*f_k + γ) ⋅ ∏ (t_k + βt_{k+1} + γ(1 + β))
-//  Z_lookup(g^j) = --------------------------------------------------------------------------
-//                                      ∏ (s_k + βs_{k+1} + γ(1 + β))
-//
-// Note: Montgomery batch inversion is used to efficiently compute the coefficients of Z_lookup
-// rather than peforming n individual inversions. I.e. we first compute the double product P_n:
-//
-// P_n := ∏_{j<n} ∏_{k<j} S_k, where S_k = (s_k + βs_{k+1} + γ(1 + β))
-//
-// and then compute the inverse on P_n. Then we work back to front to obtain terms of the form
-// 1/∏_{k<i} S_i that appear in Z_lookup, using the fact that P_i/P_{i+1} = 1/∏_{k<i} S_i. (Note
-// that once we have 1/P_n, we can compute 1/P_{n-1} as (1/P_n) * ∏_{k<n} S_i, and
-// so on).
-#ifndef NO_OMP_MULTITHREADING
-#pragma omp for
-#endif
-        // Compute Z_lookup using Montgomery batch inversion
-        // Note: This loop sets the values of z_lookup[i] for i = 1,...,(n-1), (Recall accumulators[0][i] = z_lookup[i +
-        // 1])
-        for (size_t j = 0; j < key->small_domain.num_threads; ++j) {
-            const size_t start = j * key->small_domain.thread_size;
-            // Set 'end' so its max value is (n-1) thus max value for 'i' is n-2 (N.B. accumulators[0][n-2] =
-            // z_lookup[n-1])
-            const size_t end = (j == key->small_domain.num_threads - 1) ? (j + 1) * key->small_domain.thread_size - 1
-                                                                        : (j + 1) * key->small_domain.thread_size;
+    // Step 3: Combine the accumulator product elements to construct Z_lookup(X).
+    //
+    //                      ∏ (1 + β) ⋅ ∏ (q_lookup*f_k + γ) ⋅ ∏ (t_k + βt_{k+1} + γ(1 + β))
+    //  Z_lookup(g^j) = --------------------------------------------------------------------------
+    //                                      ∏ (s_k + βs_{k+1} + γ(1 + β))
+    //
+    // Note: Montgomery batch inversion is used to efficiently compute the coefficients of Z_lookup
+    // rather than peforming n individual inversions. I.e. we first compute the double product P_n:
+    //
+    // P_n := ∏_{j<n} ∏_{k<j} S_k, where S_k = (s_k + βs_{k+1} + γ(1 + β))
+    //
+    // and then compute the inverse on P_n. Then we work back to front to obtain terms of the form
+    // 1/∏_{k<i} S_i that appear in Z_lookup, using the fact that P_i/P_{i+1} = 1/∏_{k<i} S_i. (Note
+    // that once we have 1/P_n, we can compute 1/P_{n-1} as (1/P_n) * ∏_{k<n} S_i, and
+    // so on).
+    //
+    // Compute Z_lookup using Montgomery batch inversion
+    // Note: This loop sets the values of z_lookup[i] for i = 1,...,(n-1), (Recall accumulators[0][i] = z_lookup[i +
+    // 1])
+    parallel_for(key->small_domain.num_threads, [&](size_t j) {
+        const size_t start = j * key->small_domain.thread_size;
+        // Set 'end' so its max value is (n-1) thus max value for 'i' is n-2 (N.B. accumulators[0][n-2] =
+        // z_lookup[n-1])
+        const size_t end = (j == key->small_domain.num_threads - 1) ? (j + 1) * key->small_domain.thread_size - 1
+                                                                    : (j + 1) * key->small_domain.thread_size;
 
-            // Compute <Z_lookup numerator> * ∏_{j<i}∏_{k<j}S_k
-            fr inversion_accumulator = fr::one();
-            for (size_t i = start; i < end; ++i) {
-                accumulators[0][i] *= accumulators[2][i];
-                accumulators[0][i] *= accumulators[1][i];
-                accumulators[0][i] *= inversion_accumulator;
-                inversion_accumulator *= accumulators[3][i];
-            }
-            inversion_accumulator = inversion_accumulator.invert(); // invert
-            // Compute [Z_lookup numerator] * ∏_{j<i}∏_{k<j}S_k / ∏_{j<i+1}∏_{k<j}S_k = <Z_lookup numerator> /
-            // ∏_{k<i}S_k
-            for (size_t i = end - 1; i != start - 1; --i) {
-
-                // N.B. accumulators[0][i] = z_lookup[i + 1]
-                // We can avoid fully reducing z_lookup[i + 1] as the inverse fft will take care of that for us
-                accumulators[0][i] *= inversion_accumulator;
-                inversion_accumulator *= accumulators[3][i];
-            }
+        // Compute <Z_lookup numerator> * ∏_{j<i}∏_{k<j}S_k
+        fr inversion_accumulator = fr::one();
+        for (size_t i = start; i < end; ++i) {
+            accumulators[0][i] *= accumulators[2][i];
+            accumulators[0][i] *= accumulators[1][i];
+            accumulators[0][i] *= inversion_accumulator;
+            inversion_accumulator *= accumulators[3][i];
         }
-    }
+        inversion_accumulator = inversion_accumulator.invert(); // invert
+        // Compute [Z_lookup numerator] * ∏_{j<i}∏_{k<j}S_k / ∏_{j<i+1}∏_{k<j}S_k = <Z_lookup numerator> /
+        // ∏_{k<i}S_k
+        for (size_t i = end - 1; i != start - 1; --i) {
+
+            // N.B. accumulators[0][i] = z_lookup[i + 1]
+            // We can avoid fully reducing z_lookup[i + 1] as the inverse fft will take care of that for us
+            accumulators[0][i] *= inversion_accumulator;
+            inversion_accumulator *= accumulators[3][i];
+        }
+    });
     z_lookup[0] = fr::one();
 
     for (size_t k = 1; k < 4; ++k) {
@@ -480,11 +467,8 @@ barretenberg::fr ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>:
 
     const size_t block_mask = key->large_domain.size - 1;
 
-#ifndef NO_OMP_MULTITHREADING
-#pragma omp parallel for
-#endif
     // Add to the quotient polynomial the components associated with z_lookup
-    for (size_t j = 0; j < key->large_domain.num_threads; ++j) {
+    parallel_for(key->large_domain.num_threads, [&](size_t j) {
         const size_t start = j * key->large_domain.thread_size;
         const size_t end = (j + 1) * key->large_domain.thread_size;
 
@@ -574,7 +558,7 @@ barretenberg::fr ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>:
             key->quotient_polynomial_parts[i >> key->small_domain.log2_size][i & (key->circuit_size - 1)] +=
                 T0 * alpha_base;
         }
-    }
+    });
     return alpha_base * alpha.sqr() * alpha;
 }
 

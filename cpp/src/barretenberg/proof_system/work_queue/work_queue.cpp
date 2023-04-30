@@ -224,30 +224,30 @@ void work_queue::process_queue()
         }
         // About 20% of the cost of a scalar multiplication. For WASM, might be a bit more expensive
         // due to the need to copy memory between web workers
-        case WorkType::SMALL_FFT: {
-            using namespace barretenberg;
-            const size_t n = key->circuit_size;
-            auto wire = key->polynomial_store.get(item.tag);
+        // case WorkType::SMALL_FFT: {
+        //     using namespace barretenberg;
+        //     const size_t n = key->circuit_size;
+        //     auto wire = key->polynomial_store.get(item.tag);
 
-            polynomial wire_copy(wire, n);
-            wire_copy.coset_fft_with_generator_shift(key->small_domain, item.constant);
+        //     polynomial wire_copy(wire, n);
+        //     wire_copy.coset_fft_with_generator_shift(key->small_domain, item.constant);
 
-            if (item.index != 0) {
-                auto old_wire_fft = key->polynomial_store.get(item.tag + "_fft");
-                for (size_t i = 0; i < n; ++i) {
-                    old_wire_fft[4 * i + item.index] = wire_copy[i];
-                }
-                old_wire_fft[4 * n + item.index] = wire_copy[0];
-                key->polynomial_store.put(item.tag + "_fft", std::move(old_wire_fft));
-            } else {
-                polynomial wire_fft(4 * n + 4);
-                for (size_t i = 0; i < n; ++i) {
-                    wire_fft[4 * i + item.index] = wire_copy[i];
-                }
-                key->polynomial_store.put(item.tag + "_fft", std::move(wire_fft));
-            }
-            break;
-        }
+        //     if (item.index != 0) {
+        //         auto old_wire_fft = key->polynomial_store.get(item.tag + "_fft");
+        //         for (size_t i = 0; i < n; ++i) {
+        //             old_wire_fft[4 * i + item.index] = wire_copy[i];
+        //         }
+        //         old_wire_fft[4 * n + item.index] = wire_copy[0];
+        //         key->polynomial_store.put(item.tag + "_fft", std::move(old_wire_fft));
+        //     } else {
+        //         polynomial wire_fft(4 * n + 4);
+        //         for (size_t i = 0; i < n; ++i) {
+        //             wire_fft[4 * i + item.index] = wire_copy[i];
+        //         }
+        //         key->polynomial_store.put(item.tag + "_fft", std::move(wire_fft));
+        //     }
+        //     break;
+        // }
         case WorkType::FFT: {
             using namespace barretenberg;
             auto wire = key->polynomial_store.get(item.tag);

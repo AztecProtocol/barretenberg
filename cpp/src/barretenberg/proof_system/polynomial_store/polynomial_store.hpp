@@ -35,10 +35,10 @@ template <typename Fr> class PolynomialStore {
      * @param key string ID of the polynomial
      * @param value a Polynomial
      */
-    inline void put(std::string const& key, Polynomial&& value)
+    inline void put(std::string const& key, Polynomial const& value)
     {
-        info("poly store put: ", key);
-        polynomial_map[key] = std::move(value);
+        polynomial_map[key] = value;
+        // info("poly store put: ", key, " ", get_size_in_bytes() / (1024 * 1024), "MB");
     };
 
     /**
@@ -50,7 +50,7 @@ template <typename Fr> class PolynomialStore {
      */
     inline Polynomial& get(std::string const& key)
     {
-        info("poly store get: ", key);
+        // info("poly store get: ", key);
         return polynomial_map.at(key);
     };
 

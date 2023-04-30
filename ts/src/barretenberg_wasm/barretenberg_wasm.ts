@@ -199,7 +199,7 @@ export class BarretenbergWasm extends EventEmitter {
           const key = this.stringFromAddress(keyAddr);
           dataAddr = dataAddr >>> 0;
           this.memStore[key] = this.getMemorySlice(dataAddr, dataAddr + dataLength);
-          this.debug(`set_data: ${key} length: ${dataLength} hash: ${sha256(this.memStore[key])}`);
+          // this.debug(`set_data: ${key} length: ${dataLength} hash: ${sha256(this.memStore[key])}`);
         },
 
         my_async_func: (acAddr: number) => {
@@ -296,9 +296,7 @@ export class BarretenbergWasm extends EventEmitter {
 
   public writeMemory(offset: number, arr: Uint8Array) {
     const mem = this.getMemory();
-    for (let i = 0; i < arr.length; i++) {
-      mem[i + offset] = arr[i];
-    }
+    mem.set(arr, offset);
   }
 
   // PRIVATE METHODS

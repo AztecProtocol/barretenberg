@@ -4,7 +4,9 @@
 #include "barretenberg/polynomials/evaluation_domain.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 
-#include "barretenberg/proof_system/polynomial_store/polynomial_store.hpp"
+// #include "barretenberg/proof_system/polynomial_store/polynomial_store.hpp"
+// #include "barretenberg/proof_system/polynomial_store/polynomial_store_wasm.hpp"
+#include "barretenberg/proof_system/polynomial_store/polynomial_store_cache.hpp"
 #include "barretenberg/srs/reference_string/reference_string.hpp"
 #include "barretenberg/plonk/proof_system/constants.hpp"
 #include "barretenberg/plonk/proof_system/types/polynomial_manifest.hpp"
@@ -20,7 +22,7 @@ struct proving_key_data {
     std::vector<uint32_t> recursive_proof_public_input_indices;
     std::vector<uint32_t> memory_read_records;
     std::vector<uint32_t> memory_write_records;
-    PolynomialStore<barretenberg::fr> polynomial_store;
+    PolynomialStoreCache polynomial_store;
 };
 
 struct proving_key {
@@ -51,7 +53,7 @@ struct proving_key {
     std::vector<uint32_t> memory_read_records;  // Used by UltraComposer only; for ROM, RAM reads.
     std::vector<uint32_t> memory_write_records; // Used by UltraComposer only, for RAM writes.
 
-    PolynomialStore<barretenberg::fr> polynomial_store;
+    PolynomialStoreCache polynomial_store;
 
     barretenberg::evaluation_domain small_domain;
     barretenberg::evaluation_domain large_domain;

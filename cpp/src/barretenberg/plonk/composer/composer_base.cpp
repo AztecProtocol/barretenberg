@@ -252,11 +252,14 @@ std::shared_ptr<proving_key> ComposerBase::compute_proving_key_base(const Compos
     // ./src/barretenberg/plonk/proof_system/prover/prover.cpp/ProverBase::compute_quotient_commitments
     //
 
+    info("MEM CHECKPOINT");
     auto crs = crs_factory_->get_prover_crs(subgroup_size + 1);
+    info("MEM CHECKPOINT");
 
     // Initialize circuit_proving_key
     circuit_proving_key = std::make_shared<proving_key>(subgroup_size, public_inputs.size(), crs, composer_type);
 
+    info("MEM CHECKPOINT");
     for (size_t i = 0; i < num_selectors; ++i) {
         std::vector<barretenberg::fr>& selector_values = selectors[i];
         const auto& properties = selector_properties[i];
@@ -305,6 +308,7 @@ std::shared_ptr<proving_key> ComposerBase::compute_proving_key_base(const Compos
         circuit_proving_key->polynomial_store.put(properties.name, std::move(selector_poly));
         circuit_proving_key->polynomial_store.put(properties.name + "_fft", std::move(selector_poly_fft));
     }
+    info("MEM CHECKPOINT");
 
     return circuit_proving_key;
 }

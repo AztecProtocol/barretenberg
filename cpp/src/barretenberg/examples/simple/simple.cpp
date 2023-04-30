@@ -12,7 +12,7 @@ using namespace stdlib::types;
 void build_circuit(Composer& composer)
 {
     // while (composer.get_num_gates() <= 262144) {
-    while (composer.get_num_gates() <= 65536) {
+    while (composer.get_num_gates() <= 65536 * 2) {
         plonk::stdlib::pedersen_commitment<Composer>::compress(field_ct(witness_ct(&composer, 1)),
                                                                field_ct(witness_ct(&composer, 1)));
     }
@@ -43,8 +43,8 @@ Composer* create_composer(std::shared_ptr<proof_system::ReferenceStringFactory> 
 proof create_proof(Composer* composer)
 {
     info("computing proof...");
-    // auto prover = composer->create_ultra_with_keccak_prover();
-    auto prover = composer->create_prover();
+    auto prover = composer->create_ultra_with_keccak_prover();
+    // auto prover = composer->create_prover();
     return prover.construct_proof();
 }
 
@@ -53,8 +53,8 @@ bool verify_proof(Composer* composer, proof_system::plonk::proof const& proof)
     info("computing verification key...");
     composer->compute_verification_key();
 
-    // auto verifier = composer->create_ultra_with_keccak_verifier();
-    auto verifier = composer->create_verifier();
+    auto verifier = composer->create_ultra_with_keccak_verifier();
+    // auto verifier = composer->create_verifier();
     return verifier.verify_proof(proof);
 }
 

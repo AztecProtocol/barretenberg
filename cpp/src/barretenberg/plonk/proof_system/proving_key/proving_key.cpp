@@ -30,6 +30,7 @@ proving_key::proving_key(const size_t num_gates,
     , circuit_size(num_gates)
     , log_circuit_size(numeric::get_msb(num_gates))
     , num_public_inputs(num_inputs)
+    , polynomial_store(1024ULL * 2 * 1024 * 1024)
     , small_domain(circuit_size, circuit_size)
     , large_domain(4 * circuit_size, circuit_size > min_thread_block ? circuit_size : 4 * circuit_size)
     , reference_string(crs)
@@ -72,6 +73,7 @@ proving_key::proving_key(proving_key_data&& data, std::shared_ptr<proof_system::
  **/
 void proving_key::init()
 {
+    info("PK INIT MEM CHECKPOINT");
     if (circuit_size != 0) {
         small_domain.compute_lookup_table();
         large_domain.compute_lookup_table();
@@ -87,6 +89,7 @@ void proving_key::init()
     memset((void*)&quotient_polynomial_parts[1][0], 0x00, sizeof(barretenberg::fr) * (circuit_size + 1));
     memset((void*)&quotient_polynomial_parts[2][0], 0x00, sizeof(barretenberg::fr) * (circuit_size + 1));
     memset((void*)&quotient_polynomial_parts[3][0], 0x00, sizeof(barretenberg::fr) * circuit_size);
+    info("PK INIT MEM CHECKPOINT");
 }
 
 } // namespace proof_system::plonk
