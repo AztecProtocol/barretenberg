@@ -4,10 +4,6 @@
 #include "barretenberg/common/thread.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 
-#ifndef NO_OMP_MULTITHREADING
-#include <omp.h>
-#endif
-
 namespace barretenberg {
 namespace scalar_multiplication {
 
@@ -36,10 +32,7 @@ pippenger_runtime_state::pippenger_runtime_state(const size_t num_initial_points
     round_counts = (uint64_t*)(aligned_alloc(32, MAX_NUM_ROUNDS * sizeof(uint64_t)));
 
     const size_t points_per_thread = static_cast<size_t>(num_points) / num_threads;
-#ifndef NO_OMP_MULTITHREADING
-#pragma omp parallel for
-#endif
-    for (size_t i = 0; i < num_threads; ++i) {
+    parallel_for(num_threads, [&](size_t i) {
         const size_t thread_offset = i * points_per_thread;
         memset((void*)(point_pairs_1 + thread_offset + (i * 16)),
                0,
@@ -53,7 +46,7 @@ pippenger_runtime_state::pippenger_runtime_state(const size_t num_initial_points
             memset((void*)(point_schedule + round_offset + thread_offset), 0, points_per_thread * sizeof(uint64_t));
         }
         memset((void*)(skew_table + thread_offset), 0, points_per_thread * sizeof(bool));
-    }
+    });
 
     memset((void*)bucket_counts, 0, num_threads * num_buckets * sizeof(uint32_t));
     memset((void*)bit_counts, 0, num_threads * num_buckets * sizeof(uint32_t));

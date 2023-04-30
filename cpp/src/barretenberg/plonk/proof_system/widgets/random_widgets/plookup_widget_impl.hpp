@@ -94,13 +94,15 @@ void ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>::compute_sor
     }
 
     // Save the lagrange base representation of s
-    // polynomial s_lagrange(s_accum, key->small_domain.size);
-    key->polynomial_store.put("s_lagrange", s_accum);
+    // TODO: Can we make this copy free? (copy on write)
+    polynomial s_lagrange(s_accum, key->small_domain.size);
+    key->polynomial_store.put("s_lagrange", std::move(s_lagrange));
 
     // Compute the monomial coefficient representation of s
     s_accum.ifft(key->small_domain);
-    key->polynomial_store.put("s", s_accum);
+    key->polynomial_store.put("s", std::move(s_accum));
 }
+
 /**
  * @brief Compute the blinded lookup grand product polynomial Z_lookup(X)
  *

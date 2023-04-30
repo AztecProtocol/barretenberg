@@ -117,11 +117,7 @@ void scale_by_generator(Fr* coeffs,
                         const Fr& generator_shift,
                         const size_t generator_size)
 {
-    // #ifndef NO_OMP_MULTITHREADING
-    // #pragma omp parallel for
-    // #endif
-    //     for (size_t j = 0; j < domain.num_threads; ++j) {
-    auto thread_task = [&](size_t j) {
+    parallel_for(domain.num_threads, [&](size_t j) {
         Fr thread_shift = generator_shift.pow(static_cast<uint64_t>(j * (generator_size / domain.num_threads)));
         Fr work_generator = generator_start * thread_shift;
         const size_t offset = j * (generator_size / domain.num_threads);
@@ -130,9 +126,7 @@ void scale_by_generator(Fr* coeffs,
             target[i] = coeffs[i] * work_generator;
             work_generator *= generator_shift;
         }
-    };
-
-    parallel_for(domain.num_threads, thread_task);
+    });
 }
 /**
  * Compute multiplicative subgroup (g.X)^n.
@@ -181,17 +175,7 @@ void fft_inner_parallel(std::vector<Fr*> coeffs,
     const size_t poly_mask = poly_size - 1;
     const size_t log2_poly_size = (size_t)numeric::get_msb(poly_size);
 
-    // #ifndef NO_OMP_MULTITHREADING
-    // #pragma omp parallel
-    // #endif
-    //     {
-    // First FFT round is a special case - no need to multiply by root table, because all entries are 1.
-    // We also combine the bit reversal step into the first round, to avoid a redundant round of copying data
-    // #ifndef NO_OMP_MULTITHREADING
-    // #pragma omp for
-    // #endif
-    //     for (size_t j = 0; j < domain.num_threads; ++j) {
-    auto thread_task = [&](size_t j) {
+    parallel_for(domain.num_threads, [&](size_t j) {
         Fr temp_1;
         Fr temp_2;
         for (size_t i = (j * domain.thread_size); i < ((j + 1) * domain.thread_size); i += 2) {
@@ -213,8 +197,7 @@ void fft_inner_parallel(std::vector<Fr*> coeffs,
             scratch_space[i + 1] = temp_1 - temp_2;
             scratch_space[i] = temp_1 + temp_2;
         }
-    };
-    parallel_for(domain.num_threads, thread_task);
+    });
 
     // hard code exception for when the domain size is tiny - we won't execute the next loop, so need to manually
     // reduce + copy
@@ -225,11 +208,7 @@ void fft_inner_parallel(std::vector<Fr*> coeffs,
 
     // outer FFT loop
     for (size_t m = 2; m < (domain.size); m <<= 1) {
-        // #ifndef NO_OMP_MULTITHREADING
-        // #pragma omp for
-        // #endif
-        //         for (size_t j = 0; j < domain.num_threads; ++j) {
-        auto thread_task = [&](size_t j) {
+        parallel_for(domain.num_threads, [&](size_t j) {
             Fr temp;
 
             // Ok! So, what's going on here? This is the inner loop of the FFT algorithm, and we want to break it
@@ -303,27 +282,15 @@ void fft_inner_parallel(std::vector<Fr*> coeffs,
                     coeffs[poly_idx_1][elem_idx_1] = scratch_space[k1 + j1] + temp;
                 }
             }
-        };
-        parallel_for(domain.num_threads, thread_task);
+        });
     }
-    // }
 }
 
 template <typename Fr>
 void fft_inner_parallel(
     Fr* coeffs, Fr* target, const EvaluationDomain<Fr>& domain, const Fr&, const std::vector<Fr*>& root_table)
 {
-    // #ifndef NO_OMP_MULTITHREADING
-    // #pragma omp parallel
-    // #endif
-    //     {
-    // First FFT round is a special case - no need to multiply by root table, because all entries are 1.
-    // We also combine the bit reversal step into the first round, to avoid a redundant round of copying data
-    // #ifndef NO_OMP_MULTITHREADING
-    // #pragma omp for
-    // #endif
-    //         for (size_t j = 0; j < domain.num_threads; ++j) {
-    auto thread_task = [&](size_t j) {
+    parallel_for(domain.num_threads, [&](size_t j) {
         Fr temp_1;
         Fr temp_2;
         for (size_t i = (j * domain.thread_size); i < ((j + 1) * domain.thread_size); i += 2) {
@@ -340,8 +307,7 @@ void fft_inner_parallel(
             target[i + 1] = temp_1 - temp_2;
             target[i] = temp_1 + temp_2;
         }
-    };
-    parallel_for(domain.num_threads, thread_task);
+    });
 
     // hard code exception for when the domain size is tiny - we won't execute the next loop, so need to manually
     // reduce + copy
@@ -352,11 +318,7 @@ void fft_inner_parallel(
 
     // outer FFT loop
     for (size_t m = 2; m < (domain.size); m <<= 1) {
-        // #ifndef NO_OMP_MULTITHREADING
-        // #pragma omp for
-        // #endif
-        //         for (size_t j = 0; j < domain.num_threads; ++j) {
-        auto thread_task = [&](size_t j) {
+        parallel_for(domain.num_threads, [&](size_t j) {
             Fr temp;
 
             // Ok! So, what's going on here? This is the inner loop of the FFT algorithm, and we want to break it
@@ -414,10 +376,8 @@ void fft_inner_parallel(
                 target[k1 + j1 + m] = target[k1 + j1] - temp;
                 target[k1 + j1] += temp;
             }
-        };
-        parallel_for(domain.num_threads, thread_task);
+        });
     }
-    // }
 }
 
 template <typename Fr>
@@ -659,11 +619,7 @@ void coset_fft(Fr* coeffs,
     }
 
     if (domain_extension == 4) {
-        // #ifndef NO_OMP_MULTITHREADING
-        // #pragma omp parallel for
-        // #endif
-        //         for (size_t j = 0; j < domain.num_threads; ++j) {
-        auto thread_task = [&](size_t j) {
+        parallel_for(domain.num_threads, [&](size_t j) {
             const size_t start = j * domain.thread_size;
             const size_t end = (j + 1) * domain.thread_size;
             for (size_t i = start; i < end; ++i) {
@@ -672,8 +628,7 @@ void coset_fft(Fr* coeffs,
                 Fr::__copy(scratch_space[i + (2UL << domain.log2_size)], coeffs[(i << 2UL) + 2UL]);
                 Fr::__copy(scratch_space[i + (3UL << domain.log2_size)], coeffs[(i << 2UL) + 3UL]);
             }
-        };
-        parallel_for(domain.num_threads, thread_task);
+        });
 
         for (size_t i = 0; i < domain.size; ++i) {
             for (size_t j = 0; j < domain_extension; ++j) {
@@ -764,11 +719,7 @@ template <typename Fr> Fr evaluate(const Fr* coeffs, const Fr& z, const size_t n
     size_t range_per_thread = n / num_threads;
     size_t leftovers = n - (range_per_thread * num_threads);
     Fr* evaluations = new Fr[num_threads];
-    // #ifndef NO_OMP_MULTITHREADING
-    // #pragma omp parallel for
-    // #endif
-    //     for (size_t j = 0; j < num_threads; ++j) {
-    auto thread_task = [&](size_t j) {
+    parallel_for(num_threads, [&](size_t j) {
         Fr z_acc = z.pow(static_cast<uint64_t>(j * range_per_thread));
         size_t offset = j * range_per_thread;
         evaluations[j] = Fr::zero();
@@ -778,8 +729,7 @@ template <typename Fr> Fr evaluate(const Fr* coeffs, const Fr& z, const size_t n
             evaluations[j] += work_var;
             z_acc *= z;
         }
-    };
-    parallel_for(num_threads, thread_task);
+    });
 
     Fr r = Fr::zero();
     for (size_t j = 0; j < num_threads; ++j) {
@@ -799,11 +749,7 @@ template <typename Fr> Fr evaluate(const std::vector<Fr*> coeffs, const Fr& z, c
     size_t range_per_thread = large_n / num_threads;
     size_t leftovers = large_n - (range_per_thread * num_threads);
     Fr* evaluations = new Fr[num_threads];
-    // #ifndef NO_OMP_MULTITHREADING
-    // #pragma omp parallel for
-    // #endif
-    //     for (size_t j = 0; j < num_threads; ++j) {
-    auto thread_task = [&](size_t j) {
+    parallel_for(num_threads, [&](size_t j) {
         Fr z_acc = z.pow(static_cast<uint64_t>(j * range_per_thread));
         size_t offset = j * range_per_thread;
         evaluations[j] = Fr::zero();
@@ -813,8 +759,7 @@ template <typename Fr> Fr evaluate(const std::vector<Fr*> coeffs, const Fr& z, c
             evaluations[j] += work_var;
             z_acc *= z;
         }
-    };
-    parallel_for(num_threads, thread_task);
+    });
 
     Fr r = Fr::zero();
     for (size_t j = 0; j < num_threads; ++j) {
@@ -867,11 +812,7 @@ void compute_lagrange_polynomial_fft(Fr* l_1_coefficients,
     Fr multiplicand = target_domain.root; // kn'th root of unity w'
 
     // First compute X_i - 1, i = 0,...,kn-1
-    // #ifndef NO_OMP_MULTITHREADING
-    // #pragma omp parallel for
-    // #endif
-    //     for (size_t j = 0; j < target_domain.num_threads; ++j) {
-    auto thread_task = [&](size_t j) {
+    parallel_for(target_domain.num_threads, [&](size_t j) {
         const Fr root_shift = multiplicand.pow(static_cast<uint64_t>(j * target_domain.thread_size));
         Fr work_root = src_domain.generator * root_shift; // g.(w')^{j*thread_size}
         size_t offset = j * target_domain.thread_size;
@@ -879,8 +820,7 @@ void compute_lagrange_polynomial_fft(Fr* l_1_coefficients,
             l_1_coefficients[i] = work_root - Fr::one(); // (w')^{j*thread_size + i}.g - 1
             work_root *= multiplicand;                   // (w')^{j*thread_size + i + 1}
         }
-    };
-    parallel_for(target_domain.num_threads, thread_task);
+    });
 
     // Compute 1/(X_i - 1) using Montgomery batch inversion
     Fr::batch_invert(l_1_coefficients, target_domain.size);
@@ -901,17 +841,12 @@ void compute_lagrange_polynomial_fft(Fr* l_1_coefficients,
     // Step 3: Construct L_1(X_i) by multiplying the 1/denominator evaluations in
     // l_1_coefficients by the numerator evaluations in subgroup_roots
     size_t subgroup_mask = subgroup_size - 1;
-    // #ifndef NO_OMP_MULTITHREADING
-    // #pragma omp parallel for
-    // #endif
-    //     for (size_t i = 0; i < target_domain.num_threads; ++i) {
-    auto thread_task2 = [&](size_t i) {
+    parallel_for(target_domain.num_threads, [&](size_t i) {
         for (size_t j = 0; j < target_domain.thread_size; ++j) {
             size_t eval_idx = i * target_domain.thread_size + j;
             l_1_coefficients[eval_idx] *= subgroup_roots[eval_idx & subgroup_mask];
         }
-    };
-    parallel_for(target_domain.num_threads, thread_task2);
+    });
     delete[] subgroup_roots;
 }
 
@@ -1002,11 +937,7 @@ void divide_by_pseudo_vanishing_polynomial(std::vector<Fr*> coeffs,
             }
         }
     } else {
-        // #ifndef NO_OMP_MULTITHREADING
-        // #pragma omp parallel for
-        // #endif
-        //         for (size_t k = 0; k < target_domain.num_threads; ++k) {
-        auto thread_task = [&](size_t k) {
+        parallel_for(target_domain.num_threads, [&](size_t k) {
             size_t offset = k * target_domain.thread_size;
             const Fr root_shift = target_domain.root.pow(static_cast<uint64_t>(offset));
             Fr work_root = src_domain.generator * root_shift;
@@ -1023,8 +954,7 @@ void divide_by_pseudo_vanishing_polynomial(std::vector<Fr*> coeffs,
                     work_root *= target_domain.root;
                 }
             }
-        };
-        parallel_for(target_domain.num_threads, thread_task);
+        });
     }
     delete[] subgroup_roots;
 }

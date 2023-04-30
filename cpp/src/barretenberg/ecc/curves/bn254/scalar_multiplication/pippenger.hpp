@@ -3,10 +3,6 @@
 #include "barretenberg/common/mem.hpp"
 #include "barretenberg/common/thread.hpp"
 
-#ifndef NO_OMP_MULTITHREADING
-#include <omp.h>
-#endif
-
 namespace barretenberg {
 namespace scalar_multiplication {
 

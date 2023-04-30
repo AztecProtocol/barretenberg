@@ -24,11 +24,19 @@ Polynomial<Fr>::Polynomial(const size_t size_)
 }
 
 template <typename Fr>
+Polynomial<Fr>::Polynomial(const Polynomial<Fr>& other)
+    : coefficients_(other.coefficients_)
+    , size_(other.size())
+{
+    // info("Polynomial CHEAP Copy ctor buf at ", coefficients_, " size ", size_);
+}
+
+template <typename Fr>
 Polynomial<Fr>::Polynomial(const Polynomial<Fr>& other, const size_t target_size)
     : size_(std::max(target_size, other.size()))
 {
     coefficients_ = allocate_aligned_memory(sizeof(Fr) * capacity());
-    // info("Polynomial Copy ctor new buf at ", coefficients_, " size ", size_);
+    info("Polynomial Copy ctor new buf at ", coefficients_, " size ", size_);
 
     if (other.coefficients_ != nullptr) {
         memcpy(static_cast<void*>(coefficients_.get()),
@@ -51,7 +59,7 @@ Polynomial<Fr>::Polynomial(Fr* buf, const size_t size_)
     : coefficients_(buf, aligned_free)
     , size_(size_)
 {
-    // info("New Polynomial took ownership of ", buf, " size ", size_);
+    info("New Polynomial took ownership of ", buf, " size ", size_);
 }
 
 template <typename Fr>
@@ -59,7 +67,7 @@ Polynomial<Fr>::Polynomial(std::span<const Fr> coefficients)
     : size_(coefficients.size())
 {
     coefficients_ = allocate_aligned_memory(sizeof(Fr) * capacity());
-    // info("Polynomial span ctor new buf at ", coefficients_, " size ", size_);
+    info("Polynomial span ctor new buf at ", coefficients_, " size ", size_);
     memcpy(static_cast<void*>(coefficients_.get()),
            static_cast<void const*>(coefficients.data()),
            sizeof(Fr) * coefficients.size());
@@ -71,6 +79,8 @@ Polynomial<Fr>::Polynomial(std::span<const Fr> interpolation_points, std::span<c
 {
     ASSERT(size_ > 0);
 
+    info("Polynomial INTERPOLATION ctor.");
+
     polynomial_arithmetic::compute_efficient_interpolation(
         evaluations.data(), coefficients_.get(), interpolation_points.data(), size_);
 }
@@ -81,19 +91,22 @@ template <typename Fr> Polynomial<Fr>::~Polynomial() {}
 
 template <typename Fr> Polynomial<Fr>& Polynomial<Fr>::operator=(const Polynomial<Fr>& other)
 {
-    if (is_empty()) {
-        size_ = other.size();
-        coefficients_ = allocate_aligned_memory(sizeof(Fr) * other.capacity());
-    }
+    // info("Polynomial CHEAP copy assignment.");
+    size_ = other.size_;
+    coefficients_ = other.coefficients_;
+    // if (is_empty()) {
+    //     size_ = other.size();
+    //     coefficients_ = allocate_aligned_memory(sizeof(Fr) * other.capacity());
+    // }
 
-    ASSERT(in_place_operation_viable(other.size_));
-    zero_memory_beyond(other.size_);
+    // ASSERT(in_place_operation_viable(other.size_));
+    // zero_memory_beyond(other.size_);
 
-    if (other.coefficients_ != nullptr) {
-        memcpy(static_cast<void*>(coefficients_.get()),
-               static_cast<void*>(other.coefficients_.get()),
-               sizeof(Fr) * other.size_);
-    }
+    // if (other.coefficients_ != nullptr) {
+    //     memcpy(static_cast<void*>(coefficients_.get()),
+    //            static_cast<void*>(other.coefficients_.get()),
+    //            sizeof(Fr) * other.size_);
+    // }
 
     return *this;
 }
@@ -104,6 +117,7 @@ template <typename Fr> Polynomial<Fr>& Polynomial<Fr>::operator=(Polynomial&& ot
         return *this;
     }
 
+    // info("Polynomial move assignment.");
     // simultaneously set members and clear other
     coefficients_ = std::exchange(other.coefficients_, nullptr);
     size_ = std::exchange(other.size_, 0);

@@ -10,8 +10,8 @@ describe('simple', () => {
   let api: BarretenbergApi;
 
   beforeAll(async () => {
-    api = new BarretenbergApi(new BarretenbergBinder(await BarretenbergWasm.new(8, debug('wasm'))));
-  });
+    api = new BarretenbergApi(new BarretenbergBinder(await BarretenbergWasm.new(16, debug('wasm'))));
+  }, 20000);
 
   afterAll(async () => {
     await api.destroy();

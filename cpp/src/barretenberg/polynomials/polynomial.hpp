@@ -24,7 +24,8 @@ template <typename Fr> class Polynomial {
     using const_iterator = Fr const*;
 
     Polynomial(const size_t initial_size);
-    Polynomial(const Polynomial& other, const size_t target_size = 0);
+    Polynomial(const Polynomial& other);
+    Polynomial(const Polynomial& other, const size_t target_size);
 
     Polynomial(Polynomial&& other) noexcept;
 
