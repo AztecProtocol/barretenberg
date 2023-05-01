@@ -162,14 +162,13 @@ class Standard {
      * @note TODO(Cody): Maybe multiple inheritance is the right thing here. In that case, nothing should eve inherit
      * from ProvingKey.
      */
-    class ProvingKey : public ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>> {
+    class ProvingKey : public ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>,
+                                          WitnessEntities<Polynomial, PolynomialHandle>> {
       public:
-        WitnessEntities<Polynomial, PolynomialHandle> _witness_data;
-
-        Polynomial& w_l = _witness_data.w_l;
-        Polynomial& w_r = _witness_data.w_r;
-        Polynomial& w_o = _witness_data.w_o;
-        Polynomial& z_perm = _witness_data.z_perm;
+        using PrecomputedPolynomials = PrecomputedEntities<Polynomial, PolynomialHandle>;
+        std::array<Polynomial, NUM_PRECOMPUTED_ENTITIES>& precomputed_polynomials = PrecomputedPolynomials::_data;
+        using WitnessPolynomials = WitnessEntities<Polynomial, PolynomialHandle>;
+        std::array<Polynomial, NUM_WITNESS_ENTITIES>& witness_polynomials = WitnessPolynomials::_data;
 
         ProvingKey() = default;
         ProvingKey(const size_t circuit_size,
@@ -185,16 +184,14 @@ class Standard {
             this->num_public_inputs = num_public_inputs;
             this->composer_type = composer_type;
             // Allocate memory for precomputed polynomials
-            for (auto& poly : this->_data) {
+            for (auto& poly : precomputed_polynomials) {
                 poly = Polynomial(circuit_size);
             }
             // Allocate memory for witness polynomials
-            for (auto& poly : this->_witness_data._data) {
+            for (auto& poly : witness_polynomials) {
                 poly = Polynomial(circuit_size);
             }
         };
-
-        std::vector<PolynomialHandle> get_wires() { return _witness_data.get_wires(); };
     };
 
     /**

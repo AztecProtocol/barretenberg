@@ -49,7 +49,7 @@ void construct_selector_polynomials(const typename Flavor::CircuitConstructor& c
                                     typename Flavor::ProvingKey* proving_key)
 {
     const size_t num_public_inputs = circuit_constructor.public_inputs.size();
-    // TODO(Cody): Loose coupling here! Would rather build up pk from arithmetizaiton
+    // TODO(#398): Loose coupling here! Would rather build up pk from arithmetization
     size_t selector_idx = 0; // TODO(#391) zip
     for (auto& selector_values : circuit_constructor.selectors) {
         ASSERT(proving_key->circuit_size >= selector_values.size());
@@ -61,7 +61,8 @@ void construct_selector_polynomials(const typename Flavor::CircuitConstructor& c
             selector_poly_lagrange[num_public_inputs + i] = selector_values[i];
         }
         if constexpr (IsHonkFlavor<Flavor>) {
-            proving_key->_data[selector_idx] = selector_poly_lagrange;
+            // TODO(#398): Loose coupling here of arithmetization and flavor.
+            proving_key->precomputed_polynomials[selector_idx] = selector_poly_lagrange;
         } else if constexpr (IsPlonkFlavor<Flavor>) {
             // TODO(Cody): Loose coupling here of selector_names and selector_properties.
             proving_key->polynomial_store.put(circuit_constructor.selector_names_[selector_idx] + "_lagrange",

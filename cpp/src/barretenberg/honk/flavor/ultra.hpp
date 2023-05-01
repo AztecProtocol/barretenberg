@@ -191,21 +191,13 @@ class Ultra {
     };
 
   public:
-    class ProvingKey : public ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>> {
+    class ProvingKey : public ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>,
+                                          WitnessEntities<Polynomial, PolynomialHandle>> {
       public:
-        WitnessEntities<Polynomial, PolynomialHandle> _witness_data;
-
-        Polynomial& w_l = _witness_data.w_l;
-        Polynomial& w_r = _witness_data.w_r;
-        Polynomial& w_o = _witness_data.w_o;
-        Polynomial& w_4 = _witness_data.w_4;
-        Polynomial& sorted_1 = _witness_data.sorted_1;
-        Polynomial& sorted_2 = _witness_data.sorted_2;
-        Polynomial& sorted_3 = _witness_data.sorted_3;
-        Polynomial& sorted_4 = _witness_data.sorted_4;
-        Polynomial& sorted_accum = _witness_data.sorted_accum;
-        Polynomial& z_perm = _witness_data.z_perm;
-        Polynomial& z_lookup = _witness_data.z_lookup;
+        using PrecomputedPolynomials = PrecomputedEntities<Polynomial, PolynomialHandle>;
+        std::array<Polynomial, NUM_PRECOMPUTED_ENTITIES>& precomputed_polynomials = PrecomputedPolynomials::_data;
+        using WitnessPolynomials = WitnessEntities<Polynomial, PolynomialHandle>;
+        std::array<Polynomial, NUM_WITNESS_ENTITIES>& witness_polynomials = WitnessPolynomials::_data;
 
         std::vector<uint32_t> memory_read_records;
         std::vector<uint32_t> memory_write_records;
@@ -224,20 +216,21 @@ class Ultra {
             this->num_public_inputs = num_public_inputs;
             this->composer_type = composer_type;
             // Allocate memory for precomputed polynomials
-            for (auto& poly : this->_data) {
+            for (auto& poly : precomputed_polynomials) {
                 poly = Polynomial(circuit_size);
             }
             // Allocate memory for witness polynomials
-            for (auto& poly : this->_witness_data._data) {
+            for (auto& poly : witness_polynomials) {
                 poly = Polynomial(circuit_size);
             }
         };
 
-        std::vector<PolynomialHandle> get_wires() { return _witness_data.get_wires(); };
+        std::vector<Polynomial> selectors{ q_c, q_l, q_r, q_o, q_4, q_m, q_arith, q_sort, q_elliptic, q_aux, q_lookup };
+        std::vector<PolynomialHandle> get_wires() { return WitnessPolynomials::get_wires(); };
         // The plookup wires that store plookup read data.
         std::array<PolynomialHandle, 3> get_table_column_wires() { return { w_l, w_r, w_o }; };
         // The sorted concatenations of table and witness data needed for plookup.
-        std::vector<PolynomialHandle> get_sorted_polynomials() { return _witness_data.get_sorted_polynomials(); };
+        std::vector<PolynomialHandle> get_sorted_polynomials() { return WitnessPolynomials::get_sorted_polynomials(); };
     };
 
     using VerificationKey = VerificationKey_<PrecomputedEntities<Commitment, CommitmentHandle>>;

@@ -131,9 +131,10 @@ class WitnessEntities_ : public Entities_<DataType, HandleType, NUM_WITNESS_ENTI
  * @tparam FF The scalar field on which we will encode our polynomial data. When instantiating, this may be extractable
  * from the other template paramter.
  */
-template <typename PrecomputedEntities> class ProvingKey_ : public PrecomputedEntities {
+template <typename PrecomputedPolynomials, typename WitnessPolynomials>
+class ProvingKey_ : public PrecomputedPolynomials, public WitnessPolynomials {
   public:
-    using Polynomial = typename PrecomputedEntities::DataType;
+    using Polynomial = typename PrecomputedPolynomials::DataType;
     using FF = typename Polynomial::FF;
 
     bool contains_recursive_proof;
@@ -147,7 +148,7 @@ template <typename PrecomputedEntities> class ProvingKey_ : public PrecomputedEn
  *
  * @tparam PrecomputedEntities An instance of PrecomputedEntities_ with affine_element data type and handle type.
  */
-template <typename PrecomputedEntities> class VerificationKey_ : public PrecomputedEntities {
+template <typename PrecomputedCommitments> class VerificationKey_ : public PrecomputedCommitments {
   public:
     std::shared_ptr<VerifierReferenceString> vrs;
 };
