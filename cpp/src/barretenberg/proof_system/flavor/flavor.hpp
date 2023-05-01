@@ -191,6 +191,11 @@ template <typename PrecomputedCommitments> class VerificationKey_ : public Preco
     };
 };
 
+/**
+ * @brief Base class containing all entities (or handles on these) in one place.
+ *
+ * @tparam PrecomputedEntities An instance of PrecomputedEntities_ with affine_element data type and handle type.
+ */
 template <typename DataType, typename HandleType, size_t NUM_ALL_ENTITIES>
 class AllEntities_ : public Entities_<DataType, DataType, NUM_ALL_ENTITIES> {
   public:
@@ -232,11 +237,14 @@ namespace proof_system {
  * @tparam T The type being tested
  * @tparam U A parameter pack of types being checked against T.
  */
-template <typename T, typename... U> concept IsAnyOf = (std::same_as<T, U> || ...);
+// clang-format off
+template <typename T, typename... U>
+concept IsAnyOf = (std::same_as<T, U> || ...);
 
 template <typename T>
 concept IsPlonkFlavor = IsAnyOf<T, plonk::flavor::Standard, plonk::flavor::Turbo, plonk::flavor::Ultra>;
 
-template <typename T> concept IsHonkFlavor = IsAnyOf<T, honk::flavor::Standard, honk::flavor::Ultra>;
-
+template <typename T> 
+concept IsHonkFlavor = IsAnyOf<T, honk::flavor::Standard, honk::flavor::Ultra>;
+// clang-format on
 } // namespace proof_system

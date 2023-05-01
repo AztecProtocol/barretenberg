@@ -92,9 +92,12 @@ class Standard {
 
     /**
      * @brief A base class labelling all entities (for instance, all of the polynomials used by the prover during
-     * sumcheck) in this Honk variant along with particular subsets of interest.
+     * sumcheck) in this Honk variant along with particular subsets of interest
      * @details Used to build containers for: the prover's polynomial during sumcheck; the sumcheck's folded
      * polynomials; the univariates consturcted during during sumcheck; the evaluations produced by sumcheck.
+     *
+     * Symbolically we have: AllEntities = PrecomputedEntities + WitnessEntities + "ShiftedEntities". It could be
+     * implemented as such, but we don't have this now.
      */
     template <typename DataType, typename HandleType>
     class AllEntities : public AllEntities_<DataType, HandleType, NUM_ALL_ENTITIES> {
@@ -122,7 +125,7 @@ class Standard {
 
         // Gemin-specific getters.
         std::vector<HandleType> get_unshifted() override
-        { // ...z_perm_shift is in here?
+        {
             return { q_c,           q_l, q_r, q_o, q_m,   sigma_1, sigma_2, sigma_3, id_1, id_2, id_3, lagrange_first,
                      lagrange_last, w_l, w_r, w_o, z_perm };
         };
@@ -219,11 +222,6 @@ class Standard {
      */
     class CommitmentLabels : public AllEntities<std::string, std::string> {
       public:
-        // this does away with the ENUM_TO_COMM array while preserving the
-        // transcript interface, which takes a string
-        // note: we could consider "enriching" the transcript interface to not use
-        // strings in the future, but I leave it this way for simplicity
-
         CommitmentLabels()
             : AllEntities<std::string, std::string>()
         {
