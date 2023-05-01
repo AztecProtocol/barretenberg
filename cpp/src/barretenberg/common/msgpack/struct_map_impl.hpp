@@ -27,16 +27,6 @@ namespace msgpack {
 } // namespace msgpack
 
 namespace msgpack {
-//    template<typename T>
-//    void __static_check_helper(T object) {
-//        auto checker = [&](auto &... values) {
-//            // Make sure we can construct this
-//            T should_not_error{values...};
-//        };
-//        object.msgpack(
-//                [&](auto &... keys_and_values) { std::apply(checker, drop_keys(std::tie(keys_and_values...))); });
-//
-//    }
     template <typename T, typename... Args>
     concept MsgpackConstructible = requires(T object, Args... args) {
         T{args...};
