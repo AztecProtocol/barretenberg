@@ -174,6 +174,7 @@ template <typename Curve> struct verification_key {
         std::shared_ptr<verification_key> key = std::make_shared<verification_key>();
         // Native data:
         key->context = ctx;
+        key->reference_string = input_key->reference_string;
         key->polynomial_manifest = input_key->polynomial_manifest;
 
         // Circuit types:
@@ -205,6 +206,7 @@ template <typename Curve> struct verification_key {
             key->commitments.insert({ tag, typename Curve::g1_ct(value) });
         }
 
+        key->reference_string = input_key->reference_string;
         key->polynomial_manifest = input_key->polynomial_manifest;
 
         return key;
@@ -328,7 +330,7 @@ template <typename Curve> struct verification_key {
     std::map<std::string, typename Curve::g1_ct> commitments;
 
     // Native data:
-
+    std::shared_ptr<VerifierReferenceString> reference_string;
     PolynomialManifest polynomial_manifest;
     // Used to check in the circuit if a proof contains any aggregated state.
     bool contains_recursive_proof = false;

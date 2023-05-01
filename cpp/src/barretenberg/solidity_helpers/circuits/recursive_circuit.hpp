@@ -106,12 +106,11 @@ template <typename OuterComposer> class RecursiveCircuit {
   public:
     static OuterComposer generate(std::string srs_path, uint256_t inputs[])
     {
-        auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
-
         InnerComposer inner_composer = InnerComposer(srs_path);
         OuterComposer outer_composer = OuterComposer(srs_path);
 
         create_inner_circuit_no_tables(inner_composer, inputs);
+
         auto circuit_output = create_outer_circuit(inner_composer, outer_composer);
 
         g1::affine_element P[2];
@@ -121,7 +120,7 @@ template <typename OuterComposer> class RecursiveCircuit {
         P[1].y = barretenberg::fq(circuit_output.aggregation_state.P1.y.get_value().lo);
 
         barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
-            P, env_crs->get_verifier_crs()->get_precomputed_g2_lines(), 2);
+            P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
 
         if (inner_proof_result != barretenberg::fq12::one()) {
             throw_or_abort("inner proof result != 1");
