@@ -191,7 +191,7 @@ class Ultra {
     };
 
   public:
-    class ProvingKey : public ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>, FF> {
+    class ProvingKey : public ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>> {
       public:
         WitnessEntities<Polynomial, PolynomialHandle> _witness_data;
 

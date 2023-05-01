@@ -162,7 +162,7 @@ class Standard {
      * @note TODO(Cody): Maybe multiple inheritance is the right thing here. In that case, nothing should eve inherit
      * from ProvingKey.
      */
-    class ProvingKey : public ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>, FF> {
+    class ProvingKey : public ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>> {
       public:
         WitnessEntities<Polynomial, PolynomialHandle> _witness_data;
 

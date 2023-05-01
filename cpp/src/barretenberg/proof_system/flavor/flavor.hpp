@@ -99,9 +99,11 @@ template <typename DataType, typename HandleType, size_t NUM_ENTITIES> class Ent
  * @brief Base class template containing circuit-specifying data.
  *
  */
-template <typename DataType, typename HandleType, size_t NUM_PRECOMPUTED_ENTITIES>
-class PrecomputedEntities_ : public Entities_<DataType, HandleType, NUM_PRECOMPUTED_ENTITIES> {
+template <typename DataType_, typename HandleType, size_t NUM_PRECOMPUTED_ENTITIES>
+class PrecomputedEntities_ : public Entities_<DataType_, HandleType, NUM_PRECOMPUTED_ENTITIES> {
   public:
+    using DataType = DataType_;
+
     size_t circuit_size;
     size_t log_circuit_size;
     size_t num_public_inputs;
@@ -129,8 +131,11 @@ class WitnessEntities_ : public Entities_<DataType, HandleType, NUM_WITNESS_ENTI
  * @tparam FF The scalar field on which we will encode our polynomial data. When instantiating, this may be extractable
  * from the other template paramter.
  */
-template <typename PrecomputedEntities, typename FF> class ProvingKey_ : public PrecomputedEntities {
+template <typename PrecomputedEntities> class ProvingKey_ : public PrecomputedEntities {
   public:
+    using Polynomial = typename PrecomputedEntities::DataType;
+    using FF = typename Polynomial::FF;
+
     bool contains_recursive_proof;
     std::vector<uint32_t> recursive_proof_public_input_indices;
     std::shared_ptr<ProverReferenceString> crs;
