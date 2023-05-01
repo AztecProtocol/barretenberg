@@ -34,7 +34,8 @@ class Ultra {
 
     static constexpr size_t num_wires = CircuitConstructor::num_wires;
     // TODO(luke): sure would be nice if this was computed programtically
-    static constexpr size_t NUM_ALL_ENTITIES = 47;
+    // WORKTODO: this is 43 since we're not including individual sorted_i; (UP has 41 since no L_first, L_last)
+    static constexpr size_t NUM_ALL_ENTITIES = 43;
     // TODO(luke): what does this need to reflect? e.g. are shifts of precomputed polys counted here?
     static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 25;
     static constexpr size_t NUM_WITNESS_ENTITIES = 11;
@@ -106,6 +107,7 @@ class Ultra {
         Polynomial& w_r = _witness_data.w_r;
         Polynomial& w_o = _witness_data.w_o;
         Polynomial& w_4 = _witness_data.w_4;
+        // WORKTODO: these are somewhat unique; can be deleted after construction of s_accum it seems.
         Polynomial& sorted_1 = _witness_data.sorted_1;
         Polynomial& sorted_2 = _witness_data.sorted_2;
         Polynomial& sorted_3 = _witness_data.sorted_3;
@@ -196,40 +198,36 @@ class Ultra {
         DataType& w_r = std::get<26>(this->_data);
         DataType& w_o = std::get<27>(this->_data);
         DataType& w_4 = std::get<28>(this->_data);
-        DataType& sorted_1 = std::get<29>(this->_data);
-        DataType& sorted_2 = std::get<30>(this->_data);
-        DataType& sorted_3 = std::get<31>(this->_data);
-        DataType& sorted_4 = std::get<32>(this->_data);
-        DataType& sorted_accum = std::get<33>(this->_data);
-        DataType& z_perm = std::get<34>(this->_data);
-        DataType& z_lookup = std::get<35>(this->_data);
-        DataType& table_1_shift = std::get<36>(this->_data);
-        DataType& table_2_shift = std::get<37>(this->_data);
-        DataType& table_3_shift = std::get<38>(this->_data);
-        DataType& table_4_shift = std::get<39>(this->_data);
-        DataType& w_l_shift = std::get<40>(this->_data);
-        DataType& w_r_shift = std::get<41>(this->_data);
-        DataType& w_o_shift = std::get<42>(this->_data);
-        DataType& w_4_shift = std::get<43>(this->_data);
-        DataType& sorted_accum_shift = std::get<44>(this->_data);
-        DataType& z_perm_shift = std::get<45>(this->_data);
-        DataType& z_lookup_shift = std::get<46>(this->_data);
+        DataType& sorted_accum = std::get<29>(this->_data);
+        DataType& z_perm = std::get<30>(this->_data);
+        DataType& z_lookup = std::get<31>(this->_data);
+        DataType& table_1_shift = std::get<32>(this->_data);
+        DataType& table_2_shift = std::get<33>(this->_data);
+        DataType& table_3_shift = std::get<34>(this->_data);
+        DataType& table_4_shift = std::get<35>(this->_data);
+        DataType& w_l_shift = std::get<36>(this->_data);
+        DataType& w_r_shift = std::get<37>(this->_data);
+        DataType& w_o_shift = std::get<38>(this->_data);
+        DataType& w_4_shift = std::get<39>(this->_data);
+        DataType& sorted_accum_shift = std::get<40>(this->_data);
+        DataType& z_perm_shift = std::get<41>(this->_data);
+        DataType& z_lookup_shift = std::get<42>(this->_data);
 
         std::vector<HandleType> get_wires() { return { w_l, w_r, w_o, w_4 }; };
         std::vector<HandleType> get_unshifted() override
         {
-            return { q_c,           q_l,    q_r,      q_o,     q_4,     q_m,      q_arith,  q_sort,
-                     q_elliptic,    q_aux,  q_lookup, sigma_1, sigma_2, sigma_3,  sigma_4,  id_1,
-                     id_2,          id_3,   id_4,     table_1, table_2, table_3,  table_4,  lagrange_first,
-                     lagrange_last, w_l,    w_r,      w_o,     w_4,     sorted_1, sorted_2, sorted_3,
-                     sorted_4,      z_perm, z_lookup
+            return { q_c,           q_l,   q_r,      q_o,     q_4,     q_m,     q_arith, q_sort,
+                     q_elliptic,    q_aux, q_lookup, sigma_1, sigma_2, sigma_3, sigma_4, id_1,
+                     id_2,          id_3,  id_4,     table_1, table_2, table_3, table_4, lagrange_first,
+                     lagrange_last, w_l,   w_r,      w_o,     w_4,     z_perm,  z_lookup
 
             };
         };
-        std::vector<HandleType> get_to_be_shifted() override { return { w_l, w_4, z_perm, z_lookup }; };
+        // WORKTODO: table polys? sorted polys?
+        std::vector<HandleType> get_to_be_shifted() override { return { w_l, w_r, w_o, w_4, z_perm, z_lookup }; };
         std::vector<HandleType> get_shifted() override
         {
-            return { w_l_shift, w_4_shift, z_perm_shift, z_lookup_shift };
+            return { w_l_shift, w_r_shift, w_o_shift, w_4_shift, z_perm_shift, z_lookup_shift };
         };
 
         AllData() = default;
@@ -316,10 +314,6 @@ class Ultra {
             table_4 = "__TABLE_4";
             lagrange_first = "__LAGRANGE_FIRST";
             lagrange_last = "__LAGRANGE_LAST";
-            sorted_1 = "__SORTED_1";
-            sorted_2 = "__SORTED_2";
-            sorted_3 = "__SORTED_3";
-            sorted_4 = "__SORTED_4";
         };
     };
 

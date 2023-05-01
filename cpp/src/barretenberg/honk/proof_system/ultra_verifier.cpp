@@ -115,10 +115,12 @@ template <typename Flavor> bool UltraVerifier_<Flavor>::verify_proof(const plonk
     auto [beta, gamma] = transcript.get_challenges("beta", "gamma");
 
     const FF public_input_delta = compute_public_input_delta<FF>(public_inputs, beta, gamma, circuit_size);
+    const FF lookup_grand_product_delta = compute_lookup_grand_product_delta<FF>(beta, gamma, circuit_size);
 
     relation_parameters.beta = beta;
     relation_parameters.gamma = gamma;
     relation_parameters.public_input_delta = public_input_delta;
+    relation_parameters.lookup_grand_product_delta = lookup_grand_product_delta;
 
     // Get commitment to permutation and lookup grand products
     commitments.z_perm = transcript.template receive_from_prover<Commitment>(commitment_labels.z_perm);

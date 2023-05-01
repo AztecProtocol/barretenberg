@@ -150,6 +150,8 @@ StandardVerifier StandardHonkComposerHelper::create_verifier(const CircuitConstr
     // TODO(Cody): This should be more generic
     auto kate_verification_key = std::make_unique<pcs::kzg::VerificationKey>("../srs_db/ignition");
 
+    output_state.kate_verification_key = std::move(kate_verification_key);
+
     return output_state;
 }
 
