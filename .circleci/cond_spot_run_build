@@ -7,6 +7,8 @@ SPEC=$1
 shift
 DOCKERFILE=$(query_manifest dockerfile $REPOSITORY)
 
+init_submodules $REPOSITORY
+
 cd $(query_manifest buildDir $REPOSITORY)
 
 LAST_SUCCESSFUL_COMMIT=$(last_successful_commit $REPOSITORY)
