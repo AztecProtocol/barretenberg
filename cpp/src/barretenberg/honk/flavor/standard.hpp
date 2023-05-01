@@ -165,7 +165,7 @@ class Standard {
     class ProvingKey : public ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>,
                                           WitnessEntities<Polynomial, PolynomialHandle>> {
       public:
-        // Expose constructors on the base class
+        // Expose constructors of the base class
         using Base = ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>,
                                  WitnessEntities<Polynomial, PolynomialHandle>>;
         using Base::Base;
@@ -179,21 +179,7 @@ class Standard {
      * that, and split out separate PrecomputedPolynomials/Commitments data for clarity but also for portability of our
      * circuits.
      */
-    class VerificationKey : public VerificationKey_<PrecomputedEntities<Commitment, CommitmentHandle>> {
-      public:
-        VerificationKey() = default;
-        VerificationKey(const size_t circuit_size,
-                        const size_t num_public_inputs,
-                        std::shared_ptr<VerifierReferenceString> const& vrs,
-                        ComposerType composer_type)
-        {
-            this->circuit_size = circuit_size;
-            this->log_circuit_size = numeric::get_msb(circuit_size);
-            this->num_public_inputs = num_public_inputs;
-            this->vrs = vrs;
-            this->composer_type = composer_type;
-        };
-    };
+    using VerificationKey = VerificationKey_<PrecomputedEntities<Commitment, CommitmentHandle>>;
 
     /**
      * @brief A container for polynomials handles; only stores spans.

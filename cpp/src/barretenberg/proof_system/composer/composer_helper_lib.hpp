@@ -62,7 +62,7 @@ void construct_selector_polynomials(const typename Flavor::CircuitConstructor& c
         }
         if constexpr (IsHonkFlavor<Flavor>) {
             // TODO(#398): Loose coupling here of arithmetization and flavor.
-            proving_key->precomputed_polynomials[selector_idx] = selector_poly_lagrange;
+            proving_key->_precomputed_polynomials[selector_idx] = selector_poly_lagrange;
         } else if constexpr (IsPlonkFlavor<Flavor>) {
             // TODO(Cody): Loose coupling here of selector_names and selector_properties.
             proving_key->polynomial_store.put(circuit_constructor.selector_names_[selector_idx] + "_lagrange",

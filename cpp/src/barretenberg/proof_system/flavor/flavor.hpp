@@ -137,8 +137,8 @@ class ProvingKey_ : public PrecomputedPolynomials, public WitnessPolynomials {
     using Polynomial = typename PrecomputedPolynomials::DataType;
     using FF = typename Polynomial::FF;
 
-    typename PrecomputedPolynomials::ArrayType& precomputed_polynomials = PrecomputedPolynomials::_data;
-    typename WitnessPolynomials::ArrayType& witness_polynomials = WitnessPolynomials::_data;
+    typename PrecomputedPolynomials::ArrayType& _precomputed_polynomials = PrecomputedPolynomials::_data;
+    typename WitnessPolynomials::ArrayType& _witness_polynomials = WitnessPolynomials::_data;
 
     bool contains_recursive_proof;
     std::vector<uint32_t> recursive_proof_public_input_indices;
@@ -158,11 +158,11 @@ class ProvingKey_ : public PrecomputedPolynomials, public WitnessPolynomials {
         this->num_public_inputs = num_public_inputs;
         this->composer_type = composer_type;
         // Allocate memory for precomputed polynomials
-        for (auto& poly : precomputed_polynomials) {
+        for (auto& poly : _precomputed_polynomials) {
             poly = Polynomial(circuit_size);
         }
         // Allocate memory for witness polynomials
-        for (auto& poly : witness_polynomials) {
+        for (auto& poly : _witness_polynomials) {
             poly = Polynomial(circuit_size);
         }
     };
@@ -176,6 +176,19 @@ class ProvingKey_ : public PrecomputedPolynomials, public WitnessPolynomials {
 template <typename PrecomputedCommitments> class VerificationKey_ : public PrecomputedCommitments {
   public:
     std::shared_ptr<VerifierReferenceString> vrs;
+
+    VerificationKey_() = default;
+    VerificationKey_(const size_t circuit_size,
+                     const size_t num_public_inputs,
+                     std::shared_ptr<VerifierReferenceString> const& vrs,
+                     ComposerType composer_type)
+    {
+        this->circuit_size = circuit_size;
+        this->log_circuit_size = numeric::get_msb(circuit_size);
+        this->num_public_inputs = num_public_inputs;
+        this->vrs = vrs;
+        this->composer_type = composer_type;
+    };
 };
 
 template <typename DataType, typename HandleType, size_t NUM_ALL_ENTITIES>
