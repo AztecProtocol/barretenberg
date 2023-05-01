@@ -284,6 +284,12 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
         // WORKTODO: turns out the above wont always work since PI get placed in the first
         // positions of the wires. Add 0 as a PI to ensure first coeff is zero.
         // add_public_variable(barretenberg::fr::zero());
+
+        // // WORKTODO: need to ensure ALL polys are not identically zero, not just these basic ones!!
+        // one_idx = put_constant_variable(barretenberg::fr::one());
+        // // 1 * 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + -4
+        // // m           l       r       o        c
+        // create_poly_gate({ one_idx, one_idx, one_idx, 1, 1, 1, 1, -4 });
     };
 
     UltraCircuitConstructor(const UltraCircuitConstructor& other) = delete;

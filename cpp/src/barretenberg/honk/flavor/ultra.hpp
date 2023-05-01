@@ -216,18 +216,22 @@ class Ultra {
         std::vector<HandleType> get_wires() { return { w_l, w_r, w_o, w_4 }; };
         std::vector<HandleType> get_unshifted() override
         {
-            return { q_c,           q_l,   q_r,      q_o,     q_4,     q_m,     q_arith, q_sort,
-                     q_elliptic,    q_aux, q_lookup, sigma_1, sigma_2, sigma_3, sigma_4, id_1,
-                     id_2,          id_3,  id_4,     table_1, table_2, table_3, table_4, lagrange_first,
-                     lagrange_last, w_l,   w_r,      w_o,     w_4,     z_perm,  z_lookup
+            return { q_c,           q_l,   q_r,      q_o,     q_4,     q_m,          q_arith, q_sort,
+                     q_elliptic,    q_aux, q_lookup, sigma_1, sigma_2, sigma_3,      sigma_4, id_1,
+                     id_2,          id_3,  id_4,     table_1, table_2, table_3,      table_4, lagrange_first,
+                     lagrange_last, w_l,   w_r,      w_o,     w_4,     sorted_accum, z_perm,  z_lookup
 
             };
         };
         // WORKTODO: table polys? sorted polys?
-        std::vector<HandleType> get_to_be_shifted() override { return { w_l, w_r, w_o, w_4, z_perm, z_lookup }; };
+        std::vector<HandleType> get_to_be_shifted() override
+        {
+            return { table_1, table_2, table_3, table_4, w_l, w_r, w_o, w_4, sorted_accum, z_perm, z_lookup };
+        };
         std::vector<HandleType> get_shifted() override
         {
-            return { w_l_shift, w_r_shift, w_o_shift, w_4_shift, z_perm_shift, z_lookup_shift };
+            return { table_1_shift, table_2_shift, table_3_shift,      table_4_shift, w_l_shift,     w_r_shift,
+                     w_o_shift,     w_4_shift,     sorted_accum_shift, z_perm_shift,  z_lookup_shift };
         };
 
         AllData() = default;

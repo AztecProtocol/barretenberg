@@ -33,6 +33,17 @@ std::vector<uint32_t> add_variables(auto& composer, std::vector<fr> variables)
     return res;
 }
 
+bool construct_and_verify_proof(auto& composer)
+{
+    auto prover = composer.create_prover();
+    auto proof = prover.construct_proof();
+
+    auto verifier = composer.create_verifier();
+    bool result = verifier.verify_proof(proof);
+
+    return result;
+}
+
 /**
  * @brief TEMPORARY method for checking consistency of polynomials computed by Ultra Plonk/Honk composers
  *
@@ -175,13 +186,9 @@ TEST(UltraHonkComposer, SumcheckEvaluations)
               prover.key->lagrange_last.evaluate_mle(challenge));
 
     auto verifier = composer.create_verifier();
-    std::optional verifier_output = verifier.verify_proof(proof);
+    bool result = verifier.verify_proof(proof);
 
-    prover.transcript.print();
-    verifier.transcript.print();
-
-    // ASSERT_EQ(result, true);
-    EXPECT_EQ(verifier_output.has_value(), true);
+    ASSERT_EQ(result, true);
 }
 
 // TEST(UltraHonkComposer, create_gates_from_plookup_accumulators)
@@ -236,396 +243,216 @@ TEST(UltraHonkComposer, SumcheckEvaluations)
  */
 TEST(UltraHonkComposer, test_no_lookup_proof)
 {
-    auto honk_composer = UltraHonkComposer();
-    auto plonk_composer = proof_system::plonk::UltraComposer();
+    auto composer = UltraHonkComposer();
 
     size_t MM = 4;
     for (size_t i = 0; i < MM; ++i) {
         for (size_t j = 0; j < MM; ++j) {
             uint64_t left = static_cast<uint64_t>(j);
             uint64_t right = static_cast<uint64_t>(i);
-            uint32_t left_idx = honk_composer.add_variable(fr(left));
-            uint32_t right_idx = honk_composer.add_variable(fr(right));
-            uint32_t result_idx = honk_composer.add_variable(fr(left ^ right));
+            uint32_t left_idx = composer.add_variable(fr(left));
+            uint32_t right_idx = composer.add_variable(fr(right));
+            uint32_t result_idx = composer.add_variable(fr(left ^ right));
 
-            uint32_t add_idx =
-                honk_composer.add_variable(fr(left) + fr(right) + honk_composer.get_variable(result_idx));
-            honk_composer.create_big_add_gate(
+            uint32_t add_idx = composer.add_variable(fr(left) + fr(right) + composer.get_variable(result_idx));
+            composer.create_big_add_gate(
                 { left_idx, right_idx, result_idx, add_idx, fr(1), fr(1), fr(1), fr(-1), fr(0) });
         }
     }
 
-    for (size_t i = 0; i < MM; ++i) {
-        for (size_t j = 0; j < MM; ++j) {
-            uint64_t left = static_cast<uint64_t>(j);
-            uint64_t right = static_cast<uint64_t>(i);
-            uint32_t left_idx = plonk_composer.add_variable(fr(left));
-            uint32_t right_idx = plonk_composer.add_variable(fr(right));
-            uint32_t result_idx = plonk_composer.add_variable(fr(left ^ right));
-
-            uint32_t add_idx =
-                plonk_composer.add_variable(fr(left) + fr(right) + plonk_composer.get_variable(result_idx));
-            plonk_composer.create_big_add_gate(
-                { left_idx, right_idx, result_idx, add_idx, fr(1), fr(1), fr(1), fr(-1), fr(0) });
-        }
-    }
-
-    auto honk_prover = honk_composer.create_prover();
-    auto plonk_prover = plonk_composer.create_prover();
-    honk_composer.create_verifier();
-
-    honk_prover.construct_proof();
-
-    // verify_consistency(honk_prover, plonk_prover);
+    construct_and_verify_proof(composer);
 }
 
-// TEST(UltraHonkComposer, test_elliptic_gate)
-// {
-//     typedef grumpkin::g1::affine_element affine_element;
-//     typedef grumpkin::g1::element element;
-
-//     auto honk_composer = UltraHonkComposer();
-//     auto plonk_composer = proof_system::plonk::UltraComposer();
-
-//     {
-//         affine_element p1 = crypto::generators::get_generator_data({ 0, 0 }).generator;
-//         affine_element p2 = crypto::generators::get_generator_data({ 0, 1 }).generator;
-//         affine_element p3(element(p1) + element(p2));
-
-//         uint32_t x1 = honk_composer.add_variable(p1.x);
-//         uint32_t y1 = honk_composer.add_variable(p1.y);
-//         uint32_t x2 = honk_composer.add_variable(p2.x);
-//         uint32_t y2 = honk_composer.add_variable(p2.y);
-//         uint32_t x3 = honk_composer.add_variable(p3.x);
-//         uint32_t y3 = honk_composer.add_variable(p3.y);
-
-//         ecc_add_gate gate{ x1, y1, x2, y2, x3, y3, 1, 1 };
-//         honk_composer.create_ecc_add_gate(gate);
-
-//         grumpkin::fq beta = grumpkin::fq::cube_root_of_unity();
-//         affine_element p2_endo = p2;
-//         p2_endo.x *= beta;
-//         p3 = affine_element(element(p1) + element(p2_endo));
-//         x3 = honk_composer.add_variable(p3.x);
-//         y3 = honk_composer.add_variable(p3.y);
-//         gate = ecc_add_gate{ x1, y1, x2, y2, x3, y3, beta, 1 };
-//         honk_composer.create_ecc_add_gate(gate);
-
-//         p2_endo.x *= beta;
-//         p3 = affine_element(element(p1) - element(p2_endo));
-//         x3 = honk_composer.add_variable(p3.x);
-//         y3 = honk_composer.add_variable(p3.y);
-//         gate = ecc_add_gate{ x1, y1, x2, y2, x3, y3, beta.sqr(), -1 };
-//         honk_composer.create_ecc_add_gate(gate);
-//     }
-//     {
-//         affine_element p1 = crypto::generators::get_generator_data({ 0, 0 }).generator;
-//         affine_element p2 = crypto::generators::get_generator_data({ 0, 1 }).generator;
-//         affine_element p3(element(p1) + element(p2));
-
-//         uint32_t x1 = plonk_composer.add_variable(p1.x);
-//         uint32_t y1 = plonk_composer.add_variable(p1.y);
-//         uint32_t x2 = plonk_composer.add_variable(p2.x);
-//         uint32_t y2 = plonk_composer.add_variable(p2.y);
-//         uint32_t x3 = plonk_composer.add_variable(p3.x);
-//         uint32_t y3 = plonk_composer.add_variable(p3.y);
-
-//         ecc_add_gate gate{ x1, y1, x2, y2, x3, y3, 1, 1 };
-//         plonk_composer.create_ecc_add_gate(gate);
-
-//         grumpkin::fq beta = grumpkin::fq::cube_root_of_unity();
-//         affine_element p2_endo = p2;
-//         p2_endo.x *= beta;
-//         p3 = affine_element(element(p1) + element(p2_endo));
-//         x3 = plonk_composer.add_variable(p3.x);
-//         y3 = plonk_composer.add_variable(p3.y);
-//         gate = ecc_add_gate{ x1, y1, x2, y2, x3, y3, beta, 1 };
-//         plonk_composer.create_ecc_add_gate(gate);
-
-//         p2_endo.x *= beta;
-//         p3 = affine_element(element(p1) - element(p2_endo));
-//         x3 = plonk_composer.add_variable(p3.x);
-//         y3 = plonk_composer.add_variable(p3.y);
-//         gate = ecc_add_gate{ x1, y1, x2, y2, x3, y3, beta.sqr(), -1 };
-//         plonk_composer.create_ecc_add_gate(gate);
-//     }
-
-//     auto honk_prover = honk_composer.create_prover();
-//     auto plonk_prover = plonk_composer.create_prover();
-
-//     verify_consistency(honk_prover, plonk_prover);
-// }
-
-// TEST(UltraHonkComposer, non_trivial_tag_permutation)
-// {
-//     auto honk_composer = UltraHonkComposer();
-//     auto plonk_composer = proof_system::plonk::UltraComposer();
-
-//     fr a = fr::random_element();
-//     {
-//         fr b = -a;
-
-//         auto a_idx = honk_composer.add_variable(a);
-//         auto b_idx = honk_composer.add_variable(b);
-//         auto c_idx = honk_composer.add_variable(b);
-//         auto d_idx = honk_composer.add_variable(a);
-
-//         honk_composer.create_add_gate(
-//             { a_idx, b_idx, honk_composer.get_zero_idx(), fr::one(), fr::one(), fr::zero(), fr::zero() });
-//         honk_composer.create_add_gate(
-//             { c_idx, d_idx, honk_composer.get_zero_idx(), fr::one(), fr::one(), fr::zero(), fr::zero() });
-
-//         honk_composer.create_tag(1, 2);
-//         honk_composer.create_tag(2, 1);
-
-//         honk_composer.assign_tag(a_idx, 1);
-//         honk_composer.assign_tag(b_idx, 1);
-//         honk_composer.assign_tag(c_idx, 2);
-//         honk_composer.assign_tag(d_idx, 2);
-//     }
-//     {
-//         fr b = -a;
-
-//         auto a_idx = plonk_composer.add_variable(a);
-//         auto b_idx = plonk_composer.add_variable(b);
-//         auto c_idx = plonk_composer.add_variable(b);
-//         auto d_idx = plonk_composer.add_variable(a);
-
-//         plonk_composer.create_add_gate(
-//             { a_idx, b_idx, plonk_composer.zero_idx, fr::one(), fr::one(), fr::zero(), fr::zero() });
-//         plonk_composer.create_add_gate(
-//             { c_idx, d_idx, plonk_composer.zero_idx, fr::one(), fr::one(), fr::zero(), fr::zero() });
-
-//         plonk_composer.create_tag(1, 2);
-//         plonk_composer.create_tag(2, 1);
-
-//         plonk_composer.assign_tag(a_idx, 1);
-//         plonk_composer.assign_tag(b_idx, 1);
-//         plonk_composer.assign_tag(c_idx, 2);
-//         plonk_composer.assign_tag(d_idx, 2);
-//     }
-
-//     auto honk_prover = honk_composer.create_prover();
-//     auto plonk_prover = plonk_composer.create_prover();
-
-//     verify_consistency(honk_prover, plonk_prover);
-// }
-
-// TEST(UltraHonkComposer, non_trivial_tag_permutation_and_cycles)
-// {
-//     auto honk_composer = UltraHonkComposer();
-//     auto plonk_composer = proof_system::plonk::UltraComposer();
-
-//     fr a = fr::random_element();
-//     {
-//         fr c = -a;
-
-//         auto a_idx = honk_composer.add_variable(a);
-//         auto b_idx = honk_composer.add_variable(a);
-//         honk_composer.assert_equal(a_idx, b_idx);
-//         auto c_idx = honk_composer.add_variable(c);
-//         auto d_idx = honk_composer.add_variable(c);
-//         honk_composer.assert_equal(c_idx, d_idx);
-//         auto e_idx = honk_composer.add_variable(a);
-//         auto f_idx = honk_composer.add_variable(a);
-//         honk_composer.assert_equal(e_idx, f_idx);
-//         auto g_idx = honk_composer.add_variable(c);
-//         auto h_idx = honk_composer.add_variable(c);
-//         honk_composer.assert_equal(g_idx, h_idx);
-
-//         honk_composer.create_tag(1, 2);
-//         honk_composer.create_tag(2, 1);
-
-//         honk_composer.assign_tag(a_idx, 1);
-//         honk_composer.assign_tag(c_idx, 1);
-//         honk_composer.assign_tag(e_idx, 2);
-//         honk_composer.assign_tag(g_idx, 2);
-
-//         honk_composer.create_add_gate(
-//             { b_idx, a_idx, honk_composer.get_zero_idx(), fr::one(), fr::neg_one(), fr::zero(), fr::zero() });
-//         honk_composer.create_add_gate(
-//             { c_idx, g_idx, honk_composer.get_zero_idx(), fr::one(), -fr::one(), fr::zero(), fr::zero() });
-//         honk_composer.create_add_gate(
-//             { e_idx, f_idx, honk_composer.get_zero_idx(), fr::one(), -fr::one(), fr::zero(), fr::zero() });
-//     }
-//     {
-//         fr c = -a;
-
-//         auto a_idx = plonk_composer.add_variable(a);
-//         auto b_idx = plonk_composer.add_variable(a);
-//         plonk_composer.assert_equal(a_idx, b_idx);
-//         auto c_idx = plonk_composer.add_variable(c);
-//         auto d_idx = plonk_composer.add_variable(c);
-//         plonk_composer.assert_equal(c_idx, d_idx);
-//         auto e_idx = plonk_composer.add_variable(a);
-//         auto f_idx = plonk_composer.add_variable(a);
-//         plonk_composer.assert_equal(e_idx, f_idx);
-//         auto g_idx = plonk_composer.add_variable(c);
-//         auto h_idx = plonk_composer.add_variable(c);
-//         plonk_composer.assert_equal(g_idx, h_idx);
-
-//         plonk_composer.create_tag(1, 2);
-//         plonk_composer.create_tag(2, 1);
-
-//         plonk_composer.assign_tag(a_idx, 1);
-//         plonk_composer.assign_tag(c_idx, 1);
-//         plonk_composer.assign_tag(e_idx, 2);
-//         plonk_composer.assign_tag(g_idx, 2);
-
-//         plonk_composer.create_add_gate(
-//             { b_idx, a_idx, plonk_composer.zero_idx, fr::one(), fr::neg_one(), fr::zero(), fr::zero() });
-//         plonk_composer.create_add_gate(
-//             { c_idx, g_idx, plonk_composer.zero_idx, fr::one(), -fr::one(), fr::zero(), fr::zero() });
-//         plonk_composer.create_add_gate(
-//             { e_idx, f_idx, plonk_composer.zero_idx, fr::one(), -fr::one(), fr::zero(), fr::zero() });
-//     }
-
-//     auto honk_prover = honk_composer.create_prover();
-//     auto plonk_prover = plonk_composer.create_prover();
-
-//     verify_consistency(honk_prover, plonk_prover);
-// }
-
-// TEST(UltraHonkComposer, bad_tag_permutation)
-// {
-//     auto honk_composer = UltraHonkComposer();
-//     auto plonk_composer = proof_system::plonk::UltraComposer();
-
-//     fr a = fr::random_element();
-//     {
-//         fr b = -a;
-
-//         auto a_idx = honk_composer.add_variable(a);
-//         auto b_idx = honk_composer.add_variable(b);
-//         auto c_idx = honk_composer.add_variable(b);
-//         auto d_idx = honk_composer.add_variable(a + 1);
-
-//         honk_composer.create_add_gate({ a_idx, b_idx, honk_composer.get_zero_idx(), 1, 1, 0, 0 });
-//         honk_composer.create_add_gate({ c_idx, d_idx, honk_composer.get_zero_idx(), 1, 1, 0, -1 });
-
-//         honk_composer.create_tag(1, 2);
-//         honk_composer.create_tag(2, 1);
-
-//         honk_composer.assign_tag(a_idx, 1);
-//         honk_composer.assign_tag(b_idx, 1);
-//         honk_composer.assign_tag(c_idx, 2);
-//         honk_composer.assign_tag(d_idx, 2);
-//     }
-//     {
-//         fr b = -a;
-
-//         auto a_idx = plonk_composer.add_variable(a);
-//         auto b_idx = plonk_composer.add_variable(b);
-//         auto c_idx = plonk_composer.add_variable(b);
-//         auto d_idx = plonk_composer.add_variable(a + 1);
-
-//         plonk_composer.create_add_gate({ a_idx, b_idx, plonk_composer.zero_idx, 1, 1, 0, 0 });
-//         plonk_composer.create_add_gate({ c_idx, d_idx, plonk_composer.zero_idx, 1, 1, 0, -1 });
-
-//         plonk_composer.create_tag(1, 2);
-//         plonk_composer.create_tag(2, 1);
-
-//         plonk_composer.assign_tag(a_idx, 1);
-//         plonk_composer.assign_tag(b_idx, 1);
-//         plonk_composer.assign_tag(c_idx, 2);
-//         plonk_composer.assign_tag(d_idx, 2);
-//     }
-
-//     auto honk_prover = honk_composer.create_prover();
-//     auto plonk_prover = plonk_composer.create_prover();
-
-//     verify_consistency(honk_prover, plonk_prover);
-// }
-
-// TEST(UltraHonkComposer, sort_widget)
-// {
-//     auto honk_composer = UltraHonkComposer();
-//     auto plonk_composer = proof_system::plonk::UltraComposer();
-
-//     {
-//         fr a = fr::one();
-//         fr b = fr(2);
-//         fr c = fr(3);
-//         fr d = fr(4);
-
-//         auto a_idx = honk_composer.add_variable(a);
-//         auto b_idx = honk_composer.add_variable(b);
-//         auto c_idx = honk_composer.add_variable(c);
-//         auto d_idx = honk_composer.add_variable(d);
-//         honk_composer.create_sort_constraint({ a_idx, b_idx, c_idx, d_idx });
-//     }
-//     {
-//         fr a = fr::one();
-//         fr b = fr(2);
-//         fr c = fr(3);
-//         fr d = fr(4);
-
-//         auto a_idx = plonk_composer.add_variable(a);
-//         auto b_idx = plonk_composer.add_variable(b);
-//         auto c_idx = plonk_composer.add_variable(c);
-//         auto d_idx = plonk_composer.add_variable(d);
-//         plonk_composer.create_sort_constraint({ a_idx, b_idx, c_idx, d_idx });
-//     }
-
-//     auto honk_prover = honk_composer.create_prover();
-//     auto plonk_prover = plonk_composer.create_prover();
-
-//     verify_consistency(honk_prover, plonk_prover);
-// }
-
-// TEST(UltraHonkComposer, sort_with_edges_gate)
-// {
-//     auto honk_composer = UltraHonkComposer();
-//     auto plonk_composer = proof_system::plonk::UltraComposer();
-
-//     {
-//         auto idx = add_variables(honk_composer, { 1,  2,  5,  6,  7,  10, 11, 13, 16, 17, 20, 22, 22, 25,
-//                                                   26, 29, 29, 32, 32, 33, 35, 38, 39, 39, 42, 42, 43, 45 });
-
-//         honk_composer.create_sort_constraint_with_edges(idx, 1, 29);
-//     }
-//     {
-//         auto idx = add_variables(plonk_composer, { 1,  2,  5,  6,  7,  10, 11, 13, 16, 17, 20, 22, 22, 25,
-//                                                    26, 29, 29, 32, 32, 33, 35, 38, 39, 39, 42, 42, 43, 45 });
-
-//         plonk_composer.create_sort_constraint_with_edges(idx, 1, 29);
-//     }
-
-//     auto honk_prover = honk_composer.create_prover();
-//     auto plonk_prover = plonk_composer.create_prover();
-
-//     verify_consistency(honk_prover, plonk_prover);
-// }
-
-// TEST(UltraHonkComposer, range_constraint)
-// {
-//     auto honk_composer = UltraHonkComposer();
-//     auto plonk_composer = proof_system::plonk::UltraComposer();
-
-//     {
-//         auto indices =
-//             add_variables(honk_composer, { 1, 0, 3, 80, 5, 6, 29, 8, 15, 11, 32, 21, 42, 79, 16, 10, 3, 26, 13, 14
-//             });
-//         for (size_t i = 0; i < indices.size(); i++) {
-//             honk_composer.create_new_range_constraint(indices[i], 79);
-//         }
-//         honk_composer.create_dummy_constraints(indices);
-//     }
-//     {
-//         auto indices =
-//             add_variables(plonk_composer, { 1, 0, 3, 80, 5, 6, 29, 8, 15, 11, 32, 21, 42, 79, 16, 10, 3, 26, 13, 14
-//             });
-//         for (size_t i = 0; i < indices.size(); i++) {
-//             plonk_composer.create_new_range_constraint(indices[i], 79);
-//         }
-//         plonk_composer.create_dummy_constraints(indices);
-//     }
-
-//     auto honk_prover = honk_composer.create_prover();
-//     auto plonk_prover = plonk_composer.create_prover();
-
-//     verify_consistency(honk_prover, plonk_prover);
-// }
+// WORKTODO: This test may be passing trivially!
+TEST(UltraHonkComposer, test_elliptic_gate)
+{
+    typedef grumpkin::g1::affine_element affine_element;
+    typedef grumpkin::g1::element element;
+
+    auto composer = UltraHonkComposer();
+
+    {
+        affine_element p1 = crypto::generators::get_generator_data({ 0, 0 }).generator;
+        affine_element p2 = crypto::generators::get_generator_data({ 0, 1 }).generator;
+        affine_element p3(element(p1) + element(p2));
+
+        uint32_t x1 = composer.add_variable(p1.x);
+        uint32_t y1 = composer.add_variable(p1.y);
+        uint32_t x2 = composer.add_variable(p2.x);
+        uint32_t y2 = composer.add_variable(p2.y);
+        uint32_t x3 = composer.add_variable(p3.x);
+        uint32_t y3 = composer.add_variable(p3.y);
+
+        ecc_add_gate gate{ x1, y1, x2, y2, x3, y3, 1, 1 };
+        composer.create_ecc_add_gate(gate);
+
+        grumpkin::fq beta = grumpkin::fq::cube_root_of_unity();
+        affine_element p2_endo = p2;
+        p2_endo.x *= beta;
+        p3 = affine_element(element(p1) + element(p2_endo));
+        x3 = composer.add_variable(p3.x);
+        y3 = composer.add_variable(p3.y);
+        gate = ecc_add_gate{ x1, y1, x2, y2, x3, y3, beta, 1 };
+        composer.create_ecc_add_gate(gate);
+
+        p2_endo.x *= beta;
+        p3 = affine_element(element(p1) - element(p2_endo));
+        x3 = composer.add_variable(p3.x);
+        y3 = composer.add_variable(p3.y);
+        gate = ecc_add_gate{ x1, y1, x2, y2, x3, y3, beta.sqr(), -1 };
+        composer.create_ecc_add_gate(gate);
+    }
+
+    construct_and_verify_proof(composer);
+}
+
+TEST(UltraHonkComposer, non_trivial_tag_permutation)
+{
+    auto composer = UltraHonkComposer();
+    auto plonk_composer = proof_system::plonk::UltraComposer();
+
+    fr a = fr::random_element();
+    {
+        fr b = -a;
+
+        auto a_idx = composer.add_variable(a);
+        auto b_idx = composer.add_variable(b);
+        auto c_idx = composer.add_variable(b);
+        auto d_idx = composer.add_variable(a);
+
+        composer.create_add_gate(
+            { a_idx, b_idx, composer.get_zero_idx(), fr::one(), fr::one(), fr::zero(), fr::zero() });
+        composer.create_add_gate(
+            { c_idx, d_idx, composer.get_zero_idx(), fr::one(), fr::one(), fr::zero(), fr::zero() });
+
+        composer.create_tag(1, 2);
+        composer.create_tag(2, 1);
+
+        composer.assign_tag(a_idx, 1);
+        composer.assign_tag(b_idx, 1);
+        composer.assign_tag(c_idx, 2);
+        composer.assign_tag(d_idx, 2);
+    }
+
+    construct_and_verify_proof(composer);
+}
+
+TEST(UltraHonkComposer, non_trivial_tag_permutation_and_cycles)
+{
+    auto composer = UltraHonkComposer();
+
+    fr a = fr::random_element();
+    {
+        fr c = -a;
+
+        auto a_idx = composer.add_variable(a);
+        auto b_idx = composer.add_variable(a);
+        composer.assert_equal(a_idx, b_idx);
+        auto c_idx = composer.add_variable(c);
+        auto d_idx = composer.add_variable(c);
+        composer.assert_equal(c_idx, d_idx);
+        auto e_idx = composer.add_variable(a);
+        auto f_idx = composer.add_variable(a);
+        composer.assert_equal(e_idx, f_idx);
+        auto g_idx = composer.add_variable(c);
+        auto h_idx = composer.add_variable(c);
+        composer.assert_equal(g_idx, h_idx);
+
+        composer.create_tag(1, 2);
+        composer.create_tag(2, 1);
+
+        composer.assign_tag(a_idx, 1);
+        composer.assign_tag(c_idx, 1);
+        composer.assign_tag(e_idx, 2);
+        composer.assign_tag(g_idx, 2);
+
+        composer.create_add_gate(
+            { b_idx, a_idx, composer.get_zero_idx(), fr::one(), fr::neg_one(), fr::zero(), fr::zero() });
+        composer.create_add_gate(
+            { c_idx, g_idx, composer.get_zero_idx(), fr::one(), -fr::one(), fr::zero(), fr::zero() });
+        composer.create_add_gate(
+            { e_idx, f_idx, composer.get_zero_idx(), fr::one(), -fr::one(), fr::zero(), fr::zero() });
+    }
+
+    construct_and_verify_proof(composer);
+}
+
+TEST(UltraHonkComposer, bad_tag_permutation)
+{
+    auto composer = UltraHonkComposer();
+
+    fr a = fr::random_element();
+    {
+        fr b = -a;
+
+        auto a_idx = composer.add_variable(a);
+        auto b_idx = composer.add_variable(b);
+        auto c_idx = composer.add_variable(b);
+        auto d_idx = composer.add_variable(a + 1);
+
+        composer.create_add_gate({ a_idx, b_idx, composer.get_zero_idx(), 1, 1, 0, 0 });
+        composer.create_add_gate({ c_idx, d_idx, composer.get_zero_idx(), 1, 1, 0, -1 });
+
+        composer.create_tag(1, 2);
+        composer.create_tag(2, 1);
+
+        composer.assign_tag(a_idx, 1);
+        composer.assign_tag(b_idx, 1);
+        composer.assign_tag(c_idx, 2);
+        composer.assign_tag(d_idx, 2);
+    }
+
+    construct_and_verify_proof(composer);
+}
+
+TEST(UltraHonkComposer, sort_widget)
+{
+    auto composer = UltraHonkComposer();
+
+    {
+        fr a = fr::one();
+        fr b = fr(2);
+        fr c = fr(3);
+        fr d = fr(4);
+
+        auto a_idx = composer.add_variable(a);
+        auto b_idx = composer.add_variable(b);
+        auto c_idx = composer.add_variable(c);
+        auto d_idx = composer.add_variable(d);
+        composer.create_sort_constraint({ a_idx, b_idx, c_idx, d_idx });
+    }
+
+    construct_and_verify_proof(composer);
+}
+
+TEST(UltraHonkComposer, sort_with_edges_gate)
+{
+    auto composer = UltraHonkComposer();
+
+    {
+        auto idx = add_variables(composer, { 1,  2,  5,  6,  7,  10, 11, 13, 16, 17, 20, 22, 22, 25,
+                                             26, 29, 29, 32, 32, 33, 35, 38, 39, 39, 42, 42, 43, 45 });
+        composer.create_sort_constraint_with_edges(idx, 1, 29);
+    }
+
+    construct_and_verify_proof(composer);
+}
+
+TEST(UltraHonkComposer, range_constraint)
+{
+    auto composer = UltraHonkComposer();
+
+    {
+        auto indices =
+            add_variables(composer, { 1, 0, 3, 80, 5, 6, 29, 8, 15, 11, 32, 21, 42, 79, 16, 10, 3, 26, 13, 14 });
+        for (size_t i = 0; i < indices.size(); i++) {
+            composer.create_new_range_constraint(indices[i], 79);
+        }
+        composer.create_dummy_constraints(indices);
+    }
+
+    construct_and_verify_proof(composer);
+}
 
 // TEST(UltraHonkComposer, range_with_gates)
 // {

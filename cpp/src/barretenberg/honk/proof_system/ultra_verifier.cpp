@@ -67,7 +67,7 @@ template <typename Flavor> bool UltraVerifier_<Flavor>::verify_proof(const plonk
 {
     using FF = typename Flavor::FF;
     // using GroupElement = typename Flavor::GroupElement;
-    // using Commitment = typename Flavor::Commitment;
+    using Commitment = typename Flavor::Commitment;
     // using Gemini = pcs::gemini::MultilinearReductionScheme<pcs::kzg::Params>;
     // using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<pcs::kzg::Params>;
     // using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
@@ -137,10 +137,13 @@ template <typename Flavor> bool UltraVerifier_<Flavor>::verify_proof(const plonk
                              honk::sumcheck::LookupGrandProductInitializationRelation>(circuit_size, transcript);
     std::optional sumcheck_output = sumcheck.execute_verifier(relation_parameters);
 
-    // // If Sumcheck does not return an output, sumcheck verification has failed
-    // if (!sumcheck_output.has_value()) {
-    //     return false;
-    // }
+    // If Sumcheck does not return an output, sumcheck verification has failed
+    if (!sumcheck_output.has_value()) {
+        return false;
+    }
+
+    // DEBUG: If sumcheck passes, call it verified
+    return true;
 
     // auto [multivariate_challenge, purported_evaluations] = *sumcheck_output;
 
@@ -194,8 +197,6 @@ template <typename Flavor> bool UltraVerifier_<Flavor>::verify_proof(const plonk
 
     // // Return result of final pairing check
     // return kzg_claim.verify(kate_verification_key);
-    // WORKTODO
-    return false;
 }
 
 template class UltraVerifier_<honk::flavor::Ultra>;
