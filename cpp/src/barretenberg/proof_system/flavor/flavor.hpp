@@ -137,6 +137,9 @@ class ProvingKey_ : public PrecomputedPolynomials, public WitnessPolynomials {
     using Polynomial = typename PrecomputedPolynomials::DataType;
     using FF = typename Polynomial::FF;
 
+    typename PrecomputedPolynomials::ArrayType& precomputed_polynomials = PrecomputedPolynomials::_data;
+    typename WitnessPolynomials::ArrayType& witness_polynomials = WitnessPolynomials::_data;
+
     bool contains_recursive_proof;
     std::vector<uint32_t> recursive_proof_public_input_indices;
     std::shared_ptr<ProverReferenceString> crs;

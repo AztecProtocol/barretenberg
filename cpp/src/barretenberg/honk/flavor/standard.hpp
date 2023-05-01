@@ -165,11 +165,6 @@ class Standard {
     class ProvingKey : public ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>,
                                           WitnessEntities<Polynomial, PolynomialHandle>> {
       public:
-        using PrecomputedPolynomials = PrecomputedEntities<Polynomial, PolynomialHandle>;
-        std::array<Polynomial, NUM_PRECOMPUTED_ENTITIES>& precomputed_polynomials = PrecomputedPolynomials::_data;
-        using WitnessPolynomials = WitnessEntities<Polynomial, PolynomialHandle>;
-        std::array<Polynomial, NUM_WITNESS_ENTITIES>& witness_polynomials = WitnessPolynomials::_data;
-
         ProvingKey() = default;
         ProvingKey(const size_t circuit_size,
                    const size_t num_public_inputs,

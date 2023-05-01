@@ -78,7 +78,7 @@ class Ultra {
 
     // Container for all witness polys
     template <typename DataType, typename HandleType>
-    class WitnessEntities : public Entities_<DataType, HandleType, NUM_WITNESS_ENTITIES> {
+    class WitnessEntities : public WitnessEntities_<DataType, HandleType, NUM_WITNESS_ENTITIES> {
       public:
         DataType& w_l = std::get<0>(this->_data);
         DataType& w_r = std::get<1>(this->_data);
@@ -92,7 +92,8 @@ class Ultra {
         DataType& z_perm = std::get<9>(this->_data);
         DataType& z_lookup = std::get<10>(this->_data);
 
-        std::vector<HandleType> get_wires() { return { w_l, w_r, w_o, w_4 }; };
+        std::vector<HandleType> get_wires() override { return { w_l, w_r, w_o, w_4 }; };
+        // The sorted concatenations of table and witness data needed for plookup.
         std::vector<HandleType> get_sorted_polynomials() { return { sorted_1, sorted_2, sorted_3, sorted_4 }; };
     };
 
@@ -194,11 +195,6 @@ class Ultra {
     class ProvingKey : public ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>,
                                           WitnessEntities<Polynomial, PolynomialHandle>> {
       public:
-        using PrecomputedPolynomials = PrecomputedEntities<Polynomial, PolynomialHandle>;
-        std::array<Polynomial, NUM_PRECOMPUTED_ENTITIES>& precomputed_polynomials = PrecomputedPolynomials::_data;
-        using WitnessPolynomials = WitnessEntities<Polynomial, PolynomialHandle>;
-        std::array<Polynomial, NUM_WITNESS_ENTITIES>& witness_polynomials = WitnessPolynomials::_data;
-
         std::vector<uint32_t> memory_read_records;
         std::vector<uint32_t> memory_write_records;
 
@@ -225,12 +221,8 @@ class Ultra {
             }
         };
 
-        std::vector<Polynomial> selectors{ q_c, q_l, q_r, q_o, q_4, q_m, q_arith, q_sort, q_elliptic, q_aux, q_lookup };
-        std::vector<PolynomialHandle> get_wires() { return WitnessPolynomials::get_wires(); };
         // The plookup wires that store plookup read data.
         std::array<PolynomialHandle, 3> get_table_column_wires() { return { w_l, w_r, w_o }; };
-        // The sorted concatenations of table and witness data needed for plookup.
-        std::vector<PolynomialHandle> get_sorted_polynomials() { return WitnessPolynomials::get_sorted_polynomials(); };
     };
 
     using VerificationKey = VerificationKey_<PrecomputedEntities<Commitment, CommitmentHandle>>;
