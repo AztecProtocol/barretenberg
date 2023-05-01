@@ -66,11 +66,7 @@ void init()
 {
     ASSERT(BITS_PER_TABLE < BITS_OF_BETA);
     ASSERT(BITS_PER_TABLE + BITS_OF_BETA < BITS_ON_CURVE);
-    bool pedersen_tables_filled = pedersen_iv_table.size() > 0;
-    for (size_t i = 0; i < NUM_PEDERSEN_TABLES; i++) {
-        pedersen_tables_filled = (pedersen_tables_filled && (pedersen_tables[i].size() > 0));
-    }
-    if (inited && pedersen_tables_filled) {
+    if (inited) {
         return;
     }
     generators = grumpkin::g1::derive_generators<NUM_PEDERSEN_TABLES>();
