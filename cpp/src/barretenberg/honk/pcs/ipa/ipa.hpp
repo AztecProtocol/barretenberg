@@ -2,18 +2,12 @@
 #include <cstddef>
 #include <numeric>
 #include <string>
+#include <vector>
+#include "barretenberg/common/assert.hpp"
+#include "barretenberg/ecc/curves/bn254/g1.hpp"
 #include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/stdlib/primitives/curves/bn254.hpp"
-
-// Suggested by Zac: Future optimisations
-// 1: write a program that generates a large set of generator points (2^23?) and writes to a file on disk
-// 2: create a SRS class for IPA similar to existing SRS class, that loads these points from disk
-//    and stores in struct *and* applies the pippenger point table endomorphism transforation
-// 3: when constructing a InnerProductArgument class, pass std::shared_ptr<SRS> as input param and store as member
-// variable
-// 4: (SRS class should contain a `pippenger_runtime_state` object so it does not need to be repeatedly
-// generated)
 
 /**
  * @brief IPA (inner-product argument) commitment scheme class. Conforms to the specification
@@ -48,8 +42,10 @@ template <typename Params> class InnerProductArgument {
 
         ASSERT(opening_pair.challenge != 0 && "The challenge point should not be zero");
         const size_t poly_degree = polynomial.size();
-        // To check poly_degree is greater than zero and a power of two
+
+        // Checks poly_degree is greater than zero and a power of two
         // TODO(#220)(Arijit): To accomodate non power of two poly_degree
+        // Do we even want to accomodate non-powers of 2?
         ASSERT((poly_degree > 0) && (!(poly_degree & (poly_degree - 1))) &&
                "The poly_degree should be positive and a power of two");
 
@@ -76,7 +72,7 @@ template <typename Params> class InnerProductArgument {
         const size_t log_poly_degree = static_cast<size_t>(numeric::get_msb(poly_degree));
         std::vector<Commitment> L_elements(log_poly_degree);
         std::vector<Commitment> R_elements(log_poly_degree);
-        size_t round_size = poly_degree;
+        std::size_t round_size = poly_degree;
 
         for (size_t i = 0; i < log_poly_degree; i++) {
             round_size >>= 1;
@@ -105,6 +101,12 @@ template <typename Params> class InnerProductArgument {
             const Fr round_challenge = transcript.get_challenge("IPA:round_challenge_" + index);
             const Fr round_challenge_inv = round_challenge.invert();
 
+            std::vector<CommitmentAffine> G_lo(G_vec_local.begin(),
+                                               G_vec_local.begin() + static_cast<long>(round_size));
+            std::vector<CommitmentAffine> G_hi(G_vec_local.begin() + static_cast<long>(round_size), G_vec_local.end());
+            G_lo = barretenberg::g1::element::batch_mul_with_endomorphism(G_lo, round_challenge_inv);
+            G_hi = barretenberg::g1::element::batch_mul_with_endomorphism(G_hi, round_challenge);
+
             // Update the vectors a_vec, b_vec and G_vec.
             // a_vec_next = a_vec_lo * round_challenge + a_vec_hi * round_challenge_inv
             // b_vec_next = b_vec_lo * round_challenge_inv + b_vec_hi * round_challenge
@@ -115,21 +117,7 @@ template <typename Params> class InnerProductArgument {
                 b_vec[j] *= round_challenge_inv;
                 b_vec[j] += round_challenge * b_vec[round_size + j];
 
-                /*
-                TODO(#220)(Arijit): (performance improvement suggested by Zac): We can improve performance here by using
-                element::batch_mul_with_endomorphism. This method takes a vector of input points points and a scalar x
-                and outputs a vector containing points[i]*x. It's 30% faster than a basic mul operation due to
-                performing group additions in 2D affine coordinates instead of 3D projective coordinates (affine point
-                additions are usually more expensive than projective additions due to the need to compute a modular
-                inverse. However we get around this by computing a single batch inverse. This only works if you are
-                adding a lot of independent point pairs so you can amortise the cost of the single batch inversion
-                across multiple points).
-                */
-
-                auto G_lo = Commitment(G_vec_local[j]) * round_challenge_inv;
-                auto G_hi = Commitment(G_vec_local[round_size + j]) * round_challenge;
-                auto temp = G_lo + G_hi;
-                G_vec_local[j] = temp.normalize();
+                G_vec_local[j] = G_lo[j] + G_hi[j];
             }
         }
 
