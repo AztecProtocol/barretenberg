@@ -1,9 +1,9 @@
+
+#include <barretenberg/common/throw_or_abort.hpp>
 #define MSGPACK_NO_BOOST
 #include <msgpack.hpp>
 #include <cstddef>
 #include <barretenberg/common/net.hpp>
-#include <barretenberg/common/throw_or_abort.hpp>
-
 namespace msgpack {
 
 void read_bin64(const msgpack::object& obj, uint64_t* data, size_t size)
