@@ -9,11 +9,8 @@ namespace proof_system::honk::prover_library {
 /**
  * @brief Compute the permutation grand product polynomial Z_perm(X)
  * *
- * @detail (This description assumes Flavor::NUM_WIRES 3). Z_perm may be defined in terms of iwires
-wires
-wirests values
- * on X_i = 0,1,...,n-1 as Z_perm[0] = 1 and for i = 1:n-1
- *
+ * @details (This description assumes Flavor::NUM_WIRES 3).
+ * Z_perm may be defined in terms of its values  on X_i = 0,1,...,n-1 as Z_perm[0] = 1 and for i = 1:n-1
  *                  (w_1(j) + β⋅id_1(j) + γ) ⋅ (w_2(j) + β⋅id_2(j) + γ) ⋅ (w_3(j) + β⋅id_3(j) + γ)
  * Z_perm[i] = ∏ --------------------------------------------------------------------------------
  *                  (w_1(j) + β⋅σ_1(j) + γ) ⋅ (w_2(j) + β⋅σ_2(j) + γ) ⋅ (w_3(j) + β⋅σ_3(j) + γ)
@@ -33,8 +30,10 @@ wirests values
  *
  * Note: Step (4) utilizes Montgomery batch inversion to replace n-many inversions with
  * one batch inversion (at the expense of more multiplications)
+ *
+ * @todo TODO(#222)(luke): Parallelize
  */
-// TODO(#222)(luke): Parallelize
+
 template <typename Flavor>
 typename Flavor::Polynomial compute_permutation_grand_product(std::shared_ptr<typename Flavor::ProvingKey>& key,
                                                               typename Flavor::FF beta,
@@ -221,7 +220,7 @@ typename Flavor::Polynomial compute_lookup_grand_product(std::shared_ptr<typenam
         key->table_4,
     };
 
-    std::span<const FF> lookup_selector = key->q_lookup; // TODO(Cody): this was something called table_type
+    std::span<const FF> lookup_selector = key->q_lookup;
     std::span<const FF> lookup_index_selector = key->q_o;
 
     const FF beta_plus_one = beta + FF(1);                      // (1 + β)

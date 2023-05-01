@@ -6,14 +6,21 @@
 namespace proof_system {
 
 /**
- * @brief Initialize proving key and load the crs
  *
  * @tparam CircuitConstructor Class containing the circuit
+ * @return std::shared_ptr<plonk::proving_key>
+ */
+
+/**
+ * @brief Initilalize proving key and load the crs
+ *
+ * @tparam Flavor
  * @param circuit_constructor  Object containing the circuit
+ * @param crs_factory Produces the prover's reference string
  * @param minimum_circuit_size The minimum size of polynomials without randomized elements
  * @param num_randomized_gates Number of gates with randomized witnesses
  * @param composer_type The type of composer we are using
- * @return std::shared_ptr<plonk::proving_key>
+ * @return std::shared_ptr<typename Flavor::ProvingKey>
  */
 template <typename Flavor>
 std::shared_ptr<typename Flavor::ProvingKey> initialize_proving_key(
@@ -40,7 +47,7 @@ std::shared_ptr<typename Flavor::ProvingKey> initialize_proving_key(
 /**
  * @brief Construct selector polynomials from ciruit selector information and put into polynomial cache
  *
- * @tparam CircuitConstructor The class holding the circuit
+ * @tparam Flavor
  * @param circuit_constructor The object holding the circuit
  * @param key Pointer to the proving key
  */
@@ -75,7 +82,7 @@ void construct_selector_polynomials(const typename Flavor::CircuitConstructor& c
 /**
  * @brief Fill the last index of each selector polynomial in lagrange form with a non-zero value
  *
- * @tparam CircuitConstructor The class holding the circuit
+ * @tparam Flavor
  * @param circuit_constructor The object holding the circuit
  * @param key Pointer to the proving key
  *
@@ -109,9 +116,14 @@ void enforce_nonzero_selector_polynomials(const typename Flavor::CircuitConstruc
  *
  * @details The first two witness polynomials bein with the public input values.of w_1, w_2 polynomials is filled with
  * public_input values.
- * @return A vector containing the computed witness polynomials.
+ *
  *
  * @tparam Flavor provides the circuit constructor type and the number of wires.
+ * @param circuit_constructor
+ * @param minimum_circuit_size
+ * @param number_of_randomized_gates
+ *
+ * @return std::vector<barretenberg::polynomial>
  * */
 template <typename Flavor>
 std::vector<barretenberg::polynomial> construct_wire_polynomials_base(
