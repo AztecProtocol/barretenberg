@@ -52,6 +52,15 @@ void prove_and_verify(auto& composer, bool expected_result)
     EXPECT_EQ(verified, expected_result);
 };
 
+TEST(UltraHonkComposer, NonZeroPolynomials)
+{
+    auto composer = UltraHonkComposer();
+
+    composer.create_vanishing_witness_gate();
+
+    prove_and_verify(composer, /*expected_result=*/true);
+}
+
 TEST(UltraHonkComposer, test_no_lookup_proof)
 {
     auto composer = UltraHonkComposer();

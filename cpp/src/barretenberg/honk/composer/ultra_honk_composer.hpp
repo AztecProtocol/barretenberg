@@ -54,6 +54,8 @@ class UltraHonkComposer {
     UltraProver create_prover() { return composer_helper.create_prover(circuit_constructor); };
     UltraVerifier create_verifier() { return composer_helper.create_verifier(circuit_constructor); };
 
+    void create_vanishing_witness_gate() { circuit_constructor.create_vanishing_witness_gate(); }
+
     void create_add_gate(const add_triple& in) { circuit_constructor.create_add_gate(in); }
 
     void create_big_add_gate(const add_quad& in, const bool use_next_gate_w_4 = false)

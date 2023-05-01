@@ -300,6 +300,8 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
 
     void finalize_circuit();
 
+    void create_vanishing_witness_gate();
+
     void create_add_gate(const add_triple& in) override;
 
     void create_big_add_gate(const add_quad& in, const bool use_next_gate_w_4 = false);

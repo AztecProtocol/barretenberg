@@ -41,6 +41,35 @@ void UltraCircuitConstructor::finalize_circuit()
     }
 }
 
+// WORKTODO: WiP
+/**
+ * @brief A gate with non-zero selectors and vanishing witnesses; part of strategy to avoid zero-polys
+ *
+ * @param in Structure containing variables and witness selectors
+ */
+void UltraCircuitConstructor::create_vanishing_witness_gate()
+{
+    assert_valid_variables({ 0, 0, 0 });
+
+    w_l.emplace_back(zero_idx);
+    w_r.emplace_back(zero_idx);
+    w_o.emplace_back(zero_idx);
+    w_4.emplace_back(zero_idx);
+    q_m.emplace_back(1);
+    q_1.emplace_back(1);
+    q_2.emplace_back(1);
+    q_3.emplace_back(1);
+    q_c.emplace_back(0);
+    q_sort.emplace_back(1);
+
+    q_arith.emplace_back(1);
+    q_4.emplace_back(1);
+    q_lookup_type.emplace_back(0);
+    q_elliptic.emplace_back(1);
+    q_aux.emplace_back(1);
+    ++num_gates;
+}
+
 /**
  * @brief Create an addition gate, where in.a * in.a_scaling + in.b * in.b_scaling + in.c * in.c_scaling +
  * in.const_scaling = 0
