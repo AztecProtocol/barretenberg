@@ -20,7 +20,7 @@ namespace proof_system::honk::flavor {
 
 /**
  * @brief Standard Honk
- * @details We built this variant first because it is the most basic. Because of this, it will remain useful for testing
+ * @details We built this flavor first because it is the most basic. Because of this, it will remain useful for testing
  * various constructions. Future variants may exist with varying: underlying curve (here we use BN254); commitment
  * scheme (here we use Gemini + Shplonk + KZG); zero knowlege property (it's not implemented yet, but in the future we
  * will be able to toggle it on or off).
@@ -40,17 +40,17 @@ class Standard {
 
     static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
     // The number of multivariate polynomials on which a sumcheck prover sumcheck operates. We often need containers of
-    // this size to hold related data, so we choose a more agnostic name than `NUM_POLYNOMIALS`
+    // this size to hold related data, so we choose a name more agnostic than `NUM_POLYNOMIALS`
     static constexpr size_t NUM_ALL_ENTITIES = 18;
-    // The number of polynomials that can be precomputed to describe a circuit and aid a prover in constructing a
-    // satisfying assignment of witness. We again choose a neutral name.
+    // The number of polynomials precomputed to describe a circuit and to aid a prover in constructing a satisfying
+    // assignment of witnesses. We again choose a neutral name.
     static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 13;
     // The total number of witness entities not including shifts.
     static constexpr size_t NUM_WITNESS_ENTITIES = 4;
 
   private:
     /**
-     * @brief A base class labelling precomputed entities and particular subsets of interest.
+     * @brief A base class labelling precomputed entities and (ordered) subsets of interest.
      * @details Used to build the proving key and verification key.
      */
     template <typename DataType, typename HandleType>
@@ -80,19 +80,19 @@ class Standard {
      * @details Shifts are not included here since they do not occupy their own memory.
      */
     template <typename DataType, typename HandleType>
-    class WitnessEntities : public Entities_<DataType, HandleType, NUM_WITNESS_ENTITIES> {
+    class WitnessEntities : public WitnessEntities_<DataType, HandleType, NUM_WITNESS_ENTITIES> {
       public:
         DataType& w_l = std::get<0>(this->_data);
         DataType& w_r = std::get<1>(this->_data);
         DataType& w_o = std::get<2>(this->_data);
         DataType& z_perm = std::get<3>(this->_data);
 
-        std::vector<HandleType> get_wires() { return { w_l, w_r, w_o }; };
+        std::vector<HandleType> get_wires() override { return { w_l, w_r, w_o }; };
     };
 
     /**
      * @brief A base class labelling all entities (for instance, all of the polynomials used by the prover during
-     * sumcheck) in this Honk variant along with paritcular subsets of interest.
+     * sumcheck) in this Honk variant along with particular subsets of interest.
      * @details Used to build containers for: the prover's polynomial during sumcheck; the sumcheck's folded
      * polynomials; the univariates consturcted during during sumcheck; the evaluations produced by sumcheck.
      */
@@ -159,7 +159,8 @@ class Standard {
   public:
     /**
      * @brief The proving key is responsible for storing the polynomials used by the prover.
-     * @details Maybe multiple inheritance is reasonable here.
+     * @note TODO(Cody): Maybe multiple inheritance is the right thing here. In that case, nothing should eve inherit
+     * from ProvingKey.
      */
     class ProvingKey : public ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>, FF> {
       public:
