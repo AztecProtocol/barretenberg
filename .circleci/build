@@ -20,6 +20,8 @@ echo "Repository: $REPOSITORY"
 echo "Working directory: $PWD"
 echo "Dockerfile: $DOCKERFILE"
 
+init_submodules $REPOSITORY
+
 cd $(query_manifest buildDir $REPOSITORY)
 
 function fetch_image() {
