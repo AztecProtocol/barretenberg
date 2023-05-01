@@ -144,6 +144,28 @@ class ProvingKey_ : public PrecomputedPolynomials, public WitnessPolynomials {
     std::vector<uint32_t> recursive_proof_public_input_indices;
     std::shared_ptr<ProverReferenceString> crs;
     barretenberg::EvaluationDomain<FF> evaluation_domain;
+
+    ProvingKey_() = default;
+    ProvingKey_(const size_t circuit_size,
+                const size_t num_public_inputs,
+                std::shared_ptr<ProverReferenceString> const& crs,
+                ComposerType composer_type)
+    {
+        this->crs = crs;
+        this->evaluation_domain = barretenberg::EvaluationDomain<FF>(circuit_size, circuit_size);
+        PrecomputedPolynomials::circuit_size = circuit_size;
+        this->log_circuit_size = numeric::get_msb(circuit_size);
+        this->num_public_inputs = num_public_inputs;
+        this->composer_type = composer_type;
+        // Allocate memory for precomputed polynomials
+        for (auto& poly : precomputed_polynomials) {
+            poly = Polynomial(circuit_size);
+        }
+        // Allocate memory for witness polynomials
+        for (auto& poly : witness_polynomials) {
+            poly = Polynomial(circuit_size);
+        }
+    };
 };
 
 /**

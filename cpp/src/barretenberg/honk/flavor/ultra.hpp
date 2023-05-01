@@ -195,31 +195,13 @@ class Ultra {
     class ProvingKey : public ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>,
                                           WitnessEntities<Polynomial, PolynomialHandle>> {
       public:
+        // Expose constructors on the base class
+        using Base = ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>,
+                                 WitnessEntities<Polynomial, PolynomialHandle>>;
+        using Base::Base;
+
         std::vector<uint32_t> memory_read_records;
         std::vector<uint32_t> memory_write_records;
-
-        ProvingKey() = default;
-        ProvingKey(const size_t circuit_size,
-                   const size_t num_public_inputs,
-                   std::shared_ptr<ProverReferenceString> const& crs,
-                   ComposerType composer_type)
-        {
-            this->crs = crs;
-            this->evaluation_domain = EvaluationDomain<FF>(circuit_size, circuit_size);
-
-            this->circuit_size = circuit_size;
-            this->log_circuit_size = numeric::get_msb(circuit_size);
-            this->num_public_inputs = num_public_inputs;
-            this->composer_type = composer_type;
-            // Allocate memory for precomputed polynomials
-            for (auto& poly : precomputed_polynomials) {
-                poly = Polynomial(circuit_size);
-            }
-            // Allocate memory for witness polynomials
-            for (auto& poly : witness_polynomials) {
-                poly = Polynomial(circuit_size);
-            }
-        };
 
         // The plookup wires that store plookup read data.
         std::array<PolynomialHandle, 3> get_table_column_wires() { return { w_l, w_r, w_o }; };
