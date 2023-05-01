@@ -287,15 +287,13 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         create_inner_circuit(inner_composer, inner_inputs);
 
         auto circuit_output = create_outer_circuit(inner_composer, outer_composer);
-        std::cout << "circuit_output: " << circuit_output.aggregation_state << std::endl;
 
         g1::affine_element P[2];
         P[0].x = barretenberg::fq(circuit_output.aggregation_state.P0.x.get_value().lo);
         P[0].y = barretenberg::fq(circuit_output.aggregation_state.P0.y.get_value().lo);
         P[1].x = barretenberg::fq(circuit_output.aggregation_state.P1.x.get_value().lo);
         P[1].y = barretenberg::fq(circuit_output.aggregation_state.P1.y.get_value().lo);
-        auto g2_lines = env_crs->get_verifier_crs()->get_precomputed_g2_lines();
-        std::cout << "precompute g2 lines: " << g2_lines << std::endl;
+
         barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
             P, env_crs->get_verifier_crs()->get_precomputed_g2_lines(), 2);
 
