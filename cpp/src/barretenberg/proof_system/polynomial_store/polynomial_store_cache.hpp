@@ -11,6 +11,10 @@
 
 namespace proof_system {
 
+/**
+ * Wraps both a "normal" PolynomialStore and a PolynomialStoreWasm, to maintain a LRU cache of polynomials in internal
+ * memory, and swapping older polynomials out the host environment to keep the internal memory < capacity_bytes.
+ */
 class PolynomialStoreCache {
   private:
     using Polynomial = barretenberg::Polynomial<barretenberg::fr>;
@@ -23,7 +27,7 @@ class PolynomialStoreCache {
   public:
     explicit PolynomialStoreCache(size_t capacity_bytes = std::numeric_limits<size_t>::max());
 
-    void put(std::string const& key, Polynomial const& value);
+    void put(std::string const& key, Polynomial&& value);
 
     Polynomial get(std::string const& key);
 

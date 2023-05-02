@@ -12,7 +12,7 @@ using namespace stdlib::types;
 void build_circuit(Composer& composer)
 {
     // while (composer.get_num_gates() <= 262144) {
-    while (composer.get_num_gates() <= 65536 * 2) {
+    while (composer.get_num_gates() <= 65536 * 4) {
         plonk::stdlib::pedersen_commitment<Composer>::compress(field_ct(witness_ct(&composer, 1)),
                                                                field_ct(witness_ct(&composer, 1)));
     }
