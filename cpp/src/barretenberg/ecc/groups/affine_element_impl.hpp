@@ -233,6 +233,10 @@ affine_element<Fq, Fr, T> affine_element<Fq, Fr, T>::hash_to_curve(const uint64_
 template <typename Fq, typename Fr, typename T>
 affine_element<Fq, Fr, T> affine_element<Fq, Fr, T>::random_element(numeric::random::Engine* engine) noexcept
 {
+    if (engine == nullptr) {
+        engine = &numeric::random::get_engine();
+    }
+
     bool found_one = false;
     Fq yy;
     Fq x;
