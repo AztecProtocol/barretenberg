@@ -241,8 +241,8 @@ jobs:
       - *checkout
       - *setup_env
       - run:
-        name: "Test"
-        command: docker build . -f sol/Dockerfile
+          name: "Test"
+          command: docker build . -f sol/Dockerfile
 
 # Repeatable config for defining the workflow below.
 bb_test: &bb_test
@@ -256,6 +256,7 @@ workflows:
       - x86_64-linux-clang
       - x86_64-linux-clang-assert
       - wasm-linux-clang
+      - sol
       - honk-tests: *bb_test
       - barretenberg-tests: *bb_test
       - stdlib-primitives-tests: *bb_test
@@ -263,7 +264,6 @@ workflows:
       - stdlib-recursion-turbo-tests: *bb_test
       - stdlib-recursion-ultra-tests: *bb_test
       - join-split-tests: *bb_test
-      - sol
       - benchmark-aggregator:
           requires:
             - barretenberg-tests
