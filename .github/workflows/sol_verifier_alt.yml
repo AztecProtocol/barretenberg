@@ -1,4 +1,4 @@
-name: test
+name: solidity-verifier-test-alt
 
 on:
   - workflow_dispatch
@@ -46,8 +46,11 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('cpp/*') }}
 
       - name: Build cpp
-        run: cd sol && scripts/init.sh
+        run: cd cpp && ./bootstrap.sh
 
+      - name: Initialize solidity tests
+        run: cd sol && scripts/init.sh
+      
       - name: Run Forge tests
         run: |
           forge test --no-match-contract TestBase -vvv
