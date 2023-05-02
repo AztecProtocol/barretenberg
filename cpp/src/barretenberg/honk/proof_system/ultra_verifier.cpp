@@ -135,7 +135,8 @@ template <typename Flavor> bool UltraVerifier_<Flavor>::verify_proof(const plonk
                              honk::sumcheck::UltraGrandProductComputationRelation,
                              honk::sumcheck::UltraGrandProductInitializationRelation,
                              honk::sumcheck::LookupGrandProductComputationRelation,
-                             honk::sumcheck::LookupGrandProductInitializationRelation>(circuit_size, transcript);
+                             honk::sumcheck::LookupGrandProductInitializationRelation,
+                             honk::sumcheck::GenPermSortRelation>(circuit_size, transcript);
 
     std::optional sumcheck_output = sumcheck.execute_verifier(relation_parameters);
 

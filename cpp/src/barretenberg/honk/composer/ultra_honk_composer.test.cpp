@@ -464,36 +464,35 @@ TEST(UltraHonkComposer, sort_widget_complex)
 
         prove_and_verify(composer, /*expected_result=*/true);
     }
-    // WORKTODO: This is failing; maybe just because I dont yet enforce the relevant relation
-    // {
+    {
 
-    //     auto composer = UltraHonkComposer();
-    //     std::vector<fr> a = { 1, 3, 4, 7, 7, 8, 16, 14, 15, 15, 18, 19, 21, 21, 24, 25, 26, 27, 30, 32 };
-    //     std::vector<uint32_t> ind;
-    //     for (size_t i = 0; i < a.size(); i++)
-    //         ind.emplace_back(composer.add_variable(a[i]));
-    //     composer.create_sort_constraint(ind);
+        auto composer = UltraHonkComposer();
+        std::vector<fr> a = { 1, 3, 4, 7, 7, 8, 16, 14, 15, 15, 18, 19, 21, 21, 24, 25, 26, 27, 30, 32 };
+        std::vector<uint32_t> ind;
+        for (size_t i = 0; i < a.size(); i++)
+            ind.emplace_back(composer.add_variable(a[i]));
+        composer.create_sort_constraint(ind);
 
-    //     prove_and_verify(composer, /*expected_result=*/false);
-    // }
+        prove_and_verify(composer, /*expected_result=*/false);
+    }
 }
-// WORKTODO: This is failing; maybe just because I dont yet enforce the relevant relation
-// TEST(UltraHonkComposer, sort_widget_neg)
-// {
-//     auto composer = UltraHonkComposer();
-//     fr a = fr::one();
-//     fr b = fr(2);
-//     fr c = fr(3);
-//     fr d = fr(8);
 
-//     auto a_idx = composer.add_variable(a);
-//     auto b_idx = composer.add_variable(b);
-//     auto c_idx = composer.add_variable(c);
-//     auto d_idx = composer.add_variable(d);
-//     composer.create_sort_constraint({ a_idx, b_idx, c_idx, d_idx });
+TEST(UltraHonkComposer, sort_widget_neg)
+{
+    auto composer = UltraHonkComposer();
+    fr a = fr::one();
+    fr b = fr(2);
+    fr c = fr(3);
+    fr d = fr(8);
 
-//     prove_and_verify(composer, /*expected_result=*/false);
-// }
+    auto a_idx = composer.add_variable(a);
+    auto b_idx = composer.add_variable(b);
+    auto c_idx = composer.add_variable(c);
+    auto d_idx = composer.add_variable(d);
+    composer.create_sort_constraint({ a_idx, b_idx, c_idx, d_idx });
+
+    prove_and_verify(composer, /*expected_result=*/false);
+}
 
 TEST(UltraHonkComposer, composed_range_constraint)
 {

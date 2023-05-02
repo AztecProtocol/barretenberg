@@ -42,13 +42,6 @@ template <typename FF> class GenPermSortRelation {
         auto w_1_shift = UnivariateView<FF, RELATION_LENGTH>(extended_edges.w_l_shift);
         auto q_sort = UnivariateView<FF, RELATION_LENGTH>(extended_edges.q_sort);
 
-        info("w_1 = ", w_1);
-        info("w_2 = ", w_2);
-        info("w_3 = ", w_3);
-        info("w_4 = ", w_4);
-        info("w_1_shift = ", w_1_shift);
-        info("q_sort = ", q_sort);
-
         static const FF minus_one = FF(-1);
         static const FF minus_two = FF(-2);
         static const FF minus_three = FF(-3);
@@ -68,49 +61,35 @@ template <typename FF> class GenPermSortRelation {
         auto delta_3 = w_4 - w_3;
         auto delta_4 = w_1_shift - w_4;
 
-        info("delta_1 = ", delta_1);
-        info("delta_2 = ", delta_2);
-        info("delta_3 = ", delta_3);
-        info("delta_4 = ", delta_4);
+        auto tmp_1 = delta_1;
+        tmp_1 *= (delta_1 + minus_one);
+        tmp_1 *= (delta_1 + minus_two);
+        tmp_1 *= (delta_1 + minus_three);
+        tmp_1 *= fake_alpha_1; // WORKTODO * 1
 
-        auto tmp = delta_1;
-        tmp *= (delta_1 + minus_one);
-        tmp *= (delta_1 + minus_two);
-        tmp *= (delta_1 + minus_three);
-        tmp *= fake_alpha_1; // WORKTODO * 1
+        auto tmp_2 = delta_2;
+        tmp_2 *= (delta_2 + minus_one);
+        tmp_2 *= (delta_2 + minus_two);
+        tmp_2 *= (delta_2 + minus_three);
+        tmp_2 *= fake_alpha_2; // WORKTODO * alpha
+
+        auto tmp_3 = delta_3;
+        tmp_3 *= (delta_3 + minus_one);
+        tmp_3 *= (delta_3 + minus_two);
+        tmp_3 *= (delta_3 + minus_three);
+        tmp_3 *= fake_alpha_3; // WORKTODO * alpha^2
+
+        auto tmp_4 = delta_4;
+        tmp_4 *= (delta_4 + minus_one);
+        tmp_4 *= (delta_4 + minus_two);
+        tmp_4 *= (delta_4 + minus_three);
+        tmp_4 *= fake_alpha_4; // WORKTODO * alpha^3
+
+        auto tmp = tmp_1 + tmp_2 + tmp_3 + tmp_4;
+        tmp *= q_sort;
+        tmp *= scaling_factor;
+
         evals += tmp;
-
-        info("tmp = ", tmp);
-
-        tmp = delta_2;
-        tmp *= (delta_2 + minus_one);
-        tmp *= (delta_2 + minus_two);
-        tmp *= (delta_2 + minus_three);
-        tmp *= fake_alpha_2; // WORKTODO * alpha
-        evals += tmp;
-
-        info("tmp = ", tmp);
-
-        tmp = delta_3;
-        tmp *= (delta_3 + minus_one);
-        tmp *= (delta_3 + minus_two);
-        tmp *= (delta_3 + minus_three);
-        tmp *= fake_alpha_3; // WORKTODO * alpha^2
-        evals += tmp;
-
-        info("tmp = ", tmp);
-
-        tmp = delta_4;
-        tmp *= (delta_4 + minus_one);
-        tmp *= (delta_4 + minus_two);
-        tmp *= (delta_4 + minus_three);
-        tmp *= fake_alpha_4; // WORKTODO * alpha^3
-        evals += tmp;
-
-        info("tmp = ", tmp);
-
-        evals *= q_sort;
-        evals *= scaling_factor;
     };
 
     void add_full_relation_value_contribution(FF& full_honk_relation_value,
@@ -143,35 +122,34 @@ template <typename FF> class GenPermSortRelation {
         auto delta_3 = w_4 - w_3;
         auto delta_4 = w_1_shift - w_4;
 
-        auto tmp = delta_1;
-        tmp *= (delta_1 + minus_one);
-        tmp *= (delta_1 + minus_two);
-        tmp *= (delta_1 + minus_three);
-        tmp *= fake_alpha_1; // WORKTODO * 1
-        full_honk_relation_value += tmp;
+        auto tmp_1 = delta_1;
+        tmp_1 *= (delta_1 + minus_one);
+        tmp_1 *= (delta_1 + minus_two);
+        tmp_1 *= (delta_1 + minus_three);
+        tmp_1 *= fake_alpha_1; // WORKTODO * 1
 
-        tmp = delta_2;
-        tmp *= (delta_2 + minus_one);
-        tmp *= (delta_2 + minus_two);
-        tmp *= (delta_2 + minus_three);
-        tmp *= fake_alpha_2; // WORKTODO * alpha
-        full_honk_relation_value += tmp;
+        auto tmp_2 = delta_2;
+        tmp_2 *= (delta_2 + minus_one);
+        tmp_2 *= (delta_2 + minus_two);
+        tmp_2 *= (delta_2 + minus_three);
+        tmp_2 *= fake_alpha_2; // WORKTODO * alpha
 
-        tmp = delta_3;
-        tmp *= (delta_3 + minus_one);
-        tmp *= (delta_3 + minus_two);
-        tmp *= (delta_3 + minus_three);
-        tmp *= fake_alpha_3; // WORKTODO * alpha^2
-        full_honk_relation_value += tmp;
+        auto tmp_3 = delta_3;
+        tmp_3 *= (delta_3 + minus_one);
+        tmp_3 *= (delta_3 + minus_two);
+        tmp_3 *= (delta_3 + minus_three);
+        tmp_3 *= fake_alpha_3; // WORKTODO * alpha^2
 
-        tmp = delta_4;
-        tmp *= (delta_4 + minus_one);
-        tmp *= (delta_4 + minus_two);
-        tmp *= (delta_4 + minus_three);
-        tmp *= fake_alpha_4; // WORKTODO * alpha^3
-        full_honk_relation_value += tmp;
+        auto tmp_4 = delta_4;
+        tmp_4 *= (delta_4 + minus_one);
+        tmp_4 *= (delta_4 + minus_two);
+        tmp_4 *= (delta_4 + minus_three);
+        tmp_4 *= fake_alpha_4; // WORKTODO * alpha^3
 
-        full_honk_relation_value *= q_sort;
+        auto tmp = tmp_1 + tmp_2 + tmp_3 + tmp_4;
+        tmp *= q_sort;
+
+        full_honk_relation_value += tmp;
     };
 };
 } // namespace proof_system::honk::sumcheck
