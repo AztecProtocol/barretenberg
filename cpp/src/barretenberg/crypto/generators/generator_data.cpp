@@ -6,7 +6,7 @@ namespace {
 
 // Parameters for generator table construction
 struct GeneratorParameters {
-    size_t num_default_generators; // Number of unique base points with default main index
+    size_t num_default_generators; // Number of unique base points with default main index with precomputed ladders
     size_t num_hash_indices; // Number of unique hash indices
     size_t num_generators_per_hash_index; // Number of generators per hash index
     size_t hash_indices_generator_offset; // Offset for hash index generators
@@ -19,10 +19,10 @@ struct GeneratorParameters {
 constexpr GeneratorParameters GEN_PARAMS = {BARRETENBERG_CRYPTO_GENERATOR_PARAMETERS_HACK};
 #else
 #ifdef __wasm__
-constexpr GeneratorParameters GEN_PARAMS = {64, 16, 32, 64};
+constexpr GeneratorParameters GEN_PARAMS = {32, 16, 8, 2048};
 // TODO need to resolve memory out of bounds when these are too high
 #else
-constexpr GeneratorParameters GEN_PARAMS = {2048, 32, 128, 2048};
+constexpr GeneratorParameters GEN_PARAMS = {2048, 16, 8, 2048};
 #endif
 #endif
 
