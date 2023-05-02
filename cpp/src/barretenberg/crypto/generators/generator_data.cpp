@@ -35,30 +35,32 @@ constexpr size_t num_generator_types = 3;
 ladder_t g1_ladder;
 bool inited = false;
 
-void compute_fixed_base_ladder(const grumpkin::g1::affine_element& generator, ladder_t& ladder)
+template <size_t ladder_length>
+void compute_fixed_base_ladder(const grumpkin::g1::affine_element& generator,
+                               std::array<fixed_base_ladder, ladder_length>& ladder)
 {
     grumpkin::g1::element* ladder_temp =
-        static_cast<grumpkin::g1::element*>(aligned_alloc(64, sizeof(grumpkin::g1::element) * (quad_length * 2)));
+        static_cast<grumpkin::g1::element*>(aligned_alloc(64, sizeof(grumpkin::g1::element) * (ladder_length * 2)));
 
     grumpkin::g1::element accumulator;
     accumulator = grumpkin::g1::element(generator);
-    for (size_t i = 0; i < quad_length; ++i) {
+    for (size_t i = 0; i < ladder_length; ++i) {
         ladder_temp[i] = accumulator;
         accumulator.self_dbl();
-        ladder_temp[quad_length + i] = ladder_temp[i] + accumulator;
+        ladder_temp[ladder_length + i] = ladder_temp[i] + accumulator;
         accumulator.self_dbl();
     }
-    grumpkin::g1::element::batch_normalize(&ladder_temp[0], quad_length * 2);
-    for (size_t i = 0; i < quad_length; ++i) {
-        grumpkin::fq::__copy(ladder_temp[i].x, ladder[quad_length - 1 - i].one.x);
-        grumpkin::fq::__copy(ladder_temp[i].y, ladder[quad_length - 1 - i].one.y);
-        grumpkin::fq::__copy(ladder_temp[quad_length + i].x, ladder[quad_length - 1 - i].three.x);
-        grumpkin::fq::__copy(ladder_temp[quad_length + i].y, ladder[quad_length - 1 - i].three.y);
+    grumpkin::g1::element::batch_normalize(&ladder_temp[0], ladder_length * 2);
+    for (size_t i = 0; i < ladder_length; ++i) {
+        grumpkin::fq::__copy(ladder_temp[i].x, ladder[ladder_length - 1 - i].one.x);
+        grumpkin::fq::__copy(ladder_temp[i].y, ladder[ladder_length - 1 - i].one.y);
+        grumpkin::fq::__copy(ladder_temp[ladder_length + i].x, ladder[ladder_length - 1 - i].three.x);
+        grumpkin::fq::__copy(ladder_temp[ladder_length + i].y, ladder[ladder_length - 1 - i].three.y);
     }
 
     constexpr grumpkin::fq eight_inverse = grumpkin::fq{ 8, 0, 0, 0 }.to_montgomery_form().invert();
-    std::array<grumpkin::fq, quad_length> y_denominators;
-    for (size_t i = 0; i < quad_length; ++i) {
+    std::array<grumpkin::fq, ladder_length> y_denominators;
+    for (size_t i = 0; i < ladder_length; ++i) {
 
         grumpkin::fq x_beta = ladder[i].one.x;
         grumpkin::fq x_gamma = ladder[i].three.x;
@@ -86,8 +88,8 @@ void compute_fixed_base_ladder(const grumpkin::g1::affine_element& generator, la
         ladder[i].q_y_1 = y_alpha_1;
         ladder[i].q_y_2 = y_alpha_2;
     }
-    grumpkin::fq::batch_invert(&y_denominators[0], quad_length);
-    for (size_t i = 0; i < quad_length; ++i) {
+    grumpkin::fq::batch_invert(&y_denominators[0], ladder_length);
+    for (size_t i = 0; i < ladder_length; ++i) {
         ladder[i].q_y_1 *= y_denominators[i];
         ladder[i].q_y_2 *= y_denominators[i];
     }
@@ -127,18 +129,18 @@ auto compute_generator_data(grumpkin::g1::affine_element const& generator,
     gen_data->aux_generator = aux_generator;
     gen_data->skew_generator = skew_generator;
 
-    compute_fixed_base_ladder(generator, gen_data->ladder);
-    compute_fixed_base_ladder(aux_generator, gen_data->aux_ladder);
+    compute_fixed_base_ladder<quad_length>(generator, gen_data->ladder);
+    std::array<fixed_base_ladder, aux_length> aux_ladder_temp;
+    compute_fixed_base_ladder<aux_length>(aux_generator, aux_ladder_temp);
 
-    constexpr size_t first_generator_segment = quad_length - 2;
-    constexpr size_t second_generator_segment = 2;
+    constexpr size_t first_generator_segment = quad_length - aux_length;
+    constexpr size_t second_generator_segment = aux_length;
 
     for (size_t j = 0; j < first_generator_segment; ++j) {
         gen_data->hash_ladder[j] = gen_data->ladder[j + (quad_length - first_generator_segment)];
     }
     for (size_t j = 0; j < second_generator_segment; ++j) {
-        gen_data->hash_ladder[j + first_generator_segment] =
-            gen_data->aux_ladder[j + (quad_length - second_generator_segment)];
+        gen_data->hash_ladder[j + first_generator_segment] = aux_ladder_temp[j];
     }
 
     return gen_data;
