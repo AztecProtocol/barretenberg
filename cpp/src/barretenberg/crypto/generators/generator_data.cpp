@@ -6,7 +6,7 @@ namespace {
 
 // Parameters for generator table construction
 struct GeneratorParameters {
-    size_t num_default_generators; // Number of unique base points with default main index
+    size_t num_default_generators; // Number of unique base points with default main index with precomputed ladders
     size_t num_hash_indices; // Number of unique hash indices
     size_t num_generators_per_hash_index; // Number of generators per hash index
     size_t hash_indices_generator_offset; // Offset for hash index generators
