@@ -2,6 +2,7 @@
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation_secondary.hpp"
 #include "barretenberg/honk/sumcheck/relations/lookup_grand_product_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
 #include "barretenberg/honk/flavor/ultra.hpp"
 #include "relation.hpp"
 #include "arithmetic_relation.hpp"
@@ -453,6 +454,59 @@ TEST_F(UltraRelationConsistency, GenPermSortRelation)
     expected_evals += delta_3 * (delta_3 - 1) * (delta_3 - 2) * (delta_3 - 3) * fake_alpha_3;
     expected_evals += delta_4 * (delta_4 - 1) * (delta_4 - 2) * (delta_4 - 3) * fake_alpha_4;
     expected_evals *= q_sort;
+
+    validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
+};
+
+TEST_F(UltraRelationConsistency, EllipticRelation)
+{
+    using Flavor = honk::flavor::Ultra;
+    using FF = typename Flavor::FF;
+    using Flavor = honk::flavor::Ultra;
+    static constexpr size_t FULL_RELATION_LENGTH = 6;
+    using ExtendedEdges = typename Flavor::ExtendedEdges<FULL_RELATION_LENGTH>;
+    static const size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
+    auto relation_parameters = compute_mock_relation_parameters();
+    ExtendedEdges extended_edges;
+    std::array<Univariate<FF, INPUT_UNIVARIATE_LENGTH>, NUM_POLYNOMIALS> input_polynomials;
+
+    // input_univariates are random polynomials of degree one
+    for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
+        input_polynomials[i] = Univariate<FF, INPUT_UNIVARIATE_LENGTH>({ FF::random_element(), FF::random_element() });
+    }
+    compute_mock_extended_edges(extended_edges, input_polynomials);
+
+    auto relation = EllipticRelation<FF>();
+
+    // Extract the extended edges for manual computation of relation contribution
+    const auto& x_1 = extended_edges.w_r;
+    const auto& y_1 = extended_edges.w_o;
+
+    const auto& x_2 = extended_edges.w_l_shift;
+    const auto& y_2 = extended_edges.w_4_shift;
+    const auto& x_3 = extended_edges.w_r_shift;
+    const auto& y_3 = extended_edges.w_o_shift;
+
+    const auto& q_sign = extended_edges.q_l;
+    const auto& q_beta = extended_edges.q_o;
+    const auto& q_beta_sqr = extended_edges.q_4;
+    const auto& q_elliptic = extended_edges.q_elliptic;
+
+    static const FF fake_alpha_1 = FF(1);
+    static const FF fake_alpha_2 = fake_alpha_1 * fake_alpha_1;
+
+    // Compute x/y coordinate identities
+    auto x_identity = q_sign * (y_1 * y_2 * 2);
+    x_identity += q_beta * (x_1 * x_2 * x_3 * 2 + x_1 * x_1 * x_2) * FF(-1);
+    x_identity += q_beta_sqr * (x_2 * x_2 * x_3 - x_1 * x_2 * x_2);
+    x_identity += (x_1 * x_1 * x_3 - y_2 * y_2 - y_1 * y_1 + x_2 * x_2 * x_2 + x_1 * x_1 * x_1);
+
+    auto y_identity = q_sign * (y_2 * x_3 - y_2 * x_1);
+    y_identity += q_beta * (x_2 * y_3 + y_1 * x_2);
+    y_identity += (x_1 * y_1 - x_1 * y_3 - y_1 * x_3 - x_1 * y_1);
+
+    auto expected_evals = x_identity * fake_alpha_1 + y_identity * fake_alpha_2;
+    expected_evals *= q_elliptic;
 
     validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
 };
