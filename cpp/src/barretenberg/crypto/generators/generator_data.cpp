@@ -14,8 +14,7 @@ struct GeneratorParameters {
 
 // Define BARRETENBERG_CRYPTO_GENERATOR_PARAMETERS_HACK to use custom values for generator parameters
 // This hack is to avoid breakage due to generators in aztec circuits while maintaining compatibility
-// with the barretenberg master. The custom values should be set considering the specific requirements and constraints
-// of the aztec circuits to avoid problematic values.
+// with the barretenberg master.
 #ifdef BARRETENBERG_CRYPTO_GENERATOR_PARAMETERS_HACK
 constexpr GeneratorParameters GEN_PARAMS = {BARRETENBERG_CRYPTO_GENERATOR_PARAMETERS_HACK};
 #else
