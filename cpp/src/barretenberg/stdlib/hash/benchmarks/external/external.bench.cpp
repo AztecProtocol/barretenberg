@@ -40,26 +40,7 @@ void generate_test_sha256_plonk_circuit(Composer& composer, size_t num_iteration
         input = proof_system::plonk::stdlib::sha256<Composer>(input);
     }
 }
-// /**
-//  * @brief If CPU scaling is disabled, we need to warm up to get an accurate reading on the first benchmark
-//  *
-//  * @param state
-//  */
-// void warm_up(State& state)
-// {
-//     for (auto _ : state) {
 
-//         size_t num_iterations = static_cast<size_t>(state.range(0));
-//         auto composer = Composer();
-//         generate_test_sha256_plonk_circuit(composer, num_iterations);
-//         info("Gate number: ", composer.get_num_gates());
-//         auto prover = composer.create_prover();
-//         auto proof = prover.construct_proof();
-//         info("Proof Size for SHA256 hash count ", num_iterations, ": ", proof.proof_data.size());
-//     }
-// }
-
-// BENCHMARK(warm_up)->DenseRange(1, 3);
 Composer external_composers[NUM_PROOFS];
 Prover external_provers[NUM_PROOFS];
 Verifier external_verifiers[NUM_PROOFS];
