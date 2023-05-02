@@ -75,13 +75,10 @@ acir_format::Composer create_inner_circuit()
         .q_o = 0,
         .q_c = 1,
     };
-    // EXPR [ (1, _4, _5) (-1, _6) 0 ]
-    // EXPR [ (1, _4, _6) (-1, _4) 0 ]
-    // EXPR [ (-1, _6) 1 ]
 
     acir_format::acir_format constraint_system{
         .varnum = 7,
-        .public_inputs = { 2 },
+        .public_inputs = { 2, 3 },
         .fixed_base_scalar_mul_constraints = {},
         .logic_constraints = { logic_constraint },
         .range_constraints = { range_a, range_b },
@@ -109,67 +106,101 @@ acir_format::Composer create_inner_circuit()
     return composer;
 }
 
-TEST(RecursionConstraint, TestRecursionConstraint)
+/**
+ * @brief Create a circuit that recursively verifies one or more inner circuits
+ *
+ * @param inner_composers
+ * @return acir_format::Composer
+ */
+acir_format::Composer create_outer_circuit(std::vector<acir_format::Composer>& inner_composers)
 {
-    auto inner_composer = create_inner_circuit();
+    std::vector<acir_format::RecursionConstraint> recursion_constraints;
 
-    auto inner_prover = inner_composer.create_prover();
-    auto inner_proof = inner_prover.construct_proof();
-    auto inner_verifier = inner_composer.create_verifier();
-
-    // std::vector<uint8_t> keybuf;
-    // write(keybuf, *(inner_verifier.key));
-
-    std::array<uint32_t, acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE> output_vars;
-    for (size_t i = 0; i < 16; ++i) {
-        // variable idx 1 = public input
-        // variable idx 2-18 = output_vars
-        output_vars[i] = (static_cast<uint32_t>(i + 3));
-    }
-
-    transcript::StandardTranscript transcript(inner_proof.proof_data,
-                                              acir_format::Composer::create_manifest(1),
-                                              transcript::HashType::PlookupPedersenBlake3s,
-                                              16);
-
-    const std::vector<barretenberg::fr> proof_witnesses = transcript.export_transcript_in_recursion_format();
-    const std::vector<barretenberg::fr> key_witnesses = inner_verifier.key->export_key_in_recursion_format();
-
-    std::vector<uint32_t> proof_indices;
-    const size_t proof_size = proof_witnesses.size();
-
-    for (size_t i = 0; i < proof_size; ++i) {
-        proof_indices.emplace_back(static_cast<uint32_t>(i + 19));
-    }
-
-    std::vector<uint32_t> key_indices;
-    const size_t key_size = key_witnesses.size();
-    for (size_t i = 0; i < key_size; ++i) {
-        key_indices.emplace_back(static_cast<uint32_t>(i + 19 + proof_size));
-    }
-    acir_format::RecursionConstraint recursion_constraint{
-        .key = key_indices,
-        .proof = proof_indices,
-        .public_input = 1,
-        .key_hash = 2,
-        .input_aggregation_object = {},
-        .output_aggregation_object = output_vars,
-    };
-
+    // witness count starts at 1 (Composer reserves 1st witness to be the zero-valued zero_idx)
+    size_t witness_offset = 1;
+    std::array<uint32_t, acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE> output_aggregation_object;
     std::vector<fr> witness;
-    for (size_t i = 0; i < 18; ++i) {
-        witness.emplace_back(0);
+
+    for (size_t i = 0; i < inner_composers.size(); ++i) {
+        const bool has_input_aggregation_object = i > 0;
+
+        auto& inner_composer = inner_composers[i];
+        auto inner_prover = inner_composer.create_prover();
+        auto inner_proof = inner_prover.construct_proof();
+        auto inner_verifier = inner_composer.create_verifier();
+
+        const bool has_nested_proof = inner_verifier.key->contains_recursive_proof;
+        const size_t num_inner_public_inputs = inner_composer.get_num_public_inputs();
+
+        transcript::StandardTranscript transcript(inner_proof.proof_data,
+                                                  acir_format::Composer::create_manifest(num_inner_public_inputs),
+                                                  transcript::HashType::PlookupPedersenBlake3s,
+                                                  16);
+
+        const std::vector<barretenberg::fr> proof_witnesses = transcript.export_transcript_in_recursion_format();
+        const std::vector<barretenberg::fr> key_witnesses = inner_verifier.key->export_key_in_recursion_format();
+
+        const uint32_t key_hash_start_idx = static_cast<uint32_t>(witness_offset);
+        const uint32_t public_input_start_idx = key_hash_start_idx + 1;
+        const uint32_t output_aggregation_object_start_idx =
+            static_cast<uint32_t>(public_input_start_idx + num_inner_public_inputs + (has_nested_proof ? 16 : 0));
+        const uint32_t proof_indices_start_idx = output_aggregation_object_start_idx + 16;
+        const uint32_t key_indices_start_idx = static_cast<uint32_t>(proof_indices_start_idx + proof_witnesses.size());
+
+        std::vector<uint32_t> proof_indices;
+        std::vector<uint32_t> key_indices;
+        std::vector<uint32_t> inner_public_inputs;
+        std::array<uint32_t, acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE> input_aggregation_object = {};
+        std::array<uint32_t, acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE> nested_aggregation_object = {};
+        if (has_input_aggregation_object) {
+            input_aggregation_object = output_aggregation_object;
+        }
+        for (size_t i = 0; i < 16; ++i) {
+            output_aggregation_object[i] = (static_cast<uint32_t>(i + output_aggregation_object_start_idx));
+        }
+        if (has_nested_proof) {
+            for (size_t i = 0; i < 16; ++i) {
+                nested_aggregation_object[i] = inner_composer.recursive_proof_public_input_indices[i];
+            }
+        }
+        for (size_t i = 0; i < proof_witnesses.size(); ++i) {
+            proof_indices.emplace_back(static_cast<uint32_t>(i + proof_indices_start_idx));
+        }
+        const size_t key_size = key_witnesses.size();
+        for (size_t i = 0; i < key_size; ++i) {
+            key_indices.emplace_back(static_cast<uint32_t>(i + key_indices_start_idx));
+        }
+        for (size_t i = 0; i < num_inner_public_inputs; ++i) {
+            inner_public_inputs.push_back(static_cast<uint32_t>(i + public_input_start_idx));
+        }
+
+        acir_format::RecursionConstraint recursion_constraint{
+            .key = key_indices,
+            .proof = proof_indices,
+            .public_inputs = inner_public_inputs,
+            .key_hash = key_hash_start_idx,
+            .input_aggregation_object = input_aggregation_object,
+            .output_aggregation_object = output_aggregation_object,
+            .nested_aggregation_object = nested_aggregation_object,
+        };
+        recursion_constraints.push_back(recursion_constraint);
+        for (size_t i = 0; i < proof_indices_start_idx - witness_offset; ++i) {
+            witness.emplace_back(0);
+        }
+        for (const auto& wit : proof_witnesses) {
+            witness.emplace_back(wit);
+        }
+        for (const auto& wit : key_witnesses) {
+            witness.emplace_back(wit);
+        }
+        witness_offset = key_indices_start_idx + key_witnesses.size();
     }
-    for (const auto& wit : proof_witnesses) {
-        witness.emplace_back(wit);
-    }
-    for (const auto& wit : key_witnesses) {
-        witness.emplace_back(wit);
-    }
+
+    std::vector<uint32_t> public_inputs(output_aggregation_object.begin(), output_aggregation_object.end());
 
     acir_format::acir_format constraint_system{
         .varnum = static_cast<uint32_t>(witness.size() + 1),
-        .public_inputs = { 1 },
+        .public_inputs = public_inputs,
         .fixed_base_scalar_mul_constraints = {},
         .logic_constraints = {},
         .range_constraints = {},
@@ -180,16 +211,61 @@ TEST(RecursionConstraint, TestRecursionConstraint)
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .merkle_membership_constraints = {},
-        .recursion_constraints = { recursion_constraint },
+        .recursion_constraints = recursion_constraints,
         .constraints = {},
     };
 
     auto composer = acir_format::create_circuit_with_witness(constraint_system, witness);
-    auto prover = composer.create_prover();
 
+    return composer;
+}
+
+TEST(RecursionConstraint, TestRecursionConstraints)
+{
+    /**
+     * We want to test the following:
+     * 1. circuit that verifies a proof of another circuit
+     * 2. the above, but the inner circuit contains a recursive proof output that we have to aggregate
+     * 3. the above, but the outer circuit verifies 2 proofs, the aggregation outputs from the 2 proofs (+ the recursive
+     * proof output from 2) are aggregated together
+     *
+     * A = basic circuit
+     * B = circuit that verifies proof of A
+     * C = circuit that verifies proof of B and a proof of A
+     *
+     * Layer 1 = proof of A
+     * Layer 2 = verifies proof of A and proof of B
+     * Layer 3 = verifies proof of C
+     *
+     * Attempt at a visual graphic
+     * ===========================
+     *
+     *     C
+     *     ^
+     *     |
+     *     | - B
+     *     ^   ^
+     *     |   |
+     *     |    -A
+     *     |
+     *      - A
+     *
+     * ===========================
+     *
+     * Final aggregation object contains aggregated proofs for 2 instances of A and 1 instance of B
+     */
+    std::vector<acir_format::Composer> layer_1_composers;
+    layer_1_composers.push_back(create_inner_circuit());
+
+    std::vector<acir_format::Composer> layer_2_composers;
+
+    layer_2_composers.push_back(create_inner_circuit());
+    layer_2_composers.push_back(create_outer_circuit(layer_1_composers));
+    auto layer_3_composer = create_outer_circuit(layer_2_composers);
+    std::cout << "composer gates = " << layer_3_composer.get_num_gates() << std::endl;
+    auto prover = layer_3_composer.create_prover();
+    std::cout << "prover gates = " << prover.circuit_size << std::endl;
     auto proof = prover.construct_proof();
-    auto verifier = composer.create_verifier();
+    auto verifier = layer_3_composer.create_verifier();
     EXPECT_EQ(verifier.verify_proof(proof), true);
-
-    EXPECT_EQ(composer.get_variable(1), 10);
 }

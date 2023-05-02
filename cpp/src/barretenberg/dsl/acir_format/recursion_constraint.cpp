@@ -22,17 +22,22 @@ void generate_dummy_proof() {}
  *       We would either need a separate ACIR opcode where inner_proof_contains_recursive_proof = true,
  *       or we need non-witness data to be provided as metadata in the ACIR opcode
  */
-template <bool has_valid_witness_assignment, bool inner_proof_contains_recursive_proof>
+template <bool has_valid_witness_assignment>
 void create_recursion_constraints(Composer& composer, const RecursionConstraint& input)
 {
-
+    const auto& nested_aggregation_indices = input.nested_aggregation_object;
+    bool nested_aggregation_indices_all_zero = true;
+    for (const auto& idx : nested_aggregation_indices) {
+        nested_aggregation_indices_all_zero &= (idx == 0);
+    }
+    const bool inner_proof_contains_recursive_proof = !nested_aggregation_indices_all_zero;
     // If we do not have a witness, we must ensure that our dummy witness will not trigger
     // on-curve errors and inverting-zero errors
     {
         // get a fake key/proof that satisfies on-curve + inversion-zero checks
         const std::vector<fr> dummy_key = plonk::verification_key::export_dummy_key_in_recursion_format(
             PolynomialManifest(Composer::type), inner_proof_contains_recursive_proof);
-        const auto manifest = Composer::create_unrolled_manifest(1);
+        const auto manifest = Composer::create_unrolled_manifest(input.public_inputs.size());
         const std::vector<barretenberg::fr> dummy_proof =
             transcript::StandardTranscript::export_dummy_transcript_in_recursion_format(manifest);
         for (size_t i = 0; i < input.proof.size(); ++i) {
@@ -88,7 +93,7 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
         previous_aggregation.has_data = false;
     }
 
-    transcript::Manifest manifest = Composer::create_unrolled_manifest(1);
+    transcript::Manifest manifest = Composer::create_unrolled_manifest(input.public_inputs.size());
     std::vector<field_ct> key_fields;
     key_fields.reserve(input.key.size());
     for (const auto& idx : input.key) {
@@ -101,10 +106,10 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
     }
 
     // recursively verify the proof
-    std::shared_ptr<verification_key_ct> vkey =
-        verification_key_ct::template from_field_pt_vector<inner_proof_contains_recursive_proof>(&composer, key_fields);
+    std::shared_ptr<verification_key_ct> vkey = verification_key_ct::from_field_pt_vector(
+        &composer, key_fields, inner_proof_contains_recursive_proof, nested_aggregation_indices);
     vkey->program_width = noir_recursive_settings::program_width;
-    Transcript_ct transcript(&composer, manifest, proof_fields, 1);
+    Transcript_ct transcript(&composer, manifest, proof_fields, input.public_inputs.size());
     aggregation_state_ct result = proof_system::plonk::stdlib::recursion::verify_proof_<bn254, noir_recursive_settings>(
         &composer, vkey, transcript, previous_aggregation);
 
@@ -113,13 +118,14 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
 
     // Assign the output aggregation object to the proof public inputs (16 field elements representing two
     // G1 points)
-    result.add_proof_outputs_as_public_inputs();
+    // result.add_proof_outputs_as_public_inputs();
 
-    ASSERT(result.public_inputs.size() == 1);
+    ASSERT(result.public_inputs.size() == input.public_inputs.size());
 
     // Assign the `public_input` field to the public input of the inner proof
-    result.public_inputs[0].assert_equal(field_ct::from_witness_index(&composer, input.public_input));
-
+    for (size_t i = 0; i < input.public_inputs.size(); ++i) {
+        result.public_inputs[i].assert_equal(field_ct::from_witness_index(&composer, input.public_inputs[i]));
+    }
     // Assign the recursive proof outputs to `output_aggregation_object`
     for (size_t i = 0; i < result.proof_witness_indices.size(); ++i) {
         const auto lhs = field_ct::from_witness_index(&composer, result.proof_witness_indices[i]);
@@ -128,9 +134,7 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
     }
 }
 
-template void create_recursion_constraints<false, false>(Composer&, const RecursionConstraint&);
-template void create_recursion_constraints<false, true>(Composer&, const RecursionConstraint&);
-template void create_recursion_constraints<true, false>(Composer&, const RecursionConstraint&);
-template void create_recursion_constraints<true, true>(Composer&, const RecursionConstraint&);
+template void create_recursion_constraints<false>(Composer&, const RecursionConstraint&);
+template void create_recursion_constraints<true>(Composer&, const RecursionConstraint&);
 
 } // namespace acir_format

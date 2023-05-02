@@ -86,8 +86,18 @@ void create_circuit(Composer& composer, const acir_format& constraint_system)
     }
 
     // Add recursion constraints
-    for (const auto& constraint : constraint_system.recursion_constraints) {
-        create_recursion_constraints<false, false>(composer, constraint);
+    for (size_t i = 0; i < constraint_system.recursion_constraints.size(); ++i) {
+        auto& constraint = constraint_system.recursion_constraints[i];
+        create_recursion_constraints<false>(composer, constraint);
+
+        // make sure the verification key records the public input indices of the final recursion output
+        // (N.B. up to the ACIR description to make sure that the final output aggregation object wires are public
+        // inputs!)
+        if (i == constraint_system.recursion_constraints.size() - 1) {
+            std::vector<uint32_t> proof_output_witness_indices(constraint.output_aggregation_object.begin(),
+                                                               constraint.output_aggregation_object.end());
+            composer.set_recursive_proof(proof_output_witness_indices);
+        }
     }
 }
 
@@ -170,8 +180,18 @@ Composer create_circuit(const acir_format& constraint_system,
     }
 
     // Add recursion constraints
-    for (const auto& constraint : constraint_system.recursion_constraints) {
-        create_recursion_constraints<false, false>(composer, constraint);
+    for (size_t i = 0; i < constraint_system.recursion_constraints.size(); ++i) {
+        auto& constraint = constraint_system.recursion_constraints[i];
+        create_recursion_constraints<false>(composer, constraint);
+
+        // make sure the verification key records the public input indices of the final recursion output
+        // (N.B. up to the ACIR description to make sure that the final output aggregation object wires are public
+        // inputs!)
+        if (i == constraint_system.recursion_constraints.size() - 1) {
+            std::vector<uint32_t> proof_output_witness_indices(constraint.output_aggregation_object.begin(),
+                                                               constraint.output_aggregation_object.end());
+            composer.set_recursive_proof(proof_output_witness_indices);
+        }
     }
 
     return composer;
@@ -259,8 +279,18 @@ Composer create_circuit_with_witness(const acir_format& constraint_system,
     }
 
     // Add recursion constraints
-    for (const auto& constraint : constraint_system.recursion_constraints) {
-        create_recursion_constraints<true, false>(composer, constraint);
+    for (size_t i = 0; i < constraint_system.recursion_constraints.size(); ++i) {
+        auto& constraint = constraint_system.recursion_constraints[i];
+        create_recursion_constraints<true>(composer, constraint);
+
+        // make sure the verification key records the public input indices of the final recursion output
+        // (N.B. up to the ACIR description to make sure that the final output aggregation object wires are public
+        // inputs!)
+        if (i == constraint_system.recursion_constraints.size() - 1) {
+            std::vector<uint32_t> proof_output_witness_indices(constraint.output_aggregation_object.begin(),
+                                                               constraint.output_aggregation_object.end());
+            composer.set_recursive_proof(proof_output_witness_indices);
+        }
     }
     return composer;
 }
@@ -344,8 +374,18 @@ Composer create_circuit_with_witness(const acir_format& constraint_system, std::
     }
 
     // Add recursion constraints
-    for (const auto& constraint : constraint_system.recursion_constraints) {
-        create_recursion_constraints<true, false>(composer, constraint);
+    for (size_t i = 0; i < constraint_system.recursion_constraints.size(); ++i) {
+        auto& constraint = constraint_system.recursion_constraints[i];
+        create_recursion_constraints<true>(composer, constraint);
+
+        // make sure the verification key records the public input indices of the final recursion output
+        // (N.B. up to the ACIR description to make sure that the final output aggregation object wires are public
+        // inputs!)
+        if (i == constraint_system.recursion_constraints.size() - 1) {
+            std::vector<uint32_t> proof_output_witness_indices(constraint.output_aggregation_object.begin(),
+                                                               constraint.output_aggregation_object.end());
+            composer.set_recursive_proof(proof_output_witness_indices);
+        }
     }
     return composer;
 }
@@ -427,8 +467,18 @@ void create_circuit_with_witness(Composer& composer, const acir_format& constrai
     }
 
     // Add recursion constraints
-    for (const auto& constraint : constraint_system.recursion_constraints) {
-        create_recursion_constraints<true, false>(composer, constraint);
+    for (size_t i = 0; i < constraint_system.recursion_constraints.size(); ++i) {
+        auto& constraint = constraint_system.recursion_constraints[i];
+        create_recursion_constraints<true>(composer, constraint);
+
+        // make sure the verification key records the public input indices of the final recursion output
+        // (N.B. up to the ACIR description to make sure that the final output aggregation object wires are public
+        // inputs!)
+        if (i == constraint_system.recursion_constraints.size() - 1) {
+            std::vector<uint32_t> proof_output_witness_indices(constraint.output_aggregation_object.begin(),
+                                                               constraint.output_aggregation_object.end());
+            composer.set_recursive_proof(proof_output_witness_indices);
+        }
     }
 }
 
