@@ -235,6 +235,15 @@ jobs:
           name: "Test"
           command: store_test_benchmark_logs barretenberg-x86_64-linux-clang-assert
 
+  sol:
+    resource_class: large
+    steps:
+      - *checkout
+      - *setup_env
+      - run:
+        name: "Test"
+        command: docker build . -f sol/Dockerfile
+
 # Repeatable config for defining the workflow below.
 bb_test: &bb_test
   requires:
@@ -254,6 +263,7 @@ workflows:
       - stdlib-recursion-turbo-tests: *bb_test
       - stdlib-recursion-ultra-tests: *bb_test
       - join-split-tests: *bb_test
+      - sol
       - benchmark-aggregator:
           requires:
             - barretenberg-tests
