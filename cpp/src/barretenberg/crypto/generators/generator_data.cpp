@@ -4,8 +4,6 @@ namespace crypto {
 namespace generators {
 namespace {
 
-// The number of unique base points with default main index with precomputed ladders
-
 // Parameters for generator table construction
 struct GeneratorParameters {
     size_t num_default_generators; // Number of unique base points with default main index
