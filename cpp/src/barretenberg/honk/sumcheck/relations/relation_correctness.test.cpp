@@ -10,10 +10,20 @@
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation_secondary.hpp"
 #include "barretenberg/honk/sumcheck/relations/lookup_grand_product_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
 
 using namespace proof_system::honk;
 
 namespace test_honk_relations {
+
+void ensure_non_zero(auto& polynomial)
+{
+    bool has_non_zero_coefficient = false;
+    for (auto& coeff : polynomial) {
+        has_non_zero_coefficient |= !coeff.is_zero();
+    }
+    ASSERT_TRUE(has_non_zero_coefficient);
+}
 
 /**
  * @brief Test the correctness of the Standard Honk relations
@@ -185,6 +195,13 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     composer.create_gates_from_plookup_accumulators(
         plookup::MultiTableId::PEDERSEN_LEFT_LO, sequence_data_lo, input_lo_index);
 
+    // Add a sort gate (simply checks that consecutive inputs have a difference of < 4)
+    a_idx = composer.add_variable(FF(0));
+    b_idx = composer.add_variable(FF(1));
+    c_idx = composer.add_variable(FF(2));
+    d_idx = composer.add_variable(FF(3));
+    composer.create_sort_constraint({ a_idx, b_idx, c_idx, d_idx });
+
     // Create a prover (it will compute proving key and witness)
     auto prover = composer.create_prover();
 
@@ -267,13 +284,21 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     prover_polynomials.lagrange_first = prover.key->lagrange_first;
     prover_polynomials.lagrange_last = prover.key->lagrange_last;
 
+    // Check that selectors are nonzero to ensure corresponding relation has nontrivial contribution
+    ensure_non_zero(prover.key->q_arith);
+    ensure_non_zero(prover.key->q_sort);
+    ensure_non_zero(prover.key->q_lookup);
+    // ensure_non_zero(prover.key->q_elliptic);
+    // ensure_non_zero(prover.key->q_aux);
+
     // Construct the round for applying sumcheck relations and results for storing computed results
     auto relations = std::tuple(honk::sumcheck::UltraArithmeticRelation<FF>(),
                                 honk::sumcheck::UltraArithmeticRelationSecondary<FF>(),
                                 honk::sumcheck::UltraGrandProductInitializationRelation<FF>(),
                                 honk::sumcheck::UltraGrandProductComputationRelation<FF>(),
                                 honk::sumcheck::LookupGrandProductComputationRelation<FF>(),
-                                honk::sumcheck::LookupGrandProductInitializationRelation<FF>());
+                                honk::sumcheck::LookupGrandProductInitializationRelation<FF>(),
+                                honk::sumcheck::GenPermSortRelation<FF>());
 
     fr result = 0;
     for (size_t i = 0; i < prover.key->circuit_size; i++) {
@@ -307,6 +332,9 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
         ASSERT_EQ(result, 0);
 
         std::get<5>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        ASSERT_EQ(result, 0);
+
+        std::get<6>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
         ASSERT_EQ(result, 0);
     }
 }

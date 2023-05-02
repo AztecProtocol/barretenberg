@@ -9,6 +9,7 @@
 #include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/lookup_grand_product_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
 
 #pragma GCC diagnostic ignored "-Wunused-variable"
 
@@ -135,6 +136,7 @@ template <typename Flavor> bool UltraVerifier_<Flavor>::verify_proof(const plonk
                              honk::sumcheck::UltraGrandProductInitializationRelation,
                              honk::sumcheck::LookupGrandProductComputationRelation,
                              honk::sumcheck::LookupGrandProductInitializationRelation>(circuit_size, transcript);
+
     std::optional sumcheck_output = sumcheck.execute_verifier(relation_parameters);
 
     // If Sumcheck does not return an output, sumcheck verification has failed

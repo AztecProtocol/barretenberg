@@ -256,6 +256,8 @@ TEST(UltraHonkComposer, sort_widget)
     auto d_idx = composer.add_variable(d);
     composer.create_sort_constraint({ a_idx, b_idx, c_idx, d_idx });
 
+    info("composer.circuit_constructor.num_gates = ", composer.circuit_constructor.num_gates);
+
     prove_and_verify(composer, /*expected_result=*/true);
 }
 

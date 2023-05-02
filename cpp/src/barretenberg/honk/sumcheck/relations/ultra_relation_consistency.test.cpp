@@ -1,6 +1,7 @@
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation_secondary.hpp"
 #include "barretenberg/honk/sumcheck/relations/lookup_grand_product_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
 #include "barretenberg/honk/flavor/ultra.hpp"
 #include "relation.hpp"
 #include "arithmetic_relation.hpp"
@@ -400,6 +401,58 @@ TEST_F(UltraRelationConsistency, LookupGrandProductInitializationRelation)
 
     // Compute the expected result using a simple to read version of the relation expression
     auto expected_evals = z_lookup_shift * lagrange_last;
+
+    validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
+};
+
+TEST_F(UltraRelationConsistency, GenPermSortRelation)
+{
+    using Flavor = honk::flavor::Ultra;
+    using FF = typename Flavor::FF;
+    using Flavor = honk::flavor::Ultra;
+    static constexpr size_t FULL_RELATION_LENGTH = 6;
+    using ExtendedEdges = typename Flavor::ExtendedEdges<FULL_RELATION_LENGTH>;
+    static const size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
+    auto relation_parameters = compute_mock_relation_parameters();
+    ExtendedEdges extended_edges;
+    std::array<Univariate<FF, INPUT_UNIVARIATE_LENGTH>, NUM_POLYNOMIALS> input_polynomials;
+
+    // input_univariates are random polynomials of degree one
+    for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
+        input_polynomials[i] = Univariate<FF, INPUT_UNIVARIATE_LENGTH>({ FF::random_element(), FF::random_element() });
+    }
+    compute_mock_extended_edges(extended_edges, input_polynomials);
+
+    auto relation = GenPermSortRelation<FF>();
+
+    // Extract the extended edges for manual computation of relation contribution
+    const auto& z_lookup_shift = extended_edges.z_lookup_shift;
+    const auto& lagrange_last = extended_edges.lagrange_last;
+
+    const auto& w_1 = extended_edges.w_l;
+    const auto& w_2 = extended_edges.w_r;
+    const auto& w_3 = extended_edges.w_o;
+    const auto& w_4 = extended_edges.w_4;
+    const auto& w_1_shift = extended_edges.w_l_shift;
+    const auto& q_sort = extended_edges.q_sort;
+
+    static const FF fake_alpha_1 = FF(1);
+    static const FF fake_alpha_2 = fake_alpha_1 * fake_alpha_1;
+    static const FF fake_alpha_3 = fake_alpha_2 * fake_alpha_1;
+    static const FF fake_alpha_4 = fake_alpha_3 * fake_alpha_1;
+
+    // Compute wire differences
+    auto delta_1 = w_2 - w_1;
+    auto delta_2 = w_3 - w_2;
+    auto delta_3 = w_4 - w_3;
+    auto delta_4 = w_1_shift - w_4;
+
+    // Compute the expected result using a simple to read version of the relation expression
+    auto expected_evals = delta_1 * (delta_1 - 1) * (delta_1 - 2) * (delta_1 - 3) * fake_alpha_1;
+    expected_evals += delta_2 * (delta_2 - 1) * (delta_2 - 2) * (delta_2 - 3) * fake_alpha_2;
+    expected_evals += delta_3 * (delta_3 - 1) * (delta_3 - 2) * (delta_3 - 3) * fake_alpha_3;
+    expected_evals += delta_4 * (delta_4 - 1) * (delta_4 - 2) * (delta_4 - 3) * fake_alpha_4;
+    expected_evals *= q_sort;
 
     validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
 };
