@@ -33,7 +33,7 @@ jobs:
       - name: Install cpp pre-requisites
         run: |
           sudo apt update
-          sudo apt install build-essential clang-10 lld-10 libomp-dev libboost-tools-dev libtbb-dev ninja
+          sudo apt install build-essential clang-10 lld-10 libomp-dev libboost-tools-dev libtbb-dev ninja-build
           sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-10 100
           sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-10 100
           sudo update-alternatives --install /usr/bin/lld lld /usr/bin/lld-10 100
