@@ -20,9 +20,9 @@ We need an SRS where the \f$i\f$-th element is \f$[x^i]_1\f$.
 # Prover
 - Commit to wires \f$w_{1,2,3}\f$.
 - CHALLENGE: \f$\beta, \gamma\f$
-- Generate permutation grand product polynomial \f$\zperm\f$, modified to include public inputs as described [here](https://raw.githubusercontent.com/arielgabizon/plonk-addendum/master/plonk-pubinputs.pdf), and and commit to it. (The protocol does not require commitment to the left shift of \f$\zperm\f$.)
+- Generate permutation grand product polynomial \f$\zperm\f$, modified to include public inputs as described [here](https://raw.githubusercontent.com/arielgabizon/plonk-addendum/master/plonk-pubinputs.pdf), and commit to it. (The protocol does not require commitment to the left shift of \f$\zperm\f$.)
 - CHALLENGE: \f$\zeta, \alpha\f$
-- Sumcheck the Honk constraint polynomial \f$\f$ \Honk = \pow_\zeta \cdot (\Honk_\arith + \alpha \Honk_{\perm, 1} + \alpha^2 \Honk_{\perm, 2})\f$\f$
+- Sumcheck the Honk constraint polynomial \f$ \Honk = \pow_\zeta \cdot (\Honk_\arith + \alpha \Honk_{\perm, 1} + \alpha^2 \Honk_{\perm, 2})\f$
   - For \f$\ell\f$ from \f$d\f$ to \f$1\f$:
     - Construct univariate \f$S_\ell\f$ and output coefficients (or evals? Rep TBD)
     - CHALLENGE: \f$u_\ell\f$

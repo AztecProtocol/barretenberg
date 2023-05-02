@@ -16,7 +16,7 @@
  *
  * m = number of variables
  * n = 2ᵐ
- * u = (u₀,...,uₘ₋₁)
+ * u = (u₀,...,uₘ₋₁), evaluation point
  * f₀, …, fₖ₋₁ = multilinear polynomials,
  * g₀, …, gₕ₋₁ = shifted multilinear polynomial,
  *  Each gⱼ is the left-shift of some f↺ᵢ, and gⱼ points to the same memory location as fᵢ.
