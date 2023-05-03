@@ -290,7 +290,7 @@ generator_data const& get_generator_data(generator_index_t index)
         local_index_offset += LOW.num_indices;
         generator_count_offset += LOW.total_generators();
 
-    } else if (index.index <= MID.num_indices) {
+    } else if (index.index <= (LOW.num_indices + MID.num_indices)) {
         // Calculate the global index of the generator for the MID hash index
         ASSERT(index.sub_index < MID.num_generators_per_index);
         global_index_offset =
@@ -298,7 +298,7 @@ generator_data const& get_generator_data(generator_index_t index)
         local_index_offset += MID.num_indices;
         generator_count_offset += MID.total_generators();
 
-    } else if (index.index <= HIGH.num_indices) {
+    } else if (index.index <= (LOW.num_indices + MID.num_indices + HIGH.num_indices)) {
         // Calculate the global index of the generator for the HIGH hash index
         ASSERT(index.sub_index < HIGH.num_generators_per_index);
         global_index_offset =
