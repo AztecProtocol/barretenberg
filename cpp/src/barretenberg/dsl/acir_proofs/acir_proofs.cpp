@@ -49,6 +49,7 @@ uint32_t get_total_circuit_size(uint8_t const* constraint_system_buf)
 
 size_t init_proving_key(uint8_t const* constraint_system_buf, uint8_t const** pk_buf)
 {
+    std::cout << "inside init_proving_key\n";
     auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
 
     // constraint_system.recursion_constraints[0].
@@ -57,6 +58,8 @@ size_t init_proving_key(uint8_t const* constraint_system_buf, uint8_t const** pk
     // Hacky, but, right now it needs *something*.
     auto crs_factory = std::make_unique<ReferenceStringFactory>();
     auto composer = create_circuit(constraint_system, std::move(crs_factory));
+    std::cout << "past create_circuit\n";
+
     auto proving_key = composer.compute_proving_key();
 
     auto buffer = to_buffer(*proving_key);
@@ -300,8 +303,10 @@ size_t verify_recursive_proof(uint8_t const* proof_buf,
     // We currently only support RecursionConstraint where inner_proof_contains_recursive_proof = false.
     // We would either need a separate ACIR opcode where inner_proof_contains_recursive_proof = true,
     // or we need non-witness data to be provided as metadata in the ACIR opcode
+    // recursively verify the proof
+    // TODO: handle inner_proof_contains_recursive_proof and recursive_proof_public_input_indices
     std::shared_ptr<acir_format::verification_key_ct> vkey =
-        acir_format::verification_key_ct::template from_field_pt_vector<false>(&composer, key_fields);
+        acir_format::verification_key_ct::from_field_pt_vector(&composer, key_fields);
     vkey->program_width = acir_format::noir_recursive_settings::program_width;
     acir_format::Transcript_ct transcript(&composer, manifest, proof_fields, 1);
     acir_format::aggregation_state_ct result =

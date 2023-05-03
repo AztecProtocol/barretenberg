@@ -200,6 +200,8 @@ TEST(AcirProofs, TestSerializationWithRecursion)
     }
     // outer circuit
     {
+        std::cout << "outer circuit\n";
+
         fr vk_hash_value;
         std::vector<fr> proof_witnesses(proof_fields_size / 32);
         std::vector<fr> key_witnesses(vk_fields_size / 32);
@@ -227,16 +229,17 @@ TEST(AcirProofs, TestSerializationWithRecursion)
         std::array<uint32_t, acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE> output_vars;
         for (size_t i = 0; i < acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE; ++i) {
             // variable idx 1 = public input
-            // variable idx 2-18 = output_vars
+            // variable idx 3-18 = output_vars
             output_vars[i] = (static_cast<uint32_t>(i + 3));
         }
         acir_format::RecursionConstraint recursion_constraint{
             .key = key_indices,
             .proof = proof_indices,
-            .public_input = 1,
+            .public_inputs = { 1 },
             .key_hash = 2,
             .input_aggregation_object = {},
             .output_aggregation_object = output_vars,
+            .nested_aggregation_object = {},
         };
 
         // Add a constraint that fixes the vk hash to be the expected value!
@@ -285,6 +288,7 @@ TEST(AcirProofs, TestSerializationWithRecursion)
         write(witness_buf, witness);
         uint8_t const* pk_buf = nullptr;
         acir_proofs::init_proving_key(&constraint_system_buf[0], &pk_buf);
+        std::cout << "init_proving_key\n";
 
         uint32_t total_circuit_size = acir_proofs::get_total_circuit_size(&constraint_system_buf[0]);
         uint32_t pow2_size = 1 << (numeric::get_msb(total_circuit_size) + 1);
@@ -306,6 +310,7 @@ TEST(AcirProofs, TestSerializationWithRecursion)
         size_t proof_length = acir_proofs::new_proof(
             pippenger_ptr, &g2x_buffer[0], pk_buf, &constraint_system_buf[0], &witness_buf[0], &proof_data_buf, false);
 
+        std::cout << "new_proof\n";
         bool verified = acir_proofs::verify_proof(&g2x_buffer[0],
                                                   vk_buf,
                                                   &constraint_system_buf[0],
