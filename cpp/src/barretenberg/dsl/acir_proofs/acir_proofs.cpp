@@ -149,18 +149,21 @@ size_t serialize_verification_key_into_field_elements(uint8_t const* g2x,
     // NOTE: this output buffer will always have a fixed size! Maybe just precompute?
     // Cut off 32 bytes as last element is the verification key hash which is not part of the key :o
     const size_t output_size_bytes = output.size() * sizeof(barretenberg::fr) - 32;
+
     auto raw_buf = (uint8_t*)malloc(output_size_bytes);
+    auto vk_hash_raw_buf = (uint8_t*)malloc(32);
 
     // The serialization code below will convert out of Montgomery form before writing to the buffer
-    for (size_t i = 0; i < output.size(); ++i) {
+    for (size_t i = 0; i < output.size() - 1; ++i) {
         barretenberg::fr::serialize_to_buffer(output[i], &raw_buf[i * 32]);
     }
+    barretenberg::fr::serialize_to_buffer(output[output.size() - 1], vk_hash_raw_buf);
 
     // copy the vkey into serialized_vk_buf
     *serialized_vk_buf = raw_buf;
 
     // copy the vkey hash into serialized_vk_hash_buf
-    *serialized_vk_hash_buf = &raw_buf[(output.size() - 1) * 32];
+    *serialized_vk_hash_buf = vk_hash_raw_buf;
 
     return output_size_bytes;
 }
