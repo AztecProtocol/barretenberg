@@ -160,6 +160,8 @@ template <typename Composer, typename T> class bigfield {
         field_t<Composer> lo = binary_basis_limbs[0].element + (binary_basis_limbs[1].element * shift_1);
         field_t<Composer> hi = binary_basis_limbs[2].element + (binary_basis_limbs[3].element * shift_1);
         // n.b. this only works if NUM_LIMB_BITS * 2 is divisible by 8
+        // TODO(Cody): Double check this! The assert used to be:
+        //             ASSERT((NUM_LIMB_BITS / 8) * 8 == NUM_LIMB_BITS);
         ASSERT((NUM_LIMB_BITS * 2 / 8) * 8 == NUM_LIMB_BITS * 2);
         result.write(byte_array<Composer>(hi, 32 - (NUM_LIMB_BITS / 4)));
         result.write(byte_array<Composer>(lo, (NUM_LIMB_BITS / 4)));
