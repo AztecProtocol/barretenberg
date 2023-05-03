@@ -5,7 +5,7 @@ namespace generators {
 namespace {
 
 // The number of unique base points with default main index with precomputed ladders
-constexpr size_t num_default_generators = 128;
+constexpr size_t num_default_generators = 200;
 
 /**
  * @brief Contains number of hash indices all of which support a fixed number of generators per index.
