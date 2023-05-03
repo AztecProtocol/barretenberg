@@ -1,15 +1,16 @@
 #pragma once
 #include <cstdint>
 #include <vector>
-#include "plonk/composer/ultra_composer.hpp"
-#include "stdlib/primitives/field/field.hpp"
+#include "barretenberg/plonk/composer/ultra_composer.hpp"
+#include "barretenberg/stdlib/primitives/field/field.hpp"
+#include "barretenberg/dsl/types.hpp"
 
 namespace acir_format {
 
 struct MemOp {
-    field_pt access_type;
-    field_pt index;
-    field_pt value;
+    uint8_t access_type;
+    poly_triple index;
+    poly_triple value;
 };
 
 enum BlockType {
@@ -17,14 +18,45 @@ enum BlockType {
     RAM = 1,
 };
 
-typedef stdlib::field_t<plonk::UltraComposer> field_pt;
-
 struct BlockConstraint {
-    std::vector<field_pt> init;
+    std::vector<poly_triple> init;
     std::vector<MemOp> trace;
     BlockType type;
-   // friend bool operator==(Sha256Constraint const& lhs, Sha256Constraint const& rhs) = default;
 };
 
+void create_block_constraints(Composer& composer, const BlockConstraint constraint);
 
+template <typename B> inline void read(B& buf, MemOp& mem_op)
+{
+    using serialize::read;
+    read(buf, mem_op.access_type);
+    read(buf, mem_op.index);
+    read(buf, mem_op.value);
 }
+
+template <typename B> inline void write(B& buf, MemOp const& mem_op)
+{
+    using serialize::write;
+    write(buf, mem_op.access_type);
+    write(buf, mem_op.index);
+    write(buf, mem_op.value);
+}
+
+template <typename B> inline void read(B& buf, BlockConstraint& constraint)
+{
+    using serialize::read;
+    read(buf, constraint.init);
+    read(buf, constraint.trace);
+    uint8_t type;
+    read(buf, type);
+    constraint.type = static_cast<BlockType>(type);
+}
+
+template <typename B> inline void write(B& buf, BlockConstraint const& constraint)
+{
+    using serialize::write;
+    write(buf, constraint.init);
+    write(buf, constraint.trace);
+    write(buf, static_cast<uint8_t>(constraint.type));
+}
+} // namespace acir_format
