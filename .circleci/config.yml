@@ -278,7 +278,7 @@ jobs:
       - *setup_aztec_commit
       - run:
           name: "Build"
-          command: cond_spot_run_tests_custom barretenberg-circuits-wasm-linux-clang-builder-runner ./scripts/run_aztec_circuits_tests "$AZTEC_COMMIT" 1 wasm scripts/a3-tests -*.skip*:*.circuit*
+          command: cond_spot_run_test_script barretenberg-circuits-wasm-linux-clang-builder-runner ./scripts/run_aztec_circuits_tests "$AZTEC_COMMIT" 1 wasm scripts/a3-tests -*.skip*:*.circuit*
 
   circuits-x86_64-tests:
     docker:
@@ -290,7 +290,7 @@ jobs:
       - *setup_aztec_commit
       - run:
           name: "Build"
-          command: cond_spot_run_tests_custom barretenberg-circuits-x86_64-linux-clang-builder-runner ./scripts/run_aztec_circuits_tests "$AZTEC_COMMIT" 1 x86_64 scripts/a3-tests -*.skip*
+          command: cond_spot_run_test_script barretenberg-circuits-x86_64-linux-clang-builder-runner ./scripts/run_aztec_circuits_tests "$AZTEC_COMMIT" 1 x86_64 scripts/a3-tests -*.skip*
   # End Aztec integration tests
   ###################################
 
