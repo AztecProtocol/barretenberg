@@ -35,10 +35,11 @@ constexpr size_t num_generator_types = 3;
 ladder_t g1_ladder;
 bool inited = false;
 
-template <size_t ladder_length>
+template <size_t ladder_length, size_t ladder_max_length>
 void compute_fixed_base_ladder(const grumpkin::g1::affine_element& generator,
-                               std::array<fixed_base_ladder, ladder_length>& ladder)
+                               std::array<fixed_base_ladder, ladder_max_length>& ladder)
 {
+    ASSERT(ladder_length <= ladder_max_length);
     grumpkin::g1::element* ladder_temp =
         static_cast<grumpkin::g1::element*>(aligned_alloc(64, sizeof(grumpkin::g1::element) * (ladder_length * 2)));
 
@@ -133,21 +134,15 @@ auto compute_generator_data(grumpkin::g1::affine_element const& generator,
     std::array<fixed_base_ladder, aux_length> aux_ladder_temp;
     compute_fixed_base_ladder<aux_length>(aux_generator, aux_ladder_temp);
 
-    constexpr size_t first_generator_segment = quad_length - aux_length;
-    constexpr size_t second_generator_segment = aux_length;
-
-    for (size_t j = 0; j < first_generator_segment; ++j) {
-        gen_data->hash_ladder[j] = gen_data->ladder[j + (quad_length - first_generator_segment)];
-    }
-    for (size_t j = 0; j < second_generator_segment; ++j) {
-        gen_data->hash_ladder[j + first_generator_segment] = aux_ladder_temp[j];
+    // Fill in the aux_generator multiples in the last two indices of the ladder.
+    for (size_t j = 0; j < aux_length; ++j) {
+        gen_data->ladder[j + quad_length] = aux_ladder_temp[j];
     }
 
     return gen_data;
 }
 
-const fixed_base_ladder* get_ladder_internal(std::array<fixed_base_ladder, quad_length> const& ladder,
-                                             const size_t num_bits)
+const fixed_base_ladder* get_ladder_internal(ladder_t const& ladder, const size_t num_bits, const size_t offset = 0)
 {
     // find n, such that 2n + 1 >= num_bits
     size_t n;
@@ -159,7 +154,7 @@ const fixed_base_ladder* get_ladder_internal(std::array<fixed_base_ladder, quad_
             ++n;
         }
     }
-    const fixed_base_ladder* result = &ladder[quad_length - n - 1];
+    const fixed_base_ladder* result = &ladder[quad_length + offset - n - 1];
     return result;
 }
 
@@ -236,7 +231,7 @@ std::vector<std::unique_ptr<generator_data>> const& init_generator_data()
         global_generator_data[i] = compute_generator_data(generators[i], aux_generators[i], skew_generators[i]);
     }
 
-    compute_fixed_base_ladder(grumpkin::g1::one, g1_ladder);
+    compute_fixed_base_ladder<quad_length>(grumpkin::g1::one, g1_ladder);
 
     inited = true;
     return global_generator_data;
@@ -327,7 +322,7 @@ const fixed_base_ladder* generator_data::get_ladder(size_t num_bits) const
 const fixed_base_ladder* generator_data::get_hash_ladder(size_t num_bits) const
 {
     init_generator_data();
-    return get_ladder_internal(hash_ladder, num_bits);
+    return get_ladder_internal(ladder, num_bits, aux_length);
 }
 
 } // namespace generators
