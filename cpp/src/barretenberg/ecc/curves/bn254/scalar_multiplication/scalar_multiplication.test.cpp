@@ -488,9 +488,9 @@ TEST(scalar_multiplication, construct_addition_chains)
 
     start = std::chrono::steady_clock::now();
     scalar_multiplication::construct_addition_chains(product_state, true);
-    // scalar_multiplication::scalar_multiplication_internal<num_points>(state, monomials);
     end = std::chrono::steady_clock::now();
     diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    info("construct addition chains: ", diff.count(), "ms");
     std::cout << "scalar mul: " << diff.count() << "ms" << std::endl;
 
     aligned_free(bucket_empty_status);
