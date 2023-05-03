@@ -154,11 +154,9 @@ export class BarretenbergWasm extends EventEmitter {
       wasi: {
         'thread-spawn': (arg: number) => {
           const id = this.nextThreadId++;
-          // this.debug(`spawning thread ${id} with arg ${arg}`);
-          this.workers[this.nextWorker++ % this.workers.length].postMessage({
-            msg: 'thread',
-            data: { id, arg },
-          });
+          const worker = this.nextWorker++ % this.workers.length;
+          // this.debug(`spawning thread ${id} on worker ${worker} with arg ${arg >>> 0}`);
+          this.workers[worker].postMessage({ msg: 'thread', data: { id, arg } });
           return id;
         },
       },

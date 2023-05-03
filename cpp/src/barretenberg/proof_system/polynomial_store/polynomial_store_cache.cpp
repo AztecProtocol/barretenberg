@@ -31,9 +31,9 @@ void PolynomialStoreCache::put(std::string const& key, Polynomial&& value)
          " ",
          value.size() * 32,
          " ",
-         internal_store.get_size_in_bytes() / (1024 * 1024),
+         internal_store.get_size_in_bytes() / (1024ULL * 1024),
          "/",
-         external_store.get_size_in_bytes() / (1024 * 1024));
+         external_store.get_size_in_bytes() / (1024ULL * 1024));
 };
 
 PolynomialStoreCache::Polynomial PolynomialStoreCache::get(std::string const& key)
@@ -61,9 +61,9 @@ PolynomialStoreCache::Polynomial PolynomialStoreCache::get(std::string const& ke
     info("cache get: ",
          key,
          " ",
-         internal_store.get_size_in_bytes() / (1024 * 1024),
+         internal_store.get_size_in_bytes() / (1024ULL * 1024),
          "/",
-         external_store.get_size_in_bytes() / (1024 * 1024));
+         external_store.get_size_in_bytes() / (1024ULL * 1024));
     return p;
 };
 

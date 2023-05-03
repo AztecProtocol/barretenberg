@@ -209,12 +209,7 @@ template <typename Fr> class Polynomial {
     // safety check for in place operations
     bool in_place_operation_viable(size_t domain_size = 0) { return (size() >= domain_size); }
 
-    pointer allocate_aligned_memory(const size_t size) const
-    {
-        std::shared_ptr<Fr[]> ptr(static_cast<Fr*>(aligned_alloc(sizeof(Fr), size)), aligned_free);
-        // info("Polynomial allocated ", (void*)ptr.get());
-        return ptr;
-    }
+    pointer allocate_aligned_memory(const size_t size) const;
 
     void zero_memory_beyond(const size_t start_position);
     // When a polynomial is instantiated from a size alone, the memory allocated corresponds to
