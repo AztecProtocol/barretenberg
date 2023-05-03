@@ -11,6 +11,7 @@
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation_secondary.hpp"
 #include "barretenberg/honk/sumcheck/relations/lookup_grand_product_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
 
 using namespace proof_system::honk;
 
@@ -146,6 +147,7 @@ TEST(RelationCorrectness, StandardRelationCorrectness)
  *
  */
 // TODO(luke): Ensure all relations are added as they are implemented for Ultra Honk
+// TODO(luke): possibly make circuit construction one or many functions to clarify the individual components
 TEST(RelationCorrectness, UltraRelationCorrectness)
 {
     using Flavor = honk::flavor::Ultra;
@@ -201,6 +203,26 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     c_idx = composer.add_variable(FF(2));
     d_idx = composer.add_variable(FF(3));
     composer.create_sort_constraint({ a_idx, b_idx, c_idx, d_idx });
+
+    // Add an elliptic curve addition gate
+    grumpkin::g1::affine_element p1 = crypto::generators::get_generator_data({ 0, 0 }).generator;
+    grumpkin::g1::affine_element p2 = crypto::generators::get_generator_data({ 0, 1 }).generator;
+
+    grumpkin::fq beta_scalar = grumpkin::fq::cube_root_of_unity();
+    grumpkin::g1::affine_element p2_endo = p2;
+    p2_endo.x *= beta_scalar;
+
+    grumpkin::g1::affine_element p3(grumpkin::g1::element(p1) - grumpkin::g1::element(p2_endo));
+
+    uint32_t x1 = composer.add_variable(p1.x);
+    uint32_t y1 = composer.add_variable(p1.y);
+    uint32_t x2 = composer.add_variable(p2.x);
+    uint32_t y2 = composer.add_variable(p2.y);
+    uint32_t x3 = composer.add_variable(p3.x);
+    uint32_t y3 = composer.add_variable(p3.y);
+
+    ecc_add_gate gate{ x1, y1, x2, y2, x3, y3, beta_scalar, -1 };
+    composer.create_ecc_add_gate(gate);
 
     // Create a prover (it will compute proving key and witness)
     auto prover = composer.create_prover();
@@ -288,8 +310,8 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     ensure_non_zero(prover.key->q_arith);
     ensure_non_zero(prover.key->q_sort);
     ensure_non_zero(prover.key->q_lookup);
-    // ensure_non_zero(prover.key->q_elliptic);
-    // ensure_non_zero(prover.key->q_aux);
+    ensure_non_zero(prover.key->q_elliptic);
+    // ensure_non_zero(prover.key->q_aux); // TODO(luke): add an aux gate
 
     // Construct the round for applying sumcheck relations and results for storing computed results
     auto relations = std::tuple(honk::sumcheck::UltraArithmeticRelation<FF>(),
@@ -298,7 +320,8 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
                                 honk::sumcheck::UltraGrandProductComputationRelation<FF>(),
                                 honk::sumcheck::LookupGrandProductComputationRelation<FF>(),
                                 honk::sumcheck::LookupGrandProductInitializationRelation<FF>(),
-                                honk::sumcheck::GenPermSortRelation<FF>());
+                                honk::sumcheck::GenPermSortRelation<FF>(),
+                                honk::sumcheck::EllipticRelation<FF>());
 
     fr result = 0;
     for (size_t i = 0; i < prover.key->circuit_size; i++) {
@@ -335,6 +358,9 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
         ASSERT_EQ(result, 0);
 
         std::get<6>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        ASSERT_EQ(result, 0);
+
+        std::get<7>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
         ASSERT_EQ(result, 0);
     }
 }
