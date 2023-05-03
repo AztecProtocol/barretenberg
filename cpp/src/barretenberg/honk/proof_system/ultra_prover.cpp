@@ -20,6 +20,7 @@
 #include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/lookup_grand_product_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/transcript/transcript_wrappers.hpp"
 #include <string>
@@ -257,7 +258,8 @@ template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_relation_check_
                                         sumcheck::UltraGrandProductInitializationRelation,
                                         sumcheck::LookupGrandProductComputationRelation,
                                         sumcheck::LookupGrandProductInitializationRelation,
-                                        sumcheck::GenPermSortRelation>;
+                                        sumcheck::GenPermSortRelation,
+                                        sumcheck::EllipticRelation>;
 
     auto sumcheck = Sumcheck(key->circuit_size, transcript);
 
