@@ -347,7 +347,7 @@ std::shared_ptr<UltraHonkComposerHelper::VerificationKey> UltraHonkComposerHelpe
     verification_key->lagrange_first = commitment_key.commit(proving_key->lagrange_first);
     verification_key->lagrange_last = commitment_key.commit(proving_key->lagrange_last);
 
-    verification_key->composer_type = type; // Invariably plookup for this class.
+    // verification_key->composer_type = type; // Invariably plookup for this class.
 
     // // See `add_recusrive_proof()` for how this recursive data is assigned.
     // verification_key->recursive_proof_public_input_indices =

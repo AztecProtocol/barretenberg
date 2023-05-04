@@ -10,7 +10,7 @@
 #include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
 #include "barretenberg/honk/utils/grand_product_delta.hpp"
-#include "barretenberg/plonk/composer/plookup_tables/types.hpp"
+#include "barretenberg/proof_system/plookup_tables/types.hpp"
 
 #include <gtest/gtest.h>
 #include <string>
@@ -71,7 +71,11 @@ TEST(UltraHonkComposer, ANonZeroPolynomialIsAGoodPolynomial)
     auto prover = composer.create_prover();
     auto proof = prover.construct_proof();
 
-    for (auto& poly : *prover.key) {
+    for (auto& poly : prover.key->get_selectors()) {
+        ensure_non_zero(poly);
+    }
+
+    for (auto& poly : prover.key->get_table_polynomials()) {
         ensure_non_zero(poly);
     }
 
@@ -654,105 +658,53 @@ TEST(UltraHonkComposer, non_native_field_multiplication)
 
     fq a = fq::random_element();
     fq b = fq::random_element();
-    {
-        uint256_t modulus = fq::modulus;
+    uint256_t modulus = fq::modulus;
 
-        uint1024_t a_big = uint512_t(uint256_t(a));
-        uint1024_t b_big = uint512_t(uint256_t(b));
-        uint1024_t p_big = uint512_t(uint256_t(modulus));
+    uint1024_t a_big = uint512_t(uint256_t(a));
+    uint1024_t b_big = uint512_t(uint256_t(b));
+    uint1024_t p_big = uint512_t(uint256_t(modulus));
 
-        uint1024_t q_big = (a_big * b_big) / p_big;
-        uint1024_t r_big = (a_big * b_big) % p_big;
+    uint1024_t q_big = (a_big * b_big) / p_big;
+    uint1024_t r_big = (a_big * b_big) % p_big;
 
-        uint256_t q(q_big.lo.lo);
-        uint256_t r(r_big.lo.lo);
+    uint256_t q(q_big.lo.lo);
+    uint256_t r(r_big.lo.lo);
 
-        const auto split_into_limbs = [&](const uint512_t& input) {
-            constexpr size_t NUM_BITS = 68;
-            std::array<fr, 5> limbs;
-            limbs[0] = input.slice(0, NUM_BITS).lo;
-            limbs[1] = input.slice(NUM_BITS * 1, NUM_BITS * 2).lo;
-            limbs[2] = input.slice(NUM_BITS * 2, NUM_BITS * 3).lo;
-            limbs[3] = input.slice(NUM_BITS * 3, NUM_BITS * 4).lo;
-            limbs[4] = fr(input.lo);
-            return limbs;
-        };
+    const auto split_into_limbs = [&](const uint512_t& input) {
+        constexpr size_t NUM_BITS = 68;
+        std::array<fr, 5> limbs;
+        limbs[0] = input.slice(0, NUM_BITS).lo;
+        limbs[1] = input.slice(NUM_BITS * 1, NUM_BITS * 2).lo;
+        limbs[2] = input.slice(NUM_BITS * 2, NUM_BITS * 3).lo;
+        limbs[3] = input.slice(NUM_BITS * 3, NUM_BITS * 4).lo;
+        limbs[4] = fr(input.lo);
+        return limbs;
+    };
 
-        const auto get_limb_witness_indices = [&](const std::array<fr, 5>& limbs) {
-            std::array<uint32_t, 5> limb_indices;
-            limb_indices[0] = honk_composer.add_variable(limbs[0]);
-            limb_indices[1] = honk_composer.add_variable(limbs[1]);
-            limb_indices[2] = honk_composer.add_variable(limbs[2]);
-            limb_indices[3] = honk_composer.add_variable(limbs[3]);
-            limb_indices[4] = honk_composer.add_variable(limbs[4]);
-            return limb_indices;
-        };
-        const uint512_t BINARY_BASIS_MODULUS = uint512_t(1) << (68 * 4);
-        auto modulus_limbs = split_into_limbs(BINARY_BASIS_MODULUS - uint512_t(modulus));
+    const auto get_limb_witness_indices = [&](const std::array<fr, 5>& limbs) {
+        std::array<uint32_t, 5> limb_indices;
+        limb_indices[0] = composer.add_variable(limbs[0]);
+        limb_indices[1] = composer.add_variable(limbs[1]);
+        limb_indices[2] = composer.add_variable(limbs[2]);
+        limb_indices[3] = composer.add_variable(limbs[3]);
+        limb_indices[4] = composer.add_variable(limbs[4]);
+        return limb_indices;
+    };
+    const uint512_t BINARY_BASIS_MODULUS = uint512_t(1) << (68 * 4);
+    auto modulus_limbs = split_into_limbs(BINARY_BASIS_MODULUS - uint512_t(modulus));
 
-        const auto a_indices = get_limb_witness_indices(split_into_limbs(uint256_t(a)));
-        const auto b_indices = get_limb_witness_indices(split_into_limbs(uint256_t(b)));
-        const auto q_indices = get_limb_witness_indices(split_into_limbs(uint256_t(q)));
-        const auto r_indices = get_limb_witness_indices(split_into_limbs(uint256_t(r)));
+    const auto a_indices = get_limb_witness_indices(split_into_limbs(uint256_t(a)));
+    const auto b_indices = get_limb_witness_indices(split_into_limbs(uint256_t(b)));
+    const auto q_indices = get_limb_witness_indices(split_into_limbs(uint256_t(q)));
+    const auto r_indices = get_limb_witness_indices(split_into_limbs(uint256_t(r)));
 
-        proof_system::UltraCircuitConstructor::non_native_field_witnesses inputs{
-            a_indices, b_indices, q_indices, r_indices, modulus_limbs, fr(uint256_t(modulus)),
-        };
-        const auto [lo_1_idx, hi_1_idx] = honk_composer.queue_non_native_field_multiplication(inputs);
-        honk_composer.range_constrain_two_limbs(lo_1_idx, hi_1_idx, 70, 70);
-    }
-    {
-        uint256_t modulus = fq::modulus;
+    proof_system::UltraCircuitConstructor::non_native_field_witnesses inputs{
+        a_indices, b_indices, q_indices, r_indices, modulus_limbs, fr(uint256_t(modulus)),
+    };
+    const auto [lo_1_idx, hi_1_idx] = composer.queue_non_native_field_multiplication(inputs);
+    composer.range_constrain_two_limbs(lo_1_idx, hi_1_idx, 70, 70);
 
-        uint1024_t a_big = uint512_t(uint256_t(a));
-        uint1024_t b_big = uint512_t(uint256_t(b));
-        uint1024_t p_big = uint512_t(uint256_t(modulus));
-
-        uint1024_t q_big = (a_big * b_big) / p_big;
-        uint1024_t r_big = (a_big * b_big) % p_big;
-
-        uint256_t q(q_big.lo.lo);
-        uint256_t r(r_big.lo.lo);
-
-        const auto split_into_limbs = [&](const uint512_t& input) {
-            constexpr size_t NUM_BITS = 68;
-            std::array<fr, 5> limbs;
-            limbs[0] = input.slice(0, NUM_BITS).lo;
-            limbs[1] = input.slice(NUM_BITS * 1, NUM_BITS * 2).lo;
-            limbs[2] = input.slice(NUM_BITS * 2, NUM_BITS * 3).lo;
-            limbs[3] = input.slice(NUM_BITS * 3, NUM_BITS * 4).lo;
-            limbs[4] = fr(input.lo);
-            return limbs;
-        };
-
-        const auto get_limb_witness_indices = [&](const std::array<fr, 5>& limbs) {
-            std::array<uint32_t, 5> limb_indices;
-            limb_indices[0] = plonk_composer.add_variable(limbs[0]);
-            limb_indices[1] = plonk_composer.add_variable(limbs[1]);
-            limb_indices[2] = plonk_composer.add_variable(limbs[2]);
-            limb_indices[3] = plonk_composer.add_variable(limbs[3]);
-            limb_indices[4] = plonk_composer.add_variable(limbs[4]);
-            return limb_indices;
-        };
-        const uint512_t BINARY_BASIS_MODULUS = uint512_t(1) << (68 * 4);
-        auto modulus_limbs = split_into_limbs(BINARY_BASIS_MODULUS - uint512_t(modulus));
-
-        const auto a_indices = get_limb_witness_indices(split_into_limbs(uint256_t(a)));
-        const auto b_indices = get_limb_witness_indices(split_into_limbs(uint256_t(b)));
-        const auto q_indices = get_limb_witness_indices(split_into_limbs(uint256_t(q)));
-        const auto r_indices = get_limb_witness_indices(split_into_limbs(uint256_t(r)));
-
-        proof_system::plonk::UltraComposer::non_native_field_witnesses inputs{
-            a_indices, b_indices, q_indices, r_indices, modulus_limbs, fr(uint256_t(modulus)),
-        };
-        const auto [lo_1_idx, hi_1_idx] = plonk_composer.queue_non_native_field_multiplication(inputs);
-        plonk_composer.range_constrain_two_limbs(lo_1_idx, hi_1_idx, 70, 70);
-    }
-
-    auto honk_prover = honk_composer.create_prover();
-    auto plonk_prover = plonk_composer.create_prover();
-
-    verify_consistency(honk_prover, plonk_prover);
+    prove_and_verify(composer, /*expected_result=*/true);
 }
 
 TEST(UltraHonkComposer, rom)

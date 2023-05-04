@@ -242,22 +242,6 @@ class Ultra {
      * circuits.
      */
     using VerificationKey = VerificationKey_<PrecomputedEntities<Commitment, CommitmentHandle>>;
-    // MERGETODO: I had this class; is this needeD?
-    // class VerificationKey : public VerificationKey_<PrecomputedEntities<Commitment, CommitmentHandle>> {
-    //   public:
-    //     VerificationKey() = default;
-    //     VerificationKey(const size_t circuit_size,
-    //                     const size_t num_public_inputs,
-    //                     std::shared_ptr<VerifierReferenceString> const& vrs,
-    //                     ComposerType composer_type)
-    //     {
-    //         this->circuit_size = circuit_size;
-    //         this->log_circuit_size = numeric::get_msb(circuit_size);
-    //         this->num_public_inputs = num_public_inputs;
-    //         this->vrs = vrs;
-    //         this->composer_type = composer_type;
-    //     };
-    // };
 
     /**
      * @brief A container for polynomials handles; only stores spans.
