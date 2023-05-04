@@ -352,27 +352,36 @@ TEST(StandardHonkComposer, TwoGates)
     run_test(/* expect_verified=*/false);
 }
 
-TEST(StandardHonkComposer, SumcheckEvaluationsAreCorrect)
+TEST(StandardHonkComposer, SumcheckEvaluations)
 {
-    auto composer = StandardHonkComposer();
-    fr a = fr::one();
-    // Construct a small but non-trivial circuit
-    uint32_t a_idx = composer.add_public_variable(a);
-    fr b = fr::one();
-    fr c = a + b;
-    fr d = a + c;
-    uint32_t b_idx = composer.add_variable(b);
-    uint32_t c_idx = composer.add_variable(c);
-    uint32_t d_idx = composer.add_variable(d);
-    for (size_t i = 0; i < 16; i++) {
-        composer.create_add_gate({ a_idx, b_idx, c_idx, fr::one(), fr::one(), fr::neg_one(), fr::zero() });
-        composer.create_add_gate({ d_idx, c_idx, a_idx, fr::one(), fr::neg_one(), fr::neg_one(), fr::zero() });
-    }
-    auto prover = composer.create_prover();
-    plonk::proof proof = prover.construct_proof();
+    auto run_test = [](bool expected_result) {
+        auto composer = StandardHonkComposer();
+        fr a = fr::one();
+        // Construct a small but non-trivial circuit
+        uint32_t a_idx = composer.add_public_variable(a);
+        fr b = fr::one();
+        fr c = a + b;
+        fr d = a + c;
 
-    auto verifier = composer.create_verifier();
-    bool verified = verifier.verify_proof(proof);
-    ASSERT_TRUE(verified);
+        if (expected_result == false) {
+            d += 1;
+        };
+
+        uint32_t b_idx = composer.add_variable(b);
+        uint32_t c_idx = composer.add_variable(c);
+        uint32_t d_idx = composer.add_variable(d);
+        for (size_t i = 0; i < 16; i++) {
+            composer.create_add_gate({ a_idx, b_idx, c_idx, fr::one(), fr::one(), fr::neg_one(), fr::zero() });
+            composer.create_add_gate({ d_idx, c_idx, a_idx, fr::one(), fr::neg_one(), fr::neg_one(), fr::zero() });
+        }
+        auto prover = composer.create_prover();
+        plonk::proof proof = prover.construct_proof();
+
+        auto verifier = composer.create_verifier();
+        bool verified = verifier.verify_proof(proof);
+        ASSERT_EQ(verified, expected_result);
+    };
+    run_test(/*expected_result=*/true);
+    run_test(/*expected_result=*/false);
 }
 } // namespace test_standard_honk_composer
