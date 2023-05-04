@@ -189,6 +189,19 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
             }
             return valid;
         }
+
+        bool operator<(const cached_partial_non_native_field_multiplication& other) const
+        {
+            if (a < other.a) {
+                return true;
+            }
+            if (a == other.a) {
+                if (b < other.b) {
+                    return true;
+                }
+            }
+            return false;
+        }
     };
 
     inline std::vector<std::string> ultra_selector_names()
