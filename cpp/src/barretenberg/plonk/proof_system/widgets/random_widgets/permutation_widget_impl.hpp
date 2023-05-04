@@ -72,7 +72,7 @@ void ProverPermutationWidget<program_width, idpolys, num_roots_cut_out_of_vanish
     fr* accumulators[num_accumulators];
     // Allocate the required number of length n scratch space arrays
     for (size_t k = 0; k < num_accumulators; ++k) {
-        accumulators_ptrs[k] = mem_slab_get(key->circuit_size * sizeof(fr));
+        accumulators_ptrs[k] = get_mem_slab(key->circuit_size * sizeof(fr));
         accumulators[k] = (fr*)accumulators_ptrs[k].get();
     }
 

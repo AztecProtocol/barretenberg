@@ -150,7 +150,7 @@ void fft_inner_parallel(std::vector<Fr*> coeffs,
                         const Fr&,
                         const std::vector<Fr*>& root_table)
 {
-    auto scratch_space_ptr = mem_slab_get(domain.size * sizeof(Fr));
+    auto scratch_space_ptr = get_mem_slab(domain.size * sizeof(Fr));
     auto scratch_space = (Fr*)scratch_space_ptr.get();
 
     const size_t num_polys = coeffs.size();
@@ -581,7 +581,7 @@ void coset_fft(Fr* coeffs,
 
     // Fr work_root = domain.generator.sqr();
     // work_root = domain.generator.sqr();
-    auto scratch_space_ptr = std::static_pointer_cast<Fr[]>(mem_slab_get(domain.size * domain_extension * sizeof(Fr)));
+    auto scratch_space_ptr = std::static_pointer_cast<Fr[]>(get_mem_slab(domain.size * domain_extension * sizeof(Fr)));
     auto scratch_space = scratch_space_ptr.get();
 
     // Fr* temp_memory = static_cast<Fr*>(aligned_alloc(64, sizeof(Fr) * domain.size *
@@ -1141,7 +1141,7 @@ template <typename Fr> Fr compute_sum(const Fr* src, const size_t n)
 // This function computes the polynomial (x - a)(x - b)(x - c)... given n distinct roots (a, b, c, ...).
 template <typename Fr> void compute_linear_polynomial_product(const Fr* roots, Fr* dest, const size_t n)
 {
-    auto scratch_space_ptr = std::static_pointer_cast<Fr[]>(mem_slab_get(n * sizeof(Fr)));
+    auto scratch_space_ptr = std::static_pointer_cast<Fr[]>(get_mem_slab(n * sizeof(Fr)));
     auto scratch_space = scratch_space_ptr.get();
     memcpy((void*)scratch_space, (void*)roots, n * sizeof(Fr));
 

@@ -65,7 +65,11 @@ export class BarretenbergWasm extends EventEmitter {
   public async init(threads: number, initial = 25, maximum = 2 ** 16) {
     const initialMb = (initial * 2 ** 16) / (1024 * 1024);
     const maxMb = (maximum * 2 ** 16) / (1024 * 1024);
-    this.debug(`main thread initial mem: ${initial} pages, ${initialMb}mb. max mem: ${maximum} pages, ${maxMb}mb`);
+    this.debug(
+      `initial mem: ${initial} pages, ${initialMb}MiB. ` +
+        `max mem: ${maximum} pages, ${maxMb}MiB. ` +
+        `threads: ${threads}`,
+    );
 
     this.memory = new WebAssembly.Memory({ initial, maximum, shared: true });
 
@@ -173,7 +177,7 @@ export class BarretenbergWasm extends EventEmitter {
         logstr: (addr: number) => {
           const str = this.stringFromAddress(addr);
           const m = this.getMemory();
-          const str2 = `${str} (mem: ${(m.length / (1024 * 1024)).toFixed(2)}MB)`;
+          const str2 = `${str} (mem: ${(m.length / (1024 * 1024)).toFixed(2)}MiB)`;
           this.debug(str2);
         },
 

@@ -93,7 +93,7 @@ EvaluationDomain<Fr>::EvaluationDomain(const EvaluationDomain& other)
     ASSERT((1UL << log2_num_threads) == num_threads);
     if (other.roots != nullptr) {
         const size_t mem_size = sizeof(Fr) * size * 2;
-        roots = std::static_pointer_cast<Fr[]>(mem_slab_get(mem_size));
+        roots = std::static_pointer_cast<Fr[]>(get_mem_slab(mem_size));
         memcpy(static_cast<void*>(roots.get()), static_cast<void*>(other.roots.get()), mem_size);
         round_roots.resize(log2_size - 1);
         inverse_round_roots.resize(log2_size - 1);
@@ -163,7 +163,7 @@ template <typename Fr> void EvaluationDomain<Fr>::compute_lookup_table()
 {
     ASSERT(roots == nullptr);
     // roots = (Fr*)(aligned_alloc(32, sizeof(Fr) * size * 2));
-    roots = std::static_pointer_cast<Fr[]>(mem_slab_get(sizeof(Fr) * size * 2));
+    roots = std::static_pointer_cast<Fr[]>(get_mem_slab(sizeof(Fr) * size * 2));
     compute_lookup_table_single(root, size, roots.get(), round_roots);
     compute_lookup_table_single(root_inverse, size, &roots.get()[size], inverse_round_roots);
 }

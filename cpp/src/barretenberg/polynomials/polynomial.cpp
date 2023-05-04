@@ -338,7 +338,7 @@ template <typename Fr> Fr Polynomial<Fr>::evaluate_mle(std::span<const Fr> evalu
 
 template <typename Fr> typename Polynomial<Fr>::pointer Polynomial<Fr>::allocate_aligned_memory(const size_t size) const
 {
-    return std::static_pointer_cast<Fr[]>(mem_slab_get(size));
+    return std::static_pointer_cast<Fr[]>(get_mem_slab(size));
 }
 
 template class Polynomial<barretenberg::fr>;

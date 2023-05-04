@@ -376,8 +376,8 @@ template <class T> void field<T>::batch_invert(std::span<field> coeffs) noexcept
 {
     const size_t n = coeffs.size();
 
-    auto temporaries_ptr = std::static_pointer_cast<field[]>(mem_slab_get(n * sizeof(field)));
-    auto skipped_ptr = std::static_pointer_cast<bool[]>(mem_slab_get(n));
+    auto temporaries_ptr = std::static_pointer_cast<field[]>(get_mem_slab(n * sizeof(field)));
+    auto skipped_ptr = std::static_pointer_cast<bool[]>(get_mem_slab(n));
     auto temporaries = temporaries_ptr.get();
     auto skipped = skipped_ptr.get();
 

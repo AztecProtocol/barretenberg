@@ -7,6 +7,13 @@
 
 namespace barretenberg {
 
+/**
+ * Allows preallocating memory slabs sized to serve the fact that these slabs of memory follow certain sizing patterns
+ * and numbers based on prover system type and circuit size. Without the slab allocator, memory fragmentation prevents
+ * proof construction when approaching memory space limits (4GB in WASM).
+ *
+ * If no circuit_size_hint is given to the constructor, it behaves as a standard memory allocator.
+ */
 class SlabAllocator {
   private:
     std::map<size_t, std::list<void*>> memory_store;
@@ -24,6 +31,6 @@ class SlabAllocator {
     void release(void* ptr, size_t size);
 };
 
-std::shared_ptr<void> mem_slab_get(size_t size);
+std::shared_ptr<void> get_mem_slab(size_t size);
 
 } // namespace barretenberg

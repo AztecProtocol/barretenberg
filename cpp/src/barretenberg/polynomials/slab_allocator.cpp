@@ -15,8 +15,28 @@ SlabAllocator::SlabAllocator(size_t circuit_size_hint)
     size_t small_size = 32 * (circuit_size_hint + 32);
     size_t large_size = small_size * 4;
 
-    prealloc_num[small_size] = 4 + 4 + 15 + 15 + 8 + 8 + 1 + 5 + 2 + 4 + 1 + 0;
-    prealloc_num[large_size] = 4 + 15 + 8 + 1 + 1;
+    // These numbers are for Ultra, our most greedy system, so they should easily serve Standard/Turbo.
+    // Miscellaneous slabs are just an effort to account for other slabs of memory needed throughout
+    // prover computation (scratch space and other temporaries). We can't account for all of these
+    // as we are at limit, so they are mostly dynamically allocated. This ultimately leads to failure
+    // on repeated prover runs as the memory becomes fragmented. Maybe best to just recreate the WASM
+    // for each proof for now, if not too expensive.
+    prealloc_num[small_size] = 4 +    // Monomial wires.
+                               4 +    // Lagrange wires.
+                               15 +   // Monomial constraint selectors.
+                               15 +   // Lagrange constraint selectors.
+                               8 +    // Monomial perm selectors.
+                               8 +    // Lagrange perm selectors.
+                               1 +    // Monomial sorted poly.
+                               5 +    // Lagrange sorted poly.
+                               2 +    // Perm poly.
+                               4 +    // Quotient poly.
+                               1;     // Miscellaneous.
+    prealloc_num[large_size] = 4 +    // Coset-fft wires.
+                               15 +   // Coset-fft constraint selectors.
+                               8 +    // Coset-fft perm selectors.
+                               1 +    // Coset-fft sorted poly.
+                               1;     // Miscellaneous.
     prealloc_num[large_size * 2] = 1; // Proving key evaluation domain roots.
 
     for (auto& e : prealloc_num) {
@@ -66,9 +86,13 @@ void SlabAllocator::release(void* ptr, size_t size)
     memory_store[size].push_back(ptr);
 }
 
+#ifdef __wasm__
 SlabAllocator allocator(524288);
+#else
+SlabAllocator allocator(0);
+#endif
 
-std::shared_ptr<void> mem_slab_get(size_t size)
+std::shared_ptr<void> get_mem_slab(size_t size)
 {
     return allocator.get(size);
 }
