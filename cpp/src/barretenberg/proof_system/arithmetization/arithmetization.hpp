@@ -15,11 +15,11 @@ namespace arithmetization {
  * @remark It may make sense to say this is only partial arithmetization data, with the full data being
  * contained in the circuit constructor. We could change the name of this class if it conflicts with common usage.
  *
- * @tparam _num_wires
+ * @tparam _NUM_WIRES
  * @tparam _num_selectors
  */
-template <size_t _num_wires, size_t _num_selectors> struct Arithmetization {
-    static constexpr size_t num_wires = _num_wires;
+template <size_t _NUM_WIRES, size_t _num_selectors> struct Arithmetization {
+    static constexpr size_t NUM_WIRES = _NUM_WIRES;
     static constexpr size_t num_selectors = _num_selectors;
 
     // Note: For even greater modularity, in each instantiation we could specify a list of components here, where a
@@ -46,9 +46,9 @@ template <typename FF, size_t num_selectors> struct SelectorsBase {
     typename DataType::iterator end() { return _data.end(); };
 };
 
-// These are not magic numbers and they should not be written with global constants. These paraters are not accessible
+// These are not magic numbers and they should not be written with global constants. These parameters are not accessible
 // through clearly named static class members.
-template <typename FF> class Standard : public Arithmetization</*num_wires =*/3, /*num_selectors =*/5> {
+template <typename FF> class Standard : public Arithmetization</*NUM_WIRES =*/3, /*num_selectors =*/5> {
   public:
     struct Selectors : SelectorsBase<FF, num_selectors> {
         std::vector<FF>& q_m = std::get<0>(this->_data);
@@ -59,7 +59,7 @@ template <typename FF> class Standard : public Arithmetization</*num_wires =*/3,
     };
 };
 
-template <typename FF> class Turbo : public Arithmetization</*num_wires =*/4, /*num_selectors =*/11> {
+template <typename FF> class Turbo : public Arithmetization</*NUM_WIRES =*/4, /*num_selectors =*/11> {
   public:
     struct Selectors : SelectorsBase<FF, num_selectors> {
         std::vector<FF>& q_m = std::get<0>(this->_data);
@@ -76,7 +76,7 @@ template <typename FF> class Turbo : public Arithmetization</*num_wires =*/4, /*
     };
 };
 
-template <typename FF> class Ultra : public Arithmetization</*num_wires =*/4, /*num_selectors =*/11> {
+template <typename FF> class Ultra : public Arithmetization</*NUM_WIRES =*/4, /*num_selectors =*/11> {
   public:
     struct Selectors : SelectorsBase<FF, num_selectors> {
         std::vector<FF>& q_m = std::get<0>(this->_data);

@@ -12,8 +12,6 @@
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/polynomials/evaluation_domain.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
-#include "barretenberg/proof_system/circuit_constructors/turbo_circuit_constructor.hpp"
 #include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
 #include "barretenberg/srs/reference_string/reference_string.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
@@ -29,18 +27,27 @@ class Ultra {
     using G1 = barretenberg::g1;
     using GroupElement = G1::element;
     using Commitment = G1::affine_element;
-    using CommitmentHandle = G1::affine_element; // TODO(Cody): make a pointer?
+    using CommitmentHandle = G1::affine_element;
     using PCSParams = pcs::kzg::Params;
 
-    static constexpr size_t num_wires = CircuitConstructor::num_wires;
-    // Note: The individual sorted_i are not included here; they are not evaluated by sumcheck or commited to
+    static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
+    // The number of multivariate polynomials on which a sumcheck prover sumcheck operates (including shifts). We often
+    // need containers of this size to hold related data, so we choose a name more agnostic than `NUM_POLYNOMIALS`.
+    // Note: this number does not include the individual sorted list polynomials.
     static constexpr size_t NUM_ALL_ENTITIES = 43;
-    // WORKTODO: what does this need to reflect? e.g. are shifts of precomputed polys counted here?
+    // The number of polynomials precomputed to describe a circuit and to aid a prover in constructing a satisfying
+    // assignment of witnesses. We again choose a neutral name.
     static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 25;
+    // The total number of witness entities not including shifts.
     static constexpr size_t NUM_WITNESS_ENTITIES = 11;
 
+  private:
     template <typename DataType, typename HandleType>
-    class PrecomputedData : public PrecomputedData_<DataType, HandleType, NUM_PRECOMPUTED_ENTITIES> {
+    /**
+     * @brief A base class labelling precomputed entities and (ordered) subsets of interest.
+     * @details Used to build the proving key and verification key.
+     */
+    class PrecomputedEntities : public PrecomputedEntities_<DataType, HandleType, NUM_PRECOMPUTED_ENTITIES> {
       public:
         DataType& q_m = std::get<0>(this->_data);
         DataType& q_c = std::get<1>(this->_data);
@@ -68,19 +75,22 @@ class Ultra {
         DataType& lagrange_first = std::get<23>(this->_data);
         DataType& lagrange_last = std::get<24>(this->_data);
 
-        std::vector<HandleType> get_selectors() // WORKTODO: make these arrays?
+        std::vector<HandleType> get_selectors() override
         {
-            // return { q_c, q_l, q_r, q_o, q_4, q_m, q_arith, q_sort, q_elliptic, q_aux, q_lookup };
             return { q_m, q_c, q_l, q_r, q_o, q_4, q_arith, q_sort, q_elliptic, q_aux, q_lookup };
         };
-        std::vector<HandleType> get_sigma_polynomials() { return { sigma_1, sigma_2, sigma_3, sigma_4 }; };
+        std::vector<HandleType> get_sigma_polynomials() override { return { sigma_1, sigma_2, sigma_3, sigma_4 }; };
+        std::vector<HandleType> get_id_polynomials() override { return { id_1, id_2, id_3, id_4 }; };
+
         std::vector<HandleType> get_table_polynomials() { return { table_1, table_2, table_3, table_4 }; };
-        std::vector<HandleType> get_id_polynomials() { return { id_1, id_2, id_3, id_4 }; };
     };
 
-    // Container for all witness polys
+    /**
+     * @brief Container for all witness polynomials used/constructed by the prover.
+     * @details Shifts are not included here since they do not occupy their own memory.
+     */
     template <typename DataType, typename HandleType>
-    class WitnessData : public Data_<DataType, HandleType, NUM_WITNESS_ENTITIES> {
+    class WitnessEntities : public WitnessEntities_<DataType, HandleType, NUM_WITNESS_ENTITIES> {
       public:
         DataType& w_l = std::get<0>(this->_data);
         DataType& w_r = std::get<1>(this->_data);
@@ -94,79 +104,22 @@ class Ultra {
         DataType& z_perm = std::get<9>(this->_data);
         DataType& z_lookup = std::get<10>(this->_data);
 
-        std::vector<HandleType> get_wires() { return { w_l, w_r, w_o, w_4 }; };
+        std::vector<HandleType> get_wires() override { return { w_l, w_r, w_o, w_4 }; };
+        // The sorted concatenations of table and witness data needed for plookup.
         std::vector<HandleType> get_sorted_polynomials() { return { sorted_1, sorted_2, sorted_3, sorted_4 }; };
     };
 
-    class ProvingKey : public ProvingKey_<PrecomputedData<Polynomial, PolynomialHandle>, FF> {
-      public:
-        WitnessData<Polynomial, PolynomialHandle> _witness_data;
-
-        Polynomial& w_l = _witness_data.w_l;
-        Polynomial& w_r = _witness_data.w_r;
-        Polynomial& w_o = _witness_data.w_o;
-        Polynomial& w_4 = _witness_data.w_4;
-        // TODO(luke): these can be deleted after construction of s_accum; do this?
-        Polynomial& sorted_1 = _witness_data.sorted_1;
-        Polynomial& sorted_2 = _witness_data.sorted_2;
-        Polynomial& sorted_3 = _witness_data.sorted_3;
-        Polynomial& sorted_4 = _witness_data.sorted_4;
-        Polynomial& sorted_accum = _witness_data.sorted_accum;
-        Polynomial& z_perm = _witness_data.z_perm;
-        Polynomial& z_lookup = _witness_data.z_lookup;
-
-        std::vector<uint32_t> memory_read_records;
-        std::vector<uint32_t> memory_write_records;
-
-        ProvingKey() = default;
-        ProvingKey(const size_t circuit_size,
-                   const size_t num_public_inputs,
-                   std::shared_ptr<ProverReferenceString> const& crs,
-                   ComposerType composer_type)
-        {
-            this->crs = crs;
-            this->evaluation_domain = EvaluationDomain<FF>(circuit_size, circuit_size);
-
-            this->circuit_size = circuit_size;
-            this->log_circuit_size = numeric::get_msb(circuit_size);
-            this->num_public_inputs = num_public_inputs;
-            this->composer_type = composer_type;
-            // Allocate memory for precomputed polynomials
-            for (auto& poly : this->_data) {
-                poly = Polynomial(circuit_size);
-            }
-            // Allocate memory for witness polynomials
-            for (auto& poly : this->_witness_data._data) {
-                poly = Polynomial(circuit_size);
-            }
-        };
-
-        std::vector<PolynomialHandle> get_wires() { return _witness_data.get_wires(); };
-        // The plookup wires that store plookup read data.
-        std::array<PolynomialHandle, 3> get_plookup_read_wires() { return { w_l, w_r, w_o }; };
-        // The sorted concatenations of table and witness data needed for plookup.
-        std::vector<PolynomialHandle> get_sorted_polynomials() { return _witness_data.get_sorted_polynomials(); };
-    };
-
-    // using VerificationKey = VerificationKey_<PrecomputedData<Commitment, CommitmentHandle>>;
-    class VerificationKey : public VerificationKey_<PrecomputedData<Commitment, CommitmentHandle>> {
-      public:
-        VerificationKey() = default;
-        VerificationKey(const size_t circuit_size,
-                        const size_t num_public_inputs,
-                        std::shared_ptr<VerifierReferenceString> const& vrs,
-                        ComposerType composer_type)
-        {
-            this->circuit_size = circuit_size;
-            this->log_circuit_size = numeric::get_msb(circuit_size);
-            this->num_public_inputs = num_public_inputs;
-            this->vrs = vrs;
-            this->composer_type = composer_type;
-        };
-    };
-
+    /**
+     * @brief A base class labelling all entities (for instance, all of the polynomials used by the prover during
+     * sumcheck) in this Honk variant along with particular subsets of interest
+     * @details Used to build containers for: the prover's polynomial during sumcheck; the sumcheck's folded
+     * polynomials; the univariates consturcted during during sumcheck; the evaluations produced by sumcheck.
+     *
+     * Symbolically we have: AllEntities = PrecomputedEntities + WitnessEntities + "ShiftedEntities". It could be
+     * implemented as such, but we have this now.
+     */
     template <typename DataType, typename HandleType>
-    class AllData : public AllData_<DataType, HandleType, NUM_ALL_ENTITIES> {
+    class AllEntities : public AllEntities_<DataType, HandleType, NUM_ALL_ENTITIES> {
       public:
         DataType& q_c = std::get<0>(this->_data);
         DataType& q_l = std::get<1>(this->_data);
@@ -212,7 +165,8 @@ class Ultra {
         DataType& z_perm_shift = std::get<41>(this->_data);
         DataType& z_lookup_shift = std::get<42>(this->_data);
 
-        std::vector<HandleType> get_wires() { return { w_l, w_r, w_o, w_4 }; };
+        std::vector<HandleType> get_wires() override { return { w_l, w_r, w_o, w_4 }; };
+        // Gemini-specific getters.
         std::vector<HandleType> get_unshifted() override
         {
             return { q_c,           q_l,   q_r,      q_o,     q_4,     q_m,          q_arith, q_sort,
@@ -232,54 +186,117 @@ class Ultra {
                      w_o_shift,     w_4_shift,     sorted_accum_shift, z_perm_shift,  z_lookup_shift };
         };
 
-        AllData() = default;
+        AllEntities() = default;
 
-        AllData(const AllData& other)
-            : AllData_<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
+        AllEntities(const AllEntities& other)
+            : AllEntities_<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
 
-        AllData(AllData&& other)
-            : AllData_<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
+        AllEntities(AllEntities&& other)
+            : AllEntities_<DataType, HandleType, NUM_ALL_ENTITIES>(other){};
 
-        // TODO(luke): avoiding self assignment (clang warning) here is a bit gross. Is there a better way?
-        AllData& operator=(const AllData& other)
+        AllEntities& operator=(const AllEntities& other)
         {
-            AllData_<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
+            if (this == &other) {
+                return *this;
+            }
+            AllEntities_<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
         }
 
-        AllData& operator=(AllData&& other)
+        AllEntities& operator=(AllEntities&& other)
         {
-            AllData_<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
+            AllEntities_<DataType, HandleType, NUM_ALL_ENTITIES>::operator=(other);
             return *this;
         }
 
-        AllData(std::array<FF, NUM_ALL_ENTITIES> data_in) { this->_data = data_in; }
+        ~AllEntities() = default;
     };
 
-    // These collect lightweight handles of data living in different entities. They
-    // provide the utility of grouping these and ranged `for` loops over
-    // subsets.
-    using ProverPolynomials = AllData<PolynomialHandle, PolynomialHandle>;
-    // using VerifierCommitments = AllData<Commitment, CommitmentHandle>;
+  public:
+    /**
+     * @brief The proving key is responsible for storing the polynomials used by the prover.
+     * @note TODO(Cody): Maybe multiple inheritance is the right thing here. In that case, nothing should eve inherit
+     * from ProvingKey.
+     */
+    class ProvingKey : public ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>,
+                                          WitnessEntities<Polynomial, PolynomialHandle>> {
+      public:
+        // Expose constructors on the base class
+        using Base = ProvingKey_<PrecomputedEntities<Polynomial, PolynomialHandle>,
+                                 WitnessEntities<Polynomial, PolynomialHandle>>;
+        using Base::Base;
 
-    using FoldedPolynomials = AllData<std::vector<FF>, PolynomialHandle>; // TODO(Cody): Just reuse ProverPolynomials?
+        std::vector<uint32_t> memory_read_records;
+        std::vector<uint32_t> memory_write_records;
+
+        // The plookup wires that store plookup read data.
+        std::array<PolynomialHandle, 3> get_table_column_wires() { return { w_l, w_r, w_o }; };
+    };
+
+    /**
+     * @brief The verification key is responsible for storing the the commitments to the precomputed (non-witnessk)
+     * polynomials used by the verifier.
+     *
+     * @note Note the discrepancy with what sort of data is stored here vs in the proving key. We may want to resolve
+     * that, and split out separate PrecomputedPolynomials/Commitments data for clarity but also for portability of our
+     * circuits.
+     */
+    using VerificationKey = VerificationKey_<PrecomputedEntities<Commitment, CommitmentHandle>>;
+    // MERGETODO: I had this class; is this needeD?
+    // class VerificationKey : public VerificationKey_<PrecomputedEntities<Commitment, CommitmentHandle>> {
+    //   public:
+    //     VerificationKey() = default;
+    //     VerificationKey(const size_t circuit_size,
+    //                     const size_t num_public_inputs,
+    //                     std::shared_ptr<VerifierReferenceString> const& vrs,
+    //                     ComposerType composer_type)
+    //     {
+    //         this->circuit_size = circuit_size;
+    //         this->log_circuit_size = numeric::get_msb(circuit_size);
+    //         this->num_public_inputs = num_public_inputs;
+    //         this->vrs = vrs;
+    //         this->composer_type = composer_type;
+    //     };
+    // };
+
+    /**
+     * @brief A container for polynomials handles; only stores spans.
+     */
+    using ProverPolynomials = AllEntities<PolynomialHandle, PolynomialHandle>;
+
+    /**
+     * @brief A container for polynomials produced after the first round of sumcheck.
+     * @todo TODO(#394) Use polynomial classes for guaranteed memory alignment.
+     */
+    using FoldedPolynomials = AllEntities<std::vector<FF>, PolynomialHandle>;
+
+    /**
+     * @brief A container for univariates produced during the hot loop in sumcheck.
+     * @todo TODO(#390): Simplify this by moving MAX_RELATION_LENGTH?
+     */
     template <size_t MAX_RELATION_LENGTH>
     using ExtendedEdges =
-        AllData<sumcheck::Univariate<FF, MAX_RELATION_LENGTH>, sumcheck::Univariate<FF, MAX_RELATION_LENGTH>>;
+        AllEntities<sumcheck::Univariate<FF, MAX_RELATION_LENGTH>, sumcheck::Univariate<FF, MAX_RELATION_LENGTH>>;
 
-    class PurportedEvaluations : public AllData<FF, FF> {
+    /**
+     * @brief A container for the polynomials evaluations produced during sumcheck, which are purported to be the
+     * evaluations of polynomials committed in earlier rounds.
+     */
+    class PurportedEvaluations : public AllEntities<FF, FF> {
       public:
-        PurportedEvaluations() { this->_data = {}; }
-        PurportedEvaluations(std::array<FF, NUM_ALL_ENTITIES> read_evals) { this->_data = read_evals; }
+        using Base = AllEntities<FF, FF>;
+        using Base::Base;
+        PurportedEvaluations(std::array<FF, NUM_ALL_ENTITIES> _data_in) { this->_data = _data_in; }
     };
 
-    class CommitmentLabels : public AllData<std::string, std::string> {
+    /**
+     * @brief A container for commitment labels.
+     * @note It's debatable whether this should inherit from AllEntities. since most entries are not strictly needed. It
+     * has, however, been useful during debugging to have these labels available.
+     *
+     */
+    class CommitmentLabels : public AllEntities<std::string, std::string> {
       public:
-        // this does away with the ENUM_TO_COMM array while preserving the
-        // transcript interface, which takes a string
-        // note: we could consider "enriching" the transcript interface to not use
-        // strings in the future, but I leave it this way for simplicity
-
         CommitmentLabels()
         {
             w_l = "W_L";
@@ -319,7 +336,7 @@ class Ultra {
         };
     };
 
-    class VerifierCommitments : public AllData<Commitment, CommitmentHandle> {
+    class VerifierCommitments : public AllEntities<Commitment, CommitmentHandle> {
       public:
         VerifierCommitments(std::shared_ptr<VerificationKey> verification_key, VerifierTranscript<FF> transcript)
         {

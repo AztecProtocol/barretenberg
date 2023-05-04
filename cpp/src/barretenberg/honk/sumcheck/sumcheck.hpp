@@ -181,10 +181,6 @@ template <typename Flavor, class Transcript, template <class> class... Relations
         PurportedEvaluations purported_evaluations =
             transcript.template receive_from_prover<std::array<FF, NUM_POLYNOMIALS>>("Sumcheck:evaluations");
 
-        // for (auto& eval : purported_evaluations) {
-        //     info(eval, "<-- in sumcheck verifier");
-        // };
-
         FF full_honk_relation_purported_value = round.compute_full_honk_relation_purported_value(
             purported_evaluations._data, relation_parameters, pow_univariate, alpha);
         verified = verified && (full_honk_relation_purported_value == round.target_total_sum);

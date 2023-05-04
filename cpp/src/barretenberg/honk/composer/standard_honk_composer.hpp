@@ -15,7 +15,7 @@ namespace proof_system::honk {
  */
 class StandardHonkComposer {
   public:
-    // TODO(Cody): Put this in the flavor?
+    // TODO(#426): This doesn't belong here
     static constexpr merkle::HashType merkle_hash_type = merkle::HashType::LOOKUP_PEDERSEN;
     static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
 
@@ -36,7 +36,7 @@ class StandardHonkComposer {
 
     // Leaving it in for now just in case
     bool contains_recursive_proof = false;
-    static constexpr size_t num_wires = CircuitConstructor::num_wires;
+    static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
 
     /**Standard methods*/
 

@@ -6,14 +6,15 @@
 namespace proof_system {
 
 /**
- * @brief Initialize proving key and load the crs
+ * @brief Initilalize proving key and load the crs
  *
- * @tparam CircuitConstructor Class containing the circuit
+ * @tparam Flavor
  * @param circuit_constructor  Object containing the circuit
+ * @param crs_factory Produces the prover's reference string
  * @param minimum_circuit_size The minimum size of polynomials without randomized elements
  * @param num_randomized_gates Number of gates with randomized witnesses
  * @param composer_type The type of composer we are using
- * @return std::shared_ptr<plonk::proving_key>
+ * @return std::shared_ptr<typename Flavor::ProvingKey>
  */
 template <typename Flavor>
 std::shared_ptr<typename Flavor::ProvingKey> initialize_proving_key(
@@ -40,7 +41,7 @@ std::shared_ptr<typename Flavor::ProvingKey> initialize_proving_key(
 /**
  * @brief Construct selector polynomials from ciruit selector information and put into polynomial cache
  *
- * @tparam CircuitConstructor The class holding the circuit
+ * @tparam Flavor
  * @param circuit_constructor The object holding the circuit
  * @param key Pointer to the proving key
  */
@@ -49,7 +50,7 @@ void construct_selector_polynomials(const typename Flavor::CircuitConstructor& c
                                     typename Flavor::ProvingKey* proving_key)
 {
     const size_t num_public_inputs = circuit_constructor.public_inputs.size();
-    // TODO(Cody): Loose coupling here! Would rather build up pk from arithmetizaiton
+    // TODO(#398): Loose coupling here! Would rather build up pk from arithmetization
     size_t selector_idx = 0; // TODO(#391) zip
     for (auto& selector_values : circuit_constructor.selectors) {
         ASSERT(proving_key->circuit_size >= selector_values.size());
@@ -61,8 +62,10 @@ void construct_selector_polynomials(const typename Flavor::CircuitConstructor& c
             selector_poly_lagrange[num_public_inputs + i] = selector_values[i];
         }
         if constexpr (IsHonkFlavor<Flavor>) {
-            proving_key->_data[selector_idx] = selector_poly_lagrange;
+            // TODO(#398): Loose coupling here of arithmetization and flavor.
+            proving_key->_precomputed_polynomials[selector_idx] = selector_poly_lagrange;
         } else if constexpr (IsPlonkFlavor<Flavor>) {
+            // TODO(Cody): Loose coupling here of selector_names and selector_properties.
             proving_key->polynomial_store.put(circuit_constructor.selector_names_[selector_idx] + "_lagrange",
                                               std::move(selector_poly_lagrange));
         }
@@ -73,7 +76,7 @@ void construct_selector_polynomials(const typename Flavor::CircuitConstructor& c
 /**
  * @brief Fill the last index of each selector polynomial in lagrange form with a non-zero value
  *
- * @tparam CircuitConstructor The class holding the circuit
+ * @tparam Flavor
  * @param circuit_constructor The object holding the circuit
  * @param key Pointer to the proving key
  *
@@ -105,11 +108,15 @@ void enforce_nonzero_selector_polynomials(const typename Flavor::CircuitConstruc
 /**
  * @brief Construct the witness polynomials from the witness vectors in the circuit constructor.
  *
- * @details The first two witness polynomials bein with the public input values.of w_1, w_2 polynomials is filled with
- * public_input values.
- * @return A vector containing the computed witness polynomials.
+ * @details The first two witness polynomials begin with the public input values.
+ *
  *
  * @tparam Flavor provides the circuit constructor type and the number of wires.
+ * @param circuit_constructor
+ * @param minimum_circuit_size
+ * @param number_of_randomized_gates
+ *
+ * @return std::vector<barretenberg::polynomial>
  * */
 template <typename Flavor>
 std::vector<barretenberg::polynomial> construct_wire_polynomials_base(

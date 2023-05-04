@@ -15,7 +15,7 @@
 namespace proof_system::plonk {
 class UltraPlonkComposerHelper {
   public:
-    using Flavor = plonk::flavor::Ultra;
+    using Flavor = flavor::Ultra;
     using CircuitConstructor = UltraCircuitConstructor;
 
     // TODO(luke): In the split composers, NUM_RANDOMIZED_GATES has replaced NUM_RESERVED_GATES (in some places) to
@@ -23,8 +23,8 @@ class UltraPlonkComposerHelper {
     // NUM_RESERVED_GATES). Therefore for consistency within this composer itself, and consistency with the original
     // Ultra Composer, this value must match that of NUM_RESERVED_GATES. This issue needs to be reconciled
     // simultaneously here and in the other split composers.
-    static constexpr size_t NUM_RANDOMIZED_GATES = 4; // equal to the number of multilinear evaluations leaked
-    static constexpr size_t program_width = CircuitConstructor::program_width;
+    static constexpr size_t NUM_RESERVED_GATES = 4; // equal to the number of multilinear evaluations leaked
+    static constexpr size_t program_width = CircuitConstructor::NUM_WIRES;
     std::shared_ptr<plonk::proving_key> circuit_proving_key;
     std::shared_ptr<plonk::verification_key> circuit_verification_key;
     // TODO(#218)(kesha): we need to put this into the commitment key, so that the composer doesn't have to handle srs

@@ -9,11 +9,8 @@ namespace proof_system::honk::prover_library {
 /**
  * @brief Compute the permutation grand product polynomial Z_perm(X)
  * *
- * @detail (This description assumes Flavor::num_wires 3). Z_perm may be defined in terms of iwires
-wires
-wirests values
- * on X_i = 0,1,...,n-1 as Z_perm[0] = 1 and for i = 1:n-1
- *
+ * @details (This description assumes Flavor::NUM_WIRES 3).
+ * Z_perm may be defined in terms of its values  on X_i = 0,1,...,n-1 as Z_perm[0] = 1 and for i = 1:n-1
  *                  (w_1(j) + β⋅id_1(j) + γ) ⋅ (w_2(j) + β⋅id_2(j) + γ) ⋅ (w_3(j) + β⋅id_3(j) + γ)
  * Z_perm[i] = ∏ --------------------------------------------------------------------------------
  *                  (w_1(j) + β⋅σ_1(j) + γ) ⋅ (w_2(j) + β⋅σ_2(j) + γ) ⋅ (w_3(j) + β⋅σ_3(j) + γ)
@@ -25,16 +22,18 @@ wirests values
  * Z_perm[i] = ∏ --------------------------
  *                B_1(j) ⋅ B_2(j) ⋅ B_3(j)
  *
- * Step 1) Compute the 2*Flavor::num_wires length-n polynomials A_i and B_i
- * Step 2) Compute the 2*Flavor::num_wires length-n polynomials ∏ A_i(j) and ∏ B_i(j)
+ * Step 1) Compute the 2*Flavor::NUM_WIRES length-n polynomials A_i and B_i
+ * Step 2) Compute the 2*Flavor::NUM_WIRES length-n polynomials ∏ A_i(j) and ∏ B_i(j)
  * Step 3) Compute the two length-n polynomials defined by
  *          numer[i] = ∏ A_1(j)⋅A_2(j)⋅A_3(j), and denom[i] = ∏ B_1(j)⋅B_2(j)⋅B_3(j)
  * Step 4) Compute Z_perm[i+1] = numer[i]/denom[i] (recall: Z_perm[0] = 1)
  *
  * Note: Step (4) utilizes Montgomery batch inversion to replace n-many inversions with
  * one batch inversion (at the expense of more multiplications)
+ *
+ * @todo TODO(#222)(luke): Parallelize
  */
-// TODO(#222)(luke): Parallelize
+
 template <typename Flavor>
 typename Flavor::Polynomial compute_permutation_grand_product(std::shared_ptr<typename Flavor::ProvingKey>& key,
                                                               typename Flavor::FF beta,
@@ -49,9 +48,9 @@ typename Flavor::Polynomial compute_permutation_grand_product(std::shared_ptr<ty
     // TODO(luke): instantiate z_perm here then make the 0th accum a span of it? avoid extra memory.
 
     // Allocate accumulator polynomials that will serve as scratch space
-    std::array<Polynomial, Flavor::num_wires> numerator_accumulator;
-    std::array<Polynomial, Flavor::num_wires> denominator_accumulator;
-    for (size_t i = 0; i < Flavor::num_wires; ++i) {
+    std::array<Polynomial, Flavor::NUM_WIRES> numerator_accumulator;
+    std::array<Polynomial, Flavor::NUM_WIRES> denominator_accumulator;
+    for (size_t i = 0; i < Flavor::NUM_WIRES; ++i) {
         numerator_accumulator[i] = Polynomial{ key->circuit_size };
         denominator_accumulator[i] = Polynomial{ key->circuit_size };
     }
@@ -63,7 +62,7 @@ typename Flavor::Polynomial compute_permutation_grand_product(std::shared_ptr<ty
     // Step (1)
     // TODO(#222)(kesha): Change the order to engage automatic prefetching and get rid of redundant computation
     for (size_t i = 0; i < key->circuit_size; ++i) {
-        for (size_t k = 0; k < Flavor::num_wires; ++k) {
+        for (size_t k = 0; k < Flavor::NUM_WIRES; ++k) {
             numerator_accumulator[k][i] = wire_polynomials[k][i] + (ids[k][i] * beta) + gamma; // w_k(i) + β.id_k(i) + γ
             denominator_accumulator[k][i] =
                 wire_polynomials[k][i] + (sigmas[k][i] * beta) + gamma; // w_k(i) + β.σ_k(i) + γ
@@ -71,7 +70,7 @@ typename Flavor::Polynomial compute_permutation_grand_product(std::shared_ptr<ty
     }
 
     // Step (2)
-    for (size_t k = 0; k < Flavor::num_wires; ++k) {
+    for (size_t k = 0; k < Flavor::NUM_WIRES; ++k) {
         for (size_t i = 0; i < key->circuit_size - 1; ++i) {
             numerator_accumulator[k][i + 1] *= numerator_accumulator[k][i];
             denominator_accumulator[k][i + 1] *= denominator_accumulator[k][i];
@@ -80,7 +79,7 @@ typename Flavor::Polynomial compute_permutation_grand_product(std::shared_ptr<ty
 
     // Step (3)
     for (size_t i = 0; i < key->circuit_size; ++i) {
-        for (size_t k = 1; k < Flavor::num_wires; ++k) {
+        for (size_t k = 1; k < Flavor::NUM_WIRES; ++k) {
             numerator_accumulator[0][i] *= numerator_accumulator[k][i];
             denominator_accumulator[0][i] *= denominator_accumulator[k][i];
         }
@@ -212,7 +211,7 @@ typename Flavor::Polynomial compute_lookup_grand_product(std::shared_ptr<typenam
 
     // We utilize three wires even when more are available.
     // TODO(#389): const correctness
-    std::array<std::span<FF>, 3> wires = key->get_plookup_read_wires();
+    std::array<std::span<FF>, 3> wires = key->get_table_column_wires();
 
     // Note: the number of table polys is related to program width but '4' is the only value supported
     std::array<std::span<const FF>, 4> tables{
@@ -222,7 +221,7 @@ typename Flavor::Polynomial compute_lookup_grand_product(std::shared_ptr<typenam
         key->table_4,
     };
 
-    std::span<const FF> lookup_selector = key->q_lookup; // TODO(Cody): this was something called table_type
+    std::span<const FF> lookup_selector = key->q_lookup;
     std::span<const FF> lookup_index_selector = key->q_o;
 
     const FF beta_plus_one = beta + FF(1);                      // (1 + β)

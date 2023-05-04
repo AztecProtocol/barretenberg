@@ -14,7 +14,7 @@ namespace proof_system::honk {
  * Create Prover from proving key, witness and manifest.
  *
  * @param input_key Proving key.
- * @param input_manifest Input manifestxo
+ * @param input_manifest Input manifest
  *
  * @tparam settings Settings class.
  * */
@@ -107,9 +107,6 @@ template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_grand_pro
     // Compute and store parameters required by relations in Sumcheck
     auto [beta, gamma] = transcript.get_challenges("beta", "gamma");
 
-    info("beta = ", beta);
-    info("gamma = ", gamma);
-
     auto public_input_delta = compute_public_input_delta<FF>(public_inputs, beta, gamma, key->circuit_size);
 
     relation_parameters = sumcheck::RelationParameters<FF>{
@@ -142,9 +139,6 @@ template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_relation_
     auto sumcheck = Sumcheck(key->circuit_size, transcript);
 
     sumcheck_output = sumcheck.execute_prover(prover_polynomials, relation_parameters);
-    // for (auto& eval : sumcheck_output.purported_evaluations) {
-    //     info(eval);
-    // };
 }
 
 /**
@@ -158,7 +152,6 @@ template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_univariat
 
     // Generate batching challenge ρ and powers 1,ρ,…,ρᵐ⁻¹
     FF rho = transcript.get_challenge("rho");
-    info("rho = ", rho);
     std::vector<FF> rhos = Gemini::powers_of_rho(rho, NUM_POLYNOMIALS);
 
     // Batch the unshifted polynomials and the to-be-shifted polynomials using ρ
@@ -194,7 +187,6 @@ template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_univariat
 template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_pcs_evaluation_round()
 {
     const FF r_challenge = transcript.get_challenge("Gemini:r");
-    info("r = ", r_challenge);
     gemini_output = Gemini::compute_fold_polynomial_evaluations(
         sumcheck_output.challenge_point, std::move(fold_polynomials), r_challenge);
 
@@ -212,7 +204,6 @@ template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_pcs_evalu
 template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_shplonk_batched_quotient_round()
 {
     nu_challenge = transcript.get_challenge("Shplonk:nu");
-    info("nu = ", nu_challenge);
 
     batched_quotient_Q =
         Shplonk::compute_batched_quotient(gemini_output.opening_pairs, gemini_output.witnesses, nu_challenge);
@@ -228,7 +219,6 @@ template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_shplonk_b
 template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_shplonk_partial_evaluation_round()
 {
     const FF z_challenge = transcript.get_challenge("Shplonk:z");
-    info("z = ", z_challenge);
     shplonk_output = Shplonk::compute_partially_evaluated_batched_quotient(
         gemini_output.opening_pairs, gemini_output.witnesses, std::move(batched_quotient_Q), nu_challenge, z_challenge);
 }

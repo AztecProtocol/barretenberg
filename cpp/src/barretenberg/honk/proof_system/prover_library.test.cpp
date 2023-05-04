@@ -35,8 +35,9 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         return random_polynomial;
     }
 
-    static void populate_span(auto& polynomial_view, auto& polynomial)
+    static void populate_span(auto& polynomial_view, const auto& polynomial)
     {
+        ASSERT(polynomial_view.size() <= polynomial.size());
         for (size_t idx = 0; idx < polynomial.size(); idx++) {
             polynomial_view[idx] = polynomial[idx];
         }
@@ -73,7 +74,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         auto wire_polynomials = proving_key->get_wires();
         auto sigma_polynomials = proving_key->get_sigma_polynomials();
         auto id_polynomials = proving_key->get_id_polynomials();
-        for (size_t i = 0; i < Flavor::num_wires; ++i) {
+        for (size_t i = 0; i < Flavor::NUM_WIRES; ++i) {
             wires.emplace_back(get_random_polynomial(num_gates));
             sigmas.emplace_back(get_random_polynomial(num_gates));
             ids.emplace_back(get_random_polynomial(num_gates));
@@ -94,7 +95,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         // which describes the computation in 4 steps, is adapted from a similar comment in
         // compute_grand_product_polynomial.
         /*
-         * Assume Flavor::num_wires 3. Z_perm may be defined in terms of its values
+         * Assume Flavor::NUM_WIRES 3. Z_perm may be defined in terms of its values
          * on X_i = 0,1,...,n-1 as Z_perm[0] = 0 and for i = 1:n-1
          *
          *                  (w_1(j) + β⋅id_1(j) + γ) ⋅ (w_2(j) + β⋅id_2(j) + γ) ⋅ (w_3(j) + β⋅id_3(j) + γ)
@@ -108,27 +109,27 @@ template <class FF> class ProverLibraryTests : public testing::Test {
          * Z_perm[i] = ∏ --------------------------
          *                B_1(j) ⋅ B_2(j) ⋅ B_3(j)
          *
-         * Step 1) Compute the 2*Flavor::num_wires length-n polynomials A_i and B_i
-         * Step 2) Compute the 2*Flavor::num_wires length-n polynomials ∏ A_i(j) and ∏ B_i(j)
+         * Step 1) Compute the 2*Flavor::NUM_WIRES length-n polynomials A_i and B_i
+         * Step 2) Compute the 2*Flavor::NUM_WIRES length-n polynomials ∏ A_i(j) and ∏ B_i(j)
          * Step 3) Compute the two length-n polynomials defined by
          *          numer[i] = ∏ A_1(j)⋅A_2(j)⋅A_3(j), and denom[i] = ∏ B_1(j)⋅B_2(j)⋅B_3(j)
          * Step 4) Compute Z_perm[i+1] = numer[i]/denom[i] (recall: Z_perm[0] = 1)
          */
 
         // Make scratch space for the numerator and denominator accumulators.
-        std::array<std::array<FF, num_gates>, Flavor::num_wires> numerator_accum;
-        std::array<std::array<FF, num_gates>, Flavor::num_wires> denominator_accum;
+        std::array<std::array<FF, num_gates>, Flavor::NUM_WIRES> numerator_accum;
+        std::array<std::array<FF, num_gates>, Flavor::NUM_WIRES> denominator_accum;
 
         // Step (1)
         for (size_t i = 0; i < proving_key->circuit_size; ++i) {
-            for (size_t k = 0; k < Flavor::num_wires; ++k) {
+            for (size_t k = 0; k < Flavor::NUM_WIRES; ++k) {
                 numerator_accum[k][i] = wires[k][i] + (ids[k][i] * beta) + gamma;      // w_k(i) + β.id_k(i) + γ
                 denominator_accum[k][i] = wires[k][i] + (sigmas[k][i] * beta) + gamma; // w_k(i) + β.σ_k(i) + γ
             }
         }
 
         // Step (2)
-        for (size_t k = 0; k < Flavor::num_wires; ++k) {
+        for (size_t k = 0; k < Flavor::NUM_WIRES; ++k) {
             for (size_t i = 0; i < proving_key->circuit_size - 1; ++i) {
                 numerator_accum[k][i + 1] *= numerator_accum[k][i];
                 denominator_accum[k][i + 1] *= denominator_accum[k][i];
@@ -137,7 +138,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
 
         // Step (3)
         for (size_t i = 0; i < proving_key->circuit_size; ++i) {
-            for (size_t k = 1; k < Flavor::num_wires; ++k) {
+            for (size_t k = 1; k < Flavor::NUM_WIRES; ++k) {
                 numerator_accum[0][i] *= numerator_accum[k][i];
                 denominator_accum[0][i] *= denominator_accum[k][i];
             }
@@ -180,7 +181,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         // polynomials can simply be random. We're not interested in the particular properties of the result.
         std::vector<Polynomial> wires;
         auto wire_polynomials = proving_key->get_wires();
-        // Note(luke): Use of 3 wires is fundamental to the structure of the tables and should not be tied to num_wires
+        // Note(luke): Use of 3 wires is fundamental to the structure of the tables and should not be tied to NUM_WIRES
         // for now
         for (size_t i = 0; i < 3; ++i) { // TODO(Cody): will this test ever generalize?
             Polynomial random_polynomial = get_random_polynomial(circuit_size);

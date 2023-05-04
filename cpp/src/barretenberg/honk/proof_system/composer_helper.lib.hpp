@@ -5,9 +5,15 @@
 namespace proof_system::honk {
 
 /**
- * @brief Computes the verification key by computing the:
+ * @brief Computes the verification key.
+ * @details Does the following
  * (1) commitments to the selector, permutation, and lagrange (first/last) polynomials,
  * (2) sets the polynomial manifest using the data from proving key.
+ *
+ * @tparam Flavor
+ * @param proving_key A completely construted proving key.
+ * @param vrs The reference string used by the verifier
+ * @return std::shared_ptr<typename Flavor::VerificationKey>
  */
 template <typename Flavor>
 std::shared_ptr<typename Flavor::VerificationKey> compute_verification_key_common(

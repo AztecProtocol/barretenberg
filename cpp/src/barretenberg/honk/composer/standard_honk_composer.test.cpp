@@ -73,7 +73,7 @@ TEST(StandardHonkComposer, SigmaIDCorrectness)
         auto permutation_polynomials = proving_key->get_sigma_polynomials();
         auto id_polynomials = proving_key->get_id_polynomials();
         auto wire_polynomials = proving_key->get_wires();
-        for (size_t j = 0; j < StandardHonkComposer::num_wires; ++j) {
+        for (size_t j = 0; j < StandardHonkComposer::NUM_WIRES; ++j) {
             std::string index = std::to_string(j + 1);
             const auto& permutation_polynomial = permutation_polynomials[j];
             const auto& witness_polynomial = wire_polynomials[j];
@@ -215,7 +215,7 @@ TEST(StandardHonkComposer, AssertEquals)
     auto get_maximum_cycle = [](auto& composer) {
         // Compute the proving key for sigma polynomials
         auto proving_key = composer.compute_proving_key();
-        auto permutation_length = composer.num_wires * proving_key->circuit_size;
+        auto permutation_length = composer.NUM_WIRES * proving_key->circuit_size;
         auto sigma_polynomials = proving_key->get_sigma_polynomials();
 
         // Let's compute the maximum cycle
@@ -302,7 +302,7 @@ TEST(StandardHonkComposer, VerificationKeyCreation)
     // There is nothing we can really check apart from the fact that constraint selectors and permutation selectors were
     // committed to, we simply check that the verification key now contains the appropriate number of constraint and
     // permutation selector commitments. This method should work with any future arithemtization.
-    EXPECT_EQ(verification_key->size(), composer.circuit_constructor.selectors.size() + composer.num_wires * 2 + 2);
+    EXPECT_EQ(verification_key->size(), composer.circuit_constructor.selectors.size() + composer.NUM_WIRES * 2 + 2);
 }
 
 TEST(StandardHonkComposer, BaseCase)
@@ -313,7 +313,6 @@ TEST(StandardHonkComposer, BaseCase)
 
     auto prover = composer.create_prover();
     plonk::proof proof = prover.construct_proof();
-    proof.print();
     auto verifier = composer.create_verifier();
     bool verified = verifier.verify_proof(proof);
     ASSERT_TRUE(verified);
@@ -353,27 +352,36 @@ TEST(StandardHonkComposer, TwoGates)
     run_test(/* expect_verified=*/false);
 }
 
-TEST(StandardHonkComposer, SumcheckEvaluationsAreCorrect)
+TEST(StandardHonkComposer, SumcheckEvaluations)
 {
-    auto composer = StandardHonkComposer();
-    fr a = fr::one();
-    // Construct a small but non-trivial circuit
-    uint32_t a_idx = composer.add_public_variable(a);
-    fr b = fr::one();
-    fr c = a + b;
-    fr d = a + c;
-    uint32_t b_idx = composer.add_variable(b);
-    uint32_t c_idx = composer.add_variable(c);
-    uint32_t d_idx = composer.add_variable(d);
-    for (size_t i = 0; i < 16; i++) {
-        composer.create_add_gate({ a_idx, b_idx, c_idx, fr::one(), fr::one(), fr::neg_one(), fr::zero() });
-        composer.create_add_gate({ d_idx, c_idx, a_idx, fr::one(), fr::neg_one(), fr::neg_one(), fr::zero() });
-    }
-    auto prover = composer.create_prover();
-    plonk::proof proof = prover.construct_proof();
+    auto run_test = [](bool expected_result) {
+        auto composer = StandardHonkComposer();
+        fr a = fr::one();
+        // Construct a small but non-trivial circuit
+        uint32_t a_idx = composer.add_public_variable(a);
+        fr b = fr::one();
+        fr c = a + b;
+        fr d = a + c;
 
-    auto verifier = composer.create_verifier();
-    bool verified = verifier.verify_proof(proof);
-    ASSERT_TRUE(verified);
+        if (expected_result == false) {
+            d += 1;
+        };
+
+        uint32_t b_idx = composer.add_variable(b);
+        uint32_t c_idx = composer.add_variable(c);
+        uint32_t d_idx = composer.add_variable(d);
+        for (size_t i = 0; i < 16; i++) {
+            composer.create_add_gate({ a_idx, b_idx, c_idx, fr::one(), fr::one(), fr::neg_one(), fr::zero() });
+            composer.create_add_gate({ d_idx, c_idx, a_idx, fr::one(), fr::neg_one(), fr::neg_one(), fr::zero() });
+        }
+        auto prover = composer.create_prover();
+        plonk::proof proof = prover.construct_proof();
+
+        auto verifier = composer.create_verifier();
+        bool verified = verifier.verify_proof(proof);
+        ASSERT_EQ(verified, expected_result);
+    };
+    run_test(/*expected_result=*/true);
+    run_test(/*expected_result=*/false);
 }
 } // namespace test_standard_honk_composer
