@@ -32,6 +32,7 @@ extern "C" {
 
 WASM_EXPORT void env_test_threads(uint32_t const* thread_num, uint32_t const* iterations, uint32_t* out)
 {
+    info("test starting...");
     Timer t;
     size_t NUM_THREADS = ntohl(*thread_num);
     std::vector<std::thread> threads(NUM_THREADS);
@@ -42,10 +43,9 @@ WASM_EXPORT void env_test_threads(uint32_t const* thread_num, uint32_t const* it
         threads[i] = std::thread(thread_test_entry_point, &test_data);
     }
 
+    info("joining...");
     for (size_t i = 0; i < NUM_THREADS; i++) {
-        // if (threads[i].joinable()) {
         threads[i].join();
-        // }
     }
 
     info("test complete with counter at: ", static_cast<size_t>(test_data.counter), " ", t.seconds(), "s");
@@ -70,23 +70,4 @@ WASM_EXPORT void env_get_data(in_str_buf key_buf, uint8_t** out_ptr)
     // auto* dst = *out_ptr;
     // write(dst, vec);
 }
-
-/**
- * @brief Simple wrapper for env_load_verifier_crs.
- * @return The CRS.
- */
-// WASM_EXPORT void* env__load_verifier_crs(uint8_t**)
-// {
-//     return env_load_verifier_crs();
-// }
-
-// /**
-//  * @brief Simple wrapper for env_load_verifier_crs.
-//  * @param The number of points to load of the prover CRS.
-//  * @return The CRS.
-//  */
-// WASM_EXPORT void* env__load_prover_crs(size_t num_points)
-// {
-//     return env_load_prover_crs(num_points);
-// }
 }

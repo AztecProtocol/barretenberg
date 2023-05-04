@@ -358,54 +358,18 @@ template <typename settings> void ProverBase<settings>::execute_fourth_round()
 {
     queue.flush_queue();
     transcript.apply_fiat_shamir("alpha");
-#ifdef DEBUG_TIMING
-    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-#endif
-#ifdef DEBUG_TIMING
-    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    std::chrono::milliseconds diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    std::cerr << "compute wire ffts: " << diff.count() << "ms" << std::endl;
-#endif
-
-#ifdef DEBUG_TIMING
-    start = std::chrono::steady_clock::now();
-#endif
-#ifdef DEBUG_TIMING
-    end = std::chrono::steady_clock::now();
-    diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    std::cerr << "copy z: " << diff.count() << "ms" << std::endl;
-#endif
-#ifdef DEBUG_TIMING
-    start = std::chrono::steady_clock::now();
-#endif
-#ifdef DEBUG_TIMING
-    end = std::chrono::steady_clock::now();
-    diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    std::cerr << "compute permutation grand product coeffs: " << diff.count() << "ms" << std::endl;
-#endif
     fr alpha_base = fr::serialize_from_buffer(transcript.get_challenge("alpha").begin());
 
     // Compute FFT of lagrange polynomial L_1 (needed in random widgets only)
     compute_lagrange_1_fft();
 
     for (auto& widget : random_widgets) {
-#ifdef DEBUG_TIMING
-        std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-#endif
         alpha_base = widget->compute_quotient_contribution(alpha_base, transcript);
-#ifdef DEBUG_TIMING
-        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-        std::chrono::milliseconds diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        std::cerr << "widget " << i << " quotient compute time: " << diff.count() << "ms" << std::endl;
-#endif
     }
 
     for (auto& widget : transition_widgets) {
         alpha_base = widget->compute_quotient_contribution(alpha_base, transcript);
     }
-#ifdef DEBUG_TIMING
-    start = std::chrono::steady_clock::now();
-#endif
 
     // The parts of the quotient polynomial t(X) are stored as 4 separate polynomials in
     // the code. However, operations such as dividing by the pseudo vanishing polynomial
@@ -420,14 +384,6 @@ template <typename settings> void ProverBase<settings>::execute_fourth_round()
     barretenberg::polynomial_arithmetic::divide_by_pseudo_vanishing_polynomial(
         quotient_poly_parts, key->small_domain, key->large_domain);
 
-#ifdef DEBUG_TIMING
-    end = std::chrono::steady_clock::now();
-    diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    std::cerr << "divide by vanishing polynomial: " << diff.count() << "ms" << std::endl;
-#endif
-#ifdef DEBUG_TIMING
-    start = std::chrono::steady_clock::now();
-#endif
     polynomial_arithmetic::coset_ifft(quotient_poly_parts, key->large_domain);
 
     // Manually copy the (n + 1)th coefficient of t_3 for StandardPlonk from t_4.
@@ -437,23 +393,9 @@ template <typename settings> void ProverBase<settings>::execute_fourth_round()
         key->quotient_polynomial_parts[3][0] = 0;
     }
 
-#ifdef DEBUG_TIMING
-    end = std::chrono::steady_clock::now();
-    diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    std::cerr << "final inverse fourier transforms: " << diff.count() << "ms" << std::endl;
-#endif
-#ifdef DEBUG_TIMING
-    start = std::chrono::steady_clock::now();
-#endif
-
     add_blinding_to_quotient_polynomial_parts();
 
     compute_quotient_commitments();
-#ifdef DEBUG_TIMING
-    end = std::chrono::steady_clock::now();
-    diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    std::cerr << "compute quotient commitment: " << diff.count() << "ms" << std::endl;
-#endif
 } // namespace proof_system::plonk
 
 template <typename settings> void ProverBase<settings>::execute_fifth_round()

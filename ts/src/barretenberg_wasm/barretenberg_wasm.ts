@@ -9,13 +9,11 @@ import { AsyncCallState, AsyncFnState } from './async_call_state.js';
 import { Crs } from '../crs/index.js';
 // import { NodeDataStore } from './node/node_data_store.js';
 // import { WebDataStore } from './browser/web_data_store.js';
-import { createHash } from 'crypto';
 import { Worker } from 'worker_threads';
 import os from 'os';
+import createDebug from 'debug';
 
 EventEmitter.defaultMaxListeners = 30;
-
-const sha256 = (data: Uint8Array) => createHash('sha256').update(data).digest('hex');
 
 function getNumCpu() {
   return Math.min(isNode ? os.cpus().length : navigator.hardwareConcurrency, 8);
@@ -42,11 +40,13 @@ export class BarretenbergWasm extends EventEmitter {
   private nextWorker = 0;
   private nextThreadId = 1;
 
-  public static async new(threads = getNumCpu(), logHandler?: (m: string) => void, initial?: number) {
+  public static async new(
+    threads = getNumCpu(),
+    logHandler: (msg: string) => void = createDebug('wasm'),
+    initial?: number,
+  ) {
     const barretenberg = new BarretenbergWasm();
-    if (logHandler) {
-      barretenberg.on('log', logHandler);
-    }
+    barretenberg.on('log', logHandler);
     await barretenberg.init(threads, initial);
     return barretenberg;
   }
@@ -78,30 +78,30 @@ export class BarretenbergWasm extends EventEmitter {
 
     // this.asyncCallState.init(this.memory, this.call.bind(this), this.debug.bind(this));
 
-    // Create worker threads. Returns once all workers have signalled they're ready.
-    this.workers = await Promise.all(
-      Array.from({ length: threads }).map((_, i) => {
-        return new Promise<Worker>(resolve => {
-          this.debug(`creating worker ${i}`);
-          const __dirname = dirname(fileURLToPath(import.meta.url));
-          const worker = new Worker(
-            __dirname + `/node/barretenberg_thread.ts`,
-            i === 0 ? { execArgv: ['--inspect-brk=0.0.0.0'] } : {},
-          );
-          worker.on('message', msg => {
-            if (typeof msg === 'number') {
-              // Worker is ready.
-              this.debug(`worker ready ${i}`);
-              resolve(worker);
-              return;
-            }
-            this.debug(msg);
-          });
-          // worker.on('exit', () => this.debug(`worker ${i} exited!`));
-          worker.postMessage({ msg: 'start', data: { module, memory: this.memory } });
+    const createWorker = (i: number) => {
+      return new Promise<Worker>(resolve => {
+        const __dirname = dirname(fileURLToPath(import.meta.url));
+        const worker = new Worker(
+          __dirname + `/node/barretenberg_thread.ts`,
+          // i === 0 ? { execArgv: ['--inspect-brk=0.0.0.0'] } : {},
+        );
+        const debug = createDebug(`wasm:worker:${i}`);
+        worker.on('message', msg => {
+          if (typeof msg === 'number') {
+            // Worker is ready.
+            resolve(worker);
+            return;
+          }
+          debug(msg);
         });
-      }),
-    );
+        worker.postMessage({ msg: 'start', data: { module, memory: this.memory } });
+      });
+    };
+
+    // Create worker threads. Returns once all workers have signalled they're ready.
+    this.debug('creating worker threads...');
+    this.workers = await Promise.all(Array.from({ length: threads }).map((_, i) => createWorker(i)));
+    this.debug('init complete.');
   }
 
   /**
@@ -145,14 +145,10 @@ export class BarretenbergWasm extends EventEmitter {
           buf.writeBigUInt64LE(ts);
           buf.copy(heap, out);
         },
-        // sched_yield: () => {
-        // this.debug('sched_yield');
-        // process.nextTick(() => {});
-        // return 0;
-        // },
       },
       wasi: {
         'thread-spawn': (arg: number) => {
+          arg = arg >>> 0;
           const id = this.nextThreadId++;
           const worker = this.nextWorker++ % this.workers.length;
           // this.debug(`spawning thread ${id} on worker ${worker} with arg ${arg >>> 0}`);
@@ -229,21 +225,6 @@ export class BarretenbergWasm extends EventEmitter {
         //   const key = this.stringFromAddress(keyAddr);
         //   await this.store.set(key, Buffer.from(this.getMemorySlice(dataAddr, dataAddr + dataLength)));
         // }),
-        env_load_verifier_crs: this.wrapAsyncImportFn(async () => {
-          // TODO optimize
-          const crs = new Crs(0);
-          await crs.init();
-          const crsPtr = this.call('bbmalloc', crs.getG2Data().length);
-          this.writeMemory(crsPtr, crs.getG2Data());
-          return crsPtr;
-        }),
-        env_load_prover_crs: this.wrapAsyncImportFn(async (numPoints: number) => {
-          const crs = new Crs(numPoints);
-          await crs.init();
-          const crsPtr = this.call('bbmalloc', crs.getG1Data().length);
-          this.writeMemory(crsPtr, crs.getG1Data());
-          return crsPtr;
-        }),
         memory,
       },
     };
@@ -289,7 +270,7 @@ export class BarretenbergWasm extends EventEmitter {
   }
 
   public getMemorySlice(start: number, end?: number) {
-    return this.getMemory().slice(start, end);
+    return this.getMemory().subarray(start, end);
   }
 
   public writeMemory(offset: number, arr: Uint8Array) {

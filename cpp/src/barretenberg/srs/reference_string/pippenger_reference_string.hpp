@@ -37,7 +37,6 @@ class PippengerReferenceStringFactory : public ReferenceStringFactory {
 
     std::shared_ptr<ProverReferenceString> get_prover_crs(size_t degree) override
     {
-        info("get_prover_crs ", degree, " ", pippenger_->get_num_points());
         ASSERT(degree <= pippenger_->get_num_points());
         return std::make_shared<PippengerReferenceString>(pippenger_);
     }

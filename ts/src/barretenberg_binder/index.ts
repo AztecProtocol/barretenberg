@@ -45,7 +45,8 @@ export class BarretenbergBinder {
   private deserializeOutputArgs(outTypes: OutputType[], outPtrs: number[], alloc: HeapAllocator) {
     return outTypes.map((t, i) => {
       if (t.SIZE_IN_BYTES) {
-        return t.fromBuffer(this.wasm.getMemorySlice(outPtrs[i]));
+        const slice = this.wasm.getMemorySlice(outPtrs[i], outPtrs[i] + t.SIZE_IN_BYTES);
+        return t.fromBuffer(slice);
       }
       const ptr = Buffer.from(this.wasm.getMemorySlice(outPtrs[i], outPtrs[i] + 4)).readUInt32LE();
       alloc.addOutputPtr(ptr);

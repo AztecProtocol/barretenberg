@@ -10,6 +10,9 @@
 #include "polynomial_arithmetic.hpp"
 
 namespace barretenberg {
+
+// std::shared_ptr<fr[]> poly_mem_get(size_t size);
+
 template <typename Fr> class Polynomial {
   public:
     /**
@@ -28,11 +31,6 @@ template <typename Fr> class Polynomial {
     Polynomial(const Polynomial& other, const size_t target_size);
 
     Polynomial(Polynomial&& other) noexcept;
-
-    // Takes ownership of given buffer.
-    // MUST have been allocated with aligned_alloc as will attempt to release with aligned_free.
-    // We could pass in the deallocator as a third argument if we ever wanted more flexibility.
-    Polynomial(Fr* buf, const size_t initial_size);
 
     // Create a polynomial from the given fields.
     Polynomial(std::span<const Fr> coefficients);

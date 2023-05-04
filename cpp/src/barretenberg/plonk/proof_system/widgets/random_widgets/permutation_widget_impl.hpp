@@ -3,6 +3,8 @@
 #include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/plonk/proof_system/public_inputs/public_inputs.hpp"
+#include "barretenberg/polynomials/polynomial.hpp"
+#include "barretenberg/polynomials/slab_allocator.hpp"
 #include "barretenberg/transcript/transcript.hpp"
 #include "barretenberg/polynomials/iterate_over_domain.hpp"
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"
@@ -64,12 +66,14 @@ void ProverPermutationWidget<program_width, idpolys, num_roots_cut_out_of_vanish
     // Allocate scratch space in memory for computation of lagrange form of permutation polynomial
     // 'z_perm'. Elements 2,...,n of z_perm are constructed in place in accumulators[0]. (The first
     // element of z_perm is one, i.e. z_perm[0] == 1). The remaining accumulators are used only as scratch
-    // space. All memory allocated for the accumulators is freed before termination of this function.
+    // space.
     size_t num_accumulators = (program_width == 1) ? 3 : program_width * 2;
+    std::shared_ptr<void> accumulators_ptrs[num_accumulators];
     fr* accumulators[num_accumulators];
     // Allocate the required number of length n scratch space arrays
     for (size_t k = 0; k < num_accumulators; ++k) {
-        accumulators[k] = static_cast<fr*>(aligned_alloc(64, sizeof(fr) * key->circuit_size));
+        accumulators_ptrs[k] = mem_slab_get(key->circuit_size * sizeof(fr));
+        accumulators[k] = (fr*)accumulators_ptrs[k].get();
     }
 
     barretenberg::fr beta = fr::serialize_from_buffer(transcript.get_challenge("beta").begin());
@@ -303,11 +307,6 @@ void ProverPermutationWidget<program_width, idpolys, num_roots_cut_out_of_vanish
     }
 
     z_perm.ifft(key->small_domain);
-
-    // free memory allocated for scratch space
-    for (size_t k = 0; k < num_accumulators; ++k) {
-        aligned_free(accumulators[k]);
-    }
 
     // Commit to z:
     queue.add_to_queue({

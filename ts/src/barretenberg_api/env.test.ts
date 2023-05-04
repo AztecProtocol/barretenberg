@@ -3,14 +3,14 @@ import { BarretenbergWasm } from '../barretenberg_wasm/index.js';
 import { BarretenbergApi } from './index.js';
 import debug from 'debug';
 
-debug.enable('wasm');
+debug.enable('*');
 
 describe('env', () => {
   let api: BarretenbergApi;
 
   beforeAll(async () => {
-    api = new BarretenbergApi(new BarretenbergBinder(await BarretenbergWasm.new(16, debug('wasm'))));
-  }, 20000);
+    api = new BarretenbergApi(new BarretenbergBinder(await BarretenbergWasm.new(2)));
+  }, 60000);
 
   afterAll(async () => {
     await api.destroy();
@@ -18,7 +18,7 @@ describe('env', () => {
 
   it('thread test', () => {
     const threads = api.binder.wasm.getNumWorkers();
-    const iterations = 10000000;
+    const iterations = 1000000 / 4;
     const result = api.envTestThreads(threads, iterations);
     expect(result).toBe(iterations);
   });

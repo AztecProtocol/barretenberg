@@ -1,110 +1,15 @@
 #include "polynomial.hpp"
 #include "polynomial_arithmetic.hpp"
 #include "barretenberg/common/assert.hpp"
-#include "barretenberg/common/mem.hpp"
+#include "slab_allocator.hpp"
 #include <cstddef>
+#include <memory>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unordered_map>
 #include <utility>
 #include <list>
 #include <mutex>
-
-namespace {
-
-// class PolynomialMemoryAllocator {
-//   private:
-//     std::unordered_map<size_t, std::list<void*>> memory_store;
-
-//   public:
-//     template <typename Fr> std::shared_ptr<Fr[]> get(size_t size)
-//     {
-//         if (memory_store[size].size() > 0) {
-//             info("Reusing poly memory of size: ", size);
-//             auto ptr = memory_store[size].back();
-//             memory_store[size].pop_back();
-//             return std::shared_ptr<Fr[]>(static_cast<Fr*>(ptr), [this, size](Fr* p) { this->release<Fr>(p, size); });
-//         }
-
-//         info("Allocating poly memory of size: ", size);
-//         auto deleter = [this, size](Fr* p) { this->release<Fr>(p, size); };
-//         return std::shared_ptr<Fr[]>(static_cast<Fr*>(aligned_alloc(sizeof(Fr), size)), deleter);
-//     }
-
-//     template <typename Fr> void release(Fr* ptr, size_t size) { memory_store[size].push_back(ptr); }
-// };
-
-class PolynomialMemoryAllocator {
-  private:
-    std::map<size_t, std::list<void*>> memory_store;
-    std::mutex memory_store_mutex;
-
-  public:
-    PolynomialMemoryAllocator(size_t circuit_size_hint)
-    {
-        if (!circuit_size_hint) {
-            return;
-        }
-        size_t num_small = 4 + 4 + 15 + 15 + 8 + 8 + 1 + 5 + 2 + 4 + 1;
-        size_t num_large = 4 + 15 + 8 + 1 + 2;
-
-        for (size_t i = 0; i < num_small; ++i) {
-            // Over-allocate because we know there are requests for circuit_size + n.
-            size_t size = 32 * (circuit_size_hint + 32);
-            memory_store[size].push_back(aligned_alloc(32, size));
-            info("Allocated poly memory of size: ", size, " total: ", get_total_size());
-        }
-
-        for (size_t i = 0; i < num_large; ++i) {
-            // Over-allocate because we know there are requests for circuit_size + n.
-            size_t size = 32 * (circuit_size_hint + 32) * 4;
-            memory_store[size].push_back(aligned_alloc(32, size));
-            info("Allocated poly memory of size: ", size, " total: ", get_total_size());
-        }
-    }
-
-    template <typename Fr> std::shared_ptr<Fr[]> get(size_t size)
-    {
-        std::unique_lock<std::mutex> lock(memory_store_mutex);
-
-        auto it = memory_store.lower_bound(size);
-
-        if (it != memory_store.end()) {
-            auto ptr = it->second.back();
-            it->second.pop_back();
-
-            if (it->second.empty()) {
-                memory_store.erase(it);
-            }
-
-            // info("Reusing poly memory of size: ", it->first, " for requested ", size, " total: ", get_total_size());
-            return std::shared_ptr<Fr[]>(static_cast<Fr*>(ptr), [this, it](Fr* p) { this->release(p, it->first); });
-        }
-
-        info("Allocating poly memory of size: ", size, " total: ", get_total_size());
-        auto deleter = [this, size](Fr* p) { this->release(p, size); };
-        return std::shared_ptr<Fr[]>(static_cast<Fr*>(aligned_alloc(sizeof(Fr), size)), deleter);
-    }
-
-    size_t get_total_size()
-    {
-        return std::accumulate(memory_store.begin(), memory_store.end(), size_t{ 0 }, [](size_t acc, const auto& kv) {
-            return acc + kv.first * kv.second.size();
-        });
-    }
-
-  private:
-    void release(void* ptr, size_t size)
-    {
-        std::unique_lock<std::mutex> lock(memory_store_mutex);
-        info("Releasing poly memory of size: ", size, " total: ", get_total_size());
-        memory_store[size].push_back(ptr);
-    }
-};
-
-PolynomialMemoryAllocator allocator(524288);
-
-} // namespace
 
 namespace barretenberg {
 
@@ -135,7 +40,7 @@ Polynomial<Fr>::Polynomial(const Polynomial<Fr>& other, const size_t target_size
     : size_(std::max(target_size, other.size()))
 {
     coefficients_ = allocate_aligned_memory(sizeof(Fr) * capacity());
-    info("Polynomial Copy ctor new buf at ", coefficients_, " size ", size_);
+    // info("Polynomial Copy ctor new buf at ", coefficients_, " size ", size_);
 
     if (other.coefficients_ != nullptr) {
         memcpy(static_cast<void*>(coefficients_.get()),
@@ -153,20 +58,12 @@ Polynomial<Fr>::Polynomial(Polynomial<Fr>&& other) noexcept
     // info("Move ctor Polynomial took ownership of ", coefficients_, " size ", size_);
 }
 
-// template <typename Fr>
-// Polynomial<Fr>::Polynomial(Fr* buf, const size_t size_)
-//     : coefficients_(buf, aligned_free)
-//     , size_(size_)
-// {
-//     info("New Polynomial took ownership of ", buf, " size ", size_);
-// }
-
 template <typename Fr>
 Polynomial<Fr>::Polynomial(std::span<const Fr> coefficients)
     : size_(coefficients.size())
 {
     coefficients_ = allocate_aligned_memory(sizeof(Fr) * capacity());
-    info("Polynomial span ctor new buf at ", coefficients_, " size ", size_);
+    // info("Polynomial span ctor new buf at ", coefficients_, " size ", size_);
     memcpy(static_cast<void*>(coefficients_.get()),
            static_cast<void const*>(coefficients.data()),
            sizeof(Fr) * coefficients.size());
@@ -178,7 +75,7 @@ Polynomial<Fr>::Polynomial(std::span<const Fr> interpolation_points, std::span<c
 {
     ASSERT(size_ > 0);
 
-    info("Polynomial INTERPOLATION ctor.");
+    // info("Polynomial INTERPOLATION ctor.");
 
     polynomial_arithmetic::compute_efficient_interpolation(
         evaluations.data(), coefficients_.get(), interpolation_points.data(), size_);
@@ -193,20 +90,6 @@ template <typename Fr> Polynomial<Fr>& Polynomial<Fr>::operator=(const Polynomia
     // info("Polynomial CHEAP copy assignment.");
     size_ = other.size_;
     coefficients_ = other.coefficients_;
-    // if (is_empty()) {
-    //     size_ = other.size();
-    //     coefficients_ = allocate_aligned_memory(sizeof(Fr) * other.capacity());
-    // }
-
-    // ASSERT(in_place_operation_viable(other.size_));
-    // zero_memory_beyond(other.size_);
-
-    // if (other.coefficients_ != nullptr) {
-    //     memcpy(static_cast<void*>(coefficients_.get()),
-    //            static_cast<void*>(other.coefficients_.get()),
-    //            sizeof(Fr) * other.size_);
-    // }
-
     return *this;
 }
 
@@ -455,10 +338,7 @@ template <typename Fr> Fr Polynomial<Fr>::evaluate_mle(std::span<const Fr> evalu
 
 template <typename Fr> typename Polynomial<Fr>::pointer Polynomial<Fr>::allocate_aligned_memory(const size_t size) const
 {
-    return allocator.get<Fr>(size);
-    // std::shared_ptr<Fr[]> ptr(static_cast<Fr*>(aligned_alloc(sizeof(Fr), size)), aligned_free);
-    // info("Polynomial allocated ", (void*)ptr.get());
-    // return ptr;
+    return std::static_pointer_cast<Fr[]>(mem_slab_get(size));
 }
 
 template class Polynomial<barretenberg::fr>;

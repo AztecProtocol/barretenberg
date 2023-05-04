@@ -9,7 +9,6 @@ namespace scalar_multiplication {
 
 pippenger_runtime_state::pippenger_runtime_state(const size_t num_initial_points)
 {
-    info("PIP MEM CHECKPOINT");
     constexpr size_t MAX_NUM_ROUNDS = 256;
     num_points = num_initial_points * 2;
     const size_t num_points_floor = static_cast<size_t>(1ULL << (numeric::get_msb(num_points)));
@@ -53,7 +52,6 @@ pippenger_runtime_state::pippenger_runtime_state(const size_t num_initial_points
     memset((void*)bit_counts, 0, num_threads * num_buckets * sizeof(uint32_t));
     memset((void*)bucket_empty_status, 0, num_threads * num_buckets * sizeof(bool));
     memset((void*)round_counts, 0, MAX_NUM_ROUNDS * sizeof(uint64_t));
-    info("PIP MEM CHECKPOINT");
 }
 
 pippenger_runtime_state::pippenger_runtime_state(pippenger_runtime_state&& other)

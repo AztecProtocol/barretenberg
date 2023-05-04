@@ -176,7 +176,6 @@ template <size_t program_width, bool with_tags> void ComposerBase::compute_sigma
     }
 
     for (size_t i = 0; i < program_width; ++i) {
-
         // Construct permutation polynomials in lagrange base
         std::string index = std::to_string(i + 1);
         barretenberg::polynomial sigma_polynomial_lagrange(key->circuit_size);
@@ -191,10 +190,6 @@ template <size_t program_width, bool with_tags> void ComposerBase::compute_sigma
         // Compute permutation polynomial coset FFT form
         barretenberg::polynomial sigma_fft(sigma_polynomial, key->large_domain.size);
         sigma_fft.coset_fft(key->large_domain);
-
-        // info("sigma_", index, "_polynomial_lagrange: ", sigma_polynomial_lagrange);
-        // info("sigma_", index, "_polynomial: ", sigma_polynomial);
-        // info("sigma_", index, "_fft: ", sigma_fft);
 
         key->polynomial_store.put("sigma_" + index + "_lagrange", std::move(sigma_polynomial_lagrange));
         key->polynomial_store.put("sigma_" + index, std::move(sigma_polynomial));
@@ -252,14 +247,11 @@ std::shared_ptr<proving_key> ComposerBase::compute_proving_key_base(const Compos
     // ./src/barretenberg/plonk/proof_system/prover/prover.cpp/ProverBase::compute_quotient_commitments
     //
 
-    info("MEM CHECKPOINT");
     auto crs = crs_factory_->get_prover_crs(subgroup_size + 1);
-    info("MEM CHECKPOINT");
 
     // Initialize circuit_proving_key
     circuit_proving_key = std::make_shared<proving_key>(subgroup_size, public_inputs.size(), crs, composer_type);
 
-    info("MEM CHECKPOINT");
     for (size_t i = 0; i < num_selectors; ++i) {
         std::vector<barretenberg::fr>& selector_values = selectors[i];
         const auto& properties = selector_properties[i];
@@ -308,7 +300,6 @@ std::shared_ptr<proving_key> ComposerBase::compute_proving_key_base(const Compos
         circuit_proving_key->polynomial_store.put(properties.name, std::move(selector_poly));
         circuit_proving_key->polynomial_store.put(properties.name + "_fft", std::move(selector_poly_fft));
     }
-    info("MEM CHECKPOINT");
 
     return circuit_proving_key;
 }

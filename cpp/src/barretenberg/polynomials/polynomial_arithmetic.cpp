@@ -1,31 +1,15 @@
 #include "polynomial_arithmetic.hpp"
+#include "barretenberg/polynomials/slab_allocator.hpp"
 #include "iterate_over_domain.hpp"
 #include "barretenberg/common/assert.hpp"
 #include "barretenberg/common/mem.hpp"
 #include <math.h>
 #include <memory.h>
+#include <memory>
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 #include "barretenberg/common/thread.hpp"
 
 namespace barretenberg::polynomial_arithmetic {
-
-namespace {
-
-template <typename Fr> Fr* get_scratch_space(const size_t num_elements)
-{
-    static Fr* working_memory = nullptr;
-    static size_t current_size = 0;
-    if (num_elements > current_size) {
-        if (working_memory) {
-            aligned_free(working_memory);
-        }
-        working_memory = (Fr*)(aligned_alloc(64, num_elements * sizeof(Fr)));
-        current_size = num_elements;
-    }
-    return working_memory;
-}
-
-} // namespace
 
 inline uint32_t reverse_bits(uint32_t x, uint32_t bit_length)
 {
@@ -166,7 +150,8 @@ void fft_inner_parallel(std::vector<Fr*> coeffs,
                         const Fr&,
                         const std::vector<Fr*>& root_table)
 {
-    Fr* scratch_space = get_scratch_space<Fr>(domain.size);
+    auto scratch_space_ptr = mem_slab_get(domain.size * sizeof(Fr));
+    auto scratch_space = (Fr*)scratch_space_ptr.get();
 
     const size_t num_polys = coeffs.size();
     ASSERT(is_power_of_two(num_polys));
@@ -596,7 +581,8 @@ void coset_fft(Fr* coeffs,
 
     // Fr work_root = domain.generator.sqr();
     // work_root = domain.generator.sqr();
-    Fr* scratch_space = get_scratch_space<Fr>(domain.size * domain_extension);
+    auto scratch_space_ptr = std::static_pointer_cast<Fr[]>(mem_slab_get(domain.size * domain_extension * sizeof(Fr)));
+    auto scratch_space = scratch_space_ptr.get();
 
     // Fr* temp_memory = static_cast<Fr*>(aligned_alloc(64, sizeof(Fr) * domain.size *
     // domain_extension));
@@ -830,7 +816,7 @@ void compute_lagrange_polynomial_fft(Fr* l_1_coefficients,
     size_t log2_subgroup_size = target_domain.log2_size - src_domain.log2_size; // log_2(k)
     size_t subgroup_size = 1UL << log2_subgroup_size;                           // k
     ASSERT(target_domain.log2_size >= src_domain.log2_size);
-    Fr* subgroup_roots = new Fr[subgroup_size];
+    Fr subgroup_roots[subgroup_size];
     compute_multiplicative_subgroup(log2_subgroup_size, src_domain, &subgroup_roots[0]);
 
     // Subtract 1 and divide by n to get the k elements (1/n)*(X_i^n - 1)
@@ -847,7 +833,6 @@ void compute_lagrange_polynomial_fft(Fr* l_1_coefficients,
             l_1_coefficients[eval_idx] *= subgroup_roots[eval_idx & subgroup_mask];
         }
     });
-    delete[] subgroup_roots;
 }
 
 template <typename Fr>
@@ -1156,7 +1141,8 @@ template <typename Fr> Fr compute_sum(const Fr* src, const size_t n)
 // This function computes the polynomial (x - a)(x - b)(x - c)... given n distinct roots (a, b, c, ...).
 template <typename Fr> void compute_linear_polynomial_product(const Fr* roots, Fr* dest, const size_t n)
 {
-    Fr* scratch_space = get_scratch_space<Fr>(n);
+    auto scratch_space_ptr = std::static_pointer_cast<Fr[]>(mem_slab_get(n * sizeof(Fr)));
+    auto scratch_space = scratch_space_ptr.get();
     memcpy((void*)scratch_space, (void*)roots, n * sizeof(Fr));
 
     dest[n] = 1;

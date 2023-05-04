@@ -14,10 +14,12 @@ WASM_EXPORT void examples_simple_create_and_verify_proof(in_ptr pippenger, uint8
         (scalar_multiplication::Pippenger*)(*pippenger), g2x.data());
 
     auto* composer_ptr = examples::simple::create_composer(crs_factory);
+
     Timer timer;
+    info("computing proof...");
     auto proof = examples::simple::create_proof(composer_ptr);
     info("proof construction took ", timer.seconds(), "s");
-    // TODO: Commenting just for perf test!
+
     *valid = examples::simple::verify_proof(composer_ptr, proof);
     info("proof validity: ", *valid);
     // *valid = true;

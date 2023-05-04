@@ -32,7 +32,8 @@ endif()
 
 # We enable -O1 level optimsations, even when compiling debug wasm, otherwise we get "local count too large" at runtime.
 if(WASM)
-    add_compile_options($<$<CONFIG:Debug>:-O1>)
+    set(CMAKE_CXX_FLAGS_DEBUG "-O1")
+    set(CMAKE_C_FLAGS_DEBUG "-O1")
     add_compile_options(--target=wasm32-wasi-threads -pthread)
 endif()
 
@@ -127,21 +128,19 @@ if(WASM)
         -pthread --target=wasm32-wasi-threads -nostartfiles -Wl,--whole-archive,--no-entry,--export-dynamic,--import-memory,--allow-undefined,--stack-first,-z,stack-size=1048576,--max-memory=4294967296
     )
 
-    # TODO(blaine): Figure out how to Asyncify the wasm output.
-    # Binaryen's Asyncify transform produces wasm that has too many local variables to run in a WebAssembly
-    # instance. This likely would be "solved" by enabling the optimizations to reduce the number of locals,
-    # but using any optimization level results in a wasm file that takes an unusable amount of time to solve the
-    # most simple prood.
     find_program(WASM_OPT wasm-opt)
 
     if(NOT WASM_OPT)
         message(FATAL_ERROR "wasm-opt executable not found. Please install binaryen.")
     endif()
 
+    # We don't need asyncify currently. And if we do need async callbacks in the future, this can be done without
+    # asyncify if willing to use a thread + worker (likely already using for performance).
+    # So, removing --asyncify flag, but still leveraging -Oz to create smaller binary.
     #add_custom_command(
     #    TARGET barretenberg.wasm
     #    POST_BUILD
-    #    COMMAND wasm-opt "$<TARGET_FILE:barretenberg.wasm>" -Oz --asyncify -o "$<TARGET_FILE:barretenberg.wasm>"
+    #    COMMAND wasm-opt "$<TARGET_FILE:barretenberg.wasm>" -Oz -o "$<TARGET_FILE:barretenberg.wasm>"
     #    VERBATIM
     #)
 

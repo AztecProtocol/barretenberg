@@ -2,9 +2,11 @@
 #include "barretenberg/common/throw_or_abort.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 #include "barretenberg/numeric/random/engine.hpp"
+#include <memory>
 #include <span>
 #include <type_traits>
 #include <vector>
+#include "barretenberg/polynomials/slab_allocator.hpp"
 #include "field_impl_generic.hpp"
 
 #if (BBERG_NO_ASM == 0)
@@ -374,18 +376,18 @@ template <class T> void field<T>::batch_invert(std::span<field> coeffs) noexcept
 {
     const size_t n = coeffs.size();
 
-    std::vector<field> temporaries;
-    std::vector<bool> skipped;
-    temporaries.reserve(n);
-    skipped.reserve(n);
+    auto temporaries_ptr = std::static_pointer_cast<field[]>(mem_slab_get(n * sizeof(field)));
+    auto skipped_ptr = std::static_pointer_cast<bool[]>(mem_slab_get(n));
+    auto temporaries = temporaries_ptr.get();
+    auto skipped = skipped_ptr.get();
 
     field accumulator = one();
     for (size_t i = 0; i < n; ++i) {
-        temporaries.emplace_back(accumulator);
+        temporaries[i] = accumulator;
         if (coeffs[i].is_zero()) {
-            skipped.emplace_back(true);
+            skipped[i] = true;
         } else {
-            skipped.emplace_back(false);
+            skipped[i] = false;
             accumulator *= coeffs[i];
         }
     }
