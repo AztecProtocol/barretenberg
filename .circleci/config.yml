@@ -113,7 +113,7 @@ jobs:
       - *setup_env
       - run:
           name: "Build"
-          command: echo Failing ... && false
+          command: echo Succeeding ...
 
   x86_64-linux-gcc:
     docker:
@@ -124,7 +124,7 @@ jobs:
       - *setup_env
       - run:
           name: "Build"
-          command: echo Failing ... && false
+          command: echo Succeeding ...
 
   x86_64-linux-clang:
     docker:
@@ -293,7 +293,7 @@ jobs:
       - *setup_aztec_commit
       - run:
           name: "Build"
-          command: echo Succeeding ...
+          command: echo Failing ... && false
   # End Aztec integration tests
   ###################################
 
@@ -307,6 +307,7 @@ defaults: &defaults
     - slack
   post-steps:
     - slack/notify:
+        channel: $SLACK_BARRETENBERG_CHANNEL
         event: fail
         branch_pattern: "db/do-not-merge-slack-orb-fail-test"
 
