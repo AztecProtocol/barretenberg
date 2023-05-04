@@ -321,6 +321,7 @@ workflows:
       - x86_64-linux-clang: *defaults
       - x86_64-linux-clang-assert: *defaults
       - wasm-linux-clang: *defaults
+      - proof-system-tests: *bb_test
       - honk-tests: *bb_test
       - barretenberg-tests: *bb_test
       - stdlib-tests: *bb_test
