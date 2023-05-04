@@ -46,10 +46,12 @@ std::array<uint8_t, Keccak256Hasher::PRNG_OUTPUT_SIZE> Keccak256Hasher::hash(std
 
 std::array<uint8_t, Blake3sHasher::PRNG_OUTPUT_SIZE> Blake3sHasher::hash(std::vector<uint8_t> const& buffer)
 {
-    std::vector<uint8_t> hash_result = blake3::blake3s(buffer);
+    grumpkin::fq input = grumpkin::fq::serialize_from_buffer(&buffer[0]);
+    grumpkin::fq compressed = crypto::pedersen_commitment::compress_native({ input });
+    std::vector<uint8_t> res = to_buffer(compressed);
     std::array<uint8_t, PRNG_OUTPUT_SIZE> result;
     for (size_t i = 0; i < PRNG_OUTPUT_SIZE; ++i) {
-        result[i] = hash_result[i];
+        result[i] = res[i];
     }
     return result;
 }
@@ -59,10 +61,12 @@ std::array<uint8_t, Blake3sHasher::PRNG_OUTPUT_SIZE> Blake3sHasher::hash_plookup
     // TODO(@zac-williamson) Change to call a Poseidon hash and create a PoseidonHasher
     // (not making the name change right now as it will break concurrent work w. getting recursion working in Noir)
     // We also need to implement a Poseidon gadget
-    std::vector<uint8_t> compressed_buffer = crypto::pedersen_commitment::lookup::compress_native(buffer);
+    grumpkin::fq input = grumpkin::fq::serialize_from_buffer(&buffer[0]);
+    grumpkin::fq compressed = crypto::pedersen_commitment::lookup::compress_native({ input });
+    std::vector<uint8_t> res = to_buffer(compressed);
     std::array<uint8_t, PRNG_OUTPUT_SIZE> result;
     for (size_t i = 0; i < PRNG_OUTPUT_SIZE; ++i) {
-        result[i] = compressed_buffer[i];
+        result[i] = res[i];
     }
     return result;
 }
@@ -259,7 +263,7 @@ void Transcript::apply_fiat_shamir(const std::string& challenge_name /*, const b
     }
 
     std::vector<uint8_t> rolling_buffer(base_hash.begin(), base_hash.end());
-    rolling_buffer.push_back(0);
+    rolling_buffer[31] = (0);
 
     // Compute how many hashes we need so that we have enough distinct chunks of 'random' bytes to distribute
     // across the num_challenges.
@@ -270,7 +274,7 @@ void Transcript::apply_fiat_shamir(const std::string& challenge_name /*, const b
 
     for (size_t i = 1; i < num_hashes; ++i) {
         // Compute hash_output = hash(base_hash, i);
-        rolling_buffer[rolling_buffer.size() - 1] = static_cast<uint8_t>(i);
+        rolling_buffer[31] = static_cast<uint8_t>(i);
         std::array<uint8_t, PRNG_OUTPUT_SIZE> hash_output{};
         switch (hasher) {
         case HashType::Keccak256: {

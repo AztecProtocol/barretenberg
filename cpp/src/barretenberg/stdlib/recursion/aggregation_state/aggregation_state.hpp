@@ -18,8 +18,8 @@ template <typename Curve> struct aggregation_state {
 
     // The public inputs of the inner ciruit are now private inputs of the outer circuit!
     std::vector<typename Curve::fr_ct> public_inputs;
-    std::vector<uint32_t> proof_witness_indices;
     bool has_data = false;
+    std::vector<uint32_t> proof_witness_indices;
 
     typename Curve::bool_ct operator==(aggregation_state const& other) const
     {
@@ -30,7 +30,28 @@ template <typename Curve> struct aggregation_state {
 
     void add_proof_outputs_as_public_inputs()
     {
-        ASSERT(proof_witness_indices.size() > 0);
+        ASSERT(proof_witness_indices.size() == 0);
+
+        P0 = P0.reduce();
+        P1 = P1.reduce();
+        proof_witness_indices = {
+            P0.x.binary_basis_limbs[0].element.normalize().witness_index,
+            P0.x.binary_basis_limbs[1].element.normalize().witness_index,
+            P0.x.binary_basis_limbs[2].element.normalize().witness_index,
+            P0.x.binary_basis_limbs[3].element.normalize().witness_index,
+            P0.y.binary_basis_limbs[0].element.normalize().witness_index,
+            P0.y.binary_basis_limbs[1].element.normalize().witness_index,
+            P0.y.binary_basis_limbs[2].element.normalize().witness_index,
+            P0.y.binary_basis_limbs[3].element.normalize().witness_index,
+            P1.x.binary_basis_limbs[0].element.normalize().witness_index,
+            P1.x.binary_basis_limbs[1].element.normalize().witness_index,
+            P1.x.binary_basis_limbs[2].element.normalize().witness_index,
+            P1.x.binary_basis_limbs[3].element.normalize().witness_index,
+            P1.y.binary_basis_limbs[0].element.normalize().witness_index,
+            P1.y.binary_basis_limbs[1].element.normalize().witness_index,
+            P1.y.binary_basis_limbs[2].element.normalize().witness_index,
+            P1.y.binary_basis_limbs[3].element.normalize().witness_index,
+        };
 
         auto* context = P0.get_context();
 

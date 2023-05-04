@@ -28,11 +28,12 @@ grumpkin::g1::element merkle_damgard_compress(const std::vector<grumpkin::fq>& i
     const size_t num_inputs = inputs.size();
 
     grumpkin::fq result = (pedersen_iv_table[iv]).x;
-    for (size_t i = 0; i < num_inputs; i++) {
+    result = hash_pair(result, num_inputs);
+    for (size_t i = 0; i < num_inputs - 1; i++) {
         result = hash_pair(result, inputs[i]);
     }
 
-    return (hash_single(result, false) + hash_single(grumpkin::fq(num_inputs), true));
+    return (hash_single(result, false) + hash_single(inputs[num_inputs - 1], true));
 }
 
 grumpkin::g1::element merkle_damgard_compress(const std::vector<grumpkin::fq>& inputs, const std::vector<size_t>& ivs)
@@ -46,7 +47,8 @@ grumpkin::g1::element merkle_damgard_compress(const std::vector<grumpkin::fq>& i
     const size_t num_inputs = inputs.size();
 
     grumpkin::fq result = (pedersen_iv_table[0]).x;
-    for (size_t i = 0; i < 2 * num_inputs; i++) {
+    result = hash_pair(result, num_inputs);
+    for (size_t i = 0; i < 2 * num_inputs - 1; i++) {
         if ((i & 1) == 0) {
             grumpkin::fq iv_result = (pedersen_iv_table[ivs[i >> 1]]).x;
             result = hash_pair(result, iv_result);
@@ -54,8 +56,7 @@ grumpkin::g1::element merkle_damgard_compress(const std::vector<grumpkin::fq>& i
             result = hash_pair(result, inputs[i >> 1]);
         }
     }
-
-    return (hash_single(result, false) + hash_single(grumpkin::fq(num_inputs), true));
+    return (hash_single(result, false) + hash_single(inputs[num_inputs - 1], true));
 }
 
 grumpkin::g1::element merkle_damgard_tree_compress(const std::vector<grumpkin::fq>& inputs,
