@@ -412,8 +412,4 @@ template typename honk::flavor::Ultra::Polynomial compute_sorted_list_accumulato
 template void add_plookup_memory_records_to_wire_4<honk::flavor::Ultra>(
     std::shared_ptr<typename honk::flavor::Ultra::ProvingKey>& key, typename honk::flavor::Ultra::FF eta);
 
-template typename honk::flavor::Ultra::Polynomial compute_sorted_list_accumulator<honk::flavor::Ultra>(
-    std::shared_ptr<typename honk::flavor::Ultra::ProvingKey>& key,
-    std::vector<typename honk::flavor::Ultra::Polynomial>& sorted_list_polynomials,
-    typename honk::flavor::Ultra::FF eta);
 } // namespace proof_system::honk::prover_library
