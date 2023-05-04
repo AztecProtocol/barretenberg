@@ -11,20 +11,6 @@ struct proof {
     std::vector<uint8_t> proof_data;
 
     bool operator==(proof const& other) const = default;
-    void print()
-    {
-        size_t newline_counter = 0;
-        for (auto& byte : proof_data) {
-            if (newline_counter == 0 || newline_counter == 4 || newline_counter % 32 == 8) {
-                std::cerr << "\n"
-                          << "0x";
-            }
-            std::cerr << std::hex << std::setfill('0') << std::setw(2)
-                      << static_cast<int>(static_cast<unsigned char>(byte));
-            newline_counter++;
-        };
-        std::cerr << std::endl;
-    }
 };
 
 inline void read(uint8_t const*& it, proof& data)
