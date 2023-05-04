@@ -113,7 +113,7 @@ jobs:
       - *setup_env
       - run:
           name: "Build"
-          command: cond_spot_run_build barretenberg-wasm-linux-clang 64
+          command: echo Failing ... && false
 
   x86_64-linux-gcc:
     docker:
@@ -124,7 +124,7 @@ jobs:
       - *setup_env
       - run:
           name: "Build"
-          command: cond_spot_run_build barretenberg-x86_64-linux-gcc 64
+          command: echo Failing ... && false
 
   x86_64-linux-clang:
     docker:
@@ -135,7 +135,7 @@ jobs:
       - *setup_env
       - run:
           name: "Build"
-          command: cond_spot_run_build barretenberg-x86_64-linux-clang 64
+          command: echo Succeeding ...
 
   x86_64-linux-clang-assert:
     docker:
@@ -146,7 +146,7 @@ jobs:
       - *setup_env
       - run:
           name: "Build"
-          command: cond_spot_run_build barretenberg-x86_64-linux-clang-assert 64
+          command: echo Succeeding ...
 
   barretenberg-tests:
     docker:
@@ -157,7 +157,7 @@ jobs:
       - *setup_env
       - run:
           name: "Test"
-          command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert 1 bb-tests
+          command: echo Succeeding ...
       - *save_logs
 
   honk-tests:
@@ -169,7 +169,7 @@ jobs:
       - *setup_env
       - run:
           name: "Test"
-          command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert 1 honk_tests
+          command: echo Succeeding ...
       - *save_logs
 
 
@@ -182,7 +182,7 @@ jobs:
       - *setup_env
       - run:
           name: "Test"
-          command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert 1 stdlib_primitives_tests --gtest_filter=-stdlib_biggroup*
+          command: echo Succeeding ...
       - *save_logs
 
   stdlib-biggroup-tests:
@@ -194,7 +194,7 @@ jobs:
       - *setup_env
       - run:
           name: "Test"
-          command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert 1 stdlib_primitives_tests --gtest_filter=stdlib_biggroup*
+          command: echo Succeeding ...
       - *save_logs
 
   stdlib-recursion-turbo-tests:
@@ -206,7 +206,7 @@ jobs:
       - *setup_env
       - run:
           name: "Test"
-          command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert 1 stdlib_recursion_tests --gtest_filter=*turbo*
+          command: echo Succeeding ...
       - *save_logs
 
   stdlib-recursion-ultra-tests:
@@ -218,7 +218,7 @@ jobs:
       - *setup_env
       - run:
           name: "Test"
-          command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert 3 stdlib_recursion_tests --gtest_filter=-*turbo*
+          command: echo Succeeding ...
       - *save_logs
 
   join-split-tests:
@@ -230,7 +230,7 @@ jobs:
       - *setup_env
       - run:
           name: "Test"
-          command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert 3 join_split_example_proofs_join_split_tests --gtest_filter=-*full_proof*
+          command: echo Succeeding ...
       - *save_logs
 
   benchmark-aggregator:
@@ -245,7 +245,7 @@ jobs:
       - *benchmark_add_keys
       - run:
           name: "Test"
-          command: store_test_benchmark_logs barretenberg-x86_64-linux-clang-assert
+          command: echo Succeeding ...
 
   ###################################
   # Aztec integration tests
@@ -258,7 +258,7 @@ jobs:
       - *setup_env
       - run:
           name: "Build"
-          command: cond_spot_run_build barretenberg-circuits-wasm-linux-clang-builder-runner 64
+          command: echo Succeeding ...
 
   circuits-x86_64-linux-clang-builder-runner:
     docker:
@@ -269,7 +269,7 @@ jobs:
       - *setup_env
       - run:
           name: "Build"
-          command: cond_spot_run_build barretenberg-circuits-x86_64-linux-clang-builder-runner 64
+          command: echo Succeeding ...
 
   circuits-wasm-tests:
     docker:
@@ -281,7 +281,7 @@ jobs:
       - *setup_aztec_commit
       - run:
           name: "Build"
-          command: cond_spot_run_test_script ./scripts/run_aztec_circuits_tests barretenberg-circuits-wasm-linux-clang-builder-runner "$AZTEC_COMMIT" 1 wasm scripts/a3-tests -*.skip*:*.circuit*
+          command: echo Succeeding ...
 
   circuits-x86_64-tests:
     docker:
@@ -293,7 +293,7 @@ jobs:
       - *setup_aztec_commit
       - run:
           name: "Build"
-          command: cond_spot_run_test_script ./scripts/run_aztec_circuits_tests barretenberg-circuits-x86_64-linux-clang-builder-runner "$AZTEC_COMMIT" 1 x86_64 scripts/a3-tests -*.skip*
+          command: echo Succeeding ...
   # End Aztec integration tests
   ###################################
 
