@@ -11,8 +11,6 @@
 
 namespace barretenberg {
 
-// std::shared_ptr<fr[]> poly_mem_get(size_t size);
-
 template <typename Fr> class Polynomial {
   public:
     /**

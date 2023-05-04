@@ -1,4 +1,5 @@
-.yarn
+.yarn/*
+!.yarn/releases
 node_modules
 dest
 .tsbuildinfo
