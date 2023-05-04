@@ -281,7 +281,7 @@ jobs:
       - *setup_aztec_commit
       - run:
           name: "Build"
-          command: echo Succeeding ...
+          command: echo Failing ... && false
 
   circuits-x86_64-tests:
     docker:
@@ -293,7 +293,7 @@ jobs:
       - *setup_aztec_commit
       - run:
           name: "Build"
-          command: echo Failing ... && false
+          command: echo Succeeding ...
   # End Aztec integration tests
   ###################################
 
