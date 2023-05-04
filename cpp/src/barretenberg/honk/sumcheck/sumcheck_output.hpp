@@ -38,7 +38,7 @@ template <typename Flavor> struct SumcheckOutput {
     {
         bool result{ false };
         result = challenge_point == other.challenge_point;
-        // result = purported_evaluations == other.purported_evaluations;
+        result = purported_evaluations._data == other.purported_evaluations._data;
         return result;
     };
 };
