@@ -203,3 +203,5 @@ A default configuration for VS Code is provided by the file [`barretenberg.code-
 ### Integration tests with Aztec Circuits
 
 CI will automatically run integration tests against Aztec's circuits which live [here](https://github.com/AztecProtocol/aztec-packages/tree/master/circuits). To change which Aztec branch or commit for CI to test against, modify [`.aztec-packages-commit`](./cpp/.aztec-packages-commit).
+
+When working on a PR, you may want to point this file to a adifferent Aztec branch or commit, but then it should probably be pointed back to master before merging.
