@@ -115,6 +115,54 @@ TEST(UltraHonkComposer, XorConstraint)
     prove_and_verify(composer, /*expected_result=*/true);
 }
 
+// /**
+//  * @brief TEMPORARY (verbose) method for checking consistency of polynomials computed by Ultra Plonk/Honk composers
+//  *
+//  * @param honk_prover
+//  * @param plonk_prover
+//  */
+// void check_consistency(honk::UltraProver& honk_prover, plonk::UltraProver& plonk_prover)
+// {
+//     auto& honk_store = honk_prover.key->polynomial_store;
+//     auto& plonk_store = plonk_prover.key->polynomial_store;
+//     for (auto& entry : honk_store) {
+//         std::string key = entry.first;
+//         if (plonk_store.contains(key)) {
+
+//             bool polys_equal = (honk_store.get(key) == plonk_store.get(key));
+//             if (polys_equal) {
+//                 info("Equal: ", key);
+//             }
+//             if (!polys_equal) {
+//                 info("UNEQUAL: ", key);
+//             }
+//         }
+//     }
+
+//     for (size_t i = 0; i < 4; ++i) {
+//         std::string label = "w_" + std::to_string(i + 1) + "_lagrange";
+//         bool wire_equal = (honk_prover.wire_polynomials[i] == plonk_prover.key->polynomial_store.get(label));
+//         if (wire_equal) {
+//             info("Wire Equal: ", i);
+//         }
+//         if (!wire_equal) {
+//             info("Wire UNEQUAL: ", i);
+//         }
+//     }
+
+//     // std::string label = "w_1_lagrange";
+//     // for (size_t i = 0; i < plonk_store.get(label).size(); ++i) {
+//     //     auto val_honk = honk_prover.wire_polynomials[0][i];
+//     //     // auto val_honk = honk_store.get(label)[i];
+//     //     auto val_plonk = plonk_store.get(label)[i];
+//     //     if (val_honk != val_plonk) {
+//     //         info("UNEQUAL index = ", i);
+//     //         info("honk: ",val_honk);
+//     //         info("plonk: ", val_plonk);
+//     //     }
+//     // }
+// }
+
 TEST(UltraHonkComposer, create_gates_from_plookup_accumulators)
 {
     auto composer = UltraHonkComposer();
