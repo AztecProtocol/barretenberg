@@ -308,7 +308,7 @@ defaults: &defaults
   post-steps:
     - slack/notify:
         event: fail
-        branch_pattern: "master"
+        branch_pattern: "db/do-not-merge-slack-orb-fail-test"
 
 bb_test: &bb_test
   requires:
