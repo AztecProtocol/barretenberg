@@ -303,6 +303,12 @@ defaults: &defaults
   filters:
     tags:
       only: *tag_regex
+  context:
+    - slack
+  post-steps:
+    - slack/notify:
+        event: fail
+        branch_pattern: "master"
 
 bb_test: &bb_test
   requires:
@@ -335,6 +341,7 @@ workflows:
             branches:
               only:
                 - master
+          <<: *defaults
       - circuits-wasm-linux-clang-builder-runner: *defaults
       - circuits-x86_64-linux-clang-builder-runner: *defaults
       - circuits-wasm-tests:
