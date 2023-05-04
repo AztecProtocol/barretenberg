@@ -68,11 +68,11 @@ template <typename Flavor> UltraVerifier_<Flavor>& UltraVerifier_<Flavor>::opera
 template <typename Flavor> bool UltraVerifier_<Flavor>::verify_proof(const plonk::proof& proof)
 {
     using FF = typename Flavor::FF;
-    // using GroupElement = typename Flavor::GroupElement;
+    using GroupElement = typename Flavor::GroupElement;
     using Commitment = typename Flavor::Commitment;
-    // using Gemini = pcs::gemini::MultilinearReductionScheme<pcs::kzg::Params>;
-    // using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<pcs::kzg::Params>;
-    // using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
+    using Gemini = pcs::gemini::MultilinearReductionScheme<pcs::kzg::Params>;
+    using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<pcs::kzg::Params>;
+    using KZG = pcs::kzg::UnivariateOpeningScheme<pcs::kzg::Params>;
     using VerifierCommitments = typename Flavor::VerifierCommitments;
     using CommitmentLabels = typename Flavor::CommitmentLabels;
 
@@ -147,61 +147,59 @@ template <typename Flavor> bool UltraVerifier_<Flavor>::verify_proof(const plonk
         return false;
     }
 
-    // DEBUG: If sumcheck passes, call it verified
-    return true;
+    auto [multivariate_challenge, purported_evaluations] = *sumcheck_output;
 
-    // auto [multivariate_challenge, purported_evaluations] = *sumcheck_output;
+    // Execute Gemini/Shplonk verification:
 
-    // // Execute Gemini/Shplonk verification:
+    // Construct inputs for Gemini verifier:
+    // - Multivariate opening point u = (u_0, ..., u_{d-1})
+    // - batched unshifted and to-be-shifted polynomial commitments
+    auto batched_commitment_unshifted = GroupElement::zero();
+    auto batched_commitment_to_be_shifted = GroupElement::zero();
 
-    // // Construct inputs for Gemini verifier:
-    // // - Multivariate opening point u = (u_0, ..., u_{d-1})
-    // // - batched unshifted and to-be-shifted polynomial commitments
-    // auto batched_commitment_unshifted = GroupElement::zero();
-    // auto batched_commitment_to_be_shifted = GroupElement::zero();
+    // Compute powers of batching challenge rho
+    FF rho = transcript.get_challenge("rho");
+    std::vector<FF> rhos = Gemini::powers_of_rho(rho, Flavor::NUM_ALL_ENTITIES);
 
-    // // Compute powers of batching challenge rho
-    // FF rho = transcript.get_challenge("rho");
-    // std::vector<FF> rhos = Gemini::powers_of_rho(rho, Flavor::NUM_ALL_ENTITIES);
+    // Compute batched multivariate evaluation
+    FF batched_evaluation = FF::zero();
+    size_t evaluation_idx = 0;
+    for (auto& value : purported_evaluations.get_unshifted_then_shifted()) {
+        batched_evaluation += value * rhos[evaluation_idx];
+        ++evaluation_idx;
+    }
 
-    // // Compute batched multivariate evaluation
-    // FF batched_evaluation = FF::zero();
-    // size_t evaluation_idx = 0;
-    // for (auto& value : purported_evaluations.get_unshifted_then_shifted()) {
-    //     batched_evaluation += value * rhos[evaluation_idx];
-    //     ++evaluation_idx;
-    // }
+    // Construct batched commitment for NON-shifted polynomials
+    size_t commitment_idx = 0;
+    for (auto& commitment : commitments.get_unshifted()) {
+        info("commitment_idx = ", commitment_idx);
+        batched_commitment_unshifted += commitment * rhos[commitment_idx];
+        ++commitment_idx;
+    }
 
-    // // Construct batched commitment for NON-shifted polynomials
-    // size_t commitment_idx = 0;
-    // for (auto& commitment : commitments.get_unshifted()) {
-    //     batched_commitment_unshifted += commitment * rhos[commitment_idx];
-    //     ++commitment_idx;
-    // }
+    // Construct batched commitment for to-be-shifted polynomials
+    for (auto& commitment : commitments.get_to_be_shifted()) {
+        batched_commitment_to_be_shifted += commitment * rhos[commitment_idx];
+        ++commitment_idx;
+    }
 
-    // // Construct batched commitment for to-be-shifted polynomials
-    // for (auto& commitment : commitments.get_to_be_shifted()) {
-    //     batched_commitment_to_be_shifted += commitment * rhos[commitment_idx];
-    //     ++commitment_idx;
-    // }
+    // Produce a Gemini claim consisting of:
+    // - d+1 commitments [Fold_{r}^(0)], [Fold_{-r}^(0)], and [Fold^(l)], l = 1:d-1
+    // - d+1 evaluations a_0_pos, and a_l, l = 0:d-1
+    auto gemini_claim = Gemini::reduce_verify(multivariate_challenge,
+                                              batched_evaluation,
+                                              batched_commitment_unshifted,
+                                              batched_commitment_to_be_shifted,
+                                              transcript);
 
-    // // Produce a Gemini claim consisting of:
-    // // - d+1 commitments [Fold_{r}^(0)], [Fold_{-r}^(0)], and [Fold^(l)], l = 1:d-1
-    // // - d+1 evaluations a_0_pos, and a_l, l = 0:d-1
-    // auto gemini_claim = Gemini::reduce_verify(multivariate_challenge,
-    //                                           batched_evaluation,
-    //                                           batched_commitment_unshifted,
-    //                                           batched_commitment_to_be_shifted,
-    //                                           transcript);
+    // Produce a Shplonk claim: commitment [Q] - [Q_z], evaluation zero (at random challenge z)
+    auto shplonk_claim = Shplonk::reduce_verify(gemini_claim, transcript);
 
-    // // Produce a Shplonk claim: commitment [Q] - [Q_z], evaluation zero (at random challenge z)
-    // auto shplonk_claim = Shplonk::reduce_verify(gemini_claim, transcript);
+    // Aggregate inputs [Q] - [Q_z] and [W] into an 'accumulator' (can perform pairing check on result)
+    auto kzg_claim = KZG::reduce_verify(shplonk_claim, transcript);
 
-    // // Aggregate inputs [Q] - [Q_z] and [W] into an 'accumulator' (can perform pairing check on result)
-    // auto kzg_claim = KZG::reduce_verify(shplonk_claim, transcript);
-
-    // // Return result of final pairing check
-    // return kzg_claim.verify(kate_verification_key);
+    // Return result of final pairing check
+    return kzg_claim.verify(kate_verification_key);
 }
 
 template class UltraVerifier_<honk::flavor::Ultra>;

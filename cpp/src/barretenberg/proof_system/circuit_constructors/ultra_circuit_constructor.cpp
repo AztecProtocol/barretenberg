@@ -47,10 +47,13 @@ void UltraCircuitConstructor::finalize_circuit()
  *
  * @param in Structure containing variables and witness selectors
  */
-void UltraCircuitConstructor::create_vanishing_witness_gate()
+// TODO(luke): may need to reevaluate once aux relation is implemented
+// TODO(luke): Need to add 0 as a PI since PI always start at the 0th index of the wire polynomials
+void UltraCircuitConstructor::add_gates_to_ensure_all_polys_are_non_zero()
 {
-    assert_valid_variables({ 0, 0, 0 });
+    // assert_valid_variables({ 0, 0, 0 });
 
+    // First add a gate to take care of all selectors aside from q_c and q_lookup
     w_l.emplace_back(zero_idx);
     w_r.emplace_back(zero_idx);
     w_o.emplace_back(zero_idx);
@@ -68,6 +71,35 @@ void UltraCircuitConstructor::create_vanishing_witness_gate()
     q_elliptic.emplace_back(1);
     q_aux.emplace_back(1);
     ++num_gates;
+
+    // Add another gate with wires set to 0 to account for shifts used in some relations
+    create_poly_gate({ zero_idx, zero_idx, zero_idx, 0, 0, 0, 0, 0 });
+
+    one_idx = put_constant_variable(barretenberg::fr::one());
+
+    // Take care of w_4 and q_c (q_4*w_4 + q_c --> 1*1 - 1 = 0)
+    create_big_add_gate({ zero_idx, zero_idx, zero_idx, one_idx, 0, 0, 0, 1, -1 });
+
+    // Take care of all polys related to lookups (q_lookup, tables, sorted, etc)
+    // WORKTODO: Do we need two different tables since table_index is table number?
+    uint32_t left_value = 3;
+    uint32_t right_value = 5;
+
+    fr left_witness_value = fr{ left_value, 0, 0, 0 }.to_montgomery_form();
+    fr right_witness_value = fr{ right_value, 0, 0, 0 }.to_montgomery_form();
+
+    uint32_t left_witness_index = add_variable(left_witness_value);
+    uint32_t right_witness_index = add_variable(right_witness_value);
+
+    const auto and_accumulators = plookup::get_lookup_accumulators(
+        plookup::MultiTableId::UINT32_AND, left_witness_value, right_witness_value, true);
+    const auto xor_accumulators = plookup::get_lookup_accumulators(
+        plookup::MultiTableId::UINT32_XOR, left_witness_value, right_witness_value, true);
+
+    create_gates_from_plookup_accumulators(
+        plookup::MultiTableId::UINT32_AND, and_accumulators, left_witness_index, right_witness_index);
+    create_gates_from_plookup_accumulators(
+        plookup::MultiTableId::UINT32_XOR, xor_accumulators, left_witness_index, right_witness_index);
 }
 
 /**

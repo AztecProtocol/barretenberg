@@ -275,6 +275,8 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
         zero_idx = put_constant_variable(barretenberg::fr::zero());
         tau.insert({ DUMMY_TAG, DUMMY_TAG }); // TODO(luke): explain this
 
+        add_gates_to_ensure_all_polys_are_non_zero();
+
         // TODO(luke)(#217): Related to issue of ensuring no identically 0 polynomials
         // WORKTODO: Do we need to add a gate to ensure no zero polys like in Standard?
         // Ensure that the 0th coefficient of each wire is 0; necessary for enabling shifts of wire polys
@@ -300,7 +302,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
 
     void finalize_circuit();
 
-    void create_vanishing_witness_gate();
+    void add_gates_to_ensure_all_polys_are_non_zero();
 
     void create_add_gate(const add_triple& in) override;
 

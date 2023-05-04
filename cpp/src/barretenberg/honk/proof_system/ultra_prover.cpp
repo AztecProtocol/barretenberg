@@ -390,28 +390,28 @@ template <UltraFlavor Flavor> plonk::proof& UltraProver_<Flavor>::construct_proo
     // Run sumcheck subprotocol.
     execute_relation_check_rounds();
 
-    // // Fiat-Shamir: rho
-    // // Compute Fold polynomials and their commitments.
-    // execute_univariatization_round();
-    // queue.process_queue();
+    // Fiat-Shamir: rho
+    // Compute Fold polynomials and their commitments.
+    execute_univariatization_round();
+    queue.process_queue();
 
-    // // Fiat-Shamir: r
-    // // Compute Fold evaluations
-    // execute_pcs_evaluation_round();
+    // Fiat-Shamir: r
+    // Compute Fold evaluations
+    execute_pcs_evaluation_round();
 
-    // // Fiat-Shamir: nu
-    // // Compute Shplonk batched quotient commitment Q
-    // execute_shplonk_batched_quotient_round();
-    // queue.process_queue();
+    // Fiat-Shamir: nu
+    // Compute Shplonk batched quotient commitment Q
+    execute_shplonk_batched_quotient_round();
+    queue.process_queue();
 
-    // // Fiat-Shamir: z
-    // // Compute partial evaluation Q_z
-    // execute_shplonk_partial_evaluation_round();
+    // Fiat-Shamir: z
+    // Compute partial evaluation Q_z
+    execute_shplonk_partial_evaluation_round();
 
-    // // Fiat-Shamir: z
-    // // Compute KZG quotient commitment
-    // execute_kzg_round();
-    // queue.process_queue();
+    // Fiat-Shamir: z
+    // Compute KZG quotient commitment
+    execute_kzg_round();
+    queue.process_queue();
 
     return export_proof();
 }

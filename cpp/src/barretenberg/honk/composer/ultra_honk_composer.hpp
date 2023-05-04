@@ -54,7 +54,10 @@ class UltraHonkComposer {
     UltraProver create_prover() { return composer_helper.create_prover(circuit_constructor); };
     UltraVerifier create_verifier() { return composer_helper.create_verifier(circuit_constructor); };
 
-    void create_vanishing_witness_gate() { circuit_constructor.create_vanishing_witness_gate(); }
+    void add_gates_to_ensure_all_polys_are_non_zero()
+    {
+        circuit_constructor.add_gates_to_ensure_all_polys_are_non_zero();
+    }
 
     void create_add_gate(const add_triple& in) { circuit_constructor.create_add_gate(in); }
 
@@ -121,7 +124,10 @@ class UltraHonkComposer {
     // accumulator_triple create_and_constraint(const uint32_t a, const uint32_t b, const size_t num_bits);
     // accumulator_triple create_xor_constraint(const uint32_t a, const uint32_t b, const size_t num_bits);
 
-    // uint32_t put_constant_variable(const barretenberg::fr& variable);
+    uint32_t put_constant_variable(const barretenberg::fr& variable)
+    {
+        return circuit_constructor.put_constant_variable(variable);
+    };
 
     // size_t get_num_constant_gates() const override { return 0; }
 

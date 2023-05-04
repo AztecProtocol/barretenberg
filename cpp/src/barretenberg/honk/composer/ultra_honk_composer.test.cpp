@@ -10,6 +10,7 @@
 #include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
 #include "barretenberg/honk/utils/grand_product_delta.hpp"
+#include "barretenberg/plonk/composer/plookup_tables/types.hpp"
 
 #include <gtest/gtest.h>
 #include <string>
@@ -52,13 +53,153 @@ void prove_and_verify(auto& composer, bool expected_result)
     EXPECT_EQ(verified, expected_result);
 };
 
-TEST(UltraHonkComposer, NonZeroPolynomials)
+void ensure_non_zero(auto& polynomial)
+{
+    bool has_non_zero_coefficient = false;
+    for (auto& coeff : polynomial) {
+        has_non_zero_coefficient |= !coeff.is_zero();
+    }
+    ASSERT_TRUE(has_non_zero_coefficient);
+}
+
+TEST(UltraHonkComposer, ANonZeroPolynomialIsAGoodPolynomial)
 {
     auto composer = UltraHonkComposer();
 
-    composer.create_vanishing_witness_gate();
+    composer.add_gates_to_ensure_all_polys_are_non_zero();
+
+    auto prover = composer.create_prover();
+    auto proof = prover.construct_proof();
+
+    for (auto& poly : *prover.key) {
+        ensure_non_zero(poly);
+    }
+
+    for (auto& poly : prover.key->get_wires()) {
+        ensure_non_zero(poly);
+    }
 
     prove_and_verify(composer, /*expected_result=*/true);
+}
+
+TEST(UltraHonkComposer, XorConstraint)
+{
+    auto composer = UltraHonkComposer();
+
+    uint32_t left_value = engine.get_random_uint32();
+    uint32_t right_value = engine.get_random_uint32();
+
+    fr left_witness_value = fr{ left_value, 0, 0, 0 }.to_montgomery_form();
+    fr right_witness_value = fr{ right_value, 0, 0, 0 }.to_montgomery_form();
+
+    uint32_t left_witness_index = composer.add_variable(left_witness_value);
+    uint32_t right_witness_index = composer.add_variable(right_witness_value);
+
+    uint32_t xor_result_expected = left_value ^ right_value;
+
+    const auto lookup_accumulators = plookup::get_lookup_accumulators(
+        plookup::MultiTableId::UINT32_XOR, left_witness_value, right_witness_value, true);
+    auto xor_result = lookup_accumulators[plookup::ColumnIdx::C3]
+                                         [0]; // The zeroth index in the 3rd column is the fully accumulated xor result
+    EXPECT_EQ(xor_result, xor_result_expected);
+
+    info("xor_result_expected = ", xor_result_expected);
+
+    composer.create_gates_from_plookup_accumulators(
+        plookup::MultiTableId::UINT32_XOR, lookup_accumulators, left_witness_index, right_witness_index);
+
+    prove_and_verify(composer, /*expected_result=*/true);
+}
+
+TEST(UltraHonkComposer, create_gates_from_plookup_accumulators)
+{
+    auto composer = UltraHonkComposer();
+
+    barretenberg::fr input_value = fr::random_element();
+    const fr input_hi = uint256_t(input_value).slice(126, 256);
+    const fr input_lo = uint256_t(input_value).slice(0, 126);
+    const auto input_hi_index = composer.add_variable(input_hi);
+    const auto input_lo_index = composer.add_variable(input_lo);
+
+    const auto sequence_data_hi = plookup::get_lookup_accumulators(plookup::MultiTableId::PEDERSEN_LEFT_HI, input_hi);
+    const auto sequence_data_lo = plookup::get_lookup_accumulators(plookup::MultiTableId::PEDERSEN_LEFT_LO, input_lo);
+
+    const auto lookup_witnesses_hi = composer.create_gates_from_plookup_accumulators(
+        plookup::MultiTableId::PEDERSEN_LEFT_HI, sequence_data_hi, input_hi_index);
+    const auto lookup_witnesses_lo = composer.create_gates_from_plookup_accumulators(
+        plookup::MultiTableId::PEDERSEN_LEFT_LO, sequence_data_lo, input_lo_index);
+
+    std::vector<barretenberg::fr> expected_x;
+    std::vector<barretenberg::fr> expected_y;
+
+    const size_t num_lookups_hi =
+        (128 + crypto::pedersen_hash::lookup::BITS_PER_TABLE) / crypto::pedersen_hash::lookup::BITS_PER_TABLE;
+    const size_t num_lookups_lo = 126 / crypto::pedersen_hash::lookup::BITS_PER_TABLE;
+    const size_t num_lookups = num_lookups_hi + num_lookups_lo;
+
+    EXPECT_EQ(num_lookups_hi, lookup_witnesses_hi[plookup::ColumnIdx::C1].size());
+    EXPECT_EQ(num_lookups_lo, lookup_witnesses_lo[plookup::ColumnIdx::C1].size());
+
+    std::vector<barretenberg::fr> expected_scalars;
+    expected_x.resize(num_lookups);
+    expected_y.resize(num_lookups);
+    expected_scalars.resize(num_lookups);
+
+    {
+        const size_t num_rounds = (num_lookups + 1) / 2;
+        uint256_t bits(input_value);
+
+        const auto mask = crypto::pedersen_hash::lookup::PEDERSEN_TABLE_SIZE - 1;
+
+        for (size_t i = 0; i < num_rounds; ++i) {
+            const auto& table = crypto::pedersen_hash::lookup::get_table(i);
+            const size_t index = i * 2;
+
+            uint64_t slice_a = ((bits >> (index * 9)) & mask).data[0];
+            expected_x[index] = (table[(size_t)slice_a].x);
+            expected_y[index] = (table[(size_t)slice_a].y);
+            expected_scalars[index] = slice_a;
+
+            if (i < 14) {
+                uint64_t slice_b = ((bits >> ((index + 1) * 9)) & mask).data[0];
+                expected_x[index + 1] = (table[(size_t)slice_b].x);
+                expected_y[index + 1] = (table[(size_t)slice_b].y);
+                expected_scalars[index + 1] = slice_b;
+            }
+        }
+    }
+
+    for (size_t i = num_lookups - 2; i < num_lookups; --i) {
+        expected_scalars[i] += (expected_scalars[i + 1] * crypto::pedersen_hash::lookup::PEDERSEN_TABLE_SIZE);
+    }
+
+    size_t hi_shift = 126;
+    const fr hi_cumulative = composer.get_variable(lookup_witnesses_hi[plookup::ColumnIdx::C1][0]);
+    for (size_t i = 0; i < num_lookups_lo; ++i) {
+        const fr hi_mult = fr(uint256_t(1) << hi_shift);
+        EXPECT_EQ(composer.get_variable(lookup_witnesses_lo[plookup::ColumnIdx::C1][i]) + (hi_cumulative * hi_mult),
+                  expected_scalars[i]);
+        EXPECT_EQ(composer.get_variable(lookup_witnesses_lo[plookup::ColumnIdx::C2][i]), expected_x[i]);
+        EXPECT_EQ(composer.get_variable(lookup_witnesses_lo[plookup::ColumnIdx::C3][i]), expected_y[i]);
+        hi_shift -= crypto::pedersen_hash::lookup::BITS_PER_TABLE;
+    }
+
+    for (size_t i = 0; i < num_lookups_hi; ++i) {
+        EXPECT_EQ(composer.get_variable(lookup_witnesses_hi[plookup::ColumnIdx::C1][i]),
+                  expected_scalars[i + num_lookups_lo]);
+        EXPECT_EQ(composer.get_variable(lookup_witnesses_hi[plookup::ColumnIdx::C2][i]),
+                  expected_x[i + num_lookups_lo]);
+        EXPECT_EQ(composer.get_variable(lookup_witnesses_hi[plookup::ColumnIdx::C3][i]),
+                  expected_y[i + num_lookups_lo]);
+    }
+
+    auto prover = composer.create_prover();
+    auto verifier = composer.create_verifier();
+    auto proof = prover.construct_proof();
+
+    bool result = verifier.verify_proof(proof);
+
+    EXPECT_EQ(result, true);
 }
 
 TEST(UltraHonkComposer, test_no_lookup_proof)

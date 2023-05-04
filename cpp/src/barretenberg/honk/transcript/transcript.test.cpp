@@ -263,10 +263,7 @@ TYPED_TEST(TranscriptTest, UltraVerifierManifestConsistency)
     // composer.circuit_constructor.add_variable(a);
     // composer.circuit_constructor.add_public_variable(a);
 
-    uint32_t w_l_1_idx = composer.circuit_constructor.add_variable(1);
-    uint32_t w_r_1_idx = composer.circuit_constructor.add_variable(1);
-    uint32_t w_o_1_idx = composer.circuit_constructor.add_variable(2);
-    composer.create_add_gate({ w_l_1_idx, w_r_1_idx, w_o_1_idx, 1, 1, -1, 0 });
+    composer.add_gates_to_ensure_all_polys_are_non_zero();
 
     // Automatically generate a transcript manifest in the prover by constructing a proof
     auto prover = composer.create_prover();
