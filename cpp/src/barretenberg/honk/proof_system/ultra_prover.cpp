@@ -133,7 +133,6 @@ template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_wire_commitment
  * @brief Compute sorted witness-table accumulator
  *
  */
-// WORKTODO: No need to commit to sorted polys? We dont in Plonk
 template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_sorted_list_accumulator_round()
 {
     // Compute and add eta to relation parameters

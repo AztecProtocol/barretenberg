@@ -15,7 +15,7 @@ template <typename FF> class EllipticRelation {
     /**
      * @brief Expression for the Ultra Arithmetic gate.
      * @details The relation is defined as C(extended_edges(X)...) =
-     *    WORKTODO: steal description from elliptic_widget.hpp
+     *    TODO(#429): steal description from elliptic_widget.hpp
      *
      * @param evals transformed to `evals + C(extended_edges(X)...)*scaling_factor`
      * @param extended_edges an std::array containing the fully extended Univariate edges.

@@ -275,23 +275,8 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
         zero_idx = put_constant_variable(barretenberg::fr::zero());
         tau.insert({ DUMMY_TAG, DUMMY_TAG }); // TODO(luke): explain this
 
+        // TODO(#217/#423): Related to issue of ensuring no identically 0 polynomials
         add_gates_to_ensure_all_polys_are_non_zero();
-
-        // TODO(luke)(#217): Related to issue of ensuring no identically 0 polynomials
-        // WORKTODO: Do we need to add a gate to ensure no zero polys like in Standard?
-        // Ensure that the 0th coefficient of each wire is 0; necessary for enabling shifts of wire polys
-        // (1 * 0 * 0) + (1 * 0) + (1 * 0) + (1 * 0) + 0
-        // m             l         r         o         c
-        // create_poly_gate({ zero_idx, zero_idx, zero_idx, 2, 1, 1, 1, 0 });
-        // WORKTODO: turns out the above wont always work since PI get placed in the first
-        // positions of the wires. Add 0 as a PI to ensure first coeff is zero.
-        // add_public_variable(barretenberg::fr::zero());
-
-        // // WORKTODO: need to ensure ALL polys are not identically zero, not just these basic ones!!
-        // one_idx = put_constant_variable(barretenberg::fr::one());
-        // // 1 * 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + -4
-        // // m           l       r       o        c
-        // create_poly_gate({ one_idx, one_idx, one_idx, 1, 1, 1, 1, -4 });
     };
 
     UltraCircuitConstructor(const UltraCircuitConstructor& other) = delete;

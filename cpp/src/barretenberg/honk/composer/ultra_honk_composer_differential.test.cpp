@@ -1,4 +1,10 @@
-// // WORKTODO
+// TODO(luke): These tests allow for the comparison of the polynomials produced in Ultra Plonk
+// with those produced by Ultra Honk. They were very useful in the process of getting UH up and
+// running. They currently fail because of the dummy gates we need to add in UH to avoid zero
+// polynomials. If those dummy gates are turned off they should pass again. I'm leaving them
+// around for now because there is still work to do where they might come in handy: 1) turning
+// on all ultra functionality in the ultra circuit constructor and 2) bringing in Zacs bug fixes
+// and updates.
 // #include "ultra_honk_composer.hpp"
 // #include "barretenberg/common/log.hpp"
 // #include "barretenberg/honk/proof_system/ultra_prover.hpp"

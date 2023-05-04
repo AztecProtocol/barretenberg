@@ -46,7 +46,7 @@ template <typename FF> class GenPermSortRelation {
         static const FF minus_two = FF(-2);
         static const FF minus_three = FF(-3);
 
-        // WORKTODO: Eventually this would be based on real alpha but this is not a full solution
+        // TODO(#427): Eventually this would be based on real alpha but this is not a full solution
         // since utilizing powers of alpha internal to a relation results in incorrect powers
         // being used in the ultimate univariate batching. i.e we'd wind up reusing the same power
         // of alpha in multiple relations.
@@ -65,25 +65,25 @@ template <typename FF> class GenPermSortRelation {
         tmp_1 *= (delta_1 + minus_one);
         tmp_1 *= (delta_1 + minus_two);
         tmp_1 *= (delta_1 + minus_three);
-        tmp_1 *= fake_alpha_1; // WORKTODO * 1
+        tmp_1 *= fake_alpha_1; // 1
 
         auto tmp_2 = delta_2;
         tmp_2 *= (delta_2 + minus_one);
         tmp_2 *= (delta_2 + minus_two);
         tmp_2 *= (delta_2 + minus_three);
-        tmp_2 *= fake_alpha_2; // WORKTODO * alpha
+        tmp_2 *= fake_alpha_2; // alpha
 
         auto tmp_3 = delta_3;
         tmp_3 *= (delta_3 + minus_one);
         tmp_3 *= (delta_3 + minus_two);
         tmp_3 *= (delta_3 + minus_three);
-        tmp_3 *= fake_alpha_3; // WORKTODO * alpha^2
+        tmp_3 *= fake_alpha_3; // alpha^2
 
         auto tmp_4 = delta_4;
         tmp_4 *= (delta_4 + minus_one);
         tmp_4 *= (delta_4 + minus_two);
         tmp_4 *= (delta_4 + minus_three);
-        tmp_4 *= fake_alpha_4; // WORKTODO * alpha^3
+        tmp_4 *= fake_alpha_4; // alpha^3
 
         auto tmp = tmp_1 + tmp_2 + tmp_3 + tmp_4;
         tmp *= q_sort;
@@ -107,7 +107,7 @@ template <typename FF> class GenPermSortRelation {
         static const FF minus_two = FF(-2);
         static const FF minus_three = FF(-3);
 
-        // WORKTODO: Eventually this would be based on real alpha but this is not a full solution
+        // TODO(#427): Eventually this would be based on real alpha but this is not a full solution
         // since utilizing powers of alpha internal to a relation results in incorrect powers
         // being used in the ultimate univariate batching. i.e we'd wind up reusing the same power
         // of alpha in multiple relations.
@@ -126,25 +126,25 @@ template <typename FF> class GenPermSortRelation {
         tmp_1 *= (delta_1 + minus_one);
         tmp_1 *= (delta_1 + minus_two);
         tmp_1 *= (delta_1 + minus_three);
-        tmp_1 *= fake_alpha_1; // WORKTODO * 1
+        tmp_1 *= fake_alpha_1; // 1
 
         auto tmp_2 = delta_2;
         tmp_2 *= (delta_2 + minus_one);
         tmp_2 *= (delta_2 + minus_two);
         tmp_2 *= (delta_2 + minus_three);
-        tmp_2 *= fake_alpha_2; // WORKTODO * alpha
+        tmp_2 *= fake_alpha_2; // alpha
 
         auto tmp_3 = delta_3;
         tmp_3 *= (delta_3 + minus_one);
         tmp_3 *= (delta_3 + minus_two);
         tmp_3 *= (delta_3 + minus_three);
-        tmp_3 *= fake_alpha_3; // WORKTODO * alpha^2
+        tmp_3 *= fake_alpha_3; // alpha^2
 
         auto tmp_4 = delta_4;
         tmp_4 *= (delta_4 + minus_one);
         tmp_4 *= (delta_4 + minus_two);
         tmp_4 *= (delta_4 + minus_three);
-        tmp_4 *= fake_alpha_4; // WORKTODO * alpha^3
+        tmp_4 *= fake_alpha_4; // alpha^3
 
         auto tmp = tmp_1 + tmp_2 + tmp_3 + tmp_4;
         tmp *= q_sort;

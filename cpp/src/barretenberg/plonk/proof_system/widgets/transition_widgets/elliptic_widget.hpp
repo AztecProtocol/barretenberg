@@ -10,7 +10,7 @@ namespace widget {
  * points is automatically scaled by the endomorphism constant β or negated
  *
  *
- * WORKTODO: WARNING(luke): based on the ultra honk relation consistency test, the below expressions differ
+ * TODO(#429): based on the ultra honk relation consistency test, the below expressions differ
  * slightly from what is actually implemented. (Mostly sign errors; some incorrect terms)
  * @details The basic equation for the elliptic curve in short weierstrass form is y^2 == x^3 + a * x + b.
  *

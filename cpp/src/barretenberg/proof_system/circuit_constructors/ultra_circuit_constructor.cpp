@@ -41,19 +41,21 @@ void UltraCircuitConstructor::finalize_circuit()
     }
 }
 
-// WORKTODO: WiP
 /**
- * @brief A gate with non-zero selectors and vanishing witnesses; part of strategy to avoid zero-polys
+ * @brief Avoid zero-polynomials and ensure first coeff of wire polynomials is 0
  *
  * @param in Structure containing variables and witness selectors
  */
+// TODO(#423): This function adds valid (but arbitrary) gates to ensure that the circuit which includes
+// them will not result in any zero-polynomials. It also ensures that the first coefficient of the wire
+// polynomials is zero, which is required for them to be shiftable. Its currently wildly inefficient
+// (~16k gates) mostly due to the lookups it includes.
+// TODO(#423)(luke): Add 0 as a PI since PI always start at the 0th index of the wire polynomials?
 // TODO(luke): may need to reevaluate once aux relation is implemented
-// TODO(luke): Need to add 0 as a PI since PI always start at the 0th index of the wire polynomials
 void UltraCircuitConstructor::add_gates_to_ensure_all_polys_are_non_zero()
 {
-    // assert_valid_variables({ 0, 0, 0 });
-
-    // First add a gate to take care of all selectors aside from q_c and q_lookup
+    // First add a gate to simultaneously ensure first entries of all wires is zero and to add a non
+    // zero value to all selectors aside from q_c and q_lookup
     w_l.emplace_back(zero_idx);
     w_r.emplace_back(zero_idx);
     w_o.emplace_back(zero_idx);
@@ -72,16 +74,21 @@ void UltraCircuitConstructor::add_gates_to_ensure_all_polys_are_non_zero()
     q_aux.emplace_back(1);
     ++num_gates;
 
-    // Add another gate with wires set to 0 to account for shifts used in some relations
+    // Some relations depend on wire shifts so we add another gate with
+    // wires set to 0 to ensure corresponding constraints are satisfied
     create_poly_gate({ zero_idx, zero_idx, zero_idx, 0, 0, 0, 0, 0 });
 
+    // Add nonzero values in w_4 and q_c (q_4*w_4 + q_c --> 1*1 - 1 = 0)
     one_idx = put_constant_variable(barretenberg::fr::one());
-
-    // Take care of w_4 and q_c (q_4*w_4 + q_c --> 1*1 - 1 = 0)
     create_big_add_gate({ zero_idx, zero_idx, zero_idx, one_idx, 0, 0, 0, 1, -1 });
 
     // Take care of all polys related to lookups (q_lookup, tables, sorted, etc)
-    // WORKTODO: Do we need two different tables since table_index is table number?
+    // by doing an arbitrary xor and an "and" lookup.
+    // Note: the 4th table poly is the table index: this is not the value of the table
+    // type enum but rather the index of the table in the list of all tables utilized
+    // in the circuit. Therefore we naively need two different tables (indices 0, 1)
+    // to get a non-zero value in table_4. I assume this index is arbitrary and could
+    // start from 1 instead of 0?
     uint32_t left_value = 3;
     uint32_t right_value = 5;
 

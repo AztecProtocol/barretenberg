@@ -38,33 +38,10 @@ template <typename Flavor> UltraVerifier_<Flavor>& UltraVerifier_<Flavor>::opera
     return *this;
 }
 
-// WORKTODO: update description
 /**
-* @brief This function verifies an Ultra Honk proof for given program settings.
-*
-* @details An Ultra Honk proof contains the following:
-    Multilinear evaluations:
-        w_i(X),        i = 1,2,3
-        sigma_i(X),    i = 1,2,3
-        q_i(X),        i = 1,2,3,4,5
-        z_perm(X),
-        L_0(X),
-        id(X)
-
-    Univariate evaluations:
-        a_0 = Fold_{-r}^(0)(-r),
-        a_l = Fold^(l)(-r^{2^l}), i = 1,...,d-1
-
-    Univariate polynomials (evaluations over MAX_RELATION_LENGTH-many points):
-        S_l, l = 0,...,d-1
-
-    Commitments:
-        [w_i]_1,        i = 1,2,3
-        [z_perm]_1,
-        [Fold^(l)]_1,   l = 1,...,d-1
-        [Q]_1,
-        [W]_1
-*/
+ * @brief This function verifies an Ultra Honk proof for given program settings.
+ *
+ */
 template <typename Flavor> bool UltraVerifier_<Flavor>::verify_proof(const plonk::proof& proof)
 {
     using FF = typename Flavor::FF;

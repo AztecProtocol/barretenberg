@@ -33,10 +33,9 @@ class Ultra {
     using PCSParams = pcs::kzg::Params;
 
     static constexpr size_t num_wires = CircuitConstructor::num_wires;
-    // TODO(luke): sure would be nice if this was computed programtically
-    // WORKTODO: this is 43 since we're not including individual sorted_i; (UP has 41 since no L_first, L_last)
+    // Note: The individual sorted_i are not included here; they are not evaluated by sumcheck or commited to
     static constexpr size_t NUM_ALL_ENTITIES = 43;
-    // TODO(luke): what does this need to reflect? e.g. are shifts of precomputed polys counted here?
+    // WORKTODO: what does this need to reflect? e.g. are shifts of precomputed polys counted here?
     static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 25;
     static constexpr size_t NUM_WITNESS_ENTITIES = 11;
 
@@ -107,7 +106,7 @@ class Ultra {
         Polynomial& w_r = _witness_data.w_r;
         Polynomial& w_o = _witness_data.w_o;
         Polynomial& w_4 = _witness_data.w_4;
-        // WORKTODO: these are somewhat unique; can be deleted after construction of s_accum it seems.
+        // TODO(luke): these can be deleted after construction of s_accum; do this?
         Polynomial& sorted_1 = _witness_data.sorted_1;
         Polynomial& sorted_2 = _witness_data.sorted_2;
         Polynomial& sorted_3 = _witness_data.sorted_3;
@@ -223,7 +222,6 @@ class Ultra {
 
             };
         };
-        // WORKTODO: table polys? sorted polys?
         std::vector<HandleType> get_to_be_shifted() override
         {
             return { table_1, table_2, table_3, table_4, w_l, w_r, w_o, w_4, sorted_accum, z_perm, z_lookup };
@@ -325,7 +323,7 @@ class Ultra {
       public:
         VerifierCommitments(std::shared_ptr<VerificationKey> verification_key, VerifierTranscript<FF> transcript)
         {
-            static_cast<void>(transcript); // WORKTODO
+            static_cast<void>(transcript);
             q_m = verification_key->q_m;
             q_l = verification_key->q_l;
             q_r = verification_key->q_r;

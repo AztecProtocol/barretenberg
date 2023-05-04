@@ -806,7 +806,7 @@ TEST(UltraHonkComposer, ram)
     prove_and_verify(composer, /*expected_result=*/true);
 }
 
-// WORKTODO: this is a recent update from Zac and fails; do we need a corresponding bug fix in ultra circuit
+// TODO(luke): this is a recent update from Zac and fails; do we need a corresponding bug fix in ultra circuit
 // constructor? TEST(UltraHonkComposer, range_checks_on_duplicates)
 // {
 //     auto composer = UltraHonkComposer();
@@ -842,7 +842,7 @@ TEST(UltraHonkComposer, ram)
 //     prove_and_verify(composer, /*expected_result=*/true);
 // }
 
-// WORKTODO: this is a new test from Zac; ultra circuit constructor does not yet have create_range_constraint
+// TODO(luke): this is a new test from Zac; ultra circuit constructor does not yet have create_range_constraint
 // implemented.
 // // Ensure copy constraints added on variables smaller than 2^14, which have been previously
 // // range constrained, do not break the set equivalence checks because of indices mismatch.
