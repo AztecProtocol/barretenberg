@@ -46,7 +46,7 @@ template <typename FF, size_t num_selectors> struct SelectorsBase {
     typename DataType::iterator end() { return _data.end(); };
 };
 
-// These are not magic numbers and they should not be written with global constants. These paraters are not accessible
+// These are not magic numbers and they should not be written with global constants. These parameters are not accessible
 // through clearly named static class members.
 template <typename FF> class Standard : public Arithmetization</*NUM_WIRES =*/3, /*num_selectors =*/5> {
   public:

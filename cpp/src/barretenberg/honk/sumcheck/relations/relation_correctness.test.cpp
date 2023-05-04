@@ -303,8 +303,6 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
             ++poly_idx;
         }
 
-        info("i = ", i);
-
         // For each relation, call the `accumulate_relation_evaluation` over all witness/selector values at the
         // i-th row/vertex of the hypercube. We use ASSERT_EQ instead of EXPECT_EQ so that the tests stops at
         // the first index at which the result is not 0, since result = 0 + C(transposed), which we expect will

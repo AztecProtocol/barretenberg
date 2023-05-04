@@ -6,7 +6,7 @@
  * @details #Motivation
  * We choose the framework set out in these classes for several reasons.
  *
- * For one, it allows for a large amount of the information of Honk flavor to be read at a glance in a single file.
+ * For one, it allows for a large amount of the information of a Honk flavor to be read at a glance in a single file.
  *
  * The primary motivation, however, is to reduce the sort loose of coupling that is a significant source of complexity
  * in the original plonk code. There, we find many similarly-named entities defined in many different places (to name
@@ -31,7 +31,7 @@
  * larger circuit constructor class).
  *
  * @details #Data model
- * All of the flavor classes derive from a single Entitives_ template, which simply wraps a std::array (we would
+ * All of the flavor classes derive from a single Entities_ template, which simply wraps a std::array (we would
  * inherit, but this is unsafe as std::array has a non-virtual destructor). The developer should think of every flavor
  * class as being:
  *  - A std::array<DataType, N> instance called _data.
@@ -45,7 +45,7 @@
  *
  * @details #Some Notes
  *
- * @note It would be ideal to codify more structure in these base class tempalte and to have it imposed on the actual
+ * @note It would be ideal to codify more structure in these base class template and to have it imposed on the actual
  * flavors, but our inheritance model is complicated as it is, and we saw no reasonable way to fix this.
  *
  * @note One asymmetry to note is in the use of the term "key". It is worthwhile to distinguish betwen prover/verifier

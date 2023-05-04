@@ -369,8 +369,6 @@ TEST_F(UltraRelationConsistency, LookupGrandProductComputationRelation)
     expected_evals -= (z_lookup_shift + lagrange_last * grand_product_delta) *
                       (s_accum + s_accum_shift * beta + gamma_by_one_plus_beta);
 
-    info("expected_evals = ", expected_evals);
-
     validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
 };
 

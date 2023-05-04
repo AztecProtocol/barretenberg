@@ -31,8 +31,8 @@ class Ultra {
     using PCSParams = pcs::kzg::Params;
 
     static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
-    // The number of multivariate polynomials on which a sumcheck prover sumcheck operates. We often need containers of
-    // this size to hold related data, so we choose a name more agnostic than `NUM_POLYNOMIALS`
+    // The number of multivariate polynomials on which a sumcheck prover sumcheck operates (including shifts). We often
+    // need containers of this size to hold related data, so we choose a name more agnostic than `NUM_POLYNOMIALS`
     static constexpr size_t NUM_ALL_ENTITIES = 47;
     // The number of polynomials precomputed to describe a circuit and to aid a prover in constructing a satisfying
     // assignment of witnesses. We again choose a neutral name.
@@ -169,7 +169,7 @@ class Ultra {
         DataType& z_lookup_shift = std::get<46>(this->_data);
 
         std::vector<HandleType> get_wires() override { return { w_l, w_r, w_o, w_4 }; };
-        // Gemin-specific getters.
+        // Gemini-specific getters.
         std::vector<HandleType> get_unshifted() override
         {
             return { q_c,           q_l,    q_r,      q_o,     q_4,     q_m,      q_arith,  q_sort,
@@ -234,7 +234,7 @@ class Ultra {
     };
 
     /**
-     * @brief The verificaiton key is responsible for storing the the commitments to the precomputed (non-witnessk)
+     * @brief The verification key is responsible for storing the the commitments to the precomputed (non-witnessk)
      * polynomials used by the verifier.
      *
      * @note Note the discrepancy with what sort of data is stored here vs in the proving key. We may want to resolve
@@ -276,7 +276,7 @@ class Ultra {
     /**
      * @brief A container for commitment labels.
      * @note It's debatable whether this should inherit from AllEntities. since most entries are not strictly needed. It
-     * has, however, been useful during debugging to have these lables avilable.
+     * has, however, been useful during debugging to have these labels available.
      *
      */
     class CommitmentLabels : public AllEntities<std::string, std::string> {

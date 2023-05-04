@@ -14,7 +14,7 @@ namespace proof_system::honk {
  * Create Prover from proving key, witness and manifest.
  *
  * @param input_key Proving key.
- * @param input_manifest Input manifestxo
+ * @param input_manifest Input manifest
  *
  * @tparam settings Settings class.
  * */
@@ -107,9 +107,6 @@ template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_grand_pro
     // Compute and store parameters required by relations in Sumcheck
     auto [beta, gamma] = transcript.get_challenges("beta", "gamma");
 
-    info("beta = ", beta);
-    info("gamma = ", gamma);
-
     auto public_input_delta = compute_public_input_delta<FF>(public_inputs, beta, gamma, key->circuit_size);
 
     relation_parameters = sumcheck::RelationParameters<FF>{
@@ -142,9 +139,6 @@ template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_relation_
     auto sumcheck = Sumcheck(key->circuit_size, transcript);
 
     sumcheck_output = sumcheck.execute_prover(prover_polynomials, relation_parameters);
-    // for (auto& eval : sumcheck_output.purported_evaluations) {
-    //     info(eval);
-    // };
 }
 
 /**

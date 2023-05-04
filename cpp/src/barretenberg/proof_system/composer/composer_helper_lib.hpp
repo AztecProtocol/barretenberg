@@ -6,12 +6,6 @@
 namespace proof_system {
 
 /**
- *
- * @tparam CircuitConstructor Class containing the circuit
- * @return std::shared_ptr<plonk::proving_key>
- */
-
-/**
  * @brief Initilalize proving key and load the crs
  *
  * @tparam Flavor
@@ -114,8 +108,7 @@ void enforce_nonzero_selector_polynomials(const typename Flavor::CircuitConstruc
 /**
  * @brief Construct the witness polynomials from the witness vectors in the circuit constructor.
  *
- * @details The first two witness polynomials bein with the public input values.of w_1, w_2 polynomials is filled with
- * public_input values.
+ * @details The first two witness polynomials begin with the public input values.
  *
  *
  * @tparam Flavor provides the circuit constructor type and the number of wires.

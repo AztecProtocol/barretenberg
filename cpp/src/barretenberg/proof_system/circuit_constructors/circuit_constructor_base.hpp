@@ -18,7 +18,7 @@ template <typename Arithmetization> class CircuitConstructorBase {
     static constexpr size_t num_selectors = Arithmetization::num_selectors;
 
     // TODO(Cody): These are plonk-specific and could be specified in the plonk flavors.
-    // Also, theere is loose coupling with the vectors of SelectorProperties
+    // Also, there is loose coupling with the vectors of SelectorProperties
     std::vector<std::string> selector_names_;
     size_t num_gates = 0;
 
