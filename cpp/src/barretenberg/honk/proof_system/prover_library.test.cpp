@@ -35,8 +35,9 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         return random_polynomial;
     }
 
-    static void populate_span(auto& polynomial_view, auto& polynomial)
+    static void populate_span(auto& polynomial_view, const auto& polynomial)
     {
+        ASSERT(polynomial_view.size() <= polynomial.size());
         for (size_t idx = 0; idx < polynomial.size(); idx++) {
             polynomial_view[idx] = polynomial[idx];
         }
