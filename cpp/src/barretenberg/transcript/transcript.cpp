@@ -263,7 +263,11 @@ void Transcript::apply_fiat_shamir(const std::string& challenge_name /*, const b
     }
 
     std::vector<uint8_t> rolling_buffer(base_hash.begin(), base_hash.end());
-    rolling_buffer[31] = (0);
+    if (hasher == HashType::Keccak256) {
+        rolling_buffer.push_back(0);
+    } else {
+        rolling_buffer[31] = (0);
+    }
 
     // Compute how many hashes we need so that we have enough distinct chunks of 'random' bytes to distribute
     // across the num_challenges.
@@ -274,7 +278,7 @@ void Transcript::apply_fiat_shamir(const std::string& challenge_name /*, const b
 
     for (size_t i = 1; i < num_hashes; ++i) {
         // Compute hash_output = hash(base_hash, i);
-        rolling_buffer[31] = static_cast<uint8_t>(i);
+        rolling_buffer[rolling_buffer.size() - 1] = static_cast<uint8_t>(i);
         std::array<uint8_t, PRNG_OUTPUT_SIZE> hash_output{};
         switch (hasher) {
         case HashType::Keccak256: {
