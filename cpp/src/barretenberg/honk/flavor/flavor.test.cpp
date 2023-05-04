@@ -8,7 +8,7 @@
 #pragma GCC diagnostic ignored "-Wunused-variable"
 
 namespace proof_system::test_flavor {
-TEST(Flavor, Standard)
+TEST(Flavor, StandardGetters)
 {
     using Flavor = proof_system::honk::flavor::Standard;
     using FF = Flavor::FF;
@@ -20,6 +20,7 @@ TEST(Flavor, Standard)
         return Flavor::ProvingKey(/*circuit_size=*/4, /*num_public_inputs=*/0, crs, ComposerType::STANDARD);
     }();
 
+    // set
     size_t coset_idx = 0;
     for (auto& id_poly : proving_key.get_id_polynomials()) {
         typename Flavor::Polynomial new_poly(proving_key.circuit_size);
@@ -29,14 +30,22 @@ TEST(Flavor, Standard)
         ++coset_idx;
     }
 
+    // Polynomials in the proving key can be set through loops over subsets produced by the getters
+    EXPECT_EQ(proving_key.id_1[0], FF(0));
+    EXPECT_EQ(proving_key.id_2[0], FF(4));
+    EXPECT_EQ(proving_key.id_3[0], FF(8));
+
     Flavor::VerificationKey verification_key;
     Flavor::ProverPolynomials prover_polynomials;
     Flavor::ExtendedEdges<Flavor::NUM_ALL_ENTITIES> edges;
     Flavor::PurportedEvaluations evals;
     Flavor::CommitmentLabels commitment_labels;
 
-    EXPECT_EQ(prover_polynomials.size(), 18);
+    // Globals are also available through STL container sizes
+    EXPECT_EQ(prover_polynomials.size(), Flavor::NUM_ALL_ENTITIES);
+    // Shited polynomials have the righ tsize
     EXPECT_EQ(prover_polynomials.size(), prover_polynomials.get_unshifted_then_shifted().size());
+    // Commitment lables are stored in the flavor.
     EXPECT_EQ(commitment_labels.w_r, "W_2");
 
     auto get_test_polynomial = [](size_t& idx) {
@@ -86,6 +95,8 @@ TEST(Flavor, Standard)
     prover_polynomials.lagrange_first = lagrange_first;
     prover_polynomials.lagrange_last = lagrange_last;
 
+    // You can set polynomial values directly through the symbol names
+    // and then access the values through the getters.
     idx = 0;
     for (auto& poly : prover_polynomials.get_wires()) {
         EXPECT_EQ(poly[0], 4 * idx);
@@ -105,8 +116,7 @@ TEST(Flavor, Standard)
     };
 }
 
-// TODO(luke): just playing around with the Flavor classes. These should become demonstrative tests
-TEST(Flavor, General)
+TEST(Flavor, AllEntitiesSpecialMemberFunctions)
 {
     using Flavor = proof_system::honk::flavor::Standard;
     using FF = Flavor::FF;
@@ -119,7 +129,7 @@ TEST(Flavor, General)
         coeff = FF::random_element();
     }
 
-    info("polynomials_A.size() = ", polynomials_A.size());
+    // Test some special member functions.
 
     polynomials_A.w_l = random_poly;
 
