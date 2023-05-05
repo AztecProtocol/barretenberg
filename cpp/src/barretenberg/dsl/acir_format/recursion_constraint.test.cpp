@@ -78,7 +78,7 @@ acir_format::Composer create_inner_circuit()
 
     acir_format::acir_format constraint_system{
         .varnum = 7,
-        .public_inputs = { 2, 3 },
+        .public_inputs = { 2 },
         .fixed_base_scalar_mul_constraints = {},
         .logic_constraints = { logic_constraint },
         .range_constraints = { range_a, range_b },
@@ -221,7 +221,24 @@ acir_format::Composer create_outer_circuit(std::vector<acir_format::Composer>& i
     return composer;
 }
 
-TEST(RecursionConstraint, TestRecursionConstraints)
+TEST(RecursionConstraint, TestBasicDoubleRecursionConstraints)
+{
+    std::vector<acir_format::Composer> layer_1_composers;
+    layer_1_composers.push_back(create_inner_circuit());
+
+    layer_1_composers.push_back(create_inner_circuit());
+
+    auto layer_2_composer = create_outer_circuit(layer_1_composers);
+
+    std::cout << "composer gates = " << layer_2_composer.get_num_gates() << std::endl;
+    auto prover = layer_2_composer.create_ultra_with_keccak_prover();
+    std::cout << "prover gates = " << prover.circuit_size << std::endl;
+    auto proof = prover.construct_proof();
+    auto verifier = layer_2_composer.create_ultra_with_keccak_verifier();
+    EXPECT_EQ(verifier.verify_proof(proof), true);
+}
+
+TEST(RecursionConstraint, TestFullRecursionConstraints)
 {
     /**
      * We want to test the following:
@@ -257,16 +274,22 @@ TEST(RecursionConstraint, TestRecursionConstraints)
      */
     std::vector<acir_format::Composer> layer_1_composers;
     layer_1_composers.push_back(create_inner_circuit());
-
+    std::cout << "created first inner circuit\n";
     std::vector<acir_format::Composer> layer_2_composers;
 
     layer_2_composers.push_back(create_inner_circuit());
+    std::cout << "created second inner circuit\n";
+
     layer_2_composers.push_back(create_outer_circuit(layer_1_composers));
+    std::cout << "created first outer circuit\n";
+
     auto layer_3_composer = create_outer_circuit(layer_2_composers);
+    std::cout << "created second outer circuit\n";
+
     std::cout << "composer gates = " << layer_3_composer.get_num_gates() << std::endl;
-    auto prover = layer_3_composer.create_prover();
+    auto prover = layer_3_composer.create_ultra_with_keccak_prover();
     std::cout << "prover gates = " << prover.circuit_size << std::endl;
     auto proof = prover.construct_proof();
-    auto verifier = layer_3_composer.create_verifier();
+    auto verifier = layer_3_composer.create_ultra_with_keccak_verifier();
     EXPECT_EQ(verifier.verify_proof(proof), true);
 }

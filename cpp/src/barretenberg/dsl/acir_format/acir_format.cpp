@@ -181,6 +181,7 @@ Composer create_circuit(const acir_format& constraint_system,
 
     // Add recursion constraints
     for (size_t i = 0; i < constraint_system.recursion_constraints.size(); ++i) {
+        std::cout << "recursion_constraint: " << i << std::endl;
         auto& constraint = constraint_system.recursion_constraints[i];
         create_recursion_constraints<false>(composer, constraint);
 
@@ -190,10 +191,6 @@ Composer create_circuit(const acir_format& constraint_system,
         if (i == constraint_system.recursion_constraints.size() - 1) {
             std::vector<uint32_t> proof_output_witness_indices(constraint.output_aggregation_object.begin(),
                                                                constraint.output_aggregation_object.end());
-            for (size_t i = 0; i < 16; ++i) {
-                std::cout << "proof_output_witness_indices " << i << ": " << proof_output_witness_indices[i]
-                          << std::endl;
-            }
             composer.set_recursive_proof(proof_output_witness_indices);
         }
     }

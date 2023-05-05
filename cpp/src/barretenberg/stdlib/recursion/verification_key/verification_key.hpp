@@ -140,7 +140,8 @@ template <typename Curve> struct verification_key {
         // constants!
         key->contains_recursive_proof = inner_proof_contains_recursive_proof;
         for (size_t i = 0; i < 16; ++i) {
-            key->recursive_proof_public_input_indices.emplace_back(recursive_proof_public_input_indices[i]);
+            auto x = recursive_proof_public_input_indices[i];
+            key->recursive_proof_public_input_indices.emplace_back(x);
         }
 
         size_t count = 22;

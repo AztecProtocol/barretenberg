@@ -188,9 +188,9 @@ class ComposerBase {
 
     uint32_t get_public_input_index(const uint32_t witness_index) const
     {
-        std::cout << "inside get_public_input_index\n";
-        std::cout << "witness_index: " << witness_index << std::endl;
-        std::cout << "public_inputs.size(): " << public_inputs.size() << std::endl;
+        // std::cout << "inside get_public_input_index\n";
+        // std::cout << "witness_index: " << witness_index << std::endl;
+        // std::cout << "public_inputs.size(): " << public_inputs.size() << std::endl;
 
         bool found = false;
         uint32_t result = static_cast<uint32_t>(-1);

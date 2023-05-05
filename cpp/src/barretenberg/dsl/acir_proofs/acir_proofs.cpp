@@ -49,7 +49,6 @@ uint32_t get_total_circuit_size(uint8_t const* constraint_system_buf)
 
 size_t init_proving_key(uint8_t const* constraint_system_buf, uint8_t const** pk_buf)
 {
-    std::cout << "inside init_proving_key\n";
     auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
 
     // constraint_system.recursion_constraints[0].
@@ -58,7 +57,6 @@ size_t init_proving_key(uint8_t const* constraint_system_buf, uint8_t const** pk
     // Hacky, but, right now it needs *something*.
     auto crs_factory = std::make_unique<ReferenceStringFactory>();
     auto composer = create_circuit(constraint_system, std::move(crs_factory));
-    std::cout << "past create_circuit\n";
 
     auto proving_key = composer.compute_proving_key();
 
