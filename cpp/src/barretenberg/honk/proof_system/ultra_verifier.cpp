@@ -11,6 +11,7 @@
 #include "barretenberg/honk/sumcheck/relations/lookup_grand_product_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/auxiliary_relation.hpp"
 
 #pragma GCC diagnostic ignored "-Wunused-variable"
 
@@ -115,7 +116,8 @@ template <typename Flavor> bool UltraVerifier_<Flavor>::verify_proof(const plonk
                              honk::sumcheck::LookupGrandProductComputationRelation,
                              honk::sumcheck::LookupGrandProductInitializationRelation,
                              honk::sumcheck::GenPermSortRelation,
-                             honk::sumcheck::EllipticRelation>(circuit_size, transcript);
+                             honk::sumcheck::EllipticRelation,
+                             honk::sumcheck::AuxiliaryRelation>(circuit_size, transcript);
 
     std::optional sumcheck_output = sumcheck.execute_verifier(relation_parameters);
 
@@ -149,7 +151,6 @@ template <typename Flavor> bool UltraVerifier_<Flavor>::verify_proof(const plonk
     // Construct batched commitment for NON-shifted polynomials
     size_t commitment_idx = 0;
     for (auto& commitment : commitments.get_unshifted()) {
-        info("commitment_idx = ", commitment_idx);
         batched_commitment_unshifted += commitment * rhos[commitment_idx];
         ++commitment_idx;
     }

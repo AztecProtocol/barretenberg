@@ -12,6 +12,7 @@
 #include "barretenberg/honk/sumcheck/relations/lookup_grand_product_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/auxiliary_relation.hpp"
 
 using namespace proof_system::honk;
 
@@ -146,8 +147,8 @@ TEST(RelationCorrectness, StandardRelationCorrectness)
  * indices
  *
  */
-// TODO(luke): Ensure all relations are added as they are implemented for Ultra Honk
 // TODO(luke): possibly make circuit construction one or many functions to clarify the individual components
+// TODO(luke): Add a gate that sets q_arith = 3 to check secondary arithmetic relation
 TEST(RelationCorrectness, UltraRelationCorrectness)
 {
     using Flavor = honk::flavor::Ultra;
@@ -155,7 +156,8 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     using ProverPolynomials = typename Flavor::ProverPolynomials;
     using PurportedEvaluations = typename Flavor::PurportedEvaluations;
 
-    // Create a composer and a dummy circuit with a few gates
+    // Create a composer and then add an assortment of gates designed to ensure that the constraint(s) represented
+    // by each relation are non-trivially exercised.
     auto composer = UltraHonkComposer();
 
     barretenberg::fr pedersen_input_value = fr::random_element();
@@ -163,6 +165,8 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     // Using the public variable to check that public_input_delta is computed and added to the relation correctly
     // TODO(luke): add method "add_public_variable" to UH composer
     // uint32_t a_idx = composer.add_public_variable(a);
+
+    // Add some basic add gates
     uint32_t a_idx = composer.add_variable(a);
     fr b = fr::one();
     fr c = a + b;
@@ -224,6 +228,51 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     ecc_add_gate gate{ x1, y1, x2, y2, x3, y3, beta_scalar, -1 };
     composer.create_ecc_add_gate(gate);
 
+    // Add some RAM gates
+    uint32_t ram_values[8]{
+        composer.add_variable(fr::random_element()), composer.add_variable(fr::random_element()),
+        composer.add_variable(fr::random_element()), composer.add_variable(fr::random_element()),
+        composer.add_variable(fr::random_element()), composer.add_variable(fr::random_element()),
+        composer.add_variable(fr::random_element()), composer.add_variable(fr::random_element()),
+    };
+
+    size_t ram_id = composer.create_RAM_array(8);
+
+    for (size_t i = 0; i < 8; ++i) {
+        composer.init_RAM_element(ram_id, i, ram_values[i]);
+    }
+
+    a_idx = composer.read_RAM_array(ram_id, composer.add_variable(5));
+    EXPECT_EQ(a_idx != ram_values[5], true);
+
+    b_idx = composer.read_RAM_array(ram_id, composer.add_variable(4));
+    c_idx = composer.read_RAM_array(ram_id, composer.add_variable(1));
+
+    composer.write_RAM_array(ram_id, composer.add_variable(4), composer.add_variable(500));
+    d_idx = composer.read_RAM_array(ram_id, composer.add_variable(4));
+
+    EXPECT_EQ(composer.get_variable(d_idx), 500);
+
+    // ensure these vars get used in another arithmetic gate
+    const auto e_value = composer.get_variable(a_idx) + composer.get_variable(b_idx) + composer.get_variable(c_idx) +
+                         composer.get_variable(d_idx);
+    e_idx = composer.add_variable(e_value);
+
+    composer.create_big_add_gate({ a_idx, b_idx, c_idx, d_idx, -1, -1, -1, -1, 0 }, true);
+    composer.create_big_add_gate(
+        {
+            composer.get_zero_idx(),
+            composer.get_zero_idx(),
+            composer.get_zero_idx(),
+            e_idx,
+            0,
+            0,
+            0,
+            0,
+            0,
+        },
+        false);
+
     // Create a prover (it will compute proving key and witness)
     auto prover = composer.create_prover();
 
@@ -247,14 +296,17 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
         .lookup_grand_product_delta = lookup_grand_product_delta,
     };
 
-    // Compute grand product polynomial
-    auto z_permutation = prover_library::compute_permutation_grand_product<Flavor>(prover.key, beta, gamma);
-
     // Compute sorted witness-table accumulator
     prover.key->sorted_accum = prover_library::compute_sorted_list_accumulator<Flavor>(prover.key, eta);
 
+    // Add RAM/ROM memory records to wire four
+    prover_library::add_plookup_memory_records_to_wire_4<Flavor>(prover.key, eta);
+
+    // Compute grand product polynomial
+    prover.key->z_perm = prover_library::compute_permutation_grand_product<Flavor>(prover.key, beta, gamma);
+
     // Compute lookup grand product polynomial
-    auto z_lookup = prover_library::compute_lookup_grand_product<Flavor>(prover.key, eta, beta, gamma);
+    prover.key->z_lookup = prover_library::compute_lookup_grand_product<Flavor>(prover.key, eta, beta, gamma);
 
     // Create an array of spans to the underlying polynomials to more easily
     // get the transposition.
@@ -280,10 +332,10 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     prover_polynomials.table_2_shift = prover.key->table_2.shifted();
     prover_polynomials.table_3_shift = prover.key->table_3.shifted();
     prover_polynomials.table_4_shift = prover.key->table_4.shifted();
-    prover_polynomials.z_perm = z_permutation;
-    prover_polynomials.z_perm_shift = z_permutation.shifted();
-    prover_polynomials.z_lookup = z_lookup;
-    prover_polynomials.z_lookup_shift = z_lookup.shifted();
+    prover_polynomials.z_perm = prover.key->z_perm;
+    prover_polynomials.z_perm_shift = prover.key->z_perm.shifted();
+    prover_polynomials.z_lookup = prover.key->z_lookup;
+    prover_polynomials.z_lookup_shift = prover.key->z_lookup.shifted();
     prover_polynomials.q_m = prover.key->q_m;
     prover_polynomials.q_l = prover.key->q_l;
     prover_polynomials.q_r = prover.key->q_r;
@@ -311,7 +363,7 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     ensure_non_zero(prover.key->q_sort);
     ensure_non_zero(prover.key->q_lookup);
     ensure_non_zero(prover.key->q_elliptic);
-    // ensure_non_zero(prover.key->q_aux); // TODO(luke): add an aux gate
+    ensure_non_zero(prover.key->q_aux);
 
     // Construct the round for applying sumcheck relations and results for storing computed results
     auto relations = std::tuple(honk::sumcheck::UltraArithmeticRelation<FF>(),
@@ -321,7 +373,8 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
                                 honk::sumcheck::LookupGrandProductComputationRelation<FF>(),
                                 honk::sumcheck::LookupGrandProductInitializationRelation<FF>(),
                                 honk::sumcheck::GenPermSortRelation<FF>(),
-                                honk::sumcheck::EllipticRelation<FF>());
+                                honk::sumcheck::EllipticRelation<FF>(),
+                                honk::sumcheck::AuxiliaryRelation<FF>());
 
     fr result = 0;
     for (size_t i = 0; i < prover.key->circuit_size; i++) {
@@ -359,6 +412,9 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
         ASSERT_EQ(result, 0);
 
         std::get<7>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        ASSERT_EQ(result, 0);
+
+        std::get<8>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
         ASSERT_EQ(result, 0);
     }
 }

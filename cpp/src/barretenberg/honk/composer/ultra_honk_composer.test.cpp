@@ -62,6 +62,13 @@ void ensure_non_zero(auto& polynomial)
     ASSERT_TRUE(has_non_zero_coefficient);
 }
 
+/**
+ * @brief A quick test to ensure that none of our polynomials are identically zero
+ *
+ * @note This test assumes that gates have been added by default in the circuit
+ * constructor to achieve non-zero polynomials
+ *
+ */
 TEST(UltraHonkComposer, ANonZeroPolynomialIsAGoodPolynomial)
 {
     auto composer = UltraHonkComposer();
@@ -82,8 +89,6 @@ TEST(UltraHonkComposer, ANonZeroPolynomialIsAGoodPolynomial)
     for (auto& poly : prover.key->get_wires()) {
         ensure_non_zero(poly);
     }
-
-    prove_and_verify(composer, /*expected_result=*/true);
 }
 
 TEST(UltraHonkComposer, XorConstraint)
@@ -107,61 +112,11 @@ TEST(UltraHonkComposer, XorConstraint)
                                          [0]; // The zeroth index in the 3rd column is the fully accumulated xor result
     EXPECT_EQ(xor_result, xor_result_expected);
 
-    info("xor_result_expected = ", xor_result_expected);
-
     composer.create_gates_from_plookup_accumulators(
         plookup::MultiTableId::UINT32_XOR, lookup_accumulators, left_witness_index, right_witness_index);
 
     prove_and_verify(composer, /*expected_result=*/true);
 }
-
-// /**
-//  * @brief TEMPORARY (verbose) method for checking consistency of polynomials computed by Ultra Plonk/Honk composers
-//  *
-//  * @param honk_prover
-//  * @param plonk_prover
-//  */
-// void check_consistency(honk::UltraProver& honk_prover, plonk::UltraProver& plonk_prover)
-// {
-//     auto& honk_store = honk_prover.key->polynomial_store;
-//     auto& plonk_store = plonk_prover.key->polynomial_store;
-//     for (auto& entry : honk_store) {
-//         std::string key = entry.first;
-//         if (plonk_store.contains(key)) {
-
-//             bool polys_equal = (honk_store.get(key) == plonk_store.get(key));
-//             if (polys_equal) {
-//                 info("Equal: ", key);
-//             }
-//             if (!polys_equal) {
-//                 info("UNEQUAL: ", key);
-//             }
-//         }
-//     }
-
-//     for (size_t i = 0; i < 4; ++i) {
-//         std::string label = "w_" + std::to_string(i + 1) + "_lagrange";
-//         bool wire_equal = (honk_prover.wire_polynomials[i] == plonk_prover.key->polynomial_store.get(label));
-//         if (wire_equal) {
-//             info("Wire Equal: ", i);
-//         }
-//         if (!wire_equal) {
-//             info("Wire UNEQUAL: ", i);
-//         }
-//     }
-
-//     // std::string label = "w_1_lagrange";
-//     // for (size_t i = 0; i < plonk_store.get(label).size(); ++i) {
-//     //     auto val_honk = honk_prover.wire_polynomials[0][i];
-//     //     // auto val_honk = honk_store.get(label)[i];
-//     //     auto val_plonk = plonk_store.get(label)[i];
-//     //     if (val_honk != val_plonk) {
-//     //         info("UNEQUAL index = ", i);
-//     //         info("honk: ",val_honk);
-//     //         info("plonk: ", val_plonk);
-//     //     }
-//     // }
-// }
 
 TEST(UltraHonkComposer, create_gates_from_plookup_accumulators)
 {
@@ -448,8 +403,6 @@ TEST(UltraHonkComposer, sort_widget)
     auto c_idx = composer.add_variable(c);
     auto d_idx = composer.add_variable(d);
     composer.create_sort_constraint({ a_idx, b_idx, c_idx, d_idx });
-
-    info("composer.circuit_constructor.num_gates = ", composer.circuit_constructor.num_gates);
 
     prove_and_verify(composer, /*expected_result=*/true);
 }

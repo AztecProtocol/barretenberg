@@ -21,6 +21,7 @@
 #include "barretenberg/honk/sumcheck/relations/lookup_grand_product_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/auxiliary_relation.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/transcript/transcript_wrappers.hpp"
 #include <string>
@@ -190,15 +191,6 @@ template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_grand_product_c
  */
 template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_relation_check_rounds()
 {
-    auto compare = [](const auto poly1, const auto poly2) {
-        for (size_t i = 0; i < poly1.size(); ++i) {
-            if (poly1[i] != poly2[i]) {
-                return false;
-            }
-        }
-        return true;
-    };
-
     using Sumcheck = sumcheck::Sumcheck<Flavor,
                                         ProverTranscript<FF>,
                                         sumcheck::UltraArithmeticRelation,
@@ -208,7 +200,8 @@ template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_relation_check_
                                         sumcheck::LookupGrandProductComputationRelation,
                                         sumcheck::LookupGrandProductInitializationRelation,
                                         sumcheck::GenPermSortRelation,
-                                        sumcheck::EllipticRelation>;
+                                        sumcheck::EllipticRelation,
+                                        sumcheck::AuxiliaryRelation>;
 
     auto sumcheck = Sumcheck(key->circuit_size, transcript);
 
@@ -226,7 +219,6 @@ template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_univariatizatio
 
     // Generate batching challenge ρ and powers 1,ρ,…,ρᵐ⁻¹
     FF rho = transcript.get_challenge("rho");
-    info("rho = ", rho);
     std::vector<FF> rhos = Gemini::powers_of_rho(rho, NUM_POLYNOMIALS);
 
     // Batch the unshifted polynomials and the to-be-shifted polynomials using ρ
@@ -262,7 +254,6 @@ template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_univariatizatio
 template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_pcs_evaluation_round()
 {
     const FF r_challenge = transcript.get_challenge("Gemini:r");
-    info("r = ", r_challenge);
     gemini_output = Gemini::compute_fold_polynomial_evaluations(
         sumcheck_output.challenge_point, std::move(fold_polynomials), r_challenge);
 
@@ -280,7 +271,6 @@ template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_pcs_evaluation_
 template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_shplonk_batched_quotient_round()
 {
     nu_challenge = transcript.get_challenge("Shplonk:nu");
-    info("nu = ", nu_challenge);
 
     batched_quotient_Q =
         Shplonk::compute_batched_quotient(gemini_output.opening_pairs, gemini_output.witnesses, nu_challenge);
@@ -296,7 +286,7 @@ template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_shplonk_batched
 template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_shplonk_partial_evaluation_round()
 {
     const FF z_challenge = transcript.get_challenge("Shplonk:z");
-    info("z = ", z_challenge);
+
     shplonk_output = Shplonk::compute_partially_evaluated_batched_quotient(
         gemini_output.opening_pairs, gemini_output.witnesses, std::move(batched_quotient_Q), nu_challenge, z_challenge);
 }

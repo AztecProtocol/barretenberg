@@ -362,7 +362,7 @@ typename Flavor::Polynomial compute_sorted_list_accumulator(std::shared_ptr<type
  * the `eta` challenge.
  *
  * @tparam Flavor
- * @param eta challenege produced after commitment to first three wire polynomials
+ * @param eta challenge produced after commitment to first three wire polynomials
  */
 template <typename Flavor>
 void add_plookup_memory_records_to_wire_4(std::shared_ptr<typename Flavor::ProvingKey>& key, typename Flavor::FF eta)
