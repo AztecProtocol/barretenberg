@@ -28,6 +28,7 @@ TEST(acir_format, test_a_single_constraint_no_pub_inputs)
         .ecdsa_constraints = {},
         .sha256_constraints = {},
         .blake2s_constraints = {},
+        .keccak_constraints = {},
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .compute_merkle_root_constraints = {},
