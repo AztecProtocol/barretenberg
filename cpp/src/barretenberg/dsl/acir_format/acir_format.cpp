@@ -181,7 +181,6 @@ Composer create_circuit(const acir_format& constraint_system,
 
     // Add recursion constraints
     for (size_t i = 0; i < constraint_system.recursion_constraints.size(); ++i) {
-        std::cout << "recursion_constraint: " << i << std::endl;
         auto& constraint = constraint_system.recursion_constraints[i];
         create_recursion_constraints<false>(composer, constraint);
 

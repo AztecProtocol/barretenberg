@@ -179,8 +179,10 @@ RecursiveCircuitData fetch_recursive_circuit_data(acir_format::acir_format const
     uint8_t* proof_data_buf = nullptr;
     size_t proof_length = acir_proofs::new_proof(
         pippenger_ptr, &g2x_buffer[0], pk_buf, &constraint_system_buf[0], &witness_buf[0], &proof_data_buf, true);
-    proof_fields_size =
-        acir_proofs::serialize_proof_into_field_elements(proof_data_buf, &proof_data_fields, proof_length);
+
+    auto num_public_inputs = constraint_system.public_inputs.size();
+    proof_fields_size = acir_proofs::serialize_proof_into_field_elements(
+        proof_data_buf, &proof_data_fields, proof_length, num_public_inputs);
     vk_fields_size =
         acir_proofs::serialize_verification_key_into_field_elements(&g2x_buffer[0], vk_buf, &vk_fields, &vk_hash_buf);
 
@@ -208,7 +210,7 @@ RecursiveCircuitData fetch_recursive_circuit_data(acir_format::acir_format const
 
     vk_hash_value = barretenberg::fr::serialize_from_buffer(vk_hash_buf);
     key_witnesses[vk_fields_size / 32] = vk_hash_value;
-    auto inner_circuit = RecursiveCircuitData{ key_witnesses, proof_witnesses, constraint_system.public_inputs.size() };
+    auto inner_circuit = RecursiveCircuitData{ key_witnesses, proof_witnesses, num_public_inputs };
     return inner_circuit;
 }
 
@@ -246,14 +248,10 @@ std::pair<acir_format::acir_format, std::vector<fr>> create_outer_circuit(
 
         const bool has_nested_proof = uint32_t(key_witnesses[5]);
 
-        std::cout << "contains_recursive_proof: " << has_nested_proof << std::endl;
         const size_t num_inner_public_inputs = inner_circuit.num_public_inputs;
 
         const uint32_t key_hash_start_idx = static_cast<uint32_t>(witness_offset);
         const uint32_t public_input_start_idx = key_hash_start_idx + 1;
-        // TODO test nested proofs
-        // const uint32_t output_aggregation_object_start_idx =
-        //     static_cast<uint32_t>(public_input_start_idx + num_inner_public_inputs);
         const uint32_t output_aggregation_object_start_idx =
             static_cast<uint32_t>(public_input_start_idx + num_inner_public_inputs + (has_nested_proof ? 16 : 0));
         const uint32_t proof_indices_start_idx = output_aggregation_object_start_idx + 16;
@@ -327,20 +325,10 @@ std::pair<acir_format::acir_format, std::vector<fr>> create_outer_circuit(
         .constraints = {},
     };
 
-    // NOTE: This passes, so the circuit is good with a witness but something is broken with the dummy key and dummy
-    // proof This NOTE was fixed by using g1 affine two for the dummy key commitments rather than affine one auto
-    // composer = acir_format::create_circuit_with_witness(constraint_system, witness); auto prover =
-    // composer.create_ultra_with_keccak_prover(); std::cout << "prover gates = " << prover.circuit_size << std::endl;
-    // auto proof = prover.construct_proof();
-    // auto verifier = composer.create_ultra_with_keccak_verifier();
-    // EXPECT_EQ(verifier.verify_proof(proof), true);
-    // std::cout << "done create_circuit_with_witness, composer.contains_recursive_proof: " <<
-    // composer.contains_recursive_proof << std::endl;
-
     return std::make_pair(constraint_system, witness);
 }
 
-// // Working double recursion test
+// Working double recursion test
 TEST(AcirProofs, TestSerializationWithBasicDoubleRecursion)
 {
     std::vector<RecursiveCircuitData> inner_circuits;
@@ -402,10 +390,7 @@ TEST(AcirProofs, TestSerializationWithFullRecursiveComposition)
     auto b_circuit = fetch_recursive_circuit_data(b_cs_and_witness.first, b_cs_and_witness.second);
     layer_2_circuits.push_back(b_circuit);
 
-    // std::vector<RecursiveCircuitData> layer_3_circuits;
     auto c_cs_and_witness = create_outer_circuit(layer_2_circuits);
-    // auto c_circuit = fetch_recursive_circuit_data(c_cs_and_witness.first, c_cs_and_witness.second);
-    // layer_3_circuits.push_back(c_circuit);
 
     std::vector<uint8_t> witness_buf;
     std::vector<uint8_t> constraint_system_buf;

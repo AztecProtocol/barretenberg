@@ -105,12 +105,15 @@ size_t init_verification_key(void* pippenger, uint8_t const* g2x, uint8_t const*
  */
 size_t serialize_proof_into_field_elements(uint8_t const* proof_data_buf,
                                            uint8_t** serialized_proof_data_buf,
-                                           size_t proof_data_length)
+                                           size_t proof_data_length,
+                                           size_t num_inner_public_inputs)
 {
     plonk::proof proof = { std::vector<uint8_t>(proof_data_buf, &proof_data_buf[proof_data_length]) };
 
-    transcript::StandardTranscript transcript(
-        proof.proof_data, acir_format::Composer::create_manifest(1), transcript::HashType::PlookupPedersenBlake3s, 16);
+    transcript::StandardTranscript transcript(proof.proof_data,
+                                              acir_format::Composer::create_manifest(num_inner_public_inputs),
+                                              transcript::HashType::PlookupPedersenBlake3s,
+                                              16);
 
     std::vector<barretenberg::fr> output = transcript.export_transcript_in_recursion_format();
 
