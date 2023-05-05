@@ -23,6 +23,7 @@ template <typename Fr> class Polynomial {
     using const_pointer = pointer;
     using iterator = Fr*;
     using const_iterator = Fr const*;
+    using FF = Fr;
 
     Polynomial(const size_t initial_size);
     Polynomial(const Polynomial& other);

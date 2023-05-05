@@ -63,6 +63,7 @@ add_subdirectory(barretenberg/stdlib)
 add_subdirectory(barretenberg/join_split_example)
 add_subdirectory(barretenberg/dsl)
 add_subdirectory(barretenberg/examples)
+add_subdirectory(barretenberg/solidity_helpers)
 
 if(BENCHMARKS)
     add_subdirectory(barretenberg/benchmark)
@@ -74,37 +75,39 @@ message(STATUS "Compiling all-in-one barretenberg archive")
 add_library(
     barretenberg
     STATIC
+    $<TARGET_OBJECTS:acir_format_objects>
+    $<TARGET_OBJECTS:acir_proofs_objects>
     $<TARGET_OBJECTS:common_objects>
-    $<TARGET_OBJECTS:transcript_objects>
-    $<TARGET_OBJECTS:srs_objects>
-    $<TARGET_OBJECTS:numeric_objects>
-    $<TARGET_OBJECTS:crypto_sha256_objects>
     $<TARGET_OBJECTS:crypto_aes128_objects>
     $<TARGET_OBJECTS:crypto_blake2s_objects>
     $<TARGET_OBJECTS:crypto_blake3s_objects>
-    $<TARGET_OBJECTS:crypto_keccak_objects>
-    $<TARGET_OBJECTS:crypto_schnorr_objects>
+    $<TARGET_OBJECTS:crypto_ecdsa_objects>
     $<TARGET_OBJECTS:crypto_generators_objects>
-    $<TARGET_OBJECTS:crypto_pedersen_hash_objects>
+    $<TARGET_OBJECTS:crypto_keccak_objects>
     $<TARGET_OBJECTS:crypto_pedersen_commitment_objects>
+    $<TARGET_OBJECTS:crypto_pedersen_hash_objects>
+    $<TARGET_OBJECTS:crypto_schnorr_objects>
+    $<TARGET_OBJECTS:crypto_sha256_objects>
     $<TARGET_OBJECTS:ecc_objects>
-    $<TARGET_OBJECTS:polynomials_objects>
-    $<TARGET_OBJECTS:plonk_objects>
-    $<TARGET_OBJECTS:honk_objects>
-    $<TARGET_OBJECTS:proof_system_objects>
-    $<TARGET_OBJECTS:stdlib_primitives_objects>
-    $<TARGET_OBJECTS:stdlib_schnorr_objects>
-    $<TARGET_OBJECTS:stdlib_pedersen_hash_objects>
-    $<TARGET_OBJECTS:stdlib_pedersen_commitment_objects>
-    $<TARGET_OBJECTS:stdlib_blake2s_objects>
-    $<TARGET_OBJECTS:stdlib_blake3s_objects>
-    $<TARGET_OBJECTS:stdlib_sha256_objects>
-    $<TARGET_OBJECTS:stdlib_aes128_objects>
-    $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
-    $<TARGET_OBJECTS:acir_format_objects>
-    $<TARGET_OBJECTS:acir_proofs_objects>
     $<TARGET_OBJECTS:env_objects>
     $<TARGET_OBJECTS:examples_objects>
+    $<TARGET_OBJECTS:honk_objects>
+    $<TARGET_OBJECTS:numeric_objects>
+    $<TARGET_OBJECTS:plonk_objects>
+    $<TARGET_OBJECTS:polynomials_objects>
+    $<TARGET_OBJECTS:proof_system_objects>
+    $<TARGET_OBJECTS:srs_objects>
+    $<TARGET_OBJECTS:stdlib_aes128_objects>
+    $<TARGET_OBJECTS:stdlib_blake2s_objects>
+    $<TARGET_OBJECTS:stdlib_blake3s_objects>
+    $<TARGET_OBJECTS:stdlib_keccak_objects>
+    $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
+    $<TARGET_OBJECTS:stdlib_pedersen_commitment_objects>
+    $<TARGET_OBJECTS:stdlib_pedersen_hash_objects>
+    $<TARGET_OBJECTS:stdlib_primitives_objects>
+    $<TARGET_OBJECTS:stdlib_schnorr_objects>
+    $<TARGET_OBJECTS:stdlib_sha256_objects>
+    $<TARGET_OBJECTS:transcript_objects>
 )
 
 if(WASM)

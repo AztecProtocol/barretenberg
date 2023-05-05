@@ -70,7 +70,6 @@ TEST(ultra_plonk_composer_splitting_tmp, debug_composer_discrepencies)
 
     for (const auto& [key, poly] : prover.key->polynomial_store) {
         if (prover_new.key->polynomial_store.contains(key)) {
-            // info(key);
             EXPECT_EQ(prover.key->polynomial_store.get(key), prover_new.key->polynomial_store.get(key));
         }
     }
@@ -79,7 +78,6 @@ TEST(ultra_plonk_composer_splitting_tmp, debug_composer_discrepencies)
     auto verifier_new = composer_new.create_verifier();
 
     for (const auto& [key, poly] : verifier.key->commitments) {
-        // info(key);
         EXPECT_EQ(verifier.key->commitments[key], verifier_new.key->commitments[key]);
     }
 
@@ -780,10 +778,10 @@ TEST(ultra_plonk_composer_splitting_tmp, non_native_field_multiplication)
     const auto q_indices = get_limb_witness_indices(split_into_limbs(uint256_t(q)));
     const auto r_indices = get_limb_witness_indices(split_into_limbs(uint256_t(r)));
 
-    non_native_field_witnesses inputs{
+    UltraCircuitConstructor::non_native_field_witnesses inputs{
         a_indices, b_indices, q_indices, r_indices, modulus_limbs, fr(uint256_t(modulus)),
     };
-    const auto [lo_1_idx, hi_1_idx] = composer.evaluate_non_native_field_multiplication(inputs);
+    const auto [lo_1_idx, hi_1_idx] = composer.queue_non_native_field_multiplication(inputs);
     composer.range_constrain_two_limbs(lo_1_idx, hi_1_idx, 70, 70);
 
     auto prover = composer.create_prover();

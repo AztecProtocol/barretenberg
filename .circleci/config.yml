@@ -14,6 +14,14 @@
 
 version: 2.1
 
+orbs:
+  slack: circleci/slack@4.12.1
+
+parameters:
+  workflow:
+    type: string
+    default: "system"
+
 # This build step checks out the code from the repository. It has a hardcoded readonly key to allow the checkout.
 # Initially it just fetches the repo metadata for the current commit hash to a depth of 50 commits.
 # We need historical commit hashes to calculate diffs between previous and current commits.
@@ -29,22 +37,17 @@ checkout: &checkout
 
       chmod 0600 .ssh/id_rsa
 
+      # IF YOU'RE CHANGING THIS, YOU ALSO WANT TO CHANGE: build-system/remote_build/remote_build
       # Shallow checkout this commit.
       mkdir -p project
       cd project
       git init
       git remote add origin $CIRCLE_REPOSITORY_URL
+      # Only download metadata when fetching.
       git fetch --depth 50 --filter=blob:none origin $CIRCLE_SHA1
       git checkout FETCH_HEAD
-      git submodule update --init build-system
-
-# Called setup_env to setup a bunch of global variables used throughout the rest of the build process.
-# It takes the required CCI environment variables as inputs, and gives them normalised names for the rest of
-# the build process. This enables easy running of the build system external to CCI, as used for powerful EC2 builds.
-setup_env: &setup_env
-  run:
-    name: "Setup environment"
-    command: ./build-system/scripts/setup_env "$CIRCLE_SHA1" "$CIRCLE_TAG" "$CIRCLE_JOB" "$CIRCLE_REPOSITORY_URL" "$CIRCLE_BRANCH"
+      # Initialize submodules recursively
+      git submodule update --init --recursive
 
 # This build step checks out the code from the benchmark-archive repository. The key is saved in CircleCi environment in base64 format.
 # Initially it just fetches the latest version.
@@ -71,6 +74,22 @@ benchmark_add_keys: &benchmark_add_keys
 
       chmod 0600 .ssh/id_ed25519
       ssh-add .ssh/id_ed25519
+
+# Called setup_env to setup a bunch of global variables used throughout the rest of the build process.
+# It takes the required CCI environment variables as inputs, and gives them normalised names for the rest of
+# the build process. This enables easy running of the build system external to CCI, as used for powerful EC2 builds.
+setup_env: &setup_env
+  run:
+    name: "Setup environment"
+    command: ./build-system/scripts/setup_env "$CIRCLE_SHA1" "$CIRCLE_TAG" "$CIRCLE_JOB" "$CIRCLE_REPOSITORY_URL" "$CIRCLE_BRANCH"
+
+setup_aztec_commit: &setup_aztec_commit
+  run:
+    name: "Setup environment for Aztec Integration Testing"
+    command: |
+      # Load the aztec commit into env for use in integration tests
+      echo "export AZTEC_COMMIT=$(cat cpp/.aztec-packages-commit 2>/dev/null || echo master)" >> "$BASH_ENV"
+      source "$BASH_ENV"
 
 # This step is used to save logs from various barretenberg test to the workspace so that they can be used later to parse benchmark values out of them
 save_logs: &save_logs
@@ -124,6 +143,18 @@ jobs:
           name: "Build"
           command: cond_spot_run_build barretenberg-x86_64-linux-clang-assert 64
 
+  stdlib-tests:
+    docker:
+      - image: aztecprotocol/alpine-build-image
+    resource_class: small
+    steps:
+      - *checkout
+      - *setup_env
+      - run:
+          name: "Test"
+          command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert 1 stdlib-tests
+      - *save_logs
+
   barretenberg-tests:
     docker:
       - image: aztecprotocol/alpine-build-image
@@ -148,7 +179,7 @@ jobs:
           command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert 1 honk_tests
       - *save_logs
 
-  stdlib-primitives-tests:
+  proof-system-tests:
     docker:
       - image: aztecprotocol/alpine-build-image
     resource_class: small
@@ -157,19 +188,7 @@ jobs:
       - *setup_env
       - run:
           name: "Test"
-          command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert 1 stdlib_primitives_tests --gtest_filter=-stdlib_biggroup*
-      - *save_logs
-
-  stdlib-biggroup-tests:
-    docker:
-      - image: aztecprotocol/alpine-build-image
-    resource_class: small
-    steps:
-      - *checkout
-      - *setup_env
-      - run:
-          name: "Test"
-          command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert 1 stdlib_primitives_tests --gtest_filter=stdlib_biggroup*
+          command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert 1 proof_system_tests
       - *save_logs
 
   stdlib-recursion-turbo-tests:
@@ -222,30 +241,93 @@ jobs:
           name: "Test"
           command: store_test_benchmark_logs barretenberg-x86_64-linux-clang-assert
 
+  ###################################
+  # Aztec integration tests
+  circuits-wasm-linux-clang-builder-runner:
+    docker:
+      - image: aztecprotocol/alpine-build-image
+    resource_class: small
+    steps:
+      - *checkout
+      - *setup_env
+      - run:
+          name: "Build"
+          command: cond_spot_run_build barretenberg-circuits-wasm-linux-clang-builder-runner 64
+
+  circuits-x86_64-linux-clang-builder-runner:
+    docker:
+      - image: aztecprotocol/alpine-build-image
+    resource_class: small
+    steps:
+      - *checkout
+      - *setup_env
+      - run:
+          name: "Build"
+          command: cond_spot_run_build barretenberg-circuits-x86_64-linux-clang-builder-runner 64
+
+  circuits-wasm-tests:
+    docker:
+      - image: aztecprotocol/alpine-build-image
+    resource_class: small
+    steps:
+      - *checkout
+      - *setup_env
+      - *setup_aztec_commit
+      - run:
+          name: "Build"
+          command: cond_spot_run_test_script ./scripts/run_aztec_circuits_tests barretenberg-circuits-wasm-linux-clang-builder-runner "$AZTEC_COMMIT" 1 wasm scripts/a3-tests -*.skip*:*.circuit*
+
+  circuits-x86_64-tests:
+    docker:
+      - image: aztecprotocol/alpine-build-image
+    resource_class: small
+    steps:
+      - *checkout
+      - *setup_env
+      - *setup_aztec_commit
+      - run:
+          name: "Build"
+          command: cond_spot_run_test_script ./scripts/run_aztec_circuits_tests barretenberg-circuits-x86_64-linux-clang-builder-runner "$AZTEC_COMMIT" 1 x86_64 scripts/a3-tests -*.skip*
+  # End Aztec integration tests
+  ###################################
+
 # Repeatable config for defining the workflow below.
+tag_regex: &tag_regex /v[0-9]+(\.[0-9]+)*(-[a-zA-Z-]+\.[0-9]+)?/
+defaults: &defaults
+  filters:
+    tags:
+      only: *tag_regex
+  context:
+    - slack
+  post-steps:
+    - slack/notify:
+        channel: $SLACK_BARRETENBERG_CHANNEL
+        event: fail
+        branch_pattern: "master"
+
 bb_test: &bb_test
   requires:
     - x86_64-linux-clang-assert
+  <<: *defaults
 
 workflows:
   system:
     jobs:
-      - x86_64-linux-gcc
-      - x86_64-linux-clang
-      - x86_64-linux-clang-assert
-      - wasm-linux-clang
+      - x86_64-linux-gcc: *defaults
+      - x86_64-linux-clang: *defaults
+      - x86_64-linux-clang-assert: *defaults
+      - wasm-linux-clang: *defaults
+      - proof-system-tests: *bb_test
       - honk-tests: *bb_test
       - barretenberg-tests: *bb_test
-      - stdlib-primitives-tests: *bb_test
-      - stdlib-biggroup-tests: *bb_test
+      - stdlib-tests: *bb_test
       - stdlib-recursion-turbo-tests: *bb_test
       - stdlib-recursion-ultra-tests: *bb_test
       - join-split-tests: *bb_test
       - benchmark-aggregator:
           requires:
             - barretenberg-tests
-            - stdlib-primitives-tests
-            - stdlib-biggroup-tests
+            - stdlib-tests
             - stdlib-recursion-turbo-tests
             - stdlib-recursion-ultra-tests
             - join-split-tests
@@ -253,3 +335,14 @@ workflows:
             branches:
               only:
                 - master
+          <<: *defaults
+      - circuits-wasm-linux-clang-builder-runner: *defaults
+      - circuits-x86_64-linux-clang-builder-runner: *defaults
+      - circuits-wasm-tests:
+          requires:
+            - circuits-wasm-linux-clang-builder-runner
+          <<: *defaults
+      - circuits-x86_64-tests:
+          requires:
+            - circuits-x86_64-linux-clang-builder-runner
+          <<: *defaults

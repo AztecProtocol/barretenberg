@@ -47,6 +47,33 @@ constexpr affine_element<Fq, Fr, T> affine_element<Fq, Fr, T>::from_compressed(c
 }
 
 template <class Fq, class Fr, class T>
+template <typename BaseField, typename CompileTimeEnabled>
+constexpr std::array<affine_element<Fq, Fr, T>, 2> affine_element<Fq, Fr, T>::from_compressed_unsafe(
+    const uint256_t& compressed) noexcept
+{
+    auto get_y_coordinate = [](const uint256_t& x_coordinate) {
+        Fq x = Fq(x_coordinate);
+        Fq y2 = (x.sqr() * x + T::b);
+        if constexpr (T::has_a) {
+            y2 += (x * T::a);
+        }
+        return y2.sqrt();
+    };
+
+    uint256_t x_1 = compressed;
+    uint256_t x_2 = compressed + Fr::modulus;
+    auto [is_quadratic_remainder_1, y_1] = get_y_coordinate(x_1);
+    auto [is_quadratic_remainder_2, y_2] = get_y_coordinate(x_2);
+
+    auto output_1 = is_quadratic_remainder_1 ? affine_element<Fq, Fr, T>(Fq(x_1), y_1)
+                                             : affine_element<Fq, Fr, T>(Fq::zero(), Fq::zero());
+    auto output_2 = is_quadratic_remainder_2 ? affine_element<Fq, Fr, T>(Fq(x_2), y_2)
+                                             : affine_element<Fq, Fr, T>(Fq::zero(), Fq::zero());
+
+    return { output_1, output_2 };
+}
+
+template <class Fq, class Fr, class T>
 constexpr affine_element<Fq, Fr, T> affine_element<Fq, Fr, T>::operator+(
     const affine_element<Fq, Fr, T>& other) const noexcept
 {
@@ -202,5 +229,38 @@ affine_element<Fq, Fr, T> affine_element<Fq, Fr, T>::hash_to_curve(const uint64_
 
     return affine_element<Fq, Fr, T>(x_out, y_out_);
 }
+
+template <typename Fq, typename Fr, typename T>
+affine_element<Fq, Fr, T> affine_element<Fq, Fr, T>::random_element(numeric::random::Engine* engine) noexcept
+{
+    if (engine == nullptr) {
+        engine = &numeric::random::get_engine();
+    }
+
+    bool found_one = false;
+    Fq yy;
+    Fq x;
+    Fq y;
+    while (!found_one) {
+        // Sample a random x-coordinate and check if it satisfies curve equation.
+        x = Fq::random_element(engine);
+        yy = x.sqr() * x + T::b;
+        if constexpr (T::has_a) {
+            yy += (x * T::a);
+        }
+        auto [found_root, y1] = yy.sqrt();
+        y = y1;
+
+        // Negate the y-coordinate based on a randomly sampled bit.
+        bool random_bit = (engine->get_random_uint8() & 1);
+        if (random_bit) {
+            y = -y;
+        }
+
+        found_one = found_root;
+    }
+    return affine_element<Fq, Fr, T>(x, y);
+}
+
 } // namespace group_elements
 } // namespace barretenberg
