@@ -62,7 +62,6 @@ void generate_sha256_proof_bench(State& state) noexcept
         }
         external_composers[idx] = Composer();
         generate_test_sha256_plonk_circuit(external_composers[idx], num_iterations);
-        // info("Gate number: ", external_composers[idx].get_num_gates());
         external_provers[idx] = external_composers[idx].create_prover();
         external_proofs[idx] = external_provers[idx].construct_proof();
         // info("Proof Size for SHA256 hash count ", num_iterations, ": ", external_proofs[idx].proof_data.size());
@@ -138,7 +137,6 @@ void generate_blake3s_proof_bench(State& state) noexcept
         }
         external_composers[idx] = Composer();
         generate_test_blake3s_plonk_circuit(external_composers[idx], num_iterations);
-        // info("Gate number: ", external_composers[idx].get_num_gates());
         external_provers[idx] = external_composers[idx].create_prover();
         external_proofs[idx] = external_provers[idx].construct_proof();
         // Proof size with no public inputs is always 2144
