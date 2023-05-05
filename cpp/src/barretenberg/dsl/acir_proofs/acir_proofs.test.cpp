@@ -244,16 +244,18 @@ std::pair<acir_format::acir_format, std::vector<fr>> create_outer_circuit(
         const std::vector<barretenberg::fr> proof_witnesses = inner_circuit.proof_witnesses;
         const std::vector<barretenberg::fr> key_witnesses = inner_circuit.key_witnesses;
 
+        const bool has_nested_proof = uint32_t(key_witnesses[5]);
+
+        std::cout << "contains_recursive_proof: " << has_nested_proof << std::endl;
         const size_t num_inner_public_inputs = inner_circuit.num_public_inputs;
 
         const uint32_t key_hash_start_idx = static_cast<uint32_t>(witness_offset);
         const uint32_t public_input_start_idx = key_hash_start_idx + 1;
         // TODO test nested proofs
-
-        const uint32_t output_aggregation_object_start_idx =
-            static_cast<uint32_t>(public_input_start_idx + num_inner_public_inputs);
         // const uint32_t output_aggregation_object_start_idx =
-        //     static_cast<uint32_t>(public_input_start_idx + num_inner_public_inputs + (has_nested_proof ? 16 : 0));
+        //     static_cast<uint32_t>(public_input_start_idx + num_inner_public_inputs);
+        const uint32_t output_aggregation_object_start_idx =
+            static_cast<uint32_t>(public_input_start_idx + num_inner_public_inputs + (has_nested_proof ? 16 : 0));
         const uint32_t proof_indices_start_idx = output_aggregation_object_start_idx + 16;
         const uint32_t key_indices_start_idx = static_cast<uint32_t>(proof_indices_start_idx + proof_witnesses.size());
 
@@ -268,12 +270,11 @@ std::pair<acir_format::acir_format, std::vector<fr>> create_outer_circuit(
         for (size_t i = 0; i < 16; ++i) {
             output_aggregation_object[i] = (static_cast<uint32_t>(i + output_aggregation_object_start_idx));
         }
-        // if (has_nested_proof) {
-        //     std::cout << "has_nested_proof: " << has_nested_proof << std::endl;
-        //     for (size_t i = 0; i < 16; ++i) {
-        //         nested_aggregation_object[i] = inner_composer.recursive_proof_public_input_indices[i];
-        //     }
-        // }
+        if (has_nested_proof) {
+            for (size_t i = 6; i < 22; ++i) {
+                nested_aggregation_object[i] = uint32_t(key_witnesses[i]);
+            }
+        }
         for (size_t i = 0; i < proof_witnesses.size(); ++i) {
             proof_indices.emplace_back(static_cast<uint32_t>(i + proof_indices_start_idx));
         }

@@ -169,6 +169,26 @@ size_t serialize_verification_key_into_field_elements(uint8_t const* g2x,
     return output_size_bytes;
 }
 
+// size_t get_recursive_proof_public_input_indices(uint8_t const* g2x,
+//                                                 uint8_t const* vk_buf,
+//                                                 uint8_t** nested_aggregation_obj_buf)
+// {
+//     auto crs = std::make_shared<VerifierMemReferenceString>(g2x);
+//     plonk::verification_key_data vk_data;
+//     read(vk_buf, vk_data);
+//     auto vkey = std::make_shared<proof_system::plonk::verification_key>(std::move(vk_data), crs);
+
+//     std::vector<uint32_t> nested_aggregation_object;
+//     for (size_t i = 0; i < 16; ++i) {
+//         if (vkey->recursive_proof_public_input_indices.size() > i) {
+//             nested_aggregation_object.emplace_back(vkey->recursive_proof_public_input_indices[i]);
+//         } else {
+//             nested_aggregation_object.emplace_back(0);
+//             ASSERT(vkey->contains_recursive_proof == false);
+//         }
+//     }
+// }
+
 size_t new_proof(void* pippenger,
                  uint8_t const* g2x,
                  uint8_t const* pk_buf,
