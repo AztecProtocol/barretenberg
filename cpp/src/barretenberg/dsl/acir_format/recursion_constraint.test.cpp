@@ -78,7 +78,7 @@ acir_format::Composer create_inner_circuit()
 
     acir_format::acir_format constraint_system{
         .varnum = 7,
-        .public_inputs = { 2 },
+        .public_inputs = { 2, 3 },
         .fixed_base_scalar_mul_constraints = {},
         .logic_constraints = { logic_constraint },
         .range_constraints = { range_a, range_b },
