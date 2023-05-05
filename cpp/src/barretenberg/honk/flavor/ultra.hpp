@@ -7,6 +7,8 @@
 #include <vector>
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/barycentric_data.hpp"
+#include "barretenberg/honk/pcs/ipa/ipa.hpp"
+#include "barretenberg/honk/pcs/kzg/kzg.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
 #include "barretenberg/honk/transcript/transcript.hpp"
@@ -35,12 +37,13 @@ class Ultra {
     using GroupElement = G1::element;
     using Commitment = G1::affine_element;
     using CommitmentHandle = G1::affine_element;
-    using PCSParams = pcs::kzg::Params;
+    using PCSParams = pcs::ipa::Params;
+    using PCS = pcs::ipa::IPA<PCSParams>;
 
     static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
     // The number of multivariate polynomials on which a sumcheck prover sumcheck operates (including shifts). We often
     // need containers of this size to hold related data, so we choose a name more agnostic than `NUM_POLYNOMIALS`.
-    // Note: this number does not include the individual sorted list polynomials.
+    // Note: this number does not include the individual P list polynomials.
     static constexpr size_t NUM_ALL_ENTITIES = 43;
     // The number of polynomials precomputed to describe a circuit and to aid a prover in constructing a satisfying
     // assignment of witnesses. We again choose a neutral name.

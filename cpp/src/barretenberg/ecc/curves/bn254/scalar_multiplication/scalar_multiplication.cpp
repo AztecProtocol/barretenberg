@@ -352,9 +352,11 @@ void add_affine_points_with_edge_cases(g1::affine_element* points, const size_t 
 
     for (size_t i = 0; i < num_points; i += 2) {
         if (points[i].is_point_at_infinity() || points[i + 1].is_point_at_infinity()) {
+            info("POINT AT INFINIT? at ", i);
             continue;
         }
         if (points[i].x == points[i + 1].x) {
+            info("EQUAL POINTS ", i);
             if (points[i].y == points[i + 1].y) {
                 // double
                 scratch_space[i >> 1] = points[i].x + points[i].x; // 2x
@@ -916,14 +918,14 @@ g1::element pippenger(fr* scalars,
  * We use affine-addition formula in this method, which paradoxically is ~45% faster than the mixed addition formulae.
  * See `scalar_multiplication.cpp` for a more detailed description.
  *
- * It's...unsafe, because we assume that the incomplete addition formula exceptions are not triggered.
+ * It's...unsafe, because we assume that the incomplete addition formula exceptions are not triggered i.e. that all the
+ * points provided as arguments to the msm are distinct.
  * We don't bother to check for this to avoid conditional branches in a critical section of our code.
- * This is fine for situations where your bases are linearly independent (i.e. KZG10 polynomial commitments),
- * because triggering the incomplete addition exceptions is about as hard as solving the disrete log problem.
- *
- * This is ok for the prover, but GIANT RED CLAXON WARNINGS FOR THE VERIFIER
- * Don't use this in a verification algorithm! That would be a really bad idea.
- * Unless you're a malicious adversary, then it would be a great idea!
+ * This is fine for situations where your bases are linearly independent (i.e. KZG10 polynomial commitments where
+ * there should be no equal points in the SRS), because triggering the incomplete addition exceptions is about as hard
+ *as solving the disrete log problem. This is ok for the prover, but GIANT RED CLAXON WARNINGS FOR THE VERIFIER Don't
+ *use this in a verification algorithm! That would be a really bad idea. Unless you're a malicious adversary, then it
+ *would be a great idea!
  *
  **/
 g1::element pippenger_unsafe(fr* scalars,

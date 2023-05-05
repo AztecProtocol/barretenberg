@@ -217,13 +217,16 @@ template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_shplonk_p
 }
 
 /**
- * - Compute KZG quotient commitment [W]_1.
+ * - Compute final PCS opening proof:
+ * - for KZG this is the quotient commitment [W]_1.
+ * - for IPA
  *
  * */
-template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_kzg_round()
+template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_final_pcs_round()
 {
-    quotient_W = KZG::compute_opening_proof_polynomial(shplonk_output.opening_pair, shplonk_output.witness);
-    queue.add_commitment(quotient_W, "KZG:W");
+    PCS::compute_opening_proof(pcs_commitment_key, shplonk_output.opening_pair, shplonk_output.witness, transcript);
+    // TODO(Mara):
+    // queue.add_commitment(quotient_W, "KZG:W");
 }
 
 template <StandardFlavor Flavor> plonk::proof& StandardProver_<Flavor>::export_proof()
@@ -275,9 +278,9 @@ template <StandardFlavor Flavor> plonk::proof& StandardProver_<Flavor>::construc
     execute_shplonk_partial_evaluation_round();
 
     // Fiat-Shamir: z
-    // Compute KZG quotient commitment
-    execute_kzg_round();
-    queue.process_queue();
+    // Compute final PCS opening proof (KZG quotien commitment or IPA opening proof)
+    execute_final_pcs_round();
+    // queue.process_queue();
 
     return export_proof();
 }
