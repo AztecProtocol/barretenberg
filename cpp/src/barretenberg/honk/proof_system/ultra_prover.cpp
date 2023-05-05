@@ -147,7 +147,6 @@ template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_sorted_list_acc
     prover_library::add_plookup_memory_records_to_wire_4<Flavor>(key, eta);
     queue.add_commitment(key->w_4, commitment_labels.w_4);
 
-    // TODO(luke): Addition of 4th has to wait until here. Move first three to constructor?
     prover_polynomials.sorted_accum_shift = key->sorted_accum.shifted();
     prover_polynomials.sorted_accum = key->sorted_accum;
     prover_polynomials.w_4 = key->w_4;
@@ -199,55 +198,6 @@ template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_relation_check_
         }
         return true;
     };
-
-    ASSERT(compare(prover_polynomials.q_c, key->q_c));
-    ASSERT(compare(prover_polynomials.q_l, key->q_l));
-    ASSERT(compare(prover_polynomials.q_r, key->q_r));
-    ASSERT(compare(prover_polynomials.q_o, key->q_o));
-    ASSERT(compare(prover_polynomials.q_4, key->q_4));
-    ASSERT(compare(prover_polynomials.q_m, key->q_m));
-    ASSERT(compare(prover_polynomials.q_arith, key->q_arith));
-    ASSERT(compare(prover_polynomials.q_sort, key->q_sort));
-    ASSERT(compare(prover_polynomials.q_elliptic, key->q_elliptic));
-    ASSERT(compare(prover_polynomials.q_aux, key->q_aux));
-    ASSERT(compare(prover_polynomials.q_lookup, key->q_lookup));
-
-    ASSERT(compare(prover_polynomials.sigma_1, key->sigma_1));
-    ASSERT(compare(prover_polynomials.sigma_2, key->sigma_2));
-    ASSERT(compare(prover_polynomials.sigma_3, key->sigma_3));
-    ASSERT(compare(prover_polynomials.sigma_4, key->sigma_4));
-    ASSERT(compare(prover_polynomials.id_1, key->id_1));
-    ASSERT(compare(prover_polynomials.id_2, key->id_2));
-    ASSERT(compare(prover_polynomials.id_3, key->id_3));
-    ASSERT(compare(prover_polynomials.id_4, key->id_4));
-
-    ASSERT(compare(prover_polynomials.table_1, key->table_1));
-    ASSERT(compare(prover_polynomials.table_2, key->table_2));
-    ASSERT(compare(prover_polynomials.table_3, key->table_3));
-    ASSERT(compare(prover_polynomials.table_4, key->table_4));
-    ASSERT(compare(prover_polynomials.lagrange_first, key->lagrange_first));
-    ASSERT(compare(prover_polynomials.lagrange_last, key->lagrange_last));
-
-    ASSERT(compare(prover_polynomials.w_l, key->w_l));
-    ASSERT(compare(prover_polynomials.w_r, key->w_r));
-    ASSERT(compare(prover_polynomials.w_o, key->w_o));
-    ASSERT(compare(prover_polynomials.w_4, key->w_4));
-
-    ASSERT(compare(prover_polynomials.sorted_accum, key->sorted_accum));
-    ASSERT(compare(prover_polynomials.z_perm, key->z_perm));
-    ASSERT(compare(prover_polynomials.z_lookup, key->z_lookup));
-
-    ASSERT(compare(prover_polynomials.table_1_shift, key->table_1.shifted()));
-    ASSERT(compare(prover_polynomials.table_2_shift, key->table_2.shifted()));
-    ASSERT(compare(prover_polynomials.table_3_shift, key->table_3.shifted()));
-    ASSERT(compare(prover_polynomials.table_4_shift, key->table_4.shifted()));
-    ASSERT(compare(prover_polynomials.w_l_shift, key->w_l.shifted()));
-    ASSERT(compare(prover_polynomials.w_r_shift, key->w_r.shifted()));
-    ASSERT(compare(prover_polynomials.w_o_shift, key->w_o.shifted()));
-    ASSERT(compare(prover_polynomials.w_4_shift, key->w_4.shifted()));
-    ASSERT(compare(prover_polynomials.sorted_accum_shift, key->sorted_accum.shifted()));
-    ASSERT(compare(prover_polynomials.z_perm_shift, key->z_perm.shifted()));
-    ASSERT(compare(prover_polynomials.z_lookup_shift, key->z_lookup.shifted()));
 
     using Sumcheck = sumcheck::Sumcheck<Flavor,
                                         ProverTranscript<FF>,

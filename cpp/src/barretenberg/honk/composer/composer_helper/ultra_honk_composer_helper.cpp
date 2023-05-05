@@ -161,7 +161,6 @@ UltraVerifier UltraHonkComposerHelper::create_verifier(const CircuitConstructor&
     // TODO(Cody): This should be more generic
     auto kate_verification_key = std::make_unique<pcs::kzg::VerificationKey>("../srs_db/ignition");
 
-    // output_state.commitment_scheme = std::move(kate_commitment_scheme);
     output_state.kate_verification_key = std::move(kate_verification_key);
 
     return output_state;
@@ -307,7 +306,6 @@ std::shared_ptr<UltraHonkComposerHelper::VerificationKey> UltraHonkComposerHelpe
         return verification_key;
     }
 
-    // TODO(luke): This seems like poor form, is it used?
     if (!proving_key) {
         compute_proving_key(circuit_constructor);
     }
@@ -347,8 +345,6 @@ std::shared_ptr<UltraHonkComposerHelper::VerificationKey> UltraHonkComposerHelpe
     verification_key->lagrange_first = commitment_key.commit(proving_key->lagrange_first);
     verification_key->lagrange_last = commitment_key.commit(proving_key->lagrange_last);
 
-    // verification_key->composer_type = type; // Invariably plookup for this class.
-
     // // See `add_recusrive_proof()` for how this recursive data is assigned.
     // verification_key->recursive_proof_public_input_indices =
     //     std::vector<uint32_t>(recursive_proof_public_input_indices.begin(),
@@ -358,21 +354,5 @@ std::shared_ptr<UltraHonkComposerHelper::VerificationKey> UltraHonkComposerHelpe
 
     return verification_key;
 }
-
-// void UltraHonkComposerHelper::add_table_column_selector_poly_to_proving_key(
-//     polynomial& selector_poly_lagrange_form, const std::string& tag)
-// {
-//     polynomial selector_poly_lagrange_form_copy(selector_poly_lagrange_form, proving_key->small_domain.size);
-
-//     selector_poly_lagrange_form.ifft(proving_key->small_domain);
-//     auto& selector_poly_coeff_form = selector_poly_lagrange_form;
-
-//     polynomial selector_poly_coset_form(selector_poly_coeff_form, proving_key->circuit_size * 4);
-//     selector_poly_coset_form.coset_fft(proving_key->large_domain);
-
-//     proving_key->polynomial_store.put(tag, std::move(selector_poly_coeff_form));
-//     proving_key->polynomial_store.put(tag + "_lagrange", std::move(selector_poly_lagrange_form_copy));
-//     proving_key->polynomial_store.put(tag + "_fft", std::move(selector_poly_coset_form));
-// }
 
 } // namespace proof_system::honk
