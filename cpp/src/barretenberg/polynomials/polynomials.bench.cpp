@@ -207,7 +207,7 @@ void new_plonk_scalar_multiplications_bench(State& state) noexcept
     printf("pippenger clock cycles = %" PRIu64 "\n", (avg_cycles / 9));
     printf("pippenger clock cycles per scalar mul = %" PRIu64 "\n", (avg_cycles / (9 * MAX_GATES)));
 }
-BENCHMARK(new_plonk_scalar_multiplications_bench);
+BENCHMARK(new_plonk_scalar_multiplications_bench)->Unit(benchmark::kMillisecond);
 
 void coset_fft_bench_parallel(State& state) noexcept
 {
@@ -216,7 +216,7 @@ void coset_fft_bench_parallel(State& state) noexcept
         barretenberg::polynomial_arithmetic::coset_fft(globals.data, evaluation_domains[idx]);
     }
 }
-BENCHMARK(coset_fft_bench_parallel)->RangeMultiplier(2)->Range(START * 4, MAX_GATES * 4);
+BENCHMARK(coset_fft_bench_parallel)->RangeMultiplier(2)->Range(START * 4, MAX_GATES * 4)->Unit(benchmark::kMicrosecond);
 
 void alternate_coset_fft_bench_parallel(State& state) noexcept
 {
@@ -226,7 +226,10 @@ void alternate_coset_fft_bench_parallel(State& state) noexcept
             globals.data, evaluation_domains[idx - 2], evaluation_domains[idx - 2], 4);
     }
 }
-BENCHMARK(alternate_coset_fft_bench_parallel)->RangeMultiplier(2)->Range(START * 4, MAX_GATES * 4);
+BENCHMARK(alternate_coset_fft_bench_parallel)
+    ->RangeMultiplier(2)
+    ->Range(START * 4, MAX_GATES * 4)
+    ->Unit(benchmark::kMicrosecond);
 
 void fft_bench_parallel(State& state) noexcept
 {
@@ -235,7 +238,7 @@ void fft_bench_parallel(State& state) noexcept
         barretenberg::polynomial_arithmetic::fft(globals.data, evaluation_domains[idx]);
     }
 }
-BENCHMARK(fft_bench_parallel)->RangeMultiplier(2)->Range(START * 4, MAX_GATES * 4);
+BENCHMARK(fft_bench_parallel)->RangeMultiplier(2)->Range(START * 4, MAX_GATES * 4)->Unit(benchmark::kMicrosecond);
 
 void fft_bench_serial(State& state) noexcept
 {
@@ -245,7 +248,7 @@ void fft_bench_serial(State& state) noexcept
             { globals.data }, evaluation_domains[idx].thread_size, evaluation_domains[idx].get_round_roots());
     }
 }
-BENCHMARK(fft_bench_serial)->RangeMultiplier(2)->Range(START * 4, MAX_GATES * 4);
+BENCHMARK(fft_bench_serial)->RangeMultiplier(2)->Range(START * 4, MAX_GATES * 4)->Unit(benchmark::kMicrosecond);
 
 void pairing_bench(State& state) noexcept
 {
