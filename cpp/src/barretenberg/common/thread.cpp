@@ -1,5 +1,101 @@
 #include "thread.hpp"
-// #include "log.hpp"
+#include "log.hpp"
+#include <atomic>
+#include <condition_variable>
+#include <functional>
+#include <mutex>
+#include <queue>
+#include <thread>
+#include <vector>
+
+class ThreadPool {
+  public:
+    ThreadPool(size_t num_threads);
+    ~ThreadPool();
+
+    void enqueue(const std::function<void()>& task);
+    void wait();
+
+  private:
+    std::vector<std::thread> workers;
+    std::queue<std::function<void()>> tasks;
+    std::mutex tasks_mutex;
+    std::condition_variable condition;
+    std::condition_variable finished_condition;
+    std::atomic<size_t> tasks_running;
+    bool stop;
+
+    void worker_loop(size_t thread_index);
+};
+
+ThreadPool::ThreadPool(size_t num_threads)
+    : stop(false)
+{
+    workers.reserve(num_threads);
+    for (size_t i = 0; i < num_threads; ++i) {
+        workers.emplace_back(&ThreadPool::worker_loop, this, i);
+    }
+}
+
+ThreadPool::~ThreadPool()
+{
+    {
+        std::unique_lock<std::mutex> lock(tasks_mutex);
+        stop = true;
+    }
+    condition.notify_all();
+    for (auto& worker : workers) {
+        worker.join();
+    }
+}
+
+void ThreadPool::enqueue(const std::function<void()>& task)
+{
+    {
+        std::unique_lock<std::mutex> lock(tasks_mutex);
+        tasks.push(task);
+    }
+    condition.notify_one();
+}
+
+void ThreadPool::wait()
+{
+    std::unique_lock<std::mutex> lock(tasks_mutex);
+    finished_condition.wait(lock, [this] { return tasks.empty() && tasks_running == 0; });
+}
+
+void ThreadPool::worker_loop(size_t worker_num)
+{
+    info("created worker ", worker_num);
+    while (true) {
+        std::function<void()> task;
+        {
+            std::unique_lock<std::mutex> lock(tasks_mutex);
+            condition.wait(lock, [this] { return !tasks.empty() || stop; });
+
+            if (tasks.empty() && stop) {
+                break;
+            }
+
+            task = tasks.front();
+            tasks.pop();
+            tasks_running++;
+        }
+        // info("worker ", worker_num, " processing a task!");
+        task();
+        // info("task done");
+        {
+            std::unique_lock<std::mutex> lock(tasks_mutex);
+            tasks_running--;
+            if (tasks.empty() && tasks_running == 0) {
+                // info("notifying main thread");
+                finished_condition.notify_all();
+            }
+        }
+        // info("worker ", worker_num, " done!");
+    }
+    info("worker exit ", worker_num);
+}
 
 void parallel_for(size_t num_iterations, const std::function<void(size_t)>& func)
 {
@@ -8,137 +104,16 @@ void parallel_for(size_t num_iterations, const std::function<void(size_t)>& func
         func(i);
     }
 #else
-    std::atomic<size_t> current_iteration(0);
+    static ThreadPool pool(get_num_cpus());
 
-    auto worker = [&](size_t) {
-        // info("entered worker: ", thread_index);
-        while (true) {
-            size_t index = current_iteration.fetch_add(1, std::memory_order_seq_cst);
-
-            if (index >= num_iterations) {
-                break;
-            }
-
-            func(index);
-        }
-        // info("exited worker: ", thread_index);
-    };
-
-    auto num_threads = std::min(num_iterations, get_num_cpus());
-    if (num_threads == 1) {
-        // info("Executing on main thread as only 1 cpu or iteration. iterations: ", num_iterations);
-        worker(0);
-        return;
+    // info("wait for pool enter");
+    pool.wait();
+    for (size_t i = 0; i < num_iterations; ++i) {
+        // info("enqueing iteration ", i);
+        pool.enqueue([=]() { func(i); });
     }
-    // info("Starting ", num_threads, " threads to handle ", num_iterations, " iterations.");
-
-    std::vector<std::thread> threads;
-    threads.reserve(num_threads);
-
-    for (size_t i = 0; i < num_threads; ++i) {
-        threads.emplace_back(worker, i);
-    }
-
-    for (auto& thread : threads) {
-        thread.join();
-    }
-    // info("joined!\n\n");
+    // info("wait for pool exit");
+    pool.wait();
+    // info("pool finished work");
 #endif
 }
-
-/**
- * Pure C pthreads implementation below. Worth keeping around for debugging until wasi pthreads is fully stable.
- * It can be slightly easier to debug the code when not using C++ lambdas etc. Also, it just removes the STL
- * layer from any question as to why something might not be as expected.
- */
-
-// #include "thread.hpp"
-// #include "log.hpp"
-// #include <pthread.h>
-// #include <atomic>
-// #include <functional>
-// #include <vector>
-
-// struct Counter {
-//     size_t value;
-//     pthread_mutex_t mutex;
-
-//     Counter()
-//         : value(0)
-//     {
-//         pthread_mutex_init(&mutex, nullptr);
-//     }
-
-//     size_t fetchAdd(size_t n)
-//     {
-//         pthread_mutex_lock(&mutex);
-//         size_t currentValue = value;
-//         value += n;
-//         pthread_mutex_unlock(&mutex);
-//         return currentValue;
-//     }
-// };
-
-// struct WorkerArgs {
-//     Counter* current_iteration;
-//     size_t num_iterations;
-//     const std::function<void(size_t)>* func;
-// };
-
-// void* worker(void* args)
-// {
-//     auto* worker_args = static_cast<WorkerArgs*>(args);
-//     Counter& current_iteration = *worker_args->current_iteration;
-//     size_t num_iterations = worker_args->num_iterations;
-//     const std::function<void(size_t)>& func = *worker_args->func;
-//     // info("entered worker");
-
-//     while (true) {
-//         size_t index = current_iteration.fetchAdd(1);
-
-//         if (index >= num_iterations) {
-//             break;
-//         }
-
-//         func(index);
-//     }
-
-//     return nullptr;
-// }
-
-// void parallel_for(size_t num_iterations, const std::function<void(size_t)>& func)
-// {
-// #ifdef NO_MULTITHREADING
-//     for (size_t i = 0; i < num_iterations; ++i) {
-//         func(i);
-//     }
-// #else
-//     Counter current_iteration;
-
-//     auto num_threads = std::min(num_iterations, get_num_cpus());
-
-//     if (num_threads == 1) {
-//         // info("Executing on main thread as only 1 cpu or iteration. iterations: ", num_iterations);
-//         WorkerArgs args{ &current_iteration, num_iterations, &func };
-//         worker(&args);
-//         return;
-//     }
-//     // info("Starting ", num_threads, " threads to handle ", num_iterations, " iterations.");
-
-//     std::vector<pthread_t> threads;
-//     threads.reserve(num_threads);
-
-//     WorkerArgs args{ &current_iteration, num_iterations, &func };
-//     for (size_t i = 0; i < num_threads; ++i) {
-//         pthread_t thread;
-//         pthread_create(&thread, nullptr, worker, &args);
-//         threads.emplace_back(thread);
-//     }
-
-//     // info("joining...");
-//     for (pthread_t& thread : threads) {
-//         pthread_join(thread, nullptr);
-//     }
-//     // info("joined!\n\n");
-// #endif
-// }

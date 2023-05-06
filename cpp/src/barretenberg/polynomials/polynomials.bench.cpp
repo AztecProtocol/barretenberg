@@ -136,27 +136,28 @@ void pippenger_bench(State& state) noexcept
 }
 BENCHMARK(pippenger_bench)->RangeMultiplier(2)->Range(START, MAX_GATES)->Unit(benchmark::kMillisecond);
 
-void unsafe_pippenger_bench(State& state) noexcept
-{
-    uint64_t count = 0;
-    const size_t num_points = static_cast<size_t>(state.range(0));
-    uint64_t i = 0;
-    for (auto _ : state) {
-        state.PauseTiming();
-        scalar_multiplication::pippenger_runtime_state run_state(num_points);
-        state.ResumeTiming();
+// Crashes (already on master) :(
+// void unsafe_pippenger_bench(State& state) noexcept
+// {
+//     // uint64_t count = 0;
+//     const size_t num_points = static_cast<size_t>(state.range(0));
+//     // uint64_t i = 0;
+//     for (auto _ : state) {
+//         state.PauseTiming();
+//         scalar_multiplication::pippenger_runtime_state run_state(num_points);
+//         state.ResumeTiming();
 
-        uint64_t before = rdtsc();
-        scalar_multiplication::pippenger_unsafe(&globals.scalars[0], &globals.monomials[0], num_points, run_state);
-        uint64_t after = rdtsc();
-        count += (after - before);
-        ++i;
-    }
-    uint64_t avg_cycles = count / i;
-    printf("unsafe pippenger. %zu points. clock cycles = %" PRIu64 "\n", (num_points), (avg_cycles));
-    printf("unsafe pippenger clock cycles per mul = %" PRIu64 "\n", (avg_cycles / (MAX_GATES)));
-}
-BENCHMARK(unsafe_pippenger_bench)->RangeMultiplier(2)->Range(1 << 20, 1 << 20);
+//         // uint64_t before = rdtsc();
+//         scalar_multiplication::pippenger_unsafe(&globals.scalars[0], &globals.monomials[0], num_points, run_state);
+//         // uint64_t after = rdtsc();
+//         // count += (after - before);
+//         // ++i;
+//     }
+//     // uint64_t avg_cycles = count / i;
+//     // printf("unsafe pippenger. %zu points. clock cycles = %" PRIu64 "\n", (num_points), (avg_cycles));
+//     // printf("unsafe pippenger clock cycles per mul = %" PRIu64 "\n", (avg_cycles / (MAX_GATES)));
+// }
+// BENCHMARK(unsafe_pippenger_bench)->RangeMultiplier(2)->Range(1 << 20, 1 << 20);
 
 void new_plonk_scalar_multiplications_bench(State& state) noexcept
 {
