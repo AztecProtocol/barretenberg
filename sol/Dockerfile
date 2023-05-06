@@ -4,6 +4,7 @@ RUN apk update \
     && apk add --no-cache \
         build-base \
         clang15 \
+        openmp-dev \
         cmake \
         ninja \
         git \
@@ -17,7 +18,7 @@ COPY ./cpp .
 RUN cmake --preset default  && cmake --build --preset default --target solidity_key_gen solidity_proof_gen
 
 FROM docker.io/frolvlad/alpine-glibc:alpine-3.17_glibc-2.34 as builder
-RUN apk update && apk add git curl build-base bash
+RUN apk update && apk add git curl build-base openmp-dev bash
 
 COPY --from=0 /usr/src/barretenberg/cpp/build/bin /usr/src/barretenberg/cpp/build/bin
 COPY --from=0 /usr/src/barretenberg/cpp/srs_db /usr/src/barretenberg/cpp/srs_db

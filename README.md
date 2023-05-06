@@ -16,6 +16,27 @@ To install on Ubuntu, run:
 sudo apt-get install cmake clang clang-format ninja-build binaryen
 ```
 
+### Installing openMP (Linux)
+
+Install from source:
+
+```
+git clone -b release/10.x --depth 1 https://github.com/llvm/llvm-project.git \
+  && cd llvm-project && mkdir build-openmp && cd build-openmp \
+  && cmake ../openmp -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DLIBOMP_ENABLE_SHARED=OFF \
+  && cmake --build . --parallel \
+  && cmake --build . --parallel --target install \
+  && cd ../.. && rm -rf llvm-project
+```
+
+Or install from a package manager, on Ubuntu:
+
+```
+sudo apt-get install libomp-dev
+```
+
+> Note: on a fresh Ubuntu Kinetic installation, installing OpenMP from source yields a `Could NOT find OpenMP_C (missing: OpenMP_omp_LIBRARY) (found version "5.0")` error when trying to build Barretenberg. Installing from apt worked fine.
+
 ### Getting started
 
 Run the bootstrap script. (The bootstrap script will build both the native and wasm versions of barretenberg)
@@ -94,6 +115,7 @@ CMake can be passed various build options on its command line:
 - `-DDISABLE_ASM=ON | OFF`: Enable/disable x86 assembly.
 - `-DDISABLE_ADX=ON | OFF`: Enable/disable ADX assembly instructions (for older cpu support).
 - `-DMULTITHREADING=ON | OFF`: Enable/disable multithreading.
+- `-DOMP_MULTITHREADING=ON | OFF`: Enable/disable multithreading that uses OpenMP.
 - `-DTESTING=ON | OFF`: Enable/disable building of tests.
 - `-DBENCHMARK=ON | OFF`: Enable/disable building of benchmarks.
 - `-DFUZZING=ON | OFF`: Enable building various fuzzers.
