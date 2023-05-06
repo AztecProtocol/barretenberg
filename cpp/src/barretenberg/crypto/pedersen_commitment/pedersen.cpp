@@ -1,10 +1,8 @@
 #include "./pedersen.hpp"
 #include "./convert_buffer_to_field.hpp"
 #include "barretenberg/common/throw_or_abort.hpp"
+#include <barretenberg/common/thread.hpp>
 #include <iostream>
-#ifndef NO_OMP_MULTITHREADING
-#include <omp.h>
-#endif
 
 using namespace crypto::generators;
 
@@ -51,15 +49,14 @@ grumpkin::g1::affine_element commit_native(const std::vector<grumpkin::fq>& inpu
     ASSERT((inputs.size() < (1 << 16)) && "too many inputs for 16 bit index");
     std::vector<grumpkin::g1::element> out(inputs.size());
 
-#ifndef NO_OMP_MULTITHREADING
+#ifndef NO_MULTITHREADING
     // Ensure generator data is initialized before threading...
     init_generator_data();
-#pragma omp parallel for num_threads(inputs.size())
 #endif
-    for (size_t i = 0; i < inputs.size(); ++i) {
+    parallel_for(inputs.size(), [&](size_t i) {
         generator_index_t index = { hash_index, i };
         out[i] = commit_single(inputs[i], index);
-    }
+    });
 
     grumpkin::g1::element r = out[0];
     for (size_t i = 1; i < inputs.size(); ++i) {
@@ -73,14 +70,12 @@ grumpkin::g1::affine_element commit_native(const std::vector<std::pair<grumpkin:
     ASSERT((input_pairs.size() < (1 << 16)) && "too many inputs for 16 bit index");
     std::vector<grumpkin::g1::element> out(input_pairs.size());
 
-#ifndef NO_OMP_MULTITHREADING
+#ifndef NO_MULTITHREADING
     // Ensure generator data is initialized before threading...
     init_generator_data();
-#pragma omp parallel for num_threads(input_pairs.size())
 #endif
-    for (size_t i = 0; i < input_pairs.size(); ++i) {
-        out[i] = commit_single(input_pairs[i].first, input_pairs[i].second);
-    }
+    parallel_for(input_pairs.size(),
+                 [&](size_t i) { out[i] = commit_single(input_pairs[i].first, input_pairs[i].second); });
 
     grumpkin::g1::element r = out[0];
     for (size_t i = 1; i < input_pairs.size(); ++i) {

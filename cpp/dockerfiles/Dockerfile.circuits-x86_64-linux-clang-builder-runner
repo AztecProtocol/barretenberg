@@ -5,8 +5,6 @@ RUN apk update \
         bash \
         build-base \
         clang15 \
-        openmp \
-        openmp-dev \
         cmake \
         ninja \
         git \
