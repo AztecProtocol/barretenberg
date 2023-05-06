@@ -2,6 +2,7 @@
 #include <vector>
 #include <thread>
 #include <atomic>
+#include <functional>
 #include <barretenberg/numeric/bitop/get_msb.hpp>
 
 #ifdef __wasm__

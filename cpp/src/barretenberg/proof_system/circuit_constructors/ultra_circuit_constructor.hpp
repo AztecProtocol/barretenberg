@@ -12,6 +12,8 @@
 
 namespace proof_system {
 
+using namespace barretenberg;
+
 class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::Ultra<barretenberg::fr>> {
   public:
     static constexpr ComposerType type = ComposerType::PLOOKUP;

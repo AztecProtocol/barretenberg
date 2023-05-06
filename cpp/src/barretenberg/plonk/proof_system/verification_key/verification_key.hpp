@@ -2,7 +2,6 @@
 #include <map>
 #include "barretenberg/common/streams.hpp"
 #include "barretenberg/srs/reference_string/reference_string.hpp"
-#include "barretenberg/srs/reference_string/env_reference_string.hpp"
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/polynomials/evaluation_domain.hpp"
 #include "barretenberg/crypto/sha256/sha256.hpp"
@@ -85,23 +84,23 @@ struct verification_key {
     size_t program_width = 3;
 };
 
-template <typename B> inline void read(B& buf, verification_key& key)
-{
-    auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
-    using serialize::read;
-    verification_key_data vk_data;
-    read(buf, vk_data);
-    key = verification_key{ std::move(vk_data), env_crs->get_verifier_crs() };
-}
+// template <typename B> inline void read(B& buf, verification_key& key)
+// {
+//     auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
+//     using serialize::read;
+//     verification_key_data vk_data;
+//     read(buf, vk_data);
+//     key = verification_key{ std::move(vk_data), env_crs->get_verifier_crs() };
+// }
 
-template <typename B> inline void read(B& buf, std::shared_ptr<verification_key>& key)
-{
-    auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
-    using serialize::read;
-    verification_key_data vk_data;
-    read(buf, vk_data);
-    key = std::make_shared<verification_key>(std::move(vk_data), env_crs->get_verifier_crs());
-}
+// template <typename B> inline void read(B& buf, std::shared_ptr<verification_key>& key)
+// {
+//     auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
+//     using serialize::read;
+//     verification_key_data vk_data;
+//     read(buf, vk_data);
+//     key = std::make_shared<verification_key>(std::move(vk_data), env_crs->get_verifier_crs());
+// }
 
 template <typename B> inline void write(B& buf, verification_key const& key)
 {

@@ -2,8 +2,8 @@
 
 #include "barretenberg/common/assert.hpp"
 #include "barretenberg/common/timer.hpp"
+#include "barretenberg/common/env/data_store.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/env/data_store.hpp"
 #include <cstddef>
 #include <initializer_list>
 #include <map>

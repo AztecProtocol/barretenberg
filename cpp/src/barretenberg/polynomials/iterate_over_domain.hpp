@@ -28,6 +28,7 @@
 
 // TODO: Evil preprocessor! Can we not just leverage lambdas?
 #if 1
+#include <barretenberg/common/thread.hpp>
 #define ITERATE_OVER_DOMAIN_START(domain)                                                                              \
     parallel_for(domain.num_threads, [&](size_t j) { \
         const size_t internal_bound_start = j * domain.thread_size; \

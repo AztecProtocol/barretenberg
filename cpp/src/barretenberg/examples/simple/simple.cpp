@@ -1,7 +1,7 @@
 #include "simple.hpp"
 #include <barretenberg/plonk/proof_system/types/proof.hpp>
 #include <barretenberg/plonk/proof_system/proving_key/serialize.hpp>
-#include <barretenberg/crypto/sha256/sha256.hpp>
+#include <barretenberg/common/timer.hpp>
 #include <memory>
 
 namespace examples::simple {
@@ -39,19 +39,24 @@ Composer* create_composer(std::shared_ptr<proof_system::ReferenceStringFactory> 
 
 proof create_proof(Composer* composer)
 {
+    Timer timer;
+    info("computing proof...");
     auto prover = composer->create_ultra_with_keccak_prover();
     // auto prover = composer->create_prover();
-    return prover.construct_proof();
+    auto proof = prover.construct_proof();
+    info("proof construction took ", timer.seconds(), "s");
+    return proof;
 }
 
 bool verify_proof(Composer* composer, proof_system::plonk::proof const& proof)
 {
     info("computing verification key...");
     composer->compute_verification_key();
-
     auto verifier = composer->create_ultra_with_keccak_verifier();
     // auto verifier = composer->create_verifier();
-    return verifier.verify_proof(proof);
+    auto valid = verifier.verify_proof(proof);
+    info("proof validity: ", valid);
+    return valid;
 }
 
 void delete_composer(Composer* composer)

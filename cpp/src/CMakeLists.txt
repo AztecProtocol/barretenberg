@@ -49,7 +49,6 @@ else()
 endif()
 
 add_subdirectory(barretenberg/common)
-add_subdirectory(barretenberg/env)
 add_subdirectory(barretenberg/numeric)
 add_subdirectory(barretenberg/srs)
 add_subdirectory(barretenberg/ecc)
@@ -89,7 +88,6 @@ add_library(
     $<TARGET_OBJECTS:crypto_schnorr_objects>
     $<TARGET_OBJECTS:crypto_sha256_objects>
     $<TARGET_OBJECTS:ecc_objects>
-    $<TARGET_OBJECTS:env_objects>
     $<TARGET_OBJECTS:examples_objects>
     $<TARGET_OBJECTS:honk_objects>
     $<TARGET_OBJECTS:numeric_objects>

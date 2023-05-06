@@ -1,5 +1,5 @@
 #include "thread.hpp"
-#include "log.hpp"
+// #include "log.hpp"
 
 void parallel_for(size_t num_iterations, const std::function<void(size_t)>& func)
 {

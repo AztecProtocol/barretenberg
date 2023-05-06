@@ -3,7 +3,7 @@ add_executable(honk_bench honk.bench.cpp)
 target_link_libraries(
   honk_bench
   stdlib_primitives
-  env
+  common
   benchmark::benchmark
 )
 

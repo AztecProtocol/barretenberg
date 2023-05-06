@@ -52,9 +52,9 @@ TEST(stdlib_blake2s, test_single_block_plookup)
     byte_array_plookup input_arr(&composer, input_v);
     byte_array_plookup output = stdlib::blake2s<plonk::UltraComposer>(input_arr);
 
-    std::vector<uint8_t> expected = blake2::blake2s(input_v);
+    auto expected = blake2::blake2s(input_v);
 
-    EXPECT_EQ(output.get_value(), expected);
+    EXPECT_EQ(output.get_value(), std::vector<uint8_t>(expected.begin(), expected.end()));
 
     auto prover = composer.create_prover();
     std::cout << "prover gates = " << prover.circuit_size << std::endl;
@@ -76,9 +76,9 @@ TEST(stdlib_blake2s, test_double_block)
     byte_array_ct input_arr(&composer, input_v);
     byte_array_ct output = stdlib::blake2s(input_arr);
 
-    std::vector<uint8_t> expected = blake2::blake2s(input_v);
+    auto expected = blake2::blake2s(input_v);
 
-    EXPECT_EQ(output.get_value(), expected);
+    EXPECT_EQ(output.get_value(), std::vector<uint8_t>(expected.begin(), expected.end()));
 
     auto prover = composer.create_prover();
 
@@ -100,9 +100,9 @@ TEST(stdlib_blake2s, test_double_block_plookup)
     byte_array_plookup input_arr(&composer, input_v);
     byte_array_plookup output = stdlib::blake2s(input_arr);
 
-    std::vector<uint8_t> expected = blake2::blake2s(input_v);
+    auto expected = blake2::blake2s(input_v);
 
-    EXPECT_EQ(output.get_value(), expected);
+    EXPECT_EQ(output.get_value(), std::vector<uint8_t>(expected.begin(), expected.end()));
 
     auto prover = composer.create_prover();
     std::cout << "prover gates = " << prover.circuit_size << std::endl;

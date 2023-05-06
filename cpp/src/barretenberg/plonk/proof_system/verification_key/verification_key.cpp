@@ -51,7 +51,7 @@ barretenberg::fr compress_native_evaluation_domain(barretenberg::evaluation_doma
  */
 barretenberg::fr verification_key_data::compress_native(const size_t hash_index)
 {
-    barretenberg::evaluation_domain domain = evaluation_domain(circuit_size);
+    barretenberg::evaluation_domain domain = barretenberg::evaluation_domain(circuit_size);
     barretenberg::fr compressed_domain =
         compress_native_evaluation_domain(domain, proof_system::ComposerType(composer_type));
 

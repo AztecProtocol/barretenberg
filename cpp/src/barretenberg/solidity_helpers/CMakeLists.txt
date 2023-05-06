@@ -7,11 +7,9 @@ add_executable(solidity_proof_gen proof_gen.cpp)
 target_link_libraries(
   solidity_key_gen
   stdlib_solidity_helpers
-  env
 )
 
 target_link_libraries(
   solidity_proof_gen
   stdlib_solidity_helpers
-  env
 )

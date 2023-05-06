@@ -1,5 +1,4 @@
 #include "prover.hpp"
-#include "barretenberg/env/crs.hpp"
 
 #define WASM_EXPORT __attribute__((visibility("default")))
 
