@@ -258,9 +258,14 @@ std::vector<barretenberg::fr> verification_key::export_dummy_key_in_recursion_fo
 
     for (const auto& descriptor : polynomial_manifest.get()) {
         if (descriptor.source == PolynomialSource::SELECTOR || descriptor.source == PolynomialSource::PERMUTATION) {
-            // The dummy commitment needs to be greater than one as we otherwise will get invert 0 errors for multiple
-            // recursive constraints
-            const auto element = barretenberg::g1::affine_one + barretenberg::g1::affine_one;
+            // the std::biggroup class creates unsatisfiable constraints when identical points are added/subtracted.
+            // (when verifying zk proofs this is acceptable as we make sure verification key points are not identical.
+            // And prover points should contain randomness for an honest Prover).
+            // This check can also trigger a runtime error due to causing 0 to be inverted.
+            // When creating dummy verification key points we must be mindful of the above and make sure that each
+            // transcript point is unique.
+            auto scalar = barretenberg::fr::random_element();
+            const auto element = barretenberg::g1::affine_element(barretenberg::g1::one * scalar);
             const uint256_t x = element.x;
             const uint256_t y = element.y;
             const barretenberg::fr x_lo = x.slice(0, 136);
