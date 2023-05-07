@@ -3,13 +3,15 @@
 #include "barretenberg/plonk/composer/ultra_composer.hpp"
 #include "barretenberg/stdlib/primitives/uint/uint.hpp"
 #include "barretenberg/stdlib/primitives/byte_array/byte_array.hpp"
-#include "barretenberg/plonk/composer/plookup_tables/plookup_tables.hpp"
+#include "barretenberg/proof_system/plookup_tables/plookup_tables.hpp"
 #include "barretenberg/stdlib/primitives/plookup/plookup.hpp"
 
 namespace proof_system::plonk {
 namespace stdlib {
 
 namespace blake_util {
+
+using namespace plookup;
 
 // constants
 enum blake_constant { BLAKE3_STATE_SIZE = 16 };

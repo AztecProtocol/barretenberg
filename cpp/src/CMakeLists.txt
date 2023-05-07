@@ -52,6 +52,7 @@ add_subdirectory(barretenberg/plonk)
 add_subdirectory(barretenberg/stdlib)
 add_subdirectory(barretenberg/join_split_example)
 add_subdirectory(barretenberg/dsl)
+add_subdirectory(barretenberg/solidity_helpers)
 
 if(BENCHMARKS)
     add_subdirectory(barretenberg/benchmark)
@@ -75,6 +76,7 @@ if(WASM)
         $<TARGET_OBJECTS:crypto_blake2s_objects>
         $<TARGET_OBJECTS:crypto_blake3s_objects>
         $<TARGET_OBJECTS:crypto_keccak_objects>
+        $<TARGET_OBJECTS:crypto_ecdsa_objects>
         $<TARGET_OBJECTS:crypto_schnorr_objects>
         $<TARGET_OBJECTS:crypto_generators_objects>
         $<TARGET_OBJECTS:crypto_pedersen_hash_objects>
@@ -124,6 +126,7 @@ if(WASM)
         $<TARGET_OBJECTS:crypto_blake3s_objects>
         $<TARGET_OBJECTS:crypto_generators_objects>
         $<TARGET_OBJECTS:crypto_keccak_objects>
+        $<TARGET_OBJECTS:crypto_ecdsa_objects>
         $<TARGET_OBJECTS:crypto_schnorr_objects>
         $<TARGET_OBJECTS:crypto_pedersen_hash_objects>
         $<TARGET_OBJECTS:crypto_pedersen_commitment_objects>
@@ -178,6 +181,7 @@ if(WASM)
         $<TARGET_OBJECTS:crypto_blake2s_objects>
         $<TARGET_OBJECTS:crypto_blake3s_objects>
         $<TARGET_OBJECTS:crypto_keccak_objects>
+        $<TARGET_OBJECTS:crypto_ecdsa_objects>
         $<TARGET_OBJECTS:crypto_schnorr_objects>
         $<TARGET_OBJECTS:crypto_generators_objects>
         $<TARGET_OBJECTS:crypto_pedersen_hash_objects>
@@ -214,6 +218,7 @@ else()
         $<TARGET_OBJECTS:crypto_blake2s_objects>
         $<TARGET_OBJECTS:crypto_blake3s_objects>
         $<TARGET_OBJECTS:crypto_keccak_objects>
+        $<TARGET_OBJECTS:crypto_ecdsa_objects>
         $<TARGET_OBJECTS:crypto_schnorr_objects>
         $<TARGET_OBJECTS:crypto_generators_objects>
         $<TARGET_OBJECTS:crypto_pedersen_hash_objects>
