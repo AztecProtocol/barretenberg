@@ -1,101 +1,64 @@
 #include "thread.hpp"
 #include "log.hpp"
-#include <atomic>
-#include <condition_variable>
-#include <functional>
-#include <mutex>
-#include <queue>
-#include <thread>
-#include <vector>
 
-class ThreadPool {
-  public:
-    ThreadPool(size_t num_threads);
-    ~ThreadPool();
+/**
+ * There's a lot to talk about here. To bring threading to WASM, parallel_for was written to replace the OpenMP loops
+ * we had scattered throughout our code. It provides a clean abstraction for the work division strategy we use (we
+ * used OMP's`"#pragma omp parallel for` everywhere).
+ *
+ * The first implementation was `parallel_for_spawning`. You can read a description of each implementation in the
+ * relevant source file, but parallel_for_spawning is the simplest approach imaginable.
+ * Once WASM was working, I checked its performance in native code by running it against the polynomials benchmarks.
+ * In doing so, OMP outperformed it significantly (at least for FFT algorithims). This set me on a course to try
+ * and understand why and to provide a suitable alternative. Ultimately I found solutions that compared to OMP with
+ * "moody" and "atomic" solutions, although they were not *quite* as fast as OMP. However interestingly, when it
+ * comes to actual "real world" testing (with proof construction), rather than raw benchmarking, most of the solutions
+ * performaed about the same, with OMP *actually slightly worse*. So maybe all this effort was a bit redundant.
+ * Remember to always do real world testing...
+ *
+ * My theory as to why OMP performs so much better in benchmarks is because it runs the tests in a very tight loop,
+ * and OMP seems well designed to handle this. It actually looks like OMP consumes more cpu time in htop, and this
+ * maybe due to aggressive spin-locking and may explain why it performs well in these scenarios.
+ *
+ * My theory as to why spawning seems to counter-intuitively perfrom so well, is that spawning a new thread may actually
+ * be cheaper than waking a sleeping thread. Or joining is somehow very efficient. Or it's because there's very low
+ * other overhead. Or libc++ STL does some magic. Ok, that's not much of a theory...
+ *
+ * Ultimately though the takeaway is as follows:
+ * - OMP maybe preferable when running benchmarks if you want to check for that kind of "optimal linear scaling".
+ *   Although, if we want to get rid of OMP altogether, "atomic" is a simple solution that seems to compare.
+ * - The simplest "spawning" is probably best used everywhere else, and frees us from needing OMP to build the lib.
+ */
 
-    void enqueue(const std::function<void()>& task);
-    void wait();
+// 64 core aws r5.
+// pippenger run: pippenger_bench/1048576
+// coset_fft run: coset_fft_bench_parallel/4194304
+// proof run: 2m gate ultraplonk. average of 5.
 
-  private:
-    std::vector<std::thread> workers;
-    std::queue<std::function<void()>> tasks;
-    std::mutex tasks_mutex;
-    std::condition_variable condition;
-    std::condition_variable finished_condition;
-    std::atomic<size_t> tasks_running;
-    bool stop;
+// pippenger: 179ms
+// coset_fft: 54776us
+// proof: 11.33s
+void parallel_for_omp(size_t num_iterations, const std::function<void(size_t)>& func);
 
-    void worker_loop(size_t thread_index);
-};
+// pippenger: 163ms
+// coset_fft: 59993us
+// proof: 11.11s
+void parallel_for_moody(size_t num_iterations, const std::function<void(size_t)>& func);
 
-ThreadPool::ThreadPool(size_t num_threads)
-    : stop(false)
-{
-    workers.reserve(num_threads);
-    for (size_t i = 0; i < num_threads; ++i) {
-        workers.emplace_back(&ThreadPool::worker_loop, this, i);
-    }
-}
+// pippenger: 154ms
+// coset_fft: 92997us
+// proof: 10.84s
+void parallel_for_spawning(size_t num_iterations, const std::function<void(size_t)>& func);
 
-ThreadPool::~ThreadPool()
-{
-    {
-        std::unique_lock<std::mutex> lock(tasks_mutex);
-        stop = true;
-    }
-    condition.notify_all();
-    for (auto& worker : workers) {
-        worker.join();
-    }
-}
+// pippenger: 178ms
+// coset_fft: 70207us
+// proof: 11.55s
+void parallel_for_queued(size_t num_iterations, const std::function<void(size_t)>& func);
 
-void ThreadPool::enqueue(const std::function<void()>& task)
-{
-    {
-        std::unique_lock<std::mutex> lock(tasks_mutex);
-        tasks.push(task);
-    }
-    condition.notify_one();
-}
-
-void ThreadPool::wait()
-{
-    std::unique_lock<std::mutex> lock(tasks_mutex);
-    finished_condition.wait(lock, [this] { return tasks.empty() && tasks_running == 0; });
-}
-
-void ThreadPool::worker_loop(size_t worker_num)
-{
-    info("created worker ", worker_num);
-    while (true) {
-        std::function<void()> task;
-        {
-            std::unique_lock<std::mutex> lock(tasks_mutex);
-            condition.wait(lock, [this] { return !tasks.empty() || stop; });
-
-            if (tasks.empty() && stop) {
-                break;
-            }
-
-            task = tasks.front();
-            tasks.pop();
-            tasks_running++;
-        }
-        // info("worker ", worker_num, " processing a task!");
-        task();
-        // info("task done");
-        {
-            std::unique_lock<std::mutex> lock(tasks_mutex);
-            tasks_running--;
-            if (tasks.empty() && tasks_running == 0) {
-                // info("notifying main thread");
-                finished_condition.notify_all();
-            }
-        }
-        // info("worker ", worker_num, " done!");
-    }
-    info("worker exit ", worker_num);
-}
+// pippenger: 152ms
+// coset_fft: 56658us
+// proof: 11.28s
+void parallel_for_atomic(size_t num_iterations, const std::function<void(size_t)>& func);
 
 void parallel_for(size_t num_iterations, const std::function<void(size_t)>& func)
 {
@@ -104,21 +67,14 @@ void parallel_for(size_t num_iterations, const std::function<void(size_t)>& func
         func(i);
     }
 #else
-    // static ThreadPool pool(get_num_cpus());
-
-    // // info("wait for pool enter");
-    // pool.wait();
-    // for (size_t i = 0; i < num_iterations; ++i) {
-    //     // info("enqueing iteration ", i);
-    //     pool.enqueue([=]() { func(i); });
-    // }
-    // // info("wait for pool exit");
-    // pool.wait();
-    // // info("pool finished work");
-
-#pragma omp parallel for
-    for (size_t i = 0; i < num_iterations; ++i) {
-        func(i);
-    }
+#ifndef NO_OMP_MULTITHREADING
+    parallel_for_spawning(num_iterations, func);
+    // parallel_for_omp(num_iterations, func);
+#else
+    parallel_for_spawning(num_iterations, func);
+    // parallel_for_moody(num_iterations, func);
+    // parallel_for_atomic(num_iterations, func);
+    // parallel_for_queued(num_iterations, func);
+#endif
 #endif
 }

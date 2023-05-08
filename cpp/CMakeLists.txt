@@ -24,8 +24,6 @@ option(ENABLE_ASAN "Address sanitizer for debugging tricky memory corruption" OF
 option(ENABLE_HEAVY_TESTS "Enable heavy tests when collecting coverage" OFF)
 option(INSTALL_BARRETENBERG "Enable installation of barretenberg. (Projects embedding barretenberg may want to turn this OFF.)" ON)
 
-message(STATUS "Building barretenberg for UltraPlonk Composer.")
-
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64" OR CMAKE_SYSTEM_PROCESSOR MATCHES "arm64")
     message(STATUS "Compiling for ARM.")
     set(ARM ON)

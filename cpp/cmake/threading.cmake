@@ -1,5 +1,7 @@
 if(MULTITHREADING)
     message(STATUS "Multithreading is enabled.")
+    #add_compile_options(-fsanitize=thread)
+    #add_link_options(-fsanitize=thread)
 else()
     message(STATUS "Multithreading is disabled.")
     add_definitions(-DNO_MULTITHREADING)

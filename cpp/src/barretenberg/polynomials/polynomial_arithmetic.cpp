@@ -11,6 +11,27 @@
 
 namespace barretenberg::polynomial_arithmetic {
 
+namespace {
+
+template <typename Fr> std::shared_ptr<Fr[]> get_scratch_space(const size_t num_elements)
+{
+    // WASM needs to release slab so it can be reused elsewhere.
+    // But for native code it's more performant to hold onto it.
+#ifdef __wasm__
+    return std::static_pointer_cast<Fr[]>(get_mem_slab(num_elements * sizeof(Fr)));
+#else
+    static std::shared_ptr<Fr[]> working_memory = nullptr;
+    static size_t current_size = 0;
+    if (num_elements > current_size) {
+        working_memory = std::static_pointer_cast<Fr[]>(get_mem_slab(num_elements * sizeof(Fr)));
+        current_size = num_elements;
+    }
+    return working_memory;
+#endif
+}
+
+} // namespace
+
 inline uint32_t reverse_bits(uint32_t x, uint32_t bit_length)
 {
     x = (((x & 0xaaaaaaaa) >> 1) | ((x & 0x55555555) << 1));
@@ -150,8 +171,8 @@ void fft_inner_parallel(std::vector<Fr*> coeffs,
                         const Fr&,
                         const std::vector<Fr*>& root_table)
 {
-    auto scratch_space_ptr = get_mem_slab(domain.size * sizeof(Fr));
-    auto scratch_space = (Fr*)scratch_space_ptr.get();
+    auto scratch_space_ptr = get_scratch_space<Fr>(domain.size);
+    auto scratch_space = scratch_space_ptr.get();
 
     const size_t num_polys = coeffs.size();
     ASSERT(is_power_of_two(num_polys));
@@ -581,7 +602,7 @@ void coset_fft(Fr* coeffs,
 
     // Fr work_root = domain.generator.sqr();
     // work_root = domain.generator.sqr();
-    auto scratch_space_ptr = std::static_pointer_cast<Fr[]>(get_mem_slab(domain.size * domain_extension * sizeof(Fr)));
+    auto scratch_space_ptr = get_scratch_space<Fr>(domain.size * domain_extension);
     auto scratch_space = scratch_space_ptr.get();
 
     // Fr* temp_memory = static_cast<Fr*>(aligned_alloc(64, sizeof(Fr) * domain.size *
@@ -1141,7 +1162,7 @@ template <typename Fr> Fr compute_sum(const Fr* src, const size_t n)
 // This function computes the polynomial (x - a)(x - b)(x - c)... given n distinct roots (a, b, c, ...).
 template <typename Fr> void compute_linear_polynomial_product(const Fr* roots, Fr* dest, const size_t n)
 {
-    auto scratch_space_ptr = std::static_pointer_cast<Fr[]>(get_mem_slab(n * sizeof(Fr)));
+    auto scratch_space_ptr = get_scratch_space<Fr>(n);
     auto scratch_space = scratch_space_ptr.get();
     memcpy((void*)scratch_space, (void*)roots, n * sizeof(Fr));
 
