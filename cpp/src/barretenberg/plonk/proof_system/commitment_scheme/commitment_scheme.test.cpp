@@ -4,6 +4,7 @@
 
 #include "barretenberg/common/mem.hpp"
 #include <gtest/gtest.h>
+#include <memory>
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "../../../proof_system/work_queue/work_queue.hpp"
@@ -21,11 +22,11 @@ TEST(commitment_scheme, kate_open)
 {
     // generate random polynomial F(X) = coeffs
     size_t n = 256;
-    std::vector<fr> coeffs(n + 1);
+    auto coeffs = polynomial(n + 1);
     for (size_t i = 0; i < n; ++i) {
         coeffs[i] = fr::random_element();
     }
-    std::vector<fr> W(coeffs.begin(), coeffs.end());
+    polynomial W(coeffs, n + 1);
     coeffs[n] = 0;
 
     // generate random evaluation point z
@@ -41,8 +42,7 @@ TEST(commitment_scheme, kate_open)
     auto circuit_proving_key = std::make_shared<proving_key>(n, 0, crs, ComposerType::STANDARD);
     work_queue queue(circuit_proving_key.get(), &inp_tx);
 
-    std::shared_ptr<fr[]> coeffs_ptr(&coeffs[0], [](fr* p) { delete[] p; });
-    newKate.commit(coeffs_ptr, "F_COMM", n, queue);
+    newKate.commit(coeffs.data(), "F_COMM", n, queue);
     queue.process_queue();
 
     fr y = fr::random_element();
@@ -50,8 +50,7 @@ TEST(commitment_scheme, kate_open)
     fr f = polynomial_arithmetic::evaluate(&coeffs[0], z, n);
 
     newKate.compute_opening_polynomial(&coeffs[0], &W[0], z, n);
-    std::shared_ptr<fr[]> W_ptr(&W[0], [](fr* p) { delete[] p; });
-    newKate.commit(W_ptr, "W_COMM", n, queue);
+    newKate.commit(W.data(), "W_COMM", n, queue);
     queue.process_queue();
 
     // check if W(y)(y - z) = F(y) - F(z)
@@ -82,7 +81,7 @@ TEST(commitment_scheme, kate_batch_open)
     //
     size_t n = 64;
     size_t m = 4;
-    std::vector<fr> coeffs(n * m * t);
+    polynomial coeffs(n * m * t);
     for (size_t k = 0; k < t; ++k) {
         for (size_t j = 0; j < m; ++j) {
             for (size_t i = 0; i < n; ++i) {
@@ -103,8 +102,7 @@ TEST(commitment_scheme, kate_batch_open)
     // commit to individual polynomials
     for (size_t k = 0; k < t; ++k) {
         for (size_t j = 0; j < m; ++j) {
-            std::shared_ptr<fr[]> coeffs_ptr(&coeffs[k * m * n + j * n], [](fr* p) { delete[] p; });
-            newKate.commit(coeffs_ptr, "F_{" + std::to_string(k + 1) + ", " + std::to_string(j + 1) + "}", n, queue);
+            newKate.commit(coeffs.data(), "F_{" + std::to_string(k + 1) + ", " + std::to_string(j + 1) + "}", n, queue);
         }
     }
     queue.process_queue();

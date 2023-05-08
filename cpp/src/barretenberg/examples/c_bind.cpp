@@ -17,20 +17,6 @@ WASM_EXPORT void examples_simple_create_and_verify_proof(in_ptr pippenger, uint8
     auto proof = examples::simple::create_proof(composer_ptr);
 
     *valid = examples::simple::verify_proof(composer_ptr, proof);
-    // *valid = true;
     examples::simple::delete_composer(composer_ptr);
 }
-
-// WASM_EXPORT void examples_simple_create_composer(void const* pippenger, uint8_t const* g2x, void** composer_ptr)
-// {
-//     auto crs_factory = std::make_shared<proof_system::PippengerReferenceStringFactory>(
-//         (scalar_multiplication::Pippenger*)(pippenger), g2x);
-//     *composer_ptr = examples::simple::create_composer(crs_factory);
-// }
-
-// WASM_EXPORT void examples_simple_create_proof(void const* composer, uint8_t** proof_out)
-// {
-//     auto proof = create_proof((Composer*)composer);
-//     proof_out = to_heap_buffer(proof.proof_data);
-// }
 }
