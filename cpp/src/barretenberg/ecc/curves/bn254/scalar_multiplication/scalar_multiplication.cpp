@@ -211,7 +211,7 @@ void compute_wnaf_states(uint64_t* point_schedule,
         }
     }
 
-    auto thread_task = [&](size_t i) {
+    parallel_for(num_threads, [&](size_t i) {
         fr T0;
         uint64_t* wnaf_table = &point_schedule[(2 * i) * num_initial_points_per_thread];
         const fr* thread_scalars = &scalars[i * num_initial_points_per_thread];
@@ -237,9 +237,7 @@ void compute_wnaf_states(uint64_t* point_schedule,
                                          num_points,
                                          wnaf_bits);
         }
-    };
-
-    parallel_for(num_threads, thread_task);
+    });
 
     for (size_t i = 0; i < num_rounds; ++i) {
         round_counts[i] = 0;
@@ -261,13 +259,11 @@ void organize_buckets(uint64_t* point_schedule, const size_t num_points)
 {
     const size_t num_rounds = get_num_rounds(num_points);
 
-    auto thread_task = [&](size_t i) {
+    parallel_for(num_rounds, [&](size_t i) {
         scalar_multiplication::process_buckets(&point_schedule[i * num_points],
                                                num_points,
                                                static_cast<uint32_t>(get_optimal_bucket_width(num_points / 2)) + 1);
-    };
-
-    parallel_for(num_rounds, thread_task);
+    });
 }
 
 /**
@@ -730,7 +726,7 @@ g1::element evaluate_pippenger_rounds(pippenger_runtime_state& state,
     std::unique_ptr<g1::element[], decltype(&aligned_free)> thread_accumulators(
         static_cast<g1::element*>(aligned_alloc(64, num_threads * sizeof(g1::element))), &aligned_free);
 
-    auto thread_task = [&](size_t j) {
+    parallel_for(num_threads, [&](size_t j) {
         thread_accumulators[j].self_set_infinity();
 
         for (size_t i = 0; i < num_rounds; ++i) {
@@ -821,9 +817,7 @@ g1::element evaluate_pippenger_rounds(pippenger_runtime_state& state,
             }
             thread_accumulators[j] += accumulator;
         }
-    };
-
-    parallel_for(num_threads, thread_task);
+    });
 
     g1::element result;
     result.self_set_infinity();
@@ -868,9 +862,8 @@ g1::element pippenger(fr* scalars,
         std::vector<g1::element> exponentiation_results(num_initial_points);
         // might as well multithread this...
         // Possible optimization: use group::batch_mul_with_endomorphism here.
-        auto thread_task = [&](size_t i) { exponentiation_results[i] = g1::element(points[i * 2]) * scalars[i]; };
-
-        parallel_for(num_initial_points, thread_task);
+        parallel_for(num_initial_points,
+                     [&](size_t i) { exponentiation_results[i] = g1::element(points[i * 2]) * scalars[i]; });
 
         for (size_t i = num_initial_points - 1; i > 0; --i) {
             exponentiation_results[i - 1] += exponentiation_results[i];
