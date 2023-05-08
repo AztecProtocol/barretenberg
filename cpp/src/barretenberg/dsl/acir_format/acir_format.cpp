@@ -70,11 +70,6 @@ void create_circuit(Composer& composer, const acir_format& constraint_system)
         create_blake2s_constraints(composer, constraint);
     }
 
-    // Add keccak constraints
-    for (const auto& constraint : constraint_system.keccak_constraints) {
-        create_keccak_constraints(composer, constraint);
-    }
-
     // Add pedersen constraints
     for (const auto& constraint : constraint_system.pedersen_constraints) {
         create_pedersen_constraint(composer, constraint);
@@ -151,11 +146,6 @@ Composer create_circuit(const acir_format& constraint_system,
     // Add blake2s constraints
     for (const auto& constraint : constraint_system.blake2s_constraints) {
         create_blake2s_constraints(composer, constraint);
-    }
-
-    // Add keccak constraints
-    for (const auto& constraint : constraint_system.keccak_constraints) {
-        create_keccak_constraints(composer, constraint);
     }
 
     // Add pedersen constraints
@@ -242,11 +232,6 @@ Composer create_circuit_with_witness(const acir_format& constraint_system,
         create_blake2s_constraints(composer, constraint);
     }
 
-    // Add keccak constraints
-    for (const auto& constraint : constraint_system.keccak_constraints) {
-        create_keccak_constraints(composer, constraint);
-    }
-
     // Add pedersen constraints
     for (const auto& constraint : constraint_system.pedersen_constraints) {
         create_pedersen_constraint(composer, constraint);
@@ -328,11 +313,6 @@ Composer create_circuit_with_witness(const acir_format& constraint_system, std::
         create_blake2s_constraints(composer, constraint);
     }
 
-    // Add keccak constraints
-    for (const auto& constraint : constraint_system.keccak_constraints) {
-        create_keccak_constraints(composer, constraint);
-    }
-
     // Add pedersen constraints
     for (const auto& constraint : constraint_system.pedersen_constraints) {
         create_pedersen_constraint(composer, constraint);
@@ -410,11 +390,6 @@ void create_circuit_with_witness(Composer& composer, const acir_format& constrai
     // Add blake2s constraints
     for (const auto& constraint : constraint_system.blake2s_constraints) {
         create_blake2s_constraints(composer, constraint);
-    }
-
-    // Add keccak constraints
-    for (const auto& constraint : constraint_system.keccak_constraints) {
-        create_keccak_constraints(composer, constraint);
     }
 
     // Add pedersen constraints
