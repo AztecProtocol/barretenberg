@@ -3,6 +3,7 @@
 #include "barretenberg/common/mem.hpp"
 #include "barretenberg/common/thread.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
+#include "barretenberg/polynomials/slab_allocator.hpp"
 
 namespace barretenberg {
 namespace scalar_multiplication {
@@ -18,13 +19,18 @@ pippenger_runtime_state::pippenger_runtime_state(const size_t num_initial_points
     const size_t prefetch_overflow = 16 * num_threads;
     const size_t num_rounds =
         static_cast<size_t>(barretenberg::scalar_multiplication::get_num_rounds(static_cast<size_t>(num_points_floor)));
-    point_schedule = (uint64_t*)(aligned_alloc(
-        64, (static_cast<size_t>(num_points) * num_rounds + prefetch_overflow) * sizeof(uint64_t)));
+
+    point_schedule_ptr =
+        get_mem_slab((static_cast<size_t>(num_points) * num_rounds + prefetch_overflow) * sizeof(uint64_t));
+    point_pairs_1_ptr =
+        get_mem_slab((static_cast<size_t>(num_points) * 2 + (num_threads * 16)) * sizeof(g1::affine_element));
+    point_pairs_2_ptr =
+        get_mem_slab((static_cast<size_t>(num_points) * 2 + (num_threads * 16)) * sizeof(g1::affine_element));
+    point_schedule = (uint64_t*)point_schedule_ptr.get();
+    point_pairs_1 = (g1::affine_element*)point_pairs_1_ptr.get();
+    point_pairs_2 = (g1::affine_element*)point_pairs_2_ptr.get();
+
     skew_table = (bool*)(aligned_alloc(64, pad(static_cast<size_t>(num_points) * sizeof(bool), 64)));
-    point_pairs_1 = (g1::affine_element*)(aligned_alloc(
-        64, (static_cast<size_t>(num_points) * 2 + (num_threads * 16)) * sizeof(g1::affine_element)));
-    point_pairs_2 = (g1::affine_element*)(aligned_alloc(
-        64, (static_cast<size_t>(num_points) * 2 + (num_threads * 16)) * sizeof(g1::affine_element)));
     scratch_space = (fq*)(aligned_alloc(64, static_cast<size_t>(num_points) * sizeof(g1::affine_element)));
     bucket_counts = (uint32_t*)(aligned_alloc(64, num_threads * num_buckets * sizeof(uint32_t)));
     bit_counts = (uint32_t*)(aligned_alloc(64, num_threads * num_buckets * sizeof(uint32_t)));
@@ -81,20 +87,8 @@ pippenger_runtime_state::pippenger_runtime_state(pippenger_runtime_state&& other
 
 pippenger_runtime_state& pippenger_runtime_state::operator=(pippenger_runtime_state&& other)
 {
-    if (point_schedule) {
-        aligned_free(point_schedule);
-    }
-
     if (skew_table) {
         aligned_free(skew_table);
-    }
-
-    if (point_pairs_1) {
-        aligned_free(point_pairs_1);
-    }
-
-    if (point_pairs_2) {
-        aligned_free(point_pairs_2);
     }
 
     if (scratch_space) {
@@ -161,20 +155,8 @@ affine_product_runtime_state pippenger_runtime_state::get_affine_product_runtime
 
 pippenger_runtime_state::~pippenger_runtime_state()
 {
-    if (point_schedule) {
-        aligned_free(point_schedule);
-    }
-
     if (skew_table) {
         aligned_free(skew_table);
-    }
-
-    if (point_pairs_1) {
-        aligned_free(point_pairs_1);
-    }
-
-    if (point_pairs_2) {
-        aligned_free(point_pairs_2);
     }
 
     if (scratch_space) {

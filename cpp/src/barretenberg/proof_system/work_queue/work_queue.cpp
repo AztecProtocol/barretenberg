@@ -214,8 +214,9 @@ void work_queue::process_queue()
             barretenberg::g1::affine_element* srs_points = key->reference_string->get_monomial_points();
 
             // Run pippenger multi-scalar multiplication.
+            auto runtime_state = barretenberg::scalar_multiplication::pippenger_runtime_state(msm_size);
             barretenberg::g1::affine_element result(barretenberg::scalar_multiplication::pippenger_unsafe(
-                item.mul_scalars.get(), srs_points, msm_size, key->pippenger_runtime_state));
+                item.mul_scalars.get(), srs_points, msm_size, runtime_state));
 
             transcript->add_element(item.tag, result.to_buffer());
 

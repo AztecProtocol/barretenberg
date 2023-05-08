@@ -64,8 +64,6 @@ struct proving_key {
 
     barretenberg::polynomial quotient_polynomial_parts[plonk::NUM_QUOTIENT_PARTS];
 
-    barretenberg::scalar_multiplication::pippenger_runtime_state pippenger_runtime_state;
-
     PolynomialManifest polynomial_manifest;
 
     static constexpr size_t min_thread_block = 4UL;

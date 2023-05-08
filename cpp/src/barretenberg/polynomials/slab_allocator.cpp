@@ -11,8 +11,11 @@ SlabAllocator::SlabAllocator(size_t circuit_size_hint)
         return;
     }
 
-    // Over-allocate because we know there are requests for circuit_size + n. (arbitrary n = 32)
-    size_t small_size = 32 * (circuit_size_hint + 32);
+    // Over-allocate because we know there are requests for circuit_size + n. (somewhat arbitrary n = 128)
+    // Think max I saw was 65 extra related to pippenger runtime state. Likely related to the machine having 64 cores.
+    // Strange things may happen here if double to 128 cores, might request 129 extra?
+    size_t overalloc = 128;
+    size_t small_size = 32 * (circuit_size_hint + overalloc);
     size_t large_size = small_size * 4;
 
     // These numbers are for Ultra, our most greedy system, so they should easily serve Standard/Turbo.
@@ -31,13 +34,15 @@ SlabAllocator::SlabAllocator(size_t circuit_size_hint)
                                5 +    // Lagrange sorted poly.
                                2 +    // Perm poly.
                                4 +    // Quotient poly.
-                               1;     // Miscellaneous.
+                               7;     // Miscellaneous.
+    prealloc_num[small_size * 2] = 1; // Miscellaneous.
     prealloc_num[large_size] = 4 +    // Coset-fft wires.
                                15 +   // Coset-fft constraint selectors.
                                8 +    // Coset-fft perm selectors.
                                1 +    // Coset-fft sorted poly.
-                               1;     // Miscellaneous.
-    prealloc_num[large_size * 2] = 1; // Proving key evaluation domain roots.
+                               1 +    // Pippenger point_schedule.
+                               3;     // Miscellaneous.
+    prealloc_num[large_size * 2] = 3; // Proving key evaluation domain roots. Pippenger point_pairs.
 
     for (auto& e : prealloc_num) {
         for (size_t i = 0; i < e.second; ++i) {
@@ -54,7 +59,8 @@ std::shared_ptr<void> SlabAllocator::get(size_t req_size)
 
     auto it = memory_store.lower_bound(req_size);
 
-    if (it != memory_store.end()) {
+    // Can use a preallocated slab that is less than 2 times the requested size.
+    if (it != memory_store.end() && it->first < req_size * 2) {
         size_t size = it->first;
         auto ptr = it->second.back();
         it->second.pop_back();

@@ -30,11 +30,9 @@ proving_key::proving_key(const size_t num_gates,
     , circuit_size(num_gates)
     , log_circuit_size(numeric::get_msb(num_gates))
     , num_public_inputs(num_inputs)
-    // , polynomial_store(1536ULL * 1024 * 1024)
     , small_domain(circuit_size, circuit_size)
     , large_domain(4 * circuit_size, circuit_size > min_thread_block ? circuit_size : 4 * circuit_size)
     , reference_string(crs)
-    , pippenger_runtime_state(circuit_size + 1)
     , polynomial_manifest((uint32_t)type)
 {
     init();
@@ -58,7 +56,6 @@ proving_key::proving_key(proving_key_data&& data, std::shared_ptr<proof_system::
     , small_domain(circuit_size, circuit_size)
     , large_domain(4 * circuit_size, circuit_size > min_thread_block ? circuit_size : 4 * circuit_size)
     , reference_string(crs)
-    , pippenger_runtime_state(circuit_size + 1)
     , polynomial_manifest(data.composer_type)
 {
     init();

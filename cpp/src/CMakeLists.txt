@@ -32,8 +32,8 @@ endif()
 
 # We enable -O1 level optimsations, even when compiling debug wasm, otherwise we get "local count too large" at runtime.
 if(WASM)
-    set(CMAKE_CXX_FLAGS_DEBUG "-O1")
-    set(CMAKE_C_FLAGS_DEBUG "-O1")
+    set(CMAKE_CXX_FLAGS_DEBUG "-O1 -g")
+    set(CMAKE_C_FLAGS_DEBUG "-O1 -g")
     add_compile_options(--target=wasm32-wasi-threads -pthread)
 endif()
 

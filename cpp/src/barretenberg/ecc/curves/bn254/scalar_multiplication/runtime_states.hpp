@@ -76,10 +76,14 @@ struct affine_product_runtime_state {
 };
 
 struct pippenger_runtime_state {
+    std::shared_ptr<void> point_schedule_ptr;
+    std::shared_ptr<void> point_pairs_1_ptr;
+    std::shared_ptr<void> point_pairs_2_ptr;
     uint64_t* point_schedule;
-    bool* skew_table;
     g1::affine_element* point_pairs_1;
     g1::affine_element* point_pairs_2;
+
+    bool* skew_table;
     fq* scratch_space;
     uint32_t* bucket_counts;
     uint32_t* bit_counts;

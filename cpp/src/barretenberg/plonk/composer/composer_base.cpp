@@ -315,6 +315,7 @@ std::shared_ptr<verification_key> ComposerBase::compute_verification_key_base(
     auto circuit_verification_key = std::make_shared<verification_key>(
         proving_key->circuit_size, proving_key->num_public_inputs, vrs, proving_key->composer_type);
 
+    auto runtime_state = barretenberg::scalar_multiplication::pippenger_runtime_state(proving_key->circuit_size + 1);
     for (size_t i = 0; i < proving_key->polynomial_manifest.size(); ++i) {
         const auto& selector_poly_info = proving_key->polynomial_manifest[i];
 
@@ -331,7 +332,7 @@ std::shared_ptr<verification_key> ComposerBase::compute_verification_key_base(
                 scalar_multiplication::pippenger(selector_poly_coefficients.get(),
                                                  proving_key->reference_string->get_monomial_points(),
                                                  proving_key->circuit_size,
-                                                 proving_key->pippenger_runtime_state));
+                                                 runtime_state));
 
             circuit_verification_key->commitments.insert({ selector_commitment_label, selector_poly_commitment });
         }
