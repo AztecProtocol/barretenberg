@@ -94,7 +94,6 @@ void ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>::compute_sor
     }
 
     // Save the lagrange base representation of s
-    // TODO: Can we make this copy free? (copy on write)
     polynomial s_lagrange(s_accum, key->small_domain.size);
     key->polynomial_store.put("s_lagrange", std::move(s_lagrange));
 
@@ -135,11 +134,13 @@ void ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>::compute_gra
     // remaining 3 are needed only locally in the construction of z_lookup. Note that
     // beyond this calculation we need only the monomial and coset FFT forms of z_lookup,
     // so z_lookup in lagrange base will not be added to the store.
+    std::shared_ptr<void> accumulators_ptrs[4];
     fr* accumulators[4];
     // Note: accumulators[0][i] = z[i + 1]
     accumulators[0] = &z_lookup[1];
     for (size_t k = 1; k < 4; ++k) {
-        accumulators[k] = static_cast<fr*>(aligned_alloc(64, sizeof(fr) * n));
+        accumulators_ptrs[k] = get_mem_slab(n * sizeof(fr));
+        accumulators[k] = (fr*)accumulators_ptrs[k].get();
     }
 
     polynomial s_lagrange = key->polynomial_store.get("s_lagrange");
@@ -313,10 +314,6 @@ void ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>::compute_gra
         }
     });
     z_lookup[0] = fr::one();
-
-    for (size_t k = 1; k < 4; ++k) {
-        aligned_free(accumulators[k]);
-    }
 
     // Since `z_plookup` needs to be evaluated at 2 points in UltraPLONK, we need to add a degree-2 random
     // polynomial to `z_lookup` to make it "look" uniformly random. Alternatively, we can just add 3

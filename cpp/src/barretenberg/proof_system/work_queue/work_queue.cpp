@@ -156,48 +156,48 @@ void work_queue::flush_queue()
 void work_queue::add_to_queue(const work_item& item)
 {
     // TODO: Why do we have this? It's caused (me) a lot of confusion over time as it's kind of a hidden deviation.
-    // Somebody please put explanatory comment here in detail.
-#if defined(__wasm__OFF)
+    // Commenting it out as it wasn't needed to do FFT's in the WASM when I did low memory prover work.
+    // Somebody please put explanatory comment here in detail if it is needed. If time has gone by, delete it.
     // #if 1
-    if (item.work_type == WorkType::FFT) {
-        const auto large_root = key->large_domain.root;
-        barretenberg::fr coset_shifts[4]{
-            barretenberg::fr(1), large_root, large_root.sqr(), large_root.sqr() * large_root
-        };
-        work_item_queue.push_back({
-            WorkType::SMALL_FFT,
-            nullptr,
-            item.tag,
-            coset_shifts[0],
-            0,
-        });
-        work_item_queue.push_back({
-            WorkType::SMALL_FFT,
-            nullptr,
-            item.tag,
-            coset_shifts[1],
-            1,
-        });
-        work_item_queue.push_back({
-            WorkType::SMALL_FFT,
-            nullptr,
-            item.tag,
-            coset_shifts[2],
-            2,
-        });
-        work_item_queue.push_back({
-            WorkType::SMALL_FFT,
-            nullptr,
-            item.tag,
-            coset_shifts[3],
-            3,
-        });
-    } else {
-        work_item_queue.push_back(item);
-    }
-#else
+    //     if (item.work_type == WorkType::FFT) {
+    //         const auto large_root = key->large_domain.root;
+    //         barretenberg::fr coset_shifts[4]{
+    //             barretenberg::fr(1), large_root, large_root.sqr(), large_root.sqr() * large_root
+    //         };
+    //         work_item_queue.push_back({
+    //             WorkType::SMALL_FFT,
+    //             nullptr,
+    //             item.tag,
+    //             coset_shifts[0],
+    //             0,
+    //         });
+    //         work_item_queue.push_back({
+    //             WorkType::SMALL_FFT,
+    //             nullptr,
+    //             item.tag,
+    //             coset_shifts[1],
+    //             1,
+    //         });
+    //         work_item_queue.push_back({
+    //             WorkType::SMALL_FFT,
+    //             nullptr,
+    //             item.tag,
+    //             coset_shifts[2],
+    //             2,
+    //         });
+    //         work_item_queue.push_back({
+    //             WorkType::SMALL_FFT,
+    //             nullptr,
+    //             item.tag,
+    //             coset_shifts[3],
+    //             3,
+    //         });
+    //     } else {
+    //         work_item_queue.push_back(item);
+    //     }
+    // #else
     work_item_queue.push_back(item);
-#endif
+    // #endif
 }
 
 void work_queue::process_queue()
@@ -222,6 +222,7 @@ void work_queue::process_queue()
 
             break;
         }
+        // Commenting this out as per above.
         // About 20% of the cost of a scalar multiplication. For WASM, might be a bit more expensive
         // due to the need to copy memory between web workers
         // case WorkType::SMALL_FFT: {

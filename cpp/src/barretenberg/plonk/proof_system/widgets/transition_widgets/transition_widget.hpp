@@ -42,8 +42,6 @@ template <class Field, size_t num_widget_relations> struct challenge_array {
 template <class Field> using poly_array = std::array<std::pair<Field, Field>, PolynomialIndex::MAX_NUM_POLYNOMIALS>;
 
 template <class Field> struct poly_ptr_map {
-    // TODO: WARNING! Check if making loads of unnecesary poly copies.
-    // Introduce "copy-on-write" to polynomial class.
     std::unordered_map<PolynomialIndex, polynomial> coefficients;
     size_t block_mask;
     size_t index_shift;

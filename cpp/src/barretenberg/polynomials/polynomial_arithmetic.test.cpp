@@ -1146,7 +1146,6 @@ TEST(polynomials, move_construct_and_assign)
     // verifiy that source poly is appropriately destroyed
     EXPECT_EQ(polynomial_a.begin(), nullptr);
     EXPECT_EQ(polynomial_a.size(), 0);
-    // EXPECT_EQ(polynomial_a.mapped_, false);
 
     // construct another poly; this will also use the move constructor!
     auto polynomial_c = std::move(polynomial_b);
@@ -1154,7 +1153,6 @@ TEST(polynomials, move_construct_and_assign)
     // verifiy that source poly is appropriately destroyed
     EXPECT_EQ(polynomial_b.begin(), nullptr);
     EXPECT_EQ(polynomial_b.size(), 0);
-    // EXPECT_EQ(polynomial_b.mapped_, false);
 
     // define a poly with some arbitrary coefficients
     polynomial polynomial_d(num_coeffs);
@@ -1168,7 +1166,6 @@ TEST(polynomials, move_construct_and_assign)
     // verifiy that source poly is appropriately destroyed
     EXPECT_EQ(polynomial_c.begin(), nullptr);
     EXPECT_EQ(polynomial_c.size(), 0);
-    // EXPECT_EQ(polynomial_c.mapped_, false);
 }
 
 TEST(polynomials, default_construct_then_assign)
