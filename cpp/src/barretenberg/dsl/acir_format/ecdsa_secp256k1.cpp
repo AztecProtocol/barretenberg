@@ -38,6 +38,8 @@ crypto::ecdsa::signature ecdsa_convert_signature(Composer& composer, std::vector
         signature_cr.s[i - 32] = fr_bytes.back();
     }
 
+    signature_cr.v = 27;
+
     return signature_cr;
 }
 
