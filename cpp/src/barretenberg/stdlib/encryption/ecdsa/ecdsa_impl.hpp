@@ -178,6 +178,10 @@ bool_t<Composer> verify_signature_noassert(const stdlib::byte_array<Composer>& m
     output &= result_mod_r.binary_basis_limbs[2].element == (r.binary_basis_limbs[2].element);
     output &= result_mod_r.binary_basis_limbs[3].element == (r.binary_basis_limbs[3].element);
     output &= result_mod_r.prime_basis_limb == (r.prime_basis_limb);
+
+    field_ct v = field_ct(sig.v);
+    output &= (v == field_ct(27) || v == field_ct(28));
+
     return output;
 }
 
