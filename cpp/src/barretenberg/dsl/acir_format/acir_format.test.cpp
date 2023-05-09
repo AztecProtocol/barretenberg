@@ -259,7 +259,7 @@ TEST(acir_format, test_ecdsa_verify)
 {
 
     // Offset by 1 since we cannot use the zero index
-    auto offset = 1;
+    uint32_t offset = 1;
 
     std::vector<uint32_t> hashed_message(32);
     std::vector<acir_format::RangeConstraint> range_constraints;
@@ -294,7 +294,7 @@ TEST(acir_format, test_ecdsa_verify)
     for (uint32_t i = 0; i < 64; i++) {
         signature[i] = i + offset;
         range_constraints.push_back(acir_format::RangeConstraint{
-            .witness = value,
+            .witness = i + offset,
             .num_bits = 8,
         });
     }
@@ -304,20 +304,20 @@ TEST(acir_format, test_ecdsa_verify)
 
     acir_format::EcdsaSecp256k1Constraint ecdsa_constraint{
         .message = hashed_message,
-        .public_key_x = pub_key_x,
-        .public_key_y = pub_key_y,
+        .pub_x_indices = pub_key_x,
+        .pub_y_indices = pub_key_y,
         .result = offset + 1,
         .signature = signature,
     };
 
     acir_format::acir_format constraint_system{
-        .varnum = offset + 1,
+        .varnum = offset + 10,
         .public_inputs = {},
         .fixed_base_scalar_mul_constraints = {},
         .logic_constraints = {},
         .range_constraints = range_constraints,
-        .schnorr_constraints = { ecdsa_constraint },
-        .ecdsa_constraints = {},
+        .schnorr_constraints = {},
+        .ecdsa_constraints = { ecdsa_constraint },
         .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},
@@ -437,6 +437,8 @@ TEST(acir_format, test_ecdsa_verify)
                                                                  237,
                                                                  54,
                                                                  208,
+                                                                 // Verification result
+                                                                 1,
                                                                  // signature
                                                                  100,
                                                                  235,
@@ -504,7 +506,6 @@ TEST(acir_format, test_ecdsa_verify)
                                                                  42,
 
                                                              });
-
     auto prover = composer.create_ultra_with_keccak_prover();
     auto proof = prover.construct_proof();
 
