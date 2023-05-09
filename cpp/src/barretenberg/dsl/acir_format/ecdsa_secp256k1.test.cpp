@@ -90,6 +90,7 @@ TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
         .keccak_constraints = {},
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
+        .compute_merkle_root_constraints = {},
         .constraints = {},
     };
 
@@ -128,6 +129,7 @@ TEST(ECDSASecp256k1, TestECDSAConstraintFail)
         .keccak_constraints = {},
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
+        .compute_merkle_root_constraints = {},
         .constraints = {},
     };
 
