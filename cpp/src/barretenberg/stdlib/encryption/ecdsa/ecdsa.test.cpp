@@ -80,11 +80,12 @@ TEST(stdlib_ecdsa, verify_signature_noassert_succeed)
 
     std::vector<uint8_t> rr(signature.r.begin(), signature.r.end());
     std::vector<uint8_t> ss(signature.s.begin(), signature.s.end());
+    uint8_t vv = signature.v;
 
     stdlib::ecdsa::signature<Composer> sig{
         curve::byte_array_ct(&composer, rr),
         curve::byte_array_ct(&composer, ss),
-        27,
+        stdlib::uint8<Composer>(&composer, vv),
     };
 
     curve::byte_array_ct message(&composer, message_string);
