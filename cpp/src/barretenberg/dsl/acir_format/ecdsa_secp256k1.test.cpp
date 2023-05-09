@@ -7,8 +7,7 @@
 #include <gtest/gtest.h>
 #include <vector>
 
-using namespace proof_system::plonk::stdlib::types;
-using curve = stdlib::secp256k1<Composer>;
+using curve = proof_system::plonk::stdlib::secp256k1<acir_format::Composer>;
 
 size_t generate_ecdsa_constraint(acir_format::EcdsaSecp256k1Constraint& ecdsa_constraint,
                                  std::vector<fr>& witness_values)
@@ -90,8 +89,6 @@ TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
         .blake2s_constraints = {},
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
-        .merkle_membership_constraints = {},
-        .recursion_constraints = {},
         .constraints = {},
     };
 
@@ -129,8 +126,6 @@ TEST(ECDSASecp256k1, TestECDSAConstraintFail)
         .blake2s_constraints = {},
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
-        .merkle_membership_constraints = {},
-        .recursion_constraints = {},
         .constraints = {},
     };
 
