@@ -53,6 +53,7 @@ bool_t<Composer> verify_signature(const stdlib::byte_array<Composer>& message,
      * [2] EIP-155: https://eips.ethereum.org/EIPS/eip-155
      *
      */
+    // Note: This check is also present in the _noassert variation of this method.
     field_t<Composer>(sig.v).assert_is_in_set({ field_t<Composer>(27), field_t<Composer>(28) },
                                               "signature is non-standard");
 
@@ -179,8 +180,8 @@ bool_t<Composer> verify_signature_noassert(const stdlib::byte_array<Composer>& m
     output &= result_mod_r.binary_basis_limbs[3].element == (r.binary_basis_limbs[3].element);
     output &= result_mod_r.prime_basis_limb == (r.prime_basis_limb);
 
-    field_ct v = field_ct(sig.v);
-    output &= (v == field_ct(27) || v == field_ct(28));
+    field_t<Composer>(sig.v).assert_is_in_set({ field_t<Composer>(27), field_t<Composer>(28) },
+                                              "signature is non-standard");
 
     return output;
 }
