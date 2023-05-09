@@ -81,7 +81,11 @@ TEST(stdlib_ecdsa, verify_signature_noassert_succeed)
     std::vector<uint8_t> rr(signature.r.begin(), signature.r.end());
     std::vector<uint8_t> ss(signature.s.begin(), signature.s.end());
 
-    stdlib::ecdsa::signature<Composer> sig{ curve::byte_array_ct(&composer, rr), curve::byte_array_ct(&composer, ss) };
+    stdlib::ecdsa::signature<Composer> sig{
+        curve::byte_array_ct(&composer, rr),
+        curve::byte_array_ct(&composer, ss),
+        27,
+    };
 
     curve::byte_array_ct message(&composer, message_string);
 
@@ -126,7 +130,9 @@ TEST(stdlib_ecdsa, verify_signature_noassert_fail)
     std::vector<uint8_t> rr(signature.r.begin(), signature.r.end());
     std::vector<uint8_t> ss(signature.s.begin(), signature.s.end());
 
-    stdlib::ecdsa::signature<Composer> sig{ curve::byte_array_ct(&composer, rr), curve::byte_array_ct(&composer, ss) };
+    stdlib::ecdsa::signature<Composer> sig{ curve::byte_array_ct(&composer, rr),
+                                            curve::byte_array_ct(&composer, ss),
+                                            27 };
 
     curve::byte_array_ct message(&composer, message_string);
 
