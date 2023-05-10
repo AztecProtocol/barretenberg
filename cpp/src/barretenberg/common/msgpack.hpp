@@ -89,7 +89,6 @@ e.g. unpacking
 ```
     msgpack::unpack((const char*)encoded_data, encoded_data_size).get().convert(*value);
 ```
-
 */
 #include <type_traits>
 #include "msgpack/name_value_pair_macro.hpp"

@@ -5,8 +5,9 @@
  * used in msgpack serialization. */
 
 // hacky counting of variadic macro params:
-#define VA_NARGS_IMPL(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, N, ...) N
-#define VA_NARGS(...) VA_NARGS_IMPL(__VA_ARGS__, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
+#define VA_NARGS_IMPL(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, N, ...) N
+// AD: support for 20 fields!? one may ask. Well, after 15 not being enough...
+#define VA_NARGS(...) VA_NARGS_IMPL(__VA_ARGS__, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1)
 
 // name-value pair expansion for variables
 // used in msgpack map expansion
@@ -27,6 +28,11 @@
 #define _NVP13(x, ...) _NVP1(x), _NVP12(__VA_ARGS__)
 #define _NVP14(x, ...) _NVP1(x), _NVP13(__VA_ARGS__)
 #define _NVP15(x, ...) _NVP1(x), _NVP14(__VA_ARGS__)
+#define _NVP16(x, ...) _NVP1(x), _NVP15(__VA_ARGS__)
+#define _NVP17(x, ...) _NVP1(x), _NVP16(__VA_ARGS__)
+#define _NVP18(x, ...) _NVP1(x), _NVP17(__VA_ARGS__)
+#define _NVP19(x, ...) _NVP1(x), _NVP18(__VA_ARGS__)
+#define _NVP20(x, ...) _NVP1(x), _NVP19(__VA_ARGS__)
 
 #define CONCAT(a, b) a ## b
 #define _NVP_N(n) CONCAT(_NVP, n)
