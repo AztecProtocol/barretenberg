@@ -5,9 +5,8 @@
 namespace acir_format {
 
 struct EcdsaSecp256k1Constraint {
-    // This is just a bunch of bytes
-    // which need to be interpreted as a string
-    // Note this must be a bunch of bytes
+    // This is the byte representation of the hashed message.
+    // TODO: rename this to hashed_message
     std::vector<uint32_t> message;
 
     // This is the supposed public key which signed the
