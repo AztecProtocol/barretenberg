@@ -28,7 +28,11 @@ struct EcdsaSecp256k1Constraint {
     friend bool operator==(EcdsaSecp256k1Constraint const& lhs, EcdsaSecp256k1Constraint const& rhs) = default;
 };
 
+template <bool has_witness = false>
 void create_ecdsa_verify_constraints(Composer& composer, const EcdsaSecp256k1Constraint& input);
+
+extern template void create_ecdsa_verify_constraints<true>(Composer& composer, const EcdsaSecp256k1Constraint& input);
+extern template void create_ecdsa_verify_constraints<false>(Composer& composer, const EcdsaSecp256k1Constraint& input);
 
 template <typename B> inline void read(B& buf, EcdsaSecp256k1Constraint& constraint)
 {

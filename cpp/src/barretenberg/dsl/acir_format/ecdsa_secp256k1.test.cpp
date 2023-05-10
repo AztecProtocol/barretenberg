@@ -32,8 +32,10 @@ size_t generate_ecdsa_constraint(acir_format::EcdsaSecp256k1Constraint& ecdsa_co
     for (size_t i = 0; i < message_string.size(); ++i) {
         message_in.emplace_back(i + offset);
         const auto byte = static_cast<uint8_t>(message_string[i]);
+        std::cout << static_cast<uint8_t>(message_string[i]) << std::endl;
         witness_values.emplace_back(byte);
     }
+    std::cout << message_in.size() << std::endl;
     offset += message_in.size();
 
     for (size_t i = 0; i < 32; ++i) {
@@ -72,6 +74,12 @@ size_t generate_ecdsa_constraint(acir_format::EcdsaSecp256k1Constraint& ecdsa_co
     return offset;
 }
 
+TEST(ECDSASecp256k1, DebugECDSA)
+{
+    acir_format::EcdsaSecp256k1Constraint ecdsa_constraint;
+    std::vector<fr> witness_values;
+    generate_ecdsa_constraint(ecdsa_constraint, witness_values);
+}
 TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
 {
     acir_format::EcdsaSecp256k1Constraint ecdsa_constraint;
@@ -102,6 +110,31 @@ TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
     auto proof = prover.construct_proof();
     auto verifier = composer.create_verifier();
     EXPECT_EQ(verifier.verify_proof(proof), true);
+}
+
+TEST(ECDSASecp256k1, TestECDSAConstraintSucceedSeparate)
+{
+    acir_format::EcdsaSecp256k1Constraint ecdsa_constraint;
+    std::vector<fr> witness_values;
+    size_t num_variables = generate_ecdsa_constraint(ecdsa_constraint, witness_values);
+    acir_format::acir_format constraint_system{
+        .varnum = static_cast<uint32_t>(num_variables),
+        .public_inputs = {},
+        .fixed_base_scalar_mul_constraints = {},
+        .logic_constraints = {},
+        .range_constraints = {},
+        .schnorr_constraints = {},
+        .ecdsa_constraints = { ecdsa_constraint },
+        .sha256_constraints = {},
+        .blake2s_constraints = {},
+        .keccak_constraints = {},
+        .hash_to_field_constraints = {},
+        .pedersen_constraints = {},
+        .compute_merkle_root_constraints = {},
+        .constraints = {},
+    };
+    auto crs_factory = std::make_unique<proof_system::ReferenceStringFactory>();
+    auto composer = create_circuit(constraint_system, std::move(crs_factory));
 }
 
 TEST(ECDSASecp256k1, TestECDSAConstraintFail)

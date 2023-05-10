@@ -234,7 +234,7 @@ Composer create_circuit_with_witness(const acir_format& constraint_system,
 
     // Add ECDSA constraints
     for (const auto& constraint : constraint_system.ecdsa_constraints) {
-        create_ecdsa_verify_constraints(composer, constraint);
+        create_ecdsa_verify_constraints<true>(composer, constraint);
     }
 
     // Add blake2s constraints
@@ -320,7 +320,7 @@ Composer create_circuit_with_witness(const acir_format& constraint_system, std::
 
     // Add ECDSA constraints
     for (const auto& constraint : constraint_system.ecdsa_constraints) {
-        create_ecdsa_verify_constraints(composer, constraint);
+        create_ecdsa_verify_constraints<true>(composer, constraint);
     }
 
     // Add blake2s constraints
@@ -404,7 +404,7 @@ void create_circuit_with_witness(Composer& composer, const acir_format& constrai
 
     // Add ECDSA constraints
     for (const auto& constraint : constraint_system.ecdsa_constraints) {
-        create_ecdsa_verify_constraints(composer, constraint);
+        create_ecdsa_verify_constraints<true>(composer, constraint);
     }
 
     // Add blake2s constraints
