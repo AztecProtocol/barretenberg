@@ -11,6 +11,9 @@
 #include "barretenberg/plonk/proof_system/widgets/transition_widgets/plookup_auxiliary_widget.hpp"
 #include "barretenberg/plonk/proof_system/widgets/random_widgets/permutation_widget.hpp"
 #include "barretenberg/plonk/proof_system/widgets/random_widgets/plookup_widget.hpp"
+// Be explicit about including the heavy implementation headers:
+#include "barretenberg/plonk/proof_system/widgets/random_widgets/plookup_widget_impl.hpp"
+#include "barretenberg/plonk/proof_system/widgets/random_widgets/permutation_widget_impl.hpp"
 #include "barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp"
 #include "barretenberg/srs/reference_string/file_reference_string.hpp"
 

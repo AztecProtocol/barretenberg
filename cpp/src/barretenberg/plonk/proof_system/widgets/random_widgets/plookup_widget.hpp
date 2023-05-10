@@ -48,4 +48,6 @@ class ProverPlookupWidget : public ProverRandomWidget {
 
 } // namespace proof_system::plonk
 
+// The class implementation is expensive to compile
+// Include it only in translation (.cpp) units that need it
 #include "./plookup_widget_impl.hpp"

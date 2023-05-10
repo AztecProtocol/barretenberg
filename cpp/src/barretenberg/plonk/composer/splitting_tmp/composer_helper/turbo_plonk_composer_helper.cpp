@@ -13,6 +13,8 @@
 #include "barretenberg/proof_system/composer/permutation_helper.hpp"
 #include "barretenberg/proof_system/composer/composer_helper_lib.hpp"
 #include "barretenberg/plonk/composer/splitting_tmp/composer_helper/composer_helper_lib.hpp"
+// Be explicit about including the heavy implementation headers:
+#include "barretenberg/plonk/proof_system/widgets/random_widgets/permutation_widget_impl.hpp"
 
 using namespace barretenberg;
 

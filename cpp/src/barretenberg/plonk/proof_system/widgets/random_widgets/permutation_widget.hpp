@@ -44,4 +44,6 @@ class ProverPermutationWidget : public ProverRandomWidget {
 
 } // namespace proof_system::plonk
 
+// The class implementation is expensive to compile
+// Include it only in translation (.cpp) units that need it
 #include "./permutation_widget_impl.hpp"

@@ -5,6 +5,10 @@
 #include "barretenberg/plonk/composer/standard_composer.hpp"
 #include "barretenberg/plonk/composer/ultra_composer.hpp"
 
+// Be explicit about including the heavy implementation headers:
+#include "barretenberg/plonk/proof_system/widgets/random_widgets/plookup_widget_impl.hpp"
+#include "barretenberg/plonk/proof_system/widgets/random_widgets/permutation_widget_impl.hpp"
+
 #include "circuits/blake_circuit.hpp"
 #include "circuits/add_2_circuit.hpp"
 #include "circuits/recursive_circuit.hpp"

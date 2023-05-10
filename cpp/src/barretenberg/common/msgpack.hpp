@@ -4,7 +4,8 @@ That should be treated as an implementation-only header.
 
 ## Overview
 
-The Msgpack module allows for efficient serialization and deserialization of data structures. It can be applied to map-like objects, array-like objects, and custom serialization/deserialization logic.
+The Msgpack module allows for efficient serialization and deserialization of data structures. It can be applied to
+map-like objects, array-like objects, and custom serialization/deserialization logic.
 
 ## Binding objects
 
@@ -14,33 +15,26 @@ Marking structs/classes with their fields for msgpack allows you to pack and unp
 2. Objects can be tightly packed as binary (see field_impl.hpp), array-like, or map-like. See below
 3. You should list all fields of a class in the below methods, or use the custom method.
 
-### Map-like Objects
+### Typical Objects
 
 To make objects serializable as a map-like format, define the `msgpack` method in your class as follows:
 
 ```cpp
 void msgpack(auto ar) {
-    ar(NVP(composer_type, circuit_size, num_public_inputs, commitments, contains_recursive_proof, recursive_proof_public_input_indices));
+    ar(NVP(composer_type, circuit_size, num_public_inputs, commitments, contains_recursive_proof,
+recursive_proof_public_input_indices));
 }
 or
-MSGPACK(composer_type, circuit_size, num_public_inputs, commitments, contains_recursive_proof, recursive_proof_public_input_indices);
+MSGPACK(composer_type, circuit_size, num_public_inputs, commitments, contains_recursive_proof,
+recursive_proof_public_input_indices);
 ```
 
-This approach assumes 1. all members are default constructible 2. you give it all members 3. all members are writable references
+This approach assumes 1. all members are default constructible 2. you give it all members 3. all members are writable
+references
 
-This method maps the object's properties (e.g., `composer_type`, `circuit_size`, etc.) to their respective keys in the serialized data.
+This method maps the object's properties (e.g., `composer_type`, `circuit_size`, etc.) to their respective keys in the
+serialized data.
 
-### Array-like Objects
-
-For array-like objects, define the `msgpack` method similarly:
-
-```cpp
-void msgpack(auto ar) {
-    ar(NVP(composer_type, circuit_size, num_public_inputs, commitments, contains_recursive_proof, recursive_proof_public_input_indices));
-}
-```
-
-This will serialize the object's properties as an array, rather than a map.
 
 ### Custom Serialization and Deserialization
 
@@ -102,7 +96,8 @@ e.g. unpacking
 #include "msgpack/concepts.hpp"
 
 // Helper for above documented syntax
-#define MSGPACK(...) \
-    void msgpack(auto pack_fn) { \
-        pack_fn(NVP(__VA_ARGS__)); \
+#define MSGPACK(...)                                                                                                   \
+    void msgpack(auto pack_fn)                                                                                         \
+    {                                                                                                                  \
+        pack_fn(NVP(__VA_ARGS__));                                                                                     \
     }
