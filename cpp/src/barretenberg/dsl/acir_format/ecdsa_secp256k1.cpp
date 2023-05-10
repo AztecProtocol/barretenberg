@@ -118,11 +118,11 @@ void create_ecdsa_verify_constraints(Composer& composer, const EcdsaSecp256k1Con
     }
 
     bool_ct signature_result =
-        stdlib::ecdsa::verify_signature_noassert<Composer,
-                                                 secp256k1_ct,
-                                                 secp256k1_ct::fq_ct,
-                                                 secp256k1_ct::bigfr_ct,
-                                                 secp256k1_ct::g1_bigfr_ct>(message, public_key, sig);
+        stdlib::ecdsa::verify_signature_prehashed_message_noassert<Composer,
+                                                                   secp256k1_ct,
+                                                                   secp256k1_ct::fq_ct,
+                                                                   secp256k1_ct::bigfr_ct,
+                                                                   secp256k1_ct::g1_bigfr_ct>(message, public_key, sig);
     bool_ct signature_result_normalized = signature_result.normalize();
     composer.assert_equal(signature_result_normalized.witness_index, input.result);
 }
