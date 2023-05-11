@@ -110,7 +110,10 @@ TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
     EXPECT_EQ(verifier.verify_proof(proof), true);
 }
 
-TEST(ECDSASecp256k1, TestECDSAConstraintSucceedSeparate)
+// Test that the verifier can create an ECDSA circuit.
+// The ECDSA circuit requires that certain dummy data is valid
+// even though we are just building the circuit.
+TEST(ECDSASecp256k1, TestECDSACompilesForVerifier)
 {
     acir_format::EcdsaSecp256k1Constraint ecdsa_constraint;
     std::vector<fr> witness_values;

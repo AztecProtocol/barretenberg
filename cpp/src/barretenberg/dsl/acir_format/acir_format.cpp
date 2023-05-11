@@ -11,7 +11,6 @@ void read_witness(Composer& composer, std::vector<barretenberg::fr> witness)
         composer.variables[i + 1] = witness[i];
     }
 }
-using curve = proof_system::plonk::stdlib::secp256k1<Composer>;
 
 // Add dummy constraints for ECDSA because when the verifier creates the
 // constraint system, they usually use zeroes for witness values.
@@ -26,14 +25,15 @@ void dummy_ecdsa_constraint(Composer& composer, EcdsaSecp256k1Constraint const& 
     std::vector<uint32_t> signature_;
     signature_.resize(64);
 
-    crypto::ecdsa::key_pair<curve::fr, curve::g1> account;
+    crypto::ecdsa::key_pair<secp256k1_ct::fr, secp256k1_ct::g1> account;
     account.private_key = 10;
-    account.public_key = curve::g1::one * account.private_key;
+    account.public_key = secp256k1_ct::g1::one * account.private_key;
     uint256_t pub_x_value = account.public_key.x;
     uint256_t pub_y_value = account.public_key.y;
     std::string message_string = "Instructions unclear, ask again later.";
     crypto::ecdsa::signature signature =
-        crypto::ecdsa::construct_signature<Sha256Hasher, curve::fq, curve::fr, curve::g1>(message_string, account);
+        crypto::ecdsa::construct_signature<Sha256Hasher, secp256k1_ct::fq, secp256k1_ct::fr, secp256k1_ct::g1>(
+            message_string, account);
     for (size_t i = 0; i < 32; ++i) {
         uint32_t x_wit = composer.add_variable(pub_x_value.slice(248 - i * 8, 256 - i * 8));
         uint32_t y_wit = composer.add_variable(pub_y_value.slice(248 - i * 8, 256 - i * 8));

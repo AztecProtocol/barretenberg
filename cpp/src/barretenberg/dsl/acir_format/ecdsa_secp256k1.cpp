@@ -5,7 +5,6 @@
 namespace acir_format {
 
 using namespace proof_system::plonk;
-using curve = proof_system::plonk::stdlib::secp256k1<acir_format::Composer>;
 
 crypto::ecdsa::signature ecdsa_convert_signature(Composer& composer, std::vector<uint32_t> signature)
 {
