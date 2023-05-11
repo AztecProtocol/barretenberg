@@ -77,7 +77,7 @@ WASM_EXPORT size_t acir_proofs_verify_recursive_proof(uint8_t const* proof_buf,
                                                       uint32_t proof_length,
                                                       uint8_t const* vk_buf,
                                                       uint32_t vk_length,
-                                                      uint8_t const* public_inputs_buf,
+                                                      uint32_t num_public_inputs,
                                                       uint8_t const* input_aggregation_obj_buf,
                                                       uint8_t** output_aggregation_obj_buf)
 {
@@ -85,7 +85,7 @@ WASM_EXPORT size_t acir_proofs_verify_recursive_proof(uint8_t const* proof_buf,
                                                proof_length,
                                                vk_buf,
                                                vk_length,
-                                               public_inputs_buf,
+                                               num_public_inputs,
                                                input_aggregation_obj_buf,
                                                output_aggregation_obj_buf);
 }

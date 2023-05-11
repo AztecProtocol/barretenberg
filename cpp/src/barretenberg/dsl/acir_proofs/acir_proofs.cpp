@@ -182,13 +182,53 @@ size_t new_proof(void* pippenger,
 {
     auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
 
+    // auto recursion_constraints = constraint_system.recursion_constraints;
+    // for (size_t i = 0; i < recursion_constraints.size(); i++) {
+    //     auto recursion_constraint = recursion_constraints[i];
+
+    //     std::cout << "key: [\n";
+    //     for (size_t i = 0; i < recursion_constraint.key.size(); i++) {
+    //         std::cout << recursion_constraint.key[i] << ", ";
+    //     }
+    //     std::cout << "]\n";
+
+    //     std::cout << "proof: [\n";
+    //     for (size_t i = 0; i < recursion_constraint.proof.size(); i++) {
+    //         std::cout << recursion_constraint.proof[i] << ", ";
+    //     }
+    //     std::cout << "]\n";
+
+    //     std::cout << "public_inputs: [\n";
+    //     for (size_t i = 0; i < recursion_constraint.public_inputs.size(); i++) {
+    //         std::cout << recursion_constraint.public_inputs[i] << ", ";
+    //     }
+    //     std::cout << "]\n";
+
+    //     std::cout << "key_hash: " << recursion_constraint.key_hash << std::endl;
+    //     std::cout << "input_aggregation_object: \n";
+    //     for (size_t i = 0; i < 16; i++) {
+    //         std::cout << recursion_constraint.input_aggregation_object[i] << std::endl;
+    //     }
+    //     std::cout << "output_aggregation_object: \n";
+    //     for (size_t i = 0; i < 16; i++) {
+    //         std::cout << recursion_constraint.output_aggregation_object[i] << std::endl;
+    //     }
+    //     std::cout << "nested_aggregation_object: \n";
+    //     for (size_t i = 0; i < 16; i++) {
+    //         std::cout << recursion_constraint.nested_aggregation_object[i] << std::endl;
+    //     }
+    // }
+
     std::shared_ptr<ProverReferenceString> crs;
     plonk::proving_key_data pk_data;
     read(pk_buf, pk_data);
     auto proving_key = std::make_shared<plonk::proving_key>(std::move(pk_data), crs);
 
     auto witness = from_buffer<std::vector<fr>>(witness_buf);
-
+    // std::cout << "witness: \n";
+    // for (size_t i = 0; i < witness.size(); i++) {
+    //     std::cout << witness[i] << std::endl;
+    // }
     auto crs_factory = std::make_unique<PippengerReferenceStringFactory>(
         reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), g2x);
     proving_key->reference_string = crs_factory->get_prover_crs(proving_key->circuit_size);
@@ -207,6 +247,8 @@ size_t new_proof(void* pippenger,
     } else {
         auto prover = composer.create_ultra_with_keccak_prover();
         auto heapProver = new acir_format::Prover(std::move(prover));
+        // auto pp = heapProver->construct_proof();
+        // std::cout << "pp: " << pp << std::endl;
         auto& proof_data = heapProver->construct_proof().proof_data;
         *proof_data_buf = proof_data.data();
         return proof_data.size();
@@ -230,11 +272,13 @@ bool verify_proof(uint8_t const* g2x,
         plonk::verification_key_data vk_data;
         read(vk_buf, vk_data);
         auto verification_key = std::make_shared<proof_system::plonk::verification_key>(std::move(vk_data), crs);
-
+        // std::cout << "verification_key: " << *verification_key << std::endl;
         acir_format::Composer composer(nullptr, verification_key);
         create_circuit(composer, constraint_system);
+        std::cout << "length: " << length << std::endl;
         plonk::proof pp = { std::vector<uint8_t>(proof, proof + length) };
 
+        std::cout << "pp: " << pp << std::endl;
         // For inner circuit use recursive prover and verifier, then for outer circuit use the normal prover and
         // verifier.
         // Either need a context flag for recursive verify or a new_recursive_verify_proof method that uses regular
@@ -276,18 +320,40 @@ size_t verify_recursive_proof(uint8_t const* proof_buf,
                               uint32_t proof_length,
                               uint8_t const* vk_buf,
                               uint32_t vk_length,
-                              uint8_t const* public_inputs_buf,
+                              uint32_t num_public_inputs,
                               uint8_t const* input_aggregation_obj_buf,
                               uint8_t** output_aggregation_obj_buf)
 {
     // TODO: not doing anything with public_inputs_buf right now because we only have one layer of recursion
     // and the previous aggregation state will be empty. When arbitrary depth recursion is available we will have to
     // construct the correct input aggregation_state_ct
-    (void)public_inputs_buf;
-    (void)input_aggregation_obj_buf;
 
     acir_format::aggregation_state_ct previous_aggregation;
-    previous_aggregation.has_data = false;
+    bool inner_aggregation_all_zero = true;
+    std::vector<barretenberg::fr> aggregation_input(16);
+    for (size_t i = 0; i < 16; i++) {
+        aggregation_input[i] = barretenberg::fr::serialize_from_buffer(&input_aggregation_obj_buf[i * 32]);
+        // std::cout << "aggregation_input[i]" << aggregation_input[i] << std::endl;
+        inner_aggregation_all_zero &= (aggregation_input[i].is_zero());
+    }
+    // std::cout << "inner_aggregation_all_zero: " << inner_aggregation_all_zero << std::endl;
+    if (!inner_aggregation_all_zero) {
+        std::array<acir_format::bn254::fq_ct, 4> aggregation_elements;
+        for (size_t i = 0; i < 4; ++i) {
+            aggregation_elements[i] = acir_format::bn254::fq_ct(acir_format::field_ct(aggregation_input[4 * i]),
+                                                                acir_format::field_ct(aggregation_input[4 * i + 1]),
+                                                                acir_format::field_ct(aggregation_input[4 * i + 2]),
+                                                                acir_format::field_ct(aggregation_input[4 * i + 3]));
+            aggregation_elements[i].assert_is_in_field();
+        }
+        // If we have a previous aggregation object, assign it to `previous_aggregation` so that it is included
+        // in stdlib::recursion::verify_proof
+        previous_aggregation.P0 = acir_format::bn254::g1_ct(aggregation_elements[0], aggregation_elements[1]);
+        previous_aggregation.P1 = acir_format::bn254::g1_ct(aggregation_elements[2], aggregation_elements[3]);
+        previous_aggregation.has_data = true;
+    } else {
+        previous_aggregation.has_data = false;
+    }
 
     std::vector<acir_format::field_ct> proof_fields(proof_length / 32);
     std::vector<acir_format::field_ct> key_fields(vk_length / 32);
@@ -300,7 +366,8 @@ size_t verify_recursive_proof(uint8_t const* proof_buf,
 
     acir_format::Composer composer;
 
-    transcript::Manifest manifest = acir_format::Composer::create_unrolled_manifest(1);
+    std::cout << "num_public_inputs: " << num_public_inputs << std::endl;
+    transcript::Manifest manifest = acir_format::Composer::create_unrolled_manifest(num_public_inputs);
     // We currently only support RecursionConstraint where inner_proof_contains_recursive_proof = false.
     // We would either need a separate ACIR opcode where inner_proof_contains_recursive_proof = true,
     // or we need non-witness data to be provided as metadata in the ACIR opcode
@@ -310,6 +377,7 @@ size_t verify_recursive_proof(uint8_t const* proof_buf,
         acir_format::verification_key_ct::from_field_pt_vector(&composer, key_fields);
     vkey->program_width = acir_format::noir_recursive_settings::program_width;
     acir_format::Transcript_ct transcript(&composer, manifest, proof_fields, 1);
+    std::cout << "previous_aggregation: " << previous_aggregation << std::endl;
     acir_format::aggregation_state_ct result =
         proof_system::plonk::stdlib::recursion::verify_proof_<acir_format::bn254, acir_format::noir_recursive_settings>(
             &composer, vkey, transcript, previous_aggregation);

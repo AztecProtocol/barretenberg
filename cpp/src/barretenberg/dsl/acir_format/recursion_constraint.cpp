@@ -31,7 +31,7 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
         nested_aggregation_indices_all_zero &= (idx == 0);
     }
     const bool inner_proof_contains_recursive_proof = !nested_aggregation_indices_all_zero;
-
+    // std::cout << "inner_proof_contains_recursive_proof: " << inner_proof_contains_recursive_proof << std::endl;
     // If we do not have a witness, we must ensure that our dummy witness will not trigger
     // on-curve errors and inverting-zero errors
     {
@@ -96,18 +96,27 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
     } else {
         previous_aggregation.has_data = false;
     }
+    std::cout << "previous_aggregation.has_data: " << previous_aggregation.has_data << std::endl;
 
     transcript::Manifest manifest = Composer::create_unrolled_manifest(input.public_inputs.size());
 
     std::vector<field_ct> key_fields;
     key_fields.reserve(input.key.size());
     for (const auto& idx : input.key) {
+        // if (has_valid_witness_assignment) {
+        //     auto key_field = field_ct::from_witness_index(&composer, idx);
+        //     std::cout << "key_field: " << key_field << std::endl;
+        // }
         key_fields.emplace_back(field_ct::from_witness_index(&composer, idx));
     }
 
     std::vector<field_ct> proof_fields;
     proof_fields.reserve(input.proof.size());
     for (const auto& idx : input.proof) {
+        // if (has_valid_witness_assignment) {
+        //     auto key_field = field_ct::from_witness_index(&composer, idx);
+        //     std::cout << "proof_field: " << key_field << std::endl;
+        // }
         proof_fields.emplace_back(field_ct::from_witness_index(&composer, idx));
     }
 
@@ -119,6 +128,12 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
     aggregation_state_ct result = proof_system::plonk::stdlib::recursion::verify_proof_<bn254, noir_recursive_settings>(
         &composer, vkey, transcript, previous_aggregation);
 
+    if (has_valid_witness_assignment) {
+        auto input_key_hash = field_ct::from_witness_index(&composer, input.key_hash);
+        std::cout << "input.key_hash: " << input.key_hash << std::endl;
+        std::cout << "input.key_hash witness: " << input_key_hash << std::endl;
+        std::cout << "vkey->compress(): " << vkey->compress() << std::endl;
+    }
     // Assign correct witness value to the verification key hash
     vkey->compress().assert_equal(field_ct::from_witness_index(&composer, input.key_hash));
     // std::cout << "compressed vkey\n";
@@ -131,13 +146,27 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
 
     // Assign the `public_input` field to the public input of the inner proof
     for (size_t i = 0; i < input.public_inputs.size(); ++i) {
+        if (has_valid_witness_assignment) {
+            auto res_pub_input = result.public_inputs[i];
+            auto input_pub_input = field_ct::from_witness_index(&composer, input.public_inputs[i]);
+            std::cout << "public_input[" << i << "]\n";
+            std::cout << "result.public_inputs[i]: " << res_pub_input
+                      << " , input.public_inputs[i]: " << input_pub_input << std::endl;
+        }
         result.public_inputs[i].assert_equal(field_ct::from_witness_index(&composer, input.public_inputs[i]));
     }
+    // std::cout << "compare recursive proof outputs to output agg object\n";
 
     // Assign the recursive proof outputs to `output_aggregation_object`
     for (size_t i = 0; i < result.proof_witness_indices.size(); ++i) {
         const auto lhs = field_ct::from_witness_index(&composer, result.proof_witness_indices[i]);
         const auto rhs = field_ct::from_witness_index(&composer, input.output_aggregation_object[i]);
+        if (has_valid_witness_assignment) {
+            std::cout << "result.proof_witness_indices[i]: " << result.proof_witness_indices[i] << std::endl;
+            std::cout << "lhs: " << lhs << std::endl;
+            std::cout << "input.output_aggregation_object[i]: " << input.output_aggregation_object[i] << std::endl;
+            std::cout << "rhs: " << rhs << std::endl;
+        }
         lhs.assert_equal(rhs);
     }
 }

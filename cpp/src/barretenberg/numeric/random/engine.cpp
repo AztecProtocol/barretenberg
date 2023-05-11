@@ -11,6 +11,9 @@ namespace {
 auto generate_random_data()
 {
     std::array<unsigned int, 32> random_data;
+    // for (size_t i = 0; i < 32; i++) {
+    //     random_data[i] = 10;
+    // }
     std::random_device source;
     std::generate(std::begin(random_data), std::end(random_data), std::ref(source));
     return random_data;

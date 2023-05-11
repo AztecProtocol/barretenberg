@@ -333,6 +333,7 @@ aggregation_state<Curve> verify_proof_(typename Curve::Composer* context,
     rhs_scalars.push_back(u);
 
     if (previous_output.has_data) {
+        // std::cout << "previous_output: " << previous_output << std::endl;
         fr_ct random_separator = transcript.get_challenge_field_element("separator", 1);
 
         opening_elements.push_back(previous_output.P0);
@@ -341,6 +342,9 @@ aggregation_state<Curve> verify_proof_(typename Curve::Composer* context,
         rhs_elements.push_back(
             (-(previous_output.P1)).reduce()); // TODO: use .normalize() instead? (As per defi bridge project)
         rhs_scalars.push_back(random_separator);
+
+        // std::cout << "P0: " << previous_output.P0 << std::endl;
+        // std::cout << "P1: " << previous_output.P1 << std::endl;
     }
 
     /**
@@ -419,9 +423,11 @@ aggregation_state<Curve> verify_proof_(typename Curve::Composer* context,
         rhs.y.binary_basis_limbs[3].element.normalize().witness_index,
     };
 
-    return aggregation_state<Curve>{
+    auto output = aggregation_state<Curve>{
         opening_result, rhs, transcript.get_field_element_vector("public_inputs"), proof_witness_indices, true,
     };
+    // std::cout << "output aggregation: " << output << std::endl;
+    return output;
 }
 
 } // namespace recursion
