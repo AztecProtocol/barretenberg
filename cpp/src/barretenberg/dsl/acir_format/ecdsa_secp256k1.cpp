@@ -85,56 +85,9 @@ witness_ct ecdsa_index_to_witness(Composer& composer, uint32_t index)
     return { &composer, value };
 }
 
-template <bool has_witness>
 void create_ecdsa_verify_constraints(Composer& composer, const EcdsaSecp256k1Constraint& input)
 {
-    {
-        std::vector<uint32_t> pub_x_indices_;
-        std::vector<uint32_t> pub_y_indices_;
-        std::vector<uint32_t> signature_;
-        signature_.resize(64);
-        if constexpr (has_witness) {
-            for (size_t i = 0; i < 32; ++i) {
-                uint32_t x_wit = composer.add_variable(composer.get_variable(input.pub_x_indices[i]));
-                uint32_t y_wit = composer.add_variable(composer.get_variable(input.pub_y_indices[i]));
-                uint32_t r_wit = composer.add_variable(composer.get_variable(input.signature[i]));
-                uint32_t s_wit = composer.add_variable(composer.get_variable(input.signature[i + 32]));
-                pub_x_indices_.emplace_back(x_wit);
-                pub_y_indices_.emplace_back(y_wit);
-                signature_[i] = r_wit;
-                signature_[i + 32] = s_wit;
-            }
-        } else {
-            crypto::ecdsa::key_pair<curve::fr, curve::g1> account;
-            account.private_key = 10;
-            account.public_key = curve::g1::one * account.private_key;
-            uint256_t pub_x_value = account.public_key.x;
-            uint256_t pub_y_value = account.public_key.y;
-            std::string message_string = "Instructions unclear, ask again later.";
-            crypto::ecdsa::signature signature =
-                crypto::ecdsa::construct_signature<Sha256Hasher, curve::fq, curve::fr, curve::g1>(message_string,
-                                                                                                  account);
-            for (size_t i = 0; i < 32; ++i) {
-                uint32_t x_wit = composer.add_variable(pub_x_value.slice(248 - i * 8, 256 - i * 8));
-                uint32_t y_wit = composer.add_variable(pub_y_value.slice(248 - i * 8, 256 - i * 8));
-                uint32_t r_wit = composer.add_variable(signature.r[i]);
-                uint32_t s_wit = composer.add_variable(signature.s[i]);
-                pub_x_indices_.emplace_back(x_wit);
-                pub_y_indices_.emplace_back(y_wit);
-                signature_[i] = r_wit;
-                signature_[i + 32] = s_wit;
-            }
-        }
-        for (size_t i = 0; i < input.pub_x_indices.size(); ++i) {
-            composer.assert_equal(pub_x_indices_[i], input.pub_x_indices[i]);
-        }
-        for (size_t i = 0; i < input.pub_y_indices.size(); ++i) {
-            composer.assert_equal(pub_y_indices_[i], input.pub_y_indices[i]);
-        }
-        for (size_t i = 0; i < input.signature.size(); ++i) {
-            composer.assert_equal(signature_[i], input.signature[i]);
-        }
-    }
+
     auto new_sig = ecdsa_convert_signature(composer, input.signature);
 
     auto message = ecdsa_vector_of_bytes_to_byte_array(composer, input.hashed_message);
@@ -174,7 +127,5 @@ void create_ecdsa_verify_constraints(Composer& composer, const EcdsaSecp256k1Con
     bool_ct signature_result_normalized = signature_result.normalize();
     composer.assert_equal(signature_result_normalized.witness_index, input.result);
 }
-template void create_ecdsa_verify_constraints<true>(Composer& composer, const EcdsaSecp256k1Constraint& input);
-template void create_ecdsa_verify_constraints<false>(Composer& composer, const EcdsaSecp256k1Constraint& input);
 
 } // namespace acir_format
