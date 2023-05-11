@@ -40,7 +40,6 @@ size_t generate_ecdsa_constraint(acir_format::EcdsaSecp256k1Constraint& ecdsa_co
         const auto byte = static_cast<uint8_t>(hashed_message[i]);
         witness_values.emplace_back(byte);
     }
-    std::cout << message_in.size() << std::endl;
     offset += message_in.size();
 
     for (size_t i = 0; i < 32; ++i) {
