@@ -28,6 +28,12 @@ signature construct_signature(const std::string& message, const key_pair<Fr, G1>
     Fr r_fr = Fr::serialize_from_buffer(&sig.r[0]);
     Fr s_fr = (z + r_fr * account.private_key) / k;
 
+    uint256_t s_u256(s_fr);
+    bool s_hi = ((s_u256 >> 255) & 1ULL) == 1ULL;
+    if (s_hi) {
+        s_fr = -s_fr;
+    }
+
     Fr::serialize_to_buffer(s_fr, &sig.s[0]);
 
     // compute recovery_id: given R = (x, y)
