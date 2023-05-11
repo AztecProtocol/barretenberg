@@ -89,7 +89,7 @@ void create_ecdsa_verify_constraints(Composer& composer, const EcdsaSecp256k1Con
 
     auto new_sig = ecdsa_convert_signature(composer, input.signature);
 
-    auto message = ecdsa_vector_of_bytes_to_byte_array(composer, input.message);
+    auto message = ecdsa_vector_of_bytes_to_byte_array(composer, input.hashed_message);
     auto pub_key_x_byte_arr = ecdsa_vector_of_bytes_to_byte_array(composer, input.pub_x_indices);
     auto pub_key_y_byte_arr = ecdsa_vector_of_bytes_to_byte_array(composer, input.pub_y_indices);
 
@@ -113,8 +113,8 @@ void create_ecdsa_verify_constraints(Composer& composer, const EcdsaSecp256k1Con
         pub_key_x_byte_arr[i].assert_equal(field_ct::from_witness_index(&composer, input.pub_x_indices[i]));
         pub_key_y_byte_arr[i].assert_equal(field_ct::from_witness_index(&composer, input.pub_y_indices[i]));
     }
-    for (size_t i = 0; i < input.message.size(); ++i) {
-        message[i].assert_equal(field_ct::from_witness_index(&composer, input.message[i]));
+    for (size_t i = 0; i < input.hashed_message.size(); ++i) {
+        message[i].assert_equal(field_ct::from_witness_index(&composer, input.hashed_message[i]));
     }
 
     bool_ct signature_result =

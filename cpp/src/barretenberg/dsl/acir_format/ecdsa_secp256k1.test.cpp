@@ -69,7 +69,7 @@ size_t generate_ecdsa_constraint(acir_format::EcdsaSecp256k1Constraint& ecdsa_co
     witness_values.emplace_back(1);
 
     ecdsa_constraint = acir_format::EcdsaSecp256k1Constraint{
-        .message = message_in,
+        .hashed_message = message_in,
         .pub_x_indices = pub_x_indices_in,
         .pub_y_indices = pub_y_indices_in,
         .result = result_in,
