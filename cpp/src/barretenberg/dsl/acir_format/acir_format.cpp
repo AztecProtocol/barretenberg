@@ -1,6 +1,5 @@
 #include "acir_format.hpp"
 #include "barretenberg/common/log.hpp"
-#include "barretenberg/crypto/ecdsa/ecdsa.hpp"
 
 namespace acir_format {
 
@@ -9,56 +8,6 @@ void read_witness(Composer& composer, std::vector<barretenberg::fr> witness)
     composer.variables[0] = 0;
     for (size_t i = 0; i < witness.size(); ++i) {
         composer.variables[i + 1] = witness[i];
-    }
-}
-
-// Add dummy constraints for ECDSA because when the verifier creates the
-// constraint system, they usually use zeroes for witness values.
-//
-// This does not work for ECDSA as the signature, r, s and public key need
-// to be valid.
-void dummy_ecdsa_constraint(Composer& composer, EcdsaSecp256k1Constraint const& input)
-{
-
-    std::vector<uint32_t> pub_x_indices_;
-    std::vector<uint32_t> pub_y_indices_;
-    std::vector<uint32_t> signature_;
-    signature_.resize(64);
-
-    // Create a valid signature with a valid public key
-    crypto::ecdsa::key_pair<secp256k1_ct::fr, secp256k1_ct::g1> account;
-    account.private_key = 10;
-    account.public_key = secp256k1_ct::g1::one * account.private_key;
-    uint256_t pub_x_value = account.public_key.x;
-    uint256_t pub_y_value = account.public_key.y;
-    std::string message_string = "Instructions unclear, ask again later.";
-    crypto::ecdsa::signature signature =
-        crypto::ecdsa::construct_signature<Sha256Hasher, secp256k1_ct::fq, secp256k1_ct::fr, secp256k1_ct::g1>(
-            message_string, account);
-
-    // Create new variables which will reference the valid public key and signature.
-    // We don't use them in a gate, so when we call assert_equal, they will be
-    // replaced as if they never existed.
-    for (size_t i = 0; i < 32; ++i) {
-        uint32_t x_wit = composer.add_variable(pub_x_value.slice(248 - i * 8, 256 - i * 8));
-        uint32_t y_wit = composer.add_variable(pub_y_value.slice(248 - i * 8, 256 - i * 8));
-        uint32_t r_wit = composer.add_variable(signature.r[i]);
-        uint32_t s_wit = composer.add_variable(signature.s[i]);
-        pub_x_indices_.emplace_back(x_wit);
-        pub_y_indices_.emplace_back(y_wit);
-        signature_[i] = r_wit;
-        signature_[i + 32] = s_wit;
-    }
-
-    // Call assert_equal(from, to) to replace the value in `to` by the value in `from`
-    for (size_t i = 0; i < input.pub_x_indices.size(); ++i) {
-        composer.assert_equal(pub_x_indices_[i], input.pub_x_indices[i]);
-    }
-    for (size_t i = 0; i < input.pub_y_indices.size(); ++i) {
-        composer.assert_equal(pub_y_indices_[i], input.pub_y_indices[i]);
-    }
-    for (size_t i = 0; i < input.signature.size(); ++i) {
-        composer.assert_equal(signature_[i], input.signature[i]);
     }
 }
 
@@ -112,8 +61,7 @@ void create_circuit(Composer& composer, const acir_format& constraint_system)
 
     // Add ECDSA constraints
     for (const auto& constraint : constraint_system.ecdsa_constraints) {
-        dummy_ecdsa_constraint(composer, constraint);
-        create_ecdsa_verify_constraints(composer, constraint);
+        create_ecdsa_verify_constraints(composer, constraint, false);
     }
 
     // Add blake2s constraints
@@ -196,8 +144,7 @@ Composer create_circuit(const acir_format& constraint_system,
 
     // Add ECDSA constraints
     for (const auto& constraint : constraint_system.ecdsa_constraints) {
-        dummy_ecdsa_constraint(composer, constraint);
-        create_ecdsa_verify_constraints(composer, constraint);
+        create_ecdsa_verify_constraints(composer, constraint, false);
     }
 
     // Add blake2s constraints
@@ -286,7 +233,7 @@ Composer create_circuit_with_witness(const acir_format& constraint_system,
 
     // Add ECDSA constraints
     for (const auto& constraint : constraint_system.ecdsa_constraints) {
-        create_ecdsa_verify_constraints(composer, constraint);
+        create_ecdsa_verify_constraints(composer, constraint, true);
     }
 
     // Add blake2s constraints
@@ -372,7 +319,7 @@ Composer create_circuit_with_witness(const acir_format& constraint_system, std::
 
     // Add ECDSA constraints
     for (const auto& constraint : constraint_system.ecdsa_constraints) {
-        create_ecdsa_verify_constraints(composer, constraint);
+        create_ecdsa_verify_constraints(composer, constraint, true);
     }
 
     // Add blake2s constraints
@@ -456,7 +403,7 @@ void create_circuit_with_witness(Composer& composer, const acir_format& constrai
 
     // Add ECDSA constraints
     for (const auto& constraint : constraint_system.ecdsa_constraints) {
-        create_ecdsa_verify_constraints(composer, constraint);
+        create_ecdsa_verify_constraints(composer, constraint, true);
     }
 
     // Add blake2s constraints
