@@ -13,6 +13,11 @@ void read_witness(Composer& composer, std::vector<barretenberg::fr> witness)
 }
 using curve = proof_system::plonk::stdlib::secp256k1<Composer>;
 
+// Add dummy constraints for ECDSA because when the verifier creates the
+// constraint system, they usually use zeroes for witness values.
+//
+// This does not work for ECDSA as the signature, r, s and public key need
+// to be valid.
 void dummy_ecdsa_constraint(Composer& composer, EcdsaSecp256k1Constraint const& input)
 {
 
