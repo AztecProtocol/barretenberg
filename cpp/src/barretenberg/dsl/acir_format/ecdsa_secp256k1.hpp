@@ -28,7 +28,7 @@ struct EcdsaSecp256k1Constraint {
 
 void create_ecdsa_verify_constraints(Composer& composer,
                                      const EcdsaSecp256k1Constraint& input,
-                                     bool has_valid_witness_assignments);
+                                     bool has_valid_witness_assignments = true);
 
 void dummy_ecdsa_constraint(Composer& composer, EcdsaSecp256k1Constraint const& input);
 
