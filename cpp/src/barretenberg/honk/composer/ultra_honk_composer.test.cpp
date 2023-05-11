@@ -292,11 +292,6 @@ TEST(UltraHonkComposer, non_trivial_tag_permutation)
     composer.assign_tag(c_idx, 2);
     composer.assign_tag(d_idx, 2);
 
-    // composer.create_add_gate({ a_idx, b_idx, composer.get_zero_idx(), fr::one(), fr::neg_one(), fr::zero(),
-    // fr::zero() }); composer.create_add_gate({ a_idx, b_idx, composer.get_zero_idx(), fr::one(), fr::neg_one(),
-    // fr::zero(), fr::zero() }); composer.create_add_gate({ a_idx, b_idx, composer.get_zero_idx(), fr::one(),
-    // fr::neg_one(), fr::zero(), fr::zero() });
-
     prove_and_verify(composer, /*expected_result=*/true);
 }
 
@@ -331,11 +326,6 @@ TEST(UltraHonkComposer, non_trivial_tag_permutation_and_cycles)
         { b_idx, a_idx, composer.get_zero_idx(), fr::one(), fr::neg_one(), fr::zero(), fr::zero() });
     composer.create_add_gate({ c_idx, g_idx, composer.get_zero_idx(), fr::one(), -fr::one(), fr::zero(), fr::zero() });
     composer.create_add_gate({ e_idx, f_idx, composer.get_zero_idx(), fr::one(), -fr::one(), fr::zero(), fr::zero() });
-
-    // composer.create_add_gate({ a_idx, b_idx, composer.get_zero_idx(), fr::one(), fr::neg_one(), fr::zero(),
-    // fr::zero() }); composer.create_add_gate({ a_idx, b_idx, composer.get_zero_idx(), fr::one(), fr::neg_one(),
-    // fr::zero(), fr::zero() }); composer.create_add_gate({ a_idx, b_idx, composer.get_zero_idx(), fr::one(),
-    // fr::neg_one(), fr::zero(), fr::zero() });
 
     prove_and_verify(composer, /*expected_result=*/true);
 }
