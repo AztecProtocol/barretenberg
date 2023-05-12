@@ -989,7 +989,8 @@ template <typename Composer> class stdlib_field : public testing::Test {
                 break;
             }
             case 1: {
-                a_val -= (a_val == 255) ? 1 : 0;
+                a_val = static_cast<uint8_t>(
+                    a_val - static_cast<uint8_t>((a_val == 255) ? static_cast<uint8_t>(1) : static_cast<uint8_t>(0)));
                 b_val = a_val + 1;
                 break;
             }
