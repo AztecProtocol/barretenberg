@@ -1007,7 +1007,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
             field_ct b = witness_ct(&composer, b_val);
             a.create_range_constraint(8);
             b.create_range_constraint(8);
-            bool_ct result = a.ranged_less_than(b);
+            bool_ct result = a.template ranged_less_than<8>(b);
             bool expected = a_val < b_val;
 
             EXPECT_EQ(result.get_value(), expected);
