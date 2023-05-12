@@ -1,9 +1,6 @@
 #include "block_constraint.hpp"
-//#include "round.hpp"
-//#include "stdlib/types/types.hpp"
 #include "barretenberg/stdlib/primitives/memory/rom_table.hpp"
 #include "barretenberg/stdlib/primitives/memory/ram_table.hpp"
-// using namespace plonk::stdlib::types;
 
 using namespace proof_system::plonk;
 
