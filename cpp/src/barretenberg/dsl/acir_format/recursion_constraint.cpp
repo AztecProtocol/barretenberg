@@ -40,7 +40,8 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
             PolynomialManifest(Composer::type), inner_proof_contains_recursive_proof);
         const auto manifest = Composer::create_unrolled_manifest(input.public_inputs.size());
         const std::vector<barretenberg::fr> dummy_proof =
-            transcript::StandardTranscript::export_dummy_transcript_in_recursion_format(manifest);
+            transcript::StandardTranscript::export_dummy_transcript_in_recursion_format(
+                manifest, inner_proof_contains_recursive_proof);
         for (size_t i = 0; i < input.proof.size(); ++i) {
             const auto proof_field_idx = input.proof[i];
             // std::cout << "proof_field_idx: " << proof_field_idx << std::endl;

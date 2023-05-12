@@ -51,8 +51,6 @@ size_t init_proving_key(uint8_t const* constraint_system_buf, uint8_t const** pk
 {
     auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
 
-    // constraint_system.recursion_constraints[0].
-
     // We know that we don't actually need any CRS to create a proving key, so just feed in a nothing.
     // Hacky, but, right now it needs *something*.
     auto crs_factory = std::make_unique<ReferenceStringFactory>();
@@ -86,6 +84,18 @@ size_t init_verification_key(void* pippenger, uint8_t const* g2x, uint8_t const*
     // The composer_type has not yet been set. We need to set the composer_type for when we later read in and
     // construct the verification key so that we have the correct polynomial manifest
     verification_key->composer_type = proof_system::ComposerType::PLOOKUP;
+
+    // Set the recursive proof indices as this is not done in `compute_verification_key_base`
+    verification_key->contains_recursive_proof = proving_key->contains_recursive_proof;
+    for (size_t i = 0; i < 16; ++i) {
+        if (proving_key->recursive_proof_public_input_indices.size() > i) {
+            verification_key->recursive_proof_public_input_indices.emplace_back(
+                proving_key->recursive_proof_public_input_indices[i]);
+        } else {
+            verification_key->recursive_proof_public_input_indices.emplace_back(0);
+            ASSERT(verification_key->contains_recursive_proof == false);
+        }
+    }
 
     auto buffer = to_buffer(*verification_key);
     auto raw_buf = (uint8_t*)malloc(buffer.size());
@@ -147,7 +157,6 @@ size_t serialize_verification_key_into_field_elements(uint8_t const* g2x,
     plonk::verification_key_data vk_data;
     read(vk_buf, vk_data);
     auto vkey = std::make_shared<proof_system::plonk::verification_key>(std::move(vk_data), crs);
-
     std::vector<barretenberg::fr> output = vkey->export_key_in_recursion_format();
 
     // NOTE: this output buffer will always have a fixed size! Maybe just precompute?

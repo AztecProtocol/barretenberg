@@ -270,7 +270,7 @@ std::pair<acir_format::acir_format, std::vector<fr>> create_outer_circuit(
         }
         if (has_nested_proof) {
             for (size_t i = 6; i < 22; ++i) {
-                nested_aggregation_object[i] = uint32_t(key_witnesses[i]);
+                nested_aggregation_object[i - 6] = uint32_t(key_witnesses[i]);
             }
         }
         for (size_t i = 0; i < proof_witnesses.size(); ++i) {
