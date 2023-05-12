@@ -28,7 +28,9 @@ template <typename Composer> class keccak {
   public:
     using witness_ct = stdlib::witness_t<Composer>;
     using field_ct = stdlib::field_t<Composer>;
+    using bool_ct = stdlib::bool_t<Composer>;
     using byte_array_ct = stdlib::byte_array<Composer>;
+    using uint32_ct = stdlib::uint32<Composer>;
 
     // base of extended representation we use for efficient logic operations
     static constexpr uint256_t BASE = 11;
@@ -166,10 +168,14 @@ template <typename Composer> class keccak {
     static void iota(keccak_state& state, size_t round);
     static void sponge_absorb(keccak_state& internal,
                               const std::vector<field_ct>& input_buffer,
-                              const std::vector<field_ct>& msb_buffer);
+                              const std::vector<field_ct>& msb_buffer,
+                              const field_ct& num_blocks_with_data);
     static byte_array_ct sponge_squeeze(keccak_state& internal);
     static void keccakf1600(keccak_state& state);
-    static byte_array_ct hash(byte_array_ct& input);
+    static byte_array_ct hash(byte_array_ct& input, const uint32_ct& num_bytes);
+    static byte_array_ct hash(byte_array_ct& input) { return hash(input, static_cast<uint32_t>(input.size())); };
+
+    static std::vector<field_ct> format_input_lanes(byte_array_ct& input, const uint32_ct& num_bytes);
 
     static std::vector<uint8_t> hash_native(const std::vector<uint8_t>& data)
     {

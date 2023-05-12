@@ -975,6 +975,50 @@ template <typename Composer> class stdlib_field : public testing::Test {
         bool proof_result = verifier.verify_proof(proof);
         EXPECT_EQ(proof_result, true);
     }
+
+    static void test_ranged_less_than()
+    {
+        Composer composer = Composer();
+
+        for (size_t i = 0; i < 10; ++i) {
+            uint8_t a_val = engine.get_random_uint8();
+            uint8_t b_val = 0;
+            switch (i) {
+            case 0: {
+                b_val = a_val;
+                break;
+            }
+            case 1: {
+                a_val -= (a_val == 255) ? 1 : 0;
+                b_val = a_val + 1;
+                break;
+            }
+            case 2: {
+                a_val += (a_val == 0) ? 1 : 0;
+                b_val = a_val - 1;
+                break;
+            }
+            default: {
+                b_val = engine.get_random_uint8();
+                break;
+            }
+            }
+            field_ct a = witness_ct(&composer, a_val);
+            field_ct b = witness_ct(&composer, b_val);
+            a.create_range_constraint(8);
+            b.create_range_constraint(8);
+            bool_ct result = a.ranged_less_than(b);
+            bool expected = a_val < b_val;
+
+            EXPECT_EQ(result.get_value(), expected);
+        }
+        auto prover = composer.create_prover();
+        auto verifier = composer.create_verifier();
+        auto proof = prover.construct_proof();
+        info("composer gates = ", composer.get_num_gates());
+        bool proof_result = verifier.verify_proof(proof);
+        EXPECT_EQ(proof_result, true);
+    }
 };
 
 typedef testing::Types<plonk::UltraComposer, plonk::TurboComposer, plonk::StandardComposer, honk::StandardHonkComposer>
@@ -1102,4 +1146,9 @@ TYPED_TEST(stdlib_field, test_copy_as_new_witness)
 {
     TestFixture::test_copy_as_new_witness();
 }
+TYPED_TEST(stdlib_field, test_ranged_less_than)
+{
+    TestFixture::test_ranged_less_than();
+}
+
 } // namespace test_stdlib_field
