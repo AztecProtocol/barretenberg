@@ -1,47 +1,24 @@
-import { readFile } from 'fs/promises';
-import isNode from 'detect-node';
+import { type Worker } from 'worker_threads';
 import { EventEmitter } from 'events';
-import { randomBytes } from 'crypto';
-import { fetch } from 'cross-fetch';
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { AsyncCallState, AsyncFnState } from './async_call_state.js';
-import { Crs } from '../crs/index.js';
-// import { NodeDataStore } from './node/node_data_store.js';
-// import { WebDataStore } from './browser/web_data_store.js';
-import { Worker } from 'worker_threads';
-import os from 'os';
 import createDebug from 'debug';
+import { Remote } from 'comlink';
+// Webpack config swaps this import with ./browser/index.js
+// You can toggle between these two imports to sanity check the type-safety.
+import { fetchCode, getNumCpu, createWorker, randomBytes, getRemoteBarretenbergWasm } from './node/index.js';
+// import { fetchCode, getNumCpu, createWorker, randomBytes } from './browser/index.js';
 
 EventEmitter.defaultMaxListeners = 30;
 
-function getNumCpu() {
-  return Math.min(isNode ? os.cpus().length : navigator.hardwareConcurrency, 8);
-}
-
-export async function fetchCode() {
-  if (isNode) {
-    const __dirname = dirname(fileURLToPath(import.meta.url));
-    return await readFile(__dirname + '/barretenberg.wasm');
-    // return await readFile('/mnt/user-data/charlie/min_wasm/maincpp.wasm');
-  } else {
-    const res = await fetch('/barretenberg.wasm');
-    return Buffer.from(await res.arrayBuffer());
-  }
-}
-
 export class BarretenbergWasm extends EventEmitter {
-  // private store = isNode ? new NodeDataStore() : new WebDataStore();
   private memory!: WebAssembly.Memory;
   private instance!: WebAssembly.Instance;
-  private asyncCallState = new AsyncCallState();
-  private memStore: { [key: string]: Uint8Array } = {};
   private workers: Worker[] = [];
+  private remoteWasms: RemoteBarretenbergWasm[] = [];
   private nextWorker = 0;
   private nextThreadId = 1;
 
   public static async new(
-    threads = getNumCpu(),
+    threads = Math.min(getNumCpu(), 8),
     logHandler: (msg: string) => void = createDebug('wasm'),
     initial?: number,
   ) {
@@ -62,7 +39,7 @@ export class BarretenbergWasm extends EventEmitter {
   /**
    * Init as main thread. Spawn child threads.
    */
-  public async init(threads: number, initial = 25, maximum = 2 ** 16) {
+  public async init(threads = Math.min(getNumCpu(), 8), initial = 25, maximum = 2 ** 16) {
     const initialMb = (initial * 2 ** 16) / (1024 * 1024);
     const maxMb = (maximum * 2 ** 16) / (1024 * 1024);
     this.debug(
@@ -80,31 +57,11 @@ export class BarretenbergWasm extends EventEmitter {
     // Init all global/static data.
     this.call('_initialize');
 
-    // this.asyncCallState.init(this.memory, this.call.bind(this), this.debug.bind(this));
-
-    const createWorker = (i: number) => {
-      return new Promise<Worker>(resolve => {
-        const __dirname = dirname(fileURLToPath(import.meta.url));
-        const worker = new Worker(
-          __dirname + `/node/barretenberg_thread.ts`,
-          // i === 0 ? { execArgv: ['--inspect-brk=0.0.0.0'] } : {},
-        );
-        const debug = createDebug(`wasm:worker:${i}`);
-        worker.on('message', msg => {
-          if (typeof msg === 'number') {
-            // Worker is ready.
-            resolve(worker);
-            return;
-          }
-          debug(msg);
-        });
-        worker.postMessage({ msg: 'start', data: { module, memory: this.memory } });
-      });
-    };
-
-    // Create worker threads. Returns once all workers have signalled they're ready.
+    // Create worker threads. Create 1 less than requested, as main thread counts as a thread.
     this.debug('creating worker threads...');
-    this.workers = await Promise.all(Array.from({ length: threads }).map((_, i) => createWorker(i)));
+    this.workers = await Promise.all(Array.from({ length: threads - 1 }).map(createWorker));
+    this.remoteWasms = await Promise.all(this.workers.map(getRemoteBarretenbergWasm));
+    await Promise.all(this.remoteWasms.map(w => w.initThread(module, this.memory)));
     this.debug('init complete.');
   }
 
@@ -114,16 +71,14 @@ export class BarretenbergWasm extends EventEmitter {
   public async initThread(module: WebAssembly.Module, memory: WebAssembly.Memory) {
     this.memory = memory;
     this.instance = await WebAssembly.instantiate(module, this.getImportObj(this.memory));
-
-    // this.asyncCallState.init(this.memory, this.call.bind(this), this.debug.bind(this));
   }
 
   /**
    * Called on main thread. Signals child threads to gracefully exit.
    */
-  public async destroy() {
-    this.workers.forEach(t => t.postMessage({ msg: 'exit' }));
-    await Promise.all(this.workers.map(worker => new Promise(resolve => worker.once('exit', resolve))));
+  public destroy() {
+    this.workers.forEach(w => w.terminate());
+    return Promise.resolve();
   }
 
   private getImportObj(memory: WebAssembly.Memory) {
@@ -133,30 +88,27 @@ export class BarretenbergWasm extends EventEmitter {
       // https://github.com/WebAssembly/WASI/blob/main/phases/snapshot/docs.md
       // We literally only need to support random_get, everything else is noop implementated in barretenberg.wasm.
       wasi_snapshot_preview1: {
-        random_get: (arr: any, length: number) => {
-          arr = arr >>> 0;
-          const heap = this.getMemory();
+        random_get: (out: any, length: number) => {
+          out = out >>> 0;
           const randomData = randomBytes(length);
-          for (let i = arr; i < arr + length; ++i) {
-            heap[i] = randomData[i - arr];
-          }
+          const mem = this.getMemory();
+          mem.set(randomData, out);
         },
         clock_time_get: (a1: number, a2: number, out: number) => {
           out = out >>> 0;
           const ts = BigInt(new Date().getTime()) * 1000000n;
-          const heap = this.getMemory();
-          const buf = Buffer.alloc(8);
-          buf.writeBigUInt64LE(ts);
-          buf.copy(heap, out);
+          const view = new DataView(this.getMemory().buffer);
+          view.setBigUint64(out, ts, true);
         },
       },
       wasi: {
         'thread-spawn': (arg: number) => {
           arg = arg >>> 0;
           const id = this.nextThreadId++;
-          const worker = this.nextWorker++ % this.workers.length;
+          const worker = this.nextWorker++ % this.remoteWasms.length;
           // this.debug(`spawning thread ${id} on worker ${worker} with arg ${arg >>> 0}`);
-          this.workers[worker].postMessage({ msg: 'thread', data: { id, arg } });
+          void this.remoteWasms[worker].call('wasi_thread_start', id, arg);
+          // this.remoteWasms[worker].postMessage({ msg: 'thread', data: { id, arg } });
           return id;
         },
       },
@@ -167,7 +119,7 @@ export class BarretenbergWasm extends EventEmitter {
         env_hardware_concurrency: () => {
           // If there are no workers (we're already running as a worker, or the main thread requested no workers)
           // then we return 1, which should cause any algos using threading to just not create a thread.
-          return this.workers.length || 1;
+          return this.remoteWasms.length + 1;
         },
         /**
          * The 'info' call we use for logging in C++, calls this under the hood.
@@ -181,54 +133,6 @@ export class BarretenbergWasm extends EventEmitter {
           this.debug(str2);
         },
 
-        get_data: (keyAddr: number, outBufAddr: number) => {
-          const key = this.stringFromAddress(keyAddr);
-          outBufAddr = outBufAddr >>> 0;
-          const data = this.memStore[key];
-          if (!data) {
-            this.debug(`get_data miss ${key}`);
-            return;
-          }
-          // this.debug(`get_data hit ${key} ${data.length}`);
-          this.writeMemory(outBufAddr, data);
-        },
-
-        set_data: (keyAddr: number, dataAddr: number, dataLength: number) => {
-          const key = this.stringFromAddress(keyAddr);
-          dataAddr = dataAddr >>> 0;
-          this.memStore[key] = this.getMemorySlice(dataAddr, dataAddr + dataLength);
-          // this.debug(`set_data: ${key} length: ${dataLength} hash: ${sha256(this.memStore[key])}`);
-        },
-
-        my_async_func: (acAddr: number) => {
-          this.debug('my_async_func entry');
-          setTimeout(() => {
-            this.debug('my_async_func notifying');
-            this.call('async_complete', acAddr);
-          }, 2000);
-        },
-
-        /**
-         * Read the data associated with the key located at keyAddr.
-         * Malloc data within the WASM, copy the data into the WASM, and return the address to the caller.
-         * The caller is responsible for taking ownership of (and freeing) the memory at the returned address.
-         */
-        // get_data: this.wrapAsyncImportFn(async (keyAddr: number, lengthOutAddr: number) => {
-        //   const key = this.stringFromAddress(keyAddr);
-        //   const data = await this.store.get(key);
-        //   if (!data) {
-        //     this.writeMemory(lengthOutAddr, numToUInt32LE(0));
-        //     return 0;
-        //   }
-        //   const dataAddr = this.call('bbmalloc', data.length);
-        //   this.writeMemory(lengthOutAddr, numToUInt32LE(data.length));
-        //   this.writeMemory(dataAddr, data);
-        //   return dataAddr;
-        // }),
-        // set_data: this.wrapAsyncImportFn(async (keyAddr: number, dataAddr: number, dataLength: number) => {
-        //   const key = this.stringFromAddress(keyAddr);
-        //   await this.store.set(key, Buffer.from(this.getMemorySlice(dataAddr, dataAddr + dataLength)));
-        // }),
         memory,
       },
     };
@@ -258,17 +162,6 @@ export class BarretenbergWasm extends EventEmitter {
     }
   }
 
-  /**
-   * Uses asyncify to enable async callbacks into js.
-   * https://kripken.github.io/blog/wasm/2019/07/16/asyncify.html
-   */
-  public async asyncCall(name: string, ...args: any) {
-    if (this.asyncCallState.state) {
-      throw new Error(`Can only handle one async call at a time: ${name}(${args})`);
-    }
-    return await this.asyncCallState.call(name, ...args);
-  }
-
   public memSize() {
     return this.getMemory().length;
   }
@@ -293,20 +186,14 @@ export class BarretenbergWasm extends EventEmitter {
     const m = this.getMemory();
     let i = addr;
     for (; m[i] !== 0; ++i);
-    return Buffer.from(m.slice(addr, i)).toString('ascii');
-  }
-
-  private wrapAsyncImportFn(fn: (...args: number[]) => Promise<number | void>) {
-    // TODO upstream this utility to asyncCallState?
-    return this.asyncCallState.wrapImportFn((state: AsyncFnState, ...args: number[]) => {
-      if (!state.continuation) {
-        return fn(...args);
-      }
-      return state.result;
-    });
+    const textDecoder = new TextDecoder('ascii');
+    return textDecoder.decode(m.slice(addr, i));
   }
 
   private debug(str: string) {
+    console.log(str);
     this.emit('log', str);
   }
 }
+
+export type RemoteBarretenbergWasm = Remote<BarretenbergWasm>;

@@ -1,6 +1,7 @@
-import { BarretenbergWasm } from '../barretenberg_wasm/barretenberg_wasm.js';
+import { BarretenbergWasm, RemoteBarretenbergWasm } from '../barretenberg_wasm/barretenberg_wasm.js';
 import { HeapAllocator } from './heap_allocator.js';
 import { Bufferable, OutputType } from '../serialize/index.js';
+import { asyncMap } from '../async_map/index.js';
 
 /**
  * Calls a WASM export function, handles allocating/freeing of memory, and serializing/deserializing to types.
@@ -20,37 +21,37 @@ import { Bufferable, OutputType } from '../serialize/index.js';
  * Binding will free any variable length output args that were allocated on the heap.
  */
 export class BarretenbergBinder {
-  constructor(public wasm: BarretenbergWasm) {}
+  constructor(public wasm: BarretenbergWasm | RemoteBarretenbergWasm) {}
 
-  callWasmExport(funcName: string, inArgs: Bufferable[], outTypes: OutputType[]) {
+  async callWasmExport(funcName: string, inArgs: Bufferable[], outTypes: OutputType[]) {
     const alloc = new HeapAllocator(this.wasm);
-    const inPtrs = alloc.copyToMemory(inArgs);
-    const outPtrs = alloc.getOutputPtrs(outTypes);
-    this.wasm.call(funcName, ...inPtrs, ...outPtrs);
+    const inPtrs = await alloc.copyToMemory(inArgs);
+    const outPtrs = await alloc.getOutputPtrs(outTypes);
+    await this.wasm.call(funcName, ...inPtrs, ...outPtrs);
     const outArgs = this.deserializeOutputArgs(outTypes, outPtrs, alloc);
-    alloc.freeAll();
+    await alloc.freeAll();
     return outArgs;
   }
 
-  async asyncCallWasmExport(funcName: string, inArgs: Bufferable[], outTypes: OutputType[]) {
-    const alloc = new HeapAllocator(this.wasm);
-    const inPtrs = alloc.copyToMemory(inArgs);
-    const outPtrs = alloc.getOutputPtrs(outTypes);
-    await this.wasm.asyncCall(funcName, ...inPtrs, ...outPtrs);
-    const outArgs = this.deserializeOutputArgs(outTypes, outPtrs, alloc);
-    alloc.freeAll();
-    return outArgs;
-  }
+  // async asyncCallWasmExport(funcName: string, inArgs: Bufferable[], outTypes: OutputType[]) {
+  //   const alloc = new HeapAllocator(this.wasm);
+  //   const inPtrs = alloc.copyToMemory(inArgs);
+  //   const outPtrs = alloc.getOutputPtrs(outTypes);
+  //   await this.wasm.asyncCall(funcName, ...inPtrs, ...outPtrs);
+  //   const outArgs = this.deserializeOutputArgs(outTypes, outPtrs, alloc);
+  //   alloc.freeAll();
+  //   return outArgs;
+  // }
 
   private deserializeOutputArgs(outTypes: OutputType[], outPtrs: number[], alloc: HeapAllocator) {
-    return outTypes.map((t, i) => {
+    return asyncMap(outTypes, async (t, i) => {
       if (t.SIZE_IN_BYTES) {
-        const slice = this.wasm.getMemorySlice(outPtrs[i], outPtrs[i] + t.SIZE_IN_BYTES);
+        const slice = await this.wasm.getMemorySlice(outPtrs[i], outPtrs[i] + t.SIZE_IN_BYTES);
         return t.fromBuffer(slice);
       }
-      const ptr = Buffer.from(this.wasm.getMemorySlice(outPtrs[i], outPtrs[i] + 4)).readUInt32LE();
+      const ptr = new DataView(await this.wasm.getMemorySlice(outPtrs[i], outPtrs[i] + 4)).getUint32(0, true);
       alloc.addOutputPtr(ptr);
-      return t.fromBuffer(this.wasm.getMemorySlice(ptr));
+      return t.fromBuffer(await this.wasm.getMemorySlice(ptr));
     });
   }
 }

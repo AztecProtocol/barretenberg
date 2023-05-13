@@ -12,7 +12,7 @@ export class Point {
     return new Point(Fr.random(), Fr.random());
   }
 
-  static fromBuffer(buffer: Uint8Array | Buffer | BufferReader) {
+  static fromBuffer(buffer: Uint8Array | BufferReader) {
     const reader = BufferReader.asReader(buffer);
     return new this(Fr.fromBuffer(reader), Fr.fromBuffer(reader));
   }

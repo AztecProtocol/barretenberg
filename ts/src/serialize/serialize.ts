@@ -1,100 +1,117 @@
-import { toBigIntBE, toBufferBE } from 'bigint-buffer';
-
 // For serializing bool.
 export function boolToBuffer(b: boolean) {
-  const buf = Buffer.alloc(1);
-  buf.writeUInt8(b ? 1 : 0);
+  const buf = new Uint8Array(1);
+  buf[0] = b ? 1 : 0;
   return buf;
 }
 
 // For serializing numbers to 32 bit little-endian form.
 export function numToUInt32LE(n: number, bufferSize = 4) {
-  const buf = Buffer.alloc(bufferSize);
-  buf.writeUInt32LE(n, bufferSize - 4);
+  const buf = new Uint8Array(bufferSize);
+  new DataView(buf.buffer).setUint32(buf.byteLength - 4, n, true);
   return buf;
 }
 
 // For serializing numbers to 32 bit big-endian form.
 export function numToUInt32BE(n: number, bufferSize = 4) {
-  const buf = Buffer.alloc(bufferSize);
-  buf.writeUInt32BE(n, bufferSize - 4);
+  const buf = new Uint8Array(bufferSize);
+  new DataView(buf.buffer).setUint32(buf.byteLength - 4, n, false);
   return buf;
 }
 
 // For serializing signed numbers to 32 bit big-endian form.
 export function numToInt32BE(n: number, bufferSize = 4) {
-  const buf = Buffer.alloc(bufferSize);
-  buf.writeInt32BE(n, bufferSize - 4);
+  const buf = new Uint8Array(bufferSize);
+  new DataView(buf.buffer).setInt32(buf.byteLength - 4, n, false);
   return buf;
 }
 
-// For serializing numbers to 32 bit big-endian form.
+// For serializing numbers to 8 bit form.
 export function numToUInt8(n: number) {
-  const bufferSize = 1;
-  const buf = Buffer.alloc(bufferSize);
-  buf.writeUInt8(n, 0);
+  const buf = new Uint8Array(1);
+  buf[0] = n;
   return buf;
+}
+
+function concatenateUint8Arrays(arrayOfUint8Arrays: Uint8Array[]) {
+  const totalLength = arrayOfUint8Arrays.reduce((prev, curr) => prev + curr.length, 0);
+  const result = new Uint8Array(totalLength);
+  let length = 0;
+  for (const array of arrayOfUint8Arrays) {
+    result.set(array, length);
+    length += array.length;
+  }
+  return result;
 }
 
 // For serializing a buffer as a vector.
-export function serializeBufferToVector(buf: Buffer) {
-  const lengthBuf = Buffer.alloc(4);
-  lengthBuf.writeUInt32BE(buf.length, 0);
-  return Buffer.concat([lengthBuf, buf]);
+export function serializeBufferToVector(buf: Uint8Array) {
+  return concatenateUint8Arrays([numToInt32BE(buf.length), buf]);
 }
 
 export function serializeBigInt(n: bigint, width = 32) {
-  return toBufferBE(n, width);
+  const buf = new Uint8Array(width);
+  for (let i = 0; i < width; i++) {
+    buf[width - i - 1] = Number((n >> BigInt(i * 8)) & 0xffn);
+  }
+  return buf;
 }
 
-export function deserializeBigInt(buf: Buffer, offset = 0, width = 32) {
-  return { elem: toBigIntBE(buf.slice(offset, offset + width)), adv: width };
+export function deserializeBigInt(buf: Uint8Array, offset = 0, width = 32) {
+  let result = 0n;
+  for (let i = 0; i < width; i++) {
+    result = (result << BigInt(8)) | BigInt(buf[offset + i]);
+  }
+  return { elem: result, adv: width };
 }
 
 export function serializeDate(date: Date) {
   return serializeBigInt(BigInt(date.getTime()), 8);
 }
 
-export function deserializeBufferFromVector(vector: Buffer, offset = 0) {
-  const length = vector.readUInt32BE(offset);
+export function deserializeBufferFromVector(vector: Uint8Array, offset = 0) {
+  const length = new DataView(vector.buffer, vector.byteOffset + offset, 4).getUint32(0, false);
   const adv = 4 + length;
-  return { elem: vector.slice(offset + 4, offset + adv), adv };
+  const elem = vector.slice(offset + 4, offset + adv);
+  return { elem, adv };
 }
 
-export function deserializeBool(buf: Buffer, offset = 0) {
+export function deserializeBool(buf: Uint8Array, offset = 0) {
   const adv = 1;
-  return { elem: buf.readUInt8(offset), adv };
+  const elem = buf[offset] !== 0;
+  return { elem, adv };
 }
 
-export function deserializeUInt32(buf: Buffer, offset = 0) {
+export function deserializeUInt32(buf: Uint8Array, offset = 0) {
   const adv = 4;
-  return { elem: buf.readUInt32BE(offset), adv };
+  const elem = new DataView(buf.buffer, buf.byteOffset + offset, adv).getUint32(0, false);
+  return { elem, adv };
 }
 
-export function deserializeInt32(buf: Buffer, offset = 0) {
+export function deserializeInt32(buf: Uint8Array, offset = 0) {
   const adv = 4;
-  return { elem: buf.readInt32BE(offset), adv };
+  const elem = new DataView(buf.buffer, buf.byteOffset + offset, adv).getInt32(0, false);
+  return { elem, adv };
 }
 
-export function deserializeField(buf: Buffer, offset = 0) {
+export function deserializeField(buf: Uint8Array, offset = 0) {
   const adv = 32;
-  return { elem: buf.slice(offset, offset + adv), adv };
+  const elem = buf.slice(offset, offset + adv);
+  return { elem, adv };
 }
 
 // For serializing an array of fixed length elements.
-export function serializeBufferArrayToVector(arr: Buffer[]) {
-  const lengthBuf = Buffer.alloc(4);
-  lengthBuf.writeUInt32BE(arr.length, 0);
-  return Buffer.concat([lengthBuf, ...arr]);
+export function serializeBufferArrayToVector(arr: Uint8Array[]) {
+  return concatenateUint8Arrays([numToUInt32BE(arr.length), ...arr.flat()]);
 }
 
 export function deserializeArrayFromVector<T>(
-  deserialize: (buf: Buffer, offset: number) => { elem: T; adv: number },
-  vector: Buffer,
+  deserialize: (buf: Uint8Array, offset: number) => { elem: T; adv: number },
+  vector: Uint8Array,
   offset = 0,
 ) {
   let pos = offset;
-  const size = vector.readUInt32BE(pos);
+  const size = new DataView(vector.buffer, vector.byteOffset + pos, 4).getUint32(0, false);
   pos += 4;
   const arr = new Array<T>(size);
   for (let i = 0; i < size; ++i) {
@@ -106,17 +123,17 @@ export function deserializeArrayFromVector<T>(
 }
 
 /** A type that can be written to a buffer. */
-export type Bufferable = boolean | Buffer | number | string | { toBuffer: () => Buffer } | Bufferable[];
+export type Bufferable = boolean | Uint8Array | number | string | { toBuffer: () => Uint8Array } | Bufferable[];
 
 /**
  * Serializes a list of objects contiguously for calling into wasm.
  * @param objs - Objects to serialize.
  * @returns A buffer list with the concatenation of all fields.
  */
-export function serializeBufferable(obj: Bufferable): Buffer {
+export function serializeBufferable(obj: Bufferable): Uint8Array {
   if (Array.isArray(obj)) {
     return serializeBufferArrayToVector(obj.map(serializeBufferable));
-  } else if (Buffer.isBuffer(obj)) {
+  } else if (obj instanceof Uint8Array) {
     return serializeBufferToVector(obj);
   } else if (typeof obj === 'boolean') {
     return boolToBuffer(obj);
@@ -125,7 +142,7 @@ export function serializeBufferable(obj: Bufferable): Buffer {
   } else if (typeof obj === 'bigint') {
     return serializeBigInt(obj);
   } else if (typeof obj === 'string') {
-    return serializeBufferToVector(Buffer.from(obj));
+    return serializeBufferToVector(new TextEncoder().encode(obj));
   } else {
     return obj.toBuffer();
   }

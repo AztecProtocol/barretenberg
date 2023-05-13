@@ -19,10 +19,10 @@ const api = new BarretenbergApi(new BarretenbergBinder(wasm));
 // Plus 1 need or ASSERT gets triggered. It was fine in release. Is the assertion wrong?
 const crs = new Crs(2 ** 19 + 1);
 await crs.init();
-const pippengerPtr = api.eccNewPippenger(Buffer.from(crs.getG1Data()), crs.numPoints);
+const pippengerPtr = await api.eccNewPippenger(Buffer.from(crs.getG1Data()), crs.numPoints);
 
 while (true) {
-  api.examplesSimpleCreateAndVerifyProof(pippengerPtr, Buffer.from(crs.getG2Data()));
+  await api.examplesSimpleCreateAndVerifyProof(pippengerPtr, Buffer.from(crs.getG2Data()));
   // logger(`valid: ${valid}`);
 }
 

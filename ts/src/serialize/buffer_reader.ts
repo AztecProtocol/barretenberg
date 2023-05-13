@@ -4,13 +4,14 @@ export class BufferReader {
     this.index = offset;
   }
 
-  public static asReader(bufferOrReader: Uint8Array | Buffer | BufferReader) {
+  public static asReader(bufferOrReader: Uint8Array | BufferReader) {
     return bufferOrReader instanceof BufferReader ? bufferOrReader : new BufferReader(bufferOrReader);
   }
 
   public readNumber(): number {
+    const dataView = new DataView(this.buffer.buffer, this.buffer.byteOffset + this.index, 4);
     this.index += 4;
-    return Buffer.from(this.buffer.subarray(this.index - 4, this.index)).readUint32BE();
+    return dataView.getUint32(0, false);
   }
 
   public readBoolean(): boolean {
@@ -18,9 +19,9 @@ export class BufferReader {
     return Boolean(this.buffer.at(this.index - 1));
   }
 
-  public readBytes(n: number): Buffer {
+  public readBytes(n: number): Uint8Array {
     this.index += n;
-    return Buffer.from(this.buffer.subarray(this.index - n, this.index));
+    return this.buffer.slice(this.index - n, this.index);
   }
 
   public readNumberVector(): number[] {
@@ -63,7 +64,7 @@ export class BufferReader {
     return this.readBuffer().toString();
   }
 
-  public readBuffer(): Buffer {
+  public readBuffer(): Uint8Array {
     const size = this.readNumber();
     return this.readBytes(size);
   }

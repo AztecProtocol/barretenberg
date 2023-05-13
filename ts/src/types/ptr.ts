@@ -7,9 +7,9 @@ import { BufferReader } from '../serialize/index.js';
 export class Ptr {
   static SIZE_IN_BYTES = 4;
 
-  constructor(public readonly value: Buffer) {}
+  constructor(public readonly value: Uint8Array) {}
 
-  static fromBuffer(buffer: Uint8Array | Buffer | BufferReader) {
+  static fromBuffer(buffer: Uint8Array | BufferReader) {
     const reader = BufferReader.asReader(buffer);
     return new this(reader.readBytes(this.SIZE_IN_BYTES));
   }
