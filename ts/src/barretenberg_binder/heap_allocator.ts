@@ -1,5 +1,5 @@
 import { Bufferable, serializeBufferable, OutputType } from '../serialize/index.js';
-import { BarretenbergWasm, RemoteBarretenbergWasm } from '../barretenberg_wasm/barretenberg_wasm.js';
+import { BarretenbergWasm, BarretenbergWasmWorker } from '../barretenberg_wasm/barretenberg_wasm.js';
 import { asyncMap } from '../async_map/index.js';
 
 /**
@@ -15,7 +15,7 @@ export class HeapAllocator {
   private inScratchRemaining = 1024;
   private outScratchRemaining = 1024;
 
-  constructor(private wasm: BarretenbergWasm | RemoteBarretenbergWasm) {}
+  constructor(private wasm: BarretenbergWasm | BarretenbergWasmWorker) {}
 
   async copyToMemory(bufferable: Bufferable[]) {
     return await asyncMap(bufferable.map(serializeBufferable), async buf => {

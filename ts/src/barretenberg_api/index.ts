@@ -8,11 +8,8 @@ import { Ptr } from '../types/index.js';
 export class BarretenbergApi {
   constructor(public binder: BarretenbergBinder) {}
 
-  static async create(threads: number, logger?: (msg: string) => void) {
+  static async create(threads: number) {
     const wasm = await BarretenbergWasm.new(threads);
-    if (logger) {
-      wasm.on('log', logger);
-    }
     return new BarretenbergApi(new BarretenbergBinder(wasm));
   }
 

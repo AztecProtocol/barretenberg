@@ -1,4 +1,4 @@
-import { NetCrs } from './net_crs.js';
+import { NetCrs } from '../net_crs.js';
 import { get, set } from 'idb-keyval';
 
 /**

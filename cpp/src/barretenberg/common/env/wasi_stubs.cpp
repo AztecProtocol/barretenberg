@@ -18,11 +18,11 @@ int32_t __imported_wasi_snapshot_preview1_poll_oneoff(int32_t, int32_t, int32_t,
     abort();
 }
 
-void __imported_wasi_snapshot_preview1_proc_exit(int32_t)
-{
-    info("proc_exit not implemented.");
-    abort();
-}
+// void __imported_wasi_snapshot_preview1_proc_exit(int32_t)
+// {
+//     info("proc_exit not implemented.");
+//     abort();
+// }
 
 int32_t __imported_wasi_snapshot_preview1_fd_write(int32_t, int32_t, int32_t, int32_t)
 {

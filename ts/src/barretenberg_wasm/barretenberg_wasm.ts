@@ -1,35 +1,46 @@
 import { type Worker } from 'worker_threads';
 import { EventEmitter } from 'events';
 import createDebug from 'debug';
-import { Remote } from 'comlink';
+import { Remote, proxy } from 'comlink';
 // Webpack config swaps this import with ./browser/index.js
 // You can toggle between these two imports to sanity check the type-safety.
 import { fetchCode, getNumCpu, createWorker, randomBytes, getRemoteBarretenbergWasm } from './node/index.js';
 // import { fetchCode, getNumCpu, createWorker, randomBytes } from './browser/index.js';
 
+createDebug.enable('*');
+const debug = createDebug('wasm');
+
 EventEmitter.defaultMaxListeners = 30;
 
-export class BarretenbergWasm extends EventEmitter {
+export class BarretenbergWasm {
+  static MAX_THREADS = 16;
   private memory!: WebAssembly.Memory;
   private instance!: WebAssembly.Instance;
   private workers: Worker[] = [];
-  private remoteWasms: RemoteBarretenbergWasm[] = [];
+  private remoteWasms: BarretenbergWasmWorker[] = [];
   private nextWorker = 0;
   private nextThreadId = 1;
+  private logger!: (msg: string) => void;
 
   public static async new(
-    threads = Math.min(getNumCpu(), 8),
-    logHandler: (msg: string) => void = createDebug('wasm'),
+    threads = Math.min(getNumCpu(), this.MAX_THREADS),
+    // logHandler: (msg: string) => void = createDebug('wasm'),
     initial?: number,
   ) {
     const barretenberg = new BarretenbergWasm();
-    barretenberg.on('log', logHandler);
-    await barretenberg.init(threads, initial);
+    await barretenberg.init(threads, debug, initial);
     return barretenberg;
   }
 
-  constructor() {
-    super();
+  /**
+   * Construct and initialise BarretenbergWasm within a Worker. Return both the worker and the wasm proxy.
+   * Used when running in the browser, because we can't block the main thread.
+   */
+  public static async newWorker() {
+    const worker = createWorker();
+    const wasm = getRemoteBarretenbergWasm(worker);
+    await wasm.init(undefined, proxy(debug));
+    return { worker, wasm };
   }
 
   public getNumWorkers() {
@@ -39,10 +50,17 @@ export class BarretenbergWasm extends EventEmitter {
   /**
    * Init as main thread. Spawn child threads.
    */
-  public async init(threads = Math.min(getNumCpu(), 8), initial = 25, maximum = 2 ** 16) {
+  public async init(
+    threads = Math.min(getNumCpu(), BarretenbergWasm.MAX_THREADS),
+    logger: (msg: string) => void = createDebug('wasm'),
+    initial = 25,
+    maximum = 2 ** 16,
+  ) {
+    this.logger = logger;
+
     const initialMb = (initial * 2 ** 16) / (1024 * 1024);
     const maxMb = (maximum * 2 ** 16) / (1024 * 1024);
-    this.debug(
+    this.logger(
       `initial mem: ${initial} pages, ${initialMb}MiB. ` +
         `max mem: ${maximum} pages, ${maxMb}MiB. ` +
         `threads: ${threads}`,
@@ -58,15 +76,15 @@ export class BarretenbergWasm extends EventEmitter {
     this.call('_initialize');
 
     // Create worker threads. Create 1 less than requested, as main thread counts as a thread.
-    this.debug('creating worker threads...');
+    this.logger('creating worker threads...');
     this.workers = await Promise.all(Array.from({ length: threads - 1 }).map(createWorker));
     this.remoteWasms = await Promise.all(this.workers.map(getRemoteBarretenbergWasm));
     await Promise.all(this.remoteWasms.map(w => w.initThread(module, this.memory)));
-    this.debug('init complete.');
+    this.logger('init complete.');
   }
 
   /**
-   * Init as spawned thread.
+   * Init as worker thread.
    */
   public async initThread(module: WebAssembly.Module, memory: WebAssembly.Memory) {
     this.memory = memory;
@@ -100,6 +118,9 @@ export class BarretenbergWasm extends EventEmitter {
           const view = new DataView(this.getMemory().buffer);
           view.setBigUint64(out, ts, true);
         },
+        proc_exit: () => {
+          this.logger('HUNG: proc_exit was called. This is caused by unstable experimental wasi pthreads. Try again.');
+        },
       },
       wasi: {
         'thread-spawn': (arg: number) => {
@@ -130,7 +151,7 @@ export class BarretenbergWasm extends EventEmitter {
           const str = this.stringFromAddress(addr);
           const m = this.getMemory();
           const str2 = `${str} (mem: ${(m.length / (1024 * 1024)).toFixed(2)}MiB)`;
-          this.debug(str2);
+          this.logger(str2);
         },
 
         memory,
@@ -156,8 +177,8 @@ export class BarretenbergWasm extends EventEmitter {
       return this.exports()[name](...args) >>> 0;
     } catch (err: any) {
       const message = `WASM function ${name} aborted, error: ${err}`;
-      this.debug(message);
-      this.debug(err.stack);
+      this.logger(message);
+      this.logger(err.stack);
       throw new Error(message);
     }
   }
@@ -189,11 +210,6 @@ export class BarretenbergWasm extends EventEmitter {
     const textDecoder = new TextDecoder('ascii');
     return textDecoder.decode(m.slice(addr, i));
   }
-
-  private debug(str: string) {
-    console.log(str);
-    this.emit('log', str);
-  }
 }
 
-export type RemoteBarretenbergWasm = Remote<BarretenbergWasm>;
+export type BarretenbergWasmWorker = Remote<BarretenbergWasm>;

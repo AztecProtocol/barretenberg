@@ -1,17 +1,10 @@
 import { BarretenbergWasm } from './barretenberg_wasm.js';
 
-function debug(message: string) {
-  // const logFilePath = `worker.log`;
-  // writeFileSync(logFilePath, message + '\n', { flag: 'a' });
-  console.log(message);
-}
-
 describe('barretenberg wasm', () => {
   let wasm!: BarretenbergWasm;
 
   beforeAll(async () => {
     wasm = await BarretenbergWasm.new();
-    wasm.on('log', debug);
   });
 
   afterAll(async () => {

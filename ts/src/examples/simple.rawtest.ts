@@ -1,29 +1,30 @@
-import { BarretenbergApi } from '../barretenberg_api/index.js';
 import { BarretenbergWasm } from '../barretenberg_wasm/index.js';
-import { BarretenbergBinder } from '../barretenberg_binder/index.js';
-import { Crs } from '../index.js';
-import { writeFileSync } from 'fs';
+import { Crs } from '../crs/index.js';
 import createDebug from 'debug';
+import { BarretenbergApi } from '../barretenberg_api/index.js';
+import { BarretenbergBinder } from '../barretenberg_binder/index.js';
 
 createDebug.enable('*');
-const debug = createDebug('wasm');
+const debug = createDebug('simple_test');
 
-function logger(message: string) {
-  debug(message);
-  writeFileSync(`worker.log`, message + '\n', { flag: 'a' });
+async function main() {
+  debug('starting test...');
+  const { wasm, worker } = await BarretenbergWasm.newWorker();
+  const api = new BarretenbergApi(new BarretenbergBinder(wasm));
+
+  // Plus 1 needed!
+  const crs = await Crs.new(2 ** 19 + 1);
+  const pippengerPtr = await api.eccNewPippenger(crs.getG1Data(), crs.numPoints);
+
+  // while (true) {
+  await api.examplesSimpleCreateAndVerifyProof(pippengerPtr, crs.getG2Data());
+  //   // logger(`valid: ${valid}`);
+  // }
+
+  await wasm.destroy();
+  await worker.terminate();
+
+  debug('test complete.');
 }
 
-const wasm = await BarretenbergWasm.new(16, logger);
-const api = new BarretenbergApi(new BarretenbergBinder(wasm));
-
-// Plus 1 need or ASSERT gets triggered. It was fine in release. Is the assertion wrong?
-const crs = new Crs(2 ** 19 + 1);
-await crs.init();
-const pippengerPtr = await api.eccNewPippenger(Buffer.from(crs.getG1Data()), crs.numPoints);
-
-while (true) {
-  await api.examplesSimpleCreateAndVerifyProof(pippengerPtr, Buffer.from(crs.getG2Data()));
-  // logger(`valid: ${valid}`);
-}
-
-await wasm.destroy();
+void main();

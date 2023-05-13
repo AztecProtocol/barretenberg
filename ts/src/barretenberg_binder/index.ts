@@ -1,4 +1,4 @@
-import { BarretenbergWasm, RemoteBarretenbergWasm } from '../barretenberg_wasm/barretenberg_wasm.js';
+import { BarretenbergWasm, BarretenbergWasmWorker } from '../barretenberg_wasm/barretenberg_wasm.js';
 import { HeapAllocator } from './heap_allocator.js';
 import { Bufferable, OutputType } from '../serialize/index.js';
 import { asyncMap } from '../async_map/index.js';
@@ -21,7 +21,7 @@ import { asyncMap } from '../async_map/index.js';
  * Binding will free any variable length output args that were allocated on the heap.
  */
 export class BarretenbergBinder {
-  constructor(public wasm: BarretenbergWasm | RemoteBarretenbergWasm) {}
+  constructor(public wasm: BarretenbergWasm | BarretenbergWasmWorker) {}
 
   async callWasmExport(funcName: string, inArgs: Bufferable[], outTypes: OutputType[]) {
     const alloc = new HeapAllocator(this.wasm);

@@ -15,9 +15,8 @@ export default {
   target: 'web',
   mode: 'production',
   entry: {
-    barretenberg_thread: './src/barretenberg_wasm/browser/barretenberg_thread.ts',
     barretenberg_wasm: './src/barretenberg_wasm/browser/worker.ts',
-    simple_test: './src/examples/simple.rawtest.browser.ts',
+    simple_test: './src/examples/simple.rawtest.ts',
   },
   module: {
     rules: [
@@ -55,7 +54,9 @@ export default {
     plugins: [new ResolveTypeScriptPlugin()],
   },
   devServer: {
+    hot: false,
     client: {
+      logging: 'none',
       overlay: false,
     },
     headers: {

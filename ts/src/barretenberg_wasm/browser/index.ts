@@ -1,5 +1,5 @@
 import { wrap } from 'comlink';
-import { RemoteBarretenbergWasm, type BarretenbergWasm } from '../barretenberg_wasm.js';
+import { BarretenbergWasmWorker, type BarretenbergWasm } from '../barretenberg_wasm.js';
 
 export async function fetchCode() {
   const res = await fetch('/barretenberg.wasm');
@@ -8,30 +8,9 @@ export async function fetchCode() {
 
 export function createWorker() {
   return new Worker('barretenberg_wasm.js');
-  // return new Promise<RemoteBarretenbergWasm>(resolve => {
-  // const worker = new Worker('barretenberg_wasm.js');
-  // const wasm = wrap<BarretenbergWasm>(worker);
-
-  // // Wait till worker is ready.
-  // const messageHandler = (event: any) => {
-  //   if (event.data.ready) {
-  //     // The worker is ready, resolve the promise
-  //     worker.removeEventListener('message', messageHandler);
-  //     resolve(wasm);
-  //   }
-  // };
-
-  // // Listen for the ready message from the worker
-  // worker.addEventListener('message', messageHandler);
-
-  // const debug = createDebug(`wasm:worker:${i}`);
-  // Worker posts a message when it's ready.
-  // worker.addEventListener('message', () => resolve(worker));
-  // worker.postMessage({ msg: 'start', data: { module, memory } });
-  // });
 }
 
-export function getRemoteBarretenbergWasm(worker: Worker): RemoteBarretenbergWasm {
+export function getRemoteBarretenbergWasm(worker: Worker): BarretenbergWasmWorker {
   return wrap<BarretenbergWasm>(worker);
 }
 
