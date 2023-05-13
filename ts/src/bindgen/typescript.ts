@@ -21,14 +21,12 @@ export class BarretenbergApi {
   }
 `;
 
-  for (const { functionName, inArgs, outArgs, isAsync } of functionDeclarations) {
+  for (const { functionName, inArgs, outArgs } of functionDeclarations) {
     try {
       const parameters = inArgs.map(({ name, type }) => `${toCamelCase(name)}: ${mapType(type)}`).join(', ');
       const inArgsVar = `[${inArgs.map(arg => toCamelCase(arg.name)).join(', ')}]`;
       const outTypesVar = `[${outArgs.map(arg => mapDeserializer(arg.type)).join(', ')}]`;
-      const wasmCall = `const result = ${
-        isAsync ? 'await this.binder.asyncC' : 'this.binder.c'
-      }allWasmExport('${functionName}', ${inArgsVar}, ${outTypesVar});`;
+      const wasmCall = `const result = await this.binder.callWasmExport('${functionName}', ${inArgsVar}, ${outTypesVar});`;
 
       const n = outArgs.length;
       const returnStmt = n === 0 ? 'return;' : n === 1 ? 'return result[0];' : 'return result as any;';
@@ -39,21 +37,12 @@ export class BarretenbergApi {
           ? `${mapType(outArgs[0].type)}`
           : `[${outArgs.map(a => mapType(a.type)).join(', ')}]`;
 
-      if (isAsync) {
-        output += `
+      output += `
   async ${toCamelCase(functionName)}(${parameters}): Promise<${returnType}> {
     ${wasmCall}
     ${returnStmt}
   }
 `;
-      } else {
-        output += `
-  ${toCamelCase(functionName)}(${parameters}): ${returnType} {
-    ${wasmCall}
-    ${returnStmt}
-  }
-`;
-      }
     } catch (err: any) {
       throw new Error(`Function ${functionName}: ${err.message}`);
     }

@@ -33,16 +33,6 @@ export class BarretenbergBinder {
     return outArgs;
   }
 
-  // async asyncCallWasmExport(funcName: string, inArgs: Bufferable[], outTypes: OutputType[]) {
-  //   const alloc = new HeapAllocator(this.wasm);
-  //   const inPtrs = alloc.copyToMemory(inArgs);
-  //   const outPtrs = alloc.getOutputPtrs(outTypes);
-  //   await this.wasm.asyncCall(funcName, ...inPtrs, ...outPtrs);
-  //   const outArgs = this.deserializeOutputArgs(outTypes, outPtrs, alloc);
-  //   alloc.freeAll();
-  //   return outArgs;
-  // }
-
   private deserializeOutputArgs(outTypes: OutputType[], outPtrs: number[], alloc: HeapAllocator) {
     return asyncMap(outTypes, async (t, i) => {
       if (t.SIZE_IN_BYTES) {

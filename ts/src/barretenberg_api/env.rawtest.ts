@@ -14,6 +14,6 @@ const api = new BarretenbergApi(new BarretenbergBinder(await BarretenbergWasm.ne
 while (true) {
   const threads = api.binder.wasm.getNumWorkers();
   const iterations = 10000000 / 4;
-  api.envTestThreads(threads, iterations);
+  await api.envTestThreads(threads, iterations);
   await new Promise(resolve => setTimeout(resolve, 0));
 }
