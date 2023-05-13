@@ -2,6 +2,7 @@ import { BarretenbergWasm, BarretenbergWasmWorker } from '../barretenberg_wasm/b
 import { HeapAllocator } from './heap_allocator.js';
 import { Bufferable, OutputType } from '../serialize/index.js';
 import { asyncMap } from '../async_map/index.js';
+import { HeapAllocatorSync } from './heap_allocator_sync.js';
 
 /**
  * Calls a WASM export function, handles allocating/freeing of memory, and serializing/deserializing to types.
@@ -39,9 +40,37 @@ export class BarretenbergBinder {
         const slice = await this.wasm.getMemorySlice(outPtrs[i], outPtrs[i] + t.SIZE_IN_BYTES);
         return t.fromBuffer(slice);
       }
-      const ptr = new DataView(await this.wasm.getMemorySlice(outPtrs[i], outPtrs[i] + 4)).getUint32(0, true);
+      const slice = await this.wasm.getMemorySlice(outPtrs[i], outPtrs[i] + 4);
+      const ptr = new DataView(slice.buffer, slice.byteOffset, slice.byteLength).getUint32(0, true);
       alloc.addOutputPtr(ptr);
       return t.fromBuffer(await this.wasm.getMemorySlice(ptr));
+    });
+  }
+}
+
+export class BarretenbergBinderSync {
+  constructor(public wasm: BarretenbergWasm) {}
+
+  callWasmExport(funcName: string, inArgs: Bufferable[], outTypes: OutputType[]) {
+    const alloc = new HeapAllocatorSync(this.wasm);
+    const inPtrs = alloc.copyToMemory(inArgs);
+    const outPtrs = alloc.getOutputPtrs(outTypes);
+    this.wasm.call(funcName, ...inPtrs, ...outPtrs);
+    const outArgs = this.deserializeOutputArgs(outTypes, outPtrs, alloc);
+    alloc.freeAll();
+    return outArgs;
+  }
+
+  private deserializeOutputArgs(outTypes: OutputType[], outPtrs: number[], alloc: HeapAllocatorSync) {
+    return outTypes.map((t, i) => {
+      if (t.SIZE_IN_BYTES) {
+        const slice = this.wasm.getMemorySlice(outPtrs[i], outPtrs[i] + t.SIZE_IN_BYTES);
+        return t.fromBuffer(slice);
+      }
+      const slice = this.wasm.getMemorySlice(outPtrs[i], outPtrs[i] + 4);
+      const ptr = new DataView(slice.buffer, slice.byteOffset, slice.byteLength).getUint32(0, true);
+      alloc.addOutputPtr(ptr);
+      return t.fromBuffer(this.wasm.getMemorySlice(ptr));
     });
   }
 }

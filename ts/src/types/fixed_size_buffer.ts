@@ -1,4 +1,4 @@
-// import { randomBytes } from 'crypto';
+import { randomBytes } from '../random/index.js';
 import { BufferReader } from '../serialize/index.js';
 
 export class Buffer32 {
@@ -11,9 +11,9 @@ export class Buffer32 {
     return new Buffer32(reader.readBytes(this.SIZE_IN_BYTES));
   }
 
-  // static random() {
-  //   return new Buffer32(randomBytes(this.SIZE_IN_BYTES));
-  // }
+  static random() {
+    return new Buffer32(randomBytes(this.SIZE_IN_BYTES));
+  }
 
   toBuffer() {
     return this.buffer;
@@ -30,9 +30,9 @@ export class Buffer64 {
     return new Buffer64(reader.readBytes(this.SIZE_IN_BYTES));
   }
 
-  // static random() {
-  //   return new Buffer64(randomBytes(this.SIZE_IN_BYTES));
-  // }
+  static random() {
+    return new Buffer64(randomBytes(this.SIZE_IN_BYTES));
+  }
 
   toBuffer() {
     return this.buffer;
@@ -49,9 +49,9 @@ export class Buffer128 {
     return new Buffer128(reader.readBytes(this.SIZE_IN_BYTES));
   }
 
-  // static random() {
-  //   return new Buffer128(randomBytes(this.SIZE_IN_BYTES));
-  // }
+  static random() {
+    return new Buffer128(randomBytes(this.SIZE_IN_BYTES));
+  }
 
   toBuffer() {
     return this.buffer;

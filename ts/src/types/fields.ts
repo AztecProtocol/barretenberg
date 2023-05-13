@@ -1,5 +1,5 @@
-import { randomBytes } from 'crypto';
-import { toBigIntBE, toBufferBE } from 'bigint-buffer';
+import { randomBytes } from '../random/index.js';
+import { toBigIntBE, toBufferBE } from '../bigint-array/index.js';
 import { BufferReader } from '../serialize/index.js';
 
 export class Fr {
@@ -19,12 +19,12 @@ export class Fr {
     return new this(r);
   }
 
-  static fromBuffer(buffer: Uint8Array | Buffer | BufferReader) {
+  static fromBuffer(buffer: Uint8Array | BufferReader) {
     const reader = BufferReader.asReader(buffer);
     return new this(toBigIntBE(reader.readBytes(this.SIZE_IN_BYTES)));
   }
 
-  static fromBufferReduce(buffer: Uint8Array | Buffer | BufferReader) {
+  static fromBufferReduce(buffer: Uint8Array | BufferReader) {
     const reader = BufferReader.asReader(buffer);
     return new this(toBigIntBE(reader.readBytes(this.SIZE_IN_BYTES)) % Fr.MODULUS);
   }
@@ -66,12 +66,12 @@ export class Fq {
     return new this(r);
   }
 
-  static fromBuffer(buffer: Uint8Array | Buffer | BufferReader) {
+  static fromBuffer(buffer: Uint8Array | BufferReader) {
     const reader = BufferReader.asReader(buffer);
     return new this(toBigIntBE(reader.readBytes(this.SIZE_IN_BYTES)));
   }
 
-  static fromBufferReduce(buffer: Uint8Array | Buffer | BufferReader) {
+  static fromBufferReduce(buffer: Uint8Array | BufferReader) {
     const reader = BufferReader.asReader(buffer);
     return new this(toBigIntBE(reader.readBytes(this.SIZE_IN_BYTES)) % Fr.MODULUS);
   }

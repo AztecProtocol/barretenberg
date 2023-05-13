@@ -1,13 +1,13 @@
-import { BarretenbergApi } from '../barretenberg_api/index.js';
+import { BarretenbergApiSync } from '../barretenberg_api/index.js';
 import { BarretenbergWasm } from '../barretenberg_wasm/index.js';
-import { BarretenbergBinder } from '../barretenberg_binder/index.js';
+import { BarretenbergBinderSync } from '../barretenberg_binder/index.js';
 import { Crs } from '../index.js';
 
 describe('simple', () => {
-  let api: BarretenbergApi;
+  let api: BarretenbergApiSync;
 
   beforeAll(async () => {
-    api = new BarretenbergApi(new BarretenbergBinder(await BarretenbergWasm.new()));
+    api = new BarretenbergApiSync(new BarretenbergBinderSync(await BarretenbergWasm.new()));
   }, 20000);
 
   afterAll(async () => {
@@ -15,10 +15,9 @@ describe('simple', () => {
   });
 
   it('should construct proof', async () => {
-    const crs = new Crs(2 ** 19 + 1);
-    await crs.init();
-    const pippengerPtr = await api.eccNewPippenger(crs.getG1Data(), crs.numPoints);
-    const valid = await api.examplesSimpleCreateAndVerifyProof(pippengerPtr, crs.getG2Data());
+    const crs = await Crs.new(2 ** 19 + 1);
+    const pippengerPtr = api.eccNewPippenger(crs.getG1Data(), crs.numPoints);
+    const valid = api.examplesSimpleCreateAndVerifyProof(pippengerPtr, crs.getG2Data());
     expect(valid).toBe(true);
   });
 });

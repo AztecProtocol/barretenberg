@@ -1,13 +1,13 @@
-import { BarretenbergBinder } from '../barretenberg_binder/index.js';
+import { BarretenbergBinderSync } from '../barretenberg_binder/index.js';
 import { BarretenbergWasm } from '../barretenberg_wasm/index.js';
 import { Buffer32, Fr } from '../types/index.js';
-import { BarretenbergApi } from './index.js';
+import { BarretenbergApiSync } from './index.js';
 
 describe('blake2s', () => {
-  let api: BarretenbergApi;
+  let api: BarretenbergApiSync;
 
   beforeAll(async () => {
-    api = new BarretenbergApi(new BarretenbergBinder(await BarretenbergWasm.new()));
+    api = new BarretenbergApiSync(new BarretenbergBinderSync(await BarretenbergWasm.new(1)));
   });
 
   afterAll(async () => {
@@ -17,7 +17,7 @@ describe('blake2s', () => {
   it('blake2s', () => {
     const input = Buffer.from('abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789');
     const expected = Buffer32.fromBuffer(
-      Buffer.from([
+      new Uint8Array([
         0x44, 0xdd, 0xdb, 0x39, 0xbd, 0xb2, 0xaf, 0x80, 0xc1, 0x47, 0x89, 0x4c, 0x1d, 0x75, 0x6a, 0xda, 0x3d, 0x1c,
         0x2a, 0xc2, 0xb1, 0x00, 0x54, 0x1e, 0x04, 0xfe, 0x87, 0xb4, 0xa5, 0x9e, 0x12, 0x43,
       ]),
@@ -29,7 +29,7 @@ describe('blake2s', () => {
   it('blake2sToField', () => {
     const input = Buffer.from('abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789');
     const expected = Fr.fromBufferReduce(
-      Buffer.from([
+      new Uint8Array([
         0x44, 0xdd, 0xdb, 0x39, 0xbd, 0xb2, 0xaf, 0x80, 0xc1, 0x47, 0x89, 0x4c, 0x1d, 0x75, 0x6a, 0xda, 0x3d, 0x1c,
         0x2a, 0xc2, 0xb1, 0x00, 0x54, 0x1e, 0x04, 0xfe, 0x87, 0xb4, 0xa5, 0x9e, 0x12, 0x43,
       ]),

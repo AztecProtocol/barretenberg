@@ -1,15 +1,15 @@
 import { TextEncoder } from 'util';
 import { Buffer128, Buffer32, Fr, Point } from '../types/index.js';
-import { BarretenbergApi } from './index.js';
-import { BarretenbergBinder } from '../barretenberg_binder/index.js';
+import { BarretenbergApiSync } from './index.js';
+import { BarretenbergBinderSync } from '../barretenberg_binder/index.js';
 import { BarretenbergWasm } from '../barretenberg_wasm/barretenberg_wasm.js';
 
 describe('schnorr', () => {
   const msg = Buffer.from(new TextEncoder().encode('The quick brown dog jumped over the lazy fox.'));
-  let api: BarretenbergApi;
+  let api: BarretenbergApiSync;
 
   beforeAll(async () => {
-    api = new BarretenbergApi(new BarretenbergBinder(await BarretenbergWasm.new()));
+    api = new BarretenbergApiSync(new BarretenbergBinderSync(await BarretenbergWasm.new(1)));
     api.pedersenInit();
   });
 
@@ -19,7 +19,7 @@ describe('schnorr', () => {
 
   it('should verify signature', () => {
     const pk = Fr.fromBuffer(
-      Buffer.from([
+      new Uint8Array([
         0x0b, 0x9b, 0x3a, 0xde, 0xe6, 0xb3, 0xd8, 0x1b, 0x28, 0xa0, 0x88, 0x6b, 0x2a, 0x84, 0x15, 0xc7, 0xda, 0x31,
         0x29, 0x1a, 0x5e, 0x96, 0xbb, 0x7a, 0x56, 0x63, 0x9e, 0x17, 0x7d, 0x30, 0x1b, 0xeb,
       ]),

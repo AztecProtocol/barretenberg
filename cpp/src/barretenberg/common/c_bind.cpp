@@ -27,16 +27,6 @@ void thread_test_entry_point(test_threads_data* v)
 
 extern "C" {
 
-WASM_EXPORT void* bbmalloc(size_t size)
-{
-    return aligned_alloc(64, size);
-}
-
-WASM_EXPORT void bbfree(void* ptr)
-{
-    aligned_free(ptr);
-}
-
 WASM_EXPORT void test_threads(uint32_t const* thread_num, uint32_t const* iterations, uint32_t* out)
 {
     info("test starting...");

@@ -2,9 +2,10 @@ import { type Worker } from 'worker_threads';
 import { EventEmitter } from 'events';
 import createDebug from 'debug';
 import { Remote, proxy } from 'comlink';
+import { randomBytes } from '../random/index.js';
 // Webpack config swaps this import with ./browser/index.js
 // You can toggle between these two imports to sanity check the type-safety.
-import { fetchCode, getNumCpu, createWorker, randomBytes, getRemoteBarretenbergWasm } from './node/index.js';
+import { fetchCode, getNumCpu, createWorker, getRemoteBarretenbergWasm } from './node/index.js';
 // import { fetchCode, getNumCpu, createWorker, randomBytes } from './browser/index.js';
 
 createDebug.enable('*');
@@ -20,7 +21,7 @@ export class BarretenbergWasm {
   private remoteWasms: BarretenbergWasmWorker[] = [];
   private nextWorker = 0;
   private nextThreadId = 1;
-  private logger!: (msg: string) => void;
+  private logger: (msg: string) => void = () => {};
 
   public static async new(
     threads = Math.min(getNumCpu(), this.MAX_THREADS),
@@ -43,8 +44,8 @@ export class BarretenbergWasm {
     return { worker, wasm };
   }
 
-  public getNumWorkers() {
-    return this.workers.length;
+  public getNumThreads() {
+    return this.workers.length + 1;
   }
 
   /**
@@ -94,9 +95,8 @@ export class BarretenbergWasm {
   /**
    * Called on main thread. Signals child threads to gracefully exit.
    */
-  public destroy() {
-    this.workers.forEach(w => w.terminate());
-    return Promise.resolve();
+  public async destroy() {
+    await Promise.all(this.workers.map(w => w.terminate()));
   }
 
   private getImportObj(memory: WebAssembly.Memory) {
@@ -127,7 +127,7 @@ export class BarretenbergWasm {
           arg = arg >>> 0;
           const id = this.nextThreadId++;
           const worker = this.nextWorker++ % this.remoteWasms.length;
-          // this.debug(`spawning thread ${id} on worker ${worker} with arg ${arg >>> 0}`);
+          // this.logger(`spawning thread ${id} on worker ${worker} with arg ${arg >>> 0}`);
           void this.remoteWasms[worker].call('wasi_thread_start', id, arg);
           // this.remoteWasms[worker].postMessage({ msg: 'thread', data: { id, arg } });
           return id;
