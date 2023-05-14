@@ -25,7 +25,7 @@ void msgpack(auto ar) {
 recursive_proof_public_input_indices));
 }
 or
-MSGPACK(composer_type, circuit_size, num_public_inputs, commitments, contains_recursive_proof,
+MSGPACK_FIELDS(composer_type, circuit_size, num_public_inputs, commitments, contains_recursive_proof,
 recursive_proof_public_input_indices);
 ```
 
@@ -69,7 +69,7 @@ These methods allow you to implement custom logic for the serialization and dese
 
 ## Packing/Unpacking
 
-Only when actually using msgpack to write or read data, include "barretenberg/common/msgpack_impl.hpp".
+Only when actually using msgpack to write or read data, include "barretenberg/serialize/cbind.hpp".
 You can then use msgpack library features to serialize and deserialize C++ objects.
 
 e.g. packing
@@ -91,8 +91,8 @@ e.g. unpacking
 ```
 */
 #include <type_traits>
-#include "msgpack/name_value_pair_macro.hpp"
-#include "msgpack/concepts.hpp"
+#include "msgpack_impl/name_value_pair_macro.hpp"
+#include "msgpack_impl/concepts.hpp"
 
 // Helper for above documented syntax
 #define MSGPACK(...)                                                                                                   \

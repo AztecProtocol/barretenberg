@@ -1,5 +1,5 @@
 #pragma once
-#include "barretenberg/common/serialize.hpp"
+#include "barretenberg/serialize/legacy_serialize.hpp"
 #include "../constants.hpp"
 #include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"

@@ -1,12 +1,12 @@
 #include "prover.hpp"
 #include "barretenberg/env/data_store.hpp"
 #include "barretenberg/env/crs.hpp"
+#include "barretenberg/serialize/test_helper.hpp"
+#include "barretenberg/serialize/raw_pointer.hpp"
 
-#define WASM_EXPORT __attribute__((visibility("default")))
+#define WASM_EXPORT extern "C" __attribute__((visibility("default")))
 
 using namespace barretenberg;
-
-extern "C" {
 
 /**
  * Called by `barretenberg_wasm.test.ts` to test the asyncify intrumentation and logic that
@@ -49,6 +49,14 @@ WASM_EXPORT void* test_env_load_prover_crs(size_t num_points)
 }
 
 using WasmProver = plonk::UltraProver;
+
+typedef RawPointer<plonk::UltraProver> WasmProverPtr;
+
+// TODO(AD): Currently just a motivating example, TODO bind rest of library
+CBIND(prover_process_queue2, [](WasmProverPtr prover) {
+    prover->queue.process_queue();
+    return 0;
+});
 
 WASM_EXPORT void prover_process_queue(WasmProver* prover)
 {
@@ -167,5 +175,4 @@ WASM_EXPORT void* new_evaluation_domain(size_t circuit_size)
 WASM_EXPORT void delete_evaluation_domain(void* domain)
 {
     delete reinterpret_cast<evaluation_domain*>(domain);
-}
 }

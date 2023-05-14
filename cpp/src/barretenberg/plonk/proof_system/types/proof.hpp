@@ -3,8 +3,8 @@
 #include <vector>
 #include <ostream>
 #include <iomanip>
-#include "barretenberg/common/serialize.hpp"
-#include "barretenberg/common/msgpack.hpp"
+#include "barretenberg/serialize/legacy_serialize.hpp"
+#include "barretenberg/serialize/msgpack.hpp"
 
 namespace proof_system::plonk {
 
@@ -49,3 +49,11 @@ inline std::ostream& operator<<(std::ostream& os, proof const& data)
 }
 
 } // namespace proof_system::plonk
+
+namespace msgpack {
+// help our msgpack schema compiler with this typedef
+inline void schema_pack(auto& packer, proof_system::plonk::proof const&)
+{
+    packer.pack_alias("Proof", "bin32");
+}
+} // namespace msgpack

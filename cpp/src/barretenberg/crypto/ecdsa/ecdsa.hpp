@@ -3,7 +3,7 @@
 #include <array>
 #include <string>
 #include "barretenberg/ecc/curves/secp256k1/secp256k1.hpp"
-#include "barretenberg/common/msgpack.hpp"
+#include "barretenberg/serialize/msgpack.hpp"
 
 namespace crypto {
 namespace ecdsa {

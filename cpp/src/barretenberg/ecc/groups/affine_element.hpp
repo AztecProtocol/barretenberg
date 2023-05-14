@@ -3,7 +3,7 @@
 #include <vector>
 #include <type_traits>
 #include "barretenberg/ecc/curves/bn254/fq2.hpp"
-#include "barretenberg/common/msgpack.hpp"
+#include "barretenberg/serialize/msgpack.hpp"
 
 namespace barretenberg {
 namespace group_elements {
@@ -179,7 +179,6 @@ template <typename Fq, typename Fr, typename Params> class alignas(64) affine_el
     Fq y;
     // for serialization: update up with new fields
     MSGPACK(x, y);
-
 };
 
 template <typename B, typename Fq, typename Fr, typename Params> void read(B& it, affine_element<Fq, Fr, Params>& value)

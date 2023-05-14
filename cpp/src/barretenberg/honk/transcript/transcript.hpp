@@ -1,6 +1,6 @@
 #pragma once
 
-#include "barretenberg/common/serialize.hpp"
+#include "barretenberg/serialize/legacy_serialize.hpp"
 #include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
 #include "barretenberg/crypto/blake3s/blake3s.hpp"
 

@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <span>
 #include <ostream>
-#include "barretenberg/common/serialize.hpp"
+#include "barretenberg/serialize/legacy_serialize.hpp"
 #include "barretenberg/common/assert.hpp"
 
 namespace proof_system::honk::sumcheck {

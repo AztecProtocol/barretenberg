@@ -8,7 +8,7 @@
 
 #include "barretenberg/crypto/hashers/hashers.hpp"
 
-#include "barretenberg/common/serialize.hpp"
+#include "barretenberg/serialize/legacy_serialize.hpp"
 #include "barretenberg/common/streams.hpp"
 
 namespace crypto {

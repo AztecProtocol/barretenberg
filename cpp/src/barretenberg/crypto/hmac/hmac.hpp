@@ -1,6 +1,6 @@
 #pragma once
 
-#include "barretenberg/common/serialize.hpp"
+#include "barretenberg/serialize/legacy_serialize.hpp"
 #include <algorithm>
 #include <array>
 #include <cstdint>

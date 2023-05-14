@@ -1,5 +1,5 @@
 #pragma once
-#include "barretenberg/common/serialize.hpp"
+#include "barretenberg/serialize/legacy_serialize.hpp"
 #include <array>
 #include "barretenberg/honk/sumcheck/relations/relation.hpp"
 #include "barretenberg/honk/transcript/transcript.hpp"

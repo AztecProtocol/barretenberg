@@ -7,7 +7,7 @@
 #include "barretenberg/polynomials/evaluation_domain.hpp"
 #include "barretenberg/crypto/sha256/sha256.hpp"
 #include "barretenberg/plonk/proof_system/types/polynomial_manifest.hpp"
-#include "barretenberg/common/msgpack.hpp"
+#include "barretenberg/serialize/msgpack.hpp"
 
 namespace proof_system::plonk {
 
@@ -114,6 +114,12 @@ struct verification_key {
         *this = verification_key {std::move(data), env_crs->get_verifier_crs()};
     }
 };
+
+namespace msgpack {
+inline void msgpack_schema(auto &packer, proof_system::plonk::verification_key const &) {
+    packer.pack_schema(proof_system::plonk::verification_key_data{});
+}
+} // namespace msgpack
 
 template <typename B> inline void read(B& buf, verification_key& key)
 {

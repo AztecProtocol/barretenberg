@@ -144,3 +144,11 @@ template <typename Composer> class address_t {
 
 } // namespace stdlib
 } // namespace proof_system::plonk
+
+namespace msgpack {
+// help our msgpack schema compiler with this buffer alias (as far as wire representation is concerned) class
+inline void schema_pack(auto& packer, proof_system::plonk::stdlib::address const&)
+{
+    packer.pack_alias("Address", "bin32");
+}
+} // namespace msgpack
