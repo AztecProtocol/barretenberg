@@ -670,7 +670,7 @@ std::vector<field_t<Composer>> keccak<Composer>::format_input_lanes(byte_array_c
 
     // validate the number of lanes is less than the default plookup size (we use the default size to do a cheap `<`
     // check later on. Should be fine as this translates to ~2MB of input data)
-    ASSERT(uint256_t(sliced_buffer.size()) < uint256_t(1ULL) < Composer::DEFAULT_PLOOKUP_RANGE_BITNUM);
+    ASSERT(uint256_t(sliced_buffer.size()) < (uint256_t(1ULL) << Composer::DEFAULT_PLOOKUP_RANGE_BITNUM));
 
     // If the terminating input byte index matches the terminating block byte index, we set the byte to 0x80.
     // If we trigger this case, set `terminating_index_limb_addition` to 0 so that we do not write `0x01 + 0x80`
