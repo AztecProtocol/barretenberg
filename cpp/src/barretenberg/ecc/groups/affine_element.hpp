@@ -96,15 +96,15 @@ template <typename Fq, typename Fr, typename Params> class alignas(64) affine_el
     {
         if (value.is_point_at_infinity()) {
             if constexpr (Fq::modulus.get_msb() == 255) {
-                write(buffer, uint256_t(0));
                 write(buffer, Fq::modulus);
-            } else {
                 write(buffer, uint256_t(0));
+            } else {
                 write(buffer, uint256_t(1) << 255);
+                write(buffer, uint256_t(0));
             }
         } else {
-            Fq::serialize_to_buffer(value.y, buffer);
-            Fq::serialize_to_buffer(value.x, buffer + sizeof(Fq));
+            Fq::serialize_to_buffer(value.x, buffer);
+            Fq::serialize_to_buffer(value.y, buffer + sizeof(Fq));
         }
     }
 
@@ -125,32 +125,32 @@ template <typename Fq, typename Fr, typename Params> class alignas(64) affine_el
         affine_element result;
 
         // need to read a raw uint256_t to avoid reductions so we can check whether the point is the point at infinity
-        uint256_t raw_x = from_buffer<uint256_t>(buffer + sizeof(Fq));
+        uint256_t raw_x = from_buffer<uint256_t>(buffer);
 
         if constexpr (Fq::modulus.get_msb() == 255) {
             if (raw_x == Fq::modulus) {
-                result.y = Fq::zero();
                 result.x.data[0] = raw_x.data[0];
                 result.x.data[1] = raw_x.data[1];
                 result.x.data[2] = raw_x.data[2];
                 result.x.data[3] = raw_x.data[3];
+                result.y = Fq::zero();
             } else {
-                result.y = Fq::serialize_from_buffer(buffer);
                 result.x = Fq(raw_x);
+                result.y = Fq::serialize_from_buffer(buffer + sizeof(Fq));
             }
         } else {
             if (raw_x.get_msb() == 255) {
-                result.y = Fq::zero();
                 result.x = Fq::zero();
+                result.y = Fq::zero();
                 result.self_set_infinity();
             } else {
                 // conditional here to avoid reading the same data twice in case of a field of prime order
                 if constexpr (std::is_same<Fq, fq2>::value) {
-                    result.y = Fq::serialize_from_buffer(buffer);
-                    result.x = Fq::serialize_from_buffer(buffer + sizeof(Fq));
+                    result.x = Fq::serialize_from_buffer(buffer);
+                    result.y = Fq::serialize_from_buffer(buffer + sizeof(Fq));
                 } else {
-                    result.y = Fq::serialize_from_buffer(buffer);
                     result.x = Fq(raw_x);
+                    result.y = Fq::serialize_from_buffer(buffer + sizeof(Fq));
                 }
             }
         }

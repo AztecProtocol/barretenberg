@@ -76,8 +76,8 @@ template <class Composer, class Fq, class Fr, class NativeGroup> class element {
     byte_array<Composer> to_byte_array() const
     {
         byte_array<Composer> result(get_context());
-        result.write(y.to_byte_array());
         result.write(x.to_byte_array());
+        result.write(y.to_byte_array());
         return result;
     }
 
