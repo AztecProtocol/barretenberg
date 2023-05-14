@@ -48,9 +48,6 @@ export default {
     alias: {
       './node/index.js': './browser/index.js',
     },
-    // fallback: {
-    //   buffer: require.resolve('buffer/'),
-    // },
     plugins: [new ResolveTypeScriptPlugin()],
   },
   devServer: {

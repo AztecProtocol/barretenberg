@@ -1,9 +1,6 @@
 import { BarretenbergBinderSync } from '../barretenberg_binder/index.js';
 import { BarretenbergWasm } from '../barretenberg_wasm/index.js';
 import { BarretenbergApiSync } from './index.js';
-import debug from 'debug';
-
-debug.enable('*');
 
 describe('env', () => {
   let api: BarretenbergApiSync;

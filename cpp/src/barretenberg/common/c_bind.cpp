@@ -13,7 +13,7 @@ struct test_threads_data {
 void thread_test_entry_point(test_threads_data* v)
 {
     Timer t;
-    info("thread start with counter at: ", static_cast<size_t>(v->counter));
+    // info("thread start with counter at: ", static_cast<size_t>(v->counter));
     std::vector<uint8_t> data(1024);
     for (size_t i = 0; i < v->iterations; ++i) {
         // Do some meaningless work.
@@ -22,7 +22,13 @@ void thread_test_entry_point(test_threads_data* v)
         std::for_each(data.begin(), data.end(), [](auto& i) { i = (uint8_t)(i << 3); });
         (v->counter)++;
     }
-    info("thread end with counter at: ", static_cast<size_t>(v->counter), " ", t.seconds(), "s");
+    // info("thread end with counter at: ", static_cast<size_t>(v->counter), " ", t.seconds(), "s");
+}
+
+void thread_test_abort_entry_point(void*)
+{
+    info("thread_test_abort aborting");
+    std::abort();
 }
 
 extern "C" {
@@ -47,5 +53,17 @@ WASM_EXPORT void test_threads(uint32_t const* thread_num, uint32_t const* iterat
 
     info("test complete with counter at: ", static_cast<size_t>(test_data.counter), " ", t.seconds(), "s");
     *out = htonl(test_data.counter);
+}
+
+WASM_EXPORT void test_thread_abort()
+{
+    std::thread thread(thread_test_abort_entry_point, (void*)0);
+    thread.join();
+}
+
+WASM_EXPORT void test_abort()
+{
+    info("test_abort aborting");
+    std::abort();
 }
 }

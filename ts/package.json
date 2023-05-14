@@ -8,14 +8,16 @@
     "tsconfig": "./tsconfig.json"
   },
   "scripts": {
-    "build": "yarn clean && tsc -b",
-    "build:dev": "tsc -b --watch",
-    "bindgen": "./scripts/bindgen.sh",
     "clean": "rm -rf ./dest .tsbuildinfo",
+    "build": "yarn clean && yarn build:wasm && tsc -b && webpack",
+    "build:dev": "tsc -b --watch",
+    "build:wasm": "cd ../cpp && cmake --preset wasm-threads && cmake --build --preset wasm-threads",
+    "serve": "webpack serve",
     "formatting": "prettier --check ./src && eslint --max-warnings 0 ./src",
     "formatting:fix": "prettier -w ./src",
     "test": "NODE_OPTIONS='--loader ts-node/esm' NODE_NO_WARNINGS=1 node --experimental-vm-modules $(yarn bin jest) --no-cache --passWithNoTests",
-    "test-debug": "NODE_OPTIONS='--loader ts-node/esm' NODE_NO_WARNINGS=1 node --inspect-brk=0.0.0.0 --experimental-vm-modules $(yarn bin jest) --no-cache --passWithNoTests --runInBand"
+    "test-debug": "NODE_OPTIONS='--loader ts-node/esm' NODE_NO_WARNINGS=1 node --inspect-brk=0.0.0.0 --experimental-vm-modules $(yarn bin jest) --no-cache --passWithNoTests --runInBand",
+    "simple_test": "NODE_OPTIONS='--loader ts-node/esm' NODE_NO_WARNINGS=1 node ./src/examples/simple.rawtest.ts"
   },
   "jest": {
     "preset": "ts-jest/presets/default-esm",

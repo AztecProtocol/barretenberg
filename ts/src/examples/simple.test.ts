@@ -14,10 +14,10 @@ describe('simple', () => {
     await api.destroy();
   });
 
-  it('should construct proof', async () => {
+  it('should construct 512k gate proof', async () => {
     const crs = await Crs.new(2 ** 19 + 1);
     const pippengerPtr = api.eccNewPippenger(crs.getG1Data(), crs.numPoints);
     const valid = api.examplesSimpleCreateAndVerifyProof(pippengerPtr, crs.getG2Data());
     expect(valid).toBe(true);
-  });
+  }, 60000);
 });

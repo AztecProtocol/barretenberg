@@ -165,6 +165,16 @@ export class BarretenbergApi {
     const result = await this.binder.callWasmExport('test_threads', [threads, iterations], [NumberDeserializer()]);
     return result[0];
   }
+
+  async testThreadAbort(): Promise<void> {
+    const result = await this.binder.callWasmExport('test_thread_abort', [], []);
+    return;
+  }
+
+  async testAbort(): Promise<void> {
+    const result = await this.binder.callWasmExport('test_abort', [], []);
+    return;
+  }
 }
 
 export class BarretenbergApiSync {
@@ -327,5 +337,15 @@ export class BarretenbergApiSync {
   testThreads(threads: number, iterations: number): number {
     const result = this.binder.callWasmExport('test_threads', [threads, iterations], [NumberDeserializer()]);
     return result[0];
+  }
+
+  testThreadAbort(): void {
+    const result = this.binder.callWasmExport('test_thread_abort', [], []);
+    return;
+  }
+
+  testAbort(): void {
+    const result = this.binder.callWasmExport('test_abort', [], []);
+    return;
   }
 }

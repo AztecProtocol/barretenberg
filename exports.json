@@ -580,5 +580,17 @@
       }
     ],
     "isAsync": false
+  },
+  {
+    "functionName": "test_thread_abort",
+    "inArgs": [],
+    "outArgs": [],
+    "isAsync": false
+  },
+  {
+    "functionName": "test_abort",
+    "inArgs": [],
+    "outArgs": [],
+    "isAsync": false
   }
 ]

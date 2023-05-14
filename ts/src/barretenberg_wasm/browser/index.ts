@@ -1,5 +1,6 @@
 import { wrap } from 'comlink';
 import { BarretenbergWasmWorker, type BarretenbergWasm } from '../barretenberg_wasm.js';
+import debug from 'debug';
 
 export async function fetchCode() {
   const res = await fetch('/barretenberg.wasm');
@@ -7,7 +8,11 @@ export async function fetchCode() {
 }
 
 export function createWorker() {
-  return new Worker('barretenberg_wasm.js');
+  const worker = new Worker('barretenberg_wasm.js');
+  const debugStr = debug.disable();
+  debug.enable(debugStr);
+  worker.postMessage({ debug: debugStr });
+  return worker;
 }
 
 export function getRemoteBarretenbergWasm(worker: Worker): BarretenbergWasmWorker {
@@ -16,4 +21,8 @@ export function getRemoteBarretenbergWasm(worker: Worker): BarretenbergWasmWorke
 
 export function getNumCpu() {
   return navigator.hardwareConcurrency;
+}
+
+export function threadLogger(): ((msg: string) => void) | undefined {
+  return undefined;
 }

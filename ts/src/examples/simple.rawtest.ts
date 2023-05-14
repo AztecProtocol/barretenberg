@@ -16,10 +16,9 @@ async function main() {
   const crs = await Crs.new(2 ** 19 + 1);
   const pippengerPtr = await api.eccNewPippenger(crs.getG1Data(), crs.numPoints);
 
-  // while (true) {
-  await api.examplesSimpleCreateAndVerifyProof(pippengerPtr, crs.getG2Data());
-  //   // logger(`valid: ${valid}`);
-  // }
+  for (let i = 0; i < 3; ++i) {
+    await api.examplesSimpleCreateAndVerifyProof(pippengerPtr, crs.getG2Data());
+  }
 
   await wasm.destroy();
   await worker.terminate();
