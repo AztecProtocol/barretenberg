@@ -33,6 +33,7 @@ TEST(acir_format, test_a_single_constraint_no_pub_inputs)
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .compute_merkle_root_constraints = {},
+        .block_constraints = {},
         .recursion_constraints = {},
         .constraints = { constraint },
     };

@@ -135,6 +135,7 @@ TEST(ECDSASecp256k1, TestECDSACompilesForVerifier)
         .pedersen_constraints = {},
         .compute_merkle_root_constraints = {},
         .block_constraints = {},
+        .recursion_constraints = {},
         .constraints = {},
     };
     auto crs_factory = std::make_unique<proof_system::ReferenceStringFactory>();

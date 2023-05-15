@@ -88,6 +88,7 @@ void create_inner_circuit(acir_format::acir_format& constraint_system, std::vect
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .compute_merkle_root_constraints = {},
+        .block_constraints = {},
         .recursion_constraints = {},
         .constraints = { expr_a, expr_b, expr_c, expr_d },
     };
