@@ -24,14 +24,22 @@ namespace acir_format {
  * (and therefore an aggregation object is present)
  * @param public_input The index of the single public input
  * @param input_aggregation_object Witness indices of pre-existing aggregation object (if it exists)
- * @param output_aggregation_object Witness indecies of the aggregation object produced by recursive verification
+ * @param output_aggregation_object Witness indices of the aggregation object produced by recursive verification
  * @param nested_aggregation_object Public input indices of an aggregation object inside the proof.
  *
  * @note If input_aggregation_object witness indices are all zero, we interpret this to mean that the inner proof does
- * NOT contain
+ * NOT contain a previously recursively verified proof
  * @note nested_aggregation_object is used for cases where the proof being verified contains an aggregation object in
  * its public inputs! If this is the case, we record the public input locations in `nested_aggregation_object`. If the
  * inner proof is of a circuit that does not have a nested aggregation object, these values are all zero.
+ *
+ * To outline the interaction between the input_aggergation_object and the nested_aggregation_object take the follow
+ * example: If we have a circuit that verifies 2 proofs A and B, the recursion constraint for B will have an
+ * input_aggregation_object that points to the agg output produced by verifying A. If circuit B also verifies a proof,
+ * in the above example the recursion constraint for verifying B will have a nested object that describes the
+ * aggregation object in B’s public inputs as well as an input aggregation object that points to the object produced by
+ * the previous recursion constraint in the circuit (the one that verifies A)
+ *
  */
 struct RecursionConstraint {
     static constexpr size_t AGGREGATION_OBJECT_SIZE = 16; // 16 field elements

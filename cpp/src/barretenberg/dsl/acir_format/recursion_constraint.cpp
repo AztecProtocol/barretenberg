@@ -44,8 +44,6 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
                 manifest, inner_proof_contains_recursive_proof);
         for (size_t i = 0; i < input.proof.size(); ++i) {
             const auto proof_field_idx = input.proof[i];
-            // std::cout << "proof_field_idx: " << proof_field_idx << std::endl;
-
             // if we do NOT have a witness assignment (i.e. are just building the proving/verification keys),
             // we add our dummy proof values as Composer variables.
             // if we DO have a valid witness assignment, we use the real witness assignment
@@ -60,7 +58,6 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
         }
         for (size_t i = 0; i < input.key.size(); ++i) {
             const auto key_field_idx = input.key[i];
-            // std::cout << "key_field_idx: " << key_field_idx << std::endl;
             barretenberg::fr dummy_field =
                 has_valid_witness_assignment ? composer.get_variable(key_field_idx) : dummy_key[i];
             composer.assert_equal(composer.add_variable(dummy_field), key_field_idx);
