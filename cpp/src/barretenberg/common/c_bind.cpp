@@ -6,7 +6,7 @@
 #include <thread>
 
 struct test_threads_data {
-    std::atomic<size_t> counter = 0;
+    std::atomic<uint32_t> counter = 0;
     size_t iterations = 0;
 };
 
