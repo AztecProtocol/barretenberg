@@ -19,6 +19,7 @@
 #include "barretenberg/stdlib/primitives/curves/bn254.hpp"
 #include "barretenberg/stdlib/primitives/curves/secp256k1.hpp"
 #include "barretenberg/stdlib/primitives/memory/rom_table.hpp"
+#include "barretenberg/stdlib/primitives/memory/ram_table.hpp"
 #include "barretenberg/stdlib/recursion/verifier/program_settings.hpp"
 #include "barretenberg/stdlib/recursion/verification_key/verification_key.hpp"
 #include "barretenberg/stdlib/recursion/aggregation_state/aggregation_state.hpp"
@@ -65,6 +66,7 @@ using schnorr_signature_bits_ct = proof_system::plonk::stdlib::schnorr::signatur
 
 // Ultra-composer specific typesv
 using rom_table_ct = proof_system::plonk::stdlib::rom_table<plonk::UltraComposer>;
+using ram_table_ct = proof_system::plonk::stdlib::ram_table<plonk::UltraComposer>;
 
 using verification_key_ct = proof_system::plonk::stdlib::recursion::verification_key<bn254>;
 using aggregation_state_ct = proof_system::plonk::stdlib::recursion::aggregation_state<bn254>;

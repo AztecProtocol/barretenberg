@@ -53,6 +53,7 @@ bool_t<Composer> verify_signature(const stdlib::byte_array<Composer>& message,
      * [2] EIP-155: https://eips.ethereum.org/EIPS/eip-155
      *
      */
+    // Note: This check is also present in the _noassert variation of this method.
     field_t<Composer>(sig.v).assert_is_in_set({ field_t<Composer>(27), field_t<Composer>(28) },
                                               "signature is non-standard");
 
@@ -116,20 +117,17 @@ bool_t<Composer> verify_signature(const stdlib::byte_array<Composer>& message,
  * @tparam Fq
  * @tparam Fr
  * @tparam G1
- * @param message
+ * @param hashed_message
  * @param public_key
  * @param sig
  * @return bool_t<Composer>
  */
 template <typename Composer, typename Curve, typename Fq, typename Fr, typename G1>
-bool_t<Composer> verify_signature_noassert(const stdlib::byte_array<Composer>& message,
-                                           const G1& public_key,
-                                           const signature<Composer>& sig)
+bool_t<Composer> verify_signature_prehashed_message_noassert(const stdlib::byte_array<Composer>& hashed_message,
+                                                             const G1& public_key,
+                                                             const signature<Composer>& sig)
 {
-    Composer* ctx = message.get_context() ? message.get_context() : public_key.x.context;
-
-    stdlib::byte_array<Composer> hashed_message =
-        static_cast<stdlib::byte_array<Composer>>(stdlib::sha256<Composer>(message));
+    Composer* ctx = hashed_message.get_context() ? hashed_message.get_context() : public_key.x.context;
 
     Fr z(hashed_message);
     z.assert_is_in_field();
@@ -178,7 +176,35 @@ bool_t<Composer> verify_signature_noassert(const stdlib::byte_array<Composer>& m
     output &= result_mod_r.binary_basis_limbs[2].element == (r.binary_basis_limbs[2].element);
     output &= result_mod_r.binary_basis_limbs[3].element == (r.binary_basis_limbs[3].element);
     output &= result_mod_r.prime_basis_limb == (r.prime_basis_limb);
+
+    field_t<Composer>(sig.v).assert_is_in_set({ field_t<Composer>(27), field_t<Composer>(28) },
+                                              "signature is non-standard");
+
     return output;
+}
+
+/**
+ * @brief Verify ECDSA signature. Returns 0 if signature fails (i.e. does not produce unsatisfiable constraints)
+ *
+ * @tparam Composer
+ * @tparam Curve
+ * @tparam Fq
+ * @tparam Fr
+ * @tparam G1
+ * @param message
+ * @param public_key
+ * @param sig
+ * @return bool_t<Composer>
+ */
+template <typename Composer, typename Curve, typename Fq, typename Fr, typename G1>
+bool_t<Composer> verify_signature_noassert(const stdlib::byte_array<Composer>& message,
+                                           const G1& public_key,
+                                           const signature<Composer>& sig)
+{
+    stdlib::byte_array<Composer> hashed_message =
+        static_cast<stdlib::byte_array<Composer>>(stdlib::sha256<Composer>(message));
+
+    return verify_signature_prehashed_message_noassert<Composer, Curve, Fq, Fr, G1>(hashed_message, public_key, sig);
 }
 
 } // namespace ecdsa
