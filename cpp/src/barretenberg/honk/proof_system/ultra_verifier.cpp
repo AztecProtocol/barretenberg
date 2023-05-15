@@ -7,7 +7,7 @@
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation_secondary.hpp"
 #include "barretenberg/honk/sumcheck/relations/permutation_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/lookup_grand_product_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/lookup_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/auxiliary_relation.hpp"
@@ -114,7 +114,7 @@ template <typename Flavor> bool UltraVerifier_<Flavor>::verify_proof(const plonk
     //                          honk::sumcheck::UltraArithmeticRelationSecondary,
     //                          honk::sumcheck::UltraPermutationRelation,
     //                          honk::sumcheck::UltraGrandProductInitializationRelation,
-    //                          honk::sumcheck::LookupGrandProductComputationRelation,
+    //                          honk::sumcheck::LookupRelation,
     //                          honk::sumcheck::LookupGrandProductInitializationRelation,
     //                          honk::sumcheck::GenPermSortRelation,
     //                          honk::sumcheck::EllipticRelation,

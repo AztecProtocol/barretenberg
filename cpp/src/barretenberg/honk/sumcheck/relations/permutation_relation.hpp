@@ -175,10 +175,10 @@ template <typename FF> class UltraPermutationRelation {
         // Contribution (2)
         {
             static constexpr size_t LENGTH = CONSTRAINT_LENGTH[1];
-            auto z_perm_shift_ = UnivariateView<FF, LENGTH>(extended_edges.z_perm_shift);
-            auto lagrange_last_ = UnivariateView<FF, LENGTH>(extended_edges.lagrange_last);
+            auto z_perm_shift = UnivariateView<FF, LENGTH>(extended_edges.z_perm_shift);
+            auto lagrange_last = UnivariateView<FF, LENGTH>(extended_edges.lagrange_last);
 
-            std::get<1>(evals) += (lagrange_last_ * z_perm_shift_) * scaling_factor;
+            std::get<1>(evals) += (lagrange_last * z_perm_shift) * scaling_factor;
         }
     };
 

@@ -1,6 +1,6 @@
 // #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
 // #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation_secondary.hpp"
-// #include "barretenberg/honk/sumcheck/relations/lookup_grand_product_relation.hpp"
+// #include "barretenberg/honk/sumcheck/relations/lookup_relation.hpp"
 // #include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
 // #include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
 // #include "barretenberg/honk/sumcheck/relations/auxiliary_relation.hpp"
@@ -303,7 +303,7 @@
 //     validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
 // };
 
-// TEST_F(UltraRelationConsistency, LookupGrandProductComputationRelation)
+// TEST_F(UltraRelationConsistency, LookupRelation)
 // {
 //     using Flavor = honk::flavor::Ultra;
 //     using FF = typename Flavor::FF;
@@ -322,7 +322,7 @@
 //     }
 //     compute_mock_extended_edges(extended_edges, input_polynomials);
 
-//     auto relation = LookupGrandProductComputationRelation<FF>();
+//     auto relation = LookupRelation<FF>();
 
 //     const auto eta = relation_parameters.eta;
 //     const auto beta = relation_parameters.beta;

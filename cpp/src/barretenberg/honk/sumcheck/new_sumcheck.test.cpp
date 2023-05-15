@@ -4,6 +4,7 @@
 #include "barretenberg/transcript/transcript_wrappers.hpp"
 #include "relations/arithmetic_relation.hpp"
 #include "relations/permutation_relation.hpp"
+#include "relations/lookup_relation.hpp"
 #include "relations/ultra_arithmetic_relation.hpp"
 #include "barretenberg/transcript/manifest.hpp"
 #include <array>
@@ -141,6 +142,21 @@ TEST(NewSumcheck, Ultra)
     composer.create_big_add_gate({ a_idx, b_idx, c_idx, d_idx, -1, -1, -1, -1, 0 }, true); // use next row
     composer.create_big_add_gate({ zero_idx, zero_idx, zero_idx, e_idx, 0, 0, 0, 0, 0 }, false);
 
+    // Add some lookup gates (related to pedersen hashing)
+    barretenberg::fr pedersen_input_value = fr::random_element();
+    const fr input_hi = uint256_t(pedersen_input_value).slice(126, 256);
+    const fr input_lo = uint256_t(pedersen_input_value).slice(0, 126);
+    const auto input_hi_index = composer.add_variable(input_hi);
+    const auto input_lo_index = composer.add_variable(input_lo);
+
+    const auto sequence_data_hi = plookup::get_lookup_accumulators(plookup::MultiTableId::PEDERSEN_LEFT_HI, input_hi);
+    const auto sequence_data_lo = plookup::get_lookup_accumulators(plookup::MultiTableId::PEDERSEN_LEFT_LO, input_lo);
+
+    composer.create_gates_from_plookup_accumulators(
+        plookup::MultiTableId::PEDERSEN_LEFT_HI, sequence_data_hi, input_hi_index);
+    composer.create_gates_from_plookup_accumulators(
+        plookup::MultiTableId::PEDERSEN_LEFT_LO, sequence_data_lo, input_lo_index);
+
     // Create a prover (it will compute proving key and witness)
     auto prover = composer.create_prover();
 
@@ -224,15 +240,16 @@ TEST(NewSumcheck, Ultra)
 
     auto prover_transcript = ProverTranscript<FF>::init_empty();
 
-    auto sumcheck_prover = Sumcheck<Flavor, ProverTranscript<FF>, UltraArithmeticRelation, UltraPermutationRelation>(
-        prover.key->circuit_size, prover_transcript);
+    auto sumcheck_prover =
+        Sumcheck<Flavor, ProverTranscript<FF>, UltraArithmeticRelation, UltraPermutationRelation, LookupRelation>(
+            prover.key->circuit_size, prover_transcript);
 
     auto prover_output = sumcheck_prover.execute_prover(prover_polynomials, relation_parameters);
 
     auto verifier_transcript = VerifierTranscript<FF>::init_empty(prover_transcript);
 
     auto sumcheck_verifier =
-        Sumcheck<Flavor, VerifierTranscript<FF>, UltraArithmeticRelation, UltraPermutationRelation>(
+        Sumcheck<Flavor, VerifierTranscript<FF>, UltraArithmeticRelation, UltraPermutationRelation, LookupRelation>(
             prover.key->circuit_size, verifier_transcript);
 
     std::optional verifier_output = sumcheck_verifier.execute_verifier(relation_parameters);

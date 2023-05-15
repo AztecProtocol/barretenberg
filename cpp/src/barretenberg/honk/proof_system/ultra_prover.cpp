@@ -17,7 +17,7 @@
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
 #include "barretenberg/honk/sumcheck/relations/arithmetic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/permutation_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/lookup_grand_product_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/lookup_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/auxiliary_relation.hpp"
@@ -197,7 +197,7 @@ template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_relation_check_
     //                                     sumcheck::UltraArithmeticRelationSecondary,
     //                                     sumcheck::UltraPermutationRelation,
     //                                     sumcheck::UltraGrandProductInitializationRelation,
-    //                                     sumcheck::LookupGrandProductComputationRelation,
+    //                                     sumcheck::LookupRelation,
     //                                     sumcheck::LookupGrandProductInitializationRelation,
     //                                     sumcheck::GenPermSortRelation,
     //                                     sumcheck::EllipticRelation,
