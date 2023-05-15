@@ -112,7 +112,7 @@ inline void cbind_impl(
 // returns a C-style string json of the schema
 inline void cbind_schema_impl(auto func, uint8_t** output_out, size_t* output_len_out)
 {
-    (void)func;  // unused except for type
+    (void)func; // unused except for type
     // Object representation of the cbind
     auto cbind_obj = get_func_traits<decltype(func)>();
     std::string schema = msgpack::schema_to_string(cbind_obj);
@@ -120,8 +120,7 @@ inline void cbind_schema_impl(auto func, uint8_t** output_out, size_t* output_le
     memcpy(*output_out, schema.c_str(), schema.size() + 1);
     *output_len_out = schema.size();
 }
-}  // namespace msgpack
-
+} // namespace msgpack
 
 // The CBIND macro is a convenient utility that abstracts away several steps in binding C functions with msgpack
 // serialization. It creates two separate functions:
