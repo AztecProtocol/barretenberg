@@ -20,9 +20,8 @@ typedef group<fq, fr, Bn254G1Params> g1;
 
 } // namespace barretenberg
 
-namespace msgpack {
 // specialize the name in msgpack schema generation
-inline std::string schema_name(barretenberg::g1::affine_element const &) {
+inline std::string msgpack_schema_name(barretenberg::g1::affine_element const&)
+{
     return "G1AffineElement";
-}
 }

@@ -62,10 +62,8 @@ typedef field<Bn254FqParams> fq;
 
 } // namespace barretenberg
 
-namespace msgpack {
 // define this as a named alias in msgpack schema generation
-inline void schema_pack(auto& packer, barretenberg::fq const&)
+inline void msgpack_schema_pack(auto& packer, barretenberg::fq const&)
 {
     packer.pack_alias("Fq", "bin32");
 }
-} // namespace msgpack

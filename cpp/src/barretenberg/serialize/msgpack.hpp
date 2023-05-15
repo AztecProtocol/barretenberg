@@ -95,7 +95,7 @@ e.g. unpacking
 #include "msgpack_impl/concepts.hpp"
 
 // Helper for above documented syntax
-#define MSGPACK(...)                                                                                                   \
+#define MSGPACK_FIELDS(...)                                                                                            \
     void msgpack(auto pack_fn)                                                                                         \
     {                                                                                                                  \
         pack_fn(NVP(__VA_ARGS__));                                                                                     \

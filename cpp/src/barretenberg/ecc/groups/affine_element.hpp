@@ -178,7 +178,7 @@ template <typename Fq, typename Fr, typename Params> class alignas(64) affine_el
     Fq x;
     Fq y;
     // for serialization: update up with new fields
-    MSGPACK(x, y);
+    MSGPACK_FIELDS(x, y);
 };
 
 template <typename B, typename Fq, typename Fr, typename Params> void read(B& it, affine_element<Fq, Fr, Params>& value)

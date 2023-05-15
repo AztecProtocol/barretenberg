@@ -29,12 +29,12 @@ template <typename T, typename... Args> std::string check_memory_span(T* obj, Ar
         // Check if any of the Args* pointers overlap.
         auto last_end = pointers[i - 1].first + pointers[i - 1].second;
         if (last_end > pointers[i].first) {
-            return "Overlap in " + msgpack::schema_name(*obj) + " MSGPACK() params detected!";
+            return "Overlap in " + msgpack_schema_name(*obj) + " MSGPACK_FIELDS() params detected!";
         }
         // Check if gap is too large.
         // Give some fuzzy room in case of 64 byte alignment restrictions.
         if (__aligned_for<T>(last_end) < pointers[i].first) {
-            return "Gap in " + msgpack::schema_name(*obj) + " MSGPACK() params detected before member #" +
+            return "Gap in " + msgpack_schema_name(*obj) + " MSGPACK_FIELDS() params detected before member #" +
                    std::to_string(i) + " !";
         }
     }
@@ -43,7 +43,7 @@ template <typename T, typename... Args> std::string check_memory_span(T* obj, Ar
     uintptr_t t_start = reinterpret_cast<uintptr_t>(obj);
     uintptr_t t_end = t_start + sizeof(T);
     if (pointers.front().first < t_start || pointers.back().first + pointers.back().second > t_end) {
-        return "Some " + msgpack::schema_name(*obj) + " MSGPACK() params don't exist in object!";
+        return "Some " + msgpack_schema_name(*obj) + " MSGPACK_FIELDS() params don't exist in object!";
     }
 
     // Check if all of T* memory is used by the Args* pointers.
@@ -54,12 +54,12 @@ template <typename T, typename... Args> std::string check_memory_span(T* obj, Ar
     }
     size_t total_size = end - start;
     if (__aligned_for<T>(total_size) < sizeof(T)) {
-        return "Incomplete " + msgpack::schema_name(*obj) + " MSGPACK() params! Not all of object specified.";
+        return "Incomplete " + msgpack_schema_name(*obj) + " MSGPACK_FIELDS() params! Not all of object specified.";
     }
     return {};
 }
 
-template <HasMsgPack T> std::string check_msgpack_method(T& object)
+template <msgpack_concepts::HasMsgPack T> std::string check_msgpack_method(T& object)
 {
     std::string result;
     auto checker = [&](auto&... values) { result = check_memory_span(&object, &values...); };

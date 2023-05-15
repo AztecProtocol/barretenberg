@@ -46,10 +46,8 @@ inline std::ostream& operator<<(std::ostream& os, proof const& data)
 
 } // namespace proof_system::plonk
 
-namespace msgpack {
 // help our msgpack schema compiler with this typedef
-inline void schema_pack(auto& packer, proof_system::plonk::proof const&)
+inline void msgpack_schema_pack(auto& packer, proof_system::plonk::proof const&)
 {
     packer.pack_alias("Proof", "bin32");
 }
-} // namespace msgpack

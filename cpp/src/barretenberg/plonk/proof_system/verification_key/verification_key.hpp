@@ -20,14 +20,12 @@ struct verification_key_data {
     std::vector<uint32_t> recursive_proof_public_input_indices;
 
     // for serialization: update with any new fields
-    MSGPACK(
-        composer_type, 
-        circuit_size, 
-        num_public_inputs, 
-        commitments, 
-        contains_recursive_proof, 
-        recursive_proof_public_input_indices
-    );
+    MSGPACK_FIELDS(composer_type,
+                   circuit_size,
+                   num_public_inputs,
+                   commitments,
+                   contains_recursive_proof,
+                   recursive_proof_public_input_indices);
     barretenberg::fr compress_native(size_t const hash_index = 0);
 };
 
@@ -97,29 +95,29 @@ struct verification_key {
     size_t program_width = 3;
 
     // for serialization: update up with new fields
-    void msgpack_pack(auto& packer) const {
-        verification_key_data data = {
-            composer_type,
-            static_cast<uint32_t>(circuit_size),
-            static_cast<uint32_t>(num_public_inputs),
-            commitments,
-            contains_recursive_proof,
-            recursive_proof_public_input_indices
-        };
+    void msgpack_pack(auto& packer) const
+    {
+        verification_key_data data = { composer_type,
+                                       static_cast<uint32_t>(circuit_size),
+                                       static_cast<uint32_t>(num_public_inputs),
+                                       commitments,
+                                       contains_recursive_proof,
+                                       recursive_proof_public_input_indices };
         packer.pack(data);
     }
-    void msgpack_unpack(auto obj) {
+    void msgpack_unpack(auto obj)
+    {
         verification_key_data data = obj;
         auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
-        *this = verification_key {std::move(data), env_crs->get_verifier_crs()};
+        *this = verification_key{ std::move(data), env_crs->get_verifier_crs() };
     }
 };
 
-namespace msgpack {
-inline void msgpack_schema(auto &packer, proof_system::plonk::verification_key const &) {
+// specialize schema serialization
+inline void msgpack_schema(auto& packer, proof_system::plonk::verification_key const&)
+{
     packer.pack_schema(proof_system::plonk::verification_key_data{});
 }
-} // namespace msgpack
 
 template <typename B> inline void read(B& buf, verification_key& key)
 {
@@ -161,3 +159,10 @@ inline std::ostream& operator<<(std::ostream& os, verification_key const& key)
 };
 
 } // namespace proof_system::plonk
+
+// help our msgpack schema compiler with this struct
+// Alias verification_key as verification_key_data
+inline void msgpack_schema_pack(auto& packer, proof_system::plonk::verification_key const&)
+{
+    msgpack_schema_pack(packer, proof_system::plonk::verification_key_data{});
+}

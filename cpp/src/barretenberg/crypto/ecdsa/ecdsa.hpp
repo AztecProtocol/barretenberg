@@ -17,7 +17,7 @@ struct signature {
     std::array<uint8_t, 32> s;
     uint8_t v;
     // for serialization, update with any new fields
-    MSGPACK(r, s, v);
+    MSGPACK_FIELDS(r, s, v);
 };
 
 template <typename Hash, typename Fq, typename Fr, typename G1>

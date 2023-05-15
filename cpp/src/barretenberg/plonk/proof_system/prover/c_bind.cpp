@@ -8,6 +8,10 @@
 
 using namespace barretenberg;
 
+// TODO(AD): This __wasm__ guard is a hack, but these test functions are currently
+// the only consumer of this API and it has no native definition.
+// Eventually, remove this, and don't rely on asyncify with Charlie's work.
+#ifdef __wasm__
 /**
  * Called by `barretenberg_wasm.test.ts` to test the asyncify intrumentation and logic that
  * allows for WASM code to make calls to async code in JS.
@@ -30,6 +34,8 @@ WASM_EXPORT void* test_async_func(size_t size, int val)
         return addr;
     }
 }
+#endif
+
 /**
  * @brief Simple wrapper for env_load_verifier_crs.
  * @return The CRS.
