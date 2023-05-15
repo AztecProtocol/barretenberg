@@ -35,28 +35,6 @@ inline std::pair<uint8_t*, size_t> msgpack_encode_buffer(auto&& obj)
     return { output, buffer.size() };
 }
 
-std::string msgpack_json_encode(const auto& obj)
-{
-    std::stringstream output;
-    msgpack::pack(output, obj);
-    std::string output_str = output.str();
-    msgpack::object_handle oh = msgpack::unpack(output_str.data(), output_str.size());
-    std::stringstream pretty_output;
-    pretty_output << oh.get() << std::endl;
-    return pretty_output.str();
-}
-
-void msgpack_json_print(const auto& obj)
-{
-    std::stringstream output;
-    msgpack::pack(output, obj);
-    std::string output_str = output.str();
-    msgpack::object_handle oh = msgpack::unpack(output_str.data(), output_str.size());
-    std::stringstream pretty_output;
-    pretty_output << oh.get() << std::endl;
-    logstr(pretty_output.str().c_str());
-}
-
 template <typename T> constexpr auto param_tuple()
 {
     return typename decltype(get_func_traits<T>())::Args{};
