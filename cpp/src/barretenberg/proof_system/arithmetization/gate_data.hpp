@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
-#include "barretenberg/serialize/legacy_serialize.hpp"
+#include "barretenberg/common/serialize.hpp"
 
 namespace proof_system {
 struct add_triple {

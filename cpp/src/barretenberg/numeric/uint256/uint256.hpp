@@ -15,7 +15,7 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
-#include "barretenberg/serialize/legacy_serialize.hpp"
+#include "barretenberg/common/serialize.hpp"
 #include "../uint128/uint128.hpp"
 
 namespace numeric {

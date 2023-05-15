@@ -2,7 +2,7 @@
 
 #include <utility>
 
-#include "barretenberg/serialize/legacy_serialize.hpp"
+#include "barretenberg/common/serialize.hpp"
 #include "schnorr.hpp"
 
 namespace crypto::schnorr {

@@ -1,6 +1,6 @@
 #pragma once
 #include <cstdint>
-#include "barretenberg/serialize/legacy_serialize.hpp"
+#include "barretenberg/common/serialize.hpp"
 
 namespace acir_format {
 

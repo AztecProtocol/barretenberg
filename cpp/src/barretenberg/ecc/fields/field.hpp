@@ -2,7 +2,7 @@
 #include <array>
 #include "barretenberg/common/assert.hpp"
 #include "barretenberg/common/inline.hpp"
-#include "barretenberg/serialize/legacy_serialize.hpp"
+#include "barretenberg/common/serialize.hpp"
 #include <cstdint>
 #include <iostream>
 #include "barretenberg/numeric/random/engine.hpp"

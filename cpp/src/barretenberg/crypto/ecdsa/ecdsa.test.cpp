@@ -1,7 +1,7 @@
 #include "ecdsa.hpp"
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 #include "barretenberg/ecc/curves/secp256r1/secp256r1.hpp"
-#include "barretenberg/serialize/legacy_serialize.hpp"
+#include "barretenberg/common/serialize.hpp"
 #include "barretenberg/serialize/test_helper.hpp"
 #include <gtest/gtest.h>
 
@@ -9,7 +9,7 @@ using namespace barretenberg;
 
 TEST(ecdsa, msgpack)
 {
-    auto [actual, expected] = msgpack_roundtrip(crypto::ecdsa::signature{{}, {}, {}});
+    auto [actual, expected] = msgpack_roundtrip(crypto::ecdsa::signature{ {}, {}, {} });
     EXPECT_EQ(actual, expected);
 }
 

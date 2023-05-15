@@ -3,19 +3,15 @@
 #include <vector>
 #include <ostream>
 #include <iomanip>
-#include "barretenberg/serialize/legacy_serialize.hpp"
+#include "barretenberg/common/serialize.hpp"
 #include "barretenberg/serialize/msgpack.hpp"
 
 namespace proof_system::plonk {
 
 struct proof {
     std::vector<uint8_t> proof_data;
-    void msgpack_pack(auto& packer) const {
-        packer.pack(proof_data);
-    }
-    void msgpack_unpack(auto object) {
-        proof_data = (std::vector<uint8_t>)object;
-    }
+    void msgpack_pack(auto& packer) const { packer.pack(proof_data); }
+    void msgpack_unpack(auto object) { proof_data = (std::vector<uint8_t>)object; }
 
     bool operator==(proof const& other) const = default;
 };

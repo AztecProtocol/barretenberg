@@ -4,7 +4,7 @@
 
 #ifdef __i386__
 #include <cstdint>
-#include "barretenberg/serialize/legacy_serialize.hpp"
+#include "barretenberg/common/serialize.hpp"
 
 namespace numeric {
 
