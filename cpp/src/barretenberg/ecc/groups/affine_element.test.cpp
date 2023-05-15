@@ -126,7 +126,7 @@ TEST(affine_element, infinity_ordering_regression)
 
 TEST(affine_element, msgpack)
 {
-    auto [actual, expected] = msgpack_roundtrip(secp256k1::g1::affine_element{});
+    auto [actual, expected] = msgpack_roundtrip(secp256k1::g1::affine_element{ 1, 1 });
     EXPECT_EQ(actual, expected);
 }
 } // namespace test_affine_element

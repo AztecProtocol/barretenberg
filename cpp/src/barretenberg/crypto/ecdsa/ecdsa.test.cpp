@@ -9,7 +9,7 @@ using namespace barretenberg;
 
 TEST(ecdsa, msgpack)
 {
-    auto [actual, expected] = msgpack_roundtrip(crypto::ecdsa::signature{ {}, {}, {} });
+    auto [actual, expected] = msgpack_roundtrip(crypto::ecdsa::signature{});
     EXPECT_EQ(actual, expected);
 }
 

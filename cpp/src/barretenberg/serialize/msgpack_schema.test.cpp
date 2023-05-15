@@ -7,33 +7,33 @@
 // TODO eventually move to barretenberg
 
 struct GoodExample {
-    barretenberg::fr a = 0;
-    barretenberg::fr b = 0;
+    barretenberg::fr a;
+    barretenberg::fr b;
     MSGPACK(a, b);
 } good_example;
 
 struct BadExampleOverlap {
-    barretenberg::fr a = 0;
-    barretenberg::fr b = 0;
+    barretenberg::fr a;
+    barretenberg::fr b;
     MSGPACK(a, a);
 } bad_example_overlap;
 
 struct BadExampleIncomplete {
-    barretenberg::fr a = 0;
-    barretenberg::fr b = 0;
+    barretenberg::fr a;
+    barretenberg::fr b;
     MSGPACK(a);
 } bad_example_incomplete;
 
 struct BadExampleCompileTimeError {
     std::vector<int> a;
-    barretenberg::fr b = 0;
+    barretenberg::fr b;
 
     MSGPACK(b); // Type mismatch, expect 'a', will catch at compile-time
 } bad_example_compile_time_error;
 
 struct BadExampleOutOfObject {
-    barretenberg::fr a = 0;
-    barretenberg::fr b = 0;
+    barretenberg::fr a;
+    barretenberg::fr b;
     void msgpack(auto ar)
     {
         BadExampleOutOfObject other_object;
@@ -68,7 +68,7 @@ TEST(msgpack_tests, msgpack_sanity_sanity)
 struct ComplicatedSchema {
     std::vector<std::array<barretenberg::fr, 20>> array;
     std::optional<GoodExample> good_or_not;
-    barretenberg::fr bare = 0;
+    barretenberg::fr bare;
     std::variant<barretenberg::fr, GoodExample> huh;
     MSGPACK(array, good_or_not, bare, huh);
 } complicated_schema;
