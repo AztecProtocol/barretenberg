@@ -49,7 +49,7 @@ barretenberg::fr compress_native_evaluation_domain(barretenberg::evaluation_doma
  * @param hash_index generator index to use during pedersen compression
  * @returns a field containing the compression
  */
-barretenberg::fr verification_key_data::compress_native(const size_t)
+barretenberg::fr verification_key_data::compress_native(const size_t hash_index)
 {
     barretenberg::evaluation_domain eval_domain = evaluation_domain(circuit_size);
 
@@ -77,10 +77,10 @@ barretenberg::fr verification_key_data::compress_native(const size_t)
 
     barretenberg::fr compressed_key;
     if (proof_system::ComposerType(composer_type) == ComposerType::PLOOKUP) {
-        compressed_key =
-            from_buffer<barretenberg::fr>(crypto::pedersen_commitment::lookup::compress_native(preimage_data));
+        compressed_key = from_buffer<barretenberg::fr>(
+            crypto::pedersen_commitment::lookup::compress_native(preimage_data, hash_index));
     } else {
-        compressed_key = crypto::pedersen_commitment::compress_native(preimage_data);
+        compressed_key = crypto::pedersen_commitment::compress_native(preimage_data, hash_index);
     }
     return compressed_key;
 }

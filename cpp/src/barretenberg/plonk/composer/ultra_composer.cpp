@@ -1158,6 +1158,7 @@ std::vector<uint32_t> UltraComposer::decompose_into_default_range(const uint32_t
                     .const_scaling = -barretenberg::fr(last_limb_range),
                 });
                 create_new_range_constraint(diff_idx, sublimb_mask);
+                create_new_range_constraint(limb_idx, sublimb_mask);
             } else {
                 create_new_range_constraint(limb_idx, last_limb_range);
             }

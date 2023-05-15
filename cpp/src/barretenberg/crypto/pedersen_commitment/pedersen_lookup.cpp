@@ -112,16 +112,16 @@ grumpkin::fq compress_native(const std::vector<grumpkin::fq>& inputs, const std:
     return commit_native(inputs, hash_indices).x;
 }
 
-grumpkin::fq compress_native_buffer_to_field(const std::vector<uint8_t>& input)
+grumpkin::fq compress_native_buffer_to_field(const std::vector<uint8_t>& input, const size_t hash_index)
 {
     const auto elements = convert_buffer_to_field(input);
-    grumpkin::fq result_fq = compress_native(elements);
+    grumpkin::fq result_fq = compress_native(elements, hash_index);
     return result_fq;
 }
 
-std::vector<uint8_t> compress_native(const std::vector<uint8_t>& input)
+std::vector<uint8_t> compress_native(const std::vector<uint8_t>& input, const size_t hash_index)
 {
-    const auto result_fq = compress_native_buffer_to_field(input);
+    const auto result_fq = compress_native_buffer_to_field(input, hash_index);
     uint256_t result_u256(result_fq);
     const size_t num_bytes = input.size();
 

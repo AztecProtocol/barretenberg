@@ -1557,16 +1557,6 @@ std::array<uint32_t, 2> UltraCircuitConstructor::queue_partial_non_native_field_
     cached_partial_non_native_field_multiplications.emplace_back(cache_entry);
     return std::array<uint32_t, 2>{ lo_0_idx, hi_1_idx };
 }
-/**
- * @brief The following tests FAILED:
-        321 - pedersen_lookup.merkle_damgard_compress (Failed) done
-        322 - pedersen_lookup.merkle_damgard_compress_multiple_iv (Failed) done
-        453 - UltraHonkComposer.non_native_field_multiplication (Failed)
-        460 - IpaCommitmentTest.commit<proof_system::honk::pcs::ipa::Params> (Subprocess aborted)
-        461 - IpaCommitmentTest.open<proof_system::honk::pcs::ipa::Params> (Subprocess aborted)
-        1659 - join_split_tests.test_0_input_notes_and_detect_circuit_change (Failed) (hmm)
- *
- */
 
 /**
  * Uses a sneaky extra mini-addition gate in `plookup_arithmetic_widget.hpp` to add two non-native

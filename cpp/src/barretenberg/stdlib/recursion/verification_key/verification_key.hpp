@@ -66,8 +66,18 @@ template <class Composer, size_t bits_per_element = 248> struct PedersenPreimage
         }
     }
 
-    std::vector<field_pt> work_element;
+    /**
+     * @brief preimage_data is a bit-array where `bits_per_element` number of bits are packed into a single field
+     * element
+     */
     std::vector<field_pt> preimage_data;
+
+    /**
+     * @brief work_element represents the leading element to be added into `preimage_data`.
+     *        Vector is composed of field elements that represent bit chunks of a known length,
+     *        such that the sum of the bit chunks < bits_per_element
+     */
+    std::vector<field_pt> work_element;
 
     size_t current_bit_counter = 0;
 
@@ -78,6 +88,20 @@ template <class Composer, size_t bits_per_element = 248> struct PedersenPreimage
         slice_element(element, num_bits);
     }
 
+    /**
+     * @brief Populate `preimage_data` with element whose size is known to be `num_bits`.
+     * `preimage_data` is treated as a bit-array where `bits_per_element` number of bits are packed into a single field
+     * element. `slice_element` will:
+     *
+     * 1. determine how many bits are remaining in work_element
+     * 2. if remaining bits > num_bits, slice `element` into 2 chunks hi/lo
+     * 3. fill work_element with `hi` chunk (or the full element if possible)
+     * 4. (if work_element is full) combine work_element chunks into a field element and push onto `preimage_data`
+     * 4. (if required) create a new work_element and populate with `lo`
+     *
+     * @param element
+     * @param num_bits
+     */
     void slice_element(const field_pt& element, const size_t num_bits)
     {
         ASSERT(context != nullptr);

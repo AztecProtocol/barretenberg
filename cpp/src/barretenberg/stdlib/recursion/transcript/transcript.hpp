@@ -134,7 +134,11 @@ template <typename Composer> class Transcript {
         }
         field_pt working_element(context);
 
-        PedersenPreimageBuilder<Composer, 31 * 8> preimage_buffer(context);
+        // maximum number of bytes we can store in a field element w/o wrapping modulus is 31.
+        // while we could store more *bits*, we want `preimage_buffer` to mirror how data is formatted
+        // when we serialize field/group elements natively (i.e. a byte array)
+        static constexpr size_t NUM_BITS_PER_PREIMAGE_ELEMENT = 31UL * 8UL;
+        PedersenPreimageBuilder<Composer, NUM_BITS_PER_PREIMAGE_ELEMENT> preimage_buffer(context);
         if (current_round > 0) {
             preimage_buffer.add_element(current_challenge);
         }

@@ -462,9 +462,6 @@ element<C, Fq, Fr, G> element<C, Fq, Fr, G>::multiple_montgomery_ladder(
             lambda1_left = previous_y.mul_left;
             lambda1_right = previous_y.mul_right;
             lambda1_add = previous_y.add;
-            // std::copy(previous_y.mul_left.begin(), previous_y.mul_left.end(), std::back_inserter(lambda1_left));
-            // std::copy(previous_y.mul_right.begin(), previous_y.mul_right.end(), std::back_inserter(lambda1_right));
-            // std::copy(previous_y.add.begin(), previous_y.add.end(), std::back_inserter(lambda1_add));
         }
 
         if (!add[i].is_element) {
