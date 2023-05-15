@@ -122,7 +122,6 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
 
     // Assign correct witness value to the verification key hash
     vkey->compress().assert_equal(field_ct::from_witness_index(&composer, input.key_hash));
-    // std::cout << "compressed vkey\n";
 
     // Assign the output aggregation object to the proof public inputs (16 field elements representing two
     // G1 points)

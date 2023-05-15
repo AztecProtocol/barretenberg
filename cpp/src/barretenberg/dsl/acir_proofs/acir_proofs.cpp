@@ -285,18 +285,36 @@ size_t verify_recursive_proof(uint8_t const* proof_buf,
                               uint32_t proof_length,
                               uint8_t const* vk_buf,
                               uint32_t vk_length,
-                              uint8_t const* public_inputs_buf,
+                              uint32_t num_public_inputs,
                               uint8_t const* input_aggregation_obj_buf,
                               uint8_t** output_aggregation_obj_buf)
 {
-    // TODO: not doing anything with public_inputs_buf right now because we only have one layer of recursion
-    // and the previous aggregation state will be empty. When arbitrary depth recursion is available we will have to
-    // construct the correct input aggregation_state_ct
-    (void)public_inputs_buf;
-    (void)input_aggregation_obj_buf;
+
+    bool inner_aggregation_all_zero = true;
+    std::vector<barretenberg::fr> aggregation_input(16);
+    for (size_t i = 0; i < 16; i++) {
+        aggregation_input[i] = barretenberg::fr::serialize_from_buffer(&input_aggregation_obj_buf[i * 32]);
+        inner_aggregation_all_zero &= (aggregation_input[i].is_zero());
+    }
 
     acir_format::aggregation_state_ct previous_aggregation;
-    previous_aggregation.has_data = false;
+    if (!inner_aggregation_all_zero) {
+        std::array<acir_format::bn254::fq_ct, 4> aggregation_elements;
+        for (size_t i = 0; i < 4; ++i) {
+            aggregation_elements[i] = acir_format::bn254::fq_ct(acir_format::field_ct(aggregation_input[4 * i]),
+                                                                acir_format::field_ct(aggregation_input[4 * i + 1]),
+                                                                acir_format::field_ct(aggregation_input[4 * i + 2]),
+                                                                acir_format::field_ct(aggregation_input[4 * i + 3]));
+            aggregation_elements[i].assert_is_in_field();
+        }
+        // If we have a previous aggregation object, assign it to `previous_aggregation` so that it is included
+        // in stdlib::recursion::verify_proof
+        previous_aggregation.P0 = acir_format::bn254::g1_ct(aggregation_elements[0], aggregation_elements[1]);
+        previous_aggregation.P1 = acir_format::bn254::g1_ct(aggregation_elements[2], aggregation_elements[3]);
+        previous_aggregation.has_data = true;
+    } else {
+        previous_aggregation.has_data = false;
+    }
 
     std::vector<acir_format::field_ct> proof_fields(proof_length / 32);
     std::vector<acir_format::field_ct> key_fields(vk_length / 32);
@@ -309,21 +327,30 @@ size_t verify_recursive_proof(uint8_t const* proof_buf,
 
     acir_format::Composer composer;
 
-    transcript::Manifest manifest = acir_format::Composer::create_unrolled_manifest(1);
+    transcript::Manifest manifest = acir_format::Composer::create_unrolled_manifest(num_public_inputs);
     // We currently only support RecursionConstraint where inner_proof_contains_recursive_proof = false.
     // We would either need a separate ACIR opcode where inner_proof_contains_recursive_proof = true,
     // or we need non-witness data to be provided as metadata in the ACIR opcode
     // recursively verify the proof
-    // TODO: handle inner_proof_contains_recursive_proof and recursive_proof_public_input_indices
-    std::shared_ptr<acir_format::verification_key_ct> vkey =
-        acir_format::verification_key_ct::from_field_pt_vector(&composer, key_fields);
+    std::array<uint32_t, acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE> nested_aggregation_object = {};
+    for (size_t i = 6; i < 22; ++i) {
+        nested_aggregation_object[i - 6] = uint32_t(key_fields[i].get_value());
+    }
+    bool nested_aggregation_indices_all_zero = true;
+    for (const auto& idx : nested_aggregation_object) {
+        nested_aggregation_indices_all_zero &= (idx == 0);
+    }
+    const bool inner_proof_contains_recursive_proof = !nested_aggregation_indices_all_zero;
+    std::shared_ptr<acir_format::verification_key_ct> vkey = acir_format::verification_key_ct::from_field_pt_vector(
+        &composer, key_fields, inner_proof_contains_recursive_proof, nested_aggregation_object);
     vkey->program_width = acir_format::noir_recursive_settings::program_width;
-    acir_format::Transcript_ct transcript(&composer, manifest, proof_fields, 1);
+    acir_format::Transcript_ct transcript(&composer, manifest, proof_fields, num_public_inputs);
     acir_format::aggregation_state_ct result =
         proof_system::plonk::stdlib::recursion::verify_proof_<acir_format::bn254, acir_format::noir_recursive_settings>(
             &composer, vkey, transcript, previous_aggregation);
 
-    // just writing the output aggregation G1 elements, and no public inputs, proof witnesses, or any other data
+    // Just write the output aggregation G1 elements, and no public inputs, proof witnesses, or any other data
+    // as this should all be available elsewhere
     const size_t output_size_bytes = 16 * sizeof(barretenberg::fr);
     auto raw_buf = (uint8_t*)malloc(output_size_bytes);
 
