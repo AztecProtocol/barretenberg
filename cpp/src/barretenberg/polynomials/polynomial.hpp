@@ -50,6 +50,8 @@ template <typename Fr> class Polynomial {
     Polynomial& operator=(const Polynomial& other);
     ~Polynomial();
 
+    Polynomial clone() { return Polynomial(*this, size()); }
+
     void clear()
     {
         coefficients_.reset();

@@ -6,7 +6,7 @@ COPY . .
 RUN ./scripts/install-wasi-sdk.sh
 # Build both honk_tests barretenberg.wasm
 # This ensures that we aren't using features that would be incompatible with WASM for Honk
-RUN cmake --preset wasm && cmake --build --preset wasm --target honk_tests --target barretenberg.wasm
+RUN cmake --preset wasm-threads && cmake --build --preset wasm-threads --target honk_tests --target barretenberg.wasm
 
 FROM alpine:3.18
 COPY --from=builder /usr/src/barretenberg/cpp/build-wasm/bin/barretenberg.wasm /usr/src/barretenberg/cpp/build/bin/barretenberg.wasm
