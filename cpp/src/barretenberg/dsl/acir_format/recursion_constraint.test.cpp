@@ -184,6 +184,7 @@ TEST(RecursionConstraint, TestRecursionConstraint)
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .compute_merkle_root_constraints = {},
+        .block_constraints = {},
         .recursion_constraints = { recursion_constraint },
         .constraints = {},
     };
