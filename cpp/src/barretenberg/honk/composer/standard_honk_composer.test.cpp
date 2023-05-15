@@ -6,8 +6,7 @@
 #include <vector>
 #include "barretenberg/honk/proof_system/prover.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck_round.hpp"
-#include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/permutation_relation.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 
 #pragma GCC diagnostic ignored "-Wunused-variable"

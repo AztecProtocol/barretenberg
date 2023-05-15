@@ -12,6 +12,12 @@ template <typename FF> class UltraArithmeticRelation {
     // 1 + polynomial degree of this relation
     static constexpr size_t RELATION_LENGTH = 6; // degree(q_arith^2 * q_m * w_r * w_l) = 5
 
+    static constexpr size_t NUM_CONSTRAINTS = 1;
+    static constexpr std::array<size_t, NUM_CONSTRAINTS> CONSTRAINT_LENGTH = { 6 };
+
+    using RelationUnivariates = std::tuple<Univariate<FF, CONSTRAINT_LENGTH[0]>>;
+    using RelationValues = std::array<FF, NUM_CONSTRAINTS>;
+
     /**
      * @brief Expression for the Ultra Arithmetic gate.
      * @details The relation is defined as C(extended_edges(X)...) =

@@ -3,8 +3,7 @@
 #include "barretenberg/honk/flavor/standard.hpp"
 #include "barretenberg/transcript/transcript_wrappers.hpp"
 #include "relations/arithmetic_relation.hpp"
-#include "relations/grand_product_computation_relation.hpp"
-#include "relations/grand_product_initialization_relation.hpp"
+#include "relations/permutation_relation.hpp"
 #include "barretenberg/transcript/manifest.hpp"
 #include <array>
 #include <cstddef>
@@ -138,11 +137,8 @@ TEST(Sumcheck, PolynomialNormalization)
 
     auto transcript = ProverTranscript<FF>::init_empty();
 
-    auto sumcheck = Sumcheck<Flavor,
-                             ProverTranscript<FF>,
-                             ArithmeticRelation,
-                             GrandProductComputationRelation,
-                             GrandProductInitializationRelation>(multivariate_n, transcript);
+    auto sumcheck =
+        Sumcheck<Flavor, ProverTranscript<FF>, ArithmeticRelation, PermutationRelation>(multivariate_n, transcript);
 
     auto [multivariate_challenge, evaluations] = sumcheck.execute_prover(full_polynomials, {});
 
@@ -154,8 +150,8 @@ TEST(Sumcheck, PolynomialNormalization)
      * sumcheck.multivariates.folded_polynoimals[i][0] is the evaluatioin of the i'th multivariate at the vector of
      challenges u_i. What does this mean?
 
-     Here we show that if the multivariate is F(X0, X1, X2) defined as above, then what we get is F(u0, u1, u2) and not,
-     say F(u2, u1, u0). This is in accordance with Adrian's thesis (cf page 9).
+     Here we show that if the multivariate is F(X0, X1, X2) defined as above, then what we get is F(u0, u1, u2) and
+     not, say F(u2, u1, u0). This is in accordance with Adrian's thesis (cf page 9).
       */
 
     // Get the values of the Lagrange basis polys L_i defined
@@ -238,11 +234,8 @@ TEST(Sumcheck, Prover)
 
         auto transcript = ProverTranscript<FF>::init_empty();
 
-        auto sumcheck = Sumcheck<Flavor,
-                                 ProverTranscript<FF>,
-                                 ArithmeticRelation,
-                                 GrandProductComputationRelation,
-                                 GrandProductInitializationRelation>(multivariate_n, transcript);
+        auto sumcheck =
+            Sumcheck<Flavor, ProverTranscript<FF>, ArithmeticRelation, PermutationRelation>(multivariate_n, transcript);
 
         auto [multivariate_challenge, evaluations] = sumcheck.execute_prover(full_polynomials, {});
         FF u_0 = multivariate_challenge[0];
@@ -319,21 +312,15 @@ TEST(Sumcheck, ProverAndVerifier)
 
     auto prover_transcript = ProverTranscript<FF>::init_empty();
 
-    auto sumcheck_prover = Sumcheck<Flavor,
-                                    ProverTranscript<FF>,
-                                    ArithmeticRelation,
-                                    GrandProductComputationRelation,
-                                    GrandProductInitializationRelation>(multivariate_n, prover_transcript);
+    auto sumcheck_prover = Sumcheck<Flavor, ProverTranscript<FF>, ArithmeticRelation, PermutationRelation>(
+        multivariate_n, prover_transcript);
 
     auto prover_output = sumcheck_prover.execute_prover(full_polynomials, relation_parameters);
 
     auto verifier_transcript = VerifierTranscript<FF>::init_empty(prover_transcript);
 
-    auto sumcheck_verifier = Sumcheck<Flavor,
-                                      VerifierTranscript<FF>,
-                                      ArithmeticRelation,
-                                      GrandProductComputationRelation,
-                                      GrandProductInitializationRelation>(multivariate_n, verifier_transcript);
+    auto sumcheck_verifier = Sumcheck<Flavor, VerifierTranscript<FF>, ArithmeticRelation, PermutationRelation>(
+        multivariate_n, verifier_transcript);
 
     std::optional verifier_output = sumcheck_verifier.execute_verifier(relation_parameters);
 
@@ -401,21 +388,15 @@ TEST(Sumcheck, ProverAndVerifierLonger)
 
         auto prover_transcript = ProverTranscript<FF>::init_empty();
 
-        auto sumcheck_prover = Sumcheck<Flavor,
-                                        ProverTranscript<FF>,
-                                        ArithmeticRelation,
-                                        GrandProductComputationRelation,
-                                        GrandProductInitializationRelation>(multivariate_n, prover_transcript);
+        auto sumcheck_prover = Sumcheck<Flavor, ProverTranscript<FF>, ArithmeticRelation, PermutationRelation>(
+            multivariate_n, prover_transcript);
 
         auto prover_output = sumcheck_prover.execute_prover(full_polynomials, relation_parameters);
 
         auto verifier_transcript = VerifierTranscript<FF>::init_empty(prover_transcript);
 
-        auto sumcheck_verifier = Sumcheck<Flavor,
-                                          VerifierTranscript<FF>,
-                                          ArithmeticRelation,
-                                          GrandProductComputationRelation,
-                                          GrandProductInitializationRelation>(multivariate_n, verifier_transcript);
+        auto sumcheck_verifier = Sumcheck<Flavor, VerifierTranscript<FF>, ArithmeticRelation, PermutationRelation>(
+            multivariate_n, verifier_transcript);
 
         std::optional verifier_output = sumcheck_verifier.execute_verifier(relation_parameters);
 
