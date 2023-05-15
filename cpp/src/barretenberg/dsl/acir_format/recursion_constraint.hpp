@@ -33,10 +33,10 @@ namespace acir_format {
  * its public inputs! If this is the case, we record the public input locations in `nested_aggregation_object`. If the
  * inner proof is of a circuit that does not have a nested aggregation object, these values are all zero.
  *
- * To outline the interaction between the input_aggergation_object and the nested_aggregation_object take the follow
+ * To outline the interaction between the input_aggergation_object and the nested_aggregation_object take the following
  * example: If we have a circuit that verifies 2 proofs A and B, the recursion constraint for B will have an
- * input_aggregation_object that points to the agg output produced by verifying A. If circuit B also verifies a proof,
- * in the above example the recursion constraint for verifying B will have a nested object that describes the
+ * input_aggregation_object that points to the aggregation output produced by verifying A. If circuit B also verifies a
+ * proof, in the above example the recursion constraint for verifying B will have a nested object that describes the
  * aggregation object in B’s public inputs as well as an input aggregation object that points to the object produced by
  * the previous recursion constraint in the circuit (the one that verifies A)
  *
