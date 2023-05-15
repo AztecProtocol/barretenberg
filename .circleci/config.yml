@@ -35,8 +35,6 @@ checkout: &checkout
       chmod 0700 .ssh
       ssh-keyscan -t rsa github.com >> .ssh/known_hosts
 
-      chmod 0600 .ssh/id_rsa
-
       # IF YOU'RE CHANGING THIS, YOU ALSO WANT TO CHANGE: build-system/remote_build/remote_build
       # Shallow checkout this commit.
       mkdir -p project
