@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -eu
 
 # Clean.
@@ -28,4 +28,3 @@ else
   # Can remove once future releases are more stable.
   curl -s -L https://wasi-sdk.s3.eu-west-2.amazonaws.com/yamt-wasi-sysroot-20.0.threads.tgz | tar zxfv -
 fi
-cd ..
