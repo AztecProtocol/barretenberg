@@ -3,9 +3,6 @@
 #include "barretenberg/transcript/transcript.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/serialize.hpp"
 #include "barretenberg/stdlib/primitives/curves/bn254.hpp"
-// Be explicit about including the heavy implementation headers:
-#include "barretenberg/plonk/proof_system/widgets/random_widgets/plookup_widget_impl.hpp"
-#include "barretenberg/plonk/proof_system/widgets/random_widgets/permutation_widget_impl.hpp"
 #include "barretenberg/ecc/curves/bn254/fq12.hpp"
 #include "barretenberg/ecc/curves/bn254/pairing.hpp"
 #include "../../hash/blake3s/blake3s.hpp"

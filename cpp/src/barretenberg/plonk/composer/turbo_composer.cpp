@@ -2,9 +2,6 @@
 #include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 #include "barretenberg/plonk/proof_system/widgets/random_widgets/permutation_widget.hpp"
-// Be explicit about including the heavy implementation headers:
-#include "barretenberg/plonk/proof_system/widgets/random_widgets/plookup_widget_impl.hpp"
-#include "barretenberg/plonk/proof_system/widgets/random_widgets/permutation_widget_impl.hpp"
 #include "barretenberg/plonk/proof_system/widgets/transition_widgets/turbo_arithmetic_widget.hpp"
 #include "barretenberg/plonk/proof_system/widgets/transition_widgets/fixed_base_widget.hpp"
 #include "barretenberg/plonk/proof_system/widgets/transition_widgets/turbo_logic_widget.hpp"

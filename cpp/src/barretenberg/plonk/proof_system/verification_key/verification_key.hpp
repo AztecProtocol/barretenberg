@@ -94,7 +94,7 @@ struct verification_key {
     std::vector<uint32_t> recursive_proof_public_input_indices;
     size_t program_width = 3;
 
-    // for serialization: update up with new fields
+    // for serialization: update with new fields
     void msgpack_pack(auto& packer) const
     {
         verification_key_data data = { composer_type,
