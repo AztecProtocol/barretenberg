@@ -210,6 +210,7 @@ acir_format::Composer create_outer_circuit(std::vector<acir_format::Composer>& i
         .ecdsa_constraints = {},
         .sha256_constraints = {},
         .blake2s_constraints = {},
+        .keccak_constraints = {},
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .compute_merkle_root_constraints = {},
