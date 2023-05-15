@@ -7,7 +7,6 @@
 // #include "barretenberg/honk/flavor/ultra.hpp"
 // #include "relation.hpp"
 // #include "arithmetic_relation.hpp"
-// #include "grand_product_initialization_relation.hpp"
 // #include "permutation_relation.hpp"
 // #include "../polynomials/univariate.hpp"
 // #include "../polynomials/barycentric_data.hpp"
@@ -251,7 +250,7 @@
 //     validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
 // };
 
-// TEST_F(UltraRelationConsistency, UltraGrandProductComputationRelation)
+// TEST_F(UltraRelationConsistency, UltraPermutationRelation)
 // {
 //     using Flavor = honk::flavor::Ultra;
 //     using FF = typename Flavor::FF;
@@ -270,7 +269,7 @@
 //     }
 //     compute_mock_extended_edges(extended_edges, input_polynomials);
 
-//     auto relation = UltraGrandProductComputationRelation<FF>();
+//     auto relation = UltraPermutationRelation<FF>();
 
 //     const auto& beta = relation_parameters.beta;
 //     const auto& gamma = relation_parameters.gamma;

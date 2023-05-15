@@ -8,7 +8,6 @@
 // #include "barretenberg/honk/proof_system/prover.hpp"
 // #include "barretenberg/honk/sumcheck/sumcheck_round.hpp"
 // #include "barretenberg/honk/sumcheck/relations/permutation_relation.hpp"
-// #include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
 // #include "barretenberg/honk/utils/grand_product_delta.hpp"
 // #include "barretenberg/proof_system/plookup_tables/types.hpp"
 

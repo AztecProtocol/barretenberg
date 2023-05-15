@@ -384,7 +384,7 @@ TEST(RelationCorrectness, StandardRelationCorrectness)
 //     auto relations = std::tuple(honk::sumcheck::UltraArithmeticRelation<FF>(),
 //                                 honk::sumcheck::UltraArithmeticRelationSecondary<FF>(),
 //                                 honk::sumcheck::UltraGrandProductInitializationRelation<FF>(),
-//                                 honk::sumcheck::UltraGrandProductComputationRelation<FF>(),
+//                                 honk::sumcheck::UltraPermutationRelation<FF>(),
 //                                 honk::sumcheck::LookupGrandProductComputationRelation<FF>(),
 //                                 honk::sumcheck::LookupGrandProductInitializationRelation<FF>(),
 //                                 honk::sumcheck::GenPermSortRelation<FF>(),
