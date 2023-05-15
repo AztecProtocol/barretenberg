@@ -79,9 +79,6 @@ field_t<C> pedersen_commitment<C>::compress_unsafe(const field_t& in_left,
         return pedersen_plookup_commitment<C>::compress({ in_left, in_right });
     }
 
-    // Make sure generators exist for pedersen (will do nothing if already initialized)
-    crypto::generators::init_generator_data();
-
     std::vector<point> accumulators;
     generator_index_t index_1 = { hash_index, 0 };
     generator_index_t index_2 = { hash_index, 1 };
