@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 #include <vector>
 #include "barretenberg/common/streams.hpp"
+#include "ecdsa_secp256k1.hpp"
 
 TEST(acir_format, test_a_single_constraint_no_pub_inputs)
 {
@@ -132,6 +133,7 @@ TEST(acir_format, test_logic_gate_from_noir_circuit)
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .compute_merkle_root_constraints = {},
+        .block_constraints = {},
         .recursion_constraints = {},
         .constraints = { expr_a, expr_b, expr_c, expr_d },
     };
@@ -198,6 +200,7 @@ TEST(acir_format, test_schnorr_verify_pass)
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .compute_merkle_root_constraints = {},
+        .block_constraints = {},
         .recursion_constraints = {},
         .constraints = { poly_triple{
             .a = schnorr_constraint.result,
@@ -269,6 +272,7 @@ TEST(acir_format, test_schnorr_verify_small_range)
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .compute_merkle_root_constraints = {},
+        .block_constraints = {},
         .recursion_constraints = {},
         .constraints = { poly_triple{
             .a = schnorr_constraint.result,
