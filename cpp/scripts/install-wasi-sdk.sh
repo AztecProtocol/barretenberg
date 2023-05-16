@@ -15,6 +15,7 @@ else
 fi
 
 # Install the webassembly toolchain.
+mkdir -p src
 cd ./src
 curl -s -L https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-20/wasi-sdk-20.0-$OS.tar.gz | tar zxfv -
 if [ "$OS" == "linux" ]; then
