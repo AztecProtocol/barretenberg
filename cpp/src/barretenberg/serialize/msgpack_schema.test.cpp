@@ -76,9 +76,9 @@ struct ComplicatedSchema {
 TEST(msgpack_tests, msgpack_schema_sanity)
 {
     EXPECT_EQ(
-        msgpack::schema_to_string(good_example),
+        msgpack_schema_to_string(good_example),
         "{\"__typename\":\"GoodExample\",\"a\":[\"alias\",[\"Fr\",\"bin32\"]],\"b\":[\"alias\",[\"Fr\",\"bin32\"]]}\n");
-    EXPECT_EQ(msgpack::schema_to_string(complicated_schema),
+    EXPECT_EQ(msgpack_schema_to_string(complicated_schema),
               "{\"__typename\":\"ComplicatedSchema\",\"array\":[\"vector\",[[\"array\",[[\"alias\",[\"Fr\",\"bin32\"]],"
               "20]]]],\"good_or_not\":[\"optional\",[{\"__typename\":\"GoodExample\",\"a\":[\"alias\",[\"Fr\","
               "\"bin32\"]],\"b\":[\"alias\",[\"Fr\",\"bin32\"]]}]],\"bare\":[\"alias\",[\"Fr\",\"bin32\"]],\"huh\":["

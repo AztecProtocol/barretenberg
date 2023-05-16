@@ -67,10 +67,8 @@ typedef field<Bn254FrParams> fr;
 
 } // namespace barretenberg
 
-namespace msgpack {
 // define this as a named alias in msgpack schema generation
-inline void schema_pack(auto& packer, barretenberg::fr const&)
+inline void msgpack_schema_pack(auto& packer, barretenberg::fr const&)
 {
     packer.pack_alias("Fr", "bin32");
 }
-} // namespace msgpack

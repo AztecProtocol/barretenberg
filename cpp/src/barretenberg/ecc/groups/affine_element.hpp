@@ -177,7 +177,7 @@ template <typename Fq, typename Fr, typename Params> class alignas(64) affine_el
     }
     Fq x;
     Fq y;
-    // for serialization: update up with new fields
+    // for serialization: update with new fields
     MSGPACK_FIELDS(x, y);
 };
 
