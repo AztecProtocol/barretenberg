@@ -1,5 +1,5 @@
 #pragma once
-#include "./env/logstr.hpp"
+#include <barretenberg/env/logstr.hpp>
 #include <sstream>
 #include <algorithm>
 #include <vector>

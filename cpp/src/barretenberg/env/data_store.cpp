@@ -1,5 +1,3 @@
-// Native implementation. Wasm implementation must be implemented by host environment.
-#ifndef __wasm__
 #include <ios>
 #include "data_store.hpp"
 #include <string>
@@ -36,5 +34,3 @@ void get_data(char const* key, uint8_t* out_buf)
     // return nullptr;
 }
 }
-
-#endif

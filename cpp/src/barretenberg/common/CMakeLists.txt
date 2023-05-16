@@ -1,1 +1,1 @@
-barretenberg_module(common)
+barretenberg_module(common env)

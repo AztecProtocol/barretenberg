@@ -1,6 +1,5 @@
 // If building WASM, we can stub out functions we know we don't need, to save the host
 // environment from having to stub them itself.
-#ifdef __wasm__
 #include <cstdint>
 #include <cstdlib>
 #include <barretenberg/common/log.hpp>
@@ -109,5 +108,3 @@ int32_t __imported_wasi_snapshot_preview1_fd_prestat_dir_name(int32_t, int32_t, 
     return 28;
 }
 }
-
-#endif

@@ -4,21 +4,14 @@
 #include <atomic>
 #include <functional>
 #include <barretenberg/numeric/bitop/get_msb.hpp>
-
-#ifdef __wasm__
-extern "C" uint32_t env_hardware_concurrency();
-#endif
+#include <barretenberg/env/hardware_concurrency.hpp>
 
 inline size_t get_num_cpus()
 {
 #ifdef NO_MULTITHREADING
     return 1;
 #else
-#ifdef __wasm__
     return env_hardware_concurrency();
-#else
-    return std::thread::hardware_concurrency();
-#endif
 #endif
 }
 

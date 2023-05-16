@@ -31,7 +31,7 @@ endif()
 if(WASM)
     set(CMAKE_CXX_FLAGS_DEBUG "-O1 -g")
     set(CMAKE_C_FLAGS_DEBUG "-O1 -g")
-    add_compile_options(--target=wasm32-wasi-threads -pthread)
+    add_link_options(-Wl,--export-memory,--import-memory,--stack-first,-z,stack-size=1048576,--max-memory=4294967296)
 endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
@@ -45,6 +45,7 @@ else()
     message(STATUS "Using optimized assembly for field arithmetic.")
 endif()
 
+add_subdirectory(barretenberg/env)
 add_subdirectory(barretenberg/common)
 add_subdirectory(barretenberg/numeric)
 add_subdirectory(barretenberg/srs)
@@ -60,6 +61,7 @@ add_subdirectory(barretenberg/join_split_example)
 add_subdirectory(barretenberg/dsl)
 add_subdirectory(barretenberg/examples)
 add_subdirectory(barretenberg/solidity_helpers)
+add_subdirectory(barretenberg/wasi)
 
 if(BENCHMARKS)
     add_subdirectory(barretenberg/benchmark)
@@ -106,11 +108,10 @@ add_library(
 )
 
 if(WASM)
-    # Create an inline dummy source file as add_executable needs something.
-    set(DUMMY_SOURCE_FILE "${CMAKE_CURRENT_BINARY_DIR}/dummy.cpp")
-    file(WRITE ${DUMMY_SOURCE_FILE} "")
-
-    add_executable(barretenberg.wasm dummy.cpp)
+    add_executable(
+        barretenberg.wasm
+        $<TARGET_OBJECTS:wasi_objects>
+    )
 
     target_link_libraries(barretenberg.wasm barretenberg)
 
@@ -123,7 +124,7 @@ if(WASM)
     target_link_options(
         barretenberg.wasm
         PRIVATE
-        -pthread --target=wasm32-wasi-threads -nostartfiles -Wl,--whole-archive,--no-entry,--export-dynamic,--import-memory,--allow-undefined,--stack-first,-z,stack-size=1048576,--max-memory=4294967296
+        -nostartfiles -Wl,--whole-archive,--no-entry,--export-dynamic,--allow-undefined
     )
 
     if(INSTALL_BARRETENBERG)
