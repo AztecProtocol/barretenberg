@@ -4,7 +4,7 @@
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/plonk/proof_system/public_inputs/public_inputs.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/polynomials/slab_allocator.hpp"
+#include "barretenberg/common/slab_allocator.hpp"
 #include "barretenberg/transcript/transcript.hpp"
 #include "barretenberg/polynomials/iterate_over_domain.hpp"
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"

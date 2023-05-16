@@ -1,7 +1,7 @@
 #include "polynomial.hpp"
 #include "polynomial_arithmetic.hpp"
 #include "barretenberg/common/assert.hpp"
-#include "slab_allocator.hpp"
+#include "barretenberg/common/slab_allocator.hpp"
 #include <cstddef>
 #include <memory>
 #include <sys/stat.h>

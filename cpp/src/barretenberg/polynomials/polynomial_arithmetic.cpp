@@ -1,5 +1,5 @@
 #include "polynomial_arithmetic.hpp"
-#include "barretenberg/polynomials/slab_allocator.hpp"
+#include "barretenberg/common/slab_allocator.hpp"
 #include "iterate_over_domain.hpp"
 #include "barretenberg/common/assert.hpp"
 #include "barretenberg/common/mem.hpp"

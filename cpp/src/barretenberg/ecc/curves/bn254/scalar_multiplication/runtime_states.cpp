@@ -3,7 +3,7 @@
 #include "barretenberg/common/mem.hpp"
 #include "barretenberg/common/thread.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
-#include "barretenberg/polynomials/slab_allocator.hpp"
+#include "barretenberg/common/slab_allocator.hpp"
 
 namespace barretenberg {
 namespace scalar_multiplication {

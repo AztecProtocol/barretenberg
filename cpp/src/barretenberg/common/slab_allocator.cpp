@@ -5,8 +5,18 @@
 
 namespace barretenberg {
 
-SlabAllocator::SlabAllocator(size_t circuit_size_hint)
+void SlabAllocator::init(size_t circuit_size_hint)
 {
+    if (circuit_size_hint <= circuit_size_hint_) {
+        return;
+    }
+
+    circuit_size_hint_ = circuit_size_hint;
+    memory_store.clear();
+    prealloc_num.clear();
+
+    // info("slab allocator initing for size: ", circuit_size_hint);
+
     if (circuit_size_hint == 0ULL) {
         return;
     }
@@ -55,7 +65,9 @@ SlabAllocator::SlabAllocator(size_t circuit_size_hint)
 
 std::shared_ptr<void> SlabAllocator::get(size_t req_size)
 {
+#ifndef NO_MULTITHREADING
     std::unique_lock<std::mutex> lock(memory_store_mutex);
+#endif
 
     auto it = memory_store.lower_bound(req_size);
 
@@ -87,16 +99,24 @@ size_t SlabAllocator::get_total_size()
 
 void SlabAllocator::release(void* ptr, size_t size)
 {
+#ifndef NO_MULTITHREADING
     std::unique_lock<std::mutex> lock(memory_store_mutex);
+#endif
     // info("Pooling poly memory of size: ", size, " total: ", get_total_size());
     memory_store[size].push_back(ptr);
 }
 
-#ifdef __wasm__
-SlabAllocator allocator(524288);
-#else
-SlabAllocator allocator(0);
-#endif
+SlabAllocator allocator;
+
+void init_slab_allocator(size_t circuit_size)
+{
+    allocator.init(circuit_size);
+}
+
+// auto init = ([]() {
+//     init_slab_allocator(524288);
+//     return 0;
+// })();
 
 std::shared_ptr<void> get_mem_slab(size_t size)
 {

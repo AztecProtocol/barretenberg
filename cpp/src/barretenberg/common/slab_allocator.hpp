@@ -2,8 +2,10 @@
 #include <unordered_map>
 #include <map>
 #include <list>
-#include <mutex>
 #include <memory>
+#ifndef NO_MULTITHREADING
+#include <mutex>
+#endif
 
 namespace barretenberg {
 
@@ -16,12 +18,15 @@ namespace barretenberg {
  */
 class SlabAllocator {
   private:
+    size_t circuit_size_hint_;
     std::map<size_t, std::list<void*>> memory_store;
     std::map<size_t, size_t> prealloc_num;
+#ifndef NO_MULTITHREADING
     std::mutex memory_store_mutex;
+#endif
 
   public:
-    explicit SlabAllocator(size_t circuit_size_hint);
+    void init(size_t circuit_size_hint);
 
     std::shared_ptr<void> get(size_t size);
 
@@ -30,6 +35,8 @@ class SlabAllocator {
   private:
     void release(void* ptr, size_t size);
 };
+
+void init_slab_allocator(size_t circuit_size);
 
 std::shared_ptr<void> get_mem_slab(size_t size);
 

@@ -1,6 +1,7 @@
 #include "composer_base.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/plonk/proof_system/utils/permutation.hpp"
+#include "barretenberg/common/slab_allocator.hpp"
 
 namespace proof_system::plonk {
 
@@ -237,6 +238,9 @@ std::shared_ptr<proving_key> ComposerBase::compute_proving_key_base(const Compos
     const size_t num_filled_gates = num_gates + public_inputs.size();
     const size_t total_num_gates = std::max(minimum_circuit_size, num_filled_gates);
     const size_t subgroup_size = get_circuit_subgroup_size(total_num_gates + num_reserved_gates); // next power of 2
+
+    // Prealloc slabs of memory for polynomials, pippenger, scratch space, etc.
+    init_slab_allocator(subgroup_size);
 
     // In the case of standard plonk, if 4 roots are cut out of the vanishing polynomial,
     // then the degree of the quotient polynomial t(X) is 3n. This implies that the degree

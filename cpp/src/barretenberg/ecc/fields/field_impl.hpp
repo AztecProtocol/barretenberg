@@ -6,7 +6,7 @@
 #include <span>
 #include <type_traits>
 #include <vector>
-#include "barretenberg/polynomials/slab_allocator.hpp"
+#include "barretenberg/common/slab_allocator.hpp"
 #include "field_impl_generic.hpp"
 
 #if (BBERG_NO_ASM == 0)
