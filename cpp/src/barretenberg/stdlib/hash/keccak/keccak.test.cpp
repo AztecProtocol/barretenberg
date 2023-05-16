@@ -195,7 +195,6 @@ TEST(stdlib_keccak, test_format_input_lanes)
 
 
     auto prover = composer.create_prover();
-    std::cout << "prover circuit_size = " << prover.key->circuit_size << std::endl;
     auto verifier = composer.create_verifier();
 
     auto proof = prover.construct_proof();
