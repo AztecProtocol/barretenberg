@@ -45,7 +45,6 @@ template <typename FF> class EllipticRelation {
             auto x_2 = UnivariateView<FF, LENGTH>(extended_edges.w_l_shift);
             auto y_2 = UnivariateView<FF, LENGTH>(extended_edges.w_4_shift);
             auto x_3 = UnivariateView<FF, LENGTH>(extended_edges.w_r_shift);
-            auto y_3 = UnivariateView<FF, LENGTH>(extended_edges.w_o_shift);
 
             auto q_sign = UnivariateView<FF, LENGTH>(extended_edges.q_l);
             auto q_beta = UnivariateView<FF, LENGTH>(extended_edges.q_o);
