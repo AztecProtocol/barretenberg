@@ -278,7 +278,6 @@ TEST(stdlib_keccak, test_double_block_variable_length)
 
     EXPECT_EQ(output.get_value(), expected);
 
-    composer.print_num_gates();
 
     auto prover = composer.create_prover();
     auto verifier = composer.create_verifier();
