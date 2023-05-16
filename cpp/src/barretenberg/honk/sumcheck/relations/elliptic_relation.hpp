@@ -34,6 +34,7 @@ template <typename FF> class EllipticRelation {
                                const FF& scaling_factor) const {
         // OPTIMIZATION?: Karatsuba in general, at least for some degrees?
         //       See https://hackmd.io/xGLuj6biSsCjzQnYN-pEiA?both
+        // TODO(luke): Formatter doesnt properly handle explicit scoping below so turning off. Whats up?
         // clang-format off
         // Contribution (1)
         {
