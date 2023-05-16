@@ -105,16 +105,15 @@ template <typename Flavor> bool UltraVerifier_<Flavor>::verify_proof(const plonk
     commitments.z_lookup = transcript.template receive_from_prover<Commitment>(commitment_labels.z_lookup);
 
     // Execute Sumcheck Verifier
-    auto sumcheck =
-        Sumcheck<Flavor, VerifierTranscript<FF>, honk::sumcheck::UltraArithmeticRelation>(circuit_size, transcript);
-    // auto sumcheck = Sumcheck<Flavor,
-    //                          VerifierTranscript<FF>,
-    //                          honk::sumcheck::UltraArithmeticRelation,
-    //                          honk::sumcheck::UltraPermutationRelation,
-    //                          honk::sumcheck::LookupRelation,
-    //                          honk::sumcheck::GenPermSortRelation,
-    //                          honk::sumcheck::EllipticRelation,
-    //                          honk::sumcheck::AuxiliaryRelation>(circuit_size, transcript);
+    // auto sumcheck =
+    //     Sumcheck<Flavor, VerifierTranscript<FF>, honk::sumcheck::UltraArithmeticRelation>(circuit_size, transcript);
+    auto sumcheck = Sumcheck<Flavor,
+                             VerifierTranscript<FF>,
+                             honk::sumcheck::UltraArithmeticRelation,
+                             honk::sumcheck::UltraPermutationRelation,
+                             honk::sumcheck::LookupRelation,
+                             honk::sumcheck::GenPermSortRelation,
+                             honk::sumcheck::EllipticRelation>(circuit_size, transcript);
 
     std::optional sumcheck_output = sumcheck.execute_verifier(relation_parameters);
 

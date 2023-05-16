@@ -544,15 +544,15 @@ TEST_F(UltraRelationConsistency, EllipticRelation)
 //     constexpr FF SUBLIMB_SHIFT_3(SUBLIMB_SHIFT_2 * SUBLIMB_SHIFT);
 //     constexpr FF SUBLIMB_SHIFT_4(SUBLIMB_SHIFT_3 * SUBLIMB_SHIFT);
 
-//     /**
-//      * Non native field arithmetic gate 2
-//      *
-//      *             _                                                                               _
-//      *            /   _                   _                               _       14                \
-//      * q_2 . q_4 |   (w_1 . w_2) + (w_1 . w_2) + (w_1 . w_4 + w_2 . w_3 - w_3) . 2    - w_3 - w_4   |
-//      *            \_                                                                               _/
-//      *
-//      **/
+/**
+ * Non native field arithmetic gate 2
+ *
+ *             _                                                                               _
+ *            /   _                   _                               _       14                \
+ * q_2 . q_4 |   (w_1 . w_2) + (w_1 . w_2) + (w_1 . w_4 + w_2 . w_3 - w_3) . 2    - w_3 - w_4   |
+ *            \_                                                                               _/
+ *
+ **/
 //     auto limb_subproduct = w_1 * w_2_shift + w_1_shift * w_2;
 //     auto non_native_field_gate_2 = (w_1 * w_4 + w_2 * w_3 - w_3_shift);
 //     non_native_field_gate_2 *= LIMB_SIZE;
@@ -585,13 +585,13 @@ TEST_F(UltraRelationConsistency, EllipticRelation)
 //     auto limb_accumulator_identity = limb_accumulator_1 + limb_accumulator_2;
 //     limb_accumulator_identity *= q_3;
 
-//     /**
-//      * MEMORY
-//      **/
+/**
+ * MEMORY
+ **/
 
-//     /**
-//      * Memory Record Check
-//      */
+/**
+ * Memory Record Check
+ */
 //     auto memory_record_check = w_3;
 //     memory_record_check *= eta;
 //     memory_record_check += w_2;
@@ -602,9 +602,9 @@ TEST_F(UltraRelationConsistency, EllipticRelation)
 //     auto partial_record_check = memory_record_check; // used in RAM consistency check
 //     memory_record_check = memory_record_check - w_4;
 
-//     /**
-//      * ROM Consistency Check
-//      */
+/**
+ * ROM Consistency Check
+ */
 //     auto index_delta = w_1_shift - w_1;
 //     auto record_delta = w_4_shift - w_4;
 
@@ -619,9 +619,9 @@ TEST_F(UltraRelationConsistency, EllipticRelation)
 //     ROM_consistency_check_identity *= fake_alpha;
 //     ROM_consistency_check_identity += memory_record_check;
 
-//     /**
-//      * RAM Consistency Check
-//      */
+/**
+ * RAM Consistency Check
+ */
 //     auto access_type = (w_4 - partial_record_check);             // will be 0 or 1 for honest Prover
 //     auto access_check = access_type * access_type - access_type; // check value is 0 or 1
 
@@ -654,15 +654,15 @@ TEST_F(UltraRelationConsistency, EllipticRelation)
 //     RAM_consistency_check_identity *= fake_alpha;
 //     RAM_consistency_check_identity += access_check;
 
-//     /**
-//      * RAM Timestamp Consistency Check
-//      */
+/**
+ * RAM Timestamp Consistency Check
+ */
 //     auto timestamp_delta = w_2_shift - w_2;
 //     auto RAM_timestamp_check_identity = (index_delta * FF(-1) + FF(1)) * timestamp_delta - w_3;
 
-//     /**
-//      * The complete RAM/ROM memory identity
-//      */
+/**
+ * The complete RAM/ROM memory identity
+ */
 //     auto memory_identity = ROM_consistency_check_identity * q_2;
 //     memory_identity += RAM_timestamp_check_identity * q_4;
 //     memory_identity += memory_record_check * q_m;

@@ -189,15 +189,14 @@ template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_grand_product_c
  */
 template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_relation_check_rounds()
 {
-    using Sumcheck = sumcheck::Sumcheck<Flavor, ProverTranscript<FF>, sumcheck::UltraArithmeticRelation>;
-    // using Sumcheck = sumcheck::Sumcheck<Flavor,
-    //                                     ProverTranscript<FF>,
-    //                                     sumcheck::UltraArithmeticRelation,
-    //                                     sumcheck::UltraPermutationRelation,
-    //                                     sumcheck::LookupRelation,
-    //                                     sumcheck::GenPermSortRelation,
-    //                                     sumcheck::EllipticRelation,
-    //                                     sumcheck::AuxiliaryRelation>;
+    // using Sumcheck = sumcheck::Sumcheck<Flavor, ProverTranscript<FF>, sumcheck::UltraArithmeticRelation>;
+    using Sumcheck = sumcheck::Sumcheck<Flavor,
+                                        ProverTranscript<FF>,
+                                        sumcheck::UltraArithmeticRelation,
+                                        sumcheck::UltraPermutationRelation,
+                                        sumcheck::LookupRelation,
+                                        sumcheck::GenPermSortRelation,
+                                        sumcheck::EllipticRelation>;
 
     auto sumcheck = Sumcheck(key->circuit_size, transcript);
 
