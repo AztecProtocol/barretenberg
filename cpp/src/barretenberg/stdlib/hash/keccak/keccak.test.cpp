@@ -193,7 +193,6 @@ TEST(stdlib_keccak, test_format_input_lanes)
         }
     }
 
-    composer.print_num_gates();
 
     auto prover = composer.create_prover();
     std::cout << "prover circuit_size = " << prover.key->circuit_size << std::endl;
