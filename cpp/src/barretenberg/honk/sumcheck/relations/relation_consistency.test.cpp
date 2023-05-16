@@ -218,6 +218,7 @@ TEST_F(StandardRelationConsistency, ArithmeticRelation)
         // Note: expect { { 5, 22, 57, 116, 205} } for input polynomial {1, 2}
         constexpr std::size_t NUM_CONSTRAINTS = decltype(relation)::NUM_CONSTRAINTS;
         auto expected_full_length_univariates = std::array<Univariate<FF, FULL_RELATION_LENGTH>, NUM_CONSTRAINTS>();
+
         expected_full_length_univariates[0] = (q_m * w_r * w_l) + (q_r * w_r) + (q_l * w_l) + (q_o * w_o) + (q_c);
         validate_evaluations(expected_full_length_univariates, relation, extended_edges, relation_parameters);
     };
