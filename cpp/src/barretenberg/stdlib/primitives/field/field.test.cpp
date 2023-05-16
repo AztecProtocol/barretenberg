@@ -1017,7 +1017,6 @@ template <typename Composer> class stdlib_field : public testing::Test {
         auto prover = composer.create_prover();
         auto verifier = composer.create_verifier();
         auto proof = prover.construct_proof();
-        info("composer gates = ", composer.get_num_gates());
         bool proof_result = verifier.verify_proof(proof);
         EXPECT_EQ(proof_result, true);
     }
