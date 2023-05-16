@@ -1,11 +1,11 @@
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation_secondary.hpp"
+#include "barretenberg/honk/sumcheck/relations/permutation_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/lookup_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/auxiliary_relation.hpp"
 #include "barretenberg/honk/flavor/ultra.hpp"
-#include "relation.hpp"
+#include "relation_parameters.hpp"
 #include "arithmetic_relation.hpp"
 #include "permutation_relation.hpp"
 #include "../polynomials/univariate.hpp"
@@ -178,49 +178,6 @@ class UltraRelationConsistency : public testing::Test {
             extend_tuple_of_arrays<extended_size, idx + 1>(tuple, result_univariates);
         }
     }
-
-    // /**
-    //  * @brief Compute the evaluation of a `relation` in different ways, comparing it to the provided `expected_evals`
-    //  *
-    //  * @details Check both `add_full_relation_value_contribution` and `add_edge_contribution` by comparing the result
-    //  to
-    //  * the `expected_evals` computed by the caller.
-    //  * Ensures that the relations compute the same result as the expression given in the tests.
-    //  *
-    //  * @param expected_evals Relation evaluation computed by the caller.
-    //  * @param relation being tested
-    //  * @param extended_edges
-    //  * @param relation_parameters
-    //  */
-    // template <size_t FULL_RELATION_LENGTH>
-    // static void validate_evaluations(const Univariate<FF, FULL_RELATION_LENGTH>& expected_evals,
-    //                                  const auto relation,
-    //                                  const ExtendedEdges<FULL_RELATION_LENGTH>& extended_edges,
-    //                                  const RelationParameters<FF>& relation_parameters)
-    // {
-
-    //     // Compute the expression index-by-index
-    //     Univariate<FF, FULL_RELATION_LENGTH> expected_evals_index{ 0 };
-    //     for (size_t i = 0; i < FULL_RELATION_LENGTH; ++i) {
-    //         // Get an array of the same size as `extended_edges` with only the i-th element of each extended edge.
-    //         PurportedEvaluations evals_i = transposed_univariate_array_at(extended_edges, i);
-    //         // Evaluate the relation
-    //         relation.add_full_relation_value_contribution(
-    //             expected_evals_index.value_at(i), evals_i, relation_parameters);
-    //     }
-    //     EXPECT_EQ(expected_evals, expected_evals_index);
-
-    //     // Compute the expression using the class, that converts the extended edges to UnivariateView
-    //     auto expected_evals_view = Univariate<FF, relation.RELATION_LENGTH>(0);
-    //     // The scaling factor is essentially 1 since we are working with degree 1 univariates
-    //     relation.add_edge_contribution(expected_evals_view, extended_edges, relation_parameters, 1);
-
-    //     // Tiny hack to reduce `expected_evals` to be of size `relation.RELATION_LENGTH`
-    //     Univariate<FF, relation.RELATION_LENGTH> expected_evals_restricted{
-    //         UnivariateView<FF, relation.RELATION_LENGTH>(expected_evals)
-    //     };
-    //     EXPECT_EQ(expected_evals_restricted, expected_evals_view);
-    // };
 };
 
 TEST_F(UltraRelationConsistency, UltraArithmeticRelation)

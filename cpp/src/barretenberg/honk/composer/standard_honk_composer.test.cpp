@@ -1,5 +1,5 @@
 #include "standard_honk_composer.hpp"
-#include "barretenberg/honk/sumcheck/relations/relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/relation_parameters.hpp"
 #include "barretenberg/numeric/uint256/uint256.hpp"
 #include <cstddef>
 #include <cstdint>

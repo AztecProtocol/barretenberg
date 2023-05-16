@@ -1,5 +1,5 @@
 #pragma once
-#include "relation.hpp"
+#include "relation_parameters.hpp"
 #include "../polynomials/univariate.hpp"
 // TODO(luke): change name of this file to permutation_grand_product_relation(s).hpp and move 'init' relation into it.
 

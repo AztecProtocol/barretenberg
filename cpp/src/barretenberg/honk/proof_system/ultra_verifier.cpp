@@ -5,7 +5,6 @@
 #include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/honk/utils/power_polynomial.hpp"
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation_secondary.hpp"
 #include "barretenberg/honk/sumcheck/relations/permutation_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/lookup_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
@@ -111,11 +110,8 @@ template <typename Flavor> bool UltraVerifier_<Flavor>::verify_proof(const plonk
     // auto sumcheck = Sumcheck<Flavor,
     //                          VerifierTranscript<FF>,
     //                          honk::sumcheck::UltraArithmeticRelation,
-    //                          honk::sumcheck::UltraArithmeticRelationSecondary,
     //                          honk::sumcheck::UltraPermutationRelation,
-    //                          honk::sumcheck::UltraGrandProductInitializationRelation,
     //                          honk::sumcheck::LookupRelation,
-    //                          honk::sumcheck::LookupGrandProductInitializationRelation,
     //                          honk::sumcheck::GenPermSortRelation,
     //                          honk::sumcheck::EllipticRelation,
     //                          honk::sumcheck::AuxiliaryRelation>(circuit_size, transcript);

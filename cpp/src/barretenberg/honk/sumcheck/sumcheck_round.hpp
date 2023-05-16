@@ -6,7 +6,7 @@
 #include "polynomials/barycentric_data.hpp"
 #include "polynomials/univariate.hpp"
 #include "polynomials/pow.hpp"
-#include "relations/relation.hpp"
+#include "relations/relation_parameters.hpp"
 #include "barretenberg/honk/flavor/ultra.hpp"
 #include <functional>
 

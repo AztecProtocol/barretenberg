@@ -3,7 +3,6 @@
 #include <cstddef>
 #include "barretenberg/honk/proof_system/prover_library.hpp"
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation_secondary.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck.hpp"
 #include <array>
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp" // will go away
@@ -194,11 +193,8 @@ template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_relation_check_
     // using Sumcheck = sumcheck::Sumcheck<Flavor,
     //                                     ProverTranscript<FF>,
     //                                     sumcheck::UltraArithmeticRelation,
-    //                                     sumcheck::UltraArithmeticRelationSecondary,
     //                                     sumcheck::UltraPermutationRelation,
-    //                                     sumcheck::UltraGrandProductInitializationRelation,
     //                                     sumcheck::LookupRelation,
-    //                                     sumcheck::LookupGrandProductInitializationRelation,
     //                                     sumcheck::GenPermSortRelation,
     //                                     sumcheck::EllipticRelation,
     //                                     sumcheck::AuxiliaryRelation>;

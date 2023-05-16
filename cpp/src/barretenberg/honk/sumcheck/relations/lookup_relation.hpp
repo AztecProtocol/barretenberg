@@ -1,5 +1,5 @@
 #pragma once
-#include "relation.hpp"
+#include "relation_parameters.hpp"
 #include "../polynomials/univariate.hpp"
 
 #pragma GCC diagnostic ignored "-Wunused-variable"
@@ -183,44 +183,6 @@ template <typename FF> class LookupRelation {
 
         // Contribution (2)
         std::get<1>(full_honk_relation_value) += lagrange_last * z_lookup_shift;
-    };
-};
-
-template <typename FF> class LookupGrandProductInitializationRelation {
-  public:
-    // 1 + polynomial degree of this relation
-    static constexpr size_t RELATION_LENGTH = 3; // deg(lagrange_last * z_lookup_shift) = 2
-
-    /**
-     * @brief Compute contribution of the lookup grand prod relation for a given edge (internal function)
-     *
-     * @details This the relation confirms correct initialization of the lookup grand
-     * product polynomial Z_lookup with Z_lookup[circuit_size] = 0.
-     *
-     * @param evals transformed to `evals + C(extended_edges(X)...)*scaling_factor`
-     * @param extended_edges an std::array containing the fully extended Univariate edges.
-     * @param parameters contains beta, gamma, and public_input_delta, ....
-     * @param scaling_factor optional term to scale the evaluation before adding to evals.
-     */
-    inline void add_edge_contribution(Univariate<FF, RELATION_LENGTH>& evals,
-                                      const auto& extended_edges,
-                                      const RelationParameters<FF>& /*unused*/,
-                                      const FF& scaling_factor) const
-    {
-        auto z_lookup_shift = UnivariateView<FF, RELATION_LENGTH>(extended_edges.z_lookup_shift);
-        auto lagrange_last = UnivariateView<FF, RELATION_LENGTH>(extended_edges.lagrange_last);
-
-        evals += (lagrange_last * z_lookup_shift) * scaling_factor;
-    };
-
-    void add_full_relation_value_contribution(FF& full_honk_relation_value,
-                                              auto& purported_evaluations,
-                                              const RelationParameters<FF>& /*unused*/) const
-    {
-        auto z_lookup_shift = purported_evaluations.z_lookup_shift;
-        auto lagrange_last = purported_evaluations.lagrange_last;
-
-        full_honk_relation_value += lagrange_last * z_lookup_shift;
     };
 };
 } // namespace proof_system::honk::sumcheck

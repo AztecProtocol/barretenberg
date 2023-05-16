@@ -3,7 +3,7 @@
 #include <tuple>
 
 #include "../polynomials/univariate.hpp"
-#include "relation.hpp"
+#include "relation_parameters.hpp"
 
 namespace proof_system::honk::sumcheck {
 
@@ -26,6 +26,9 @@ template <typename FF> class UltraArithmeticRelation {
      *      [ -1/2(q_arith - 3)(q_m * w_r * w_l) +
      *        (q_l * w_l) + (q_r * w_r) + (q_o * w_o) + (q_4 * w_4) + q_c +
      *        (q_arith - 1)w_4_shift ]
+     *
+     *    q_arith *
+     *      (q_arith - 2) * (q_arith - 1) * (w_l + w_4 - w_l_shift + q_m)
      *
      * @param evals transformed to `evals + C(extended_edges(X)...)*scaling_factor`
      * @param extended_edges an std::array containing the fully extended Univariate edges.

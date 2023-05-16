@@ -4,7 +4,7 @@
 
 #include "../polynomials/univariate.hpp"
 #include "barretenberg/numeric/uint256/uint256.hpp"
-#include "relation.hpp"
+#include "relation_parameters.hpp"
 
 namespace proof_system::honk::sumcheck {
 
