@@ -240,7 +240,7 @@
     "isAsync": false
   },
   {
-    "functionName": "blake2s_to_field",
+    "functionName": "blake2s_to_field_",
     "inArgs": [
       {
         "name": "data",

@@ -1,7 +1,6 @@
 #include "blake2s.hpp"
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
-
-#define WASM_EXPORT __attribute__((visibility("default")))
+#include <barretenberg/common/wasm_export.hpp>
 
 using namespace barretenberg;
 
@@ -15,7 +14,16 @@ WASM_EXPORT void blake2s(uint8_t const* data, out_buf32 out)
     std::copy(output.begin(), output.end(), out);
 }
 
-WASM_EXPORT void blake2s_to_field(uint8_t const* data, fr::out_buf r)
+WASM_EXPORT void blake2s_to_field(uint8_t const* data, size_t length, uint8_t* r)
+{
+    std::vector<uint8_t> inputv(data, data + length);
+    auto output = blake2::blake2s(inputv);
+    auto result = barretenberg::fr::serialize_from_buffer(output.data());
+    barretenberg::fr::serialize_to_buffer(result, r);
+}
+
+// Underscore to not conflict with old cbind. Remove the above when right.
+WASM_EXPORT void blake2s_to_field_(uint8_t const* data, fr::out_buf r)
 {
     std::vector<uint8_t> inputv;
     read(data, inputv);
