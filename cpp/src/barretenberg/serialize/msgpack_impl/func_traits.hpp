@@ -2,39 +2,57 @@
 #include <tuple>
 #include "../msgpack.hpp"
 
-template <typename Func> struct func_traits;
+// Define a template struct to deduce function traits for different function types
+template <typename Func> 
+struct func_traits;
 
-template <typename R, typename... Vs> struct func_traits<R (*)(Vs...)> {
+// Specialization for function pointers
+template <typename R, typename... Vs> 
+struct func_traits<R (*)(Vs...)> {
+    typedef std::tuple<Vs...> Args; // Define a tuple type that holds all argument types
+    Args args; // Args instance
+    R ret;     // Holds return type
+    MSGPACK_FIELDS(args, ret); // Macro from msgpack library to serialize/deserialize fields
+};
+
+// Specialization for function references
+template <typename R, typename... Vs> 
+struct func_traits<R (&)(Vs...)> {
     typedef std::tuple<Vs...> Args;
     Args args;
     R ret;
     MSGPACK_FIELDS(args, ret);
 };
-template <typename R, typename... Vs> struct func_traits<R (&)(Vs...)> {
+
+// Specialization for member function pointers. This also includes lambda types, 
+// as they are functors (objects with operator()) and hence have a member function pointer
+template <typename R, typename T, typename... Vs> 
+struct func_traits<R (T::*)(Vs...) const> {
     typedef std::tuple<Vs...> Args;
     Args args;
     R ret;
     MSGPACK_FIELDS(args, ret);
 };
 
-template <typename R, typename T, typename... Vs> struct func_traits<R (T::*)(Vs...) const> {
-    typedef std::tuple<Vs...> Args;
-    Args args;
-    R ret;
-    MSGPACK_FIELDS(args, ret);
-};
-
-// Template metamagic for figuring out the parameters and return type of a function
+// Define a concept that checks if the type is a lambda (or functor) type
+// This is done by checking if T::operator() exists
 template <typename T>
-concept Callable =
-    requires() { typename std::enable_if_t<std::is_member_function_pointer_v<decltype(&T::operator())>, void>; };
+concept LambdaType = requires() { 
+    typename std::enable_if_t<std::is_member_function_pointer_v<decltype(&T::operator())>, void>; 
+};
 
-template <Callable T> constexpr auto get_func_traits()
+// Overload for lambda (or functor) types
+template <LambdaType T> 
+constexpr auto get_func_traits()
 {
+    // If T is a lambda type (i.e. it has operator()), deduce its traits using func_traits
     return func_traits<decltype(&T::operator())>();
 }
 
-template <typename T> constexpr auto get_func_traits()
+// Overload for non-lambda types
+template <typename T> 
+constexpr auto get_func_traits()
 {
+    // If T is not a lambda, just deduce its traits using func_traits
     return func_traits<T>();
 }
