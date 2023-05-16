@@ -6,6 +6,7 @@
 #include "relations/permutation_relation.hpp"
 #include "relations/lookup_relation.hpp"
 #include "relations/ultra_arithmetic_relation.hpp"
+#include "relations/gen_perm_sort_relation.hpp"
 #include "barretenberg/transcript/manifest.hpp"
 #include <array>
 #include <cstddef>
@@ -157,6 +158,13 @@ TEST(NewSumcheck, Ultra)
     composer.create_gates_from_plookup_accumulators(
         plookup::MultiTableId::PEDERSEN_LEFT_LO, sequence_data_lo, input_lo_index);
 
+    // Add a sort gate (simply checks that consecutive inputs have a difference of < 4)
+    a_idx = composer.add_variable(FF(0));
+    b_idx = composer.add_variable(FF(1));
+    c_idx = composer.add_variable(FF(2));
+    d_idx = composer.add_variable(FF(3));
+    composer.create_sort_constraint({ a_idx, b_idx, c_idx, d_idx });
+
     // Create a prover (it will compute proving key and witness)
     auto prover = composer.create_prover();
 
@@ -240,17 +248,23 @@ TEST(NewSumcheck, Ultra)
 
     auto prover_transcript = ProverTranscript<FF>::init_empty();
 
-    auto sumcheck_prover =
-        Sumcheck<Flavor, ProverTranscript<FF>, UltraArithmeticRelation, UltraPermutationRelation, LookupRelation>(
-            prover.key->circuit_size, prover_transcript);
+    auto sumcheck_prover = Sumcheck<Flavor,
+                                    ProverTranscript<FF>,
+                                    UltraArithmeticRelation,
+                                    UltraPermutationRelation,
+                                    LookupRelation,
+                                    GenPermSortRelation>(prover.key->circuit_size, prover_transcript);
 
     auto prover_output = sumcheck_prover.execute_prover(prover_polynomials, relation_parameters);
 
     auto verifier_transcript = VerifierTranscript<FF>::init_empty(prover_transcript);
 
-    auto sumcheck_verifier =
-        Sumcheck<Flavor, VerifierTranscript<FF>, UltraArithmeticRelation, UltraPermutationRelation, LookupRelation>(
-            prover.key->circuit_size, verifier_transcript);
+    auto sumcheck_verifier = Sumcheck<Flavor,
+                                      VerifierTranscript<FF>,
+                                      UltraArithmeticRelation,
+                                      UltraPermutationRelation,
+                                      LookupRelation,
+                                      GenPermSortRelation>(prover.key->circuit_size, verifier_transcript);
 
     std::optional verifier_output = sumcheck_verifier.execute_verifier(relation_parameters);
 
