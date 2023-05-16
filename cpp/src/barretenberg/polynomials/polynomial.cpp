@@ -29,18 +29,16 @@ Polynomial<Fr>::Polynomial(const size_t size_)
 
 template <typename Fr>
 Polynomial<Fr>::Polynomial(const Polynomial<Fr>& other)
-    : coefficients_(other.coefficients_)
-    , size_(other.size())
-{
-    // info("Polynomial CHEAP Copy ctor buf at ", coefficients_, " size ", size_);
-}
+    : Polynomial<Fr>(other, other.size())
+{}
 
 template <typename Fr>
 Polynomial<Fr>::Polynomial(const Polynomial<Fr>& other, const size_t target_size)
     : size_(std::max(target_size, other.size()))
 {
+    // info("Polynomial EXPENSIVE Copy ctor buf at ", coefficients_, " size ", size_); //
+
     coefficients_ = allocate_aligned_memory(sizeof(Fr) * capacity());
-    // info("Polynomial Copy ctor new buf at ", coefficients_, " size ", size_);
 
     if (other.coefficients_ != nullptr) {
         memcpy(static_cast<void*>(coefficients_.get()),
@@ -87,9 +85,17 @@ template <typename Fr> Polynomial<Fr>::~Polynomial() {}
 
 template <typename Fr> Polynomial<Fr>& Polynomial<Fr>::operator=(const Polynomial<Fr>& other)
 {
-    // info("Polynomial CHEAP copy assignment.");
+    // info("Polynomial EXPENSIVE copy assignment.");
     size_ = other.size_;
-    coefficients_ = other.coefficients_;
+
+    coefficients_ = allocate_aligned_memory(sizeof(Fr) * capacity());
+
+    if (other.coefficients_ != nullptr) {
+        memcpy(static_cast<void*>(coefficients_.get()),
+               static_cast<void*>(other.coefficients_.get()),
+               sizeof(Fr) * other.size_);
+    }
+    zero_memory_beyond(size_);
     return *this;
 }
 

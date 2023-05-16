@@ -24,7 +24,7 @@ void PolynomialStoreCache::put(std::string const& key, Polynomial&& value)
     // info("cache put to internal ", key);
     lru.push_front(key);
     cache[key] = lru.begin();
-    internal_store.put(key, value);
+    internal_store.put(key, std::move(value));
 
     info("cache put: ",
          key,
@@ -36,7 +36,7 @@ void PolynomialStoreCache::put(std::string const& key, Polynomial&& value)
          external_store.get_size_in_bytes() / (1024ULL * 1024));
 };
 
-PolynomialStoreCache::Polynomial PolynomialStoreCache::get(std::string const& key)
+PolynomialStoreCache::Polynomial& PolynomialStoreCache::get(std::string const& key)
 {
     auto it = cache.find(key);
     if (it != cache.end()) {
@@ -56,7 +56,7 @@ PolynomialStoreCache::Polynomial PolynomialStoreCache::get(std::string const& ke
     external_store.remove(key);
     lru.push_front(key);
     cache[key] = lru.begin();
-    internal_store.put(key, p);
+    internal_store.put(key, std::move(p));
 
     info("cache get: ",
          key,
@@ -64,7 +64,7 @@ PolynomialStoreCache::Polynomial PolynomialStoreCache::get(std::string const& ke
          internal_store.get_size_in_bytes() / (1024ULL * 1024),
          "/",
          external_store.get_size_in_bytes() / (1024ULL * 1024));
-    return p;
+    return internal_store.get(key);
 };
 
 void PolynomialStoreCache::purge_until_free(size_t bytes)

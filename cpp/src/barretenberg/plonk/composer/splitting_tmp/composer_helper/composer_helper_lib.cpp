@@ -21,7 +21,7 @@ void compute_monomial_and_coset_selector_forms(plonk::proving_key* circuit_provi
 {
     for (size_t i = 0; i < selector_properties.size(); i++) {
         // Compute monomial form of selector polynomial
-        auto selector_poly_lagrange =
+        auto& selector_poly_lagrange =
             circuit_proving_key->polynomial_store.get(selector_properties[i].name + "_lagrange");
         barretenberg::polynomial selector_poly(circuit_proving_key->circuit_size);
         barretenberg::polynomial_arithmetic::ifft(

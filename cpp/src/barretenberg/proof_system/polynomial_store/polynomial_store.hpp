@@ -35,9 +35,9 @@ template <typename Fr> class PolynomialStore {
      * @param key string ID of the polynomial
      * @param value a Polynomial
      */
-    inline void put(std::string const& key, Polynomial const& value)
+    inline void put(std::string const& key, Polynomial&& value)
     {
-        polynomial_map[key] = value;
+        polynomial_map[key] = std::move(value);
         // info("poly store put: ", key, " ", get_size_in_bytes() / (1024 * 1024), "MB");
     };
 

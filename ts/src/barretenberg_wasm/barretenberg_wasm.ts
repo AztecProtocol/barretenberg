@@ -5,7 +5,14 @@ import { Remote, proxy } from 'comlink';
 import { randomBytes } from '../random/index.js';
 // Webpack config swaps this import with ./browser/index.js
 // You can toggle between these two imports to sanity check the type-safety.
-import { fetchCode, getNumCpu, createWorker, getRemoteBarretenbergWasm, threadLogger } from './node/index.js';
+import {
+  fetchCode,
+  getNumCpu,
+  createWorker,
+  getRemoteBarretenbergWasm,
+  threadLogger,
+  throwOrAbort,
+} from './node/index.js';
 // import { fetchCode, getNumCpu, createWorker, randomBytes } from './browser/index.js';
 
 const debug = createDebug('wasm');
@@ -116,6 +123,7 @@ export class BarretenbergWasm {
         },
         proc_exit: () => {
           this.logger('HUNG: proc_exit was called. This is caused by unstable experimental wasi pthreads. Try again.');
+          throwOrAbort();
         },
       },
       wasi: {
@@ -175,7 +183,7 @@ export class BarretenbergWasm {
       const message = `WASM function ${name} aborted, error: ${err}`;
       this.logger(message);
       this.logger(err.stack);
-      throw new Error(message);
+      throwOrAbort();
     }
   }
 

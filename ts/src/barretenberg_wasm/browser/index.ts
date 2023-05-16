@@ -26,3 +26,10 @@ export function getNumCpu() {
 export function threadLogger(): ((msg: string) => void) | undefined {
   return undefined;
 }
+
+export function throwOrAbort() {
+  if (self?.close) {
+    self.close();
+  }
+  throw new Error('throwOrAbort called.');
+}

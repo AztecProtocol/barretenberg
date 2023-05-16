@@ -77,7 +77,7 @@ template <typename settings> void ProverBase<settings>::compute_wire_commitments
     for (size_t i = 0; i < end; ++i) {
         std::string wire_tag = "w_" + std::to_string(i + 1);
         std::string commit_tag = "W_" + std::to_string(i + 1);
-        auto poly = key->polynomial_store.get(wire_tag);
+        auto& poly = key->polynomial_store.get(wire_tag);
         auto coefficients = poly.data();
 
         // This automatically saves the computed point to the transcript
@@ -178,7 +178,7 @@ template <typename settings> void ProverBase<settings>::execute_preamble_round()
     const size_t end = settings::is_plookup ? (settings::program_width - 1) : settings::program_width;
     for (size_t i = 0; i < end; ++i) {
         std::string wire_tag = "w_" + std::to_string(i + 1);
-        barretenberg::polynomial wire_lagrange = key->polynomial_store.get(wire_tag + "_lagrange");
+        barretenberg::polynomial& wire_lagrange = key->polynomial_store.get(wire_tag + "_lagrange");
 
         /*
         Adding zero knowledge to the witness polynomials.
@@ -291,7 +291,7 @@ template <typename settings> void ProverBase<settings>::execute_second_round()
     if (settings::is_plookup) {
         add_plookup_memory_records_to_w_4();
         std::string wire_tag = "w_4";
-        auto w_4_lagrange = key->polynomial_store.get(wire_tag + "_lagrange");
+        auto& w_4_lagrange = key->polynomial_store.get(wire_tag + "_lagrange");
 
         // add randomness to w_4_lagrange
         const size_t w_randomness = 3;
@@ -550,7 +550,7 @@ template <typename settings> void ProverBase<settings>::add_plookup_memory_recor
     std::span<const fr> w_1 = key->polynomial_store.get("w_1_lagrange");
     std::span<const fr> w_2 = key->polynomial_store.get("w_2_lagrange");
     std::span<const fr> w_3 = key->polynomial_store.get("w_3_lagrange");
-    auto w_4 = key->polynomial_store.get("w_4_lagrange");
+    auto& w_4 = key->polynomial_store.get("w_4_lagrange");
     for (const auto& gate_idx : key->memory_read_records) {
         w_4[gate_idx] += w_3[gate_idx];
         w_4[gate_idx] *= eta;

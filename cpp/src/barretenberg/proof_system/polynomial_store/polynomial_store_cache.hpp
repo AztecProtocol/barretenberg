@@ -29,7 +29,7 @@ class PolynomialStoreCache {
 
     void put(std::string const& key, Polynomial&& value);
 
-    Polynomial get(std::string const& key);
+    Polynomial& get(std::string const& key);
 
     void remove(std::string const& key);
 

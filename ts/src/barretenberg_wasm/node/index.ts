@@ -37,3 +37,10 @@ export function threadLogger(): ((msg: string) => void) | undefined {
     writeSync(1, msg + '\n');
   };
 }
+
+export function throwOrAbort(): never {
+  // Extordinarily hard process termination. Due to how parent threads block on child threads etc, even process.exit
+  // doesn't seem to be able to abort the process. The following does.
+  process.kill(process.pid);
+  throw new Error();
+}
