@@ -23,7 +23,7 @@ class UltraPlonkComposer {
     // 1) Proving and verification keys
     // 2) CRS
     // 3) Converting variables to witness vectors/polynomials
-    UltraPlonkComposerHelper<UltraCircuitConstructor> composer_helper;
+    UltraPlonkComposerHelper composer_helper;
     size_t& num_gates;
 
     UltraPlonkComposer()
@@ -381,7 +381,8 @@ class UltraPlonkComposer {
     // std::array<uint32_t, 2> decompose_non_native_field_double_width_limb(
     //     const uint32_t limb_idx, const size_t num_limb_bits = (2 * DEFAULT_NON_NATIVE_FIELD_LIMB_BITS));
     std::array<uint32_t, 2> evaluate_non_native_field_multiplication(
-        const UltraCircuitConstructor::non_native_field_witnesses& input, const bool range_constrain_quotient_and_remainder = true)
+        const UltraCircuitConstructor::non_native_field_witnesses& input,
+        const bool range_constrain_quotient_and_remainder = true)
     {
         return circuit_constructor.evaluate_non_native_field_multiplication(input,
                                                                             range_constrain_quotient_and_remainder);

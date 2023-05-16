@@ -1,6 +1,9 @@
 #pragma once
+#include "barretenberg/proof_system/plookup_tables/types.hpp"
 namespace proof_system::plonk {
 namespace stdlib {
+
+using plookup::MultiTableId;
 
 /**
  * @brief Constructs a ROM table to look up linear combinations of group elements
@@ -23,7 +26,6 @@ template <size_t num_elements, typename>
 std::array<twin_rom_table<C>, 5> element<C, Fq, Fr, G>::create_group_element_rom_tables(
     const std::array<element, num_elements>& rom_data, std::array<uint256_t, 8>& limb_max)
 {
-
     std::vector<std::array<field_t<C>, 2>> x_lo_limbs;
     std::vector<std::array<field_t<C>, 2>> x_hi_limbs;
     std::vector<std::array<field_t<C>, 2>> y_lo_limbs;
