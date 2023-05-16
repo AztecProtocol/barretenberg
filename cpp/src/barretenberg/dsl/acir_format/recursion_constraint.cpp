@@ -120,10 +120,6 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
     // Assign correct witness value to the verification key hash
     vkey->compress().assert_equal(field_ct::from_witness_index(&composer, input.key_hash));
 
-    // Assign the output aggregation object to the proof public inputs (16 field elements representing two
-    // G1 points)
-    // result.add_proof_outputs_as_public_inputs();
-
     ASSERT(result.public_inputs.size() == input.public_inputs.size());
 
     // Assign the `public_input` field to the public input of the inner proof
