@@ -104,7 +104,8 @@ class StandardTranscript : public Transcript {
      * @param manifest
      * @return std::vector<barretenberg::fr>
      */
-    static std::vector<barretenberg::fr> export_dummy_transcript_in_recursion_format(const Manifest& manifest)
+    static std::vector<barretenberg::fr> export_dummy_transcript_in_recursion_format(
+        const Manifest& manifest, const bool contains_recursive_proof)
     {
         std::vector<barretenberg::fr> fields;
         const auto num_rounds = manifest.get_num_rounds();
@@ -114,7 +115,14 @@ class StandardTranscript : public Transcript {
                     if (manifest_element.num_bytes == 32 && manifest_element.name != "public_inputs") {
                         fields.emplace_back(0);
                     } else if (manifest_element.num_bytes == 64 && manifest_element.name != "public_inputs") {
-                        const auto group_element = barretenberg::g1::affine_one;
+                        // the std::biggroup class creates unsatisfiable constraints when identical points are
+                        // added/subtracted.
+                        // (when verifying zk proofs this is acceptable as we make sure verification key points are not
+                        // identical. And prover points should contain randomness for an honest Prover). This check can
+                        // also trigger a runtime error due to causing 0 to be inverted. When creating dummy proof
+                        // points we must be mindful of the above and make sure that each point is unique.
+                        auto scalar = barretenberg::fr::random_element();
+                        const auto group_element = barretenberg::g1::affine_element(barretenberg::g1::one * scalar);
                         const uint256_t x = group_element.x;
                         const uint256_t y = group_element.y;
                         const barretenberg::fr x_lo = x.slice(0, 136);
@@ -128,8 +136,30 @@ class StandardTranscript : public Transcript {
                     } else {
                         ASSERT(manifest_element.name == "public_inputs");
                         const size_t num_public_inputs = manifest_element.num_bytes / 32;
-                        for (size_t j = 0; j < num_public_inputs; ++j) {
-                            fields.emplace_back(0);
+                        // If we have a recursive proofs the public inputs must describe an aggregation object that
+                        // is composed of two valid G1 points on the curve. Without this conditional we will get a
+                        // runtime error that we are attempting to invert 0.
+                        if (contains_recursive_proof) {
+                            ASSERT(num_public_inputs == 16);
+                            for (size_t k = 0; k < num_public_inputs / 4; ++k) {
+                                auto scalar = barretenberg::fr::random_element();
+                                const auto group_element =
+                                    barretenberg::g1::affine_element(barretenberg::g1::one * scalar);
+                                const uint256_t x = group_element.x;
+                                const uint256_t y = group_element.y;
+                                const barretenberg::fr x_lo = x.slice(0, 136);
+                                const barretenberg::fr x_hi = x.slice(136, 272);
+                                const barretenberg::fr y_lo = y.slice(0, 136);
+                                const barretenberg::fr y_hi = y.slice(136, 272);
+                                fields.emplace_back(x_lo);
+                                fields.emplace_back(x_hi);
+                                fields.emplace_back(y_lo);
+                                fields.emplace_back(y_hi);
+                            }
+                        } else {
+                            for (size_t j = 0; j < num_public_inputs; ++j) {
+                                fields.emplace_back(0);
+                            }
                         }
                     }
                 }

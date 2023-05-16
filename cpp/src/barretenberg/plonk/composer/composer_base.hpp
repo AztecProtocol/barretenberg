@@ -186,6 +186,21 @@ class ComposerBase {
 
     barretenberg::fr get_public_input(const uint32_t index) const { return get_variable(public_inputs[index]); }
 
+    uint32_t get_public_input_index(const uint32_t witness_index) const
+    {
+        bool found = false;
+        uint32_t result = static_cast<uint32_t>(-1);
+        for (size_t i = 0; i < public_inputs.size(); ++i) {
+            if (real_variable_index[public_inputs[i]] == real_variable_index[witness_index]) {
+                found = true;
+                result = static_cast<uint32_t>(i);
+                break;
+            }
+        }
+        ASSERT(found == true);
+        return result;
+    }
+
     std::vector<fr> get_public_inputs() const
     {
         std::vector<fr> result;

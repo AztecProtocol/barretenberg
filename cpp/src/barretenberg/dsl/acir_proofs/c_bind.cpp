@@ -45,10 +45,11 @@ WASM_EXPORT size_t acir_serialize_verification_key_into_field_elements(uint8_t c
 }
 WASM_EXPORT size_t acir_serialize_proof_into_field_elements(uint8_t const* proof_data_buf,
                                                             uint8_t** serialized_proof_data_buf,
-                                                            size_t proof_data_length)
+                                                            size_t proof_data_length,
+                                                            size_t num_inner_public_inputs)
 {
     return acir_proofs::serialize_proof_into_field_elements(
-        proof_data_buf, serialized_proof_data_buf, proof_data_length);
+        proof_data_buf, serialized_proof_data_buf, proof_data_length, num_inner_public_inputs);
 }
 
 WASM_EXPORT size_t acir_proofs_new_proof(void* pippenger,
@@ -76,7 +77,7 @@ WASM_EXPORT size_t acir_proofs_verify_recursive_proof(uint8_t const* proof_buf,
                                                       uint32_t proof_length,
                                                       uint8_t const* vk_buf,
                                                       uint32_t vk_length,
-                                                      uint8_t const* public_inputs_buf,
+                                                      uint32_t num_public_inputs,
                                                       uint8_t const* input_aggregation_obj_buf,
                                                       uint8_t** output_aggregation_obj_buf)
 {
@@ -84,7 +85,7 @@ WASM_EXPORT size_t acir_proofs_verify_recursive_proof(uint8_t const* proof_buf,
                                                proof_length,
                                                vk_buf,
                                                vk_length,
-                                               public_inputs_buf,
+                                               num_public_inputs,
                                                input_aggregation_obj_buf,
                                                output_aggregation_obj_buf);
 }

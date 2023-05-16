@@ -24,40 +24,52 @@ namespace acir_format {
  * (and therefore an aggregation object is present)
  * @param public_input The index of the single public input
  * @param input_aggregation_object Witness indices of pre-existing aggregation object (if it exists)
- * @param output_aggregation_object Witness indecies of the aggregation object produced by recursive verification
+ * @param output_aggregation_object Witness indices of the aggregation object produced by recursive verification
+ * @param nested_aggregation_object Public input indices of an aggregation object inside the proof.
  *
  * @note If input_aggregation_object witness indices are all zero, we interpret this to mean that the inner proof does
- * NOT contain
+ * NOT contain a previously recursively verified proof
+ * @note nested_aggregation_object is used for cases where the proof being verified contains an aggregation object in
+ * its public inputs! If this is the case, we record the public input locations in `nested_aggregation_object`. If the
+ * inner proof is of a circuit that does not have a nested aggregation object, these values are all zero.
+ *
+ * To outline the interaction between the input_aggergation_object and the nested_aggregation_object take the following
+ * example: If we have a circuit that verifies 2 proofs A and B, the recursion constraint for B will have an
+ * input_aggregation_object that points to the aggregation output produced by verifying A. If circuit B also verifies a
+ * proof, in the above example the recursion constraint for verifying B will have a nested object that describes the
+ * aggregation object in B’s public inputs as well as an input aggregation object that points to the object produced by
+ * the previous recursion constraint in the circuit (the one that verifies A)
+ *
  */
 struct RecursionConstraint {
     static constexpr size_t AGGREGATION_OBJECT_SIZE = 16; // 16 field elements
     std::vector<uint32_t> key;
     std::vector<uint32_t> proof;
-    uint32_t public_input;
+    std::vector<uint32_t> public_inputs;
     uint32_t key_hash;
     std::array<uint32_t, AGGREGATION_OBJECT_SIZE> input_aggregation_object;
     std::array<uint32_t, AGGREGATION_OBJECT_SIZE> output_aggregation_object;
+    std::array<uint32_t, AGGREGATION_OBJECT_SIZE> nested_aggregation_object;
 
     friend bool operator==(RecursionConstraint const& lhs, RecursionConstraint const& rhs) = default;
 };
 
-template <bool has_valid_witness_assignment = false, bool inner_proof_contains_recursive_proof = false>
+template <bool has_valid_witness_assignment = false>
 void create_recursion_constraints(Composer& composer, const RecursionConstraint& input);
 
-extern template void create_recursion_constraints<false, false>(Composer&, const RecursionConstraint&);
-extern template void create_recursion_constraints<false, true>(Composer&, const RecursionConstraint&);
-extern template void create_recursion_constraints<true, false>(Composer&, const RecursionConstraint&);
-extern template void create_recursion_constraints<true, true>(Composer&, const RecursionConstraint&);
+extern template void create_recursion_constraints<false>(Composer&, const RecursionConstraint&);
+extern template void create_recursion_constraints<true>(Composer&, const RecursionConstraint&);
 
 template <typename B> inline void read(B& buf, RecursionConstraint& constraint)
 {
     using serialize::read;
     read(buf, constraint.key);
     read(buf, constraint.proof);
-    read(buf, constraint.public_input);
+    read(buf, constraint.public_inputs);
     read(buf, constraint.key_hash);
     read(buf, constraint.input_aggregation_object);
     read(buf, constraint.output_aggregation_object);
+    read(buf, constraint.nested_aggregation_object);
 }
 
 template <typename B> inline void write(B& buf, RecursionConstraint const& constraint)
@@ -65,10 +77,11 @@ template <typename B> inline void write(B& buf, RecursionConstraint const& const
     using serialize::write;
     write(buf, constraint.key);
     write(buf, constraint.proof);
-    write(buf, constraint.public_input);
+    write(buf, constraint.public_inputs);
     write(buf, constraint.key_hash);
     write(buf, constraint.input_aggregation_object);
     write(buf, constraint.output_aggregation_object);
+    write(buf, constraint.nested_aggregation_object);
 }
 
 } // namespace acir_format
