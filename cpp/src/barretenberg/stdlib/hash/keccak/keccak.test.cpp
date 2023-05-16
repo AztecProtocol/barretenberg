@@ -186,7 +186,6 @@ TEST(stdlib_keccak, test_format_input_lanes)
         EXPECT_GT(result.size(), expected.size() - 1);
 
         for (size_t j = 0; j < expected.size(); ++j) {
-            // std::cout << "i = " << i << std::endl;
             EXPECT_EQ(result[j].get_value(), expected[j].get_value());
         }
         for (size_t j = expected.size(); j < result.size(); ++j) {
