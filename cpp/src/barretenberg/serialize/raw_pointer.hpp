@@ -1,3 +1,4 @@
+#pragma once
 #include <cstdint>
 #include "msgpack_impl/schema_name.hpp"
 
