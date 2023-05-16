@@ -7,6 +7,7 @@
 #include "relations/lookup_relation.hpp"
 #include "relations/ultra_arithmetic_relation.hpp"
 #include "relations/gen_perm_sort_relation.hpp"
+#include "relations/elliptic_relation.hpp"
 #include "barretenberg/transcript/manifest.hpp"
 #include <array>
 #include <cstddef>
@@ -165,6 +166,26 @@ TEST(NewSumcheck, Ultra)
     d_idx = composer.add_variable(FF(3));
     composer.create_sort_constraint({ a_idx, b_idx, c_idx, d_idx });
 
+    // Add an elliptic curve addition gate
+    grumpkin::g1::affine_element p1 = crypto::generators::get_generator_data({ 0, 0 }).generator;
+    grumpkin::g1::affine_element p2 = crypto::generators::get_generator_data({ 0, 1 }).generator;
+
+    grumpkin::fq beta_scalar = grumpkin::fq::cube_root_of_unity();
+    grumpkin::g1::affine_element p2_endo = p2;
+    p2_endo.x *= beta_scalar;
+
+    grumpkin::g1::affine_element p3(grumpkin::g1::element(p1) - grumpkin::g1::element(p2_endo));
+
+    uint32_t x1 = composer.add_variable(p1.x);
+    uint32_t y1 = composer.add_variable(p1.y);
+    uint32_t x2 = composer.add_variable(p2.x);
+    uint32_t y2 = composer.add_variable(p2.y);
+    uint32_t x3 = composer.add_variable(p3.x);
+    uint32_t y3 = composer.add_variable(p3.y);
+
+    ecc_add_gate gate{ x1, y1, x2, y2, x3, y3, beta_scalar, -1 };
+    composer.create_ecc_add_gate(gate);
+
     // Create a prover (it will compute proving key and witness)
     auto prover = composer.create_prover();
 
@@ -253,7 +274,8 @@ TEST(NewSumcheck, Ultra)
                                     UltraArithmeticRelation,
                                     UltraPermutationRelation,
                                     LookupRelation,
-                                    GenPermSortRelation>(prover.key->circuit_size, prover_transcript);
+                                    GenPermSortRelation,
+                                    EllipticRelation>(prover.key->circuit_size, prover_transcript);
 
     auto prover_output = sumcheck_prover.execute_prover(prover_polynomials, relation_parameters);
 
@@ -264,7 +286,8 @@ TEST(NewSumcheck, Ultra)
                                       UltraArithmeticRelation,
                                       UltraPermutationRelation,
                                       LookupRelation,
-                                      GenPermSortRelation>(prover.key->circuit_size, verifier_transcript);
+                                      GenPermSortRelation,
+                                      EllipticRelation>(prover.key->circuit_size, verifier_transcript);
 
     std::optional verifier_output = sumcheck_verifier.execute_verifier(relation_parameters);
 
