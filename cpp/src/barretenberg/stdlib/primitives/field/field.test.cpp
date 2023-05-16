@@ -981,32 +981,34 @@ template <typename Composer> class stdlib_field : public testing::Test {
         Composer composer = Composer();
 
         for (size_t i = 0; i < 10; ++i) {
-            uint8_t a_val = engine.get_random_uint8();
-            uint8_t b_val = 0;
+            int a_val = static_cast<int>(engine.get_random_uint8());
+            int b_val = 0;
             switch (i) {
             case 0: {
                 b_val = a_val;
                 break;
             }
             case 1: {
-                a_val = static_cast<uint8_t>(
-                    a_val - static_cast<uint8_t>((a_val == 255) ? static_cast<uint8_t>(1) : static_cast<uint8_t>(0)));
-                b_val = a_val + static_cast<uint8_t>(1);
+                b_val = a_val + 1;
                 break;
             }
             case 2: {
-                a_val = static_cast<uint8_t>(
-                    a_val + static_cast<uint8_t>((a_val == 0) ? static_cast<uint8_t>(1) : static_cast<uint8_t>(0)));
-                b_val = a_val - static_cast<uint8_t>(1);
+                b_val = a_val - 1;
                 break;
             }
             default: {
-                b_val = engine.get_random_uint8();
+                b_val = static_cast<int>(engine.get_random_uint8());
                 break;
             }
             }
-            field_ct a = witness_ct(&composer, a_val);
-            field_ct b = witness_ct(&composer, b_val);
+            if (b_val < 0) {
+                b_val = 255;
+            }
+            if (b_val > 255) {
+                b_val = 0;
+            }
+            field_ct a = witness_ct(&composer, static_cast<uint64_t>(a_val));
+            field_ct b = witness_ct(&composer, static_cast<uint64_t>(b_val));
             a.create_range_constraint(8);
             b.create_range_constraint(8);
             bool_ct result = a.template ranged_less_than<8>(b);
