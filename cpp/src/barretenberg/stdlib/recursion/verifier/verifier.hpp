@@ -376,7 +376,7 @@ aggregation_state<Curve> verify_proof(typename Curve::Composer* context,
     rhs = (-rhs) - PI_Z;
 
     return aggregation_state<Curve>{
-        opening_result, rhs, transcript.get_field_element_vector("public_inputs"), true, {}
+        opening_result, rhs, transcript.get_field_element_vector("public_inputs"), {}, true
     };
 }
 
