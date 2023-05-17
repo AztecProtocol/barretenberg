@@ -35,17 +35,41 @@ inline std::pair<uint8_t*, size_t> msgpack_encode_buffer(auto&& obj)
     return { output, buffer.size() };
 }
 
+// This is a template function that will return the argument types
+// of a given function type T as a tuple.
 template <typename T> constexpr auto param_tuple()
 {
+    // decltype is used to determine the type of an expression at compile-time.
+    // get_func_traits<T>() is assumed to return a structure whose ::Args member is a tuple
+    // of argument types of function T. This function constructs an instance of that tuple and returns it.
     return typename decltype(get_func_traits<T>())::Args{};
 }
 
+// This function is intended to bind a function to a MessagePack-formatted input data,
+// perform the function with the unpacked data, then pack the result back into MessagePack format.
 inline void msgpack_cbind_impl(
-    auto func, const uint8_t* input_in, size_t input_len_in, uint8_t** output_out, size_t* output_len_out)
+    auto func,                  // The function to be applied
+    const uint8_t* input_in,    // The input data in MessagePack format
+    size_t input_len_in,        // The length of the input data
+    uint8_t** output_out,       // The output data in MessagePack format
+    size_t* output_len_out)     // The length of the output data
 {
+    // Get the parameter types of the function as a tuple.
     auto params = param_tuple<decltype(func)>();
+
+    // Unpack the input data into the parameter tuple.
+    // msgpack::unpack takes a buffer and its size, and returns an object_handle.
+    // Calling .get() on that handle yields an object, and calling .convert on that
+    // object converts it into the given type, in this case, the parameter tuple for func.
     msgpack::unpack((const char*)input_in, input_len_in).get().convert(params);
+
+    // Apply the function to the parameters, then encode the result into a MessagePack buffer.
+    // std::apply takes a function and a tuple, and applies the function to the tuple's elements.
+    // msgpack_encode_buffer is assumed to take the result of the function and return a pair
+    // consisting of a pointer to the output buffer and its size.
     auto [output, output_len] = msgpack_encode_buffer(std::apply(func, params));
+
+    // Assign the output data and its length to the given output parameters.
     *output_out = output;
     *output_len_out = output_len;
 }
