@@ -397,6 +397,7 @@ aggregation_state<Curve> verify_proof(typename Curve::Composer* context,
     auto result = aggregation_state<Curve>{
         opening_result, rhs, transcript.get_field_element_vector("public_inputs"), proof_witness_indices, true
     };
+    return result;
 }
 
 } // namespace recursion
