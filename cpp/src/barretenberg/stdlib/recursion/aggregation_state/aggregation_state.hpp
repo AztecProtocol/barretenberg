@@ -30,7 +30,11 @@ template <typename Curve> struct aggregation_state {
 
     void add_proof_outputs_as_public_inputs()
     {
-        ASSERT(proof_witness_indices.size() == 0);
+        if (proof_witness_indices.size() == 0) {
+            std::cerr << "warning. calling `add_proof_outputs_as_public_inputs`, but aggregation object already has "
+                         "assigned proof outputs to public inputs.";
+            return;
+        }
 
         P0 = P0.reduce();
         P1 = P1.reduce();
