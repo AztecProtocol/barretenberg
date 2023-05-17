@@ -303,7 +303,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
         EXPECT_EQ(inner_proof_result, barretenberg::fq12::one());
 
-        circuit_output.aggregation_state.add_proof_outputs_as_public_inputs();
+        circuit_output.aggregation_state.assign_object_to_proof_outputs();
 
         EXPECT_EQ(outer_composer.failed(), false);
 
@@ -348,7 +348,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
         EXPECT_EQ(inner_proof_result, barretenberg::fq12::one());
 
-        circuit_output.aggregation_state.add_proof_outputs_as_public_inputs();
+        circuit_output.aggregation_state.assign_object_to_proof_outputs();
 
         EXPECT_EQ(outer_composer.failed(), false);
 
@@ -405,15 +405,15 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         ASSERT(a2.get_msb() <= 68);
         ASSERT(a3.get_msb() <= 68);
 
-        circuit_output_a.aggregation_state.add_proof_outputs_as_public_inputs();
+        circuit_output_a.aggregation_state.assign_object_to_proof_outputs();
 
         auto circuit_output_b = create_outer_circuit(inner_composer_b, mid_composer_b);
 
-        circuit_output_b.aggregation_state.add_proof_outputs_as_public_inputs();
+        circuit_output_b.aggregation_state.assign_object_to_proof_outputs();
 
         auto circuit_output = create_double_outer_circuit(mid_composer_a, mid_composer_b, outer_composer);
 
-        circuit_output.aggregation_state.add_proof_outputs_as_public_inputs();
+        circuit_output.aggregation_state.assign_object_to_proof_outputs();
 
         g1::affine_element P[2];
         P[0].x = barretenberg::fq(circuit_output.aggregation_state.P0.x.get_value().lo);
