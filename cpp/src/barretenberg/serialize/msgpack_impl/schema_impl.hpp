@@ -34,8 +34,10 @@ struct MsgpackSchemaPacker : msgpack::packer<msgpack::sbuffer> {
      */
     void pack_alias(const std::string& schema_name, const std::string& msgpack_name)
     {
+        // We will pack a size 2 tuple
         pack_array(2);
         pack("alias");
+        // That has a size 2 tuple as its 2nd arg
         pack_array(2);
         pack(schema_name);
         pack(msgpack_name);
@@ -102,9 +104,11 @@ template <msgpack_concepts::HasMsgPack T> inline void msgpack_schema_pack(Msgpac
     // Encode as map
     const_cast<T&>(object).msgpack([&](auto&... args) {
         size_t kv_size = sizeof...(args);
+        // Calculate the number of entries in our map (half the size of keys + values, plus the typename)
         packer.pack_map(uint32_t(1 + kv_size / 2));
         packer.pack("__typename");
         packer.pack(type);
+        // Pack the map content based on the args to msgpack
         _schema_pack_map_content(packer, args...);
     });
 }
@@ -114,6 +118,7 @@ template <msgpack_concepts::HasMsgPack T> inline void msgpack_schema_pack(Msgpac
 template <typename... Args>
 inline void _msgpack_schema_pack(MsgpackSchemaPacker& packer, const std::string& schema_name)
 {
+    // We will pack a size 2 tuple
     packer.pack_array(2);
     packer.pack(schema_name);
     packer.pack_array(sizeof...(Args));
@@ -158,8 +163,10 @@ template <typename T> inline void msgpack_schema_pack(MsgpackSchemaPacker& packe
 template <typename T, std::size_t N>
 inline void msgpack_schema_pack(MsgpackSchemaPacker& packer, std::array<T, N> const&)
 {
+    // We will pack a size 2 tuple
     packer.pack_array(2);
     packer.pack("array");
+    // That has a size 2 tuple as its 2nd arg
     packer.pack_array(2); /* param list format for consistency*/
     msgpack_schema_pack(packer, T{});
     packer.pack(N);
