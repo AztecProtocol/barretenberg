@@ -67,8 +67,7 @@ void check_relation(auto relations, auto circuit_size, auto polynomials, auto pa
  * @details Check that the constraints encoded by the relations are satisfied by the polynomials produced by the
  * Standard Honk Composer for a real circuit.
  *
- * TODO(Kesha): We'll have to update this function once we add zk, since the relation will be incorrect for he first
- few
+ * TODO(Kesha): We'll have to update this function once we add zk, since the relation will be incorrect for he first few
  * indices
  *
  */
@@ -155,8 +154,7 @@ TEST(RelationCorrectness, StandardRelationCorrectness)
  * @details Check that the constraints encoded by the relations are satisfied by the polynomials produced by the
  * Ultra Honk Composer for a real circuit.
  *
- * TODO(Kesha): We'll have to update this function once we add zk, since the relation will be incorrect for he first
- few
+ * TODO(Kesha): We'll have to update this function once we add zk, since the relation will be incorrect for he first few
  * indices
  *
  */

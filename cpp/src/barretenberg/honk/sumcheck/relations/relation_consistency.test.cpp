@@ -290,44 +290,4 @@ TEST_F(StandardRelationConsistency, PermutationRelation)
     run_test(/* is_random_input=*/false);
 };
 
-// TEST_F(StandardRelationConsistency, GrandProductInitializationRelation)
-// {
-//     using Flavor = honk::flavor::Standard;
-//     using FF = typename Flavor::FF;
-//     static constexpr size_t FULL_RELATION_LENGTH = 5;
-//     using ExtendedEdges = typename Flavor::template ExtendedEdges<FULL_RELATION_LENGTH>;
-//     static const size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
-
-//     const auto relation_parameters = compute_mock_relation_parameters();
-//     auto run_test = [&relation_parameters](bool is_random_input) {
-//         ExtendedEdges extended_edges;
-//         std::array<Univariate<FF, INPUT_UNIVARIATE_LENGTH>, NUM_POLYNOMIALS> input_polynomials;
-//         if (!is_random_input) {
-//             // evaluation form, i.e. input_univariate(0) = 1, input_univariate(1) = 2,.. The polynomial is x+1.
-//             for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
-//                 input_polynomials[i] = Univariate<FF, INPUT_UNIVARIATE_LENGTH>({ 1, 2 });
-//             }
-//             compute_mock_extended_edges<FULL_RELATION_LENGTH>(extended_edges, input_polynomials);
-//         } else {
-//             // input_univariates are random polynomials of degree one
-//             for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
-//                 input_polynomials[i] =
-//                     Univariate<FF, INPUT_UNIVARIATE_LENGTH>({ FF::random_element(), FF::random_element() });
-//             }
-//             compute_mock_extended_edges<FULL_RELATION_LENGTH>(extended_edges, input_polynomials);
-//         };
-//         auto relation = GrandProductInitializationRelation<FF>();
-//         const auto& z_perm_shift = extended_edges.z_perm_shift;
-//         const auto& lagrange_last = extended_edges.lagrange_last;
-//         // We first compute the evaluations using UnivariateViews, with the provided hard-coded formula.
-//         // Ensure that expression changes are detected.
-//         // expected_evals, lenght 3 (coeff form = x^2 + x), extends to { { 0, 2, 6, 12, 20 } }
-//         auto expected_evals = z_perm_shift * lagrange_last;
-
-//         validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
-//     };
-//     run_test(/* is_random_input=*/true);
-//     run_test(/* is_random_input=*/false);
-// };
-
 } // namespace proof_system::honk_relation_tests
