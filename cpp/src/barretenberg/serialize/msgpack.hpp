@@ -1,5 +1,5 @@
 #pragma once
-/* Minimal header for msgpack. This should be included, *not* msgpack.hpp directly.
+/* Minimal header for msgpack. This should be included as "barretenberg/serialize/msgpack.hpp", *not* msgpack.hpp directly.
 That should be treated as an implementation-only header.
 
 ## Overview
