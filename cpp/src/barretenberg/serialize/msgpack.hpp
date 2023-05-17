@@ -1,7 +1,7 @@
 #pragma once
 /* Minimal header for declaring msgpack fields. 
-This should be included as "barretenberg/serialize/msgpack.hpp", *not* msgpack.hpp directly
-unless one plans to use msgpack in their translation unit.
+This should be included as "barretenberg/serialize/msgpack.hpp" unless a translation wants 
+to use msgpack for bindings, then "barretenberg/serialize/cbind.hpp" should be included.
 
 ## Overview
 
@@ -96,6 +96,8 @@ e.g. unpacking
 #include "msgpack_impl/concepts.hpp"
 
 // Helper for above documented syntax
+// Define a macro that takes any amount of parameters and expands to a msgpack method definition
+// __VA__ARGS__ expands to the parmeters, comma separated.
 #define MSGPACK_FIELDS(...)                                                                                            \
     void msgpack(auto pack_fn)                                                                                         \
     {                                                                                                                  \
