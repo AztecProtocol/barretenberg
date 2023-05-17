@@ -495,184 +495,188 @@ TEST_F(UltraRelationConsistency, EllipticRelation)
     validate_evaluations(expected_full_length_univariates, relation, extended_edges, relation_parameters);
 };
 
-// TEST_F(UltraRelationConsistency, AuxiliaryRelation)
-// {
-//     using Flavor = honk::flavor::Ultra;
-//     using FF = typename Flavor::FF;
-//     using Flavor = honk::flavor::Ultra;
-//     static constexpr size_t FULL_RELATION_LENGTH = 6;
-//     using ExtendedEdges = typename Flavor::ExtendedEdges<FULL_RELATION_LENGTH>;
-//     static const size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
-//     auto relation_parameters = compute_mock_relation_parameters();
-//     ExtendedEdges extended_edges;
-//     std::array<Univariate<FF, INPUT_UNIVARIATE_LENGTH>, NUM_POLYNOMIALS> input_polynomials;
+TEST_F(UltraRelationConsistency, AuxiliaryRelation)
+{
+    using Flavor = honk::flavor::Ultra;
+    using FF = typename Flavor::FF;
+    using Flavor = honk::flavor::Ultra;
+    static constexpr size_t FULL_RELATION_LENGTH = 6;
+    using ExtendedEdges = typename Flavor::ExtendedEdges<FULL_RELATION_LENGTH>;
+    static const size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
+    auto relation_parameters = compute_mock_relation_parameters();
+    ExtendedEdges extended_edges;
+    std::array<Univariate<FF, INPUT_UNIVARIATE_LENGTH>, NUM_POLYNOMIALS> input_polynomials;
 
-//     // input_univariates are random polynomials of degree one
-//     for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
-//         input_polynomials[i] = Univariate<FF, INPUT_UNIVARIATE_LENGTH>({ FF::random_element(), FF::random_element()
-//         });
-//     }
-//     compute_mock_extended_edges(extended_edges, input_polynomials);
+    // input_univariates are random polynomials of degree one
+    for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
+        input_polynomials[i] = Univariate<FF, INPUT_UNIVARIATE_LENGTH>({ FF::random_element(), FF::random_element() });
+    }
+    compute_mock_extended_edges(extended_edges, input_polynomials);
 
-//     auto relation = AuxiliaryRelation<FF>();
+    auto relation = AuxiliaryRelation<FF>();
 
-//     const auto& eta = relation_parameters.eta;
-//     const auto fake_alpha = FF(1);
+    const auto& eta = relation_parameters.eta;
+    const auto fake_alpha = FF(1);
 
-//     // Extract the extended edges for manual computation of relation contribution
-//     const auto& w_1 = extended_edges.w_l;
-//     const auto& w_2 = extended_edges.w_r;
-//     const auto& w_3 = extended_edges.w_o;
-//     const auto& w_4 = extended_edges.w_4;
-//     const auto& w_1_shift = extended_edges.w_l_shift;
-//     const auto& w_2_shift = extended_edges.w_r_shift;
-//     const auto& w_3_shift = extended_edges.w_o_shift;
-//     const auto& w_4_shift = extended_edges.w_4_shift;
+    // Extract the extended edges for manual computation of relation contribution
+    const auto& w_1 = extended_edges.w_l;
+    const auto& w_2 = extended_edges.w_r;
+    const auto& w_3 = extended_edges.w_o;
+    const auto& w_4 = extended_edges.w_4;
+    const auto& w_1_shift = extended_edges.w_l_shift;
+    const auto& w_2_shift = extended_edges.w_r_shift;
+    const auto& w_3_shift = extended_edges.w_o_shift;
+    const auto& w_4_shift = extended_edges.w_4_shift;
 
-//     const auto& q_1 = extended_edges.q_l;
-//     const auto& q_2 = extended_edges.q_r;
-//     const auto& q_3 = extended_edges.q_o;
-//     const auto& q_4 = extended_edges.q_4;
-//     const auto& q_m = extended_edges.q_m;
-//     const auto& q_c = extended_edges.q_c;
-//     const auto& q_arith = extended_edges.q_arith;
-//     const auto& q_aux = extended_edges.q_aux;
+    const auto& q_1 = extended_edges.q_l;
+    const auto& q_2 = extended_edges.q_r;
+    const auto& q_3 = extended_edges.q_o;
+    const auto& q_4 = extended_edges.q_4;
+    const auto& q_m = extended_edges.q_m;
+    const auto& q_c = extended_edges.q_c;
+    const auto& q_arith = extended_edges.q_arith;
+    const auto& q_aux = extended_edges.q_aux;
 
-//     constexpr FF LIMB_SIZE(uint256_t(1) << 68);
-//     constexpr FF SUBLIMB_SHIFT(uint256_t(1) << 14);
-//     constexpr FF SUBLIMB_SHIFT_2(SUBLIMB_SHIFT * SUBLIMB_SHIFT);
-//     constexpr FF SUBLIMB_SHIFT_3(SUBLIMB_SHIFT_2 * SUBLIMB_SHIFT);
-//     constexpr FF SUBLIMB_SHIFT_4(SUBLIMB_SHIFT_3 * SUBLIMB_SHIFT);
+    constexpr std::size_t NUM_CONSTRAINTS = decltype(relation)::NUM_CONSTRAINTS;
+    auto expected_full_length_univariates = std::array<Univariate<FF, FULL_RELATION_LENGTH>, NUM_CONSTRAINTS>();
 
-/**
- * Non native field arithmetic gate 2
- *
- *             _                                                                               _
- *            /   _                   _                               _       14                \
- * q_2 . q_4 |   (w_1 . w_2) + (w_1 . w_2) + (w_1 . w_4 + w_2 . w_3 - w_3) . 2    - w_3 - w_4   |
- *            \_                                                                               _/
- *
- **/
-//     auto limb_subproduct = w_1 * w_2_shift + w_1_shift * w_2;
-//     auto non_native_field_gate_2 = (w_1 * w_4 + w_2 * w_3 - w_3_shift);
-//     non_native_field_gate_2 *= LIMB_SIZE;
-//     non_native_field_gate_2 -= w_4_shift;
-//     non_native_field_gate_2 += limb_subproduct;
-//     non_native_field_gate_2 *= q_4;
+    constexpr FF LIMB_SIZE(uint256_t(1) << 68);
+    constexpr FF SUBLIMB_SHIFT(uint256_t(1) << 14);
+    constexpr FF SUBLIMB_SHIFT_2(SUBLIMB_SHIFT * SUBLIMB_SHIFT);
+    constexpr FF SUBLIMB_SHIFT_3(SUBLIMB_SHIFT_2 * SUBLIMB_SHIFT);
+    constexpr FF SUBLIMB_SHIFT_4(SUBLIMB_SHIFT_3 * SUBLIMB_SHIFT);
 
-//     limb_subproduct *= LIMB_SIZE;
-//     limb_subproduct += (w_1_shift * w_2_shift);
-//     auto non_native_field_gate_1 = limb_subproduct;
-//     non_native_field_gate_1 -= (w_3 + w_4);
-//     non_native_field_gate_1 *= q_3;
+    /**
+     * Non native field arithmetic gate 2
+     *
+     *             _                                                                               _
+     *            /   _                   _                               _       14                \
+     * q_2 . q_4 |   (w_1 . w_2) + (w_1 . w_2) + (w_1 . w_4 + w_2 . w_3 - w_3) . 2    - w_3 - w_4   |
+     *            \_                                                                               _/
+     *
+     **/
+    auto limb_subproduct = w_1 * w_2_shift + w_1_shift * w_2;
+    auto non_native_field_gate_2 = (w_1 * w_4 + w_2 * w_3 - w_3_shift);
+    non_native_field_gate_2 *= LIMB_SIZE;
+    non_native_field_gate_2 -= w_4_shift;
+    non_native_field_gate_2 += limb_subproduct;
 
-//     auto non_native_field_gate_3 = limb_subproduct;
-//     non_native_field_gate_3 += w_4;
-//     non_native_field_gate_3 -= (w_3_shift + w_4_shift);
-//     non_native_field_gate_3 *= q_m;
+    limb_subproduct *= LIMB_SIZE;
+    limb_subproduct += (w_1_shift * w_2_shift);
+    auto non_native_field_gate_1 = limb_subproduct;
+    non_native_field_gate_1 -= (w_3 + w_4);
 
-//     auto non_native_field_identity = non_native_field_gate_1 + non_native_field_gate_2 + non_native_field_gate_3;
-//     non_native_field_identity *= q_2;
+    auto non_native_field_gate_3 = limb_subproduct;
+    non_native_field_gate_3 += w_4;
+    non_native_field_gate_3 -= (w_3_shift + w_4_shift);
 
-//     auto limb_accumulator_1 = w_1 + w_2 * SUBLIMB_SHIFT + w_3 * SUBLIMB_SHIFT_2 + w_1_shift * SUBLIMB_SHIFT_3 +
-//                               w_2_shift * SUBLIMB_SHIFT_4 - w_4;
-//     limb_accumulator_1 *= q_4;
+    auto non_native_field_identity = q_2 * q_3 * non_native_field_gate_1;
+    non_native_field_identity += q_2 * q_4 * non_native_field_gate_2;
+    non_native_field_identity += q_2 * q_m * non_native_field_gate_3;
 
-//     auto limb_accumulator_2 = w_3 + w_4 * SUBLIMB_SHIFT + w_1_shift * SUBLIMB_SHIFT_2 + w_2_shift * SUBLIMB_SHIFT_3 +
-//                               w_3_shift * SUBLIMB_SHIFT_4 - w_4_shift;
-//     limb_accumulator_2 *= q_m;
+    auto limb_accumulator_1 = w_1 + w_2 * SUBLIMB_SHIFT + w_3 * SUBLIMB_SHIFT_2 + w_1_shift * SUBLIMB_SHIFT_3 +
+                              w_2_shift * SUBLIMB_SHIFT_4 - w_4;
 
-//     auto limb_accumulator_identity = limb_accumulator_1 + limb_accumulator_2;
-//     limb_accumulator_identity *= q_3;
+    auto limb_accumulator_2 = w_3 + w_4 * SUBLIMB_SHIFT + w_1_shift * SUBLIMB_SHIFT_2 + w_2_shift * SUBLIMB_SHIFT_3 +
+                              w_3_shift * SUBLIMB_SHIFT_4 - w_4_shift;
 
-/**
- * MEMORY
- **/
+    auto limb_accumulator_identity = q_3 * q_4 * limb_accumulator_1;
+    limb_accumulator_identity += q_3 * q_m * limb_accumulator_2;
 
-/**
- * Memory Record Check
- */
-//     auto memory_record_check = w_3;
-//     memory_record_check *= eta;
-//     memory_record_check += w_2;
-//     memory_record_check *= eta;
-//     memory_record_check += w_1;
-//     memory_record_check *= eta;
-//     memory_record_check += q_c;
-//     auto partial_record_check = memory_record_check; // used in RAM consistency check
-//     memory_record_check = memory_record_check - w_4;
+    /**
+     * MEMORY
+     **/
 
-/**
- * ROM Consistency Check
- */
-//     auto index_delta = w_1_shift - w_1;
-//     auto record_delta = w_4_shift - w_4;
+    /**
+     * Memory Record Check
+     */
+    auto memory_record_check = w_3;
+    memory_record_check *= eta;
+    memory_record_check += w_2;
+    memory_record_check *= eta;
+    memory_record_check += w_1;
+    memory_record_check *= eta;
+    memory_record_check += q_c;
+    auto partial_record_check = memory_record_check; // used in RAM consistency check
+    memory_record_check = memory_record_check - w_4;
 
-//     auto index_is_monotonically_increasing = index_delta * index_delta - index_delta;
+    /**
+     * ROM Consistency Check
+     */
+    auto index_delta = w_1_shift - w_1;
+    auto record_delta = w_4_shift - w_4;
 
-//     // auto adjacent_values_match_if_adjacent_indices_match = (FF(1) - index_delta) * record_delta;
-//     auto adjacent_values_match_if_adjacent_indices_match = (index_delta * FF(-1) + FF(1)) * record_delta;
+    auto index_is_monotonically_increasing = index_delta * index_delta - index_delta;
 
-//     auto ROM_consistency_check_identity = adjacent_values_match_if_adjacent_indices_match;
-//     ROM_consistency_check_identity *= fake_alpha;
-//     ROM_consistency_check_identity += index_is_monotonically_increasing;
-//     ROM_consistency_check_identity *= fake_alpha;
-//     ROM_consistency_check_identity += memory_record_check;
+    // auto adjacent_values_match_if_adjacent_indices_match = (FF(1) - index_delta) * record_delta;
+    auto adjacent_values_match_if_adjacent_indices_match = (index_delta * FF(-1) + FF(1)) * record_delta;
 
-/**
- * RAM Consistency Check
- */
-//     auto access_type = (w_4 - partial_record_check);             // will be 0 or 1 for honest Prover
-//     auto access_check = access_type * access_type - access_type; // check value is 0 or 1
+    expected_full_length_univariates[1] = adjacent_values_match_if_adjacent_indices_match * (q_1 * q_2);
+    expected_full_length_univariates[2] = index_is_monotonically_increasing * (q_1 * q_2);
+    auto ROM_consistency_check_identity = memory_record_check * (q_1 * q_2);
 
-//     auto next_gate_access_type = w_3_shift;
-//     next_gate_access_type *= eta;
-//     next_gate_access_type += w_2_shift;
-//     next_gate_access_type *= eta;
-//     next_gate_access_type += w_1_shift;
-//     next_gate_access_type *= eta;
-//     next_gate_access_type = w_4_shift - next_gate_access_type;
+    /**
+     * RAM Consistency Check
+     */
+    auto access_type = (w_4 - partial_record_check);             // will be 0 or 1 for honest Prover
+    auto access_check = access_type * access_type - access_type; // check value is 0 or 1
 
-//     auto value_delta = w_3_shift - w_3;
-//     auto adjacent_values_match_if_adjacent_indices_match_and_next_access_is_a_read_operation =
-//         (index_delta * FF(-1) + FF(1)) * value_delta * (next_gate_access_type * FF(-1) + FF(1));
+    auto next_gate_access_type = w_3_shift;
+    next_gate_access_type *= eta;
+    next_gate_access_type += w_2_shift;
+    next_gate_access_type *= eta;
+    next_gate_access_type += w_1_shift;
+    next_gate_access_type *= eta;
+    next_gate_access_type = w_4_shift - next_gate_access_type;
 
-//     // We can't apply the RAM consistency check identity on the final entry in the sorted list (the wires in the
-//     // next gate would make the identity fail).
-//     // We need to validate that its 'access type' bool is correct. Can't do
-//     // with an arithmetic gate because of the `eta` factors. We need to check that the *next* gate's access type is
-//     // correct, to cover this edge case
-//     auto next_gate_access_type_is_boolean = next_gate_access_type * next_gate_access_type - next_gate_access_type;
+    auto value_delta = w_3_shift - w_3;
+    auto adjacent_values_match_if_adjacent_indices_match_and_next_access_is_a_read_operation =
+        (index_delta * FF(-1) + FF(1)) * value_delta * (next_gate_access_type * FF(-1) + FF(1));
 
-//     // Putting it all together...
-//     auto RAM_consistency_check_identity =
-//         adjacent_values_match_if_adjacent_indices_match_and_next_access_is_a_read_operation;
-//     RAM_consistency_check_identity *= fake_alpha;
-//     RAM_consistency_check_identity += index_is_monotonically_increasing;
-//     RAM_consistency_check_identity *= fake_alpha;
-//     RAM_consistency_check_identity += next_gate_access_type_is_boolean;
-//     RAM_consistency_check_identity *= fake_alpha;
-//     RAM_consistency_check_identity += access_check;
+    // We can't apply the RAM consistency check identity on the final entry in the sorted list (the wires in the
+    // next gate would make the identity fail).
+    // We need to validate that its 'access type' bool is correct. Can't do
+    // with an arithmetic gate because of the `eta` factors. We need to check that the *next* gate's access type is
+    // correct, to cover this edge case
+    auto next_gate_access_type_is_boolean = next_gate_access_type * next_gate_access_type - next_gate_access_type;
 
-/**
- * RAM Timestamp Consistency Check
- */
-//     auto timestamp_delta = w_2_shift - w_2;
-//     auto RAM_timestamp_check_identity = (index_delta * FF(-1) + FF(1)) * timestamp_delta - w_3;
+    // Putting it all together...
+    expected_full_length_univariates[3] =
+        adjacent_values_match_if_adjacent_indices_match_and_next_access_is_a_read_operation * (q_arith);
+    expected_full_length_univariates[4] = index_is_monotonically_increasing * (q_arith);
+    expected_full_length_univariates[5] = next_gate_access_type_is_boolean * (q_arith);
+    auto RAM_consistency_check_identity = access_check * (q_arith);
 
-/**
- * The complete RAM/ROM memory identity
- */
-//     auto memory_identity = ROM_consistency_check_identity * q_2;
-//     memory_identity += RAM_timestamp_check_identity * q_4;
-//     memory_identity += memory_record_check * q_m;
-//     memory_identity *= q_1;
-//     memory_identity += (RAM_consistency_check_identity * q_arith);
+    /**
+     * RAM/ROM access check gate
+     */
+    memory_record_check *= (q_1 * q_m);
 
-//     auto expected_evals = memory_identity + non_native_field_identity + limb_accumulator_identity;
-//     expected_evals *= q_aux;
+    /**
+     * RAM Timestamp Consistency Check
+     */
+    auto timestamp_delta = w_2_shift - w_2;
+    auto RAM_timestamp_check_identity = (index_delta * FF(-1) + FF(1)) * timestamp_delta - w_3;
+    RAM_timestamp_check_identity *= (q_1 * q_4);
 
-//     validate_evaluations(expected_evals, relation, extended_edges, relation_parameters);
-// };
+    /**
+     * The complete RAM/ROM memory identity
+     */
+    auto memory_identity = ROM_consistency_check_identity;
+    memory_identity += RAM_timestamp_check_identity;
+    memory_identity += memory_record_check;
+    memory_identity += RAM_consistency_check_identity;
+
+    expected_full_length_univariates[0] = memory_identity + non_native_field_identity + limb_accumulator_identity;
+
+    expected_full_length_univariates[0] *= q_aux;
+    expected_full_length_univariates[1] *= q_aux;
+    expected_full_length_univariates[2] *= q_aux;
+    expected_full_length_univariates[3] *= q_aux;
+    expected_full_length_univariates[4] *= q_aux;
+    expected_full_length_univariates[5] *= q_aux;
+
+    validate_evaluations(expected_full_length_univariates, relation, extended_edges, relation_parameters);
+};
 
 } // namespace proof_system::honk_relation_tests

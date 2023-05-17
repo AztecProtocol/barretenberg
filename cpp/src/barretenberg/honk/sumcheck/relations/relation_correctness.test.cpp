@@ -377,8 +377,8 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
                                 honk::sumcheck::UltraPermutationRelation<FF>(),
                                 honk::sumcheck::LookupRelation<FF>(),
                                 honk::sumcheck::GenPermSortRelation<FF>(),
-                                honk::sumcheck::EllipticRelation<FF>());
-    // honk::sumcheck::AuxiliaryRelation<FF>());
+                                honk::sumcheck::EllipticRelation<FF>(),
+                                honk::sumcheck::AuxiliaryRelation<FF>());
 
     // Check that each relation is satisfied across each row of the prover polynomials
     check_relation<0, Flavor>(relations, circuit_size, prover_polynomials, params);
@@ -386,6 +386,7 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     check_relation<2, Flavor>(relations, circuit_size, prover_polynomials, params);
     check_relation<3, Flavor>(relations, circuit_size, prover_polynomials, params);
     check_relation<4, Flavor>(relations, circuit_size, prover_polynomials, params);
+    check_relation<5, Flavor>(relations, circuit_size, prover_polynomials, params);
 }
 
 } // namespace test_honk_relations

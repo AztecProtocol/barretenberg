@@ -8,6 +8,7 @@
 #include "relations/ultra_arithmetic_relation.hpp"
 #include "relations/gen_perm_sort_relation.hpp"
 #include "relations/elliptic_relation.hpp"
+#include "relations/auxiliary_relation.hpp"
 #include "barretenberg/transcript/manifest.hpp"
 #include <array>
 #include <cstddef>
@@ -186,6 +187,51 @@ TEST(NewSumcheck, Ultra)
     ecc_add_gate gate{ x1, y1, x2, y2, x3, y3, beta_scalar, -1 };
     composer.create_ecc_add_gate(gate);
 
+    // Add some RAM gates
+    uint32_t ram_values[8]{
+        composer.add_variable(fr::random_element()), composer.add_variable(fr::random_element()),
+        composer.add_variable(fr::random_element()), composer.add_variable(fr::random_element()),
+        composer.add_variable(fr::random_element()), composer.add_variable(fr::random_element()),
+        composer.add_variable(fr::random_element()), composer.add_variable(fr::random_element()),
+    };
+
+    size_t ram_id = composer.create_RAM_array(8);
+
+    for (size_t i = 0; i < 8; ++i) {
+        composer.init_RAM_element(ram_id, i, ram_values[i]);
+    }
+
+    a_idx = composer.read_RAM_array(ram_id, composer.add_variable(5));
+    EXPECT_EQ(a_idx != ram_values[5], true);
+
+    b_idx = composer.read_RAM_array(ram_id, composer.add_variable(4));
+    c_idx = composer.read_RAM_array(ram_id, composer.add_variable(1));
+
+    composer.write_RAM_array(ram_id, composer.add_variable(4), composer.add_variable(500));
+    d_idx = composer.read_RAM_array(ram_id, composer.add_variable(4));
+
+    EXPECT_EQ(composer.get_variable(d_idx), 500);
+
+    // ensure these vars get used in another arithmetic gate
+    const auto e_value = composer.get_variable(a_idx) + composer.get_variable(b_idx) + composer.get_variable(c_idx) +
+                         composer.get_variable(d_idx);
+    e_idx = composer.add_variable(e_value);
+
+    composer.create_big_add_gate({ a_idx, b_idx, c_idx, d_idx, -1, -1, -1, -1, 0 }, true);
+    composer.create_big_add_gate(
+        {
+            composer.get_zero_idx(),
+            composer.get_zero_idx(),
+            composer.get_zero_idx(),
+            e_idx,
+            0,
+            0,
+            0,
+            0,
+            0,
+        },
+        false);
+
     // Create a prover (it will compute proving key and witness)
     auto prover = composer.create_prover();
 
@@ -275,7 +321,8 @@ TEST(NewSumcheck, Ultra)
                                     UltraPermutationRelation,
                                     LookupRelation,
                                     GenPermSortRelation,
-                                    EllipticRelation>(prover.key->circuit_size, prover_transcript);
+                                    EllipticRelation,
+                                    AuxiliaryRelation>(prover.key->circuit_size, prover_transcript);
 
     auto prover_output = sumcheck_prover.execute_prover(prover_polynomials, relation_parameters);
 
@@ -287,7 +334,8 @@ TEST(NewSumcheck, Ultra)
                                       UltraPermutationRelation,
                                       LookupRelation,
                                       GenPermSortRelation,
-                                      EllipticRelation>(prover.key->circuit_size, verifier_transcript);
+                                      EllipticRelation,
+                                      AuxiliaryRelation>(prover.key->circuit_size, verifier_transcript);
 
     std::optional verifier_output = sumcheck_verifier.execute_verifier(relation_parameters);
 

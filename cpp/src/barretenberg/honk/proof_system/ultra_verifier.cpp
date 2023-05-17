@@ -113,7 +113,8 @@ template <typename Flavor> bool UltraVerifier_<Flavor>::verify_proof(const plonk
                              honk::sumcheck::UltraPermutationRelation,
                              honk::sumcheck::LookupRelation,
                              honk::sumcheck::GenPermSortRelation,
-                             honk::sumcheck::EllipticRelation>(circuit_size, transcript);
+                             honk::sumcheck::EllipticRelation,
+                             honk::sumcheck::AuxiliaryRelation>(circuit_size, transcript);
 
     std::optional sumcheck_output = sumcheck.execute_verifier(relation_parameters);
 

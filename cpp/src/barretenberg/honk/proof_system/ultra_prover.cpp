@@ -196,7 +196,8 @@ template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_relation_check_
                                         sumcheck::UltraPermutationRelation,
                                         sumcheck::LookupRelation,
                                         sumcheck::GenPermSortRelation,
-                                        sumcheck::EllipticRelation>;
+                                        sumcheck::EllipticRelation,
+                                        sumcheck::AuxiliaryRelation>;
 
     auto sumcheck = Sumcheck(key->circuit_size, transcript);
 
