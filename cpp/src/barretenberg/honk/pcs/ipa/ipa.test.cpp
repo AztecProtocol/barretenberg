@@ -27,8 +27,8 @@ TEST_F(IPATests, Commit)
     barretenberg::g1::element commitment = this->commit(poly);
     auto srs_elements = this->ck()->srs.get_monomial_points();
     barretenberg::g1::element expected = g1::element(srs_elements[0]) * poly[0];
-    for (size_t i = 1; i < n; i++) {
-        expected += g1::element(srs_elements[i]) * poly[i];
+    for (size_t i = 1; i < 2 * n; i += 2) {
+        expected += g1::element(srs_elements[i]) * poly[i >> 1];
     }
     EXPECT_EQ(expected.normalize(), commitment.normalize());
 }

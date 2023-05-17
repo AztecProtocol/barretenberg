@@ -231,7 +231,7 @@ class CommitmentKey {
     {
         const size_t degree = polynomial.size();
         ASSERT(degree <= srs.get_monomial_size());
-        return barretenberg::scalar_multiplication::pippenger_without_endomorphism_basis_points(
+        return barretenberg::scalar_multiplication::pippenger_unsafe(
             const_cast<Fr*>(polynomial.data()), srs.get_monomial_points(), degree, pippenger_runtime_state);
     };
 
