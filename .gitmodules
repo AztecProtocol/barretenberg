@@ -1,3 +1,6 @@
+[submodule "cpp/src/msgpack-c"]
+	path = cpp/src/msgpack-c
+	url = https://github.com/AztecProtocol/msgpack-c
 [submodule "sol/lib/forge-std"]
 	path = sol/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std

@@ -6,6 +6,7 @@
 #include "barretenberg/polynomials/evaluation_domain.hpp"
 #include "barretenberg/crypto/sha256/sha256.hpp"
 #include "barretenberg/plonk/proof_system/types/polynomial_manifest.hpp"
+#include "barretenberg/serialize/msgpack.hpp"
 
 namespace proof_system::plonk {
 
@@ -17,6 +18,13 @@ struct verification_key_data {
     bool contains_recursive_proof = false;
     std::vector<uint32_t> recursive_proof_public_input_indices;
 
+    // for serialization: update with any new fields
+    MSGPACK_FIELDS(composer_type,
+                   circuit_size,
+                   num_public_inputs,
+                   commitments,
+                   contains_recursive_proof,
+                   recursive_proof_public_input_indices);
     barretenberg::fr compress_native(size_t const hash_index = 0);
 };
 
@@ -49,6 +57,8 @@ inline bool operator==(verification_key_data const& lhs, verification_key_data c
 }
 
 struct verification_key {
+    // default constructor needed for msgpack unpack
+    verification_key() = default;
     verification_key(verification_key_data&& data, std::shared_ptr<VerifierReferenceString> const& crs);
     verification_key(const size_t num_gates,
                      const size_t num_inputs,
@@ -83,24 +93,6 @@ struct verification_key {
     std::vector<uint32_t> recursive_proof_public_input_indices;
     size_t program_width = 3;
 };
-
-// template <typename B> inline void read(B& buf, verification_key& key)
-// {
-//     auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
-//     using serialize::read;
-//     verification_key_data vk_data;
-//     read(buf, vk_data);
-//     key = verification_key{ std::move(vk_data), env_crs->get_verifier_crs() };
-// }
-
-// template <typename B> inline void read(B& buf, std::shared_ptr<verification_key>& key)
-// {
-//     auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
-//     using serialize::read;
-//     verification_key_data vk_data;
-//     read(buf, vk_data);
-//     key = std::make_shared<verification_key>(std::move(vk_data), env_crs->get_verifier_crs());
-// }
 
 template <typename B> inline void write(B& buf, verification_key const& key)
 {
