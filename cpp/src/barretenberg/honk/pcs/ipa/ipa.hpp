@@ -16,7 +16,6 @@
  */
 namespace proof_system::honk::pcs::ipa {
 
-// In the future we want this parameterised by the curve
 template <typename Params> class IPA {
     using Fr = typename Params::Fr;
     using GroupElement = typename Params::GroupElement;
@@ -57,6 +56,9 @@ template <typename Params> class IPA {
         // use SRS instead of G_vector.
         auto srs_elements = ck->srs.get_monomial_points();
         std::vector<Commitment> G_vec_local(poly_degree);
+        // The SRS stored in the commitment key is the result after applying the pippenger point table so the
+        // values at odd indices contain the point {srs[i-1].x * beta, srs[i-1].y}, where beta is the endomorphism
+        // G_vec_local should use only the original SRS thus we extract only the even indices.
         for (size_t i = 0; i < poly_degree * 2; i += 2) {
             G_vec_local[i >> 1] = srs_elements[i];
         }
@@ -203,8 +205,11 @@ template <typename Params> class IPA {
         auto srs_elements = vk->srs.get_monomial_points();
         // Copy the G_vector to local memory.
         std::vector<Commitment> G_vec_local(poly_degree);
+        // The SRS stored in the commitment key is the result after applying the pippenger point table so the
+        // values at odd indices contain the point {srs[i-1].x * beta, srs[i-1].y}, where beta is the endomorphism
+        // G_vec_local should use only the original SRS thus we extract only the even indices.
         for (size_t i = 0; i < poly_degree * 2; i += 2) {
-            G_vec_local[i] = srs_elements[i >> 1];
+            G_vec_local[i >> 1] = srs_elements[i];
         }
         auto G_zero = barretenberg::scalar_multiplication::pippenger_without_endomorphism_basis_points(
             &s_vec[0], &G_vec_local[0], poly_degree, vk->pippenger_runtime_state);

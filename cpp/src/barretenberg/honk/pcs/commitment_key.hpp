@@ -3,6 +3,8 @@
 /**
  * @brief Provides interfaces for different 'CommitmentKey' classes.
  *
+ * TODO(#218)(Adrian / Mara): This class should take ownership of the SRS, and handle reading the file from disk as well
+ * as carrying out any modification to the SRS (e.g compute pippenger point table) to simplify the codebase.
  */
 
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"
@@ -22,10 +24,10 @@ namespace kzg {
 
 /**
  * @brief CommitmentKey object over a pairing group 𝔾₁, using a structured reference string (SRS).
- * The SRS is given as a list of 𝔾₁ points
- *  { [xʲ]₁ }ⱼ where 'x' is unknown.
+ * The SRS is given as a list of 𝔾₁ points { [xʲ]₁ }ⱼ where 'x' is unknown. The SRS stored in the commitment key is
+ * after applying the pippenger_point_table thus being double the size of what is loaded from path.
  *
- * TODO(#218)(Adrian): This class should take ownership of the SRS, and handle reading the file from disk.
+ *
  */
 class CommitmentKey {
     using Fr = typename barretenberg::g1::Fr;
@@ -192,9 +194,10 @@ namespace ipa {
 
 /**
  * @brief CommitmentKey object over a group 𝔾₁, using a structured reference string (SRS).
- * The SRS is given as a list of uniquely derived and random 𝔾₁ points of a specified size.
+ * The SRS contains a list of uniquely derived and random 𝔾₁ points of a specified size.
+ * The SRS stored in the commitment key is after applying the pippenger_point_table
+ * thus being double the size of what is loaded from memory.
  *
- * @todo This class should take ownership of the SRS, and handle reading the file from disk.
  *
  */
 class CommitmentKey {
@@ -210,7 +213,7 @@ class CommitmentKey {
     CommitmentKey() = delete;
 
     /**
-     * @brief Construct a new IPA Commitment Key object from existing SRS
+     * @brief Construct a new IPA Commitment Key object from existing SRS..
      *
      * @param num_points
      * @param path

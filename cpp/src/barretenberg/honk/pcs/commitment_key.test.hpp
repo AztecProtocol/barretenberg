@@ -85,7 +85,6 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
         Polynomial p(n);
         for (size_t i = 0; i < n; ++i) {
             p[i] = Fr::random_element(engine);
-            // p[i] = Fr::one();
         }
         return p;
     }
