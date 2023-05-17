@@ -516,7 +516,6 @@ TEST_F(UltraRelationConsistency, AuxiliaryRelation)
     auto relation = AuxiliaryRelation<FF>();
 
     const auto& eta = relation_parameters.eta;
-    const auto fake_alpha = FF(1);
 
     // Extract the extended edges for manual computation of relation contribution
     const auto& w_1 = extended_edges.w_l;
