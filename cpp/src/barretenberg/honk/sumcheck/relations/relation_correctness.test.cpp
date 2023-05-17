@@ -31,9 +31,7 @@ void ensure_non_zero(auto& polynomial)
  * @tparam relation_idx Index into a tuple of provided relations
  * @tparam Flavor
  */
-// WORKTODO: pass single relation instead of all of them?
-template <size_t relation_idx, typename Flavor>
-void check_relation(auto relations, auto circuit_size, auto polynomials, auto params)
+template <typename Flavor> void check_relation(auto relation, auto circuit_size, auto polynomials, auto params)
 {
     using PurportedEvaluations = typename Flavor::PurportedEvaluations;
     for (size_t i = 0; i < circuit_size; i++) {
@@ -47,14 +45,14 @@ void check_relation(auto relations, auto circuit_size, auto polynomials, auto pa
         }
 
         // Define the appropriate RelationValues type for this relation and initialize to zero
-        using RelationValues = typename std::tuple_element<relation_idx, decltype(relations)>::type::RelationValues;
+        using RelationValues = typename decltype(relation)::RelationValues;
         RelationValues result;
         for (auto& element : result) {
             element = 0;
         }
 
         // Evaluate each constraint in the relation and check that each is satisfied
-        std::get<relation_idx>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        relation.add_full_relation_value_contribution(result, evaluations_at_index_i, params);
         for (auto& element : result) {
             ASSERT_EQ(element, 0);
         }
@@ -144,8 +142,8 @@ TEST(RelationCorrectness, StandardRelationCorrectness)
     auto relations = std::tuple(honk::sumcheck::ArithmeticRelation<FF>(), honk::sumcheck::PermutationRelation<FF>());
 
     // Check that each relation is satisfied across each row of the prover polynomials
-    check_relation<0, Flavor>(relations, circuit_size, prover_polynomials, params);
-    check_relation<1, Flavor>(relations, circuit_size, prover_polynomials, params);
+    check_relation<Flavor>(std::get<0>(relations), circuit_size, prover_polynomials, params);
+    check_relation<Flavor>(std::get<1>(relations), circuit_size, prover_polynomials, params);
 }
 
 /**
@@ -381,12 +379,12 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
                                 honk::sumcheck::AuxiliaryRelation<FF>());
 
     // Check that each relation is satisfied across each row of the prover polynomials
-    check_relation<0, Flavor>(relations, circuit_size, prover_polynomials, params);
-    check_relation<1, Flavor>(relations, circuit_size, prover_polynomials, params);
-    check_relation<2, Flavor>(relations, circuit_size, prover_polynomials, params);
-    check_relation<3, Flavor>(relations, circuit_size, prover_polynomials, params);
-    check_relation<4, Flavor>(relations, circuit_size, prover_polynomials, params);
-    check_relation<5, Flavor>(relations, circuit_size, prover_polynomials, params);
+    check_relation<Flavor>(std::get<0>(relations), circuit_size, prover_polynomials, params);
+    check_relation<Flavor>(std::get<1>(relations), circuit_size, prover_polynomials, params);
+    check_relation<Flavor>(std::get<2>(relations), circuit_size, prover_polynomials, params);
+    check_relation<Flavor>(std::get<3>(relations), circuit_size, prover_polynomials, params);
+    check_relation<Flavor>(std::get<4>(relations), circuit_size, prover_polynomials, params);
+    check_relation<Flavor>(std::get<5>(relations), circuit_size, prover_polynomials, params);
 }
 
 } // namespace test_honk_relations

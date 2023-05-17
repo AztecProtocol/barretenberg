@@ -7,7 +7,6 @@
 
 namespace proof_system::honk::sumcheck {
 
-// WORKTODO: fix formatting around scopes in this file
 template <typename FF> class UltraArithmeticRelation {
   public:
     // 1 + polynomial degree of this relation

@@ -273,7 +273,6 @@ template <typename Flavor, template <class> class... Relations> class SumcheckRo
         }
     }
 
-    // WORKTODO: make these private (need to make test suite a friend?)
   public:
     /**
      * Utility methods for tuple of tuples of Univariates

@@ -8,7 +8,6 @@ namespace proof_system::honk::sumcheck {
 template <typename FF> class PermutationRelation {
   public:
     // 1 + polynomial degree of this relation
-    // WORKTODO: change this in all relations to be MAX_CONSTRAINT_LENGTH or something?
     static constexpr size_t RELATION_LENGTH = 5;
 
     static constexpr size_t NUM_CONSTRAINTS = 2;
