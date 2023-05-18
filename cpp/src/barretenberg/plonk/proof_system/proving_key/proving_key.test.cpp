@@ -15,7 +15,7 @@ using namespace proof_system;
 // Test proving key serialization/deserialization to/from buffer
 TEST(proving_key, proving_key_from_serialized_key)
 {
-    plonk::StandardComposer composer = plonk::StandardComposer();
+    plonk::StandardPlonkComposer composer = plonk::StandardPlonkComposer();
     fr a = fr::one();
     composer.add_public_variable(a);
 
@@ -88,7 +88,7 @@ TEST(proving_key, proving_key_from_serialized_key_ultra)
 #ifndef __wasm__
 TEST(proving_key, proving_key_from_mmaped_key)
 {
-    plonk::StandardComposer composer = plonk::StandardComposer();
+    plonk::StandardPlonkComposer composer = plonk::StandardPlonkComposer();
     fr a = fr::one();
     composer.add_public_variable(a);
 

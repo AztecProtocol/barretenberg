@@ -33,8 +33,8 @@ template <class T> void ignore_unused(T&) {} // use to ignore unused variables i
 
 template <class Composer> class SafeUintTest : public ::testing::Test {};
 
-using ComposerTypes =
-    ::testing::Types<honk::StandardHonkComposer, plonk::StandardComposer, plonk::TurboComposer, plonk::UltraComposer>;
+using ComposerTypes = ::testing::
+    Types<honk::StandardHonkComposer, plonk::StandardPlonkComposer, plonk::TurboPlonkComposer, plonk::UltraComposer>;
 TYPED_TEST_SUITE(SafeUintTest, ComposerTypes);
 
 // CONSTRUCTOR

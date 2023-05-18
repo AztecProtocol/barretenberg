@@ -120,8 +120,8 @@ std::array<uint64_t, 8> inner_block(std::array<uint64_t, 64>& w)
 TEST(stdlib_sha256, test_duplicate_proving_key)
 {
 
-    auto first_composer = plonk::StandardComposer();
-    plonk::stdlib::packed_byte_array<plonk::StandardComposer> input(
+    auto first_composer = plonk::StandardPlonkComposer();
+    plonk::stdlib::packed_byte_array<plonk::StandardPlonkComposer> input(
         &first_composer, "An 8 character password? Snow White and the 7 Dwarves..");
     plonk::stdlib::sha256(input);
     auto prover = first_composer.create_prover();
@@ -134,8 +134,8 @@ TEST(stdlib_sha256, test_duplicate_proving_key)
     auto circuit_size = prover.circuit_size;
 
     // Test a second time with same keys and different input.
-    auto second_composer = plonk::StandardComposer(proving_key, verification_key, circuit_size);
-    plonk::stdlib::packed_byte_array<plonk::StandardComposer> input2(
+    auto second_composer = plonk::StandardPlonkComposer(proving_key, verification_key, circuit_size);
+    plonk::stdlib::packed_byte_array<plonk::StandardPlonkComposer> input2(
         &second_composer, "An 8 character password? Snow White and the 9 Dwarves..");
     plonk::stdlib::sha256(input2);
     auto second_prover = second_composer.create_prover();

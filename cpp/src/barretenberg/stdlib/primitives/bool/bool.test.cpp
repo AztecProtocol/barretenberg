@@ -19,8 +19,8 @@ auto& engine = numeric::random::get_debug_engine();
 
 template <class Composer> class BoolTest : public ::testing::Test {};
 
-using ComposerTypes =
-    ::testing::Types<honk::StandardHonkComposer, plonk::StandardComposer, plonk::TurboComposer, plonk::UltraComposer>;
+using ComposerTypes = ::testing::
+    Types<honk::StandardHonkComposer, plonk::StandardPlonkComposer, plonk::TurboPlonkComposer, plonk::UltraComposer>;
 TYPED_TEST_SUITE(BoolTest, ComposerTypes);
 TYPED_TEST(BoolTest, TestBasicOperations)
 {

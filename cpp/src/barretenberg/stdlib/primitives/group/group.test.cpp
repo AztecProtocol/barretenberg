@@ -23,8 +23,8 @@ auto& engine = numeric::random::get_debug_engine();
 
 template <class Composer> class GroupTest : public ::testing::Test {};
 
-using ComposerTypes =
-    ::testing::Types<honk::StandardHonkComposer, plonk::StandardComposer, plonk::TurboComposer, plonk::UltraComposer>;
+using ComposerTypes = ::testing::
+    Types<honk::StandardHonkComposer, plonk::StandardPlonkComposer, plonk::TurboPlonkComposer, plonk::UltraComposer>;
 TYPED_TEST_SUITE(GroupTest, ComposerTypes);
 
 TYPED_TEST(GroupTest, TestFixedBaseScalarMul)

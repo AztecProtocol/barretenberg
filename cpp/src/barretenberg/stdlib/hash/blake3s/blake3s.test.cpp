@@ -9,7 +9,7 @@
 using namespace barretenberg;
 using namespace proof_system::plonk;
 
-typedef proof_system::plonk::TurboComposer Composer;
+typedef proof_system::plonk::TurboPlonkComposer Composer;
 typedef stdlib::byte_array<Composer> byte_array;
 typedef stdlib::byte_array<plonk::UltraComposer> byte_array_plookup;
 typedef stdlib::public_witness_t<Composer> public_witness_t;

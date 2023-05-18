@@ -373,7 +373,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
     static void test_double_verification()
     {
-        if constexpr (std::is_same<OuterComposer, plonk::StandardComposer>::value)
+        if constexpr (std::is_same<OuterComposer, plonk::StandardPlonkComposer>::value)
             return; // We only care about running this test for turbo and ultra outer circuits, since in practice the
                     // only circuits which verify >1 proof are ultra or turbo circuits. Standard uses so many gates
                     // (16m) that it's a waste of time testing it.
@@ -630,7 +630,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
     static void test_inner_circuit()
     {
-        if constexpr (!std::is_same<OuterComposer, plonk::StandardComposer>::value)
+        if constexpr (!std::is_same<OuterComposer, plonk::StandardPlonkComposer>::value)
             return; // We only want to run this test once (since it's not actually dependent on the typed test
                     // parameter; which is the outer composer). We've only made it a typed test so that it can be
                     // included in this test suite. So to avoid running this test identically 3 times, we escape all but
@@ -651,7 +651,8 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
     }
 };
 
-typedef testing::Types<plonk::StandardComposer, plonk::TurboComposer, plonk::UltraComposer> OuterComposerTypes;
+typedef testing::Types<plonk::StandardPlonkComposer, plonk::TurboPlonkComposer, plonk::UltraComposer>
+    OuterComposerTypes;
 
 TYPED_TEST_SUITE(stdlib_verifier, OuterComposerTypes);
 

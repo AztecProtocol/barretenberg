@@ -181,9 +181,10 @@ template <typename Composer> packed_byte_array<Composer> sha256(const packed_byt
     return packed_byte_array<Composer>(output, 4);
 }
 
-template byte_array<plonk::TurboComposer> sha256_block(const byte_array<plonk::TurboComposer>& input);
-template packed_byte_array<plonk::StandardComposer> sha256(const packed_byte_array<plonk::StandardComposer>& input);
-template packed_byte_array<plonk::TurboComposer> sha256(const packed_byte_array<plonk::TurboComposer>& input);
+template byte_array<plonk::TurboPlonkComposer> sha256_block(const byte_array<plonk::TurboPlonkComposer>& input);
+template packed_byte_array<plonk::StandardPlonkComposer> sha256(
+    const packed_byte_array<plonk::StandardPlonkComposer>& input);
+template packed_byte_array<plonk::TurboPlonkComposer> sha256(const packed_byte_array<plonk::TurboPlonkComposer>& input);
 template packed_byte_array<plonk::UltraComposer> sha256(const packed_byte_array<plonk::UltraComposer>& input);
 } // namespace stdlib
 } // namespace proof_system::plonk

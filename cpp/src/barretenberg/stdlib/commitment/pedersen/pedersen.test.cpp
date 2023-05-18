@@ -412,7 +412,7 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
     }
 };
 
-typedef testing::Types<plonk::UltraComposer, plonk::TurboComposer, plonk::StandardComposer> ComposerTypes;
+typedef testing::Types<plonk::UltraComposer, plonk::TurboPlonkComposer, plonk::StandardPlonkComposer> ComposerTypes;
 
 TYPED_TEST_SUITE(stdlib_pedersen, ComposerTypes);
 

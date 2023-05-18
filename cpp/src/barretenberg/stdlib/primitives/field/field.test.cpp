@@ -1024,8 +1024,9 @@ template <typename Composer> class stdlib_field : public testing::Test {
     }
 };
 
-typedef testing::Types<plonk::UltraComposer, plonk::TurboComposer, plonk::StandardComposer, honk::StandardHonkComposer>
-    ComposerTypes;
+typedef testing::
+    Types<plonk::UltraComposer, plonk::TurboPlonkComposer, plonk::StandardPlonkComposer, honk::StandardHonkComposer>
+        ComposerTypes;
 
 TYPED_TEST_SUITE(stdlib_field, ComposerTypes);
 

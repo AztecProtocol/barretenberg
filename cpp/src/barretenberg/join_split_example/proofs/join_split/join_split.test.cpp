@@ -72,8 +72,8 @@ template <typename Composer> class join_split : public testing::Test {
     }
 };
 
-using ComposerTypes =
-    testing::Types<plonk::UltraComposer, plonk::TurboComposer, plonk::StandardComposer, honk::StandardHonkComposer>;
+using ComposerTypes = testing::
+    Types<plonk::UltraComposer, plonk::TurboPlonkComposer, plonk::StandardPlonkComposer, honk::StandardHonkComposer>;
 
 TYPED_TEST_SUITE(join_split, ComposerTypes);
 

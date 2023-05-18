@@ -524,25 +524,20 @@ uint<Composer, Native> uint<Composer, Native>::logic_operator(const uint& other,
     return result;
 }
 
-template class uint<plonk::TurboComposer, uint8_t>;
-template class uint<plonk::TurboComposer, uint16_t>;
-template class uint<plonk::TurboComposer, uint32_t>;
-template class uint<plonk::TurboComposer, uint64_t>;
-
-template class uint<plonk::StandardComposer, uint8_t>;
-template class uint<plonk::StandardComposer, uint16_t>;
-template class uint<plonk::StandardComposer, uint32_t>;
-template class uint<plonk::StandardComposer, uint64_t>;
-
-template class uint<honk::StandardHonkComposer, uint8_t>;
-template class uint<honk::StandardHonkComposer, uint16_t>;
-template class uint<honk::StandardHonkComposer, uint32_t>;
-template class uint<honk::StandardHonkComposer, uint64_t>;
+template class uint<plonk::TurboPlonkComposer, uint8_t>;
+template class uint<plonk::TurboPlonkComposer, uint16_t>;
+template class uint<plonk::TurboPlonkComposer, uint32_t>;
+template class uint<plonk::TurboPlonkComposer, uint64_t>;
 
 template class uint<plonk::StandardPlonkComposer, uint8_t>;
 template class uint<plonk::StandardPlonkComposer, uint16_t>;
 template class uint<plonk::StandardPlonkComposer, uint32_t>;
 template class uint<plonk::StandardPlonkComposer, uint64_t>;
+
+template class uint<honk::StandardHonkComposer, uint8_t>;
+template class uint<honk::StandardHonkComposer, uint16_t>;
+template class uint<honk::StandardHonkComposer, uint32_t>;
+template class uint<honk::StandardHonkComposer, uint64_t>;
 
 } // namespace stdlib
 } // namespace proof_system::plonk

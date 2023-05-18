@@ -259,8 +259,8 @@ template <typename Composer> byte_array<Composer> blake3s(const byte_array<Compo
     return result;
 }
 
-template byte_array<plonk::StandardComposer> blake3s(const byte_array<plonk::StandardComposer>& input);
-template byte_array<plonk::TurboComposer> blake3s(const byte_array<plonk::TurboComposer>& input);
+template byte_array<plonk::StandardPlonkComposer> blake3s(const byte_array<plonk::StandardPlonkComposer>& input);
+template byte_array<plonk::TurboPlonkComposer> blake3s(const byte_array<plonk::TurboPlonkComposer>& input);
 template byte_array<plonk::UltraComposer> blake3s(const byte_array<plonk::UltraComposer>& input);
 
 } // namespace stdlib

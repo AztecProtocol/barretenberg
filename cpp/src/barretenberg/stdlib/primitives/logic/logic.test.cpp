@@ -31,8 +31,8 @@ using namespace proof_system::plonk;
 
 template <class Composer> class LogicTest : public testing::Test {};
 
-using ComposerTypes =
-    ::testing::Types<honk::StandardHonkComposer, plonk::StandardComposer, plonk::TurboComposer, plonk::UltraComposer>;
+using ComposerTypes = ::testing::
+    Types<honk::StandardHonkComposer, plonk::StandardPlonkComposer, plonk::TurboPlonkComposer, plonk::UltraComposer>;
 
 TYPED_TEST_SUITE(LogicTest, ComposerTypes);
 

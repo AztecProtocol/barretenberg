@@ -832,11 +832,11 @@ template <typename TestType> class stdlib_biggroup : public testing::Test {
 enum UseBigfield { No, Yes };
 using TestTypes = testing::Types<TestType<stdlib::bn254<honk::StandardHonkComposer>, UseBigfield::No>,
                                  //  TestType<stdlib::bn254<plonk::UltraComposer>, UseBigfield::No>,
-                                 //  TestType<stdlib::bn254<plonk::TurboComposer>, UseBigfield::No>,
-                                 TestType<stdlib::bn254<plonk::StandardComposer>, UseBigfield::No>,
+                                 //  TestType<stdlib::bn254<plonk::TurboPlonkComposer>, UseBigfield::No>,
+                                 TestType<stdlib::bn254<plonk::StandardPlonkComposer>, UseBigfield::No>,
                                  TestType<stdlib::bn254<plonk::UltraComposer>, UseBigfield::Yes>,
-                                 // TestType<stdlib::bn254<plonk::TurboComposer>, UseBigfield::Yes>,
-                                 // TestType<stdlib::bn254<plonk::StandardComposer>, UseBigfield::Yes>,
+                                 // TestType<stdlib::bn254<plonk::TurboPlonkComposer>, UseBigfield::Yes>,
+                                 // TestType<stdlib::bn254<plonk::StandardPlonkComposer>, UseBigfield::Yes>,
                                  // TestType<stdlib::bn254<honk::StandardHonkComposer>, UseBigfield::Yes>,
                                  // TestType<stdlib::secp256r1<plonk::UltraComposer>, UseBigfield::Yes>,
                                  TestType<stdlib::secp256k1<plonk::UltraComposer>, UseBigfield::Yes>>;

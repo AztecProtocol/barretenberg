@@ -44,8 +44,8 @@ template <typename Composer> class VerificationKeyFixture : public testing::Test
 };
 
 // Each test will run for all composer types
-using ComposerTypes =
-    testing::Types<plonk::StandardComposer, plonk::TurboComposer, plonk::UltraComposer, honk::StandardHonkComposer>;
+using ComposerTypes = testing::
+    Types<plonk::StandardPlonkComposer, plonk::TurboPlonkComposer, plonk::UltraComposer, honk::StandardHonkComposer>;
 TYPED_TEST_SUITE(VerificationKeyFixture, ComposerTypes);
 
 TYPED_TEST(VerificationKeyFixture, vk_data_vs_recursion_compress_native)

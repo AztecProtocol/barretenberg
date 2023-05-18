@@ -27,12 +27,12 @@ using Composer = plonk::UltraComposer;
 using Prover = std::conditional_t<
     std::same_as<Composer, plonk::UltraComposer>,
     plonk::UltraWithKeccakProver,
-    std::conditional_t<std::same_as<Composer, plonk::TurboComposer>, plonk::TurboProver, plonk::Prover>>;
+    std::conditional_t<std::same_as<Composer, plonk::TurboPlonkComposer>, plonk::TurboProver, plonk::Prover>>;
 
 using Verifier = std::conditional_t<
     std::same_as<Composer, plonk::UltraComposer>,
     plonk::UltraWithKeccakVerifier,
-    std::conditional_t<std::same_as<Composer, plonk::TurboComposer>, plonk::TurboVerifier, plonk::Verifier>>;
+    std::conditional_t<std::same_as<Composer, plonk::TurboPlonkComposer>, plonk::TurboVerifier, plonk::Verifier>>;
 
 using witness_ct = proof_system::plonk::stdlib::witness_t<Composer>;
 using public_witness_ct = proof_system::plonk::stdlib::public_witness_t<Composer>;
