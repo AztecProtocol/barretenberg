@@ -39,9 +39,10 @@ template <typename Flavor, class Transcript, template <class> class... Relations
     ..., P_N.
     * At initialization,
     * we think of these as lying in a two-dimensional array, where each column records the value of one P_i on H^d.
-    * After the first round, the array will be updated ('folded'), so that the first n/2 rows will represent the
+    * After the first round, the array will be updated (partially evaluated), so that the first n/2 rows will represent
+    the
     * evaluations P_i(u0, X1, ..., X_{d-1}) as a low-degree extension on H^{d-1}. In reality, we elude copying all
-    * of the polynomial-defining data by only populating folded_multivariates after the first round. I.e.:
+    * of the polynomial-defining data by only populating partially_evaluated_polynomials after the first round. I.e.:
 
         We imagine all of the defining polynomial data in a matrix like this:
                     | P_1 | P_2 | P_3 | P_4 | ... | P_N | N = number of multivariatesk
@@ -55,7 +56,7 @@ template <typename Flavor, class Transcript, template <class> class... Relations
                   \-|  *  |  *  |  *  |  *  | ... |  *  | vertex n-1
             m = n/2
                                         *
-            Each group consists of N edges |, and our construction of univariates and folding
+            Each group consists of N edges |, and our construction of univariates and partial evaluation
                                         *
             operations naturally operate on these groups of edges
 
@@ -81,8 +82,8 @@ template <typename Flavor, class Transcript, template <class> class... Relations
         , round(std::tuple(Relations<FF>()...)){};
 
     /**
-     * @brief Compute univariate restriction place in transcript, generate challenge, fold,... repeat until final round,
-     * then compute multivariate evaluations and place in transcript.
+     * @brief Compute univariate restriction place in transcript, generate challenge, partially evaluate,... repeat
+     * until final round, then compute multivariate evaluations and place in transcript.
      *
      * @details
      */
@@ -102,9 +103,10 @@ template <typename Flavor, class Transcript, template <class> class... Relations
         transcript.send_to_verifier("Sumcheck:univariate_0", round_univariate);
         FF round_challenge = transcript.get_challenge("Sumcheck:u_0");
         multivariate_challenge.emplace_back(round_challenge);
-        fold(full_polynomials, multivariate_n, round_challenge);
+        partially_evaluate(full_polynomials, multivariate_n, round_challenge);
         pow_univariate.partially_evaluate(round_challenge);
-        round.round_size = round.round_size >> 1; // TODO(#224)(Cody): Maybe fold should do this and release memory?
+        round.round_size =
+            round.round_size >> 1; // TODO(#224)(Cody): Maybe partially_evaluate should do this and release memory?
 
         // All but final round
         // We operate on partially_evaluated_polynomials in place.
@@ -115,7 +117,7 @@ template <typename Flavor, class Transcript, template <class> class... Relations
             transcript.send_to_verifier("Sumcheck:univariate_" + std::to_string(round_idx), round_univariate);
             FF round_challenge = transcript.get_challenge("Sumcheck:u_" + std::to_string(round_idx));
             multivariate_challenge.emplace_back(round_challenge);
-            fold(partially_evaluated_polynomials, round.round_size, round_challenge);
+            partially_evaluate(partially_evaluated_polynomials, round.round_size, round_challenge);
             pow_univariate.partially_evaluate(round_challenge);
             round.round_size = round.round_size >> 1;
         }
@@ -189,14 +191,12 @@ template <typename Flavor, class Transcript, template <class> class... Relations
         return SumcheckOutput<Flavor>{ multivariate_challenge, purported_evaluations };
     };
 
-    // TODO(#224)(Cody): Rename. fold is not descriptive, and it's already in use in the Gemini context.
-    //             Probably just call it partial_evaluation?
     /**
      * @brief Evaluate at the round challenge and prepare class for next round.
      * Illustration of layout in example of first round when d==3 (showing just one Honk polynomial,
      * i.e., what happens in just one column of our two-dimensional array):
      *
-     * groups    vertex terms              collected vertex terms               groups after folding
+     * groups    vertex terms              collected vertex terms               groups after partial evaluation
      *     g0 -- v0 (1-X0)(1-X1)(1-X2) --- (v0(1-X0) + v1 X0) (1-X1)(1-X2) ---- (v0(1-u0) + v1 u0) (1-X1)(1-X2)
      *        \- v1   X0  (1-X1)(1-X2) --/                                  --- (v2(1-u0) + v3 u0)   X1  (1-X2)
      *     g1 -- v2 (1-X0)  X1  (1-X2) --- (v2(1-X0) + v3 X0)   X1  (1-X2)-/ -- (v4(1-u0) + v5 u0) (1-X1)  X2
@@ -208,7 +208,7 @@ template <typename Flavor, class Transcript, template <class> class... Relations
      *
      * @param challenge
      */
-    void fold(auto& polynomials, size_t round_size, FF round_challenge)
+    void partially_evaluate(auto& polynomials, size_t round_size, FF round_challenge)
     {
         // after the first round, operate in place on partially_evaluated_polynomials
         for (size_t j = 0; j < polynomials.size(); ++j) {
