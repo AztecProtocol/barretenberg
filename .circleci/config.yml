@@ -319,7 +319,7 @@ notmaster: &notmaster
   filters:
     branches:
       ignore:
-        - db/disable-circuits-tests-master
+        - master
   <<: *defaults
 
 workflows:
