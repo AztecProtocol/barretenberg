@@ -120,11 +120,11 @@ TEST(Flavor, AllEntitiesSpecialMemberFunctions)
 {
     using Flavor = proof_system::honk::flavor::Standard;
     using FF = Flavor::FF;
-    using FoldedPolynomials = Flavor::FoldedPolynomials;
+    using PartiallyEvaluatedMultivariates = Flavor::PartiallyEvaluatedMultivariates;
     using Polynomial = Polynomial<FF>;
 
-    FoldedPolynomials polynomials_A;
-    std::vector<FF> random_poly{ 10 };
+    PartiallyEvaluatedMultivariates polynomials_A;
+    auto random_poly = Polynomial(10);
     for (auto& coeff : random_poly) {
         coeff = FF::random_element();
     }
@@ -135,10 +135,10 @@ TEST(Flavor, AllEntitiesSpecialMemberFunctions)
 
     ASSERT_EQ(random_poly, polynomials_A.w_l);
 
-    FoldedPolynomials polynomials_B(polynomials_A);
+    PartiallyEvaluatedMultivariates polynomials_B(polynomials_A);
     ASSERT_EQ(random_poly, polynomials_B.w_l);
 
-    FoldedPolynomials polynomials_C(std::move(polynomials_B));
+    PartiallyEvaluatedMultivariates polynomials_C(std::move(polynomials_B));
     ASSERT_EQ(random_poly, polynomials_C.w_l);
 }
 

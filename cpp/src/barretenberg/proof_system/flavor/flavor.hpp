@@ -57,7 +57,6 @@
  * empty slots. This is a conscious choice to limit complexity. Note that there is very little memory cost here since
  * the DataType size in that case is small.
  *
- * @todo TODO(#394): Folded polynomials should use polynomial class.
  * @todo TODO(#395): Getters should return arrays?
  * @todo TODO(#396): Access specifiers?
  * @todo TODO(#397): Use more handle types?

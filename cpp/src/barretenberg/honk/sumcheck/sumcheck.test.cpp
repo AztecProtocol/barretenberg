@@ -178,7 +178,7 @@ TEST(Sumcheck, PolynomialNormalization)
                               l_2 * full_polynomials[i][2] + l_3 * full_polynomials[i][3] +
                               l_4 * full_polynomials[i][4] + l_5 * full_polynomials[i][5] +
                               l_6 * full_polynomials[i][6] + l_7 * full_polynomials[i][7];
-        EXPECT_EQ(hand_computed_value, sumcheck.folded_polynomials[i][0]);
+        EXPECT_EQ(hand_computed_value, sumcheck.partially_evaluated_polynomials[i][0]);
     }
 }
 

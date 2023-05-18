@@ -70,14 +70,14 @@ TYPED_TEST(MultivariatesTests, FoldTwoRoundsSpecial)
 
     sumcheck.fold(full_polynomials, multivariate_n, round_challenge_0);
 
-    EXPECT_EQ(sumcheck.folded_polynomials[0][0], round_challenge_0);
-    EXPECT_EQ(sumcheck.folded_polynomials[0][1], FF(0));
+    EXPECT_EQ(sumcheck.partially_evaluated_polynomials[0][0], round_challenge_0);
+    EXPECT_EQ(sumcheck.partially_evaluated_polynomials[0][1], FF(0));
 
     FF round_challenge_1 = 2;
     FF expected_val = expected_lo * (FF(1) - round_challenge_1) + expected_hi * round_challenge_1;
 
-    sumcheck.fold(sumcheck.folded_polynomials, multivariate_n >> 1, round_challenge_1);
-    EXPECT_EQ(sumcheck.folded_polynomials[0][0], expected_val);
+    sumcheck.fold(sumcheck.partially_evaluated_polynomials, multivariate_n >> 1, round_challenge_1);
+    EXPECT_EQ(sumcheck.partially_evaluated_polynomials[0][0], expected_val);
 }
 
 TYPED_TEST(MultivariatesTests, FoldTwoRoundsGeneric)
@@ -106,13 +106,13 @@ TYPED_TEST(MultivariatesTests, FoldTwoRoundsGeneric)
 
     sumcheck.fold(full_polynomials, multivariate_n, round_challenge_0);
 
-    EXPECT_EQ(sumcheck.folded_polynomials[0][0], expected_lo);
-    EXPECT_EQ(sumcheck.folded_polynomials[0][1], expected_hi);
+    EXPECT_EQ(sumcheck.partially_evaluated_polynomials[0][0], expected_lo);
+    EXPECT_EQ(sumcheck.partially_evaluated_polynomials[0][1], expected_hi);
 
     FF round_challenge_1 = FF::random_element();
     FF expected_val = expected_lo * (FF(1) - round_challenge_1) + expected_hi * round_challenge_1;
-    sumcheck.fold(sumcheck.folded_polynomials, multivariate_n >> 1, round_challenge_1);
-    EXPECT_EQ(sumcheck.folded_polynomials[0][0], expected_val);
+    sumcheck.fold(sumcheck.partially_evaluated_polynomials, multivariate_n >> 1, round_challenge_1);
+    EXPECT_EQ(sumcheck.partially_evaluated_polynomials[0][0], expected_val);
 }
 
 /*
@@ -169,23 +169,23 @@ TYPED_TEST(MultivariatesTests, FoldThreeRoundsSpecial)
 
     sumcheck.fold(full_polynomials, multivariate_n, round_challenge_0);
 
-    EXPECT_EQ(sumcheck.folded_polynomials[0][0], expected_q1);
-    EXPECT_EQ(sumcheck.folded_polynomials[0][1], expected_q2);
-    EXPECT_EQ(sumcheck.folded_polynomials[0][2], expected_q3);
-    EXPECT_EQ(sumcheck.folded_polynomials[0][3], expected_q4);
+    EXPECT_EQ(sumcheck.partially_evaluated_polynomials[0][0], expected_q1);
+    EXPECT_EQ(sumcheck.partially_evaluated_polynomials[0][1], expected_q2);
+    EXPECT_EQ(sumcheck.partially_evaluated_polynomials[0][2], expected_q3);
+    EXPECT_EQ(sumcheck.partially_evaluated_polynomials[0][3], expected_q4);
 
     FF round_challenge_1 = 2;
     FF expected_lo = expected_q1 * (FF(1) - round_challenge_1) + expected_q2 * round_challenge_1; // 6
     FF expected_hi = expected_q3 * (FF(1) - round_challenge_1) + expected_q4 * round_challenge_1; // 10
 
-    sumcheck.fold(sumcheck.folded_polynomials, multivariate_n >> 1, round_challenge_1);
-    EXPECT_EQ(sumcheck.folded_polynomials[0][0], expected_lo);
-    EXPECT_EQ(sumcheck.folded_polynomials[0][1], expected_hi);
+    sumcheck.fold(sumcheck.partially_evaluated_polynomials, multivariate_n >> 1, round_challenge_1);
+    EXPECT_EQ(sumcheck.partially_evaluated_polynomials[0][0], expected_lo);
+    EXPECT_EQ(sumcheck.partially_evaluated_polynomials[0][1], expected_hi);
 
     FF round_challenge_2 = 3;
     FF expected_val = expected_lo * (FF(1) - round_challenge_2) + expected_hi * round_challenge_2; // 18
-    sumcheck.fold(sumcheck.folded_polynomials, multivariate_n >> 2, round_challenge_2);
-    EXPECT_EQ(sumcheck.folded_polynomials[0][0], expected_val);
+    sumcheck.fold(sumcheck.partially_evaluated_polynomials, multivariate_n >> 2, round_challenge_2);
+    EXPECT_EQ(sumcheck.partially_evaluated_polynomials[0][0], expected_val);
 }
 
 TYPED_TEST(MultivariatesTests, FoldThreeRoundsGeneric)
@@ -220,23 +220,23 @@ TYPED_TEST(MultivariatesTests, FoldThreeRoundsGeneric)
 
     sumcheck.fold(full_polynomials, multivariate_n, round_challenge_0);
 
-    EXPECT_EQ(sumcheck.folded_polynomials[0][0], expected_q1);
-    EXPECT_EQ(sumcheck.folded_polynomials[0][1], expected_q2);
-    EXPECT_EQ(sumcheck.folded_polynomials[0][2], expected_q3);
-    EXPECT_EQ(sumcheck.folded_polynomials[0][3], expected_q4);
+    EXPECT_EQ(sumcheck.partially_evaluated_polynomials[0][0], expected_q1);
+    EXPECT_EQ(sumcheck.partially_evaluated_polynomials[0][1], expected_q2);
+    EXPECT_EQ(sumcheck.partially_evaluated_polynomials[0][2], expected_q3);
+    EXPECT_EQ(sumcheck.partially_evaluated_polynomials[0][3], expected_q4);
 
     FF round_challenge_1 = FF::random_element();
     FF expected_lo = expected_q1 * (FF(1) - round_challenge_1) + expected_q2 * round_challenge_1;
     FF expected_hi = expected_q3 * (FF(1) - round_challenge_1) + expected_q4 * round_challenge_1;
 
-    sumcheck.fold(sumcheck.folded_polynomials, multivariate_n >> 1, round_challenge_1);
-    EXPECT_EQ(sumcheck.folded_polynomials[0][0], expected_lo);
-    EXPECT_EQ(sumcheck.folded_polynomials[0][1], expected_hi);
+    sumcheck.fold(sumcheck.partially_evaluated_polynomials, multivariate_n >> 1, round_challenge_1);
+    EXPECT_EQ(sumcheck.partially_evaluated_polynomials[0][0], expected_lo);
+    EXPECT_EQ(sumcheck.partially_evaluated_polynomials[0][1], expected_hi);
 
     FF round_challenge_2 = FF::random_element();
     FF expected_val = expected_lo * (FF(1) - round_challenge_2) + expected_hi * round_challenge_2;
-    sumcheck.fold(sumcheck.folded_polynomials, multivariate_n >> 2, round_challenge_2);
-    EXPECT_EQ(sumcheck.folded_polynomials[0][0], expected_val);
+    sumcheck.fold(sumcheck.partially_evaluated_polynomials, multivariate_n >> 2, round_challenge_2);
+    EXPECT_EQ(sumcheck.partially_evaluated_polynomials[0][0], expected_val);
 }
 
 TYPED_TEST(MultivariatesTests, FoldThreeRoundsGenericMultiplePolys)
@@ -288,10 +288,10 @@ TYPED_TEST(MultivariatesTests, FoldThreeRoundsGenericMultiplePolys)
 
     sumcheck.fold(full_polynomials, multivariate_n, round_challenge_0);
     for (size_t i = 0; i < 3; i++) {
-        EXPECT_EQ(sumcheck.folded_polynomials[i][0], expected_q1[i]);
-        EXPECT_EQ(sumcheck.folded_polynomials[i][1], expected_q2[i]);
-        EXPECT_EQ(sumcheck.folded_polynomials[i][2], expected_q3[i]);
-        EXPECT_EQ(sumcheck.folded_polynomials[i][3], expected_q4[i]);
+        EXPECT_EQ(sumcheck.partially_evaluated_polynomials[i][0], expected_q1[i]);
+        EXPECT_EQ(sumcheck.partially_evaluated_polynomials[i][1], expected_q2[i]);
+        EXPECT_EQ(sumcheck.partially_evaluated_polynomials[i][2], expected_q3[i]);
+        EXPECT_EQ(sumcheck.partially_evaluated_polynomials[i][3], expected_q4[i]);
     }
 
     FF round_challenge_1 = FF::random_element();
@@ -301,19 +301,19 @@ TYPED_TEST(MultivariatesTests, FoldThreeRoundsGenericMultiplePolys)
         expected_lo[i] = expected_q1[i] * (FF(1) - round_challenge_1) + expected_q2[i] * round_challenge_1;
         expected_hi[i] = expected_q3[i] * (FF(1) - round_challenge_1) + expected_q4[i] * round_challenge_1;
     }
-    sumcheck.fold(sumcheck.folded_polynomials, multivariate_n >> 1, round_challenge_1);
+    sumcheck.fold(sumcheck.partially_evaluated_polynomials, multivariate_n >> 1, round_challenge_1);
     for (size_t i = 0; i < 3; i++) {
-        EXPECT_EQ(sumcheck.folded_polynomials[i][0], expected_lo[i]);
-        EXPECT_EQ(sumcheck.folded_polynomials[i][1], expected_hi[i]);
+        EXPECT_EQ(sumcheck.partially_evaluated_polynomials[i][0], expected_lo[i]);
+        EXPECT_EQ(sumcheck.partially_evaluated_polynomials[i][1], expected_hi[i]);
     }
     FF round_challenge_2 = FF::random_element();
     std::array<FF, 3> expected_val;
     for (size_t i = 0; i < 3; i++) {
         expected_val[i] = expected_lo[i] * (FF(1) - round_challenge_2) + expected_hi[i] * round_challenge_2;
     }
-    sumcheck.fold(sumcheck.folded_polynomials, multivariate_n >> 2, round_challenge_2);
+    sumcheck.fold(sumcheck.partially_evaluated_polynomials, multivariate_n >> 2, round_challenge_2);
     for (size_t i = 0; i < 3; i++) {
-        EXPECT_EQ(sumcheck.folded_polynomials[i][0], expected_val[i]);
+        EXPECT_EQ(sumcheck.partially_evaluated_polynomials[i][0], expected_val[i]);
     }
 }
 

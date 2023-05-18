@@ -191,9 +191,19 @@ class Standard {
 
     /**
      * @brief A container for polynomials produced after the first round of sumcheck.
-     * @todo TODO(#394) Use polynomial classes for guaranteed memory alignment.
      */
-    using FoldedPolynomials = AllEntities<std::vector<FF>, PolynomialHandle>;
+    class PartiallyEvaluatedMultivariates : public AllEntities<Polynomial, PolynomialHandle> {
+
+      public:
+        PartiallyEvaluatedMultivariates() = default;
+        PartiallyEvaluatedMultivariates(const size_t circuit_size)
+        {
+            // Storage is only needed after the first partial evaluation, hence polynomials of size (n / 2)
+            for (auto& poly : this->_data) {
+                poly = Polynomial(circuit_size / 2);
+            }
+        }
+    };
 
     /**
      * @brief A container for univariates produced during the hot loop in sumcheck.
