@@ -19,12 +19,19 @@ class UltraPlonkComposer {
 
     // An instantiation of the circuit constructor that only depends on arithmetization, not  on the proof system
     UltraCircuitConstructor circuit_constructor;
+
+    // References to circuit_constructor's members for convenience
+    size_t& num_gates;
+
     // Composer helper contains all proof-related material that is separate from circuit creation such as:
     // 1) Proving and verification keys
     // 2) CRS
     // 3) Converting variables to witness vectors/polynomials
     UltraPlonkComposerHelper composer_helper;
-    size_t& num_gates;
+
+    // References to composer helper's members for convenience
+    bool& contains_recursive_proof;
+    std::vector<uint32_t>& recursive_proof_public_input_indices;
 
     UltraPlonkComposer()
         : UltraPlonkComposer("../srs_db/ignition", 0){};
@@ -35,8 +42,10 @@ class UltraPlonkComposer {
 
     UltraPlonkComposer(std::shared_ptr<ReferenceStringFactory> const& crs_factory, const size_t size_hint)
         : circuit_constructor(size_hint)
+        , num_gates(circuit_constructor.num_gates)
         , composer_helper(crs_factory)
-        , num_gates(circuit_constructor.num_gates){};
+        , contains_recursive_proof(composer_helper.contains_recursive_proof)
+        , recursive_proof_public_input_indices(composer_helper.recursive_proof_public_input_indices){};
 
     UltraPlonkComposer(std::shared_ptr<proving_key> const& p_key,
                        std::shared_ptr<verification_key> const& v_key,
@@ -56,7 +65,25 @@ class UltraPlonkComposer {
     UltraProver create_prover() { return composer_helper.create_prover(circuit_constructor); };
     UltraVerifier create_verifier() { return composer_helper.create_verifier(circuit_constructor); };
 
-    // UltraToStandardProver create_ultra_to_standard_prover();
+    UltraToStandardProver create_ultra_to_standard_prover()
+    {
+        return composer_helper.create_ultra_to_standard_prover(circuit_constructor);
+    };
+
+    UltraToStandardVerifier create_ultra_to_standard_verifier()
+    {
+        return composer_helper.create_ultra_to_standard_verifier(circuit_constructor);
+    };
+
+    UltraWithKeccakProver create_ultra_with_keccak_prover()
+    {
+        return composer_helper.create_ultra_with_keccak_prover(circuit_constructor);
+    };
+    UltraWithKeccakVerifier create_ultra_with_keccak_verifier()
+    {
+
+        return composer_helper.create_ultra_with_keccak_verifier(circuit_constructor);
+    };
     // UltraToStandardVerifier create_ultra_to_standard_verifier();
 
     void create_add_gate(const add_triple& in) { circuit_constructor.create_add_gate(in); }
@@ -77,18 +104,10 @@ class UltraPlonkComposer {
 
     // void fix_witness(const uint32_t witness_index, const barretenberg::fr& witness_value);
 
-    // void add_recursive_proof(const std::vector<uint32_t>& proof_output_witness_indices)
-    // {
-    //     if (contains_recursive_proof) {
-    //         failure("added recursive proof when one already exists");
-    //     }
-    //     contains_recursive_proof = true;
-
-    //     for (const auto& idx : proof_output_witness_indices) {
-    //         set_public_input(idx);
-    //         recursive_proof_public_input_indices.push_back((uint32_t)(public_inputs.size() - 1));
-    //     }
-    // }
+    void add_recursive_proof(const std::vector<uint32_t>& proof_output_witness_indices)
+    {
+        composer_helper.add_recursive_proof(circuit_constructor, proof_output_witness_indices);
+    }
 
     void create_new_range_constraint(const uint32_t variable_index,
                                      const uint64_t target_range,

@@ -765,13 +765,25 @@ void UltraCircuitConstructor::create_new_range_constraint(const uint32_t variabl
     }
 }
 
-void UltraCircuitConstructor::process_range_list(const RangeList& list)
+void UltraCircuitConstructor::process_range_list(RangeList& list)
 {
     assert_valid_variables(list.variable_indices);
 
     ASSERT(list.variable_indices.size() > 0);
+
+    // replace witness index in variable_indices with the real variable index i.e. if a copy constraint has been
+    // applied on a variable after it was range constrained, this makes sure the indices in list point to the updated
+    // index in the range list so the set equivalence does not fail
+    for (uint32_t& x : list.variable_indices) {
+        x = real_variable_index[x];
+    }
+    // remove duplicate witness indices to prevent the sorted list set size being wrong!
+    std::sort(list.variable_indices.begin(), list.variable_indices.end());
+    auto back_iterator = std::unique(list.variable_indices.begin(), list.variable_indices.end());
+    list.variable_indices.erase(back_iterator, list.variable_indices.end());
+
     // go over variables
-    // for each variable, create mirror variable with same value - with tau tag
+    // iterate over each variable and create mirror variable with same value - with tau tag
     // need to make sure that, in original list, increments of at most 3
     std::vector<uint64_t> sorted_list;
     sorted_list.reserve(list.variable_indices.size());
@@ -806,7 +818,7 @@ void UltraCircuitConstructor::process_range_list(const RangeList& list)
 
 void UltraCircuitConstructor::process_range_lists()
 {
-    for (const auto& i : range_lists)
+    for (auto& i : range_lists)
         process_range_list(i.second);
 }
 

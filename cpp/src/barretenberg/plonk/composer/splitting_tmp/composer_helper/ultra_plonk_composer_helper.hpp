@@ -77,6 +77,20 @@ class UltraPlonkComposerHelper {
 
     [[nodiscard]] size_t get_num_selectors() { return ultra_selector_properties().size(); }
 
+    void add_recursive_proof(CircuitConstructor& circuit_constructor,
+                             const std::vector<uint32_t>& proof_output_witness_indices)
+    {
+
+        if (contains_recursive_proof) {
+            circuit_constructor.failure("added recursive proof when one already exists");
+        }
+        contains_recursive_proof = true;
+
+        for (const auto& idx : proof_output_witness_indices) {
+            circuit_constructor.set_public_input(idx);
+            recursive_proof_public_input_indices.push_back((uint32_t)(circuit_constructor.public_inputs.size() - 1));
+        }
+    }
     void finalize_circuit(CircuitConstructor& circuit_constructor) { circuit_constructor.finalize_circuit(); };
 
     std::shared_ptr<plonk::proving_key> compute_proving_key(const CircuitConstructor& circuit_constructor);
@@ -86,6 +100,12 @@ class UltraPlonkComposerHelper {
 
     UltraProver create_prover(CircuitConstructor& circuit_constructor);
     UltraVerifier create_verifier(const CircuitConstructor& circuit_constructor);
+
+    UltraToStandardProver create_ultra_to_standard_prover(CircuitConstructor& circuit_constructor);
+    UltraToStandardVerifier create_ultra_to_standard_verifier(CircuitConstructor& circuit_constructor);
+
+    UltraWithKeccakProver create_ultra_with_keccak_prover(CircuitConstructor& circuit_constructor);
+    UltraWithKeccakVerifier create_ultra_with_keccak_verifier(CircuitConstructor& circuit_constructor);
 
     void add_table_column_selector_poly_to_proving_key(polynomial& small, const std::string& tag);
 
