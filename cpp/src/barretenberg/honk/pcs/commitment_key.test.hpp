@@ -25,16 +25,16 @@ constexpr std::string_view kzg_srs_path = "../srs_db/ignition";
 
 template <class CK> inline std::shared_ptr<CK> CreateCommitmentKey();
 
-template <> inline std::shared_ptr<kzg::CommitmentKey> CreateCommitmentKey<kzg::CommitmentKey>()
+template <> inline std::shared_ptr<kzg::Params::CommitmentKey> CreateCommitmentKey<kzg::Params::CommitmentKey>()
 {
     const size_t n = 128;
-    return std::make_shared<kzg::CommitmentKey>(n, kzg_srs_path);
+    return std::make_shared<kzg::Params::CommitmentKey>(n, kzg_srs_path);
 }
 // For IPA
-template <> inline std::shared_ptr<ipa::CommitmentKey> CreateCommitmentKey<ipa::CommitmentKey>()
+template <> inline std::shared_ptr<ipa::Params::CommitmentKey> CreateCommitmentKey<ipa::Params::CommitmentKey>()
 {
     const size_t n = 128;
-    return std::make_shared<ipa::CommitmentKey>(n, kzg_srs_path);
+    return std::make_shared<ipa::Params::CommitmentKey>(n, kzg_srs_path);
 }
 
 template <typename CK> inline std::shared_ptr<CK> CreateCommitmentKey()
@@ -45,16 +45,17 @@ template <typename CK> inline std::shared_ptr<CK> CreateCommitmentKey()
 
 template <class VK> inline std::shared_ptr<VK> CreateVerificationKey();
 
-template <> inline std::shared_ptr<kzg::VerificationKey> CreateVerificationKey<kzg::VerificationKey>()
+template <> inline std::shared_ptr<kzg::Params::VerificationKey> CreateVerificationKey<kzg::Params::VerificationKey>()
 {
     const size_t n = 128;
-    return std::make_shared<kzg::VerificationKey>(n, kzg_srs_path);
+    return std::make_shared<kzg::Params::VerificationKey>(n, kzg_srs_path);
 }
 // For IPA
-template <> inline std::shared_ptr<ipa::VerificationKey> CreateVerificationKey<ipa::VerificationKey>()
+template <> inline std::shared_ptr<ipa::Params::VerificationKey> CreateVerificationKey<ipa::Params::VerificationKey>()
 {
     const size_t n = 128;
-    return std::make_shared<ipa::VerificationKey>(n, kzg_srs_path);
+    //
+    return std::make_shared<ipa::Params::VerificationKey>(n, kzg_srs_path);
 }
 template <typename VK> inline std::shared_ptr<VK> CreateVerificationKey()
 // requires std::default_initializable<VK>

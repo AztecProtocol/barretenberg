@@ -164,13 +164,8 @@ template <typename Flavor> bool StandardVerifier_<Flavor>::verify_proof(const pl
     // Produce a Shplonk claim: commitment [Q] - [Q_z], evaluation zero (at random challenge z)
     auto shplonk_claim = Shplonk::reduce_verify(gemini_claim, transcript);
 
-    // final verify
-
-    // Aggregate inputs [Q] - [Q_z] and [W] into an 'accumulator' (can perform pairing check on result)
+    // Verify the Shplonk claim with KZG or IPA
     return PCS::verify(pcs_verification_key, shplonk_claim, transcript);
-
-    // Return result of final pairing check
-    // return kzg_claim.verify(pcs_verification_key);
 }
 
 template class StandardVerifier_<honk::flavor::Standard>;

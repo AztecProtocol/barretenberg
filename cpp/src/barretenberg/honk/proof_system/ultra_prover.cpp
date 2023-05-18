@@ -271,10 +271,10 @@ template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_shplonk_partial
     shplonk_output = Shplonk::compute_partially_evaluated_batched_quotient(
         gemini_output.opening_pairs, gemini_output.witnesses, std::move(batched_quotient_Q), nu_challenge, z_challenge);
 }
-
 /**
- * - Compute KZG quotient commitment [W]_1.
- *
+ * - Compute final PCS opening proof:
+ * - For KZG, this is the quotient commitment [W]_1
+ * - For IPA, the vectors L and R
  * */
 template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_final_pcs_round()
 {
@@ -329,9 +329,8 @@ template <UltraFlavor Flavor> plonk::proof& UltraProver_<Flavor>::construct_proo
     execute_shplonk_partial_evaluation_round();
 
     // Fiat-Shamir: z
-    // Compute KZG quotient commitment
+    // Compute PCS opening proof (either KZG quotient commitment or IPA opening proof)
     execute_final_pcs_round();
-    // queue.process_queue();
 
     return export_proof();
 }

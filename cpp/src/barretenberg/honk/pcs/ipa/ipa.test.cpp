@@ -10,33 +10,52 @@
 using namespace barretenberg;
 namespace proof_system::honk::pcs::ipa {
 
-class IPATests : public CommitmentTest<Params> {
+class IPATest : public CommitmentTest<Params> {
   public:
     using Fr = typename Params::Fr;
-    using element = typename Params::GroupElement;
-    using affine_element = typename Params::Commitment;
+    using GroupElement = typename Params::GroupElement;
     using CK = typename Params::CommitmentKey;
     using VK = typename Params::VerificationKey;
     using Polynomial = barretenberg::Polynomial<Fr>;
 };
 
-TEST_F(IPATests, Commit)
+TEST_F(IPATest, CommitOnManyZeroCoeffPolyWorks)
 {
     constexpr size_t n = 4;
-    auto poly = this->random_polynomial(n);
-    barretenberg::g1::element commitment = this->commit(poly);
+    Polynomial p(n);
+    for (size_t i = 0; i < n - 1; i++) {
+        p[i] = Fr::zero();
+    }
+    p[3] = Fr::one();
+    GroupElement commitment = this->commit(p);
     auto srs_elements = this->ck()->srs.get_monomial_points();
-    barretenberg::g1::element expected = srs_elements[0] * poly[0];
+    GroupElement expected = srs_elements[0] * p[0];
     // The SRS stored in the commitment key is the result after applying the pippenger point table so the
     // values at odd indices contain the point {srs[i-1].x * beta, srs[i-1].y}, where beta is the endomorphism
     // G_vec_local should use only the original SRS thus we extract only the even indices.
     for (size_t i = 2; i < 2 * n; i += 2) {
-        expected += g1::element(srs_elements[i]) * poly[i >> 1];
+        expected += srs_elements[i] * p[i >> 1];
     }
     EXPECT_EQ(expected.normalize(), commitment.normalize());
 }
 
-TEST_F(IPATests, Open)
+TEST_F(IPATest, Commit)
+{
+    constexpr size_t n = 128;
+    auto poly = this->random_polynomial(n);
+    GroupElement commitment = this->commit(poly);
+    auto srs_elements = this->ck()->srs.get_monomial_points();
+    GroupElement expected = srs_elements[0] * poly[0];
+    // The SRS stored in the commitment key is the result after applying the pippenger point table so the
+    // values at odd indices contain the point {srs[i-1].x * beta, srs[i-1].y}, where beta is the endomorphism
+    // G_vec_local should use only the original SRS thus we extract only the even indices.
+    for (size_t i = 2; i < 2 * n; i += 2) {
+        expected += srs_elements[i] * poly[i >> 1];
+    }
+    EXPECT_EQ(expected.normalize(), commitment.normalize());
+}
+
+TEST_F(IPATest, Open)
 {
     using IPA = IPA<Params>;
     // generate a random polynomial, degree needs to be a power of two

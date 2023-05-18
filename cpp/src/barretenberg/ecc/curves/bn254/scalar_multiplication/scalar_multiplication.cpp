@@ -101,6 +101,10 @@
 namespace barretenberg {
 namespace scalar_multiplication {
 
+/**
+ * The pippppenger point table computes for each point P = (x,y), a point P' = (\beta * x, -y) which enables us
+ * to use the curve endomorphism for faster scalar multiplication. See below for more details.
+ */
 void generate_pippenger_point_table(g1::affine_element* points, g1::affine_element* table, size_t num_points)
 {
     // iterate backwards, so that `points` and `table` can point to the same memory location
@@ -352,11 +356,9 @@ void add_affine_points_with_edge_cases(g1::affine_element* points, const size_t 
 
     for (size_t i = 0; i < num_points; i += 2) {
         if (points[i].is_point_at_infinity() || points[i + 1].is_point_at_infinity()) {
-            info("POINT AT INFINIT? at ", i);
             continue;
         }
         if (points[i].x == points[i + 1].x) {
-            info("EQUAL POINTS ", i);
             if (points[i].y == points[i + 1].y) {
                 // double
                 scratch_space[i >> 1] = points[i].x + points[i].x; // 2x

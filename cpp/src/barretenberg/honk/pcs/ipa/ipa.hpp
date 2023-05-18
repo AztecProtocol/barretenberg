@@ -39,9 +39,9 @@ template <typename Params> class IPA {
                                       ProverTranscript<Fr>& transcript)
     {
         ASSERT(opening_pair.challenge != 0 && "The challenge point should not be zero");
-        size_t poly_degree = polynomial.size();
-        transcript.send_to_verifier("IPA:poly_degree", poly_degree);
-
+        auto poly_degree = static_cast<size_t>(polynomial.size());
+        transcript.send_to_verifier("IPA:poly_degree", static_cast<uint64_t>(poly_degree));
+        info(poly_degree);
         Fr generator_challenge = transcript.get_challenge("IPA:generator_challenge");
         auto aux_generator = Commitment::one() * generator_challenge;
 
@@ -73,7 +73,7 @@ template <typename Params> class IPA {
             b_power *= opening_pair.challenge;
         }
         // Iterate for log_2(poly_degree) rounds to compute the round commitments.
-        size_t log_poly_degree(numeric::get_msb(poly_degree));
+        auto log_poly_degree = static_cast<size_t>(numeric::get_msb(poly_degree));
         std::vector<GroupElement> L_elements(log_poly_degree);
         std::vector<GroupElement> R_elements(log_poly_degree);
         std::size_t round_size = poly_degree;
@@ -141,17 +141,17 @@ template <typename Params> class IPA {
                        VerifierTranscript<Fr>& transcript)
     {
         // so we should get an OpeningClaim as parameter with
-        auto poly_degree = transcript.template receive_from_prover<size_t>("IPA:poly_degree");
+        auto poly_degree = static_cast<size_t>(transcript.template receive_from_prover<uint64_t>("IPA:poly_degree"));
         Fr generator_challenge = transcript.get_challenge("IPA:generator_challenge");
         auto aux_generator = Commitment::one() * generator_challenge;
 
-        size_t log_poly_degree = numeric::get_msb(poly_degree);
+        auto log_poly_degree = static_cast<size_t>(numeric::get_msb(poly_degree));
 
         // Compute C_prime
         GroupElement C_prime = opening_claim.commitment + (aux_generator * opening_claim.opening_pair.evaluation);
 
         // Compute C_zero = C_prime + ∑_{j ∈ [k]} u_j^2L_j + ∑_{j ∈ [k]} u_j^{-2}R_j
-        const size_t pippenger_size = 2 * log_poly_degree;
+        auto pippenger_size = 2 * log_poly_degree;
         std::vector<Fr> round_challenges(log_poly_degree);
         std::vector<Fr> round_challenges_inv(log_poly_degree);
         std::vector<Commitment> msm_elements(pippenger_size);
