@@ -27,7 +27,7 @@ template <typename FF> class AuxiliaryRelation {
     /**
      * @brief Expression for the generalized permutation sort gate.
      * @details The relation is defined as C(extended_edges(X)...) =
-     *    // WORKTODO
+     * TODO(#452)(luke): Fully document all constraints handled by this relation.
      *
      * @param evals transformed to `evals + C(extended_edges(X)...)*scaling_factor`
      * @param extended_edges an std::array containing the fully extended Univariate edges.

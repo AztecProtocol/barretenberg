@@ -12,10 +12,8 @@
 #include <gtest/gtest.h>
 /**
  * We want to test if the univariate (S_l in the thesis) computed by the prover in a particular round is correct. We
- * also want to verify given the purported evaluations of all the relevant polynomials, the verifer can correctly
- verify
- * the purported evaluation of S_l. For the prover, we use a couple of methods to compute the univariate by the
- sumcheck
+ * also want to verify given the purported evaluations of all the relevant polynomials, the verifer can correctly verify
+ * the purported evaluation of S_l. For the prover, we use a couple of methods to compute the univariate by the sumcheck
  * method `compute_univariate` and by step by step manual computation respectively. For the verifier, we follow a
  * similar approach.
  */

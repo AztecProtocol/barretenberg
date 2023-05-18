@@ -95,8 +95,7 @@ class StandardRelationConsistency : public testing::Test {
     /**
      * @brief Compute the evaluation of a `relation` in different ways, comparing it to the provided `expected_evals`
      *
-     * @details Check both `add_full_relation_value_contribution` and `add_edge_contribution` by comparing the result
-     to
+     * @details Check both `add_full_relation_value_contribution` and `add_edge_contribution` by comparing the result to
      * the `expected_evals` computed by the caller.
      * Ensures that the relations compute the same result as the expression given in the tests.
      *
