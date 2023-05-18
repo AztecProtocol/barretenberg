@@ -190,7 +190,7 @@ field_t<Composer> keccak<Composer>::normalize_and_rotate(const field_ct& limb, f
  */
 template <typename Composer> void keccak<Composer>::compute_twisted_state(keccak_state& internal)
 {
-    for (size_t i = 0; i < 25; ++i) {
+    for (size_t i = 0; i < NUM_KECCAK_LANES; ++i) {
         internal.twisted_state[i] = ((internal.state[i] * 11) + internal.state_msb[i]).normalize();
     }
 }
@@ -378,7 +378,7 @@ template <typename Composer> void keccak<Composer>::theta(keccak_state& internal
  */
 template <typename Composer> void keccak<Composer>::rho(keccak_state& internal)
 {
-    constexpr_for<0, 25, 1>(
+    constexpr_for<0, NUM_KECCAK_LANES, 1>(
         [&]<size_t i>() { internal.state[i] = normalize_and_rotate<i>(internal.state[i], internal.state_msb[i]); });
 }
 
@@ -393,7 +393,7 @@ template <typename Composer> void keccak<Composer>::rho(keccak_state& internal)
  */
 template <typename Composer> void keccak<Composer>::pi(keccak_state& internal)
 {
-    std::array<field_ct, 25> B;
+    std::array<field_ct, NUM_KECCAK_LANES> B;
 
     for (size_t j = 0; j < 5; ++j) {
         for (size_t i = 0; i < 5; ++i) {
@@ -468,14 +468,14 @@ template <typename Composer> void keccak<Composer>::iota(keccak_state& internal,
     internal.state[0] = normalize_and_rotate<0>(xor_result, internal.state_msb[0]);
 
     // No need to add constraints to compute twisted repr if this is the last round
-    if (round != 23) {
+    if (round != NUM_KECCAK_ROUNDS - 1) {
         compute_twisted_state(internal);
     }
 }
 
 template <typename Composer> void keccak<Composer>::keccakf1600(keccak_state& internal)
 {
-    for (size_t i = 0; i < 24; ++i) {
+    for (size_t i = 0; i < NUM_KECCAK_ROUNDS; ++i) {
         theta(internal);
         rho(internal);
         pi(internal);
@@ -502,7 +502,7 @@ void keccak<Composer>::sponge_absorb(keccak_state& internal,
                 internal.state[j] = input_buffer[j];
                 internal.state_msb[j] = msb_buffer[j];
             }
-            for (size_t j = LIMBS_PER_BLOCK; j < 25; ++j) {
+            for (size_t j = LIMBS_PER_BLOCK; j < NUM_KECCAK_LANES; ++j) {
                 internal.state[j] = witness_ct::create_constant_witness(internal.context, 0);
                 internal.state_msb[j] = witness_ct::create_constant_witness(internal.context, 0);
             }
@@ -523,7 +523,7 @@ void keccak<Composer>::sponge_absorb(keccak_state& internal,
         // For example, a circuit that hashes up to 544 bytes (but maybe less depending on the witness assignment)
         bool_ct block_predicate = field_ct(i).template ranged_less_than<8>(num_blocks_with_data);
 
-        for (size_t j = 0; j < 25; ++j) {
+        for (size_t j = 0; j < NUM_KECCAK_LANES; ++j) {
             internal.state[j] = field_ct::conditional_assign(block_predicate, internal.state[j], previous.state[j]);
             internal.state_msb[j] =
                 field_ct::conditional_assign(block_predicate, internal.state_msb[j], previous.state_msb[j]);

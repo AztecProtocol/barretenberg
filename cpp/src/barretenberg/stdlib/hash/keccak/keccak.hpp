@@ -47,8 +47,14 @@ template <typename Composer> class keccak {
     // how many limbs fit into a block (17)
     static constexpr size_t LIMBS_PER_BLOCK = BLOCK_SIZE / 8;
 
+    static constexpr size_t NUM_KECCAK_ROUNDS = 24;
+
+    // 1 "lane" = 64 bits. Instead of interpreting the keccak sponge as 1,600 bits, it's easier to work over 64-bit
+    // "lanes". 1,600 / 64 = 25.
+    static constexpr size_t NUM_KECCAK_LANES = 25;
+
     // round constants. Used in IOTA round
-    static constexpr std::array<uint64_t, 24> RC = {
+    static constexpr std::array<uint64_t, NUM_KECCAK_ROUNDS> RC = {
         0x0000000000000001, 0x0000000000008082, 0x800000000000808a, 0x8000000080008000, 0x000000000000808b,
         0x0000000080000001, 0x8000000080008081, 0x8000000000008009, 0x000000000000008a, 0x0000000000000088,
         0x0000000080008009, 0x000000008000000a, 0x000000008000808b, 0x800000000000008b, 0x8000000000008089,
@@ -57,7 +63,7 @@ template <typename Composer> class keccak {
     };
 
     // Rotation offsets, y vertically, x horizontally: r[y * 5 + x]
-    static constexpr std::array<size_t, 25> ROTATIONS = {
+    static constexpr std::array<size_t, NUM_KECCAK_LANES> ROTATIONS = {
         0, 1, 62, 28, 27, 36, 44, 6, 55, 20, 3, 10, 43, 25, 39, 41, 45, 15, 21, 8, 18, 2, 61, 56, 14,
     };
 
@@ -121,7 +127,7 @@ template <typename Composer> class keccak {
      *
      * @return constexpr std::array<uint256_t, 24>
      */
-    static constexpr std::array<uint256_t, 24> get_sparse_round_constants()
+    static constexpr std::array<uint256_t, NUM_KECCAK_ROUNDS> get_sparse_round_constants()
     {
         std::array<uint256_t, 24> output;
         for (size_t i = 0; i < 24; ++i) {
@@ -129,7 +135,7 @@ template <typename Composer> class keccak {
         }
         return output;
     }
-    static constexpr std::array<uint256_t, 24> SPARSE_RC = get_sparse_round_constants();
+    static constexpr std::array<uint256_t, NUM_KECCAK_ROUNDS> SPARSE_RC = get_sparse_round_constants();
 
     /**
      * @brief Compute the constant offset added in the `Chi` round
@@ -153,9 +159,9 @@ template <typename Composer> class keccak {
     static constexpr uint256_t CHI_OFFSET = get_chi_offset();
 
     struct keccak_state {
-        std::array<field_ct, 25> state;
-        std::array<field_ct, 25> state_msb;
-        std::array<field_ct, 25> twisted_state;
+        std::array<field_ct, NUM_KECCAK_LANES> state;
+        std::array<field_ct, NUM_KECCAK_LANES> state_msb;
+        std::array<field_ct, NUM_KECCAK_LANES> twisted_state;
         Composer* context;
     };
 
