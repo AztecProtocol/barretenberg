@@ -1,4 +1,4 @@
-#/* **************************************************************************
+# /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Edward Diener 2011.                                    *
 #  *     (C) Copyright Paul Mensonides 2011.                                  *
@@ -8,21 +8,21 @@
 #  *                                                                          *
 #  ************************************************************************** */
 #
-#/* See http://www.boost.org for most recent version. */
+# /* See http://www.boost.org for most recent version. */
 #
-#ifndef MSGPACK_PREPROCESSOR_TUPLE_SIZE_HPP
-#define MSGPACK_PREPROCESSOR_TUPLE_SIZE_HPP
+# ifndef MSGPACK_PREPROCESSOR_TUPLE_SIZE_HPP
+# define MSGPACK_PREPROCESSOR_TUPLE_SIZE_HPP
 #
-#include <msgpack/preprocessor/cat.hpp>
-#include <msgpack/preprocessor/config/config.hpp>
-#include <msgpack/preprocessor/variadic/size.hpp>
+# include <msgpack/preprocessor/cat.hpp>
+# include <msgpack/preprocessor/config/config.hpp>
+# include <msgpack/preprocessor/variadic/size.hpp>
 #
-#if MSGPACK_PP_VARIADICS
-#if MSGPACK_PP_VARIADICS_MSVC
-#define MSGPACK_PP_TUPLE_SIZE(tuple) MSGPACK_PP_CAT(MSGPACK_PP_VARIADIC_SIZE tuple, )
-#else
-#define MSGPACK_PP_TUPLE_SIZE(tuple) MSGPACK_PP_VARIADIC_SIZE tuple
-#endif
-#endif
+# if MSGPACK_PP_VARIADICS
+#    if MSGPACK_PP_VARIADICS_MSVC
+#        define MSGPACK_PP_TUPLE_SIZE(tuple) MSGPACK_PP_CAT(MSGPACK_PP_VARIADIC_SIZE tuple,)
+#    else
+#        define MSGPACK_PP_TUPLE_SIZE(tuple) MSGPACK_PP_VARIADIC_SIZE tuple
+#    endif
+# endif
 #
-#endif
+# endif

@@ -8,8 +8,7 @@
 
 #include <cstring>
 
-#if defined(unix) || defined(__unix) || defined(__linux__) || defined(__APPLE__) || defined(__OpenBSD__) ||            \
-    defined(__NetBSD__) || defined(__QNX__) || defined(__QNXTO__) || defined(__HAIKU__)
+#if defined(unix) || defined(__unix) || defined(__linux__) || defined(__APPLE__) || defined(__OpenBSD__) || defined(__NetBSD__) || defined(__QNX__) || defined(__QNXTO__) || defined(__HAIKU__)
 #define HAVE_SYS_UIO_H 1
 #else
 #define HAVE_SYS_UIO_H 0
@@ -40,17 +39,17 @@ BOOST_AUTO_TEST_CASE(fbuffer_c)
 
     void* fbuf = (void*)file;
 
-    BOOST_CHECK(file != NULL);
+    BOOST_CHECK( file != NULL );
     BOOST_CHECK_EQUAL(0, msgpack_fbuffer_write(fbuf, "a", 1));
     BOOST_CHECK_EQUAL(0, msgpack_fbuffer_write(fbuf, "a", 1));
     BOOST_CHECK_EQUAL(0, msgpack_fbuffer_write(fbuf, "a", 1));
 
     fflush(file);
     rewind(file);
-    for (size_t i = 0; i < 3; ++i) {
+    for (size_t i=0; i < 3; ++i) {
         int ch = fgetc(file);
         BOOST_CHECK(ch != EOF);
-        BOOST_CHECK_EQUAL('a', (char)ch);
+        BOOST_CHECK_EQUAL('a', (char) ch);
     }
     BOOST_CHECK_EQUAL(EOF, fgetc(file));
     fclose(file);
@@ -58,8 +57,8 @@ BOOST_AUTO_TEST_CASE(fbuffer_c)
 
 BOOST_AUTO_TEST_CASE(sbuffer_c)
 {
-    msgpack_sbuffer* sbuf;
-    char* data;
+    msgpack_sbuffer *sbuf;
+    char *data;
 
     sbuf = msgpack_sbuffer_new();
     BOOST_CHECK(sbuf != NULL);
@@ -80,7 +79,7 @@ BOOST_AUTO_TEST_CASE(sbuffer_c)
 
 BOOST_AUTO_TEST_CASE(vrefbuffer_c)
 {
-    const char* raw = "I was about to sail away in a junk,"
+    const char *raw = "I was about to sail away in a junk,"
                       "When suddenly I heard"
                       "The sound of stamping and singing on the bank--"
                       "It was you and your friends come to bid me farewell."
@@ -88,15 +87,16 @@ BOOST_AUTO_TEST_CASE(vrefbuffer_c)
                       "But it cannot compare, O Wang Lun,"
                       "With the depth of your love for me.";
     const size_t rawlen = strlen(raw);
-    msgpack_vrefbuffer* vbuf;
+    msgpack_vrefbuffer *vbuf;
     const int ref_size = 24, chunk_size = 128;
-    size_t slices[] = {
-        0, 9, 10, MSGPACK_VREFBUFFER_REF_SIZE, MSGPACK_VREFBUFFER_REF_SIZE + 1, ref_size, chunk_size + 1
-    };
+    size_t slices[] = {0, 9, 10,
+                    MSGPACK_VREFBUFFER_REF_SIZE,
+                    MSGPACK_VREFBUFFER_REF_SIZE + 1,
+                    ref_size, chunk_size + 1};
     size_t iovcnt;
-    const iovec* iov;
+    const iovec *iov;
     size_t len = 0, i;
-    char* buf;
+    char *buf;
 
     vbuf = msgpack_vrefbuffer_new(ref_size, 0);
     for (i = 0; i < sizeof(slices) / sizeof(slices[0]); i++) {
@@ -107,7 +107,7 @@ BOOST_AUTO_TEST_CASE(vrefbuffer_c)
     iov = msgpack_vrefbuffer_vec(vbuf);
     iovcnt = msgpack_vrefbuffer_veclen(vbuf);
 
-    buf = (char*)malloc(rawlen);
+    buf = (char *)malloc(rawlen);
 #if HAVE_SYS_UIO_H
     {
         int fd;
@@ -126,7 +126,8 @@ BOOST_AUTO_TEST_CASE(vrefbuffer_c)
 #else
     {
         len = 0;
-        for (i = 0; i < iovcnt; i++) {
+        for (i = 0; i < iovcnt; i++)
+        {
             EXPECT_LT(len, rawlen);
             memcpy(buf + len, iov[i].iov_base, iov[i].iov_len);
             len += iov[i].iov_len;

@@ -20,9 +20,8 @@
 
 #include <msgpack.hpp>
 
-void array()
-{
-    std::array<int, 5> a{ { 1, 2, 3, 4, 5 } };
+void array() {
+    std::array<int, 5> a { { 1, 2, 3, 4, 5 } };
     std::stringstream ss;
     msgpack::pack(ss, a);
 
@@ -34,8 +33,7 @@ void array()
     assert((obj.as<std::array<int, 5>>()) == a);
 }
 
-void tuple()
-{
+void tuple() {
     std::tuple<bool, std::string, int> t(true, "ABC", 42);
     std::stringstream ss;
     msgpack::pack(ss, t);
@@ -48,9 +46,8 @@ void tuple()
     assert(obj.as<decltype(t)>() == t);
 }
 
-void unordered_map()
-{
-    std::unordered_map<std::string, int> m{ { "ABC", 1 }, { "DEF", 3 } };
+void unordered_map() {
+    std::unordered_map<std::string, int> m { {"ABC", 1}, {"DEF", 3} };
     std::stringstream ss;
     msgpack::pack(ss, m);
 
@@ -62,9 +59,8 @@ void unordered_map()
     assert(obj.as<decltype(m)>() == m);
 }
 
-void unordered_set()
-{
-    std::unordered_set<std::string> s{ "ABC", "DEF" };
+void unordered_set() {
+    std::unordered_set<std::string> s { "ABC", "DEF" };
     std::stringstream ss;
     msgpack::pack(ss, s);
 
@@ -76,10 +72,9 @@ void unordered_set()
     assert(obj.as<decltype(s)>() == s);
 }
 
-void forward_list()
-{
+void forward_list() {
     using type = std::forward_list<std::string>;
-    type f{ "ABC", "DEF" };
+    type f { "ABC", "DEF" };
     std::stringstream ss;
     msgpack::pack(ss, f);
 
@@ -91,13 +86,12 @@ void forward_list()
     assert(obj.as<type>() == f);
 }
 
-void combi()
-{
-    std::array<int, 5> a{ { 1, 2, 3, 4, 5 } };
-    std::tuple<bool, std::string, int> t{ true, "ABC", 42 };
-    std::unordered_map<std::string, int> m{ { "ABC", 1 }, { "DEF", 3 } };
-    std::unordered_set<std::string> s{ "ABC", "DEF" };
-    std::forward_list<std::string> f{ "ABC", "DEF" };
+void combi() {
+    std::array<int, 5>                   a { { 1, 2, 3, 4, 5 } };
+    std::tuple<bool, std::string, int>   t {true, "ABC", 42};
+    std::unordered_map<std::string, int> m { {"ABC", 1}, {"DEF", 3} };
+    std::unordered_set<std::string>      s { "ABC", "DEF" };
+    std::forward_list<std::string>       f { "ABC", "DEF" };
 
     std::stringstream ss;
     msgpack::pack(ss, a);
@@ -155,8 +149,7 @@ void combi()
     std::cout << "offset: " << offset << std::endl;
 }
 
-int main()
-{
+int main() {
     array();
     tuple();
     unordered_map();

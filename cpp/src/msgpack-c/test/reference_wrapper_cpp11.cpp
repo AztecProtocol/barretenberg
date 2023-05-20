@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(pack_convert_const)
 BOOST_AUTO_TEST_CASE(pack_vector)
 {
     int i1 = 42;
-    std::vector<std::reference_wrapper<int>> val1{ i1 };
+    std::vector<std::reference_wrapper<int>> val1{i1};
     std::stringstream ss;
     msgpack::pack(ss, val1);
     std::string const& str = ss.str();

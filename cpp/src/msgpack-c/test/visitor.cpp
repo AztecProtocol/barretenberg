@@ -5,87 +5,77 @@
 
 #include <sstream>
 
-BOOST_AUTO_TEST_CASE(dummy) {}
+BOOST_AUTO_TEST_CASE(dummy)
+{
+}
 
 #if MSGPACK_DEFAULT_API_VERSION >= 2
 
 struct json_like_visitor : msgpack::null_visitor {
-    json_like_visitor(std::string& s)
-        : m_s(s)
-    {}
+    json_like_visitor(std::string& s):m_s(s) {}
 
-    bool visit_nil()
-    {
+    bool visit_nil() {
         m_s += "null";
         return true;
     }
-    bool visit_boolean(bool v)
-    {
-        if (v)
-            m_s += "true";
-        else
-            m_s += "false";
+    bool visit_boolean(bool v) {
+        if (v) m_s += "true";
+        else m_s += "false";
         return true;
     }
-    bool visit_positive_integer(uint64_t v)
-    {
+    bool visit_positive_integer(uint64_t v) {
         std::stringstream ss;
         ss << v;
         m_s += ss.str();
         return true;
     }
-    bool visit_negative_integer(int64_t v)
-    {
+    bool visit_negative_integer(int64_t v) {
         std::stringstream ss;
         ss << v;
         m_s += ss.str();
         return true;
     }
-    bool visit_str(const char* v, uint32_t size)
-    {
+    bool visit_str(const char* v, uint32_t size) {
         // I omit escape process.
         m_s += '"' + std::string(v, size) + '"';
         return true;
     }
-    bool start_array(uint32_t /*num_elements*/)
-    {
+    bool start_array(uint32_t /*num_elements*/) {
         m_s += "[";
         return true;
     }
-    bool end_array_item()
-    {
+    bool end_array_item() {
         m_s += ",";
         return true;
     }
-    bool end_array()
-    {
+    bool end_array() {
         m_s.erase(m_s.size() - 1, 1); // remove the last ','
         m_s += "]";
         return true;
     }
-    bool start_map(uint32_t /*num_kv_pairs*/)
-    {
+    bool start_map(uint32_t /*num_kv_pairs*/) {
         m_s += "{";
         return true;
     }
-    bool end_map_key()
-    {
+    bool end_map_key() {
         m_s += ":";
         return true;
     }
-    bool end_map_value()
-    {
+    bool end_map_value() {
         m_s += ",";
         return true;
     }
-    bool end_map()
-    {
+    bool end_map() {
         m_s.erase(m_s.size() - 1, 1); // remove the last ','
         m_s += "}";
         return true;
     }
-    void parse_error(size_t /*parsed_offset*/, size_t /*error_offset*/) { BOOST_CHECK(false); }
-    void insufficient_bytes(size_t /*parsed_offset*/, size_t /*error_offset*/) { BOOST_CHECK(false); }
+    void parse_error(size_t /*parsed_offset*/, size_t /*error_offset*/) {
+        BOOST_CHECK(false);
+    }
+    void insufficient_bytes(size_t /*parsed_offset*/, size_t /*error_offset*/) {
+        BOOST_CHECK(false);
+    }
     std::string& m_s;
 };
 
@@ -110,11 +100,8 @@ BOOST_AUTO_TEST_CASE(json_like)
 }
 
 struct parse_error_check_visitor : msgpack::null_visitor {
-    parse_error_check_visitor(bool& called)
-        : m_called(called)
-    {}
-    void parse_error(size_t parsed_offset, size_t error_offset)
-    {
+    parse_error_check_visitor(bool& called):m_called(called) {}
+    void parse_error(size_t parsed_offset, size_t error_offset) {
         BOOST_CHECK_EQUAL(static_cast<size_t>(1), parsed_offset);
         BOOST_CHECK_EQUAL(static_cast<size_t>(2), error_offset);
         m_called = true;
@@ -139,11 +126,8 @@ BOOST_AUTO_TEST_CASE(parse_error)
 }
 
 struct insuf_bytes_check_visitor : msgpack::null_visitor {
-    insuf_bytes_check_visitor(bool& called)
-        : m_called(called)
-    {}
-    void insufficient_bytes(size_t parsed_offset, size_t error_offset)
-    {
+    insuf_bytes_check_visitor(bool& called):m_called(called) {}
+    void insufficient_bytes(size_t parsed_offset, size_t error_offset) {
         BOOST_CHECK_EQUAL(static_cast<size_t>(2), parsed_offset);
         BOOST_CHECK_EQUAL(static_cast<size_t>(3), error_offset);
         m_called = true;
@@ -166,13 +150,9 @@ BOOST_AUTO_TEST_CASE(insuf_bytes)
 }
 
 struct return_false_array_val_visitor : msgpack::null_visitor {
-    return_false_array_val_visitor(std::size_t& times)
-        : m_times(times)
-    {}
-    bool visit_positive_integer(uint64_t)
-    {
-        if (++m_times == 2)
-            return false;
+    return_false_array_val_visitor(std::size_t& times):m_times(times) {}
+    bool visit_positive_integer(uint64_t) {
+        if (++m_times == 2) return false;
         return true;
     }
     std::size_t& m_times;
@@ -195,13 +175,9 @@ BOOST_AUTO_TEST_CASE(return_false_array_val)
 }
 
 struct return_false_start_array_item_visitor : msgpack::null_visitor {
-    return_false_start_array_item_visitor(std::size_t& times)
-        : m_times(times)
-    {}
-    bool start_array_item()
-    {
-        if (++m_times == 2)
-            return false;
+    return_false_start_array_item_visitor(std::size_t& times):m_times(times) {}
+    bool start_array_item() {
+        if (++m_times == 2) return false;
         return true;
     }
     std::size_t& m_times;
@@ -224,13 +200,9 @@ BOOST_AUTO_TEST_CASE(return_false_start_array_item)
 }
 
 struct return_false_end_array_item_visitor : msgpack::null_visitor {
-    return_false_end_array_item_visitor(std::size_t& times)
-        : m_times(times)
-    {}
-    bool end_array_item()
-    {
-        if (++m_times == 2)
-            return false;
+    return_false_end_array_item_visitor(std::size_t& times):m_times(times) {}
+    bool end_array_item() {
+        if (++m_times == 2) return false;
         return true;
     }
     std::size_t& m_times;
@@ -253,7 +225,9 @@ BOOST_AUTO_TEST_CASE(return_false_end_array_item)
 }
 
 struct return_false_start_array_visitor : msgpack::null_visitor {
-    bool start_array(uint32_t) { return false; }
+    bool start_array(uint32_t) {
+        return false;
+    }
 };
 
 BOOST_AUTO_TEST_CASE(return_false_start_array)
@@ -267,7 +241,9 @@ BOOST_AUTO_TEST_CASE(return_false_start_array)
 }
 
 struct return_false_start_array0_visitor : msgpack::null_visitor {
-    bool start_array(uint32_t) { return false; }
+    bool start_array(uint32_t) {
+        return false;
+    }
 };
 
 BOOST_AUTO_TEST_CASE(return_false_start_array0)
@@ -281,7 +257,9 @@ BOOST_AUTO_TEST_CASE(return_false_start_array0)
 }
 
 struct return_false_end_array_visitor : msgpack::null_visitor {
-    bool end_array() { return false; }
+    bool end_array() {
+        return false;
+    }
 };
 
 BOOST_AUTO_TEST_CASE(return_false_end_array)
@@ -299,7 +277,9 @@ BOOST_AUTO_TEST_CASE(return_false_end_array)
 }
 
 struct return_false_end_array0_visitor : msgpack::null_visitor {
-    bool end_array() { return false; }
+    bool end_array() {
+        return false;
+    }
 };
 
 BOOST_AUTO_TEST_CASE(return_false_end_array0)
@@ -313,13 +293,9 @@ BOOST_AUTO_TEST_CASE(return_false_end_array0)
 }
 
 struct return_false_map_val_visitor : msgpack::null_visitor {
-    return_false_map_val_visitor(std::size_t& times)
-        : m_times(times)
-    {}
-    bool visit_positive_integer(uint64_t)
-    {
-        if (++m_times == 2)
-            return false;
+    return_false_map_val_visitor(std::size_t& times):m_times(times) {}
+    bool visit_positive_integer(uint64_t) {
+        if (++m_times == 2) return false;
         return true;
     }
     std::size_t& m_times;
@@ -342,13 +318,9 @@ BOOST_AUTO_TEST_CASE(return_false_map_val)
 }
 
 struct return_false_start_map_key_visitor : msgpack::null_visitor {
-    return_false_start_map_key_visitor(std::size_t& times)
-        : m_times(times)
-    {}
-    bool start_map_key()
-    {
-        if (++m_times == 2)
-            return false;
+    return_false_start_map_key_visitor(std::size_t& times):m_times(times) {}
+    bool start_map_key() {
+        if (++m_times == 2) return false;
         return true;
     }
     std::size_t& m_times;
@@ -371,13 +343,9 @@ BOOST_AUTO_TEST_CASE(return_false_start_map_key)
 }
 
 struct return_false_end_map_key_visitor : msgpack::null_visitor {
-    return_false_end_map_key_visitor(std::size_t& times)
-        : m_times(times)
-    {}
-    bool end_map_key()
-    {
-        if (++m_times == 2)
-            return false;
+    return_false_end_map_key_visitor(std::size_t& times):m_times(times) {}
+    bool end_map_key() {
+        if (++m_times == 2) return false;
         return true;
     }
     std::size_t& m_times;
@@ -400,13 +368,9 @@ BOOST_AUTO_TEST_CASE(return_false_end_map_key)
 }
 
 struct return_false_start_map_value_visitor : msgpack::null_visitor {
-    return_false_start_map_value_visitor(std::size_t& times)
-        : m_times(times)
-    {}
-    bool start_map_value()
-    {
-        if (++m_times == 2)
-            return false;
+    return_false_start_map_value_visitor(std::size_t& times):m_times(times) {}
+    bool start_map_value() {
+        if (++m_times == 2) return false;
         return true;
     }
     std::size_t& m_times;
@@ -429,13 +393,9 @@ BOOST_AUTO_TEST_CASE(return_false_start_map_value)
 }
 
 struct return_false_end_map_value_visitor : msgpack::null_visitor {
-    return_false_end_map_value_visitor(std::size_t& times)
-        : m_times(times)
-    {}
-    bool end_map_value()
-    {
-        if (++m_times == 2)
-            return false;
+    return_false_end_map_value_visitor(std::size_t& times):m_times(times) {}
+    bool end_map_value() {
+        if (++m_times == 2) return false;
         return true;
     }
     std::size_t& m_times;
@@ -458,7 +418,9 @@ BOOST_AUTO_TEST_CASE(return_false_end_map_value)
 }
 
 struct return_false_start_map_visitor : msgpack::null_visitor {
-    bool start_map(uint32_t) { return false; }
+    bool start_map(uint32_t) {
+        return false;
+    }
 };
 
 BOOST_AUTO_TEST_CASE(return_false_start_map)
@@ -472,7 +434,9 @@ BOOST_AUTO_TEST_CASE(return_false_start_map)
 }
 
 struct return_false_start_map0_visitor : msgpack::null_visitor {
-    bool start_map(uint32_t) { return false; }
+    bool start_map(uint32_t) {
+        return false;
+    }
 };
 
 BOOST_AUTO_TEST_CASE(return_false_start_map0)
@@ -486,7 +450,9 @@ BOOST_AUTO_TEST_CASE(return_false_start_map0)
 }
 
 struct return_false_end_map_visitor : msgpack::null_visitor {
-    bool end_map() { return false; }
+    bool end_map() {
+        return false;
+    }
 };
 
 BOOST_AUTO_TEST_CASE(return_false_end_map)
@@ -504,7 +470,9 @@ BOOST_AUTO_TEST_CASE(return_false_end_map)
 }
 
 struct return_false_end_map0_visitor : msgpack::null_visitor {
-    bool end_map() { return false; }
+    bool end_map() {
+        return false;
+    }
 };
 
 BOOST_AUTO_TEST_CASE(return_false_end_map0)

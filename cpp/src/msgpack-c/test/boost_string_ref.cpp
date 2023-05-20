@@ -11,8 +11,10 @@
 
 #if defined(MSGPACK_NO_BOOST)
 
-BOOST_AUTO_TEST_CASE(empty) {}
-#else // defined(MSGPACK_NO_BOOST)
+BOOST_AUTO_TEST_CASE(empty)
+{
+}
+#else  // defined(MSGPACK_NO_BOOST)
 
 #if (BOOST_VERSION / 100000) >= 1 && ((BOOST_VERSION / 100) % 1000) >= 53
 

@@ -1,4 +1,4 @@
-#/* Copyright (C) 2001
+# /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
 #  *
@@ -7,27 +7,27 @@
 #  * http://www.boost.org/LICENSE_1_0.txt)
 #  */
 #
-#/* Revised by Paul Mensonides (2002) */
+# /* Revised by Paul Mensonides (2002) */
 #
-#/* See http://www.boost.org for most recent version. */
+# /* See http://www.boost.org for most recent version. */
 #
-#ifndef MSGPACK_PREPROCESSOR_STRINGIZE_HPP
-#define MSGPACK_PREPROCESSOR_STRINGIZE_HPP
+# ifndef MSGPACK_PREPROCESSOR_STRINGIZE_HPP
+# define MSGPACK_PREPROCESSOR_STRINGIZE_HPP
 #
-#include <msgpack/preprocessor/config/config.hpp>
+# include <msgpack/preprocessor/config/config.hpp>
 #
-#/* MSGPACK_PP_STRINGIZE */
+# /* MSGPACK_PP_STRINGIZE */
 #
-#if MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_MSVC()
-#define MSGPACK_PP_STRINGIZE(text) MSGPACK_PP_STRINGIZE_A((text))
-#define MSGPACK_PP_STRINGIZE_A(arg) MSGPACK_PP_STRINGIZE_I arg
-#elif MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_MWCC()
-#define MSGPACK_PP_STRINGIZE(text) MSGPACK_PP_STRINGIZE_OO((text))
-#define MSGPACK_PP_STRINGIZE_OO(par) MSGPACK_PP_STRINGIZE_I##par
-#else
-#define MSGPACK_PP_STRINGIZE(text) MSGPACK_PP_STRINGIZE_I(text)
-#endif
+# if MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_MSVC()
+#    define MSGPACK_PP_STRINGIZE(text) MSGPACK_PP_STRINGIZE_A((text))
+#    define MSGPACK_PP_STRINGIZE_A(arg) MSGPACK_PP_STRINGIZE_I arg
+# elif MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_MWCC()
+#    define MSGPACK_PP_STRINGIZE(text) MSGPACK_PP_STRINGIZE_OO((text))
+#    define MSGPACK_PP_STRINGIZE_OO(par) MSGPACK_PP_STRINGIZE_I ## par
+# else
+#    define MSGPACK_PP_STRINGIZE(text) MSGPACK_PP_STRINGIZE_I(text)
+# endif
 #
-#define MSGPACK_PP_STRINGIZE_I(text) #text
+# define MSGPACK_PP_STRINGIZE_I(text) #text
 #
-#endif
+# endif

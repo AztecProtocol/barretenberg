@@ -17,28 +17,37 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v1)
-{
-    /// @endcond
+MSGPACK_API_VERSION_NAMESPACE(v1) {
+/// @endcond
 
-    namespace type {
+namespace type {
 
-    template <typename T> struct array_ref;
+template <typename T>
+struct array_ref;
 
-    template <typename T>
-    typename msgpack::enable_if<!msgpack::is_array<T const>::value, array_ref<T const>>::type make_array_ref(
-        T const& t);
+template <typename T>
+typename msgpack::enable_if<
+    !msgpack::is_array<T const>::value,
+    array_ref<T const>
+>::type
+make_array_ref(T const& t);
 
-    template <typename T>
-    typename msgpack::enable_if<!msgpack::is_array<T>::value, array_ref<T>>::type make_array_ref(T& t);
+template <typename T>
+typename msgpack::enable_if<
+    !msgpack::is_array<T>::value,
+    array_ref<T>
+>::type
+make_array_ref(T& t);
 
-    template <typename T, std::size_t N> array_ref<const T[N]> make_array_ref(const T (&t)[N]);
+template <typename T, std::size_t N>
+array_ref<const T[N]> make_array_ref(const T(&t)[N]);
 
-    template <typename T, std::size_t N> array_ref<T[N]> make_array_ref(T (&t)[N]);
+template <typename T, std::size_t N>
+array_ref<T[N]> make_array_ref(T(&t)[N]);
 
-    } // namespace type
+} // namespace type
 
-    /// @cond
+/// @cond
 } // MSGPACK_API_VERSION_NAMESPACE(v1)
 /// @endcond
 

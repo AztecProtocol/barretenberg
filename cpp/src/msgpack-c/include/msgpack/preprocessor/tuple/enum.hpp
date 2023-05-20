@@ -1,4 +1,4 @@
-#/* **************************************************************************
+# /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Edward Diener 2011.                                    *
 #  *     (C) Copyright Paul Mensonides 2011.                                  *
@@ -8,15 +8,15 @@
 #  *                                                                          *
 #  ************************************************************************** */
 #
-#/* See http://www.boost.org for most recent version. */
+# /* See http://www.boost.org for most recent version. */
 #
-#ifndef MSGPACK_PREPROCESSOR_TUPLE_ENUM_HPP
-#define MSGPACK_PREPROCESSOR_TUPLE_ENUM_HPP
+# ifndef MSGPACK_PREPROCESSOR_TUPLE_ENUM_HPP
+# define MSGPACK_PREPROCESSOR_TUPLE_ENUM_HPP
 #
-#include <msgpack/preprocessor/tuple/rem.hpp>
+# include <msgpack/preprocessor/tuple/rem.hpp>
 #
-#/* MSGPACK_PP_TUPLE_ENUM */
+# /* MSGPACK_PP_TUPLE_ENUM */
 #
-#define MSGPACK_PP_TUPLE_ENUM MSGPACK_PP_TUPLE_REM_CTOR
+# define MSGPACK_PP_TUPLE_ENUM MSGPACK_PP_TUPLE_REM_CTOR
 #
-#endif
+# endif

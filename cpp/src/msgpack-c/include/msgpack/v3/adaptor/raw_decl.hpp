@@ -15,17 +15,16 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v3)
-{
-    /// @endcond
+MSGPACK_API_VERSION_NAMESPACE(v3) {
+/// @endcond
 
-    namespace type {
+namespace type {
 
-    using v2::type::raw_ref;
+using v2::type::raw_ref;
 
-    } // namespace type
+} // namespace type
 
-    /// @cond
+/// @cond
 } // MSGPACK_API_VERSION_NAMESPACE(v3)
 /// @endcond
 

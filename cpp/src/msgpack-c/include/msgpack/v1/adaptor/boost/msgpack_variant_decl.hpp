@@ -23,37 +23,35 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v1)
-{
-    /// @endcond
+MSGPACK_API_VERSION_NAMESPACE(v1) {
+/// @endcond
 
-    namespace type {
+namespace type {
 
-    template <typename STR, typename BIN, typename EXT> struct basic_variant;
+template <typename STR, typename BIN, typename EXT>
+struct basic_variant;
 
-    template <typename STR, typename BIN, typename EXT>
-    bool operator<(basic_variant<STR, BIN, EXT> const& lhs, basic_variant<STR, BIN, EXT> const& rhs);
+template <typename STR, typename BIN, typename EXT>
+bool operator<(basic_variant<STR, BIN, EXT> const& lhs, basic_variant<STR, BIN, EXT> const& rhs);
 
-    template <typename STR, typename BIN, typename EXT>
-    bool operator==(basic_variant<STR, BIN, EXT> const& lhs, basic_variant<STR, BIN, EXT> const& rhs);
+template <typename STR, typename BIN, typename EXT>
+bool operator==(basic_variant<STR, BIN, EXT> const& lhs, basic_variant<STR, BIN, EXT> const& rhs);
 
-    template <typename STR, typename BIN, typename EXT>
-    bool operator!=(basic_variant<STR, BIN, EXT> const& lhs, basic_variant<STR, BIN, EXT> const& rhs);
+template <typename STR, typename BIN, typename EXT>
+bool operator!=(basic_variant<STR, BIN, EXT> const& lhs, basic_variant<STR, BIN, EXT> const& rhs);
 
-    typedef basic_variant<std::string, std::vector<char>, msgpack::type::ext> variant;
-    typedef basic_variant<
+typedef basic_variant<std::string, std::vector<char>, msgpack::type::ext> variant;
+typedef basic_variant<
 #if (BOOST_VERSION / 100000) >= 1 && ((BOOST_VERSION / 100) % 1000) >= 53
-        boost::string_ref,
+    boost::string_ref,
 #else  // (BOOST_VERSION / 100000) >= 1 && ((BOOST_VERSION / 100) % 1000) >= 53
-        std::string,
+    std::string,
 #endif // (BOOST_VERSION / 100000) >= 1 && ((BOOST_VERSION / 100) % 1000) >= 53
-        msgpack::type::raw_ref,
-        msgpack::type::ext_ref>
-        variant_ref;
+    msgpack::type::raw_ref, msgpack::type::ext_ref> variant_ref;
 
-    } // namespace type
+} // namespace type
 
-    /// @cond
+/// @cond
 } // MSGPACK_API_VERSION_NAMESPACE(v1)
 /// @endcond
 

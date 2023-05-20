@@ -18,24 +18,24 @@
 
 using namespace std;
 
-#define GEN_TEST_VREF(test_type, vbuf)                                                                                 \
-    do {                                                                                                               \
-        vector<test_type> v;                                                                                           \
-        v.push_back(0);                                                                                                \
-        for (unsigned int i = 0; i < v.size(); i++) {                                                                  \
-            test_type val1 = v[i];                                                                                     \
-            msgpack::pack(vbuf, val1);                                                                                 \
-            msgpack::sbuffer sbuf;                                                                                     \
-            const msgpack::iovec* cur = vbuf.vector();                                                                 \
-            const msgpack::iovec* end = cur + vbuf.vector_size();                                                      \
-            for (; cur != end; ++cur)                                                                                  \
-                sbuf.write((const char*)cur->iov_base, cur->iov_len);                                                  \
-            msgpack::object_handle oh;                                                                                 \
-            msgpack::unpack(oh, sbuf.data(), sbuf.size());                                                             \
-            test_type val2 = oh.get().as<test_type>();                                                                 \
-            BOOST_CHECK_EQUAL(val1, val2);                                                                             \
-        }                                                                                                              \
-    } while (0);
+#define GEN_TEST_VREF(test_type, vbuf)                                  \
+    do {                                                                \
+        vector<test_type> v;                                            \
+        v.push_back(0);                                                 \
+        for (unsigned int i = 0; i < v.size(); i++) {                   \
+            test_type val1 = v[i];                                      \
+            msgpack::pack(vbuf, val1);                                  \
+            msgpack::sbuffer sbuf;                                      \
+            const msgpack::iovec* cur = vbuf.vector();                  \
+            const msgpack::iovec* end = cur + vbuf.vector_size();       \
+            for(; cur != end; ++cur)                                    \
+                sbuf.write((const char*)cur->iov_base, cur->iov_len);   \
+            msgpack::object_handle oh;                                  \
+            msgpack::unpack(oh, sbuf.data(), sbuf.size());              \
+            test_type val2 = oh.get().as<test_type>();                  \
+            BOOST_CHECK_EQUAL(val1, val2);                              \
+        }                                                               \
+    } while(0);
 
 BOOST_AUTO_TEST_CASE(vrefbuffer_char)
 {
@@ -270,7 +270,7 @@ BOOST_AUTO_TEST_CASE(vref_buffer_overflow)
 {
     size_t ref_size = 0;
     size_t chunk_size = std::numeric_limits<size_t>::max();
-    char* buf = (char*)malloc(0x1000);
+    char *buf = (char *)malloc(0x1000);
     BOOST_CHECK_THROW(msgpack::vrefbuffer vbuf(ref_size, chunk_size), std::bad_alloc);
     msgpack::vrefbuffer vbuf2(0, 0x1000);
     BOOST_CHECK_THROW(vbuf2.append_copy(buf, chunk_size), std::bad_alloc);

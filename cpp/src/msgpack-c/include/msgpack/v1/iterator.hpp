@@ -17,25 +17,24 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v1)
-{
-    /// @endcond
+MSGPACK_API_VERSION_NAMESPACE(v1) {
+/// @endcond
 
-    inline msgpack::object_kv* begin(msgpack::object_map & map) { return map.ptr; }
-    inline const msgpack::object_kv* begin(const msgpack::object_map& map) { return map.ptr; }
-    inline msgpack::object_kv* end(msgpack::object_map & map) { return map.ptr + map.size; }
-    inline const msgpack::object_kv* end(const msgpack::object_map& map) { return map.ptr + map.size; }
+inline msgpack::object_kv* begin(msgpack::object_map &map) { return map.ptr; }
+inline const msgpack::object_kv* begin(const msgpack::object_map &map) { return map.ptr; }
+inline msgpack::object_kv* end(msgpack::object_map &map) { return map.ptr + map.size; }
+inline const msgpack::object_kv* end(const msgpack::object_map &map) { return map.ptr + map.size; }
 
-    inline msgpack::object* begin(msgpack::object_array & array) { return array.ptr; }
-    inline const msgpack::object* begin(const msgpack::object_array& array) { return array.ptr; }
-    inline msgpack::object* end(msgpack::object_array & array) { return array.ptr + array.size; }
-    inline const msgpack::object* end(const msgpack::object_array& array) { return array.ptr + array.size; }
+inline msgpack::object* begin(msgpack::object_array &array) { return array.ptr; }
+inline const msgpack::object* begin(const msgpack::object_array &array) { return array.ptr; }
+inline msgpack::object* end(msgpack::object_array &array) { return array.ptr + array.size; }
+inline const msgpack::object* end(const msgpack::object_array &array) { return array.ptr + array.size; }
 
-    /// @cond
+/// @cond
 }
 /// @endcond
 
-} // namespace msgpack
+}
 
 #endif // !defined(MSGPACK_USE_CPP03)
 #endif // MSGPACK_V1_ITERATOR_HPP

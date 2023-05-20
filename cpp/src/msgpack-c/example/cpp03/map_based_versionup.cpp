@@ -16,27 +16,20 @@
 #include <msgpack.hpp>
 
 struct base1 {
-    base1()
-        : a("default")
-    {}
+    base1():a("default") {}
     std::string a;
     MSGPACK_DEFINE_MAP(a);
 };
 
 struct v1 : base1 {
-    v1()
-        : name("default")
-        , age(0)
-    {}
+    v1():name("default"), age(0) {}
     std::string name;
     int age;
     MSGPACK_DEFINE_MAP(MSGPACK_BASE_MAP(base1), name, age);
 };
 
 struct base2 {
-    base2()
-        : a("default")
-    {}
+    base2():a("default") {}
     std::string a;
     MSGPACK_DEFINE_MAP(a);
 };
@@ -44,10 +37,7 @@ struct base2 {
 // Removed: base1, name
 // Added  : base2, address
 struct v2 : base2 {
-    v2()
-        : age(0)
-        , address("default")
-    {}
+    v2(): age(0), address("default") {}
     int age;
     std::string address;
     MSGPACK_DEFINE_MAP(MSGPACK_BASE_MAP(base2), age, address);
@@ -55,16 +45,21 @@ struct v2 : base2 {
 
 // The member variable "age" is in common between v1 and v2.
 
-void print(std::string const& buf)
-{
-    for (std::string::const_iterator it = buf.begin(), end = buf.end(); it != end; ++it) {
-        std::cout << std::setw(2) << std::hex << std::setfill('0') << (static_cast<int>(*it) & 0xff) << ' ';
+void print(std::string const& buf) {
+    for (std::string::const_iterator it = buf.begin(), end = buf.end();
+         it != end;
+         ++it) {
+        std::cout
+            << std::setw(2)
+            << std::hex
+            << std::setfill('0')
+            << (static_cast<int>(*it) & 0xff)
+            << ' ';
     }
     std::cout << std::dec << std::endl;
 }
 
-int main()
-{
+int main() {
     { // pack v1, unpack, convert to v2
         v1 v;
         v.a = "ABC";

@@ -4,12 +4,13 @@
 #include <boost/test/unit_test.hpp>
 
 class enum_member {
-  public:
-    enum_member()
-        : flag(A)
-    {}
+public:
+    enum_member() : flag(A) { }
 
-    enum flags_t { A = 0, B = 1 };
+    enum flags_t {
+        A = 0,
+        B = 1
+    };
 
     flags_t flag;
 
@@ -19,11 +20,8 @@ class enum_member {
 MSGPACK_ADD_ENUM(enum_member::flags_t);
 
 class compatibility {
-  public:
-    compatibility()
-        : str1("default")
-        , str2("default")
-    {}
+public:
+    compatibility() : str1("default"), str2("default") { }
 
     std::string str1;
     std::string str2;
@@ -40,9 +38,9 @@ BOOST_AUTO_TEST_CASE(compatibility_less)
     msgpack::object obj(src, z);
 
     compatibility c;
-    BOOST_CHECK_NO_THROW(obj.convert(c));
+    BOOST_CHECK_NO_THROW( obj.convert(c) );
 
-    BOOST_CHECK_EQUAL("kumofs", c.str1);
+    BOOST_CHECK_EQUAL("kumofs",  c.str1);
     BOOST_CHECK_EQUAL("default", c.str2);
 }
 
@@ -57,10 +55,10 @@ BOOST_AUTO_TEST_CASE(compatibility_more)
     msgpack::object obj(src, z);
 
     compatibility to;
-    BOOST_CHECK_NO_THROW(obj.convert(to));
+    BOOST_CHECK_NO_THROW( obj.convert(to) );
 
     BOOST_CHECK_EQUAL("kumofs", to.str1);
-    BOOST_CHECK_EQUAL("mpio", to.str2);
+    BOOST_CHECK_EQUAL("mpio",   to.str2);
 }
 
 BOOST_AUTO_TEST_CASE(enum_member_)
@@ -72,7 +70,7 @@ BOOST_AUTO_TEST_CASE(enum_member_)
     msgpack::object obj(src, z);
 
     enum_member to;
-    BOOST_CHECK_NO_THROW(obj.convert(to));
+    BOOST_CHECK_NO_THROW( obj.convert(to) );
 
     BOOST_CHECK_EQUAL(enum_member::B, to.flag);
 }

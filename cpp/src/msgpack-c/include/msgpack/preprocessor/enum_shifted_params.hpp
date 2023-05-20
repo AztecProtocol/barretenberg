@@ -1,4 +1,4 @@
-#/* **************************************************************************
+# /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
 #  *     Distributed under the Boost Software License, Version 1.0. (See
@@ -7,11 +7,11 @@
 #  *                                                                          *
 #  ************************************************************************** */
 #
-#/* See http://www.boost.org for most recent version. */
+# /* See http://www.boost.org for most recent version. */
 #
-#ifndef MSGPACK_PREPROCESSOR_ENUM_SHIFTED_PARAMS_HPP
-#define MSGPACK_PREPROCESSOR_ENUM_SHIFTED_PARAMS_HPP
+# ifndef MSGPACK_PREPROCESSOR_ENUM_SHIFTED_PARAMS_HPP
+# define MSGPACK_PREPROCESSOR_ENUM_SHIFTED_PARAMS_HPP
 #
-#include <msgpack/preprocessor/repetition/enum_shifted_params.hpp>
+# include <msgpack/preprocessor/repetition/enum_shifted_params.hpp>
 #
-#endif
+# endif

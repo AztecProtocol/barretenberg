@@ -17,17 +17,16 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v1)
-{
-    /// @endcond
+MSGPACK_API_VERSION_NAMESPACE(v1) {
+/// @endcond
 
-    namespace type {
+namespace type {
 
-    struct v4raw_ref;
+struct v4raw_ref;
 
-    } // namespace type
+} // namespace type
 
-    /// @cond
+/// @cond
 } // MSGPACK_API_VERSION_NAMESPACE(v1)
 /// @endcond
 

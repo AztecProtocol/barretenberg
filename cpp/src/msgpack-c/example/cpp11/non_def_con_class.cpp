@@ -20,35 +20,29 @@ struct my {
     my(my const&) = delete;
     my(my&&) = default;
 
-    my(int a)
-        : a(a)
-    {}
+    my(int a):a(a) {}
     int a;
     MSGPACK_DEFINE(a);
 };
 
 namespace msgpack {
-MSGPACK_API_VERSION_NAMESPACE(MSGPACK_DEFAULT_API_NS)
-{
-    namespace adaptor {
+MSGPACK_API_VERSION_NAMESPACE(MSGPACK_DEFAULT_API_NS) {
+namespace adaptor {
 
-    template <> struct as<my> {
-        my operator()(msgpack::object const& o) const
-        {
-            if (o.type != msgpack::type::ARRAY)
-                throw msgpack::type_error();
-            if (o.via.array.size != 1)
-                throw msgpack::type_error();
-            return my(o.via.array.ptr[0].as<int>());
-        }
-    };
+template<>
+struct as<my> {
+    my operator()(msgpack::object const& o) const {
+        if (o.type != msgpack::type::ARRAY) throw msgpack::type_error();
+        if (o.via.array.size != 1) throw msgpack::type_error();
+        return my(o.via.array.ptr[0].as<int>());
+    }
+};
 
-    } // namespace adaptor
+} // namespace adaptor
 } // MSGPACK_API_VERSION_NAMESPACE(MSGPACK_DEFAULT_API_NS)
 } // namespace msgpack
 
-int main()
-{
+int main() {
     my m1(42);
     msgpack::zone z;
     msgpack::object obj(m1, z);

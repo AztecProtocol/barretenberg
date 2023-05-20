@@ -15,20 +15,19 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v3)
-{
-    /// @endcond
-
-    namespace type {
-
-    using v2::type::assoc_vector;
-
-    } // namespace type
-
-    /// @cond
-} // MSGPACK_API_VERSION_NAMESPACE(v3)
+MSGPACK_API_VERSION_NAMESPACE(v3) {
 /// @endcond
 
-} // namespace msgpack
+namespace type {
+
+using v2::type::assoc_vector;
+
+}  //namespace type
+
+/// @cond
+}  // MSGPACK_API_VERSION_NAMESPACE(v3)
+/// @endcond
+
+}  // namespace msgpack
 
 #endif // MSGPACK_V3_TYPE_MAP_DECL_HPP

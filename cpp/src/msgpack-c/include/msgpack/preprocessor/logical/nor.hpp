@@ -1,4 +1,4 @@
-#/* Copyright (C) 2001
+# /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
 #  *
@@ -7,24 +7,24 @@
 #  * http://www.boost.org/LICENSE_1_0.txt)
 #  */
 #
-#/* Revised by Paul Mensonides (2002) */
+# /* Revised by Paul Mensonides (2002) */
 #
-#/* See http://www.boost.org for most recent version. */
+# /* See http://www.boost.org for most recent version. */
 #
-#ifndef MSGPACK_PREPROCESSOR_LOGICAL_NOR_HPP
-#define MSGPACK_PREPROCESSOR_LOGICAL_NOR_HPP
+# ifndef MSGPACK_PREPROCESSOR_LOGICAL_NOR_HPP
+# define MSGPACK_PREPROCESSOR_LOGICAL_NOR_HPP
 #
-#include <msgpack/preprocessor/config/config.hpp>
-#include <msgpack/preprocessor/logical/bool.hpp>
-#include <msgpack/preprocessor/logical/bitnor.hpp>
+# include <msgpack/preprocessor/config/config.hpp>
+# include <msgpack/preprocessor/logical/bool.hpp>
+# include <msgpack/preprocessor/logical/bitnor.hpp>
 #
-#/* MSGPACK_PP_NOR */
+# /* MSGPACK_PP_NOR */
 #
-#if ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_EDG()
-#define MSGPACK_PP_NOR(p, q) MSGPACK_PP_BITNOR(MSGPACK_PP_BOOL(p), MSGPACK_PP_BOOL(q))
-#else
-#define MSGPACK_PP_NOR(p, q) MSGPACK_PP_NOR_I(p, q)
-#define MSGPACK_PP_NOR_I(p, q) MSGPACK_PP_BITNOR(MSGPACK_PP_BOOL(p), MSGPACK_PP_BOOL(q))
-#endif
+# if ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_EDG()
+#    define MSGPACK_PP_NOR(p, q) MSGPACK_PP_BITNOR(MSGPACK_PP_BOOL(p), MSGPACK_PP_BOOL(q))
+# else
+#    define MSGPACK_PP_NOR(p, q) MSGPACK_PP_NOR_I(p, q)
+#    define MSGPACK_PP_NOR_I(p, q) MSGPACK_PP_BITNOR(MSGPACK_PP_BOOL(p), MSGPACK_PP_BOOL(q))
+# endif
 #
-#endif
+# endif

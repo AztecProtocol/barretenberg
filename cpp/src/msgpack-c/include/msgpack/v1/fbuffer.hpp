@@ -19,46 +19,45 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v1)
-{
-    /// @endcond
-
-    class fbuffer {
-      public:
-        explicit fbuffer(FILE* file)
-            : m_file(file)
-        {}
-
-      public:
-        void write(const char* buf, unsigned int len)
-        {
-            MSGPACK_ASSERT(buf || len == 0);
-            if (!buf)
-                return;
-            if (1 != fwrite(buf, len, 1, m_file)) {
-                THROW std::runtime_error("fwrite() failed");
-            }
-        }
-
-        FILE* file() const { return m_file; }
-
-#if defined(MSGPACK_USE_CPP03)
-      private:
-        fbuffer(const fbuffer&);
-        fbuffer& operator=(const fbuffer&);
-#else  // defined(MSGPACK_USE_CPP03)
-        fbuffer(const fbuffer&) = delete;
-        fbuffer& operator=(const fbuffer&) = delete;
-#endif // defined(MSGPACK_USE_CPP03)
-
-      private:
-        FILE* m_file;
-    };
-
-    /// @cond
-} // MSGPACK_API_VERSION_NAMESPACE(v1)
+MSGPACK_API_VERSION_NAMESPACE(v1) {
 /// @endcond
 
-} // namespace msgpack
+class fbuffer {
+public:
+    explicit fbuffer(FILE* file) : m_file(file) { }
+
+public:
+    void write(const char* buf, unsigned int len)
+    {
+        MSGPACK_ASSERT(buf || len == 0);
+        if (!buf) return;
+        if (1 != fwrite(buf, len, 1, m_file)) {
+            THROW std::runtime_error("fwrite() failed");
+        }
+    }
+
+    FILE* file() const
+    {
+        return m_file;
+    }
+
+#if defined(MSGPACK_USE_CPP03)
+private:
+    fbuffer(const fbuffer&);
+    fbuffer& operator=(const fbuffer&);
+#else  // defined(MSGPACK_USE_CPP03)
+    fbuffer(const fbuffer&) = delete;
+    fbuffer& operator=(const fbuffer&) = delete;
+#endif // defined(MSGPACK_USE_CPP03)
+
+private:
+    FILE* m_file;
+};
+
+/// @cond
+}  // MSGPACK_API_VERSION_NAMESPACE(v1)
+/// @endcond
+
+}  // namespace msgpack
 
 #endif // MSGPACK_V1_FBUFFER_HPP

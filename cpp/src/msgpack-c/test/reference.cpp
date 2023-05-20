@@ -9,7 +9,8 @@ BOOST_AUTO_TEST_CASE(unpack_int)
     msgpack::pack(sbuf, 1);
     bool referenced = false;
 
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size(), referenced);
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size(), referenced);
     BOOST_CHECK(!referenced);
 }
 
@@ -19,7 +20,8 @@ BOOST_AUTO_TEST_CASE(unpack_string)
     msgpack::pack(sbuf, std::string("abcdefg"));
     bool referenced = false;
 
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size(), referenced);
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size(), referenced);
     BOOST_CHECK(!referenced);
 }
 
@@ -32,7 +34,8 @@ BOOST_AUTO_TEST_CASE(unpack_bin)
     packer.pack_bin_body(c, sizeof(c));
 
     bool referenced = false;
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size(), referenced);
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size(), referenced);
     BOOST_CHECK(!referenced);
 }
 
@@ -40,12 +43,13 @@ BOOST_AUTO_TEST_CASE(unpack_ext)
 {
     msgpack::sbuffer sbuf;
     msgpack::packer<msgpack::sbuffer> packer(sbuf);
-    char const buf[] = { 2 };
+    char const buf [] = { 2 };
 
     packer.pack_ext(sizeof(buf), 1);
     packer.pack_ext_body(buf, sizeof(buf));
     bool referenced = false;
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size(), referenced);
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size(), referenced);
     BOOST_CHECK(!referenced);
 }
 
@@ -66,7 +70,8 @@ BOOST_AUTO_TEST_CASE(unpack_int_ref)
     msgpack::pack(sbuf, 1);
     bool referenced = false;
 
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size(), referenced, never_called);
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size(), referenced, never_called);
     BOOST_CHECK(!referenced);
 }
 
@@ -76,7 +81,8 @@ BOOST_AUTO_TEST_CASE(unpack_string_ref)
     msgpack::pack(sbuf, std::string("abcdefg"));
     bool referenced = false;
 
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size(), referenced, always_reference);
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size(), referenced, always_reference);
     BOOST_CHECK(referenced);
 }
 
@@ -89,7 +95,8 @@ BOOST_AUTO_TEST_CASE(unpack_bin_ref)
     packer.pack_bin_body(c, sizeof(c));
 
     bool referenced = false;
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size(), referenced, always_reference);
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size(), referenced, always_reference);
     BOOST_CHECK(referenced);
 }
 
@@ -97,13 +104,14 @@ BOOST_AUTO_TEST_CASE(unpack_ext_ref)
 {
     msgpack::sbuffer sbuf;
     msgpack::packer<msgpack::sbuffer> packer(sbuf);
-    char const buf[] = { 2 };
+    char const buf [] = { 2 };
 
     packer.pack_ext(sizeof(buf), 1);
     packer.pack_ext_body(buf, sizeof(buf));
     bool referenced = false;
 
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size(), referenced, always_reference);
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size(), referenced, always_reference);
     BOOST_CHECK(referenced);
 }
 
@@ -114,16 +122,13 @@ bool sized_reference(msgpack::type::object_type t, std::size_t s, void* p)
     s_p = p;
     switch (t) {
     case msgpack::type::STR:
-        if (s >= 5)
-            return true;
+        if (s >= 5) return true;
         break;
     case msgpack::type::BIN:
-        if (s >= 6)
-            return true;
+        if (s >= 6) return true;
         break;
     case msgpack::type::EXT:
-        if (s >= 7)
-            return true;
+        if (s >= 7) return true;
         break;
     default:
         BOOST_CHECK(false);
@@ -139,7 +144,8 @@ BOOST_AUTO_TEST_CASE(unpack_int_sized_ref)
     bool referenced = false;
     s_p = MSGPACK_NULLPTR;
 
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size(), referenced, never_called, &sbuf);
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size(), referenced, never_called, &sbuf);
     BOOST_CHECK(!referenced);
     BOOST_CHECK(MSGPACK_NULLPTR == s_p);
 }
@@ -153,7 +159,8 @@ BOOST_AUTO_TEST_CASE(unpack_string_sized_ref_4)
     s_p = MSGPACK_NULLPTR;
     // the last argument sbuf is any pointer as a user data.
     // That is stored to s_p in sized_reference
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size(), referenced, sized_reference, &sbuf);
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size(), referenced, sized_reference, &sbuf);
     BOOST_CHECK(!referenced);
     // compare the passed argument with stored s_p.
     BOOST_CHECK_EQUAL(&sbuf, s_p);
@@ -167,10 +174,12 @@ BOOST_AUTO_TEST_CASE(unpack_string_sized_ref_5)
     bool referenced = false;
     s_p = MSGPACK_NULLPTR;
 
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size(), referenced, sized_reference, &sbuf);
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size(), referenced, sized_reference, &sbuf);
     BOOST_CHECK(referenced);
     BOOST_CHECK_EQUAL(&sbuf, s_p);
 }
+
 
 BOOST_AUTO_TEST_CASE(unpack_bin_sized_ref_5)
 {
@@ -183,7 +192,8 @@ BOOST_AUTO_TEST_CASE(unpack_bin_sized_ref_5)
     bool referenced = false;
     s_p = MSGPACK_NULLPTR;
 
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size(), referenced, sized_reference, &sbuf);
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size(), referenced, sized_reference, &sbuf);
     BOOST_CHECK(!referenced);
     BOOST_CHECK_EQUAL(&sbuf, s_p);
 }
@@ -198,7 +208,8 @@ BOOST_AUTO_TEST_CASE(unpack_bin_sized_ref_6)
 
     bool referenced = false;
     s_p = MSGPACK_NULLPTR;
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size(), referenced, sized_reference, &sbuf);
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size(), referenced, sized_reference, &sbuf);
     BOOST_CHECK(referenced);
     BOOST_CHECK_EQUAL(&sbuf, s_p);
 }
@@ -207,14 +218,15 @@ BOOST_AUTO_TEST_CASE(unpack_ext_sized_ref_6)
 {
     msgpack::sbuffer sbuf;
     msgpack::packer<msgpack::sbuffer> packer(sbuf);
-    char const buf[] = { 1, 2, 3, 4, 5 };
+    char const buf [] = { 1, 2, 3, 4, 5 };
 
     packer.pack_ext(sizeof(buf), 1); // 5 + 1(type) = 6
     packer.pack_ext_body(buf, sizeof(buf));
 
     bool referenced = false;
     s_p = MSGPACK_NULLPTR;
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size(), referenced, sized_reference, &sbuf);
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size(), referenced, sized_reference, &sbuf);
     BOOST_CHECK(!referenced);
     BOOST_CHECK_EQUAL(&sbuf, s_p);
 }
@@ -223,14 +235,15 @@ BOOST_AUTO_TEST_CASE(unpack_ext_sized_ref_7)
 {
     msgpack::sbuffer sbuf;
     msgpack::packer<msgpack::sbuffer> packer(sbuf);
-    char const buf[] = { 1, 2, 3, 4, 5, 6 };
+    char const buf [] = { 1, 2, 3, 4, 5, 6 };
 
     packer.pack_ext(sizeof(buf), 1); // 6 + 1(type) = 7
     packer.pack_ext_body(buf, sizeof(buf));
 
     bool referenced = false;
     s_p = MSGPACK_NULLPTR;
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size(), referenced, sized_reference, &sbuf);
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size(), referenced, sized_reference, &sbuf);
     BOOST_CHECK(referenced);
     BOOST_CHECK_EQUAL(&sbuf, s_p);
 }
@@ -293,7 +306,7 @@ BOOST_AUTO_TEST_CASE(unpacker_ext)
 {
     msgpack::sbuffer sbuf;
     msgpack::packer<msgpack::sbuffer> packer(sbuf);
-    char const buf[] = { 2 };
+    char const buf [] = { 2 };
 
     packer.pack_ext(sizeof(buf), 1);
     packer.pack_ext_body(buf, sizeof(buf));
@@ -365,6 +378,7 @@ BOOST_AUTO_TEST_CASE(unpacker_string_sized_ref_5)
     BOOST_CHECK_EQUAL(&sbuf, s_p);
 }
 
+
 BOOST_AUTO_TEST_CASE(unpacker_bin_sized_ref_5)
 {
     msgpack::sbuffer sbuf;
@@ -411,7 +425,7 @@ BOOST_AUTO_TEST_CASE(unpacker_ext_sized_ref_6)
 {
     msgpack::sbuffer sbuf;
     msgpack::packer<msgpack::sbuffer> packer(sbuf);
-    char const buf[] = { 1, 2, 3, 4, 5 };
+    char const buf [] = { 1, 2, 3, 4, 5 };
 
     packer.pack_ext(sizeof(buf), 1); // 5 + 1(type) = 6
     packer.pack_ext_body(buf, sizeof(buf));
@@ -433,7 +447,7 @@ BOOST_AUTO_TEST_CASE(unpacker_ext_sized_ref_7)
 {
     msgpack::sbuffer sbuf;
     msgpack::packer<msgpack::sbuffer> packer(sbuf);
-    char const buf[] = { 1, 2, 3, 4, 5, 6 };
+    char const buf [] = { 1, 2, 3, 4, 5, 6 };
 
     packer.pack_ext(sizeof(buf), 1); // 6 + 1(type) = 7
     packer.pack_ext_body(buf, sizeof(buf));

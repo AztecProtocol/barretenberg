@@ -21,8 +21,8 @@ BOOST_AUTO_TEST_CASE(basic)
     msgpack::object_handle oh;
 
     int count = 0;
-    while (count < 3) {
-        pac.reserve_buffer(32 * 1024);
+    while(count < 3) {
+        pac.reserve_buffer(32*1024);
 
         // read buffer into pac.buffer() upto
         // pac.buffer_capacity() bytes.
@@ -32,9 +32,9 @@ BOOST_AUTO_TEST_CASE(basic)
 
         pac.buffer_consumed(len);
 
-        while (pac.next(oh)) {
+        while(pac.next(oh)) {
             msgpack::object obj = oh.get();
-            switch (count++) {
+            switch(count++) {
             case 0:
                 BOOST_CHECK_EQUAL(1, obj.as<int>());
                 break;
@@ -70,8 +70,8 @@ BOOST_AUTO_TEST_CASE(basic_pointer)
     msgpack::object_handle oh;
 
     int count = 0;
-    while (count < 3) {
-        pac.reserve_buffer(32 * 1024);
+    while(count < 3) {
+        pac.reserve_buffer(32*1024);
 
         // read buffer into pac.buffer() upto
         // pac.buffer_capacity() bytes.
@@ -85,12 +85,12 @@ BOOST_AUTO_TEST_CASE(basic_pointer)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif // defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 2))
-        while (pac.next(&oh)) {
+        while(pac.next(&oh)) {
 #if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 2))
 #pragma GCC diagnostic pop
 #endif // defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 2))
             msgpack::object obj = oh.get();
-            switch (count++) {
+            switch(count++) {
             case 0:
                 BOOST_CHECK_EQUAL(1, obj.as<int>());
                 break;
@@ -127,9 +127,9 @@ BOOST_AUTO_TEST_CASE(move)
     msgpack::object_handle oh;
 
     int count = 0;
-    while (count < 3) {
+    while(count < 3) {
         msgpack::unpacker pac_in(std::move(pac));
-        pac_in.reserve_buffer(32 * 1024);
+        pac_in.reserve_buffer(32*1024);
 
         // read buffer into pac_in.buffer() upto
         // pac_in.buffer_capac_inity() bytes.
@@ -139,9 +139,9 @@ BOOST_AUTO_TEST_CASE(move)
 
         pac_in.buffer_consumed(len);
 
-        while (pac_in.next(oh)) {
+        while(pac_in.next(oh)) {
             msgpack::object obj = oh.get();
-            switch (count++) {
+            switch(count++) {
             case 0:
                 BOOST_CHECK_EQUAL(1, obj.as<int>());
                 break;
@@ -162,32 +162,29 @@ BOOST_AUTO_TEST_CASE(move)
 #endif // !defined(MSGPACK_USE_CPP03)
 
 class event_handler {
-  public:
-    event_handler(std::istream& input)
-        : input(input)
-    {}
-    ~event_handler() {}
+public:
+    event_handler(std::istream& input) : input(input) { }
+    ~event_handler() { }
 
     void on_read()
     {
-        while (true) {
-            pac.reserve_buffer(32 * 1024);
+        while(true) {
+            pac.reserve_buffer(32*1024);
 
-            size_t len =
-                static_cast<size_t>(input.readsome(pac.buffer(), static_cast<std::streamsize>(pac.buffer_capacity())));
+            size_t len = static_cast<size_t>(input.readsome(pac.buffer(), static_cast<std::streamsize>(pac.buffer_capacity())));
 
-            if (len == 0) {
+            if(len == 0) {
                 return;
             }
 
             pac.buffer_consumed(len);
 
             msgpack::object_handle oh;
-            while (pac.next(oh)) {
+            while(pac.next(oh)) {
                 on_message(oh.get(), msgpack::move(oh.zone()));
             }
 
-            if (pac.message_size() > 10 * 1024 * 1024) {
+            if(pac.message_size() > 10*1024*1024) {
                 throw std::runtime_error("message is too large");
             }
         }
@@ -200,7 +197,7 @@ class event_handler {
 
     int expect;
 
-  private:
+private:
     std::istream& input;
     msgpack::unpacker pac;
 };
@@ -243,19 +240,18 @@ BOOST_AUTO_TEST_CASE(basic_compat)
     msgpack::unpacker pac;
 
     int count = 0;
-    while (count < 3) {
-        pac.reserve_buffer(32 * 1024);
+    while(count < 3) {
+        pac.reserve_buffer(32*1024);
 
-        size_t len =
-            static_cast<size_t>(input.readsome(pac.buffer(), static_cast<std::streamsize>(pac.buffer_capacity())));
+        size_t len = static_cast<size_t>(input.readsome(pac.buffer(), static_cast<std::streamsize>(pac.buffer_capacity())));
         pac.buffer_consumed(len);
 
-        while (pac.execute()) {
+        while(pac.execute()) {
             msgpack::unique_ptr<msgpack::zone> z(pac.release_zone());
             msgpack::object obj = pac.data();
             pac.reset();
 
-            switch (count++) {
+            switch(count++) {
             case 0:
                 BOOST_CHECK_EQUAL(1, obj.as<int>());
                 break;
@@ -266,40 +262,39 @@ BOOST_AUTO_TEST_CASE(basic_compat)
                 BOOST_CHECK_EQUAL(3, obj.as<int>());
                 return;
             }
+
         }
     }
 }
 
+
 // backward compatibility
 class event_handler_compat {
-  public:
-    event_handler_compat(std::istream& input)
-        : input(input)
-    {}
-    ~event_handler_compat() {}
+public:
+    event_handler_compat(std::istream& input) : input(input) { }
+    ~event_handler_compat() { }
 
     void on_read()
     {
-        while (true) {
-            pac.reserve_buffer(32 * 1024);
+        while(true) {
+            pac.reserve_buffer(32*1024);
 
-            size_t len =
-                static_cast<size_t>(input.readsome(pac.buffer(), static_cast<std::streamsize>(pac.buffer_capacity())));
+            size_t len = static_cast<size_t>(input.readsome(pac.buffer(), static_cast<std::streamsize>(pac.buffer_capacity())));
 
-            if (len == 0) {
+            if(len == 0) {
                 return;
             }
 
             pac.buffer_consumed(len);
 
-            while (pac.execute()) {
+            while(pac.execute()) {
                 msgpack::unique_ptr<msgpack::zone> z(pac.release_zone());
                 msgpack::object obj = pac.data();
                 pac.reset();
                 on_message(obj, msgpack::move(z));
             }
 
-            if (pac.message_size() > 10 * 1024 * 1024) {
+            if(pac.message_size() > 10*1024*1024) {
                 throw std::runtime_error("message is too large");
             }
         }
@@ -312,7 +307,7 @@ class event_handler_compat {
 
     int expect;
 
-  private:
+private:
     std::istream& input;
     msgpack::unpacker pac;
 };

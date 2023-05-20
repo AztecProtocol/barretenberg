@@ -17,17 +17,17 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v3)
-{
-    /// @endcond
-
-    using v2::parse;
-
-    /// @cond
-} // MSGPACK_API_VERSION_NAMESPACE(v2)
+MSGPACK_API_VERSION_NAMESPACE(v3) {
 /// @endcond
 
-} // namespace msgpack
+using v2::parse;
+
+/// @cond
+}  // MSGPACK_API_VERSION_NAMESPACE(v2)
+/// @endcond
+
+}  // namespace msgpack
+
 
 #endif // defined(MSGPACK_USE_X3_PARSE)
 

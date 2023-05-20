@@ -17,48 +17,67 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v1)
-{
-    /// @endcond
+MSGPACK_API_VERSION_NAMESPACE(v1) {
+/// @endcond
 
-    template <typename Stream> class packer;
+template <typename Stream>
+class packer;
 
-    namespace adaptor {
+namespace adaptor {
 
-    // Adaptor functors
+// Adaptor functors
 
-    template <typename T, typename Enabler = void> struct convert;
+template <typename T, typename Enabler = void>
+struct convert;
 
-    template <typename T, typename Enabler = void> struct pack;
+template <typename T, typename Enabler = void>
+struct pack;
 
-    template <typename T, typename Enabler = void> struct object;
+template <typename T, typename Enabler = void>
+struct object;
 
-    template <typename T, typename Enabler = void> struct object_with_zone;
+template <typename T, typename Enabler = void>
+struct object_with_zone;
 
-    } // namespace adaptor
+} // namespace adaptor
 
-    // operators
+// operators
 
-    template <typename T>
-    typename msgpack::enable_if<!is_array<T>::value, msgpack::object const&>::type operator>>(msgpack::object const& o,
-                                                                                              T& v);
-    template <typename T, std::size_t N> msgpack::object const& operator>>(msgpack::object const& o, T(&v)[N]);
+template <typename T>
+typename msgpack::enable_if<
+    !is_array<T>::value,
+    msgpack::object const&
+>::type
+operator>> (msgpack::object const& o, T& v);
+template <typename T, std::size_t N>
+msgpack::object const& operator>> (msgpack::object const& o, T(&v)[N]);
 
-    template <typename Stream, typename T>
-    typename msgpack::enable_if<!is_array<T>::value, msgpack::packer<Stream>&>::type operator<<(
-        msgpack::packer<Stream>& o, T const& v);
-    template <typename Stream, typename T, std::size_t N>
-    msgpack::packer<Stream>& operator<<(msgpack::packer<Stream>& o, const T(&v)[N]);
+template <typename Stream, typename T>
+typename msgpack::enable_if<
+    !is_array<T>::value,
+    msgpack::packer<Stream>&
+>::type
+operator<< (msgpack::packer<Stream>& o, T const& v);
+template <typename Stream, typename T, std::size_t N>
+msgpack::packer<Stream>& operator<< (msgpack::packer<Stream>& o, const T(&v)[N]);
 
-    template <typename T>
-    typename msgpack::enable_if<!is_array<T>::value>::type operator<<(msgpack::object& o, T const& v);
-    template <typename T, std::size_t N> void operator<<(msgpack::object& o, const T(&v)[N]);
+template <typename T>
+typename msgpack::enable_if<
+    !is_array<T>::value
+>::type
+operator<< (msgpack::object& o, T const& v);
+template <typename T, std::size_t N>
+void operator<< (msgpack::object& o, const T(&v)[N]);
 
-    template <typename T>
-    typename msgpack::enable_if<!is_array<T>::value>::type operator<<(msgpack::object::with_zone& o, T const& v);
-    template <typename T, std::size_t N> void operator<<(msgpack::object::with_zone& o, const T(&v)[N]);
+template <typename T>
+typename msgpack::enable_if<
+    !is_array<T>::value
+>::type
+operator<< (msgpack::object::with_zone& o, T const& v);
+template <typename T, std::size_t N>
+void operator<< (msgpack::object::with_zone& o, const T(&v)[N]);
 
-    /// @cond
+/// @cond
 } // MSGPACK_API_VERSION_NAMESPACE(v1)
 /// @endcond
 

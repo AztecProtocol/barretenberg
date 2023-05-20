@@ -20,40 +20,40 @@ using namespace std;
 
 const unsigned int kLoop = 1000;
 
-#define GEN_TEST_STREAM(test_type)                                                                                     \
-    for (unsigned int k = 0; k < kLoop; k++) {                                                                         \
-        msgpack::sbuffer sbuf;                                                                                         \
-        msgpack::packer<msgpack::sbuffer> pk(sbuf);                                                                    \
-        typedef std::vector<test_type> vec_type;                                                                       \
-        vec_type vec;                                                                                                  \
-        for (unsigned int i = 0; i < static_cast<unsigned int>(rand()) % kLoop; ++i) {                                 \
-            vec_type::value_type r = static_cast<test_type>(rand());                                                   \
-            vec.push_back(r);                                                                                          \
-            pk.pack(r);                                                                                                \
-        }                                                                                                              \
-        msgpack::unpacker pac;                                                                                         \
-        vec_type::const_iterator it = vec.begin();                                                                     \
-        const char* p = sbuf.data();                                                                                   \
-        const char* const pend = p + sbuf.size();                                                                      \
-        while (p < pend) {                                                                                             \
-            const size_t sz =                                                                                          \
-                std::min<size_t>(static_cast<std::size_t>(pend - p), static_cast<std::size_t>(rand() % 128));          \
-            pac.reserve_buffer(sz);                                                                                    \
-            memcpy(pac.buffer(), p, sz);                                                                               \
-            pac.buffer_consumed(sz);                                                                                   \
-            msgpack::object_handle oh;                                                                                 \
-            while (pac.next(oh)) {                                                                                     \
-                if (it == vec.end())                                                                                   \
-                    goto out;                                                                                          \
-                msgpack::object obj = oh.get();                                                                        \
-                vec_type::value_type val;                                                                              \
-                obj.convert(val);                                                                                      \
-                BOOST_CHECK_EQUAL(*it, val);                                                                           \
-                ++it;                                                                                                  \
-            }                                                                                                          \
-            p += sz;                                                                                                   \
-        }                                                                                                              \
-    out:;                                                                                                              \
+
+#define GEN_TEST_STREAM(test_type)                                      \
+    for (unsigned int k = 0; k < kLoop; k++) {                          \
+        msgpack::sbuffer sbuf;                                          \
+        msgpack::packer<msgpack::sbuffer> pk(sbuf);                     \
+        typedef std::vector<test_type> vec_type;                        \
+        vec_type vec;                                                   \
+        for(unsigned int i = 0; i < static_cast<unsigned int>(rand()) % kLoop; ++i) { \
+            vec_type::value_type r = static_cast<test_type>(rand());    \
+            vec.push_back(r);                                           \
+            pk.pack(r);                                                 \
+        }                                                               \
+        msgpack::unpacker pac;                                          \
+        vec_type::const_iterator it = vec.begin();                      \
+        const char *p = sbuf.data();                                    \
+        const char * const pend = p + sbuf.size();                      \
+        while (p < pend) {                                              \
+            const size_t sz = std::min<size_t>(static_cast<std::size_t>(pend - p), static_cast<std::size_t>(rand() % 128)); \
+            pac.reserve_buffer(sz);                                     \
+            memcpy(pac.buffer(), p, sz);                                \
+            pac.buffer_consumed(sz);                                    \
+            msgpack::object_handle oh;                                  \
+            while (pac.next(oh)) {                                      \
+                if (it == vec.end()) goto out;                          \
+                msgpack::object obj = oh.get();                         \
+                vec_type::value_type val;                               \
+                obj.convert(val);                                       \
+                BOOST_CHECK_EQUAL(*it, val);                            \
+                ++it;                                                   \
+            }                                                           \
+            p += sz;                                                    \
+        }                                                               \
+    out:                                                                \
+        ;                                                               \
     }
 
 BOOST_AUTO_TEST_CASE(stream_char)

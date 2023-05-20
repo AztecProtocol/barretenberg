@@ -11,8 +11,10 @@
 
 #if defined(MSGPACK_NO_BOOST)
 
-BOOST_AUTO_TEST_CASE(empty) {}
-#else // defined(MSGPACK_NO_BOOST)
+BOOST_AUTO_TEST_CASE(empty)
+{
+}
+#else  // defined(MSGPACK_NO_BOOST)
 
 BOOST_AUTO_TEST_CASE(pack_convert_nil)
 {
@@ -20,8 +22,9 @@ BOOST_AUTO_TEST_CASE(pack_convert_nil)
     boost::optional<int> val1;
     msgpack::pack(ss, val1);
     std::string const& str = ss.str();
-    msgpack::object_handle oh = msgpack::unpack(str.data(), str.size());
-    boost::optional<int> val2 = oh.get().as<boost::optional<int>>();
+    msgpack::object_handle oh =
+        msgpack::unpack(str.data(), str.size());
+    boost::optional<int> val2 = oh.get().as<boost::optional<int> >();
     BOOST_CHECK(val1 == val2);
 }
 
@@ -31,14 +34,15 @@ BOOST_AUTO_TEST_CASE(pack_convert_int)
     boost::optional<int> val1 = 1;
     msgpack::pack(ss, val1);
     std::string const& str = ss.str();
-    msgpack::object_handle oh = msgpack::unpack(str.data(), str.size());
-    boost::optional<int> val2 = oh.get().as<boost::optional<int>>();
+    msgpack::object_handle oh =
+        msgpack::unpack(str.data(), str.size());
+    boost::optional<int> val2 = oh.get().as<boost::optional<int> >();
     BOOST_CHECK(val1 == val2);
 }
 
 BOOST_AUTO_TEST_CASE(pack_convert_vector)
 {
-    typedef boost::optional<std::vector<int>> ovi_t;
+    typedef boost::optional<std::vector<int> > ovi_t;
     std::stringstream ss;
     ovi_t val1;
     std::vector<int> v;
@@ -48,14 +52,15 @@ BOOST_AUTO_TEST_CASE(pack_convert_vector)
     val1 = v;
     msgpack::pack(ss, val1);
     std::string const& str = ss.str();
-    msgpack::object_handle oh = msgpack::unpack(str.data(), str.size());
-    ovi_t val2 = oh.get().as<ovi_t>();
+    msgpack::object_handle oh =
+        msgpack::unpack(str.data(), str.size());
+    ovi_t  val2 = oh.get().as<ovi_t>();
     BOOST_CHECK(val1 == val2);
 }
 
 BOOST_AUTO_TEST_CASE(pack_convert_vector_optional)
 {
-    typedef std::vector<boost::optional<int>> voi_t;
+    typedef std::vector<boost::optional<int> > voi_t;
     std::stringstream ss;
     voi_t val1;
     val1.resize(3);
@@ -63,8 +68,9 @@ BOOST_AUTO_TEST_CASE(pack_convert_vector_optional)
     val1[2] = 3;
     msgpack::pack(ss, val1);
     std::string const& str = ss.str();
-    msgpack::object_handle oh = msgpack::unpack(str.data(), str.size());
-    voi_t val2 = oh.get().as<voi_t>();
+    msgpack::object_handle oh =
+        msgpack::unpack(str.data(), str.size());
+    voi_t  val2 = oh.get().as<voi_t>();
     BOOST_CHECK(val1 == val2);
 }
 
@@ -72,7 +78,7 @@ BOOST_AUTO_TEST_CASE(object_nil)
 {
     boost::optional<int> val1;
     msgpack::object obj(val1);
-    boost::optional<int> val2 = obj.as<boost::optional<int>>();
+    boost::optional<int> val2 = obj.as<boost::optional<int> >();
     BOOST_CHECK(val1 == val2);
 }
 
@@ -80,7 +86,7 @@ BOOST_AUTO_TEST_CASE(object_int)
 {
     boost::optional<int> val1 = 1;
     msgpack::object obj(val1);
-    boost::optional<int> val2 = obj.as<boost::optional<int>>();
+    boost::optional<int> val2 = obj.as<boost::optional<int> >();
     BOOST_CHECK(val1 == val2);
 }
 
@@ -106,7 +112,7 @@ BOOST_AUTO_TEST_CASE(object_with_zone_nil)
     msgpack::zone z;
     boost::optional<int> val1;
     msgpack::object obj(val1, z);
-    boost::optional<int> val2 = obj.as<boost::optional<int>>();
+    boost::optional<int> val2 = obj.as<boost::optional<int> >();
     BOOST_CHECK(val1 == val2);
 }
 
@@ -115,20 +121,20 @@ BOOST_AUTO_TEST_CASE(object_with_zone_int)
     msgpack::zone z;
     boost::optional<int> val1 = 1;
     msgpack::object obj(val1, z);
-    boost::optional<int> val2 = obj.as<boost::optional<int>>();
+    boost::optional<int> val2 = obj.as<boost::optional<int> >();
     BOOST_CHECK(val1 == val2);
 }
 
 BOOST_AUTO_TEST_CASE(object_with_zone_vector_optional)
 {
-    typedef std::vector<boost::optional<int>> voi_t;
+    typedef std::vector<boost::optional<int> > voi_t;
     msgpack::zone z;
     voi_t val1;
     val1.resize(3);
     val1[0] = 1;
     val1[2] = 3;
     msgpack::object obj(val1, z);
-    voi_t val2 = obj.as<voi_t>();
+    voi_t  val2 = obj.as<voi_t>();
     BOOST_CHECK(val1 == val2);
 }
 
@@ -136,40 +142,33 @@ BOOST_AUTO_TEST_CASE(object_with_zone_vector_optional)
 
 struct no_def_con {
     no_def_con() = delete;
-    no_def_con(int i)
-        : i(i)
-    {}
+    no_def_con(int i):i(i) {}
     int i;
     MSGPACK_DEFINE(i);
 };
 
-inline bool operator==(no_def_con const& lhs, no_def_con const& rhs)
-{
+inline bool operator==(no_def_con const& lhs, no_def_con const& rhs) {
     return lhs.i == rhs.i;
 }
 
-inline bool operator!=(no_def_con const& lhs, no_def_con const& rhs)
-{
+inline bool operator!=(no_def_con const& lhs, no_def_con const& rhs) {
     return !(lhs == rhs);
 }
 
 namespace msgpack {
-MSGPACK_API_VERSION_NAMESPACE(MSGPACK_DEFAULT_API_NS)
-{
+MSGPACK_API_VERSION_NAMESPACE(MSGPACK_DEFAULT_API_NS) {
     namespace adaptor {
-    template <> struct as<no_def_con> {
-        no_def_con operator()(msgpack::object const& o) const
-        {
-            if (o.type != msgpack::type::ARRAY)
-                throw msgpack::type_error();
-            if (o.via.array.size != 1)
-                throw msgpack::type_error();
+    template <>
+    struct as<no_def_con> {
+        no_def_con operator()(msgpack::object const& o) const {
+            if (o.type != msgpack::type::ARRAY) throw msgpack::type_error();
+            if (o.via.array.size != 1) throw msgpack::type_error();
             return no_def_con(o.via.array.ptr[0].as<int>());
         }
     };
-    } // namespace adaptor
+    } // adaptor
 } // MSGPACK_API_VERSION_NAMESPACE(MSGPACK_DEFAULT_API_NS)
-} // namespace msgpack
+} // msgpack
 
 BOOST_AUTO_TEST_CASE(pack_convert_no_def_con)
 {
@@ -177,7 +176,8 @@ BOOST_AUTO_TEST_CASE(pack_convert_no_def_con)
     boost::optional<no_def_con> val1 = no_def_con(1);
     msgpack::pack(ss, val1);
     std::string const& str = ss.str();
-    msgpack::object_handle oh = msgpack::unpack(str.data(), str.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(str.data(), str.size());
     boost::optional<no_def_con> val2 = oh.get().as<boost::optional<no_def_con>>();
     BOOST_CHECK(val1 == val2);
 }

@@ -1,4 +1,4 @@
-#/* Copyright (C) 2001
+# /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
 #  *
@@ -7,13 +7,13 @@
 #  * http://www.boost.org/LICENSE_1_0.txt)
 #  */
 #
-#/* Revised by Paul Mensonides (2002)  */
+# /* Revised by Paul Mensonides (2002)  */
 #
-#/* See http://www.boost.org/libs/preprocessor for documentation. */
+# /* See http://www.boost.org/libs/preprocessor for documentation. */
 #
-#ifndef MSGPACK_PREPROCESSOR_HPP
-#define MSGPACK_PREPROCESSOR_HPP
+# ifndef MSGPACK_PREPROCESSOR_HPP
+# define MSGPACK_PREPROCESSOR_HPP
 #
-#include <msgpack/preprocessor/library.hpp>
+# include <msgpack/preprocessor/library.hpp>
 #
-#endif
+# endif

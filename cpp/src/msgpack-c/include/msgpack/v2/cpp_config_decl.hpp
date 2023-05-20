@@ -18,67 +18,67 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v2)
-{
-    /// @endcond
-
-    using v1::unique_ptr;
-
-    using v1::move;
-
-    using v1::enable_if;
-
-    using v1::integral_constant;
-
-    using v1::is_same;
-
-    using v1::underlying_type;
-
-    using v1::is_array;
-
-    using v1::remove_const;
-    using v1::remove_cv;
-    using v1::remove_volatile;
-
-    using v1::is_pointer;
-
-    /// @cond
-} // MSGPACK_API_VERSION_NAMESPACE(v2)
+MSGPACK_API_VERSION_NAMESPACE(v2) {
 /// @endcond
 
-} // namespace msgpack
+using v1::unique_ptr;
 
-#else // MSGPACK_USE_CPP03
+using v1::move;
+
+using v1::enable_if;
+
+using v1::integral_constant;
+
+using v1::is_same;
+
+using v1::underlying_type;
+
+using v1::is_array;
+
+using v1::remove_const;
+using v1::remove_volatile;
+using v1::remove_cv;
+
+using v1::is_pointer;
+
+/// @cond
+}  // MSGPACK_API_VERSION_NAMESPACE(v2)
+/// @endcond
+
+}  // namespace msgpack
+
+
+#else  // MSGPACK_USE_CPP03
 
 namespace msgpack {
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v2)
-{
-    /// @endcond
-
-    // unique_ptr
-    using v1::unique_ptr;
-    // using v1::make_unique; // since C++14
-    using v1::hash;
-
-    // utility
-    using v1::enable_if;
-    using v1::is_array;
-    using v1::is_same;
-    using v1::move;
-    using v1::swap;
-    using v1::underlying_type;
-
-    using v1::remove_const;
-    using v1::remove_cv;
-    using v1::remove_volatile;
-
-    using v1::is_pointer;
-
-    /// @cond
-} // MSGPACK_API_VERSION_NAMESPACE(v2)
+MSGPACK_API_VERSION_NAMESPACE(v2) {
 /// @endcond
-} // namespace msgpack
+
+// unique_ptr
+using v1::unique_ptr;
+// using v1::make_unique; // since C++14
+using v1::hash;
+
+// utility
+using v1::move;
+using v1::swap;
+using v1::enable_if;
+using v1::is_same;
+using v1::underlying_type;
+using v1::is_array;
+
+using v1::remove_const;
+using v1::remove_volatile;
+using v1::remove_cv;
+
+using v1::is_pointer;
+
+/// @cond
+}  // MSGPACK_API_VERSION_NAMESPACE(v2)
+/// @endcond
+}  // namespace msgpack
+
 
 #endif // MSGPACK_USE_CPP03
 

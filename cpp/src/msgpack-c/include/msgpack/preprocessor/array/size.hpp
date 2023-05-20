@@ -1,4 +1,4 @@
-#/* **************************************************************************
+# /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
 #  *     Distributed under the Boost Software License, Version 1.0. (See
@@ -7,22 +7,22 @@
 #  *                                                                          *
 #  ************************************************************************** */
 #
-#/* See http://www.boost.org for most recent version. */
+# /* See http://www.boost.org for most recent version. */
 #
-#ifndef MSGPACK_PREPROCESSOR_ARRAY_SIZE_HPP
-#define MSGPACK_PREPROCESSOR_ARRAY_SIZE_HPP
+# ifndef MSGPACK_PREPROCESSOR_ARRAY_SIZE_HPP
+# define MSGPACK_PREPROCESSOR_ARRAY_SIZE_HPP
 #
-#include <msgpack/preprocessor/config/config.hpp>
-#include <msgpack/preprocessor/tuple/elem.hpp>
+# include <msgpack/preprocessor/config/config.hpp>
+# include <msgpack/preprocessor/tuple/elem.hpp>
 #
-#/* MSGPACK_PP_ARRAY_SIZE */
+# /* MSGPACK_PP_ARRAY_SIZE */
 #
-#if ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_EDG()
-#define MSGPACK_PP_ARRAY_SIZE(array) MSGPACK_PP_TUPLE_ELEM(2, 0, array)
-#else
-#define MSGPACK_PP_ARRAY_SIZE(array) MSGPACK_PP_ARRAY_SIZE_I(array)
-#define MSGPACK_PP_ARRAY_SIZE_I(array) MSGPACK_PP_ARRAY_SIZE_II array
-#define MSGPACK_PP_ARRAY_SIZE_II(size, data) size
-#endif
+# if ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_EDG()
+#    define MSGPACK_PP_ARRAY_SIZE(array) MSGPACK_PP_TUPLE_ELEM(2, 0, array)
+# else
+#    define MSGPACK_PP_ARRAY_SIZE(array) MSGPACK_PP_ARRAY_SIZE_I(array)
+#    define MSGPACK_PP_ARRAY_SIZE_I(array) MSGPACK_PP_ARRAY_SIZE_II array
+#    define MSGPACK_PP_ARRAY_SIZE_II(size, data) size
+# endif
 #
-#endif
+# endif

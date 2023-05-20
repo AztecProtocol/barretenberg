@@ -11,6 +11,7 @@ BOOST_AUTO_TEST_CASE(pack_num)
     msgpack::pack(sbuf, 1);
 }
 
+
 BOOST_AUTO_TEST_CASE(pack_vector)
 {
     msgpack::sbuffer sbuf;
@@ -21,24 +22,21 @@ BOOST_AUTO_TEST_CASE(pack_vector)
     msgpack::pack(sbuf, vec);
 }
 
+
 BOOST_AUTO_TEST_CASE(pack_to_ostream)
 {
     std::ostringstream stream;
     msgpack::pack(stream, 1);
 }
 
+
 struct myclass {
-    myclass()
-        : num(0)
-        , str("default")
-    {}
+    myclass() : num(0), str("default") { }
 
-    myclass(int num, const std::string& str)
-        : num(num)
-        , str(str)
-    {}
+    myclass(int num, const std::string& str) :
+        num(num), str(str) { }
 
-    ~myclass() {}
+    ~myclass() { }
 
     int num;
     std::string str;
@@ -46,12 +44,14 @@ struct myclass {
     MSGPACK_DEFINE(num, str);
 };
 
+
 BOOST_AUTO_TEST_CASE(pack_myclass)
 {
     msgpack::sbuffer sbuf;
     myclass m(1, "msgpack");
     msgpack::pack(sbuf, m);
 }
+
 
 BOOST_AUTO_TEST_CASE(unpack_int_ret_no_offset_no_ref)
 {
@@ -97,6 +97,7 @@ BOOST_AUTO_TEST_CASE(unpack_int_ret_offset_ref)
     BOOST_CHECK(!referenced);
     BOOST_CHECK_EQUAL(off, sbuf.size());
 }
+
 
 BOOST_AUTO_TEST_CASE(unpack_int_no_offset_no_ref)
 {
@@ -233,6 +234,7 @@ BOOST_AUTO_TEST_CASE(unpack_int_pointer_off_ref)
     BOOST_CHECK(!referenced);
 }
 
+
 BOOST_AUTO_TEST_CASE(unpack_int_default_null_pointer)
 {
     msgpack::sbuffer sbuf;
@@ -302,6 +304,7 @@ BOOST_AUTO_TEST_CASE(unpack_int_zone_offset_ref)
     BOOST_CHECK_EQUAL(off, sbuf.size());
 }
 
+
 BOOST_AUTO_TEST_CASE(unpack_sequence)
 {
     msgpack::sbuffer sbuf;
@@ -325,6 +328,7 @@ BOOST_AUTO_TEST_CASE(unpack_sequence)
     BOOST_CHECK_EQUAL(off, sbuf.size());
 }
 
+
 BOOST_AUTO_TEST_CASE(unpack_convert_to_object_handle)
 {
     msgpack::sbuffer sbuf;
@@ -334,6 +338,7 @@ BOOST_AUTO_TEST_CASE(unpack_convert_to_object_handle)
     msgpack::unpack(msg, sbuf.data(), sbuf.size());
     msgpack::object_handle oh(msgpack::move(msg));
     BOOST_CHECK_EQUAL(1, oh.get().as<int>());
+
 }
 
 BOOST_AUTO_TEST_CASE(unpack_convert_to_object_handle_direct)
@@ -342,6 +347,7 @@ BOOST_AUTO_TEST_CASE(unpack_convert_to_object_handle_direct)
     msgpack::pack(sbuf, 1);
     msgpack::object_handle oh(msgpack::unpack(sbuf.data(), sbuf.size()));
     BOOST_CHECK_EQUAL(1, oh.get().as<int>());
+
 }
 
 BOOST_AUTO_TEST_CASE(unpack_convert_to_object_handle_direct_implicit)
@@ -350,6 +356,7 @@ BOOST_AUTO_TEST_CASE(unpack_convert_to_object_handle_direct_implicit)
     msgpack::pack(sbuf, 1);
     msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size());
     BOOST_CHECK_EQUAL(1, oh.get().as<int>());
+
 }
 
 BOOST_AUTO_TEST_CASE(unpack_insufficient_bytes_ref)
@@ -363,7 +370,8 @@ BOOST_AUTO_TEST_CASE(unpack_insufficient_bytes_ref)
     try {
         msgpack::unpack(oh, sbuf.data(), 1, off);
         BOOST_CHECK(false);
-    } catch (msgpack::insufficient_bytes const&) {
+    }
+    catch (msgpack::insufficient_bytes const&) {
         BOOST_CHECK(true);
 #if MSGPACK_DEFAULT_API_VERSION < 3
         BOOST_CHECK_EQUAL(off, 0u);
@@ -383,7 +391,8 @@ BOOST_AUTO_TEST_CASE(unpack_insufficient_bytes_object_handle)
     try {
         msgpack::object_handle oh(msgpack::unpack(sbuf.data(), 1, off));
         BOOST_CHECK(false);
-    } catch (msgpack::insufficient_bytes const&) {
+    }
+    catch (msgpack::insufficient_bytes const&) {
         BOOST_CHECK(true);
 #if MSGPACK_DEFAULT_API_VERSION < 3
         BOOST_CHECK_EQUAL(off, 0u);
@@ -404,7 +413,8 @@ BOOST_AUTO_TEST_CASE(unpack_insufficient_bytes_zone)
         msgpack::zone z;
         msgpack::unpack(z, sbuf.data(), 1, off);
         BOOST_CHECK(false);
-    } catch (msgpack::insufficient_bytes const&) {
+    }
+    catch (msgpack::insufficient_bytes const&) {
         BOOST_CHECK(true);
 #if MSGPACK_DEFAULT_API_VERSION < 3
         BOOST_CHECK_EQUAL(off, 0u);
@@ -426,7 +436,8 @@ BOOST_AUTO_TEST_CASE(unpack_parse_error)
     try {
         msgpack::unpack(oh, sbuf.data(), sbuf.size());
         BOOST_CHECK(false);
-    } catch (msgpack::parse_error const&) {
+    }
+    catch (msgpack::parse_error const&) {
         thrown = true;
     }
     BOOST_CHECK(thrown);
@@ -443,7 +454,8 @@ BOOST_AUTO_TEST_CASE(unpack_returned_parse_error)
     try {
         msgpack::unpack(sbuf.data(), sbuf.size());
         BOOST_CHECK(false);
-    } catch (msgpack::parse_error const&) {
+    }
+    catch (msgpack::parse_error const&) {
         thrown = true;
     }
     BOOST_CHECK(thrown);
@@ -461,7 +473,8 @@ BOOST_AUTO_TEST_CASE(unpack_zone_parse_error)
     try {
         msgpack::unpack(z, sbuf.data(), sbuf.size());
         BOOST_CHECK(false);
-    } catch (msgpack::parse_error const&) {
+    }
+    catch (msgpack::parse_error const&) {
         thrown = true;
     }
     BOOST_CHECK(thrown);
@@ -496,7 +509,8 @@ BOOST_AUTO_TEST_CASE(unpack_int_off_larger_than_length)
     bool thrown = false;
     try {
         msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size(), off);
-    } catch (msgpack::insufficient_bytes const&) {
+    }
+    catch (msgpack::insufficient_bytes const&) {
         thrown = true;
     }
     BOOST_CHECK(thrown);

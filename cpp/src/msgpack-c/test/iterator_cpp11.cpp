@@ -13,7 +13,7 @@
 // C++11
 
 constexpr unsigned int VECTOR_SIZE = 100;
-constexpr unsigned int MAP_SIZE = 100;
+constexpr unsigned int MAP_SIZE    = 100;
 
 BOOST_AUTO_TEST_CASE(vector)
 {
@@ -26,7 +26,8 @@ BOOST_AUTO_TEST_CASE(vector)
     msgpack::sbuffer sbuf;
     msgpack::pack(sbuf, vec);
 
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size());
 
     auto const& msgarr = oh.get().via.array;
     auto dist = std::distance(begin(msgarr), end(msgarr));
@@ -51,7 +52,8 @@ BOOST_AUTO_TEST_CASE(map)
     msgpack::sbuffer sbuf;
     msgpack::pack(sbuf, map);
 
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size());
 
     auto const& msgmap = oh.get().via.map;
     auto dist = std::distance(begin(msgmap), end(msgmap));

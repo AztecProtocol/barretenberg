@@ -15,36 +15,40 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v3)
-{
-    /// @endcond
-
-    namespace type {
-    namespace detail {
-
-    template <typename T, bool Signed> struct convert_integer_sign;
-
-    template <typename T> struct is_signed;
-
-    template <bool Signed> struct object_sign;
-
-    // using v2::type::detail::convert_integer_sign;
-
-    // using v2::type::detail::is_signed;
-
-    using v2::type::detail::convert_integer;
-
-    // using v2::type::detail::object_char_sign;
-
-    using v2::type::detail::object_char;
-
-    } // namespace detail
-    } // namespace type
-
-    /// @cond
-} // MSGPACK_API_VERSION_NAMESPACE(v3)
+MSGPACK_API_VERSION_NAMESPACE(v3){
 /// @endcond
 
-} // namespace msgpack
+namespace type {
+namespace detail {
+
+
+template <typename T, bool Signed>
+struct convert_integer_sign;
+
+template <typename T>
+struct is_signed;
+
+
+template <bool Signed>
+struct object_sign;
+
+//using v2::type::detail::convert_integer_sign;
+
+//using v2::type::detail::is_signed;
+
+using v2::type::detail::convert_integer;
+
+//using v2::type::detail::object_char_sign;
+
+using v2::type::detail::object_char;
+
+}  // namespace detail
+}  // namespace type
+
+/// @cond
+}  // MSGPACK_API_VERSION_NAMESPACE(v3)
+/// @endcond
+
+}  // namespace msgpack
 
 #endif // MSGPACK_V3_TYPE_INT_DECL_HPP

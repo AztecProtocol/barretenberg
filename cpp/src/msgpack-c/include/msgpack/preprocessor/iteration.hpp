@@ -1,4 +1,4 @@
-#/* **************************************************************************
+# /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
 #  *     Distributed under the Boost Software License, Version 1.0. (See
@@ -7,13 +7,13 @@
 #  *                                                                          *
 #  ************************************************************************** */
 #
-#/* See http://www.boost.org for most recent version. */
+# /* See http://www.boost.org for most recent version. */
 #
-#ifndef MSGPACK_PREPROCESSOR_ITERATION_HPP
-#define MSGPACK_PREPROCESSOR_ITERATION_HPP
+# ifndef MSGPACK_PREPROCESSOR_ITERATION_HPP
+# define MSGPACK_PREPROCESSOR_ITERATION_HPP
 #
-#include <msgpack/preprocessor/iteration/iterate.hpp>
-#include <msgpack/preprocessor/iteration/local.hpp>
-#include <msgpack/preprocessor/iteration/self.hpp>
+# include <msgpack/preprocessor/iteration/iterate.hpp>
+# include <msgpack/preprocessor/iteration/local.hpp>
+# include <msgpack/preprocessor/iteration/self.hpp>
 #
-#endif
+# endif

@@ -16,21 +16,23 @@
 
 namespace msgpack {
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v1)
-{
-    /// @endcond
-    namespace type {
-
-    template <typename Tuple, std::size_t N> struct define_map_imp;
-
-    template <typename... Args> struct define_map;
-
-    template <typename... Args> define_map<Args...> make_define_map(Args&... args);
-
-    } // namespace type
-    /// @cond
-} // MSGPACK_API_VERSION_NAMESPACE(v1)
+MSGPACK_API_VERSION_NAMESPACE(v1) {
 /// @endcond
-} // namespace msgpack
+namespace type {
+
+template <typename Tuple, std::size_t N>
+struct define_map_imp;
+
+template <typename... Args>
+struct define_map;
+
+template <typename... Args>
+define_map<Args...> make_define_map(Args&... args);
+
+}  // namespace type
+/// @cond
+}  // MSGPACK_API_VERSION_NAMESPACE(v1)
+/// @endcond
+}  // namespace msgpack
 
 #endif // MSGPACK_V1_CPP11_DEFINE_MAP_DECL_HPP

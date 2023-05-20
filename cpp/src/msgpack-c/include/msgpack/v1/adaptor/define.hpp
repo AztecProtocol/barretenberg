@@ -13,7 +13,7 @@
 #if defined(MSGPACK_USE_CPP03)
 #include "msgpack/v1/adaptor/detail/cpp03_define_array.hpp"
 #include "msgpack/v1/adaptor/detail/cpp03_define_map.hpp"
-#else // MSGPACK_USE_CPP03
+#else  // MSGPACK_USE_CPP03
 #include "msgpack/v1/adaptor/detail/cpp11_define_array.hpp"
 #include "msgpack/v1/adaptor/detail/cpp11_define_map.hpp"
 #endif // MSGPACK_USE_CPP03

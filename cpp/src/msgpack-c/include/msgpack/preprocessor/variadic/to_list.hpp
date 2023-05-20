@@ -1,4 +1,4 @@
-#/* **************************************************************************
+# /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Edward Diener 2011.                                    *
 #  *     (C) Copyright Paul Mensonides 2011.                                  *
@@ -8,18 +8,18 @@
 #  *                                                                          *
 #  ************************************************************************** */
 #
-#/* See http://www.boost.org for most recent version. */
+# /* See http://www.boost.org for most recent version. */
 #
-#ifndef MSGPACK_PREPROCESSOR_VARIADIC_TO_LIST_HPP
-#define MSGPACK_PREPROCESSOR_VARIADIC_TO_LIST_HPP
+# ifndef MSGPACK_PREPROCESSOR_VARIADIC_TO_LIST_HPP
+# define MSGPACK_PREPROCESSOR_VARIADIC_TO_LIST_HPP
 #
-#include <msgpack/preprocessor/config/config.hpp>
-#include <msgpack/preprocessor/tuple/to_list.hpp>
+# include <msgpack/preprocessor/config/config.hpp>
+# include <msgpack/preprocessor/tuple/to_list.hpp>
 #
-#/* MSGPACK_PP_VARIADIC_TO_LIST */
+# /* MSGPACK_PP_VARIADIC_TO_LIST */
 #
-#if MSGPACK_PP_VARIADICS
-#define MSGPACK_PP_VARIADIC_TO_LIST(...) MSGPACK_PP_TUPLE_TO_LIST((__VA_ARGS__))
-#endif
+# if MSGPACK_PP_VARIADICS
+#    define MSGPACK_PP_VARIADIC_TO_LIST(...) MSGPACK_PP_TUPLE_TO_LIST((__VA_ARGS__))
+# endif
 #
-#endif
+# endif

@@ -18,29 +18,28 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v2)
-{
-    /// @endcond
+MSGPACK_API_VERSION_NAMESPACE(v2) {
+/// @endcond
 
-    namespace detail {
+namespace detail {
 
-    using v1::detail::bool_pack;
+using v1::detail::bool_pack;
 
-    using v1::detail::all_of_imp;
+using v1::detail::all_of_imp;
 
-    using v1::detail::any_of_imp;
+using v1::detail::any_of_imp;
 
-    } // namespace detail
+} // namespace detail
 
-    using v1::all_of;
+using v1::all_of;
 
-    using v1::any_of;
+using v1::any_of;
 
-    using v1::seq;
+using v1::seq;
 
-    using v1::gen_seq;
+using v1::gen_seq;
 
-    /// @cond
+/// @cond
 } // MSGPACK_API_VERSION_NAMESPACE(v2)
 /// @endcond
 

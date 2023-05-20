@@ -16,55 +16,57 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v2)
-{
-    /// @endcond
+MSGPACK_API_VERSION_NAMESPACE(v2) {
+/// @endcond
 
-    namespace type {
-    using v1::type::BOOLEAN;
-    using v1::type::FLOAT;
-    using v1::type::FLOAT32;
-    using v1::type::FLOAT64;
-    using v1::type::NEGATIVE_INTEGER;
-    using v1::type::NIL;
-    using v1::type::object_type;
-    using v1::type::POSITIVE_INTEGER;
+namespace type {
+using v1::type::object_type;
+using v1::type::NIL;
+using v1::type::BOOLEAN;
+using v1::type::POSITIVE_INTEGER;
+using v1::type::NEGATIVE_INTEGER;
+using v1::type::FLOAT32;
+using v1::type::FLOAT64;
+using v1::type::FLOAT;
 #if defined(MSGPACK_USE_LEGACY_NAME_AS_FLOAT)
-    using v1::type::DOUBLE;
+using v1::type::DOUBLE;
 #endif // MSGPACK_USE_LEGACY_NAME_AS_FLOAT
-    using v1::type::ARRAY;
-    using v1::type::BIN;
-    using v1::type::EXT;
-    using v1::type::MAP;
-    using v1::type::STR;
-    } // namespace type
+using v1::type::STR;
+using v1::type::BIN;
+using v1::type::ARRAY;
+using v1::type::MAP;
+using v1::type::EXT;
+} // namespace type
 
-    struct object;
+struct object;
 
-    using v1::object_kv;
+using v1::object_kv;
 
-    using v1::object_array;
-    using v1::object_map;
+using v1::object_array;
+using v1::object_map;
 
-    using v1::object_bin;
-    using v1::object_ext;
-    using v1::object_str;
+using v1::object_str;
+using v1::object_bin;
+using v1::object_ext;
 
-    using v1::type_error;
+using v1::type_error;
+
 
 #if !defined(MSGPACK_USE_CPP03)
 
-    namespace adaptor {
+namespace adaptor {
 
-    template <typename T, typename Enabler = void> struct as;
+template <typename T, typename Enabler = void>
+struct as;
 
-    } // namespace adaptor
+} // namespace adaptor
 
-    template <typename T> struct has_as;
+template <typename T>
+struct has_as;
 
 #endif // !defined(MSGPACK_USE_CPP03)
 
-    /// @cond
+/// @cond
 } // MSGPACK_API_VERSION_NAMESPACE(v2)
 /// @endcond
 

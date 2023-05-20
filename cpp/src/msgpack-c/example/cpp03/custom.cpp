@@ -13,10 +13,8 @@
 #include <iostream>
 
 class old_class {
-  public:
-    old_class()
-        : value("default")
-    {}
+public:
+    old_class() : value("default") { }
 
     std::string value;
 
@@ -24,11 +22,8 @@ class old_class {
 };
 
 class new_class {
-  public:
-    new_class()
-        : value("default")
-        , flag(-1)
-    {}
+public:
+    new_class() : value("default"), flag(-1) { }
 
     std::string value;
     int flag;
@@ -45,7 +40,8 @@ int main(void)
         std::stringstream sbuf;
         msgpack::pack(sbuf, oc);
 
-        msgpack::object_handle oh = msgpack::unpack(sbuf.str().data(), sbuf.str().size());
+        msgpack::object_handle oh =
+            msgpack::unpack(sbuf.str().data(), sbuf.str().size());
         msgpack::object obj = oh.get();
 
         obj.convert(nc);
@@ -60,7 +56,8 @@ int main(void)
         std::stringstream sbuf;
         msgpack::pack(sbuf, nc);
 
-        msgpack::object_handle oh = msgpack::unpack(sbuf.str().data(), sbuf.str().size());
+        msgpack::object_handle oh =
+            msgpack::unpack(sbuf.str().data(), sbuf.str().size());
         msgpack::object obj = oh.get();
 
         obj.convert(oc);

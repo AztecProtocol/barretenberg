@@ -15,30 +15,29 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v2)
-{
-    /// @endcond
-
-    namespace type {
-
-    using v1::type::tuple;
-
-    using v1::type::tuple_element;
-
-    using v1::type::const_tuple_element;
-
-    using v1::type::tuple_type;
-
-    using v1::type::get;
-
-    using v1::type::make_tuple;
-
-    } // namespace type
-
-    /// @cond
-} // MSGPACK_API_VERSION_NAMESPACE(v2)
+MSGPACK_API_VERSION_NAMESPACE(v2) {
 /// @endcond
 
-} // namespace msgpack
+namespace type {
+
+using v1::type::tuple;
+
+using v1::type::tuple_element;
+
+using v1::type::const_tuple_element;
+
+using v1::type::tuple_type;
+
+using v1::type::get;
+
+using v1::type::make_tuple;
+
+}  // namespace type
+
+/// @cond
+}  // MSGPACK_API_VERSION_NAMESPACE(v2)
+/// @endcond
+
+}  // namespace msgpack
 
 #endif // MSGPACK_V2_CPP03_MSGPACK_TUPLE_DECL_HPP

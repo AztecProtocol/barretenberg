@@ -38,7 +38,8 @@ BOOST_AUTO_TEST_CASE(array)
     try {
         oh.get().convert(ret_seo4);
         BOOST_CHECK(false);
-    } catch (msgpack::type_error const&) {
+    }
+    catch (msgpack::type_error const&) {
         BOOST_CHECK(true);
     }
 }
@@ -51,7 +52,7 @@ BOOST_AUTO_TEST_CASE(vector)
     buf.push_back(2);
     buf.push_back(3);
 
-    msgpack::type::size_equal_only<std::vector<int>> seo(buf);
+    msgpack::type::size_equal_only<std::vector<int> > seo(buf);
 
     msgpack::pack(ss, seo);
     std::string const& str = ss.str();
@@ -61,19 +62,21 @@ BOOST_AUTO_TEST_CASE(vector)
     oh.get().convert(ret_buf1);
     BOOST_CHECK(buf == ret_buf1);
 
+
     std::vector<int> ret_buf2;
     ret_buf2.resize(3);
-    msgpack::type::size_equal_only<std::vector<int>> ret_seo2(ret_buf2);
+    msgpack::type::size_equal_only<std::vector<int> > ret_seo2(ret_buf2);
     oh.get().convert(ret_seo2);
     BOOST_CHECK(buf == ret_buf2);
 
     std::vector<int> ret_buf3;
     ret_buf2.resize(4);
-    msgpack::type::size_equal_only<std::vector<int>> ret_seo3(ret_buf3);
+    msgpack::type::size_equal_only<std::vector<int> > ret_seo3(ret_buf3);
     try {
         oh.get().convert(ret_seo3);
         BOOST_CHECK(false);
-    } catch (msgpack::type_error const&) {
+    }
+    catch (msgpack::type_error const&) {
         BOOST_CHECK(true);
     }
 }
@@ -83,7 +86,7 @@ BOOST_AUTO_TEST_CASE(msgpack_tuple)
     std::stringstream ss;
     msgpack::type::tuple<int, bool, std::string> buf(1, false, "ABC");
 
-    msgpack::type::size_equal_only<msgpack::type::tuple<int, bool, std::string>> seo(buf);
+    msgpack::type::size_equal_only<msgpack::type::tuple<int, bool, std::string> > seo(buf);
 
     msgpack::pack(ss, seo);
     std::string const& str = ss.str();
@@ -96,7 +99,7 @@ BOOST_AUTO_TEST_CASE(msgpack_tuple)
     BOOST_CHECK_EQUAL(buf.get<2>(), ret_buf1.get<2>());
 
     msgpack::type::tuple<int, bool, std::string> ret_buf2;
-    msgpack::type::size_equal_only<msgpack::type::tuple<int, bool, std::string>> ret_seo2(ret_buf2);
+    msgpack::type::size_equal_only<msgpack::type::tuple<int, bool, std::string> > ret_seo2(ret_buf2);
     oh.get().convert(ret_seo2);
     BOOST_CHECK_EQUAL(buf.get<0>(), ret_buf2.get<0>());
     BOOST_CHECK_EQUAL(buf.get<1>(), ret_buf2.get<1>());
@@ -109,11 +112,12 @@ BOOST_AUTO_TEST_CASE(msgpack_tuple)
     BOOST_CHECK_EQUAL(buf.get<2>(), ret_buf3.get<2>());
 
     msgpack::type::tuple<int, bool, std::string, int> ret_buf4;
-    msgpack::type::size_equal_only<msgpack::type::tuple<int, bool, std::string, int>> ret_seo4(ret_buf4);
+    msgpack::type::size_equal_only<msgpack::type::tuple<int, bool, std::string, int> > ret_seo4(ret_buf4);
     try {
         oh.get().convert(ret_seo4);
         BOOST_CHECK(false);
-    } catch (msgpack::type_error const&) {
+    }
+    catch (msgpack::type_error const&) {
         BOOST_CHECK(true);
     }
 
@@ -123,11 +127,12 @@ BOOST_AUTO_TEST_CASE(msgpack_tuple)
     BOOST_CHECK_EQUAL(buf.get<1>(), ret_buf5.get<1>());
 
     msgpack::type::tuple<int, bool, std::string, int> ret_buf6;
-    msgpack::type::size_equal_only<msgpack::type::tuple<int, bool, std::string, int>> ret_seo6(ret_buf6);
+    msgpack::type::size_equal_only<msgpack::type::tuple<int, bool, std::string, int> > ret_seo6(ret_buf6);
     try {
         oh.get().convert(ret_seo6);
         BOOST_CHECK(false);
-    } catch (msgpack::type_error const&) {
+    }
+    catch (msgpack::type_error const&) {
         BOOST_CHECK(true);
     }
 }
@@ -165,7 +170,8 @@ BOOST_AUTO_TEST_CASE(tuple)
     try {
         oh.get().convert(ret_seo4);
         BOOST_CHECK(false);
-    } catch (msgpack::type_error const&) {
+    }
+    catch (msgpack::type_error const&) {
         BOOST_CHECK(true);
     }
 
@@ -179,28 +185,23 @@ BOOST_AUTO_TEST_CASE(tuple)
     try {
         oh.get().convert(ret_seo6);
         BOOST_CHECK(false);
-    } catch (msgpack::type_error const&) {
+    }
+    catch (msgpack::type_error const&) {
         BOOST_CHECK(true);
     }
 }
 
 struct foo1 {
-    foo1(int i, bool b)
-        : t(i, b)
-        , seo(t)
-    {}
+    foo1(int i, bool b):t(i, b), seo(t) {}
     std::tuple<int, bool> t;
-    msgpack::type::size_equal_only<std::tuple<int, bool>> seo;
+    msgpack::type::size_equal_only<std::tuple<int, bool> > seo;
     MSGPACK_DEFINE(seo);
 };
 
 struct foo2 {
-    foo2(int i, bool b, std::string const& s)
-        : t(i, b, s)
-        , seo(t)
-    {}
+    foo2(int i, bool b, std::string const& s):t(i, b, s), seo(t) {}
     std::tuple<int, bool, std::string> t;
-    msgpack::type::size_equal_only<std::tuple<int, bool, std::string>> seo;
+    msgpack::type::size_equal_only<std::tuple<int, bool, std::string> > seo;
     MSGPACK_DEFINE(seo);
 };
 
@@ -216,7 +217,8 @@ BOOST_AUTO_TEST_CASE(custom_class)
     try {
         oh.get().convert(f2);
         BOOST_CHECK(false);
-    } catch (msgpack::type_error const&) {
+    }
+    catch (msgpack::type_error const&) {
         BOOST_CHECK(true);
     }
 }

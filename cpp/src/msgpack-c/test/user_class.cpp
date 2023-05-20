@@ -17,15 +17,18 @@ const double kEPS = 1e-10;
 
 // User-Defined Structures
 
-class TestEnumMemberClass {
-  public:
+class TestEnumMemberClass
+{
+public:
     TestEnumMemberClass()
-        : t1(STATE_A)
-        , t2(STATE_B)
-        , t3(STATE_C)
-    {}
+        : t1(STATE_A), t2(STATE_B), t3(STATE_C) {}
 
-    enum TestEnumType { STATE_INVALID = 0, STATE_A = 1, STATE_B = 2, STATE_C = 3 };
+    enum TestEnumType {
+        STATE_INVALID = 0,
+        STATE_A = 1,
+        STATE_B = 2,
+        STATE_C = 3
+    };
     TestEnumType t1;
     TestEnumType t2;
     TestEnumType t3;
@@ -35,12 +38,10 @@ class TestEnumMemberClass {
 
 MSGPACK_ADD_ENUM(TestEnumMemberClass::TestEnumType);
 
-class TestClass {
-  public:
-    TestClass()
-        : i(0)
-        , s("kzk")
-    {}
+class TestClass
+{
+public:
+    TestClass() : i(0), s("kzk") {}
     int i;
     string s;
     MSGPACK_DEFINE(i, s);
@@ -52,19 +53,18 @@ BOOST_AUTO_TEST_CASE(simple_buffer_class)
         TestClass val1;
         msgpack::sbuffer sbuf;
         msgpack::pack(sbuf, val1);
-        msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size());
+        msgpack::object_handle oh =
+            msgpack::unpack(sbuf.data(), sbuf.size());
         TestClass val2 = oh.get().as<TestClass>();
         BOOST_CHECK_EQUAL(val1.i, val2.i);
         BOOST_CHECK_EQUAL(val1.s, val2.s);
     }
 }
 
-class TestClass2 {
-  public:
-    TestClass2()
-        : i(0)
-        , s("kzk")
-    {
+class TestClass2
+{
+public:
+    TestClass2() : i(0), s("kzk") {
         for (unsigned int i = 0; i < kElements; i++)
             v.push_back(rand());
     }
@@ -80,7 +80,8 @@ BOOST_AUTO_TEST_CASE(simple_buffer_class_old_to_new)
         TestClass val1;
         msgpack::sbuffer sbuf;
         msgpack::pack(sbuf, val1);
-        msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size());
+        msgpack::object_handle oh =
+            msgpack::unpack(sbuf.data(), sbuf.size());
         TestClass2 val2 = oh.get().as<TestClass2>();
         BOOST_CHECK_EQUAL(val1.i, val2.i);
         BOOST_CHECK_EQUAL(val1.s, val2.s);
@@ -94,7 +95,8 @@ BOOST_AUTO_TEST_CASE(simple_buffer_class_new_to_old)
         TestClass2 val1;
         msgpack::sbuffer sbuf;
         msgpack::pack(sbuf, val1);
-        msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size());
+        msgpack::object_handle oh =
+            msgpack::unpack(sbuf.data(), sbuf.size());
         TestClass val2 = oh.get().as<TestClass>();
         BOOST_CHECK_EQUAL(val1.i, val2.i);
         BOOST_CHECK_EQUAL(val1.s, val2.s);
@@ -107,23 +109,23 @@ BOOST_AUTO_TEST_CASE(simple_buffer_enum_member)
     TestEnumMemberClass val1;
     msgpack::sbuffer sbuf;
     msgpack::pack(sbuf, val1);
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size());
     TestEnumMemberClass val2 = oh.get().as<TestEnumMemberClass>();
     BOOST_CHECK_EQUAL(val1.t1, val2.t1);
     BOOST_CHECK_EQUAL(val1.t2, val2.t2);
     BOOST_CHECK_EQUAL(val1.t3, val2.t3);
 }
 
-class TestUnionMemberClass {
-  public:
+class TestUnionMemberClass
+{
+public:
     TestUnionMemberClass() {}
-    TestUnionMemberClass(double f)
-    {
+    TestUnionMemberClass(double f) {
         is_double = true;
         value.f = f;
     }
-    TestUnionMemberClass(int i)
-    {
+    TestUnionMemberClass(int i) {
         is_double = false;
         value.i = i;
     }
@@ -134,7 +136,8 @@ class TestUnionMemberClass {
     } value;
     bool is_double;
 
-    template <typename Packer> void msgpack_pack(Packer& pk) const
+    template <typename Packer>
+    void msgpack_pack(Packer& pk) const
     {
         if (is_double)
             pk.pack(msgpack::type::tuple<bool, double>(true, value.f));
@@ -173,7 +176,8 @@ BOOST_AUTO_TEST_CASE(simple_buffer_union_member)
         TestUnionMemberClass val1(1.0);
         msgpack::sbuffer sbuf;
         msgpack::pack(sbuf, val1);
-        msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size());
+        msgpack::object_handle oh =
+            msgpack::unpack(sbuf.data(), sbuf.size());
         TestUnionMemberClass val2 = oh.get().as<TestUnionMemberClass>();
         BOOST_CHECK_EQUAL(val1.is_double, val2.is_double);
         BOOST_CHECK(fabs(val1.value.f - val2.value.f) < kEPS);
@@ -183,7 +187,8 @@ BOOST_AUTO_TEST_CASE(simple_buffer_union_member)
         TestUnionMemberClass val1(1);
         msgpack::sbuffer sbuf;
         msgpack::pack(sbuf, val1);
-        msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size());
+        msgpack::object_handle oh =
+            msgpack::unpack(sbuf.data(), sbuf.size());
         TestUnionMemberClass val2 = oh.get().as<TestUnionMemberClass>();
         BOOST_CHECK_EQUAL(val1.is_double, val2.is_double);
         BOOST_CHECK_EQUAL(val1.value.i, 1);
@@ -228,7 +233,8 @@ BOOST_AUTO_TEST_CASE(inherit_define_non_virtual)
     b.d_mid2::t = 5;
     msgpack::sbuffer sbuf;
     msgpack::pack(sbuf, b);
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size());
     d_bottom br = oh.get().as<d_bottom>();
     BOOST_CHECK_EQUAL(b.b, br.b);
     BOOST_CHECK_EQUAL(b.m1, br.m1);
@@ -266,7 +272,8 @@ BOOST_AUTO_TEST_CASE(inherit_define_virtual)
     b.t = 4;
     msgpack::sbuffer sbuf;
     msgpack::pack(sbuf, b);
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size());
     v_d_bottom br = oh.get().as<v_d_bottom>();
     BOOST_CHECK_EQUAL(b.b, br.b);
     BOOST_CHECK_EQUAL(b.m1, br.m1);
@@ -306,7 +313,8 @@ BOOST_AUTO_TEST_CASE(inherit_define_array_non_virtual)
     b.da_mid2::t = 5;
     msgpack::sbuffer sbuf;
     msgpack::pack(sbuf, b);
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size());
     da_bottom br = oh.get().as<da_bottom>();
     BOOST_CHECK_EQUAL(b.b, br.b);
     BOOST_CHECK_EQUAL(b.m1, br.m1);
@@ -344,7 +352,8 @@ BOOST_AUTO_TEST_CASE(inherit_define_array_virtual)
     b.t = 4;
     msgpack::sbuffer sbuf;
     msgpack::pack(sbuf, b);
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size());
     v_da_bottom br = oh.get().as<v_da_bottom>();
     BOOST_CHECK_EQUAL(b.b, br.b);
     BOOST_CHECK_EQUAL(b.m1, br.m1);
@@ -384,7 +393,8 @@ BOOST_AUTO_TEST_CASE(inherit_define_map_non_virtual)
     b.dm_mid2::t = 5;
     msgpack::sbuffer sbuf;
     msgpack::pack(sbuf, b);
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size());
 #if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 7)) && !defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
@@ -429,7 +439,8 @@ BOOST_AUTO_TEST_CASE(inherit_define_map_virtual)
     b.t = 4;
     msgpack::sbuffer sbuf;
     msgpack::pack(sbuf, b);
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size());
     v_dm_bottom br = oh.get().as<v_dm_bottom>();
     BOOST_CHECK_EQUAL(b.b, br.b);
     BOOST_CHECK_EQUAL(b.m1, br.m1);
@@ -442,10 +453,7 @@ BOOST_AUTO_TEST_CASE(inherit_define_map_virtual)
 struct s_v1 {
     int i;
     std::string s;
-    s_v1()
-        : i(42)
-        , s("foo")
-    {}
+    s_v1():i(42), s("foo") {}
     MSGPACK_DEFINE_MAP(i, s);
 };
 
@@ -453,11 +461,7 @@ struct s_v2 {
     char c; // new member variable
     std::string s;
     int i;
-    s_v2()
-        : c('A')
-        , s("bar")
-        , i(77)
-    {}
+    s_v2():c('A'), s("bar"), i(77) {}
     MSGPACK_DEFINE_MAP(c, s, i); // variable added, order changed
 };
 
@@ -467,7 +471,8 @@ BOOST_AUTO_TEST_CASE(migration_order_number_changed)
     msgpack::sbuffer sbuf;
     msgpack::pack(sbuf, v1);
 
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size());
     s_v2 v2 = oh.get().as<s_v2>();
 
     BOOST_CHECK_EQUAL(v2.c, 'A');
@@ -478,41 +483,51 @@ BOOST_AUTO_TEST_CASE(migration_order_number_changed)
 // non intrusive with operator <<
 
 class test_non_intrusive {
-  public:
+public:
     const std::string& name() const { return m_name; }
     void set_name(const std::string& name) { m_name = name; }
-
-  private:
+private:
     std::string m_name;
 };
 
 namespace msgpack {
-MSGPACK_API_VERSION_NAMESPACE(MSGPACK_DEFAULT_API_NS)
+MSGPACK_API_VERSION_NAMESPACE(MSGPACK_DEFAULT_API_NS) {
+namespace adaptor {
+
+template<>
+struct convert<test_non_intrusive>
 {
-    namespace adaptor {
+    msgpack::object const& operator()(
+        msgpack::object const& o,
+        test_non_intrusive& t) const {
+        t.set_name(o.as<std::string>());
+        return o;
+    }
+};
 
-    template <> struct convert<test_non_intrusive> {
-        msgpack::object const& operator()(msgpack::object const& o, test_non_intrusive& t) const
-        {
-            t.set_name(o.as<std::string>());
-            return o;
-        }
-    };
+template<>
+struct pack<test_non_intrusive>
+{
+    template <typename Stream>
+    msgpack::packer<Stream>& operator()(
+        msgpack::packer<Stream>& p,
+        test_non_intrusive const& t) const {
+        p.pack(t.name());
+        return p;
+    }
+};
 
-    template <> struct pack<test_non_intrusive> {
-        template <typename Stream>
-        msgpack::packer<Stream>& operator()(msgpack::packer<Stream>& p, test_non_intrusive const& t) const
-        {
-            p.pack(t.name());
-            return p;
-        }
-    };
+template <>
+struct object_with_zone<test_non_intrusive>
+{
+    void operator()(
+        msgpack::object::with_zone& o,
+        const test_non_intrusive& t) const {
+        o << t.name();
+    }
+};
 
-    template <> struct object_with_zone<test_non_intrusive> {
-        void operator()(msgpack::object::with_zone& o, const test_non_intrusive& t) const { o << t.name(); }
-    };
-
-    } // namespace adaptor
+} // namespace adaptor
 } // MSGPACK_API_VERSION_NAMESPACE(MSGPACK_DEFAULT_API_NS)
 } // namespace msgpack
 
@@ -522,7 +537,8 @@ BOOST_AUTO_TEST_CASE(test_non_intrusive_)
     msgpack::sbuffer sbuf;
     msgpack::pack(sbuf, t1);
 
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size());
     test_non_intrusive t2 = oh.get().as<test_non_intrusive>();
 
     BOOST_CHECK_EQUAL(t1.name(), t2.name());
@@ -560,13 +576,19 @@ BOOST_AUTO_TEST_CASE(nvp_combination)
 
     BOOST_CHECK_EQUAL(std::string(obj.via.map.ptr[1].key.via.str.ptr, obj.via.map.ptr[1].key.via.str.size), "base");
     BOOST_CHECK_EQUAL(obj.via.map.ptr[1].val.via.map.size, static_cast<size_t>(2));
-    BOOST_CHECK_EQUAL(std::string(obj.via.map.ptr[1].val.via.map.ptr[0].key.via.str.ptr,
-                                  obj.via.map.ptr[1].val.via.map.ptr[0].key.via.str.size),
-                      "aaa");
+    BOOST_CHECK_EQUAL(
+        std::string(
+            obj.via.map.ptr[1].val.via.map.ptr[0].key.via.str.ptr,
+            obj.via.map.ptr[1].val.via.map.ptr[0].key.via.str.size),
+        "aaa"
+    );
     BOOST_CHECK_EQUAL(obj.via.map.ptr[1].val.via.map.ptr[0].val.via.i64, 1);
-    BOOST_CHECK_EQUAL(std::string(obj.via.map.ptr[1].val.via.map.ptr[1].key.via.str.ptr,
-                                  obj.via.map.ptr[1].val.via.map.ptr[1].key.via.str.size),
-                      "b");
+    BOOST_CHECK_EQUAL(
+        std::string(
+            obj.via.map.ptr[1].val.via.map.ptr[1].key.via.str.ptr,
+            obj.via.map.ptr[1].val.via.map.ptr[1].key.via.str.size),
+        "b"
+    );
     BOOST_CHECK_EQUAL(obj.via.map.ptr[1].val.via.map.ptr[1].val.via.i64, 2);
 
     BOOST_CHECK_EQUAL(std::string(obj.via.map.ptr[2].key.via.str.ptr, obj.via.map.ptr[2].key.via.str.size), "ddd");
@@ -595,9 +617,11 @@ BOOST_AUTO_TEST_CASE(test_invalid_key_type)
     try {
         oh.get().as<invalid_key>();
         BOOST_CHECK(false);
-    } catch (msgpack::type_error const&) {
+    }
+    catch (msgpack::type_error const&) {
         BOOST_CHECK(true);
-    } catch (...) {
+    }
+    catch (...) {
         BOOST_CHECK(false);
     }
 }

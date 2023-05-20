@@ -92,8 +92,8 @@ BOOST_AUTO_TEST_CASE(tuple_cat)
 
 BOOST_AUTO_TEST_CASE(swap)
 {
-    msgpack::type::tuple<int, bool, std::string> t1 = msgpack::type::make_tuple(42, true, "ABC");
-    msgpack::type::tuple<int, bool, std::string> t2 = msgpack::type::make_tuple(40, false, "DEFG");
+    msgpack::type::tuple<int, bool, std::string>  t1 = msgpack::type::make_tuple(42, true, "ABC");
+    msgpack::type::tuple<int, bool, std::string>  t2 = msgpack::type::make_tuple(40, false, "DEFG");
     msgpack::type::swap(t1, t2);
     BOOST_CHECK_EQUAL(42, t2.get<0>());
     BOOST_CHECK_EQUAL(true, t2.get<1>());

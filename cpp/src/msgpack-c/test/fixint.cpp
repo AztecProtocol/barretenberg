@@ -3,8 +3,8 @@
 #define BOOST_TEST_MODULE fixint
 #include <boost/test/unit_test.hpp>
 
-template <typename T> void check_size(size_t size)
-{
+template <typename T>
+void check_size(size_t size) {
     T v(0);
     msgpack::sbuffer sbuf;
     msgpack::pack(sbuf, v);
@@ -24,13 +24,15 @@ BOOST_AUTO_TEST_CASE(size)
     check_size<msgpack::type::fix_uint64>(9);
 }
 
-template <typename T> void check_convert()
-{
+
+template <typename T>
+void check_convert() {
     T v1(typename T::value_type(-11));
     msgpack::sbuffer sbuf;
     msgpack::pack(sbuf, v1);
 
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size());
 
     T v2;
     oh.get().convert(v2);

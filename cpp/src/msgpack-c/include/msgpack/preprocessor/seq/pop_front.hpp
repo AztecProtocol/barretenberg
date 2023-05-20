@@ -1,4 +1,4 @@
-#/* **************************************************************************
+# /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
 #  *     Distributed under the Boost Software License, Version 1.0. (See
@@ -7,21 +7,21 @@
 #  *                                                                          *
 #  ************************************************************************** */
 #
-#/* See http://www.boost.org for most recent version. */
+# /* See http://www.boost.org for most recent version. */
 #
-#ifndef MSGPACK_PREPROCESSOR_SEQ_POP_FRONT_HPP
-#define MSGPACK_PREPROCESSOR_SEQ_POP_FRONT_HPP
+# ifndef MSGPACK_PREPROCESSOR_SEQ_POP_FRONT_HPP
+# define MSGPACK_PREPROCESSOR_SEQ_POP_FRONT_HPP
 #
-#include <msgpack/preprocessor/config/config.hpp>
-#include <msgpack/preprocessor/seq/seq.hpp>
+# include <msgpack/preprocessor/config/config.hpp>
+# include <msgpack/preprocessor/seq/seq.hpp>
 #
-#/* MSGPACK_PP_SEQ_POP_FRONT */
+# /* MSGPACK_PP_SEQ_POP_FRONT */
 #
-#if ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_EDG()
-#define MSGPACK_PP_SEQ_POP_FRONT(seq) MSGPACK_PP_SEQ_TAIL(seq)
-#else
-#define MSGPACK_PP_SEQ_POP_FRONT(seq) MSGPACK_PP_SEQ_POP_FRONT_I(seq)
-#define MSGPACK_PP_SEQ_POP_FRONT_I(seq) MSGPACK_PP_SEQ_TAIL(seq)
-#endif
+# if ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_EDG()
+#    define MSGPACK_PP_SEQ_POP_FRONT(seq) MSGPACK_PP_SEQ_TAIL(seq)
+# else
+#    define MSGPACK_PP_SEQ_POP_FRONT(seq) MSGPACK_PP_SEQ_POP_FRONT_I(seq)
+#    define MSGPACK_PP_SEQ_POP_FRONT_I(seq) MSGPACK_PP_SEQ_TAIL(seq)
+# endif
 #
-#endif
+# endif

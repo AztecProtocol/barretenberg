@@ -17,18 +17,17 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v2)
-{
-    /// @endcond
+MSGPACK_API_VERSION_NAMESPACE(v2) {
+/// @endcond
 
-    using v1::begin;
-    using v1::end;
+using v1::begin;
+using v1::end;
 
-    /// @cond
+/// @cond
 }
 /// @endcond
 
-} // namespace msgpack
+}
 
 #endif // !defined(MSGPACK_USE_CPP03)
 #endif // MSGPACK_V2_ITERATOR_DECL_HPP

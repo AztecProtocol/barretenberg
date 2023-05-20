@@ -15,19 +15,18 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v2)
-{
-    /// @endcond
+MSGPACK_API_VERSION_NAMESPACE(v2) {
+/// @endcond
 
-    namespace type {
+namespace type {
 
-    using v1::type::make_size_equal_only;
-    using v1::type::size;
-    using v1::type::size_equal_only;
+using v1::type::size_equal_only;
+using v1::type::make_size_equal_only;
+using v1::type::size;
 
-    } // namespace type
+} // namespace type
 
-    /// @cond
+/// @cond
 } // MSGPACK_API_VERSION_NAMESPACE(v2)
 /// @endcond
 

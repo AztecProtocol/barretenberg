@@ -1,4 +1,4 @@
-#/* Copyright (C) 2001
+# /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
 #  *
@@ -7,19 +7,19 @@
 #  * http://www.boost.org/LICENSE_1_0.txt)
 #  */
 #
-#/* Revised by Paul Mensonides (2002) */
+# /* Revised by Paul Mensonides (2002) */
 #
-#/* See http://www.boost.org for most recent version. */
+# /* See http://www.boost.org for most recent version. */
 #
-#ifndef MSGPACK_PREPROCESSOR_ARITHMETIC_HPP
-#define MSGPACK_PREPROCESSOR_ARITHMETIC_HPP
+# ifndef MSGPACK_PREPROCESSOR_ARITHMETIC_HPP
+# define MSGPACK_PREPROCESSOR_ARITHMETIC_HPP
 #
-#include <msgpack/preprocessor/arithmetic/add.hpp>
-#include <msgpack/preprocessor/arithmetic/dec.hpp>
-#include <msgpack/preprocessor/arithmetic/div.hpp>
-#include <msgpack/preprocessor/arithmetic/inc.hpp>
-#include <msgpack/preprocessor/arithmetic/mod.hpp>
-#include <msgpack/preprocessor/arithmetic/mul.hpp>
-#include <msgpack/preprocessor/arithmetic/sub.hpp>
+# include <msgpack/preprocessor/arithmetic/add.hpp>
+# include <msgpack/preprocessor/arithmetic/dec.hpp>
+# include <msgpack/preprocessor/arithmetic/div.hpp>
+# include <msgpack/preprocessor/arithmetic/inc.hpp>
+# include <msgpack/preprocessor/arithmetic/mod.hpp>
+# include <msgpack/preprocessor/arithmetic/mul.hpp>
+# include <msgpack/preprocessor/arithmetic/sub.hpp>
 #
-#endif
+# endif

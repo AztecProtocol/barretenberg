@@ -1,4 +1,4 @@
-#/* Copyright (C) 2001
+# /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
 #  *
@@ -7,15 +7,15 @@
 #  * http://www.boost.org/LICENSE_1_0.txt)
 #  */
 #
-#/* Revised by Paul Mensonides (2002) */
+# /* Revised by Paul Mensonides (2002) */
 #
-#/* See http://www.boost.org for most recent version. */
+# /* See http://www.boost.org for most recent version. */
 #
-#ifndef MSGPACK_PREPROCESSOR_PUNCTUATION_COMMA_HPP
-#define MSGPACK_PREPROCESSOR_PUNCTUATION_COMMA_HPP
+# ifndef MSGPACK_PREPROCESSOR_PUNCTUATION_COMMA_HPP
+# define MSGPACK_PREPROCESSOR_PUNCTUATION_COMMA_HPP
 #
-#/* MSGPACK_PP_COMMA */
+# /* MSGPACK_PP_COMMA */
 #
-#define MSGPACK_PP_COMMA() ,
+# define MSGPACK_PP_COMMA() ,
 #
-#endif
+# endif

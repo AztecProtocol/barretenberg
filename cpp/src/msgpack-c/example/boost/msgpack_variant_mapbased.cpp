@@ -20,40 +20,45 @@ struct user {
     MSGPACK_DEFINE_MAP(name, age, address);
 };
 
-struct proc : boost::static_visitor<void> {
+struct proc:boost::static_visitor<void> {
     // msgpack::type::MAP is converted to std::multimap, not std::map.
-    void operator()(std::multimap<msgpack::type::variant_ref, msgpack::type::variant_ref>& v) const
-    {
+    void operator()(std::multimap<msgpack::type::variant_ref, msgpack::type::variant_ref>& v) const {
         std::cout << "match map" << std::endl;
         std::multimap<msgpack::type::variant_ref, msgpack::type::variant_ref>::iterator it = v.begin();
         std::multimap<msgpack::type::variant_ref, msgpack::type::variant_ref>::iterator end = v.end();
-        while (it != end) {
+        while(it != end) {
             boost::string_ref const& key = it->first.as_boost_string_ref();
             if (key == "name") {
                 boost::string_ref const& value = it->second.as_boost_string_ref();
                 if (value == "Takatoshi Kondo") {
                     // You can add values to msgpack::type::variant_ref.
-                    v.insert(std::multimap<msgpack::type::variant_ref, msgpack::type::variant_ref>::value_type(
-                        "role", "msgpack-c committer"));
+                    v.insert(
+                        std::multimap<msgpack::type::variant_ref, msgpack::type::variant_ref>::value_type(
+                            "role",
+                            "msgpack-c committer"
+                        )
+                    );
                 }
                 ++it;
-            } else if (key == "age") {
+            }
+            else if (key == "age") {
                 // You can remove key-value pair from msgpack::type::variant_ref
 
 #if defined(MSGPACK_USE_CPP03)
-#if MSGPACK_LIB_STD_CXX
+#  if MSGPACK_LIB_STD_CXX
                 v.erase(std::multimap<msgpack::type::variant_ref, msgpack::type::variant_ref>::const_iterator(it++));
-#else  // MSGPACK_LIB_STD_CXX
+#  else  // MSGPACK_LIB_STD_CXX
                 v.erase(it++);
-#endif // MSGPACK_LIB_STD_CXX
+#  endif // MSGPACK_LIB_STD_CXX
 #else  // defined(MSGPACK_USE_CPP03)
-#if MSGPACK_LIB_STD_CXX
+#  if MSGPACK_LIB_STD_CXX
                 it = v.erase(std::multimap<msgpack::type::variant_ref, msgpack::type::variant_ref>::const_iterator(it));
-#else  // MSGPACK_LIB_STD_CXX
+#  else  // MSGPACK_LIB_STD_CXX
                 it = v.erase(it);
-#endif // MSGPACK_LIB_STD_CXX
+#  endif // MSGPACK_LIB_STD_CXX
 #endif // defined(MSGPACK_USE_CPP03)
-            } else if (key == "address") {
+            }
+            else if (key == "address") {
                 // When you want to append string
                 // "Tokyo" -> "Tokyo, JAPAN"
                 // Use msgpack::type::variant instead of msgpack::type::variant_ref
@@ -64,11 +69,13 @@ struct proc : boost::static_visitor<void> {
             }
         }
     }
-    template <typename T> void operator()(T const&) const { std::cout << "  match others" << std::endl; }
+    template <typename T>
+    void operator()(T const&) const {
+        std::cout << "  match others" << std::endl;
+    }
 };
 
-int main()
-{
+int main() {
     std::stringstream ss;
     user u;
     u.name = "Takatoshi Kondo";

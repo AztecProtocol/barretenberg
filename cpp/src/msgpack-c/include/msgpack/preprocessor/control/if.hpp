@@ -1,4 +1,4 @@
-#/* Copyright (C) 2001
+# /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
 #  *
@@ -7,24 +7,24 @@
 #  * http://www.boost.org/LICENSE_1_0.txt)
 #  */
 #
-#/* Revised by Paul Mensonides (2002) */
+# /* Revised by Paul Mensonides (2002) */
 #
-#/* See http://www.boost.org for most recent version. */
+# /* See http://www.boost.org for most recent version. */
 #
-#ifndef MSGPACK_PREPROCESSOR_CONTROL_IF_HPP
-#define MSGPACK_PREPROCESSOR_CONTROL_IF_HPP
+# ifndef MSGPACK_PREPROCESSOR_CONTROL_IF_HPP
+# define MSGPACK_PREPROCESSOR_CONTROL_IF_HPP
 #
-#include <msgpack/preprocessor/config/config.hpp>
-#include <msgpack/preprocessor/control/iif.hpp>
-#include <msgpack/preprocessor/logical/bool.hpp>
+# include <msgpack/preprocessor/config/config.hpp>
+# include <msgpack/preprocessor/control/iif.hpp>
+# include <msgpack/preprocessor/logical/bool.hpp>
 #
-#/* MSGPACK_PP_IF */
+# /* MSGPACK_PP_IF */
 #
-#if ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_EDG()
-#define MSGPACK_PP_IF(cond, t, f) MSGPACK_PP_IIF(MSGPACK_PP_BOOL(cond), t, f)
-#else
-#define MSGPACK_PP_IF(cond, t, f) MSGPACK_PP_IF_I(cond, t, f)
-#define MSGPACK_PP_IF_I(cond, t, f) MSGPACK_PP_IIF(MSGPACK_PP_BOOL(cond), t, f)
-#endif
+# if ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_EDG()
+#    define MSGPACK_PP_IF(cond, t, f) MSGPACK_PP_IIF(MSGPACK_PP_BOOL(cond), t, f)
+# else
+#    define MSGPACK_PP_IF(cond, t, f) MSGPACK_PP_IF_I(cond, t, f)
+#    define MSGPACK_PP_IF_I(cond, t, f) MSGPACK_PP_IIF(MSGPACK_PP_BOOL(cond), t, f)
+# endif
 #
-#endif
+# endif

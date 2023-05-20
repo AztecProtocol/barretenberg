@@ -1,4 +1,4 @@
-#/* Copyright (C) 2001
+# /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
 #  *
@@ -7,33 +7,33 @@
 #  * http://www.boost.org/LICENSE_1_0.txt)
 #  */
 #
-#/* Revised by Paul Mensonides (2002) */
+# /* Revised by Paul Mensonides (2002) */
 #
-#/* See http://www.boost.org for most recent version. */
+# /* See http://www.boost.org for most recent version. */
 #
-#ifndef MSGPACK_PREPROCESSOR_SELECTION_MIN_HPP
-#define MSGPACK_PREPROCESSOR_SELECTION_MIN_HPP
+# ifndef MSGPACK_PREPROCESSOR_SELECTION_MIN_HPP
+# define MSGPACK_PREPROCESSOR_SELECTION_MIN_HPP
 #
-#include <msgpack/preprocessor/comparison/less_equal.hpp>
-#include <msgpack/preprocessor/config/config.hpp>
-#include <msgpack/preprocessor/control/iif.hpp>
+# include <msgpack/preprocessor/comparison/less_equal.hpp>
+# include <msgpack/preprocessor/config/config.hpp>
+# include <msgpack/preprocessor/control/iif.hpp>
 #
-#/* MSGPACK_PP_MIN */
+# /* MSGPACK_PP_MIN */
 #
-#if ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_EDG()
-#define MSGPACK_PP_MIN(x, y) MSGPACK_PP_IIF(MSGPACK_PP_LESS_EQUAL(y, x), y, x)
-#else
-#define MSGPACK_PP_MIN(x, y) MSGPACK_PP_MIN_I(x, y)
-#define MSGPACK_PP_MIN_I(x, y) MSGPACK_PP_IIF(MSGPACK_PP_LESS_EQUAL(y, x), y, x)
-#endif
+# if ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_EDG()
+#    define MSGPACK_PP_MIN(x, y) MSGPACK_PP_IIF(MSGPACK_PP_LESS_EQUAL(y, x), y, x)
+# else
+#    define MSGPACK_PP_MIN(x, y) MSGPACK_PP_MIN_I(x, y)
+#    define MSGPACK_PP_MIN_I(x, y) MSGPACK_PP_IIF(MSGPACK_PP_LESS_EQUAL(y, x), y, x)
+# endif
 #
-#/* MSGPACK_PP_MIN_D */
+# /* MSGPACK_PP_MIN_D */
 #
-#if ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_EDG()
-#define MSGPACK_PP_MIN_D(d, x, y) MSGPACK_PP_IIF(MSGPACK_PP_LESS_EQUAL_D(d, y, x), y, x)
-#else
-#define MSGPACK_PP_MIN_D(d, x, y) MSGPACK_PP_MIN_D_I(d, x, y)
-#define MSGPACK_PP_MIN_D_I(d, x, y) MSGPACK_PP_IIF(MSGPACK_PP_LESS_EQUAL_D(d, y, x), y, x)
-#endif
+# if ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_EDG()
+#    define MSGPACK_PP_MIN_D(d, x, y) MSGPACK_PP_IIF(MSGPACK_PP_LESS_EQUAL_D(d, y, x), y, x)
+# else
+#    define MSGPACK_PP_MIN_D(d, x, y) MSGPACK_PP_MIN_D_I(d, x, y)
+#    define MSGPACK_PP_MIN_D_I(d, x, y) MSGPACK_PP_IIF(MSGPACK_PP_LESS_EQUAL_D(d, y, x), y, x)
+# endif
 #
-#endif
+# endif

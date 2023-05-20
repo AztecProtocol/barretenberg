@@ -1,4 +1,4 @@
-#/* Copyright (C) 2001
+# /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
 #  *
@@ -7,22 +7,22 @@
 #  * http://www.boost.org/LICENSE_1_0.txt)
 #  */
 #
-#/* Revised by Paul Mensonides (2002) */
+# /* Revised by Paul Mensonides (2002) */
 #
-#/* See http://www.boost.org for most recent version. */
+# /* See http://www.boost.org for most recent version. */
 #
-#ifndef MSGPACK_PREPROCESSOR_FACILITIES_EXPAND_HPP
-#define MSGPACK_PREPROCESSOR_FACILITIES_EXPAND_HPP
+# ifndef MSGPACK_PREPROCESSOR_FACILITIES_EXPAND_HPP
+# define MSGPACK_PREPROCESSOR_FACILITIES_EXPAND_HPP
 #
-#include <msgpack/preprocessor/config/config.hpp>
+# include <msgpack/preprocessor/config/config.hpp>
 #
-#if ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_MWCC() && ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_DMC()
-#define MSGPACK_PP_EXPAND(x) MSGPACK_PP_EXPAND_I(x)
-#else
-#define MSGPACK_PP_EXPAND(x) MSGPACK_PP_EXPAND_OO((x))
-#define MSGPACK_PP_EXPAND_OO(par) MSGPACK_PP_EXPAND_I##par
-#endif
+# if ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_MWCC() && ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_DMC()
+#    define MSGPACK_PP_EXPAND(x) MSGPACK_PP_EXPAND_I(x)
+# else
+#    define MSGPACK_PP_EXPAND(x) MSGPACK_PP_EXPAND_OO((x))
+#    define MSGPACK_PP_EXPAND_OO(par) MSGPACK_PP_EXPAND_I ## par
+# endif
 #
-#define MSGPACK_PP_EXPAND_I(x) x
+# define MSGPACK_PP_EXPAND_I(x) x
 #
-#endif
+# endif

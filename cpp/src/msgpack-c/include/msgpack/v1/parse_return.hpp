@@ -15,17 +15,22 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v1)
-{
-    /// @endcond
-
-    // for internal use
-    typedef enum { PARSE_SUCCESS = 2, PARSE_EXTRA_BYTES = 1, PARSE_CONTINUE = 0, PARSE_PARSE_ERROR = -1 } parse_return;
-
-    /// @cond
-} // MSGPACK_API_VERSION_NAMESPACE(v1)
+MSGPACK_API_VERSION_NAMESPACE(v1) {
 /// @endcond
 
-} // namespace msgpack
+
+// for internal use
+typedef enum {
+    PARSE_SUCCESS              =  2,
+    PARSE_EXTRA_BYTES          =  1,
+    PARSE_CONTINUE             =  0,
+    PARSE_PARSE_ERROR          = -1
+} parse_return;
+
+/// @cond
+}  // MSGPACK_API_VERSION_NAMESPACE(v1)
+/// @endcond
+
+}  // namespace msgpack
 
 #endif // MSGPACK_V1_PARSE_RETURN_HPP

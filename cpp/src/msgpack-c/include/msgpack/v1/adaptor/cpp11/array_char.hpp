@@ -21,77 +21,75 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v1)
-{
-    /// @endcond
+MSGPACK_API_VERSION_NAMESPACE(v1) {
+/// @endcond
 
-    namespace adaptor {
+namespace adaptor {
 
-    template <std::size_t N> struct convert<std::array<char, N>> {
-        msgpack::object const& operator()(msgpack::object const& o, std::array<char, N>& v) const
-        {
-            switch (o.type) {
-            case msgpack::type::BIN:
-                if (o.via.bin.size > N) {
-                    THROW msgpack::type_error();
-                }
-                std::memcpy(v.data(), o.via.bin.ptr, o.via.bin.size);
-                break;
-            case msgpack::type::STR:
-                if (o.via.str.size > N) {
-                    THROW msgpack::type_error();
-                }
-                std::memcpy(v.data(), o.via.str.ptr, N);
-                break;
-            default:
-                THROW msgpack::type_error();
-                break;
-            }
-            return o;
+template <std::size_t N>
+struct convert<std::array<char, N>> {
+    msgpack::object const& operator()(msgpack::object const& o, std::array<char, N>& v) const {
+        switch (o.type) {
+        case msgpack::type::BIN:
+            if(o.via.bin.size > N) { THROW msgpack::type_error(); }
+            std::memcpy(v.data(), o.via.bin.ptr, o.via.bin.size);
+            break;
+        case msgpack::type::STR:
+            if(o.via.str.size > N) { THROW msgpack::type_error(); }
+            std::memcpy(v.data(), o.via.str.ptr, N);
+            break;
+        default:
+            THROW msgpack::type_error();
+            break;
         }
-    };
+        return o;
+    }
+};
 
-    template <> struct convert<std::array<char, 0>> {
-        msgpack::object const& operator()(msgpack::object const& o, std::array<char, 0>&) const { return o; }
-    };
+template <>
+struct convert<std::array<char, 0>> {
+    msgpack::object const& operator()(msgpack::object const& o, std::array<char, 0>&) const {
+        return o;
+    }
+};
 
-    template <std::size_t N> struct pack<std::array<char, N>> {
-        template <typename Stream>
-        msgpack::packer<Stream>& operator()(msgpack::packer<Stream>& o, const std::array<char, N>& v) const
-        {
-            uint32_t size = checked_get_container_size(v.size());
-            o.pack_bin(size);
-            o.pack_bin_body(v.data(), size);
+template <std::size_t N>
+struct pack<std::array<char, N>> {
+    template <typename Stream>
+    msgpack::packer<Stream>& operator()(msgpack::packer<Stream>& o, const std::array<char, N>& v) const {
+        uint32_t size = checked_get_container_size(v.size());
+        o.pack_bin(size);
+        o.pack_bin_body(v.data(), size);
 
-            return o;
-        }
-    };
+        return o;
+    }
+};
 
-    template <std::size_t N> struct object<std::array<char, N>> {
-        void operator()(msgpack::object& o, const std::array<char, N>& v) const
-        {
-            uint32_t size = checked_get_container_size(v.size());
-            o.type = msgpack::type::BIN;
-            o.via.bin.ptr = v.data();
-            o.via.bin.size = size;
-        }
-    };
+template <std::size_t N>
+struct object<std::array<char, N>> {
+    void operator()(msgpack::object& o, const std::array<char, N>& v) const {
+        uint32_t size = checked_get_container_size(v.size());
+        o.type = msgpack::type::BIN;
+        o.via.bin.ptr = v.data();
+        o.via.bin.size = size;
+    }
+};
 
-    template <std::size_t N> struct object_with_zone<std::array<char, N>> {
-        void operator()(msgpack::object::with_zone& o, const std::array<char, N>& v) const
-        {
-            uint32_t size = checked_get_container_size(v.size());
-            o.type = msgpack::type::BIN;
-            char* ptr = static_cast<char*>(o.zone.allocate_align(size, MSGPACK_ZONE_ALIGNOF(char)));
-            o.via.bin.ptr = ptr;
-            o.via.bin.size = size;
-            std::memcpy(ptr, v.data(), size);
-        }
-    };
+template <std::size_t N>
+struct object_with_zone<std::array<char, N>> {
+    void operator()(msgpack::object::with_zone& o, const std::array<char, N>& v) const {
+        uint32_t size = checked_get_container_size(v.size());
+        o.type = msgpack::type::BIN;
+        char* ptr = static_cast<char*>(o.zone.allocate_align(size, MSGPACK_ZONE_ALIGNOF(char)));
+        o.via.bin.ptr = ptr;
+        o.via.bin.size = size;
+        std::memcpy(ptr, v.data(), size);
+    }
+};
 
-    } // namespace adaptor
+} // namespace adaptor
 
-    /// @cond
+/// @cond
 } // MSGPACK_API_VERSION_NAMESPACE(v1)
 /// @endcond
 

@@ -7,8 +7,8 @@
 //    http://www.boost.org/LICENSE_1_0.txt)
 //
 
-// g++ -std=c++11 -O3 -g -Ipath_to_msgpack_src -Ipath_to_boost speed_test.cc -Lpath_to_boost_lib -lboost_timer
-// -lboost_system export LD_LIBRARY_PATH=path_to_boost_lib
+// g++ -std=c++11 -O3 -g -Ipath_to_msgpack_src -Ipath_to_boost speed_test.cc -Lpath_to_boost_lib -lboost_timer -lboost_system
+// export LD_LIBRARY_PATH=path_to_boost_lib
 
 #include <msgpack.hpp>
 #include <string>
@@ -17,15 +17,13 @@
 #include <map>
 #include <boost/timer/timer.hpp>
 
-void test_map_pack_unpack()
-{
+void test_map_pack_unpack() {
     std::cout << "[TEST][map_pack_unpack]" << std::endl;
     // setup
     std::cout << "Setting up map data..." << std::endl;
     std::map<int, int> m1;
     int const num = 30000000L;
-    for (int i = 0; i < num; ++i)
-        m1[i] = i;
+    for (int i = 0; i < num; ++i) m1[i] = i;
     std::cout << "Start packing..." << std::endl;
     std::stringstream buffer;
     {

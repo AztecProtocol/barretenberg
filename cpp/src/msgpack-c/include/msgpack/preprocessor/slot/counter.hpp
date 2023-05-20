@@ -1,4 +1,4 @@
-#/* **************************************************************************
+# /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2005.                                  *
 #  *     Distributed under the Boost Software License, Version 1.0. (See      *
@@ -7,19 +7,19 @@
 #  *                                                                          *
 #  ************************************************************************** */
 #
-#/* See http://www.boost.org for most recent version. */
+# /* See http://www.boost.org for most recent version. */
 #
-#ifndef MSGPACK_PREPROCESSOR_SLOT_COUNTER_HPP
-#define MSGPACK_PREPROCESSOR_SLOT_COUNTER_HPP
+# ifndef MSGPACK_PREPROCESSOR_SLOT_COUNTER_HPP
+# define MSGPACK_PREPROCESSOR_SLOT_COUNTER_HPP
 #
-#include <msgpack/preprocessor/slot/detail/def.hpp>
+# include <msgpack/preprocessor/slot/detail/def.hpp>
 #
-#/* MSGPACK_PP_COUNTER */
+# /* MSGPACK_PP_COUNTER */
 #
-#define MSGPACK_PP_COUNTER 0
+# define MSGPACK_PP_COUNTER 0
 #
-#/* MSGPACK_PP_UPDATE_COUNTER */
+# /* MSGPACK_PP_UPDATE_COUNTER */
 #
-#define MSGPACK_PP_UPDATE_COUNTER() <msgpack/preprocessor/slot/detail/counter.hpp>
+# define MSGPACK_PP_UPDATE_COUNTER() <msgpack/preprocessor/slot/detail/counter.hpp>
 #
-#endif
+# endif

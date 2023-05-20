@@ -1,4 +1,4 @@
-#/* **************************************************************************
+# /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
 #  *     Distributed under the Boost Software License, Version 1.0. (See
@@ -7,11 +7,11 @@
 #  *                                                                          *
 #  ************************************************************************** */
 #
-#/* See http://www.boost.org for most recent version. */
+# /* See http://www.boost.org for most recent version. */
 #
-#ifndef MSGPACK_PREPROCESSOR_INC_HPP
-#define MSGPACK_PREPROCESSOR_INC_HPP
+# ifndef MSGPACK_PREPROCESSOR_INC_HPP
+# define MSGPACK_PREPROCESSOR_INC_HPP
 #
-#include <msgpack/preprocessor/arithmetic/inc.hpp>
+# include <msgpack/preprocessor/arithmetic/inc.hpp>
 #
-#endif
+# endif

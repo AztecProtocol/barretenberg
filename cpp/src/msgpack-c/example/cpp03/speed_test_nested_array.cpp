@@ -7,8 +7,8 @@
 //    http://www.boost.org/LICENSE_1_0.txt)
 //
 
-// g++ -std=c++11 -O3 -g -Ipath_to_msgpack_src -Ipath_to_boost speed_test.cc -Lpath_to_boost_lib -lboost_timer
-// -lboost_system export LD_LIBRARY_PATH=path_to_boost_lib
+// g++ -std=c++11 -O3 -g -Ipath_to_msgpack_src -Ipath_to_boost speed_test.cc -Lpath_to_boost_lib -lboost_timer -lboost_system
+// export LD_LIBRARY_PATH=path_to_boost_lib
 
 #include <msgpack.hpp>
 #include <string>
@@ -17,10 +17,10 @@
 #include <vector>
 #include <boost/timer/timer.hpp>
 
-template <typename T, std::size_t level> struct vecvec {
+template <typename T, std::size_t level>
+struct vecvec {
     typedef std::vector<typename vecvec<T, level - 1>::type> type;
-    static void fill(type& v, std::size_t num_of_elems, T const& val)
-    {
+    static void fill(type& v, std::size_t num_of_elems, T const& val) {
         for (std::size_t elem = 0; elem < num_of_elems; ++elem) {
             typename vecvec<T, level - 1>::type child;
             vecvec<T, level - 1>::fill(child, num_of_elems, val);
@@ -29,18 +29,17 @@ template <typename T, std::size_t level> struct vecvec {
     }
 };
 
-template <typename T> struct vecvec<T, 0> {
+template <typename T>
+struct vecvec<T, 0> {
     typedef std::vector<T> type;
-    static void fill(type& v, std::size_t num_of_elems, T const& val)
-    {
+    static void fill(type& v, std::size_t num_of_elems, T const& val) {
         for (std::size_t elem = 0; elem < num_of_elems; ++elem) {
             v.push_back(val);
         }
     }
 };
 
-void test_array_of_array()
-{
+void test_array_of_array() {
     std::cout << "[TEST][array_of_array]" << std::endl;
     // setup
     int const depth = 4;

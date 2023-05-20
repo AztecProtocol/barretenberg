@@ -1,4 +1,4 @@
-#/* **************************************************************************
+# /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2011.                                  *
 #  *     (C) Copyright Edward Diener 2011.                                    *
@@ -8,18 +8,18 @@
 #  *                                                                          *
 #  ************************************************************************** */
 #
-#/* See http://www.boost.org for most recent version. */
+# /* See http://www.boost.org for most recent version. */
 #
-#ifndef MSGPACK_PREPROCESSOR_FACILITIES_OVERLOAD_HPP
-#define MSGPACK_PREPROCESSOR_FACILITIES_OVERLOAD_HPP
+# ifndef MSGPACK_PREPROCESSOR_FACILITIES_OVERLOAD_HPP
+# define MSGPACK_PREPROCESSOR_FACILITIES_OVERLOAD_HPP
 #
-#include <msgpack/preprocessor/cat.hpp>
-#include <msgpack/preprocessor/variadic/size.hpp>
+# include <msgpack/preprocessor/cat.hpp>
+# include <msgpack/preprocessor/variadic/size.hpp>
 #
-#/* MSGPACK_PP_OVERLOAD */
+# /* MSGPACK_PP_OVERLOAD */
 #
-#if MSGPACK_PP_VARIADICS
-#define MSGPACK_PP_OVERLOAD(prefix, ...) MSGPACK_PP_CAT(prefix, MSGPACK_PP_VARIADIC_SIZE(__VA_ARGS__))
-#endif
+# if MSGPACK_PP_VARIADICS
+#    define MSGPACK_PP_OVERLOAD(prefix, ...) MSGPACK_PP_CAT(prefix, MSGPACK_PP_VARIADIC_SIZE(__VA_ARGS__))
+# endif
 #
-#endif
+# endif

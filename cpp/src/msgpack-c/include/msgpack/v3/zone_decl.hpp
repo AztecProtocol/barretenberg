@@ -14,7 +14,7 @@
 
 #if defined(MSGPACK_USE_CPP03)
 #include "msgpack/v3/detail/cpp03_zone_decl.hpp"
-#else // MSGPACK_USE_CPP03
+#else  // MSGPACK_USE_CPP03
 #include "msgpack/v3/detail/cpp11_zone_decl.hpp"
 #endif // MSGPACK_USE_CPP03
 

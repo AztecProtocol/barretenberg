@@ -16,11 +16,15 @@
 
 #include <msgpack.hpp>
 
-int main()
-{
+int main() {
     std::stringstream ss;
-    std::map<std::string, std::vector<int>> v1{ { "ABC", { 1, 2, 3 } }, { "DEFG", { 4, 5 } } };
-    std::vector<std::string> v2{ "HIJ", "KLM", "NOP" };
+    std::map<std::string, std::vector<int>> v1 {
+        { "ABC", { 1, 2, 3 } },
+        { "DEFG", { 4, 5 } }
+    };
+    std::vector<std::string> v2 {
+        "HIJ", "KLM", "NOP"
+    };
     msgpack::pack(ss, v1);
     msgpack::pack(ss, v2);
 

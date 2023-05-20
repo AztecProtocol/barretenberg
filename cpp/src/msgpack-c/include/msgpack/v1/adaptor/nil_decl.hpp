@@ -17,30 +17,29 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v1)
-{
-    /// @endcond
+MSGPACK_API_VERSION_NAMESPACE(v1) {
+/// @endcond
 
-    namespace type {
+namespace type {
 
-    struct nil_t;
+struct nil_t;
 
 #if !defined(MSGPACK_DISABLE_LEGACY_NIL)
 
-    typedef nil_t nil;
+typedef nil_t nil;
 
 #endif // !defined(MSGPACK_DISABLE_LEGACY_NIL)
 
-    bool operator<(nil_t const& lhs, nil_t const& rhs);
+bool operator<(nil_t const& lhs, nil_t const& rhs);
 
-    bool operator==(nil_t const& lhs, nil_t const& rhs);
+bool operator==(nil_t const& lhs, nil_t const& rhs);
 
-    } // namespace type
+}  // namespace type
 
-    /// @cond
-} // MSGPACK_API_VERSION_NAMESPACE(v1)
+/// @cond
+}  // MSGPACK_API_VERSION_NAMESPACE(v1)
 /// @endcond
 
-} // namespace msgpack
+}  // namespace msgpack
 
 #endif // MSGPACK_V1_TYPE_NIL_DECL_HPP

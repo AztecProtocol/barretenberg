@@ -39,74 +39,65 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v1)
-{
-    /// @endcond
+MSGPACK_API_VERSION_NAMESPACE(v1) {
+/// @endcond
 
-    namespace adaptor {
+namespace adaptor {
 
-#if !defined(MSGPACK_USE_CPP03)
+#if !defined (MSGPACK_USE_CPP03)
 
-    template <typename T> struct as<boost::optional<T>, typename std::enable_if<msgpack::has_as<T>::value>::type> {
-        boost::optional<T> operator()(msgpack::object const& o) const
-        {
-            if (o.is_nil())
-                return boost::none;
-            return o.as<T>();
-        }
-    };
+template <typename T>
+struct as<boost::optional<T>, typename std::enable_if<msgpack::has_as<T>::value>::type> {
+    boost::optional<T> operator()(msgpack::object const& o) const {
+        if(o.is_nil()) return boost::none;
+        return o.as<T>();
+    }
+};
 
 #endif // !defined (MSGPACK_USE_CPP03)
 
-    template <typename T> struct convert<boost::optional<T>> {
-        msgpack::object const& operator()(msgpack::object const& o, boost::optional<T>& v) const
-        {
-            if (o.is_nil())
-                v = boost::none;
-            else {
-                T t;
-                msgpack::adaptor::convert<T>()(o, t);
-                v = t;
-            }
-            return o;
+template <typename T>
+struct convert<boost::optional<T> > {
+    msgpack::object const& operator()(msgpack::object const& o, boost::optional<T>& v) const {
+        if(o.is_nil()) v = boost::none;
+        else {
+            T t;
+            msgpack::adaptor::convert<T>()(o, t);
+            v = t;
         }
-    };
+        return o;
+    }
+};
 
-    template <typename T> struct pack<boost::optional<T>> {
-        template <typename Stream>
-        msgpack::packer<Stream>& operator()(msgpack::packer<Stream>& o, const boost::optional<T>& v) const
-        {
-            if (v)
-                o.pack(*v);
-            else
-                o.pack_nil();
-            return o;
-        }
-    };
+template <typename T>
+struct pack<boost::optional<T> > {
+    template <typename Stream>
+    msgpack::packer<Stream>& operator()(msgpack::packer<Stream>& o, const boost::optional<T>& v) const {
+        if (v) o.pack(*v);
+        else o.pack_nil();
+        return o;
+    }
+};
 
-    template <typename T> struct object<boost::optional<T>> {
-        void operator()(msgpack::object& o, const boost::optional<T>& v) const
-        {
-            if (v)
-                msgpack::adaptor::object<T>()(o, *v);
-            else
-                o.type = msgpack::type::NIL;
-        }
-    };
+template <typename T>
+struct object<boost::optional<T> > {
+    void operator()(msgpack::object& o, const boost::optional<T>& v) const {
+        if (v) msgpack::adaptor::object<T>()(o, *v);
+        else o.type = msgpack::type::NIL;
+    }
+};
 
-    template <typename T> struct object_with_zone<boost::optional<T>> {
-        void operator()(msgpack::object::with_zone& o, const boost::optional<T>& v) const
-        {
-            if (v)
-                msgpack::adaptor::object_with_zone<T>()(o, *v);
-            else
-                o.type = msgpack::type::NIL;
-        }
-    };
+template <typename T>
+struct object_with_zone<boost::optional<T> > {
+    void operator()(msgpack::object::with_zone& o, const boost::optional<T>& v) const {
+        if (v) msgpack::adaptor::object_with_zone<T>()(o, *v);
+        else o.type = msgpack::type::NIL;
+    }
+};
 
-    } // namespace adaptor
+} // namespace adaptor
 
-    /// @cond
+/// @cond
 } // MSGPACK_API_VERSION_NAMESPACE(v1)
 /// @endcond
 

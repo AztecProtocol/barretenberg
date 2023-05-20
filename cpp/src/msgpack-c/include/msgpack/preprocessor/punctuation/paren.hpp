@@ -1,4 +1,4 @@
-#/* **************************************************************************
+# /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
 #  *     Distributed under the Boost Software License, Version 1.0. (See
@@ -7,17 +7,17 @@
 #  *                                                                          *
 #  ************************************************************************** */
 #
-#/* See http://www.boost.org for most recent version. */
+# /* See http://www.boost.org for most recent version. */
 #
-#ifndef MSGPACK_PREPROCESSOR_PUNCTUATION_PAREN_HPP
-#define MSGPACK_PREPROCESSOR_PUNCTUATION_PAREN_HPP
+# ifndef MSGPACK_PREPROCESSOR_PUNCTUATION_PAREN_HPP
+# define MSGPACK_PREPROCESSOR_PUNCTUATION_PAREN_HPP
 #
-#/* MSGPACK_PP_LPAREN */
+# /* MSGPACK_PP_LPAREN */
 #
-#define MSGPACK_PP_LPAREN() (
+# define MSGPACK_PP_LPAREN() (
 #
-#/* MSGPACK_PP_RPAREN */
+# /* MSGPACK_PP_RPAREN */
 #
-#define MSGPACK_PP_RPAREN() )
+# define MSGPACK_PP_RPAREN() )
 #
-#endif
+# endif

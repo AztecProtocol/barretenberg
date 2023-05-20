@@ -23,12 +23,10 @@
 #endif // _MSC_VER || __MINGW32__
 
 class Server {
-  public:
-    Server(int sock)
-        : m_sock(sock)
-    {}
+public:
+    Server(int sock) : m_sock(sock) { }
 
-    ~Server() {}
+    ~Server() { }
 
     typedef msgpack::unique_ptr<msgpack::zone> unique_zone;
 
@@ -36,13 +34,14 @@ class Server {
     {
         m_pac.reserve_buffer(1024);
 
-        ssize_t count = read(m_sock, m_pac.buffer(), m_pac.buffer_capacity());
+        ssize_t count =
+            read(m_sock, m_pac.buffer(), m_pac.buffer_capacity());
 
-        if (count <= 0) {
-            if (count == 0) {
+        if(count <= 0) {
+            if(count == 0) {
                 throw std::runtime_error("connection closed");
             }
-            if (errno == EAGAIN || errno == EINTR) {
+            if(errno == EAGAIN || errno == EINTR) {
                 return;
             }
             throw std::runtime_error(strerror(errno));
@@ -57,31 +56,36 @@ class Server {
             process_message(msg, life);
         }
 
-        if (m_pac.message_size() > 10 * 1024 * 1024) {
+        if(m_pac.message_size() > 10*1024*1024) {
             throw std::runtime_error("message is too large");
         }
     }
 
-  private:
-    void process_message(msgpack::object msg, unique_zone&) { std::cout << "message reached: " << msg << std::endl; }
+private:
+    void process_message(msgpack::object msg, unique_zone&)
+    {
+        std::cout << "message reached: " << msg << std::endl;
+    }
 
-  private:
+private:
     int m_sock;
     msgpack::unpacker m_pac;
 };
+
 
 static void* run_server(void* arg)
 {
     try {
         Server* srv = reinterpret_cast<Server*>(arg);
 
-        while (true) {
+        while(true) {
             srv->socket_readable();
         }
         return NULL;
 
     } catch (std::exception& e) {
-        std::cerr << "error while processing client packet: " << e.what() << std::endl;
+        std::cerr << "error while processing client packet: "
+                  << e.what() << std::endl;
         return NULL;
 
     } catch (...) {
@@ -92,14 +96,12 @@ static void* run_server(void* arg)
 }
 
 struct fwriter {
-    fwriter(int fd)
-        : m_fp(fdopen(fd, "w"))
-    {}
+    fwriter(int fd) : m_fp( fdopen(fd, "w") ) { }
 
     void write(const char* buf, size_t buflen)
     {
         size_t count = fwrite(buf, buflen, 1, m_fp);
-        if (count < 1) {
+        if(count < 1) {
             std::cout << buflen << std::endl;
             std::cout << count << std::endl;
             throw std::runtime_error(strerror(errno));
@@ -110,20 +112,21 @@ struct fwriter {
 
     void close() { fclose(m_fp); }
 
-  private:
+private:
     FILE* m_fp;
 };
+
 
 int main(void)
 {
     int pair[2];
-    if (pipe(pair) != 0)
-        return -1;
+    if (pipe(pair) != 0) return -1;
 
     // run server thread
     Server srv(pair[0]);
     pthread_t thread;
-    pthread_create(&thread, NULL, run_server, reinterpret_cast<void*>(&srv));
+    pthread_create(&thread, NULL,
+            run_server, reinterpret_cast<void*>(&srv));
 
     // client thread:
     fwriter writer(pair[1]);

@@ -15,7 +15,7 @@ BOOST_AUTO_TEST_CASE(sbuffer)
     sbuf.write("a", 1);
 
     BOOST_CHECK_EQUAL(3ul, sbuf.size());
-    BOOST_CHECK(memcmp(sbuf.data(), "aaa", 3) == 0);
+    BOOST_CHECK( memcmp(sbuf.data(), "aaa", 3) == 0 );
 
     sbuf.clear();
     sbuf.write("a", 1);
@@ -23,8 +23,9 @@ BOOST_AUTO_TEST_CASE(sbuffer)
     sbuf.write("a", 1);
 
     BOOST_CHECK_EQUAL(3ul, sbuf.size());
-    BOOST_CHECK(memcmp(sbuf.data(), "aaa", 3) == 0);
+    BOOST_CHECK( memcmp(sbuf.data(), "aaa", 3) == 0 );
 }
+
 
 BOOST_AUTO_TEST_CASE(vrefbuffer)
 {
@@ -37,12 +38,13 @@ BOOST_AUTO_TEST_CASE(vrefbuffer)
     size_t veclen = vbuf.vector_size();
 
     msgpack::sbuffer sbuf;
-    for (size_t i = 0; i < veclen; ++i) {
+    for(size_t i=0; i < veclen; ++i) {
         sbuf.write((const char*)vec[i].iov_base, vec[i].iov_len);
     }
 
     BOOST_CHECK_EQUAL(3ul, sbuf.size());
-    BOOST_CHECK(memcmp(sbuf.data(), "aaa", 3) == 0);
+    BOOST_CHECK( memcmp(sbuf.data(), "aaa", 3) == 0 );
+
 
     vbuf.clear();
     vbuf.write("a", 1);
@@ -53,12 +55,12 @@ BOOST_AUTO_TEST_CASE(vrefbuffer)
     veclen = vbuf.vector_size();
 
     sbuf.clear();
-    for (size_t i = 0; i < veclen; ++i) {
+    for(size_t i=0; i < veclen; ++i) {
         sbuf.write((const char*)vec[i].iov_base, vec[i].iov_len);
     }
 
     BOOST_CHECK_EQUAL(3ul, sbuf.size());
-    BOOST_CHECK(memcmp(sbuf.data(), "aaa", 3) == 0);
+    BOOST_CHECK( memcmp(sbuf.data(), "aaa", 3) == 0 );
 }
 
 BOOST_AUTO_TEST_CASE(zbuffer)
@@ -80,7 +82,7 @@ BOOST_AUTO_TEST_CASE(fbuffer)
 #else  // defined(_MSC_VER)
     FILE* file = tmpfile();
 #endif // defined(_MSC_VER)
-    BOOST_CHECK(file != NULL);
+    BOOST_CHECK( file != NULL );
 
     msgpack::fbuffer fbuf(file);
     BOOST_CHECK_EQUAL(file, fbuf.file());
@@ -91,7 +93,7 @@ BOOST_AUTO_TEST_CASE(fbuffer)
 
     fflush(file);
     rewind(file);
-    for (size_t i = 0; i < 3; ++i) {
+    for (size_t i=0; i < 3; ++i) {
         int ch = fgetc(file);
         BOOST_CHECK(ch != EOF);
         BOOST_CHECK_EQUAL('a', static_cast<char>(ch));

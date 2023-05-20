@@ -1,4 +1,4 @@
-#/* **************************************************************************
+# /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002.
 #  *     Distributed under the Boost Software License, Version 1.0. (See
@@ -7,11 +7,11 @@
 #  *                                                                          *
 #  ************************************************************************** */
 #
-#/* See http://www.boost.org for most recent version. */
+# /* See http://www.boost.org for most recent version. */
 #
-#ifndef MSGPACK_PREPROCESSOR_REPEAT_FROM_TO_3RD_HPP
-#define MSGPACK_PREPROCESSOR_REPEAT_FROM_TO_3RD_HPP
+# ifndef MSGPACK_PREPROCESSOR_REPEAT_FROM_TO_3RD_HPP
+# define MSGPACK_PREPROCESSOR_REPEAT_FROM_TO_3RD_HPP
 #
-#include <msgpack/preprocessor/repetition/repeat_from_to.hpp>
+# include <msgpack/preprocessor/repetition/repeat_from_to.hpp>
 #
-#endif
+# endif

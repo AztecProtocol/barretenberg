@@ -3,24 +3,32 @@
 #define BOOST_TEST_MODULE object
 #include <boost/test/unit_test.hpp>
 
-enum enum_test { elem };
+enum enum_test {
+    elem
+};
 
 MSGPACK_ADD_ENUM(enum_test);
 
 struct outer_enum {
-    enum enum_test { elem };
+    enum enum_test {
+        elem
+    };
 };
 
 MSGPACK_ADD_ENUM(outer_enum::enum_test);
 
 #if !defined(MSGPACK_USE_CPP03)
 
-enum class enum_class_test { elem };
+enum class enum_class_test {
+    elem
+};
 
 MSGPACK_ADD_ENUM(enum_class_test);
 
 struct outer_enum_class {
-    enum class enum_class_test { elem };
+    enum class enum_class_test {
+        elem
+    };
 };
 
 MSGPACK_ADD_ENUM(outer_enum_class::enum_class_test);
@@ -28,32 +36,31 @@ MSGPACK_ADD_ENUM(outer_enum_class::enum_class_test);
 #endif // !defined(MSGPACK_USE_CPP03)
 
 struct myclass {
-    myclass()
-        : num(0)
-        , str("default")
-    {}
+    myclass() : num(0), str("default") { }
 
-    myclass(int num, const std::string& str)
-        : num(num)
-        , str(str)
-    {}
+    myclass(int num, const std::string& str) :
+        num(num), str(str) { }
 
-    ~myclass() {}
+    ~myclass() { }
 
     int num;
     std::string str;
     std::vector<double> vec;
-    std::map<std::string, std::vector<char>> map;
+    std::map<std::string, std::vector<char> > map;
 
     MSGPACK_DEFINE(num, str, vec, map);
 
-    bool operator==(const myclass& o) const { return num == o.num && str == o.str && vec == o.vec && map == o.map; }
+    bool operator==(const myclass& o) const
+    {
+        return num == o.num && str == o.str && vec == o.vec && map == o.map;
+    }
 };
 
 std::ostream& operator<<(std::ostream& o, const myclass& m)
 {
-    return o << "myclass(" << m.num << ",\"" << m.str << "\")";
+    return o << "myclass("<<m.num<<",\""<<m.str<<"\")";
 }
+
 
 BOOST_AUTO_TEST_CASE(convert)
 {
@@ -62,13 +69,15 @@ BOOST_AUTO_TEST_CASE(convert)
     msgpack::sbuffer sbuf;
     msgpack::pack(sbuf, m1);
 
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size());
 
     myclass m2;
     oh.get().convert(m2);
 
     BOOST_CHECK_EQUAL(m1, m2);
 }
+
 
 BOOST_AUTO_TEST_CASE(as)
 {
@@ -77,7 +86,8 @@ BOOST_AUTO_TEST_CASE(as)
     msgpack::sbuffer sbuf;
     msgpack::pack(sbuf, m1);
 
-    msgpack::object_handle oh = msgpack::unpack(sbuf.data(), sbuf.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(sbuf.data(), sbuf.size());
 
     BOOST_CHECK_EQUAL(m1, oh.get().as<myclass>());
 }
@@ -109,12 +119,18 @@ BOOST_AUTO_TEST_CASE(cross_zone_copy)
 #endif // MSGPACK_USE_LEGACY_NAME_AS_FLOAT
         BOOST_CHECK_EQUAL(obj1.via.array.ptr[3].via.map.ptr[0].key.via.str.ptr[0], 'o');
         BOOST_CHECK_EQUAL(obj1.via.array.ptr[3].via.map.ptr[0].val.via.bin.ptr[0], 't');
-        BOOST_CHECK_NE(obj1.via.array.ptr[2].via.array.ptr, obj2.via.array.ptr[2].via.array.ptr);
-        BOOST_CHECK_NE(obj1.via.array.ptr[3].via.map.ptr, obj2.via.array.ptr[3].via.map.ptr);
-        BOOST_CHECK(obj1.via.array.ptr[3].via.map.ptr[0].key.via.str.ptr !=
-                    obj2.via.array.ptr[3].via.map.ptr[0].key.via.str.ptr);
-        BOOST_CHECK(obj1.via.array.ptr[3].via.map.ptr[0].val.via.bin.ptr !=
-                    obj2.via.array.ptr[3].via.map.ptr[0].val.via.bin.ptr);
+        BOOST_CHECK_NE(
+            obj1.via.array.ptr[2].via.array.ptr,
+            obj2.via.array.ptr[2].via.array.ptr);
+        BOOST_CHECK_NE(
+            obj1.via.array.ptr[3].via.map.ptr,
+            obj2.via.array.ptr[3].via.map.ptr);
+        BOOST_CHECK(
+            obj1.via.array.ptr[3].via.map.ptr[0].key.via.str.ptr !=
+            obj2.via.array.ptr[3].via.map.ptr[0].key.via.str.ptr);
+        BOOST_CHECK(
+            obj1.via.array.ptr[3].via.map.ptr[0].val.via.bin.ptr !=
+            obj2.via.array.ptr[3].via.map.ptr[0].val.via.bin.ptr);
     }
 
     BOOST_CHECK_EQUAL(m1, obj1.as<myclass>());
@@ -144,12 +160,18 @@ BOOST_AUTO_TEST_CASE(cross_zone_copy_construct)
 #endif // MSGPACK_USE_LEGACY_NAME_AS_FLOAT
     BOOST_CHECK_EQUAL(obj1.via.array.ptr[3].via.map.ptr[0].key.via.str.ptr[0], 'o');
     BOOST_CHECK_EQUAL(obj1.via.array.ptr[3].via.map.ptr[0].val.via.bin.ptr[0], 't');
-    BOOST_CHECK_NE(obj1.via.array.ptr[2].via.array.ptr, obj2.via.array.ptr[2].via.array.ptr);
-    BOOST_CHECK_NE(obj1.via.array.ptr[3].via.map.ptr, obj2.via.array.ptr[3].via.map.ptr);
-    BOOST_CHECK(obj1.via.array.ptr[3].via.map.ptr[0].key.via.str.ptr !=
-                obj2.via.array.ptr[3].via.map.ptr[0].key.via.str.ptr);
-    BOOST_CHECK(obj1.via.array.ptr[3].via.map.ptr[0].val.via.bin.ptr !=
-                obj2.via.array.ptr[3].via.map.ptr[0].val.via.bin.ptr);
+    BOOST_CHECK_NE(
+        obj1.via.array.ptr[2].via.array.ptr,
+        obj2.via.array.ptr[2].via.array.ptr);
+    BOOST_CHECK_NE(
+        obj1.via.array.ptr[3].via.map.ptr,
+        obj2.via.array.ptr[3].via.map.ptr);
+    BOOST_CHECK(
+        obj1.via.array.ptr[3].via.map.ptr[0].key.via.str.ptr !=
+        obj2.via.array.ptr[3].via.map.ptr[0].key.via.str.ptr);
+    BOOST_CHECK(
+        obj1.via.array.ptr[3].via.map.ptr[0].val.via.bin.ptr !=
+        obj2.via.array.ptr[3].via.map.ptr[0].val.via.bin.ptr);
     BOOST_CHECK_EQUAL(m1, obj1.as<myclass>());
 }
 
@@ -171,7 +193,9 @@ BOOST_AUTO_TEST_CASE(cross_zone_copy_ext)
     BOOST_CHECK_EQUAL(obj2.via.ext.size, 1u);
     BOOST_CHECK_EQUAL(obj2.via.ext.ptr[0], 1);
     BOOST_CHECK_EQUAL(obj2.via.ext.ptr[1], 2);
-    BOOST_CHECK(obj1.via.ext.ptr != obj2.via.ext.ptr);
+    BOOST_CHECK(
+        obj1.via.ext.ptr !=
+        obj2.via.ext.ptr);
 }
 
 BOOST_AUTO_TEST_CASE(cross_zone_copy_construct_ext)
@@ -191,7 +215,9 @@ BOOST_AUTO_TEST_CASE(cross_zone_copy_construct_ext)
     BOOST_CHECK_EQUAL(obj2.via.ext.size, 1u);
     BOOST_CHECK_EQUAL(obj2.via.ext.ptr[0], 1);
     BOOST_CHECK_EQUAL(obj2.via.ext.ptr[1], 2);
-    BOOST_CHECK(obj1.via.ext.ptr != obj2.via.ext.ptr);
+    BOOST_CHECK(
+        obj1.via.ext.ptr !=
+        obj2.via.ext.ptr);
 }
 
 BOOST_AUTO_TEST_CASE(print)
@@ -212,7 +238,7 @@ BOOST_AUTO_TEST_CASE(type_error)
 {
     msgpack::object obj(1);
     BOOST_CHECK_THROW(obj.as<std::string>(), msgpack::type_error);
-    BOOST_CHECK_THROW(obj.as<std::vector<int>>(), msgpack::type_error);
+    BOOST_CHECK_THROW(obj.as<std::vector<int> >(), msgpack::type_error);
     BOOST_CHECK_EQUAL(1, obj.as<int>());
     BOOST_CHECK_EQUAL(1, obj.as<short>());
     BOOST_CHECK_EQUAL(1u, obj.as<unsigned int>());
@@ -309,6 +335,7 @@ BOOST_AUTO_TEST_CASE(construct_class_enum)
     BOOST_CHECK_EQUAL(elem, obj.via.u64);
 }
 
+
 BOOST_AUTO_TEST_CASE(construct_class_enum_outer)
 {
     msgpack::object obj(outer_enum_class::enum_class_test::elem);
@@ -369,7 +396,7 @@ BOOST_AUTO_TEST_CASE(clone_bin)
         BOOST_CHECK_EQUAL(sz1, msgpack::aligned_zone_size(h.get()));
         oh = msgpack::move(h);
     }
-    std::vector<char> v2 = oh.get().as<std::vector<char>>();
+    std::vector<char> v2 = oh.get().as<std::vector<char> >();
     BOOST_CHECK_EQUAL(v.size(), v2.size());
     BOOST_CHECK(equal(v.begin(), v.end(), v2.begin()));
 }
@@ -393,7 +420,7 @@ BOOST_AUTO_TEST_CASE(clone_array)
         BOOST_CHECK_EQUAL(sz1, msgpack::aligned_zone_size(h.get()));
         oh = msgpack::move(h);
     }
-    std::vector<int> v2 = oh.get().as<std::vector<int>>();
+    std::vector<int> v2 = oh.get().as<std::vector<int> >();
     BOOST_CHECK_EQUAL(v.size(), v2.size());
     BOOST_CHECK(equal(v.begin(), v.end(), v2.begin()));
 }
@@ -417,7 +444,7 @@ BOOST_AUTO_TEST_CASE(clone_map)
         BOOST_CHECK_EQUAL(sz1, msgpack::aligned_zone_size(h.get()));
         oh = msgpack::move(h);
     }
-    std::map<int, std::string> v2 = oh.get().as<std::map<int, std::string>>();
+    std::map<int, std::string> v2 = oh.get().as<std::map<int, std::string> >();
     BOOST_CHECK_EQUAL(v.size(), v2.size());
     BOOST_CHECK(equal(v.begin(), v.end(), v2.begin()));
 }
@@ -464,27 +491,26 @@ BOOST_AUTO_TEST_CASE(vector_char)
         for (unsigned int i = 1; i < kElements; i++)
             v1.push_back(static_cast<char>(i));
         msgpack::object obj(v1);
-        BOOST_CHECK(obj.as<std::vector<char>>() == v1);
+        BOOST_CHECK(obj.as<std::vector<char> >() == v1);
         v1.front() = 42;
         // obj refer to v1
-        BOOST_CHECK_EQUAL(obj.as<std::vector<char>>().front(), 42);
+        BOOST_CHECK_EQUAL(obj.as<std::vector<char> >().front(), 42);
     }
 }
 
 BOOST_AUTO_TEST_CASE(vector_unsigned_char)
 {
-    if (!msgpack::is_same<uint8_t, unsigned char>::value)
-        return;
+    if (!msgpack::is_same<uint8_t, unsigned char>::value) return;
     for (unsigned int k = 0; k < kLoop; k++) {
         std::vector<unsigned char> v1;
         v1.push_back(1);
         for (unsigned int i = 1; i < kElements; i++)
             v1.push_back(static_cast<unsigned char>(i));
         msgpack::object obj(v1);
-        BOOST_CHECK(obj.as<std::vector<unsigned char>>() == v1);
+        BOOST_CHECK(obj.as<std::vector<unsigned char> >() == v1);
         v1.front() = 42;
         // obj refer to v1
-        BOOST_CHECK_EQUAL(obj.as<std::vector<unsigned char>>().front(), 42);
+        BOOST_CHECK_EQUAL(obj.as<std::vector<unsigned char> >().front(), 42);
     }
 }
 
@@ -517,10 +543,10 @@ BOOST_AUTO_TEST_CASE(array_char)
     }
 }
 
+
 BOOST_AUTO_TEST_CASE(array_unsigned_char)
 {
-    if (!msgpack::is_same<uint8_t, unsigned char>::value)
-        return;
+    if (!msgpack::is_same<uint8_t, unsigned char>::value) return;
     typedef std::array<unsigned char, kElements> test_t;
     for (unsigned int k = 0; k < kLoop; k++) {
         test_t v1;

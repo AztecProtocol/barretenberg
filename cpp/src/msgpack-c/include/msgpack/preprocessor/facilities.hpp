@@ -1,4 +1,4 @@
-#/* **************************************************************************
+# /* **************************************************************************
 #  *                                                                          *
 #  *     (C) Copyright Paul Mensonides 2002-2011.                             *
 #  *     (C) Copyright Edward Diener 2011.                                    *
@@ -8,16 +8,16 @@
 #  *                                                                          *
 #  ************************************************************************** */
 #
-#/* See http://www.boost.org for most recent version. */
+# /* See http://www.boost.org for most recent version. */
 #
-#ifndef MSGPACK_PREPROCESSOR_FACILITIES_HPP
-#define MSGPACK_PREPROCESSOR_FACILITIES_HPP
+# ifndef MSGPACK_PREPROCESSOR_FACILITIES_HPP
+# define MSGPACK_PREPROCESSOR_FACILITIES_HPP
 #
-#include <msgpack/preprocessor/facilities/apply.hpp>
-#include <msgpack/preprocessor/facilities/empty.hpp>
-#include <msgpack/preprocessor/facilities/expand.hpp>
-#include <msgpack/preprocessor/facilities/identity.hpp>
-#include <msgpack/preprocessor/facilities/intercept.hpp>
-#include <msgpack/preprocessor/facilities/overload.hpp>
+# include <msgpack/preprocessor/facilities/apply.hpp>
+# include <msgpack/preprocessor/facilities/empty.hpp>
+# include <msgpack/preprocessor/facilities/expand.hpp>
+# include <msgpack/preprocessor/facilities/identity.hpp>
+# include <msgpack/preprocessor/facilities/intercept.hpp>
+# include <msgpack/preprocessor/facilities/overload.hpp>
 #
-#endif
+# endif

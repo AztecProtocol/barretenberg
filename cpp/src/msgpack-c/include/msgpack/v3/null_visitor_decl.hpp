@@ -15,16 +15,15 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v3)
-{
-    /// @endcond
-
-    using v2::null_visitor;
-
-    /// @cond
-} // MSGPACK_API_VERSION_NAMESPACE(v3)
+MSGPACK_API_VERSION_NAMESPACE(v3) {
 /// @endcond
 
-} // namespace msgpack
+using v2::null_visitor;
+
+/// @cond
+}  // MSGPACK_API_VERSION_NAMESPACE(v3)
+/// @endcond
+
+}  // namespace msgpack
 
 #endif // MSGPACK_V3_NULL_VISITOR_DECL_HPP

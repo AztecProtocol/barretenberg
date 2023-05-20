@@ -24,7 +24,8 @@ BOOST_AUTO_TEST_CASE(pack_unpack)
     BOOST_CHECK_EQUAL(packed_str[3], 'B');
     BOOST_CHECK_EQUAL(packed_str[4], 'C');
 
-    msgpack::object_handle oh = msgpack::unpack(packed_str.data(), packed_str.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(packed_str.data(), packed_str.size());
     msgpack::type::raw_ref rr2 = oh.get().as<msgpack::type::raw_ref>();
     BOOST_CHECK(rr1 == rr2);
 }
@@ -40,7 +41,8 @@ BOOST_AUTO_TEST_CASE(pack_unpack_8_l)
     BOOST_CHECK_EQUAL(packed_str[0], static_cast<char>(0xc4u));
     BOOST_CHECK_EQUAL(packed_str[1], static_cast<char>(0x00u));
 
-    msgpack::object_handle oh = msgpack::unpack(packed_str.data(), packed_str.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(packed_str.data(), packed_str.size());
     msgpack::type::raw_ref rr2 = oh.get().as<msgpack::type::raw_ref>();
     BOOST_CHECK(rr1 == rr2);
 }
@@ -57,14 +59,15 @@ BOOST_AUTO_TEST_CASE(pack_unpack_8_h)
     BOOST_CHECK_EQUAL(packed_str[1], static_cast<char>(0xffu));
     BOOST_CHECK_EQUAL(packed_str[2], 'A');
 
-    msgpack::object_handle oh = msgpack::unpack(packed_str.data(), packed_str.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(packed_str.data(), packed_str.size());
     msgpack::type::raw_ref rr2 = oh.get().as<msgpack::type::raw_ref>();
     BOOST_CHECK(rr1 == rr2);
 }
 
 BOOST_AUTO_TEST_CASE(pack_unpack_16_l)
 {
-    std::string s(0xff + 1, 'A');
+    std::string s(0xff+1, 'A');
 
     msgpack::type::raw_ref rr1(s.data(), static_cast<uint32_t>(s.size()));
     std::stringstream ss;
@@ -75,7 +78,8 @@ BOOST_AUTO_TEST_CASE(pack_unpack_16_l)
     BOOST_CHECK_EQUAL(packed_str[2], static_cast<char>(0x00));
     BOOST_CHECK_EQUAL(packed_str[3], 'A');
 
-    msgpack::object_handle oh = msgpack::unpack(packed_str.data(), packed_str.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(packed_str.data(), packed_str.size());
     msgpack::type::raw_ref rr2 = oh.get().as<msgpack::type::raw_ref>();
     BOOST_CHECK(rr1 == rr2);
 }
@@ -93,14 +97,15 @@ BOOST_AUTO_TEST_CASE(pack_unpack_16_h)
     BOOST_CHECK_EQUAL(packed_str[2], static_cast<char>(0xffu));
     BOOST_CHECK_EQUAL(packed_str[3], 'A');
 
-    msgpack::object_handle oh = msgpack::unpack(packed_str.data(), packed_str.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(packed_str.data(), packed_str.size());
     msgpack::type::raw_ref rr2 = oh.get().as<msgpack::type::raw_ref>();
     BOOST_CHECK(rr1 == rr2);
 }
 
 BOOST_AUTO_TEST_CASE(pack_unpack_32_l)
 {
-    std::string s(0xffff + 1, 'A');
+    std::string s(0xffff+1, 'A');
 
     msgpack::type::raw_ref rr1(s.data(), static_cast<uint32_t>(s.size()));
     std::stringstream ss;
@@ -113,7 +118,8 @@ BOOST_AUTO_TEST_CASE(pack_unpack_32_l)
     BOOST_CHECK_EQUAL(packed_str[4], static_cast<char>(0x00));
     BOOST_CHECK_EQUAL(packed_str[5], 'A');
 
-    msgpack::object_handle oh = msgpack::unpack(packed_str.data(), packed_str.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(packed_str.data(), packed_str.size());
     msgpack::type::raw_ref rr2 = oh.get().as<msgpack::type::raw_ref>();
     BOOST_CHECK(rr1 == rr2);
 }
@@ -131,7 +137,8 @@ BOOST_AUTO_TEST_CASE(v4_pack_unpack)
     BOOST_CHECK_EQUAL(packed_str[2], 'B');
     BOOST_CHECK_EQUAL(packed_str[3], 'C');
 
-    msgpack::object_handle oh = msgpack::unpack(packed_str.data(), packed_str.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(packed_str.data(), packed_str.size());
     msgpack::type::v4raw_ref rr2 = oh.get().as<msgpack::type::v4raw_ref>();
     BOOST_CHECK(rr1 == rr2);
 }
@@ -146,7 +153,8 @@ BOOST_AUTO_TEST_CASE(v4_pack_unpack_fix_l)
     std::string packed_str = ss.str();
     BOOST_CHECK_EQUAL(packed_str[0], static_cast<char>(0xa0u));
 
-    msgpack::object_handle oh = msgpack::unpack(packed_str.data(), packed_str.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(packed_str.data(), packed_str.size());
     msgpack::type::v4raw_ref rr2 = oh.get().as<msgpack::type::v4raw_ref>();
     BOOST_CHECK(rr1 == rr2);
 }
@@ -162,14 +170,15 @@ BOOST_AUTO_TEST_CASE(v4_pack_unpack_fix_h)
     BOOST_CHECK_EQUAL(packed_str[0], static_cast<char>(0xbfu));
     BOOST_CHECK_EQUAL(packed_str[1], 'A');
 
-    msgpack::object_handle oh = msgpack::unpack(packed_str.data(), packed_str.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(packed_str.data(), packed_str.size());
     msgpack::type::v4raw_ref rr2 = oh.get().as<msgpack::type::v4raw_ref>();
     BOOST_CHECK(rr1 == rr2);
 }
 
 BOOST_AUTO_TEST_CASE(v4_pack_unpack_16_l)
 {
-    std::string s(0x1f + 1, 'A');
+    std::string s(0x1f+1, 'A');
 
     msgpack::type::v4raw_ref rr1(s.data(), static_cast<uint32_t>(s.size()));
     std::stringstream ss;
@@ -180,7 +189,8 @@ BOOST_AUTO_TEST_CASE(v4_pack_unpack_16_l)
     BOOST_CHECK_EQUAL(packed_str[2], static_cast<char>(0x20u));
     BOOST_CHECK_EQUAL(packed_str[3], 'A');
 
-    msgpack::object_handle oh = msgpack::unpack(packed_str.data(), packed_str.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(packed_str.data(), packed_str.size());
     msgpack::type::v4raw_ref rr2 = oh.get().as<msgpack::type::v4raw_ref>();
     BOOST_CHECK(rr1 == rr2);
 }
@@ -198,14 +208,15 @@ BOOST_AUTO_TEST_CASE(v4_pack_unpack_16_h)
     BOOST_CHECK_EQUAL(packed_str[2], static_cast<char>(0xffu));
     BOOST_CHECK_EQUAL(packed_str[3], 'A');
 
-    msgpack::object_handle oh = msgpack::unpack(packed_str.data(), packed_str.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(packed_str.data(), packed_str.size());
     msgpack::type::v4raw_ref rr2 = oh.get().as<msgpack::type::v4raw_ref>();
     BOOST_CHECK(rr1 == rr2);
 }
 
 BOOST_AUTO_TEST_CASE(v4_pack_unpack_32_l)
 {
-    std::string s(0xffff + 1, 'A');
+    std::string s(0xffff+1, 'A');
 
     msgpack::type::v4raw_ref rr1(s.data(), static_cast<uint32_t>(s.size()));
     std::stringstream ss;
@@ -218,7 +229,8 @@ BOOST_AUTO_TEST_CASE(v4_pack_unpack_32_l)
     BOOST_CHECK_EQUAL(packed_str[4], static_cast<char>(0x00));
     BOOST_CHECK_EQUAL(packed_str[5], 'A');
 
-    msgpack::object_handle oh = msgpack::unpack(packed_str.data(), packed_str.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(packed_str.data(), packed_str.size());
     msgpack::type::v4raw_ref rr2 = oh.get().as<msgpack::type::v4raw_ref>();
     BOOST_CHECK(rr1 == rr2);
 }

@@ -37,18 +37,19 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v1)
-{
-    /// @endcond
-
-    class zone;
-
-    std::size_t aligned_size(std::size_t size, std::size_t align = MSGPACK_ZONE_ALIGN);
-
-    /// @cond
-} // MSGPACK_API_VERSION_NAMESPACE(v1)
+MSGPACK_API_VERSION_NAMESPACE(v1) {
 /// @endcond
 
-} // namespace msgpack
+class zone;
+
+std::size_t aligned_size(
+    std::size_t size,
+    std::size_t align = MSGPACK_ZONE_ALIGN);
+
+/// @cond
+}  // MSGPACK_API_VERSION_NAMESPACE(v1)
+/// @endcond
+
+}  // namespace msgpack
 
 #endif // MSGPACK_V1_CPP11_ZONE_DECL_HPP

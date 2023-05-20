@@ -1,4 +1,4 @@
-#/* Copyright (C) 2001
+# /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
 #  *
@@ -7,32 +7,32 @@
 #  * http://www.boost.org/LICENSE_1_0.txt)
 #  */
 #
-#/* Revised by Paul Mensonides (2002) */
+# /* Revised by Paul Mensonides (2002) */
 #
-#/* See http://www.boost.org for most recent version. */
+# /* See http://www.boost.org for most recent version. */
 #
-#ifndef MSGPACK_PREPROCESSOR_COMPARISON_GREATER_HPP
-#define MSGPACK_PREPROCESSOR_COMPARISON_GREATER_HPP
+# ifndef MSGPACK_PREPROCESSOR_COMPARISON_GREATER_HPP
+# define MSGPACK_PREPROCESSOR_COMPARISON_GREATER_HPP
 #
-#include <msgpack/preprocessor/comparison/less.hpp>
-#include <msgpack/preprocessor/config/config.hpp>
+# include <msgpack/preprocessor/comparison/less.hpp>
+# include <msgpack/preprocessor/config/config.hpp>
 #
-#/* MSGPACK_PP_GREATER */
+# /* MSGPACK_PP_GREATER */
 #
-#if ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_EDG()
-#define MSGPACK_PP_GREATER(x, y) MSGPACK_PP_LESS(y, x)
-#else
-#define MSGPACK_PP_GREATER(x, y) MSGPACK_PP_GREATER_I(x, y)
-#define MSGPACK_PP_GREATER_I(x, y) MSGPACK_PP_LESS(y, x)
-#endif
+# if ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_EDG()
+#    define MSGPACK_PP_GREATER(x, y) MSGPACK_PP_LESS(y, x)
+# else
+#    define MSGPACK_PP_GREATER(x, y) MSGPACK_PP_GREATER_I(x, y)
+#    define MSGPACK_PP_GREATER_I(x, y) MSGPACK_PP_LESS(y, x)
+# endif
 #
-#/* MSGPACK_PP_GREATER_D */
+# /* MSGPACK_PP_GREATER_D */
 #
-#if ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_EDG()
-#define MSGPACK_PP_GREATER_D(d, x, y) MSGPACK_PP_LESS_D(d, y, x)
-#else
-#define MSGPACK_PP_GREATER_D(d, x, y) MSGPACK_PP_GREATER_D_I(d, x, y)
-#define MSGPACK_PP_GREATER_D_I(d, x, y) MSGPACK_PP_LESS_D(d, y, x)
-#endif
+# if ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_EDG()
+#    define MSGPACK_PP_GREATER_D(d, x, y) MSGPACK_PP_LESS_D(d, y, x)
+# else
+#    define MSGPACK_PP_GREATER_D(d, x, y) MSGPACK_PP_GREATER_D_I(d, x, y)
+#    define MSGPACK_PP_GREATER_D_I(d, x, y) MSGPACK_PP_LESS_D(d, y, x)
+# endif
 #
-#endif
+# endif

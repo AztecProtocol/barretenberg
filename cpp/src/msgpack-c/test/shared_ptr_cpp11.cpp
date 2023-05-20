@@ -16,7 +16,8 @@ BOOST_AUTO_TEST_CASE(pack_convert_nil)
     std::shared_ptr<int> val1;
     msgpack::pack(ss, val1);
     std::string const& str = ss.str();
-    msgpack::object_handle oh = msgpack::unpack(str.data(), str.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(str.data(), str.size());
     std::shared_ptr<int> val2 = oh.get().as<std::shared_ptr<int>>();
     BOOST_CHECK(val1 == val2);
 }
@@ -27,7 +28,8 @@ BOOST_AUTO_TEST_CASE(pack_convert_int)
     std::shared_ptr<int> val1(new int(1));
     msgpack::pack(ss, val1);
     std::string const& str = ss.str();
-    msgpack::object_handle oh = msgpack::unpack(str.data(), str.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(str.data(), str.size());
     std::shared_ptr<int> val2 = oh.get().as<std::shared_ptr<int>>();
     BOOST_CHECK(*val1 == *val2);
 }
@@ -81,40 +83,33 @@ BOOST_AUTO_TEST_CASE(object_with_zone_int)
 
 struct no_def_con {
     no_def_con() = delete;
-    no_def_con(int i)
-        : i(i)
-    {}
+    no_def_con(int i):i(i) {}
     int i;
     MSGPACK_DEFINE(i);
 };
 
-inline bool operator==(no_def_con const& lhs, no_def_con const& rhs)
-{
+inline bool operator==(no_def_con const& lhs, no_def_con const& rhs) {
     return lhs.i == rhs.i;
 }
 
-inline bool operator!=(no_def_con const& lhs, no_def_con const& rhs)
-{
+inline bool operator!=(no_def_con const& lhs, no_def_con const& rhs) {
     return !(lhs == rhs);
 }
 
 namespace msgpack {
-MSGPACK_API_VERSION_NAMESPACE(MSGPACK_DEFAULT_API_NS)
-{
-    namespace adaptor {
-    template <> struct as<no_def_con> {
-        no_def_con operator()(msgpack::object const& o) const
-        {
-            if (o.type != msgpack::type::ARRAY)
-                throw msgpack::type_error();
-            if (o.via.array.size != 1)
-                throw msgpack::type_error();
-            return no_def_con(o.via.array.ptr[0].as<int>());
-        }
-    };
-    } // namespace adaptor
+MSGPACK_API_VERSION_NAMESPACE(MSGPACK_DEFAULT_API_NS) {
+namespace adaptor {
+template <>
+struct as<no_def_con> {
+    no_def_con operator()(msgpack::object const& o) const {
+        if (o.type != msgpack::type::ARRAY) throw msgpack::type_error();
+        if (o.via.array.size != 1) throw msgpack::type_error();
+        return no_def_con(o.via.array.ptr[0].as<int>());
+    }
+};
+} // adaptor
 } // MSGPACK_API_VERSION_NAMESPACE(MSGPACK_DEFAULT_API_NS)
-} // namespace msgpack
+} // msgpack
 
 BOOST_AUTO_TEST_CASE(pack_convert_nil_no_def_con)
 {
@@ -122,9 +117,11 @@ BOOST_AUTO_TEST_CASE(pack_convert_nil_no_def_con)
     std::shared_ptr<no_def_con> val1(new no_def_con(1));
     msgpack::pack(ss, val1);
     std::string const& str = ss.str();
-    msgpack::object_handle oh = msgpack::unpack(str.data(), str.size());
+    msgpack::object_handle oh =
+        msgpack::unpack(str.data(), str.size());
     std::shared_ptr<no_def_con> val2 = oh.get().as<std::shared_ptr<no_def_con>>();
     BOOST_CHECK(*val1 == *val2);
 }
+
 
 #endif // !defined(MSGPACK_USE_CPP03)

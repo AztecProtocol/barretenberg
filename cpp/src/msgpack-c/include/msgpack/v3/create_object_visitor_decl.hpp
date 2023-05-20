@@ -15,20 +15,19 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v3)
-{
-    /// @endcond
-
-    namespace detail {
-
-    using v2::detail::create_object_visitor;
-
-    } // namespace detail
-
-    /// @cond
-} // MSGPACK_API_VERSION_NAMESPACE(v3)
+MSGPACK_API_VERSION_NAMESPACE(v3) {
 /// @endcond
 
-} // namespace msgpack
+namespace detail {
+
+using v2::detail::create_object_visitor;
+
+} // detail
+
+/// @cond
+}  // MSGPACK_API_VERSION_NAMESPACE(v3)
+/// @endcond
+
+}  // namespace msgpack
 
 #endif // MSGPACK_V3_CREATE_OBJECT_VISITOR_DECL_HPP

@@ -1,4 +1,4 @@
-#/* Copyright (C) 2001
+# /* Copyright (C) 2001
 #  * Housemarque Oy
 #  * http://www.housemarque.com
 #  *
@@ -7,33 +7,33 @@
 #  * http://www.boost.org/LICENSE_1_0.txt)
 #  */
 #
-#/* Revised by Paul Mensonides (2002) */
+# /* Revised by Paul Mensonides (2002) */
 #
-#/* See http://www.boost.org for most recent version. */
+# /* See http://www.boost.org for most recent version. */
 #
-#ifndef MSGPACK_PREPROCESSOR_ARITHMETIC_MOD_HPP
-#define MSGPACK_PREPROCESSOR_ARITHMETIC_MOD_HPP
+# ifndef MSGPACK_PREPROCESSOR_ARITHMETIC_MOD_HPP
+# define MSGPACK_PREPROCESSOR_ARITHMETIC_MOD_HPP
 #
-#include <msgpack/preprocessor/arithmetic/detail/div_base.hpp>
-#include <msgpack/preprocessor/config/config.hpp>
-#include <msgpack/preprocessor/tuple/elem.hpp>
+# include <msgpack/preprocessor/arithmetic/detail/div_base.hpp>
+# include <msgpack/preprocessor/config/config.hpp>
+# include <msgpack/preprocessor/tuple/elem.hpp>
 #
-#/* MSGPACK_PP_MOD */
+# /* MSGPACK_PP_MOD */
 #
-#if ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_EDG()
-#define MSGPACK_PP_MOD(x, y) MSGPACK_PP_TUPLE_ELEM(3, 1, MSGPACK_PP_DIV_BASE(x, y))
-#else
-#define MSGPACK_PP_MOD(x, y) MSGPACK_PP_MOD_I(x, y)
-#define MSGPACK_PP_MOD_I(x, y) MSGPACK_PP_TUPLE_ELEM(3, 1, MSGPACK_PP_DIV_BASE(x, y))
-#endif
+# if ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_EDG()
+#    define MSGPACK_PP_MOD(x, y) MSGPACK_PP_TUPLE_ELEM(3, 1, MSGPACK_PP_DIV_BASE(x, y))
+# else
+#    define MSGPACK_PP_MOD(x, y) MSGPACK_PP_MOD_I(x, y)
+#    define MSGPACK_PP_MOD_I(x, y) MSGPACK_PP_TUPLE_ELEM(3, 1, MSGPACK_PP_DIV_BASE(x, y))
+# endif
 #
-#/* MSGPACK_PP_MOD_D */
+# /* MSGPACK_PP_MOD_D */
 #
-#if ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_EDG()
-#define MSGPACK_PP_MOD_D(d, x, y) MSGPACK_PP_TUPLE_ELEM(3, 1, MSGPACK_PP_DIV_BASE_D(d, x, y))
-#else
-#define MSGPACK_PP_MOD_D(d, x, y) MSGPACK_PP_MOD_D_I(d, x, y)
-#define MSGPACK_PP_MOD_D_I(d, x, y) MSGPACK_PP_TUPLE_ELEM(3, 1, MSGPACK_PP_DIV_BASE_D(d, x, y))
-#endif
+# if ~MSGPACK_PP_CONFIG_FLAGS() & MSGPACK_PP_CONFIG_EDG()
+#    define MSGPACK_PP_MOD_D(d, x, y) MSGPACK_PP_TUPLE_ELEM(3, 1, MSGPACK_PP_DIV_BASE_D(d, x, y))
+# else
+#    define MSGPACK_PP_MOD_D(d, x, y) MSGPACK_PP_MOD_D_I(d, x, y)
+#    define MSGPACK_PP_MOD_D_I(d, x, y) MSGPACK_PP_TUPLE_ELEM(3, 1, MSGPACK_PP_DIV_BASE_D(d, x, y))
+# endif
 #
-#endif
+# endif

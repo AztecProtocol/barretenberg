@@ -25,7 +25,7 @@
 
 #ifdef __wasm__
 struct AbortStream {
-    void operator<< [[noreturn]](const auto& error)
+    void operator<< [[noreturn]] (const auto& error)
     {
         (void)error; // TODO how to print this?
         std::abort();
@@ -33,7 +33,7 @@ struct AbortStream {
 };
 #define THROW AbortStream() <<
 #define try if (true)
-#define catch (...) if (false)
+#define catch(...) if (false)
 #define RETHROW
 #else
 #define THROW throw

@@ -16,8 +16,7 @@
 
 #include <msgpack.hpp>
 
-int main()
-{
+int main() {
     boost::asio::io_service ios;
     std::uint16_t const port = 12345;
 
@@ -31,34 +30,40 @@ int main()
     msgpack::unpacker unp;
 
     do_accept = [&] {
-        ac.async_accept(ss, [&](boost::system::error_code const& e) {
-            if (e) {
-                std::cout << __LINE__ << ":" << e.message() << std::endl;
-                return;
+        ac.async_accept(
+            ss,
+            [&]
+            (boost::system::error_code const& e) {
+                if (e) {
+                    std::cout << __LINE__ << ":" << e.message() << std::endl;
+                    return;
+                }
+                do_async_read_some = [&] {
+                    unp.reserve_buffer(window_size);
+                    ss.async_read_some(
+                        boost::asio::buffer(unp.buffer(), window_size),
+                        [&](boost::system::error_code const& e, std::size_t bytes_transferred) {
+                            if (e) {
+                                std::cout << __LINE__ << ":" << e.message() << std::endl;
+                                return;
+                            }
+                            std::cout << bytes_transferred << " bytes read." << std::endl;
+                            unp.buffer_consumed(bytes_transferred);
+                            msgpack::object_handle oh;
+                            while (unp.next(oh)) {
+                                std::cout << oh.get() << std::endl;
+                                // In order to finish the program,
+                                // return if one complete msgpack is processed.
+                                // In actual server, don't return here.
+                                return;
+                            }
+                            do_async_read_some();
+                        }
+                    );
+                };
+                do_async_read_some();
             }
-            do_async_read_some = [&] {
-                unp.reserve_buffer(window_size);
-                ss.async_read_some(boost::asio::buffer(unp.buffer(), window_size),
-                                   [&](boost::system::error_code const& e, std::size_t bytes_transferred) {
-                                       if (e) {
-                                           std::cout << __LINE__ << ":" << e.message() << std::endl;
-                                           return;
-                                       }
-                                       std::cout << bytes_transferred << " bytes read." << std::endl;
-                                       unp.buffer_consumed(bytes_transferred);
-                                       msgpack::object_handle oh;
-                                       while (unp.next(oh)) {
-                                           std::cout << oh.get() << std::endl;
-                                           // In order to finish the program,
-                                           // return if one complete msgpack is processed.
-                                           // In actual server, don't return here.
-                                           return;
-                                       }
-                                       do_async_read_some();
-                                   });
-            };
-            do_async_read_some();
-        });
+        );
     };
     do_accept();
 
@@ -78,7 +83,11 @@ int main()
 
     boost::asio::ip::tcp::socket cs(ios);
     boost::asio::async_connect(
-        cs, it, end, [&](boost::system::error_code const& e, boost::asio::ip::tcp::resolver::iterator) {
+        cs,
+        it,
+        end,
+        [&]
+        (boost::system::error_code const& e, boost::asio::ip::tcp::resolver::iterator) {
             if (e) {
                 std::cout << __LINE__ << ":" << e.message() << std::endl;
                 return;
@@ -87,7 +96,8 @@ int main()
             msgpack::sbuffer sb;
             msgpack::pack(sb, std::make_tuple(42, false, "hello world", 12.3456));
             write(cs, boost::asio::buffer(sb.data(), sb.size()));
-        });
+        }
+    );
 
     // Start
     ios.run();

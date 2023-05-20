@@ -18,29 +18,33 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v1)
-{
-    /// @endcond
+MSGPACK_API_VERSION_NAMESPACE(v1) {
+/// @endcond
 
-    namespace type {
+namespace type {
 
-    template <typename T> struct size_equal_only;
+template <typename T>
+struct size_equal_only;
 
-    template <typename T> size_equal_only<T> make_size_equal_only(T& t);
+template <typename T>
+size_equal_only<T> make_size_equal_only(T& t);
 
-    template <typename T> std::size_t size(T const& t);
+template <typename T>
+std::size_t size(T const& t);
 
-    template <typename T, std::size_t N> std::size_t size(const T (&)[N]);
+template <typename T, std::size_t N>
+std::size_t size(const T(&)[N]);
 
 #if !defined(MSGPACK_USE_CPP03)
 
-    template <typename... T> std::size_t size(std::tuple<T...> const&);
+template <typename... T>
+std::size_t size(std::tuple<T...> const&);
 
 #endif // !defined(MSGPACK_USE_CPP03)
 
-    } // namespace type
+} // namespace type
 
-    /// @cond
+/// @cond
 } // MSGPACK_API_VERSION_NAMESPACE(v1)
 /// @endcond
 

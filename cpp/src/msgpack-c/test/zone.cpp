@@ -30,25 +30,21 @@ BOOST_AUTO_TEST_CASE(allocate_align_custom)
 }
 
 class myclass {
-  public:
-    myclass()
-        : num(0)
-        , str("default")
-    {}
+public:
+    myclass() : num(0), str("default") { }
 
-    myclass(int num, const std::string& str)
-        : num(num)
-        , str(str)
-    {}
+    myclass(int num, const std::string& str) :
+        num(num), str(str) { }
 
-    ~myclass() {}
+    ~myclass() { }
 
     int num;
     std::string str;
 
-  private:
+private:
     myclass(const myclass&);
 };
+
 
 BOOST_AUTO_TEST_CASE(allocate)
 {
@@ -58,6 +54,7 @@ BOOST_AUTO_TEST_CASE(allocate)
     BOOST_CHECK_EQUAL(m->str, "default");
 }
 
+
 BOOST_AUTO_TEST_CASE(allocate_constructor)
 {
     msgpack::zone z;
@@ -65,6 +62,7 @@ BOOST_AUTO_TEST_CASE(allocate_constructor)
     BOOST_CHECK_EQUAL(m->num, 7);
     BOOST_CHECK_EQUAL(m->str, "msgpack");
 }
+
 
 static void custom_finalizer_func(void* user)
 {
@@ -79,6 +77,7 @@ BOOST_AUTO_TEST_CASE(push_finalizer)
     z.push_finalizer(custom_finalizer_func, (void*)m);
 }
 
+
 BOOST_AUTO_TEST_CASE(push_finalizer_unique_ptr)
 {
     msgpack::zone z;
@@ -86,10 +85,11 @@ BOOST_AUTO_TEST_CASE(push_finalizer_unique_ptr)
     z.push_finalizer(msgpack::move(am));
 }
 
+
 BOOST_AUTO_TEST_CASE(allocate_no_align)
 {
     msgpack::zone z;
     char* buf1 = reinterpret_cast<char*>(z.allocate_no_align(4));
     char* buf2 = reinterpret_cast<char*>(z.allocate_no_align(4));
-    BOOST_CHECK_EQUAL(reinterpret_cast<void*>(buf1 + 4), reinterpret_cast<void*>(buf2));
+    BOOST_CHECK_EQUAL(reinterpret_cast<void*>(buf1+4), reinterpret_cast<void*>(buf2));
 }

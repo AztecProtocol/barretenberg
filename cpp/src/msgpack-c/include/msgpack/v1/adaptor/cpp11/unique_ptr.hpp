@@ -21,69 +21,60 @@
 namespace msgpack {
 
 /// @cond
-MSGPACK_API_VERSION_NAMESPACE(v1)
-{
-    /// @endcond
+MSGPACK_API_VERSION_NAMESPACE(v1) {
+/// @endcond
 
-    namespace adaptor {
+namespace adaptor {
 
-    template <typename T> struct as<std::unique_ptr<T>, typename std::enable_if<msgpack::has_as<T>::value>::type> {
-        std::unique_ptr<T> operator()(msgpack::object const& o) const
-        {
-            if (o.is_nil())
-                return MSGPACK_NULLPTR;
-            return std::unique_ptr<T>(new T(o.as<T>()));
+template <typename T>
+struct as<std::unique_ptr<T>, typename std::enable_if<msgpack::has_as<T>::value>::type> {
+    std::unique_ptr<T> operator()(msgpack::object const& o) const {
+        if(o.is_nil()) return MSGPACK_NULLPTR;
+        return std::unique_ptr<T>(new T(o.as<T>()));
+    }
+};
+
+template <typename T>
+struct convert<std::unique_ptr<T>> {
+    msgpack::object const& operator()(msgpack::object const& o, std::unique_ptr<T>& v) const {
+        if(o.is_nil()) v.reset();
+        else {
+            v.reset(new T);
+            msgpack::adaptor::convert<T>()(o, *v);
         }
-    };
+        return o;
+    }
+};
 
-    template <typename T> struct convert<std::unique_ptr<T>> {
-        msgpack::object const& operator()(msgpack::object const& o, std::unique_ptr<T>& v) const
-        {
-            if (o.is_nil())
-                v.reset();
-            else {
-                v.reset(new T);
-                msgpack::adaptor::convert<T>()(o, *v);
-            }
-            return o;
-        }
-    };
+template <typename T>
+struct pack<std::unique_ptr<T>> {
+    template <typename Stream>
+    msgpack::packer<Stream>& operator()(msgpack::packer<Stream>& o, const std::unique_ptr<T>& v) const {
+        if (v) o.pack(*v);
+        else o.pack_nil();
+        return o;
+    }
+};
 
-    template <typename T> struct pack<std::unique_ptr<T>> {
-        template <typename Stream>
-        msgpack::packer<Stream>& operator()(msgpack::packer<Stream>& o, const std::unique_ptr<T>& v) const
-        {
-            if (v)
-                o.pack(*v);
-            else
-                o.pack_nil();
-            return o;
-        }
-    };
+template <typename T>
+struct object<std::unique_ptr<T> > {
+    void operator()(msgpack::object& o, const std::unique_ptr<T>& v) const {
+        if (v) msgpack::adaptor::object<T>()(o, *v);
+        else o.type = msgpack::type::NIL;
+    }
+};
 
-    template <typename T> struct object<std::unique_ptr<T>> {
-        void operator()(msgpack::object& o, const std::unique_ptr<T>& v) const
-        {
-            if (v)
-                msgpack::adaptor::object<T>()(o, *v);
-            else
-                o.type = msgpack::type::NIL;
-        }
-    };
+template <typename T>
+struct object_with_zone<std::unique_ptr<T>> {
+    void operator()(msgpack::object::with_zone& o, const std::unique_ptr<T>& v) const {
+        if (v) msgpack::adaptor::object_with_zone<T>()(o, *v);
+        else o.type = msgpack::type::NIL;
+    }
+};
 
-    template <typename T> struct object_with_zone<std::unique_ptr<T>> {
-        void operator()(msgpack::object::with_zone& o, const std::unique_ptr<T>& v) const
-        {
-            if (v)
-                msgpack::adaptor::object_with_zone<T>()(o, *v);
-            else
-                o.type = msgpack::type::NIL;
-        }
-    };
+} // namespace adaptor
 
-    } // namespace adaptor
-
-    /// @cond
+/// @cond
 } // MSGPACK_API_VERSION_NAMESPACE(v1)
 /// @endcond
 
