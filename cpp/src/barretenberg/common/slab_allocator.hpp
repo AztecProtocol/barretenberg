@@ -10,34 +10,25 @@
 namespace barretenberg {
 
 /**
- * Allows preallocating memory slabs sized to serve the fact that these slabs of memory follow certain sizing patterns
- * and numbers based on prover system type and circuit size. Without the slab allocator, memory fragmentation prevents
- * proof construction when approaching memory space limits (4GB in WASM).
+ * Allocates a bunch of memory slabs sized to serve an UltraPLONK proof construction.
+ * If you want normal memory allocator behaviour, just don't call this init function.
+ * All memory is 32 byte aligned so only use for multiples of 32.
  *
- * If no circuit_size_hint is given to the constructor, it behaves as a standard memory allocator.
+ * WARNING: If client code is still holding onto slabs from previous use, when those slabs
+ * are released they'll end up back in the allocator. That's probably not desired as presumably
+ * those slabs are now too small, so they're effectively leaked. But good client code should be releasing
+ * it's resources promptly anyway. It's not considered "proper use" to call init, take slab, and call init
+ * again, before releasing the slab.
+ *
+ * TODO: Take a composer type and allocate slabs according to those requirements?
+ * TODO: De-globalise. Init the allocator and pass around. Use a PolynomialFactory (PolynomialStore?).
+ * TODO: Consider removing, but once due-dilligence has been done that we no longer have memory limitations.
  */
-class SlabAllocator {
-  private:
-    size_t circuit_size_hint_;
-    std::map<size_t, std::list<void*>> memory_store;
-    std::map<size_t, size_t> prealloc_num;
-#ifndef NO_MULTITHREADING
-    std::mutex memory_store_mutex;
-#endif
-
-  public:
-    void init(size_t circuit_size_hint);
-
-    std::shared_ptr<void> get(size_t size);
-
-    size_t get_total_size();
-
-  private:
-    void release(void* ptr, size_t size);
-};
-
 void init_slab_allocator(size_t circuit_size);
 
+/**
+ * Returns a slab from the preallocated pool of slabs, or fallback to a new heap allocation (32 byte aligned).
+ */
 std::shared_ptr<void> get_mem_slab(size_t size);
 
 } // namespace barretenberg

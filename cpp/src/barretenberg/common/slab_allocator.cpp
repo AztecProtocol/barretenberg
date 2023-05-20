@@ -1,9 +1,56 @@
 #include "slab_allocator.hpp"
 #include <barretenberg/common/log.hpp>
 #include <barretenberg/common/mem.hpp>
+#include <barretenberg/common/assert.hpp>
 #include <numeric>
 
-namespace barretenberg {
+/**
+ * If we can guarantee that all slabs will be released before the allocator is destroyed, we wouldn't need this.
+ * However, there is (and maybe again) cases where a global is holding onto a slab. In such a case you will have
+ * issues if the runtime frees the allocator before the slab is released. The effect is subtle, so it's worth
+ * protecting against rather than just saying "don't do globals". But you know, don't do globals...
+ * (Irony of global slab allocator noted).
+ */
+namespace {
+bool allocator_destroyed = false;
+
+/**
+ * Allows preallocating memory slabs sized to serve the fact that these slabs of memory follow certain sizing patterns
+ * and numbers based on prover system type and circuit size. Without the slab allocator, memory fragmentation prevents
+ * proof construction when approaching memory space limits (4GB in WASM).
+ *
+ * If no circuit_size_hint is given to the constructor, it behaves as a standard memory allocator.
+ */
+class SlabAllocator {
+  private:
+    size_t circuit_size_hint_;
+    std::map<size_t, std::list<void*>> memory_store;
+#ifndef NO_MULTITHREADING
+    std::mutex memory_store_mutex;
+#endif
+
+  public:
+    ~SlabAllocator();
+
+    void init(size_t circuit_size_hint);
+
+    std::shared_ptr<void> get(size_t size);
+
+    size_t get_total_size();
+
+  private:
+    void release(void* ptr, size_t size);
+};
+
+SlabAllocator::~SlabAllocator()
+{
+    allocator_destroyed = true;
+    for (auto& e : memory_store) {
+        for (auto& p : e.second) {
+            aligned_free(p);
+        }
+    }
+}
 
 void SlabAllocator::init(size_t circuit_size_hint)
 {
@@ -12,8 +59,14 @@ void SlabAllocator::init(size_t circuit_size_hint)
     }
 
     circuit_size_hint_ = circuit_size_hint;
+
+    // Free any existing slabs.
+    for (auto& e : memory_store) {
+        for (auto& p : e.second) {
+            aligned_free(p);
+        }
+    }
     memory_store.clear();
-    prealloc_num.clear();
 
     // info("slab allocator initing for size: ", circuit_size_hint);
 
@@ -34,6 +87,7 @@ void SlabAllocator::init(size_t circuit_size_hint)
     // as we are at limit, so they are mostly dynamically allocated. This ultimately leads to failure
     // on repeated prover runs as the memory becomes fragmented. Maybe best to just recreate the WASM
     // for each proof for now, if not too expensive.
+    std::map<size_t, size_t> prealloc_num;
     prealloc_num[small_size] = 4 +    // Monomial wires.
                                4 +    // Lagrange wires.
                                15 +   // Monomial constraint selectors.
@@ -65,6 +119,7 @@ void SlabAllocator::init(size_t circuit_size_hint)
 
 std::shared_ptr<void> SlabAllocator::get(size_t req_size)
 {
+    ASSERT(req_size % 32 == 0);
 #ifndef NO_MULTITHREADING
     std::unique_lock<std::mutex> lock(memory_store_mutex);
 #endif
@@ -83,7 +138,13 @@ std::shared_ptr<void> SlabAllocator::get(size_t req_size)
             memory_store.erase(it);
         }
 
-        return std::shared_ptr<void>(ptr, [this, size](void* p) { this->release(p, size); });
+        return std::shared_ptr<void>(ptr, [this, size](void* p) {
+            if (allocator_destroyed) {
+                aligned_free(p);
+                return;
+            }
+            this->release(p, size);
+        });
     }
 
     // info("Allocating unmanaged memory slab of size: ", req_size);
@@ -107,7 +168,9 @@ void SlabAllocator::release(void* ptr, size_t size)
 }
 
 SlabAllocator allocator;
+} // namespace
 
+namespace barretenberg {
 void init_slab_allocator(size_t circuit_size)
 {
     allocator.init(circuit_size);

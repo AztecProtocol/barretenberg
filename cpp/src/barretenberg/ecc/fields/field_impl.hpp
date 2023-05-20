@@ -375,18 +375,34 @@ template <class T> void field<T>::batch_invert(std::span<field> coeffs) noexcept
 {
     const size_t n = coeffs.size();
 
-    auto temporaries_ptr = std::static_pointer_cast<field[]>(get_mem_slab(n * sizeof(field)));
-    auto skipped_ptr = std::static_pointer_cast<bool[]>(get_mem_slab(n));
-    auto temporaries = temporaries_ptr.get();
-    auto skipped = skipped_ptr.get();
+    // auto temporaries_ptr = std::static_pointer_cast<field[]>(get_mem_slab(n * sizeof(field)));
+    // auto skipped_ptr = std::static_pointer_cast<bool[]>(get_mem_slab(n));
+    // auto temporaries = temporaries_ptr.get();
+    // auto skipped = skipped_ptr.get();
+
+    // field accumulator = one();
+    // for (size_t i = 0; i < n; ++i) {
+    //     temporaries[i] = accumulator;
+    //     if (coeffs[i].is_zero()) {
+    //         skipped[i] = true;
+    //     } else {
+    //         skipped[i] = false;
+    //         accumulator *= coeffs[i];
+    //     }
+    // }
+
+    std::vector<field> temporaries;
+    std::vector<bool> skipped;
+    temporaries.reserve(n);
+    skipped.reserve(n);
 
     field accumulator = one();
     for (size_t i = 0; i < n; ++i) {
-        temporaries[i] = accumulator;
+        temporaries.emplace_back(accumulator);
         if (coeffs[i].is_zero()) {
-            skipped[i] = true;
+            skipped.emplace_back(true);
         } else {
-            skipped[i] = false;
+            skipped.emplace_back(false);
             accumulator *= coeffs[i];
         }
     }
