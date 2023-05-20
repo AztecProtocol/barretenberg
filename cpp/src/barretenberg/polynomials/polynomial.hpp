@@ -1,5 +1,4 @@
 #pragma once
-#include "barretenberg/crypto/sha256/sha256.hpp"
 #include "evaluation_domain.hpp"
 #include <cstddef>
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
@@ -231,13 +230,7 @@ template <typename Fr> inline std::ostream& operator<<(std::ostream& os, Polynom
               << "  ... ,\n"
               << "  " << p[p.size() - 2] << ",\n"
               << "  " << p[p.size() - 1] << ",\n"
-              << "] [ capacity\n"
-              << "  " << p[p.size()] << ",\n"
-              << "  " << p[p.capacity() - 1] << ",\n"
-              << "]\n"
-              << " size: " << p.size() << "\n"
-              << " capacity: " << p.capacity() << "\n"
-              << " hash: " << sha256::sha256(p.byte_span());
+              << "]";
 }
 
 // N.B. grumpkin polynomials don't support fast fourier transforms using roots of unity!

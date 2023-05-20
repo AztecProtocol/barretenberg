@@ -36,7 +36,7 @@ class SlabAllocator {
 
     std::shared_ptr<void> get(size_t size);
 
-    size_t get_total_size();
+    // size_t get_total_size();
 
   private:
     void release(void* ptr, size_t size);
@@ -155,12 +155,12 @@ std::shared_ptr<void> SlabAllocator::get(size_t req_size)
     }
 }
 
-size_t SlabAllocator::get_total_size()
-{
-    return std::accumulate(memory_store.begin(), memory_store.end(), size_t{ 0 }, [](size_t acc, const auto& kv) {
-        return acc + kv.first * kv.second.size();
-    });
-}
+// size_t SlabAllocator::get_total_size()
+// {
+//     return std::accumulate(memory_store.begin(), memory_store.end(), size_t{ 0 }, [](size_t acc, const auto& kv) {
+//         return acc + kv.first * kv.second.size();
+//     });
+// }
 
 void SlabAllocator::release(void* ptr, size_t size)
 {
