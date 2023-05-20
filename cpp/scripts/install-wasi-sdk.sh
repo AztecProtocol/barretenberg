@@ -27,5 +27,6 @@ else
   # Replace wasi-sysroot in wasi-sdk-20.0+threads with our custom build.
   # It contains libc++ and a patch by yamt to improve thread join stability.
   # Can remove once future releases are more stable.
-  curl -s -L https://wasi-sdk.s3.eu-west-2.amazonaws.com/yamt-wasi-sysroot-20.0.threads.tgz | tar zxfv -
+  # UPDATE: Commenting out as we switched to "parallel_for_mutex_pool" as this we actually not very stable.
+  # curl -s -L https://wasi-sdk.s3.eu-west-2.amazonaws.com/yamt-wasi-sysroot-20.0.threads.tgz | tar zxfv -
 fi
