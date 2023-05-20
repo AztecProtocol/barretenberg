@@ -9,9 +9,11 @@ namespace examples::simple {
 using namespace proof_system::plonk;
 using namespace stdlib::types;
 
+const size_t CIRCUIT_SIZE = 65536 * 8;
+
 void build_circuit(Composer& composer)
 {
-    while (composer.get_num_gates() <= 65536 * 4) {
+    while (composer.get_num_gates() <= CIRCUIT_SIZE / 2) {
         plonk::stdlib::pedersen_commitment<Composer>::compress(field_ct(witness_ct(&composer, 1)),
                                                                field_ct(witness_ct(&composer, 1)));
     }
@@ -19,7 +21,8 @@ void build_circuit(Composer& composer)
 
 Composer* create_composer(std::shared_ptr<proof_system::ReferenceStringFactory> const& crs_factory)
 {
-    auto composer = std::make_unique<Composer>(crs_factory);
+    // WARNING: Size hint is essential to perform 512k circuits!
+    auto composer = std::make_unique<Composer>(crs_factory, CIRCUIT_SIZE);
     info("building circuit...");
     build_circuit(*composer);
 

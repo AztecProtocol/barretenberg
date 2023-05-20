@@ -11,7 +11,7 @@
  * Once WASM was working, I checked its performance in native code by running it against the polynomials benchmarks.
  * In doing so, OMP outperformed it significantly (at least for FFT algorithims). This set me on a course to try
  * and understand why and to provide a suitable alternative. Ultimately I found solutions that compared to OMP with
- * "moody" and "atomic" solutions, although they were not *quite* as fast as OMP. However interestingly, when it
+ * "moody" and "atomic_pool" solutions, although they were not *quite* as fast as OMP. However interestingly, when it
  * comes to actual "real world" testing (with proof construction), rather than raw benchmarking, most of the solutions
  * performaed about the same, with OMP *actually slightly worse*. So maybe all this effort was a bit redundant.
  * Remember to always do real world testing...
@@ -26,8 +26,14 @@
  *
  * Ultimately though the takeaway is as follows:
  * - OMP maybe preferable when running benchmarks if you want to check for that kind of "optimal linear scaling".
- *   Although, if we want to get rid of OMP altogether, "atomic" is a simple solution that seems to compare.
+ *   Although, if we want to get rid of OMP altogether, "atomic_pool" is a simple solution that seems to compare.
  * - The simplest "spawning" is probably best used everywhere else, and frees us from needing OMP to build the lib.
+ *
+ * UPDATE!: So although spawning is simple and fast, due to unstable pthreads in wasi-sdk that causes hangs when
+ * joining threads, we use "atomic_pool" by default. We may just wish to revert to spawning once it stablises.
+ *
+ * UPDATE!: Interestingly "atomic_pool" performs worse than "mutex_pool" for some e.g. proving key construction.
+ * Haven't done deeper analysis. Defaulting to mutex_pool.
  */
 
 // 64 core aws r5.
@@ -58,7 +64,9 @@ void parallel_for_queued(size_t num_iterations, const std::function<void(size_t)
 // pippenger: 152ms
 // coset_fft: 56658us
 // proof: 11.28s
-void parallel_for_atomic(size_t num_iterations, const std::function<void(size_t)>& func);
+void parallel_for_atomic_pool(size_t num_iterations, const std::function<void(size_t)>& func);
+
+void parallel_for_mutex_pool(size_t num_iterations, const std::function<void(size_t)>& func);
 
 void parallel_for(size_t num_iterations, const std::function<void(size_t)>& func)
 {
@@ -70,9 +78,10 @@ void parallel_for(size_t num_iterations, const std::function<void(size_t)>& func
 #ifndef NO_OMP_MULTITHREADING
     parallel_for_omp(num_iterations, func);
 #else
-    parallel_for_spawning(num_iterations, func);
+    // parallel_for_spawning(num_iterations, func);
     // parallel_for_moody(num_iterations, func);
-    // parallel_for_atomic(num_iterations, func);
+    // parallel_for_atomic_pool(num_iterations, func);
+    parallel_for_mutex_pool(num_iterations, func);
     // parallel_for_queued(num_iterations, func);
 #endif
 #endif

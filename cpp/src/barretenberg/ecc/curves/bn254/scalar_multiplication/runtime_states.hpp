@@ -79,6 +79,7 @@ struct pippenger_runtime_state {
     std::shared_ptr<void> point_schedule_ptr;
     std::shared_ptr<void> point_pairs_1_ptr;
     std::shared_ptr<void> point_pairs_2_ptr;
+    std::shared_ptr<void> scratch_space_ptr;
     uint64_t* point_schedule;
     g1::affine_element* point_pairs_1;
     g1::affine_element* point_pairs_2;

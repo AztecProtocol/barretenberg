@@ -26,12 +26,13 @@ pippenger_runtime_state::pippenger_runtime_state(const size_t num_initial_points
         get_mem_slab((static_cast<size_t>(num_points) * 2 + (num_threads * 16)) * sizeof(g1::affine_element));
     point_pairs_2_ptr =
         get_mem_slab((static_cast<size_t>(num_points) * 2 + (num_threads * 16)) * sizeof(g1::affine_element));
+    scratch_space_ptr = get_mem_slab(static_cast<size_t>(num_points) * sizeof(g1::affine_element));
     point_schedule = (uint64_t*)point_schedule_ptr.get();
     point_pairs_1 = (g1::affine_element*)point_pairs_1_ptr.get();
     point_pairs_2 = (g1::affine_element*)point_pairs_2_ptr.get();
+    scratch_space = (fq*)scratch_space_ptr.get();
 
     skew_table = (bool*)(aligned_alloc(64, pad(static_cast<size_t>(num_points) * sizeof(bool), 64)));
-    scratch_space = (fq*)(aligned_alloc(64, static_cast<size_t>(num_points) * sizeof(g1::affine_element)));
     bucket_counts = (uint32_t*)(aligned_alloc(64, num_threads * num_buckets * sizeof(uint32_t)));
     bit_counts = (uint32_t*)(aligned_alloc(64, num_threads * num_buckets * sizeof(uint32_t)));
     bucket_empty_status = (bool*)(aligned_alloc(64, num_threads * num_buckets * sizeof(bool)));
@@ -62,6 +63,11 @@ pippenger_runtime_state::pippenger_runtime_state(const size_t num_initial_points
 
 pippenger_runtime_state::pippenger_runtime_state(pippenger_runtime_state&& other)
 {
+    point_schedule_ptr = std::move(other.point_schedule_ptr);
+    point_pairs_1_ptr = std::move(other.point_pairs_1_ptr);
+    point_pairs_2_ptr = std::move(other.point_pairs_2_ptr);
+    scratch_space_ptr = std::move(other.scratch_space_ptr);
+
     point_schedule = other.point_schedule;
     skew_table = other.skew_table;
     point_pairs_1 = other.point_pairs_1;
@@ -91,10 +97,6 @@ pippenger_runtime_state& pippenger_runtime_state::operator=(pippenger_runtime_st
         aligned_free(skew_table);
     }
 
-    if (scratch_space) {
-        aligned_free(scratch_space);
-    }
-
     if (bit_counts) {
         aligned_free(bit_counts);
     }
@@ -110,6 +112,11 @@ pippenger_runtime_state& pippenger_runtime_state::operator=(pippenger_runtime_st
     if (round_counts) {
         aligned_free(round_counts);
     }
+
+    point_schedule_ptr = std::move(other.point_schedule_ptr);
+    point_pairs_1_ptr = std::move(other.point_pairs_1_ptr);
+    point_pairs_2_ptr = std::move(other.point_pairs_2_ptr);
+    scratch_space_ptr = std::move(other.scratch_space_ptr);
 
     point_schedule = other.point_schedule;
     skew_table = other.skew_table;
@@ -157,10 +164,6 @@ pippenger_runtime_state::~pippenger_runtime_state()
 {
     if (skew_table) {
         aligned_free(skew_table);
-    }
-
-    if (scratch_space) {
-        aligned_free(scratch_space);
     }
 
     if (bit_counts) {

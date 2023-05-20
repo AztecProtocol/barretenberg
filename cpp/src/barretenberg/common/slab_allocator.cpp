@@ -105,7 +105,7 @@ void SlabAllocator::init(size_t circuit_size_hint)
                                8 +    // Coset-fft perm selectors.
                                1 +    // Coset-fft sorted poly.
                                1 +    // Pippenger point_schedule.
-                               3;     // Miscellaneous.
+                               4;     // Miscellaneous.
     prealloc_num[large_size * 2] = 3; // Proving key evaluation domain roots. Pippenger point_pairs.
 
     for (auto& e : prealloc_num) {
@@ -119,7 +119,6 @@ void SlabAllocator::init(size_t circuit_size_hint)
 
 std::shared_ptr<void> SlabAllocator::get(size_t req_size)
 {
-    ASSERT(req_size % 32 == 0);
 #ifndef NO_MULTITHREADING
     std::unique_lock<std::mutex> lock(memory_store_mutex);
 #endif
@@ -132,11 +131,11 @@ std::shared_ptr<void> SlabAllocator::get(size_t req_size)
         auto ptr = it->second.back();
         it->second.pop_back();
 
-        // info("Reusing memory slab of size: ", size, " for requested ", req_size, " total: ", get_total_size());
-
         if (it->second.empty()) {
             memory_store.erase(it);
         }
+
+        // info("Reusing memory slab of size: ", size, " for requested ", req_size, " total: ", get_total_size());
 
         return std::shared_ptr<void>(ptr, [this, size](void* p) {
             if (allocator_destroyed) {
@@ -147,8 +146,13 @@ std::shared_ptr<void> SlabAllocator::get(size_t req_size)
         });
     }
 
-    // info("Allocating unmanaged memory slab of size: ", req_size);
-    return std::shared_ptr<void>(aligned_alloc(32, req_size), aligned_free);
+    if (req_size % 32 == 0) {
+        // info("Allocating unmanaged memory slab of size: ", req_size);
+        return std::shared_ptr<void>(aligned_alloc(32, req_size), aligned_free);
+    } else {
+        // info("Allocating unaligned unmanaged memory slab of size: ", req_size);
+        return std::shared_ptr<void>(malloc(req_size), free);
+    }
 }
 
 size_t SlabAllocator::get_total_size()
@@ -163,8 +167,8 @@ void SlabAllocator::release(void* ptr, size_t size)
 #ifndef NO_MULTITHREADING
     std::unique_lock<std::mutex> lock(memory_store_mutex);
 #endif
-    // info("Pooling poly memory of size: ", size, " total: ", get_total_size());
     memory_store[size].push_back(ptr);
+    // info("Pooled poly memory of size: ", size, " total: ", get_total_size());
 }
 
 SlabAllocator allocator;

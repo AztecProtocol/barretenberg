@@ -47,7 +47,7 @@ class ThreadPool {
     void do_iterations()
     {
         size_t iteration;
-        while ((iteration = iteration_.fetch_add(1, std::memory_order_relaxed)) < num_iterations_) {
+        while ((iteration = iteration_.fetch_add(1, std::memory_order_seq_cst)) < num_iterations_) {
             // info("main thread processing iteration ", iteration);
             task_(iteration);
             iterations_completed_++;
@@ -98,14 +98,14 @@ void ThreadPool::worker_loop(size_t)
 } // namespace
 
 /**
- * A Thread pooled strategy that uses atomics to prevent needing constantly lock on a queue.
+ * A thread pooled strategy that uses atomics to prevent needing constantly lock on a queue.
  * The main thread acts as a worker also, and when it completes, it spins until thread workers are done.
  */
-void parallel_for_atomic(size_t num_iterations, const std::function<void(size_t)>& func)
+void parallel_for_atomic_pool(size_t num_iterations, const std::function<void(size_t)>& func)
 {
     static ThreadPool pool(get_num_cpus() - 1);
 
-    // info("wait for pool enter");
+    // info("starting job with iterations: ", num_iterations);
     pool.start_tasks(num_iterations, func);
-    // info("pool finished work");
+    // info("done");
 }

@@ -16,7 +16,8 @@ async function main() {
   const crs = await Crs.new(2 ** 19 + 1);
   const pippengerPtr = await api.eccNewPippenger(crs.getG1Data(), crs.numPoints);
 
-  for (let i = 0; i < 3; ++i) {
+  for (let i = 0; i < 100; ++i) {
+    debug(`iteration ${i} starting...`);
     await api.examplesSimpleCreateAndVerifyProof(pippengerPtr, crs.getG2Data());
   }
 
