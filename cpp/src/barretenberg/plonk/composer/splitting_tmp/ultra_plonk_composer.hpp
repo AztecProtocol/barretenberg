@@ -17,6 +17,7 @@ class UltraPlonkComposer {
     static constexpr merkle::HashType merkle_hash_type = merkle::HashType::LOOKUP_PEDERSEN;
     static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
 
+    static constexpr size_t DEFAULT_PLOOKUP_RANGE_BITNUM = UltraCircuitConstructor::DEFAULT_PLOOKUP_RANGE_BITNUM;
     // An instantiation of the circuit constructor that only depends on arithmetization, not  on the proof system
     UltraCircuitConstructor circuit_constructor;
 
@@ -470,7 +471,7 @@ class UltraPlonkComposer {
     {
         return circuit_constructor.decompose_non_native_field_double_width_limb(limb_idx, num_limb_bits);
     }
-    std::array<uint32_t, 2> queue_non_native_field_multiplication(
+    std::array<uint32_t, 2> evaluate_non_native_field_multiplication(
         const UltraCircuitConstructor::non_native_field_witnesses& input,
         const bool range_constrain_quotient_and_remainder = true)
     {
@@ -478,10 +479,10 @@ class UltraPlonkComposer {
                                                                             range_constrain_quotient_and_remainder);
     };
 
-    std::array<uint32_t, 2> evaluate_partial_non_native_field_multiplication(
+    std::array<uint32_t, 2> queue_partial_non_native_field_multiplication(
         const proof_system::UltraCircuitConstructor::non_native_field_witnesses& input)
     {
-        return circuit_constructor.evaluate_partial_non_native_field_multiplication(input);
+        return circuit_constructor.queue_partial_non_native_field_multiplication(input);
     }
     using add_simple = proof_system::UltraCircuitConstructor::add_simple;
     std::array<uint32_t, 5> evaluate_non_native_field_subtraction(

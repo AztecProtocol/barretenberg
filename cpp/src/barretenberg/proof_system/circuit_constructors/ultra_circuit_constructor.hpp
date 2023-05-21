@@ -597,7 +597,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
         rom_arrays = other.rom_arrays;
         memory_read_records = other.memory_read_records;
         memory_write_records = other.memory_write_records;
-        cached_non_native_field_multiplications = other.cached_non_native_field_multiplications;
+        cached_partial_non_native_field_multiplications = other.cached_partial_non_native_field_multiplications;
         circuit_finalised = other.circuit_finalised;
     };
     UltraCircuitConstructor& operator=(const UltraCircuitConstructor& other) = delete;
@@ -613,7 +613,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
         rom_arrays = other.rom_arrays;
         memory_read_records = other.memory_read_records;
         memory_write_records = other.memory_write_records;
-        cached_non_native_field_multiplications = other.cached_non_native_field_multiplications;
+        cached_partial_non_native_field_multiplications = other.cached_partial_non_native_field_multiplications;
         circuit_finalised = other.circuit_finalised;
         return *this;
     };
@@ -766,7 +766,8 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
                 rangecount += ram_range_sizes[i];
             }
         }
-        std::vector<cached_non_native_field_multiplication> nnf_copy(cached_non_native_field_multiplications);
+        std::vector<cached_partial_non_native_field_multiplication> nnf_copy(
+            cached_partial_non_native_field_multiplications);
         // update nnfcount
         std::sort(nnf_copy.begin(), nnf_copy.end());
 

@@ -350,15 +350,9 @@ template <typename Curve> struct verification_key {
         const uint256_t generator = key->domain.generator;
         const uint256_t num_public_inputs = key->num_public_inputs;
 
-        constexpr size_t num_limb_bits = bn254<plonk::UltraPlonkComposer>::fq_ct::NUM_LIMB_BITS;
-        const auto split_bigfield_limbs = [](const uint256_t& element) {
-            std::vector<barretenberg::fr> limbs;
-            limbs.push_back(element.slice(0, num_limb_bits));
-            limbs.push_back(element.slice(num_limb_bits, num_limb_bits * 2));
-            limbs.push_back(element.slice(num_limb_bits * 2, num_limb_bits * 3));
-            limbs.push_back(element.slice(num_limb_bits * 3, num_limb_bits * 4));
-            return limbs;
-        };
+        ASSERT(domain < (uint256_t(1) << 32));
+        ASSERT(generator < (uint256_t(1) << 16));
+        ASSERT(num_public_inputs < (uint256_t(1) << 32));
 
         write(preimage_data, static_cast<uint16_t>(uint256_t(key->domain.generator)));
         write(preimage_data, static_cast<uint32_t>(uint256_t(key->domain.domain)));
