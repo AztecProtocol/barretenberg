@@ -26,6 +26,9 @@ class TurboPlonkComposer {
     // References to circuit constructor's members for convenience
     size_t& num_gates;
     std::vector<barretenberg::fr>& variables;
+
+    // While we always have it set to zero, feels wrong to have a potentially broken dependency
+    uint32_t& zero_idx;
     // Composer helper contains all proof-related material that is separate from circuit creation such as:
     // 1) Proving and verification keys
     // 2) CRS
@@ -44,6 +47,7 @@ class TurboPlonkComposer {
         : circuit_constructor(size_hint)
         , num_gates(circuit_constructor.num_gates)
         , variables(circuit_constructor.variables)
+        , zero_idx(circuit_constructor.zero_idx)
         , contains_recursive_proof(composer_helper.contains_recursive_proof)
         , recursive_proof_public_input_indices(composer_helper.recursive_proof_public_input_indices){};
 
@@ -56,6 +60,7 @@ class TurboPlonkComposer {
         : circuit_constructor(size_hint)
         , num_gates(circuit_constructor.num_gates)
         , variables(circuit_constructor.variables)
+        , zero_idx(circuit_constructor.zero_idx)
         , composer_helper(crs_factory)
         , contains_recursive_proof(composer_helper.contains_recursive_proof)
         , recursive_proof_public_input_indices(composer_helper.recursive_proof_public_input_indices){};
@@ -64,6 +69,7 @@ class TurboPlonkComposer {
         : circuit_constructor(size_hint)
         , num_gates(circuit_constructor.num_gates)
         , variables(circuit_constructor.variables)
+        , zero_idx(circuit_constructor.zero_idx)
         , composer_helper(std::move(crs_factory))
         , contains_recursive_proof(composer_helper.contains_recursive_proof)
         , recursive_proof_public_input_indices(composer_helper.recursive_proof_public_input_indices){};
@@ -74,6 +80,7 @@ class TurboPlonkComposer {
         : circuit_constructor(size_hint)
         , num_gates(circuit_constructor.num_gates)
         , variables(circuit_constructor.variables)
+        , zero_idx(circuit_constructor.zero_idx)
         , composer_helper(p_key, v_key)
         , contains_recursive_proof(composer_helper.contains_recursive_proof)
         , recursive_proof_public_input_indices(composer_helper.recursive_proof_public_input_indices){};
@@ -183,6 +190,7 @@ class TurboPlonkComposer {
     bool check_circuit() { return circuit_constructor.check_circuit(); }
 
     barretenberg::fr get_variable(const uint32_t index) const { return circuit_constructor.get_variable(index); }
+
     /**Proof and verification-related methods*/
 
     std::shared_ptr<plonk::proving_key> compute_proving_key()
@@ -194,8 +202,6 @@ class TurboPlonkComposer {
     {
         return composer_helper.compute_verification_key(circuit_constructor);
     }
-
-    uint32_t zero_idx = 0;
 
     void compute_witness() { composer_helper.compute_witness(circuit_constructor); };
     // TODO(#230)(Cody): This will not be needed, but maybe something is required for ComposerHelper to be generic?

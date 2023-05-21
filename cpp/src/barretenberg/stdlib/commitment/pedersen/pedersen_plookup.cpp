@@ -206,7 +206,7 @@ field_t<C> pedersen_plookup_commitment<C>::compress(const std::vector<std::pair<
     return commit(inputs, hash_indices).x;
 }
 
-template class pedersen_plookup_commitment<UltraComposer>;
+template class pedersen_plookup_commitment<UltraPlonkComposer>;
 
 } // namespace stdlib
 } // namespace proof_system::plonk

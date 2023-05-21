@@ -14,7 +14,7 @@
          ? "StandardPlonk"                                                                                             \
          : typeid(composer) == typeid(plonk::TurboPlonkComposer)                                                       \
                ? "TurboPlonk"                                                                                          \
-               : typeid(composer) == typeid(plonk::UltraComposer)                                                      \
+               : typeid(composer) == typeid(plonk::UltraPlonkComposer)                                                 \
                      ? "UltraPlonk"                                                                                    \
                      : typeid(composer) == typeid(honk::StandardHonkComposer) ? "StandardHonk" : "NULLPlonk")
 

@@ -2219,35 +2219,34 @@ uint32_t UltraCircuitConstructor::read_ROM_array(const size_t rom_id, const uint
     return value_witness;
 }
 
-// std::array<uint32_t, 2> UltraCircuitConstructor::read_ROM_array_pair(const size_t rom_id, const uint32_t
-// index_witness)
-// {
-//     std::array<uint32_t, 2> value_witnesses;
+std::array<uint32_t, 2> UltraCircuitConstructor::read_ROM_array_pair(const size_t rom_id, const uint32_t index_witness)
+{
+    std::array<uint32_t, 2> value_witnesses;
 
-//     const uint32_t index = static_cast<uint32_t>(uint256_t(get_variable(index_witness)));
-//     ASSERT(rom_arrays.size() > rom_id);
-//     RomTranscript& rom_array = rom_arrays[rom_id];
-//     ASSERT(rom_array.state.size() > index);
-//     ASSERT(rom_array.state[index][0] != UNINITIALIZED_MEMORY_RECORD);
-//     ASSERT(rom_array.state[index][1] != UNINITIALIZED_MEMORY_RECORD);
-//     const auto value1 = get_variable(rom_array.state[index][0]);
-//     const auto value2 = get_variable(rom_array.state[index][1]);
-//     value_witnesses[0] = add_variable(value1);
-//     value_witnesses[1] = add_variable(value2);
-//     RomRecord new_record{
-//         .index_witness = index_witness,
-//         .value_column1_witness = value_witnesses[0],
-//         .value_column2_witness = value_witnesses[1],
-//         .index = index,
-//         .record_witness = 0,
-//         .gate_index = 0,
-//     };
-//     create_ROM_gate(new_record);
-//     rom_array.records.emplace_back(new_record);
+    const uint32_t index = static_cast<uint32_t>(uint256_t(get_variable(index_witness)));
+    ASSERT(rom_arrays.size() > rom_id);
+    RomTranscript& rom_array = rom_arrays[rom_id];
+    ASSERT(rom_array.state.size() > index);
+    ASSERT(rom_array.state[index][0] != UNINITIALIZED_MEMORY_RECORD);
+    ASSERT(rom_array.state[index][1] != UNINITIALIZED_MEMORY_RECORD);
+    const auto value1 = get_variable(rom_array.state[index][0]);
+    const auto value2 = get_variable(rom_array.state[index][1]);
+    value_witnesses[0] = add_variable(value1);
+    value_witnesses[1] = add_variable(value2);
+    RomRecord new_record{
+        .index_witness = index_witness,
+        .value_column1_witness = value_witnesses[0],
+        .value_column2_witness = value_witnesses[1],
+        .index = index,
+        .record_witness = 0,
+        .gate_index = 0,
+    };
+    create_ROM_gate(new_record);
+    rom_array.records.emplace_back(new_record);
 
-//     // create_read_gate
-//     return value_witnesses;
-// }
+    // create_read_gate
+    return value_witnesses;
+}
 
 /**
  * @brief Compute additional gates required to validate ROM reads. Called when generating the proving key

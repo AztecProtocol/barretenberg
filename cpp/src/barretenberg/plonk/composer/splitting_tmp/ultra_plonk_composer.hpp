@@ -13,7 +13,7 @@ namespace proof_system::plonk {
 class UltraPlonkComposer {
 
   public:
-    static constexpr ComposerType type = ComposerType::STANDARD;
+    static constexpr ComposerType type = ComposerType::PLOOKUP;
     static constexpr merkle::HashType merkle_hash_type = merkle::HashType::LOOKUP_PEDERSEN;
     static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
 
@@ -22,6 +22,9 @@ class UltraPlonkComposer {
 
     // References to circuit_constructor's members for convenience
     size_t& num_gates;
+    std::vector<barretenberg::fr>& variables;
+    // While we always have it set to zero, feels wrong to have a potentially broken dependency
+    uint32_t& zero_idx;
 
     // Composer helper contains all proof-related material that is separate from circuit creation such as:
     // 1) Proving and verification keys
@@ -36,32 +39,140 @@ class UltraPlonkComposer {
     UltraPlonkComposer()
         : UltraPlonkComposer("../srs_db/ignition", 0){};
 
-    UltraPlonkComposer(std::string const& crs_path, const size_t size_hint)
+    UltraPlonkComposer(std::string const& crs_path, const size_t size_hint = 0)
         : UltraPlonkComposer(std::unique_ptr<ReferenceStringFactory>(new FileReferenceStringFactory(crs_path)),
                              size_hint){};
 
-    UltraPlonkComposer(std::shared_ptr<ReferenceStringFactory> const& crs_factory, const size_t size_hint)
+    UltraPlonkComposer(std::shared_ptr<ReferenceStringFactory> const& crs_factory, const size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , num_gates(circuit_constructor.num_gates)
+        , variables(circuit_constructor.variables)
+        , zero_idx(circuit_constructor.zero_idx)
         , composer_helper(crs_factory)
         , contains_recursive_proof(composer_helper.contains_recursive_proof)
         , recursive_proof_public_input_indices(composer_helper.recursive_proof_public_input_indices){};
 
     UltraPlonkComposer(std::shared_ptr<proving_key> const& p_key,
                        std::shared_ptr<verification_key> const& v_key,
-                       size_t size_hint = 0);
+                       size_t size_hint = 0)
+        : circuit_constructor(size_hint)
+        , num_gates(circuit_constructor.num_gates)
+        , variables(circuit_constructor.variables)
+        , zero_idx(circuit_constructor.zero_idx)
+        , composer_helper(p_key, v_key)
+        , contains_recursive_proof(composer_helper.contains_recursive_proof)
+        , recursive_proof_public_input_indices(composer_helper.recursive_proof_public_input_indices){};
+
     UltraPlonkComposer(UltraPlonkComposer&& other) = default;
-    UltraPlonkComposer& operator=(UltraPlonkComposer&& other) = delete;
+    UltraPlonkComposer& operator=(UltraPlonkComposer&& other)
+    {
+        circuit_constructor = std::move(other.circuit_constructor);
+        composer_helper = std::move(other.composer_helper);
+        return *this;
+    };
     ~UltraPlonkComposer() = default;
 
+    /**Methods related to circuit construction
+     * They simply get proxied to the circuit constructor
+     */
+    void assert_equal(const uint32_t a_variable_idx,
+                      const uint32_t b_variable_idx,
+                      std::string const& msg = "assert equal")
+    {
+        circuit_constructor.assert_equal(a_variable_idx, b_variable_idx, msg);
+    }
+    void assert_equal_constant(uint32_t const a_idx,
+                               barretenberg::fr const& b,
+                               std::string const& msg = "assert equal constant")
+    {
+        circuit_constructor.assert_equal_constant(a_idx, b, msg);
+    }
+
+    void create_add_gate(const add_triple& in) { circuit_constructor.create_add_gate(in); }
+    void create_mul_gate(const mul_triple& in) { circuit_constructor.create_mul_gate(in); }
+    void create_bool_gate(const uint32_t a) { circuit_constructor.create_bool_gate(a); }
+    void create_poly_gate(const poly_triple& in) { circuit_constructor.create_poly_gate(in); }
+    void create_big_add_gate(const add_quad& in, const bool include_next_gate_w_4 = false)
+    {
+        circuit_constructor.create_big_add_gate(in, include_next_gate_w_4);
+    }
+    void create_big_add_gate_with_bit_extraction(const add_quad& in)
+    {
+        circuit_constructor.create_big_add_gate_with_bit_extraction(in);
+    }
+    void create_big_mul_gate(const mul_quad& in) { circuit_constructor.create_big_mul_gate(in); }
+    void create_balanced_add_gate(const add_quad& in) { circuit_constructor.create_balanced_add_gate(in); }
+    void create_ecc_add_gate(const ecc_add_gate& in) { circuit_constructor.create_ecc_add_gate(in); }
+
+    void fix_witness(const uint32_t witness_index, const barretenberg::fr& witness_value)
+    {
+        circuit_constructor.fix_witness(witness_index, witness_value);
+    }
+
+    void create_range_constraint(const uint32_t variable_index,
+                                 const size_t num_bits,
+                                 std::string const& msg = "create_range_constraint")
+    {
+        circuit_constructor.create_range_constraint(variable_index, num_bits, msg);
+    }
+    accumulator_triple create_logic_constraint(const uint32_t a,
+                                               const uint32_t b,
+                                               const size_t num_bits,
+                                               bool is_xor_gate)
+    {
+        return circuit_constructor.create_logic_constraint(a, b, num_bits, is_xor_gate);
+    }
+
+    accumulator_triple create_and_constraint(const uint32_t a, const uint32_t b, const size_t num_bits)
+    {
+        return circuit_constructor.create_and_constraint(a, b, num_bits);
+    }
+
+    accumulator_triple create_xor_constraint(const uint32_t a, const uint32_t b, const size_t num_bits)
+    {
+        return circuit_constructor.create_xor_constraint(a, b, num_bits);
+    }
+    size_t get_num_gates() const { return circuit_constructor.get_num_gates(); }
     uint32_t get_zero_idx() { return circuit_constructor.zero_idx; }
 
     uint32_t add_variable(const barretenberg::fr& in) { return circuit_constructor.add_variable(in); }
 
+    uint32_t add_public_variable(const barretenberg::fr& in) { return circuit_constructor.add_public_variable(in); }
+
+    virtual void set_public_input(const uint32_t witness_index)
+    {
+        return circuit_constructor.set_public_input(witness_index);
+    }
+
+    uint32_t put_constant_variable(const barretenberg::fr& variable)
+    {
+        return circuit_constructor.put_constant_variable(variable);
+    }
+
+    size_t get_num_constant_gates() const { return circuit_constructor.get_num_constant_gates(); }
+
+    size_t get_total_circuit_size() const { return circuit_constructor.get_total_circuit_size(); }
+
+    bool check_circuit() { return circuit_constructor.check_circuit(); }
+
     barretenberg::fr get_variable(const uint32_t index) const { return circuit_constructor.get_variable(index); }
 
+    std::vector<barretenberg::fr> get_public_inputs() const { return circuit_constructor.get_public_inputs(); }
     void finalize_circuit() { circuit_constructor.finalize_circuit(); };
 
+    void print_num_gates() { circuit_constructor.print_num_gates(); }
+
+    /**Proof and verification-related methods*/
+
+    std::shared_ptr<plonk::proving_key> compute_proving_key()
+    {
+        return composer_helper.compute_proving_key(circuit_constructor);
+    }
+
+    std::shared_ptr<plonk::verification_key> compute_verification_key()
+    {
+        return composer_helper.compute_verification_key(circuit_constructor);
+    }
     UltraProver create_prover() { return composer_helper.create_prover(circuit_constructor); };
     UltraVerifier create_verifier() { return composer_helper.create_verifier(circuit_constructor); };
 
@@ -84,26 +195,11 @@ class UltraPlonkComposer {
 
         return composer_helper.create_ultra_with_keccak_verifier(circuit_constructor);
     };
-    // UltraToStandardVerifier create_ultra_to_standard_verifier();
 
-    void create_add_gate(const add_triple& in) { circuit_constructor.create_add_gate(in); }
-
-    void create_big_add_gate(const add_quad& in, const bool use_next_gate_w_4 = false)
+    static transcript::Manifest create_manifest(const size_t num_public_inputs)
     {
-        circuit_constructor.create_big_add_gate(in, use_next_gate_w_4);
-    };
-
-    // void create_big_add_gate_with_bit_extraction(const add_quad& in);
-    // void create_big_mul_gate(const mul_quad& in);
-    // void create_balanced_add_gate(const add_quad& in);
-
-    // void create_mul_gate(const mul_triple& in) override;
-    // void create_bool_gate(const uint32_t a) override;
-    // void create_poly_gate(const poly_triple& in) override;
-    void create_ecc_add_gate(const ecc_add_gate& in) { circuit_constructor.create_ecc_add_gate(in); };
-
-    // void fix_witness(const uint32_t witness_index, const barretenberg::fr& witness_value);
-
+        return UltraPlonkComposerHelper::create_manifest(num_public_inputs);
+    }
     void add_recursive_proof(const std::vector<uint32_t>& proof_output_witness_indices)
     {
         composer_helper.add_recursive_proof(circuit_constructor, proof_output_witness_indices);
@@ -135,17 +231,6 @@ class UltraPlonkComposer {
     //         decompose_into_default_range(variable_index, num_bits, DEFAULT_PLOOKUP_RANGE_BITNUM, msg);
     //     }
     // }
-
-    // accumulator_triple create_logic_constraint(const uint32_t a,
-    //                                            const uint32_t b,
-    //                                            const size_t num_bits,
-    //                                            bool is_xor_gate);
-    // accumulator_triple create_and_constraint(const uint32_t a, const uint32_t b, const size_t num_bits);
-    // accumulator_triple create_xor_constraint(const uint32_t a, const uint32_t b, const size_t num_bits);
-
-    // uint32_t put_constant_variable(const barretenberg::fr& variable);
-
-    // size_t get_num_constant_gates() const override { return 0; }
 
     // /**
     //  * @brief Get the final number of gates in a circuit, which consists of the sum of:
@@ -283,24 +368,6 @@ class UltraPlonkComposer {
     //               << "), pubinp = " << public_inputs.size() << std::endl;
     // }
 
-    void assert_equal(const uint32_t a_variable_idx,
-                      const uint32_t b_variable_idx,
-                      std::string const& msg = "assert_equal")
-    {
-        circuit_constructor.assert_equal(a_variable_idx, b_variable_idx, msg);
-    }
-
-    // void assert_equal_constant(const uint32_t a_idx,
-    //                            const barretenberg::fr& b,
-    //                            std::string const& msg = "assert equal constant")
-    // {
-    //     if (variables[a_idx] != b && !failed()) {
-    //         failure(msg);
-    //     }
-    //     auto b_idx = put_constant_variable(b);
-    //     assert_equal(a_idx, b_idx, msg);
-    // }
-
     // /**
     //  * Plookup Methods
     //  **/
@@ -397,29 +464,43 @@ class UltraPlonkComposer {
     {
         circuit_constructor.range_constrain_two_limbs(lo_idx, hi_idx, lo_limb_bits, hi_limb_bits);
     };
-    // std::array<uint32_t, 2> decompose_non_native_field_double_width_limb(
-    //     const uint32_t limb_idx, const size_t num_limb_bits = (2 * DEFAULT_NON_NATIVE_FIELD_LIMB_BITS));
-    std::array<uint32_t, 2> evaluate_non_native_field_multiplication(
+    std::array<uint32_t, 2> decompose_non_native_field_double_width_limb(
+        const uint32_t limb_idx,
+        const size_t num_limb_bits = (2 * UltraCircuitConstructor::DEFAULT_NON_NATIVE_FIELD_LIMB_BITS))
+    {
+        return circuit_constructor.decompose_non_native_field_double_width_limb(limb_idx, num_limb_bits);
+    }
+    std::array<uint32_t, 2> queue_non_native_field_multiplication(
         const UltraCircuitConstructor::non_native_field_witnesses& input,
         const bool range_constrain_quotient_and_remainder = true)
     {
         return circuit_constructor.evaluate_non_native_field_multiplication(input,
                                                                             range_constrain_quotient_and_remainder);
     };
-    // std::array<uint32_t, 2> queue_partial_non_native_field_multiplication(const non_native_field_witnesses&
-    // input); typedef std::pair<uint32_t, barretenberg::fr> scaled_witness; typedef std::tuple<scaled_witness,
-    // scaled_witness, barretenberg::fr> add_simple; std::array<uint32_t, 5> evaluate_non_native_field_subtraction(
-    //     add_simple limb0,
-    //     add_simple limb1,
-    //     add_simple limb2,
-    //     add_simple limb3,
-    //     std::tuple<uint32_t, uint32_t, barretenberg::fr> limbp);
-    // std::array<uint32_t, 5> evaluate_non_native_field_addition(add_simple limb0,
-    //                                                            add_simple limb1,
-    //                                                            add_simple limb2,
-    //                                                            add_simple limb3,
-    //                                                            std::tuple<uint32_t, uint32_t, barretenberg::fr>
-    //                                                            limbp);
+
+    std::array<uint32_t, 2> evaluate_partial_non_native_field_multiplication(
+        const proof_system::UltraCircuitConstructor::non_native_field_witnesses& input)
+    {
+        return circuit_constructor.evaluate_partial_non_native_field_multiplication(input);
+    }
+    using add_simple = proof_system::UltraCircuitConstructor::add_simple;
+    std::array<uint32_t, 5> evaluate_non_native_field_subtraction(
+        add_simple limb0,
+        add_simple limb1,
+        add_simple limb2,
+        add_simple limb3,
+        std::tuple<uint32_t, uint32_t, barretenberg::fr> limbp)
+    {
+        return circuit_constructor.evaluate_non_native_field_subtraction(limb0, limb1, limb2, limb3, limbp);
+    }
+    std::array<uint32_t, 5> evaluate_non_native_field_addition(add_simple limb0,
+                                                               add_simple limb1,
+                                                               add_simple limb2,
+                                                               add_simple limb3,
+                                                               std::tuple<uint32_t, uint32_t, barretenberg::fr> limbp)
+    {
+        return circuit_constructor.evaluate_non_native_field_addition(limb0, limb1, limb2, limb3, limbp);
+    };
 
     // /**
     //  * Memory
@@ -432,17 +513,23 @@ class UltraPlonkComposer {
     {
         circuit_constructor.set_ROM_element(rom_id, index_value, value_witness);
     };
-    // void set_ROM_element_pair(const size_t rom_id,
-    //                           const size_t index_value,
-    //                           const std::array<uint32_t, 2>& value_witnesses);
+    void set_ROM_element_pair(const size_t rom_id,
+                              const size_t index_value,
+                              const std::array<uint32_t, 2>& value_witnesses)
+    {
+        circuit_constructor.set_ROM_element_pair(rom_id, index_value, value_witnesses);
+    }
     uint32_t read_ROM_array(const size_t rom_id, const uint32_t index_witness)
     {
         return circuit_constructor.read_ROM_array(rom_id, index_witness);
     };
-    // std::array<uint32_t, 2> read_ROM_array_pair(const size_t rom_id, const uint32_t index_witness);
+    std::array<uint32_t, 2> read_ROM_array_pair(const size_t rom_id, const uint32_t index_witness)
+    {
+        return circuit_constructor.read_ROM_array_pair(rom_id, index_witness);
+    }
     // void create_ROM_gate(RomRecord& record);
     // void create_sorted_ROM_gate(RomRecord& record);
-    // void process_ROM_array(const size_t rom_id, const size_t gate_offset_from_public_inputs);
+    // void process_ROM_array(const size_t r;om_id, const size_t gate_offset_from_public_inputs);
     // void process_ROM_arrays(const size_t gate_offset_from_public_inputs);
 
     // void create_RAM_gate(RamRecord& record);
@@ -462,52 +549,9 @@ class UltraPlonkComposer {
     {
         circuit_constructor.write_RAM_array(ram_id, index_witness, value_witness);
     };
-    // void process_RAM_array(const size_t ram_id, const size_t gate_offset_from_public_inputs);
-    // void process_RAM_arrays(const size_t gate_offset_from_public_inputs);
 
-    // /**
-    //  * Member Variables
-    //  **/
-
-    // uint32_t zero_idx = 0;
-    bool circuit_finalised = false;
-
-    // // This variable controls the amount with which the lookup table and witness values need to be shifted
-    // // above to make room for adding randomness into the permutation and witness polynomials in the plookup widget.
-    // // This must be (num_roots_cut_out_of_the_vanishing_polynomial - 1), since the variable num_roots_cut_out_of_
-    // // vanishing_polynomial cannot be trivially fetched here, I am directly setting this to 4 - 1 = 3.
-    // static constexpr size_t s_randomness = 3;
-
-    // // these are variables that we have used a gate on, to enforce that they are equal to a defined value
-    // std::map<barretenberg::fr, uint32_t> constant_variable_indices;
-
-    // std::vector<plookup::BasicTable> lookup_tables;
-    // std::vector<plookup::MultiTable> lookup_multi_tables;
-    // std::map<uint64_t, RangeList> range_lists; // DOCTODO: explain this.
-
-    // /**
-    //  * @brief Each entry in ram_arrays represents an independent RAM table.
-    //  * RamTranscript tracks the current table state,
-    //  * as well as the 'records' produced by each read and write operation.
-    //  * Used in `compute_proving_key` to generate consistency check gates required to validate the RAM read/write
-    //  history
-    //  */
-    // std::vector<RamTranscript> ram_arrays;
-
-    // /**
-    //  * @brief Each entry in ram_arrays represents an independent ROM table.
-    //  * RomTranscript tracks the current table state,
-    //  * as well as the 'records' produced by each read operation.
-    //  * Used in `compute_proving_key` to generate consistency check gates required to validate the ROM read history
-    //  */
-    // std::vector<RomTranscript> rom_arrays;
-
-    // // Stores gate index of ROM and RAM reads (required by proving key)
-    // std::vector<uint32_t> memory_read_records;
-    // // Stores gate index of RAM writes (required by proving key)
-    // std::vector<uint32_t> memory_write_records;
-
-    // std::vector<uint32_t> recursive_proof_public_input_indices;
-    // bool contains_recursive_proof = false;
+    bool failed() const { return circuit_constructor.failed(); };
+    const std::string& err() const { return circuit_constructor.err(); };
+    void failure(std::string msg) { circuit_constructor.failure(msg); }
 };
 } // namespace proof_system::plonk

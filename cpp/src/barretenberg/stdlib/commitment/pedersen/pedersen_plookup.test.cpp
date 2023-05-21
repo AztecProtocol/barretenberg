@@ -15,11 +15,11 @@ auto& engine = numeric::random::get_debug_engine();
 }
 
 namespace plookup_pedersen_tests {
-typedef stdlib::field_t<UltraComposer> field_ct;
-typedef stdlib::witness_t<UltraComposer> witness_ct;
+typedef stdlib::field_t<UltraPlonkComposer> field_ct;
+typedef stdlib::witness_t<UltraPlonkComposer> witness_ct;
 TEST(stdlib_pedersen, test_pedersen_plookup)
 {
-    UltraComposer composer = UltraComposer();
+    UltraPlonkComposer composer = UltraPlonkComposer();
 
     fr left_in = fr::random_element();
     fr right_in = fr::random_element();
@@ -27,7 +27,7 @@ TEST(stdlib_pedersen, test_pedersen_plookup)
     field_ct left = witness_ct(&composer, left_in);
     field_ct right = witness_ct(&composer, right_in);
 
-    field_ct result = stdlib::pedersen_plookup_commitment<UltraComposer>::compress(left, right);
+    field_ct result = stdlib::pedersen_plookup_commitment<UltraPlonkComposer>::compress(left, right);
 
     fr expected = crypto::pedersen_hash::lookup::hash_pair(left_in, right_in);
 
@@ -46,7 +46,7 @@ TEST(stdlib_pedersen, test_pedersen_plookup)
 
 TEST(stdlib_pedersen, test_compress_many_plookup)
 {
-    UltraComposer composer = UltraComposer();
+    UltraPlonkComposer composer = UltraPlonkComposer();
 
     std::vector<fr> input_values{
         fr::random_element(), fr::random_element(), fr::random_element(),
@@ -59,7 +59,7 @@ TEST(stdlib_pedersen, test_compress_many_plookup)
 
     const size_t hash_idx = 20;
 
-    field_ct result = stdlib::pedersen_plookup_commitment<UltraComposer>::compress(inputs, hash_idx);
+    field_ct result = stdlib::pedersen_plookup_commitment<UltraPlonkComposer>::compress(inputs, hash_idx);
 
     auto expected = crypto::pedersen_commitment::lookup::compress_native(input_values, hash_idx);
 
@@ -78,7 +78,7 @@ TEST(stdlib_pedersen, test_compress_many_plookup)
 
 TEST(stdlib_pedersen, test_merkle_damgard_compress_plookup)
 {
-    UltraComposer composer = UltraComposer();
+    UltraPlonkComposer composer = UltraPlonkComposer();
 
     std::vector<fr> input_values{
         fr::random_element(), fr::random_element(), fr::random_element(),
@@ -90,7 +90,7 @@ TEST(stdlib_pedersen, test_merkle_damgard_compress_plookup)
     }
     field_ct iv = witness_ct(&composer, fr(10));
 
-    field_ct result = stdlib::pedersen_plookup_commitment<UltraComposer>::merkle_damgard_compress(inputs, iv).x;
+    field_ct result = stdlib::pedersen_plookup_commitment<UltraPlonkComposer>::merkle_damgard_compress(inputs, iv).x;
 
     auto expected = crypto::pedersen_commitment::lookup::merkle_damgard_compress(input_values, 10);
 
@@ -109,7 +109,7 @@ TEST(stdlib_pedersen, test_merkle_damgard_compress_plookup)
 
 TEST(stdlib_pedersen, test_merkle_damgard_compress_multiple_iv_plookup)
 {
-    UltraComposer composer = UltraComposer();
+    UltraPlonkComposer composer = UltraPlonkComposer();
 
     const size_t m = 10;
     std::vector<fr> input_values;
@@ -126,7 +126,7 @@ TEST(stdlib_pedersen, test_merkle_damgard_compress_multiple_iv_plookup)
         ivs.emplace_back(witness_ct(&composer, fr(iv_values[i])));
     }
 
-    field_ct result = stdlib::pedersen_plookup_commitment<UltraComposer>::merkle_damgard_compress(inputs, ivs).x;
+    field_ct result = stdlib::pedersen_plookup_commitment<UltraPlonkComposer>::merkle_damgard_compress(inputs, ivs).x;
 
     auto expected = crypto::pedersen_commitment::lookup::merkle_damgard_compress(input_values, iv_values);
 
@@ -145,7 +145,7 @@ TEST(stdlib_pedersen, test_merkle_damgard_compress_multiple_iv_plookup)
 
 TEST(stdlib_pedersen, test_merkle_damgard_tree_compress_plookup)
 {
-    UltraComposer composer = UltraComposer();
+    UltraPlonkComposer composer = UltraPlonkComposer();
 
     const size_t m = 16;
     std::vector<fr> input_values;
@@ -162,7 +162,8 @@ TEST(stdlib_pedersen, test_merkle_damgard_tree_compress_plookup)
         ivs.emplace_back(witness_ct(&composer, fr(iv_values[i])));
     }
 
-    field_ct result = stdlib::pedersen_plookup_commitment<UltraComposer>::merkle_damgard_tree_compress(inputs, ivs).x;
+    field_ct result =
+        stdlib::pedersen_plookup_commitment<UltraPlonkComposer>::merkle_damgard_tree_compress(inputs, ivs).x;
 
     auto expected = crypto::pedersen_commitment::lookup::merkle_damgard_tree_compress(input_values, iv_values);
 

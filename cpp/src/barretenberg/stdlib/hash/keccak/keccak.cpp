@@ -754,7 +754,7 @@ stdlib::byte_array<Composer> keccak<Composer>::hash(byte_array_ct& input, const 
     return result;
 }
 
-template class keccak<plonk::UltraComposer>;
+template class keccak<plonk::UltraPlonkComposer>;
 
 } // namespace stdlib
 } // namespace proof_system::plonk

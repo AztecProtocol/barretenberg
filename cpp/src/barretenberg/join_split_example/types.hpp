@@ -17,15 +17,15 @@
 
 namespace join_split_example {
 
-using Composer = plonk::UltraComposer;
+using Composer = plonk::UltraPlonkComposer;
 
 using Prover = std::conditional_t<
-    std::same_as<Composer, plonk::UltraComposer>,
+    std::same_as<Composer, plonk::UltraPlonkComposer>,
     plonk::UltraProver,
     std::conditional_t<std::same_as<Composer, plonk::TurboPlonkComposer>, plonk::TurboProver, plonk::Prover>>;
 
 using Verifier = std::conditional_t<
-    std::same_as<Composer, plonk::UltraComposer>,
+    std::same_as<Composer, plonk::UltraPlonkComposer>,
     plonk::UltraVerifier,
     std::conditional_t<std::same_as<Composer, plonk::TurboPlonkComposer>, plonk::TurboVerifier, plonk::Verifier>>;
 

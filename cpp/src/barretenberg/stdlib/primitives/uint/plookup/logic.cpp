@@ -327,10 +327,10 @@ uint_plookup<Composer, Native> uint_plookup<Composer, Native>::logic_operator(co
     return result;
 }
 
-template class uint_plookup<plonk::UltraComposer, uint8_t>;
-template class uint_plookup<plonk::UltraComposer, uint16_t>;
-template class uint_plookup<plonk::UltraComposer, uint32_t>;
-template class uint_plookup<plonk::UltraComposer, uint64_t>;
+template class uint_plookup<plonk::UltraPlonkComposer, uint8_t>;
+template class uint_plookup<plonk::UltraPlonkComposer, uint16_t>;
+template class uint_plookup<plonk::UltraPlonkComposer, uint32_t>;
+template class uint_plookup<plonk::UltraPlonkComposer, uint64_t>;
 
 } // namespace stdlib
 } // namespace proof_system::plonk

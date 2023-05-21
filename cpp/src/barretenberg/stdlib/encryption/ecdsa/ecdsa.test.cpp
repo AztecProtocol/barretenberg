@@ -10,7 +10,7 @@ using namespace barretenberg;
 using namespace proof_system::plonk;
 
 namespace test_stdlib_ecdsa {
-using Composer = proof_system::plonk::UltraComposer;
+using Composer = proof_system::plonk::UltraPlonkComposer;
 using curve = stdlib::secp256k1<Composer>;
 
 TEST(stdlib_ecdsa, verify_signature)
@@ -50,7 +50,8 @@ TEST(stdlib_ecdsa, verify_signature)
     EXPECT_EQ(signature_result.get_value(), true);
 
     std::cerr << "composer gates = " << composer.get_num_gates() << std::endl;
-    benchmark_info("UltraComposer", "ECDSA", "Signature Verification Test", "Gate Count", composer.get_num_gates());
+    benchmark_info(
+        "UltraPlonkComposer", "ECDSA", "Signature Verification Test", "Gate Count", composer.get_num_gates());
     auto prover = composer.create_prover();
     auto verifier = composer.create_verifier();
     auto proof = prover.construct_proof();
@@ -97,7 +98,8 @@ TEST(stdlib_ecdsa, verify_signature_noassert_succeed)
     EXPECT_EQ(signature_result.get_value(), true);
 
     std::cerr << "composer gates = " << composer.get_num_gates() << std::endl;
-    benchmark_info("UltraComposer", "ECDSA", "Signature Verification Test", "Gate Count", composer.get_num_gates());
+    benchmark_info(
+        "UltraPlonkComposer", "ECDSA", "Signature Verification Test", "Gate Count", composer.get_num_gates());
     auto prover = composer.create_prover();
     auto verifier = composer.create_verifier();
     auto proof = prover.construct_proof();
@@ -144,7 +146,8 @@ TEST(stdlib_ecdsa, verify_signature_noassert_fail)
     EXPECT_EQ(signature_result.get_value(), false);
 
     std::cerr << "composer gates = " << composer.get_num_gates() << std::endl;
-    benchmark_info("UltraComposer", "ECDSA", "Signature Verification Test", "Gate Count", composer.get_num_gates());
+    benchmark_info(
+        "UltraPlonkComposer", "ECDSA", "Signature Verification Test", "Gate Count", composer.get_num_gates());
     auto prover = composer.create_prover();
     auto verifier = composer.create_verifier();
     auto proof = prover.construct_proof();

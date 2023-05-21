@@ -10,7 +10,7 @@ namespace proof_system::test_stdlib_merkle_tree {
 using namespace plonk::stdlib;
 using namespace proof_system::plonk::stdlib::merkle_tree;
 
-using Composer = plonk::UltraComposer;
+using Composer = plonk::UltraPlonkComposer;
 using Prover = plonk::UltraProver;
 using Verifier = plonk::UltraVerifier;
 

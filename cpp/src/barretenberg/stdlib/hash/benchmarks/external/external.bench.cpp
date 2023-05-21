@@ -14,7 +14,7 @@
 
 using namespace benchmark;
 
-using Composer = proof_system::plonk::UltraComposer;
+using Composer = proof_system::plonk::UltraPlonkComposer;
 using Prover = proof_system::plonk::UltraProver;
 using Verifier = proof_system::plonk::UltraVerifier;
 

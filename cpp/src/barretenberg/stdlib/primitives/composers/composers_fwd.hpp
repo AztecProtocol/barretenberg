@@ -3,7 +3,7 @@
 namespace proof_system::plonk {
 class StandardPlonkComposer;
 class TurboPlonkComposer;
-class UltraComposer;
+class UltraPlonkComposer;
 
 class StandardPlonkComposer;
 } // namespace proof_system::plonk
@@ -17,13 +17,13 @@ class StandardHonkComposer;
     extern template class stdlib_type<honk::StandardHonkComposer>;                                                     \
     extern template class stdlib_type<plonk::StandardPlonkComposer>;                                                   \
     extern template class stdlib_type<plonk::TurboPlonkComposer>;                                                      \
-    extern template class stdlib_type<plonk::UltraComposer>;
+    extern template class stdlib_type<plonk::UltraPlonkComposer>;
 
 #define EXTERN_STDLIB_TYPE_VA(stdlib_type, ...)                                                                        \
     extern template class stdlib_type<plonk::StandardPlonkComposer, __VA_ARGS__>;                                      \
     extern template class stdlib_type<plonk::StandardPlonkComposer, __VA_ARGS__>;                                      \
     extern template class stdlib_type<plonk::TurboPlonkComposer, __VA_ARGS__>;                                         \
-    extern template class stdlib_type<plonk::UltraComposer, __VA_ARGS__>;
+    extern template class stdlib_type<plonk::UltraPlonkComposer, __VA_ARGS__>;
 
 #define EXTERN_STDLIB_BASIC_TYPE(stdlib_type)                                                                          \
     extern template class stdlib_type<plonk::StandardPlonkComposer>;                                                   \
@@ -36,7 +36,7 @@ class StandardHonkComposer;
     extern template class stdlib_type<plonk::StandardPlonkComposer, __VA_ARGS__>;                                      \
     extern template class stdlib_type<plonk::TurboPlonkComposer, __VA_ARGS__>;
 
-#define EXTERN_STDLIB_ULTRA_TYPE(stdlib_type) extern template class stdlib_type<plonk::UltraComposer>;
+#define EXTERN_STDLIB_ULTRA_TYPE(stdlib_type) extern template class stdlib_type<plonk::UltraPlonkComposer>;
 
 #define EXTERN_STDLIB_ULTRA_TYPE_VA(stdlib_type, ...)                                                                  \
-    extern template class stdlib_type<plonk::UltraComposer, __VA_ARGS__>;
+    extern template class stdlib_type<plonk::UltraPlonkComposer, __VA_ARGS__>;

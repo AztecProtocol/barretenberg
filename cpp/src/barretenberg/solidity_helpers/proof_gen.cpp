@@ -80,11 +80,11 @@ int main(int argc, char** argv)
         return 1;
     } else {
         if (circuit_flavour == "blake") {
-            generate_proof<UltraComposer, BlakeCircuit<UltraComposer>>(srs_path, inputs);
+            generate_proof<UltraPlonkComposer, BlakeCircuit<UltraPlonkComposer>>(srs_path, inputs);
         } else if (circuit_flavour == "add2") {
-            generate_proof<UltraComposer, Add2Circuit<UltraComposer>>(srs_path, inputs);
+            generate_proof<UltraPlonkComposer, Add2Circuit<UltraPlonkComposer>>(srs_path, inputs);
         } else if (circuit_flavour == "recursive") {
-            generate_proof<UltraComposer, RecursiveCircuit<UltraComposer>>(srs_path, inputs);
+            generate_proof<UltraPlonkComposer, RecursiveCircuit<UltraPlonkComposer>>(srs_path, inputs);
         } else {
             info("Invalid circuit flavour: " + circuit_flavour);
             return 1;

@@ -48,10 +48,10 @@ TEST(proving_key, proving_key_from_serialized_key)
     EXPECT_EQ(p_key.contains_recursive_proof, proving_key->contains_recursive_proof);
 }
 
-// Test proving key serialization/deserialization to/from buffer using UltraComposer
+// Test proving key serialization/deserialization to/from buffer using UltraPlonkComposer
 TEST(proving_key, proving_key_from_serialized_key_ultra)
 {
-    plonk::UltraComposer composer = plonk::UltraComposer();
+    plonk::UltraPlonkComposer composer = plonk::UltraPlonkComposer();
     fr a = fr::one();
     composer.add_public_variable(a);
 

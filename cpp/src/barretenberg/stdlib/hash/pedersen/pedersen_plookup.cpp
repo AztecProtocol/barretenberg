@@ -182,7 +182,7 @@ field_t<C> pedersen_plookup_hash<C>::hash_multiple(const std::vector<field_t>& i
     return add_points(p1, p2).x;
 }
 
-template class pedersen_plookup_hash<plonk::UltraComposer>;
+template class pedersen_plookup_hash<plonk::UltraPlonkComposer>;
 
 } // namespace stdlib
 } // namespace proof_system::plonk

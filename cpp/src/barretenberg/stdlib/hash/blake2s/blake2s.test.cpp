@@ -8,7 +8,7 @@ using namespace proof_system::plonk;
 
 using namespace plonk::stdlib;
 
-using Composer = plonk::UltraComposer;
+using Composer = plonk::UltraPlonkComposer;
 using Prover = plonk::UltraProver;
 using Verifier = plonk::UltraVerifier;
 
@@ -45,12 +45,12 @@ TEST(stdlib_blake2s, test_single_block)
 
 TEST(stdlib_blake2s, test_single_block_plookup)
 {
-    plonk::UltraComposer composer = UltraComposer();
+    plonk::UltraPlonkComposer composer = UltraPlonkComposer();
     std::string input = "abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz01";
     std::vector<uint8_t> input_v(input.begin(), input.end());
 
     byte_array_plookup input_arr(&composer, input_v);
-    byte_array_plookup output = stdlib::blake2s<plonk::UltraComposer>(input_arr);
+    byte_array_plookup output = stdlib::blake2s<plonk::UltraPlonkComposer>(input_arr);
 
     std::vector<uint8_t> expected = blake2::blake2s(input_v);
 
@@ -93,7 +93,7 @@ TEST(stdlib_blake2s, test_double_block)
 
 TEST(stdlib_blake2s, test_double_block_plookup)
 {
-    plonk::UltraComposer composer = UltraComposer();
+    plonk::UltraPlonkComposer composer = UltraPlonkComposer();
     std::string input = "abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz0123456789";
     std::vector<uint8_t> input_v(input.begin(), input.end());
 

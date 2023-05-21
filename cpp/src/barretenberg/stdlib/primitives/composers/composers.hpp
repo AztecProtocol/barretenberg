@@ -9,13 +9,13 @@
     template class stdlib_type<plonk::StandardPlonkComposer>;                                                          \
     template class stdlib_type<honk::StandardHonkComposer>;                                                            \
     template class stdlib_type<plonk::TurboPlonkComposer>;                                                             \
-    template class stdlib_type<plonk::UltraComposer>;
+    template class stdlib_type<plonk::UltraPlonkComposer>;
 
 #define INSTANTIATE_STDLIB_TYPE_VA(stdlib_type, ...)                                                                   \
     template class stdlib_type<plonk::StandardPlonkComposer, __VA_ARGS__>;                                             \
     template class stdlib_type<honk::StandardPlonkComposer, __VA_ARGS__>;                                              \
     template class stdlib_type<plonk::TurboPlonkComposer, __VA_ARGS__>;                                                \
-    template class stdlib_type<plonk::UltraComposer, __VA_ARGS__>;
+    template class stdlib_type<plonk::UltraPlonkComposer, __VA_ARGS__>;
 
 #define INSTANTIATE_STDLIB_BASIC_TYPE(stdlib_type)                                                                     \
     template class stdlib_type<plonk::StandardPlonkComposer>;                                                          \
@@ -27,7 +27,7 @@
     template class stdlib_type<plonk::StandardPlonkComposer, __VA_ARGS__>;                                             \
     template class stdlib_type<plonk::TurboPlonkComposer, __VA_ARGS__>;
 
-#define INSTANTIATE_STDLIB_ULTRA_TYPE(stdlib_type) template class stdlib_type<plonk::UltraComposer>;
+#define INSTANTIATE_STDLIB_ULTRA_TYPE(stdlib_type) template class stdlib_type<plonk::UltraPlonkComposer>;
 
 #define INSTANTIATE_STDLIB_ULTRA_TYPE_VA(stdlib_type, ...)                                                             \
-    template class stdlib_type<plonk::UltraComposer, __VA_ARGS__>;
+    template class stdlib_type<plonk::UltraPlonkComposer, __VA_ARGS__>;

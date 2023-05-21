@@ -831,15 +831,15 @@ template <typename TestType> class stdlib_biggroup : public testing::Test {
 
 enum UseBigfield { No, Yes };
 using TestTypes = testing::Types<TestType<stdlib::bn254<honk::StandardHonkComposer>, UseBigfield::No>,
-                                 //  TestType<stdlib::bn254<plonk::UltraComposer>, UseBigfield::No>,
+                                 //  TestType<stdlib::bn254<plonk::UltraPlonkComposer>, UseBigfield::No>,
                                  //  TestType<stdlib::bn254<plonk::TurboPlonkComposer>, UseBigfield::No>,
                                  TestType<stdlib::bn254<plonk::StandardPlonkComposer>, UseBigfield::No>,
-                                 TestType<stdlib::bn254<plonk::UltraComposer>, UseBigfield::Yes>,
+                                 TestType<stdlib::bn254<plonk::UltraPlonkComposer>, UseBigfield::Yes>,
                                  // TestType<stdlib::bn254<plonk::TurboPlonkComposer>, UseBigfield::Yes>,
                                  // TestType<stdlib::bn254<plonk::StandardPlonkComposer>, UseBigfield::Yes>,
                                  // TestType<stdlib::bn254<honk::StandardHonkComposer>, UseBigfield::Yes>,
-                                 // TestType<stdlib::secp256r1<plonk::UltraComposer>, UseBigfield::Yes>,
-                                 TestType<stdlib::secp256k1<plonk::UltraComposer>, UseBigfield::Yes>>;
+                                 // TestType<stdlib::secp256r1<plonk::UltraPlonkComposer>, UseBigfield::Yes>,
+                                 TestType<stdlib::secp256k1<plonk::UltraPlonkComposer>, UseBigfield::Yes>>;
 
 TYPED_TEST_SUITE(stdlib_biggroup, TestTypes);
 
@@ -907,7 +907,7 @@ HEAVY_TYPED_TEST(stdlib_biggroup, compute_naf)
     }
 }
 
-/* These tests only work for UltraComposer */
+/* These tests only work for UltraPlonkComposer */
 HEAVY_TYPED_TEST(stdlib_biggroup, wnaf_batch_mul)
 {
     if constexpr (TypeParam::Curve::Composer::type == ComposerType::PLOOKUP) {
@@ -917,11 +917,11 @@ HEAVY_TYPED_TEST(stdlib_biggroup, wnaf_batch_mul)
     }
 }
 
-/* the following test was only developed as a test of UltraComposer. It fails for Turbo and Standard in the case where
-   Fr is a bigfield. */
+/* the following test was only developed as a test of UltraPlonkComposer. It fails for Turbo and Standard in the case
+   where Fr is a bigfield. */
 HEAVY_TYPED_TEST(stdlib_biggroup, compute_wnaf)
 {
-    if constexpr (TypeParam::Curve::Composer::type != UltraComposer::type && TypeParam::use_bigfield) {
+    if constexpr (TypeParam::Curve::Composer::type != UltraPlonkComposer::type && TypeParam::use_bigfield) {
         GTEST_SKIP();
     } else {
         TestFixture::test_compute_wnaf();

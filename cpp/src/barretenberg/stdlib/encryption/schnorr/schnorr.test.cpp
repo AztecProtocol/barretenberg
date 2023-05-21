@@ -14,7 +14,7 @@ using namespace barretenberg;
 using namespace proof_system::plonk::stdlib;
 using namespace proof_system::plonk::stdlib::schnorr;
 
-using Composer = plonk::UltraComposer;
+using Composer = plonk::UltraPlonkComposer;
 using Prover = plonk::UltraProver;
 using Verifier = plonk::UltraVerifier;
 using bool_ct = bool_t<Composer>;

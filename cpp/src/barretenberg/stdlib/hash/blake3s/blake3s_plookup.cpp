@@ -261,7 +261,7 @@ template <typename Composer> byte_array<Composer> blake3s(const byte_array<Compo
     return result;
 }
 
-template byte_array<plonk::UltraComposer> blake3s(const byte_array<plonk::UltraComposer>& input);
+template byte_array<plonk::UltraPlonkComposer> blake3s(const byte_array<plonk::UltraPlonkComposer>& input);
 
 } // namespace blake3s_plookup
 

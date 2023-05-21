@@ -3,7 +3,7 @@
 
 namespace proof_system::plonk {
 class TurboPlonkComposer;
-class UltraComposer;
+class UltraPlonkComposer;
 } // namespace proof_system::plonk
 
 namespace proof_system::plonk {
@@ -13,7 +13,7 @@ template <typename Composer> byte_array<Composer> blake3s(const byte_array<Compo
 
 extern template byte_array<plonk::StandardPlonkComposer> blake3s(const byte_array<plonk::StandardPlonkComposer>& input);
 extern template byte_array<plonk::TurboPlonkComposer> blake3s(const byte_array<plonk::TurboPlonkComposer>& input);
-extern template byte_array<plonk::UltraComposer> blake3s(const byte_array<plonk::UltraComposer>& input);
+extern template byte_array<plonk::UltraPlonkComposer> blake3s(const byte_array<plonk::UltraPlonkComposer>& input);
 
 } // namespace stdlib
 } // namespace proof_system::plonk

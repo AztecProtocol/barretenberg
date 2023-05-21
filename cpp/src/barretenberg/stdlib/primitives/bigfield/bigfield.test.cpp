@@ -860,7 +860,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
 };
 
 // Define types for which the above tests will be constructed.
-typedef testing::Types<plonk::UltraComposer,
+typedef testing::Types<plonk::UltraPlonkComposer,
                        plonk::TurboPlonkComposer,
                        plonk::StandardPlonkComposer,
                        honk::StandardHonkComposer,
@@ -994,7 +994,7 @@ TYPED_TEST(stdlib_bigfield, division_context)
 // // PLOOKUP TESTS
 // TEST(stdlib_bigfield_plookup, test_mul)
 // {
-//     plonk::UltraComposer composer = proof_system::plonk::UltraComposer();
+//     plonk::UltraPlonkComposer composer = proof_system::plonk::UltraPlonkComposer();
 //     size_t num_repetitions = 1;
 //     for (size_t i = 0; i < num_repetitions; ++i) {
 //         fq inputs[3]{ fq::random_element(), fq::random_element(), fq::random_element() };
@@ -1041,7 +1041,7 @@ TYPED_TEST(stdlib_bigfield, division_context)
 
 // TEST(stdlib_bigfield_plookup, test_sqr)
 // {
-//     plonk::UltraComposer composer = proof_system::plonk::UltraComposer();
+//     plonk::UltraPlonkComposer composer = proof_system::plonk::UltraPlonkComposer();
 //     size_t num_repetitions = 10;
 //     for (size_t i = 0; i < num_repetitions; ++i) {
 //         fq inputs[3]{ fq::random_element(), fq::random_element(), fq::random_element() };

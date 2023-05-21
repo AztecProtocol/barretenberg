@@ -31,8 +31,10 @@ using namespace proof_system::plonk;
 
 template <class Composer> class LogicTest : public testing::Test {};
 
-using ComposerTypes = ::testing::
-    Types<honk::StandardHonkComposer, plonk::StandardPlonkComposer, plonk::TurboPlonkComposer, plonk::UltraComposer>;
+using ComposerTypes = ::testing::Types<honk::StandardHonkComposer,
+                                       plonk::StandardPlonkComposer,
+                                       plonk::TurboPlonkComposer,
+                                       plonk::UltraPlonkComposer>;
 
 TYPED_TEST_SUITE(LogicTest, ComposerTypes);
 
@@ -96,8 +98,8 @@ TYPED_TEST(LogicTest, TestCorrectLogic)
 }
 
 // Tests the constraints will fail if the operands are larger than expected even though the result contains the correct
-// number of bits when using the UltraComposer This is because the range constraints on the right and left operand are
-// not being satisfied.
+// number of bits when using the UltraPlonkComposer This is because the range constraints on the right and left operand
+// are not being satisfied.
 TYPED_TEST(LogicTest, LargeOperands)
 {
     STDLIB_TYPE_ALIASES

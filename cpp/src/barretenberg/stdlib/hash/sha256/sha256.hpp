@@ -7,7 +7,7 @@
 #include "sha256_plookup.hpp"
 
 namespace proof_system::plonk {
-class UltraComposer;
+class UltraPlonkComposer;
 class StandardPlonkComposer;
 class TurboPlonkComposer;
 } // namespace proof_system::plonk
@@ -40,7 +40,8 @@ extern template byte_array<plonk::StandardPlonkComposer> sha256_block(
 extern template packed_byte_array<plonk::StandardPlonkComposer> sha256(
     const packed_byte_array<plonk::StandardPlonkComposer>& input);
 
-extern template packed_byte_array<plonk::UltraComposer> sha256(const packed_byte_array<plonk::UltraComposer>& input);
+extern template packed_byte_array<plonk::UltraPlonkComposer> sha256(
+    const packed_byte_array<plonk::UltraPlonkComposer>& input);
 
 } // namespace stdlib
 } // namespace proof_system::plonk

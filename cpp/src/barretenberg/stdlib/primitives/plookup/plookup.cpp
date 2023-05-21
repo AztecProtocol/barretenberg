@@ -4,7 +4,7 @@
 #include "barretenberg/proof_system/plookup_tables/types.hpp"
 
 namespace proof_system::plonk {
-class UltraComposer;
+class UltraPlonkComposer;
 } // namespace proof_system::plonk
 
 namespace proof_system::plonk {
@@ -91,6 +91,6 @@ field_t<Composer> plookup_<Composer>::read_from_1_to_2_table(const MultiTableId 
     return lookup[ColumnIdx::C2][0];
 }
 
-template class plookup_<plonk::UltraComposer>;
+template class plookup_<plonk::UltraPlonkComposer>;
 } // namespace stdlib
 } // namespace proof_system::plonk

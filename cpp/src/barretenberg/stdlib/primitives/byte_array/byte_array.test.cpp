@@ -25,8 +25,10 @@ template <class Composer> class ByteArrayTest : public ::testing::Test {};
 
 template <class Composer> using byte_array_ct = stdlib::byte_array<Composer>;
 
-using ComposerTypes = ::testing::
-    Types<honk::StandardHonkComposer, plonk::StandardPlonkComposer, plonk::TurboPlonkComposer, plonk::UltraComposer>;
+using ComposerTypes = ::testing::Types<honk::StandardHonkComposer,
+                                       plonk::StandardPlonkComposer,
+                                       plonk::TurboPlonkComposer,
+                                       plonk::UltraPlonkComposer>;
 TYPED_TEST_SUITE(ByteArrayTest, ComposerTypes);
 
 TYPED_TEST(ByteArrayTest, test_reverse)

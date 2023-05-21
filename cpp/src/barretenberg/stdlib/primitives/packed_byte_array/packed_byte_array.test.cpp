@@ -24,8 +24,10 @@ auto& engine = numeric::random::get_debug_engine();
 
 template <class Composer> class PackedByteArrayTest : public ::testing::Test {};
 
-using ComposerTypes = ::testing::
-    Types<honk::StandardHonkComposer, plonk::StandardPlonkComposer, plonk::TurboPlonkComposer, plonk::UltraComposer>;
+using ComposerTypes = ::testing::Types<honk::StandardHonkComposer,
+                                       plonk::StandardPlonkComposer,
+                                       plonk::TurboPlonkComposer,
+                                       plonk::UltraPlonkComposer>;
 TYPED_TEST_SUITE(PackedByteArrayTest, ComposerTypes);
 
 TYPED_TEST(PackedByteArrayTest, string_constructor_and_get_value_consistency)

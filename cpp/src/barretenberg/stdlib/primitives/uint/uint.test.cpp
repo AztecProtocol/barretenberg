@@ -14,7 +14,7 @@ auto& engine = numeric::random::get_debug_engine();
 
 // NOTE: We only test width 32, but widths 8, 16, 32 and 64 can all be tested.
 //       In widths 8, 16, 32: all tests pass.
-//       In width 64, the following tests fail for UltraComposer.
+//       In width 64, the following tests fail for UltraPlonkComposer.
 //           test_xor_special, test_xor_more_constants, test_and_constants, test_and_special, test_or_special,
 //           test_ror_special, test_hash_rounds, test_and, test_xor, test_or.
 // They fail with 'C++ exception with description"Last key slice greater than 64" thrown in the test body."'
@@ -1929,9 +1929,11 @@ template <typename Composer> class stdlib_uint : public testing::Test {
     }
 };
 
-typedef testing::
-    Types<plonk::UltraComposer, plonk::TurboPlonkComposer, plonk::StandardPlonkComposer, honk::StandardHonkComposer>
-        ComposerTypes;
+typedef testing::Types<plonk::UltraPlonkComposer,
+                       plonk::TurboPlonkComposer,
+                       plonk::StandardPlonkComposer,
+                       honk::StandardHonkComposer>
+    ComposerTypes;
 
 TYPED_TEST_SUITE(stdlib_uint, ComposerTypes);
 
@@ -2108,10 +2110,10 @@ TYPED_TEST(stdlib_uint, test_at)
 // There was one plookup-specific test in the ./plookup/uint_plookup.test.cpp
 TEST(stdlib_uint32, test_accumulators_plookup_uint32)
 {
-    using uint32_ct = proof_system::plonk::stdlib::uint32<plonk::UltraComposer>;
-    using witness_ct = proof_system::plonk::stdlib::witness_t<plonk::UltraComposer>;
+    using uint32_ct = proof_system::plonk::stdlib::uint32<plonk::UltraPlonkComposer>;
+    using witness_ct = proof_system::plonk::stdlib::witness_t<plonk::UltraPlonkComposer>;
 
-    plonk::UltraComposer composer = proof_system::plonk::UltraComposer();
+    plonk::UltraPlonkComposer composer = proof_system::plonk::UltraPlonkComposer();
 
     uint32_t a_val = engine.get_random_uint32();
     uint32_t b_val = engine.get_random_uint32();
