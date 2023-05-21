@@ -70,6 +70,8 @@ endif()
 
 include(GNUInstallDirs)
 
+# For this library we include everything but the wasi module, as it is the responsibility of the
+# consumer of this library to define how and in what environment its artefact will run.
 message(STATUS "Compiling all-in-one barretenberg archive")
 add_library(
     barretenberg
@@ -106,15 +108,49 @@ add_library(
     $<TARGET_OBJECTS:stdlib_schnorr_objects>
     $<TARGET_OBJECTS:stdlib_sha256_objects>
     $<TARGET_OBJECTS:transcript_objects>
+    $<TARGET_OBJECTS:env_objects>
 )
 
 if(WASM)
+    # When building this wasm "executable", we include the wasi module but exclude the env module.
+    # That's because we expect this wasm to be run as a wasi "reactor" and for the host environment
+    # to implement the functions in env.
     add_executable(
         barretenberg.wasm
         $<TARGET_OBJECTS:wasi_objects>
+        $<TARGET_OBJECTS:acir_format_objects>
+        $<TARGET_OBJECTS:acir_proofs_objects>
+        $<TARGET_OBJECTS:common_objects>
+        $<TARGET_OBJECTS:crypto_aes128_objects>
+        $<TARGET_OBJECTS:crypto_blake2s_objects>
+        $<TARGET_OBJECTS:crypto_blake3s_objects>
+        $<TARGET_OBJECTS:crypto_ecdsa_objects>
+        $<TARGET_OBJECTS:crypto_generators_objects>
+        $<TARGET_OBJECTS:crypto_keccak_objects>
+        $<TARGET_OBJECTS:crypto_pedersen_commitment_objects>
+        $<TARGET_OBJECTS:crypto_pedersen_hash_objects>
+        $<TARGET_OBJECTS:crypto_schnorr_objects>
+        $<TARGET_OBJECTS:crypto_sha256_objects>
+        $<TARGET_OBJECTS:ecc_objects>
+        $<TARGET_OBJECTS:examples_objects>
+        $<TARGET_OBJECTS:honk_objects>
+        $<TARGET_OBJECTS:numeric_objects>
+        $<TARGET_OBJECTS:plonk_objects>
+        $<TARGET_OBJECTS:polynomials_objects>
+        $<TARGET_OBJECTS:proof_system_objects>
+        $<TARGET_OBJECTS:srs_objects>
+        $<TARGET_OBJECTS:stdlib_aes128_objects>
+        $<TARGET_OBJECTS:stdlib_blake2s_objects>
+        $<TARGET_OBJECTS:stdlib_blake3s_objects>
+        $<TARGET_OBJECTS:stdlib_keccak_objects>
+        $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
+        $<TARGET_OBJECTS:stdlib_pedersen_commitment_objects>
+        $<TARGET_OBJECTS:stdlib_pedersen_hash_objects>
+        $<TARGET_OBJECTS:stdlib_primitives_objects>
+        $<TARGET_OBJECTS:stdlib_schnorr_objects>
+        $<TARGET_OBJECTS:stdlib_sha256_objects>
+        $<TARGET_OBJECTS:transcript_objects>
     )
-
-    target_link_libraries(barretenberg.wasm barretenberg)
 
     # With binaryen installed, it seems its wasm backend optimiser gets invoked automatically.
     # Due to either a bug in the optimiser, or non-standards compliant c++ in crypto/aes, tests start failing with
@@ -125,7 +161,7 @@ if(WASM)
     target_link_options(
         barretenberg.wasm
         PRIVATE
-        -nostartfiles -Wl,--whole-archive,--no-entry,--export-dynamic,--allow-undefined
+        -nostartfiles -Wl,--no-entry,--export-dynamic,--allow-undefined
     )
 
     if(INSTALL_BARRETENBERG)

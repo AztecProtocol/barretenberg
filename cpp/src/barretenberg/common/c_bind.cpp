@@ -1,3 +1,4 @@
+#ifndef NO_MULTITHREADING
 #include "./c_bind.hpp"
 #include "./mem.hpp"
 #include "./timer.hpp"
@@ -67,3 +68,4 @@ WASM_EXPORT void test_abort()
     std::abort();
 }
 }
+#endif

@@ -5,3 +5,4 @@
 ./cpp/src/barretenberg/ecc/c_bind.hpp
 ./cpp/src/barretenberg/examples/c_bind.hpp
 ./cpp/src/barretenberg/common/c_bind.hpp
+./cpp/src/barretenberg/dsl/acir_proofs/c_bind.hpp

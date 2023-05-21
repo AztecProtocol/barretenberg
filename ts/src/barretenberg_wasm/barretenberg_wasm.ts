@@ -29,9 +29,9 @@ export class BarretenbergWasm {
   private nextThreadId = 1;
   private logger: (msg: string) => void = debug;
 
-  public static async new(threads = Math.min(getNumCpu(), this.MAX_THREADS)) {
+  public static async new() {
     const barretenberg = new BarretenbergWasm();
-    await barretenberg.init(threads);
+    await barretenberg.init(1);
     return barretenberg;
   }
 

@@ -1,53 +1,67 @@
 #include "c_bind.hpp"
-#include "acir_proofs.hpp"
+#include "acir_composer.hpp"
 #include <cstdint>
+#include <memory>
+#include "barretenberg/common/net.hpp"
+#include "barretenberg/dsl/acir_format/acir_format.hpp"
+#include "barretenberg/srs/reference_string/pippenger_reference_string.hpp"
 
-#define WASM_EXPORT __attribute__((visibility("default")))
-
-extern "C" {
-
-WASM_EXPORT size_t acir_proofs_get_solidity_verifier(uint8_t const* g2x, uint8_t const* vk_buf, uint8_t** output_buf)
+WASM_EXPORT void acir_new_acir_composer(in_ptr pippenger, uint8_t const* g2x, out_ptr out)
 {
-    return acir_proofs::get_solidity_verifier(g2x, vk_buf, output_buf);
+    auto crs_factory = std::make_shared<proof_system::PippengerReferenceStringFactory>(
+        reinterpret_cast<barretenberg::scalar_multiplication::Pippenger*>(*pippenger), g2x);
+    *out = new acir_proofs::AcirComposer(crs_factory);
 }
 
-// Get the exact circuit size for the constraint system.
-WASM_EXPORT uint32_t acir_proofs_get_exact_circuit_size(uint8_t const* constraint_system_buf)
+WASM_EXPORT void acir_delete_acir_composer(in_ptr acir_composer_ptr)
 {
-    return acir_proofs::get_exact_circuit_size(constraint_system_buf);
+    delete reinterpret_cast<acir_proofs::AcirComposer*>(*acir_composer_ptr);
 }
 
-WASM_EXPORT uint32_t acir_proofs_get_total_circuit_size(uint8_t const* constraint_system_buf)
+WASM_EXPORT void acir_init_proving_key(in_ptr acir_composer_ptr, uint8_t const* constraint_system_buf)
 {
-    return acir_proofs::get_total_circuit_size(constraint_system_buf);
+    auto acir_composer = reinterpret_cast<acir_proofs::AcirComposer*>(*acir_composer_ptr);
+    auto constraint_system_vec = from_buffer<std::vector<uint8_t>>(constraint_system_buf);
+    info("length: ", constraint_system_vec.size());
+    auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_vec);
+    info("here");
+    acir_composer->init_proving_key(std::move(constraint_system));
 }
 
-WASM_EXPORT size_t acir_proofs_init_proving_key(uint8_t const* constraint_system_buf, uint8_t const** pk_buf)
+WASM_EXPORT void acir_create_proof(in_ptr acir_composer_ptr, barretenberg::fr::vec_in_buf witness_buf)
 {
-    return acir_proofs::init_proving_key(constraint_system_buf, pk_buf);
+    auto acir_composer = reinterpret_cast<acir_proofs::AcirComposer*>(*acir_composer_ptr);
+    auto witness = from_buffer<std::vector<fr>>(witness_buf);
+    acir_composer->create_proof(witness);
 }
 
-WASM_EXPORT size_t acir_proofs_init_verification_key(void* pippenger,
-                                                     uint8_t const* g2x,
-                                                     uint8_t const* pk_buf,
-                                                     uint8_t const** vk_buf)
+WASM_EXPORT void acir_init_verification_key(in_ptr acir_composer_ptr)
 {
-    return acir_proofs::init_verification_key(pippenger, g2x, pk_buf, vk_buf);
+    auto acir_composer = reinterpret_cast<acir_proofs::AcirComposer*>(*acir_composer_ptr);
+    acir_composer->init_verification_key();
 }
 
-WASM_EXPORT size_t acir_proofs_new_proof(void* pippenger,
-                                         uint8_t const* g2x,
-                                         uint8_t const* pk_buf,
-                                         uint8_t const* constraint_system_buf,
-                                         uint8_t const* witness_buf,
-                                         uint8_t** proof_data_buf)
+WASM_EXPORT void acir_verify_proof(in_ptr acir_composer_ptr, uint8_t const* proof_buf, bool* result)
 {
-    return acir_proofs::new_proof(pippenger, g2x, pk_buf, constraint_system_buf, witness_buf, proof_data_buf);
+    auto acir_composer = reinterpret_cast<acir_proofs::AcirComposer*>(*acir_composer_ptr);
+    auto proof = from_buffer<std::vector<uint8_t>>(proof_buf);
+    *result = acir_composer->verify_proof(proof);
 }
 
-WASM_EXPORT bool acir_proofs_verify_proof(
-    uint8_t const* g2x, uint8_t const* vk_buf, uint8_t const* constraint_system_buf, uint8_t* proof, uint32_t length)
+WASM_EXPORT void acir_get_solidity_verifier(in_ptr acir_composer_ptr, out_str_buf out)
 {
-    return acir_proofs::verify_proof(g2x, vk_buf, constraint_system_buf, proof, length);
+    auto acir_composer = reinterpret_cast<acir_proofs::AcirComposer*>(*acir_composer_ptr);
+    *out = to_heap_buffer(acir_composer->get_solidity_verifier());
 }
+
+WASM_EXPORT void acir_get_exact_circuit_size(in_ptr acir_composer_ptr, uint32_t* out)
+{
+    auto acir_composer = reinterpret_cast<acir_proofs::AcirComposer*>(*acir_composer_ptr);
+    *out = htonl(acir_composer->get_exact_circuit_size());
+}
+
+WASM_EXPORT void acir_get_total_circuit_size(in_ptr acir_composer_ptr, uint32_t* out)
+{
+    auto acir_composer = reinterpret_cast<acir_proofs::AcirComposer*>(*acir_composer_ptr);
+    *out = htonl(acir_composer->get_total_circuit_size());
 }

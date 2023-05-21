@@ -592,5 +592,145 @@
     "inArgs": [],
     "outArgs": [],
     "isAsync": false
+  },
+  {
+    "functionName": "acir_new_acir_composer",
+    "inArgs": [
+      {
+        "name": "pippenger",
+        "type": "in_ptr"
+      },
+      {
+        "name": "g2x",
+        "type": "const uint8_t *"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "out",
+        "type": "out_ptr"
+      }
+    ],
+    "isAsync": false
+  },
+  {
+    "functionName": "acir_delete_acir_composer",
+    "inArgs": [
+      {
+        "name": "acir_composer_ptr",
+        "type": "in_ptr"
+      }
+    ],
+    "outArgs": [],
+    "isAsync": false
+  },
+  {
+    "functionName": "acir_init_proving_key",
+    "inArgs": [
+      {
+        "name": "acir_composer_ptr",
+        "type": "in_ptr"
+      },
+      {
+        "name": "constraint_system_buf",
+        "type": "const uint8_t *"
+      }
+    ],
+    "outArgs": [],
+    "isAsync": false
+  },
+  {
+    "functionName": "acir_create_proof",
+    "inArgs": [
+      {
+        "name": "acir_composer_ptr",
+        "type": "in_ptr"
+      },
+      {
+        "name": "witness_buf",
+        "type": "barretenberg::fr::vec_in_buf"
+      }
+    ],
+    "outArgs": [],
+    "isAsync": false
+  },
+  {
+    "functionName": "acir_init_verification_key",
+    "inArgs": [
+      {
+        "name": "acir_composer_ptr",
+        "type": "in_ptr"
+      }
+    ],
+    "outArgs": [],
+    "isAsync": false
+  },
+  {
+    "functionName": "acir_verify_proof",
+    "inArgs": [
+      {
+        "name": "acir_composer_ptr",
+        "type": "in_ptr"
+      },
+      {
+        "name": "proof_buf",
+        "type": "const uint8_t *"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "result",
+        "type": "bool *"
+      }
+    ],
+    "isAsync": false
+  },
+  {
+    "functionName": "acir_get_solidity_verifier",
+    "inArgs": [
+      {
+        "name": "acir_composer_ptr",
+        "type": "in_ptr"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "out",
+        "type": "out_str_buf"
+      }
+    ],
+    "isAsync": false
+  },
+  {
+    "functionName": "acir_get_exact_circuit_size",
+    "inArgs": [
+      {
+        "name": "acir_composer_ptr",
+        "type": "in_ptr"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "out",
+        "type": "uint32_t *"
+      }
+    ],
+    "isAsync": false
+  },
+  {
+    "functionName": "acir_get_total_circuit_size",
+    "inArgs": [
+      {
+        "name": "acir_composer_ptr",
+        "type": "in_ptr"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "out",
+        "type": "uint32_t *"
+      }
+    ],
+    "isAsync": false
   }
 ]

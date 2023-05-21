@@ -442,7 +442,11 @@ using in_buf64 = uint8_t const*;
 using out_buf64 = uint8_t*;
 using in_buf128 = uint8_t const*;
 using out_buf128 = uint8_t*;
+
+// Variable length string buffers. Prefixed with length.
 using in_str_buf = uint8_t const*;
-using out_str_buf = uint8_t*;
+using out_str_buf = uint8_t**;
+
+// Use these to pass a raw memory pointer.
 using in_ptr = void* const*;
 using out_ptr = void**;

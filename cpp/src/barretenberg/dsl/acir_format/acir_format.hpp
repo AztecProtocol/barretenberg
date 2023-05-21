@@ -40,20 +40,22 @@ struct acir_format {
     friend bool operator==(acir_format const& lhs, acir_format const& rhs) = default;
 };
 
-void read_witness(Composer& composer, std::vector<barretenberg::fr> witness);
+void read_witness(Composer& composer, std::vector<barretenberg::fr> const& witness);
 
 void create_circuit(Composer& composer, const acir_format& constraint_system);
 
 Composer create_circuit(const acir_format& constraint_system,
-                        std::unique_ptr<proof_system::ReferenceStringFactory>&& crs_factory);
+                        std::shared_ptr<proof_system::ReferenceStringFactory> const& crs_factory);
 
 Composer create_circuit_with_witness(const acir_format& constraint_system,
-                                     std::vector<fr> witness,
-                                     std::unique_ptr<ReferenceStringFactory>&& crs_factory);
+                                     std::vector<fr> const& witness,
+                                     std::shared_ptr<ReferenceStringFactory> const& crs_factory);
 
-Composer create_circuit_with_witness(const acir_format& constraint_system, std::vector<fr> witness);
+Composer create_circuit_with_witness(const acir_format& constraint_system, std::vector<fr> const& witness);
 
-void create_circuit_with_witness(Composer& composer, const acir_format& constraint_system, std::vector<fr> witness);
+void create_circuit_with_witness(Composer& composer,
+                                 const acir_format& constraint_system,
+                                 std::vector<fr> const& witness);
 
 // Serialisation
 template <typename B> inline void read(B& buf, acir_format& data)

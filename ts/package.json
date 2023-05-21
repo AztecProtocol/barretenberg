@@ -7,6 +7,10 @@
     "displayName": "Barretenberg.js",
     "tsconfig": "./tsconfig.json"
   },
+  "bin": {
+    "bb.js": "./dest/main.js",
+    "bb.js-dev": "./src/main-dev.ts"
+  },
   "scripts": {
     "clean": "rm -rf ./dest .tsbuildinfo",
     "build": "yarn clean && yarn build:wasm && tsc -b && webpack",
