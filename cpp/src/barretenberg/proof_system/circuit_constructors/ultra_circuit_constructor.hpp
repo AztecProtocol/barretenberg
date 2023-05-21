@@ -659,12 +659,27 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
             /**
              * N.B. if `variable_index` is not used in any arithmetic constraints, this will create an unsatisfiable
              *      circuit!
-             *      this range constraint will increase the size of the 'sorted set' of range-constrained integers
-             *by 1. The 'non-sorted set' of range-constrained integers is a subset of the wire indices of all
-             *arithmetic gates. No arithemtic gate => size imbalance between sorted and non-sorted sets. Checking
-             *for this and throwing an error would require a refactor of the Composer to catelog all 'orphan'
-             *variables not assigned to gates.
+             *      this range constraint will increase the size of the 'sorted set' of range-constrained integers by 1.
+             *      The 'non-sorted set' of range-constrained integers is a subset of the wire indices of all arithmetic
+             *      gates. No arithemtic gate => size imbalance between sorted and non-sorted sets. Checking for this
+             *      and throwing an error would require a refactor of the Composer to catelog all 'orphan' variables not
+             *      assigned to gates.
+             *
+             * TODO(Suyash):
+             *    The following is a temporary fix to make sure the range constraints on numbers with
+             *    num_bits <= DEFAULT_PLOOKUP_RANGE_BITNUM is correctly enforced in the circuit.
+             *    Longer term, as Zac says, we would need to refactor the composer to fix this.
              **/
+            create_poly_gate(poly_triple{
+                .a = variable_index,
+                .b = variable_index,
+                .c = variable_index,
+                .q_m = 0,
+                .q_l = 1,
+                .q_r = -1,
+                .q_o = 0,
+                .q_c = 0,
+            });
             create_new_range_constraint(variable_index, 1ULL << num_bits, msg);
         } else {
             decompose_into_default_range(variable_index, num_bits, DEFAULT_PLOOKUP_RANGE_BITNUM, msg);
