@@ -139,6 +139,7 @@
       "name": "wasm-threads",
       "displayName": "Build for pthread enabled WASM",
       "description": "Build for pthread enabled WASM",
+      "binaryDir": "build-wasm-threads",
       "inherits": "wasm",
       "environment": {
         "WASI_SDK_PREFIX": "${sourceDir}/src/wasi-sdk-20.0+threads",

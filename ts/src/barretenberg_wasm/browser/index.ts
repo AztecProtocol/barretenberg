@@ -2,8 +2,8 @@ import { wrap } from 'comlink';
 import { BarretenbergWasmWorker, type BarretenbergWasm } from '../barretenberg_wasm.js';
 import debug from 'debug';
 
-export async function fetchCode() {
-  const res = await fetch('/barretenberg.wasm');
+export async function fetchCode(name: string) {
+  const res = await fetch('/' + name);
   return await res.arrayBuffer();
 }
 
