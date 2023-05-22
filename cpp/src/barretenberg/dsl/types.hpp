@@ -64,7 +64,7 @@ using hash_path_ct = proof_system::plonk::stdlib::merkle_tree::hash_path<Compose
 
 using schnorr_signature_bits_ct = proof_system::plonk::stdlib::schnorr::signature_bits<Composer>;
 
-// Ultra-composer specific typesv
+// Ultra-composer specific types
 using rom_table_ct = proof_system::plonk::stdlib::rom_table<plonk::UltraComposer>;
 using ram_table_ct = proof_system::plonk::stdlib::ram_table<plonk::UltraComposer>;
 

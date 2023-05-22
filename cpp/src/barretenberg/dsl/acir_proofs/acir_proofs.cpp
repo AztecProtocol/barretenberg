@@ -105,82 +105,6 @@ size_t init_verification_key(void* pippenger, uint8_t const* g2x, uint8_t const*
     return buffer.size();
 }
 
-/**
- * @brief Takes in a proof buffer and converts into a vector of field elements.
- *        The Recursion opcode requires the proof serialized as a vector of witnesses.
- *        Use this method to get the witness values!
- *
- * @param proof_data_buf
- * @param serialized_proof_data_buf
- */
-size_t serialize_proof_into_field_elements(uint8_t const* proof_data_buf,
-                                           uint8_t** serialized_proof_data_buf,
-                                           size_t proof_data_length,
-                                           size_t num_inner_public_inputs)
-{
-    plonk::proof proof = { std::vector<uint8_t>(proof_data_buf, &proof_data_buf[proof_data_length]) };
-
-    transcript::StandardTranscript transcript(proof.proof_data,
-                                              acir_format::Composer::create_manifest(num_inner_public_inputs),
-                                              transcript::HashType::PlookupPedersenBlake3s,
-                                              16);
-
-    std::vector<barretenberg::fr> output = acir_format::export_transcript_in_recursion_format(transcript);
-
-    // NOTE: this output buffer will always have a fixed size! Maybe just precompute?
-    const size_t output_size_bytes = output.size() * sizeof(barretenberg::fr);
-    auto raw_buf = (uint8_t*)malloc(output_size_bytes);
-
-    // The serialization code below will convert out of Montgomery form before writing to the buffer
-    for (size_t i = 0; i < output.size(); ++i) {
-        barretenberg::fr::serialize_to_buffer(output[i], &raw_buf[i * 32]);
-    }
-    *serialized_proof_data_buf = raw_buf;
-
-    return output_size_bytes;
-}
-
-/**
- * @brief Takes in a verification key buffer and converts into a vector of field elements.
- *        The Recursion opcode requires the vk serialized as a vector of witnesses.
- *        Use this method to get the witness values!
- *
- * @param vk_buf
- * @param serialized_vk_buf
- */
-size_t serialize_verification_key_into_field_elements(uint8_t const* g2x,
-                                                      uint8_t const* vk_buf,
-                                                      uint8_t** serialized_vk_buf,
-                                                      uint8_t** serialized_vk_hash_buf)
-{
-    auto crs = std::make_shared<VerifierMemReferenceString>(g2x);
-    plonk::verification_key_data vk_data;
-    read(vk_buf, vk_data);
-    auto vkey = std::make_shared<proof_system::plonk::verification_key>(std::move(vk_data), crs);
-    std::vector<barretenberg::fr> output = acir_format::export_key_in_recursion_format(vkey);
-
-    // NOTE: this output buffer will always have a fixed size! Maybe just precompute?
-    // Cut off 32 bytes as last element is the verification key hash which is not part of the key :o
-    const size_t output_size_bytes = output.size() * sizeof(barretenberg::fr) - 32;
-
-    auto raw_buf = (uint8_t*)malloc(output_size_bytes);
-    auto vk_hash_raw_buf = (uint8_t*)malloc(32);
-
-    // The serialization code below will convert out of Montgomery form before writing to the buffer
-    for (size_t i = 0; i < output.size() - 1; ++i) {
-        barretenberg::fr::serialize_to_buffer(output[i], &raw_buf[i * 32]);
-    }
-    barretenberg::fr::serialize_to_buffer(output[output.size() - 1], vk_hash_raw_buf);
-
-    // copy the vkey into serialized_vk_buf
-    *serialized_vk_buf = raw_buf;
-
-    // copy the vkey hash into serialized_vk_hash_buf
-    *serialized_vk_hash_buf = vk_hash_raw_buf;
-
-    return output_size_bytes;
-}
-
 size_t new_proof(void* pippenger,
                  uint8_t const* g2x,
                  uint8_t const* pk_buf,
@@ -375,6 +299,82 @@ size_t verify_recursive_proof(uint8_t const* proof_buf,
     }
 
     *output_aggregation_obj_buf = raw_buf;
+
+    return output_size_bytes;
+}
+
+/**
+ * @brief Takes in a proof buffer and converts into a vector of field elements.
+ *        The Recursion opcode requires the proof serialized as a vector of witnesses.
+ *        Use this method to get the witness values!
+ *
+ * @param proof_data_buf
+ * @param serialized_proof_data_buf
+ */
+size_t serialize_proof_into_field_elements(uint8_t const* proof_data_buf,
+                                           uint8_t** serialized_proof_data_buf,
+                                           size_t proof_data_length,
+                                           size_t num_inner_public_inputs)
+{
+    plonk::proof proof = { std::vector<uint8_t>(proof_data_buf, &proof_data_buf[proof_data_length]) };
+
+    transcript::StandardTranscript transcript(proof.proof_data,
+                                              acir_format::Composer::create_manifest(num_inner_public_inputs),
+                                              transcript::HashType::PlookupPedersenBlake3s,
+                                              16);
+
+    std::vector<barretenberg::fr> output = acir_format::export_transcript_in_recursion_format(transcript);
+
+    // NOTE: this output buffer will always have a fixed size! Maybe just precompute?
+    const size_t output_size_bytes = output.size() * sizeof(barretenberg::fr);
+    auto raw_buf = (uint8_t*)malloc(output_size_bytes);
+
+    // The serialization code below will convert out of Montgomery form before writing to the buffer
+    for (size_t i = 0; i < output.size(); ++i) {
+        barretenberg::fr::serialize_to_buffer(output[i], &raw_buf[i * 32]);
+    }
+    *serialized_proof_data_buf = raw_buf;
+
+    return output_size_bytes;
+}
+
+/**
+ * @brief Takes in a verification key buffer and converts into a vector of field elements.
+ *        The Recursion opcode requires the vk serialized as a vector of witnesses.
+ *        Use this method to get the witness values!
+ *
+ * @param vk_buf
+ * @param serialized_vk_buf
+ */
+size_t serialize_verification_key_into_field_elements(uint8_t const* g2x,
+                                                      uint8_t const* vk_buf,
+                                                      uint8_t** serialized_vk_buf,
+                                                      uint8_t** serialized_vk_hash_buf)
+{
+    auto crs = std::make_shared<VerifierMemReferenceString>(g2x);
+    plonk::verification_key_data vk_data;
+    read(vk_buf, vk_data);
+    auto vkey = std::make_shared<proof_system::plonk::verification_key>(std::move(vk_data), crs);
+    std::vector<barretenberg::fr> output = acir_format::export_key_in_recursion_format(vkey);
+
+    // NOTE: this output buffer will always have a fixed size! Maybe just precompute?
+    // Cut off 32 bytes as last element is the verification key hash which is not part of the key :o
+    const size_t output_size_bytes = output.size() * sizeof(barretenberg::fr) - 32;
+
+    auto raw_buf = (uint8_t*)malloc(output_size_bytes);
+    auto vk_hash_raw_buf = (uint8_t*)malloc(32);
+
+    // The serialization code below will convert out of Montgomery form before writing to the buffer
+    for (size_t i = 0; i < output.size() - 1; ++i) {
+        barretenberg::fr::serialize_to_buffer(output[i], &raw_buf[i * 32]);
+    }
+    barretenberg::fr::serialize_to_buffer(output[output.size() - 1], vk_hash_raw_buf);
+
+    // copy the vkey into serialized_vk_buf
+    *serialized_vk_buf = raw_buf;
+
+    // copy the vkey hash into serialized_vk_hash_buf
+    *serialized_vk_hash_buf = vk_hash_raw_buf;
 
     return output_size_bytes;
 }
