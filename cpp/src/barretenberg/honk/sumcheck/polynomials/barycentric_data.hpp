@@ -1,17 +1,16 @@
 #pragma once
 #include <array>
 #include <algorithm>
+#include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "univariate.hpp"
 
 /* IMPROVEMENT(Cody): This could or should be improved in various ways. In no particular order:
    1) Edge cases are not considered. One non-use case situation (I forget which) leads to a segfault.
 
-   2) This could all be constexpr.
-
-   3) Precomputing for all possible size pairs is probably feasible and might be a better solution than instantiating
+   2) Precomputing for all possible size pairs is probably feasible and might be a better solution than instantiating
    many instances separately. Then perhaps we could infer input type to `extend`.
 
-   4) There should be more thorough testing of this class in isolation.
+   3) There should be more thorough testing of this class in isolation.
  */
 namespace proof_system::honk::sumcheck {
 
@@ -166,4 +165,19 @@ template <class Fr, size_t domain_size, size_t num_evals> class BarycentricData 
         return result;
     };
 };
+
+// Explicit instantiation of the templates needed for Standard and Ultra
+// TODO(#390)(luke): The hard coded 5/6 here is based on max relation length. Ideally this would be handled
+// programtically via some integration with the Flavor.
+template class BarycentricData<barretenberg::fr, 2, 5>;
+template class BarycentricData<barretenberg::fr, 3, 5>;
+template class BarycentricData<barretenberg::fr, 4, 5>;
+template class BarycentricData<barretenberg::fr, 5, 5>;
+
+template class BarycentricData<barretenberg::fr, 2, 6>;
+template class BarycentricData<barretenberg::fr, 3, 6>;
+template class BarycentricData<barretenberg::fr, 4, 6>;
+template class BarycentricData<barretenberg::fr, 5, 6>;
+template class BarycentricData<barretenberg::fr, 6, 6>;
+
 } // namespace proof_system::honk::sumcheck
