@@ -22,7 +22,7 @@ uint8_t* env_load_verifier_crs()
     transcript.seekg(28 + NUM_POINTS_IN_TRANSCRIPT * 64);
     transcript.read((char*)g2_points.data(), (std::streamsize)g2_points_size);
     transcript.close();
-    auto* g2_points_copy = (uint8_t*)bbmalloc(g2_points_size);
+    auto* g2_points_copy = (uint8_t*)aligned_alloc(64, g2_points_size);
     memcpy(g2_points_copy, g2_points.data(), g2_points_size);
     return g2_points_copy;
 }
@@ -45,7 +45,7 @@ uint8_t* env_load_prover_crs(size_t num_points)
     transcript.seekg(28);
     transcript.read((char*)g1_points.data(), (std::streamsize)g1_points_size);
     transcript.close();
-    auto* g1_points_copy = (uint8_t*)bbmalloc(g1_points_size);
+    auto* g1_points_copy = (uint8_t*)aligned_alloc(64, g1_points_size);
     memcpy(g1_points_copy, g1_points.data(), g1_points_size);
     return g1_points_copy;
 }
