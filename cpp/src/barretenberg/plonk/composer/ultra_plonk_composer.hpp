@@ -1,5 +1,4 @@
 #pragma once
-#include "barretenberg/plonk/composer/composer_base.hpp"
 #include "barretenberg/proof_system/plookup_tables/plookup_tables.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
 #include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
@@ -13,6 +12,9 @@ namespace proof_system::plonk {
 class UltraPlonkComposer {
 
   public:
+    using ComposerHelper = UltraPlonkComposerHelper;
+    using CircuitConstructor = UltraCircuitConstructor;
+
     static constexpr ComposerType type = ComposerType::PLOOKUP;
     static constexpr merkle::HashType merkle_hash_type = merkle::HashType::LOOKUP_PEDERSEN;
     static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;

@@ -825,7 +825,7 @@ TEST_F(join_split_tests, test_0_input_notes_and_detect_circuit_change)
 
     // For the next power of two limit, we need to consider that we reserve four gates for adding
     // randomness/zero-knowledge
-    EXPECT_LE(number_of_gates_js, GATES_NEXT_POWER_OF_TWO - plonk::ComposerBase::NUM_RESERVED_GATES)
+    EXPECT_LE(number_of_gates_js, GATES_NEXT_POWER_OF_TWO - Composer::ComposerHelper::NUM_RESERVED_GATES)
         << "You have exceeded the next power of two limit for the join_split circuit.";
 }
 
