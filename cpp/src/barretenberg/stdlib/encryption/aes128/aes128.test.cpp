@@ -1,6 +1,6 @@
 #include "aes128.hpp"
 
-#include "barretenberg/plonk/composer/ultra_composer.hpp"
+#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
 
 #include "barretenberg/crypto/aes128/aes128.hpp"
 

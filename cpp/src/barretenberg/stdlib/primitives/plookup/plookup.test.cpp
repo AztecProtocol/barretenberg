@@ -1,7 +1,7 @@
 #include "plookup.hpp"
 #include "../byte_array/byte_array.hpp"
 #include <gtest/gtest.h>
-#include "barretenberg/plonk/composer/ultra_composer.hpp"
+#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
 #include "barretenberg/numeric/random/engine.hpp"
 #include "barretenberg/numeric/bitop/rotate.hpp"
 #include "barretenberg/crypto/pedersen_commitment/pedersen_lookup.hpp"

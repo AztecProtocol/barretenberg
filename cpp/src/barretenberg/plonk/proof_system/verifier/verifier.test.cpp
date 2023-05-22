@@ -3,7 +3,7 @@
 #include "../utils/permutation.hpp"
 #include "../widgets/transition_widgets/arithmetic_widget.hpp"
 #include "../../../transcript/transcript.hpp"
-#include "barretenberg/plonk/composer/standard_composer.hpp"
+#include "barretenberg/plonk/composer/standard_plonk_composer.hpp"
 #include "verifier.hpp"
 #include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include <gtest/gtest.h>

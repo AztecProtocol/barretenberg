@@ -1,5 +1,5 @@
 #include "barretenberg/stdlib/primitives/plookup/plookup.hpp"
-#include "ultra_composer.hpp"
+#include "ultra_plonk_composer.hpp"
 #include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
 #include <gtest/gtest.h>
 #include "barretenberg/numeric/bitop/get_msb.hpp"
@@ -10,7 +10,7 @@
 using namespace barretenberg;
 using namespace proof_system;
 
-namespace proof_system::plonk::test_ultra_composer {
+namespace proof_system::plonk::test_ultra_plonk_composer {
 
 namespace {
 auto& engine = numeric::random::get_debug_engine();
@@ -28,7 +28,7 @@ std::vector<uint32_t> add_variables(UltraPlonkComposer& composer, std::vector<fr
     return res;
 }
 
-template <typename T> class ultra_composer : public ::testing::Test {
+template <typename T> class ultra_plonk_composer : public ::testing::Test {
   public:
     void prove_and_verify(UltraPlonkComposer& composer, bool expected_result)
     {
@@ -57,9 +57,9 @@ struct UsePlookupPedersen16Bytes {
 };
 
 using BooleanTypes = ::testing::Types<UseKeccak32Bytes, UsePlookupPedersen16Bytes>;
-TYPED_TEST_SUITE(ultra_composer, BooleanTypes);
+TYPED_TEST_SUITE(ultra_plonk_composer, BooleanTypes);
 
-TYPED_TEST(ultra_composer, create_gates_from_plookup_accumulators)
+TYPED_TEST(ultra_plonk_composer, create_gates_from_plookup_accumulators)
 {
     UltraPlonkComposer composer = UltraPlonkComposer();
 
@@ -141,7 +141,7 @@ TYPED_TEST(ultra_composer, create_gates_from_plookup_accumulators)
     TestFixture::prove_and_verify(composer, /*expected_result=*/true);
 }
 
-TYPED_TEST(ultra_composer, test_no_lookup_proof)
+TYPED_TEST(ultra_plonk_composer, test_no_lookup_proof)
 {
     UltraPlonkComposer composer = UltraPlonkComposer();
 
@@ -162,7 +162,7 @@ TYPED_TEST(ultra_composer, test_no_lookup_proof)
     TestFixture::prove_and_verify(composer, /*expected_result=*/true);
 }
 
-TYPED_TEST(ultra_composer, test_elliptic_gate)
+TYPED_TEST(ultra_plonk_composer, test_elliptic_gate)
 {
     typedef grumpkin::g1::affine_element affine_element;
     typedef grumpkin::g1::element element;
@@ -202,7 +202,7 @@ TYPED_TEST(ultra_composer, test_elliptic_gate)
     TestFixture::prove_and_verify(composer, /*expected_result=*/true);
 }
 
-TYPED_TEST(ultra_composer, non_trivial_tag_permutation)
+TYPED_TEST(ultra_plonk_composer, non_trivial_tag_permutation)
 {
     UltraPlonkComposer composer = UltraPlonkComposer();
     fr a = fr::random_element();
@@ -231,7 +231,7 @@ TYPED_TEST(ultra_composer, non_trivial_tag_permutation)
     TestFixture::prove_and_verify(composer, /*expected_result=*/true);
 }
 
-TYPED_TEST(ultra_composer, non_trivial_tag_permutation_and_cycles)
+TYPED_TEST(ultra_plonk_composer, non_trivial_tag_permutation_and_cycles)
 {
     UltraPlonkComposer composer = UltraPlonkComposer();
     fr a = fr::random_element();
@@ -269,7 +269,7 @@ TYPED_TEST(ultra_composer, non_trivial_tag_permutation_and_cycles)
     TestFixture::prove_and_verify(composer, /*expected_result=*/true);
 }
 
-TYPED_TEST(ultra_composer, bad_tag_permutation)
+TYPED_TEST(ultra_plonk_composer, bad_tag_permutation)
 {
     UltraPlonkComposer composer = UltraPlonkComposer();
     fr a = fr::random_element();
@@ -295,7 +295,7 @@ TYPED_TEST(ultra_composer, bad_tag_permutation)
 }
 
 // same as above but with turbocomposer to check reason of failue is really tag mismatch
-TYPED_TEST(ultra_composer, bad_tag_turbo_permutation)
+TYPED_TEST(ultra_plonk_composer, bad_tag_turbo_permutation)
 {
     UltraPlonkComposer composer = UltraPlonkComposer();
     fr a = fr::random_element();
@@ -318,7 +318,7 @@ TYPED_TEST(ultra_composer, bad_tag_turbo_permutation)
     TestFixture::prove_and_verify(composer, /*expected_result=*/true);
 }
 
-TYPED_TEST(ultra_composer, sort_widget)
+TYPED_TEST(ultra_plonk_composer, sort_widget)
 {
     UltraPlonkComposer composer = UltraPlonkComposer();
     fr a = fr::one();
@@ -335,7 +335,7 @@ TYPED_TEST(ultra_composer, sort_widget)
     TestFixture::prove_and_verify(composer, /*expected_result=*/true);
 }
 
-TYPED_TEST(ultra_composer, sort_with_edges_gate)
+TYPED_TEST(ultra_plonk_composer, sort_with_edges_gate)
 {
 
     fr a = fr::one();
@@ -428,7 +428,7 @@ TYPED_TEST(ultra_composer, sort_with_edges_gate)
     }
 }
 
-TYPED_TEST(ultra_composer, range_constraint)
+TYPED_TEST(ultra_plonk_composer, range_constraint)
 {
     {
         UltraPlonkComposer composer = UltraPlonkComposer();
@@ -507,7 +507,7 @@ TYPED_TEST(ultra_composer, range_constraint)
     }
 }
 
-TYPED_TEST(ultra_composer, range_with_gates)
+TYPED_TEST(ultra_plonk_composer, range_with_gates)
 {
 
     UltraPlonkComposer composer = UltraPlonkComposer();
@@ -524,7 +524,7 @@ TYPED_TEST(ultra_composer, range_with_gates)
     TestFixture::prove_and_verify(composer, /*expected_result=*/true);
 }
 
-TYPED_TEST(ultra_composer, range_with_gates_where_range_is_not_a_power_of_two)
+TYPED_TEST(ultra_plonk_composer, range_with_gates_where_range_is_not_a_power_of_two)
 {
     UltraPlonkComposer composer = UltraPlonkComposer();
     auto idx = add_variables(composer, { 1, 2, 3, 4, 5, 6, 7, 8 });
@@ -540,7 +540,7 @@ TYPED_TEST(ultra_composer, range_with_gates_where_range_is_not_a_power_of_two)
     TestFixture::prove_and_verify(composer, /*expected_result=*/true);
 }
 
-TYPED_TEST(ultra_composer, sort_widget_complex)
+TYPED_TEST(ultra_plonk_composer, sort_widget_complex)
 {
     {
 
@@ -570,7 +570,7 @@ TYPED_TEST(ultra_composer, sort_widget_complex)
         TestFixture::prove_and_verify(composer, /*expected_result=*/false);
     }
 }
-TYPED_TEST(ultra_composer, sort_widget_neg)
+TYPED_TEST(ultra_plonk_composer, sort_widget_neg)
 {
     UltraPlonkComposer composer = UltraPlonkComposer();
     fr a = fr::one();
@@ -587,7 +587,7 @@ TYPED_TEST(ultra_composer, sort_widget_neg)
     TestFixture::prove_and_verify(composer, /*expected_result=*/false);
 }
 
-TYPED_TEST(ultra_composer, composed_range_constraint)
+TYPED_TEST(ultra_plonk_composer, composed_range_constraint)
 {
     UltraPlonkComposer composer = UltraPlonkComposer();
     auto c = fr::random_element();
@@ -600,7 +600,7 @@ TYPED_TEST(ultra_composer, composed_range_constraint)
     TestFixture::prove_and_verify(composer, /*expected_result=*/true);
 }
 
-TYPED_TEST(ultra_composer, non_native_field_multiplication)
+TYPED_TEST(ultra_plonk_composer, non_native_field_multiplication)
 {
     UltraPlonkComposer composer = UltraPlonkComposer();
 
@@ -655,7 +655,7 @@ TYPED_TEST(ultra_composer, non_native_field_multiplication)
     TestFixture::prove_and_verify(composer, /*expected_result=*/true);
 }
 
-TYPED_TEST(ultra_composer, rom)
+TYPED_TEST(ultra_plonk_composer, rom)
 {
     UltraPlonkComposer composer = UltraPlonkComposer();
 
@@ -695,7 +695,7 @@ TYPED_TEST(ultra_composer, rom)
     TestFixture::prove_and_verify(composer, /*expected_result=*/true);
 }
 
-TYPED_TEST(ultra_composer, ram)
+TYPED_TEST(ultra_plonk_composer, ram)
 {
     UltraPlonkComposer composer = UltraPlonkComposer();
 
@@ -758,7 +758,7 @@ TYPED_TEST(ultra_composer, ram)
     TestFixture::prove_and_verify(composer, /*expected_result=*/true);
 }
 
-TYPED_TEST(ultra_composer, range_checks_on_duplicates)
+TYPED_TEST(ultra_plonk_composer, range_checks_on_duplicates)
 {
     UltraPlonkComposer composer = UltraPlonkComposer();
 
@@ -797,7 +797,7 @@ TYPED_TEST(ultra_composer, range_checks_on_duplicates)
 // range constrained, do not break the set equivalence checks because of indices mismatch.
 // 2^14 is DEFAULT_PLOOKUP_RANGE_BITNUM i.e. the maximum size before a variable gets sliced
 // before range constraints are applied to it.
-TEST(ultra_composer, range_constraint_small_variable)
+TEST(ultra_plonk_composer, range_constraint_small_variable)
 {
     auto composer = UltraPlonkComposer();
     uint16_t mask = (1 << 8) - 1;
@@ -819,4 +819,4 @@ TEST(ultra_composer, range_constraint_small_variable)
     EXPECT_EQ(result, true);
 }
 
-} // namespace proof_system::plonk::test_ultra_composer
+} // namespace proof_system::plonk::test_ultra_plonk_composer

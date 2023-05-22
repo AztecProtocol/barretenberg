@@ -80,7 +80,7 @@ uint<Composer, Native> uint<Composer, Native>::operator>>(const size_t shift) co
      *          ===                                   | this is equivalent :         ===
      *          \                             j       |   to the formula   :         \                  i - j
      *   A   =  /    a                     . 4        |      given in      :  a   =  /    a         .  4
-     *    i     ===   (w - 1 - i + j)                 | turbo_composer.cpp :    i     ===   (15 - j)
+     *    i     ===   (w - 1 - i + j)                 | turbo_plonk_composer.cpp :    i     ===   (15 - j)
      *         j = 0                                  |   when width = 32  :        j = 0
      *
      *

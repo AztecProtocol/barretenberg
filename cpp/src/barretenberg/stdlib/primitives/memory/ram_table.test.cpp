@@ -4,7 +4,7 @@
 
 #include "barretenberg/numeric/random/engine.hpp"
 
-#include "barretenberg/plonk/composer/ultra_composer.hpp"
+#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
 
 namespace test_stdlib_ram_table {
 using namespace proof_system::plonk;

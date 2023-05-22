@@ -1,7 +1,7 @@
 #include <benchmark/benchmark.h>
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
-#include "barretenberg/plonk/composer/standard_composer.hpp"
+#include "barretenberg/plonk/composer/standard_plonk_composer.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
 #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
 #include "barretenberg/stdlib/primitives/field/field.hpp"

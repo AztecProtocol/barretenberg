@@ -3,7 +3,7 @@
 #include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
-#include "barretenberg/plonk/composer/turbo_composer.hpp"
+#include "barretenberg/plonk/composer/turbo_plonk_composer.hpp"
 #include "barretenberg/srs/reference_string/file_reference_string.hpp"
 #include "barretenberg/stdlib/primitives/field/field.hpp"
 
@@ -36,12 +36,12 @@ constexpr size_t get_index(const size_t target_count_base)
     }
     return 0;
 }
-void generate_test_pedersen_circuit(plonk::TurboPlonkComposer& turbo_composer, size_t num_repetitions)
+void generate_test_pedersen_circuit(plonk::TurboPlonkComposer& turbo_plonk_composer, size_t num_repetitions)
 {
     plonk::stdlib::field_t<plonk::TurboPlonkComposer> left(
-        plonk::stdlib::witness_t(&turbo_composer, barretenberg::fr::random_element()));
+        plonk::stdlib::witness_t(&turbo_plonk_composer, barretenberg::fr::random_element()));
     plonk::stdlib::field_t<plonk::TurboPlonkComposer> out(
-        plonk::stdlib::witness_t(&turbo_composer, barretenberg::fr::random_element()));
+        plonk::stdlib::witness_t(&turbo_plonk_composer, barretenberg::fr::random_element()));
 
     for (size_t i = 0; i < num_repetitions; ++i) {
         out = proof_system::plonk::stdlib::pedersen_commitment<plonk::TurboPlonkComposer>::compress(left, out);

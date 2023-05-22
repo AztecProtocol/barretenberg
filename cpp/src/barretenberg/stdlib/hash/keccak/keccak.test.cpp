@@ -1,7 +1,7 @@
 #include "keccak.hpp"
 #include "barretenberg/crypto/keccak/keccak.hpp"
 #include <gtest/gtest.h>
-#include "barretenberg/plonk/composer/ultra_composer.hpp"
+#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
 #include "barretenberg/numeric/random/engine.hpp"
 #include "../../primitives/plookup/plookup.hpp"
 
@@ -193,7 +193,6 @@ TEST(stdlib_keccak, test_format_input_lanes)
         }
     }
 
-
     auto prover = composer.create_prover();
     auto verifier = composer.create_verifier();
 
@@ -277,7 +276,6 @@ TEST(stdlib_keccak, test_double_block_variable_length)
     std::vector<uint8_t> expected = stdlib::keccak<Composer>::hash_native(input_v);
 
     EXPECT_EQ(output.get_value(), expected);
-
 
     auto prover = composer.create_prover();
     auto verifier = composer.create_verifier();

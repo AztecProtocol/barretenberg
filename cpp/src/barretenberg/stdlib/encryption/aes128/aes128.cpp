@@ -1,6 +1,6 @@
 #include "./aes128.hpp"
 
-#include "barretenberg/plonk/composer/ultra_composer.hpp"
+#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
 
 #include "barretenberg/numeric/uint256/uint256.hpp"
 #include "barretenberg/numeric/bitop/sparse_form.hpp"

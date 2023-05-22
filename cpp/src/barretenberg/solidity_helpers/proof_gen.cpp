@@ -2,8 +2,8 @@
 #include <sstream>
 #include <bitset>
 
-#include "barretenberg/plonk/composer/standard_composer.hpp"
-#include "barretenberg/plonk/composer/ultra_composer.hpp"
+#include "barretenberg/plonk/composer/standard_plonk_composer.hpp"
+#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
 
 #include "circuits/blake_circuit.hpp"
 #include "circuits/add_2_circuit.hpp"

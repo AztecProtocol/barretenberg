@@ -4,7 +4,7 @@
 
 #include "barretenberg/numeric/random/engine.hpp"
 
-#include "barretenberg/plonk/composer/ultra_composer.hpp"
+#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
 
 #include "../bool/bool.hpp"
 

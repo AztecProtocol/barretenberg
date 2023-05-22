@@ -2,8 +2,8 @@
 #include "barretenberg/common/streams.hpp"
 #include "proving_key.hpp"
 #include "serialize.hpp"
-#include "barretenberg/plonk/composer/standard_composer.hpp"
-#include "barretenberg/plonk/composer/ultra_composer.hpp"
+#include "barretenberg/plonk/composer/standard_plonk_composer.hpp"
+#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
 
 #ifndef __wasm__
 #include <filesystem>

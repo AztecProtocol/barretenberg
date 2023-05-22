@@ -279,7 +279,7 @@ struct MultiTable {
  * @brief The structure contains the most basic table serving one function (for, example an xor table)
  *
  * @details You can find initialization example at
- * ../ultra_composer.cpp#UltraPlonkComposer::initialize_precomputed_table(..)
+ * ../ultra_plonk_composer.cpp#UltraPlonkComposer::initialize_precomputed_table(..)
  *
  */
 struct BasicTable {

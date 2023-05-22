@@ -2,7 +2,7 @@
 #include <array>
 #include <vector>
 #include "barretenberg/proof_system/plookup_tables/plookup_tables.hpp"
-#include "barretenberg/plonk/composer/ultra_composer.hpp"
+#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
 #include "barretenberg/proof_system/plookup_tables/types.hpp"
 #include "barretenberg/stdlib/primitives/field/field.hpp"
 

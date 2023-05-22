@@ -1,5 +1,5 @@
 #include "bool.hpp"
-#include "barretenberg/plonk/composer/standard_composer.hpp"
+#include "barretenberg/plonk/composer/standard_plonk_composer.hpp"
 #include <gtest/gtest.h>
 #include "barretenberg/honk/composer/standard_honk_composer.hpp"
 #include "barretenberg/stdlib/primitives/byte_array/byte_array.cpp"

@@ -3,8 +3,8 @@
 #include "barretenberg/crypto/blake3s/blake3s.hpp"
 #include "barretenberg/common/streams.hpp"
 #include <gtest/gtest.h>
-#include "barretenberg/plonk/composer/turbo_composer.hpp"
-#include "barretenberg/plonk/composer/ultra_composer.hpp"
+#include "barretenberg/plonk/composer/turbo_plonk_composer.hpp"
+#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
 
 using namespace barretenberg;
 using namespace proof_system::plonk;
