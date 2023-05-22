@@ -7,7 +7,9 @@ extern "C" {
 using namespace barretenberg;
 using affine_element = g1::affine_element;
 
-WASM_EXPORT void ecc_new_pippenger(uint8_t const* points, uint32_t const* num_points, out_ptr out);
+WASM_EXPORT void ecc_new_pippenger(uint8_t const* points, uint32_t const* num_points_buf, out_ptr out);
+
+WASM_EXPORT void ecc_new_pippenger_mem_prealloced(in_ptr points, uint32_t const* num_points, out_ptr out);
 
 WASM_EXPORT void ecc_delete_pippenger(in_ptr pippenger);
 

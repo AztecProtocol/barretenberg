@@ -257,7 +257,7 @@ std::shared_ptr<proving_key> ComposerBase::compute_proving_key_base(const Compos
     circuit_proving_key = std::make_shared<proving_key>(subgroup_size, public_inputs.size(), crs, composer_type);
 
     for (size_t i = 0; i < num_selectors; ++i) {
-        std::vector<barretenberg::fr>& selector_values = selectors[i];
+        auto& selector_values = selectors[i];
         const auto& properties = selector_properties[i];
         ASSERT(num_gates == selector_values.size());
 

@@ -3,6 +3,7 @@
 #include <map>
 #include <list>
 #include <memory>
+#include "./log.hpp"
 #ifndef NO_MULTITHREADING
 #include <mutex>
 #endif
@@ -29,5 +30,36 @@ void init_slab_allocator(size_t circuit_size);
  * Returns a slab from the preallocated pool of slabs, or fallback to a new heap allocation (32 byte aligned).
  */
 std::shared_ptr<void> get_mem_slab(size_t size);
+
+template <typename T> class ContainerSlabAllocator {
+  public:
+    using value_type = T;
+    using pointer = T*;
+    using const_pointer = const T*;
+    using size_type = std::size_t;
+
+    ContainerSlabAllocator() = default;
+    ~ContainerSlabAllocator() = default;
+
+    template <typename U> struct rebind {
+        using other = ContainerSlabAllocator<U>;
+    };
+
+    pointer allocate(size_type n)
+    {
+        // info("ContainerSlabAllocator allocating: ", n * sizeof(T));
+        std::shared_ptr<void> ptr = get_mem_slab(n * sizeof(T));
+        slab = ptr; // Keep a copy of the shared_ptr so the memory is not freed.
+        return static_cast<pointer>(ptr.get());
+    }
+
+    void deallocate(pointer /*p*/, size_type /*unused*/)
+    {
+        // Memory will be automatically deallocated when slab goes out of scope and its ref count becomes 0.
+    }
+
+  private:
+    std::shared_ptr<void> slab;
+};
 
 } // namespace barretenberg

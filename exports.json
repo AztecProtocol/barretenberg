@@ -470,6 +470,26 @@
         "type": "const uint8_t *"
       },
       {
+        "name": "num_points_buf",
+        "type": "const uint32_t *"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "out",
+        "type": "out_ptr"
+      }
+    ],
+    "isAsync": false
+  },
+  {
+    "functionName": "ecc_new_pippenger_mem_prealloced",
+    "inArgs": [
+      {
+        "name": "points",
+        "type": "in_ptr"
+      },
+      {
         "name": "num_points",
         "type": "const uint32_t *"
       }
@@ -590,6 +610,17 @@
   {
     "functionName": "test_abort",
     "inArgs": [],
+    "outArgs": [],
+    "isAsync": false
+  },
+  {
+    "functionName": "common_init_slab_allocator",
+    "inArgs": [
+      {
+        "name": "circuit_size",
+        "type": "const uint32_t *"
+      }
+    ],
     "outArgs": [],
     "isAsync": false
   },

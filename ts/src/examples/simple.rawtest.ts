@@ -8,12 +8,17 @@ createDebug.enable('*');
 const debug = createDebug('simple_test');
 
 async function main() {
+  const CIRCUIT_SIZE = 2 ** 19;
+
   debug('starting test...');
   const { wasm, worker } = await BarretenbergWasm.newWorker();
   const api = new BarretenbergApi(new BarretenbergBinder(wasm));
 
+  // Import to init slab allocator as first thing, to ensure maximum memory efficiency.
+  await api.commonInitSlabAllocator(CIRCUIT_SIZE);
+
   // Plus 1 needed!
-  const crs = await Crs.new(2 ** 19 + 1);
+  const crs = await Crs.new(CIRCUIT_SIZE + 1);
   const pippengerPtr = await api.eccNewPippenger(crs.getG1Data(), crs.numPoints);
 
   for (let i = 0; i < 10; ++i) {

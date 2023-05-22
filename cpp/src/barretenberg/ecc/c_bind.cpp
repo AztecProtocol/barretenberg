@@ -14,6 +14,12 @@ WASM_EXPORT void ecc_new_pippenger(uint8_t const* points, uint32_t const* num_po
     *out = new scalar_multiplication::Pippenger(points_vec.data(), num_points);
 }
 
+WASM_EXPORT void ecc_new_pippenger_mem_prealloced(in_ptr points, uint32_t const* num_points_buf, out_ptr out)
+{
+    auto num_points = ntohl(*num_points_buf);
+    *out = new scalar_multiplication::Pippenger((g1::affine_element*)*points, num_points);
+}
+
 WASM_EXPORT void ecc_delete_pippenger(in_ptr pippenger)
 {
     delete (scalar_multiplication::Pippenger*)(*pippenger);

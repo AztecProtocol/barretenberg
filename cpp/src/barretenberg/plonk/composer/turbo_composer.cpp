@@ -551,7 +551,7 @@ std::vector<uint32_t> TurboComposer::decompose_into_base4_accumulators(const uin
     size_t num_quad_gates = (num_bits >> 3);
     num_quad_gates = (num_quad_gates << 3 == num_bits) ? num_quad_gates : num_quad_gates + 1;
 
-    std::vector<uint32_t>* wires[4]{ &w_4, &w_o, &w_r, &w_l };
+    decltype(w_4)* wires[4]{ &w_4, &w_o, &w_r, &w_l };
 
     // num_quads = the number of accumulators used in the table, not including the output row.
     const size_t num_quads = (num_quad_gates << 2);

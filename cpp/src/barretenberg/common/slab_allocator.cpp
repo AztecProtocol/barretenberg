@@ -78,6 +78,7 @@ void SlabAllocator::init(size_t circuit_size_hint)
     // Think max I saw was 65 extra related to pippenger runtime state. Likely related to the machine having 64 cores.
     // Strange things may happen here if double to 128 cores, might request 129 extra?
     size_t overalloc = 128;
+    size_t tiny_size = 4 * circuit_size_hint;
     size_t small_size = 32 * (circuit_size_hint + overalloc);
     size_t large_size = small_size * 4;
 
@@ -88,7 +89,10 @@ void SlabAllocator::init(size_t circuit_size_hint)
     // on repeated prover runs as the memory becomes fragmented. Maybe best to just recreate the WASM
     // for each proof for now, if not too expensive.
     std::map<size_t, size_t> prealloc_num;
-    prealloc_num[small_size] = 4 +    // Monomial wires.
+    prealloc_num[tiny_size] = 4 +     // Composer base wire vectors.
+                              1;      // Miscellaneous.
+    prealloc_num[small_size] = 11 +   // Composer base selector vectors.
+                               4 +    // Monomial wires.
                                4 +    // Lagrange wires.
                                15 +   // Monomial constraint selectors.
                                15 +   // Lagrange constraint selectors.
@@ -98,7 +102,7 @@ void SlabAllocator::init(size_t circuit_size_hint)
                                5 +    // Lagrange sorted poly.
                                2 +    // Perm poly.
                                4 +    // Quotient poly.
-                               7;     // Miscellaneous.
+                               8;     // Miscellaneous.
     prealloc_num[small_size * 2] = 1; // Miscellaneous.
     prealloc_num[large_size] = 4 +    // Coset-fft wires.
                                15 +   // Coset-fft constraint selectors.

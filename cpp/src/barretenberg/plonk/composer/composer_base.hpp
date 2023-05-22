@@ -1,4 +1,5 @@
 #pragma once
+#include "barretenberg/common/slab_allocator.hpp"
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/proof_system/arithmetization/gate_data.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
@@ -293,10 +294,10 @@ class ComposerBase {
 
   public:
     size_t num_gates;
-    std::vector<uint32_t> w_l;
-    std::vector<uint32_t> w_r;
-    std::vector<uint32_t> w_o;
-    std::vector<uint32_t> w_4;
+    std::vector<uint32_t, ContainerSlabAllocator<uint32_t>> w_l;
+    std::vector<uint32_t, ContainerSlabAllocator<uint32_t>> w_r;
+    std::vector<uint32_t, ContainerSlabAllocator<uint32_t>> w_o;
+    std::vector<uint32_t, ContainerSlabAllocator<uint32_t>> w_4;
     std::vector<uint32_t> public_inputs;
     std::vector<barretenberg::fr> variables;
     std::vector<uint32_t> next_var_index; // index of next variable in equivalence class (=REAL_VARIABLE if you're last)
@@ -318,7 +319,7 @@ class ComposerBase {
 
     std::shared_ptr<ReferenceStringFactory> crs_factory_;
     size_t num_selectors;
-    std::vector<std::vector<barretenberg::fr>> selectors;
+    std::vector<std::vector<barretenberg::fr, ContainerSlabAllocator<barretenberg::fr>>> selectors;
     /**
      * @brief Contains the properties of each selector:
      * + name

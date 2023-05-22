@@ -3,6 +3,7 @@
 #include "./mem.hpp"
 #include "./timer.hpp"
 #include "./serialize.hpp"
+#include "./slab_allocator.hpp"
 #include <algorithm>
 #include <thread>
 
@@ -31,8 +32,6 @@ void thread_test_abort_entry_point(void*)
     info("thread_test_abort aborting");
     std::abort();
 }
-
-extern "C" {
 
 WASM_EXPORT void test_threads(uint32_t const* thread_num, uint32_t const* iterations, uint32_t* out)
 {
@@ -67,5 +66,9 @@ WASM_EXPORT void test_abort()
     info("test_abort aborting");
     std::abort();
 }
+
+WASM_EXPORT void common_init_slab_allocator(uint32_t const* circuit_size)
+{
+    barretenberg::init_slab_allocator(ntohl(*circuit_size));
 }
 #endif

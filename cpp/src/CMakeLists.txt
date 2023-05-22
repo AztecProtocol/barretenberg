@@ -28,9 +28,12 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
 endif()
 
 # We enable -O1 level optimsations, even when compiling debug wasm, otherwise we get "local count too large" at runtime.
+# We prioritise reducing size of final artefacts in release with -Oz.
 if(WASM)
     set(CMAKE_CXX_FLAGS_DEBUG "-O1 -g")
     set(CMAKE_C_FLAGS_DEBUG "-O1 -g")
+    set(CMAKE_CXX_FLAGS_RELEASE "-Oz -DNDEBUG")
+    set(CMAKE_C_FLAGS_RELEASE "-Oz -DNDEBUG")
     add_link_options(-Wl,--export-memory,--import-memory,--stack-first,-z,stack-size=1048576,--max-memory=4294967296)
 endif()
 

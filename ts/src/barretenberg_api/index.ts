@@ -136,8 +136,13 @@ export class BarretenbergApi {
     return result as any;
   }
 
-  async eccNewPippenger(points: Uint8Array, numPoints: number): Promise<Ptr> {
-    const result = await this.binder.callWasmExport('ecc_new_pippenger', [points, numPoints], [Ptr]);
+  async eccNewPippenger(points: Uint8Array, numPointsBuf: number): Promise<Ptr> {
+    const result = await this.binder.callWasmExport('ecc_new_pippenger', [points, numPointsBuf], [Ptr]);
+    return result[0];
+  }
+
+  async eccNewPippengerMemPrealloced(points: Ptr, numPoints: number): Promise<Ptr> {
+    const result = await this.binder.callWasmExport('ecc_new_pippenger_mem_prealloced', [points, numPoints], [Ptr]);
     return result[0];
   }
 
@@ -173,6 +178,11 @@ export class BarretenbergApi {
 
   async testAbort(): Promise<void> {
     const result = await this.binder.callWasmExport('test_abort', [], []);
+    return;
+  }
+
+  async commonInitSlabAllocator(circuitSize: number): Promise<void> {
+    const result = await this.binder.callWasmExport('common_init_slab_allocator', [circuitSize], []);
     return;
   }
 
@@ -354,8 +364,13 @@ export class BarretenbergApiSync {
     return result as any;
   }
 
-  eccNewPippenger(points: Uint8Array, numPoints: number): Ptr {
-    const result = this.binder.callWasmExport('ecc_new_pippenger', [points, numPoints], [Ptr]);
+  eccNewPippenger(points: Uint8Array, numPointsBuf: number): Ptr {
+    const result = this.binder.callWasmExport('ecc_new_pippenger', [points, numPointsBuf], [Ptr]);
+    return result[0];
+  }
+
+  eccNewPippengerMemPrealloced(points: Ptr, numPoints: number): Ptr {
+    const result = this.binder.callWasmExport('ecc_new_pippenger_mem_prealloced', [points, numPoints], [Ptr]);
     return result[0];
   }
 
@@ -391,6 +406,11 @@ export class BarretenbergApiSync {
 
   testAbort(): void {
     const result = this.binder.callWasmExport('test_abort', [], []);
+    return;
+  }
+
+  commonInitSlabAllocator(circuitSize: number): void {
+    const result = this.binder.callWasmExport('common_init_slab_allocator', [circuitSize], []);
     return;
   }
 
