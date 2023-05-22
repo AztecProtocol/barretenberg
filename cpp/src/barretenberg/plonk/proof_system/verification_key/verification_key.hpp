@@ -63,9 +63,6 @@ struct verification_key {
     ~verification_key() = default;
 
     sha256::hash sha256_hash();
-    std::vector<barretenberg::fr> export_key_in_recursion_format();
-    static std::vector<barretenberg::fr> export_dummy_key_in_recursion_format(
-        const PolynomialManifest& polynomial_manifest, bool contains_recursive_proof = 0);
 
     uint32_t composer_type;
     size_t circuit_size;
