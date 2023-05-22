@@ -125,7 +125,7 @@ size_t serialize_proof_into_field_elements(uint8_t const* proof_data_buf,
                                               transcript::HashType::PlookupPedersenBlake3s,
                                               16);
 
-    std::vector<barretenberg::fr> output = transcript.export_transcript_in_recursion_format();
+    std::vector<barretenberg::fr> output = acir_format::export_transcript_in_recursion_format(transcript);
 
     // NOTE: this output buffer will always have a fixed size! Maybe just precompute?
     const size_t output_size_bytes = output.size() * sizeof(barretenberg::fr);

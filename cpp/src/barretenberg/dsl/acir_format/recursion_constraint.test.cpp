@@ -140,7 +140,8 @@ acir_format::Composer create_outer_circuit(std::vector<acir_format::Composer>& i
                                                   transcript::HashType::PlookupPedersenBlake3s,
                                                   16);
 
-        const std::vector<barretenberg::fr> proof_witnesses = transcript.export_transcript_in_recursion_format();
+        const std::vector<barretenberg::fr> proof_witnesses =
+            acir_format::export_transcript_in_recursion_format(transcript);
         const std::vector<barretenberg::fr> key_witnesses =
             acir_format::export_key_in_recursion_format(inner_verifier.key);
 

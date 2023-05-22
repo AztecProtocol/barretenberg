@@ -66,6 +66,10 @@ std::vector<barretenberg::fr> export_key_in_recursion_format(std::shared_ptr<ver
 std::vector<barretenberg::fr> export_dummy_key_in_recursion_format(const PolynomialManifest& polynomial_manifest,
                                                                    bool contains_recursive_proof = 0);
 
+std::vector<barretenberg::fr> export_transcript_in_recursion_format(const transcript::StandardTranscript& transcript);
+std::vector<barretenberg::fr> export_dummy_transcript_in_recursion_format(const transcript::Manifest& manifest,
+                                                                          const bool contains_recursive_proof);
+
 template <typename B> inline void read(B& buf, RecursionConstraint& constraint)
 {
     using serialize::read;
