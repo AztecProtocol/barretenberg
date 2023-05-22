@@ -6,6 +6,8 @@
 
 namespace acir_format {
 
+using namespace proof_system::plonk;
+
 /**
  * @brief RecursionConstraint struct contains information required to recursively verify a proof!
  *
@@ -59,6 +61,10 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
 
 extern template void create_recursion_constraints<false>(Composer&, const RecursionConstraint&);
 extern template void create_recursion_constraints<true>(Composer&, const RecursionConstraint&);
+
+std::vector<barretenberg::fr> export_key_in_recursion_format(std::shared_ptr<verification_key> const& vkey);
+std::vector<barretenberg::fr> export_dummy_key_in_recursion_format(const PolynomialManifest& polynomial_manifest,
+                                                                   bool contains_recursive_proof = 0);
 
 template <typename B> inline void read(B& buf, RecursionConstraint& constraint)
 {

@@ -141,7 +141,8 @@ acir_format::Composer create_outer_circuit(std::vector<acir_format::Composer>& i
                                                   16);
 
         const std::vector<barretenberg::fr> proof_witnesses = transcript.export_transcript_in_recursion_format();
-        const std::vector<barretenberg::fr> key_witnesses = inner_verifier.key->export_key_in_recursion_format();
+        const std::vector<barretenberg::fr> key_witnesses =
+            acir_format::export_key_in_recursion_format(inner_verifier.key);
 
         const uint32_t key_hash_start_idx = static_cast<uint32_t>(witness_offset);
         const uint32_t public_input_start_idx = key_hash_start_idx + 1;

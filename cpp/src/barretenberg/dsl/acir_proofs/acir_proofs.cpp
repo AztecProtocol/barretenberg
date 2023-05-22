@@ -157,7 +157,7 @@ size_t serialize_verification_key_into_field_elements(uint8_t const* g2x,
     plonk::verification_key_data vk_data;
     read(vk_buf, vk_data);
     auto vkey = std::make_shared<proof_system::plonk::verification_key>(std::move(vk_data), crs);
-    std::vector<barretenberg::fr> output = vkey->export_key_in_recursion_format();
+    std::vector<barretenberg::fr> output = acir_format::export_key_in_recursion_format(vkey);
 
     // NOTE: this output buffer will always have a fixed size! Maybe just precompute?
     // Cut off 32 bytes as last element is the verification key hash which is not part of the key :o
