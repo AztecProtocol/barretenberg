@@ -110,7 +110,7 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
     }
 
     // recursively verify the proof
-    std::shared_ptr<verification_key_ct> vkey = verification_key_ct::from_field_pt_vector(
+    std::shared_ptr<verification_key_ct> vkey = verification_key_ct::from_field_elements(
         &composer, key_fields, inner_proof_contains_recursive_proof, nested_aggregation_indices);
     vkey->program_width = noir_recursive_settings::program_width;
     Transcript_ct transcript(&composer, manifest, proof_fields, input.public_inputs.size());

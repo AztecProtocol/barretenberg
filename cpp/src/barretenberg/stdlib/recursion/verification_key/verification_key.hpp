@@ -25,7 +25,7 @@ namespace stdlib {
 namespace recursion {
 
 template <typename Composer> struct evaluation_domain {
-    static evaluation_domain from_field_pt_vector(const std::vector<field_t<Composer>>& fields)
+    static evaluation_domain from_field_elements(const std::vector<field_t<Composer>>& fields)
     {
         evaluation_domain domain;
         domain.root = fields[0];
@@ -112,15 +112,10 @@ template <typename Composer> struct evaluation_domain {
     uint32<Composer> size;
 };
 
-/**
- * @brief Converts a 'native' verification key into a standard library type, instantiating the `input_key` parameter as
- * circuit variables. This allows the recursive verifier to accept arbitrary verification keys, where the circuit being
- * verified is not fixed as part of the recursive circuit.
- */
 template <typename Curve> struct verification_key {
     using Composer = typename Curve::Composer;
 
-    static std::shared_ptr<verification_key> from_field_pt_vector(
+    static std::shared_ptr<verification_key> from_field_elements(
         Composer* ctx,
         const std::vector<field_t<Composer>>& fields,
         bool inner_proof_contains_recursive_proof = false,
@@ -131,7 +126,7 @@ template <typename Curve> struct verification_key {
         key->context = ctx;
 
         key->polynomial_manifest = PolynomialManifest(Composer::type);
-        key->domain = evaluation_domain<Composer>::from_field_pt_vector({ fields[0], fields[1], fields[2] });
+        key->domain = evaluation_domain<Composer>::from_field_elements({ fields[0], fields[1], fields[2] });
 
         key->n = fields[3];
         key->num_public_inputs = fields[4];
@@ -163,6 +158,11 @@ template <typename Curve> struct verification_key {
         return key;
     }
 
+    /**
+     * @brief Converts a 'native' verification key into a standard library type, instantiating the `input_key` parameter
+     * as circuit variables. This allows the recursive verifier to accept arbitrary verification keys, where the circuit
+     * being verified is not fixed as part of the recursive circuit.
+     */
     static std::shared_ptr<verification_key> from_witness(Composer* ctx,
                                                           const std::shared_ptr<plonk::verification_key>& input_key)
     {

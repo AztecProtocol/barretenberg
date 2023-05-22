@@ -341,7 +341,7 @@ size_t verify_recursive_proof(uint8_t const* proof_buf,
         nested_aggregation_indices_all_zero &= (idx == 0);
     }
     const bool inner_proof_contains_recursive_proof = !nested_aggregation_indices_all_zero;
-    std::shared_ptr<acir_format::verification_key_ct> vkey = acir_format::verification_key_ct::from_field_pt_vector(
+    std::shared_ptr<acir_format::verification_key_ct> vkey = acir_format::verification_key_ct::from_field_elements(
         &composer, key_fields, inner_proof_contains_recursive_proof, nested_aggregation_object);
     vkey->program_width = acir_format::noir_recursive_settings::program_width;
     acir_format::Transcript_ct transcript(&composer, manifest, proof_fields, num_public_inputs);
