@@ -59,7 +59,7 @@ template <typename Flavor, template <class> class... Relations> class SumcheckRo
     using FF = typename Flavor::FF;
     template <size_t univariate_length>
     using ExtendedEdges = typename Flavor::template ExtendedEdges<univariate_length>;
-    using PurportedEvaluations = typename Flavor::PurportedEvaluations;
+    using ClaimedEvaluations = typename Flavor::ClaimedEvaluations;
 
     bool round_failed = false;
     size_t round_size; // a power of 2
@@ -218,7 +218,7 @@ template <typename Flavor, template <class> class... Relations> class SumcheckRo
      * together, with appropriate scaling factors, produces the expected value of the full Honk relation. This value is
      * checked against the final value of the target total sum, defined as sigma_d.
      */
-    FF compute_full_honk_relation_purported_value(PurportedEvaluations purported_evaluations,
+    FF compute_full_honk_relation_purported_value(ClaimedEvaluations purported_evaluations,
                                                   const RelationParameters<FF>& relation_parameters,
                                                   const PowUnivariate<FF>& pow_univariate,
                                                   const FF alpha)
@@ -316,7 +316,7 @@ template <typename Flavor, template <class> class... Relations> class SumcheckRo
      */
     template <size_t relation_idx = 0>
     // TODO(#224)(Cody): Input should be an array?
-    void accumulate_relation_evaluations(PurportedEvaluations purported_evaluations,
+    void accumulate_relation_evaluations(ClaimedEvaluations purported_evaluations,
                                          const RelationParameters<FF>& relation_parameters)
     {
         std::get<relation_idx>(relations).add_full_relation_value_contribution(

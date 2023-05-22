@@ -23,7 +23,7 @@ template <typename Flavor, class Transcript, template <class> class... Relations
   public:
     using FF = typename Flavor::FF;
     using PartiallyEvaluatedMultivariates = typename Flavor::PartiallyEvaluatedMultivariates;
-    using PurportedEvaluations = typename Flavor::PurportedEvaluations;
+    using ClaimedEvaluations = typename Flavor::ClaimedEvaluations;
 
     static constexpr size_t MAX_RELATION_LENGTH = std::max({ Relations<FF>::RELATION_LENGTH... });
     static constexpr size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
@@ -123,7 +123,7 @@ template <typename Flavor, class Transcript, template <class> class... Relations
         }
 
         // Final round: Extract multivariate evaluations from partially_evaluated_polynomials and add to transcript
-        PurportedEvaluations multivariate_evaluations;
+        ClaimedEvaluations multivariate_evaluations;
         size_t evaluation_idx = 0;
         for (auto& polynomial : partially_evaluated_polynomials) { // TODO(#391) zip
             multivariate_evaluations[evaluation_idx] = polynomial[0];
@@ -178,7 +178,7 @@ template <typename Flavor, class Transcript, template <class> class... Relations
         }
 
         // Final round
-        PurportedEvaluations purported_evaluations =
+        ClaimedEvaluations purported_evaluations =
             transcript.template receive_from_prover<std::array<FF, NUM_POLYNOMIALS>>("Sumcheck:evaluations");
 
         FF full_honk_relation_purported_value = round.compute_full_honk_relation_purported_value(

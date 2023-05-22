@@ -25,7 +25,7 @@ using namespace proof_system::honk::sumcheck;
 using Flavor = flavor::Standard;
 using FF = typename Flavor::FF;
 using ProverPolynomials = typename Flavor::ProverPolynomials;
-using PurportedEvaluations = typename Flavor::PurportedEvaluations;
+using ClaimedEvaluations = typename Flavor::ClaimedEvaluations;
 
 const size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
 const size_t max_relation_length = 5;
@@ -187,7 +187,7 @@ static FF compute_full_purported_value(std::array<FF, NUM_POLYNOMIALS>& input_va
                                        const RelationParameters<FF>& relation_parameters,
                                        const FF alpha)
 {
-    PurportedEvaluations purported_evaluations;
+    ClaimedEvaluations purported_evaluations;
     purported_evaluations.w_l = input_values[0];
     purported_evaluations.w_r = input_values[1];
     purported_evaluations.w_o = input_values[2];
