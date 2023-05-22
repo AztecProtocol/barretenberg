@@ -70,6 +70,17 @@ std::vector<barretenberg::fr> export_transcript_in_recursion_format(const transc
 std::vector<barretenberg::fr> export_dummy_transcript_in_recursion_format(const transcript::Manifest& manifest,
                                                                           const bool contains_recursive_proof);
 
+// In order to interact with a recursive aggregation state inside of a circuit, we need to represent its internal G1
+// elements as field elements. This happens in multiple locations when creating a recursion constraint. The struct and
+// method below export a g1 affine element as fields to use as part of the recursive circuit.
+struct G1AsFields {
+    barretenberg::fr x_lo;
+    barretenberg::fr x_hi;
+    barretenberg::fr y_lo;
+    barretenberg::fr y_hi;
+};
+G1AsFields export_g1_affine_element_as_fields(const barretenberg::g1::affine_element& group_element);
+
 template <typename B> inline void read(B& buf, RecursionConstraint& constraint)
 {
     using serialize::read;

@@ -8,6 +8,9 @@ namespace acir_format {
 
 using namespace proof_system::plonk;
 
+static constexpr uint64_t TWO_LIMBS_BITS_IN_FIELD_SIMULATION = NUM_LIMB_BITS_IN_FIELD_SIMULATION * 2;
+static constexpr uint64_t FOUR_LIMBS_BITS_IN_FIELD_SIMULATION = NUM_LIMB_BITS_IN_FIELD_SIMULATION * 4;
+
 void generate_dummy_proof() {}
 /**
  * @brief Add constraints required to recursively verify an UltraPlonk proof
@@ -164,16 +167,11 @@ std::vector<barretenberg::fr> export_key_in_recursion_format(std::shared_ptr<ver
     for (const auto& descriptor : vkey->polynomial_manifest.get()) {
         if (descriptor.source == PolynomialSource::SELECTOR || descriptor.source == PolynomialSource::PERMUTATION) {
             const auto element = vkey->commitments.at(std::string(descriptor.commitment_label));
-            const uint256_t x = element.x;
-            const uint256_t y = element.y;
-            const barretenberg::fr x_lo = x.slice(0, 136);
-            const barretenberg::fr x_hi = x.slice(136, 272);
-            const barretenberg::fr y_lo = y.slice(0, 136);
-            const barretenberg::fr y_hi = y.slice(136, 272);
-            output.emplace_back(x_lo);
-            output.emplace_back(x_hi);
-            output.emplace_back(y_lo);
-            output.emplace_back(y_hi);
+            auto g1_as_fields = export_g1_affine_element_as_fields(element);
+            output.emplace_back(g1_as_fields.x_lo);
+            output.emplace_back(g1_as_fields.x_hi);
+            output.emplace_back(g1_as_fields.y_lo);
+            output.emplace_back(g1_as_fields.y_hi);
         }
     }
 
@@ -225,16 +223,11 @@ std::vector<barretenberg::fr> export_dummy_key_in_recursion_format(const Polynom
             // transcript point is unique.
             auto scalar = barretenberg::fr::random_element();
             const auto element = barretenberg::g1::affine_element(barretenberg::g1::one * scalar);
-            const uint256_t x = element.x;
-            const uint256_t y = element.y;
-            const barretenberg::fr x_lo = x.slice(0, 136);
-            const barretenberg::fr x_hi = x.slice(136, 272);
-            const barretenberg::fr y_lo = y.slice(0, 136);
-            const barretenberg::fr y_hi = y.slice(136, 272);
-            output.emplace_back(x_lo);
-            output.emplace_back(x_hi);
-            output.emplace_back(y_lo);
-            output.emplace_back(y_hi);
+            auto g1_as_fields = export_g1_affine_element_as_fields(element);
+            output.emplace_back(g1_as_fields.x_lo);
+            output.emplace_back(g1_as_fields.x_hi);
+            output.emplace_back(g1_as_fields.y_lo);
+            output.emplace_back(g1_as_fields.y_hi);
         }
     }
 
@@ -260,16 +253,11 @@ std::vector<barretenberg::fr> export_transcript_in_recursion_format(const transc
                     fields.emplace_back(transcript.get_field_element(manifest_element.name));
                 } else if (manifest_element.num_bytes == 64 && manifest_element.name != "public_inputs") {
                     const auto group_element = transcript.get_group_element(manifest_element.name);
-                    const uint256_t x = group_element.x;
-                    const uint256_t y = group_element.y;
-                    const barretenberg::fr x_lo = x.slice(0, 136);
-                    const barretenberg::fr x_hi = x.slice(136, 272);
-                    const barretenberg::fr y_lo = y.slice(0, 136);
-                    const barretenberg::fr y_hi = y.slice(136, 272);
-                    fields.emplace_back(x_lo);
-                    fields.emplace_back(x_hi);
-                    fields.emplace_back(y_lo);
-                    fields.emplace_back(y_hi);
+                    auto g1_as_fields = export_g1_affine_element_as_fields(group_element);
+                    fields.emplace_back(g1_as_fields.x_lo);
+                    fields.emplace_back(g1_as_fields.x_hi);
+                    fields.emplace_back(g1_as_fields.y_lo);
+                    fields.emplace_back(g1_as_fields.y_hi);
                 } else {
                     ASSERT(manifest_element.name == "public_inputs");
                     const auto public_inputs_vector = transcript.get_field_element_vector(manifest_element.name);
@@ -309,16 +297,11 @@ std::vector<barretenberg::fr> export_dummy_transcript_in_recursion_format(const 
                     // points we must be mindful of the above and make sure that each point is unique.
                     auto scalar = barretenberg::fr::random_element();
                     const auto group_element = barretenberg::g1::affine_element(barretenberg::g1::one * scalar);
-                    const uint256_t x = group_element.x;
-                    const uint256_t y = group_element.y;
-                    const barretenberg::fr x_lo = x.slice(0, 136);
-                    const barretenberg::fr x_hi = x.slice(136, 272);
-                    const barretenberg::fr y_lo = y.slice(0, 136);
-                    const barretenberg::fr y_hi = y.slice(136, 272);
-                    fields.emplace_back(x_lo);
-                    fields.emplace_back(x_hi);
-                    fields.emplace_back(y_lo);
-                    fields.emplace_back(y_hi);
+                    auto g1_as_fields = export_g1_affine_element_as_fields(group_element);
+                    fields.emplace_back(g1_as_fields.x_lo);
+                    fields.emplace_back(g1_as_fields.x_hi);
+                    fields.emplace_back(g1_as_fields.y_lo);
+                    fields.emplace_back(g1_as_fields.y_hi);
                 } else {
                     ASSERT(manifest_element.name == "public_inputs");
                     const size_t num_public_inputs = manifest_element.num_bytes / 32;
@@ -330,16 +313,11 @@ std::vector<barretenberg::fr> export_dummy_transcript_in_recursion_format(const 
                         for (size_t k = 0; k < num_public_inputs / 4; ++k) {
                             auto scalar = barretenberg::fr::random_element();
                             const auto group_element = barretenberg::g1::affine_element(barretenberg::g1::one * scalar);
-                            const uint256_t x = group_element.x;
-                            const uint256_t y = group_element.y;
-                            const barretenberg::fr x_lo = x.slice(0, 136);
-                            const barretenberg::fr x_hi = x.slice(136, 272);
-                            const barretenberg::fr y_lo = y.slice(0, 136);
-                            const barretenberg::fr y_hi = y.slice(136, 272);
-                            fields.emplace_back(x_lo);
-                            fields.emplace_back(x_hi);
-                            fields.emplace_back(y_lo);
-                            fields.emplace_back(y_hi);
+                            auto g1_as_fields = export_g1_affine_element_as_fields(group_element);
+                            fields.emplace_back(g1_as_fields.x_lo);
+                            fields.emplace_back(g1_as_fields.x_hi);
+                            fields.emplace_back(g1_as_fields.y_lo);
+                            fields.emplace_back(g1_as_fields.y_hi);
                         }
                     } else {
                         for (size_t j = 0; j < num_public_inputs; ++j) {
@@ -351,6 +329,18 @@ std::vector<barretenberg::fr> export_dummy_transcript_in_recursion_format(const 
         }
     }
     return fields;
+}
+
+G1AsFields export_g1_affine_element_as_fields(const barretenberg::g1::affine_element& group_element)
+{
+    const uint256_t x = group_element.x;
+    const uint256_t y = group_element.y;
+    const barretenberg::fr x_lo = x.slice(0, TWO_LIMBS_BITS_IN_FIELD_SIMULATION);
+    const barretenberg::fr x_hi = x.slice(TWO_LIMBS_BITS_IN_FIELD_SIMULATION, FOUR_LIMBS_BITS_IN_FIELD_SIMULATION);
+    const barretenberg::fr y_lo = y.slice(0, TWO_LIMBS_BITS_IN_FIELD_SIMULATION);
+    const barretenberg::fr y_hi = y.slice(TWO_LIMBS_BITS_IN_FIELD_SIMULATION, FOUR_LIMBS_BITS_IN_FIELD_SIMULATION);
+
+    return G1AsFields{ x_lo, x_hi, y_lo, y_hi };
 }
 
 } // namespace acir_format
