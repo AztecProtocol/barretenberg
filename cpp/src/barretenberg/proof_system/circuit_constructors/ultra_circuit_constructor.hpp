@@ -579,9 +579,6 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
         w_4.reserve(size_hint);
         zero_idx = put_constant_variable(barretenberg::fr::zero());
         tau.insert({ DUMMY_TAG, DUMMY_TAG }); // TODO(luke): explain this
-
-        // TODO(#217/#423): Related to issue of ensuring no identically 0 polynomials
-        add_gates_to_ensure_all_polys_are_non_zero();
     };
 
     UltraCircuitConstructor(const UltraCircuitConstructor& other) = delete;
