@@ -224,14 +224,14 @@ template <typename Tuple, std::size_t Index = 0> static constexpr size_t get_max
     if constexpr (Index >= std::tuple_size<Tuple>::value) {
         return 0; // Return 0 when reach end of the tuple
     } else {
-        constexpr size_t currentLength = std::tuple_element<Index, Tuple>::type::RELATION_LENGTH;
-        constexpr size_t nextLength = get_max_relation_length<Tuple, Index + 1>();
-        return (currentLength > nextLength) ? currentLength : nextLength;
+        constexpr size_t current_length = std::tuple_element<Index, Tuple>::type::RELATION_LENGTH;
+        constexpr size_t next_length = get_max_relation_length<Tuple, Index + 1>();
+        return (current_length > next_length) ? current_length : next_length;
     }
 }
 
 /**
- * @brief Recursive utility function to construct tuple of Univariates of length RELATION_LENGTH...
+ * @brief Recursive utility function to construct tuple of Univariates of length RELATION_LENGTH
  *
  */
 template <class FF, typename Tuple, std::size_t Index = 0> static constexpr auto create_univariate_tuple()
@@ -254,8 +254,8 @@ static constexpr auto create_barycentric_utils()
     if constexpr (Index >= std::tuple_size<Tuple>::value) {
         return std::tuple<>{}; // Return empty when reach end of the tuple
     } else {
-        constexpr size_t relationLength = std::tuple_element_t<Index, Tuple>::RELATION_LENGTH;
-        using BarycentricType = sumcheck::BarycentricData<FF, relationLength, ExtendedLength>;
+        constexpr size_t relation_length = std::tuple_element_t<Index, Tuple>::RELATION_LENGTH;
+        using BarycentricType = sumcheck::BarycentricData<FF, relation_length, ExtendedLength>;
         return std::tuple_cat(std::tuple<BarycentricType>{},
                               create_barycentric_utils<FF, Tuple, ExtendedLength, Index + 1>());
     }

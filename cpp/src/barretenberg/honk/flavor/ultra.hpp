@@ -65,9 +65,9 @@ class Ultra {
     static constexpr size_t NUM_RELATIONS = std::tuple_size<Relations>::value;
 
     // define the container for storing the univariate contribution from each relation in Sumcheck
-    using UnivariateTuple = decltype(create_univariate_tuple<FF, Relations, 0>());
+    using UnivariateTuple = decltype(create_univariate_tuple<FF, Relations>());
     // define utilities to extend univarates from RELATION_LENGTH to MAX_RELATION_LENGTH for each Relation
-    using BarycentricUtils = decltype(create_barycentric_utils<FF, Relations, MAX_RELATION_LENGTH, 0>());
+    using BarycentricUtils = decltype(create_barycentric_utils<FF, Relations, MAX_RELATION_LENGTH>());
 
   private:
     template <typename DataType, typename HandleType>
