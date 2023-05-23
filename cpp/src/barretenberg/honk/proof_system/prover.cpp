@@ -224,6 +224,7 @@ template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_shplonk_p
 template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_final_pcs_round()
 {
     PCS::compute_opening_proof(pcs_commitment_key, shplonk_output.opening_pair, shplonk_output.witness, transcript);
+    info("done");
 }
 
 template <StandardFlavor Flavor> plonk::proof& StandardProver_<Flavor>::export_proof()

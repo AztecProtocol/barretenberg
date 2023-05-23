@@ -37,6 +37,8 @@ template <typename Params> class KZG {
         // Computes the coefficients for the quotient polynomial q(X) = (p(X) - v) / (X - r) through an FFT
         quotient.factor_roots(opening_pair.challenge);
         auto quotient_commitment = ck->commit(quotient);
+        // Note: for now we compute the KZG commitment directly to unify the KZG and IPA interfaces but in the future
+        // we might need to adjust this to use the incoming alternative to work queue
         prover_trancript.send_to_verifier("KZG:W", quotient_commitment);
     };
 

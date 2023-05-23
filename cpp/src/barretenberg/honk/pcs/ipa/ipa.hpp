@@ -41,7 +41,6 @@ template <typename Params> class IPA {
         ASSERT(opening_pair.challenge != 0 && "The challenge point should not be zero");
         auto poly_degree = static_cast<size_t>(polynomial.size());
         transcript.send_to_verifier("IPA:poly_degree", static_cast<uint64_t>(poly_degree));
-        info(poly_degree);
         Fr generator_challenge = transcript.get_challenge("IPA:generator_challenge");
         auto aux_generator = Commitment::one() * generator_challenge;
 
@@ -51,9 +50,9 @@ template <typename Params> class IPA {
                "The poly_degree should be positive and a power of two");
 
         auto a_vec = polynomial;
-        // TODO(#220)(Arijit): to make it more efficient by directly using G_vector for the input points when i = 0 and
-        // write the output points to G_vec_local. Then use G_vec_local for rounds where i>0, this can be done after we
-        // use SRS instead of G_vector.
+        // TODO(Mara): restructure IPA so it can be integrated with the work_queue (or replacement) and
+        // see if reducing the size of G_vec_local and b_vec by taking the first iteration out of the loop
+        // can also be integrated.
         auto srs_elements = ck->srs.get_monomial_points();
         std::vector<Commitment> G_vec_local(poly_degree);
         // The SRS stored in the commitment key is the result after applying the pippenger point table so the
@@ -62,17 +61,13 @@ template <typename Params> class IPA {
         for (size_t i = 0; i < poly_degree * 2; i += 2) {
             G_vec_local[i >> 1] = srs_elements[i];
         }
-        // Construct b vector
-        // TODO(#220)(Arijit): For round i=0, b_vec can be derived in-place.
-        // This means that the size of b_vec can be 50% of the current size (i.e. we only write values to b_vec at the
-        // end of round 0)
         std::vector<Fr> b_vec(poly_degree);
         Fr b_power = 1;
         for (size_t i = 0; i < poly_degree; i++) {
             b_vec[i] = b_power;
             b_power *= opening_pair.challenge;
         }
-        // Iterate for log_2(poly_degree) rounds to compute the round commitments.
+        // Iterate for log(poly_degree) rounds to compute the round commitments.
         auto log_poly_degree = static_cast<size_t>(numeric::get_msb(poly_degree));
         std::vector<GroupElement> L_elements(log_poly_degree);
         std::vector<GroupElement> R_elements(log_poly_degree);

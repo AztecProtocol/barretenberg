@@ -7,7 +7,6 @@
 #include <vector>
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/barycentric_data.hpp"
-#include "barretenberg/honk/pcs/ipa/ipa.hpp"
 #include "barretenberg/honk/pcs/kzg/kzg.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"

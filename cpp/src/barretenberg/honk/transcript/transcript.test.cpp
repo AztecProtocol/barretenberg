@@ -79,24 +79,24 @@ template <typename FF> class TranscriptTest : public testing::Test {
         manifest_expected.add_challenge(round, "Shplonk:z");
 
         round++;
-        // For KZG
         // TODO(Mara): Make testing more flavor agnostic so we can test this with all flavors
-        // manifest_expected.add_entry(round, "KZG:W", size_G);
-        info(circuit_size);
-        manifest_expected.add_entry(round, "IPA:poly_degree", circuit_size);
-        manifest_expected.add_challenge(round, "IPA:generator_challenge");
+        manifest_expected.add_entry(round, "KZG:W", size_G);
 
-        for (size_t i = 0; i < log_n; i++) {
-            round++;
-            std::string idx = std::to_string(i);
-            manifest_expected.add_entry(round, "IPA:L_" + idx, size_G);
-            manifest_expected.add_entry(round, "IPA:R_" + idx, size_G);
-            std::string label = "IPA:round_challenge_" + idx;
-            manifest_expected.add_challenge(round, label);
-        }
+        // For IPA
+        // manifest_expected.add_entry(round, "IPA:poly_degree", circuit_size);
+        // manifest_expected.add_challenge(round, "IPA:generator_challenge");
 
-        round++;
-        manifest_expected.add_entry(round, "IPA:a_0", size_FF);
+        // for (size_t i = 0; i < log_n; i++) {
+        //     round++;
+        //     std::string idx = std::to_string(i);
+        //     manifest_expected.add_entry(round, "IPA:L_" + idx, size_G);
+        //     manifest_expected.add_entry(round, "IPA:R_" + idx, size_G);
+        //     std::string label = "IPA:round_challenge_" + idx;
+        //     manifest_expected.add_challenge(round, label);
+        // }
+
+        // round++;
+        // manifest_expected.add_entry(round, "IPA:a_0", size_FF);
 
         manifest_expected.add_challenge(round); // no challenge
 
