@@ -242,22 +242,25 @@ size_t verify_recursive_proof(uint8_t const* proof_buf,
         previous_aggregation.has_data = false;
     }
 
+    acir_format::Composer composer;
+
     std::vector<acir_format::field_ct> proof_fields(proof_length / 32);
     std::vector<acir_format::field_ct> key_fields(vk_length / 32);
     for (size_t i = 0; i < proof_length / 32; i++) {
-        proof_fields[i] = acir_format::field_ct(barretenberg::fr::serialize_from_buffer(&proof_buf[i * 32]));
+        // TODO(maxim): The stdlib pairing primitives fetch the context from the elements being used in the pairing
+        // computation When attempting to simulate recursive verification without a full circuit where the context of
+        // these elements are not set we will get a seg fault. Using `witness_ct` here provides a workaround where these
+        // elements will have their context set. We should enable the native verifier to return an aggregation state so
+        // that we can avoid creating an unnecessary circuit and this workaround
+        proof_fields[i] = acir_format::field_ct(
+            acir_format::witness_ct(&composer, barretenberg::fr::serialize_from_buffer(&proof_buf[i * 32])));
     }
     for (size_t i = 0; i < vk_length / 32; i++) {
         key_fields[i] = acir_format::field_ct(barretenberg::fr::serialize_from_buffer(&vk_buf[i * 32]));
     }
 
-    acir_format::Composer composer;
-
     transcript::Manifest manifest = acir_format::Composer::create_unrolled_manifest(num_public_inputs);
-    // We currently only support RecursionConstraint where inner_proof_contains_recursive_proof = false.
-    // We would either need a separate ACIR opcode where inner_proof_contains_recursive_proof = true,
-    // or we need non-witness data to be provided as metadata in the ACIR opcode
-    // recursively verify the proof
+
     std::array<uint32_t, acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE> nested_aggregation_object = {};
     for (size_t i = 6; i < 22; ++i) {
         nested_aggregation_object[i - 6] = uint32_t(key_fields[i].get_value());

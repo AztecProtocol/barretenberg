@@ -141,6 +141,82 @@ TEST(AcirProofs, TestSerialization)
     EXPECT_EQ(verified, true);
 }
 
+TEST(AcirProofs, TestVerifyRecursiveProofPass)
+{
+    uint8_t* proof_data_fields = nullptr;
+    uint8_t* vk_fields = nullptr;
+    uint8_t* vk_hash_buf = nullptr;
+    size_t proof_fields_size = 0;
+    size_t vk_fields_size = 0;
+
+    acir_format::acir_format constraint_system;
+    std::vector<fr> witness;
+    create_inner_circuit(constraint_system, witness);
+
+    std::vector<uint8_t> witness_buf;
+    std::vector<uint8_t> constraint_system_buf;
+    write(constraint_system_buf, constraint_system);
+    write(witness_buf, witness);
+
+    uint32_t total_circuit_size = acir_proofs::get_total_circuit_size(&constraint_system_buf[0]);
+    uint32_t pow2_size = 1 << (numeric::get_msb(total_circuit_size) + 1);
+    auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
+    auto verifier_crs = env_crs->get_verifier_crs();
+
+    uint8_t const* pk_buf = nullptr;
+    acir_proofs::init_proving_key(&constraint_system_buf[0], &pk_buf);
+    barretenberg::g2::affine_element g2x = verifier_crs->get_g2x();
+
+    auto* pippenger_ptr_base = new scalar_multiplication::Pippenger(env_load_prover_crs(pow2_size + 1), pow2_size + 1);
+    void* pippenger_ptr = reinterpret_cast<void*>(pippenger_ptr_base);
+
+    std::vector<uint8_t> g2x_buffer(128);
+    io::write_g2_elements_to_buffer(&g2x, (char*)(&g2x_buffer[0]), 1);
+
+    uint8_t const* vk_buf = nullptr;
+    acir_proofs::init_verification_key(pippenger_ptr, &g2x_buffer[0], pk_buf, &vk_buf);
+
+    uint8_t* proof_data_buf = nullptr;
+    size_t proof_length = acir_proofs::new_proof(
+        pippenger_ptr, &g2x_buffer[0], pk_buf, &constraint_system_buf[0], &witness_buf[0], &proof_data_buf, true);
+
+    auto num_public_inputs = constraint_system.public_inputs.size();
+    proof_fields_size = acir_proofs::serialize_proof_into_field_elements(
+        proof_data_buf, &proof_data_fields, proof_length, num_public_inputs);
+    vk_fields_size =
+        acir_proofs::serialize_verification_key_into_field_elements(&g2x_buffer[0], vk_buf, &vk_fields, &vk_hash_buf);
+
+    bool verified = acir_proofs::verify_proof(
+        &g2x_buffer[0], vk_buf, &constraint_system_buf[0], proof_data_buf, static_cast<uint32_t>(proof_length), true);
+    EXPECT_EQ(verified, true);
+
+    delete pippenger_ptr_base;
+    free((void*)vk_buf);
+    free((void*)pk_buf);
+    free((void*)proof_data_buf);
+
+    const size_t output_size_bytes =
+        acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE * sizeof(barretenberg::fr);
+    auto input_agg_buf = (uint8_t*)malloc(output_size_bytes);
+
+    for (size_t i = 0; i < 16; ++i) {
+        auto field = barretenberg::fr::zero();
+        barretenberg::fr::serialize_to_buffer(field, &input_agg_buf[i * 32]);
+    }
+
+    uint8_t* output_agg_buf = nullptr;
+    acir_proofs::verify_recursive_proof(proof_data_fields,
+                                        static_cast<uint32_t>(proof_fields_size),
+                                        vk_fields,
+                                        static_cast<uint32_t>(vk_fields_size),
+                                        static_cast<uint32_t>(num_public_inputs),
+                                        input_agg_buf,
+                                        &output_agg_buf);
+
+    free((void*)proof_data_fields);
+    free((void*)vk_fields);
+}
+
 struct RecursiveCircuitData {
     std::vector<barretenberg::fr> key_witnesses;
     std::vector<barretenberg::fr> proof_witnesses;
