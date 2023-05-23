@@ -8,6 +8,9 @@ namespace acir_format {
 
 using namespace proof_system::plonk;
 
+// `NUM_LIMB_BITS_IN_FIELD_SIMULATION` is the limb size when simulating a non-native field using the bigfield class
+// A aggregation object is two acir_format::g1_ct types where each coordinate in a point is a non-native field.
+// Each field is represented as four limbs. We split those limbs in half when serializing to/from buffer.
 static constexpr uint64_t TWO_LIMBS_BITS_IN_FIELD_SIMULATION = NUM_LIMB_BITS_IN_FIELD_SIMULATION * 2;
 static constexpr uint64_t FOUR_LIMBS_BITS_IN_FIELD_SIMULATION = NUM_LIMB_BITS_IN_FIELD_SIMULATION * 4;
 
@@ -156,7 +159,7 @@ std::vector<barretenberg::fr> export_key_in_recursion_format(std::shared_ptr<ver
     output.emplace_back(vkey->circuit_size);
     output.emplace_back(vkey->num_public_inputs);
     output.emplace_back(vkey->contains_recursive_proof);
-    for (size_t i = 0; i < 16; ++i) {
+    for (size_t i = 0; i < RecursionConstraint::AGGREGATION_OBJECT_SIZE; ++i) {
         if (vkey->recursive_proof_public_input_indices.size() > i) {
             output.emplace_back(vkey->recursive_proof_public_input_indices[i]);
         } else {
@@ -209,7 +212,7 @@ std::vector<barretenberg::fr> export_dummy_key_in_recursion_format(const Polynom
     output.emplace_back(1); // num public inputs
 
     output.emplace_back(contains_recursive_proof); // contains_recursive_proof
-    for (size_t i = 0; i < 16; ++i) {
+    for (size_t i = 0; i < RecursionConstraint::AGGREGATION_OBJECT_SIZE; ++i) {
         output.emplace_back(0); // recursive_proof_public_input_indices
     }
 
@@ -309,8 +312,8 @@ std::vector<barretenberg::fr> export_dummy_transcript_in_recursion_format(const 
                     // is composed of two valid G1 points on the curve. Without this conditional we will get a
                     // runtime error that we are attempting to invert 0.
                     if (contains_recursive_proof) {
-                        ASSERT(num_public_inputs == 16);
-                        for (size_t k = 0; k < num_public_inputs / 4; ++k) {
+                        ASSERT(num_public_inputs == RecursionConstraint::AGGREGATION_OBJECT_SIZE);
+                        for (size_t k = 0; k < RecursionConstraint::NUM_AGGREGATION_ELEMENTS; ++k) {
                             auto scalar = barretenberg::fr::random_element();
                             const auto group_element = barretenberg::g1::affine_element(barretenberg::g1::one * scalar);
                             auto g1_as_fields = export_g1_affine_element_as_fields(group_element);

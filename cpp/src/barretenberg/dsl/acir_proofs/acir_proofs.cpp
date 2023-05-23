@@ -87,7 +87,7 @@ size_t init_verification_key(void* pippenger, uint8_t const* g2x, uint8_t const*
 
     // Set the recursive proof indices as this is not done in `compute_verification_key_base`
     verification_key->contains_recursive_proof = proving_key->contains_recursive_proof;
-    for (size_t i = 0; i < 16; ++i) {
+    for (size_t i = 0; i < acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE; ++i) {
         if (proving_key->recursive_proof_public_input_indices.size() > i) {
             verification_key->recursive_proof_public_input_indices.emplace_back(
                 proving_key->recursive_proof_public_input_indices[i]);
@@ -213,22 +213,24 @@ size_t verify_recursive_proof(uint8_t const* proof_buf,
                               uint8_t const* input_aggregation_obj_buf,
                               uint8_t** output_aggregation_obj_buf)
 {
+    const size_t NUM_AGGREGATION_ELEMENTS = acir_format::RecursionConstraint::NUM_AGGREGATION_ELEMENTS;
 
     bool inner_aggregation_all_zero = true;
-    std::vector<barretenberg::fr> aggregation_input(16);
-    for (size_t i = 0; i < 16; i++) {
+    std::vector<barretenberg::fr> aggregation_input(acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE);
+    for (size_t i = 0; i < acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE; i++) {
         aggregation_input[i] = barretenberg::fr::serialize_from_buffer(&input_aggregation_obj_buf[i * 32]);
         inner_aggregation_all_zero &= (aggregation_input[i].is_zero());
     }
 
     acir_format::aggregation_state_ct previous_aggregation;
     if (!inner_aggregation_all_zero) {
-        std::array<acir_format::bn254::fq_ct, 4> aggregation_elements;
-        for (size_t i = 0; i < 4; ++i) {
-            aggregation_elements[i] = acir_format::bn254::fq_ct(acir_format::field_ct(aggregation_input[4 * i]),
-                                                                acir_format::field_ct(aggregation_input[4 * i + 1]),
-                                                                acir_format::field_ct(aggregation_input[4 * i + 2]),
-                                                                acir_format::field_ct(aggregation_input[4 * i + 3]));
+        std::array<acir_format::bn254::fq_ct, NUM_AGGREGATION_ELEMENTS> aggregation_elements;
+        for (size_t i = 0; i < NUM_AGGREGATION_ELEMENTS; ++i) {
+            aggregation_elements[i] =
+                acir_format::bn254::fq_ct(acir_format::field_ct(aggregation_input[NUM_AGGREGATION_ELEMENTS * i]),
+                                          acir_format::field_ct(aggregation_input[NUM_AGGREGATION_ELEMENTS * i + 1]),
+                                          acir_format::field_ct(aggregation_input[NUM_AGGREGATION_ELEMENTS * i + 2]),
+                                          acir_format::field_ct(aggregation_input[NUM_AGGREGATION_ELEMENTS * i + 3]));
             aggregation_elements[i].assert_is_in_field();
         }
         // If we have a previous aggregation object, assign it to `previous_aggregation` so that it is included
@@ -275,7 +277,8 @@ size_t verify_recursive_proof(uint8_t const* proof_buf,
 
     // Just write the output aggregation G1 elements, and no public inputs, proof witnesses, or any other data
     // as this should all be available elsewhere
-    const size_t output_size_bytes = 16 * sizeof(barretenberg::fr);
+    const size_t output_size_bytes =
+        acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE * sizeof(barretenberg::fr);
     auto raw_buf = (uint8_t*)malloc(output_size_bytes);
 
     for (size_t i = 0; i < 4; ++i) {

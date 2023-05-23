@@ -1,6 +1,5 @@
 #pragma once
 #include <vector>
-// #include "barretenberg/stdlib/types/types.hpp"
 #include "barretenberg/dsl/types.hpp"
 #include "barretenberg/plonk/proof_system/verification_key/verification_key.hpp"
 
@@ -44,7 +43,12 @@ using namespace proof_system::plonk;
  *
  */
 struct RecursionConstraint {
-    static constexpr size_t AGGREGATION_OBJECT_SIZE = 16; // 16 field elements
+    // An aggregation state is represented by two G1 affine elements. Each G1 point has
+    // two field element coordinates (x, y). Thus, four field elements
+    static constexpr size_t NUM_AGGREGATION_ELEMENTS = 4;
+    // Four limbs are used when simulating a non-native field using the bigfield class
+    static constexpr size_t AGGREGATION_OBJECT_SIZE =
+        NUM_AGGREGATION_ELEMENTS * NUM_QUOTIENT_PARTS; // 16 field elements
     std::vector<uint32_t> key;
     std::vector<uint32_t> proof;
     std::vector<uint32_t> public_inputs;
