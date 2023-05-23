@@ -196,14 +196,14 @@ export class BarretenbergApi {
     return;
   }
 
-  async acirInitProvingKey(acirComposerPtr: Ptr, constraintSystemBuf: Uint8Array): Promise<void> {
-    const result = await this.binder.callWasmExport('acir_init_proving_key', [acirComposerPtr, constraintSystemBuf], []);
+  async acirInitProvingKey(acirComposerPtr: Ptr, constraintSystemBuf: Uint8Array, sizeHint: number): Promise<void> {
+    const result = await this.binder.callWasmExport('acir_init_proving_key', [acirComposerPtr, constraintSystemBuf, sizeHint], []);
     return;
   }
 
-  async acirCreateProof(acirComposerPtr: Ptr, witnessBuf: Fr[]): Promise<void> {
-    const result = await this.binder.callWasmExport('acir_create_proof', [acirComposerPtr, witnessBuf], []);
-    return;
+  async acirCreateProof(acirComposerPtr: Ptr, constraintSystemBuf: Uint8Array, witnessBuf: Uint8Array): Promise<Uint8Array> {
+    const result = await this.binder.callWasmExport('acir_create_proof', [acirComposerPtr, constraintSystemBuf, witnessBuf], [BufferDeserializer()]);
+    return result[0];
   }
 
   async acirInitVerificationKey(acirComposerPtr: Ptr): Promise<void> {
@@ -424,14 +424,14 @@ export class BarretenbergApiSync {
     return;
   }
 
-  acirInitProvingKey(acirComposerPtr: Ptr, constraintSystemBuf: Uint8Array): void {
-    const result = this.binder.callWasmExport('acir_init_proving_key', [acirComposerPtr, constraintSystemBuf], []);
+  acirInitProvingKey(acirComposerPtr: Ptr, constraintSystemBuf: Uint8Array, sizeHint: number): void {
+    const result = this.binder.callWasmExport('acir_init_proving_key', [acirComposerPtr, constraintSystemBuf, sizeHint], []);
     return;
   }
 
-  acirCreateProof(acirComposerPtr: Ptr, witnessBuf: Fr[]): void {
-    const result = this.binder.callWasmExport('acir_create_proof', [acirComposerPtr, witnessBuf], []);
-    return;
+  acirCreateProof(acirComposerPtr: Ptr, constraintSystemBuf: Uint8Array, witnessBuf: Uint8Array): Uint8Array {
+    const result = this.binder.callWasmExport('acir_create_proof', [acirComposerPtr, constraintSystemBuf, witnessBuf], [BufferDeserializer()]);
+    return result[0];
   }
 
   acirInitVerificationKey(acirComposerPtr: Ptr): void {

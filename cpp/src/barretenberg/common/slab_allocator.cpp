@@ -3,6 +3,7 @@
 #include <barretenberg/common/mem.hpp>
 #include <barretenberg/common/assert.hpp>
 #include <numeric>
+#include <unordered_map>
 
 /**
  * If we can guarantee that all slabs will be released before the allocator is destroyed, we wouldn't need this.
@@ -13,6 +14,9 @@
  */
 namespace {
 bool allocator_destroyed = false;
+
+// Slabs that are being manually managed by the user.
+std::unordered_map<void*, std::shared_ptr<void>> manual_slabs;
 
 /**
  * Allows preallocating memory slabs sized to serve the fact that these slabs of memory follow certain sizing patterns
@@ -36,7 +40,7 @@ class SlabAllocator {
 
     std::shared_ptr<void> get(size_t size);
 
-    // size_t get_total_size();
+    size_t get_total_size();
 
   private:
     void release(void* ptr, size_t size);
@@ -159,12 +163,12 @@ std::shared_ptr<void> SlabAllocator::get(size_t req_size)
     }
 }
 
-// size_t SlabAllocator::get_total_size()
-// {
-//     return std::accumulate(memory_store.begin(), memory_store.end(), size_t{ 0 }, [](size_t acc, const auto& kv) {
-//         return acc + kv.first * kv.second.size();
-//     });
-// }
+size_t SlabAllocator::get_total_size()
+{
+    return std::accumulate(memory_store.begin(), memory_store.end(), size_t{ 0 }, [](size_t acc, const auto& kv) {
+        return acc + kv.first * kv.second.size();
+    });
+}
 
 void SlabAllocator::release(void* ptr, size_t size)
 {
@@ -192,5 +196,17 @@ void init_slab_allocator(size_t circuit_size)
 std::shared_ptr<void> get_mem_slab(size_t size)
 {
     return allocator.get(size);
+}
+
+void* get_mem_slab_raw(size_t size)
+{
+    auto slab = get_mem_slab(size);
+    manual_slabs[slab.get()] = slab;
+    return slab.get();
+}
+
+void free_mem_slab_raw(void* p)
+{
+    manual_slabs.erase(p);
 }
 } // namespace barretenberg

@@ -1,4 +1,5 @@
 #pragma once
+#include "barretenberg/common/slab_allocator.hpp"
 #include "logic_constraint.hpp"
 #include "range_constraint.hpp"
 #include "sha256_constraint.hpp"
@@ -35,27 +36,31 @@ struct acir_format {
     std::vector<BlockConstraint> block_constraints;
     // A standard plonk arithmetic constraint, as defined in the poly_triple struct, consists of selector values
     // for q_M,q_L,q_R,q_O,q_C and indices of three variables taking the role of left, right and output wire
-    std::vector<poly_triple> constraints;
+    // This could be a large vector so use slab allocator, we don't expect the blackbox implementations to be so large.
+    std::vector<poly_triple, ContainerSlabAllocator<poly_triple>> constraints;
 
     friend bool operator==(acir_format const& lhs, acir_format const& rhs) = default;
 };
+
+using WitnessVector = std::vector<fr, ContainerSlabAllocator<fr>>;
 
 void read_witness(Composer& composer, std::vector<barretenberg::fr> const& witness);
 
 void create_circuit(Composer& composer, const acir_format& constraint_system);
 
 Composer create_circuit(const acir_format& constraint_system,
-                        std::shared_ptr<proof_system::ReferenceStringFactory> const& crs_factory);
+                        std::shared_ptr<proof_system::ReferenceStringFactory> const& crs_factory,
+                        size_t size_hint = 0);
 
 Composer create_circuit_with_witness(const acir_format& constraint_system,
-                                     std::vector<fr> const& witness,
+                                     WitnessVector const& witness,
                                      std::shared_ptr<ReferenceStringFactory> const& crs_factory);
 
-Composer create_circuit_with_witness(const acir_format& constraint_system, std::vector<fr> const& witness);
+Composer create_circuit_with_witness(const acir_format& constraint_system, WitnessVector const& witness);
 
 void create_circuit_with_witness(Composer& composer,
                                  const acir_format& constraint_system,
-                                 std::vector<fr> const& witness);
+                                 WitnessVector const& witness);
 
 // Serialisation
 template <typename B> inline void read(B& buf, acir_format& data)

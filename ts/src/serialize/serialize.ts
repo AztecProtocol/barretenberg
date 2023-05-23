@@ -1,3 +1,5 @@
+import { RawBuffer } from '../types/raw_buffer.js';
+
 // For serializing bool.
 export function boolToBuffer(b: boolean) {
   const buf = new Uint8Array(1);
@@ -133,6 +135,8 @@ export type Bufferable = boolean | Uint8Array | number | string | { toBuffer: ()
 export function serializeBufferable(obj: Bufferable): Uint8Array {
   if (Array.isArray(obj)) {
     return serializeBufferArrayToVector(obj.map(serializeBufferable));
+  } else if (obj instanceof RawBuffer) {
+    return obj;
   } else if (obj instanceof Uint8Array) {
     return serializeBufferToVector(obj);
   } else if (typeof obj === 'boolean') {

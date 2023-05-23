@@ -5,14 +5,7 @@ import { Remote, proxy } from 'comlink';
 import { randomBytes } from '../random/index.js';
 // Webpack config swaps this import with ./browser/index.js
 // You can toggle between these two imports to sanity check the type-safety.
-import {
-  fetchCode,
-  getNumCpu,
-  createWorker,
-  getRemoteBarretenbergWasm,
-  threadLogger,
-  throwOrAbort,
-} from './node/index.js';
+import { fetchCode, getNumCpu, createWorker, getRemoteBarretenbergWasm, threadLogger, killSelf } from './node/index.js';
 // import { fetchCode, getNumCpu, createWorker, randomBytes } from './browser/index.js';
 
 const debug = createDebug('wasm');
@@ -27,6 +20,7 @@ export class BarretenbergWasm {
   private remoteWasms: BarretenbergWasmWorker[] = [];
   private nextWorker = 0;
   private nextThreadId = 1;
+  private isThread = false;
   private logger: (msg: string) => void = debug;
 
   public static async new() {
@@ -91,6 +85,7 @@ export class BarretenbergWasm {
    * Init as worker thread.
    */
   public async initThread(module: WebAssembly.Module, memory: WebAssembly.Memory) {
+    this.isThread = true;
     this.logger = threadLogger() || this.logger;
     this.memory = memory;
     this.instance = await WebAssembly.instantiate(module, this.getImportObj(this.memory));
@@ -125,7 +120,7 @@ export class BarretenbergWasm {
         proc_exit: () => {
           this.logger('HUNG: proc_exit was called. This is caused by unstable experimental wasi pthreads. Try again.');
           this.logger(new Error().stack!);
-          throwOrAbort();
+          killSelf();
         },
       },
       wasi: {
@@ -185,7 +180,11 @@ export class BarretenbergWasm {
       const message = `WASM function ${name} aborted, error: ${err}`;
       this.logger(message);
       this.logger(err.stack);
-      throwOrAbort();
+      if (this.isThread) {
+        killSelf();
+      } else {
+        throw err;
+      }
     }
   }
 

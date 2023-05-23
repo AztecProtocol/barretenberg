@@ -11,9 +11,9 @@ class AcirComposer {
   public:
     AcirComposer(std::shared_ptr<proof_system::ReferenceStringFactory> const& crs_factory);
 
-    void init_proving_key(acir_format::acir_format&& constraint_system);
+    void init_proving_key(acir_format::acir_format& constraint_system, size_t size_hint = 0);
 
-    std::vector<uint8_t> create_proof(std::vector<fr> const& witness);
+    std::vector<uint8_t> create_proof(acir_format::acir_format& constraint_system, acir_format::WitnessVector& witness);
 
     void init_verification_key();
 
@@ -25,7 +25,6 @@ class AcirComposer {
 
   private:
     std::shared_ptr<proof_system::ReferenceStringFactory> crs_factory_;
-    acir_format::acir_format constraint_system_;
     size_t exact_circuit_size_;
     size_t total_circuit_size_;
     std::shared_ptr<proof_system::plonk::proving_key> proving_key_;

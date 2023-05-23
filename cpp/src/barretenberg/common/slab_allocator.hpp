@@ -4,6 +4,7 @@
 #include <list>
 #include <memory>
 #include "./log.hpp"
+#include "./assert.hpp"
 #ifndef NO_MULTITHREADING
 #include <mutex>
 #endif
@@ -28,8 +29,17 @@ void init_slab_allocator(size_t circuit_size);
 
 /**
  * Returns a slab from the preallocated pool of slabs, or fallback to a new heap allocation (32 byte aligned).
+ * Ref counted result so no need to manually free.
  */
 std::shared_ptr<void> get_mem_slab(size_t size);
+
+/**
+ * Sometimes you want a raw pointer to slab so you can manage when it's release manually (e.g. c_binds).
+ * This still gets a slab with a shared_ptr, but holds the shared_ptr internally until free_mem_slab_raw is called.
+ */
+void* get_mem_slab_raw(size_t size);
+
+void free_mem_slab_raw(void*);
 
 template <typename T> class ContainerSlabAllocator {
   public:
@@ -37,9 +47,6 @@ template <typename T> class ContainerSlabAllocator {
     using pointer = T*;
     using const_pointer = const T*;
     using size_type = std::size_t;
-
-    ContainerSlabAllocator() = default;
-    ~ContainerSlabAllocator() = default;
 
     template <typename U> struct rebind {
         using other = ContainerSlabAllocator<U>;
@@ -53,9 +60,20 @@ template <typename T> class ContainerSlabAllocator {
         return static_cast<pointer>(ptr.get());
     }
 
-    void deallocate(pointer /*p*/, size_type /*unused*/)
+    void deallocate(pointer p, size_type /*unused*/)
     {
-        // Memory will be automatically deallocated when slab goes out of scope and its ref count becomes 0.
+        ASSERT(p == slab.get());
+        slab.reset();
+    }
+
+    friend bool operator==(const ContainerSlabAllocator<T>& lhs, const ContainerSlabAllocator<T>& rhs)
+    {
+        return lhs.slab == rhs.slab;
+    }
+
+    friend bool operator!=(const ContainerSlabAllocator<T>& lhs, const ContainerSlabAllocator<T>& rhs)
+    {
+        return !(lhs == rhs);
     }
 
   private:

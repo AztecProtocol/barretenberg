@@ -114,7 +114,29 @@ add_library(
     $<TARGET_OBJECTS:env_objects>
 )
 
+# Small library to provide necessary primitives for rust crate.
+add_library(
+    acvm_backend
+    $<TARGET_OBJECTS:env_objects>
+    $<TARGET_OBJECTS:common_objects>
+    $<TARGET_OBJECTS:numeric_objects>
+    $<TARGET_OBJECTS:ecc_objects>
+    $<TARGET_OBJECTS:crypto_blake2s_objects>
+    $<TARGET_OBJECTS:crypto_keccak_objects>
+    $<TARGET_OBJECTS:crypto_generators_objects>
+    $<TARGET_OBJECTS:crypto_schnorr_objects>
+    $<TARGET_OBJECTS:crypto_pedersen_hash_objects>
+    $<TARGET_OBJECTS:crypto_pedersen_commitment_objects>
+)
+
 if(WASM)
+    # With binaryen installed, it seems its wasm backend optimiser gets invoked automatically.
+    # Due to either a bug in the optimiser, or non-standards compliant c++ in crypto/aes, tests start failing with
+    # -O3 level optimisations. We force down to -O2 for current workaround.
+    # TODO: Time has passed, check if this is still needed.
+    # UPDATE: Uninstall binaryen and any need downstream.
+    set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+
     # When building this wasm "executable", we include the wasi module but exclude the env module.
     # That's because we expect this wasm to be run as a wasi "reactor" and for the host environment
     # to implement the functions in env.
@@ -154,12 +176,6 @@ if(WASM)
         $<TARGET_OBJECTS:stdlib_sha256_objects>
         $<TARGET_OBJECTS:transcript_objects>
     )
-
-    # With binaryen installed, it seems its wasm backend optimiser gets invoked automatically.
-    # Due to either a bug in the optimiser, or non-standards compliant c++ in crypto/aes, tests start failing with
-    # -O3 level optimisations. We force down to -O2 for current workaround.
-    # TODO: Time has passed, check if this is still needed.
-    set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 
     target_link_options(
         barretenberg.wasm

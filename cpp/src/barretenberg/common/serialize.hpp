@@ -276,7 +276,7 @@ template <typename B, typename T, size_t N> inline void write(B& buf, std::array
 }
 
 // Generic read of vector of types from supported buffer types.
-template <typename B, typename T> inline void read(B& it, std::vector<T>& value)
+template <typename B, typename T, typename A> inline void read(B& it, std::vector<T, A>& value)
 {
     DEBUG_CANARY_READ(it, value);
     uint32_t size;
@@ -406,7 +406,7 @@ template <typename T> uint8_t* to_heap_buffer(T const& value)
     std::vector<uint8_t> buf;
     write(buf, value);
     auto* ptr = (uint8_t*)aligned_alloc(64, buf.size());
-    write(ptr, buf);
+    std::copy(buf.begin(), buf.end(), ptr);
     return ptr;
 }
 

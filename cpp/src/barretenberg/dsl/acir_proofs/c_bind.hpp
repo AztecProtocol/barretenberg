@@ -8,9 +8,19 @@ WASM_EXPORT void acir_new_acir_composer(in_ptr pippenger, uint8_t const* g2x, ou
 
 WASM_EXPORT void acir_delete_acir_composer(in_ptr acir_composer_ptr);
 
-WASM_EXPORT void acir_init_proving_key(in_ptr acir_composer_ptr, uint8_t const* constraint_system_buf);
+WASM_EXPORT void acir_init_proving_key(in_ptr acir_composer_ptr,
+                                       uint8_t const* constraint_system_buf,
+                                       uint32_t const* size_hint);
 
-WASM_EXPORT void acir_create_proof(in_ptr acir_composer_ptr, barretenberg::fr::vec_in_buf witness_buf);
+/**
+ * It would have been nice to just hold onto the constraint_system in the acir_composer, but we can't waste the
+ * memory. Being able to reuse the underlying Composer would help as well. But, given the situation, we just have
+ * to pass it in everytime.
+ */
+WASM_EXPORT void acir_create_proof(in_ptr acir_composer_ptr,
+                                   uint8_t const* constraint_system_buf,
+                                   uint8_t const* witness_buf,
+                                   uint8_t** out);
 
 WASM_EXPORT void acir_init_verification_key(in_ptr acir_composer_ptr);
 

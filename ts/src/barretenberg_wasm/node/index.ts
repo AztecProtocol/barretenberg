@@ -38,7 +38,7 @@ export function threadLogger(): ((msg: string) => void) | undefined {
   };
 }
 
-export function throwOrAbort(): never {
+export function killSelf(): never {
   // Extordinarily hard process termination. Due to how parent threads block on child threads etc, even process.exit
   // doesn't seem to be able to abort the process. The following does.
   process.kill(process.pid);
