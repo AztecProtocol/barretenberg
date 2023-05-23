@@ -17,6 +17,8 @@ namespace proof_system::plonk {
  */
 class StandardPlonkComposer {
   public:
+    using ComposerHelper = StandardPlonkComposerHelper;
+    using CircuitConstructor = StandardCircuitConstructor;
     static constexpr ComposerType type = ComposerType::STANDARD;
     static constexpr merkle::HashType merkle_hash_type = merkle::HashType::FIXED_BASE_PEDERSEN;
     static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
@@ -183,6 +185,8 @@ class StandardPlonkComposer {
     bool check_circuit() { return circuit_constructor.check_circuit(); }
 
     barretenberg::fr get_variable(const uint32_t index) const { return circuit_constructor.get_variable(index); }
+
+    std::vector<barretenberg::fr> get_public_inputs() const { return circuit_constructor.get_public_inputs(); }
 
     /**Proof and verification-related methods*/
 

@@ -14,7 +14,9 @@ namespace proof_system::plonk {
  */
 class TurboPlonkComposer {
   public:
-    static constexpr ComposerType type = ComposerType::STANDARD;
+    using ComposerHelper = TurboPlonkComposerHelper;
+    using CircuitConstructor = TurboCircuitConstructor;
+    static constexpr ComposerType type = ComposerType::TURBO;
     static constexpr merkle::HashType merkle_hash_type = merkle::HashType::FIXED_BASE_PEDERSEN;
     static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
 
@@ -190,6 +192,7 @@ class TurboPlonkComposer {
     bool check_circuit() { return circuit_constructor.check_circuit(); }
 
     barretenberg::fr get_variable(const uint32_t index) const { return circuit_constructor.get_variable(index); }
+    std::vector<barretenberg::fr> get_public_inputs() const { return circuit_constructor.get_public_inputs(); }
 
     /**Proof and verification-related methods*/
 
