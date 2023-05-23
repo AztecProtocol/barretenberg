@@ -18,20 +18,20 @@
 
 namespace proof_system::honk::sumcheck {
 
-template <typename Flavor, class Transcript, template <class> class... Relations> class Sumcheck {
+template <typename Flavor, class Transcript> class Sumcheck {
 
   public:
     using FF = typename Flavor::FF;
     using FoldedPolynomials = typename Flavor::FoldedPolynomials;
     using PurportedEvaluations = typename Flavor::PurportedEvaluations;
 
-    static constexpr size_t MAX_RELATION_LENGTH = std::max({ Relations<FF>::RELATION_LENGTH... });
+    static constexpr size_t MAX_RELATION_LENGTH = Flavor::MAX_RELATION_LENGTH;
     static constexpr size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
 
     Transcript& transcript;
     const size_t multivariate_n;
     const size_t multivariate_d;
-    SumcheckRound<Flavor, Relations...> round;
+    SumcheckRound<Flavor> round;
 
     /**
     *
@@ -69,7 +69,7 @@ template <typename Flavor, class Transcript, template <class> class... Relations
         : transcript(transcript)
         , multivariate_n(multivariate_n)
         , multivariate_d(numeric::get_msb(multivariate_n))
-        , round(multivariate_n, std::tuple(Relations<FF>()...))
+        , round(multivariate_n)
     {
         for (auto& polynomial : folded_polynomials) {
             polynomial.resize(multivariate_n >> 1);
@@ -81,7 +81,7 @@ template <typename Flavor, class Transcript, template <class> class... Relations
         : transcript(transcript)
         , multivariate_n(multivariate_n)
         , multivariate_d(numeric::get_msb(multivariate_n))
-        , round(std::tuple(Relations<FF>()...)){};
+        , round(){};
 
     /**
      * @brief Compute univariate restriction place in transcript, generate challenge, fold,... repeat until final round,

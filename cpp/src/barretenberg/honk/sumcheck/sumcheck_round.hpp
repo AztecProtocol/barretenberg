@@ -53,7 +53,11 @@ namespace proof_system::honk::sumcheck {
  @todo TODO(#390): Template only on Flavor? Is it useful to have these decoupled?
  */
 
-template <typename Flavor, template <class> class... Relations> class SumcheckRound {
+template <typename Flavor> class SumcheckRound {
+
+    using Relations = typename Flavor::Relations;
+    using UnivariateTuple = typename Flavor::UnivariateTuple;
+    using BarycentricUtils = typename Flavor::BarycentricUtils;
 
   public:
     using FF = typename Flavor::FF;
@@ -64,15 +68,15 @@ template <typename Flavor, template <class> class... Relations> class SumcheckRo
     bool round_failed = false;
     size_t round_size; // a power of 2
 
-    std::tuple<Relations<FF>...> relations;
-    static constexpr size_t NUM_RELATIONS = sizeof...(Relations);
-    static constexpr size_t MAX_RELATION_LENGTH = std::max({ Relations<FF>::RELATION_LENGTH... });
+    Relations relations;
+    static constexpr size_t NUM_RELATIONS = Flavor::NUM_RELATIONS;
+    static constexpr size_t MAX_RELATION_LENGTH = Flavor::MAX_RELATION_LENGTH;
 
     FF target_total_sum = 0;
 
     // TODO(#224)(Cody): this barycentric stuff should be more built-in?
-    std::tuple<BarycentricData<FF, Relations<FF>::RELATION_LENGTH, MAX_RELATION_LENGTH>...> barycentric_utils;
-    std::tuple<Univariate<FF, Relations<FF>::RELATION_LENGTH>...> univariate_accumulators;
+    BarycentricUtils barycentric_utils;
+    UnivariateTuple univariate_accumulators;
     std::array<FF, NUM_RELATIONS> relation_evaluations;
     ExtendedEdges<MAX_RELATION_LENGTH> extended_edges;
     std::array<Univariate<FF, MAX_RELATION_LENGTH>, NUM_RELATIONS> extended_univariates;
@@ -81,16 +85,12 @@ template <typename Flavor, template <class> class... Relations> class SumcheckRo
     BarycentricData<FF, 2, MAX_RELATION_LENGTH> barycentric_2_to_max = BarycentricData<FF, 2, MAX_RELATION_LENGTH>();
 
     // Prover constructor
-    SumcheckRound(size_t initial_round_size, auto&& relations)
+    SumcheckRound(size_t initial_round_size)
         : round_size(initial_round_size)
-        , relations(relations)
-        , barycentric_utils(BarycentricData<FF, Relations<FF>::RELATION_LENGTH, MAX_RELATION_LENGTH>()...)
-        , univariate_accumulators(Univariate<FF, Relations<FF>::RELATION_LENGTH>()...)
     {}
 
     // Verifier constructor
-    explicit SumcheckRound(auto relations)
-        : relations(relations)
+    explicit SumcheckRound()
     {
         // FF's default constructor may not initialize to zero (e.g., barretenberg::fr), hence we can't rely on
         // aggregate initialization of the evaluations array.

@@ -6,8 +6,12 @@
 #include <type_traits>
 #include <vector>
 #include "barretenberg/honk/pcs/commitment_key.hpp"
+#include "barretenberg/honk/sumcheck/polynomials/barycentric_data.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
+#include "barretenberg/honk/sumcheck/relations/arithmetic_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
 #include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/polynomials/evaluation_domain.hpp"
@@ -47,6 +51,16 @@ class Standard {
     static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 13;
     // The total number of witness entities not including shifts.
     static constexpr size_t NUM_WITNESS_ENTITIES = 4;
+
+    using Relations = std::tuple<sumcheck::ArithmeticRelation<FF>,
+                                 sumcheck::GrandProductComputationRelation<FF>,
+                                 sumcheck::GrandProductInitializationRelation<FF>>;
+
+    static constexpr size_t MAX_RELATION_LENGTH = get_max_relation_length<Relations>();
+    static constexpr size_t NUM_RELATIONS = std::tuple_size<Relations>::value;
+
+    using UnivariateTuple = decltype(create_univariate_tuple<FF, Relations, 0>());
+    using BarycentricUtils = decltype(create_barycentric_utils<FF, Relations, MAX_RELATION_LENGTH, 0>());
 
   private:
     /**
