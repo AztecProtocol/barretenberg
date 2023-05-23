@@ -141,6 +141,8 @@ TEST(AcirProofs, TestSerialization)
     EXPECT_EQ(verified, true);
 }
 
+// Test that the method `verify_recursive_proof` can successfully simulate
+// an output aggregation state
 TEST(AcirProofs, TestVerifyRecursiveProofPass)
 {
     uint8_t* proof_data_fields = nullptr;
