@@ -32,7 +32,7 @@ void StandardPlonkComposerHelper::compute_witness(const CircuitConstructor& circ
         return;
     }
     auto wire_polynomial_evaluations =
-        construct_wire_polynomials_base<Flavor>(circuit_constructor, minimum_circuit_size, NUM_RANDOMIZED_GATES);
+        construct_wire_polynomials_base<Flavor>(circuit_constructor, minimum_circuit_size, NUM_RESERVED_GATES);
 
     for (size_t j = 0; j < program_width; ++j) {
         std::string index = std::to_string(j + 1);
@@ -60,7 +60,7 @@ std::shared_ptr<plonk::proving_key> StandardPlonkComposerHelper::compute_proving
         return circuit_proving_key;
     }
     const size_t minimum_circuit_size = 0;
-    const size_t num_randomized_gates = NUM_RANDOMIZED_GATES;
+    const size_t num_randomized_gates = NUM_RESERVED_GATES;
     // Initialize circuit_proving_key
     // TODO(#392)(Kesha): replace composer types.
     circuit_proving_key = proof_system::initialize_proving_key<Flavor>(

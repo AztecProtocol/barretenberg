@@ -14,7 +14,7 @@ class TurboPlonkComposerHelper {
     using Flavor = plonk::flavor::Turbo;
     using CircuitConstructor = TurboCircuitConstructor;
 
-    static constexpr size_t NUM_RANDOMIZED_GATES = 2; // equal to the number of multilinear evaluations leaked
+    static constexpr size_t NUM_RESERVED_GATES = 4; // equal to the number of evaluations leaked
     static constexpr size_t program_width = CircuitConstructor::program_width;
 
     std::shared_ptr<plonk::proving_key> circuit_proving_key;

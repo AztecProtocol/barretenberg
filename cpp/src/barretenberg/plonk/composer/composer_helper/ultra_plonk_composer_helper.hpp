@@ -18,11 +18,6 @@ class UltraPlonkComposerHelper {
     using Flavor = flavor::Ultra;
     using CircuitConstructor = UltraCircuitConstructor;
 
-    // TODO(luke): In the split composers, NUM_RANDOMIZED_GATES has replaced NUM_RESERVED_GATES (in some places) to
-    // determine the next-power-of-2 circuit size. (There are some places in this composer that still use
-    // NUM_RESERVED_GATES). Therefore for consistency within this composer itself, and consistency with the original
-    // Ultra Composer, this value must match that of NUM_RESERVED_GATES. This issue needs to be reconciled
-    // simultaneously here and in the other split composers.
     static constexpr size_t NUM_RESERVED_GATES = 4; // equal to the number of multilinear evaluations leaked
     static constexpr size_t program_width = CircuitConstructor::NUM_WIRES;
     std::shared_ptr<plonk::proving_key> circuit_proving_key;

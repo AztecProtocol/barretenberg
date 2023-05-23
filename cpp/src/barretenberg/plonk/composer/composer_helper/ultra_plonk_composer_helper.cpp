@@ -49,7 +49,7 @@ void UltraPlonkComposerHelper::compute_witness(CircuitConstructor& circuit_const
     }
 
     // TODO(luke): subgroup size was already computed above but compute_witness_base computes it again. If we pass in
-    // NUM_RANDOMIZED_GATES (as in the other split composers) the resulting sizes can differ. Reconcile this.
+    // NUM_RESERVED_GATES (as in the other split composers) the resulting sizes can differ. Reconcile this.
     auto wire_polynomial_evaluations =
         construct_wire_polynomials_base<Flavor>(circuit_constructor, total_num_gates, NUM_RESERVED_GATES);
 
