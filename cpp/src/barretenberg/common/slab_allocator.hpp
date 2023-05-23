@@ -48,36 +48,53 @@ template <typename T> class ContainerSlabAllocator {
     using const_pointer = const T*;
     using size_type = std::size_t;
 
+    // ContainerSlabAllocator() = default;
+    // ContainerSlabAllocator(ContainerSlabAllocator const&) = delete;
+    // ContainerSlabAllocator& operator=(ContainerSlabAllocator const&) = delete;
+
+    // // Move constructor
+    // ContainerSlabAllocator(ContainerSlabAllocator&& other) noexcept
+    //     : slab(std::move(other.slab))
+    // {
+    //     other.slab = nullptr;
+    // }
+
+    // // Move assignment operator
+    // ContainerSlabAllocator& operator=(ContainerSlabAllocator&& other) noexcept
+    // {
+    //     if (this != &other) {
+    //         slab = std::move(other.slab);
+    //         other.slab = nullptr;
+    //     }
+    //     return *this;
+    // }
+
     template <typename U> struct rebind {
         using other = ContainerSlabAllocator<U>;
     };
 
     pointer allocate(size_type n)
     {
+        return reinterpret_cast<pointer>(get_mem_slab_raw(n * sizeof(T)));
         // info("ContainerSlabAllocator allocating: ", n * sizeof(T));
-        std::shared_ptr<void> ptr = get_mem_slab(n * sizeof(T));
-        slab = ptr; // Keep a copy of the shared_ptr so the memory is not freed.
-        return static_cast<pointer>(ptr.get());
+        // std::shared_ptr<void> ptr = get_mem_slab(n * sizeof(T));
+        // slab = ptr; // Keep a copy of the shared_ptr so the memory is not freed.
+        // return static_cast<pointer>(ptr.get());
     }
 
     void deallocate(pointer p, size_type /*unused*/)
     {
-        ASSERT(p == slab.get());
-        slab.reset();
+        free_mem_slab_raw(p);
+        // ASSERT(p == slab.get());
+        // slab.reset();
     }
 
-    friend bool operator==(const ContainerSlabAllocator<T>& lhs, const ContainerSlabAllocator<T>& rhs)
-    {
-        return lhs.slab == rhs.slab;
-    }
+    friend bool operator==(const ContainerSlabAllocator<T>&, const ContainerSlabAllocator<T>&) { return true; }
 
-    friend bool operator!=(const ContainerSlabAllocator<T>& lhs, const ContainerSlabAllocator<T>& rhs)
-    {
-        return !(lhs == rhs);
-    }
+    friend bool operator!=(const ContainerSlabAllocator<T>&, const ContainerSlabAllocator<T>&) { return false; }
 
-  private:
-    std::shared_ptr<void> slab;
+    //   private:
+    //     std::shared_ptr<void> slab;
 };
 
 } // namespace barretenberg

@@ -30,8 +30,9 @@ class PippengerReferenceStringFactory : public ReferenceStringFactory {
   public:
     PippengerReferenceStringFactory(scalar_multiplication::Pippenger* pippenger, uint8_t const* g2x)
         : pippenger_(pippenger)
-        , g2x_(g2x)
-    {}
+    {
+        verifier_crs_ = std::make_shared<VerifierMemReferenceString>(g2x);
+    }
 
     PippengerReferenceStringFactory(PippengerReferenceStringFactory&& other) = default;
 
@@ -41,14 +42,11 @@ class PippengerReferenceStringFactory : public ReferenceStringFactory {
         return std::make_shared<PippengerReferenceString>(pippenger_);
     }
 
-    std::shared_ptr<VerifierReferenceString> get_verifier_crs() override
-    {
-        return std::make_shared<VerifierMemReferenceString>(g2x_);
-    }
+    std::shared_ptr<VerifierReferenceString> get_verifier_crs() override { return verifier_crs_; }
 
   private:
+    std::shared_ptr<VerifierMemReferenceString> verifier_crs_;
     scalar_multiplication::Pippenger* pippenger_;
-    uint8_t const* g2x_;
 };
 
 } // namespace proof_system

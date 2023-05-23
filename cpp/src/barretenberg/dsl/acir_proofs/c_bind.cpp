@@ -9,10 +9,11 @@
 #include "barretenberg/dsl/acir_format/acir_format.hpp"
 #include "barretenberg/srs/reference_string/pippenger_reference_string.hpp"
 
-WASM_EXPORT void acir_new_acir_composer(in_ptr pippenger, uint8_t const* g2x, out_ptr out)
+WASM_EXPORT void acir_new_acir_composer(in_ptr pippenger, uint8_t const* g2x_buf, out_ptr out)
 {
+    auto g2x = from_buffer<std::vector<uint8_t>>(g2x_buf);
     auto crs_factory = std::make_shared<proof_system::PippengerReferenceStringFactory>(
-        reinterpret_cast<barretenberg::scalar_multiplication::Pippenger*>(*pippenger), g2x);
+        reinterpret_cast<barretenberg::scalar_multiplication::Pippenger*>(*pippenger), g2x.data());
     *out = new acir_proofs::AcirComposer(crs_factory);
 }
 

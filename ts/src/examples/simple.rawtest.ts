@@ -20,6 +20,7 @@ async function main() {
   // Plus 1 needed!
   const crs = await Crs.new(CIRCUIT_SIZE + 1);
   const pippengerPtr = await api.eccNewPippenger(crs.getG1Data(), crs.numPoints);
+  debug(Buffer.from(crs.getG2Data()).toString('hex'));
 
   for (let i = 0; i < 10; ++i) {
     debug(`iteration ${i} starting...`);

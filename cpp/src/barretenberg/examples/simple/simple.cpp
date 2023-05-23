@@ -21,6 +21,7 @@ void build_circuit(Composer& composer)
 
 Composer* create_composer(std::shared_ptr<proof_system::ReferenceStringFactory> const& crs_factory)
 {
+    info(crs_factory->get_verifier_crs()->get_g2x());
     // WARNING: Size hint is essential to perform 512k circuits!
     auto composer = std::make_unique<Composer>(crs_factory, CIRCUIT_SIZE);
     info("building circuit...");

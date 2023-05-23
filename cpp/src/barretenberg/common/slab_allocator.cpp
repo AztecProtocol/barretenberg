@@ -82,7 +82,7 @@ void SlabAllocator::init(size_t circuit_size_hint)
     // Think max I saw was 65 extra related to pippenger runtime state. Likely related to the machine having 64 cores.
     // Strange things may happen here if double to 128 cores, might request 129 extra?
     size_t overalloc = 128;
-    size_t tiny_size = 4 * circuit_size_hint;
+    size_t tiny_size = 4 * (circuit_size_hint + overalloc);
     size_t small_size = 32 * (circuit_size_hint + overalloc);
     size_t large_size = small_size * 4;
 
@@ -143,7 +143,7 @@ std::shared_ptr<void> SlabAllocator::get(size_t req_size)
             memory_store.erase(it);
         }
 
-        // info("Reusing memory slab of size: ", size, " for requested ", req_size, " total: ", get_total_size());
+        info("Reusing memory slab of size: ", size, " for requested ", req_size, " total: ", get_total_size());
 
         return std::shared_ptr<void>(ptr, [this, size](void* p) {
             if (allocator_destroyed) {
@@ -155,10 +155,10 @@ std::shared_ptr<void> SlabAllocator::get(size_t req_size)
     }
 
     if (req_size % 32 == 0) {
-        // info("Allocating unmanaged memory slab of size: ", req_size);
+        info("Allocating unmanaged memory slab of size: ", req_size);
         return std::shared_ptr<void>(aligned_alloc(32, req_size), aligned_free);
     } else {
-        // info("Allocating unaligned unmanaged memory slab of size: ", req_size);
+        info("Allocating unaligned unmanaged memory slab of size: ", req_size);
         return std::shared_ptr<void>(malloc(req_size), free);
     }
 }
