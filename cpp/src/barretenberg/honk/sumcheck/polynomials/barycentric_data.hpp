@@ -1,7 +1,6 @@
 #pragma once
 #include <array>
 #include <algorithm>
-// #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "univariate.hpp"
 
 /* IMPROVEMENT(Cody): This could or should be improved in various ways. In no particular order:
