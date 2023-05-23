@@ -1,7 +1,7 @@
 #pragma once
 #include <array>
 #include <algorithm>
-#include "barretenberg/ecc/curves/bn254/fr.hpp"
+// #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "univariate.hpp"
 
 /* IMPROVEMENT(Cody): This could or should be improved in various ways. In no particular order:
@@ -22,6 +22,10 @@ namespace proof_system::honk::sumcheck {
 template <class Fr, size_t domain_size, size_t num_evals> class BarycentricData {
   public:
     static constexpr size_t big_domain_size = std::max(domain_size, num_evals);
+
+    /**
+     * Static constexpr methods for computing arrays of precomputable data used for barycentric extension and evaluation
+     */
 
     // build big_domain, currently the set of x_i in {0, 1, ..., t-1}
     static constexpr std::array<Fr, big_domain_size> construct_big_domain()

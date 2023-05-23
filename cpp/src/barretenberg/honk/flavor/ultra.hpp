@@ -50,6 +50,7 @@ class Ultra {
     // The total number of witness entities not including shifts.
     static constexpr size_t NUM_WITNESS_ENTITIES = 11;
 
+    // define the tuple of Relations that comprise the Sumcheck relation
     using Relations = std::tuple<sumcheck::UltraArithmeticRelation<FF>,
                                  sumcheck::UltraArithmeticRelationSecondary<FF>,
                                  sumcheck::UltraGrandProductComputationRelation<FF>,
@@ -63,7 +64,9 @@ class Ultra {
     static constexpr size_t MAX_RELATION_LENGTH = get_max_relation_length<Relations>();
     static constexpr size_t NUM_RELATIONS = std::tuple_size<Relations>::value;
 
+    // define the container for storing the univariate contribution from each relation in Sumcheck
     using UnivariateTuple = decltype(create_univariate_tuple<FF, Relations, 0>());
+    // define utilities to extend univarates from RELATION_LENGTH to MAX_RELATION_LENGTH for each Relation
     using BarycentricUtils = decltype(create_barycentric_utils<FF, Relations, MAX_RELATION_LENGTH, 0>());
 
   private:
@@ -274,7 +277,7 @@ class Ultra {
     using ProverPolynomials = AllEntities<PolynomialHandle, PolynomialHandle>;
 
     /**
-     * @brief A container for polynomials produced after the first round of sumcheck.
+     * @brief A container for storing the partially evaluated multivariates produced by sumcheck.
      */
     class PartiallyEvaluatedMultivariates : public AllEntities<Polynomial, PolynomialHandle> {
 
