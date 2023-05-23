@@ -165,19 +165,4 @@ template <class Fr, size_t domain_size, size_t num_evals> class BarycentricData 
         return result;
     };
 };
-
-// Explicit instantiation of the templates needed for Standard and Ultra
-// TODO(#390)(luke): The hard coded 5/6 here is based on max relation length. Ideally this would be handled
-// programtically via some integration with the Flavor.
-template class BarycentricData<barretenberg::fr, 2, 5>;
-template class BarycentricData<barretenberg::fr, 3, 5>;
-template class BarycentricData<barretenberg::fr, 4, 5>;
-template class BarycentricData<barretenberg::fr, 5, 5>;
-
-template class BarycentricData<barretenberg::fr, 2, 6>;
-template class BarycentricData<barretenberg::fr, 3, 6>;
-template class BarycentricData<barretenberg::fr, 4, 6>;
-template class BarycentricData<barretenberg::fr, 5, 6>;
-template class BarycentricData<barretenberg::fr, 6, 6>;
-
 } // namespace proof_system::honk::sumcheck
