@@ -86,7 +86,6 @@ UltraComposer::UltraComposer(std::shared_ptr<proving_key> const& p_key,
                              size_t size_hint)
     : ComposerBase(p_key, v_key, UltraSelectors::NUM, size_hint, ultra_selector_properties())
 {
-    info("***** RESERVING ", size_hint * sizeof(uint32_t));
     w_l.reserve(size_hint);
     w_r.reserve(size_hint);
     w_o.reserve(size_hint);
@@ -701,7 +700,6 @@ void UltraComposer::compute_witness()
         return;
     }
 
-    info("MEM CHECKPOINT");
     size_t tables_size = 0;
     size_t lookups_size = 0;
     for (const auto& table : lookup_tables) {
@@ -709,7 +707,6 @@ void UltraComposer::compute_witness()
         lookups_size += table.lookup_gates.size();
     }
 
-    info("MEM CHECKPOINT");
     const size_t filled_gates = num_gates + public_inputs.size();
     const size_t total_num_gates = std::max(filled_gates, tables_size + lookups_size);
 
@@ -725,7 +722,6 @@ void UltraComposer::compute_witness()
         w_4.emplace_back(zero_idx);
     }
 
-    info("MEM CHECKPOINT");
     // Create and store polynomials which interpolate the wire values (variable values pointed-to by the `w_`s).
     ComposerBase::compute_witness_base<ultra_settings::program_width>(total_num_gates);
 
@@ -735,7 +731,6 @@ void UltraComposer::compute_witness()
     polynomial s_4(subgroup_size);
     polynomial z_lookup(subgroup_size + 1); // Only instantiated in this function; nothing assigned.
 
-    info("MEM CHECKPOINT");
     // Save space for adding random scalars in the s polynomial later.
     // The subtracted 1 allows us to insert a `1` at the end, to ensure the evaluations (and hence coefficients) aren't
     // all 0.
@@ -748,7 +743,6 @@ void UltraComposer::compute_witness()
         s_4[i] = 0;
     }
 
-    info("MEM CHECKPOINT");
     for (auto& table : lookup_tables) {
         const fr table_index(table.table_index);
         auto& lookup_gates = table.lookup_gates;
@@ -778,7 +772,6 @@ void UltraComposer::compute_witness()
             }
         }
 
-        info("MEM CHECKPOINT");
 #ifdef NO_TBB
         std::sort(lookup_gates.begin(), lookup_gates.end());
 #else
@@ -795,7 +788,6 @@ void UltraComposer::compute_witness()
         }
     }
 
-    info("MEM CHECKPOINT");
     // Initialise the `s_randomness` positions in the s polynomials with 0.
     // These will be the positions where we will be adding random scalars to add zero knowledge
     // to plookup (search for `Blinding` in plonk/proof_system/widgets/random_widgets/plookup_widget_impl.hpp
@@ -808,13 +800,11 @@ void UltraComposer::compute_witness()
         ++count;
     }
 
-    info("MEM CHECKPOINT");
     circuit_proving_key->polynomial_store.put("s_1_lagrange", std::move(s_1));
     circuit_proving_key->polynomial_store.put("s_2_lagrange", std::move(s_2));
     circuit_proving_key->polynomial_store.put("s_3_lagrange", std::move(s_3));
     circuit_proving_key->polynomial_store.put("s_4_lagrange", std::move(s_4));
 
-    info("MEM CHECKPOINT");
     computed_witness = true;
 }
 

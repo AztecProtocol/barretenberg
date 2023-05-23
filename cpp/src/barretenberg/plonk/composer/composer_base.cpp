@@ -364,7 +364,6 @@ template <size_t program_width> void ComposerBase::compute_witness_base(const si
     }
     const size_t total_num_gates = std::max(minimum_circuit_size, num_gates + public_inputs.size());
     const size_t subgroup_size = get_circuit_subgroup_size(total_num_gates + NUM_RESERVED_GATES);
-    info("CWB CHECKPOINT ", subgroup_size, " ", total_num_gates);
 
     // Note: randomness is added to 3 of the last 4 positions in plonk/proof_system/prover/prover.cpp
     // ProverBase::execute_preamble_round().
@@ -378,13 +377,11 @@ template <size_t program_width> void ComposerBase::compute_witness_base(const si
             w_4.emplace_back(zero_idx);
         }
     }
-    info("CWB CHECKPOINT");
     polynomial w_1_lagrange = polynomial(subgroup_size);
     polynomial w_2_lagrange = polynomial(subgroup_size);
     polynomial w_3_lagrange = polynomial(subgroup_size);
     polynomial w_4_lagrange;
 
-    info("CWB CHECKPOINT");
     if (program_width > 3)
         w_4_lagrange = polynomial(subgroup_size);
 
@@ -399,7 +396,6 @@ template <size_t program_width> void ComposerBase::compute_witness_base(const si
             fr::__copy(fr::zero(), w_4_lagrange[i]);
     }
 
-    info("CWB CHECKPOINT ", public_inputs.size());
     // Assign the variable values (which are pointed-to by the `w_` wires) to the wire witness polynomials `poly_w_`,
     // shifted to make room for the public inputs at the beginning.
     for (size_t i = public_inputs.size(); i < subgroup_size; ++i) {
@@ -410,7 +406,6 @@ template <size_t program_width> void ComposerBase::compute_witness_base(const si
             fr::__copy(get_variable(w_4[i - public_inputs.size()]), w_4_lagrange.at(i));
     }
 
-    info("CWB CHECKPOINT");
     circuit_proving_key->polynomial_store.put("w_1_lagrange", std::move(w_1_lagrange));
     circuit_proving_key->polynomial_store.put("w_2_lagrange", std::move(w_2_lagrange));
     circuit_proving_key->polynomial_store.put("w_3_lagrange", std::move(w_3_lagrange));
@@ -418,7 +413,6 @@ template <size_t program_width> void ComposerBase::compute_witness_base(const si
         circuit_proving_key->polynomial_store.put("w_4_lagrange", std::move(w_4_lagrange));
     }
 
-    info("CWB CHECKPOINT");
     computed_witness = true;
 }
 

@@ -47,12 +47,12 @@ export async function main() {
 
     const acirComposer = await api.acirNewAcirComposer(pippengerPtr, crs.getG2Data());
 
-    // debug('initing proving key...');
+    debug('initing proving key...');
     const bytecode = getBytecode();
-    // await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), CIRCUIT_SIZE);
+    await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), CIRCUIT_SIZE);
 
-    // const exactCircuitSize = await api.acirGetExactCircuitSize(acirComposer);
-    // debug(`circuit size: ${exactCircuitSize}`);
+    const exactCircuitSize = await api.acirGetExactCircuitSize(acirComposer);
+    debug(`circuit size: ${exactCircuitSize}`);
 
     debug('creating proof...');
     const witness = getWitness();
@@ -61,7 +61,6 @@ export async function main() {
     debug('initing verification key...');
     await api.acirInitVerificationKey(acirComposer);
 
-    debug('verifying...');
     const verified = await api.acirVerifyProof(acirComposer, proof);
     debug(`verified: ${verified}`);
 

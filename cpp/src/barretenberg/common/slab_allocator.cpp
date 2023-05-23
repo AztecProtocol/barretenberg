@@ -143,7 +143,7 @@ std::shared_ptr<void> SlabAllocator::get(size_t req_size)
             memory_store.erase(it);
         }
 
-        info("Reusing memory slab of size: ", size, " for requested ", req_size, " total: ", get_total_size());
+        // info("Reusing memory slab of size: ", size, " for requested ", req_size, " total: ", get_total_size());
 
         return std::shared_ptr<void>(ptr, [this, size](void* p) {
             if (allocator_destroyed) {
@@ -155,10 +155,10 @@ std::shared_ptr<void> SlabAllocator::get(size_t req_size)
     }
 
     if (req_size % 32 == 0) {
-        info("Allocating unmanaged memory slab of size: ", req_size);
+        // info("Allocating unmanaged memory slab of size: ", req_size);
         return std::shared_ptr<void>(aligned_alloc(32, req_size), aligned_free);
     } else {
-        info("Allocating unaligned unmanaged memory slab of size: ", req_size);
+        // info("Allocating unaligned unmanaged memory slab of size: ", req_size);
         return std::shared_ptr<void>(malloc(req_size), free);
     }
 }
@@ -207,6 +207,10 @@ void* get_mem_slab_raw(size_t size)
 
 void free_mem_slab_raw(void* p)
 {
+    if (allocator_destroyed) {
+        aligned_free(p);
+        return;
+    }
     manual_slabs.erase(p);
 }
 } // namespace barretenberg

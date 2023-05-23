@@ -25,20 +25,18 @@ void AcirComposer::init_proving_key(acir_format::acir_format& constraint_system,
     constraint_system.constraints.shrink_to_fit();
 
     exact_circuit_size_ = composer.get_num_gates();
-    info("**** EXACT ", exact_circuit_size_);
     total_circuit_size_ = composer.get_total_circuit_size();
-    info("**** TOTAL ", total_circuit_size_);
     // Exact or total fed in here?
     circuit_subgroup_size_ = composer.get_circuit_subgroup_size(exact_circuit_size_);
-    info("**** SUBGROUP ", circuit_subgroup_size_);
     proving_key_ = composer.compute_proving_key();
 }
 
 std::vector<uint8_t> AcirComposer::create_proof(acir_format::acir_format& constraint_system,
                                                 acir_format::WitnessVector& witness)
 {
-    // composer_ = acir_format::Composer(proving_key_, nullptr, circuit_subgroup_size_);
-    composer_ = acir_format::Composer(crs_factory_, 1 << 19);
+    composer_ = acir_format::Composer(proving_key_, nullptr, circuit_subgroup_size_);
+    // You can't produce the verification key unless you manually set the crs. Which seems like a bug.
+    composer_.crs_factory_ = crs_factory_;
 
     create_circuit_with_witness(composer_, constraint_system, witness);
 
@@ -56,18 +54,6 @@ std::vector<uint8_t> AcirComposer::create_proof(acir_format::acir_format& constr
 void AcirComposer::init_verification_key()
 {
     composer_.compute_verification_key();
-    // if (!proving_key_) {
-    //     throw_or_abort("init_proving_key must be called first.");
-    // }
-    // // acir_format::Composer composer(proving_key_, nullptr);
-    // // verification_key_ = composer.compute_verification_key();
-
-    // verification_key_ =
-    //     acir_format::Composer::compute_verification_key_base(proving_key_, crs_factory_->get_verifier_crs());
-
-    // // The composer_type has not yet been set. We need to set the composer_type for when we later read in and
-    // // construct the verification key so that we have the correct polynomial manifest
-    // verification_key_->composer_type = proof_system::ComposerType::PLOOKUP;
 }
 
 bool AcirComposer::verify_proof(std::vector<uint8_t> const& proof)
