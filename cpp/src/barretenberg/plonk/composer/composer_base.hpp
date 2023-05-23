@@ -188,11 +188,9 @@ class ComposerBase {
 
     uint32_t get_public_input_index(const uint32_t witness_index) const
     {
-        bool found = false;
         uint32_t result = static_cast<uint32_t>(-1);
         for (size_t i = 0; i < public_inputs.size(); ++i) {
             if (real_variable_index[public_inputs[i]] == real_variable_index[witness_index]) {
-                found = true;
                 result = static_cast<uint32_t>(i);
                 break;
             }
