@@ -18,20 +18,20 @@
 
 namespace proof_system::honk::sumcheck {
 
-template <typename Flavor, class Transcript, template <class> class... Relations> class Sumcheck {
+template <typename Flavor, class Transcript> class Sumcheck {
 
   public:
     using FF = typename Flavor::FF;
     using PartiallyEvaluatedMultivariates = typename Flavor::PartiallyEvaluatedMultivariates;
     using ClaimedEvaluations = typename Flavor::ClaimedEvaluations;
 
-    static constexpr size_t MAX_RELATION_LENGTH = std::max({ Relations<FF>::RELATION_LENGTH... });
+    static constexpr size_t MAX_RELATION_LENGTH = Flavor::MAX_RELATION_LENGTH;
     static constexpr size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
 
     Transcript& transcript;
     const size_t multivariate_n;
     const size_t multivariate_d;
-    SumcheckRound<Flavor, Relations...> round;
+    SumcheckRound<Flavor> round;
 
     /**
     *
@@ -71,7 +71,7 @@ template <typename Flavor, class Transcript, template <class> class... Relations
         : transcript(transcript)
         , multivariate_n(multivariate_n)
         , multivariate_d(numeric::get_msb(multivariate_n))
-        , round(multivariate_n, std::tuple(Relations<FF>()...))
+        , round(multivariate_n)
         , partially_evaluated_polynomials(multivariate_n){};
 
     // verifier instantiates sumcheck with circuit size and a verifier transcript
@@ -79,7 +79,7 @@ template <typename Flavor, class Transcript, template <class> class... Relations
         : transcript(transcript)
         , multivariate_n(multivariate_n)
         , multivariate_d(numeric::get_msb(multivariate_n))
-        , round(std::tuple(Relations<FF>()...)){};
+        , round(){};
 
     /**
      * @brief Compute univariate restriction place in transcript, generate challenge, partially evaluate,... repeat

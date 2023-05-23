@@ -6,6 +6,7 @@
 #include <type_traits>
 #include <vector>
 #include "barretenberg/honk/pcs/commitment_key.hpp"
+#include "barretenberg/honk/sumcheck/polynomials/barycentric_data.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
 #include "barretenberg/honk/transcript/transcript.hpp"
@@ -15,6 +16,14 @@
 #include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
 #include "barretenberg/srs/reference_string/reference_string.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation_secondary.hpp"
+#include "barretenberg/honk/sumcheck/relations/grand_product_computation_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/grand_product_initialization_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/lookup_grand_product_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/auxiliary_relation.hpp"
 
 namespace proof_system::honk::flavor {
 
@@ -40,6 +49,22 @@ class Ultra {
     static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 25;
     // The total number of witness entities not including shifts.
     static constexpr size_t NUM_WITNESS_ENTITIES = 11;
+
+    using Relations = std::tuple<sumcheck::UltraArithmeticRelation<FF>,
+                                 sumcheck::UltraArithmeticRelationSecondary<FF>,
+                                 sumcheck::UltraGrandProductComputationRelation<FF>,
+                                 sumcheck::UltraGrandProductInitializationRelation<FF>,
+                                 sumcheck::LookupGrandProductComputationRelation<FF>,
+                                 sumcheck::LookupGrandProductInitializationRelation<FF>,
+                                 sumcheck::GenPermSortRelation<FF>,
+                                 sumcheck::EllipticRelation<FF>,
+                                 sumcheck::AuxiliaryRelation<FF>>;
+
+    static constexpr size_t MAX_RELATION_LENGTH = get_max_relation_length<Relations>();
+    static constexpr size_t NUM_RELATIONS = std::tuple_size<Relations>::value;
+
+    using UnivariateTuple = decltype(create_univariate_tuple<FF, Relations, 0>());
+    using BarycentricUtils = decltype(create_barycentric_utils<FF, Relations, MAX_RELATION_LENGTH, 0>());
 
   private:
     template <typename DataType, typename HandleType>
