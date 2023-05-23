@@ -195,7 +195,7 @@ class ComposerBase {
                 break;
             }
         }
-        ASSERT(result != -1);
+        ASSERT(result != static_cast<uint32_t>(-1));
         return result;
     }
 
