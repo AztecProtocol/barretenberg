@@ -28,8 +28,9 @@ void generate_dummy_proof() {}
  *       We would either need a separate ACIR opcode where inner_proof_contains_recursive_proof = true,
  *       or we need non-witness data to be provided as metadata in the ACIR opcode
  */
-template <bool has_valid_witness_assignment>
-void create_recursion_constraints(Composer& composer, const RecursionConstraint& input)
+void create_recursion_constraints(Composer& composer,
+                                  const RecursionConstraint& input,
+                                  bool has_valid_witness_assignments)
 {
     const auto& nested_aggregation_indices = input.nested_aggregation_object;
     bool nested_aggregation_indices_all_zero = true;
@@ -53,7 +54,7 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
             // we add our dummy proof values as Composer variables.
             // if we DO have a valid witness assignment, we use the real witness assignment
             barretenberg::fr dummy_field =
-                has_valid_witness_assignment ? composer.get_variable(proof_field_idx) : dummy_proof[i];
+                has_valid_witness_assignments ? composer.get_variable(proof_field_idx) : dummy_proof[i];
             // Create a copy constraint between our dummy field and the witness index provided by RecursionConstraint.
             // This will make the RecursionConstraint idx equal to `dummy_field`.
             // In the case of a valid witness assignment, this does nothing (as dummy_field = real value)
@@ -64,7 +65,7 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
         for (size_t i = 0; i < input.key.size(); ++i) {
             const auto key_field_idx = input.key[i];
             barretenberg::fr dummy_field =
-                has_valid_witness_assignment ? composer.get_variable(key_field_idx) : dummy_key[i];
+                has_valid_witness_assignments ? composer.get_variable(key_field_idx) : dummy_key[i];
             composer.assert_equal(composer.add_variable(dummy_field), key_field_idx);
         }
     }
@@ -139,9 +140,6 @@ void create_recursion_constraints(Composer& composer, const RecursionConstraint&
         lhs.assert_equal(rhs);
     }
 }
-
-template void create_recursion_constraints<false>(Composer&, const RecursionConstraint&);
-template void create_recursion_constraints<true>(Composer&, const RecursionConstraint&);
 
 /**
  * @brief When recursively verifying proofs, we represent the verification key using field elements.

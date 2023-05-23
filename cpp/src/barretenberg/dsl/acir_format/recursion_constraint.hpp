@@ -60,11 +60,9 @@ struct RecursionConstraint {
     friend bool operator==(RecursionConstraint const& lhs, RecursionConstraint const& rhs) = default;
 };
 
-template <bool has_valid_witness_assignment = false>
-void create_recursion_constraints(Composer& composer, const RecursionConstraint& input);
-
-extern template void create_recursion_constraints<false>(Composer&, const RecursionConstraint&);
-extern template void create_recursion_constraints<true>(Composer&, const RecursionConstraint&);
+void create_recursion_constraints(Composer& composer,
+                                  const RecursionConstraint& input,
+                                  bool has_valid_witness_assignments = false);
 
 std::vector<barretenberg::fr> export_key_in_recursion_format(std::shared_ptr<verification_key> const& vkey);
 std::vector<barretenberg::fr> export_dummy_key_in_recursion_format(const PolynomialManifest& polynomial_manifest,
