@@ -283,7 +283,7 @@ UltraWithKeccakProver UltraPlonkComposerHelper::create_ultra_with_keccak_prover(
  * @return The verifier.
  * */
 
-plonk::UltraVerifier UltraPlonkComposerHelper::create_verifier(const CircuitConstructor& circuit_constructor)
+plonk::UltraVerifier UltraPlonkComposerHelper::create_verifier(CircuitConstructor& circuit_constructor)
 {
     auto verification_key = compute_verification_key(circuit_constructor);
 
@@ -330,12 +330,13 @@ UltraWithKeccakVerifier UltraPlonkComposerHelper::create_ultra_with_keccak_verif
     return output_state;
 }
 
-std::shared_ptr<proving_key> UltraPlonkComposerHelper::compute_proving_key(
-    const CircuitConstructor& circuit_constructor)
+std::shared_ptr<proving_key> UltraPlonkComposerHelper::compute_proving_key(CircuitConstructor& circuit_constructor)
 {
     if (circuit_proving_key) {
         return circuit_proving_key;
     }
+
+    circuit_constructor.finalize_circuit();
 
     size_t tables_size = 0;
     size_t lookups_size = 0;
@@ -467,7 +468,7 @@ std::shared_ptr<proving_key> UltraPlonkComposerHelper::compute_proving_key(
  * */
 
 std::shared_ptr<plonk::verification_key> UltraPlonkComposerHelper::compute_verification_key(
-    const CircuitConstructor& circuit_constructor)
+    CircuitConstructor& circuit_constructor)
 {
     if (circuit_verification_key) {
         return circuit_verification_key;

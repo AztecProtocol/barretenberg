@@ -88,13 +88,13 @@ class UltraPlonkComposerHelper {
     }
     void finalize_circuit(CircuitConstructor& circuit_constructor) { circuit_constructor.finalize_circuit(); };
 
-    std::shared_ptr<plonk::proving_key> compute_proving_key(const CircuitConstructor& circuit_constructor);
-    std::shared_ptr<plonk::verification_key> compute_verification_key(const CircuitConstructor& circuit_constructor);
+    std::shared_ptr<plonk::proving_key> compute_proving_key(CircuitConstructor& circuit_constructor);
+    std::shared_ptr<plonk::verification_key> compute_verification_key(CircuitConstructor& circuit_constructor);
 
     void compute_witness(CircuitConstructor& circuit_constructor);
 
     UltraProver create_prover(CircuitConstructor& circuit_constructor);
-    UltraVerifier create_verifier(const CircuitConstructor& circuit_constructor);
+    UltraVerifier create_verifier(CircuitConstructor& circuit_constructor);
 
     UltraToStandardProver create_ultra_to_standard_prover(CircuitConstructor& circuit_constructor);
     UltraToStandardVerifier create_ultra_to_standard_verifier(CircuitConstructor& circuit_constructor);
