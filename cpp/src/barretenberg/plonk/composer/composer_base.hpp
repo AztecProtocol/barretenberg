@@ -197,7 +197,7 @@ class ComposerBase {
                 break;
             }
         }
-        ASSERT(found == true);
+        ASSERT(result != -1);
         return result;
     }
 
