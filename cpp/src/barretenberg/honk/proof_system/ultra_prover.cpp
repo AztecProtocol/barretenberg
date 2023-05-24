@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <cstddef>
 #include "barretenberg/honk/proof_system/prover_library.hpp"
-#include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck.hpp"
 #include <array>
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp" // will go away
@@ -14,12 +13,6 @@
 #include <vector>
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
-#include "barretenberg/honk/sumcheck/relations/arithmetic_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/permutation_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/lookup_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/auxiliary_relation.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/transcript/transcript_wrappers.hpp"
 #include <string>
@@ -189,14 +182,7 @@ template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_grand_product_c
  */
 template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_relation_check_rounds()
 {
-    using Sumcheck = sumcheck::Sumcheck<Flavor,
-                                        ProverTranscript<FF>,
-                                        sumcheck::UltraArithmeticRelation,
-                                        sumcheck::UltraPermutationRelation,
-                                        sumcheck::LookupRelation,
-                                        sumcheck::GenPermSortRelation,
-                                        sumcheck::EllipticRelation,
-                                        sumcheck::AuxiliaryRelation>;
+    using Sumcheck = sumcheck::Sumcheck<Flavor, ProverTranscript<FF>>;
 
     auto sumcheck = Sumcheck(key->circuit_size, transcript);
 

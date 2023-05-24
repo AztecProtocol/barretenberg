@@ -6,8 +6,11 @@
 #include <type_traits>
 #include <vector>
 #include "barretenberg/honk/pcs/commitment_key.hpp"
+#include "barretenberg/honk/sumcheck/polynomials/barycentric_data.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
+#include "barretenberg/honk/sumcheck/relations/arithmetic_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/permutation_relation.hpp"
 #include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/polynomials/evaluation_domain.hpp"
@@ -38,7 +41,7 @@ class Standard {
     using CommitmentHandle = G1::affine_element;
     using PCSParams = pcs::kzg::Params;
 
-    static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
+    static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES; // MERGETODO
     // The number of multivariate polynomials on which a sumcheck prover sumcheck operates (including shifts). We often
     // need containers of this size to hold related data, so we choose a name more agnostic than `NUM_POLYNOMIALS`
     static constexpr size_t NUM_ALL_ENTITIES = 18;
@@ -47,6 +50,22 @@ class Standard {
     static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 13;
     // The total number of witness entities not including shifts.
     static constexpr size_t NUM_WITNESS_ENTITIES = 4;
+
+    // define the tuple of Relations that comprise the Sumcheck relation
+    using Relations = std::tuple<sumcheck::ArithmeticRelation<FF>, sumcheck::PermutationRelation<FF>>;
+
+    static constexpr size_t MAX_RELATION_LENGTH = get_max_relation_length<Relations>();
+    static constexpr size_t NUM_RELATIONS = std::tuple_size<Relations>::value;
+
+    // Instantiate the BarycentricData needed to extend each Relation Univariate
+    static_assert(instantiate_barycentric_utils<FF, MAX_RELATION_LENGTH>());
+
+    // define the containers for storing the contributions from each relation in Sumcheck
+    using RelationUnivariates = decltype(create_relation_univariates_container<FF, Relations>());
+    using RelationValues = decltype(create_relation_values_container<FF, Relations>());
+
+    // define utilities to extend univarates from RELATION_LENGTH to MAX_RELATION_LENGTH for each Relation
+    // using BarycentricUtils = decltype(create_barycentric_utils<FF, Relations, MAX_RELATION_LENGTH>());
 
   private:
     /**
@@ -190,10 +209,20 @@ class Standard {
     using ProverPolynomials = AllEntities<PolynomialHandle, PolynomialHandle>;
 
     /**
-     * @brief A container for polynomials produced after the first round of sumcheck.
-     * @todo TODO(#394) Use polynomial classes for guaranteed memory alignment.
+     * @brief A container for storing the partially evaluated multivariates produced by sumcheck.
      */
-    using FoldedPolynomials = AllEntities<std::vector<FF>, PolynomialHandle>;
+    class PartiallyEvaluatedMultivariates : public AllEntities<Polynomial, PolynomialHandle> {
+
+      public:
+        PartiallyEvaluatedMultivariates() = default;
+        PartiallyEvaluatedMultivariates(const size_t circuit_size)
+        {
+            // Storage is only needed after the first partial evaluation, hence polynomials of size (n / 2)
+            for (auto& poly : this->_data) {
+                poly = Polynomial(circuit_size / 2);
+            }
+        }
+    };
 
     /**
      * @brief A container for univariates produced during the hot loop in sumcheck.
@@ -207,11 +236,11 @@ class Standard {
      * @brief A container for the polynomials evaluations produced during sumcheck, which are purported to be the
      * evaluations of polynomials committed in earlier rounds.
      */
-    class PurportedEvaluations : public AllEntities<FF, FF> {
+    class ClaimedEvaluations : public AllEntities<FF, FF> {
       public:
         using Base = AllEntities<FF, FF>;
         using Base::Base;
-        PurportedEvaluations(std::array<FF, NUM_ALL_ENTITIES> _data_in) { this->_data = _data_in; }
+        ClaimedEvaluations(std::array<FF, NUM_ALL_ENTITIES> _data_in) { this->_data = _data_in; }
     };
 
     /**

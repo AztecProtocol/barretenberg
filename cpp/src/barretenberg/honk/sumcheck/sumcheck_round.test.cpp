@@ -1,6 +1,4 @@
 #include "sumcheck_round.hpp"
-#include "relations/arithmetic_relation.hpp"
-#include "relations/permutation_relation.hpp"
 #include "polynomials/univariate.hpp"
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/numeric/random/engine.hpp"
@@ -24,7 +22,7 @@ using namespace proof_system::honk::sumcheck;
 using Flavor = flavor::Standard;
 using FF = typename Flavor::FF;
 using ProverPolynomials = typename Flavor::ProverPolynomials;
-using PurportedEvaluations = typename Flavor::PurportedEvaluations;
+using ClaimedEvaluations = typename Flavor::ClaimedEvaluations;
 
 const size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
 const size_t max_relation_length = 5;
@@ -39,9 +37,27 @@ static Univariate<FF, max_relation_length> compute_round_univariate(
     const FF alpha)
 {
     size_t round_size = 1;
-    auto relations = std::tuple(ArithmeticRelation<FF>(), PermutationRelation<FF>());
     // Improvement(Cody): This is ugly? Maye supply some/all of this data through "flavor" class?
-    auto round = SumcheckRound<Flavor, ArithmeticRelation, PermutationRelation>(round_size, relations);
+    auto round = SumcheckRound<Flavor>(round_size);
+    // MERGETODO
+    // auto w_l = input_polynomials[0];
+    // auto w_r = input_polynomials[1];
+    // auto w_o = input_polynomials[2];
+    // auto z_perm = input_polynomials[3];
+    // auto z_perm_shift = input_polynomials[4];
+    // auto q_m = input_polynomials[5];
+    // auto q_l = input_polynomials[6];
+    // auto q_r = input_polynomials[7];
+    // auto q_o = input_polynomials[8];
+    // auto q_c = input_polynomials[9];
+    // auto sigma_1 = input_polynomials[10];
+    // auto sigma_2 = input_polynomials[11];
+    // auto sigma_3 = input_polynomials[12];
+    // auto id_1 = input_polynomials[13];
+    // auto id_2 = input_polynomials[14];
+    // auto id_3 = input_polynomials[15];
+    // auto lagrange_first = input_polynomials[16];
+    // auto lagrange_last = input_polynomials[17];
 
     ProverPolynomials full_polynomials;
     full_polynomials.w_l = input_polynomials[0];
@@ -125,7 +141,7 @@ static FF compute_full_purported_value(std::array<FF, NUM_POLYNOMIALS>& input_va
                                        const RelationParameters<FF>& relation_parameters,
                                        const FF alpha)
 {
-    PurportedEvaluations purported_evaluations;
+    ClaimedEvaluations purported_evaluations;
     purported_evaluations.w_l = input_values[0];
     purported_evaluations.w_r = input_values[1];
     purported_evaluations.w_o = input_values[2];
@@ -144,8 +160,8 @@ static FF compute_full_purported_value(std::array<FF, NUM_POLYNOMIALS>& input_va
     purported_evaluations.id_3 = input_values[15];
     purported_evaluations.lagrange_first = input_values[16];
     purported_evaluations.lagrange_last = input_values[17];
-    auto relations = std::tuple(ArithmeticRelation<FF>(), PermutationRelation<FF>());
-    auto round = SumcheckRound<Flavor, ArithmeticRelation, PermutationRelation>(relations);
+
+    auto round = SumcheckRound<Flavor>();
     PowUnivariate<FF> pow_univariate(1);
     FF full_purported_value = round.compute_full_honk_relation_purported_value(
         purported_evaluations, relation_parameters, pow_univariate, alpha);
@@ -301,11 +317,11 @@ TEST(SumcheckRound, TupleOfTuplesOfUnivariates)
     // Use scale_univariate_accumulators to scale by challenge powers
     FF challenge = 5;
     FF running_challenge = 1;
-    SumcheckRound<Flavor, ArithmeticRelation>::scale_univariates(tuple_of_tuples, challenge, running_challenge);
+    SumcheckRound<Flavor>::scale_univariates(tuple_of_tuples, challenge, running_challenge);
 
     // Use extend_and_batch_univariates to extend to MAX_LENGTH then accumulate
     auto result = Univariate<FF, MAX_LENGTH>();
-    SumcheckRound<Flavor, ArithmeticRelation>::extend_and_batch_univariates(tuple_of_tuples, result);
+    SumcheckRound<Flavor>::extend_and_batch_univariates(tuple_of_tuples, result);
 
     // Repeat the batching process manually
     auto result_expected = barycentric_util_1.extend(univariate_1) * 1 +
@@ -316,7 +332,7 @@ TEST(SumcheckRound, TupleOfTuplesOfUnivariates)
     EXPECT_EQ(result, result_expected);
 
     // Reinitialize univariate accumulators to zero
-    SumcheckRound<Flavor, ArithmeticRelation>::zero_univariates(tuple_of_tuples);
+    SumcheckRound<Flavor>::zero_univariates(tuple_of_tuples);
 
     // Check that reinitialization was successful
     Univariate<FF, 3> expected_1({ 0, 0, 0 });
@@ -347,8 +363,7 @@ TEST(SumcheckRound, TuplesOfEvaluationArrays)
     FF challenge = 5;
     FF running_challenge = 1;
     FF result = 0;
-    SumcheckRound<Flavor, ArithmeticRelation>::scale_and_batch_elements(
-        tuple_of_arrays, challenge, running_challenge, result);
+    SumcheckRound<Flavor>::scale_and_batch_elements(tuple_of_arrays, challenge, running_challenge, result);
 
     // Repeat the batching process manually
     auto result_expected =
@@ -358,7 +373,7 @@ TEST(SumcheckRound, TuplesOfEvaluationArrays)
     EXPECT_EQ(result, result_expected);
 
     // Reinitialize univariate accumulators to zero
-    SumcheckRound<Flavor, ArithmeticRelation>::zero_elements(tuple_of_arrays);
+    SumcheckRound<Flavor>::zero_elements(tuple_of_arrays);
 
     EXPECT_EQ(std::get<0>(tuple_of_arrays)[0], 0);
     EXPECT_EQ(std::get<1>(tuple_of_arrays)[0], 0);

@@ -33,11 +33,11 @@ void ensure_non_zero(auto& polynomial)
  */
 template <typename Flavor> void check_relation(auto relation, auto circuit_size, auto polynomials, auto params)
 {
-    using PurportedEvaluations = typename Flavor::PurportedEvaluations;
+    using ClaimedEvaluations = typename Flavor::ClaimedEvaluations;
     for (size_t i = 0; i < circuit_size; i++) {
 
         // Extract an array containing all the polynomial evaluations at a given row i
-        PurportedEvaluations evaluations_at_index_i;
+        ClaimedEvaluations evaluations_at_index_i;
         size_t poly_idx = 0;
         for (auto& poly : polynomials) {
             evaluations_at_index_i[poly_idx] = poly[i];
@@ -74,6 +74,7 @@ TEST(RelationCorrectness, StandardRelationCorrectness)
     using Flavor = honk::flavor::Standard;
     using FF = typename Flavor::FF;
     using ProverPolynomials = typename Flavor::ProverPolynomials;
+    // using ClaimedEvaluations = typename Flavor::ClaimedEvaluations;
 
     // Create a composer and a dummy circuit with a few gates
     auto composer = StandardHonkComposer();
@@ -163,6 +164,7 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
     using Flavor = honk::flavor::Ultra;
     using FF = typename Flavor::FF;
     using ProverPolynomials = typename Flavor::ProverPolynomials;
+    // using ClaimedEvaluations = typename Flavor::ClaimedEvaluations;
 
     // Create a composer and then add an assortment of gates designed to ensure that the constraint(s) represented
     // by each relation are non-trivially exercised.

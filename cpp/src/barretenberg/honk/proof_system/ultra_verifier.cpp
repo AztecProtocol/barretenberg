@@ -4,12 +4,6 @@
 #include "barretenberg/honk/flavor/standard.hpp"
 #include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/honk/utils/power_polynomial.hpp"
-#include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/permutation_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/lookup_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/auxiliary_relation.hpp"
 
 #pragma GCC diagnostic ignored "-Wunused-variable"
 
@@ -105,14 +99,7 @@ template <typename Flavor> bool UltraVerifier_<Flavor>::verify_proof(const plonk
     commitments.z_lookup = transcript.template receive_from_prover<Commitment>(commitment_labels.z_lookup);
 
     // Execute Sumcheck Verifier
-    auto sumcheck = Sumcheck<Flavor,
-                             VerifierTranscript<FF>,
-                             honk::sumcheck::UltraArithmeticRelation,
-                             honk::sumcheck::UltraPermutationRelation,
-                             honk::sumcheck::LookupRelation,
-                             honk::sumcheck::GenPermSortRelation,
-                             honk::sumcheck::EllipticRelation,
-                             honk::sumcheck::AuxiliaryRelation>(circuit_size, transcript);
+    auto sumcheck = Sumcheck<Flavor, VerifierTranscript<FF>>(circuit_size, transcript);
 
     std::optional sumcheck_output = sumcheck.execute_verifier(relation_parameters);
 

@@ -35,7 +35,7 @@ class UltraRelationConsistency : public testing::Test {
   public:
     using Flavor = honk::flavor::Ultra;
     using FF = typename Flavor::FF;
-    using PurportedEvaluations = typename Flavor::PurportedEvaluations;
+    using ClaimedEvaluations = typename Flavor::ClaimedEvaluations;
 
     // TODO(#390): Move MAX_RELATION_LENGTH into Flavor and simplify this.
     template <size_t t> using ExtendedEdges = typename Flavor::template ExtendedEdges<t>;
@@ -84,7 +84,7 @@ class UltraRelationConsistency : public testing::Test {
      * @return std::array<FF, NUM_UNIVARIATES> such that result[j] = univariates[j].value_at(i)
      */
     template <size_t univariate_length>
-    static PurportedEvaluations transposed_univariate_array_at(ExtendedEdges<univariate_length> univariates, size_t i)
+    static ClaimedEvaluations transposed_univariate_array_at(ExtendedEdges<univariate_length> univariates, size_t i)
     {
         ASSERT(i < univariate_length);
         std::array<FF, Flavor::NUM_ALL_ENTITIES> result;
@@ -130,7 +130,7 @@ class UltraRelationConsistency : public testing::Test {
         }
 
         // Extract 0th evaluation from extended edges
-        PurportedEvaluations edge_evaluations = transposed_univariate_array_at(extended_edges, 0);
+        ClaimedEvaluations edge_evaluations = transposed_univariate_array_at(extended_edges, 0);
 
         // Evaluate the relation using the verifier functionality
         relation.add_full_relation_value_contribution(relation_evals, edge_evaluations, relation_parameters);
