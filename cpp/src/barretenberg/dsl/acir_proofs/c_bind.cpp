@@ -74,7 +74,7 @@ WASM_EXPORT void acir_get_solidity_verifier(in_ptr acir_composer_ptr, out_str_bu
 WASM_EXPORT void acir_get_exact_circuit_size(in_ptr acir_composer_ptr, uint32_t* out)
 {
     auto acir_composer = reinterpret_cast<acir_proofs::AcirComposer*>(*acir_composer_ptr);
-    *out = htonl(acir_composer->get_exact_circuit_size());
+    *out = htonl((uint32_t)acir_composer->get_exact_circuit_size());
 }
 
 WASM_EXPORT void acir_get_total_circuit_size(in_ptr acir_composer_ptr, uint32_t* out)
