@@ -5,7 +5,7 @@ describe('barretenberg wasm', () => {
   let wasm!: BarretenbergWasm;
 
   beforeAll(async () => {
-    wasm = await BarretenbergWasm.new(1);
+    wasm = await BarretenbergWasm.new();
   });
 
   afterAll(async () => {

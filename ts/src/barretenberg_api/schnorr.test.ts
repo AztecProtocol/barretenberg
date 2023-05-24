@@ -1,15 +1,14 @@
 import { TextEncoder } from 'util';
 import { Buffer128, Buffer32, Fr, Point } from '../types/index.js';
 import { BarretenbergApiSync } from './index.js';
-import { BarretenbergBinderSync } from '../barretenberg_binder/index.js';
-import { BarretenbergWasm } from '../barretenberg_wasm/barretenberg_wasm.js';
+import { newBarretenbergApiSync } from '../factory/index.js';
 
 describe('schnorr', () => {
   const msg = Buffer.from(new TextEncoder().encode('The quick brown dog jumped over the lazy fox.'));
   let api: BarretenbergApiSync;
 
   beforeAll(async () => {
-    api = new BarretenbergApiSync(new BarretenbergBinderSync(await BarretenbergWasm.new(1)));
+    api = await newBarretenbergApiSync();
     api.pedersenInit();
   });
 

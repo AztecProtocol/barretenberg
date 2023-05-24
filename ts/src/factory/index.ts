@@ -15,6 +15,10 @@ export class BarretenbergApiAsync extends BarretenbergApi {
     super(new BarretenbergBinder(wasm));
   }
 
+  async getNumThreads() {
+    return await this.wasm.getNumThreads();
+  }
+
   async destroy() {
     await this.wasm.destroy();
     await this.worker.terminate();
@@ -26,7 +30,7 @@ export class BarretenbergApiAsync extends BarretenbergApi {
  * It runs in a worker, and so can be used within the browser to execute long running, multi-threaded requests
  * like proof construction etc.
  */
-export async function newBarretenbergApiAsync() {
-  const { wasm, worker } = await BarretenbergWasm.newWorker();
+export async function newBarretenbergApiAsync(threads?: number) {
+  const { wasm, worker } = await BarretenbergWasm.newWorker(threads);
   return new BarretenbergApiAsync(worker, wasm);
 }

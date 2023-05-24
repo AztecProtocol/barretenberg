@@ -63,7 +63,7 @@ export class BarretenbergWasm {
         `threads: ${threads}`,
     );
 
-    this.memory = new WebAssembly.Memory({ initial, maximum, shared: true });
+    this.memory = new WebAssembly.Memory({ initial, maximum, shared: threads > 1 });
 
     const code = await fetchCode(threads > 1 ? 'barretenberg-threads.wasm' : 'barretenberg.wasm');
     const { instance, module } = await WebAssembly.instantiate(code, this.getImportObj(this.memory));

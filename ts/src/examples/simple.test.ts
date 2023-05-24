@@ -6,6 +6,10 @@ describe('simple', () => {
 
   beforeAll(async () => {
     api = await newBarretenbergApiAsync();
+
+    // Import to init slab allocator as first thing, to ensure maximum memory efficiency.
+    const CIRCUIT_SIZE = 2 ** 19;
+    await api.commonInitSlabAllocator(CIRCUIT_SIZE);
   }, 20000);
 
   afterAll(async () => {
