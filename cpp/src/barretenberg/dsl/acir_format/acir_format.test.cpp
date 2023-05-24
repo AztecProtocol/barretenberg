@@ -80,7 +80,6 @@ TEST(acir_format, test_logic_gate_from_noir_circuit)
     // EXPR [ (1, _4, _5) (-1, _6) 0 ]
     // EXPR [ (1, _4, _6) (-1, _4) 0 ]
     // EXPR [ (-1, _6) 1 ]
-    std::cout << "made struct" << std::endl;
 
     acir_format::acir_format constraint_system{
         .varnum = 7,
@@ -110,8 +109,6 @@ TEST(acir_format, test_logic_gate_from_noir_circuit)
                                                                  inverse_of_five,
                                                                  1,
                                                              });
-
-    std::cout << "made composer" << std::endl;
 
     auto prover = composer.create_ultra_with_keccak_prover();
     auto proof = prover.construct_proof();
