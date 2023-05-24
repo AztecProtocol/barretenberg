@@ -17,24 +17,24 @@ AcirComposer::AcirComposer(std::shared_ptr<proof_system::ReferenceStringFactory>
 
 void AcirComposer::init_proving_key(acir_format::acir_format& constraint_system, size_t size_hint)
 {
-    auto composer = create_circuit(constraint_system, crs_factory_, size_hint);
+    composer_ = create_circuit(constraint_system, crs_factory_, size_hint);
 
     // We are done with the constraint system at this point, and we need the memory slab back.
     // constraint_system = acir_format::acir_format();
     constraint_system.constraints.clear();
     constraint_system.constraints.shrink_to_fit();
 
-    exact_circuit_size_ = composer.get_num_gates();
-    total_circuit_size_ = composer.get_total_circuit_size();
+    exact_circuit_size_ = composer_.get_num_gates();
+    total_circuit_size_ = composer_.get_total_circuit_size();
     // Exact or total fed in here?
-    circuit_subgroup_size_ = composer.get_circuit_subgroup_size(exact_circuit_size_);
-    proving_key_ = composer.compute_proving_key();
+    circuit_subgroup_size_ = composer_.get_circuit_subgroup_size(exact_circuit_size_);
+    proving_key_ = composer_.compute_proving_key();
 }
 
 std::vector<uint8_t> AcirComposer::create_proof(acir_format::acir_format& constraint_system,
                                                 acir_format::WitnessVector& witness)
 {
-    composer_ = acir_format::Composer(proving_key_, nullptr, circuit_subgroup_size_);
+    composer_ = acir_format::Composer(proving_key_, verification_key_, circuit_subgroup_size_);
     // You can't produce the verification key unless you manually set the crs. Which seems like a bug.
     composer_.crs_factory_ = crs_factory_;
 
@@ -53,7 +53,7 @@ std::vector<uint8_t> AcirComposer::create_proof(acir_format::acir_format& constr
 
 void AcirComposer::init_verification_key()
 {
-    composer_.compute_verification_key();
+    verification_key_ = composer_.compute_verification_key();
 }
 
 bool AcirComposer::verify_proof(std::vector<uint8_t> const& proof)

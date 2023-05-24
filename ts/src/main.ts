@@ -54,15 +54,17 @@ export async function main() {
     const exactCircuitSize = await api.acirGetExactCircuitSize(acirComposer);
     debug(`circuit size: ${exactCircuitSize}`);
 
-    debug('creating proof...');
-    const witness = getWitness();
-    const proof = await api.acirCreateProof(acirComposer, new RawBuffer(bytecode), new RawBuffer(witness));
-
     debug('initing verification key...');
     await api.acirInitVerificationKey(acirComposer);
 
-    const verified = await api.acirVerifyProof(acirComposer, proof);
-    debug(`verified: ${verified}`);
+    for (let i = 0; i < 10; i++) {
+      debug(`creating proof ${i}...`);
+      const witness = getWitness();
+      const proof = await api.acirCreateProof(acirComposer, new RawBuffer(bytecode), new RawBuffer(witness));
+
+      const verified = await api.acirVerifyProof(acirComposer, proof);
+      debug(`verified: ${verified}`);
+    }
 
     debug('test complete.');
   } finally {
