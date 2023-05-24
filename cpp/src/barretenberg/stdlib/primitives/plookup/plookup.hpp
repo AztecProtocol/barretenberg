@@ -9,7 +9,7 @@
 namespace proof_system::plonk {
 namespace stdlib {
 
-template <typename Composer> class plookup_ {
+template <typename Composer> class plookup_read {
     typedef field_t<Composer> field_pt;
 
   public:
@@ -26,8 +26,10 @@ template <typename Composer> class plookup_ {
                                                                const bool is_2_to_1_lookup = false);
 };
 
-extern template class plookup_<plonk::UltraPlonkComposer>;
+extern template class plookup_read<plonk::UltraPlonkComposer>;
+extern template class plookup_read<proof_system::UltraCircuitConstructor>;
 
-typedef plookup_<plonk::UltraPlonkComposer> plookup_read;
+// typedef plookup_read<plonk::UltraPlonkComposer> plookup_read_composer;
+// typedef plookup_read<proof_system::UltraCircuitConstructor> plookup_read_circuit;
 } // namespace stdlib
 } // namespace proof_system::plonk

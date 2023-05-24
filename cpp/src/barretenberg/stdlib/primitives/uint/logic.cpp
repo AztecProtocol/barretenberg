@@ -524,20 +524,10 @@ uint<Composer, Native> uint<Composer, Native>::logic_operator(const uint& other,
     return result;
 }
 
-template class uint<plonk::TurboPlonkComposer, uint8_t>;
-template class uint<plonk::TurboPlonkComposer, uint16_t>;
-template class uint<plonk::TurboPlonkComposer, uint32_t>;
-template class uint<plonk::TurboPlonkComposer, uint64_t>;
-
-template class uint<plonk::StandardPlonkComposer, uint8_t>;
-template class uint<plonk::StandardPlonkComposer, uint16_t>;
-template class uint<plonk::StandardPlonkComposer, uint32_t>;
-template class uint<plonk::StandardPlonkComposer, uint64_t>;
-
-template class uint<honk::StandardHonkComposer, uint8_t>;
-template class uint<honk::StandardHonkComposer, uint16_t>;
-template class uint<honk::StandardHonkComposer, uint32_t>;
-template class uint<honk::StandardHonkComposer, uint64_t>;
+INSTANTIATE_STDLIB_BASIC_TYPE_VA(uint, uint8_t);
+INSTANTIATE_STDLIB_BASIC_TYPE_VA(uint, uint16_t);
+INSTANTIATE_STDLIB_BASIC_TYPE_VA(uint, uint32_t);
+INSTANTIATE_STDLIB_BASIC_TYPE_VA(uint, uint64_t);
 
 } // namespace stdlib
 } // namespace proof_system::plonk

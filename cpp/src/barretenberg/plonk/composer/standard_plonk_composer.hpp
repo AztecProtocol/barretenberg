@@ -19,9 +19,11 @@ class StandardPlonkComposer {
   public:
     using ComposerHelper = StandardPlonkComposerHelper;
     using CircuitConstructor = StandardCircuitConstructor;
+
     static constexpr ComposerType type = ComposerType::STANDARD;
-    static constexpr merkle::HashType merkle_hash_type = merkle::HashType::FIXED_BASE_PEDERSEN;
-    static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
+    static_assert(type == CircuitConstructor::type);
+    static constexpr merkle::HashType merkle_hash_type = CircuitConstructor::merkle_hash_type;
+    static constexpr pedersen::CommitmentType commitment_type = CircuitConstructor::commitment_type;
 
     static constexpr size_t UINT_LOG2_BASE = 2;
     // An instantiation of the circuit constructor that only depends on arithmetization, not  on the proof system

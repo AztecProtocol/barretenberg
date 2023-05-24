@@ -19,12 +19,10 @@ using namespace plookup;
 using Composer = proof_system::plonk::UltraPlonkComposer;
 using field_ct = stdlib::field_t<Composer>;
 using witness_ct = stdlib::witness_t<Composer>;
-
+using plookup_read = proof_system::plonk::stdlib::plookup_read<Composer>;
 namespace {
 auto& engine = numeric::random::get_debug_engine();
 }
-
-using stdlib::plookup_read;
 
 TEST(stdlib_plookup, pedersen_lookup_left)
 {

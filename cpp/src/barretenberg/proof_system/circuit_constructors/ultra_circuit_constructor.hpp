@@ -8,6 +8,7 @@
 #include "barretenberg/proof_system/plookup_tables/types.hpp"
 #include "barretenberg/proof_system/plookup_tables/plookup_tables.hpp"
 #include "barretenberg/plonk/proof_system/types/prover_settings.hpp"
+#include "barretenberg/proof_system/types/pedersen_commitment_type.hpp"
 #include <optional>
 
 namespace proof_system {
@@ -16,6 +17,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
   public:
     static constexpr ComposerType type = ComposerType::PLOOKUP;
     static constexpr merkle::HashType merkle_hash_type = merkle::HashType::LOOKUP_PEDERSEN;
+    static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
     static constexpr size_t UINT_LOG2_BASE = 6; // DOCTODO: explain what this is, or rename.
     // The plookup range proof requires work linear in range size, thus cannot be used directly for
     // large ranges such as 2^64. For such ranges the element will be decomposed into smaller
@@ -580,7 +582,8 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
         zero_idx = put_constant_variable(barretenberg::fr::zero());
         tau.insert({ DUMMY_TAG, DUMMY_TAG }); // TODO(luke): explain this
     };
-
+    UltraCircuitConstructor(std::string const&)
+        : UltraCircuitConstructor(){};
     UltraCircuitConstructor(const UltraCircuitConstructor& other) = delete;
     UltraCircuitConstructor(UltraCircuitConstructor&& other)
         : CircuitConstructorBase<arithmetization::Ultra<barretenberg::fr>>(std::move(other))

@@ -253,9 +253,9 @@ std::pair<uint_plookup<Composer, Native>, uint_plookup<Composer, Native>> uint_p
 
     return std::make_pair(quotient, remainder);
 }
-template class uint_plookup<plonk::UltraPlonkComposer, uint8_t>;
-template class uint_plookup<plonk::UltraPlonkComposer, uint16_t>;
-template class uint_plookup<plonk::UltraPlonkComposer, uint32_t>;
-template class uint_plookup<plonk::UltraPlonkComposer, uint64_t>;
+INSTANTIATE_STDLIB_ULTRA_TYPE_VA(uint_plookup, uint8_t);
+INSTANTIATE_STDLIB_ULTRA_TYPE_VA(uint_plookup, uint16_t);
+INSTANTIATE_STDLIB_ULTRA_TYPE_VA(uint_plookup, uint32_t);
+INSTANTIATE_STDLIB_ULTRA_TYPE_VA(uint_plookup, uint64_t);
 } // namespace stdlib
 } // namespace proof_system::plonk
