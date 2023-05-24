@@ -2,14 +2,18 @@
 import { Crs } from './crs/index.js';
 import createDebug from 'debug';
 import { newBarretenbergApiAsync } from './factory/index.js';
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import { gunzipSync } from 'zlib';
 import { RawBuffer } from './types/index.js';
 import { numToInt32BE } from './serialize/serialize.js';
 import { Command } from 'commander';
 
+createDebug.log = console.error.bind(console);
 const debug = createDebug('bb.js');
 createDebug.enable('*');
+
+// Maximum we support.
+const CIRCUIT_SIZE = 2 ** 19;
 
 function getBytecode(jsonPath: string) {
   const json = readFileSync(jsonPath, 'utf-8');
@@ -24,20 +28,24 @@ function getWitness(witnessPath: string) {
   return Buffer.concat([numToInt32BE(data.length / 32), data]);
 }
 
-export async function proveAndVerify(jsonPath: string, witnessPath: string) {
+async function init() {
+  // Plus 1 needed!
+  const crs = await Crs.new(CIRCUIT_SIZE + 1);
+
   const api = await newBarretenbergApiAsync();
+
+  // Import to init slab allocator as first thing, to ensure maximum memory efficiency.
+  await api.commonInitSlabAllocator(CIRCUIT_SIZE);
+
+  const pippengerPtr = await api.eccNewPippenger(crs.getG1Data(), crs.numPoints);
+  const acirComposer = await api.acirNewAcirComposer(pippengerPtr, crs.getG2Data());
+
+  return { api, acirComposer };
+}
+
+export async function proveAndVerify(jsonPath: string, witnessPath: string) {
+  const { api, acirComposer } = await init();
   try {
-    const CIRCUIT_SIZE = 2 ** 19;
-
-    // Import to init slab allocator as first thing, to ensure maximum memory efficiency.
-    await api.commonInitSlabAllocator(CIRCUIT_SIZE);
-
-    // Plus 1 needed!
-    const crs = await Crs.new(2 ** 19 + 1);
-    const pippengerPtr = await api.eccNewPippenger(crs.getG1Data(), crs.numPoints);
-
-    const acirComposer = await api.acirNewAcirComposer(pippengerPtr, crs.getG2Data());
-
     debug('initing proving key...');
     const bytecode = getBytecode(jsonPath);
     await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), CIRCUIT_SIZE);
@@ -54,8 +62,68 @@ export async function proveAndVerify(jsonPath: string, witnessPath: string) {
 
     const verified = await api.acirVerifyProof(acirComposer, proof);
     debug(`verified: ${verified}`);
-
     return verified;
+  } finally {
+    await api.destroy();
+  }
+}
+
+export async function prove(jsonPath: string, witnessPath: string, outputPath: string) {
+  const { api, acirComposer } = await init();
+  try {
+    debug('initing proving key...');
+    const bytecode = getBytecode(jsonPath);
+    await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), CIRCUIT_SIZE);
+
+    const exactCircuitSize = await api.acirGetExactCircuitSize(acirComposer);
+    debug(`circuit size: ${exactCircuitSize}`);
+
+    debug(`creating proof...`);
+    const witness = getWitness(witnessPath);
+    const proof = await api.acirCreateProof(acirComposer, new RawBuffer(bytecode), new RawBuffer(witness));
+
+    writeFileSync(outputPath, proof);
+    debug('done.');
+  } finally {
+    await api.destroy();
+  }
+}
+
+export async function verify(jsonPath: string, proofPath: string) {
+  const { api, acirComposer } = await init();
+  try {
+    debug('initing proving key...');
+    const bytecode = getBytecode(jsonPath);
+    await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), CIRCUIT_SIZE);
+
+    debug('initing verification key...');
+    await api.acirInitVerificationKey(acirComposer);
+
+    const verified = await api.acirVerifyProof(acirComposer, readFileSync(proofPath));
+    debug(`verified: ${verified}`);
+    return verified;
+  } finally {
+    await api.destroy();
+  }
+}
+
+export async function contract(jsonPath: string, outputPath: string) {
+  const { api, acirComposer } = await init();
+  try {
+    debug('initing proving key...');
+    const bytecode = getBytecode(jsonPath);
+    await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), CIRCUIT_SIZE);
+
+    debug('initing verification key...');
+    await api.acirInitVerificationKey(acirComposer);
+
+    const contract = await api.acirGetSolidityVerifier(acirComposer);
+    if (outputPath === '-') {
+      console.log(contract);
+    } else {
+      writeFileSync(outputPath, contract);
+      debug(`contract written to: ${outputPath}`);
+    }
   } finally {
     await api.destroy();
   }
@@ -81,6 +149,35 @@ program
   .action(async ({ jsonPath, witnessPath }) => {
     const result = await proveAndVerify(jsonPath, witnessPath);
     process.exit(result ? 0 : 1);
+  });
+
+program
+  .command('prove')
+  .description('Generate a proof and write it to a file.')
+  .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
+  .option('-w, --witness-path <path>', 'Specify the witness path', './target/witness.tr')
+  .option('-o, --output-dir <path>', 'Specify the proof output dir', './proofs')
+  .requiredOption('-n, --name <filename>', 'Output file name.')
+  .action(async ({ jsonPath, witnessPath, outputDir, name }) => {
+    await prove(jsonPath, witnessPath, outputDir + '/' + name);
+  });
+
+program
+  .command('verify')
+  .description('Verify a proof. Process exists with success or failure code.')
+  .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
+  .requiredOption('-p, --proof-path <path>', 'Specify the path to the proof')
+  .action(async ({ jsonPath, proofPath }) => {
+    await verify(jsonPath, proofPath);
+  });
+
+program
+  .command('contract')
+  .description('Output solidity verification key contract.')
+  .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
+  .requiredOption('-o, --output-path <path>', 'Specify the path to write the contract')
+  .action(async ({ jsonPath, outputPath }) => {
+    await contract(jsonPath, outputPath);
   });
 
 program.parse(process.argv);
