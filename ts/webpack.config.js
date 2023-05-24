@@ -39,11 +39,11 @@ export default {
         {
           // Point directly to the built file, not the symlink, else copy-on-change doesn't work...
           from: `../cpp/build-wasm/bin/barretenberg.wasm`,
-          to: 'barretenberg_wasm/barretenberg.wasm',
+          to: 'barretenberg.wasm',
         },
         {
           from: `../cpp/build-wasm-threads/bin/barretenberg.wasm`,
-          to: 'barretenberg_wasm/barretenberg-threads.wasm',
+          to: 'barretenberg-threads.wasm',
         },
       ],
     }),
