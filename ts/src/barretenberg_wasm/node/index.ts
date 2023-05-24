@@ -15,7 +15,7 @@ export async function fetchCode(name: string) {
 
 export function createWorker() {
   const __dirname = dirname(fileURLToPath(import.meta.url));
-  return new Worker(__dirname + `/worker.ts`);
+  return new Worker(__dirname + `/worker.js`);
 }
 
 export function getRemoteBarretenbergWasm(worker: Worker): BarretenbergWasmWorker {

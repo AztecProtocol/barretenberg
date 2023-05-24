@@ -13,7 +13,7 @@
   },
   "scripts": {
     "clean": "rm -rf ./dest .tsbuildinfo",
-    "build": "yarn clean && yarn build:wasm && tsc -b && webpack",
+    "build": "yarn clean && yarn build:wasm && tsc -b && webpack && chmod +x ./dest/main.js",
     "build:dev": "tsc -b --watch",
     "build:wasm": "cd ../cpp && cmake --preset wasm-threads && cmake --build --preset wasm-threads",
     "serve": "webpack serve",
@@ -41,6 +41,7 @@
   },
   "dependencies": {
     "bigint-buffer": "^1.1.5",
+    "commander": "^10.0.1",
     "tslib": "^2.4.0"
   },
   "devDependencies": {
