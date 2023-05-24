@@ -22,6 +22,7 @@ struct KeccakConstraint {
 struct KeccakVarConstraint {
     std::vector<HashInput> inputs;
     uint32_t var_message_size;
+    std::vector<uint32_t> result;
 
     friend bool operator==(KeccakVarConstraint const& lhs, KeccakVarConstraint const& rhs) = default;
 };
