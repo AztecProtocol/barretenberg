@@ -1,8 +1,8 @@
 #include "./pedersen.hpp"
 #include <iostream>
-// #ifndef NO_OMP_MULTITHREADING
-// #include <omp.h>
-// #endif
+#ifndef NO_OMP_MULTITHREADING
+#include <omp.h>
+#endif
 
 namespace crypto {
 namespace pedersen_hash {
@@ -49,11 +49,11 @@ grumpkin::fq hash_multiple(const std::vector<grumpkin::fq>& inputs, const size_t
     ASSERT((inputs.size() < (1 << 16)) && "too many inputs for 16 bit index");
     std::vector<grumpkin::g1::element> out(inputs.size());
 
-    // #ifndef NO_OMP_MULTITHREADING
-    //     // Ensure generator data is initialized before threading...
+#ifndef NO_OMP_MULTITHREADING
+    // Ensure generator data is initialized before threading...
     init_generator_data();
-    // #pragma omp parallel for num_threads(inputs.size())
-    // #endif
+#pragma omp parallel for num_threads(inputs.size())
+#endif
     for (size_t i = 0; i < inputs.size(); ++i) {
         generator_index_t index = { hash_index, i };
         out[i] = hash_single(inputs[i], index);

@@ -34,13 +34,16 @@ void init_slab_allocator(size_t circuit_size);
 std::shared_ptr<void> get_mem_slab(size_t size);
 
 /**
- * Sometimes you want a raw pointer to slab so you can manage when it's release manually (e.g. c_binds).
+ * Sometimes you want a raw pointer to a slab so you can manage when it's released manually (e.g. c_binds, containers).
  * This still gets a slab with a shared_ptr, but holds the shared_ptr internally until free_mem_slab_raw is called.
  */
 void* get_mem_slab_raw(size_t size);
 
 void free_mem_slab_raw(void*);
 
+/**
+ * Allocator for containers such as std::vector. Makes them leverage the underlying slab allocator where possible.
+ */
 template <typename T> class ContainerSlabAllocator {
   public:
     using value_type = T;
@@ -48,53 +51,21 @@ template <typename T> class ContainerSlabAllocator {
     using const_pointer = const T*;
     using size_type = std::size_t;
 
-    // ContainerSlabAllocator() = default;
-    // ContainerSlabAllocator(ContainerSlabAllocator const&) = delete;
-    // ContainerSlabAllocator& operator=(ContainerSlabAllocator const&) = delete;
-
-    // // Move constructor
-    // ContainerSlabAllocator(ContainerSlabAllocator&& other) noexcept
-    //     : slab(std::move(other.slab))
-    // {
-    //     other.slab = nullptr;
-    // }
-
-    // // Move assignment operator
-    // ContainerSlabAllocator& operator=(ContainerSlabAllocator&& other) noexcept
-    // {
-    //     if (this != &other) {
-    //         slab = std::move(other.slab);
-    //         other.slab = nullptr;
-    //     }
-    //     return *this;
-    // }
-
     template <typename U> struct rebind {
         using other = ContainerSlabAllocator<U>;
     };
 
     pointer allocate(size_type n)
     {
-        return reinterpret_cast<pointer>(get_mem_slab_raw(n * sizeof(T)));
         // info("ContainerSlabAllocator allocating: ", n * sizeof(T));
-        // std::shared_ptr<void> ptr = get_mem_slab(n * sizeof(T));
-        // slab = ptr; // Keep a copy of the shared_ptr so the memory is not freed.
-        // return static_cast<pointer>(ptr.get());
+        return reinterpret_cast<pointer>(get_mem_slab_raw(n * sizeof(T)));
     }
 
-    void deallocate(pointer p, size_type /*unused*/)
-    {
-        free_mem_slab_raw(p);
-        // ASSERT(p == slab.get());
-        // slab.reset();
-    }
+    void deallocate(pointer p, size_type /*unused*/) { free_mem_slab_raw(p); }
 
     friend bool operator==(const ContainerSlabAllocator<T>&, const ContainerSlabAllocator<T>&) { return true; }
 
     friend bool operator!=(const ContainerSlabAllocator<T>&, const ContainerSlabAllocator<T>&) { return false; }
-
-    //   private:
-    //     std::shared_ptr<void> slab;
 };
 
 } // namespace barretenberg

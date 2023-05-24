@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { Crs } from './crs/index.js';
 import createDebug from 'debug';
-import { newMultiThreaded } from './factory/index.js';
+import { newBarretenbergApiAsync } from './factory/index.js';
 import { readFileSync } from 'fs';
 import { gunzipSync } from 'zlib';
 import { RawBuffer } from './types/index.js';
@@ -34,7 +34,7 @@ function getWitness() {
 // backend stop
 export async function main() {
   debug('starting test...');
-  const api = await newMultiThreaded();
+  const api = await newBarretenbergApiAsync();
   try {
     const CIRCUIT_SIZE = 2 ** 19;
 

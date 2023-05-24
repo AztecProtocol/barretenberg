@@ -5,6 +5,8 @@
 #include <numeric>
 #include <unordered_map>
 
+#define LOGGING 0
+
 /**
  * If we can guarantee that all slabs will be released before the allocator is destroyed, we wouldn't need this.
  * However, there is (and maybe again) cases where a global is holding onto a slab. In such a case you will have
@@ -18,10 +20,20 @@ bool allocator_destroyed = false;
 // Slabs that are being manually managed by the user.
 std::unordered_map<void*, std::shared_ptr<void>> manual_slabs;
 
+template <typename... Args> inline void dbg_info(Args... args)
+{
+#if LOGGING == 1
+    info(args...);
+#else
+    // Suppress warning.
+    (void)(sizeof...(args));
+#endif
+}
+
 /**
- * Allows preallocating memory slabs sized to serve the fact that these slabs of memory follow certain sizing patterns
- * and numbers based on prover system type and circuit size. Without the slab allocator, memory fragmentation prevents
- * proof construction when approaching memory space limits (4GB in WASM).
+ * Allows preallocating memory slabs sized to serve the fact that these slabs of memory follow certain sizing
+ * patterns and numbers based on prover system type and circuit size. Without the slab allocator, memory
+ * fragmentation prevents proof construction when approaching memory space limits (4GB in WASM).
  *
  * If no circuit_size_hint is given to the constructor, it behaves as a standard memory allocator.
  */
@@ -72,7 +84,7 @@ void SlabAllocator::init(size_t circuit_size_hint)
     }
     memory_store.clear();
 
-    // info("slab allocator initing for size: ", circuit_size_hint);
+    dbg_info("slab allocator initing for size: ", circuit_size_hint);
 
     if (circuit_size_hint == 0ULL) {
         return;
@@ -120,7 +132,7 @@ void SlabAllocator::init(size_t circuit_size_hint)
         for (size_t i = 0; i < e.second; ++i) {
             auto size = e.first;
             memory_store[size].push_back(aligned_alloc(32, size));
-            // info("Allocated memory slab of size: ", size, " total: ", get_total_size());
+            dbg_info("Allocated memory slab of size: ", size, " total: ", get_total_size());
         }
     }
 }
@@ -143,7 +155,7 @@ std::shared_ptr<void> SlabAllocator::get(size_t req_size)
             memory_store.erase(it);
         }
 
-        // info("Reusing memory slab of size: ", size, " for requested ", req_size, " total: ", get_total_size());
+        dbg_info("Reusing memory slab of size: ", size, " for requested ", req_size, " total: ", get_total_size());
 
         return std::shared_ptr<void>(ptr, [this, size](void* p) {
             if (allocator_destroyed) {
@@ -155,10 +167,10 @@ std::shared_ptr<void> SlabAllocator::get(size_t req_size)
     }
 
     if (req_size % 32 == 0) {
-        // info("Allocating unmanaged memory slab of size: ", req_size);
+        dbg_info("Allocating unmanaged memory slab of size: ", req_size);
         return std::shared_ptr<void>(aligned_alloc(32, req_size), aligned_free);
     } else {
-        // info("Allocating unaligned unmanaged memory slab of size: ", req_size);
+        dbg_info("Allocating unaligned unmanaged memory slab of size: ", req_size);
         return std::shared_ptr<void>(malloc(req_size), free);
     }
 }
@@ -176,7 +188,7 @@ void SlabAllocator::release(void* ptr, size_t size)
     std::unique_lock<std::mutex> lock(memory_store_mutex);
 #endif
     memory_store[size].push_back(ptr);
-    // info("Pooled poly memory of size: ", size, " total: ", get_total_size());
+    dbg_info("Pooled poly memory of size: ", size, " total: ", get_total_size());
 }
 
 SlabAllocator allocator;
