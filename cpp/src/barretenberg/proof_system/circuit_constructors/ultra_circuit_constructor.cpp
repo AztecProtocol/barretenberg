@@ -2172,6 +2172,13 @@ void UltraCircuitConstructor::set_ROM_element(const size_t rom_id,
     rom_array.records.emplace_back(new_record);
 }
 
+/**
+ * @brief Initialize a ROM array element with a pair of witness values
+ *
+ * @param rom_id  ROM array id
+ * @param index_value Index in the array
+ * @param value_witnesses The witnesses to put in the slot
+ */
 void UltraCircuitConstructor::set_ROM_element_pair(const size_t rom_id,
                                                    const size_t index_value,
                                                    const std::array<uint32_t, 2>& value_witnesses)
@@ -2195,6 +2202,13 @@ void UltraCircuitConstructor::set_ROM_element_pair(const size_t rom_id,
     rom_array.records.emplace_back(new_record);
 }
 
+/**
+ * @brief Read a single element from ROM
+ *
+ * @param rom_id The index of the array to read from
+ * @param index_witness The witness with the index inside the array
+ * @return uint32_t Cell value witness index
+ */
 uint32_t UltraCircuitConstructor::read_ROM_array(const size_t rom_id, const uint32_t index_witness)
 {
     ASSERT(rom_arrays.size() > rom_id);
@@ -2219,6 +2233,13 @@ uint32_t UltraCircuitConstructor::read_ROM_array(const size_t rom_id, const uint
     return value_witness;
 }
 
+/**
+ * @brief  Read a pair of elements from ROM
+ *
+ * @param rom_id The id of the ROM array
+ * @param index_witness The witness containing the index in the array
+ * @return std::array<uint32_t, 2> A pair of indexes of witness variables of cell values
+ */
 std::array<uint32_t, 2> UltraCircuitConstructor::read_ROM_array_pair(const size_t rom_id, const uint32_t index_witness)
 {
     std::array<uint32_t, 2> value_witnesses;

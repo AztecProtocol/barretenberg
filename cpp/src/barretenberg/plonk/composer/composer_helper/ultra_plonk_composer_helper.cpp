@@ -298,6 +298,12 @@ plonk::UltraVerifier UltraPlonkComposerHelper::create_verifier(CircuitConstructo
     return output_state;
 }
 
+/**
+ * @brief Create a verifier using pedersen hash for the transcript
+ *
+ * @param circuit_constructor
+ * @return UltraToStandardVerifier
+ */
 UltraToStandardVerifier UltraPlonkComposerHelper::create_ultra_to_standard_verifier(
     CircuitConstructor& circuit_constructor)
 {
@@ -314,6 +320,12 @@ UltraToStandardVerifier UltraPlonkComposerHelper::create_ultra_to_standard_verif
     return output_state;
 }
 
+/**
+ * @brief Create a verifier using keccak for the transcript
+ *
+ * @param circuit_constructor
+ * @return UltraWithKeccakVerifier
+ */
 UltraWithKeccakVerifier UltraPlonkComposerHelper::create_ultra_with_keccak_verifier(
     CircuitConstructor& circuit_constructor)
 {

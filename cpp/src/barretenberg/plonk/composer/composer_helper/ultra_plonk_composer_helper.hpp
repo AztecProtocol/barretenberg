@@ -72,6 +72,13 @@ class UltraPlonkComposerHelper {
 
     [[nodiscard]] size_t get_num_selectors() { return ultra_selector_properties().size(); }
 
+    /**
+     * @brief Add information about which witnesses contain the recursive proof computation information
+     *
+     * @param circuit_constructor Object with the circuit
+     * @param proof_output_witness_indices Witness indices that need to become public and stored as recurisve proof
+     * specific
+     */
     void add_recursive_proof(CircuitConstructor& circuit_constructor,
                              const std::vector<uint32_t>& proof_output_witness_indices)
     {
