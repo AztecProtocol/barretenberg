@@ -227,7 +227,6 @@ template <typename TestType> class stdlib_biggroup : public testing::Test {
             element_ct P_b = element_ct::from_witness(&composer, input_b);
             scalar_ct x_b = scalar_ct::from_witness(&composer, scalar_b);
 
-            info("Reached here");
             element_ct c = element_ct::batch_mul({ P_a, P_b }, { x_a, x_b });
             element input_c = (element(input_a) * scalar_a);
             element input_d = (element(input_b) * scalar_b);

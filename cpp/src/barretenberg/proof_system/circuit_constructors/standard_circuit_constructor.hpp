@@ -53,8 +53,8 @@ class StandardCircuitConstructor : public CircuitConstructorBase<arithmetization
         create_poly_gate({ one_idx, one_idx, one_idx, 1, 1, 1, 1, -4 });
     };
     // This constructor is needed to simplify switching between circuit constructor and composer
-    StandardCircuitConstructor(std::string const&)
-        : StandardCircuitConstructor(){};
+    StandardCircuitConstructor(std::string const&, const size_t size_hint = 0)
+        : StandardCircuitConstructor(size_hint){};
     StandardCircuitConstructor(const StandardCircuitConstructor& other) = delete;
     StandardCircuitConstructor(StandardCircuitConstructor&& other) = default;
     StandardCircuitConstructor& operator=(const StandardCircuitConstructor& other) = delete;

@@ -582,8 +582,8 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
         zero_idx = put_constant_variable(barretenberg::fr::zero());
         tau.insert({ DUMMY_TAG, DUMMY_TAG }); // TODO(luke): explain this
     };
-    UltraCircuitConstructor(std::string const&)
-        : UltraCircuitConstructor(){};
+    UltraCircuitConstructor(std::string const&, const size_t size_hint = 0)
+        : UltraCircuitConstructor(size_hint){};
     UltraCircuitConstructor(const UltraCircuitConstructor& other) = delete;
     UltraCircuitConstructor(UltraCircuitConstructor&& other)
         : CircuitConstructorBase<arithmetization::Ultra<barretenberg::fr>>(std::move(other))

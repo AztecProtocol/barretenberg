@@ -40,8 +40,8 @@ class TurboCircuitConstructor : public CircuitConstructorBase<arithmetization::T
 
     TurboCircuitConstructor(const size_t size_hint = 0);
     // This constructor is needed to simplify switching between circuit constructor and composer
-    TurboCircuitConstructor(std::string const&)
-        : TurboCircuitConstructor(){};
+    TurboCircuitConstructor(std::string const&, const size_t size_hint = 0)
+        : TurboCircuitConstructor(size_hint){};
     TurboCircuitConstructor(TurboCircuitConstructor&& other) = default;
     TurboCircuitConstructor& operator=(TurboCircuitConstructor&& other) = delete;
     ~TurboCircuitConstructor() {}
