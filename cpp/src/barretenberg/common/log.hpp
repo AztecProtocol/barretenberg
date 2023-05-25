@@ -16,7 +16,17 @@
                ? "TurboPlonk"                                                                                          \
                : typeid(composer) == typeid(plonk::UltraPlonkComposer)                                                 \
                      ? "UltraPlonk"                                                                                    \
-                     : typeid(composer) == typeid(honk::StandardHonkComposer) ? "StandardHonk" : "NULLPlonk")
+                     : typeid(composer) == typeid(honk::StandardHonkComposer)                                          \
+                           ? "StandardHonk"                                                                            \
+                           : typeid(composer) == typeid(honk::UltraHonkComposer)                                       \
+                                 ? "UltraHonk"                                                                         \
+                                 : typeid(composer) == typeid(proof_system::StandardCircuitConstructor)                \
+                                       ? "StandardArithemtization"                                                     \
+                                       : typeid(composer) == typeid(proof_system::TurboCircuitConstructor)             \
+                                             ? "TurboArithemtization"                                                  \
+                                             : typeid(composer) == typeid(proof_system::UltraCircuitConstructor)       \
+                                                   ? "UltraArithmetization"                                            \
+                                                   : "NullPlonk")
 
 namespace {
 
