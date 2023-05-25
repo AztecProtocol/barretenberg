@@ -710,6 +710,22 @@
     "isAsync": false
   },
   {
+    "functionName": "acir_get_verification_key",
+    "inArgs": [
+      {
+        "name": "acir_composer_ptr",
+        "type": "in_ptr"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "out",
+        "type": "uint8_t **"
+      }
+    ],
+    "isAsync": false
+  },
+  {
     "functionName": "acir_verify_proof",
     "inArgs": [
       {

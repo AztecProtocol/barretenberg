@@ -15,7 +15,7 @@ class AcirComposer {
 
     std::vector<uint8_t> create_proof(acir_format::acir_format& constraint_system, acir_format::WitnessVector& witness);
 
-    void init_verification_key();
+    std::shared_ptr<proof_system::plonk::verification_key> init_verification_key();
 
     bool verify_proof(std::vector<uint8_t> const& proof);
 

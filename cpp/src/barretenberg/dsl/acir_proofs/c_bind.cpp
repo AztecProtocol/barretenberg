@@ -58,6 +58,16 @@ WASM_EXPORT void acir_init_verification_key(in_ptr acir_composer_ptr)
     acir_composer->init_verification_key();
 }
 
+WASM_EXPORT void acir_get_verification_key(in_ptr acir_composer_ptr, uint8_t** out)
+{
+    auto acir_composer = reinterpret_cast<acir_proofs::AcirComposer*>(*acir_composer_ptr);
+    auto vk = acir_composer->init_verification_key();
+    // to_buffer gives a vector<uint8_t>.
+    // to_heap_buffer serializes that into the heap (i.e. length prefixes).
+    // if you just did: to_heap_buffer(*vk) you get the un-prefixed buffer. no good.
+    *out = to_heap_buffer(to_buffer(*vk));
+}
+
 WASM_EXPORT void acir_verify_proof(in_ptr acir_composer_ptr, uint8_t const* proof_buf, bool* result)
 {
     auto acir_composer = reinterpret_cast<acir_proofs::AcirComposer*>(*acir_composer_ptr);
