@@ -9,6 +9,7 @@
 #include "schnorr_verify.hpp"
 #include "ecdsa_secp256k1.hpp"
 #include "compute_merkle_root_constraint.hpp"
+#include "recursion_constraint.hpp"
 #include "block_constraint.hpp"
 #include "pedersen.hpp"
 #include "hash_to_field.hpp"
@@ -34,6 +35,7 @@ struct acir_format {
     std::vector<PedersenConstraint> pedersen_constraints;
     std::vector<ComputeMerkleRootConstraint> compute_merkle_root_constraints;
     std::vector<BlockConstraint> block_constraints;
+    std::vector<RecursionConstraint> recursion_constraints;
     // A standard plonk arithmetic constraint, as defined in the poly_triple struct, consists of selector values
     // for q_M,q_L,q_R,q_O,q_C and indices of three variables taking the role of left, right and output wire
     // This could be a large vector so use slab allocator, we don't expect the blackbox implementations to be so large.
@@ -79,6 +81,7 @@ template <typename B> inline void read(B& buf, acir_format& data)
     read(buf, data.pedersen_constraints);
     read(buf, data.hash_to_field_constraints);
     read(buf, data.fixed_base_scalar_mul_constraints);
+    read(buf, data.recursion_constraints);
     read(buf, data.constraints);
     read(buf, data.block_constraints);
 }
@@ -99,8 +102,21 @@ template <typename B> inline void write(B& buf, acir_format const& data)
     write(buf, data.pedersen_constraints);
     write(buf, data.hash_to_field_constraints);
     write(buf, data.fixed_base_scalar_mul_constraints);
-    write(buf, data.constraints);
+    write(buf, data.recursion_constraints);
+    for (size_t i = 0; i < data.constraints.size(); i++) {
+        write(buf, data.constraints[i]);
+    }
+    // write(buf, data.constraints);
     write(buf, data.block_constraints);
 }
+
+// template <typename B> inline void write(&B buf, std::vector<poly_triple, ContainerSlabAllocator<poly_triple>> const&
+// constraints)
+// {
+//     using serialize::write;
+// for (size_t i = 0; i < constraints.size(); i++) {
+//     write(buf, constraints[i]);
+// }
+// }
 
 } // namespace acir_format

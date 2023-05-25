@@ -93,6 +93,21 @@ void create_circuit(Composer& composer, acir_format const& constraint_system)
     for (const auto& constraint : constraint_system.block_constraints) {
         create_block_constraints(composer, constraint);
     }
+
+    // Add recursion constraints
+    for (size_t i = 0; i < constraint_system.recursion_constraints.size(); ++i) {
+        auto& constraint = constraint_system.recursion_constraints[i];
+        create_recursion_constraints(composer, constraint);
+
+        // make sure the verification key records the public input indices of the final recursion output
+        // (N.B. up to the ACIR description to make sure that the final output aggregation object wires are public
+        // inputs!)
+        if (i == constraint_system.recursion_constraints.size() - 1) {
+            std::vector<uint32_t> proof_output_witness_indices(constraint.output_aggregation_object.begin(),
+                                                               constraint.output_aggregation_object.end());
+            composer.set_recursive_proof(proof_output_witness_indices);
+        }
+    }
 }
 
 Composer create_circuit(const acir_format& constraint_system,
@@ -117,6 +132,7 @@ Composer create_circuit(const acir_format& constraint_system,
             composer.add_variable(0);
         }
     }
+
     // Add arithmetic gates
     for (const auto& constraint : constraint_system.constraints) {
         composer.create_poly_gate(constraint);
@@ -181,6 +197,21 @@ Composer create_circuit(const acir_format& constraint_system,
     // Add block constraints
     for (const auto& constraint : constraint_system.block_constraints) {
         create_block_constraints(composer, constraint);
+    }
+
+    // Add recursion constraints
+    for (size_t i = 0; i < constraint_system.recursion_constraints.size(); ++i) {
+        auto& constraint = constraint_system.recursion_constraints[i];
+        create_recursion_constraints(composer, constraint);
+
+        // make sure the verification key records the public input indices of the final recursion output
+        // (N.B. up to the ACIR description to make sure that the final output aggregation object wires are public
+        // inputs!)
+        if (i == constraint_system.recursion_constraints.size() - 1) {
+            std::vector<uint32_t> proof_output_witness_indices(constraint.output_aggregation_object.begin(),
+                                                               constraint.output_aggregation_object.end());
+            composer.set_recursive_proof(proof_output_witness_indices);
+        }
     }
 
     return composer;
@@ -277,6 +308,21 @@ Composer create_circuit_with_witness(acir_format const& constraint_system,
         create_block_constraints(composer, constraint);
     }
 
+    // Add recursion constraints
+    for (size_t i = 0; i < constraint_system.recursion_constraints.size(); ++i) {
+        auto& constraint = constraint_system.recursion_constraints[i];
+        create_recursion_constraints(composer, constraint, true);
+
+        // make sure the verification key records the public input indices of the final recursion output
+        // (N.B. up to the ACIR description to make sure that the final output aggregation object wires are public
+        // inputs!)
+        if (i == constraint_system.recursion_constraints.size() - 1) {
+            std::vector<uint32_t> proof_output_witness_indices(constraint.output_aggregation_object.begin(),
+                                                               constraint.output_aggregation_object.end());
+            composer.set_recursive_proof(proof_output_witness_indices);
+        }
+    }
+
     return composer;
 }
 Composer create_circuit_with_witness(const acir_format& constraint_system, WitnessVector const& witness)
@@ -368,6 +414,21 @@ Composer create_circuit_with_witness(const acir_format& constraint_system, Witne
         create_block_constraints(composer, constraint);
     }
 
+    // Add recursion constraints
+    for (size_t i = 0; i < constraint_system.recursion_constraints.size(); ++i) {
+        auto& constraint = constraint_system.recursion_constraints[i];
+        create_recursion_constraints(composer, constraint, true);
+
+        // make sure the verification key records the public input indices of the final recursion output
+        // (N.B. up to the ACIR description to make sure that the final output aggregation object wires are public
+        // inputs!)
+        if (i == constraint_system.recursion_constraints.size() - 1) {
+            std::vector<uint32_t> proof_output_witness_indices(constraint.output_aggregation_object.begin(),
+                                                               constraint.output_aggregation_object.end());
+            composer.set_recursive_proof(proof_output_witness_indices);
+        }
+    }
+
     return composer;
 }
 void create_circuit_with_witness(Composer& composer, acir_format const& constraint_system, WitnessVector const& witness)
@@ -455,6 +516,21 @@ void create_circuit_with_witness(Composer& composer, acir_format const& constrai
     // Add block constraints
     for (const auto& constraint : constraint_system.block_constraints) {
         create_block_constraints(composer, constraint);
+    }
+
+    // Add recursion constraints
+    for (size_t i = 0; i < constraint_system.recursion_constraints.size(); ++i) {
+        auto& constraint = constraint_system.recursion_constraints[i];
+        create_recursion_constraints(composer, constraint, true);
+
+        // make sure the verification key records the public input indices of the final recursion output
+        // (N.B. up to the ACIR description to make sure that the final output aggregation object wires are public
+        // inputs!)
+        if (i == constraint_system.recursion_constraints.size() - 1) {
+            std::vector<uint32_t> proof_output_witness_indices(constraint.output_aggregation_object.begin(),
+                                                               constraint.output_aggregation_object.end());
+            composer.set_recursive_proof(proof_output_witness_indices);
+        }
     }
 }
 

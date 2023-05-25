@@ -24,6 +24,11 @@ function getWitness(witnessPath: string) {
   return Buffer.concat([numToInt32BE(data.length / 32), data]);
 }
 
+function getProof(proofPath: string) {
+  const data = readFileSync(proofPath);
+  return data;
+}
+
 export async function proveAndVerify(jsonPath: string, witnessPath: string) {
   const api = await newBarretenbergApiAsync();
   try {

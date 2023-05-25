@@ -541,6 +541,7 @@ std::shared_ptr<proving_key> UltraComposer::compute_proving_key()
     }
 
     if (circuit_proving_key) {
+        std::cout << "already have proving_key\n";
         return circuit_proving_key;
     }
 
