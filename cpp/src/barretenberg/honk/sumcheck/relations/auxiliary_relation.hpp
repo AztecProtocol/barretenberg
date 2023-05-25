@@ -26,8 +26,32 @@ template <typename FF> class AuxiliaryRelation {
 
     /**
      * @brief Expression for the generalized permutation sort gate.
-     * @details The relation is defined as C(extended_edges(X)...) =
-     * TODO(#452)(luke): Fully document all constraints handled by this relation.
+     * @details The following explanation is reproduced from the Plonk analog 'plookup_auxiliary_widget':
+     * Adds contributions for identities associated with several custom gates:
+     *  * RAM/ROM read-write consistency check
+     *  * RAM timestamp difference consistency check
+     *  * RAM/ROM index difference consistency check
+     *  * Bigfield product evaluation (3 in total)
+     *  * Bigfield limb accumulation (2 in total)
+     *
+     * Multiple selectors are used to 'switch' aux gates on/off according to the following pattern:
+     *
+     * | gate type                    | q_aux | q_1 | q_2 | q_3 | q_4 | q_m | q_c | q_arith |
+     * | ---------------------------- | ----- | --- | --- | --- | --- | --- | --- | ------  |
+     * | Bigfield Limb Accumulation 1 | 1     | 0   | 0   | 1   | 1   | 0   | --- | 0       |
+     * | Bigfield Limb Accumulation 2 | 1     | 0   | 0   | 1   | 0   | 1   | --- | 0       |
+     * | Bigfield Product 1           | 1     | 0   | 1   | 1   | 0   | 0   | --- | 0       |
+     * | Bigfield Product 2           | 1     | 0   | 1   | 0   | 1   | 0   | --- | 0       |
+     * | Bigfield Product 3           | 1     | 0   | 1   | 0   | 0   | 1   | --- | 0       |
+     * | RAM/ROM access gate          | 1     | 1   | 0   | 0   | 0   | 1   | --- | 0       |
+     * | RAM timestamp check          | 1     | 1   | 0   | 0   | 1   | 0   | --- | 0       |
+     * | ROM consistency check        | 1     | 1   | 1   | 0   | 0   | 0   | --- | 0       |
+     * | RAM consistency check        | 1     | 0   | 0   | 0   | 0   | 0   | 0   | 1       |
+     *
+     * N.B. The RAM consistency check identity is degree 3. To keep the overall quotient degree at <=5, only 2 selectors
+     * can be used to select it.
+     *
+     * N.B.2 The q_c selector is used to store circuit-specific values in the RAM/ROM access gate
      *
      * @param evals transformed to `evals + C(extended_edges(X)...)*scaling_factor`
      * @param extended_edges an std::array containing the fully extended Univariate edges.
@@ -266,6 +290,13 @@ template <typename FF> class AuxiliaryRelation {
         std::get<0>(evals) += auxiliary_identity;
     };
 
+    /**
+     * @brief Add the result of each identity in this relation evaluated at the multivariate evaluations produced by the
+     * Sumcheck Prover.
+     *
+     * @param full_honk_relation_value
+     * @param purported_evaluations
+     */
     void add_full_relation_value_contribution(RelationValues& full_honk_relation_value,
                                               const auto& purported_evaluations,
                                               const RelationParameters<FF>& relation_parameters) const

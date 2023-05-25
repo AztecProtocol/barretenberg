@@ -39,25 +39,6 @@ static Univariate<FF, max_relation_length> compute_round_univariate(
     size_t round_size = 1;
     // Improvement(Cody): This is ugly? Maye supply some/all of this data through "flavor" class?
     auto round = SumcheckRound<Flavor>(round_size);
-    // MERGETODO
-    // auto w_l = input_polynomials[0];
-    // auto w_r = input_polynomials[1];
-    // auto w_o = input_polynomials[2];
-    // auto z_perm = input_polynomials[3];
-    // auto z_perm_shift = input_polynomials[4];
-    // auto q_m = input_polynomials[5];
-    // auto q_l = input_polynomials[6];
-    // auto q_r = input_polynomials[7];
-    // auto q_o = input_polynomials[8];
-    // auto q_c = input_polynomials[9];
-    // auto sigma_1 = input_polynomials[10];
-    // auto sigma_2 = input_polynomials[11];
-    // auto sigma_3 = input_polynomials[12];
-    // auto id_1 = input_polynomials[13];
-    // auto id_2 = input_polynomials[14];
-    // auto id_3 = input_polynomials[15];
-    // auto lagrange_first = input_polynomials[16];
-    // auto lagrange_last = input_polynomials[17];
 
     ProverPolynomials full_polynomials;
     full_polynomials.w_l = input_polynomials[0];

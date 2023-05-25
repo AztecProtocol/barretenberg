@@ -98,6 +98,13 @@ template <typename FF> class GenPermSortRelation {
         std::get<3>(evals) += tmp_4;
     };
 
+    /**
+     * @brief Add the result of each identity in this relation evaluated at the multivariate evaluations produced by the
+     * Sumcheck Prover.
+     *
+     * @param full_honk_relation_value
+     * @param purported_evaluations
+     */
     void add_full_relation_value_contribution(RelationValues& full_honk_relation_value,
                                               const auto& purported_evaluations,
                                               const RelationParameters<FF>&) const

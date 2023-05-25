@@ -14,14 +14,14 @@
 #include <gtest/gtest.h>
 using namespace proof_system::honk::sumcheck;
 /**
- * We want to test if all three relations (namely, ArithmeticRelation, PermutationRelation)
- * provide correct contributions by manually computing their
- * contributions with deterministic and random inputs. The relations are supposed to work with
- * univariates (edges) of degree one (length 2) and spit out polynomials of corresponding degrees. We have
- * MAX_RELATION_LENGTH = 5, meaning the output of a relation can atmost be a degree 5 polynomial. Hence,
- * we use a method compute_mock_extended_edges() which starts with degree one input polynomial (two evaluation
- points),
- * extends them (using barycentric formula) to six evaluation points, and stores them to an array of polynomials.
+ * The purpose of this test suite is to show that the identity arithmetic implemented in the Relations is equivalent to
+ * a simpler unoptimized version implemented in the tests themselves. This is useful 1) as documentation since the
+ * simple implementations here should make the underlying arithmetic easier to see, and 2) as a check that optimizations
+ * introduced into the Relations have not changed the result.
+ *
+ * For this purpose, we simply feed (the same) random inputs into each of the two implementations and confirm that
+ * the outputs match. This does not confirm the correctness of the identity arithmetic (the identities will not be
+ * satisfied in general by random inputs) only that the two implementations are equivalent.
  */
 static const size_t INPUT_UNIVARIATE_LENGTH = 2;
 
@@ -111,7 +111,9 @@ class StandardRelationConsistency : public testing::Test {
                                      const RelationParameters<FF>& relation_parameters)
     {
         // First check that the verifier's computation on individual evaluations is correct.
-        // Note: it is sufficient to check at only the first index of the input edges.
+        // Note: since add_full_relation_value_contribution computes the identities at a single evaluation of the
+        // multivariates, we need only pass in one evaluation point from the extended edges. Which one we choose is
+        // arbitrary so we choose the 0th.
 
         // Extract the RelationValues type for the given relation
         using RelationValues = typename decltype(relation)::RelationValues;
@@ -125,7 +127,6 @@ class StandardRelationConsistency : public testing::Test {
             expected_relation_evals[idx] = expected_full_length_univariates[idx].value_at(0);
         }
 
-        // MERGETODO?
         // Extract 0th evaluation from extended edges
         ClaimedEvaluations edge_evaluations = transposed_univariate_array_at(extended_edges, 0);
 

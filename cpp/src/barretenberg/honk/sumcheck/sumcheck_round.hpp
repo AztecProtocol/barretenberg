@@ -87,6 +87,7 @@ template <typename Flavor> class SumcheckRound {
     SumcheckRound(size_t initial_round_size)
         : round_size(initial_round_size)
     {
+        // Initialize univariate accumulators to 0
         zero_univariates(univariate_accumulators);
     }
 
@@ -107,6 +108,7 @@ template <typename Flavor> class SumcheckRound {
         auto result = Univariate<FF, MAX_RELATION_LENGTH>();
         extend_and_batch_univariates(univariate_accumulators, result);
 
+        // Reset all univariate accumulators to 0 before beginning accumulation in the next round
         zero_univariates(univariate_accumulators);
         return result;
     }

@@ -41,7 +41,7 @@ class Standard {
     using CommitmentHandle = G1::affine_element;
     using PCSParams = pcs::kzg::Params;
 
-    static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES; // MERGETODO
+    static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
     // The number of multivariate polynomials on which a sumcheck prover sumcheck operates (including shifts). We often
     // need containers of this size to hold related data, so we choose a name more agnostic than `NUM_POLYNOMIALS`
     static constexpr size_t NUM_ALL_ENTITIES = 18;
