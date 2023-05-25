@@ -16,9 +16,9 @@ namespace blake3s_plookup {
 
 template <typename Composer> byte_array<Composer> blake3s(const byte_array<Composer>& input);
 
-extern template byte_array<plonk::UltraPlonkComposer> blake3s(const byte_array<plonk::UltraPlonkComposer>& input);
-extern template byte_array<proof_system::UltraCircuitConstructor> blake3s(
-    const byte_array<proof_system::UltraCircuitConstructor>& input);
+#define BLAKE3S_PLOOKUP(COMPOSER_TYPE) byte_array<COMPOSER_TYPE> blake3s(const byte_array<COMPOSER_TYPE>& input)
+
+EXTERN_STDLIB_ULTRA_METHOD(BLAKE3S_PLOOKUP);
 
 } // namespace blake3s_plookup
 

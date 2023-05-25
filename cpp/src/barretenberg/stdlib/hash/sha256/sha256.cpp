@@ -1,9 +1,7 @@
 #include "sha256.hpp"
 #include "sha256_plookup.hpp"
-#include "barretenberg/plonk/composer/standard_plonk_composer.hpp"
-#include "barretenberg/plonk/composer/turbo_plonk_composer.hpp"
-#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
 #include "barretenberg/stdlib/primitives/bit_array/bit_array.hpp"
+#include "barretenberg/stdlib/primitives/composers/composers.hpp"
 
 namespace proof_system::plonk {
 namespace stdlib {
@@ -181,25 +179,7 @@ template <typename Composer> packed_byte_array<Composer> sha256(const packed_byt
     return packed_byte_array<Composer>(output, 4);
 }
 
-template byte_array<plonk::TurboPlonkComposer> sha256_block(const byte_array<plonk::TurboPlonkComposer>& input);
-template packed_byte_array<plonk::StandardPlonkComposer> sha256(
-    const packed_byte_array<plonk::StandardPlonkComposer>& input);
-template packed_byte_array<plonk::TurboPlonkComposer> sha256(const packed_byte_array<plonk::TurboPlonkComposer>& input);
-template packed_byte_array<plonk::UltraPlonkComposer> sha256(const packed_byte_array<plonk::UltraPlonkComposer>& input);
-
-template byte_array<proof_system::TurboCircuitConstructor> sha256_block(
-    const byte_array<proof_system::TurboCircuitConstructor>& input);
-
-template packed_byte_array<proof_system::TurboCircuitConstructor> sha256(
-    const packed_byte_array<proof_system::TurboCircuitConstructor>& input);
-
-template byte_array<proof_system::StandardCircuitConstructor> sha256_block(
-    const byte_array<proof_system::StandardCircuitConstructor>& input);
-
-template packed_byte_array<proof_system::StandardCircuitConstructor> sha256(
-    const packed_byte_array<proof_system::StandardCircuitConstructor>& input);
-
-template packed_byte_array<proof_system::UltraCircuitConstructor> sha256(
-    const packed_byte_array<proof_system::UltraCircuitConstructor>& input);
+INSTANTIATE_STDLIB_METHOD(SHA256_BLOCK)
+INSTANTIATE_STDLIB_METHOD(SHA256)
 } // namespace stdlib
 } // namespace proof_system::plonk

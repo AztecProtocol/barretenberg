@@ -1,12 +1,11 @@
 #include "./aes128.hpp"
 
-#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
-
 #include "barretenberg/numeric/uint256/uint256.hpp"
 #include "barretenberg/numeric/bitop/sparse_form.hpp"
 #include "barretenberg/crypto/aes128/aes128.hpp"
 
 #include "barretenberg/stdlib/primitives/plookup/plookup.hpp"
+#include "barretenberg/stdlib/primitives/composers/composers.hpp"
 
 using namespace crypto::aes128;
 using namespace barretenberg;
@@ -299,12 +298,11 @@ std::vector<field_t<Composer>> encrypt_buffer_cbc(const std::vector<field_t<Comp
     }
     return output;
 }
-#define INSTANTIATE_ENCRYPT_BUFFER_CBC(Composer)                                                                       \
-    template std::vector<field_t<Composer>> encrypt_buffer_cbc<Composer>(                                              \
-        const std::vector<field_t<Composer>>&, const field_t<Composer>&, const field_t<Composer>&);
+#define ENCRYPT_BUFFER_CBC(COMPOSER_TYPE)                                                                              \
+    std::vector<field_t<COMPOSER_TYPE>> encrypt_buffer_cbc<COMPOSER_TYPE>(                                             \
+        const std::vector<field_t<COMPOSER_TYPE>>&, const field_t<COMPOSER_TYPE>&, const field_t<COMPOSER_TYPE>&)
 
-INSTANTIATE_ENCRYPT_BUFFER_CBC(plonk::UltraPlonkComposer)
-INSTANTIATE_ENCRYPT_BUFFER_CBC(proof_system::UltraCircuitConstructor)
+INSTANTIATE_STDLIB_ULTRA_METHOD(ENCRYPT_BUFFER_CBC)
 } // namespace aes128
 } // namespace stdlib
 } // namespace proof_system::plonk

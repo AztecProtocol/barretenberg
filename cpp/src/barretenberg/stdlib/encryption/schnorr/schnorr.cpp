@@ -332,50 +332,12 @@ bool_t<C> signature_verification_result(const byte_array<C>& message,
     return valid;
 }
 
-template wnaf_record<plonk::TurboPlonkComposer> convert_field_into_wnaf<plonk::TurboPlonkComposer>(
-    plonk::TurboPlonkComposer* context, const field_t<plonk::TurboPlonkComposer>& limb);
-
-template wnaf_record<plonk::UltraPlonkComposer> convert_field_into_wnaf<plonk::UltraPlonkComposer>(
-    plonk::UltraPlonkComposer* context, const field_t<plonk::UltraPlonkComposer>& limb);
-
-template point<plonk::TurboPlonkComposer> variable_base_mul(const point<plonk::TurboPlonkComposer>& pub_key,
-                                                            const field_t<plonk::TurboPlonkComposer>& low_bits,
-                                                            const field_t<plonk::TurboPlonkComposer>& high_bits);
-
-template point<plonk::TurboPlonkComposer> variable_base_mul<plonk::TurboPlonkComposer>(
-    const point<plonk::TurboPlonkComposer>&,
-    const point<plonk::TurboPlonkComposer>&,
-    const wnaf_record<plonk::TurboPlonkComposer>&);
-
-template std::array<field_t<plonk::TurboPlonkComposer>, 2> verify_signature_internal<plonk::TurboPlonkComposer>(
-    const byte_array<plonk::TurboPlonkComposer>&,
-    const point<plonk::TurboPlonkComposer>&,
-    const signature_bits<plonk::TurboPlonkComposer>&);
-template std::array<field_t<plonk::UltraPlonkComposer>, 2> verify_signature_internal<plonk::UltraPlonkComposer>(
-    const byte_array<plonk::UltraPlonkComposer>&,
-    const point<plonk::UltraPlonkComposer>&,
-    const signature_bits<plonk::UltraPlonkComposer>&);
-
-template void verify_signature<plonk::TurboPlonkComposer>(const byte_array<plonk::TurboPlonkComposer>&,
-                                                          const point<plonk::TurboPlonkComposer>&,
-                                                          const signature_bits<plonk::TurboPlonkComposer>&);
-template void verify_signature<plonk::UltraPlonkComposer>(const byte_array<plonk::UltraPlonkComposer>&,
-                                                          const point<plonk::UltraPlonkComposer>&,
-                                                          const signature_bits<plonk::UltraPlonkComposer>&);
-
-template bool_t<plonk::TurboPlonkComposer> signature_verification_result<plonk::TurboPlonkComposer>(
-    const byte_array<plonk::TurboPlonkComposer>&,
-    const point<plonk::TurboPlonkComposer>&,
-    const signature_bits<plonk::TurboPlonkComposer>&);
-template bool_t<plonk::UltraPlonkComposer> signature_verification_result<plonk::UltraPlonkComposer>(
-    const byte_array<plonk::UltraPlonkComposer>&,
-    const point<plonk::UltraPlonkComposer>&,
-    const signature_bits<plonk::UltraPlonkComposer>&);
-
-template signature_bits<plonk::TurboPlonkComposer> convert_signature<plonk::TurboPlonkComposer>(
-    plonk::TurboPlonkComposer*, const crypto::schnorr::signature&);
-template signature_bits<plonk::UltraPlonkComposer> convert_signature<plonk::UltraPlonkComposer>(
-    plonk::UltraPlonkComposer*, const crypto::schnorr::signature&);
+INSTANTIATE_STDLIB_METHOD(VARIABLE_BASE_MUL)
+INSTANTIATE_STDLIB_METHOD(CONVERT_FIELD_INTO_WNAF)
+INSTANTIATE_STDLIB_METHOD(VERIFY_SIGNATURE_INTERNAL)
+INSTANTIATE_STDLIB_METHOD(VERIFY_SIGNATURE)
+INSTANTIATE_STDLIB_METHOD(SIGNATURE_VERIFICATION_RESULT)
+INSTANTIATE_STDLIB_METHOD(CONVERT_SIGNATURE)
 } // namespace schnorr
 } // namespace stdlib
 } // namespace proof_system::plonk

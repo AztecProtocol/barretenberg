@@ -26,8 +26,7 @@ template <typename Composer> class plookup_read {
                                                                const bool is_2_to_1_lookup = false);
 };
 
-extern template class plookup_read<plonk::UltraPlonkComposer>;
-extern template class plookup_read<proof_system::UltraCircuitConstructor>;
+EXTERN_STDLIB_ULTRA_TYPE(plookup_read);
 
 // typedef plookup_read<plonk::UltraPlonkComposer> plookup_read_composer;
 // typedef plookup_read<proof_system::UltraCircuitConstructor> plookup_read_circuit;

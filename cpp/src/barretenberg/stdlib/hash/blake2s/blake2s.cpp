@@ -1,10 +1,8 @@
 #include "blake2s.hpp"
 #include "blake2s_plookup.hpp"
 #include "blake_util.hpp"
-#include "barretenberg/plonk/composer/standard_plonk_composer.hpp"
-#include "barretenberg/plonk/composer/turbo_plonk_composer.hpp"
-#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
 #include "barretenberg/stdlib/primitives/uint/uint.hpp"
+#include "barretenberg/stdlib/primitives/composers/composers.hpp"
 
 namespace proof_system::plonk {
 namespace stdlib {
@@ -139,15 +137,7 @@ template <typename Composer> byte_array<Composer> blake2s(const byte_array<Compo
     return result;
 }
 
-template byte_array<plonk::StandardPlonkComposer> blake2s(const byte_array<plonk::StandardPlonkComposer>& input);
-template byte_array<plonk::TurboPlonkComposer> blake2s(const byte_array<plonk::TurboPlonkComposer>& input);
-template byte_array<plonk::UltraPlonkComposer> blake2s(const byte_array<plonk::UltraPlonkComposer>& input);
-template byte_array<proof_system::StandardCircuitConstructor> blake2s(
-    const byte_array<proof_system::StandardCircuitConstructor>& input);
-template byte_array<proof_system::TurboCircuitConstructor> blake2s(
-    const byte_array<proof_system::TurboCircuitConstructor>& input);
-template byte_array<proof_system::UltraCircuitConstructor> blake2s(
-    const byte_array<proof_system::UltraCircuitConstructor>& input);
+INSTANTIATE_STDLIB_METHOD(BLAKE2S)
 
 } // namespace stdlib
 } // namespace proof_system::plonk

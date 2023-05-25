@@ -1,7 +1,7 @@
 #include "./plookup.hpp"
-#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
 #include "barretenberg/proof_system/plookup_tables/plookup_tables.hpp"
 #include "barretenberg/proof_system/plookup_tables/types.hpp"
+#include "barretenberg/stdlib/primitives/composers/composers.hpp"
 
 namespace proof_system::plonk {
 class UltraPlonkComposer;
@@ -91,7 +91,6 @@ field_t<Composer> plookup_read<Composer>::read_from_1_to_2_table(const MultiTabl
     return lookup[ColumnIdx::C2][0];
 }
 
-template class plookup_read<plonk::UltraPlonkComposer>;
-template class plookup_read<proof_system::UltraCircuitConstructor>;
+INSTANTIATE_STDLIB_ULTRA_TYPE(plookup_read)
 } // namespace stdlib
 } // namespace proof_system::plonk

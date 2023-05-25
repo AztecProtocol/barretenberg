@@ -29,34 +29,11 @@ template <typename Composer> field_t<Composer> sha256_to_field(const packed_byte
     return slices[1] + (slices[0] * (uint256_t(1) << 128));
 }
 
-extern template byte_array<plonk::TurboPlonkComposer> sha256_block(const byte_array<plonk::TurboPlonkComposer>& input);
+#define SHA256_BLOCK(COMPOSER_TYPE) byte_array<COMPOSER_TYPE> sha256_block(const byte_array<COMPOSER_TYPE>& input)
+#define SHA256(COMPOSER_TYPE) packed_byte_array<COMPOSER_TYPE> sha256(const packed_byte_array<COMPOSER_TYPE>& input)
 
-extern template packed_byte_array<plonk::TurboPlonkComposer> sha256(
-    const packed_byte_array<plonk::TurboPlonkComposer>& input);
-
-extern template byte_array<plonk::StandardPlonkComposer> sha256_block(
-    const byte_array<plonk::StandardPlonkComposer>& input);
-
-extern template packed_byte_array<plonk::StandardPlonkComposer> sha256(
-    const packed_byte_array<plonk::StandardPlonkComposer>& input);
-
-extern template packed_byte_array<plonk::UltraPlonkComposer> sha256(
-    const packed_byte_array<plonk::UltraPlonkComposer>& input);
-
-extern template byte_array<proof_system::TurboCircuitConstructor> sha256_block(
-    const byte_array<proof_system::TurboCircuitConstructor>& input);
-
-extern template packed_byte_array<proof_system::TurboCircuitConstructor> sha256(
-    const packed_byte_array<proof_system::TurboCircuitConstructor>& input);
-
-extern template byte_array<proof_system::StandardCircuitConstructor> sha256_block(
-    const byte_array<proof_system::StandardCircuitConstructor>& input);
-
-extern template packed_byte_array<proof_system::StandardCircuitConstructor> sha256(
-    const packed_byte_array<proof_system::StandardCircuitConstructor>& input);
-
-extern template packed_byte_array<proof_system::UltraCircuitConstructor> sha256(
-    const packed_byte_array<proof_system::UltraCircuitConstructor>& input);
+EXTERN_STDLIB_METHOD(SHA256_BLOCK)
+EXTERN_STDLIB_METHOD(SHA256)
 
 } // namespace stdlib
 } // namespace proof_system::plonk

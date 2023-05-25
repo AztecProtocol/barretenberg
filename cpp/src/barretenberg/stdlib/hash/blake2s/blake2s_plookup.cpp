@@ -3,11 +3,11 @@
 
 #include "barretenberg/proof_system/plookup_tables/plookup_tables.hpp"
 #include "barretenberg/proof_system/plookup_tables/sha256.hpp"
-#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
 #include "barretenberg/stdlib/primitives/bit_array/bit_array.hpp"
 #include "barretenberg/stdlib/primitives/field/field.hpp"
 #include "barretenberg/stdlib/primitives/uint/uint.hpp"
 #include "barretenberg/stdlib/primitives/plookup/plookup.hpp"
+#include "barretenberg/stdlib/primitives/composers/composers.hpp"
 
 /**
  * Optimizations:
@@ -167,9 +167,7 @@ template <typename Composer> byte_array<Composer> blake2s(const byte_array<Compo
     return result;
 }
 
-template byte_array<plonk::UltraPlonkComposer> blake2s(const byte_array<plonk::UltraPlonkComposer>& input);
-template byte_array<proof_system::UltraCircuitConstructor> blake2s(
-    const byte_array<proof_system::UltraCircuitConstructor>& input);
+INSTANTIATE_STDLIB_ULTRA_METHOD(BLAKE2S_ULTRA)
 
 } // namespace blake2s_plookup
 

@@ -10,17 +10,9 @@ namespace proof_system::plonk {
 namespace stdlib {
 
 template <typename Composer> byte_array<Composer> blake3s(const byte_array<Composer>& input);
+#define BLAKE3S(COMPOSER_TYPE) byte_array<COMPOSER_TYPE> blake3s(const byte_array<COMPOSER_TYPE>& input);
 
-extern template byte_array<plonk::StandardPlonkComposer> blake3s(const byte_array<plonk::StandardPlonkComposer>& input);
-extern template byte_array<plonk::TurboPlonkComposer> blake3s(const byte_array<plonk::TurboPlonkComposer>& input);
-extern template byte_array<plonk::UltraPlonkComposer> blake3s(const byte_array<plonk::UltraPlonkComposer>& input);
-
-extern template byte_array<proof_system::StandardCircuitConstructor> blake3s(
-    const byte_array<proof_system::StandardCircuitConstructor>& input);
-extern template byte_array<proof_system::TurboCircuitConstructor> blake3s(
-    const byte_array<proof_system::TurboCircuitConstructor>& input);
-extern template byte_array<proof_system::UltraCircuitConstructor> blake3s(
-    const byte_array<proof_system::UltraCircuitConstructor>& input);
+EXTERN_STDLIB_METHOD(BLAKE3S)
 
 } // namespace stdlib
 } // namespace proof_system::plonk

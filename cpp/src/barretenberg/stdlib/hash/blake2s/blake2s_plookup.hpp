@@ -16,10 +16,9 @@ namespace blake2s_plookup {
 
 template <typename Composer> byte_array<Composer> blake2s(const byte_array<Composer>& input);
 
-extern template byte_array<UltraPlonkComposer> blake2s(const byte_array<plonk::UltraPlonkComposer>& input);
-extern template byte_array<proof_system::UltraCircuitConstructor> blake2s(
-    const byte_array<proof_system::UltraCircuitConstructor>& input);
+#define BLAKE2S_ULTRA(ULTRA_TYPE) byte_array<ULTRA_TYPE> blake2s(const byte_array<ULTRA_TYPE>& input)
 
+EXTERN_STDLIB_ULTRA_METHOD(BLAKE2S_ULTRA)
 } // namespace blake2s_plookup
 
 } // namespace stdlib

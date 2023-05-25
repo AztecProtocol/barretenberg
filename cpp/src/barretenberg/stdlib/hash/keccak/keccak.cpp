@@ -1,8 +1,8 @@
 #include "keccak.hpp"
-#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
 #include "barretenberg/stdlib/primitives/uint/uint.hpp"
 #include "barretenberg/common/constexpr_utils.hpp"
 #include "barretenberg/numeric/bitop/sparse_form.hpp"
+#include "barretenberg/stdlib/primitives/composers/composers.hpp"
 namespace proof_system::plonk {
 namespace stdlib {
 
@@ -755,8 +755,6 @@ stdlib::byte_array<Composer> keccak<Composer>::hash(byte_array_ct& input, const 
     return result;
 }
 
-template class keccak<plonk::UltraPlonkComposer>;
-template class keccak<proof_system::UltraCircuitConstructor>;
-
+INSTANTIATE_STDLIB_ULTRA_TYPE(keccak)
 } // namespace stdlib
 } // namespace proof_system::plonk
