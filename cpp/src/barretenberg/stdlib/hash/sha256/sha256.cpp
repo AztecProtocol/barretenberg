@@ -186,5 +186,20 @@ template packed_byte_array<plonk::StandardPlonkComposer> sha256(
     const packed_byte_array<plonk::StandardPlonkComposer>& input);
 template packed_byte_array<plonk::TurboPlonkComposer> sha256(const packed_byte_array<plonk::TurboPlonkComposer>& input);
 template packed_byte_array<plonk::UltraPlonkComposer> sha256(const packed_byte_array<plonk::UltraPlonkComposer>& input);
+
+template byte_array<proof_system::TurboCircuitConstructor> sha256_block(
+    const byte_array<proof_system::TurboCircuitConstructor>& input);
+
+template packed_byte_array<proof_system::TurboCircuitConstructor> sha256(
+    const packed_byte_array<proof_system::TurboCircuitConstructor>& input);
+
+template byte_array<proof_system::StandardCircuitConstructor> sha256_block(
+    const byte_array<proof_system::StandardCircuitConstructor>& input);
+
+template packed_byte_array<proof_system::StandardCircuitConstructor> sha256(
+    const packed_byte_array<proof_system::StandardCircuitConstructor>& input);
+
+template packed_byte_array<proof_system::UltraCircuitConstructor> sha256(
+    const packed_byte_array<proof_system::UltraCircuitConstructor>& input);
 } // namespace stdlib
 } // namespace proof_system::plonk

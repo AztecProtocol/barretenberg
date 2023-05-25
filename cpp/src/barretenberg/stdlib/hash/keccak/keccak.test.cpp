@@ -1,14 +1,13 @@
 #include "keccak.hpp"
 #include "barretenberg/crypto/keccak/keccak.hpp"
 #include <gtest/gtest.h>
-#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
 #include "barretenberg/numeric/random/engine.hpp"
 #include "../../primitives/plookup/plookup.hpp"
 
 using namespace barretenberg;
 using namespace proof_system::plonk;
 
-typedef proof_system::plonk::UltraPlonkComposer Composer;
+typedef proof_system::UltraCircuitConstructor Composer;
 typedef stdlib::byte_array<Composer> byte_array;
 typedef stdlib::public_witness_t<Composer> public_witness_t;
 typedef stdlib::field_t<Composer> field_ct;
@@ -28,12 +27,8 @@ TEST(stdlib_keccak, keccak_format_input_table)
         field_ct limb(witness_ct(&composer, limb_native));
         stdlib::plookup_read<Composer>::read_from_1_to_2_table(plookup::KECCAK_FORMAT_INPUT, limb);
     }
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
 
-    auto proof = prover.construct_proof();
-
-    bool proof_result = verifier.verify_proof(proof);
+    bool proof_result = composer.check_circuit();
     EXPECT_EQ(proof_result, true);
 }
 
@@ -47,10 +42,7 @@ TEST(stdlib_keccak, keccak_format_output_table)
         field_ct limb(witness_ct(&composer, extended_native));
         stdlib::plookup_read<Composer>::read_from_1_to_2_table(plookup::KECCAK_FORMAT_OUTPUT, limb);
     }
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
-    auto proof = prover.construct_proof();
-    bool proof_result = verifier.verify_proof(proof);
+    bool proof_result = composer.check_circuit();
     EXPECT_EQ(proof_result, true);
 }
 
@@ -68,10 +60,7 @@ TEST(stdlib_keccak, keccak_theta_output_table)
         field_ct limb(witness_ct(&composer, extended_native));
         stdlib::plookup_read<Composer>::read_from_1_to_2_table(plookup::KECCAK_THETA_OUTPUT, limb);
     }
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
-    auto proof = prover.construct_proof();
-    bool proof_result = verifier.verify_proof(proof);
+    bool proof_result = composer.check_circuit();
     EXPECT_EQ(proof_result, true);
 }
 
@@ -105,15 +94,8 @@ TEST(stdlib_keccak, keccak_rho_output_table)
         EXPECT_EQ(static_cast<uint256_t>(result_msb.get_value()), expected_msb);
     });
 
-    std::cout << "create prover?" << std::endl;
-    auto prover = composer.create_prover();
-    std::cout << "create verifier" << std::endl;
-    printf("composer gates = %zu\n", composer.get_num_gates());
-    auto verifier = composer.create_verifier();
-    std::cout << "make proof" << std::endl;
-    auto proof = prover.construct_proof();
-    std::cout << "verify proof" << std::endl;
-    bool proof_result = verifier.verify_proof(proof);
+    info("composer gates = ", composer.get_num_gates());
+    bool proof_result = composer.check_circuit();
     EXPECT_EQ(proof_result, true);
 }
 
@@ -148,13 +130,8 @@ TEST(stdlib_keccak, keccak_chi_output_table)
         EXPECT_EQ(static_cast<uint256_t>(normalized.get_value()), normalized_native);
         EXPECT_EQ(static_cast<uint256_t>(msb.get_value()), binary_native >> 63);
     }
-    printf("composer gates = %zu\n", composer.get_num_gates());
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
-    std::cout << "make proof" << std::endl;
-    auto proof = prover.construct_proof();
-    std::cout << "verify proof" << std::endl;
-    bool proof_result = verifier.verify_proof(proof);
+    info("composer gates = n", composer.get_num_gates());
+    bool proof_result = composer.check_circuit();
     EXPECT_EQ(proof_result, true);
 }
 
@@ -194,12 +171,7 @@ TEST(stdlib_keccak, test_format_input_lanes)
         }
     }
 
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
-
-    auto proof = prover.construct_proof();
-
-    bool proof_result = verifier.verify_proof(proof);
+    bool proof_result = composer.check_circuit();
     EXPECT_EQ(proof_result, true);
 }
 
@@ -218,13 +190,7 @@ TEST(stdlib_keccak, test_single_block)
 
     composer.print_num_gates();
 
-    auto prover = composer.create_prover();
-    std::cout << "prover circuit_size = " << prover.key->circuit_size << std::endl;
-    auto verifier = composer.create_verifier();
-
-    auto proof = prover.construct_proof();
-
-    bool proof_result = verifier.verify_proof(proof);
+    bool proof_result = composer.check_circuit();
     EXPECT_EQ(proof_result, true);
 }
 
@@ -246,12 +212,7 @@ TEST(stdlib_keccak, test_double_block)
 
     composer.print_num_gates();
 
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
-
-    auto proof = prover.construct_proof();
-
-    bool proof_result = verifier.verify_proof(proof);
+    bool proof_result = composer.check_circuit();
     EXPECT_EQ(proof_result, true);
 }
 
@@ -278,11 +239,6 @@ TEST(stdlib_keccak, test_double_block_variable_length)
 
     EXPECT_EQ(output.get_value(), expected);
 
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
-
-    auto proof = prover.construct_proof();
-
-    bool proof_result = verifier.verify_proof(proof);
+    bool proof_result = composer.check_circuit();
     EXPECT_EQ(proof_result, true);
 }

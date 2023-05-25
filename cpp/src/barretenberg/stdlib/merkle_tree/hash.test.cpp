@@ -12,9 +12,7 @@ namespace proof_system::stdlib_merkle_tree_hash_test {
 using namespace barretenberg;
 using namespace plonk::stdlib;
 
-using Composer = plonk::UltraPlonkComposer;
-using Prover = plonk::UltraProver;
-using Verifier = plonk::UltraVerifier;
+using Composer = proof_system::UltraCircuitConstructor;
 
 using field_ct = field_t<Composer>;
 using witness_ct = witness_t<Composer>;

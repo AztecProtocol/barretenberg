@@ -19,9 +19,7 @@ namespace proof_system::test_stdlib_sha256 {
 using namespace barretenberg;
 using namespace proof_system::plonk::stdlib;
 
-using Composer = plonk::UltraPlonkComposer;
-using Prover = plonk::UltraProver;
-using Verifier = plonk::UltraVerifier;
+using Composer = proof_system::UltraCircuitConstructor;
 
 using byte_array_ct = byte_array<Composer>;
 using packed_byte_array_ct = packed_byte_array<Composer>;
@@ -151,40 +149,40 @@ TEST(stdlib_sha256, test_duplicate_proving_key)
 //     auto composer = UltraPlonkComposer();
 
 //     std::array<uint64_t, 64> w_inputs;
-//     std::array<plonk::stdlib::field_t<plonk::UltraPlonkComposer>, 64> w_elements;
+//     std::array<plonk::stdlib::field_t<proof_system::UltraCircuitConstructor>, 64> w_elements;
 
 //     for (size_t i = 0; i < 64; ++i) {
 //         w_inputs[i] = engine.get_random_uint32();
-//         w_elements[i] = plonk::stdlib::witness_t<plonk::UltraPlonkComposer>(&composer,
+//         w_elements[i] = plonk::stdlib::witness_t<proof_system::UltraCircuitConstructor>(&composer,
 //         barretenberg::fr(w_inputs[i]));
 //     }
 
 //     const auto expected = inner_block(w_inputs);
 
-//     const std::array<plonk::stdlib::field_t<plonk::UltraPlonkComposer>, 8> result =
+//     const std::array<plonk::stdlib::field_t<proof_system::UltraCircuitConstructor>, 8> result =
 //         plonk::stdlib::sha256_inner_block(w_elements);
 //     for (size_t i = 0; i < 8; ++i) {
 //         EXPECT_EQ(uint256_t(result[i].get_value()).data[0] & 0xffffffffUL,
 //                   uint256_t(expected[i]).data[0] & 0xffffffffUL);
 //     }
-//     printf("composer gates = %zu\n", composer.get_num_gates());
+//     info("composer gates = %zu\n", composer.get_num_gates());
 
 //     auto prover = composer.create_prover();
 
 //     auto verifier = composer.create_verifier();
 //     plonk::proof proof = prover.construct_proof();
-//     bool proof_result = verifier.verify_proof(proof);
+//     bool proof_result = composer.check_circuit();
 //     EXPECT_EQ(proof_result, true);
 // }
 
 TEST(stdlib_sha256, test_plookup_55_bytes)
 {
-    typedef plonk::stdlib::field_t<plonk::UltraPlonkComposer> field_pt;
-    typedef plonk::stdlib::packed_byte_array<plonk::UltraPlonkComposer> packed_byte_array_pt;
+    typedef plonk::stdlib::field_t<proof_system::UltraCircuitConstructor> field_pt;
+    typedef plonk::stdlib::packed_byte_array<proof_system::UltraCircuitConstructor> packed_byte_array_pt;
 
     // 55 bytes is the largest number of bytes that can be hashed in a single block,
     // accounting for the single padding bit, and the 64 size bits required by the SHA-256 standard.
-    auto composer = plonk::UltraPlonkComposer();
+    auto composer = proof_system::UltraCircuitConstructor();
     packed_byte_array_pt input(&composer, "An 8 character password? Snow White and the 7 Dwarves..");
 
     packed_byte_array_pt output_bits = plonk::stdlib::sha256(input);
@@ -199,15 +197,9 @@ TEST(stdlib_sha256, test_plookup_55_bytes)
     EXPECT_EQ(uint256_t(output[5].get_value()), 0xbde22ab0U);
     EXPECT_EQ(uint256_t(output[6].get_value()), 0x54a8fac7U);
     EXPECT_EQ(uint256_t(output[7].get_value()), 0x93791fc7U);
-    printf("composer gates = %zu\n", composer.get_num_gates());
+    info("composer gates = ", composer.get_num_gates());
 
-    auto prover = composer.create_prover();
-
-    auto verifier = composer.create_verifier();
-    printf("constructing proof \n");
-    plonk::proof proof = prover.construct_proof();
-    printf("constructed proof \n");
-    bool proof_result = verifier.verify_proof(proof);
+    bool proof_result = composer.check_circuit();
     EXPECT_EQ(proof_result, true);
 }
 
@@ -230,24 +222,18 @@ TEST(stdlib_sha256, test_55_bytes)
     EXPECT_EQ(output[5].get_value(), fr(0xbde22ab0ULL));
     EXPECT_EQ(output[6].get_value(), fr(0x54a8fac7ULL));
     EXPECT_EQ(output[7].get_value(), fr(0x93791fc7ULL));
-    printf("composer gates = %zu\n", composer.get_num_gates());
+    info("composer gates = ", composer.get_num_gates());
 
-    auto prover = composer.create_prover();
-
-    auto verifier = composer.create_verifier();
-    printf("constructing proof \n");
-    plonk::proof proof = prover.construct_proof();
-    printf("constructed proof \n");
-    bool proof_result = verifier.verify_proof(proof);
+    bool proof_result = composer.check_circuit();
     EXPECT_EQ(proof_result, true);
 }
 
 TEST(stdlib_sha256, test_NIST_vector_one_packed_byte_array)
 {
-    typedef plonk::stdlib::field_t<plonk::UltraPlonkComposer> field_pt;
-    typedef plonk::stdlib::packed_byte_array<plonk::UltraPlonkComposer> packed_byte_array_pt;
+    typedef plonk::stdlib::field_t<proof_system::UltraCircuitConstructor> field_pt;
+    typedef plonk::stdlib::packed_byte_array<proof_system::UltraCircuitConstructor> packed_byte_array_pt;
 
-    auto composer = plonk::UltraPlonkComposer();
+    auto composer = proof_system::UltraCircuitConstructor();
 
     packed_byte_array_pt input(&composer, "abc");
     packed_byte_array_pt output_bytes = plonk::stdlib::sha256(input);
@@ -260,25 +246,18 @@ TEST(stdlib_sha256, test_NIST_vector_one_packed_byte_array)
     EXPECT_EQ(uint256_t(output[5].get_value()).data[0], (uint64_t)0x96177A9CU);
     EXPECT_EQ(uint256_t(output[6].get_value()).data[0], (uint64_t)0xB410FF61U);
     EXPECT_EQ(uint256_t(output[7].get_value()).data[0], (uint64_t)0xF20015ADU);
-    printf("composer gates = %zu\n", composer.get_num_gates());
+    info("composer gates = ", composer.get_num_gates());
 
-    auto prover = composer.create_prover();
-
-    auto verifier = composer.create_verifier();
-    printf("constructing proof \n");
-    plonk::proof proof = prover.construct_proof();
-    printf("constructed proof \n");
-
-    bool proof_result = verifier.verify_proof(proof);
+    bool proof_result = composer.check_circuit();
     EXPECT_EQ(proof_result, true);
 }
 
 TEST(stdlib_sha256, test_NIST_vector_one)
 {
-    typedef plonk::stdlib::field_t<plonk::UltraPlonkComposer> field_pt;
-    typedef plonk::stdlib::packed_byte_array<plonk::UltraPlonkComposer> packed_byte_array_pt;
+    typedef plonk::stdlib::field_t<proof_system::UltraCircuitConstructor> field_pt;
+    typedef plonk::stdlib::packed_byte_array<proof_system::UltraCircuitConstructor> packed_byte_array_pt;
 
-    auto composer = plonk::UltraPlonkComposer();
+    auto composer = proof_system::UltraCircuitConstructor();
 
     packed_byte_array_pt input(&composer, "abc");
 
@@ -294,16 +273,9 @@ TEST(stdlib_sha256, test_NIST_vector_one)
     EXPECT_EQ(output[5].get_value(), fr(0x96177A9CULL));
     EXPECT_EQ(output[6].get_value(), fr(0xB410FF61ULL));
     EXPECT_EQ(output[7].get_value(), fr(0xF20015ADULL));
-    printf("composer gates = %zu\n", composer.get_num_gates());
+    info("composer gates = ", composer.get_num_gates());
 
-    auto prover = composer.create_prover();
-
-    auto verifier = composer.create_verifier();
-    printf("constructing proof \n");
-    plonk::proof proof = prover.construct_proof();
-    printf("constructed proof \n");
-
-    bool proof_result = verifier.verify_proof(proof);
+    bool proof_result = composer.check_circuit();
     EXPECT_EQ(proof_result, true);
 }
 
@@ -325,16 +297,9 @@ TEST(stdlib_sha256, test_NIST_vector_two)
     EXPECT_EQ(output[5].get_value(), 0x64FF2167ULL);
     EXPECT_EQ(output[6].get_value(), 0xF6ECEDD4ULL);
     EXPECT_EQ(output[7].get_value(), 0x19DB06C1ULL);
-    printf("composer gates = %zu\n", composer.get_num_gates());
+    info("composer gates = ", composer.get_num_gates());
 
-    auto prover = composer.create_prover();
-
-    auto verifier = composer.create_verifier();
-    printf("constructing proof \n");
-    plonk::proof proof = prover.construct_proof();
-    printf("constructed proof \n");
-
-    bool proof_result = verifier.verify_proof(proof);
+    bool proof_result = composer.check_circuit();
     EXPECT_EQ(proof_result, true);
 }
 
@@ -357,15 +322,9 @@ TEST(stdlib_sha256, test_NIST_vector_three)
     EXPECT_EQ(output[5].get_value(), 0x7dc4b5aaULL);
     EXPECT_EQ(output[6].get_value(), 0xe11204c0ULL);
     EXPECT_EQ(output[7].get_value(), 0x8ffe732bULL);
-    printf("composer gates = %zu\n", composer.get_num_gates());
+    info("composer gates = ", composer.get_num_gates());
 
-    auto prover = composer.create_prover();
-
-    auto verifier = composer.create_verifier();
-
-    plonk::proof proof = prover.construct_proof();
-
-    bool proof_result = verifier.verify_proof(proof);
+    bool proof_result = composer.check_circuit();
     EXPECT_EQ(proof_result, true);
 }
 
@@ -389,23 +348,18 @@ TEST(stdlib_sha256, test_NIST_vector_four)
     EXPECT_EQ(output[6].get_value(), 0xbd56c61cULL);
     EXPECT_EQ(output[7].get_value(), 0xcccd9504ULL);
 
-    auto prover = composer.create_prover();
+    info("composer gates = ", composer.get_num_gates());
 
-    printf("composer gates = %zu\n", composer.get_num_gates());
-    auto verifier = composer.create_verifier();
-
-    plonk::proof proof = prover.construct_proof();
-
-    bool proof_result = verifier.verify_proof(proof);
+    bool proof_result = composer.check_circuit();
     EXPECT_EQ(proof_result, true);
 }
 
 HEAVY_TEST(stdlib_sha256, test_NIST_vector_five)
 {
-    typedef plonk::stdlib::field_t<plonk::UltraPlonkComposer> field_pt;
-    typedef plonk::stdlib::packed_byte_array<plonk::UltraPlonkComposer> packed_byte_array_pt;
+    typedef plonk::stdlib::field_t<proof_system::UltraCircuitConstructor> field_pt;
+    typedef plonk::stdlib::packed_byte_array<proof_system::UltraCircuitConstructor> packed_byte_array_pt;
 
-    auto composer = plonk::UltraPlonkComposer();
+    auto composer = proof_system::UltraCircuitConstructor();
 
     packed_byte_array_pt input(
         &composer,
@@ -420,7 +374,7 @@ HEAVY_TEST(stdlib_sha256, test_NIST_vector_five)
         "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         "AAAAAAAAAA");
 
-    packed_byte_array_pt output_bits = plonk::stdlib::sha256<plonk::UltraPlonkComposer>(input);
+    packed_byte_array_pt output_bits = plonk::stdlib::sha256<proof_system::UltraCircuitConstructor>(input);
 
     std::vector<field_pt> output = output_bits.to_unverified_byte_slices(4);
 
@@ -433,14 +387,9 @@ HEAVY_TEST(stdlib_sha256, test_NIST_vector_five)
     EXPECT_EQ(output[6].get_value(), 0xa519105aULL);
     EXPECT_EQ(output[7].get_value(), 0x1eadd6e4ULL);
 
-    auto prover = composer.create_prover();
+    info("composer gates = ", composer.get_num_gates());
 
-    printf("composer gates = %zu\n", composer.get_num_gates());
-    auto verifier = composer.create_verifier();
-
-    plonk::proof proof = prover.construct_proof();
-
-    bool proof_result = verifier.verify_proof(proof);
+    bool proof_result = composer.check_circuit();
     EXPECT_EQ(proof_result, true);
 }
 

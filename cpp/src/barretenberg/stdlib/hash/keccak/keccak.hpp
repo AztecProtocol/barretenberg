@@ -196,6 +196,7 @@ template <typename Composer> class keccak {
 };
 
 extern template class keccak<plonk::UltraPlonkComposer>;
+extern template class keccak<proof_system::UltraCircuitConstructor>;
 
 } // namespace stdlib
 } // namespace proof_system::plonk

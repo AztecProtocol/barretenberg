@@ -756,6 +756,7 @@ stdlib::byte_array<Composer> keccak<Composer>::hash(byte_array_ct& input, const 
 }
 
 template class keccak<plonk::UltraPlonkComposer>;
+template class keccak<proof_system::UltraCircuitConstructor>;
 
 } // namespace stdlib
 } // namespace proof_system::plonk

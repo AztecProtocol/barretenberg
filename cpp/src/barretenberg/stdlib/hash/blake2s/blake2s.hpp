@@ -14,6 +14,12 @@ template <typename Composer> byte_array<Composer> blake2s(const byte_array<Compo
 extern template byte_array<plonk::StandardPlonkComposer> blake2s(const byte_array<plonk::StandardPlonkComposer>& input);
 extern template byte_array<plonk::TurboPlonkComposer> blake2s(const byte_array<plonk::TurboPlonkComposer>& input);
 extern template byte_array<plonk::UltraPlonkComposer> blake2s(const byte_array<plonk::UltraPlonkComposer>& input);
+extern template byte_array<proof_system::StandardCircuitConstructor> blake2s(
+    const byte_array<proof_system::StandardCircuitConstructor>& input);
+extern template byte_array<proof_system::TurboCircuitConstructor> blake2s(
+    const byte_array<proof_system::TurboCircuitConstructor>& input);
+extern template byte_array<proof_system::UltraCircuitConstructor> blake2s(
+    const byte_array<proof_system::UltraCircuitConstructor>& input);
 
 } // namespace stdlib
 } // namespace proof_system::plonk

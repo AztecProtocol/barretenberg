@@ -168,6 +168,8 @@ template <typename Composer> byte_array<Composer> blake2s(const byte_array<Compo
 }
 
 template byte_array<plonk::UltraPlonkComposer> blake2s(const byte_array<plonk::UltraPlonkComposer>& input);
+template byte_array<proof_system::UltraCircuitConstructor> blake2s(
+    const byte_array<proof_system::UltraCircuitConstructor>& input);
 
 } // namespace blake2s_plookup
 
