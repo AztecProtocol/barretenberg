@@ -58,6 +58,7 @@ template <typename Composer> class stdlib_array : public testing::Test {
         EXPECT_TRUE(filled_len.is_constant());
 
         info("composer gates = ", composer.get_num_gates());
+        bool proof_result = composer.check_circuit();
         EXPECT_EQ(proof_result, true);
     }
 
