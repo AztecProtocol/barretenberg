@@ -66,5 +66,9 @@ cmake --build --preset $PRESET ${@/#/--target }
 ./scripts/install-wasi-sdk.sh
 
 # Build WASM.
+cmake --preset wasm
+cmake --build --preset wasm
+
+# Build WASM with new threading.
 cmake --preset wasm-threads
 cmake --build --preset wasm-threads
