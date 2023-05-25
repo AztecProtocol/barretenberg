@@ -61,7 +61,7 @@ export class BufferReader {
   }
 
   public readString(): string {
-    return this.readBuffer().toString();
+    return new TextDecoder().decode(this.readBuffer());
   }
 
   public readBuffer(): Uint8Array {
