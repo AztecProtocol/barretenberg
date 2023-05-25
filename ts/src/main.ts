@@ -13,7 +13,7 @@ const debug = createDebug('bb.js');
 createDebug.enable('*');
 
 // Maximum we support.
-const CIRCUIT_SIZE = 2 ** 19;
+const CIRCUIT_SIZE = 2 ** 18;
 
 function getBytecode(jsonPath: string) {
   const json = readFileSync(jsonPath, 'utf-8');
@@ -163,9 +163,11 @@ export async function proof_as_fields(proofPath: string, num_inner_public_inputs
   }
 }
 
-export async function vk_as_fields(proofPath: string, num_inner_public_inputs: number, vkey_oututPath: string, key_hash_outputPath: string) {
+export async function vk_as_fields(vkey_oututPath: string, key_hash_outputPath: string) {
   const { api, acirComposer } = await init();
 
+  // TODO: move to passing in the key so we don't have to recompute it
+  api.acirInitVerificationKey(acirComposer);
   try {
     debug('serializing proof byte array into field elements');
     const [vk_as_fields, vk_hash_as_fields] = await api.acirSerializeVerificationKeyIntoFields(acirComposer);
@@ -240,5 +242,24 @@ program
   .action(async ({ jsonPath, outputPath }) => {
     await writeVk(jsonPath, outputPath);
   });
+
+program
+  .command('proof_as_fields')
+  .description('Return the proof as fields elements')
+  .requiredOption('-p, --proof-path <path>', 'Specify the proof path')
+  .requiredOption('-n, --num-public-inputs', 'Specify the number of public inputs')
+  .requiredOption('-o, --output-path <path>', 'Specify the path to write the proof fields')
+  .action(async ({ proofPath, numPublicInputs, outputPath }) => {
+    await proof_as_fields(proofPath, numPublicInputs, outputPath);
+  })
+
+program
+  .command('vk_as_fields')
+  .description('Return the verifiation key represented as fields elements. Also return the verification key hash.')
+  .requiredOption('-v, --vkey-output-path <path>', 'Specify the path to write the verification key fields')
+  .requiredOption('-h, --key-hash-output-path <path>', 'Specify the path to write the verification key hash')
+  .action(async ({vkey_oututPath, key_hash_outputPath }) => {
+    await vk_as_fields(vkey_oututPath, key_hash_outputPath);
+  })
 
 program.parse(process.argv);

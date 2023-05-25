@@ -25,15 +25,15 @@ class AcirComposer {
     size_t get_exact_circuit_size() { return exact_circuit_size_; };
     size_t get_total_circuit_size() { return total_circuit_size_; };
 
-    std::vector<barretenberg::fr> verify_recursive_proof(std::vector<barretenberg::fr> const& proof,
-                                                         std::vector<barretenberg::fr> const& verification_key,
-                                                         uint32_t num_public_inputs,
-                                                         std::vector<barretenberg::fr> input_aggregation_object);
-
     std::vector<barretenberg::fr> serialize_proof_into_fields(std::vector<uint8_t> const& proof,
                                                               size_t num_inner_public_inputs);
 
     std::vector<barretenberg::fr> serialize_verification_key_into_fields();
+
+    // std::vector<barretenberg::fr> verify_recursive_proof(std::vector<barretenberg::fr> const& proof,
+    //                                                  std::vector<barretenberg::fr> const& verification_key,
+    //                                                  uint32_t num_public_inputs,
+    //                                                  std::vector<barretenberg::fr> input_aggregation_object)
 
   private:
     std::shared_ptr<proof_system::ReferenceStringFactory> crs_factory_;

@@ -28,6 +28,7 @@ void AcirComposer::init_proving_key(acir_format::acir_format& constraint_system,
     constraint_system.constraints.shrink_to_fit();
 
     total_circuit_size_ = composer_.get_total_circuit_size();
+    std::cout << "total_circuit_size_: " << total_circuit_size_ << std::endl;
     circuit_subgroup_size_ = composer_.get_circuit_subgroup_size(total_circuit_size_);
 
     proving_key_ = composer_.compute_proving_key();
@@ -85,91 +86,6 @@ std::string AcirComposer::get_solidity_verifier()
     return stream.str();
 }
 
-std::vector<barretenberg::fr> AcirComposer::verify_recursive_proof(
-    std::vector<barretenberg::fr> const& proof,
-    std::vector<barretenberg::fr> const& verification_key,
-    uint32_t num_public_inputs,
-    std::vector<barretenberg::fr> input_aggregation_object)
-{
-    const size_t NUM_AGGREGATION_ELEMENTS = acir_format::RecursionConstraint::NUM_AGGREGATION_ELEMENTS;
-
-    bool inner_aggregation_all_zero = true;
-    for (size_t i = 0; i < input_aggregation_object.size(); i++) {
-        inner_aggregation_all_zero &= (input_aggregation_object[i].is_zero());
-    }
-
-    acir_format::aggregation_state_ct previous_aggregation;
-    if (!inner_aggregation_all_zero) {
-        std::array<acir_format::bn254::fq_ct, NUM_AGGREGATION_ELEMENTS> aggregation_elements;
-        for (size_t i = 0; i < NUM_AGGREGATION_ELEMENTS; ++i) {
-            aggregation_elements[i] = acir_format::bn254::fq_ct(
-                acir_format::field_ct(input_aggregation_object[NUM_AGGREGATION_ELEMENTS * i]),
-                acir_format::field_ct(input_aggregation_object[NUM_AGGREGATION_ELEMENTS * i + 1]),
-                acir_format::field_ct(input_aggregation_object[NUM_AGGREGATION_ELEMENTS * i + 2]),
-                acir_format::field_ct(input_aggregation_object[NUM_AGGREGATION_ELEMENTS * i + 3]));
-            aggregation_elements[i].assert_is_in_field();
-        }
-        // If we have a previous aggregation object, assign it to `previous_aggregation` so that it is included
-        // in stdlib::recursion::verify_proof
-        previous_aggregation.P0 = acir_format::bn254::g1_ct(aggregation_elements[0], aggregation_elements[1]);
-        previous_aggregation.P1 = acir_format::bn254::g1_ct(aggregation_elements[2], aggregation_elements[3]);
-        previous_aggregation.has_data = true;
-    } else {
-        previous_aggregation.has_data = false;
-    }
-
-    composer_ = acir_format::Composer();
-
-    std::vector<acir_format::field_ct> proof_fields(proof.size());
-    std::vector<acir_format::field_ct> key_fields(verification_key.size());
-    for (size_t i = 0; i < proof.size(); i++) {
-        // TODO(maxim): The stdlib pairing primitives fetch the context from the elements being used in the pairing
-        // computation When attempting to simulate recursive verification without a full circuit where the context of
-        // these elements are not set we will get a seg fault. Using `witness_ct` here provides a workaround where these
-        // elements will have their context set. We should enable the native verifier to return an aggregation state so
-        // that we can avoid creating an unnecessary circuit and this workaround
-        proof_fields[i] = acir_format::field_ct(acir_format::witness_ct(&composer_, proof[i]));
-    }
-    for (size_t i = 0; i < verification_key.size(); i++) {
-        key_fields[i] = acir_format::field_ct(verification_key[i]);
-    }
-
-    transcript::Manifest manifest = acir_format::Composer::create_unrolled_manifest(num_public_inputs);
-
-    std::array<uint32_t, acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE> nested_aggregation_object = {};
-    for (size_t i = 6; i < 22; ++i) {
-        nested_aggregation_object[i - 6] = uint32_t(key_fields[i].get_value());
-    }
-    bool nested_aggregation_indices_all_zero = true;
-    for (const auto& idx : nested_aggregation_object) {
-        nested_aggregation_indices_all_zero &= (idx == 0);
-    }
-    const bool inner_proof_contains_recursive_proof = !nested_aggregation_indices_all_zero;
-
-    std::shared_ptr<acir_format::verification_key_ct> vkey = acir_format::verification_key_ct::from_field_elements(
-        &composer_, key_fields, inner_proof_contains_recursive_proof, nested_aggregation_object);
-
-    acir_format::Transcript_ct transcript(&composer_, manifest, proof_fields, num_public_inputs);
-
-    acir_format::aggregation_state_ct result =
-        proof_system::plonk::stdlib::recursion::verify_proof_<acir_format::bn254, acir_format::noir_recursive_settings>(
-            &composer_, vkey, transcript, previous_aggregation);
-
-    std::vector<barretenberg::fr> output_aggregation_object;
-    for (size_t i = 0; i < 4; ++i) {
-        auto P0_x = result.P0.x.binary_basis_limbs[i].element.get_value();
-        auto P0_y = result.P0.y.binary_basis_limbs[i].element.get_value();
-        auto P1_x = result.P1.x.binary_basis_limbs[i].element.get_value();
-        auto P1_y = result.P1.y.binary_basis_limbs[i].element.get_value();
-        output_aggregation_object.emplace_back(P0_x);
-        output_aggregation_object.emplace_back(P0_y);
-        output_aggregation_object.emplace_back(P1_x);
-        output_aggregation_object.emplace_back(P1_y);
-    }
-
-    return output_aggregation_object;
-}
-
 std::vector<barretenberg::fr> AcirComposer::serialize_proof_into_fields(std::vector<uint8_t> const& proof,
                                                                         size_t num_inner_public_inputs)
 {
@@ -188,5 +104,93 @@ std::vector<barretenberg::fr> AcirComposer::serialize_verification_key_into_fiel
     std::vector<barretenberg::fr> output = acir_format::export_key_in_recursion_format(verification_key_);
     return output;
 }
+
+// std::vector<barretenberg::fr> AcirComposer::verify_recursive_proof(
+//     std::vector<barretenberg::fr> const& proof,
+//     std::vector<barretenberg::fr> const& verification_key,
+//     uint32_t num_public_inputs,
+//     std::vector<barretenberg::fr> input_aggregation_object)
+// {
+//     const size_t NUM_AGGREGATION_ELEMENTS = acir_format::RecursionConstraint::NUM_AGGREGATION_ELEMENTS;
+
+//     bool inner_aggregation_all_zero = true;
+//     for (size_t i = 0; i < input_aggregation_object.size(); i++) {
+//         inner_aggregation_all_zero &= (input_aggregation_object[i].is_zero());
+//     }
+
+//     acir_format::aggregation_state_ct previous_aggregation;
+//     if (!inner_aggregation_all_zero) {
+//         std::array<acir_format::bn254::fq_ct, NUM_AGGREGATION_ELEMENTS> aggregation_elements;
+//         for (size_t i = 0; i < NUM_AGGREGATION_ELEMENTS; ++i) {
+//             aggregation_elements[i] = acir_format::bn254::fq_ct(
+//                 acir_format::field_ct(input_aggregation_object[NUM_AGGREGATION_ELEMENTS * i]),
+//                 acir_format::field_ct(input_aggregation_object[NUM_AGGREGATION_ELEMENTS * i + 1]),
+//                 acir_format::field_ct(input_aggregation_object[NUM_AGGREGATION_ELEMENTS * i + 2]),
+//                 acir_format::field_ct(input_aggregation_object[NUM_AGGREGATION_ELEMENTS * i + 3]));
+//             aggregation_elements[i].assert_is_in_field();
+//         }
+//         // If we have a previous aggregation object, assign it to `previous_aggregation` so that it is included
+//         // in stdlib::recursion::verify_proof
+//         previous_aggregation.P0 = acir_format::bn254::g1_ct(aggregation_elements[0], aggregation_elements[1]);
+//         previous_aggregation.P1 = acir_format::bn254::g1_ct(aggregation_elements[2], aggregation_elements[3]);
+//         previous_aggregation.has_data = true;
+//     } else {
+//         previous_aggregation.has_data = false;
+//     }
+
+//     composer_ = acir_format::Composer();
+
+//     std::vector<acir_format::field_ct> proof_fields(proof.size());
+//     std::vector<acir_format::field_ct> key_fields(verification_key.size());
+//     for (size_t i = 0; i < proof.size(); i++) {
+//         // TODO(maxim): The stdlib pairing primitives fetch the context from the elements being used in the pairing
+//         // computation When attempting to simulate recursive verification without a full circuit where the context of
+//         // these elements are not set we will get a seg fault. Using `witness_ct` here provides a workaround where
+//         these
+//         // elements will have their context set. We should enable the native verifier to return an aggregation state
+//         so
+//         // that we can avoid creating an unnecessary circuit and this workaround
+//         proof_fields[i] = acir_format::field_ct(acir_format::witness_ct(&composer_, proof[i]));
+//     }
+//     for (size_t i = 0; i < verification_key.size(); i++) {
+//         key_fields[i] = acir_format::field_ct(verification_key[i]);
+//     }
+
+//     transcript::Manifest manifest = acir_format::Composer::create_unrolled_manifest(num_public_inputs);
+
+//     std::array<uint32_t, acir_format::RecursionConstraint::AGGREGATION_OBJECT_SIZE> nested_aggregation_object = {};
+//     for (size_t i = 6; i < 22; ++i) {
+//         nested_aggregation_object[i - 6] = uint32_t(key_fields[i].get_value());
+//     }
+//     bool nested_aggregation_indices_all_zero = true;
+//     for (const auto& idx : nested_aggregation_object) {
+//         nested_aggregation_indices_all_zero &= (idx == 0);
+//     }
+//     const bool inner_proof_contains_recursive_proof = !nested_aggregation_indices_all_zero;
+
+//     std::shared_ptr<acir_format::verification_key_ct> vkey = acir_format::verification_key_ct::from_field_elements(
+//         &composer_, key_fields, inner_proof_contains_recursive_proof, nested_aggregation_object);
+
+//     acir_format::Transcript_ct transcript(&composer_, manifest, proof_fields, num_public_inputs);
+
+//     acir_format::aggregation_state_ct result =
+//         proof_system::plonk::stdlib::recursion::verify_proof_<acir_format::bn254,
+//         acir_format::noir_recursive_settings>(
+//             &composer_, vkey, transcript, previous_aggregation);
+
+//     std::vector<barretenberg::fr> output_aggregation_object;
+//     for (size_t i = 0; i < 4; ++i) {
+//         auto P0_x = result.P0.x.binary_basis_limbs[i].element.get_value();
+//         auto P0_y = result.P0.y.binary_basis_limbs[i].element.get_value();
+//         auto P1_x = result.P1.x.binary_basis_limbs[i].element.get_value();
+//         auto P1_y = result.P1.y.binary_basis_limbs[i].element.get_value();
+//         output_aggregation_object.emplace_back(P0_x);
+//         output_aggregation_object.emplace_back(P0_y);
+//         output_aggregation_object.emplace_back(P1_x);
+//         output_aggregation_object.emplace_back(P1_y);
+//     }
+
+//     return output_aggregation_object;
+// }
 
 } // namespace acir_proofs

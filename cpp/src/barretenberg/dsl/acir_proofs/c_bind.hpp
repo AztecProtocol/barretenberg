@@ -38,11 +38,6 @@ WASM_EXPORT void acir_get_exact_circuit_size(in_ptr acir_composer_ptr, uint32_t*
 
 WASM_EXPORT void acir_get_total_circuit_size(in_ptr acir_composer_ptr, uint32_t* out);
 
-WASM_EXPORT void acir_verify_recursive_proof(in_ptr acir_composer_ptr,
-                                             uint8_t const* proof_buf,
-                                             uint32_t const* num_inner_public_inputs,
-                                             uint8_t** out);
-
 WASM_EXPORT void acir_serialize_proof_into_fields(in_ptr acir_composer_ptr,
                                                   uint8_t const* proof_buf,
                                                   uint32_t const* num_inner_public_inputs,
@@ -51,3 +46,8 @@ WASM_EXPORT void acir_serialize_proof_into_fields(in_ptr acir_composer_ptr,
 WASM_EXPORT void acir_serialize_verification_key_into_fields(in_ptr acir_composer_ptr,
                                                              uint8_t** out_vkey,
                                                              uint8_t** out_key_hash);
+
+// WASM_EXPORT void acir_verify_recursive_proof(in_ptr acir_composer_ptr,
+//                                              uint8_t const* proof_buf,
+//                                              uint32_t const* num_inner_public_inputs,
+//                                              uint8_t** out);
