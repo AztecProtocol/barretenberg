@@ -24,10 +24,9 @@ auto& engine = numeric::random::get_debug_engine();
 
 template <class Composer> class PackedByteArrayTest : public ::testing::Test {};
 
-using ComposerTypes = ::testing::Types<honk::StandardHonkComposer,
-                                       plonk::StandardPlonkComposer,
-                                       plonk::TurboPlonkComposer,
-                                       plonk::UltraPlonkComposer>;
+using ComposerTypes = ::testing::Types<proof_system::StandardCircuitConstructor,
+                                       proof_system::TurboCircuitConstructor,
+                                       proof_system::UltraCircuitConstructor>;
 TYPED_TEST_SUITE(PackedByteArrayTest, ComposerTypes);
 
 TYPED_TEST(PackedByteArrayTest, string_constructor_and_get_value_consistency)
@@ -42,10 +41,7 @@ TYPED_TEST(PackedByteArrayTest, string_constructor_and_get_value_consistency)
 
     EXPECT_EQ(input, output);
 
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
-    plonk::proof proof = prover.construct_proof();
-    EXPECT_TRUE(verifier.verify_proof(proof));
+    EXPECT_TRUE(composer.check_circuit());
 }
 
 TYPED_TEST(PackedByteArrayTest, byte_array_constructor_consistency)
@@ -60,10 +56,7 @@ TYPED_TEST(PackedByteArrayTest, byte_array_constructor_consistency)
 
     EXPECT_EQ(input, output);
 
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
-    plonk::proof proof = prover.construct_proof();
-    EXPECT_TRUE(verifier.verify_proof(proof));
+    EXPECT_TRUE(composer.check_circuit());
 }
 
 TYPED_TEST(PackedByteArrayTest, byte_array_cast_consistency)
@@ -77,10 +70,7 @@ TYPED_TEST(PackedByteArrayTest, byte_array_cast_consistency)
     std::string output = converted.get_string();
 
     EXPECT_EQ(input, output);
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
-    plonk::proof proof = prover.construct_proof();
-    EXPECT_TRUE(verifier.verify_proof(proof));
+    EXPECT_TRUE(composer.check_circuit());
 }
 
 TYPED_TEST(PackedByteArrayTest, TestUnverifiedByteSlices)
@@ -109,10 +99,7 @@ TYPED_TEST(PackedByteArrayTest, TestUnverifiedByteSlices)
         EXPECT_EQ(result, uint32s[i]);
     }
 
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
-    plonk::proof proof = prover.construct_proof();
-    EXPECT_TRUE(verifier.verify_proof(proof));
+    EXPECT_TRUE(composer.check_circuit());
 }
 
 TYPED_TEST(PackedByteArrayTest, TestAppendUint8)
@@ -162,10 +149,7 @@ TYPED_TEST(PackedByteArrayTest, TestAppendUint8)
         EXPECT_EQ(result, bytes[i]);
     }
 
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
-    plonk::proof proof = prover.construct_proof();
-    EXPECT_TRUE(verifier.verify_proof(proof));
+    EXPECT_TRUE(composer.check_circuit());
 }
 
 TYPED_TEST(PackedByteArrayTest, TestAppendUint32)
@@ -214,10 +198,7 @@ TYPED_TEST(PackedByteArrayTest, TestAppendUint32)
         EXPECT_EQ(result, uint32s[i]);
     }
 
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
-    plonk::proof proof = prover.construct_proof();
-    EXPECT_TRUE(verifier.verify_proof(proof));
+    EXPECT_TRUE(composer.check_circuit());
 }
 
 } // namespace test_stdlib_packed_byte_array
