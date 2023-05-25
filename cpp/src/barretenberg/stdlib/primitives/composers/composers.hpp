@@ -4,6 +4,7 @@
 #include "barretenberg/plonk/composer/standard_plonk_composer.hpp"
 #include "barretenberg/plonk/composer/turbo_plonk_composer.hpp"
 #include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
+#include "barretenberg/honk/composer/ultra_honk_composer.hpp"
 #include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
 #include "barretenberg/proof_system/circuit_constructors/turbo_circuit_constructor.hpp"
 #include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"

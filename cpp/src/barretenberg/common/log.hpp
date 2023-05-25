@@ -8,7 +8,6 @@
 #define BENCHMARK_INFO_PREFIX "##BENCHMARK_INFO_PREFIX##"
 #define BENCHMARK_INFO_SEPARATOR "#"
 #define BENCHMARK_INFO_SUFFIX "##BENCHMARK_INFO_SUFFIX##"
-
 #define GET_COMPOSER_NAME_STRING(composer)                                                                             \
     (typeid(composer) == typeid(plonk::StandardPlonkComposer)                                                          \
          ? "StandardPlonk"                                                                                             \
