@@ -43,7 +43,7 @@ async function init() {
   return { api, acirComposer };
 }
 
-export async function proveAndVerify(jsonPath: string, witnessPath: string) {
+export async function proveAndVerify(jsonPath: string, witnessPath: string, is_recursive: boolean) {
   const { api, acirComposer } = await init();
   try {
     debug('initing proving key...');
@@ -58,9 +58,9 @@ export async function proveAndVerify(jsonPath: string, witnessPath: string) {
 
     debug(`creating proof...`);
     const witness = getWitness(witnessPath);
-    const proof = await api.acirCreateProof(acirComposer, new RawBuffer(bytecode), new RawBuffer(witness));
+    const proof = await api.acirCreateProof(acirComposer, new RawBuffer(bytecode), new RawBuffer(witness), false);
 
-    const verified = await api.acirVerifyProof(acirComposer, proof);
+    const verified = await api.acirVerifyProof(acirComposer, proof, false);
     debug(`verified: ${verified}`);
     return verified;
   } finally {
@@ -68,7 +68,7 @@ export async function proveAndVerify(jsonPath: string, witnessPath: string) {
   }
 }
 
-export async function prove(jsonPath: string, witnessPath: string, outputPath: string) {
+export async function prove(jsonPath: string, witnessPath: string, is_recursive: boolean, outputPath: string) {
   const { api, acirComposer } = await init();
   try {
     debug('initing proving key...');
@@ -80,7 +80,7 @@ export async function prove(jsonPath: string, witnessPath: string, outputPath: s
 
     debug(`creating proof...`);
     const witness = getWitness(witnessPath);
-    const proof = await api.acirCreateProof(acirComposer, new RawBuffer(bytecode), new RawBuffer(witness));
+    const proof = await api.acirCreateProof(acirComposer, new RawBuffer(bytecode), new RawBuffer(witness), is_recursive);
 
     writeFileSync(outputPath, proof);
     debug('done.');
@@ -89,7 +89,7 @@ export async function prove(jsonPath: string, witnessPath: string, outputPath: s
   }
 }
 
-export async function verify(jsonPath: string, proofPath: string) {
+export async function verify(jsonPath: string, proofPath: string, is_recursive: boolean) {
   const { api, acirComposer } = await init();
   try {
     debug('initing proving key...');
@@ -99,7 +99,7 @@ export async function verify(jsonPath: string, proofPath: string) {
     debug('initing verification key...');
     await api.acirInitVerificationKey(acirComposer);
 
-    const verified = await api.acirVerifyProof(acirComposer, readFileSync(proofPath));
+    const verified = await api.acirVerifyProof(acirComposer, readFileSync(proofPath), is_recursive);
     debug(`verified: ${verified}`);
     return verified;
   } finally {
@@ -129,6 +129,35 @@ export async function contract(jsonPath: string, outputPath: string) {
   }
 }
 
+export async function proof_as_fields(proofPath: string, num_inner_public_inputs: number, outputPath: string) {
+  const { api, acirComposer } = await init();
+
+  try {
+    debug('serializing proof byte array into field elements');
+    const proof_as_fields = await api.acirSerializeProofIntoFields(acirComposer, readFileSync(proofPath), num_inner_public_inputs);
+
+    writeFileSync(outputPath, proof_as_fields);
+    debug('done.');
+  } finally {
+    await api.destroy();
+  }
+}
+
+export async function vk_as_fields(proofPath: string, num_inner_public_inputs: number, vkey_oututPath: string, key_hash_outputPath: string) {
+  const { api, acirComposer } = await init();
+
+  try {
+    debug('serializing proof byte array into field elements');
+    const [vk_as_fields, vk_hash_as_fields] = await api.acirSerializeVerificationKeyIntoFields(acirComposer);
+
+    writeFileSync(vkey_oututPath, vk_as_fields);
+    writeFileSync(key_hash_outputPath, vk_hash_as_fields);
+    debug('done.');
+  } finally {
+    await api.destroy();
+  }
+}
+
 // nargo use bb.js: backend -> bb.js
 // backend prove --data-dir data --witness /foo/bar/witness.tr --json /foo/bar/main.json
 // backend verify ...
@@ -146,8 +175,9 @@ program
   .description('Generate a proof and verify it. Process exits with success or failure code.')
   .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
   .option('-w, --witness-path <path>', 'Specify the witness path', './target/witness.tr')
-  .action(async ({ jsonPath, witnessPath }) => {
-    const result = await proveAndVerify(jsonPath, witnessPath);
+  .option('-r, --recursive', 'prove and verify using recursive prover and verifier')
+  .action(async ({ jsonPath, witnessPath, is_recursive }) => {
+    const result = await proveAndVerify(jsonPath, witnessPath, is_recursive);
     process.exit(result ? 0 : 1);
   });
 
@@ -156,10 +186,11 @@ program
   .description('Generate a proof and write it to a file.')
   .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
   .option('-w, --witness-path <path>', 'Specify the witness path', './target/witness.tr')
+  .option('-r, --recursive', 'prove using recursive prover')
   .option('-o, --output-dir <path>', 'Specify the proof output dir', './proofs')
   .requiredOption('-n, --name <filename>', 'Output file name.')
-  .action(async ({ jsonPath, witnessPath, outputDir, name }) => {
-    await prove(jsonPath, witnessPath, outputDir + '/' + name);
+  .action(async ({ jsonPath, witnessPath, is_recursive, outputDir, name }) => {
+    await prove(jsonPath, witnessPath, is_recursive, outputDir + '/' + name);
   });
 
 program
@@ -167,8 +198,9 @@ program
   .description('Verify a proof. Process exists with success or failure code.')
   .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
   .requiredOption('-p, --proof-path <path>', 'Specify the path to the proof')
-  .action(async ({ jsonPath, proofPath }) => {
-    await verify(jsonPath, proofPath);
+  .option('-r, --recursive', 'prove using recursive prover')
+  .action(async ({ jsonPath, proofPath, is_recursive }) => {
+    await verify(jsonPath, proofPath, is_recursive);
   });
 
 program

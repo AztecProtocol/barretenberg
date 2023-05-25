@@ -201,8 +201,8 @@ export class BarretenbergApi {
     return;
   }
 
-  async acirCreateProof(acirComposerPtr: Ptr, constraintSystemBuf: Uint8Array, witnessBuf: Uint8Array): Promise<Uint8Array> {
-    const result = await this.binder.callWasmExport('acir_create_proof', [acirComposerPtr, constraintSystemBuf, witnessBuf], [BufferDeserializer()]);
+  async acirCreateProof(acirComposerPtr: Ptr, constraintSystemBuf: Uint8Array, witnessBuf: Uint8Array, isRecursive: boolean): Promise<Uint8Array> {
+    const result = await this.binder.callWasmExport('acir_create_proof', [acirComposerPtr, constraintSystemBuf, witnessBuf, isRecursive], [BufferDeserializer()]);
     return result[0];
   }
 
@@ -211,8 +211,8 @@ export class BarretenbergApi {
     return;
   }
 
-  async acirVerifyProof(acirComposerPtr: Ptr, proofBuf: Uint8Array): Promise<boolean> {
-    const result = await this.binder.callWasmExport('acir_verify_proof', [acirComposerPtr, proofBuf], [BoolDeserializer()]);
+  async acirVerifyProof(acirComposerPtr: Ptr, proofBuf: Uint8Array, isRecursive: boolean): Promise<boolean> {
+    const result = await this.binder.callWasmExport('acir_verify_proof', [acirComposerPtr, proofBuf, isRecursive], [BoolDeserializer()]);
     return result[0];
   }
 
@@ -444,8 +444,8 @@ export class BarretenbergApiSync {
     return;
   }
 
-  acirCreateProof(acirComposerPtr: Ptr, constraintSystemBuf: Uint8Array, witnessBuf: Uint8Array): Uint8Array {
-    const result = this.binder.callWasmExport('acir_create_proof', [acirComposerPtr, constraintSystemBuf, witnessBuf], [BufferDeserializer()]);
+  acirCreateProof(acirComposerPtr: Ptr, constraintSystemBuf: Uint8Array, witnessBuf: Uint8Array, isRecursive: boolean): Uint8Array {
+    const result = this.binder.callWasmExport('acir_create_proof', [acirComposerPtr, constraintSystemBuf, witnessBuf, isRecursive], [BufferDeserializer()]);
     return result[0];
   }
 
@@ -454,8 +454,8 @@ export class BarretenbergApiSync {
     return;
   }
 
-  acirVerifyProof(acirComposerPtr: Ptr, proofBuf: Uint8Array): boolean {
-    const result = this.binder.callWasmExport('acir_verify_proof', [acirComposerPtr, proofBuf], [BoolDeserializer()]);
+  acirVerifyProof(acirComposerPtr: Ptr, proofBuf: Uint8Array, isRecursive: boolean): boolean {
+    const result = this.binder.callWasmExport('acir_verify_proof', [acirComposerPtr, proofBuf, isRecursive], [BoolDeserializer()]);
     return result[0];
   }
 

@@ -13,11 +13,13 @@ class AcirComposer {
 
     void init_proving_key(acir_format::acir_format& constraint_system, size_t size_hint = 0);
 
-    std::vector<uint8_t> create_proof(acir_format::acir_format& constraint_system, acir_format::WitnessVector& witness);
+    std::vector<uint8_t> create_proof(acir_format::acir_format& constraint_system,
+                                      acir_format::WitnessVector& witness,
+                                      bool is_recursive);
 
     void init_verification_key();
 
-    bool verify_proof(std::vector<uint8_t> const& proof);
+    bool verify_proof(std::vector<uint8_t> const& proof, bool is_recursive);
 
     std::string get_solidity_verifier();
     size_t get_exact_circuit_size() { return exact_circuit_size_; };

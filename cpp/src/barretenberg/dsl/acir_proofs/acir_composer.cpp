@@ -40,7 +40,8 @@ void AcirComposer::init_proving_key(acir_format::acir_format& constraint_system,
 }
 
 std::vector<uint8_t> AcirComposer::create_proof(acir_format::acir_format& constraint_system,
-                                                acir_format::WitnessVector& witness)
+                                                acir_format::WitnessVector& witness,
+                                                bool is_recursive)
 {
     composer_ = acir_format::Composer(proving_key_, verification_key_, circuit_subgroup_size_);
     // You can't produce the verification key unless you manually set the crs. Which seems like a bug.
@@ -57,12 +58,17 @@ std::vector<uint8_t> AcirComposer::create_proof(acir_format::acir_format& constr
     witness.clear();
     witness.shrink_to_fit();
 
-    auto prover = composer_.create_ultra_with_keccak_prover();
     std::cout << "num_gates: " << composer_.num_gates << std::endl;
     std::cout << "circuit_finalised: " << composer_.circuit_finalised << std::endl;
-    std::cout << "prover.get_circuit_size(): " << prover.get_circuit_size() << std::endl;
 
-    auto proof = prover.construct_proof().proof_data;
+    std::vector<uint8_t> proof;
+    if (is_recursive) {
+        auto prover = composer_.create_prover();
+        proof = prover.construct_proof().proof_data;
+    } else {
+        auto prover = composer_.create_ultra_with_keccak_prover();
+        proof = prover.construct_proof().proof_data;
+    }
     return proof;
 }
 
@@ -71,10 +77,17 @@ void AcirComposer::init_verification_key()
     verification_key_ = composer_.compute_verification_key();
 }
 
-bool AcirComposer::verify_proof(std::vector<uint8_t> const& proof)
+bool AcirComposer::verify_proof(std::vector<uint8_t> const& proof, bool is_recursive)
 {
-    auto verifier = composer_.create_ultra_with_keccak_verifier();
-    return verifier.verify_proof({ proof });
+    bool verified = false;
+    if (is_recursive) {
+        auto verifier = composer_.create_verifier();
+        verified = verifier.verify_proof({ proof });
+    } else {
+        auto verifier = composer_.create_ultra_with_keccak_verifier();
+        verified = verifier.verify_proof({ proof });
+    }
+    return verified;
 }
 
 std::string AcirComposer::get_solidity_verifier()

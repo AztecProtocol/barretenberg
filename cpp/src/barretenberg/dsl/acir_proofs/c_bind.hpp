@@ -20,11 +20,15 @@ WASM_EXPORT void acir_init_proving_key(in_ptr acir_composer_ptr,
 WASM_EXPORT void acir_create_proof(in_ptr acir_composer_ptr,
                                    uint8_t const* constraint_system_buf,
                                    uint8_t const* witness_buf,
+                                   bool const* is_recursive,
                                    uint8_t** out);
 
 WASM_EXPORT void acir_init_verification_key(in_ptr acir_composer_ptr);
 
-WASM_EXPORT void acir_verify_proof(in_ptr acir_composer_ptr, uint8_t const* proof_buf, bool* result);
+WASM_EXPORT void acir_verify_proof(in_ptr acir_composer_ptr,
+                                   uint8_t const* proof_buf,
+                                   bool const* is_recursive,
+                                   bool* result);
 
 WASM_EXPORT void acir_get_solidity_verifier(in_ptr acir_composer_ptr, out_str_buf out);
 
