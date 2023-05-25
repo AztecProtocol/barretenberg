@@ -27,16 +27,10 @@ void AcirComposer::init_proving_key(acir_format::acir_format& constraint_system,
     constraint_system.constraints.clear();
     constraint_system.constraints.shrink_to_fit();
 
-    exact_circuit_size_ = composer_.get_num_gates();
     total_circuit_size_ = composer_.get_total_circuit_size();
-    std::cout << "total_circuit_size_: " << total_circuit_size_ << std::endl;
-    // Exact or total fed in here?
     circuit_subgroup_size_ = composer_.get_circuit_subgroup_size(total_circuit_size_);
-    std::cout << "circuit_subgroup_size_: " << circuit_subgroup_size_ << std::endl;
 
     proving_key_ = composer_.compute_proving_key();
-
-    std::cout << "proving key circuit_size: " << proving_key_.get()->circuit_size << std::endl;
 }
 
 std::vector<uint8_t> AcirComposer::create_proof(acir_format::acir_format& constraint_system,
@@ -46,9 +40,6 @@ std::vector<uint8_t> AcirComposer::create_proof(acir_format::acir_format& constr
     composer_ = acir_format::Composer(proving_key_, verification_key_, circuit_subgroup_size_);
     // You can't produce the verification key unless you manually set the crs. Which seems like a bug.
     composer_.crs_factory_ = crs_factory_;
-    for (size_t i = 0; i < witness.size(); i++) {
-        std::cout << "witness: " << witness[i] << std::endl;
-    }
 
     create_circuit_with_witness(composer_, constraint_system, witness);
 
@@ -57,9 +48,6 @@ std::vector<uint8_t> AcirComposer::create_proof(acir_format::acir_format& constr
     constraint_system.constraints.shrink_to_fit();
     witness.clear();
     witness.shrink_to_fit();
-
-    std::cout << "num_gates: " << composer_.num_gates << std::endl;
-    std::cout << "circuit_finalised: " << composer_.circuit_finalised << std::endl;
 
     std::vector<uint8_t> proof;
     if (is_recursive) {
