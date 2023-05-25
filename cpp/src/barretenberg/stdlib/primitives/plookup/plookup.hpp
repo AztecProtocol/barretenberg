@@ -28,7 +28,5 @@ template <typename Composer> class plookup_read {
 
 EXTERN_STDLIB_ULTRA_TYPE(plookup_read);
 
-// typedef plookup_read<plonk::UltraPlonkComposer> plookup_read_composer;
-// typedef plookup_read<proof_system::UltraCircuitConstructor> plookup_read_circuit;
 } // namespace stdlib
 } // namespace proof_system::plonk
