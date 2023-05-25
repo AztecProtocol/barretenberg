@@ -129,6 +129,26 @@ export async function contract(jsonPath: string, outputPath: string) {
   }
 }
 
+export async function writeVk(jsonPath: string, outputPath: string) {
+  const { api, acirComposer } = await init();
+  try {
+    debug('initing proving key...');
+    const bytecode = getBytecode(jsonPath);
+    await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), CIRCUIT_SIZE);
+
+    debug('initing verification key...');
+    const vk = await api.acirGetVerificationKey(acirComposer);
+    if (outputPath === '-') {
+      process.stdout.write(vk);
+    } else {
+      writeFileSync(outputPath, vk);
+      debug(`vk written to: ${outputPath}`);
+    }
+  } finally {
+    await api.destroy();
+  }
+}
+
 export async function proof_as_fields(proofPath: string, num_inner_public_inputs: number, outputPath: string) {
   const { api, acirComposer } = await init();
 
@@ -210,6 +230,15 @@ program
   .requiredOption('-o, --output-path <path>', 'Specify the path to write the contract')
   .action(async ({ jsonPath, outputPath }) => {
     await contract(jsonPath, outputPath);
+  });
+
+program
+  .command('write_vk')
+  .description('Output verification key.')
+  .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
+  .requiredOption('-o, --output-path <path>', 'Specify the path to write the key')
+  .action(async ({ jsonPath, outputPath }) => {
+    await writeVk(jsonPath, outputPath);
   });
 
 program.parse(process.argv);

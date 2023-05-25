@@ -17,7 +17,7 @@ class AcirComposer {
                                       acir_format::WitnessVector& witness,
                                       bool is_recursive);
 
-    void init_verification_key();
+    std::shared_ptr<proof_system::plonk::verification_key> init_verification_key();
 
     bool verify_proof(std::vector<uint8_t> const& proof, bool is_recursive);
 

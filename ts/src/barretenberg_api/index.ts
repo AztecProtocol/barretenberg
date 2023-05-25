@@ -211,6 +211,11 @@ export class BarretenbergApi {
     return;
   }
 
+  async acirGetVerificationKey(acirComposerPtr: Ptr): Promise<Uint8Array> {
+    const result = await this.binder.callWasmExport('acir_get_verification_key', [acirComposerPtr], [BufferDeserializer()]);
+    return result[0];
+  }
+
   async acirVerifyProof(acirComposerPtr: Ptr, proofBuf: Uint8Array, isRecursive: boolean): Promise<boolean> {
     const result = await this.binder.callWasmExport('acir_verify_proof', [acirComposerPtr, proofBuf, isRecursive], [BoolDeserializer()]);
     return result[0];
@@ -452,6 +457,11 @@ export class BarretenbergApiSync {
   acirInitVerificationKey(acirComposerPtr: Ptr): void {
     const result = this.binder.callWasmExport('acir_init_verification_key', [acirComposerPtr], []);
     return;
+  }
+
+  acirGetVerificationKey(acirComposerPtr: Ptr): Uint8Array {
+    const result = this.binder.callWasmExport('acir_get_verification_key', [acirComposerPtr], [BufferDeserializer()]);
+    return result[0];
   }
 
   acirVerifyProof(acirComposerPtr: Ptr, proofBuf: Uint8Array, isRecursive: boolean): boolean {

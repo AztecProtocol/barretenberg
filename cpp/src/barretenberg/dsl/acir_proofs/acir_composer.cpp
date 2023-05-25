@@ -72,9 +72,9 @@ std::vector<uint8_t> AcirComposer::create_proof(acir_format::acir_format& constr
     return proof;
 }
 
-void AcirComposer::init_verification_key()
+std::shared_ptr<proof_system::plonk::verification_key> AcirComposer::init_verification_key()
 {
-    verification_key_ = composer_.compute_verification_key();
+    return verification_key_ = composer_.compute_verification_key();
 }
 
 bool AcirComposer::verify_proof(std::vector<uint8_t> const& proof, bool is_recursive)
