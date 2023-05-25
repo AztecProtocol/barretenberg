@@ -24,7 +24,7 @@ template <typename Flavor> StandardVerifier_<Flavor>& StandardVerifier_<Flavor>:
 {
     key = other.key;
     pcs_verification_key = (std::move(other.pcs_verification_key));
-    pcs_g1_elements.clear();
+    commitments.clear();
     pcs_fr_elements.clear();
     return *this;
 }

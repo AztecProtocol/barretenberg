@@ -21,7 +21,7 @@ template <typename Flavor> class UltraVerifier_ {
     bool verify_proof(const plonk::proof& proof);
 
     std::shared_ptr<VerificationKey> key;
-    std::map<std::string, Commitment> pcs_g1_elements;
+    std::map<std::string, Commitment> commitments;
     std::map<std::string, FF> pcs_fr_elements;
     std::shared_ptr<PCSVerificationKey> pcs_verification_key;
     VerifierTranscript<FF> transcript;

@@ -50,7 +50,7 @@ template <typename Params> class IPA {
                "The poly_degree should be positive and a power of two");
 
         auto a_vec = polynomial;
-        // TODO(Mara): restructure IPA so it can be integrated with the work_queue (or replacement) and
+        // TODO(#479): restructure IPA so it can be integrated with the work_queue (or replacement) and
         // see if reducing the size of G_vec_local and b_vec by taking the first iteration out of the loop
         // can also be integrated.
         auto srs_elements = ck->srs.get_monomial_points();

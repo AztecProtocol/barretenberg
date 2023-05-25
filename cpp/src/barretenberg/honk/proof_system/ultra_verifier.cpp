@@ -26,7 +26,7 @@ template <typename Flavor> UltraVerifier_<Flavor>& UltraVerifier_<Flavor>::opera
 {
     key = other.key;
     pcs_verification_key = (std::move(other.pcs_verification_key));
-    pcs_g1_elements.clear();
+    commitments.clear();
     pcs_fr_elements.clear();
     return *this;
 }
