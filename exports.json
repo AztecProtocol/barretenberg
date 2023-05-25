@@ -802,30 +802,6 @@
     "isAsync": false
   },
   {
-    "functionName": "acir_verify_recursive_proof",
-    "inArgs": [
-      {
-        "name": "acir_composer_ptr",
-        "type": "in_ptr"
-      },
-      {
-        "name": "proof_buf",
-        "type": "const uint8_t *"
-      },
-      {
-        "name": "num_inner_public_inputs",
-        "type": "const uint32_t *"
-      }
-    ],
-    "outArgs": [
-      {
-        "name": "out",
-        "type": "uint8_t **"
-      }
-    ],
-    "isAsync": false
-  },
-  {
     "functionName": "acir_serialize_proof_into_fields",
     "inArgs": [
       {

@@ -26,9 +26,10 @@ WASM_EXPORT void acir_init_proving_key(in_ptr acir_composer_ptr,
                                        uint8_t const* constraint_system_buf,
                                        uint32_t const* size_hint)
 {
+    std::cout << "got constraint_system\n";
     auto acir_composer = reinterpret_cast<acir_proofs::AcirComposer*>(*acir_composer_ptr);
     auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
-
+    std::cout << "got constraint_system\n";
     // The binder would normally free the the constraint_system_buf, but we need the memory now.
     free_mem_slab_raw((void*)constraint_system_buf);
 
@@ -49,7 +50,7 @@ WASM_EXPORT void acir_create_proof(in_ptr acir_composer_ptr,
     free_mem_slab_raw((void*)constraint_system_buf);
     free_mem_slab_raw((void*)witness_buf);
 
-    auto proof_data = acir_composer->create_proof(constraint_system, witness, ntohl(*is_recursive));
+    auto proof_data = acir_composer->create_proof(constraint_system, witness, *is_recursive);
     *out = to_heap_buffer(proof_data);
 }
 
@@ -76,7 +77,7 @@ WASM_EXPORT void acir_verify_proof(in_ptr acir_composer_ptr,
 {
     auto acir_composer = reinterpret_cast<acir_proofs::AcirComposer*>(*acir_composer_ptr);
     auto proof = from_buffer<std::vector<uint8_t>>(proof_buf);
-    *result = acir_composer->verify_proof(proof, ntohl(*is_recursive));
+    *result = acir_composer->verify_proof(proof, *is_recursive);
 }
 
 WASM_EXPORT void acir_get_solidity_verifier(in_ptr acir_composer_ptr, out_str_buf out)

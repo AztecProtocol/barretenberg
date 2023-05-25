@@ -236,11 +236,6 @@ export class BarretenbergApi {
     return result[0];
   }
 
-  async acirVerifyRecursiveProof(acirComposerPtr: Ptr, proofBuf: Uint8Array, numInnerPublicInputs: number): Promise<Uint8Array> {
-    const result = await this.binder.callWasmExport('acir_verify_recursive_proof', [acirComposerPtr, proofBuf, numInnerPublicInputs], [BufferDeserializer()]);
-    return result[0];
-  }
-
   async acirSerializeProofIntoFields(acirComposerPtr: Ptr, proofBuf: Uint8Array, numInnerPublicInputs: number): Promise<Uint8Array> {
     const result = await this.binder.callWasmExport('acir_serialize_proof_into_fields', [acirComposerPtr, proofBuf, numInnerPublicInputs], [BufferDeserializer()]);
     return result[0];
@@ -481,11 +476,6 @@ export class BarretenbergApiSync {
 
   acirGetTotalCircuitSize(acirComposerPtr: Ptr): number {
     const result = this.binder.callWasmExport('acir_get_total_circuit_size', [acirComposerPtr], [NumberDeserializer()]);
-    return result[0];
-  }
-
-  acirVerifyRecursiveProof(acirComposerPtr: Ptr, proofBuf: Uint8Array, numInnerPublicInputs: number): Uint8Array {
-    const result = this.binder.callWasmExport('acir_verify_recursive_proof', [acirComposerPtr, proofBuf, numInnerPublicInputs], [BufferDeserializer()]);
     return result[0];
   }
 
