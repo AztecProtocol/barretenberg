@@ -13,13 +13,9 @@ struct nullifier_leaf {
     index_t nextIndex;
     fr nextValue;
 
-    bool operator==(nullifier_leaf const&) const = default;
+    static nullifier_leaf empty() { return nullifier_leaf{ fr::zero(), 0, fr::zero() }; }
 
-    std::ostream& operator<<(std::ostream& os)
-    {
-        os << "value = " << value << "\nnextIdx = " << nextIndex << "\nnextVal = " << nextValue;
-        return os;
-    }
+    bool operator==(nullifier_leaf const&) const = default;
 
     void read(uint8_t const*& it)
     {
@@ -38,7 +34,16 @@ struct nullifier_leaf {
     }
 
     barretenberg::fr hash() const { return stdlib::merkle_tree::hash_multiple_native({ value, nextIndex, nextValue }); }
+
+    bool is_empty() const { return value == 0 && nextIndex == 0 && nextValue == 0; }
 };
+
+inline std::ostream& operator<<(std::ostream& os, nullifier_leaf const& leaf)
+{
+    return os << "value = " << leaf.value << "\n"
+              << "nextIdx = " << leaf.nextIndex << "\n"
+              << "nextVal = " << leaf.nextValue;
+}
 
 /**
  * @brief Wrapper for the Nullifier leaf class that allows for 0 values
@@ -78,7 +83,14 @@ class WrappedNullifierLeaf {
      *
      * @param value
      */
-    void set(nullifier_leaf value) { data.emplace(value); }
+    void set(nullifier_leaf value)
+    {
+        if (value.is_empty()) {
+            data = std::nullopt;
+        } else {
+            data.emplace(value);
+        }
+    }
 
     /**
      * @brief Return the hash of the wrapped object, other return the zero hash of 0
@@ -98,6 +110,18 @@ class WrappedNullifierLeaf {
     // Underlying data
     std::optional<nullifier_leaf> data;
 };
+
+// TODO(SEAN): Come back to
+inline std::ostream& operator<<(std::ostream& os, WrappedNullifierLeaf const& leaf)
+{
+    if (!leaf.has_value()) {
+        return os << "value = 0\n"
+                  << "nextIdx = 0\n"
+                  << "nextVal = 0";
+    } else {
+        return os << leaf.unwrap();
+    }
+}
 
 inline std::pair<size_t, bool> find_closest_leaf(std::vector<WrappedNullifierLeaf> const& leaves_, fr const& new_value)
 {
