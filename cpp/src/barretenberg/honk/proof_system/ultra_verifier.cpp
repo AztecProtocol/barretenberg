@@ -2,10 +2,9 @@
 #include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 #include "barretenberg/honk/flavor/standard.hpp"
-#include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/honk/utils/power_polynomial.hpp"
 
-#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-variable" // TODO(Cody): this needs to go.
 
 using namespace barretenberg;
 using namespace proof_system::honk::sumcheck;

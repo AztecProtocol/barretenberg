@@ -1,6 +1,5 @@
 #include "ultra_composer.hpp"
 
-#include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 #include <algorithm>
 #include <optional>

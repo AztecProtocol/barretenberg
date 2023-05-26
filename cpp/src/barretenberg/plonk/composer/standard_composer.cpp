@@ -1,6 +1,5 @@
 #include "standard_composer.hpp"
 #include "barretenberg/plonk/proof_system/types/prover_settings.hpp"
-#include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 #include "barretenberg/plonk/proof_system/widgets/transition_widgets/arithmetic_widget.hpp"
 #include "barretenberg/plonk/proof_system/widgets/random_widgets/permutation_widget.hpp"

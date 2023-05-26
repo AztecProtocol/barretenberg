@@ -8,7 +8,7 @@
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/srs/reference_string/file_reference_string.hpp"
-#include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
+#include "barretenberg/ecc/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/ecc/curves/bn254/pairing.hpp"
 #include "barretenberg/numeric/bitop/pow.hpp"
 
@@ -61,12 +61,14 @@ class CommitmentKey {
     {
         const size_t degree = polynomial.size();
         ASSERT(degree <= srs.get_monomial_size());
-        return barretenberg::scalar_multiplication::pippenger_unsafe(
+        // TODO(#473)
+        return barretenberg::scalar_multiplication::pippenger_unsafe<curve::BN254>(
             const_cast<Fr*>(polynomial.data()), srs.get_monomial_points(), degree, pippenger_runtime_state);
     };
 
   private:
-    barretenberg::scalar_multiplication::pippenger_runtime_state pippenger_runtime_state;
+    // TODO(#473)
+    barretenberg::scalar_multiplication::pippenger_runtime_state<curve::BN254> pippenger_runtime_state;
     proof_system::FileReferenceString srs;
 };
 
@@ -239,11 +241,13 @@ class CommitmentKey {
     {
         const size_t degree = polynomial.size();
         ASSERT(degree <= srs.get_monomial_size());
-        return barretenberg::scalar_multiplication::pippenger_without_endomorphism_basis_points(
+        // TODO(#473)
+        return barretenberg::scalar_multiplication::pippenger_without_endomorphism_basis_points<curve::BN254>(
             const_cast<Fr*>(polynomial.data()), srs.get_monomial_points(), degree, pippenger_runtime_state);
     };
 
-    barretenberg::scalar_multiplication::pippenger_runtime_state pippenger_runtime_state;
+    // TODO(#473)
+    barretenberg::scalar_multiplication::pippenger_runtime_state<curve::BN254> pippenger_runtime_state;
     proof_system::FileReferenceString srs;
 };
 
@@ -268,7 +272,8 @@ class VerificationKey {
         , srs(num_points, std::string(path))
     {}
 
-    barretenberg::scalar_multiplication::pippenger_runtime_state pippenger_runtime_state;
+    // TODO(#473)
+    barretenberg::scalar_multiplication::pippenger_runtime_state<curve::BN254> pippenger_runtime_state;
     proof_system::FileReferenceString srs;
 };
 
