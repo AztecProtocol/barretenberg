@@ -64,7 +64,7 @@ template <typename Composer> class Transcript {
                const std::vector<field_pt>& field_buffer,
                const size_t num_public_inputs)
         : context(in_context)
-        , transcript_base(input_manifest, transcript::HashType::PedersenBlake3s, 16)
+        , transcript_base(input_manifest, transcript::HashType::PlookupPedersenBlake3s, 16)
         , current_challenge(in_context)
     {
         size_t count = 0;

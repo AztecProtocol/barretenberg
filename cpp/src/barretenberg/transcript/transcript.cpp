@@ -233,11 +233,13 @@ void Transcript::apply_fiat_shamir(const std::string& challenge_name /*, const b
         break;
     }
     case HashType::PedersenBlake3s: {
+        info("in pedersen");
         std::vector<uint8_t> compressed_buffer = to_buffer(crypto::pedersen_commitment::compress_native(buffer));
         base_hash = Blake3sHasher::hash(compressed_buffer);
         break;
     }
     case HashType::PlookupPedersenBlake3s: {
+        info("in plookup pedersen");
         std::vector<uint8_t> compressed_buffer = crypto::pedersen_commitment::lookup::compress_native(buffer);
         base_hash = Blake3sHasher::hash_plookup(compressed_buffer);
         break;
@@ -246,7 +248,7 @@ void Transcript::apply_fiat_shamir(const std::string& challenge_name /*, const b
         throw_or_abort("no hasher was selected for the transcript");
     }
     }
-
+    info("got base_hash");
     // Depending on the settings, we might be able to chunk the bytes of a single hash across multiple challenges:
     const size_t challenges_per_hash = PRNG_OUTPUT_SIZE / num_challenge_bytes;
 

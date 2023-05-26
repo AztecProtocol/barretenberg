@@ -114,19 +114,19 @@ void create_recursion_constraints(Composer& composer,
 
     std::vector<field_ct> key_fields;
     key_fields.reserve(input.key.size());
-    info("key_fields");
+    // info("key_fields");
     for (const auto& idx : input.key) {
         auto field = field_ct::from_witness_index(&composer, idx);
-        info(field);
+        // info(field);
         key_fields.emplace_back(field);
     }
 
     std::vector<field_ct> proof_fields;
     proof_fields.reserve(input.proof.size());
-    info("proof_fields");
+    // info("proof_fields");
     for (const auto& idx : input.proof) {
         auto field = field_ct::from_witness_index(&composer, idx);
-        info(field);
+        // info(field);
         proof_fields.emplace_back(field);
     }
 

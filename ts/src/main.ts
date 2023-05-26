@@ -32,7 +32,7 @@ function getWitness(witnessPath: string) {
 
 async function init() {
   // Plus 1 needed!
-  const crs = await Crs.new(CIRCUIT_SIZE + 1);
+  const crs = await Crs.new(2 ** 19 + 1);
 
   const api = await newBarretenbergApiAsync();
 
@@ -51,7 +51,8 @@ export async function proveAndVerify(jsonPath: string, witnessPath: string, is_r
     debug('initing proving key...');
     const bytecode = getBytecode(jsonPath);
     await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), CIRCUIT_SIZE);
-
+    debug(`got proving key`);
+    
     const exactCircuitSize = await api.acirGetExactCircuitSize(acirComposer);
     debug(`circuit size: ${exactCircuitSize}`);
 
