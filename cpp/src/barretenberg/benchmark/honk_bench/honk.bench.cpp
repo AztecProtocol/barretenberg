@@ -15,7 +15,7 @@ using Composer = proof_system::honk::StandardHonkComposer;
 constexpr size_t MIN_LOG_NUM_GATES = 16;
 constexpr size_t MAX_LOG_NUM_GATES = 16;
 // To get good statistics, number of Repetitions must be sufficient. ~30 Repetitions gives good results.
-constexpr size_t NUM_REPETITIONS = 1;
+constexpr size_t NUM_REPETITIONS = 5;
 
 void generate_test_circuit(auto& composer, size_t num_gates)
 {
@@ -48,23 +48,6 @@ void create_prover_standard(State& state) noexcept
 BENCHMARK(create_prover_standard)->DenseRange(MIN_LOG_NUM_GATES, MAX_LOG_NUM_GATES, 1)->Repetitions(NUM_REPETITIONS);
 
 /**
- * @brief Benchmark: Creation of a Standard Honk verifier
- */
-void create_verifier_standard(State& state) noexcept
-{
-    for (auto _ : state) {
-        state.PauseTiming();
-        auto num_gates = 1 << (size_t)state.range(0);
-        auto composer = Composer(static_cast<size_t>(num_gates));
-        generate_test_circuit(composer, static_cast<size_t>(num_gates));
-        state.ResumeTiming();
-
-        composer.create_verifier();
-    }
-}
-BENCHMARK(create_verifier_standard)->DenseRange(MIN_LOG_NUM_GATES, MAX_LOG_NUM_GATES, 1)->Repetitions(NUM_REPETITIONS);
-
-/**
  * @brief Benchmark: Construction of a Standard Honk proof
  */
 void construct_proof_standard(State& state) noexcept
@@ -87,6 +70,24 @@ BENCHMARK(construct_proof_standard)
     ->Complexity(oN);
 
 /**
+ * @brief Benchmark: Creation of a Standard Honk verifier
+ */
+void create_verifier_standard(State& state) noexcept
+{
+    for (auto _ : state) {
+        state.PauseTiming();
+        auto num_gates = 1 << (size_t)state.range(0);
+        auto composer = Composer(static_cast<size_t>(num_gates));
+        generate_test_circuit(composer, static_cast<size_t>(num_gates));
+        state.ResumeTiming();
+
+        composer.create_verifier();
+    }
+}
+// BENCHMARK(create_verifier_standard)->DenseRange(MIN_LOG_NUM_GATES, MAX_LOG_NUM_GATES,
+// 1)->Repetitions(NUM_REPETITIONS);
+
+/**
  * @brief Benchmark: Verification of a Standard Honk proof
  */
 void verify_proof_standard(State& state) noexcept
@@ -104,9 +105,5 @@ void verify_proof_standard(State& state) noexcept
         verifier.verify_proof(proof);
     }
 }
-// Note: enforcing Iterations == 1 for now. Otherwise proof construction will occur many times and this bench will take
-// a long time. (This is because the time limit for benchmarks does not include the time-excluded setup, and
-// verification itself is pretty fast).
-// Note: disabling this bench for now since it is not of primary interest
 // BENCHMARK(verify_proof_standard)->DenseRange(MIN_LOG_NUM_GATES, MAX_LOG_NUM_GATES, 1)->Iterations(1);
 } // namespace standard_honk_bench

@@ -1,10 +1,9 @@
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
-#include "barretenberg/honk/proof_system/prover.hpp"
-#include "barretenberg/honk/proof_system/verifier.hpp"
+#include "barretenberg/honk/proof_system/ultra_prover.hpp"
+#include "barretenberg/honk/proof_system/ultra_verifier.hpp"
 #include <benchmark/benchmark.h>
 #include <cstddef>
 #include "barretenberg/honk/composer/ultra_honk_composer.hpp"
-#include "barretenberg/stdlib/primitives/field/field.hpp"
 
 using namespace benchmark;
 
@@ -15,11 +14,13 @@ using Composer = proof_system::honk::UltraHonkComposer;
 constexpr size_t MIN_LOG_NUM_GATES = 16;
 constexpr size_t MAX_LOG_NUM_GATES = 16;
 // To get good statistics, number of Repetitions must be sufficient. ~30 Repetitions gives good results.
-constexpr size_t NUM_REPETITIONS = 1;
+constexpr size_t NUM_REPETITIONS = 5;
 
+// TODO(luke): Make this something useful. Suggestions from Zac: Sha256, keccak, ecdsa, merkle membership proofs w.
+// Pedersen, recursion.
 void generate_test_circuit(auto& composer, size_t num_gates)
 {
-    for (size_t j = 0; j < (num_gates / 4) - 4; ++j) {
+    for (size_t j = 0; j < num_gates; ++j) {
         uint64_t left = static_cast<uint64_t>(j);
         uint64_t right = static_cast<uint64_t>(j + 1);
         uint32_t left_idx = composer.add_variable(fr(left));
@@ -29,11 +30,10 @@ void generate_test_circuit(auto& composer, size_t num_gates)
         uint32_t add_idx = composer.add_variable(fr(left) + fr(right) + composer.get_variable(result_idx));
         composer.create_big_add_gate({ left_idx, right_idx, result_idx, add_idx, fr(1), fr(1), fr(1), fr(-1), fr(0) });
     }
-    info("composer.num_gates = ", composer.num_gates);
 }
 
 /**
- * @brief Benchmark: Creation of a Standard Honk prover
+ * @brief Benchmark: Creation of a Ultra Honk prover
  */
 void create_prover_ultra(State& state) noexcept
 {
@@ -44,30 +44,13 @@ void create_prover_ultra(State& state) noexcept
         generate_test_circuit(composer, static_cast<size_t>(num_gates));
         state.ResumeTiming();
 
-        composer.create_prover();
+        auto prover = composer.create_prover();
     }
 }
 BENCHMARK(create_prover_ultra)->DenseRange(MIN_LOG_NUM_GATES, MAX_LOG_NUM_GATES, 1)->Repetitions(NUM_REPETITIONS);
 
 /**
- * @brief Benchmark: Creation of a Standard Honk verifier
- */
-void create_verifier_ultra(State& state) noexcept
-{
-    for (auto _ : state) {
-        state.PauseTiming();
-        auto num_gates = 1 << (size_t)state.range(0);
-        auto composer = Composer();
-        generate_test_circuit(composer, static_cast<size_t>(num_gates));
-        state.ResumeTiming();
-
-        composer.create_verifier();
-    }
-}
-BENCHMARK(create_verifier_ultra)->DenseRange(MIN_LOG_NUM_GATES, MAX_LOG_NUM_GATES, 1)->Repetitions(NUM_REPETITIONS);
-
-/**
- * @brief Benchmark: Construction of a Standard Honk proof
+ * @brief Benchmark: Construction of a Ultra Honk proof
  */
 void construct_proof_ultra(State& state) noexcept
 {
@@ -89,7 +72,24 @@ BENCHMARK(construct_proof_ultra)
     ->Complexity(oN);
 
 /**
- * @brief Benchmark: Verification of a Standard Honk proof
+ * @brief Benchmark: Creation of a Ultra Honk verifier
+ */
+void create_verifier_ultra(State& state) noexcept
+{
+    for (auto _ : state) {
+        state.PauseTiming();
+        auto num_gates = 1 << (size_t)state.range(0);
+        auto composer = Composer();
+        generate_test_circuit(composer, static_cast<size_t>(num_gates));
+        state.ResumeTiming();
+
+        composer.create_verifier();
+    }
+}
+// BENCHMARK(create_verifier_ultra)->DenseRange(MIN_LOG_NUM_GATES, MAX_LOG_NUM_GATES, 1)->Repetitions(NUM_REPETITIONS);
+
+/**
+ * @brief Benchmark: Verification of a Ultra Honk proof
  */
 void verify_proof_ultra(State& state) noexcept
 {
@@ -106,9 +106,5 @@ void verify_proof_ultra(State& state) noexcept
         verifier.verify_proof(proof);
     }
 }
-// Note: enforcing Iterations == 1 for now. Otherwise proof construction will occur many times and this bench will take
-// a long time. (This is because the time limit for benchmarks does not include the time-excluded setup, and
-// verification itself is pretty fast).
-// Note: disabling this bench for now since it is not of primary interest
 // BENCHMARK(verify_proof_ultra)->DenseRange(MIN_LOG_NUM_GATES, MAX_LOG_NUM_GATES, 1)->Iterations(1);
 } // namespace ultra_honk_bench

@@ -115,7 +115,7 @@
         // which ensures SRS can be read
         "testMate.cpp.test.workingDirectory": "${workspaceFolder}/cpp/build",
         // Filter all binaries that are not tests or benchmarks
-        "testMate.cpp.test.executables": "${workspaceFolder}/cpp/{build,build-bench}/bin/*{test,bench}*",
+        "testMate.cpp.test.executables": "${workspaceFolder}/cpp/{build}/bin/*{test,bench}*",
         //
         // Other
         //
