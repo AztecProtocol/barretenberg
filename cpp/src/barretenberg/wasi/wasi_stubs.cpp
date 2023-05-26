@@ -25,8 +25,8 @@ int32_t __imported_wasi_snapshot_preview1_poll_oneoff(int32_t, int32_t, int32_t,
 
 int32_t __imported_wasi_snapshot_preview1_fd_write(int32_t, int32_t, int32_t, int32_t)
 {
-    info("fd_write not implemented.");
-    abort();
+    // info("fd_write not implemented.");
+    // abort();
     return 0;
 }
 
@@ -67,8 +67,8 @@ int32_t __imported_wasi_snapshot_preview1_environ_sizes_get(int32_t, int32_t)
 
 int32_t __imported_wasi_snapshot_preview1_fd_fdstat_get(int32_t, int32_t)
 {
-    info("fd_fdstat_get not implemented.");
-    abort();
+    // info("fd_fdstat_get not implemented.");
+    // abort();
     return 0;
 }
 

@@ -26,10 +26,9 @@ WASM_EXPORT void acir_init_proving_key(in_ptr acir_composer_ptr,
                                        uint8_t const* constraint_system_buf,
                                        uint32_t const* size_hint)
 {
-    std::cout << "got constraint_system\n";
     auto acir_composer = reinterpret_cast<acir_proofs::AcirComposer*>(*acir_composer_ptr);
     auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
-    std::cout << "got constraint_system\n";
+
     // The binder would normally free the the constraint_system_buf, but we need the memory now.
     free_mem_slab_raw((void*)constraint_system_buf);
 
