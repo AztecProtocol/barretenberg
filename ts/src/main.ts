@@ -7,13 +7,14 @@ import { gunzipSync } from 'zlib';
 import { RawBuffer } from './types/index.js';
 import { numToInt32BE } from './serialize/serialize.js';
 import { Command } from 'commander';
+import { info } from 'console';
 
 createDebug.log = console.error.bind(console);
 const debug = createDebug('bb.js');
 createDebug.enable('*');
 
 // Maximum we support.
-const CIRCUIT_SIZE = 2 ** 18;
+const CIRCUIT_SIZE = 2 ** 19;
 
 function getBytecode(jsonPath: string) {
   const json = readFileSync(jsonPath, 'utf-8');
@@ -167,6 +168,7 @@ export async function vk_as_fields(vkey_oututPath: string, key_hash_outputPath: 
   const { api, acirComposer } = await init();
 
   // TODO: move to passing in the key so we don't have to recompute it
+  // or just keep it as the writeVK method currently recomputes the pkey too
   api.acirInitVerificationKey(acirComposer);
   try {
     debug('serializing proof byte array into field elements');
@@ -199,7 +201,7 @@ program
   .option('-w, --witness-path <path>', 'Specify the witness path', './target/witness.tr')
   .option('-r, --recursive', 'prove and verify using recursive prover and verifier')
   .action(async ({ jsonPath, witnessPath, is_recursive }) => {
-    const result = await proveAndVerify(jsonPath, witnessPath, is_recursive);
+    const result = await proveAndVerify(jsonPath, witnessPath, false);
     process.exit(result ? 0 : 1);
   });
 
