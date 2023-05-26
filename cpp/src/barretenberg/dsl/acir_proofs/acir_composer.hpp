@@ -30,11 +30,6 @@ class AcirComposer {
 
     std::vector<barretenberg::fr> serialize_verification_key_into_fields();
 
-    // std::vector<barretenberg::fr> verify_recursive_proof(std::vector<barretenberg::fr> const& proof,
-    //                                                  std::vector<barretenberg::fr> const& verification_key,
-    //                                                  uint32_t num_public_inputs,
-    //                                                  std::vector<barretenberg::fr> input_aggregation_object)
-
   private:
     std::shared_ptr<proof_system::ReferenceStringFactory> crs_factory_;
     acir_format::Composer composer_;
