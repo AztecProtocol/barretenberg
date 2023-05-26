@@ -1,6 +1,5 @@
 #pragma once
 #include "barretenberg/common/mem.hpp"
-#include "barretenberg/ecc/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/plonk/proof_system/public_inputs/public_inputs.hpp"
 #include "barretenberg/transcript/transcript.hpp"

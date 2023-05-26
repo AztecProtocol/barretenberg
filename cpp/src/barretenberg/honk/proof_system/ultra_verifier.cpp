@@ -4,8 +4,6 @@
 #include "barretenberg/honk/flavor/standard.hpp"
 #include "barretenberg/honk/utils/power_polynomial.hpp"
 
-#pragma GCC diagnostic ignored "-Wunused-variable" // TODO(Cody): this needs to go.
-
 using namespace barretenberg;
 using namespace proof_system::honk::sumcheck;
 
