@@ -28,6 +28,7 @@ WASM_EXPORT void acir_init_proving_key(in_ptr acir_composer_ptr,
 {
     auto acir_composer = reinterpret_cast<acir_proofs::AcirComposer*>(*acir_composer_ptr);
     auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
+    info("got constraint_system");
 
     // The binder would normally free the the constraint_system_buf, but we need the memory now.
     free_mem_slab_raw((void*)constraint_system_buf);
@@ -109,42 +110,40 @@ WASM_EXPORT void acir_serialize_proof_into_fields(in_ptr acir_composer_ptr,
     auto proof_as_fields = acir_composer->serialize_proof_into_fields(proof, ntohl(*num_inner_public_inputs));
 
     // NOTE: this output buffer will always have a fixed size! Maybe just precompute?
-    const size_t output_size_bytes = proof_as_fields.size() * sizeof(barretenberg::fr);
-    auto raw_buf = (uint8_t*)malloc(output_size_bytes);
-
-    // TODO: possible switch to instead use fr::to_buffer inside the AcirComposer and call `to_heap_buffer`
+    std::vector<uint8_t> proof_fields_data;
     // The serialization code below will convert out of Montgomery form before writing to the buffer
     for (size_t i = 0; i < proof_as_fields.size(); ++i) {
-        barretenberg::fr::serialize_to_buffer(proof_as_fields[i], &raw_buf[i * 32]);
+        auto proof_field = proof_as_fields[i].to_buffer();
+        copy(proof_field.begin(), proof_field.end(), std::back_inserter(proof_fields_data));
     }
-    *out = raw_buf;
+    *out = to_heap_buffer(proof_fields_data);
 }
 
 WASM_EXPORT void acir_serialize_verification_key_into_fields(in_ptr acir_composer_ptr,
                                                              uint8_t** out_vkey,
                                                              uint8_t** out_key_hash)
 {
+    info("about to serialize vkey");
     auto acir_composer = reinterpret_cast<acir_proofs::AcirComposer*>(*acir_composer_ptr);
 
     auto vkey_as_fields = acir_composer->serialize_verification_key_into_fields();
 
-    // TODO: possible switch to instead use fr::to_buffer inside the AcirComposer and call `to_heap_buffer`
     // NOTE: this output buffer will always have a fixed size! Maybe just precompute?
     // Cut off 32 bytes as last element is the verification key hash which is not part of the key :o
-    const size_t output_size_bytes = vkey_as_fields.size() * sizeof(barretenberg::fr) - 32;
-
-    auto raw_buf = (uint8_t*)malloc(output_size_bytes);
-    auto vk_hash_raw_buf = (uint8_t*)malloc(32);
-
+    std::vector<uint8_t> vk_fields_data;
     // The serialization code below will convert out of Montgomery form before writing to the buffer
     for (size_t i = 0; i < vkey_as_fields.size() - 1; ++i) {
-        barretenberg::fr::serialize_to_buffer(vkey_as_fields[i], &raw_buf[i * 32]);
+        auto vk_field = vkey_as_fields[i].to_buffer();
+        copy(vk_field.begin(), vk_field.end(), std::back_inserter(vk_fields_data));
     }
-    barretenberg::fr::serialize_to_buffer(vkey_as_fields[vkey_as_fields.size() - 1], vk_hash_raw_buf);
+
+    std::vector<uint8_t> vk_hash_data;
+    auto vk_hash_field = vkey_as_fields[vkey_as_fields.size() - 1].to_buffer();
+    copy(vk_hash_field.begin(), vk_hash_field.end(), std::back_inserter(vk_hash_data));
 
     // copy the vkey into serialized_vk_buf
-    *out_vkey = raw_buf;
+    *out_vkey = to_heap_buffer(vk_fields_data);
 
     // copy the vkey hash into serialized_vk_hash_buf
-    *out_key_hash = vk_hash_raw_buf;
+    *out_key_hash = to_heap_buffer(vk_hash_data);
 }

@@ -103,20 +103,12 @@ template <typename B> inline void write(B& buf, acir_format const& data)
     write(buf, data.hash_to_field_constraints);
     write(buf, data.fixed_base_scalar_mul_constraints);
     write(buf, data.recursion_constraints);
-    for (size_t i = 0; i < data.constraints.size(); i++) {
-        write(buf, data.constraints[i]);
-    }
-    // write(buf, data.constraints);
+    // TODO: probably delete, used for writing AcirComposer tests in CPP
+    // for (size_t i = 0; i < data.constraints.size(); i++) {
+    //     write(buf, data.constraints[i]);
+    // }
+    write(buf, data.constraints);
     write(buf, data.block_constraints);
 }
-
-// template <typename B> inline void write(&B buf, std::vector<poly_triple, ContainerSlabAllocator<poly_triple>> const&
-// constraints)
-// {
-//     using serialize::write;
-// for (size_t i = 0; i < constraints.size(); i++) {
-//     write(buf, constraints[i]);
-// }
-// }
 
 } // namespace acir_format

@@ -8,6 +8,7 @@ import { RawBuffer } from './types/index.js';
 import { numToInt32BE } from './serialize/serialize.js';
 import { Command } from 'commander';
 import { info } from 'console';
+import { exit } from 'process';
 
 createDebug.log = console.error.bind(console);
 const debug = createDebug('bb.js');
@@ -59,9 +60,9 @@ export async function proveAndVerify(jsonPath: string, witnessPath: string, is_r
 
     debug(`creating proof...`);
     const witness = getWitness(witnessPath);
-    const proof = await api.acirCreateProof(acirComposer, new RawBuffer(bytecode), new RawBuffer(witness), false);
+    const proof = await api.acirCreateProof(acirComposer, new RawBuffer(bytecode), new RawBuffer(witness), is_recursive);
 
-    const verified = await api.acirVerifyProof(acirComposer, proof, false);
+    const verified = await api.acirVerifyProof(acirComposer, proof, is_recursive);
     debug(`verified: ${verified}`);
     return verified;
   } finally {
@@ -82,8 +83,8 @@ export async function prove(jsonPath: string, witnessPath: string, is_recursive:
     debug(`creating proof...`);
     const witness = getWitness(witnessPath);
     const proof = await api.acirCreateProof(acirComposer, new RawBuffer(bytecode), new RawBuffer(witness), is_recursive);
-
-    writeFileSync(outputPath, proof);
+    debug(`got proof`);
+    writeFileSync(outputPath, Buffer.from(proof));
     debug('done.');
   } finally {
     await api.destroy();
@@ -155,7 +156,8 @@ export async function proof_as_fields(proofPath: string, num_inner_public_inputs
 
   try {
     debug('serializing proof byte array into field elements');
-    const proof_as_fields = await api.acirSerializeProofIntoFields(acirComposer, readFileSync(proofPath), num_inner_public_inputs);
+    const proof_as_fields_buffer = await api.acirSerializeProofIntoFields(acirComposer, readFileSync(proofPath), num_inner_public_inputs);
+    let proof_as_fields = bufferAsFieldHex(Buffer.from(proof_as_fields_buffer))
 
     writeFileSync(outputPath, proof_as_fields);
     debug('done.');
@@ -164,21 +166,39 @@ export async function proof_as_fields(proofPath: string, num_inner_public_inputs
   }
 }
 
-export async function vk_as_fields(vkey_oututPath: string, key_hash_outputPath: string) {
+export async function vk_as_fields(jsonPath: string, vkeyOutputPath: string) {
   const { api, acirComposer } = await init();
 
-  // TODO: move to passing in the key so we don't have to recompute it
-  // or just keep it as the writeVK method currently recomputes the pkey too
-  api.acirInitVerificationKey(acirComposer);
-  try {
-    debug('serializing proof byte array into field elements');
-    const [vk_as_fields, vk_hash_as_fields] = await api.acirSerializeVerificationKeyIntoFields(acirComposer);
+  // TODO: consider moving to passing in the key so we don't have to recompute it
+  // or just keep it as the writeVK method currently recomputes the pkey too ¯\_(ツ)_/¯
+  debug('initing proving key...');
+  const bytecode = getBytecode(jsonPath);
+  await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), CIRCUIT_SIZE);
 
-    writeFileSync(vkey_oututPath, vk_as_fields);
-    writeFileSync(key_hash_outputPath, vk_hash_as_fields);
+  await api.acirInitVerificationKey(acirComposer);
+  try {
+    debug('serializing vk byte array into field elements');
+    const [vk_as_fields_buffer, vk_hash_buffer] = await api.acirSerializeVerificationKeyIntoFields(acirComposer);
+    let vk_fields = bufferAsFieldHex(Buffer.concat([Buffer.from(vk_hash_buffer), Buffer.from(vk_as_fields_buffer)]));
+    
+    writeFileSync(vkeyOutputPath, vk_fields);
     debug('done.');
   } finally {
     await api.destroy();
+  }
+}
+
+function bufferAsFieldHex(buffer: Buffer): string {
+  let hex = buffer.toString('hex');
+  let split_hex = hex.match(/.{1,64}/g);
+  if (split_hex == null) {
+    exit();
+  } else {
+    for (let i = 0; i < split_hex.length; i++) {
+      split_hex[i] = "0x".concat(split_hex[i]);
+    }
+    let separate_fields = JSON.stringify(split_hex);
+    return separate_fields;
   }
 }
 
@@ -200,8 +220,8 @@ program
   .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
   .option('-w, --witness-path <path>', 'Specify the witness path', './target/witness.tr')
   .option('-r, --recursive', 'prove and verify using recursive prover and verifier')
-  .action(async ({ jsonPath, witnessPath, is_recursive }) => {
-    const result = await proveAndVerify(jsonPath, witnessPath, false);
+  .action(async ({ jsonPath, witnessPath, recursive }) => {
+    const result = await proveAndVerify(jsonPath, witnessPath, recursive);
     process.exit(result ? 0 : 1);
   });
 
@@ -213,8 +233,8 @@ program
   .option('-r, --recursive', 'prove using recursive prover')
   .option('-o, --output-dir <path>', 'Specify the proof output dir', './proofs')
   .requiredOption('-n, --name <filename>', 'Output file name.')
-  .action(async ({ jsonPath, witnessPath, is_recursive, outputDir, name }) => {
-    await prove(jsonPath, witnessPath, is_recursive, outputDir + '/' + name);
+  .action(async ({ jsonPath, witnessPath, recursive, outputDir, name }) => {
+    await prove(jsonPath, witnessPath, recursive, outputDir + '/' + name);
   });
 
 program
@@ -223,8 +243,8 @@ program
   .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
   .requiredOption('-p, --proof-path <path>', 'Specify the path to the proof')
   .option('-r, --recursive', 'prove using recursive prover')
-  .action(async ({ jsonPath, proofPath, is_recursive }) => {
-    await verify(jsonPath, proofPath, is_recursive);
+  .action(async ({ jsonPath, proofPath, recursive }) => {
+    await verify(jsonPath, proofPath, recursive);
   });
 
 program
@@ -249,19 +269,20 @@ program
   .command('proof_as_fields')
   .description('Return the proof as fields elements')
   .requiredOption('-p, --proof-path <path>', 'Specify the proof path')
-  .requiredOption('-n, --num-public-inputs', 'Specify the number of public inputs')
-  .requiredOption('-o, --output-path <path>', 'Specify the path to write the proof fields')
+  .requiredOption('-n, --num-public-inputs <number>', 'Specify the number of public inputs')
+  .requiredOption('-o, --output-path <path>', 'Specify the JSON path to write the proof fields')
   .action(async ({ proofPath, numPublicInputs, outputPath }) => {
+    console.log(numPublicInputs)
     await proof_as_fields(proofPath, numPublicInputs, outputPath);
   })
 
 program
   .command('vk_as_fields')
   .description('Return the verifiation key represented as fields elements. Also return the verification key hash.')
-  .requiredOption('-v, --vkey-output-path <path>', 'Specify the path to write the verification key fields')
-  .requiredOption('-h, --key-hash-output-path <path>', 'Specify the path to write the verification key hash')
-  .action(async ({vkey_oututPath, key_hash_outputPath }) => {
-    await vk_as_fields(vkey_oututPath, key_hash_outputPath);
+  .requiredOption('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
+  .requiredOption('-v, --vkey-output-path <path>', 'Specify the JSON path to write the verification key fields and key hash')
+  .action(async ({jsonPath, vkeyOutputPath }) => {
+    await vk_as_fields(jsonPath, vkeyOutputPath);
   })
 
 program.parse(process.argv);
