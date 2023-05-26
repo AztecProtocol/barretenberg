@@ -49,12 +49,12 @@ void read_witness(Composer& composer, std::vector<barretenberg::fr> const& witne
 void create_circuit(Composer& composer, const acir_format& constraint_system);
 
 Composer create_circuit(const acir_format& constraint_system,
-                        std::shared_ptr<proof_system::ReferenceStringFactory> const& crs_factory,
+                        std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
                         size_t size_hint = 0);
 
 Composer create_circuit_with_witness(const acir_format& constraint_system,
                                      WitnessVector const& witness,
-                                     std::shared_ptr<ReferenceStringFactory> const& crs_factory);
+                                     std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory);
 
 Composer create_circuit_with_witness(const acir_format& constraint_system, WitnessVector const& witness);
 

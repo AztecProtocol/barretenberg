@@ -206,7 +206,8 @@ class UltraComposer : public ComposerBase {
 
     UltraComposer();
     UltraComposer(std::string const& crs_path, const size_t size_hint = 0);
-    UltraComposer(std::shared_ptr<ReferenceStringFactory> const& crs_factory, const size_t size_hint = 0);
+    UltraComposer(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
+                  const size_t size_hint = 0);
     UltraComposer(std::shared_ptr<proving_key> const& p_key,
                   std::shared_ptr<verification_key> const& v_key,
                   size_t size_hint = 0);

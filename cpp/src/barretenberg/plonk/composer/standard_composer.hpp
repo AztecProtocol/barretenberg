@@ -3,7 +3,7 @@
 #include "barretenberg/proof_system/types/merkle_hash_type.hpp"
 #include "barretenberg/proof_system/types/pedersen_commitment_type.hpp"
 #include "barretenberg/transcript/manifest.hpp"
-#include "barretenberg/srs/reference_string/file_reference_string.hpp"
+#include "barretenberg/srs/factories/file_crs_factory.hpp"
 
 namespace proof_system::plonk {
 enum StandardSelectors { QM, QC, Q1, Q2, Q3, NUM };
@@ -44,10 +44,12 @@ class StandardComposer : public ComposerBase {
     };
 
     StandardComposer(std::string const& crs_path, const size_t size_hint = 0)
-        : StandardComposer(std::unique_ptr<ReferenceStringFactory>(new FileReferenceStringFactory(crs_path)),
+        : StandardComposer(std::unique_ptr<barretenberg::srs::factories::CrsFactory>(
+                               new barretenberg::srs::factories::FileCrsFactory(crs_path)),
                            size_hint){};
 
-    StandardComposer(std::shared_ptr<ReferenceStringFactory> const& crs_factory, const size_t size_hint = 0)
+    StandardComposer(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
+                     const size_t size_hint = 0)
         : ComposerBase(crs_factory, StandardSelectors::NUM, size_hint, standard_selector_properties())
     {
         w_l.reserve(size_hint);
@@ -57,7 +59,8 @@ class StandardComposer : public ComposerBase {
         zero_idx = put_constant_variable(fr::zero());
     }
 
-    StandardComposer(std::unique_ptr<ReferenceStringFactory>&& crs_factory, const size_t size_hint = 0)
+    StandardComposer(std::unique_ptr<barretenberg::srs::factories::CrsFactory>&& crs_factory,
+                     const size_t size_hint = 0)
         : ComposerBase(std::move(crs_factory), StandardSelectors::NUM, size_hint, standard_selector_properties())
     {
         w_l.reserve(size_hint);

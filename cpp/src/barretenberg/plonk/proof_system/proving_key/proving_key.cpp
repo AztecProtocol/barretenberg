@@ -24,7 +24,7 @@ namespace proof_system::plonk {
  * */
 proving_key::proving_key(const size_t num_gates,
                          const size_t num_inputs,
-                         std::shared_ptr<proof_system::ProverReferenceString> const& crs,
+                         std::shared_ptr<barretenberg::srs::factories::ProverCrs> const& crs,
                          ComposerType type = ComposerType::STANDARD) // TODO(Cody): Don't use default for Honk
     : composer_type(type)
     , circuit_size(num_gates)
@@ -44,7 +44,7 @@ proving_key::proving_key(const size_t num_gates,
  * @param data
  * @param crs
  */
-proving_key::proving_key(proving_key_data&& data, std::shared_ptr<proof_system::ProverReferenceString> const& crs)
+proving_key::proving_key(proving_key_data&& data, std::shared_ptr<barretenberg::srs::factories::ProverCrs> const& crs)
     : composer_type(data.composer_type)
     , circuit_size(data.circuit_size)
     , num_public_inputs(data.num_public_inputs)

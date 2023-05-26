@@ -463,116 +463,27 @@
     "isAsync": false
   },
   {
-    "functionName": "ecc_new_pippenger",
+    "functionName": "srs_init_srs",
     "inArgs": [
       {
-        "name": "points",
+        "name": "points_buf",
         "type": "const uint8_t *"
-      },
-      {
-        "name": "num_points_buf",
-        "type": "const uint32_t *"
-      }
-    ],
-    "outArgs": [
-      {
-        "name": "out",
-        "type": "out_ptr"
-      }
-    ],
-    "isAsync": false
-  },
-  {
-    "functionName": "ecc_new_pippenger_mem_prealloced",
-    "inArgs": [
-      {
-        "name": "points",
-        "type": "in_ptr"
       },
       {
         "name": "num_points",
         "type": "const uint32_t *"
-      }
-    ],
-    "outArgs": [
+      },
       {
-        "name": "out",
-        "type": "out_ptr"
-      }
-    ],
-    "isAsync": false
-  },
-  {
-    "functionName": "ecc_delete_pippenger",
-    "inArgs": [
-      {
-        "name": "pippenger",
-        "type": "in_ptr"
+        "name": "g2_point_buf",
+        "type": "const uint8_t *"
       }
     ],
     "outArgs": [],
     "isAsync": false
   },
   {
-    "functionName": "ecc_pippenger_unsafe",
-    "inArgs": [
-      {
-        "name": "pippenger_ptr",
-        "type": "in_ptr"
-      },
-      {
-        "name": "scalars_ptr",
-        "type": "in_ptr"
-      },
-      {
-        "name": "from",
-        "type": "const uint32_t *"
-      },
-      {
-        "name": "range",
-        "type": "const uint32_t *"
-      }
-    ],
-    "outArgs": [
-      {
-        "name": "result_ptr",
-        "type": "affine_element::out_buf"
-      }
-    ],
-    "isAsync": false
-  },
-  {
-    "functionName": "ecc_g1_sum",
-    "inArgs": [
-      {
-        "name": "points_ptr",
-        "type": "in_ptr"
-      },
-      {
-        "name": "num_points",
-        "type": "const uint32_t *"
-      }
-    ],
-    "outArgs": [
-      {
-        "name": "result_ptr",
-        "type": "affine_element::out_buf"
-      }
-    ],
-    "isAsync": false
-  },
-  {
     "functionName": "examples_simple_create_and_verify_proof",
-    "inArgs": [
-      {
-        "name": "pippenger",
-        "type": "in_ptr"
-      },
-      {
-        "name": "g2x",
-        "type": "const uint8_t *"
-      }
-    ],
+    "inArgs": [],
     "outArgs": [
       {
         "name": "valid",
@@ -626,16 +537,7 @@
   },
   {
     "functionName": "acir_new_acir_composer",
-    "inArgs": [
-      {
-        "name": "pippenger",
-        "type": "in_ptr"
-      },
-      {
-        "name": "g2x",
-        "type": "const uint8_t *"
-      }
-    ],
+    "inArgs": [],
     "outArgs": [
       {
         "name": "out",
@@ -650,6 +552,25 @@
       {
         "name": "acir_composer_ptr",
         "type": "in_ptr"
+      }
+    ],
+    "outArgs": [],
+    "isAsync": false
+  },
+  {
+    "functionName": "acir_create_circuit",
+    "inArgs": [
+      {
+        "name": "acir_composer_ptr",
+        "type": "in_ptr"
+      },
+      {
+        "name": "constraint_system_buf",
+        "type": "const uint8_t *"
+      },
+      {
+        "name": "size_hint",
+        "type": "const uint32_t *"
       }
     ],
     "outArgs": [],

@@ -5,7 +5,7 @@
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
 #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
 #include "barretenberg/plonk/proof_system/types/prover_settings.hpp"
-#include "barretenberg/srs/reference_string/file_reference_string.hpp"
+#include "barretenberg/srs/factories/file_crs_factory.hpp"
 
 namespace proof_system::plonk {
 static constexpr uint32_t DUMMY_TAG = 0;
@@ -52,9 +52,10 @@ class ComposerBase {
     };
 
     ComposerBase()
-        : ComposerBase(std::shared_ptr<ReferenceStringFactory>(new FileReferenceStringFactory("../srs_db/ignition")))
+        : ComposerBase(std::shared_ptr<barretenberg::srs::factories::CrsFactory>(
+              new barretenberg::srs::factories::FileCrsFactory("../srs_db/ignition")))
     {}
-    ComposerBase(std::shared_ptr<ReferenceStringFactory> const& crs_factory,
+    ComposerBase(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
                  size_t num_selectors = 0,
                  size_t size_hint = 0,
                  std::vector<SelectorProperties> selector_properties = {})
@@ -74,7 +75,7 @@ class ComposerBase {
                  size_t size_hint = 0,
                  std::vector<SelectorProperties> selector_properties = {})
         : num_gates(0)
-        , crs_factory_(std::make_unique<FileReferenceStringFactory>("../srs_db/ignition"))
+        , crs_factory_(std::make_unique<barretenberg::srs::factories::FileCrsFactory>("../srs_db/ignition"))
         , num_selectors(num_selectors)
         , selectors(num_selectors)
         , selector_properties(selector_properties)
@@ -116,7 +117,8 @@ class ComposerBase {
                                                                   const size_t num_reserved_gates = NUM_RESERVED_GATES);
     // This needs to be static as it may be used only to compute the selector commitments.
     static std::shared_ptr<verification_key> compute_verification_key_base(
-        std::shared_ptr<proving_key> const& proving_key, std::shared_ptr<VerifierReferenceString> const& vrs);
+        std::shared_ptr<proving_key> const& proving_key,
+        std::shared_ptr<barretenberg::srs::factories::VerifierCrs> const& vrs);
     virtual std::shared_ptr<proving_key> compute_proving_key() = 0;
     virtual std::shared_ptr<verification_key> compute_verification_key() = 0;
     virtual void compute_witness() = 0;
@@ -317,7 +319,7 @@ class ComposerBase {
 
     bool computed_witness = false;
 
-    std::shared_ptr<ReferenceStringFactory> crs_factory_;
+    std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory_;
     size_t num_selectors;
     std::vector<std::vector<barretenberg::fr, ContainerSlabAllocator<barretenberg::fr>>> selectors;
     /**

@@ -314,7 +314,8 @@ std::shared_ptr<proving_key> ComposerBase::compute_proving_key_base(const Compos
  * (2) sets the polynomial manifest using the data from proving key.
  */
 std::shared_ptr<verification_key> ComposerBase::compute_verification_key_base(
-    std::shared_ptr<proving_key> const& proving_key, std::shared_ptr<VerifierReferenceString> const& vrs)
+    std::shared_ptr<proving_key> const& proving_key,
+    std::shared_ptr<barretenberg::srs::factories::VerifierCrs> const& vrs)
 {
     auto circuit_verification_key = std::make_shared<verification_key>(
         proving_key->circuit_size, proving_key->num_public_inputs, vrs, proving_key->composer_type);

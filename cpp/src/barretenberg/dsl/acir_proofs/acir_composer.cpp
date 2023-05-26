@@ -4,20 +4,20 @@
 #include "barretenberg/plonk/proof_system/proving_key/serialize.hpp"
 #include "barretenberg/dsl/acir_format/acir_format.hpp"
 #include "barretenberg/dsl/types.hpp"
-#include "barretenberg/srs/reference_string/pippenger_reference_string.hpp"
+#include "barretenberg/srs/factories/crs_factory.hpp"
 #include "barretenberg/plonk/proof_system/verification_key/sol_gen.hpp"
-#include "barretenberg/srs/reference_string/reference_string.hpp"
+#include "barretenberg/srs/factories/crs_factory.hpp"
 
 namespace acir_proofs {
 
-AcirComposer::AcirComposer(std::shared_ptr<proof_system::ReferenceStringFactory> const& crs_factory)
+AcirComposer::AcirComposer(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory)
     : crs_factory_(crs_factory)
     , composer_(0, 0, 0)
 {}
 
-void AcirComposer::init_proving_key(acir_format::acir_format& constraint_system, size_t size_hint)
+void AcirComposer::create_circuit(acir_format::acir_format& constraint_system, size_t size_hint)
 {
-    composer_ = create_circuit(constraint_system, crs_factory_, size_hint);
+    composer_ = acir_format::create_circuit(constraint_system, crs_factory_, size_hint);
 
     // We are done with the constraint system at this point, and we need the memory slab back.
     // constraint_system = acir_format::acir_format();
@@ -28,6 +28,11 @@ void AcirComposer::init_proving_key(acir_format::acir_format& constraint_system,
     total_circuit_size_ = composer_.get_total_circuit_size();
     // Exact or total fed in here?
     circuit_subgroup_size_ = composer_.get_circuit_subgroup_size(exact_circuit_size_);
+}
+
+void AcirComposer::init_proving_key(acir_format::acir_format& constraint_system, size_t size_hint)
+{
+    create_circuit(constraint_system, size_hint);
     proving_key_ = composer_.compute_proving_key();
 }
 

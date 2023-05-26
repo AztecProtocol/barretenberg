@@ -7,19 +7,29 @@
 #include "barretenberg/common/serialize.hpp"
 #include "barretenberg/common/slab_allocator.hpp"
 #include "barretenberg/dsl/acir_format/acir_format.hpp"
-#include "barretenberg/srs/reference_string/pippenger_reference_string.hpp"
+#include "barretenberg/srs/global_crs.hpp"
 
-WASM_EXPORT void acir_new_acir_composer(in_ptr pippenger, uint8_t const* g2x_buf, out_ptr out)
+WASM_EXPORT void acir_new_acir_composer(out_ptr out)
 {
-    auto g2x = from_buffer<std::vector<uint8_t>>(g2x_buf);
-    auto crs_factory = std::make_shared<proof_system::PippengerReferenceStringFactory>(
-        reinterpret_cast<barretenberg::scalar_multiplication::Pippenger*>(*pippenger), g2x.data());
-    *out = new acir_proofs::AcirComposer(crs_factory);
+    *out = new acir_proofs::AcirComposer(barretenberg::srs::get_crs_factory());
 }
 
 WASM_EXPORT void acir_delete_acir_composer(in_ptr acir_composer_ptr)
 {
     delete reinterpret_cast<acir_proofs::AcirComposer*>(*acir_composer_ptr);
+}
+
+WASM_EXPORT void acir_create_circuit(in_ptr acir_composer_ptr,
+                                     uint8_t const* constraint_system_buf,
+                                     uint32_t const* size_hint)
+{
+    auto acir_composer = reinterpret_cast<acir_proofs::AcirComposer*>(*acir_composer_ptr);
+    auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
+
+    // The binder would normally free the the constraint_system_buf, but we need the memory now.
+    free_mem_slab_raw((void*)constraint_system_buf);
+
+    acir_composer->create_circuit(constraint_system, ntohl(*size_hint));
 }
 
 WASM_EXPORT void acir_init_proving_key(in_ptr acir_composer_ptr,

@@ -3,7 +3,7 @@
 #include "barretenberg/plonk/flavor/flavor.hpp"
 #include "barretenberg/proof_system/composer/composer_helper_lib.hpp"
 #include "barretenberg/plonk/composer/splitting_tmp/composer_helper/composer_helper_lib.hpp"
-#include "barretenberg/srs/reference_string/file_reference_string.hpp"
+#include "barretenberg/srs/factories/file_crs_factory.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
 #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
@@ -29,7 +29,7 @@ class UltraPlonkComposerHelper {
     std::shared_ptr<plonk::verification_key> circuit_verification_key;
     // TODO(#218)(kesha): we need to put this into the commitment key, so that the composer doesn't have to handle srs
     // at all
-    std::shared_ptr<ReferenceStringFactory> crs_factory_;
+    std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory_;
 
     std::vector<uint32_t> recursive_proof_public_input_indices;
     bool contains_recursive_proof = false;
@@ -41,7 +41,7 @@ class UltraPlonkComposerHelper {
     // vanishing_polynomial cannot be trivially fetched here, I am directly setting this to 4 - 1 = 3.
     static constexpr size_t s_randomness = 3;
 
-    explicit UltraPlonkComposerHelper(std::shared_ptr<ReferenceStringFactory> crs_factory)
+    explicit UltraPlonkComposerHelper(std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
 

@@ -35,7 +35,7 @@ export function numToUInt8(n: number) {
   return buf;
 }
 
-function concatenateUint8Arrays(arrayOfUint8Arrays: Uint8Array[]) {
+export function concatenateUint8Arrays(arrayOfUint8Arrays: Uint8Array[]) {
   const totalLength = arrayOfUint8Arrays.reduce((prev, curr) => prev + curr.length, 0);
   const result = new Uint8Array(totalLength);
   let length = 0;

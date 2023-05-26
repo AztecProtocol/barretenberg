@@ -136,7 +136,7 @@ TEST(ECDSASecp256k1, TestECDSACompilesForVerifier)
         .block_constraints = {},
         .constraints = {},
     };
-    auto crs_factory = std::make_unique<proof_system::ReferenceStringFactory>();
+    auto crs_factory = std::make_unique<barretenberg::srs::factories::CrsFactory>();
     auto composer = create_circuit(constraint_system, std::move(crs_factory));
 }
 

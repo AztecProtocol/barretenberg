@@ -7,7 +7,7 @@
 
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/srs/reference_string/file_reference_string.hpp"
+#include "barretenberg/srs/factories/file_crs_factory.hpp"
 #include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/ecc/curves/bn254/pairing.hpp"
 #include "barretenberg/numeric/bitop/pow.hpp"
@@ -67,7 +67,7 @@ class CommitmentKey {
 
   private:
     barretenberg::scalar_multiplication::pippenger_runtime_state pippenger_runtime_state;
-    proof_system::FileReferenceString srs;
+    barretenberg::srs::factories::FileProverCrs srs;
 };
 
 class VerificationKey {
@@ -109,7 +109,7 @@ class VerificationKey {
     }
 
   private:
-    proof_system::VerifierFileReferenceString verifier_srs;
+    barretenberg::srs::factories::FileVerifierCrs verifier_srs;
 };
 
 struct Params {
@@ -244,7 +244,7 @@ class CommitmentKey {
     };
 
     barretenberg::scalar_multiplication::pippenger_runtime_state pippenger_runtime_state;
-    proof_system::FileReferenceString srs;
+    barretenberg::srs::factories::FileProverCrs srs;
 };
 
 class VerificationKey {
@@ -269,7 +269,7 @@ class VerificationKey {
     {}
 
     barretenberg::scalar_multiplication::pippenger_runtime_state pippenger_runtime_state;
-    proof_system::FileReferenceString srs;
+    barretenberg::srs::factories::FileProverCrs srs;
 };
 
 struct Params {

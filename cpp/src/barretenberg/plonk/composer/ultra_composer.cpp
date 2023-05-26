@@ -12,7 +12,7 @@
 #include "barretenberg/plonk/proof_system/widgets/random_widgets/permutation_widget.hpp"
 #include "barretenberg/plonk/proof_system/widgets/random_widgets/plookup_widget.hpp"
 #include "barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp"
-#include "barretenberg/srs/reference_string/file_reference_string.hpp"
+#include "barretenberg/srs/factories/file_crs_factory.hpp"
 
 #include "barretenberg/proof_system/plookup_tables/types.hpp"
 #include "barretenberg/proof_system/plookup_tables/plookup_tables.hpp"
@@ -68,9 +68,12 @@ UltraComposer::UltraComposer()
 {}
 
 UltraComposer::UltraComposer(std::string const& crs_path, const size_t size_hint)
-    : UltraComposer(std::unique_ptr<ReferenceStringFactory>(new FileReferenceStringFactory(crs_path)), size_hint){};
+    : UltraComposer(std::unique_ptr<barretenberg::srs::factories::CrsFactory>(
+                        new barretenberg::srs::factories::FileCrsFactory(crs_path)),
+                    size_hint){};
 
-UltraComposer::UltraComposer(std::shared_ptr<ReferenceStringFactory> const& crs_factory, const size_t size_hint)
+UltraComposer::UltraComposer(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
+                             const size_t size_hint)
     : ComposerBase(crs_factory, UltraSelectors::NUM, size_hint, ultra_selector_properties())
 {
     w_l.reserve(size_hint);

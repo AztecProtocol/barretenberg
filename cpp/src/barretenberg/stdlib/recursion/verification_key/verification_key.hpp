@@ -1,6 +1,6 @@
 #pragma once
 #include <map>
-#include "barretenberg/srs/reference_string/reference_string.hpp"
+#include "barretenberg/srs/factories/crs_factory.hpp"
 #include "barretenberg/polynomials/evaluation_domain.hpp"
 
 #include "barretenberg/plonk/proof_system/types/polynomial_manifest.hpp"
@@ -390,7 +390,7 @@ template <typename Curve> struct verification_key {
 
     // Native data:
 
-    std::shared_ptr<VerifierReferenceString> reference_string;
+    std::shared_ptr<barretenberg::srs::factories::VerifierCrs> reference_string;
 
     PolynomialManifest polynomial_manifest;
 

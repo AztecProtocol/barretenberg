@@ -9,7 +9,7 @@
 #include "barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp"
 #include "../proof_system/widgets/transition_widgets/transition_widget.hpp"
 #include "../proof_system/widgets/transition_widgets/turbo_arithmetic_widget.hpp"
-#include "barretenberg/srs/reference_string/file_reference_string.hpp"
+#include "barretenberg/srs/factories/file_crs_factory.hpp"
 
 using namespace barretenberg;
 using namespace proof_system;
@@ -55,7 +55,9 @@ TurboComposer::TurboComposer()
  * vectors during initialization.
  * */
 TurboComposer::TurboComposer(std::string const& crs_path, const size_t size_hint)
-    : TurboComposer(std::shared_ptr<ReferenceStringFactory>(new FileReferenceStringFactory(crs_path)), size_hint){};
+    : TurboComposer(std::shared_ptr<barretenberg::srs::factories::CrsFactory>(
+                        new barretenberg::srs::factories::FileCrsFactory(crs_path)),
+                    size_hint){};
 
 /**
  * Turbo composer initialization, where you can specify the factory
@@ -65,7 +67,8 @@ TurboComposer::TurboComposer(std::string const& crs_path, const size_t size_hint
  * @param size_hint Assumed number of gates. Used to allocate space for various member
  * vectors during initialization.
  * */
-TurboComposer::TurboComposer(std::shared_ptr<ReferenceStringFactory> const& crs_factory, const size_t size_hint)
+TurboComposer::TurboComposer(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
+                             const size_t size_hint)
     : ComposerBase(crs_factory, TurboSelectors::NUM, size_hint, turbo_sel_props())
 {
     w_l.reserve(size_hint);
