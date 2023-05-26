@@ -327,6 +327,127 @@ TEST(crypto_nullifier_tree, test_nullifier_memory_appending_zero)
     EXPECT_EQ(tree.get_hash_path(6), expected);
     EXPECT_EQ(tree.get_hash_path(7), expected);
 }
+
+TEST(crypto_nullifier_tree, test_nullifier_memory_tree_batch_insert)
+{
+    // Create a depth-3 indexed merkle tree
+    constexpr size_t depth = 3;
+    NullifierMemoryTree tree(depth);
+
+    /**
+     * Initial State:
+     *
+     *  index     0       1       2       3        4       5       6       7
+     *  ---------------------------------------------------------------------
+     *  val       0       30      10      20       0       0       0       0
+     *  nextIdx   2       0       3       1        0       0       0       0
+     *  nextVal   10      0       20      30       0       0       0       0
+     */
+    tree.update_element(30);
+    tree.update_element(10);
+    tree.update_element(20);
+
+    EXPECT_EQ(tree.get_leaves().size(), 4);
+    EXPECT_EQ(tree.get_leaves()[0].hash(), WrappedNullifierLeaf({ 0, 2, 10 }).hash());
+    EXPECT_EQ(tree.get_leaves()[1].hash(), WrappedNullifierLeaf({ 30, 0, 0 }).hash());
+    EXPECT_EQ(tree.get_leaves()[2].hash(), WrappedNullifierLeaf({ 10, 3, 20 }).hash());
+    EXPECT_EQ(tree.get_leaves()[3].hash(), WrappedNullifierLeaf({ 20, 1, 30 }).hash());
+
+    // Perform batch insertion
+    // What should we expect?
+    // 50's low nullifier should be the value 30, index 1
+    // 25's low nullifier should be the value 20, index 3, sibling path will be such that the low nullifier for 30 has
+    // been updated! 80's low nullifier should be the value 30 - this is already used, so it will return 0 75's low
+    // nullifier should be the value 30 - this is already used, so it will return 0
+    std::vector<fr> batch_values = { 50, 25, 80, 75 };
+    LowLeafWitnessData low_leaf_witnesses = tree.batch_insert(batch_values);
+
+    // Destructure return type
+    std::vector<nullifier_leaf> low_leaves = std::get<0>(low_leaf_witnesses);
+    std::vector<std::vector<fr>> low_leaf_sibling_paths = std::get<1>(low_leaf_witnesses);
+    std::vector<uint32_t> low_leaf_witness_indexes = std::get<2>(low_leaf_witnesses);
+
+    /**
+     * State after batch insertion:
+     *
+     *  index     0       1       2       3        4       5       6       7
+     *  ---------------------------------------------------------------------
+     *  val       0       30      10      20       50      25      80      75
+     *  nextIdx   2       4       3       5        7       1       0       6
+     *  nextVal   10      50      20      25       75      30      0       80
+     */
+    // Check that insertions have been performed correctly
+    auto leaves = tree.get_leaves();
+
+    info("\n\n");
+    info(leaves);
+
+    info("\n\n");
+    EXPECT_EQ(leaves.size(), 8);
+    EXPECT_EQ(leaves[0].hash(), WrappedNullifierLeaf({ 0, 2, 10 }).hash());
+    EXPECT_EQ(leaves[1].hash(), WrappedNullifierLeaf({ 30, 4, 50 }).hash());
+    EXPECT_EQ(leaves[2].hash(), WrappedNullifierLeaf({ 10, 3, 20 }).hash());
+    EXPECT_EQ(leaves[3].hash(), WrappedNullifierLeaf({ 20, 5, 25 }).hash());
+    EXPECT_EQ(leaves[4].hash(), WrappedNullifierLeaf({ 50, 7, 75 }).hash());
+    EXPECT_EQ(leaves[5].hash(), WrappedNullifierLeaf({ 25, 1, 30 }).hash());
+    EXPECT_EQ(leaves[6].hash(), WrappedNullifierLeaf({ 80, 0, 0 }).hash());
+    EXPECT_EQ(leaves[7].hash(), WrappedNullifierLeaf({ 75, 6, 80 }).hash());
+
+    // Compute tree node values for each insertion
+
+    // auto e00 = hash_pair_native(e000, e001);
+    // auto e01 = hash_pair_native(e010, e011);
+    // auto e10 = hash_pair_native(e100, e101);
+    // auto e11 = hash_pair_native(e110, e111);
+
+    // auto e0 = hash_pair_native(e00, e01);
+    // auto e1 = hash_pair_native(e10, e11);
+    // auto root = hash_pair_native(e0, e1);
+
+    // info(low_leaves);
+    // info(low_leaf_sibling_paths);
+    // info(low_leaf_witness_indexes);
+
+    // // Manually compute the node values
+    // auto e000 = tree.get_leaf(0).hash();
+    // auto e001 = tree.get_leaf(1).hash();
+    // auto e010 = tree.get_leaf(2).hash();
+    // auto e011 = tree.get_leaf(3).hash();
+    // auto e100 = tree.get_leaf(4).hash();
+    // auto e101 = tree.get_leaf(5).hash();
+    // auto e110 = tree.get_leaf(6).hash();
+    // auto e111 = tree.get_leaf(7).hash();
+
+    // auto e00 = hash_pair_native(e000, e001);
+    // auto e01 = hash_pair_native(e010, e011);
+    // auto e10 = hash_pair_native(e100, e101);
+    // auto e11 = hash_pair_native(e110, e111);
+
+    // auto e0 = hash_pair_native(e00, e01);
+    // auto e1 = hash_pair_native(e10, e11);
+    // auto root = hash_pair_native(e0, e1);
+
+    // // Check the hash path at index 2 and 3
+    // // Note: This merkle proof would also serve as a non-membership proof of values in (10, 20) and (20, 30)
+    // fr_hash_path expected = {
+    //     std::make_pair(e010, e011),
+    //     std::make_pair(e00, e01),
+    //     std::make_pair(e0, e1),
+    // };
+    // EXPECT_EQ(tree.get_hash_path(2), expected);
+    // EXPECT_EQ(tree.get_hash_path(3), expected);
+    // EXPECT_EQ(tree.root(), root);
+
+    // // Check the hash path at index 6 and 7
+    // expected = {
+    //     std::make_pair(e110, e111),
+    //     std::make_pair(e10, e11),
+    //     std::make_pair(e0, e1),
+    // };
+    // EXPECT_EQ(tree.get_hash_path(6), expected);
+    // EXPECT_EQ(tree.get_hash_path(7), expected);
+}
+
 TEST(crypto_nullifier_tree, test_nullifier_tree)
 {
     // Create a depth-8 indexed merkle tree
