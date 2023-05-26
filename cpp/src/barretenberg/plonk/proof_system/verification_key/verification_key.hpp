@@ -65,7 +65,6 @@ struct verification_key {
                      const size_t num_inputs,
                      std::shared_ptr<VerifierReferenceString> const& crs,
                      uint32_t composer_type);
-
     verification_key(const verification_key& other);
     verification_key(verification_key&& other);
     verification_key& operator=(verification_key&& other);
