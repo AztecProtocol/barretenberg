@@ -26,8 +26,7 @@ void AcirComposer::create_circuit(acir_format::acir_format& constraint_system, s
 
     exact_circuit_size_ = composer_.get_num_gates();
     total_circuit_size_ = composer_.get_total_circuit_size();
-    // Exact or total fed in here?
-    circuit_subgroup_size_ = composer_.get_circuit_subgroup_size(exact_circuit_size_);
+    circuit_subgroup_size_ = composer_.get_circuit_subgroup_size(total_circuit_size_);
 }
 
 void AcirComposer::init_proving_key(acir_format::acir_format& constraint_system, size_t size_hint)

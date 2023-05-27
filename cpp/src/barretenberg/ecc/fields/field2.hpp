@@ -126,7 +126,6 @@ template <class base_field, class Params> struct alignas(32) field2 {
     }
 };
 
-// Not working as expected. At least r.e. g2.
 // template <typename B, typename BaseField, typename Params> void read(B& it, field2<BaseField, Params>& value)
 // {
 //     using serialize::read;
