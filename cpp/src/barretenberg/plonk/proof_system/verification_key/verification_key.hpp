@@ -1,7 +1,7 @@
 #pragma once
 #include <map>
 #include "barretenberg/common/streams.hpp"
-#include "barretenberg/srs/factories/crs_factory.hpp"
+#include "barretenberg/srs/global_crs.hpp"
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/polynomials/evaluation_domain.hpp"
 #include "barretenberg/crypto/sha256/sha256.hpp"
@@ -25,7 +25,7 @@ struct verification_key_data {
                    commitments,
                    contains_recursive_proof,
                    recursive_proof_public_input_indices);
-    barretenberg::fr compress_native(size_t const hash_index = 0);
+    barretenberg::fr compress_native(size_t const hash_index = 0) const;
 };
 
 template <typename B> inline void read(B& buf, verification_key_data& key)
@@ -50,6 +50,16 @@ template <typename B> inline void write(B& buf, verification_key_data const& key
     write(buf, key.recursive_proof_public_input_indices);
 }
 
+inline std::ostream& operator<<(std::ostream& os, verification_key_data const& key)
+{
+    return os << "key.composer_type: " << key.composer_type << "\n"
+              << "key.circuit_size: " << static_cast<uint32_t>(key.circuit_size) << "\n"
+              << "key.num_public_inputs: " << static_cast<uint32_t>(key.num_public_inputs) << "\n"
+              << "key.commitments: " << key.commitments << "\n"
+              << "key.contains_recursive_proof: " << key.contains_recursive_proof << "\n"
+              << "key.recursive_proof_public_input_indices: " << key.recursive_proof_public_input_indices << "\n";
+};
+
 inline bool operator==(verification_key_data const& lhs, verification_key_data const& rhs)
 {
     return lhs.composer_type == rhs.composer_type && lhs.circuit_size == rhs.circuit_size &&
@@ -73,6 +83,18 @@ struct verification_key {
 
     sha256::hash sha256_hash();
 
+    verification_key_data as_data() const
+    {
+        return {
+            .composer_type = composer_type,
+            .circuit_size = (uint32_t)circuit_size,
+            .num_public_inputs = (uint32_t)num_public_inputs,
+            .commitments = commitments,
+            .contains_recursive_proof = contains_recursive_proof,
+            .recursive_proof_public_input_indices = recursive_proof_public_input_indices,
+        };
+    }
+
     uint32_t composer_type;
     size_t circuit_size;
     size_t log_circuit_size;
@@ -93,27 +115,64 @@ struct verification_key {
     bool contains_recursive_proof = false;
     std::vector<uint32_t> recursive_proof_public_input_indices;
     size_t program_width = 3;
+
+    // for serialization: update with new fields
+    void msgpack_pack(auto& packer) const
+    {
+        verification_key_data data = { composer_type,
+                                       static_cast<uint32_t>(circuit_size),
+                                       static_cast<uint32_t>(num_public_inputs),
+                                       commitments,
+                                       contains_recursive_proof,
+                                       recursive_proof_public_input_indices };
+        packer.pack(data);
+    }
+    void msgpack_unpack(auto obj)
+    {
+        verification_key_data data = obj;
+        *this = verification_key{ std::move(data), barretenberg::srs::get_crs_factory()->get_verifier_crs() };
+    }
 };
+
+// specialize schema serialization
+inline void msgpack_schema(auto& packer, proof_system::plonk::verification_key const&)
+{
+    packer.pack_schema(proof_system::plonk::verification_key_data{});
+}
+
+template <typename B> inline void read(B& buf, verification_key& key)
+{
+    using serialize::read;
+    verification_key_data vk_data;
+    read(buf, vk_data);
+    key = verification_key{ std::move(vk_data), barretenberg::srs::get_crs_factory()->get_verifier_crs() };
+}
+
+template <typename B> inline void read(B& buf, std::shared_ptr<verification_key>& key)
+{
+    using serialize::read;
+    verification_key_data vk_data;
+    read(buf, vk_data);
+    key = std::make_shared<verification_key>(std::move(vk_data),
+                                             barretenberg::srs::get_crs_factory()->get_verifier_crs());
+}
 
 template <typename B> inline void write(B& buf, verification_key const& key)
 {
     using serialize::write;
-    write(buf, key.composer_type);
-    write(buf, static_cast<uint32_t>(key.circuit_size));
-    write(buf, static_cast<uint32_t>(key.num_public_inputs));
-    write(buf, key.commitments);
-    write(buf, key.contains_recursive_proof);
-    write(buf, key.recursive_proof_public_input_indices);
+    write(buf, key.as_data());
 }
 
 inline std::ostream& operator<<(std::ostream& os, verification_key const& key)
 {
-    return os << "key.composer_type: " << key.composer_type << "\n"
-              << "key.circuit_size: " << static_cast<uint32_t>(key.circuit_size) << "\n"
-              << "key.num_public_inputs: " << static_cast<uint32_t>(key.num_public_inputs) << "\n"
-              << "key.commitments: " << key.commitments << "\n"
-              << "key.contains_recursive_proof: " << key.contains_recursive_proof << "\n"
-              << "key.recursive_proof_public_input_indices: " << key.recursive_proof_public_input_indices << "\n";
+    return os << key.as_data();
 };
 
 } // namespace proof_system::plonk
+
+// help our msgpack schema compiler with this struct
+// Alias verification_key as verification_key_data
+inline void msgpack_schema_pack(auto& packer, proof_system::plonk::verification_key const&)
+{
+    msgpack_schema_pack(packer, proof_system::plonk::verification_key_data{});
+}
