@@ -49,7 +49,7 @@ barretenberg::fr compress_native_evaluation_domain(barretenberg::evaluation_doma
  * @param hash_index generator index to use during pedersen compression
  * @returns a field containing the compression
  */
-barretenberg::fr verification_key_data::compress_native(const size_t hash_index)
+barretenberg::fr verification_key_data::compress_native(const size_t hash_index) const
 {
     barretenberg::evaluation_domain eval_domain = barretenberg::evaluation_domain(circuit_size);
 
