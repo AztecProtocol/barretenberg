@@ -73,6 +73,9 @@ void create_circuit(Composer& composer, acir_format const& constraint_system)
     for (const auto& constraint : constraint_system.keccak_constraints) {
         create_keccak_constraints(composer, constraint);
     }
+    for (const auto& constraint : constraint_system.keccak_var_constraints) {
+        create_keccak_var_constraints(composer, constraint);
+    }
 
     // Add pedersen constraints
     for (const auto& constraint : constraint_system.pedersen_constraints) {
@@ -161,6 +164,9 @@ Composer create_circuit(const acir_format& constraint_system,
     // Add keccak constraints
     for (const auto& constraint : constraint_system.keccak_constraints) {
         create_keccak_constraints(composer, constraint);
+    }
+    for (const auto& constraint : constraint_system.keccak_var_constraints) {
+        create_keccak_var_constraints(composer, constraint);
     }
 
     // Add pedersen constraints
@@ -256,6 +262,9 @@ Composer create_circuit_with_witness(acir_format const& constraint_system,
     for (const auto& constraint : constraint_system.keccak_constraints) {
         create_keccak_constraints(composer, constraint);
     }
+    for (const auto& constraint : constraint_system.keccak_var_constraints) {
+        create_keccak_var_constraints(composer, constraint);
+    }
 
     // Add pedersen constraints
     for (const auto& constraint : constraint_system.pedersen_constraints) {
@@ -347,6 +356,9 @@ Composer create_circuit_with_witness(const acir_format& constraint_system, Witne
     for (const auto& constraint : constraint_system.keccak_constraints) {
         create_keccak_constraints(composer, constraint);
     }
+    for (const auto& constraint : constraint_system.keccak_var_constraints) {
+        create_keccak_var_constraints(composer, constraint);
+    }
 
     // Add pedersen constraints
     for (const auto& constraint : constraint_system.pedersen_constraints) {
@@ -435,6 +447,9 @@ void create_circuit_with_witness(Composer& composer, acir_format const& constrai
     // Add keccak constraints
     for (const auto& constraint : constraint_system.keccak_constraints) {
         create_keccak_constraints(composer, constraint);
+    }
+    for (const auto& constraint : constraint_system.keccak_var_constraints) {
+        create_keccak_var_constraints(composer, constraint);
     }
 
     // Add pedersen constraints
