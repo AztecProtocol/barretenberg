@@ -15,7 +15,7 @@ const debug = createDebug('bb.js');
 createDebug.enable('*');
 
 // Maximum we support.
-const CIRCUIT_SIZE = 2 ** 19;
+const CIRCUIT_SIZE = 2 ** 18;
 
 function getBytecode(jsonPath: string) {
   const json = readFileSync(jsonPath, 'utf-8');
@@ -52,7 +52,7 @@ export async function proveAndVerify(jsonPath: string, witnessPath: string, is_r
     const bytecode = getBytecode(jsonPath);
     await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), CIRCUIT_SIZE);
     debug(`got proving key`);
-    
+
     const exactCircuitSize = await api.acirGetExactCircuitSize(acirComposer);
     debug(`circuit size: ${exactCircuitSize}`);
 
@@ -62,7 +62,7 @@ export async function proveAndVerify(jsonPath: string, witnessPath: string, is_r
     debug(`creating proof...`);
     const witness = getWitness(witnessPath);
     const proof = await api.acirCreateProof(acirComposer, new RawBuffer(bytecode), new RawBuffer(witness), is_recursive);
-
+    console.log(proof);
     const verified = await api.acirVerifyProof(acirComposer, proof, is_recursive);
     debug(`verified: ${verified}`);
     return verified;
