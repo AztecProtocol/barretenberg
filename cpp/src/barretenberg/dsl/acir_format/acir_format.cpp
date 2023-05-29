@@ -23,7 +23,6 @@ void create_circuit(Composer& composer, const acir_format& constraint_system)
         if (std::find(constraint_system.public_inputs.begin(), constraint_system.public_inputs.end(), i) !=
             constraint_system.public_inputs.end()) {
             composer.add_public_variable(0);
-
         } else {
             composer.add_variable(0);
         }
@@ -62,7 +61,7 @@ void create_circuit(Composer& composer, const acir_format& constraint_system)
 
     // Add ECDSA constraints
     for (const auto& constraint : constraint_system.ecdsa_constraints) {
-        create_ecdsa_verify_constraints(composer, constraint);
+        create_ecdsa_verify_constraints(composer, constraint, false);
     }
 
     // Add blake2s constraints
@@ -73,6 +72,9 @@ void create_circuit(Composer& composer, const acir_format& constraint_system)
     // Add keccak constraints
     for (const auto& constraint : constraint_system.keccak_constraints) {
         create_keccak_constraints(composer, constraint);
+    }
+    for (const auto& constraint : constraint_system.keccak_var_constraints) {
+        create_keccak_var_constraints(composer, constraint);
     }
 
     // Add pedersen constraints
@@ -88,6 +90,11 @@ void create_circuit(Composer& composer, const acir_format& constraint_system)
     // Add hash to field constraints
     for (const auto& constraint : constraint_system.hash_to_field_constraints) {
         create_hash_to_field_constraints(composer, constraint);
+    }
+
+    // Add block constraints
+    for (const auto& constraint : constraint_system.block_constraints) {
+        create_block_constraints(composer, constraint);
     }
 }
 
@@ -145,7 +152,7 @@ Composer create_circuit(const acir_format& constraint_system,
 
     // Add ECDSA constraints
     for (const auto& constraint : constraint_system.ecdsa_constraints) {
-        create_ecdsa_verify_constraints(composer, constraint);
+        create_ecdsa_verify_constraints(composer, constraint, false);
     }
 
     // Add blake2s constraints
@@ -156,6 +163,9 @@ Composer create_circuit(const acir_format& constraint_system,
     // Add keccak constraints
     for (const auto& constraint : constraint_system.keccak_constraints) {
         create_keccak_constraints(composer, constraint);
+    }
+    for (const auto& constraint : constraint_system.keccak_var_constraints) {
+        create_keccak_var_constraints(composer, constraint);
     }
 
     // Add pedersen constraints
@@ -171,6 +181,11 @@ Composer create_circuit(const acir_format& constraint_system,
     // Add hash to field constraints
     for (const auto& constraint : constraint_system.hash_to_field_constraints) {
         create_hash_to_field_constraints(composer, constraint);
+    }
+
+    // Add block constraints
+    for (const auto& constraint : constraint_system.block_constraints) {
+        create_block_constraints(composer, constraint);
     }
 
     return composer;
@@ -246,6 +261,9 @@ Composer create_circuit_with_witness(const acir_format& constraint_system,
     for (const auto& constraint : constraint_system.keccak_constraints) {
         create_keccak_constraints(composer, constraint);
     }
+    for (const auto& constraint : constraint_system.keccak_var_constraints) {
+        create_keccak_var_constraints(composer, constraint);
+    }
 
     // Add pedersen constraints
     for (const auto& constraint : constraint_system.pedersen_constraints) {
@@ -260,6 +278,11 @@ Composer create_circuit_with_witness(const acir_format& constraint_system,
     // Add hash to field constraints
     for (const auto& constraint : constraint_system.hash_to_field_constraints) {
         create_hash_to_field_constraints(composer, constraint);
+    }
+
+    // Add block constraints
+    for (const auto& constraint : constraint_system.block_constraints) {
+        create_block_constraints(composer, constraint);
     }
 
     return composer;
@@ -332,6 +355,9 @@ Composer create_circuit_with_witness(const acir_format& constraint_system, std::
     for (const auto& constraint : constraint_system.keccak_constraints) {
         create_keccak_constraints(composer, constraint);
     }
+    for (const auto& constraint : constraint_system.keccak_var_constraints) {
+        create_keccak_var_constraints(composer, constraint);
+    }
 
     // Add pedersen constraints
     for (const auto& constraint : constraint_system.pedersen_constraints) {
@@ -346,6 +372,11 @@ Composer create_circuit_with_witness(const acir_format& constraint_system, std::
     // Add hash to field constraints
     for (const auto& constraint : constraint_system.hash_to_field_constraints) {
         create_hash_to_field_constraints(composer, constraint);
+    }
+
+    // Add block constraints
+    for (const auto& constraint : constraint_system.block_constraints) {
+        create_block_constraints(composer, constraint);
     }
 
     return composer;
@@ -416,6 +447,9 @@ void create_circuit_with_witness(Composer& composer, const acir_format& constrai
     for (const auto& constraint : constraint_system.keccak_constraints) {
         create_keccak_constraints(composer, constraint);
     }
+    for (const auto& constraint : constraint_system.keccak_var_constraints) {
+        create_keccak_var_constraints(composer, constraint);
+    }
 
     // Add pedersen constraints
     for (const auto& constraint : constraint_system.pedersen_constraints) {
@@ -430,6 +464,11 @@ void create_circuit_with_witness(Composer& composer, const acir_format& constrai
     // Add hash to field constraints
     for (const auto& constraint : constraint_system.hash_to_field_constraints) {
         create_hash_to_field_constraints(composer, constraint);
+    }
+
+    // Add block constraints
+    for (const auto& constraint : constraint_system.block_constraints) {
+        create_block_constraints(composer, constraint);
     }
 }
 

@@ -3,8 +3,13 @@
 #include <gtest/gtest.h>
 #include <vector>
 #include "barretenberg/common/streams.hpp"
+#include "barretenberg/serialize/test_helper.hpp"
 #include "ecdsa_secp256k1.hpp"
-
+TEST(acir_format, msgpack_logic_constraint)
+{
+    auto [actual, expected] = msgpack_roundtrip(acir_format::LogicConstraint{});
+    EXPECT_EQ(actual, expected);
+}
 TEST(acir_format, test_logic_gate_from_noir_circuit)
 {
     /**
@@ -88,9 +93,11 @@ TEST(acir_format, test_logic_gate_from_noir_circuit)
         .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},
+        .keccak_var_constraints = {},
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .compute_merkle_root_constraints = {},
+        .block_constraints = {},
         .constraints = { expr_a, expr_b, expr_c, expr_d },
     };
 
@@ -153,9 +160,11 @@ TEST(acir_format, test_schnorr_verify_pass)
         .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},
+        .keccak_var_constraints = {},
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .compute_merkle_root_constraints = {},
+        .block_constraints = {},
         .constraints = { poly_triple{
             .a = schnorr_constraint.result,
             .b = schnorr_constraint.result,
@@ -223,9 +232,11 @@ TEST(acir_format, test_schnorr_verify_small_range)
         .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},
+        .keccak_var_constraints = {},
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .compute_merkle_root_constraints = {},
+        .block_constraints = {},
         .constraints = { poly_triple{
             .a = schnorr_constraint.result,
             .b = schnorr_constraint.result,

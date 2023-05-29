@@ -6,6 +6,7 @@
 #include <type_traits>
 #include <vector>
 #include "barretenberg/honk/pcs/commitment_key.hpp"
+#include "barretenberg/honk/sumcheck/polynomials/barycentric_data.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
 #include "barretenberg/honk/transcript/transcript.hpp"
@@ -15,6 +16,12 @@
 #include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
 #include "barretenberg/srs/reference_string/reference_string.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/permutation_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/lookup_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/auxiliary_relation.hpp"
 
 namespace proof_system::honk::flavor {
 
@@ -32,13 +39,32 @@ class Ultra {
 
     static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
     // The number of multivariate polynomials on which a sumcheck prover sumcheck operates (including shifts). We often
-    // need containers of this size to hold related data, so we choose a name more agnostic than `NUM_POLYNOMIALS`
-    static constexpr size_t NUM_ALL_ENTITIES = 47;
+    // need containers of this size to hold related data, so we choose a name more agnostic than `NUM_POLYNOMIALS`.
+    // Note: this number does not include the individual sorted list polynomials.
+    static constexpr size_t NUM_ALL_ENTITIES = 43;
     // The number of polynomials precomputed to describe a circuit and to aid a prover in constructing a satisfying
     // assignment of witnesses. We again choose a neutral name.
     static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 25;
     // The total number of witness entities not including shifts.
     static constexpr size_t NUM_WITNESS_ENTITIES = 11;
+
+    // define the tuple of Relations that comprise the Sumcheck relation
+    using Relations = std::tuple<sumcheck::UltraArithmeticRelation<FF>,
+                                 sumcheck::UltraPermutationRelation<FF>,
+                                 sumcheck::LookupRelation<FF>,
+                                 sumcheck::GenPermSortRelation<FF>,
+                                 sumcheck::EllipticRelation<FF>,
+                                 sumcheck::AuxiliaryRelation<FF>>;
+
+    static constexpr size_t MAX_RELATION_LENGTH = get_max_relation_length<Relations>();
+    static constexpr size_t NUM_RELATIONS = std::tuple_size<Relations>::value;
+
+    // Instantiate the BarycentricData needed to extend each Relation Univariate
+    static_assert(instantiate_barycentric_utils<FF, MAX_RELATION_LENGTH>());
+
+    // define the container for storing the univariate contribution from each relation in Sumcheck
+    using RelationUnivariates = decltype(create_relation_univariates_container<FF, Relations>());
+    using RelationValues = decltype(create_relation_values_container<FF, Relations>());
 
   private:
     template <typename DataType, typename HandleType>
@@ -149,41 +175,40 @@ class Ultra {
         DataType& w_r = std::get<26>(this->_data);
         DataType& w_o = std::get<27>(this->_data);
         DataType& w_4 = std::get<28>(this->_data);
-        DataType& sorted_1 = std::get<29>(this->_data);
-        DataType& sorted_2 = std::get<30>(this->_data);
-        DataType& sorted_3 = std::get<31>(this->_data);
-        DataType& sorted_4 = std::get<32>(this->_data);
-        DataType& sorted_accum = std::get<33>(this->_data);
-        DataType& z_perm = std::get<34>(this->_data);
-        DataType& z_lookup = std::get<35>(this->_data);
-        DataType& table_1_shift = std::get<36>(this->_data);
-        DataType& table_2_shift = std::get<37>(this->_data);
-        DataType& table_3_shift = std::get<38>(this->_data);
-        DataType& table_4_shift = std::get<39>(this->_data);
-        DataType& w_l_shift = std::get<40>(this->_data);
-        DataType& w_r_shift = std::get<41>(this->_data);
-        DataType& w_o_shift = std::get<42>(this->_data);
-        DataType& w_4_shift = std::get<43>(this->_data);
-        DataType& sorted_accum_shift = std::get<44>(this->_data);
-        DataType& z_perm_shift = std::get<45>(this->_data);
-        DataType& z_lookup_shift = std::get<46>(this->_data);
+        DataType& sorted_accum = std::get<29>(this->_data);
+        DataType& z_perm = std::get<30>(this->_data);
+        DataType& z_lookup = std::get<31>(this->_data);
+        DataType& table_1_shift = std::get<32>(this->_data);
+        DataType& table_2_shift = std::get<33>(this->_data);
+        DataType& table_3_shift = std::get<34>(this->_data);
+        DataType& table_4_shift = std::get<35>(this->_data);
+        DataType& w_l_shift = std::get<36>(this->_data);
+        DataType& w_r_shift = std::get<37>(this->_data);
+        DataType& w_o_shift = std::get<38>(this->_data);
+        DataType& w_4_shift = std::get<39>(this->_data);
+        DataType& sorted_accum_shift = std::get<40>(this->_data);
+        DataType& z_perm_shift = std::get<41>(this->_data);
+        DataType& z_lookup_shift = std::get<42>(this->_data);
 
         std::vector<HandleType> get_wires() override { return { w_l, w_r, w_o, w_4 }; };
         // Gemini-specific getters.
         std::vector<HandleType> get_unshifted() override
         {
-            return { q_c,           q_l,    q_r,      q_o,     q_4,     q_m,      q_arith,  q_sort,
-                     q_elliptic,    q_aux,  q_lookup, sigma_1, sigma_2, sigma_3,  sigma_4,  id_1,
-                     id_2,          id_3,   id_4,     table_1, table_2, table_3,  table_4,  lagrange_first,
-                     lagrange_last, w_l,    w_r,      w_o,     w_4,     sorted_1, sorted_2, sorted_3,
-                     sorted_4,      z_perm, z_lookup
+            return { q_c,           q_l,   q_r,      q_o,     q_4,     q_m,          q_arith, q_sort,
+                     q_elliptic,    q_aux, q_lookup, sigma_1, sigma_2, sigma_3,      sigma_4, id_1,
+                     id_2,          id_3,  id_4,     table_1, table_2, table_3,      table_4, lagrange_first,
+                     lagrange_last, w_l,   w_r,      w_o,     w_4,     sorted_accum, z_perm,  z_lookup
 
             };
         };
-        std::vector<HandleType> get_to_be_shifted() override { return { w_l, w_4, z_perm, z_lookup }; };
+        std::vector<HandleType> get_to_be_shifted() override
+        {
+            return { table_1, table_2, table_3, table_4, w_l, w_r, w_o, w_4, sorted_accum, z_perm, z_lookup };
+        };
         std::vector<HandleType> get_shifted() override
         {
-            return { w_l_shift, w_4_shift, z_perm_shift, z_lookup_shift };
+            return { table_1_shift, table_2_shift, table_3_shift,      table_4_shift, w_l_shift,     w_r_shift,
+                     w_o_shift,     w_4_shift,     sorted_accum_shift, z_perm_shift,  z_lookup_shift };
         };
 
         AllEntities() = default;
@@ -249,10 +274,20 @@ class Ultra {
     using ProverPolynomials = AllEntities<PolynomialHandle, PolynomialHandle>;
 
     /**
-     * @brief A container for polynomials produced after the first round of sumcheck.
-     * @todo TODO(#394) Use polynomial classes for guaranteed memory alignment.
+     * @brief A container for storing the partially evaluated multivariates produced by sumcheck.
      */
-    using FoldedPolynomials = AllEntities<std::vector<FF>, PolynomialHandle>;
+    class PartiallyEvaluatedMultivariates : public AllEntities<Polynomial, PolynomialHandle> {
+
+      public:
+        PartiallyEvaluatedMultivariates() = default;
+        PartiallyEvaluatedMultivariates(const size_t circuit_size)
+        {
+            // Storage is only needed after the first partial evaluation, hence polynomials of size (n / 2)
+            for (auto& poly : this->_data) {
+                poly = Polynomial(circuit_size / 2);
+            }
+        }
+    };
 
     /**
      * @brief A container for univariates produced during the hot loop in sumcheck.
@@ -266,11 +301,11 @@ class Ultra {
      * @brief A container for the polynomials evaluations produced during sumcheck, which are purported to be the
      * evaluations of polynomials committed in earlier rounds.
      */
-    class PurportedEvaluations : public AllEntities<FF, FF> {
+    class ClaimedEvaluations : public AllEntities<FF, FF> {
       public:
         using Base = AllEntities<FF, FF>;
         using Base::Base;
-        PurportedEvaluations(std::array<FF, NUM_ALL_ENTITIES> _data_in) { this->_data = _data_in; }
+        ClaimedEvaluations(std::array<FF, NUM_ALL_ENTITIES> _data_in) { this->_data = _data_in; }
     };
 
     /**
@@ -289,6 +324,8 @@ class Ultra {
             w_4 = "W_4";
             z_perm = "Z_PERM";
             z_lookup = "Z_LOOKUP";
+            sorted_accum = "SORTED_ACCUM";
+
             // The ones beginning with "__" are only used for debugging
             q_c = "__Q_C";
             q_l = "__Q_L";
@@ -315,34 +352,41 @@ class Ultra {
             table_4 = "__TABLE_4";
             lagrange_first = "__LAGRANGE_FIRST";
             lagrange_last = "__LAGRANGE_LAST";
-            sorted_1 = "__SORTED_1";
-            sorted_2 = "__SORTED_2";
-            sorted_3 = "__SORTED_3";
-            sorted_4 = "__SORTED_4";
-            sorted_accum = "__SORTED_ACCUM";
-            table_1_shift = "__TABLE_1_SHIFT";
-            table_2_shift = "__TABLE_2_SHIFT";
-            table_3_shift = "__TABLE_3_SHIFT";
-            table_4_shift = "__TABLE_4_SHIFT";
-            w_l_shift = "__W_L_SHIFT";
-            w_r_shift = "__W_R_SHIFT";
-            w_o_shift = "__W_O_SHIFT";
-            w_4_shift = "__W_4_SHIFT";
-            sorted_accum_shift = "__SORTED_ACCUM_SHIFT";
-            z_perm_shift = "__Z_PERM_SHIFT";
-            z_lookup_shift = "__Z_LOOKUP_SHIFT";
         };
     };
 
-    /**
-     * @brief A container for all commitments used by the verifier.
-     */
-    // class VerifierCommitments : public AllEntities<Commitment, CommitmentHandle> {
-    //   public:
-    //     VerifierCommitments(std::shared_ptr<VerificationKey> verification_key)
-    //     {
-    //     }
-    // };
+    class VerifierCommitments : public AllEntities<Commitment, CommitmentHandle> {
+      public:
+        VerifierCommitments(std::shared_ptr<VerificationKey> verification_key, VerifierTranscript<FF> transcript)
+        {
+            static_cast<void>(transcript);
+            q_m = verification_key->q_m;
+            q_l = verification_key->q_l;
+            q_r = verification_key->q_r;
+            q_o = verification_key->q_o;
+            q_4 = verification_key->q_4;
+            q_c = verification_key->q_c;
+            q_arith = verification_key->q_arith;
+            q_sort = verification_key->q_sort;
+            q_elliptic = verification_key->q_elliptic;
+            q_aux = verification_key->q_aux;
+            q_lookup = verification_key->q_lookup;
+            sigma_1 = verification_key->sigma_1;
+            sigma_2 = verification_key->sigma_2;
+            sigma_3 = verification_key->sigma_3;
+            sigma_4 = verification_key->sigma_4;
+            id_1 = verification_key->id_1;
+            id_2 = verification_key->id_2;
+            id_3 = verification_key->id_3;
+            id_4 = verification_key->id_4;
+            table_1 = verification_key->table_1;
+            table_2 = verification_key->table_2;
+            table_3 = verification_key->table_3;
+            table_4 = verification_key->table_4;
+            lagrange_first = verification_key->lagrange_first;
+            lagrange_last = verification_key->lagrange_last;
+        }
+    };
 };
 
 } // namespace proof_system::honk::flavor
