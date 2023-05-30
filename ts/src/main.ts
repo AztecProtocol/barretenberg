@@ -13,7 +13,9 @@ const debug = createDebug('bb.js');
 // createDebug.enable('*');
 
 // Maximum we support.
-const CIRCUIT_SIZE = 2 ** 19;
+// TODO: When generating a proving key with a recursion constraint in the circuit
+// we go over the memory limit with the circuit size set to 2**19
+const CIRCUIT_SIZE = 2 ** 18;
 
 function getBytecode(jsonPath: string) {
   const json = readFileSync(jsonPath, 'utf-8');
@@ -239,7 +241,6 @@ program
   .option('-w, --witness-path <path>', 'Specify the witness path', './target/witness.tr')
   .option('-r, --recursive', 'prove and verify using recursive prover and verifier', false)
   .action(async ({ jsonPath, witnessPath, recursive }) => {
-    debug(recursive);
     const result = await proveAndVerify(jsonPath, witnessPath, recursive);
     process.exit(result ? 0 : 1);
   });
