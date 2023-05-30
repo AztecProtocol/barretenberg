@@ -85,6 +85,14 @@ std::string AcirComposer::get_solidity_verifier()
     return stream.str();
 }
 
+/**
+ * @brief Takes in a proof buffer and converts into a vector of field elements.
+ *        The Recursion opcode requires the proof serialized as a vector of witnesses.
+ *        Use this method to get the witness values!
+ *
+ * @param proof
+ * @param num_inner_public_inputs - number of public inputs on the proof being serialized
+ */
 std::vector<barretenberg::fr> AcirComposer::serialize_proof_into_fields(std::vector<uint8_t> const& proof,
                                                                         size_t num_inner_public_inputs)
 {
@@ -97,7 +105,12 @@ std::vector<barretenberg::fr> AcirComposer::serialize_proof_into_fields(std::vec
     return output;
 }
 
-// The composer should already have a verification key initialized
+/**
+ * @brief Takes in a verification key buffer and converts into a vector of field elements.
+ *        The Recursion opcode requires the vk serialized as a vector of witnesses.
+ *        Use this method to get the witness values!
+ *        The composer should already have a verification key initialized.
+ */
 std::vector<barretenberg::fr> AcirComposer::serialize_verification_key_into_fields()
 {
     std::vector<barretenberg::fr> output = acir_format::export_key_in_recursion_format(verification_key_);
