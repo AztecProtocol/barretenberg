@@ -62,6 +62,7 @@ export async function proveAndVerify(jsonPath: string, witnessPath: string) {
     debug(`creating proof...`);
     const witness = getWitness(witnessPath);
     const proof = await api.acirCreateProof(acirComposer, new RawBuffer(bytecode), new RawBuffer(witness));
+    debug(`done.`);
 
     const verified = await api.acirVerifyProof(acirComposer, proof);
     console.log(`verified: ${verified}`);
@@ -84,6 +85,7 @@ export async function prove(jsonPath: string, witnessPath: string, outputPath: s
     debug(`creating proof...`);
     const witness = getWitness(witnessPath);
     const proof = await api.acirCreateProof(acirComposer, new RawBuffer(bytecode), new RawBuffer(witness));
+    debug(`done.`);
 
     writeFileSync(outputPath, proof);
     console.log(`proof written to: ${outputPath}`);
@@ -101,6 +103,7 @@ export async function gateCount(jsonPath: string) {
     const gates = await api.acirGetTotalCircuitSize(acirComposer);
     console.log(`${gates}`);
   } finally {
+    await api.acirDeleteAcirComposer(acirComposer);
     await api.destroy();
   }
 }
