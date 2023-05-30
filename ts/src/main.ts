@@ -14,7 +14,7 @@ const debug = createDebug('bb.js');
 // createDebug.enable('*');
 
 // Maximum we support.
-const CIRCUIT_SIZE = 2 ** 18;
+const CIRCUIT_SIZE = 2 ** 19;
 
 function getBytecode(jsonPath: string) {
   const json = readFileSync(jsonPath, 'utf-8');
@@ -32,20 +32,17 @@ function getWitness(witnessPath: string) {
 async function init() {
   // Plus 1 needed!
   const crs = await Crs.new(CIRCUIT_SIZE + 1);
-  debug('got crs');
+
   const api = await newBarretenbergApiAsync();
 
   // Import to init slab allocator as first thing, to ensure maximum memory efficiency.
   await api.commonInitSlabAllocator(CIRCUIT_SIZE);
-  debug('got slab allocator');
 
   // Load CRS into wasm global CRS state.
   // TODO: Make RawBuffer be default behaviour, and have a specific Vector type for when wanting length prefixed.
   await api.srsInitSrs(new RawBuffer(crs.getG1Data()), crs.numPoints, new RawBuffer(crs.getG2Data()));
-  debug('got srs');
 
   const acirComposer = await api.acirNewAcirComposer();
-  debug('got acirComposer');
   return { api, acirComposer };
 }
 

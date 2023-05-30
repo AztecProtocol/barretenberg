@@ -105,8 +105,7 @@
     "span": "cpp",
     "*.inc": "cpp",
     "*.macros": "cpp",
-    "cuchar": "cpp",
-    "__verbose_abort": "cpp"
+    "cuchar": "cpp"
   },
   "solidity.compileUsingRemoteVersion": "v0.6.10+commit.00c0fcaf",
   "search.exclude": {
