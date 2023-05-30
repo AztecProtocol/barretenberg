@@ -215,7 +215,6 @@ aggregation_state<Curve> verify_proof_(typename Curve::Composer* context,
 
     const auto PI_Z = transcript.get_circuit_group_element("PI_Z");
     const auto PI_Z_OMEGA = transcript.get_circuit_group_element("PI_Z_OMEGA");
-    info("get_circuit_group_element");
 
     field_t circuit_size = key->n;
     field_t public_input_size = key->num_public_inputs;
@@ -228,7 +227,6 @@ aggregation_state<Curve> verify_proof_(typename Curve::Composer* context,
     transcript.apply_fiat_shamir("beta");
     transcript.apply_fiat_shamir("alpha");
     transcript.apply_fiat_shamir("z");
-    info("apply_fiat_shamir");
 
     fr_ct alpha = transcript.get_challenge_field_element("alpha");
     fr_ct zeta = transcript.get_challenge_field_element("z");
@@ -236,29 +234,21 @@ aggregation_state<Curve> verify_proof_(typename Curve::Composer* context,
     key->z_pow_n = zeta.pow(key->domain.domain);
 
     lagrange_evaluations<Composer> lagrange_evals = get_lagrange_evaluations<Curve>(zeta, key->domain);
-    info("lagrange_evals");
 
     // reconstruct evaluation of quotient polynomial from prover messages
 
     fr_ct quotient_numerator_eval = fr_ct(0);
     program_settings::compute_quotient_evaluation_contribution(key.get(), alpha, transcript, quotient_numerator_eval);
-    info("compute_quotient_evaluation_contribution");
-    info(quotient_numerator_eval);
+
     fr_ct t_eval = quotient_numerator_eval / lagrange_evals.vanishing_poly;
     transcript.add_field_element("t", t_eval);
-    info(t_eval);
-    info("Curve::Composer::type");
-    info(Curve::Composer::type);
+
     transcript.apply_fiat_shamir("nu");
-    info("apply_fiat_shamir nu");
     transcript.apply_fiat_shamir("separator");
-    info("apply_fiat_shamir separator");
 
     fr_ct u = transcript.get_challenge_field_element("separator", 0);
-    info("get_challenge_field_element on separator");
 
     fr_ct batch_opening_scalar;
-    info("about to populate_kate_element_map");
 
     populate_kate_element_map<Curve, Transcript<Composer>, program_settings>(context,
                                                                              key.get(),
@@ -268,7 +258,7 @@ aggregation_state<Curve> verify_proof_(typename Curve::Composer* context,
                                                                              kate_fr_elements_at_zeta_large,
                                                                              kate_fr_elements_at_zeta_omega,
                                                                              batch_opening_scalar);
-    info("populate_kate_element_map");
+
     std::vector<fr_ct> double_opening_scalars;
     std::vector<g1_ct> double_opening_elements;
     std::vector<fr_ct> opening_scalars;
@@ -387,7 +377,6 @@ aggregation_state<Curve> verify_proof_(typename Curve::Composer* context,
         rhs_elements.push_back((-g1_ct(x1, y1)));
         rhs_scalars.push_back(recursion_separator_challenge);
     }
-    info("about to bn254_endo_batch_mul_with_generator");
 
     auto opening_result = g1_ct::template bn254_endo_batch_mul_with_generator(
         big_opening_elements, big_opening_scalars, opening_elements, opening_scalars, batch_opening_scalar, 128);
@@ -396,7 +385,6 @@ aggregation_state<Curve> verify_proof_(typename Curve::Composer* context,
     for (const auto& to_add : elements_to_add) {
         opening_result = opening_result + to_add;
     }
-    info("final opening_result");
 
     g1_ct rhs = g1_ct::template wnaf_batch_mul<128>(rhs_elements, rhs_scalars);
 

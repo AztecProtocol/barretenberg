@@ -21,7 +21,7 @@ AcirComposer::AcirComposer(std::shared_ptr<proof_system::ReferenceStringFactory>
 void AcirComposer::init_proving_key(acir_format::acir_format& constraint_system, size_t size_hint)
 {
     composer_ = acir_format::create_circuit(constraint_system, crs_factory_, size_hint);
-    info("got composer_");
+
     // We are done with the constraint system at this point, and we need the memory slab back.
     // constraint_system = acir_format::acir_format();
     constraint_system.constraints.clear();
@@ -29,8 +29,6 @@ void AcirComposer::init_proving_key(acir_format::acir_format& constraint_system,
 
     total_circuit_size_ = composer_.get_total_circuit_size();
     circuit_subgroup_size_ = composer_.get_circuit_subgroup_size(total_circuit_size_);
-    info("circuit_subgroup_size_");
-    info(circuit_subgroup_size_);
 
     proving_key_ = composer_.compute_proving_key();
 }

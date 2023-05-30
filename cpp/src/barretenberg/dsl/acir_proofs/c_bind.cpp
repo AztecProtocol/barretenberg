@@ -28,7 +28,6 @@ WASM_EXPORT void acir_init_proving_key(in_ptr acir_composer_ptr,
 {
     auto acir_composer = reinterpret_cast<acir_proofs::AcirComposer*>(*acir_composer_ptr);
     auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
-    info("got constraint_system");
 
     // The binder would normally free the the constraint_system_buf, but we need the memory now.
     free_mem_slab_raw((void*)constraint_system_buf);
@@ -123,7 +122,6 @@ WASM_EXPORT void acir_serialize_verification_key_into_fields(in_ptr acir_compose
                                                              uint8_t** out_vkey,
                                                              uint8_t** out_key_hash)
 {
-    info("about to serialize vkey");
     auto acir_composer = reinterpret_cast<acir_proofs::AcirComposer*>(*acir_composer_ptr);
 
     auto vkey_as_fields = acir_composer->serialize_verification_key_into_fields();

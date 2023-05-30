@@ -175,8 +175,6 @@ template <typename Composer> class Transcript {
 
     void apply_fiat_shamir(const std::string& challenge_name)
     {
-        info("apply_fiat_shamir");
-        info(challenge_name);
         const size_t num_challenges = get_manifest().get_round_manifest(current_round).num_challenges;
         transcript_base.apply_fiat_shamir(challenge_name);
 

@@ -62,7 +62,7 @@ export async function proveAndVerify(jsonPath: string, witnessPath: string, is_r
     debug(`creating proof...`);
     const witness = getWitness(witnessPath);
     const proof = await api.acirCreateProof(acirComposer, new RawBuffer(bytecode), new RawBuffer(witness), is_recursive);
-    console.log(proof);
+
     const verified = await api.acirVerifyProof(acirComposer, proof, is_recursive);
     debug(`verified: ${verified}`);
     return verified;
@@ -273,7 +273,6 @@ program
   .requiredOption('-n, --num-public-inputs <number>', 'Specify the number of public inputs')
   .requiredOption('-o, --output-path <path>', 'Specify the JSON path to write the proof fields')
   .action(async ({ proofPath, numPublicInputs, outputPath }) => {
-    console.log(numPublicInputs)
     await proof_as_fields(proofPath, numPublicInputs, outputPath);
   })
 

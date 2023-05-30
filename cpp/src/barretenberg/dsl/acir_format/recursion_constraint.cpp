@@ -38,11 +38,7 @@ void create_recursion_constraints(Composer& composer,
         nested_aggregation_indices_all_zero &= (idx == 0);
     }
     const bool inner_proof_contains_recursive_proof = !nested_aggregation_indices_all_zero;
-    info("inner_proof_contains_recursive_proof");
-    info(inner_proof_contains_recursive_proof);
 
-    info("has_valid_witness_assignments");
-    info(has_valid_witness_assignments);
     // If we do not have a witness, we must ensure that our dummy witness will not trigger
     // on-curve errors and inverting-zero errors
     {
@@ -86,8 +82,6 @@ void create_recursion_constraints(Composer& composer,
     for (const auto& idx : aggregation_input) {
         inner_aggregation_indices_all_zero &= (idx == 0);
     }
-    info("inner_aggregation_indices_all_zero");
-    info(inner_aggregation_indices_all_zero);
 
     if (!inner_aggregation_indices_all_zero) {
         std::array<bn254::fq_ct, 4> aggregation_elements;
@@ -108,25 +102,19 @@ void create_recursion_constraints(Composer& composer,
         previous_aggregation.has_data = false;
     }
 
-    info("input.public_inputs.size()");
-    info(input.public_inputs.size());
     transcript::Manifest manifest = Composer::create_unrolled_manifest(input.public_inputs.size());
 
     std::vector<field_ct> key_fields;
     key_fields.reserve(input.key.size());
-    // info("key_fields");
     for (const auto& idx : input.key) {
         auto field = field_ct::from_witness_index(&composer, idx);
-        // info(field);
         key_fields.emplace_back(field);
     }
 
     std::vector<field_ct> proof_fields;
     proof_fields.reserve(input.proof.size());
-    // info("proof_fields");
     for (const auto& idx : input.proof) {
         auto field = field_ct::from_witness_index(&composer, idx);
-        // info(field);
         proof_fields.emplace_back(field);
     }
 
@@ -135,10 +123,8 @@ void create_recursion_constraints(Composer& composer,
         &composer, key_fields, inner_proof_contains_recursive_proof, nested_aggregation_indices);
     vkey->program_width = noir_recursive_settings::program_width;
     Transcript_ct transcript(&composer, manifest, proof_fields, input.public_inputs.size());
-    info("about to verify_proof_");
     aggregation_state_ct result = proof_system::plonk::stdlib::recursion::verify_proof_<bn254, noir_recursive_settings>(
         &composer, vkey, transcript, previous_aggregation);
-    info("got agg result");
 
     // Assign correct witness value to the verification key hash
     vkey->compress().assert_equal(field_ct::from_witness_index(&composer, input.key_hash));

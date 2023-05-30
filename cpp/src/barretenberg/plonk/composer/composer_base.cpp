@@ -238,8 +238,7 @@ std::shared_ptr<proving_key> ComposerBase::compute_proving_key_base(const Compos
     const size_t num_filled_gates = num_gates + public_inputs.size();
     const size_t total_num_gates = std::max(minimum_circuit_size, num_filled_gates);
     const size_t subgroup_size = get_circuit_subgroup_size(total_num_gates + num_reserved_gates); // next power of 2
-    info("subgroup_size");
-    info(subgroup_size);
+
     // Prealloc slabs of memory for polynomials, pippenger, scratch space, etc.
     init_slab_allocator(subgroup_size);
 
