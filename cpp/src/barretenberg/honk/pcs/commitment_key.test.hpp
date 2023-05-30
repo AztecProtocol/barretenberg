@@ -9,7 +9,7 @@
 #include <string_view>
 
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/srs/reference_string/file_reference_string.hpp"
+#include "barretenberg/srs/factories/file_crs_factory.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
 
 #include "../oracle/oracle.hpp"

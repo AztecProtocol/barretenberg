@@ -73,6 +73,9 @@ void create_circuit(Composer& composer, acir_format const& constraint_system)
     for (const auto& constraint : constraint_system.keccak_constraints) {
         create_keccak_constraints(composer, constraint);
     }
+    for (const auto& constraint : constraint_system.keccak_var_constraints) {
+        create_keccak_var_constraints(composer, constraint);
+    }
 
     // Add pedersen constraints
     for (const auto& constraint : constraint_system.pedersen_constraints) {
@@ -111,7 +114,7 @@ void create_circuit(Composer& composer, acir_format const& constraint_system)
 }
 
 Composer create_circuit(const acir_format& constraint_system,
-                        std::shared_ptr<proof_system::ReferenceStringFactory> const& crs_factory,
+                        std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
                         size_t size_hint)
 {
     if (constraint_system.public_inputs.size() > constraint_system.varnum) {
@@ -178,6 +181,9 @@ Composer create_circuit(const acir_format& constraint_system,
     for (const auto& constraint : constraint_system.keccak_constraints) {
         create_keccak_constraints(composer, constraint);
     }
+    for (const auto& constraint : constraint_system.keccak_var_constraints) {
+        create_keccak_var_constraints(composer, constraint);
+    }
 
     // Add pedersen constraints
     for (const auto& constraint : constraint_system.pedersen_constraints) {
@@ -219,7 +225,7 @@ Composer create_circuit(const acir_format& constraint_system,
 
 Composer create_circuit_with_witness(acir_format const& constraint_system,
                                      WitnessVector const& witness,
-                                     std::shared_ptr<ReferenceStringFactory> const& crs_factory)
+                                     std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory)
 {
     if (constraint_system.public_inputs.size() > constraint_system.varnum) {
         info("create_circuit_with_witness: too many public inputs!");
@@ -286,6 +292,9 @@ Composer create_circuit_with_witness(acir_format const& constraint_system,
     // Add keccak constraints
     for (const auto& constraint : constraint_system.keccak_constraints) {
         create_keccak_constraints(composer, constraint);
+    }
+    for (const auto& constraint : constraint_system.keccak_var_constraints) {
+        create_keccak_var_constraints(composer, constraint);
     }
 
     // Add pedersen constraints
@@ -393,6 +402,9 @@ Composer create_circuit_with_witness(const acir_format& constraint_system, Witne
     for (const auto& constraint : constraint_system.keccak_constraints) {
         create_keccak_constraints(composer, constraint);
     }
+    for (const auto& constraint : constraint_system.keccak_var_constraints) {
+        create_keccak_var_constraints(composer, constraint);
+    }
 
     // Add pedersen constraints
     for (const auto& constraint : constraint_system.pedersen_constraints) {
@@ -496,6 +508,9 @@ void create_circuit_with_witness(Composer& composer, acir_format const& constrai
     // Add keccak constraints
     for (const auto& constraint : constraint_system.keccak_constraints) {
         create_keccak_constraints(composer, constraint);
+    }
+    for (const auto& constraint : constraint_system.keccak_var_constraints) {
+        create_keccak_var_constraints(composer, constraint);
     }
 
     // Add pedersen constraints

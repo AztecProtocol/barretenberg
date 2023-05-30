@@ -136,33 +136,13 @@ export class BarretenbergApi {
     return result as any;
   }
 
-  async eccNewPippenger(points: Uint8Array, numPointsBuf: number): Promise<Ptr> {
-    const result = await this.binder.callWasmExport('ecc_new_pippenger', [points, numPointsBuf], [Ptr]);
-    return result[0];
-  }
-
-  async eccNewPippengerMemPrealloced(points: Ptr, numPoints: number): Promise<Ptr> {
-    const result = await this.binder.callWasmExport('ecc_new_pippenger_mem_prealloced', [points, numPoints], [Ptr]);
-    return result[0];
-  }
-
-  async eccDeletePippenger(pippenger: Ptr): Promise<void> {
-    const result = await this.binder.callWasmExport('ecc_delete_pippenger', [pippenger], []);
+  async srsInitSrs(pointsBuf: Uint8Array, numPoints: number, g2PointBuf: Uint8Array): Promise<void> {
+    const result = await this.binder.callWasmExport('srs_init_srs', [pointsBuf, numPoints, g2PointBuf], []);
     return;
   }
 
-  async eccPippengerUnsafe(pippengerPtr: Ptr, scalarsPtr: Ptr, from: number, range: number): Promise<Point> {
-    const result = await this.binder.callWasmExport('ecc_pippenger_unsafe', [pippengerPtr, scalarsPtr, from, range], [Point]);
-    return result[0];
-  }
-
-  async eccG1Sum(pointsPtr: Ptr, numPoints: number): Promise<Point> {
-    const result = await this.binder.callWasmExport('ecc_g1_sum', [pointsPtr, numPoints], [Point]);
-    return result[0];
-  }
-
-  async examplesSimpleCreateAndVerifyProof(pippenger: Ptr, g2x: Uint8Array): Promise<boolean> {
-    const result = await this.binder.callWasmExport('examples_simple_create_and_verify_proof', [pippenger, g2x], [BoolDeserializer()]);
+  async examplesSimpleCreateAndVerifyProof(): Promise<boolean> {
+    const result = await this.binder.callWasmExport('examples_simple_create_and_verify_proof', [], [BoolDeserializer()]);
     return result[0];
   }
 
@@ -186,13 +166,18 @@ export class BarretenbergApi {
     return;
   }
 
-  async acirNewAcirComposer(pippenger: Ptr, g2x: Uint8Array): Promise<Ptr> {
-    const result = await this.binder.callWasmExport('acir_new_acir_composer', [pippenger, g2x], [Ptr]);
+  async acirNewAcirComposer(): Promise<Ptr> {
+    const result = await this.binder.callWasmExport('acir_new_acir_composer', [], [Ptr]);
     return result[0];
   }
 
   async acirDeleteAcirComposer(acirComposerPtr: Ptr): Promise<void> {
     const result = await this.binder.callWasmExport('acir_delete_acir_composer', [acirComposerPtr], []);
+    return;
+  }
+
+  async acirCreateCircuit(acirComposerPtr: Ptr, constraintSystemBuf: Uint8Array, sizeHint: number): Promise<void> {
+    const result = await this.binder.callWasmExport('acir_create_circuit', [acirComposerPtr, constraintSystemBuf, sizeHint], []);
     return;
   }
 
@@ -379,33 +364,13 @@ export class BarretenbergApiSync {
     return result as any;
   }
 
-  eccNewPippenger(points: Uint8Array, numPointsBuf: number): Ptr {
-    const result = this.binder.callWasmExport('ecc_new_pippenger', [points, numPointsBuf], [Ptr]);
-    return result[0];
-  }
-
-  eccNewPippengerMemPrealloced(points: Ptr, numPoints: number): Ptr {
-    const result = this.binder.callWasmExport('ecc_new_pippenger_mem_prealloced', [points, numPoints], [Ptr]);
-    return result[0];
-  }
-
-  eccDeletePippenger(pippenger: Ptr): void {
-    const result = this.binder.callWasmExport('ecc_delete_pippenger', [pippenger], []);
+  srsInitSrs(pointsBuf: Uint8Array, numPoints: number, g2PointBuf: Uint8Array): void {
+    const result = this.binder.callWasmExport('srs_init_srs', [pointsBuf, numPoints, g2PointBuf], []);
     return;
   }
 
-  eccPippengerUnsafe(pippengerPtr: Ptr, scalarsPtr: Ptr, from: number, range: number): Point {
-    const result = this.binder.callWasmExport('ecc_pippenger_unsafe', [pippengerPtr, scalarsPtr, from, range], [Point]);
-    return result[0];
-  }
-
-  eccG1Sum(pointsPtr: Ptr, numPoints: number): Point {
-    const result = this.binder.callWasmExport('ecc_g1_sum', [pointsPtr, numPoints], [Point]);
-    return result[0];
-  }
-
-  examplesSimpleCreateAndVerifyProof(pippenger: Ptr, g2x: Uint8Array): boolean {
-    const result = this.binder.callWasmExport('examples_simple_create_and_verify_proof', [pippenger, g2x], [BoolDeserializer()]);
+  examplesSimpleCreateAndVerifyProof(): boolean {
+    const result = this.binder.callWasmExport('examples_simple_create_and_verify_proof', [], [BoolDeserializer()]);
     return result[0];
   }
 
@@ -429,13 +394,18 @@ export class BarretenbergApiSync {
     return;
   }
 
-  acirNewAcirComposer(pippenger: Ptr, g2x: Uint8Array): Ptr {
-    const result = this.binder.callWasmExport('acir_new_acir_composer', [pippenger, g2x], [Ptr]);
+  acirNewAcirComposer(): Ptr {
+    const result = this.binder.callWasmExport('acir_new_acir_composer', [], [Ptr]);
     return result[0];
   }
 
   acirDeleteAcirComposer(acirComposerPtr: Ptr): void {
     const result = this.binder.callWasmExport('acir_delete_acir_composer', [acirComposerPtr], []);
+    return;
+  }
+
+  acirCreateCircuit(acirComposerPtr: Ptr, constraintSystemBuf: Uint8Array, sizeHint: number): void {
+    const result = this.binder.callWasmExport('acir_create_circuit', [acirComposerPtr, constraintSystemBuf, sizeHint], []);
     return;
   }
 

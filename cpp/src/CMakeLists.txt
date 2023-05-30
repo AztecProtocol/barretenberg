@@ -73,8 +73,10 @@ endif()
 
 include(GNUInstallDirs)
 
-# For this library we include everything but the wasi module, as it is the responsibility of the
+# For this library we include everything but the env and wasi modules, as it is the responsibility of the
 # consumer of this library to define how and in what environment its artefact will run.
+# libbarretenberg + libwasi = a wasi "reactor" that implements it's own env (e.g. logstr), e.g. barretenberg.wasm.
+# libbarretenberg + env = a wasi "command" that expects a full wasi runtime (e.g. wasmtime), e.g. test binaries.
 message(STATUS "Compiling all-in-one barretenberg archive")
 add_library(
     barretenberg
@@ -111,7 +113,6 @@ add_library(
     $<TARGET_OBJECTS:stdlib_schnorr_objects>
     $<TARGET_OBJECTS:stdlib_sha256_objects>
     $<TARGET_OBJECTS:transcript_objects>
-    $<TARGET_OBJECTS:env_objects>
 )
 
 # Small library to provide necessary primitives for rust crate.

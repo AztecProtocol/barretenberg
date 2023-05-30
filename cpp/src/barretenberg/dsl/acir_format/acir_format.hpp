@@ -31,6 +31,7 @@ struct acir_format {
     std::vector<Sha256Constraint> sha256_constraints;
     std::vector<Blake2sConstraint> blake2s_constraints;
     std::vector<KeccakConstraint> keccak_constraints;
+    std::vector<KeccakVarConstraint> keccak_var_constraints;
     std::vector<HashToFieldConstraint> hash_to_field_constraints;
     std::vector<PedersenConstraint> pedersen_constraints;
     std::vector<ComputeMerkleRootConstraint> compute_merkle_root_constraints;
@@ -51,12 +52,12 @@ void read_witness(Composer& composer, std::vector<barretenberg::fr> const& witne
 void create_circuit(Composer& composer, const acir_format& constraint_system);
 
 Composer create_circuit(const acir_format& constraint_system,
-                        std::shared_ptr<proof_system::ReferenceStringFactory> const& crs_factory,
+                        std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
                         size_t size_hint = 0);
 
 Composer create_circuit_with_witness(const acir_format& constraint_system,
                                      WitnessVector const& witness,
-                                     std::shared_ptr<ReferenceStringFactory> const& crs_factory);
+                                     std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory);
 
 Composer create_circuit_with_witness(const acir_format& constraint_system, WitnessVector const& witness);
 
@@ -78,6 +79,7 @@ template <typename B> inline void read(B& buf, acir_format& data)
     read(buf, data.ecdsa_constraints);
     read(buf, data.blake2s_constraints);
     read(buf, data.keccak_constraints);
+    read(buf, data.keccak_var_constraints);
     read(buf, data.pedersen_constraints);
     read(buf, data.hash_to_field_constraints);
     read(buf, data.fixed_base_scalar_mul_constraints);
@@ -99,6 +101,7 @@ template <typename B> inline void write(B& buf, acir_format const& data)
     write(buf, data.ecdsa_constraints);
     write(buf, data.blake2s_constraints);
     write(buf, data.keccak_constraints);
+    write(buf, data.keccak_var_constraints);
     write(buf, data.pedersen_constraints);
     write(buf, data.hash_to_field_constraints);
     write(buf, data.fixed_base_scalar_mul_constraints);

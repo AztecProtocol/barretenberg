@@ -94,6 +94,7 @@ TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
         .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},
+        .keccak_var_constraints = {},
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .compute_merkle_root_constraints = {},
@@ -131,6 +132,7 @@ TEST(ECDSASecp256k1, TestECDSACompilesForVerifier)
         .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},
+        .keccak_var_constraints = {},
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .compute_merkle_root_constraints = {},
@@ -138,7 +140,7 @@ TEST(ECDSASecp256k1, TestECDSACompilesForVerifier)
         .recursion_constraints = {},
         .constraints = {},
     };
-    auto crs_factory = std::make_unique<proof_system::ReferenceStringFactory>();
+    auto crs_factory = std::make_unique<barretenberg::srs::factories::CrsFactory>();
     auto composer = create_circuit(constraint_system, std::move(crs_factory));
 }
 
@@ -165,6 +167,7 @@ TEST(ECDSASecp256k1, TestECDSAConstraintFail)
         .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},
+        .keccak_var_constraints = {},
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .compute_merkle_root_constraints = {},

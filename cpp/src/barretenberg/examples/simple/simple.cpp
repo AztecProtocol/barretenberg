@@ -19,7 +19,7 @@ void build_circuit(Composer& composer)
     }
 }
 
-Composer* create_composer(std::shared_ptr<proof_system::ReferenceStringFactory> const& crs_factory)
+Composer* create_composer(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory)
 {
     // WARNING: Size hint is essential to perform 512k circuits!
     auto composer = std::make_unique<Composer>(crs_factory, CIRCUIT_SIZE);
