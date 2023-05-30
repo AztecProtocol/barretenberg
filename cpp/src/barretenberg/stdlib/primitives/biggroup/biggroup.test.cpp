@@ -47,17 +47,6 @@ template <typename TestType> class stdlib_biggroup : public testing::Test {
 
     using Composer = typename Curve::Composer;
 
-    // static constexpr auto EXPECT_VERIFICATION = [](Composer& composer, bool expected_result = true) {
-    //     info("composer gates = ", composer.get_num_gates());
-    //     auto prover = composer.create_prover();
-    //     info("creating verifier");
-    //     auto verifier = composer.create_verifier();
-    //     info("creating proof");
-    //     plonk::proof proof = prover.construct_proof();
-    //     bool verified = verifier.verify_proof(proof);
-    //     EXPECT_EQ(verified, expected_result);
-    // };
-
     static constexpr auto EXPECT_CIRCUIT_CORRECTNESS = [](Composer& composer, bool expected_result = true) {
         info("composer gates = ", composer.get_num_gates());
         EXPECT_EQ(composer.check_circuit(), expected_result);
@@ -835,17 +824,6 @@ template <typename TestType> class stdlib_biggroup : public testing::Test {
 };
 
 enum UseBigfield { No, Yes };
-// using TestTypes = testing::Types<TestType<stdlib::bn254<honk::StandardHonkComposer>, UseBigfield::No>,
-//                                  //  TestType<stdlib::bn254<plonk::UltraPlonkComposer>, UseBigfield::No>,
-//                                  //  TestType<stdlib::bn254<plonk::TurboPlonkComposer>, UseBigfield::No>,
-//                                  TestType<stdlib::bn254<plonk::StandardPlonkComposer>, UseBigfield::No>,
-//                                  TestType<stdlib::bn254<plonk::UltraPlonkComposer>, UseBigfield::Yes>,
-//                                  // TestType<stdlib::bn254<plonk::TurboPlonkComposer>, UseBigfield::Yes>,
-//                                  // TestType<stdlib::bn254<plonk::StandardPlonkComposer>, UseBigfield::Yes>,
-//                                  // TestType<stdlib::bn254<honk::StandardHonkComposer>, UseBigfield::Yes>,
-//                                  // TestType<stdlib::secp256r1<plonk::UltraPlonkComposer>, UseBigfield::Yes>,
-//                                  TestType<stdlib::secp256k1<plonk::UltraPlonkComposer>, UseBigfield::Yes>>;
-
 using TestTypes = testing::Types<TestType<stdlib::bn254<proof_system::StandardCircuitConstructor>, UseBigfield::No>,
                                  TestType<stdlib::bn254<proof_system::UltraCircuitConstructor>, UseBigfield::Yes>>;
 
@@ -915,7 +893,7 @@ HEAVY_TYPED_TEST(stdlib_biggroup, compute_naf)
     }
 }
 
-/* These tests only work for UltraPlonkComposer */
+/* These tests only work for Ultra Circuit Constructor */
 HEAVY_TYPED_TEST(stdlib_biggroup, wnaf_batch_mul)
 {
     if constexpr (TypeParam::Curve::Composer::type == ComposerType::PLOOKUP) {
@@ -925,11 +903,11 @@ HEAVY_TYPED_TEST(stdlib_biggroup, wnaf_batch_mul)
     }
 }
 
-/* the following test was only developed as a test of UltraPlonkComposer. It fails for Turbo and Standard in the case
-   where Fr is a bigfield. */
+/* the following test was only developed as a test of Ultra Circuit Constructor. It fails for Turbo and Standard in the
+   case where Fr is a bigfield. */
 HEAVY_TYPED_TEST(stdlib_biggroup, compute_wnaf)
 {
-    if constexpr (TypeParam::Curve::Composer::type != UltraPlonkComposer::type && TypeParam::use_bigfield) {
+    if constexpr (TypeParam::Curve::Composer::type != ComposerType::PLOOKUP && TypeParam::use_bigfield) {
         GTEST_SKIP();
     } else {
         TestFixture::test_compute_wnaf();

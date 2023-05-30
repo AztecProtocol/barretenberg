@@ -758,7 +758,6 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
 
             ram_range_sizes.push_back(ram_range_check_gate_count);
             ram_range_exists.push_back(false);
-            // rangecount += ram_range_check_gate_count;
         }
         for (const auto& list : range_lists) {
             auto list_size = list.second.variable_indices.size();
@@ -801,7 +800,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
      *
      * @return size_t
      */
-    virtual size_t get_num_gates() const override
+    size_t get_num_gates() const override
     {
         // if circuit finalised already added extra gates
         if (circuit_finalised) {

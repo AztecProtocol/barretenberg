@@ -804,12 +804,6 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
 };
 
 // Define types for which the above tests will be constructed.
-// typedef testing::Types<plonk::UltraPlonkComposer,
-//                        plonk::TurboPlonkComposer,
-//                        honk::StandardHonkComposer,
-//                        plonk::StandardPlonkComposer>
-//     ComposerTypes;
-
 typedef testing::Types<proof_system::StandardCircuitConstructor,
                        proof_system::TurboCircuitConstructor,
                        proof_system::UltraCircuitConstructor>
