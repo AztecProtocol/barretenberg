@@ -50,9 +50,6 @@ template <typename Params> class IPA {
                "The poly_degree should be positive and a power of two");
 
         auto a_vec = polynomial;
-        // TODO(#479): restructure IPA so it can be integrated with the work_queue (or replacement) and
-        // see if reducing the size of G_vec_local and b_vec by taking the first iteration out of the loop
-        // can also be integrated.
         auto srs_elements = ck->srs.get_monomial_points();
         std::vector<Commitment> G_vec_local(poly_degree);
         // The SRS stored in the commitment key is the result after applying the pippenger point table so the
@@ -73,6 +70,10 @@ template <typename Params> class IPA {
         std::vector<GroupElement> R_elements(log_poly_degree);
         std::size_t round_size = poly_degree;
 
+        // TODO(#479): restructure IPA so it can be integrated with the pthread alternative to work queue (or even the
+        // work queue itself). Investigate whether parallelising parts of each rounds of IPA rounds brings significant
+        // improvements and see if reducing the size of G_vec_local and b_vec by taking the first iteration out of the
+        // loop can also be integrated.
         for (size_t i = 0; i < log_poly_degree; i++) {
             round_size >>= 1;
             // Compute inner_prod_L := < a_vec_lo, b_vec_hi > and inner_prod_R := < a_vec_hi, b_vec_lo >
@@ -135,7 +136,6 @@ template <typename Params> class IPA {
                        const OpeningClaim<Params>& opening_claim,
                        VerifierTranscript<Fr>& transcript)
     {
-        // so we should get an OpeningClaim as parameter with
         auto poly_degree = static_cast<size_t>(transcript.template receive_from_prover<uint64_t>("IPA:poly_degree"));
         Fr generator_challenge = transcript.get_challenge("IPA:generator_challenge");
         auto aux_generator = Commitment::one() * generator_challenge;

@@ -38,7 +38,8 @@ template <typename Params> class KZG {
         quotient.factor_roots(opening_pair.challenge);
         auto quotient_commitment = ck->commit(quotient);
         // TODO(#479): for now we compute the KZG commitment directly to unify the KZG and IPA interfaces but in the
-        // future we might need to adjust this to use the incoming alternative to work queue
+        // future we might need to adjust this to use the incoming alternative to work queue (i.e. variation of
+        // pthreads) or even the work queue itself
         prover_trancript.send_to_verifier("KZG:W", quotient_commitment);
     };
 
