@@ -61,10 +61,18 @@ class UltraHonkComposer {
                       std::shared_ptr<VerificationKey> const& v_key,
                       size_t size_hint = 0);
     UltraHonkComposer(UltraHonkComposer&& other) = default;
-    UltraHonkComposer& operator=(UltraHonkComposer&& other) = delete;
+    UltraHonkComposer& operator=(UltraHonkComposer&& other)
+    {
+        circuit_constructor = std::move(other.circuit_constructor);
+        composer_helper = std::move(other.composer_helper);
+        return *this;
+    };
     ~UltraHonkComposer() = default;
 
+    size_t get_num_gates() const { return circuit_constructor.get_num_gates(); }
     uint32_t get_zero_idx() { return circuit_constructor.zero_idx; }
+
+    bool check_circuit() { return circuit_constructor.check_circuit(); }
 
     uint32_t add_variable(const barretenberg::fr& in) { return circuit_constructor.add_variable(in); }
 
@@ -91,6 +99,8 @@ class UltraHonkComposer {
     {
         circuit_constructor.create_big_add_gate(in, use_next_gate_w_4);
     };
+
+    void create_mul_gate(const mul_triple& in) { circuit_constructor.create_mul_gate(in); }
 
     void create_bool_gate(const uint32_t a) { circuit_constructor.create_bool_gate(a); }
 
@@ -250,6 +260,38 @@ class UltraHonkComposer {
                                  std::string const& msg = "create_range_constraint")
     {
         circuit_constructor.create_range_constraint(variable_index, num_bits, msg);
+    }
+
+    std::array<uint32_t, 2> decompose_non_native_field_double_width_limb(
+        const uint32_t limb_idx,
+        const size_t num_limb_bits = (2 * UltraCircuitConstructor::DEFAULT_NON_NATIVE_FIELD_LIMB_BITS))
+    {
+        return circuit_constructor.decompose_non_native_field_double_width_limb(limb_idx, num_limb_bits);
+    }
+
+    using add_simple = proof_system::UltraCircuitConstructor::add_simple;
+    std::array<uint32_t, 5> evaluate_non_native_field_subtraction(
+        add_simple limb0,
+        add_simple limb1,
+        add_simple limb2,
+        add_simple limb3,
+        std::tuple<uint32_t, uint32_t, barretenberg::fr> limbp)
+    {
+        return circuit_constructor.evaluate_non_native_field_subtraction(limb0, limb1, limb2, limb3, limbp);
+    }
+    std::array<uint32_t, 5> evaluate_non_native_field_addition(add_simple limb0,
+                                                               add_simple limb1,
+                                                               add_simple limb2,
+                                                               add_simple limb3,
+                                                               std::tuple<uint32_t, uint32_t, barretenberg::fr> limbp)
+    {
+        return circuit_constructor.evaluate_non_native_field_addition(limb0, limb1, limb2, limb3, limbp);
+    };
+
+    std::array<uint32_t, 2> queue_partial_non_native_field_multiplication(
+        const proof_system::UltraCircuitConstructor::non_native_field_witnesses& input)
+    {
+        return circuit_constructor.queue_partial_non_native_field_multiplication(input);
     }
 
     bool failed() const { return circuit_constructor.failed(); };

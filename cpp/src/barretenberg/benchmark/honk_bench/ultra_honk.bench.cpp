@@ -1,11 +1,22 @@
+#include "barretenberg/crypto/ecdsa/ecdsa.hpp"
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/honk/proof_system/ultra_prover.hpp"
 #include "barretenberg/honk/proof_system/ultra_verifier.hpp"
 #include <benchmark/benchmark.h>
 #include <cstddef>
 #include "barretenberg/honk/composer/ultra_honk_composer.hpp"
+#include "barretenberg/stdlib/encryption/ecdsa/ecdsa.hpp"
+#include "barretenberg/stdlib/hash/keccak/keccak.hpp"
+#include "barretenberg/stdlib/primitives/curves/secp256k1.hpp"
 #include "barretenberg/stdlib/primitives/packed_byte_array/packed_byte_array.hpp"
 #include "barretenberg/stdlib/hash/sha256/sha256.hpp"
+#include "barretenberg/stdlib/primitives/bool/bool.hpp"
+#include "barretenberg/stdlib/primitives/field/field.hpp"
+#include "barretenberg/stdlib/primitives/witness/witness.hpp"
+#include "barretenberg/stdlib/merkle_tree/merkle_tree.hpp"
+#include "barretenberg/stdlib/merkle_tree/membership.hpp"
+#include "barretenberg/stdlib/merkle_tree/memory_store.hpp"
+#include "barretenberg/stdlib/merkle_tree/memory_tree.hpp"
 
 using namespace benchmark;
 
@@ -13,35 +24,25 @@ namespace ultra_honk_bench {
 
 using Composer = proof_system::honk::UltraHonkComposer;
 
-constexpr size_t MIN_LOG_NUM_GATES = 16;
-constexpr size_t MAX_LOG_NUM_GATES = 16;
-// To get good statistics, number of Repetitions must be sufficient. ~30 Repetitions gives good results.
-constexpr size_t NUM_REPETITIONS = 5;
+// Number of times to perform operation of interest in the benchmark circuits, e.g. # of hashes to perform
+constexpr size_t MIN_NUM_ITERATIONS = 10;
+constexpr size_t MAX_NUM_ITERATIONS = 10;
+// Numeber of times to repeat each benchmark
+constexpr size_t NUM_REPETITIONS = 1;
 
-// TODO(luke): Make this something useful. Suggestions from Zac: Sha256, keccak, ecdsa, merkle membership proofs w.
-// Pedersen, recursion.
-void generate_test_circuit(auto& composer, size_t num_gates)
-{
-    for (size_t j = 0; j < num_gates; ++j) {
-        uint64_t left = static_cast<uint64_t>(j);
-        uint64_t right = static_cast<uint64_t>(j + 1);
-        uint32_t left_idx = composer.add_variable(fr(left));
-        uint32_t right_idx = composer.add_variable(fr(right));
-        uint32_t result_idx = composer.add_variable(fr(left ^ right));
-
-        uint32_t add_idx = composer.add_variable(fr(left) + fr(right) + composer.get_variable(result_idx));
-        composer.create_big_add_gate({ left_idx, right_idx, result_idx, add_idx, fr(1), fr(1), fr(1), fr(-1), fr(0) });
-    }
-}
-
-void generate_sha256_test_circuit(Composer& composer, size_t num_gates)
+/**
+ * @brief Generate test circuit with specified number of sha256 hashes
+ *
+ * @param composer
+ * @param num_iterations
+ */
+void generate_sha256_test_circuit(Composer& composer, size_t num_iterations)
 {
     std::string in;
     in.resize(32);
     for (size_t i = 0; i < 32; ++i) {
         in[i] = 0;
     }
-    size_t num_iterations = 10;
     proof_system::plonk::stdlib::packed_byte_array<Composer> input(&composer, in);
     for (size_t i = 0; i < num_iterations; i++) {
         input = proof_system::plonk::stdlib::sha256<Composer>(input);
@@ -49,79 +50,120 @@ void generate_sha256_test_circuit(Composer& composer, size_t num_gates)
 }
 
 /**
- * @brief Benchmark: Creation of a Ultra Honk prover
+ * @brief Generate test circuit with specified number of keccak hashes
+ *
+ * @param composer
+ * @param num_iterations
  */
-void create_prover_ultra(State& state) noexcept
+void generate_keccak_test_circuit(Composer& composer, size_t num_iterations)
 {
-    for (auto _ : state) {
-        state.PauseTiming();
-        auto num_gates = 1 << (size_t)state.range(0);
-        auto composer = Composer();
-        generate_sha256_test_circuit(composer, static_cast<size_t>(num_gates));
-        // generate_test_circuit(composer, static_cast<size_t>(num_gates));
-        state.ResumeTiming();
+    std::string in = "abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz01";
 
-        auto prover = composer.create_prover();
+    proof_system::plonk::stdlib::byte_array<Composer> input(&composer, in);
+    for (size_t i = 0; i < num_iterations; i++) {
+        input = proof_system::plonk::stdlib::keccak<Composer>::hash(input);
     }
 }
-BENCHMARK(create_prover_ultra)->DenseRange(MIN_LOG_NUM_GATES, MAX_LOG_NUM_GATES, 1)->Repetitions(NUM_REPETITIONS);
 
 /**
- * @brief Benchmark: Construction of a Ultra Honk proof
+ * @brief Generate test circuit with specified number of ecdsa verifications
+ *
+ * @param composer
+ * @param num_iterations
  */
-void construct_proof_ultra(State& state) noexcept
+void generate_ecdsa_verification_test_circuit(Composer& composer, size_t num_iterations)
 {
-    auto num_gates = 1 << (size_t)state.range(0);
+    using curve = proof_system::plonk::stdlib::secp256k1<Composer>;
+
+    std::string message_string = "Instructions unclear, ask again later.";
+
+    crypto::ecdsa::key_pair<curve::fr, curve::g1> account;
+    account.private_key = curve::fr::random_element();
+    account.public_key = curve::g1::one * account.private_key;
+
+    crypto::ecdsa::signature signature =
+        crypto::ecdsa::construct_signature<Sha256Hasher, curve::fq, curve::fr, curve::g1>(message_string, account);
+
+    bool first_result = crypto::ecdsa::verify_signature<Sha256Hasher, curve::fq, curve::fr, curve::g1>(
+        message_string, account.public_key, signature);
+
+    std::vector<uint8_t> rr(signature.r.begin(), signature.r.end());
+    std::vector<uint8_t> ss(signature.s.begin(), signature.s.end());
+    uint8_t vv = signature.v;
+
+    curve::g1_bigfr_ct public_key = curve::g1_bigfr_ct::from_witness(&composer, account.public_key);
+
+    proof_system::plonk::stdlib::ecdsa::signature<Composer> sig{ curve::byte_array_ct(&composer, rr),
+                                                                 curve::byte_array_ct(&composer, ss),
+                                                                 proof_system::plonk::stdlib::uint8<Composer>(&composer,
+                                                                                                              vv) };
+
+    curve::byte_array_ct message(&composer, message_string);
+
+    for (size_t i = 0; i < num_iterations; i++) {
+        proof_system::plonk::stdlib::ecdsa::
+            verify_signature<Composer, curve, curve::fq_ct, curve::bigfr_ct, curve::g1_bigfr_ct>(
+                message, public_key, sig);
+    }
+}
+
+/**
+ * @brief Generate test circuit with specified number of merkle membership checks
+ *
+ * @param composer
+ * @param num_iterations
+ */
+void generate_merkle_membership_test_circuit(Composer& composer, size_t num_iterations)
+{
+    using namespace proof_system::plonk::stdlib;
+    using bool_ct = bool_t<Composer>;
+    using field_ct = field_t<Composer>;
+    using witness_ct = witness_t<Composer>;
+    using witness_ct = witness_t<Composer>;
+    using MemStore = merkle_tree::MemoryStore;
+    using MerkleTree_ct = merkle_tree::MerkleTree<MemStore>;
+
+    MemStore store;
+    auto db = MerkleTree_ct(store, 3);
+
+    // Check membership at index 0.
+    auto zero = field_ct(witness_ct(&composer, fr::zero())).decompose_into_bits();
+    field_ct root = witness_ct(&composer, db.root());
+
+    for (size_t i = 0; i < num_iterations; i++) {
+        bool_ct is_member = merkle_tree::check_membership(
+            root, merkle_tree::create_witness_hash_path(composer, db.get_hash_path(0)), field_ct(0), zero);
+    }
+}
+
+/**
+ * @brief Benchmark: Construction of a Ultra Honk proof for a circuit determined by the provided text circuit function
+ */
+void construct_proof_ultra(State& state, void (*test_circuit_function)(Composer&, size_t)) noexcept
+{
+    auto num_iterations = static_cast<size_t>(state.range(0));
     for (auto _ : state) {
         state.PauseTiming();
         auto composer = Composer();
-        generate_test_circuit(composer, static_cast<size_t>(num_gates));
+        test_circuit_function(composer, num_iterations);
         auto ext_prover = composer.create_prover();
         state.ResumeTiming();
 
         auto proof = ext_prover.construct_proof();
     }
-    state.SetComplexityN(num_gates); // Set up for computation of constant C where prover ~ C*N
 }
-BENCHMARK(construct_proof_ultra)
-    ->DenseRange(MIN_LOG_NUM_GATES, MAX_LOG_NUM_GATES, 1)
-    ->Repetitions(NUM_REPETITIONS)
-    ->Complexity(oN);
 
-/**
- * @brief Benchmark: Creation of a Ultra Honk verifier
- */
-void create_verifier_ultra(State& state) noexcept
-{
-    for (auto _ : state) {
-        state.PauseTiming();
-        auto num_gates = 1 << (size_t)state.range(0);
-        auto composer = Composer();
-        generate_test_circuit(composer, static_cast<size_t>(num_gates));
-        state.ResumeTiming();
+BENCHMARK_CAPTURE(construct_proof_ultra, sha256, &generate_sha256_test_circuit)
+    ->DenseRange(MIN_NUM_ITERATIONS, MAX_NUM_ITERATIONS)
+    ->Repetitions(NUM_REPETITIONS);
+BENCHMARK_CAPTURE(construct_proof_ultra, keccak, &generate_keccak_test_circuit)
+    ->DenseRange(MIN_NUM_ITERATIONS, MAX_NUM_ITERATIONS)
+    ->Repetitions(NUM_REPETITIONS);
+BENCHMARK_CAPTURE(construct_proof_ultra, ecdsa_verification, &generate_ecdsa_verification_test_circuit)
+    ->DenseRange(MIN_NUM_ITERATIONS, MAX_NUM_ITERATIONS)
+    ->Repetitions(NUM_REPETITIONS);
+BENCHMARK_CAPTURE(construct_proof_ultra, merkle_membership, &generate_merkle_membership_test_circuit)
+    ->DenseRange(MIN_NUM_ITERATIONS, MAX_NUM_ITERATIONS)
+    ->Repetitions(NUM_REPETITIONS);
 
-        composer.create_verifier();
-    }
-}
-// BENCHMARK(create_verifier_ultra)->DenseRange(MIN_LOG_NUM_GATES, MAX_LOG_NUM_GATES, 1)->Repetitions(NUM_REPETITIONS);
-
-/**
- * @brief Benchmark: Verification of a Ultra Honk proof
- */
-void verify_proof_ultra(State& state) noexcept
-{
-    for (auto _ : state) {
-        state.PauseTiming();
-        auto num_gates = (size_t)state.range(0);
-        auto composer = Composer();
-        generate_test_circuit(composer, static_cast<size_t>(num_gates));
-        auto prover = composer.create_prover();
-        auto proof = prover.construct_proof();
-        auto verifier = composer.create_verifier();
-        state.ResumeTiming();
-
-        verifier.verify_proof(proof);
-    }
-}
-// BENCHMARK(verify_proof_ultra)->DenseRange(MIN_LOG_NUM_GATES, MAX_LOG_NUM_GATES, 1)->Iterations(1);
 } // namespace ultra_honk_bench
