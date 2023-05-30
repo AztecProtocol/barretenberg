@@ -7,7 +7,6 @@ import { gunzipSync } from 'zlib';
 import { RawBuffer } from './types/index.js';
 import { numToUInt32BE } from './serialize/serialize.js';
 import { Command } from 'commander';
-import { exit } from 'process';
 
 createDebug.log = console.error.bind(console);
 const debug = createDebug('bb.js');
@@ -211,7 +210,7 @@ function bufferAsFieldHex(buffer: Buffer): string {
   const hex = buffer.toString('hex');
   const splitHex = hex.match(/.{1,64}/g);
   if (splitHex == null) {
-    exit();
+    process.exit(1);
   } else {
     for (let i = 0; i < splitHex.length; i++) {
       splitHex[i] = '0x'.concat(splitHex[i]);
