@@ -1,4 +1,5 @@
 import { type Worker } from 'worker_threads';
+import { EventEmitter } from 'events';
 import createDebug from 'debug';
 import { Remote, proxy } from 'comlink';
 import { randomBytes } from '../random/index.js';
@@ -8,6 +9,8 @@ import { fetchCode, getNumCpu, createWorker, getRemoteBarretenbergWasm, threadLo
 // import { fetchCode, getNumCpu, createWorker, randomBytes } from './browser/index.js';
 
 const debug = createDebug('wasm');
+
+EventEmitter.defaultMaxListeners = 30;
 
 export class BarretenbergWasm {
   static MAX_THREADS = 16;
