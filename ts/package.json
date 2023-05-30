@@ -9,7 +9,7 @@
   },
   "bin": {
     "bb.js": "./dest/main.js",
-    "bb.js-dev": "./bb.js-dev"
+    "bb.js-dev": "./src/main-dev.ts"
   },
   "scripts": {
     "clean": "rm -rf ./dest .tsbuildinfo",
