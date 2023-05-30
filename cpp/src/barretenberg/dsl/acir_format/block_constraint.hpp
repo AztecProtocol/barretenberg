@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <vector>
-#include "barretenberg/plonk/composer/ultra_composer.hpp"
+#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
 #include "barretenberg/stdlib/primitives/field/field.hpp"
 #include "barretenberg/dsl/types.hpp"
 
@@ -24,7 +24,9 @@ struct BlockConstraint {
     BlockType type;
 };
 
-void create_block_constraints(Composer& composer, const BlockConstraint constraint);
+void create_block_constraints(Composer& composer,
+                              const BlockConstraint constraint,
+                              bool has_valid_witness_assignments = true);
 
 template <typename B> inline void read(B& buf, MemOp& mem_op)
 {
