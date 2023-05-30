@@ -4,6 +4,8 @@
 #include <benchmark/benchmark.h>
 #include <cstddef>
 #include "barretenberg/honk/composer/ultra_honk_composer.hpp"
+#include "barretenberg/stdlib/primitives/packed_byte_array/packed_byte_array.hpp"
+#include "barretenberg/stdlib/hash/sha256/sha256.hpp"
 
 using namespace benchmark;
 
@@ -32,6 +34,20 @@ void generate_test_circuit(auto& composer, size_t num_gates)
     }
 }
 
+void generate_sha256_test_circuit(Composer& composer, size_t num_gates)
+{
+    std::string in;
+    in.resize(32);
+    for (size_t i = 0; i < 32; ++i) {
+        in[i] = 0;
+    }
+    size_t num_iterations = 10;
+    proof_system::plonk::stdlib::packed_byte_array<Composer> input(&composer, in);
+    for (size_t i = 0; i < num_iterations; i++) {
+        input = proof_system::plonk::stdlib::sha256<Composer>(input);
+    }
+}
+
 /**
  * @brief Benchmark: Creation of a Ultra Honk prover
  */
@@ -41,7 +57,8 @@ void create_prover_ultra(State& state) noexcept
         state.PauseTiming();
         auto num_gates = 1 << (size_t)state.range(0);
         auto composer = Composer();
-        generate_test_circuit(composer, static_cast<size_t>(num_gates));
+        generate_sha256_test_circuit(composer, static_cast<size_t>(num_gates));
+        // generate_test_circuit(composer, static_cast<size_t>(num_gates));
         state.ResumeTiming();
 
         auto prover = composer.create_prover();
