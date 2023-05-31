@@ -26,6 +26,9 @@
 #include "plonk/proof_system/types/proof.hpp"
 #include "plonk/proof_system/verification_key/verification_key.hpp"
 #include "proof_system/types/composer_type.hpp"
+// TODO(https://github.com/AztecProtocol/barretenberg/issues/491):
+//     consider helper header(s) for serialization and other non-stdlib includes
+//         - possibly: common, serialize, srs, transcript
 #include "serialize/cbind.hpp"
 #include "serialize/cbind_fwd.hpp"
 #include "serialize/msgpack.hpp"
@@ -44,7 +47,8 @@
 #include "stdlib/merkle_tree/memory_store.hpp"
 #include "stdlib/merkle_tree/memory_tree.hpp"
 #include "stdlib/merkle_tree/merkle_tree.hpp"
-// TODO(dbanks12): Consider moving nullifier tree logic out of barretenberg into aztec repo
+// TODO(https://github.com/AztecProtocol/aztec-packages/issues/728):
+//     Consider moving nullifier tree logic out of barretenberg into aztec repo
 #include "stdlib/merkle_tree/nullifier_tree/nullifier_leaf.hpp"
 #include "stdlib/merkle_tree/nullifier_tree/nullifier_memory_tree.hpp"
 #include "stdlib/merkle_tree/nullifier_tree/nullifier_tree.hpp"
