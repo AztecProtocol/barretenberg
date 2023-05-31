@@ -112,11 +112,11 @@ void generate_ecdsa_verification_test_circuit(Composer& composer, size_t num_ite
  *
  * @param composer
  * @param num_iterations
+ * @todo (luke): should we consider deeper tree? non-zero leaf values? variable index?
  */
 void generate_merkle_membership_test_circuit(Composer& composer, size_t num_iterations)
 {
     using namespace proof_system::plonk::stdlib;
-    using bool_ct = bool_t<Composer>;
     using field_ct = field_t<Composer>;
     using witness_ct = witness_t<Composer>;
     using witness_ct = witness_t<Composer>;
@@ -126,12 +126,12 @@ void generate_merkle_membership_test_circuit(Composer& composer, size_t num_iter
     MemStore store;
     auto db = MerkleTree_ct(store, 3);
 
-    // Check membership at index 0.
+    // Check that the leaf at index 0 has value 0.
     auto zero = field_ct(witness_ct(&composer, fr::zero())).decompose_into_bits();
     field_ct root = witness_ct(&composer, db.root());
 
     for (size_t i = 0; i < num_iterations; i++) {
-        bool_ct is_member = merkle_tree::check_membership(
+        merkle_tree::check_membership(
             root, merkle_tree::create_witness_hash_path(composer, db.get_hash_path(0)), field_ct(0), zero);
     }
 }
