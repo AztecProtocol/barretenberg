@@ -44,6 +44,7 @@
 #include "stdlib/merkle_tree/memory_store.hpp"
 #include "stdlib/merkle_tree/memory_tree.hpp"
 #include "stdlib/merkle_tree/merkle_tree.hpp"
+// TODO(dbanks12): Consider moving nullifier tree logic out of barretenberg into aztec repo
 #include "stdlib/merkle_tree/nullifier_tree/nullifier_leaf.hpp"
 #include "stdlib/merkle_tree/nullifier_tree/nullifier_memory_tree.hpp"
 #include "stdlib/merkle_tree/nullifier_tree/nullifier_tree.hpp"

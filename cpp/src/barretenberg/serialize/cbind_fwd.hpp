@@ -3,9 +3,7 @@
 #include <utility>
 // CBIND forward declarations for msgback default bind format (encode as tuple of args and return value as msgpack
 // string)
-#ifndef WASM_EXPORT
 #define WASM_EXPORT extern "C" __attribute__((visibility("default")))
-#endif
 
 #define CBIND_DECL(cname)                                                                                              \
     WASM_EXPORT void cname(                                                                                            \
