@@ -324,5 +324,10 @@ concept IsPlonkFlavor = IsAnyOf<T, plonk::flavor::Standard, plonk::flavor::Turbo
 
 template <typename T> 
 concept IsHonkFlavor = IsAnyOf<T, honk::flavor::Standard, honk::flavor::Ultra>;
+
+template <typename T> concept StandardFlavor = IsAnyOf<T, honk::flavor::Standard>;
+
+template <typename T> concept UltraFlavor = IsAnyOf<T, honk::flavor::Ultra>;
+
 // clang-format on
 } // namespace proof_system

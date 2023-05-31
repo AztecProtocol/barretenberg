@@ -12,13 +12,12 @@
 #include "barretenberg/honk/flavor/standard.hpp"
 
 namespace proof_system::honk {
-class StandardHonkComposerHelper {
+template <StandardFlavor Flavor> class StandardHonkComposerHelper_ {
   public:
-    using Flavor = flavor::Standard;
-    using PCSParams = Flavor::PCSParams;
-    using CircuitConstructor = Flavor::CircuitConstructor;
-    using ProvingKey = Flavor::ProvingKey;
-    using VerificationKey = Flavor::VerificationKey;
+    using PCSParams = typename Flavor::PCSParams;
+    using CircuitConstructor = typename Flavor::CircuitConstructor;
+    using ProvingKey = typename Flavor::ProvingKey;
+    using VerificationKey = typename Flavor::VerificationKey;
 
     static constexpr size_t NUM_RESERVED_GATES = 2; // equal to the number of multilinear evaluations leaked
     static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
@@ -29,33 +28,33 @@ class StandardHonkComposerHelper {
     std::shared_ptr<ReferenceStringFactory> crs_factory_;
     bool computed_witness = false;
     // TODO(Luke): use make_shared
-    StandardHonkComposerHelper()
-        : StandardHonkComposerHelper(std::shared_ptr<ReferenceStringFactory>(
+    StandardHonkComposerHelper_()
+        : StandardHonkComposerHelper_(std::shared_ptr<ReferenceStringFactory>(
               new proof_system::FileReferenceStringFactory("../srs_db/ignition")))
     {}
-    StandardHonkComposerHelper(std::shared_ptr<ReferenceStringFactory> crs_factory)
+    StandardHonkComposerHelper_(std::shared_ptr<ReferenceStringFactory> crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
 
-    StandardHonkComposerHelper(std::unique_ptr<ReferenceStringFactory>&& crs_factory)
+    StandardHonkComposerHelper_(std::unique_ptr<ReferenceStringFactory>&& crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
-    StandardHonkComposerHelper(std::shared_ptr<ProvingKey> p_key, std::shared_ptr<VerificationKey> v_key)
+    StandardHonkComposerHelper_(std::shared_ptr<ProvingKey> p_key, std::shared_ptr<VerificationKey> v_key)
         : proving_key(std::move(p_key))
         , verification_key(std::move(v_key))
     {}
-    StandardHonkComposerHelper(StandardHonkComposerHelper&& other) noexcept = default;
-    StandardHonkComposerHelper(const StandardHonkComposerHelper& other) = delete;
-    StandardHonkComposerHelper& operator=(StandardHonkComposerHelper&& other) noexcept = default;
-    StandardHonkComposerHelper& operator=(const StandardHonkComposerHelper& other) = delete;
-    ~StandardHonkComposerHelper() = default;
+    StandardHonkComposerHelper_(StandardHonkComposerHelper_&& other) noexcept = default;
+    StandardHonkComposerHelper_(const StandardHonkComposerHelper_& other) = delete;
+    StandardHonkComposerHelper_& operator=(StandardHonkComposerHelper_&& other) noexcept = default;
+    StandardHonkComposerHelper_& operator=(const StandardHonkComposerHelper_& other) = delete;
+    ~StandardHonkComposerHelper_() = default;
 
     std::shared_ptr<ProvingKey> compute_proving_key(const CircuitConstructor& circuit_constructor);
     std::shared_ptr<VerificationKey> compute_verification_key(const CircuitConstructor& circuit_constructor);
 
-    StandardVerifier create_verifier(const CircuitConstructor& circuit_constructor);
+    StandardVerifier_<Flavor> create_verifier(const CircuitConstructor& circuit_constructor);
 
-    StandardProver create_prover(const CircuitConstructor& circuit_constructor);
+    StandardProver_<Flavor> create_prover(const CircuitConstructor& circuit_constructor);
 
     // TODO(#216)(Adrian): Seems error prone to provide the number of randomized gates
     std::shared_ptr<ProvingKey> compute_proving_key_base(const CircuitConstructor& circuit_constructor,
@@ -68,5 +67,7 @@ class StandardHonkComposerHelper {
 
     void compute_witness(const CircuitConstructor& circuit_constructor, const size_t minimum_circuit_size = 0);
 };
+extern template class StandardHonkComposerHelper_<honk::flavor::Standard>;
+using StandardHonkComposerHelper = StandardHonkComposerHelper_<honk::flavor::Standard>;
 
 } // namespace proof_system::honk

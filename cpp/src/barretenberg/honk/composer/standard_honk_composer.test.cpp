@@ -27,6 +27,7 @@ namespace test_standard_honk_composer {
  */
 TEST(StandardHonkComposer, SigmaIDCorrectness)
 {
+    using StandardHonkComposer = StandardHonkComposer_<honk::flavor::Standard>;
     auto test_permutation = [](StandardHonkComposer& composer) {
         auto proving_key = composer.compute_proving_key();
         const auto n = proving_key->circuit_size;
@@ -140,6 +141,7 @@ TEST(StandardHonkComposer, SigmaIDCorrectness)
  */
 TEST(StandardHonkComposer, LagrangeCorrectness)
 {
+    using StandardHonkComposer = StandardHonkComposer_<honk::flavor::Standard>;
     // Create a composer and a dummy circuit with a few gates
     StandardHonkComposer composer = StandardHonkComposer();
     fr a = fr::one();
@@ -189,6 +191,8 @@ TEST(StandardHonkComposer, LagrangeCorrectness)
  */
 TEST(StandardHonkComposer, AssertEquals)
 {
+    using StandardHonkComposer = StandardHonkComposer_<honk::flavor::Standard>;
+
     /**
      * @brief A function that creates a simple circuit with repeated gates, leading to large permutation cycles
      *
@@ -283,6 +287,8 @@ TEST(StandardHonkComposer, AssertEquals)
 
 TEST(StandardHonkComposer, VerificationKeyCreation)
 {
+    using StandardHonkComposer = StandardHonkComposer_<honk::flavor::Standard>;
+
     // Create a composer and a dummy circuit with a few gates
     StandardHonkComposer composer = StandardHonkComposer();
     fr a = fr::one();
@@ -306,6 +312,7 @@ TEST(StandardHonkComposer, VerificationKeyCreation)
 
 TEST(StandardHonkComposer, BaseCase)
 {
+    using StandardHonkComposer = StandardHonkComposer_<honk::flavor::Standard>;
     auto composer = StandardHonkComposer();
     fr a = 1;
     composer.circuit_constructor.add_variable(a);
@@ -319,6 +326,7 @@ TEST(StandardHonkComposer, BaseCase)
 
 TEST(StandardHonkComposer, TwoGates)
 {
+    using StandardHonkComposer = StandardHonkComposer_<honk::flavor::Standard>;
     auto run_test = [](bool expect_verified) {
         auto composer = StandardHonkComposer();
 
@@ -353,6 +361,7 @@ TEST(StandardHonkComposer, TwoGates)
 
 TEST(StandardHonkComposer, SumcheckEvaluations)
 {
+    using StandardHonkComposer = StandardHonkComposer_<honk::flavor::Standard>;
     auto run_test = [](bool expected_result) {
         auto composer = StandardHonkComposer();
         fr a = fr::one();

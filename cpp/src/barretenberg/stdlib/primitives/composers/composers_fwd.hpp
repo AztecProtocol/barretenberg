@@ -8,10 +8,16 @@ class UltraPlonkComposer;
 class StandardPlonkComposer;
 } // namespace proof_system::plonk
 
+<<<<<<< HEAD
 namespace proof_system::honk {
 class StandardHonkComposer;
 class UltraHonkComposer;
 } // namespace proof_system::honk
+=======
+// namespace proof_system::honk {
+// using StandardHonkComposer = StandardHonkComposer_<flavor::Standard>;
+// } // namespace proof_system::honk
+>>>>>>> wip
 namespace proof_system {
 class StandardCircuitConstructor;
 class TurboCircuitConstructor;
