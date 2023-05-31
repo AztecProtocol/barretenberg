@@ -8,7 +8,7 @@ import { randomBytes } from '../random/index.js';
 import { fetchCode, getNumCpu, createWorker, getRemoteBarretenbergWasm, threadLogger, killSelf } from './node/index.js';
 // import { fetchCode, getNumCpu, createWorker, randomBytes } from './browser/index.js';
 
-const debug = createDebug('wasm');
+const debug = createDebug('bb.js:wasm');
 
 EventEmitter.defaultMaxListeners = 30;
 

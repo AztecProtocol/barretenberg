@@ -10,12 +10,12 @@ import { Command } from 'commander';
 
 createDebug.log = console.error.bind(console);
 const debug = createDebug('bb.js');
-// createDebug.enable('*');
+createDebug.enable('*');
 
 // Maximum we support.
 // TODO: When generating a proving key with a recursion constraint in the circuit
 // we go over the memory limit with the circuit size set to 2**19
-const CIRCUIT_SIZE = 2 ** 18;
+const CIRCUIT_SIZE = 2 ** 19;
 
 function getBytecode(jsonPath: string) {
   const json = readFileSync(jsonPath, 'utf-8');
@@ -53,7 +53,6 @@ export async function proveAndVerify(jsonPath: string, witnessPath: string, isRe
     debug('initing proving key...');
     const bytecode = getBytecode(jsonPath);
     await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), CIRCUIT_SIZE);
-    debug(`got proving key`);
 
     const exactCircuitSize = await api.acirGetExactCircuitSize(acirComposer);
     debug(`circuit size: ${exactCircuitSize}`);
@@ -64,9 +63,10 @@ export async function proveAndVerify(jsonPath: string, witnessPath: string, isRe
     debug(`creating proof...`);
     const witness = getWitness(witnessPath);
     const proof = await api.acirCreateProof(acirComposer, new RawBuffer(bytecode), new RawBuffer(witness), isRecursive);
+    debug(`done.`);
 
     const verified = await api.acirVerifyProof(acirComposer, proof, isRecursive);
-    debug(`verified: ${verified}`);
+    console.log(`verified: ${verified}`);
     return verified;
   } finally {
     await api.destroy();
@@ -86,6 +86,7 @@ export async function prove(jsonPath: string, witnessPath: string, isRecursive: 
     debug(`creating proof...`);
     const witness = getWitness(witnessPath);
     const proof = await api.acirCreateProof(acirComposer, new RawBuffer(bytecode), new RawBuffer(witness), isRecursive);
+    debug(`done.`);
 
     writeFileSync(outputPath, proof);
     console.log(`proof written to: ${outputPath}`);
@@ -103,6 +104,7 @@ export async function gateCount(jsonPath: string) {
     const gates = await api.acirGetTotalCircuitSize(acirComposer);
     console.log(`${gates}`);
   } finally {
+    await api.acirDeleteAcirComposer(acirComposer);
     await api.destroy();
   }
 }
