@@ -1,6 +1,6 @@
 import { randomBytes } from '../random/index.js';
 import { toBigIntBE, toBufferBE } from '../bigint-array/index.js';
-import { BufferReader } from '../serialize/index.js';
+import { BufferReader, uint8ArrayToHexString } from '../serialize/index.js';
 
 export class Fr {
   static ZERO = new Fr(0n);
@@ -38,7 +38,7 @@ export class Fr {
   }
 
   toString() {
-    return '0x' + this.value.toString(16);
+    return '0x' + uint8ArrayToHexString(this.toBuffer());
   }
 
   equals(rhs: Fr) {

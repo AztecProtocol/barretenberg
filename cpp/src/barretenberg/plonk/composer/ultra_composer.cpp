@@ -568,7 +568,6 @@ std::shared_ptr<proving_key> UltraComposer::compute_proving_key()
 
     // Compute selector polynomials and appropriate fft versions and put them in the proving key
     ComposerBase::compute_proving_key_base(type, tables_size + lookups_size, NUM_RESERVED_GATES);
-
     const size_t subgroup_size = circuit_proving_key->circuit_size;
 
     polynomial poly_q_table_column_1(subgroup_size);

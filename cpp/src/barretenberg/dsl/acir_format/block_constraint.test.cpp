@@ -118,6 +118,7 @@ TEST(up_ram, TestBlockConstraint)
         .pedersen_constraints = {},
         .compute_merkle_root_constraints = {},
         .block_constraints = { block },
+        .recursion_constraints = {},
         .constraints = {},
     };
 

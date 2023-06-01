@@ -46,6 +46,10 @@ export function concatenateUint8Arrays(arrayOfUint8Arrays: Uint8Array[]) {
   return result;
 }
 
+export function uint8ArrayToHexString(uint8Array: Uint8Array) {
+  return uint8Array.reduce((accumulator, byte) => accumulator + byte.toString(16).padStart(2, '0'), '');
+}
+
 // For serializing a buffer as a vector.
 export function serializeBufferToVector(buf: Uint8Array) {
   return concatenateUint8Arrays([numToInt32BE(buf.length), buf]);

@@ -195,9 +195,9 @@ SlabAllocator allocator;
 } // namespace
 
 namespace barretenberg {
-void init_slab_allocator(size_t circuit_size)
+void init_slab_allocator(size_t circuit_subgroup_size)
 {
-    allocator.init(circuit_size);
+    allocator.init(circuit_subgroup_size);
 }
 
 // auto init = ([]() {

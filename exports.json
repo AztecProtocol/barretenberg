@@ -536,6 +536,30 @@
     "isAsync": false
   },
   {
+    "functionName": "acir_get_circuit_sizes",
+    "inArgs": [
+      {
+        "name": "constraint_system_buf",
+        "type": "const uint8_t *"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "exact",
+        "type": "uint32_t *"
+      },
+      {
+        "name": "total",
+        "type": "uint32_t *"
+      },
+      {
+        "name": "subgroup",
+        "type": "uint32_t *"
+      }
+    ],
+    "isAsync": false
+  },
+  {
     "functionName": "acir_new_acir_composer",
     "inArgs": [],
     "outArgs": [
@@ -609,6 +633,10 @@
       {
         "name": "witness_buf",
         "type": "const uint8_t *"
+      },
+      {
+        "name": "is_recursive",
+        "type": "const bool *"
       }
     ],
     "outArgs": [
@@ -617,6 +645,21 @@
         "type": "uint8_t **"
       }
     ],
+    "isAsync": false
+  },
+  {
+    "functionName": "acir_load_verification_key",
+    "inArgs": [
+      {
+        "name": "acir_composer_ptr",
+        "type": "in_ptr"
+      },
+      {
+        "name": "vk_buf",
+        "type": "const uint8_t *"
+      }
+    ],
+    "outArgs": [],
     "isAsync": false
   },
   {
@@ -656,6 +699,10 @@
       {
         "name": "proof_buf",
         "type": "const uint8_t *"
+      },
+      {
+        "name": "is_recursive",
+        "type": "const bool *"
       }
     ],
     "outArgs": [
@@ -683,23 +730,31 @@
     "isAsync": false
   },
   {
-    "functionName": "acir_get_exact_circuit_size",
+    "functionName": "acir_serialize_proof_into_fields",
     "inArgs": [
       {
         "name": "acir_composer_ptr",
         "type": "in_ptr"
+      },
+      {
+        "name": "proof_buf",
+        "type": "const uint8_t *"
+      },
+      {
+        "name": "num_inner_public_inputs",
+        "type": "const uint32_t *"
       }
     ],
     "outArgs": [
       {
         "name": "out",
-        "type": "uint32_t *"
+        "type": "fr::vec_out_buf"
       }
     ],
     "isAsync": false
   },
   {
-    "functionName": "acir_get_total_circuit_size",
+    "functionName": "acir_serialize_verification_key_into_fields",
     "inArgs": [
       {
         "name": "acir_composer_ptr",
@@ -708,8 +763,12 @@
     ],
     "outArgs": [
       {
-        "name": "out",
-        "type": "uint32_t *"
+        "name": "out_vkey",
+        "type": "fr::vec_out_buf"
+      },
+      {
+        "name": "out_key_hash",
+        "type": "fr::out_buf"
       }
     ],
     "isAsync": false

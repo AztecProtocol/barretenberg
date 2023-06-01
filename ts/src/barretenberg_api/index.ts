@@ -166,6 +166,11 @@ export class BarretenbergApi {
     return;
   }
 
+  async acirGetCircuitSizes(constraintSystemBuf: Uint8Array): Promise<[number, number, number]> {
+    const result = await this.binder.callWasmExport('acir_get_circuit_sizes', [constraintSystemBuf], [NumberDeserializer(), NumberDeserializer(), NumberDeserializer()]);
+    return result as any;
+  }
+
   async acirNewAcirComposer(): Promise<Ptr> {
     const result = await this.binder.callWasmExport('acir_new_acir_composer', [], [Ptr]);
     return result[0];
@@ -186,9 +191,14 @@ export class BarretenbergApi {
     return;
   }
 
-  async acirCreateProof(acirComposerPtr: Ptr, constraintSystemBuf: Uint8Array, witnessBuf: Uint8Array): Promise<Uint8Array> {
-    const result = await this.binder.callWasmExport('acir_create_proof', [acirComposerPtr, constraintSystemBuf, witnessBuf], [BufferDeserializer()]);
+  async acirCreateProof(acirComposerPtr: Ptr, constraintSystemBuf: Uint8Array, witnessBuf: Uint8Array, isRecursive: boolean): Promise<Uint8Array> {
+    const result = await this.binder.callWasmExport('acir_create_proof', [acirComposerPtr, constraintSystemBuf, witnessBuf, isRecursive], [BufferDeserializer()]);
     return result[0];
+  }
+
+  async acirLoadVerificationKey(acirComposerPtr: Ptr, vkBuf: Uint8Array): Promise<void> {
+    const result = await this.binder.callWasmExport('acir_load_verification_key', [acirComposerPtr, vkBuf], []);
+    return;
   }
 
   async acirInitVerificationKey(acirComposerPtr: Ptr): Promise<void> {
@@ -201,8 +211,8 @@ export class BarretenbergApi {
     return result[0];
   }
 
-  async acirVerifyProof(acirComposerPtr: Ptr, proofBuf: Uint8Array): Promise<boolean> {
-    const result = await this.binder.callWasmExport('acir_verify_proof', [acirComposerPtr, proofBuf], [BoolDeserializer()]);
+  async acirVerifyProof(acirComposerPtr: Ptr, proofBuf: Uint8Array, isRecursive: boolean): Promise<boolean> {
+    const result = await this.binder.callWasmExport('acir_verify_proof', [acirComposerPtr, proofBuf, isRecursive], [BoolDeserializer()]);
     return result[0];
   }
 
@@ -211,14 +221,14 @@ export class BarretenbergApi {
     return result[0];
   }
 
-  async acirGetExactCircuitSize(acirComposerPtr: Ptr): Promise<number> {
-    const result = await this.binder.callWasmExport('acir_get_exact_circuit_size', [acirComposerPtr], [NumberDeserializer()]);
+  async acirSerializeProofIntoFields(acirComposerPtr: Ptr, proofBuf: Uint8Array, numInnerPublicInputs: number): Promise<Fr[]> {
+    const result = await this.binder.callWasmExport('acir_serialize_proof_into_fields', [acirComposerPtr, proofBuf, numInnerPublicInputs], [VectorDeserializer(Fr)]);
     return result[0];
   }
 
-  async acirGetTotalCircuitSize(acirComposerPtr: Ptr): Promise<number> {
-    const result = await this.binder.callWasmExport('acir_get_total_circuit_size', [acirComposerPtr], [NumberDeserializer()]);
-    return result[0];
+  async acirSerializeVerificationKeyIntoFields(acirComposerPtr: Ptr): Promise<[Fr[], Fr]> {
+    const result = await this.binder.callWasmExport('acir_serialize_verification_key_into_fields', [acirComposerPtr], [VectorDeserializer(Fr), Fr]);
+    return result as any;
   }
 }
 
@@ -384,6 +394,11 @@ export class BarretenbergApiSync {
     return;
   }
 
+  acirGetCircuitSizes(constraintSystemBuf: Uint8Array): [number, number, number] {
+    const result = this.binder.callWasmExport('acir_get_circuit_sizes', [constraintSystemBuf], [NumberDeserializer(), NumberDeserializer(), NumberDeserializer()]);
+    return result as any;
+  }
+
   acirNewAcirComposer(): Ptr {
     const result = this.binder.callWasmExport('acir_new_acir_composer', [], [Ptr]);
     return result[0];
@@ -404,9 +419,14 @@ export class BarretenbergApiSync {
     return;
   }
 
-  acirCreateProof(acirComposerPtr: Ptr, constraintSystemBuf: Uint8Array, witnessBuf: Uint8Array): Uint8Array {
-    const result = this.binder.callWasmExport('acir_create_proof', [acirComposerPtr, constraintSystemBuf, witnessBuf], [BufferDeserializer()]);
+  acirCreateProof(acirComposerPtr: Ptr, constraintSystemBuf: Uint8Array, witnessBuf: Uint8Array, isRecursive: boolean): Uint8Array {
+    const result = this.binder.callWasmExport('acir_create_proof', [acirComposerPtr, constraintSystemBuf, witnessBuf, isRecursive], [BufferDeserializer()]);
     return result[0];
+  }
+
+  acirLoadVerificationKey(acirComposerPtr: Ptr, vkBuf: Uint8Array): void {
+    const result = this.binder.callWasmExport('acir_load_verification_key', [acirComposerPtr, vkBuf], []);
+    return;
   }
 
   acirInitVerificationKey(acirComposerPtr: Ptr): void {
@@ -419,8 +439,8 @@ export class BarretenbergApiSync {
     return result[0];
   }
 
-  acirVerifyProof(acirComposerPtr: Ptr, proofBuf: Uint8Array): boolean {
-    const result = this.binder.callWasmExport('acir_verify_proof', [acirComposerPtr, proofBuf], [BoolDeserializer()]);
+  acirVerifyProof(acirComposerPtr: Ptr, proofBuf: Uint8Array, isRecursive: boolean): boolean {
+    const result = this.binder.callWasmExport('acir_verify_proof', [acirComposerPtr, proofBuf, isRecursive], [BoolDeserializer()]);
     return result[0];
   }
 
@@ -429,13 +449,13 @@ export class BarretenbergApiSync {
     return result[0];
   }
 
-  acirGetExactCircuitSize(acirComposerPtr: Ptr): number {
-    const result = this.binder.callWasmExport('acir_get_exact_circuit_size', [acirComposerPtr], [NumberDeserializer()]);
+  acirSerializeProofIntoFields(acirComposerPtr: Ptr, proofBuf: Uint8Array, numInnerPublicInputs: number): Fr[] {
+    const result = this.binder.callWasmExport('acir_serialize_proof_into_fields', [acirComposerPtr, proofBuf, numInnerPublicInputs], [VectorDeserializer(Fr)]);
     return result[0];
   }
 
-  acirGetTotalCircuitSize(acirComposerPtr: Ptr): number {
-    const result = this.binder.callWasmExport('acir_get_total_circuit_size', [acirComposerPtr], [NumberDeserializer()]);
-    return result[0];
+  acirSerializeVerificationKeyIntoFields(acirComposerPtr: Ptr): [Fr[], Fr] {
+    const result = this.binder.callWasmExport('acir_serialize_verification_key_into_fields', [acirComposerPtr], [VectorDeserializer(Fr), Fr]);
+    return result as any;
   }
 }
