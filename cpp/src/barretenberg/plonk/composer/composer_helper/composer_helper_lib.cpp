@@ -51,7 +51,6 @@ std::shared_ptr<plonk::verification_key> compute_verification_key_common(
     auto circuit_verification_key = std::make_shared<plonk::verification_key>(
         proving_key->circuit_size, proving_key->num_public_inputs, vrs, proving_key->composer_type);
     // TODO(kesha): Dirty hack for now. Need to actually make commitment-agnositc
-    auto commitment_key = proof_system::honk::pcs::kzg::Params::CommitmentKey(proving_key->circuit_size, srs_path);
 
     for (size_t i = 0; i < proving_key->polynomial_manifest.size(); ++i) {
         const auto& poly_info = proving_key->polynomial_manifest[i];
@@ -64,8 +63,13 @@ std::shared_ptr<plonk::verification_key> compute_verification_key_common(
             // Fetch the polynomial in its vector form.
 
             // Commit to the constraint selector polynomial and insert the commitment in the verification key.
-
-            auto poly_commitment = commitment_key.commit(proving_key->polynomial_store.get(poly_label));
+            (void)srs_path;
+            auto polynomial = proving_key->polynomial_store.get(poly_label);
+            auto poly_commitment = barretenberg::scalar_multiplication::pippenger_unsafe(
+                polynomial.data(),
+                proving_key->reference_string->get_monomial_points(),
+                proving_key->circuit_size,
+                proving_key->pippenger_runtime_state);
             circuit_verification_key->commitments.insert({ selector_commitment_label, poly_commitment });
         }
     }
