@@ -1,17 +1,23 @@
 {
-  "name": "@aztec/barretenberg.js",
-  "version": "0.0.0",
+  "name": "@aztec/bb.js",
+  "version": "0.0.1-alpha.1",
   "type": "module",
   "typedoc": {
     "entryPoint": "./src/index.ts",
-    "displayName": "Barretenberg.js",
+    "displayName": "bb.js",
     "tsconfig": "./tsconfig.json"
   },
+  "bin": "./dest/main.js",
+  "files": [
+    "src/",
+    "dest/",
+    "README.md"
+  ],
   "scripts": {
     "clean": "rm -rf ./dest .tsbuildinfo",
-    "build": "yarn clean && yarn build:wasm && tsc -b && webpack",
+    "build": "yarn clean && yarn build:wasm && tsc -b && webpack && chmod +x ./dest/main.js",
     "build:dev": "tsc -b --watch",
-    "build:wasm": "cd ../cpp && cmake --preset wasm-threads && cmake --build --preset wasm-threads",
+    "build:wasm": "cd ../cpp && cmake --preset wasm-threads && cmake --build --preset wasm-threads && cmake --preset wasm && cmake --build --preset wasm",
     "serve": "webpack serve",
     "formatting": "prettier --check ./src && eslint --max-warnings 0 ./src",
     "formatting:fix": "prettier -w ./src",
@@ -36,7 +42,10 @@
     "rootDir": "./src"
   },
   "dependencies": {
-    "bigint-buffer": "^1.1.5",
+    "comlink": "^4.4.1",
+    "commander": "^10.0.1",
+    "debug": "^4.3.4",
+    "ts-node": "^10.9.1",
     "tslib": "^2.4.0"
   },
   "devDependencies": {
@@ -49,9 +58,7 @@
     "@typescript-eslint/eslint-plugin": "^5.54.1",
     "@typescript-eslint/parser": "^5.54.1",
     "buffer": "^6.0.3",
-    "comlink": "^4.4.1",
     "copy-webpack-plugin": "^11.0.0",
-    "debug": "^4.3.4",
     "eslint": "^8.35.0",
     "eslint-config-prettier": "^8.8.0",
     "html-webpack-plugin": "^5.5.1",
@@ -61,7 +68,6 @@
     "resolve-typescript-plugin": "^2.0.1",
     "ts-jest": "^29.1.0",
     "ts-loader": "^9.4.2",
-    "ts-node": "^10.9.1",
     "typescript": "^5.0.4",
     "webpack": "^5.82.1",
     "webpack-cli": "^5.1.1",

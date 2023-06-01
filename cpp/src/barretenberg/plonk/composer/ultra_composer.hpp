@@ -206,7 +206,8 @@ class UltraComposer : public ComposerBase {
 
     UltraComposer();
     UltraComposer(std::string const& crs_path, const size_t size_hint = 0);
-    UltraComposer(std::shared_ptr<ReferenceStringFactory> const& crs_factory, const size_t size_hint = 0);
+    UltraComposer(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
+                  const size_t size_hint = 0);
     UltraComposer(std::shared_ptr<proving_key> const& p_key,
                   std::shared_ptr<verification_key> const& v_key,
                   size_t size_hint = 0);
@@ -251,6 +252,23 @@ class UltraComposer : public ComposerBase {
         for (const auto& idx : proof_output_witness_indices) {
             set_public_input(idx);
             recursive_proof_public_input_indices.push_back((uint32_t)(public_inputs.size() - 1));
+        }
+    }
+
+    /**
+     * @brief Update recursive_proof_public_input_indices with existing public inputs that represent a recursive proof
+     *
+     * @param proof_output_witness_indices
+     */
+    void set_recursive_proof(const std::vector<uint32_t>& proof_output_witness_indices)
+    {
+        if (contains_recursive_proof) {
+            failure("added recursive proof when one already exists");
+        }
+        contains_recursive_proof = true;
+        for (size_t i = 0; i < proof_output_witness_indices.size(); ++i) {
+            recursive_proof_public_input_indices.push_back(
+                get_public_input_index(real_variable_index[proof_output_witness_indices[i]]));
         }
     }
 

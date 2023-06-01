@@ -9,7 +9,7 @@
 #include "barretenberg/common/mem.hpp"
 #include "barretenberg/common/container.hpp"
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
-#include "barretenberg/srs/reference_string/pippenger_reference_string.hpp"
+#include "barretenberg/srs/global_crs.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/serialize.hpp"
 #include "barretenberg/join_split_example/types.hpp"
 
@@ -22,15 +22,12 @@ extern "C" {
 
 WASM_EXPORT void join_split__init_proving_key(bool mock)
 {
-    // We know that we don't actually need any CRS to create a proving key, so just feed in a nothing.
-    // Hacky, but, right now it needs *something*.
-    auto crs_factory = std::make_shared<proof_system::ReferenceStringFactory>();
-    init_proving_key(crs_factory, mock);
+    init_proving_key(barretenberg::srs::get_crs_factory(), mock);
 }
 
 // WASM_EXPORT void join_split__init_proving_key_from_buffer(uint8_t const* pk_buf)
 // {
-//     std::shared_ptr<proof_system::ProverReferenceString> crs;
+//     std::shared_ptr<barretenberg::srs::factories::ProverCrs> crs;
 //     plonk::proving_key_data pk_data;
 //     read(pk_buf, pk_data);
 //     init_proving_key(crs, std::move(pk_data));
@@ -58,9 +55,7 @@ WASM_EXPORT uint32_t join_split__get_new_proving_key_data(uint8_t** output)
 
 WASM_EXPORT void join_split__init_verification_key(void* pippenger, uint8_t const* g2x)
 {
-    auto crs_factory = std::make_unique<proof_system::PippengerReferenceStringFactory>(
-        reinterpret_cast<scalar_multiplication::Pippenger*>(pippenger), g2x);
-    init_verification_key(std::move(crs_factory));
+    init_verification_key(barretenberg::srs::get_crs_factory());
 }
 
 // WASM_EXPORT void join_split__init_verification_key_from_buffer(uint8_t const* vk_buf, uint8_t const* g2x)

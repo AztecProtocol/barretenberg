@@ -28,9 +28,12 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
 endif()
 
 # We enable -O1 level optimsations, even when compiling debug wasm, otherwise we get "local count too large" at runtime.
+# We prioritise reducing size of final artefacts in release with -Oz.
 if(WASM)
     set(CMAKE_CXX_FLAGS_DEBUG "-O1 -g")
     set(CMAKE_C_FLAGS_DEBUG "-O1 -g")
+    set(CMAKE_CXX_FLAGS_RELEASE "-Oz -DNDEBUG")
+    set(CMAKE_C_FLAGS_RELEASE "-Oz -DNDEBUG")
     add_link_options(-Wl,--export-memory,--import-memory,--stack-first,-z,stack-size=1048576,--max-memory=4294967296)
 endif()
 
@@ -70,6 +73,10 @@ endif()
 
 include(GNUInstallDirs)
 
+# For this library we include everything but the env and wasi modules, as it is the responsibility of the
+# consumer of this library to define how and in what environment its artefact will run.
+# libbarretenberg + libwasi = a wasi "reactor" that implements it's own env (e.g. logstr), e.g. barretenberg.wasm.
+# libbarretenberg + env = a wasi "command" that expects a full wasi runtime (e.g. wasmtime), e.g. test binaries.
 message(STATUS "Compiling all-in-one barretenberg archive")
 add_library(
     barretenberg
@@ -108,24 +115,73 @@ add_library(
     $<TARGET_OBJECTS:transcript_objects>
 )
 
+# Small library to provide necessary primitives for rust crate.
+add_library(
+    acvm_backend
+    $<TARGET_OBJECTS:env_objects>
+    $<TARGET_OBJECTS:common_objects>
+    $<TARGET_OBJECTS:numeric_objects>
+    $<TARGET_OBJECTS:ecc_objects>
+    $<TARGET_OBJECTS:crypto_blake2s_objects>
+    $<TARGET_OBJECTS:crypto_keccak_objects>
+    $<TARGET_OBJECTS:crypto_generators_objects>
+    $<TARGET_OBJECTS:crypto_schnorr_objects>
+    $<TARGET_OBJECTS:crypto_pedersen_hash_objects>
+    $<TARGET_OBJECTS:crypto_pedersen_commitment_objects>
+)
+
 if(WASM)
-    add_executable(
-        barretenberg.wasm
-        $<TARGET_OBJECTS:wasi_objects>
-    )
-
-    target_link_libraries(barretenberg.wasm barretenberg)
-
     # With binaryen installed, it seems its wasm backend optimiser gets invoked automatically.
     # Due to either a bug in the optimiser, or non-standards compliant c++ in crypto/aes, tests start failing with
     # -O3 level optimisations. We force down to -O2 for current workaround.
     # TODO: Time has passed, check if this is still needed.
+    # UPDATE: Uninstall binaryen and any need downstream.
     set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+
+    # When building this wasm "executable", we include the wasi module but exclude the env module.
+    # That's because we expect this wasm to be run as a wasi "reactor" and for the host environment
+    # to implement the functions in env.
+    add_executable(
+        barretenberg.wasm
+        $<TARGET_OBJECTS:wasi_objects>
+        $<TARGET_OBJECTS:acir_format_objects>
+        $<TARGET_OBJECTS:acir_proofs_objects>
+        $<TARGET_OBJECTS:common_objects>
+        $<TARGET_OBJECTS:crypto_aes128_objects>
+        $<TARGET_OBJECTS:crypto_blake2s_objects>
+        $<TARGET_OBJECTS:crypto_blake3s_objects>
+        $<TARGET_OBJECTS:crypto_ecdsa_objects>
+        $<TARGET_OBJECTS:crypto_generators_objects>
+        $<TARGET_OBJECTS:crypto_keccak_objects>
+        $<TARGET_OBJECTS:crypto_pedersen_commitment_objects>
+        $<TARGET_OBJECTS:crypto_pedersen_hash_objects>
+        $<TARGET_OBJECTS:crypto_schnorr_objects>
+        $<TARGET_OBJECTS:crypto_sha256_objects>
+        $<TARGET_OBJECTS:ecc_objects>
+        $<TARGET_OBJECTS:examples_objects>
+        $<TARGET_OBJECTS:honk_objects>
+        $<TARGET_OBJECTS:numeric_objects>
+        $<TARGET_OBJECTS:plonk_objects>
+        $<TARGET_OBJECTS:polynomials_objects>
+        $<TARGET_OBJECTS:proof_system_objects>
+        $<TARGET_OBJECTS:srs_objects>
+        $<TARGET_OBJECTS:stdlib_aes128_objects>
+        $<TARGET_OBJECTS:stdlib_blake2s_objects>
+        $<TARGET_OBJECTS:stdlib_blake3s_objects>
+        $<TARGET_OBJECTS:stdlib_keccak_objects>
+        $<TARGET_OBJECTS:stdlib_merkle_tree_objects>
+        $<TARGET_OBJECTS:stdlib_pedersen_commitment_objects>
+        $<TARGET_OBJECTS:stdlib_pedersen_hash_objects>
+        $<TARGET_OBJECTS:stdlib_primitives_objects>
+        $<TARGET_OBJECTS:stdlib_schnorr_objects>
+        $<TARGET_OBJECTS:stdlib_sha256_objects>
+        $<TARGET_OBJECTS:transcript_objects>
+    )
 
     target_link_options(
         barretenberg.wasm
         PRIVATE
-        -nostartfiles -Wl,--whole-archive,--no-entry,--export-dynamic,--allow-undefined
+        -nostartfiles -Wl,--no-entry,--export-dynamic,--allow-undefined
     )
 
     if(INSTALL_BARRETENBERG)

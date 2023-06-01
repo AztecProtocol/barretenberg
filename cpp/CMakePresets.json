@@ -140,6 +140,7 @@
       "displayName": "Build for pthread enabled WASM",
       "description": "Build for pthread enabled WASM",
       "inherits": "wasm",
+      "binaryDir": "build-wasm-threads",
       "environment": {
         "WASI_SDK_PREFIX": "${sourceDir}/src/wasi-sdk-20.0+threads",
         "CMAKE_BUILD_TYPE": "Release"

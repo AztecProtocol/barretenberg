@@ -1,3 +1,4 @@
+import { concatenateUint8Arrays, numToUInt32BE } from '../../serialize/serialize.js';
 import { NetCrs } from '../net_crs.js';
 import { FileCrs } from './file_crs.js';
 

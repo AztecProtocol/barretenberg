@@ -42,17 +42,19 @@ class TurboPlonkComposer {
         , variables(circuit_constructor.variables){};
 
     TurboPlonkComposer(std::string const& crs_path, const size_t size_hint = 0)
-        : TurboPlonkComposer(
-              std::unique_ptr<ReferenceStringFactory>(new proof_system::FileReferenceStringFactory(crs_path)),
-              size_hint){};
+        : TurboPlonkComposer(std::unique_ptr<barretenberg::srs::factories::CrsFactory>(
+                                 new barretenberg::srs::factories::FileCrsFactory(crs_path)),
+                             size_hint){};
 
-    TurboPlonkComposer(std::shared_ptr<ReferenceStringFactory> const& crs_factory, const size_t size_hint = 0)
+    TurboPlonkComposer(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
+                       const size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(crs_factory)
         , num_gates(circuit_constructor.num_gates)
         , variables(circuit_constructor.variables){};
 
-    TurboPlonkComposer(std::unique_ptr<ReferenceStringFactory>&& crs_factory, const size_t size_hint = 0)
+    TurboPlonkComposer(std::unique_ptr<barretenberg::srs::factories::CrsFactory>&& crs_factory,
+                       const size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(std::move(crs_factory))
         , num_gates(circuit_constructor.num_gates)

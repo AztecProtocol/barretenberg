@@ -14,7 +14,7 @@ using namespace proof_system::plonk::stdlib::merkle_tree;
 static std::shared_ptr<plonk::proving_key> proving_key;
 static std::shared_ptr<plonk::verification_key> verification_key;
 
-void init_proving_key(std::shared_ptr<proof_system::ReferenceStringFactory> const& crs_factory, bool mock)
+void init_proving_key(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory, bool mock)
 {
     if (proving_key) {
         return;
@@ -41,7 +41,7 @@ void release_proving_key()
     proving_key.reset();
 }
 
-void init_verification_key(std::unique_ptr<proof_system::ReferenceStringFactory>&& crs_factory)
+void init_verification_key(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory)
 {
     if (!proving_key) {
         std::abort();

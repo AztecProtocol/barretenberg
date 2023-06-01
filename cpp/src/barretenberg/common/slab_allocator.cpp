@@ -3,6 +3,9 @@
 #include <barretenberg/common/mem.hpp>
 #include <barretenberg/common/assert.hpp>
 #include <numeric>
+#include <unordered_map>
+
+#define LOGGING 0
 
 /**
  * If we can guarantee that all slabs will be released before the allocator is destroyed, we wouldn't need this.
@@ -14,10 +17,23 @@
 namespace {
 bool allocator_destroyed = false;
 
+// Slabs that are being manually managed by the user.
+std::unordered_map<void*, std::shared_ptr<void>> manual_slabs;
+
+template <typename... Args> inline void dbg_info(Args... args)
+{
+#if LOGGING == 1
+    info(args...);
+#else
+    // Suppress warning.
+    (void)(sizeof...(args));
+#endif
+}
+
 /**
- * Allows preallocating memory slabs sized to serve the fact that these slabs of memory follow certain sizing patterns
- * and numbers based on prover system type and circuit size. Without the slab allocator, memory fragmentation prevents
- * proof construction when approaching memory space limits (4GB in WASM).
+ * Allows preallocating memory slabs sized to serve the fact that these slabs of memory follow certain sizing
+ * patterns and numbers based on prover system type and circuit size. Without the slab allocator, memory
+ * fragmentation prevents proof construction when approaching memory space limits (4GB in WASM).
  *
  * If no circuit_size_hint is given to the constructor, it behaves as a standard memory allocator.
  */
@@ -36,7 +52,7 @@ class SlabAllocator {
 
     std::shared_ptr<void> get(size_t size);
 
-    // size_t get_total_size();
+    size_t get_total_size();
 
   private:
     void release(void* ptr, size_t size);
@@ -68,7 +84,7 @@ void SlabAllocator::init(size_t circuit_size_hint)
     }
     memory_store.clear();
 
-    // info("slab allocator initing for size: ", circuit_size_hint);
+    dbg_info("slab allocator initing for size: ", circuit_size_hint);
 
     if (circuit_size_hint == 0ULL) {
         return;
@@ -78,6 +94,7 @@ void SlabAllocator::init(size_t circuit_size_hint)
     // Think max I saw was 65 extra related to pippenger runtime state. Likely related to the machine having 64 cores.
     // Strange things may happen here if double to 128 cores, might request 129 extra?
     size_t overalloc = 128;
+    size_t tiny_size = 4 * (circuit_size_hint + overalloc);
     size_t small_size = 32 * (circuit_size_hint + overalloc);
     size_t large_size = small_size * 4;
 
@@ -88,7 +105,10 @@ void SlabAllocator::init(size_t circuit_size_hint)
     // on repeated prover runs as the memory becomes fragmented. Maybe best to just recreate the WASM
     // for each proof for now, if not too expensive.
     std::map<size_t, size_t> prealloc_num;
-    prealloc_num[small_size] = 4 +    // Monomial wires.
+    prealloc_num[tiny_size] = 4 +     // Composer base wire vectors.
+                              1;      // Miscellaneous.
+    prealloc_num[small_size] = 11 +   // Composer base selector vectors.
+                               4 +    // Monomial wires.
                                4 +    // Lagrange wires.
                                15 +   // Monomial constraint selectors.
                                15 +   // Lagrange constraint selectors.
@@ -98,7 +118,7 @@ void SlabAllocator::init(size_t circuit_size_hint)
                                5 +    // Lagrange sorted poly.
                                2 +    // Perm poly.
                                4 +    // Quotient poly.
-                               7;     // Miscellaneous.
+                               8;     // Miscellaneous.
     prealloc_num[small_size * 2] = 1; // Miscellaneous.
     prealloc_num[large_size] = 4 +    // Coset-fft wires.
                                15 +   // Coset-fft constraint selectors.
@@ -112,7 +132,7 @@ void SlabAllocator::init(size_t circuit_size_hint)
         for (size_t i = 0; i < e.second; ++i) {
             auto size = e.first;
             memory_store[size].push_back(aligned_alloc(32, size));
-            // info("Allocated memory slab of size: ", size, " total: ", get_total_size());
+            dbg_info("Allocated memory slab of size: ", size, " total: ", get_total_size());
         }
     }
 }
@@ -135,7 +155,7 @@ std::shared_ptr<void> SlabAllocator::get(size_t req_size)
             memory_store.erase(it);
         }
 
-        // info("Reusing memory slab of size: ", size, " for requested ", req_size, " total: ", get_total_size());
+        dbg_info("Reusing memory slab of size: ", size, " for requested ", req_size, " total: ", get_total_size());
 
         return std::shared_ptr<void>(ptr, [this, size](void* p) {
             if (allocator_destroyed) {
@@ -147,20 +167,20 @@ std::shared_ptr<void> SlabAllocator::get(size_t req_size)
     }
 
     if (req_size % 32 == 0) {
-        // info("Allocating unmanaged memory slab of size: ", req_size);
+        dbg_info("Allocating unmanaged memory slab of size: ", req_size);
         return std::shared_ptr<void>(aligned_alloc(32, req_size), aligned_free);
     } else {
-        // info("Allocating unaligned unmanaged memory slab of size: ", req_size);
+        dbg_info("Allocating unaligned unmanaged memory slab of size: ", req_size);
         return std::shared_ptr<void>(malloc(req_size), free);
     }
 }
 
-// size_t SlabAllocator::get_total_size()
-// {
-//     return std::accumulate(memory_store.begin(), memory_store.end(), size_t{ 0 }, [](size_t acc, const auto& kv) {
-//         return acc + kv.first * kv.second.size();
-//     });
-// }
+size_t SlabAllocator::get_total_size()
+{
+    return std::accumulate(memory_store.begin(), memory_store.end(), size_t{ 0 }, [](size_t acc, const auto& kv) {
+        return acc + kv.first * kv.second.size();
+    });
+}
 
 void SlabAllocator::release(void* ptr, size_t size)
 {
@@ -168,16 +188,16 @@ void SlabAllocator::release(void* ptr, size_t size)
     std::unique_lock<std::mutex> lock(memory_store_mutex);
 #endif
     memory_store[size].push_back(ptr);
-    // info("Pooled poly memory of size: ", size, " total: ", get_total_size());
+    dbg_info("Pooled poly memory of size: ", size, " total: ", get_total_size());
 }
 
 SlabAllocator allocator;
 } // namespace
 
 namespace barretenberg {
-void init_slab_allocator(size_t circuit_size)
+void init_slab_allocator(size_t circuit_subgroup_size)
 {
-    allocator.init(circuit_size);
+    allocator.init(circuit_subgroup_size);
 }
 
 // auto init = ([]() {
@@ -188,5 +208,21 @@ void init_slab_allocator(size_t circuit_size)
 std::shared_ptr<void> get_mem_slab(size_t size)
 {
     return allocator.get(size);
+}
+
+void* get_mem_slab_raw(size_t size)
+{
+    auto slab = get_mem_slab(size);
+    manual_slabs[slab.get()] = slab;
+    return slab.get();
+}
+
+void free_mem_slab_raw(void* p)
+{
+    if (allocator_destroyed) {
+        aligned_free(p);
+        return;
+    }
+    manual_slabs.erase(p);
 }
 } // namespace barretenberg

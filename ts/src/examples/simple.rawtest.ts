@@ -1,28 +1,30 @@
-import { BarretenbergWasm } from '../barretenberg_wasm/index.js';
 import { Crs } from '../crs/index.js';
 import createDebug from 'debug';
-import { BarretenbergApi } from '../barretenberg_api/index.js';
-import { BarretenbergBinder } from '../barretenberg_binder/index.js';
+import { newBarretenbergApiAsync } from '../factory/index.js';
+import { RawBuffer } from '../types/index.js';
 
 createDebug.enable('*');
 const debug = createDebug('simple_test');
 
 async function main() {
+  const CIRCUIT_SIZE = 2 ** 19;
+
   debug('starting test...');
-  const { wasm, worker } = await BarretenbergWasm.newWorker();
-  const api = new BarretenbergApi(new BarretenbergBinder(wasm));
+  const api = await newBarretenbergApiAsync();
+
+  // Important to init slab allocator as first thing, to ensure maximum memory efficiency.
+  await api.commonInitSlabAllocator(CIRCUIT_SIZE);
 
   // Plus 1 needed!
-  const crs = await Crs.new(2 ** 19 + 1);
-  const pippengerPtr = await api.eccNewPippenger(crs.getG1Data(), crs.numPoints);
+  const crs = await Crs.new(CIRCUIT_SIZE + 1);
+  await api.srsInitSrs(new RawBuffer(crs.getG1Data()), crs.numPoints, new RawBuffer(crs.getG2Data()));
 
   for (let i = 0; i < 10; ++i) {
     debug(`iteration ${i} starting...`);
-    await api.examplesSimpleCreateAndVerifyProof(pippengerPtr, crs.getG2Data());
+    await api.examplesSimpleCreateAndVerifyProof();
   }
 
-  await wasm.destroy();
-  await worker.terminate();
+  await api.destroy();
 
   debug('test complete.');
 }

@@ -1,5 +1,4 @@
-import { BarretenbergBinderSync } from '../barretenberg_binder/index.js';
-import { BarretenbergWasm } from '../barretenberg_wasm/index.js';
+import { newBarretenbergApiSync } from '../factory/index.js';
 import { Buffer32, Fr } from '../types/index.js';
 import { BarretenbergApiSync } from './index.js';
 
@@ -7,7 +6,7 @@ describe('blake2s', () => {
   let api: BarretenbergApiSync;
 
   beforeAll(async () => {
-    api = new BarretenbergApiSync(new BarretenbergBinderSync(await BarretenbergWasm.new(1)));
+    api = await newBarretenbergApiSync();
   });
 
   afterAll(async () => {

@@ -3,6 +3,8 @@
 #include <map>
 #include <list>
 #include <memory>
+#include "./log.hpp"
+#include "./assert.hpp"
 #ifndef NO_MULTITHREADING
 #include <mutex>
 #endif
@@ -23,11 +25,47 @@ namespace barretenberg {
  * TODO: De-globalise. Init the allocator and pass around. Use a PolynomialFactory (PolynomialStore?).
  * TODO: Consider removing, but once due-dilligence has been done that we no longer have memory limitations.
  */
-void init_slab_allocator(size_t circuit_size);
+void init_slab_allocator(size_t circuit_subgroup_size);
 
 /**
  * Returns a slab from the preallocated pool of slabs, or fallback to a new heap allocation (32 byte aligned).
+ * Ref counted result so no need to manually free.
  */
 std::shared_ptr<void> get_mem_slab(size_t size);
+
+/**
+ * Sometimes you want a raw pointer to a slab so you can manage when it's released manually (e.g. c_binds, containers).
+ * This still gets a slab with a shared_ptr, but holds the shared_ptr internally until free_mem_slab_raw is called.
+ */
+void* get_mem_slab_raw(size_t size);
+
+void free_mem_slab_raw(void*);
+
+/**
+ * Allocator for containers such as std::vector. Makes them leverage the underlying slab allocator where possible.
+ */
+template <typename T> class ContainerSlabAllocator {
+  public:
+    using value_type = T;
+    using pointer = T*;
+    using const_pointer = const T*;
+    using size_type = std::size_t;
+
+    template <typename U> struct rebind {
+        using other = ContainerSlabAllocator<U>;
+    };
+
+    pointer allocate(size_type n)
+    {
+        // info("ContainerSlabAllocator allocating: ", n * sizeof(T));
+        return reinterpret_cast<pointer>(get_mem_slab_raw(n * sizeof(T)));
+    }
+
+    void deallocate(pointer p, size_type /*unused*/) { free_mem_slab_raw(p); }
+
+    friend bool operator==(const ContainerSlabAllocator<T>&, const ContainerSlabAllocator<T>&) { return true; }
+
+    friend bool operator!=(const ContainerSlabAllocator<T>&, const ContainerSlabAllocator<T>&) { return false; }
+};
 
 } // namespace barretenberg

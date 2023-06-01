@@ -257,7 +257,7 @@ std::shared_ptr<proving_key> ComposerBase::compute_proving_key_base(const Compos
     circuit_proving_key = std::make_shared<proving_key>(subgroup_size, public_inputs.size(), crs, composer_type);
 
     for (size_t i = 0; i < num_selectors; ++i) {
-        std::vector<barretenberg::fr>& selector_values = selectors[i];
+        auto& selector_values = selectors[i];
         const auto& properties = selector_properties[i];
         ASSERT(num_gates == selector_values.size());
 
@@ -314,7 +314,8 @@ std::shared_ptr<proving_key> ComposerBase::compute_proving_key_base(const Compos
  * (2) sets the polynomial manifest using the data from proving key.
  */
 std::shared_ptr<verification_key> ComposerBase::compute_verification_key_base(
-    std::shared_ptr<proving_key> const& proving_key, std::shared_ptr<VerifierReferenceString> const& vrs)
+    std::shared_ptr<proving_key> const& proving_key,
+    std::shared_ptr<barretenberg::srs::factories::VerifierCrs> const& vrs)
 {
     auto circuit_verification_key = std::make_shared<verification_key>(
         proving_key->circuit_size, proving_key->num_public_inputs, vrs, proving_key->composer_type);
@@ -362,7 +363,6 @@ template <size_t program_width> void ComposerBase::compute_witness_base(const si
     if (computed_witness) {
         return;
     }
-
     const size_t total_num_gates = std::max(minimum_circuit_size, num_gates + public_inputs.size());
     const size_t subgroup_size = get_circuit_subgroup_size(total_num_gates + NUM_RESERVED_GATES);
 

@@ -1,5 +1,4 @@
-import { BarretenbergBinderSync } from '../barretenberg_binder/index.js';
-import { BarretenbergWasm } from '../barretenberg_wasm/barretenberg_wasm.js';
+import { newBarretenbergApiSync } from '../factory/index.js';
 import { Fr } from '../types/index.js';
 import { BarretenbergApiSync } from './index.js';
 
@@ -7,7 +6,7 @@ describe('pedersen', () => {
   let api: BarretenbergApiSync;
 
   beforeAll(async () => {
-    api = new BarretenbergApiSync(new BarretenbergBinderSync(await BarretenbergWasm.new(1)));
+    api = await newBarretenbergApiSync();
     api.pedersenHashInit();
   });
 
@@ -22,7 +21,7 @@ describe('pedersen', () => {
 
   it('pedersenPlookupCompressFields', () => {
     const result = api.pedersenPlookupCompressFields(new Fr(4n), new Fr(8n));
-    expect(result).toEqual(new Fr(7508407170365331152493586290597472346478280823936748458450026785528968221772n));
+    expect(result).toEqual(new Fr(21568810706345846819294487214368613840251909831689369685420108292337497444070n));
   });
 
   it('pedersenCompress', () => {
@@ -32,7 +31,7 @@ describe('pedersen', () => {
 
   it('pedersenPlookupCompress', () => {
     const result = api.pedersenPlookupCompress([new Fr(4n), new Fr(8n), new Fr(12n)]);
-    expect(result).toEqual(new Fr(641613987782189905475142047603559162464012327378197326488471789040703504911n));
+    expect(result).toEqual(new Fr(4213911891650716450883144878301329379460622830501147795631256054071351353887n));
   });
 
   it('pedersenCompressWithHashIndex', () => {
@@ -47,7 +46,7 @@ describe('pedersen', () => {
 
   it('pedersenPlookupCommit', () => {
     const result = api.pedersenPlookupCommit([new Fr(4n), new Fr(8n)]);
-    expect(result).toEqual(new Fr(7508407170365331152493586290597472346478280823936748458450026785528968221772n));
+    expect(result).toEqual(new Fr(21568810706345846819294487214368613840251909831689369685420108292337497444070n));
   });
 
   it('pedersenBufferToField', () => {

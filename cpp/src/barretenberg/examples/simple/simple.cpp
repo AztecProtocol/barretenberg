@@ -19,7 +19,7 @@ void build_circuit(Composer& composer)
     }
 }
 
-Composer* create_composer(std::shared_ptr<proof_system::ReferenceStringFactory> const& crs_factory)
+Composer* create_composer(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory)
 {
     // WARNING: Size hint is essential to perform 512k circuits!
     auto composer = std::make_unique<Composer>(crs_factory, CIRCUIT_SIZE);
@@ -45,7 +45,6 @@ proof create_proof(Composer* composer)
     Timer timer;
     info("computing proof...");
     auto prover = composer->create_ultra_with_keccak_prover();
-    // auto prover = composer->create_prover();
     auto proof = prover.construct_proof();
     info("proof construction took ", timer.seconds(), "s");
     return proof;
@@ -56,7 +55,6 @@ bool verify_proof(Composer* composer, proof_system::plonk::proof const& proof)
     info("computing verification key...");
     composer->compute_verification_key();
     auto verifier = composer->create_ultra_with_keccak_verifier();
-    // auto verifier = composer->create_verifier();
     auto valid = verifier.verify_proof(proof);
     info("proof validity: ", valid);
     return valid;

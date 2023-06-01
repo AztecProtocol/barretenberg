@@ -3,7 +3,7 @@
 #include "barretenberg/honk/flavor/standard.hpp" // TODO: needed?
 #include "barretenberg/proof_system/composer/composer_helper_lib.hpp"
 #include "barretenberg/proof_system/types/composer_type.hpp"
-#include "barretenberg/srs/reference_string/reference_string.hpp"
+#include "barretenberg/srs/factories/crs_factory.hpp"
 
 namespace proof_system::test_composer_lib {
 
@@ -13,7 +13,7 @@ class ComposerLibTests : public ::testing::Test {
     using FF = typename Flavor::FF;
     Flavor::CircuitConstructor circuit_constructor;
     Flavor::ProvingKey proving_key = []() {
-        auto crs_factory = ReferenceStringFactory();
+        auto crs_factory = barretenberg::srs::factories::CrsFactory();
         auto crs = crs_factory.get_prover_crs(4);
         return Flavor::ProvingKey(/*circuit_size=*/4, /*num_public_inputs=*/0, crs, ComposerType::STANDARD);
     }();
@@ -25,7 +25,7 @@ TEST_F(ComposerLibTests, InitializeProvingKey)
 
     EXPECT_EQ(circuit_constructor.get_circuit_subgroup_size(7), 8);
 
-    ReferenceStringFactory crs_factory;
+    barretenberg::srs::factories::CrsFactory crs_factory;
 
     auto pk = initialize_proving_key<Flavor>(circuit_constructor,
                                              &crs_factory,

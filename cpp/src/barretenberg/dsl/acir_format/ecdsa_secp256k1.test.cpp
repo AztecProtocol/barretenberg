@@ -10,7 +10,7 @@
 using curve = proof_system::plonk::stdlib::secp256k1<acir_format::Composer>;
 
 size_t generate_ecdsa_constraint(acir_format::EcdsaSecp256k1Constraint& ecdsa_constraint,
-                                 std::vector<fr>& witness_values)
+                                 acir_format::WitnessVector& witness_values)
 {
     std::string message_string = "Instructions unclear, ask again later.";
 
@@ -81,7 +81,7 @@ size_t generate_ecdsa_constraint(acir_format::EcdsaSecp256k1Constraint& ecdsa_co
 TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
 {
     acir_format::EcdsaSecp256k1Constraint ecdsa_constraint;
-    std::vector<fr> witness_values;
+    acir_format::WitnessVector witness_values;
     size_t num_variables = generate_ecdsa_constraint(ecdsa_constraint, witness_values);
     acir_format::acir_format constraint_system{
         .varnum = static_cast<uint32_t>(num_variables),
@@ -94,10 +94,12 @@ TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
         .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},
+        .keccak_var_constraints = {},
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .compute_merkle_root_constraints = {},
         .block_constraints = {},
+        .recursion_constraints = {},
         .constraints = {},
     };
 
@@ -117,7 +119,7 @@ TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
 TEST(ECDSASecp256k1, TestECDSACompilesForVerifier)
 {
     acir_format::EcdsaSecp256k1Constraint ecdsa_constraint;
-    std::vector<fr> witness_values;
+    acir_format::WitnessVector witness_values;
     size_t num_variables = generate_ecdsa_constraint(ecdsa_constraint, witness_values);
     acir_format::acir_format constraint_system{
         .varnum = static_cast<uint32_t>(num_variables),
@@ -130,20 +132,22 @@ TEST(ECDSASecp256k1, TestECDSACompilesForVerifier)
         .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},
+        .keccak_var_constraints = {},
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .compute_merkle_root_constraints = {},
         .block_constraints = {},
+        .recursion_constraints = {},
         .constraints = {},
     };
-    auto crs_factory = std::make_unique<proof_system::ReferenceStringFactory>();
+    auto crs_factory = std::make_unique<barretenberg::srs::factories::CrsFactory>();
     auto composer = create_circuit(constraint_system, std::move(crs_factory));
 }
 
 TEST(ECDSASecp256k1, TestECDSAConstraintFail)
 {
     acir_format::EcdsaSecp256k1Constraint ecdsa_constraint;
-    std::vector<fr> witness_values;
+    acir_format::WitnessVector witness_values;
     size_t num_variables = generate_ecdsa_constraint(ecdsa_constraint, witness_values);
 
     // set result value to be false
@@ -163,10 +167,12 @@ TEST(ECDSASecp256k1, TestECDSAConstraintFail)
         .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},
+        .keccak_var_constraints = {},
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .compute_merkle_root_constraints = {},
         .block_constraints = {},
+        .recursion_constraints = {},
         .constraints = {},
     };
 

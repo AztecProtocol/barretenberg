@@ -3,7 +3,7 @@
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
-#include "barretenberg/srs/reference_string/reference_string.hpp"
+#include "barretenberg/srs/factories/crs_factory.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -44,7 +44,7 @@ std::shared_ptr<StandardHonkComposerHelper::ProvingKey> StandardHonkComposerHelp
 
 std::shared_ptr<StandardHonkComposerHelper::VerificationKey> StandardHonkComposerHelper::compute_verification_key_base(
     std::shared_ptr<StandardHonkComposerHelper::ProvingKey> const& proving_key,
-    std::shared_ptr<VerifierReferenceString> const& vrs)
+    std::shared_ptr<barretenberg::srs::factories::VerifierCrs> const& vrs)
 {
     auto key = std::make_shared<VerificationKey>(
         proving_key->circuit_size, proving_key->num_public_inputs, vrs, proving_key->composer_type);

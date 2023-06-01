@@ -7,7 +7,7 @@ namespace examples::simple {
 using namespace proof_system::plonk;
 using namespace stdlib::types;
 
-Composer* create_composer(std::shared_ptr<proof_system::ReferenceStringFactory> const& crs_factory);
+Composer* create_composer(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory);
 
 proof create_proof(Composer* composer);
 

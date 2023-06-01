@@ -1,10 +1,11 @@
 #pragma once
+#include "barretenberg/common/slab_allocator.hpp"
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/proof_system/arithmetization/gate_data.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
 #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
 #include "barretenberg/plonk/proof_system/types/prover_settings.hpp"
-#include "barretenberg/srs/reference_string/file_reference_string.hpp"
+#include "barretenberg/srs/factories/file_crs_factory.hpp"
 
 namespace proof_system::plonk {
 static constexpr uint32_t DUMMY_TAG = 0;
@@ -51,9 +52,10 @@ class ComposerBase {
     };
 
     ComposerBase()
-        : ComposerBase(std::shared_ptr<ReferenceStringFactory>(new FileReferenceStringFactory("../srs_db/ignition")))
+        : ComposerBase(std::shared_ptr<barretenberg::srs::factories::CrsFactory>(
+              new barretenberg::srs::factories::FileCrsFactory("../srs_db/ignition")))
     {}
-    ComposerBase(std::shared_ptr<ReferenceStringFactory> const& crs_factory,
+    ComposerBase(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
                  size_t num_selectors = 0,
                  size_t size_hint = 0,
                  std::vector<SelectorProperties> selector_properties = {})
@@ -73,7 +75,7 @@ class ComposerBase {
                  size_t size_hint = 0,
                  std::vector<SelectorProperties> selector_properties = {})
         : num_gates(0)
-        , crs_factory_(std::make_unique<FileReferenceStringFactory>("../srs_db/ignition"))
+        , crs_factory_(std::make_unique<barretenberg::srs::factories::FileCrsFactory>("../srs_db/ignition"))
         , num_selectors(num_selectors)
         , selectors(num_selectors)
         , selector_properties(selector_properties)
@@ -115,7 +117,8 @@ class ComposerBase {
                                                                   const size_t num_reserved_gates = NUM_RESERVED_GATES);
     // This needs to be static as it may be used only to compute the selector commitments.
     static std::shared_ptr<verification_key> compute_verification_key_base(
-        std::shared_ptr<proving_key> const& proving_key, std::shared_ptr<VerifierReferenceString> const& vrs);
+        std::shared_ptr<proving_key> const& proving_key,
+        std::shared_ptr<barretenberg::srs::factories::VerifierCrs> const& vrs);
     virtual std::shared_ptr<proving_key> compute_proving_key() = 0;
     virtual std::shared_ptr<verification_key> compute_verification_key() = 0;
     virtual void compute_witness() = 0;
@@ -185,6 +188,19 @@ class ComposerBase {
     }
 
     barretenberg::fr get_public_input(const uint32_t index) const { return get_variable(public_inputs[index]); }
+
+    uint32_t get_public_input_index(const uint32_t witness_index) const
+    {
+        uint32_t result = static_cast<uint32_t>(-1);
+        for (size_t i = 0; i < public_inputs.size(); ++i) {
+            if (real_variable_index[public_inputs[i]] == real_variable_index[witness_index]) {
+                result = static_cast<uint32_t>(i);
+                break;
+            }
+        }
+        ASSERT(result != static_cast<uint32_t>(-1));
+        return result;
+    }
 
     std::vector<fr> get_public_inputs() const
     {
@@ -293,10 +309,10 @@ class ComposerBase {
 
   public:
     size_t num_gates;
-    std::vector<uint32_t> w_l;
-    std::vector<uint32_t> w_r;
-    std::vector<uint32_t> w_o;
-    std::vector<uint32_t> w_4;
+    std::vector<uint32_t, ContainerSlabAllocator<uint32_t>> w_l;
+    std::vector<uint32_t, ContainerSlabAllocator<uint32_t>> w_r;
+    std::vector<uint32_t, ContainerSlabAllocator<uint32_t>> w_o;
+    std::vector<uint32_t, ContainerSlabAllocator<uint32_t>> w_4;
     std::vector<uint32_t> public_inputs;
     std::vector<barretenberg::fr> variables;
     std::vector<uint32_t> next_var_index; // index of next variable in equivalence class (=REAL_VARIABLE if you're last)
@@ -316,9 +332,9 @@ class ComposerBase {
 
     bool computed_witness = false;
 
-    std::shared_ptr<ReferenceStringFactory> crs_factory_;
+    std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory_;
     size_t num_selectors;
-    std::vector<std::vector<barretenberg::fr>> selectors;
+    std::vector<std::vector<barretenberg::fr, ContainerSlabAllocator<barretenberg::fr>>> selectors;
     /**
      * @brief Contains the properties of each selector:
      * + name

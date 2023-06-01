@@ -3,7 +3,7 @@
 
 namespace acir_format {
 
-void read_witness(Composer& composer, std::vector<barretenberg::fr> witness)
+void read_witness(Composer& composer, WitnessVector const& witness)
 {
     composer.variables[0] = 0;
     for (size_t i = 0; i < witness.size(); ++i) {
@@ -11,7 +11,7 @@ void read_witness(Composer& composer, std::vector<barretenberg::fr> witness)
     }
 }
 
-void create_circuit(Composer& composer, const acir_format& constraint_system)
+void create_circuit(Composer& composer, acir_format const& constraint_system)
 {
     if (constraint_system.public_inputs.size() > constraint_system.varnum) {
         info("create_circuit: too many public inputs!");
@@ -73,6 +73,9 @@ void create_circuit(Composer& composer, const acir_format& constraint_system)
     for (const auto& constraint : constraint_system.keccak_constraints) {
         create_keccak_constraints(composer, constraint);
     }
+    for (const auto& constraint : constraint_system.keccak_var_constraints) {
+        create_keccak_var_constraints(composer, constraint);
+    }
 
     // Add pedersen constraints
     for (const auto& constraint : constraint_system.pedersen_constraints) {
@@ -93,16 +96,32 @@ void create_circuit(Composer& composer, const acir_format& constraint_system)
     for (const auto& constraint : constraint_system.block_constraints) {
         create_block_constraints(composer, constraint);
     }
+
+    // Add recursion constraints
+    for (size_t i = 0; i < constraint_system.recursion_constraints.size(); ++i) {
+        auto& constraint = constraint_system.recursion_constraints[i];
+        create_recursion_constraints(composer, constraint);
+
+        // make sure the verification key records the public input indices of the final recursion output
+        // (N.B. up to the ACIR description to make sure that the final output aggregation object wires are public
+        // inputs!)
+        if (i == constraint_system.recursion_constraints.size() - 1) {
+            std::vector<uint32_t> proof_output_witness_indices(constraint.output_aggregation_object.begin(),
+                                                               constraint.output_aggregation_object.end());
+            composer.set_recursive_proof(proof_output_witness_indices);
+        }
+    }
 }
 
 Composer create_circuit(const acir_format& constraint_system,
-                        std::unique_ptr<proof_system::ReferenceStringFactory>&& crs_factory)
+                        std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
+                        size_t size_hint)
 {
     if (constraint_system.public_inputs.size() > constraint_system.varnum) {
         info("create_circuit: too many public inputs!");
     }
 
-    Composer composer(std::move(crs_factory));
+    Composer composer(crs_factory, size_hint);
 
     for (size_t i = 1; i < constraint_system.varnum; ++i) {
         // If the index is in the public inputs vector, then we add it as a public input
@@ -116,6 +135,7 @@ Composer create_circuit(const acir_format& constraint_system,
             composer.add_variable(0);
         }
     }
+
     // Add arithmetic gates
     for (const auto& constraint : constraint_system.constraints) {
         composer.create_poly_gate(constraint);
@@ -161,6 +181,9 @@ Composer create_circuit(const acir_format& constraint_system,
     for (const auto& constraint : constraint_system.keccak_constraints) {
         create_keccak_constraints(composer, constraint);
     }
+    for (const auto& constraint : constraint_system.keccak_var_constraints) {
+        create_keccak_var_constraints(composer, constraint);
+    }
 
     // Add pedersen constraints
     for (const auto& constraint : constraint_system.pedersen_constraints) {
@@ -182,18 +205,33 @@ Composer create_circuit(const acir_format& constraint_system,
         create_block_constraints(composer, constraint);
     }
 
+    // Add recursion constraints
+    for (size_t i = 0; i < constraint_system.recursion_constraints.size(); ++i) {
+        auto& constraint = constraint_system.recursion_constraints[i];
+        create_recursion_constraints(composer, constraint);
+
+        // make sure the verification key records the public input indices of the final recursion output
+        // (N.B. up to the ACIR description to make sure that the final output aggregation object wires are public
+        // inputs!)
+        if (i == constraint_system.recursion_constraints.size() - 1) {
+            std::vector<uint32_t> proof_output_witness_indices(constraint.output_aggregation_object.begin(),
+                                                               constraint.output_aggregation_object.end());
+            composer.set_recursive_proof(proof_output_witness_indices);
+        }
+    }
+
     return composer;
 }
 
-Composer create_circuit_with_witness(const acir_format& constraint_system,
-                                     std::vector<fr> witness,
-                                     std::unique_ptr<ReferenceStringFactory>&& crs_factory)
+Composer create_circuit_with_witness(acir_format const& constraint_system,
+                                     WitnessVector const& witness,
+                                     std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory)
 {
     if (constraint_system.public_inputs.size() > constraint_system.varnum) {
         info("create_circuit_with_witness: too many public inputs!");
     }
 
-    Composer composer(std::move(crs_factory));
+    Composer composer(crs_factory);
 
     for (size_t i = 1; i < constraint_system.varnum; ++i) {
         // If the index is in the public inputs vector, then we add it as a public input
@@ -255,6 +293,9 @@ Composer create_circuit_with_witness(const acir_format& constraint_system,
     for (const auto& constraint : constraint_system.keccak_constraints) {
         create_keccak_constraints(composer, constraint);
     }
+    for (const auto& constraint : constraint_system.keccak_var_constraints) {
+        create_keccak_var_constraints(composer, constraint);
+    }
 
     // Add pedersen constraints
     for (const auto& constraint : constraint_system.pedersen_constraints) {
@@ -276,9 +317,24 @@ Composer create_circuit_with_witness(const acir_format& constraint_system,
         create_block_constraints(composer, constraint);
     }
 
+    // Add recursion constraints
+    for (size_t i = 0; i < constraint_system.recursion_constraints.size(); ++i) {
+        auto& constraint = constraint_system.recursion_constraints[i];
+        create_recursion_constraints(composer, constraint, true);
+
+        // make sure the verification key records the public input indices of the final recursion output
+        // (N.B. up to the ACIR description to make sure that the final output aggregation object wires are public
+        // inputs!)
+        if (i == constraint_system.recursion_constraints.size() - 1) {
+            std::vector<uint32_t> proof_output_witness_indices(constraint.output_aggregation_object.begin(),
+                                                               constraint.output_aggregation_object.end());
+            composer.set_recursive_proof(proof_output_witness_indices);
+        }
+    }
+
     return composer;
 }
-Composer create_circuit_with_witness(const acir_format& constraint_system, std::vector<fr> witness)
+Composer create_circuit_with_witness(const acir_format& constraint_system, WitnessVector const& witness)
 {
     if (constraint_system.public_inputs.size() > constraint_system.varnum) {
         info("create_circuit_with_witness: too many public inputs!");
@@ -346,6 +402,9 @@ Composer create_circuit_with_witness(const acir_format& constraint_system, std::
     for (const auto& constraint : constraint_system.keccak_constraints) {
         create_keccak_constraints(composer, constraint);
     }
+    for (const auto& constraint : constraint_system.keccak_var_constraints) {
+        create_keccak_var_constraints(composer, constraint);
+    }
 
     // Add pedersen constraints
     for (const auto& constraint : constraint_system.pedersen_constraints) {
@@ -367,9 +426,24 @@ Composer create_circuit_with_witness(const acir_format& constraint_system, std::
         create_block_constraints(composer, constraint);
     }
 
+    // Add recursion constraints
+    for (size_t i = 0; i < constraint_system.recursion_constraints.size(); ++i) {
+        auto& constraint = constraint_system.recursion_constraints[i];
+        create_recursion_constraints(composer, constraint, true);
+
+        // make sure the verification key records the public input indices of the final recursion output
+        // (N.B. up to the ACIR description to make sure that the final output aggregation object wires are public
+        // inputs!)
+        if (i == constraint_system.recursion_constraints.size() - 1) {
+            std::vector<uint32_t> proof_output_witness_indices(constraint.output_aggregation_object.begin(),
+                                                               constraint.output_aggregation_object.end());
+            composer.set_recursive_proof(proof_output_witness_indices);
+        }
+    }
+
     return composer;
 }
-void create_circuit_with_witness(Composer& composer, const acir_format& constraint_system, std::vector<fr> witness)
+void create_circuit_with_witness(Composer& composer, acir_format const& constraint_system, WitnessVector const& witness)
 {
     if (constraint_system.public_inputs.size() > constraint_system.varnum) {
         info("create_circuit_with_witness: too many public inputs!");
@@ -435,6 +509,9 @@ void create_circuit_with_witness(Composer& composer, const acir_format& constrai
     for (const auto& constraint : constraint_system.keccak_constraints) {
         create_keccak_constraints(composer, constraint);
     }
+    for (const auto& constraint : constraint_system.keccak_var_constraints) {
+        create_keccak_var_constraints(composer, constraint);
+    }
 
     // Add pedersen constraints
     for (const auto& constraint : constraint_system.pedersen_constraints) {
@@ -454,6 +531,21 @@ void create_circuit_with_witness(Composer& composer, const acir_format& constrai
     // Add block constraints
     for (const auto& constraint : constraint_system.block_constraints) {
         create_block_constraints(composer, constraint);
+    }
+
+    // Add recursion constraints
+    for (size_t i = 0; i < constraint_system.recursion_constraints.size(); ++i) {
+        auto& constraint = constraint_system.recursion_constraints[i];
+        create_recursion_constraints(composer, constraint, true);
+
+        // make sure the verification key records the public input indices of the final recursion output
+        // (N.B. up to the ACIR description to make sure that the final output aggregation object wires are public
+        // inputs!)
+        if (i == constraint_system.recursion_constraints.size() - 1) {
+            std::vector<uint32_t> proof_output_witness_indices(constraint.output_aggregation_object.begin(),
+                                                               constraint.output_aggregation_object.end());
+            composer.set_recursive_proof(proof_output_witness_indices);
+        }
     }
 }
 

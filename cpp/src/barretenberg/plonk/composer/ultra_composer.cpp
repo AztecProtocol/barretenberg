@@ -12,7 +12,7 @@
 #include "barretenberg/plonk/proof_system/widgets/random_widgets/permutation_widget.hpp"
 #include "barretenberg/plonk/proof_system/widgets/random_widgets/plookup_widget.hpp"
 #include "barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp"
-#include "barretenberg/srs/reference_string/file_reference_string.hpp"
+#include "barretenberg/srs/factories/file_crs_factory.hpp"
 
 #include "barretenberg/proof_system/plookup_tables/types.hpp"
 #include "barretenberg/proof_system/plookup_tables/plookup_tables.hpp"
@@ -68,9 +68,12 @@ UltraComposer::UltraComposer()
 {}
 
 UltraComposer::UltraComposer(std::string const& crs_path, const size_t size_hint)
-    : UltraComposer(std::unique_ptr<ReferenceStringFactory>(new FileReferenceStringFactory(crs_path)), size_hint){};
+    : UltraComposer(std::unique_ptr<barretenberg::srs::factories::CrsFactory>(
+                        new barretenberg::srs::factories::FileCrsFactory(crs_path)),
+                    size_hint){};
 
-UltraComposer::UltraComposer(std::shared_ptr<ReferenceStringFactory> const& crs_factory, const size_t size_hint)
+UltraComposer::UltraComposer(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
+                             const size_t size_hint)
     : ComposerBase(crs_factory, UltraSelectors::NUM, size_hint, ultra_selector_properties())
 {
     w_l.reserve(size_hint);
@@ -86,7 +89,9 @@ UltraComposer::UltraComposer(std::shared_ptr<proving_key> const& p_key,
                              size_t size_hint)
     : ComposerBase(p_key, v_key, UltraSelectors::NUM, size_hint, ultra_selector_properties())
 {
+    w_l.reserve(size_hint);
     w_r.reserve(size_hint);
+    w_o.reserve(size_hint);
     w_4.reserve(size_hint);
     zero_idx = put_constant_variable(0);
     tau.insert({ DUMMY_TAG, DUMMY_TAG });
@@ -563,7 +568,6 @@ std::shared_ptr<proving_key> UltraComposer::compute_proving_key()
 
     // Compute selector polynomials and appropriate fft versions and put them in the proving key
     ComposerBase::compute_proving_key_base(type, tables_size + lookups_size, NUM_RESERVED_GATES);
-
     const size_t subgroup_size = circuit_proving_key->circuit_size;
 
     polynomial poly_q_table_column_1(subgroup_size);

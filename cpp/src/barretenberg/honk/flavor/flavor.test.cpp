@@ -1,6 +1,6 @@
 #include "barretenberg/honk/flavor/standard.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/srs/reference_string/reference_string.hpp"
+#include "barretenberg/srs/factories/crs_factory.hpp"
 #include <cstddef>
 #include <gtest/gtest.h>
 
@@ -15,7 +15,7 @@ TEST(Flavor, StandardGetters)
     using ProvingKey = typename Flavor::ProvingKey;
 
     ProvingKey proving_key = []() {
-        auto crs_factory = ReferenceStringFactory();
+        auto crs_factory = barretenberg::srs::factories::CrsFactory();
         auto crs = crs_factory.get_prover_crs(4);
         return Flavor::ProvingKey(/*circuit_size=*/4, /*num_public_inputs=*/0, crs, ComposerType::STANDARD);
     }();
@@ -38,7 +38,7 @@ TEST(Flavor, StandardGetters)
     Flavor::VerificationKey verification_key;
     Flavor::ProverPolynomials prover_polynomials;
     Flavor::ExtendedEdges<Flavor::NUM_ALL_ENTITIES> edges;
-    Flavor::PurportedEvaluations evals;
+    Flavor::ClaimedEvaluations evals;
     Flavor::CommitmentLabels commitment_labels;
 
     // Globals are also available through STL container sizes
@@ -120,11 +120,11 @@ TEST(Flavor, AllEntitiesSpecialMemberFunctions)
 {
     using Flavor = proof_system::honk::flavor::Standard;
     using FF = Flavor::FF;
-    using FoldedPolynomials = Flavor::FoldedPolynomials;
-    using Polynomial = Polynomial<FF>;
+    using PartiallyEvaluatedMultivariates = Flavor::PartiallyEvaluatedMultivariates;
+    using Polynomial = barretenberg::Polynomial<FF>;
 
-    FoldedPolynomials polynomials_A;
-    std::vector<FF> random_poly{ 10 };
+    PartiallyEvaluatedMultivariates polynomials_A;
+    auto random_poly = Polynomial(10);
     for (auto& coeff : random_poly) {
         coeff = FF::random_element();
     }
@@ -135,10 +135,10 @@ TEST(Flavor, AllEntitiesSpecialMemberFunctions)
 
     ASSERT_EQ(random_poly, polynomials_A.w_l);
 
-    FoldedPolynomials polynomials_B(polynomials_A);
+    PartiallyEvaluatedMultivariates polynomials_B(polynomials_A);
     ASSERT_EQ(random_poly, polynomials_B.w_l);
 
-    FoldedPolynomials polynomials_C(std::move(polynomials_B));
+    PartiallyEvaluatedMultivariates polynomials_C(std::move(polynomials_B));
     ASSERT_EQ(random_poly, polynomials_C.w_l);
 }
 

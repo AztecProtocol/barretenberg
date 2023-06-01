@@ -1,3 +1,5 @@
+import { RawBuffer } from '../types/raw_buffer.js';
+
 // For serializing bool.
 export function boolToBuffer(b: boolean) {
   const buf = new Uint8Array(1);
@@ -33,7 +35,7 @@ export function numToUInt8(n: number) {
   return buf;
 }
 
-function concatenateUint8Arrays(arrayOfUint8Arrays: Uint8Array[]) {
+export function concatenateUint8Arrays(arrayOfUint8Arrays: Uint8Array[]) {
   const totalLength = arrayOfUint8Arrays.reduce((prev, curr) => prev + curr.length, 0);
   const result = new Uint8Array(totalLength);
   let length = 0;
@@ -42,6 +44,10 @@ function concatenateUint8Arrays(arrayOfUint8Arrays: Uint8Array[]) {
     length += array.length;
   }
   return result;
+}
+
+export function uint8ArrayToHexString(uint8Array: Uint8Array) {
+  return uint8Array.reduce((accumulator, byte) => accumulator + byte.toString(16).padStart(2, '0'), '');
 }
 
 // For serializing a buffer as a vector.
@@ -133,6 +139,8 @@ export type Bufferable = boolean | Uint8Array | number | string | { toBuffer: ()
 export function serializeBufferable(obj: Bufferable): Uint8Array {
   if (Array.isArray(obj)) {
     return serializeBufferArrayToVector(obj.map(serializeBufferable));
+  } else if (obj instanceof RawBuffer) {
+    return obj;
   } else if (obj instanceof Uint8Array) {
     return serializeBufferToVector(obj);
   } else if (typeof obj === 'boolean') {
