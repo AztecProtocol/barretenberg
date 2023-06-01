@@ -536,6 +536,30 @@
     "isAsync": false
   },
   {
+    "functionName": "acir_get_circuit_sizes",
+    "inArgs": [
+      {
+        "name": "constraint_system_buf",
+        "type": "const uint8_t *"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "exact",
+        "type": "uint32_t *"
+      },
+      {
+        "name": "total",
+        "type": "uint32_t *"
+      },
+      {
+        "name": "subgroup",
+        "type": "uint32_t *"
+      }
+    ],
+    "isAsync": false
+  },
+  {
     "functionName": "acir_new_acir_composer",
     "inArgs": [],
     "outArgs": [
@@ -624,6 +648,21 @@
     "isAsync": false
   },
   {
+    "functionName": "acir_load_verification_key",
+    "inArgs": [
+      {
+        "name": "acir_composer_ptr",
+        "type": "in_ptr"
+      },
+      {
+        "name": "vk_buf",
+        "type": "const uint8_t *"
+      }
+    ],
+    "outArgs": [],
+    "isAsync": false
+  },
+  {
     "functionName": "acir_init_verification_key",
     "inArgs": [
       {
@@ -691,38 +730,6 @@
     "isAsync": false
   },
   {
-    "functionName": "acir_get_exact_circuit_size",
-    "inArgs": [
-      {
-        "name": "acir_composer_ptr",
-        "type": "in_ptr"
-      }
-    ],
-    "outArgs": [
-      {
-        "name": "out",
-        "type": "uint32_t *"
-      }
-    ],
-    "isAsync": false
-  },
-  {
-    "functionName": "acir_get_total_circuit_size",
-    "inArgs": [
-      {
-        "name": "acir_composer_ptr",
-        "type": "in_ptr"
-      }
-    ],
-    "outArgs": [
-      {
-        "name": "out",
-        "type": "uint32_t *"
-      }
-    ],
-    "isAsync": false
-  },
-  {
     "functionName": "acir_serialize_proof_into_fields",
     "inArgs": [
       {
@@ -741,7 +748,7 @@
     "outArgs": [
       {
         "name": "out",
-        "type": "uint8_t **"
+        "type": "fr::vec_out_buf"
       }
     ],
     "isAsync": false
@@ -757,11 +764,11 @@
     "outArgs": [
       {
         "name": "out_vkey",
-        "type": "uint8_t **"
+        "type": "fr::vec_out_buf"
       },
       {
         "name": "out_key_hash",
-        "type": "uint8_t **"
+        "type": "fr::out_buf"
       }
     ],
     "isAsync": false

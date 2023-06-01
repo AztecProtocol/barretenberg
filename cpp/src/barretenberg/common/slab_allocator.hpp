@@ -25,7 +25,7 @@ namespace barretenberg {
  * TODO: De-globalise. Init the allocator and pass around. Use a PolynomialFactory (PolynomialStore?).
  * TODO: Consider removing, but once due-dilligence has been done that we no longer have memory limitations.
  */
-void init_slab_allocator(size_t circuit_size);
+void init_slab_allocator(size_t circuit_subgroup_size);
 
 /**
  * Returns a slab from the preallocated pool of slabs, or fallback to a new heap allocation (32 byte aligned).

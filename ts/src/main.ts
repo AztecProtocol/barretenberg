@@ -1,7 +1,7 @@
 #!/usr/bin/env -S node --no-warnings
 import { Crs } from './crs/index.js';
 import createDebug from 'debug';
-import { newBarretenbergApiAsync } from './factory/index.js';
+import { BarretenbergApiAsync, newBarretenbergApiAsync } from './factory/index.js';
 import { readFileSync, writeFileSync } from 'fs';
 import { gunzipSync } from 'zlib';
 import { RawBuffer } from './types/index.js';
@@ -10,12 +10,10 @@ import { Command } from 'commander';
 
 createDebug.log = console.error.bind(console);
 const debug = createDebug('bb.js');
-createDebug.enable('*');
+// createDebug.enable('*');
 
 // Maximum we support.
-// TODO: When generating a proving key with a recursion constraint in the circuit
-// we go over the memory limit with the circuit size set to 2**19
-const CIRCUIT_SIZE = 2 ** 19;
+const MAX_CIRCUIT_SIZE = 2 ** 19;
 
 function getBytecode(jsonPath: string) {
   const json = readFileSync(jsonPath, 'utf-8');
@@ -30,17 +28,44 @@ function getWitness(witnessPath: string) {
   return Buffer.concat([numToUInt32BE(data.length / 32), data]);
 }
 
-async function init() {
-  // Plus 1 needed!
-  const crs = await Crs.new(CIRCUIT_SIZE + 1);
+async function getCircuitSize(jsonPath: string, api: BarretenbergApiAsync) {
+  const bytecode = getBytecode(jsonPath);
+  const [exact, total, subgroup] = await api.acirGetCircuitSizes(new RawBuffer(bytecode));
+  return { exact, total, subgroup };
+}
 
+async function init(jsonPath: string) {
   const api = await newBarretenbergApiAsync();
 
-  // Import to init slab allocator as first thing, to ensure maximum memory efficiency.
-  await api.commonInitSlabAllocator(CIRCUIT_SIZE);
+  // First compute circuit size.
+  const circuitSizes = await getCircuitSize(jsonPath, api);
+  debug(`circuit size: ${circuitSizes.total}`);
+
+  if (circuitSizes.subgroup > MAX_CIRCUIT_SIZE) {
+    throw new Error(`Circuit size of ${circuitSizes.subgroup} exceeds max supported of ${MAX_CIRCUIT_SIZE}`);
+  }
+
+  // Plus 1 needed! (Move +1 into Crs?)
+  const crs = await Crs.new(circuitSizes.subgroup + 1);
+
+  // Important to init slab allocator as first thing, to ensure maximum memory efficiency.
+  await api.commonInitSlabAllocator(circuitSizes.subgroup);
 
   // Load CRS into wasm global CRS state.
   // TODO: Make RawBuffer be default behaviour, and have a specific Vector type for when wanting length prefixed.
+  await api.srsInitSrs(new RawBuffer(crs.getG1Data()), crs.numPoints, new RawBuffer(crs.getG2Data()));
+
+  const acirComposer = await api.acirNewAcirComposer();
+  return { api, acirComposer, circuitSize: circuitSizes.subgroup };
+}
+
+async function initLite() {
+  const api = await newBarretenbergApiAsync(1);
+
+  // Plus 1 needed! (Move +1 into Crs?)
+  const crs = await Crs.new(1);
+
+  // Load CRS into wasm global CRS state.
   await api.srsInitSrs(new RawBuffer(crs.getG1Data()), crs.numPoints, new RawBuffer(crs.getG2Data()));
 
   const acirComposer = await api.acirNewAcirComposer();
@@ -48,14 +73,14 @@ async function init() {
 }
 
 export async function proveAndVerify(jsonPath: string, witnessPath: string, isRecursive: boolean) {
-  const { api, acirComposer } = await init();
+  const { api, acirComposer, circuitSize } = await init(jsonPath);
   try {
     debug('initing proving key...');
     const bytecode = getBytecode(jsonPath);
-    await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), CIRCUIT_SIZE);
+    await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), circuitSize);
 
-    const exactCircuitSize = await api.acirGetExactCircuitSize(acirComposer);
-    debug(`circuit size: ${exactCircuitSize}`);
+    // const circuitSize = await api.acirGetExactCircuitSize(acirComposer);
+    // debug(`circuit size: ${circuitSize}`);
 
     debug('initing verification key...');
     await api.acirInitVerificationKey(acirComposer);
@@ -74,14 +99,14 @@ export async function proveAndVerify(jsonPath: string, witnessPath: string, isRe
 }
 
 export async function prove(jsonPath: string, witnessPath: string, isRecursive: boolean, outputPath: string) {
-  const { api, acirComposer } = await init();
+  const { api, acirComposer, circuitSize } = await init(jsonPath);
   try {
     debug('initing proving key...');
     const bytecode = getBytecode(jsonPath);
-    await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), CIRCUIT_SIZE);
+    await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), circuitSize);
 
-    const exactCircuitSize = await api.acirGetExactCircuitSize(acirComposer);
-    debug(`circuit size: ${exactCircuitSize}`);
+    // const circuitSize = await api.acirGetExactCircuitSize(acirComposer);
+    // debug(`circuit size: ${circuitSize}`);
 
     debug(`creating proof...`);
     const witness = getWitness(witnessPath);
@@ -96,43 +121,51 @@ export async function prove(jsonPath: string, witnessPath: string, isRecursive: 
 }
 
 export async function gateCount(jsonPath: string) {
-  const { api, acirComposer } = await init();
+  const api = await newBarretenbergApiAsync(1);
   try {
-    const bytecode = getBytecode(jsonPath);
-    await api.acirCreateCircuit(acirComposer, new RawBuffer(bytecode), CIRCUIT_SIZE);
-
-    const gates = await api.acirGetTotalCircuitSize(acirComposer);
-    console.log(`${gates}`);
+    const circuitSizes = await getCircuitSize(jsonPath, api);
+    console.log(`${circuitSizes.exact}`);
   } finally {
-    await api.acirDeleteAcirComposer(acirComposer);
     await api.destroy();
   }
 }
 
-export async function verify(jsonPath: string, proofPath: string, isRecursive: boolean) {
-  const { api, acirComposer } = await init();
-  try {
-    debug('initing proving key...');
-    const bytecode = getBytecode(jsonPath);
-    await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), CIRCUIT_SIZE);
+export async function verify(jsonPath: string, proofPath: string, isRecursive: boolean, vkPath?: string) {
+  if (vkPath) {
+    const { api, acirComposer } = await initLite();
+    try {
+      await api.acirLoadVerificationKey(acirComposer, new RawBuffer(readFileSync(vkPath)));
+      const verified = await api.acirVerifyProof(acirComposer, readFileSync(proofPath), isRecursive);
+      console.log(`verified: ${verified}`);
+      return verified;
+    } finally {
+      await api.destroy();
+    }
+  } else {
+    const { api, acirComposer, circuitSize } = await init(jsonPath);
+    try {
+      debug('initing proving key...');
+      const bytecode = getBytecode(jsonPath);
+      await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), circuitSize);
 
-    debug('initing verification key...');
-    await api.acirInitVerificationKey(acirComposer);
+      debug('initing verification key...');
+      await api.acirInitVerificationKey(acirComposer);
 
-    const verified = await api.acirVerifyProof(acirComposer, readFileSync(proofPath), isRecursive);
-    debug(`verified: ${verified}`);
-    return verified;
-  } finally {
-    await api.destroy();
+      const verified = await api.acirVerifyProof(acirComposer, readFileSync(proofPath), isRecursive);
+      console.log(`verified: ${verified}`);
+      return verified;
+    } finally {
+      await api.destroy();
+    }
   }
 }
 
 export async function contract(jsonPath: string, outputPath: string) {
-  const { api, acirComposer } = await init();
+  const { api, acirComposer, circuitSize } = await init(jsonPath);
   try {
     debug('initing proving key...');
     const bytecode = getBytecode(jsonPath);
-    await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), CIRCUIT_SIZE);
+    await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), circuitSize);
 
     debug('initing verification key...');
     await api.acirInitVerificationKey(acirComposer);
@@ -150,11 +183,11 @@ export async function contract(jsonPath: string, outputPath: string) {
 }
 
 export async function writeVk(jsonPath: string, outputPath: string) {
-  const { api, acirComposer } = await init();
+  const { api, acirComposer, circuitSize } = await init(jsonPath);
   try {
     debug('initing proving key...');
     const bytecode = getBytecode(jsonPath);
-    await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), CIRCUIT_SIZE);
+    await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), circuitSize);
 
     debug('initing verification key...');
     const vk = await api.acirGetVerificationKey(acirComposer);
@@ -170,57 +203,35 @@ export async function writeVk(jsonPath: string, outputPath: string) {
 }
 
 export async function proofAsFields(proofPath: string, numInnerPublicInputs: number, outputPath: string) {
-  const { api, acirComposer } = await init();
+  const { api, acirComposer } = await initLite();
 
   try {
     debug('serializing proof byte array into field elements');
-    const proofAsFieldsBuffer = await api.acirSerializeProofIntoFields(
+    const proofAsFields = await api.acirSerializeProofIntoFields(
       acirComposer,
       readFileSync(proofPath),
       numInnerPublicInputs,
     );
-    const proofAsFields = bufferAsFieldHex(Buffer.from(proofAsFieldsBuffer));
 
-    writeFileSync(outputPath, proofAsFields);
+    writeFileSync(outputPath, JSON.stringify(proofAsFields.map(f => f.toString())));
     debug('done.');
   } finally {
     await api.destroy();
   }
 }
 
-export async function vkAsFields(jsonPath: string, vkeyOutputPath: string) {
-  const { api, acirComposer } = await init();
+export async function vkAsFields(vkPath: string, vkeyOutputPath: string) {
+  const { api, acirComposer } = await initLite();
 
-  // TODO: consider moving to passing in the key so we don't have to recompute it
-  // or just keep it as the writeVK method currently recomputes the pkey too ¯\_(ツ)_/¯
-  debug('initing proving key...');
-  const bytecode = getBytecode(jsonPath);
-  await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), CIRCUIT_SIZE);
-
-  await api.acirInitVerificationKey(acirComposer);
   try {
     debug('serializing vk byte array into field elements');
-    const [vkAsFieldsBuffer, vkHashBuffer] = await api.acirSerializeVerificationKeyIntoFields(acirComposer);
-    const vkFields = bufferAsFieldHex(Buffer.concat([Buffer.from(vkHashBuffer), Buffer.from(vkAsFieldsBuffer)]));
-
-    writeFileSync(vkeyOutputPath, vkFields);
+    await api.acirLoadVerificationKey(acirComposer, new RawBuffer(readFileSync(vkPath)));
+    const [vkAsFields, vkHash] = await api.acirSerializeVerificationKeyIntoFields(acirComposer);
+    const output = [vkHash, ...vkAsFields].map(f => f.toString());
+    writeFileSync(vkeyOutputPath, JSON.stringify(output));
     debug('done.');
   } finally {
     await api.destroy();
-  }
-}
-
-function bufferAsFieldHex(buffer: Buffer): string {
-  const hex = buffer.toString('hex');
-  const splitHex = hex.match(/.{1,64}/g);
-  if (splitHex == null) {
-    process.exit(1);
-  } else {
-    for (let i = 0; i < splitHex.length; i++) {
-      splitHex[i] = '0x'.concat(splitHex[i]);
-    }
-    const separateFields = JSON.stringify(splitHex);
-    return separateFields;
   }
 }
 
@@ -273,8 +284,9 @@ program
   .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
   .requiredOption('-p, --proof-path <path>', 'Specify the path to the proof')
   .option('-r, --recursive', 'prove using recursive prover', false)
-  .action(async ({ jsonPath, proofPath, recursive }) => {
-    await verify(jsonPath, proofPath, recursive);
+  .option('-v, --vk <path>', 'path to a verification key. avoids recomputation.')
+  .action(async ({ jsonPath, proofPath, recursive, vk }) => {
+    await verify(jsonPath, proofPath, recursive, vk);
   });
 
 program
@@ -308,13 +320,10 @@ program
 program
   .command('vk_as_fields')
   .description('Return the verifiation key represented as fields elements. Also return the verification key hash.')
-  .requiredOption('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
-  .requiredOption(
-    '-v, --vkey-output-path <path>',
-    'Specify the JSON path to write the verification key fields and key hash',
-  )
-  .action(async ({ jsonPath, vkeyOutputPath }) => {
-    await vkAsFields(jsonPath, vkeyOutputPath);
+  .requiredOption('-i, --input-path <path>', 'Specifies the vk path (output from write_vk)')
+  .requiredOption('-o, --output-path <path>', 'Specify the JSON path to write the verification key fields and key hash')
+  .action(async ({ inputPath, outputPath }) => {
+    await vkAsFields(inputPath, outputPath);
   });
 
 program.name('bb.js').parse(process.argv);

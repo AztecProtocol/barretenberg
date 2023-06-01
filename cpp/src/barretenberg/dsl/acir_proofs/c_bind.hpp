@@ -4,6 +4,13 @@
 #include <barretenberg/common/serialize.hpp>
 #include <barretenberg/ecc/curves/bn254/fr.hpp>
 
+using namespace barretenberg;
+
+WASM_EXPORT void acir_get_circuit_sizes(uint8_t const* constraint_system_buf,
+                                        uint32_t* exact,
+                                        uint32_t* total,
+                                        uint32_t* subgroup);
+
 WASM_EXPORT void acir_new_acir_composer(out_ptr out);
 
 WASM_EXPORT void acir_delete_acir_composer(in_ptr acir_composer_ptr);
@@ -27,6 +34,8 @@ WASM_EXPORT void acir_create_proof(in_ptr acir_composer_ptr,
                                    bool const* is_recursive,
                                    uint8_t** out);
 
+WASM_EXPORT void acir_load_verification_key(in_ptr acir_composer_ptr, uint8_t const* vk_buf);
+
 WASM_EXPORT void acir_init_verification_key(in_ptr acir_composer_ptr);
 
 WASM_EXPORT void acir_get_verification_key(in_ptr acir_composer_ptr, uint8_t** out);
@@ -38,15 +47,11 @@ WASM_EXPORT void acir_verify_proof(in_ptr acir_composer_ptr,
 
 WASM_EXPORT void acir_get_solidity_verifier(in_ptr acir_composer_ptr, out_str_buf out);
 
-WASM_EXPORT void acir_get_exact_circuit_size(in_ptr acir_composer_ptr, uint32_t* out);
-
-WASM_EXPORT void acir_get_total_circuit_size(in_ptr acir_composer_ptr, uint32_t* out);
-
 WASM_EXPORT void acir_serialize_proof_into_fields(in_ptr acir_composer_ptr,
                                                   uint8_t const* proof_buf,
                                                   uint32_t const* num_inner_public_inputs,
-                                                  uint8_t** out);
+                                                  fr::vec_out_buf out);
 
 WASM_EXPORT void acir_serialize_verification_key_into_fields(in_ptr acir_composer_ptr,
-                                                             uint8_t** out_vkey,
-                                                             uint8_t** out_key_hash);
+                                                             fr::vec_out_buf out_vkey,
+                                                             fr::out_buf out_key_hash);

@@ -9,15 +9,21 @@ namespace acir_proofs {
 
 class AcirComposer {
   public:
-    AcirComposer(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory);
+    AcirComposer();
 
-    void create_circuit(acir_format::acir_format& constraint_system, size_t size_hint = 0);
+    void create_circuit(acir_format::acir_format& constraint_system);
 
-    void init_proving_key(acir_format::acir_format& constraint_system, size_t size_hint = 0);
+    void init_proving_key(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
+                          acir_format::acir_format& constraint_system,
+                          size_t size_hint = 0);
 
-    std::vector<uint8_t> create_proof(acir_format::acir_format& constraint_system,
+    std::vector<uint8_t> create_proof(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
+                                      acir_format::acir_format& constraint_system,
                                       acir_format::WitnessVector& witness,
                                       bool is_recursive);
+
+    void load_verification_key(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
+                               proof_system::plonk::verification_key_data&& data);
 
     std::shared_ptr<proof_system::plonk::verification_key> init_verification_key();
 
@@ -33,7 +39,6 @@ class AcirComposer {
     std::vector<barretenberg::fr> serialize_verification_key_into_fields();
 
   private:
-    std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory_;
     acir_format::Composer composer_;
     size_t exact_circuit_size_;
     size_t total_circuit_size_;
