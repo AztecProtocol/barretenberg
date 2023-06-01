@@ -1,16 +1,18 @@
 {
-  "name": "@aztec/barretenberg.js",
-  "version": "0.0.0",
+  "name": "@aztec/bb.js",
+  "version": "0.0.1-alpha.1",
   "type": "module",
   "typedoc": {
     "entryPoint": "./src/index.ts",
-    "displayName": "Barretenberg.js",
+    "displayName": "bb.js",
     "tsconfig": "./tsconfig.json"
   },
-  "bin": {
-    "bb.js": "./dest/main.js",
-    "bb.js-dev": "./src/main-dev.ts"
-  },
+  "bin": "./dest/main.js",
+  "files": [
+    "src/",
+    "dest/",
+    "README.md"
+  ],
   "scripts": {
     "clean": "rm -rf ./dest .tsbuildinfo",
     "build": "yarn clean && yarn build:wasm && tsc -b && webpack && chmod +x ./dest/main.js",
@@ -40,8 +42,9 @@
     "rootDir": "./src"
   },
   "dependencies": {
-    "bigint-buffer": "^1.1.5",
+    "comlink": "^4.4.1",
     "commander": "^10.0.1",
+    "debug": "^4.3.4",
     "ts-node": "^10.9.1",
     "tslib": "^2.4.0"
   },
@@ -55,9 +58,7 @@
     "@typescript-eslint/eslint-plugin": "^5.54.1",
     "@typescript-eslint/parser": "^5.54.1",
     "buffer": "^6.0.3",
-    "comlink": "^4.4.1",
     "copy-webpack-plugin": "^11.0.0",
-    "debug": "^4.3.4",
     "eslint": "^8.35.0",
     "eslint-config-prettier": "^8.8.0",
     "html-webpack-plugin": "^5.5.1",

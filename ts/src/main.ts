@@ -1,16 +1,13 @@
 #!/usr/bin/env -S node --no-warnings
-import { Crs } from './crs/index.js';
+import { Crs, BarretenbergApiAsync, newBarretenbergApiAsync, RawBuffer } from './index.js';
 import createDebug from 'debug';
-import { BarretenbergApiAsync, newBarretenbergApiAsync } from './factory/index.js';
 import { readFileSync, writeFileSync } from 'fs';
 import { gunzipSync } from 'zlib';
-import { RawBuffer } from './types/index.js';
 import { numToUInt32BE } from './serialize/serialize.js';
 import { Command } from 'commander';
 
 createDebug.log = console.error.bind(console);
 const debug = createDebug('bb.js');
-// createDebug.enable('*');
 
 // Maximum we support.
 const MAX_CIRCUIT_SIZE = 2 ** 19;
@@ -247,6 +244,14 @@ export async function vkAsFields(vkPath: string, vkeyOutputPath: string) {
 
 const program = new Command();
 
+program.option('-v, --verbose', 'enable verbose logging', false);
+
+function handleGlobalOptions() {
+  if (program.opts().verbose) {
+    createDebug.enable('bb.js*');
+  }
+}
+
 program
   .command('prove_and_verify')
   .description('Generate a proof and verify it. Process exits with success or failure code.')
@@ -254,6 +259,7 @@ program
   .option('-w, --witness-path <path>', 'Specify the witness path', './target/witness.tr')
   .option('-r, --recursive', 'prove and verify using recursive prover and verifier', false)
   .action(async ({ jsonPath, witnessPath, recursive }) => {
+    handleGlobalOptions();
     const result = await proveAndVerify(jsonPath, witnessPath, recursive);
     process.exit(result ? 0 : 1);
   });
@@ -267,6 +273,7 @@ program
   .option('-o, --output-dir <path>', 'Specify the proof output dir', './proofs')
   .requiredOption('-n, --name <filename>', 'Output file name.')
   .action(async ({ jsonPath, witnessPath, recursive, outputDir, name }) => {
+    handleGlobalOptions();
     await prove(jsonPath, witnessPath, recursive, outputDir + '/' + name);
   });
 
@@ -284,7 +291,7 @@ program
   .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
   .requiredOption('-p, --proof-path <path>', 'Specify the path to the proof')
   .option('-r, --recursive', 'prove using recursive prover', false)
-  .option('-v, --vk <path>', 'path to a verification key. avoids recomputation.')
+  .option('-k, --vk <path>', 'path to a verification key. avoids recomputation.')
   .action(async ({ jsonPath, proofPath, recursive, vk }) => {
     await verify(jsonPath, proofPath, recursive, vk);
   });
