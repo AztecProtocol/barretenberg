@@ -53,7 +53,7 @@ std::vector<uint8_t> AcirComposer::create_proof(
 {
     composer_ = acir_format::Composer(proving_key_, verification_key_, circuit_subgroup_size_);
     // You can't produce the verification key unless you manually set the crs. Which seems like a bug.
-    composer_.crs_factory_ = crs_factory;
+    composer_.composer_helper.crs_factory_ = crs_factory;
 
     create_circuit_with_witness(composer_, constraint_system, witness);
 
@@ -89,8 +89,10 @@ void AcirComposer::load_verification_key(std::shared_ptr<barretenberg::srs::fact
 
 bool AcirComposer::verify_proof(std::vector<uint8_t> const& proof, bool is_recursive)
 {
-    // Hack. Shouldn't need to do this. 2144 is size with no public inputs.
-    composer_.public_inputs.resize((proof.size() - 2144) / 32);
+    // TODO: Hack. Shouldn't need to do this. 2144 is size with no public inputs.
+    if ((proof.size() - 2144) / 32 != verification_key_->num_public_inputs) {
+        return false;
+    };
 
     if (is_recursive) {
         auto verifier = composer_.create_verifier();

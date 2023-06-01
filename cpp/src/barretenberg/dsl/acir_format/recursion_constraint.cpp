@@ -45,7 +45,7 @@ void create_recursion_constraints(Composer& composer,
         // get a fake key/proof that satisfies on-curve + inversion-zero checks
         const std::vector<fr> dummy_key = export_dummy_key_in_recursion_format(PolynomialManifest(Composer::type),
                                                                                inner_proof_contains_recursive_proof);
-        const auto manifest = Composer::create_unrolled_manifest(input.public_inputs.size());
+        const auto manifest = Composer::create_manifest(input.public_inputs.size());
         const std::vector<barretenberg::fr> dummy_proof =
             export_dummy_transcript_in_recursion_format(manifest, inner_proof_contains_recursive_proof);
         for (size_t i = 0; i < input.proof.size(); ++i) {
@@ -102,7 +102,7 @@ void create_recursion_constraints(Composer& composer,
         previous_aggregation.has_data = false;
     }
 
-    transcript::Manifest manifest = Composer::create_unrolled_manifest(input.public_inputs.size());
+    transcript::Manifest manifest = Composer::create_manifest(input.public_inputs.size());
 
     std::vector<field_ct> key_fields;
     key_fields.reserve(input.key.size());

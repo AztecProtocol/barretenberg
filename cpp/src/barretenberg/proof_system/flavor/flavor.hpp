@@ -68,7 +68,6 @@
 #include <concepts>
 #include <vector>
 #include "barretenberg/honk/sumcheck/polynomials/barycentric_data.hpp"
-#include "barretenberg/srs/factories/crs_factory.hpp"
 #include "barretenberg/polynomials/evaluation_domain.hpp"
 #include "barretenberg/proof_system/types/composer_type.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
@@ -176,18 +175,12 @@ class ProvingKey_ : public PrecomputedPolynomials, public WitnessPolynomials {
  */
 template <typename PrecomputedCommitments> class VerificationKey_ : public PrecomputedCommitments {
   public:
-    std::shared_ptr<barretenberg::srs::factories::VerifierCrs> vrs;
-
     VerificationKey_() = default;
-    VerificationKey_(const size_t circuit_size,
-                     const size_t num_public_inputs,
-                     std::shared_ptr<barretenberg::srs::factories::VerifierCrs> const& vrs,
-                     ComposerType composer_type)
+    VerificationKey_(const size_t circuit_size, const size_t num_public_inputs, ComposerType composer_type)
     {
         this->circuit_size = circuit_size;
         this->log_circuit_size = numeric::get_msb(circuit_size);
         this->num_public_inputs = num_public_inputs;
-        this->vrs = vrs;
         this->composer_type = composer_type;
     };
 };

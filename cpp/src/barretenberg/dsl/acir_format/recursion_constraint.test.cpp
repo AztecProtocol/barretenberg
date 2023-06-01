@@ -134,7 +134,7 @@ acir_format::Composer create_outer_circuit(std::vector<acir_format::Composer>& i
         auto inner_verifier = inner_composer.create_verifier();
 
         const bool has_nested_proof = inner_verifier.key->contains_recursive_proof;
-        const size_t num_inner_public_inputs = inner_composer.get_num_public_inputs();
+        const size_t num_inner_public_inputs = inner_composer.get_public_inputs().size();
 
         transcript::StandardTranscript transcript(inner_proof.proof_data,
                                                   acir_format::Composer::create_manifest(num_inner_public_inputs),

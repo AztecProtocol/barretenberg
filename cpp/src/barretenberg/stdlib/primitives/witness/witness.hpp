@@ -1,6 +1,4 @@
 #pragma once
-#include <cstdint>
-#include <type_traits>
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 
 namespace proof_system::plonk {

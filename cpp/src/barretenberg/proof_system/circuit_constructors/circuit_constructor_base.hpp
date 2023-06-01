@@ -2,6 +2,7 @@
 #include "barretenberg/proof_system/arithmetization/arithmetization.hpp"
 #include "barretenberg/proof_system/arithmetization/gate_data.hpp"
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
+#include "barretenberg/common/slab_allocator.hpp"
 #include <utility>
 
 namespace proof_system {
@@ -22,7 +23,7 @@ template <typename Arithmetization> class CircuitConstructorBase {
     std::vector<std::string> selector_names_;
     size_t num_gates = 0;
 
-    std::array<std::vector<uint32_t>, NUM_WIRES> wires;
+    std::array<std::vector<uint32_t, barretenberg::ContainerSlabAllocator<uint32_t>>, NUM_WIRES> wires;
     typename Arithmetization::Selectors selectors;
 
     std::vector<uint32_t> public_inputs;
@@ -40,7 +41,6 @@ template <typename Arithmetization> class CircuitConstructorBase {
     // DOCTODO(#231): replace with the relevant wiki link.
     std::map<uint32_t, uint32_t> tau;
 
-    numeric::random::Engine* rand_engine = nullptr;
     bool _failed = false;
     std::string _err;
     static constexpr uint32_t REAL_VARIABLE = UINT32_MAX - 1;
@@ -59,9 +59,9 @@ template <typename Arithmetization> class CircuitConstructorBase {
         }
     }
 
-    CircuitConstructorBase(const CircuitConstructorBase& other) = delete;
+    CircuitConstructorBase(const CircuitConstructorBase& other) = default;
     CircuitConstructorBase(CircuitConstructorBase&& other) noexcept = default;
-    CircuitConstructorBase& operator=(const CircuitConstructorBase& other) = delete;
+    CircuitConstructorBase& operator=(const CircuitConstructorBase& other) = default;
     CircuitConstructorBase& operator=(CircuitConstructorBase&& other) noexcept = default;
     virtual ~CircuitConstructorBase() = default;
 
@@ -132,6 +132,19 @@ template <typename Arithmetization> class CircuitConstructorBase {
     {
         ASSERT(variables.size() > index);
         return variables[real_variable_index[index]];
+    }
+
+    uint32_t get_public_input_index(const uint32_t witness_index) const
+    {
+        uint32_t result = static_cast<uint32_t>(-1);
+        for (size_t i = 0; i < public_inputs.size(); ++i) {
+            if (real_variable_index[public_inputs[i]] == real_variable_index[witness_index]) {
+                result = static_cast<uint32_t>(i);
+                break;
+            }
+        }
+        ASSERT(result != static_cast<uint32_t>(-1));
+        return result;
     }
 
     barretenberg::fr get_public_input(const uint32_t index) const { return get_variable(public_inputs[index]); }

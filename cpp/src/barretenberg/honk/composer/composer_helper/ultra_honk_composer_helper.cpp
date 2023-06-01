@@ -26,7 +26,7 @@ void UltraHonkComposerHelper::compute_witness(CircuitConstructor& circuit_constr
     const size_t filled_gates = circuit_constructor.num_gates + circuit_constructor.public_inputs.size();
     const size_t total_num_gates = std::max(filled_gates, tables_size + lookups_size);
 
-    const size_t subgroup_size = circuit_constructor.get_circuit_subgroup_size(total_num_gates + NUM_RANDOMIZED_GATES);
+    const size_t subgroup_size = circuit_constructor.get_circuit_subgroup_size(total_num_gates + NUM_RESERVED_GATES);
 
     // Pad the wires (pointers to `witness_indices` of the `variables` vector).
     // Note: the remaining NUM_RESERVED_GATES indices are padded with zeros within `construct_wire_polynomials_base`
@@ -39,12 +39,12 @@ void UltraHonkComposerHelper::compute_witness(CircuitConstructor& circuit_constr
     }
 
     // TODO(#340)(luke): within construct_wire_polynomials_base, the 3rd argument is used in the calculation of the
-    // dyadic circuit size (subgroup_size). Here (and in other split composers) we're passing in NUM_RANDOMIZED_GATES,
+    // dyadic circuit size (subgroup_size). Here (and in other split composers) we're passing in NUM_RESERVED_GATES,
     // but elsewhere, e.g. directly above, we use NUM_RESERVED_GATES in a similar role. Therefore, these two constants
     // must be equal for everything to be consistent. What we should do is compute the dyadic circuit size once and for
     // all then pass that around rather than computing in multiple places.
     auto wire_polynomials =
-        construct_wire_polynomials_base<Flavor>(circuit_constructor, total_num_gates, NUM_RANDOMIZED_GATES);
+        construct_wire_polynomials_base<Flavor>(circuit_constructor, total_num_gates, NUM_RESERVED_GATES);
 
     proving_key->w_l = wire_polynomials[0];
     proving_key->w_r = wire_polynomials[1];
@@ -143,6 +143,10 @@ UltraProver UltraHonkComposerHelper::create_prover(CircuitConstructor& circuit_c
 
     UltraProver output_state(proving_key);
 
+    auto pcs_commitment_key = std::make_unique<PCSParams::CommitmentKey>(proving_key->circuit_size, proving_key->crs);
+
+    output_state.pcs_commitment_key = std::move(pcs_commitment_key);
+
     return output_state;
 }
 
@@ -158,10 +162,10 @@ UltraVerifier UltraHonkComposerHelper::create_verifier(const CircuitConstructor&
 
     UltraVerifier output_state(verification_key);
 
-    // TODO(Cody): This should be more generic
-    auto kate_verification_key = std::make_unique<pcs::kzg::VerificationKey>("../srs_db/ignition");
+    auto pcs_verification_key = std::make_unique<PCSVerificationKey>(
+        verification_key->circuit_size, crs_factory_->get_prover_crs(verification_key->circuit_size));
 
-    output_state.kate_verification_key = std::move(kate_verification_key);
+    output_state.pcs_verification_key = std::move(pcs_verification_key);
 
     return output_state;
 }
@@ -181,7 +185,7 @@ std::shared_ptr<UltraHonkComposerHelper::Flavor::ProvingKey> UltraHonkComposerHe
     }
 
     const size_t minimum_circuit_size = tables_size + lookups_size;
-    const size_t num_randomized_gates = NUM_RANDOMIZED_GATES;
+    const size_t num_randomized_gates = NUM_RESERVED_GATES;
     // Initialize proving_key
     // TODO(#392)(Kesha): replace composer types.
     proving_key = initialize_proving_key<Flavor>(
@@ -310,13 +314,10 @@ std::shared_ptr<UltraHonkComposerHelper::VerificationKey> UltraHonkComposerHelpe
         compute_proving_key(circuit_constructor);
     }
 
-    verification_key = std::make_shared<UltraHonkComposerHelper::VerificationKey>(proving_key->circuit_size,
-                                                                                  proving_key->num_public_inputs,
-                                                                                  crs_factory_->get_verifier_crs(),
-                                                                                  proving_key->composer_type);
+    verification_key = std::make_shared<UltraHonkComposerHelper::VerificationKey>(
+        proving_key->circuit_size, proving_key->num_public_inputs, proving_key->composer_type);
 
-    // TODO(kesha): Dirty hack for now. Need to actually make commitment-agnositc
-    auto commitment_key = pcs::kzg::CommitmentKey(proving_key->circuit_size, "../srs_db/ignition");
+    auto commitment_key = PCSCommitmentKey(proving_key->circuit_size, proving_key->crs);
 
     // Compute and store commitments to all precomputed polynomials
     verification_key->q_m = commitment_key.commit(proving_key->q_m);

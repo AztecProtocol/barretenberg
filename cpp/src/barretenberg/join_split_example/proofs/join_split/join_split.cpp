@@ -49,7 +49,8 @@ void init_verification_key(std::shared_ptr<barretenberg::srs::factories::CrsFact
     // Patch the 'nothing' reference string fed to init_proving_key.
     proving_key->reference_string = crs_factory->get_prover_crs(proving_key->circuit_size + 1);
 
-    verification_key = Composer::compute_verification_key_base(proving_key, crs_factory->get_verifier_crs());
+    verification_key =
+        proof_system::plonk::compute_verification_key_common(proving_key, crs_factory->get_verifier_crs());
 }
 
 Prover new_join_split_prover(join_split_tx const& tx, bool mock)
@@ -62,7 +63,7 @@ Prover new_join_split_prover(join_split_tx const& tx, bool mock)
         throw_or_abort(error);
     }
 
-    info("public inputs: ", composer.public_inputs.size());
+    info("public inputs: ", composer.circuit_constructor.public_inputs.size());
 
     if (!mock) {
         info("composer gates: ", composer.get_num_gates());

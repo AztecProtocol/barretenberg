@@ -2,6 +2,8 @@
 #include <array>
 #include "circuit_constructor_base.hpp"
 #include "barretenberg/proof_system/types/composer_type.hpp"
+#include "barretenberg/proof_system/types/merkle_hash_type.hpp"
+#include "barretenberg/proof_system/types/pedersen_commitment_type.hpp"
 
 namespace proof_system {
 inline std::vector<std::string> standard_selector_names()
@@ -12,17 +14,23 @@ inline std::vector<std::string> standard_selector_names()
 
 class StandardCircuitConstructor : public CircuitConstructorBase<arithmetization::Standard<barretenberg::fr>> {
   public:
-    std::vector<uint32_t>& w_l = std::get<0>(wires);
-    std::vector<uint32_t>& w_r = std::get<1>(wires);
-    std::vector<uint32_t>& w_o = std::get<2>(wires);
+    static constexpr ComposerType type = ComposerType::STANDARD;
+    static constexpr merkle::HashType merkle_hash_type = merkle::HashType::FIXED_BASE_PEDERSEN;
+    static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
 
-    std::vector<barretenberg::fr>& q_m = selectors.q_m;
-    std::vector<barretenberg::fr>& q_1 = selectors.q_1;
-    std::vector<barretenberg::fr>& q_2 = selectors.q_2;
-    std::vector<barretenberg::fr>& q_3 = selectors.q_3;
-    std::vector<barretenberg::fr>& q_c = selectors.q_c;
+    using WireVector = std::vector<uint32_t, barretenberg::ContainerSlabAllocator<uint32_t>>;
+    using SelectorVector = std::vector<barretenberg::fr, barretenberg::ContainerSlabAllocator<barretenberg::fr>>;
 
-    static constexpr ComposerType type = ComposerType::STANDARD_HONK; // TODO(Cody): Get rid of this.
+    WireVector& w_l = std::get<0>(wires);
+    WireVector& w_r = std::get<1>(wires);
+    WireVector& w_o = std::get<2>(wires);
+
+    SelectorVector& q_m = selectors.q_m;
+    SelectorVector& q_1 = selectors.q_1;
+    SelectorVector& q_2 = selectors.q_2;
+    SelectorVector& q_3 = selectors.q_3;
+    SelectorVector& q_c = selectors.q_c;
+
     static constexpr size_t UINT_LOG2_BASE = 2;
 
     // These are variables that we have used a gate on, to enforce that they are
@@ -47,7 +55,9 @@ class StandardCircuitConstructor : public CircuitConstructorBase<arithmetization
         // m           l       r       o        c
         create_poly_gate({ one_idx, one_idx, one_idx, 1, 1, 1, 1, -4 });
     };
-
+    // This constructor is needed to simplify switching between circuit constructor and composer
+    StandardCircuitConstructor(std::string const&, const size_t size_hint = 0)
+        : StandardCircuitConstructor(size_hint){};
     StandardCircuitConstructor(const StandardCircuitConstructor& other) = delete;
     StandardCircuitConstructor(StandardCircuitConstructor&& other) = default;
     StandardCircuitConstructor& operator=(const StandardCircuitConstructor& other) = delete;

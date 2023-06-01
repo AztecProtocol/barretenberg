@@ -31,7 +31,7 @@ Composer* create_composer(std::shared_ptr<barretenberg::srs::factories::CrsFacto
         throw_or_abort(error);
     }
 
-    info("public inputs: ", composer->public_inputs.size());
+    info("public inputs: ", composer->get_public_inputs().size());
     info("composer gates: ", composer->get_num_gates());
 
     info("computing proving key...");

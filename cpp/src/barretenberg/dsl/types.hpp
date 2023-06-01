@@ -1,5 +1,5 @@
 #pragma once
-#include "barretenberg/plonk/composer/ultra_composer.hpp"
+#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
 
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
 #include "barretenberg/stdlib/primitives/bigfield/bigfield.hpp"
@@ -26,17 +26,17 @@
 
 namespace acir_format {
 
-using Composer = plonk::UltraComposer;
+using Composer = plonk::UltraPlonkComposer;
 
 using Prover = std::conditional_t<
-    std::same_as<Composer, plonk::UltraComposer>,
+    std::same_as<Composer, plonk::UltraPlonkComposer>,
     plonk::UltraWithKeccakProver,
-    std::conditional_t<std::same_as<Composer, plonk::TurboComposer>, plonk::TurboProver, plonk::Prover>>;
+    std::conditional_t<std::same_as<Composer, plonk::TurboPlonkComposer>, plonk::TurboProver, plonk::Prover>>;
 
 using Verifier = std::conditional_t<
-    std::same_as<Composer, plonk::UltraComposer>,
+    std::same_as<Composer, plonk::UltraPlonkComposer>,
     plonk::UltraWithKeccakVerifier,
-    std::conditional_t<std::same_as<Composer, plonk::TurboComposer>, plonk::TurboVerifier, plonk::Verifier>>;
+    std::conditional_t<std::same_as<Composer, plonk::TurboPlonkComposer>, plonk::TurboVerifier, plonk::Verifier>>;
 
 using RecursiveProver = plonk::UltraProver;
 
@@ -64,9 +64,9 @@ using hash_path_ct = proof_system::plonk::stdlib::merkle_tree::hash_path<Compose
 
 using schnorr_signature_bits_ct = proof_system::plonk::stdlib::schnorr::signature_bits<Composer>;
 
-// Ultra-composer specific types
-using rom_table_ct = proof_system::plonk::stdlib::rom_table<plonk::UltraComposer>;
-using ram_table_ct = proof_system::plonk::stdlib::ram_table<plonk::UltraComposer>;
+// Ultra-composer specific typesv
+using rom_table_ct = proof_system::plonk::stdlib::rom_table<plonk::UltraPlonkComposer>;
+using ram_table_ct = proof_system::plonk::stdlib::ram_table<plonk::UltraPlonkComposer>;
 
 using verification_key_ct = proof_system::plonk::stdlib::recursion::verification_key<bn254>;
 using aggregation_state_ct = proof_system::plonk::stdlib::recursion::aggregation_state<bn254>;

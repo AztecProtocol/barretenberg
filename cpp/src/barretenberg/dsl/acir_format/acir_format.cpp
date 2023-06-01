@@ -94,7 +94,7 @@ void create_circuit(Composer& composer, acir_format const& constraint_system)
 
     // Add block constraints
     for (const auto& constraint : constraint_system.block_constraints) {
-        create_block_constraints(composer, constraint);
+        create_block_constraints(composer, constraint, false);
     }
 
     // Add recursion constraints
@@ -202,7 +202,7 @@ Composer create_circuit(const acir_format& constraint_system,
 
     // Add block constraints
     for (const auto& constraint : constraint_system.block_constraints) {
-        create_block_constraints(composer, constraint);
+        create_block_constraints(composer, constraint, false);
     }
 
     // Add recursion constraints
