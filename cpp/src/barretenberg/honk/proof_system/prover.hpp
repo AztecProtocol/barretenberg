@@ -28,7 +28,8 @@ template <StandardFlavor Flavor> class StandardProver_ {
     using PCS = typename Flavor::PCS;
 
   public:
-    explicit StandardProver_(std::shared_ptr<ProvingKey> input_key = nullptr);
+    explicit StandardProver_(std::shared_ptr<ProvingKey> input_key = nullptr,
+                             std::shared_ptr<PCSCommitmentKey> commitment_key = nullptr);
 
     void execute_preamble_round();
     void execute_wire_commitments_round();

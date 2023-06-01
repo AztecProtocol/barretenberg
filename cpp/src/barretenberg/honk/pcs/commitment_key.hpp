@@ -85,9 +85,12 @@ struct Params {
          * @param verifier_srs verifier G2 point
          */
         VerificationKey(size_t num_points, std::string_view path)
-            : pippenger_runtime_state(num_points)
-            , verifier_srs(std::string(path))
-        {}
+            : verifier_srs(std::string(path))
+        {
+            // WORKTODO: this was previously used to init a pippenger_runtime_state but thats not needed for kzg. For
+            // now it needs to stay in order to unify interface with IPA.
+            static_cast<void>(num_points);
+        }
 
         /**
          * @brief verifies a pairing equation over 2 points using the verifier SRS
@@ -107,7 +110,6 @@ struct Params {
             return (result == barretenberg::fq12::one());
         }
 
-        barretenberg::scalar_multiplication::pippenger_runtime_state<curve::BN254> pippenger_runtime_state;
         proof_system::VerifierFileReferenceString verifier_srs;
     };
 };

@@ -25,7 +25,8 @@ template <UltraFlavor Flavor> class UltraProver_ {
     using CommitmentLabels = typename Flavor::CommitmentLabels;
 
   public:
-    explicit UltraProver_(std::shared_ptr<ProvingKey> input_key = nullptr);
+    explicit UltraProver_(std::shared_ptr<ProvingKey> input_key = nullptr,
+                          std::shared_ptr<PCSCommitmentKey> commitment_key = nullptr);
 
     void execute_preamble_round();
     void execute_wire_commitments_round();

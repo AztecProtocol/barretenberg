@@ -31,6 +31,7 @@ class UltraHonkComposerHelper {
     // TODO(#218)(kesha): we need to put this into the commitment key, so that the composer doesn't have to handle srs
     // at all
     std::shared_ptr<ReferenceStringFactory> crs_factory_;
+    std::shared_ptr<PCSCommitmentKey> commitment_key;
 
     std::vector<uint32_t> recursive_proof_public_input_indices;
     bool contains_recursive_proof = false;
