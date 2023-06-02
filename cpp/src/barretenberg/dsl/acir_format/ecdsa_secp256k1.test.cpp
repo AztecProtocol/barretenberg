@@ -98,6 +98,7 @@ TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .block_constraints = {},
+        .recursion_constraints = {},
         .constraints = {},
     };
 
@@ -134,6 +135,7 @@ TEST(ECDSASecp256k1, TestECDSACompilesForVerifier)
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .block_constraints = {},
+        .recursion_constraints = {},
         .constraints = {},
     };
     auto crs_factory = std::make_unique<proof_system::ReferenceStringFactory>();
@@ -167,6 +169,7 @@ TEST(ECDSASecp256k1, TestECDSAConstraintFail)
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .block_constraints = {},
+        .recursion_constraints = {},
         .constraints = {},
     };
 

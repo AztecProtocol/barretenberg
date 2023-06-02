@@ -117,6 +117,7 @@ TEST(up_ram, TestBlockConstraint)
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
         .block_constraints = { block },
+        .recursion_constraints = {},
         .constraints = {},
     };
 
