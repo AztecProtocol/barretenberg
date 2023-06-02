@@ -133,7 +133,7 @@ StandardVerifier StandardHonkComposerHelper::create_verifier(const CircuitConstr
     // WORKTODO: what to do here? If KZG, we need only the verifier srs. If IPA, we could just pass in the existing
     // commitment_key.
     auto pcs_verification_key =
-        std::make_unique<PCSParams::VerificationKey>(verification_key->circuit_size, "../srs_db/ignition");
+        std::make_unique<PCSParams::VerificationKey>(verification_key->circuit_size, crs_factory_);
 
     output_state.pcs_verification_key = std::move(pcs_verification_key);
 
@@ -145,7 +145,7 @@ StandardProver StandardHonkComposerHelper::create_prover(const CircuitConstructo
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
 
-    commitment_key = std::make_shared<PCSParams::CommitmentKey>(proving_key->circuit_size, "../srs_db/ignition");
+    commitment_key = std::make_shared<PCSParams::CommitmentKey>(proving_key->circuit_size, crs_factory_);
 
     StandardProver output_state(proving_key, commitment_key);
 

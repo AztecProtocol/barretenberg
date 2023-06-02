@@ -143,7 +143,7 @@ UltraProver UltraHonkComposerHelper::create_prover(CircuitConstructor& circuit_c
 
     // WORKTODO: not great to construct commitment key here because that means we need to have constructed pkey before
     // constructing vkey bit maybe thats fine since thats already an assumption
-    commitment_key = std::make_shared<PCSParams::CommitmentKey>(proving_key->circuit_size, "../srs_db/ignition");
+    commitment_key = std::make_shared<PCSParams::CommitmentKey>(proving_key->circuit_size, crs_factory_);
 
     UltraProver output_state(proving_key, commitment_key);
 
@@ -162,8 +162,7 @@ UltraVerifier UltraHonkComposerHelper::create_verifier(const CircuitConstructor&
 
     UltraVerifier output_state(verification_key);
 
-    auto pcs_verification_key =
-        std::make_unique<PCSVerificationKey>(verification_key->circuit_size, "../srs_db/ignition");
+    auto pcs_verification_key = std::make_unique<PCSVerificationKey>(verification_key->circuit_size, crs_factory_);
 
     output_state.pcs_verification_key = std::move(pcs_verification_key);
 

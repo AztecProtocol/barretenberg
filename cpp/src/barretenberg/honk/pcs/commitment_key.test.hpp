@@ -20,21 +20,22 @@
 
 namespace proof_system::honk::pcs {
 namespace {
-constexpr std::string_view kzg_srs_path = "../srs_db/ignition";
-}
+const std::string kzg_srs_path = "../srs_db/ignition";
+std::shared_ptr<ReferenceStringFactory> crs_factory(new proof_system::FileReferenceStringFactory(kzg_srs_path));
+} // namespace
 
 template <class CK> inline std::shared_ptr<CK> CreateCommitmentKey();
 
 template <> inline std::shared_ptr<kzg::Params::CommitmentKey> CreateCommitmentKey<kzg::Params::CommitmentKey>()
 {
     const size_t n = 128;
-    return std::make_shared<kzg::Params::CommitmentKey>(n, kzg_srs_path);
+    return std::make_shared<kzg::Params::CommitmentKey>(n, crs_factory);
 }
 // For IPA
 template <> inline std::shared_ptr<ipa::Params::CommitmentKey> CreateCommitmentKey<ipa::Params::CommitmentKey>()
 {
     const size_t n = 128;
-    return std::make_shared<ipa::Params::CommitmentKey>(n, kzg_srs_path);
+    return std::make_shared<ipa::Params::CommitmentKey>(n, crs_factory);
 }
 
 template <typename CK> inline std::shared_ptr<CK> CreateCommitmentKey()
@@ -48,14 +49,14 @@ template <class VK> inline std::shared_ptr<VK> CreateVerificationKey();
 template <> inline std::shared_ptr<kzg::Params::VerificationKey> CreateVerificationKey<kzg::Params::VerificationKey>()
 {
     const size_t n = 128;
-    return std::make_shared<kzg::Params::VerificationKey>(n, kzg_srs_path);
+    return std::make_shared<kzg::Params::VerificationKey>(n, crs_factory);
 }
 // For IPA
 template <> inline std::shared_ptr<ipa::Params::VerificationKey> CreateVerificationKey<ipa::Params::VerificationKey>()
 {
     const size_t n = 128;
     //
-    return std::make_shared<ipa::Params::VerificationKey>(n, kzg_srs_path);
+    return std::make_shared<ipa::Params::VerificationKey>(n, crs_factory);
 }
 template <typename VK> inline std::shared_ptr<VK> CreateVerificationKey()
 // requires std::default_initializable<VK>
