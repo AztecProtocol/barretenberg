@@ -1,9 +1,11 @@
 #include "barretenberg/crypto/ecdsa/ecdsa.hpp"
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
+#include "barretenberg/honk/proof_system/ultra_prover.hpp"
+#include "barretenberg/honk/proof_system/ultra_verifier.hpp"
 #include <benchmark/benchmark.h>
 #include <cstddef>
-#include "barretenberg/stdlib/primitives/composers/composers_fwd.hpp"
-#include "barretenberg/stdlib/primitives/composers/composers.hpp"
+#include "barretenberg/honk/composer/ultra_honk_composer.hpp"
+#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
 #include "barretenberg/stdlib/encryption/ecdsa/ecdsa.hpp"
 #include "barretenberg/stdlib/hash/keccak/keccak.hpp"
 #include "barretenberg/stdlib/primitives/curves/secp256k1.hpp"
@@ -20,9 +22,9 @@
 
 using namespace benchmark;
 
-namespace ultra_honk_bench {
+namespace ultra_plonk_bench {
 
-using UltraHonk = proof_system::honk::UltraHonkComposer;
+using UltraPlonk = proof_system::plonk::UltraPlonkComposer;
 
 // Number of times to perform operation of interest in the benchmark circuits, e.g. # of hashes to perform
 constexpr size_t MIN_NUM_ITERATIONS = 10;
@@ -51,7 +53,7 @@ void construct_proof(State& state, void (*test_circuit_function)(Composer&, size
     }
 }
 
-BENCHMARK_CAPTURE(construct_proof, sha256, &bench_utils::generate_sha256_test_circuit<UltraHonk>)
+BENCHMARK_CAPTURE(construct_proof, sha256, &bench_utils::generate_sha256_test_circuit<UltraPlonk>)
     ->DenseRange(MIN_NUM_ITERATIONS, MAX_NUM_ITERATIONS)
     ->Repetitions(NUM_REPETITIONS);
 // BENCHMARK_CAPTURE(construct_proof, keccak, &generate_keccak_test_circuit<MyComposer>)
@@ -64,4 +66,4 @@ BENCHMARK_CAPTURE(construct_proof, sha256, &bench_utils::generate_sha256_test_ci
 //     ->DenseRange(MIN_NUM_ITERATIONS, MAX_NUM_ITERATIONS)
 //     ->Repetitions(NUM_REPETITIONS);
 
-} // namespace ultra_honk_bench
+} // namespace ultra_plonk_bench
