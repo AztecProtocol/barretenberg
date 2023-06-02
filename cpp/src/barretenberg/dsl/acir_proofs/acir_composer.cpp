@@ -94,6 +94,9 @@ bool AcirComposer::verify_proof(std::vector<uint8_t> const& proof, bool is_recur
         return false;
     };
 
+    // More hack. Need to resize public inputs as its size is used when computing expected manifest size.
+    composer_.circuit_constructor.public_inputs.resize(verification_key_->num_public_inputs);
+
     if (is_recursive) {
         auto verifier = composer_.create_verifier();
         return verifier.verify_proof({ proof });

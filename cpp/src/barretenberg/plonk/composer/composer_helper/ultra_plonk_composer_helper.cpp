@@ -290,8 +290,7 @@ plonk::UltraVerifier UltraPlonkComposerHelper::create_verifier(CircuitConstructo
     plonk::UltraVerifier output_state(circuit_verification_key,
                                       create_manifest(circuit_constructor.public_inputs.size()));
 
-    std::unique_ptr<plonk::KateCommitmentScheme<plonk::ultra_settings>> kate_commitment_scheme =
-        std::make_unique<plonk::KateCommitmentScheme<plonk::ultra_settings>>();
+    auto kate_commitment_scheme = std::make_unique<plonk::KateCommitmentScheme<plonk::ultra_settings>>();
 
     output_state.commitment_scheme = std::move(kate_commitment_scheme);
 

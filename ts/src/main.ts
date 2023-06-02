@@ -282,6 +282,7 @@ program
   .description('Print gate count to standard output.')
   .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
   .action(async ({ jsonPath }) => {
+    handleGlobalOptions();
     await gateCount(jsonPath);
   });
 
@@ -293,6 +294,7 @@ program
   .option('-r, --recursive', 'prove using recursive prover', false)
   .option('-k, --vk <path>', 'path to a verification key. avoids recomputation.')
   .action(async ({ jsonPath, proofPath, recursive, vk }) => {
+    handleGlobalOptions();
     await verify(jsonPath, proofPath, recursive, vk);
   });
 
@@ -302,6 +304,7 @@ program
   .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
   .option('-o, --output-path <path>', 'Specify the path to write the contract', '-')
   .action(async ({ jsonPath, outputPath }) => {
+    handleGlobalOptions();
     await contract(jsonPath, outputPath);
   });
 
@@ -311,6 +314,7 @@ program
   .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
   .requiredOption('-o, --output-path <path>', 'Specify the path to write the key')
   .action(async ({ jsonPath, outputPath }) => {
+    handleGlobalOptions();
     await writeVk(jsonPath, outputPath);
   });
 
@@ -321,6 +325,7 @@ program
   .requiredOption('-n, --num-public-inputs <number>', 'Specify the number of public inputs')
   .requiredOption('-o, --output-path <path>', 'Specify the JSON path to write the proof fields')
   .action(async ({ proofPath, numPublicInputs, outputPath }) => {
+    handleGlobalOptions();
     await proofAsFields(proofPath, numPublicInputs, outputPath);
   });
 
@@ -330,6 +335,7 @@ program
   .requiredOption('-i, --input-path <path>', 'Specifies the vk path (output from write_vk)')
   .requiredOption('-o, --output-path <path>', 'Specify the JSON path to write the verification key fields and key hash')
   .action(async ({ inputPath, outputPath }) => {
+    handleGlobalOptions();
     await vkAsFields(inputPath, outputPath);
   });
 
