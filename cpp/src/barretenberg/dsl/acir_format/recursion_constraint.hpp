@@ -55,3 +55,5 @@ template <typename B> inline void write(B& buf, RecursionConstraint const& const
     write(buf, constraint.output_aggregation_object);
     write(buf, constraint.nested_aggregation_object);
 }
+
+} // namespace acir_format
