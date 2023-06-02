@@ -8,6 +8,33 @@
 #include <sys/stat.h>
 
 namespace srs {
+/**
+ * @brief The manifest structure holds the header of a transcript file
+ *
+ * @details A transript file has the following structure:
+ *
+ * 00   | XX XX XX XX | This transcript file number
+ * 04   | XX XX XX XX | The total number of transcripts
+ * 08   | XX XX XX XX | The total number of G1 points (num_g1_points)
+ * 0C   | XX XX XX XX | The total number of G2 points (num_g2_points)
+ * 10   | XX XX XX XX | The number of G1 points in this file
+ * 14   | XX XX XX XX | The number of G2 points in this file
+ * 18   | XX XX XX XX | ‾\          ‾\
+ *            ...         > G1 point  \
+ * 34   | XX XX XX XX | _/             \
+ *            ...                       >  num_g1_points * 0x20 bytes
+ * YY   | XX XX XX XX | ‾\             /
+ *            ...         > G1 point  /
+ * YY   | XX XX XX XX | _/          _/
+ * YY   | XX XX XX XX | ‾\          ‾\
+ *            ...         > G2 point  \
+ * YY   | XX XX XX XX | _/             \
+ *            ...                       > num_g2_points * 0x40 bytes
+ * YY   | XX XX XX XX | ‾\             /
+ *            ...         > G2 point  /
+ * YY   | XX XX XX XX | _/          _/
+ *
+ */
 struct Manifest {
     uint32_t transcript_number;
     uint32_t total_transcripts;
@@ -55,11 +82,15 @@ template <typename Curve> class IO {
         return result;
     }
 
-    static void read_manifest(std::string const& filename, Manifest& manifest)
+    static bool read_manifest(std::string const& filename, Manifest& manifest)
     {
         std::ifstream file;
         file.open(filename, std::ifstream::binary);
         file.read((char*)&manifest, sizeof(Manifest));
+        if (!file) {
+            ptrdiff_t read = file.gcount();
+            throw_or_abort(format("Only read ", read, " bytes from file but expected ", sizeof(Manifest), "."));
+        }
         file.close();
 
         manifest.transcript_number = ntohl(manifest.transcript_number);
@@ -69,6 +100,7 @@ template <typename Curve> class IO {
         manifest.num_g1_points = ntohl(manifest.num_g1_points);
         manifest.num_g2_points = ntohl(manifest.num_g2_points);
         manifest.start_from = ntohl(manifest.start_from);
+        return success;
     }
 
     static void write_buffer_to_file(std::string const& filename, char const* buffer, size_t buffer_size)
@@ -91,7 +123,7 @@ template <typename Curve> class IO {
     static void read_file_into_buffer(
         char* buffer, size_t& size, std::string const& filename, size_t offset = 0, size_t amount = 0)
     {
-        size = amount ? amount : get_file_size(filename);
+        size = amount ? amount : get_file_size(filename) - offset;
 
         std::ifstream file;
         file.open(filename, std::ifstream::binary);

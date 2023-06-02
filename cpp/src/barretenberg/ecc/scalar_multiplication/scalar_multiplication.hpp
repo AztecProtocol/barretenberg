@@ -24,7 +24,8 @@ constexpr size_t get_num_buckets(const size_t num_points)
  * An entry of `wnaf_table` contains the following three pieces of information:
  * 1: the point index that we're working on. This is stored in the high 32 bits
  * 2: the bucket index that we're adding the point into. This is stored in the low 31 bits
- * 3: the sign of the point we're adding (i.e. do we actually need to subtract). This is stored in the 32nd bit.
+ * 3: the sign of the point we're adding (i.e. do we actually need to subtract). This is stored in the 31nd bit (the
+ *lowest bit is considered 0th).
  *
  * We pack this information into a 64 bit unsigned integer, so that we can more efficiently sort our wnaf entries.
  * For a given round, we want to sort our wnaf entries in increasing bucket index order.
