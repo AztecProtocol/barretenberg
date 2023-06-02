@@ -416,6 +416,10 @@ element<C, Fq, Fr, G> element<C, Fq, Fr, G>::lookup_table_plookup<length, X>::ge
         accumulators.emplace_back(field_t<C>(bits[i]) * (1ULL << i));
     }
     field_t<C> index = field_t<C>::accumulate(accumulators);
+    if (bits._M_elems[0].context->circuit_constructor.num_gates == 25122) {
+        bits._M_elems[0].context->circuit_constructor.check_circuit();
+        info("Executed check of partial circuit.");
+    }
     return read_group_element_rom_tables<table_size>(coordinates, index, limb_max);
 }
 

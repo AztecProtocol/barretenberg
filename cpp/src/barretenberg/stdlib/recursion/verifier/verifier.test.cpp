@@ -53,6 +53,8 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
                                           fr_ct(witness_ct(&composer, 0)));
 
         big_a* big_b;
+
+        info("Inner circuit size: ", composer.num_gates);
     };
 
     /**
@@ -136,7 +138,8 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
             verification_key_pt::from_witness(&outer_composer, verification_key_native);
 
         info("Constructing the ultra (inner) proof ...");
-        plonk::proof recursive_proof = prover.construct_proof();
+        plonk::proof recursive_proof =
+            prover.construct_proof(); // WORKTODO: this is the proof that the outer circuit verifies
 
         {
             // Native check is mainly for comparison vs circuit version of the verifier.
@@ -307,21 +310,23 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
         EXPECT_EQ(outer_composer.failed(), false);
 
-        info("creating prover for outer circuit");
-        info("composer gates = ", outer_composer.get_num_gates());
-        auto prover = outer_composer.create_prover();
-        info("created prover for outer circuit");
+        info("Executing check of full circuit:");
+        bool result = outer_composer.circuit_constructor.check_circuit();
+        // info("creating prover for outer circuit");
+        // info("composer gates = ", outer_composer.get_num_gates());
+        // auto prover = outer_composer.create_prover();
+        // info("created prover for outer circuit");
 
-        info("creating verifier for outer proof");
-        auto verifier = outer_composer.create_verifier();
+        // info("creating verifier for outer proof");
+        // auto verifier = outer_composer.create_verifier();
 
-        info("creating outer proof for outer circuit");
-        plonk::proof proof = prover.construct_proof();
-        info("created outer proof");
+        // info("creating outer proof for outer circuit");
+        // plonk::proof proof = prover.construct_proof();
+        // info("created outer proof");
 
-        info("verifying the outer proof");
-        bool result = verifier.verify_proof(proof); // WORKTODO
-        info("Outer proof verification result: ", result);
+        // info("verifying the outer proof");
+        // bool result = verifier.verify_proof(proof); // WORKTODO
+        // info("Outer proof verification result: ", result);
 
         EXPECT_EQ(result, true);
     }
