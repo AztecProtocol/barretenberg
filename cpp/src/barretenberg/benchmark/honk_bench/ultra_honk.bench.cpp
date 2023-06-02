@@ -27,7 +27,7 @@ using Composer = proof_system::honk::UltraHonkComposer;
 // Number of times to perform operation of interest in the benchmark circuits, e.g. # of hashes to perform
 constexpr size_t MIN_NUM_ITERATIONS = 10;
 constexpr size_t MAX_NUM_ITERATIONS = 10;
-// Numeber of times to repeat each benchmark
+// Number of times to repeat each benchmark
 constexpr size_t NUM_REPETITIONS = 1;
 
 /**

@@ -62,7 +62,7 @@ class UltraCircuitConstructor;
 #define EXTERN_STDLIB_ULTRA_TYPE(stdlib_type)                                                                          \
     extern template class stdlib_type<proof_system::UltraCircuitConstructor>;                                          \
     extern template class stdlib_type<plonk::UltraPlonkComposer>;                                                      \
-    // extern template class stdlib_type<honk::UltraHonkComposer>;
+    extern template class stdlib_type<honk::UltraHonkComposer>;
 
 #define EXTERN_STDLIB_ULTRA_TYPE_VA(stdlib_type, ...)                                                                  \
     extern template class stdlib_type<proof_system::UltraCircuitConstructor, __VA_ARGS__>;                             \
