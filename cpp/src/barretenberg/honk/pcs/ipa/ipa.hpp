@@ -168,10 +168,10 @@ template <typename Params> class IPA {
             msm_scalars[2 * i + 1] = round_challenges_inv[i].sqr();
         }
         // TODO(#473)
-        Commitment LR_sums =
+        GroupElement LR_sums =
             barretenberg::scalar_multiplication::pippenger_without_endomorphism_basis_points<curve::BN254>(
                 &msm_scalars[0], &msm_elements[0], pippenger_size, vk->pippenger_runtime_state);
-        Commitment C_zero = C_prime + LR_sums;
+        GroupElement C_zero = C_prime + LR_sums;
 
         /**
          * Compute b_zero where b_zero can be computed using the polynomial:
