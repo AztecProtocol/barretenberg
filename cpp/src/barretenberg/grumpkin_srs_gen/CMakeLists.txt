@@ -8,4 +8,5 @@ target_link_libraries(
     PRIVATE
     srs
     ecc
+    crypto_sha256
 )

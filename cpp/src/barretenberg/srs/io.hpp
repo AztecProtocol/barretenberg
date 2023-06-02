@@ -385,7 +385,9 @@ template <typename Curve> class IO {
         net_manifest.transcript_number = htonl(manifest.transcript_number);
         net_manifest.total_transcripts = htonl(manifest.total_transcripts);
         net_manifest.total_g1_points = htonl(manifest.total_g1_points);
+        net_manifest.total_g2_points = htonl(0);
         net_manifest.num_g1_points = htonl(manifest.num_g1_points);
+        net_manifest.total_g2_points = htonl(0);
         net_manifest.start_from = htonl(manifest.start_from);
 
         std::copy(&net_manifest, &net_manifest + 1, (Manifest*)&buffer[0]);
