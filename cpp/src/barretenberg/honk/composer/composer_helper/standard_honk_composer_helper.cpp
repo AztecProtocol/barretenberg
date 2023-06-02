@@ -98,8 +98,14 @@ std::shared_ptr<StandardHonkComposerHelper::VerificationKey> StandardHonkCompose
     if (verification_key) {
         return verification_key;
     }
+    // TODO(luke): These checks for proving_key/commitment_key seem to only be used when we're testing
+    // compute_verification_key and dont want to be bothered to explicitly compute the proving_key/commitment_key
+    // externally. This seems like a bad model and leads to clutter. Should these just become asserts?
     if (!proving_key) {
         compute_proving_key(circuit_constructor);
+    }
+    if (!commitment_key) {
+        commitment_key = std::make_shared<PCSParams::CommitmentKey>(proving_key->circuit_size, crs_factory_);
     }
 
     verification_key = std::make_shared<VerificationKey>(
@@ -130,8 +136,6 @@ StandardVerifier StandardHonkComposerHelper::create_verifier(const CircuitConstr
     compute_verification_key(circuit_constructor);
     StandardVerifier output_state(verification_key);
 
-    // WORKTODO: what to do here? If KZG, we need only the verifier srs. If IPA, we could just pass in the existing
-    // commitment_key.
     auto pcs_verification_key =
         std::make_unique<PCSParams::VerificationKey>(verification_key->circuit_size, crs_factory_);
 

@@ -20,8 +20,6 @@ class TurboPlonkComposerHelper {
     std::shared_ptr<plonk::proving_key> circuit_proving_key;
     std::shared_ptr<plonk::verification_key> circuit_verification_key;
 
-    // TODO(#218)(kesha): we need to put this into the commitment key, so that the composer doesn't have to handle srs
-    // at all
     std::shared_ptr<ReferenceStringFactory> crs_factory_;
 
     std::vector<uint32_t> recursive_proof_public_input_indices;

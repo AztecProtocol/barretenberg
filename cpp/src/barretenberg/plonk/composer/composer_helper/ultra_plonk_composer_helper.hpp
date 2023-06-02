@@ -22,8 +22,7 @@ class UltraPlonkComposerHelper {
     static constexpr size_t program_width = CircuitConstructor::NUM_WIRES;
     std::shared_ptr<plonk::proving_key> circuit_proving_key;
     std::shared_ptr<plonk::verification_key> circuit_verification_key;
-    // TODO(#218)(kesha): we need to put this into the commitment key, so that the composer doesn't have to handle srs
-    // at all
+
     std::shared_ptr<ReferenceStringFactory> crs_factory_;
 
     std::vector<uint32_t> recursive_proof_public_input_indices;
@@ -96,8 +95,7 @@ class UltraPlonkComposerHelper {
     void finalize_circuit(CircuitConstructor& circuit_constructor) { circuit_constructor.finalize_circuit(); };
 
     std::shared_ptr<plonk::proving_key> compute_proving_key(CircuitConstructor& circuit_constructor);
-    std::shared_ptr<plonk::verification_key> compute_verification_key(
-        CircuitConstructor& circuit_constructor, std::string const& srs_path = "../srs_db/ignition");
+    std::shared_ptr<plonk::verification_key> compute_verification_key(CircuitConstructor& circuit_constructor);
 
     void compute_witness(CircuitConstructor& circuit_constructor);
 

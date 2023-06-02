@@ -3,8 +3,8 @@
 /**
  * @brief Provides interfaces for different 'CommitmentKey' classes.
  *
- * TODO(#218)(Adrian / Mara): This class should take ownership of the SRS, and handle reading the file from disk as well
- * as carrying out any modification to the SRS (e.g compute pippenger point table) to simplify the codebase.
+ * TODO(#218)(Mara): This class should carry out any modification to the SRS (e.g compute pippenger point table) to
+ * simplify the codebase.
  */
 
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"
@@ -87,8 +87,8 @@ struct Params {
         VerificationKey(size_t num_points, std::shared_ptr<ReferenceStringFactory> crs_factory)
             : verifier_srs(crs_factory->get_verifier_crs())
         {
-            // WORKTODO: this was previously used to init a pippenger_runtime_state but thats not needed for kzg. For
-            // now it needs to stay in order to unify interface with IPA.
+            // Note: num_points was previously used to init a pippenger_runtime_state but thats not needed for kzg. For
+            // now its here to maintain consistency with IPA interface.
             static_cast<void>(num_points);
         }
 
