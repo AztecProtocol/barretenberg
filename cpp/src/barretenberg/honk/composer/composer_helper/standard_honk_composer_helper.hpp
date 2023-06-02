@@ -27,7 +27,10 @@ class StandardHonkComposerHelper {
     std::shared_ptr<VerificationKey> verification_key;
     // TODO(#218)(kesha): we need to put this into the commitment key, so that the composer doesn't have to handle srs
     // at all
+    // The crs_factory holds the path to the srs and exposes methods to extract either the prover srs (collection of g1
+    // points) or verifier srs ([x]_2)
     std::shared_ptr<ReferenceStringFactory> crs_factory_;
+    // The commitment key is passed to the prover but also used herein to compute the verfication key commitments
     std::shared_ptr<PCSCommitmentKey> commitment_key;
     bool computed_witness = false;
     // TODO(Luke): use make_shared
