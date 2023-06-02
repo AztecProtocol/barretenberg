@@ -1,7 +1,6 @@
 #pragma once
 #include <vector>
 #include "barretenberg/dsl/types.hpp"
-#include "barretenberg/plonk/proof_system/verification_key/verification_key.hpp"
 
 namespace acir_format {
 
