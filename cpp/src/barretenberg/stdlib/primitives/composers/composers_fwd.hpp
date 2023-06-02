@@ -5,29 +5,19 @@ class StandardPlonkComposer;
 class TurboPlonkComposer;
 class UltraPlonkComposer;
 
-class StandardPlonkComposer;
 } // namespace proof_system::plonk
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-namespace proof_system::honk {
-class StandardHonkComposer;
-class UltraHonkComposer;
-} // namespace proof_system::honk
-=======
-// namespace proof_system::honk {
-// using StandardHonkComposer = StandardHonkComposer_<flavor::Standard>;
-// } // namespace proof_system::honk
->>>>>>> wip
-=======
 namespace proof_system::honk {
 namespace flavor {
 class Standard;
-}
+class Ultra;
+} // namespace flavor
 template <class Flavor> class StandardHonkComposer_;
 using StandardHonkComposer = StandardHonkComposer_<flavor::Standard>;
+template <class Flavor> class UltraHonkComposer_;
+using UltraHonkComposer = UltraHonkComposer_<flavor::Ultra>;
 } // namespace proof_system::honk
->>>>>>> more wip
+
 namespace proof_system {
 class StandardCircuitConstructor;
 class TurboCircuitConstructor;

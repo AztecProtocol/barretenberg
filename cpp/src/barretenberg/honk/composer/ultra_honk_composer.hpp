@@ -10,6 +10,9 @@ namespace proof_system::honk {
 template <class Flavor> class UltraHonkComposer_ {
 
   public:
+    // TODO(#426): This doesn't belong here
+    static constexpr merkle::HashType merkle_hash_type = merkle::HashType::LOOKUP_PEDERSEN;
+    static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
     // An instantiation of the circuit constructor that only depends on arithmetization, not  on the proof system
     UltraCircuitConstructor circuit_constructor;
     // Composer helper contains all proof-related material that is separate from circuit creation such as:
@@ -19,6 +22,7 @@ template <class Flavor> class UltraHonkComposer_ {
     using CircuitConstructor = UltraCircuitConstructor;
     using ProvingKey = typename Flavor::ProvingKey;
     using VerificationKey = typename Flavor::VerificationKey;
+    static constexpr ComposerType type = ComposerType::PLOOKUP; // TODO(Mara): Get rid of this.
 
     UltraHonkComposerHelper_<Flavor> composer_helper;
     size_t& num_gates;
@@ -48,26 +52,12 @@ template <class Flavor> class UltraHonkComposer_ {
         add_gates_to_ensure_all_polys_are_non_zero();
     };
 
-<<<<<<< HEAD
-    UltraHonkComposer(std::shared_ptr<ProvingKey> const& p_key,
-                      std::shared_ptr<VerificationKey> const& v_key,
-                      size_t size_hint = 0);
-    UltraHonkComposer(UltraHonkComposer&& other) = default;
-    UltraHonkComposer& operator=(UltraHonkComposer&& other)
-    {
-        circuit_constructor = std::move(other.circuit_constructor);
-        composer_helper = std::move(other.composer_helper);
-        return *this;
-    };
-    ~UltraHonkComposer() = default;
-=======
     UltraHonkComposer_(std::shared_ptr<ProvingKey> const& p_key,
                        std::shared_ptr<VerificationKey> const& v_key,
                        size_t size_hint = 0);
     UltraHonkComposer_(UltraHonkComposer_&& other) = default;
     UltraHonkComposer_& operator=(UltraHonkComposer_&& other) = delete;
     ~UltraHonkComposer_() = default;
->>>>>>> more wip
 
     size_t get_num_gates() const { return circuit_constructor.get_num_gates(); }
     uint32_t get_zero_idx() { return circuit_constructor.zero_idx; }
