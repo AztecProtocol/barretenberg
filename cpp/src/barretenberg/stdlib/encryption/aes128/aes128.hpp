@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "../../primitives/composers/composers_fwd.hpp"
-
+#include "../../primitives/composers/composers.hpp"
 #include "../../primitives/field/field.hpp"
 #include "../../primitives/witness/witness.hpp"
 

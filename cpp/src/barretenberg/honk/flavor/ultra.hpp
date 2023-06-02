@@ -38,7 +38,7 @@ class Ultra {
     using CommitmentHandle = G1::affine_element;
     // UltraHonk will be run with KZG by default but temporarily we set the commitment to IPA to
     // be able to do e2e tests with this pcs as well
-    // TODO: instantiate this with but IPA and KZG when the templating work is finished
+    // TODO: instantiate this with both IPA and KZG when the templating work is finished
     using PCSParams = pcs::ipa::Params;
     using PCS = pcs::ipa::IPA<PCSParams>;
 

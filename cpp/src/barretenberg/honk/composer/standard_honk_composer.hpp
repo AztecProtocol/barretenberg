@@ -13,7 +13,7 @@ namespace proof_system::honk {
  * @details However, it has a lot of its logic separated into subclasses and simply proxies the calls.
  *
  */
-template <StandardFlavor Flavor> class StandardHonkComposer_ {
+template <class Flavor> class StandardHonkComposer_ {
   public:
     // TODO(#426): This doesn't belong here
     static constexpr merkle::HashType merkle_hash_type = merkle::HashType::LOOKUP_PEDERSEN;

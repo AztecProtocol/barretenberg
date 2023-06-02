@@ -13,16 +13,15 @@
 #include <vector>
 
 namespace proof_system::honk {
-class UltraHonkComposerHelper {
+template <UltraFlavor Flavor> class UltraHonkComposerHelper_ {
   public:
-    using Flavor = flavor::Ultra;
-    using CircuitConstructor = Flavor::CircuitConstructor;
-    using ProvingKey = Flavor::ProvingKey;
-    using VerificationKey = Flavor::VerificationKey;
-    using PCSParams = Flavor::PCSParams;
-    using PCS = Flavor::PCS;
-    using PCSCommitmentKey = PCSParams::CommitmentKey;
-    using PCSVerificationKey = PCSParams::VerificationKey;
+    using CircuitConstructor = typename Flavor::CircuitConstructor;
+    using ProvingKey = typename Flavor::ProvingKey;
+    using VerificationKey = typename Flavor::VerificationKey;
+    using PCSParams = typename Flavor::PCSParams;
+    using PCS = typename Flavor::PCS;
+    using PCSCommitmentKey = typename PCSParams::CommitmentKey;
+    using PCSVerificationKey = typename PCSParams::VerificationKey;
 
     static constexpr size_t NUM_RESERVED_GATES = 4; // equal to the number of multilinear evaluations leaked
     static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
@@ -42,20 +41,20 @@ class UltraHonkComposerHelper {
     // vanishing_polynomial cannot be trivially fetched here, I am directly setting this to 4 - 1 = 3.
     static constexpr size_t s_randomness = 3;
 
-    explicit UltraHonkComposerHelper(std::shared_ptr<ReferenceStringFactory> crs_factory)
+    explicit UltraHonkComposerHelper_(std::shared_ptr<ReferenceStringFactory> crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
 
-    UltraHonkComposerHelper(std::shared_ptr<ProvingKey> p_key, std::shared_ptr<VerificationKey> v_key)
+    UltraHonkComposerHelper_(std::shared_ptr<ProvingKey> p_key, std::shared_ptr<VerificationKey> v_key)
         : proving_key(std::move(p_key))
         , verification_key(std::move(v_key))
     {}
 
-    UltraHonkComposerHelper(UltraHonkComposerHelper&& other) noexcept = default;
-    UltraHonkComposerHelper(UltraHonkComposerHelper const& other) noexcept = default;
-    UltraHonkComposerHelper& operator=(UltraHonkComposerHelper&& other) noexcept = default;
-    UltraHonkComposerHelper& operator=(UltraHonkComposerHelper const& other) noexcept = default;
-    ~UltraHonkComposerHelper() = default;
+    UltraHonkComposerHelper_(UltraHonkComposerHelper_&& other) noexcept = default;
+    UltraHonkComposerHelper_(UltraHonkComposerHelper_ const& other) noexcept = default;
+    UltraHonkComposerHelper_& operator=(UltraHonkComposerHelper_&& other) noexcept = default;
+    UltraHonkComposerHelper_& operator=(UltraHonkComposerHelper_ const& other) noexcept = default;
+    ~UltraHonkComposerHelper_() = default;
 
     void finalize_circuit(CircuitConstructor& circuit_constructor) { circuit_constructor.finalize_circuit(); };
 
@@ -64,10 +63,11 @@ class UltraHonkComposerHelper {
 
     void compute_witness(CircuitConstructor& circuit_constructor);
 
-    UltraProver create_prover(CircuitConstructor& circuit_constructor);
-    UltraVerifier create_verifier(const CircuitConstructor& circuit_constructor);
+    UltraProver_<Flavor> create_prover(CircuitConstructor& circuit_constructor);
+    UltraVerifier_<Flavor> create_verifier(const CircuitConstructor& circuit_constructor);
 
     void add_table_column_selector_poly_to_proving_key(polynomial& small, const std::string& tag);
 };
-
+extern template class UltraHonkComposerHelper_<honk::flavor::Ultra>;
+using UltraHonkComposerHelper = UltraHonkComposerHelper_<honk::flavor::Ultra>;
 } // namespace proof_system::honk

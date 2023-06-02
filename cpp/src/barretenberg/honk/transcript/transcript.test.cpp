@@ -80,6 +80,7 @@ template <typename FF> class TranscriptTest : public testing::Test {
 
         round++;
         // TODO(Mara): Make testing more flavor agnostic so we can test this with all flavors
+
         manifest_expected.add_entry(round, "KZG:W", size_G);
 
         // For IPA
