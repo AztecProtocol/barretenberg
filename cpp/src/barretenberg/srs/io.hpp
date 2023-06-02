@@ -82,7 +82,7 @@ template <typename Curve> class IO {
         return result;
     }
 
-    static bool read_manifest(std::string const& filename, Manifest& manifest)
+    static void read_manifest(std::string const& filename, Manifest& manifest)
     {
         std::ifstream file;
         file.open(filename, std::ifstream::binary);
@@ -100,7 +100,6 @@ template <typename Curve> class IO {
         manifest.num_g1_points = ntohl(manifest.num_g1_points);
         manifest.num_g2_points = ntohl(manifest.num_g2_points);
         manifest.start_from = ntohl(manifest.start_from);
-        return success;
     }
 
     static void write_buffer_to_file(std::string const& filename, char const* buffer, size_t buffer_size)
