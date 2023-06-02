@@ -69,5 +69,6 @@ template <UltraFlavor Flavor> class UltraHonkComposerHelper_ {
     void add_table_column_selector_poly_to_proving_key(polynomial& small, const std::string& tag);
 };
 extern template class UltraHonkComposerHelper_<honk::flavor::Ultra>;
+extern template class UltraHonkComposerHelper_<honk::flavor::UltraGrumpkin>;
 using UltraHonkComposerHelper = UltraHonkComposerHelper_<honk::flavor::Ultra>;
 } // namespace proof_system::honk

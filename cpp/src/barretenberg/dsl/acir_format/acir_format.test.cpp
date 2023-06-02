@@ -5,6 +5,7 @@
 #include "barretenberg/common/streams.hpp"
 #include "barretenberg/serialize/test_helper.hpp"
 #include "ecdsa_secp256k1.hpp"
+#include "barretenberg/stdlib/primitives/composers/composers.hpp"
 TEST(acir_format, msgpack_logic_constraint)
 {
     auto [actual, expected] = msgpack_roundtrip(acir_format::LogicConstraint{});

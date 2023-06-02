@@ -1,7 +1,6 @@
 #pragma once
 #include "barretenberg/numeric/uint256/uint256.hpp"
 #include "barretenberg/stdlib/primitives/composers/composers_fwd.hpp"
-#include "barretenberg/stdlib/primitives/composers/composers.hpp"
 #include "barretenberg/stdlib/primitives/field/field.hpp"
 #include "barretenberg/stdlib/primitives/witness/witness.hpp"
 #include <cstdint>

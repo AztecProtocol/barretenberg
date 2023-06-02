@@ -1,8 +1,6 @@
 #pragma once
 #include "../composers/composers_fwd.hpp"
 #include "../witness/witness.hpp"
-#include "barretenberg/honk/composer/standard_honk_composer.hpp"
-
 namespace proof_system::plonk {
 namespace stdlib {
 

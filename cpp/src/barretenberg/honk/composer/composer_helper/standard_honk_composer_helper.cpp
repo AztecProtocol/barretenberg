@@ -149,7 +149,7 @@ StandardVerifier_<Flavor> StandardHonkComposerHelper_<Flavor>::create_verifier(
     const CircuitConstructor& circuit_constructor)
 {
     compute_verification_key(circuit_constructor);
-    StandardVerifier output_state(verification_key);
+    StandardVerifier_<Flavor> output_state(verification_key);
 
     auto pcs_verification_key =
         std::make_unique<typename PCSParams::VerificationKey>(verification_key->circuit_size, "../srs_db/ignition");
@@ -165,7 +165,7 @@ StandardProver_<Flavor> StandardHonkComposerHelper_<Flavor>::create_prover(
 {
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
-    StandardProver output_state(proving_key);
+    StandardProver_<Flavor> output_state(proving_key);
 
     auto pcs_commitment_key =
         std::make_unique<typename PCSParams::CommitmentKey>(proving_key->circuit_size, "../srs_db/ignition");
@@ -175,5 +175,6 @@ StandardProver_<Flavor> StandardHonkComposerHelper_<Flavor>::create_prover(
     return output_state;
 }
 template class StandardHonkComposerHelper_<honk::flavor::Standard>;
+template class StandardHonkComposerHelper_<honk::flavor::StandardGrumpkin>;
 
 } // namespace proof_system::honk

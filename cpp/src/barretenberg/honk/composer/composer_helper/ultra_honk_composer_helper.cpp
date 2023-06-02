@@ -143,10 +143,10 @@ UltraProver_<Flavor> UltraHonkComposerHelper_<Flavor>::create_prover(CircuitCons
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
 
-    UltraProver output_state(proving_key);
+    UltraProver_<Flavor> output_state(proving_key);
 
     auto pcs_commitment_key =
-        std::make_unique<PCSParams::CommitmentKey>(proving_key->circuit_size, "../srs_db/ignition");
+        std::make_unique<typename PCSParams::CommitmentKey>(proving_key->circuit_size, "../srs_db/ignition");
 
     output_state.pcs_commitment_key = std::move(pcs_commitment_key);
 
@@ -164,7 +164,7 @@ UltraVerifier_<Flavor> UltraHonkComposerHelper_<Flavor>::create_verifier(const C
 {
     auto verification_key = compute_verification_key(circuit_constructor);
 
-    UltraVerifier output_state(verification_key);
+    UltraVerifier_<Flavor> output_state(verification_key);
 
     auto pcs_verification_key =
         std::make_unique<PCSVerificationKey>(verification_key->circuit_size, "../srs_db/ignition");
@@ -320,7 +320,7 @@ std::shared_ptr<typename Flavor::VerificationKey> UltraHonkComposerHelper_<Flavo
         compute_proving_key(circuit_constructor);
     }
 
-    verification_key = std::make_shared<UltraHonkComposerHelper_<Flavor>::VerificationKey>(
+    verification_key = std::make_shared<typename Flavor::VerificationKey>(
         proving_key->circuit_size, proving_key->num_public_inputs, proving_key->composer_type);
 
     auto commitment_key = PCSCommitmentKey(proving_key->circuit_size, "../srs_db/ignition");
@@ -361,5 +361,7 @@ std::shared_ptr<typename Flavor::VerificationKey> UltraHonkComposerHelper_<Flavo
 
     return verification_key;
 }
+template class UltraHonkComposerHelper_<honk::flavor::Ultra>;
+template class UltraHonkComposerHelper_<honk::flavor::UltraGrumpkin>;
 
 } // namespace proof_system::honk

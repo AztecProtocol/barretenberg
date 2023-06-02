@@ -5,6 +5,7 @@
 #include "barretenberg/honk/pcs/shplonk/shplonk_single.hpp"
 #include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/honk/flavor/ultra.hpp"
+#include "barretenberg/honk/flavor/ultra_grumpkin.hpp"
 #include "barretenberg/honk/sumcheck/relations/relation_parameters.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck_output.hpp"
 
@@ -78,6 +79,7 @@ template <UltraFlavor Flavor> class UltraProver_ {
 };
 
 extern template class UltraProver_<honk::flavor::Ultra>;
+extern template class UltraProver_<honk::flavor::UltraGrumpkin>;
 
 using UltraProver = UltraProver_<honk::flavor::Ultra>;
 

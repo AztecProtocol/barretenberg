@@ -10,9 +10,6 @@ namespace proof_system::honk {
 template <class Flavor> class UltraHonkComposer_ {
 
   public:
-    // TODO(#426): This doesn't belong here
-    static constexpr merkle::HashType merkle_hash_type = merkle::HashType::LOOKUP_PEDERSEN;
-    static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
     // An instantiation of the circuit constructor that only depends on arithmetization, not  on the proof system
     UltraCircuitConstructor circuit_constructor;
     // Composer helper contains all proof-related material that is separate from circuit creation such as:
@@ -22,7 +19,13 @@ template <class Flavor> class UltraHonkComposer_ {
     using CircuitConstructor = UltraCircuitConstructor;
     using ProvingKey = typename Flavor::ProvingKey;
     using VerificationKey = typename Flavor::VerificationKey;
-    static constexpr ComposerType type = ComposerType::PLOOKUP; // TODO(Mara): Get rid of this.
+
+    // TODO(#426): This don't belong here
+    static constexpr ComposerType type = ComposerType::PLOOKUP;
+    static_assert(type == CircuitConstructor::type);
+    static constexpr merkle::HashType merkle_hash_type = CircuitConstructor::merkle_hash_type;
+    static constexpr pedersen::CommitmentType commitment_type = CircuitConstructor::commitment_type;
+    static constexpr size_t DEFAULT_PLOOKUP_RANGE_BITNUM = UltraCircuitConstructor::DEFAULT_PLOOKUP_RANGE_BITNUM;
 
     UltraHonkComposerHelper_<Flavor> composer_helper;
     size_t& num_gates;
@@ -289,5 +292,8 @@ template <class Flavor> class UltraHonkComposer_ {
     void failure(std::string msg) { circuit_constructor.failure(msg); }
 };
 template class UltraHonkComposer_<honk::flavor::Ultra>;
+template class UltraHonkComposer_<honk::flavor::UltraGrumpkin>;
 using UltraHonkComposer = UltraHonkComposer_<honk::flavor::Ultra>;
+using UltraGrumpkinHonkComposer = UltraHonkComposer_<honk::flavor::UltraGrumpkin>;
+
 } // namespace proof_system::honk

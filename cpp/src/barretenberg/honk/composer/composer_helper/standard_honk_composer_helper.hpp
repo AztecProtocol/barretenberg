@@ -10,6 +10,7 @@
 #include "barretenberg/proof_system/composer/permutation_helper.hpp"
 
 #include "barretenberg/honk/flavor/standard.hpp"
+#include "barretenberg/honk/flavor/standard_grumpkin.hpp"
 
 namespace proof_system::honk {
 template <StandardFlavor Flavor> class StandardHonkComposerHelper_ {
@@ -68,6 +69,7 @@ template <StandardFlavor Flavor> class StandardHonkComposerHelper_ {
     void compute_witness(const CircuitConstructor& circuit_constructor, const size_t minimum_circuit_size = 0);
 };
 extern template class StandardHonkComposerHelper_<honk::flavor::Standard>;
+extern template class StandardHonkComposerHelper_<honk::flavor::StandardGrumpkin>;
 using StandardHonkComposerHelper = StandardHonkComposerHelper_<honk::flavor::Standard>;
 
 } // namespace proof_system::honk

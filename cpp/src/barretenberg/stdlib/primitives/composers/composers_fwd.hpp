@@ -1,3 +1,11 @@
+/**
+ * @brief Defines particular composer and circuit constructor types expected to be used for proof or circuit
+construction (outside the proof_system and honk folder) and contains macros for explicit instantiation.
+ *
+ * @details This file is designed to be included in header files to instruct the compiler that these classes exist and
+ * their instantiation will eventually take place. Given it has no dependencies, it causes no additional compilation or
+ *  propagation. This should be the ONLY file related to these types included in files out side the proof system.
+ */
 #pragma once
 
 namespace proof_system::plonk {
