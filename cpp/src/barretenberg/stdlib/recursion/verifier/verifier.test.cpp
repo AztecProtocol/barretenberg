@@ -150,7 +150,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
             }
 
             info("Verifying the ultra (inner) proof natively...");
-            auto native_result = native_verifier.verify_proof(recursive_proof);
+            auto native_result = native_verifier.verify_proof(recursive_proof); // WORKTODO
 
             info("Native result: ", native_result);
         }
@@ -320,7 +320,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         info("created outer proof");
 
         info("verifying the outer proof");
-        bool result = verifier.verify_proof(proof);
+        bool result = verifier.verify_proof(proof); // WORKTODO
         info("Outer proof verification result: ", result);
 
         EXPECT_EQ(result, true);
@@ -365,7 +365,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         info("created outer proof");
 
         info("verifying the outer proof");
-        bool result = verifier.verify_proof(proof);
+        bool result = verifier.verify_proof(proof); // WORKTODO
         info("Outer proof verification result: ", result);
 
         EXPECT_EQ(result, true);
