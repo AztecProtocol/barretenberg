@@ -6,6 +6,7 @@
 #include <map>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
 namespace proof_system {
 /**
@@ -20,9 +21,15 @@ template <typename Fr> class PolynomialStoreWasm {
 
   private:
     std::unordered_map<std::string, size_t> size_map;
+    std::vector<std::pair<std::string, Polynomial>> cache_;
+    size_t max_cache_size_;
 
   public:
-    PolynomialStoreWasm() = default;
+    PolynomialStoreWasm();
+    PolynomialStoreWasm(size_t max_cache_size)
+        : max_cache_size_(max_cache_size)
+    {}
+
     PolynomialStoreWasm(PolynomialStoreWasm& other) noexcept = default;
     PolynomialStoreWasm(PolynomialStoreWasm&& other) noexcept = default;
     PolynomialStoreWasm& operator=(const PolynomialStoreWasm& other) = default;

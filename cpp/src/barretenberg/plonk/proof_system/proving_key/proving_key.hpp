@@ -9,7 +9,8 @@
 #include <unordered_map>
 
 #ifdef __wasm__
-#include "barretenberg/proof_system/polynomial_store/polynomial_store_wasm.hpp"
+#include "barretenberg/proof_system/polynomial_store/polynomial_store_cache.hpp"
+// #include "barretenberg/proof_system/polynomial_store/polynomial_store_wasm.hpp"
 #else
 #include "barretenberg/proof_system/polynomial_store/polynomial_store.hpp"
 #endif
@@ -25,7 +26,8 @@ struct proving_key_data {
     std::vector<uint32_t> memory_read_records;
     std::vector<uint32_t> memory_write_records;
 #ifdef __wasm__
-    PolynomialStoreWasm<barretenberg::fr> polynomial_store;
+    PolynomialStoreCache polynomial_store;
+    // PolynomialStoreWasm<barretenberg::fr> polynomial_store;
 #else
     PolynomialStore<barretenberg::fr> polynomial_store;
 #endif
@@ -60,7 +62,8 @@ struct proving_key {
     std::vector<uint32_t> memory_write_records; // Used by UltraComposer only, for RAM writes.
 
 #ifdef __wasm__
-    PolynomialStoreWasm<barretenberg::fr> polynomial_store;
+    PolynomialStoreCache polynomial_store;
+    // PolynomialStoreWasm<barretenberg::fr> polynomial_store;
 #else
     PolynomialStore<barretenberg::fr> polynomial_store;
 #endif

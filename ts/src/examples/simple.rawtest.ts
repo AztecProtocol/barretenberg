@@ -7,7 +7,7 @@ createDebug.enable('*');
 const debug = createDebug('simple_test');
 
 async function main() {
-  const CIRCUIT_SIZE = 2 ** 18;
+  const CIRCUIT_SIZE = 2 ** 19;
 
   debug('starting test...');
   const api = await newBarretenbergApiAsync();
@@ -19,13 +19,18 @@ async function main() {
   const crs = await Crs.new(CIRCUIT_SIZE + 1);
   await api.srsInitSrs(new RawBuffer(crs.getG1Data()), crs.numPoints, new RawBuffer(crs.getG2Data()));
 
-  for (let i = 0; i < 10; ++i) {
+  const iterations = 3;
+  let totalTime = 0;
+  for (let i = 0; i < iterations; ++i) {
+    const start = new Date().getTime();
     debug(`iteration ${i} starting...`);
     await api.examplesSimpleCreateAndVerifyProof();
+    totalTime += new Date().getTime() - start;
   }
 
   await api.destroy();
 
+  debug(`avg iteration time: ${totalTime / iterations}ms`);
   debug('test complete.');
 }
 

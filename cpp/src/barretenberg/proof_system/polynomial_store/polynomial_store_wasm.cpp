@@ -9,11 +9,40 @@
 
 namespace proof_system {
 
+template <typename Fr>
+PolynomialStoreWasm<Fr>::PolynomialStoreWasm()
+    : max_cache_size_(0)
+{}
+
 template <typename Fr> void PolynomialStoreWasm<Fr>::put(std::string const& key, Polynomial&& value)
 {
     // info("put ", key, ": ", value.hash());
     set_data(key.c_str(), (uint8_t*)value.data().get(), value.size() * sizeof(barretenberg::fr));
     size_map[key] = value.size();
+
+    if (max_cache_size_ == 0) {
+        return;
+    }
+
+    // Find the key in the cache.
+    auto it = std::find_if(cache_.rbegin(), cache_.rend(), [&key](const auto& p) { return p.first == key; });
+
+    if (it != cache_.rend()) {
+        // Key found. Update the value.
+        it->second = std::move(value);
+
+        // Move the found element to the end of the vector.
+        std::rotate(it.base() - 1, it.base(), cache_.end());
+    } else {
+        // Key not found. Add new value.
+        if (cache_.size() >= max_cache_size_) {
+            // Cache is at max capacity. Remove the least recently used Polynomial.
+            cache_.erase(cache_.begin());
+        }
+
+        // Add the new key-value pair to the end of the cache.
+        cache_.push_back({ key, std::move(value) });
+    }
 };
 
 /**
@@ -25,10 +54,35 @@ template <typename Fr> void PolynomialStoreWasm<Fr>::put(std::string const& key,
  */
 template <typename Fr> barretenberg::Polynomial<Fr> PolynomialStoreWasm<Fr>::get(std::string const& key)
 {
+    // Find the key in the cache.
+    auto it = std::find_if(cache_.rbegin(), cache_.rend(), [&key](const auto& p) { return p.first == key; });
+
+    if (it != cache_.rend()) {
+        // Move the found element to the end of the vector.
+        // std::rotate(it.base() - 1, it.base(), cache_.end());
+        // it = cache_.rbegin();
+        auto p = it->second.clone();
+        // info("got (hit): ", key);
+        return p;
+    }
+
     size_t size = size_map.at(key);
-    auto p = Polynomial(size);
-    get_data(key.c_str(), (uint8_t*)p.data().get());
-    // info("got ", key, ": ", p.hash());
+    auto fetched = Polynomial(size);
+    get_data(key.c_str(), (uint8_t*)fetched.data().get());
+    // info("got (miss): ", key);
+
+    if (max_cache_size_ == 0) {
+        return fetched;
+    }
+
+    // Ensure the cache doesn't exceed MAX_LENGTH
+    if (cache_.size() >= max_cache_size_) {
+        cache_.erase(cache_.begin());
+    }
+
+    // Move it to the back of the cache.
+    cache_.push_back({ key, std::move(fetched) });
+    auto p = cache_.back().second.clone();
     return p;
 };
 
