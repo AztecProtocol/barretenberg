@@ -381,7 +381,7 @@ void compute_monomial_and_coset_fft_polynomials_from_lagrange(std::string label,
         std::string prefix = label + "_" + index;
 
         // Construct permutation polynomials in lagrange base
-        auto&& sigma_polynomial_lagrange = key->polynomial_store.get(prefix + "_lagrange");
+        auto sigma_polynomial_lagrange = key->polynomial_store.get(prefix + "_lagrange");
         // Compute permutation polynomial monomial form
         barretenberg::polynomial sigma_polynomial(key->circuit_size);
         barretenberg::polynomial_arithmetic::ifft(

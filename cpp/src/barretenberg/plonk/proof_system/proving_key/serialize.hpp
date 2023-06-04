@@ -124,7 +124,7 @@ template <typename B> inline void write_to_file(B& os, std::string const& path, 
         std::string poly_id = precomputed_poly_list[i];
         auto filename = format(path, "/", file_num++, "_", poly_id);
         write(os, poly_id);
-        auto&& value = key.polynomial_store.get(poly_id);
+        auto value = key.polynomial_store.get(poly_id);
         auto size = value.size();
         std::ofstream ofs(filename);
         ofs.write((char*)value.data().get(), (std::streamsize)(size * sizeof(barretenberg::fr)));

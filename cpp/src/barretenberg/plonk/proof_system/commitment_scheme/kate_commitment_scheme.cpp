@@ -160,7 +160,7 @@ void KateCommitmentScheme<settings>::batch_open(const transcript::StandardTransc
         const auto& info_ = input_key->polynomial_manifest[i];
         const std::string poly_label(info_.polynomial_label);
 
-        auto&& poly = input_key->polynomial_store.get(poly_label).data();
+        auto poly = input_key->polynomial_store.get(poly_label).data();
 
         const fr nu_challenge = transcript.get_challenge_field_element_from_map("nu", poly_label);
         opened_polynomials_at_zeta.push_back({ poly, nu_challenge });
