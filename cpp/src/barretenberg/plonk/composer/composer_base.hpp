@@ -69,7 +69,6 @@ class ComposerBase {
         , selector_properties(selector_properties)
         , rand_engine(nullptr)
     {
-        info("base ctor");
         variables.reserve(size_hint * 3);
         next_var_index.reserve(size_hint * 3);
         prev_var_index.reserve(size_hint * 3);
@@ -79,7 +78,6 @@ class ComposerBase {
         for (auto& p : selectors) {
             p.reserve(size_hint);
         }
-        info("base ctor done");
     }
 
     ComposerBase(size_t num_selectors = 0,
