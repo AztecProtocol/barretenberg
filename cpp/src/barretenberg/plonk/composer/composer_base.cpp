@@ -104,12 +104,8 @@ template <size_t program_width, bool with_tags> void ComposerBase::compute_sigma
 {
     // Compute wire copy cycles for public and private variables
     compute_wire_copy_cycles<program_width>();
-    std::array<std::vector<permutation_subgroup_element, ContainerSlabAllocator<permutation_subgroup_element>>,
-               program_width>
-        sigma_mappings;
-    std::array<std::vector<permutation_subgroup_element, ContainerSlabAllocator<permutation_subgroup_element>>,
-               program_width>
-        id_mappings;
+    std::array<std::vector<permutation_subgroup_element>, program_width> sigma_mappings;
+    std::array<std::vector<permutation_subgroup_element>, program_width> id_mappings;
 
     // Instantiate the sigma and id mappings by reserving enough space and pushing 'default' permutation subgroup
     // elements that point to themselves.

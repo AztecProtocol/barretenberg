@@ -42,11 +42,9 @@ inline void compute_permutation_lagrange_base_single(barretenberg::polynomial& o
  * @tparam program_settings Program settings.
  * */
 template <typename program_settings>
-inline void compute_permutation_lagrange_base_single(
-    barretenberg::polynomial& output,
-    const std::vector<permutation_subgroup_element, barretenberg::ContainerSlabAllocator<permutation_subgroup_element>>&
-        permutation,
-    const barretenberg::evaluation_domain& small_domain)
+inline void compute_permutation_lagrange_base_single(barretenberg::polynomial& output,
+                                                     const std::vector<permutation_subgroup_element>& permutation,
+                                                     const barretenberg::evaluation_domain& small_domain)
 {
     if (output.size() < permutation.size()) {
         throw_or_abort("Permutation polynomial size is insufficient to store permutations.");

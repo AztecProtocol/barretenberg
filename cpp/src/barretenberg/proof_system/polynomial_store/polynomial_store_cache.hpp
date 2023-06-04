@@ -1,13 +1,8 @@
 #pragma once
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "./polynomial_store.hpp"
 #include "./polynomial_store_wasm.hpp"
-#include <cstddef>
 #include <map>
-#include <list>
 #include <string>
-#include <unordered_map>
-#include <limits>
 
 namespace proof_system {
 
@@ -30,7 +25,6 @@ class PolynomialStoreCache {
 
   public:
     PolynomialStoreCache();
-
     explicit PolynomialStoreCache(size_t max_cache_size_);
 
     void put(std::string const& key, Polynomial&& value);

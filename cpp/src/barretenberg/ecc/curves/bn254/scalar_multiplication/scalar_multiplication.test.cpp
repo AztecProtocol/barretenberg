@@ -1,8 +1,10 @@
-#include "pippenger.hpp"
+#include "point_table.hpp"
 #include "scalar_multiplication.hpp"
 #include <chrono>
 #include "barretenberg/common/test.hpp"
 #include "barretenberg/srs/io.hpp"
+#include "barretenberg/srs/factories/file_crs_factory.hpp"
+#include <cstddef>
 #include <vector>
 
 #include "barretenberg/numeric/random/engine.hpp"
@@ -23,8 +25,8 @@ TEST(scalar_multiplication, reduce_buckets_simple)
     constexpr size_t num_points = 128;
     g2::affine_element g2_x;
     io::read_transcript_g2(g2_x, BARRETENBERG_SRS_PATH);
-    auto pippenger = Pippenger(BARRETENBERG_SRS_PATH, num_points / 2);
-    auto monomials = pippenger.get_point_table();
+    auto crs = srs::factories::FileProverCrs(num_points / 2, BARRETENBERG_SRS_PATH);
+    auto monomials = crs.get_monomial_points();
 
     std::vector<uint64_t> point_schedule(scalar_multiplication::point_table_size(num_points / 2));
     std::array<bool, num_points> bucket_empty_status;
@@ -736,9 +738,11 @@ TEST(scalar_multiplication, pippenger_short_inputs)
 
     fr* scalars = (fr*)aligned_alloc(32, sizeof(fr) * num_points);
 
-    g1::affine_element* points = scalar_multiplication::point_table_alloc<g1::affine_element>(num_points);
+    // g1::affine_element* points =
+    //     (g1::affine_element*)aligned_alloc(32, scalar_multiplication::point_table_buf_size(num_points));
+    auto points = scalar_multiplication::point_table_alloc(num_points);
 
-    for (size_t i = 0; i < num_points; ++i) {
+    for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)num_points; ++i) {
         points[i] = g1::affine_element(g1::element::random_element());
     }
     for (size_t i = 0; i < (num_points / 4); ++i) {
@@ -766,19 +770,18 @@ TEST(scalar_multiplication, pippenger_short_inputs)
 
     g1::element expected;
     expected.self_set_infinity();
-    for (size_t i = 0; i < num_points; ++i) {
+    for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)num_points; ++i) {
         g1::element temp = points[i] * scalars[i];
         expected += temp;
     }
     expected = expected.normalize();
-    scalar_multiplication::generate_pippenger_point_table(points, points, num_points);
+    scalar_multiplication::generate_pippenger_point_table(points.get(), points.get(), num_points);
     scalar_multiplication::pippenger_runtime_state state(num_points);
 
-    g1::element result = scalar_multiplication::pippenger(scalars, points, num_points, state);
+    g1::element result = scalar_multiplication::pippenger(scalars, points.get(), num_points, state);
     result = result.normalize();
 
     aligned_free(scalars);
-    aligned_free(points);
 
     EXPECT_EQ(result == expected, true);
 }
@@ -789,28 +792,27 @@ TEST(scalar_multiplication, pippenger_unsafe)
 
     fr* scalars = (fr*)aligned_alloc(32, sizeof(fr) * num_points);
 
-    g1::affine_element* points = scalar_multiplication::point_table_alloc<g1::affine_element>(num_points);
+    auto points = scalar_multiplication::point_table_alloc(num_points);
 
-    for (size_t i = 0; i < num_points; ++i) {
+    for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)num_points; ++i) {
         scalars[i] = fr::random_element();
         points[i] = g1::affine_element(g1::element::random_element());
     }
 
     g1::element expected;
     expected.self_set_infinity();
-    for (size_t i = 0; i < num_points; ++i) {
+    for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)num_points; ++i) {
         g1::element temp = points[i] * scalars[i];
         expected += temp;
     }
     expected = expected.normalize();
-    scalar_multiplication::generate_pippenger_point_table(points, points, num_points);
+    scalar_multiplication::generate_pippenger_point_table(points.get(), points.get(), num_points);
 
     scalar_multiplication::pippenger_runtime_state state(num_points);
-    g1::element result = scalar_multiplication::pippenger_unsafe(scalars, points, num_points, state);
+    g1::element result = scalar_multiplication::pippenger_unsafe(scalars, points.get(), num_points, state);
     result = result.normalize();
 
     aligned_free(scalars);
-    aligned_free(points);
 
     EXPECT_EQ(result == expected, true);
 }

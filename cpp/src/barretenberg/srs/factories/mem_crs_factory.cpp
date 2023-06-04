@@ -25,7 +25,7 @@ class MemProverCrs : public ProverCrs {
 
   private:
     size_t num_points;
-    std::shared_ptr<g1::affine_element> monomials_;
+    std::shared_ptr<g1::affine_element[]> monomials_;
 };
 
 class MemVerifierCrs : public VerifierCrs {

@@ -13,7 +13,7 @@
 namespace acir_proofs {
 
 AcirComposer::AcirComposer()
-    : composer_(false)
+    : composer_(0, 0, 0)
 {}
 
 void AcirComposer::create_circuit(acir_format::acir_format& constraint_system)
@@ -53,7 +53,7 @@ std::vector<uint8_t> AcirComposer::create_proof(
     bool is_recursive)
 {
     // Release prior memory first.
-    composer_ = acir_format::Composer(false);
+    composer_ = acir_format::Composer(0, 0, 0);
 
     composer_ = acir_format::Composer(proving_key_, verification_key_, circuit_subgroup_size_);
     // You can't produce the verification key unless you manually set the crs. Which seems like a bug.

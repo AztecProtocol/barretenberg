@@ -102,7 +102,6 @@ void SlabAllocator::init(size_t circuit_size_hint)
     // /* 0.5 MiB */ prealloc_num[base_size * 1] = 2;        // Batch invert skipped temporary.
     // /*   2 MiB */ prealloc_num[base_size * 4] = 4 +       // Composer base wire vectors.
     //                                             1;        // Miscellaneous.
-    // /*   4 MiB */ prealloc_num[base_size * 8] = 8;        // Sigma permutation thingies.
     // /*   6 MiB */ prealloc_num[base_size * 12] = 2 +      // next_var_index, prev_var_index
     //                                              2;       // real_variable_index, real_variable_tags
     /*  16 MiB */ prealloc_num[base_size * 32] = 11 +     // Composer base selector vectors.

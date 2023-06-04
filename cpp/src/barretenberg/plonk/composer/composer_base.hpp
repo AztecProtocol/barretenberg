@@ -51,9 +51,6 @@ class ComposerBase {
         }
     };
 
-    // TODO(cjl): Hack ctor that does nothing.
-    ComposerBase(bool){};
-
     ComposerBase()
         : ComposerBase(std::shared_ptr<barretenberg::srs::factories::CrsFactory>(
               new barretenberg::srs::factories::FileCrsFactory("../srs_db/ignition")))
@@ -311,19 +308,17 @@ class ComposerBase {
 
   public:
     size_t num_gates;
-    std::vector<uint32_t, ContainerSlabAllocator<uint32_t>> w_l;
-    std::vector<uint32_t, ContainerSlabAllocator<uint32_t>> w_r;
-    std::vector<uint32_t, ContainerSlabAllocator<uint32_t>> w_o;
-    std::vector<uint32_t, ContainerSlabAllocator<uint32_t>> w_4;
+    std::vector<uint32_t> w_l;
+    std::vector<uint32_t> w_r;
+    std::vector<uint32_t> w_o;
+    std::vector<uint32_t> w_4;
     std::vector<uint32_t> public_inputs;
     std::vector<barretenberg::fr, ContainerSlabAllocator<barretenberg::fr>> variables;
-    std::vector<uint32_t, ContainerSlabAllocator<uint32_t>>
-        next_var_index; // index of next variable in equivalence class (=REAL_VARIABLE if you're last)
-    std::vector<uint32_t, ContainerSlabAllocator<uint32_t>>
+    std::vector<uint32_t> next_var_index; // index of next variable in equivalence class (=REAL_VARIABLE if you're last)
+    std::vector<uint32_t>
         prev_var_index; // index of  previous variable in equivalence class (=FIRST if you're in a cycle alone)
-    std::vector<uint32_t, ContainerSlabAllocator<uint32_t>>
-        real_variable_index; // indices of corresponding real variables
-    std::vector<uint32_t, ContainerSlabAllocator<uint32_t>> real_variable_tags;
+    std::vector<uint32_t> real_variable_index; // indices of corresponding real variables
+    std::vector<uint32_t> real_variable_tags;
     uint32_t current_tag = DUMMY_TAG;
     std::map<uint32_t, uint32_t>
         tau; // The permutation on variable tags. See
