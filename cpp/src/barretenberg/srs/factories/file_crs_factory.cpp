@@ -2,22 +2,23 @@
 #include "../io.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
 #include "barretenberg/ecc/curves/bn254/pairing.hpp"
-#include "barretenberg/ecc/curves/bn254/scalar_multiplication/pippenger.hpp"
+#include "barretenberg/ecc/curves/bn254/scalar_multiplication/point_table.hpp"
+#include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 
 namespace barretenberg::srs::factories {
 
 FileProverCrs::FileProverCrs(const size_t num_points, std::string const& path)
     : num_points(num_points)
 {
-    monomials_ = scalar_multiplication::point_table_alloc<g1::affine_element>(num_points);
+    monomials_ = scalar_multiplication::point_table_alloc(num_points);
 
-    io::read_transcript_g1(monomials_, num_points, path);
-    scalar_multiplication::generate_pippenger_point_table(monomials_, monomials_, num_points);
+    io::read_transcript_g1(monomials_.get(), num_points, path);
+    scalar_multiplication::generate_pippenger_point_table(monomials_.get(), monomials_.get(), num_points);
 }
 
 g1::affine_element* FileProverCrs::get_monomial_points()
 {
-    return monomials_;
+    return monomials_.get();
 }
 
 size_t FileProverCrs::get_monomial_size() const

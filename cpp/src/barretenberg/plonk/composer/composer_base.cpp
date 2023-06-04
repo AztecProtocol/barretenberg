@@ -104,8 +104,12 @@ template <size_t program_width, bool with_tags> void ComposerBase::compute_sigma
 {
     // Compute wire copy cycles for public and private variables
     compute_wire_copy_cycles<program_width>();
-    std::array<std::vector<permutation_subgroup_element>, program_width> sigma_mappings;
-    std::array<std::vector<permutation_subgroup_element>, program_width> id_mappings;
+    std::array<std::vector<permutation_subgroup_element, ContainerSlabAllocator<permutation_subgroup_element>>,
+               program_width>
+        sigma_mappings;
+    std::array<std::vector<permutation_subgroup_element, ContainerSlabAllocator<permutation_subgroup_element>>,
+               program_width>
+        id_mappings;
 
     // Instantiate the sigma and id mappings by reserving enough space and pushing 'default' permutation subgroup
     // elements that point to themselves.
@@ -240,7 +244,7 @@ std::shared_ptr<proving_key> ComposerBase::compute_proving_key_base(const Compos
     const size_t subgroup_size = get_circuit_subgroup_size(total_num_gates + num_reserved_gates); // next power of 2
 
     // Prealloc slabs of memory for polynomials, pippenger, scratch space, etc.
-    init_slab_allocator(subgroup_size);
+    // init_slab_allocator(subgroup_size);
 
     // In the case of standard plonk, if 4 roots are cut out of the vanishing polynomial,
     // then the degree of the quotient polynomial t(X) is 3n. This implies that the degree
@@ -415,6 +419,31 @@ template <size_t program_width> void ComposerBase::compute_witness_base(const si
     }
 
     computed_witness = true;
+}
+
+uint32_t ComposerBase::add_variable(const barretenberg::fr& in)
+{
+    variables.emplace_back(in);
+    if (variables.size() > ((1 << 19) * 3)) {
+        info("WAAAAAAAAAAAAA COMPLAIN! ", variables.size());
+    }
+
+    // By default, we assume each new variable belongs in its own copy-cycle. These defaults can be modified later
+    // by `assert_equal`.
+    const uint32_t index = static_cast<uint32_t>(variables.size()) - 1U;
+    real_variable_index.emplace_back(index);
+    next_var_index.emplace_back(REAL_VARIABLE);
+    prev_var_index.emplace_back(FIRST_VARIABLE_IN_CLASS);
+    real_variable_tags.emplace_back(DUMMY_TAG);
+    wire_copy_cycles.push_back(
+        std::vector<cycle_node>()); // Note: this doesn't necessarily need to be initialised here. In fact, the
+                                    // number of wire_copy_cycles often won't match the number of variables; its
+                                    // non-zero entries will be a smaller vector of size equal to the number of
+                                    // "real variables" (i.e. unique indices in the `real_variable_index` vector).
+                                    // `wire_copy_cycles` could instead be instantiated during
+                                    // compute_wire_copy_cycles(), although that would require a loop to identify
+                                    // the number of unique "real variables".
+    return index;
 }
 
 template void ComposerBase::compute_sigma_permutations<3, false>(proving_key* key);

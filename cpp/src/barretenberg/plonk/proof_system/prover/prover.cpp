@@ -77,7 +77,7 @@ template <typename settings> void ProverBase<settings>::compute_wire_commitments
     for (size_t i = 0; i < end; ++i) {
         std::string wire_tag = "w_" + std::to_string(i + 1);
         std::string commit_tag = "W_" + std::to_string(i + 1);
-        auto& poly = key->polynomial_store.get(wire_tag);
+        auto&& poly = key->polynomial_store.get(wire_tag);
         auto coefficients = poly.data();
 
         // This automatically saves the computed point to the transcript
@@ -178,7 +178,7 @@ template <typename settings> void ProverBase<settings>::execute_preamble_round()
     const size_t end = settings::is_plookup ? (settings::program_width - 1) : settings::program_width;
     for (size_t i = 0; i < end; ++i) {
         std::string wire_tag = "w_" + std::to_string(i + 1);
-        barretenberg::polynomial& wire_lagrange = key->polynomial_store.get(wire_tag + "_lagrange");
+        auto&& wire_lagrange = key->polynomial_store.get(wire_tag + "_lagrange");
 
         /*
         Adding zero knowledge to the witness polynomials.
@@ -291,7 +291,7 @@ template <typename settings> void ProverBase<settings>::execute_second_round()
     if (settings::is_plookup) {
         add_plookup_memory_records_to_w_4();
         std::string wire_tag = "w_4";
-        auto& w_4_lagrange = key->polynomial_store.get(wire_tag + "_lagrange");
+        auto&& w_4_lagrange = key->polynomial_store.get(wire_tag + "_lagrange");
 
         // add randomness to w_4_lagrange
         const size_t w_randomness = 3;
@@ -307,6 +307,7 @@ template <typename settings> void ProverBase<settings>::execute_second_round()
         barretenberg::polynomial_arithmetic::copy_polynomial(&w_4_lagrange[0], &w_4[0], circuit_size, circuit_size);
         w_4.ifft(key->small_domain);
         key->polynomial_store.put(wire_tag, std::move(w_4));
+        key->polynomial_store.put(wire_tag + "_lagrange", std::move(w_4_lagrange));
 
         // commit to w_4 using the monomial srs.
         queue.add_to_queue({
@@ -499,30 +500,30 @@ template <typename settings> plonk::proof& ProverBase<settings>::construct_proof
     queue.process_queue();
 
     // Compute wire precommitments and sometimes random widget round commitments
-    // info("first");
+    info("first");
     execute_first_round();
     queue.process_queue();
 
     // Fiat-Shamir eta + execute random widgets.
-    // info("second");
+    info("second");
     execute_second_round();
     queue.process_queue();
 
     // Fiat-Shamir beta & gamma, execute random widgets (Permutation widget is executed here)
     // and fft the witnesses
-    // info("third");
+    info("third");
     execute_third_round();
     queue.process_queue();
 
     // Fiat-Shamir alpha, compute & commit to quotient polynomial.
-    // info("fourth");
+    info("fourth");
     execute_fourth_round();
     queue.process_queue();
 
-    // info("fifth");
+    info("fifth");
     execute_fifth_round();
 
-    // info("sixth");
+    info("sixth");
     execute_sixth_round();
     queue.process_queue();
 
@@ -547,10 +548,10 @@ template <typename settings> void ProverBase<settings>::add_plookup_memory_recor
     // We need the lagrange-base forms of the first 3 wires to compute the plookup memory record
     // value. w4 = w3 * eta^3 + w2 * eta^2 + w1 * eta + read_write_flag;
     // a RAM write. See plookup_auxiliary_widget.hpp for details)
-    std::span<const fr> w_1 = key->polynomial_store.get("w_1_lagrange");
-    std::span<const fr> w_2 = key->polynomial_store.get("w_2_lagrange");
-    std::span<const fr> w_3 = key->polynomial_store.get("w_3_lagrange");
-    auto& w_4 = key->polynomial_store.get("w_4_lagrange");
+    auto&& w_1 = key->polynomial_store.get("w_1_lagrange");
+    auto&& w_2 = key->polynomial_store.get("w_2_lagrange");
+    auto&& w_3 = key->polynomial_store.get("w_3_lagrange");
+    auto&& w_4 = key->polynomial_store.get("w_4_lagrange");
     for (const auto& gate_idx : key->memory_read_records) {
         w_4[gate_idx] += w_3[gate_idx];
         w_4[gate_idx] *= eta;

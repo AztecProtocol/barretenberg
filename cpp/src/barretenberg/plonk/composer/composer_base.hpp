@@ -51,6 +51,9 @@ class ComposerBase {
         }
     };
 
+    // TODO(cjl): Hack ctor that does nothing.
+    ComposerBase(bool){};
+
     ComposerBase()
         : ComposerBase(std::shared_ptr<barretenberg::srs::factories::CrsFactory>(
               new barretenberg::srs::factories::FileCrsFactory("../srs_db/ignition")))
@@ -66,9 +69,17 @@ class ComposerBase {
         , selector_properties(selector_properties)
         , rand_engine(nullptr)
     {
+        info("base ctor");
+        variables.reserve(size_hint * 3);
+        next_var_index.reserve(size_hint * 3);
+        prev_var_index.reserve(size_hint * 3);
+        real_variable_index.reserve(size_hint * 3);
+        real_variable_tags.reserve(size_hint * 3);
+        wire_copy_cycles.reserve(size_hint * 3);
         for (auto& p : selectors) {
             p.reserve(size_hint);
         }
+        info("base ctor done");
     }
 
     ComposerBase(size_t num_selectors = 0,
@@ -81,6 +92,12 @@ class ComposerBase {
         , selector_properties(selector_properties)
         , rand_engine(nullptr)
     {
+        variables.reserve(size_hint * 3);
+        next_var_index.reserve(size_hint * 3);
+        prev_var_index.reserve(size_hint * 3);
+        real_variable_index.reserve(size_hint * 3);
+        real_variable_tags.reserve(size_hint * 3);
+        wire_copy_cycles.reserve(size_hint * 3);
         for (auto& p : selectors) {
             p.reserve(size_hint);
         }
@@ -99,6 +116,12 @@ class ComposerBase {
         , selector_properties(selector_properties)
         , rand_engine(nullptr)
     {
+        variables.reserve(size_hint * 3);
+        next_var_index.reserve(size_hint * 3);
+        prev_var_index.reserve(size_hint * 3);
+        real_variable_index.reserve(size_hint * 3);
+        real_variable_tags.reserve(size_hint * 3);
+        wire_copy_cycles.reserve(size_hint * 3);
         for (auto& p : selectors) {
             p.reserve(size_hint);
         }
@@ -217,27 +240,8 @@ class ComposerBase {
      * @param in The value of the variable
      * @return The index of the new variable in the variables vector
      */
-    virtual uint32_t add_variable(const barretenberg::fr& in)
-    {
-        variables.emplace_back(in);
+    virtual uint32_t add_variable(const barretenberg::fr& in);
 
-        // By default, we assume each new variable belongs in its own copy-cycle. These defaults can be modified later
-        // by `assert_equal`.
-        const uint32_t index = static_cast<uint32_t>(variables.size()) - 1U;
-        real_variable_index.emplace_back(index);
-        next_var_index.emplace_back(REAL_VARIABLE);
-        prev_var_index.emplace_back(FIRST_VARIABLE_IN_CLASS);
-        real_variable_tags.emplace_back(DUMMY_TAG);
-        wire_copy_cycles.push_back(
-            std::vector<cycle_node>()); // Note: this doesn't necessarily need to be initialised here. In fact, the
-                                        // number of wire_copy_cycles often won't match the number of variables; its
-                                        // non-zero entries will be a smaller vector of size equal to the number of
-                                        // "real variables" (i.e. unique indices in the `real_variable_index` vector).
-                                        // `wire_copy_cycles` could instead be instantiated during
-                                        // compute_wire_copy_cycles(), although that would require a loop to identify
-                                        // the number of unique "real variables".
-        return index;
-    }
     /**
      * Add a public variable to variables
      *
@@ -314,12 +318,14 @@ class ComposerBase {
     std::vector<uint32_t, ContainerSlabAllocator<uint32_t>> w_o;
     std::vector<uint32_t, ContainerSlabAllocator<uint32_t>> w_4;
     std::vector<uint32_t> public_inputs;
-    std::vector<barretenberg::fr> variables;
-    std::vector<uint32_t> next_var_index; // index of next variable in equivalence class (=REAL_VARIABLE if you're last)
-    std::vector<uint32_t>
+    std::vector<barretenberg::fr, ContainerSlabAllocator<barretenberg::fr>> variables;
+    std::vector<uint32_t, ContainerSlabAllocator<uint32_t>>
+        next_var_index; // index of next variable in equivalence class (=REAL_VARIABLE if you're last)
+    std::vector<uint32_t, ContainerSlabAllocator<uint32_t>>
         prev_var_index; // index of  previous variable in equivalence class (=FIRST if you're in a cycle alone)
-    std::vector<uint32_t> real_variable_index; // indices of corresponding real variables
-    std::vector<uint32_t> real_variable_tags;
+    std::vector<uint32_t, ContainerSlabAllocator<uint32_t>>
+        real_variable_index; // indices of corresponding real variables
+    std::vector<uint32_t, ContainerSlabAllocator<uint32_t>> real_variable_tags;
     uint32_t current_tag = DUMMY_TAG;
     std::map<uint32_t, uint32_t>
         tau; // The permutation on variable tags. See

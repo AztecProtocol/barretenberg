@@ -90,43 +90,44 @@ void SlabAllocator::init(size_t circuit_size_hint)
         return;
     }
 
-    // Over-allocate because we know there are requests for circuit_size + n. (somewhat arbitrary n = 128)
+    // Over-allocate because we know there are requests for circuit_size + n. (somewhat arbitrary n = 256)
     // Think max I saw was 65 extra related to pippenger runtime state. Likely related to the machine having 64 cores.
-    // Strange things may happen here if double to 128 cores, might request 129 extra?
-    size_t overalloc = 128;
-    size_t tiny_size = 4 * (circuit_size_hint + overalloc);
-    size_t small_size = 32 * (circuit_size_hint + overalloc);
-    size_t large_size = small_size * 4;
+    size_t overalloc = 256;
+    size_t base_size = circuit_size_hint + overalloc;
 
-    // These numbers are for Ultra, our most greedy system, so they should easily serve Standard/Turbo.
-    // Miscellaneous slabs are just an effort to account for other slabs of memory needed throughout
-    // prover computation (scratch space and other temporaries). We can't account for all of these
-    // as we are at limit, so they are mostly dynamically allocated. This ultimately leads to failure
-    // on repeated prover runs as the memory becomes fragmented. Maybe best to just recreate the WASM
-    // for each proof for now, if not too expensive.
     std::map<size_t, size_t> prealloc_num;
-    prealloc_num[tiny_size] = 4 +     // Composer base wire vectors.
-                              1;      // Miscellaneous.
-    prealloc_num[small_size] = 11 +   // Composer base selector vectors.
-                               4 +    // Monomial wires.
-                               4 +    // Lagrange wires.
-                               15 +   // Monomial constraint selectors.
-                               15 +   // Lagrange constraint selectors.
-                               8 +    // Monomial perm selectors.
-                               8 +    // Lagrange perm selectors.
-                               1 +    // Monomial sorted poly.
-                               5 +    // Lagrange sorted poly.
-                               2 +    // Perm poly.
-                               4 +    // Quotient poly.
-                               8;     // Miscellaneous.
-    prealloc_num[small_size * 2] = 1; // Miscellaneous.
-    prealloc_num[large_size] = 4 +    // Coset-fft wires.
-                               15 +   // Coset-fft constraint selectors.
-                               8 +    // Coset-fft perm selectors.
-                               1 +    // Coset-fft sorted poly.
-                               1 +    // Pippenger point_schedule.
-                               4;     // Miscellaneous.
-    prealloc_num[large_size * 2] = 3; // Proving key evaluation domain roots. Pippenger point_pairs.
+
+    // Size comments below assume a base (circuit) size of 2^19, 524288 bytes.
+
+    // /* 0.5 MiB */ prealloc_num[base_size * 1] = 2;        // Batch invert skipped temporary.
+    // /*   2 MiB */ prealloc_num[base_size * 4] = 4 +       // Composer base wire vectors.
+    //                                             1;        // Miscellaneous.
+    // /*   4 MiB */ prealloc_num[base_size * 8] = 8;        // Sigma permutation thingies.
+    // /*   6 MiB */ prealloc_num[base_size * 12] = 2 +      // next_var_index, prev_var_index
+    //                                              2;       // real_variable_index, real_variable_tags
+    // /*  16 MiB */ prealloc_num[base_size * 32] = 11;      // Composer base selector vectors.
+    // 4 +          // Monomial wires.
+    // 4 +          // Lagrange wires.
+    // 15 +         // Monomial constraint selectors.
+    // 15 +         // Lagrange constraint selectors.
+    // 8 +          // Monomial perm selectors.
+    // 8 +          // Lagrange perm selectors.
+    // 1 +          // Monomial sorted poly.
+    // 5 +          // Lagrange sorted poly.
+    // 2 +          // Perm poly.
+    // 4 +          // Quotient poly.
+    // 8;           // Miscellaneous.
+    /*  32 MiB */ prealloc_num[base_size * 32 * 2] = 1;   // Miscellaneous.
+    /*  50 MiB */ prealloc_num[base_size * 32 * 3] = 1;   // Variables.
+    /*  64 MiB */ prealloc_num[base_size * 32 * 4] = 1 +  // SRS monomial points.
+                                                     4 +  // Coset-fft wires.
+                                                     15 + // Coset-fft constraint selectors.
+                                                     8 +  // Coset-fft perm selectors.
+                                                     1 +  // Coset-fft sorted poly.
+                                                     1 +  // Pippenger point_schedule.
+                                                     4;   // Miscellaneous.
+    /* 128 MiB */ prealloc_num[base_size * 32 * 8] = 1 +  // Proving key evaluation domain roots.
+                                                     2;   // Pippenger point_pairs.
 
     for (auto& e : prealloc_num) {
         for (size_t i = 0; i < e.second; ++i) {
@@ -155,7 +156,16 @@ std::shared_ptr<void> SlabAllocator::get(size_t req_size)
             memory_store.erase(it);
         }
 
-        dbg_info("Reusing memory slab of size: ", size, " for requested ", req_size, " total: ", get_total_size());
+        if (req_size >= circuit_size_hint_ && size > req_size + req_size / 10) {
+            dbg_info("WARNING: Using memory slab of size: ",
+                     size,
+                     " for requested ",
+                     req_size,
+                     " total: ",
+                     get_total_size());
+        } else {
+            dbg_info("Reusing memory slab of size: ", size, " for requested ", req_size, " total: ", get_total_size());
+        }
 
         return std::shared_ptr<void>(ptr, [this, size](void* p) {
             if (allocator_destroyed) {
@@ -166,11 +176,12 @@ std::shared_ptr<void> SlabAllocator::get(size_t req_size)
         });
     }
 
+    // if (req_size > 1024 * 1024) {
+    dbg_info("WARNING: Allocating unmanaged memory slab of size: ", req_size);
+    // }
     if (req_size % 32 == 0) {
-        dbg_info("Allocating unmanaged memory slab of size: ", req_size);
         return std::shared_ptr<void>(aligned_alloc(32, req_size), aligned_free);
     } else {
-        dbg_info("Allocating unaligned unmanaged memory slab of size: ", req_size);
         return std::shared_ptr<void>(malloc(req_size), free);
     }
 }
@@ -188,7 +199,7 @@ void SlabAllocator::release(void* ptr, size_t size)
     std::unique_lock<std::mutex> lock(memory_store_mutex);
 #endif
     memory_store[size].push_back(ptr);
-    dbg_info("Pooled poly memory of size: ", size, " total: ", get_total_size());
+    // dbg_info("Pooled poly memory of size: ", size, " total: ", get_total_size());
 }
 
 SlabAllocator allocator;

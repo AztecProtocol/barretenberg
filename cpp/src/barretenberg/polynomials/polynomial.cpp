@@ -36,8 +36,7 @@ template <typename Fr>
 Polynomial<Fr>::Polynomial(const Polynomial<Fr>& other, const size_t target_size)
     : size_(std::max(target_size, other.size()))
 {
-    // info("Polynomial EXPENSIVE Copy ctor buf at ", coefficients_, " size ", size_); //
-
+    info("Polynomial EXPENSIVE Copy ctor size ", size_);
     coefficients_ = allocate_aligned_memory(sizeof(Fr) * capacity());
 
     if (other.coefficients_ != nullptr) {
@@ -53,7 +52,7 @@ Polynomial<Fr>::Polynomial(Polynomial<Fr>&& other) noexcept
     : coefficients_(std::exchange(other.coefficients_, nullptr))
     , size_(std::exchange(other.size_, 0))
 {
-    // info("Move ctor Polynomial took ownership of ", coefficients_, " size ", size_);
+    info("Move ctor Polynomial took ownership of ", coefficients_, " size ", size_);
 }
 
 template <typename Fr>
@@ -85,7 +84,7 @@ template <typename Fr> Polynomial<Fr>::~Polynomial() {}
 
 template <typename Fr> Polynomial<Fr>& Polynomial<Fr>::operator=(const Polynomial<Fr>& other)
 {
-    // info("Polynomial EXPENSIVE copy assignment.");
+    info("Polynomial EXPENSIVE copy assignment.");
     size_ = other.size_;
 
     coefficients_ = allocate_aligned_memory(sizeof(Fr) * capacity());

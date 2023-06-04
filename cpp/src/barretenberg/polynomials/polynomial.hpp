@@ -3,6 +3,7 @@
 #include <cstddef>
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 #include "barretenberg/common/mem.hpp"
+#include "barretenberg/crypto/sha256/sha256.hpp"
 #include <fstream>
 #include <concepts>
 #include <span>
@@ -49,7 +50,18 @@ template <typename Fr> class Polynomial {
     Polynomial& operator=(const Polynomial& other);
     ~Polynomial();
 
-    Polynomial clone() { return Polynomial(*this, size()); }
+    /**
+     * Return a shallow clone of the polynomial. i.e. underlying memory is shared.
+     */
+    Polynomial clone()
+    {
+        Polynomial p;
+        p.coefficients_ = coefficients_;
+        p.size_ = size_;
+        return p;
+    }
+
+    std::array<uint8_t, 32> hash() const { return sha256::sha256(byte_span()); }
 
     void clear()
     {

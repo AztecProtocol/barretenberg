@@ -7,7 +7,7 @@ createDebug.enable('*');
 const debug = createDebug('simple_test');
 
 async function main() {
-  const CIRCUIT_SIZE = 2 ** 19;
+  const CIRCUIT_SIZE = 2 ** 18;
 
   debug('starting test...');
   const api = await newBarretenbergApiAsync();

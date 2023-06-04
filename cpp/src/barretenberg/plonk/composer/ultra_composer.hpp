@@ -1,4 +1,5 @@
 #pragma once
+#include "barretenberg/common/slab_allocator.hpp"
 #include "composer_base.hpp"
 #include "barretenberg/proof_system/types/merkle_hash_type.hpp"
 #include "barretenberg/proof_system/types/pedersen_commitment_type.hpp"
@@ -122,7 +123,7 @@ class UltraComposer : public ComposerBase {
         uint32_t tau_tag;
         // contains the list of variable indices that are range constrained to target_range
         // as ordered in the vector of variable indoces from the composer
-        std::vector<uint32_t> variable_indices;
+        std::vector<uint32_t, ContainerSlabAllocator<uint32_t>> variable_indices;
     };
 
     /**
@@ -205,6 +206,11 @@ class UltraComposer : public ComposerBase {
     enum UltraSelectors { QM, QC, Q1, Q2, Q3, Q4, QARITH, QSORT, QELLIPTIC, QAUX, QLOOKUPTYPE, NUM };
 
     UltraComposer();
+
+    // TODO(cjl): Hack ctor that does nothing.
+    UltraComposer(bool x)
+        : ComposerBase(x){};
+
     UltraComposer(std::string const& crs_path, const size_t size_hint = 0);
     UltraComposer(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
                   const size_t size_hint = 0);
@@ -519,11 +525,12 @@ class UltraComposer : public ComposerBase {
         const uint32_t variable_index,
         const size_t num_bits,
         std::string const& msg = "decompose_into_default_range_better_for_oddlimbnum");
-    void create_dummy_constraints(const std::vector<uint32_t>& variable_index);
-    void create_sort_constraint(const std::vector<uint32_t>& variable_index);
-    void create_sort_constraint_with_edges(const std::vector<uint32_t>& variable_index,
-                                           const barretenberg::fr&,
-                                           const barretenberg::fr&);
+    void create_dummy_constraints(const std::vector<uint32_t, ContainerSlabAllocator<uint32_t>>& variable_index);
+    void create_sort_constraint(const std::vector<uint32_t, ContainerSlabAllocator<uint32_t>>& variable_index);
+    void create_sort_constraint_with_edges(
+        const std::vector<uint32_t, ContainerSlabAllocator<uint32_t>>& variable_index,
+        const barretenberg::fr&,
+        const barretenberg::fr&);
     void assign_tag(const uint32_t variable_index, const uint32_t tag)
     {
         ASSERT(tag <= current_tag);

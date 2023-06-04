@@ -1,10 +1,11 @@
-#ifndef NO_MULTITHREADING
 #include "./c_bind.hpp"
 #include "./mem.hpp"
 #include "./timer.hpp"
 #include "./serialize.hpp"
 #include "./slab_allocator.hpp"
 #include <algorithm>
+
+#ifndef NO_MULTITHREADING
 #include <thread>
 
 struct test_threads_data {
@@ -67,8 +68,9 @@ WASM_EXPORT void test_abort()
     std::abort();
 }
 
+#endif
+
 WASM_EXPORT void common_init_slab_allocator(uint32_t const* circuit_size)
 {
     barretenberg::init_slab_allocator(ntohl(*circuit_size));
 }
-#endif

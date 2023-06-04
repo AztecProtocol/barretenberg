@@ -18,6 +18,7 @@
     "build": "yarn clean && yarn build:wasm && tsc -b && webpack && chmod +x ./dest/main.js",
     "build:dev": "tsc -b --watch",
     "build:wasm": "cd ../cpp && cmake --preset wasm-threads && cmake --build --preset wasm-threads && cmake --preset wasm && cmake --build --preset wasm",
+    "build:bindings": "cd .. && ./scripts/bindgen.sh",
     "serve": "webpack serve",
     "formatting": "prettier --check ./src && eslint --max-warnings 0 ./src",
     "formatting:fix": "prettier -w ./src",

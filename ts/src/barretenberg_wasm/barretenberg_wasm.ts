@@ -14,6 +14,7 @@ EventEmitter.defaultMaxListeners = 30;
 
 export class BarretenbergWasm {
   static MAX_THREADS = 16;
+  private memStore: { [key: string]: Uint8Array } = {};
   private memory!: WebAssembly.Memory;
   private instance!: WebAssembly.Instance;
   private workers: Worker[] = [];
@@ -155,6 +156,29 @@ export class BarretenbergWasm {
           const m = this.getMemory();
           const str2 = `${str} (mem: ${(m.length / (1024 * 1024)).toFixed(2)}MiB)`;
           this.logger(str2);
+          // if (str2.startsWith('WARNING:')) {
+          //   this.logger(new Error().stack!);
+          // }
+        },
+
+        get_data: (keyAddr: number, outBufAddr: number) => {
+          const key = this.stringFromAddress(keyAddr);
+          outBufAddr = outBufAddr >>> 0;
+          const data = this.memStore[key];
+          if (!data) {
+            this.logger(`get_data miss ${key}`);
+            return;
+          }
+          // this.logger(`get_data hit ${key} size: ${data.length} dest: ${outBufAddr}`);
+          // this.logger(Buffer.from(data.slice(0, 64)).toString('hex'));
+          this.writeMemory(outBufAddr, data);
+        },
+
+        set_data: (keyAddr: number, dataAddr: number, dataLength: number) => {
+          const key = this.stringFromAddress(keyAddr);
+          dataAddr = dataAddr >>> 0;
+          this.memStore[key] = this.getMemorySlice(dataAddr, dataAddr + dataLength).slice();
+          // this.logger(`set_data: ${key} length: ${dataLength}`);
         },
 
         memory,

@@ -1,7 +1,8 @@
 #include "mem_crs_factory.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
 #include "barretenberg/ecc/curves/bn254/pairing.hpp"
-#include "barretenberg/ecc/curves/bn254/scalar_multiplication/pippenger.hpp"
+#include "barretenberg/ecc/curves/bn254/scalar_multiplication/point_table.hpp"
+#include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 
 namespace {
 
@@ -13,20 +14,18 @@ class MemProverCrs : public ProverCrs {
     MemProverCrs(std::vector<g1::affine_element> const& points)
         : num_points(points.size())
     {
-        monomials_ = scalar_multiplication::point_table_alloc<g1::affine_element>(num_points);
-        std::copy(points.begin(), points.end(), monomials_);
-        scalar_multiplication::generate_pippenger_point_table(monomials_, monomials_, num_points);
+        monomials_ = scalar_multiplication::point_table_alloc(num_points);
+        std::copy(points.begin(), points.end(), monomials_.get());
+        scalar_multiplication::generate_pippenger_point_table(monomials_.get(), monomials_.get(), num_points);
     }
 
-    ~MemProverCrs() { aligned_free(monomials_); }
-
-    g1::affine_element* get_monomial_points() override { return monomials_; }
+    g1::affine_element* get_monomial_points() override { return monomials_.get(); }
 
     size_t get_monomial_size() const override { return num_points; }
 
   private:
     size_t num_points;
-    g1::affine_element* monomials_;
+    std::shared_ptr<g1::affine_element> monomials_;
 };
 
 class MemVerifierCrs : public VerifierCrs {

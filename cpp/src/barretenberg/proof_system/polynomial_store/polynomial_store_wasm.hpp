@@ -1,71 +1,80 @@
 #pragma once
 
 #include "barretenberg/common/assert.hpp"
-#include "barretenberg/common/timer.hpp"
-#include "barretenberg/env/data_store.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include <cstddef>
-#include <initializer_list>
 #include <map>
-#include <stdexcept>
 #include <string>
 #include <unordered_map>
 
 namespace proof_system {
-
 /**
- * Stores polynomials outside of the wasm memory space, in the host environment.
- * Enables us to overcome the 4GB wasm memory limit.
+ * @brief Basic storage class for Polynomials
+ *
+ * @tparam Fr
  */
+// TODO(Cody): Move into plonk namespace.
 template <typename Fr> class PolynomialStoreWasm {
-  private:
+
     using Polynomial = barretenberg::Polynomial<Fr>;
-    std::unordered_map<std::string, size_t> polynomial_map;
+
+  private:
+    std::unordered_map<std::string, size_t> size_map;
 
   public:
-    inline void put(std::string const& key, Polynomial const& value)
-    {
-        Timer t;
-        size_t size = value.size();
-        polynomial_map[key] = size;
-        set_data(key.c_str(), (uint8_t*)value.data().get(), size * sizeof(barretenberg::fr));
-        // info("set_data: ", key, " ", t.seconds(), "s ", get_size_in_bytes() / (1024 * 1024), "MB");
-    };
+    PolynomialStoreWasm() = default;
+    PolynomialStoreWasm(PolynomialStoreWasm& other) noexcept = default;
+    PolynomialStoreWasm(PolynomialStoreWasm&& other) noexcept = default;
+    PolynomialStoreWasm& operator=(const PolynomialStoreWasm& other) = default;
+    PolynomialStoreWasm& operator=(PolynomialStoreWasm&& other) noexcept = default;
+    ~PolynomialStoreWasm() = default;
 
-    inline Polynomial get(std::string const& key)
-    {
-        ASSERT(polynomial_map.contains(key));
-        size_t size = polynomial_map[key];
-        Timer t;
-        Polynomial p(size);
-        get_data(key.c_str(), (uint8_t*)p.data().get());
-        // info("get_data: ", key, " ", t.seconds(), "s");
-        return p;
-    };
+    /**
+     * @brief Transfer ownership of a polynomial to the PolynomialStore
+     *
+     * @param key string ID of the polynomial
+     * @param value a Polynomial
+     */
+    void put(std::string const& key, Polynomial&& value);
 
-    inline void remove(std::string const& key)
-    {
-        if (!polynomial_map.contains(key)) {
-            return;
-        }
-        set_data(key.c_str(), (uint8_t*)0, 0);
-        polynomial_map.erase(key);
-    };
+    /**
+     * @brief Get a reference to a polynomial in the PolynomialStore; will throw exception if the
+     * key does not exist in the map
+     *
+     * @param key string ID of the polynomial
+     * @return Polynomial&; a reference to the polynomial associated with the given key
+     */
+    Polynomial get(std::string const& key);
 
-    inline size_t get_size_in_bytes() const
-    {
-        size_t size_in_bytes = 0;
-        for (auto& entry : polynomial_map) {
-            size_in_bytes += sizeof(Fr) * entry.second;
-        }
-        return size_in_bytes;
-    };
+    /**
+     * @brief Erase the polynomial with the given key from the map if it exists. (ASSERT that it does)
+     *
+     * @param key
+     */
+    void remove(std::string const& key);
 
-    inline size_t get_size_of(std::string const& key)
-    {
-        ASSERT(polynomial_map.contains(key));
-        return polynomial_map[key];
-    }
+    /**
+     * @brief Get the current size (bytes) of all polynomials in the PolynomialStore
+     *
+     * @return size_t
+     */
+    size_t get_size_in_bytes() const;
+
+    /**
+     * @brief Print a summary of the PolynomialStore contents
+     *
+     */
+    void print();
+
+    // Basic map methods
+    bool contains(std::string const& key) { return size_map.contains(key); };
+    size_t size() { return size_map.size(); };
+
+    // Allow for const range based for loop
+    // typename std::unordered_map<std::string, Polynomial>::const_iterator begin() const { return size_map.begin(); }
+    // typename std::unordered_map<std::string, Polynomial>::const_iterator end() const { return size_map.end(); }
 };
+
+extern template class PolynomialStoreWasm<barretenberg::fr>;
 
 } // namespace proof_system

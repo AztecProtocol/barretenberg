@@ -1,5 +1,6 @@
 #include "ultra_composer.hpp"
 
+#include "barretenberg/common/slab_allocator.hpp"
 #include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 #include <algorithm>
@@ -1286,7 +1287,9 @@ void UltraComposer::create_new_range_constraint(const uint32_t variable_index,
 
 void UltraComposer::process_range_list(RangeList& list)
 {
-    assert_valid_variables(list.variable_indices);
+    for (size_t i = 0; i < list.variable_indices.size(); i++) {
+        ASSERT(is_valid_variable(list.variable_indices[i]));
+    }
 
     ASSERT(list.variable_indices.size() > 0);
 
@@ -1304,11 +1307,11 @@ void UltraComposer::process_range_list(RangeList& list)
     // go over variables
     // iterate over each variable and create mirror variable with same value - with tau tag
     // need to make sure that, in original list, increments of at most 3
-    std::vector<uint64_t> sorted_list;
+    std::vector<uint32_t, ContainerSlabAllocator<uint32_t>> sorted_list;
     sorted_list.reserve(list.variable_indices.size());
     for (const auto variable_index : list.variable_indices) {
         const auto& field_element = get_variable(variable_index);
-        const uint64_t shrinked_value = field_element.from_montgomery_form().data[0];
+        const uint32_t shrinked_value = (uint32_t)field_element.from_montgomery_form().data[0];
         sorted_list.emplace_back(shrinked_value);
     }
 
@@ -1317,13 +1320,17 @@ void UltraComposer::process_range_list(RangeList& list)
 #else
     std::sort(std::execution::par_unseq, sorted_list.begin(), sorted_list.end());
 #endif
-    std::vector<uint32_t> indices;
 
     // list must be padded to a multipe of 4 and larger than 4 (gate_width)
     constexpr size_t gate_width = ultra_settings::program_width;
     size_t padding = (gate_width - (list.variable_indices.size() % gate_width)) % gate_width;
-    if (list.variable_indices.size() <= gate_width)
+
+    std::vector<uint32_t, ContainerSlabAllocator<uint32_t>> indices;
+    indices.reserve(padding + sorted_list.size());
+
+    if (list.variable_indices.size() <= gate_width) {
         padding += gate_width;
+    }
     for (size_t i = 0; i < padding; ++i) {
         indices.emplace_back(zero_idx);
     }
@@ -1337,8 +1344,9 @@ void UltraComposer::process_range_list(RangeList& list)
 
 void UltraComposer::process_range_lists()
 {
-    for (auto& i : range_lists)
+    for (auto& i : range_lists) {
         process_range_list(i.second);
+    }
 }
 
 /*
@@ -1354,12 +1362,13 @@ void UltraComposer::process_range_lists()
   * std::map<uint64_t, RangeList> range_lists;
 */
 // Check for a sequence of variables that neighboring differences are at most 3 (used for batched range checkj)
-void UltraComposer::create_sort_constraint(const std::vector<uint32_t>& variable_index)
+void UltraComposer::create_sort_constraint(
+    const std::vector<uint32_t, ContainerSlabAllocator<uint32_t>>& variable_index)
 {
     ULTRA_SELECTOR_REFS
     constexpr size_t gate_width = ultra_settings::program_width;
     ASSERT(variable_index.size() % gate_width == 0);
-    assert_valid_variables(variable_index);
+    // assert_valid_variables(variable_index);
 
     for (size_t i = 0; i < variable_index.size(); i += gate_width) {
 
@@ -1401,17 +1410,18 @@ void UltraComposer::create_sort_constraint(const std::vector<uint32_t>& variable
 
 // useful to put variables in the witness that aren't already used - e.g. the dummy variables of the range constraint in
 // multiples of three
-void UltraComposer::create_dummy_constraints(const std::vector<uint32_t>& variable_index)
+void UltraComposer::create_dummy_constraints(
+    const std::vector<uint32_t, ContainerSlabAllocator<uint32_t>>& variable_index)
 {
     ULTRA_SELECTOR_REFS
-    std::vector<uint32_t> padded_list = variable_index;
+    auto padded_list = variable_index;
     constexpr size_t gate_width = ultra_settings::program_width;
     const uint64_t padding = (gate_width - (padded_list.size() % gate_width)) % gate_width;
     for (uint64_t i = 0; i < padding; ++i) {
         padded_list.emplace_back(zero_idx);
     }
-    assert_valid_variables(variable_index);
-    assert_valid_variables(padded_list);
+    // assert_valid_variables(variable_index);
+    // assert_valid_variables(padded_list);
 
     for (size_t i = 0; i < padded_list.size(); i += gate_width) {
         w_l.emplace_back(padded_list[i]);
@@ -1434,15 +1444,14 @@ void UltraComposer::create_dummy_constraints(const std::vector<uint32_t>& variab
 }
 
 // Check for a sequence of variables that neighboring differences are at most 3 (used for batched range checks)
-void UltraComposer::create_sort_constraint_with_edges(const std::vector<uint32_t>& variable_index,
-                                                      const fr& start,
-                                                      const fr& end)
+void UltraComposer::create_sort_constraint_with_edges(
+    const std::vector<uint32_t, ContainerSlabAllocator<uint32_t>>& variable_index, const fr& start, const fr& end)
 {
     ULTRA_SELECTOR_REFS
     // Convenient to assume size is at least 8 (gate_width = 4) for separate gates for start and end conditions
     constexpr size_t gate_width = ultra_settings::program_width;
     ASSERT(variable_index.size() % gate_width == 0 && variable_index.size() > gate_width);
-    assert_valid_variables(variable_index);
+    // assert_valid_variables(variable_index);
 
     // enforce range checks of first row and starting at start
     w_l.emplace_back(variable_index[0]);

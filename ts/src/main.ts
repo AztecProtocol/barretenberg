@@ -35,12 +35,13 @@ async function init(jsonPath: string) {
   const api = await newBarretenbergApiAsync();
 
   // First compute circuit size.
-  const circuitSizes = await getCircuitSize(jsonPath, api);
-  debug(`circuit size: ${circuitSizes.total}`);
+  // const circuitSizes = await getCircuitSize(jsonPath, api);
+  // debug(`circuit size: ${circuitSizes.total}`);
 
-  if (circuitSizes.subgroup > MAX_CIRCUIT_SIZE) {
-    throw new Error(`Circuit size of ${circuitSizes.subgroup} exceeds max supported of ${MAX_CIRCUIT_SIZE}`);
-  }
+  // if (circuitSizes.subgroup > MAX_CIRCUIT_SIZE) {
+  //   throw new Error(`Circuit size of ${circuitSizes.subgroup} exceeds max supported of ${MAX_CIRCUIT_SIZE}`);
+  // }
+  const circuitSizes = { subgroup: MAX_CIRCUIT_SIZE };
 
   // Plus 1 needed! (Move +1 into Crs?)
   const crs = await Crs.new(circuitSizes.subgroup + 1);

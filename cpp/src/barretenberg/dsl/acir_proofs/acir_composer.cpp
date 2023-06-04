@@ -1,6 +1,7 @@
 #include "acir_composer.hpp"
 #include "barretenberg/common/serialize.hpp"
 #include "barretenberg/common/throw_or_abort.hpp"
+#include "barretenberg/dsl/acir_format/recursion_constraint.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/serialize.hpp"
 #include "barretenberg/dsl/acir_format/acir_format.hpp"
 #include "barretenberg/dsl/types.hpp"
@@ -12,7 +13,7 @@
 namespace acir_proofs {
 
 AcirComposer::AcirComposer()
-    : composer_(0, 0, 0)
+    : composer_(false)
 {}
 
 void AcirComposer::create_circuit(acir_format::acir_format& constraint_system)
@@ -51,6 +52,9 @@ std::vector<uint8_t> AcirComposer::create_proof(
     acir_format::WitnessVector& witness,
     bool is_recursive)
 {
+    // Release prior memory first.
+    composer_ = acir_format::Composer(false);
+
     composer_ = acir_format::Composer(proving_key_, verification_key_, circuit_subgroup_size_);
     // You can't produce the verification key unless you manually set the crs. Which seems like a bug.
     composer_.crs_factory_ = crs_factory;
@@ -124,8 +128,7 @@ std::vector<barretenberg::fr> AcirComposer::serialize_proof_into_fields(std::vec
                                               transcript::HashType::PlookupPedersenBlake3s,
                                               16);
 
-    std::vector<barretenberg::fr> output = acir_format::export_transcript_in_recursion_format(transcript);
-    return output;
+    return acir_format::export_transcript_in_recursion_format(transcript);
 }
 
 /**
@@ -136,8 +139,7 @@ std::vector<barretenberg::fr> AcirComposer::serialize_proof_into_fields(std::vec
  */
 std::vector<barretenberg::fr> AcirComposer::serialize_verification_key_into_fields()
 {
-    std::vector<barretenberg::fr> output = acir_format::export_key_in_recursion_format(verification_key_);
-    return output;
+    return acir_format::export_key_in_recursion_format(verification_key_);
 }
 
 } // namespace acir_proofs

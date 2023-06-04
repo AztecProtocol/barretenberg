@@ -44,7 +44,7 @@ template <typename Fr> class PolynomialStore {
      * @param key string ID of the polynomial
      * @return Polynomial&; a reference to the polynomial associated with the given key
      */
-    Polynomial& get(std::string const& key);
+    Polynomial get(std::string const& key);
 
     /**
      * @brief Erase the polynomial with the given key from the map if it exists. (ASSERT that it does)
@@ -77,5 +77,7 @@ template <typename Fr> class PolynomialStore {
     }
     typename std::unordered_map<std::string, Polynomial>::const_iterator end() const { return polynomial_map.end(); }
 };
+
+extern template class PolynomialStore<barretenberg::fr>;
 
 } // namespace proof_system

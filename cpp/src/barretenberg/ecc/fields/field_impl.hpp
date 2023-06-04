@@ -391,6 +391,22 @@ template <class T> void field<T>::batch_invert(std::span<field> coeffs) noexcept
         }
     }
 
+    // std::vector<field> temporaries;
+    // std::vector<bool> skipped;
+    // temporaries.reserve(n);
+    // skipped.reserve(n);
+
+    // field accumulator = one();
+    // for (size_t i = 0; i < n; ++i) {
+    //     temporaries.emplace_back(accumulator);
+    //     if (coeffs[i].is_zero()) {
+    //         skipped.emplace_back(true);
+    //     } else {
+    //         skipped.emplace_back(false);
+    //         accumulator *= coeffs[i];
+    //     }
+    // }
+
     accumulator = accumulator.invert();
 
     field T0;
