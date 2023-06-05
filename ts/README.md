@@ -8,18 +8,23 @@ project structures.
 Max circuit size is 2^19 gates (524,288). This is due to the underlying WASM 4GB memory limit. This should improve
 with future proving systems, and/or introduction of wasm64.
 
-If running from terminal, or within browser where you can set shared memory CORS headers, multithreading is enabled.
+If running from terminal, or within browser where you can set shared memory COOP/COEP headers, multithreading is enabled.
 Note there are two independent WASM builds, one with threading enabled and one without. This is because the shared
 memory flag is set within the WASM itself. If you're running in a context where you can't have shared memory, we want
 to fallback to single threaded performance.
 
-Performance for 2^19:
+Performance for 2^19 (small witness generation phase):
 
 - 16 core x86: ~13s.
 - 10 core M1 Mac Pro: ~18s.
 
 Linear scaling was observed up to 32 cores, however we limit to 16 as 2^19 runs out of memory with 32 cores.
 This maybe resolvable.
+
+Witness generation phase is not multithreaded, and an interesting 512k circuit can take ~12s. This results in:
+
+- 16 core x86: ~26s.
+- 10 core M1 Mac Pro: (TBD)
 
 ## Using as a standalone binary
 
@@ -111,6 +116,6 @@ If you change the C++ code run `yarn build:wasm`.
 
 To run the tests run `yarn test`.
 
-To run a continuous "stress tests" run `yarn simple_test` to do 10 full pk/proof/vk iterations.
+To run a continuous "stress test" run `yarn simple_test` to do 10 full pk/proof/vk iterations.
 
 To run the same test in the browser run `yarn serve`, navigate to appropriate URL and open the console.
