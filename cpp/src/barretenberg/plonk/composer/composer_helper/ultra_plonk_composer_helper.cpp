@@ -348,7 +348,7 @@ std::shared_ptr<proving_key> UltraPlonkComposerHelper::compute_proving_key(Circu
         return circuit_proving_key;
     }
 
-    circuit_constructor.finalize_circuit();
+    // circuit_constructor.finalize_circuit();
 
     size_t tables_size = 0;
     size_t lookups_size = 0;
