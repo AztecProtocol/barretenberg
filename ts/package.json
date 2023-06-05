@@ -1,6 +1,6 @@
 {
   "name": "@aztec/bb.js",
-  "version": "0.0.1-alpha.1",
+  "version": "0.0.1-alpha.5",
   "type": "module",
   "typedoc": {
     "entryPoint": "./src/index.ts",
@@ -25,7 +25,8 @@
     "test": "NODE_OPTIONS='--loader ts-node/esm' NODE_NO_WARNINGS=1 node --experimental-vm-modules $(yarn bin jest) --no-cache --passWithNoTests",
     "test-debug": "NODE_OPTIONS='--loader ts-node/esm' NODE_NO_WARNINGS=1 node --inspect-brk=0.0.0.0 --experimental-vm-modules $(yarn bin jest) --no-cache --passWithNoTests --runInBand",
     "simple_test": "NODE_OPTIONS='--loader ts-node/esm' NODE_NO_WARNINGS=1 node ./src/examples/simple.rawtest.ts",
-    "publish": "npm publish --tag alpha --access public"
+    "prepack": "yarn build",
+    "deploy": "npm publish --tag alpha --access public"
   },
   "jest": {
     "preset": "ts-jest/presets/default-esm",
