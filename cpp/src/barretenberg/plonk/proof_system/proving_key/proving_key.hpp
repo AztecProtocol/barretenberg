@@ -1,16 +1,17 @@
 #pragma once
-#include "barretenberg/ecc/curves/bn254/scalar_multiplication/runtime_states.hpp"
 #include <map>
+#include <unordered_map>
+
+#include "barretenberg/ecc/scalar_multiplication/runtime_states.hpp"
 #include "barretenberg/polynomials/evaluation_domain.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
-
 #include "barretenberg/proof_system/polynomial_store/polynomial_store.hpp"
 // #include "barretenberg/proof_system/polynomial_store/polynomial_store_wasm.hpp"
 // #include "barretenberg/proof_system/polynomial_store/polynomial_store_cache.hpp"
 #include "barretenberg/srs/factories/crs_factory.hpp"
 #include "barretenberg/plonk/proof_system/constants.hpp"
 #include "barretenberg/plonk/proof_system/types/polynomial_manifest.hpp"
-#include <unordered_map>
+#include "barretenberg/ecc/curves/bn254/bn254.hpp"
 
 namespace proof_system::plonk {
 

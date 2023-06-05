@@ -1,7 +1,8 @@
 #include "mem_crs_factory.hpp"
+#include "barretenberg/ecc/curves/bn254/bn254.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
 #include "barretenberg/ecc/curves/bn254/pairing.hpp"
-#include "barretenberg/ecc/curves/bn254/scalar_multiplication/pippenger.hpp"
+#include "barretenberg/ecc/scalar_multiplication/pippenger.hpp"
 
 namespace {
 
@@ -15,7 +16,7 @@ class MemProverCrs : public ProverCrs {
     {
         monomials_ = scalar_multiplication::point_table_alloc<g1::affine_element>(num_points);
         std::copy(points.begin(), points.end(), monomials_);
-        scalar_multiplication::generate_pippenger_point_table(monomials_, monomials_, num_points);
+        scalar_multiplication::generate_pippenger_point_table<curve::BN254>(monomials_, monomials_, num_points);
     }
 
     ~MemProverCrs() { aligned_free(monomials_); }

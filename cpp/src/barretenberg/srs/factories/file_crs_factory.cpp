@@ -1,8 +1,9 @@
 #include "file_crs_factory.hpp"
 #include "../io.hpp"
+#include "barretenberg/ecc/curves/bn254/bn254.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
 #include "barretenberg/ecc/curves/bn254/pairing.hpp"
-#include "barretenberg/ecc/curves/bn254/scalar_multiplication/pippenger.hpp"
+#include "barretenberg/ecc/scalar_multiplication/pippenger.hpp"
 
 namespace barretenberg::srs::factories {
 
@@ -11,8 +12,8 @@ FileProverCrs::FileProverCrs(const size_t num_points, std::string const& path)
 {
     monomials_ = scalar_multiplication::point_table_alloc<g1::affine_element>(num_points);
 
-    io::read_transcript_g1(monomials_, num_points, path);
-    scalar_multiplication::generate_pippenger_point_table(monomials_, monomials_, num_points);
+    srs::IO<curve::BN254>::read_transcript_g1(monomials_, num_points, path);
+    scalar_multiplication::generate_pippenger_point_table<curve::BN254>(monomials_, monomials_, num_points);
 }
 
 g1::affine_element* FileProverCrs::get_monomial_points()
@@ -30,7 +31,7 @@ FileVerifierCrs::FileVerifierCrs(std::string const& path)
           (barretenberg::pairing::miller_lines*)(aligned_alloc(64, sizeof(barretenberg::pairing::miller_lines) * 2)))
 {
 
-    barretenberg::io::read_transcript_g2(g2_x, path);
+    srs::IO<curve::BN254>::read_transcript_g2(g2_x, path);
     barretenberg::pairing::precompute_miller_lines(barretenberg::g2::one, precomputed_g2_lines[0]);
     barretenberg::pairing::precompute_miller_lines(g2_x, precomputed_g2_lines[1]);
 }

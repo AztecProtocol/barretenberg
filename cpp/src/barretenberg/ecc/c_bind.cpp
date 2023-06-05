@@ -1,6 +1,7 @@
 #include "c_bind.hpp"
-#include "./curves/bn254//scalar_multiplication/scalar_multiplication.hpp"
-#include "./curves/bn254//scalar_multiplication/pippenger.hpp"
+#include "./scalar_multiplication/scalar_multiplication.hpp"
+#include "./scalar_multiplication/pippenger.hpp"
+#include "barretenberg/ecc/curves/bn254/bn254.hpp"
 #include <barretenberg/srs/io.hpp>
 
 using namespace barretenberg;
@@ -11,18 +12,18 @@ WASM_EXPORT void ecc_new_pippenger(uint8_t const* points, uint32_t const* num_po
 {
     auto points_vec = from_buffer<std::vector<uint8_t>>(points);
     auto num_points = ntohl(*num_points_buf);
-    *out = new scalar_multiplication::Pippenger(points_vec.data(), num_points);
+    *out = new scalar_multiplication::Pippenger<curve::BN254>(points_vec.data(), num_points);
 }
 
 WASM_EXPORT void ecc_new_pippenger_mem_prealloced(in_ptr points, uint32_t const* num_points_buf, out_ptr out)
 {
     auto num_points = ntohl(*num_points_buf);
-    *out = new scalar_multiplication::Pippenger((g1::affine_element*)*points, num_points);
+    *out = new scalar_multiplication::Pippenger<curve::BN254>((g1::affine_element*)*points, num_points);
 }
 
 WASM_EXPORT void ecc_delete_pippenger(in_ptr pippenger)
 {
-    delete (scalar_multiplication::Pippenger*)(*pippenger);
+    delete (scalar_multiplication::Pippenger<curve::BN254>*)(*pippenger);
 }
 
 WASM_EXPORT void ecc_pippenger_unsafe(in_ptr pippenger_ptr,
@@ -33,8 +34,8 @@ WASM_EXPORT void ecc_pippenger_unsafe(in_ptr pippenger_ptr,
 {
     uint32_t from = ntohl(*from_ptr);
     uint32_t range = ntohl(*range_ptr);
-    scalar_multiplication::pippenger_runtime_state state(range);
-    auto pippenger = (scalar_multiplication::Pippenger*)(*pippenger_ptr);
+    scalar_multiplication::pippenger_runtime_state<curve::BN254> state(range);
+    auto pippenger = (scalar_multiplication::Pippenger<curve::BN254>*)(*pippenger_ptr);
     auto result = pippenger->pippenger_unsafe((fr*)*scalars_ptr, from, range);
     write(result_ptr, static_cast<g1::affine_element>(result));
 }

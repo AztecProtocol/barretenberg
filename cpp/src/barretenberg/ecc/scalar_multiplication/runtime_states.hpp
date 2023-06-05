@@ -1,6 +1,8 @@
 #pragma once
 
-#include "../g1.hpp"
+#include "barretenberg/ecc/curves/bn254/bn254.hpp"
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
+#include "barretenberg/ecc/groups/wnaf.hpp"
 
 namespace barretenberg {
 // simple helper functions to retrieve pointers to pre-allocated memory for the scalar multiplication algorithm.
@@ -62,11 +64,11 @@ constexpr size_t get_num_rounds(const size_t num_points)
     return WNAF_SIZE(bits_per_bucket + 1);
 }
 
-struct affine_product_runtime_state {
-    g1::affine_element* points;
-    g1::affine_element* point_pairs_1;
-    g1::affine_element* point_pairs_2;
-    fq* scratch_space;
+template <typename Curve> struct affine_product_runtime_state {
+    typename Curve::AffineElement* points;
+    typename Curve::AffineElement* point_pairs_1;
+    typename Curve::AffineElement* point_pairs_2;
+    typename Curve::BaseField* scratch_space;
     uint32_t* bucket_counts;
     uint32_t* bit_offsets;
     uint64_t* point_schedule;
@@ -75,17 +77,17 @@ struct affine_product_runtime_state {
     bool* bucket_empty_status;
 };
 
-struct pippenger_runtime_state {
+template <typename Curve> struct pippenger_runtime_state {
     std::shared_ptr<void> point_schedule_ptr;
     std::shared_ptr<void> point_pairs_1_ptr;
     std::shared_ptr<void> point_pairs_2_ptr;
     std::shared_ptr<void> scratch_space_ptr;
     uint64_t* point_schedule;
-    g1::affine_element* point_pairs_1;
-    g1::affine_element* point_pairs_2;
+    typename Curve::AffineElement* point_pairs_1;
+    typename Curve::AffineElement* point_pairs_2;
+    typename Curve::BaseField* scratch_space;
 
     bool* skew_table;
-    fq* scratch_space;
     uint32_t* bucket_counts;
     uint32_t* bit_counts;
     bool* bucket_empty_status;
@@ -97,7 +99,13 @@ struct pippenger_runtime_state {
     pippenger_runtime_state& operator=(pippenger_runtime_state&& other);
     ~pippenger_runtime_state();
 
-    affine_product_runtime_state get_affine_product_runtime_state(const size_t num_threads, const size_t thread_index);
+    affine_product_runtime_state<Curve> get_affine_product_runtime_state(const size_t num_threads,
+                                                                         const size_t thread_index);
 };
+
+extern template struct affine_product_runtime_state<curve::BN254>;
+extern template struct affine_product_runtime_state<curve::Grumpkin>;
+extern template struct pippenger_runtime_state<curve::BN254>;
+extern template struct pippenger_runtime_state<curve::Grumpkin>;
 } // namespace scalar_multiplication
 } // namespace barretenberg

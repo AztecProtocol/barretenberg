@@ -7,11 +7,12 @@
  * as carrying out any modification to the SRS (e.g compute pippenger point table) to simplify the codebase.
  */
 
+#include "barretenberg/ecc/curves/bn254/bn254.hpp"
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/srs/factories/crs_factory.hpp"
 #include "barretenberg/srs/factories/file_crs_factory.hpp"
-#include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
+#include "barretenberg/ecc/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/ecc/curves/bn254/pairing.hpp"
 #include "barretenberg/numeric/bitop/pow.hpp"
 
@@ -66,11 +67,11 @@ struct Params {
         {
             const size_t degree = polynomial.size();
             ASSERT(degree <= srs->get_monomial_size());
-            return barretenberg::scalar_multiplication::pippenger_unsafe(
+            return barretenberg::scalar_multiplication::pippenger_unsafe<curve::BN254>(
                 const_cast<Fr*>(polynomial.data()), srs->get_monomial_points(), degree, pippenger_runtime_state);
         };
 
-        barretenberg::scalar_multiplication::pippenger_runtime_state pippenger_runtime_state;
+        barretenberg::scalar_multiplication::pippenger_runtime_state<curve::BN254> pippenger_runtime_state;
         std::shared_ptr<barretenberg::srs::factories::ProverCrs> srs;
     };
 
@@ -108,7 +109,7 @@ struct Params {
             return (result == barretenberg::fq12::one());
         }
 
-        barretenberg::scalar_multiplication::pippenger_runtime_state pippenger_runtime_state;
+        barretenberg::scalar_multiplication::pippenger_runtime_state<curve::BN254> pippenger_runtime_state;
         std::shared_ptr<barretenberg::srs::factories::VerifierCrs> verifier_srs;
     };
 };
@@ -214,11 +215,11 @@ struct Params {
         {
             const size_t degree = polynomial.size();
             ASSERT(degree <= srs->get_monomial_size());
-            return barretenberg::scalar_multiplication::pippenger_unsafe(
+            return barretenberg::scalar_multiplication::pippenger_unsafe<curve::BN254>(
                 const_cast<Fr*>(polynomial.data()), srs->get_monomial_points(), degree, pippenger_runtime_state);
         };
 
-        barretenberg::scalar_multiplication::pippenger_runtime_state pippenger_runtime_state;
+        barretenberg::scalar_multiplication::pippenger_runtime_state<curve::BN254> pippenger_runtime_state;
         std::shared_ptr<barretenberg::srs::factories::ProverCrs> srs;
     };
 
@@ -238,7 +239,7 @@ struct Params {
             , srs(crs)
         {}
 
-        barretenberg::scalar_multiplication::pippenger_runtime_state pippenger_runtime_state;
+        barretenberg::scalar_multiplication::pippenger_runtime_state<curve::BN254> pippenger_runtime_state;
         std::shared_ptr<barretenberg::srs::factories::ProverCrs> srs;
     };
 };

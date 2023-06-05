@@ -1,3 +1,4 @@
+#include "barretenberg/ecc/curves/bn254/bn254.hpp"
 #include "file_crs_factory.hpp"
 #include "mem_crs_factory.hpp"
 #include "../io.hpp"
@@ -15,10 +16,10 @@ TEST(reference_string, mem_file_consistency)
 
     // Use low level io lib to read 1024 from file.
     std::vector<g1::affine_element> points(1024);
-    io::read_transcript_g1(points.data(), 1024, "../srs_db/ignition");
+    ::srs::IO<curve::BN254>::read_transcript_g1(points.data(), 1024, "../srs_db/ignition");
 
     g2::affine_element g2_point;
-    io::read_transcript_g2(g2_point, "../srs_db/ignition");
+    ::srs::IO<curve::BN254>::read_transcript_g2(g2_point, "../srs_db/ignition");
 
     MemCrsFactory mem_crs(points, g2_point);
     auto file_prover_crs = file_crs.get_prover_crs(1024);

@@ -1,4 +1,5 @@
 #include "c_bind.hpp"
+#include "barretenberg/ecc/curves/bn254/bn254.hpp"
 #include "global_crs.hpp"
 #include "./io.hpp"
 #include <barretenberg/ecc/curves/bn254/g1.hpp>
@@ -14,10 +15,10 @@ using namespace barretenberg;
 WASM_EXPORT void srs_init_srs(uint8_t const* points_buf, uint32_t const* num_points, uint8_t const* g2_point_buf)
 {
     auto points = std::vector<g1::affine_element>(ntohl(*num_points));
-    barretenberg::io::read_g1_elements_from_buffer(points.data(), (char*)points_buf, points.size() * 64);
+    srs::IO<curve::BN254>::read_affine_elements_from_buffer(points.data(), (char*)points_buf, points.size() * 64);
 
     g2::affine_element g2_point;
-    io::read_g2_elements_from_buffer(&g2_point, (char*)g2_point_buf, 128);
+    srs::IO<curve::BN254>::read_affine_elements_from_buffer(&g2_point, (char*)g2_point_buf, 128);
 
     barretenberg::srs::init_crs_factory(points, g2_point);
 }

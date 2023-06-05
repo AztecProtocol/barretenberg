@@ -1,7 +1,6 @@
 #include "work_queue.hpp"
-
-#include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
+#include "barretenberg/ecc/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"
 
 namespace proof_system::plonk {
@@ -214,8 +213,8 @@ void work_queue::process_queue()
             barretenberg::g1::affine_element* srs_points = key->reference_string->get_monomial_points();
 
             // Run pippenger multi-scalar multiplication.
-            auto runtime_state = barretenberg::scalar_multiplication::pippenger_runtime_state(msm_size);
-            barretenberg::g1::affine_element result(barretenberg::scalar_multiplication::pippenger_unsafe(
+            auto runtime_state = barretenberg::scalar_multiplication::pippenger_runtime_state<curve::BN254>(msm_size);
+            barretenberg::g1::affine_element result(barretenberg::scalar_multiplication::pippenger_unsafe<curve::BN254>(
                 item.mul_scalars.get(), srs_points, msm_size, runtime_state));
 
             transcript->add_element(item.tag, result.to_buffer());
