@@ -8,7 +8,6 @@
 #include "fixed_base_scalar_mul.hpp"
 #include "schnorr_verify.hpp"
 #include "ecdsa_secp256k1.hpp"
-#include "compute_merkle_root_constraint.hpp"
 #include "recursion_constraint.hpp"
 #include "block_constraint.hpp"
 #include "pedersen.hpp"
