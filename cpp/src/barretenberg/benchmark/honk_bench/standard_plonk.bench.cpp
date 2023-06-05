@@ -27,10 +27,10 @@ namespace standard_plonk_bench {
 using StandardPlonk = proof_system::plonk::StandardPlonkComposer;
 
 // Log number of gates for test circuit
-constexpr size_t MIN_LOG_NUM_GATES = 16;
-constexpr size_t MAX_LOG_NUM_GATES = 16;
+constexpr size_t MIN_LOG_NUM_GATES = bench_utils::BenchParams::MIN_LOG_NUM_GATES;
+constexpr size_t MAX_LOG_NUM_GATES = bench_utils::BenchParams::MAX_LOG_NUM_GATES;
 // Number of times to repeat each benchmark
-constexpr size_t NUM_REPETITIONS = 1;
+constexpr size_t NUM_REPETITIONS = bench_utils::BenchParams::NUM_REPETITIONS;
 
 /**
  * @brief Benchmark: Construction of a Standard proof for a circuit determined by the provided circuit function

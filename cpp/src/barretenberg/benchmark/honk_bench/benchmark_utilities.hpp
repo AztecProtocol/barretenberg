@@ -23,6 +23,18 @@ using namespace benchmark;
 
 namespace bench_utils {
 
+struct BenchParams {
+    // Num iterations of the operation of interest in a test circuit, e.g. num sha256 hashes
+    static constexpr size_t MIN_NUM_ITERATIONS = 10;
+    static constexpr size_t MAX_NUM_ITERATIONS = 10;
+
+    // Log num gates; for simple circuits only, e.g. standard arithmetic circuit
+    static constexpr size_t MIN_LOG_NUM_GATES = 16;
+    static constexpr size_t MAX_LOG_NUM_GATES = 16;
+
+    static constexpr size_t NUM_REPETITIONS = 1;
+};
+
 /**
  * @brief Generate test circuit with basic arithmetic operations
  *
