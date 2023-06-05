@@ -2,32 +2,32 @@
 #include "barretenberg/ecc/curves/bn254/bn254.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
 #include "barretenberg/ecc/curves/bn254/pairing.hpp"
-#include "barretenberg/ecc/scalar_multiplication/pippenger.hpp"
+#include "barretenberg/ecc/scalar_multiplication/point_table.hpp"
+#include "barretenberg/ecc/scalar_multiplication/scalar_multiplication.hpp"
 
 namespace {
 
 using namespace barretenberg;
 using namespace barretenberg::srs::factories;
 
-class MemProverCrs : public ProverCrs {
+class MemProverCrs : public ProverCrs<curve::BN254> {
   public:
     MemProverCrs(std::vector<g1::affine_element> const& points)
         : num_points(points.size())
     {
         monomials_ = scalar_multiplication::point_table_alloc<g1::affine_element>(num_points);
-        std::copy(points.begin(), points.end(), monomials_);
-        scalar_multiplication::generate_pippenger_point_table<curve::BN254>(monomials_, monomials_, num_points);
+        std::copy(points.begin(), points.end(), monomials_.get());
+        scalar_multiplication::generate_pippenger_point_table<curve::BN254>(
+            monomials_.get(), monomials_.get(), num_points);
     }
 
-    ~MemProverCrs() { aligned_free(monomials_); }
-
-    g1::affine_element* get_monomial_points() override { return monomials_; }
+    g1::affine_element* get_monomial_points() override { return monomials_.get(); }
 
     size_t get_monomial_size() const override { return num_points; }
 
   private:
     size_t num_points;
-    g1::affine_element* monomials_;
+    std::shared_ptr<g1::affine_element[]> monomials_;
 };
 
 class MemVerifierCrs : public VerifierCrs {
@@ -61,7 +61,7 @@ MemCrsFactory::MemCrsFactory(std::vector<g1::affine_element> const& points, g2::
     , verifier_crs_(std::make_shared<MemVerifierCrs>(g2_point))
 {}
 
-std::shared_ptr<barretenberg::srs::factories::ProverCrs> MemCrsFactory::get_prover_crs(size_t)
+std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> MemCrsFactory::get_prover_crs(size_t)
 {
     return prover_crs_;
 }

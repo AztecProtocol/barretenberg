@@ -1,42 +1,38 @@
 #pragma once
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "./polynomial_store.hpp"
 #include "./polynomial_store_wasm.hpp"
-#include <cstddef>
 #include <map>
-#include <list>
 #include <string>
-#include <unordered_map>
-#include <limits>
 
 namespace proof_system {
 
 /**
- * Wraps both a "normal" PolynomialStore and a PolynomialStoreWasm, to maintain a LRU cache of polynomials in internal
- * memory, and swapping older polynomials out the host environment to keep the internal memory < capacity_bytes.
+ * A cache that wraps an underlying external store. It favours holding the largest polynomials in it's cache up
+ * to max_cache_size_ polynomials. This saves on many expensive copies of large amounts of memory to the external
+ * store. Smaller polynomials get swapped out, but they're also much cheaper to read/write.
+ * The default ctor sets the cache size to 70.
+ * In combination with the slab allocator, this brings us to about 4GB mem usage for 512k circuits.
+ * In tests using just the external store increased proof time from by about 50%.
+ * This pretty much recoups all losses.
  */
 class PolynomialStoreCache {
   private:
     using Polynomial = barretenberg::Polynomial<barretenberg::fr>;
-    std::unordered_map<std::string, std::list<std::string>::iterator> cache;
-    std::list<std::string> lru;
-    PolynomialStore<barretenberg::fr> internal_store;
+    std::map<std::string, Polynomial> cache_;
+    std::multimap<size_t, std::map<std::string, Polynomial>::iterator> size_map_;
     PolynomialStoreWasm<barretenberg::fr> external_store;
-    size_t capacity_bytes_;
+    size_t max_cache_size_;
 
   public:
-    explicit PolynomialStoreCache(size_t capacity_bytes = std::numeric_limits<size_t>::max());
+    PolynomialStoreCache();
+    explicit PolynomialStoreCache(size_t max_cache_size_);
 
     void put(std::string const& key, Polynomial&& value);
 
-    Polynomial& get(std::string const& key);
-
-    void remove(std::string const& key);
-
-    size_t get_size_in_bytes() const;
+    Polynomial get(std::string const& key);
 
   private:
-    void purge_until_free(size_t bytes);
+    void purge_until_free();
 };
 
 } // namespace proof_system

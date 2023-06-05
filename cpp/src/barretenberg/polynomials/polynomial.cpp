@@ -36,8 +36,7 @@ template <typename Fr>
 Polynomial<Fr>::Polynomial(const Polynomial<Fr>& other, const size_t target_size)
     : size_(std::max(target_size, other.size()))
 {
-    // info("Polynomial EXPENSIVE Copy ctor buf at ", coefficients_, " size ", size_); //
-
+    // info("Polynomial EXPENSIVE Copy ctor size ", size_);
     coefficients_ = allocate_aligned_memory(sizeof(Fr) * capacity());
 
     if (other.coefficients_ != nullptr) {

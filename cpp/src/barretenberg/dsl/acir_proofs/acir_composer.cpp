@@ -1,6 +1,7 @@
 #include "acir_composer.hpp"
 #include "barretenberg/common/serialize.hpp"
 #include "barretenberg/common/throw_or_abort.hpp"
+#include "barretenberg/dsl/acir_format/recursion_constraint.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/serialize.hpp"
 #include "barretenberg/dsl/acir_format/acir_format.hpp"
 #include "barretenberg/dsl/types.hpp"
@@ -51,11 +52,26 @@ std::vector<uint8_t> AcirComposer::create_proof(
     acir_format::WitnessVector& witness,
     bool is_recursive)
 {
-    composer_ = acir_format::Composer(proving_key_, verification_key_, circuit_subgroup_size_);
-    // You can't produce the verification key unless you manually set the crs. Which seems like a bug.
-    composer_.composer_helper.crs_factory_ = crs_factory;
+    // Release prior memory first.
+    composer_ = acir_format::Composer(0, 0, 0);
 
-    create_circuit_with_witness(composer_, constraint_system, witness);
+    info("building circuit...");
+    composer_ = [&]() {
+        if (proving_key_) {
+            auto composer = acir_format::Composer(proving_key_, verification_key_, circuit_subgroup_size_);
+            // You can't produce the verification key unless you manually set the crs. Which seems like a bug.
+            composer_.composer_helper.crs_factory_ = crs_factory;
+            create_circuit_with_witness(composer, constraint_system, witness);
+            return composer;
+        } else {
+            return acir_format::create_circuit_with_witness(constraint_system, witness, crs_factory);
+        }
+    }();
+
+    if (!proving_key_) {
+        info("computing proving key...");
+        proving_key_ = composer_.compute_proving_key();
+    }
 
     // We are done with the constraint system at this point, and we need the memory slab back.
     constraint_system.constraints.clear();
@@ -63,15 +79,14 @@ std::vector<uint8_t> AcirComposer::create_proof(
     witness.clear();
     witness.shrink_to_fit();
 
-    std::vector<uint8_t> proof;
+    info("creating proof...");
     if (is_recursive) {
         auto prover = composer_.create_prover();
-        proof = prover.construct_proof().proof_data;
+        return prover.construct_proof().proof_data;
     } else {
         auto prover = composer_.create_ultra_with_keccak_prover();
-        proof = prover.construct_proof().proof_data;
+        return prover.construct_proof().proof_data;
     }
-    return proof;
 }
 
 std::shared_ptr<proof_system::plonk::verification_key> AcirComposer::init_verification_key()
@@ -89,13 +104,13 @@ void AcirComposer::load_verification_key(std::shared_ptr<barretenberg::srs::fact
 
 bool AcirComposer::verify_proof(std::vector<uint8_t> const& proof, bool is_recursive)
 {
-    // TODO: Hack. Shouldn't need to do this. 2144 is size with no public inputs.
-    if ((proof.size() - 2144) / 32 != verification_key_->num_public_inputs) {
-        return false;
-    };
+    if (!verification_key_) {
+        info("computing verification key...");
+        verification_key_ = composer_.compute_verification_key();
+    }
 
-    // More hack. Need to resize public inputs as its size is used when computing expected manifest size.
-    composer_.circuit_constructor.public_inputs.resize(verification_key_->num_public_inputs);
+    // Hack. Shouldn't need to do this. 2144 is size with no public inputs.
+    composer_.circuit_constructor.public_inputs.resize((proof.size() - 2144) / 32);
 
     if (is_recursive) {
         auto verifier = composer_.create_verifier();
@@ -129,8 +144,7 @@ std::vector<barretenberg::fr> AcirComposer::serialize_proof_into_fields(std::vec
                                               transcript::HashType::PlookupPedersenBlake3s,
                                               16);
 
-    std::vector<barretenberg::fr> output = acir_format::export_transcript_in_recursion_format(transcript);
-    return output;
+    return acir_format::export_transcript_in_recursion_format(transcript);
 }
 
 /**
@@ -141,8 +155,7 @@ std::vector<barretenberg::fr> AcirComposer::serialize_proof_into_fields(std::vec
  */
 std::vector<barretenberg::fr> AcirComposer::serialize_verification_key_into_fields()
 {
-    std::vector<barretenberg::fr> output = acir_format::export_key_in_recursion_format(verification_key_);
-    return output;
+    return acir_format::export_key_in_recursion_format(verification_key_);
 }
 
 } // namespace acir_proofs

@@ -250,7 +250,7 @@ void work_queue::process_queue()
         // }
         case WorkType::FFT: {
             using namespace barretenberg;
-            auto& wire = key->polynomial_store.get(item.tag);
+            auto wire = key->polynomial_store.get(item.tag);
             polynomial wire_fft(wire, 4 * key->circuit_size + 4);
 
             wire_fft.coset_fft(key->large_domain);
@@ -266,11 +266,11 @@ void work_queue::process_queue()
         case WorkType::IFFT: {
             using namespace barretenberg;
             // retrieve wire in lagrange form
-            auto& wire_lagrange = key->polynomial_store.get(item.tag + "_lagrange");
+            auto wire_lagrange = key->polynomial_store.get(item.tag + "_lagrange");
 
             // Compute wire monomial form via ifft on lagrange form then add it to the store
             polynomial wire_monomial(key->circuit_size);
-            polynomial_arithmetic::ifft(&wire_lagrange[0], &wire_monomial[0], key->small_domain);
+            polynomial_arithmetic::ifft((fr*)&wire_lagrange[0], &wire_monomial[0], key->small_domain);
             key->polynomial_store.put(item.tag, std::move(wire_monomial));
 
             break;

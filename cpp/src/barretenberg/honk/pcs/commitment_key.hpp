@@ -52,7 +52,8 @@ struct Params {
          * @param path
          *
          */
-        CommitmentKey(const size_t num_points, std::shared_ptr<barretenberg::srs::factories::ProverCrs> prover_crs)
+        CommitmentKey(const size_t num_points,
+                      std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> prover_crs)
             : pippenger_runtime_state(num_points)
             , srs(prover_crs)
         {}
@@ -72,7 +73,7 @@ struct Params {
         };
 
         barretenberg::scalar_multiplication::pippenger_runtime_state<curve::BN254> pippenger_runtime_state;
-        std::shared_ptr<barretenberg::srs::factories::ProverCrs> srs;
+        std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> srs;
     };
 
     class VerificationKey {
@@ -200,7 +201,8 @@ struct Params {
          * @param path
          *
          */
-        CommitmentKey(const size_t num_points, std::shared_ptr<barretenberg::srs::factories::ProverCrs> prover_crs)
+        CommitmentKey(const size_t num_points,
+                      std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> prover_crs)
             : pippenger_runtime_state(num_points)
             , srs(prover_crs)
         {}
@@ -220,7 +222,7 @@ struct Params {
         };
 
         barretenberg::scalar_multiplication::pippenger_runtime_state<curve::BN254> pippenger_runtime_state;
-        std::shared_ptr<barretenberg::srs::factories::ProverCrs> srs;
+        std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> srs;
     };
 
     class VerificationKey {
@@ -234,13 +236,14 @@ struct Params {
          * @param num_points specifies the length of the SRS
          * @param path is the location to the SRS file
          */
-        VerificationKey(const size_t num_points, std::shared_ptr<barretenberg::srs::factories::ProverCrs> crs)
+        VerificationKey(const size_t num_points,
+                        std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> crs)
             : pippenger_runtime_state(num_points)
             , srs(crs)
         {}
 
         barretenberg::scalar_multiplication::pippenger_runtime_state<curve::BN254> pippenger_runtime_state;
-        std::shared_ptr<barretenberg::srs::factories::ProverCrs> srs;
+        std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> srs;
     };
 };
 

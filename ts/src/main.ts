@@ -31,29 +31,41 @@ async function getCircuitSize(jsonPath: string, api: BarretenbergApiAsync) {
   return { exact, total, subgroup };
 }
 
-async function init(jsonPath: string) {
+async function init(jsonPath: string, sizeHint?: number) {
   const api = await newBarretenbergApiAsync();
 
-  // First compute circuit size.
-  const circuitSizes = await getCircuitSize(jsonPath, api);
-  debug(`circuit size: ${circuitSizes.total}`);
+  const subgroupSize = await (async () => {
+    if (sizeHint) {
+      // Round to subgroup size.
+      return Math.pow(2, Math.ceil(Math.log2(sizeHint)));
+    }
 
-  if (circuitSizes.subgroup > MAX_CIRCUIT_SIZE) {
-    throw new Error(`Circuit size of ${circuitSizes.subgroup} exceeds max supported of ${MAX_CIRCUIT_SIZE}`);
-  }
+    // First compute circuit size.
+    debug(`computing circuit size (use size hint to skip)...`);
+    const circuitSizes = await getCircuitSize(jsonPath, api);
+    debug(`circuit size: ${circuitSizes.total}`);
 
+    if (circuitSizes.subgroup > MAX_CIRCUIT_SIZE) {
+      throw new Error(`Circuit size of ${circuitSizes.subgroup} exceeds max supported of ${MAX_CIRCUIT_SIZE}`);
+    }
+
+    return circuitSizes.subgroup;
+  })();
+
+  debug(`subgroup size: ${subgroupSize}`);
+  debug('loading crs...');
   // Plus 1 needed! (Move +1 into Crs?)
-  const crs = await Crs.new(circuitSizes.subgroup + 1);
+  const crs = await Crs.new(subgroupSize + 1);
 
   // Important to init slab allocator as first thing, to ensure maximum memory efficiency.
-  await api.commonInitSlabAllocator(circuitSizes.subgroup);
+  await api.commonInitSlabAllocator(subgroupSize);
 
   // Load CRS into wasm global CRS state.
   // TODO: Make RawBuffer be default behaviour, and have a specific Vector type for when wanting length prefixed.
   await api.srsInitSrs(new RawBuffer(crs.getG1Data()), crs.numPoints, new RawBuffer(crs.getG2Data()));
 
   const acirComposer = await api.acirNewAcirComposer();
-  return { api, acirComposer, circuitSize: circuitSizes.subgroup };
+  return { api, acirComposer, circuitSize: subgroupSize };
 }
 
 async function initLite() {
@@ -69,24 +81,24 @@ async function initLite() {
   return { api, acirComposer };
 }
 
-export async function proveAndVerify(jsonPath: string, witnessPath: string, isRecursive: boolean) {
-  const { api, acirComposer, circuitSize } = await init(jsonPath);
+export async function proveAndVerify(jsonPath: string, witnessPath: string, isRecursive: boolean, sizeHint?: number) {
+  const { api, acirComposer } = await init(jsonPath, sizeHint);
   try {
-    debug('initing proving key...');
+    // debug('initing proving key...');
     const bytecode = getBytecode(jsonPath);
-    await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), circuitSize);
+    // await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), circuitSize);
 
     // const circuitSize = await api.acirGetExactCircuitSize(acirComposer);
     // debug(`circuit size: ${circuitSize}`);
 
-    debug('initing verification key...');
-    await api.acirInitVerificationKey(acirComposer);
+    // debug('initing verification key...');
+    // await api.acirInitVerificationKey(acirComposer);
 
     debug(`creating proof...`);
     const witness = getWitness(witnessPath);
     const proof = await api.acirCreateProof(acirComposer, new RawBuffer(bytecode), new RawBuffer(witness), isRecursive);
-    debug(`done.`);
 
+    debug(`verifying...`);
     const verified = await api.acirVerifyProof(acirComposer, proof, isRecursive);
     console.log(`verified: ${verified}`);
     return verified;
@@ -95,12 +107,18 @@ export async function proveAndVerify(jsonPath: string, witnessPath: string, isRe
   }
 }
 
-export async function prove(jsonPath: string, witnessPath: string, isRecursive: boolean, outputPath: string) {
-  const { api, acirComposer, circuitSize } = await init(jsonPath);
+export async function prove(
+  jsonPath: string,
+  witnessPath: string,
+  isRecursive: boolean,
+  outputPath: string,
+  sizeHint?: number,
+) {
+  const { api, acirComposer } = await init(jsonPath, sizeHint);
   try {
-    debug('initing proving key...');
+    // debug('initing proving key...');
     const bytecode = getBytecode(jsonPath);
-    await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), circuitSize);
+    // await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), circuitSize);
 
     // const circuitSize = await api.acirGetExactCircuitSize(acirComposer);
     // debug(`circuit size: ${circuitSize}`);
@@ -127,46 +145,22 @@ export async function gateCount(jsonPath: string) {
   }
 }
 
-export async function verify(jsonPath: string, proofPath: string, isRecursive: boolean, vkPath?: string) {
-  if (vkPath) {
-    const { api, acirComposer } = await initLite();
-    try {
-      await api.acirLoadVerificationKey(acirComposer, new RawBuffer(readFileSync(vkPath)));
-      const verified = await api.acirVerifyProof(acirComposer, readFileSync(proofPath), isRecursive);
-      console.log(`verified: ${verified}`);
-      return verified;
-    } finally {
-      await api.destroy();
-    }
-  } else {
-    const { api, acirComposer, circuitSize } = await init(jsonPath);
-    try {
-      debug('initing proving key...');
-      const bytecode = getBytecode(jsonPath);
-      await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), circuitSize);
-
-      debug('initing verification key...');
-      await api.acirInitVerificationKey(acirComposer);
-
-      const verified = await api.acirVerifyProof(acirComposer, readFileSync(proofPath), isRecursive);
-      console.log(`verified: ${verified}`);
-      return verified;
-    } finally {
-      await api.destroy();
-    }
+export async function verify(jsonPath: string, proofPath: string, isRecursive: boolean, vkPath: string) {
+  const { api, acirComposer } = await initLite();
+  try {
+    await api.acirLoadVerificationKey(acirComposer, new RawBuffer(readFileSync(vkPath)));
+    const verified = await api.acirVerifyProof(acirComposer, readFileSync(proofPath), isRecursive);
+    console.log(`verified: ${verified}`);
+    return verified;
+  } finally {
+    await api.destroy();
   }
 }
 
-export async function contract(jsonPath: string, outputPath: string) {
-  const { api, acirComposer, circuitSize } = await init(jsonPath);
+export async function contract(outputPath: string, vkPath: string) {
+  const { api, acirComposer } = await initLite();
   try {
-    debug('initing proving key...');
-    const bytecode = getBytecode(jsonPath);
-    await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), circuitSize);
-
-    debug('initing verification key...');
-    await api.acirInitVerificationKey(acirComposer);
-
+    await api.acirLoadVerificationKey(acirComposer, new RawBuffer(readFileSync(vkPath)));
     const contract = await api.acirGetSolidityVerifier(acirComposer);
     if (outputPath === '-') {
       console.log(contract);
@@ -179,8 +173,8 @@ export async function contract(jsonPath: string, outputPath: string) {
   }
 }
 
-export async function writeVk(jsonPath: string, outputPath: string) {
-  const { api, acirComposer, circuitSize } = await init(jsonPath);
+export async function writeVk(jsonPath: string, outputPath: string, sizeHint?: number) {
+  const { api, acirComposer, circuitSize } = await init(jsonPath, sizeHint);
   try {
     debug('initing proving key...');
     const bytecode = getBytecode(jsonPath);
@@ -258,9 +252,10 @@ program
   .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
   .option('-w, --witness-path <path>', 'Specify the witness path', './target/witness.tr')
   .option('-r, --recursive', 'prove and verify using recursive prover and verifier', false)
-  .action(async ({ jsonPath, witnessPath, recursive }) => {
+  .option('-s, --size-hint <gates>', 'provide a circuit size hint to skip calculation phase')
+  .action(async ({ jsonPath, witnessPath, recursive, sizeHint }) => {
     handleGlobalOptions();
-    const result = await proveAndVerify(jsonPath, witnessPath, recursive);
+    const result = await proveAndVerify(jsonPath, witnessPath, recursive, sizeHint);
     process.exit(result ? 0 : 1);
   });
 
@@ -270,11 +265,11 @@ program
   .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
   .option('-w, --witness-path <path>', 'Specify the witness path', './target/witness.tr')
   .option('-r, --recursive', 'prove using recursive prover', false)
-  .option('-o, --output-dir <path>', 'Specify the proof output dir', './proofs')
-  .requiredOption('-n, --name <filename>', 'Output file name.')
-  .action(async ({ jsonPath, witnessPath, recursive, outputDir, name }) => {
+  .option('-o, --output-path <path>', 'Specify the proof output path', './proofs/proof')
+  .option('-s, --size-hint <gates>', 'provide a circuit size hint to skip calculation phase')
+  .action(async ({ jsonPath, witnessPath, recursive, outputPath, sizeHint }) => {
     handleGlobalOptions();
-    await prove(jsonPath, witnessPath, recursive, outputDir + '/' + name);
+    await prove(jsonPath, witnessPath, recursive, outputPath, sizeHint);
   });
 
 program
@@ -292,7 +287,7 @@ program
   .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
   .requiredOption('-p, --proof-path <path>', 'Specify the path to the proof')
   .option('-r, --recursive', 'prove using recursive prover', false)
-  .option('-k, --vk <path>', 'path to a verification key. avoids recomputation.')
+  .requiredOption('-k, --vk <path>', 'path to a verification key. avoids recomputation.')
   .action(async ({ jsonPath, proofPath, recursive, vk }) => {
     handleGlobalOptions();
     await verify(jsonPath, proofPath, recursive, vk);
@@ -303,9 +298,10 @@ program
   .description('Output solidity verification key contract.')
   .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
   .option('-o, --output-path <path>', 'Specify the path to write the contract', '-')
-  .action(async ({ jsonPath, outputPath }) => {
+  .requiredOption('-k, --vk <path>', 'path to a verification key. avoids recomputation.')
+  .action(async ({ outputPath, vk }) => {
     handleGlobalOptions();
-    await contract(jsonPath, outputPath);
+    await contract(outputPath, vk);
   });
 
 program
@@ -313,9 +309,10 @@ program
   .description('Output verification key.')
   .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
   .requiredOption('-o, --output-path <path>', 'Specify the path to write the key')
-  .action(async ({ jsonPath, outputPath }) => {
+  .option('-s, --size-hint <gates>', 'provide a circuit size hint to skip calculation phase')
+  .action(async ({ jsonPath, outputPath, sizeHint }) => {
     handleGlobalOptions();
-    await writeVk(jsonPath, outputPath);
+    await writeVk(jsonPath, outputPath, sizeHint);
   });
 
 program

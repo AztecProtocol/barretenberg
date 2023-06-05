@@ -142,13 +142,13 @@ class ProvingKey_ : public PrecomputedPolynomials, public WitnessPolynomials {
 
     bool contains_recursive_proof;
     std::vector<uint32_t> recursive_proof_public_input_indices;
-    std::shared_ptr<barretenberg::srs::factories::ProverCrs> crs;
+    std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> crs;
     barretenberg::EvaluationDomain<FF> evaluation_domain;
 
     ProvingKey_() = default;
     ProvingKey_(const size_t circuit_size,
                 const size_t num_public_inputs,
-                std::shared_ptr<barretenberg::srs::factories::ProverCrs> const& crs,
+                std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> const& crs,
                 ComposerType composer_type)
     {
         this->crs = crs;

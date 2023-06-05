@@ -288,7 +288,7 @@ template <typename B, typename T, typename A> inline void read(B& it, std::vecto
 }
 
 // Generic write of vector of types to supported buffer types.
-template <typename B, typename T> inline void write(B& buf, std::vector<T> const& value)
+template <typename B, typename T, typename A> inline void write(B& buf, std::vector<T, A> const& value)
 {
     write(buf, static_cast<uint32_t>(value.size()));
     for (size_t i = 0; i < value.size(); ++i) {

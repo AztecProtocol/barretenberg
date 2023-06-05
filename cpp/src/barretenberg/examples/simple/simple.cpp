@@ -9,7 +9,7 @@ namespace examples::simple {
 using namespace proof_system::plonk;
 using namespace stdlib::types;
 
-const size_t CIRCUIT_SIZE = 65536 * 8;
+const size_t CIRCUIT_SIZE = 1 << 19;
 
 void build_circuit(Composer& composer)
 {

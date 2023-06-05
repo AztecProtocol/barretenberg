@@ -1,5 +1,6 @@
 #pragma once
 #include "barretenberg/common/mem.hpp"
+#include "barretenberg/ecc/curves/bn254/bn254.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
 #include "barretenberg/ecc/curves/bn254/g2.hpp"
 #include <cstddef>
@@ -13,7 +14,7 @@ namespace barretenberg::srs::factories {
 /**
  * A prover crs representation.
  */
-class ProverCrs {
+template <typename Curve> class ProverCrs {
   public:
     virtual ~ProverCrs() = default;
     ;
@@ -21,7 +22,7 @@ class ProverCrs {
     /**
      * Returns the monomial points in a form to be consumed by scalar_multiplication pippenger algorithm.
      */
-    virtual barretenberg::g1::affine_element* get_monomial_points() = 0;
+    virtual typename Curve::AffineElement* get_monomial_points() = 0;
     virtual size_t get_monomial_size() const = 0;
 };
 
@@ -44,7 +45,10 @@ class CrsFactory {
     CrsFactory() = default;
     CrsFactory(CrsFactory&& other) = default;
     virtual ~CrsFactory() = default;
-    virtual std::shared_ptr<barretenberg::srs::factories::ProverCrs> get_prover_crs(size_t) { return nullptr; }
+    virtual std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> get_prover_crs(size_t)
+    {
+        return nullptr;
+    }
     virtual std::shared_ptr<barretenberg::srs::factories::VerifierCrs> get_verifier_crs() { return nullptr; }
 };
 

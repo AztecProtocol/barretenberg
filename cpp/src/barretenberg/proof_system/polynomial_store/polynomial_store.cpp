@@ -10,6 +10,7 @@ namespace proof_system {
 
 template <typename Fr> void PolynomialStore<Fr>::put(std::string const& key, Polynomial&& value)
 {
+    // info("put ", key, ": ", value.hash());
     polynomial_map[key] = std::move(value);
     // info("poly store put: ", key, " ", get_size_in_bytes() / (1024 * 1024), "MB");
 };
@@ -21,10 +22,13 @@ template <typename Fr> void PolynomialStore<Fr>::put(std::string const& key, Pol
  * @param key string ID of the polynomial
  * @return Polynomial&; a reference to the polynomial associated with the given key
  */
-template <typename Fr> barretenberg::Polynomial<Fr>& PolynomialStore<Fr>::get(std::string const& key)
+template <typename Fr> barretenberg::Polynomial<Fr> PolynomialStore<Fr>::get(std::string const& key)
 {
     // info("poly store get: ", key);
-    return polynomial_map.at(key);
+    // Take a shallow copy of the polynomial. Compiler will move the shallow copy to call site.
+    auto p = polynomial_map.at(key).clone();
+    // info("got ", key, ": ", p.hash());
+    return p;
 };
 
 /**

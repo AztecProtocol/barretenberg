@@ -1100,7 +1100,7 @@ TEST(polynomials, factor_roots)
             EXPECT_EQ(poly.evaluate(roots[i]), fr::zero()) << i;
         }
 
-        polynomial quotient(poly.clone());
+        polynomial quotient(poly);
         quotient.factor_roots(roots);
 
         // check that (t-r)q(t) == p(t)

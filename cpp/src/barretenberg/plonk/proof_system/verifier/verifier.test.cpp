@@ -1,4 +1,5 @@
 #include "../prover/prover.hpp"
+#include "barretenberg/ecc/curves/bn254/bn254.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "../utils/permutation.hpp"
 #include "../widgets/transition_widgets/arithmetic_widget.hpp"
@@ -76,7 +77,7 @@ plonk::Prover generate_test_data(const size_t n)
 
     // even indices = mul gates, odd incides = add gates
 
-    auto crs = std::make_shared<barretenberg::srs::factories::FileProverCrs>(n + 1, "../srs_db/ignition");
+    auto crs = std::make_shared<barretenberg::srs::factories::FileProverCrs<curve::BN254>>(n + 1, "../srs_db/ignition");
     std::shared_ptr<proving_key> key = std::make_shared<proving_key>(n, 0, crs, ComposerType::STANDARD);
 
     polynomial w_l(n);

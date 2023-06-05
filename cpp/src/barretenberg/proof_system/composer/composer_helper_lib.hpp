@@ -97,7 +97,7 @@ void enforce_nonzero_selector_polynomials(const typename Flavor::CircuitConstruc
         }
     } else if constexpr (IsPlonkFlavor<Flavor>) {
         for (size_t idx = 0; idx < circuit_constructor.num_selectors; ++idx) {
-            auto& current_selector =
+            auto current_selector =
                 proving_key->polynomial_store.get(circuit_constructor.selector_names_[idx] + "_lagrange");
             current_selector[current_selector.size() - 1] = idx + 1;
             proving_key->polynomial_store.put(circuit_constructor.selector_names_[idx] + "_lagrange",

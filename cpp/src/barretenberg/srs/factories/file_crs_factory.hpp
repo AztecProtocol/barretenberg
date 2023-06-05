@@ -1,21 +1,23 @@
 #pragma once
+#include "barretenberg/ecc/curves/bn254/bn254.hpp"
 #include "crs_factory.hpp"
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 #include <utility>
 #include <cstddef>
 
 namespace barretenberg::srs::factories {
 
-class FileProverCrs : public ProverCrs {
+template <typename Curve> class FileProverCrs : public ProverCrs<Curve> {
   public:
     FileProverCrs(const size_t num_points, std::string const& path);
 
-    g1::affine_element* get_monomial_points() override;
+    typename Curve::AffineElement* get_monomial_points() { return monomials_.get(); }
 
-    size_t get_monomial_size() const override;
+    size_t get_monomial_size() const { return num_points; }
 
   private:
     size_t num_points;
-    g1::affine_element* monomials_;
+    std::shared_ptr<typename Curve::AffineElement[]> monomials_;
 };
 
 class FileVerifierCrs : public VerifierCrs {
@@ -41,15 +43,18 @@ class FileCrsFactory : public CrsFactory {
     FileCrsFactory(std::string path, size_t initial_degree = 0);
     FileCrsFactory(FileCrsFactory&& other) = default;
 
-    std::shared_ptr<barretenberg::srs::factories::ProverCrs> get_prover_crs(size_t degree) override;
+    std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> get_prover_crs(size_t degree) override;
 
     std::shared_ptr<barretenberg::srs::factories::VerifierCrs> get_verifier_crs() override;
 
   private:
     std::string path_;
     size_t degree_;
-    std::shared_ptr<barretenberg::srs::factories::ProverCrs> prover_crs_;
+    std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> prover_crs_;
     std::shared_ptr<barretenberg::srs::factories::VerifierCrs> verifier_crs_;
 };
+
+extern template class FileProverCrs<curve::BN254>;
+extern template class FileProverCrs<curve::Grumpkin>;
 
 } // namespace barretenberg::srs::factories

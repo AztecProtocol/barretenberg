@@ -5,6 +5,7 @@
 #include "barretenberg/polynomials/iterate_over_domain.hpp"
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"
 #include "barretenberg/common/mem.hpp"
+#include "barretenberg/common/map.hpp"
 #include <cstddef>
 
 namespace proof_system::plonk {
@@ -142,10 +143,10 @@ void ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>::compute_gra
         accumulators[k] = (fr*)accumulators_ptrs[k].get();
     }
 
-    auto& s_lagrange = key->polynomial_store.get("s_lagrange");
-    auto& column_1_step_size = key->polynomial_store.get("q_2_lagrange");
-    auto& column_2_step_size = key->polynomial_store.get("q_m_lagrange");
-    auto& column_3_step_size = key->polynomial_store.get("q_c_lagrange");
+    auto s_lagrange = key->polynomial_store.get("s_lagrange");
+    auto column_1_step_size = key->polynomial_store.get("q_2_lagrange");
+    auto column_2_step_size = key->polynomial_store.get("q_m_lagrange");
+    auto column_3_step_size = key->polynomial_store.get("q_c_lagrange");
 
     fr eta = fr::serialize_from_buffer(transcript.get_challenge("eta").begin());
     fr eta_sqr = eta.sqr();
@@ -155,21 +156,23 @@ void ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>::compute_gra
     fr gamma = fr::serialize_from_buffer(transcript.get_challenge("beta", 1).begin());
 
     // Grab coefficient refs.
-    std::array<fr*, 4> lagrange_base_tables{
-        key->polynomial_store.get("table_value_1_lagrange").data().get(),
-        key->polynomial_store.get("table_value_2_lagrange").data().get(),
-        key->polynomial_store.get("table_value_3_lagrange").data().get(),
-        key->polynomial_store.get("table_value_4_lagrange").data().get(),
+    std::array<std::shared_ptr<fr[]>, 4> lagrange_base_tables_ptr{
+        key->polynomial_store.get("table_value_1_lagrange").data(),
+        key->polynomial_store.get("table_value_2_lagrange").data(),
+        key->polynomial_store.get("table_value_3_lagrange").data(),
+        key->polynomial_store.get("table_value_4_lagrange").data(),
     };
+    auto lagrange_base_tables = map(lagrange_base_tables_ptr, [](auto& e) { return e.get(); });
 
-    auto& lookup_selector = key->polynomial_store.get("table_type_lagrange");
-    auto& lookup_index_selector = key->polynomial_store.get("q_3_lagrange");
+    auto lookup_selector = key->polynomial_store.get("table_type_lagrange");
+    auto lookup_index_selector = key->polynomial_store.get("q_3_lagrange");
 
-    std::array<fr*, 3> lagrange_base_wires{
-        key->polynomial_store.get("w_1_lagrange").data().get(),
-        key->polynomial_store.get("w_2_lagrange").data().get(),
-        key->polynomial_store.get("w_3_lagrange").data().get(),
+    std::array<std::shared_ptr<fr[]>, 3> lagrange_base_wires_ptr{
+        key->polynomial_store.get("w_1_lagrange").data(),
+        key->polynomial_store.get("w_2_lagrange").data(),
+        key->polynomial_store.get("w_3_lagrange").data(),
     };
+    auto lagrange_base_wires = map(lagrange_base_wires_ptr, [](auto& e) { return e.get(); });
 
     const fr beta_constant = beta + fr(1);                // (1 + β)
     const fr gamma_beta_constant = gamma * beta_constant; // γ(1 + β)
@@ -417,34 +420,36 @@ template <const size_t num_roots_cut_out_of_vanishing_polynomial>
 barretenberg::fr ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>::compute_quotient_contribution(
     const fr& alpha_base, const transcript::StandardTranscript& transcript)
 {
-    auto& z_lookup_fft = key->polynomial_store.get("z_lookup_fft");
+    auto z_lookup_fft = key->polynomial_store.get("z_lookup_fft");
 
     fr eta = fr::serialize_from_buffer(transcript.get_challenge("eta").begin());
     fr alpha = fr::serialize_from_buffer(transcript.get_challenge("alpha").begin());
     fr beta = fr::serialize_from_buffer(transcript.get_challenge("beta").begin());
     fr gamma = fr::serialize_from_buffer(transcript.get_challenge("beta", 1).begin());
 
-    std::array<fr*, 3> wire_ffts{
-        key->polynomial_store.get("w_1_fft").data().get(),
-        key->polynomial_store.get("w_2_fft").data().get(),
-        key->polynomial_store.get("w_3_fft").data().get(),
+    std::array<std::shared_ptr<fr[]>, 3> wire_ffts_ptr{
+        key->polynomial_store.get("w_1_fft").data(),
+        key->polynomial_store.get("w_2_fft").data(),
+        key->polynomial_store.get("w_3_fft").data(),
     };
+    auto wire_ffts = map(wire_ffts_ptr, [](auto& e) { return e.get(); });
 
-    auto& s_fft = key->polynomial_store.get("s_fft");
+    auto s_fft = key->polynomial_store.get("s_fft");
 
-    std::array<fr*, 4> table_ffts{
-        key->polynomial_store.get("table_value_1_fft").data().get(),
-        key->polynomial_store.get("table_value_2_fft").data().get(),
-        key->polynomial_store.get("table_value_3_fft").data().get(),
-        key->polynomial_store.get("table_value_4_fft").data().get(),
+    std::array<std::shared_ptr<fr[]>, 4> table_ffts_ptr{
+        key->polynomial_store.get("table_value_1_fft").data(),
+        key->polynomial_store.get("table_value_2_fft").data(),
+        key->polynomial_store.get("table_value_3_fft").data(),
+        key->polynomial_store.get("table_value_4_fft").data(),
     };
+    auto table_ffts = map(table_ffts_ptr, [](auto& e) { return e.get(); });
 
-    auto& column_1_step_size = key->polynomial_store.get("q_2_fft");
-    auto& column_2_step_size = key->polynomial_store.get("q_m_fft");
-    auto& column_3_step_size = key->polynomial_store.get("q_c_fft");
+    auto column_1_step_size = key->polynomial_store.get("q_2_fft");
+    auto column_2_step_size = key->polynomial_store.get("q_m_fft");
+    auto column_3_step_size = key->polynomial_store.get("q_c_fft");
 
-    auto& lookup_fft = key->polynomial_store.get("table_type_fft");
-    auto& lookup_index_fft = key->polynomial_store.get("q_3_fft");
+    auto lookup_fft = key->polynomial_store.get("table_type_fft");
+    auto lookup_index_fft = key->polynomial_store.get("q_3_fft");
 
     const fr gamma_beta_constant = gamma * (fr(1) + beta); // γ(1 + β)
 
@@ -453,7 +458,7 @@ barretenberg::fr ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>:
     // Since the second value ("l_1") is used in the algorithm, the test passes.
     // However, if you comment out the following line, suddenly "l_1" becomes the "1st" access
     // which is incorrect, and hence the proof fails for wasm.
-    auto& l_1 = key->polynomial_store.get("lagrange_1_fft");
+    auto l_1 = key->polynomial_store.get("lagrange_1_fft");
     // delta_factor = [γ(1 + β)]^{n-k}
     const fr delta_factor = gamma_beta_constant.pow(key->small_domain.size - num_roots_cut_out_of_vanishing_polynomial);
     const fr alpha_sqr = alpha.sqr();

@@ -54,6 +54,11 @@ template <typename Arithmetization> class CircuitConstructorBase {
     CircuitConstructorBase(std::vector<std::string> selector_names, size_t size_hint = 0)
         : selector_names_(std::move(selector_names))
     {
+        variables.reserve(size_hint * 3);
+        next_var_index.reserve(size_hint * 3);
+        prev_var_index.reserve(size_hint * 3);
+        real_variable_index.reserve(size_hint * 3);
+        real_variable_tags.reserve(size_hint * 3);
         for (auto& p : selectors) {
             p.reserve(size_hint);
         }

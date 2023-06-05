@@ -1,11 +1,11 @@
-#include <chrono>
-#include <type_traits>
-#include <vector>
-
-#include "pippenger.hpp"
+#include "point_table.hpp"
 #include "scalar_multiplication.hpp"
 #include "barretenberg/common/test.hpp"
 #include "barretenberg/srs/io.hpp"
+#include "barretenberg/srs/factories/file_crs_factory.hpp"
+#include <cstddef>
+#include <vector>
+
 #include "barretenberg/numeric/random/engine.hpp"
 #include "barretenberg/common/mem.hpp"
 
@@ -49,7 +49,6 @@ TYPED_TEST_SUITE(SRSIO, Curves);
 TYPED_TEST(SRSIO, ReduceBucketsSimple)
 {
     using Curve = TypeParam;
-    using Pippenger = barretenberg::scalar_multiplication::Pippenger<Curve>;
     using Element = typename Curve::Element;
     using AffineElement = typename Curve::AffineElement;
     using Fq = typename Curve::BaseField;
@@ -58,8 +57,8 @@ TYPED_TEST(SRSIO, ReduceBucketsSimple)
     if constexpr (srs::HasG2<Curve>) {
         TestFixture::read_transcript_g2(TestFixture::SRS_PATH);
     }
-    auto pippenger = Pippenger(TestFixture::SRS_PATH, num_points / 2);
-    auto monomials = pippenger.get_point_table();
+    auto crs = srs::factories::FileProverCrs<Curve>(num_points / 2, TestFixture::SRS_PATH);
+    auto monomials = crs.get_monomial_points();
 
     std::vector<uint64_t> point_schedule(barretenberg::scalar_multiplication::point_table_size(num_points / 2));
     std::array<bool, num_points> bucket_empty_status;
@@ -824,9 +823,9 @@ TYPED_TEST(SRSIO, PippengerShortInputs)
 
     Fr* scalars = (Fr*)aligned_alloc(32, sizeof(Fr) * num_points);
 
-    AffineElement* points = barretenberg::scalar_multiplication::point_table_alloc<AffineElement>(num_points);
+    auto points = barretenberg::scalar_multiplication::point_table_alloc<AffineElement>(num_points);
 
-    for (size_t i = 0; i < num_points; ++i) {
+    for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)num_points; ++i) {
         points[i] = AffineElement(Element::random_element());
     }
     for (size_t i = 0; i < (num_points / 4); ++i) {
@@ -854,19 +853,18 @@ TYPED_TEST(SRSIO, PippengerShortInputs)
 
     Element expected;
     expected.self_set_infinity();
-    for (size_t i = 0; i < num_points; ++i) {
+    for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)num_points; ++i) {
         Element temp = points[i] * scalars[i];
         expected += temp;
     }
     expected = expected.normalize();
-    barretenberg::scalar_multiplication::generate_pippenger_point_table<Curve>(points, points, num_points);
+    barretenberg::scalar_multiplication::generate_pippenger_point_table<Curve>(points.get(), points.get(), num_points);
     barretenberg::scalar_multiplication::pippenger_runtime_state<Curve> state(num_points);
 
-    Element result = barretenberg::scalar_multiplication::pippenger<Curve>(scalars, points, num_points, state);
+    Element result = barretenberg::scalar_multiplication::pippenger<Curve>(scalars, points.get(), num_points, state);
     result = result.normalize();
 
     aligned_free(scalars);
-    aligned_free(points);
 
     EXPECT_EQ(result == expected, true);
 }
@@ -882,28 +880,28 @@ TYPED_TEST(SRSIO, PippengerUnsafe)
 
     Fr* scalars = (Fr*)aligned_alloc(32, sizeof(Fr) * num_points);
 
-    AffineElement* points = barretenberg::scalar_multiplication::point_table_alloc<AffineElement>(num_points);
+    auto points = barretenberg::scalar_multiplication::point_table_alloc<AffineElement>(num_points);
 
-    for (size_t i = 0; i < num_points; ++i) {
+    for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)num_points; ++i) {
         scalars[i] = Fr::random_element();
         points[i] = AffineElement(Element::random_element());
     }
 
     Element expected;
     expected.self_set_infinity();
-    for (size_t i = 0; i < num_points; ++i) {
+    for (std::ptrdiff_t i = 0; i < (std::ptrdiff_t)num_points; ++i) {
         Element temp = points[i] * scalars[i];
         expected += temp;
     }
     expected = expected.normalize();
-    barretenberg::scalar_multiplication::generate_pippenger_point_table<Curve>(points, points, num_points);
+    barretenberg::scalar_multiplication::generate_pippenger_point_table<Curve>(points.get(), points.get(), num_points);
 
     barretenberg::scalar_multiplication::pippenger_runtime_state<Curve> state(num_points);
-    Element result = barretenberg::scalar_multiplication::pippenger_unsafe<Curve>(scalars, points, num_points, state);
+    Element result =
+        barretenberg::scalar_multiplication::pippenger_unsafe<Curve>(scalars, points.get(), num_points, state);
     result = result.normalize();
 
     aligned_free(scalars);
-    aligned_free(points);
 
     EXPECT_EQ(result == expected, true);
 }

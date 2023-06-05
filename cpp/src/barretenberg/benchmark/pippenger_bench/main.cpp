@@ -42,7 +42,8 @@ constexpr size_t NUM_POINTS = 1 << 16;
 std::vector<fr> scalars;
 static barretenberg::evaluation_domain small_domain;
 static barretenberg::evaluation_domain large_domain;
-auto reference_string = std::make_shared<barretenberg::srs::factories::FileProverCrs>(NUM_POINTS, "../srs_db/ignition");
+auto reference_string =
+    std::make_shared<barretenberg::srs::factories::FileProverCrs<curve::BN254>>(NUM_POINTS, "../srs_db/ignition");
 
 const auto init = []() {
     small_domain = barretenberg::evaluation_domain(NUM_POINTS);
