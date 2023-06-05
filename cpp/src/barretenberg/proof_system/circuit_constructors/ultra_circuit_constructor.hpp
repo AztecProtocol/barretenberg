@@ -1184,7 +1184,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
                                      fr alpha_base,
                                      fr alpha) const;
 
-    void update_circuit_in_the_head();
+    void update_circuit_in_the_head(); // WORKTODO: declared but not defined
     bool check_circuit();
 };
 } // namespace proof_system

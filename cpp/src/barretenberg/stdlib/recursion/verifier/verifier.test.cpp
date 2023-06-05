@@ -292,6 +292,9 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
         auto circuit_output = create_outer_circuit(inner_composer, outer_composer);
 
+        outer_composer.circuit_constructor.check_circuit();
+        info("Checked circuit after creating outer circuit");
+
         g1::affine_element P[2];
         P[0].x = barretenberg::fq(circuit_output.aggregation_state.P0.x.get_value().lo);
         P[0].y = barretenberg::fq(circuit_output.aggregation_state.P0.y.get_value().lo);

@@ -7,6 +7,7 @@
 #include "barretenberg/common/net.hpp"
 
 const std::string protocol_name = "BARRETENBERG_GRUMPKIN_IPA_CRS";
+// WORKTODO: this is incorrect now right?
 /* Generates a monomial basis Grumpkin SRS for testing purposes.
    We only provide functionality create a single transcript file.
    The SRS has the form [1]_1, [x]_1, [x^2]_1, ... where x = 2. */
