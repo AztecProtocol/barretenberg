@@ -55,11 +55,23 @@ std::vector<uint8_t> AcirComposer::create_proof(
     // Release prior memory first.
     composer_ = acir_format::Composer(0, 0, 0);
 
-    composer_ = acir_format::Composer(proving_key_, verification_key_, circuit_subgroup_size_);
-    // You can't produce the verification key unless you manually set the crs. Which seems like a bug.
-    composer_.crs_factory_ = crs_factory;
+    info("building circuit...");
+    composer_ = [&]() {
+        if (proving_key_) {
+            auto composer = acir_format::Composer(proving_key_, verification_key_, circuit_subgroup_size_);
+            // You can't produce the verification key unless you manually set the crs. Which seems like a bug.
+            composer_.crs_factory_ = crs_factory;
+            create_circuit_with_witness(composer, constraint_system, witness);
+            return composer;
+        } else {
+            return acir_format::create_circuit_with_witness(constraint_system, witness, crs_factory);
+        }
+    }();
 
-    create_circuit_with_witness(composer_, constraint_system, witness);
+    if (!proving_key_) {
+        info("computing proving key...");
+        proving_key_ = composer_.compute_proving_key();
+    }
 
     // We are done with the constraint system at this point, and we need the memory slab back.
     constraint_system.constraints.clear();
@@ -67,15 +79,14 @@ std::vector<uint8_t> AcirComposer::create_proof(
     witness.clear();
     witness.shrink_to_fit();
 
-    std::vector<uint8_t> proof;
+    info("creating proof...");
     if (is_recursive) {
         auto prover = composer_.create_prover();
-        proof = prover.construct_proof().proof_data;
+        return prover.construct_proof().proof_data;
     } else {
         auto prover = composer_.create_ultra_with_keccak_prover();
-        proof = prover.construct_proof().proof_data;
+        return prover.construct_proof().proof_data;
     }
-    return proof;
 }
 
 std::shared_ptr<proof_system::plonk::verification_key> AcirComposer::init_verification_key()
@@ -93,6 +104,11 @@ void AcirComposer::load_verification_key(std::shared_ptr<barretenberg::srs::fact
 
 bool AcirComposer::verify_proof(std::vector<uint8_t> const& proof, bool is_recursive)
 {
+    if (!verification_key_) {
+        info("computing verification key...");
+        verification_key_ = composer_.compute_verification_key();
+    }
+
     // Hack. Shouldn't need to do this. 2144 is size with no public inputs.
     composer_.public_inputs.resize((proof.size() - 2144) / 32);
 
