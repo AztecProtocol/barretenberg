@@ -95,12 +95,19 @@ template <typename FF> class Ultra : public Arithmetization</*NUM_WIRES =*/4, /*
         Selectors(const Selectors& other)
             : SelectorsBase<FF, num_selectors>(other)
         {}
+        Selectors(Selectors&& other) = default;
         Selectors& operator=(Selectors&& other)
         {
             SelectorsBase<FF, num_selectors>::operator=(other);
             return *this;
         }
         ~Selectors() = default;
+        // Selectors() = default;
+        // Selectors(const Selectors& other) = default;
+        // Selectors(Selectors&& other) = default;
+        // Selectors& operator=(Selectors const& other) = default;
+        // Selectors& operator=(Selectors&& other) = default;
+        // ~Selectors() = default;
     };
 };
 } // namespace arithmetization
