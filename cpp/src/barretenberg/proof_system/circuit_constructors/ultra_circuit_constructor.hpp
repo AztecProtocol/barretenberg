@@ -1113,8 +1113,8 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
     std::array<uint32_t, 2> read_ROM_array_pair(const size_t rom_id, const uint32_t index_witness);
     void create_ROM_gate(RomRecord& record);
     void create_sorted_ROM_gate(RomRecord& record);
-    void process_ROM_array(const size_t rom_id, const size_t gate_offset_from_public_inputs);
-    void process_ROM_arrays(const size_t gate_offset_from_public_inputs);
+    void process_ROM_array(const size_t rom_id);
+    void process_ROM_arrays();
 
     void create_RAM_gate(RamRecord& record);
     void create_sorted_RAM_gate(RamRecord& record);
@@ -1124,8 +1124,8 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
     void init_RAM_element(const size_t ram_id, const size_t index_value, const uint32_t value_witness);
     uint32_t read_RAM_array(const size_t ram_id, const uint32_t index_witness);
     void write_RAM_array(const size_t ram_id, const uint32_t index_witness, const uint32_t value_witness);
-    void process_RAM_array(const size_t ram_id, const size_t gate_offset_from_public_inputs);
-    void process_RAM_arrays(const size_t gate_offset_from_public_inputs);
+    void process_RAM_array(const size_t ram_id);
+    void process_RAM_arrays();
 
     // Circuit evaluation methods
 
