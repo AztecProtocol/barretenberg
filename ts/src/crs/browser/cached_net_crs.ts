@@ -1,4 +1,3 @@
-import { concatenateUint8Arrays, numToUInt32BE } from '../../serialize/index.js';
 import { NetCrs } from '../net_crs.js';
 import { get, set } from 'idb-keyval';
 

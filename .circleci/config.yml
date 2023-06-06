@@ -239,6 +239,18 @@ jobs:
           name: "Test"
           command: store_test_benchmark_logs barretenberg-x86_64-linux-clang-assert
 
+  bb-js-tests:
+    docker:
+      - image: aztecprotocol/alpine-build-image
+    resource_class: small
+    steps:
+      - *checkout
+      - *setup_env
+      - run:
+          name: "Test"
+          command: cond_spot_run_tests bb.js
+      - *save_logs
+
   ###################################
   # Aztec integration tests
   circuits-wasm-linux-clang-builder-runner:
@@ -341,8 +353,12 @@ workflows:
               only:
                 - master
           <<: *defaults
+      - bb-js-tests:
+          requires:
+            - wasm-linux-clang
+          <<: *defaults
       - circuits-wasm-linux-clang-builder-runner: *notmaster
-      - circuits-x86_64-linux-clang-builder-runner:  *notmaster
+      - circuits-x86_64-linux-clang-builder-runner: *notmaster
       - circuits-wasm-tests:
           requires:
             - circuits-wasm-linux-clang-builder-runner

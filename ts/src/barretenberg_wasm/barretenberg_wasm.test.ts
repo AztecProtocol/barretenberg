@@ -33,7 +33,7 @@ describe('barretenberg wasm worker', () => {
 
   beforeAll(async () => {
     ({ wasm, worker } = await BarretenbergWasm.newWorker(2));
-  });
+  }, 20000);
 
   afterAll(async () => {
     await wasm.destroy();

@@ -12,12 +12,29 @@ const debug = createDebug('bb.js');
 // Maximum we support.
 const MAX_CIRCUIT_SIZE = 2 ** 19;
 
-function getBytecode(jsonPath: string) {
+function getJsonData(jsonPath: string) {
   const json = readFileSync(jsonPath, 'utf-8');
   const parsed = JSON.parse(json);
+  return parsed;
+}
+
+function getBytecode(jsonPath: string) {
+  const parsed = getJsonData(jsonPath);
   const buffer = Buffer.from(parsed.bytecode, 'base64');
   const decompressed = gunzipSync(buffer);
   return decompressed;
+}
+
+async function getGates(jsonPath: string, api: BarretenbergApiAsync) {
+  const parsed = getJsonData(jsonPath);
+  if (parsed.gates) {
+    return +parsed.gates;
+  }
+  const { total } = await computeCircuitSize(jsonPath, api);
+  const jsonData = getJsonData(jsonPath);
+  jsonData.gates = total;
+  writeFileSync(jsonPath, JSON.stringify(jsonData));
+  return total;
 }
 
 function getWitness(witnessPath: string) {
@@ -25,33 +42,23 @@ function getWitness(witnessPath: string) {
   return Buffer.concat([numToUInt32BE(data.length / 32), data]);
 }
 
-async function getCircuitSize(jsonPath: string, api: BarretenbergApiAsync) {
+async function computeCircuitSize(jsonPath: string, api: BarretenbergApiAsync) {
+  debug(`computing circuit size...`);
   const bytecode = getBytecode(jsonPath);
   const [exact, total, subgroup] = await api.acirGetCircuitSizes(new RawBuffer(bytecode));
   return { exact, total, subgroup };
 }
 
-async function init(jsonPath: string, sizeHint?: number) {
+async function init(jsonPath: string) {
   const api = await newBarretenbergApiAsync();
 
-  const subgroupSize = await (async () => {
-    if (sizeHint) {
-      // Round to subgroup size.
-      return Math.pow(2, Math.ceil(Math.log2(sizeHint)));
-    }
+  const circuitSize = await getGates(jsonPath, api);
+  const subgroupSize = Math.pow(2, Math.ceil(Math.log2(circuitSize)));
+  if (subgroupSize > MAX_CIRCUIT_SIZE) {
+    throw new Error(`Circuit size of ${subgroupSize} exceeds max supported of ${MAX_CIRCUIT_SIZE}`);
+  }
 
-    // First compute circuit size.
-    debug(`computing circuit size (use size hint to skip)...`);
-    const circuitSizes = await getCircuitSize(jsonPath, api);
-    debug(`circuit size: ${circuitSizes.total}`);
-
-    if (circuitSizes.subgroup > MAX_CIRCUIT_SIZE) {
-      throw new Error(`Circuit size of ${circuitSizes.subgroup} exceeds max supported of ${MAX_CIRCUIT_SIZE}`);
-    }
-
-    return circuitSizes.subgroup;
-  })();
-
+  debug(`circuit size: ${circuitSize}`);
   debug(`subgroup size: ${subgroupSize}`);
   debug('loading crs...');
   // Plus 1 needed! (Move +1 into Crs?)
@@ -81,8 +88,8 @@ async function initLite() {
   return { api, acirComposer };
 }
 
-export async function proveAndVerify(jsonPath: string, witnessPath: string, isRecursive: boolean, sizeHint?: number) {
-  const { api, acirComposer } = await init(jsonPath, sizeHint);
+export async function proveAndVerify(jsonPath: string, witnessPath: string, isRecursive: boolean) {
+  const { api, acirComposer } = await init(jsonPath);
   try {
     debug(`creating proof...`);
     const bytecode = getBytecode(jsonPath);
@@ -98,14 +105,8 @@ export async function proveAndVerify(jsonPath: string, witnessPath: string, isRe
   }
 }
 
-export async function prove(
-  jsonPath: string,
-  witnessPath: string,
-  isRecursive: boolean,
-  outputPath: string,
-  sizeHint?: number,
-) {
-  const { api, acirComposer } = await init(jsonPath, sizeHint);
+export async function prove(jsonPath: string, witnessPath: string, isRecursive: boolean, outputPath: string) {
+  const { api, acirComposer } = await init(jsonPath);
   try {
     debug(`creating proof...`);
     const bytecode = getBytecode(jsonPath);
@@ -123,8 +124,7 @@ export async function prove(
 export async function gateCount(jsonPath: string) {
   const api = await newBarretenbergApiAsync(1);
   try {
-    const circuitSizes = await getCircuitSize(jsonPath, api);
-    console.log(`${circuitSizes.exact}`);
+    console.log(`gates: ${await getGates(jsonPath, api)}`);
   } finally {
     await api.destroy();
   }
@@ -158,8 +158,8 @@ export async function contract(outputPath: string, vkPath: string) {
   }
 }
 
-export async function writeVk(jsonPath: string, outputPath: string, sizeHint?: number) {
-  const { api, acirComposer } = await init(jsonPath, sizeHint);
+export async function writeVk(jsonPath: string, outputPath: string) {
+  const { api, acirComposer } = await init(jsonPath);
   try {
     debug('initing proving key...');
     const bytecode = getBytecode(jsonPath);
@@ -237,10 +237,9 @@ program
   .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
   .option('-w, --witness-path <path>', 'Specify the witness path', './target/witness.tr')
   .option('-r, --recursive', 'prove and verify using recursive prover and verifier', false)
-  .option('-s, --size-hint <gates>', 'provide a circuit size hint to skip calculation phase')
-  .action(async ({ jsonPath, witnessPath, recursive, sizeHint }) => {
+  .action(async ({ jsonPath, witnessPath, recursive }) => {
     handleGlobalOptions();
-    const result = await proveAndVerify(jsonPath, witnessPath, recursive, sizeHint);
+    const result = await proveAndVerify(jsonPath, witnessPath, recursive);
     process.exit(result ? 0 : 1);
   });
 
@@ -251,10 +250,9 @@ program
   .option('-w, --witness-path <path>', 'Specify the witness path', './target/witness.tr')
   .option('-r, --recursive', 'prove using recursive prover', false)
   .option('-o, --output-path <path>', 'Specify the proof output path', './proofs/proof')
-  .option('-s, --size-hint <gates>', 'provide a circuit size hint to skip calculation phase')
-  .action(async ({ jsonPath, witnessPath, recursive, outputPath, sizeHint }) => {
+  .action(async ({ jsonPath, witnessPath, recursive, outputPath }) => {
     handleGlobalOptions();
-    await prove(jsonPath, witnessPath, recursive, outputPath, sizeHint);
+    await prove(jsonPath, witnessPath, recursive, outputPath);
   });
 
 program
@@ -294,10 +292,9 @@ program
   .description('Output verification key.')
   .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
   .requiredOption('-o, --output-path <path>', 'Specify the path to write the key')
-  .option('-s, --size-hint <gates>', 'provide a circuit size hint to skip calculation phase')
-  .action(async ({ jsonPath, outputPath, sizeHint }) => {
+  .action(async ({ jsonPath, outputPath }) => {
     handleGlobalOptions();
-    await writeVk(jsonPath, outputPath, sizeHint);
+    await writeVk(jsonPath, outputPath);
   });
 
 program

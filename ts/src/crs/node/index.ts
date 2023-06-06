@@ -1,33 +1,41 @@
-import { concatenateUint8Arrays, numToUInt32BE } from '../../serialize/serialize.js';
 import { NetCrs } from '../net_crs.js';
-import { FileCrs } from './file_crs.js';
+import { IgnitionFilesCrs } from './ignition_files_crs.js';
+import { mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { readFile } from 'fs/promises';
+import createDebug from 'debug';
+
+const debug = createDebug('bb.js:crs');
 
 /**
  * Generic CRS finder utility class.
  */
 export class Crs {
-  private crs: FileCrs | NetCrs;
-
-  constructor(
-    /**
-     * The number of circuit gates.
-     */
-    public readonly numPoints: number,
-  ) {
-    this.crs = FileCrs.defaultExists() ? new FileCrs(numPoints) : new NetCrs(numPoints);
-  }
+  constructor(public readonly numPoints: number, public readonly path: string) {}
 
   static async new(numPoints: number) {
-    const crs = new Crs(numPoints);
+    const crs = new Crs(numPoints, './crs');
     await crs.init();
     return crs;
   }
 
-  /**
-   * Read CRS from our chosen source.
-   */
   async init() {
-    await this.crs.init();
+    mkdirSync(this.path, { recursive: true });
+    const size = await readFile(this.path + '/size', 'ascii').catch(() => undefined);
+    if (size && +size >= this.numPoints) {
+      debug(`using cached crs of size: ${size}`);
+      return;
+    }
+
+    const crs = IgnitionFilesCrs.defaultExists() ? new IgnitionFilesCrs(this.numPoints) : new NetCrs(this.numPoints);
+    if (crs instanceof NetCrs) {
+      debug(`downloading crs of size: ${this.numPoints}`);
+    } else {
+      debug(`loading igntion file crs of size: ${this.numPoints}`);
+    }
+    await crs.init();
+    writeFileSync(this.path + '/size', this.numPoints.toString());
+    writeFileSync(this.path + '/g1.dat', crs.getG1Data());
+    writeFileSync(this.path + '/g2.dat', crs.getG2Data());
   }
 
   /**
@@ -35,7 +43,7 @@ export class Crs {
    * @returns The points data.
    */
   getG1Data(): Uint8Array {
-    return this.crs.getG1Data();
+    return readFileSync(this.path + '/g1.dat');
   }
 
   /**
@@ -43,6 +51,6 @@ export class Crs {
    * @returns The points data.
    */
   getG2Data(): Uint8Array {
-    return this.crs.getG2Data();
+    return readFileSync(this.path + '/g2.dat');
   }
 }

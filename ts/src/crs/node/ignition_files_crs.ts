@@ -11,7 +11,7 @@ export const SRS_DEV_PATH = dirname(fileURLToPath(import.meta.url)) + '/../../..
 /**
  * Downloader for CRS from a local file (for Node).
  */
-export class FileCrs {
+export class IgnitionFilesCrs {
   private data!: Uint8Array;
   private g2Data!: Uint8Array;
 
@@ -20,7 +20,7 @@ export class FileCrs {
      * The number of circuit gates.
      */
     public readonly numPoints: number,
-    private path = SRS_DEV_PATH
+    private path = SRS_DEV_PATH,
   ) {}
 
   static defaultExists() {

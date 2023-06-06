@@ -23,5 +23,5 @@ describe('simple', () => {
   it('should construct 512k gate proof', async () => {
     const valid = await api.examplesSimpleCreateAndVerifyProof();
     expect(valid).toBe(true);
-  }, 60000);
+  }, 90000);
 });
