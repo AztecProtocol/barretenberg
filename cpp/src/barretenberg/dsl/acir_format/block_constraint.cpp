@@ -29,6 +29,10 @@ void create_block_constraints(Composer& composer, const BlockConstraint constrai
 
     switch (constraint.type) {
     case BlockType::ROM: {
+        info("rom len:", init.size());
+        if (has_valid_witness_assignments == false) {
+            info("no assignement");
+        }
         rom_table_ct table(init);
         for (auto& op : constraint.trace) {
             ASSERT(op.access_type == 0);
@@ -50,19 +54,34 @@ void create_block_constraints(Composer& composer, const BlockConstraint constrai
         }
     } break;
     case BlockType::RAM: {
+        info("ram len:", init.size());
         ram_table_ct table(init);
         for (auto& op : constraint.trace) {
             field_ct value = poly_to_field_ct(op.value, composer);
             field_ct index = poly_to_field_ct(op.index, composer);
+
+            fr w_value = 0;
             if (has_valid_witness_assignments == false) {
+                info("no assignement");
                 index = field_ct(0);
+            } else {
+                info("assignement");
+                w_value = index.get_value();
+                info("assignement:", w_value);
             }
+            field_ct w = field_ct::from_witness(&composer, w_value);
             if (op.access_type == 0) {
-                value.assert_equal(table.read(index));
+                field_ct v1 = table.read(w);
+                info(v1);
+                info(value);
+                value.assert_equal(table.read(w));
             } else {
                 ASSERT(op.access_type == 1);
-                table.write(index, value);
+                table.write(w, value);
             }
+            info("index:", index);
+            info(w);
+            index.assert_equal(w);
         }
     } break;
     default:
