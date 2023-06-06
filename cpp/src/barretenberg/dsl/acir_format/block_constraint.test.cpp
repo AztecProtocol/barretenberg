@@ -318,7 +318,9 @@ TEST(up_ram, TestUPRAM)
 
     auto proof = prover.construct_proof();
 
-    auto composer2 = acir_format::Composer();
+    auto vkey = composer.compute_verification_key();
+    auto composer2 = acir_format::Composer(nullptr, vkey);
+    // auto composer2 = acir_format::Composer();
     acir_format::create_circuit(composer2, constraint_system);
     auto verifier = composer2.create_verifier();
     // auto verifier = composer.create_verifier();

@@ -63,7 +63,7 @@ void create_block_constraints(Composer& composer, const BlockConstraint constrai
             fr w_value = 0;
             if (has_valid_witness_assignments == false) {
                 info("no assignement");
-                index = field_ct(0);
+                // index = field_ct(0);
             } else {
                 info("assignement");
                 w_value = index.get_value();
@@ -74,14 +74,14 @@ void create_block_constraints(Composer& composer, const BlockConstraint constrai
                 field_ct v1 = table.read(w);
                 info(v1);
                 info(value);
-                value.assert_equal(table.read(w));
+                value.assert_equal(v1);
             } else {
                 ASSERT(op.access_type == 1);
                 table.write(w, value);
             }
-            info("index:", index);
             info(w);
-            index.assert_equal(w);
+            info("index:", index);
+            w.assert_equal(index);
         }
     } break;
     default:
