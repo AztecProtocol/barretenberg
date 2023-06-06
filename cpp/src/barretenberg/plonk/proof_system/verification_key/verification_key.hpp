@@ -111,13 +111,9 @@ struct verification_key {
         auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
         *this = verification_key{ std::move(data), env_crs->get_verifier_crs() };
     }
+    // Alias verification_key as verification_key_data in the schema
+    void msgpack_schema(auto& packer) const { packer.pack_schema(proof_system::plonk::verification_key_data{}); }
 };
-
-// specialize schema serialization
-inline void msgpack_schema(auto& packer, proof_system::plonk::verification_key const&)
-{
-    packer.pack_schema(proof_system::plonk::verification_key_data{});
-}
 
 template <typename B> inline void read(B& buf, verification_key& key)
 {
@@ -159,10 +155,3 @@ inline std::ostream& operator<<(std::ostream& os, verification_key const& key)
 };
 
 } // namespace proof_system::plonk
-
-// help our msgpack schema compiler with this struct
-// Alias verification_key as verification_key_data
-inline void msgpack_schema_pack(auto& packer, proof_system::plonk::verification_key const&)
-{
-    msgpack_schema_pack(packer, proof_system::plonk::verification_key_data{});
-}
