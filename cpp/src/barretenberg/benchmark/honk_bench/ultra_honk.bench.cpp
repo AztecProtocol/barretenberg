@@ -1,21 +1,3 @@
-#include "barretenberg/crypto/ecdsa/ecdsa.hpp"
-#include "barretenberg/ecc/curves/bn254/fr.hpp"
-#include <benchmark/benchmark.h>
-#include <cstddef>
-#include "barretenberg/stdlib/primitives/composers/composers_fwd.hpp"
-#include "barretenberg/stdlib/primitives/composers/composers.hpp"
-#include "barretenberg/stdlib/encryption/ecdsa/ecdsa.hpp"
-#include "barretenberg/stdlib/hash/keccak/keccak.hpp"
-#include "barretenberg/stdlib/primitives/curves/secp256k1.hpp"
-#include "barretenberg/stdlib/primitives/packed_byte_array/packed_byte_array.hpp"
-#include "barretenberg/stdlib/hash/sha256/sha256.hpp"
-#include "barretenberg/stdlib/primitives/bool/bool.hpp"
-#include "barretenberg/stdlib/primitives/field/field.hpp"
-#include "barretenberg/stdlib/primitives/witness/witness.hpp"
-#include "barretenberg/stdlib/merkle_tree/merkle_tree.hpp"
-#include "barretenberg/stdlib/merkle_tree/membership.hpp"
-#include "barretenberg/stdlib/merkle_tree/memory_store.hpp"
-#include "barretenberg/stdlib/merkle_tree/memory_tree.hpp"
 #include "barretenberg/benchmark/honk_bench/benchmark_utilities.hpp"
 
 using namespace benchmark;

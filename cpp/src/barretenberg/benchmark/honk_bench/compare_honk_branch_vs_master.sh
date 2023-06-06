@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script is used to compare the results of honk_bench between baseline (master) and
+# This script is used to compare the honk benchmarks between baseline (master) and
 # the branch from which the script is run. Simply check out the branch of interest, ensure 
 # it is up to date with local master, and run the script.
 
@@ -19,8 +19,8 @@ pip3 install -r $BUILD_DIR/_deps/benchmark-src/requirements.txt
 cd $BASE_DIR
 mkdir $BENCH_RESULTS_DIR
 
-# Checkout master, run honk_bench, save results in json format
-echo -e '\nConfiguring and building honk_bench in master branch..'
+# Checkout master, run benchmarks, save results in json format
+echo -e '\nConfiguring and building benchmarks in master branch..'
 git checkout master > /dev/null
 rm -rf $BUILD_DIR
 cmake --preset bench > /dev/null && cmake --build --preset bench --target honk_bench > /dev/null
@@ -29,15 +29,15 @@ MASTER_HONK_BENCH_RESULTS="$BENCH_RESULTS_DIR/honk_bench_results_master.json"
 echo -e '\nRunning honk_bench in master..'
 bin/honk_bench --benchmark_format=json > $MASTER_HONK_BENCH_RESULTS
 
-# Checkout working branch (-), run honk_bench, save results in json format
-echo -e '\nConfiguring and building honk_bench in current feature branch..'
+# Checkout working branch (-), run benchmarks, save results in json format
+echo -e '\nConfiguring and building benchmarks in current feature branch..'
 git checkout -
 rm -rf $BUILD_DIR
-cmake --preset bench > /dev/null && cmake --build --preset bench --target honk_bench > /dev/null
+cmake --preset bench > /dev/null && cmake --build --preset bench --target honk_bench
 cd build-bench
 BRANCH_HONK_BENCH_RESULTS="$BENCH_RESULTS_DIR/honk_bench_results_branch.json"
 echo -e '\nRunning honk_bench in feature branch..'
-bin/honk_bench --benchmark_format=json > $BRANCH_HONK_BENCH_RESULTS
+bin/ultra_honk_bench --benchmark_format=json > $BRANCH_HONK_BENCH_RESULTS
 
 # Call compare.py on the results (json) to get high level statistics. 
 # See docs at https://github.com/google/benchmark/blob/main/docs/tools.md for more details.
