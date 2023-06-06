@@ -98,8 +98,26 @@ class StandardPlonkComposer {
     {}
 
     StandardPlonkComposer(const StandardPlonkComposer& other) = delete;
-    StandardPlonkComposer(StandardPlonkComposer&& other) = default;
-    StandardPlonkComposer& operator=(const StandardPlonkComposer& other) = delete;
+    StandardPlonkComposer(StandardPlonkComposer&& other)
+        : circuit_constructor(std::move(other.circuit_constructor))
+        , num_gates(circuit_constructor.num_gates)
+        , variables(circuit_constructor.variables)
+        , zero_idx(circuit_constructor.zero_idx)
+        , composer_helper(std::move(other.composer_helper))
+        , contains_recursive_proof(composer_helper.contains_recursive_proof)
+        , recursive_proof_public_input_indices(composer_helper.recursive_proof_public_input_indices){};
+
+    StandardPlonkComposer& operator=(StandardPlonkComposer&& other)
+    {
+        circuit_constructor = std::move(other.circuit_constructor);
+        composer_helper = std::move(other.composer_helper);
+        num_gates = circuit_constructor.num_gates;
+        variables = circuit_constructor.variables;
+        zero_idx = circuit_constructor.zero_idx;
+        contains_recursive_proof = composer_helper.contains_recursive_proof;
+        recursive_proof_public_input_indices = composer_helper.recursive_proof_public_input_indices;
+        return *this;
+    };
     // TODO(#230)(Cody): This constructor started to be implicitly deleted when I added `n` and `variables` members.
     // This is a temporary measure until we can rewrite Plonk and all tests using circuit builder methods in place of
     // composer methods, where appropriate. StandardPlonkComposer& operator=(StandardPlonkComposer&& other) = default;

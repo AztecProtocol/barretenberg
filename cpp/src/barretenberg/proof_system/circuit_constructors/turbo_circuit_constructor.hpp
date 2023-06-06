@@ -46,7 +46,12 @@ class TurboCircuitConstructor : public CircuitConstructorBase<arithmetization::T
     TurboCircuitConstructor(std::string const&, const size_t size_hint = 0)
         : TurboCircuitConstructor(size_hint){};
     TurboCircuitConstructor(TurboCircuitConstructor&& other) = default;
-    TurboCircuitConstructor& operator=(TurboCircuitConstructor&& other) = delete;
+    TurboCircuitConstructor& operator=(TurboCircuitConstructor&& other)
+    {
+        CircuitConstructorBase<arithmetization::Turbo<barretenberg::fr>>::operator=(std::move(other));
+        constant_variable_indices = other.constant_variable_indices;
+        return *this;
+    };
     ~TurboCircuitConstructor() {}
 
     void create_add_gate(const add_triple& in);
