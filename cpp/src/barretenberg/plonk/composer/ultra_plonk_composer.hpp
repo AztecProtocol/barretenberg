@@ -68,11 +68,23 @@ class UltraPlonkComposer {
         , contains_recursive_proof(composer_helper.contains_recursive_proof)
         , recursive_proof_public_input_indices(composer_helper.recursive_proof_public_input_indices){};
 
-    UltraPlonkComposer(UltraPlonkComposer&& other) = default;
+    UltraPlonkComposer(UltraPlonkComposer&& other)
+        : circuit_constructor(std::move(other.circuit_constructor))
+        , num_gates(circuit_constructor.num_gates)
+        , variables(circuit_constructor.variables)
+        , zero_idx(circuit_constructor.zero_idx)
+        , composer_helper(std::move(other.composer_helper))
+        , contains_recursive_proof(composer_helper.contains_recursive_proof)
+        , recursive_proof_public_input_indices(composer_helper.recursive_proof_public_input_indices){};
     UltraPlonkComposer& operator=(UltraPlonkComposer&& other)
     {
         circuit_constructor = std::move(other.circuit_constructor);
         composer_helper = std::move(other.composer_helper);
+        num_gates = circuit_constructor.num_gates;
+        variables = circuit_constructor.variables;
+        zero_idx = circuit_constructor.zero_idx;
+        contains_recursive_proof = composer_helper.contains_recursive_proof;
+        recursive_proof_public_input_indices = composer_helper.recursive_proof_public_input_indices;
         return *this;
     };
     ~UltraPlonkComposer() = default;
