@@ -23,9 +23,9 @@ WASM_EXPORT void acir_get_circuit_sizes(uint8_t const* constraint_system_buf,
     *subgroup = htonl((uint32_t)composer.get_circuit_subgroup_size(composer.get_total_circuit_size()));
 }
 
-WASM_EXPORT void acir_new_acir_composer(out_ptr out)
+WASM_EXPORT void acir_new_acir_composer(uint32_t const* size_hint, out_ptr out)
 {
-    *out = new acir_proofs::AcirComposer();
+    *out = new acir_proofs::AcirComposer(ntohl(*size_hint));
 }
 
 WASM_EXPORT void acir_delete_acir_composer(in_ptr acir_composer_ptr)
@@ -33,9 +33,7 @@ WASM_EXPORT void acir_delete_acir_composer(in_ptr acir_composer_ptr)
     delete reinterpret_cast<acir_proofs::AcirComposer*>(*acir_composer_ptr);
 }
 
-WASM_EXPORT void acir_init_proving_key(in_ptr acir_composer_ptr,
-                                       uint8_t const* constraint_system_buf,
-                                       uint32_t const* size_hint)
+WASM_EXPORT void acir_init_proving_key(in_ptr acir_composer_ptr, uint8_t const* constraint_system_buf)
 {
     auto acir_composer = reinterpret_cast<acir_proofs::AcirComposer*>(*acir_composer_ptr);
     auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
@@ -43,7 +41,7 @@ WASM_EXPORT void acir_init_proving_key(in_ptr acir_composer_ptr,
     // The binder would normally free the the constraint_system_buf, but we need the memory now.
     free_mem_slab_raw((void*)constraint_system_buf);
 
-    acir_composer->init_proving_key(barretenberg::srs::get_crs_factory(), constraint_system, ntohl(*size_hint));
+    acir_composer->init_proving_key(barretenberg::srs::get_crs_factory(), constraint_system);
 }
 
 WASM_EXPORT void acir_create_proof(in_ptr acir_composer_ptr,

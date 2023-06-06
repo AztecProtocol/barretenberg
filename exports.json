@@ -1,12 +1,12 @@
 [
   {
-    "functionName": "pedersen_init",
+    "functionName": "pedersen___init",
     "inArgs": [],
     "outArgs": [],
     "isAsync": false
   },
   {
-    "functionName": "pedersen_compress_fields",
+    "functionName": "pedersen___compress_fields",
     "inArgs": [
       {
         "name": "left",
@@ -26,7 +26,7 @@
     "isAsync": false
   },
   {
-    "functionName": "pedersen_plookup_compress_fields",
+    "functionName": "pedersen___plookup_compress_fields",
     "inArgs": [
       {
         "name": "left",
@@ -46,7 +46,7 @@
     "isAsync": false
   },
   {
-    "functionName": "pedersen_compress",
+    "functionName": "pedersen___compress",
     "inArgs": [
       {
         "name": "inputs_buffer",
@@ -62,7 +62,7 @@
     "isAsync": false
   },
   {
-    "functionName": "pedersen_plookup_compress",
+    "functionName": "pedersen___plookup_compress",
     "inArgs": [
       {
         "name": "inputs_buffer",
@@ -78,7 +78,7 @@
     "isAsync": false
   },
   {
-    "functionName": "pedersen_compress_with_hash_index",
+    "functionName": "pedersen___compress_with_hash_index",
     "inArgs": [
       {
         "name": "inputs_buffer",
@@ -98,7 +98,7 @@
     "isAsync": false
   },
   {
-    "functionName": "pedersen_commit",
+    "functionName": "pedersen___commit",
     "inArgs": [
       {
         "name": "inputs_buffer",
@@ -114,7 +114,7 @@
     "isAsync": false
   },
   {
-    "functionName": "pedersen_plookup_commit",
+    "functionName": "pedersen___plookup_commit",
     "inArgs": [
       {
         "name": "inputs_buffer",
@@ -130,7 +130,27 @@
     "isAsync": false
   },
   {
-    "functionName": "pedersen_buffer_to_field",
+    "functionName": "pedersen___plookup_commit_with_hash_index",
+    "inArgs": [
+      {
+        "name": "inputs_buffer",
+        "type": "fr::vec_in_buf"
+      },
+      {
+        "name": "hash_index",
+        "type": "const uint32_t *"
+      }
+    ],
+    "outArgs": [
+      {
+        "name": "output",
+        "type": "fr::out_buf"
+      }
+    ],
+    "isAsync": false
+  },
+  {
+    "functionName": "pedersen___buffer_to_field",
     "inArgs": [
       {
         "name": "data",
@@ -561,7 +581,12 @@
   },
   {
     "functionName": "acir_new_acir_composer",
-    "inArgs": [],
+    "inArgs": [
+      {
+        "name": "size_hint",
+        "type": "const uint32_t *"
+      }
+    ],
     "outArgs": [
       {
         "name": "out",
@@ -610,10 +635,6 @@
       {
         "name": "constraint_system_buf",
         "type": "const uint8_t *"
-      },
-      {
-        "name": "size_hint",
-        "type": "const uint32_t *"
       }
     ],
     "outArgs": [],

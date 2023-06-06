@@ -12,47 +12,52 @@ export class BarretenbergApi {
   }
 
   async pedersenInit(): Promise<void> {
-    const result = await this.binder.callWasmExport('pedersen_init', [], []);
+    const result = await this.binder.callWasmExport('pedersen___init', [], []);
     return;
   }
 
   async pedersenCompressFields(left: Fr, right: Fr): Promise<Fr> {
-    const result = await this.binder.callWasmExport('pedersen_compress_fields', [left, right], [Fr]);
+    const result = await this.binder.callWasmExport('pedersen___compress_fields', [left, right], [Fr]);
     return result[0];
   }
 
   async pedersenPlookupCompressFields(left: Fr, right: Fr): Promise<Fr> {
-    const result = await this.binder.callWasmExport('pedersen_plookup_compress_fields', [left, right], [Fr]);
+    const result = await this.binder.callWasmExport('pedersen___plookup_compress_fields', [left, right], [Fr]);
     return result[0];
   }
 
   async pedersenCompress(inputsBuffer: Fr[]): Promise<Fr> {
-    const result = await this.binder.callWasmExport('pedersen_compress', [inputsBuffer], [Fr]);
+    const result = await this.binder.callWasmExport('pedersen___compress', [inputsBuffer], [Fr]);
     return result[0];
   }
 
   async pedersenPlookupCompress(inputsBuffer: Fr[]): Promise<Fr> {
-    const result = await this.binder.callWasmExport('pedersen_plookup_compress', [inputsBuffer], [Fr]);
+    const result = await this.binder.callWasmExport('pedersen___plookup_compress', [inputsBuffer], [Fr]);
     return result[0];
   }
 
   async pedersenCompressWithHashIndex(inputsBuffer: Fr[], hashIndex: number): Promise<Fr> {
-    const result = await this.binder.callWasmExport('pedersen_compress_with_hash_index', [inputsBuffer, hashIndex], [Fr]);
+    const result = await this.binder.callWasmExport('pedersen___compress_with_hash_index', [inputsBuffer, hashIndex], [Fr]);
     return result[0];
   }
 
   async pedersenCommit(inputsBuffer: Fr[]): Promise<Fr> {
-    const result = await this.binder.callWasmExport('pedersen_commit', [inputsBuffer], [Fr]);
+    const result = await this.binder.callWasmExport('pedersen___commit', [inputsBuffer], [Fr]);
     return result[0];
   }
 
   async pedersenPlookupCommit(inputsBuffer: Fr[]): Promise<Fr> {
-    const result = await this.binder.callWasmExport('pedersen_plookup_commit', [inputsBuffer], [Fr]);
+    const result = await this.binder.callWasmExport('pedersen___plookup_commit', [inputsBuffer], [Fr]);
+    return result[0];
+  }
+
+  async pedersenPlookupCommitWithHashIndex(inputsBuffer: Fr[], hashIndex: number): Promise<Fr> {
+    const result = await this.binder.callWasmExport('pedersen___plookup_commit_with_hash_index', [inputsBuffer, hashIndex], [Fr]);
     return result[0];
   }
 
   async pedersenBufferToField(data: Uint8Array): Promise<Fr> {
-    const result = await this.binder.callWasmExport('pedersen_buffer_to_field', [data], [Fr]);
+    const result = await this.binder.callWasmExport('pedersen___buffer_to_field', [data], [Fr]);
     return result[0];
   }
 
@@ -171,8 +176,8 @@ export class BarretenbergApi {
     return result as any;
   }
 
-  async acirNewAcirComposer(): Promise<Ptr> {
-    const result = await this.binder.callWasmExport('acir_new_acir_composer', [], [Ptr]);
+  async acirNewAcirComposer(sizeHint: number): Promise<Ptr> {
+    const result = await this.binder.callWasmExport('acir_new_acir_composer', [sizeHint], [Ptr]);
     return result[0];
   }
 
@@ -186,8 +191,8 @@ export class BarretenbergApi {
     return;
   }
 
-  async acirInitProvingKey(acirComposerPtr: Ptr, constraintSystemBuf: Uint8Array, sizeHint: number): Promise<void> {
-    const result = await this.binder.callWasmExport('acir_init_proving_key', [acirComposerPtr, constraintSystemBuf, sizeHint], []);
+  async acirInitProvingKey(acirComposerPtr: Ptr, constraintSystemBuf: Uint8Array): Promise<void> {
+    const result = await this.binder.callWasmExport('acir_init_proving_key', [acirComposerPtr, constraintSystemBuf], []);
     return;
   }
 
@@ -240,47 +245,52 @@ export class BarretenbergApiSync {
   }
 
   pedersenInit(): void {
-    const result = this.binder.callWasmExport('pedersen_init', [], []);
+    const result = this.binder.callWasmExport('pedersen___init', [], []);
     return;
   }
 
   pedersenCompressFields(left: Fr, right: Fr): Fr {
-    const result = this.binder.callWasmExport('pedersen_compress_fields', [left, right], [Fr]);
+    const result = this.binder.callWasmExport('pedersen___compress_fields', [left, right], [Fr]);
     return result[0];
   }
 
   pedersenPlookupCompressFields(left: Fr, right: Fr): Fr {
-    const result = this.binder.callWasmExport('pedersen_plookup_compress_fields', [left, right], [Fr]);
+    const result = this.binder.callWasmExport('pedersen___plookup_compress_fields', [left, right], [Fr]);
     return result[0];
   }
 
   pedersenCompress(inputsBuffer: Fr[]): Fr {
-    const result = this.binder.callWasmExport('pedersen_compress', [inputsBuffer], [Fr]);
+    const result = this.binder.callWasmExport('pedersen___compress', [inputsBuffer], [Fr]);
     return result[0];
   }
 
   pedersenPlookupCompress(inputsBuffer: Fr[]): Fr {
-    const result = this.binder.callWasmExport('pedersen_plookup_compress', [inputsBuffer], [Fr]);
+    const result = this.binder.callWasmExport('pedersen___plookup_compress', [inputsBuffer], [Fr]);
     return result[0];
   }
 
   pedersenCompressWithHashIndex(inputsBuffer: Fr[], hashIndex: number): Fr {
-    const result = this.binder.callWasmExport('pedersen_compress_with_hash_index', [inputsBuffer, hashIndex], [Fr]);
+    const result = this.binder.callWasmExport('pedersen___compress_with_hash_index', [inputsBuffer, hashIndex], [Fr]);
     return result[0];
   }
 
   pedersenCommit(inputsBuffer: Fr[]): Fr {
-    const result = this.binder.callWasmExport('pedersen_commit', [inputsBuffer], [Fr]);
+    const result = this.binder.callWasmExport('pedersen___commit', [inputsBuffer], [Fr]);
     return result[0];
   }
 
   pedersenPlookupCommit(inputsBuffer: Fr[]): Fr {
-    const result = this.binder.callWasmExport('pedersen_plookup_commit', [inputsBuffer], [Fr]);
+    const result = this.binder.callWasmExport('pedersen___plookup_commit', [inputsBuffer], [Fr]);
+    return result[0];
+  }
+
+  pedersenPlookupCommitWithHashIndex(inputsBuffer: Fr[], hashIndex: number): Fr {
+    const result = this.binder.callWasmExport('pedersen___plookup_commit_with_hash_index', [inputsBuffer, hashIndex], [Fr]);
     return result[0];
   }
 
   pedersenBufferToField(data: Uint8Array): Fr {
-    const result = this.binder.callWasmExport('pedersen_buffer_to_field', [data], [Fr]);
+    const result = this.binder.callWasmExport('pedersen___buffer_to_field', [data], [Fr]);
     return result[0];
   }
 
@@ -399,8 +409,8 @@ export class BarretenbergApiSync {
     return result as any;
   }
 
-  acirNewAcirComposer(): Ptr {
-    const result = this.binder.callWasmExport('acir_new_acir_composer', [], [Ptr]);
+  acirNewAcirComposer(sizeHint: number): Ptr {
+    const result = this.binder.callWasmExport('acir_new_acir_composer', [sizeHint], [Ptr]);
     return result[0];
   }
 
@@ -414,8 +424,8 @@ export class BarretenbergApiSync {
     return;
   }
 
-  acirInitProvingKey(acirComposerPtr: Ptr, constraintSystemBuf: Uint8Array, sizeHint: number): void {
-    const result = this.binder.callWasmExport('acir_init_proving_key', [acirComposerPtr, constraintSystemBuf, sizeHint], []);
+  acirInitProvingKey(acirComposerPtr: Ptr, constraintSystemBuf: Uint8Array): void {
+    const result = this.binder.callWasmExport('acir_init_proving_key', [acirComposerPtr, constraintSystemBuf], []);
     return;
   }
 

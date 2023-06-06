@@ -55,7 +55,8 @@ Composer create_circuit(const acir_format& constraint_system,
 
 Composer create_circuit_with_witness(const acir_format& constraint_system,
                                      WitnessVector const& witness,
-                                     std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory);
+                                     std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
+                                     size_t size_hint = 0);
 
 Composer create_circuit_with_witness(const acir_format& constraint_system, WitnessVector const& witness);
 

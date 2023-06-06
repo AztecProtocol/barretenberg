@@ -12,13 +12,14 @@
 
 namespace acir_proofs {
 
-AcirComposer::AcirComposer()
+AcirComposer::AcirComposer(size_t size_hint)
     : composer_(0, 0, 0)
+    , size_hint_(size_hint)
 {}
 
 void AcirComposer::create_circuit(acir_format::acir_format& constraint_system)
 {
-    composer_ = acir_format::create_circuit(constraint_system, nullptr);
+    composer_ = acir_format::create_circuit(constraint_system, nullptr, size_hint_);
 
     // We are done with the constraint system at this point, and we need the memory slab back.
     constraint_system.constraints.clear();
@@ -27,13 +28,15 @@ void AcirComposer::create_circuit(acir_format::acir_format& constraint_system)
     exact_circuit_size_ = composer_.get_num_gates();
     total_circuit_size_ = composer_.get_total_circuit_size();
     circuit_subgroup_size_ = composer_.get_circuit_subgroup_size(total_circuit_size_);
+    size_hint_ = circuit_subgroup_size_;
 }
 
 void AcirComposer::init_proving_key(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
-                                    acir_format::acir_format& constraint_system,
-                                    size_t size_hint)
+                                    acir_format::acir_format& constraint_system)
 {
-    composer_ = acir_format::create_circuit(constraint_system, crs_factory, size_hint);
+    info("building circuit... ", size_hint_);
+    composer_ = acir_format::Composer(crs_factory, size_hint_);
+    acir_format::create_circuit(composer_, constraint_system);
 
     // We are done with the constraint system at this point, and we need the memory slab back.
     constraint_system.constraints.clear();
@@ -43,6 +46,7 @@ void AcirComposer::init_proving_key(std::shared_ptr<barretenberg::srs::factories
     total_circuit_size_ = composer_.get_total_circuit_size();
     circuit_subgroup_size_ = composer_.get_circuit_subgroup_size(total_circuit_size_);
 
+    info("computing proving key...");
     proving_key_ = composer_.compute_proving_key();
 }
 
@@ -58,15 +62,15 @@ std::vector<uint8_t> AcirComposer::create_proof(
     info("building circuit...");
     composer_ = [&]() {
         if (proving_key_) {
-            auto composer = acir_format::Composer(proving_key_, verification_key_, circuit_subgroup_size_);
+            auto composer = acir_format::Composer(proving_key_, verification_key_, size_hint_);
             // You can't produce the verification key unless you manually set the crs. Which seems like a bug.
             composer_.composer_helper.crs_factory_ = crs_factory;
-            create_circuit_with_witness(composer, constraint_system, witness);
             return composer;
         } else {
-            return acir_format::create_circuit_with_witness(constraint_system, witness, crs_factory);
+            return acir_format::Composer(crs_factory, size_hint_);
         }
     }();
+    create_circuit_with_witness(composer_, constraint_system, witness);
 
     if (!proving_key_) {
         info("computing proving key...");

@@ -1,22 +1,21 @@
 #pragma once
-#include "barretenberg/ecc/curves/bn254/fr.hpp"
-#include "barretenberg/common/wasm_export.hpp"
+#include "barretenberg/common/serialize.hpp"
+#include "barretenberg/common/timer.hpp"
+#include "barretenberg/common/mem.hpp"
+#include "barretenberg/common/streams.hpp"
+#define WASM_EXPORT __attribute__((visibility("default")))
 
 extern "C" {
 
-using namespace barretenberg;
+WASM_EXPORT void pedersen__init();
 
-WASM_EXPORT void pedersen_init();
+WASM_EXPORT void pedersen__compress_fields(uint8_t const* left, uint8_t const* right, uint8_t* result);
+WASM_EXPORT void pedersen_plookup_compress_fields(uint8_t const* left, uint8_t const* right, uint8_t* result);
 
-WASM_EXPORT void pedersen_compress_fields(fr::in_buf left, fr::in_buf right, fr::out_buf result);
-WASM_EXPORT void pedersen_plookup_compress_fields(fr::in_buf left, fr::in_buf right, fr::out_buf result);
+WASM_EXPORT void pedersen__compress(uint8_t const* inputs_buffer, uint8_t* output);
+WASM_EXPORT void pedersen_plookup_compress(uint8_t const* inputs_buffer, uint8_t* output);
 
-WASM_EXPORT void pedersen_compress(fr::vec_in_buf inputs_buffer, fr::out_buf output);
-WASM_EXPORT void pedersen_plookup_compress(fr::vec_in_buf inputs_buffer, fr::out_buf output);
-
-WASM_EXPORT void pedersen_compress_with_hash_index(fr::vec_in_buf inputs_buffer,
-                                                   uint32_t const* hash_index,
-                                                   fr::out_buf output);
+WASM_EXPORT void pedersen__compress_with_hash_index(uint8_t const* inputs_buffer, uint8_t* output, uint32_t hash_index);
 
 WASM_EXPORT void pedersen__commit(uint8_t const* inputs_buffer, uint8_t* output);
 WASM_EXPORT void pedersen_plookup_commit(uint8_t const* inputs_buffer, uint8_t* output);
@@ -24,8 +23,5 @@ WASM_EXPORT void pedersen_plookup_commit_with_hash_index(uint8_t const* inputs_b
                                                          uint8_t* output,
                                                          uint32_t hash_index);
 
-WASM_EXPORT void pedersen_commit(fr::vec_in_buf inputs_buffer, fr::out_buf output);
-WASM_EXPORT void pedersen_plookup_commit(fr::vec_in_buf inputs_buffer, fr::out_buf output);
-
-WASM_EXPORT void pedersen_buffer_to_field(uint8_t const* data, fr::out_buf r);
+WASM_EXPORT void pedersen__buffer_to_field(uint8_t const* data, size_t length, uint8_t* r);
 }

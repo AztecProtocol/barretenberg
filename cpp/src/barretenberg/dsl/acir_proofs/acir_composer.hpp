@@ -9,13 +9,12 @@ namespace acir_proofs {
 
 class AcirComposer {
   public:
-    AcirComposer();
+    AcirComposer(size_t size_hint = 0);
 
     void create_circuit(acir_format::acir_format& constraint_system);
 
     void init_proving_key(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
-                          acir_format::acir_format& constraint_system,
-                          size_t size_hint = 0);
+                          acir_format::acir_format& constraint_system);
 
     std::vector<uint8_t> create_proof(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
                                       acir_format::acir_format& constraint_system,
@@ -40,6 +39,7 @@ class AcirComposer {
 
   private:
     acir_format::Composer composer_;
+    size_t size_hint_;
     size_t exact_circuit_size_;
     size_t total_circuit_size_;
     size_t circuit_subgroup_size_;

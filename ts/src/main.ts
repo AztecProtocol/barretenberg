@@ -64,7 +64,7 @@ async function init(jsonPath: string, sizeHint?: number) {
   // TODO: Make RawBuffer be default behaviour, and have a specific Vector type for when wanting length prefixed.
   await api.srsInitSrs(new RawBuffer(crs.getG1Data()), crs.numPoints, new RawBuffer(crs.getG2Data()));
 
-  const acirComposer = await api.acirNewAcirComposer();
+  const acirComposer = await api.acirNewAcirComposer(subgroupSize);
   return { api, acirComposer, circuitSize: subgroupSize };
 }
 
@@ -77,24 +77,15 @@ async function initLite() {
   // Load CRS into wasm global CRS state.
   await api.srsInitSrs(new RawBuffer(crs.getG1Data()), crs.numPoints, new RawBuffer(crs.getG2Data()));
 
-  const acirComposer = await api.acirNewAcirComposer();
+  const acirComposer = await api.acirNewAcirComposer(0);
   return { api, acirComposer };
 }
 
 export async function proveAndVerify(jsonPath: string, witnessPath: string, isRecursive: boolean, sizeHint?: number) {
   const { api, acirComposer } = await init(jsonPath, sizeHint);
   try {
-    // debug('initing proving key...');
-    const bytecode = getBytecode(jsonPath);
-    // await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), circuitSize);
-
-    // const circuitSize = await api.acirGetExactCircuitSize(acirComposer);
-    // debug(`circuit size: ${circuitSize}`);
-
-    // debug('initing verification key...');
-    // await api.acirInitVerificationKey(acirComposer);
-
     debug(`creating proof...`);
+    const bytecode = getBytecode(jsonPath);
     const witness = getWitness(witnessPath);
     const proof = await api.acirCreateProof(acirComposer, new RawBuffer(bytecode), new RawBuffer(witness), isRecursive);
 
@@ -116,14 +107,8 @@ export async function prove(
 ) {
   const { api, acirComposer } = await init(jsonPath, sizeHint);
   try {
-    // debug('initing proving key...');
-    const bytecode = getBytecode(jsonPath);
-    // await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), circuitSize);
-
-    // const circuitSize = await api.acirGetExactCircuitSize(acirComposer);
-    // debug(`circuit size: ${circuitSize}`);
-
     debug(`creating proof...`);
+    const bytecode = getBytecode(jsonPath);
     const witness = getWitness(witnessPath);
     const proof = await api.acirCreateProof(acirComposer, new RawBuffer(bytecode), new RawBuffer(witness), isRecursive);
     debug(`done.`);
@@ -174,11 +159,11 @@ export async function contract(outputPath: string, vkPath: string) {
 }
 
 export async function writeVk(jsonPath: string, outputPath: string, sizeHint?: number) {
-  const { api, acirComposer, circuitSize } = await init(jsonPath, sizeHint);
+  const { api, acirComposer } = await init(jsonPath, sizeHint);
   try {
     debug('initing proving key...');
     const bytecode = getBytecode(jsonPath);
-    await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode), circuitSize);
+    await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode));
 
     debug('initing verification key...');
     const vk = await api.acirGetVerificationKey(acirComposer);
