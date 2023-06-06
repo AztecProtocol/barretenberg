@@ -141,8 +141,7 @@ UltraProver UltraHonkComposerHelper::create_prover(CircuitConstructor& circuit_c
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
 
-    // WORKTODO: not great to construct commitment key here because that means we need to have constructed pkey before
-    // constructing vkey bit maybe thats fine since thats already an assumption
+    // Note: commitment key must be constructed after proving key (once circuit size is established)
     commitment_key = std::make_shared<PCSParams::CommitmentKey>(proving_key->circuit_size, crs_factory_);
 
     UltraProver output_state(proving_key, commitment_key);

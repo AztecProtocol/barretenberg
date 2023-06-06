@@ -48,7 +48,6 @@ std::shared_ptr<plonk::verification_key> compute_verification_key_common(
 {
     auto circuit_verification_key = std::make_shared<plonk::verification_key>(
         proving_key->circuit_size, proving_key->num_public_inputs, vrs, proving_key->composer_type);
-    // TODO(kesha): Dirty hack for now. Need to actually make commitment-agnositc
 
     for (size_t i = 0; i < proving_key->polynomial_manifest.size(); ++i) {
         const auto& poly_info = proving_key->polynomial_manifest[i];
