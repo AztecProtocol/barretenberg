@@ -244,7 +244,7 @@ TEST(RecursionConstraint, TestBasicDoubleRecursionConstraints)
     EXPECT_EQ(verifier.verify_proof(proof), true);
 }
 
-TEST(RecursionConstraint, TestFullRecursionConstraints)
+TEST(RecursionConstraint, TestOneOuterRecursiveCircuit)
 {
     /**
      * We want to test the following:
@@ -291,6 +291,34 @@ TEST(RecursionConstraint, TestFullRecursionConstraints)
 
     auto layer_3_composer = create_outer_circuit(layer_2_composers);
     std::cout << "created second outer circuit\n";
+
+    std::cout << "composer gates = " << layer_3_composer.get_num_gates() << std::endl;
+    auto prover = layer_3_composer.create_ultra_with_keccak_prover();
+    std::cout << "prover gates = " << prover.circuit_size << std::endl;
+    auto proof = prover.construct_proof();
+    auto verifier = layer_3_composer.create_ultra_with_keccak_verifier();
+    EXPECT_EQ(verifier.verify_proof(proof), true);
+}
+
+TEST(RecursionConstraint, TestFullRecursiveComposition)
+{
+    std::vector<acir_format::Composer> layer_b_1_composers;
+    layer_b_1_composers.push_back(create_inner_circuit());
+    std::cout << "created first inner circuit\n";
+
+    std::vector<acir_format::Composer> layer_b_2_composers;
+    layer_b_2_composers.push_back(create_inner_circuit());
+    std::cout << "created second inner circuit\n";
+
+    std::vector<acir_format::Composer> layer_2_composers;
+    layer_2_composers.push_back(create_outer_circuit(layer_b_1_composers));
+    std::cout << "created first outer circuit\n";
+
+    layer_2_composers.push_back(create_outer_circuit(layer_b_2_composers));
+    std::cout << "created second outer circuit\n";
+
+    auto layer_3_composer = create_outer_circuit(layer_2_composers);
+    std::cout << "created third outer circuit\n";
 
     std::cout << "composer gates = " << layer_3_composer.get_num_gates() << std::endl;
     auto prover = layer_3_composer.create_ultra_with_keccak_prover();
