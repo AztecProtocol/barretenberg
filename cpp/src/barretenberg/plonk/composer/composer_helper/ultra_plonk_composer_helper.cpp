@@ -473,9 +473,10 @@ std::shared_ptr<proving_key> UltraPlonkComposerHelper::compute_proving_key(Circu
                    add_public_inputs_offset);
 
     circuit_proving_key->recursive_proof_public_input_indices =
-        std::vector<uint32_t>(recursive_proof_public_input_indices.begin(), recursive_proof_public_input_indices.end());
+        std::vector<uint32_t>(circuit_constructor.recursive_proof_public_input_indices.begin(),
+                              circuit_constructor.recursive_proof_public_input_indices.end());
 
-    circuit_proving_key->contains_recursive_proof = contains_recursive_proof;
+    circuit_proving_key->contains_recursive_proof = circuit_constructor.contains_recursive_proof;
 
     return circuit_proving_key;
 }
@@ -503,9 +504,10 @@ std::shared_ptr<plonk::verification_key> UltraPlonkComposerHelper::compute_verif
 
     // See `add_recusrive_proof()` for how this recursive data is assigned.
     circuit_verification_key->recursive_proof_public_input_indices =
-        std::vector<uint32_t>(recursive_proof_public_input_indices.begin(), recursive_proof_public_input_indices.end());
+        std::vector<uint32_t>(circuit_constructor.recursive_proof_public_input_indices.begin(),
+                              circuit_constructor.recursive_proof_public_input_indices.end());
 
-    circuit_verification_key->contains_recursive_proof = contains_recursive_proof;
+    circuit_verification_key->contains_recursive_proof = circuit_constructor.contains_recursive_proof;
 
     return circuit_verification_key;
 }

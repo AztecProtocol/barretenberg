@@ -637,19 +637,6 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
 
     void fix_witness(const uint32_t witness_index, const barretenberg::fr& witness_value);
 
-    // void add_recursive_proof(const std::vector<uint32_t>& proof_output_witness_indices)
-    // {
-    //     if (contains_recursive_proof) {
-    //         failure("added recursive proof when one already exists");
-    //     }
-    //     contains_recursive_proof = true;
-
-    //     for (const auto& idx : proof_output_witness_indices) {
-    //         set_public_input(idx);
-    //         recursive_proof_public_input_indices.push_back((uint32_t)(public_inputs.size() - 1));
-    //     }
-    // }
-
     void create_new_range_constraint(const uint32_t variable_index,
                                      const uint64_t target_range,
                                      std::string const msg = "create_new_range_constraint");

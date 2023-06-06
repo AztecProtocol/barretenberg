@@ -26,8 +26,6 @@ class UltraPlonkComposerHelper {
     // at all
     std::shared_ptr<ReferenceStringFactory> crs_factory_;
 
-    std::vector<uint32_t> recursive_proof_public_input_indices;
-    bool contains_recursive_proof = false;
     bool computed_witness = false;
 
     // This variable controls the amount with which the lookup table and witness values need to be shifted
@@ -72,27 +70,6 @@ class UltraPlonkComposerHelper {
 
     [[nodiscard]] size_t get_num_selectors() { return ultra_selector_properties().size(); }
 
-    /**
-     * @brief Add information about which witnesses contain the recursive proof computation information
-     *
-     * @param circuit_constructor Object with the circuit
-     * @param proof_output_witness_indices Witness indices that need to become public and stored as recurisve proof
-     * specific
-     */
-    void add_recursive_proof(CircuitConstructor& circuit_constructor,
-                             const std::vector<uint32_t>& proof_output_witness_indices)
-    {
-
-        if (contains_recursive_proof) {
-            circuit_constructor.failure("added recursive proof when one already exists");
-        }
-        contains_recursive_proof = true;
-
-        for (const auto& idx : proof_output_witness_indices) {
-            circuit_constructor.set_public_input(idx);
-            recursive_proof_public_input_indices.push_back((uint32_t)(circuit_constructor.public_inputs.size() - 1));
-        }
-    }
     void finalize_circuit(CircuitConstructor& circuit_constructor) { circuit_constructor.finalize_circuit(); };
 
     std::shared_ptr<plonk::proving_key> compute_proving_key(CircuitConstructor& circuit_constructor);
