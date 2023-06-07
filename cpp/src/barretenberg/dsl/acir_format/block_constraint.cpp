@@ -81,7 +81,7 @@ void create_block_constraints(Composer& composer, const BlockConstraint constrai
             }
             info(w);
             info("index:", index);
-            w.assert_equal(index);
+            index.assert_equal(w);
         }
     } break;
     default:
