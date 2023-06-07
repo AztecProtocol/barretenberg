@@ -28,7 +28,11 @@ signature construct_signature(const std::string& message, const key_pair<Fr, G1>
     Fr r_fr = Fr::serialize_from_buffer(&sig.r[0]);
     Fr s_fr = (z + r_fr * account.private_key) / k;
 
-    Fr::serialize_to_buffer(s_fr, &sig.s[0]);
+    // Ensure that the value of s is "low", i.e. s := min{ s_fr, (|Fr| - s_fr) }
+    Fr minus_s_fr = Fr::modulus - s_fr;
+    Fr s_fr_low = Fr(std::min(uint256_t(s_fr), uint256_t(minus_s_fr)));
+
+    Fr::serialize_to_buffer(s_fr_low, &sig.s[0]);
 
     // compute recovery_id: given R = (x, y)
     //   0: y is even  &&  x < |Fr|
@@ -68,6 +72,11 @@ typename G1::affine_element recover_public_key(const std::string& message, const
     }
     if ((r_uint == 0) || (s_uint == 0)) {
         throw_or_abort("r or s value is zero");
+    }
+
+    // Check that the s value is less than |Fr| / 2
+    if (s_uint > (Fr::modulus / 2)) {
+        throw_or_abort("s value is not less than curve order by 2");
     }
 
     // Check that v must either be in {27, 28, 29, 30}
@@ -133,6 +142,12 @@ bool verify_signature(const std::string& message, const typename G1::affine_elem
     if ((r_uint == 0) || (s_uint == 0)) {
         return false;
     }
+
+    // Check that the s value is less than |Fr| / 2
+    if (s_uint > (Fr::modulus / 2)) {
+        throw_or_abort("s value is not less than curve order by 2");
+    }
+
     Fr r = Fr(r_uint);
     Fr s = Fr(s_uint);
 
