@@ -90,6 +90,8 @@ void create_circuit(Composer& composer, const acir_format& constraint_system)
     // Add block constraints
     for (const auto& constraint : constraint_system.block_constraints) {
         create_block_constraints(composer, constraint, false);
+        info("composer.err()");
+        info(composer.err());
     }
 }
 
@@ -176,6 +178,7 @@ Composer create_circuit(const acir_format& constraint_system,
     // Add block constraints
     for (const auto& constraint : constraint_system.block_constraints) {
         create_block_constraints(composer, constraint, false);
+        info("composer.err(): ", composer.err());
     }
 
     return composer;
@@ -268,6 +271,7 @@ Composer create_circuit_with_witness(const acir_format& constraint_system,
     // Add block constraints
     for (const auto& constraint : constraint_system.block_constraints) {
         create_block_constraints(composer, constraint);
+        info("composer.err(): ", composer.err());
     }
 
     return composer;
@@ -357,6 +361,7 @@ Composer create_circuit_with_witness(const acir_format& constraint_system, std::
     // Add block constraints
     for (const auto& constraint : constraint_system.block_constraints) {
         create_block_constraints(composer, constraint);
+        info("composer.err(): ", composer.err());
     }
 
     return composer;
@@ -444,6 +449,7 @@ void create_circuit_with_witness(Composer& composer, const acir_format& constrai
     // Add block constraints
     for (const auto& constraint : constraint_system.block_constraints) {
         create_block_constraints(composer, constraint);
+        info("composer.err(): ", composer.err());
     }
 }
 

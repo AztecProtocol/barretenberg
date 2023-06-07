@@ -195,6 +195,7 @@ TEST(AcirProofs, TestRAMSerialization)
     write(witness_buf, witness);
 
     uint32_t total_circuit_size = acir_proofs::get_total_circuit_size(&constraint_system_buf[0]);
+    info("total_circuit_size: ", total_circuit_size);
     uint32_t pow2_size = 1 << (numeric::get_msb(total_circuit_size) + 1);
     auto env_crs = std::make_unique<proof_system::EnvReferenceStringFactory>();
     auto verifier_crs = env_crs->get_verifier_crs();

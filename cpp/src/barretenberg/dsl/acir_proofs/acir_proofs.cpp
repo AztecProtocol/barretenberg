@@ -54,6 +54,7 @@ size_t init_proving_key(uint8_t const* constraint_system_buf, uint8_t const** pk
     // Hacky, but, right now it needs *something*.
     auto crs_factory = std::make_unique<ReferenceStringFactory>();
     auto composer = create_circuit(constraint_system, std::move(crs_factory));
+    info("composer.err(): ", composer.err());
     auto proving_key = composer.compute_proving_key();
 
     auto buffer = to_buffer(*proving_key);
@@ -114,6 +115,8 @@ size_t new_proof(void* pippenger,
     acir_format::Composer composer(proving_key, nullptr);
 
     create_circuit_with_witness(composer, constraint_system, witness);
+    info("composer.err(): ", composer.err());
+    info("composer.get_num_gates(): ", composer.get_num_gates());
 
     auto prover = composer.create_ultra_with_keccak_prover();
 
@@ -140,6 +143,9 @@ bool verify_proof(
 
         acir_format::Composer composer(nullptr, verification_key);
         create_circuit(composer, constraint_system);
+        info("composer.err(): ", composer.err());
+        info("composer.get_num_gates(): ", composer.get_num_gates());
+
         plonk::proof pp = { std::vector<uint8_t>(proof, proof + length) };
 
         auto verifier = composer.create_ultra_with_keccak_verifier();

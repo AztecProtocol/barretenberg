@@ -14,6 +14,7 @@ field_ct poly_to_field_ct(const poly_triple poly, Composer& composer)
         return field_ct(poly.q_c);
     }
     field_ct x = field_ct::from_witness_index(&composer, poly.a);
+    // info("x: ", x);
     x.additive_constant = poly.q_c;
     x.multiplicative_constant = poly.q_l;
     return x;
@@ -63,7 +64,8 @@ void create_block_constraints(Composer& composer, const BlockConstraint constrai
             fr w_value = 0;
             if (has_valid_witness_assignments == false) {
                 info("no assignement");
-                // index = field_ct(0);
+                // Without this line we get a failure on `assert_equal`
+                index = field_ct(0);
             } else {
                 info("assignement");
                 w_value = index.get_value();
@@ -81,7 +83,7 @@ void create_block_constraints(Composer& composer, const BlockConstraint constrai
             }
             info(w);
             info("index:", index);
-            index.assert_equal(w);
+            w.assert_equal(index);
         }
     } break;
     default:
