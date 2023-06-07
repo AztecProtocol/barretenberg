@@ -5,6 +5,4 @@ src/wasi-sdk*
 src/barretenberg/rollup/proofs/root_*/fixtures/account
 src/barretenberg/rollup/proofs/root_*/fixtures/join_split
 src/barretenberg/rollup/proofs/root_*/fixtures/**/proving_key
-srs_db
-!srs_db/download_ignition.sh
-!srs_db/ignition/monomial/checksums
+srs_db/ignition/transcript*

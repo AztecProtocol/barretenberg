@@ -130,7 +130,7 @@ export async function gateCount(jsonPath: string) {
   }
 }
 
-export async function verify(jsonPath: string, proofPath: string, isRecursive: boolean, vkPath: string) {
+export async function verify(proofPath: string, isRecursive: boolean, vkPath: string) {
   const { api, acirComposer } = await initLite();
   try {
     await api.acirLoadVerificationKey(acirComposer, new RawBuffer(readFileSync(vkPath)));
@@ -211,16 +211,6 @@ export async function vkAsFields(vkPath: string, vkeyOutputPath: string) {
   }
 }
 
-// nargo use bb.js: backend -> bb.js
-// backend prove --data-dir data --witness /foo/bar/witness.tr --json /foo/bar/main.json
-// backend verify ...
-// backend get_total_num_gates --data-dir data --json /foo/bar/main.json
-// backend get_sol_contract --data-dir data --json /foo/bar/main.json --output
-// backend get_features
-// OPTIONAL stateful backend:
-// backend start
-// backend stop
-
 const program = new Command();
 
 program.option('-v, --verbose', 'enable verbose logging', false);
@@ -267,13 +257,13 @@ program
 program
   .command('verify')
   .description('Verify a proof. Process exists with success or failure code.')
-  .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
   .requiredOption('-p, --proof-path <path>', 'Specify the path to the proof')
   .option('-r, --recursive', 'prove using recursive prover', false)
   .requiredOption('-k, --vk <path>', 'path to a verification key. avoids recomputation.')
-  .action(async ({ jsonPath, proofPath, recursive, vk }) => {
+  .action(async ({ proofPath, recursive, vk }) => {
     handleGlobalOptions();
-    await verify(jsonPath, proofPath, recursive, vk);
+    const result = await verify(proofPath, recursive, vk);
+    process.exit(result ? 0 : 1);
   });
 
 program
