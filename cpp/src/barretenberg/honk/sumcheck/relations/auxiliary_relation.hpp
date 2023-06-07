@@ -22,11 +22,11 @@ template <typename FF> class AuxiliaryRelation {
     static constexpr size_t LEN_6 = 6; // RAM consistency sub-relation 3
     using LENGTHS = LengthsWrapper<LEN_1, LEN_2, LEN_3, LEN_4, LEN_5, LEN_6>;
 
-    using UnivariateAccumulatorTypes = UnivariateAccumulatorTypes<FF, LENGTHS>;
-    using ValueAccumulatorTypes = ValueAccumulatorTypes<FF, LENGTHS>;
+    using UnivariateAccumTypes = UnivariateAccumulatorTypes<FF, LENGTHS>;
+    using ValueAccumTypes = ValueAccumulatorTypes<FF, LENGTHS>;
 
-    using RelationUnivariates = typename UnivariateAccumulatorTypes::Accumulators;
-    using RelationValues = typename ValueAccumulatorTypes::Accumulators;
+    using RelationUnivariates = typename UnivariateAccumTypes::Accumulators;
+    using RelationValues = typename ValueAccumTypes::Accumulators;
 
     /**
      * @brief Expression for the generalized permutation sort gate.
@@ -304,7 +304,7 @@ template <typename FF> class AuxiliaryRelation {
                                       const RelationParameters<FF>& relation_parameters,
                                       const FF& scaling_factor) const
     {
-        add_edge_contribution_impl<UnivariateAccumulatorTypes>(accumulator, input, relation_parameters, scaling_factor);
+        add_edge_contribution_impl<UnivariateAccumTypes>(accumulator, input, relation_parameters, scaling_factor);
     }
 
     void add_full_relation_value_contribution(RelationValues& accumulator,
@@ -312,7 +312,7 @@ template <typename FF> class AuxiliaryRelation {
                                               const RelationParameters<FF>& relation_parameters,
                                               const FF& scaling_factor = 1) const
     {
-        add_edge_contribution_impl<ValueAccumulatorTypes>(accumulator, input, relation_parameters, scaling_factor);
+        add_edge_contribution_impl<ValueAccumTypes>(accumulator, input, relation_parameters, scaling_factor);
     }
 };
 } // namespace proof_system::honk::sumcheck

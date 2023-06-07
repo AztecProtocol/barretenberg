@@ -19,11 +19,11 @@ template <typename FF> class GenPermSortRelation {
     static constexpr size_t LEN_4 = 6; // range constrain sub-relation 4
     using LENGTHS = LengthsWrapper<LEN_1, LEN_2, LEN_3, LEN_4>;
 
-    using UnivariateAccumulatorTypes = UnivariateAccumulatorTypes<FF, LENGTHS>;
-    using ValueAccumulatorTypes = ValueAccumulatorTypes<FF, LENGTHS>;
+    using UnivariateAccumTypes = UnivariateAccumulatorTypes<FF, LENGTHS>;
+    using ValueAccumTypes = ValueAccumulatorTypes<FF, LENGTHS>;
 
-    using RelationUnivariates = typename UnivariateAccumulatorTypes::Accumulators;
-    using RelationValues = typename ValueAccumulatorTypes::Accumulators;
+    using RelationUnivariates = typename UnivariateAccumTypes::Accumulators;
+    using RelationValues = typename ValueAccumTypes::Accumulators;
 
     /**
      * @brief Expression for the generalized permutation sort gate.
@@ -109,7 +109,7 @@ template <typename FF> class GenPermSortRelation {
                                       const RelationParameters<FF>& relation_parameters,
                                       const FF& scaling_factor) const
     {
-        add_edge_contribution_impl<UnivariateAccumulatorTypes>(accumulator, input, relation_parameters, scaling_factor);
+        add_edge_contribution_impl<UnivariateAccumTypes>(accumulator, input, relation_parameters, scaling_factor);
     }
 
     void add_full_relation_value_contribution(RelationValues& accumulator,
@@ -117,7 +117,7 @@ template <typename FF> class GenPermSortRelation {
                                               const RelationParameters<FF>& relation_parameters,
                                               const FF& scaling_factor = 1) const
     {
-        add_edge_contribution_impl<ValueAccumulatorTypes>(accumulator, input, relation_parameters, scaling_factor);
+        add_edge_contribution_impl<ValueAccumTypes>(accumulator, input, relation_parameters, scaling_factor);
     }
 };
 } // namespace proof_system::honk::sumcheck

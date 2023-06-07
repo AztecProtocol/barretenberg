@@ -17,11 +17,11 @@ template <typename FF> class UltraArithmeticRelation {
     static constexpr size_t LEN_2 = 5; // secondary arithmetic sub-relation
     using LENGTHS = LengthsWrapper<LEN_1, LEN_2>;
 
-    using UnivariateAccumulatorTypes = UnivariateAccumulatorTypes<FF, LENGTHS>;
-    using ValueAccumulatorTypes = ValueAccumulatorTypes<FF, LENGTHS>;
+    using UnivariateAccumTypes = UnivariateAccumulatorTypes<FF, LENGTHS>;
+    using ValueAccumTypes = ValueAccumulatorTypes<FF, LENGTHS>;
 
-    using RelationUnivariates = typename UnivariateAccumulatorTypes::Accumulators;
-    using RelationValues = typename ValueAccumulatorTypes::Accumulators;
+    using RelationUnivariates = typename UnivariateAccumTypes::Accumulators;
+    using RelationValues = typename ValueAccumTypes::Accumulators;
 
     /**
      * @brief Expression for the Ultra Arithmetic gate.
@@ -130,7 +130,7 @@ template <typename FF> class UltraArithmeticRelation {
                                       const RelationParameters<FF>& relation_parameters,
                                       const FF& scaling_factor) const
     {
-        add_edge_contribution_impl<UnivariateAccumulatorTypes>(accumulator, input, relation_parameters, scaling_factor);
+        add_edge_contribution_impl<UnivariateAccumTypes>(accumulator, input, relation_parameters, scaling_factor);
     }
 
     void add_full_relation_value_contribution(RelationValues& accumulator,
@@ -138,7 +138,7 @@ template <typename FF> class UltraArithmeticRelation {
                                               const RelationParameters<FF>& relation_parameters,
                                               const FF& scaling_factor = 1) const
     {
-        add_edge_contribution_impl<ValueAccumulatorTypes>(accumulator, input, relation_parameters, scaling_factor);
+        add_edge_contribution_impl<ValueAccumTypes>(accumulator, input, relation_parameters, scaling_factor);
     }
 };
 // clang-format on
