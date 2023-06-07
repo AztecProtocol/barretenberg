@@ -14,14 +14,15 @@ void init_crs_factory(std::vector<g1::affine_element> const& points, g2::affine_
     crs_factory = std::make_shared<factories::MemCrsFactory>(points, g2_point);
 }
 
+void init_crs_factory(std::string crs_path)
+{
+    crs_factory = std::make_shared<factories::FileCrsFactory>(crs_path);
+}
+
 std::shared_ptr<factories::CrsFactory> get_crs_factory()
 {
     if (!crs_factory) {
-#ifdef __wasm__
         throw_or_abort("You need to initalize the global CRS with a call to init_crs_factory(...)!");
-#else
-        crs_factory = std::make_shared<factories::FileCrsFactory>("../srs_db/ignition");
-#endif
     }
     return crs_factory;
 }

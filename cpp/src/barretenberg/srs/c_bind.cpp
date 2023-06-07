@@ -22,3 +22,8 @@ WASM_EXPORT void srs_init_srs(uint8_t const* points_buf, uint32_t const* num_poi
 
     barretenberg::srs::init_crs_factory(points, g2_point);
 }
+
+WASM_EXPORT void srs_init_from_path(char const* crs_path)
+{
+    barretenberg::srs::init_crs_factory(crs_path);
+}
