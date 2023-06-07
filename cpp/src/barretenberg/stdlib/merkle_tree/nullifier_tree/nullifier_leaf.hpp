@@ -37,6 +37,7 @@ struct nullifier_leaf {
         write(buf, nextValue);
     }
 
+    bool is_zero() const { return value == fr::zero(); }
     barretenberg::fr hash() const { return stdlib::merkle_tree::hash_multiple_native({ value, nextIndex, nextValue }); }
 };
 
