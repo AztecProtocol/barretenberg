@@ -124,6 +124,7 @@ inline void msgpack_schema_pack(MsgpackSchemaPacker& packer, T const& obj)
 {
     packer.pack(msgpack_schema_name(obj));
 }
+
 /**
  * Schema pack base case for types with no special msgpack method.
  * @tparam T the type.
@@ -162,22 +163,27 @@ template <typename... Args> inline void msgpack_schema_pack(MsgpackSchemaPacker&
 {
     packer.pack_template_type<Args...>("tuple");
 }
+
 template <typename K, typename V> inline void msgpack_schema_pack(MsgpackSchemaPacker& packer, std::map<K, V> const&)
 {
     packer.pack_template_type<K, V>("map");
 }
+
 template <typename T> inline void msgpack_schema_pack(MsgpackSchemaPacker& packer, std::optional<T> const&)
 {
     packer.pack_template_type<T>("optional");
 }
+
 template <typename T> inline void msgpack_schema_pack(MsgpackSchemaPacker& packer, std::vector<T> const&)
 {
     packer.pack_template_type<T>("vector");
 }
+
 template <typename... Args> inline void msgpack_schema_pack(MsgpackSchemaPacker& packer, std::variant<Args...> const&)
 {
     packer.pack_template_type<Args...>("variant");
 }
+
 template <typename T> inline void msgpack_schema_pack(MsgpackSchemaPacker& packer, std::shared_ptr<T> const&)
 {
     packer.pack_template_type<T>("shared_ptr");
