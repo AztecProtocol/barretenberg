@@ -13,7 +13,7 @@ const debug = createDebug('bb.js:wasm');
 EventEmitter.defaultMaxListeners = 30;
 
 export class BarretenbergWasm {
-  static MAX_THREADS = 16;
+  static MAX_THREADS = 32;
   private memStore: { [key: string]: Uint8Array } = {};
   private memory!: WebAssembly.Memory;
   private instance!: WebAssembly.Instance;
@@ -156,9 +156,9 @@ export class BarretenbergWasm {
           const m = this.getMemory();
           const str2 = `${str} (mem: ${(m.length / (1024 * 1024)).toFixed(2)}MiB)`;
           this.logger(str2);
-          // if (str2.startsWith('WARNING:')) {
-          //   this.logger(new Error().stack!);
-          // }
+          if (str2.startsWith('WARNING:')) {
+            this.logger(new Error().stack!);
+          }
         },
 
         get_data: (keyAddr: number, outBufAddr: number) => {

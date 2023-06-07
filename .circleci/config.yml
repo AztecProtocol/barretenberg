@@ -239,6 +239,17 @@ jobs:
           name: "Test"
           command: store_test_benchmark_logs barretenberg-x86_64-linux-clang-assert
 
+  bb-js:
+    machine:
+      image: ubuntu-2004:202010-01
+    resource_class: large
+    steps:
+      - *checkout
+      - *setup_env
+      - run:
+          name: "Build"
+          command: build bb.js
+
   bb-js-tests:
     docker:
       - image: aztecprotocol/alpine-build-image
@@ -249,7 +260,6 @@ jobs:
       - run:
           name: "Test"
           command: cond_spot_run_tests bb.js
-      - *save_logs
 
   ###################################
   # Aztec integration tests
@@ -353,9 +363,13 @@ workflows:
               only:
                 - master
           <<: *defaults
-      - bb-js-tests:
+      - bb-js:
           requires:
             - wasm-linux-clang
+          <<: *defaults
+      - bb-js-tests:
+          requires:
+            - bb-js
           <<: *defaults
       - circuits-wasm-linux-clang-builder-runner: *notmaster
       - circuits-x86_64-linux-clang-builder-runner: *notmaster

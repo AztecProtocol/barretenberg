@@ -15,15 +15,14 @@ to fallback to single threaded performance.
 
 Performance for 2^19 (small witness generation phase):
 
-- 16 core x86: ~13s.
+- 16 core (not hyperthreads) x86: ~13s.
 - 10 core M1 Mac Pro: ~18s.
 
-Linear scaling was observed up to 32 cores, however we limit to 16 as 2^19 runs out of memory with 32 cores.
-This maybe resolvable.
+Linear scaling was observed up to 32 cores.
 
 Witness generation phase is not multithreaded, and an interesting 512k circuit can take ~12s. This results in:
 
-- 16 core x86: ~26s.
+- 16 core (not hyperthreads) x86: ~26s.
 - 10 core M1 Mac Pro: (TBD)
 
 ## Using as a standalone binary

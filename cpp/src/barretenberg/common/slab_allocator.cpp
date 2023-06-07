@@ -90,9 +90,8 @@ void SlabAllocator::init(size_t circuit_size_hint)
         return;
     }
 
-    // Over-allocate because we know there are requests for circuit_size + n. (somewhat arbitrary n = 256)
-    // Think max I saw was 65 extra related to pippenger runtime state. Likely related to the machine having 64 cores.
-    size_t overalloc = 256;
+    // Over-allocate because we know there are requests for circuit_size + n. (somewhat arbitrary n = 512)
+    size_t overalloc = 512;
     size_t base_size = circuit_size_hint + overalloc;
 
     std::map<size_t, size_t> prealloc_num;
@@ -175,9 +174,9 @@ std::shared_ptr<void> SlabAllocator::get(size_t req_size)
         });
     }
 
-    // if (req_size > 1024 * 1024) {
-    dbg_info("WARNING: Allocating unmanaged memory slab of size: ", req_size);
-    // }
+    if (req_size > 1024 * 1024) {
+        dbg_info("WARNING: Allocating unmanaged memory slab of size: ", req_size);
+    }
     if (req_size % 32 == 0) {
         return std::shared_ptr<void>(aligned_alloc(32, req_size), aligned_free);
     } else {

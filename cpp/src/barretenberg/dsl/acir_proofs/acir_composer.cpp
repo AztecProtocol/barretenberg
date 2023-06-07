@@ -84,13 +84,16 @@ std::vector<uint8_t> AcirComposer::create_proof(
     witness.shrink_to_fit();
 
     info("creating proof...");
+    std::vector<uint8_t> proof;
     if (is_recursive) {
         auto prover = composer_.create_prover();
-        return prover.construct_proof().proof_data;
+        proof = prover.construct_proof().proof_data;
     } else {
         auto prover = composer_.create_ultra_with_keccak_prover();
-        return prover.construct_proof().proof_data;
+        proof = prover.construct_proof().proof_data;
     }
+    info("done.");
+    return proof;
 }
 
 std::shared_ptr<proof_system::plonk::verification_key> AcirComposer::init_verification_key()
