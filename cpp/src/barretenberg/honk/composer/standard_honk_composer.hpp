@@ -2,7 +2,7 @@
 
 #include "composer_helper/standard_honk_composer_helper.hpp"
 #include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
-#include "barretenberg/srs/reference_string/file_reference_string.hpp"
+#include "barretenberg/srs/factories/file_crs_factory.hpp"
 #include "barretenberg/proof_system/types/merkle_hash_type.hpp"
 #include "barretenberg/proof_system/types/pedersen_commitment_type.hpp"
 
@@ -45,18 +45,18 @@ template <class Flavor> class StandardHonkComposer_ {
         , variables(circuit_constructor.variables){};
 
     StandardHonkComposer_(std::string const& crs_path, const size_t size_hint = 0)
-        : StandardHonkComposer_(
-              std::unique_ptr<ReferenceStringFactory>(new proof_system::FileReferenceStringFactory(crs_path)),
-              size_hint){};
+        : StandardHonkComposer_(barretenberg::srs::get_crs_factory(), size_hint){};
 
-    StandardHonkComposer_(std::shared_ptr<ReferenceStringFactory> const& crs_factory, const size_t size_hint = 0)
+    StandardHonkComposer_(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
+                          const size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(crs_factory)
         , num_gates(circuit_constructor.num_gates)
         , variables(circuit_constructor.variables)
 
     {}
-    StandardHonkComposer_(std::unique_ptr<ReferenceStringFactory>&& crs_factory, const size_t size_hint = 0)
+    StandardHonkComposer_(std::unique_ptr<barretenberg::srs::factories::CrsFactory>&& crs_factory,
+                          const size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , composer_helper(std::move(crs_factory))
         , num_gates(circuit_constructor.num_gates)

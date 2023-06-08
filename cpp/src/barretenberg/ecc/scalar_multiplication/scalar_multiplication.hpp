@@ -98,7 +98,7 @@ void generate_pippenger_point_table(typename Curve::AffineElement* points,
                                     typename Curve::AffineElement* table,
                                     size_t num_points);
 
-void organize_buckets(uint64_t* point_schedule, const uint64_t* round_counts, const size_t num_points);
+void organize_buckets(uint64_t* point_schedule, const size_t num_points);
 
 inline void count_bits(uint32_t* bucket_counts,
                        uint32_t* bit_offsets,
@@ -173,6 +173,11 @@ typename Curve::Element pippenger_without_endomorphism_basis_points(typename Cur
 
 // Explicit instantiation
 // BN254
+
+extern template void generate_pippenger_point_table<curve::BN254>(curve::BN254::AffineElement* points,
+                                                                  curve::BN254::AffineElement* table,
+                                                                  size_t num_points);
+
 extern template uint32_t construct_addition_chains<curve::BN254>(affine_product_runtime_state<curve::BN254>& state,
                                                                  bool empty_bucket_counts = true);
 
@@ -220,6 +225,10 @@ extern template curve::BN254::Element pippenger_without_endomorphism_basis_point
     pippenger_runtime_state<curve::BN254>& state);
 
 // Grumpkin
+
+extern template void generate_pippenger_point_table<curve::Grumpkin>(curve::Grumpkin::AffineElement* points,
+                                                                     curve::Grumpkin::AffineElement* table,
+                                                                     size_t num_points);
 
 extern template uint32_t construct_addition_chains<curve::Grumpkin>(
     affine_product_runtime_state<curve::Grumpkin>& state, bool empty_bucket_counts = true);
