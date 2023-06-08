@@ -22,7 +22,9 @@ template <typename Composer> class VerificationKeyFixture : public testing::Test
     using Curve = stdlib::bn254<Composer>;
     using RecursVk = plonk::stdlib::recursion::verification_key<Curve>;
 
-    static Composer init_composer() { return Composer("../srs_db/ignition"); }
+    static void SetUpTestSuite() { barretenberg::srs::init_crs_factory("../srs_db/ignition"); }
+
+    static Composer init_composer() { return Composer(barretenberg::srs::get_crs_factory()); }
 
     /**
      * @brief generate a random vk data for use in tests
