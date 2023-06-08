@@ -3,8 +3,8 @@
 /**
  * @brief Provides interfaces for different 'CommitmentKey' classes.
  *
- * TODO(#218)(Adrian / Mara): This class should take ownership of the SRS, and handle reading the file from disk as well
- * as carrying out any modification to the SRS (e.g compute pippenger point table) to simplify the codebase.
+ * TODO(#218)(Mara): This class should handle any modification to the SRS (e.g compute pippenger point table) to
+ * simplify the codebase.
  */
 
 #include "barretenberg/ecc/curves/bn254/bn254.hpp"
