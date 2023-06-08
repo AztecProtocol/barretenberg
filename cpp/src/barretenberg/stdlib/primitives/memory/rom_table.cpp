@@ -97,17 +97,24 @@ template <typename Composer> rom_table<Composer>& rom_table<Composer>::operator=
 
 template <typename Composer> field_t<Composer> rom_table<Composer>::operator[](const size_t index) const
 {
+    info("index: ", index);
+    info("length: ", length);
     if (index >= length) {
         ASSERT(context != nullptr);
         context->failure("rom_rable: ROM array access out of bounds");
     }
-
+    info("entries.size(): ", entries.size());
+    for (size_t i = 0; i < entries.size(); i++) {
+        info("entry: ", entries[i]);
+    }
     return entries[index];
 }
 
 template <typename Composer> field_t<Composer> rom_table<Composer>::operator[](const field_pt& index) const
 {
+    info("index.is_constant(): ", index.is_constant());
     if (index.is_constant()) {
+        info("index.get_value(): ", static_cast<size_t>(uint256_t(index.get_value()).data[0]));
         return operator[](static_cast<size_t>(uint256_t(index.get_value()).data[0]));
     }
     if (context == nullptr) {

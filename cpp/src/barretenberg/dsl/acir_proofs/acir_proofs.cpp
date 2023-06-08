@@ -48,6 +48,7 @@ uint32_t get_total_circuit_size(uint8_t const* constraint_system_buf)
 
 size_t init_proving_key(uint8_t const* constraint_system_buf, uint8_t const** pk_buf)
 {
+    info("INSIDE INIT PKEY");
     auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
 
     // We know that we don't actually need any CRS to create a proving key, so just feed in a nothing.
@@ -56,6 +57,9 @@ size_t init_proving_key(uint8_t const* constraint_system_buf, uint8_t const** pk
     auto composer = create_circuit(constraint_system, std::move(crs_factory));
     info("composer.err(): ", composer.err());
     auto proving_key = composer.compute_proving_key();
+    // info("composer.circuit_finalised: ", composer.circuit_finalised);
+    proving_key->composer_type = proof_system::ComposerType::PLOOKUP;
+    // info("proving_key->circuit_size: ", proving_key->circuit_size);
 
     auto buffer = to_buffer(*proving_key);
     auto raw_buf = (uint8_t*)malloc(buffer.size());
@@ -99,6 +103,8 @@ size_t new_proof(void* pippenger,
                  uint8_t const* witness_buf,
                  uint8_t** proof_data_buf)
 {
+    info("INSIDE NEW_PROOF");
+
     auto constraint_system = from_buffer<acir_format::acir_format>(constraint_system_buf);
 
     std::shared_ptr<ProverReferenceString> crs;
@@ -113,23 +119,40 @@ size_t new_proof(void* pippenger,
     proving_key->reference_string = crs_factory->get_prover_crs(proving_key->circuit_size);
 
     acir_format::Composer composer(proving_key, nullptr);
+    info("proving_key->circuit_size: ", proving_key->circuit_size);
 
     create_circuit_with_witness(composer, constraint_system, witness);
+
     info("composer.err(): ", composer.err());
     info("composer.get_num_gates(): ", composer.get_num_gates());
+    info("composer.circuit_finalised: ", composer.circuit_finalised);
+    info("composer num vars: ", composer.get_num_variables());
 
     auto prover = composer.create_ultra_with_keccak_prover();
+    info("composer.circuit_finalised: ", composer.circuit_finalised);
+    info("composer num vars: ", composer.get_num_variables());
+    info("composer.variables.size(): ", composer.variables.size());
+
+    // composer.crs_factory_ = std::move(crs_factory);
+    // info("got crs");
+    // auto proof = prover.construct_proof();
+    // info("got proof");
+    // auto verifier = composer.create_ultra_with_keccak_verifier();
+    // auto verified = verifier.verify_proof(proof);
+    // info("VERIFIED: ", verified);
 
     auto heapProver = new acir_format::Prover(std::move(prover));
     auto& proof_data = heapProver->construct_proof().proof_data;
+    // auto& proof_data = proof.proof_data;
     *proof_data_buf = proof_data.data();
-
+    info("proof_data.size(): ", proof_data.size());
     return proof_data.size();
 }
 
 bool verify_proof(
     uint8_t const* g2x, uint8_t const* vk_buf, uint8_t const* constraint_system_buf, uint8_t* proof, uint32_t length)
 {
+    info("INSIDE VERIFY_PROOF");
     bool verified = false;
 
 #ifndef __wasm__
@@ -143,14 +166,27 @@ bool verify_proof(
 
         acir_format::Composer composer(nullptr, verification_key);
         create_circuit(composer, constraint_system);
+        auto crs_factory = std::make_unique<ReferenceStringFactory>();
+        composer.crs_factory_ = std::move(crs_factory);
+
         info("composer.err(): ", composer.err());
         info("composer.get_num_gates(): ", composer.get_num_gates());
+        info("composer.circuit_finalised: ", composer.circuit_finalised);
+        info("composer num vars: ", composer.get_num_variables());
+
+        info("proof length: ", length);
 
         plonk::proof pp = { std::vector<uint8_t>(proof, proof + length) };
+        info("got pp");
 
         auto verifier = composer.create_ultra_with_keccak_verifier();
+        info("got verifier");
+        info("composer.circuit_finalised: ", composer.circuit_finalised);
+        info("composer num vars: ", composer.get_num_variables());
 
         verified = verifier.verify_proof(pp);
+        info("verified proof");
+
 #ifndef __wasm__
     } catch (const std::exception& e) {
         verified = false;

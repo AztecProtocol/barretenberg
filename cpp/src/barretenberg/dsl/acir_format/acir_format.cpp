@@ -6,6 +6,8 @@ namespace acir_format {
 void read_witness(Composer& composer, std::vector<barretenberg::fr> witness)
 {
     composer.variables[0] = 0;
+    info("composer.variables.size(): ", composer.variables.size());
+    info("witness.size(): ", witness.size());
     for (size_t i = 0; i < witness.size(); ++i) {
         composer.variables[i + 1] = witness[i];
     }
@@ -90,8 +92,6 @@ void create_circuit(Composer& composer, const acir_format& constraint_system)
     // Add block constraints
     for (const auto& constraint : constraint_system.block_constraints) {
         create_block_constraints(composer, constraint, false);
-        info("composer.err()");
-        info(composer.err());
     }
 }
 

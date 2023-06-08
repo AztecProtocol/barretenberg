@@ -72,7 +72,8 @@ template <typename Composer> void ram_table<Composer>::initialize_table() const
     ASSERT(_context != nullptr);
 
     _ram_id = _context->create_RAM_array(_length);
-
+    info("_length: ", _length);
+    info("_raw_entries.size(): ", _raw_entries.size());
     if (_raw_entries.size() > 0) {
         for (size_t i = 0; i < _length; ++i) {
             if (!_index_initialized[i]) {
@@ -83,6 +84,7 @@ template <typename Composer> void ram_table<Composer>::initialize_table() const
                 } else {
                     entry = _raw_entries[i].normalize();
                 }
+                info("entry.get_witness_index(): ", entry.get_witness_index());
                 _context->init_RAM_element(_ram_id, i, entry.get_witness_index());
                 _index_initialized[i] = true;
             }
@@ -194,11 +196,13 @@ template <typename Composer> field_t<Composer> ram_table<Composer>::read(const f
     }
 
     field_pt index_wire = index;
+    info("index.is_constant(): ", index.is_constant());
     if (index.is_constant()) {
         index_wire = field_pt::from_witness_index(_context, _context->put_constant_variable(index.get_value()));
     }
 
     uint32_t output_idx = _context->read_RAM_array(_ram_id, index_wire.normalize().get_witness_index());
+    info("output_idx: ", output_idx);
     return field_pt::from_witness_index(_context, output_idx);
 }
 
@@ -226,6 +230,7 @@ template <typename Composer> void ram_table<Composer>::write(const field_pt& ind
     initialize_table();
     field_pt index_wire = index;
     auto native_index = index.get_value();
+    info("index.is_constant(): ", index.is_constant());
     if (index.is_constant()) {
         // need to write every array element at a constant index before doing reads/writes at prover-defined indices
         index_wire = field_pt::from_witness_index(_context, _context->put_constant_variable(native_index));
@@ -238,6 +243,7 @@ template <typename Composer> void ram_table<Composer>::write(const field_pt& ind
 
     field_pt value_wire = value;
     auto native_value = value.get_value();
+    info("index.is_constant(): ", index.is_constant());
     if (value.is_constant()) {
         value_wire = field_pt::from_witness_index(_context, _context->put_constant_variable(native_value));
     }
@@ -248,7 +254,12 @@ template <typename Composer> void ram_table<Composer>::write(const field_pt& ind
 
         _index_initialized[cast_index] = true;
     } else {
-        _context->write_RAM_array(_ram_id, index_wire.normalize().get_witness_index(), value_wire.get_witness_index());
+        info("about to write RAM arr");
+        auto index_w = index_wire.normalize().get_witness_index();
+        info("index witness: ", index_w);
+        auto value_w = value_wire.normalize().get_witness_index();
+        info("value witness: ", value_w);
+        _context->write_RAM_array(_ram_id, index_w, value_w);
     }
 }
 
