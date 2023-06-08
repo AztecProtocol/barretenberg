@@ -107,4 +107,9 @@ int32_t __imported_wasi_snapshot_preview1_fd_prestat_dir_name(int32_t, int32_t, 
     abort();
     return 28;
 }
+
+int32_t __imported_wasi_snapshot_preview1_path_filestat_get(int32_t, int32_t, int32_t, int32_t, int32_t)
+{
+    return 0;
+}
 }

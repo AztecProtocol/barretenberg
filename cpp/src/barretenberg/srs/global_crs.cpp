@@ -14,12 +14,10 @@ void init_crs_factory(std::vector<g1::affine_element> const& points, g2::affine_
     crs_factory = std::make_shared<factories::MemCrsFactory>(points, g2_point);
 }
 
-#ifndef __wasm__
 void init_crs_factory(std::string crs_path)
 {
     crs_factory = std::make_shared<factories::FileCrsFactory>(crs_path);
 }
-#endif
 
 std::shared_ptr<factories::CrsFactory> get_crs_factory()
 {
