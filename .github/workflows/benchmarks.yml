@@ -50,6 +50,15 @@ jobs:
         run: |
           bin/ultra_honk_bench --benchmark_format=json > ../src/barretenberg/benchmark/honk_bench/bench_results.json
 
+      # Commit benchmark results json to the branch
+      - name: Commit result
+        working-directory: cpp
+        run: |
+          pwd
+          git add src/barretenberg/benchmark/honk_bench/bench_results.json
+          git commit -m "add bench results"
+          git push
+      
       # 
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1
@@ -69,11 +78,4 @@ jobs:
           # fail-on-alert: true
           # alert-comment-cc-users: '@ktrz'
 
-      # # Commit benchmark results json to the branch
-      # - name: Commit result
-      #   working-directory: cpp
-      #   run: |
-      #     git add src/barretenberg/benchmark/honk_bench/bench_results.json
-      #     git commit -m "add bench results"
-      #     git push
                 
