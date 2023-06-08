@@ -1,0 +1,96 @@
+{
+  "context": {
+    "date": "2023-06-08T19:24:52+00:00",
+    "host_name": "fv-az583-714",
+    "executable": "bin/ultra_honk_bench",
+    "num_cpus": 2,
+    "mhz_per_cpu": 2793,
+    "cpu_scaling_enabled": false,
+    "caches": [
+      {
+        "type": "Data",
+        "level": 1,
+        "size": 49152,
+        "num_sharing": 1
+      },
+      {
+        "type": "Instruction",
+        "level": 1,
+        "size": 32768,
+        "num_sharing": 1
+      },
+      {
+        "type": "Unified",
+        "level": 2,
+        "size": 1310720,
+        "num_sharing": 1
+      },
+      {
+        "type": "Unified",
+        "level": 3,
+        "size": 50331648,
+        "num_sharing": 2
+      }
+    ],
+    "load_avg": [2.37744,2.12939,1.06592],
+    "library_build_type": "release"
+  },
+  "benchmarks": [
+    {
+      "name": "construct_proof/sha256/10/repeats:1",
+      "family_index": 0,
+      "per_family_instance_index": 0,
+      "run_name": "construct_proof/sha256/10/repeats:1",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 1,
+      "real_time": 1.3003723924000042e+10,
+      "cpu_time": 1.0834760399999998e+10,
+      "time_unit": "ns"
+    },
+    {
+      "name": "construct_proof/keccak/10/repeats:1",
+      "family_index": 1,
+      "per_family_instance_index": 0,
+      "run_name": "construct_proof/keccak/10/repeats:1",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 1,
+      "real_time": 2.1656035516999966e+10,
+      "cpu_time": 1.9191273799999996e+10,
+      "time_unit": "ns"
+    },
+    {
+      "name": "construct_proof/ecdsa_verification/10/repeats:1",
+      "family_index": 2,
+      "per_family_instance_index": 0,
+      "run_name": "construct_proof/ecdsa_verification/10/repeats:1",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 1,
+      "real_time": 3.8913263483999969e+10,
+      "cpu_time": 3.6777872500000000e+10,
+      "time_unit": "ns"
+    },
+    {
+      "name": "construct_proof/merkle_membership/10/repeats:1",
+      "family_index": 3,
+      "per_family_instance_index": 0,
+      "run_name": "construct_proof/merkle_membership/10/repeats:1",
+      "run_type": "iteration",
+      "repetitions": 1,
+      "repetition_index": 0,
+      "threads": 1,
+      "iterations": 1,
+      "real_time": 4.3371778289999838e+09,
+      "cpu_time": 2.5496391000000072e+09,
+      "time_unit": "ns"
+    }
+  ]
+}
