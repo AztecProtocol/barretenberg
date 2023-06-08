@@ -58,6 +58,14 @@ jobs:
           git add src/barretenberg/benchmark/honk_bench/bench_results.json
           git commit -m "add bench results"
           git push
+
+      # Check for existence of bench results
+      - name: Check bench result file exists
+        working-directory: cpp
+        run: |
+          pwd
+          cd src/barretenberg/benchmark/honk_bench
+          ls
       
       # 
       - name: Store benchmark result
