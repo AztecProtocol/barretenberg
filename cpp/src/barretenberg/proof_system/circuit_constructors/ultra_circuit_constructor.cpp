@@ -100,18 +100,21 @@ void UltraCircuitConstructor::add_gates_to_ensure_all_polys_are_non_zero()
     // to get a non-zero value in table_4. I assume this index is arbitrary and could
     // start from 1 instead of 0?
     uint32_t left_value = 3;
-    uint32_t right_value = 5;
+    uint32_t right_value = 3;
 
     fr left_witness_value = fr{ left_value, 0, 0, 0 }.to_montgomery_form();
     fr right_witness_value = fr{ right_value, 0, 0, 0 }.to_montgomery_form();
 
     uint32_t left_witness_index = add_variable(left_witness_value);
     uint32_t right_witness_index = add_variable(right_witness_value);
-
+    const auto filler_accumulators = plookup::get_lookup_accumulators(
+        plookup::MultiTableId::HONK_FILLER_MULTI, left_witness_value, right_witness_value, true);
     const auto and_accumulators = plookup::get_lookup_accumulators(
         plookup::MultiTableId::UINT32_AND, left_witness_value, right_witness_value, true);
     const auto xor_accumulators = plookup::get_lookup_accumulators(
         plookup::MultiTableId::UINT32_XOR, left_witness_value, right_witness_value, true);
+    create_gates_from_plookup_accumulators(
+        plookup::MultiTableId::HONK_FILLER_MULTI, filler_accumulators, left_witness_index, right_witness_index);
 
     create_gates_from_plookup_accumulators(
         plookup::MultiTableId::UINT32_AND, and_accumulators, left_witness_index, right_witness_index);
