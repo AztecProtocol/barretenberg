@@ -86,9 +86,9 @@ struct Params {
          * @param num_points
          * @param verifier_srs verifier G2 point
          */
-        VerificationKey(size_t num_points, std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory)
-            : pippenger_runtime_state(num_points)
-            , verifier_srs(crs_factory->get_verifier_crs())
+        VerificationKey([[maybe_unused]] size_t num_points,
+                        std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory)
+            : verifier_srs(crs_factory->get_verifier_crs())
         {}
 
         /**
@@ -109,7 +109,6 @@ struct Params {
             return (result == barretenberg::fq12::one());
         }
 
-        barretenberg::scalar_multiplication::pippenger_runtime_state<curve::BN254> pippenger_runtime_state;
         std::shared_ptr<barretenberg::srs::factories::VerifierCrs> verifier_srs;
     };
 };
