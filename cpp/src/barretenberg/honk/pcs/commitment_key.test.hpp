@@ -25,15 +25,17 @@ template <class CK> inline std::shared_ptr<CK> CreateCommitmentKey();
 template <> inline std::shared_ptr<kzg::Params::CommitmentKey> CreateCommitmentKey<kzg::Params::CommitmentKey>()
 {
     constexpr size_t n = 128;
-    barretenberg::srs::factories::FileCrsFactory kzg_srs("../srs_db/ignition");
-    return std::make_shared<kzg::Params::CommitmentKey>(n, kzg_srs.get_prover_crs(n));
+    std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory(
+        new barretenberg::srs::factories::FileCrsFactory("../srs_db/ignition"));
+    return std::make_shared<kzg::Params::CommitmentKey>(n, crs_factory);
 }
 // For IPA
 template <> inline std::shared_ptr<ipa::Params::CommitmentKey> CreateCommitmentKey<ipa::Params::CommitmentKey>()
 {
     constexpr size_t n = 128;
-    barretenberg::srs::factories::FileCrsFactory kzg_srs("../srs_db/ignition");
-    return std::make_shared<ipa::Params::CommitmentKey>(n, kzg_srs.get_prover_crs(n));
+    std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory(
+        new barretenberg::srs::factories::FileCrsFactory("../srs_db/ignition"));
+    return std::make_shared<ipa::Params::CommitmentKey>(n, crs_factory);
 }
 
 template <typename CK> inline std::shared_ptr<CK> CreateCommitmentKey()

@@ -63,8 +63,7 @@ class StandardHonkComposerHelper {
                                                          const size_t num_randomized_gates = NUM_RESERVED_GATES);
     // This needs to be static as it may be used only to compute the selector commitments.
 
-    static std::shared_ptr<VerificationKey> compute_verification_key_base(
-        std::shared_ptr<ProvingKey> const& proving_key);
+    std::shared_ptr<VerificationKey> compute_verification_key_base(std::shared_ptr<ProvingKey> const& proving_key);
 
     void compute_witness(const CircuitConstructor& circuit_constructor, const size_t minimum_circuit_size = 0);
 };

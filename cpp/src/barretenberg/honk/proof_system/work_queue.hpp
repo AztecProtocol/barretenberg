@@ -39,7 +39,7 @@ template <typename Params> class work_queue {
     explicit work_queue(size_t circuit_size, proof_system::honk::ProverTranscript<FF>& prover_transcript)
         : transcript(prover_transcript)
         // TODO(luke): make this properly parameterized
-        , commitment_key(circuit_size, barretenberg::srs::get_crs_factory()->get_prover_crs(circuit_size)){};
+        , commitment_key(circuit_size, barretenberg::srs::get_crs_factory()){};
 
     work_queue(const work_queue& other) = default;
     work_queue(work_queue&& other) noexcept = default;

@@ -52,10 +52,9 @@ struct Params {
          * @param path
          *
          */
-        CommitmentKey(const size_t num_points,
-                      std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> prover_crs)
+        CommitmentKey(const size_t num_points, std::shared_ptr<barretenberg::srs::factories::CrsFactory> prover_crs)
             : pippenger_runtime_state(num_points)
-            , srs(prover_crs)
+            , srs(prover_crs->get_prover_crs(num_points))
         {}
 
         /**
@@ -201,10 +200,9 @@ struct Params {
          * @param path
          *
          */
-        CommitmentKey(const size_t num_points,
-                      std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> prover_crs)
+        CommitmentKey(const size_t num_points, std::shared_ptr<barretenberg::srs::factories::CrsFactory> prover_crs)
             : pippenger_runtime_state(num_points)
-            , srs(prover_crs)
+            , srs(prover_crs->get_prover_crs(num_points))
         {}
 
         /**

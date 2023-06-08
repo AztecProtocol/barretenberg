@@ -47,7 +47,8 @@ std::shared_ptr<StandardHonkComposerHelper::VerificationKey> StandardHonkCompose
 {
     auto key = std::make_shared<VerificationKey>(
         proving_key->circuit_size, proving_key->num_public_inputs, proving_key->composer_type);
-    auto commitment_key = PCSParams::CommitmentKey(proving_key->circuit_size, proving_key->crs);
+
+    auto commitment_key = PCSParams::CommitmentKey(proving_key->circuit_size, crs_factory_);
 
     // Compute and store commitments to all precomputed polynomials
     key->q_m = commitment_key.commit(proving_key->q_m);
@@ -158,8 +159,7 @@ StandardProver StandardHonkComposerHelper::create_prover(const CircuitConstructo
     compute_witness(circuit_constructor);
     StandardProver output_state(proving_key);
 
-    auto pcs_commitment_key = std::make_unique<PCSParams::CommitmentKey>(
-        proving_key->circuit_size, crs_factory_->get_prover_crs(proving_key->circuit_size));
+    auto pcs_commitment_key = std::make_unique<PCSParams::CommitmentKey>(proving_key->circuit_size, crs_factory_);
 
     output_state.pcs_commitment_key = std::move(pcs_commitment_key);
 
