@@ -141,11 +141,9 @@ UltraProver UltraHonkComposerHelper::create_prover(CircuitConstructor& circuit_c
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
 
-    UltraProver output_state(proving_key);
+    commitment_key = std::make_unique<PCSParams::CommitmentKey>(proving_key->circuit_size, crs_factory_);
 
-    auto pcs_commitment_key = std::make_unique<PCSParams::CommitmentKey>(proving_key->circuit_size, crs_factory_);
-
-    output_state.pcs_commitment_key = std::move(pcs_commitment_key);
+    UltraProver output_state(proving_key, commitment_key);
 
     return output_state;
 }

@@ -144,11 +144,10 @@ StandardProver StandardHonkComposerHelper::create_prover(const CircuitConstructo
 {
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
-    StandardProver output_state(proving_key);
 
-    auto pcs_commitment_key = std::make_unique<PCSParams::CommitmentKey>(proving_key->circuit_size, crs_factory_);
+    commitment_key = std::make_shared<PCSParams::CommitmentKey>(proving_key->circuit_size, crs_factory_);
 
-    output_state.pcs_commitment_key = std::move(pcs_commitment_key);
+    StandardProver output_state(proving_key, commitment_key);
 
     return output_state;
 }

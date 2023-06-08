@@ -28,9 +28,12 @@ class UltraHonkComposerHelper {
     static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
     std::shared_ptr<ProvingKey> proving_key;
     std::shared_ptr<VerificationKey> verification_key;
-    // TODO(#218)(kesha): we need to put this into the commitment key, so that the composer doesn't have to handle srs
-    // at all
+
+    // The crs_factory holds the path to the srs and exposes methods to extract either srs elements
     std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory_;
+
+    // The commitment key is passed to the prover but also used herein to compute the verfication key commitments
+    std::shared_ptr<PCSCommitmentKey> commitment_key;
 
     std::vector<uint32_t> recursive_proof_public_input_indices;
     bool contains_recursive_proof = false;
