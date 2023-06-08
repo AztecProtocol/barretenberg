@@ -46,9 +46,7 @@ class StandardHonkComposer {
         , variables(circuit_constructor.variables){};
 
     StandardHonkComposer(std::string const& crs_path, const size_t size_hint = 0)
-        : StandardHonkComposer(std::unique_ptr<barretenberg::srs::factories::CrsFactory>(
-                                   new barretenberg::srs::factories::FileCrsFactory(crs_path)),
-                               size_hint){};
+        : StandardHonkComposer(barretenberg::srs::get_crs_factory(), size_hint){};
 
     StandardHonkComposer(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
                          const size_t size_hint = 0)

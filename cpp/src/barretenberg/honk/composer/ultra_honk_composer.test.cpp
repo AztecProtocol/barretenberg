@@ -63,7 +63,7 @@ void ensure_non_zero(auto& polynomial)
 
 class UltraHonkComposerTests : public ::testing::Test {
   protected:
-    static void SetUpTestSuite() { barretenberg::srs::init_crs_factory("../barretenberg/cpp/srs_db/ignition"); }
+    static void SetUpTestSuite() { barretenberg::srs::init_crs_factory("../srs_db/ignition"); }
 };
 
 /**

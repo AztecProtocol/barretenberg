@@ -49,7 +49,7 @@
         "CMAKE_BUILD_TYPE": "Debug"
       },
       "cacheVariables": {
-        "ENABLE_ASAN": "ON",
+        "ENABLE_ASAN": "OFF",
         "DISABLE_ASM": "ON"
       }
     },
