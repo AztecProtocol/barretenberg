@@ -1,0 +1,60 @@
+name: Barretenberg Benchmarks
+
+# For now, run basically whenever anything happens in a PR
+on:
+  pull_request:
+    types: ["labeled", "opened", "synchronize", "reopened"]
+
+# This will cancel previous runs when a branch or PR is updated
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  bberg-bench:
+    name: Barretenberg Benchmarks
+    runs-on: ubuntu-latest # run in linux environment
+
+    steps:
+
+      - name: Checkout barretenberg
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }} # checkout HEAD of triggering branch
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Adding some credentials to avoid complaints from git
+      - name: Configure git
+        run: |
+          git config user.name ledwards2225
+          git config user.email l.edwards.d@gmail.com
+
+      # Only run in Linux environment for now
+      - name: Setup Linux environment
+        run: |
+          sudo apt update
+          sudo apt install libomp-dev cmake ninja-build
+
+      - name: Download SRS elements
+        working-directory: cpp/srs_db
+        run: ./download_ignition.sh 3 # only download first 4 transcript files
+        
+      - name: Build Honk benchmarks
+        working-directory: cpp
+        run: |
+          cmake --preset bench
+          cmake --build --preset bench --target ultra_honk_bench
+      
+      - name: Run Honk benchmarks
+        working-directory: cpp/build-bench
+        run: |
+          bin/ultra_honk_bench --benchmark_format=json > ../src/barretenberg/benchmark/honk_bench/bench_results.json
+
+      # # Commit benchmark results json to the branch
+      # - name: Commit result
+      #   working-directory: cpp
+      #   run: |
+      #     git add src/barretenberg/benchmark/honk_bench/bench_results.json
+      #     git commit -m "add bench results"
+      #     git push
+                
