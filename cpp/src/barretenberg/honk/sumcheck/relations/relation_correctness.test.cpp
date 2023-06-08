@@ -61,7 +61,7 @@ template <typename Flavor> void check_relation(auto relation, auto circuit_size,
 
 class RelationCorrectnessTests : public ::testing::Test {
   protected:
-    static void SetUpTestSuite() { barretenberg::srs::init_crs_factory("../barretenberg/cpp/srs_db/ignition"); }
+    static void SetUpTestSuite() { barretenberg::srs::init_crs_factory("../srs_db/ignition"); }
 };
 
 /**

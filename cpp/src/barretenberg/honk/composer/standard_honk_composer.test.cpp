@@ -20,7 +20,7 @@ namespace test_standard_honk_composer {
 
 class StandardHonkComposerTests : public ::testing::Test {
   protected:
-    static void SetUpTestSuite() { barretenberg::srs::init_crs_factory("../barretenberg/cpp/srs_db/ignition"); }
+    static void SetUpTestSuite() { barretenberg::srs::init_crs_factory("../srs_db/ignition"); }
 };
 
 /**

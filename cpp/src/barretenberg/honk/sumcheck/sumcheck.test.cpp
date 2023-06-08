@@ -80,7 +80,7 @@ ProverPolynomials construct_full_polynomials(std::array<FF, N>& w_l,
 
 class SumcheckTests : public ::testing::Test {
   protected:
-    static void SetUpTestSuite() { barretenberg::srs::init_crs_factory("../barretenberg/cpp/srs_db/ignition"); }
+    static void SetUpTestSuite() { barretenberg::srs::init_crs_factory("../srs_db/ignition"); }
 };
 
 TEST_F(SumcheckTests, PolynomialNormalization)

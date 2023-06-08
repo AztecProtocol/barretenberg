@@ -14,7 +14,7 @@ using namespace proof_system::honk;
 
 template <typename FF> class TranscriptTests : public testing::Test {
   public:
-    static void SetUpTestSuite() { barretenberg::srs::init_crs_factory("../barretenberg/cpp/srs_db/ignition"); }
+    static void SetUpTestSuite() { barretenberg::srs::init_crs_factory("../srs_db/ignition"); }
 
     /**
      * @brief Construct a manifest for a standard Honk proof
