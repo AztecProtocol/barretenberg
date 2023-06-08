@@ -50,14 +50,14 @@ jobs:
         run: |
           bin/ultra_honk_bench --benchmark_format=json > ../src/barretenberg/benchmark/honk_bench/bench_results.json
 
-      # Commit benchmark results json to the branch
-      - name: Commit result
-        working-directory: cpp
-        run: |
-          pwd
-          git add src/barretenberg/benchmark/honk_bench/bench_results.json
-          git commit -m "add bench results"
-          git push
+      # # Commit benchmark results json to the branch
+      # - name: Commit result
+      #   working-directory: cpp
+      #   run: |
+      #     pwd
+      #     git add src/barretenberg/benchmark/honk_bench/bench_results.json
+      #     git commit -m "add bench results"
+      #     git push
 
       # Check for existence of bench results
       - name: Check bench result file exists
