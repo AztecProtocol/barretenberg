@@ -67,7 +67,6 @@ void StandardHonkComposerHelper::compute_witness(const CircuitConstructor& circu
  *
  * @return Proving key with saved computed polynomials.
  * */
-
 std::shared_ptr<StandardHonkComposerHelper::ProvingKey> StandardHonkComposerHelper::compute_proving_key(
     const CircuitConstructor& circuit_constructor)
 {
@@ -98,29 +97,24 @@ std::shared_ptr<StandardHonkComposerHelper::VerificationKey> StandardHonkCompose
     if (verification_key) {
         return verification_key;
     }
-    if (!proving_key) {
-        compute_proving_key(circuit_constructor);
-    }
 
     verification_key = std::make_shared<VerificationKey>(
         proving_key->circuit_size, proving_key->num_public_inputs, proving_key->composer_type);
 
-    auto commitment_key = PCSParams::CommitmentKey(proving_key->circuit_size, crs_factory_);
-
     // Compute and store commitments to all precomputed polynomials
-    verification_key->q_m = commitment_key.commit(proving_key->q_m);
-    verification_key->q_l = commitment_key.commit(proving_key->q_l);
-    verification_key->q_r = commitment_key.commit(proving_key->q_r);
-    verification_key->q_o = commitment_key.commit(proving_key->q_o);
-    verification_key->q_c = commitment_key.commit(proving_key->q_c);
-    verification_key->sigma_1 = commitment_key.commit(proving_key->sigma_1);
-    verification_key->sigma_2 = commitment_key.commit(proving_key->sigma_2);
-    verification_key->sigma_3 = commitment_key.commit(proving_key->sigma_3);
-    verification_key->id_1 = commitment_key.commit(proving_key->id_1);
-    verification_key->id_2 = commitment_key.commit(proving_key->id_2);
-    verification_key->id_3 = commitment_key.commit(proving_key->id_3);
-    verification_key->lagrange_first = commitment_key.commit(proving_key->lagrange_first);
-    verification_key->lagrange_last = commitment_key.commit(proving_key->lagrange_last);
+    verification_key->q_m = commitment_key->commit(proving_key->q_m);
+    verification_key->q_l = commitment_key->commit(proving_key->q_l);
+    verification_key->q_r = commitment_key->commit(proving_key->q_r);
+    verification_key->q_o = commitment_key->commit(proving_key->q_o);
+    verification_key->q_c = commitment_key->commit(proving_key->q_c);
+    verification_key->sigma_1 = commitment_key->commit(proving_key->sigma_1);
+    verification_key->sigma_2 = commitment_key->commit(proving_key->sigma_2);
+    verification_key->sigma_3 = commitment_key->commit(proving_key->sigma_3);
+    verification_key->id_1 = commitment_key->commit(proving_key->id_1);
+    verification_key->id_2 = commitment_key->commit(proving_key->id_2);
+    verification_key->id_3 = commitment_key->commit(proving_key->id_3);
+    verification_key->lagrange_first = commitment_key->commit(proving_key->lagrange_first);
+    verification_key->lagrange_last = commitment_key->commit(proving_key->lagrange_last);
 
     verification_key->composer_type = proving_key->composer_type;
 
@@ -145,7 +139,7 @@ StandardProver StandardHonkComposerHelper::create_prover(const CircuitConstructo
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
 
-    commitment_key = std::make_shared<PCSParams::CommitmentKey>(proving_key->circuit_size, crs_factory_);
+    compute_commitment_key(proving_key->circuit_size, crs_factory_);
 
     StandardProver output_state(proving_key, commitment_key);
 
