@@ -57,6 +57,14 @@ struct Params {
             , srs(crs_factory->get_prover_crs(num_points))
         {}
 
+        // Note: This constructor is used only by Plonk; For Honk the CommitmentKey is solely responsible for extracting
+        // the srs.
+        CommitmentKey(const size_t num_points,
+                      std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> prover_srs)
+            : pippenger_runtime_state(num_points)
+            , srs(prover_srs)
+        {}
+
         /**
          * @brief Uses the ProverSRS to create a commitment to p(X)
          *
