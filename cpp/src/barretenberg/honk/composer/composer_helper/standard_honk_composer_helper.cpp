@@ -133,7 +133,7 @@ StandardVerifier StandardHonkComposerHelper::create_verifier(const CircuitConstr
     StandardVerifier output_state(verification_key);
 
     auto pcs_verification_key =
-        std::make_unique<PCSParams::VerificationKey>(verification_key->circuit_size, crs_factory_->get_verifier_crs());
+        std::make_unique<PCSParams::VerificationKey>(verification_key->circuit_size, crs_factory_);
 
     output_state.pcs_verification_key = std::move(pcs_verification_key);
 

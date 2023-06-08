@@ -162,8 +162,7 @@ UltraVerifier UltraHonkComposerHelper::create_verifier(const CircuitConstructor&
 
     UltraVerifier output_state(verification_key);
 
-    auto pcs_verification_key = std::make_unique<PCSVerificationKey>(
-        verification_key->circuit_size, crs_factory_->get_prover_crs(verification_key->circuit_size));
+    auto pcs_verification_key = std::make_unique<PCSVerificationKey>(verification_key->circuit_size, crs_factory_);
 
     output_state.pcs_verification_key = std::move(pcs_verification_key);
 
