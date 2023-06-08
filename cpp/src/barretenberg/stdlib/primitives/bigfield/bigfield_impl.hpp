@@ -1671,14 +1671,17 @@ template <typename C, typename T> void bigfield<C, T>::assert_less_than(const ui
     if (is_constant()) {
         return;
     }
-
+    ASSERT(upper_limit != 0);
+    // The circuit checks that limit - this >= 0, so if we are doing a less_than comparison, we need to subtract 1 from
+    // the limit
+    uint256_t strict_upper_limit = upper_limit - uint256_t(1);
     self_reduce(); // this method in particular enforces limb vals are <2^b - needed for logic described above
     uint256_t value = get_value().lo;
 
-    const uint256_t upper_limit_value_0 = upper_limit.slice(0, NUM_LIMB_BITS);
-    const uint256_t upper_limit_value_1 = upper_limit.slice(NUM_LIMB_BITS, NUM_LIMB_BITS * 2);
-    const uint256_t upper_limit_value_2 = upper_limit.slice(NUM_LIMB_BITS * 2, NUM_LIMB_BITS * 3);
-    const uint256_t upper_limit_value_3 = upper_limit.slice(NUM_LIMB_BITS * 3, NUM_LIMB_BITS * 4);
+    const uint256_t upper_limit_value_0 = strict_upper_limit.slice(0, NUM_LIMB_BITS);
+    const uint256_t upper_limit_value_1 = strict_upper_limit.slice(NUM_LIMB_BITS, NUM_LIMB_BITS * 2);
+    const uint256_t upper_limit_value_2 = strict_upper_limit.slice(NUM_LIMB_BITS * 2, NUM_LIMB_BITS * 3);
+    const uint256_t upper_limit_value_3 = strict_upper_limit.slice(NUM_LIMB_BITS * 3, NUM_LIMB_BITS * 4);
 
     bool borrow_0_value = value.slice(0, NUM_LIMB_BITS) > upper_limit_value_0;
     bool borrow_1_value =

@@ -76,7 +76,7 @@ bool_t<Composer> verify_signature(const stdlib::byte_array<Composer>& message,
 
     // s should be less than |Fr| / 2
     // Read more about this at: https://www.derpturkey.com/inherent-malleability-of-ecdsa-signatures/amp/
-    s.assert_less_than(Fr::modulus / 2);
+    s.assert_less_than((Fr::modulus + 1) / 2);
 
     Fr u1 = z / s;
     Fr u2 = r / s;
@@ -149,7 +149,7 @@ bool_t<Composer> verify_signature_prehashed_message_noassert(const stdlib::byte_
 
     // s should be less than |Fr| / 2
     // Read more about this at: https://www.derpturkey.com/inherent-malleability-of-ecdsa-signatures/amp/
-    s.assert_less_than(Fr::modulus / 2);
+    s.assert_less_than((Fr::modulus + 1) / 2);
 
     Fr u1 = z / s;
     Fr u2 = r / s;

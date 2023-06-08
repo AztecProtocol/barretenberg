@@ -742,6 +742,17 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         }
         bool result = composer.check_circuit();
         EXPECT_EQ(result, true);
+        // Checking edge conditions
+        fq random_input = fq::random_element();
+        fq_ct a(witness_ct(&composer, fr(uint256_t(random_input).slice(0, fq_ct::NUM_LIMB_BITS * 2))),
+                witness_ct(&composer,
+                           fr(uint256_t(random_input).slice(fq_ct::NUM_LIMB_BITS * 2, fq_ct::NUM_LIMB_BITS * 4))));
+
+        a.assert_less_than(random_input + 1);
+        EXPECT_EQ(composer.check_circuit(), true);
+
+        a.assert_less_than(random_input);
+        EXPECT_EQ(composer.check_circuit(), false);
     }
 
     static void test_byte_array_constructors()
