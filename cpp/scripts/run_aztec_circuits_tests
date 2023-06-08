@@ -30,6 +30,8 @@ if [ "$ARCH" != "wasm" ]; then
 else
   PRESET=wasm
   BUILD_DIR=build-wasm
+  # WARNING: circuits tests here are limited to kernel tests only to reduce test time
+  OTHER_OPTS="--target aztec3_circuits_kernel_tests"
 fi
 
 echo "*** Running Aztec circuits tests on commit: $AZTEC_COMMIT"
@@ -44,7 +46,7 @@ docker run --rm -t $IMAGE_URI /bin/sh -c "\
   rm -rf /usr/src/aztec3-packages/circuits/cpp/barretenberg;
   mv /usr/src/barretenberg .; \
   cmake --preset $PRESET $CONFIGURE_OPTS; \
-  cmake --build --preset $PRESET; \
+  cmake --build --preset $PRESET $OTHER_OPTS; \
   cd /usr/src/aztec3-packages/circuits/cpp/barretenberg/cpp/srs_db; \
   ./download_ignition.sh $NUM_TRANSCRIPTS; \
   cd /usr/src/aztec3-packages/circuits/cpp; \
