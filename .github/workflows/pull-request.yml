@@ -24,4 +24,5 @@ jobs:
           types: |
             fix
             feat
-            chore 
+            chore
+            refactor 
