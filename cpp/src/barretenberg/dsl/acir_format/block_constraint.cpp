@@ -50,7 +50,7 @@ void create_block_constraints(Composer& composer, const BlockConstraint constrai
     for (auto i : constraint.init) {
         auto value2 = poly_to_field(i, composer, has_valid_witness_assignments);
         auto v = field_ct::from_witness(&composer, value2);
-        info("v: ", v);
+        info("v.witness_index: ", v.witness_index);
         init.push_back(v);
     }
 
@@ -114,8 +114,9 @@ void create_block_constraints(Composer& composer, const BlockConstraint constrai
             auto value = poly_to_field_ct(op.value, composer);
             auto index = poly_to_field_ct(op.index, composer);
             info("value: ", value);
+            info("value.wit: ", value.witness_index);
             info("index: ", index);
-
+            info("index.wit: ", index.witness_index);
             if (op.access_type == 0) {
                 field_ct v1 = table.read(index);
                 info("v1: ", v1);

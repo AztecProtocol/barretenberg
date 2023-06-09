@@ -466,10 +466,20 @@ TEST(AcirProofs, TestUPRAM2)
     std::vector<fr> witness;
     generate_ram_constraint_system(constraint_system, witness);
 
+    auto crs_factory = std::make_unique<ReferenceStringFactory>();
+    auto composer2 = create_circuit(constraint_system, std::move(crs_factory));
+    auto prover2 = composer2.create_prover();
+    info("read records2: ", prover2.key->memory_read_records);
+    info("write records2: ", prover2.key->memory_write_records);
+
     auto composer = acir_format::create_circuit_with_witness(constraint_system, witness);
     info("composer.circuit_finalised: ", composer.circuit_finalised);
     info("composer num vars: ", composer.get_num_variables());
     auto prover = composer.create_prover();
+
+    info("read records: ", prover.key->memory_read_records);
+    info("write records: ", prover.key->memory_write_records);
+
     info("composer.circuit_finalised: ", composer.circuit_finalised);
     info("composer num vars: ", composer.get_num_variables());
     auto proof = prover.construct_proof();

@@ -531,6 +531,7 @@ std::shared_ptr<proving_key> UltraComposer::compute_proving_key()
      * our circuit is finalised, and we must not to execute these functions again.
      */
     if (!circuit_finalised) {
+        info("not finalised");
         process_non_native_field_multiplications();
         process_ROM_arrays(public_inputs.size());
         process_RAM_arrays(public_inputs.size());
@@ -2517,6 +2518,7 @@ void UltraComposer::create_sorted_RAM_gate(RamRecord& record)
     w_o.emplace_back(record.value_witness);
     w_4.emplace_back(record.record_witness);
     record.gate_index = num_gates;
+    info("num_gates = ", record.gate_index);
     ++num_gates;
 }
 
@@ -2575,6 +2577,8 @@ void UltraComposer::init_RAM_element(const size_t ram_id, const size_t index_val
     ASSERT(ram_arrays.size() > ram_id);
     RamTranscript& ram_array = ram_arrays[ram_id];
     const uint32_t index_witness = (index_value == 0) ? zero_idx : put_constant_variable((uint64_t)index_value);
+    info("init_RAM_element: index_witness=", index_witness);
+    info("init_RAM_element: value_witness=", value_witness);
     ASSERT(ram_array.state.size() > index_value);
     ASSERT(ram_array.state[index_value] == UNINITIALIZED_MEMORY_RECORD);
     RamRecord new_record{ .index_witness = index_witness,
@@ -2857,6 +2861,7 @@ void UltraComposer::process_ROM_array(const size_t rom_id, const size_t gate_off
  */
 void UltraComposer::process_RAM_array(const size_t ram_id, const size_t gate_offset_from_public_inputs)
 {
+    info("process_RAM_array");
     RamTranscript& ram_array = ram_arrays[ram_id];
     const auto access_tag = get_new_tag();      // current_tag + 1;
     const auto sorted_list_tag = get_new_tag(); // current_tag + 2;
@@ -2869,6 +2874,7 @@ void UltraComposer::process_RAM_array(const size_t ram_id, const size_t gate_off
     // different public iputs will produce different circuit constraints.
     for (size_t i = 0; i < ram_array.state.size(); ++i) {
         if (ram_array.state[i] == UNINITIALIZED_MEMORY_RECORD) {
+            info("?????");
             init_RAM_element(ram_id, static_cast<uint32_t>(i), zero_idx);
         }
     }
@@ -2928,6 +2934,8 @@ void UltraComposer::process_RAM_array(const size_t ram_id, const size_t gate_off
             break;
         }
         case RamRecord::AccessType::WRITE: {
+            info("gateIDX", sorted_record.gate_index);
+            info("gateOFFSSET", gate_offset_from_public_inputs);
             memory_write_records.push_back(
                 static_cast<uint32_t>(sorted_record.gate_index + gate_offset_from_public_inputs));
             memory_write_records.push_back(static_cast<uint32_t>(record.gate_index + gate_offset_from_public_inputs));

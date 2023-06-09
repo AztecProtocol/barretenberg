@@ -111,7 +111,12 @@ size_t new_proof(void* pippenger,
     plonk::proving_key_data pk_data;
     read(pk_buf, pk_data);
     auto proving_key = std::make_shared<plonk::proving_key>(std::move(pk_data), crs);
-
+    info("read records: ", proving_key->memory_read_records);
+    info("write records: ", proving_key->memory_write_records);
+    // ROM: read records: [ 11 1 12 10 13 3 14 5 15 7 16 9 ]
+    // write records: [ ]
+    // RAM: read records: [ 13 11 ]
+    // write records: [ 12 1 14 3 15 5 16 7 17 9 ]
     auto witness = from_buffer<std::vector<fr>>(witness_buf);
 
     auto crs_factory = std::make_unique<PippengerReferenceStringFactory>(

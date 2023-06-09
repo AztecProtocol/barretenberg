@@ -204,7 +204,7 @@ class ComposerBase {
     virtual uint32_t add_variable(const barretenberg::fr& in)
     {
         variables.emplace_back(in);
-
+        // info("var size = ", variables.size());
         // By default, we assume each new variable belongs in its own copy-cycle. These defaults can be modified later
         // by `assert_equal`.
         const uint32_t index = static_cast<uint32_t>(variables.size()) - 1U;
