@@ -68,14 +68,17 @@ void create_block_constraints(Composer& composer, const BlockConstraint constrai
             // field_ct index = poly_to_field_ct(op.index, composer);
             // info("value: ", value);
             // info("index: ", index);
-            auto value2 = poly_to_field(op.value, composer, has_valid_witness_assignments);
-            auto index2 = poly_to_field(op.index, composer, has_valid_witness_assignments);
+            // maxim's
+            // auto value2 = poly_to_field(op.value, composer, has_valid_witness_assignments);
+            // auto index2 = poly_to_field(op.index, composer, has_valid_witness_assignments);
+            // auto value = field_ct::from_witness(&composer, value2);
+            // composer.assert_equal(composer.add_variable(value2), value.get_witness_index());
 
-            auto value = field_ct::from_witness(&composer, value2);
-            composer.assert_equal(composer.add_variable(value2), value.get_witness_index());
+            // auto index = field_ct::from_witness(&composer, index2);
+            // composer.assert_equal(composer.add_variable(index2), index.get_witness_index());
+            auto value = poly_to_field_ct(op.value, composer);
+            auto index = poly_to_field_ct(op.index, composer);
 
-            auto index = field_ct::from_witness(&composer, index2);
-            composer.assert_equal(composer.add_variable(index2), index.get_witness_index());
             info("value: ", value);
             info("index: ", index);
             auto v1 = table[index];
@@ -98,15 +101,18 @@ void create_block_constraints(Composer& composer, const BlockConstraint constrai
         info("ram len:", init.size());
         ram_table_ct table(init);
         for (auto& op : constraint.trace) {
-            auto value2 = poly_to_field(op.value, composer, has_valid_witness_assignments);
-            auto index2 = poly_to_field(op.index, composer, has_valid_witness_assignments);
+            // maxim's...
+            // auto value2 = poly_to_field(op.value, composer, has_valid_witness_assignments);
+            // auto index2 = poly_to_field(op.index, composer, has_valid_witness_assignments);
 
-            auto value = field_ct::from_witness(&composer, value2);
-            composer.assert_equal(composer.add_variable(value2), value.get_witness_index());
+            // auto value = field_ct::from_witness(&composer, value2);//new input with value = value2
+            // composer.assert_equal(composer.add_variable(value2), value.get_witness_index());
 
-            auto index = field_ct::from_witness(&composer, index2);
-            composer.assert_equal(composer.add_variable(index2), index.get_witness_index());
+            // auto index = field_ct::from_witness(&composer, index2);
+            // composer.assert_equal(composer.add_variable(index2), index.get_witness_index());
 
+            auto value = poly_to_field_ct(op.value, composer);
+            auto index = poly_to_field_ct(op.index, composer);
             info("value: ", value);
             info("index: ", index);
 

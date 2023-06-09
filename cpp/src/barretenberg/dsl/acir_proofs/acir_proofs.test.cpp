@@ -220,23 +220,24 @@ void generate_ram_constraint_system(acir_format::acir_format& constraint_system,
         .q_l = fr::one(),
         .q_r = 0,
         .q_o = 0,
-        .q_c = m_3,
+        .q_c = 0, // m_3,
+    };
+
+    poly_triple y = poly_triple{
+        .a = 7,
+        .b = 0,
+        .c = 0,
+        .q_m = 0,
+        .q_l = fr::one(),
+        .q_r = 0,
+        .q_o = 0,
+        .q_c = 0,
     };
 
     acir_format::MemOp op1 = acir_format::MemOp{
         .access_type = 0,
         .index = z,
-        .value =
-            poly_triple{
-                .a = 0,
-                .b = 0,
-                .c = 0,
-                .q_m = 0,
-                .q_l = 0,
-                .q_r = 0,
-                .q_o = 0,
-                .q_c = 101,
-            },
+        .value = y,
     };
 
     block = acir_format::BlockConstraint{
@@ -252,6 +253,7 @@ void generate_ram_constraint_system(acir_format::acir_format& constraint_system,
     witness_values.emplace_back(fr(108));
     witness_values.emplace_back(fr(111));
     witness_values.emplace_back(fr(4));
+    witness_values.emplace_back(fr(111));
 
     constraint_system = acir_format::acir_format{
         .varnum = static_cast<uint32_t>(8),
@@ -457,3 +459,26 @@ size_t generate_block_constraint(acir_format::BlockConstraint& constraint, std::
 //         &g2x_buffer[0], vk_buf, &constraint_system_buf[0], proof_data_buf, static_cast<uint32_t>(proof_length));
 //     EXPECT_EQ(verified, true);
 // }
+
+TEST(AcirProofs, TestUPRAM2)
+{
+    acir_format::acir_format constraint_system;
+    std::vector<fr> witness;
+    generate_ram_constraint_system(constraint_system, witness);
+
+    auto composer = acir_format::create_circuit_with_witness(constraint_system, witness);
+    info("composer.circuit_finalised: ", composer.circuit_finalised);
+    info("composer num vars: ", composer.get_num_variables());
+    auto prover = composer.create_prover();
+    info("composer.circuit_finalised: ", composer.circuit_finalised);
+    info("composer num vars: ", composer.get_num_variables());
+    auto proof = prover.construct_proof();
+
+    // auto vkey = composer.compute_verification_key();
+    // auto composer2 = acir_format::Composer(nullptr, vkey);
+    // auto composer2 = acir_format::Composer();
+    // acir_format::create_circuit(composer2, constraint_system);
+    // auto verifier = composer2.create_verifsier();
+    auto verifier = composer.create_verifier();
+    EXPECT_EQ(verifier.verify_proof(proof), true);
+}

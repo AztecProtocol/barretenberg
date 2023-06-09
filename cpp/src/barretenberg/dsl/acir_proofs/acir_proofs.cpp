@@ -185,7 +185,7 @@ bool verify_proof(
         info("composer num vars: ", composer.get_num_variables());
 
         verified = verifier.verify_proof(pp);
-        info("verified proof");
+        info("verified proof", composer.err());
 
 #ifndef __wasm__
     } catch (const std::exception& e) {
