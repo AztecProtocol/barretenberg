@@ -49,23 +49,6 @@ jobs:
         working-directory: cpp/build-bench
         run: |
           bin/ultra_honk_bench --benchmark_format=json > ../src/barretenberg/benchmark/honk_bench/bench_results.json
-
-      # # Commit benchmark results json to the branch
-      # - name: Commit result
-      #   working-directory: cpp
-      #   run: |
-      #     pwd
-      #     git add src/barretenberg/benchmark/honk_bench/bench_results.json
-      #     git commit -m "add bench results"
-      #     git push
-
-      # Check for existence of bench results
-      - name: Check bench result file exists
-        working-directory: cpp
-        run: |
-          pwd
-          cd src/barretenberg/benchmark/honk_bench
-          ls
       
       # 
       - name: Store benchmark result
@@ -80,10 +63,10 @@ jobs:
           auto-push: true
           # Enable Job Summary for PRs
           summary-always: true
-          # # Show alert with commit comment on detecting possible performance regression
-          # alert-threshold: '200%'
-          # comment-on-alert: true
-          # fail-on-alert: true
-          # alert-comment-cc-users: '@ktrz'
+          # Show alert with commit comment on detecting possible performance regression
+          alert-threshold: '120%' # alert if bench result is 1.2x worse
+          comment-on-alert: true
+          fail-on-alert: true
+          alert-comment-cc-users: '@ledwards2225'
 
                 
