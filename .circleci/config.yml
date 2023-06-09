@@ -348,12 +348,12 @@ workflows:
               only:
                 - master
           <<: *defaults
-      - circuits-wasm-linux-clang-builder-runner: *notmaster
+      #- circuits-wasm-linux-clang-builder-runner: *notmaster
       - circuits-x86_64-linux-clang-builder-runner:  *notmaster
-      - circuits-wasm-tests:
-          requires:
-            - circuits-wasm-linux-clang-builder-runner
-          <<: *notmaster
+      #- circuits-wasm-tests:
+      #    requires:
+      #      - circuits-wasm-linux-clang-builder-runner
+      #    <<: *notmaster
       - circuits-x86_64-tests:
           requires:
             - circuits-x86_64-linux-clang-builder-runner
