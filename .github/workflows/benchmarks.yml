@@ -73,7 +73,7 @@ jobs:
         with:
           name: C++ Benchmark
           tool: 'googlecpp'
-          output-file-path: src/barretenberg/benchmark/honk_bench/bench_results.json
+          output-file-path: cpp/src/barretenberg/benchmark/honk_bench/bench_results.json
           # Access token to deploy GitHub Pages branch
           github-token: ${{ secrets.GITHUB_TOKEN }}
           # Push and deploy GitHub pages branch automatically
