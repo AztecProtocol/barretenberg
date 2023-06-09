@@ -38,38 +38,6 @@ std::shared_ptr<typename Flavor::ProvingKey> StandardHonkComposerHelper_<Flavor>
 }
 
 /**
- * @brief Computes the verification key by computing the:
- * (1) commitments to the selector, permutation, and lagrange (first/last) polynomials,
- * (2) sets the polynomial manifest using the data from proving key.
- */
-
-template <StandardFlavor Flavor>
-std::shared_ptr<typename Flavor::VerificationKey> StandardHonkComposerHelper_<Flavor>::compute_verification_key_base(
-    std::shared_ptr<StandardHonkComposerHelper_::ProvingKey> const& proving_key)
-{
-    auto key = std::make_shared<VerificationKey>(
-        proving_key->circuit_size, proving_key->num_public_inputs, proving_key->composer_type);
-    auto commitment_key = typename PCSParams::CommitmentKey(proving_key->circuit_size, proving_key->crs);
-
-    // Compute and store commitments to all precomputed polynomials
-    key->q_m = commitment_key.commit(proving_key->q_m);
-    key->q_l = commitment_key.commit(proving_key->q_l);
-    key->q_r = commitment_key.commit(proving_key->q_r);
-    key->q_o = commitment_key.commit(proving_key->q_o);
-    key->q_c = commitment_key.commit(proving_key->q_c);
-    key->sigma_1 = commitment_key.commit(proving_key->sigma_1);
-    key->sigma_2 = commitment_key.commit(proving_key->sigma_2);
-    key->sigma_3 = commitment_key.commit(proving_key->sigma_3);
-    key->id_1 = commitment_key.commit(proving_key->id_1);
-    key->id_2 = commitment_key.commit(proving_key->id_2);
-    key->id_3 = commitment_key.commit(proving_key->id_3);
-    key->lagrange_first = commitment_key.commit(proving_key->lagrange_first);
-    key->lagrange_last = commitment_key.commit(proving_key->lagrange_last);
-
-    return key;
-}
-
-/**
  * Compute witness polynomials (w_1, w_2, w_3, w_4).
  *
  * @details Fills 3 or 4 witness polynomials w_1, w_2, w_3, w_4 with the values of in-circuit variables. The beginning
@@ -134,11 +102,25 @@ std::shared_ptr<typename Flavor::VerificationKey> StandardHonkComposerHelper_<Fl
     if (verification_key) {
         return verification_key;
     }
-    if (!proving_key) {
-        compute_proving_key(circuit_constructor);
-    }
 
-    verification_key = StandardHonkComposerHelper_::compute_verification_key_base(proving_key);
+    verification_key = std::make_shared<typename Flavor::VerificationKey>(
+        proving_key->circuit_size, proving_key->num_public_inputs, proving_key->composer_type);
+
+    // Compute and store commitments to all precomputed polynomials
+    verification_key->q_m = commitment_key->commit(proving_key->q_m);
+    verification_key->q_l = commitment_key->commit(proving_key->q_l);
+    verification_key->q_r = commitment_key->commit(proving_key->q_r);
+    verification_key->q_o = commitment_key->commit(proving_key->q_o);
+    verification_key->q_c = commitment_key->commit(proving_key->q_c);
+    verification_key->sigma_1 = commitment_key->commit(proving_key->sigma_1);
+    verification_key->sigma_2 = commitment_key->commit(proving_key->sigma_2);
+    verification_key->sigma_3 = commitment_key->commit(proving_key->sigma_3);
+    verification_key->id_1 = commitment_key->commit(proving_key->id_1);
+    verification_key->id_2 = commitment_key->commit(proving_key->id_2);
+    verification_key->id_3 = commitment_key->commit(proving_key->id_3);
+    verification_key->lagrange_first = commitment_key->commit(proving_key->lagrange_first);
+    verification_key->lagrange_last = commitment_key->commit(proving_key->lagrange_last);
+
     verification_key->composer_type = proving_key->composer_type;
 
     return verification_key;
@@ -151,8 +133,8 @@ StandardVerifier_<Flavor> StandardHonkComposerHelper_<Flavor>::create_verifier(
     compute_verification_key(circuit_constructor);
     StandardVerifier_<Flavor> output_state(verification_key);
 
-    auto pcs_verification_key = std::make_unique<typename PCSParams::VerificationKey>(verification_key->circuit_size,
-                                                                                      crs_factory_->get_verifier_crs());
+    auto pcs_verification_key =
+        std::make_unique<typename PCSParams::VerificationKey>(verification_key->circuit_size, crs_factory_);
 
     output_state.pcs_verification_key = std::move(pcs_verification_key);
 
@@ -165,12 +147,10 @@ StandardProver_<Flavor> StandardHonkComposerHelper_<Flavor>::create_prover(
 {
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
-    StandardProver_<Flavor> output_state(proving_key);
 
-    auto pcs_commitment_key = std::make_unique<typename PCSParams::CommitmentKey>(
-        proving_key->circuit_size, crs_factory_->get_prover_crs(proving_key->circuit_size));
+    compute_commitment_key(proving_key->circuit_size, crs_factory_);
 
-    output_state.pcs_commitment_key = std::move(pcs_commitment_key);
+    StandardProver_<Flavor> output_state(proving_key, commitment_key);
 
     return output_state;
 }
