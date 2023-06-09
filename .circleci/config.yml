@@ -97,7 +97,7 @@ setup_aztec_commit: &setup_aztec_commit
       echo "or if this is a branch with a sibling branch in aztec-packages."
       echo "Otherwise defaulting to test against circuits in aztec-packages 'master'."
 
-      COMMIT_FROM_FILE=$(cat cpp/.aztec-packages-commit 2>/dev/null)
+      COMMIT_FROM_FILE=$(cat cpp/.aztec-packages-commit 2>/dev/null || true)
       if [ -n "$COMMIT_FROM_FILE" ] && [[ "$COMMIT_FROM_FILE" = *[![:space:]]* ]]; then
         # if a commit is present in .aztec-packages-commit, use that
         # check that there is text in the commit file that is not just whitespace
