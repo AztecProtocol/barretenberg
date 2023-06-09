@@ -3,7 +3,7 @@
 #include "barretenberg/plonk/flavor/flavor.hpp"
 #include "barretenberg/proof_system/composer/composer_helper_lib.hpp"
 #include "barretenberg/plonk/composer/composer_helper/composer_helper_lib.hpp"
-#include "barretenberg/srs/reference_string/file_reference_string.hpp"
+#include "barretenberg/srs/factories/file_crs_factory.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
 #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
@@ -22,9 +22,9 @@ class UltraPlonkComposerHelper {
     static constexpr size_t program_width = CircuitConstructor::NUM_WIRES;
     std::shared_ptr<plonk::proving_key> circuit_proving_key;
     std::shared_ptr<plonk::verification_key> circuit_verification_key;
-    // TODO(#218)(kesha): we need to put this into the commitment key, so that the composer doesn't have to handle srs
-    // at all
-    std::shared_ptr<ReferenceStringFactory> crs_factory_;
+
+    // The crs_factory holds the path to the srs and exposes methods to extract the srs elements
+    std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory_;
 
     bool computed_witness = false;
 
@@ -34,7 +34,7 @@ class UltraPlonkComposerHelper {
     // vanishing_polynomial cannot be trivially fetched here, I am directly setting this to 4 - 1 = 3.
     static constexpr size_t s_randomness = 3;
 
-    explicit UltraPlonkComposerHelper(std::shared_ptr<ReferenceStringFactory> crs_factory)
+    explicit UltraPlonkComposerHelper(std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
 
@@ -73,8 +73,7 @@ class UltraPlonkComposerHelper {
     void finalize_circuit(CircuitConstructor& circuit_constructor) { circuit_constructor.finalize_circuit(); };
 
     std::shared_ptr<plonk::proving_key> compute_proving_key(CircuitConstructor& circuit_constructor);
-    std::shared_ptr<plonk::verification_key> compute_verification_key(
-        CircuitConstructor& circuit_constructor, std::string const& srs_path = "../srs_db/ignition");
+    std::shared_ptr<plonk::verification_key> compute_verification_key(CircuitConstructor& circuit_constructor);
 
     void compute_witness(CircuitConstructor& circuit_constructor);
 
