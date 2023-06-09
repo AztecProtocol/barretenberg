@@ -1,8 +1,9 @@
 #include <chrono>
 #include "barretenberg/common/assert.hpp"
 #include <cstdlib>
-#include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
-#include "barretenberg/srs/reference_string/file_reference_string.hpp"
+#include "barretenberg/srs/factories/file_crs_factory.hpp"
+#include "barretenberg/ecc/curves/bn254/bn254.hpp"
+#include "barretenberg/ecc/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"
 
 // #include <valgrind/callgrind.h>
@@ -41,7 +42,8 @@ constexpr size_t NUM_POINTS = 1 << 16;
 std::vector<fr> scalars;
 static barretenberg::evaluation_domain small_domain;
 static barretenberg::evaluation_domain large_domain;
-auto reference_string = std::make_shared<proof_system::FileReferenceString>(NUM_POINTS, "../srs_db/ignition");
+auto reference_string =
+    std::make_shared<barretenberg::srs::factories::FileProverCrs<curve::BN254>>(NUM_POINTS, "../srs_db/ignition");
 
 const auto init = []() {
     small_domain = barretenberg::evaluation_domain(NUM_POINTS);
@@ -63,9 +65,9 @@ const auto init = []() {
 
 int pippenger()
 {
-    scalar_multiplication::pippenger_runtime_state state(NUM_POINTS);
+    scalar_multiplication::pippenger_runtime_state<curve::BN254> state(NUM_POINTS);
     std::chrono::steady_clock::time_point time_start = std::chrono::steady_clock::now();
-    g1::element result = scalar_multiplication::pippenger_unsafe(
+    g1::element result = scalar_multiplication::pippenger_unsafe<curve::BN254>(
         &scalars[0], reference_string->get_monomial_points(), NUM_POINTS, state);
     std::chrono::steady_clock::time_point time_end = std::chrono::steady_clock::now();
     std::chrono::microseconds diff = std::chrono::duration_cast<std::chrono::microseconds>(time_end - time_start);

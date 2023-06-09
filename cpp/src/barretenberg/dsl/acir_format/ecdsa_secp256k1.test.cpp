@@ -7,10 +7,10 @@
 #include <gtest/gtest.h>
 #include <vector>
 
-using curve = proof_system::plonk::stdlib::secp256k1<acir_format::Composer>;
+using curve_ct = proof_system::plonk::stdlib::secp256k1<acir_format::Composer>;
 
 size_t generate_ecdsa_constraint(acir_format::EcdsaSecp256k1Constraint& ecdsa_constraint,
-                                 std::vector<fr>& witness_values)
+                                 acir_format::WitnessVector& witness_values)
 {
     std::string message_string = "Instructions unclear, ask again later.";
 
@@ -20,12 +20,13 @@ size_t generate_ecdsa_constraint(acir_format::EcdsaSecp256k1Constraint& ecdsa_co
     std::copy(message_string.begin(), message_string.end(), std::back_inserter(message_buffer));
     auto hashed_message = sha256::sha256(message_buffer);
 
-    crypto::ecdsa::key_pair<curve::fr, curve::g1> account;
-    account.private_key = curve::fr::random_element();
-    account.public_key = curve::g1::one * account.private_key;
+    crypto::ecdsa::key_pair<curve_ct::fr, curve_ct::g1> account;
+    account.private_key = curve_ct::fr::random_element();
+    account.public_key = curve_ct::g1::one * account.private_key;
 
     crypto::ecdsa::signature signature =
-        crypto::ecdsa::construct_signature<Sha256Hasher, curve::fq, curve::fr, curve::g1>(message_string, account);
+        crypto::ecdsa::construct_signature<Sha256Hasher, curve_ct::fq, curve_ct::fr, curve_ct::g1>(message_string,
+                                                                                                   account);
 
     uint256_t pub_x_value = account.public_key.x;
     uint256_t pub_y_value = account.public_key.y;
@@ -81,7 +82,7 @@ size_t generate_ecdsa_constraint(acir_format::EcdsaSecp256k1Constraint& ecdsa_co
 TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
 {
     acir_format::EcdsaSecp256k1Constraint ecdsa_constraint;
-    std::vector<fr> witness_values;
+    acir_format::WitnessVector witness_values;
     size_t num_variables = generate_ecdsa_constraint(ecdsa_constraint, witness_values);
     acir_format::acir_format constraint_system{
         .varnum = static_cast<uint32_t>(num_variables),
@@ -97,8 +98,8 @@ TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
         .keccak_var_constraints = {},
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
-        .compute_merkle_root_constraints = {},
         .block_constraints = {},
+        .recursion_constraints = {},
         .constraints = {},
     };
 
@@ -118,7 +119,7 @@ TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
 TEST(ECDSASecp256k1, TestECDSACompilesForVerifier)
 {
     acir_format::EcdsaSecp256k1Constraint ecdsa_constraint;
-    std::vector<fr> witness_values;
+    acir_format::WitnessVector witness_values;
     size_t num_variables = generate_ecdsa_constraint(ecdsa_constraint, witness_values);
     acir_format::acir_format constraint_system{
         .varnum = static_cast<uint32_t>(num_variables),
@@ -134,18 +135,18 @@ TEST(ECDSASecp256k1, TestECDSACompilesForVerifier)
         .keccak_var_constraints = {},
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
-        .compute_merkle_root_constraints = {},
         .block_constraints = {},
+        .recursion_constraints = {},
         .constraints = {},
     };
-    auto crs_factory = std::make_unique<proof_system::ReferenceStringFactory>();
+    auto crs_factory = std::make_unique<barretenberg::srs::factories::CrsFactory>();
     auto composer = create_circuit(constraint_system, std::move(crs_factory));
 }
 
 TEST(ECDSASecp256k1, TestECDSAConstraintFail)
 {
     acir_format::EcdsaSecp256k1Constraint ecdsa_constraint;
-    std::vector<fr> witness_values;
+    acir_format::WitnessVector witness_values;
     size_t num_variables = generate_ecdsa_constraint(ecdsa_constraint, witness_values);
 
     // set result value to be false
@@ -168,8 +169,8 @@ TEST(ECDSASecp256k1, TestECDSAConstraintFail)
         .keccak_var_constraints = {},
         .hash_to_field_constraints = {},
         .pedersen_constraints = {},
-        .compute_merkle_root_constraints = {},
         .block_constraints = {},
+        .recursion_constraints = {},
         .constraints = {},
     };
 
