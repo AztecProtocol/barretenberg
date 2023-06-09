@@ -1,14 +1,10 @@
 name: Pull Request
 
 on:
-  push:
-    branches:
-      - gh-readonly-queue/master/*
-  pull_request_target:
+  pull_request:
     types:
       - opened
       - reopened
-      - edited
       - synchronize
 
 permissions:
@@ -20,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check title
-        if: github.event_name == 'pull_request_target'
+        if: github.event_name == 'pull_request'
         uses: amannn/action-semantic-pull-request@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -28,4 +24,4 @@ jobs:
           types: |
             fix
             feat
-            chore
+            chore 
