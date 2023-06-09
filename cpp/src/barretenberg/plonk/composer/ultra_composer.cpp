@@ -644,17 +644,6 @@ std::shared_ptr<proving_key> UltraComposer::compute_proving_key()
     // TODO: composer-level constant variable needed for the program width
     compute_sigma_permutations<4, true>(circuit_proving_key.get());
 
-    // Copy memory read/write record data into proving key. Prover needs to know which gates contain a read/write
-    // 'record' witness on the 4th wire. This wire value can only be fully computed once the first 3 wire polynomials
-    // have been committed to. The 4th wire on these gates will be a random linear combination of the first 3 wires,
-    // using the plookup challenge `eta`
-    std::copy(memory_read_records.begin(),
-              memory_read_records.end(),
-              std::back_inserter(circuit_proving_key->memory_read_records));
-    std::copy(memory_write_records.begin(),
-              memory_write_records.end(),
-              std::back_inserter(circuit_proving_key->memory_write_records));
-
     circuit_proving_key->recursive_proof_public_input_indices =
         std::vector<uint32_t>(recursive_proof_public_input_indices.begin(), recursive_proof_public_input_indices.end());
 
@@ -802,6 +791,21 @@ void UltraComposer::compute_witness()
     circuit_proving_key->polynomial_store.put("s_2_lagrange", std::move(s_2));
     circuit_proving_key->polynomial_store.put("s_3_lagrange", std::move(s_3));
     circuit_proving_key->polynomial_store.put("s_4_lagrange", std::move(s_4));
+
+    // Copy memory read/write record data into proving key. Prover needs to know which gates contain a read/write
+    // 'record' witness on the 4th wire. This wire value can only be fully computed once the first 3 wire polynomials
+    // have been committed to. The 4th wire on these gates will be a random linear combination of the first 3 wires,
+    // using the plookup challenge `eta`
+    circuit_proving_key->memory_read_records = std::vector<uint32_t>();
+    circuit_proving_key->memory_write_records = std::vector<uint32_t>();
+    circuit_proving_key->memory_read_records.reserve(memory_read_records.size());
+    circuit_proving_key->memory_write_records.reserve(memory_write_records.size());
+    std::copy(memory_read_records.begin(),
+              memory_read_records.end(),
+              std::back_inserter(circuit_proving_key->memory_read_records));
+    std::copy(memory_write_records.begin(),
+              memory_write_records.end(),
+              std::back_inserter(circuit_proving_key->memory_write_records));
 
     computed_witness = true;
 }
@@ -2879,6 +2883,8 @@ void UltraComposer::process_RAM_array(const size_t ram_id, const size_t gate_off
     std::sort(std::execution::par_unseq, ram_array.records.begin(), ram_array.records.end());
 #endif
 
+    std::vector<RamRecord> sorted_records;
+
     // Iterate over all but final RAM record.
     for (size_t i = 0; i < ram_array.records.size(); ++i) {
         const RamRecord& record = ram_array.records[i];
@@ -2908,6 +2914,8 @@ void UltraComposer::process_RAM_array(const size_t ram_id, const size_t gate_off
             // Only need to check the index value = RAM array size - 1.
             create_final_sorted_RAM_gate(sorted_record, ram_array.state.size());
         }
+
+        sorted_records.emplace_back(sorted_record);
 
         // Assign record/sorted records to tags that we will perform set equivalence checks on
         assign_tag(record.record_witness, access_tag);
@@ -2942,10 +2950,10 @@ void UltraComposer::process_RAM_array(const size_t ram_id, const size_t gate_off
     // Step 2: Create gates that validate correctness of RAM timestamps
 
     std::vector<uint32_t> timestamp_deltas;
-    for (size_t i = 0; i < ram_array.records.size() - 1; ++i) {
+    for (size_t i = 0; i < sorted_records.size() - 1; ++i) {
         // create_RAM_timestamp_gate(sorted_records[i], sorted_records[i + 1])
-        const auto& current = ram_array.records[i];
-        const auto& next = ram_array.records[i + 1];
+        const auto& current = sorted_records[i];
+        const auto& next = sorted_records[i + 1];
 
         const bool share_index = current.index == next.index;
 
@@ -2971,7 +2979,7 @@ void UltraComposer::process_RAM_array(const size_t ram_id, const size_t gate_off
 
     // add the index/timestamp values of the last sorted record in an empty add gate.
     // (the previous gate will access the wires on this gate and requires them to be those of the last record)
-    const auto& last = ram_array.records[ram_array.records.size() - 1];
+    const auto& last = sorted_records[sorted_records.size() - 1];
     create_big_add_gate({
         last.index_witness,
         last.timestamp_witness,
