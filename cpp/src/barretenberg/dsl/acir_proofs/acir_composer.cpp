@@ -35,7 +35,7 @@ void AcirComposer::create_circuit(acir_format::acir_format& constraint_system)
 void AcirComposer::init_proving_key(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
                                     acir_format::acir_format& constraint_system)
 {
-    vinfo("building circuit... ", size_hint_);
+    vinfo("building circuit...");
     composer_ = acir_format::Composer(crs_factory, size_hint_);
     acir_format::create_circuit(composer_, constraint_system);
 
@@ -99,6 +99,7 @@ std::vector<uint8_t> AcirComposer::create_proof(
 
 std::shared_ptr<proof_system::plonk::verification_key> AcirComposer::init_verification_key()
 {
+    vinfo("computing verification key...");
     return verification_key_ = composer_.compute_verification_key();
 }
 
@@ -107,7 +108,7 @@ void AcirComposer::load_verification_key(std::shared_ptr<barretenberg::srs::fact
 {
     verification_key_ =
         std::make_shared<proof_system::plonk::verification_key>(std::move(data), crs_factory->get_verifier_crs());
-    composer_ = acir_format::Composer(proving_key_, verification_key_, circuit_subgroup_size_);
+    composer_ = acir_format::Composer(proving_key_, verification_key_, verification_key_->circuit_size);
 }
 
 bool AcirComposer::verify_proof(std::vector<uint8_t> const& proof, bool is_recursive)
