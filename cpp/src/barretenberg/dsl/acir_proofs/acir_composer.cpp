@@ -12,9 +12,10 @@
 
 namespace acir_proofs {
 
-AcirComposer::AcirComposer(size_t size_hint)
+AcirComposer::AcirComposer(size_t size_hint, bool verbose)
     : composer_(0, 0, 0)
     , size_hint_(size_hint)
+    , verbose_(verbose)
 {}
 
 void AcirComposer::create_circuit(acir_format::acir_format& constraint_system)
@@ -34,7 +35,7 @@ void AcirComposer::create_circuit(acir_format::acir_format& constraint_system)
 void AcirComposer::init_proving_key(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
                                     acir_format::acir_format& constraint_system)
 {
-    info("building circuit... ", size_hint_);
+    vinfo("building circuit... ", size_hint_);
     composer_ = acir_format::Composer(crs_factory, size_hint_);
     acir_format::create_circuit(composer_, constraint_system);
 
@@ -46,7 +47,7 @@ void AcirComposer::init_proving_key(std::shared_ptr<barretenberg::srs::factories
     total_circuit_size_ = composer_.get_total_circuit_size();
     circuit_subgroup_size_ = composer_.get_circuit_subgroup_size(total_circuit_size_);
 
-    info("computing proving key...");
+    vinfo("computing proving key...");
     proving_key_ = composer_.compute_proving_key();
 }
 
@@ -59,7 +60,7 @@ std::vector<uint8_t> AcirComposer::create_proof(
     // Release prior memory first.
     composer_ = acir_format::Composer(0, 0, 0);
 
-    info("building circuit...");
+    vinfo("building circuit...");
     composer_ = [&]() {
         if (proving_key_) {
             auto composer = acir_format::Composer(proving_key_, verification_key_, size_hint_);
@@ -73,7 +74,7 @@ std::vector<uint8_t> AcirComposer::create_proof(
     create_circuit_with_witness(composer_, constraint_system, witness);
 
     if (!proving_key_) {
-        info("computing proving key...");
+        vinfo("computing proving key...");
         proving_key_ = composer_.compute_proving_key();
     }
 
@@ -83,7 +84,7 @@ std::vector<uint8_t> AcirComposer::create_proof(
     witness.clear();
     witness.shrink_to_fit();
 
-    info("creating proof...");
+    vinfo("creating proof...");
     std::vector<uint8_t> proof;
     if (is_recursive) {
         auto prover = composer_.create_prover();
@@ -92,7 +93,7 @@ std::vector<uint8_t> AcirComposer::create_proof(
         auto prover = composer_.create_ultra_with_keccak_prover();
         proof = prover.construct_proof().proof_data;
     }
-    info("done.");
+    vinfo("done.");
     return proof;
 }
 
@@ -112,7 +113,7 @@ void AcirComposer::load_verification_key(std::shared_ptr<barretenberg::srs::fact
 bool AcirComposer::verify_proof(std::vector<uint8_t> const& proof, bool is_recursive)
 {
     if (!verification_key_) {
-        info("computing verification key...");
+        vinfo("computing verification key...");
         verification_key_ = composer_.compute_verification_key();
     }
 
