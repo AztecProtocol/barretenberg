@@ -51,31 +51,33 @@ class TurboPlonkComposer {
         , num_gates(circuit_constructor.num_gates)
         , variables(circuit_constructor.variables)
         , zero_idx(circuit_constructor.zero_idx)
-        , contains_recursive_proof(composer_helper.contains_recursive_proof)
-        , recursive_proof_public_input_indices(composer_helper.recursive_proof_public_input_indices){};
+        , contains_recursive_proof(circuit_constructor.contains_recursive_proof)
+        , recursive_proof_public_input_indices(circuit_constructor.recursive_proof_public_input_indices){};
 
     TurboPlonkComposer(std::string const& crs_path, const size_t size_hint = 0)
-        : TurboPlonkComposer(
-              std::unique_ptr<ReferenceStringFactory>(new proof_system::FileReferenceStringFactory(crs_path)),
-              size_hint){};
+        : TurboPlonkComposer(std::unique_ptr<barretenberg::srs::factories::CrsFactory>(
+                                 new barretenberg::srs::factories::FileCrsFactory(crs_path)),
+                             size_hint){};
 
-    TurboPlonkComposer(std::shared_ptr<ReferenceStringFactory> const& crs_factory, const size_t size_hint = 0)
+    TurboPlonkComposer(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
+                       const size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , num_gates(circuit_constructor.num_gates)
         , variables(circuit_constructor.variables)
         , zero_idx(circuit_constructor.zero_idx)
         , composer_helper(crs_factory)
-        , contains_recursive_proof(composer_helper.contains_recursive_proof)
-        , recursive_proof_public_input_indices(composer_helper.recursive_proof_public_input_indices){};
+        , contains_recursive_proof(circuit_constructor.contains_recursive_proof)
+        , recursive_proof_public_input_indices(circuit_constructor.recursive_proof_public_input_indices){};
 
-    TurboPlonkComposer(std::unique_ptr<ReferenceStringFactory>&& crs_factory, const size_t size_hint = 0)
+    TurboPlonkComposer(std::unique_ptr<barretenberg::srs::factories::CrsFactory>&& crs_factory,
+                       const size_t size_hint = 0)
         : circuit_constructor(size_hint)
         , num_gates(circuit_constructor.num_gates)
         , variables(circuit_constructor.variables)
         , zero_idx(circuit_constructor.zero_idx)
         , composer_helper(std::move(crs_factory))
-        , contains_recursive_proof(composer_helper.contains_recursive_proof)
-        , recursive_proof_public_input_indices(composer_helper.recursive_proof_public_input_indices){};
+        , contains_recursive_proof(circuit_constructor.contains_recursive_proof)
+        , recursive_proof_public_input_indices(circuit_constructor.recursive_proof_public_input_indices){};
 
     TurboPlonkComposer(std::shared_ptr<plonk::proving_key> const& p_key,
                        std::shared_ptr<plonk::verification_key> const& v_key,
@@ -85,12 +87,31 @@ class TurboPlonkComposer {
         , variables(circuit_constructor.variables)
         , zero_idx(circuit_constructor.zero_idx)
         , composer_helper(p_key, v_key)
-        , contains_recursive_proof(composer_helper.contains_recursive_proof)
-        , recursive_proof_public_input_indices(composer_helper.recursive_proof_public_input_indices){};
+        , contains_recursive_proof(circuit_constructor.contains_recursive_proof)
+        , recursive_proof_public_input_indices(circuit_constructor.recursive_proof_public_input_indices){};
 
     TurboPlonkComposer(const TurboPlonkComposer& other) = delete;
-    TurboPlonkComposer(TurboPlonkComposer&& other) = default;
-    TurboPlonkComposer& operator=(const TurboPlonkComposer& other) = delete;
+
+    TurboPlonkComposer(TurboPlonkComposer&& other)
+        : circuit_constructor(std::move(other.circuit_constructor))
+        , num_gates(circuit_constructor.num_gates)
+        , variables(circuit_constructor.variables)
+        , zero_idx(circuit_constructor.zero_idx)
+        , composer_helper(std::move(other.composer_helper))
+        , contains_recursive_proof(circuit_constructor.contains_recursive_proof)
+        , recursive_proof_public_input_indices(circuit_constructor.recursive_proof_public_input_indices){};
+
+    TurboPlonkComposer& operator=(TurboPlonkComposer&& other)
+    {
+        circuit_constructor = std::move(other.circuit_constructor);
+        composer_helper = std::move(other.composer_helper);
+        num_gates = circuit_constructor.num_gates;
+        variables = circuit_constructor.variables;
+        zero_idx = circuit_constructor.zero_idx;
+        contains_recursive_proof = circuit_constructor.contains_recursive_proof;
+        recursive_proof_public_input_indices = circuit_constructor.recursive_proof_public_input_indices;
+        return *this;
+    };
     // TODO(#230)(Cody): This constructor started to be implicitly deleted when I added `n` and `variables` members.
     // This is a temporary measure until we can rewrite Plonk and all tests using circuit builder methods in place of
     // composer methods, where appropriate. TurboPlonkComposer& operator=(TurboPlonkComposer&& other) = default;
@@ -229,7 +250,7 @@ class TurboPlonkComposer {
 
     void add_recursive_proof(const std::vector<uint32_t>& proof_output_witness_indices)
     {
-        composer_helper.add_recursive_proof(circuit_constructor, proof_output_witness_indices);
+        circuit_constructor.add_recursive_proof(proof_output_witness_indices);
     }
     bool failed() const { return circuit_constructor.failed(); };
     const std::string& err() const { return circuit_constructor.err(); };

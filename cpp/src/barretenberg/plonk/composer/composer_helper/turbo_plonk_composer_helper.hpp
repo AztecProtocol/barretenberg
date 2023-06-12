@@ -3,7 +3,7 @@
 #include "barretenberg/plonk/flavor/flavor.hpp"
 #include "barretenberg/plonk/composer/composer_helper/composer_helper_lib.hpp"
 #include "barretenberg/proof_system/composer/composer_helper_lib.hpp"
-#include "barretenberg/srs/reference_string/file_reference_string.hpp"
+#include "barretenberg/srs/factories/file_crs_factory.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
 #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
@@ -20,23 +20,19 @@ class TurboPlonkComposerHelper {
     std::shared_ptr<plonk::proving_key> circuit_proving_key;
     std::shared_ptr<plonk::verification_key> circuit_verification_key;
 
-    // TODO(#218)(kesha): we need to put this into the commitment key, so that the composer doesn't have to handle srs
-    // at all
-    std::shared_ptr<ReferenceStringFactory> crs_factory_;
-
-    std::vector<uint32_t> recursive_proof_public_input_indices;
-    bool contains_recursive_proof = false;
+    // The crs_factory holds the path to the srs and exposes methods to extract the srs elements
+    std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory_;
 
     bool computed_witness = false;
     TurboPlonkComposerHelper()
-        : TurboPlonkComposerHelper(std::shared_ptr<ReferenceStringFactory>(
-              new proof_system::FileReferenceStringFactory("../srs_db/ignition")))
+        : TurboPlonkComposerHelper(std::shared_ptr<barretenberg::srs::factories::CrsFactory>(
+              new barretenberg::srs::factories::FileCrsFactory("../srs_db/ignition")))
     {}
 
-    TurboPlonkComposerHelper(std::shared_ptr<ReferenceStringFactory> crs_factory)
+    TurboPlonkComposerHelper(std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
-    TurboPlonkComposerHelper(std::unique_ptr<ReferenceStringFactory>&& crs_factory)
+    TurboPlonkComposerHelper(std::unique_ptr<barretenberg::srs::factories::CrsFactory>&& crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
     TurboPlonkComposerHelper(std::shared_ptr<plonk::proving_key> p_key, std::shared_ptr<plonk::verification_key> v_key)
@@ -61,20 +57,6 @@ class TurboPlonkComposerHelper {
             { "q_fixed_base", false }, { "q_range", false }, { "q_logic", false },
         };
         return result;
-    }
-    void add_recursive_proof(CircuitConstructor& circuit_constructor,
-                             const std::vector<uint32_t>& proof_output_witness_indices)
-    {
-
-        if (contains_recursive_proof) {
-            circuit_constructor.failure("added recursive proof when one already exists");
-        }
-        contains_recursive_proof = true;
-
-        for (const auto& idx : proof_output_witness_indices) {
-            circuit_constructor.set_public_input(idx);
-            recursive_proof_public_input_indices.push_back((uint32_t)(circuit_constructor.public_inputs.size() - 1));
-        }
     }
     static transcript::Manifest create_manifest(const size_t num_public_inputs)
     {

@@ -68,7 +68,6 @@
 #include <concepts>
 #include <vector>
 #include "barretenberg/honk/sumcheck/polynomials/barycentric_data.hpp"
-#include "barretenberg/srs/reference_string/reference_string.hpp"
 #include "barretenberg/polynomials/evaluation_domain.hpp"
 #include "barretenberg/proof_system/types/composer_type.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
@@ -143,16 +142,11 @@ class ProvingKey_ : public PrecomputedPolynomials, public WitnessPolynomials {
 
     bool contains_recursive_proof;
     std::vector<uint32_t> recursive_proof_public_input_indices;
-    std::shared_ptr<ProverReferenceString> crs;
     barretenberg::EvaluationDomain<FF> evaluation_domain;
 
     ProvingKey_() = default;
-    ProvingKey_(const size_t circuit_size,
-                const size_t num_public_inputs,
-                std::shared_ptr<ProverReferenceString> const& crs,
-                ComposerType composer_type)
+    ProvingKey_(const size_t circuit_size, const size_t num_public_inputs, ComposerType composer_type)
     {
-        this->crs = crs;
         this->evaluation_domain = barretenberg::EvaluationDomain<FF>(circuit_size, circuit_size);
         PrecomputedPolynomials::circuit_size = circuit_size;
         this->log_circuit_size = numeric::get_msb(circuit_size);
@@ -322,7 +316,7 @@ concept IsAnyOf = (std::same_as<T, U> || ...);
 template <typename T>
 concept IsPlonkFlavor = IsAnyOf<T, plonk::flavor::Standard, plonk::flavor::Turbo, plonk::flavor::Ultra>;
 
-template <typename T> 
+template <typename T>
 concept IsHonkFlavor = IsAnyOf<T, honk::flavor::Standard, honk::flavor::Ultra>;
 // clang-format on
 } // namespace proof_system

@@ -38,20 +38,22 @@ class UltraHonkComposer {
     std::vector<uint32_t>& recursive_proof_public_input_indices;
 
     UltraHonkComposer()
-        : UltraHonkComposer("../srs_db/ignition", 0){};
+        : UltraHonkComposer(barretenberg::srs::get_crs_factory(), 0){};
 
     UltraHonkComposer(std::string const& crs_path, const size_t size_hint)
-        : UltraHonkComposer(std::unique_ptr<ReferenceStringFactory>(new FileReferenceStringFactory(crs_path)),
+        : UltraHonkComposer(std::unique_ptr<barretenberg::srs::factories::CrsFactory>(
+                                new barretenberg::srs::factories::FileCrsFactory(crs_path)),
                             size_hint){};
 
-    UltraHonkComposer(std::shared_ptr<ReferenceStringFactory> const& crs_factory, const size_t size_hint)
+    UltraHonkComposer(std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
+                      const size_t size_hint)
         : circuit_constructor(size_hint)
         , composer_helper(crs_factory)
         , num_gates(circuit_constructor.num_gates)
         , variables(circuit_constructor.variables)
         , zero_idx(circuit_constructor.zero_idx)
-        , contains_recursive_proof(composer_helper.contains_recursive_proof)
-        , recursive_proof_public_input_indices(composer_helper.recursive_proof_public_input_indices)
+        , contains_recursive_proof(circuit_constructor.contains_recursive_proof)
+        , recursive_proof_public_input_indices(circuit_constructor.recursive_proof_public_input_indices)
     {
         // TODO(#217/#423): Related to issue of ensuring no identically 0 polynomials
         add_gates_to_ensure_all_polys_are_non_zero();

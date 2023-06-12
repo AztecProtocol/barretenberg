@@ -279,6 +279,62 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         return { output, verification_key };
     }
 
+    /**
+     * @brief Check the correctness of the recursive proof public inputs
+     *
+     * @details Circuit constructors have no notion of SRS and any proof-related stuff except for the existence of
+     * recursive proof-specific public inputs, so we can't check the recursive proof fully in check_circuit. So we use
+     * this additional function to check that the recursive proof points work.
+     *
+     * @return boolean result
+     */
+    static bool check_recursive_proof_public_inputs(OuterComposer& composer,
+                                                    const barretenberg::pairing::miller_lines* lines)
+    {
+        if (composer.contains_recursive_proof && composer.recursive_proof_public_input_indices.size() == 16) {
+            const auto& inputs = composer.circuit_constructor.public_inputs;
+            const auto recover_fq_from_public_inputs =
+                [&inputs, &composer](const size_t idx0, const size_t idx1, const size_t idx2, const size_t idx3) {
+                    const uint256_t l0 = composer.circuit_constructor.get_variable(inputs[idx0]);
+                    const uint256_t l1 = composer.circuit_constructor.get_variable(inputs[idx1]);
+                    const uint256_t l2 = composer.circuit_constructor.get_variable(inputs[idx2]);
+                    const uint256_t l3 = composer.circuit_constructor.get_variable(inputs[idx3]);
+
+                    const uint256_t limb = l0 + (l1 << NUM_LIMB_BITS_IN_FIELD_SIMULATION) +
+                                           (l2 << (NUM_LIMB_BITS_IN_FIELD_SIMULATION * 2)) +
+                                           (l3 << (NUM_LIMB_BITS_IN_FIELD_SIMULATION * 3));
+                    return barretenberg::fq(limb);
+                };
+
+            const auto x0 = recover_fq_from_public_inputs(composer.recursive_proof_public_input_indices[0],
+                                                          composer.recursive_proof_public_input_indices[1],
+                                                          composer.recursive_proof_public_input_indices[2],
+                                                          composer.recursive_proof_public_input_indices[3]);
+            const auto y0 = recover_fq_from_public_inputs(composer.recursive_proof_public_input_indices[4],
+                                                          composer.recursive_proof_public_input_indices[5],
+                                                          composer.recursive_proof_public_input_indices[6],
+                                                          composer.recursive_proof_public_input_indices[7]);
+            const auto x1 = recover_fq_from_public_inputs(composer.recursive_proof_public_input_indices[8],
+                                                          composer.recursive_proof_public_input_indices[9],
+                                                          composer.recursive_proof_public_input_indices[10],
+                                                          composer.recursive_proof_public_input_indices[11]);
+            const auto y1 = recover_fq_from_public_inputs(composer.recursive_proof_public_input_indices[12],
+                                                          composer.recursive_proof_public_input_indices[13],
+                                                          composer.recursive_proof_public_input_indices[14],
+                                                          composer.recursive_proof_public_input_indices[15]);
+            g1::affine_element P_affine[2]{
+                { x0, y0 },
+                { x1, y1 },
+            };
+
+            barretenberg::fq12 result =
+                barretenberg::pairing::reduced_ate_pairing_batch_precomputed(P_affine, lines, 2);
+
+            return (result == barretenberg::fq12::one());
+        }
+        return true;
+    }
+
   public:
     static void test_recursive_proof_composition()
     {
@@ -313,25 +369,14 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
         EXPECT_EQ(outer_composer.failed(), false);
 
-        info("Executing check of full circuit:");
-        bool result = outer_composer.circuit_constructor.check_circuit();
-        // info("creating prover for outer circuit");
-        // info("composer gates = ", outer_composer.get_num_gates());
-        // auto prover = outer_composer.create_prover();
-        // info("created prover for outer circuit");
-
-        // info("creating verifier for outer proof");
-        // auto verifier = outer_composer.create_verifier();
-
-        // info("creating outer proof for outer circuit");
-        // plonk::proof proof = prover.construct_proof();
-        // info("created outer proof");
-
-        // info("verifying the outer proof");
-        // bool result = verifier.verify_proof(proof); // WORKTODO
-        // info("Outer proof verification result: ", result);
+        bool result = outer_composer.check_circuit();
 
         EXPECT_EQ(result, true);
+
+        EXPECT_EQ(check_recursive_proof_public_inputs(
+                      outer_composer,
+                      outer_composer.composer_helper.crs_factory_->get_verifier_crs()->get_precomputed_g2_lines()),
+                  true);
     }
 
     static void test_recursive_proof_composition_ultra_no_tables()
@@ -360,23 +405,16 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
         EXPECT_EQ(outer_composer.failed(), false);
 
-        info("creating prover for outer circuit");
         info("composer gates = ", outer_composer.get_num_gates());
-        auto prover = outer_composer.create_prover();
-        info("created prover for outer circuit");
 
-        info("creating verifier for outer proof");
-        auto verifier = outer_composer.create_verifier();
-
-        info("creating outer proof for outer circuit");
-        plonk::proof proof = prover.construct_proof();
-        info("created outer proof");
-
-        info("verifying the outer proof");
-        bool result = verifier.verify_proof(proof); // WORKTODO
-        info("Outer proof verification result: ", result);
+        bool result = outer_composer.check_circuit();
 
         EXPECT_EQ(result, true);
+
+        EXPECT_EQ(check_recursive_proof_public_inputs(
+                      outer_composer,
+                      outer_composer.composer_helper.crs_factory_->get_verifier_crs()->get_precomputed_g2_lines()),
+                  true);
     }
 
     static void test_double_verification()
@@ -385,7 +423,6 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
             return; // We only care about running this test for turbo and ultra outer circuits, since in practice the
                     // only circuits which verify >1 proof are ultra or turbo circuits. Standard uses so many gates
                     // (16m) that it's a waste of time testing it.
-
         InnerComposer inner_composer_a = InnerComposer("../srs_db/ignition");
         InnerComposer inner_composer_b = InnerComposer("../srs_db/ignition");
 
@@ -394,322 +431,298 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
         OuterComposer outer_composer = OuterComposer("../srs_db/ignition");
 
-        std::vector<barretenberg::fr> inner_inputs{ barretenberg::fr::random_element(),
-                                                    barretenberg::fr::random_element(),
-                                                    barretenberg::fr::random_element() };
+        std::vector<barretenberg::fr> inner_inputs
+        {
+            barretenberg::fr::random_element(), barretenberg::fr::random_element(),
+                uint256_t a2 = circuit_output_a.aggregation_state.P1.x.binary_basis_limbs[1].element.get_value();
 
-        create_inner_circuit(inner_composer_a, inner_inputs);
-        create_inner_circuit(inner_composer_b, inner_inputs);
+            ASSERT(a0.get_msb() <= 68);
+            ASSERT(a1.get_msb() <= 68);
+            ASSERT(a2.get_msb() <= 68);
+            ASSERT(a3.get_msb() <= 68);
 
-        auto circuit_output_a = create_outer_circuit(inner_composer_a, mid_composer_a);
+            circuit_output_a.aggregation_state.assign_object_to_proof_outputs();
 
-        uint256_t a0 = circuit_output_a.aggregation_state.P0.x.binary_basis_limbs[1].element.get_value();
-        uint256_t a1 = circuit_output_a.aggregation_state.P0.y.binary_basis_limbs[1].element.get_value();
-        uint256_t a2 = circuit_output_a.aggregation_state.P1.x.binary_basis_limbs[1].element.get_value();
-        uint256_t a3 = circuit_output_a.aggregation_state.P1.y.binary_basis_limbs[1].element.get_value();
+            auto circuit_output_b = create_outer_circuit(inner_composer_b, mid_composer_b);
 
-        ASSERT(a0.get_msb() <= 68);
-        ASSERT(a1.get_msb() <= 68);
-        ASSERT(a2.get_msb() <= 68);
-        ASSERT(a3.get_msb() <= 68);
+            circuit_output_b.aggregation_state.assign_object_to_proof_outputs();
 
-        circuit_output_a.aggregation_state.assign_object_to_proof_outputs();
+            auto circuit_output = create_double_outer_circuit(mid_composer_a, mid_composer_b, outer_composer);
 
-        auto circuit_output_b = create_outer_circuit(inner_composer_b, mid_composer_b);
+            circuit_output.aggregation_state.assign_object_to_proof_outputs();
 
-        circuit_output_b.aggregation_state.assign_object_to_proof_outputs();
+            g1::affine_element P[2];
+            P[0].x = barretenberg::fq(circuit_output.aggregation_state.P0.x.get_value().lo);
+            P[0].y = barretenberg::fq(circuit_output.aggregation_state.P0.y.get_value().lo);
+            P[1].x = barretenberg::fq(circuit_output.aggregation_state.P1.x.get_value().lo);
+            P[1].y = barretenberg::fq(circuit_output.aggregation_state.P1.y.get_value().lo);
+            barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
+                P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
 
-        auto circuit_output = create_double_outer_circuit(mid_composer_a, mid_composer_b, outer_composer);
+            EXPECT_EQ(circuit_output_a.aggregation_state.public_inputs[0].get_value(), inner_inputs[0]);
+            EXPECT_EQ(circuit_output_a.aggregation_state.public_inputs[1].get_value(), inner_inputs[1]);
 
-        circuit_output.aggregation_state.assign_object_to_proof_outputs();
+            EXPECT_EQ(inner_proof_result, barretenberg::fq12::one());
 
-        g1::affine_element P[2];
-        P[0].x = barretenberg::fq(circuit_output.aggregation_state.P0.x.get_value().lo);
-        P[0].y = barretenberg::fq(circuit_output.aggregation_state.P0.y.get_value().lo);
-        P[1].x = barretenberg::fq(circuit_output.aggregation_state.P1.x.get_value().lo);
-        P[1].y = barretenberg::fq(circuit_output.aggregation_state.P1.y.get_value().lo);
-        barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
-            P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
+            printf("composer gates = %zu\n", outer_composer.get_num_gates());
 
-        EXPECT_EQ(circuit_output_a.aggregation_state.public_inputs[0].get_value(), inner_inputs[0]);
-        EXPECT_EQ(circuit_output_a.aggregation_state.public_inputs[1].get_value(), inner_inputs[1]);
+            bool result = outer_composer.check_circuit();
+            EXPECT_EQ(result, true);
 
-        EXPECT_EQ(inner_proof_result, barretenberg::fq12::one());
+            EXPECT_EQ(check_recursive_proof_public_inputs(
+                          outer_composer,
+                          outer_composer.composer_helper.crs_factory_->get_verifier_crs()->get_precomputed_g2_lines()),
+                      true);
+        }
 
-        printf("composer gates = %zu\n", outer_composer.get_num_gates());
+        // verifies a proof of a circuit that verifies one of two proofs. Test 'a' uses a proof over the first of the
+        // two variable circuits
+        static void test_recursive_proof_composition_with_variable_verification_key_a()
+        {
+            InnerComposer inner_composer_a = InnerComposer("../srs_db/ignition");
+            InnerComposer inner_composer_b = InnerComposer("../srs_db/ignition");
+            OuterComposer outer_composer = OuterComposer("../srs_db/ignition");
+            std::vector<barretenberg::fr> inner_inputs_a{ barretenberg::fr::random_element(),
+                                                          barretenberg::fr::random_element(),
+                                                          barretenberg::fr::random_element() };
 
-        std::cout << "creating prover" << std::endl;
-        auto prover = outer_composer.create_prover();
-        std::cout << "created prover" << std::endl;
+            std::vector<barretenberg::fr> inner_inputs_b{ barretenberg::fr::random_element(),
+                                                          barretenberg::fr::random_element(),
+                                                          barretenberg::fr::random_element() };
 
-        std::cout << "creating verifier" << std::endl;
-        auto verifier = outer_composer.create_verifier();
+            create_inner_circuit(inner_composer_a, inner_inputs_a);
+            create_alternate_inner_circuit(inner_composer_b, inner_inputs_b);
 
-        std::cout << "validated. creating proof" << std::endl;
-        plonk::proof proof = prover.construct_proof();
-        std::cout << "created proof" << std::endl;
+            auto circuit_output = create_outer_circuit_with_variable_inner_circuit(
+                inner_composer_a, inner_composer_b, outer_composer, true);
 
-        bool result = verifier.verify_proof(proof);
-        EXPECT_EQ(result, true);
-    }
+            g1::affine_element P[2];
+            P[0].x = barretenberg::fq(circuit_output.aggregation_state.P0.x.get_value().lo);
+            P[0].y = barretenberg::fq(circuit_output.aggregation_state.P0.y.get_value().lo);
+            P[1].x = barretenberg::fq(circuit_output.aggregation_state.P1.x.get_value().lo);
+            P[1].y = barretenberg::fq(circuit_output.aggregation_state.P1.y.get_value().lo);
+            barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
+                P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
 
-    // verifies a proof of a circuit that verifies one of two proofs. Test 'a' uses a proof over the first of the two
-    // variable circuits
-    static void test_recursive_proof_composition_with_variable_verification_key_a()
+            EXPECT_EQ(circuit_output.aggregation_state.public_inputs[0].get_value(), inner_inputs_a[0]);
+            EXPECT_EQ(circuit_output.aggregation_state.public_inputs[1].get_value(), inner_inputs_a[1]);
+            EXPECT_EQ(circuit_output.aggregation_state.public_inputs[2].get_value(), inner_inputs_a[2]);
+
+            EXPECT_EQ(inner_proof_result, barretenberg::fq12::one());
+
+            printf("composer gates = %zu\n", outer_composer.get_num_gates());
+
+            bool result = outer_composer.check_circuit();
+            EXPECT_EQ(result, true);
+
+            EXPECT_EQ(check_recursive_proof_public_inputs(
+                          outer_composer,
+                          outer_composer.composer_helper.crs_factory_->get_verifier_crs()->get_precomputed_g2_lines()),
+                      true);
+        }
+
+        // verifies a proof of a circuit that verifies one of two proofs. Test 'b' uses a proof over the second of the
+        // two variable circuits
+        static void test_recursive_proof_composition_with_variable_verification_key_b()
+        {
+            InnerComposer inner_composer_a = InnerComposer("../srs_db/ignition");
+            InnerComposer inner_composer_b = InnerComposer("../srs_db/ignition");
+            OuterComposer outer_composer = OuterComposer("../srs_db/ignition");
+            std::vector<barretenberg::fr> inner_inputs_a{ barretenberg::fr::random_element(),
+                                                          barretenberg::fr::random_element(),
+                                                          barretenberg::fr::random_element() };
+
+            std::vector<barretenberg::fr> inner_inputs_b{ barretenberg::fr::random_element(),
+                                                          barretenberg::fr::random_element(),
+                                                          barretenberg::fr::random_element() };
+
+            create_inner_circuit(inner_composer_a, inner_inputs_a);
+            create_alternate_inner_circuit(inner_composer_b, inner_inputs_b);
+            auto circuit_output = create_outer_circuit_with_variable_inner_circuit(
+                inner_composer_a, inner_composer_b, outer_composer, false);
+            g1::affine_element P[2];
+
+            P[0].x = barretenberg::fq(circuit_output.aggregation_state.P0.x.get_value().lo);
+            P[0].y = barretenberg::fq(circuit_output.aggregation_state.P0.y.get_value().lo);
+            P[1].x = barretenberg::fq(circuit_output.aggregation_state.P1.x.get_value().lo);
+            P[1].y = barretenberg::fq(circuit_output.aggregation_state.P1.y.get_value().lo);
+
+            barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
+                P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
+
+            EXPECT_EQ(circuit_output.aggregation_state.public_inputs[0].get_value(), inner_inputs_b[0]);
+            EXPECT_EQ(circuit_output.aggregation_state.public_inputs[1].get_value(), inner_inputs_b[1]);
+            EXPECT_EQ(circuit_output.aggregation_state.public_inputs[2].get_value(), inner_inputs_b[2]);
+
+            EXPECT_EQ(inner_proof_result, barretenberg::fq12::one());
+
+            printf("composer gates = %zu\n", outer_composer.get_num_gates());
+
+            bool result = outer_composer.check_circuit();
+            EXPECT_EQ(result, true);
+
+            EXPECT_EQ(check_recursive_proof_public_inputs(
+                          outer_composer,
+                          outer_composer.composer_helper.crs_factory_->get_verifier_crs()->get_precomputed_g2_lines()),
+                      true);
+        }
+
+        static void test_recursive_proof_composition_with_variable_verification_key_failure_case()
+        {
+            InnerComposer inner_composer_a = InnerComposer("../srs_db/ignition");
+            InnerComposer inner_composer_b = InnerComposer("../srs_db/ignition");
+            OuterComposer outer_composer = OuterComposer("../srs_db/ignition");
+            std::vector<barretenberg::fr> inner_inputs_a{ barretenberg::fr::random_element(),
+                                                          barretenberg::fr::random_element(),
+                                                          barretenberg::fr::random_element() };
+
+            std::vector<barretenberg::fr> inner_inputs_b{ barretenberg::fr::random_element(),
+                                                          barretenberg::fr::random_element(),
+                                                          barretenberg::fr::random_element() };
+
+            create_inner_circuit(inner_composer_a, inner_inputs_a);
+            create_alternate_inner_circuit(inner_composer_b, inner_inputs_b);
+
+            auto circuit_output = create_outer_circuit_with_variable_inner_circuit(
+                inner_composer_a, inner_composer_b, outer_composer, true, true);
+
+            g1::affine_element P[2];
+            P[0].x = barretenberg::fq(circuit_output.aggregation_state.P0.x.get_value().lo);
+            P[0].y = barretenberg::fq(circuit_output.aggregation_state.P0.y.get_value().lo);
+            P[1].x = barretenberg::fq(circuit_output.aggregation_state.P1.x.get_value().lo);
+            P[1].y = barretenberg::fq(circuit_output.aggregation_state.P1.y.get_value().lo);
+            barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
+                P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
+
+            EXPECT_EQ(circuit_output.aggregation_state.public_inputs[0].get_value(), inner_inputs_a[0]);
+            EXPECT_EQ(circuit_output.aggregation_state.public_inputs[1].get_value(), inner_inputs_a[1]);
+            EXPECT_EQ(circuit_output.aggregation_state.public_inputs[2].get_value(), inner_inputs_a[2]);
+
+            EXPECT_EQ(inner_proof_result, barretenberg::fq12::one());
+
+            printf("composer gates = %zu\n", outer_composer.get_num_gates());
+
+            bool result = outer_composer.check_circuit();
+            EXPECT_EQ(result, false);
+
+            EXPECT_EQ(check_recursive_proof_public_inputs(
+                          outer_composer,
+                          outer_composer.composer_helper.crs_factory_->get_verifier_crs()->get_precomputed_g2_lines()),
+                      true);
+        }
+
+        static void test_recursive_proof_composition_with_constant_verification_key()
+        {
+            InnerComposer inner_composer_a = InnerComposer("../srs_db/ignition");
+            InnerComposer inner_composer_b = InnerComposer("../srs_db/ignition");
+            OuterComposer outer_composer = OuterComposer("../srs_db/ignition");
+            std::vector<barretenberg::fr> inner_inputs_a{ barretenberg::fr::random_element(),
+                                                          barretenberg::fr::random_element(),
+                                                          barretenberg::fr::random_element() };
+
+            std::vector<barretenberg::fr> inner_inputs_b{ barretenberg::fr::random_element(),
+                                                          barretenberg::fr::random_element(),
+                                                          barretenberg::fr::random_element() };
+
+            create_inner_circuit(inner_composer_a, inner_inputs_a);
+            create_alternate_inner_circuit(inner_composer_b, inner_inputs_b);
+
+            auto circuit_output = create_outer_circuit_with_variable_inner_circuit(
+                inner_composer_a, inner_composer_b, outer_composer, true, false, true);
+
+            g1::affine_element P[2];
+            P[0].x = barretenberg::fq(circuit_output.aggregation_state.P0.x.get_value().lo);
+            P[0].y = barretenberg::fq(circuit_output.aggregation_state.P0.y.get_value().lo);
+            P[1].x = barretenberg::fq(circuit_output.aggregation_state.P1.x.get_value().lo);
+            P[1].y = barretenberg::fq(circuit_output.aggregation_state.P1.y.get_value().lo);
+            barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
+                P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
+
+            EXPECT_EQ(circuit_output.aggregation_state.public_inputs[0].get_value(), inner_inputs_a[0]);
+            EXPECT_EQ(circuit_output.aggregation_state.public_inputs[1].get_value(), inner_inputs_a[1]);
+            EXPECT_EQ(circuit_output.aggregation_state.public_inputs[2].get_value(), inner_inputs_a[2]);
+
+            EXPECT_EQ(inner_proof_result, barretenberg::fq12::one());
+
+            printf("composer gates = %zu\n", outer_composer.get_num_gates());
+
+            bool result = outer_composer.check_circuit();
+            EXPECT_EQ(result, true);
+
+            EXPECT_EQ(check_recursive_proof_public_inputs(
+                          outer_composer,
+                          outer_composer.composer_helper.crs_factory_->get_verifier_crs()->get_precomputed_g2_lines()),
+                      true);
+        }
+
+        static void test_inner_circuit()
+        {
+            if constexpr (!std::is_same<OuterComposer, plonk::StandardPlonkComposer>::value)
+                return; // We only want to run this test once (since it's not actually dependent on the typed test
+                        // parameter; which is the outer composer). We've only made it a typed test so that it can be
+                        // included in this test suite. So to avoid running this test identically 3 times, we escape all
+                        // but 1 permutation.
+
+            InnerComposer inner_composer = InnerComposer("../srs_db/ignition");
+            std::vector<barretenberg::fr> inner_inputs{ barretenberg::fr::random_element(),
+                                                        barretenberg::fr::random_element(),
+                                                        barretenberg::fr::random_element() };
+
+            create_inner_circuit(inner_composer, inner_inputs);
+
+            auto prover = inner_composer.create_prover();
+            auto verifier = inner_composer.create_verifier();
+            auto proof = prover.construct_proof();
+            auto verified = verifier.verify_proof(proof);
+            EXPECT_EQ(verified, true);
+        }
+    };
+
+    typedef testing::Types<plonk::StandardPlonkComposer, plonk::TurboPlonkComposer, plonk::UltraPlonkComposer>
+        OuterComposerTypes;
+
+    TYPED_TEST_SUITE(stdlib_verifier, OuterComposerTypes);
+
+    HEAVY_TYPED_TEST(stdlib_verifier, recursive_proof_composition) { TestFixture::test_recursive_proof_composition(); };
+
+    HEAVY_TYPED_TEST(stdlib_verifier, recursive_proof_composition_ultra_no_tables)
     {
-        InnerComposer inner_composer_a = InnerComposer("../srs_db/ignition");
-        InnerComposer inner_composer_b = InnerComposer("../srs_db/ignition");
-        OuterComposer outer_composer = OuterComposer("../srs_db/ignition");
-        std::vector<barretenberg::fr> inner_inputs_a{ barretenberg::fr::random_element(),
-                                                      barretenberg::fr::random_element(),
-                                                      barretenberg::fr::random_element() };
+        if constexpr (TypeParam::type == ComposerType::PLOOKUP) {
+            TestFixture::test_recursive_proof_composition_ultra_no_tables();
+        } else {
+            // no point running this if we're not in UltraPlonk
+            GTEST_SKIP();
+        }
+    };
 
-        std::vector<barretenberg::fr> inner_inputs_b{ barretenberg::fr::random_element(),
-                                                      barretenberg::fr::random_element(),
-                                                      barretenberg::fr::random_element() };
-
-        create_inner_circuit(inner_composer_a, inner_inputs_a);
-        create_alternate_inner_circuit(inner_composer_b, inner_inputs_b);
-
-        auto circuit_output =
-            create_outer_circuit_with_variable_inner_circuit(inner_composer_a, inner_composer_b, outer_composer, true);
-
-        g1::affine_element P[2];
-        P[0].x = barretenberg::fq(circuit_output.aggregation_state.P0.x.get_value().lo);
-        P[0].y = barretenberg::fq(circuit_output.aggregation_state.P0.y.get_value().lo);
-        P[1].x = barretenberg::fq(circuit_output.aggregation_state.P1.x.get_value().lo);
-        P[1].y = barretenberg::fq(circuit_output.aggregation_state.P1.y.get_value().lo);
-        barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
-            P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
-
-        EXPECT_EQ(circuit_output.aggregation_state.public_inputs[0].get_value(), inner_inputs_a[0]);
-        EXPECT_EQ(circuit_output.aggregation_state.public_inputs[1].get_value(), inner_inputs_a[1]);
-        EXPECT_EQ(circuit_output.aggregation_state.public_inputs[2].get_value(), inner_inputs_a[2]);
-
-        EXPECT_EQ(inner_proof_result, barretenberg::fq12::one());
-
-        printf("composer gates = %zu\n", outer_composer.get_num_gates());
-        auto prover = outer_composer.create_prover();
-
-        auto verifier = outer_composer.create_verifier();
-
-        plonk::proof proof = prover.construct_proof();
-
-        bool result = verifier.verify_proof(proof);
-        EXPECT_EQ(result, true);
-    }
-
-    // verifies a proof of a circuit that verifies one of two proofs. Test 'b' uses a proof over the second of the two
-    // variable circuits
-    static void test_recursive_proof_composition_with_variable_verification_key_b()
+    HEAVY_TYPED_TEST(stdlib_verifier, double_verification)
     {
-        InnerComposer inner_composer_a = InnerComposer("../srs_db/ignition");
-        InnerComposer inner_composer_b = InnerComposer("../srs_db/ignition");
-        OuterComposer outer_composer = OuterComposer("../srs_db/ignition");
-        std::vector<barretenberg::fr> inner_inputs_a{ barretenberg::fr::random_element(),
-                                                      barretenberg::fr::random_element(),
-                                                      barretenberg::fr::random_element() };
+        if constexpr (TypeParam::type == ComposerType::PLOOKUP) {
+            TestFixture::test_double_verification();
+        } else {
+            // CircleCI can't cope with non-ultraplonk version.
+            GTEST_SKIP();
+        }
+    };
 
-        std::vector<barretenberg::fr> inner_inputs_b{ barretenberg::fr::random_element(),
-                                                      barretenberg::fr::random_element(),
-                                                      barretenberg::fr::random_element() };
-
-        create_inner_circuit(inner_composer_a, inner_inputs_a);
-        create_alternate_inner_circuit(inner_composer_b, inner_inputs_b);
-        auto circuit_output =
-            create_outer_circuit_with_variable_inner_circuit(inner_composer_a, inner_composer_b, outer_composer, false);
-        g1::affine_element P[2];
-
-        P[0].x = barretenberg::fq(circuit_output.aggregation_state.P0.x.get_value().lo);
-        P[0].y = barretenberg::fq(circuit_output.aggregation_state.P0.y.get_value().lo);
-        P[1].x = barretenberg::fq(circuit_output.aggregation_state.P1.x.get_value().lo);
-        P[1].y = barretenberg::fq(circuit_output.aggregation_state.P1.y.get_value().lo);
-
-        barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
-            P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
-
-        EXPECT_EQ(circuit_output.aggregation_state.public_inputs[0].get_value(), inner_inputs_b[0]);
-        EXPECT_EQ(circuit_output.aggregation_state.public_inputs[1].get_value(), inner_inputs_b[1]);
-        EXPECT_EQ(circuit_output.aggregation_state.public_inputs[2].get_value(), inner_inputs_b[2]);
-
-        EXPECT_EQ(inner_proof_result, barretenberg::fq12::one());
-
-        printf("composer gates = %zu\n", outer_composer.get_num_gates());
-
-        auto prover = outer_composer.create_prover();
-
-        auto verifier = outer_composer.create_verifier();
-
-        plonk::proof proof = prover.construct_proof();
-
-        bool result = verifier.verify_proof(proof);
-        EXPECT_EQ(result, true);
-    }
-
-    static void test_recursive_proof_composition_with_variable_verification_key_failure_case()
+    HEAVY_TYPED_TEST(stdlib_verifier, recursive_proof_composition_with_variable_verification_key_a)
     {
-        InnerComposer inner_composer_a = InnerComposer("../srs_db/ignition");
-        InnerComposer inner_composer_b = InnerComposer("../srs_db/ignition");
-        OuterComposer outer_composer = OuterComposer("../srs_db/ignition");
-        std::vector<barretenberg::fr> inner_inputs_a{ barretenberg::fr::random_element(),
-                                                      barretenberg::fr::random_element(),
-                                                      barretenberg::fr::random_element() };
-
-        std::vector<barretenberg::fr> inner_inputs_b{ barretenberg::fr::random_element(),
-                                                      barretenberg::fr::random_element(),
-                                                      barretenberg::fr::random_element() };
-
-        create_inner_circuit(inner_composer_a, inner_inputs_a);
-        create_alternate_inner_circuit(inner_composer_b, inner_inputs_b);
-
-        auto circuit_output = create_outer_circuit_with_variable_inner_circuit(
-            inner_composer_a, inner_composer_b, outer_composer, true, true);
-
-        g1::affine_element P[2];
-        P[0].x = barretenberg::fq(circuit_output.aggregation_state.P0.x.get_value().lo);
-        P[0].y = barretenberg::fq(circuit_output.aggregation_state.P0.y.get_value().lo);
-        P[1].x = barretenberg::fq(circuit_output.aggregation_state.P1.x.get_value().lo);
-        P[1].y = barretenberg::fq(circuit_output.aggregation_state.P1.y.get_value().lo);
-        barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
-            P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
-
-        EXPECT_EQ(circuit_output.aggregation_state.public_inputs[0].get_value(), inner_inputs_a[0]);
-        EXPECT_EQ(circuit_output.aggregation_state.public_inputs[1].get_value(), inner_inputs_a[1]);
-        EXPECT_EQ(circuit_output.aggregation_state.public_inputs[2].get_value(), inner_inputs_a[2]);
-
-        EXPECT_EQ(inner_proof_result, barretenberg::fq12::one());
-
-        printf("composer gates = %zu\n", outer_composer.get_num_gates());
-
-        auto prover = outer_composer.create_prover();
-
-        auto verifier = outer_composer.create_verifier();
-
-        plonk::proof proof = prover.construct_proof();
-
-        bool result = verifier.verify_proof(proof);
-        EXPECT_EQ(result, false);
+        TestFixture::test_recursive_proof_composition_with_variable_verification_key_a();
     }
 
-    static void test_recursive_proof_composition_with_constant_verification_key()
+    HEAVY_TYPED_TEST(stdlib_verifier, recursive_proof_composition_with_variable_verification_key_b)
     {
-        InnerComposer inner_composer_a = InnerComposer("../srs_db/ignition");
-        InnerComposer inner_composer_b = InnerComposer("../srs_db/ignition");
-        OuterComposer outer_composer = OuterComposer("../srs_db/ignition");
-        std::vector<barretenberg::fr> inner_inputs_a{ barretenberg::fr::random_element(),
-                                                      barretenberg::fr::random_element(),
-                                                      barretenberg::fr::random_element() };
-
-        std::vector<barretenberg::fr> inner_inputs_b{ barretenberg::fr::random_element(),
-                                                      barretenberg::fr::random_element(),
-                                                      barretenberg::fr::random_element() };
-
-        create_inner_circuit(inner_composer_a, inner_inputs_a);
-        create_alternate_inner_circuit(inner_composer_b, inner_inputs_b);
-
-        auto circuit_output = create_outer_circuit_with_variable_inner_circuit(
-            inner_composer_a, inner_composer_b, outer_composer, true, false, true);
-
-        g1::affine_element P[2];
-        P[0].x = barretenberg::fq(circuit_output.aggregation_state.P0.x.get_value().lo);
-        P[0].y = barretenberg::fq(circuit_output.aggregation_state.P0.y.get_value().lo);
-        P[1].x = barretenberg::fq(circuit_output.aggregation_state.P1.x.get_value().lo);
-        P[1].y = barretenberg::fq(circuit_output.aggregation_state.P1.y.get_value().lo);
-        barretenberg::fq12 inner_proof_result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
-            P, circuit_output.verification_key->reference_string->get_precomputed_g2_lines(), 2);
-
-        EXPECT_EQ(circuit_output.aggregation_state.public_inputs[0].get_value(), inner_inputs_a[0]);
-        EXPECT_EQ(circuit_output.aggregation_state.public_inputs[1].get_value(), inner_inputs_a[1]);
-        EXPECT_EQ(circuit_output.aggregation_state.public_inputs[2].get_value(), inner_inputs_a[2]);
-
-        EXPECT_EQ(inner_proof_result, barretenberg::fq12::one());
-
-        printf("composer gates = %zu\n", outer_composer.get_num_gates());
-
-        auto prover = outer_composer.create_prover();
-
-        auto verifier = outer_composer.create_verifier();
-
-        plonk::proof proof = prover.construct_proof();
-
-        bool result = verifier.verify_proof(proof);
-        EXPECT_EQ(result, true);
+        TestFixture::test_recursive_proof_composition_with_variable_verification_key_b();
     }
 
-    static void test_inner_circuit()
+    HEAVY_TYPED_TEST(stdlib_verifier, recursive_proof_composition_var_verif_key_fail)
     {
-        if constexpr (!std::is_same<OuterComposer, plonk::StandardPlonkComposer>::value)
-            return; // We only want to run this test once (since it's not actually dependent on the typed test
-                    // parameter; which is the outer composer). We've only made it a typed test so that it can be
-                    // included in this test suite. So to avoid running this test identically 3 times, we escape all but
-                    // 1 permutation.
-
-        InnerComposer inner_composer = InnerComposer("../srs_db/ignition");
-        std::vector<barretenberg::fr> inner_inputs{ barretenberg::fr::random_element(),
-                                                    barretenberg::fr::random_element(),
-                                                    barretenberg::fr::random_element() };
-
-        create_inner_circuit(inner_composer, inner_inputs);
-
-        auto prover = inner_composer.create_prover();
-        auto verifier = inner_composer.create_verifier();
-        auto proof = prover.construct_proof();
-        auto verified = verifier.verify_proof(proof);
-        EXPECT_EQ(verified, true);
+        TestFixture::test_recursive_proof_composition_with_variable_verification_key_failure_case();
     }
-};
 
-typedef testing::Types<plonk::StandardPlonkComposer, plonk::TurboPlonkComposer, plonk::UltraPlonkComposer>
-    OuterComposerTypes;
-
-TYPED_TEST_SUITE(stdlib_verifier, OuterComposerTypes);
-
-HEAVY_TYPED_TEST(stdlib_verifier, recursive_proof_composition)
-{
-    TestFixture::test_recursive_proof_composition();
-};
-
-HEAVY_TYPED_TEST(stdlib_verifier, recursive_proof_composition_ultra_no_tables)
-{
-    if constexpr (TypeParam::type == ComposerType::PLOOKUP) {
-        TestFixture::test_recursive_proof_composition_ultra_no_tables();
-    } else {
-        // no point running this if we're not in UltraPlonk
-        GTEST_SKIP();
+    HEAVY_TYPED_TEST(stdlib_verifier, recursive_proof_composition_const_verif_key)
+    {
+        TestFixture::test_recursive_proof_composition_with_constant_verification_key();
     }
-};
 
-HEAVY_TYPED_TEST(stdlib_verifier, double_verification)
-{
-    if constexpr (TypeParam::type == ComposerType::PLOOKUP) {
-        TestFixture::test_double_verification();
-    } else {
-        // CircleCI can't cope with non-ultraplonk version.
-        GTEST_SKIP();
-    }
-};
-
-HEAVY_TYPED_TEST(stdlib_verifier, recursive_proof_composition_with_variable_verification_key_a)
-{
-    TestFixture::test_recursive_proof_composition_with_variable_verification_key_a();
-}
-
-HEAVY_TYPED_TEST(stdlib_verifier, recursive_proof_composition_with_variable_verification_key_b)
-{
-    TestFixture::test_recursive_proof_composition_with_variable_verification_key_b();
-}
-
-HEAVY_TYPED_TEST(stdlib_verifier, recursive_proof_composition_var_verif_key_fail)
-{
-    TestFixture::test_recursive_proof_composition_with_variable_verification_key_failure_case();
-}
-
-HEAVY_TYPED_TEST(stdlib_verifier, recursive_proof_composition_const_verif_key)
-{
-    TestFixture::test_recursive_proof_composition_with_constant_verification_key();
-}
-
-HEAVY_TYPED_TEST(stdlib_verifier, test_inner_circuit)
-{
-    TestFixture::test_inner_circuit();
-}
+    HEAVY_TYPED_TEST(stdlib_verifier, test_inner_circuit) { TestFixture::test_inner_circuit(); }
