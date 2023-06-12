@@ -16,7 +16,6 @@ WORKDIR /usr/src/barretenberg/cpp
 COPY . .
 # Build everything to ensure everything builds. All tests will be run from the result of this build.
 RUN cmake --preset default -DCMAKE_BUILD_TYPE=RelWithAssert -DCI=ON && cmake --build --preset default
-# TODO: Hurting build times. This generation should be part of srs generation script.
 RUN cd build && ./bin/grumpkin_srs_gen 1048576 && cd ../
 
 FROM alpine:3.18

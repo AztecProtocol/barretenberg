@@ -36,7 +36,7 @@ pkgs.stdenv.mkDerivation {
           hash = "sha256-juJfnD/eYY/upcV62tOFFSYmeEtra1L7Vj5e2DK/U+8=";
         } else {
           suffix = "linux";
-          hash = "sha256-+kdpTXW/b86Y++eScZMpiyXuA9reJ/ykU9fdUwN4lzo=";
+          hash = "sha256-cDATnUlaGfvsy5RJFQwrFTHhXY+3RBmHKnGadYCq0Pk=";
         };
     in
 
