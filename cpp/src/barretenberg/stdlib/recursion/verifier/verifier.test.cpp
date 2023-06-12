@@ -283,8 +283,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
      * recursive proof-specific public inputs, so we can't check the recursive proof fully in check_circuit. So we use
      * this additional function to check that the recursive proof points work.
      *
-     * @return true
-     * @return false
+     * @return boolean result
      */
     static bool check_recursive_proof_public_inputs(OuterComposer& composer,
                                                     const barretenberg::pairing::miller_lines* lines)

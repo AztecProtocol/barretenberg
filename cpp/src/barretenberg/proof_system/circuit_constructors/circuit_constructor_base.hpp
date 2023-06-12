@@ -297,7 +297,7 @@ template <typename Arithmetization> class CircuitConstructorBase {
         _failed = true;
         set_err(msg);
     }
-}; // namespace proof_system
+};
 
 } // namespace proof_system
 
