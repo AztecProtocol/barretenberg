@@ -588,7 +588,8 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
         w_o.reserve(size_hint);
         w_4.reserve(size_hint);
         zero_idx = put_constant_variable(barretenberg::fr::zero());
-        tau.insert({ DUMMY_TAG, DUMMY_TAG }); // TODO(luke): explain this
+        tau.insert({ DUMMY_TAG, DUMMY_TAG });         // TODO(luke): explain this
+        add_gates_to_ensure_all_polys_are_non_zero(); // WORKTODO: show Kesha
     };
     UltraCircuitConstructor(std::string const&, const size_t size_hint = 0)
         : UltraCircuitConstructor(size_hint){};

@@ -45,6 +45,9 @@ class UltraHonkComposerHelper {
     // vanishing_polynomial cannot be trivially fetched here, I am directly setting this to 4 - 1 = 3.
     static constexpr size_t s_randomness = 3;
 
+    UltraHonkComposerHelper()
+        : crs_factory_(barretenberg::srs::get_crs_factory()){};
+
     explicit UltraHonkComposerHelper(std::shared_ptr<srs::factories::CrsFactory> crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
