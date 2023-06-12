@@ -23,13 +23,7 @@ jobs:
           ref: ${{ github.head_ref }} # checkout HEAD of triggering branch
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # # Adding some credentials to avoid complaints from git
-      # - name: Configure git
-      #   run: |
-      #     git config user.name ledwards2225
-      #     git config user.email l.edwards.d@gmail.com
-
-      # Only run in Linux environment for now
+     # Only run in Linux environment for now
       - name: Setup Linux environment
         run: |
           sudo apt update

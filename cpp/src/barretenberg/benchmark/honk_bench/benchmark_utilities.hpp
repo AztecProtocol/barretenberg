@@ -32,7 +32,7 @@ struct BenchParams {
     static constexpr size_t MIN_LOG_NUM_GATES = 16;
     static constexpr size_t MAX_LOG_NUM_GATES = 16;
 
-    static constexpr size_t NUM_REPETITIONS = 2;
+    static constexpr size_t NUM_REPETITIONS = 1;
 };
 
 /**
