@@ -33,7 +33,7 @@ pkgs.stdenv.mkDerivation {
       tarball =
         if stdenv.hostPlatform.isDarwin then {
           suffix = "macos";
-          hash = "sha256-juJfnD/eYY/upcV62tOFFSYmeEtra1L7Vj5e2DK/U+8=";
+          hash = "sha256-j+okNPBQYuo22WBHi6hrmhcMxxheB2W/tJ0kuymjlGY=";
         } else {
           suffix = "linux";
           hash = "sha256-cDATnUlaGfvsy5RJFQwrFTHhXY+3RBmHKnGadYCq0Pk=";

@@ -15,7 +15,6 @@ stdenv.mkDerivation
   buildInputs = [ ];
 
   cmakeFlags = [
-    "-GNinja"
     "-DTESTING=OFF"
     "-DBENCHMARKS=OFF"
     "-DCMAKE_TOOLCHAIN_FILE=${toolchain_file}"
@@ -31,8 +30,4 @@ stdenv.mkDerivation
     "-DCMAKE_C_COMPILER_WORKS=ON"
     "-DCMAKE_CXX_COMPILER_WORKS=ON"
   ];
-
-  buildPhase = ''
-    cmake --build . --target barretenberg.wasm --parallel
-  '';
 }

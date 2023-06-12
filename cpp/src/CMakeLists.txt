@@ -67,7 +67,7 @@ add_subdirectory(barretenberg/serialize)
 add_subdirectory(barretenberg/solidity_helpers)
 add_subdirectory(barretenberg/wasi)
 add_subdirectory(barretenberg/grumpkin_srs_gen)
-add_subdirectory(barretenberg/bb)
+add_subdirectory(barretenberg/bb bb EXCLUDE_FROM_ALL)
 
 if(BENCHMARKS)
     add_subdirectory(barretenberg/benchmark)
