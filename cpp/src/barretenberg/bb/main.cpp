@@ -86,30 +86,54 @@ void writeVk(const std::string& jsonPath, const std::string& outputPath)
     info("vk written to: ", outputPath);
 }
 
-void contract(const std::string& outputPath, const std::string& vk);
-void proofAsFields(const std::string& proofPath, int numPublicInputs, const std::string& outputPath);
-void vkAsFields(const std::string& inputPath, const std::string& outputPath);
+void contract(const std::string& output_path, const std::string& vk_path)
+{
+    auto acir_composer = new acir_proofs::AcirComposer(MAX_CIRCUIT_SIZE, verbose);
+    auto vk_data = from_buffer<plonk::verification_key_data>(read_file(vk_path));
+    acir_composer->load_verification_key(barretenberg::srs::get_crs_factory(), std::move(vk_data));
+    auto contract = acir_composer->get_solidity_verifier();
+    if (output_path == "-") {
+        info(contract);
+    } else {
+        write_file(output_path, { contract.begin(), contract.end() });
+        info("contract written to: ", output_path);
+    }
+}
 
-// Helper function to check if a flag is present
+void proofAsFields(const std::string& proof_path, std::string const& vk_path, const std::string& output_path)
+{
+    auto acir_composer = new acir_proofs::AcirComposer(MAX_CIRCUIT_SIZE, verbose);
+    auto vk_data = from_buffer<plonk::verification_key_data>(read_file(vk_path));
+    auto data = acir_composer->serialize_proof_into_fields(read_file(proof_path), vk_data.num_public_inputs);
+    auto json = format("[", join(map(data, [](auto fr) { return format("\"", fr, "\""); })), "]");
+    write_file(output_path, { json.begin(), json.end() });
+    info("proof as fields written to: ", output_path);
+}
+
+void vkAsFields(const std::string& vk_path, const std::string& output_path)
+{
+    auto acir_composer = new acir_proofs::AcirComposer(MAX_CIRCUIT_SIZE, verbose);
+    auto vk_data = from_buffer<plonk::verification_key_data>(read_file(vk_path));
+    acir_composer->load_verification_key(barretenberg::srs::get_crs_factory(), std::move(vk_data));
+    auto data = acir_composer->serialize_verification_key_into_fields();
+
+    // We need to move vk_hash to the front...
+    std::rotate(data.begin(), data.end() - 1, data.end());
+
+    auto json = format("[", join(map(data, [](auto fr) { return format("\"", fr, "\""); })), "]");
+    write_file(output_path, { json.begin(), json.end() });
+    info("vk as fields written to: ", output_path);
+}
+
 bool flagPresent(std::vector<std::string>& args, const std::string& flag)
 {
     return std::find(args.begin(), args.end(), flag) != args.end();
 }
 
-// Helper function to get an option value
 std::string getOption(std::vector<std::string>& args, const std::string& option, const std::string& defaultValue)
 {
     auto itr = std::find(args.begin(), args.end(), option);
     return (itr != args.end() && std::next(itr) != args.end()) ? *(std::next(itr)) : defaultValue;
-}
-
-std::string getRequiredOption(std::vector<std::string>& args, const std::string& option)
-{
-    auto itr = std::find(args.begin(), args.end(), option);
-    if (itr != args.end() && std::next(itr) != args.end()) {
-        return *(std::next(itr));
-    }
-    throw std::runtime_error(format("Required option missing ", option));
 }
 
 int main(int argc, char* argv[])
@@ -124,35 +148,34 @@ int main(int argc, char* argv[])
 
     std::string command = args[0];
 
-    std::string jsonPath = getOption(args, "-j", "./target/main.json");
-    init(jsonPath);
+    std::string json_path = getOption(args, "-j", "./target/main.json");
+    std::string witness_path = getOption(args, "-w", "./target/witness.tr");
+    std::string proof_path = getOption(args, "-p", "./proofs/proof");
+    std::string vk_path = getOption(args, "-k", "./target/vk");
+    bool recursive = flagPresent(args, "-r") || flagPresent(args, "--recursive");
+    init(json_path);
 
     if (command == "prove_and_verify") {
-        std::string witnessPath = getOption(args, "-w", "./target/witness.tr");
-        bool recursive = flagPresent(args, "-r") || flagPresent(args, "--recursive");
-        proveAndVerify(jsonPath, witnessPath, recursive);
+        proveAndVerify(json_path, witness_path, recursive);
     } else if (command == "prove") {
-        std::string witness_path = getOption(args, "-w", "./target/witness.tr");
         std::string output_path = getOption(args, "-o", "./proofs/proof");
-        bool recursive = flagPresent(args, "-r") || flagPresent(args, "--recursive");
-        prove(jsonPath, witness_path, recursive, output_path);
+        prove(json_path, witness_path, recursive, output_path);
     } else if (command == "gates") {
-        gateCount(jsonPath);
+        gateCount(json_path);
     } else if (command == "verify") {
-        std::string proof_path = getOption(args, "-p", "./proofs/proof");
-        bool recursive = flagPresent(args, "-r") || flagPresent(args, "--recursive");
-        std::string vk_path = getOption(args, "-k", "./target/vk");
         verify(proof_path, recursive, vk_path);
     } else if (command == "contract") {
-        // Further implementation ...
+        std::string output_path = getOption(args, "-o", "./target/contract.sol");
+        contract(output_path, vk_path);
     } else if (command == "write_vk") {
-        std::string proof_path = getOption(args, "-p", "./proofs/proof");
         std::string output_path = getOption(args, "-o", "./target/vk");
-        writeVk(jsonPath, output_path);
+        writeVk(json_path, output_path);
     } else if (command == "proof_as_fields") {
-        // Further implementation ...
+        std::string output_path = getOption(args, "-o", proof_path + "_fields.json");
+        proofAsFields(proof_path, vk_path, output_path);
     } else if (command == "vk_as_fields") {
-        // Further implementation ...
+        std::string output_path = getOption(args, "-o", vk_path + "_fields.json");
+        vkAsFields(vk_path, output_path);
     } else {
         std::cerr << "Unknown command: " << command << "\n";
         return -1;
