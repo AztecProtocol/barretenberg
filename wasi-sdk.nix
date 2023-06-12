@@ -3,7 +3,7 @@
 { lib, pkgs, stdenv }:
 let
   pname = "wasi-sdk";
-  version = "12";
+  version = "20";
 in
 pkgs.stdenv.mkDerivation {
   inherit pname version;
