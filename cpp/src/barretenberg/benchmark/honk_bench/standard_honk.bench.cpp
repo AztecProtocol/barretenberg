@@ -15,21 +15,9 @@ constexpr size_t NUM_REPETITIONS = bench_utils::BenchParams::NUM_REPETITIONS;
 /**
  * @brief Benchmark: Construction of a Standard proof for a circuit determined by the provided circuit function
  */
-template <typename Composer>
-void construct_proof_standard(State& state, void (*test_circuit_function)(Composer&, size_t)) noexcept
+void construct_proof_standard(State& state, void (*test_circuit_function)(StandardHonk&, size_t)) noexcept
 {
-    auto num_gates = static_cast<size_t>(1 << (size_t)state.range(0));
-    for (auto _ : state) {
-        // Constuct circuit and prover; don't include this part in measurement
-        state.PauseTiming();
-        auto composer = Composer();
-        test_circuit_function(composer, num_gates);
-        auto ext_prover = composer.create_prover();
-        state.ResumeTiming();
-
-        // Construct proof
-        auto proof = ext_prover.construct_proof();
-    }
+    bench_utils::construct_proof_with_specified_num_gates(state, test_circuit_function);
 }
 
 BENCHMARK_CAPTURE(construct_proof_standard, arithmetic, &bench_utils::generate_basic_arithmetic_circuit<StandardHonk>)

@@ -165,4 +165,60 @@ template <typename Composer> void generate_merkle_membership_test_circuit(Compos
     }
 }
 
+/**
+ * @brief Performs proof constuction for benchmarks based on a provided circuit function
+ *
+ * @details This function assumes state.range refers to num_gates which is the size of the underlying circuit
+ *
+ * @tparam Composer
+ * @param state
+ * @param test_circuit_function
+ */
+template <typename Composer>
+void construct_proof_with_specified_num_gates(State& state, void (*test_circuit_function)(Composer&, size_t)) noexcept
+{
+    barretenberg::srs::init_crs_factory("../srs_db/ignition");
+    auto num_gates = static_cast<size_t>(1 << (size_t)state.range(0));
+    for (auto _ : state) {
+        // Constuct circuit and prover; don't include this part in measurement
+        state.PauseTiming();
+        auto composer = Composer();
+        test_circuit_function(composer, num_gates);
+        auto ext_prover = composer.create_prover();
+        state.ResumeTiming();
+
+        // Construct proof
+        auto proof = ext_prover.construct_proof();
+    }
+}
+
+/**
+ * @brief Performs proof constuction for benchmarks based on a provided circuit function
+ *
+ * @details This function assumes state.range refers to num_iterations which is the number of times to perform a given
+ * basic operation in the circuit, e.g. number of hashes
+ *
+ * @tparam Composer
+ * @param state
+ * @param test_circuit_function
+ */
+template <typename Composer>
+void construct_proof_with_specified_num_iterations(State& state,
+                                                   void (*test_circuit_function)(Composer&, size_t)) noexcept
+{
+    barretenberg::srs::init_crs_factory("../srs_db/ignition");
+    auto num_iterations = static_cast<size_t>(state.range(0));
+    for (auto _ : state) {
+        // Constuct circuit and prover; don't include this part in measurement
+        state.PauseTiming();
+        auto composer = Composer();
+        test_circuit_function(composer, num_iterations);
+        auto ext_prover = composer.create_prover();
+        state.ResumeTiming();
+
+        // Construct proof
+        auto proof = ext_prover.construct_proof();
+    }
+}
+
 } // namespace bench_utils
