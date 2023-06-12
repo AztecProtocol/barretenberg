@@ -48,4 +48,40 @@ template <typename FF, size_t... Values> struct UnivariateAccumulatorTypesHelper
 template <typename FF, typename Lengths>
 using UnivariateAccumulatorTypes = UnivariateAccumulatorTypesHelper<FF, Lengths>;
 
+/**
+ * @brief A wrapper for Relations to expose methods used by the Sumcheck prover or verifier to add the contribution of
+ * a given relation to the corresponding accumulator.
+ *
+ * @tparam FF
+ * @tparam RelationBase Base class that implements the arithmetic for a given relation (or set of sub-relations)
+ */
+template <typename FF, template <typename> typename RelationBase> class RelationWrapper {
+  public:
+    using Relation = RelationBase<FF>;
+    using UnivariateAccumTypes = UnivariateAccumulatorTypes<FF, typename Relation::LENGTHS>;
+    using ValueAccumTypes = ValueAccumulatorTypes<FF, typename Relation::LENGTHS>;
+
+    using RelationUnivariates = typename UnivariateAccumTypes::Accumulators;
+    using RelationValues = typename ValueAccumTypes::Accumulators;
+    static constexpr size_t RELATION_LENGTH = Relation::RELATION_LENGTH;
+
+    inline void add_edge_contribution(auto& accumulator,
+                                      const auto& input,
+                                      const RelationParameters<FF>& relation_parameters,
+                                      const FF& scaling_factor) const
+    {
+        Relation::template add_edge_contribution_impl<UnivariateAccumTypes>(
+            accumulator, input, relation_parameters, scaling_factor);
+    }
+
+    void add_full_relation_value_contribution(RelationValues& accumulator,
+                                              auto& input,
+                                              const RelationParameters<FF>& relation_parameters,
+                                              const FF& scaling_factor = 1) const
+    {
+        Relation::template add_edge_contribution_impl<ValueAccumTypes>(
+            accumulator, input, relation_parameters, scaling_factor);
+    }
+};
+
 } // namespace proof_system::honk::sumcheck

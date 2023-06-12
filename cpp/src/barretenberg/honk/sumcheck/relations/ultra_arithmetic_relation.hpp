@@ -8,7 +8,7 @@
 
 namespace proof_system::honk::sumcheck {
 
-template <typename FF> class UltraArithmeticRelation {
+template <typename FF> class UltraArithmeticRelationBase {
   public:
     // 1 + polynomial degree of this relation
     static constexpr size_t RELATION_LENGTH = 6; // degree(q_arith^2 * q_m * w_r * w_l) = 5
@@ -16,12 +16,6 @@ template <typename FF> class UltraArithmeticRelation {
     static constexpr size_t LEN_1 = 6; // primary arithmetic sub-relation
     static constexpr size_t LEN_2 = 5; // secondary arithmetic sub-relation
     using LENGTHS = LengthsWrapper<LEN_1, LEN_2>;
-
-    using UnivariateAccumTypes = UnivariateAccumulatorTypes<FF, LENGTHS>;
-    using ValueAccumTypes = ValueAccumulatorTypes<FF, LENGTHS>;
-
-    using RelationUnivariates = typename UnivariateAccumTypes::Accumulators;
-    using RelationValues = typename ValueAccumTypes::Accumulators;
 
     /**
      * @brief Expression for the Ultra Arithmetic gate.
@@ -75,10 +69,10 @@ template <typename FF> class UltraArithmeticRelation {
      * @param scaling_factor optional term to scale the evaluation before adding to evals.
      */
     template <typename TypeMuncher>
-    void add_edge_contribution_impl(typename TypeMuncher::Accumulators& evals,
-                                    const auto& extended_edges,
-                                    const RelationParameters<FF>&,
-                                    const FF& scaling_factor) const {
+    void static add_edge_contribution_impl(typename TypeMuncher::Accumulators& evals,
+                                           const auto& extended_edges,
+                                           const RelationParameters<FF>&,
+                                           const FF& scaling_factor){
         // OPTIMIZATION?: Karatsuba in general, at least for some degrees?
         //       See https://hackmd.io/xGLuj6biSsCjzQnYN-pEiA?both
         // clang-format off
@@ -124,22 +118,10 @@ template <typename FF> class UltraArithmeticRelation {
             std::get<1>(evals) += tmp;
         }
     }; // namespace proof_system::honk::sumcheck
-
-    inline void add_edge_contribution(auto& accumulator,
-                                      const auto& input,
-                                      const RelationParameters<FF>& relation_parameters,
-                                      const FF& scaling_factor) const
-    {
-        add_edge_contribution_impl<UnivariateAccumTypes>(accumulator, input, relation_parameters, scaling_factor);
-    }
-
-    void add_full_relation_value_contribution(RelationValues& accumulator,
-                                              auto& input,
-                                              const RelationParameters<FF>& relation_parameters,
-                                              const FF& scaling_factor = 1) const
-    {
-        add_edge_contribution_impl<ValueAccumTypes>(accumulator, input, relation_parameters, scaling_factor);
-    }
 };
+
+template <typename FF>
+using UltraArithmeticRelation = RelationWrapper<FF, UltraArithmeticRelationBase>;
+
 // clang-format on
 } // namespace proof_system::honk::sumcheck

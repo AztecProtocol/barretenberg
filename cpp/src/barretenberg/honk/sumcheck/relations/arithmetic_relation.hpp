@@ -8,19 +8,13 @@
 
 namespace proof_system::honk::sumcheck {
 
-template <typename FF> class ArithmeticRelation {
+template <typename FF> class ArithmeticRelationBase {
   public:
     // 1 + polynomial degree of this relation
     static constexpr size_t RELATION_LENGTH = 4;
 
     static constexpr size_t LEN_1 = 4; // arithmetic sub-relation
     using LENGTHS = LengthsWrapper<LEN_1>;
-
-    using UnivariateAccumTypes = UnivariateAccumulatorTypes<FF, LENGTHS>;
-    using ValueAccumTypes = ValueAccumulatorTypes<FF, LENGTHS>;
-
-    using RelationUnivariates = typename UnivariateAccumTypes::Accumulators;
-    using RelationValues = typename ValueAccumTypes::Accumulators;
 
     /**
      * @brief Expression for the StandardArithmetic gate.
@@ -33,10 +27,10 @@ template <typename FF> class ArithmeticRelation {
      * @param scaling_factor optional term to scale the evaluation before adding to evals.
      */
     template <typename TypeMuncher>
-    void add_edge_contribution_impl(typename TypeMuncher::Accumulators& accumulator,
-                                    const auto& extended_edges,
-                                    const RelationParameters<FF>&,
-                                    const FF& scaling_factor) const
+    void static add_edge_contribution_impl(typename TypeMuncher::Accumulators& accumulator,
+                                           const auto& extended_edges,
+                                           const RelationParameters<FF>&,
+                                           const FF& scaling_factor)
     {
         // OPTIMIZATION?: Karatsuba in general, at least for some degrees?
         //       See https://hackmd.io/xGLuj6biSsCjzQnYN-pEiA?both
@@ -58,21 +52,7 @@ template <typename FF> class ArithmeticRelation {
         tmp *= scaling_factor;
         std::get<0>(accumulator) += tmp;
     };
-
-    inline void add_edge_contribution(auto& accumulator,
-                                      const auto& input,
-                                      const RelationParameters<FF>& relation_parameters,
-                                      const FF& scaling_factor) const
-    {
-        add_edge_contribution_impl<UnivariateAccumTypes>(accumulator, input, relation_parameters, scaling_factor);
-    }
-
-    void add_full_relation_value_contribution(RelationValues& accumulator,
-                                              auto& input,
-                                              const RelationParameters<FF>& relation_parameters,
-                                              const FF& scaling_factor = 1) const
-    {
-        add_edge_contribution_impl<ValueAccumTypes>(accumulator, input, relation_parameters, scaling_factor);
-    }
 };
+
+template <typename FF> using ArithmeticRelation = RelationWrapper<FF, ArithmeticRelationBase>;
 } // namespace proof_system::honk::sumcheck

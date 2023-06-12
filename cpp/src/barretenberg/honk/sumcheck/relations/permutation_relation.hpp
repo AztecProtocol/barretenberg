@@ -6,7 +6,7 @@
 
 namespace proof_system::honk::sumcheck {
 
-template <typename FF> class PermutationRelation {
+template <typename FF> class PermutationRelationBase {
   public:
     // 1 + polynomial degree of this relation
     static constexpr size_t RELATION_LENGTH = 5;
@@ -14,12 +14,6 @@ template <typename FF> class PermutationRelation {
     static constexpr size_t LEN_1 = 5; // grand product construction sub-relation
     static constexpr size_t LEN_2 = 3; // left-shiftable polynomial sub-relation
     using LENGTHS = LengthsWrapper<LEN_1, LEN_2>;
-
-    using UnivariateAccumTypes = UnivariateAccumulatorTypes<FF, LENGTHS>;
-    using ValueAccumTypes = ValueAccumulatorTypes<FF, LENGTHS>;
-
-    using RelationUnivariates = typename UnivariateAccumTypes::Accumulators;
-    using RelationValues = typename ValueAccumTypes::Accumulators;
 
     /**
      * @brief Compute contribution of the permutation relation for a given edge (internal function)
@@ -82,35 +76,11 @@ template <typename FF> class PermutationRelation {
             std::get<1>(accumulator) += (lagrange_last * z_perm_shift) * scaling_factor;
         }
     };
-
-    inline void add_edge_contribution(auto& accumulator,
-                                      const auto& input,
-                                      const RelationParameters<FF>& relation_parameters,
-                                      const FF& scaling_factor) const
-    {
-        add_edge_contribution_impl<UnivariateAccumTypes>(accumulator, input, relation_parameters, scaling_factor);
-    }
-
-    void add_full_relation_value_contribution(RelationValues& accumulator,
-                                              auto& input,
-                                              const RelationParameters<FF>& relation_parameters,
-                                              const FF& scaling_factor = 1) const
-    {
-        add_edge_contribution_impl<ValueAccumTypes>(accumulator, input, relation_parameters, scaling_factor);
-    }
-
-    /**
-     * @brief Add the result of each identity in this relation evaluated at the multivariate evaluations produced by the
-     * Sumcheck Prover.
-     *
-     * @param full_honk_relation_value
-     * @param purported_evaluations
-     */
 };
 
 // TODO(luke): With Cody's Flavor work it should be easier to create a simple templated relation
 // for handling arbitrary width. For now I'm duplicating the width 3 logic for width 4.
-template <typename FF> class UltraPermutationRelation {
+template <typename FF> class UltraPermutationRelationBase {
   public:
     // 1 + polynomial degree of this relation
     static constexpr size_t RELATION_LENGTH = 6;
@@ -118,12 +88,6 @@ template <typename FF> class UltraPermutationRelation {
     static constexpr size_t LEN_1 = 6; // grand product construction sub-relation
     static constexpr size_t LEN_2 = 3; // left-shiftable polynomial sub-relation
     using LENGTHS = LengthsWrapper<LEN_1, LEN_2>;
-
-    using UnivariateAccumTypes = UnivariateAccumulatorTypes<FF, LENGTHS>;
-    using ValueAccumTypes = ValueAccumulatorTypes<FF, LENGTHS>;
-
-    using RelationUnivariates = typename UnivariateAccumTypes::Accumulators;
-    using RelationValues = typename ValueAccumTypes::Accumulators;
 
     /**
      * @brief Compute contribution of the permutation relation for a given edge (internal function)
@@ -182,21 +146,9 @@ template <typename FF> class UltraPermutationRelation {
             std::get<1>(accumulators) += (lagrange_last * z_perm_shift) * scaling_factor;
         }
     };
-
-    inline void add_edge_contribution(auto& accumulator,
-                                      const auto& input,
-                                      const RelationParameters<FF>& relation_parameters,
-                                      const FF& scaling_factor) const
-    {
-        add_edge_contribution_impl<UnivariateAccumTypes>(accumulator, input, relation_parameters, scaling_factor);
-    }
-
-    void add_full_relation_value_contribution(RelationValues& accumulator,
-                                              auto& input,
-                                              const RelationParameters<FF>& relation_parameters,
-                                              const FF& scaling_factor = 1) const
-    {
-        add_edge_contribution_impl<ValueAccumTypes>(accumulator, input, relation_parameters, scaling_factor);
-    }
 };
+
+template <typename FF> using PermutationRelation = RelationWrapper<FF, PermutationRelationBase>;
+
+template <typename FF> using UltraPermutationRelation = RelationWrapper<FF, UltraPermutationRelationBase>;
 } // namespace proof_system::honk::sumcheck

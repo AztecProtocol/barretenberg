@@ -8,7 +8,7 @@
 
 namespace proof_system::honk::sumcheck {
 
-template <typename FF> class LookupRelation {
+template <typename FF> class LookupRelationBase {
   public:
     // 1 + polynomial degree of this relation
     static constexpr size_t RELATION_LENGTH = 6; // deg(z_lookup * column_selector * wire * q_lookup * table) = 5
@@ -16,12 +16,6 @@ template <typename FF> class LookupRelation {
     static constexpr size_t LEN_1 = 6; // grand product construction sub-relation
     static constexpr size_t LEN_2 = 3; // left-shiftable polynomial sub-relation
     using LENGTHS = LengthsWrapper<LEN_1, LEN_2>;
-
-    using UnivariateAccumTypes = UnivariateAccumulatorTypes<FF, LENGTHS>;
-    using ValueAccumTypes = ValueAccumulatorTypes<FF, LENGTHS>;
-
-    using RelationUnivariates = typename UnivariateAccumTypes::Accumulators;
-    using RelationValues = typename ValueAccumTypes::Accumulators;
 
     /**
      * @brief Compute contribution of the lookup grand prod relation for a given edge (internal function)
@@ -120,21 +114,8 @@ template <typename FF> class LookupRelation {
             std::get<1>(accumulators) += (lagrange_last * z_lookup_shift) * scaling_factor;
         }
     };
-
-    inline void add_edge_contribution(auto& accumulator,
-                                      const auto& input,
-                                      const RelationParameters<FF>& relation_parameters,
-                                      const FF& scaling_factor) const
-    {
-        add_edge_contribution_impl<UnivariateAccumTypes>(accumulator, input, relation_parameters, scaling_factor);
-    }
-
-    void add_full_relation_value_contribution(RelationValues& accumulator,
-                                              auto& input,
-                                              const RelationParameters<FF>& relation_parameters,
-                                              const FF& scaling_factor = 1) const
-    {
-        add_edge_contribution_impl<ValueAccumTypes>(accumulator, input, relation_parameters, scaling_factor);
-    }
 };
+
+template <typename FF> using LookupRelation = RelationWrapper<FF, LookupRelationBase>;
+
 } // namespace proof_system::honk::sumcheck
