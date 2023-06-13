@@ -332,7 +332,7 @@ TEST_F(StandardHonkComposerTests, BaseCase)
 
     auto composer = StandardHonkComposerHelper();
     auto prover = composer.create_prover(circuit_constructor);
-    plonk::proof proof = prover.construct_proof();
+    auto proof = prover.construct_proof();
     auto verifier = composer.create_verifier(circuit_constructor);
     bool verified = verifier.verify_proof(proof);
     ASSERT_TRUE(verified);
@@ -362,7 +362,7 @@ TEST_F(StandardHonkComposerTests, TwoGates)
         auto composer = StandardHonkComposerHelper();
         auto prover = composer.create_prover(circuit_constructor);
 
-        plonk::proof proof = prover.construct_proof();
+        auto proof = prover.construct_proof();
         auto verifier = composer.create_verifier(circuit_constructor);
         bool verified = verifier.verify_proof(proof);
         EXPECT_EQ(verified, expect_verified);
@@ -399,8 +399,7 @@ TEST_F(StandardHonkComposerTests, SumcheckEvaluations)
 
         auto composer = StandardHonkComposerHelper();
         auto prover = composer.create_prover(circuit_constructor);
-        plonk::proof proof = prover.construct_proof();
-
+        auto proof = prover.construct_proof();
         auto verifier = composer.create_verifier(circuit_constructor);
         bool verified = verifier.verify_proof(proof);
         ASSERT_EQ(verified, expected_result);
@@ -415,7 +414,7 @@ TEST(StandardGrumpkinHonkComposer, BaseCase)
     composer.circuit_constructor.add_variable(a);
 
     auto prover = composer.create_prover();
-    plonk::proof proof = prover.construct_proof();
+    auto proof = prover.construct_proof();
     auto verifier = composer.create_verifier();
     bool verified = verifier.verify_proof(proof);
     ASSERT_TRUE(verified);
