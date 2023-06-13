@@ -7,7 +7,7 @@
 #include <vector>
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/barycentric_data.hpp"
-#include "barretenberg/honk/pcs/kzg/kzg.hpp"
+#include "barretenberg/honk/pcs/ipa/ipa.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
 #include "barretenberg/honk/sumcheck/relations/arithmetic_relation.hpp"
@@ -17,20 +17,12 @@
 #include "barretenberg/polynomials/evaluation_domain.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
-#include "barretenberg/srs/factories/crs_factory.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 
 namespace proof_system::honk::flavor {
-
-/**
- * @brief Standard Honk
- * @details We built this flavor first because it is the most basic. Because of this, it will remain useful for testing
- * various constructions. Future variants may exist with varying: underlying curve (here we use BN254); commitment
- * scheme (here we use Gemini + Shplonk + KZG); zero knowlege property (it's not implemented yet, but in the future we
- * will be able to toggle it on or off).
- *
- */
-class Standard {
+class StandardGrumpkin {
+    // TODO(Mara): At the moment this class is a duplicate of the Standard flavor with a different PCS for testing
+    // purposes. This will be changed to Grumpkin once generating Honk proofs over Grumpkin has been enabled.
   public:
     using CircuitConstructor = StandardCircuitConstructor;
     using FF = barretenberg::fr;
@@ -40,9 +32,8 @@ class Standard {
     using GroupElement = G1::element;
     using Commitment = G1::affine_element;
     using CommitmentHandle = G1::affine_element;
-    using PCSParams = pcs::kzg::Params;
-    using PCS = pcs::kzg::KZG<PCSParams>;
-
+    using PCSParams = pcs::ipa::Params;
+    using PCS = pcs::ipa::IPA<PCSParams>;
     static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
     // The number of multivariate polynomials on which a sumcheck prover sumcheck operates (including shifts). We often
     // need containers of this size to hold related data, so we choose a name more agnostic than `NUM_POLYNOMIALS`
@@ -65,6 +56,9 @@ class Standard {
     // define the containers for storing the contributions from each relation in Sumcheck
     using RelationUnivariates = decltype(create_relation_univariates_container<FF, Relations>());
     using RelationValues = decltype(create_relation_values_container<FF, Relations>());
+
+    // define utilities to extend univarates from RELATION_LENGTH to MAX_RELATION_LENGTH for each Relation
+    // using BarycentricUtils = decltype(create_barycentric_utils<FF, Relations, MAX_RELATION_LENGTH>());
 
   private:
     /**
@@ -299,5 +293,4 @@ class Standard {
         }
     };
 };
-
 } // namespace proof_system::honk::flavor

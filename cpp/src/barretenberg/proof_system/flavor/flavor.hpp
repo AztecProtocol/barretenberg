@@ -269,29 +269,14 @@ template <class FF, size_t ExtendedLength, std::size_t Length = 2> static conste
     }
 }
 
-/**
- * @brief Recursive helper function to construct BarycentricData to extend each Relation in a tuple
- *
- */
-template <class FF, typename Tuple, size_t ExtendedLength, std::size_t Index = 0>
-static constexpr auto create_barycentric_utils()
-{
-    if constexpr (Index >= std::tuple_size<Tuple>::value) {
-        return std::tuple<>{}; // Return empty when reach end of the tuple
-    } else {
-        constexpr size_t relation_length = std::tuple_element_t<Index, Tuple>::RELATION_LENGTH;
-        using BarycentricType = sumcheck::BarycentricData<FF, relation_length, ExtendedLength>;
-        return std::tuple_cat(std::tuple<BarycentricType>{},
-                              create_barycentric_utils<FF, Tuple, ExtendedLength, Index + 1>());
-    }
-}
-
 } // namespace proof_system::honk::flavor
 
 // Forward declare honk flavors
 namespace proof_system::honk::flavor {
 class Standard;
+class StandardGrumpkin;
 class Ultra;
+class UltraGrumpkin;
 } // namespace proof_system::honk::flavor
 
 // Forward declare plonk flavors
@@ -316,7 +301,14 @@ concept IsAnyOf = (std::same_as<T, U> || ...);
 template <typename T>
 concept IsPlonkFlavor = IsAnyOf<T, plonk::flavor::Standard, plonk::flavor::Turbo, plonk::flavor::Ultra>;
 
-template <typename T>
-concept IsHonkFlavor = IsAnyOf<T, honk::flavor::Standard, honk::flavor::Ultra>;
+template <typename T> 
+concept IsHonkFlavor = IsAnyOf<T, honk::flavor::Standard, honk::flavor::Ultra, honk::flavor::StandardGrumpkin, honk::flavor::UltraGrumpkin>;
+
+template <typename T> concept IsGrumpkinFlavor = IsAnyOf<T, honk::flavor::StandardGrumpkin, honk::flavor::UltraGrumpkin>;
+
+template <typename T> concept StandardFlavor = IsAnyOf<T, honk::flavor::Standard,  honk::flavor::StandardGrumpkin>;
+
+template <typename T> concept UltraFlavor = IsAnyOf<T, honk::flavor::Ultra, honk::flavor::UltraGrumpkin>;
+
 // clang-format on
 } // namespace proof_system
