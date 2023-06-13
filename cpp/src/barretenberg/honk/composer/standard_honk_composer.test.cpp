@@ -409,13 +409,14 @@ TEST_F(StandardHonkComposerTests, SumcheckEvaluations)
 }
 TEST(StandardGrumpkinHonkComposer, BaseCase)
 {
-    auto composer = StandardGrumpkinHonkComposer();
+    auto circuit_constructor = StandardCircuitConstructor();
     fr a = 1;
-    composer.circuit_constructor.add_variable(a);
+    circuit_constructor.add_variable(a);
 
-    auto prover = composer.create_prover();
+    auto composer = StandardGrumpkinHonkComposerHelper();
+    auto prover = composer.create_prover(circuit_constructor);
     auto proof = prover.construct_proof();
-    auto verifier = composer.create_verifier();
+    auto verifier = composer.create_verifier(circuit_constructor);
     bool verified = verifier.verify_proof(proof);
     ASSERT_TRUE(verified);
 }

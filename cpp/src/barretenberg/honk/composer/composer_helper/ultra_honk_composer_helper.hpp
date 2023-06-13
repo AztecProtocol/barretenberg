@@ -80,4 +80,5 @@ template <UltraFlavor Flavor> class UltraHonkComposerHelper_ {
 extern template class UltraHonkComposerHelper_<honk::flavor::Ultra>;
 extern template class UltraHonkComposerHelper_<honk::flavor::UltraGrumpkin>;
 using UltraHonkComposerHelper = UltraHonkComposerHelper_<honk::flavor::Ultra>;
+using UltraGrumpkinHonkComposerHelper = UltraHonkComposerHelper_<honk::flavor::UltraGrumpkin>;
 } // namespace proof_system::honk

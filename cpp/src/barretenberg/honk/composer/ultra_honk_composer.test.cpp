@@ -847,7 +847,9 @@ TEST_F(UltraHonkComposerTests, ram)
 
 TEST(UltraGrumpkinHonkComposer, XorConstraint)
 {
-    auto composer = UltraGrumpkinHonkComposer();
+    // NOTE: as a WIP, this test may not actually use the Grumpkin SRS (just the IPA PCS).
+
+    auto circuit_constructor = UltraCircuitConstructor();
 
     uint32_t left_value = engine.get_random_uint32();
     uint32_t right_value = engine.get_random_uint32();
@@ -855,8 +857,8 @@ TEST(UltraGrumpkinHonkComposer, XorConstraint)
     fr left_witness_value = fr{ left_value, 0, 0, 0 }.to_montgomery_form();
     fr right_witness_value = fr{ right_value, 0, 0, 0 }.to_montgomery_form();
 
-    uint32_t left_witness_index = composer.add_variable(left_witness_value);
-    uint32_t right_witness_index = composer.add_variable(right_witness_value);
+    uint32_t left_witness_index = circuit_constructor.add_variable(left_witness_value);
+    uint32_t right_witness_index = circuit_constructor.add_variable(right_witness_value);
 
     uint32_t xor_result_expected = left_value ^ right_value;
 
@@ -866,10 +868,12 @@ TEST(UltraGrumpkinHonkComposer, XorConstraint)
                                          [0]; // The zeroth index in the 3rd column is the fully accumulated xor
 
     EXPECT_EQ(xor_result, xor_result_expected);
-    composer.create_gates_from_plookup_accumulators(
+    circuit_constructor.create_gates_from_plookup_accumulators(
         plookup::MultiTableId::UINT32_XOR, lookup_accumulators, left_witness_index, right_witness_index);
 
-    prove_and_verify(composer, /*expected_result=*/true);
+    barretenberg::srs::init_crs_factory("../srs_db/ignition");
+    auto composer = UltraGrumpkinHonkComposerHelper();
+    prove_and_verify(circuit_constructor, composer, /*expected_result=*/true);
 }
 
 // TODO(#378)(luke): this is a recent update from Zac and fails; do we need a corresponding bug fix in ultra circuit
