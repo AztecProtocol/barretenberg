@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 #include "circuit_constructor_base.hpp"
 #include "barretenberg/proof_system/types/composer_type.hpp"
 #include "barretenberg/proof_system/types/merkle_hash_type.hpp"
@@ -12,14 +13,15 @@ inline std::vector<std::string> standard_selector_names()
     return result;
 }
 
-class StandardCircuitConstructor : public CircuitConstructorBase<arithmetization::Standard<barretenberg::fr>> {
+template <typename FF>
+class StandardCircuitConstructor_ : public CircuitConstructorBase<arithmetization::Standard<FF>> {
   public:
     static constexpr ComposerType type = ComposerType::STANDARD;
     static constexpr merkle::HashType merkle_hash_type = merkle::HashType::FIXED_BASE_PEDERSEN;
     static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
 
     using WireVector = std::vector<uint32_t, barretenberg::ContainerSlabAllocator<uint32_t>>;
-    using SelectorVector = std::vector<barretenberg::fr, barretenberg::ContainerSlabAllocator<barretenberg::fr>>;
+    using SelectorVector = std::vector<FF, barretenberg::ContainerSlabAllocator<FF>>;
 
     WireVector& w_l = std::get<0>(wires);
     WireVector& w_r = std::get<1>(wires);
@@ -36,9 +38,9 @@ class StandardCircuitConstructor : public CircuitConstructorBase<arithmetization
     // These are variables that we have used a gate on, to enforce that they are
     // equal to a defined value.
     // TODO(#216)(Adrian): Why is this not in CircuitConstructorBase
-    std::map<barretenberg::fr, uint32_t> constant_variable_indices;
+    std::map<FF, uint32_t> constant_variable_indices;
 
-    StandardCircuitConstructor(const size_t size_hint = 0)
+    StandardCircuitConstructor_(const size_t size_hint = 0)
         : CircuitConstructorBase(standard_selector_names(), size_hint)
     {
         w_l.reserve(size_hint);
@@ -48,30 +50,28 @@ class StandardCircuitConstructor : public CircuitConstructorBase<arithmetization
         // all future zero values.
         // (#216)(Adrian): This should be done in a constant way, maybe by initializing the constant_variable_indices
         // map
-        zero_idx = put_constant_variable(barretenberg::fr::zero());
+        zero_idx = put_constant_variable(FF::zero());
         // TODO(#217)(Cody): Ensure that no polynomial is ever zero. Maybe there's a better way.
-        one_idx = put_constant_variable(barretenberg::fr::one());
+        one_idx = put_constant_variable(FF::one());
         // 1 * 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + -4
         // m           l       r       o        c
         create_poly_gate({ one_idx, one_idx, one_idx, 1, 1, 1, 1, -4 });
     };
     // This constructor is needed to simplify switching between circuit constructor and composer
-    StandardCircuitConstructor(std::string const&, const size_t size_hint = 0)
-        : StandardCircuitConstructor(size_hint){};
-    StandardCircuitConstructor(const StandardCircuitConstructor& other) = delete;
-    StandardCircuitConstructor(StandardCircuitConstructor&& other) = default;
-    StandardCircuitConstructor& operator=(const StandardCircuitConstructor& other) = delete;
-    StandardCircuitConstructor& operator=(StandardCircuitConstructor&& other)
+    StandardCircuitConstructor_(std::string const&, const size_t size_hint = 0)
+        : StandardCircuitConstructor_(size_hint){};
+    StandardCircuitConstructor_(const StandardCircuitConstructor_& other) = delete;
+    StandardCircuitConstructor_(StandardCircuitConstructor_&& other) = default;
+    StandardCircuitConstructor_& operator=(const StandardCircuitConstructor_& other) = delete;
+    StandardCircuitConstructor_& operator=(StandardCircuitConstructor_&& other)
     {
-        CircuitConstructorBase<arithmetization::Standard<barretenberg::fr>>::operator=(std::move(other));
+        CircuitConstructorBase<arithmetization::Standard<FF>>::operator=(std::move(other));
         constant_variable_indices = other.constant_variable_indices;
         return *this;
     };
-    ~StandardCircuitConstructor() override = default;
+    ~StandardCircuitConstructor_() override = default;
 
-    void assert_equal_constant(uint32_t const a_idx,
-                               barretenberg::fr const& b,
-                               std::string const& msg = "assert equal constant");
+    void assert_equal_constant(uint32_t const a_idx, FF const& b, std::string const& msg = "assert equal constant");
 
     void create_add_gate(const add_triple& in) override;
     void create_mul_gate(const mul_triple& in) override;
@@ -88,7 +88,7 @@ class StandardCircuitConstructor : public CircuitConstructorBase<arithmetization
     fixed_group_add_quad previous_add_quad;
 
     // TODO(#216)(Adrian): This should be a virtual overridable method in the base class.
-    void fix_witness(const uint32_t witness_index, const barretenberg::fr& witness_value);
+    void fix_witness(const uint32_t witness_index, const FF& witness_value);
 
     std::vector<uint32_t> decompose_into_base4_accumulators(const uint32_t witness_index,
                                                             const size_t num_bits,
@@ -109,10 +109,12 @@ class StandardCircuitConstructor : public CircuitConstructorBase<arithmetization
     accumulator_triple create_xor_constraint(const uint32_t a, const uint32_t b, const size_t num_bits);
 
     // TODO(#216)(Adrian): The 2 following methods should be virtual in the base class
-    uint32_t put_constant_variable(const barretenberg::fr& variable);
+    uint32_t put_constant_variable(const FF& variable);
 
     size_t get_num_constant_gates() const override { return 0; }
 
     bool check_circuit();
 };
+using StandardCircuitConstructor = StandardCircuitConstructor__<curve::BN254::ScalarField>;
+// extern template class StandardCircuitConstructor__<curve::Grumpkin::ScalarField>;
 } // namespace proof_system

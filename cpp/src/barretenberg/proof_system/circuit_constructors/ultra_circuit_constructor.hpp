@@ -15,7 +15,7 @@ namespace proof_system {
 
 using namespace barretenberg;
 
-class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::Ultra<barretenberg::fr>> {
+template <typename FF> class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::Ultra<FF>> {
   public:
     static constexpr ComposerType type = ComposerType::PLOOKUP;
     static constexpr merkle::HashType merkle_hash_type = merkle::HashType::LOOKUP_PEDERSEN;
@@ -226,7 +226,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
     /**
      * @brief CircuitDataBackup is a structure we use to store all the information about the circuit that is needed
      * to restore it back to a pre-finalized state
-     * @details In check_circuit method in UltraCircuitConstructor we want to check that the whole circuit works,
+     * @details In check_circuit method in UltraCircuitConstructor_ we want to check that the whole circuit works,
      * but ultra circuits need to have ram, rom and range gates added in the end for the check to be complete as
      * well as the set permutation check, so we finalize the circuit when we check it. This structure allows us to
      * restore the circuit to the state before the finalization.
@@ -270,7 +270,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
         std::vector<uint32_t> memory_write_records;
         std::map<uint64_t, RangeList> range_lists;
 
-        std::vector<UltraCircuitConstructor::cached_partial_non_native_field_multiplication>
+        std::vector<UltraCircuitConstructor_::cached_partial_non_native_field_multiplication>
             cached_partial_non_native_field_multiplications;
 
         size_t num_gates;
@@ -580,7 +580,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
     bool circuit_finalised = false;
 
     void process_non_native_field_multiplications();
-    UltraCircuitConstructor(const size_t size_hint = 0)
+    UltraCircuitConstructor_(const size_t size_hint = 0)
         : CircuitConstructorBase(ultra_selector_names(), size_hint)
     {
         w_l.reserve(size_hint);
@@ -590,10 +590,10 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
         zero_idx = put_constant_variable(barretenberg::fr::zero());
         tau.insert({ DUMMY_TAG, DUMMY_TAG }); // TODO(luke): explain this
     };
-    UltraCircuitConstructor(std::string const&, const size_t size_hint = 0)
-        : UltraCircuitConstructor(size_hint){};
-    UltraCircuitConstructor(const UltraCircuitConstructor& other) = delete;
-    UltraCircuitConstructor(UltraCircuitConstructor&& other)
+    UltraCircuitConstructor_(std::string const&, const size_t size_hint = 0)
+        : UltraCircuitConstructor_(size_hint){};
+    UltraCircuitConstructor_(const UltraCircuitConstructor_& other) = delete;
+    UltraCircuitConstructor_(UltraCircuitConstructor_&& other)
         : CircuitConstructorBase<arithmetization::Ultra<barretenberg::fr>>(std::move(other))
     {
         constant_variable_indices = other.constant_variable_indices;
@@ -608,8 +608,8 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
         cached_partial_non_native_field_multiplications = other.cached_partial_non_native_field_multiplications;
         circuit_finalised = other.circuit_finalised;
     };
-    UltraCircuitConstructor& operator=(const UltraCircuitConstructor& other) = delete;
-    UltraCircuitConstructor& operator=(UltraCircuitConstructor&& other)
+    UltraCircuitConstructor_& operator=(const UltraCircuitConstructor_& other) = delete;
+    UltraCircuitConstructor_& operator=(UltraCircuitConstructor_&& other)
     {
         CircuitConstructorBase<arithmetization::Ultra<barretenberg::fr>>::operator=(std::move(other));
         constant_variable_indices = other.constant_variable_indices;
@@ -625,7 +625,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
         circuit_finalised = other.circuit_finalised;
         return *this;
     };
-    ~UltraCircuitConstructor() override = default;
+    ~UltraCircuitConstructor_() override = default;
 
     void finalize_circuit();
 

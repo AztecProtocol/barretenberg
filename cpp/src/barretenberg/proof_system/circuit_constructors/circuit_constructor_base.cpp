@@ -1,4 +1,6 @@
 #include "circuit_constructor_base.hpp"
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
+#include "barretenberg/ecc/curves/bn254/bn254.hpp"
 
 namespace proof_system {
 
@@ -41,7 +43,7 @@ void CircuitConstructorBase<Arithmetization>::assert_equal(const uint32_t a_vari
         real_variable_tags[a_real_idx] = real_variable_tags[b_real_idx];
 }
 // Standard honk/ plonk instantiation
-template class CircuitConstructorBase<arithmetization::Standard<barretenberg::fr>>;
-template class CircuitConstructorBase<arithmetization::Turbo<barretenberg::fr>>;
-template class CircuitConstructorBase<arithmetization::Ultra<barretenberg::fr>>;
+template class CircuitConstructorBase<arithmetization::Standard<curve::BN254::ScalarField>>;
+// template class CircuitConstructorBase<arithmetization::Standard<curve::grumpkin::ScalarField>>;
+template class CircuitConstructorBase<arithmetization::Ultra<curve::BN254::ScalarField>>;
 } // namespace proof_system
