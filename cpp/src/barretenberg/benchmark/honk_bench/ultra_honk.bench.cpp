@@ -1,27 +1,22 @@
-#include "barretenberg/crypto/ecdsa/ecdsa.hpp"
-#include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include <benchmark/benchmark.h>
-#include <cstddef>
-#include "barretenberg/stdlib/primitives/composers/composers_fwd.hpp"
-#include "barretenberg/stdlib/primitives/composers/composers.hpp"
+
+#include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
+#include "barretenberg/honk/composer/composer_helper/ultra_honk_composer_helper.hpp"
 #include "barretenberg/stdlib/encryption/ecdsa/ecdsa.hpp"
 #include "barretenberg/stdlib/hash/keccak/keccak.hpp"
 #include "barretenberg/stdlib/primitives/curves/secp256k1.hpp"
-#include "barretenberg/stdlib/primitives/packed_byte_array/packed_byte_array.hpp"
 #include "barretenberg/stdlib/hash/sha256/sha256.hpp"
-#include "barretenberg/stdlib/primitives/bool/bool.hpp"
-#include "barretenberg/stdlib/primitives/field/field.hpp"
-#include "barretenberg/stdlib/primitives/witness/witness.hpp"
 #include "barretenberg/stdlib/merkle_tree/merkle_tree.hpp"
 #include "barretenberg/stdlib/merkle_tree/membership.hpp"
 #include "barretenberg/stdlib/merkle_tree/memory_store.hpp"
-#include "barretenberg/stdlib/merkle_tree/memory_tree.hpp"
 
 using namespace benchmark;
+using namespace proof_system::plonk;
 
 namespace ultra_honk_bench {
 
-using Composer = proof_system::honk::UltraHonkComposer;
+using Builder = proof_system::UltraCircuitConstructor;
+using Composer = proof_system::honk::UltraHonkComposerHelper;
 
 // Number of times to perform operation of interest in the benchmark circuits, e.g. # of hashes to perform
 constexpr size_t MIN_NUM_ITERATIONS = 10;
@@ -31,20 +26,17 @@ constexpr size_t NUM_REPETITIONS = 1;
 
 /**
  * @brief Generate test circuit with specified number of sha256 hashes
- *
- * @param composer
- * @param num_iterations
  */
-void generate_sha256_test_circuit(Composer& composer, size_t num_iterations)
+void generate_sha256_test_circuit(Builder& builder, size_t num_iterations)
 {
     std::string in;
     in.resize(32);
     for (size_t i = 0; i < 32; ++i) {
         in[i] = 0;
     }
-    proof_system::plonk::stdlib::packed_byte_array<Composer> input(&composer, in);
+    stdlib::packed_byte_array<Builder> input(&builder, in);
     for (size_t i = 0; i < num_iterations; i++) {
-        input = proof_system::plonk::stdlib::sha256<Composer>(input);
+        input = stdlib::sha256<Builder>(input);
     }
 }
 
@@ -54,25 +46,22 @@ void generate_sha256_test_circuit(Composer& composer, size_t num_iterations)
  * @param composer
  * @param num_iterations
  */
-void generate_keccak_test_circuit(Composer& composer, size_t num_iterations)
+void generate_keccak_test_circuit(Builder& builder, size_t num_iterations)
 {
     std::string in = "abcdefghijklmnopqrstuvwxyz0123456789abcdefghijklmnopqrstuvwxyz01";
 
-    proof_system::plonk::stdlib::byte_array<Composer> input(&composer, in);
+    stdlib::byte_array<Builder> input(&builder, in);
     for (size_t i = 0; i < num_iterations; i++) {
-        input = proof_system::plonk::stdlib::keccak<Composer>::hash(input);
+        input = stdlib::keccak<Builder>::hash(input);
     }
 }
 
 /**
  * @brief Generate test circuit with specified number of ecdsa verifications
- *
- * @param composer
- * @param num_iterations
  */
-void generate_ecdsa_verification_test_circuit(Composer& composer, size_t num_iterations)
+void generate_ecdsa_verification_test_circuit(Builder& builder, size_t num_iterations)
 {
-    using curve = proof_system::plonk::stdlib::secp256k1<Composer>;
+    using curve = stdlib::secp256k1<Builder>;
 
     std::string message_string = "Instructions unclear, ask again later.";
 
@@ -90,35 +79,30 @@ void generate_ecdsa_verification_test_circuit(Composer& composer, size_t num_ite
     std::vector<uint8_t> ss(signature.s.begin(), signature.s.end());
     uint8_t vv = signature.v;
 
-    curve::g1_bigfr_ct public_key = curve::g1_bigfr_ct::from_witness(&composer, account.public_key);
+    curve::g1_bigfr_ct public_key = curve::g1_bigfr_ct::from_witness(&builder, account.public_key);
 
-    proof_system::plonk::stdlib::ecdsa::signature<Composer> sig{ curve::byte_array_ct(&composer, rr),
-                                                                 curve::byte_array_ct(&composer, ss),
-                                                                 proof_system::plonk::stdlib::uint8<Composer>(&composer,
-                                                                                                              vv) };
+    stdlib::ecdsa::signature<Builder> sig{ curve::byte_array_ct(&builder, rr),
+                                           curve::byte_array_ct(&builder, ss),
+                                           stdlib::uint8<Builder>(&builder, vv) };
 
-    curve::byte_array_ct message(&composer, message_string);
+    curve::byte_array_ct message(&builder, message_string);
 
     for (size_t i = 0; i < num_iterations; i++) {
-        proof_system::plonk::stdlib::ecdsa::
-            verify_signature<Composer, curve, curve::fq_ct, curve::bigfr_ct, curve::g1_bigfr_ct>(
-                message, public_key, sig);
+        stdlib::ecdsa::verify_signature<Builder, curve, curve::fq_ct, curve::bigfr_ct, curve::g1_bigfr_ct>(
+            message, public_key, sig);
     }
 }
 
 /**
  * @brief Generate test circuit with specified number of merkle membership checks
- *
- * @param composer
- * @param num_iterations
  * @todo (luke): should we consider deeper tree? non-zero leaf values? variable index?
  */
-void generate_merkle_membership_test_circuit(Composer& composer, size_t num_iterations)
+void generate_merkle_membership_test_circuit(Builder& builder, size_t num_iterations)
 {
     using namespace proof_system::plonk::stdlib;
-    using field_ct = field_t<Composer>;
-    using witness_ct = witness_t<Composer>;
-    using witness_ct = witness_t<Composer>;
+    using field_ct = field_t<Builder>;
+    using witness_ct = witness_t<Builder>;
+    using witness_ct = witness_t<Builder>;
     using MemStore = merkle_tree::MemoryStore;
     using MerkleTree_ct = merkle_tree::MerkleTree<MemStore>;
 
@@ -126,26 +110,28 @@ void generate_merkle_membership_test_circuit(Composer& composer, size_t num_iter
     auto db = MerkleTree_ct(store, 3);
 
     // Check that the leaf at index 0 has value 0.
-    auto zero = field_ct(witness_ct(&composer, fr::zero())).decompose_into_bits();
-    field_ct root = witness_ct(&composer, db.root());
+    auto zero = field_ct(witness_ct(&builder, fr::zero())).decompose_into_bits();
+    field_ct root = witness_ct(&builder, db.root());
 
     for (size_t i = 0; i < num_iterations; i++) {
         merkle_tree::check_membership(
-            root, merkle_tree::create_witness_hash_path(composer, db.get_hash_path(0)), field_ct(0), zero);
+            root, merkle_tree::create_witness_hash_path(builder, db.get_hash_path(0)), field_ct(0), zero);
     }
 }
 
 /**
  * @brief Benchmark: Construction of a Ultra Honk proof for a circuit determined by the provided text circuit function
  */
-void construct_proof_ultra(State& state, void (*test_circuit_function)(Composer&, size_t)) noexcept
+void construct_proof_ultra(State& state, void (*test_circuit_function)(Builder&, size_t)) noexcept
 {
+    barretenberg::srs::init_crs_factory("../srs_db/ignition");
     auto num_iterations = static_cast<size_t>(state.range(0));
     for (auto _ : state) {
         state.PauseTiming();
+        auto builder = Builder();
+        test_circuit_function(builder, num_iterations);
         auto composer = Composer();
-        test_circuit_function(composer, num_iterations);
-        auto ext_prover = composer.create_prover();
+        auto ext_prover = composer.create_prover(builder);
         state.ResumeTiming();
 
         auto proof = ext_prover.construct_proof();
