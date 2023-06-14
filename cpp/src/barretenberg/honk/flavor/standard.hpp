@@ -19,6 +19,7 @@
 #include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
 #include "barretenberg/srs/factories/crs_factory.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/stdlib/primitives/circuit_constructors/circuit_constructors_fwd.hpp"
 
 namespace proof_system::honk::flavor {
 
@@ -32,7 +33,7 @@ namespace proof_system::honk::flavor {
  */
 class Standard {
   public:
-    using CircuitConstructor = StandardCircuitConstructor;
+    using CircuitConstructor = StandardCiruitConstructor;
     using FF = barretenberg::fr;
     using Polynomial = barretenberg::Polynomial<FF>;
     using PolynomialHandle = std::span<FF>;

@@ -14,7 +14,7 @@ namespace proof_system {
  * @param in An add_triple containing the indexes of variables to be placed into the
  * wires w_l, w_r, w_o and addition coefficients to be placed into q_1, q_2, q_3, q_c.
  */
-template <typename FF> void StandardCircuitConstructor_<FF>::create_add_gate(const add_triple& in)
+template <typename Curve> void StandardCircuitConstructor_<Curve>::create_add_gate(const add_triple& in)
 {
     assert_valid_variables({ in.a, in.b, in.c });
 
@@ -37,7 +37,7 @@ template <typename FF> void StandardCircuitConstructor_<FF>::create_add_gate(con
  * @param in An add quad containing the indexes of variables a, b, c, d and
  * the scaling factors.
  * */
-template <typename FF> void StandardCircuitConstructor_<FF>::create_big_add_gate(const add_quad& in)
+template <typename Curve> void StandardCircuitConstructor_<Curve>::create_big_add_gate(const add_quad& in)
 {
     // (a terms + b terms = temp)
     // (c terms + d  terms + temp = 0 )
@@ -58,7 +58,7 @@ template <typename FF> void StandardCircuitConstructor_<FF>::create_big_add_gate
  * @param in An add quad containing the indexes of variables a, b, c, d and
  * the scaling factors.
  * */
-template <typename FF> void StandardCircuitConstructor_<FF>::create_balanced_add_gate(const add_quad& in)
+template <typename Curve> void StandardCircuitConstructor_<Curve>::create_balanced_add_gate(const add_quad& in)
 {
 
     assert_valid_variables({ in.a, in.b, in.c, in.d });
@@ -120,7 +120,8 @@ template <typename FF> void StandardCircuitConstructor_<FF>::create_balanced_add
     ++num_gates;
 }
 
-template <typename FF> void StandardCircuitConstructor_<FF>::create_big_add_gate_with_bit_extraction(const add_quad& in)
+template <typename Curve>
+void StandardCircuitConstructor_<Curve>::create_big_add_gate_with_bit_extraction(const add_quad& in)
 {
     // blah.
     // delta = (c - 4d)
@@ -165,7 +166,7 @@ template <typename FF> void StandardCircuitConstructor_<FF>::create_big_add_gate
         add_quad{ in.a, in.b, in.c, r_2_idx, in.a_scaling, in.b_scaling, in.c_scaling, FF::one(), in.const_scaling });
 }
 
-template <typename FF> void StandardCircuitConstructor_<FF>::create_big_mul_gate(const mul_quad& in)
+template <typename Curve> void StandardCircuitConstructor_<Curve>::create_big_mul_gate(const mul_quad& in)
 {
     fr temp = ((get_variable(in.c) * in.c_scaling) + (get_variable(in.d) * in.d_scaling));
     uint32_t temp_idx = add_variable(temp);
@@ -181,7 +182,7 @@ template <typename FF> void StandardCircuitConstructor_<FF>::create_big_mul_gate
  * @param in A mul_tripple containing the indexes of variables to be placed into the
  * wires w_l, w_r, w_o and scaling coefficients to be placed into q_m, q_3, q_c.
  */
-template <typename FF> void StandardCircuitConstructor_<FF>::create_mul_gate(const mul_triple& in)
+template <typename Curve> void StandardCircuitConstructor_<Curve>::create_mul_gate(const mul_triple& in)
 {
     assert_valid_variables({ in.a, in.b, in.c });
 
@@ -203,7 +204,7 @@ template <typename FF> void StandardCircuitConstructor_<FF>::create_mul_gate(con
  *
  * @param variable_index The index of the variable.
  */
-void StandardCircuitConstructor_<FF>::create_bool_gate(const uint32_t variable_index)
+void StandardCircuitConstructor_<Curve>::create_bool_gate(const uint32_t variable_index)
 {
     assert_valid_variables({ variable_index });
 
@@ -225,7 +226,7 @@ void StandardCircuitConstructor_<FF>::create_bool_gate(const uint32_t variable_i
  *
  * @param in A poly_triple containing all the information.
  */
-void StandardCircuitConstructor_<FF>::create_poly_gate(const poly_triple& in)
+void StandardCircuitConstructor_<Curve>::create_poly_gate(const poly_triple& in)
 {
     assert_valid_variables({ in.a, in.b, in.c });
 
@@ -241,9 +242,8 @@ void StandardCircuitConstructor_<FF>::create_poly_gate(const poly_triple& in)
     ++num_gates;
 }
 
-std::vector<uint32_t> StandardCircuitConstructor_<FF>::decompose_into_base4_accumulators(const uint32_t witness_index,
-                                                                                         const size_t num_bits,
-                                                                                         std::string const& msg)
+std::vector<uint32_t> StandardCircuitConstructor_<Curve>::decompose_into_base4_accumulators(
+    const uint32_t witness_index, const size_t num_bits, std::string const& msg)
 {
     ASSERT(num_bits > 0);
     const uint256_t target(get_variable(witness_index));
@@ -301,10 +301,10 @@ std::vector<uint32_t> StandardCircuitConstructor_<FF>::decompose_into_base4_accu
     return accumulators;
 }
 
-accumulator_triple StandardCircuitConstructor_<FF>::create_logic_constraint(const uint32_t a,
-                                                                            const uint32_t b,
-                                                                            const size_t num_bits,
-                                                                            const bool is_xor_gate)
+accumulator_triple StandardCircuitConstructor_<Curve>::create_logic_constraint(const uint32_t a,
+                                                                               const uint32_t b,
+                                                                               const size_t num_bits,
+                                                                               const bool is_xor_gate)
 {
     assert_valid_variables({ a, b });
 
@@ -425,7 +425,7 @@ accumulator_triple StandardCircuitConstructor_<FF>::create_logic_constraint(cons
     return accumulators;
 }
 
-void StandardCircuitConstructor_<FF>::fix_witness(const uint32_t witness_index, const FF& witness_value)
+void StandardCircuitConstructor_<Curve>::fix_witness(const uint32_t witness_index, const FF& witness_value)
 {
     assert_valid_variables({ witness_index });
 
@@ -440,7 +440,7 @@ void StandardCircuitConstructor_<FF>::fix_witness(const uint32_t witness_index, 
     ++num_gates;
 }
 
-uint32_t StandardCircuitConstructor_<FF>::put_constant_variable(const FF& variable)
+uint32_t StandardCircuitConstructor_<Curve>::put_constant_variable(const FF& variable)
 {
     if (constant_variable_indices.contains(variable)) {
         return constant_variable_indices.at(variable);
@@ -453,21 +453,23 @@ uint32_t StandardCircuitConstructor_<FF>::put_constant_variable(const FF& variab
     }
 }
 
-accumulator_triple StandardCircuitConstructor_<FF>::create_and_constraint(const uint32_t a,
-                                                                          const uint32_t b,
-                                                                          const size_t num_bits)
+accumulator_triple StandardCircuitConstructor_<Curve>::create_and_constraint(const uint32_t a,
+                                                                             const uint32_t b,
+                                                                             const size_t num_bits)
 {
     return create_logic_constraint(a, b, num_bits, false);
 }
 
-accumulator_triple StandardCircuitConstructor_<FF>::create_xor_constraint(const uint32_t a,
-                                                                          const uint32_t b,
-                                                                          const size_t num_bits)
+accumulator_triple StandardCircuitConstructor_<Curve>::create_xor_constraint(const uint32_t a,
+                                                                             const uint32_t b,
+                                                                             const size_t num_bits)
 {
     return create_logic_constraint(a, b, num_bits, true);
 }
 
-void StandardCircuitConstructor_<FF>::assert_equal_constant(uint32_t const a_idx, fr const& b, std::string const& msg)
+void StandardCircuitConstructor_<Curve>::assert_equal_constant(uint32_t const a_idx,
+                                                               fr const& b,
+                                                               std::string const& msg)
 {
     if (variables[a_idx] != b && !failed()) {
         failure(msg);
@@ -482,7 +484,7 @@ void StandardCircuitConstructor_<FF>::assert_equal_constant(uint32_t const a_idx
  *
  * @return true if the circuit is correct.
  * */
-bool StandardCircuitConstructor_<FF>::check_circuit()
+bool StandardCircuitConstructor_<Curve>::check_circuit()
 {
 
     fr gate_sum;
@@ -498,6 +500,4 @@ bool StandardCircuitConstructor_<FF>::check_circuit()
     }
     return true;
 }
-// using StandardGrumpkinCircuitConstructor = StandardCircuitConstructor_<curve::Grumpkin::ScalarField>;
-;
 } // namespace proof_system

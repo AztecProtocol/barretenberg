@@ -15,8 +15,10 @@ namespace proof_system {
 
 using namespace barretenberg;
 
-template <typename FF> class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::Ultra<FF>> {
+template <typename Curve>
+class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::Ultra<Curve>> {
   public:
+    using FF = typename Curve::ScalarField;
     static constexpr ComposerType type = ComposerType::PLOOKUP;
     static constexpr merkle::HashType merkle_hash_type = merkle::HashType::LOOKUP_PEDERSEN;
     static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
@@ -1195,4 +1197,5 @@ template <typename FF> class UltraCircuitConstructor_ : public CircuitConstructo
     void update_circuit_in_the_head();
     bool check_circuit();
 };
+using UltraCircuitConstructor = UltraCircuitConstructor_<curve::BN254>
 } // namespace proof_system

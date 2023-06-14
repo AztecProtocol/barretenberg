@@ -25,14 +25,7 @@ using StandardHonkComposer = StandardHonkComposer_<flavor::Standard>;
 template <class Flavor> class UltraHonkComposer_;
 using UltraHonkComposer = UltraHonkComposer_<flavor::Ultra>;
 } // namespace proof_system::honk
-
-namespace curve {
-class ScalarField;
-class BN254 {
-  public:
-    using ScalarField = ScalarField;
-};
-} // namespace curve
+// namespace curve
 namespace proof_system {
 class StandardCircuitConstructor;
 class TurboCircuitConstructor;

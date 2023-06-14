@@ -12,7 +12,8 @@ namespace proof_system {
  * @param size_hint Assumed number of gates. Used to allocate space for various member
  * vectors during initialization.
  * */
-TurboCircuitConstructor::TurboCircuitConstructor(const size_t size_hint)
+template <typename Curve>
+TurboCircuitConstructor_<Curve>::TurboCircuitConstructor_(const size_t size_hint)
     : CircuitConstructorBase(turbo_selector_names(), size_hint)
 {
     w_l.reserve(size_hint);
@@ -32,7 +33,7 @@ TurboCircuitConstructor::TurboCircuitConstructor(const size_t size_hint)
  * @param in Specifies addition gate parameters:
  * w_l, w_r, w_o, q_1, q_2, q_3, q_c.
  * */
-void TurboCircuitConstructor::create_add_gate(const add_triple& in)
+template <typename Curve> void TurboCircuitConstructor_<Curve>::create_add_gate(const add_triple& in)
 {
     assert_valid_variables({ in.a, in.b, in.c });
 
@@ -63,7 +64,7 @@ void TurboCircuitConstructor::create_add_gate(const add_triple& in)
  * @param in Specifies addition gate parameters:
  * w_l, w_r, w_o, w_4, q_1, q_2, q_3, q_4, q_c.
  * */
-void TurboCircuitConstructor::create_big_add_gate(const add_quad& in)
+template <typename Curve> void TurboCircuitConstructor_<Curve>::create_big_add_gate(const add_quad& in)
 {
     assert_valid_variables({ in.a, in.b, in.c, in.d });
 
@@ -101,7 +102,8 @@ void TurboCircuitConstructor::create_big_add_gate(const add_quad& in)
  * ensure this assumption is backed by a constraint (e.g., c and d could be accumulators produced using the TurboPLONK
  * function `decompose_into_base4_accumulators`).
  * */
-void TurboCircuitConstructor::create_big_add_gate_with_bit_extraction(const add_quad& in)
+template <typename Curve>
+void TurboCircuitConstructor_<Curve>::create_big_add_gate_with_bit_extraction(const add_quad& in)
 {
     assert_valid_variables({ in.a, in.b, in.c, in.d });
 
@@ -123,7 +125,7 @@ void TurboCircuitConstructor::create_big_add_gate_with_bit_extraction(const add_
     ++num_gates;
 }
 
-void TurboCircuitConstructor::create_big_mul_gate(const mul_quad& in)
+template <typename Curve> void TurboCircuitConstructor_<Curve>::create_big_mul_gate(const mul_quad& in)
 {
     assert_valid_variables({ in.a, in.b, in.c, in.d });
 
@@ -162,7 +164,7 @@ void TurboCircuitConstructor::create_big_mul_gate(const mul_quad& in)
  * @warning Even with the constraint on w_3, it is typically necessary to range constrain the wire value that will be
  * returned.
  */
-void TurboCircuitConstructor::create_balanced_add_gate(const add_quad& in)
+template <typename Curve> void TurboCircuitConstructor_<Curve>::create_balanced_add_gate(const add_quad& in)
 {
     assert_valid_variables({ in.a, in.b, in.c, in.d });
 
@@ -193,7 +195,7 @@ void TurboCircuitConstructor::create_balanced_add_gate(const add_quad& in)
  * @param in Contains the values for w_l, w_r, w_o,
  * q_m, q_3, q_c.
  * */
-void TurboCircuitConstructor::create_mul_gate(const mul_triple& in)
+template <typename Curve> void TurboCircuitConstructor_<Curve>::create_mul_gate(const mul_triple& in)
 {
     assert_valid_variables({ in.a, in.b, in.c });
 
@@ -222,7 +224,7 @@ void TurboCircuitConstructor::create_mul_gate(const mul_triple& in)
  *
  * @param variable_index The index of the variable.
  * */
-void TurboCircuitConstructor::create_bool_gate(const uint32_t variable_index)
+template <typename Curve> void TurboCircuitConstructor_<Curve>::create_bool_gate(const uint32_t variable_index)
 {
     assert_valid_variables({ variable_index });
 
@@ -254,7 +256,7 @@ void TurboCircuitConstructor::create_bool_gate(const uint32_t variable_index)
  * @param in Contains the values for
  * w_l, w_r, w_o, q_m, q_1, q_2, q_3, q_c.
  * */
-void TurboCircuitConstructor::create_poly_gate(const poly_triple& in)
+template <typename Curve> void TurboCircuitConstructor_<Curve>::create_poly_gate(const poly_triple& in)
 {
     assert_valid_variables({ in.a, in.b, in.c });
 
@@ -282,7 +284,8 @@ void TurboCircuitConstructor::create_poly_gate(const poly_triple& in)
  *
  * @param in Witnesses and values of two points.
  * */
-void TurboCircuitConstructor::create_fixed_group_add_gate(const fixed_group_add_quad& in)
+template <typename Curve>
+void TurboCircuitConstructor_<Curve>::create_fixed_group_add_gate(const fixed_group_add_quad& in)
 {
     assert_valid_variables({ in.a, in.b, in.c, in.d });
 
@@ -312,8 +315,9 @@ void TurboCircuitConstructor::create_fixed_group_add_gate(const fixed_group_add_
  * @param in Addition parameters (points and coefficients).
  * @param init Initialization parameters (points).
  * */
-void TurboCircuitConstructor::create_fixed_group_add_gate_with_init(const fixed_group_add_quad& in,
-                                                                    const fixed_group_init_quad& init)
+template <typename Curve>
+void TurboCircuitConstructor_<Curve>::create_fixed_group_add_gate_with_init(const fixed_group_add_quad& in,
+                                                                            const fixed_group_init_quad& init)
 {
     assert_valid_variables({ in.a, in.b, in.c, in.d });
 
@@ -337,7 +341,7 @@ void TurboCircuitConstructor::create_fixed_group_add_gate_with_init(const fixed_
     ++num_gates;
 }
 
-void TurboCircuitConstructor::create_fixed_group_add_gate_final(const add_quad& in)
+template <typename Curve> void TurboCircuitConstructor_<Curve>::create_fixed_group_add_gate_final(const add_quad& in)
 {
     create_big_add_gate(in);
 }
@@ -348,7 +352,8 @@ void TurboCircuitConstructor::create_fixed_group_add_gate_final(const add_quad& 
  * @param witness_index Witness variable index.
  * @param witness_value Witness variable value.
  * */
-void TurboCircuitConstructor::fix_witness(const uint32_t witness_index, const barretenberg::fr& witness_value)
+template <typename Curve>
+void TurboCircuitConstructor_<Curve>::fix_witness(const uint32_t witness_index, const barretenberg::fr& witness_value)
 {
     assert_valid_variables({ witness_index });
 
@@ -379,9 +384,10 @@ void TurboCircuitConstructor::fix_witness(const uint32_t witness_index, const ba
  * @return Vector of variable indexes for accumulator variables used in
  * the constraint.
  * */
-std::vector<uint32_t> TurboCircuitConstructor::decompose_into_base4_accumulators(const uint32_t witness_index,
-                                                                                 const size_t num_bits,
-                                                                                 std::string const& msg)
+template <typename Curve>
+std::vector<uint32_t> TurboCircuitConstructor_<Curve>::decompose_into_base4_accumulators(const uint32_t witness_index,
+                                                                                         const size_t num_bits,
+                                                                                         std::string const& msg)
 {
     assert_valid_variables({ witness_index });
 
@@ -559,10 +565,11 @@ std::vector<uint32_t> TurboCircuitConstructor::decompose_into_base4_accumulators
  * for u = T.left[T.left.size()-2], u will be too small to express a in the form a = 4u + quad.
  * The same holds, mutatis mutandis, for T.right.
  */
-accumulator_triple TurboCircuitConstructor::create_logic_constraint(const uint32_t a,
-                                                                    const uint32_t b,
-                                                                    const size_t num_bits,
-                                                                    const bool is_xor_gate)
+template <typename Curve>
+accumulator_triple TurboCircuitConstructor_<Curve>::create_logic_constraint(const uint32_t a,
+                                                                            const uint32_t b,
+                                                                            const size_t num_bits,
+                                                                            const bool is_xor_gate)
 {
     assert_valid_variables({ a, b });
 
@@ -744,21 +751,24 @@ accumulator_triple TurboCircuitConstructor::create_logic_constraint(const uint32
     return accumulators;
 }
 
-accumulator_triple TurboCircuitConstructor::create_and_constraint(const uint32_t a,
-                                                                  const uint32_t b,
-                                                                  const size_t num_bits)
+template <typename Curve>
+accumulator_triple TurboCircuitConstructor_<Curve>::create_and_constraint(const uint32_t a,
+                                                                          const uint32_t b,
+                                                                          const size_t num_bits)
 {
     return create_logic_constraint(a, b, num_bits, false);
 }
 
-accumulator_triple TurboCircuitConstructor::create_xor_constraint(const uint32_t a,
-                                                                  const uint32_t b,
-                                                                  const size_t num_bits)
+template <typename Curve>
+accumulator_triple TurboCircuitConstructor_<Curve>::create_xor_constraint(const uint32_t a,
+                                                                          const uint32_t b,
+                                                                          const size_t num_bits)
 {
     return create_logic_constraint(a, b, num_bits, true);
 }
 
-uint32_t TurboCircuitConstructor::put_constant_variable(const barretenberg::fr& variable)
+template <typename Curve>
+uint32_t TurboCircuitConstructor_<Curve>::put_constant_variable(const barretenberg::fr& variable)
 {
     if (constant_variable_indices.contains(variable)) {
         return constant_variable_indices.at(variable);
@@ -776,7 +786,8 @@ uint32_t TurboCircuitConstructor::put_constant_variable(const barretenberg::fr& 
  * @return true Evaluation is zero
  * @return false Evaluation is not zero
  */
-inline bool TurboCircuitConstructor::lazy_arithmetic_gate_check(const size_t gate_index)
+template <typename Curve>
+inline bool TurboCircuitConstructor_<Curve>::lazy_arithmetic_gate_check(const size_t gate_index)
 {
     return arithmetic_gate_evaluation(gate_index, fr::one()).is_zero();
 }
@@ -788,7 +799,8 @@ inline bool TurboCircuitConstructor::lazy_arithmetic_gate_check(const size_t gat
  * @return bool
  * TODO(luke/kesha): Add some comments explaining in what sense each of these checks are "lazy"
  */
-inline bool TurboCircuitConstructor::lazy_fixed_base_gate_check(const size_t gate_index)
+template <typename Curve>
+inline bool TurboCircuitConstructor_<Curve>::lazy_fixed_base_gate_check(const size_t gate_index)
 {
     ASSERT(gate_index < num_gates);
 
@@ -901,7 +913,7 @@ inline bool TurboCircuitConstructor::lazy_fixed_base_gate_check(const size_t gat
  * @param gate_index Gate index
  * @return fr
  */
-inline bool TurboCircuitConstructor::lazy_logic_gate_check(const size_t gate_index)
+template <typename Curve> inline bool TurboCircuitConstructor_<Curve>::lazy_logic_gate_check(const size_t gate_index)
 {
 
     ASSERT(gate_index < num_gates);
@@ -977,7 +989,7 @@ inline bool TurboCircuitConstructor::lazy_logic_gate_check(const size_t gate_ind
  * @param gate_index Gate index
  * @return bool
  */
-inline bool TurboCircuitConstructor::lazy_range_gate_check(const size_t gate_index)
+template <typename Curve> inline bool TurboCircuitConstructor_<Curve>::lazy_range_gate_check(const size_t gate_index)
 {
 
     ASSERT(gate_index < num_gates);
@@ -1033,7 +1045,7 @@ inline bool TurboCircuitConstructor::lazy_range_gate_check(const size_t gate_ind
  * @param alpha_base The base value that the whole evaluation is multiplied by
  * @return fr
  */
-inline fr TurboCircuitConstructor::arithmetic_gate_evaluation(const size_t gate_index, const fr alpha_base)
+inline fr TurboCircuitConstructor_<Curve>::arithmetic_gate_evaluation(const size_t gate_index, const fr alpha_base)
 {
     ASSERT(gate_index < num_gates);
 
@@ -1082,7 +1094,9 @@ inline fr TurboCircuitConstructor::arithmetic_gate_evaluation(const size_t gate_
  * @param alpha An element used as a separator of individual subrelations
  * @return fr
  */
-inline fr TurboCircuitConstructor::range_gate_evaluation(const size_t gate_index, const fr alpha_base, const fr alpha)
+inline fr TurboCircuitConstructor_<Curve>::range_gate_evaluation(const size_t gate_index,
+                                                                 const fr alpha_base,
+                                                                 const fr alpha)
 {
 
     ASSERT(gate_index < num_gates);
@@ -1166,7 +1180,9 @@ inline fr TurboCircuitConstructor::range_gate_evaluation(const size_t gate_index
  * @param alpha The element used as separator for individual subrelations
  * @return fr
  */
-inline fr TurboCircuitConstructor::logic_gate_evaluation(const size_t gate_index, const fr alpha_base, const fr alpha)
+inline fr TurboCircuitConstructor_<Curve>::logic_gate_evaluation(const size_t gate_index,
+                                                                 const fr alpha_base,
+                                                                 const fr alpha)
 {
 
     ASSERT(gate_index < num_gates);
@@ -1334,8 +1350,8 @@ inline fr TurboCircuitConstructor::logic_gate_evaluation(const size_t gate_index
  * @param alpha_powers A vector with alpha_base and alpha_base*α^{i} for enough i
  * @return fr
  */
-inline fr TurboCircuitConstructor::fixed_base_gate_evaluation(const size_t gate_index,
-                                                              const std::vector<fr>& alpha_powers)
+inline fr TurboCircuitConstructor_<Curve>::fixed_base_gate_evaluation(const size_t gate_index,
+                                                                      const std::vector<fr>& alpha_powers)
 {
     ASSERT(gate_index < num_gates);
 
@@ -1441,7 +1457,7 @@ inline fr TurboCircuitConstructor::fixed_base_gate_evaluation(const size_t gate_
  *
  * @return true if circuit is correct, false if not.
  * */
-bool TurboCircuitConstructor::check_circuit()
+bool TurboCircuitConstructor_<Curve>::check_circuit()
 {
 // #define LAZY_CIRCUIT_CHECKS
 #ifdef LAZY_CIRCUIT_CHECKS
