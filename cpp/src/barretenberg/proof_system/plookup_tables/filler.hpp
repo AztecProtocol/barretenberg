@@ -54,7 +54,7 @@ inline BasicTable generate_honk_filler_table(const BasicTableId id, const size_t
         for (uint64_t j = 0; j < base; ++j) {
             table.column_1.emplace_back(i);
             table.column_2.emplace_back(j);
-            table.column_3.emplace_back(i * 3 + j * 4 + id * 0x1337ULL);
+            table.column_3.emplace_back(i * 3 + j * 4 + static_cast<uint64_t>(id) * 0x1337ULL);
         }
     }
 
