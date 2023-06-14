@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include "barretenberg/ecc/curves/bn254/bn254.hpp"
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 #include "circuit_constructor_base.hpp"
 #include "barretenberg/proof_system/types/composer_type.hpp"
@@ -13,9 +14,10 @@ inline std::vector<std::string> standard_selector_names()
     return result;
 }
 
-template <typename FF>
-class StandardCircuitConstructor_ : public CircuitConstructorBase<arithmetization::Standard<FF>> {
+template <typename Curve>
+class StandardCircuitConstructor_ : public CircuitConstructorBase<arithmetization::Standard<Curve>> {
   public:
+    using FF = typename Curve::ScalarField;
     static constexpr ComposerType type = ComposerType::STANDARD;
     static constexpr merkle::HashType merkle_hash_type = merkle::HashType::FIXED_BASE_PEDERSEN;
     static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
@@ -114,7 +116,7 @@ class StandardCircuitConstructor_ : public CircuitConstructorBase<arithmetizatio
     size_t get_num_constant_gates() const override { return 0; }
 
     bool check_circuit();
-};
-using StandardCircuitConstructor = StandardCircuitConstructor__<curve::BN254::ScalarField>;
-// extern template class StandardCircuitConstructor__<curve::Grumpkin::ScalarField>;
+
+    using StandardCircuitConstructor = StandardCircuitConstructor_<curve::BN254>;
+    // using StandardGrumpkinCircuitConstructor = StandardCircuitConstructor__<grumpkin::fr>;
 } // namespace proof_system

@@ -13,16 +13,18 @@ inline std::vector<std::string> turbo_selector_names()
                                      "q_5", "q_arith", "q_fixed_base", "q_range", "q_logic" };
     return result;
 }
-class TurboCircuitConstructor : public CircuitConstructorBase<arithmetization::Turbo<barretenberg::fr>> {
+template <typename Curve>
+class TurboCircuitConstructor_ : public CircuitConstructorBase<arithmetization::Turbo<Curve>> {
 
   public:
+    using FF = typename Curve::ScalarField;
     static constexpr ComposerType type = ComposerType::TURBO;
     static constexpr merkle::HashType merkle_hash_type = merkle::HashType::FIXED_BASE_PEDERSEN;
     static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
     static constexpr size_t UINT_LOG2_BASE = 2;
 
     using WireVector = std::vector<uint32_t, barretenberg::ContainerSlabAllocator<uint32_t>>;
-    using SelectorVector = std::vector<barretenberg::fr, barretenberg::ContainerSlabAllocator<barretenberg::fr>>;
+    using SelectorVector = std::vector<FF, barretenberg::ContainerSlabAllocator<FF>>;
 
     WireVector& w_l = std::get<0>(wires);
     WireVector& w_r = std::get<1>(wires);
@@ -41,18 +43,18 @@ class TurboCircuitConstructor : public CircuitConstructorBase<arithmetization::T
     SelectorVector& q_range = selectors.q_range;
     SelectorVector& q_logic = selectors.q_logic;
 
-    TurboCircuitConstructor(const size_t size_hint = 0);
+    TurboCircuitConstructor_(const size_t size_hint = 0);
     // This constructor is needed to simplify switching between circuit constructor and composer
-    TurboCircuitConstructor(std::string const&, const size_t size_hint = 0)
-        : TurboCircuitConstructor(size_hint){};
-    TurboCircuitConstructor(TurboCircuitConstructor&& other) = default;
-    TurboCircuitConstructor& operator=(TurboCircuitConstructor&& other)
+    TurboCircuitConstructor_(std::string const&, const size_t size_hint = 0)
+        : TurboCircuitConstructor_(size_hint){};
+    TurboCircuitConstructor_(TurboCircuitConstructor_&& other) = default;
+    TurboCircuitConstructor_& operator=(TurboCircuitConstructor_&& other)
     {
-        CircuitConstructorBase<arithmetization::Turbo<barretenberg::fr>>::operator=(std::move(other));
+        CircuitConstructorBase<arithmetization::Turbo<FF>>::operator=(std::move(other));
         constant_variable_indices = other.constant_variable_indices;
         return *this;
     };
-    ~TurboCircuitConstructor() {}
+    ~TurboCircuitConstructor_() {}
 
     void create_add_gate(const add_triple& in);
 
@@ -67,16 +69,12 @@ class TurboCircuitConstructor : public CircuitConstructorBase<arithmetization::T
     void create_fixed_group_add_gate(const fixed_group_add_quad& in);
     void create_fixed_group_add_gate_with_init(const fixed_group_add_quad& in, const fixed_group_init_quad& init);
     void create_fixed_group_add_gate_final(const add_quad& in);
-    void fix_witness(const uint32_t witness_index, const barretenberg::fr& witness_value);
+    void fix_witness(const uint32_t witness_index, const FF& witness_value);
 
-    barretenberg::fr arithmetic_gate_evaluation(const size_t index, const barretenberg::fr alpha_base);
-    barretenberg::fr fixed_base_gate_evaluation(const size_t index, const std::vector<barretenberg::fr>& alpha_powers);
-    barretenberg::fr logic_gate_evaluation(const size_t index,
-                                           const barretenberg::fr alpha_bas,
-                                           const barretenberg::fr alpha);
-    barretenberg::fr range_gate_evaluation(const size_t index,
-                                           const barretenberg::fr alpha_bas,
-                                           const barretenberg::fr alpha);
+    FF arithmetic_gate_evaluation(const size_t index, const FF alpha_base);
+    FF fixed_base_gate_evaluation(const size_t index, const std::vector<FF>& alpha_powers);
+    FF logic_gate_evaluation(const size_t index, const FF alpha_bas, const FF alpha);
+    FF range_gate_evaluation(const size_t index, const FF alpha_bas, const FF alpha);
 
     bool lazy_arithmetic_gate_check(const size_t gate_index);
     bool lazy_fixed_base_gate_check(const size_t gate_index);
@@ -101,13 +99,11 @@ class TurboCircuitConstructor : public CircuitConstructorBase<arithmetization::T
     accumulator_triple create_and_constraint(const uint32_t a, const uint32_t b, const size_t num_bits);
     accumulator_triple create_xor_constraint(const uint32_t a, const uint32_t b, const size_t num_bits);
 
-    uint32_t put_constant_variable(const barretenberg::fr& variable);
+    uint32_t put_constant_variable(const FF& variable);
 
     size_t get_num_constant_gates() const { return 0; }
 
-    void assert_equal_constant(const uint32_t a_idx,
-                               const barretenberg::fr& b,
-                               std::string const& msg = "assert_equal_constant")
+    void assert_equal_constant(const uint32_t a_idx, const FF& b, std::string const& msg = "assert_equal_constant")
     {
         if (variables[a_idx] != b && !failed()) {
             failure(msg);
@@ -120,12 +116,13 @@ class TurboCircuitConstructor : public CircuitConstructorBase<arithmetization::T
      * For any type other than uint32_t (presumed to be a witness index), we call normalize first.
      */
     template <typename T>
-    void assert_equal_constant(T const& in, const barretenberg::fr& b, std::string const& msg = "assert_equal_constant")
+    void assert_equal_constant(T const& in, const FF& b, std::string const& msg = "assert_equal_constant")
     {
         assert_equal_constant(in.normalize().witness_index, b, msg);
     }
 
     // these are variables that we have used a gate on, to enforce that they are equal to a defined value
-    std::map<barretenberg::fr, uint32_t> constant_variable_indices;
+    std::map<FF, uint32_t> constant_variable_indices;
 };
+using TurboCircuitConstructor = TurboCircuitConstructor_<curve::BN254>;
 } // namespace proof_system
