@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1686746823856,
+  "lastUpdate": 1686749520474,
   "repoUrl": "https://github.com/AztecProtocol/barretenberg",
   "entries": {
     "C++ Benchmark": [
@@ -192,6 +192,54 @@ window.BENCHMARK_DATA = {
             "value": 4.498663125000007,
             "unit": "s/iter",
             "extra": "iterations: 1\ncpu: 2.739215299999998 s\nthreads: 1"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "l.edwards.d@gmail.com",
+            "name": "ledwards2225",
+            "username": "ledwards2225"
+          },
+          "committer": {
+            "email": "l.edwards.d@gmail.com",
+            "name": "ledwards2225",
+            "username": "ledwards2225"
+          },
+          "distinct": true,
+          "id": "c331af1dd669a1226aa479bab7f4dc111c45d772",
+          "message": "test",
+          "timestamp": "2023-06-14T13:22:17Z",
+          "tree_id": "57f396858b9f22a8d7b1eef320dedbbf971cb9ef",
+          "url": "https://github.com/AztecProtocol/barretenberg/commit/c331af1dd669a1226aa479bab7f4dc111c45d772"
+        },
+        "date": 1686749519574,
+        "tool": "googlecpp",
+        "benches": [
+          {
+            "name": "construct_proof_ultra/sha256/10/repeats:1",
+            "value": 12.989590563999968,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 10.7724215 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/keccak/10/repeats:1",
+            "value": 21.452455399000087,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 18.846917499999996 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/ecdsa_verification/10/repeats:1",
+            "value": 38.71516563099999,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 35.9808955 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/merkle_membership/10/repeats:1",
+            "value": 4.378084487000024,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 2.573375399999989 s\nthreads: 1"
           }
         ]
       }
