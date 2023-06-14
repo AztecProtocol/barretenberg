@@ -20,6 +20,7 @@ void construct_proof_ultra(State& state, void (*test_circuit_function)(UltraHonk
     bench_utils::construct_proof_with_specified_num_iterations(state, test_circuit_function);
 }
 
+// Define benchmarks
 BENCHMARK_CAPTURE(construct_proof_ultra, sha256, &bench_utils::generate_sha256_test_circuit<UltraHonk>)
     ->DenseRange(MIN_NUM_ITERATIONS, MAX_NUM_ITERATIONS)
     ->Repetitions(NUM_REPETITIONS)
