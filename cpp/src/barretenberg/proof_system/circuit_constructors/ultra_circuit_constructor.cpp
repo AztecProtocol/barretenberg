@@ -43,6 +43,7 @@ void UltraCircuitConstructor::finalize_circuit()
      * our circuit is finalised, and we must not to execute these functions again.
      */
     if (!circuit_finalised) {
+        add_gates_to_ensure_all_polys_are_non_zero();
         process_non_native_field_multiplications();
         process_ROM_arrays();
         process_RAM_arrays();

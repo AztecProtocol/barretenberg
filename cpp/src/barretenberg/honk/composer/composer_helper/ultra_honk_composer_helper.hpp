@@ -60,7 +60,11 @@ template <UltraFlavor Flavor> class UltraHonkComposerHelper_ {
     UltraHonkComposerHelper_& operator=(UltraHonkComposerHelper_ const& other) noexcept = default;
     ~UltraHonkComposerHelper_() = default;
 
-    void finalize_circuit(CircuitConstructor& circuit_constructor) { circuit_constructor.finalize_circuit(); };
+    void finalize_circuit(CircuitConstructor& circuit_constructor)
+    {
+        // WORKTODO: should this be here?
+        circuit_constructor.finalize_circuit();
+    };
 
     std::shared_ptr<ProvingKey> compute_proving_key(const CircuitConstructor& circuit_constructor);
     std::shared_ptr<VerificationKey> compute_verification_key(const CircuitConstructor& circuit_constructor);
