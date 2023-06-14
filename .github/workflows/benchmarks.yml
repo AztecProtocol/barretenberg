@@ -1,6 +1,6 @@
 name: Barretenberg Benchmarks
 
-# For now, run basically whenever anything happens in a PR
+# Only run on push to master
 on:
   push:
     branches:
