@@ -1,8 +1,8 @@
 #pragma once
 /**
- * @file filler.hpp
+ * @file dummy.hpp
  * @author Rumata888
- * @brief This file contains functions for the filler tables that we use in UltraHonk to make table, sorted and lookup
+ * @brief This file contains functions for the dummy tables that we use in UltraHonk to make table, sorted and lookup
  * selector polynomials non-zero.
  *
  */
@@ -10,7 +10,7 @@
 #include "types.hpp"
 
 namespace plookup {
-namespace filler_tables {
+namespace dummy_tables {
 
 /**
  * @brief Lookup the value corresponding to a sepcific key
@@ -40,7 +40,7 @@ template <uint64_t id> inline std::array<barretenberg::fr, 2> get_value_from_key
  * @return A table of values
  */
 template <uint64_t table_id>
-inline BasicTable generate_honk_filler_table(const BasicTableId id, const size_t table_index)
+inline BasicTable generate_honk_dummy_table(const BasicTableId id, const size_t table_index)
 {
 
     ASSERT(table_id == static_cast<uint64_t>(id));
@@ -73,9 +73,9 @@ inline BasicTable generate_honk_filler_table(const BasicTableId id, const size_t
  * so the overall overhead is just 8
  *
  */
-inline MultiTable get_honk_filler_multitable()
+inline MultiTable get_honk_dummy_multitable()
 {
-    const MultiTableId id = HONK_FILLER_MULTI;
+    const MultiTableId id = HONK_DUMMY_MULTI;
     const size_t number_of_elements_in_argument = 1 << 1; // Probably has to be a power of 2
     const size_t number_of_lookups = 2;
     MultiTable table(number_of_elements_in_argument,
@@ -84,12 +84,12 @@ inline MultiTable get_honk_filler_multitable()
                      number_of_lookups);
     table.id = id;
     table.slice_sizes.emplace_back(number_of_elements_in_argument);
-    table.lookup_ids.emplace_back(HONK_FILLER_BASIC1);
-    table.get_table_values.emplace_back(&get_value_from_key<HONK_FILLER_BASIC1>);
+    table.lookup_ids.emplace_back(HONK_DUMMY_BASIC1);
+    table.get_table_values.emplace_back(&get_value_from_key<HONK_DUMMY_BASIC1>);
     table.slice_sizes.emplace_back(number_of_elements_in_argument);
-    table.lookup_ids.emplace_back(HONK_FILLER_BASIC2);
-    table.get_table_values.emplace_back(&get_value_from_key<HONK_FILLER_BASIC2>);
+    table.lookup_ids.emplace_back(HONK_DUMMY_BASIC2);
+    table.get_table_values.emplace_back(&get_value_from_key<HONK_DUMMY_BASIC2>);
     return table;
 }
-} // namespace filler_tables
+} // namespace dummy_tables
 } // namespace plookup

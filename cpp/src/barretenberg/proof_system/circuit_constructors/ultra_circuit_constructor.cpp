@@ -107,10 +107,10 @@ void UltraCircuitConstructor::add_gates_to_ensure_all_polys_are_non_zero()
 
     uint32_t left_witness_index = add_variable(left_witness_value);
     uint32_t right_witness_index = add_variable(right_witness_value);
-    const auto filler_accumulators = plookup::get_lookup_accumulators(
-        plookup::MultiTableId::HONK_FILLER_MULTI, left_witness_value, right_witness_value, true);
+    const auto dummy_accumulators = plookup::get_lookup_accumulators(
+        plookup::MultiTableId::HONK_DUMMY_MULTI, left_witness_value, right_witness_value, true);
     create_gates_from_plookup_accumulators(
-        plookup::MultiTableId::HONK_FILLER_MULTI, filler_accumulators, left_witness_index, right_witness_index);
+        plookup::MultiTableId::HONK_DUMMY_MULTI, dummy_accumulators, left_witness_index, right_witness_index);
 }
 
 /**

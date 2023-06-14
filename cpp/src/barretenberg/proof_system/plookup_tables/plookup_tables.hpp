@@ -14,7 +14,7 @@
 #include "keccak/keccak_output.hpp"
 #include "keccak/keccak_rho.hpp"
 #include "keccak/keccak_theta.hpp"
-#include "filler.hpp"
+#include "dummy.hpp"
 
 namespace plookup {
 
@@ -243,11 +243,11 @@ inline BasicTable create_basic_table(const BasicTableId id, const size_t index)
     case PEDERSEN_IV_BASE: {
         return pedersen_tables::basic::generate_pedersen_iv_table(PEDERSEN_IV_BASE);
     }
-    case HONK_FILLER_BASIC1: {
-        return filler_tables::generate_honk_filler_table<HONK_FILLER_BASIC1>(HONK_FILLER_BASIC1, index);
+    case HONK_DUMMY_BASIC1: {
+        return dummy_tables::generate_honk_dummy_table<HONK_DUMMY_BASIC1>(HONK_DUMMY_BASIC1, index);
     }
-    case HONK_FILLER_BASIC2: {
-        return filler_tables::generate_honk_filler_table<HONK_FILLER_BASIC2>(HONK_FILLER_BASIC2, index);
+    case HONK_DUMMY_BASIC2: {
+        return dummy_tables::generate_honk_dummy_table<HONK_DUMMY_BASIC2>(HONK_DUMMY_BASIC2, index);
     }
     case KECCAK_INPUT: {
         return keccak_tables::KeccakInput::generate_keccak_input_table(KECCAK_INPUT, index);
