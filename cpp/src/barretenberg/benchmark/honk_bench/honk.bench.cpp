@@ -1,26 +1,26 @@
-#include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include <benchmark/benchmark.h>
-#include <cstddef>
+#include "barretenberg/honk/composer/standard_honk_composer.hpp"
 #include "barretenberg/stdlib/primitives/field/field.hpp"
-#include "barretenberg/stdlib/primitives/composers/composers.hpp"
-#include "barretenberg/stdlib/primitives/composers/composers_fwd.hpp"
+#include "barretenberg/stdlib/primitives/witness/witness.hpp"
 
 using namespace benchmark;
 
 namespace standard_honk_bench {
 
-using Composer = proof_system::honk::StandardHonkComposer;
+using Builder = proof_system::StandardCircuitConstructor;
+using Composer = proof_system::honk::StandardHonkComposerHelper;
 
 constexpr size_t MIN_LOG_NUM_GATES = 16;
 constexpr size_t MAX_LOG_NUM_GATES = 16;
 // To get good statistics, number of Repetitions must be sufficient. ~30 Repetitions gives good results.
 constexpr size_t NUM_REPETITIONS = 5;
 
-void generate_test_circuit(auto& composer, size_t num_gates)
+void generate_test_circuit(auto& builder, size_t num_gates)
 {
-    plonk::stdlib::field_t a(plonk::stdlib::witness_t(&composer, barretenberg::fr::random_element()));
-    plonk::stdlib::field_t b(plonk::stdlib::witness_t(&composer, barretenberg::fr::random_element()));
-    plonk::stdlib::field_t c(&composer);
+    barretenberg::srs::init_crs_factory("../srs_db/ignition"); // NOTE: new initialization model.
+    plonk::stdlib::field_t a(plonk::stdlib::witness_t(&builder, barretenberg::fr::random_element()));
+    plonk::stdlib::field_t b(plonk::stdlib::witness_t(&builder, barretenberg::fr::random_element()));
+    plonk::stdlib::field_t c(&builder);
     for (size_t i = 0; i < (num_gates / 4) - 4; ++i) {
         c = a + b;
         c = a * c;
@@ -37,11 +37,12 @@ void create_prover_standard(State& state) noexcept
     for (auto _ : state) {
         state.PauseTiming();
         auto num_gates = 1 << (size_t)state.range(0);
-        auto composer = Composer(static_cast<size_t>(num_gates));
-        generate_test_circuit(composer, static_cast<size_t>(num_gates));
+        auto builder = Builder(static_cast<size_t>(num_gates));
+        generate_test_circuit(builder, static_cast<size_t>(num_gates));
         state.ResumeTiming();
 
-        composer.create_prover();
+        auto composer = Composer();
+        composer.create_prover(builder);
     }
 }
 BENCHMARK(create_prover_standard)->DenseRange(MIN_LOG_NUM_GATES, MAX_LOG_NUM_GATES, 1)->Repetitions(NUM_REPETITIONS);
@@ -54,9 +55,11 @@ void construct_proof_standard(State& state) noexcept
     auto num_gates = 1 << (size_t)state.range(0);
     for (auto _ : state) {
         state.PauseTiming();
-        auto composer = Composer(static_cast<size_t>(num_gates));
-        generate_test_circuit(composer, static_cast<size_t>(num_gates));
-        auto ext_prover = composer.create_prover();
+        auto builder = Builder(static_cast<size_t>(num_gates));
+        generate_test_circuit(builder, static_cast<size_t>(num_gates));
+
+        auto composer = Composer();
+        auto ext_prover = composer.create_prover(builder);
         state.ResumeTiming();
 
         auto proof = ext_prover.construct_proof();
@@ -76,11 +79,12 @@ void create_verifier_standard(State& state) noexcept
     for (auto _ : state) {
         state.PauseTiming();
         auto num_gates = 1 << (size_t)state.range(0);
-        auto composer = Composer(static_cast<size_t>(num_gates));
-        generate_test_circuit(composer, static_cast<size_t>(num_gates));
+        auto builder = Builder(static_cast<size_t>(num_gates));
+        generate_test_circuit(builder, static_cast<size_t>(num_gates));
         state.ResumeTiming();
 
-        composer.create_verifier();
+        auto composer = Composer();
+        composer.create_verifier(builder);
     }
 }
 // BENCHMARK(create_verifier_standard)->DenseRange(MIN_LOG_NUM_GATES, MAX_LOG_NUM_GATES,
@@ -94,11 +98,13 @@ void verify_proof_standard(State& state) noexcept
     for (auto _ : state) {
         state.PauseTiming();
         auto num_gates = (size_t)state.range(0);
-        auto composer = Composer(static_cast<size_t>(num_gates));
-        generate_test_circuit(composer, static_cast<size_t>(num_gates));
-        auto prover = composer.create_prover();
+        auto builder = Builder(static_cast<size_t>(num_gates));
+        generate_test_circuit(builder, static_cast<size_t>(num_gates));
+
+        auto composer = Composer();
+        auto prover = composer.create_prover(builder);
         auto proof = prover.construct_proof();
-        auto verifier = composer.create_verifier();
+        auto verifier = composer.create_verifier(builder);
         state.ResumeTiming();
 
         verifier.verify_proof(proof);
