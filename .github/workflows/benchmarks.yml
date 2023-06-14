@@ -2,8 +2,13 @@ name: Barretenberg Benchmarks
 
 # For now, run basically whenever anything happens in a PR
 on:
-  pull_request:
-    types: ["labeled", "opened", "synchronize", "reopened"]
+  push:
+    branches:
+      - master
+      - lde/ultra_bench_update
+# on:
+#   pull_request:
+#     types: ["labeled", "opened", "synchronize", "reopened"]
 
 # This will cancel previous runs when a branch or PR is updated
 concurrency:

@@ -22,6 +22,7 @@ void construct_proof_standard(State& state, void (*test_circuit_function)(Standa
 
 BENCHMARK_CAPTURE(construct_proof_standard, arithmetic, &bench_utils::generate_basic_arithmetic_circuit<StandardHonk>)
     ->DenseRange(MIN_LOG_NUM_GATES, MAX_LOG_NUM_GATES)
-    ->Repetitions(NUM_REPETITIONS);
+    ->Repetitions(NUM_REPETITIONS)
+    ->Unit(::benchmark::kSecond);
 
 } // namespace standard_honk_bench
