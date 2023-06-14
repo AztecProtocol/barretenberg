@@ -8,7 +8,6 @@ ultra_plonk.bench.cpp
 
 # Required libraries for benchmark suites
 set(LINKED_LIBRARIES
-  stdlib_primitives
   stdlib_sha256
   stdlib_keccak
   stdlib_merkle_tree
