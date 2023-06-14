@@ -244,10 +244,10 @@ inline BasicTable create_basic_table(const BasicTableId id, const size_t index)
         return pedersen_tables::basic::generate_pedersen_iv_table(PEDERSEN_IV_BASE);
     }
     case HONK_FILLER_BASIC1: {
-        return filler_tables::generate_honk_filler_table(HONK_FILLER_BASIC1, index);
+        return filler_tables::generate_honk_filler_table<HONK_FILLER_BASIC1>(HONK_FILLER_BASIC1, index);
     }
     case HONK_FILLER_BASIC2: {
-        return filler_tables::generate_honk_filler_table(HONK_FILLER_BASIC2, index);
+        return filler_tables::generate_honk_filler_table<HONK_FILLER_BASIC2>(HONK_FILLER_BASIC2, index);
     }
     case KECCAK_INPUT: {
         return keccak_tables::KeccakInput::generate_keccak_input_table(KECCAK_INPUT, index);

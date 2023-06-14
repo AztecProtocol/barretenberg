@@ -71,8 +71,7 @@ void ensure_non_zero(auto& polynomial)
 TEST(UltraHonkComposer, ANonZeroPolynomialIsAGoodPolynomial)
 {
     auto composer = UltraHonkComposer();
-
-    composer.add_gates_to_ensure_all_polys_are_non_zero();
+    // The composer should call add_gates_to_ensure_all_polys_are_non_zero by default
 
     auto prover = composer.create_prover();
     auto proof = prover.construct_proof();
