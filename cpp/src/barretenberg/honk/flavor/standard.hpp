@@ -17,7 +17,7 @@
 #include "barretenberg/polynomials/evaluation_domain.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
-#include "barretenberg/srs/reference_string/reference_string.hpp"
+#include "barretenberg/srs/factories/crs_factory.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 
 namespace proof_system::honk::flavor {
@@ -65,9 +65,6 @@ class Standard {
     // define the containers for storing the contributions from each relation in Sumcheck
     using RelationUnivariates = decltype(create_relation_univariates_container<FF, Relations>());
     using RelationValues = decltype(create_relation_values_container<FF, Relations>());
-
-    // define utilities to extend univarates from RELATION_LENGTH to MAX_RELATION_LENGTH for each Relation
-    // using BarycentricUtils = decltype(create_barycentric_utils<FF, Relations, MAX_RELATION_LENGTH>());
 
   private:
     /**

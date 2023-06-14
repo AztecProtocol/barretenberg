@@ -3,7 +3,6 @@
 #include "barretenberg/honk/sumcheck/sumcheck.hpp"
 #include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/honk/utils/power_polynomial.hpp"
-#include "barretenberg/honk/flavor/standard.hpp"
 
 namespace proof_system::honk {
 
@@ -16,11 +15,12 @@ namespace proof_system::honk {
  * @tparam settings Settings class.
  * */
 template <StandardFlavor Flavor>
-StandardProver_<Flavor>::StandardProver_(const std::shared_ptr<ProvingKey> input_key)
+StandardProver_<Flavor>::StandardProver_(const std::shared_ptr<ProvingKey> input_key,
+                                         const std::shared_ptr<PCSCommitmentKey> commitment_key)
     : key(input_key)
-    , queue(input_key->circuit_size, transcript)
+    , queue(commitment_key, transcript)
+    , pcs_commitment_key(commitment_key)
 {
-
     prover_polynomials.q_c = key->q_c;
     prover_polynomials.q_l = key->q_l;
     prover_polynomials.q_r = key->q_r;
@@ -283,5 +283,6 @@ template <StandardFlavor Flavor> plonk::proof& StandardProver_<Flavor>::construc
 }
 
 template class StandardProver_<flavor::Standard>;
+template class StandardProver_<flavor::StandardGrumpkin>;
 
 } // namespace proof_system::honk

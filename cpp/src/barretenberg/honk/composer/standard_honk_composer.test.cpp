@@ -17,6 +17,12 @@
 using namespace proof_system::honk;
 
 namespace test_standard_honk_composer {
+
+class StandardHonkComposerTests : public ::testing::Test {
+  protected:
+    static void SetUpTestSuite() { barretenberg::srs::init_crs_factory("../srs_db/ignition"); }
+};
+
 /**
  * @brief The goal of this test is to check that the sigma permutation vectors for honk are generated correctly.
  *
@@ -25,7 +31,7 @@ namespace test_standard_honk_composer {
  * 2) That if the permutation argument is computed with witness values, the values from the identity permutation and
  * sigma permutation are equal
  */
-TEST(StandardHonkComposer, SigmaIDCorrectness)
+TEST_F(StandardHonkComposerTests, SigmaIDCorrectness)
 {
     auto test_permutation = [](StandardHonkComposer& composer) {
         auto proving_key = composer.compute_proving_key();
@@ -138,7 +144,7 @@ TEST(StandardHonkComposer, SigmaIDCorrectness)
  * @brief Check the correctness of lagrange polynomials generated during proving key computation
  *
  */
-TEST(StandardHonkComposer, LagrangeCorrectness)
+TEST_F(StandardHonkComposerTests, LagrangeCorrectness)
 {
     // Create a composer and a dummy circuit with a few gates
     StandardHonkComposer composer = StandardHonkComposer();
@@ -187,8 +193,9 @@ TEST(StandardHonkComposer, LagrangeCorrectness)
  * merged.
  * In this test we create two almost identical circuits. They differ because one
  */
-TEST(StandardHonkComposer, AssertEquals)
+TEST_F(StandardHonkComposerTests, AssertEquals)
 {
+
     /**
      * @brief A function that creates a simple circuit with repeated gates, leading to large permutation cycles
      *
@@ -281,8 +288,9 @@ TEST(StandardHonkComposer, AssertEquals)
     EXPECT_EQ(get_maximum_cycle(composer_with_assert_equal), get_maximum_cycle(composer_no_assert_equal) * 2);
 }
 
-TEST(StandardHonkComposer, VerificationKeyCreation)
+TEST_F(StandardHonkComposerTests, VerificationKeyCreation)
 {
+
     // Create a composer and a dummy circuit with a few gates
     StandardHonkComposer composer = StandardHonkComposer();
     fr a = fr::one();
@@ -297,6 +305,7 @@ TEST(StandardHonkComposer, VerificationKeyCreation)
         composer.create_add_gate({ a_idx, b_idx, c_idx, fr::one(), fr::one(), fr::neg_one(), fr::zero() });
         composer.create_add_gate({ d_idx, c_idx, a_idx, fr::one(), fr::neg_one(), fr::neg_one(), fr::zero() });
     }
+    composer.create_prover();
     auto verification_key = composer.compute_verification_key();
     // There is nothing we can really check apart from the fact that constraint selectors and permutation selectors were
     // committed to, we simply check that the verification key now contains the appropriate number of constraint and
@@ -304,7 +313,7 @@ TEST(StandardHonkComposer, VerificationKeyCreation)
     EXPECT_EQ(verification_key->size(), composer.circuit_constructor.selectors.size() + composer.NUM_WIRES * 2 + 2);
 }
 
-TEST(StandardHonkComposer, BaseCase)
+TEST_F(StandardHonkComposerTests, BaseCase)
 {
     auto composer = StandardHonkComposer();
     fr a = 1;
@@ -317,7 +326,7 @@ TEST(StandardHonkComposer, BaseCase)
     ASSERT_TRUE(verified);
 }
 
-TEST(StandardHonkComposer, TwoGates)
+TEST_F(StandardHonkComposerTests, TwoGates)
 {
     auto run_test = [](bool expect_verified) {
         auto composer = StandardHonkComposer();
@@ -351,7 +360,7 @@ TEST(StandardHonkComposer, TwoGates)
     run_test(/* expect_verified=*/false);
 }
 
-TEST(StandardHonkComposer, SumcheckEvaluations)
+TEST_F(StandardHonkComposerTests, SumcheckEvaluations)
 {
     auto run_test = [](bool expected_result) {
         auto composer = StandardHonkComposer();
@@ -382,5 +391,17 @@ TEST(StandardHonkComposer, SumcheckEvaluations)
     };
     run_test(/*expected_result=*/true);
     run_test(/*expected_result=*/false);
+}
+TEST(StandardGrumpkinHonkComposer, BaseCase)
+{
+    auto composer = StandardGrumpkinHonkComposer();
+    fr a = 1;
+    composer.circuit_constructor.add_variable(a);
+
+    auto prover = composer.create_prover();
+    plonk::proof proof = prover.construct_proof();
+    auto verifier = composer.create_verifier();
+    bool verified = verifier.verify_proof(proof);
+    ASSERT_TRUE(verified);
 }
 } // namespace test_standard_honk_composer

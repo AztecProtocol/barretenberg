@@ -44,8 +44,8 @@ void UltraCircuitConstructor::finalize_circuit()
      */
     if (!circuit_finalised) {
         process_non_native_field_multiplications();
-        process_ROM_arrays(public_inputs.size());
-        process_RAM_arrays(public_inputs.size());
+        process_ROM_arrays();
+        process_RAM_arrays();
         process_range_lists();
         circuit_finalised = true;
     }
@@ -779,11 +779,11 @@ void UltraCircuitConstructor::process_range_list(RangeList& list)
     // go over variables
     // iterate over each variable and create mirror variable with same value - with tau tag
     // need to make sure that, in original list, increments of at most 3
-    std::vector<uint64_t> sorted_list;
+    std::vector<uint32_t> sorted_list;
     sorted_list.reserve(list.variable_indices.size());
     for (const auto variable_index : list.variable_indices) {
         const auto& field_element = get_variable(variable_index);
-        const uint64_t shrinked_value = field_element.from_montgomery_form().data[0];
+        const uint32_t shrinked_value = (uint32_t)field_element.from_montgomery_form().data[0];
         sorted_list.emplace_back(shrinked_value);
     }
 
@@ -792,13 +792,16 @@ void UltraCircuitConstructor::process_range_list(RangeList& list)
 #else
     std::sort(std::execution::par_unseq, sorted_list.begin(), sorted_list.end());
 #endif
-    std::vector<uint32_t> indices;
-
     // list must be padded to a multipe of 4 and larger than 4 (gate_width)
     constexpr size_t gate_width = plonk::ultra_settings::program_width;
     size_t padding = (gate_width - (list.variable_indices.size() % gate_width)) % gate_width;
-    if (list.variable_indices.size() <= gate_width)
+
+    std::vector<uint32_t> indices;
+    indices.reserve(padding + sorted_list.size());
+
+    if (list.variable_indices.size() <= gate_width) {
         padding += gate_width;
+    }
     for (size_t i = 0; i < padding; ++i) {
         indices.emplace_back(zero_idx);
     }
@@ -812,8 +815,9 @@ void UltraCircuitConstructor::process_range_list(RangeList& list)
 
 void UltraCircuitConstructor::process_range_lists()
 {
-    for (auto& i : range_lists)
+    for (auto& i : range_lists) {
         process_range_list(i.second);
+    }
 }
 
 /*
@@ -2269,7 +2273,7 @@ std::array<uint32_t, 2> UltraCircuitConstructor::read_ROM_array_pair(const size_
  * @param rom_id The id of the ROM table
  * @param gate_offset_from_public_inputs Required to track the gate position of where we're adding extra gates
  */
-void UltraCircuitConstructor::process_ROM_array(const size_t rom_id, const size_t gate_offset_from_public_inputs)
+void UltraCircuitConstructor::process_ROM_array(const size_t rom_id)
 {
 
     auto& rom_array = rom_arrays[rom_id];
@@ -2322,8 +2326,8 @@ void UltraCircuitConstructor::process_ROM_array(const size_t rom_id, const size_
         // record (w4) = w3 * eta^3 + w2 * eta^2 + w1 * eta + read_write_flag (0 for reads, 1 for writes)
         // Separate containers used to store gate indices of reads and writes. Need to differentiate because of
         // `read_write_flag` (N.B. all ROM accesses are considered reads. Writes are for RAM operations)
-        memory_read_records.push_back(static_cast<uint32_t>(sorted_record.gate_index + gate_offset_from_public_inputs));
-        memory_read_records.push_back(static_cast<uint32_t>(record.gate_index + gate_offset_from_public_inputs));
+        memory_read_records.push_back(static_cast<uint32_t>(sorted_record.gate_index));
+        memory_read_records.push_back(static_cast<uint32_t>(record.gate_index));
     }
     // One of the checks we run on the sorted list, is to validate the difference between
     // the index field across two gates is either 0 or 1.
@@ -2355,7 +2359,7 @@ void UltraCircuitConstructor::process_ROM_array(const size_t rom_id, const size_
  * @param ram_id The id of the RAM table
  * @param gate_offset_from_public_inputs Required to track the gate position of where we're adding extra gates
  */
-void UltraCircuitConstructor::process_RAM_array(const size_t ram_id, const size_t gate_offset_from_public_inputs)
+void UltraCircuitConstructor::process_RAM_array(const size_t ram_id)
 {
     RamTranscript& ram_array = ram_arrays[ram_id];
     const auto access_tag = get_new_tag();      // current_tag + 1;
@@ -2379,6 +2383,8 @@ void UltraCircuitConstructor::process_RAM_array(const size_t ram_id, const size_
     std::sort(std::execution::par_unseq, ram_array.records.begin(), ram_array.records.end());
 #endif
 
+    std::vector<RamRecord> sorted_ram_records;
+
     // Iterate over all but final RAM record.
     for (size_t i = 0; i < ram_array.records.size(); ++i) {
         const RamRecord& record = ram_array.records[i];
@@ -2398,6 +2404,9 @@ void UltraCircuitConstructor::process_RAM_array(const size_t ram_id, const size_
             .record_witness = 0,
             .gate_index = 0,
         };
+
+        // create a list of sorted ram records
+        sorted_ram_records.emplace_back(sorted_record);
 
         // We don't apply the RAM consistency check gate to the final record,
         // as this gate expects a RAM record to be present at the next gate
@@ -2424,15 +2433,13 @@ void UltraCircuitConstructor::process_RAM_array(const size_t ram_id, const size_
 
         switch (record.access_type) {
         case RamRecord::AccessType::READ: {
-            memory_read_records.push_back(
-                static_cast<uint32_t>(sorted_record.gate_index + gate_offset_from_public_inputs));
-            memory_read_records.push_back(static_cast<uint32_t>(record.gate_index + gate_offset_from_public_inputs));
+            memory_read_records.push_back(static_cast<uint32_t>(sorted_record.gate_index));
+            memory_read_records.push_back(static_cast<uint32_t>(record.gate_index));
             break;
         }
         case RamRecord::AccessType::WRITE: {
-            memory_write_records.push_back(
-                static_cast<uint32_t>(sorted_record.gate_index + gate_offset_from_public_inputs));
-            memory_write_records.push_back(static_cast<uint32_t>(record.gate_index + gate_offset_from_public_inputs));
+            memory_write_records.push_back(static_cast<uint32_t>(sorted_record.gate_index));
+            memory_write_records.push_back(static_cast<uint32_t>(record.gate_index));
             break;
         }
         default: {
@@ -2444,10 +2451,10 @@ void UltraCircuitConstructor::process_RAM_array(const size_t ram_id, const size_
     // Step 2: Create gates that validate correctness of RAM timestamps
 
     std::vector<uint32_t> timestamp_deltas;
-    for (size_t i = 0; i < ram_array.records.size() - 1; ++i) {
+    for (size_t i = 0; i < sorted_ram_records.size() - 1; ++i) {
         // create_RAM_timestamp_gate(sorted_records[i], sorted_records[i + 1])
-        const auto& current = ram_array.records[i];
-        const auto& next = ram_array.records[i + 1];
+        const auto& current = sorted_ram_records[i];
+        const auto& next = sorted_ram_records[i + 1];
 
         const bool share_index = current.index == next.index;
 
@@ -2473,7 +2480,7 @@ void UltraCircuitConstructor::process_RAM_array(const size_t ram_id, const size_
 
     // add the index/timestamp values of the last sorted record in an empty add gate.
     // (the previous gate will access the wires on this gate and requires them to be those of the last record)
-    const auto& last = ram_array.records[ram_array.records.size() - 1];
+    const auto& last = sorted_ram_records[ram_array.records.size() - 1];
     create_big_add_gate({
         last.index_witness,
         last.timestamp_witness,
@@ -2492,16 +2499,16 @@ void UltraCircuitConstructor::process_RAM_array(const size_t ram_id, const size_
     }
 }
 
-void UltraCircuitConstructor::process_ROM_arrays(const size_t gate_offset_from_public_inputs)
+void UltraCircuitConstructor::process_ROM_arrays()
 {
     for (size_t i = 0; i < rom_arrays.size(); ++i) {
-        process_ROM_array(i, gate_offset_from_public_inputs);
+        process_ROM_array(i);
     }
 }
-void UltraCircuitConstructor::process_RAM_arrays(const size_t gate_offset_from_public_inputs)
+void UltraCircuitConstructor::process_RAM_arrays()
 {
     for (size_t i = 0; i < ram_arrays.size(); ++i) {
-        process_RAM_array(i, gate_offset_from_public_inputs);
+        process_RAM_array(i);
     }
 }
 

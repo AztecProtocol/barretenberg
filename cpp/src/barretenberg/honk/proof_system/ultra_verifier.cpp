@@ -2,10 +2,7 @@
 #include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 #include "barretenberg/honk/flavor/standard.hpp"
-#include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/honk/utils/power_polynomial.hpp"
-
-#pragma GCC diagnostic ignored "-Wunused-variable"
 
 using namespace barretenberg;
 using namespace proof_system::honk::sumcheck;
@@ -161,5 +158,6 @@ template <typename Flavor> bool UltraVerifier_<Flavor>::verify_proof(const plonk
 }
 
 template class UltraVerifier_<honk::flavor::Ultra>;
+template class UltraVerifier_<honk::flavor::UltraGrumpkin>;
 
 } // namespace proof_system::honk

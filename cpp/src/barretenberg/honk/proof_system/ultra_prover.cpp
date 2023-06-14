@@ -29,9 +29,11 @@ namespace proof_system::honk {
  * @tparam settings Settings class.
  * */
 template <UltraFlavor Flavor>
-UltraProver_<Flavor>::UltraProver_(std::shared_ptr<typename Flavor::ProvingKey> input_key)
+UltraProver_<Flavor>::UltraProver_(std::shared_ptr<typename Flavor::ProvingKey> input_key,
+                                   std::shared_ptr<PCSCommitmentKey> commitment_key)
     : key(input_key)
-    , queue(input_key->circuit_size, transcript)
+    , queue(commitment_key, transcript)
+    , pcs_commitment_key(commitment_key)
 {
     prover_polynomials.q_c = key->q_c;
     prover_polynomials.q_l = key->q_l;
@@ -336,5 +338,6 @@ template <UltraFlavor Flavor> plonk::proof& UltraProver_<Flavor>::construct_proo
 }
 
 template class UltraProver_<honk::flavor::Ultra>;
+template class UltraProver_<honk::flavor::UltraGrumpkin>;
 
 } // namespace proof_system::honk

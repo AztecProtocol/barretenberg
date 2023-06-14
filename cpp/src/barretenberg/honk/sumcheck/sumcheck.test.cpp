@@ -78,7 +78,12 @@ ProverPolynomials construct_full_polynomials(std::array<FF, N>& w_l,
     return full_polynomials;
 }
 
-TEST(Sumcheck, PolynomialNormalization)
+class SumcheckTests : public ::testing::Test {
+  protected:
+    static void SetUpTestSuite() { barretenberg::srs::init_crs_factory("../srs_db/ignition"); }
+};
+
+TEST_F(SumcheckTests, PolynomialNormalization)
 {
     // TODO(#225)(Cody): We should not use real constants like this in the tests, at least not in so many of them.
     const size_t multivariate_d(3);
@@ -156,8 +161,8 @@ TEST(Sumcheck, PolynomialNormalization)
      * sumcheck.multivariates.folded_polynoimals[i][0] is the evaluatioin of the i'th multivariate at the vector of
      challenges u_i. What does this mean?
 
-     Here we show that if the multivariate is F(X0, X1, X2) defined as above, then what we get is F(u0, u1, u2) and not,
-     say F(u2, u1, u0). This is in accordance with Adrian's thesis (cf page 9).
+     Here we show that if the multivariate is F(X0, X1, X2) defined as above, then what we get is F(u0, u1, u2) and
+     not, say F(u2, u1, u0). This is in accordance with Adrian's thesis (cf page 9).
       */
 
     // Get the values of the Lagrange basis polys L_i defined
@@ -184,7 +189,7 @@ TEST(Sumcheck, PolynomialNormalization)
     }
 }
 
-TEST(Sumcheck, Prover)
+TEST_F(SumcheckTests, Prover)
 {
     auto run_test = [](bool is_random_input) {
         const size_t multivariate_d(2);
@@ -266,7 +271,7 @@ TEST(Sumcheck, Prover)
 // TODO(#223)(Cody): write standalone test of the verifier.
 // Note(luke): This test (and ProverAndVerifierLonger) are slighly misleading in that they include the grand product
 // realtions but do not test their correctness due to the choice of zero polynomials for sigma, id etc.
-TEST(Sumcheck, ProverAndVerifier)
+TEST_F(SumcheckTests, ProverAndVerifier)
 {
     const size_t multivariate_d(1);
     const size_t multivariate_n(1 << multivariate_d);
@@ -332,7 +337,7 @@ TEST(Sumcheck, ProverAndVerifier)
 }
 
 // TODO(#225): make the inputs to this test more interesting, e.g. num_public_inputs > 0 and non-trivial permutations
-TEST(Sumcheck, ProverAndVerifierLonger)
+TEST_F(SumcheckTests, ProverAndVerifierLonger)
 {
     auto run_test = [](bool expect_verified) {
         const size_t multivariate_d(2);
@@ -412,7 +417,7 @@ TEST(Sumcheck, ProverAndVerifierLonger)
  * @brief Test the Standard Sumcheck Prover and Verifier for a real circuit
  *
  */
-TEST(Sumcheck, RealCircuitStandard)
+TEST_F(SumcheckTests, RealCircuitStandard)
 {
     using Flavor = honk::flavor::Standard;
     using FF = typename Flavor::FF;
@@ -494,7 +499,7 @@ TEST(Sumcheck, RealCircuitStandard)
  * @brief Test the Ultra Sumcheck Prover and Verifier for a real circuit
  *
  */
-TEST(Sumcheck, RealCircuitUltra)
+TEST_F(SumcheckTests, RealCircuitUltra)
 {
     using Flavor = honk::flavor::Ultra;
     using FF = typename Flavor::FF;
