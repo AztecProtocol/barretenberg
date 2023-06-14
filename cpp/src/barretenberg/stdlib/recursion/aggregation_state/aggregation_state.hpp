@@ -28,21 +28,10 @@ template <typename Curve> struct aggregation_state {
         //    has_data == other.has_data; can't compare as native
     };
 
-    /**
-     * @brief TODO(@dbanks12 please migrate A3 circuits to using `assign_object_to_proof_outputs`. Much safer to not
-     * independently track `proof_witness_indices` and whether object has been assigned to public inputs)
-     *
-     */
-    void add_proof_outputs_as_public_inputs() // WORKTODO: This is not used anywhere.
-    {
-        auto* context = P0.get_context();
-        context->add_recursive_proof(proof_witness_indices);
-    }
-
     void assign_object_to_proof_outputs()
     {
         if (proof_witness_indices.size() == 0) {
-            std::cerr << "warning. calling `add_proof_outputs_as_public_inputs`, but aggregation object already has "
+            std::cerr << "warning. calling `assign_object_to_proof_outputs`, but aggregation object already has "
                          "assigned proof outputs to public inputs.";
             return;
         }

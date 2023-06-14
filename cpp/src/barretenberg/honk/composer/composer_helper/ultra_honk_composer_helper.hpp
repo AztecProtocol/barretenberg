@@ -60,12 +60,6 @@ template <UltraFlavor Flavor> class UltraHonkComposerHelper_ {
     UltraHonkComposerHelper_& operator=(UltraHonkComposerHelper_ const& other) noexcept = default;
     ~UltraHonkComposerHelper_() = default;
 
-    void finalize_circuit(CircuitConstructor& circuit_constructor)
-    {
-        // WORKTODO: should this be here?
-        circuit_constructor.finalize_circuit();
-    };
-
     std::shared_ptr<ProvingKey> compute_proving_key(const CircuitConstructor& circuit_constructor);
     std::shared_ptr<VerificationKey> compute_verification_key(const CircuitConstructor& circuit_constructor);
 
@@ -83,6 +77,7 @@ template <UltraFlavor Flavor> class UltraHonkComposerHelper_ {
 };
 extern template class UltraHonkComposerHelper_<honk::flavor::Ultra>;
 extern template class UltraHonkComposerHelper_<honk::flavor::UltraGrumpkin>;
+// TODO(#532): this pattern is weird; is this not instantiating the templates?
 using UltraHonkComposerHelper = UltraHonkComposerHelper_<honk::flavor::Ultra>;
 using UltraGrumpkinHonkComposerHelper = UltraHonkComposerHelper_<honk::flavor::UltraGrumpkin>;
 } // namespace proof_system::honk

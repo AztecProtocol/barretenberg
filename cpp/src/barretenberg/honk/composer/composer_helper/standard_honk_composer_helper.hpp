@@ -74,9 +74,9 @@ template <StandardFlavor Flavor> class StandardHonkComposerHelper_ {
     };
 };
 
-// WORKTODO: this pattern is weird; not actually saving compilation time?
 extern template class StandardHonkComposerHelper_<honk::flavor::Standard>;
 extern template class StandardHonkComposerHelper_<honk::flavor::StandardGrumpkin>;
+// TODO(#532): this pattern is weird; is this not instantiating the templates?
 using StandardHonkComposerHelper = StandardHonkComposerHelper_<honk::flavor::Standard>;
 using StandardGrumpkinHonkComposerHelper = StandardHonkComposerHelper_<honk::flavor::StandardGrumpkin>;
 } // namespace proof_system::honk

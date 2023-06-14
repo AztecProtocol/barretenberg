@@ -76,8 +76,6 @@ class UltraPlonkComposerHelper {
 
     [[nodiscard]] size_t get_num_selectors() { return ultra_selector_properties().size(); }
 
-    void finalize_circuit(CircuitConstructor& circuit_constructor) { circuit_constructor.finalize_circuit(); };
-
     std::shared_ptr<plonk::proving_key> compute_proving_key(CircuitConstructor& circuit_constructor);
     std::shared_ptr<plonk::verification_key> compute_verification_key(CircuitConstructor& circuit_constructor);
 
