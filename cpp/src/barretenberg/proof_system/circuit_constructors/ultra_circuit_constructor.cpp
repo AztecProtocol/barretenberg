@@ -44,8 +44,8 @@ template <typename Curve> void UltraCircuitConstructor_<Curve>::finalize_circuit
      */
     if (!circuit_finalised) {
         process_non_native_field_multiplications();
-        process_ROM_arrays(public_inputs.size());
-        process_RAM_arrays(public_inputs.size());
+        process_ROM_arrays();
+        process_RAM_arrays();
         process_range_lists();
         circuit_finalised = true;
     }
@@ -2317,9 +2317,13 @@ std::array<uint32_t, 2> UltraCircuitConstructor_<Curve>::read_ROM_array_pair(con
  * @param rom_id The id of the ROM table
  * @param gate_offset_from_public_inputs Required to track the gate position of where we're adding extra gates
  */
+<<<<<<< HEAD
 template <typename Curve>
 void UltraCircuitConstructor_<Curve>::process_ROM_array(const size_t rom_id,
                                                         const size_t gate_offset_from_public_inputs)
+=======
+void UltraCircuitConstructor::process_ROM_array(const size_t rom_id)
+>>>>>>> master
 {
 
     auto& rom_array = rom_arrays[rom_id];
@@ -2372,8 +2376,8 @@ void UltraCircuitConstructor_<Curve>::process_ROM_array(const size_t rom_id,
         // record (w4) = w3 * eta^3 + w2 * eta^2 + w1 * eta + read_write_flag (0 for reads, 1 for writes)
         // Separate containers used to store gate indices of reads and writes. Need to differentiate because of
         // `read_write_flag` (N.B. all ROM accesses are considered reads. Writes are for RAM operations)
-        memory_read_records.push_back(static_cast<uint32_t>(sorted_record.gate_index + gate_offset_from_public_inputs));
-        memory_read_records.push_back(static_cast<uint32_t>(record.gate_index + gate_offset_from_public_inputs));
+        memory_read_records.push_back(static_cast<uint32_t>(sorted_record.gate_index));
+        memory_read_records.push_back(static_cast<uint32_t>(record.gate_index));
     }
     // One of the checks we run on the sorted list, is to validate the difference between
     // the index field across two gates is either 0 or 1.
@@ -2405,9 +2409,13 @@ void UltraCircuitConstructor_<Curve>::process_ROM_array(const size_t rom_id,
  * @param ram_id The id of the RAM table
  * @param gate_offset_from_public_inputs Required to track the gate position of where we're adding extra gates
  */
+<<<<<<< HEAD
 template <typename Curve>
 void UltraCircuitConstructor_<Curve>::process_RAM_array(const size_t ram_id,
                                                         const size_t gate_offset_from_public_inputs)
+=======
+void UltraCircuitConstructor::process_RAM_array(const size_t ram_id)
+>>>>>>> master
 {
     RamTranscript& ram_array = ram_arrays[ram_id];
     const auto access_tag = get_new_tag();      // current_tag + 1;
@@ -2431,6 +2439,8 @@ void UltraCircuitConstructor_<Curve>::process_RAM_array(const size_t ram_id,
     std::sort(std::execution::par_unseq, ram_array.records.begin(), ram_array.records.end());
 #endif
 
+    std::vector<RamRecord> sorted_ram_records;
+
     // Iterate over all but final RAM record.
     for (size_t i = 0; i < ram_array.records.size(); ++i) {
         const RamRecord& record = ram_array.records[i];
@@ -2450,6 +2460,9 @@ void UltraCircuitConstructor_<Curve>::process_RAM_array(const size_t ram_id,
             .record_witness = 0,
             .gate_index = 0,
         };
+
+        // create a list of sorted ram records
+        sorted_ram_records.emplace_back(sorted_record);
 
         // We don't apply the RAM consistency check gate to the final record,
         // as this gate expects a RAM record to be present at the next gate
@@ -2476,15 +2489,13 @@ void UltraCircuitConstructor_<Curve>::process_RAM_array(const size_t ram_id,
 
         switch (record.access_type) {
         case RamRecord::AccessType::READ: {
-            memory_read_records.push_back(
-                static_cast<uint32_t>(sorted_record.gate_index + gate_offset_from_public_inputs));
-            memory_read_records.push_back(static_cast<uint32_t>(record.gate_index + gate_offset_from_public_inputs));
+            memory_read_records.push_back(static_cast<uint32_t>(sorted_record.gate_index));
+            memory_read_records.push_back(static_cast<uint32_t>(record.gate_index));
             break;
         }
         case RamRecord::AccessType::WRITE: {
-            memory_write_records.push_back(
-                static_cast<uint32_t>(sorted_record.gate_index + gate_offset_from_public_inputs));
-            memory_write_records.push_back(static_cast<uint32_t>(record.gate_index + gate_offset_from_public_inputs));
+            memory_write_records.push_back(static_cast<uint32_t>(sorted_record.gate_index));
+            memory_write_records.push_back(static_cast<uint32_t>(record.gate_index));
             break;
         }
         default: {
@@ -2496,10 +2507,10 @@ void UltraCircuitConstructor_<Curve>::process_RAM_array(const size_t ram_id,
     // Step 2: Create gates that validate correctness of RAM timestamps
 
     std::vector<uint32_t> timestamp_deltas;
-    for (size_t i = 0; i < ram_array.records.size() - 1; ++i) {
+    for (size_t i = 0; i < sorted_ram_records.size() - 1; ++i) {
         // create_RAM_timestamp_gate(sorted_records[i], sorted_records[i + 1])
-        const auto& current = ram_array.records[i];
-        const auto& next = ram_array.records[i + 1];
+        const auto& current = sorted_ram_records[i];
+        const auto& next = sorted_ram_records[i + 1];
 
         const bool share_index = current.index == next.index;
 
@@ -2525,7 +2536,7 @@ void UltraCircuitConstructor_<Curve>::process_RAM_array(const size_t ram_id,
 
     // add the index/timestamp values of the last sorted record in an empty add gate.
     // (the previous gate will access the wires on this gate and requires them to be those of the last record)
-    const auto& last = ram_array.records[ram_array.records.size() - 1];
+    const auto& last = sorted_ram_records[ram_array.records.size() - 1];
     create_big_add_gate({
         last.index_witness,
         last.timestamp_witness,
@@ -2544,18 +2555,26 @@ void UltraCircuitConstructor_<Curve>::process_RAM_array(const size_t ram_id,
     }
 }
 
+<<<<<<< HEAD
 template <typename Curve>
 void UltraCircuitConstructor_<Curve>::process_ROM_arrays(const size_t gate_offset_from_public_inputs)
+=======
+void UltraCircuitConstructor::process_ROM_arrays()
+>>>>>>> master
 {
     for (size_t i = 0; i < rom_arrays.size(); ++i) {
-        process_ROM_array(i, gate_offset_from_public_inputs);
+        process_ROM_array(i);
     }
 }
+<<<<<<< HEAD
 template <typename Curve>
 void UltraCircuitConstructor_<Curve>::process_RAM_arrays(const size_t gate_offset_from_public_inputs)
+=======
+void UltraCircuitConstructor::process_RAM_arrays()
+>>>>>>> master
 {
     for (size_t i = 0; i < ram_arrays.size(); ++i) {
-        process_RAM_array(i, gate_offset_from_public_inputs);
+        process_RAM_array(i);
     }
 }
 

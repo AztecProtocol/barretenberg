@@ -1,7 +1,6 @@
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include <benchmark/benchmark.h>
 #include <cstddef>
-
 #include "barretenberg/stdlib/primitives/field/field.hpp"
 #include "barretenberg/stdlib/primitives/composers/composers.hpp"
 #include "barretenberg/stdlib/primitives/composers/composers_fwd.hpp"
