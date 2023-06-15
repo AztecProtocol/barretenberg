@@ -167,10 +167,8 @@ template <typename Composer> void generate_merkle_membership_test_circuit(Compos
         auto idx_ct = field_ct(witness_ct(&composer, fr(idx))).decompose_into_bits();
         auto value_ct = field_ct(value);
 
-        merkle_tree::check_membership(root_ct,
-                                      merkle_tree::create_witness_hash_path(composer, merkle_tree.get_hash_path(idx)),
-                                      field_ct(value),
-                                      idx_ct);
+        merkle_tree::check_membership(
+            root_ct, merkle_tree::create_witness_hash_path(composer, merkle_tree.get_hash_path(idx)), value_ct, idx_ct);
     }
 }
 
