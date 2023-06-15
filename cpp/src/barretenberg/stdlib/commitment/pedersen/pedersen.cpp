@@ -3,7 +3,6 @@
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 #include "../../hash/pedersen/pedersen.hpp"
 
-#include "../../primitives/composers/composers.hpp"
 #include "../../primitives/packed_byte_array/packed_byte_array.hpp"
 
 namespace proof_system::plonk {
