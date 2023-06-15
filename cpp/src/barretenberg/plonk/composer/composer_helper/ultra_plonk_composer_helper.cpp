@@ -139,6 +139,27 @@ void UltraPlonkComposerHelper::compute_witness(CircuitConstructor& circuit_const
     circuit_proving_key->polynomial_store.put("s_3_lagrange", std::move(s_3));
     circuit_proving_key->polynomial_store.put("s_4_lagrange", std::move(s_4));
 
+    // Copy memory read/write record data into proving key. Prover needs to know which gates contain a read/write
+    // 'record' witness on the 4th wire. This wire value can only be fully computed once the first 3 wire polynomials
+    // have been committed to. The 4th wire on these gates will be a random linear combination of the first 3 wires,
+    // using the plookup challenge `eta`. Because we shift the gates by the number of public inputs, we need to update
+    // the records with the public_inputs offset
+    const uint32_t public_inputs_count = static_cast<uint32_t>(circuit_constructor.public_inputs.size());
+    auto add_public_inputs_offset = [public_inputs_count](uint32_t gate_index) {
+        return gate_index + public_inputs_count;
+    };
+    circuit_proving_key->memory_read_records = std::vector<uint32_t>();
+    circuit_proving_key->memory_write_records = std::vector<uint32_t>();
+
+    std::transform(circuit_constructor.memory_read_records.begin(),
+                   circuit_constructor.memory_read_records.end(),
+                   std::back_inserter(circuit_proving_key->memory_read_records),
+                   add_public_inputs_offset);
+    std::transform(circuit_constructor.memory_write_records.begin(),
+                   circuit_constructor.memory_write_records.end(),
+                   std::back_inserter(circuit_proving_key->memory_write_records),
+                   add_public_inputs_offset);
+
     computed_witness = true;
 }
 
@@ -453,21 +474,11 @@ std::shared_ptr<proving_key> UltraPlonkComposerHelper::compute_proving_key(Circu
     circuit_proving_key->polynomial_store.put("z_lookup_fft", std::move(z_lookup_fft));
     circuit_proving_key->polynomial_store.put("s_fft", std::move(s_fft));
 
-    // Copy memory read/write record data into proving key. Prover needs to know which gates contain a read/write
-    // 'record' witness on the 4th wire. This wire value can only be fully computed once the first 3 wire polynomials
-    // have been committed to. The 4th wire on these gates will be a random linear combination of the first 3 wires,
-    // using the plookup challenge `eta`
-    std::copy(circuit_constructor.memory_read_records.begin(),
-              circuit_constructor.memory_read_records.end(),
-              std::back_inserter(circuit_proving_key->memory_read_records));
-    std::copy(circuit_constructor.memory_write_records.begin(),
-              circuit_constructor.memory_write_records.end(),
-              std::back_inserter(circuit_proving_key->memory_write_records));
-
     circuit_proving_key->recursive_proof_public_input_indices =
-        std::vector<uint32_t>(recursive_proof_public_input_indices.begin(), recursive_proof_public_input_indices.end());
+        std::vector<uint32_t>(circuit_constructor.recursive_proof_public_input_indices.begin(),
+                              circuit_constructor.recursive_proof_public_input_indices.end());
 
-    circuit_proving_key->contains_recursive_proof = contains_recursive_proof;
+    circuit_proving_key->contains_recursive_proof = circuit_constructor.contains_recursive_proof;
 
     return circuit_proving_key;
 }
@@ -494,9 +505,10 @@ std::shared_ptr<plonk::verification_key> UltraPlonkComposerHelper::compute_verif
 
     // See `add_recusrive_proof()` for how this recursive data is assigned.
     circuit_verification_key->recursive_proof_public_input_indices =
-        std::vector<uint32_t>(recursive_proof_public_input_indices.begin(), recursive_proof_public_input_indices.end());
+        std::vector<uint32_t>(circuit_constructor.recursive_proof_public_input_indices.begin(),
+                              circuit_constructor.recursive_proof_public_input_indices.end());
 
-    circuit_verification_key->contains_recursive_proof = contains_recursive_proof;
+    circuit_verification_key->contains_recursive_proof = circuit_constructor.contains_recursive_proof;
 
     return circuit_verification_key;
 }

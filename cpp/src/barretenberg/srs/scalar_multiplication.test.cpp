@@ -1,14 +1,23 @@
-#include "point_table.hpp"
-#include "scalar_multiplication.hpp"
+/**
+ * @file scalar_multiplication.test.cpp
+ * @brief Tests of our implementation of Pippenger's multi-scalar multiplication algorithm.
+ *
+ * @details This file is here with the SRS code, rather than being next to the Pippenger implementation, to avoid a
+ * cyclic dependency between our srs and ecc modules. Namely, srs depends on ecc via the FileProverCrs constructor that
+ * constructs a Pippenger point table. It may make sense to create a function in the ecc module that initializes a CRS,
+ * but for now a low-impact solution (to a newly-encountered linker error) is to move this test file, as it was the sole
+ * reason for for ecc to depend on srs.
+ */
+
+#include "barretenberg/common/mem.hpp"
 #include "barretenberg/common/test.hpp"
+#include "barretenberg/ecc/scalar_multiplication/point_table.hpp"
+#include "barretenberg/ecc/scalar_multiplication/scalar_multiplication.hpp"
+#include "barretenberg/numeric/random/engine.hpp"
 #include "barretenberg/srs/io.hpp"
 #include "barretenberg/srs/factories/file_crs_factory.hpp"
-#include "barretenberg/ecc/scalar_multiplication/scalar_multiplication.hpp"
 #include <cstddef>
 #include <vector>
-
-#include "barretenberg/numeric/random/engine.hpp"
-#include "barretenberg/common/mem.hpp"
 
 namespace {
 auto& engine = numeric::random::get_debug_engine();
@@ -16,7 +25,7 @@ auto& engine = numeric::random::get_debug_engine();
 
 using namespace barretenberg;
 
-template <typename Curve> class SRSIO : public ::testing::Test {
+template <typename Curve> class ScalarMultiplicationTests : public ::testing::Test {
   public:
     const std::string SRS_PATH = []() {
         if constexpr (std::same_as<Curve, curve::BN254>) {
@@ -46,9 +55,9 @@ template <typename Curve> class SRSIO : public ::testing::Test {
 
 using Curves = ::testing::Types<curve::BN254, curve::Grumpkin>;
 
-TYPED_TEST_SUITE(SRSIO, Curves);
+TYPED_TEST_SUITE(ScalarMultiplicationTests, Curves);
 
-TYPED_TEST(SRSIO, ReduceBucketsSimple)
+TYPED_TEST(ScalarMultiplicationTests, ReduceBucketsSimple)
 {
     using Curve = TypeParam;
     using Element = typename Curve::Element;
@@ -237,7 +246,7 @@ TYPED_TEST(SRSIO, ReduceBucketsSimple)
     }
 }
 
-TYPED_TEST(SRSIO, ReduceBuckets)
+TYPED_TEST(ScalarMultiplicationTests, ReduceBuckets)
 {
     using Curve = TypeParam;
     using Element = typename Curve::Element;
@@ -363,7 +372,7 @@ TYPED_TEST(SRSIO, ReduceBuckets)
 }
 
 // This test intermittenly fails.
-TYPED_TEST(SRSIO, DISABLED_ReduceBucketsBasic)
+TYPED_TEST(ScalarMultiplicationTests, DISABLED_ReduceBucketsBasic)
 {
     using Curve = TypeParam;
     using AffineElement = typename Curve::AffineElement;
@@ -448,7 +457,7 @@ TYPED_TEST(SRSIO, DISABLED_ReduceBucketsBasic)
     aligned_free(bucket_counts);
 }
 
-TYPED_TEST(SRSIO, AddAffinePoints)
+TYPED_TEST(ScalarMultiplicationTests, AddAffinePoints)
 {
     using Curve = TypeParam;
     using Element = typename Curve::Element;
@@ -485,7 +494,7 @@ TYPED_TEST(SRSIO, AddAffinePoints)
     aligned_free(scratch_space);
 }
 
-TYPED_TEST(SRSIO, ConstructAdditionChains)
+TYPED_TEST(ScalarMultiplicationTests, ConstructAdditionChains)
 {
     using Curve = TypeParam;
     using AffineElement = typename Curve::AffineElement;
@@ -556,7 +565,7 @@ TYPED_TEST(SRSIO, ConstructAdditionChains)
     aligned_free(bucket_counts);
 }
 
-TYPED_TEST(SRSIO, EndomorphismSplit)
+TYPED_TEST(ScalarMultiplicationTests, EndomorphismSplit)
 {
     using Curve = TypeParam;
     using Group = typename Curve::Group;
@@ -599,7 +608,7 @@ TYPED_TEST(SRSIO, EndomorphismSplit)
     EXPECT_EQ(result == expected, true);
 }
 
-TYPED_TEST(SRSIO, RadixSort)
+TYPED_TEST(ScalarMultiplicationTests, RadixSort)
 {
     using Curve = TypeParam;
     using Fr = typename Curve::ScalarField;
@@ -647,7 +656,7 @@ TYPED_TEST(SRSIO, RadixSort)
     free(wnaf_copy);
 }
 
-TYPED_TEST(SRSIO, OversizedInputs)
+TYPED_TEST(ScalarMultiplicationTests, OversizedInputs)
 {
     using Curve = TypeParam;
     using Element = typename Curve::Element;
@@ -698,7 +707,7 @@ TYPED_TEST(SRSIO, OversizedInputs)
     aligned_free(scalars);
 }
 
-TYPED_TEST(SRSIO, UndersizedInputs)
+TYPED_TEST(ScalarMultiplicationTests, UndersizedInputs)
 {
     using Curve = TypeParam;
     using Element = typename Curve::Element;
@@ -738,7 +747,7 @@ TYPED_TEST(SRSIO, UndersizedInputs)
     EXPECT_EQ(result == expected, true);
 }
 
-TYPED_TEST(SRSIO, PippengerSmall)
+TYPED_TEST(ScalarMultiplicationTests, PippengerSmall)
 {
     using Curve = TypeParam;
     using Element = typename Curve::Element;
@@ -775,7 +784,7 @@ TYPED_TEST(SRSIO, PippengerSmall)
     EXPECT_EQ(result == expected, true);
 }
 
-TYPED_TEST(SRSIO, PippengerEdgeCaseDbl)
+TYPED_TEST(ScalarMultiplicationTests, PippengerEdgeCaseDbl)
 {
     using Curve = TypeParam;
     using Element = typename Curve::Element;
@@ -814,7 +823,7 @@ TYPED_TEST(SRSIO, PippengerEdgeCaseDbl)
     EXPECT_EQ(result == expected, true);
 }
 
-TYPED_TEST(SRSIO, PippengerShortInputs)
+TYPED_TEST(ScalarMultiplicationTests, PippengerShortInputs)
 {
     using Curve = TypeParam;
     using Element = typename Curve::Element;
@@ -871,7 +880,7 @@ TYPED_TEST(SRSIO, PippengerShortInputs)
     EXPECT_EQ(result == expected, true);
 }
 
-TYPED_TEST(SRSIO, PippengerUnsafe)
+TYPED_TEST(ScalarMultiplicationTests, PippengerUnsafe)
 {
     using Curve = TypeParam;
     using Element = typename Curve::Element;
@@ -908,7 +917,7 @@ TYPED_TEST(SRSIO, PippengerUnsafe)
     EXPECT_EQ(result == expected, true);
 }
 
-TYPED_TEST(SRSIO, PippengerUnsafeShortInputs)
+TYPED_TEST(ScalarMultiplicationTests, PippengerUnsafeShortInputs)
 {
     using Curve = TypeParam;
     using Element = typename Curve::Element;
@@ -966,7 +975,7 @@ TYPED_TEST(SRSIO, PippengerUnsafeShortInputs)
     EXPECT_EQ(result == expected, true);
 }
 
-TYPED_TEST(SRSIO, PippengerOne)
+TYPED_TEST(ScalarMultiplicationTests, PippengerOne)
 {
     using Curve = TypeParam;
     using Element = typename Curve::Element;
@@ -1003,7 +1012,7 @@ TYPED_TEST(SRSIO, PippengerOne)
     EXPECT_EQ(result == expected, true);
 }
 
-TYPED_TEST(SRSIO, PippengerZeroPoints)
+TYPED_TEST(ScalarMultiplicationTests, PippengerZeroPoints)
 {
     using Curve = TypeParam;
     using Element = typename Curve::Element;
@@ -1023,7 +1032,7 @@ TYPED_TEST(SRSIO, PippengerZeroPoints)
     EXPECT_EQ(result.is_point_at_infinity(), true);
 }
 
-TYPED_TEST(SRSIO, PippengerMulByZero)
+TYPED_TEST(ScalarMultiplicationTests, PippengerMulByZero)
 {
     using Curve = TypeParam;
     using Group = typename Curve::Group;
