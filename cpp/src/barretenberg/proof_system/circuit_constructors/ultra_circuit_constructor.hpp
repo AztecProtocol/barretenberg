@@ -42,8 +42,8 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
         std::array<uint32_t, 5> b;
         std::array<uint32_t, 5> q;
         std::array<uint32_t, 5> r;
-        std::array<barretenberg::fr, 5> neg_modulus;
-        barretenberg::fr modulus;
+        std::array<FF, 5> neg_modulus;
+        FF modulus;
     };
 
     enum AUX_SELECTORS {
@@ -182,9 +182,9 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
     struct cached_partial_non_native_field_multiplication {
         std::array<uint32_t, 5> a;
         std::array<uint32_t, 5> b;
-        barretenberg::fr lo_0;
-        barretenberg::fr hi_0;
-        barretenberg::fr hi_1;
+        FF lo_0;
+        FF hi_0;
+        FF hi_1;
 
         bool operator==(const cached_partial_non_native_field_multiplication& other) const
         {
@@ -235,10 +235,10 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
      */
     struct CircuitDataBackup {
         using WireVector = std::vector<uint32_t, barretenberg::ContainerSlabAllocator<uint32_t>>;
-        using SelectorVector = std::vector<barretenberg::fr, barretenberg::ContainerSlabAllocator<barretenberg::fr>>;
+        using SelectorVector = std::vector<FF, barretenberg::ContainerSlabAllocator<FF>>;
 
         std::vector<uint32_t> public_inputs;
-        std::vector<barretenberg::fr> variables;
+        std::vector<FF> variables;
         // index of next variable in equivalence class (=REAL_VARIABLE if you're last)
         std::vector<uint32_t> next_var_index;
         // index of  previous variable in equivalence class (=FIRST if you're in a cycle alone)
@@ -246,7 +246,7 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
         // indices of corresponding real variables
         std::vector<uint32_t> real_variable_index;
         std::vector<uint32_t> real_variable_tags;
-        std::map<barretenberg::fr, uint32_t> constant_variable_indices;
+        std::map<FF, uint32_t> constant_variable_indices;
         WireVector w_l;
         WireVector w_r;
         WireVector w_o;
@@ -527,29 +527,29 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
     };
 
     using WireVector = std::vector<uint32_t, ContainerSlabAllocator<uint32_t>>;
-    using SelectorVector = std::vector<barretenberg::fr, ContainerSlabAllocator<barretenberg::fr>>;
+    using SelectorVector = std::vector<FF, ContainerSlabAllocator<FF>>;
 
-    WireVector& w_l = std::get<0>(wires);
-    WireVector& w_r = std::get<1>(wires);
-    WireVector& w_o = std::get<2>(wires);
-    WireVector& w_4 = std::get<3>(wires);
+    WireVector& w_l = std::get<0>(this->wires);
+    WireVector& w_r = std::get<1>(this->wires);
+    WireVector& w_o = std::get<2>(this->wires);
+    WireVector& w_4 = std::get<3>(this->wires);
 
-    SelectorVector& q_m = selectors.q_m;
-    SelectorVector& q_c = selectors.q_c;
-    SelectorVector& q_1 = selectors.q_1;
-    SelectorVector& q_2 = selectors.q_2;
-    SelectorVector& q_3 = selectors.q_3;
-    SelectorVector& q_4 = selectors.q_4;
-    SelectorVector& q_arith = selectors.q_arith;
-    SelectorVector& q_sort = selectors.q_sort;
-    SelectorVector& q_elliptic = selectors.q_elliptic;
-    SelectorVector& q_aux = selectors.q_aux;
-    SelectorVector& q_lookup_type = selectors.q_lookup_type;
+    SelectorVector& q_m = this->selectors.q_m;
+    SelectorVector& q_c = this->selectors.q_c;
+    SelectorVector& q_1 = this->selectors.q_1;
+    SelectorVector& q_2 = this->selectors.q_2;
+    SelectorVector& q_3 = this->selectors.q_3;
+    SelectorVector& q_4 = this->selectors.q_4;
+    SelectorVector& q_arith = this->selectors.q_arith;
+    SelectorVector& q_sort = this->selectors.q_sort;
+    SelectorVector& q_elliptic = this->selectors.q_elliptic;
+    SelectorVector& q_aux = this->selectors.q_aux;
+    SelectorVector& q_lookup_type = this->selectors.q_lookup_type;
 
     // These are variables that we have used a gate on, to enforce that they are
     // equal to a defined value.
     // TODO(#216)(Adrian): Why is this not in CircuitConstructorBase
-    std::map<barretenberg::fr, uint32_t> constant_variable_indices;
+    std::map<FF, uint32_t> constant_variable_indices;
 
     std::vector<plookup::BasicTable> lookup_tables;
     std::vector<plookup::MultiTable> lookup_multi_tables;
@@ -583,20 +583,20 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
 
     void process_non_native_field_multiplications();
     UltraCircuitConstructor_(const size_t size_hint = 0)
-        : CircuitConstructorBase(ultra_selector_names(), size_hint)
+        : CircuitConstructorBase<arithmetization::Ultra<Curve>>(ultra_selector_names(), size_hint)
     {
         w_l.reserve(size_hint);
         w_r.reserve(size_hint);
         w_o.reserve(size_hint);
         w_4.reserve(size_hint);
-        zero_idx = put_constant_variable(barretenberg::fr::zero());
-        tau.insert({ DUMMY_TAG, DUMMY_TAG }); // TODO(luke): explain this
+        this->zero_idx = put_constant_variable(FF::zero());
+        this->tau.insert({ DUMMY_TAG, DUMMY_TAG }); // TODO(luke): explain this
     };
     UltraCircuitConstructor_(std::string const&, const size_t size_hint = 0)
         : UltraCircuitConstructor_(size_hint){};
     UltraCircuitConstructor_(const UltraCircuitConstructor_& other) = delete;
     UltraCircuitConstructor_(UltraCircuitConstructor_&& other)
-        : CircuitConstructorBase<arithmetization::Ultra<barretenberg::fr>>(std::move(other))
+        : CircuitConstructorBase<arithmetization::Ultra<Curve>>(std::move(other))
     {
         constant_variable_indices = other.constant_variable_indices;
 
@@ -613,7 +613,7 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
     UltraCircuitConstructor_& operator=(const UltraCircuitConstructor_& other) = delete;
     UltraCircuitConstructor_& operator=(UltraCircuitConstructor_&& other)
     {
-        CircuitConstructorBase<arithmetization::Ultra<barretenberg::fr>>::operator=(std::move(other));
+        CircuitConstructorBase<arithmetization::Ultra<FF>>::operator=(std::move(other));
         constant_variable_indices = other.constant_variable_indices;
 
         lookup_tables = other.lookup_tables;
@@ -645,7 +645,7 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
     void create_poly_gate(const poly_triple& in) override;
     void create_ecc_add_gate(const ecc_add_gate& in);
 
-    void fix_witness(const uint32_t witness_index, const barretenberg::fr& witness_value);
+    void fix_witness(const uint32_t witness_index, const FF& witness_value);
 
     void create_new_range_constraint(const uint32_t variable_index,
                                      const uint64_t target_range,
@@ -690,7 +690,7 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
     accumulator_triple create_and_constraint(const uint32_t a, const uint32_t b, const size_t num_bits);
     accumulator_triple create_xor_constraint(const uint32_t a, const uint32_t b, const size_t num_bits);
 
-    uint32_t put_constant_variable(const barretenberg::fr& variable);
+    uint32_t put_constant_variable(const FF& variable);
 
     size_t get_num_constant_gates() const override { return 0; }
 
@@ -988,9 +988,7 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
     //               << "), pubinp = " << public_inputs.size() << std::endl;
     // }
 
-    void assert_equal_constant(const uint32_t a_idx,
-                               const barretenberg::fr& b,
-                               std::string const& msg = "assert equal constant")
+    void assert_equal_constant(const uint32_t a_idx, const FF& b, std::string const& msg = "assert equal constant")
     {
         if (variables[a_idx] != b && !failed()) {
             failure(msg);
@@ -1003,19 +1001,16 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
      * Plookup Methods
      **/
     void add_table_column_selector_poly_to_proving_key(barretenberg::polynomial& small, const std::string& tag);
-    void initialize_precomputed_table(
-        const plookup::BasicTableId id,
-        bool (*generator)(std::vector<barretenberg::fr>&,
-                          std::vector<barretenberg::fr>&,
-                          std::vector<barretenberg::fr>&),
-        std::array<barretenberg::fr, 2> (*get_values_from_key)(const std::array<uint64_t, 2>));
+    void initialize_precomputed_table(const plookup::BasicTableId id,
+                                      bool (*generator)(std::vector<FF>&, std::vector<FF>&, std::vector<FF>&),
+                                      std::array<FF, 2> (*get_values_from_key)(const std::array<uint64_t, 2>));
 
     plookup::BasicTable& get_table(const plookup::BasicTableId id);
     plookup::MultiTable& create_table(const plookup::MultiTableId id);
 
     plookup::ReadData<uint32_t> create_gates_from_plookup_accumulators(
         const plookup::MultiTableId& id,
-        const plookup::ReadData<barretenberg::fr>& read_values,
+        const plookup::ReadData<FF>& read_values,
         const uint32_t key_a_index,
         std::optional<uint32_t> key_b_index = std::nullopt);
 
@@ -1033,9 +1028,7 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
         std::string const& msg = "decompose_into_default_range_better_for_oddlimbnum");
     void create_dummy_constraints(const std::vector<uint32_t>& variable_index);
     void create_sort_constraint(const std::vector<uint32_t>& variable_index);
-    void create_sort_constraint_with_edges(const std::vector<uint32_t>& variable_index,
-                                           const barretenberg::fr&,
-                                           const barretenberg::fr&);
+    void create_sort_constraint_with_edges(const std::vector<uint32_t>& variable_index, const FF&, const FF&);
     void assign_tag(const uint32_t variable_index, const uint32_t tag)
     {
         ASSERT(tag <= current_tag);
@@ -1081,19 +1074,18 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
     std::array<uint32_t, 2> evaluate_non_native_field_multiplication(
         const non_native_field_witnesses& input, const bool range_constrain_quotient_and_remainder = true);
     std::array<uint32_t, 2> queue_partial_non_native_field_multiplication(const non_native_field_witnesses& input);
-    typedef std::pair<uint32_t, barretenberg::fr> scaled_witness;
-    typedef std::tuple<scaled_witness, scaled_witness, barretenberg::fr> add_simple;
-    std::array<uint32_t, 5> evaluate_non_native_field_subtraction(
-        add_simple limb0,
-        add_simple limb1,
-        add_simple limb2,
-        add_simple limb3,
-        std::tuple<uint32_t, uint32_t, barretenberg::fr> limbp);
+    typedef std::pair<uint32_t, FF> scaled_witness;
+    typedef std::tuple<scaled_witness, scaled_witness, FF> add_simple;
+    std::array<uint32_t, 5> evaluate_non_native_field_subtraction(add_simple limb0,
+                                                                  add_simple limb1,
+                                                                  add_simple limb2,
+                                                                  add_simple limb3,
+                                                                  std::tuple<uint32_t, uint32_t, FF> limbp);
     std::array<uint32_t, 5> evaluate_non_native_field_addition(add_simple limb0,
                                                                add_simple limb1,
                                                                add_simple limb2,
                                                                add_simple limb3,
-                                                               std::tuple<uint32_t, uint32_t, barretenberg::fr> limbp);
+                                                               std::tuple<uint32_t, uint32_t, FF> limbp);
 
     /**
      * Memory
