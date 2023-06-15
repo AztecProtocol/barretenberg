@@ -25,15 +25,15 @@ class StandardCircuitConstructor_ : public CircuitConstructorBase<arithmetizatio
     using WireVector = std::vector<uint32_t, barretenberg::ContainerSlabAllocator<uint32_t>>;
     using SelectorVector = std::vector<FF, barretenberg::ContainerSlabAllocator<FF>>;
 
-    WireVector& w_l = std::get<0>(wires);
-    WireVector& w_r = std::get<1>(wires);
-    WireVector& w_o = std::get<2>(wires);
+    WireVector& w_l = std::get<0>(this->wires);
+    WireVector& w_r = std::get<1>(this->wires);
+    WireVector& w_o = std::get<2>(this->wires);
 
-    SelectorVector& q_m = selectors.q_m;
-    SelectorVector& q_1 = selectors.q_1;
-    SelectorVector& q_2 = selectors.q_2;
-    SelectorVector& q_3 = selectors.q_3;
-    SelectorVector& q_c = selectors.q_c;
+    SelectorVector& q_m = this->selectors.q_m;
+    SelectorVector& q_1 = this->selectors.q_1;
+    SelectorVector& q_2 = this->selectors.q_2;
+    SelectorVector& q_3 = this->selectors.q_3;
+    SelectorVector& q_c = this->selectors.q_c;
 
     static constexpr size_t UINT_LOG2_BASE = 2;
 
@@ -43,7 +43,7 @@ class StandardCircuitConstructor_ : public CircuitConstructorBase<arithmetizatio
     std::map<FF, uint32_t> constant_variable_indices;
 
     StandardCircuitConstructor_(const size_t size_hint = 0)
-        : CircuitConstructorBase(standard_selector_names(), size_hint)
+        : CircuitConstructorBase<Curve>(standard_selector_names(), size_hint)
     {
         w_l.reserve(size_hint);
         w_r.reserve(size_hint);
@@ -52,12 +52,12 @@ class StandardCircuitConstructor_ : public CircuitConstructorBase<arithmetizatio
         // all future zero values.
         // (#216)(Adrian): This should be done in a constant way, maybe by initializing the constant_variable_indices
         // map
-        zero_idx = put_constant_variable(FF::zero());
+        this->zero_idx = put_constant_variable(FF::zero());
         // TODO(#217)(Cody): Ensure that no polynomial is ever zero. Maybe there's a better way.
-        one_idx = put_constant_variable(FF::one());
+        this->one_idx = put_constant_variable(FF::one());
         // 1 * 1 * 1 + 1 * 1 + 1 * 1 + 1 * 1 + -4
         // m           l       r       o        c
-        create_poly_gate({ one_idx, one_idx, one_idx, 1, 1, 1, 1, -4 });
+        create_poly_gate({ this->one_idx, this->one_idx, this->one_idx, 1, 1, 1, 1, -4 });
     };
     // This constructor is needed to simplify switching between circuit constructor and composer
     StandardCircuitConstructor_(std::string const&, const size_t size_hint = 0)
@@ -116,7 +116,8 @@ class StandardCircuitConstructor_ : public CircuitConstructorBase<arithmetizatio
     size_t get_num_constant_gates() const override { return 0; }
 
     bool check_circuit();
+};
 
-    using StandardCircuitConstructor = StandardCircuitConstructor_<curve::BN254>;
-    // using StandardGrumpkinCircuitConstructor = StandardCircuitConstructor__<grumpkin::fr>;
+using StandardCircuitConstructor = StandardCircuitConstructor_<curve::BN254>;
+// using StandardGrumpkinCircuitConstructor = StandardCircuitConstructor__<grumpkin::fr>;
 } // namespace proof_system

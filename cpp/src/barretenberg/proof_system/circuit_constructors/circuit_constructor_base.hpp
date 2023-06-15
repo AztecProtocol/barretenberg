@@ -8,10 +8,8 @@
 namespace proof_system {
 static constexpr uint32_t DUMMY_TAG = 0;
 
-// Note(Mara): Is this ugly?
 template <typename Arithmetization> class CircuitConstructorBase {
   public:
-    // Is this okay??
     using FF = typename Arithmetization::FF;
     static constexpr size_t NUM_WIRES = Arithmetization::NUM_WIRES;
     // Keeping NUM_WIRES, at least temporarily, for backward compatibility
