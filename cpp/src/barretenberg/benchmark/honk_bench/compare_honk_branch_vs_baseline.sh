@@ -17,11 +17,20 @@ BENCH_TOOLS_DIR="$BUILD_DIR/_deps/benchmark-src/tools"
 
 # Install requirements (numpy + scipy) for comparison script if necessary.
 # Note: By default, installation will occur in $HOME/.local/bin.
-pip3 install -r $BUILD_DIR/_deps/benchmark-src/requirements.txt
+pip3 install --user -r $BUILD_DIR/_deps/benchmark-src/requirements.txt
 
 # Create temporary directory for benchmark results (json)
 cd $BASE_DIR
 mkdir $BENCH_RESULTS_DIR
+
+# Build and run bench in current branch
+echo -e "\nConfiguring and building $BENCH_TARGET in current feature branch..\n"
+rm -rf $BUILD_DIR
+cmake --preset bench > /dev/null && cmake --build --preset bench --target $BENCH_TARGET
+cd build-bench
+BRANCH_RESULTS="$BENCH_RESULTS_DIR/results_branch.json"
+echo -e "\nRunning $BENCH_TARGET in feature branch.."
+bin/$BENCH_TARGET --benchmark_format=json > $BRANCH_RESULTS
 
 # Checkout baseline branch, run benchmarks, save results in json format
 echo -e "\nConfiguring and building $BENCH_TARGET in $BASELINE_BRANCH branch..\n"
@@ -33,19 +42,12 @@ BASELINE_RESULTS="$BENCH_RESULTS_DIR/results_baseline.json"
 echo -e "\nRunning $BENCH_TARGET in master.."
 bin/$BENCH_TARGET --benchmark_format=json > $BASELINE_RESULTS
 
-# Checkout working branch (-), run benchmarks, save results in json format
-echo -e "\nConfiguring and building $BENCH_TARGET in current feature branch..\n"
-git checkout -
-rm -rf $BUILD_DIR
-cmake --preset bench > /dev/null && cmake --build --preset bench --target $BENCH_TARGET
-cd build-bench
-BRANCH_RESULTS="$BENCH_RESULTS_DIR/results_branch.json"
-echo -e "\nRunning $BENCH_TARGET in feature branch.."
-bin/$BENCH_TARGET --benchmark_format=json > $BRANCH_RESULTS
-
 # Call compare.py on the results (json) to get high level statistics. 
 # See docs at https://github.com/google/benchmark/blob/main/docs/tools.md for more details.
 $BENCH_TOOLS_DIR/compare.py benchmarks $BASELINE_RESULTS $BRANCH_RESULTS
+
+# Return to branch from which the script was called
+git checkout -
 
 # Delete the temporary results directory and its contents
 rm -r $BENCH_RESULTS_DIR

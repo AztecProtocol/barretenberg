@@ -13,7 +13,7 @@ BENCH_TOOLS_DIR="$BUILD_DIR/_deps/benchmark-src/tools"
 
 # Install requirements (numpy + scipy) for comparison script if necessary.
 # Note: By default, installation will occur in $HOME/.local/bin.
-pip3 install -r $BUILD_DIR/_deps/benchmark-src/requirements.txt
+pip3 install --user -r $BUILD_DIR/_deps/benchmark-src/requirements.txt
 
 # Create temporary directory for honk_bench results (json)
 cd $BASE_DIR

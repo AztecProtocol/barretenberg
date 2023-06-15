@@ -105,29 +105,31 @@ template <typename Composer> void generate_ecdsa_verification_test_circuit(Compo
     std::string message_string = "Instructions unclear, ask again later.";
 
     crypto::ecdsa::key_pair<fr, g1> account;
-    account.private_key = curve::fr::random_element();
-    account.public_key = curve::g1::one * account.private_key;
-
-    crypto::ecdsa::signature signature =
-        crypto::ecdsa::construct_signature<Sha256Hasher, fq, fr, g1>(message_string, account);
-
-    bool first_result =
-        crypto::ecdsa::verify_signature<Sha256Hasher, fq, fr, g1>(message_string, account.public_key, signature);
-
-    std::vector<uint8_t> rr(signature.r.begin(), signature.r.end());
-    std::vector<uint8_t> ss(signature.s.begin(), signature.s.end());
-    uint8_t vv = signature.v;
-
-    typename curve::g1_bigfr_ct public_key = curve::g1_bigfr_ct::from_witness(&composer, account.public_key);
-
-    proof_system::plonk::stdlib::ecdsa::signature<Composer> sig{ typename curve::byte_array_ct(&composer, rr),
-                                                                 typename curve::byte_array_ct(&composer, ss),
-                                                                 proof_system::plonk::stdlib::uint8<Composer>(&composer,
-                                                                                                              vv) };
-
-    typename curve::byte_array_ct message(&composer, message_string);
-
     for (size_t i = 0; i < num_iterations; i++) {
+        // Generate unique signature for each iteration
+        account.private_key = curve::fr::random_element();
+        account.public_key = curve::g1::one * account.private_key;
+
+        crypto::ecdsa::signature signature =
+            crypto::ecdsa::construct_signature<Sha256Hasher, fq, fr, g1>(message_string, account);
+
+        bool first_result =
+            crypto::ecdsa::verify_signature<Sha256Hasher, fq, fr, g1>(message_string, account.public_key, signature);
+
+        std::vector<uint8_t> rr(signature.r.begin(), signature.r.end());
+        std::vector<uint8_t> ss(signature.s.begin(), signature.s.end());
+        uint8_t vv = signature.v;
+
+        typename curve::g1_bigfr_ct public_key = curve::g1_bigfr_ct::from_witness(&composer, account.public_key);
+
+        proof_system::plonk::stdlib::ecdsa::signature<Composer> sig{ typename curve::byte_array_ct(&composer, rr),
+                                                                     typename curve::byte_array_ct(&composer, ss),
+                                                                     proof_system::plonk::stdlib::uint8<Composer>(
+                                                                         &composer, vv) };
+
+        typename curve::byte_array_ct message(&composer, message_string);
+
+        // Verify ecdsa signature
         proof_system::plonk::stdlib::ecdsa::verify_signature<Composer,
                                                              curve,
                                                              typename curve::fq_ct,
@@ -141,7 +143,6 @@ template <typename Composer> void generate_ecdsa_verification_test_circuit(Compo
  *
  * @param composer
  * @param num_iterations
- * @todo (luke): should we consider deeper tree? non-zero leaf values? variable index?
  */
 template <typename Composer> void generate_merkle_membership_test_circuit(Composer& composer, size_t num_iterations)
 {
@@ -153,15 +154,23 @@ template <typename Composer> void generate_merkle_membership_test_circuit(Compos
     using MerkleTree_ct = merkle_tree::MerkleTree<MemStore>;
 
     MemStore store;
-    auto db = MerkleTree_ct(store, 3);
-
-    // Check that the leaf at index 0 has value 0.
-    auto zero = field_ct(witness_ct(&composer, fr::zero())).decompose_into_bits();
-    field_ct root = witness_ct(&composer, db.root());
+    const size_t tree_depth = 7;
+    auto merkle_tree = MerkleTree_ct(store, tree_depth);
 
     for (size_t i = 0; i < num_iterations; i++) {
-        merkle_tree::check_membership(
-            root, merkle_tree::create_witness_hash_path(composer, db.get_hash_path(0)), field_ct(0), zero);
+        // For each iteration update and check the membership of a different value
+        size_t idx = i;
+        size_t value = i * 2;
+        merkle_tree.update_element(idx, value);
+
+        field_ct root_ct = witness_ct(&composer, merkle_tree.root());
+        auto idx_ct = field_ct(witness_ct(&composer, fr(idx))).decompose_into_bits();
+        auto value_ct = field_ct(value);
+
+        merkle_tree::check_membership(root_ct,
+                                      merkle_tree::create_witness_hash_path(composer, merkle_tree.get_hash_path(idx)),
+                                      field_ct(value),
+                                      idx_ct);
     }
 }
 
