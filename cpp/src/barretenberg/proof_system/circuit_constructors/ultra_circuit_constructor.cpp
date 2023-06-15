@@ -93,12 +93,12 @@ void UltraCircuitConstructor::add_gates_to_ensure_all_polys_are_non_zero()
     create_big_add_gate({ zero_idx, zero_idx, zero_idx, one_idx, 0, 0, 0, 1, -1 });
 
     // Take care of all polys related to lookups (q_lookup, tables, sorted, etc)
-    // by doing an arbitrary xor and an "and" lookup.
+    // by doing a dummy lookup with a special table.
     // Note: the 4th table poly is the table index: this is not the value of the table
     // type enum but rather the index of the table in the list of all tables utilized
-    // in the circuit. Therefore we naively need two different tables (indices 0, 1)
-    // to get a non-zero value in table_4. I assume this index is arbitrary and could
-    // start from 1 instead of 0?
+    // in the circuit. Therefore we naively need two different basic tables (indices 0, 1)
+    // to get a non-zero value in table_4.
+    // The multitable operates on 2-bit values, so the maximum is 3
     uint32_t left_value = 3;
     uint32_t right_value = 3;
 

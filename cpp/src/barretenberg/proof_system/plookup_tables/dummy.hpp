@@ -13,7 +13,7 @@ namespace plookup {
 namespace dummy_tables {
 
 /**
- * @brief Lookup the value corresponding to a sepcific key
+ * @brief Lookup the value corresponding to a specific key
  *
  * @details We need this function for when we are constructing the circuit and want to query the table. Since we need
  * two basic tables to make the table polynomial have non-zero values, we instantiate two tables with the same function,
@@ -43,6 +43,8 @@ template <uint64_t table_id>
 inline BasicTable generate_honk_dummy_table(const BasicTableId id, const size_t table_index)
 {
 
+    // We do the assertion, since this function is templated, but the general API for these functions contains the id,
+    // too. This helps us ensure that the correct instantion is used for a particular BasicTableId
     ASSERT(table_id == static_cast<uint64_t>(id));
     const size_t base = 1 << 1; // Probably has to be a power of 2
     BasicTable table;
