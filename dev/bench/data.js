@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1686879050372,
+  "lastUpdate": 1686879052159,
   "repoUrl": "https://github.com/AztecProtocol/barretenberg",
   "entries": {
     "C++ Benchmark": [
@@ -480,6 +480,54 @@ window.BENCHMARK_DATA = {
             "value": 4.705665157999988,
             "unit": "s/iter",
             "extra": "iterations: 1\ncpu: 2.7523055000000056 s\nthreads: 1"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "codygunton@gmail.com",
+            "name": "Cody Gunton",
+            "username": "codygunton"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "55ab676e14871dd7496bd66fa3bba6fb888844e8",
+          "message": "refactor: Update PR template. (#533)",
+          "timestamp": "2023-06-15T21:18:23-04:00",
+          "tree_id": "4baf6d25711e4a0284288cb2191b5192109d55cc",
+          "url": "https://github.com/AztecProtocol/barretenberg/commit/55ab676e14871dd7496bd66fa3bba6fb888844e8"
+        },
+        "date": 1686879049042,
+        "tool": "googlecpp",
+        "benches": [
+          {
+            "name": "construct_proof_ultra/sha256/10/repeats:1",
+            "value": 8.984268567999948,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 6.948298899999999 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/keccak/10/repeats:1",
+            "value": 23.131085494000104,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 20.9154302 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/ecdsa_verification/10/repeats:1",
+            "value": 43.132958071000076,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 40.56483409999999 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/merkle_membership/10/repeats:1",
+            "value": 4.875913517000072,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 2.8405922000000032 s\nthreads: 1"
           }
         ]
       },
