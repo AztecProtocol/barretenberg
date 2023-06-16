@@ -1,3 +1,5 @@
+// TODO: fix this file for browser (worker_thread and events are not compatible)
+
 import { type Worker } from 'worker_threads';
 import { EventEmitter } from 'events';
 import createDebug from 'debug';
@@ -5,8 +7,15 @@ import { Remote, proxy } from 'comlink';
 import { randomBytes } from '../random/index.js';
 // Webpack config swaps this import with ./browser/index.js
 // You can toggle between these two imports to sanity check the type-safety.
-import { fetchCode, getNumCpu, createWorker, getRemoteBarretenbergWasm, threadLogger, killSelf } from './node/index.js';
-// import { fetchCode, getNumCpu, createWorker, randomBytes } from './browser/index.js';
+// import { fetchCode, getNumCpu, createWorker, getRemoteBarretenbergWasm, threadLogger, killSelf } from './node/index.js';
+import {
+  fetchCode,
+  getNumCpu,
+  createWorker,
+  getRemoteBarretenbergWasm,
+  threadLogger,
+  killSelf,
+} from './browser/index.js';
 
 const debug = createDebug('bb.js:wasm');
 
