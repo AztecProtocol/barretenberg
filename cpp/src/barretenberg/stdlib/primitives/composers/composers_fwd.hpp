@@ -25,10 +25,17 @@ using StandardHonkComposer = StandardHonkComposer_<flavor::Standard>;
 template <class Flavor> class UltraHonkComposer_;
 using UltraHonkComposer = UltraHonkComposer_<flavor::Ultra>;
 } // namespace proof_system::honk
+
+namespace curve {
+class BN254;
+}
 namespace proof_system {
-class StandardCircuitConstructor;
-class TurboCircuitConstructor;
-class UltraCircuitConstructor;
+template <class Curve> class StandardCircuitConstructor_;
+using StandardCircuitConstructor = StandardCircuitConstructor_<curve::BN254>;
+template <class Curve> class TurboCircuitConstructor_;
+using TurboCircuitConstructor = TurboCircuitConstructor_<curve::BN254>;
+template <class Curve> class UltraCircuitConstructor_;
+using UltraCircuitConstructor = UltraCircuitConstructor_<curve::BN254>;
 } // namespace proof_system
 
 #define EXTERN_STDLIB_TYPE(stdlib_type)                                                                                \

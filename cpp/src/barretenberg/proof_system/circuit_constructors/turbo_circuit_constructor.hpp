@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include "barretenberg/ecc/curves/bn254/bn254.hpp"
 #include "circuit_constructor_base.hpp"
 #include "barretenberg/proof_system/types/composer_type.hpp"
 #include "barretenberg/proof_system/types/merkle_hash_type.hpp"
@@ -105,8 +106,8 @@ class TurboCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
 
     void assert_equal_constant(const uint32_t a_idx, const FF& b, std::string const& msg = "assert_equal_constant")
     {
-        if (variables[a_idx] != b && !failed()) {
-            failure(msg);
+        if (this->variables[a_idx] != b && !this->failed()) {
+            this->failure(msg);
         }
         auto b_idx = put_constant_variable(b);
         assert_equal(a_idx, b_idx, msg);
