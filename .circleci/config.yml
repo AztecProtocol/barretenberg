@@ -302,6 +302,13 @@ jobs:
           name: "Test"
           command: cond_spot_run_tests bb.js
 
+  aarch64-macos-clang:
+    macos:
+      xcode: "14.3.1"
+    resource_class: macos.m1.medium.gen1
+    steps:
+      - *checkout
+
   ###################################
   # Aztec integration tests
   #circuits-wasm-linux-clang-builder-runner:
@@ -381,6 +388,7 @@ notmaster: &notmaster
 workflows:
   system:
     jobs:
+      - aarch64-macos-clang: *defaults
       - x86_64-linux-gcc: *defaults
       - x86_64-linux-clang: *defaults
       - x86_64-linux-clang-assert: *defaults
