@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1686934989372,
+  "lastUpdate": 1686952605041,
   "repoUrl": "https://github.com/AztecProtocol/barretenberg",
   "entries": {
     "C++ Benchmark": [
@@ -864,6 +864,54 @@ window.BENCHMARK_DATA = {
             "value": 4.13705556299999,
             "unit": "s/iter",
             "extra": "iterations: 1\ncpu: 2.3466822000000036 s\nthreads: 1"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kevtheappdev@gmail.com",
+            "name": "kevaundray",
+            "username": "kevaundray"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "31fb34c307a4336414b1fd2076d96105a29b0e7b",
+          "message": "fix: Adds `VERSION` file to release-please (#542)",
+          "timestamp": "2023-06-16T22:47:31+01:00",
+          "tree_id": "39710e4937e8e82a46a92ba3829569bae0a1ea4f",
+          "url": "https://github.com/AztecProtocol/barretenberg/commit/31fb34c307a4336414b1fd2076d96105a29b0e7b"
+        },
+        "date": 1686952604293,
+        "tool": "googlecpp",
+        "benches": [
+          {
+            "name": "construct_proof_ultra/sha256/10/repeats:1",
+            "value": 7.997932136000031,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 5.6754747000000005 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/keccak/10/repeats:1",
+            "value": 19.32069586,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 17.242464599999998 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/ecdsa_verification/10/repeats:1",
+            "value": 35.022415985000066,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 32.838826299999994 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/merkle_membership/10/repeats:1",
+            "value": 4.139212885000006,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 2.373938499999994 s\nthreads: 1"
           }
         ]
       }
