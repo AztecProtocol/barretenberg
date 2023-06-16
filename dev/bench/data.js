@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1686934987925,
+  "lastUpdate": 1686934989372,
   "repoUrl": "https://github.com/AztecProtocol/barretenberg",
   "entries": {
     "C++ Benchmark": [
@@ -768,6 +768,54 @@ window.BENCHMARK_DATA = {
             "value": 5.236678002999838,
             "unit": "s/iter",
             "extra": "iterations: 1\ncpu: 3.2085796000000073 s\nthreads: 1"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "mvezenov@gmail.com",
+            "name": "Maxim Vezenov",
+            "username": "vezenovm"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a9fbc3973f24680f676682d15c3a4cef0a1ab798",
+          "message": "fix: Revert \"fix: add NUM_RESERVED_GATES before fetching subgroup size in composer\" (#540)",
+          "timestamp": "2023-06-16T17:54:06+01:00",
+          "tree_id": "e08111e720c0127ab18ce81a75adbce020d618ab",
+          "url": "https://github.com/AztecProtocol/barretenberg/commit/a9fbc3973f24680f676682d15c3a4cef0a1ab798"
+        },
+        "date": 1686934987091,
+        "tool": "googlecpp",
+        "benches": [
+          {
+            "name": "construct_proof_ultra/sha256/10/repeats:1",
+            "value": 7.713494069000035,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 5.537802800000001 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/keccak/10/repeats:1",
+            "value": 18.94966505000002,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 16.596341799999998 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/ecdsa_verification/10/repeats:1",
+            "value": 34.04958698099995,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 31.8700562 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/merkle_membership/10/repeats:1",
+            "value": 4.13705556299999,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 2.3466822000000036 s\nthreads: 1"
           }
         ]
       },
