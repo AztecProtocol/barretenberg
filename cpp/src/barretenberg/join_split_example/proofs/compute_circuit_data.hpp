@@ -46,7 +46,7 @@ circuit_data get_circuit_data(std::string const& name,
                               bool pk,
                               bool vk,
                               bool padding,
-                              bool mock,
+                              bool mock, // TODO(#541)
                               F const& build_circuit,
                               std::string const name_suffix_for_benchmarks = "")
 {
@@ -57,7 +57,7 @@ circuit_data get_circuit_data(std::string const& name,
     Composer composer(srs);
     Builder builder;
     Composer mock_proof_composer(srs);
-    Builder mock_builder; // WORKTODO: needed?
+    Builder mock_builder;
     BenchmarkInfoCollator benchmark_collator;
 
     auto circuit_key_path = key_path + "/" + path_name;
