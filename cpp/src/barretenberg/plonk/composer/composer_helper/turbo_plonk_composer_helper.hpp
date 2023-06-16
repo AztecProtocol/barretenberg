@@ -58,6 +58,7 @@ class TurboPlonkComposerHelper {
         };
         return result;
     }
+
     static transcript::Manifest create_manifest(const size_t num_public_inputs)
     {
         // add public inputs....
