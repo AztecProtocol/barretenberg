@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1686928233788,
+  "lastUpdate": 1686928235788,
   "repoUrl": "https://github.com/AztecProtocol/barretenberg",
   "entries": {
     "C++ Benchmark": [
@@ -576,6 +576,54 @@ window.BENCHMARK_DATA = {
             "value": 4.875913517000072,
             "unit": "s/iter",
             "extra": "iterations: 1\ncpu: 2.8405922000000032 s\nthreads: 1"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "codygunton@gmail.com",
+            "name": "Cody Gunton",
+            "username": "codygunton"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b288c2420bdc350658cd3776bad1eb087cc28d63",
+          "message": "fix: cleanup of include statements and dependencies (#527)\n\nEnsure honk does not depend on plonk anymore. Remove use of the stdlib composer headers used for forward declaration outside stdlib.\r\nCo-authored-by: maramihali <mara@aztecprotocol.com>, codygunton <cody@aztecprotocol.com>",
+          "timestamp": "2023-06-16T16:00:52+01:00",
+          "tree_id": "e08111e720c0127ab18ce81a75adbce020d618ab",
+          "url": "https://github.com/AztecProtocol/barretenberg/commit/b288c2420bdc350658cd3776bad1eb087cc28d63"
+        },
+        "date": 1686928232300,
+        "tool": "googlecpp",
+        "benches": [
+          {
+            "name": "construct_proof_ultra/sha256/10/repeats:1",
+            "value": 7.58884986399994,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 5.5630851 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/keccak/10/repeats:1",
+            "value": 19.282759427999963,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 16.709266 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/ecdsa_verification/10/repeats:1",
+            "value": 34.4339084479999,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 32.0702424 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/merkle_membership/10/repeats:1",
+            "value": 4.140180644999987,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 2.390046699999999 s\nthreads: 1"
           }
         ]
       },
