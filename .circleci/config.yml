@@ -308,6 +308,16 @@ jobs:
     resource_class: macos.m1.medium.gen1
     steps:
       - *checkout
+      - run:
+          name: "Install toolchain"
+          command: brew install cmake llvm@15 ninja
+      - run:
+          name: "Build"
+          command: cmake --preset homebrew && cmake --build --preset homebrew --target bb
+      - run:
+          name: "Test"
+          working_directory: ~/project/cpp/bin-test
+          command: ./bin-test.sh
 
   ###################################
   # Aztec integration tests
