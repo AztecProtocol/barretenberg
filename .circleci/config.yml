@@ -313,7 +313,8 @@ jobs:
           command: brew install cmake llvm@15 ninja
       - run:
           name: "Build"
-          command: cmake --preset homebrew && cmake --build --preset homebrew --target bb
+          working_directory: ~/project/cpp
+          command: BREW_PREFIX=$(brew --prefix) cmake --preset homebrew && cmake --build --preset homebrew --target bb
       - run:
           name: "Test"
           working_directory: ~/project/cpp/bin-test
