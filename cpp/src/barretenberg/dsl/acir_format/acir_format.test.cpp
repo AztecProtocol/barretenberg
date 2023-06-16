@@ -6,6 +6,7 @@
 #include "barretenberg/plonk/proof_system/types/proof.hpp"
 #include "barretenberg/common/streams.hpp"
 #include "barretenberg/serialize/test_helper.hpp"
+#include "ecdsa_secp256k1.hpp"
 
 namespace acir_format::tests {
 TEST(acir_format, test_a_single_constraint_no_pub_inputs)

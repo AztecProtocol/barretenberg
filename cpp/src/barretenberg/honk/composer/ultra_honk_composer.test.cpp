@@ -66,10 +66,9 @@ class UltraHonkComposerTests : public ::testing::Test {
 TEST_F(UltraHonkComposerTests, ANonZeroPolynomialIsAGoodPolynomial)
 {
     auto circuit_constructor = UltraCircuitConstructor();
-
-    circuit_constructor.add_gates_to_ensure_all_polys_are_non_zero();
-
     auto composer = UltraHonkComposerHelper();
+    // The composer should call add_gates_to_ensure_all_polys_are_non_zero by default
+
     auto prover = composer.create_prover(circuit_constructor);
     auto proof = prover.construct_proof();
 

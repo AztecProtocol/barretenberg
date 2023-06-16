@@ -1,16 +1,13 @@
-#include <benchmark/benchmark.h>
-
-#include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
-#include "barretenberg/honk/composer/composer_helper/ultra_honk_composer_helper.hpp"
 #include "barretenberg/benchmark/honk_bench/benchmark_utilities.hpp"
+#include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
+#include "barretenberg/plonk/composer/composer_helper/ultra_plonk_composer_helper.hpp"
 
 using namespace benchmark;
-using namespace proof_system::plonk;
 
-namespace ultra_honk_bench {
+namespace ultra_plonk_bench {
 
 using UltraBuilder = proof_system::UltraCircuitConstructor;
-using UltraHonk = proof_system::honk::UltraHonkComposerHelper;
+using UltraPlonk = proof_system::plonk::UltraPlonkComposerHelper;
 
 // Number of times to perform operation of interest in the benchmark circuits, e.g. # of hashes to perform
 constexpr size_t MIN_NUM_ITERATIONS = bench_utils::BenchParams::MIN_NUM_ITERATIONS;
@@ -23,10 +20,9 @@ constexpr size_t NUM_REPETITIONS = bench_utils::BenchParams::NUM_REPETITIONS;
  */
 void construct_proof_ultra(State& state, void (*test_circuit_function)(UltraBuilder&, size_t)) noexcept
 {
-    bench_utils::construct_proof_with_specified_num_iterations<UltraHonk>(state, test_circuit_function);
+    bench_utils::construct_proof_with_specified_num_iterations<UltraPlonk>(state, test_circuit_function);
 }
 
-// Define benchmarks
 BENCHMARK_CAPTURE(construct_proof_ultra, sha256, &bench_utils::generate_sha256_test_circuit<UltraBuilder>)
     ->DenseRange(MIN_NUM_ITERATIONS, MAX_NUM_ITERATIONS)
     ->Repetitions(NUM_REPETITIONS)
@@ -48,4 +44,4 @@ BENCHMARK_CAPTURE(construct_proof_ultra,
     ->Repetitions(NUM_REPETITIONS)
     ->Unit(::benchmark::kSecond);
 
-} // namespace ultra_honk_bench
+} // namespace ultra_plonk_bench
