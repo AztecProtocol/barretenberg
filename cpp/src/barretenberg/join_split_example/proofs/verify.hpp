@@ -39,17 +39,17 @@ inline bool pairing_check(plonk::stdlib::recursion::aggregation_state<plonk::std
     return inner_proof_result == barretenberg::fq12::one();
 }
 
-template <typename Composer, typename Tx, typename CircuitData, typename F>
-auto verify_logic_internal(Composer& composer, Tx& tx, CircuitData const& cd, char const* name, F const& build_circuit)
+template <typename Builder, typename Tx, typename CircuitData, typename F>
+auto verify_logic_internal(Builder& builder, Tx& tx, CircuitData const& cd, char const* name, F const& build_circuit)
 {
     info(name, ": Building circuit...");
     Timer timer;
-    auto result = build_circuit(composer, tx, cd);
+    auto result = build_circuit(builder, tx, cd);
     info(name, ": Circuit built in ", timer.toString(), "s");
 
-    if (composer.failed()) {
-        info(name, ": Circuit logic failed: " + composer.err());
-        result.err = composer.err();
+    if (builder.failed()) {
+        info(name, ": Circuit logic failed: " + builder.err());
+        result.err = builder.err();
         return result;
     }
 
@@ -63,13 +63,14 @@ auto verify_logic_internal(Composer& composer, Tx& tx, CircuitData const& cd, ch
         return result;
     }
 
-    result.public_inputs = composer.get_public_inputs();
+    result.public_inputs = builder.get_public_inputs();
     result.logic_verified = true;
-    result.number_of_gates = composer.get_num_gates();
+    result.number_of_gates = builder.get_num_gates();
 
     return result;
 }
 
+// WORKTODO: this is not used anywhere?
 template <typename Composer, typename Tx, typename CircuitData, typename F>
 auto verify_internal(Composer& composer, Tx& tx, CircuitData const& cd, char const* name, F const& build_circuit)
 {

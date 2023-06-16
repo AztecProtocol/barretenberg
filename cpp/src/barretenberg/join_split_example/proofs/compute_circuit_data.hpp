@@ -35,7 +35,7 @@ inline bool exists(std::string const& path)
 }
 } // namespace
 
-template <typename ComposerType, typename F>
+template <typename Composer, typename F>
 circuit_data get_circuit_data(std::string const& name,
                               std::string const& path_name,
                               std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& srs,
@@ -50,11 +50,14 @@ circuit_data get_circuit_data(std::string const& name,
                               F const& build_circuit,
                               std::string const name_suffix_for_benchmarks = "")
 {
+    using Builder = typename Composer::CircuitConstructor;
     circuit_data data;
     data.srs = srs;
     data.mock = mock;
-    ComposerType composer(srs);
-    ComposerType mock_proof_composer(srs);
+    Composer composer(srs);
+    Builder builder;
+    Composer mock_proof_composer(srs);
+    Builder mock_builder; // WORKTODO: needed?
     BenchmarkInfoCollator benchmark_collator;
 
     auto circuit_key_path = key_path + "/" + path_name;
@@ -68,7 +71,7 @@ circuit_data get_circuit_data(std::string const& name,
         (compute && !load)) {
         info(name, ": Building circuit...");
         Timer timer;
-        build_circuit(composer);
+        build_circuit(builder);
 
         benchmark_collator.benchmark_info_deferred(GET_COMPOSER_NAME_STRING(proof_system::ComposerType),
                                                    "Core",
@@ -79,18 +82,18 @@ circuit_data get_circuit_data(std::string const& name,
                                                    "Core",
                                                    name + name_suffix_for_benchmarks,
                                                    "Gates",
-                                                   composer.get_num_gates());
+                                                   builder.get_num_gates());
         info(name, ": Circuit built in: ", timer.toString(), "s");
-        info(name, ": Circuit size: ", composer.get_num_gates());
+        info(name, ": Circuit size: ", builder.get_num_gates());
         if (mock) {
-            auto public_inputs = composer.get_public_inputs();
-            ::join_split_example::proofs::mock::mock_circuit(mock_proof_composer, public_inputs);
-            info(name, ": Mock circuit size: ", mock_proof_composer.get_num_gates());
+            auto public_inputs = builder.get_public_inputs();
+            ::join_split_example::proofs::mock::mock_circuit(mock_builder, public_inputs);
+            info(name, ": Mock circuit size: ", mock_builder.get_num_gates());
             benchmark_collator.benchmark_info_deferred(GET_COMPOSER_NAME_STRING(proof_system::ComposerType),
                                                        "Core",
                                                        name + name_suffix_for_benchmarks,
                                                        "Mock Gates",
-                                                       composer.get_num_gates());
+                                                       builder.get_num_gates());
         }
     }
 
@@ -123,8 +126,8 @@ circuit_data get_circuit_data(std::string const& name,
             info(name, ": Computing proving key...");
 
             if (!mock) {
-                data.num_gates = composer.get_num_gates();
-                data.proving_key = composer.compute_proving_key();
+                data.num_gates = builder.get_num_gates();
+                data.proving_key = composer.compute_proving_key(builder);
                 info(name, ": Circuit size 2^n: ", data.proving_key->circuit_size);
 
                 benchmark_collator.benchmark_info_deferred(GET_COMPOSER_NAME_STRING(proof_system::ComposerType),
@@ -133,8 +136,8 @@ circuit_data get_circuit_data(std::string const& name,
                                                            "Gates 2^n",
                                                            data.proving_key->circuit_size);
             } else {
-                data.num_gates = mock_proof_composer.get_num_gates();
-                data.proving_key = mock_proof_composer.compute_proving_key();
+                data.num_gates = mock_builder.get_num_gates();
+                data.proving_key = mock_proof_composer.compute_proving_key(mock_builder);
                 info(name, ": Mock circuit size 2^n: ", data.proving_key->circuit_size);
                 benchmark_collator.benchmark_info_deferred(GET_COMPOSER_NAME_STRING(proof_system::ComposerType),
                                                            "Core",
@@ -185,9 +188,9 @@ circuit_data get_circuit_data(std::string const& name,
             Timer timer;
 
             if (!mock) {
-                data.verification_key = composer.compute_verification_key();
+                data.verification_key = composer.compute_verification_key(builder);
             } else {
-                data.verification_key = mock_proof_composer.compute_verification_key();
+                data.verification_key = mock_proof_composer.compute_verification_key(mock_builder);
             }
             info(name, ": Computed verification key in ", timer.toString(), "s");
 
@@ -222,27 +225,27 @@ circuit_data get_circuit_data(std::string const& name,
         } else if (data.proving_key) {
             info(name, ": Computing padding proof...");
 
-            if (composer.failed()) {
-                info(name, ": Composer logic failed: ", composer.err());
+            if (builder.failed()) {
+                info(name, ": Composer logic failed: ", builder.err());
                 info(name, ": Warning, padding proof can only be used to aid upstream pk construction!");
             }
 
             Timer timer;
             if (!mock) {
-                auto prover = composer.create_prover();
+                auto prover = composer.create_prover(builder);
                 auto proof = prover.construct_proof();
                 data.padding_proof = proof.proof_data;
-                data.num_gates = composer.get_num_gates();
+                data.num_gates = builder.get_num_gates();
                 info(name, ": Circuit size: ", data.num_gates);
-                auto verifier = composer.create_verifier();
+                auto verifier = composer.create_verifier(builder);
                 info(name, ": Padding verified: ", verifier.verify_proof(proof));
             } else {
-                auto prover = mock_proof_composer.create_prover();
+                auto prover = mock_proof_composer.create_prover(mock_builder);
                 auto proof = prover.construct_proof();
                 data.padding_proof = proof.proof_data;
-                data.num_gates = mock_proof_composer.get_num_gates();
+                data.num_gates = mock_builder.get_num_gates();
                 info(name, ": Mock circuit size: ", data.num_gates);
-                auto verifier = mock_proof_composer.create_verifier();
+                auto verifier = mock_proof_composer.create_verifier(mock_builder);
                 info(name, ": Padding verified: ", verifier.verify_proof(proof));
             }
             info(name, ": Padding proof computed in ", timer.toString(), "s");
