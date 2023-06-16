@@ -14,14 +14,14 @@ namespace proof_system {
  * */
 template <typename Curve>
 TurboCircuitConstructor_<Curve>::TurboCircuitConstructor_(const size_t size_hint)
-    : CircuitConstructorBase(turbo_selector_names(), size_hint)
+    : CircuitConstructorBase<arithmetization::Turbo<Curve>>(turbo_selector_names(), size_hint)
 {
     w_l.reserve(size_hint);
     w_r.reserve(size_hint);
     w_o.reserve(size_hint);
     w_4.reserve(size_hint);
 
-    zero_idx = put_constant_variable(fr::zero());
+    this->zero_idx = put_constant_variable(fr::zero());
 }
 
 /**
@@ -35,12 +35,12 @@ TurboCircuitConstructor_<Curve>::TurboCircuitConstructor_(const size_t size_hint
  * */
 template <typename Curve> void TurboCircuitConstructor_<Curve>::create_add_gate(const add_triple& in)
 {
-    assert_valid_variables({ in.a, in.b, in.c });
+    this->assert_valid_variables({ in.a, in.b, in.c });
 
     w_l.emplace_back(in.a);
     w_r.emplace_back(in.b);
     w_o.emplace_back(in.c);
-    w_4.emplace_back(zero_idx);
+    w_4.emplace_back(this->zero_idx);
     q_m.emplace_back(fr::zero());
     q_1.emplace_back(in.a_scaling);
     q_2.emplace_back(in.b_scaling);
@@ -66,7 +66,7 @@ template <typename Curve> void TurboCircuitConstructor_<Curve>::create_add_gate(
  * */
 template <typename Curve> void TurboCircuitConstructor_<Curve>::create_big_add_gate(const add_quad& in)
 {
-    assert_valid_variables({ in.a, in.b, in.c, in.d });
+    this->assert_valid_variables({ in.a, in.b, in.c, in.d });
 
     w_l.emplace_back(in.a);
     w_r.emplace_back(in.b);
@@ -105,7 +105,7 @@ template <typename Curve> void TurboCircuitConstructor_<Curve>::create_big_add_g
 template <typename Curve>
 void TurboCircuitConstructor_<Curve>::create_big_add_gate_with_bit_extraction(const add_quad& in)
 {
-    assert_valid_variables({ in.a, in.b, in.c, in.d });
+    this->assert_valid_variables({ in.a, in.b, in.c, in.d });
 
     w_l.emplace_back(in.a);
     w_r.emplace_back(in.b);
@@ -127,7 +127,7 @@ void TurboCircuitConstructor_<Curve>::create_big_add_gate_with_bit_extraction(co
 
 template <typename Curve> void TurboCircuitConstructor_<Curve>::create_big_mul_gate(const mul_quad& in)
 {
-    assert_valid_variables({ in.a, in.b, in.c, in.d });
+    this->assert_valid_variables({ in.a, in.b, in.c, in.d });
 
     w_l.emplace_back(in.a);
     w_r.emplace_back(in.b);
@@ -166,7 +166,7 @@ template <typename Curve> void TurboCircuitConstructor_<Curve>::create_big_mul_g
  */
 template <typename Curve> void TurboCircuitConstructor_<Curve>::create_balanced_add_gate(const add_quad& in)
 {
-    assert_valid_variables({ in.a, in.b, in.c, in.d });
+    this->assert_valid_variables({ in.a, in.b, in.c, in.d });
 
     w_l.emplace_back(in.a);
     w_r.emplace_back(in.b);
@@ -197,12 +197,12 @@ template <typename Curve> void TurboCircuitConstructor_<Curve>::create_balanced_
  * */
 template <typename Curve> void TurboCircuitConstructor_<Curve>::create_mul_gate(const mul_triple& in)
 {
-    assert_valid_variables({ in.a, in.b, in.c });
+    this->assert_valid_variables({ in.a, in.b, in.c });
 
     w_l.emplace_back(in.a);
     w_r.emplace_back(in.b);
     w_o.emplace_back(in.c);
-    w_4.emplace_back(zero_idx);
+    w_4.emplace_back(this->zero_idx);
     q_m.emplace_back(in.mul_scaling);
     q_1.emplace_back(fr::zero());
     q_2.emplace_back(fr::zero());
@@ -226,12 +226,12 @@ template <typename Curve> void TurboCircuitConstructor_<Curve>::create_mul_gate(
  * */
 template <typename Curve> void TurboCircuitConstructor_<Curve>::create_bool_gate(const uint32_t variable_index)
 {
-    assert_valid_variables({ variable_index });
+    this->assert_valid_variables({ variable_index });
 
     w_l.emplace_back(variable_index);
     w_r.emplace_back(variable_index);
     w_o.emplace_back(variable_index);
-    w_4.emplace_back(zero_idx);
+    w_4.emplace_back(this->zero_idx);
     q_arith.emplace_back(fr::one());
     q_4.emplace_back(fr::zero());
     q_5.emplace_back(fr::zero());
@@ -258,12 +258,12 @@ template <typename Curve> void TurboCircuitConstructor_<Curve>::create_bool_gate
  * */
 template <typename Curve> void TurboCircuitConstructor_<Curve>::create_poly_gate(const poly_triple& in)
 {
-    assert_valid_variables({ in.a, in.b, in.c });
+    this->assert_valid_variables({ in.a, in.b, in.c });
 
     w_l.emplace_back(in.a);
     w_r.emplace_back(in.b);
     w_o.emplace_back(in.c);
-    w_4.emplace_back(zero_idx);
+    w_4.emplace_back(this->zero_idx);
     q_m.emplace_back(in.q_m);
     q_1.emplace_back(in.q_l);
     q_2.emplace_back(in.q_r);
@@ -287,7 +287,7 @@ template <typename Curve> void TurboCircuitConstructor_<Curve>::create_poly_gate
 template <typename Curve>
 void TurboCircuitConstructor_<Curve>::create_fixed_group_add_gate(const fixed_group_add_quad& in)
 {
-    assert_valid_variables({ in.a, in.b, in.c, in.d });
+    this->assert_valid_variables({ in.a, in.b, in.c, in.d });
 
     w_l.emplace_back(in.a);
     w_r.emplace_back(in.b);
@@ -319,7 +319,7 @@ template <typename Curve>
 void TurboCircuitConstructor_<Curve>::create_fixed_group_add_gate_with_init(const fixed_group_add_quad& in,
                                                                             const fixed_group_init_quad& init)
 {
-    assert_valid_variables({ in.a, in.b, in.c, in.d });
+    this->assert_valid_variables({ in.a, in.b, in.c, in.d });
 
     w_l.emplace_back(in.a);
     w_r.emplace_back(in.b);
@@ -355,12 +355,12 @@ template <typename Curve> void TurboCircuitConstructor_<Curve>::create_fixed_gro
 template <typename Curve>
 void TurboCircuitConstructor_<Curve>::fix_witness(const uint32_t witness_index, const barretenberg::fr& witness_value)
 {
-    assert_valid_variables({ witness_index });
+    this->assert_valid_variables({ witness_index });
 
     w_l.emplace_back(witness_index);
-    w_r.emplace_back(zero_idx);
-    w_o.emplace_back(zero_idx);
-    w_4.emplace_back(zero_idx);
+    w_r.emplace_back(this->zero_idx);
+    w_o.emplace_back(this->zero_idx);
+    w_4.emplace_back(this->zero_idx);
     q_m.emplace_back(fr::zero());
     q_1.emplace_back(fr::one());
     q_2.emplace_back(fr::zero());
@@ -389,7 +389,7 @@ std::vector<uint32_t> TurboCircuitConstructor_<Curve>::decompose_into_base4_accu
                                                                                          const size_t num_bits,
                                                                                          std::string const& msg)
 {
-    assert_valid_variables({ witness_index });
+    this->assert_valid_variables({ witness_index });
 
     ASSERT(num_bits > 0);
 
@@ -496,7 +496,7 @@ std::vector<uint32_t> TurboCircuitConstructor_<Curve>::decompose_into_base4_accu
         uint32_t accumulator_index;
         // prepend padding 0 quads
         if (i < forced_zero_threshold) {
-            accumulator_index = zero_idx;
+            accumulator_index = this->zero_idx;
         } else {
             // accumulate quad
             const size_t bit_index = (num_quads - i) << 1;
@@ -537,9 +537,9 @@ std::vector<uint32_t> TurboCircuitConstructor_<Curve>::decompose_into_base4_accu
 
     // switch off range widget for final row; fill wire values not in use with zeros
     q_range[q_range.size() - 1] = 0;
-    w_l.emplace_back(zero_idx);
-    w_r.emplace_back(zero_idx);
-    w_o.emplace_back(zero_idx);
+    w_l.emplace_back(this->zero_idx);
+    w_r.emplace_back(this->zero_idx);
+    w_o.emplace_back(this->zero_idx);
 
     assert_equal(witness_index, accumulators[accumulators.size() - 1], msg);
 
@@ -571,7 +571,7 @@ accumulator_triple TurboCircuitConstructor_<Curve>::create_logic_constraint(cons
                                                                             const size_t num_bits,
                                                                             const bool is_xor_gate)
 {
-    assert_valid_variables({ a, b });
+    this->assert_valid_variables({ a, b });
 
     ASSERT(((num_bits >> 1U) << 1U) == num_bits); // Do not allow constraint for an odd number of bits.
 
@@ -656,9 +656,9 @@ accumulator_triple TurboCircuitConstructor_<Curve>::create_logic_constraint(cons
     fr out_accumulator = fr::zero();
 
     // Step 1: populate 1st row accumulators with zero
-    w_l.emplace_back(zero_idx);
-    w_r.emplace_back(zero_idx);
-    w_4.emplace_back(zero_idx);
+    w_l.emplace_back(this->zero_idx);
+    w_r.emplace_back(this->zero_idx);
+    w_4.emplace_back(this->zero_idx);
 
     // w_l, w_r, w_4 now point to 1 gate ahead of w_o
     for (size_t j = 0; j < num_quads; ++j) {
@@ -714,7 +714,7 @@ accumulator_triple TurboCircuitConstructor_<Curve>::create_logic_constraint(cons
         w_4.emplace_back(out_accumulator_index);
         w_o.emplace_back(product_index);
     }
-    w_o.emplace_back(zero_idx);
+    w_o.emplace_back(this->zero_idx);
 
     for (size_t i = 0; i < num_quads + 1; ++i) {
         q_m.emplace_back(fr::zero());

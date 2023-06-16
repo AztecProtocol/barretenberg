@@ -712,7 +712,7 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
     void get_num_gates_split_into_components(
         size_t& count, size_t& rangecount, size_t& romcount, size_t& ramcount, size_t& nnfcount) const
     {
-        count = num_gates;
+        count = this->num_gates;
         // each ROM gate adds +1 extra gate due to the rom reads being copied to a sorted list set
         for (size_t i = 0; i < rom_arrays.size(); ++i) {
             for (size_t j = 0; j < rom_arrays[i].state.size(); ++j) {
@@ -724,7 +724,7 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
             romcount += 1; // we add an addition gate after procesing a rom array
         }
 
-        constexpr size_t gate_width = program_width;
+        constexpr size_t gate_width = this->program_width;
         // each RAM gate adds +2 extra gates due to the ram reads being copied to a sorted list set,
         // as well as an extra gate to validate timestamps
         std::vector<size_t> ram_timestamps;
@@ -801,7 +801,7 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
     {
         // if circuit finalised already added extra gates
         if (circuit_finalised) {
-            return num_gates;
+            return this->num_gates;
         }
         size_t count = 0;
         size_t rangecount = 0;
@@ -831,11 +831,11 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
         }
 
         auto minimum_circuit_size = tables_size + lookups_size;
-        auto num_filled_gates = get_num_gates() + public_inputs.size();
+        auto num_filled_gates = get_num_gates() + this->public_inputs.size();
         return std::max(minimum_circuit_size, num_filled_gates);
     }
 
-    /**
+    /**x
      * @brief Print the number and composition of gates in the circuit
      *
      */
@@ -851,7 +851,7 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
         size_t total = count + romcount + ramcount + rangecount;
         std::cout << "gates = " << total << " (arith " << count << ", rom " << romcount << ", ram " << ramcount
                   << ", range " << rangecount << ", non native field gates " << nnfcount
-                  << "), pubinp = " << public_inputs.size() << std::endl;
+                  << "), pubinp = " << this->public_inputs.size() << std::endl;
     }
     // /**
     //  * @brief Get the final number of gates in a circuit, which consists of the sum of:
@@ -883,7 +883,7 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
     //         romcount += 1; // we add an addition gate after procesing a rom array
     //     }
 
-    //     constexpr size_t gate_width = ultra_settings::program_width;
+    //     constexpr size_t gate_width = ultra_settings::this->program_width;
     //     // each RAM gate adds +2 extra gates due to the ram reads being copied to a sorted list set,
     //     // as well as an extra gate to validate timestamps
     //     std::vector<size_t> ram_timestamps;
@@ -990,8 +990,8 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
 
     void assert_equal_constant(const uint32_t a_idx, const FF& b, std::string const& msg = "assert equal constant")
     {
-        if (variables[a_idx] != b && !failed()) {
-            failure(msg);
+        if (this->variables[a_idx] != b && !this->failed()) {
+            this->failure(msg);
         }
         auto b_idx = put_constant_variable(b);
         assert_equal(a_idx, b_idx, msg);
@@ -1031,26 +1031,26 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
     void create_sort_constraint_with_edges(const std::vector<uint32_t>& variable_index, const FF&, const FF&);
     void assign_tag(const uint32_t variable_index, const uint32_t tag)
     {
-        ASSERT(tag <= current_tag);
+        ASSERT(tag <= this->current_tag);
         // If we've already assigned this tag to this variable, return (can happen due to copy constraints)
-        if (real_variable_tags[real_variable_index[variable_index]] == tag) {
+        if (this->real_variable_tags[this->real_variable_index[variable_index]] == tag) {
             return;
         }
-        ASSERT(real_variable_tags[real_variable_index[variable_index]] == DUMMY_TAG);
-        real_variable_tags[real_variable_index[variable_index]] = tag;
+        ASSERT(this->real_variable_tags[this->real_variable_index[variable_index]] == DUMMY_TAG);
+        this->real_variable_tags[this->real_variable_index[variable_index]] = tag;
     }
 
     uint32_t create_tag(const uint32_t tag_index, const uint32_t tau_index)
     {
-        tau.insert({ tag_index, tau_index });
-        current_tag++; // Why exactly?
-        return current_tag;
+        this->tau.insert({ tag_index, tau_index });
+        this->current_tag++; // Why exactly?
+        return this->current_tag;
     }
 
     uint32_t get_new_tag()
     {
-        current_tag++;
-        return current_tag;
+        this->current_tag++;
+        return this->current_tag;
     }
 
     RangeList create_range_list(const uint64_t target_range);
@@ -1176,5 +1176,5 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
     void update_circuit_in_the_head();
     bool check_circuit();
 };
-using UltraCircuitConstructor = UltraCircuitConstructor_<curve::BN254>
+using UltraCircuitConstructor = UltraCircuitConstructor_<curve::BN254>;
 } // namespace proof_system
