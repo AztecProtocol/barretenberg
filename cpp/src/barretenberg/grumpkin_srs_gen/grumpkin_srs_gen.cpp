@@ -23,7 +23,9 @@ int main(int argc, char** argv)
     // https://github.com/AztecProtocol/ignition-verification/blob/master/Transcript_spec.md
     const size_t subgroup_size = (size_t)atoi(args[1].c_str());
     const std::string srs_path = (args.size() > 2) ? args[2] : "../srs_db/grumpkin/";
-    std::filesystem::create_directories(srs_path);
+    // Why is the full path derived inside the io code!? The above should have monomial on the end and io should
+    // write the files to the dir that was given.
+    std::filesystem::create_directories(std::filesystem::path(srs_path) / "monomial");
 
     std::vector<grumpkin::g1::affine_element> srs(subgroup_size);
 
