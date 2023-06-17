@@ -314,7 +314,7 @@ jobs:
       - run:
           name: "Build"
           working_directory: ~/project/cpp
-          command: BREW_PREFIX=$(brew --prefix) cmake --preset homebrew && cmake --build --preset homebrew --target bb
+          command: cmake --preset default && cmake --build --preset default --target bb
       - run:
           name: "Test"
           working_directory: ~/project/cpp/bin-test
