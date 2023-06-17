@@ -26,6 +26,7 @@ TESTS=(
   srs_tests
   transcript_tests
 )
+TESTS_STR="${TESTS[@]}"
 
 docker run --rm -t $IMAGE_URI /bin/sh -c "\
   set -e; \
@@ -33,4 +34,4 @@ docker run --rm -t $IMAGE_URI /bin/sh -c "\
   (cd srs_db && ./download_ignition.sh 1); \
   cd build; \
   ./bin/grumpkin_srs_gen 1048576; \
-  for BIN in ${TESTS[@]}; do ./bin/\$BIN; done"
+  for BIN in $TESTS_STR; do ./bin/\$BIN; done"
