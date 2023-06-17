@@ -1,4 +1,5 @@
 #!/bin/bash
+# Executes the bb binary test script.
 set -eu
 
 $(aws ecr get-login --region us-east-2 --no-include-email) 2> /dev/null

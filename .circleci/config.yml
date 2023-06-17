@@ -191,7 +191,7 @@ jobs:
       - *setup_env
       - run:
           name: "Test"
-          command: cond_spot_run_tests barretenberg-x86_64-linux-clang-assert 1 bb-tests
+          command: cond_spot_run_test_script ./scripts/bb-tests.sh barretenberg-x86_64-linux-clang-assert
       - *save_logs
 
   honk-tests:
