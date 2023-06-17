@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 #include "barretenberg/crypto/sha256/sha256.hpp"
@@ -22,6 +23,7 @@ int main(int argc, char** argv)
     // https://github.com/AztecProtocol/ignition-verification/blob/master/Transcript_spec.md
     const size_t subgroup_size = (size_t)atoi(args[1].c_str());
     const std::string srs_path = (args.size() > 2) ? args[2] : "../srs_db/grumpkin/";
+    std::filesystem::create_directories(srs_path);
 
     std::vector<grumpkin::g1::affine_element> srs(subgroup_size);
 
