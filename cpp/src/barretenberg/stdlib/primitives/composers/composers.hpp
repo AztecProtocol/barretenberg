@@ -1,3 +1,7 @@
+/**
+ * @brief Contains all the headers required to adequately compile the types defined in composers_fwd.hpp and instantiate
+ * templates.
+ */
 #pragma once
 #include "barretenberg/plonk/composer/standard_plonk_composer.hpp"
 #include "barretenberg/honk/composer/standard_honk_composer.hpp"

@@ -7,11 +7,10 @@
 #include <vector>
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/barycentric_data.hpp"
-#include "barretenberg/honk/pcs/ipa/ipa.hpp"
+#include "barretenberg/honk/pcs/kzg/kzg.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
 #include "barretenberg/honk/transcript/transcript.hpp"
-#include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/polynomials/evaluation_domain.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
@@ -38,9 +37,9 @@ class Ultra {
     using CommitmentHandle = G1::affine_element;
     // UltraHonk will be run with KZG by default but temporarily we set the commitment to IPA to
     // be able to do e2e tests with this pcs as well
-    // TODO: instantiate this with but IPA and KZG when the templating work is finished
-    using PCSParams = pcs::ipa::Params;
-    using PCS = pcs::ipa::IPA<PCSParams>;
+    // TODO: instantiate this with both IPA and KZG when the templating work is finished
+    using PCSParams = pcs::kzg::Params;
+    using PCS = pcs::kzg::KZG<PCSParams>;
 
     static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
     // The number of multivariate polynomials on which a sumcheck prover sumcheck operates (including shifts). We often

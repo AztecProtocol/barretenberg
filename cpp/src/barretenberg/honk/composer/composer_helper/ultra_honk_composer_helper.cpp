@@ -10,7 +10,8 @@ namespace proof_system::honk {
  * @brief Compute witness polynomials
  *
  */
-void UltraHonkComposerHelper::compute_witness(CircuitConstructor& circuit_constructor)
+template <UltraFlavor Flavor>
+void UltraHonkComposerHelper_<Flavor>::compute_witness(CircuitConstructor& circuit_constructor)
 {
     if (computed_witness) {
         return;
@@ -58,10 +59,11 @@ void UltraHonkComposerHelper::compute_witness(CircuitConstructor& circuit_constr
     // TODO(luke): The +1 size for z_lookup is not necessary and can lead to confusion. Resolve.
     polynomial z_lookup(subgroup_size + 1); // Only instantiated in this function; nothing assigned.
 
-    // Save space for adding random scalars in the s polynomial later. The subtracted 1 allows us to insert a `1` at the
-    // end, to ensure the evaluations (and hence coefficients) aren't all 0. See ComposerBase::compute_proving_key_base
-    // for further explanation, as a similar trick is done there.
-    size_t count = subgroup_size - tables_size - lookups_size - s_randomness - 1;
+    // TODO(kesha): Look at this once we figure out how we do ZK (previously we had roots cut out, so just added
+    // randomness)
+    // The size of empty space in sorted polynomials
+    size_t count = subgroup_size - tables_size - lookups_size;
+    ASSERT(count > 0); // We need at least 1 row of zeroes for the permutation argument
     for (size_t i = 0; i < count; ++i) {
         s_1[i] = 0;
         s_2[i] = 0;
@@ -114,18 +116,7 @@ void UltraHonkComposerHelper::compute_witness(CircuitConstructor& circuit_constr
         }
     }
 
-    // Initialise the `s_randomness` positions in the s polynomials with 0.
-    // These will be the positions where we will be adding random scalars to add zero knowledge
-    // to plookup (search for `Blinding` in plonk/proof_system/widgets/random_widgets/plookup_widget_impl.hpp
-    // ProverPlookupWidget::compute_sorted_list_polynomial())
-    for (size_t i = 0; i < s_randomness; ++i) {
-        s_1[count] = 0;
-        s_2[count] = 0;
-        s_3[count] = 0;
-        s_4[count] = 0;
-        ++count;
-    }
-
+    // Polynomial memory is zeroed out when constructed with size hint, so we don't have to initialize trailing space
     proving_key->sorted_1 = s_1;
     proving_key->sorted_2 = s_2;
     proving_key->sorted_3 = s_3;
@@ -134,22 +125,29 @@ void UltraHonkComposerHelper::compute_witness(CircuitConstructor& circuit_constr
     // Copy memory read/write record data into proving key. Prover needs to know which gates contain a read/write
     // 'record' witness on the 4th wire. This wire value can only be fully computed once the first 3 wire polynomials
     // have been committed to. The 4th wire on these gates will be a random linear combination of the first 3 wires,
-    // using the plookup challenge `eta`
+    // using the plookup challenge `eta`. Because we shift the gates by the number of public inputs, we need to update
+    // the records with the public_inputs offset
+    const uint32_t public_inputs_count = static_cast<uint32_t>(circuit_constructor.public_inputs.size());
+    auto add_public_inputs_offset = [public_inputs_count](uint32_t gate_index) {
+        return gate_index + public_inputs_count;
+    };
     proving_key->memory_read_records = std::vector<uint32_t>();
     proving_key->memory_write_records = std::vector<uint32_t>();
-    proving_key->memory_read_records.reserve(circuit_constructor.memory_read_records.size());
-    proving_key->memory_write_records.reserve(circuit_constructor.memory_write_records.size());
-    std::copy(circuit_constructor.memory_read_records.begin(),
-              circuit_constructor.memory_read_records.end(),
-              std::back_inserter(proving_key->memory_read_records));
-    std::copy(circuit_constructor.memory_write_records.begin(),
-              circuit_constructor.memory_write_records.end(),
-              std::back_inserter(proving_key->memory_write_records));
+
+    std::transform(circuit_constructor.memory_read_records.begin(),
+                   circuit_constructor.memory_read_records.end(),
+                   std::back_inserter(proving_key->memory_read_records),
+                   add_public_inputs_offset);
+    std::transform(circuit_constructor.memory_write_records.begin(),
+                   circuit_constructor.memory_write_records.end(),
+                   std::back_inserter(proving_key->memory_write_records),
+                   add_public_inputs_offset);
 
     computed_witness = true;
 }
 
-UltraProver UltraHonkComposerHelper::create_prover(CircuitConstructor& circuit_constructor)
+template <UltraFlavor Flavor>
+UltraProver_<Flavor> UltraHonkComposerHelper_<Flavor>::create_prover(CircuitConstructor& circuit_constructor)
 {
     finalize_circuit(circuit_constructor);
 
@@ -158,7 +156,7 @@ UltraProver UltraHonkComposerHelper::create_prover(CircuitConstructor& circuit_c
 
     compute_commitment_key(proving_key->circuit_size, crs_factory_);
 
-    UltraProver output_state(proving_key, commitment_key);
+    UltraProver_<Flavor> output_state(proving_key, commitment_key);
 
     return output_state;
 }
@@ -169,11 +167,12 @@ UltraProver UltraHonkComposerHelper::create_prover(CircuitConstructor& circuit_c
  *
  * @return The verifier.
  * */
-UltraVerifier UltraHonkComposerHelper::create_verifier(const CircuitConstructor& circuit_constructor)
+template <UltraFlavor Flavor>
+UltraVerifier_<Flavor> UltraHonkComposerHelper_<Flavor>::create_verifier(const CircuitConstructor& circuit_constructor)
 {
     auto verification_key = compute_verification_key(circuit_constructor);
 
-    UltraVerifier output_state(verification_key);
+    UltraVerifier_<Flavor> output_state(verification_key);
 
     auto pcs_verification_key = std::make_unique<PCSVerificationKey>(verification_key->circuit_size, crs_factory_);
 
@@ -182,7 +181,8 @@ UltraVerifier UltraHonkComposerHelper::create_verifier(const CircuitConstructor&
     return output_state;
 }
 
-std::shared_ptr<UltraHonkComposerHelper::Flavor::ProvingKey> UltraHonkComposerHelper::compute_proving_key(
+template <UltraFlavor Flavor>
+std::shared_ptr<typename Flavor::ProvingKey> UltraHonkComposerHelper_<Flavor>::compute_proving_key(
     const CircuitConstructor& circuit_constructor)
 {
     if (proving_key) {
@@ -220,7 +220,7 @@ std::shared_ptr<UltraHonkComposerHelper::Flavor::ProvingKey> UltraHonkComposerHe
     polynomial poly_q_table_column_3(subgroup_size);
     polynomial poly_q_table_column_4(subgroup_size);
 
-    size_t offset = subgroup_size - tables_size - s_randomness - 1;
+    size_t offset = subgroup_size - tables_size;
 
     // Create lookup selector polynomials which interpolate each table column.
     // Our selector polys always need to interpolate the full subgroup size, so here we offset so as to
@@ -249,15 +249,7 @@ std::shared_ptr<UltraHonkComposerHelper::Flavor::ProvingKey> UltraHonkComposerHe
         }
     }
 
-    // Initialise the last `s_randomness` positions in table polynomials with 0. We don't need to actually randomise
-    // the table polynomials.
-    for (size_t i = 0; i < s_randomness; ++i) {
-        poly_q_table_column_1[offset] = 0;
-        poly_q_table_column_2[offset] = 0;
-        poly_q_table_column_3[offset] = 0;
-        poly_q_table_column_4[offset] = 0;
-        ++offset;
-    }
+    // Polynomial memory is zeroed out when constructed with size hint, so we don't have to initialize trailing space
 
     // // In the case of using UltraPlonkComposer for a circuit which does _not_ make use of any lookup tables, all
     // four
@@ -304,7 +296,8 @@ std::shared_ptr<UltraHonkComposerHelper::Flavor::ProvingKey> UltraHonkComposerHe
  *
  * @return Pointer to created circuit verification key.
  * */
-std::shared_ptr<UltraHonkComposerHelper::VerificationKey> UltraHonkComposerHelper::compute_verification_key(
+template <UltraFlavor Flavor>
+std::shared_ptr<typename Flavor::VerificationKey> UltraHonkComposerHelper_<Flavor>::compute_verification_key(
     const CircuitConstructor& circuit_constructor)
 {
     if (verification_key) {
@@ -315,7 +308,7 @@ std::shared_ptr<UltraHonkComposerHelper::VerificationKey> UltraHonkComposerHelpe
         compute_proving_key(circuit_constructor);
     }
 
-    verification_key = std::make_shared<UltraHonkComposerHelper::VerificationKey>(
+    verification_key = std::make_shared<typename Flavor::VerificationKey>(
         proving_key->circuit_size, proving_key->num_public_inputs, proving_key->composer_type);
 
     // Compute and store commitments to all precomputed polynomials
@@ -354,5 +347,7 @@ std::shared_ptr<UltraHonkComposerHelper::VerificationKey> UltraHonkComposerHelpe
 
     return verification_key;
 }
+template class UltraHonkComposerHelper_<honk::flavor::Ultra>;
+template class UltraHonkComposerHelper_<honk::flavor::UltraGrumpkin>;
 
 } // namespace proof_system::honk

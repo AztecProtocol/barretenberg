@@ -44,8 +44,8 @@ void UltraCircuitConstructor::finalize_circuit()
      */
     if (!circuit_finalised) {
         process_non_native_field_multiplications();
-        process_ROM_arrays(public_inputs.size());
-        process_RAM_arrays(public_inputs.size());
+        process_ROM_arrays();
+        process_RAM_arrays();
         process_range_lists();
         circuit_finalised = true;
     }
@@ -93,30 +93,24 @@ void UltraCircuitConstructor::add_gates_to_ensure_all_polys_are_non_zero()
     create_big_add_gate({ zero_idx, zero_idx, zero_idx, one_idx, 0, 0, 0, 1, -1 });
 
     // Take care of all polys related to lookups (q_lookup, tables, sorted, etc)
-    // by doing an arbitrary xor and an "and" lookup.
+    // by doing a dummy lookup with a special table.
     // Note: the 4th table poly is the table index: this is not the value of the table
     // type enum but rather the index of the table in the list of all tables utilized
-    // in the circuit. Therefore we naively need two different tables (indices 0, 1)
-    // to get a non-zero value in table_4. I assume this index is arbitrary and could
-    // start from 1 instead of 0?
+    // in the circuit. Therefore we naively need two different basic tables (indices 0, 1)
+    // to get a non-zero value in table_4.
+    // The multitable operates on 2-bit values, so the maximum is 3
     uint32_t left_value = 3;
-    uint32_t right_value = 5;
+    uint32_t right_value = 3;
 
     fr left_witness_value = fr{ left_value, 0, 0, 0 }.to_montgomery_form();
     fr right_witness_value = fr{ right_value, 0, 0, 0 }.to_montgomery_form();
 
     uint32_t left_witness_index = add_variable(left_witness_value);
     uint32_t right_witness_index = add_variable(right_witness_value);
-
-    const auto and_accumulators = plookup::get_lookup_accumulators(
-        plookup::MultiTableId::UINT32_AND, left_witness_value, right_witness_value, true);
-    const auto xor_accumulators = plookup::get_lookup_accumulators(
-        plookup::MultiTableId::UINT32_XOR, left_witness_value, right_witness_value, true);
-
+    const auto dummy_accumulators = plookup::get_lookup_accumulators(
+        plookup::MultiTableId::HONK_DUMMY_MULTI, left_witness_value, right_witness_value, true);
     create_gates_from_plookup_accumulators(
-        plookup::MultiTableId::UINT32_AND, and_accumulators, left_witness_index, right_witness_index);
-    create_gates_from_plookup_accumulators(
-        plookup::MultiTableId::UINT32_XOR, xor_accumulators, left_witness_index, right_witness_index);
+        plookup::MultiTableId::HONK_DUMMY_MULTI, dummy_accumulators, left_witness_index, right_witness_index);
 }
 
 /**
@@ -2279,7 +2273,7 @@ std::array<uint32_t, 2> UltraCircuitConstructor::read_ROM_array_pair(const size_
  * @param rom_id The id of the ROM table
  * @param gate_offset_from_public_inputs Required to track the gate position of where we're adding extra gates
  */
-void UltraCircuitConstructor::process_ROM_array(const size_t rom_id, const size_t gate_offset_from_public_inputs)
+void UltraCircuitConstructor::process_ROM_array(const size_t rom_id)
 {
 
     auto& rom_array = rom_arrays[rom_id];
@@ -2332,8 +2326,8 @@ void UltraCircuitConstructor::process_ROM_array(const size_t rom_id, const size_
         // record (w4) = w3 * eta^3 + w2 * eta^2 + w1 * eta + read_write_flag (0 for reads, 1 for writes)
         // Separate containers used to store gate indices of reads and writes. Need to differentiate because of
         // `read_write_flag` (N.B. all ROM accesses are considered reads. Writes are for RAM operations)
-        memory_read_records.push_back(static_cast<uint32_t>(sorted_record.gate_index + gate_offset_from_public_inputs));
-        memory_read_records.push_back(static_cast<uint32_t>(record.gate_index + gate_offset_from_public_inputs));
+        memory_read_records.push_back(static_cast<uint32_t>(sorted_record.gate_index));
+        memory_read_records.push_back(static_cast<uint32_t>(record.gate_index));
     }
     // One of the checks we run on the sorted list, is to validate the difference between
     // the index field across two gates is either 0 or 1.
@@ -2365,7 +2359,7 @@ void UltraCircuitConstructor::process_ROM_array(const size_t rom_id, const size_
  * @param ram_id The id of the RAM table
  * @param gate_offset_from_public_inputs Required to track the gate position of where we're adding extra gates
  */
-void UltraCircuitConstructor::process_RAM_array(const size_t ram_id, const size_t gate_offset_from_public_inputs)
+void UltraCircuitConstructor::process_RAM_array(const size_t ram_id)
 {
     RamTranscript& ram_array = ram_arrays[ram_id];
     const auto access_tag = get_new_tag();      // current_tag + 1;
@@ -2439,15 +2433,13 @@ void UltraCircuitConstructor::process_RAM_array(const size_t ram_id, const size_
 
         switch (record.access_type) {
         case RamRecord::AccessType::READ: {
-            memory_read_records.push_back(
-                static_cast<uint32_t>(sorted_record.gate_index + gate_offset_from_public_inputs));
-            memory_read_records.push_back(static_cast<uint32_t>(record.gate_index + gate_offset_from_public_inputs));
+            memory_read_records.push_back(static_cast<uint32_t>(sorted_record.gate_index));
+            memory_read_records.push_back(static_cast<uint32_t>(record.gate_index));
             break;
         }
         case RamRecord::AccessType::WRITE: {
-            memory_write_records.push_back(
-                static_cast<uint32_t>(sorted_record.gate_index + gate_offset_from_public_inputs));
-            memory_write_records.push_back(static_cast<uint32_t>(record.gate_index + gate_offset_from_public_inputs));
+            memory_write_records.push_back(static_cast<uint32_t>(sorted_record.gate_index));
+            memory_write_records.push_back(static_cast<uint32_t>(record.gate_index));
             break;
         }
         default: {
@@ -2507,16 +2499,16 @@ void UltraCircuitConstructor::process_RAM_array(const size_t ram_id, const size_
     }
 }
 
-void UltraCircuitConstructor::process_ROM_arrays(const size_t gate_offset_from_public_inputs)
+void UltraCircuitConstructor::process_ROM_arrays()
 {
     for (size_t i = 0; i < rom_arrays.size(); ++i) {
-        process_ROM_array(i, gate_offset_from_public_inputs);
+        process_ROM_array(i);
     }
 }
-void UltraCircuitConstructor::process_RAM_arrays(const size_t gate_offset_from_public_inputs)
+void UltraCircuitConstructor::process_RAM_arrays()
 {
     for (size_t i = 0; i < ram_arrays.size(); ++i) {
-        process_RAM_array(i, gate_offset_from_public_inputs);
+        process_RAM_array(i);
     }
 }
 
