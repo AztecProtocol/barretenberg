@@ -28,7 +28,7 @@ describe('barretenberg wasm', () => {
 });
 
 describe('barretenberg wasm worker', () => {
-  let worker!: Worker;
+  let worker!: any;
   let wasm!: BarretenbergWasmWorker;
 
   beforeAll(async () => {
