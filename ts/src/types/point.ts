@@ -1,5 +1,3 @@
-// TODO: fix this file for browser (already did)
-
 import { Fr } from './index.js';
 import { BufferReader } from '../serialize/buffer_reader.js';
 
