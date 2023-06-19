@@ -17,16 +17,14 @@
 #include "../../primitives/bool/bool.hpp"
 
 #include "../verification_key//verification_key.hpp"
-namespace proof_system::plonk {
-namespace stdlib {
-namespace recursion {
+namespace proof_system::plonk::stdlib::recursion {
 template <typename Composer> class Transcript {
   public:
     using field_pt = field_t<Composer>;
     using witness_pt = witness_t<Composer>;
     using fq_pt = bigfield<Composer, barretenberg::Bn254FqParams>;
     using group_pt = element<Composer, fq_pt, field_pt, barretenberg::g1>;
-    using Key = proof_system::plonk::stdlib::recursion::verification_key<stdlib::bn254<Composer>>;
+    using Key = verification_key<stdlib::bn254<Composer>>;
 
     Transcript(Composer* in_context, const transcript::Manifest input_manifest)
         : context(in_context)
@@ -429,6 +427,4 @@ template <typename Composer> class Transcript {
 
     size_t current_round = 0;
 };
-} // namespace recursion
-} // namespace stdlib
-} // namespace proof_system::plonk
+} // namespace proof_system::plonk::stdlib::recursion
