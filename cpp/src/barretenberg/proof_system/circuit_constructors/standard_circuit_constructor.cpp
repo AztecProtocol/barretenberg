@@ -505,5 +505,5 @@ template <typename FF> bool StandardCircuitConstructor_<FF>::check_circuit()
     }
     return true;
 }
-template class StandardCircuitConstructor_<barretenberg::field<barretenberg::Bn254FrParams>>;
+template class StandardCircuitConstructor_<barretenberg::fr>;
 } // namespace proof_system
