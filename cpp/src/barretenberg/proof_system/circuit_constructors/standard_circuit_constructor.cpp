@@ -14,7 +14,7 @@ namespace proof_system {
  * @param in An add_triple containing the indexes of variables to be placed into the
  * wires w_l, w_r, w_o and addition coefficients to be placed into q_1, q_2, q_3, q_c.
  */
-template <typename Curve> void StandardCircuitConstructor_<Curve>::create_add_gate(const add_triple& in)
+template <typename FF> void StandardCircuitConstructor_<FF>::create_add_gate(const add_triple& in)
 {
     this->assert_valid_variables({ in.a, in.b, in.c });
 
@@ -37,13 +37,13 @@ template <typename Curve> void StandardCircuitConstructor_<Curve>::create_add_ga
  * @param in An add quad containing the indexes of variables a, b, c, d and
  * the scaling factors.
  * */
-template <typename Curve> void StandardCircuitConstructor_<Curve>::create_big_add_gate(const add_quad& in)
+template <typename FF> void StandardCircuitConstructor_<FF>::create_big_add_gate(const add_quad& in)
 {
     // (a terms + b terms = temp)
     // (c terms + d  terms + temp = 0 )
-    fr t0 = this->get_variable(in.a) * in.a_scaling;
-    fr t1 = this->get_variable(in.b) * in.b_scaling;
-    fr temp = t0 + t1;
+    FF t0 = this->get_variable(in.a) * in.a_scaling;
+    FF t1 = this->get_variable(in.b) * in.b_scaling;
+    FF temp = t0 + t1;
     uint32_t temp_idx = this->add_variable(temp);
 
     create_add_gate(add_triple{ in.a, in.b, temp_idx, in.a_scaling, in.b_scaling, FF::neg_one(), FF::zero() });
@@ -58,15 +58,15 @@ template <typename Curve> void StandardCircuitConstructor_<Curve>::create_big_ad
  * @param in An add quad containing the indexes of variables a, b, c, d and
  * the scaling factors.
  * */
-template <typename Curve> void StandardCircuitConstructor_<Curve>::create_balanced_add_gate(const add_quad& in)
+template <typename FF> void StandardCircuitConstructor_<FF>::create_balanced_add_gate(const add_quad& in)
 {
     this->assert_valid_variables({ in.a, in.b, in.c, in.d });
 
     // (a terms + b terms = temp)
     // (c terms + d  terms + temp = 0 )
-    fr t0 = this->get_variable(in.a) * in.a_scaling;
-    fr t1 = this->get_variable(in.b) * in.b_scaling;
-    fr temp = t0 + t1;
+    FF t0 = this->get_variable(in.a) * in.a_scaling;
+    FF t1 = this->get_variable(in.b) * in.b_scaling;
+    FF temp = t0 + t1;
     uint32_t temp_idx = this->add_variable(temp);
 
     w_l.emplace_back(in.a);
@@ -93,7 +93,7 @@ template <typename Curve> void StandardCircuitConstructor_<Curve>::create_balanc
 
     // in.d must be between 0 and 3
     // i.e. in.d * (in.d - 1) * (in.d - 2) = 0
-    fr temp_2 = this->get_variable(in.d).sqr() - this->get_variable(in.d);
+    FF temp_2 = this->get_variable(in.d).sqr() - this->get_variable(in.d);
     uint32_t temp_2_idx = this->add_variable(temp_2);
     w_l.emplace_back(in.d);
     w_r.emplace_back(in.d);
@@ -106,7 +106,7 @@ template <typename Curve> void StandardCircuitConstructor_<Curve>::create_balanc
 
     ++this->num_gates;
 
-    constexpr fr neg_two = -fr(2);
+    constexpr FF neg_two = -FF(2);
     w_l.emplace_back(temp_2_idx);
     w_r.emplace_back(in.d);
     w_o.emplace_back(this->zero_idx);
@@ -119,8 +119,7 @@ template <typename Curve> void StandardCircuitConstructor_<Curve>::create_balanc
     ++this->num_gates;
 }
 
-template <typename Curve>
-void StandardCircuitConstructor_<Curve>::create_big_add_gate_with_bit_extraction(const add_quad& in)
+template <typename FF> void StandardCircuitConstructor_<FF>::create_big_add_gate_with_bit_extraction(const add_quad& in)
 {
     // blah.
     // delta = (c - 4d)
@@ -128,23 +127,23 @@ void StandardCircuitConstructor_<Curve>::create_big_add_gate_with_bit_extraction
     // r = (-2*delta*delta + 9*delta - 7)*delta
     // r =
 
-    fr delta = this->get_variable(in.d);
+    FF delta = this->get_variable(in.d);
     delta += delta;
     delta += delta;
     delta = this->get_variable(in.c) - delta;
 
     uint32_t delta_idx = this->add_variable(delta);
-    constexpr fr neg_four = -(fr(4));
+    constexpr FF neg_four = -(FF(4));
     create_add_gate(add_triple{ in.c, in.d, delta_idx, FF::one(), neg_four, FF::neg_one(), FF::zero() });
 
-    constexpr fr two = fr(2);
-    constexpr fr seven = fr(7);
-    constexpr fr nine = fr(9);
-    const fr r_0 = (delta * nine) - ((delta.sqr() * two) + seven);
+    constexpr FF two = FF(2);
+    constexpr FF seven = FF(7);
+    constexpr FF nine = FF(9);
+    const FF r_0 = (delta * nine) - ((delta.sqr() * two) + seven);
     uint32_t r_0_idx = this->add_variable(r_0);
     create_poly_gate(poly_triple{ delta_idx, delta_idx, r_0_idx, -two, nine, FF::zero(), FF::neg_one(), -seven });
 
-    fr r_1 = r_0 * delta;
+    FF r_1 = r_0 * delta;
     uint32_t r_1_idx = this->add_variable(r_1);
     create_mul_gate(mul_triple{
         r_0_idx,
@@ -157,7 +156,7 @@ void StandardCircuitConstructor_<Curve>::create_big_add_gate_with_bit_extraction
 
     // ain.a1 + bin.b2 + cin.c3 + din.c4 + r_1 = 0
 
-    fr r_2 = (r_1 + (this->get_variable(in.d) * in.d_scaling));
+    FF r_2 = (r_1 + (this->get_variable(in.d) * in.d_scaling));
     uint32_t r_2_idx = this->add_variable(r_2);
     create_add_gate(add_triple{ in.d, r_1_idx, r_2_idx, in.d_scaling, FF::one(), FF::neg_one(), FF::zero() });
 
@@ -165,9 +164,9 @@ void StandardCircuitConstructor_<Curve>::create_big_add_gate_with_bit_extraction
         add_quad{ in.a, in.b, in.c, r_2_idx, in.a_scaling, in.b_scaling, in.c_scaling, FF::one(), in.const_scaling });
 }
 
-template <typename Curve> void StandardCircuitConstructor_<Curve>::create_big_mul_gate(const mul_quad& in)
+template <typename FF> void StandardCircuitConstructor_<FF>::create_big_mul_gate(const mul_quad& in)
 {
-    fr temp = ((this->get_variable(in.c) * in.c_scaling) + (this->get_variable(in.d) * in.d_scaling));
+    FF temp = ((this->get_variable(in.c) * in.c_scaling) + (this->get_variable(in.d) * in.d_scaling));
     uint32_t temp_idx = this->add_variable(temp);
     create_add_gate(add_triple{ in.c, in.d, temp_idx, in.c_scaling, in.d_scaling, FF::neg_one(), FF::zero() });
 
@@ -181,7 +180,7 @@ template <typename Curve> void StandardCircuitConstructor_<Curve>::create_big_mu
  * @param in A mul_tripple containing the indexes of variables to be placed into the
  * wires w_l, w_r, w_o and scaling coefficients to be placed into q_m, q_3, q_c.
  */
-template <typename Curve> void StandardCircuitConstructor_<Curve>::create_mul_gate(const mul_triple& in)
+template <typename FF> void StandardCircuitConstructor_<FF>::create_mul_gate(const mul_triple& in)
 {
     this->assert_valid_variables({ in.a, in.b, in.c });
 
@@ -203,7 +202,7 @@ template <typename Curve> void StandardCircuitConstructor_<Curve>::create_mul_ga
  *
  * @param variable_index The index of the variable.
  */
-template <typename Curve> void StandardCircuitConstructor_<Curve>::create_bool_gate(const uint32_t variable_index)
+template <typename FF> void StandardCircuitConstructor_<FF>::create_bool_gate(const uint32_t variable_index)
 {
     this->assert_valid_variables({ variable_index });
 
@@ -225,7 +224,7 @@ template <typename Curve> void StandardCircuitConstructor_<Curve>::create_bool_g
  *
  * @param in A poly_triple containing all the information.
  */
-template <typename Curve> void StandardCircuitConstructor_<Curve>::create_poly_gate(const poly_triple& in)
+template <typename FF> void StandardCircuitConstructor_<FF>::create_poly_gate(const poly_triple& in)
 {
     this->assert_valid_variables({ in.a, in.b, in.c });
 
@@ -241,9 +240,10 @@ template <typename Curve> void StandardCircuitConstructor_<Curve>::create_poly_g
     ++this->num_gates;
 }
 
-template <typename Curve>
-std::vector<uint32_t> StandardCircuitConstructor_<Curve>::decompose_into_base4_accumulators(
-    const uint32_t witness_index, const size_t num_bits, std::string const& msg)
+template <typename FF>
+std::vector<uint32_t> StandardCircuitConstructor_<FF>::decompose_into_base4_accumulators(const uint32_t witness_index,
+                                                                                         const size_t num_bits,
+                                                                                         std::string const& msg)
 {
     ASSERT(num_bits > 0);
     const uint256_t target(this->get_variable(witness_index));
@@ -255,8 +255,8 @@ std::vector<uint32_t> StandardCircuitConstructor_<Curve>::decompose_into_base4_a
     const auto is_edge_case = [&num_quads, &num_bits](size_t idx) {
         return (idx == num_quads - 1 && ((num_bits & 1ULL) == 1ULL));
     };
-    constexpr fr four = fr{ 4, 0, 0, 0 }.to_montgomery_form();
-    fr accumulator = FF::zero();
+    constexpr FF four = fr{ 4, 0, 0, 0 }.to_montgomery_form();
+    FF accumulator = FF::zero();
     uint32_t accumulator_idx = 0;
     for (size_t i = num_quads - 1; i < num_quads; --i) {
 
@@ -285,7 +285,7 @@ std::vector<uint32_t> StandardCircuitConstructor_<Curve>::decompose_into_base4_a
             accumulator = this->get_variable(quad_idx);
             accumulator_idx = quad_idx;
         } else {
-            fr new_accumulator = accumulator + accumulator;
+            FF new_accumulator = accumulator + accumulator;
             new_accumulator = new_accumulator + new_accumulator;
             new_accumulator = new_accumulator + this->get_variable(quad_idx);
             uint32_t new_accumulator_idx = this->add_variable(new_accumulator);
@@ -301,11 +301,11 @@ std::vector<uint32_t> StandardCircuitConstructor_<Curve>::decompose_into_base4_a
     return accumulators;
 }
 
-template <typename Curve>
-accumulator_triple StandardCircuitConstructor_<Curve>::create_logic_constraint(const uint32_t a,
-                                                                               const uint32_t b,
-                                                                               const size_t num_bits,
-                                                                               const bool is_xor_gate)
+template <typename FF>
+accumulator_triple StandardCircuitConstructor_<FF>::create_logic_constraint(const uint32_t a,
+                                                                            const uint32_t b,
+                                                                            const size_t num_bits,
+                                                                            const bool is_xor_gate)
 {
     this->assert_valid_variables({ a, b });
 
@@ -314,15 +314,15 @@ accumulator_triple StandardCircuitConstructor_<Curve>::create_logic_constraint(c
     const uint256_t left_witness_value(this->get_variable(a));
     const uint256_t right_witness_value(this->get_variable(b));
 
-    fr left_accumulator = FF::zero();
-    fr right_accumulator = FF::zero();
-    fr out_accumulator = FF::zero();
+    FF left_accumulator = FF::zero();
+    FF right_accumulator = FF::zero();
+    FF out_accumulator = FF::zero();
 
     uint32_t left_accumulator_idx = this->zero_idx;
     uint32_t right_accumulator_idx = this->zero_idx;
     uint32_t out_accumulator_idx = this->zero_idx;
-    constexpr fr four = fr(4);
-    constexpr fr neg_two = -fr(2);
+    constexpr FF four = FF(4);
+    constexpr FF neg_two = -FF(2);
     for (size_t i = num_bits - 1; i < num_bits; i -= 2) {
         bool left_hi_val = left_witness_value.get_bit(i);
         bool left_lo_val = left_witness_value.get_bit(i - 1);
@@ -368,17 +368,17 @@ accumulator_triple StandardCircuitConstructor_<Curve>::create_logic_constraint(c
                                       FF::neg_one(),
                                       FF::zero() });
 
-        fr left_quad =
+        FF left_quad =
             this->get_variable(left_lo_idx) + this->get_variable(left_hi_idx) + this->get_variable(left_hi_idx);
-        fr right_quad =
+        FF right_quad =
             this->get_variable(right_lo_idx) + this->get_variable(right_hi_idx) + this->get_variable(right_hi_idx);
-        fr out_quad = this->get_variable(out_lo_idx) + this->get_variable(out_hi_idx) + this->get_variable(out_hi_idx);
+        FF out_quad = this->get_variable(out_lo_idx) + this->get_variable(out_hi_idx) + this->get_variable(out_hi_idx);
 
         uint32_t left_quad_idx = this->add_variable(left_quad);
         uint32_t right_quad_idx = this->add_variable(right_quad);
         uint32_t out_quad_idx = this->add_variable(out_quad);
 
-        fr new_left_accumulator = left_accumulator + left_accumulator;
+        FF new_left_accumulator = left_accumulator + left_accumulator;
         new_left_accumulator = new_left_accumulator + new_left_accumulator;
         new_left_accumulator = new_left_accumulator + left_quad;
         uint32_t new_left_accumulator_idx = this->add_variable(new_left_accumulator);
@@ -391,7 +391,7 @@ accumulator_triple StandardCircuitConstructor_<Curve>::create_logic_constraint(c
                                     FF::neg_one(),
                                     FF::zero() });
 
-        fr new_right_accumulator = right_accumulator + right_accumulator;
+        FF new_right_accumulator = right_accumulator + right_accumulator;
         new_right_accumulator = new_right_accumulator + new_right_accumulator;
         new_right_accumulator = new_right_accumulator + right_quad;
         uint32_t new_right_accumulator_idx = this->add_variable(new_right_accumulator);
@@ -404,7 +404,7 @@ accumulator_triple StandardCircuitConstructor_<Curve>::create_logic_constraint(c
                                     FF::neg_one(),
                                     FF::zero() });
 
-        fr new_out_accumulator = out_accumulator + out_accumulator;
+        FF new_out_accumulator = out_accumulator + out_accumulator;
         new_out_accumulator = new_out_accumulator + new_out_accumulator;
         new_out_accumulator = new_out_accumulator + out_quad;
         uint32_t new_out_accumulator_idx = this->add_variable(new_out_accumulator);
@@ -428,8 +428,8 @@ accumulator_triple StandardCircuitConstructor_<Curve>::create_logic_constraint(c
     return accumulators;
 }
 
-template <typename Curve>
-void StandardCircuitConstructor_<Curve>::fix_witness(const uint32_t witness_index, const FF& witness_value)
+template <typename FF>
+void StandardCircuitConstructor_<FF>::fix_witness(const uint32_t witness_index, const FF& witness_value)
 {
     this->assert_valid_variables({ witness_index });
 
@@ -444,7 +444,7 @@ void StandardCircuitConstructor_<Curve>::fix_witness(const uint32_t witness_inde
     ++this->num_gates;
 }
 
-template <typename Curve> uint32_t StandardCircuitConstructor_<Curve>::put_constant_variable(const FF& variable)
+template <typename FF> uint32_t StandardCircuitConstructor_<FF>::put_constant_variable(const FF& variable)
 {
     if (constant_variable_indices.contains(variable)) {
         return constant_variable_indices.at(variable);
@@ -457,26 +457,24 @@ template <typename Curve> uint32_t StandardCircuitConstructor_<Curve>::put_const
     }
 }
 
-template <typename Curve>
-accumulator_triple StandardCircuitConstructor_<Curve>::create_and_constraint(const uint32_t a,
-                                                                             const uint32_t b,
-                                                                             const size_t num_bits)
+template <typename FF>
+accumulator_triple StandardCircuitConstructor_<FF>::create_and_constraint(const uint32_t a,
+                                                                          const uint32_t b,
+                                                                          const size_t num_bits)
 {
     return create_logic_constraint(a, b, num_bits, false);
 }
 
-template <typename Curve>
-accumulator_triple StandardCircuitConstructor_<Curve>::create_xor_constraint(const uint32_t a,
-                                                                             const uint32_t b,
-                                                                             const size_t num_bits)
+template <typename FF>
+accumulator_triple StandardCircuitConstructor_<FF>::create_xor_constraint(const uint32_t a,
+                                                                          const uint32_t b,
+                                                                          const size_t num_bits)
 {
     return create_logic_constraint(a, b, num_bits, true);
 }
 
-template <typename Curve>
-void StandardCircuitConstructor_<Curve>::assert_equal_constant(uint32_t const a_idx,
-                                                               FF const& b,
-                                                               std::string const& msg)
+template <typename FF>
+void StandardCircuitConstructor_<FF>::assert_equal_constant(uint32_t const a_idx, FF const& b, std::string const& msg)
 {
     if (this->variables[a_idx] != b && !this->failed()) {
         this->failure(msg);
@@ -491,11 +489,11 @@ void StandardCircuitConstructor_<Curve>::assert_equal_constant(uint32_t const a_
  *
  * @return true if the circuit is correct.
  * */
-template <typename Curve> bool StandardCircuitConstructor_<Curve>::check_circuit()
+template <typename FF> bool StandardCircuitConstructor_<FF>::check_circuit()
 {
 
-    fr gate_sum;
-    fr left, right, output;
+    FF gate_sum;
+    FF left, right, output;
     for (size_t i = 0; i < this->num_gates; i++) {
         gate_sum = FF::zero();
         left = this->get_variable(w_l[i]);
@@ -507,4 +505,5 @@ template <typename Curve> bool StandardCircuitConstructor_<Curve>::check_circuit
     }
     return true;
 }
+template class StandardCircuitConstructor_<barretenberg::field<barretenberg::Bn254FrParams>>;
 } // namespace proof_system

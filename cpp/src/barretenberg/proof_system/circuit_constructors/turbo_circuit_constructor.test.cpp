@@ -187,8 +187,8 @@ TEST(turbo_circuit_constructor, small_scalar_multipliers)
     bool skew = false;
     barretenberg::wnaf::fixed_wnaf<num_wnaf_bits, 1, 2>(&scalar_multiplier_base.data[0], &wnaf_entries[0], skew, 0);
 
-    fr accumulator_offset = (fr::one() + fr::one()).pow(static_cast<uint64_t>(initial_exponent)).invert();
-    fr origin_accumulators[2]{ fr::one(), accumulator_offset + fr::one() };
+    fr accumulator_ofrset = (fr::one() + fr::one()).pow(static_cast<uint64_t>(initial_exponent)).invert();
+    fr origin_accumulators[2]{ fr::one(), accumulator_ofrset + fr::one() };
 
     grumpkin::g1::element* multiplication_transcript =
         static_cast<grumpkin::g1::element*>(aligned_alloc(64, sizeof(grumpkin::g1::element) * (num_quads + 1)));
@@ -228,7 +228,7 @@ TEST(turbo_circuit_constructor, small_scalar_multipliers)
 
     TurboCircuitConstructor circuit_constructor = TurboCircuitConstructor();
 
-    fr x_alpha = accumulator_offset;
+    fr x_alpha = accumulator_ofrset;
     for (size_t i = 0; i < num_quads; ++i) {
         fixed_group_add_quad round_quad;
         round_quad.d = circuit_constructor.add_variable(accumulator_transcript[i]);
@@ -311,8 +311,8 @@ TEST(turbo_circuit_constructor, large_scalar_multipliers)
     bool skew = false;
     barretenberg::wnaf::fixed_wnaf<num_wnaf_bits, 1, 2>(&scalar_multiplier_base.data[0], &wnaf_entries[0], skew, 0);
 
-    fr accumulator_offset = (fr::one() + fr::one()).pow(static_cast<uint64_t>(initial_exponent)).invert();
-    fr origin_accumulators[2]{ fr::one(), accumulator_offset + fr::one() };
+    fr accumulator_ofrset = (fr::one() + fr::one()).pow(static_cast<uint64_t>(initial_exponent)).invert();
+    fr origin_accumulators[2]{ fr::one(), accumulator_ofrset + fr::one() };
 
     grumpkin::g1::element* multiplication_transcript =
         static_cast<grumpkin::g1::element*>(aligned_alloc(64, sizeof(grumpkin::g1::element) * (num_quads + 1)));
@@ -352,7 +352,7 @@ TEST(turbo_circuit_constructor, large_scalar_multipliers)
 
     TurboCircuitConstructor circuit_constructor = TurboCircuitConstructor();
 
-    fr x_alpha = accumulator_offset;
+    fr x_alpha = accumulator_ofrset;
     for (size_t i = 0; i < num_quads; ++i) {
         fixed_group_add_quad round_quad;
         round_quad.d = circuit_constructor.add_variable(accumulator_transcript[i]);

@@ -26,17 +26,20 @@ template <class Flavor> class UltraHonkComposer_;
 using UltraHonkComposer = UltraHonkComposer_<flavor::Ultra>;
 } // namespace proof_system::honk
 
-namespace curve {
-class BN254;
-}
+namespace barretenberg {
+class Bn254FrParams;
+template <class Params> struct alignas(32) field;
+} // namespace barretenberg
 namespace proof_system {
-template <class Curve> class StandardCircuitConstructor_;
-using StandardCircuitConstructor = StandardCircuitConstructor_<curve::BN254>;
-template <class Curve> class TurboCircuitConstructor_;
-using TurboCircuitConstructor = TurboCircuitConstructor_<curve::BN254>;
-template <class Curve> class UltraCircuitConstructor_;
-using UltraCircuitConstructor = UltraCircuitConstructor_<curve::BN254>;
+template <class FF> class StandardCircuitConstructor_;
+using StandardCircuitConstructor = StandardCircuitConstructor_<barretenberg::field<barretenberg::Bn254FrParams>>;
+template <class FF> class TurboCircuitConstructor_;
+using TurboCircuitConstructor = TurboCircuitConstructor_<barretenberg::field<barretenberg::Bn254FrParams>>;
+template <class FF> class UltraCircuitConstructor_;
+using UltraCircuitConstructor = UltraCircuitConstructor_<barretenberg::field<barretenberg::Bn254FrParams>>;
 } // namespace proof_system
+
+// namespace proof_system
 
 #define EXTERN_STDLIB_TYPE(stdlib_type)                                                                                \
     extern template class stdlib_type<proof_system::StandardCircuitConstructor>;                                       \

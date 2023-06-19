@@ -14,10 +14,9 @@ inline std::vector<std::string> standard_selector_names()
     return result;
 }
 
-template <typename Curve>
-class StandardCircuitConstructor_ : public CircuitConstructorBase<arithmetization::Standard<Curve>> {
+template <typename FF>
+class StandardCircuitConstructor_ : public CircuitConstructorBase<arithmetization::Standard<FF>> {
   public:
-    using FF = typename Curve::ScalarField;
     static constexpr ComposerType type = ComposerType::STANDARD;
     static constexpr merkle::HashType merkle_hash_type = merkle::HashType::FIXED_BASE_PEDERSEN;
     static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
@@ -43,7 +42,7 @@ class StandardCircuitConstructor_ : public CircuitConstructorBase<arithmetizatio
     std::map<FF, uint32_t> constant_variable_indices;
 
     StandardCircuitConstructor_(const size_t size_hint = 0)
-        : CircuitConstructorBase<Curve>(standard_selector_names(), size_hint)
+        : CircuitConstructorBase<arithmetization::Standard<FF>>(standard_selector_names(), size_hint)
     {
         w_l.reserve(size_hint);
         w_r.reserve(size_hint);
@@ -118,6 +117,7 @@ class StandardCircuitConstructor_ : public CircuitConstructorBase<arithmetizatio
     bool check_circuit();
 };
 
-using StandardCircuitConstructor = StandardCircuitConstructor_<curve::BN254>;
+extern template class StandardCircuitConstructor_<barretenberg::fr>;
+using StandardCircuitConstructor = StandardCircuitConstructor_<barretenberg::fr>;
 // using StandardGrumpkinCircuitConstructor = StandardCircuitConstructor__<grumpkin::fr>;
 } // namespace proof_system

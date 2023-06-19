@@ -48,9 +48,9 @@ template <typename FF, size_t num_selectors> struct SelectorsBase {
 
 // These are not magic numbers and they should not be written with global constants. These parameters are not accessible
 // through clearly named static class members.
-template <typename Curve> class Standard : public Arithmetization</*NUM_WIRES =*/3, /*num_selectors =*/5> {
+template <typename _FF> class Standard : public Arithmetization</*NUM_WIRES =*/3, /*num_selectors =*/5> {
   public:
-    using FF = typename Curve::ScalarField;
+    using FF = _FF;
     struct Selectors : SelectorsBase<FF, num_selectors> {
         std::vector<FF, barretenberg::ContainerSlabAllocator<FF>>& q_m = std::get<0>(this->_data);
         std::vector<FF, barretenberg::ContainerSlabAllocator<FF>>& q_1 = std::get<1>(this->_data);
@@ -80,9 +80,9 @@ template <typename Curve> class Standard : public Arithmetization</*NUM_WIRES =*
     };
 };
 
-template <typename Curve> class Turbo : public Arithmetization</*NUM_WIRES =*/4, /*num_selectors =*/11> {
+template <typename _FF> class Turbo : public Arithmetization</*NUM_WIRES =*/4, /*num_selectors =*/11> {
   public:
-    using FF = typename Curve::ScalarField;
+    using FF = _FF;
     struct Selectors : SelectorsBase<FF, num_selectors> {
         std::vector<FF, barretenberg::ContainerSlabAllocator<FF>>& q_m = std::get<0>(this->_data);
         std::vector<FF, barretenberg::ContainerSlabAllocator<FF>>& q_c = std::get<1>(this->_data);
@@ -124,9 +124,9 @@ template <typename Curve> class Turbo : public Arithmetization</*NUM_WIRES =*/4,
     };
 };
 
-template <typename Curve> class Ultra : public Arithmetization</*NUM_WIRES =*/4, /*num_selectors =*/11> {
+template <typename _FF> class Ultra : public Arithmetization</*NUM_WIRES =*/4, /*num_selectors =*/11> {
   public:
-    using FF = typename Curve::ScalarField;
+    using FF = _FF;
     struct Selectors : SelectorsBase<FF, num_selectors> {
         std::vector<FF, barretenberg::ContainerSlabAllocator<FF>>& q_m = std::get<0>(this->_data);
         std::vector<FF, barretenberg::ContainerSlabAllocator<FF>>& q_c = std::get<1>(this->_data);
