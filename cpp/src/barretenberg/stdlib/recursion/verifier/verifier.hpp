@@ -20,14 +20,14 @@ namespace proof_system::plonk {
 namespace stdlib {
 namespace recursion {
 
-template <typename Composer> struct lagrange_evaluations {
-    field_t<Composer> l_start;
-    field_t<Composer> l_end;
-    field_t<Composer> vanishing_poly;
+template <typename Builder> struct lagrange_evaluations {
+    field_t<Builder> l_start;
+    field_t<Builder> l_end;
+    field_t<Builder> vanishing_poly;
 };
 
 template <typename Curve, typename Transcript, typename program_settings>
-void populate_kate_element_map(typename Curve::Composer* ctx,
+void populate_kate_element_map(typename Curve::Builder* ctx,
                                typename Transcript::Key* key,
                                const Transcript& transcript,
                                std::map<std::string, typename Curve::g1_ct>& kate_g1_elements,
@@ -112,9 +112,9 @@ void populate_kate_element_map(typename Curve::Composer* ctx,
 }
 
 template <typename Curve>
-lagrange_evaluations<typename Curve::Composer> get_lagrange_evaluations(
+lagrange_evaluations<typename Curve::Builder> get_lagrange_evaluations(
     const typename Curve::fr_ct& z,
-    const evaluation_domain<typename Curve::Composer>& domain,
+    const evaluation_domain<typename Curve::Builder>& domain,
     const size_t num_roots_cut_out_of_vanishing_polynomial = 4)
 {
     // compute Z_H*(z), l_start(z), l_{end}(z)
@@ -127,9 +127,9 @@ lagrange_evaluations<typename Curve::Composer> get_lagrange_evaluations(
     //
 
     typedef typename Curve::fr_ct fr_ct;
-    typedef typename Curve::Composer Composer;
+    typedef typename Curve::Builder Builder;
 
-    fr_ct z_pow = z.pow(field_t<Composer>(domain.size));
+    fr_ct z_pow = z.pow(field_t<Builder>(domain.size));
     fr_ct numerator = z_pow - fr_ct(1);
 
     // compute modified vanishing polynomial Z_H*(z)
@@ -138,7 +138,7 @@ lagrange_evaluations<typename Curve::Composer> get_lagrange_evaluations(
     //           (z - w^{n-1})(z - w^{n-2})...(z - w^{n - k})
     //
     fr_ct denominators_vanishing_poly = fr_ct(1);
-    lagrange_evaluations<Composer> result;
+    lagrange_evaluations<Builder> result;
 
     fr_ct work_root = domain.root_inverse;
     for (size_t i = 0; i < num_roots_cut_out_of_vanishing_polynomial; ++i) {
@@ -176,17 +176,17 @@ lagrange_evaluations<typename Curve::Composer> get_lagrange_evaluations(
  * which includes detailed comments.
  */
 template <typename Curve, typename program_settings>
-aggregation_state<Curve> verify_proof(typename Curve::Composer* context,
+aggregation_state<Curve> verify_proof(typename Curve::Builder* context,
                                       std::shared_ptr<verification_key<Curve>> key,
                                       const transcript::Manifest& manifest,
                                       const plonk::proof& proof,
                                       const aggregation_state<Curve> previous_output = aggregation_state<Curve>())
 {
-    using Composer = typename Curve::Composer;
+    using Builder = typename Curve::Builder;
 
     key->program_width = program_settings::program_width;
 
-    Transcript<Composer> transcript = Transcript<Composer>(context, proof.proof_data, manifest);
+    Transcript<Builder> transcript = Transcript<Builder>(context, proof.proof_data, manifest);
 
     return verify_proof_<Curve, program_settings>(context, key, transcript, previous_output);
 }
@@ -196,15 +196,15 @@ aggregation_state<Curve> verify_proof(typename Curve::Composer* context,
  * which includes detailed comments.
  */
 template <typename Curve, typename program_settings>
-aggregation_state<Curve> verify_proof_(typename Curve::Composer* context,
+aggregation_state<Curve> verify_proof_(typename Curve::Builder* context,
                                        std::shared_ptr<verification_key<Curve>> key,
-                                       Transcript<typename Curve::Composer>& transcript,
+                                       Transcript<typename Curve::Builder>& transcript,
                                        const aggregation_state<Curve> previous_output = aggregation_state<Curve>())
 {
     using fr_ct = typename Curve::fr_ct;
     using fq_ct = typename Curve::fq_ct;
     using g1_ct = typename Curve::g1_ct;
-    using Composer = typename Curve::Composer;
+    using Builder = typename Curve::Builder;
 
     key->program_width = program_settings::program_width;
 
@@ -233,7 +233,7 @@ aggregation_state<Curve> verify_proof_(typename Curve::Composer* context,
 
     key->z_pow_n = zeta.pow(key->domain.domain);
 
-    lagrange_evaluations<Composer> lagrange_evals = get_lagrange_evaluations<Curve>(zeta, key->domain);
+    lagrange_evaluations<Builder> lagrange_evals = get_lagrange_evaluations<Curve>(zeta, key->domain);
 
     // reconstruct evaluation of quotient polynomial from prover messages
 
@@ -250,14 +250,14 @@ aggregation_state<Curve> verify_proof_(typename Curve::Composer* context,
 
     fr_ct batch_opening_scalar;
 
-    populate_kate_element_map<Curve, Transcript<Composer>, program_settings>(context,
-                                                                             key.get(),
-                                                                             transcript,
-                                                                             kate_g1_elements,
-                                                                             kate_fr_elements_at_zeta,
-                                                                             kate_fr_elements_at_zeta_large,
-                                                                             kate_fr_elements_at_zeta_omega,
-                                                                             batch_opening_scalar);
+    populate_kate_element_map<Curve, Transcript<Builder>, program_settings>(context,
+                                                                            key.get(),
+                                                                            transcript,
+                                                                            kate_g1_elements,
+                                                                            kate_fr_elements_at_zeta,
+                                                                            kate_fr_elements_at_zeta_large,
+                                                                            kate_fr_elements_at_zeta_omega,
+                                                                            batch_opening_scalar);
 
     std::vector<fr_ct> double_opening_scalars;
     std::vector<g1_ct> double_opening_elements;
