@@ -94,18 +94,19 @@ template <typename FF> void UltraCircuitConstructor_<FF>::add_gates_to_ensure_al
     create_big_add_gate({ this->zero_idx, this->zero_idx, this->zero_idx, this->one_idx, 0, 0, 0, 1, -1 });
 
     // Take care of all polys related to lookups (q_lookup, tables, sorted, etc)
-    // by doing an arbitrary xor and an "and" lookup.
+    // by doing a dummy lookup with a special table.
     // Note: the 4th table poly is the table index: this is not the value of the table
     // type enum but rather the index of the table in the list of all tables utilized
-    // in the circuit. Therefore we naively need two different tables (indices 0, 1)
-    // to get a non-zero value in table_4. I assume this index is arbitrary and could
-    // start from 1 instead of 0?
+    // in the circuit. Therefore we naively need two different basic tables (indices 0, 1)
+    // to get a non-zero value in table_4.
+    // The multitable operates on 2-bit values, so the maximum is 3
     uint32_t left_value = 3;
-    uint32_t right_value = 5;
+    uint32_t right_value = 3;
 
     FF left_witness_value = fr{ left_value, 0, 0, 0 }.to_montgomery_form();
     FF right_witness_value = fr{ right_value, 0, 0, 0 }.to_montgomery_form();
 
+<<<<<<< HEAD
     uint32_t left_witness_index = this->add_variable(left_witness_value);
     uint32_t right_witness_index = this->add_variable(right_witness_value);
 
@@ -116,8 +117,14 @@ template <typename FF> void UltraCircuitConstructor_<FF>::add_gates_to_ensure_al
 
     create_gates_from_plookup_accumulators(
         plookup::MultiTableId::UINT32_AND, and_accumulators, left_witness_index, right_witness_index);
+=======
+    uint32_t left_witness_index = add_variable(left_witness_value);
+    uint32_t right_witness_index = add_variable(right_witness_value);
+    const auto dummy_accumulators = plookup::get_lookup_accumulators(
+        plookup::MultiTableId::HONK_DUMMY_MULTI, left_witness_value, right_witness_value, true);
+>>>>>>> refs/rewritten/master-3
     create_gates_from_plookup_accumulators(
-        plookup::MultiTableId::UINT32_XOR, xor_accumulators, left_witness_index, right_witness_index);
+        plookup::MultiTableId::HONK_DUMMY_MULTI, dummy_accumulators, left_witness_index, right_witness_index);
 }
 
 /**
