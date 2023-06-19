@@ -1,7 +1,6 @@
 #pragma once
 #include <functional>
 #include "../composers/composers_fwd.hpp"
-#include "../composers/composers.hpp"
 #include "../witness/witness.hpp"
 #include "../bool/bool.hpp"
 #include "barretenberg/common/assert.hpp"

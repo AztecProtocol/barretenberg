@@ -14,11 +14,9 @@ inline std::vector<std::string> turbo_selector_names()
                                      "q_5", "q_arith", "q_fixed_base", "q_range", "q_logic" };
     return result;
 }
-template <typename Curve>
-class TurboCircuitConstructor_ : public CircuitConstructorBase<arithmetization::Turbo<Curve>> {
+template <typename FF> class TurboCircuitConstructor_ : public CircuitConstructorBase<arithmetization::Turbo<FF>> {
 
   public:
-    using FF = typename Curve::ScalarField;
     static constexpr ComposerType type = ComposerType::TURBO;
     static constexpr merkle::HashType merkle_hash_type = merkle::HashType::FIXED_BASE_PEDERSEN;
     static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
@@ -110,7 +108,7 @@ class TurboCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
             this->failure(msg);
         }
         auto b_idx = put_constant_variable(b);
-        assert_equal(a_idx, b_idx, msg);
+        this->assert_equal(a_idx, b_idx, msg);
     }
 
     /**
@@ -125,5 +123,6 @@ class TurboCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
     // these are variables that we have used a gate on, to enforce that they are equal to a defined value
     std::map<FF, uint32_t> constant_variable_indices;
 };
-using TurboCircuitConstructor = TurboCircuitConstructor_<curve::BN254>;
+extern template class TurboCircuitConstructor_<barretenberg::fr>;
+using TurboCircuitConstructor = TurboCircuitConstructor_<barretenberg::fr>;
 } // namespace proof_system

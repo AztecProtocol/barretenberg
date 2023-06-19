@@ -43,7 +43,7 @@ void CircuitConstructorBase<Arithmetization>::assert_equal(const uint32_t a_vari
         real_variable_tags[a_real_idx] = real_variable_tags[b_real_idx];
 }
 // Standard honk/ plonk instantiation
-template class CircuitConstructorBase<arithmetization::Standard<curve::BN254>>;
-template class CircuitConstructorBase<arithmetization::Ultra<curve::BN254>>;
-template class CircuitConstructorBase<arithmetization::Turbo<curve::BN254>>;
+template class CircuitConstructorBase<arithmetization::Standard<barretenberg::fr>>;
+template class CircuitConstructorBase<arithmetization::Ultra<barretenberg::fr>>;
+template class CircuitConstructorBase<arithmetization::Turbo<barretenberg::fr>>;
 } // namespace proof_system

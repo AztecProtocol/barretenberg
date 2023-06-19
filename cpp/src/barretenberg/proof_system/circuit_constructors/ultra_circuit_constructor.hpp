@@ -15,10 +15,8 @@ namespace proof_system {
 
 using namespace barretenberg;
 
-template <typename Curve>
-class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::Ultra<Curve>> {
+template <typename FF> class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::Ultra<FF>> {
   public:
-    using FF = typename Curve::ScalarField;
     static constexpr ComposerType type = ComposerType::PLOOKUP;
     static constexpr merkle::HashType merkle_hash_type = merkle::HashType::LOOKUP_PEDERSEN;
     static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
@@ -583,7 +581,7 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
 
     void process_non_native_field_multiplications();
     UltraCircuitConstructor_(const size_t size_hint = 0)
-        : CircuitConstructorBase<arithmetization::Ultra<Curve>>(ultra_selector_names(), size_hint)
+        : CircuitConstructorBase<arithmetization::Ultra<FF>>(ultra_selector_names(), size_hint)
     {
         w_l.reserve(size_hint);
         w_r.reserve(size_hint);
@@ -596,7 +594,7 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
         : UltraCircuitConstructor_(size_hint){};
     UltraCircuitConstructor_(const UltraCircuitConstructor_& other) = delete;
     UltraCircuitConstructor_(UltraCircuitConstructor_&& other)
-        : CircuitConstructorBase<arithmetization::Ultra<Curve>>(std::move(other))
+        : CircuitConstructorBase<arithmetization::Ultra<FF>>(std::move(other))
     {
         constant_variable_indices = other.constant_variable_indices;
 
@@ -724,7 +722,7 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
             romcount += 1; // we add an addition gate after procesing a rom array
         }
 
-        constexpr size_t gate_width = this->program_width;
+        constexpr size_t gate_width = CircuitConstructorBase<arithmetization::Ultra<FF>>::program_width;
         // each RAM gate adds +2 extra gates due to the ram reads being copied to a sorted list set,
         // as well as an extra gate to validate timestamps
         std::vector<size_t> ram_timestamps;
@@ -994,7 +992,7 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
             this->failure(msg);
         }
         auto b_idx = put_constant_variable(b);
-        assert_equal(a_idx, b_idx, msg);
+        this->assert_equal(a_idx, b_idx, msg);
     }
 
     /**
@@ -1118,63 +1116,64 @@ class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::
 
     // Circuit evaluation methods
 
-    fr compute_arithmetic_identity(fr q_arith_value,
-                                   fr q_1_value,
-                                   fr q_2_value,
-                                   fr q_3_value,
-                                   fr q_4_value,
-                                   fr q_m_value,
-                                   fr q_c_value,
-                                   fr w_1_value,
-                                   fr w_2_value,
-                                   fr w_3_value,
-                                   fr w_4_value,
-                                   fr w_1_shifted_value,
-                                   fr w_4_shifted_value,
-                                   const fr alpha_base,
-                                   const fr alpha) const;
-    fr compute_auxilary_identity(fr q_aux_value,
-                                 fr q_arith_value,
-                                 fr q_1_value,
-                                 fr q_2_value,
-                                 fr q_3_value,
-                                 fr q_4_value,
-                                 fr q_m_value,
-                                 fr q_c_value,
-                                 fr w_1_value,
-                                 fr w_2_value,
-                                 fr w_3_value,
-                                 fr w_4_value,
-                                 fr w_1_shifted_value,
-                                 fr w_2_shifted_value,
-                                 fr w_3_shifted_value,
-                                 fr w_4_shifted_value,
-                                 fr alpha_base,
-                                 fr alpha,
-                                 fr eta) const;
-    fr compute_elliptic_identity(fr q_elliptic_value,
-                                 fr q_1_value,
-                                 fr q_3_value,
-                                 fr q_4_value,
-                                 fr w_2_value,
-                                 fr w_3_value,
-                                 fr w_1_shifted_value,
-                                 fr w_2_shifted_value,
-                                 fr w_3_shifted_value,
-                                 fr w_4_shifted_value,
-                                 fr alpha_base,
-                                 fr alpha) const;
-    fr compute_genperm_sort_identity(fr q_sort_value,
-                                     fr w_1_value,
-                                     fr w_2_value,
-                                     fr w_3_value,
-                                     fr w_4_value,
-                                     fr w_1_shifted_value,
-                                     fr alpha_base,
-                                     fr alpha) const;
+    FF compute_arithmetic_identity(FF q_arith_value,
+                                   FF q_1_value,
+                                   FF q_2_value,
+                                   FF q_3_value,
+                                   FF q_4_value,
+                                   FF q_m_value,
+                                   FF q_c_value,
+                                   FF w_1_value,
+                                   FF w_2_value,
+                                   FF w_3_value,
+                                   FF w_4_value,
+                                   FF w_1_shifted_value,
+                                   FF w_4_shifted_value,
+                                   const FF alpha_base,
+                                   const FF alpha) const;
+    FF compute_auxilary_identity(FF q_aux_value,
+                                 FF q_arith_value,
+                                 FF q_1_value,
+                                 FF q_2_value,
+                                 FF q_3_value,
+                                 FF q_4_value,
+                                 FF q_m_value,
+                                 FF q_c_value,
+                                 FF w_1_value,
+                                 FF w_2_value,
+                                 FF w_3_value,
+                                 FF w_4_value,
+                                 FF w_1_shifted_value,
+                                 FF w_2_shifted_value,
+                                 FF w_3_shifted_value,
+                                 FF w_4_shifted_value,
+                                 FF alpha_base,
+                                 FF alpha,
+                                 FF eta) const;
+    FF compute_elliptic_identity(FF q_elliptic_value,
+                                 FF q_1_value,
+                                 FF q_3_value,
+                                 FF q_4_value,
+                                 FF w_2_value,
+                                 FF w_3_value,
+                                 FF w_1_shifted_value,
+                                 FF w_2_shifted_value,
+                                 FF w_3_shifted_value,
+                                 FF w_4_shifted_value,
+                                 FF alpha_base,
+                                 FF alpha) const;
+    FF compute_genperm_sort_identity(FF q_sort_value,
+                                     FF w_1_value,
+                                     FF w_2_value,
+                                     FF w_3_value,
+                                     FF w_4_value,
+                                     FF w_1_shifted_value,
+                                     FF alpha_base,
+                                     FF alpha) const;
 
     void update_circuit_in_the_head();
     bool check_circuit();
 };
-using UltraCircuitConstructor = UltraCircuitConstructor_<curve::BN254>;
+extern template class UltraCircuitConstructor_<barretenberg::fr>;
+using UltraCircuitConstructor = UltraCircuitConstructor_<barretenberg::fr>;
 } // namespace proof_system
