@@ -1,10 +1,9 @@
 #include "barretenberg/common/test.hpp"
 #include "verification_key.hpp"
 #include "barretenberg/plonk/proof_system/verification_key/verification_key.hpp"
-#include "barretenberg/plonk/composer/composer_helper/standard_plonk_composer_helper.hpp"
-#include "barretenberg/plonk/composer/composer_helper/turbo_plonk_composer_helper.hpp"
-#include "barretenberg/plonk/composer/composer_helper/ultra_plonk_composer_helper.hpp"
-#include "barretenberg/honk/composer/composer_helper/ultra_honk_composer_helper.hpp"
+#include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
+#include "barretenberg/proof_system/circuit_constructors/turbo_circuit_constructor.hpp"
+#include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
 
 namespace {
 auto& engine = numeric::random::get_debug_engine();
@@ -44,17 +43,16 @@ template <typename Composer> class VerificationKeyFixture : public testing::Test
     }
 };
 
-// Each test will run for all composer types
-using ComposerTypes = testing::Types<plonk::StandardPlonkComposerHelper,
-                                     plonk::TurboPlonkComposerHelper,
-                                     plonk::UltraPlonkComposerHelper,
-                                     honk::StandardHonkComposerHelper>;
+// WORKTODO: This is probably unnecessary
+using ComposerTypes = testing::Types<proof_system::StandardCircuitConstructor,
+                                     proof_system::TurboCircuitConstructor,
+                                     proof_system::UltraCircuitConstructor>;
 TYPED_TEST_SUITE(VerificationKeyFixture, ComposerTypes);
 
 TYPED_TEST(VerificationKeyFixture, vk_data_vs_recursion_compress_native)
 {
     using RecursVk = typename TestFixture::RecursVk;
-    TypeParam composer;
+    TypeParam builder;
 
     verification_key_data vk_data = TestFixture::rand_vk_data();
     verification_key_data vk_data_copy = vk_data;
@@ -63,7 +61,7 @@ TYPED_TEST(VerificationKeyFixture, vk_data_vs_recursion_compress_native)
     auto file_verifier = file_crs->get_verifier_crs();
 
     auto native_vk = std::make_shared<verification_key>(std::move(vk_data_copy), file_verifier);
-    auto recurs_vk = RecursVk::from_witness(&composer, native_vk);
+    auto recurs_vk = RecursVk::from_witness(&builder, native_vk);
 
     EXPECT_EQ(vk_data.compress_native(0), RecursVk::compress_native(native_vk, 0));
     // EXPECT_EQ(vk_data.compress_native(15), RecursVk::compress_native(native_vk, 15));
@@ -75,7 +73,7 @@ TYPED_TEST(VerificationKeyFixture, vk_data_vs_recursion_compress_native)
 TYPED_TEST(VerificationKeyFixture, compress_vs_compress_native)
 {
     using RecursVk = typename TestFixture::RecursVk;
-    TypeParam composer;
+    TypeParam builder;
 
     verification_key_data vk_data = TestFixture::rand_vk_data();
 
@@ -83,7 +81,7 @@ TYPED_TEST(VerificationKeyFixture, compress_vs_compress_native)
     auto file_verifier = file_crs->get_verifier_crs();
 
     auto native_vk = std::make_shared<verification_key>(std::move(vk_data), file_verifier);
-    auto recurs_vk = RecursVk::from_witness(&composer, native_vk);
+    auto recurs_vk = RecursVk::from_witness(&builder, native_vk);
 
     EXPECT_EQ(recurs_vk->compress(0).get_value(), RecursVk::compress_native(native_vk, 0));
     // EXPECT_EQ(recurs_vk->compress(15).get_value(), RecursVk::compress_native(native_vk, 15));
