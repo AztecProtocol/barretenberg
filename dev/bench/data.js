@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1687278101273,
+  "lastUpdate": 1687278103607,
   "repoUrl": "https://github.com/AztecProtocol/barretenberg",
   "entries": {
     "C++ Benchmark": [
@@ -960,6 +960,54 @@ window.BENCHMARK_DATA = {
             "value": 4.139212885000006,
             "unit": "s/iter",
             "extra": "iterations: 1\ncpu: 2.373938499999994 s\nthreads: 1"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "codygunton@gmail.com",
+            "name": "Cody Gunton",
+            "username": "codygunton"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ba583ff00509f636feae7b78304b115e34fc2357",
+          "message": "feat: Split plonk and honk tests (#529)\n\nCo-authored-by: Rumata888 <isennovskiy@gmail.com>",
+          "timestamp": "2023-06-20T17:10:51+01:00",
+          "tree_id": "ebf604e0b3d66f05c0cf4c0eaa1361eddc570ade",
+          "url": "https://github.com/AztecProtocol/barretenberg/commit/ba583ff00509f636feae7b78304b115e34fc2357"
+        },
+        "date": 1687278100444,
+        "tool": "googlecpp",
+        "benches": [
+          {
+            "name": "construct_proof_ultra/sha256/10/repeats:1",
+            "value": 7.3031245570000465,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 5.5538206 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/keccak/10/repeats:1",
+            "value": 19.04403309600002,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 16.6709308 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/ecdsa_verification/10/repeats:1",
+            "value": 34.40523942799996,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 31.862635099999995 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/merkle_membership/10/repeats:1",
+            "value": 4.148774953000043,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 2.28722410000001 s\nthreads: 1"
           }
         ]
       },
