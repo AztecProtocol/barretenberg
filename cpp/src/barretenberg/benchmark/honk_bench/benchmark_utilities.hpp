@@ -37,9 +37,11 @@ struct BenchParams {
  */
 template <typename Builder> void generate_basic_arithmetic_circuit(Builder& builder, size_t num_gates)
 {
-    plonk::stdlib::field_t a(plonk::stdlib::witness_t(&builder, barretenberg::fr::random_element()));
-    plonk::stdlib::field_t b(plonk::stdlib::witness_t(&builder, barretenberg::fr::random_element()));
-    plonk::stdlib::field_t c(&builder);
+    proof_system::plonk::stdlib::field_t a(
+        proof_system::plonk::stdlib::witness_t(&builder, barretenberg::fr::random_element()));
+    proof_system::plonk::stdlib::field_t b(
+        proof_system::plonk::stdlib::witness_t(&builder, barretenberg::fr::random_element()));
+    proof_system::plonk::stdlib::field_t c(&builder);
     for (size_t i = 0; i < (num_gates / 4) - 4; ++i) {
         c = a + b;
         c = a * c;
@@ -109,6 +111,7 @@ template <typename Builder> void generate_ecdsa_verification_test_circuit(Builde
 
         bool first_result =
             crypto::ecdsa::verify_signature<Sha256Hasher, fq, fr, g1>(message_string, account.public_key, signature);
+        static_cast<void>(first_result); // WORKTODO
 
         std::vector<uint8_t> rr(signature.r.begin(), signature.r.end());
         std::vector<uint8_t> ss(signature.s.begin(), signature.s.end());

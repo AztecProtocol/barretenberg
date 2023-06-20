@@ -15,7 +15,7 @@ namespace proof_system::stdlib_merkle_test {
 
 using namespace barretenberg;
 using namespace proof_system::plonk::stdlib::merkle_tree;
-using namespace plonk::stdlib;
+using namespace proof_system::plonk::stdlib;
 
 using Composer = proof_system::UltraCircuitConstructor;
 

@@ -8,7 +8,7 @@
 namespace proof_system::stdlib_merkle_tree_hash_test {
 
 using namespace barretenberg;
-using namespace plonk::stdlib;
+using namespace proof_system::plonk::stdlib;
 
 using Composer = proof_system::UltraCircuitConstructor;
 

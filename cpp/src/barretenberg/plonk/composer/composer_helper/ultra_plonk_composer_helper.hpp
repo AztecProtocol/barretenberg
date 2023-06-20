@@ -18,6 +18,7 @@ class UltraPlonkComposerHelper {
     using Flavor = flavor::Ultra;
     using CircuitConstructor = UltraCircuitConstructor;
 
+    static constexpr std::string_view NAME_STRING = "UltraPlonk";
     static constexpr ComposerType type = ComposerType::PLOOKUP;
     static constexpr size_t NUM_RESERVED_GATES = 4; // equal to the number of multilinear evaluations leaked
     static constexpr size_t program_width = CircuitConstructor::NUM_WIRES;
