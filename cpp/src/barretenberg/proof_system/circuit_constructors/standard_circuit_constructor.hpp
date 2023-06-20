@@ -74,17 +74,18 @@ class StandardCircuitConstructor_ : public CircuitConstructorBase<arithmetizatio
 
     void assert_equal_constant(uint32_t const a_idx, FF const& b, std::string const& msg = "assert equal constant");
 
-    void create_add_gate(const add_triple& in) override;
-    void create_mul_gate(const mul_triple& in) override;
+    void create_add_gate(const add_triple_<FF>& in) override;
+    void create_mul_gate(const mul_triple_<FF>& in) override;
     void create_bool_gate(const uint32_t a) override;
-    void create_poly_gate(const poly_triple& in) override;
-    void create_big_add_gate(const add_quad& in);
-    void create_big_add_gate_with_bit_extraction(const add_quad& in);
-    void create_big_mul_gate(const mul_quad& in);
-    void create_balanced_add_gate(const add_quad& in);
-    void create_fixed_group_add_gate(const fixed_group_add_quad& in);
-    void create_fixed_group_add_gate_with_init(const fixed_group_add_quad& in, const fixed_group_init_quad& init);
-    void create_fixed_group_add_gate_final(const add_quad& in);
+    void create_poly_gate(const poly_triple_<FF>& in) override;
+    void create_big_add_gate(const add_quad_<FF>& in);
+    void create_big_add_gate_with_bit_extraction(const add_quad_<FF>& in);
+    void create_big_mul_gate(const mul_quad_<FF>& in);
+    void create_balanced_add_gate(const add_quad_<FF>& in);
+    void create_fixed_group_add_gate(const fixed_group_add_quad_<FF>& in);
+    void create_fixed_group_add_gate_with_init(const fixed_group_add_quad_<FF>& in,
+                                               const fixed_group_init_quad_<FF>& init);
+    void create_fixed_group_add_gate_final(const add_quad_<FF>& in);
 
     fixed_group_add_quad previous_add_quad;
 
@@ -118,6 +119,7 @@ class StandardCircuitConstructor_ : public CircuitConstructorBase<arithmetizatio
 };
 
 extern template class StandardCircuitConstructor_<barretenberg::fr>;
+extern template class StandardCircuitConstructor_<grumpkin::fr>;
 using StandardCircuitConstructor = StandardCircuitConstructor_<barretenberg::fr>;
-// using StandardGrumpkinCircuitConstructor = StandardCircuitConstructor__<grumpkin::fr>;
+using StandardGrumpkinCircuitConstructor = StandardCircuitConstructor_<grumpkin::fr>;
 } // namespace proof_system

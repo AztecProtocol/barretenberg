@@ -44,6 +44,7 @@ void CircuitConstructorBase<Arithmetization>::assert_equal(const uint32_t a_vari
 }
 // Standard honk/ plonk instantiation
 template class CircuitConstructorBase<arithmetization::Standard<barretenberg::fr>>;
+template class CircuitConstructorBase<arithmetization::Standard<grumpkin::fr>>;
 template class CircuitConstructorBase<arithmetization::Ultra<barretenberg::fr>>;
 template class CircuitConstructorBase<arithmetization::Turbo<barretenberg::fr>>;
 } // namespace proof_system
