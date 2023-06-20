@@ -2317,13 +2317,7 @@ std::array<uint32_t, 2> UltraCircuitConstructor_<FF>::read_ROM_array_pair(const 
  * @param rom_id The id of the ROM table
  * @param gate_offset_from_public_inputs Required to track the gate position of where we're adding extra gates
  */
-<<<<<<< HEAD
-template <typename Curve>
-void UltraCircuitConstructor_<Curve>::process_ROM_array(const size_t rom_id,
-                                                        const size_t gate_offset_from_public_inputs)
-=======
 template <typename FF> void UltraCircuitConstructor_<FF>::process_ROM_array(const size_t rom_id)
->>>>>>> 4096cc77... mess that works
 {
 
     auto& rom_array = rom_arrays[rom_id];
@@ -2409,13 +2403,7 @@ template <typename FF> void UltraCircuitConstructor_<FF>::process_ROM_array(cons
  * @param ram_id The id of the RAM table
  * @param gate_offset_from_public_inputs Required to track the gate position of where we're adding extra gates
  */
-<<<<<<< HEAD
-template <typename Curve>
-void UltraCircuitConstructor_<Curve>::process_RAM_array(const size_t ram_id,
-                                                        const size_t gate_offset_from_public_inputs)
-=======
 template <typename FF> void UltraCircuitConstructor_<FF>::process_RAM_array(const size_t ram_id)
->>>>>>> 4096cc77... mess that works
 {
     RamTranscript& ram_array = ram_arrays[ram_id];
     const auto access_tag = get_new_tag();      // current_tag + 1;
@@ -2555,23 +2543,13 @@ template <typename FF> void UltraCircuitConstructor_<FF>::process_RAM_array(cons
     }
 }
 
-<<<<<<< HEAD
-template <typename Curve>
-void UltraCircuitConstructor_<Curve>::process_ROM_arrays(const size_t gate_offset_from_public_inputs)
-=======
 template <typename FF> void UltraCircuitConstructor_<FF>::process_ROM_arrays()
->>>>>>> 4096cc77... mess that works
 {
     for (size_t i = 0; i < rom_arrays.size(); ++i) {
         process_ROM_array(i);
     }
 }
-<<<<<<< HEAD
-template <typename Curve>
-void UltraCircuitConstructor_<Curve>::process_RAM_arrays(const size_t gate_offset_from_public_inputs)
-=======
 template <typename FF> void UltraCircuitConstructor_<FF>::process_RAM_arrays()
->>>>>>> 4096cc77... mess that works
 {
     for (size_t i = 0; i < ram_arrays.size(); ++i) {
         process_RAM_array(i);

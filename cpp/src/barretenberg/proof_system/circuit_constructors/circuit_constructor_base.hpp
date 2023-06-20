@@ -79,10 +79,10 @@ template <typename Arithmetization> class CircuitConstructorBase {
     uint32_t zero_idx = 0;
     uint32_t one_idx = 1;
 
-    virtual void create_add_gate(const add_triple& in) = 0;
-    virtual void create_mul_gate(const mul_triple& in) = 0;
+    virtual void create_add_gate(const add_triple_<FF>& in) = 0;
+    virtual void create_mul_gate(const mul_triple_<FF>& in) = 0;
     virtual void create_bool_gate(const uint32_t a) = 0;
-    virtual void create_poly_gate(const poly_triple& in) = 0;
+    virtual void create_poly_gate(const poly_triple_<FF>& in) = 0;
     virtual size_t get_num_constant_gates() const = 0;
 
     /**
