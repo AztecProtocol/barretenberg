@@ -299,7 +299,7 @@ generator_data const& get_generator_data(generator_index_t index)
     } else if (index.index <= (LOW.num_indices + MID.num_indices + HIGH.num_indices)) {
         // Calculate the global index of the generator for the HIGH hash index
         const size_t local_index_offset = LOW.num_indices + MID.num_indices;
-        const size_t generator_count_offset = LOW.total_generators() + HIGH.total_generators();
+        const size_t generator_count_offset = LOW.total_generators() + MID.total_generators();
         ASSERT(index.sub_index < HIGH.num_generators_per_index);
         global_index_offset =
             generator_count_offset + (index.index - local_index_offset - 1) * HIGH.num_generators_per_index;
