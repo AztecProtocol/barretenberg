@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1687278103607,
+  "lastUpdate": 1687283252393,
   "repoUrl": "https://github.com/AztecProtocol/barretenberg",
   "entries": {
     "C++ Benchmark": [
@@ -1056,6 +1056,54 @@ window.BENCHMARK_DATA = {
             "value": 4.148774953000043,
             "unit": "s/iter",
             "extra": "iterations: 1\ncpu: 2.28722410000001 s\nthreads: 1"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "isennovskiy@gmail.com",
+            "name": "Innokentii Sennovskii",
+            "username": "Rumata888"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4b156a3648e6da9dfe292e354da9a27185d2aa9d",
+          "message": "fix: check_circuit bug fix (#510)",
+          "timestamp": "2023-06-20T18:37:52+01:00",
+          "tree_id": "a02229863d03b835f586bed090db0767583a5120",
+          "url": "https://github.com/AztecProtocol/barretenberg/commit/4b156a3648e6da9dfe292e354da9a27185d2aa9d"
+        },
+        "date": 1687283251047,
+        "tool": "googlecpp",
+        "benches": [
+          {
+            "name": "construct_proof_ultra/sha256/10/repeats:1",
+            "value": 8.55803021500003,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 6.305595200000001 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/keccak/10/repeats:1",
+            "value": 20.64763982699992,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 18.936613800000003 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/ecdsa_verification/10/repeats:1",
+            "value": 38.45134912399999,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 36.05218320000001 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/merkle_membership/10/repeats:1",
+            "value": 4.5428811079999605,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 2.6276718000000017 s\nthreads: 1"
           }
         ]
       }
