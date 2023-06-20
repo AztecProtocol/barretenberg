@@ -330,9 +330,6 @@ void ProverPlookupWidget<num_roots_cut_out_of_vanishing_polynomial>::compute_gra
     // Compute and add monomial form of z_lookup to the polynomial store
     z_lookup.ifft(key->small_domain);
     key->polynomial_store.put("z_lookup", std::move(z_lookup));
-    for (size_t k = 1; k < 4; ++k) {
-        free(accumulators[k]);
-    }
 }
 
 /**
