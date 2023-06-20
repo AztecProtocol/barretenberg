@@ -1,4 +1,3 @@
-import { type Worker } from 'worker_threads';
 import { BarretenbergWasm, BarretenbergWasmWorker } from './barretenberg_wasm.js';
 
 describe('barretenberg wasm', () => {

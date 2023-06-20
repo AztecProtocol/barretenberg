@@ -45,9 +45,7 @@ module.exports = {
   resolve: {
     alias: {
       // TODO: this alias is not working, /dest is not exporting with ./browser/index imports
-      './node/index': './browser/index',
       'idb-keyval': require.resolve('idb-keyval'),
-      worker_threads: 'browser-threads',
       crypto: require.resolve('crypto-browserify'),
       path: require.resolve('path-browserify'),
       url: require.resolve('url/'),

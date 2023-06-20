@@ -1,6 +1,5 @@
 // TODO: fix this file for browser (worker_thread and events are not compatible)
-
-import { type Worker } from 'worker_threads';
+// HELLO! 123
 import { EventEmitter } from 'events';
 import createDebug from 'debug';
 import { Remote, proxy } from 'comlink';
@@ -26,7 +25,7 @@ export class BarretenbergWasm {
   private memStore: { [key: string]: Uint8Array } = {};
   private memory!: WebAssembly.Memory;
   private instance!: WebAssembly.Instance;
-  private workers: Worker[] = [];
+  private workers: any[] = [];
   private remoteWasms: BarretenbergWasmWorker[] = [];
   private nextWorker = 0;
   private nextThreadId = 1;
@@ -87,8 +86,8 @@ export class BarretenbergWasm {
 
     // Create worker threads. Create 1 less than requested, as main thread counts as a thread.
     this.logger('creating worker threads...');
-    this.workers = await Promise.all(Array.from({ length: threads - 1 }).map(createWorker));
-    this.remoteWasms = await Promise.all(this.workers.map(getRemoteBarretenbergWasm));
+    this.workers = (await Promise.all(Array.from({ length: threads - 1 }).map(createWorker))) as any;
+    this.remoteWasms = await Promise.all(this.workers.map(getRemoteBarretenbergWasm as any));
     await Promise.all(this.remoteWasms.map(w => w.initThread(module, this.memory)));
     this.logger('init complete.');
   }
