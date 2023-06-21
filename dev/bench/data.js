@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1687390426424,
+  "lastUpdate": 1687390428135,
   "repoUrl": "https://github.com/AztecProtocol/barretenberg",
   "entries": {
     "C++ Benchmark": [
@@ -1248,6 +1248,54 @@ window.BENCHMARK_DATA = {
             "value": 4.195564630000035,
             "unit": "s/iter",
             "extra": "iterations: 1\ncpu: 2.2668450000000036 s\nthreads: 1"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "kevtheappdev@gmail.com",
+            "name": "kevaundray",
+            "username": "kevaundray"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1b3ff93e7ed8873583cdade95a860adb8823f1cd",
+          "message": "fix: Update versioning in nix files when a release is made (#549)",
+          "timestamp": "2023-06-22T00:27:02+01:00",
+          "tree_id": "cf8a2861c8c00aa20093f896e574497039a5598a",
+          "url": "https://github.com/AztecProtocol/barretenberg/commit/1b3ff93e7ed8873583cdade95a860adb8823f1cd"
+        },
+        "date": 1687390425206,
+        "tool": "googlecpp",
+        "benches": [
+          {
+            "name": "construct_proof_ultra/sha256/10/repeats:1",
+            "value": 8.310397586000022,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 6.2923881 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/keccak/10/repeats:1",
+            "value": 21.076332369999932,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 18.945831599999998 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/ecdsa_verification/10/repeats:1",
+            "value": 38.6366567,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 36.12790449999999 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/merkle_membership/10/repeats:1",
+            "value": 4.437870290999967,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 2.569267400000001 s\nthreads: 1"
           }
         ]
       },
