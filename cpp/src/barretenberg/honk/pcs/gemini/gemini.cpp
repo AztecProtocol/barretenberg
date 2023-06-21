@@ -110,7 +110,7 @@ std::vector<typename barretenberg::Polynomial<typename Params::Fr>> MultilinearR
         // in the next iteration, it is the previously folded one
         auto A_l = A_0.data();
 
-        // The loop only goes from the largest vector the the vector of size num_parts, so individual threads can
+        // The loop only goes from the largest vector to the vector of size num_parts, so individual threads can
         // work completely independently
         for (size_t l = 0; l < num_variables - 1 - (size_t)std::countr_zero(num_parts); ++l) {
             const Fr u_l = mle_opening_point[l];
