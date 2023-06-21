@@ -274,15 +274,15 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
         return { output, verification_key };
     }
 
-    // /**
-    //  * @brief Check the correctness of the recursive proof public inputs
-    //  *
-    //  * @details Circuit constructors have no notion of SRS and any proof-related stuff except for the existence of
-    //  * recursive proof-specific public inputs, so we can't check the recursive proof fully in check_circuit. So we
-    //  * use this additional function to check that the recursive proof points work.
-    //  *
-    //  * @return boolean result
-    //  */
+    /**
+     * @brief Check the correctness of the recursive proof public inputs
+     *
+     * @details Circuit constructors have no notion of SRS and any proof-related stuff except for the existence of
+     * recursive proof-specific public inputs, so we can't check the recursive proof fully in check_circuit. So we
+     * use this additional function to check that the recursive proof points work.
+     *
+     * @return boolean result
+     */
 
     static bool check_recursive_proof_public_inputs(OuterBuilder& builder,
                                                     const barretenberg::pairing::miller_lines* lines)

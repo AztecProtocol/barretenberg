@@ -20,9 +20,7 @@ template <typename... Args> std::string format(Args... args)
 
 template <typename T> void benchmark_format_chain(std::ostream& os, T const& first)
 {
-    // We will be saving these values to
-    // a CSV file, so we can't tolerate
-    // commas
+    // We will be saving these values to a CSV file, so we can't tolerate commas
     std::stringstream current_argument;
     current_argument << first;
     std::string current_argument_string = current_argument.str();
@@ -33,9 +31,7 @@ template <typename T> void benchmark_format_chain(std::ostream& os, T const& fir
 template <typename T, typename... Args>
 void benchmark_format_chain(std::ostream& os, T const& first, Args const&... args)
 {
-    // We will be saving these values to
-    // a CSV file, so we can't tolerate
-    // commas
+    // We will be saving these values to a CSV file, so we can't tolerate commas
     std::stringstream current_argument;
     current_argument << first;
     std::string current_argument_string = current_argument.str();
@@ -68,13 +64,9 @@ template <typename... Args> inline void info(Args... args)
 }
 
 /**
- * @brief Info used to store circuit
- * statistics during CI/CD with concrete
- * structure. Writes straight to log
+ * @brief Info used to store circuit statistics during CI/CD with concrete structure. Writes straight to log
  *
- * @details Automatically appends the
- * necessary prefix and suffix,  as well as
- * separators.
+ * @details Automatically appends the necessary prefix and suffix,  as well as separators.
  *
  * @tparam Args
  * @param args
@@ -90,9 +82,7 @@ template <typename... Args> inline void benchmark_info(Args...) {}
 #endif
 
 /**
- * @brief A class for saving benchmarks and
- * printing them all at once in the end of
- * the function.
+ * @brief A class for saving benchmarks and printing them all at once in the end of the function.
  *
  */
 class BenchmarkInfoCollator {
@@ -100,20 +90,15 @@ class BenchmarkInfoCollator {
     std::vector<std::string> saved_benchmarks;
 
   public:
-    /**
-     * @brief Info used to store circuit
-     * statistics during CI/CD with concrete
-     * structure. Stores string in vector for
-     * now (used to flush all benchmarks at the
-     * end of test).
-     *
-     * @details Automatically appends the
-     * necessary prefix and suffix,  as well as
-     * separators.
-     *
-     * @tparam Args
-     * @param args
-     */
+/**
+ * @brief Info used to store circuit statistics during CI/CD with concrete structure. Stores string in vector for now
+ * (used to flush all benchmarks at the end of test).
+ *
+ * @details Automatically appends the necessary prefix and suffix,  as well as separators.
+ *
+ * @tparam Args
+ * @param args
+ */
 #ifdef CI
     template <typename Arg1, typename Arg2, typename Arg3, typename Arg4, typename Arg5>
     inline void benchmark_info_deferred(Arg1 composer, Arg2 class_name, Arg3 operation, Arg4 metric, Arg5 value)

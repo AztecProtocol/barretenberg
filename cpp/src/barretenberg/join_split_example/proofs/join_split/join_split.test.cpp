@@ -331,8 +331,7 @@ class join_split_tests : public ::testing::Test {
  * - "input asset ids must be different for the second bridge input to be in-use"
  *     - config.second_input_in_use but equality: input_asset_id_a == input_asset_id_b (bridge inputs)
  * - "real output asset ids must be different for the second bridge output to be in-use"
- *     - config.second_output_in_use and both real but equality: output_asset_id_a == output_asset_id_b (bridge
- outputs)
+ *     - config.second_output_in_use and both real but equality: output_asset_id_a == output_asset_id_b (bridge outputs)
  * - "output_asset_id_a detected as virtual, but has incorrect placeholder value"
  *     - first output virtual, but output_asset_id_a != 2**29
  * - "output_asset_id_b detected as virtual, but has incorrect placeholder value"
@@ -810,8 +809,7 @@ TEST_F(join_split_tests, test_1_input_note)
 TEST_F(join_split_tests, test_1_input_note_with_num_input_notes_as_0)
 {
     join_split_tx tx = simple_setup();
-    tx.num_input_notes = 0; // try to trick the circuit into creating a second option for a nullifier where is_real =
-
+    tx.num_input_notes = 0; // try to trick the circuit into creating a second option for a nullifier where is_real = 0.
     // tx.input_note[0] is nonzero - we're going to try to spend it with a cheeky nullifier
     tx.input_note[1].value = 0;
     tx.output_note[0].value = tx.input_note[0].value;
@@ -1440,8 +1438,7 @@ TEST_F(join_split_tests,
     /**
      * tx represents:
      *   - 100 in (virtual)
-     *   - 110 in (virtual, different asset_id = virtual_asset_id + 1) <-- fails, since input note 2 value should
-     equal
+     *   - 110 in (virtual, different asset_id = virtual_asset_id + 1) <-- fails, since input note 2 value should equal
      *     defi deposit value.
      *   - 90 deposited via bridge input 1
      *   - 90 deposited via bridge input 2
@@ -1727,8 +1724,7 @@ TEST_F(join_split_tests, test_defi_deposit_second_bridge_input_in_use_but_same_b
      *   - 100 in1 (real)
      *   - 50 in2 (real, same asset_id)
      *   - 50 deposited via bridge input 1
-     *   - 50 deposited via bridge input 2 <-- not allowed, since both inputs have the same asset_id (so they should
-     be
+     *   - 50 deposited via bridge input 2 <-- not allowed, since both inputs have the same asset_id (so they should be
      * combined into a single deposit of 100 via bridge input 1)
      *   - 90 out2
      *   - 10 paid as fee (in1's asset_id)
@@ -1764,8 +1760,7 @@ TEST_F(join_split_tests, test_defi_deposit_second_bridge_output_in_use_and_same_
      *   - 100 in1 (real)
      *   - 0 in2 (not in use)
      *   - 90 deposited via bridge input 1
-     *   - expectation of two _virtual_ bridge outputs, so they have the same asset_id (placeholder values of 2 **
-     29).
+     *   - expectation of two _virtual_ bridge outputs, so they have the same asset_id (placeholder values of 2 ** 29).
      *   - 10 paid as fee (in1's asset_id)
      */
 
@@ -1797,8 +1792,7 @@ TEST_F(join_split_tests, test_defi_deposit_second_bridge_output_in_use_but_same_
      *   - 100 in1 (real)
      *   - 0 in2 (not in use)
      *   - 90 deposited via bridge input 1
-     *   - expectation of two bridge outputs, but they have the same real asset_id (and so they should be combined
-     into
+     *   - expectation of two bridge outputs, but they have the same real asset_id (and so they should be combined into
      * bridge output 1).
      *   - 10 paid as fee (in1's asset_id)
      */
