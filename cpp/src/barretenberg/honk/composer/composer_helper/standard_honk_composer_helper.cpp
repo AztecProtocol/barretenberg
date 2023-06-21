@@ -28,8 +28,8 @@ std::shared_ptr<typename Flavor::ProvingKey> StandardHonkComposerHelper_<Flavor>
 {
     // Initialize proving_key
     // TODO(#392)(Kesha): replace composer types.
-    proving_key = initialize_proving_key<Flavor>(
-        constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, ComposerType::STANDARD_HONK);
+    proving_key =
+        initialize_proving_key<Flavor>(constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates);
     // Compute lagrange selectors
     construct_selector_polynomials<Flavor>(constructor, proving_key.get());
 

@@ -145,7 +145,9 @@ class ProvingKey_ : public PrecomputedPolynomials, public WitnessPolynomials {
     barretenberg::EvaluationDomain<FF> evaluation_domain;
 
     ProvingKey_() = default;
-    ProvingKey_(const size_t circuit_size, const size_t num_public_inputs, ComposerType composer_type)
+    ProvingKey_(const size_t circuit_size,
+                const size_t num_public_inputs,
+                ComposerType composer_type = ComposerType::UNDEFINED)
     {
         this->evaluation_domain = barretenberg::EvaluationDomain<FF>(circuit_size, circuit_size);
         PrecomputedPolynomials::circuit_size = circuit_size;

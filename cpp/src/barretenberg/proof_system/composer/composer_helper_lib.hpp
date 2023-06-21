@@ -23,7 +23,7 @@ std::shared_ptr<typename Flavor::ProvingKey> initialize_proving_key(
     barretenberg::srs::factories::CrsFactory* crs_factory,
     const size_t minimum_circuit_size,
     const size_t num_randomized_gates,
-    ComposerType composer_type)
+    ComposerType composer_type = ComposerType::UNDEFINED)
 {
     const size_t num_gates = circuit_constructor.num_gates;
     std::span<const uint32_t> public_inputs = circuit_constructor.public_inputs;
