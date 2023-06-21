@@ -1,5 +1,4 @@
-// TODO: fix this file for browser (worker_thread and events are not compatible)
-// HELLO! 123
+import { type Worker } from 'worker_threads';
 import { EventEmitter } from 'events';
 import createDebug from 'debug';
 import { Remote, proxy } from 'comlink';
@@ -25,7 +24,7 @@ export class BarretenbergWasm {
   private memStore: { [key: string]: Uint8Array } = {};
   private memory!: WebAssembly.Memory;
   private instance!: WebAssembly.Instance;
-  private workers: any[] = [];
+  private workers: Worker[] = [];
   private remoteWasms: BarretenbergWasmWorker[] = [];
   private nextWorker = 0;
   private nextThreadId = 1;

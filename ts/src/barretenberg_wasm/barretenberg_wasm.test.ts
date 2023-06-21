@@ -1,3 +1,4 @@
+import { type Worker } from 'worker_threads';
 import { BarretenbergWasm, BarretenbergWasmWorker } from './barretenberg_wasm.js';
 
 describe('barretenberg wasm', () => {
@@ -27,7 +28,7 @@ describe('barretenberg wasm', () => {
 });
 
 describe('barretenberg wasm worker', () => {
-  let worker!: any;
+  let worker!: Worker;
   let wasm!: BarretenbergWasmWorker;
 
   beforeAll(async () => {
