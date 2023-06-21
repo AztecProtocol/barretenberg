@@ -172,7 +172,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
         transcript::Manifest recursive_manifest = InnerComposer::create_manifest(prover.key->num_public_inputs);
 
-        recursion::aggregation_state<outer_curve> output = recursion::verify_proof<outer_curve, RecursiveSettings>(
+        auto output = recursion::verify_proof<outer_curve, RecursiveSettings>(
             &outer_builder, verification_key, recursive_manifest, proof_to_recursively_verify);
 
         return { output, verification_key };
@@ -198,9 +198,8 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
         transcript::Manifest recursive_manifest = InnerComposer::create_manifest(prover.key->num_public_inputs);
 
-        proof_system::plonk::stdlib::recursion::aggregation_state<outer_curve> previous_output =
-            proof_system::plonk::stdlib::recursion::verify_proof<outer_curve, RecursiveSettings>(
-                &outer_circuit, verification_key, recursive_manifest, proof_to_recursively_verify_a);
+        auto previous_output = recursion::verify_proof<outer_curve, RecursiveSettings>(
+            &outer_circuit, verification_key, recursive_manifest, proof_to_recursively_verify_a);
 
         InnerComposer inner_composer_b;
         if constexpr (is_ultra_to_ultra) {
@@ -215,9 +214,8 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
         plonk::proof proof_to_recursively_verify_b = prover.construct_proof();
 
-        proof_system::plonk::stdlib::recursion::aggregation_state<outer_curve> output =
-            proof_system::plonk::stdlib::recursion::verify_proof<outer_curve, RecursiveSettings>(
-                &outer_circuit, verification_key_b, recursive_manifest, proof_to_recursively_verify_b, previous_output);
+        auto output = proof_system::plonk::stdlib::recursion::verify_proof<outer_curve, RecursiveSettings>(
+            &outer_circuit, verification_key_b, recursive_manifest, proof_to_recursively_verify_b, previous_output);
 
         verification_key_b->compress();
         verification_key->compress();
