@@ -2,7 +2,7 @@
 
 #include <bitset>
 
-#include "../composers/composers.hpp"
+#include "../circuit_builders/circuit_builders.hpp"
 
 using namespace barretenberg;
 

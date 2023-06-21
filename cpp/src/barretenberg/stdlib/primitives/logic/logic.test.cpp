@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "../bool/bool.hpp"
-#include "../composers/composers.hpp"
+#include "../circuit_builders/circuit_builders.hpp"
 #include "logic.hpp"
 #include "barretenberg/numeric/random/engine.hpp"
 #include "barretenberg/numeric/uint256/uint256.hpp"

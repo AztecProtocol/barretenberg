@@ -1,6 +1,6 @@
 #include "ram_table.hpp"
 
-#include "../composers/composers.hpp"
+#include "../circuit_builders/circuit_builders.hpp"
 
 namespace proof_system::plonk {
 namespace stdlib {

@@ -1,4 +1,4 @@
-/** WORKTODO: rename this file.
+/**
  * @brief Defines particular composer and circuit constructor types expected to be used for proof or circuit
 construction in stdlib and contains macros for explicit instantiation.
  *

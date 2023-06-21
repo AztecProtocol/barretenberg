@@ -9,7 +9,7 @@
 #include "../byte_array/byte_array.hpp"
 #include "../field/field.hpp"
 #include "./bigfield.hpp"
-#include "barretenberg/stdlib/primitives/composers/composers.hpp"
+#include "barretenberg/stdlib/primitives/circuit_builders/circuit_builders.hpp"
 #include "barretenberg/stdlib/primitives/curves/bn254.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
 #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"

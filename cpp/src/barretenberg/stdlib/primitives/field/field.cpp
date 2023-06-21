@@ -1,7 +1,7 @@
 #include "field.hpp"
 #include <functional>
 #include "../bool/bool.hpp"
-#include "../composers/composers.hpp"
+#include "../circuit_builders/circuit_builders.hpp"
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 
 using namespace proof_system;

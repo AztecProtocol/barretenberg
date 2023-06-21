@@ -1,6 +1,6 @@
 #include "rom_table.hpp"
 
-#include "../composers/composers.hpp"
+#include "../circuit_builders/circuit_builders.hpp"
 
 using namespace barretenberg;
 

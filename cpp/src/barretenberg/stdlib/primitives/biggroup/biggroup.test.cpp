@@ -5,7 +5,7 @@
 #include "../biggroup/biggroup.hpp"
 #include "../bool/bool.hpp"
 #include "../field/field.hpp"
-#include "barretenberg/stdlib/primitives/composers/composers.hpp"
+#include "barretenberg/stdlib/primitives/circuit_builders/circuit_builders.hpp"
 
 #include "barretenberg/stdlib/primitives/curves/bn254.hpp"
 #include "barretenberg/stdlib/primitives/curves/secp256r1.hpp"

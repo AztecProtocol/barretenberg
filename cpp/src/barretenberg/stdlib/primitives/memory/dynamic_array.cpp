@@ -1,6 +1,6 @@
 #include "dynamic_array.hpp"
 
-#include "../composers/composers.hpp"
+#include "../circuit_builders/circuit_builders.hpp"
 #include "../bool/bool.hpp"
 
 namespace proof_system::plonk {

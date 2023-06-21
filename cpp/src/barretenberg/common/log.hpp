@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <vector>
 #include <string>
-#include "barretenberg/stdlib/primitives/composers/composers_fwd.hpp"
+#include "barretenberg/stdlib/primitives/circuit_builders/circuit_builders_fwd.hpp"
 #include "barretenberg/env/logstr.hpp"
 
 #define BENCHMARK_INFO_PREFIX "##BENCHMARK_INFO_PREFIX##"
