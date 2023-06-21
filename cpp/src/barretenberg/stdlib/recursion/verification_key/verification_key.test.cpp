@@ -45,7 +45,6 @@ template <typename Composer> class VerificationKeyFixture : public testing::Test
     }
 };
 
-// WORKTODO: This is probably unnecessary
 using ComposerTypes = testing::Types<proof_system::StandardCircuitConstructor,
                                      proof_system::TurboCircuitConstructor,
                                      proof_system::UltraCircuitConstructor>;

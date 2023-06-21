@@ -46,7 +46,6 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
     // select the relevant prover and verifier types (whose settings use the same hash for fiat-shamir),
     // depending on the Inner-Outer combo. It's a bit clunky, but the alternative is to have a template argument
     // for the hashtype, and that would pervade the entire UltraPlonkComposer, which would be horrendous.
-    // WORKTODO: move this into flavor?
     static constexpr bool is_ultra_to_ultra =
         std::is_same_v<OuterComposer, proof_system::plonk::UltraPlonkComposerHelper>;
     using ProverOfInnerCircuit =

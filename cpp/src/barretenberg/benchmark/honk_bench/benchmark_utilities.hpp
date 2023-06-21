@@ -111,7 +111,7 @@ template <typename Builder> void generate_ecdsa_verification_test_circuit(Builde
 
         bool first_result =
             crypto::ecdsa::verify_signature<Sha256Hasher, fq, fr, g1>(message_string, account.public_key, signature);
-        static_cast<void>(first_result); // WORKTODO
+        static_cast<void>(first_result); // TODO(Cody): This is not used anywhere.
 
         std::vector<uint8_t> rr(signature.r.begin(), signature.r.end());
         std::vector<uint8_t> ss(signature.s.begin(), signature.s.end());
