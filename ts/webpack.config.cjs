@@ -12,7 +12,8 @@ module.exports = {
   target: 'web',
   mode: 'production',
   entry: {
-    index: './src/index.ts',
+    node: './src/index.node.ts',
+    browser: './src/index.browser.ts',
   },
   module: {
     rules: [
@@ -44,7 +45,7 @@ module.exports = {
   ],
   resolve: {
     alias: {
-      // TODO: this alias is not working, /dest is not exporting with ./browser/index imports
+      // './node/index': resolve(__dirname, './browser/index'),
       'idb-keyval': require.resolve('idb-keyval'),
       crypto: require.resolve('crypto-browserify'),
       path: require.resolve('path-browserify'),
