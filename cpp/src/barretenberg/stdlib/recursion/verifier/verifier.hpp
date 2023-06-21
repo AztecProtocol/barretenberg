@@ -421,7 +421,7 @@ aggregation_state<bn254<typename Flavor::CircuitConstructor>> verify_proof(
     const aggregation_state<bn254<typename Flavor::CircuitConstructor>> previous_output =
         aggregation_state<bn254<typename Flavor::CircuitConstructor>>())
 {
-    const auto manifest = Flavor::create_manifest(static_cast<size_t>(key->num_public_inputs.get_value()));
+    const auto manifest = Flavor::create_manifest(static_cast<size_t>(key->num_public_inputs.get_value().data[0]));
     return verify_proof<
         bn254<typename Flavor::CircuitConstructor>,
         recursion::recursive_ultra_verifier_settings<stdlib::bn254<typename Flavor::CircuitConstructor>>>(
