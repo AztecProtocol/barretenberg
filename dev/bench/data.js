@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1687283253952,
+  "lastUpdate": 1687384963242,
   "repoUrl": "https://github.com/AztecProtocol/barretenberg",
   "entries": {
     "C++ Benchmark": [
@@ -1152,6 +1152,54 @@ window.BENCHMARK_DATA = {
             "value": 4.5428811079999605,
             "unit": "s/iter",
             "extra": "iterations: 1\ncpu: 2.6276718000000017 s\nthreads: 1"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "codygunton@gmail.com",
+            "name": "Cody Gunton",
+            "username": "codygunton"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "709a29c89a305be017270361780995353188035a",
+          "message": "refactor!: Use circuit builders (#501)\n\nGets rid of the composers class that wrapped a circuit constructor and a composer helper. This entailed various improvements such as a refactor of the stdlib verifier tests. Cleanup such a renaming of classes and moving of files will come in another PR. Corresponding PR in the core circuits library is https://github.com/AztecProtocol/aztec-packages/pull/895.",
+          "timestamp": "2023-06-21T17:55:56-04:00",
+          "tree_id": "5aae7bb82e14faf8adef5056cf3cc45fec33f287",
+          "url": "https://github.com/AztecProtocol/barretenberg/commit/709a29c89a305be017270361780995353188035a"
+        },
+        "date": 1687384961944,
+        "tool": "googlecpp",
+        "benches": [
+          {
+            "name": "construct_proof_ultra/sha256/10/repeats:1",
+            "value": 7.49043179399996,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 5.5472743 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/keccak/10/repeats:1",
+            "value": 19.044744411999886,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 16.681549 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/ecdsa_verification/10/repeats:1",
+            "value": 34.35524352999994,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 31.731692400000004 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/merkle_membership/10/repeats:1",
+            "value": 4.195564630000035,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 2.2668450000000036 s\nthreads: 1"
           }
         ]
       }
