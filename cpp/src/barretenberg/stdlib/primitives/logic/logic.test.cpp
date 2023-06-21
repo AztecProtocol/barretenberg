@@ -127,7 +127,7 @@ TYPED_TEST(LogicTest, DifferentWitnessSameResult)
 
     STDLIB_TYPE_ALIASES
     auto composer = Composer();
-    if (Composer::type == proof_system::ComposerType::PLOOKUP) {
+    if (HasPlookup<Composer>) {
         uint256_t a = 3758096391;
         uint256_t b = 2147483649;
         field_ct x = witness_ct(&composer, uint256_t(a));

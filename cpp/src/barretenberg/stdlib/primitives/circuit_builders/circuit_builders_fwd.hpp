@@ -7,6 +7,7 @@ construction in stdlib and contains macros for explicit instantiation.
  *  propagation.
  */
 #pragma once
+#include <concepts>
 
 namespace proof_system::honk {
 namespace flavor {

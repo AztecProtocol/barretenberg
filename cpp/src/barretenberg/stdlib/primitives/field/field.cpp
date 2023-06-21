@@ -1,5 +1,5 @@
-#include "field.hpp"
 #include <functional>
+#include "field.hpp"
 #include "../bool/bool.hpp"
 #include "../circuit_builders/circuit_builders.hpp"
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
@@ -739,7 +739,7 @@ void field_t<ComposerContext>::create_range_constraint(const size_t num_bits, st
         if (is_constant()) {
             ASSERT(uint256_t(get_value()).get_msb() < num_bits);
         } else {
-            if constexpr (ComposerContext::type == proof_system::ComposerType::PLOOKUP) {
+            if constexpr (HasPlookup<ComposerContext>) {
                 context->decompose_into_default_range(
                     normalize().get_witness_index(),
                     num_bits,
@@ -984,7 +984,7 @@ field_t<ComposerContext> field_t<ComposerContext>::accumulate(const std::vector<
      *
      * If num elements is not a multiple of 3, the final gate will be padded with zero_idx wires
      **/
-    if constexpr (ComposerContext::type == proof_system::ComposerType::PLOOKUP) {
+    if constexpr (HasPlookup<ComposerContext>) {
         ComposerContext* ctx = nullptr;
         std::vector<field_t> accumulator;
         field_t constant_term = 0;
@@ -1042,7 +1042,7 @@ field_t<ComposerContext> field_t<ComposerContext>::accumulate(const std::vector<
             accumulating_total = witness_t<ComposerContext>(ctx, new_total);
         }
         return total.normalize();
-    } else if constexpr (ComposerContext::type == ComposerType::TURBO) {
+    } else if constexpr (std::same_as<ComposerContext, TurboCircuitConstructor>) {
 
         field_t total(0);
         bool odd_number = (input.size() & 0x01UL) == 0x01ULL;

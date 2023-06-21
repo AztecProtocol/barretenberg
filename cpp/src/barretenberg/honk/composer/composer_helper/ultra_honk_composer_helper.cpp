@@ -202,7 +202,7 @@ std::shared_ptr<typename Flavor::ProvingKey> UltraHonkComposerHelper_<Flavor>::c
     // Initialize proving_key
     // TODO(#392)(Kesha): replace composer types.
     proving_key = initialize_proving_key<Flavor>(
-        circuit_constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, ComposerType::PLOOKUP);
+        circuit_constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates);
 
     construct_selector_polynomials<Flavor>(circuit_constructor, proving_key.get());
 

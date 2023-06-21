@@ -895,7 +895,7 @@ HEAVY_TYPED_TEST(stdlib_biggroup, compute_naf)
 /* These tests only work for Ultra Circuit Constructor */
 HEAVY_TYPED_TEST(stdlib_biggroup, wnaf_batch_mul)
 {
-    if constexpr (TypeParam::Curve::Composer::type == proof_system::ComposerType::PLOOKUP) {
+    if constexpr (HasPlookup<typename TypeParam::Curve::Composer>) {
         TestFixture::test_compute_wnaf();
     } else {
         GTEST_SKIP();
@@ -906,7 +906,7 @@ HEAVY_TYPED_TEST(stdlib_biggroup, wnaf_batch_mul)
    case where Fr is a bigfield. */
 HEAVY_TYPED_TEST(stdlib_biggroup, compute_wnaf)
 {
-    if constexpr (TypeParam::Curve::Composer::type != proof_system::ComposerType::PLOOKUP && TypeParam::use_bigfield) {
+    if constexpr (!HasPlookup<typename TypeParam::Curve::Composer> && TypeParam::use_bigfield) {
         GTEST_SKIP();
     } else {
         TestFixture::test_compute_wnaf();
