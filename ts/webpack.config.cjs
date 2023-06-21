@@ -12,7 +12,7 @@ module.exports = {
   target: 'web',
   mode: 'production',
   entry: {
-    index_web: './src/index_web.ts',
+    index: './src/index.ts',
   },
   module: {
     rules: [
