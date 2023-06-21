@@ -16,7 +16,6 @@
 #include "../../primitives/witness/witness.hpp"
 #include "../../primitives/bool/bool.hpp"
 
-#include "../verification_key//verification_key.hpp"
 namespace proof_system::plonk::stdlib::recursion {
 template <typename Composer> class Transcript {
   public:
