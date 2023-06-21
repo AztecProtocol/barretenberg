@@ -19,7 +19,7 @@ constexpr size_t NUM_REPETITIONS = 5;
 
 void generate_test_circuit(auto& builder, size_t num_gates)
 {
-    barretenberg::srs::init_crs_factory("../srs_db/ignition"); // NOTE: new initialization model.
+    barretenberg::srs::init_crs_factory("../srs_db/ignition");
     field_t a(witness_t(&builder, barretenberg::fr::random_element()));
     field_t b(witness_t(&builder, barretenberg::fr::random_element()));
     field_t c(&builder);

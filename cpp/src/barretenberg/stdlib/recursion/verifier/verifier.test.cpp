@@ -17,9 +17,10 @@ namespace proof_system::plonk::stdlib {
 
 template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
-    using OuterBuilder = typename OuterComposer::CircuitConstructor;
     using InnerComposer = proof_system::plonk::UltraPlonkComposerHelper;
     using InnerBuilder = typename InnerComposer::CircuitConstructor;
+
+    using OuterBuilder = typename OuterComposer::CircuitConstructor;
 
     using inner_curve = bn254<InnerBuilder>;
     using outer_curve = bn254<OuterBuilder>;
@@ -595,7 +596,7 @@ HEAVY_TYPED_TEST(stdlib_verifier, double_verification)
     if constexpr (std::same_as<TypeParam, UltraPlonkComposerHelper>) {
         TestFixture::test_double_verification();
     } else {
-        // CircleCI can't cope with non-ultraplonk version.
+        // Test doesn't compile-.
         GTEST_SKIP();
     }
 };

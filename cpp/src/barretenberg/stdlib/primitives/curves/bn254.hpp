@@ -10,7 +10,7 @@ namespace stdlib {
 template <typename CircuitBuilder> struct bn254 {
     static constexpr proof_system::CurveType type = proof_system::CurveType::BN254;
 
-    // NOTE: Namin in flux here; maybe name should reflect "native" somehow?
+    // NOTE: Naming in flux here; maybe name should reflect "native" somehow?
     using BaseField = curve::BN254::BaseField;
     using fq = BaseField;
     using ScalarField = curve::BN254::ScalarField;
