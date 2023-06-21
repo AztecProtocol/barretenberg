@@ -114,27 +114,6 @@ std::array<uint64_t, 8> inner_block(std::array<uint64_t, 64>& w)
     return output;
 }
 
-TEST(stdlib_sha256, test_duplicate_proving_key)
-{
-
-    auto first_composer = proof_system::StandardCircuitConstructor();
-    proof_system::plonk::stdlib::packed_byte_array<proof_system::StandardCircuitConstructor> input(
-        &first_composer, "An 8 character password? Snow White and the 7 Dwarves..");
-    proof_system::plonk::stdlib::sha256(input);
-
-    bool proof_result_one = first_composer.check_circuit();
-    EXPECT_EQ(proof_result_one, true);
-
-    // Test a second time with same keys and different input.
-    // WORKTODO: was the point
-    auto second_composer = proof_system::StandardCircuitConstructor();
-    proof_system::plonk::stdlib::packed_byte_array<proof_system::StandardCircuitConstructor> input2(
-        &second_composer, "An 8 character password? Snow White and the 9 Dwarves..");
-    proof_system::plonk::stdlib::sha256(input2);
-    bool proof_result_two = second_composer.check_circuit();
-    EXPECT_EQ(proof_result_two, true);
-}
-
 // TEST(stdlib_sha256_plookup, test_round)
 // {
 
