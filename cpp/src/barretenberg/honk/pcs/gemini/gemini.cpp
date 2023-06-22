@@ -64,7 +64,10 @@ std::vector<typename barretenberg::Polynomial<typename Params::Fr>> MultilinearR
 
     const size_t num_variables = mle_opening_point.size(); // m
 
-    size_t num_threads = get_num_cpus_pow2();
+    const size_t num_threads = get_num_cpus_pow2();
+    constexpr size_t efficient_operations_per_thread = 64; // A guess of the number of operation for which there
+                                                           // would be a point in sending them to a separate thread
+
     // Allocate space for m+1 Fold polynomials
     //
     // The first two are populated here with the batched unshifted and to-be-shifted polynomial respectively.
@@ -81,17 +84,6 @@ std::vector<typename barretenberg::Polynomial<typename Params::Fr>> MultilinearR
     Polynomial A_0(batched_F);
     A_0 += batched_G.shifted();
 
-    size_t total_size = (1 << num_variables);              // 1 more than the sum of sizes of all vectors
-    constexpr size_t efficient_operations_per_thread = 64; // A guess of the number of operation for which there
-                                                           // would be a point in sending them to a separate thread
-    num_threads = std::min(total_size / efficient_operations_per_thread, num_threads);
-
-    if (num_threads == 0) {
-        num_threads = 1;
-    }
-    size_t num_parts =
-        std::bit_ceil(num_threads); // If we don't have a power of 2 number of threads, we still need to split the
-                                    // workload into a power of 2 parts to avoid race conditions
     // Allocate everything before parallel computation
     for (size_t l = 0; l < num_variables - 1; ++l) {
         // size of the previous polynomial/2
@@ -101,76 +93,40 @@ std::vector<typename barretenberg::Polynomial<typename Params::Fr>> MultilinearR
         fold_polynomials.emplace_back(Polynomial(n_l));
     }
 
-    // Compute folded polynomials in parallel.
-    parallel_for(num_threads, [&](size_t i) {
-        // Create the folded polynomials A₁(X),…,Aₘ₋₁(X)
-        //
-        // A_l = Aₗ(X) is the polynomial being folded
-        // in the first iteration, we take the batched polynomial
-        // in the next iteration, it is the previously folded one
-        auto A_l = A_0.data();
+    // A_l = Aₗ(X) is the polynomial being folded
+    // in the first iteration, we take the batched polynomial
+    // in the next iteration, it is the previously folded one
+    auto A_l = A_0.data();
+    for (size_t l = 0; l < num_variables - 1; ++l) {
+        // size of the previous polynomial/2
+        const size_t n_l = 1 << (num_variables - l - 1);
 
-        // The loop only goes from the largest vector to the vector of size num_parts, so individual threads can
-        // work completely independently
-        for (size_t l = 0; l < num_variables - 1 - (size_t)std::countr_zero(num_parts); ++l) {
-            const Fr u_l = mle_opening_point[l];
+        // Use as many threads as it is useful so that 1 thread doesn't process 1 element, but make sure that there is
+        // at least 1
+        size_t num_used_threads = std::min(n_l / efficient_operations_per_thread, num_threads);
+        num_used_threads = num_used_threads ? num_used_threads : 1;
+        size_t chunk_size = n_l / num_used_threads;
+        size_t last_chunk_size = (n_l % chunk_size) ? (n_l % num_used_threads) : chunk_size;
 
-            // size of the previous polynomial/2
-            const size_t n_l = 1 << (num_variables - l - 1);
+        // Openning point is the same for all
+        const Fr u_l = mle_opening_point[l];
 
-            // A_l_fold = Aₗ₊₁(X) = (1-uₗ)⋅even(Aₗ)(X) + uₗ⋅odd(Aₗ)(X)
-            auto A_l_fold = fold_polynomials[l + offset_to_folded].data();
+        // A_l_fold = Aₗ₊₁(X) = (1-uₗ)⋅even(Aₗ)(X) + uₗ⋅odd(Aₗ)(X)
+        auto A_l_fold = fold_polynomials[l + offset_to_folded].data();
 
-            // The size of the chunk 1 thread would process ideally
-            size_t chunk_size = n_l / num_parts;
-            for (std::ptrdiff_t j = (std::ptrdiff_t)(i * chunk_size); j < (std::ptrdiff_t)((i + 1) * chunk_size); j++) {
+        parallel_for(num_used_threads, [&](size_t i) {
+            size_t current_chunk_size = (i == (num_used_threads - 1)) ? last_chunk_size : chunk_size;
+            for (std::ptrdiff_t j = (std::ptrdiff_t)(i * chunk_size);
+                 j < (std::ptrdiff_t)((i * chunk_size) + current_chunk_size);
+                 j++) {
                 // fold(Aₗ)[j] = (1-uₗ)⋅even(Aₗ)[j] + uₗ⋅odd(Aₗ)[j]
                 //            = (1-uₗ)⋅Aₗ[2j]      + uₗ⋅Aₗ[2j+1]
                 //            = Aₗ₊₁[j]
                 A_l_fold[j] = A_l[j << 1] + u_l * (A_l[(j << 1) + 1] - A_l[j << 1]);
             }
-
-            // Let's say we have 3 threads and 4 parts. We need some threads to pick up the slack, because we can't
-            // divide the workload into 3 parts
-            if (i < ((num_parts - num_threads))) {
-                for (std::ptrdiff_t j = (std::ptrdiff_t)((i + num_threads) * chunk_size);
-                     j < (std::ptrdiff_t)((i + num_threads + 1) * chunk_size);
-                     j++) {
-                    // fold(Aₗ)[j] = (1-uₗ)⋅even(Aₗ)[j] + uₗ⋅odd(Aₗ)[j]
-                    //            = (1-uₗ)⋅Aₗ[2j]      + uₗ⋅Aₗ[2j+1]
-                    //            = Aₗ₊₁[j]
-                    A_l_fold[j] = A_l[j << 1] + u_l * (A_l[(j << 1) + 1] - A_l[j << 1]);
-                }
-            }
-            // set Aₗ₊₁ = Aₗ for the next iteration
-            A_l = A_l_fold;
-        }
-    });
-    // If we used multithreading, we need to process the tail (num_parts, num_parts/2,...,2,1) which can not be
-    // safely parallellized.
-    if (num_threads != 1) {
-        // Get the previous folded polynomial
-        auto A_l = fold_polynomials[num_variables - (size_t)std::countr_zero(num_parts)].data();
-        for (size_t l = num_variables - 1 - (size_t)std::countr_zero(num_parts); l < num_variables - 1; ++l) {
-
-            const Fr u_l = mle_opening_point[l];
-
-            // size of the previous polynomial/2
-            const size_t n_l = 1 << (num_variables - l - 1);
-
-            // A_l_fold = Aₗ₊₁(X) = (1-uₗ)⋅even(Aₗ)(X) + uₗ⋅odd(Aₗ)(X)
-            auto A_l_fold = fold_polynomials[l + offset_to_folded].data();
-
-            // fold the previous polynomial with odd and even parts
-            // Go through elements and compute ζ powers
-
-            for (std::ptrdiff_t j = 0; j < (std::ptrdiff_t)n_l; ++j) {
-
-                A_l_fold[j] = A_l[j << 1] + u_l * (A_l[(j << 1) + 1] - A_l[j << 1]);
-            }
-            // set Aₗ₊₁ = Aₗ for the next iteration
-            A_l = A_l_fold;
-        }
+        });
+        // set Aₗ₊₁ = Aₗ for the next iteration
+        A_l = A_l_fold;
     }
 
     return fold_polynomials;
