@@ -1,8 +1,7 @@
 /**
  * Builds both the web and node version of the worker, and outputs it to the dest directory.
  */
-const { resolve, dirname } = require('path');
-const { fileURLToPath } = require('url');
+const { resolve } = require('path');
 const ResolveTypeScriptPlugin = require('resolve-typescript-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -46,6 +45,10 @@ module.exports = {
   resolve: {
     alias: {
       // './node/index': resolve(__dirname, './browser/index'),
+      './node/index': resolve(__dirname, 'src/barretenberg_wasm/browser/index'),
+      './src/barrenberg_wasm/node/index': resolve(__dirname, './src/barrenberg_wasm/browser/index'),
+      './src/barrenberg_wasm/node/index.js': resolve(__dirname, './src/barrenberg_wasm/browser/index.js'),
+      './src/barrenberg_wasm/node/index.js': './src/barrenberg_wasm/browser/index.js',
       'idb-keyval': require.resolve('idb-keyval'),
       crypto: require.resolve('crypto-browserify'),
       path: require.resolve('path-browserify'),

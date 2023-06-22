@@ -10,6 +10,12 @@
   },
   "main": "./dest/index.browser.js",
   "bin": "./dest/main.js",
+  "exports": {
+    ".": {
+      "require": "./dest/index.node.js",
+      "import": "./dest/index.browser.js"
+    }
+  },
   "files": [
     "src/",
     "dest/",
