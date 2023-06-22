@@ -7,7 +7,7 @@
 #include <vector>
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/barycentric_data.hpp"
-#include "barretenberg/honk/pcs/ipa/ipa.hpp"
+#include "barretenberg/honk/pcs/kzg/kzg.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
 #include "barretenberg/honk/sumcheck/relations/arithmetic_relation.hpp"
@@ -31,8 +31,9 @@ class StandardGrumpkin {
     using GroupElement = G1::element;
     using Commitment = G1::affine_element;
     using CommitmentHandle = G1::affine_element;
-    using PCSParams = pcs::ipa::Params;
-    using PCS = pcs::ipa::IPA<PCSParams>;
+    // TODO: change to IPA and grumpkin when it compiles
+    using PCSParams = pcs::kzg::Params;
+    using PCS = pcs::kzg::KZG<PCSParams>;
     static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
     // The number of multivariate polynomials on which a sumcheck prover sumcheck operates (including shifts). We often
     // need containers of this size to hold related data, so we choose a name more agnostic than `NUM_POLYNOMIALS`

@@ -26,7 +26,7 @@ template <typename Curve> class ProverCrs {
     virtual size_t get_monomial_size() const = 0;
 };
 
-class VerifierCrs {
+template <typename Curve> class VerifierCrs {
   public:
     virtual ~VerifierCrs() = default;
     ;
@@ -40,16 +40,13 @@ class VerifierCrs {
  * A factory class to return the prover crs and verifier crs on request.
  * You can construct an empty placeholder factory, because composers need to be given a factory at construction time.
  */
-class CrsFactory {
+template <typename Curve> class CrsFactory {
   public:
     CrsFactory() = default;
     CrsFactory(CrsFactory&& other) = default;
     virtual ~CrsFactory() = default;
-    virtual std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> get_prover_crs(size_t)
-    {
-        return nullptr;
-    }
-    virtual std::shared_ptr<barretenberg::srs::factories::VerifierCrs> get_verifier_crs() { return nullptr; }
+    virtual std::shared_ptr<barretenberg::srs::factories::ProverCrs<Curve>> get_prover_crs(size_t) { return nullptr; }
+    virtual std::shared_ptr<barretenberg::srs::factories::VerifierCrs<Curve>> get_verifier_crs() { return nullptr; }
 };
 
 } // namespace barretenberg::srs::factories

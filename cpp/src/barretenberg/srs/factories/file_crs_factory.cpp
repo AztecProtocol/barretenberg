@@ -18,9 +18,10 @@ FileProverCrs<Curve>::FileProverCrs(const size_t num_points, std::string const& 
     scalar_multiplication::generate_pippenger_point_table<Curve>(monomials_.get(), monomials_.get(), num_points);
 }
 
-FileVerifierCrs::FileVerifierCrs(std::string const& path)
+template <>
+FileVerifierCrs<curve::BN254>::FileVerifierCrs(std::string const& path)
     : precomputed_g2_lines(
-          (barretenberg::pairing::miller_lines*)(aligned_alloc(64, sizeof(barretenberg::pairing::miller_lines) * 2)))
+          b(barretenberg::pairing::miller_lines*)(aligned_alloc(64, sizeof(barretenberg::pairing::miller_lines) * 2)))
 {
 
     srs::IO<curve::BN254>::read_transcript_g2(g2_x, path);
@@ -28,12 +29,12 @@ FileVerifierCrs::FileVerifierCrs(std::string const& path)
     barretenberg::pairing::precompute_miller_lines(g2_x, precomputed_g2_lines[1]);
 }
 
-FileVerifierCrs::~FileVerifierCrs()
+template <> FileVerifierCrs<curve::BN254>::~FileVerifierCrs()
 {
     aligned_free(precomputed_g2_lines);
 }
 
-g2::affine_element FileVerifierCrs::get_g2x() const
+tg2::affine_element FileVerifierCrs::get_g2x() const
 {
     return g2_x;
 }

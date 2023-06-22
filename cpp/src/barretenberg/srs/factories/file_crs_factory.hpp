@@ -20,7 +20,7 @@ template <typename Curve> class FileProverCrs : public ProverCrs<Curve> {
     std::shared_ptr<typename Curve::AffineElement[]> monomials_;
 };
 
-class FileVerifierCrs : public VerifierCrs {
+template <typename Curve> class FileVerifierCrs : public VerifierCrs<Curve> {
   public:
     FileVerifierCrs(std::string const& path);
 
@@ -38,23 +38,25 @@ class FileVerifierCrs : public VerifierCrs {
 /**
  * Create reference strings given a path to a directory of transcript files.
  */
-class FileCrsFactory : public CrsFactory {
+template <typename Curve> class FileCrsFactory : public CrsFactory<Curve> {
   public:
     FileCrsFactory(std::string path, size_t initial_degree = 0);
     FileCrsFactory(FileCrsFactory&& other) = default;
 
-    std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> get_prover_crs(size_t degree) override;
+    std::shared_ptr<barretenberg::srs::factories::ProverCrs<Curve>> get_prover_crs(size_t degree) override;
 
-    std::shared_ptr<barretenberg::srs::factories::VerifierCrs> get_verifier_crs() override;
+    std::shared_ptr<barretenberg::srs::factories::VerifierCrs<Curve>> get_verifier_crs() override;
 
   private:
     std::string path_;
     size_t degree_;
-    std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> prover_crs_;
-    std::shared_ptr<barretenberg::srs::factories::VerifierCrs> verifier_crs_;
+    std::shared_ptr<barretenberg::srs::factories::ProverCrs<Curve>> prover_crs_;
+    std::shared_ptr<barretenberg::srs::factories::VerifierCrs<Curve>> verifier_crs_;
 };
 
 extern template class FileProverCrs<curve::BN254>;
 extern template class FileProverCrs<curve::Grumpkin>;
+// extern template class FileVerifierCrs<curve::BN254>;
+// extern template class FileVerifierCrs<curve::Grumpkin>;
 
 } // namespace barretenberg::srs::factories
