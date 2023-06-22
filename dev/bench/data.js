@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1687390428135,
+  "lastUpdate": 1687452375448,
   "repoUrl": "https://github.com/AztecProtocol/barretenberg",
   "entries": {
     "C++ Benchmark": [
@@ -1344,6 +1344,54 @@ window.BENCHMARK_DATA = {
             "value": 4.437870290999967,
             "unit": "s/iter",
             "extra": "iterations: 1\ncpu: 2.569267400000001 s\nthreads: 1"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "isennovskiy@gmail.com",
+            "name": "Innokentii Sennovskii",
+            "username": "Rumata888"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3b962d372491430871443fd1b95fd9e049e233c8",
+          "message": "feat: Parallelised folding in Gemini (#550)",
+          "timestamp": "2023-06-22T17:39:38+01:00",
+          "tree_id": "a94760772665bc5a5ddffac57d28509991f6e5e3",
+          "url": "https://github.com/AztecProtocol/barretenberg/commit/3b962d372491430871443fd1b95fd9e049e233c8"
+        },
+        "date": 1687452374588,
+        "tool": "googlecpp",
+        "benches": [
+          {
+            "name": "construct_proof_ultra/sha256/10/repeats:1",
+            "value": 8.273901739000053,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 6.4523543000000005 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/keccak/10/repeats:1",
+            "value": 21.19030954799996,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 18.9402725 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/ecdsa_verification/10/repeats:1",
+            "value": 38.20263374499996,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 36.15268089999999 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/merkle_membership/10/repeats:1",
+            "value": 4.4261610859998655,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 2.630539100000007 s\nthreads: 1"
           }
         ]
       }
