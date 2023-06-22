@@ -1,1 +1,1 @@
-barretenberg_module(proof_system polynomials crypto_generators crypto_pedersen_hash)
+barretenberg_module(proof_system crypto_pedersen_commitment crypto_blake3s srs)

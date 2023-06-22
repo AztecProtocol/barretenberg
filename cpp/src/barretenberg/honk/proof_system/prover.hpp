@@ -1,9 +1,9 @@
 #pragma once
-#include "barretenberg/honk/pcs/shplonk/shplonk.hpp"
+#include "barretenberg/proof_system/pcs/shplonk/shplonk.hpp"
 #include "barretenberg/plonk/proof_system/types/proof.hpp"
 #include "barretenberg/honk/pcs/gemini/gemini.hpp"
-#include "barretenberg/honk/pcs/shplonk/shplonk_single.hpp"
-#include "barretenberg/honk/transcript/transcript.hpp"
+#include "barretenberg/proof_system/pcs/shplonk/shplonk_single.hpp"
+#include "barretenberg/proof_system/transcript/transcript.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck_output.hpp"
 #include "barretenberg/honk/proof_system/prover_library.hpp"

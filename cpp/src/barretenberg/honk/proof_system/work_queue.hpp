@@ -1,6 +1,6 @@
 #pragma once
 
-#include "barretenberg/honk/transcript/transcript.hpp"
+#include "barretenberg/proof_system/transcript/transcript.hpp"
 #include "barretenberg/srs/global_crs.hpp"
 #include <cstddef>
 #include <memory>

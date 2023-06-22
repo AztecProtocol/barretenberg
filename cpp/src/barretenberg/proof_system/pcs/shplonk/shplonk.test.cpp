@@ -1,5 +1,4 @@
 #include "shplonk_single.hpp"
-#include "../gemini/gemini.hpp"
 
 #include <gtest/internal/gtest-internal.h>
 #include <random>
@@ -7,8 +6,8 @@
 #include <algorithm>
 #include <vector>
 
-#include "../commitment_key.test.hpp"
-#include "barretenberg/honk/pcs/claim.hpp"
+#include "barretenberg/proof_system/pcs/commitment_key.test.hpp"
+#include "barretenberg/proof_system/pcs/claim.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 namespace proof_system::honk::pcs::shplonk {
 template <class Params> class ShplonkTest : public CommitmentTest<Params> {};

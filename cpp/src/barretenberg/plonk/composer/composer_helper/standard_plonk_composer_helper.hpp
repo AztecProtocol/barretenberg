@@ -6,7 +6,7 @@
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
 #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
 #include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
-#include "barretenberg/honk/pcs/commitment_key.hpp"
+#include "barretenberg/proof_system/pcs/commitment_key.hpp"
 #include "barretenberg/plonk/proof_system/verification_key/verification_key.hpp"
 #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
 #include "barretenberg/plonk/composer/composer_helper/composer_helper_lib.hpp"

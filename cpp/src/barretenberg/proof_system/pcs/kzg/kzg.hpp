@@ -1,9 +1,9 @@
 #pragma once
 
 #include "../claim.hpp"
-#include "barretenberg/honk/pcs/commitment_key.hpp"
+#include "barretenberg/proof_system/pcs/commitment_key.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/honk/transcript/transcript.hpp"
+#include "barretenberg/proof_system/transcript/transcript.hpp"
 
 #include <memory>
 #include <utility>

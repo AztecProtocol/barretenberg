@@ -5,7 +5,7 @@
  *
  */
 #include "composer_helper_lib.hpp"
-#include "barretenberg/honk/pcs/commitment_key.hpp"
+#include "barretenberg/proof_system/pcs/commitment_key.hpp"
 #include "barretenberg/srs/factories/crs_factory.hpp"
 
 namespace proof_system::plonk {

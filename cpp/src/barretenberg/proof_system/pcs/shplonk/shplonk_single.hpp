@@ -1,8 +1,8 @@
 #pragma once
-#include "barretenberg/honk/pcs/claim.hpp"
+#include "barretenberg/proof_system/pcs/claim.hpp"
 #include "shplonk.hpp"
-#include "barretenberg/honk/pcs/commitment_key.hpp"
-#include "barretenberg/honk/transcript/transcript.hpp"
+#include "barretenberg/proof_system/pcs/commitment_key.hpp"
+#include "barretenberg/proof_system/transcript/transcript.hpp"
 
 namespace proof_system::honk::pcs::shplonk {
 

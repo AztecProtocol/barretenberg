@@ -2,7 +2,7 @@
 #include "barretenberg/common/serialize.hpp"
 #include <array>
 #include "barretenberg/honk/sumcheck/relations/relation_parameters.hpp"
-#include "barretenberg/honk/transcript/transcript.hpp"
+#include "barretenberg/proof_system/transcript/transcript.hpp"
 #include "barretenberg/honk/utils/grand_product_delta.hpp"
 #include "barretenberg/common/throw_or_abort.hpp"
 #include "sumcheck_round.hpp"

@@ -1,6 +1,6 @@
 #include "standard_honk_composer_helper.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/honk/pcs/commitment_key.hpp"
+#include "barretenberg/proof_system/pcs/commitment_key.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 #include "barretenberg/srs/factories/crs_factory.hpp"
 

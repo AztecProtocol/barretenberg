@@ -1,5 +1,5 @@
 #include "./verifier.hpp"
-#include "barretenberg/honk/transcript/transcript.hpp"
+#include "barretenberg/proof_system/transcript/transcript.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 #include "barretenberg/honk/utils/power_polynomial.hpp"
 

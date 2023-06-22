@@ -3,7 +3,7 @@
 #include "barretenberg/honk/sumcheck/sumcheck.hpp"
 
 #include <gtest/gtest.h>
-#include "barretenberg/honk/transcript/transcript.hpp"
+#include "barretenberg/proof_system/transcript/transcript.hpp"
 #include "barretenberg/numeric/random/engine.hpp"
 #include "barretenberg/honk/flavor/standard.hpp"
 
