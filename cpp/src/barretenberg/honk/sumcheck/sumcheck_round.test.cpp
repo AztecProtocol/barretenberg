@@ -36,7 +36,7 @@ static Univariate<FF, max_relation_length> compute_round_univariate(
     const RelationParameters<FF>& relation_parameters,
     const FF alpha)
 {
-    size_t round_size = 1;
+    size_t round_size = 2;
     // Improvement(Cody): This is ugly? Maye supply some/all of this data through "flavor" class?
     auto round = SumcheckRound<Flavor>(round_size);
 
