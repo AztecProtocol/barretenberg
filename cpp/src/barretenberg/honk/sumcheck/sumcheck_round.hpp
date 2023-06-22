@@ -80,8 +80,6 @@ template <typename Flavor> class SumcheckRound {
     RelationUnivariates univariate_accumulators;
     RelationEvaluations relation_evaluations;
 
-    ExtendedEdges<MAX_RELATION_LENGTH> extended_edges;
-
     // TODO(#224)(Cody): this should go away
     BarycentricData<FF, 2, MAX_RELATION_LENGTH> barycentric_2_to_max = BarycentricData<FF, 2, MAX_RELATION_LENGTH>();
 
@@ -150,63 +148,36 @@ template <typename Flavor> class SumcheckRound {
             pow_challenges[i] = pow_challenges[i - 1] * pow_univariate.zeta_pow_sqr;
         }
 
-        // TODO(luke): should we always use multiple threads but simply reduce the number of threads to ensure
-        // sufficient iterations per thread?
-        size_t num_threads = get_num_cpus();
-        size_t iterations_per_thread = round_size / num_threads;
-        size_t min_iterations_per_thread = 1 << 6;
+        // Determine number of threads for multithreading.
+        // Note: Multithreading is "on" for every round but we reduce the number of threads from the max available based
+        // on a specified minimum number of iterations per thread. This eventually leads to the use of a single thread.
+        size_t max_num_threads = get_num_cpus();   // number of available threads
+        size_t min_iterations_per_thread = 1 << 6; // min number of iterations for which we'll spin up a unique thread
+        size_t desired_num_threads = round_size / min_iterations_per_thread;
+        size_t num_threads = std::min(desired_num_threads, max_num_threads); // fewer than max if justified
+        num_threads = num_threads > 0 ? num_threads : 1;                     // ensure num threads is >= 1
+        size_t iterations_per_thread = round_size / num_threads;             // actual iterations per thread
 
-        // use multithreading only if operations per thread meets minimum threshold
-        bool use_multithreading = (iterations_per_thread >= min_iterations_per_thread);
+        // Constuct univariate accumulator containers; one per thread
+        std::vector<RelationUnivariates> thread_univariate_accumulators;
+        thread_univariate_accumulators.resize(num_threads);
+        for (auto& accum : thread_univariate_accumulators) {
+            zero_univariates(accum);
+        }
 
-        if (use_multithreading) {
-            info("round size = ", round_size);
+        // Constuct extended edge containers; one per thread
+        std::vector<ExtendedEdges<MAX_RELATION_LENGTH>> extended_edges;
+        extended_edges.resize(num_threads);
 
-            std::vector<RelationUnivariates> partial_univariate_accumulators;
-            partial_univariate_accumulators.resize(num_threads);
-            for (auto& accum : partial_univariate_accumulators) {
-                zero_univariates(accum);
-            }
+        // Accumulate the contribution from each sub-relation accross each edge of the hyper-cube
+        parallel_for(num_threads, [&](size_t thread_idx) {
+            size_t start = thread_idx * iterations_per_thread;
+            size_t end = (thread_idx + 1) * iterations_per_thread;
 
-            std::vector<ExtendedEdges<MAX_RELATION_LENGTH>> partial_extended_edges;
-            partial_extended_edges.resize(num_threads);
-
-            omp_set_num_threads(int(num_threads));
-
-            // std::array<size_t, 4> idxs = { 3, 0, 2, 1 };
-            // for (size_t thread_idx = 0; thread_idx < num_threads; ++thread_idx)
-            parallel_for(num_threads, [&](size_t thread_idx) {
-                // info("omp_get_num_threads() = ", omp_get_num_threads());
-                size_t start = thread_idx * iterations_per_thread;
-                size_t end = (thread_idx + 1) * iterations_per_thread;
-
-                // For each edge_idx = 2i, we need to multiply the whole contribution by zeta^{2^{2i}}
-                // This means that each univariate for each relation needs an extra multiplication.
-                for (size_t edge_idx = start; edge_idx < end; edge_idx += 2) {
-                    extend_edges(partial_extended_edges[thread_idx], polynomials, edge_idx);
-
-                    // Update the pow polynomial's contribution c_l ⋅ ζ_{l+1}ⁱ for the next edge.
-                    FF pow_challenge = pow_challenges[edge_idx >> 1];
-
-                    // Compute the i-th edge's univariate contribution,
-                    // scale it by the pow polynomial's constant and zeta power "c_l ⋅ ζ_{l+1}ⁱ"
-                    // and add it to the accumulators for Sˡ(Xₗ)
-                    accumulate_relation_univariates<>(partial_univariate_accumulators[thread_idx],
-                                                      partial_extended_edges[thread_idx],
-                                                      relation_parameters,
-                                                      pow_challenge);
-                }
-            }); // parallel_for
-
-            // Accumulate the partial univariate accumulators from each thread into the full accumulators
-            for (auto& partial_accum : partial_univariate_accumulators) {
-                add_nested_tuples(univariate_accumulators, partial_accum);
-            }
-        } else {
             // For each edge_idx = 2i, we need to multiply the whole contribution by zeta^{2^{2i}}
             // This means that each univariate for each relation needs an extra multiplication.
-            for (size_t edge_idx = 0; edge_idx < round_size; edge_idx += 2) {
-                extend_edges(extended_edges, polynomials, edge_idx);
+            for (size_t edge_idx = start; edge_idx < end; edge_idx += 2) {
+                extend_edges(extended_edges[thread_idx], polynomials, edge_idx);
 
                 // Update the pow polynomial's contribution c_l ⋅ ζ_{l+1}ⁱ for the next edge.
                 FF pow_challenge = pow_challenges[edge_idx >> 1];
@@ -214,10 +185,18 @@ template <typename Flavor> class SumcheckRound {
                 // Compute the i-th edge's univariate contribution,
                 // scale it by the pow polynomial's constant and zeta power "c_l ⋅ ζ_{l+1}ⁱ"
                 // and add it to the accumulators for Sˡ(Xₗ)
-                accumulate_relation_univariates<>(
-                    univariate_accumulators, extended_edges, relation_parameters, pow_challenge);
+                accumulate_relation_univariates<>(thread_univariate_accumulators[thread_idx],
+                                                  extended_edges[thread_idx],
+                                                  relation_parameters,
+                                                  pow_challenge);
             }
+        }); // parallel_for
+
+        // Accumulate the per-thread univariate accumulators into a single accumulator
+        for (auto& accumulators : thread_univariate_accumulators) {
+            add_nested_tuples(univariate_accumulators, accumulators);
         }
+        // Batch the univariate contributions from each sub-relation to obtain the round univariate
         return batch_over_relations(alpha);
     }
 
