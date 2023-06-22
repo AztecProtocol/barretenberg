@@ -2,7 +2,6 @@
 #include "barretenberg/common/log.hpp"
 #include <array>
 #include <algorithm>
-#include <omp.h>
 #include <tuple>
 #include "barretenberg/common/thread.hpp"
 #include "polynomials/barycentric_data.hpp"
