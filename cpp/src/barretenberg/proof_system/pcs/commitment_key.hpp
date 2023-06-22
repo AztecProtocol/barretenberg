@@ -1,5 +1,4 @@
 #pragma once
-
 /**
  * @brief Provides interfaces for different 'CommitmentKey' classes.
  *
@@ -8,17 +7,9 @@
  */
 
 #include "barretenberg/ecc/curves/bn254/bn254.hpp"
-#include "barretenberg/polynomials/polynomial_arithmetic.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/srs/factories/crs_factory.hpp"
-#include "barretenberg/srs/factories/file_crs_factory.hpp"
 #include "barretenberg/ecc/scalar_multiplication/scalar_multiplication.hpp"
-#include "barretenberg/ecc/curves/bn254/pairing.hpp"
-#include "barretenberg/numeric/bitop/pow.hpp"
-
-#include <cstddef>
-#include <string_view>
-#include <memory>
 
 namespace proof_system::pcs {
 
