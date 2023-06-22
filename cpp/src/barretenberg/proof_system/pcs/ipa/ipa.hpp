@@ -14,7 +14,7 @@
  * https://hackmd.io/q-A8y6aITWyWJrvsGGMWNA?view.
  *
  */
-namespace proof_system::honk::pcs::ipa {
+namespace proof_system::pcs::ipa {
 
 template <typename Params> class IPA {
     using Fr = typename Params::Fr;
@@ -224,4 +224,4 @@ template <typename Params> class IPA {
     }
 };
 
-} // namespace proof_system::honk::pcs::ipa
+} // namespace proof_system::pcs::ipa

@@ -40,7 +40,7 @@ template <typename Flavor> bool UltraVerifier_<Flavor>::verify_proof(const plonk
     using PCSParams = typename Flavor::PCSParams;
     using PCS = typename Flavor::PCS;
     using Gemini = pcs::gemini::MultilinearReductionScheme<PCSParams>;
-    using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<PCSParams>;
+    using Shplonk = proof_system::pcs::shplonk::SingleBatchOpeningScheme<PCSParams>;
     using VerifierCommitments = typename Flavor::VerifierCommitments;
     using CommitmentLabels = typename Flavor::CommitmentLabels;
 

@@ -18,7 +18,7 @@
 #include <string_view>
 #include <memory>
 
-namespace proof_system::honk::pcs {
+namespace proof_system::pcs {
 
 namespace kzg {
 using Fr = typename barretenberg::g1::Fr;
@@ -223,4 +223,4 @@ bool Params::VerificationKey::pairing_check(const GroupElement& p0, const GroupE
 
 // } // namespace ipa
 
-} // namespace proof_system::honk::pcs
+} // namespace proof_system::pcs

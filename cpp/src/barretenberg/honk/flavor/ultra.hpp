@@ -38,8 +38,8 @@ class Ultra {
     // UltraHonk will be run with KZG by default but temporarily we set the commitment to IPA to
     // be able to do e2e tests with this pcs as well
     // TODO: instantiate this with both IPA and KZG when the templating work is finished
-    using PCSParams = pcs::kzg::Params;
-    using PCS = pcs::kzg::KZG<PCSParams>;
+    using PCSParams = proof_system::pcs::kzg::Params;
+    using PCS = proof_system::pcs::kzg::KZG<PCSParams>;
 
     static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
     // The number of multivariate polynomials on which a sumcheck prover sumcheck operates (including shifts). We often

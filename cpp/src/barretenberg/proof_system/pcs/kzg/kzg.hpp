@@ -8,7 +8,7 @@
 #include <memory>
 #include <utility>
 
-namespace proof_system::honk::pcs::kzg {
+namespace proof_system::pcs::kzg {
 
 template <typename Params> class KZG {
     using CK = typename Params::CommitmentKey;
@@ -65,4 +65,4 @@ template <typename Params> class KZG {
         return vk->pairing_check(lhs, rhs);
     };
 };
-} // namespace proof_system::honk::pcs::kzg
+} // namespace proof_system::pcs::kzg

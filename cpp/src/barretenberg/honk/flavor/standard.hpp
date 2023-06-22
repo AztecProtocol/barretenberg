@@ -39,8 +39,8 @@ class Standard {
     using GroupElement = G1::element;
     using Commitment = G1::affine_element;
     using CommitmentHandle = G1::affine_element;
-    using PCSParams = pcs::kzg::Params;
-    using PCS = pcs::kzg::KZG<PCSParams>;
+    using PCSParams = proof_system::pcs::kzg::Params;
+    using PCS = proof_system::pcs::kzg::KZG<PCSParams>;
 
     static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
     // The number of multivariate polynomials on which a sumcheck prover sumcheck operates (including shifts). We often

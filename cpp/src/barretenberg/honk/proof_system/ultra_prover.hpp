@@ -68,11 +68,11 @@ template <UltraFlavor Flavor> class UltraProver_ {
 
     sumcheck::SumcheckOutput<Flavor> sumcheck_output;
     pcs::gemini::ProverOutput<PCSParams> gemini_output;
-    pcs::shplonk::ProverOutput<PCSParams> shplonk_output;
+    proof_system::pcs::shplonk::ProverOutput<PCSParams> shplonk_output;
     std::shared_ptr<PCSCommitmentKey> pcs_commitment_key;
 
     using Gemini = pcs::gemini::MultilinearReductionScheme<PCSParams>;
-    using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<PCSParams>;
+    using Shplonk = proof_system::pcs::shplonk::SingleBatchOpeningScheme<PCSParams>;
 
   private:
     plonk::proof proof;

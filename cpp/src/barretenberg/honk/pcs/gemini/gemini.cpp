@@ -360,6 +360,6 @@ std::pair<typename Params::GroupElement, typename Params::GroupElement> Multilin
     }
     return { C0_r_pos, C0_r_neg };
 };
-template class MultilinearReductionScheme<proof_system::honk::pcs::kzg::Params>;
-template class MultilinearReductionScheme<proof_system::honk::pcs::ipa::Params>;
+template class MultilinearReductionScheme<proof_system::pcs::kzg::Params>;
+template class MultilinearReductionScheme<proof_system::pcs::ipa::Params>;
 }; // namespace proof_system::honk::pcs::gemini

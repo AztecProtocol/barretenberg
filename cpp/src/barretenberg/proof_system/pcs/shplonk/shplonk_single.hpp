@@ -4,7 +4,8 @@
 #include "barretenberg/proof_system/pcs/commitment_key.hpp"
 #include "barretenberg/proof_system/transcript/transcript.hpp"
 
-namespace proof_system::honk::pcs::shplonk {
+using namespace proof_system::pcs;
+namespace proof_system::pcs::shplonk {
 
 /**
  * @brief Protocol for opening several polynomials, each in a single different point.
@@ -175,4 +176,4 @@ template <typename Params> class SingleBatchOpeningScheme {
         return { { z_challenge, Fr::zero() }, G_commitment };
     };
 };
-} // namespace proof_system::honk::pcs::shplonk
+} // namespace proof_system::pcs::shplonk

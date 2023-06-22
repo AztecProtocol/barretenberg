@@ -20,7 +20,7 @@
 #include <string_view>
 #include <memory>
 
-namespace proof_system::honk::pcs {
+namespace proof_system::pcs {
 
 namespace kzg {
 
@@ -230,4 +230,4 @@ struct Params {
 
 } // namespace ipa
 
-} // namespace proof_system::honk::pcs
+} // namespace proof_system::pcs

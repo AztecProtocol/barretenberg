@@ -17,7 +17,7 @@
 #include "claim.hpp"
 #include "commitment_key.hpp"
 
-namespace proof_system::honk::pcs {
+namespace proof_system::pcs {
 
 template <class CK> inline std::shared_ptr<CK> CreateCommitmentKey();
 
@@ -206,4 +206,4 @@ using IpaCommitmentSchemeParams = ::testing::Types<ipa::Params>;
 // using CommitmentSchemeParams =
 //     ::testing::Types<fake::Params<barretenberg::g1>, fake::Params<grumpkin::g1>, kzg::Params>;
 
-} // namespace proof_system::honk::pcs
+} // namespace proof_system::pcs

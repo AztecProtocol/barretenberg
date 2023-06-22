@@ -12,7 +12,7 @@
 #include <gtest/gtest.h>
 #include <vector>
 
-namespace proof_system::honk::pcs::kzg {
+namespace proof_system::pcs::kzg {
 
 template <class Params> class KZGTest : public CommitmentTest<Params> {
   public:
@@ -49,4 +49,4 @@ TYPED_TEST(KZGTest, single)
     EXPECT_EQ(verified, true);
 }
 
-} // namespace proof_system::honk::pcs::kzg
+} // namespace proof_system::pcs::kzg

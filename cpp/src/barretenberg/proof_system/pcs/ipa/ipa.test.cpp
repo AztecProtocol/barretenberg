@@ -8,7 +8,7 @@
 #include "barretenberg/proof_system/pcs/commitment_key.hpp"
 #include "barretenberg/proof_system/pcs/commitment_key.test.hpp"
 using namespace barretenberg;
-namespace proof_system::honk::pcs::ipa {
+namespace proof_system::pcs::ipa {
 
 class IPATest : public CommitmentTest<Params> {
   public:
@@ -78,4 +78,4 @@ TEST_F(IPATest, Open)
 
     EXPECT_EQ(prover_transcript.get_manifest(), verifier_transcript.get_manifest());
 }
-} // namespace proof_system::honk::pcs::ipa
+} // namespace proof_system::pcs::ipa

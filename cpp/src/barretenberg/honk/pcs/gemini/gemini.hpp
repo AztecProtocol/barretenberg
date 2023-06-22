@@ -7,6 +7,7 @@
 
 #include <vector>
 
+using namespace proof_system::pcs;
 /**
  * @brief Protocol for opening several multi-linear polynomials at the same point.
  *
@@ -44,7 +45,6 @@
  * since they are linear-combinations of the commitments [fⱼ] and [gⱼ].
  */
 namespace proof_system::honk::pcs::gemini {
-
 /**
  * @brief Prover output (evalutation pair, witness) that can be passed on to Shplonk batch opening.
  * @details Evaluation pairs {r, A₀₊(r)}, {-r, A₀₋(-r)}, {-r^{2^j}, Aⱼ(-r^{2^j)}, j = [1, ..., m-1]

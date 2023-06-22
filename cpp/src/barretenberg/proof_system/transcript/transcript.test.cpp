@@ -7,7 +7,7 @@
 #include <gtest/gtest.h>
 #include <string>
 
-using namespace proof_system::honk;
+using namespace proof_system;
 
 /**
  * @brief Test and demonstrate the basic functionality of the prover and verifier transcript
@@ -18,7 +18,7 @@ TEST(TranscriptTests, ProverAndVerifierBasic)
     constexpr size_t LENGTH = 8;
 
     using Fr = barretenberg::fr;
-    using Univariate = proof_system::honk::sumcheck::Univariate<Fr, LENGTH>;
+    using Univariate = std::array<Fr, LENGTH>;
     using Commitment = barretenberg::g1::affine_element;
 
     std::array<Fr, LENGTH> evaluations;

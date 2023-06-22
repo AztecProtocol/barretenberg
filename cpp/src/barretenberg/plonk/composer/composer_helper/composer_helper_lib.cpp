@@ -52,7 +52,7 @@ std::shared_ptr<plonk::verification_key> compute_verification_key_common(
         proving_key->circuit_size, proving_key->num_public_inputs, vrs, proving_key->composer_type);
     // TODO(kesha): Dirty hack for now. Need to actually make commitment-agnositc
     auto commitment_key =
-        proof_system::honk::pcs::kzg::Params::CommitmentKey(proving_key->circuit_size, proving_key->reference_string);
+        proof_system::pcs::kzg::Params::CommitmentKey(proving_key->circuit_size, proving_key->reference_string);
 
     for (size_t i = 0; i < proving_key->polynomial_manifest.size(); ++i) {
         const auto& poly_info = proving_key->polynomial_manifest[i];
