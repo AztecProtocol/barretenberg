@@ -54,7 +54,7 @@ class PermutationHelperTests : public ::testing::Test {
 
          */
 
-        proving_key = initialize_proving_key<Flavor>(circuit_constructor, &crs_factory, 0, 2, ComposerType::STANDARD);
+        proving_key = initialize_proving_key<Flavor>(circuit_constructor, &crs_factory, 0, 2);
 
         // construct_selector_polynomials<Flavor>(circuit_constructor, proving_key.get());
     }

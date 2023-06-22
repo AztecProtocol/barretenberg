@@ -297,9 +297,6 @@ namespace proof_system {
  * @tparam U A parameter pack of types being checked against T.
  */
 // clang-format off
-template <typename T, typename... U>
-concept IsAnyOf = (std::same_as<T, U> || ...);
-
 template <typename T>
 concept IsPlonkFlavor = IsAnyOf<T, plonk::flavor::Standard, plonk::flavor::Turbo, plonk::flavor::Ultra>;
 

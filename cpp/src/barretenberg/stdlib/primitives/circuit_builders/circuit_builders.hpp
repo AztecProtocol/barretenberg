@@ -7,8 +7,7 @@
 #include "barretenberg/proof_system/circuit_constructors/turbo_circuit_constructor.hpp"
 #include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
 
-template <typename T, typename... U> concept IsAnyOf = (std::same_as<T, U> || ...);
-template <typename T> concept HasPlookup = IsAnyOf<T, proof_system::UltraCircuitConstructor>;
+template <typename T> concept HasPlookup = proof_system::IsAnyOf<T, proof_system::UltraCircuitConstructor>;
 
 #define INSTANTIATE_STDLIB_METHOD(stdlib_method)                                                                       \
     template stdlib_method(proof_system::StandardCircuitConstructor);                                                  \
