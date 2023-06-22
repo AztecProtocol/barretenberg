@@ -391,7 +391,8 @@ TEST_F(StandardHonkComposerTests, SumcheckEvaluations)
         uint32_t b_idx = circuit_constructor.add_variable(b);
         uint32_t c_idx = circuit_constructor.add_variable(c);
         uint32_t d_idx = circuit_constructor.add_variable(d);
-        for (size_t i = 0; i < 16; i++) {
+        size_t num_iterations = 1 << 16;
+        for (size_t i = 0; i < num_iterations; i++) {
             circuit_constructor.create_add_gate(
                 { a_idx, b_idx, c_idx, fr::one(), fr::one(), fr::neg_one(), fr::zero() });
             circuit_constructor.create_add_gate(
