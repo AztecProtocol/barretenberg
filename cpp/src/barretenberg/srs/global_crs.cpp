@@ -9,6 +9,7 @@ std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory;
 
 namespace barretenberg::srs {
 
+// Initialises the crs de
 void init_crs_factory(std::vector<g1::affine_element> const& points, g2::affine_element const g2_point)
 {
     crs_factory = std::make_shared<factories::MemCrsFactory>(points, g2_point);

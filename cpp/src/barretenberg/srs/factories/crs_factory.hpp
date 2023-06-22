@@ -30,10 +30,6 @@ template <typename Curve> class VerifierCrs {
   public:
     virtual ~VerifierCrs() = default;
     ;
-
-    virtual barretenberg::g2::affine_element get_g2x() const = 0;
-
-    virtual barretenberg::pairing::miller_lines const* get_precomputed_g2_lines() const = 0;
 };
 
 /**
@@ -46,7 +42,10 @@ template <typename Curve> class CrsFactory {
     CrsFactory(CrsFactory&& other) = default;
     virtual ~CrsFactory() = default;
     virtual std::shared_ptr<barretenberg::srs::factories::ProverCrs<Curve>> get_prover_crs(size_t) { return nullptr; }
-    virtual std::shared_ptr<barretenberg::srs::factories::VerifierCrs<Curve>> get_verifier_crs() { return nullptr; }
+    virtual std::shared_ptr<barretenberg::srs::factories::VerifierCrs<Curve>> get_verifier_crs(size_t)
+    {
+        return nullptr;
+    }
 };
 
 } // namespace barretenberg::srs::factories

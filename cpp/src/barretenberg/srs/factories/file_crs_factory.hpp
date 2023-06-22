@@ -2,6 +2,9 @@
 #include "barretenberg/ecc/curves/bn254/bn254.hpp"
 #include "crs_factory.hpp"
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
+#include "barretenberg/ecc/scalar_multiplication/point_table.hpp"
+#include "barretenberg/ecc/scalar_multiplication/scalar_multiplication.hpp"
+#include "../io.hpp"
 #include <utility>
 #include <cstddef>
 
@@ -9,7 +12,15 @@ namespace barretenberg::srs::factories {
 
 template <typename Curve> class FileProverCrs : public ProverCrs<Curve> {
   public:
-    FileProverCrs(const size_t num_points, std::string const& path);
+    // this could go in the source file but let's see
+    FileProverCrs(const size_t num_points, std::string const& path)
+        : num_points(num_points)
+    {
+        monomials_ = scalar_multiplication::point_table_alloc<typename Curve::AffineElement>(num_points);
+
+        srs::IO<Curve>::read_transcript_g1(monomials_.get(), num_points, path);
+        scalar_multiplication::generate_pippenger_point_table<Curve>(monomials_.get(), monomials_.get(), num_points);
+    };
 
     typename Curve::AffineElement* get_monomial_points() { return monomials_.get(); }
 
@@ -22,17 +33,10 @@ template <typename Curve> class FileProverCrs : public ProverCrs<Curve> {
 
 template <typename Curve> class FileVerifierCrs : public VerifierCrs<Curve> {
   public:
-    FileVerifierCrs(std::string const& path);
-
-    ~FileVerifierCrs();
-
-    g2::affine_element get_g2x() const override;
-
-    pairing::miller_lines const* get_precomputed_g2_lines() const override;
+    FileVerifierCrs(const size_t num_points, std::string const& path);
 
   private:
-    g2::affine_element g2_x;
-    pairing::miller_lines* precomputed_g2_lines;
+    size_t num_points;
 };
 
 /**
@@ -45,7 +49,7 @@ template <typename Curve> class FileCrsFactory : public CrsFactory<Curve> {
 
     std::shared_ptr<barretenberg::srs::factories::ProverCrs<Curve>> get_prover_crs(size_t degree) override;
 
-    std::shared_ptr<barretenberg::srs::factories::VerifierCrs<Curve>> get_verifier_crs() override;
+    std::shared_ptr<barretenberg::srs::factories::VerifierCrs<Curve>> get_verifier_crs(size_t degree) override;
 
   private:
     std::string path_;
@@ -56,7 +60,5 @@ template <typename Curve> class FileCrsFactory : public CrsFactory<Curve> {
 
 extern template class FileProverCrs<curve::BN254>;
 extern template class FileProverCrs<curve::Grumpkin>;
-// extern template class FileVerifierCrs<curve::BN254>;
-// extern template class FileVerifierCrs<curve::Grumpkin>;
 
 } // namespace barretenberg::srs::factories
