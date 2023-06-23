@@ -1,5 +1,5 @@
 #!/usr/bin/env -S node --no-warnings
-import { Crs, BarretenbergApiAsync, newBarretenbergApiAsync, RawBuffer } from './index.browser.js';
+import { Crs, BarretenbergApiAsync, newBarretenbergApiAsync, RawBuffer } from './index.js';
 import createDebug from 'debug';
 import { readFileSync, writeFileSync } from 'fs';
 import { gunzipSync } from 'zlib';

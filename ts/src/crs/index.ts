@@ -1,1 +1,2 @@
-export { Crs } from './browser/index.js';
+export { Crs } from 'dynamic/crs';
+// export { Crs } from './browser/index.js';

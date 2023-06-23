@@ -8,13 +8,26 @@
     "displayName": "bb.js",
     "tsconfig": "./tsconfig.json"
   },
-  "main": "./dest/index.browser.js",
+  "main": "./dest/index.js",
   "bin": "./dest/main.js",
   "exports": {
     ".": {
-      "require": "./dest/index.node.js",
-      "import": "./dest/index.browser.js"
-    }
+      "require": "./dest/index.js",
+      "import": "./dest/index.js"
+    },
+    "./async_map": "./dest/async_map/index.js",
+    "./barretenberg_api": "./dest/barretenberg_api/index.js",
+    "./barretenberg_binder": "./dest/barretenberg_binder/index.js",
+    "./barretenberg_wasm": "./dest/barretenberg_wasm/index.js",
+    "./bigint-array": "./dest/bigint-array/index.js",
+    "./bindgen": "./dest/bindgen/index.js",
+    "./crs": "./dest/crs/index.js",
+    "./examples": "./dest/examples/index.js",
+    "./factory": "./dest/factory/index.js",
+    "./random": "./dest/random/index.js",
+    "./serialize": "./dest/serialize/index.js",
+    "./types": "./dest/types/index.js",
+    "./dest/types": "./dest/types/index.js"
   },
   "files": [
     "src/",
@@ -23,10 +36,10 @@
   ],
   "scripts": {
     "clean": "rm -rf ./dest .tsbuildinfo",
-    "build": "yarn clean && yarn build:wasm && yarn build:ts",
+    "build": "yarn clean && yarn build:wasm && yarn build:ts:browser",
     "build:dev": "tsc -b --watch",
     "build:wasm": "cd ../cpp && cmake --preset wasm-threads && cmake --build --preset wasm-threads && cmake --preset wasm && cmake --build --preset wasm",
-    "build:ts": "tsc -b && webpack && chmod +x ./dest/main.js",
+    "build:ts:browser": "BUILD_TARGET=browser node generate_tsconfig.cjs && tsc -b && webpack && chmod +x ./dest/main.js && BUILD_TARGET=browser node replace_imports.cjs",
     "build:bindings": "cd .. && ./scripts/bindgen.sh",
     "serve": "webpack serve",
     "formatting": "prettier --check ./src && eslint --max-warnings 0 ./src",
@@ -79,14 +92,17 @@
     "@typescript-eslint/parser": "^5.54.1",
     "buffer": "^6.0.3",
     "copy-webpack-plugin": "^11.0.0",
+    "cross-env": "^7.0.3",
     "eslint": "^8.35.0",
     "eslint-config-prettier": "^8.8.0",
     "html-webpack-plugin": "^5.5.1",
     "jest": "^29.5.0",
     "prettier": "^2.8.4",
+    "replace-in-file": "^7.0.1",
     "resolve-typescript-plugin": "^2.0.1",
     "ts-jest": "^29.1.0",
     "ts-loader": "^9.4.2",
+    "tsconfig-paths-webpack-plugin": "^4.0.1",
     "typescript": "^5.0.4",
     "webpack": "^5.82.1",
     "webpack-cli": "^5.1.1",

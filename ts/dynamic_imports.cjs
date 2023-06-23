@@ -1,0 +1,1 @@
+module.exports = ["barretenberg_wasm", "crs", "random", "types"];

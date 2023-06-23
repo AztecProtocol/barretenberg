@@ -1,19 +1,17 @@
 /**
  * Builds both the web and node version of the worker, and outputs it to the dest directory.
  */
-const { resolve } = require('path');
+const path = require('path');
 const ResolveTypeScriptPlugin = require('resolve-typescript-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 const webpack = require('webpack');
+const { resolve } = path;
 
 module.exports = {
   target: 'web',
   mode: 'production',
-  entry: {
-    node: './src/index.node.ts',
-    browser: './src/index.browser.ts',
-  },
+  entry: './src/index.ts',
   module: {
     rules: [
       {
@@ -44,11 +42,6 @@ module.exports = {
   ],
   resolve: {
     alias: {
-      // './node/index': resolve(__dirname, './browser/index'),
-      './node/index': resolve(__dirname, 'src/barretenberg_wasm/browser/index'),
-      './src/barrenberg_wasm/node/index': resolve(__dirname, './src/barrenberg_wasm/browser/index'),
-      './src/barrenberg_wasm/node/index.js': resolve(__dirname, './src/barrenberg_wasm/browser/index.js'),
-      './src/barrenberg_wasm/node/index.js': './src/barrenberg_wasm/browser/index.js',
       'idb-keyval': require.resolve('idb-keyval'),
       crypto: require.resolve('crypto-browserify'),
       path: require.resolve('path-browserify'),
@@ -58,9 +51,13 @@ module.exports = {
       os: require.resolve('os-browserify/browser'),
       events: false,
     },
-    plugins: [new ResolveTypeScriptPlugin()],
+    plugins: [
+      new ResolveTypeScriptPlugin(),
+      new TsconfigPathsPlugin({ configFile: path.resolve(__dirname, "./tsconfig.json")})
+    ],
   },
   optimization: {
     minimize: false,
   },
+  
 };

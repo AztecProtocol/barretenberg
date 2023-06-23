@@ -3,9 +3,8 @@ import { EventEmitter } from 'events';
 import createDebug from 'debug';
 import { Remote, proxy } from 'comlink';
 import { randomBytes } from '../random/index.js';
-// Webpack config swaps this import with ./browser/index.js
-// You can toggle between these two imports to sanity check the type-safety.
-import { fetchCode, getNumCpu, createWorker, getRemoteBarretenbergWasm, threadLogger, killSelf } from './node/index.js';
+import { fetchCode, getNumCpu, createWorker, getRemoteBarretenbergWasm, threadLogger, killSelf } from 'dynamic/barretenberg_wasm';
+// import { fetchCode, getNumCpu, createWorker, getRemoteBarretenbergWasm, threadLogger, killSelf } from './browser/index.js';
 
 const debug = createDebug('bb.js:wasm');
 
@@ -34,7 +33,7 @@ export class BarretenbergWasm {
    * Used when running in the browser, because we can't block the main thread.
    */
   public static async newWorker(threads?: number) {
-    const worker = createWorker();
+    const worker: any = createWorker();
     const wasm = getRemoteBarretenbergWasm(worker);
     await wasm.init(threads, proxy(debug));
     return { worker, wasm };
@@ -77,7 +76,7 @@ export class BarretenbergWasm {
 
     // Create worker threads. Create 1 less than requested, as main thread counts as a thread.
     this.logger('creating worker threads...');
-    this.workers = (await Promise.all(Array.from({ length: threads - 1 }).map(createWorker))) as any;
+    this.workers = (await Promise.all(Array.from({ length: threads - 1 }).map(createWorker as any))) as any;
     this.remoteWasms = await Promise.all(this.workers.map(getRemoteBarretenbergWasm as any));
     await Promise.all(this.remoteWasms.map(w => w.initThread(module, this.memory)));
     this.logger('init complete.');

@@ -1,1 +1,2 @@
-export * from './browser/index.js';
+export * from 'dynamic/random';
+// export * from './browser/index.js';
