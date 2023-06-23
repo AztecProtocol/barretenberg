@@ -1,7 +1,6 @@
 #include "ultra_prover.hpp"
 #include <algorithm>
 #include <cstddef>
-#include "barretenberg/common/timer.hpp"
 #include "barretenberg/honk/proof_system/prover_library.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck.hpp"
 #include <array>
@@ -293,67 +292,47 @@ template <UltraFlavor Flavor> plonk::proof& UltraProver_<Flavor>::export_proof()
 
 template <UltraFlavor Flavor> plonk::proof& UltraProver_<Flavor>::construct_proof()
 {
-    Timer timer;
     // Add circuit size public input size and public inputs to transcript.
     execute_preamble_round();
-    info("execute_preamble_round: ", timer.seconds(), "s");
 
-    Timer timer2;
     // Compute first three wire commitments
     execute_wire_commitments_round();
     queue.process_queue();
-    info("execute_wire_commitments_round: ", timer2.seconds(), "s");
 
-    Timer timer3;
     // Compute sorted list accumulator and commitment
     execute_sorted_list_accumulator_round();
     queue.process_queue();
-    info("execute_sorted_list_accumulator_round: ", timer3.seconds(), "s");
 
-    Timer timer4;
     // Fiat-Shamir: beta & gamma
     // Compute grand product(s) and commitments.
     execute_grand_product_computation_round();
     queue.process_queue();
-    info("execute_grand_product_computation_round: ", timer4.seconds(), "s");
 
-    Timer timer5;
     // Fiat-Shamir: alpha
     // Run sumcheck subprotocol.
     execute_relation_check_rounds();
-    info("execute_relation_check_rounds: ", timer5.seconds(), "s");
 
-    Timer timer6;
     // Fiat-Shamir: rho
     // Compute Fold polynomials and their commitments.
     execute_univariatization_round();
     queue.process_queue();
-    info("execute_univariatization_round: ", timer6.seconds(), "s");
 
-    Timer timer7;
     // Fiat-Shamir: r
     // Compute Fold evaluations
     execute_pcs_evaluation_round();
-    info("execute_pcs_evaluation_round: ", timer7.seconds(), "s");
 
-    Timer timer8;
     // Fiat-Shamir: nu
     // Compute Shplonk batched quotient commitment Q
     execute_shplonk_batched_quotient_round();
     queue.process_queue();
-    info("execute_shplonk_batched_quotient_round: ", timer8.seconds(), "s");
 
-    Timer timer9;
     // Fiat-Shamir: z
     // Compute partial evaluation Q_z
     execute_shplonk_partial_evaluation_round();
-    info("execute_shplonk_partial_evaluation_round: ", timer9.seconds(), "s");
 
-    Timer timer10;
     // Fiat-Shamir: z
     // Compute PCS opening proof (either KZG quotient commitment or IPA opening proof)
     execute_final_pcs_round();
-    info("execute_final_pcs_round: ", timer10.seconds(), "s");
 
     return export_proof();
 }

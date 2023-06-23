@@ -150,7 +150,8 @@ template <typename Flavor> class SumcheckRound {
         // Determine number of threads for multithreading.
         // Note: Multithreading is "on" for every round but we reduce the number of threads from the max available based
         // on a specified minimum number of iterations per thread. This eventually leads to the use of a single thread.
-        size_t max_num_threads = get_num_cpus();   // number of available threads
+        // For now we use a power of 2 number of threads simply to ensure the round size is evenly divided.
+        size_t max_num_threads = get_num_cpus_pow2(); // number of available threads (power of 2)
         size_t min_iterations_per_thread = 1 << 6; // min number of iterations for which we'll spin up a unique thread
         size_t desired_num_threads = round_size / min_iterations_per_thread;
         size_t num_threads = std::min(desired_num_threads, max_num_threads); // fewer than max if justified
@@ -189,9 +190,9 @@ template <typename Flavor> class SumcheckRound {
                                                   relation_parameters,
                                                   pow_challenge);
             }
-        }); // parallel_for
+        });
 
-        // Accumulate the per-thread univariate accumulators into a single accumulator
+        // Accumulate the per-thread univariate accumulators into a single set of accumulators
         for (auto& accumulators : thread_univariate_accumulators) {
             add_nested_tuples(univariate_accumulators, accumulators);
         }
