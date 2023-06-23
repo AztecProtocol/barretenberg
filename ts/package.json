@@ -14,7 +14,11 @@
     ".": {
       "require": "./dest/index.node.js",
       "import": "./dest/index.browser.js"
-    }
+    },
+    "./dest/barretenberg_api": "./dest/barretenberg_api/index.js",
+    "./dest/barretenberg_binder": "./dest/barretenberg_binder/index.js",
+    "./dest/barretenberg_wasm": "./dest/barretenberg_wasm/index.js",
+    "./dest/types": "./dest/types/index.js"
   },
   "files": [
     "src/",
