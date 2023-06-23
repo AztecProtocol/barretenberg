@@ -10,7 +10,7 @@ import { writeSync } from 'fs';
 
 export async function fetchCode(name: string) {
   const __dirname = dirname(fileURLToPath(import.meta.url));
-  return await readFile(__dirname + "/" + `../../${name}`);
+  return await readFile(__dirname + `/../../${name}`);
 }
 
 export function createWorker() {
