@@ -8,7 +8,7 @@
     "displayName": "bb.js",
     "tsconfig": "./tsconfig.json"
   },
-  "main": "./dest/index.browser.js",
+  "main": "./dest/index.js",
   "bin": "./dest/main.js",
   "files": [
     "src/",

@@ -11,10 +11,7 @@ const { resolve } = path;
 module.exports = {
   target: 'web',
   mode: 'production',
-  entry: {
-    node: './src/index.node.ts',
-    browser: './src/index.browser.ts',
-  },
+  entry: './src/index.ts',
   module: {
     rules: [
       {
