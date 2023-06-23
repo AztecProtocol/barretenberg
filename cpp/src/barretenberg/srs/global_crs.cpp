@@ -4,17 +4,20 @@
 #include "barretenberg/common/throw_or_abort.hpp"
 
 namespace {
-std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory;
-}
+// This is a globar variable that we don't touch and we want another one for grumpkin
+std::shared_ptr<barretenberg::srs::factories::CrsFactory<curve::BN254>> crs_factory;
+std::shared_ptr<barretenberg::srs::factories::CrsFactory<curve::Grumpkin>> grumpkin_crs_factory;
+} // namespace
 
 namespace barretenberg::srs {
 
-// Initialises the crs de
+// Initialises the crs using the memory buffers, we can avoid touching i believe it's a wasm thing :-?
 void init_crs_factory(std::vector<g1::affine_element> const& points, g2::affine_element const g2_point)
 {
     crs_factory = std::make_shared<factories::MemCrsFactory>(points, g2_point);
 }
 
+// Initialises crs from a file path this we use in the entire codebase
 void init_crs_factory(std::string crs_path)
 {
     crs_factory = std::make_shared<factories::FileCrsFactory>(crs_path);
