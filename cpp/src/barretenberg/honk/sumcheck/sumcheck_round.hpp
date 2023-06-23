@@ -140,6 +140,7 @@ template <typename Flavor> class SumcheckRound {
                                                            const FF alpha)
     {
         // Precompute the vector of required powers of zeta
+        // TODO(luke): Parallelize this
         std::vector<FF> pow_challenges;
         pow_challenges.resize(round_size >> 1);
         pow_challenges[0] = pow_univariate.partial_evaluation_constant;
@@ -320,6 +321,9 @@ template <typename Flavor> class SumcheckRound {
     }
 
   public:
+    // TODO(luke): Potentially make RelationUnivarites (tuple of tuples of Univariates) a class and make these utility
+    // functions class methods. Alternatively, move all of these tuple utilities (and the ones living elsewhere) to
+    // their own module.
     /**
      * Utility methods for tuple of tuples of Univariates
      */
