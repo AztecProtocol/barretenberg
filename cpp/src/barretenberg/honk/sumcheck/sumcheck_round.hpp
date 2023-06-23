@@ -141,8 +141,7 @@ template <typename Flavor> class SumcheckRound {
     {
         // Precompute the vector of required powers of zeta
         // TODO(luke): Parallelize this
-        std::vector<FF> pow_challenges;
-        pow_challenges.resize(round_size >> 1);
+        std::vector<FF> pow_challenges(round_size >> 1);
         pow_challenges[0] = pow_univariate.partial_evaluation_constant;
         for (size_t i = 1; i < (round_size >> 1); ++i) {
             pow_challenges[i] = pow_challenges[i - 1] * pow_univariate.zeta_pow_sqr;
@@ -160,8 +159,7 @@ template <typename Flavor> class SumcheckRound {
         size_t iterations_per_thread = round_size / num_threads;             // actual iterations per thread
 
         // Constuct univariate accumulator containers; one per thread
-        std::vector<RelationUnivariates> thread_univariate_accumulators;
-        thread_univariate_accumulators.resize(num_threads);
+        std::vector<RelationUnivariates> thread_univariate_accumulators(num_threads);
         for (auto& accum : thread_univariate_accumulators) {
             zero_univariates(accum);
         }
