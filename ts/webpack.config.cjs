@@ -8,8 +8,7 @@ const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 const webpack = require('webpack');
 const { resolve } = path;
 
-module.exports = {
-  target: 'web',
+const common = {
   mode: 'production',
   entry: './src/index.ts',
   module: {
@@ -20,26 +19,6 @@ module.exports = {
       },
     ],
   },
-  output: {
-    path: resolve(__dirname, './dest'),
-    filename: '[name].js',
-  },
-  plugins: [
-    new webpack.DefinePlugin({ 'process.env.NODE_DEBUG': false }),
-    new webpack.ProvidePlugin({ Buffer: ['buffer', 'Buffer'] }),
-    new CopyWebpackPlugin({
-      patterns: [
-        {
-          from: `../cpp/build-wasm/bin/barretenberg.wasm`,
-          to: 'barretenberg.wasm',
-        },
-        {
-          from: `../cpp/build-wasm-threads/bin/barretenberg.wasm`,
-          to: 'barretenberg-threads.wasm',
-        },
-      ],
-    }),
-  ],
   resolve: {
     alias: {
       'idb-keyval': require.resolve('idb-keyval'),
@@ -59,5 +38,45 @@ module.exports = {
   optimization: {
     minimize: false,
   },
-  
-};
+}
+
+module.exports = [
+  // Webpack configuration for web output
+  {
+    ...common,
+    target: 'web',
+    output: {
+      path: resolve(__dirname, './dest/web'),
+      filename: '[name].js',
+    },
+    plugins: [
+      new webpack.DefinePlugin({ 'process.env.NODE_DEBUG': false }),
+      new webpack.ProvidePlugin({ Buffer: ['buffer', 'Buffer'] }),
+    ],
+  },
+  // Webpack configuration for node output
+  {
+    ...common,
+    target: 'node',
+    output: {
+      path: resolve(__dirname, './dest/node'),
+      filename: '[name].js',
+    },
+    plugins: [
+      new webpack.DefinePlugin({ 'process.env.NODE_DEBUG': false }),
+      new webpack.ProvidePlugin({ Buffer: ['buffer', 'Buffer'] }),
+      new CopyWebpackPlugin({
+        patterns: [
+          {
+            from: `../cpp/build-wasm/bin/barretenberg.wasm`,
+            to: '../barretenberg.wasm',
+          },
+          {
+            from: `../cpp/build-wasm-threads/bin/barretenberg.wasm`,
+            to: '../barretenberg-threads.wasm',
+          },
+        ],
+      }),
+    ],
+  },
+];
