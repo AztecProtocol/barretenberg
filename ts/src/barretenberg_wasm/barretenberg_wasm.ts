@@ -65,7 +65,7 @@ export class BarretenbergWasm {
 
     // Annoyingly the wasm declares if it's memory is shared or not. So now we need two wasms if we want to be
     // able to fallback on "non shared memory" situations.
-    const code = await fetchCode();
+    const code = await fetchCode(threads > 1 ? 'barretenberg-threads.wasm' : 'barretenberg.wasm');
     const { instance, module } = await WebAssembly.instantiate(code, this.getImportObj(this.memory));
 
     this.instance = instance;

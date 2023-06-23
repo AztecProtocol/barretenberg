@@ -2,7 +2,8 @@ import { wrap } from 'comlink';
 import { BarretenbergWasmWorker, type BarretenbergWasm } from '../barretenberg_wasm.js';
 import debug from 'debug';
 
-export async function fetchCode() {
+export async function fetchCode(_name?: string) {
+  // hardcoded to always use single-threaded (for now)
   const wasmModuleUrl = new URL(`../../barretenberg.wasm`, import.meta.url);
   const res = await fetch(wasmModuleUrl.href);
   return await res.arrayBuffer();

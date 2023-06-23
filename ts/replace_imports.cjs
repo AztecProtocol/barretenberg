@@ -17,10 +17,9 @@ async function replaceImports() {
     // hack to allow for shared .wasm files between build targets
     await replaceInFile({
       files: path.resolve(__dirname, `dest/${buildTarget}/barretenberg_wasm/${buildTarget}/index.js`),
-      from: /new URL\(`\.\.\/\.\.\/barretenberg\.wasm`, import\.meta\.url\)/g,
-      to: `new URL('../../../barretenberg.wasm', import.meta.url)`,
+      from: /\.\.\/\.\.\//g,
+      to: `../../../`,
     });
-    
   } catch (error) {
     console.error('Error occurred:', error);
   }
