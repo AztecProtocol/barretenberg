@@ -3,9 +3,9 @@
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/common/serialize.hpp"
 
-// TODO(#557): The field-specific aliases for dates should be removed and the type could be made explicit when this
-// structures are used to avoid having foo_gate and foo_gate_grumpkin. Moreover, we need to ensure the read/write
-// functions handle grumpkin gates as well.
+// TODO(#557): The field-specific aliases for gates should be removed and the type could be explicit when this
+// structures are used to avoid having foo_gate and foo_gate_grumpkin (i.e. use foo_gate<field> instead). Moreover, we
+// need to ensure the read/write functions handle grumpkin gates as well.
 namespace proof_system {
 template <typename FF> struct add_triple_ {
     uint32_t a;

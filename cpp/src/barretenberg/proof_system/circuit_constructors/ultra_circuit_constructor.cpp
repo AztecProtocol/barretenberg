@@ -1,10 +1,8 @@
 /**
  * @file ultra_circuit_constructor.cpp
  * @author Luke (ledwards2225) and Kesha (Rumata888)
- * @brief This file contains the implementation of UltraCircuitConstructor_<FF> class that defines the logic of
- * ultra-style circuits and is intended for the use in UltraHonk and UltraPlonk systems
- *
- * @todo 1) Replace FF>with templated FF or Field
+ * @brief This file contains the implementation of field-agnostic UltraCircuitConstructor class that defines the logic
+ * of ultra-style circuits and is intended for the use in UltraHonk and UltraPlonk systems
  *
  */
 #include "ultra_circuit_constructor.hpp"
@@ -59,8 +57,7 @@ template <typename FF> void UltraCircuitConstructor_<FF>::finalize_circuit()
  */
 // TODO(#423): This function adds valid (but arbitrary) gates to ensure that the circuit which includes
 // them will not result in any zero-polynomials. It also ensures that the first coefficient of the wire
-// polynomials is zero, which is required for them to be shiftable. Its currently wildly inefficient
-// (~16k gates) mostly due to the lookups it includes.
+// polynomials is zero, which is required for them to be shiftable.
 // TODO(#423)(luke): Add 0 as a PI since PI always start at the 0th index of the wire polynomials?
 // TODO(luke): may need to reevaluate once aux relation is implemented
 template <typename FF> void UltraCircuitConstructor_<FF>::add_gates_to_ensure_all_polys_are_non_zero()
@@ -106,23 +103,10 @@ template <typename FF> void UltraCircuitConstructor_<FF>::add_gates_to_ensure_al
     FF left_witness_value = fr{ left_value, 0, 0, 0 }.to_montgomery_form();
     FF right_witness_value = fr{ right_value, 0, 0, 0 }.to_montgomery_form();
 
-<<<<<<< HEAD
     uint32_t left_witness_index = this->add_variable(left_witness_value);
     uint32_t right_witness_index = this->add_variable(right_witness_value);
-
-    const auto and_accumulators = plookup::get_lookup_accumulators(
-        plookup::MultiTableId::UINT32_AND, left_witness_value, right_witness_value, true);
-    const auto xor_accumulators = plookup::get_lookup_accumulators(
-        plookup::MultiTableId::UINT32_XOR, left_witness_value, right_witness_value, true);
-
-    create_gates_from_plookup_accumulators(
-        plookup::MultiTableId::UINT32_AND, and_accumulators, left_witness_index, right_witness_index);
-=======
-    uint32_t left_witness_index = add_variable(left_witness_value);
-    uint32_t right_witness_index = add_variable(right_witness_value);
     const auto dummy_accumulators = plookup::get_lookup_accumulators(
         plookup::MultiTableId::HONK_DUMMY_MULTI, left_witness_value, right_witness_value, true);
->>>>>>> refs/rewritten/master-3
     create_gates_from_plookup_accumulators(
         plookup::MultiTableId::HONK_DUMMY_MULTI, dummy_accumulators, left_witness_index, right_witness_index);
 }
@@ -344,7 +328,7 @@ template <typename FF> void UltraCircuitConstructor_<FF>::create_mul_gate(const 
 /**
  * @brief Generate an arithmetic gate equivalent to x^2 - x = 0, which forces x to be 0 or 1
  *
- * @param this->variable_index Variable this->which needs this->to be constrained
+ * @param variable_index the variable which needs to be constrained
  */
 template <typename FF> void UltraCircuitConstructor_<FF>::create_bool_gate(const uint32_t variable_index)
 {
@@ -399,7 +383,7 @@ template <typename FF> void UltraCircuitConstructor_<FF>::create_poly_gate(const
 }
 
 /**
- * @brief Create an elliptic curve this->addition gate
+ * @brief Create an elliptic curve addition gate
  *
  * @details x and y are defined over scalar field. Addition can handle applying the curve endomorphism to one of the
  * points being summed at the time of addition.

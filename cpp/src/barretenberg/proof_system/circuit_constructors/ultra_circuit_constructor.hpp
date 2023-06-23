@@ -17,6 +17,7 @@ using namespace barretenberg;
 
 template <typename FF> class UltraCircuitConstructor_ : public CircuitConstructorBase<arithmetization::Ultra<FF>> {
   public:
+    static constexpr std::string_view NAME_STRING = "UltraArithmetization";
     static constexpr ComposerType type = ComposerType::PLOOKUP;
     static constexpr merkle::HashType merkle_hash_type = merkle::HashType::LOOKUP_PEDERSEN;
     static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
@@ -226,7 +227,7 @@ template <typename FF> class UltraCircuitConstructor_ : public CircuitConstructo
     /**
      * @brief CircuitDataBackup is a structure we use to store all the information about the circuit that is needed
      * to restore it back to a pre-finalized state
-     * @details In check_circuit method in UltraCircuitConstructor_ we want to check that the whole circuit works,
+     * @details In check_circuit method in UltraCircuitConstructor we want to check that the whole circuit works,
      * but ultra circuits need to have ram, rom and range gates added in the end for the check to be complete as
      * well as the set permutation check, so we finalize the circuit when we check it. This structure allows us to
      * restore the circuit to the state before the finalization.
@@ -881,7 +882,7 @@ template <typename FF> class UltraCircuitConstructor_ : public CircuitConstructo
     //         romcount += 1; // we add an addition gate after procesing a rom array
     //     }
 
-    //     constexpr size_t gate_width = ultra_settings::this->program_width;
+    //     constexpr size_t gate_width = ultra_settings::program_width;
     //     // each RAM gate adds +2 extra gates due to the ram reads being copied to a sorted list set,
     //     // as well as an extra gate to validate timestamps
     //     std::vector<size_t> ram_timestamps;
@@ -1171,7 +1172,6 @@ template <typename FF> class UltraCircuitConstructor_ : public CircuitConstructo
                                      FF alpha_base,
                                      FF alpha) const;
 
-    void update_circuit_in_the_head();
     bool check_circuit();
 };
 extern template class UltraCircuitConstructor_<barretenberg::fr>;
