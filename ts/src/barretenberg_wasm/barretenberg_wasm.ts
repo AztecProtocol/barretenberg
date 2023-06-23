@@ -4,7 +4,6 @@ import createDebug from 'debug';
 import { Remote, proxy } from 'comlink';
 import { randomBytes } from '../random/index.js';
 import { fetchCode, getNumCpu, createWorker, getRemoteBarretenbergWasm, threadLogger, killSelf } from 'dynamic/barretenberg_wasm';
-// import { fetchCode, getNumCpu, createWorker, getRemoteBarretenbergWasm, threadLogger, killSelf } from './browser/index.js';
 
 const debug = createDebug('bb.js:wasm');
 
