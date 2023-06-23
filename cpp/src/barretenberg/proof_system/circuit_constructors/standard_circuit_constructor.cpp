@@ -46,9 +46,9 @@ template <typename FF> void StandardCircuitConstructor_<FF>::create_big_add_gate
     FF temp = t0 + t1;
     uint32_t temp_idx = this->add_variable(temp);
 
-    create_add_gate(add_triple_<FF>{ in.a, in.b, temp_idx, in.a_scaling, in.b_scaling, FF::neg_one(), FF::zero() });
+    create_add_gate({ in.a, in.b, temp_idx, in.a_scaling, in.b_scaling, FF::neg_one(), FF::zero() });
 
-    create_add_gate(add_triple_<FF>{ in.c, in.d, temp_idx, in.c_scaling, in.d_scaling, FF::one(), in.const_scaling });
+    create_add_gate({ in.c, in.d, temp_idx, in.c_scaling, in.d_scaling, FF::one(), in.const_scaling });
 }
 
 /**
@@ -135,14 +135,14 @@ void StandardCircuitConstructor_<FF>::create_big_add_gate_with_bit_extraction(co
 
     uint32_t delta_idx = this->add_variable(delta);
     constexpr FF neg_four = -(FF(4));
-    create_add_gate(add_triple_<FF>{ in.c, in.d, delta_idx, FF::one(), neg_four, FF::neg_one(), FF::zero() });
+    create_add_gate({ in.c, in.d, delta_idx, FF::one(), neg_four, FF::neg_one(), FF::zero() });
 
     constexpr FF two = FF(2);
     constexpr FF seven = FF(7);
     constexpr FF nine = FF(9);
     const FF r_0 = (delta * nine) - ((delta.sqr() * two) + seven);
     uint32_t r_0_idx = this->add_variable(r_0);
-    create_poly_gate(poly_triple_<FF>{ delta_idx, delta_idx, r_0_idx, -two, nine, FF::zero(), FF::neg_one(), -seven });
+    create_poly_gate({ delta_idx, delta_idx, r_0_idx, -two, nine, FF::zero(), FF::neg_one(), -seven });
 
     FF r_1 = r_0 * delta;
     uint32_t r_1_idx = this->add_variable(r_1);
@@ -159,7 +159,7 @@ void StandardCircuitConstructor_<FF>::create_big_add_gate_with_bit_extraction(co
 
     FF r_2 = (r_1 + (this->get_variable(in.d) * in.d_scaling));
     uint32_t r_2_idx = this->add_variable(r_2);
-    create_add_gate(add_triple_<FF>{ in.d, r_1_idx, r_2_idx, in.d_scaling, FF::one(), FF::neg_one(), FF::zero() });
+    create_add_gate({ in.d, r_1_idx, r_2_idx, in.d_scaling, FF::one(), FF::neg_one(), FF::zero() });
 
     create_big_add_gate(add_quad_<FF>{
         in.a, in.b, in.c, r_2_idx, in.a_scaling, in.b_scaling, in.c_scaling, FF::one(), in.const_scaling });
@@ -169,10 +169,9 @@ template <typename FF> void StandardCircuitConstructor_<FF>::create_big_mul_gate
 {
     FF temp = ((this->get_variable(in.c) * in.c_scaling) + (this->get_variable(in.d) * in.d_scaling));
     uint32_t temp_idx = this->add_variable(temp);
-    create_add_gate(add_triple_<FF>{ in.c, in.d, temp_idx, in.c_scaling, in.d_scaling, FF::neg_one(), FF::zero() });
+    create_add_gate({ in.c, in.d, temp_idx, in.c_scaling, in.d_scaling, FF::neg_one(), FF::zero() });
 
-    create_poly_gate(poly_triple_<FF>{
-        in.a, in.b, temp_idx, in.mul_scaling, in.a_scaling, in.b_scaling, FF::one(), in.const_scaling });
+    create_poly_gate({ in.a, in.b, temp_idx, in.mul_scaling, in.a_scaling, in.b_scaling, FF::one(), in.const_scaling });
 }
 
 /**
@@ -277,8 +276,7 @@ std::vector<uint32_t> StandardCircuitConstructor_<FF>::decompose_into_base4_accu
             uint64_t quad = (lo ? 1U : 0U) + (hi ? 2U : 0U);
             quad_idx = this->add_variable(FF{ quad, 0, 0, 0 }.to_montgomery_form());
 
-            create_add_gate(add_triple_<FF>{
-                lo_idx, hi_idx, quad_idx, FF::one(), FF::one() + FF::one(), FF::neg_one(), FF::zero() });
+            create_add_gate({ lo_idx, hi_idx, quad_idx, FF::one(), FF::one() + FF::one(), FF::neg_one(), FF::zero() });
         }
 
         if (i == num_quads - 1) {
@@ -290,8 +288,8 @@ std::vector<uint32_t> StandardCircuitConstructor_<FF>::decompose_into_base4_accu
             new_accumulator = new_accumulator + new_accumulator;
             new_accumulator = new_accumulator + this->get_variable(quad_idx);
             uint32_t new_accumulator_idx = this->add_variable(new_accumulator);
-            create_add_gate(add_triple_<FF>{
-                accumulator_idx, quad_idx, new_accumulator_idx, four, FF::one(), FF::neg_one(), FF::zero() });
+            create_add_gate(
+                { accumulator_idx, quad_idx, new_accumulator_idx, four, FF::one(), FF::neg_one(), FF::zero() });
             accumulators.push_back(new_accumulator_idx);
             accumulator = new_accumulator;
             accumulator_idx = new_accumulator_idx;
@@ -351,23 +349,23 @@ accumulator_triple StandardCircuitConstructor_<FF>::create_logic_constraint(cons
 
         // a & b = ab
         // a ^ b = a + b - 2ab
-        create_poly_gate(poly_triple_<FF>{ left_hi_idx,
-                                           right_hi_idx,
-                                           out_hi_idx,
-                                           is_xor_gate ? neg_two : FF::one(),
-                                           is_xor_gate ? FF::one() : FF::zero(),
-                                           is_xor_gate ? FF::one() : FF::zero(),
-                                           FF::neg_one(),
-                                           FF::zero() });
+        create_poly_gate({ left_hi_idx,
+                           right_hi_idx,
+                           out_hi_idx,
+                           is_xor_gate ? neg_two : FF::one(),
+                           is_xor_gate ? FF::one() : FF::zero(),
+                           is_xor_gate ? FF::one() : FF::zero(),
+                           FF::neg_one(),
+                           FF::zero() });
 
-        create_poly_gate(poly_triple_<FF>{ left_lo_idx,
-                                           right_lo_idx,
-                                           out_lo_idx,
-                                           is_xor_gate ? neg_two : FF::one(),
-                                           is_xor_gate ? FF::one() : FF::zero(),
-                                           is_xor_gate ? FF::one() : FF::zero(),
-                                           FF::neg_one(),
-                                           FF::zero() });
+        create_poly_gate({ left_lo_idx,
+                           right_lo_idx,
+                           out_lo_idx,
+                           is_xor_gate ? neg_two : FF::one(),
+                           is_xor_gate ? FF::one() : FF::zero(),
+                           is_xor_gate ? FF::one() : FF::zero(),
+                           FF::neg_one(),
+                           FF::zero() });
 
         FF left_quad =
             this->get_variable(left_lo_idx) + this->get_variable(left_hi_idx) + this->get_variable(left_hi_idx);
@@ -384,34 +382,34 @@ accumulator_triple StandardCircuitConstructor_<FF>::create_logic_constraint(cons
         new_left_accumulator = new_left_accumulator + left_quad;
         uint32_t new_left_accumulator_idx = this->add_variable(new_left_accumulator);
 
-        create_add_gate(add_triple_<FF>{ left_accumulator_idx,
-                                         left_quad_idx,
-                                         new_left_accumulator_idx,
-                                         four,
-                                         FF::one(),
-                                         FF::neg_one(),
-                                         FF::zero() });
+        create_add_gate({ left_accumulator_idx,
+                          left_quad_idx,
+                          new_left_accumulator_idx,
+                          four,
+                          FF::one(),
+                          FF::neg_one(),
+                          FF::zero() });
 
         FF new_right_accumulator = right_accumulator + right_accumulator;
         new_right_accumulator = new_right_accumulator + new_right_accumulator;
         new_right_accumulator = new_right_accumulator + right_quad;
         uint32_t new_right_accumulator_idx = this->add_variable(new_right_accumulator);
 
-        create_add_gate(add_triple_<FF>{ right_accumulator_idx,
-                                         right_quad_idx,
-                                         new_right_accumulator_idx,
-                                         four,
-                                         FF::one(),
-                                         FF::neg_one(),
-                                         FF::zero() });
+        create_add_gate({ right_accumulator_idx,
+                          right_quad_idx,
+                          new_right_accumulator_idx,
+                          four,
+                          FF::one(),
+                          FF::neg_one(),
+                          FF::zero() });
 
         FF new_out_accumulator = out_accumulator + out_accumulator;
         new_out_accumulator = new_out_accumulator + new_out_accumulator;
         new_out_accumulator = new_out_accumulator + out_quad;
         uint32_t new_out_accumulator_idx = this->add_variable(new_out_accumulator);
 
-        create_add_gate(add_triple_<FF>{
-            out_accumulator_idx, out_quad_idx, new_out_accumulator_idx, four, FF::one(), FF::neg_one(), FF::zero() });
+        create_add_gate(
+            { out_accumulator_idx, out_quad_idx, new_out_accumulator_idx, four, FF::one(), FF::neg_one(), FF::zero() });
 
         accumulators.left.emplace_back(new_left_accumulator_idx);
         accumulators.right.emplace_back(new_right_accumulator_idx);

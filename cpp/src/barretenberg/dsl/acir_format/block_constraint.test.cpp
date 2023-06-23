@@ -13,7 +13,7 @@ size_t generate_block_constraint(acir_format::BlockConstraint& constraint, acir_
     witness_len++;
 
     fr two = fr::one() + fr::one();
-    poly_triple a0 = poly_triple{
+    poly_triple a0 = {
         .a = 1,
         .b = 0,
         .c = 0,
@@ -24,7 +24,7 @@ size_t generate_block_constraint(acir_format::BlockConstraint& constraint, acir_
         .q_c = 0,
     };
     fr three = fr::one() + two;
-    poly_triple a1 = poly_triple{
+    poly_triple a1 = {
         .a = 0,
         .b = 0,
         .c = 0,
@@ -34,7 +34,7 @@ size_t generate_block_constraint(acir_format::BlockConstraint& constraint, acir_
         .q_o = 0,
         .q_c = three,
     };
-    poly_triple r1 = poly_triple{
+    poly_triple r1 = {
         .a = 1,
         .b = 0,
         .c = 0,
@@ -44,7 +44,7 @@ size_t generate_block_constraint(acir_format::BlockConstraint& constraint, acir_
         .q_o = 0,
         .q_c = fr::neg_one(),
     };
-    poly_triple r2 = poly_triple{
+    poly_triple r2 = {
         .a = 1,
         .b = 0,
         .c = 0,
@@ -54,7 +54,7 @@ size_t generate_block_constraint(acir_format::BlockConstraint& constraint, acir_
         .q_o = 0,
         .q_c = fr::neg_one(),
     };
-    poly_triple y = poly_triple{
+    poly_triple y = {
         .a = 2,
         .b = 0,
         .c = 0,
@@ -66,7 +66,7 @@ size_t generate_block_constraint(acir_format::BlockConstraint& constraint, acir_
     };
     witness_values.emplace_back(2);
     witness_len++;
-    poly_triple z = poly_triple{
+    poly_triple z = {
         .a = 3,
         .b = 0,
         .c = 0,

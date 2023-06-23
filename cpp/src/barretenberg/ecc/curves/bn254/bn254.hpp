@@ -16,6 +16,6 @@ class BN254 {
     using AffineElement = typename Group::affine_element;
     using G2AffineElement = typename barretenberg::g2::affine_element;
     using G2BaseField = typename barretenberg::fq2;
-    using Fq12 = barretenberg::fq12;
+    using TargetField = barretenberg::fq12;
 };
 } // namespace curve

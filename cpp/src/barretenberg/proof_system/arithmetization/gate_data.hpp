@@ -3,6 +3,9 @@
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/common/serialize.hpp"
 
+// TODO(#557): The field-specific aliases for dates should be removed and the type could be made explicit when this
+// structures are used to avoid having foo_gate and foo_gate_grumpkin. Moreover, we need to ensure the read/write
+// functions handle grumpkin gates as well.
 namespace proof_system {
 template <typename FF> struct add_triple_ {
     uint32_t a;
@@ -67,7 +70,6 @@ template <typename FF> struct poly_triple_ {
 
 using poly_triple = poly_triple_<barretenberg::fr>;
 
-// TODO: figure out what to do with this...
 template <typename B> inline void read(B& buf, poly_triple& constraint)
 {
     using serialize::read;
@@ -80,7 +82,6 @@ template <typename B> inline void read(B& buf, poly_triple& constraint)
     read(buf, constraint.q_o);
     read(buf, constraint.q_c);
 }
-// TODO: and this..
 template <typename B> inline void write(B& buf, poly_triple const& constraint)
 {
     using serialize::write;

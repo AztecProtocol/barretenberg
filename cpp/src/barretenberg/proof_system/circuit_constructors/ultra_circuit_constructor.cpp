@@ -30,14 +30,14 @@ template <typename FF> void UltraCircuitConstructor_<FF>::finalize_circuit()
      *  1. ComposerBase::n => refers to the size of the witness of a given program,
      *  2. proving_key::n => the next power of two ≥ total witness size.
      *
-     * In this case, we have composer.this->num_gates = n_computation before we execute the following two functions.
+     * In this case, we have composer.num_gates = n_computation before we execute the following two functions.
      * After these functions are executed, the composer's `n` is incremented to include the ROM
      * and range list gates. Therefore we have:
-     * composer.this->num_gates = n_computation + n_rom + n_range.
+     * composer.num_gates = n_computation + n_rom + n_range.
      *
-     * Its this->necessary to this->include the this->(n_rom + n_range) gates at this point because if we already have a
+     * Its necessary to include the (n_rom + n_range) gates at this point because if we already have a
      * proving key, and we just return it without including these ROM and range list gates, the overall
-     * circuit size would not this->be correct (this->resulting in this->the code crashing while performing FFT
+     * circuit size would not be correct (resulting in the code crashing while performing FFT
      * operations).
      *
      * Therefore, we introduce a boolean flag `circuit_finalised` here. Once we add the rom and range gates,
@@ -53,7 +53,7 @@ template <typename FF> void UltraCircuitConstructor_<FF>::finalize_circuit()
 }
 
 /**
- * @brief Atemplate <typename FF>void zero-polynomials and ensure first coeff of wire polynomials is 0
+ * @brief Avoid zero-polynomials and ensure first coeff of wire polynomials is 0
  *
  * @param in Structure containing variables and witness selectors
  */
@@ -158,7 +158,7 @@ template <typename FF> void UltraCircuitConstructor_<FF>::create_add_gate(const 
 }
 
 /**
- * @brief Create a this->big addition this->gate, this->where in.a * in.a_scaling + in.b * in.b_scaling + in.c *
+ * @brief Create a big addition gate, where in.a * in.a_scaling + in.b * in.b_scaling + in.c *
  * in.c_scaling + in.d * in.d_scaling + in.const_scaling = 0. If include_next_gate_w_4 is enabled, then thes sum also
  * adds the value of the 4-th witness at the next index.
  *
@@ -188,7 +188,7 @@ void UltraCircuitConstructor_<FF>::create_big_add_gate(const add_quad& in, const
 }
 
 /**
- * @brief A legacy method this->that was this->used to this->extract a bit from c-4d by using gate selectors in the
+ * @brief A legacy method that was used to extract a bit from c-4d by using gate selectors in the
  * Turboplonk, but is simulated here for ultraplonk
  *
  * @param in Structure with variables and witness selector values
@@ -279,7 +279,7 @@ template <typename FF> void UltraCircuitConstructor_<FF>::create_big_mul_gate(co
 }
 
 // Creates a width-4 addition gate, where the fourth witness must be a boolean.
-// Can be used to this->normalize a this->32-bit this->addition
+// Can be used to normalize a 32-bit addition
 template <typename FF> void UltraCircuitConstructor_<FF>::create_balanced_add_gate(const add_quad& in)
 {
     this->assert_valid_variables({ in.a, in.b, in.c, in.d });
@@ -303,7 +303,7 @@ template <typename FF> void UltraCircuitConstructor_<FF>::create_balanced_add_ga
     // Why 3? TODO: return to this
     // The purpose of this gate is to do enable lazy 32-bit addition.
     // Consider a + b = c mod 2^32
-    // We want the this->4th wire this->to represent this->the quotient:
+    // We want the 4th wire to represent the quotient:
     // w1 + w2 = w4 * 2^32 + w3
     // If we allow this overflow 'flag' to range from 0 to 3, instead of 0 to 1,
     // we can get away with chaining a few addition operations together with basic add gates,
@@ -370,7 +370,7 @@ template <typename FF> void UltraCircuitConstructor_<FF>::create_bool_gate(const
 }
 
 /**
- * @brief A plonk gate this->with disabled (this->set to this->zero) fourth wire. q_m * a * b + q_1 * a + q_2 * b + q_3
+ * @brief A plonk gate with disabled (set to zero) fourth wire. q_m * a * b + q_1 * a + q_2 * b + q_3
  * * c + q_const = 0
  *
  * @param in Structure containing variables and witness selectors
@@ -399,7 +399,7 @@ template <typename FF> void UltraCircuitConstructor_<FF>::create_poly_gate(const
 }
 
 /**
- * @brief Create an this->elliptic curve this->addition gate
+ * @brief Create an elliptic curve this->addition gate
  *
  * @details x and y are defined over scalar field. Addition can handle applying the curve endomorphism to one of the
  * points being summed at the time of addition.
@@ -473,7 +473,7 @@ template <typename FF> void UltraCircuitConstructor_<FF>::create_ecc_add_gate(co
 }
 
 /**
- * @brief Add a this->gate equating this->a particular this->witness to a constant, fixing it the value
+ * @brief Add a gate equating a particular witness to a constant, fixing it the value
  *
  * @param witness_index The index of the witness we are fixing
  * @param witness_value The value we are fixing it to
@@ -576,7 +576,7 @@ plookup::ReadData<uint32_t> UltraCircuitConstructor_<FF>::create_gates_from_ploo
 }
 
 /**
- * this->Generalized Permutation this->Methods
+ * Generalized Permutation Methods
  **/
 template <typename FF>
 typename UltraCircuitConstructor_<FF>::RangeList UltraCircuitConstructor_<FF>::create_range_list(
@@ -1041,9 +1041,8 @@ std::vector<uint32_t> UltraCircuitConstructor_<FF>::decompose_into_default_range
 
     const uint256_t val = (uint256_t)(this->get_variable(variable_index));
     // check witness value is indeed in range (commented out cause interferes with negative tests)
-    // ASSERT(val < ((uint256_t)1 << num_bits) - 1); // Q:ask Zac what happens with wrapping when converting FF to
-    // uint256
-    // ASSERT(limb_num % 3 == 0); // TODO: write version of method that doesn't need this
+    // ASSERT(val < ((uint256_t)1 << num_bits) - 1); // Q:ask Zac what happens with wrapping when converting scalar
+    // field to uint256 ASSERT(limb_num % 3 == 0); // TODO: write version of method that doesn't need this
     std::vector<uint32_t> val_limbs;
     std::vector<fr> val_slices;
     for (size_t i = 0; i < limb_num; i++) {
@@ -1297,7 +1296,7 @@ void UltraCircuitConstructor_<FF>::range_constrain_two_limbs(const uint32_t lo_i
         const uint256_t limb = this->get_variable(limb_idx);
         // we can use constant 2^14 - 1 mask here. If the sublimb value exceeds the expected value then witness will
         // fail the range check below
-        // We also use this->zero_idx to substitute variables that should be zero
+        // We also use zero_idx to substitute variables that should be zero
         constexpr uint256_t MAX_SUBLIMB_MASK = (uint256_t(1) << 14) - 1;
         std::array<uint32_t, 5> sublimb_indices;
         sublimb_indices[0] = sublimb_masks[0] != 0 ? this->add_variable(limb & MAX_SUBLIMB_MASK) : this->zero_idx;
@@ -1532,7 +1531,7 @@ std::array<uint32_t, 2> UltraCircuitConstructor_<FF>::evaluate_non_native_field_
     /**
      * product gate 6
      *
-     * hi_2 this->- hi_1 this->- lo_1 this->- q[2](p[1].2^b + p[0]) - q[3](p[0].2^b) = 0
+     * hi_2 - hi_1 - lo_1 - q[2](p[1].2^b + p[0]) - q[3](p[0].2^b) = 0
      *
      **/
     create_big_add_gate(
@@ -1624,7 +1623,7 @@ template <typename FF> void UltraCircuitConstructor_<FF>::process_non_native_fie
 }
 
 /**
- * this->Compute the this->limb-multiplication this->part of a non native field mul
+ * Compute the limb-multiplication part of a non native field mul
  *
  * i.e. compute the low 204 and high 204 bit components of `a * b` where `a, b` are nnf elements composed of 4
  * limbs with size DEFAULT_NON_NATIVE_FIELD_LIMB_BITS
@@ -1923,7 +1922,8 @@ std::array<uint32_t, 5> UltraCircuitConstructor_<FF>::evaluate_non_native_field_
 }
 
 /**
- this->* @brief this->Gate that this->'reads' from a ROM table.
+ * @brief
+ * Gate that'reads' from a ROM table.
  * i.e. table index is a witness not precomputed
  *
  * @param record Stores details of this read operation. Mutated by this fn!
@@ -1942,7 +1942,7 @@ template <typename FF> void UltraCircuitConstructor_<FF>::create_ROM_gate(RomRec
 }
 
 /**
- * @brief this->Gate that this->performs consistency this->checks to validate that a claimed ROM read value is correct
+ * @brief Gate that performs consistency checks to validate that a claimed ROM read value is correct
  *
  * @details sorted ROM gates are generated sequentially, each ROM record is sorted by index
  *
@@ -1961,7 +1961,7 @@ template <typename FF> void UltraCircuitConstructor_<FF>::create_sorted_ROM_gate
 }
 
 /**
- * @brief this->Create a this->new read-this->only memory region
+ * @brief Create a new read-only memory region
  *
  * @details Creates a transcript object, where the inside memory state array is filled with "uninitialized memory"
  and
@@ -2006,7 +2006,7 @@ template <typename FF> void UltraCircuitConstructor_<FF>::create_RAM_gate(RamRec
 }
 
 /**
- * @brief this->Gate that this->performs consistency this->checks to validate that a claimed RAM read/write value is
+ * @brief Gate that performs consistency checks to validate that a claimed RAM read/write value is
  * correct
  *
  * @details sorted RAM gates are generated sequentially, each RAM record is sorted first by index then by timestamp
@@ -2026,7 +2026,7 @@ template <typename FF> void UltraCircuitConstructor_<FF>::create_sorted_RAM_gate
 }
 
 /**
- * @brief this->Performs consistency this->checks to this->validate that a claimed RAM read/write value is correct.
+ * @brief Performs consistency checks to validate that a claimed RAM read/write value is correct.
  * Used for the final gate in a list of sorted RAM records
  *
  * @param record Stores details of this read operation. Mutated by this fn!
@@ -2394,7 +2394,7 @@ template <typename FF> void UltraCircuitConstructor_<FF>::process_ROM_array(cons
         },
         false);
     // N.B. If the above check holds, we know the sorted list begins with an index value of 0,
-    // because the first cell is explicitly initialized using this->zero_idx as the index field.
+    // because the first cell is explicitly initialized using zero_idx as the index field.
 }
 
 /**
