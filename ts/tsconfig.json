@@ -18,21 +18,21 @@
     "importHelpers": true,
     "resolveJsonModule": true,
     "composite": true,
-    "outDir": "dest/browser",
+    "outDir": "dest/node",
     "rootDir": "src",
     "tsBuildInfoFile": ".tsbuildinfo",
     "paths": {
       "dynamic/barretenberg_wasm": [
-        "src/barretenberg_wasm/browser/index.ts"
+        "src/barretenberg_wasm/node/index.ts"
       ],
       "dynamic/crs": [
-        "src/crs/browser/index.ts"
+        "src/crs/node/index.ts"
       ],
       "dynamic/random": [
-        "src/random/browser/index.ts"
+        "src/random/node/index.ts"
       ],
       "dynamic/types": [
-        "src/types/browser/index.ts"
+        "src/types/node/index.ts"
       ]
     }
   },

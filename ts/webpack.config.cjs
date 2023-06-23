@@ -8,6 +8,8 @@ const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 const webpack = require('webpack');
 const { resolve } = path;
 
+const isNode = process.env.BUILD_TARGET === 'node';
+
 const common = {
   mode: 'production',
   entry: './src/index.ts',
@@ -32,7 +34,7 @@ const common = {
     },
     plugins: [
       new ResolveTypeScriptPlugin(),
-      new TsconfigPathsPlugin({ configFile: path.resolve(__dirname, "./tsconfig.json")})
+      new TsconfigPathsPlugin({ configFile: path.resolve(__dirname, "./tsconfig.json") })
     ],
   },
   optimization: {
@@ -40,55 +42,54 @@ const common = {
   },
 }
 
-module.exports = [
-  // Webpack configuration for web output
-  {
-    ...common,
-    target: 'web',
-    output: {
-      path: resolve(__dirname, './dest/browser'),
-      filename: '[name].js',
-    },
-    plugins: [
-      new webpack.DefinePlugin({ 'process.env.NODE_DEBUG': false }),
-      new webpack.ProvidePlugin({ Buffer: ['buffer', 'Buffer'] }),
-      new CopyWebpackPlugin({
-        patterns: [
-          {
-            from: `../cpp/build-wasm/bin/barretenberg.wasm`,
-            to: '../barretenberg.wasm',
-          },
-          {
-            from: `../cpp/build-wasm-threads/bin/barretenberg.wasm`,
-            to: '../barretenberg-threads.wasm',
-          },
-        ],
-      }),
-    ],
+const webConfig = {
+  ...common,
+  target: 'web',
+  output: {
+    path: resolve(__dirname, './dest/browser'),
+    filename: '[name].js',
   },
-  // Webpack configuration for node output
-  // {
-  //   ...common,
-  //   target: 'node',
-  //   output: {
-  //     path: resolve(__dirname, './dest/node'),
-  //     filename: '[name].js',
-  //   },
-  //   plugins: [
-  //     new webpack.DefinePlugin({ 'process.env.NODE_DEBUG': false }),
-  //     new webpack.ProvidePlugin({ Buffer: ['buffer', 'Buffer'] }),
-  //     new CopyWebpackPlugin({
-  //       patterns: [
-  //         {
-  //           from: `../cpp/build-wasm/bin/barretenberg.wasm`,
-  //           to: '../barretenberg.wasm',
-  //         },
-  //         {
-  //           from: `../cpp/build-wasm-threads/bin/barretenberg.wasm`,
-  //           to: '../barretenberg-threads.wasm',
-  //         },
-  //       ],
-  //     }),
-  //   ],
-  // },
-];
+  plugins: [
+    new webpack.DefinePlugin({ 'process.env.NODE_DEBUG': false }),
+    new webpack.ProvidePlugin({ Buffer: ['buffer', 'Buffer'] }),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: `../cpp/build-wasm/bin/barretenberg.wasm`,
+          to: '../barretenberg.wasm',
+        },
+        {
+          from: `../cpp/build-wasm-threads/bin/barretenberg.wasm`,
+          to: '../barretenberg-threads.wasm',
+        },
+      ],
+    }),
+  ],
+}
+
+const nodeConfig = {
+  ...common,
+  target: 'node',
+  output: {
+    path: resolve(__dirname, './dest/node'),
+    filename: '[name].js',
+  },
+  plugins: [
+    new webpack.DefinePlugin({ 'process.env.NODE_DEBUG': false }),
+    new webpack.ProvidePlugin({ Buffer: ['buffer', 'Buffer'] }),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from: `../cpp/build-wasm/bin/barretenberg.wasm`,
+          to: '../barretenberg.wasm',
+        },
+        {
+          from: `../cpp/build-wasm-threads/bin/barretenberg.wasm`,
+          to: '../barretenberg-threads.wasm',
+        },
+      ],
+    }),
+  ],
+}
+
+module.exports = isNode ? nodeConfig : webConfig;
