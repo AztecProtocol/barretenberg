@@ -10,16 +10,6 @@
   },
   "main": "./dest/index.browser.js",
   "bin": "./dest/main.js",
-  "exports": {
-    ".": {
-      "require": "./dest/index.node.js",
-      "import": "./dest/index.browser.js"
-    },
-    "./dest/barretenberg_api": "./dest/barretenberg_api/index.js",
-    "./dest/barretenberg_binder": "./dest/barretenberg_binder/index.js",
-    "./dest/barretenberg_wasm": "./dest/barretenberg_wasm/index.js",
-    "./dest/types": "./dest/types/index.js"
-  },
   "files": [
     "src/",
     "dest/",
@@ -83,7 +73,6 @@
     "@typescript-eslint/parser": "^5.54.1",
     "buffer": "^6.0.3",
     "copy-webpack-plugin": "^11.0.0",
-    "cross-env": "^7.0.3",
     "eslint": "^8.35.0",
     "eslint-config-prettier": "^8.8.0",
     "html-webpack-plugin": "^5.5.1",

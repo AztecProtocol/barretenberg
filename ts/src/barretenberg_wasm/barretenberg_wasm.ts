@@ -32,7 +32,7 @@ export class BarretenbergWasm {
    * Used when running in the browser, because we can't block the main thread.
    */
   public static async newWorker(threads?: number) {
-    const worker: any = createWorker();
+    const worker = createWorker();
     const wasm = getRemoteBarretenbergWasm(worker);
     await wasm.init(threads, proxy(debug));
     return { worker, wasm };
@@ -65,7 +65,7 @@ export class BarretenbergWasm {
 
     // Annoyingly the wasm declares if it's memory is shared or not. So now we need two wasms if we want to be
     // able to fallback on "non shared memory" situations.
-    const code = await fetchCode(threads > 1 ? 'barretenberg-threads.wasm' : 'barretenberg.wasm');
+    const code = await fetchCode();
     const { instance, module } = await WebAssembly.instantiate(code, this.getImportObj(this.memory));
 
     this.instance = instance;
@@ -75,7 +75,7 @@ export class BarretenbergWasm {
 
     // Create worker threads. Create 1 less than requested, as main thread counts as a thread.
     this.logger('creating worker threads...');
-    this.workers = (await Promise.all(Array.from({ length: threads - 1 }).map(createWorker as any))) as any;
+    this.workers = (await Promise.all(Array.from({ length: threads - 1 }).map(createWorker))) as any;
     this.remoteWasms = await Promise.all(this.workers.map(getRemoteBarretenbergWasm as any));
     await Promise.all(this.remoteWasms.map(w => w.initThread(module, this.memory)));
     this.logger('init complete.');
