@@ -32,7 +32,7 @@ describe('barretenberg wasm worker', () => {
   let wasm!: BarretenbergWasmWorker;
 
   beforeAll(async () => {
-    ({ wasm, worker } = await BarretenbergWasm.newWorker(2) as any);
+    ({ wasm, worker } = (await BarretenbergWasm.newWorker(2)) as any);
   }, 20000);
 
   afterAll(async () => {
