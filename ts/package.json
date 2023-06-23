@@ -8,26 +8,13 @@
     "displayName": "bb.js",
     "tsconfig": "./tsconfig.json"
   },
-  "main": "./dest/index.js",
+  "main": "./dest/index.browser.js",
   "bin": "./dest/main.js",
   "exports": {
     ".": {
-      "require": "./dest/index.js",
-      "import": "./dest/index.js"
-    },
-    "./async_map": "./dest/async_map/index.js",
-    "./barretenberg_api": "./dest/barretenberg_api/index.js",
-    "./barretenberg_binder": "./dest/barretenberg_binder/index.js",
-    "./barretenberg_wasm": "./dest/barretenberg_wasm/index.js",
-    "./bigint-array": "./dest/bigint-array/index.js",
-    "./bindgen": "./dest/bindgen/index.js",
-    "./crs": "./dest/crs/index.js",
-    "./examples": "./dest/examples/index.js",
-    "./factory": "./dest/factory/index.js",
-    "./random": "./dest/random/index.js",
-    "./serialize": "./dest/serialize/index.js",
-    "./types": "./dest/types/index.js",
-    "./dest/types": "./dest/types/index.js"
+      "require": "./dest/index.node.js",
+      "import": "./dest/index.browser.js"
+    }
   },
   "files": [
     "src/",
