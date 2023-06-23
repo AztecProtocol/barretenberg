@@ -8,7 +8,7 @@ async function replaceImports() {
   try {
     dynamic_imports.forEach(async item => {
       const results = await replaceInFile({
-        files: path.resolve(__dirname, `dest/${item}/*`),
+        files: path.resolve(__dirname, `dest/${buildTarget}/${item}/*`),
         from: new RegExp(`'dynamic\\/${item}';`, 'g'),
         to: `'./${buildTarget}/index.js';`,
       });

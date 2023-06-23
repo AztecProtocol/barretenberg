@@ -46,20 +46,7 @@ module.exports = [
     ...common,
     target: 'web',
     output: {
-      path: resolve(__dirname, './dest/web'),
-      filename: '[name].js',
-    },
-    plugins: [
-      new webpack.DefinePlugin({ 'process.env.NODE_DEBUG': false }),
-      new webpack.ProvidePlugin({ Buffer: ['buffer', 'Buffer'] }),
-    ],
-  },
-  // Webpack configuration for node output
-  {
-    ...common,
-    target: 'node',
-    output: {
-      path: resolve(__dirname, './dest/node'),
+      path: resolve(__dirname, './dest/browser'),
       filename: '[name].js',
     },
     plugins: [
@@ -79,4 +66,29 @@ module.exports = [
       }),
     ],
   },
+  // Webpack configuration for node output
+  // {
+  //   ...common,
+  //   target: 'node',
+  //   output: {
+  //     path: resolve(__dirname, './dest/node'),
+  //     filename: '[name].js',
+  //   },
+  //   plugins: [
+  //     new webpack.DefinePlugin({ 'process.env.NODE_DEBUG': false }),
+  //     new webpack.ProvidePlugin({ Buffer: ['buffer', 'Buffer'] }),
+  //     new CopyWebpackPlugin({
+  //       patterns: [
+  //         {
+  //           from: `../cpp/build-wasm/bin/barretenberg.wasm`,
+  //           to: '../barretenberg.wasm',
+  //         },
+  //         {
+  //           from: `../cpp/build-wasm-threads/bin/barretenberg.wasm`,
+  //           to: '../barretenberg-threads.wasm',
+  //         },
+  //       ],
+  //     }),
+  //   ],
+  // },
 ];

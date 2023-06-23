@@ -18,7 +18,7 @@
     "importHelpers": true,
     "resolveJsonModule": true,
     "composite": true,
-    "outDir": "dest",
+    "outDir": "dest/browser",
     "rootDir": "src",
     "tsBuildInfoFile": ".tsbuildinfo",
     "paths": {

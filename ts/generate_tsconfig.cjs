@@ -32,7 +32,7 @@ const tsconfig = {
     importHelpers: true,
     resolveJsonModule: true,
     composite: true,
-    outDir: "dest",
+    outDir: `dest/${buildTarget}`,
     rootDir: "src",
     tsBuildInfoFile: ".tsbuildinfo",
     paths: generatePaths()
