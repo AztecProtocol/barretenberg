@@ -1,10 +1,11 @@
 #!/usr/bin/env -S node --no-warnings
 import { Crs, BarretenbergApiAsync, newBarretenbergApiAsync, RawBuffer } from './index.js';
 import createDebug from 'debug';
-import { readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { gunzipSync } from 'zlib';
 import { numToUInt32BE } from './serialize/serialize.js';
-import { Command } from 'commander';
+import { Command, Option } from 'commander';
+import { dirname } from 'path';
 
 createDebug.log = console.error.bind(console);
 const debug = createDebug('bb.js');
@@ -113,11 +114,18 @@ export async function prove(jsonPath: string, witnessPath: string, isRecursive: 
     const witness = getWitness(witnessPath);
     const proof = await api.acirCreateProof(acirComposer, new RawBuffer(bytecode), new RawBuffer(witness), isRecursive);
     debug(`done.`);
-
+    ensureDirectory(outputPath);
     writeFileSync(outputPath, proof);
     console.log(`proof written to: ${outputPath}`);
   } finally {
     await api.destroy();
+  }
+}
+
+function ensureDirectory(outputPath: string) {
+  const outputDirectory = dirname(outputPath);
+  if (!existsSync(outputDirectory)) {
+    mkdirSync(outputDirectory, { recursive: true });
   }
 }
 
@@ -236,19 +244,23 @@ program
 program
   .command('prove')
   .description('Generate a proof and write it to a file.')
-  .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
-  .option('-w, --witness-path <path>', 'Specify the witness path', './target/witness.tr')
+  .addOption(new Option('-j, --json-path <path>', 'Specify the JSON path').env("NARGO_ARTIFACT_PATH").default('./target/main.json', "in relation to current working directory"))
+  .addOption(new Option('-w, --witness-path <path>', 'Specify the witness path').env("NARGO_WITNESS_PATH").default('./target/witness.tr', "in relation to current working directory"))
+  .addOption(new Option('-o, --output-path <path>', 'Specify the proof output path').env("NARGO_PROOF_PATH").default('./proofs/proof', "in relation to current working directory"))
+  .addOption(new Option('-k, --vk <path>', 'path to a verification key. avoids recomputation.').env("NARGO_VERIFICATION_KEY_PATH").default('./proofs/vk', "in relation to current working directory").hideHelp())
   .option('-r, --recursive', 'prove using recursive prover', false)
-  .option('-o, --output-path <path>', 'Specify the proof output path', './proofs/proof')
-  .action(async ({ jsonPath, witnessPath, recursive, outputPath }) => {
+  .action(async ({ jsonPath, witnessPath, recursive, outputPath, vk }) => {
+    console.log("VK path", vk);
     handleGlobalOptions();
     await prove(jsonPath, witnessPath, recursive, outputPath);
+    await writeVk(jsonPath, vk);
   });
 
 program
   .command('gates')
   .description('Print gate count to standard output.')
-  .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
+  .addOption(new Option('-j, --json-path <path>', 'Specify the JSON path').env("NARGO_ARTIFACT_PATH").default('./target/main.json', "in relation to current working directory"))
+  // .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
   .action(async ({ jsonPath }) => {
     handleGlobalOptions();
     await gateCount(jsonPath);
@@ -257,9 +269,11 @@ program
 program
   .command('verify')
   .description('Verify a proof. Process exists with success or failure code.')
-  .requiredOption('-p, --proof-path <path>', 'Specify the path to the proof')
+  .addOption(new Option('-p, --proof-path <path>', 'Specify the path to the proof').env("NARGO_PROOF_PATH").makeOptionMandatory())
+  .addOption(new Option('-k, --vk <path>', 'path to a verification key. avoids recomputation.').env("NARGO_VERIFICATION_KEY_PATH").makeOptionMandatory())
+  // .requiredOption('-p, --proof-path <path>', 'Specify the path to the proof')
   .option('-r, --recursive', 'prove using recursive prover', false)
-  .requiredOption('-k, --vk <path>', 'path to a verification key. avoids recomputation.')
+  // .requiredOption('-k, --vk <path>', 'path to a verification key. avoids recomputation.')
   .action(async ({ proofPath, recursive, vk }) => {
     handleGlobalOptions();
     const result = await verify(proofPath, recursive, vk);

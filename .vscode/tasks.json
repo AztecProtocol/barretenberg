@@ -1,0 +1,14 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "npm",
+			"script": "build",
+			"path": "ts",
+			"group": "build",
+			"problemMatcher": [],
+			"label": "npm: build - ts",
+			"detail": "yarn clean && yarn build:wasm && yarn build:ts"
+		}
+	]
+}
