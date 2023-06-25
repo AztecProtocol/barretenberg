@@ -111,7 +111,6 @@ class WrappedNullifierLeaf {
     std::optional<nullifier_leaf> data;
 };
 
-// TODO(SEAN): Come back to
 inline std::ostream& operator<<(std::ostream& os, WrappedNullifierLeaf const& leaf)
 {
     if (!leaf.has_value()) {
