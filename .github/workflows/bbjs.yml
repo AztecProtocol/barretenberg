@@ -13,9 +13,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Bootstrap cpp
-        working-directory: ./cpp
-        run: bash ./bootstrap.sh
+      - uses: cachix/install-nix-action@v20
+        with:
+          nix_path: nixpkgs=channel:nixos-22.11
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: cachix/cachix-action@v12
+        with:
+          name: barretenberg
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+
+      - name: Run nix flake
+        run: |
+          nix flake
 
       - name: Install dependencies and build
         working-directory: ./ts
