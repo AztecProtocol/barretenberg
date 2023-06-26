@@ -14,7 +14,8 @@ namespace proof_system {
  * @param crs_factory Produces the prover's reference string
  * @param minimum_circuit_size The minimum size of polynomials without randomized elements
  * @param num_randomized_gates Number of gates with randomized witnesses
- * @param circuit_type The type of composer we are using
+ * @param circuit_type This is passed in the case of Plonk since we use flavor-independent proving and verification keys
+ * in that case.
  * @return std::shared_ptr<typename Flavor::ProvingKey>
  */
 template <typename Flavor>
