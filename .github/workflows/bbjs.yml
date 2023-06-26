@@ -13,6 +13,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Install Nix
+        run: |
+          curl -L https://nixos.org/nix/install | sh
+          . /home/runner/.nix-profile/etc/profile.d/nix.sh
+
+      - name: Run Nix flake
+        run: |
+          nix build
+
       - name: Install dependencies and build
         run: |
           cd ts
