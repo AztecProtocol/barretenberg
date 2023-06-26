@@ -18,7 +18,7 @@ using namespace barretenberg;
 class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::Ultra<barretenberg::fr>> {
   public:
     static constexpr std::string_view NAME_STRING = "UltraArithmetization";
-    static constexpr ComposerType type = ComposerType::PLOOKUP;
+    static constexpr CircuitType CIRCUIT_TYPE = CircuitType::ULTRA;
     static constexpr merkle::HashType merkle_hash_type = merkle::HashType::LOOKUP_PEDERSEN;
     static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
     static constexpr size_t UINT_LOG2_BASE = 6; // DOCTODO: explain what this is, or rename.

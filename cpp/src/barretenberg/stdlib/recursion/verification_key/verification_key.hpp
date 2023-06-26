@@ -240,7 +240,7 @@ template <typename Curve> struct verification_key {
         std::shared_ptr<verification_key> key = std::make_shared<verification_key>();
         key->context = ctx;
 
-        key->polynomial_manifest = PolynomialManifest(Composer::type);
+        key->polynomial_manifest = PolynomialManifest(static_cast<uint32_t>(Composer::CIRCUIT_TYPE));
         key->domain = evaluation_domain<Composer>::from_field_elements({ fields[0], fields[1], fields[2] });
 
         key->n = fields[3];
@@ -369,7 +369,9 @@ template <typename Curve> struct verification_key {
     {
         PedersenPreimageBuilder<Composer> preimage_buffer(context);
 
-        field_t<Composer> composer_type = witness_t<Composer>::create_constant_witness(context, Composer::type);
+        // WORKTODO: Figure out if there's actually an attack here.
+        field_t<Composer> composer_type =
+            witness_t<Composer>::create_constant_witness(context, static_cast<uint32_t>(Composer::CIRCUIT_TYPE));
         domain.generator.create_range_constraint(16, "domain.generator");
         domain.domain.create_range_constraint(32, "domain.generator");
         num_public_inputs.create_range_constraint(32, "num_public_inputs");
@@ -401,7 +403,7 @@ template <typename Curve> struct verification_key {
     {
         std::vector<uint8_t> preimage_data;
 
-        preimage_data.push_back(static_cast<uint8_t>(Composer::type));
+        preimage_data.push_back(static_cast<uint8_t>(Composer::CIRCUIT_TYPE));
 
         const uint256_t domain = key->domain.domain;
         const uint256_t generator = key->domain.generator;
