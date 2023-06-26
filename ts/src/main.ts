@@ -283,9 +283,9 @@ program
 program
   .command('contract')
   .description('Output solidity verification key contract.')
-  .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
-  .option('-o, --output-path <path>', 'Specify the path to write the contract', '-')
-  .requiredOption('-k, --vk <path>', 'path to a verification key. avoids recomputation.')
+  .addOption(new Option('-j, --json-path <path>', 'Specify the JSON path').env("NARGO_ARTIFACT_PATH").default('./target/main.json', "in relation to current working directory"))
+  .addOption(new Option('-o, --output-path <path>', 'Specify the path to write the contract').env("NARGO_CONTRACT_PATH").default('-', "default prints to console"))
+  .addOption(new Option('-k, --vk <path>', 'path to a verification key. avoids recomputation.').env("NARGO_VERIFICATION_KEY_PATH").makeOptionMandatory())
   .action(async ({ outputPath, vk }) => {
     handleGlobalOptions();
     await contract(outputPath, vk);
