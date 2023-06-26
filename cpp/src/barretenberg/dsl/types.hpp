@@ -2,7 +2,7 @@
 #include "barretenberg/plonk/composer/turbo_composer.hpp"
 #include "barretenberg/plonk/composer/ultra_composer.hpp"
 
-#include "barretenberg/proof_system/circuit_constructors/turbo_circuit_constructor.hpp"
+#include "barretenberg/proof_system/circuit_builder/turbo_circuit_builder.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
 #include "barretenberg/stdlib/primitives/bigfield/bigfield.hpp"
 #include "barretenberg/stdlib/primitives/biggroup/biggroup.hpp"

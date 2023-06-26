@@ -1,5 +1,5 @@
 #include "aes128.hpp"
-#include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
+#include "barretenberg/proof_system/circuit_builder/ultra_circuit_builder.hpp"
 #include "barretenberg/crypto/aes128/aes128.hpp"
 
 #include <gtest/gtest.h>

@@ -1,4 +1,4 @@
-#include "turbo_circuit_constructor.hpp"
+#include "turbo_circuit_builder.hpp"
 #include "barretenberg/crypto/generators/generator_data.hpp"
 #include "barretenberg/crypto/generators/fixed_base_scalar_mul.hpp"
 #include <gtest/gtest.h>

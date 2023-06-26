@@ -4,7 +4,7 @@
 #include "barretenberg/srs/factories/file_crs_factory.hpp"
 #include "barretenberg/honk/proof_system/prover.hpp"
 #include "barretenberg/honk/proof_system/verifier.hpp"
-#include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
+#include "barretenberg/proof_system/circuit_builder/standard_circuit_builder.hpp"
 #include "barretenberg/proof_system/composer/composer_lib.hpp"
 #include "barretenberg/proof_system/composer/permutation_lib.hpp"
 

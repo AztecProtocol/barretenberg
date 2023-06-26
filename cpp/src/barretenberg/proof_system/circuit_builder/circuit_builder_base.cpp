@@ -1,4 +1,4 @@
-#include "circuit_constructor_base.hpp"
+#include "circuit_builder_base.hpp"
 
 namespace proof_system {
 

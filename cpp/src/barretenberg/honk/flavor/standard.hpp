@@ -15,7 +15,7 @@
 #include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/polynomials/evaluation_domain.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
+#include "barretenberg/proof_system/circuit_builder/standard_circuit_builder.hpp"
 #include "barretenberg/srs/factories/crs_factory.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 

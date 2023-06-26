@@ -2,7 +2,7 @@
 
 #include "ram_table.hpp"
 #include "barretenberg/numeric/random/engine.hpp"
-#include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
+#include "barretenberg/proof_system/circuit_builder/ultra_circuit_builder.hpp"
 
 namespace test_stdlib_ram_table {
 

@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 
 #include "barretenberg/common/log.hpp"
-#include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
+#include "barretenberg/proof_system/circuit_builder/ultra_circuit_builder.hpp"
 #include "barretenberg/honk/composer/ultra_composer.hpp"
 #include "barretenberg/honk/proof_system/ultra_prover.hpp"
 #include "barretenberg/honk/sumcheck/relations/relation_parameters.hpp"

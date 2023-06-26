@@ -1,5 +1,5 @@
 /**
- * @file ultra_circuit_constructor.cpp
+ * @file ultra_circuit_builder.cpp
  * @author Luke (ledwards2225) and Kesha (Rumata888)
  * @brief This file contains the implementation of UltraCircuitBuilder class that defines the logic of ultra-style
  * circuits and is intended for the use in UltraHonk and UltraPlonk systems
@@ -7,7 +7,7 @@
  * @todo 1) Replace barretenberg::fr with templated FF or Field
  *
  */
-#include "ultra_circuit_constructor.hpp"
+#include "ultra_circuit_builder.hpp"
 #include <barretenberg/plonk/proof_system/constants.hpp>
 #include <unordered_set>
 #include <unordered_map>

@@ -1,4 +1,4 @@
-#include "standard_circuit_constructor.hpp"
+#include "standard_circuit_builder.hpp"
 #include <gtest/gtest.h>
 #include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
 #include "barretenberg/crypto/generators/generator_data.hpp"

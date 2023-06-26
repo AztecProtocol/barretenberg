@@ -5,7 +5,7 @@
 #include "memory_store.hpp"
 #include "memory_tree.hpp"
 
-#include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
+#include "barretenberg/proof_system/circuit_builder/ultra_circuit_builder.hpp"
 
 namespace {
 auto& engine = numeric::random::get_debug_engine();

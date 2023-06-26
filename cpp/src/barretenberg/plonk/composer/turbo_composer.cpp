@@ -1,5 +1,5 @@
 #include "turbo_composer.hpp"
-#include "barretenberg/proof_system/circuit_constructors/turbo_circuit_constructor.hpp"
+#include "barretenberg/proof_system/circuit_builder/turbo_circuit_builder.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 #include "barretenberg/plonk/proof_system/widgets/random_widgets/permutation_widget.hpp"
 #include "barretenberg/plonk/proof_system/widgets/transition_widgets/turbo_arithmetic_widget.hpp"

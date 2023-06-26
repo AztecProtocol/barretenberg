@@ -5,7 +5,7 @@
 #include "barretenberg/numeric/uintx/uintx.hpp"
 #include "barretenberg/plonk/composer/ultra_composer.hpp"
 #include "barretenberg/plonk/proof_system/widgets/random_widgets/plookup_widget.hpp"
-#include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
+#include "barretenberg/proof_system/circuit_builder/ultra_circuit_builder.hpp"
 #include "barretenberg/proof_system/plookup_tables/sha256.hpp"
 #include "barretenberg/stdlib/primitives/plookup/plookup.hpp"
 

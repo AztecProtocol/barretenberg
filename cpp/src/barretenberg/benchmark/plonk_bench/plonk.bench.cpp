@@ -1,5 +1,5 @@
 #include <benchmark/benchmark.h>
-#include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
+#include "barretenberg/proof_system/circuit_builder/standard_circuit_builder.hpp"
 #include "barretenberg/plonk/composer/standard_composer.hpp"
 #include "barretenberg/stdlib/primitives/field/field.hpp"
 
