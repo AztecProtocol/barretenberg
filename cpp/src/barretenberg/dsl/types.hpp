@@ -1,6 +1,6 @@
 #pragma once
-#include "barretenberg/plonk/composer/turbo_plonk_composer_helper.hpp"
-#include "barretenberg/plonk/composer/ultra_plonk_composer_helper.hpp"
+#include "barretenberg/plonk/composer/turbo_composer.hpp"
+#include "barretenberg/plonk/composer/ultra_composer.hpp"
 
 #include "barretenberg/proof_system/circuit_constructors/turbo_circuit_constructor.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"

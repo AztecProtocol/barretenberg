@@ -1,9 +1,9 @@
-#include "ultra_plonk_composer_helper.hpp"
+#include "ultra_composer.hpp"
 #include "barretenberg/plonk/proof_system/types/program_settings.hpp"
 #include "barretenberg/plonk/proof_system/types/prover_settings.hpp"
 #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
 #include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
-#include "barretenberg/proof_system/composer/permutation_helper.hpp"
+#include "barretenberg/proof_system/composer/permutation_lib.hpp"
 #include "barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp"
 
 #include <cstddef>

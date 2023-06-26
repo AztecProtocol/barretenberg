@@ -1,6 +1,6 @@
 #include <benchmark/benchmark.h>
 #include <cstddef>
-#include "barretenberg/honk/composer/standard_honk_composer_helper.hpp"
+#include "barretenberg/honk/composer/standard_composer.hpp"
 #include "barretenberg/stdlib/primitives/field/field.hpp"
 #include "barretenberg/stdlib/primitives/witness/witness.hpp"
 

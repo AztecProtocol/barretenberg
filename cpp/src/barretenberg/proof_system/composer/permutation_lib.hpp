@@ -1,5 +1,5 @@
 /**
- * @file permutation_helper.hpp
+ * @file permutation_lib.hpp
  * @brief Contains various functions that help construct Honk and Plonk Sigma and Id polynomials
  *
  * @details It is structured to reuse similar components in Honk and Plonk

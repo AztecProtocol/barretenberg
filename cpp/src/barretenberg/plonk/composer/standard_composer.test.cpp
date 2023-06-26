@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
 #include "barretenberg/crypto/generators/generator_data.hpp"
-#include "barretenberg/plonk/composer/standard_plonk_composer_helper.hpp"
+#include "barretenberg/plonk/composer/standard_composer.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/serialize.hpp"
 #include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
 

@@ -11,8 +11,8 @@
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include <gtest/internal/gtest-internal.h>
 #include "barretenberg/numeric/random/engine.hpp"
-#include "barretenberg/honk/composer/standard_honk_composer_helper.hpp"
-#include "barretenberg/honk/composer/ultra_honk_composer_helper.hpp"
+#include "barretenberg/honk/composer/standard_composer.hpp"
+#include "barretenberg/honk/composer/ultra_composer.hpp"
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/lookup_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"

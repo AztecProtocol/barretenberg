@@ -5,8 +5,8 @@
 #include "barretenberg/honk/proof_system/prover.hpp"
 #include "barretenberg/honk/proof_system/verifier.hpp"
 #include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
-#include "barretenberg/proof_system/composer/composer_helper_lib.hpp"
-#include "barretenberg/proof_system/composer/permutation_helper.hpp"
+#include "barretenberg/proof_system/composer/composer_lib.hpp"
+#include "barretenberg/proof_system/composer/permutation_lib.hpp"
 
 #include "barretenberg/honk/flavor/standard.hpp"
 #include "barretenberg/honk/flavor/standard_grumpkin.hpp"

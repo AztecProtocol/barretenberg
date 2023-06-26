@@ -1,5 +1,5 @@
 #pragma once
-#include "barretenberg/plonk/composer/ultra_plonk_composer_helper.hpp"
+#include "barretenberg/plonk/composer/ultra_composer.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
 #include "barretenberg/plonk/proof_system/types/prover_settings.hpp"
 #include "barretenberg/stdlib/primitives/bigfield/bigfield.hpp"

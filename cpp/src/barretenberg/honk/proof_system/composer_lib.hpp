@@ -16,7 +16,7 @@ namespace proof_system::honk {
  * @return std::shared_ptr<typename Flavor::VerificationKey>
  */
 template <typename Flavor>
-std::shared_ptr<typename Flavor::VerificationKey> compute_verification_key_common(
+std::shared_ptr<typename Flavor::VerificationKey> compute_verification_key_common( // WORKTODO: this is not in use?
     std::shared_ptr<typename Flavor::ProvingKey> const& proving_key,
     std::shared_ptr<barretenberg::srs::factories::VerifierCrs> const& vrs)
 {

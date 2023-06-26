@@ -1,4 +1,4 @@
-#include "turbo_plonk_composer_helper.hpp"
+#include "turbo_composer.hpp"
 #include "barretenberg/proof_system/circuit_constructors/turbo_circuit_constructor.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 #include "barretenberg/plonk/proof_system/widgets/random_widgets/permutation_widget.hpp"
@@ -9,9 +9,9 @@
 #include "barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp"
 #include "barretenberg/plonk/proof_system/widgets/transition_widgets/transition_widget.hpp"
 #include "barretenberg/plonk/proof_system/widgets/transition_widgets/turbo_arithmetic_widget.hpp"
-#include "barretenberg/proof_system/composer/permutation_helper.hpp"
-#include "barretenberg/proof_system/composer/composer_helper_lib.hpp"
-#include "barretenberg/plonk/composer/composer_helper_lib.hpp"
+#include "barretenberg/proof_system/composer/permutation_lib.hpp"
+#include "barretenberg/proof_system/composer/composer_lib.hpp"
+#include "barretenberg/plonk/composer/composer_lib.hpp"
 
 using namespace barretenberg;
 

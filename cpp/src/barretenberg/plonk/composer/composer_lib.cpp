@@ -1,10 +1,8 @@
 /**
- * @file composer_helper_lib.cpp
- * @brief Contains implementations of some of the functions used both by Honk and Plonk-style composers (excluding
- * permutation functions)
- *
+ * @file composer_lib.cpp
+ * @brief Contains some functions that are shared between the various Plonk composers.
  */
-#include "composer_helper_lib.hpp"
+#include "composer_lib.hpp"
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/srs/factories/crs_factory.hpp"
 

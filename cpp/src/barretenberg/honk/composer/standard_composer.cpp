@@ -1,4 +1,4 @@
-#include "standard_honk_composer_helper.hpp"
+#include "standard_composer.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"

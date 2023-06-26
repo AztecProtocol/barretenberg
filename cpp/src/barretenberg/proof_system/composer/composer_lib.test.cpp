@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 #include "barretenberg/common/slab_allocator.hpp"
 #include "barretenberg/honk/flavor/standard.hpp" // TODO: needed?
-#include "barretenberg/proof_system/composer/composer_helper_lib.hpp"
+#include "barretenberg/proof_system/composer/composer_lib.hpp"
 #include "barretenberg/proof_system/types/circuit_type.hpp"
 #include "barretenberg/srs/factories/crs_factory.hpp"
 

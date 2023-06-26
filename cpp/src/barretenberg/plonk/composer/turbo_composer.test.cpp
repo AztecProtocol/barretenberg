@@ -2,7 +2,7 @@
 
 #include "barretenberg/crypto/generators/generator_data.hpp"
 #include "barretenberg/crypto/generators/fixed_base_scalar_mul.hpp"
-#include "barretenberg/plonk/composer/turbo_plonk_composer_helper.hpp"
+#include "barretenberg/plonk/composer/turbo_composer.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/serialize.hpp"
 #include "barretenberg/proof_system/circuit_constructors/turbo_circuit_constructor.hpp"
 

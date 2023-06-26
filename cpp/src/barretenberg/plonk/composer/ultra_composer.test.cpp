@@ -3,7 +3,7 @@
 #include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 #include "barretenberg/numeric/uintx/uintx.hpp"
-#include "barretenberg/plonk/composer/ultra_plonk_composer_helper.hpp"
+#include "barretenberg/plonk/composer/ultra_composer.hpp"
 #include "barretenberg/plonk/proof_system/widgets/random_widgets/plookup_widget.hpp"
 #include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
 #include "barretenberg/proof_system/plookup_tables/sha256.hpp"
