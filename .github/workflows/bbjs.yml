@@ -14,14 +14,12 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Bootstrap cpp
-        run: |
-          cd cpp
-          bash ./bootstrap.sh
-          cd ..
+        working-directory: ./cpp
+        run: bash ./bootstrap.sh
 
       - name: Install dependencies and build
+        working-directory: ./ts
         run: |
-          cd ts
           yarn install
           yarn build
 
