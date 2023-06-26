@@ -13,14 +13,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install Nix
+      - name: Bootstrap cpp
         run: |
-          curl -L https://nixos.org/nix/install | sh
-          . /home/runner/.nix-profile/etc/profile.d/nix.sh
-
-      - name: Run Nix flake
-        run: |
-          nix build
+          cd cpp
+          bash ./bootstrap.sh
+          cd ..
 
       - name: Install dependencies and build
         run: |
