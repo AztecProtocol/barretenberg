@@ -13,7 +13,7 @@
 #include <utility>
 
 namespace proof_system::plonk {
-class StandardPlonkComposerHelper {
+class StandardComposer {
   public:
     using Flavor = plonk::flavor::Standard;
     using CircuitConstructor = StandardCircuitConstructor;
@@ -29,28 +29,27 @@ class StandardPlonkComposerHelper {
 
     bool computed_witness = false;
 
-    StandardPlonkComposerHelper()
-        : StandardPlonkComposerHelper(std::shared_ptr<barretenberg::srs::factories::CrsFactory>(
+    StandardComposer()
+        : StandardComposer(std::shared_ptr<barretenberg::srs::factories::CrsFactory>(
               new barretenberg::srs::factories::FileCrsFactory("../srs_db/ignition")))
     {}
-    StandardPlonkComposerHelper(std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory)
+    StandardComposer(std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
 
-    StandardPlonkComposerHelper(std::unique_ptr<barretenberg::srs::factories::CrsFactory>&& crs_factory)
+    StandardComposer(std::unique_ptr<barretenberg::srs::factories::CrsFactory>&& crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
-    StandardPlonkComposerHelper(std::shared_ptr<plonk::proving_key> p_key,
-                                std::shared_ptr<plonk::verification_key> v_key)
+    StandardComposer(std::shared_ptr<plonk::proving_key> p_key, std::shared_ptr<plonk::verification_key> v_key)
         : circuit_proving_key(std::move(p_key))
         , circuit_verification_key(std::move(v_key))
     {}
 
-    StandardPlonkComposerHelper(StandardPlonkComposerHelper&& other) noexcept = default;
-    StandardPlonkComposerHelper(const StandardPlonkComposerHelper& other) = delete;
-    StandardPlonkComposerHelper& operator=(StandardPlonkComposerHelper&& other) noexcept = default;
-    StandardPlonkComposerHelper& operator=(const StandardPlonkComposerHelper& other) = delete;
-    ~StandardPlonkComposerHelper() = default;
+    StandardComposer(StandardComposer&& other) noexcept = default;
+    StandardComposer(const StandardComposer& other) = delete;
+    StandardComposer& operator=(StandardComposer&& other) noexcept = default;
+    StandardComposer& operator=(const StandardComposer& other) = delete;
+    ~StandardComposer() = default;
 
     inline std::vector<SelectorProperties> standard_selector_properties()
     {

@@ -13,7 +13,7 @@ using namespace benchmark;
 using namespace proof_system::plonk;
 
 using Builder = proof_system::TurboCircuitConstructor;
-using Composer = proof_system::plonk::TurboPlonkComposerHelper;
+using Composer = proof_system::plonk::TurboComposer;
 
 constexpr size_t NUM_CIRCUITS = 10;
 

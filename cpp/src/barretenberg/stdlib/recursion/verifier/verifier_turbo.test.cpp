@@ -16,7 +16,7 @@ namespace proof_system::plonk::stdlib {
 
 template <typename OuterComposer> class stdlib_verifier_turbo : public testing::Test {
 
-    using InnerComposer = proof_system::plonk::TurboPlonkComposerHelper;
+    using InnerComposer = proof_system::plonk::TurboComposer;
     using InnerBuilder = typename InnerComposer::CircuitConstructor;
 
     using OuterBuilder = typename OuterComposer::CircuitConstructor;
@@ -490,7 +490,7 @@ template <typename OuterComposer> class stdlib_verifier_turbo : public testing::
     }
 };
 
-typedef testing::Types<plonk::StandardPlonkComposerHelper, plonk::TurboPlonkComposerHelper> OuterCircuitTypes;
+typedef testing::Types<plonk::StandardComposer, plonk::TurboComposer> OuterCircuitTypes;
 
 TYPED_TEST_SUITE(stdlib_verifier_turbo, OuterCircuitTypes);
 
@@ -506,7 +506,7 @@ HEAVY_TYPED_TEST(stdlib_verifier_turbo, recursive_proof_composition)
 
 HEAVY_TYPED_TEST(stdlib_verifier_turbo, double_verification)
 {
-    if constexpr (std::same_as<TypeParam, TurboPlonkComposerHelper>) {
+    if constexpr (std::same_as<TypeParam, TurboComposer>) {
         TestFixture::test_double_verification();
     } else {
         // Test doesn't compile.

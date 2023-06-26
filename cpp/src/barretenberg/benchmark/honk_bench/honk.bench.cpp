@@ -10,7 +10,7 @@ using namespace proof_system::plonk::stdlib;
 namespace standard_honk_bench {
 
 using Builder = proof_system::StandardCircuitConstructor;
-using Composer = proof_system::honk::StandardHonkComposerHelper;
+using Composer = proof_system::honk::StandardComposer;
 
 constexpr size_t MIN_LOG_NUM_GATES = 16;
 constexpr size_t MAX_LOG_NUM_GATES = 16;

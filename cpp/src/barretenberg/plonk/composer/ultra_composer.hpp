@@ -13,7 +13,7 @@
 #include <utility>
 
 namespace proof_system::plonk {
-class UltraPlonkComposerHelper {
+class UltraComposer {
   public:
     using Flavor = flavor::Ultra;
     using CircuitConstructor = UltraCircuitConstructor;
@@ -36,26 +36,26 @@ class UltraPlonkComposerHelper {
     // vanishing_polynomial cannot be trivially fetched here, I am directly setting this to 4 - 1 = 3.
     static constexpr size_t s_randomness = 3;
 
-    UltraPlonkComposerHelper()
-        : UltraPlonkComposerHelper("../srs_db/ignition"){};
+    UltraComposer()
+        : UltraComposer("../srs_db/ignition"){};
 
-    UltraPlonkComposerHelper(std::string const& crs_path)
-        : UltraPlonkComposerHelper(std::make_unique<barretenberg::srs::factories::FileCrsFactory>(crs_path)){};
+    UltraComposer(std::string const& crs_path)
+        : UltraComposer(std::make_unique<barretenberg::srs::factories::FileCrsFactory>(crs_path)){};
 
-    explicit UltraPlonkComposerHelper(std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory)
+    explicit UltraComposer(std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
 
-    UltraPlonkComposerHelper(std::shared_ptr<proving_key> p_key, std::shared_ptr<verification_key> v_key)
+    UltraComposer(std::shared_ptr<proving_key> p_key, std::shared_ptr<verification_key> v_key)
         : circuit_proving_key(std::move(p_key))
         , circuit_verification_key(std::move(v_key))
     {}
 
-    UltraPlonkComposerHelper(UltraPlonkComposerHelper&& other) noexcept = default;
-    UltraPlonkComposerHelper(UltraPlonkComposerHelper const& other) noexcept = default;
-    UltraPlonkComposerHelper& operator=(UltraPlonkComposerHelper&& other) noexcept = default;
-    UltraPlonkComposerHelper& operator=(UltraPlonkComposerHelper const& other) noexcept = default;
-    ~UltraPlonkComposerHelper() = default;
+    UltraComposer(UltraComposer&& other) noexcept = default;
+    UltraComposer(UltraComposer const& other) noexcept = default;
+    UltraComposer& operator=(UltraComposer&& other) noexcept = default;
+    UltraComposer& operator=(UltraComposer const& other) noexcept = default;
+    ~UltraComposer() = default;
 
     std::vector<SelectorProperties> ultra_selector_properties()
     {

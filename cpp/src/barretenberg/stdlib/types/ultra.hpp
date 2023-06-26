@@ -24,7 +24,7 @@ namespace proof_system::plonk::stdlib::types {
 using namespace proof_system::plonk;
 
 using Builder = proof_system::UltraCircuitConstructor;
-using Composer = plonk::UltraPlonkComposerHelper;
+using Composer = plonk::UltraComposer;
 
 // TODO(Cody): These might be wrong depending on desired F-S hash.
 using Prover = plonk::UltraProver;
@@ -63,7 +63,7 @@ using signature_bits = stdlib::schnorr::signature_bits<Builder>;
 } // namespace schnorr
 
 // Ultra-composer specific types
-using rom_table_ct = stdlib::rom_table<plonk::UltraPlonkComposerHelper>;
+using rom_table_ct = stdlib::rom_table<plonk::UltraComposer>;
 
 using recursive_inner_verifier_settings = recursion::recursive_ultra_verifier_settings<bn254>;
 

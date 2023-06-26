@@ -83,11 +83,11 @@ int main(int argc, char** argv)
         return 1;
     } else {
         if (circuit_flavour == "blake") {
-            generate_proof<UltraPlonkComposerHelper, BlakeCircuit>(inputs);
+            generate_proof<UltraComposer, BlakeCircuit>(inputs);
         } else if (circuit_flavour == "add2") {
-            generate_proof<UltraPlonkComposerHelper, Add2Circuit>(inputs);
+            generate_proof<UltraComposer, Add2Circuit>(inputs);
         } else if (circuit_flavour == "recursive") {
-            generate_proof<UltraPlonkComposerHelper, RecursiveCircuit>(inputs);
+            generate_proof<UltraComposer, RecursiveCircuit>(inputs);
         } else {
             info("Invalid circuit flavour: " + circuit_flavour);
             return 1;

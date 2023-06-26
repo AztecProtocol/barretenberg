@@ -24,7 +24,7 @@ using namespace proof_system::plonk;
 
 using Builder = proof_system::TurboCircuitConstructor;
 
-using Composer = plonk::TurboPlonkComposerHelper;
+using Composer = plonk::TurboComposer;
 
 using Prover = plonk::TurboProver;
 

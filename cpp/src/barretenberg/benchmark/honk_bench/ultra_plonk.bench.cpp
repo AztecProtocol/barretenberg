@@ -7,7 +7,7 @@ using namespace benchmark;
 namespace ultra_plonk_bench {
 
 using UltraBuilder = proof_system::UltraCircuitConstructor;
-using UltraPlonk = proof_system::plonk::UltraPlonkComposerHelper;
+using UltraPlonk = proof_system::plonk::UltraComposer;
 
 // Number of times to perform operation of interest in the benchmark circuits, e.g. # of hashes to perform
 constexpr size_t MIN_NUM_ITERATIONS = bench_utils::BenchParams::MIN_NUM_ITERATIONS;

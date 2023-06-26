@@ -12,7 +12,7 @@
 #include "barretenberg/honk/flavor/standard_grumpkin.hpp"
 
 namespace proof_system::honk {
-template <StandardFlavor Flavor> class StandardHonkComposerHelper_ {
+template <StandardFlavor Flavor> class StandardComposer_ {
   public:
     using PCSParams = typename Flavor::PCSParams;
     using CircuitConstructor = typename Flavor::CircuitConstructor;
@@ -34,26 +34,26 @@ template <StandardFlavor Flavor> class StandardHonkComposerHelper_ {
 
     bool computed_witness = false;
     // TODO(Luke): use make_shared
-    StandardHonkComposerHelper_()
-        : StandardHonkComposerHelper_(
+    StandardComposer_()
+        : StandardComposer_(
               std::shared_ptr<srs::factories::CrsFactory>(new srs::factories::FileCrsFactory("../srs_db/ignition")))
     {}
-    StandardHonkComposerHelper_(std::shared_ptr<srs::factories::CrsFactory> crs_factory)
+    StandardComposer_(std::shared_ptr<srs::factories::CrsFactory> crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
 
-    StandardHonkComposerHelper_(std::unique_ptr<srs::factories::CrsFactory>&& crs_factory)
+    StandardComposer_(std::unique_ptr<srs::factories::CrsFactory>&& crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
-    StandardHonkComposerHelper_(std::shared_ptr<ProvingKey> p_key, std::shared_ptr<VerificationKey> v_key)
+    StandardComposer_(std::shared_ptr<ProvingKey> p_key, std::shared_ptr<VerificationKey> v_key)
         : proving_key(std::move(p_key))
         , verification_key(std::move(v_key))
     {}
-    StandardHonkComposerHelper_(StandardHonkComposerHelper_&& other) noexcept = default;
-    StandardHonkComposerHelper_(const StandardHonkComposerHelper_& other) = delete;
-    StandardHonkComposerHelper_& operator=(StandardHonkComposerHelper_&& other) noexcept = default;
-    StandardHonkComposerHelper_& operator=(const StandardHonkComposerHelper_& other) = delete;
-    ~StandardHonkComposerHelper_() = default;
+    StandardComposer_(StandardComposer_&& other) noexcept = default;
+    StandardComposer_(const StandardComposer_& other) = delete;
+    StandardComposer_& operator=(StandardComposer_&& other) noexcept = default;
+    StandardComposer_& operator=(const StandardComposer_& other) = delete;
+    ~StandardComposer_() = default;
 
     std::shared_ptr<ProvingKey> compute_proving_key(const CircuitConstructor& circuit_constructor);
     std::shared_ptr<VerificationKey> compute_verification_key(const CircuitConstructor& circuit_constructor);
@@ -75,9 +75,9 @@ template <StandardFlavor Flavor> class StandardHonkComposerHelper_ {
     };
 };
 
-extern template class StandardHonkComposerHelper_<honk::flavor::Standard>;
-extern template class StandardHonkComposerHelper_<honk::flavor::StandardGrumpkin>;
+extern template class StandardComposer_<honk::flavor::Standard>;
+extern template class StandardComposer_<honk::flavor::StandardGrumpkin>;
 // TODO(#532): this pattern is weird; is this not instantiating the templates?
-using StandardHonkComposerHelper = StandardHonkComposerHelper_<honk::flavor::Standard>;
-using StandardGrumpkinHonkComposerHelper = StandardHonkComposerHelper_<honk::flavor::StandardGrumpkin>;
+using StandardComposer = StandardComposer_<honk::flavor::Standard>;
+using StandardGrumpkinComposer = StandardComposer_<honk::flavor::StandardGrumpkin>;
 } // namespace proof_system::honk

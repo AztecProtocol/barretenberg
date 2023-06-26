@@ -128,7 +128,7 @@ TYPED_TEST(TranscriptTests, ProverManifestConsistency)
     circuit_constructor.add_public_variable(a);
 
     // Automatically generate a transcript manifest by constructing a proof
-    auto composer = StandardHonkComposerHelper_<Flavor>();
+    auto composer = StandardComposer_<Flavor>();
     auto prover = composer.create_prover(circuit_constructor);
     plonk::proof proof = prover.construct_proof();
 
@@ -156,7 +156,7 @@ TYPED_TEST(TranscriptTests, VerifierManifestConsistency)
     circuit_constructor.add_public_variable(a);
 
     // Automatically generate a transcript manifest in the prover by constructing a proof
-    auto composer = StandardHonkComposerHelper_<Flavor>();
+    auto composer = StandardComposer_<Flavor>();
     auto prover = composer.create_prover(circuit_constructor);
     plonk::proof proof = prover.construct_proof();
 
@@ -296,7 +296,7 @@ TYPED_TEST(TranscriptTests, UltraVerifierManifestConsistency)
     circuit_constructor.add_gates_to_ensure_all_polys_are_non_zero();
 
     // Automatically generate a transcript manifest in the prover by constructing a proof
-    auto composer = UltraHonkComposerHelper();
+    auto composer = UltraComposer();
     auto prover = composer.create_prover(circuit_constructor);
     plonk::proof proof = prover.construct_proof();
 

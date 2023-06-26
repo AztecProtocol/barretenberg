@@ -19,7 +19,7 @@ using namespace proof_system::plonk;
 TEST(proving_key, proving_key_from_serialized_key)
 {
     auto builder = StandardCircuitConstructor();
-    auto composer = StandardPlonkComposerHelper();
+    auto composer = StandardComposer();
     fr a = fr::one();
     builder.add_public_variable(a);
 
@@ -56,7 +56,7 @@ TEST(proving_key, proving_key_from_serialized_key)
 TEST(proving_key, proving_key_from_serialized_key_ultra)
 {
     auto builder = UltraCircuitConstructor();
-    auto composer = UltraPlonkComposerHelper();
+    auto composer = UltraComposer();
     fr a = fr::one();
     builder.add_public_variable(a);
 
@@ -94,8 +94,8 @@ TEST(proving_key, proving_key_from_serialized_key_ultra)
 #ifndef __wasm__
 TEST(proving_key, proving_key_from_mmaped_key)
 {
-        builder coStandardCircuitConstructor = StandardPlonkComposerHelper();auto composer =
-StandardPlonkComposerHelper(); fr a = fr::one(); builder.add_public_variable(a);
+        builder coStandardCircuitConstructor = StandardComposer();auto composer =
+StandardComposer(); fr a = fr::one(); builder.add_public_variable(a);
 
     // Write each precomputed polynomial in the proving key to
     // its own file using write_mmap

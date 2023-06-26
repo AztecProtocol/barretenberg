@@ -98,7 +98,7 @@ TEST_F(RelationCorrectnessTests, StandardRelationCorrectness)
             { d_idx, c_idx, a_idx, fr::one(), fr::neg_one(), fr::neg_one(), fr::zero() });
     }
     // Create a prover (it will compute proving key and witness)
-    auto composer = StandardHonkComposerHelper();
+    auto composer = StandardComposer();
     auto prover = composer.create_prover(circuit_constructor);
     auto circuit_size = prover.key->circuit_size;
 
@@ -292,7 +292,7 @@ TEST_F(RelationCorrectnessTests, UltraRelationCorrectness)
         false);
 
     // Create a prover (it will compute proving key and witness)
-    auto composer = UltraHonkComposerHelper();
+    auto composer = UltraComposer();
     auto prover = composer.create_prover(circuit_constructor);
     auto circuit_size = prover.key->circuit_size;
 

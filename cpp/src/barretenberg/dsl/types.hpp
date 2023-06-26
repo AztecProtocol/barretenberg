@@ -29,17 +29,17 @@
 namespace acir_format {
 
 using Builder = proof_system::UltraCircuitConstructor;
-using Composer = plonk::UltraPlonkComposerHelper;
+using Composer = plonk::UltraComposer;
 
 using Prover = std::conditional_t<
-    std::same_as<Composer, plonk::UltraPlonkComposerHelper>,
+    std::same_as<Composer, plonk::UltraComposer>,
     plonk::UltraWithKeccakProver,
-    std::conditional_t<std::same_as<Composer, plonk::TurboPlonkComposerHelper>, plonk::TurboProver, plonk::Prover>>;
+    std::conditional_t<std::same_as<Composer, plonk::TurboComposer>, plonk::TurboProver, plonk::Prover>>;
 
 using Verifier = std::conditional_t<
-    std::same_as<Composer, plonk::UltraPlonkComposerHelper>,
+    std::same_as<Composer, plonk::UltraComposer>,
     plonk::UltraWithKeccakVerifier,
-    std::conditional_t<std::same_as<Composer, plonk::TurboPlonkComposerHelper>, plonk::TurboVerifier, plonk::Verifier>>;
+    std::conditional_t<std::same_as<Composer, plonk::TurboComposer>, plonk::TurboVerifier, plonk::Verifier>>;
 
 using RecursiveProver = plonk::UltraProver;
 

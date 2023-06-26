@@ -7,7 +7,7 @@ using namespace benchmark;
 namespace standard_plonk_bench {
 
 using StandardBuilder = proof_system::StandardCircuitConstructor;
-using StandardPlonk = proof_system::plonk::StandardPlonkComposerHelper;
+using StandardPlonk = proof_system::plonk::StandardComposer;
 
 // Log number of gates for test circuit
 constexpr size_t MIN_LOG_NUM_GATES = bench_utils::BenchParams::MIN_LOG_NUM_GATES;

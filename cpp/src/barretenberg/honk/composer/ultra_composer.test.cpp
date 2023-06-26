@@ -68,7 +68,7 @@ TEST_F(UltraHonkComposerTests, ANonZeroPolynomialIsAGoodPolynomial)
     auto circuit_constructor = UltraCircuitConstructor();
     circuit_constructor.add_gates_to_ensure_all_polys_are_non_zero();
 
-    auto composer = UltraHonkComposerHelper();
+    auto composer = UltraComposer();
     auto prover = composer.create_prover(circuit_constructor);
     auto proof = prover.construct_proof();
 
@@ -109,7 +109,7 @@ TEST_F(UltraHonkComposerTests, XorConstraint)
     circuit_constructor.create_gates_from_plookup_accumulators(
         plookup::MultiTableId::UINT32_XOR, lookup_accumulators, left_witness_index, right_witness_index);
 
-    auto composer = UltraHonkComposerHelper(barretenberg::srs::get_crs_factory());
+    auto composer = UltraComposer(barretenberg::srs::get_crs_factory());
     prove_and_verify(circuit_constructor, composer, /*expected_result=*/true);
 }
 
@@ -196,7 +196,7 @@ TEST_F(UltraHonkComposerTests, create_gates_from_plookup_accumulators)
                   expected_y[i + num_lookups_lo]);
     }
 
-    auto composer = UltraHonkComposerHelper();
+    auto composer = UltraComposer();
     auto prover = composer.create_prover(circuit_constructor);
     auto verifier = composer.create_verifier(circuit_constructor);
     auto proof = prover.construct_proof();
@@ -225,7 +225,7 @@ TEST_F(UltraHonkComposerTests, test_no_lookup_proof)
         }
     }
 
-    auto composer = UltraHonkComposerHelper();
+    auto composer = UltraComposer();
     prove_and_verify(circuit_constructor, composer, /*expected_result=*/true);
 }
 
@@ -266,7 +266,7 @@ TEST_F(UltraHonkComposerTests, test_elliptic_gate)
     gate = ecc_add_gate{ x1, y1, x2, y2, x3, y3, beta.sqr(), -1 };
     circuit_constructor.create_ecc_add_gate(gate);
 
-    auto composer = UltraHonkComposerHelper();
+    auto composer = UltraComposer();
     prove_and_verify(circuit_constructor, composer, /*expected_result=*/true);
 }
 
@@ -294,7 +294,7 @@ TEST_F(UltraHonkComposerTests, non_trivial_tag_permutation)
     circuit_constructor.assign_tag(c_idx, 2);
     circuit_constructor.assign_tag(d_idx, 2);
 
-    auto composer = UltraHonkComposerHelper();
+    auto composer = UltraComposer();
     prove_and_verify(circuit_constructor, composer, /*expected_result=*/true);
 }
 
@@ -332,7 +332,7 @@ TEST_F(UltraHonkComposerTests, non_trivial_tag_permutation_and_cycles)
     circuit_constructor.create_add_gate(
         { e_idx, f_idx, circuit_constructor.zero_idx, fr::one(), -fr::one(), fr::zero(), fr::zero() });
 
-    auto composer = UltraHonkComposerHelper();
+    auto composer = UltraComposer();
     prove_and_verify(circuit_constructor, composer, /*expected_result=*/true);
 }
 
@@ -358,7 +358,7 @@ TEST_F(UltraHonkComposerTests, bad_tag_permutation)
     circuit_constructor.assign_tag(c_idx, 2);
     circuit_constructor.assign_tag(d_idx, 2);
 
-    auto composer = UltraHonkComposerHelper();
+    auto composer = UltraComposer();
     prove_and_verify(circuit_constructor, composer, /*expected_result=*/false);
 }
 
@@ -377,7 +377,7 @@ TEST_F(UltraHonkComposerTests, bad_tag_turbo_permutation)
     circuit_constructor.create_add_gate({ a_idx, b_idx, circuit_constructor.zero_idx, 1, 1, 0, 0 });
     circuit_constructor.create_add_gate({ c_idx, d_idx, circuit_constructor.zero_idx, 1, 1, 0, -1 });
 
-    auto composer = UltraHonkComposerHelper();
+    auto composer = UltraComposer();
     // circuit_constructor.create_add_gate({ a_idx, b_idx, circuit_constructor.zero_idx, fr::one(), fr::neg_one(),
     // fr::zero(), fr::zero() }); circuit_constructor.create_add_gate({ a_idx, b_idx, circuit_constructor.zero_idx,
     // fr::one(), fr::neg_one(), fr::zero(), fr::zero() }); circuit_constructor.create_add_gate({ a_idx, b_idx,
@@ -402,7 +402,7 @@ TEST_F(UltraHonkComposerTests, sort_widget)
     auto d_idx = circuit_constructor.add_variable(d);
     circuit_constructor.create_sort_constraint({ a_idx, b_idx, c_idx, d_idx });
 
-    auto composer = UltraHonkComposerHelper();
+    auto composer = UltraComposer();
     prove_and_verify(circuit_constructor, composer, /*expected_result=*/true);
 }
 
@@ -431,7 +431,7 @@ TEST_F(UltraHonkComposerTests, sort_with_edges_gate)
         circuit_constructor.create_sort_constraint_with_edges(
             { a_idx, b_idx, c_idx, d_idx, e_idx, f_idx, g_idx, h_idx }, a, h);
 
-        auto composer = UltraHonkComposerHelper();
+        auto composer = UltraComposer();
         prove_and_verify(circuit_constructor, composer, /*expected_result=*/true);
     }
 
@@ -448,7 +448,7 @@ TEST_F(UltraHonkComposerTests, sort_with_edges_gate)
         circuit_constructor.create_sort_constraint_with_edges(
             { a_idx, b_idx, c_idx, d_idx, e_idx, f_idx, g_idx, h_idx }, a, g);
 
-        auto composer = UltraHonkComposerHelper();
+        auto composer = UltraComposer();
         prove_and_verify(circuit_constructor, composer, /*expected_result=*/false);
     }
     {
@@ -464,7 +464,7 @@ TEST_F(UltraHonkComposerTests, sort_with_edges_gate)
         circuit_constructor.create_sort_constraint_with_edges(
             { a_idx, b_idx, c_idx, d_idx, e_idx, f_idx, g_idx, h_idx }, b, h);
 
-        auto composer = UltraHonkComposerHelper();
+        auto composer = UltraComposer();
         prove_and_verify(circuit_constructor, composer, /*expected_result=*/false);
     }
     {
@@ -480,7 +480,7 @@ TEST_F(UltraHonkComposerTests, sort_with_edges_gate)
         circuit_constructor.create_sort_constraint_with_edges(
             { a_idx, b2_idx, c_idx, d_idx, e_idx, f_idx, g_idx, h_idx }, b, h);
 
-        auto composer = UltraHonkComposerHelper();
+        auto composer = UltraComposer();
         prove_and_verify(circuit_constructor, composer, /*expected_result=*/false);
     }
     {
@@ -489,7 +489,7 @@ TEST_F(UltraHonkComposerTests, sort_with_edges_gate)
                                                         26, 29, 29, 32, 32, 33, 35, 38, 39, 39, 42, 42, 43, 45 });
         circuit_constructor.create_sort_constraint_with_edges(idx, 1, 45);
 
-        auto composer = UltraHonkComposerHelper();
+        auto composer = UltraComposer();
         prove_and_verify(circuit_constructor, composer, /*expected_result=*/true);
     }
     {
@@ -498,7 +498,7 @@ TEST_F(UltraHonkComposerTests, sort_with_edges_gate)
                                                         26, 29, 29, 32, 32, 33, 35, 38, 39, 39, 42, 42, 43, 45 });
         circuit_constructor.create_sort_constraint_with_edges(idx, 1, 29);
 
-        auto composer = UltraHonkComposerHelper();
+        auto composer = UltraComposer();
         prove_and_verify(circuit_constructor, composer, /*expected_result=*/false);
     }
 }
@@ -514,7 +514,7 @@ TEST_F(UltraHonkComposerTests, range_constraint)
         // auto ind = {a_idx,b_idx,c_idx,d_idx,e_idx,f_idx,g_idx,h_idx};
         circuit_constructor.create_sort_constraint(indices);
 
-        auto composer = UltraHonkComposerHelper();
+        auto composer = UltraComposer();
         prove_and_verify(circuit_constructor, composer, /*expected_result=*/true);
     }
     {
@@ -526,7 +526,7 @@ TEST_F(UltraHonkComposerTests, range_constraint)
         // auto ind = {a_idx,b_idx,c_idx,d_idx,e_idx,f_idx,g_idx,h_idx};
         circuit_constructor.create_dummy_constraints(indices);
 
-        auto composer = UltraHonkComposerHelper();
+        auto composer = UltraComposer();
         prove_and_verify(circuit_constructor, composer, /*expected_result=*/true);
     }
     {
@@ -537,7 +537,7 @@ TEST_F(UltraHonkComposerTests, range_constraint)
         }
         circuit_constructor.create_sort_constraint(indices);
 
-        auto composer = UltraHonkComposerHelper();
+        auto composer = UltraComposer();
         prove_and_verify(circuit_constructor, composer, /*expected_result=*/false);
     }
     {
@@ -549,7 +549,7 @@ TEST_F(UltraHonkComposerTests, range_constraint)
         }
         circuit_constructor.create_dummy_constraints(indices);
 
-        auto composer = UltraHonkComposerHelper();
+        auto composer = UltraComposer();
         prove_and_verify(circuit_constructor, composer, /*expected_result=*/true);
     }
     {
@@ -561,7 +561,7 @@ TEST_F(UltraHonkComposerTests, range_constraint)
         }
         circuit_constructor.create_dummy_constraints(indices);
 
-        auto composer = UltraHonkComposerHelper();
+        auto composer = UltraComposer();
         prove_and_verify(circuit_constructor, composer, /*expected_result=*/false);
     }
     {
@@ -573,7 +573,7 @@ TEST_F(UltraHonkComposerTests, range_constraint)
         }
         circuit_constructor.create_dummy_constraints(indices);
 
-        auto composer = UltraHonkComposerHelper();
+        auto composer = UltraComposer();
         prove_and_verify(circuit_constructor, composer, /*expected_result=*/false);
     }
 }
@@ -595,7 +595,7 @@ TEST_F(UltraHonkComposerTests, range_with_gates)
     circuit_constructor.create_add_gate(
         { idx[6], idx[7], circuit_constructor.zero_idx, fr::one(), fr::one(), fr::zero(), -15 });
 
-    auto composer = UltraHonkComposerHelper();
+    auto composer = UltraComposer();
     prove_and_verify(circuit_constructor, composer, /*expected_result=*/true);
 }
 
@@ -616,7 +616,7 @@ TEST_F(UltraHonkComposerTests, range_with_gates_where_range_is_not_a_power_of_tw
     circuit_constructor.create_add_gate(
         { idx[6], idx[7], circuit_constructor.zero_idx, fr::one(), fr::one(), fr::zero(), -15 });
 
-    auto composer = UltraHonkComposerHelper();
+    auto composer = UltraComposer();
     prove_and_verify(circuit_constructor, composer, /*expected_result=*/true);
 }
 
@@ -631,7 +631,7 @@ TEST_F(UltraHonkComposerTests, sort_widget_complex)
             ind.emplace_back(circuit_constructor.add_variable(a[i]));
         circuit_constructor.create_sort_constraint(ind);
 
-        auto composer = UltraHonkComposerHelper();
+        auto composer = UltraComposer();
         prove_and_verify(circuit_constructor, composer, /*expected_result=*/true);
     }
     {
@@ -643,7 +643,7 @@ TEST_F(UltraHonkComposerTests, sort_widget_complex)
             ind.emplace_back(circuit_constructor.add_variable(a[i]));
         circuit_constructor.create_sort_constraint(ind);
 
-        auto composer = UltraHonkComposerHelper();
+        auto composer = UltraComposer();
         prove_and_verify(circuit_constructor, composer, /*expected_result=*/false);
     }
 }
@@ -662,7 +662,7 @@ TEST_F(UltraHonkComposerTests, sort_widget_neg)
     auto d_idx = circuit_constructor.add_variable(d);
     circuit_constructor.create_sort_constraint({ a_idx, b_idx, c_idx, d_idx });
 
-    auto composer = UltraHonkComposerHelper();
+    auto composer = UltraComposer();
     prove_and_verify(circuit_constructor, composer, /*expected_result=*/false);
 }
 
@@ -677,7 +677,7 @@ TEST_F(UltraHonkComposerTests, composed_range_constraint)
         { a_idx, circuit_constructor.zero_idx, circuit_constructor.zero_idx, 1, 0, 0, -fr(e) });
     circuit_constructor.decompose_into_default_range(a_idx, 134);
 
-    auto composer = UltraHonkComposerHelper();
+    auto composer = UltraComposer();
     prove_and_verify(circuit_constructor, composer, /*expected_result=*/true);
 }
 
@@ -733,7 +733,7 @@ TEST_F(UltraHonkComposerTests, non_native_field_multiplication)
     const auto [lo_1_idx, hi_1_idx] = circuit_constructor.evaluate_non_native_field_multiplication(inputs);
     circuit_constructor.range_constrain_two_limbs(lo_1_idx, hi_1_idx, 70, 70);
 
-    auto composer = UltraHonkComposerHelper();
+    auto composer = UltraComposer();
     prove_and_verify(circuit_constructor, composer, /*expected_result=*/true);
 }
 
@@ -775,7 +775,7 @@ TEST_F(UltraHonkComposerTests, rom)
         0,
     });
 
-    auto composer = UltraHonkComposerHelper();
+    auto composer = UltraComposer();
     prove_and_verify(circuit_constructor, composer, /*expected_result=*/true);
 }
 
@@ -840,7 +840,7 @@ TEST_F(UltraHonkComposerTests, ram)
         },
         false);
 
-    auto composer = UltraHonkComposerHelper();
+    auto composer = UltraComposer();
     prove_and_verify(circuit_constructor, composer, /*expected_result=*/true);
 }
 
@@ -871,14 +871,14 @@ TEST(UltraGrumpkinHonkComposer, XorConstraint)
         plookup::MultiTableId::UINT32_XOR, lookup_accumulators, left_witness_index, right_witness_index);
 
     barretenberg::srs::init_crs_factory("../srs_db/ignition");
-    auto composer = UltraGrumpkinHonkComposerHelper();
+    auto composer = UltraGrumpkinComposer();
     prove_and_verify(circuit_constructor, composer, /*expected_result=*/true);
 }
 
 // TODO(#378)(luke): this is a recent update from Zac and fails; do we need a corresponding bug fix in ultra circuit
 // c_Fonstructor? TEST(UltraHonkComposerTests, range_checks_on_duplicates)
 // {
-//     auto composer = UltraHonkComposerHelper();
+//     auto composer = UltraComposer();
 
 //     uint32_t a = circuit_constructor.add_variable(100);
 //     uint32_t b = circuit_constructor.add_variable(100);
@@ -919,7 +919,7 @@ TEST(UltraGrumpkinHonkComposer, XorConstraint)
 // // before range constraints are applied to it.
 // T_FEST(UltraHonkComposerTests, range_constraint_small_variable)
 // {
-//     auto composer = UltraHonkComposerHelper();
+//     auto composer = UltraComposer();
 //     uint16_t mask = (1 << 8) - 1;
 //     int a = engine.get_random_uint16() & mask;
 //     uint32_t a_idx = circuit_constructor.add_variable(fr(a));

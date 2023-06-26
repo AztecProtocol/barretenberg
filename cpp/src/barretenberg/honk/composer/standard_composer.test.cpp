@@ -32,7 +32,7 @@ class StandardHonkComposerTests : public ::testing::Test {
  */
 TEST_F(StandardHonkComposerTests, SigmaIDCorrectness)
 {
-    auto test_permutation = [](StandardCircuitConstructor& circuit_constructor, StandardHonkComposerHelper& composer) {
+    auto test_permutation = [](StandardCircuitConstructor& circuit_constructor, StandardComposer& composer) {
         auto proving_key = composer.compute_proving_key(circuit_constructor);
         const auto n = proving_key->circuit_size;
 
@@ -77,7 +77,7 @@ TEST_F(StandardHonkComposerTests, SigmaIDCorrectness)
         auto permutation_polynomials = proving_key->get_sigma_polynomials();
         auto id_polynomials = proving_key->get_id_polynomials();
         auto wire_polynomials = proving_key->get_wires();
-        for (size_t j = 0; j < StandardHonkComposerHelper::NUM_WIRES; ++j) {
+        for (size_t j = 0; j < StandardComposer::NUM_WIRES; ++j) {
             std::string index = std::to_string(j + 1);
             const auto& permutation_polynomial = permutation_polynomials[j];
             const auto& witness_polynomial = wire_polynomials[j];
@@ -136,7 +136,7 @@ TEST_F(StandardHonkComposerTests, SigmaIDCorrectness)
         circuit_constructor.create_add_gate({ a_idx, b_idx, c_idx, fr::one(), fr::one(), fr::neg_one(), fr::zero() });
     }
 
-    auto composer = StandardHonkComposerHelper();
+    auto composer = StandardComposer();
     test_permutation(circuit_constructor, composer);
 }
 
@@ -163,7 +163,7 @@ TEST_F(StandardHonkComposerTests, LagrangeCorrectness)
     }
 
     // Generate proving key
-    auto composer = StandardHonkComposerHelper();
+    auto composer = StandardComposer();
     auto proving_key = composer.compute_proving_key(circuit_constructor);
     // Generate a random polynomial
     barretenberg::polynomial random_polynomial = barretenberg::polynomial(proving_key->circuit_size);
@@ -290,8 +290,8 @@ TEST_F(StandardHonkComposerTests, AssertEquals)
                                                        "Equality asssertion in standard honk composer test");
 
     // Check that the maximum cycle in the one, where we used assert_equal, is twice as long
-    auto composer_no_assert_equal = StandardHonkComposerHelper();
-    auto composer_with_assert_equal = StandardHonkComposerHelper();
+    auto composer_no_assert_equal = StandardComposer();
+    auto composer_with_assert_equal = StandardComposer();
     EXPECT_EQ(get_maximum_cycle(circuit_constructor_with_assert_equal, composer_with_assert_equal),
               get_maximum_cycle(circuit_constructor_no_assert_equal, composer_no_assert_equal) * 2);
 }
@@ -315,7 +315,7 @@ TEST_F(StandardHonkComposerTests, VerificationKeyCreation)
             { d_idx, c_idx, a_idx, fr::one(), fr::neg_one(), fr::neg_one(), fr::zero() });
     }
 
-    auto composer = StandardHonkComposerHelper();
+    auto composer = StandardComposer();
     composer.create_prover(circuit_constructor);
     auto verification_key = composer.compute_verification_key(circuit_constructor);
     // There is nothing we can really check apart from the fact that constraint selectors and permutation selectors were
@@ -330,7 +330,7 @@ TEST_F(StandardHonkComposerTests, BaseCase)
     fr a = 1;
     circuit_constructor.add_variable(a);
 
-    auto composer = StandardHonkComposerHelper();
+    auto composer = StandardComposer();
     auto prover = composer.create_prover(circuit_constructor);
     auto proof = prover.construct_proof();
     auto verifier = composer.create_verifier(circuit_constructor);
@@ -359,7 +359,7 @@ TEST_F(StandardHonkComposerTests, TwoGates)
         uint32_t w_o_2_idx = circuit_constructor.add_variable(4);
         circuit_constructor.create_mul_gate({ w_l_2_idx, w_r_2_idx, w_o_2_idx, 1, -1, 0 });
 
-        auto composer = StandardHonkComposerHelper();
+        auto composer = StandardComposer();
         auto prover = composer.create_prover(circuit_constructor);
         auto proof = prover.construct_proof();
 
@@ -398,7 +398,7 @@ TEST_F(StandardHonkComposerTests, SumcheckEvaluations)
                 { d_idx, c_idx, a_idx, fr::one(), fr::neg_one(), fr::neg_one(), fr::zero() });
         }
 
-        auto composer = StandardHonkComposerHelper();
+        auto composer = StandardComposer();
         auto prover = composer.create_prover(circuit_constructor);
         auto proof = prover.construct_proof();
         auto verifier = composer.create_verifier(circuit_constructor);
@@ -414,7 +414,7 @@ TEST(StandardGrumpkinHonkComposer, BaseCase)
     fr a = 1;
     circuit_constructor.add_variable(a);
 
-    auto composer = StandardGrumpkinHonkComposerHelper();
+    auto composer = StandardGrumpkinComposer();
     auto prover = composer.create_prover(circuit_constructor);
     auto proof = prover.construct_proof();
     auto verifier = composer.create_verifier(circuit_constructor);

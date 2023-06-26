@@ -73,11 +73,11 @@ int main(int argc, char** argv)
         info("Generating ultra plonk keys for ", circuit_flavour, " circuit");
 
         if (circuit_flavour == "blake") {
-            generate_keys<UltraPlonkComposerHelper, BlakeCircuit>(output_path, plonk_flavour, circuit_flavour);
+            generate_keys<UltraComposer, BlakeCircuit>(output_path, plonk_flavour, circuit_flavour);
         } else if (circuit_flavour == "add2") {
-            generate_keys<UltraPlonkComposerHelper, Add2Circuit>(output_path, plonk_flavour, circuit_flavour);
+            generate_keys<UltraComposer, Add2Circuit>(output_path, plonk_flavour, circuit_flavour);
         } else if (circuit_flavour == "recursive") {
-            generate_keys<UltraPlonkComposerHelper, RecursiveCircuit>(output_path, plonk_flavour, circuit_flavour);
+            generate_keys<UltraComposer, RecursiveCircuit>(output_path, plonk_flavour, circuit_flavour);
         } else {
             info("Only blake, add2 and recursive circuits are supported at the moment");
             return 1;

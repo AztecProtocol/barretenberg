@@ -10,8 +10,7 @@ namespace proof_system::honk {
  * @brief Compute witness polynomials
  *
  */
-template <UltraFlavor Flavor>
-void UltraHonkComposerHelper_<Flavor>::compute_witness(CircuitConstructor& circuit_constructor)
+template <UltraFlavor Flavor> void UltraComposer_<Flavor>::compute_witness(CircuitConstructor& circuit_constructor)
 {
     if (computed_witness) {
         return;
@@ -147,7 +146,7 @@ void UltraHonkComposerHelper_<Flavor>::compute_witness(CircuitConstructor& circu
 }
 
 template <UltraFlavor Flavor>
-UltraProver_<Flavor> UltraHonkComposerHelper_<Flavor>::create_prover(CircuitConstructor& circuit_constructor)
+UltraProver_<Flavor> UltraComposer_<Flavor>::create_prover(CircuitConstructor& circuit_constructor)
 {
     circuit_constructor.add_gates_to_ensure_all_polys_are_non_zero();
     circuit_constructor.finalize_circuit();
@@ -169,7 +168,7 @@ UltraProver_<Flavor> UltraHonkComposerHelper_<Flavor>::create_prover(CircuitCons
  * @return The verifier.
  * */
 template <UltraFlavor Flavor>
-UltraVerifier_<Flavor> UltraHonkComposerHelper_<Flavor>::create_verifier(const CircuitConstructor& circuit_constructor)
+UltraVerifier_<Flavor> UltraComposer_<Flavor>::create_verifier(const CircuitConstructor& circuit_constructor)
 {
     auto verification_key = compute_verification_key(circuit_constructor);
 
@@ -183,7 +182,7 @@ UltraVerifier_<Flavor> UltraHonkComposerHelper_<Flavor>::create_verifier(const C
 }
 
 template <UltraFlavor Flavor>
-std::shared_ptr<typename Flavor::ProvingKey> UltraHonkComposerHelper_<Flavor>::compute_proving_key(
+std::shared_ptr<typename Flavor::ProvingKey> UltraComposer_<Flavor>::compute_proving_key(
     const CircuitConstructor& circuit_constructor)
 {
     if (proving_key) {
@@ -298,7 +297,7 @@ std::shared_ptr<typename Flavor::ProvingKey> UltraHonkComposerHelper_<Flavor>::c
  * @return Pointer to created circuit verification key.
  * */
 template <UltraFlavor Flavor>
-std::shared_ptr<typename Flavor::VerificationKey> UltraHonkComposerHelper_<Flavor>::compute_verification_key(
+std::shared_ptr<typename Flavor::VerificationKey> UltraComposer_<Flavor>::compute_verification_key(
     const CircuitConstructor& circuit_constructor)
 {
     if (verification_key) {
@@ -348,7 +347,7 @@ std::shared_ptr<typename Flavor::VerificationKey> UltraHonkComposerHelper_<Flavo
 
     return verification_key;
 }
-template class UltraHonkComposerHelper_<honk::flavor::Ultra>;
-template class UltraHonkComposerHelper_<honk::flavor::UltraGrumpkin>;
+template class UltraComposer_<honk::flavor::Ultra>;
+template class UltraComposer_<honk::flavor::UltraGrumpkin>;
 
 } // namespace proof_system::honk

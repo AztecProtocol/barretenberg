@@ -23,7 +23,7 @@ namespace proof_system::honk {
  * @return Pointer to the initialized proving key updated with selector polynomials.
  * */
 template <StandardFlavor Flavor>
-std::shared_ptr<typename Flavor::ProvingKey> StandardHonkComposerHelper_<Flavor>::compute_proving_key_base(
+std::shared_ptr<typename Flavor::ProvingKey> StandardComposer_<Flavor>::compute_proving_key_base(
     const CircuitConstructor& constructor, const size_t minimum_circuit_size, const size_t num_randomized_gates)
 {
     // Initialize proving_key
@@ -46,8 +46,8 @@ std::shared_ptr<typename Flavor::ProvingKey> StandardHonkComposerHelper_<Flavor>
  * @tparam Program settings needed to establish if w_4 is being used.
  * */
 template <StandardFlavor Flavor>
-void StandardHonkComposerHelper_<Flavor>::compute_witness(const CircuitConstructor& circuit_constructor,
-                                                          const size_t minimum_circuit_size)
+void StandardComposer_<Flavor>::compute_witness(const CircuitConstructor& circuit_constructor,
+                                                const size_t minimum_circuit_size)
 {
     if (computed_witness) {
         return;
@@ -70,15 +70,14 @@ void StandardHonkComposerHelper_<Flavor>::compute_witness(const CircuitConstruct
  * */
 
 template <StandardFlavor Flavor>
-std::shared_ptr<typename Flavor::ProvingKey> StandardHonkComposerHelper_<Flavor>::compute_proving_key(
+std::shared_ptr<typename Flavor::ProvingKey> StandardComposer_<Flavor>::compute_proving_key(
     const CircuitConstructor& circuit_constructor)
 {
     if (proving_key) {
         return proving_key;
     }
     // Compute q_l, q_r, q_o, etc polynomials
-    StandardHonkComposerHelper_::compute_proving_key_base(
-        circuit_constructor, /*minimum_circuit_size=*/0, NUM_RESERVED_GATES);
+    StandardComposer_::compute_proving_key_base(circuit_constructor, /*minimum_circuit_size=*/0, NUM_RESERVED_GATES);
 
     // Compute sigma polynomials (we should update that late)
     compute_standard_honk_sigma_permutations<Flavor>(circuit_constructor, proving_key.get());
@@ -95,7 +94,7 @@ std::shared_ptr<typename Flavor::ProvingKey> StandardHonkComposerHelper_<Flavor>
  * @return Pointer to created circuit verification key.
  * */
 template <StandardFlavor Flavor>
-std::shared_ptr<typename Flavor::VerificationKey> StandardHonkComposerHelper_<Flavor>::compute_verification_key(
+std::shared_ptr<typename Flavor::VerificationKey> StandardComposer_<Flavor>::compute_verification_key(
     const CircuitConstructor& circuit_constructor)
 {
     if (verification_key) {
@@ -124,8 +123,7 @@ std::shared_ptr<typename Flavor::VerificationKey> StandardHonkComposerHelper_<Fl
 }
 
 template <StandardFlavor Flavor>
-StandardVerifier_<Flavor> StandardHonkComposerHelper_<Flavor>::create_verifier(
-    const CircuitConstructor& circuit_constructor)
+StandardVerifier_<Flavor> StandardComposer_<Flavor>::create_verifier(const CircuitConstructor& circuit_constructor)
 {
     compute_verification_key(circuit_constructor);
     StandardVerifier_<Flavor> output_state(verification_key);
@@ -139,8 +137,7 @@ StandardVerifier_<Flavor> StandardHonkComposerHelper_<Flavor>::create_verifier(
 }
 
 template <StandardFlavor Flavor>
-StandardProver_<Flavor> StandardHonkComposerHelper_<Flavor>::create_prover(
-    const CircuitConstructor& circuit_constructor)
+StandardProver_<Flavor> StandardComposer_<Flavor>::create_prover(const CircuitConstructor& circuit_constructor)
 {
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
@@ -152,6 +149,6 @@ StandardProver_<Flavor> StandardHonkComposerHelper_<Flavor>::create_prover(
     return output_state;
 }
 
-template class StandardHonkComposerHelper_<honk::flavor::Standard>;
-template class StandardHonkComposerHelper_<honk::flavor::StandardGrumpkin>;
+template class StandardComposer_<honk::flavor::Standard>;
+template class StandardComposer_<honk::flavor::StandardGrumpkin>;
 } // namespace proof_system::honk

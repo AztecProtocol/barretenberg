@@ -7,7 +7,7 @@ using namespace benchmark;
 namespace standard_honk_bench {
 
 using StandardBuilder = proof_system::StandardCircuitConstructor;
-using StandardHonk = proof_system::honk::StandardHonkComposerHelper;
+using StandardHonk = proof_system::honk::StandardComposer;
 
 // Log number of gates for test circuit
 constexpr size_t MIN_LOG_NUM_GATES = bench_utils::BenchParams::MIN_LOG_NUM_GATES;

@@ -9,7 +9,7 @@
 #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
 
 namespace proof_system::plonk {
-class TurboPlonkComposerHelper {
+class TurboComposer {
   public:
     using Flavor = plonk::flavor::Turbo;
     using CircuitConstructor = TurboCircuitConstructor;
@@ -25,24 +25,24 @@ class TurboPlonkComposerHelper {
     std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory_;
 
     bool computed_witness = false;
-    TurboPlonkComposerHelper()
-        : TurboPlonkComposerHelper(std::shared_ptr<barretenberg::srs::factories::CrsFactory>(
+    TurboComposer()
+        : TurboComposer(std::shared_ptr<barretenberg::srs::factories::CrsFactory>(
               new barretenberg::srs::factories::FileCrsFactory("../srs_db/ignition")))
     {}
 
-    TurboPlonkComposerHelper(std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory)
+    TurboComposer(std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
-    TurboPlonkComposerHelper(std::unique_ptr<barretenberg::srs::factories::CrsFactory>&& crs_factory)
+    TurboComposer(std::unique_ptr<barretenberg::srs::factories::CrsFactory>&& crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
-    TurboPlonkComposerHelper(std::shared_ptr<plonk::proving_key> p_key, std::shared_ptr<plonk::verification_key> v_key)
+    TurboComposer(std::shared_ptr<plonk::proving_key> p_key, std::shared_ptr<plonk::verification_key> v_key)
         : circuit_proving_key(std::move(p_key))
         , circuit_verification_key(std::move(v_key))
     {}
-    TurboPlonkComposerHelper(TurboPlonkComposerHelper&& other) = default;
-    TurboPlonkComposerHelper& operator=(TurboPlonkComposerHelper&& other) noexcept = default;
-    ~TurboPlonkComposerHelper() {}
+    TurboComposer(TurboComposer&& other) = default;
+    TurboComposer& operator=(TurboComposer&& other) noexcept = default;
+    ~TurboComposer() {}
 
     std::shared_ptr<proving_key> compute_proving_key(const CircuitConstructor& circuit_constructor);
     std::shared_ptr<verification_key> compute_verification_key(const CircuitConstructor& circuit_constructor);

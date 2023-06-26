@@ -17,7 +17,7 @@ namespace proof_system::plonk::stdlib {
 
 template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
-    using InnerComposer = proof_system::plonk::UltraPlonkComposerHelper;
+    using InnerComposer = proof_system::plonk::UltraComposer;
     using InnerBuilder = typename InnerComposer::CircuitConstructor;
 
     using OuterBuilder = typename OuterComposer::CircuitConstructor;
@@ -47,8 +47,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
     // select the relevant prover and verifier types (whose settings use the same hash for fiat-shamir),
     // depending on the Inner-Outer combo. It's a bit clunky, but the alternative is to have a template argument
     // for the hashtype, and that would pervade the entire UltraPlonkComposer, which would be horrendous.
-    static constexpr bool is_ultra_to_ultra =
-        std::is_same_v<OuterComposer, proof_system::plonk::UltraPlonkComposerHelper>;
+    static constexpr bool is_ultra_to_ultra = std::is_same_v<OuterComposer, proof_system::plonk::UltraComposer>;
     using ProverOfInnerCircuit =
         std::conditional_t<is_ultra_to_ultra, plonk::UltraProver, plonk::UltraToStandardProver>;
     using VerifierOfInnerProof =
@@ -566,9 +565,7 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
     }
 };
 
-typedef testing::
-    Types<plonk::StandardPlonkComposerHelper, plonk::TurboPlonkComposerHelper, plonk::UltraPlonkComposerHelper>
-        OuterCircuitTypes;
+typedef testing::Types<plonk::StandardComposer, plonk::TurboComposer, plonk::UltraComposer> OuterCircuitTypes;
 
 TYPED_TEST_SUITE(stdlib_verifier, OuterCircuitTypes);
 
@@ -584,7 +581,7 @@ HEAVY_TYPED_TEST(stdlib_verifier, recursive_proof_composition)
 
 HEAVY_TYPED_TEST(stdlib_verifier, recursive_proof_composition_ultra_no_tables)
 {
-    if constexpr (std::same_as<TypeParam, UltraPlonkComposerHelper>) {
+    if constexpr (std::same_as<TypeParam, UltraComposer>) {
         TestFixture::test_recursive_proof_composition_ultra_no_tables();
     } else {
         GTEST_SKIP();
@@ -593,7 +590,7 @@ HEAVY_TYPED_TEST(stdlib_verifier, recursive_proof_composition_ultra_no_tables)
 
 HEAVY_TYPED_TEST(stdlib_verifier, double_verification)
 {
-    if constexpr (std::same_as<TypeParam, UltraPlonkComposerHelper>) {
+    if constexpr (std::same_as<TypeParam, UltraComposer>) {
         TestFixture::test_double_verification();
     } else {
         // Test doesn't compile-.

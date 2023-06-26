@@ -11,7 +11,7 @@
 #include <vector>
 
 namespace proof_system::honk {
-template <UltraFlavor Flavor> class UltraHonkComposerHelper_ {
+template <UltraFlavor Flavor> class UltraComposer_ {
   public:
     using CircuitConstructor = typename Flavor::CircuitConstructor;
     using ProvingKey = typename Flavor::ProvingKey;
@@ -37,23 +37,23 @@ template <UltraFlavor Flavor> class UltraHonkComposerHelper_ {
     bool contains_recursive_proof = false;
     bool computed_witness = false;
 
-    UltraHonkComposerHelper_()
+    UltraComposer_()
         : crs_factory_(barretenberg::srs::get_crs_factory()){};
 
-    explicit UltraHonkComposerHelper_(std::shared_ptr<srs::factories::CrsFactory> crs_factory)
+    explicit UltraComposer_(std::shared_ptr<srs::factories::CrsFactory> crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
 
-    UltraHonkComposerHelper_(std::shared_ptr<ProvingKey> p_key, std::shared_ptr<VerificationKey> v_key)
+    UltraComposer_(std::shared_ptr<ProvingKey> p_key, std::shared_ptr<VerificationKey> v_key)
         : proving_key(std::move(p_key))
         , verification_key(std::move(v_key))
     {}
 
-    UltraHonkComposerHelper_(UltraHonkComposerHelper_&& other) noexcept = default;
-    UltraHonkComposerHelper_(UltraHonkComposerHelper_ const& other) noexcept = default;
-    UltraHonkComposerHelper_& operator=(UltraHonkComposerHelper_&& other) noexcept = default;
-    UltraHonkComposerHelper_& operator=(UltraHonkComposerHelper_ const& other) noexcept = default;
-    ~UltraHonkComposerHelper_() = default;
+    UltraComposer_(UltraComposer_&& other) noexcept = default;
+    UltraComposer_(UltraComposer_ const& other) noexcept = default;
+    UltraComposer_& operator=(UltraComposer_&& other) noexcept = default;
+    UltraComposer_& operator=(UltraComposer_ const& other) noexcept = default;
+    ~UltraComposer_() = default;
 
     std::shared_ptr<ProvingKey> compute_proving_key(const CircuitConstructor& circuit_constructor);
     std::shared_ptr<VerificationKey> compute_verification_key(const CircuitConstructor& circuit_constructor);
@@ -70,9 +70,9 @@ template <UltraFlavor Flavor> class UltraHonkComposerHelper_ {
         commitment_key = std::make_shared<typename PCSParams::CommitmentKey>(circuit_size, crs_factory_);
     };
 };
-extern template class UltraHonkComposerHelper_<honk::flavor::Ultra>;
-extern template class UltraHonkComposerHelper_<honk::flavor::UltraGrumpkin>;
+extern template class UltraComposer_<honk::flavor::Ultra>;
+extern template class UltraComposer_<honk::flavor::UltraGrumpkin>;
 // TODO(#532): this pattern is weird; is this not instantiating the templates?
-using UltraHonkComposerHelper = UltraHonkComposerHelper_<honk::flavor::Ultra>;
-using UltraGrumpkinHonkComposerHelper = UltraHonkComposerHelper_<honk::flavor::UltraGrumpkin>;
+using UltraComposer = UltraComposer_<honk::flavor::Ultra>;
+using UltraGrumpkinComposer = UltraComposer_<honk::flavor::UltraGrumpkin>;
 } // namespace proof_system::honk

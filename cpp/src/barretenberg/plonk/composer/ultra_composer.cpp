@@ -20,7 +20,7 @@ namespace proof_system::plonk {
  * elsewhere.
  */
 
-void UltraPlonkComposerHelper::compute_witness(CircuitConstructor& circuit_constructor)
+void UltraComposer::compute_witness(CircuitConstructor& circuit_constructor)
 {
     if (computed_witness) {
         return;
@@ -163,7 +163,7 @@ void UltraPlonkComposerHelper::compute_witness(CircuitConstructor& circuit_const
     computed_witness = true;
 }
 
-UltraProver UltraPlonkComposerHelper::create_prover(CircuitConstructor& circuit_constructor)
+UltraProver UltraComposer::create_prover(CircuitConstructor& circuit_constructor)
 {
     circuit_constructor.finalize_circuit();
 
@@ -209,7 +209,7 @@ UltraProver UltraPlonkComposerHelper::create_prover(CircuitConstructor& circuit_
 /**
  * @brief Uses slightly different settings from the UltraProver.
  */
-UltraToStandardProver UltraPlonkComposerHelper::create_ultra_to_standard_prover(CircuitConstructor& circuit_constructor)
+UltraToStandardProver UltraComposer::create_ultra_to_standard_prover(CircuitConstructor& circuit_constructor)
 {
     circuit_constructor.finalize_circuit();
 
@@ -255,7 +255,7 @@ UltraToStandardProver UltraPlonkComposerHelper::create_ultra_to_standard_prover(
 /**
  * @brief Uses slightly different settings from the UltraProver.
  */
-UltraWithKeccakProver UltraPlonkComposerHelper::create_ultra_with_keccak_prover(CircuitConstructor& circuit_constructor)
+UltraWithKeccakProver UltraComposer::create_ultra_with_keccak_prover(CircuitConstructor& circuit_constructor)
 {
     circuit_constructor.finalize_circuit();
     compute_proving_key(circuit_constructor);
@@ -304,7 +304,7 @@ UltraWithKeccakProver UltraPlonkComposerHelper::create_ultra_with_keccak_prover(
  * @return The verifier.
  * */
 
-plonk::UltraVerifier UltraPlonkComposerHelper::create_verifier(CircuitConstructor& circuit_constructor)
+plonk::UltraVerifier UltraComposer::create_verifier(CircuitConstructor& circuit_constructor)
 {
     auto verification_key = compute_verification_key(circuit_constructor);
 
@@ -324,8 +324,7 @@ plonk::UltraVerifier UltraPlonkComposerHelper::create_verifier(CircuitConstructo
  * @param circuit_constructor
  * @return UltraToStandardVerifier
  */
-UltraToStandardVerifier UltraPlonkComposerHelper::create_ultra_to_standard_verifier(
-    CircuitConstructor& circuit_constructor)
+UltraToStandardVerifier UltraComposer::create_ultra_to_standard_verifier(CircuitConstructor& circuit_constructor)
 {
     auto verification_key = compute_verification_key(circuit_constructor);
 
@@ -346,8 +345,7 @@ UltraToStandardVerifier UltraPlonkComposerHelper::create_ultra_to_standard_verif
  * @param circuit_constructor
  * @return UltraWithKeccakVerifier
  */
-UltraWithKeccakVerifier UltraPlonkComposerHelper::create_ultra_with_keccak_verifier(
-    CircuitConstructor& circuit_constructor)
+UltraWithKeccakVerifier UltraComposer::create_ultra_with_keccak_verifier(CircuitConstructor& circuit_constructor)
 {
     auto verification_key = compute_verification_key(circuit_constructor);
 
@@ -362,7 +360,7 @@ UltraWithKeccakVerifier UltraPlonkComposerHelper::create_ultra_with_keccak_verif
     return output_state;
 }
 
-std::shared_ptr<proving_key> UltraPlonkComposerHelper::compute_proving_key(CircuitConstructor& circuit_constructor)
+std::shared_ptr<proving_key> UltraComposer::compute_proving_key(CircuitConstructor& circuit_constructor)
 {
     if (circuit_proving_key) {
         return circuit_proving_key;
@@ -489,7 +487,7 @@ std::shared_ptr<proving_key> UltraPlonkComposerHelper::compute_proving_key(Circu
  * @return Pointer to created circuit verification key.
  * */
 
-std::shared_ptr<plonk::verification_key> UltraPlonkComposerHelper::compute_verification_key(
+std::shared_ptr<plonk::verification_key> UltraComposer::compute_verification_key(
     CircuitConstructor& circuit_constructor)
 {
     if (circuit_verification_key) {
@@ -513,8 +511,8 @@ std::shared_ptr<plonk::verification_key> UltraPlonkComposerHelper::compute_verif
     return circuit_verification_key;
 }
 
-void UltraPlonkComposerHelper::add_table_column_selector_poly_to_proving_key(polynomial& selector_poly_lagrange_form,
-                                                                             const std::string& tag)
+void UltraComposer::add_table_column_selector_poly_to_proving_key(polynomial& selector_poly_lagrange_form,
+                                                                  const std::string& tag)
 {
     polynomial selector_poly_lagrange_form_copy(selector_poly_lagrange_form, circuit_proving_key->small_domain.size);
 

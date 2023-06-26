@@ -19,7 +19,7 @@ auto& engine = numeric::random::get_debug_engine();
 TEST(turbo_plonk_composer, base_case)
 {
     auto builder = TurboCircuitConstructor();
-    auto composer = TurboPlonkComposerHelper();
+    auto composer = TurboComposer();
     fr a = fr::one();
     builder.add_public_variable(a);
 
@@ -35,7 +35,7 @@ TEST(turbo_plonk_composer, base_case)
 TEST(turbo_plonk_composer, composer_from_serialized_keys)
 {
     auto builder = TurboCircuitConstructor();
-    auto composer = TurboPlonkComposerHelper();
+    auto composer = TurboComposer();
     fr a = fr::one();
     builder.add_public_variable(a);
 
@@ -50,7 +50,7 @@ TEST(turbo_plonk_composer, composer_from_serialized_keys)
     auto verification_key = std::make_shared<plonk::verification_key>(std::move(vk_data), crs->get_verifier_crs());
 
     auto builder2 = TurboCircuitConstructor();
-    auto composer2 = TurboPlonkComposerHelper(proving_key, verification_key);
+    auto composer2 = TurboComposer(proving_key, verification_key);
     builder2.add_public_variable(a);
 
     auto prover = composer2.create_prover(builder);
@@ -65,7 +65,7 @@ TEST(turbo_plonk_composer, composer_from_serialized_keys)
 TEST(turbo_plonk_composer, test_add_gate_proofs)
 {
     auto builder = TurboCircuitConstructor();
-    auto composer = TurboPlonkComposerHelper();
+    auto composer = TurboComposer();
     fr a = fr::one();
     fr b = fr::one();
     fr c = a + b;
@@ -129,7 +129,7 @@ TEST(turbo_plonk_composer, test_add_gate_proofs)
 TEST(turbo_plonk_composer, test_mul_gate_proofs)
 {
     auto builder = TurboCircuitConstructor();
-    auto composer = TurboPlonkComposerHelper();
+    auto composer = TurboComposer();
     fr q[7]{ fr::random_element(), fr::random_element(), fr::random_element(), fr::random_element(),
              fr::random_element(), fr::random_element(), fr::random_element() };
     fr q_inv[7]{
@@ -284,7 +284,7 @@ TEST(turbo_plonk_composer, small_scalar_multipliers)
                                      (origin_points[0].y - origin_points[1].y) };
 
     auto builder = TurboCircuitConstructor();
-    auto composer = TurboPlonkComposerHelper();
+    auto composer = TurboComposer();
 
     fr x_alpha = accumulator_offset;
     for (size_t i = 0; i < num_quads; ++i) {
@@ -415,7 +415,7 @@ TEST(turbo_plonk_composer, large_scalar_multipliers)
                                      (origin_points[0].y - origin_points[1].y) };
 
     auto builder = TurboCircuitConstructor();
-    auto composer = TurboPlonkComposerHelper();
+    auto composer = TurboComposer();
 
     fr x_alpha = accumulator_offset;
     for (size_t i = 0; i < num_quads; ++i) {
@@ -480,7 +480,7 @@ TEST(turbo_plonk_composer, large_scalar_multipliers)
 TEST(turbo_plonk_composer, range_constraint)
 {
     auto builder = TurboCircuitConstructor();
-    auto composer = TurboPlonkComposerHelper();
+    auto composer = TurboComposer();
 
     for (size_t i = 0; i < 10; ++i) {
         uint32_t value = engine.get_random_uint32();
@@ -525,7 +525,7 @@ TEST(turbo_plonk_composer, range_constraint)
 TEST(turbo_plonk_composer, range_constraint_fail)
 {
     auto builder = TurboCircuitConstructor();
-    auto composer = TurboPlonkComposerHelper();
+    auto composer = TurboComposer();
 
     uint64_t value = 0xffffff;
     uint32_t witness_index = builder.add_variable(fr(value));
@@ -550,7 +550,7 @@ TEST(turbo_plonk_composer, range_constraint_fail)
 TEST(turbo_plonk_composer, and_constraint_failure)
 {
     auto builder = TurboCircuitConstructor();
-    auto composer = TurboPlonkComposerHelper();
+    auto composer = TurboComposer();
 
     uint32_t left_value = 4;
     fr left_witness_value = fr{ left_value, 0, 0, 0 }.to_montgomery_form();
@@ -581,7 +581,7 @@ TEST(turbo_plonk_composer, and_constraint_failure)
 TEST(turbo_plonk_composer, and_constraint)
 {
     auto builder = TurboCircuitConstructor();
-    auto composer = TurboPlonkComposerHelper();
+    auto composer = TurboComposer();
 
     for (size_t i = 0; i < /*10*/ 1; ++i) {
         uint32_t left_value = engine.get_random_uint32();
@@ -657,7 +657,7 @@ TEST(turbo_plonk_composer, and_constraint)
 TEST(turbo_plonk_composer, xor_constraint_failure)
 {
     auto builder = TurboCircuitConstructor();
-    auto composer = TurboPlonkComposerHelper();
+    auto composer = TurboComposer();
 
     uint32_t left_value = 4;
     fr left_witness_value = fr{ left_value, 0, 0, 0 }.to_montgomery_form();
@@ -688,7 +688,7 @@ TEST(turbo_plonk_composer, xor_constraint_failure)
 TEST(turbo_plonk_composer, xor_constraint)
 {
     auto builder = TurboCircuitConstructor();
-    auto composer = TurboPlonkComposerHelper();
+    auto composer = TurboComposer();
 
     for (size_t i = 0; i < /*10*/ 1; ++i) {
         uint32_t left_value = engine.get_random_uint32();
@@ -759,7 +759,7 @@ TEST(turbo_plonk_composer, xor_constraint)
 TEST(turbo_plonk_composer, big_add_gate_with_bit_extract)
 {
     auto builder = TurboCircuitConstructor();
-    auto composer = TurboPlonkComposerHelper();
+    auto composer = TurboComposer();
 
     const auto generate_constraints = [&](uint32_t quad_value) {
         uint32_t quad_accumulator_left =
@@ -810,7 +810,7 @@ TEST(turbo_plonk_composer, validate_copy_constraints)
                     continue;
                 }
                 auto builder = TurboCircuitConstructor();
-                auto composer = TurboPlonkComposerHelper();
+                auto composer = TurboComposer();
 
                 barretenberg::fr variables[4]{
                     barretenberg::fr::random_element(),
@@ -875,7 +875,7 @@ TEST(turbo_plonk_composer, validate_copy_constraints)
 TEST(turbo_plonk_composer, test_check_circuit_add_gate_proofs_correct)
 {
     auto builder = TurboCircuitConstructor();
-    auto composer = TurboPlonkComposerHelper();
+    auto composer = TurboComposer();
     fr a = fr::one();
     fr b = fr::one();
     fr c = a + b;
@@ -901,7 +901,7 @@ TEST(turbo_plonk_composer, test_check_circuit_add_gate_proofs_correct)
 TEST(turbo_plonk_composer, test_check_circuit_add_gate_proofs_broken)
 {
     auto builder = TurboCircuitConstructor();
-    auto composer = TurboPlonkComposerHelper();
+    auto composer = TurboComposer();
     fr a = fr::one();
     fr b = fr::one();
     fr c = a + b;
@@ -926,7 +926,7 @@ TEST(turbo_plonk_composer, test_check_circuit_add_gate_proofs_broken)
 TEST(turbo_plonk_composer, test_check_circuit_mul_gate_proofs_correct)
 {
     auto builder = TurboCircuitConstructor();
-    auto composer = TurboPlonkComposerHelper();
+    auto composer = TurboComposer();
     fr q[7]{ fr::random_element(), fr::random_element(), fr::random_element(), fr::random_element(),
              fr::random_element(), fr::random_element(), fr::random_element() };
     fr q_inv[7]{
@@ -962,7 +962,7 @@ TEST(turbo_plonk_composer, test_check_circuit_mul_gate_proofs_correct)
 TEST(turbo_plonk_composer, test_check_circuit_mul_gate_proofs_broken)
 {
     auto builder = TurboCircuitConstructor();
-    auto composer = TurboPlonkComposerHelper();
+    auto composer = TurboComposer();
     fr q[7]{ fr::random_element(), fr::random_element(), fr::random_element(), fr::random_element(),
              fr::random_element(), fr::random_element(), fr::random_element() };
     fr q_inv[7]{
@@ -1065,7 +1065,7 @@ TEST(turbo_plonk_composer, test_check_circuit_fixed_group)
                                      (origin_points[0].y - origin_points[1].y) };
 
     auto builder = TurboCircuitConstructor();
-    auto composer = TurboPlonkComposerHelper();
+    auto composer = TurboComposer();
 
     fr x_alpha = accumulator_offset;
     for (size_t i = 0; i < num_quads; ++i) {
@@ -1124,7 +1124,7 @@ TEST(turbo_plonk_composer, test_check_circuit_fixed_group)
 TEST(turbo_plonk_composer, test_check_circuit_range_constraint)
 {
     auto builder = TurboCircuitConstructor();
-    auto composer = TurboPlonkComposerHelper();
+    auto composer = TurboComposer();
 
     for (size_t i = 0; i < 10; ++i) {
         uint32_t value = engine.get_random_uint32();
@@ -1151,7 +1151,7 @@ TEST(turbo_plonk_composer, test_check_circuit_range_constraint)
 TEST(turbo_plonk_composer, test_check_circuit_xor)
 {
     auto builder = TurboCircuitConstructor();
-    auto composer = TurboPlonkComposerHelper();
+    auto composer = TurboComposer();
 
     for (size_t i = 0; i < /*10*/ 1; ++i) {
         uint32_t left_value = engine.get_random_uint32();

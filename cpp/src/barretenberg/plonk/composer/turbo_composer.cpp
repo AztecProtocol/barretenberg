@@ -28,8 +28,7 @@ namespace proof_system::plonk {
  *
  * @return Pointer to the initialized proving key updated with selector polynomials.
  * */
-std::shared_ptr<plonk::proving_key> TurboPlonkComposerHelper::compute_proving_key(
-    const CircuitConstructor& circuit_constructor)
+std::shared_ptr<plonk::proving_key> TurboComposer::compute_proving_key(const CircuitConstructor& circuit_constructor)
 {
     if (circuit_proving_key) {
         return circuit_proving_key;
@@ -61,7 +60,7 @@ std::shared_ptr<plonk::proving_key> TurboPlonkComposerHelper::compute_proving_ke
  *
  * @return Pointer to created circuit verification key.
  * */
-std::shared_ptr<plonk::verification_key> TurboPlonkComposerHelper::compute_verification_key(
+std::shared_ptr<plonk::verification_key> TurboComposer::compute_verification_key(
     const CircuitConstructor& circuit_constructor)
 {
     if (circuit_verification_key) {
@@ -90,8 +89,7 @@ std::shared_ptr<plonk::verification_key> TurboPlonkComposerHelper::compute_verif
  *
  * @tparam Program settings needed to establish if w_4 is being used.
  * */
-void TurboPlonkComposerHelper::compute_witness(const CircuitConstructor& circuit_constructor,
-                                               const size_t minimum_circuit_size)
+void TurboComposer::compute_witness(const CircuitConstructor& circuit_constructor, const size_t minimum_circuit_size)
 {
 
     if (computed_witness) {
@@ -116,7 +114,7 @@ void TurboPlonkComposerHelper::compute_witness(const CircuitConstructor& circuit
  *
  * @return Initialized prover.
  * */
-plonk::TurboProver TurboPlonkComposerHelper::create_prover(const CircuitConstructor& circuit_constructor)
+plonk::TurboProver TurboComposer::create_prover(const CircuitConstructor& circuit_constructor)
 {
     // Compute q_l, etc. and sigma polynomials.
     compute_proving_key(circuit_constructor);
@@ -154,7 +152,7 @@ plonk::TurboProver TurboPlonkComposerHelper::create_prover(const CircuitConstruc
  *
  * @return The verifier.
  * */
-plonk::TurboVerifier TurboPlonkComposerHelper::create_verifier(const CircuitConstructor& circuit_constructor)
+plonk::TurboVerifier TurboComposer::create_verifier(const CircuitConstructor& circuit_constructor)
 {
     auto verification_key = compute_verification_key(circuit_constructor);
 
