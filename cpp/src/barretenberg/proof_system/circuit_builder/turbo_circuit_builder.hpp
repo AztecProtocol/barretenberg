@@ -43,9 +43,6 @@ class TurboCircuitBuilder : public CircuitBuilderBase<arithmetization::Turbo<bar
     SelectorVector& q_logic = selectors.q_logic;
 
     TurboCircuitBuilder(const size_t size_hint = 0);
-    // This constructor is needed to simplify switching between circuit constructor and composer
-    TurboCircuitBuilder(std::string const&, const size_t size_hint = 0)
-        : TurboCircuitBuilder(size_hint){};
     TurboCircuitBuilder(TurboCircuitBuilder&& other) = default;
     TurboCircuitBuilder& operator=(TurboCircuitBuilder&& other)
     {
