@@ -1,0 +1,37 @@
+name: Deploy to bb.js repository
+
+on:
+  push:
+    branches:
+      - jb/bbjs-cra
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies and build
+        run: |
+          cd ts
+          yarn install
+          yarn build
+
+      - name: Checkout bb.js repository
+        uses: actions/checkout@v3
+        with:
+          repository: AztecProtocol/bb.js
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: bb.js
+
+      - name: Copy build output and commit
+        run: |
+          cp -R dest/* ../bb.js/
+          cd ../bb.js
+          # git config user.name "GitHub Actions"
+          # git config user.email "github-actions@github.com"
+          git add .
+          git commit -m "Deploy from barretenberg repository"
+          git push
