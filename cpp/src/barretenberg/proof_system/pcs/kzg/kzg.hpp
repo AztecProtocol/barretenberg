@@ -1,14 +1,14 @@
 #pragma once
 
 #include "../claim.hpp"
-#include "barretenberg/honk/pcs/commitment_key.hpp"
+#include "barretenberg/proof_system/pcs/commitment_key.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/honk/transcript/transcript.hpp"
+#include "barretenberg/proof_system/transcript/transcript.hpp"
 
 #include <memory>
 #include <utility>
 
-namespace proof_system::honk::pcs::kzg {
+namespace proof_system::pcs::kzg {
 
 template <typename Params> class KZG {
     using CK = typename Params::CommitmentKey;
@@ -65,4 +65,4 @@ template <typename Params> class KZG {
         return vk->pairing_check(lhs, rhs);
     };
 };
-} // namespace proof_system::honk::pcs::kzg
+} // namespace proof_system::pcs::kzg

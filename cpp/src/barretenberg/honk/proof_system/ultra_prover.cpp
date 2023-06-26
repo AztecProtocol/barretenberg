@@ -6,7 +6,7 @@
 #include <array>
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp" // will go away
 #include "barretenberg/honk/utils/power_polynomial.hpp"
-#include "barretenberg/honk/pcs/commitment_key.hpp"
+#include "barretenberg/proof_system/pcs/commitment_key.hpp"
 #include <memory>
 #include <span>
 #include <utility>
@@ -16,7 +16,7 @@
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/transcript/transcript_wrappers.hpp"
 #include <string>
-#include "barretenberg/honk/pcs/claim.hpp"
+#include "barretenberg/proof_system/pcs/claim.hpp"
 
 namespace proof_system::honk {
 

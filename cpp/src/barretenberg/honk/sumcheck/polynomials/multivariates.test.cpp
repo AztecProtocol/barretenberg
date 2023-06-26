@@ -3,7 +3,7 @@
 #include "barretenberg/honk/sumcheck/sumcheck.hpp"
 
 #include <gtest/gtest.h>
-#include "barretenberg/honk/transcript/transcript.hpp"
+#include "barretenberg/proof_system/transcript/transcript.hpp"
 #include "barretenberg/numeric/random/engine.hpp"
 #include "barretenberg/honk/flavor/standard.hpp"
 
@@ -46,7 +46,7 @@ TYPED_TEST(MultivariatesTests, FoldTwoRoundsSpecial)
 {
     using Flavor = TypeParam;
     using FF = typename Flavor::FF;
-    using Transcript = honk::ProverTranscript<FF>;
+    using Transcript = proof_system::ProverTranscript<FF>;
 
     // values here are chosen to check another test
     const size_t multivariate_d(2);
@@ -84,7 +84,7 @@ TYPED_TEST(MultivariatesTests, FoldTwoRoundsGeneric)
 {
     using Flavor = TypeParam;
     using FF = typename Flavor::FF;
-    using Transcript = honk::ProverTranscript<FF>;
+    using Transcript = proof_system::ProverTranscript<FF>;
 
     const size_t multivariate_d(2);
     const size_t multivariate_n(1 << multivariate_d);
@@ -141,7 +141,7 @@ TYPED_TEST(MultivariatesTests, FoldThreeRoundsSpecial)
 {
     using Flavor = TypeParam;
     using FF = typename Flavor::FF;
-    using Transcript = honk::ProverTranscript<FF>;
+    using Transcript = proof_system::ProverTranscript<FF>;
 
     const size_t multivariate_d(3);
     const size_t multivariate_n(1 << multivariate_d);
@@ -192,7 +192,7 @@ TYPED_TEST(MultivariatesTests, FoldThreeRoundsGeneric)
 {
     using Flavor = TypeParam;
     using FF = typename Flavor::FF;
-    using Transcript = honk::ProverTranscript<FF>;
+    using Transcript = proof_system::ProverTranscript<FF>;
 
     const size_t multivariate_d(3);
     const size_t multivariate_n(1 << multivariate_d);
@@ -243,7 +243,7 @@ TYPED_TEST(MultivariatesTests, FoldThreeRoundsGenericMultiplePolys)
 {
     using Flavor = TypeParam;
     using FF = typename Flavor::FF;
-    using Transcript = honk::ProverTranscript<FF>;
+    using Transcript = proof_system::ProverTranscript<FF>;
 
     const size_t multivariate_d(3);
     const size_t multivariate_n(1 << multivariate_d);

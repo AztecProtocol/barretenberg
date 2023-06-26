@@ -1,7 +1,7 @@
 #include "prover.hpp"
 #include "barretenberg/honk/proof_system/prover_library.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck.hpp"
-#include "barretenberg/honk/transcript/transcript.hpp"
+#include "barretenberg/proof_system/transcript/transcript.hpp"
 #include "barretenberg/honk/utils/power_polynomial.hpp"
 
 namespace proof_system::honk {

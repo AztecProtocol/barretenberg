@@ -5,16 +5,16 @@
 #include "barretenberg/ecc/scalar_multiplication/scalar_multiplication.hpp"
 #include <vector>
 #include "barretenberg/common/assert.hpp"
-#include "barretenberg/honk/pcs/claim.hpp"
-#include "barretenberg/honk/pcs/commitment_key.hpp"
-#include "barretenberg/honk/transcript/transcript.hpp"
+#include "barretenberg/proof_system/pcs/claim.hpp"
+#include "barretenberg/proof_system/pcs/commitment_key.hpp"
+#include "barretenberg/proof_system/transcript/transcript.hpp"
 
 /**
  * @brief IPA (inner-product argument) commitment scheme class. Conforms to the specification
  * https://hackmd.io/q-A8y6aITWyWJrvsGGMWNA?view.
  *
  */
-namespace proof_system::honk::pcs::ipa {
+namespace proof_system::pcs::ipa {
 
 template <typename Params> class IPA {
     using Fr = typename Params::Fr;
@@ -224,4 +224,4 @@ template <typename Params> class IPA {
     }
 };
 
-} // namespace proof_system::honk::pcs::ipa
+} // namespace proof_system::pcs::ipa

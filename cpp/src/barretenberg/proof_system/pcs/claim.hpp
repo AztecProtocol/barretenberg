@@ -1,8 +1,9 @@
 #pragma once
 
 #include "barretenberg/polynomials/polynomial.hpp"
+#include "commitment_key.hpp"
+namespace proof_system::pcs {
 
-namespace proof_system::honk::pcs {
 /**
  * @brief Opening pair (r,v) for some witness polynomial p(X) such that p(r) = v
  *
@@ -17,7 +18,6 @@ template <typename Params> class OpeningPair {
 
     bool operator==(const OpeningPair& other) const = default;
 };
-
 /**
  * @brief Unverified claim (C,r,v) for some witness polynomial p(X) such that
  *  - C = Commit(p(X))
@@ -44,16 +44,7 @@ template <typename Params> class OpeningClaim {
      * @param polynomial the claimed witness polynomial p(X)
      * @return C = Commit(p(X)) && p(r) = v
      */
-    bool verify(std::shared_ptr<CK> ck, const barretenberg::Polynomial<Fr>& polynomial) const
-    {
-        Fr real_eval = polynomial.evaluate(opening_pair.challenge);
-        if (real_eval != opening_pair.evaluation) {
-            return false;
-        }
-        // Note: real_commitment is a raw type, while commitment may be a linear combination.
-        auto real_commitment = ck->commit(polynomial);
-        return (real_commitment == commitment);
-    };
+    bool verify(std::shared_ptr<CK> ck, const barretenberg::Polynomial<Fr>& polynomial) const;
 
     bool operator==(const OpeningClaim& other) const = default;
 };
@@ -90,4 +81,11 @@ template <typename Params> class MLEOpeningClaim {
     // v↺ = g(u) = a₁⋅L₀(u) + … + aₙ₋₁⋅Lₙ₋₂(u)
     Fr evaluation;
 };
-} // namespace proof_system::honk::pcs
+
+extern template class OpeningPair<kzg::Params>;
+extern template class OpeningClaim<kzg::Params>;
+extern template class MLEOpeningClaim<kzg::Params>;
+extern template class OpeningPair<ipa::Params>;
+extern template class OpeningClaim<ipa::Params>;
+extern template class MLEOpeningClaim<ipa::Params>;
+} // namespace proof_system::pcs

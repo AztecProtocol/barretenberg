@@ -1,6 +1,6 @@
 #pragma once
 
-#include "barretenberg/honk/transcript/transcript.hpp"
+#include "barretenberg/proof_system/transcript/transcript.hpp"
 #include "barretenberg/srs/global_crs.hpp"
 #include <cstddef>
 #include <memory>
@@ -31,12 +31,12 @@ template <typename Params> class work_queue {
 
   private:
     // TODO(luke): Consider handling all transcript interactions in the prover rather than embedding them in the queue.
-    proof_system::honk::ProverTranscript<FF>& transcript;
+    proof_system::ProverTranscript<FF>& transcript;
     std::shared_ptr<CommitmentKey> commitment_key;
     std::vector<work_item> work_item_queue;
 
   public:
-    explicit work_queue(auto commitment_key, proof_system::honk::ProverTranscript<FF>& prover_transcript)
+    explicit work_queue(auto commitment_key, proof_system::ProverTranscript<FF>& prover_transcript)
         : transcript(prover_transcript)
         , commitment_key(commitment_key){};
 

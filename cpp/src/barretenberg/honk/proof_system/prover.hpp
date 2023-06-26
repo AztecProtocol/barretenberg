@@ -1,9 +1,9 @@
 #pragma once
-#include "barretenberg/honk/pcs/shplonk/shplonk.hpp"
+#include "barretenberg/proof_system/pcs/shplonk/shplonk.hpp"
 #include "barretenberg/plonk/proof_system/types/proof.hpp"
 #include "barretenberg/honk/pcs/gemini/gemini.hpp"
-#include "barretenberg/honk/pcs/shplonk/shplonk_single.hpp"
-#include "barretenberg/honk/transcript/transcript.hpp"
+#include "barretenberg/proof_system/pcs/shplonk/shplonk_single.hpp"
+#include "barretenberg/proof_system/transcript/transcript.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck_output.hpp"
 #include "barretenberg/honk/proof_system/prover_library.hpp"
@@ -73,11 +73,11 @@ template <StandardFlavor Flavor> class StandardProver_ {
 
     sumcheck::SumcheckOutput<Flavor> sumcheck_output;
     pcs::gemini::ProverOutput<PCSParams> gemini_output;
-    pcs::shplonk::ProverOutput<PCSParams> shplonk_output;
+    proof_system::pcs::shplonk::ProverOutput<PCSParams> shplonk_output;
     std::shared_ptr<PCSCommitmentKey> pcs_commitment_key;
 
     using Gemini = pcs::gemini::MultilinearReductionScheme<PCSParams>;
-    using Shplonk = pcs::shplonk::SingleBatchOpeningScheme<PCSParams>;
+    using Shplonk = proof_system::pcs::shplonk::SingleBatchOpeningScheme<PCSParams>;
 
   private:
     plonk::proof proof;
