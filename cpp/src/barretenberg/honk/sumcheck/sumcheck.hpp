@@ -170,7 +170,7 @@ template <typename Flavor, class Transcript> class Sumcheck {
             FF round_challenge = transcript.get_challenge("Sumcheck:u_" + std::to_string(round_idx));
             multivariate_challenge.emplace_back(round_challenge);
 
-            round.compute_next_target_sum(round_univariate, round_challenge, pow_univariate);
+            round.compute_next_target_sum(round_univariate, round_challenge);
             pow_univariate.partially_evaluate(round_challenge);
 
             if (!verified) {

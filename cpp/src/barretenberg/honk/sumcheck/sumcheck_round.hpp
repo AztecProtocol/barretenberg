@@ -205,18 +205,13 @@ template <typename Flavor> class SumcheckRound {
      * @param round_challenge u_l
      * @return FF sigma_{l+1} = S^l(u_l)
      */
-    FF compute_next_target_sum(Univariate<FF, MAX_RANDOM_RELATION_LENGTH>& univariate,
-                               FF& round_challenge,
-                               const PowUnivariate<FF>& pow_univariate)
+    FF compute_next_target_sum(Univariate<FF, MAX_RANDOM_RELATION_LENGTH>& univariate, FF& round_challenge)
     {
         // IMPROVEMENT(Cody): Use barycentric static method, maybe implement evaluation as member
         // function on Univariate.
         auto barycentric = BarycentricData<FF, MAX_RANDOM_RELATION_LENGTH, MAX_RANDOM_RELATION_LENGTH>();
         // Evaluate T^{l}(u_{l})
         target_total_sum = barycentric.evaluate(univariate, round_challenge);
-        // Evaluate (1−u_l) + u_l ⋅ ζ^{2^l} )
-        FF pow_monomial_eval = pow_univariate.univariate_eval(round_challenge);
-        // sigma_{l+1} = S^l(u_l) = (1−u_l) + u_l⋅ζ^{2^l} ) ⋅ T^{l}(u_l)
         return target_total_sum;
     }
 
@@ -295,8 +290,9 @@ template <typename Flavor> class SumcheckRound {
     {
         // Random poly R(X) = (1-X) + X.zeta_pow
         auto random_poly_edge = Univariate<FF, 2>({ 1, pow_univariate.zeta_pow });
-        BarycentricData<FF, 2, extended_size> barycentric_2_to_max_2 = BarycentricData<FF, 2, extended_size>();
-        Univariate<FF, extended_size> extended_random_polynomial_edge = barycentric_2_to_max_2.extend(random_poly_edge);
+        BarycentricData<FF, 2, extended_size> pow_zeta_univariate_extender = BarycentricData<FF, 2, extended_size>();
+        Univariate<FF, extended_size> extended_random_polynomial_edge =
+            pow_zeta_univariate_extender.extend(random_poly_edge);
 
         auto extend_and_sum = [&]<size_t relation_idx, size_t subrelation_idx, typename Element>(Element& element) {
             using Relation = std::tuple_element<relation_idx, Relations>::type;
