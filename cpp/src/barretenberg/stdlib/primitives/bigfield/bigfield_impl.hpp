@@ -2181,7 +2181,7 @@ void bigfield<C, T>::unsafe_evaluate_multiply_add(const bigfield& input_left,
                                                    "bigfield: carry_hi too large in unsafe_evaluate_multiply_add.");
         }
     }
-}
+} // namespace stdlib
 /**
  * Evaluate a quadratic relation involving multiple multiplications
  *
