@@ -102,8 +102,8 @@ std::shared_ptr<typename Flavor::VerificationKey> StandardHonkComposerHelper_<Fl
         return verification_key;
     }
 
-    verification_key = std::make_shared<typename Flavor::VerificationKey>(
-        proving_key->circuit_size, proving_key->num_public_inputs, proving_key->composer_type);
+    verification_key =
+        std::make_shared<typename Flavor::VerificationKey>(proving_key->circuit_size, proving_key->num_public_inputs);
 
     // Compute and store commitments to all precomputed polynomials
     verification_key->q_m = commitment_key->commit(proving_key->q_m);
@@ -119,8 +119,6 @@ std::shared_ptr<typename Flavor::VerificationKey> StandardHonkComposerHelper_<Fl
     verification_key->id_3 = commitment_key->commit(proving_key->id_3);
     verification_key->lagrange_first = commitment_key->commit(proving_key->lagrange_first);
     verification_key->lagrange_last = commitment_key->commit(proving_key->lagrange_last);
-
-    verification_key->composer_type = proving_key->composer_type;
 
     return verification_key;
 }

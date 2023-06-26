@@ -48,8 +48,7 @@ struct proving_key {
 
     proving_key(const size_t num_gates,
                 const size_t num_inputs,
-                std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> const& crs,
-                ComposerType type);
+                std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> const& crs);
 
     proving_key(std::ostream& is, std::string const& crs_path);
 

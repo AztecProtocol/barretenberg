@@ -107,7 +107,7 @@ class PrecomputedEntities_ : public Entities_<DataType_, HandleType, NUM_PRECOMP
     size_t circuit_size;
     size_t log_circuit_size;
     size_t num_public_inputs;
-    ComposerType composer_type; // TODO(#392)
+    CircuitType circuit_type; // TODO(#392)
 
     virtual std::vector<HandleType> get_selectors() = 0;
     virtual std::vector<HandleType> get_sigma_polynomials() = 0;
@@ -145,15 +145,12 @@ class ProvingKey_ : public PrecomputedPolynomials, public WitnessPolynomials {
     barretenberg::EvaluationDomain<FF> evaluation_domain;
 
     ProvingKey_() = default;
-    ProvingKey_(const size_t circuit_size,
-                const size_t num_public_inputs,
-                ComposerType composer_type = ComposerType::UNDEFINED)
+    ProvingKey_(const size_t circuit_size, const size_t num_public_inputs)
     {
         this->evaluation_domain = barretenberg::EvaluationDomain<FF>(circuit_size, circuit_size);
         PrecomputedPolynomials::circuit_size = circuit_size;
         this->log_circuit_size = numeric::get_msb(circuit_size);
         this->num_public_inputs = num_public_inputs;
-        this->composer_type = composer_type;
         // Allocate memory for precomputed polynomials
         for (auto& poly : _precomputed_polynomials) {
             poly = Polynomial(circuit_size);
@@ -173,12 +170,11 @@ class ProvingKey_ : public PrecomputedPolynomials, public WitnessPolynomials {
 template <typename PrecomputedCommitments> class VerificationKey_ : public PrecomputedCommitments {
   public:
     VerificationKey_() = default;
-    VerificationKey_(const size_t circuit_size, const size_t num_public_inputs, ComposerType composer_type)
+    VerificationKey_(const size_t circuit_size, const size_t num_public_inputs)
     {
         this->circuit_size = circuit_size;
         this->log_circuit_size = numeric::get_msb(circuit_size);
         this->num_public_inputs = num_public_inputs;
-        this->composer_type = composer_type;
     };
 };
 

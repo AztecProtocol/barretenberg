@@ -309,8 +309,8 @@ std::shared_ptr<typename Flavor::VerificationKey> UltraHonkComposerHelper_<Flavo
         compute_proving_key(circuit_constructor);
     }
 
-    verification_key = std::make_shared<typename Flavor::VerificationKey>(
-        proving_key->circuit_size, proving_key->num_public_inputs, proving_key->composer_type);
+    verification_key =
+        std::make_shared<typename Flavor::VerificationKey>(proving_key->circuit_size, proving_key->num_public_inputs);
 
     // Compute and store commitments to all precomputed polynomials
     verification_key->q_m = commitment_key->commit(proving_key->q_m);

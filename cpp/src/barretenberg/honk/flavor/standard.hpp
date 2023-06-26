@@ -87,6 +87,8 @@ class Standard {
         DataType& lagrange_first = std::get<11>(this->_data);
         DataType& lagrange_last = std::get<12>(this->_data); // = LAGRANGE_N-1 whithout ZK, but can be less
 
+        static constexpr CircuitType CIRCUIT_TYPE = CircuitConstructor::CIRCUIT_TYPE;
+
         std::vector<HandleType> get_selectors() override { return { q_m, q_l, q_r, q_o, q_c }; };
         std::vector<HandleType> get_sigma_polynomials() override { return { sigma_1, sigma_2, sigma_3 }; };
         std::vector<HandleType> get_id_polynomials() override { return { id_1, id_2, id_3 }; };

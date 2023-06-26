@@ -104,6 +104,8 @@ class Ultra {
         DataType& lagrange_first = std::get<23>(this->_data);
         DataType& lagrange_last = std::get<24>(this->_data);
 
+        static constexpr CircuitType CIRCUIT_TYPE = CircuitConstructor::CIRCUIT_TYPE;
+
         std::vector<HandleType> get_selectors() override
         {
             return { q_m, q_c, q_l, q_r, q_o, q_4, q_arith, q_sort, q_elliptic, q_aux, q_lookup };

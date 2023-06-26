@@ -22,8 +22,7 @@ std::shared_ptr<typename Flavor::ProvingKey> initialize_proving_key(
     const typename Flavor::CircuitConstructor& circuit_constructor,
     barretenberg::srs::factories::CrsFactory* crs_factory,
     const size_t minimum_circuit_size,
-    const size_t num_randomized_gates,
-    ComposerType composer_type = ComposerType::UNDEFINED)
+    const size_t num_randomized_gates)
 {
     const size_t num_gates = circuit_constructor.num_gates;
     std::span<const uint32_t> public_inputs = circuit_constructor.public_inputs;
@@ -37,11 +36,10 @@ std::shared_ptr<typename Flavor::ProvingKey> initialize_proving_key(
     // Differentiate between Honk and Plonk here since Plonk pkey requires crs whereas Honk pkey does not
     std::shared_ptr<typename Flavor::ProvingKey> proving_key;
     if constexpr (IsHonkFlavor<Flavor>) {
-        proving_key = std::make_shared<typename Flavor::ProvingKey>(subgroup_size, num_public_inputs, composer_type);
+        proving_key = std::make_shared<typename Flavor::ProvingKey>(subgroup_size, num_public_inputs);
     } else if constexpr (IsPlonkFlavor<Flavor>) {
         auto crs = crs_factory->get_prover_crs(subgroup_size + 1);
-        proving_key =
-            std::make_shared<typename Flavor::ProvingKey>(subgroup_size, num_public_inputs, crs, composer_type);
+        proving_key = std::make_shared<typename Flavor::ProvingKey>(subgroup_size, num_public_inputs, crs);
     }
 
     return proving_key;

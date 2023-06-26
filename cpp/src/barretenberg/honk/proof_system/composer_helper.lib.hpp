@@ -21,7 +21,7 @@ std::shared_ptr<typename Flavor::VerificationKey> compute_verification_key_commo
     std::shared_ptr<barretenberg::srs::factories::VerifierCrs> const& vrs)
 {
     auto verification_key = std::make_shared<typename Flavor::VerificationKey>(
-        proving_key->circuit_size, proving_key->num_public_inputs, vrs, proving_key->composer_type);
+        proving_key->circuit_size, proving_key->num_public_inputs, vrs);
 
     auto commitment_key = typename Flavor::PCSParams::CommitmentKey(proving_key->circuit_size, proving_key->crs);
 
