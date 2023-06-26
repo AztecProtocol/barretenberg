@@ -295,7 +295,7 @@ template <typename Flavor> class SumcheckRound {
             pow_zeta_univariate_extender.extend(random_poly_edge);
 
         auto extend_and_sum = [&]<size_t relation_idx, size_t subrelation_idx, typename Element>(Element& element) {
-            using Relation = std::tuple_element<relation_idx, Relations>::type;
+            using Relation = typename std::tuple_element<relation_idx, Relations>::type;
 
             // TODO(#224)(Cody): this barycentric stuff should be more built-in?
             BarycentricData<FF, Element::LENGTH, extended_size> barycentric_utils;
