@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1687788210626,
+  "lastUpdate": 1687788213901,
   "repoUrl": "https://github.com/AztecProtocol/barretenberg",
   "entries": {
     "C++ Benchmark": [
@@ -1632,6 +1632,54 @@ window.BENCHMARK_DATA = {
             "value": 3.5647186029999602,
             "unit": "s/iter",
             "extra": "iterations: 1\ncpu: 1.7157972000000044 s\nthreads: 1"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "suyash@aztecprotocol.com",
+            "name": "Suyash Bagad",
+            "username": "suyash67"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5cf856c5c29c9f9b8abb87d7bde23b4932711350",
+          "message": "fix:  Ecdsa Malleability Bug (#512)\n\nCo-authored-by: Rumata888 <isennovskiy@gmail.com>",
+          "timestamp": "2023-06-26T15:56:44+02:00",
+          "tree_id": "71fec588bd9b5bf17675089246abff6518375a10",
+          "url": "https://github.com/AztecProtocol/barretenberg/commit/5cf856c5c29c9f9b8abb87d7bde23b4932711350"
+        },
+        "date": 1687788208828,
+        "tool": "googlecpp",
+        "benches": [
+          {
+            "name": "construct_proof_ultra/sha256/10/repeats:1",
+            "value": 6.994841019999967,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 4.801062900000001 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/keccak/10/repeats:1",
+            "value": 15.231554903000017,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 12.733404799999999 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/ecdsa_verification/10/repeats:1",
+            "value": 26.445756750999976,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 23.778272500000003 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/merkle_membership/10/repeats:1",
+            "value": 3.670694402000038,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 1.8374882000000028 s\nthreads: 1"
           }
         ]
       },
