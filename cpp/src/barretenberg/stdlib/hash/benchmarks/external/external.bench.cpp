@@ -12,7 +12,7 @@
 
 using namespace benchmark;
 
-using Builder = proof_system::UltraCircuitConstructor;
+using Builder = proof_system::UltraCircuitBuilder;
 using Composer = proof_system::plonk::UltraComposer;
 
 using Prover = proof_system::plonk::UltraProver;

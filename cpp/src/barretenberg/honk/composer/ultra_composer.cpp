@@ -10,7 +10,7 @@ namespace proof_system::honk {
  * @brief Compute witness polynomials
  *
  */
-template <UltraFlavor Flavor> void UltraComposer_<Flavor>::compute_witness(CircuitConstructor& circuit_constructor)
+template <UltraFlavor Flavor> void UltraComposer_<Flavor>::compute_witness(CircuitBuilder& circuit_constructor)
 {
     if (computed_witness) {
         return;
@@ -146,7 +146,7 @@ template <UltraFlavor Flavor> void UltraComposer_<Flavor>::compute_witness(Circu
 }
 
 template <UltraFlavor Flavor>
-UltraProver_<Flavor> UltraComposer_<Flavor>::create_prover(CircuitConstructor& circuit_constructor)
+UltraProver_<Flavor> UltraComposer_<Flavor>::create_prover(CircuitBuilder& circuit_constructor)
 {
     circuit_constructor.add_gates_to_ensure_all_polys_are_non_zero();
     circuit_constructor.finalize_circuit();
@@ -168,7 +168,7 @@ UltraProver_<Flavor> UltraComposer_<Flavor>::create_prover(CircuitConstructor& c
  * @return The verifier.
  * */
 template <UltraFlavor Flavor>
-UltraVerifier_<Flavor> UltraComposer_<Flavor>::create_verifier(const CircuitConstructor& circuit_constructor)
+UltraVerifier_<Flavor> UltraComposer_<Flavor>::create_verifier(const CircuitBuilder& circuit_constructor)
 {
     auto verification_key = compute_verification_key(circuit_constructor);
 
@@ -183,7 +183,7 @@ UltraVerifier_<Flavor> UltraComposer_<Flavor>::create_verifier(const CircuitCons
 
 template <UltraFlavor Flavor>
 std::shared_ptr<typename Flavor::ProvingKey> UltraComposer_<Flavor>::compute_proving_key(
-    const CircuitConstructor& circuit_constructor)
+    const CircuitBuilder& circuit_constructor)
 {
     if (proving_key) {
         return proving_key;
@@ -298,7 +298,7 @@ std::shared_ptr<typename Flavor::ProvingKey> UltraComposer_<Flavor>::compute_pro
  * */
 template <UltraFlavor Flavor>
 std::shared_ptr<typename Flavor::VerificationKey> UltraComposer_<Flavor>::compute_verification_key(
-    const CircuitConstructor& circuit_constructor)
+    const CircuitBuilder& circuit_constructor)
 {
     if (verification_key) {
         return verification_key;

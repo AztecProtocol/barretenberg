@@ -17,7 +17,7 @@ using namespace barretenberg;
 using namespace proof_system::plonk::stdlib::merkle_tree;
 using namespace proof_system::plonk::stdlib;
 
-using Composer = proof_system::UltraCircuitConstructor;
+using Composer = proof_system::UltraCircuitBuilder;
 
 using bool_ct = bool_t<Composer>;
 using field_ct = field_t<Composer>;

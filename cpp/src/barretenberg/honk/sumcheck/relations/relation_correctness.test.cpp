@@ -82,7 +82,7 @@ TEST_F(RelationCorrectnessTests, StandardRelationCorrectness)
     // using ClaimedEvaluations = typename Flavor::ClaimedEvaluations;
 
     // Create a composer and a dummy circuit with a few gates
-    auto circuit_constructor = StandardCircuitConstructor();
+    auto circuit_constructor = StandardCircuitBuilder();
     fr a = fr::one();
     // Using the public variable to check that public_input_delta is computed and added to the relation correctly
     uint32_t a_idx = circuit_constructor.add_public_variable(a);
@@ -175,7 +175,7 @@ TEST_F(RelationCorrectnessTests, UltraRelationCorrectness)
 
     // Create a composer and then add an assortment of gates designed to ensure that the constraint(s) represented
     // by each relation are non-trivially exercised.
-    auto circuit_constructor = UltraCircuitConstructor();
+    auto circuit_constructor = UltraCircuitBuilder();
 
     barretenberg::fr pedersen_input_value = fr::random_element();
     fr a = fr::one();

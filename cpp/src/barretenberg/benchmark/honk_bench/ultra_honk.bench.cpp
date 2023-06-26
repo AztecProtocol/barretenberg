@@ -9,7 +9,7 @@ using namespace proof_system::plonk;
 
 namespace ultra_honk_bench {
 
-using UltraBuilder = proof_system::UltraCircuitConstructor;
+using UltraBuilder = proof_system::UltraCircuitBuilder;
 using UltraHonk = proof_system::honk::UltraComposer;
 
 // Number of times to perform operation of interest in the benchmark circuits, e.g. # of hashes to perform

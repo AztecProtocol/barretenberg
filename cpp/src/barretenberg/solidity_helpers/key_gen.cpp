@@ -15,7 +15,7 @@ template <typename Composer, template <typename> typename Circuit>
 void generate_keys(std::string output_path, std::string flavour_prefix, std::string circuit_name)
 {
     uint256_t public_inputs[4] = { 0, 0, 0, 0 };
-    auto circuit = Circuit<typename Composer::CircuitConstructor>::generate(public_inputs);
+    auto circuit = Circuit<typename Composer::CircuitBuilder>::generate(public_inputs);
 
     Composer composer;
     std::shared_ptr<plonk::verification_key> vkey = composer.compute_verification_key(circuit);

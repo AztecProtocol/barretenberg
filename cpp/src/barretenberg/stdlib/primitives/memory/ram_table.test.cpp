@@ -8,7 +8,7 @@ namespace test_stdlib_ram_table {
 
 using namespace proof_system::plonk;
 // Defining ultra-specific types for local testing.
-using Composer = proof_system::UltraCircuitConstructor;
+using Composer = proof_system::UltraCircuitBuilder;
 using field_ct = stdlib::field_t<Composer>;
 using witness_ct = stdlib::witness_t<Composer>;
 using ram_table_ct = stdlib::ram_table<Composer>;

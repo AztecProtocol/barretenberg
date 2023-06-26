@@ -823,8 +823,8 @@ template <typename TestType> class stdlib_biggroup : public testing::Test {
 };
 
 enum UseBigfield { No, Yes };
-using TestTypes = testing::Types<TestType<stdlib::bn254<proof_system::StandardCircuitConstructor>, UseBigfield::No>,
-                                 TestType<stdlib::bn254<proof_system::UltraCircuitConstructor>, UseBigfield::Yes>>;
+using TestTypes = testing::Types<TestType<stdlib::bn254<proof_system::StandardCircuitBuilder>, UseBigfield::No>,
+                                 TestType<stdlib::bn254<proof_system::UltraCircuitBuilder>, UseBigfield::Yes>>;
 
 TYPED_TEST_SUITE(stdlib_biggroup, TestTypes);
 

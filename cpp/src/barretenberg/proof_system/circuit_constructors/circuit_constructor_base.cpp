@@ -10,9 +10,9 @@ namespace proof_system {
  * @param msg Class tag.
  * */
 template <typename Arithmetization>
-void CircuitConstructorBase<Arithmetization>::assert_equal(const uint32_t a_variable_idx,
-                                                           const uint32_t b_variable_idx,
-                                                           std::string const& msg)
+void CircuitBuilderBase<Arithmetization>::assert_equal(const uint32_t a_variable_idx,
+                                                       const uint32_t b_variable_idx,
+                                                       std::string const& msg)
 {
     assert_valid_variables({ a_variable_idx, b_variable_idx });
     bool values_equal = (get_variable(a_variable_idx) == get_variable(b_variable_idx));
@@ -41,7 +41,7 @@ void CircuitConstructorBase<Arithmetization>::assert_equal(const uint32_t a_vari
         real_variable_tags[a_real_idx] = real_variable_tags[b_real_idx];
 }
 // Standard honk/ plonk instantiation
-template class CircuitConstructorBase<arithmetization::Standard<barretenberg::fr>>;
-template class CircuitConstructorBase<arithmetization::Turbo<barretenberg::fr>>;
-template class CircuitConstructorBase<arithmetization::Ultra<barretenberg::fr>>;
+template class CircuitBuilderBase<arithmetization::Standard<barretenberg::fr>>;
+template class CircuitBuilderBase<arithmetization::Turbo<barretenberg::fr>>;
+template class CircuitBuilderBase<arithmetization::Ultra<barretenberg::fr>>;
 } // namespace proof_system

@@ -13,7 +13,7 @@ inline std::vector<std::string> turbo_selector_names()
                                      "q_5", "q_arith", "q_fixed_base", "q_range", "q_logic" };
     return result;
 }
-class TurboCircuitConstructor : public CircuitConstructorBase<arithmetization::Turbo<barretenberg::fr>> {
+class TurboCircuitBuilder : public CircuitBuilderBase<arithmetization::Turbo<barretenberg::fr>> {
   public:
     static constexpr std::string_view NAME_STRING = "TurboArithmetization";
     static constexpr CircuitType CIRCUIT_TYPE = CircuitType::TURBO;
@@ -42,18 +42,18 @@ class TurboCircuitConstructor : public CircuitConstructorBase<arithmetization::T
     SelectorVector& q_range = selectors.q_range;
     SelectorVector& q_logic = selectors.q_logic;
 
-    TurboCircuitConstructor(const size_t size_hint = 0);
+    TurboCircuitBuilder(const size_t size_hint = 0);
     // This constructor is needed to simplify switching between circuit constructor and composer
-    TurboCircuitConstructor(std::string const&, const size_t size_hint = 0)
-        : TurboCircuitConstructor(size_hint){};
-    TurboCircuitConstructor(TurboCircuitConstructor&& other) = default;
-    TurboCircuitConstructor& operator=(TurboCircuitConstructor&& other)
+    TurboCircuitBuilder(std::string const&, const size_t size_hint = 0)
+        : TurboCircuitBuilder(size_hint){};
+    TurboCircuitBuilder(TurboCircuitBuilder&& other) = default;
+    TurboCircuitBuilder& operator=(TurboCircuitBuilder&& other)
     {
-        CircuitConstructorBase<arithmetization::Turbo<barretenberg::fr>>::operator=(std::move(other));
+        CircuitBuilderBase<arithmetization::Turbo<barretenberg::fr>>::operator=(std::move(other));
         constant_variable_indices = other.constant_variable_indices;
         return *this;
     };
-    ~TurboCircuitConstructor() {}
+    ~TurboCircuitBuilder() {}
 
     void create_add_gate(const add_triple& in);
 

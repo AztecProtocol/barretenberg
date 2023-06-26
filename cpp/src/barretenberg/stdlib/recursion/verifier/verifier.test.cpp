@@ -18,9 +18,9 @@ namespace proof_system::plonk::stdlib {
 template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
     using InnerComposer = proof_system::plonk::UltraComposer;
-    using InnerBuilder = typename InnerComposer::CircuitConstructor;
+    using InnerBuilder = typename InnerComposer::CircuitBuilder;
 
-    using OuterBuilder = typename OuterComposer::CircuitConstructor;
+    using OuterBuilder = typename OuterComposer::CircuitBuilder;
 
     using inner_curve = bn254<InnerBuilder>;
     using outer_curve = bn254<OuterBuilder>;

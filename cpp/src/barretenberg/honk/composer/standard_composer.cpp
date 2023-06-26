@@ -24,7 +24,7 @@ namespace proof_system::honk {
  * */
 template <StandardFlavor Flavor>
 std::shared_ptr<typename Flavor::ProvingKey> StandardComposer_<Flavor>::compute_proving_key_base(
-    const CircuitConstructor& constructor, const size_t minimum_circuit_size, const size_t num_randomized_gates)
+    const CircuitBuilder& constructor, const size_t minimum_circuit_size, const size_t num_randomized_gates)
 {
     // Initialize proving_key
     // TODO(#392)(Kesha): replace composer types.
@@ -46,7 +46,7 @@ std::shared_ptr<typename Flavor::ProvingKey> StandardComposer_<Flavor>::compute_
  * @tparam Program settings needed to establish if w_4 is being used.
  * */
 template <StandardFlavor Flavor>
-void StandardComposer_<Flavor>::compute_witness(const CircuitConstructor& circuit_constructor,
+void StandardComposer_<Flavor>::compute_witness(const CircuitBuilder& circuit_constructor,
                                                 const size_t minimum_circuit_size)
 {
     if (computed_witness) {
@@ -71,7 +71,7 @@ void StandardComposer_<Flavor>::compute_witness(const CircuitConstructor& circui
 
 template <StandardFlavor Flavor>
 std::shared_ptr<typename Flavor::ProvingKey> StandardComposer_<Flavor>::compute_proving_key(
-    const CircuitConstructor& circuit_constructor)
+    const CircuitBuilder& circuit_constructor)
 {
     if (proving_key) {
         return proving_key;
@@ -95,7 +95,7 @@ std::shared_ptr<typename Flavor::ProvingKey> StandardComposer_<Flavor>::compute_
  * */
 template <StandardFlavor Flavor>
 std::shared_ptr<typename Flavor::VerificationKey> StandardComposer_<Flavor>::compute_verification_key(
-    const CircuitConstructor& circuit_constructor)
+    const CircuitBuilder& circuit_constructor)
 {
     if (verification_key) {
         return verification_key;
@@ -123,7 +123,7 @@ std::shared_ptr<typename Flavor::VerificationKey> StandardComposer_<Flavor>::com
 }
 
 template <StandardFlavor Flavor>
-StandardVerifier_<Flavor> StandardComposer_<Flavor>::create_verifier(const CircuitConstructor& circuit_constructor)
+StandardVerifier_<Flavor> StandardComposer_<Flavor>::create_verifier(const CircuitBuilder& circuit_constructor)
 {
     compute_verification_key(circuit_constructor);
     StandardVerifier_<Flavor> output_state(verification_key);
@@ -137,7 +137,7 @@ StandardVerifier_<Flavor> StandardComposer_<Flavor>::create_verifier(const Circu
 }
 
 template <StandardFlavor Flavor>
-StandardProver_<Flavor> StandardComposer_<Flavor>::create_prover(const CircuitConstructor& circuit_constructor)
+StandardProver_<Flavor> StandardComposer_<Flavor>::create_prover(const CircuitBuilder& circuit_constructor)
 {
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);

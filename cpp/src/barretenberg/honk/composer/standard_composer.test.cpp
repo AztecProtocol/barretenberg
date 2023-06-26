@@ -32,7 +32,7 @@ class StandardHonkComposerTests : public ::testing::Test {
  */
 TEST_F(StandardHonkComposerTests, SigmaIDCorrectness)
 {
-    auto test_permutation = [](StandardCircuitConstructor& circuit_constructor, StandardComposer& composer) {
+    auto test_permutation = [](StandardCircuitBuilder& circuit_constructor, StandardComposer& composer) {
         auto proving_key = composer.compute_proving_key(circuit_constructor);
         const auto n = proving_key->circuit_size;
 
@@ -114,7 +114,7 @@ TEST_F(StandardHonkComposerTests, SigmaIDCorrectness)
         EXPECT_EQ(left, right);
     };
 
-    auto circuit_constructor = StandardCircuitConstructor();
+    auto circuit_constructor = StandardCircuitBuilder();
     fr a = fr::one();
     uint32_t a_idx = circuit_constructor.add_variable(a);
     fr b = fr::one();
@@ -147,7 +147,7 @@ TEST_F(StandardHonkComposerTests, SigmaIDCorrectness)
 TEST_F(StandardHonkComposerTests, LagrangeCorrectness)
 {
     // Create a dummy circuit with a few gates
-    auto circuit_constructor = StandardCircuitConstructor();
+    auto circuit_constructor = StandardCircuitBuilder();
     fr a = fr::one();
     uint32_t a_idx = circuit_constructor.add_variable(a);
     fr b = fr::one();
@@ -277,8 +277,8 @@ TEST_F(StandardHonkComposerTests, AssertEquals)
     };
 
     // Get 2 circuits
-    auto circuit_constructor_no_assert_equal = StandardCircuitConstructor();
-    auto circuit_constructor_with_assert_equal = StandardCircuitConstructor();
+    auto circuit_constructor_no_assert_equal = StandardCircuitBuilder();
+    auto circuit_constructor_with_assert_equal = StandardCircuitBuilder();
 
     // Construct circuits
     create_simple_circuit(circuit_constructor_no_assert_equal);
@@ -300,7 +300,7 @@ TEST_F(StandardHonkComposerTests, VerificationKeyCreation)
 {
 
     // Create a composer and a dummy circuit with a few gates
-    auto circuit_constructor = StandardCircuitConstructor();
+    auto circuit_constructor = StandardCircuitBuilder();
     fr a = fr::one();
     uint32_t a_idx = circuit_constructor.add_variable(a);
     fr b = fr::one();
@@ -326,7 +326,7 @@ TEST_F(StandardHonkComposerTests, VerificationKeyCreation)
 
 TEST_F(StandardHonkComposerTests, BaseCase)
 {
-    auto circuit_constructor = StandardCircuitConstructor();
+    auto circuit_constructor = StandardCircuitBuilder();
     fr a = 1;
     circuit_constructor.add_variable(a);
 
@@ -341,7 +341,7 @@ TEST_F(StandardHonkComposerTests, BaseCase)
 TEST_F(StandardHonkComposerTests, TwoGates)
 {
     auto run_test = [](bool expect_verified) {
-        auto circuit_constructor = StandardCircuitConstructor();
+        auto circuit_constructor = StandardCircuitBuilder();
         // 1 + 1 - 2 = 0
         uint32_t w_l_1_idx;
         if (expect_verified) {
@@ -376,7 +376,7 @@ TEST_F(StandardHonkComposerTests, TwoGates)
 TEST_F(StandardHonkComposerTests, SumcheckEvaluations)
 {
     auto run_test = [](bool expected_result) {
-        auto circuit_constructor = StandardCircuitConstructor();
+        auto circuit_constructor = StandardCircuitBuilder();
         fr a = fr::one();
         // Construct a small but non-trivial circuit
         uint32_t a_idx = circuit_constructor.add_public_variable(a);
@@ -410,7 +410,7 @@ TEST_F(StandardHonkComposerTests, SumcheckEvaluations)
 }
 TEST(StandardGrumpkinHonkComposer, BaseCase)
 {
-    auto circuit_constructor = StandardCircuitConstructor();
+    auto circuit_constructor = StandardCircuitBuilder();
     fr a = 1;
     circuit_constructor.add_variable(a);
 

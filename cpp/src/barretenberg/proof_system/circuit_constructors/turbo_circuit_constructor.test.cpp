@@ -12,7 +12,7 @@ auto& engine = numeric::random::get_debug_engine();
 namespace proof_system {
 TEST(turbo_circuit_constructor, base_case)
 {
-    TurboCircuitConstructor circuit_constructor = TurboCircuitConstructor();
+    TurboCircuitBuilder circuit_constructor = TurboCircuitBuilder();
     fr a = fr::one();
     circuit_constructor.add_public_variable(a);
     bool result = circuit_constructor.check_circuit();
@@ -21,7 +21,7 @@ TEST(turbo_circuit_constructor, base_case)
 
 TEST(turbo_circuit_constructor, test_add_gate_proofs)
 {
-    TurboCircuitConstructor circuit_constructor = TurboCircuitConstructor();
+    TurboCircuitBuilder circuit_constructor = TurboCircuitBuilder();
     fr a = fr::one();
     fr b = fr::one();
     fr c = a + b;
@@ -78,7 +78,7 @@ TEST(turbo_circuit_constructor, test_add_gate_proofs)
 
 TEST(turbo_circuit_constructor, test_mul_gate_proofs)
 {
-    TurboCircuitConstructor circuit_constructor = TurboCircuitConstructor();
+    TurboCircuitBuilder circuit_constructor = TurboCircuitBuilder();
     fr q[7]{ fr::random_element(), fr::random_element(), fr::random_element(), fr::random_element(),
              fr::random_element(), fr::random_element(), fr::random_element() };
     fr q_inv[7]{
@@ -226,7 +226,7 @@ TEST(turbo_circuit_constructor, small_scalar_multipliers)
                                      origin_points[0].y,
                                      (origin_points[0].y - origin_points[1].y) };
 
-    TurboCircuitConstructor circuit_constructor = TurboCircuitConstructor();
+    TurboCircuitBuilder circuit_constructor = TurboCircuitBuilder();
 
     fr x_alpha = accumulator_offset;
     for (size_t i = 0; i < num_quads; ++i) {
@@ -350,7 +350,7 @@ TEST(turbo_circuit_constructor, large_scalar_multipliers)
                                      origin_points[0].y,
                                      (origin_points[0].y - origin_points[1].y) };
 
-    TurboCircuitConstructor circuit_constructor = TurboCircuitConstructor();
+    TurboCircuitBuilder circuit_constructor = TurboCircuitBuilder();
 
     fr x_alpha = accumulator_offset;
     for (size_t i = 0; i < num_quads; ++i) {
@@ -407,7 +407,7 @@ TEST(turbo_circuit_constructor, large_scalar_multipliers)
 
 TEST(turbo_circuit_constructor, range_constraint)
 {
-    TurboCircuitConstructor circuit_constructor = TurboCircuitConstructor();
+    TurboCircuitBuilder circuit_constructor = TurboCircuitBuilder();
 
     for (size_t i = 0; i < 10; ++i) {
         uint32_t value = engine.get_random_uint32();
@@ -445,7 +445,7 @@ TEST(turbo_circuit_constructor, range_constraint)
 
 TEST(turbo_circuit_constructor, range_constraint_fail)
 {
-    TurboCircuitConstructor circuit_constructor = TurboCircuitConstructor();
+    TurboCircuitBuilder circuit_constructor = TurboCircuitBuilder();
 
     uint64_t value = 0xffffff;
     uint32_t witness_index = circuit_constructor.add_variable(fr(value));
@@ -463,7 +463,7 @@ TEST(turbo_circuit_constructor, range_constraint_fail)
  */
 TEST(turbo_circuit_constructor, and_constraint_failure)
 {
-    TurboCircuitConstructor circuit_constructor = TurboCircuitConstructor();
+    TurboCircuitBuilder circuit_constructor = TurboCircuitBuilder();
 
     uint32_t left_value = 4;
     fr left_witness_value = fr{ left_value, 0, 0, 0 }.to_montgomery_form();
@@ -488,7 +488,7 @@ TEST(turbo_circuit_constructor, and_constraint_failure)
 
 TEST(turbo_circuit_constructor, and_constraint)
 {
-    TurboCircuitConstructor circuit_constructor = TurboCircuitConstructor();
+    TurboCircuitBuilder circuit_constructor = TurboCircuitBuilder();
 
     for (size_t i = 0; i < /*10*/ 1; ++i) {
         uint32_t left_value = engine.get_random_uint32();
@@ -560,7 +560,7 @@ TEST(turbo_circuit_constructor, and_constraint)
  */
 TEST(turbo_circuit_constructor, xor_constraint_failure)
 {
-    TurboCircuitConstructor circuit_constructor = TurboCircuitConstructor();
+    TurboCircuitBuilder circuit_constructor = TurboCircuitBuilder();
 
     uint32_t left_value = 4;
     fr left_witness_value = fr{ left_value, 0, 0, 0 }.to_montgomery_form();
@@ -585,7 +585,7 @@ TEST(turbo_circuit_constructor, xor_constraint_failure)
 
 TEST(turbo_circuit_constructor, xor_constraint)
 {
-    TurboCircuitConstructor circuit_constructor = TurboCircuitConstructor();
+    TurboCircuitBuilder circuit_constructor = TurboCircuitBuilder();
 
     for (size_t i = 0; i < /*10*/ 1; ++i) {
         uint32_t left_value = engine.get_random_uint32();
@@ -652,7 +652,7 @@ TEST(turbo_circuit_constructor, xor_constraint)
 
 TEST(turbo_circuit_constructor, big_add_gate_with_bit_extract)
 {
-    TurboCircuitConstructor circuit_constructor = TurboCircuitConstructor();
+    TurboCircuitBuilder circuit_constructor = TurboCircuitBuilder();
 
     const auto generate_constraints = [&circuit_constructor](uint32_t quad_value) {
         uint32_t quad_accumulator_left =

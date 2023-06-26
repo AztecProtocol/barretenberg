@@ -15,7 +15,7 @@ auto& engine = numeric::random::get_debug_engine();
 
 TEST(standard_plonk_composer, base_case)
 {
-    auto builder = StandardCircuitConstructor();
+    auto builder = StandardCircuitBuilder();
     auto composer = StandardComposer();
     fr a = fr::one();
     builder.add_public_variable(a);
@@ -30,7 +30,7 @@ TEST(standard_plonk_composer, base_case)
 
 TEST(standard_plonk_composer, composer_from_serialized_keys)
 {
-    auto builder = StandardCircuitConstructor();
+    auto builder = StandardCircuitBuilder();
     auto composer = StandardComposer();
     fr a = fr::one();
     builder.add_public_variable(a);
@@ -45,7 +45,7 @@ TEST(standard_plonk_composer, composer_from_serialized_keys)
         std::make_shared<plonk::proving_key>(std::move(pk_data), crs->get_prover_crs(pk_data.circuit_size + 1));
     auto verification_key = std::make_shared<plonk::verification_key>(std::move(vk_data), crs->get_verifier_crs());
 
-    auto builder2 = StandardCircuitConstructor();
+    auto builder2 = StandardCircuitBuilder();
     auto composer2 = StandardComposer();
     builder2.add_public_variable(a);
 
@@ -60,7 +60,7 @@ TEST(standard_plonk_composer, composer_from_serialized_keys)
 
 TEST(standard_plonk_composer, test_add_gate_proofs)
 {
-    auto builder = StandardCircuitConstructor();
+    auto builder = StandardCircuitBuilder();
     auto composer = StandardComposer();
     fr a = fr::one();
     uint32_t a_idx = builder.add_public_variable(a);
@@ -120,7 +120,7 @@ TEST(standard_plonk_composer, test_add_gate_proofs)
 
 TEST(standard_plonk_composer, test_mul_gate_proofs)
 {
-    auto builder = StandardCircuitConstructor();
+    auto builder = StandardCircuitBuilder();
     auto composer = StandardComposer();
     fr q[7]{ fr::random_element(), fr::random_element(), fr::random_element(), fr::random_element(),
              fr::random_element(), fr::random_element(), fr::random_element() };
@@ -200,7 +200,7 @@ TEST(standard_plonk_composer, test_mul_gate_proofs)
 
 TEST(standard_plonk_composer, range_constraint)
 {
-    auto builder = StandardCircuitConstructor();
+    auto builder = StandardCircuitBuilder();
     auto composer = StandardComposer();
 
     for (size_t i = 0; i < 10; ++i) {
@@ -244,7 +244,7 @@ TEST(standard_plonk_composer, range_constraint)
 
 TEST(standard_plonk_composer, range_constraint_fail)
 {
-    auto builder = StandardCircuitConstructor();
+    auto builder = StandardCircuitBuilder();
     auto composer = StandardComposer();
 
     uint64_t value = 0xffffff;
@@ -265,7 +265,7 @@ TEST(standard_plonk_composer, range_constraint_fail)
 
 TEST(standard_plonk_composer, and_constraint)
 {
-    auto builder = StandardCircuitConstructor();
+    auto builder = StandardCircuitBuilder();
     auto composer = StandardComposer();
 
     for (size_t i = 0; i < /*10*/ 1; ++i) {
@@ -337,7 +337,7 @@ TEST(standard_plonk_composer, and_constraint)
 
 TEST(standard_plonk_composer, xor_constraint)
 {
-    auto builder = StandardCircuitConstructor();
+    auto builder = StandardCircuitBuilder();
     auto composer = StandardComposer();
 
     for (size_t i = 0; i < /*10*/ 1; ++i) {
@@ -408,7 +408,7 @@ TEST(standard_plonk_composer, xor_constraint)
 
 TEST(standard_plonk_composer, big_add_gate_with_bit_extract)
 {
-    auto builder = StandardCircuitConstructor();
+    auto builder = StandardCircuitBuilder();
     auto composer = StandardComposer();
 
     const auto generate_constraints = [&](uint32_t quad_value) {
@@ -453,7 +453,7 @@ TEST(standard_plonk_composer, big_add_gate_with_bit_extract)
 
 TEST(standard_plonk_composer, test_range_constraint_fail)
 {
-    auto builder = StandardCircuitConstructor();
+    auto builder = StandardCircuitBuilder();
     auto composer = StandardComposer();
     uint32_t witness_index = builder.add_variable(fr::neg_one());
     builder.decompose_into_base4_accumulators(witness_index, 32);
@@ -471,7 +471,7 @@ TEST(standard_plonk_composer, test_range_constraint_fail)
 
 TEST(standard_plonk_composer, test_check_circuit_correct)
 {
-    auto builder = StandardCircuitConstructor();
+    auto builder = StandardCircuitBuilder();
     auto composer = StandardComposer();
     fr a = fr::one();
     uint32_t a_idx = builder.add_public_variable(a);
@@ -492,7 +492,7 @@ TEST(standard_plonk_composer, test_check_circuit_correct)
 
 TEST(standard_plonk_composer, test_check_circuit_broken)
 {
-    auto builder = StandardCircuitConstructor();
+    auto builder = StandardCircuitBuilder();
     auto composer = StandardComposer();
     fr a = fr::one();
     uint32_t a_idx = builder.add_public_variable(a);

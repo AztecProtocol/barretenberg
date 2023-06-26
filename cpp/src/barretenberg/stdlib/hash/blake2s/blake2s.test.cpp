@@ -7,7 +7,7 @@
 using namespace barretenberg;
 using namespace proof_system::plonk::stdlib;
 
-using Builder = proof_system::UltraCircuitConstructor;
+using Builder = proof_system::UltraCircuitBuilder;
 
 using field_ct = field_t<Builder>;
 using witness_ct = witness_t<Builder>;

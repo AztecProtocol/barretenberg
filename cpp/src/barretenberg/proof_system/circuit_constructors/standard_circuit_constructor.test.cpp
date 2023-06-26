@@ -14,7 +14,7 @@ namespace standard_circuit_constructor_tests {
 
 TEST(standard_circuit_constructor, base_case)
 {
-    StandardCircuitConstructor circuit_constructor = StandardCircuitConstructor();
+    StandardCircuitBuilder circuit_constructor = StandardCircuitBuilder();
     fr a = fr::one();
     circuit_constructor.add_public_variable(a);
 
@@ -24,7 +24,7 @@ TEST(standard_circuit_constructor, base_case)
 
 TEST(standard_circuit_constructor, test_add_gate)
 {
-    StandardCircuitConstructor circuit_constructor = StandardCircuitConstructor();
+    StandardCircuitBuilder circuit_constructor = StandardCircuitBuilder();
     fr a = fr::one();
     uint32_t a_idx = circuit_constructor.add_public_variable(a);
     fr b = fr::one();
@@ -77,7 +77,7 @@ TEST(standard_circuit_constructor, test_add_gate)
 
 TEST(standard_circuit_constructor, test_mul_gate_proofs)
 {
-    StandardCircuitConstructor circuit_constructor = StandardCircuitConstructor();
+    StandardCircuitBuilder circuit_constructor = StandardCircuitBuilder();
     fr q[7]{ fr::random_element(), fr::random_element(), fr::random_element(), fr::random_element(),
              fr::random_element(), fr::random_element(), fr::random_element() };
     fr q_inv[7]{
@@ -150,7 +150,7 @@ TEST(standard_circuit_constructor, test_mul_gate_proofs)
 
 TEST(standard_circuit_constructor, range_constraint)
 {
-    StandardCircuitConstructor circuit_constructor = StandardCircuitConstructor();
+    StandardCircuitBuilder circuit_constructor = StandardCircuitBuilder();
 
     for (size_t i = 0; i < 10; ++i) {
 
@@ -189,7 +189,7 @@ TEST(standard_circuit_constructor, range_constraint)
 
 TEST(standard_circuit_constructor, range_constraint_fail)
 {
-    StandardCircuitConstructor circuit_constructor = StandardCircuitConstructor();
+    StandardCircuitBuilder circuit_constructor = StandardCircuitBuilder();
 
     uint64_t value = 0xffffff;
     uint32_t witness_index = circuit_constructor.add_variable(fr(value));
@@ -203,7 +203,7 @@ TEST(standard_circuit_constructor, range_constraint_fail)
 
 TEST(standard_circuit_constructor, and_constraint)
 {
-    StandardCircuitConstructor circuit_constructor = StandardCircuitConstructor();
+    StandardCircuitBuilder circuit_constructor = StandardCircuitBuilder();
 
     for (size_t i = 0; i < /*10*/ 1; ++i) {
         uint32_t left_value = engine.get_random_uint32();
@@ -271,7 +271,7 @@ TEST(standard_circuit_constructor, and_constraint)
 
 TEST(standard_circuit_constructor, xor_constraint)
 {
-    StandardCircuitConstructor circuit_constructor = StandardCircuitConstructor();
+    StandardCircuitBuilder circuit_constructor = StandardCircuitBuilder();
 
     for (size_t i = 0; i < /*10*/ 1; ++i) {
         uint32_t left_value = engine.get_random_uint32();
@@ -338,7 +338,7 @@ TEST(standard_circuit_constructor, xor_constraint)
 
 TEST(standard_circuit_constructor, big_add_gate_with_bit_extract)
 {
-    StandardCircuitConstructor circuit_constructor = StandardCircuitConstructor();
+    StandardCircuitBuilder circuit_constructor = StandardCircuitBuilder();
 
     const auto generate_constraints = [&circuit_constructor](uint32_t quad_value) {
         uint32_t quad_accumulator_left =
@@ -375,7 +375,7 @@ TEST(standard_circuit_constructor, big_add_gate_with_bit_extract)
 
 TEST(standard_circuit_constructor, test_range_constraint_fail)
 {
-    StandardCircuitConstructor circuit_constructor = StandardCircuitConstructor();
+    StandardCircuitBuilder circuit_constructor = StandardCircuitBuilder();
     uint32_t witness_index = circuit_constructor.add_variable(fr::neg_one());
     circuit_constructor.decompose_into_base4_accumulators(witness_index, 32);
 
@@ -386,7 +386,7 @@ TEST(standard_circuit_constructor, test_range_constraint_fail)
 
 TEST(standard_circuit_constructor, test_check_circuit_correct)
 {
-    StandardCircuitConstructor circuit_constructor = StandardCircuitConstructor();
+    StandardCircuitBuilder circuit_constructor = StandardCircuitBuilder();
     fr a = fr::one();
     uint32_t a_idx = circuit_constructor.add_public_variable(a);
     fr b = fr::one();
@@ -406,7 +406,7 @@ TEST(standard_circuit_constructor, test_check_circuit_correct)
 
 TEST(standard_circuit_constructor, test_check_circuit_broken)
 {
-    StandardCircuitConstructor circuit_constructor = StandardCircuitConstructor();
+    StandardCircuitBuilder circuit_constructor = StandardCircuitBuilder();
     fr a = fr::one();
     uint32_t a_idx = circuit_constructor.add_public_variable(a);
     fr b = fr::one();

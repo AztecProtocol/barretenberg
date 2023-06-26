@@ -15,7 +15,7 @@ using numeric::uint256_t;
 
 template <typename Composer, template <typename> typename Circuit> void generate_proof(uint256_t inputs[])
 {
-    auto builder = Circuit<typename Composer::CircuitConstructor>::generate(inputs);
+    auto builder = Circuit<typename Composer::CircuitBuilder>::generate(inputs);
 
     Composer composer;
     // @todo this only works for ultra! Why is ultra part of function name on ultra composer?

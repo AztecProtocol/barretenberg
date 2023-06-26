@@ -6,7 +6,7 @@ using namespace benchmark;
 
 namespace standard_plonk_bench {
 
-using StandardBuilder = proof_system::StandardCircuitConstructor;
+using StandardBuilder = proof_system::StandardCircuitBuilder;
 using StandardPlonk = proof_system::plonk::StandardComposer;
 
 // Log number of gates for test circuit

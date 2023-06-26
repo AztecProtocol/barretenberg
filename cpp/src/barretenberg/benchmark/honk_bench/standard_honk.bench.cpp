@@ -6,7 +6,7 @@ using namespace benchmark;
 
 namespace standard_honk_bench {
 
-using StandardBuilder = proof_system::StandardCircuitConstructor;
+using StandardBuilder = proof_system::StandardCircuitBuilder;
 using StandardHonk = proof_system::honk::StandardComposer;
 
 // Log number of gates for test circuit

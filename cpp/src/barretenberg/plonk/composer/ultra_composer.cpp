@@ -20,7 +20,7 @@ namespace proof_system::plonk {
  * elsewhere.
  */
 
-void UltraComposer::compute_witness(CircuitConstructor& circuit_constructor)
+void UltraComposer::compute_witness(CircuitBuilder& circuit_constructor)
 {
     if (computed_witness) {
         return;
@@ -163,7 +163,7 @@ void UltraComposer::compute_witness(CircuitConstructor& circuit_constructor)
     computed_witness = true;
 }
 
-UltraProver UltraComposer::create_prover(CircuitConstructor& circuit_constructor)
+UltraProver UltraComposer::create_prover(CircuitBuilder& circuit_constructor)
 {
     circuit_constructor.finalize_circuit();
 
@@ -209,7 +209,7 @@ UltraProver UltraComposer::create_prover(CircuitConstructor& circuit_constructor
 /**
  * @brief Uses slightly different settings from the UltraProver.
  */
-UltraToStandardProver UltraComposer::create_ultra_to_standard_prover(CircuitConstructor& circuit_constructor)
+UltraToStandardProver UltraComposer::create_ultra_to_standard_prover(CircuitBuilder& circuit_constructor)
 {
     circuit_constructor.finalize_circuit();
 
@@ -255,7 +255,7 @@ UltraToStandardProver UltraComposer::create_ultra_to_standard_prover(CircuitCons
 /**
  * @brief Uses slightly different settings from the UltraProver.
  */
-UltraWithKeccakProver UltraComposer::create_ultra_with_keccak_prover(CircuitConstructor& circuit_constructor)
+UltraWithKeccakProver UltraComposer::create_ultra_with_keccak_prover(CircuitBuilder& circuit_constructor)
 {
     circuit_constructor.finalize_circuit();
     compute_proving_key(circuit_constructor);
@@ -304,7 +304,7 @@ UltraWithKeccakProver UltraComposer::create_ultra_with_keccak_prover(CircuitCons
  * @return The verifier.
  * */
 
-plonk::UltraVerifier UltraComposer::create_verifier(CircuitConstructor& circuit_constructor)
+plonk::UltraVerifier UltraComposer::create_verifier(CircuitBuilder& circuit_constructor)
 {
     auto verification_key = compute_verification_key(circuit_constructor);
 
@@ -324,7 +324,7 @@ plonk::UltraVerifier UltraComposer::create_verifier(CircuitConstructor& circuit_
  * @param circuit_constructor
  * @return UltraToStandardVerifier
  */
-UltraToStandardVerifier UltraComposer::create_ultra_to_standard_verifier(CircuitConstructor& circuit_constructor)
+UltraToStandardVerifier UltraComposer::create_ultra_to_standard_verifier(CircuitBuilder& circuit_constructor)
 {
     auto verification_key = compute_verification_key(circuit_constructor);
 
@@ -345,7 +345,7 @@ UltraToStandardVerifier UltraComposer::create_ultra_to_standard_verifier(Circuit
  * @param circuit_constructor
  * @return UltraWithKeccakVerifier
  */
-UltraWithKeccakVerifier UltraComposer::create_ultra_with_keccak_verifier(CircuitConstructor& circuit_constructor)
+UltraWithKeccakVerifier UltraComposer::create_ultra_with_keccak_verifier(CircuitBuilder& circuit_constructor)
 {
     auto verification_key = compute_verification_key(circuit_constructor);
 
@@ -360,7 +360,7 @@ UltraWithKeccakVerifier UltraComposer::create_ultra_with_keccak_verifier(Circuit
     return output_state;
 }
 
-std::shared_ptr<proving_key> UltraComposer::compute_proving_key(CircuitConstructor& circuit_constructor)
+std::shared_ptr<proving_key> UltraComposer::compute_proving_key(CircuitBuilder& circuit_constructor)
 {
     if (circuit_proving_key) {
         return circuit_proving_key;
@@ -487,8 +487,7 @@ std::shared_ptr<proving_key> UltraComposer::compute_proving_key(CircuitConstruct
  * @return Pointer to created circuit verification key.
  * */
 
-std::shared_ptr<plonk::verification_key> UltraComposer::compute_verification_key(
-    CircuitConstructor& circuit_constructor)
+std::shared_ptr<plonk::verification_key> UltraComposer::compute_verification_key(CircuitBuilder& circuit_constructor)
 {
     if (circuit_verification_key) {
         return circuit_verification_key;

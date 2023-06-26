@@ -12,7 +12,7 @@ using numeric::uint256_t;
 
 template <typename OuterComposer> class RecursiveCircuit {
     using InnerComposer = UltraComposer;
-    using InnerBuilder = typename InnerComposer::CircuitConstructor;
+    using InnerBuilder = typename InnerComposer::CircuitBuilder;
 
     typedef stdlib::field_t<InnerBuilder> field_ct;
     typedef stdlib::bn254<InnerBuilder> inner_curve;

@@ -13,7 +13,7 @@
 namespace proof_system::honk {
 template <UltraFlavor Flavor> class UltraComposer_ {
   public:
-    using CircuitConstructor = typename Flavor::CircuitConstructor;
+    using CircuitBuilder = typename Flavor::CircuitBuilder;
     using ProvingKey = typename Flavor::ProvingKey;
     using VerificationKey = typename Flavor::VerificationKey;
     using PCSParams = typename Flavor::PCSParams;
@@ -23,7 +23,7 @@ template <UltraFlavor Flavor> class UltraComposer_ {
 
     static constexpr std::string_view NAME_STRING = "UltraHonk";
     static constexpr size_t NUM_RESERVED_GATES = 4; // equal to the number of multilinear evaluations leaked
-    static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
+    static constexpr size_t NUM_WIRES = CircuitBuilder::NUM_WIRES;
     std::shared_ptr<ProvingKey> proving_key;
     std::shared_ptr<VerificationKey> verification_key;
 
@@ -55,13 +55,13 @@ template <UltraFlavor Flavor> class UltraComposer_ {
     UltraComposer_& operator=(UltraComposer_ const& other) noexcept = default;
     ~UltraComposer_() = default;
 
-    std::shared_ptr<ProvingKey> compute_proving_key(const CircuitConstructor& circuit_constructor);
-    std::shared_ptr<VerificationKey> compute_verification_key(const CircuitConstructor& circuit_constructor);
+    std::shared_ptr<ProvingKey> compute_proving_key(const CircuitBuilder& circuit_constructor);
+    std::shared_ptr<VerificationKey> compute_verification_key(const CircuitBuilder& circuit_constructor);
 
-    void compute_witness(CircuitConstructor& circuit_constructor);
+    void compute_witness(CircuitBuilder& circuit_constructor);
 
-    UltraProver_<Flavor> create_prover(CircuitConstructor& circuit_constructor);
-    UltraVerifier_<Flavor> create_verifier(const CircuitConstructor& circuit_constructor);
+    UltraProver_<Flavor> create_prover(CircuitBuilder& circuit_constructor);
+    UltraVerifier_<Flavor> create_verifier(const CircuitBuilder& circuit_constructor);
 
     void add_table_column_selector_poly_to_proving_key(polynomial& small, const std::string& tag);
 

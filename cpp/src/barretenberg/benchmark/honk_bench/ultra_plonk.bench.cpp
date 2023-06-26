@@ -6,7 +6,7 @@ using namespace benchmark;
 
 namespace ultra_plonk_bench {
 
-using UltraBuilder = proof_system::UltraCircuitConstructor;
+using UltraBuilder = proof_system::UltraCircuitBuilder;
 using UltraPlonk = proof_system::plonk::UltraComposer;
 
 // Number of times to perform operation of interest in the benchmark circuits, e.g. # of hashes to perform

@@ -15,7 +15,7 @@ namespace proof_system {
 
 using namespace barretenberg;
 
-class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::Ultra<barretenberg::fr>> {
+class UltraCircuitBuilder : public CircuitBuilderBase<arithmetization::Ultra<barretenberg::fr>> {
   public:
     static constexpr std::string_view NAME_STRING = "UltraArithmetization";
     static constexpr CircuitType CIRCUIT_TYPE = CircuitType::ULTRA;
@@ -227,7 +227,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
     /**
      * @brief CircuitDataBackup is a structure we use to store all the information about the circuit that is needed
      * to restore it back to a pre-finalized state
-     * @details In check_circuit method in UltraCircuitConstructor we want to check that the whole circuit works,
+     * @details In check_circuit method in UltraCircuitBuilder we want to check that the whole circuit works,
      * but ultra circuits need to have ram, rom and range gates added in the end for the check to be complete as
      * well as the set permutation check, so we finalize the circuit when we check it. This structure allows us to
      * restore the circuit to the state before the finalization.
@@ -271,7 +271,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
         std::vector<uint32_t> memory_write_records;
         std::map<uint64_t, RangeList> range_lists;
 
-        std::vector<UltraCircuitConstructor::cached_partial_non_native_field_multiplication>
+        std::vector<UltraCircuitBuilder::cached_partial_non_native_field_multiplication>
             cached_partial_non_native_field_multiplications;
 
         size_t num_gates;
@@ -285,8 +285,8 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
          * @param circuit_constructor
          * @return CircuitDataBackup
          */
-        template <typename CircuitConstructor>
-        static CircuitDataBackup store_full_state(const CircuitConstructor& circuit_constructor)
+        template <typename CircuitBuilder>
+        static CircuitDataBackup store_full_state(const CircuitBuilder& circuit_constructor)
         {
             CircuitDataBackup stored_state;
             stored_state.public_inputs = circuit_constructor.public_inputs;
@@ -337,8 +337,8 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
          * @param circuit_constructor
          * @return CircuitDataBackup
          */
-        template <typename CircuitConstructor>
-        static CircuitDataBackup store_prefinilized_state(const CircuitConstructor* circuit_constructor)
+        template <typename CircuitBuilder>
+        static CircuitDataBackup store_prefinilized_state(const CircuitBuilder* circuit_constructor)
         {
             CircuitDataBackup stored_state;
             stored_state.public_inputs = circuit_constructor->public_inputs;
@@ -374,7 +374,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
          * @param circuit_constructor
          * @return CircuitDataBackup
          */
-        template <typename CircuitConstructor> void restore_prefinilized_state(CircuitConstructor* circuit_constructor)
+        template <typename CircuitBuilder> void restore_prefinilized_state(CircuitBuilder* circuit_constructor)
         {
             circuit_constructor->public_inputs = public_inputs;
             circuit_constructor->variables = variables;
@@ -422,7 +422,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
          * @return true
          * @return false
          */
-        template <typename CircuitConstructor> bool is_same_state(const CircuitConstructor& circuit_constructor)
+        template <typename CircuitBuilder> bool is_same_state(const CircuitBuilder& circuit_constructor)
         {
             if (!(public_inputs == circuit_constructor.public_inputs)) {
                 return false;
@@ -547,7 +547,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
 
     // These are variables that we have used a gate on, to enforce that they are
     // equal to a defined value.
-    // TODO(#216)(Adrian): Why is this not in CircuitConstructorBase
+    // TODO(#216)(Adrian): Why is this not in CircuitBuilderBase
     std::map<barretenberg::fr, uint32_t> constant_variable_indices;
 
     std::vector<plookup::BasicTable> lookup_tables;
@@ -581,8 +581,8 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
     bool circuit_finalised = false;
 
     void process_non_native_field_multiplications();
-    UltraCircuitConstructor(const size_t size_hint = 0)
-        : CircuitConstructorBase(ultra_selector_names(), size_hint)
+    UltraCircuitBuilder(const size_t size_hint = 0)
+        : CircuitBuilderBase(ultra_selector_names(), size_hint)
     {
         w_l.reserve(size_hint);
         w_r.reserve(size_hint);
@@ -591,11 +591,11 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
         zero_idx = put_constant_variable(barretenberg::fr::zero());
         tau.insert({ DUMMY_TAG, DUMMY_TAG }); // TODO(luke): explain this
     };
-    UltraCircuitConstructor(std::string const&, const size_t size_hint = 0)
-        : UltraCircuitConstructor(size_hint){};
-    UltraCircuitConstructor(const UltraCircuitConstructor& other) = delete;
-    UltraCircuitConstructor(UltraCircuitConstructor&& other)
-        : CircuitConstructorBase<arithmetization::Ultra<barretenberg::fr>>(std::move(other))
+    UltraCircuitBuilder(std::string const&, const size_t size_hint = 0)
+        : UltraCircuitBuilder(size_hint){};
+    UltraCircuitBuilder(const UltraCircuitBuilder& other) = delete;
+    UltraCircuitBuilder(UltraCircuitBuilder&& other)
+        : CircuitBuilderBase<arithmetization::Ultra<barretenberg::fr>>(std::move(other))
     {
         constant_variable_indices = other.constant_variable_indices;
 
@@ -609,10 +609,10 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
         cached_partial_non_native_field_multiplications = other.cached_partial_non_native_field_multiplications;
         circuit_finalised = other.circuit_finalised;
     };
-    UltraCircuitConstructor& operator=(const UltraCircuitConstructor& other) = delete;
-    UltraCircuitConstructor& operator=(UltraCircuitConstructor&& other)
+    UltraCircuitBuilder& operator=(const UltraCircuitBuilder& other) = delete;
+    UltraCircuitBuilder& operator=(UltraCircuitBuilder&& other)
     {
-        CircuitConstructorBase<arithmetization::Ultra<barretenberg::fr>>::operator=(std::move(other));
+        CircuitBuilderBase<arithmetization::Ultra<barretenberg::fr>>::operator=(std::move(other));
         constant_variable_indices = other.constant_variable_indices;
 
         lookup_tables = other.lookup_tables;
@@ -626,7 +626,7 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
         circuit_finalised = other.circuit_finalised;
         return *this;
     };
-    ~UltraCircuitConstructor() override = default;
+    ~UltraCircuitBuilder() override = default;
 
     void finalize_circuit();
 

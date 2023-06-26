@@ -12,7 +12,7 @@ class ComposerLibTests : public ::testing::Test {
   protected:
     using Flavor = honk::flavor::Standard;
     using FF = typename Flavor::FF;
-    Flavor::CircuitConstructor circuit_constructor;
+    Flavor::CircuitBuilder circuit_constructor;
     Flavor::ProvingKey proving_key = []() {
         auto crs_factory = barretenberg::srs::factories::CrsFactory();
         auto crs = crs_factory.get_prover_crs(4);

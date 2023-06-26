@@ -8,7 +8,7 @@
 namespace proof_system {
 static constexpr uint32_t DUMMY_TAG = 0;
 
-template <typename Arithmetization> class CircuitConstructorBase {
+template <typename Arithmetization> class CircuitBuilderBase {
   public:
     // TODO(Cody): This needs to be templated to allow constructing circuits over Grumpkin. For now, adding FF here
     // since the flavor can extract it.
@@ -55,7 +55,7 @@ template <typename Arithmetization> class CircuitConstructorBase {
     // Cody: This is used by compute_wire_copy_cycles in Plonk.
     // enum WireType { LEFT = 0U, RIGHT = (1U << 30U), OUTPUT = (1U << 31U), FOURTH = 0xc0000000 };
 
-    CircuitConstructorBase(std::vector<std::string> selector_names, size_t size_hint = 0)
+    CircuitBuilderBase(std::vector<std::string> selector_names, size_t size_hint = 0)
         : selector_names_(std::move(selector_names))
     {
         variables.reserve(size_hint * 3);
@@ -68,11 +68,11 @@ template <typename Arithmetization> class CircuitConstructorBase {
         }
     }
 
-    CircuitConstructorBase(const CircuitConstructorBase& other) = default;
-    CircuitConstructorBase(CircuitConstructorBase&& other) noexcept = default;
-    CircuitConstructorBase& operator=(const CircuitConstructorBase& other) = default;
-    CircuitConstructorBase& operator=(CircuitConstructorBase&& other) noexcept = default;
-    virtual ~CircuitConstructorBase() = default;
+    CircuitBuilderBase(const CircuitBuilderBase& other) = default;
+    CircuitBuilderBase(CircuitBuilderBase&& other) noexcept = default;
+    CircuitBuilderBase& operator=(const CircuitBuilderBase& other) = default;
+    CircuitBuilderBase& operator=(CircuitBuilderBase&& other) noexcept = default;
+    virtual ~CircuitBuilderBase() = default;
 
     virtual size_t get_num_gates() const { return num_gates; }
     virtual void print_num_gates() const { std::cout << num_gates << std::endl; }

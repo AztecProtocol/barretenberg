@@ -12,7 +12,7 @@ class PermutationHelperTests : public ::testing::Test {
   protected:
     using Flavor = honk::flavor::Standard;
     using FF = typename Flavor::FF;
-    Flavor::CircuitConstructor circuit_constructor;
+    Flavor::CircuitBuilder circuit_constructor;
     barretenberg::srs::factories::CrsFactory crs_factory = barretenberg::srs::factories::CrsFactory();
     std::shared_ptr<Flavor::ProvingKey> proving_key;
 

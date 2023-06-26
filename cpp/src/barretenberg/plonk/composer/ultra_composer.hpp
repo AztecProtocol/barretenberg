@@ -16,12 +16,12 @@ namespace proof_system::plonk {
 class UltraComposer {
   public:
     using Flavor = flavor::Ultra;
-    using CircuitConstructor = UltraCircuitConstructor;
+    using CircuitBuilder = UltraCircuitBuilder;
 
     static constexpr std::string_view NAME_STRING = "UltraPlonk";
     static constexpr CircuitType type = CircuitType::ULTRA;
     static constexpr size_t NUM_RESERVED_GATES = 4; // equal to the number of multilinear evaluations leaked
-    static constexpr size_t program_width = CircuitConstructor::NUM_WIRES;
+    static constexpr size_t program_width = CircuitBuilder::NUM_WIRES;
     std::shared_ptr<plonk::proving_key> circuit_proving_key;
     std::shared_ptr<plonk::verification_key> circuit_verification_key;
 
@@ -78,19 +78,19 @@ class UltraComposer {
 
     [[nodiscard]] size_t get_num_selectors() { return ultra_selector_properties().size(); }
 
-    std::shared_ptr<plonk::proving_key> compute_proving_key(CircuitConstructor& circuit_constructor);
-    std::shared_ptr<plonk::verification_key> compute_verification_key(CircuitConstructor& circuit_constructor);
+    std::shared_ptr<plonk::proving_key> compute_proving_key(CircuitBuilder& circuit_constructor);
+    std::shared_ptr<plonk::verification_key> compute_verification_key(CircuitBuilder& circuit_constructor);
 
-    void compute_witness(CircuitConstructor& circuit_constructor);
+    void compute_witness(CircuitBuilder& circuit_constructor);
 
-    UltraProver create_prover(CircuitConstructor& circuit_constructor);
-    UltraVerifier create_verifier(CircuitConstructor& circuit_constructor);
+    UltraProver create_prover(CircuitBuilder& circuit_constructor);
+    UltraVerifier create_verifier(CircuitBuilder& circuit_constructor);
 
-    UltraToStandardProver create_ultra_to_standard_prover(CircuitConstructor& circuit_constructor);
-    UltraToStandardVerifier create_ultra_to_standard_verifier(CircuitConstructor& circuit_constructor);
+    UltraToStandardProver create_ultra_to_standard_prover(CircuitBuilder& circuit_constructor);
+    UltraToStandardVerifier create_ultra_to_standard_verifier(CircuitBuilder& circuit_constructor);
 
-    UltraWithKeccakProver create_ultra_with_keccak_prover(CircuitConstructor& circuit_constructor);
-    UltraWithKeccakVerifier create_ultra_with_keccak_verifier(CircuitConstructor& circuit_constructor);
+    UltraWithKeccakProver create_ultra_with_keccak_prover(CircuitBuilder& circuit_constructor);
+    UltraWithKeccakVerifier create_ultra_with_keccak_verifier(CircuitBuilder& circuit_constructor);
 
     void add_table_column_selector_poly_to_proving_key(polynomial& small, const std::string& tag);
 

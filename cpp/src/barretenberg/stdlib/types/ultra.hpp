@@ -23,7 +23,7 @@ namespace proof_system::plonk::stdlib::types {
 
 using namespace proof_system::plonk;
 
-using Builder = proof_system::UltraCircuitConstructor;
+using Builder = proof_system::UltraCircuitBuilder;
 using Composer = plonk::UltraComposer;
 
 // TODO(Cody): These might be wrong depending on desired F-S hash.

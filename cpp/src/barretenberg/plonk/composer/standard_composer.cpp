@@ -24,7 +24,7 @@ namespace proof_system::plonk {
  *
  * @tparam Program settings needed to establish if w_4 is being used.
  * */
-void StandardComposer::compute_witness(const CircuitConstructor& circuit_constructor, const size_t minimum_circuit_size)
+void StandardComposer::compute_witness(const CircuitBuilder& circuit_constructor, const size_t minimum_circuit_size)
 {
 
     if (computed_witness) {
@@ -52,7 +52,7 @@ void StandardComposer::compute_witness(const CircuitConstructor& circuit_constru
  *
  * @return Pointer to the initialized proving key updated with selector polynomials.
  * */
-std::shared_ptr<plonk::proving_key> StandardComposer::compute_proving_key(const CircuitConstructor& circuit_constructor)
+std::shared_ptr<plonk::proving_key> StandardComposer::compute_proving_key(const CircuitBuilder& circuit_constructor)
 {
     if (circuit_proving_key) {
         return circuit_proving_key;
@@ -87,7 +87,7 @@ std::shared_ptr<plonk::proving_key> StandardComposer::compute_proving_key(const 
  * @return Pointer to created circuit verification key.
  * */
 std::shared_ptr<plonk::verification_key> StandardComposer::compute_verification_key(
-    const CircuitConstructor& circuit_constructor)
+    const CircuitBuilder& circuit_constructor)
 {
     if (circuit_verification_key) {
         return circuit_verification_key;
@@ -113,7 +113,7 @@ std::shared_ptr<plonk::verification_key> StandardComposer::compute_verification_
  *
  * @return The verifier.
  * */
-plonk::Verifier StandardComposer::create_verifier(const CircuitConstructor& circuit_constructor)
+plonk::Verifier StandardComposer::create_verifier(const CircuitBuilder& circuit_constructor)
 {
     auto verification_key = compute_verification_key(circuit_constructor);
 
@@ -136,7 +136,7 @@ plonk::Verifier StandardComposer::create_verifier(const CircuitConstructor& circ
  *
  * @return Initialized prover.
  * */
-plonk::Prover StandardComposer::create_prover(const CircuitConstructor& circuit_constructor)
+plonk::Prover StandardComposer::create_prover(const CircuitBuilder& circuit_constructor)
 {
     // Compute q_l, etc. and sigma polynomials.
     compute_proving_key(circuit_constructor);

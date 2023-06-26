@@ -13,7 +13,7 @@ using plookup::MultiTableId;
 
 TEST(ultra_circuit_constructor, create_gates_from_plookup_accumulators)
 {
-    UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+    UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
 
     barretenberg::fr input_value = fr::random_element();
     const fr input_hi = uint256_t(input_value).slice(126, 256);
@@ -92,7 +92,7 @@ TEST(ultra_circuit_constructor, create_gates_from_plookup_accumulators)
         EXPECT_EQ(circuit_constructor.get_variable(lookup_witnesses_hi[ColumnIdx::C3][i]),
                   expected_y[i + num_lookups_lo]);
     }
-    auto saved_state = UltraCircuitConstructor::CircuitDataBackup::store_full_state(circuit_constructor);
+    auto saved_state = UltraCircuitBuilder::CircuitDataBackup::store_full_state(circuit_constructor);
     bool result = circuit_constructor.check_circuit();
 
     EXPECT_EQ(result, true);
@@ -100,7 +100,7 @@ TEST(ultra_circuit_constructor, create_gates_from_plookup_accumulators)
 }
 TEST(ultra_circuit_constructor, base_case)
 {
-    UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+    UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
     fr a = fr::one();
     circuit_constructor.add_public_variable(a);
     bool result = circuit_constructor.check_circuit();
@@ -108,7 +108,7 @@ TEST(ultra_circuit_constructor, base_case)
 }
 TEST(ultra_circuit_constructor, test_no_lookup_proof)
 {
-    UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+    UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
 
     for (size_t i = 0; i < 16; ++i) {
         for (size_t j = 0; j < 16; ++j) {
@@ -133,7 +133,7 @@ TEST(ultra_circuit_constructor, test_elliptic_gate)
 {
     typedef grumpkin::g1::affine_element affine_element;
     typedef grumpkin::g1::element element;
-    UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+    UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
 
     affine_element p1 = crypto::generators::get_generator_data({ 0, 0 }).generator;
 
@@ -166,7 +166,7 @@ TEST(ultra_circuit_constructor, test_elliptic_gate)
     gate = ecc_add_gate{ x1, y1, x2, y2, x3, y3, beta.sqr(), -1 };
     circuit_constructor.create_ecc_add_gate(gate);
 
-    auto saved_state = UltraCircuitConstructor::CircuitDataBackup::store_full_state(circuit_constructor);
+    auto saved_state = UltraCircuitBuilder::CircuitDataBackup::store_full_state(circuit_constructor);
     bool result = circuit_constructor.check_circuit();
 
     EXPECT_EQ(result, true);
@@ -180,7 +180,7 @@ TEST(ultra_circuit_constructor, test_elliptic_gate)
 
 TEST(ultra_circuit_constructor, non_trivial_tag_permutation)
 {
-    UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+    UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
     fr a = fr::random_element();
     fr b = -a;
 
@@ -202,7 +202,7 @@ TEST(ultra_circuit_constructor, non_trivial_tag_permutation)
     circuit_constructor.assign_tag(c_idx, 2);
     circuit_constructor.assign_tag(d_idx, 2);
 
-    auto saved_state = UltraCircuitConstructor::CircuitDataBackup::store_full_state(circuit_constructor);
+    auto saved_state = UltraCircuitBuilder::CircuitDataBackup::store_full_state(circuit_constructor);
     bool result = circuit_constructor.check_circuit();
 
     EXPECT_EQ(result, true);
@@ -215,7 +215,7 @@ TEST(ultra_circuit_constructor, non_trivial_tag_permutation)
 
 TEST(ultra_circuit_constructor, non_trivial_tag_permutation_and_cycles)
 {
-    UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+    UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
     fr a = fr::random_element();
     fr c = -a;
 
@@ -247,7 +247,7 @@ TEST(ultra_circuit_constructor, non_trivial_tag_permutation_and_cycles)
     circuit_constructor.create_add_gate(
         { e_idx, f_idx, circuit_constructor.zero_idx, fr::one(), -fr::one(), fr::zero(), fr::zero() });
 
-    auto saved_state = UltraCircuitConstructor::CircuitDataBackup::store_full_state(circuit_constructor);
+    auto saved_state = UltraCircuitBuilder::CircuitDataBackup::store_full_state(circuit_constructor);
     bool result = circuit_constructor.check_circuit();
 
     EXPECT_EQ(result, true);
@@ -259,7 +259,7 @@ TEST(ultra_circuit_constructor, non_trivial_tag_permutation_and_cycles)
 }
 TEST(ultra_circuit_constructor, bad_tag_permutation)
 {
-    UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+    UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
     fr a = fr::random_element();
     fr b = -a;
 
@@ -271,7 +271,7 @@ TEST(ultra_circuit_constructor, bad_tag_permutation)
     circuit_constructor.create_add_gate({ a_idx, b_idx, circuit_constructor.zero_idx, 1, 1, 0, 0 });
     circuit_constructor.create_add_gate({ c_idx, d_idx, circuit_constructor.zero_idx, 1, 1, 0, -1 });
 
-    auto saved_state = UltraCircuitConstructor::CircuitDataBackup::store_full_state(circuit_constructor);
+    auto saved_state = UltraCircuitBuilder::CircuitDataBackup::store_full_state(circuit_constructor);
     bool result = circuit_constructor.check_circuit();
 
     EXPECT_EQ(result, true);
@@ -291,7 +291,7 @@ TEST(ultra_circuit_constructor, bad_tag_permutation)
 
 TEST(ultra_circuit_constructor, sort_widget)
 {
-    UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+    UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
     fr a = fr::one();
     fr b = fr(2);
     fr c = fr(3);
@@ -308,7 +308,7 @@ TEST(ultra_circuit_constructor, sort_widget)
     EXPECT_EQ(result, true);
 }
 
-std::vector<uint32_t> add_variables(UltraCircuitConstructor& circuit_constructor, std::vector<fr> variables)
+std::vector<uint32_t> add_variables(UltraCircuitBuilder& circuit_constructor, std::vector<fr> variables)
 {
     std::vector<uint32_t> res;
     for (size_t i = 0; i < variables.size(); i++) {
@@ -329,7 +329,7 @@ TEST(ultra_circuit_constructor, sort_with_edges_gate)
     fr h = fr(8);
 
     {
-        UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+        UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
         auto a_idx = circuit_constructor.add_variable(a);
         auto b_idx = circuit_constructor.add_variable(b);
         auto c_idx = circuit_constructor.add_variable(c);
@@ -346,7 +346,7 @@ TEST(ultra_circuit_constructor, sort_with_edges_gate)
     }
 
     {
-        UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+        UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
         auto a_idx = circuit_constructor.add_variable(a);
         auto b_idx = circuit_constructor.add_variable(b);
         auto c_idx = circuit_constructor.add_variable(c);
@@ -363,7 +363,7 @@ TEST(ultra_circuit_constructor, sort_with_edges_gate)
         EXPECT_EQ(result, false);
     }
     {
-        UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+        UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
         auto a_idx = circuit_constructor.add_variable(a);
         auto b_idx = circuit_constructor.add_variable(b);
         auto c_idx = circuit_constructor.add_variable(c);
@@ -380,7 +380,7 @@ TEST(ultra_circuit_constructor, sort_with_edges_gate)
         EXPECT_EQ(result, false);
     }
     {
-        UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+        UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
         auto a_idx = circuit_constructor.add_variable(a);
         auto c_idx = circuit_constructor.add_variable(c);
         auto d_idx = circuit_constructor.add_variable(d);
@@ -396,7 +396,7 @@ TEST(ultra_circuit_constructor, sort_with_edges_gate)
         EXPECT_EQ(result, false);
     }
     {
-        UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+        UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
         auto idx = add_variables(circuit_constructor, { 1,  2,  5,  6,  7,  10, 11, 13, 16, 17, 20, 22, 22, 25,
                                                         26, 29, 29, 32, 32, 33, 35, 38, 39, 39, 42, 42, 43, 45 });
         circuit_constructor.create_sort_constraint_with_edges(idx, 1, 45);
@@ -405,7 +405,7 @@ TEST(ultra_circuit_constructor, sort_with_edges_gate)
         EXPECT_EQ(result, true);
     }
     {
-        UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+        UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
         auto idx = add_variables(circuit_constructor, { 1,  2,  5,  6,  7,  10, 11, 13, 16, 17, 20, 22, 22, 25,
                                                         26, 29, 29, 32, 32, 33, 35, 38, 39, 39, 42, 42, 43, 45 });
 
@@ -419,7 +419,7 @@ TEST(ultra_circuit_constructor, sort_with_edges_gate)
 TEST(ultra_circuit_constructor, range_constraint)
 {
     {
-        UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+        UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
         auto indices = add_variables(circuit_constructor, { 1, 2, 3, 4, 5, 6, 7, 8 });
         for (size_t i = 0; i < indices.size(); i++) {
             circuit_constructor.create_new_range_constraint(indices[i], 8);
@@ -431,7 +431,7 @@ TEST(ultra_circuit_constructor, range_constraint)
         EXPECT_EQ(result, true);
     }
     {
-        UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+        UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
         auto indices = add_variables(circuit_constructor, { 3 });
         for (size_t i = 0; i < indices.size(); i++) {
             circuit_constructor.create_new_range_constraint(indices[i], 3);
@@ -443,7 +443,7 @@ TEST(ultra_circuit_constructor, range_constraint)
         EXPECT_EQ(result, true);
     }
     {
-        UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+        UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
         auto indices = add_variables(circuit_constructor, { 1, 2, 3, 4, 5, 6, 8, 25 });
         for (size_t i = 0; i < indices.size(); i++) {
             circuit_constructor.create_new_range_constraint(indices[i], 8);
@@ -454,7 +454,7 @@ TEST(ultra_circuit_constructor, range_constraint)
         EXPECT_EQ(result, false);
     }
     {
-        UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+        UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
         auto indices = add_variables(circuit_constructor,
                                      { 1, 2, 3, 4, 5, 6, 10, 8, 15, 11, 32, 21, 42, 79, 16, 10, 3, 26, 19, 51 });
         for (size_t i = 0; i < indices.size(); i++) {
@@ -466,7 +466,7 @@ TEST(ultra_circuit_constructor, range_constraint)
         EXPECT_EQ(result, true);
     }
     {
-        UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+        UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
         auto indices = add_variables(circuit_constructor,
                                      { 1, 2, 3, 80, 5, 6, 29, 8, 15, 11, 32, 21, 42, 79, 16, 10, 3, 26, 13, 14 });
         for (size_t i = 0; i < indices.size(); i++) {
@@ -478,7 +478,7 @@ TEST(ultra_circuit_constructor, range_constraint)
         EXPECT_EQ(result, false);
     }
     {
-        UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+        UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
         auto indices = add_variables(circuit_constructor,
                                      { 1, 0, 3, 80, 5, 6, 29, 8, 15, 11, 32, 21, 42, 79, 16, 10, 3, 26, 13, 14 });
         for (size_t i = 0; i < indices.size(); i++) {
@@ -494,7 +494,7 @@ TEST(ultra_circuit_constructor, range_constraint)
 TEST(ultra_circuit_constructor, range_with_gates)
 {
 
-    UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+    UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
     auto idx = add_variables(circuit_constructor, { 1, 2, 3, 4, 5, 6, 7, 8 });
     for (size_t i = 0; i < idx.size(); i++) {
         circuit_constructor.create_new_range_constraint(idx[i], 8);
@@ -515,7 +515,7 @@ TEST(ultra_circuit_constructor, range_with_gates)
 
 TEST(ultra_circuit_constructor, range_with_gates_where_range_is_not_a_power_of_two)
 {
-    UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+    UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
     auto idx = add_variables(circuit_constructor, { 1, 2, 3, 4, 5, 6, 7, 8 });
     for (size_t i = 0; i < idx.size(); i++) {
         circuit_constructor.create_new_range_constraint(idx[i], 12);
@@ -538,7 +538,7 @@ TEST(ultra_circuit_constructor, sort_widget_complex)
 {
     {
 
-        UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+        UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
         std::vector<fr> a = { 1, 3, 4, 7, 7, 8, 11, 14, 15, 15, 18, 19, 21, 21, 24, 25, 26, 27, 30, 32 };
         std::vector<uint32_t> ind;
         for (size_t i = 0; i < a.size(); i++)
@@ -550,7 +550,7 @@ TEST(ultra_circuit_constructor, sort_widget_complex)
     }
     {
 
-        UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+        UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
         std::vector<fr> a = { 1, 3, 4, 7, 7, 8, 16, 14, 15, 15, 18, 19, 21, 21, 24, 25, 26, 27, 30, 32 };
         std::vector<uint32_t> ind;
         for (size_t i = 0; i < a.size(); i++)
@@ -563,7 +563,7 @@ TEST(ultra_circuit_constructor, sort_widget_complex)
 }
 TEST(ultra_circuit_constructor, sort_widget_neg)
 {
-    UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+    UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
     fr a = fr::one();
     fr b = fr(2);
     fr c = fr(3);
@@ -581,7 +581,7 @@ TEST(ultra_circuit_constructor, sort_widget_neg)
 
 TEST(ultra_circuit_constructor, composed_range_constraint)
 {
-    UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+    UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
     auto c = fr::random_element();
     auto d = uint256_t(c).slice(0, 133);
     auto e = fr(d);
@@ -596,7 +596,7 @@ TEST(ultra_circuit_constructor, composed_range_constraint)
 
 TEST(ultra_circuit_constructor, non_native_field_multiplication)
 {
-    UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+    UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
 
     fq a = fq::random_element();
     fq b = fq::random_element();
@@ -640,13 +640,13 @@ TEST(ultra_circuit_constructor, non_native_field_multiplication)
     const auto q_indices = get_limb_witness_indices(split_into_limbs(uint256_t(q)));
     const auto r_indices = get_limb_witness_indices(split_into_limbs(uint256_t(r)));
 
-    proof_system::UltraCircuitConstructor::non_native_field_witnesses inputs{
+    proof_system::UltraCircuitBuilder::non_native_field_witnesses inputs{
         a_indices, b_indices, q_indices, r_indices, modulus_limbs, fr(uint256_t(modulus)),
     };
     const auto [lo_1_idx, hi_1_idx] = circuit_constructor.evaluate_non_native_field_multiplication(inputs);
     circuit_constructor.range_constrain_two_limbs(lo_1_idx, hi_1_idx, 70, 70);
 
-    auto saved_state = UltraCircuitConstructor::CircuitDataBackup::store_full_state(circuit_constructor);
+    auto saved_state = UltraCircuitBuilder::CircuitDataBackup::store_full_state(circuit_constructor);
     bool result = circuit_constructor.check_circuit();
 
     EXPECT_EQ(result, true);
@@ -655,7 +655,7 @@ TEST(ultra_circuit_constructor, non_native_field_multiplication)
 
 TEST(ultra_circuit_constructor, rom)
 {
-    UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+    UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
 
     uint32_t rom_values[8]{
         circuit_constructor.add_variable(fr::random_element()), circuit_constructor.add_variable(fr::random_element()),
@@ -697,7 +697,7 @@ TEST(ultra_circuit_constructor, rom)
 
 TEST(ultra_circuit_constructor, ram)
 {
-    UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+    UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
 
     uint32_t ram_values[8]{
         circuit_constructor.add_variable(fr::random_element()), circuit_constructor.add_variable(fr::random_element()),
@@ -756,7 +756,7 @@ TEST(ultra_circuit_constructor, ram)
         },
         false);
 
-    auto saved_state = UltraCircuitConstructor::CircuitDataBackup::store_full_state(circuit_constructor);
+    auto saved_state = UltraCircuitBuilder::CircuitDataBackup::store_full_state(circuit_constructor);
     bool result = circuit_constructor.check_circuit();
 
     EXPECT_EQ(result, true);
@@ -766,7 +766,7 @@ TEST(ultra_circuit_constructor, ram)
 
 TEST(ultra_circuit_constructor, range_checks_on_duplicates)
 {
-    UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+    UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
 
     uint32_t a = circuit_constructor.add_variable(100);
     uint32_t b = circuit_constructor.add_variable(100);
@@ -801,7 +801,7 @@ TEST(ultra_circuit_constructor, range_checks_on_duplicates)
 
 TEST(ultra_circuit_constructor, check_circuit_showcase)
 {
-    UltraCircuitConstructor circuit_constructor = UltraCircuitConstructor();
+    UltraCircuitBuilder circuit_constructor = UltraCircuitBuilder();
     // check_circuit allows us to check correctness on the go
 
     uint32_t a = circuit_constructor.add_variable(0xdead);

@@ -12,7 +12,7 @@ inline std::vector<std::string> standard_selector_names()
     return result;
 }
 
-class StandardCircuitConstructor : public CircuitConstructorBase<arithmetization::Standard<barretenberg::fr>> {
+class StandardCircuitBuilder : public CircuitBuilderBase<arithmetization::Standard<barretenberg::fr>> {
   public:
     static constexpr std::string_view NAME_STRING = "StandardArithmetization";
     static constexpr CircuitType CIRCUIT_TYPE = CircuitType::STANDARD;
@@ -36,11 +36,11 @@ class StandardCircuitConstructor : public CircuitConstructorBase<arithmetization
 
     // These are variables that we have used a gate on, to enforce that they are
     // equal to a defined value.
-    // TODO(#216)(Adrian): Why is this not in CircuitConstructorBase
+    // TODO(#216)(Adrian): Why is this not in CircuitBuilderBase
     std::map<barretenberg::fr, uint32_t> constant_variable_indices;
 
-    StandardCircuitConstructor(const size_t size_hint = 0)
-        : CircuitConstructorBase(standard_selector_names(), size_hint)
+    StandardCircuitBuilder(const size_t size_hint = 0)
+        : CircuitBuilderBase(standard_selector_names(), size_hint)
     {
         w_l.reserve(size_hint);
         w_r.reserve(size_hint);
@@ -57,18 +57,18 @@ class StandardCircuitConstructor : public CircuitConstructorBase<arithmetization
         create_poly_gate({ one_idx, one_idx, one_idx, 1, 1, 1, 1, -4 });
     };
     // This constructor is needed to simplify switching between circuit constructor and composer
-    StandardCircuitConstructor(std::string const&, const size_t size_hint = 0)
-        : StandardCircuitConstructor(size_hint){};
-    StandardCircuitConstructor(const StandardCircuitConstructor& other) = delete;
-    StandardCircuitConstructor(StandardCircuitConstructor&& other) = default;
-    StandardCircuitConstructor& operator=(const StandardCircuitConstructor& other) = delete;
-    StandardCircuitConstructor& operator=(StandardCircuitConstructor&& other)
+    StandardCircuitBuilder(std::string const&, const size_t size_hint = 0)
+        : StandardCircuitBuilder(size_hint){};
+    StandardCircuitBuilder(const StandardCircuitBuilder& other) = delete;
+    StandardCircuitBuilder(StandardCircuitBuilder&& other) = default;
+    StandardCircuitBuilder& operator=(const StandardCircuitBuilder& other) = delete;
+    StandardCircuitBuilder& operator=(StandardCircuitBuilder&& other)
     {
-        CircuitConstructorBase<arithmetization::Standard<barretenberg::fr>>::operator=(std::move(other));
+        CircuitBuilderBase<arithmetization::Standard<barretenberg::fr>>::operator=(std::move(other));
         constant_variable_indices = other.constant_variable_indices;
         return *this;
     };
-    ~StandardCircuitConstructor() override = default;
+    ~StandardCircuitBuilder() override = default;
 
     void assert_equal_constant(uint32_t const a_idx,
                                barretenberg::fr const& b,

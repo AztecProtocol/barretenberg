@@ -424,7 +424,7 @@ TEST_F(SumcheckTests, RealCircuitStandard)
     using ProverPolynomials = typename Flavor::ProverPolynomials;
 
     // Create a composer and a dummy circuit with a few gates
-    auto circuit_constructor = StandardCircuitConstructor();
+    auto circuit_constructor = StandardCircuitBuilder();
     fr a = fr::one();
     // Using the public variable to check that public_input_delta is computed and added to the relation correctly
     uint32_t a_idx = circuit_constructor.add_public_variable(a);
@@ -508,7 +508,7 @@ TEST_F(SumcheckTests, RealCircuitUltra)
     using ProverPolynomials = typename Flavor::ProverPolynomials;
 
     // Create a composer and a dummy circuit with a few gates
-    auto circuit_constructor = UltraCircuitConstructor();
+    auto circuit_constructor = UltraCircuitBuilder();
     fr a = fr::one();
 
     // Add some basic add gates

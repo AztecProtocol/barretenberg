@@ -16,11 +16,11 @@ namespace proof_system::plonk {
 class StandardComposer {
   public:
     using Flavor = plonk::flavor::Standard;
-    using CircuitConstructor = StandardCircuitConstructor;
+    using CircuitBuilder = StandardCircuitBuilder;
 
     static constexpr std::string_view NAME_STRING = "StandardPlonk";
     static constexpr size_t NUM_RESERVED_GATES = 4; // equal to the number of evaluations leaked
-    static constexpr size_t program_width = CircuitConstructor::program_width;
+    static constexpr size_t program_width = CircuitBuilder::program_width;
     std::shared_ptr<plonk::proving_key> circuit_proving_key;
     std::shared_ptr<plonk::verification_key> circuit_verification_key;
 
@@ -58,13 +58,13 @@ class StandardComposer {
         };
         return result;
     }
-    std::shared_ptr<plonk::proving_key> compute_proving_key(const CircuitConstructor& circuit_constructor);
-    std::shared_ptr<plonk::verification_key> compute_verification_key(const CircuitConstructor& circuit_constructor);
+    std::shared_ptr<plonk::proving_key> compute_proving_key(const CircuitBuilder& circuit_constructor);
+    std::shared_ptr<plonk::verification_key> compute_verification_key(const CircuitBuilder& circuit_constructor);
 
-    plonk::Verifier create_verifier(const CircuitConstructor& circuit_constructor);
-    plonk::Prover create_prover(const CircuitConstructor& circuit_constructor);
+    plonk::Verifier create_verifier(const CircuitBuilder& circuit_constructor);
+    plonk::Prover create_prover(const CircuitBuilder& circuit_constructor);
 
-    void compute_witness(const CircuitConstructor& circuit_constructor, const size_t minimum_circuit_size = 0);
+    void compute_witness(const CircuitBuilder& circuit_constructor, const size_t minimum_circuit_size = 0);
     /**
      * Create a manifest, which specifies proof rounds, elements and who supplies them.
      *

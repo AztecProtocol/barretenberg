@@ -22,9 +22,8 @@ template <class Composer> class ByteArrayTest : public ::testing::Test {};
 
 template <class Composer> using byte_array_ct = byte_array<Composer>;
 
-using CircuitTypes = ::testing::Types<proof_system::StandardCircuitConstructor,
-                                      proof_system::TurboCircuitConstructor,
-                                      proof_system::UltraCircuitConstructor>;
+using CircuitTypes = ::testing::
+    Types<proof_system::StandardCircuitBuilder, proof_system::TurboCircuitBuilder, proof_system::UltraCircuitBuilder>;
 TYPED_TEST_SUITE(ByteArrayTest, CircuitTypes);
 
 TYPED_TEST(ByteArrayTest, test_reverse)

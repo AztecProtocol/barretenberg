@@ -67,7 +67,7 @@ namespace {
  * @tparam program_width Program width
  * */
 template <typename Flavor>
-std::vector<CyclicPermutation> compute_wire_copy_cycles(const typename Flavor::CircuitConstructor& circuit_constructor)
+std::vector<CyclicPermutation> compute_wire_copy_cycles(const typename Flavor::CircuitBuilder& circuit_constructor)
 {
     // Reference circuit constructor members
     const size_t num_gates = circuit_constructor.num_gates;
@@ -129,14 +129,14 @@ std::vector<CyclicPermutation> compute_wire_copy_cycles(const typename Flavor::C
  *
  * @tparam program_width The number of wires
  * @tparam generalized (bool) Triggers use of gen perm tags and computation of id mappings when true
- * @tparam CircuitConstructor The class that holds basic circuitl ogic
+ * @tparam CircuitBuilder The class that holds basic circuitl ogic
  * @param circuit_constructor Circuit-containing object
  * @param key Pointer to the proving key
  * @return PermutationMapping sigma mapping (and id mapping if generalized == true)
  */
 template <typename Flavor, bool generalized>
 PermutationMapping<Flavor::NUM_WIRES> compute_permutation_mapping(
-    const typename Flavor::CircuitConstructor& circuit_constructor, typename Flavor::ProvingKey* proving_key)
+    const typename Flavor::CircuitBuilder& circuit_constructor, typename Flavor::ProvingKey* proving_key)
 {
     // Compute wire copy cycles (cycles of permutations)
     auto wire_copy_cycles = compute_wire_copy_cycles<Flavor>(circuit_constructor);
@@ -429,13 +429,13 @@ void compute_standard_honk_id_polynomials(auto proving_key) // TODO(Cody): provi
  * the witness vector and index within the vector. These values are permuted to account for wire copy cycles
  *
  * @tparam program_width
- * @tparam CircuitConstructor
+ * @tparam CircuitBuilder
  * @param circuit_constructor
  * @param key
  */
 // TODO(#293): Update this (and all similar functions) to take a smart pointer.
 template <typename Flavor>
-void compute_standard_honk_sigma_permutations(const typename Flavor::CircuitConstructor& circuit_constructor,
+void compute_standard_honk_sigma_permutations(const typename Flavor::CircuitBuilder& circuit_constructor,
                                               typename Flavor::ProvingKey* proving_key)
 {
     // Compute the permutation table specifying which element becomes which
@@ -449,12 +449,12 @@ void compute_standard_honk_sigma_permutations(const typename Flavor::CircuitCons
  * @brief Compute sigma permutation polynomials for standard plonk and put them in the polynomial cache
  *
  * @tparam program_width Number of wires
- * @tparam CircuitConstructor Class holding the circuit
+ * @tparam CircuitBuilder Class holding the circuit
  * @param circuit_constructor An object holdingt he circuit
  * @param key Pointer to a proving key
  */
 template <typename Flavor>
-void compute_standard_plonk_sigma_permutations(const typename Flavor::CircuitConstructor& circuit_constructor,
+void compute_standard_plonk_sigma_permutations(const typename Flavor::CircuitBuilder& circuit_constructor,
                                                typename Flavor::ProvingKey* key)
 {
     // Compute the permutation table specifying which element becomes which
@@ -486,13 +486,13 @@ template <typename Flavor> inline void compute_first_and_last_lagrange_polynomia
  * @brief Compute generalized permutation sigmas and ids for ultra plonk
  *
  * @tparam program_width
- * @tparam CircuitConstructor
+ * @tparam CircuitBuilder
  * @param circuit_constructor
  * @param key
  * @return std::array<std::vector<permutation_subgroup_element>, program_width>
  */
 template <typename Flavor>
-void compute_plonk_generalized_sigma_permutations(const typename Flavor::CircuitConstructor& circuit_constructor,
+void compute_plonk_generalized_sigma_permutations(const typename Flavor::CircuitBuilder& circuit_constructor,
                                                   typename Flavor::ProvingKey* key)
 {
     auto mapping = compute_permutation_mapping<Flavor, /*generalized=*/true>(circuit_constructor, key);
@@ -509,13 +509,13 @@ void compute_plonk_generalized_sigma_permutations(const typename Flavor::Circuit
  * @brief Compute generalized permutation sigmas and ids for ultra plonk
  *
  * @tparam program_width
- * @tparam CircuitConstructor
+ * @tparam CircuitBuilder
  * @param circuit_constructor
  * @param proving_key
  * @return std::array<std::vector<permutation_subgroup_element>, program_width>
  */
 template <typename Flavor>
-void compute_honk_generalized_sigma_permutations(const typename Flavor::CircuitConstructor& circuit_constructor,
+void compute_honk_generalized_sigma_permutations(const typename Flavor::CircuitBuilder& circuit_constructor,
                                                  typename Flavor::ProvingKey* proving_key)
 {
     auto mapping = compute_permutation_mapping<Flavor, true>(circuit_constructor, proving_key);

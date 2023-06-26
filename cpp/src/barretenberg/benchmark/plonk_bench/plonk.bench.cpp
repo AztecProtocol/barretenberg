@@ -12,7 +12,7 @@ constexpr size_t START = (MAX_GATES) >> (NUM_CIRCUITS - 1);
 // constexpr size_t MAX_HASH_ROUNDS = 8192;
 // constexpr size_t START_HASH_ROUNDS = 64;
 
-using Builder = proof_system::StandardCircuitConstructor;
+using Builder = proof_system::StandardCircuitBuilder;
 using Composer = proof_system::plonk::StandardComposer;
 
 void generate_test_plonk_circuit(Builder& builder, size_t num_gates)

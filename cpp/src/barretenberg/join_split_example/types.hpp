@@ -18,7 +18,7 @@
 
 namespace join_split_example {
 
-using Builder = proof_system::UltraCircuitConstructor;
+using Builder = proof_system::UltraCircuitBuilder;
 using Composer = plonk::UltraComposer;
 
 using Prover = std::conditional_t<

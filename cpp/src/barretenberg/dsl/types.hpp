@@ -28,7 +28,7 @@
 
 namespace acir_format {
 
-using Builder = proof_system::UltraCircuitConstructor;
+using Builder = proof_system::UltraCircuitBuilder;
 using Composer = plonk::UltraComposer;
 
 using Prover = std::conditional_t<

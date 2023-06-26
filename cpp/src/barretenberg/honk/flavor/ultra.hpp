@@ -27,7 +27,7 @@ namespace proof_system::honk::flavor {
 
 class Ultra {
   public:
-    using CircuitConstructor = UltraCircuitConstructor;
+    using CircuitBuilder = UltraCircuitBuilder;
     using FF = barretenberg::fr;
     using Polynomial = barretenberg::Polynomial<FF>;
     using PolynomialHandle = std::span<FF>;
@@ -41,7 +41,7 @@ class Ultra {
     using PCSParams = pcs::kzg::Params;
     using PCS = pcs::kzg::KZG<PCSParams>;
 
-    static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
+    static constexpr size_t NUM_WIRES = CircuitBuilder::NUM_WIRES;
     // The number of multivariate polynomials on which a sumcheck prover sumcheck operates (including shifts). We often
     // need containers of this size to hold related data, so we choose a name more agnostic than `NUM_POLYNOMIALS`.
     // Note: this number does not include the individual sorted list polynomials.
@@ -104,7 +104,7 @@ class Ultra {
         DataType& lagrange_first = std::get<23>(this->_data);
         DataType& lagrange_last = std::get<24>(this->_data);
 
-        static constexpr CircuitType CIRCUIT_TYPE = CircuitConstructor::CIRCUIT_TYPE;
+        static constexpr CircuitType CIRCUIT_TYPE = CircuitBuilder::CIRCUIT_TYPE;
 
         std::vector<HandleType> get_selectors() override
         {

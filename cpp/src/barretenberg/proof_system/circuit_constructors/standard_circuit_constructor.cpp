@@ -12,7 +12,7 @@ namespace proof_system {
  * @param in An add_triple containing the indexes of variables to be placed into the
  * wires w_l, w_r, w_o and addition coefficients to be placed into q_1, q_2, q_3, q_c.
  */
-void StandardCircuitConstructor::create_add_gate(const add_triple& in)
+void StandardCircuitBuilder::create_add_gate(const add_triple& in)
 {
     assert_valid_variables({ in.a, in.b, in.c });
 
@@ -35,7 +35,7 @@ void StandardCircuitConstructor::create_add_gate(const add_triple& in)
  * @param in An add quad containing the indexes of variables a, b, c, d and
  * the scaling factors.
  * */
-void StandardCircuitConstructor::create_big_add_gate(const add_quad& in)
+void StandardCircuitBuilder::create_big_add_gate(const add_quad& in)
 {
     // (a terms + b terms = temp)
     // (c terms + d  terms + temp = 0 )
@@ -56,7 +56,7 @@ void StandardCircuitConstructor::create_big_add_gate(const add_quad& in)
  * @param in An add quad containing the indexes of variables a, b, c, d and
  * the scaling factors.
  * */
-void StandardCircuitConstructor::create_balanced_add_gate(const add_quad& in)
+void StandardCircuitBuilder::create_balanced_add_gate(const add_quad& in)
 {
 
     assert_valid_variables({ in.a, in.b, in.c, in.d });
@@ -118,7 +118,7 @@ void StandardCircuitConstructor::create_balanced_add_gate(const add_quad& in)
     ++num_gates;
 }
 
-void StandardCircuitConstructor::create_big_add_gate_with_bit_extraction(const add_quad& in)
+void StandardCircuitBuilder::create_big_add_gate_with_bit_extraction(const add_quad& in)
 {
     // blah.
     // delta = (c - 4d)
@@ -163,7 +163,7 @@ void StandardCircuitConstructor::create_big_add_gate_with_bit_extraction(const a
         add_quad{ in.a, in.b, in.c, r_2_idx, in.a_scaling, in.b_scaling, in.c_scaling, fr::one(), in.const_scaling });
 }
 
-void StandardCircuitConstructor::create_big_mul_gate(const mul_quad& in)
+void StandardCircuitBuilder::create_big_mul_gate(const mul_quad& in)
 {
     fr temp = ((get_variable(in.c) * in.c_scaling) + (get_variable(in.d) * in.d_scaling));
     uint32_t temp_idx = add_variable(temp);
@@ -179,7 +179,7 @@ void StandardCircuitConstructor::create_big_mul_gate(const mul_quad& in)
  * @param in A mul_tripple containing the indexes of variables to be placed into the
  * wires w_l, w_r, w_o and scaling coefficients to be placed into q_m, q_3, q_c.
  */
-void StandardCircuitConstructor::create_mul_gate(const mul_triple& in)
+void StandardCircuitBuilder::create_mul_gate(const mul_triple& in)
 {
     assert_valid_variables({ in.a, in.b, in.c });
 
@@ -201,7 +201,7 @@ void StandardCircuitConstructor::create_mul_gate(const mul_triple& in)
  *
  * @param variable_index The index of the variable.
  */
-void StandardCircuitConstructor::create_bool_gate(const uint32_t variable_index)
+void StandardCircuitBuilder::create_bool_gate(const uint32_t variable_index)
 {
     assert_valid_variables({ variable_index });
 
@@ -223,7 +223,7 @@ void StandardCircuitConstructor::create_bool_gate(const uint32_t variable_index)
  *
  * @param in A poly_triple containing all the information.
  */
-void StandardCircuitConstructor::create_poly_gate(const poly_triple& in)
+void StandardCircuitBuilder::create_poly_gate(const poly_triple& in)
 {
     assert_valid_variables({ in.a, in.b, in.c });
 
@@ -239,9 +239,9 @@ void StandardCircuitConstructor::create_poly_gate(const poly_triple& in)
     ++num_gates;
 }
 
-std::vector<uint32_t> StandardCircuitConstructor::decompose_into_base4_accumulators(const uint32_t witness_index,
-                                                                                    const size_t num_bits,
-                                                                                    std::string const& msg)
+std::vector<uint32_t> StandardCircuitBuilder::decompose_into_base4_accumulators(const uint32_t witness_index,
+                                                                                const size_t num_bits,
+                                                                                std::string const& msg)
 {
     ASSERT(num_bits > 0);
     const uint256_t target(get_variable(witness_index));
@@ -299,10 +299,10 @@ std::vector<uint32_t> StandardCircuitConstructor::decompose_into_base4_accumulat
     return accumulators;
 }
 
-accumulator_triple StandardCircuitConstructor::create_logic_constraint(const uint32_t a,
-                                                                       const uint32_t b,
-                                                                       const size_t num_bits,
-                                                                       const bool is_xor_gate)
+accumulator_triple StandardCircuitBuilder::create_logic_constraint(const uint32_t a,
+                                                                   const uint32_t b,
+                                                                   const size_t num_bits,
+                                                                   const bool is_xor_gate)
 {
     assert_valid_variables({ a, b });
 
@@ -423,7 +423,7 @@ accumulator_triple StandardCircuitConstructor::create_logic_constraint(const uin
     return accumulators;
 }
 
-void StandardCircuitConstructor::fix_witness(const uint32_t witness_index, const barretenberg::fr& witness_value)
+void StandardCircuitBuilder::fix_witness(const uint32_t witness_index, const barretenberg::fr& witness_value)
 {
     assert_valid_variables({ witness_index });
 
@@ -438,7 +438,7 @@ void StandardCircuitConstructor::fix_witness(const uint32_t witness_index, const
     ++num_gates;
 }
 
-uint32_t StandardCircuitConstructor::put_constant_variable(const barretenberg::fr& variable)
+uint32_t StandardCircuitBuilder::put_constant_variable(const barretenberg::fr& variable)
 {
     if (constant_variable_indices.contains(variable)) {
         return constant_variable_indices.at(variable);
@@ -451,21 +451,21 @@ uint32_t StandardCircuitConstructor::put_constant_variable(const barretenberg::f
     }
 }
 
-accumulator_triple StandardCircuitConstructor::create_and_constraint(const uint32_t a,
-                                                                     const uint32_t b,
-                                                                     const size_t num_bits)
+accumulator_triple StandardCircuitBuilder::create_and_constraint(const uint32_t a,
+                                                                 const uint32_t b,
+                                                                 const size_t num_bits)
 {
     return create_logic_constraint(a, b, num_bits, false);
 }
 
-accumulator_triple StandardCircuitConstructor::create_xor_constraint(const uint32_t a,
-                                                                     const uint32_t b,
-                                                                     const size_t num_bits)
+accumulator_triple StandardCircuitBuilder::create_xor_constraint(const uint32_t a,
+                                                                 const uint32_t b,
+                                                                 const size_t num_bits)
 {
     return create_logic_constraint(a, b, num_bits, true);
 }
 
-void StandardCircuitConstructor::assert_equal_constant(uint32_t const a_idx, fr const& b, std::string const& msg)
+void StandardCircuitBuilder::assert_equal_constant(uint32_t const a_idx, fr const& b, std::string const& msg)
 {
     if (variables[a_idx] != b && !failed()) {
         failure(msg);
@@ -480,7 +480,7 @@ void StandardCircuitConstructor::assert_equal_constant(uint32_t const a_idx, fr 
  *
  * @return true if the circuit is correct.
  * */
-bool StandardCircuitConstructor::check_circuit()
+bool StandardCircuitBuilder::check_circuit()
 {
 
     fr gate_sum;

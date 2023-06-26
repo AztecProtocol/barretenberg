@@ -740,11 +740,10 @@ void field_t<ComposerContext>::create_range_constraint(const size_t num_bits, st
             ASSERT(uint256_t(get_value()).get_msb() < num_bits);
         } else {
             if constexpr (HasPlookup<ComposerContext>) {
-                context->decompose_into_default_range(
-                    normalize().get_witness_index(),
-                    num_bits,
-                    proof_system::UltraCircuitConstructor::DEFAULT_PLOOKUP_RANGE_BITNUM,
-                    msg);
+                context->decompose_into_default_range(normalize().get_witness_index(),
+                                                      num_bits,
+                                                      proof_system::UltraCircuitBuilder::DEFAULT_PLOOKUP_RANGE_BITNUM,
+                                                      msg);
             } else {
                 context->decompose_into_base4_accumulators(normalize().get_witness_index(), num_bits, msg);
             }
@@ -1042,7 +1041,7 @@ field_t<ComposerContext> field_t<ComposerContext>::accumulate(const std::vector<
             accumulating_total = witness_t<ComposerContext>(ctx, new_total);
         }
         return total.normalize();
-    } else if constexpr (std::same_as<ComposerContext, TurboCircuitConstructor>) {
+    } else if constexpr (std::same_as<ComposerContext, TurboCircuitBuilder>) {
 
         field_t total(0);
         bool odd_number = (input.size() & 0x01UL) == 0x01ULL;
