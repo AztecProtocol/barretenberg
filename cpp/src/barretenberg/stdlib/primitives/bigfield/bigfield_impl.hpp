@@ -1664,7 +1664,7 @@ template <typename C, typename T> void bigfield<C, T>::assert_is_in_field() cons
     }
 }
 
-template <typename C, typename T> void bigfield<C, T>::assert_less_than(const uint256_t& upper_limit) const
+template <typename C, typename T> void bigfield<C, T>::assert_less_than(const uint256_t upper_limit) const
 {
     // TODO(kesha): Merge this with assert_is_in_field
     // Warning: this assumes we have run circuit construction at least once in debug mode where large non reduced
