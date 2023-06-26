@@ -89,7 +89,7 @@ bool check_has_less_than(std::vector<fr> const& values, fr const& value)
 LowLeafWitnessData NullifierMemoryTree::batch_insert(std::vector<fr> const& values)
 {
     // Start insertion index
-    fr const start_insertion_index = this->size();
+    size_t const start_insertion_index = this->size();
 
     // Low nullifiers
     auto values_size = values.size();
@@ -201,8 +201,6 @@ LowLeafWitnessData NullifierMemoryTree::batch_insert(std::vector<fr> const& valu
             // update old value in tree
             update_element_in_place(current, new_leaf);
         }
-
-        info("pending at index ", i, " ", pending_insertion_tree);
     }
 
     // resize leaves array
@@ -212,7 +210,7 @@ LowLeafWitnessData NullifierMemoryTree::batch_insert(std::vector<fr> const& valu
 
         // Update the old leaf in the tree
         // update old value in tree
-        update_element_in_place(size_t(start_insertion_index) + i, pending);
+        update_element_in_place(start_insertion_index + i, pending);
     }
 
     // Return tuple of low nullifiers and sibling paths

@@ -80,7 +80,7 @@ class NullifierMemoryTree : public MemoryTree {
     using MemoryTree::update_element;
 
     // Inspectors
-    fr size() { return leaves_.size(); }
+    size_t size() { return leaves_.size(); }
     fr total_size() const { return total_size_; }
     fr depth() const { return depth_; }
     const std::vector<barretenberg::fr>& get_hashes() { return hashes_; }
