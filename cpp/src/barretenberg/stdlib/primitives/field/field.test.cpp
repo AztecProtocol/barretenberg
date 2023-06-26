@@ -915,9 +915,9 @@ template <typename Composer> class stdlib_field : public testing::Test {
 typedef testing::Types<proof_system::StandardCircuitConstructor,
                        proof_system::TurboCircuitConstructor,
                        proof_system::UltraCircuitConstructor>
-    ComposerTypes;
+    CircuitTypes;
 
-TYPED_TEST_SUITE(stdlib_field, ComposerTypes);
+TYPED_TEST_SUITE(stdlib_field, CircuitTypes);
 
 TYPED_TEST(stdlib_field, test_create_range_constraint)
 {

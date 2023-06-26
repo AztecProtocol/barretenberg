@@ -64,7 +64,7 @@ std::shared_ptr<plonk::proving_key> StandardPlonkComposerHelper::compute_proving
     // Initialize circuit_proving_key
     // TODO(#392)(Kesha): replace composer types.
     circuit_proving_key = proof_system::initialize_proving_key<Flavor>(
-        circuit_constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, ComposerType::STANDARD);
+        circuit_constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, CircuitType::STANDARD);
     // Compute lagrange selectors
     construct_selector_polynomials<Flavor>(circuit_constructor, circuit_proving_key.get());
     // Make all selectors nonzero
@@ -100,7 +100,7 @@ std::shared_ptr<plonk::verification_key> StandardPlonkComposerHelper::compute_ve
 
     circuit_verification_key =
         plonk::compute_verification_key_common(circuit_proving_key, crs_factory_->get_verifier_crs());
-    circuit_verification_key->composer_type = circuit_proving_key->composer_type;
+    circuit_verification_key->circuit_type = circuit_proving_key->circuit_type;
     circuit_verification_key->recursive_proof_public_input_indices =
         std::vector<uint32_t>(circuit_constructor.recursive_proof_public_input_indices.begin(),
                               circuit_constructor.recursive_proof_public_input_indices.end());

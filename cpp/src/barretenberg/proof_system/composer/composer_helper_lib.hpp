@@ -14,7 +14,7 @@ namespace proof_system {
  * @param crs_factory Produces the prover's reference string
  * @param minimum_circuit_size The minimum size of polynomials without randomized elements
  * @param num_randomized_gates Number of gates with randomized witnesses
- * @param composer_type The type of composer we are using
+ * @param circuit_type The type of composer we are using
  * @return std::shared_ptr<typename Flavor::ProvingKey>
  */
 template <typename Flavor>
@@ -22,7 +22,8 @@ std::shared_ptr<typename Flavor::ProvingKey> initialize_proving_key(
     const typename Flavor::CircuitConstructor& circuit_constructor,
     barretenberg::srs::factories::CrsFactory* crs_factory,
     const size_t minimum_circuit_size,
-    const size_t num_randomized_gates)
+    const size_t num_randomized_gates,
+    CircuitType circuit_type = CircuitType::UNDEFINED)
 {
     const size_t num_gates = circuit_constructor.num_gates;
     std::span<const uint32_t> public_inputs = circuit_constructor.public_inputs;
@@ -39,7 +40,8 @@ std::shared_ptr<typename Flavor::ProvingKey> initialize_proving_key(
         proving_key = std::make_shared<typename Flavor::ProvingKey>(subgroup_size, num_public_inputs);
     } else if constexpr (IsPlonkFlavor<Flavor>) {
         auto crs = crs_factory->get_prover_crs(subgroup_size + 1);
-        proving_key = std::make_shared<typename Flavor::ProvingKey>(subgroup_size, num_public_inputs, crs);
+        proving_key =
+            std::make_shared<typename Flavor::ProvingKey>(subgroup_size, num_public_inputs, crs, circuit_type);
     }
 
     return proving_key;

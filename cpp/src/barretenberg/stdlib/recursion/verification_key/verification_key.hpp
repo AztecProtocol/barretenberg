@@ -240,7 +240,7 @@ template <typename Curve> struct verification_key {
         std::shared_ptr<verification_key> key = std::make_shared<verification_key>();
         key->context = ctx;
 
-        key->polynomial_manifest = PolynomialManifest(static_cast<uint32_t>(Composer::CIRCUIT_TYPE));
+        key->polynomial_manifest = PolynomialManifest(Composer::CIRCUIT_TYPE);
         key->domain = evaluation_domain<Composer>::from_field_elements({ fields[0], fields[1], fields[2] });
 
         key->n = fields[3];
@@ -370,12 +370,12 @@ template <typename Curve> struct verification_key {
         PedersenPreimageBuilder<Composer> preimage_buffer(context);
 
         // WORKTODO: Figure out if there's actually an attack here.
-        field_t<Composer> composer_type =
+        field_t<Composer> circuit_type =
             witness_t<Composer>::create_constant_witness(context, static_cast<uint32_t>(Composer::CIRCUIT_TYPE));
         domain.generator.create_range_constraint(16, "domain.generator");
         domain.domain.create_range_constraint(32, "domain.generator");
         num_public_inputs.create_range_constraint(32, "num_public_inputs");
-        preimage_buffer.add_element_with_existing_range_constraint(composer_type, 8);
+        preimage_buffer.add_element_with_existing_range_constraint(circuit_type, 8);
         preimage_buffer.add_element_with_existing_range_constraint(domain.generator, 16); // coset generator is small
         preimage_buffer.add_element_with_existing_range_constraint(domain.domain, 32);
         preimage_buffer.add_element_with_existing_range_constraint(num_public_inputs, 32);

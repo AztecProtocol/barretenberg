@@ -20,10 +20,10 @@ auto& engine = numeric::random::get_debug_engine();
 
 template <class Composer> class GroupTest : public ::testing::Test {};
 
-using ComposerTypes = ::testing::Types<proof_system::StandardCircuitConstructor,
-                                       proof_system::TurboCircuitConstructor,
-                                       proof_system::UltraCircuitConstructor>;
-TYPED_TEST_SUITE(GroupTest, ComposerTypes);
+using CircuitTypes = ::testing::Types<proof_system::StandardCircuitConstructor,
+                                      proof_system::TurboCircuitConstructor,
+                                      proof_system::UltraCircuitConstructor>;
+TYPED_TEST_SUITE(GroupTest, CircuitTypes);
 
 TYPED_TEST(GroupTest, TestFixedBaseScalarMul)
 {

@@ -25,7 +25,7 @@
  * more legible, and which is safer because it admits ranged `for` loops.
  *
  * Another motivation is proper and clear specification of Honk variants. The flavors are meant to be explicit and
- * easily comparable. In plonk, the various settings template parameters and objects like the ComposerType enum became
+ * easily comparable. In plonk, the various settings template parameters and objects like the CircuitType enum became
  * overloaded in time, and continue to be a point of accumulation for tech debt. We aim to remedy some of this by
  * putting proving system information in the flavor, and circuit construction information in the arithmetization (or
  * larger circuit constructor class).
@@ -69,7 +69,7 @@
 #include <vector>
 #include "barretenberg/honk/sumcheck/polynomials/barycentric_data.hpp"
 #include "barretenberg/polynomials/evaluation_domain.hpp"
-#include "barretenberg/proof_system/types/composer_type.hpp"
+#include "barretenberg/proof_system/types/circuit_type.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
 
 namespace proof_system::honk::flavor {

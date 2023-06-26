@@ -490,9 +490,9 @@ template <typename OuterComposer> class stdlib_verifier_turbo : public testing::
     }
 };
 
-typedef testing::Types<plonk::StandardPlonkComposerHelper, plonk::TurboPlonkComposerHelper> OuterComposerTypes;
+typedef testing::Types<plonk::StandardPlonkComposerHelper, plonk::TurboPlonkComposerHelper> OuterCircuitTypes;
 
-TYPED_TEST_SUITE(stdlib_verifier_turbo, OuterComposerTypes);
+TYPED_TEST_SUITE(stdlib_verifier_turbo, OuterCircuitTypes);
 
 HEAVY_TYPED_TEST(stdlib_verifier_turbo, test_inner_circuit)
 {

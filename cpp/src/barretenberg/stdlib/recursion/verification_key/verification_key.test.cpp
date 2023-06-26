@@ -34,7 +34,7 @@ template <typename Composer> class VerificationKeyFixture : public testing::Test
     static verification_key_data rand_vk_data()
     {
         verification_key_data vk_data;
-        vk_data.composer_type = static_cast<uint32_t>(Composer::CIRCUIT_TYPE);
+        vk_data.circuit_type = static_cast<uint32_t>(Composer::CIRCUIT_TYPE);
         vk_data.circuit_size = 1024; // not random - must be power of 2
         vk_data.num_public_inputs = engine.get_random_uint32();
         vk_data.commitments["test1"] = g1::element::random_element();
@@ -45,10 +45,10 @@ template <typename Composer> class VerificationKeyFixture : public testing::Test
     }
 };
 
-using ComposerTypes = testing::Types<proof_system::StandardCircuitConstructor,
-                                     proof_system::TurboCircuitConstructor,
-                                     proof_system::UltraCircuitConstructor>;
-TYPED_TEST_SUITE(VerificationKeyFixture, ComposerTypes);
+using CircuitTypes = testing::Types<proof_system::StandardCircuitConstructor,
+                                    proof_system::TurboCircuitConstructor,
+                                    proof_system::UltraCircuitConstructor>;
+TYPED_TEST_SUITE(VerificationKeyFixture, CircuitTypes);
 
 TYPED_TEST(VerificationKeyFixture, vk_data_vs_recursion_compress_native)
 {

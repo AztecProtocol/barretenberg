@@ -46,7 +46,7 @@ plonk::Verifier generate_verifier(std::shared_ptr<proving_key> circuit_proving_k
         std::make_shared<verification_key>(circuit_proving_key->circuit_size,
                                            circuit_proving_key->num_public_inputs,
                                            crs,
-                                           circuit_proving_key->composer_type);
+                                           circuit_proving_key->circuit_type);
 
     circuit_verification_key->commitments.insert({ "Q_1", commitments[0] });
     circuit_verification_key->commitments.insert({ "Q_2", commitments[1] });
@@ -78,7 +78,7 @@ plonk::Prover generate_test_data(const size_t n)
     // even indices = mul gates, odd incides = add gates
 
     auto crs = std::make_shared<barretenberg::srs::factories::FileProverCrs<curve::BN254>>(n + 1, "../srs_db/ignition");
-    std::shared_ptr<proving_key> key = std::make_shared<proving_key>(n, 0, crs, ComposerType::STANDARD);
+    std::shared_ptr<proving_key> key = std::make_shared<proving_key>(n, 0, crs, CircuitType::STANDARD);
 
     polynomial w_l(n);
     polynomial w_r(n);

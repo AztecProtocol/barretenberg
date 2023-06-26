@@ -390,9 +390,9 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
 typedef testing::Types<proof_system::StandardCircuitConstructor,
                        proof_system::TurboCircuitConstructor,
                        proof_system::UltraCircuitConstructor>
-    ComposerTypes;
+    CircuitTypes;
 
-TYPED_TEST_SUITE(stdlib_pedersen, ComposerTypes);
+TYPED_TEST_SUITE(stdlib_pedersen, CircuitTypes);
 
 TYPED_TEST(stdlib_pedersen, small)
 {

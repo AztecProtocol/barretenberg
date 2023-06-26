@@ -598,9 +598,9 @@ template <typename Composer> class stdlib_array : public testing::Test {
 typedef testing::Types<proof_system::StandardCircuitConstructor,
                        proof_system::TurboCircuitConstructor,
                        proof_system::UltraCircuitConstructor>
-    ComposerTypes;
+    CircuitTypes;
 
-TYPED_TEST_SUITE(stdlib_array, ComposerTypes);
+TYPED_TEST_SUITE(stdlib_array, CircuitTypes);
 
 TYPED_TEST(stdlib_array, test_array_length)
 {

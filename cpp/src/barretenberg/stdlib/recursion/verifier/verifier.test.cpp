@@ -568,9 +568,9 @@ template <typename OuterComposer> class stdlib_verifier : public testing::Test {
 
 typedef testing::
     Types<plonk::StandardPlonkComposerHelper, plonk::TurboPlonkComposerHelper, plonk::UltraPlonkComposerHelper>
-        OuterComposerTypes;
+        OuterCircuitTypes;
 
-TYPED_TEST_SUITE(stdlib_verifier, OuterComposerTypes);
+TYPED_TEST_SUITE(stdlib_verifier, OuterCircuitTypes);
 
 HEAVY_TYPED_TEST(stdlib_verifier, test_inner_circuit)
 {

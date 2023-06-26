@@ -1746,9 +1746,9 @@ template <typename Composer> class stdlib_uint : public testing::Test {
 typedef testing::Types<proof_system::StandardCircuitConstructor,
                        proof_system::TurboCircuitConstructor,
                        proof_system::UltraCircuitConstructor>
-    ComposerTypes;
+    CircuitTypes;
 
-TYPED_TEST_SUITE(stdlib_uint, ComposerTypes);
+TYPED_TEST_SUITE(stdlib_uint, CircuitTypes);
 
 TYPED_TEST(stdlib_uint, test_weak_normalize)
 {

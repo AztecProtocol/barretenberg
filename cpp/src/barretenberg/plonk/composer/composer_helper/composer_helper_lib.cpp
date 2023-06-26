@@ -49,7 +49,7 @@ std::shared_ptr<plonk::verification_key> compute_verification_key_common(
     std::shared_ptr<barretenberg::srs::factories::VerifierCrs> const& vrs)
 {
     auto circuit_verification_key = std::make_shared<plonk::verification_key>(
-        proving_key->circuit_size, proving_key->num_public_inputs, vrs, proving_key->composer_type);
+        proving_key->circuit_size, proving_key->num_public_inputs, vrs, proving_key->circuit_type);
     // TODO(kesha): Dirty hack for now. Need to actually make commitment-agnositc
     auto commitment_key =
         proof_system::honk::pcs::kzg::Params::CommitmentKey(proving_key->circuit_size, proving_key->reference_string);
@@ -72,7 +72,7 @@ std::shared_ptr<plonk::verification_key> compute_verification_key_common(
     }
 
     // Set the polynomial manifest in verification key.
-    circuit_verification_key->polynomial_manifest = proof_system::plonk::PolynomialManifest(proving_key->composer_type);
+    circuit_verification_key->polynomial_manifest = proof_system::plonk::PolynomialManifest(proving_key->circuit_type);
 
     return circuit_verification_key;
 }

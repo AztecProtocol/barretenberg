@@ -382,7 +382,7 @@ std::shared_ptr<proving_key> UltraPlonkComposerHelper::compute_proving_key(Circu
     // Initialize circuit_proving_key
     // TODO(#392)(Kesha): replace composer types.
     circuit_proving_key = initialize_proving_key<Flavor>(
-        circuit_constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, ComposerType::PLOOKUP);
+        circuit_constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, CircuitType::ULTRA);
 
     construct_selector_polynomials<Flavor>(circuit_constructor, circuit_proving_key.get());
 
@@ -501,7 +501,7 @@ std::shared_ptr<plonk::verification_key> UltraPlonkComposerHelper::compute_verif
     }
     circuit_verification_key = compute_verification_key_common(circuit_proving_key, crs_factory_->get_verifier_crs());
 
-    circuit_verification_key->composer_type = ComposerType::PLOOKUP; // Invariably plookup for this class.
+    circuit_verification_key->circuit_type = CircuitType::ULTRA;
 
     // See `add_recusrive_proof()` for how this recursive data is assigned.
     circuit_verification_key->recursive_proof_public_input_indices =
