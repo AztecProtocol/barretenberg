@@ -2,8 +2,8 @@
 #include "barretenberg/common/streams.hpp"
 #include "proving_key.hpp"
 #include "serialize.hpp"
-#include "barretenberg/plonk/composer/composer_helper/standard_plonk_composer_helper.hpp"
-#include "barretenberg/plonk/composer/composer_helper/ultra_plonk_composer_helper.hpp"
+#include "barretenberg/plonk/composer/standard_plonk_composer_helper.hpp"
+#include "barretenberg/plonk/composer/ultra_plonk_composer_helper.hpp"
 #include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
 #include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
 

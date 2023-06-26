@@ -1,6 +1,6 @@
 #include "barretenberg/benchmark/honk_bench/benchmark_utilities.hpp"
 #include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
-#include "barretenberg/plonk/composer/composer_helper/ultra_plonk_composer_helper.hpp"
+#include "barretenberg/plonk/composer/ultra_plonk_composer_helper.hpp"
 
 using namespace benchmark;
 

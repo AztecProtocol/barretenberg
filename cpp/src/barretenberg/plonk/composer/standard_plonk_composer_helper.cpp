@@ -6,7 +6,7 @@
 #include "barretenberg/plonk/proof_system/widgets/random_widgets/permutation_widget.hpp"
 #include "barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp"
 #include "barretenberg/proof_system/composer/composer_helper_lib.hpp"
-#include "barretenberg/plonk/composer/composer_helper/composer_helper_lib.hpp"
+#include "barretenberg/plonk/composer/composer_helper_lib.hpp"
 #include "barretenberg/proof_system/composer/permutation_helper.hpp"
 
 #include <cstddef>

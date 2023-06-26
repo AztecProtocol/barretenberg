@@ -6,7 +6,7 @@
  */
 #include <benchmark/benchmark.h>
 
-#include "barretenberg/plonk/composer/composer_helper/ultra_plonk_composer_helper.hpp"
+#include "barretenberg/plonk/composer/ultra_plonk_composer_helper.hpp"
 #include "barretenberg/stdlib/hash/sha256/sha256.hpp"
 #include "barretenberg/stdlib/hash/blake3s/blake3s.hpp"
 

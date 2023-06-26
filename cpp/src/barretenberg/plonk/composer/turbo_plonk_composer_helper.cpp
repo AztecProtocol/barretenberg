@@ -11,7 +11,7 @@
 #include "barretenberg/plonk/proof_system/widgets/transition_widgets/turbo_arithmetic_widget.hpp"
 #include "barretenberg/proof_system/composer/permutation_helper.hpp"
 #include "barretenberg/proof_system/composer/composer_helper_lib.hpp"
-#include "barretenberg/plonk/composer/composer_helper/composer_helper_lib.hpp"
+#include "barretenberg/plonk/composer/composer_helper_lib.hpp"
 
 using namespace barretenberg;
 

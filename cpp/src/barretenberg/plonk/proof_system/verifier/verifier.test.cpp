@@ -4,7 +4,7 @@
 #include "../utils/permutation.hpp"
 #include "../widgets/transition_widgets/arithmetic_widget.hpp"
 #include "../../../transcript/transcript.hpp"
-#include "barretenberg/plonk/composer/composer_helper/standard_plonk_composer_helper.hpp"
+#include "barretenberg/plonk/composer/standard_plonk_composer_helper.hpp"
 #include "verifier.hpp"
 #include "barretenberg/ecc/scalar_multiplication/scalar_multiplication.hpp"
 #include <gtest/gtest.h>

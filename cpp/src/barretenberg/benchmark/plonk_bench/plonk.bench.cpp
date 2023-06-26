@@ -1,6 +1,6 @@
 #include <benchmark/benchmark.h>
 #include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
-#include "barretenberg/plonk/composer/composer_helper/standard_plonk_composer_helper.hpp"
+#include "barretenberg/plonk/composer/standard_plonk_composer_helper.hpp"
 #include "barretenberg/stdlib/primitives/field/field.hpp"
 
 using namespace benchmark;

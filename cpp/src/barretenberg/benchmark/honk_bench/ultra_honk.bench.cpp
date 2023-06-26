@@ -1,7 +1,7 @@
 #include <benchmark/benchmark.h>
 
 #include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
-#include "barretenberg/honk/composer/composer_helper/ultra_honk_composer_helper.hpp"
+#include "barretenberg/honk/composer/ultra_honk_composer_helper.hpp"
 #include "barretenberg/benchmark/honk_bench/benchmark_utilities.hpp"
 
 using namespace benchmark;

@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "barretenberg/plonk/composer/composer_helper/standard_plonk_composer_helper.hpp"
-#include "barretenberg/plonk/composer/composer_helper/ultra_plonk_composer_helper.hpp"
+#include "barretenberg/plonk/composer/standard_plonk_composer_helper.hpp"
+#include "barretenberg/plonk/composer/ultra_plonk_composer_helper.hpp"
 #include "barretenberg/plonk/proof_system/verification_key/sol_gen.hpp"
 
 #include "circuits/blake_circuit.hpp"
