@@ -68,7 +68,7 @@ class Ultra {
     static constexpr size_t NUM_RELATIONS = std::tuple_size<Relations>::value;
 
     // Instantiate the BarycentricData needed to extend each Relation Univariate
-    static_assert(instantiate_barycentric_utils<FF, MAX_RELATION_LENGTH>());
+    static_assert(instantiate_barycentric_utils<FF, MAX_RANDOM_RELATION_LENGTH>());
 
     // define the container for storing the univariate contribution from each relation in Sumcheck
     using RelationUnivariates = decltype(create_relation_univariates_container<FF, Relations>());
