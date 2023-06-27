@@ -20,6 +20,8 @@ template <StandardFlavor Flavor> class StandardHonkComposerHelper_ {
     using VerificationKey = typename Flavor::VerificationKey;
     using PCSCommitmentKey = typename PCSParams::CommitmentKey;
 
+    static constexpr std::string_view NAME_STRING = "StandardHonk";
+    static constexpr ComposerType type = ComposerType::STANDARD_HONK; // TODO(Cody): Get rid of this.
     static constexpr size_t NUM_RESERVED_GATES = 2; // equal to the number of multilinear evaluations leaked
     static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
     std::shared_ptr<ProvingKey> proving_key;
@@ -73,8 +75,10 @@ template <StandardFlavor Flavor> class StandardHonkComposerHelper_ {
         commitment_key = std::make_shared<typename PCSParams::CommitmentKey>(circuit_size, crs_factory_);
     };
 };
+
 extern template class StandardHonkComposerHelper_<honk::flavor::Standard>;
 extern template class StandardHonkComposerHelper_<honk::flavor::StandardGrumpkin>;
+// TODO(#532): this pattern is weird; is this not instantiating the templates?
 using StandardHonkComposerHelper = StandardHonkComposerHelper_<honk::flavor::Standard>;
-
+using StandardGrumpkinHonkComposerHelper = StandardHonkComposerHelper_<honk::flavor::StandardGrumpkin>;
 } // namespace proof_system::honk

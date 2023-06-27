@@ -17,6 +17,7 @@ using namespace barretenberg;
 
 class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::Ultra<barretenberg::fr>> {
   public:
+    static constexpr std::string_view NAME_STRING = "UltraArithmetization";
     static constexpr ComposerType type = ComposerType::PLOOKUP;
     static constexpr merkle::HashType merkle_hash_type = merkle::HashType::LOOKUP_PEDERSEN;
     static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
@@ -1179,7 +1180,6 @@ class UltraCircuitConstructor : public CircuitConstructorBase<arithmetization::U
                                      fr alpha_base,
                                      fr alpha) const;
 
-    void update_circuit_in_the_head();
     bool check_circuit();
 };
 } // namespace proof_system
