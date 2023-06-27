@@ -10,6 +10,8 @@ namespace proof_system::honk::sumcheck {
 
 template <typename FF> class AuxiliaryRelation {
   public:
+    constexpr bool scale_by_random_polynomial() { return true; }
+
     // 1 + polynomial degree of this relation
     static constexpr size_t RELATION_LENGTH = 6; // degree() = WORKTODO
 
@@ -266,7 +268,8 @@ template <typename FF> class AuxiliaryRelation {
 
     void add_full_relation_value_contribution(FF& full_honk_relation_value,
                                               const auto& purported_evaluations,
-                                              const RelationParameters<FF>& relation_parameters) const
+                                              const RelationParameters<FF>& relation_parameters,
+                                              const FF& scaling_factor) const
     {
         const auto& eta = relation_parameters.eta;
         const auto fake_alpha = FF(1);
@@ -502,7 +505,7 @@ template <typename FF> class AuxiliaryRelation {
         auto auxiliary_identity = memory_identity + non_native_field_identity + limb_accumulator_identity;
         auxiliary_identity *= q_aux;
 
-        full_honk_relation_value += auxiliary_identity;
+        full_honk_relation_value += auxiliary_identity * scaling_factor;
     };
 };
 } // namespace proof_system::honk::sumcheck

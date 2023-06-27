@@ -62,6 +62,8 @@ template <class Fr, size_t _length> class Univariate {
     // Operations between Univariate and other Univariate
     bool operator==(const Univariate& other) const = default;
 
+    Univariate& operator[](const size_t) { return *this; }
+
     Univariate& operator+=(const Univariate& other)
     {
         for (size_t i = 0; i < _length; ++i) {
@@ -90,6 +92,14 @@ template <class Fr, size_t _length> class Univariate {
         return res;
     }
 
+    Univariate operator-() const
+    {
+        Univariate res(*this);
+        for (auto& eval : res.evaluations) {
+            eval = -eval;
+        }
+        return res;
+    }
     Univariate operator-(const Univariate& other) const
     {
         Univariate res(*this);
@@ -235,6 +245,8 @@ template <class Fr, size_t view_length> class UnivariateView {
     explicit UnivariateView(const Univariate<Fr, full_length>& univariate_in)
         : evaluations(std::span<const Fr>(univariate_in.evaluations.data(), view_length)){};
 
+    UnivariateView& operator[](const size_t) { return *this; }
+
     Univariate<Fr, view_length> operator+(const UnivariateView& other) const
     {
         Univariate<Fr, view_length> res(*this);
@@ -246,6 +258,14 @@ template <class Fr, size_t view_length> class UnivariateView {
     {
         Univariate<Fr, view_length> res(*this);
         res -= other;
+        return res;
+    }
+    Univariate<Fr, view_length> operator-() const
+    {
+        Univariate<Fr, view_length> res(*this);
+        for (auto& eval : res.evaluations) {
+            eval = -eval;
+        }
         return res;
     }
 

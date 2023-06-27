@@ -6,6 +6,8 @@ namespace proof_system::honk::sumcheck {
 
 template <typename FF> class GrandProductInitializationRelation {
   public:
+    constexpr bool scale_by_random_polynomial() { return true; }
+
     // 1 + polynomial degree of this relation
     static constexpr size_t RELATION_LENGTH = 3;
 
@@ -35,12 +37,13 @@ template <typename FF> class GrandProductInitializationRelation {
 
     void add_full_relation_value_contribution(FF& full_honk_relation_value,
                                               auto& purported_evaluations,
-                                              const RelationParameters<FF>&) const
+                                              const RelationParameters<FF>&,
+                                              const FF& scaling_factor) const
     {
         auto z_perm_shift = purported_evaluations.z_perm_shift;
         auto lagrange_last = purported_evaluations.lagrange_last;
 
-        full_honk_relation_value += lagrange_last * z_perm_shift;
+        full_honk_relation_value += lagrange_last * z_perm_shift * scaling_factor;
     };
 };
 
@@ -49,6 +52,8 @@ template <typename FF> class GrandProductInitializationRelation {
 // leaving this as is until Codys Flavor work is settled.
 template <typename FF> class UltraGrandProductInitializationRelation {
   public:
+    constexpr bool scale_by_random_polynomial() { return true; }
+
     // 1 + polynomial degree of this relation
     static constexpr size_t RELATION_LENGTH = 3;
 
@@ -78,12 +83,13 @@ template <typename FF> class UltraGrandProductInitializationRelation {
 
     void add_full_relation_value_contribution(FF& full_honk_relation_value,
                                               auto& purported_evaluations,
-                                              const RelationParameters<FF>&) const
+                                              const RelationParameters<FF>&,
+                                              const FF& scaling_factor) const
     {
         auto z_perm_shift = purported_evaluations.z_perm_shift;
         auto lagrange_last = purported_evaluations.lagrange_last;
 
-        full_honk_relation_value += lagrange_last * z_perm_shift;
+        full_honk_relation_value += lagrange_last * z_perm_shift * scaling_factor;
     };
 };
 } // namespace proof_system::honk::sumcheck

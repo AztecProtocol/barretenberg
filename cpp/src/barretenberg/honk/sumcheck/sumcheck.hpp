@@ -102,11 +102,17 @@ template <typename Flavor, class Transcript, template <class> class... Relations
         // First round
         // This populates folded_polynomials.
         auto round_univariate = round.compute_univariate(full_polynomials, relation_parameters, pow_univariate, alpha);
+
         transcript.send_to_verifier("Sumcheck:univariate_0", round_univariate);
+
         FF round_challenge = transcript.get_challenge("Sumcheck:u_0");
+
         multivariate_challenge.emplace_back(round_challenge);
+
         fold(full_polynomials, multivariate_n, round_challenge);
+
         pow_univariate.partially_evaluate(round_challenge);
+
         round.round_size = round.round_size >> 1; // TODO(#224)(Cody): Maybe fold should do this and release memory?
 
         // All but final round
@@ -131,6 +137,9 @@ template <typename Flavor, class Transcript, template <class> class... Relations
         }
         transcript.send_to_verifier("Sumcheck:evaluations", multivariate_evaluations._data);
 
+        // for (auto& d : multivariate_evaluations._data) {
+        //     std::cout << "prover mv d = " << d << std::endl;
+        // }
         return { multivariate_challenge, multivariate_evaluations };
     };
 
@@ -164,14 +173,18 @@ template <typename Flavor, class Transcript, template <class> class... Relations
             auto round_univariate =
                 transcript.template receive_from_prover<Univariate<FF, MAX_RELATION_LENGTH>>(round_univariate_label);
 
-            bool checked = round.check_sum(round_univariate, pow_univariate);
+            bool checked = round.check_sum(round_univariate);
             verified = verified && checked;
             FF round_challenge = transcript.get_challenge("Sumcheck:u_" + std::to_string(round_idx));
+
             multivariate_challenge.emplace_back(round_challenge);
 
-            round.compute_next_target_sum(round_univariate, round_challenge, pow_univariate);
+            round.compute_next_target_sum(round_univariate, round_challenge);
             pow_univariate.partially_evaluate(round_challenge);
 
+            if (!verified) {
+                std::cout << "womp womp sumcheck fail. round_idx = " << round_idx << std::endl;
+            }
             if (!verified) {
                 return std::nullopt;
             }

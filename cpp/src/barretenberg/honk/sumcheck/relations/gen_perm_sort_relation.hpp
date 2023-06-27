@@ -9,6 +9,8 @@ namespace proof_system::honk::sumcheck {
 
 template <typename FF> class GenPermSortRelation {
   public:
+    constexpr bool scale_by_random_polynomial() { return true; }
+
     // 1 + polynomial degree of this relation
     static constexpr size_t RELATION_LENGTH = 6; // degree(q_sort * D(D - 1)(D - 2)(D - 3)) = 5
 
@@ -94,7 +96,8 @@ template <typename FF> class GenPermSortRelation {
 
     void add_full_relation_value_contribution(FF& full_honk_relation_value,
                                               const auto& purported_evaluations,
-                                              const RelationParameters<FF>&) const
+                                              const RelationParameters<FF>&,
+                                              const FF& scaling_factor) const
     {
         auto w_1 = purported_evaluations.w_l;
         auto w_2 = purported_evaluations.w_r;
@@ -149,7 +152,7 @@ template <typename FF> class GenPermSortRelation {
         auto tmp = tmp_1 + tmp_2 + tmp_3 + tmp_4;
         tmp *= q_sort;
 
-        full_honk_relation_value += tmp;
+        full_honk_relation_value += tmp * scaling_factor;
     };
 };
 } // namespace proof_system::honk::sumcheck

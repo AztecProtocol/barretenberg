@@ -10,6 +10,8 @@ namespace proof_system::honk::sumcheck {
 
 template <typename FF> class UltraArithmeticRelationSecondary {
   public:
+    constexpr bool scale_by_random_polynomial() { return true; }
+
     // 1 + polynomial degree of this relation
     static constexpr size_t RELATION_LENGTH = 5; // degree(q_arith^3 * w_l) = 4
 
@@ -48,7 +50,8 @@ template <typename FF> class UltraArithmeticRelationSecondary {
 
     void add_full_relation_value_contribution(FF& full_honk_relation_value,
                                               const auto& purported_evaluations,
-                                              const RelationParameters<FF>&) const
+                                              const RelationParameters<FF>&,
+                                              const FF& scaling_factor) const
     {
         auto w_l = purported_evaluations.w_l;
         auto w_4 = purported_evaluations.w_4;
@@ -60,7 +63,7 @@ template <typename FF> class UltraArithmeticRelationSecondary {
         tmp *= (q_arith - 2);
         tmp *= (q_arith - 1);
         tmp *= q_arith;
-        full_honk_relation_value += tmp;
+        full_honk_relation_value += tmp * scaling_factor;
     };
 };
 } // namespace proof_system::honk::sumcheck

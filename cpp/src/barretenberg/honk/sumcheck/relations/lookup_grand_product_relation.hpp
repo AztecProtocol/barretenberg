@@ -9,6 +9,8 @@ namespace proof_system::honk::sumcheck {
 
 template <typename FF> class LookupGrandProductComputationRelation {
   public:
+    constexpr bool scale_by_random_polynomial() { return true; }
+
     // 1 + polynomial degree of this relation
     static constexpr size_t RELATION_LENGTH = 6; // deg(z_lookup * column_selector * wire * q_lookup * table) = 5
 
@@ -100,7 +102,8 @@ template <typename FF> class LookupGrandProductComputationRelation {
 
     void add_full_relation_value_contribution(FF& full_honk_relation_value,
                                               auto& purported_evaluations,
-                                              const RelationParameters<FF>& relation_parameters) const
+                                              const RelationParameters<FF>& relation_parameters,
+                                              const FF& scaling_factor) const
     {
         const auto& eta = relation_parameters.eta;
         const auto& beta = relation_parameters.beta;
@@ -162,12 +165,14 @@ template <typename FF> class LookupGrandProductComputationRelation {
         tmp *= (z_lookup + lagrange_first);
         tmp -= (z_lookup_shift + lagrange_last * grand_product_delta) *
                (s_accum + beta * s_accum_shift + gamma_by_one_plus_beta);
-        full_honk_relation_value += tmp;
+        full_honk_relation_value += tmp * scaling_factor;
     };
 };
 
 template <typename FF> class LookupGrandProductInitializationRelation {
   public:
+    constexpr bool scale_by_random_polynomial() { return true; }
+
     // 1 + polynomial degree of this relation
     static constexpr size_t RELATION_LENGTH = 3; // deg(lagrange_last * z_lookup_shift) = 2
 
@@ -195,12 +200,13 @@ template <typename FF> class LookupGrandProductInitializationRelation {
 
     void add_full_relation_value_contribution(FF& full_honk_relation_value,
                                               auto& purported_evaluations,
-                                              const RelationParameters<FF>& /*unused*/) const
+                                              const RelationParameters<FF>& /*unused*/,
+                                              const FF& scaling_factor) const
     {
         auto z_lookup_shift = purported_evaluations.z_lookup_shift;
         auto lagrange_last = purported_evaluations.lagrange_last;
 
-        full_honk_relation_value += lagrange_last * z_lookup_shift;
+        full_honk_relation_value += lagrange_last * z_lookup_shift * scaling_factor;
     };
 };
 } // namespace proof_system::honk::sumcheck

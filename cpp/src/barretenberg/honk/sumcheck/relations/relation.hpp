@@ -14,5 +14,8 @@ template <typename FF> struct RelationParameters {
     FF gamma = FF::zero();                      // Permutation + Lookup
     FF public_input_delta = FF::zero();         // Permutation
     FF lookup_grand_product_delta = FF::zero(); // Lookup
+    FF eta_sqr = FF::zero();
+    FF eta_cube = FF::zero();
+    FF permutation_offset = FF::zero();
 };
 } // namespace proof_system::honk::sumcheck

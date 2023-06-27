@@ -120,7 +120,7 @@ class StandardRelationConsistency : public testing::Test {
             PurportedEvaluations evals_i = transposed_univariate_array_at(extended_edges, i);
             // Evaluate the relation
             relation.add_full_relation_value_contribution(
-                expected_evals_index.value_at(i), evals_i, relation_parameters);
+                expected_evals_index.value_at(i), evals_i, relation_parameters, 1);
         }
         EXPECT_EQ(expected_evals, expected_evals_index);
 

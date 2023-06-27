@@ -108,6 +108,8 @@ template <class Fr, size_t domain_size, size_t num_evals> class BarycentricData 
             // scale the sum by the the value of of B(x)
             result.value_at(k) *= full_numerator_values[k];
         }
+
+        // std::cout << "extended result = " << result << std::endl;
         return result;
     }
 

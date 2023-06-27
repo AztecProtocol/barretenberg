@@ -126,13 +126,13 @@ TEST(RelationCorrectness, StandardRelationCorrectness)
         // i-th row/vertex of the hypercube.
         // We use ASSERT_EQ instead of EXPECT_EQ so that the tests stops at the first index at which the result is not
         // 0, since result = 0 + C(transposed), which we expect will equal 0.
-        std::get<0>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        std::get<0>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params, 1);
         ASSERT_EQ(result, 0);
 
-        std::get<1>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        std::get<1>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params, 1);
         ASSERT_EQ(result, 0);
 
-        std::get<2>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        std::get<2>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params, 1);
         ASSERT_EQ(result, 0);
     }
 }
@@ -390,31 +390,31 @@ TEST(RelationCorrectness, UltraRelationCorrectness)
         // i-th row/vertex of the hypercube. We use ASSERT_EQ instead of EXPECT_EQ so that the tests stops at
         // the first index at which the result is not 0, since result = 0 + C(transposed), which we expect will
         // equal 0.
-        std::get<0>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        std::get<0>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params, 1);
         ASSERT_EQ(result, 0);
 
-        std::get<1>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        std::get<1>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params, 1);
         ASSERT_EQ(result, 0);
 
-        std::get<2>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        std::get<2>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params, 1);
         ASSERT_EQ(result, 0);
 
-        std::get<3>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        std::get<3>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params, 1);
         ASSERT_EQ(result, 0);
 
-        std::get<4>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        std::get<4>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params, 1);
         ASSERT_EQ(result, 0);
 
-        std::get<5>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        std::get<5>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params, 1);
         ASSERT_EQ(result, 0);
 
-        std::get<6>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        std::get<6>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params, 1);
         ASSERT_EQ(result, 0);
 
-        std::get<7>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        std::get<7>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params, 1);
         ASSERT_EQ(result, 0);
 
-        std::get<8>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params);
+        std::get<8>(relations).add_full_relation_value_contribution(result, evaluations_at_index_i, params, 1);
         ASSERT_EQ(result, 0);
     }
 }

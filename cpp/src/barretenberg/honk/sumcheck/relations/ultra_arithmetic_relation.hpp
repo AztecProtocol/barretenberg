@@ -12,6 +12,8 @@ template <typename FF> class UltraArithmeticRelation {
     // 1 + polynomial degree of this relation
     static constexpr size_t RELATION_LENGTH = 6; // degree(q_arith^2 * q_m * w_r * w_l) = 5
 
+    constexpr bool scale_by_random_polynomial() { return true; }
+
     /**
      * @brief Expression for the Ultra Arithmetic gate.
      * @details The relation is defined as C(extended_edges(X)...) =
@@ -58,7 +60,8 @@ template <typename FF> class UltraArithmeticRelation {
 
     void add_full_relation_value_contribution(FF& full_honk_relation_value,
                                               const auto& purported_evaluations,
-                                              const RelationParameters<FF>&) const
+                                              const RelationParameters<FF>&,
+                                              const FF& scaling_factor) const
     {
         auto w_l = purported_evaluations.w_l;
         auto w_r = purported_evaluations.w_r;
@@ -79,7 +82,7 @@ template <typename FF> class UltraArithmeticRelation {
         tmp += (q_l * w_l) + (q_r * w_r) + (q_o * w_o) + (q_4 * w_4) + q_c;
         tmp += (q_arith - 1) * w_4_shift;
         tmp *= q_arith;
-        full_honk_relation_value += tmp;
+        full_honk_relation_value += tmp * scaling_factor;
     };
 };
 } // namespace proof_system::honk::sumcheck

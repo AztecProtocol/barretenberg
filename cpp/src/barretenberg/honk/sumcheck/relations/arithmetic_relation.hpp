@@ -9,6 +9,8 @@ namespace proof_system::honk::sumcheck {
 
 template <typename FF> class ArithmeticRelation {
   public:
+    constexpr bool scale_by_random_polynomial() { return true; }
+
     // 1 + polynomial degree of this relation
     static constexpr size_t RELATION_LENGTH = 4;
 
@@ -49,7 +51,8 @@ template <typename FF> class ArithmeticRelation {
 
     void add_full_relation_value_contribution(FF& full_honk_relation_value,
                                               const auto& purported_evaluations,
-                                              const RelationParameters<FF>&) const
+                                              const RelationParameters<FF>&,
+                                              const FF& scaling_factor) const
     {
         auto w_l = purported_evaluations.w_l;
         auto w_r = purported_evaluations.w_r;
@@ -60,10 +63,10 @@ template <typename FF> class ArithmeticRelation {
         auto q_o = purported_evaluations.q_o;
         auto q_c = purported_evaluations.q_c;
 
-        full_honk_relation_value += w_l * (q_m * w_r + q_l);
-        full_honk_relation_value += q_r * w_r;
-        full_honk_relation_value += q_o * w_o;
-        full_honk_relation_value += q_c;
+        full_honk_relation_value += w_l * (q_m * w_r + q_l) * scaling_factor;
+        full_honk_relation_value += q_r * w_r * scaling_factor;
+        full_honk_relation_value += q_o * w_o * scaling_factor;
+        full_honk_relation_value += q_c * scaling_factor;
     };
 };
 } // namespace proof_system::honk::sumcheck

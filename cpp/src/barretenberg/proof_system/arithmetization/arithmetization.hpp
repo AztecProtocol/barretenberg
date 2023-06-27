@@ -93,4 +93,22 @@ template <typename FF> class Ultra : public Arithmetization</*NUM_WIRES =*/4, /*
     };
 };
 
+template <typename FF> class ECCVM : public Arithmetization</*NUM_WIRES =*/70, /*num_selectors =*/0> {
+  public:
+    struct Selectors : SelectorsBase<FF, num_selectors> {
+        std::vector<FF>& q_m = std::get<0>(this->_data);
+        std::vector<FF>& q_c = std::get<1>(this->_data);
+        std::vector<FF>& q_1 = std::get<2>(this->_data);
+        std::vector<FF>& q_2 = std::get<3>(this->_data);
+        std::vector<FF>& q_3 = std::get<4>(this->_data);
+        std::vector<FF>& q_4 = std::get<5>(this->_data);
+        std::vector<FF>& q_arith = std::get<6>(this->_data);
+        std::vector<FF>& q_sort = std::get<7>(this->_data);
+        std::vector<FF>& q_elliptic = std::get<8>(this->_data);
+        std::vector<FF>& q_aux = std::get<9>(this->_data);
+        std::vector<FF>& q_lookup_type = std::get<10>(this->_data);
+    };
+};
+// using ECCVM = Arithmetization</*num wires =*/70, /*num_selectors =*/0>;
+
 } // namespace arithmetization

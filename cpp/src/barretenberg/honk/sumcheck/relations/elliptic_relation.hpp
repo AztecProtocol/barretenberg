@@ -9,6 +9,8 @@ namespace proof_system::honk::sumcheck {
 
 template <typename FF> class EllipticRelation {
   public:
+    constexpr bool scale_by_random_polynomial() { return true; }
+
     // 1 + polynomial degree of this relation
     static constexpr size_t RELATION_LENGTH = 6; // degree(q_arith^2 * q_m * w_r * w_l) = 5
 
@@ -81,7 +83,8 @@ template <typename FF> class EllipticRelation {
 
     void add_full_relation_value_contribution(FF& full_honk_relation_value,
                                               const auto& purported_evaluations,
-                                              const RelationParameters<FF>&) const
+                                              const RelationParameters<FF>&,
+                                              const FF& scaling_factor) const
     {
         auto x_1 = purported_evaluations.w_r;
         auto y_1 = purported_evaluations.w_o;
@@ -127,7 +130,7 @@ template <typename FF> class EllipticRelation {
         auto tmp = x_identity + y_identity;
         tmp *= q_elliptic;
 
-        full_honk_relation_value += tmp;
+        full_honk_relation_value += tmp * scaling_factor;
     };
 };
 } // namespace proof_system::honk::sumcheck
