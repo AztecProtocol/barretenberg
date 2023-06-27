@@ -25,7 +25,7 @@ using ProverPolynomials = typename Flavor::ProverPolynomials;
 using ClaimedEvaluations = typename Flavor::ClaimedEvaluations;
 
 const size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
-const size_t max_relation_length = Flavor::MAX_RELATION_LENGTH + 1;
+const size_t max_relation_length = Flavor::MAX_RANDOM_RELATION_LENGTH;
 const size_t input_polynomial_length = 2;
 
 namespace test_sumcheck_round {
