@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1687859549986,
+  "lastUpdate": 1687870618712,
   "repoUrl": "https://github.com/AztecProtocol/barretenberg",
   "entries": {
     "C++ Benchmark": [
@@ -1824,6 +1824,54 @@ window.BENCHMARK_DATA = {
             "value": 3.5327656299999717,
             "unit": "s/iter",
             "extra": "iterations: 1\ncpu: 1.6399856999999969 s\nthreads: 1"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "isennovskiy@gmail.com",
+            "name": "Innokentii Sennovskii",
+            "username": "Rumata888"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1a98ac64787a0e2904fd22043497a8d11afe5e6c",
+          "message": "fix: Soundness issue in bigfield's `evaluate_multiply_add` method (#558)",
+          "timestamp": "2023-06-27T13:47:49+01:00",
+          "tree_id": "31822b68cb76b3a10c6767dab7eefdb729ec6098",
+          "url": "https://github.com/AztecProtocol/barretenberg/commit/1a98ac64787a0e2904fd22043497a8d11afe5e6c"
+        },
+        "date": 1687870617318,
+        "tool": "googlecpp",
+        "benches": [
+          {
+            "name": "construct_proof_ultra/sha256/10/repeats:1",
+            "value": 7.5862686829999575,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 5.4197048 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/keccak/10/repeats:1",
+            "value": 17.298170099999993,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 14.6216566 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/ecdsa_verification/10/repeats:1",
+            "value": 30.771414972999878,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 27.9530087 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/merkle_membership/10/repeats:1",
+            "value": 4.186998975000051,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 2.2042541 s\nthreads: 1"
           }
         ]
       }
