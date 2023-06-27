@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1687788213901,
+  "lastUpdate": 1687859548309,
   "repoUrl": "https://github.com/AztecProtocol/barretenberg",
   "entries": {
     "C++ Benchmark": [
@@ -1728,6 +1728,54 @@ window.BENCHMARK_DATA = {
             "value": 3.670694402000038,
             "unit": "s/iter",
             "extra": "iterations: 1\ncpu: 1.8374882000000028 s\nthreads: 1"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "blorktronics@gmail.com",
+            "name": "Zachary James Williamson",
+            "username": "zac-williamson"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e8c914f3d440a08cad8e03e847be7ccfe22769ab",
+          "message": "chore:  Random polynomial is now applied on a per-relation term by the Prover (#547)",
+          "timestamp": "2023-06-27T10:45:18+01:00",
+          "tree_id": "a9d222f9469c66c287f7213059ea5aa22ebff938",
+          "url": "https://github.com/AztecProtocol/barretenberg/commit/e8c914f3d440a08cad8e03e847be7ccfe22769ab"
+        },
+        "date": 1687859546891,
+        "tool": "googlecpp",
+        "benches": [
+          {
+            "name": "construct_proof_ultra/sha256/10/repeats:1",
+            "value": 6.511885931999984,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 4.1993802 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/keccak/10/repeats:1",
+            "value": 13.912456579999969,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 11.4408288 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/ecdsa_verification/10/repeats:1",
+            "value": 23.99075716499999,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 21.369143700000006 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/merkle_membership/10/repeats:1",
+            "value": 3.5327656299999717,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 1.6399856999999969 s\nthreads: 1"
           }
         ]
       }
