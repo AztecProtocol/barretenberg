@@ -1,10 +1,8 @@
 name: Barretenberg Benchmarks
 
-# Only run on push to master
+# Run on push to any branch (only record official bench result on push to master)
 on:
   push:
-    branches:
-      - master
 
 # This will cancel previous runs when a branch or PR is updated
 concurrency:
@@ -56,8 +54,8 @@ jobs:
           output-file-path: cpp/src/barretenberg/benchmark/honk_bench/bench_results.json
           # Access token to deploy GitHub Pages branch
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          # Push and deploy GitHub pages branch automatically
-          auto-push: true
+          # For master branch only, push and deploy results to GitHub pages branch
+          auto-push: ${{ github.ref == 'master' }}
           # Enable Job Summary for PRs
           summary-always: true
           # Show alert with commit comment on detecting possible performance regression
