@@ -6,40 +6,16 @@ namespace acir_format {
 
 using namespace proof_system::plonk::stdlib;
 
-crypto::schnorr::signature convert_signature(Composer& composer, std::vector<uint32_t> signature)
+crypto::schnorr::signature convert_signature(Composer& composer, fr sig_s, fr sig_e)
 {
 
     crypto::schnorr::signature signature_cr;
-
-    // Get the witness assignment for each witness index
-    // Write the witness assignment to the byte_array
-
-    for (unsigned int i = 0; i < 32; i++) {
-        auto witness_index = signature[i];
-
-        std::vector<uint8_t> fr_bytes(sizeof(fr));
-
-        fr value = composer.get_variable(witness_index);
-
-        fr::serialize_to_buffer(value, &fr_bytes[0]);
-
-        signature_cr.s[i] = fr_bytes.back();
-    }
-
-    for (unsigned int i = 32; i < 64; i++) {
-        auto witness_index = signature[i];
-
-        std::vector<uint8_t> fr_bytes(sizeof(fr));
-
-        fr value = composer.get_variable(witness_index);
-
-        fr::serialize_to_buffer(value, &fr_bytes[0]);
-
-        signature_cr.e[i - 32] = fr_bytes.back();
-    }
+    fr::serialize_to_buffer(sig_s, &signature_cr.s[0]);
+    fr::serialize_to_buffer(sig_e, &signature_cr.e[0]);
 
     return signature_cr;
 }
+
 // vector of bytes here, assumes that the witness indices point to a field element which can be represented
 // with just a byte.
 // notice that this function truncates each field_element to a byte
@@ -68,7 +44,9 @@ witness_ct index_to_witness(Composer& composer, uint32_t index)
 void create_schnorr_verify_constraints(Composer& composer, const SchnorrConstraint& input)
 {
 
-    auto new_sig = convert_signature(composer, input.signature);
+    fr sig_s = composer.get_variable(input.signature_s);
+    fr sig_e = composer.get_variable(input.signature_e);
+    auto new_sig = convert_signature(composer, sig_s, sig_e);
     // From ignorance, you will see me convert a bunch of witnesses from ByteArray -> BitArray
     // This may not be the most efficient way to do it. It is being used as it is known to work,
     // optimisations are welcome!

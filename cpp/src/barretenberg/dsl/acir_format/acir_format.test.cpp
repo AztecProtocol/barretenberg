@@ -132,21 +132,13 @@ TEST(acir_format, test_schnorr_verify_pass)
         });
     }
 
-    std::vector<uint32_t> signature(64);
-    for (uint32_t i = 0, value = 13; i < 64; i++, value++) {
-        signature[i] = value;
-        range_constraints.push_back(acir_format::RangeConstraint{
-            .witness = value,
-            .num_bits = 15,
-        });
-    }
-
     acir_format::SchnorrConstraint schnorr_constraint{
         .message = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 },
         .public_key_x = 11,
         .public_key_y = 12,
+        .signature_s = 13,
+        .signature_e = 14,
         .result = 77,
-        .signature = signature,
     };
 
     acir_format::acir_format constraint_system{
@@ -204,21 +196,13 @@ TEST(acir_format, test_schnorr_verify_small_range)
         });
     }
 
-    std::vector<uint32_t> signature(64);
-    for (uint32_t i = 0, value = 13; i < 64; i++, value++) {
-        signature[i] = value;
-        range_constraints.push_back(acir_format::RangeConstraint{
-            .witness = value,
-            .num_bits = 8,
-        });
-    }
-
     acir_format::SchnorrConstraint schnorr_constraint{
         .message = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 },
         .public_key_x = 11,
         .public_key_y = 12,
+        .signature_s = 13,
+        .signature_e = 14,
         .result = 77,
-        .signature = signature,
     };
 
     acir_format::acir_format constraint_system{

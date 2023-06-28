@@ -15,12 +15,13 @@ struct SchnorrConstraint {
     uint32_t public_key_x;
     uint32_t public_key_y;
 
-    // This is the result of verifying the signature
-    uint32_t result;
-
     // This is the computed signature
     //
-    std::vector<uint32_t> signature;
+    uint32_t signature_s;
+    uint32_t signature_e;
+
+    // This is the result of verifying the signature
+    uint32_t result;
 
     friend bool operator==(SchnorrConstraint const& lhs, SchnorrConstraint const& rhs) = default;
 };
@@ -31,7 +32,8 @@ template <typename B> inline void read(B& buf, SchnorrConstraint& constraint)
 {
     using serialize::read;
     read(buf, constraint.message);
-    read(buf, constraint.signature);
+    read(buf, constraint.signature_s);
+    read(buf, constraint.signature_e);
     read(buf, constraint.public_key_x);
     read(buf, constraint.public_key_y);
     read(buf, constraint.result);
@@ -41,7 +43,8 @@ template <typename B> inline void write(B& buf, SchnorrConstraint const& constra
 {
     using serialize::write;
     write(buf, constraint.message);
-    write(buf, constraint.signature);
+    write(buf, constraint.signature_s);
+    write(buf, constraint.signature_e);
     write(buf, constraint.public_key_x);
     write(buf, constraint.public_key_y);
     write(buf, constraint.result);
