@@ -1,6 +1,6 @@
 ## Barretenberg, an optimized elliptic curve library for the bn128 curve, and PLONK SNARK prover
 
-**This code is highly experimental, use at your own risk!**
+**This code is highly experimental, use at your own risk!** 
 
 ### Dependencies
 
