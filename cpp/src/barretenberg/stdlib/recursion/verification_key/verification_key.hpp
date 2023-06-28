@@ -369,7 +369,6 @@ template <typename Curve> struct verification_key {
     {
         PedersenPreimageBuilder<Composer> preimage_buffer(context);
 
-        // WORKTODO: Figure out if there's actually an attack here.
         field_t<Composer> circuit_type =
             witness_t<Composer>::create_constant_witness(context, static_cast<uint32_t>(Composer::CIRCUIT_TYPE));
         domain.generator.create_range_constraint(16, "domain.generator");
