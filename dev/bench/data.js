@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1687870621234,
+  "lastUpdate": 1687956664555,
   "repoUrl": "https://github.com/AztecProtocol/barretenberg",
   "entries": {
     "C++ Benchmark": [
@@ -1920,6 +1920,54 @@ window.BENCHMARK_DATA = {
             "value": 4.186998975000051,
             "unit": "s/iter",
             "extra": "iterations: 1\ncpu: 2.2042541 s\nthreads: 1"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "codygunton@gmail.com",
+            "name": "Cody Gunton",
+            "username": "codygunton"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bc0844b4935032d597d21a54c84ccd1d3fbe46e8",
+          "message": "chore: Remove usage of `ComposerHelper` and use `CircuitBuilder` from the API (#555)\n\nCo-authored-by: Suyash Bagad <suyashnbagad1997@gmail.com>",
+          "timestamp": "2023-06-28T14:42:37+02:00",
+          "tree_id": "6c6b1a63525d2b960d066e917b9cc88323358a0d",
+          "url": "https://github.com/AztecProtocol/barretenberg/commit/bc0844b4935032d597d21a54c84ccd1d3fbe46e8"
+        },
+        "date": 1687956662922,
+        "tool": "googlecpp",
+        "benches": [
+          {
+            "name": "construct_proof_ultra/sha256/10/repeats:1",
+            "value": 7.231806886999948,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 5.113604400000001 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/keccak/10/repeats:1",
+            "value": 16.134749138000075,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 13.5083071 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/ecdsa_verification/10/repeats:1",
+            "value": 28.042103221999923,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 25.414664900000005 s\nthreads: 1"
+          },
+          {
+            "name": "construct_proof_ultra/merkle_membership/10/repeats:1",
+            "value": 3.8159821240000156,
+            "unit": "s/iter",
+            "extra": "iterations: 1\ncpu: 1.9375471999999974 s\nthreads: 1"
           }
         ]
       }
