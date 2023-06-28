@@ -17,7 +17,7 @@ class TurboCircuitBuilder : public CircuitBuilderBase<arithmetization::Turbo<bar
   public:
     static constexpr std::string_view NAME_STRING = "TurboArithmetization";
     static constexpr CircuitType CIRCUIT_TYPE = CircuitType::TURBO;
-    // WORKTODO: make issue; these belong in plonk::flavor::Turbo, not here
+    // TODO(#563): make issue; these belong in plonk::flavor::Turbo.
     static constexpr merkle::HashType merkle_hash_type = merkle::HashType::FIXED_BASE_PEDERSEN;
     static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
     static constexpr size_t UINT_LOG2_BASE = 2;
