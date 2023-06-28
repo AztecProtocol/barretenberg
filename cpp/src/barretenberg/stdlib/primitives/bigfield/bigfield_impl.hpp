@@ -1712,7 +1712,7 @@ template <typename C, typename T> void bigfield<C, T>::assert_less_than(const ui
     r1 = r1.normalize();
     r2 = r2.normalize();
     r3 = r3.normalize();
-    if constexpr (C::type == ComposerType::PLOOKUP) {
+    if constexpr (C::CIRCUIT_TYPE == CircuitType::ULTRA) {
         context->decompose_into_default_range(r0.witness_index, static_cast<size_t>(NUM_LIMB_BITS));
         context->decompose_into_default_range(r1.witness_index, static_cast<size_t>(NUM_LIMB_BITS));
         context->decompose_into_default_range(r2.witness_index, static_cast<size_t>(NUM_LIMB_BITS));
