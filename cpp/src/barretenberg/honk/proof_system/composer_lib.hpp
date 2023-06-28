@@ -15,8 +15,9 @@ namespace proof_system::honk {
  * @param vrs The reference string used by the verifier
  * @return std::shared_ptr<typename Flavor::VerificationKey>
  */
+// TODO(Cody): This function is not in use?
 template <typename Flavor>
-std::shared_ptr<typename Flavor::VerificationKey> compute_verification_key_common( // WORKTODO: this is not in use?
+std::shared_ptr<typename Flavor::VerificationKey> compute_verification_key_common(
     std::shared_ptr<typename Flavor::ProvingKey> const& proving_key,
     std::shared_ptr<barretenberg::srs::factories::VerifierCrs> const& vrs)
 {
