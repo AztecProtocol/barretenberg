@@ -85,7 +85,29 @@ bool check_has_less_than(std::vector<fr> const& values, fr const& value)
     return false;
 }
 
-// handle synthetic membership assertions
+/**
+ * @brief Insert a batch of values into the tree, returning the low nullifiers membership information (leaf, sibling
+ * path, index)
+ *
+ * Special Considerations
+ *
+ * Short algorithm description:
+ * When batch inserting values into the tree, we first update their "low_nullifiers" (the node that will insert to the
+ * inserted value).
+ *  - For each low nullifier that we update, we need to perform a membership check against the current root of the tree.
+ *  - Once membership is confirmed, we can update the leaf, then use the same sibling path to update the root.
+ *  - The next membership check will be against the new root.
+ *
+ * If the low nullifier for a value exists within the batch being inserted, then we cannot perform a membership check,
+ * as it has not yet been inserted! In this case we provide an all 0 sibling path and all 0 low nullifier, all
+ * corresponding aztec circuits account for this case.
+ *
+ * A description of the algorithm can be found here:
+ * https://colab.research.google.com/drive/1A0gizduSi4FIiIJZ8OylwIpO9-OTqV-R
+ *
+ * @param values - An array of values to insert into the tree.
+ * @return std::vector<LowLeafWitnessData>
+ */
 LowLeafWitnessData NullifierMemoryTree::batch_insert(std::vector<fr> const& values)
 {
     // Start insertion index
