@@ -377,7 +377,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
     static void test_larger_circuit()
     {
         size_t n = 16384;
-        Composer composer = Composer("../srs_db/ignition", n);
+        Composer composer;
 
         generate_test_plonk_circuit(composer, n);
 
