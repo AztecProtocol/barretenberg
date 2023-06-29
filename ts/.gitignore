@@ -2,6 +2,7 @@
 !.yarn/releases
 node_modules
 dest
+tsconfig.json
 .tsbuildinfo
 *.log
 crs
