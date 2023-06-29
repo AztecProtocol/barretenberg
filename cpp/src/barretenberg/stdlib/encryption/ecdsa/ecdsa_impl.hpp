@@ -77,8 +77,8 @@ bool_t<Composer> verify_signature(const stdlib::byte_array<Composer>& message,
     Fr u2 = r / s;
 
     G1 result;
+    public_key.validate_on_curve();
     if constexpr (Composer::type == ComposerType::PLOOKUP && Curve::type == proof_system::CurveType::SECP256K1) {
-        public_key.validate_on_curve();
         result = G1::secp256k1_ecdsa_mul(public_key, u1, u2);
     } else {
         result = G1::batch_mul({ G1::one(ctx), public_key }, { u1, u2 });
@@ -149,6 +149,7 @@ bool_t<Composer> verify_signature_prehashed_message_noassert(const stdlib::byte_
         public_key.validate_on_curve();
         result = G1::secp256k1_ecdsa_mul(public_key, u1, u2);
     } else {
+        public_key.validate_on_curve();
         result = G1::batch_mul({ G1::one(ctx), public_key }, { u1, u2 });
     }
     result.x.self_reduce();
