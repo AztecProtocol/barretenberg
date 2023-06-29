@@ -1,5 +1,4 @@
 #include "ecdsa_secp256k1.hpp"
-#include "barretenberg/crypto/ecdsa/ecdsa.hpp"
 #include "barretenberg/stdlib/encryption/ecdsa/ecdsa.hpp"
 
 namespace acir_format {
@@ -84,9 +83,9 @@ witness_ct ecdsa_index_to_witness(Builder& builder, uint32_t index)
     return { &builder, value };
 }
 
-void create_ecdsa_verify_constraints(Builder& builder,
-                                     const EcdsaSecp256k1Constraint& input,
-                                     bool has_valid_witness_assignments)
+void create_ecdsa_k1_verify_constraints(Composer& composer,
+                                        const EcdsaSecp256k1Constraint& input,
+                                        bool has_valid_witness_assignments)
 {
 
     if (has_valid_witness_assignments == false) {

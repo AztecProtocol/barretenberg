@@ -1,16 +1,16 @@
 #include "acir_format.hpp"
-#include "barretenberg/crypto/ecdsa/ecdsa.hpp"
+#include "ecdsa_secp256r1.hpp"
 #include "barretenberg/plonk/proof_system/types/proof.hpp"
 #include "barretenberg/plonk/proof_system/verification_key/verification_key.hpp"
-#include "ecdsa_secp256k1.hpp"
+#include "barretenberg/crypto/ecdsa/ecdsa.hpp"
 
 #include <gtest/gtest.h>
 #include <vector>
 
-namespace acir_format::tests {
-using curve_ct = proof_system::plonk::stdlib::secp256k1<Builder>;
+using curve = proof_system::plonk::stdlib::secp256r1<acir_format::Composer>;
 
-size_t generate_ecdsa_constraint(EcdsaSecp256k1Constraint& ecdsa_constraint, WitnessVector& witness_values)
+size_t generate_ecdsa_constraint(acir_format::EcdsaSecp256r1Constraint& ecdsa_r1_constraint,
+                                 std::vector<fr>& witness_values)
 {
     std::string message_string = "Instructions unclear, ask again later.";
 
@@ -20,13 +20,12 @@ size_t generate_ecdsa_constraint(EcdsaSecp256k1Constraint& ecdsa_constraint, Wit
     std::copy(message_string.begin(), message_string.end(), std::back_inserter(message_buffer));
     auto hashed_message = sha256::sha256(message_buffer);
 
-    crypto::ecdsa::key_pair<curve_ct::fr, curve_ct::g1> account;
-    account.private_key = curve_ct::fr::random_element();
-    account.public_key = curve_ct::g1::one * account.private_key;
+    crypto::ecdsa::key_pair<curve::fr, curve::g1> account;
+    account.private_key = curve::fr::random_element();
+    account.public_key = curve::g1::one * account.private_key;
 
     crypto::ecdsa::signature signature =
-        crypto::ecdsa::construct_signature<Sha256Hasher, curve_ct::fq, curve_ct::fr, curve_ct::g1>(message_string,
-                                                                                                   account);
+        crypto::ecdsa::construct_signature<Sha256Hasher, curve::fq, curve::fr, curve::g1>(message_string, account);
 
     uint256_t pub_x_value = account.public_key.x;
     uint256_t pub_y_value = account.public_key.y;
@@ -69,7 +68,7 @@ size_t generate_ecdsa_constraint(EcdsaSecp256k1Constraint& ecdsa_constraint, Wit
     offset += 1;
     witness_values.emplace_back(1);
 
-    ecdsa_constraint = EcdsaSecp256k1Constraint{
+    ecdsa_r1_constraint = acir_format::EcdsaSecp256r1Constraint{
         .hashed_message = message_in,
         .pub_x_indices = pub_x_indices_in,
         .pub_y_indices = pub_y_indices_in,
@@ -79,20 +78,20 @@ size_t generate_ecdsa_constraint(EcdsaSecp256k1Constraint& ecdsa_constraint, Wit
     return offset;
 }
 
-TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
+TEST(ECDSASecp256r1, TestECDSAConstraintSucceed)
 {
-    EcdsaSecp256k1Constraint ecdsa_constraint;
-    WitnessVector witness_values;
-    size_t num_variables = generate_ecdsa_constraint(ecdsa_constraint, witness_values);
-    acir_format constraint_system{
+    acir_format::EcdsaSecp256r1Constraint ecdsa_r1_constraint;
+    std::vector<fr> witness_values;
+    size_t num_variables = generate_ecdsa_constraint(ecdsa_r1_constraint, witness_values);
+    acir_format::acir_format constraint_system{
         .varnum = static_cast<uint32_t>(num_variables),
         .public_inputs = {},
         .fixed_base_scalar_mul_constraints = {},
         .logic_constraints = {},
         .range_constraints = {},
         .schnorr_constraints = {},
-        .ecdsa_k1_constraints = { ecdsa_k1_constraint },
-        .ecdsa_r1_constraints = {},
+        .ecdsa_k1_constraints = {},
+        .ecdsa_r1_constraints = { ecdsa_r1_constraint },
         .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},
@@ -104,35 +103,33 @@ TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
         .constraints = {},
     };
 
-    auto builder = create_circuit_with_witness(constraint_system, witness_values);
+    auto composer = acir_format::create_circuit_with_witness(constraint_system, witness_values);
 
-    EXPECT_EQ(builder.get_variable(ecdsa_constraint.result), 1);
-
-    auto composer = Composer();
-    auto prover = composer.create_prover(builder);
+    EXPECT_EQ(composer.get_variable(ecdsa_r1_constraint.result), 1);
+    auto prover = composer.create_prover();
 
     auto proof = prover.construct_proof();
-    auto verifier = composer.create_verifier(builder);
+    auto verifier = composer.create_verifier();
     EXPECT_EQ(verifier.verify_proof(proof), true);
 }
 
 // Test that the verifier can create an ECDSA circuit.
 // The ECDSA circuit requires that certain dummy data is valid
 // even though we are just building the circuit.
-TEST(ECDSASecp256k1, TestECDSACompilesForVerifier)
+TEST(ECDSASecp256r1, TestECDSACompilesForVerifier)
 {
-    EcdsaSecp256k1Constraint ecdsa_constraint;
-    WitnessVector witness_values;
-    size_t num_variables = generate_ecdsa_constraint(ecdsa_constraint, witness_values);
-    acir_format constraint_system{
+    acir_format::EcdsaSecp256r1Constraint ecdsa_r1_constraint;
+    std::vector<fr> witness_values;
+    size_t num_variables = generate_ecdsa_constraint(ecdsa_r1_constraint, witness_values);
+    acir_format::acir_format constraint_system{
         .varnum = static_cast<uint32_t>(num_variables),
         .public_inputs = {},
         .fixed_base_scalar_mul_constraints = {},
         .logic_constraints = {},
         .range_constraints = {},
         .schnorr_constraints = {},
-        .ecdsa_k1_constraints = { ecdsa_k1_constraint },
-        .ecdsa_r1_constraints = {},
+        .ecdsa_k1_constraints = {},
+        .ecdsa_r1_constraints = { ecdsa_r1_constraint },
         .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},
@@ -143,14 +140,15 @@ TEST(ECDSASecp256k1, TestECDSACompilesForVerifier)
         .recursion_constraints = {},
         .constraints = {},
     };
-    auto builder = create_circuit(constraint_system);
+    auto crs_factory = std::make_unique<proof_system::ReferenceStringFactory>();
+    auto composer = create_circuit(constraint_system, std::move(crs_factory));
 }
 
-TEST(ECDSASecp256k1, TestECDSAConstraintFail)
+TEST(ECDSASecp256r1, TestECDSAConstraintFail)
 {
-    EcdsaSecp256k1Constraint ecdsa_k1_constraint;
-    WitnessVector witness_values;
-    size_t num_variables = generate_ecdsa_constraint(ecdsa_k1_constraint, witness_values);
+    acir_format::EcdsaSecp256r1Constraint ecdsa_r1_constraint;
+    std::vector<fr> witness_values;
+    size_t num_variables = generate_ecdsa_constraint(ecdsa_r1_constraint, witness_values);
 
     // set result value to be false
     witness_values[witness_values.size() - 1] = 0;
@@ -158,15 +156,15 @@ TEST(ECDSASecp256k1, TestECDSAConstraintFail)
     // tamper with signature
     witness_values[witness_values.size() - 20] += 1;
 
-    acir_format constraint_system{
+    acir_format::acir_format constraint_system{
         .varnum = static_cast<uint32_t>(num_variables),
         .public_inputs = {},
         .fixed_base_scalar_mul_constraints = {},
         .logic_constraints = {},
         .range_constraints = {},
         .schnorr_constraints = {},
-        .ecdsa_k1_constraints = { ecdsa_k1_constraint },
-        .ecdsa_r1_constraints = {},
+        .ecdsa_k1_constraints = {},
+        .ecdsa_r1_constraints = { ecdsa_r1_constraint },
         .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},
@@ -178,13 +176,12 @@ TEST(ECDSASecp256k1, TestECDSAConstraintFail)
         .constraints = {},
     };
 
-    auto builder = create_circuit_with_witness(constraint_system, witness_values);
-    EXPECT_EQ(builder.get_variable(ecdsa_constraint.result), 0);
+    auto composer = acir_format::create_circuit_with_witness(constraint_system, witness_values);
 
-    auto composer = Composer();
-    auto prover = composer.create_prover(builder);
+    EXPECT_EQ(composer.get_variable(ecdsa_r1_constraint.result), 0);
+    auto prover = composer.create_prover();
+
     auto proof = prover.construct_proof();
-    auto verifier = composer.create_verifier(builder);
+    auto verifier = composer.create_verifier();
     EXPECT_EQ(verifier.verify_proof(proof), true);
 }
-} // namespace acir_format::tests
