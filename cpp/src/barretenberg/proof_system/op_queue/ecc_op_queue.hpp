@@ -19,7 +19,7 @@ struct ECCOp {
 };
 
 /**
- * @brief Used to construct executation trace representations of elliptic curve operations.
+ * @brief Used to construct execution trace representations of elliptic curve operations.
  *
  * @details Currently the targets in execution traces are: four advice wires in UltraCircuitBuilder and 5 wires in the
  * ECCVM. In each case, the variable values are stored in this class, since the same values will need to be used later
