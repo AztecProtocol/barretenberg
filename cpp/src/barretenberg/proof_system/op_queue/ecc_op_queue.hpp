@@ -24,7 +24,7 @@ struct ECCOp {
  * @details Currently the targets in execution traces are: four advice wires in UltraCircuitBuilder and 5 wires in the
  * ECCVM. In each case, the variable values are stored in this class, since the same values will need to be used later
  * by the TranslationVMCircuitBuilder. The circuit builders will store witness indices which are indices in the
- * untranslated (resp. translated) ops members of this class (rather than in the builder's variables array).
+ * ultra (resp. eccvm) ops members of this class (rather than in the builder's variables array).
  */
 class ECCOpQueue {
     using Point = curve::BN254::AffineElement;
@@ -33,8 +33,8 @@ class ECCOpQueue {
     using Fq = curve::BN254::BaseField; // Grumpkin's scalar field
   public:
     std::vector<ECCOp> raw_ops;
-    std::vector<std::array<Fr, 4>> untranslated_ops;
-    std::vector<std::array<Fq, 5>> translated_ops;
+    std::vector<std::array<Fr, 4>> ultra_ops;
+    std::vector<std::array<Fq, 5>> eccvm_ops;
 
     uint32_t get_number_of_muls()
     {
