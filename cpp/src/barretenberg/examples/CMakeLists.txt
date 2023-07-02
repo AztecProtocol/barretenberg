@@ -1,3 +1,1 @@
-barretenberg_module(examples
-  stdlib_pedersen_commitment
-)
+barretenberg_module(examples stdlib_pedersen_commitment)
