@@ -1,6 +1,12 @@
 #! /bin/bash
 set -eu
 
+# This script outputs two graphviz files, one describing the raw Barretenberg module dependencies, and one 
+# giving a minimal dependency graph. The minimal dependency graph is derived using transitive reduction,
+# which is implemented by the program called tred.
+# A graph file can be rendered into a pdf as in
+#   `dot -Tpdf foo.graph > foo.pdf`
+
 find ../src/barretenberg -type f -iname "CMakeLists.txt" -exec grep "barretenberg_module" {} + > bb_modules
 
 python << END

@@ -1,1 +1,1 @@
-barretenberg_module(stdlib_recursion ecc proof_system stdlib_primitives stdlib_pedersen_commitment stdlib_blake3s)
+barretenberg_module(stdlib_recursion stdlib_blake3s stdlib_pedersen_commitment)

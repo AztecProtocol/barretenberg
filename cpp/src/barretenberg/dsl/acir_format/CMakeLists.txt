@@ -1,1 +1,1 @@
-barretenberg_module(acir_format plonk stdlib_primitives stdlib_sha256 stdlib_blake2s stdlib_keccak stdlib_pedersen_commitment stdlib_merkle_tree stdlib_schnorr crypto_sha256)
+barretenberg_module(acir_format stdlib_sha256 stdlib_keccak stdlib_merkle_tree stdlib_schnorr)
