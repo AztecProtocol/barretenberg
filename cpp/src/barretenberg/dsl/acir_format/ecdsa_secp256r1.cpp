@@ -29,7 +29,6 @@ void create_ecdsa_r1_verify_constraints(Composer& composer,
 {
 
     if (has_valid_witness_assignments == false) {
-        info("creating dummy constraints");
         dummy_ecdsa_constraint(composer, input);
     }
 
