@@ -138,7 +138,7 @@ TEST(acir_format, test_schnorr_verify_pass)
         .public_key_y = 12,
         .signature_s = 13,
         .signature_e = 14,
-        .result = 77,
+        .result = 15,
     };
 
     acir_format::acir_format constraint_system{
@@ -171,12 +171,11 @@ TEST(acir_format, test_schnorr_verify_pass)
     uint256_t pub_x = uint256_t("17cbd3ed3151ccfd170efe1d54280a6a4822640bf5c369908ad74ea21518a9c5");
     uint256_t pub_y = uint256_t("0e0456e3795c1a31f20035b741cd6158929eeccd320d299cfcac962865a6bc74");
 
+    uint256_t sig_s = uint256_t("05ca1f9251f2f6452b6bf999c62c0e6fbf7989a6a06712b5f3e9e25f43102580");
+    uint256_t sig_e = uint256_t("554c13fd1e4dc0358acd4521eca353c25489b8ddb079b31b3f463610b0fa27ef");
+
     auto composer = acir_format::create_circuit_with_witness(
-        constraint_system,
-        { 0,  1,   2,   3,   4,   5,   6,   7,   8,   9,   pub_x, pub_y, 5,   202, 31, 146, 81,  242, 246, 69,
-          43, 107, 249, 153, 198, 44,  14,  111, 191, 121, 137,   166,   160, 103, 18, 181, 243, 233, 226, 95,
-          67, 16,  37,  128, 85,  76,  19,  253, 30,  77,  192,   53,    138, 205, 69, 33,  236, 163, 83,  194,
-          84, 137, 184, 221, 176, 121, 179, 27,  63,  70,  54,    16,    176, 250, 39, 239, 1,   0,   0,   0 });
+        constraint_system, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, pub_x, pub_y, sig_s, sig_e, 1, 0, 0, 0 });
 
     auto prover = composer.create_ultra_with_keccak_prover();
     auto proof = prover.construct_proof();
@@ -202,7 +201,7 @@ TEST(acir_format, test_schnorr_verify_small_range)
         .public_key_y = 12,
         .signature_s = 13,
         .signature_e = 14,
-        .result = 77,
+        .result = 15,
     };
 
     acir_format::acir_format constraint_system{
@@ -235,12 +234,11 @@ TEST(acir_format, test_schnorr_verify_small_range)
     uint256_t pub_x = uint256_t("17cbd3ed3151ccfd170efe1d54280a6a4822640bf5c369908ad74ea21518a9c5");
     uint256_t pub_y = uint256_t("0e0456e3795c1a31f20035b741cd6158929eeccd320d299cfcac962865a6bc74");
 
+    uint256_t sig_s = uint256_t("05ca1f9251f2f6452b6bf999c62c0e6fbf7989a6a06712b5f3e9e25f43102580");
+    uint256_t sig_e = uint256_t("554c13fd1e4dc0358acd4521eca353c25489b8ddb079b31b3f463610b0fa27ef");
+
     auto composer = acir_format::create_circuit_with_witness(
-        constraint_system,
-        { 0,  1,   2,   3,   4,   5,   6,   7,   8,   9,   pub_x, pub_y, 5,   202, 31, 146, 81,  242, 246, 69,
-          43, 107, 249, 153, 198, 44,  14,  111, 191, 121, 137,   166,   160, 103, 18, 181, 243, 233, 226, 95,
-          67, 16,  37,  128, 85,  76,  19,  253, 30,  77,  192,   53,    138, 205, 69, 33,  236, 163, 83,  194,
-          84, 137, 184, 221, 176, 121, 179, 27,  63,  70,  54,    16,    176, 250, 39, 239, 1,   0,   0,   0 });
+        constraint_system, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, pub_x, pub_y, sig_s, sig_e, 1, 0, 0, 0 });
 
     auto prover = composer.create_ultra_with_keccak_prover();
     auto proof = prover.construct_proof();
