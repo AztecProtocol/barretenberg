@@ -249,7 +249,7 @@ Composer create_circuit_with_witness(const acir_format& constraint_system,
 
     // Add ECDSA r1 constraints
     for (const auto& constraint : constraint_system.ecdsa_r1_constraints) {
-        create_ecdsa_r1_verify_constraints(composer, constraint, false);
+        create_ecdsa_r1_verify_constraints(composer, constraint);
     }
 
     // Add blake2s constraints
