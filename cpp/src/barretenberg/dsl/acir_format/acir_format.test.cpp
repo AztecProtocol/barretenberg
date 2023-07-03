@@ -153,7 +153,7 @@ TEST(acir_format, test_schnorr_verify_pass)
     }
 
     acir_format::acir_format constraint_system{
-        .varnum = 82,
+        .varnum = 16,
         .public_inputs = {},
         .fixed_base_scalar_mul_constraints = {},
         .logic_constraints = {},
@@ -177,7 +177,7 @@ TEST(acir_format, test_schnorr_verify_pass)
     uint256_t sig_e = uint256_t("554c13fd1e4dc0358acd4521eca353c25489b8ddb079b31b3f463610b0fa27ef");
 
     auto composer = acir_format::create_circuit_with_witness(
-        constraint_system, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, pub_x, pub_y, sig_s, sig_e, 1, 0, 0, 0 });
+        constraint_system, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, pub_x, pub_y, sig_s, sig_e, 1 });
 
     auto prover = composer.create_ultra_with_keccak_prover();
     auto proof = prover.construct_proof();
@@ -218,7 +218,7 @@ TEST(acir_format, test_schnorr_verify_small_range)
     }
 
     acir_format::acir_format constraint_system{
-        .varnum = 82,
+        .varnum = 16,
         .public_inputs = {},
         .fixed_base_scalar_mul_constraints = {},
         .logic_constraints = {},
@@ -242,7 +242,7 @@ TEST(acir_format, test_schnorr_verify_small_range)
     uint256_t sig_e = uint256_t("554c13fd1e4dc0358acd4521eca353c25489b8ddb079b31b3f463610b0fa27ef");
 
     auto composer = acir_format::create_circuit_with_witness(
-        constraint_system, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, pub_x, pub_y, sig_s, sig_e, 1, 0, 0, 0 });
+        constraint_system, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, pub_x, pub_y, sig_s, sig_e, 1 });
 
     auto prover = composer.create_ultra_with_keccak_prover();
     auto proof = prover.construct_proof();
