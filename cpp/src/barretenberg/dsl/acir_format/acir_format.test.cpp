@@ -141,6 +141,17 @@ TEST(acir_format, test_schnorr_verify_pass)
         .result = 15,
     };
 
+    poly_triple result_constraint{
+        .a = schnorr_constraint.result,
+        .b = schnorr_constraint.result,
+        .c = schnorr_constraint.result,
+        .q_m = 0,
+        .q_l = 0,
+        .q_r = 0,
+        .q_o = 1,
+        .q_c = fr::neg_one(),
+    }
+
     acir_format::acir_format constraint_system{
         .varnum = 82,
         .public_inputs = {},
@@ -157,16 +168,7 @@ TEST(acir_format, test_schnorr_verify_pass)
         .pedersen_constraints = {},
         .block_constraints = {},
         .recursion_constraints = {},
-        .constraints = { poly_triple{
-            .a = schnorr_constraint.result,
-            .b = schnorr_constraint.result,
-            .c = schnorr_constraint.result,
-            .q_m = 0,
-            .q_l = 0,
-            .q_r = 0,
-            .q_o = 1,
-            .q_c = fr::neg_one(),
-        } },
+        .constraints = { result_constraint },
     };
     uint256_t pub_x = uint256_t("17cbd3ed3151ccfd170efe1d54280a6a4822640bf5c369908ad74ea21518a9c5");
     uint256_t pub_y = uint256_t("0e0456e3795c1a31f20035b741cd6158929eeccd320d299cfcac962865a6bc74");
@@ -204,6 +206,17 @@ TEST(acir_format, test_schnorr_verify_small_range)
         .result = 15,
     };
 
+    poly_triple result_constraint{
+        .a = schnorr_constraint.result,
+        .b = schnorr_constraint.result,
+        .c = schnorr_constraint.result,
+        .q_m = 0,
+        .q_l = 0,
+        .q_r = 0,
+        .q_o = 1,
+        .q_c = fr::neg_one(),
+    }
+
     acir_format::acir_format constraint_system{
         .varnum = 82,
         .public_inputs = {},
@@ -220,16 +233,7 @@ TEST(acir_format, test_schnorr_verify_small_range)
         .pedersen_constraints = {},
         .block_constraints = {},
         .recursion_constraints = {},
-        .constraints = { poly_triple{
-            .a = schnorr_constraint.result,
-            .b = schnorr_constraint.result,
-            .c = schnorr_constraint.result,
-            .q_m = 0,
-            .q_l = 0,
-            .q_r = 0,
-            .q_o = 1,
-            .q_c = fr::neg_one(),
-        } },
+        .constraints = { result_constraint },
     };
     uint256_t pub_x = uint256_t("17cbd3ed3151ccfd170efe1d54280a6a4822640bf5c369908ad74ea21518a9c5");
     uint256_t pub_y = uint256_t("0e0456e3795c1a31f20035b741cd6158929eeccd320d299cfcac962865a6bc74");
