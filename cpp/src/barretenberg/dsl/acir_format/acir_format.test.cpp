@@ -150,7 +150,7 @@ TEST(acir_format, test_schnorr_verify_pass)
         .q_r = 0,
         .q_o = 1,
         .q_c = fr::neg_one(),
-    }
+    };
 
     acir_format::acir_format constraint_system{
         .varnum = 16,
@@ -215,7 +215,7 @@ TEST(acir_format, test_schnorr_verify_small_range)
         .q_r = 0,
         .q_o = 1,
         .q_c = fr::neg_one(),
-    }
+    };
 
     acir_format::acir_format constraint_system{
         .varnum = 16,
