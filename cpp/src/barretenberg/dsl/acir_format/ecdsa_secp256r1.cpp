@@ -29,6 +29,7 @@ void create_ecdsa_r1_verify_constraints(Composer& composer,
 {
 
     if (has_valid_witness_assignments == false) {
+        info("creating dummy constraints");
         dummy_ecdsa_constraint(composer, input);
     }
 
@@ -83,27 +84,39 @@ void dummy_ecdsa_constraint(Composer& composer, EcdsaSecp256r1Constraint const& 
     std::vector<uint32_t> pub_x_indices_;
     std::vector<uint32_t> pub_y_indices_;
     std::vector<uint32_t> signature_;
+    std::vector<uint32_t> message_indicies_;
     signature_.resize(64);
 
     // Create a valid signature with a valid public key
-    crypto::ecdsa::key_pair<secp256r1_ct::fr, secp256r1_ct::g1> account;
+    std::string message_string = "Instructions unclear, ask again later.";
+
+    // hash the message since the dsl ecdsa gadget uses the prehashed message
+    // NOTE: If the hash being used outputs more than 32 bytes, then big-field will panic
+    std::vector<uint8_t> message_buffer;
+    std::copy(message_string.begin(), message_string.end(), std::back_inserter(message_buffer));
+    auto hashed_message = sha256::sha256(message_buffer);
+
+    crypto::ecdsa::key_pair<secp256r1::fr, secp256r1::g1> account;
     account.private_key = 10;
-    account.public_key = secp256r1_ct::g1::one * account.private_key;
+    account.public_key = secp256r1::g1::one * account.private_key;
+
+    crypto::ecdsa::signature signature =
+        crypto::ecdsa::construct_signature<Sha256Hasher, secp256r1::fq, secp256r1::fr, secp256r1::g1>(message_string,
+                                                                                                      account);
+
     uint256_t pub_x_value = account.public_key.x;
     uint256_t pub_y_value = account.public_key.y;
-    std::string message_string = "Instructions unclear, ask again later.";
-    crypto::ecdsa::signature signature =
-        crypto::ecdsa::construct_signature<Sha256Hasher, secp256r1_ct::fq, secp256r1_ct::fr, secp256r1_ct::g1>(
-            message_string, account);
 
     // Create new variables which will reference the valid public key and signature.
     // We don't use them in a gate, so when we call assert_equal, they will be
     // replaced as if they never existed.
     for (size_t i = 0; i < 32; ++i) {
+        uint32_t m_wit = composer.add_variable(hashed_message[i]);
         uint32_t x_wit = composer.add_variable(pub_x_value.slice(248 - i * 8, 256 - i * 8));
         uint32_t y_wit = composer.add_variable(pub_y_value.slice(248 - i * 8, 256 - i * 8));
         uint32_t r_wit = composer.add_variable(signature.r[i]);
         uint32_t s_wit = composer.add_variable(signature.s[i]);
+        message_indicies_.emplace_back(m_wit);
         pub_x_indices_.emplace_back(x_wit);
         pub_y_indices_.emplace_back(y_wit);
         signature_[i] = r_wit;
@@ -111,6 +124,9 @@ void dummy_ecdsa_constraint(Composer& composer, EcdsaSecp256r1Constraint const& 
     }
 
     // Call assert_equal(from, to) to replace the value in `to` by the value in `from`
+    for (size_t i = 0; i < input.hashed_message.size(); ++i) {
+        composer.assert_equal(message_indicies_[i], input.hashed_message[i]);
+    }
     for (size_t i = 0; i < input.pub_x_indices.size(); ++i) {
         composer.assert_equal(pub_x_indices_[i], input.pub_x_indices[i]);
     }
