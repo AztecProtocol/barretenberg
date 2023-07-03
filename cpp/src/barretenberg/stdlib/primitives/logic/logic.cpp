@@ -1,6 +1,5 @@
 #include "logic.hpp"
-
-#include "../composers/composers.hpp"
+#include "../circuit_builders/circuit_builders.hpp"
 #include "../plookup/plookup.hpp"
 #include "barretenberg/common/assert.hpp"
 #include "barretenberg/numeric/uint256/uint256.hpp"
@@ -14,7 +13,7 @@ namespace proof_system::plonk::stdlib {
  *
  * @details Defaults to basic Composer method if not using plookup-compatible composer. If the left and right operands
  * are larger than num_bit, the result will be truncated to num_bits. However, the two operands could be
- * range-constrained to num_bits before the call which would remove the need to range constrain inside this function.
+ * range-constrained to num_bits before the call, which would remove the need to range constrain inside this function.
  *
  * @tparam Composer
  * @param a
@@ -53,7 +52,7 @@ field_t<Composer> logic<Composer>::create_logic_constraint(
         field_pt b_witness = field_pt::from_witness_index(ctx, ctx->put_constant_variable(b_native));
         return create_logic_constraint(a, b_witness, num_bits, is_xor_gate, get_chunk);
     }
-    if constexpr (Composer::type == ComposerType::PLOOKUP) {
+    if constexpr (HasPlookup<Composer>) {
         Composer* ctx = a.get_context();
 
         const size_t num_chunks = (num_bits / 32) + ((num_bits % 32 == 0) ? 0 : 1);
@@ -72,12 +71,12 @@ field_t<Composer> logic<Composer>::create_logic_constraint(
             field_pt b_chunk = witness_pt(ctx, right_chunk);
             field_pt result_chunk = 0;
             if (is_xor_gate) {
-                result_chunk =
-                    stdlib::plookup_read::read_from_2_to_1_table(plookup::MultiTableId::UINT32_XOR, a_chunk, b_chunk);
+                result_chunk = stdlib::plookup_read<Composer>::read_from_2_to_1_table(
+                    plookup::MultiTableId::UINT32_XOR, a_chunk, b_chunk);
 
             } else {
-                result_chunk =
-                    stdlib::plookup_read::read_from_2_to_1_table(plookup::MultiTableId::UINT32_AND, a_chunk, b_chunk);
+                result_chunk = stdlib::plookup_read<Composer>::read_from_2_to_1_table(
+                    plookup::MultiTableId::UINT32_AND, a_chunk, b_chunk);
             }
 
             auto scaling_factor = uint256_t(1) << (32 * i);

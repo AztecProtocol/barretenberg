@@ -1,13 +1,12 @@
 #pragma once
 #include "barretenberg/common/serialize.hpp"
 #include <array>
-#include "barretenberg/honk/sumcheck/relations/relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/relation_parameters.hpp"
 #include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/honk/utils/grand_product_delta.hpp"
 #include "barretenberg/common/throw_or_abort.hpp"
 #include "sumcheck_round.hpp"
 #include "polynomials/univariate.hpp"
-#include "barretenberg/honk/flavor/flavor.hpp"
 #include <algorithm>
 #include <cstddef>
 #include <span>
@@ -19,26 +18,32 @@
 
 namespace proof_system::honk::sumcheck {
 
-template <typename FF, class Transcript, template <class> class... Relations> class Sumcheck {
+template <typename Flavor, class Transcript> class Sumcheck {
 
   public:
-    static constexpr size_t MAX_RELATION_LENGTH = std::max({ Relations<FF>::RELATION_LENGTH... });
-    static constexpr size_t NUM_POLYNOMIALS = proof_system::honk::StandardArithmetization::NUM_POLYNOMIALS;
+    using FF = typename Flavor::FF;
+    using PartiallyEvaluatedMultivariates = typename Flavor::PartiallyEvaluatedMultivariates;
+    using ClaimedEvaluations = typename Flavor::ClaimedEvaluations;
 
-    std::array<FF, NUM_POLYNOMIALS> purported_evaluations;
+    static constexpr size_t MAX_RELATION_LENGTH = Flavor::MAX_RELATION_LENGTH;
+    static constexpr size_t MAX_RANDOM_RELATION_LENGTH = Flavor::MAX_RANDOM_RELATION_LENGTH;
+    static constexpr size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
+
     Transcript& transcript;
     const size_t multivariate_n;
     const size_t multivariate_d;
-    SumcheckRound<FF, NUM_POLYNOMIALS, Relations...> round;
+    SumcheckRound<Flavor> round;
 
     /**
     *
-    * @brief (folded_polynomials) Suppose the Honk polynomials (multilinear in d variables) are called P_1, ..., P_N.
+    * @brief (partially_evaluated_polynomials) Suppose the Honk polynomials (multilinear in d variables) are called P_1,
+    ..., P_N.
     * At initialization,
     * we think of these as lying in a two-dimensional array, where each column records the value of one P_i on H^d.
-    * After the first round, the array will be updated ('folded'), so that the first n/2 rows will represent the
+    * After the first round, the array will be updated (partially evaluated), so that the first n/2 rows will represent
+    the
     * evaluations P_i(u0, X1, ..., X_{d-1}) as a low-degree extension on H^{d-1}. In reality, we elude copying all
-    * of the polynomial-defining data by only populating folded_multivariates after the first round. I.e.:
+    * of the polynomial-defining data by only populating partially_evaluated_polynomials after the first round. I.e.:
 
         We imagine all of the defining polynomial data in a matrix like this:
                     | P_1 | P_2 | P_3 | P_4 | ... | P_N | N = number of multivariatesk
@@ -52,7 +57,7 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
                   \-|  *  |  *  |  *  |  *  | ... |  *  | vertex n-1
             m = n/2
                                         *
-            Each group consists of N edges |, and our construction of univariates and folding
+            Each group consists of N edges |, and our construction of univariates and partial evaluation
                                         *
             operations naturally operate on these groups of edges
 
@@ -60,34 +65,30 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
     * NOTE: With ~40 columns, prob only want to allocate 256 EdgeGroup's at once to keep stack under 1MB?
     * TODO(#224)(Cody): might want to just do C-style multidimensional array? for guaranteed adjacency?
     */
-    std::array<std::vector<FF>, NUM_POLYNOMIALS> folded_polynomials;
+    PartiallyEvaluatedMultivariates partially_evaluated_polynomials;
 
     // prover instantiates sumcheck with circuit size and a prover transcript
     Sumcheck(size_t multivariate_n, ProverTranscript<FF>& transcript)
         : transcript(transcript)
         , multivariate_n(multivariate_n)
         , multivariate_d(numeric::get_msb(multivariate_n))
-        , round(multivariate_n, std::tuple(Relations<FF>()...))
-    {
-        for (auto& polynomial : folded_polynomials) {
-            polynomial.resize(multivariate_n >> 1);
-        }
-    };
+        , round(multivariate_n)
+        , partially_evaluated_polynomials(multivariate_n){};
 
     // verifier instantiates sumcheck with circuit size and a verifier transcript
     explicit Sumcheck(size_t multivariate_n, VerifierTranscript<FF>& transcript)
         : transcript(transcript)
         , multivariate_n(multivariate_n)
         , multivariate_d(numeric::get_msb(multivariate_n))
-        , round(std::tuple(Relations<FF>()...)){};
+        , round(){};
 
     /**
-     * @brief Compute univariate restriction place in transcript, generate challenge, fold,... repeat until final round,
-     * then compute multivariate evaluations and place in transcript.
+     * @brief Compute univariate restriction place in transcript, generate challenge, partially evaluate,... repeat
+     * until final round, then compute multivariate evaluations and place in transcript.
      *
      * @details
      */
-    SumcheckOutput<FF> execute_prover(
+    SumcheckOutput<Flavor> execute_prover(
         auto full_polynomials, const RelationParameters<FF>& relation_parameters) // pass by value, not by reference
     {
         auto [alpha, zeta] = transcript.get_challenges("Sumcheck:alpha", "Sumcheck:zeta");
@@ -98,34 +99,38 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
         multivariate_challenge.reserve(multivariate_d);
 
         // First round
-        // This populates folded_polynomials.
+        // This populates partially_evaluated_polynomials.
         auto round_univariate = round.compute_univariate(full_polynomials, relation_parameters, pow_univariate, alpha);
         transcript.send_to_verifier("Sumcheck:univariate_0", round_univariate);
         FF round_challenge = transcript.get_challenge("Sumcheck:u_0");
         multivariate_challenge.emplace_back(round_challenge);
-        fold(full_polynomials, multivariate_n, round_challenge);
+        partially_evaluate(full_polynomials, multivariate_n, round_challenge);
         pow_univariate.partially_evaluate(round_challenge);
-        round.round_size = round.round_size >> 1; // TODO(#224)(Cody): Maybe fold should do this and release memory?
+        round.round_size =
+            round.round_size >> 1; // TODO(#224)(Cody): Maybe partially_evaluate should do this and release memory?
 
         // All but final round
-        // We operate on folded_polynomials in place.
+        // We operate on partially_evaluated_polynomials in place.
         for (size_t round_idx = 1; round_idx < multivariate_d; round_idx++) {
             // Write the round univariate to the transcript
-            round_univariate = round.compute_univariate(folded_polynomials, relation_parameters, pow_univariate, alpha);
+            round_univariate =
+                round.compute_univariate(partially_evaluated_polynomials, relation_parameters, pow_univariate, alpha);
             transcript.send_to_verifier("Sumcheck:univariate_" + std::to_string(round_idx), round_univariate);
             FF round_challenge = transcript.get_challenge("Sumcheck:u_" + std::to_string(round_idx));
             multivariate_challenge.emplace_back(round_challenge);
-            fold(folded_polynomials, round.round_size, round_challenge);
+            partially_evaluate(partially_evaluated_polynomials, round.round_size, round_challenge);
             pow_univariate.partially_evaluate(round_challenge);
             round.round_size = round.round_size >> 1;
         }
 
-        // Final round: Extract multivariate evaluations from folded_polynomials and add to transcript
-        std::array<FF, NUM_POLYNOMIALS> multivariate_evaluations;
-        for (size_t i = 0; i < NUM_POLYNOMIALS; ++i) {
-            multivariate_evaluations[i] = folded_polynomials[i][0];
+        // Final round: Extract multivariate evaluations from partially_evaluated_polynomials and add to transcript
+        ClaimedEvaluations multivariate_evaluations;
+        size_t evaluation_idx = 0;
+        for (auto& polynomial : partially_evaluated_polynomials) { // TODO(#391) zip
+            multivariate_evaluations[evaluation_idx] = polynomial[0];
+            ++evaluation_idx;
         }
-        transcript.send_to_verifier("Sumcheck:evaluations", multivariate_evaluations);
+        transcript.send_to_verifier("Sumcheck:evaluations", multivariate_evaluations._data);
 
         return { multivariate_challenge, multivariate_evaluations };
     };
@@ -137,7 +142,7 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
      *
      * @details If verification fails, returns std::nullopt, otherwise returns SumcheckOutput
      */
-    std::optional<SumcheckOutput<FF>> execute_verifier(const RelationParameters<FF>& relation_parameters)
+    std::optional<SumcheckOutput<Flavor>> execute_verifier(const RelationParameters<FF>& relation_parameters)
     {
         bool verified(true);
 
@@ -157,15 +162,15 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
         for (size_t round_idx = 0; round_idx < multivariate_d; round_idx++) {
             // Obtain the round univariate from the transcript
             std::string round_univariate_label = "Sumcheck:univariate_" + std::to_string(round_idx);
-            auto round_univariate =
-                transcript.template receive_from_prover<Univariate<FF, MAX_RELATION_LENGTH>>(round_univariate_label);
+            auto round_univariate = transcript.template receive_from_prover<Univariate<FF, MAX_RANDOM_RELATION_LENGTH>>(
+                round_univariate_label);
 
             bool checked = round.check_sum(round_univariate, pow_univariate);
             verified = verified && checked;
             FF round_challenge = transcript.get_challenge("Sumcheck:u_" + std::to_string(round_idx));
             multivariate_challenge.emplace_back(round_challenge);
 
-            round.compute_next_target_sum(round_univariate, round_challenge, pow_univariate);
+            round.compute_next_target_sum(round_univariate, round_challenge);
             pow_univariate.partially_evaluate(round_challenge);
 
             if (!verified) {
@@ -174,27 +179,25 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
         }
 
         // Final round
-        auto purported_evaluations =
+        ClaimedEvaluations purported_evaluations =
             transcript.template receive_from_prover<std::array<FF, NUM_POLYNOMIALS>>("Sumcheck:evaluations");
 
         FF full_honk_relation_purported_value = round.compute_full_honk_relation_purported_value(
-            purported_evaluations, relation_parameters, pow_univariate, alpha);
+            purported_evaluations._data, relation_parameters, pow_univariate, alpha);
         verified = verified && (full_honk_relation_purported_value == round.target_total_sum);
         if (!verified) {
             return std::nullopt;
         }
 
-        return SumcheckOutput<FF>{ multivariate_challenge, purported_evaluations };
+        return SumcheckOutput<Flavor>{ multivariate_challenge, purported_evaluations };
     };
 
-    // TODO(#224)(Cody): Rename. fold is not descriptive, and it's already in use in the Gemini context.
-    //             Probably just call it partial_evaluation?
     /**
      * @brief Evaluate at the round challenge and prepare class for next round.
      * Illustration of layout in example of first round when d==3 (showing just one Honk polynomial,
      * i.e., what happens in just one column of our two-dimensional array):
      *
-     * groups    vertex terms              collected vertex terms               groups after folding
+     * groups    vertex terms              collected vertex terms               groups after partial evaluation
      *     g0 -- v0 (1-X0)(1-X1)(1-X2) --- (v0(1-X0) + v1 X0) (1-X1)(1-X2) ---- (v0(1-u0) + v1 u0) (1-X1)(1-X2)
      *        \- v1   X0  (1-X1)(1-X2) --/                                  --- (v2(1-u0) + v3 u0)   X1  (1-X2)
      *     g1 -- v2 (1-X0)  X1  (1-X2) --- (v2(1-X0) + v3 X0)   X1  (1-X2)-/ -- (v4(1-u0) + v5 u0) (1-X1)  X2
@@ -206,12 +209,12 @@ template <typename FF, class Transcript, template <class> class... Relations> cl
      *
      * @param challenge
      */
-    void fold(auto& polynomials, size_t round_size, FF round_challenge)
+    void partially_evaluate(auto& polynomials, size_t round_size, FF round_challenge)
     {
-        // after the first round, operate in place on folded_polynomials
+        // after the first round, operate in place on partially_evaluated_polynomials
         for (size_t j = 0; j < polynomials.size(); ++j) {
             for (size_t i = 0; i < round_size; i += 2) {
-                folded_polynomials[j][i >> 1] =
+                partially_evaluated_polynomials[j][i >> 1] =
                     polynomials[j][i] + round_challenge * (polynomials[j][i + 1] - polynomials[j][i]);
             }
         }

@@ -1,35 +1,10 @@
 #pragma once
 
-#include "barretenberg/numeric/uint256/uint256.hpp"
-#include "barretenberg/numeric/uintx/uintx.hpp"
-
 #include "../../fields/field.hpp"
 #include "../../groups/group.hpp"
-#include "../bn254/fq.hpp"
-#include "../bn254/fr.hpp"
 #include "../types.hpp"
 
 namespace secp256k1 {
-
-constexpr uint256_t get_r_squared(const uint256_t prime_256)
-{
-    uint512_t R(0, 1);
-    uint1024_t R_1024 = uint1024_t(R);
-    uint1024_t R_squared = R_1024 * R_1024;
-    uint1024_t modulus = uint1024_t(uint512_t(prime_256));
-
-    uint1024_t R_squared_mod_p = R_squared % modulus;
-    return R_squared_mod_p.lo.lo;
-}
-
-constexpr uint64_t get_r_inv(const uint256_t prime_256)
-{
-    uint512_t r{ 0, 1 };
-    // -(1/q) mod r
-    uint512_t q{ -prime_256, 0 };
-    uint256_t q_inv = q.invmod(r).lo;
-    return (q_inv).data[0];
-}
 
 struct Secp256k1FqParams {
     static constexpr uint64_t modulus_0 = 0xFFFFFFFEFFFFFC2FULL;
@@ -147,3 +122,14 @@ typedef barretenberg::
         g1;
 g1::affine_element get_generator(const size_t generator_index);
 } // namespace secp256k1
+
+namespace curve {
+class SECP256K1 {
+  public:
+    using ScalarField = secp256k1::fr;
+    using BaseField = secp256k1::fq;
+    using Group = secp256k1::g1;
+    using Element = typename Group::element;
+    using AffineElement = typename Group::affine_element;
+};
+} // namespace curve

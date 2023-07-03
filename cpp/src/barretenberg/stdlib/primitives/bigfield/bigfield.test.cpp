@@ -9,9 +9,7 @@
 #include "../byte_array/byte_array.hpp"
 #include "../field/field.hpp"
 #include "./bigfield.hpp"
-#include "barretenberg/honk/composer/standard_honk_composer.hpp"
-#include "barretenberg/plonk/composer/splitting_tmp/standard_plonk_composer.hpp"
-
+#include "barretenberg/stdlib/primitives/circuit_builders/circuit_builders.hpp"
 #include "barretenberg/stdlib/primitives/curves/bn254.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
 #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
@@ -56,11 +54,8 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         fq_ct tval1 = tval - tval;
         fq_ct tval2 = tval1 / tval;
         (void)tval2;
-        auto prover = composer.create_prover();
-        auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
-        bool proof_result = verifier.verify_proof(proof);
-        EXPECT_EQ(proof_result, true);
+        bool result = composer.check_circuit();
+        EXPECT_EQ(result, true);
     }
 
     static void test_bad_mul()
@@ -71,11 +66,8 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         fq_ct tval1 = tval - tval;
         fq_ct tval2 = tval1 / tval;
         (void)tval2;
-        auto prover = composer.create_prover();
-        auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
-        bool proof_result = verifier.verify_proof(proof);
-        EXPECT_EQ(proof_result, true);
+        bool result = composer.check_circuit();
+        EXPECT_EQ(result, true);
     }
 
     static std::pair<fq, fq_ct> get_random_element(Composer* ctx)
@@ -115,7 +107,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
             // Don't profile 1st repetition. It sets up a lookup table, cost is not representative of a typical mul
             if (i == num_repetitions - 2) {
                 std::cerr << "num gates per mul = " << after - before << std::endl;
-                benchmark_info(GET_COMPOSER_NAME_STRING(Composer), "Bigfield", "MUL", "Gate Count", after - before);
+                benchmark_info(Composer::NAME_STRING, "Bigfield", "MUL", "Gate Count", after - before);
             }
             // uint256_t modulus{ Bn254FqParams::modulus_0,
             //                    Bn254FqParams::modulus_1,
@@ -135,11 +127,8 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
             EXPECT_EQ(result.hi.data[2], 0ULL);
             EXPECT_EQ(result.hi.data[3], 0ULL);
         }
-        auto prover = composer.create_prover();
-        auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
-        bool proof_result = verifier.verify_proof(proof);
-        EXPECT_EQ(proof_result, true);
+        bool result = composer.check_circuit();
+        EXPECT_EQ(result, true);
     }
 
     static void test_sqr()
@@ -156,7 +145,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
             uint64_t after = composer.get_num_gates();
             if (i == num_repetitions - 1) {
                 std::cerr << "num gates per mul = " << after - before << std::endl;
-                benchmark_info(GET_COMPOSER_NAME_STRING(Composer), "Bigfield", "SQR", "Gate Count", after - before);
+                benchmark_info(Composer::NAME_STRING, "Bigfield", "SQR", "Gate Count", after - before);
             }
             // uint256_t modulus{ Bn254FqParams::modulus_0,
             //                    Bn254FqParams::modulus_1,
@@ -176,11 +165,8 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
             EXPECT_EQ(result.hi.data[2], 0ULL);
             EXPECT_EQ(result.hi.data[3], 0ULL);
         }
-        auto prover = composer.create_prover();
-        auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
-        bool proof_result = verifier.verify_proof(proof);
-        EXPECT_EQ(proof_result, true);
+        bool result = composer.check_circuit();
+        EXPECT_EQ(result, true);
     }
 
     static void test_madd()
@@ -205,7 +191,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
             uint64_t after = composer.get_num_gates();
             if (i == num_repetitions - 1) {
                 std::cerr << "num gates per mul = " << after - before << std::endl;
-                benchmark_info(GET_COMPOSER_NAME_STRING(Composer), "Bigfield", "MADD", "Gate Count", after - before);
+                benchmark_info(Composer::NAME_STRING, "Bigfield", "MADD", "Gate Count", after - before);
             }
             // uint256_t modulus{ Bn254FqParams::modulus_0,
             //                    Bn254FqParams::modulus_1,
@@ -225,11 +211,8 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
             EXPECT_EQ(result.hi.data[2], 0ULL);
             EXPECT_EQ(result.hi.data[3], 0ULL);
         }
-        auto prover = composer.create_prover();
-        auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
-        bool proof_result = verifier.verify_proof(proof);
-        EXPECT_EQ(proof_result, true);
+        bool result = composer.check_circuit();
+        EXPECT_EQ(result, true);
     }
 
     static void test_mult_madd()
@@ -268,8 +251,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
             uint64_t after = composer.get_num_gates();
             if (i == num_repetitions - 1) {
                 std::cerr << "num gates with mult_madd = " << after - before << std::endl;
-                benchmark_info(
-                    GET_COMPOSER_NAME_STRING(Composer), "Bigfield", "MULT_MADD", "Gate Count", after - before);
+                benchmark_info(Composer::NAME_STRING, "Bigfield", "MULT_MADD", "Gate Count", after - before);
             }
             /**
             before = composer.get_num_gates();
@@ -298,11 +280,8 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         if (composer.failed()) {
             info("Composer failed with error: ", composer.err());
         };
-        auto prover = composer.create_prover();
-        auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
-        bool proof_result = verifier.verify_proof(proof);
-        EXPECT_EQ(proof_result, true);
+        bool result = composer.check_circuit();
+        EXPECT_EQ(result, true);
     }
 
     static void test_dual_madd()
@@ -356,11 +335,8 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         if (composer.failed()) {
             info("Composer failed with error: ", composer.err());
         };
-        auto prover = composer.create_prover();
-        auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
-        bool proof_result = verifier.verify_proof(proof);
-        EXPECT_EQ(proof_result, true);
+        bool result = composer.check_circuit();
+        EXPECT_EQ(result, true);
     }
 
     static void test_div()
@@ -382,7 +358,7 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
             uint64_t after = composer.get_num_gates();
             if (i == num_repetitions - 1) {
                 std::cout << "num gates per div = " << after - before << std::endl;
-                benchmark_info(GET_COMPOSER_NAME_STRING(Composer), "Bigfield", "DIV", "Gate Count", after - before);
+                benchmark_info(Composer::NAME_STRING, "Bigfield", "DIV", "Gate Count", after - before);
             }
             // uint256_t modulus{ Bn254FqParams::modulus_0,
             //                    Bn254FqParams::modulus_1,
@@ -403,11 +379,8 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
             EXPECT_EQ(result.hi.data[2], 0ULL);
             EXPECT_EQ(result.hi.data[3], 0ULL);
         }
-        auto prover = composer.create_prover();
-        auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
-        bool proof_result = verifier.verify_proof(proof);
-        EXPECT_EQ(proof_result, true);
+        bool result = composer.check_circuit();
+        EXPECT_EQ(result, true);
     }
 
     static void test_add_and_div()
@@ -448,11 +421,8 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
             EXPECT_EQ(result.hi.data[2], 0ULL);
             EXPECT_EQ(result.hi.data[3], 0ULL);
         }
-        auto prover = composer.create_prover();
-        auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
-        bool proof_result = verifier.verify_proof(proof);
-        EXPECT_EQ(proof_result, true);
+        bool result = composer.check_circuit();
+        EXPECT_EQ(result, true);
     }
 
     static void test_add_and_mul()
@@ -488,11 +458,8 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
             EXPECT_EQ(result.hi.data[2], 0ULL);
             EXPECT_EQ(result.hi.data[3], 0ULL);
         }
-        auto prover = composer.create_prover();
-        auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
-        bool proof_result = verifier.verify_proof(proof);
-        EXPECT_EQ(proof_result, true);
+        bool result = composer.check_circuit();
+        EXPECT_EQ(result, true);
     }
 
     static void test_add_and_mul_with_constants()
@@ -525,11 +492,8 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
             EXPECT_EQ(result.hi.data[2], 0ULL);
             EXPECT_EQ(result.hi.data[3], 0ULL);
         }
-        auto prover = composer.create_prover();
-        auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
-        bool proof_result = verifier.verify_proof(proof);
-        EXPECT_EQ(proof_result, true);
+        bool result = composer.check_circuit();
+        EXPECT_EQ(result, true);
     }
 
     static void test_sub_and_mul()
@@ -565,11 +529,8 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
             EXPECT_EQ(result.hi.data[2], 0ULL);
             EXPECT_EQ(result.hi.data[3], 0ULL);
         }
-        auto prover = composer.create_prover();
-        auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
-        bool proof_result = verifier.verify_proof(proof);
-        EXPECT_EQ(proof_result, true);
+        bool result = composer.check_circuit();
+        EXPECT_EQ(result, true);
     }
 
     static void test_msub_div()
@@ -591,11 +552,8 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
             EXPECT_EQ(result_ct.get_value().lo, uint256_t(expected));
             EXPECT_EQ(result_ct.get_value().hi, uint256_t(0));
 
-            auto prover = composer.create_prover();
-            auto verifier = composer.create_verifier();
-            plonk::proof proof = prover.construct_proof();
-            bool proof_result = verifier.verify_proof(proof);
-            EXPECT_EQ(proof_result, true);
+            bool result = composer.check_circuit();
+            EXPECT_EQ(result, true);
         }
     }
 
@@ -637,11 +595,8 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
             EXPECT_EQ(result_d, expected_d);
             EXPECT_EQ(result_e, fq(0));
         }
-        auto prover = composer.create_prover();
-        auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
-        bool proof_result = verifier.verify_proof(proof);
-        EXPECT_EQ(proof_result, true);
+        bool result = composer.check_circuit();
+        EXPECT_EQ(result, true);
     }
 
     static void test_group_operations()
@@ -687,11 +642,8 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
             EXPECT_EQ(result_y.lo.data[2], expected_y.data[2]);
             EXPECT_EQ(result_y.lo.data[3], expected_y.data[3]);
         }
-        auto prover = composer.create_prover();
-        auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
-        bool proof_result = verifier.verify_proof(proof);
-        EXPECT_EQ(proof_result, true);
+        bool result = composer.check_circuit();
+        EXPECT_EQ(result, true);
     }
 
     static void test_reduce()
@@ -721,11 +673,8 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
             EXPECT_EQ(result, expected);
             EXPECT_EQ(c.get_value().get_msb() < 254, true);
         }
-        auto prover = composer.create_prover();
-        auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
-        bool proof_result = verifier.verify_proof(proof);
-        EXPECT_EQ(proof_result, true);
+        bool result = composer.check_circuit();
+        EXPECT_EQ(result, true);
     }
 
     static void test_assert_is_in_field_success()
@@ -755,11 +704,55 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
             EXPECT_EQ(result, uint256_t(expected));
             EXPECT_EQ(c.get_value().get_msb() < 254, true);
         }
-        auto prover = composer.create_prover();
-        auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
-        bool proof_result = verifier.verify_proof(proof);
-        EXPECT_EQ(proof_result, true);
+        bool result = composer.check_circuit();
+        EXPECT_EQ(result, true);
+    }
+
+    static void test_assert_less_than_success()
+    {
+        auto composer = Composer();
+        size_t num_repetitions = 10;
+        constexpr size_t num_bits = 200;
+        constexpr uint256_t bit_mask = (uint256_t(1) << num_bits) - 1;
+        for (size_t i = 0; i < num_repetitions; ++i) {
+
+            fq inputs[4]{ uint256_t(fq::random_element()) && bit_mask,
+                          uint256_t(fq::random_element()) && bit_mask,
+                          uint256_t(fq::random_element()) && bit_mask,
+                          uint256_t(fq::random_element()) && bit_mask };
+
+            fq_ct a(witness_ct(&composer, fr(uint256_t(inputs[0]).slice(0, fq_ct::NUM_LIMB_BITS * 2))),
+                    witness_ct(&composer,
+                               fr(uint256_t(inputs[0]).slice(fq_ct::NUM_LIMB_BITS * 2, fq_ct::NUM_LIMB_BITS * 4))));
+            fq_ct b(witness_ct(&composer, fr(uint256_t(inputs[1]).slice(0, fq_ct::NUM_LIMB_BITS * 2))),
+                    witness_ct(&composer,
+                               fr(uint256_t(inputs[1]).slice(fq_ct::NUM_LIMB_BITS * 2, fq_ct::NUM_LIMB_BITS * 4))));
+
+            fq_ct c = a;
+            fq expected = inputs[0];
+            for (size_t i = 0; i < 16; ++i) {
+                c = b * b + c;
+                expected = inputs[1] * inputs[1] + expected;
+            }
+            // fq_ct c = a + a + a + a - b - b - b - b;
+            c.assert_less_than(bit_mask + 1);
+            uint256_t result = (c.get_value().lo);
+            EXPECT_EQ(result, uint256_t(expected));
+            EXPECT_EQ(c.get_value().get_msb() < num_bits, true);
+        }
+        bool result = composer.check_circuit();
+        EXPECT_EQ(result, true);
+        // Checking edge conditions
+        fq random_input = fq::random_element();
+        fq_ct a(witness_ct(&composer, fr(uint256_t(random_input).slice(0, fq_ct::NUM_LIMB_BITS * 2))),
+                witness_ct(&composer,
+                           fr(uint256_t(random_input).slice(fq_ct::NUM_LIMB_BITS * 2, fq_ct::NUM_LIMB_BITS * 4))));
+
+        a.assert_less_than(random_input + 1);
+        EXPECT_EQ(composer.check_circuit(), true);
+
+        a.assert_less_than(random_input);
+        EXPECT_EQ(composer.check_circuit(), false);
     }
 
     static void test_byte_array_constructors()
@@ -786,11 +779,8 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
             uint256_t result = (c.get_value().lo);
             EXPECT_EQ(result, uint256_t(expected));
         }
-        auto prover = composer.create_prover();
-        auto verifier = composer.create_verifier();
-        plonk::proof proof = prover.construct_proof();
-        bool proof_result = verifier.verify_proof(proof);
-        EXPECT_EQ(proof_result, true);
+        bool result = composer.check_circuit();
+        EXPECT_EQ(result, true);
     }
 
     // This check tests if elements are reduced to fit quotient into range proof
@@ -831,11 +821,8 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
         auto f = fq_ct::mult_madd({ a4 }, { a4 }, {}, false);
         (void)f;
 
-        auto prover = composer.create_prover();
-        auto verifier = composer.create_verifier();
-        auto proof = prover.construct_proof();
-        bool proof_result = verifier.verify_proof(proof);
-        EXPECT_EQ(proof_result, true);
+        bool result = composer.check_circuit();
+        EXPECT_EQ(result, true);
     }
 
     static void test_conditional_select_regression()
@@ -860,15 +847,11 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
 };
 
 // Define types for which the above tests will be constructed.
-typedef testing::Types<plonk::UltraComposer,
-                       plonk::TurboComposer,
-                       plonk::StandardComposer,
-                       honk::StandardHonkComposer,
-                       plonk::StandardPlonkComposer>
-    ComposerTypes;
-
+typedef testing::
+    Types<proof_system::StandardCircuitBuilder, proof_system::TurboCircuitBuilder, proof_system::UltraCircuitBuilder>
+        CircuitTypes;
 // Define the suite of tests.
-TYPED_TEST_SUITE(stdlib_bigfield, ComposerTypes);
+TYPED_TEST_SUITE(stdlib_bigfield, CircuitTypes);
 TYPED_TEST(stdlib_bigfield, badmul)
 {
     TestFixture::test_division_formula_bug();
@@ -929,6 +912,10 @@ TYPED_TEST(stdlib_bigfield, assert_is_in_field_succes)
 {
     TestFixture::test_assert_is_in_field_success();
 }
+TYPED_TEST(stdlib_bigfield, assert_less_than_success)
+{
+    TestFixture::test_assert_less_than_success();
+}
 TYPED_TEST(stdlib_bigfield, byte_array_constructors)
 {
     TestFixture::test_byte_array_constructors();
@@ -987,14 +974,14 @@ TYPED_TEST(stdlib_bigfield, division_context)
 //     auto prover = composer.create_prover();
 //     auto verifier = composer.create_verifier();
 //     plonk::proof proof = prover.construct_proof();
-//     bool proof_result = verifier.verify_proof(proof);
-//     EXPECT_EQ(proof_result, true);
+//     bool result = verifier.verify_proof(proof);
+//     EXPECT_EQ(result, true);
 // }
 
 // // PLOOKUP TESTS
 // TEST(stdlib_bigfield_plookup, test_mul)
 // {
-//     plonk::UltraComposer composer = proof_system::plonk::UltraComposer();
+//     plonk::UltraPlonkComposer composer = proof_system::plonk::UltraPlonkComposer();
 //     size_t num_repetitions = 1;
 //     for (size_t i = 0; i < num_repetitions; ++i) {
 //         fq inputs[3]{ fq::random_element(), fq::random_element(), fq::random_element() };
@@ -1035,13 +1022,13 @@ TYPED_TEST(stdlib_bigfield, division_context)
 //     plonk::PlookupProver prover = composer.create_prover();
 //     plonk::PlookupVerifier verifier = composer.create_verifier();
 //     plonk::proof proof = prover.construct_proof();
-//     bool proof_result = verifier.verify_proof(proof);
-//     EXPECT_EQ(proof_result, true);
+//     bool result = verifier.verify_proof(proof);
+//     EXPECT_EQ(result, true);
 // }
 
 // TEST(stdlib_bigfield_plookup, test_sqr)
 // {
-//     plonk::UltraComposer composer = proof_system::plonk::UltraComposer();
+//     plonk::UltraPlonkComposer composer = proof_system::plonk::UltraPlonkComposer();
 //     size_t num_repetitions = 10;
 //     for (size_t i = 0; i < num_repetitions; ++i) {
 //         fq inputs[3]{ fq::random_element(), fq::random_element(), fq::random_element() };
@@ -1075,7 +1062,7 @@ TYPED_TEST(stdlib_bigfield, division_context)
 //     plonk::PlookupProver prover = composer.create_prover();
 //     plonk::PlookupVerifier verifier = composer.create_verifier();
 //     plonk::proof proof = prover.construct_proof();
-//     bool proof_result = verifier.verify_proof(proof);
-//     EXPECT_EQ(proof_result, true);
+//     bool result = verifier.verify_proof(proof);
+//     EXPECT_EQ(result, true);
 // }
 } // namespace test_stdlib_bigfield

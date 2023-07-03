@@ -11,13 +11,14 @@
 #include "utils/utils.hpp"
 #include "utils/instance_sol_gen.hpp"
 
-template <typename Composer, typename Circuit>
-void generate_keys(std::string output_path, std::string srs_path, std::string flavour_prefix, std::string circuit_name)
+template <typename Composer, template <typename> typename Circuit>
+void generate_keys(std::string output_path, std::string flavour_prefix, std::string circuit_name)
 {
     uint256_t public_inputs[4] = { 0, 0, 0, 0 };
-    Composer composer = Circuit::generate(srs_path, public_inputs);
+    auto circuit = Circuit<typename Composer::CircuitBuilder>::generate(public_inputs);
 
-    std::shared_ptr<plonk::verification_key> vkey = composer.compute_verification_key();
+    Composer composer;
+    std::shared_ptr<plonk::verification_key> vkey = composer.compute_verification_key(circuit);
 
     // Make verification key file upper case
     circuit_name.at(0) = static_cast<char>(std::toupper(static_cast<unsigned char>(circuit_name.at(0))));
@@ -62,6 +63,7 @@ int main(int argc, char** argv)
     const std::string output_path = args[3];
     const std::string srs_path = args[4];
 
+    barretenberg::srs::init_crs_factory(srs_path);
     // @todo - Add support for unrolled standard verifier. Needs a new solidity verifier contract.
 
     if (plonk_flavour != "ultra") {
@@ -71,14 +73,11 @@ int main(int argc, char** argv)
         info("Generating ultra plonk keys for ", circuit_flavour, " circuit");
 
         if (circuit_flavour == "blake") {
-            generate_keys<UltraComposer, BlakeCircuit<UltraComposer>>(
-                output_path, srs_path, plonk_flavour, circuit_flavour);
+            generate_keys<UltraComposer, BlakeCircuit>(output_path, plonk_flavour, circuit_flavour);
         } else if (circuit_flavour == "add2") {
-            generate_keys<UltraComposer, Add2Circuit<UltraComposer>>(
-                output_path, srs_path, plonk_flavour, circuit_flavour);
+            generate_keys<UltraComposer, Add2Circuit>(output_path, plonk_flavour, circuit_flavour);
         } else if (circuit_flavour == "recursive") {
-            generate_keys<UltraComposer, RecursiveCircuit<UltraComposer>>(
-                output_path, srs_path, plonk_flavour, circuit_flavour);
+            generate_keys<UltraComposer, RecursiveCircuit>(output_path, plonk_flavour, circuit_flavour);
         } else {
             info("Only blake, add2 and recursive circuits are supported at the moment");
             return 1;

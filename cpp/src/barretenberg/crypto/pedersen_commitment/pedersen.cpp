@@ -2,11 +2,11 @@
 #include "./convert_buffer_to_field.hpp"
 #include "barretenberg/common/throw_or_abort.hpp"
 #include <iostream>
-#ifndef NO_MULTITHREADING
+#ifndef NO_OMP_MULTITHREADING
 #include <omp.h>
 #endif
 
-// using namespace crypto::generators;
+using namespace crypto::generators;
 
 namespace crypto {
 namespace pedersen_commitment {
@@ -51,7 +51,7 @@ grumpkin::g1::affine_element commit_native(const std::vector<grumpkin::fq>& inpu
     ASSERT((inputs.size() < (1 << 16)) && "too many inputs for 16 bit index");
     std::vector<grumpkin::g1::element> out(inputs.size());
 
-#ifndef NO_MULTITHREADING
+#ifndef NO_OMP_MULTITHREADING
     // Ensure generator data is initialized before threading...
     init_generator_data();
 #pragma omp parallel for num_threads(inputs.size())
@@ -73,7 +73,7 @@ grumpkin::g1::affine_element commit_native(const std::vector<std::pair<grumpkin:
     ASSERT((input_pairs.size() < (1 << 16)) && "too many inputs for 16 bit index");
     std::vector<grumpkin::g1::element> out(input_pairs.size());
 
-#ifndef NO_MULTITHREADING
+#ifndef NO_OMP_MULTITHREADING
     // Ensure generator data is initialized before threading...
     init_generator_data();
 #pragma omp parallel for num_threads(input_pairs.size())
@@ -105,16 +105,16 @@ grumpkin::fq compress_native(const std::vector<std::pair<grumpkin::fq, generator
 /**
  * Given an arbitrary length of bytes, convert them to fields and compress the result using the default generators.
  */
-grumpkin::fq compress_native_buffer_to_field(const std::vector<uint8_t>& input)
+grumpkin::fq compress_native_buffer_to_field(const std::vector<uint8_t>& input, const size_t hash_index)
 {
     const auto elements = convert_buffer_to_field(input);
-    grumpkin::fq result_fq = compress_native(elements);
+    grumpkin::fq result_fq = compress_native(elements, hash_index);
     return result_fq;
 }
 
-grumpkin::fq compress_native(const std::vector<uint8_t>& input)
+grumpkin::fq compress_native(const std::vector<uint8_t>& input, const size_t hash_index)
 {
-    return compress_native_buffer_to_field(input);
+    return compress_native_buffer_to_field(input, hash_index);
 }
 
 } // namespace pedersen_commitment

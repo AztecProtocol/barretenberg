@@ -1,7 +1,7 @@
-#include "field.hpp"
 #include <functional>
+#include "field.hpp"
 #include "../bool/bool.hpp"
-#include "../composers/composers.hpp"
+#include "../circuit_builders/circuit_builders.hpp"
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 
 using namespace proof_system;
@@ -739,9 +739,11 @@ void field_t<ComposerContext>::create_range_constraint(const size_t num_bits, st
         if (is_constant()) {
             ASSERT(uint256_t(get_value()).get_msb() < num_bits);
         } else {
-            if constexpr (ComposerContext::type == ComposerType::PLOOKUP) {
-                context->decompose_into_default_range(
-                    normalize().get_witness_index(), num_bits, plonk::UltraComposer::DEFAULT_PLOOKUP_RANGE_BITNUM, msg);
+            if constexpr (HasPlookup<ComposerContext>) {
+                context->decompose_into_default_range(normalize().get_witness_index(),
+                                                      num_bits,
+                                                      proof_system::UltraCircuitBuilder::DEFAULT_PLOOKUP_RANGE_BITNUM,
+                                                      msg);
             } else {
                 context->decompose_into_base4_accumulators(normalize().get_witness_index(), num_bits, msg);
             }
@@ -960,7 +962,7 @@ field_t<ComposerContext> field_t<ComposerContext>::accumulate(const std::vector<
         return input[0]; //.normalize();
     }
     /**
-     * If we are using UltraComposer, we can accumulate 3 values into a sum per gate.
+     * If we are using UltraPlonkComposer, we can accumulate 3 values into a sum per gate.
      * We track a decumulating sum of values in the 4th wire of every row.
      * i.e. the 4th wire of the first row is the total output value
      *
@@ -981,7 +983,7 @@ field_t<ComposerContext> field_t<ComposerContext>::accumulate(const std::vector<
      *
      * If num elements is not a multiple of 3, the final gate will be padded with zero_idx wires
      **/
-    if constexpr (ComposerContext::type == ComposerType::PLOOKUP) {
+    if constexpr (HasPlookup<ComposerContext>) {
         ComposerContext* ctx = nullptr;
         std::vector<field_t> accumulator;
         field_t constant_term = 0;
@@ -1039,7 +1041,7 @@ field_t<ComposerContext> field_t<ComposerContext>::accumulate(const std::vector<
             accumulating_total = witness_t<ComposerContext>(ctx, new_total);
         }
         return total.normalize();
-    } else if constexpr (ComposerContext::type == ComposerType::TURBO) {
+    } else if constexpr (std::same_as<ComposerContext, TurboCircuitBuilder>) {
 
         field_t total(0);
         bool odd_number = (input.size() & 0x01UL) == 0x01ULL;

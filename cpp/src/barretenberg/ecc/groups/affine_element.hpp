@@ -3,11 +3,17 @@
 #include <vector>
 #include <type_traits>
 #include "barretenberg/ecc/curves/bn254/fq2.hpp"
+#include "barretenberg/serialize/msgpack.hpp"
 
 namespace barretenberg {
 namespace group_elements {
 template <typename Fq, typename Fr, typename Params> class alignas(64) affine_element {
   public:
+    typedef uint8_t const* in_buf;
+    typedef uint8_t const* vec_in_buf;
+    typedef uint8_t* out_buf;
+    typedef uint8_t** vec_out_buf;
+
     affine_element() noexcept {}
 
     constexpr affine_element(const Fq& a, const Fq& b) noexcept;
@@ -61,6 +67,13 @@ template <typename Fq, typename Fr, typename Params> class alignas(64) affine_el
     constexpr bool is_point_at_infinity() const noexcept;
 
     constexpr bool on_curve() const noexcept;
+
+    /**
+     * @brief Samples a random point on the curve.
+     *
+     * @return A randomly chosen point on the curve
+     */
+    static affine_element random_element(numeric::random::Engine* engine = nullptr) noexcept;
 
     /**
      * @brief Hash a seed value to curve.
@@ -169,6 +182,8 @@ template <typename Fq, typename Fr, typename Params> class alignas(64) affine_el
     }
     Fq x;
     Fq y;
+    // for serialization: update with new fields
+    MSGPACK_FIELDS(x, y);
 };
 
 template <typename B, typename Fq, typename Fr, typename Params> void read(B& it, affine_element<Fq, Fr, Params>& value)

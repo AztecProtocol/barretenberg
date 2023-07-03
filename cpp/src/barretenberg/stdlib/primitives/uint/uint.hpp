@@ -1,16 +1,11 @@
 #pragma once
 #include "../bool/bool.hpp"
 #include "../byte_array/byte_array.hpp"
-#include "../composers/composers_fwd.hpp"
+#include "../circuit_builders/circuit_builders_fwd.hpp"
 #include "../field/field.hpp"
 #include "../plookup/plookup.hpp"
 
 #include "./plookup/uint.hpp"
-
-#include "barretenberg/honk/composer/standard_honk_composer.hpp"
-#include "barretenberg/plonk/composer/standard_composer.hpp"
-#include "barretenberg/plonk/composer/turbo_composer.hpp"
-#include "barretenberg/plonk/composer/ultra_composer.hpp"
 
 namespace proof_system::plonk {
 namespace stdlib {
@@ -194,19 +189,19 @@ template <typename T, typename w> inline std::ostream& operator<<(std::ostream& 
 }
 
 template <typename ComposerContext>
-using uint8 = typename std::conditional<ComposerContext::type == ComposerType::PLOOKUP,
+using uint8 = typename std::conditional<HasPlookup<ComposerContext>,
                                         uint_plookup<ComposerContext, uint8_t>,
                                         uint<ComposerContext, uint8_t>>::type;
 template <typename ComposerContext>
-using uint16 = typename std::conditional<ComposerContext::type == ComposerType::PLOOKUP,
+using uint16 = typename std::conditional<HasPlookup<ComposerContext>,
                                          uint_plookup<ComposerContext, uint16_t>,
                                          uint<ComposerContext, uint16_t>>::type;
 template <typename ComposerContext>
-using uint32 = typename std::conditional<ComposerContext::type == ComposerType::PLOOKUP,
+using uint32 = typename std::conditional<HasPlookup<ComposerContext>,
                                          uint_plookup<ComposerContext, uint32_t>,
                                          uint<ComposerContext, uint32_t>>::type;
 template <typename ComposerContext>
-using uint64 = typename std::conditional<ComposerContext::type == ComposerType::PLOOKUP,
+using uint64 = typename std::conditional<HasPlookup<ComposerContext>,
                                          uint_plookup<ComposerContext, uint64_t>,
                                          uint<ComposerContext, uint64_t>>::type;
 

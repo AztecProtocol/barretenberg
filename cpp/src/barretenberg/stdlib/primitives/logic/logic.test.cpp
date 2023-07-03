@@ -1,13 +1,11 @@
-#include "../bool/bool.hpp"
-#include "barretenberg/numeric/uint256/uint256.hpp"
-#include "barretenberg/proof_system/types/composer_type.hpp"
-#include "logic.hpp"
 #include <gtest/gtest.h>
-#include "barretenberg/honk/composer/standard_honk_composer.hpp"
-#include "barretenberg/plonk/composer/standard_composer.hpp"
-#include "barretenberg/plonk/composer/ultra_composer.hpp"
-#include "barretenberg/plonk/composer/turbo_composer.hpp"
+
+#include "../bool/bool.hpp"
+#include "../circuit_builders/circuit_builders.hpp"
+#include "logic.hpp"
 #include "barretenberg/numeric/random/engine.hpp"
+#include "barretenberg/numeric/uint256/uint256.hpp"
+#include "barretenberg/proof_system/types/circuit_type.hpp"
 
 #pragma GCC diagnostic ignored "-Wunused-local-typedefs"
 
@@ -31,10 +29,10 @@ using namespace proof_system::plonk;
 
 template <class Composer> class LogicTest : public testing::Test {};
 
-using ComposerTypes =
-    ::testing::Types<honk::StandardHonkComposer, plonk::StandardComposer, plonk::TurboComposer, plonk::UltraComposer>;
+using CircuitTypes = ::testing::
+    Types<proof_system::StandardCircuitBuilder, proof_system::TurboCircuitBuilder, proof_system::UltraCircuitBuilder>;
 
-TYPED_TEST_SUITE(LogicTest, ComposerTypes);
+TYPED_TEST_SUITE(LogicTest, CircuitTypes);
 
 TYPED_TEST(LogicTest, TestCorrectLogic)
 {
@@ -86,18 +84,15 @@ TYPED_TEST(LogicTest, TestCorrectLogic)
 
     auto composer = Composer();
     for (size_t i = 8; i < 248; i += 8) {
-        run_test(8, composer);
+        run_test(i, composer);
     }
-    auto prover = composer.create_prover();
-    plonk::proof proof = prover.construct_proof();
-    auto verifier = composer.create_verifier();
-    bool result = verifier.verify_proof(proof);
+    bool result = composer.check_circuit();
     EXPECT_EQ(result, true);
 }
 
 // Tests the constraints will fail if the operands are larger than expected even though the result contains the correct
-// number of bits when using the UltraComposer This is because the range constraints on the right and left operand are
-// not being satisfied.
+// number of bits when using the UltraPlonkComposer This is because the range constraints on the right and left operand
+// are not being satisfied.
 TYPED_TEST(LogicTest, LargeOperands)
 {
     STDLIB_TYPE_ALIASES
@@ -119,10 +114,7 @@ TYPED_TEST(LogicTest, LargeOperands)
     EXPECT_EQ(uint256_t(and_result.get_value()), and_expected);
     EXPECT_EQ(uint256_t(xor_result.get_value()), xor_expected);
 
-    auto prover = composer.create_prover();
-    plonk::proof proof = prover.construct_proof();
-    auto verifier = composer.create_verifier();
-    bool result = verifier.verify_proof(proof);
+    bool result = composer.check_circuit();
     EXPECT_EQ(result, true);
 }
 
@@ -134,7 +126,7 @@ TYPED_TEST(LogicTest, DifferentWitnessSameResult)
 
     STDLIB_TYPE_ALIASES
     auto composer = Composer();
-    if (Composer::type == ComposerType::PLOOKUP) {
+    if (HasPlookup<Composer>) {
         uint256_t a = 3758096391;
         uint256_t b = 2147483649;
         field_ct x = witness_ct(&composer, uint256_t(a));
@@ -154,10 +146,7 @@ TYPED_TEST(LogicTest, DifferentWitnessSameResult)
         field_ct xor_result = stdlib::logic<Composer>::create_logic_constraint(x, y, 32, true, get_bad_chunk);
         EXPECT_EQ(uint256_t(xor_result.get_value()), xor_expected);
 
-        auto prover = composer.create_prover();
-        plonk::proof proof = prover.construct_proof();
-        auto verifier = composer.create_verifier();
-        bool result = verifier.verify_proof(proof);
+        bool result = composer.check_circuit();
         EXPECT_EQ(result, false);
     }
 }

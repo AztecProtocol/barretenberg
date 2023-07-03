@@ -1,12 +1,13 @@
 #include "./pedersen.hpp"
-#include "barretenberg/common/throw_or_abort.hpp"
 #include <iostream>
-#ifndef NO_MULTITHREADING
+#ifndef NO_OMP_MULTITHREADING
 #include <omp.h>
 #endif
 
 namespace crypto {
 namespace pedersen_hash {
+
+using namespace generators;
 
 grumpkin::g1::element hash_single(const barretenberg::fr& in, generator_index_t const& index)
 {
@@ -18,7 +19,7 @@ grumpkin::g1::element hash_single(const barretenberg::fr& in, generator_index_t 
     constexpr size_t num_quads = ((num_quads_base << 1) + 1 < num_bits) ? num_quads_base + 1 : num_quads_base;
     constexpr size_t num_wnaf_bits = (num_quads << 1) + 1;
 
-    const crypto::generators::fixed_base_ladder* ladder = gen_data.get_hash_ladder(num_bits);
+    const fixed_base_ladder* ladder = gen_data.get_hash_ladder(num_bits);
 
     uint64_t wnaf_entries[num_quads + 2] = { 0 };
     bool skew = false;
@@ -48,7 +49,7 @@ grumpkin::fq hash_multiple(const std::vector<grumpkin::fq>& inputs, const size_t
     ASSERT((inputs.size() < (1 << 16)) && "too many inputs for 16 bit index");
     std::vector<grumpkin::g1::element> out(inputs.size());
 
-#ifndef NO_MULTITHREADING
+#ifndef NO_OMP_MULTITHREADING
     // Ensure generator data is initialized before threading...
     init_generator_data();
 #pragma omp parallel for num_threads(inputs.size())

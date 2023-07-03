@@ -1,11 +1,11 @@
 #pragma once
 #include <functional>
-#include "../composers/composers_fwd.hpp"
+#include "../circuit_builders/circuit_builders_fwd.hpp"
+#include "../circuit_builders/circuit_builders.hpp"
 #include "../witness/witness.hpp"
 #include "../bool/bool.hpp"
 #include "barretenberg/common/assert.hpp"
 #include "../field/field.hpp"
-#include "barretenberg/honk/composer/standard_honk_composer.hpp"
 
 // The purpose of this class is to enable positive integer operations without a risk of overflow.
 // Despite the name, it is *not* a "safe" version of the uint class - as operations are positive integer
@@ -284,7 +284,6 @@ inline std::ostream& operator<<(std::ostream& os, safe_uint_t<ComposerContext> c
 }
 
 EXTERN_STDLIB_TYPE(safe_uint_t);
-extern template class safe_uint_t<honk::StandardHonkComposer>;
 
 } // namespace stdlib
 } // namespace proof_system::plonk

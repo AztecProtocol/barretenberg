@@ -24,12 +24,21 @@
 namespace barretenberg {
 template <class Params> struct alignas(32) field {
   public:
-    // We don't initialize data by default since we'd lose a lot of time on pointless initializations.
+    typedef uint8_t const* in_buf;
+    typedef uint8_t const* vec_in_buf;
+    typedef uint8_t* out_buf;
+    typedef uint8_t** vec_out_buf;
+
+    // We don't initialize data in the default constructor since we'd lose a lot of time on huge array initializations.
     // Other alternatives have been noted, such as casting to get around constructors where they matter,
     // however it is felt that sanitizer tools (e.g. MSAN) can detect garbage well, whereas doing
     // hacky casts where needed would require rework to critical algos like MSM, FFT, Sumcheck.
-    // Instead, the recommended solution is use an explicit = 0 where initialization is important.
-    field() noexcept {}
+    // Instead, the recommended solution is use an explicit {} where initialization is important:
+    //  field f; // not initialized
+    //  field f{}; // zero-initialized
+    //  std::array<field, N> arr; // not initialized, good for huge N
+    //  std::array<field, N> arr {}; // zero-initialized, preferable for moderate N
+    field() = default;
 
     constexpr field(const uint256_t& input) noexcept
         : data{ input.data[0], input.data[1], input.data[2], input.data[3] }
@@ -406,6 +415,11 @@ template <class Params> struct alignas(32) field {
 
     // BBERG_INLINE sstatic constexpr void butterfly(field& left, field& right) noexcept;
 
+    // For serialization
+    void msgpack_pack(auto& packer) const;
+    void msgpack_unpack(auto o);
+    void msgpack_schema(auto& packer) const { packer.pack_alias(Params::schema_name, "bin32"); }
+
   private:
     static constexpr uint256_t twice_modulus = modulus + modulus;
     static constexpr uint256_t not_modulus = -modulus;
@@ -543,7 +557,6 @@ template <typename B, typename Params> void read(B& it, field<Params>& value)
     read(it, result.data[0]);
     value = result.to_montgomery_form();
 }
-
 template <typename B, typename Params> void write(B& buf, field<Params> const& value)
 {
     using serialize::write;

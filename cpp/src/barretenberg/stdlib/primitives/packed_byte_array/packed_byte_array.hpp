@@ -1,9 +1,8 @@
 #pragma once
-#include "../composers/composers_fwd.hpp"
+#include "../circuit_builders/circuit_builders_fwd.hpp"
 #include "../field/field.hpp"
 #include "../bool/bool.hpp"
 #include "../byte_array/byte_array.hpp"
-#include "barretenberg/honk/composer/standard_honk_composer.hpp"
 
 namespace proof_system::plonk {
 namespace stdlib {
@@ -66,7 +65,6 @@ template <typename Composer> inline std::ostream& operator<<(std::ostream& os, p
 }
 
 EXTERN_STDLIB_TYPE(packed_byte_array);
-extern template class packed_byte_array<honk::StandardHonkComposer>;
 
 } // namespace stdlib
 } // namespace proof_system::plonk

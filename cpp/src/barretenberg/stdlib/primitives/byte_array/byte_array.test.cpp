@@ -1,9 +1,6 @@
-#include "byte_array.hpp"
 #include <gtest/gtest.h>
-#include "barretenberg/plonk/composer/standard_composer.hpp"
-#include "barretenberg/plonk/composer/turbo_composer.hpp"
-#include "barretenberg/plonk/composer/ultra_composer.hpp"
-#include "barretenberg/honk/composer/standard_honk_composer.hpp"
+
+#include "byte_array.hpp"
 #include "barretenberg/stdlib/primitives/bool/bool.hpp"
 #include "barretenberg/stdlib/primitives/field/field.hpp"
 #include "barretenberg/stdlib/primitives/witness/witness.hpp"
@@ -12,22 +9,22 @@
 
 namespace test_stdlib_byte_array {
 using namespace barretenberg;
-using namespace plonk;
+using namespace proof_system::plonk::stdlib;
 
 #define STDLIB_TYPE_ALIASES                                                                                            \
     using Composer = TypeParam;                                                                                        \
-    using witness_ct = stdlib::witness_t<Composer>;                                                                    \
-    using byte_array_ct = stdlib::byte_array<Composer>;                                                                \
-    using field_ct = stdlib::field_t<Composer>;                                                                        \
-    using bool_ct = stdlib::bool_t<Composer>;
+    using witness_ct = witness_t<Composer>;                                                                            \
+    using byte_array_ct = byte_array<Composer>;                                                                        \
+    using field_ct = field_t<Composer>;                                                                                \
+    using bool_ct = bool_t<Composer>;
 
 template <class Composer> class ByteArrayTest : public ::testing::Test {};
 
-template <class Composer> using byte_array_ct = stdlib::byte_array<Composer>;
+template <class Composer> using byte_array_ct = byte_array<Composer>;
 
-using ComposerTypes =
-    ::testing::Types<honk::StandardHonkComposer, plonk::StandardComposer, plonk::TurboComposer, plonk::UltraComposer>;
-TYPED_TEST_SUITE(ByteArrayTest, ComposerTypes);
+using CircuitTypes = ::testing::
+    Types<proof_system::StandardCircuitBuilder, proof_system::TurboCircuitBuilder, proof_system::UltraCircuitBuilder>;
+TYPED_TEST_SUITE(ByteArrayTest, CircuitTypes);
 
 TYPED_TEST(ByteArrayTest, test_reverse)
 {
@@ -87,10 +84,7 @@ TYPED_TEST(ByteArrayTest, test_byte_array_input_output_consistency)
     EXPECT_EQ(a_result.get_value(), a_expected);
     EXPECT_EQ(b_result.get_value(), b_expected);
 
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
-    auto proof = prover.construct_proof();
-    bool verified = verifier.verify_proof(proof);
+    bool verified = composer.check_circuit();
     EXPECT_EQ(verified, true);
 }
 
@@ -121,10 +115,7 @@ TYPED_TEST(ByteArrayTest, get_bit)
 
     EXPECT_EQ(arr.size(), 4UL);
 
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
-    auto proof = prover.construct_proof();
-    bool proof_result = verifier.verify_proof(proof);
+    bool proof_result = composer.check_circuit();
     EXPECT_EQ(proof_result, true);
 }
 
@@ -145,10 +136,7 @@ TYPED_TEST(ByteArrayTest, set_bit)
     EXPECT_EQ(out[1], uint8_t(7));
     EXPECT_EQ(out[3], uint8_t(5));
 
-    auto prover = composer.create_prover();
-    auto verifier = composer.create_verifier();
-    auto proof = prover.construct_proof();
-    bool proof_result = verifier.verify_proof(proof);
+    bool proof_result = composer.check_circuit();
     EXPECT_EQ(proof_result, true);
 }
 

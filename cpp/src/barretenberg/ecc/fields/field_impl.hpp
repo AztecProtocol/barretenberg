@@ -2,9 +2,11 @@
 #include "barretenberg/common/throw_or_abort.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
 #include "barretenberg/numeric/random/engine.hpp"
+#include <memory>
 #include <span>
 #include <type_traits>
 #include <vector>
+#include "barretenberg/common/slab_allocator.hpp"
 #include "field_impl_generic.hpp"
 
 #if (BBERG_NO_ASM == 0)
@@ -12,7 +14,6 @@
 #endif
 
 #include "field_impl_generic.hpp"
-
 namespace barretenberg {
 
 // template <class T> constexpr void field<T>::butterfly(field& left, field& right) noexcept
@@ -374,21 +375,37 @@ template <class T> void field<T>::batch_invert(std::span<field> coeffs) noexcept
 {
     const size_t n = coeffs.size();
 
-    std::vector<field> temporaries;
-    std::vector<bool> skipped;
-    temporaries.reserve(n);
-    skipped.reserve(n);
+    auto temporaries_ptr = std::static_pointer_cast<field[]>(get_mem_slab(n * sizeof(field)));
+    auto skipped_ptr = std::static_pointer_cast<bool[]>(get_mem_slab(n));
+    auto temporaries = temporaries_ptr.get();
+    auto skipped = skipped_ptr.get();
 
     field accumulator = one();
     for (size_t i = 0; i < n; ++i) {
-        temporaries.emplace_back(accumulator);
+        temporaries[i] = accumulator;
         if (coeffs[i].is_zero()) {
-            skipped.emplace_back(true);
+            skipped[i] = true;
         } else {
-            skipped.emplace_back(false);
+            skipped[i] = false;
             accumulator *= coeffs[i];
         }
     }
+
+    // std::vector<field> temporaries;
+    // std::vector<bool> skipped;
+    // temporaries.reserve(n);
+    // skipped.reserve(n);
+
+    // field accumulator = one();
+    // for (size_t i = 0; i < n; ++i) {
+    //     temporaries.emplace_back(accumulator);
+    //     if (coeffs[i].is_zero()) {
+    //         skipped.emplace_back(true);
+    //     } else {
+    //         skipped.emplace_back(false);
+    //         accumulator *= coeffs[i];
+    //     }
+    // }
 
     accumulator = accumulator.invert();
 
@@ -605,6 +622,47 @@ template <class T> constexpr field<T> field<T>::multiplicative_generator() noexc
         found = (target.pow(p_minus_one_over_two) == -field(1));
     }
     return target;
+}
+
+// This function is used to serialize a field. It matches the old serialization format by first
+// converting the field from Montgomery form, which is a special representation used for efficient
+// modular arithmetic.
+template <class Params> void field<Params>::msgpack_pack(auto& packer) const
+{
+    // The field is first converted from Montgomery form, similar to how the old format did it.
+    auto adjusted = from_montgomery_form();
+
+    // The data is then converted to big endian format using htonll, which stands for "host to network long long".
+    // This is necessary because the data will be written to a raw msgpack buffer, which requires big endian format.
+    uint64_t bin_data[4] = {
+        htonll(adjusted.data[3]), htonll(adjusted.data[2]), htonll(adjusted.data[1]), htonll(adjusted.data[0])
+    };
+
+    // The packer is then used to write the binary data to the buffer, just like in the old format.
+    packer.pack_bin(sizeof(bin_data));
+    packer.pack_bin_body((const char*)bin_data, sizeof(bin_data));
+}
+
+// This function is used to deserialize a field. It also matches the old deserialization format by
+// reading the binary data as big endian uint64_t's, correcting them to the host endianness, and
+// then converting the field back to Montgomery form.
+template <class Params> void field<Params>::msgpack_unpack(auto o)
+{
+    // The binary data is first extracted from the msgpack object.
+    std::array<uint8_t, sizeof(data)> raw_data = o;
+
+    // The binary data is then read as big endian uint64_t's. This is done by casting the raw data to uint64_t* and then
+    // using ntohll ("network to host long long") to correct the endianness to the host's endianness.
+    uint64_t* cast_data = (uint64_t*)&raw_data[0];
+    uint64_t reversed[] = { ntohll(cast_data[3]), ntohll(cast_data[2]), ntohll(cast_data[1]), ntohll(cast_data[0]) };
+
+    // The corrected data is then copied back into the field's data array.
+    for (int i = 0; i < 4; i++) {
+        data[i] = reversed[i];
+    }
+
+    // Finally, the field is converted back to Montgomery form, just like in the old format.
+    *this = to_montgomery_form();
 }
 
 } // namespace barretenberg

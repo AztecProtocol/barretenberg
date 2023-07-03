@@ -5,10 +5,8 @@
 namespace acir_format {
 
 struct EcdsaSecp256k1Constraint {
-    // This is just a bunch of bytes
-    // which need to be interpreted as a string
-    // Note this must be a bunch of bytes
-    std::vector<uint32_t> message;
+    // This is the byte representation of the hashed message.
+    std::vector<uint32_t> hashed_message;
 
     // This is the supposed public key which signed the
     // message, giving rise to the signature.
@@ -28,12 +26,16 @@ struct EcdsaSecp256k1Constraint {
     friend bool operator==(EcdsaSecp256k1Constraint const& lhs, EcdsaSecp256k1Constraint const& rhs) = default;
 };
 
-void create_ecdsa_verify_constraints(Composer& composer, const EcdsaSecp256k1Constraint& input);
+void create_ecdsa_verify_constraints(Builder& builder,
+                                     const EcdsaSecp256k1Constraint& input,
+                                     bool has_valid_witness_assignments = true);
+
+void dummy_ecdsa_constraint(Builder& builder, EcdsaSecp256k1Constraint const& input);
 
 template <typename B> inline void read(B& buf, EcdsaSecp256k1Constraint& constraint)
 {
     using serialize::read;
-    read(buf, constraint.message);
+    read(buf, constraint.hashed_message);
     read(buf, constraint.signature);
     read(buf, constraint.pub_x_indices);
     read(buf, constraint.pub_y_indices);
@@ -43,7 +45,7 @@ template <typename B> inline void read(B& buf, EcdsaSecp256k1Constraint& constra
 template <typename B> inline void write(B& buf, EcdsaSecp256k1Constraint const& constraint)
 {
     using serialize::write;
-    write(buf, constraint.message);
+    write(buf, constraint.hashed_message);
     write(buf, constraint.signature);
     write(buf, constraint.pub_x_indices);
     write(buf, constraint.pub_y_indices);

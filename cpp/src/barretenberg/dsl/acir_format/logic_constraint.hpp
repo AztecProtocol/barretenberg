@@ -12,13 +12,16 @@ struct LogicConstraint {
     uint32_t is_xor_gate;
 
     friend bool operator==(LogicConstraint const& lhs, LogicConstraint const& rhs) = default;
+
+    // for serialization, update with any new fields
+    MSGPACK_FIELDS(a, b, result, num_bits, is_xor_gate);
 };
 
-void create_logic_gate(Composer& composer, uint32_t a, uint32_t b, uint32_t result, size_t num_bits, bool is_xor_gate);
+void create_logic_gate(Builder& builder, uint32_t a, uint32_t b, uint32_t result, size_t num_bits, bool is_xor_gate);
 
-void xor_gate(Composer& composer, uint32_t a, uint32_t b, uint32_t result);
+void xor_gate(Builder& builder, uint32_t a, uint32_t b, uint32_t result);
 
-void and_gate(Composer& composer, uint32_t a, uint32_t b, uint32_t result);
+void and_gate(Builder& builder, uint32_t a, uint32_t b, uint32_t result);
 
 template <typename B> inline void read(B& buf, LogicConstraint& constraint)
 {

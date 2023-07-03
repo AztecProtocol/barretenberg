@@ -4,12 +4,16 @@
 #include <ostream>
 #include <iomanip>
 #include "barretenberg/common/serialize.hpp"
+#include "barretenberg/serialize/msgpack.hpp"
 
 namespace proof_system::plonk {
 
 struct proof {
     std::vector<uint8_t> proof_data;
-
+    // For serialization, serialize as a buffer alias
+    void msgpack_pack(auto& packer) const { packer.pack(proof_data); }
+    void msgpack_unpack(auto object) { proof_data = (std::vector<uint8_t>)object; }
+    void msgpack_schema(auto& packer) const { packer.pack_alias("Proof", "bin32"); }
     bool operator==(proof const& other) const = default;
 };
 
@@ -28,7 +32,7 @@ template <typename B> inline void write(B& buf, proof const& data)
 inline std::ostream& operator<<(std::ostream& os, proof const& data)
 {
     // REFACTOR: This is copied from barretenberg/common/streams.hpp,
-    // which means we could just cout proof_data directly, but that breaks the build in the CI with 
+    // which means we could just cout proof_data directly, but that breaks the build in the CI with
     // a redefined operator<< error in barretenberg/stdlib/hash/keccak/keccak.test.cpp,
     // which is something we really don't want to deal with right now.
     std::ios_base::fmtflags f(os.flags());

@@ -1,151 +1,77 @@
 #pragma once
-#include "composer_base.hpp"
-#include "barretenberg/proof_system/types/merkle_hash_type.hpp"
-#include "barretenberg/proof_system/types/pedersen_commitment_type.hpp"
-#include "barretenberg/transcript/manifest.hpp"
-#include "barretenberg/srs/reference_string/file_reference_string.hpp"
+
+#include "barretenberg/plonk/flavor/flavor.hpp"
+#include "barretenberg/srs/factories/file_crs_factory.hpp"
+#include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
+#include "barretenberg/plonk/proof_system/prover/prover.hpp"
+#include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
+#include "barretenberg/proof_system/circuit_builder/standard_circuit_builder.hpp"
+#include "barretenberg/honk/pcs/commitment_key.hpp"
+#include "barretenberg/plonk/proof_system/verification_key/verification_key.hpp"
+#include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
+#include "barretenberg/plonk/composer/composer_lib.hpp"
+#include <utility>
 
 namespace proof_system::plonk {
-enum StandardSelectors { QM, QC, Q1, Q2, Q3, NUM };
-
-inline std::vector<ComposerBase::SelectorProperties> standard_selector_properties()
-{
-    std::vector<ComposerBase::SelectorProperties> result{
-        { "q_m", false }, { "q_c", false }, { "q_1", false }, { "q_2", false }, { "q_3", false },
-    };
-    return result;
-}
-
-class StandardComposer : public ComposerBase {
+class StandardComposer {
   public:
-    static constexpr ComposerType type = ComposerType::STANDARD;
-    static constexpr merkle::HashType merkle_hash_type = merkle::HashType::FIXED_BASE_PEDERSEN;
-    static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::FIXED_BASE_PEDERSEN;
-    static constexpr size_t UINT_LOG2_BASE = 2;
+    using Flavor = plonk::flavor::Standard;
+    using CircuitBuilder = StandardCircuitBuilder;
 
-    StandardComposer(const size_t size_hint = 0)
-        : ComposerBase(StandardSelectors::NUM, size_hint, standard_selector_properties())
+    static constexpr std::string_view NAME_STRING = "StandardPlonk";
+    static constexpr size_t NUM_RESERVED_GATES = 4; // equal to the number of evaluations leaked
+    static constexpr size_t program_width = CircuitBuilder::program_width;
+    std::shared_ptr<plonk::proving_key> circuit_proving_key;
+    std::shared_ptr<plonk::verification_key> circuit_verification_key;
+
+    // The crs_factory holds the path to the srs and exposes methods to extract the srs elements
+    std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory_;
+
+    bool computed_witness = false;
+
+    StandardComposer()
+        : StandardComposer(std::shared_ptr<barretenberg::srs::factories::CrsFactory>(
+              new barretenberg::srs::factories::FileCrsFactory("../srs_db/ignition")))
+    {}
+    StandardComposer(std::shared_ptr<barretenberg::srs::factories::CrsFactory> crs_factory)
+        : crs_factory_(std::move(crs_factory))
+    {}
+
+    StandardComposer(std::unique_ptr<barretenberg::srs::factories::CrsFactory>&& crs_factory)
+        : crs_factory_(std::move(crs_factory))
+    {}
+    StandardComposer(std::shared_ptr<plonk::proving_key> p_key, std::shared_ptr<plonk::verification_key> v_key)
+        : circuit_proving_key(std::move(p_key))
+        , circuit_verification_key(std::move(v_key))
+    {}
+
+    StandardComposer(StandardComposer&& other) noexcept = default;
+    StandardComposer(const StandardComposer& other) = delete;
+    StandardComposer& operator=(StandardComposer&& other) noexcept = default;
+    StandardComposer& operator=(const StandardComposer& other) = delete;
+    ~StandardComposer() = default;
+
+    inline std::vector<SelectorProperties> standard_selector_properties()
     {
-        w_l.reserve(size_hint);
-        w_r.reserve(size_hint);
-        w_o.reserve(size_hint);
-        zero_idx = put_constant_variable(barretenberg::fr::zero());
-    };
-
-    StandardComposer(const size_t num_selectors,
-                     const size_t size_hint,
-                     const std::vector<SelectorProperties> selector_properties)
-        : ComposerBase(num_selectors, size_hint, selector_properties)
-    {
-        w_l.reserve(size_hint);
-        w_r.reserve(size_hint);
-        w_o.reserve(size_hint);
-        zero_idx = put_constant_variable(barretenberg::fr::zero());
-    };
-
-    StandardComposer(std::string const& crs_path, const size_t size_hint = 0)
-        : StandardComposer(std::unique_ptr<ReferenceStringFactory>(new FileReferenceStringFactory(crs_path)),
-                           size_hint){};
-
-    StandardComposer(std::shared_ptr<ReferenceStringFactory> const& crs_factory, const size_t size_hint = 0)
-        : ComposerBase(crs_factory, StandardSelectors::NUM, size_hint, standard_selector_properties())
-    {
-        w_l.reserve(size_hint);
-        w_r.reserve(size_hint);
-        w_o.reserve(size_hint);
-
-        zero_idx = put_constant_variable(fr::zero());
+        std::vector<SelectorProperties> result{
+            { "q_m", false }, { "q_c", false }, { "q_1", false }, { "q_2", false }, { "q_3", false },
+        };
+        return result;
     }
+    std::shared_ptr<plonk::proving_key> compute_proving_key(const CircuitBuilder& circuit_constructor);
+    std::shared_ptr<plonk::verification_key> compute_verification_key(const CircuitBuilder& circuit_constructor);
 
-    StandardComposer(std::unique_ptr<ReferenceStringFactory>&& crs_factory, const size_t size_hint = 0)
-        : ComposerBase(std::move(crs_factory), StandardSelectors::NUM, size_hint, standard_selector_properties())
-    {
-        w_l.reserve(size_hint);
-        w_r.reserve(size_hint);
-        w_o.reserve(size_hint);
-        zero_idx = put_constant_variable(barretenberg::fr::zero());
-    }
+    plonk::Verifier create_verifier(const CircuitBuilder& circuit_constructor);
+    plonk::Prover create_prover(const CircuitBuilder& circuit_constructor);
 
-    StandardComposer(std::shared_ptr<proving_key> const& p_key,
-                     std::shared_ptr<verification_key> const& v_key,
-                     size_t size_hint = 0)
-        : ComposerBase(p_key, v_key, StandardSelectors::NUM, size_hint, standard_selector_properties())
-    {
-        w_l.reserve(size_hint);
-        w_r.reserve(size_hint);
-        w_o.reserve(size_hint);
-        zero_idx = put_constant_variable(barretenberg::fr::zero());
-    }
-
-    StandardComposer(StandardComposer&& other) = default;
-    StandardComposer& operator=(StandardComposer&& other) = default;
-    ~StandardComposer() {}
-
-    virtual size_t get_total_circuit_size() const override { return num_gates; };
-
-    void assert_equal_constant(uint32_t const a_idx,
-                               barretenberg::fr const& b,
-                               std::string const& msg = "assert equal constant");
-
-    virtual std::shared_ptr<proving_key> compute_proving_key() override;
-    virtual std::shared_ptr<verification_key> compute_verification_key() override;
-    virtual void compute_witness() override;
-    Verifier create_verifier();
-    Prover create_prover();
-
-    void create_add_gate(const add_triple& in) override;
-    void create_mul_gate(const mul_triple& in) override;
-    void create_bool_gate(const uint32_t a) override;
-    void create_poly_gate(const poly_triple& in) override;
-    void create_big_add_gate(const add_quad& in);
-    void create_big_add_gate_with_bit_extraction(const add_quad& in);
-    void create_big_mul_gate(const mul_quad& in);
-    void create_balanced_add_gate(const add_quad& in);
-
-    void fix_witness(const uint32_t witness_index, const barretenberg::fr& witness_value);
-
-    std::vector<uint32_t> decompose_into_base4_accumulators(const uint32_t witness_index,
-                                                            const size_t num_bits,
-                                                            std::string const& msg = "create_range_constraint");
-
-    void create_range_constraint(const uint32_t variable_index,
-                                 const size_t num_bits,
-                                 std::string const& msg = "create_range_constraint")
-    {
-        decompose_into_base4_accumulators(variable_index, num_bits, msg);
-    }
-
-    void add_recursive_proof(const std::vector<uint32_t>& proof_output_witness_indices)
-    {
-        if (contains_recursive_proof) {
-            failure("added recursive proof when one already exists");
-        }
-        contains_recursive_proof = true;
-
-        for (const auto& idx : proof_output_witness_indices) {
-            set_public_input(idx);
-            recursive_proof_public_input_indices.push_back((uint32_t)(public_inputs.size() - 1));
-        }
-    }
-
-    std::vector<uint32_t> recursive_proof_public_input_indices;
-    bool contains_recursive_proof = false;
-
-    accumulator_triple create_logic_constraint(const uint32_t a,
-                                               const uint32_t b,
-                                               const size_t num_bits,
-                                               bool is_xor_gate);
-    accumulator_triple create_and_constraint(const uint32_t a, const uint32_t b, const size_t num_bits);
-    accumulator_triple create_xor_constraint(const uint32_t a, const uint32_t b, const size_t num_bits);
-
-    uint32_t put_constant_variable(const barretenberg::fr& variable);
-
-    size_t get_num_constant_gates() const override { return 0; }
-
-    // These are variables that we have used a gate on, to enforce that they are
-    // equal to a defined value.
-    std::map<barretenberg::fr, uint32_t> constant_variable_indices;
-
+    void compute_witness(const CircuitBuilder& circuit_constructor, const size_t minimum_circuit_size = 0);
+    /**
+     * Create a manifest, which specifies proof rounds, elements and who supplies them.
+     *
+     * @param num_public_inputs The number of public inputs.
+     *
+     * @return Constructed manifest.
+     * */
     static transcript::Manifest create_manifest(const size_t num_public_inputs)
     {
         constexpr size_t g1_size = 64;
@@ -229,7 +155,6 @@ class StandardComposer : public ComposerBase {
     );
         return output;
     }
-
-    bool check_circuit();
 };
+
 } // namespace proof_system::plonk

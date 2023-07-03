@@ -6,3 +6,5 @@ ts/dest
 .tsbuildinfo
 .doxygen/*
 doxydoc/*
+.idea
+cmake-build-debug

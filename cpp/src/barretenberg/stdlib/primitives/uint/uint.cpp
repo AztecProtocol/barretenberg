@@ -1,5 +1,5 @@
 #include "uint.hpp"
-#include "../composers/composers.hpp"
+#include "../circuit_builders/circuit_builders.hpp"
 
 using namespace barretenberg;
 using namespace proof_system;
@@ -16,13 +16,13 @@ std::vector<uint32_t> uint<Composer, Native>::constrain_accumulators(Composer* c
                                                                      const size_t num_bits,
                                                                      std::string const& msg) const
 {
-    if constexpr (Composer::type == ComposerType::PLOOKUP) {
+    if constexpr (HasPlookup<Composer>) {
         // TODO: manage higher bit ranges
-        const auto sequence =
-            plookup_read::get_lookup_accumulators(plookup::MultiTableId::UINT32_XOR,
-                                                  field_t<Composer>::from_witness_index(context, witness_index),
-                                                  field_t<Composer>::from_witness_index(context, context->zero_idx),
-                                                  true);
+        const auto sequence = plookup_read<Composer>::get_lookup_accumulators(
+            plookup::MultiTableId::UINT32_XOR,
+            field_t<Composer>::from_witness_index(context, witness_index),
+            field_t<Composer>::from_witness_index(context, context->zero_idx),
+            true);
 
         std::vector<uint32_t> out(num_accumulators());
         for (size_t i = 0; i < num_accumulators(); ++i) {
@@ -317,7 +317,7 @@ template <typename Composer, typename Native> bool_t<Composer> uint<Composer, Na
     uint256_t quad =
         uint256_t(context->get_variable(right_idx)) - uint256_t(context->get_variable(left_idx)) * uint256_t(4);
 
-    if constexpr (Composer::type == ComposerType::PLOOKUP) {
+    if constexpr (HasPlookup<Composer>) {
         uint256_t lo_bit = quad & 1;
         uint256_t hi_bit = (quad & 2) >> 1;
         // difference in quads = 0, 1, 2, 3 = delta

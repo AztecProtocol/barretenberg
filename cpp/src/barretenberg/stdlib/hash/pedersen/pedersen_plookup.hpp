@@ -1,5 +1,5 @@
 #pragma once
-#include "../../primitives/composers/composers_fwd.hpp"
+#include "../../primitives/circuit_builders/circuit_builders_fwd.hpp"
 #include "../../primitives/field/field.hpp"
 #include "../../primitives/point/point.hpp"
 #include "../../primitives/packed_byte_array/packed_byte_array.hpp"
@@ -23,11 +23,11 @@ template <typename ComposerContext> class pedersen_plookup_hash {
   public:
     static point add_points(const point& p1, const point& p2, const AddType add_type = ONE);
 
-    static point hash_single(const field_t& in, const bool parity);
+    static point hash_single(const field_t& in, const bool parity, const bool skip_range_check = false);
 
     static field_t hash_multiple(const std::vector<field_t>& in, const size_t hash_index = 0);
 };
 
-extern template class pedersen_plookup_hash<plonk::UltraComposer>;
+EXTERN_STDLIB_ULTRA_TYPE(pedersen_plookup_hash);
 } // namespace stdlib
 } // namespace proof_system::plonk

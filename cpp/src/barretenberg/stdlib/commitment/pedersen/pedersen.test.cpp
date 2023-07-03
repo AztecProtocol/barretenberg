@@ -135,7 +135,7 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
     static void test_pedersen()
     {
 
-        Composer composer = Composer("../srs_db/ignition/");
+        Composer composer;
 
         fr left_in = fr::random_element();
         fr right_in = fr::random_element();
@@ -156,14 +156,9 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
 
         fr_ct out = pedersen_commitment::compress(left, right);
 
-        auto prover = composer.create_prover();
+        info("composer gates = ", composer.get_num_gates());
 
-        printf("composer gates = %zu\n", composer.get_num_gates());
-        auto verifier = composer.create_verifier();
-
-        plonk::proof proof = prover.construct_proof();
-
-        bool result = verifier.verify_proof(proof);
+        bool result = composer.check_circuit();
         EXPECT_EQ(result, true);
 
         auto hash_output = pedersen_recover(left_in, right_in);
@@ -181,7 +176,7 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
 
     static void test_pedersen_edge_cases()
     {
-        Composer composer = Composer("../srs_db/ignition/");
+        Composer composer;
 
         fr zero_fr = fr::zero();
         fr one_fr = fr::one();
@@ -201,14 +196,9 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
         fr_ct out_with_zero = pedersen_commitment::compress(out_1_with_zero, out_2);
         fr_ct out_with_r = pedersen_commitment::compress(out_1_with_r, out_2);
 
-        auto prover = composer.create_prover();
+        info("composer gates = ", composer.get_num_gates());
 
-        printf("composer gates = %zu\n", composer.get_num_gates());
-        auto verifier = composer.create_verifier();
-
-        plonk::proof proof = prover.construct_proof();
-
-        bool result = verifier.verify_proof(proof);
+        bool result = composer.check_circuit();
         EXPECT_EQ(result, true);
 
         auto hash_output_1_with_zero = pedersen_recover(zero_fr, one_fr);
@@ -252,7 +242,7 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
 
     static void test_pedersen_large()
     {
-        Composer composer = Composer("../srs_db/ignition/");
+        Composer composer;
 
         fr left_in = fr::random_element();
         fr right_in = fr::random_element();
@@ -272,14 +262,9 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
 
         composer.set_public_input(left.witness_index);
 
-        auto prover = composer.create_prover();
+        info("composer gates = ", composer.get_num_gates());
 
-        printf("composer gates = %zu\n", composer.get_num_gates());
-        auto verifier = composer.create_verifier();
-
-        plonk::proof proof = prover.construct_proof();
-
-        bool result = verifier.verify_proof(proof);
+        bool result = composer.check_circuit();
         EXPECT_EQ(result, true);
     }
 
@@ -287,7 +272,7 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
     {
         const size_t num_input_bytes = 351;
 
-        Composer composer = Composer("../srs_db/ignition/");
+        Composer composer;
 
         std::vector<uint8_t> input;
         input.reserve(num_input_bytes);
@@ -302,20 +287,15 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
 
         EXPECT_EQ(result.get_value(), expected);
 
-        auto prover = composer.create_prover();
+        info("composer gates = ", composer.get_num_gates());
 
-        printf("composer gates = %zu\n", composer.get_num_gates());
-        auto verifier = composer.create_verifier();
-
-        plonk::proof proof = prover.construct_proof();
-
-        bool proof_result = verifier.verify_proof(proof);
+        bool proof_result = composer.check_circuit();
         EXPECT_EQ(proof_result, true);
     }
 
     static void test_multi_compress()
     {
-        Composer composer = Composer("../srs_db/ignition/");
+        Composer composer;
 
         for (size_t i = 0; i < 7; ++i) {
             std::vector<barretenberg::fr> inputs;
@@ -358,24 +338,19 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
             EXPECT_EQ(result.get_value(), expected);
         }
 
-        auto prover = composer.create_prover();
+        info("composer gates = ", composer.get_num_gates());
 
-        printf("composer gates = %zu\n", composer.get_num_gates());
-        auto verifier = composer.create_verifier();
-
-        plonk::proof proof = prover.construct_proof();
-
-        bool proof_result = verifier.verify_proof(proof);
+        bool proof_result = composer.check_circuit();
         EXPECT_EQ(proof_result, true);
     }
 
     static void test_compress_eight()
     {
-        Composer composer = Composer("../srs_db/ignition/");
+        Composer composer;
 
         std::vector<grumpkin::fq> inputs;
         inputs.reserve(8);
-        std::vector<plonk::stdlib::field_t<Composer>> witness_inputs;
+        std::vector<stdlib::field_t<Composer>> witness_inputs;
 
         for (size_t i = 0; i < 8; ++i) {
             inputs.emplace_back(barretenberg::fr::random_element());
@@ -391,10 +366,10 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
 
     static void test_compress_constants()
     {
-        Composer composer = Composer("../srs_db/ignition/");
+        Composer composer;
 
         std::vector<barretenberg::fr> inputs;
-        std::vector<plonk::stdlib::field_t<Composer>> witness_inputs;
+        std::vector<stdlib::field_t<Composer>> witness_inputs;
 
         for (size_t i = 0; i < 8; ++i) {
             inputs.push_back(barretenberg::fr::random_element());
@@ -412,9 +387,11 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
     }
 };
 
-typedef testing::Types<plonk::UltraComposer, plonk::TurboComposer, plonk::StandardComposer> ComposerTypes;
+typedef testing::
+    Types<proof_system::StandardCircuitBuilder, proof_system::TurboCircuitBuilder, proof_system::UltraCircuitBuilder>
+        CircuitTypes;
 
-TYPED_TEST_SUITE(stdlib_pedersen, ComposerTypes);
+TYPED_TEST_SUITE(stdlib_pedersen, CircuitTypes);
 
 TYPED_TEST(stdlib_pedersen, small)
 {

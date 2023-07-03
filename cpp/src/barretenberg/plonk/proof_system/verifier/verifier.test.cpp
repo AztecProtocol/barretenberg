@@ -1,13 +1,14 @@
 #include "../prover/prover.hpp"
+#include "barretenberg/ecc/curves/bn254/bn254.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "../utils/permutation.hpp"
 #include "../widgets/transition_widgets/arithmetic_widget.hpp"
 #include "../../../transcript/transcript.hpp"
 #include "barretenberg/plonk/composer/standard_composer.hpp"
 #include "verifier.hpp"
-#include "barretenberg/ecc/curves/bn254/scalar_multiplication/scalar_multiplication.hpp"
+#include "barretenberg/ecc/scalar_multiplication/scalar_multiplication.hpp"
 #include <gtest/gtest.h>
-#include "barretenberg/srs/reference_string/file_reference_string.hpp"
+#include "barretenberg/srs/factories/file_crs_factory.hpp"
 #include "barretenberg/polynomials/polynomial_arithmetic.hpp"
 #include "barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp"
 
@@ -18,34 +19,34 @@ using namespace proof_system::plonk;
 
 plonk::Verifier generate_verifier(std::shared_ptr<proving_key> circuit_proving_key)
 {
-    std::array<fr*, 8> poly_coefficients;
-    poly_coefficients[0] = circuit_proving_key->polynomial_store.get("q_1").get_coefficients();
-    poly_coefficients[1] = circuit_proving_key->polynomial_store.get("q_2").get_coefficients();
-    poly_coefficients[2] = circuit_proving_key->polynomial_store.get("q_3").get_coefficients();
-    poly_coefficients[3] = circuit_proving_key->polynomial_store.get("q_m").get_coefficients();
-    poly_coefficients[4] = circuit_proving_key->polynomial_store.get("q_c").get_coefficients();
-    poly_coefficients[5] = circuit_proving_key->polynomial_store.get("sigma_1").get_coefficients();
-    poly_coefficients[6] = circuit_proving_key->polynomial_store.get("sigma_2").get_coefficients();
-    poly_coefficients[7] = circuit_proving_key->polynomial_store.get("sigma_3").get_coefficients();
+    std::array<std::shared_ptr<fr[]>, 8> poly_coefficients;
+    poly_coefficients[0] = circuit_proving_key->polynomial_store.get("q_1").data();
+    poly_coefficients[1] = circuit_proving_key->polynomial_store.get("q_2").data();
+    poly_coefficients[2] = circuit_proving_key->polynomial_store.get("q_3").data();
+    poly_coefficients[3] = circuit_proving_key->polynomial_store.get("q_m").data();
+    poly_coefficients[4] = circuit_proving_key->polynomial_store.get("q_c").data();
+    poly_coefficients[5] = circuit_proving_key->polynomial_store.get("sigma_1").data();
+    poly_coefficients[6] = circuit_proving_key->polynomial_store.get("sigma_2").data();
+    poly_coefficients[7] = circuit_proving_key->polynomial_store.get("sigma_3").data();
 
     std::vector<barretenberg::g1::affine_element> commitments;
-    scalar_multiplication::pippenger_runtime_state state(circuit_proving_key->circuit_size);
+    scalar_multiplication::pippenger_runtime_state<curve::BN254> state(circuit_proving_key->circuit_size);
     commitments.resize(8);
 
     for (size_t i = 0; i < 8; ++i) {
         commitments[i] = g1::affine_element(
-            scalar_multiplication::pippenger(poly_coefficients[i],
-                                             circuit_proving_key->reference_string->get_monomial_points(),
-                                             circuit_proving_key->circuit_size,
-                                             state));
+            scalar_multiplication::pippenger<curve::BN254>(poly_coefficients[i].get(),
+                                                           circuit_proving_key->reference_string->get_monomial_points(),
+                                                           circuit_proving_key->circuit_size,
+                                                           state));
     }
 
-    auto crs = std::make_shared<VerifierFileReferenceString>("../srs_db/ignition");
+    auto crs = std::make_shared<barretenberg::srs::factories::FileVerifierCrs>("../srs_db/ignition");
     std::shared_ptr<verification_key> circuit_verification_key =
         std::make_shared<verification_key>(circuit_proving_key->circuit_size,
                                            circuit_proving_key->num_public_inputs,
                                            crs,
-                                           circuit_proving_key->composer_type);
+                                           circuit_proving_key->circuit_type);
 
     circuit_verification_key->commitments.insert({ "Q_1", commitments[0] });
     circuit_verification_key->commitments.insert({ "Q_2", commitments[1] });
@@ -76,8 +77,8 @@ plonk::Prover generate_test_data(const size_t n)
 
     // even indices = mul gates, odd incides = add gates
 
-    auto crs = std::make_shared<FileReferenceString>(n + 1, "../srs_db/ignition");
-    std::shared_ptr<proving_key> key = std::make_shared<proving_key>(n, 0, crs, ComposerType::STANDARD);
+    auto crs = std::make_shared<barretenberg::srs::factories::FileProverCrs<curve::BN254>>(n + 1, "../srs_db/ignition");
+    std::shared_ptr<proving_key> key = std::make_shared<proving_key>(n, 0, crs, CircuitType::STANDARD);
 
     polynomial w_l(n);
     polynomial w_r(n);

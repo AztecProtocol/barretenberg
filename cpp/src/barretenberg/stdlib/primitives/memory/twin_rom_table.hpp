@@ -1,5 +1,5 @@
 #pragma once
-#include "../composers/composers_fwd.hpp"
+#include "../circuit_builders/circuit_builders_fwd.hpp"
 #include "../field/field.hpp"
 
 namespace proof_system::plonk {
@@ -7,7 +7,7 @@ namespace stdlib {
 
 // A runtime-defined read-only memory table. Table entries must be initialized in the constructor.
 // Each entry contains a pair of values
-// N.B. Only works with the UltraComposer at the moment!
+// N.B. Only works with the UltraPlonkComposer at the moment!
 template <typename Composer> class twin_rom_table {
   private:
     typedef field_t<Composer> field_pt;

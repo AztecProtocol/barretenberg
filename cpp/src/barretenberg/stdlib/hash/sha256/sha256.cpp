@@ -1,9 +1,7 @@
 #include "sha256.hpp"
 #include "sha256_plookup.hpp"
-#include "barretenberg/plonk/composer/standard_composer.hpp"
-#include "barretenberg/plonk/composer/turbo_composer.hpp"
-#include "barretenberg/plonk/composer/ultra_composer.hpp"
 #include "barretenberg/stdlib/primitives/bit_array/bit_array.hpp"
+#include "barretenberg/stdlib/primitives/circuit_builders/circuit_builders.hpp"
 
 namespace proof_system::plonk {
 namespace stdlib {
@@ -139,7 +137,7 @@ template <typename Composer> byte_array<Composer> sha256_block(const byte_array<
 
 template <typename Composer> packed_byte_array<Composer> sha256(const packed_byte_array<Composer>& input)
 {
-    if constexpr (Composer::type == ComposerType::PLOOKUP) {
+    if constexpr (HasPlookup<Composer>) {
         return sha256_plookup::sha256(input);
     }
     typedef field_t<Composer> field_pt;
@@ -181,9 +179,7 @@ template <typename Composer> packed_byte_array<Composer> sha256(const packed_byt
     return packed_byte_array<Composer>(output, 4);
 }
 
-template byte_array<plonk::TurboComposer> sha256_block(const byte_array<plonk::TurboComposer>& input);
-template packed_byte_array<plonk::StandardComposer> sha256(const packed_byte_array<plonk::StandardComposer>& input);
-template packed_byte_array<plonk::TurboComposer> sha256(const packed_byte_array<plonk::TurboComposer>& input);
-template packed_byte_array<plonk::UltraComposer> sha256(const packed_byte_array<plonk::UltraComposer>& input);
+INSTANTIATE_STDLIB_METHOD(SHA256_BLOCK)
+INSTANTIATE_STDLIB_METHOD(SHA256)
 } // namespace stdlib
 } // namespace proof_system::plonk

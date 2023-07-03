@@ -3,7 +3,6 @@
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 
 #include "barretenberg/proof_system/plookup_tables/types.hpp"
-#include "../../primitives/composers/composers.hpp"
 #include "../../primitives/plookup/plookup.hpp"
 
 using namespace proof_system;
@@ -12,6 +11,7 @@ namespace proof_system::plonk {
 namespace stdlib {
 
 using namespace barretenberg;
+using namespace plookup;
 
 /**
  * Add two curve points in one of the following ways:
@@ -78,7 +78,8 @@ point<C> pedersen_plookup_hash<C>::add_points(const point& p1, const point& p2, 
 /**
  * Hash a single field element using lookup tables.
  */
-template <typename C> point<C> pedersen_plookup_hash<C>::hash_single(const field_t& scalar, const bool parity)
+template <typename C>
+point<C> pedersen_plookup_hash<C>::hash_single(const field_t& scalar, const bool parity, const bool skip_range_check)
 {
     if (scalar.is_constant()) {
         C* ctx = scalar.get_context();
@@ -92,25 +93,47 @@ template <typename C> point<C> pedersen_plookup_hash<C>::hash_single(const field
     const field_t y_lo = witness_t(ctx, uint256_t(scalar.get_value()).slice(0, 126));
 
     ReadData<field_t> lookup_hi, lookup_lo;
+
+    // If `skip_range_check = true`, this implies the input scalar is 252 bits maximum.
+    // i.e. we do not require a check that scalar slice sums < p .
+    // We can also likely use a multitable with 1 less lookup
     if (parity) {
-        lookup_lo = plookup_read::get_lookup_accumulators(MultiTableId::PEDERSEN_RIGHT_LO, y_lo);
-        lookup_hi = plookup_read::get_lookup_accumulators(MultiTableId::PEDERSEN_RIGHT_HI, y_hi);
+        lookup_lo = plookup_read<C>::get_lookup_accumulators(MultiTableId::PEDERSEN_RIGHT_LO, y_lo);
+        lookup_hi = plookup_read<C>::get_lookup_accumulators(MultiTableId::PEDERSEN_RIGHT_HI, y_hi);
     } else {
-        lookup_lo = plookup_read::get_lookup_accumulators(MultiTableId::PEDERSEN_LEFT_LO, y_lo);
-        lookup_hi = plookup_read::get_lookup_accumulators(MultiTableId::PEDERSEN_LEFT_HI, y_hi);
+        lookup_lo = plookup_read<C>::get_lookup_accumulators(MultiTableId::PEDERSEN_LEFT_LO, y_lo);
+        lookup_hi = plookup_read<C>::get_lookup_accumulators(MultiTableId::PEDERSEN_LEFT_HI, y_hi);
     }
 
-    // Check if (r_hi - y_hi) is 128 bits and if (r_hi - y_hi) == 0, then
-    // (r_lo - y_lo) must be 126 bits.
-    constexpr uint256_t modulus = fr::modulus;
-    const field_t r_lo = witness_t(ctx, modulus.slice(0, 126));
-    const field_t r_hi = witness_t(ctx, modulus.slice(126, 256));
+    // validate slices equal scalar
+    // TODO(suyash?): can remove this gate if we use a single lookup accumulator for HI + LO combined
+    //       can recover y_hi, y_lo from Column 1 of the the lookup accumulator output
+    scalar.add_two(-y_hi * (uint256_t(1) << 126), -y_lo).assert_equal(0);
 
-    const field_t term_hi = r_hi - y_hi;
-    const field_t term_lo = (r_lo - y_lo) * field_t(term_hi == field_t(0));
-    term_hi.normalize().create_range_constraint(128);
-    term_lo.normalize().create_range_constraint(126);
+    // if skip_range_check = true we assume input max size is 252 bits => final lookup scalar slice value must be 0
+    if (skip_range_check) {
+        lookup_hi[ColumnIdx::C1][lookup_hi[ColumnIdx::C1].size() - 1].assert_equal(0);
+    }
+    if (!skip_range_check) {
+        // Check that y_hi * 2^126 + y_lo < fr::modulus when evaluated over the integers
+        constexpr uint256_t modulus = fr::modulus;
+        const field_t r_lo = field_t(ctx, modulus.slice(0, 126));
+        const field_t r_hi = field_t(ctx, modulus.slice(126, 256));
 
+        bool need_borrow = (uint256_t(y_lo.get_value()) > uint256_t(r_lo.get_value()));
+        field_t borrow = field_t::from_witness(ctx, need_borrow);
+
+        // directly call `create_new_range_constraint` to avoid creating an arithmetic gate
+        scalar.get_context()->create_new_range_constraint(borrow.get_witness_index(), 1, "borrow");
+
+        // Hi range check = r_hi - y_hi - borrow
+        // Lo range check = r_lo - y_lo + borrow * 2^{126}
+        field_t hi = (r_hi - y_hi) - borrow;
+        field_t lo = (r_lo - y_lo) + (borrow * (uint256_t(1) << 126));
+
+        hi.create_range_constraint(128);
+        lo.create_range_constraint(126);
+    }
     const size_t num_lookups_lo = lookup_lo[ColumnIdx::C1].size();
     const size_t num_lookups_hi = lookup_hi[ColumnIdx::C1].size();
 
@@ -145,7 +168,7 @@ field_t<C> pedersen_plookup_hash<C>::hash_multiple(const std::vector<field_t>& i
         return point{ 0, 0 }.x;
     }
 
-    auto result = plookup_read::get_lookup_accumulators(MultiTableId::PEDERSEN_IV, hash_index)[ColumnIdx::C2][0];
+    auto result = plookup_read<C>::get_lookup_accumulators(MultiTableId::PEDERSEN_IV, hash_index)[ColumnIdx::C2][0];
     auto num_inputs = inputs.size();
     for (size_t i = 0; i < num_inputs; i++) {
         auto p2 = pedersen_plookup_hash<C>::hash_single(result, false);
@@ -158,7 +181,7 @@ field_t<C> pedersen_plookup_hash<C>::hash_multiple(const std::vector<field_t>& i
     return add_points(p1, p2).x;
 }
 
-template class pedersen_plookup_hash<plonk::UltraComposer>;
+INSTANTIATE_STDLIB_ULTRA_TYPE(pedersen_plookup_hash);
 
 } // namespace stdlib
 } // namespace proof_system::plonk

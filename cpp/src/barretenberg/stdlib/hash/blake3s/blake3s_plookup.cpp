@@ -2,7 +2,6 @@
 #include "../blake2s/blake_util.hpp"
 
 #include "barretenberg/proof_system/plookup_tables/plookup_tables.hpp"
-#include "barretenberg/plonk/composer/ultra_composer.hpp"
 #include "barretenberg/stdlib/primitives/bit_array/bit_array.hpp"
 #include "barretenberg/stdlib/primitives/field/field.hpp"
 #include "barretenberg/stdlib/primitives/uint/uint.hpp"
@@ -12,6 +11,8 @@ namespace proof_system::plonk {
 namespace stdlib {
 
 namespace blake3s_plookup {
+
+using namespace blake_util;
 
 /*
  * Constants and more.
@@ -114,7 +115,7 @@ void blake3_compress_in_place(field_t<Composer> cv[8],
      * contrained to 32 bits.
      */
     for (size_t i = 0; i < (BLAKE3_STATE_SIZE >> 1); i++) {
-        const auto lookup = plookup_read::get_lookup_accumulators(BLAKE_XOR, state[i], state[i + 8], true);
+        const auto lookup = plookup_read<Composer>::get_lookup_accumulators(BLAKE_XOR, state[i], state[i + 8], true);
         cv[i] = lookup[ColumnIdx::C3][0];
     }
 }
@@ -136,11 +137,11 @@ void blake3_compress_xof(const field_t<Composer> cv[8],
      * ensures that correct 32-bit inputs are used.
      */
     for (size_t i = 0; i < (BLAKE3_STATE_SIZE >> 1); i++) {
-        const auto lookup_1 = plookup_read::get_lookup_accumulators(BLAKE_XOR, state[i], state[i + 8], true);
+        const auto lookup_1 = plookup_read<Composer>::get_lookup_accumulators(BLAKE_XOR, state[i], state[i + 8], true);
         byte_array<Composer> out_bytes_1(lookup_1[ColumnIdx::C3][0], 4);
         out.write_at(out_bytes_1.reverse(), i * 4);
 
-        const auto lookup_2 = plookup_read::get_lookup_accumulators(BLAKE_XOR, state[i + 8], cv[i], true);
+        const auto lookup_2 = plookup_read<Composer>::get_lookup_accumulators(BLAKE_XOR, state[i + 8], cv[i], true);
         byte_array<Composer> out_bytes_2(lookup_2[ColumnIdx::C3][0], 4);
         out.write_at(out_bytes_2.reverse(), (i + 8) * 4);
     }
@@ -259,8 +260,7 @@ template <typename Composer> byte_array<Composer> blake3s(const byte_array<Compo
     return result;
 }
 
-template byte_array<plonk::UltraComposer> blake3s(const byte_array<plonk::UltraComposer>& input);
-
+INSTANTIATE_STDLIB_ULTRA_METHOD(BLAKE3S_PLOOKUP);
 } // namespace blake3s_plookup
 
 } // namespace stdlib

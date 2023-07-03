@@ -1,40 +1,20 @@
 #pragma once
-#include "barretenberg/env/logstr.hpp"
 #include <sstream>
 #include <algorithm>
 #include <vector>
 #include <string>
+#include "barretenberg/stdlib/primitives/circuit_builders/circuit_builders_fwd.hpp"
+#include "barretenberg/env/logstr.hpp"
 
 #define BENCHMARK_INFO_PREFIX "##BENCHMARK_INFO_PREFIX##"
 #define BENCHMARK_INFO_SEPARATOR "#"
 #define BENCHMARK_INFO_SUFFIX "##BENCHMARK_INFO_SUFFIX##"
 
-#define GET_COMPOSER_NAME_STRING(composer)                                                                             \
-    (typeid(composer) == typeid(plonk::StandardComposer)      ? "StandardPlonk"                                        \
-     : typeid(composer) == typeid(plonk::TurboComposer)       ? "TurboPlonk"                                           \
-     : typeid(composer) == typeid(plonk::UltraComposer)       ? "UltraPlonk"                                           \
-     : typeid(composer) == typeid(honk::StandardHonkComposer) ? "StandardHonk"                                         \
-                                                              : "NULLPlonk")
-
 namespace {
-
-inline void format_chain(std::ostream&) {}
-
-template <typename T> void format_chain(std::ostream& os, T const& first)
-{
-    os << first;
-}
-
-template <typename T, typename... Args> void format_chain(std::ostream& os, T const& first, Args const&... args)
-{
-    os << first;
-    format_chain(os, args...);
-}
-
 template <typename... Args> std::string format(Args... args)
 {
     std::ostringstream os;
-    format_chain(os, args...);
+    ((os << args), ...);
     return os.str();
 }
 

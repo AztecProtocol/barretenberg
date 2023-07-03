@@ -10,11 +10,11 @@
 - clang >= 10 or gcc >= 10
 - clang-format
 - libomp (if multithreading is required. Multithreading can be disabled using the compiler flag `-DMULTITHREADING 0`)
-- wasm-opt (part of the [Binaryen](https://github.com/WebAssembly/binaryen) toolkit)
 
 To install on Ubuntu, run:
+
 ```
-sudo apt-get install cmake clang clang-format ninja-build binaryen
+sudo apt-get install cmake clang clang-format ninja-build
 ```
 
 ### Installing openMP (Linux)
@@ -115,7 +115,8 @@ CMake can be passed various build options on its command line:
 - `-DCMAKE_BUILD_TYPE=Debug | Release | RelWithAssert`: Build types.
 - `-DDISABLE_ASM=ON | OFF`: Enable/disable x86 assembly.
 - `-DDISABLE_ADX=ON | OFF`: Enable/disable ADX assembly instructions (for older cpu support).
-- `-DMULTITHREADING=ON | OFF`: Enable/disable multithreading using OpenMP.
+- `-DMULTITHREADING=ON | OFF`: Enable/disable multithreading.
+- `-DOMP_MULTITHREADING=ON | OFF`: Enable/disable multithreading that uses OpenMP.
 - `-DTESTING=ON | OFF`: Enable/disable building of tests.
 - `-DBENCHMARK=ON | OFF`: Enable/disable building of benchmarks.
 - `-DFUZZING=ON | OFF`: Enable building various fuzzers.
@@ -265,3 +266,9 @@ The VS Code extension oijaz.unicode-latex is convenient for parsing latex to uni
 The `@details` tag is 'greedy' int the sense that it wants to include lots of data specified by other tags. As far as I can tell, the most robust strategy for putting documentation with code is to make the `@details` part of the leading code (the one coming before the class/function/whatever definiton) and then putting unwanted stuff inside the function body.
 
 I recall seeing a way to extract parts of comments that are inside function bodies. Not sure a good application of this, though, sounds fidgety.
+
+### Integration tests with Aztec Circuits
+
+CI will automatically run integration tests against Aztec's circuits which live [here](https://github.com/AztecProtocol/aztec-packages/tree/master/circuits). To change which Aztec branch or commit for CI to test against, modify [`.aztec-packages-commit`](./cpp/.aztec-packages-commit).
+
+When working on a PR, you may want to point this file to a adifferent Aztec branch or commit, but then it should probably be pointed back to master before merging.

@@ -47,6 +47,12 @@ class address {
     friend std::ostream& operator<<(std::ostream& os, address const& v) { return os << v.address_; }
 
     fr to_field() const { return address_; }
+
+    // delegate serialization to field
+    void msgpack_pack(auto& packer) const { address_.msgpack_pack(packer); }
+    void msgpack_unpack(auto const& o) { address_.msgpack_unpack(o); }
+    // help our msgpack schema compiler with this buffer alias (as far as wire representation is concerned) class
+    void msgpack_schema(auto& packer) const { packer.pack_alias("Address", "bin32"); }
 };
 
 template <typename B> void read(B& it, address& addr)

@@ -1,19 +1,14 @@
 #pragma once
 #include "barretenberg/stdlib/primitives/byte_array/byte_array.hpp"
-
-namespace proof_system::plonk {
-class TurboComposer;
-class UltraComposer;
-} // namespace proof_system::plonk
+#include "barretenberg/stdlib/primitives/circuit_builders/circuit_builders_fwd.hpp"
 
 namespace proof_system::plonk {
 namespace stdlib {
 
 template <typename Composer> byte_array<Composer> blake3s(const byte_array<Composer>& input);
+#define BLAKE3S(circuit_type) byte_array<circuit_type> blake3s(const byte_array<circuit_type>& input);
 
-extern template byte_array<plonk::StandardComposer> blake3s(const byte_array<plonk::StandardComposer>& input);
-extern template byte_array<plonk::TurboComposer> blake3s(const byte_array<plonk::TurboComposer>& input);
-extern template byte_array<plonk::UltraComposer> blake3s(const byte_array<plonk::UltraComposer>& input);
+EXTERN_STDLIB_METHOD(BLAKE3S)
 
 } // namespace stdlib
 } // namespace proof_system::plonk
