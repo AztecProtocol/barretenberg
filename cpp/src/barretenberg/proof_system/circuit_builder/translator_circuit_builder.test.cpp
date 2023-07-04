@@ -9,7 +9,7 @@ namespace proof_system {
 TEST(translator_circuit_builder, scoping_out_the_circuit)
 {
     // Questions:
-    // 1.
+    // 1. Do we need 68-bit limbs at all?
     using Fr = ::curve::BN254::ScalarField;
     using Fp = ::curve::BN254::BaseField;
 
@@ -36,6 +36,70 @@ TEST(translator_circuit_builder, scoping_out_the_circuit)
     // 2 rows:
     // OP | P.xₗₒ | P.xₕᵢ | P.yₗₒ
     // -  | P.yₕᵢ | z₁    | z₂
+    // Horizontal Rows:
+    //  |-   | OP |
+    //  |P.yₕᵢ |P.xₗₒ |
+    //  |z₁ |P.xₕᵢ |
+    // | z₂ |P.yₗₒ |
+    // | p_x_1 | p_x_0 | 68-bit limbs
+    // | p_x_1_0 | p_x_0_0 | 12 bit limbs
+    // | p_x_1_1 | p_x_0_1 | 12 bit limbs
+    // | p_x_1_2 | p_x_0_2 | 12 bit limbs
+    // | p_x_1_3 | p_x_0_3 | 12 bit limbs
+    // | p_x_1_4 | p_x_0_4 | 12 bit limbs
+    // | p_x_1_5 | p_x_0_5 | 8 bit limns
+    // | p_x_3 | p_x_2 | 68-bit limbs
+    // | p_x_3_0 | p_x_2_0 | 12 bit limbs
+    // | p_x_3_1 | p_x_2_1 | 12 bit limbs
+    // | p_x_3_2 | p_x_2_2 | 12 bit limbs
+    // | p_x_3_3 | p_x_2_3 | 12 bit limbs
+    // | p_x_3_4 | p_x_2_4 | p_x_3_4 is 2 bits and enforced with a relation. p_x_2_4 is 12 bits
+    // | -       | p_x_2_5 | 8 bit limb
+    // | p_y_1 | p_y_0 | 68-bit limbs
+    // | p_y_1_0 | p_y_0_0 | 12 bit limbs
+    // | p_y_1_1 | p_y_0_1 | 12 bit limbs
+    // | p_y_1_2 | p_y_0_2 | 12 bit limbs
+    // | p_y_1_3 | p_y_0_3 | 12 bit limbs
+    // | p_y_1_4 | p_y_0_4 | 12 bit limbs
+    // | p_y_1_5 | p_y_0_5 | 8 bit limns
+    // | p_y_3 | p_y_2 | 68-bit limbs
+    // | p_y_3_0 | p_y_2_0 | 12 bit limbs
+    // | p_y_3_1 | p_y_2_1 | 12 bit limbs
+    // | p_y_3_2 | p_y_2_2 | 12 bit limbs
+    // | p_y_3_3 | p_y_2_3 | 12 bit limbs
+    // | p_y_3_4 | p_y_2_4 | p_y_3_4 is 2 bits and enforced with a relation. p_y_2_4 is 12 bits
+    // | -       | p_y_2_5 | 8 bit limb
+    // | z_1_hi  | z_1_lo | 68 bit limbs
+    // | z_1_hi_0| z_1_lo_0| 12 bit limbs
+    // | z_1_hi_1| z_1_lo_1| 12 bit limbs
+    // | z_1_hi_2| z_1_lo_2| 12 bit limbs
+    // | z_1_hi_3| z_1_lo_3| 12 bit limbs
+    // | z_1_hi_4| z_1_lo_4| 12 bit limbs
+    // | z_1_hi_5| z_1_lo_5| 8 bit limbs
+    // | z_2_hi  | z_2_lo | 68 bit limbs
+    // | z_2_hi_0| z_2_lo_0| 12 bit limbs
+    // | z_2_hi_1| z_2_lo_1| 12 bit limbs
+    // | z_2_hi_2| z_2_lo_2| 12 bit limbs
+    // | z_2_hi_3| z_2_lo_3| 12 bit limbs
+    // | z_2_hi_4| z_2_lo_4| 12 bit limbs
+    // | z_2_hi_5| z_2_lo_5| 8 bit limbs
+    // |A₀ |Aₚᵣₑᵥ_₀| 68
+    // |A₁ |Aₚᵣₑᵥ_₁| 68
+    // |A₂ |Aₚᵣₑᵥ_₂| 68
+    // |A₃ |Aₚᵣₑᵥ_₃| 68
+    // | A_1_0 | A_0_0 | 12
+    // | A_1_1 | A_0_1 | 12
+    // | A_1_2 | A_0_2 | 12
+    // | A_1_3 | A_0_3 | 12
+    // | A_1_4 | A_0_4 | 12
+    // | A_1_5 | A_0_5 | 8
+    // | A_3_0 | A_2_0 | 12
+    // | A_3_1 | A_2_1 | 12
+    // | A_3_2 | A_2_2 | 12
+    // | A_3_3 | A_2_3 | 12
+    // | A_3_4 | A_2_4 | 2/12
+    // | -  | A_2_5 | 12
+
     Fr op;
     Fr p_x_lo;
     Fr p_x_hi(0);
@@ -221,6 +285,8 @@ TEST(translator_circuit_builder, scoping_out_the_circuit)
     // Low bits have to be zero
     EXPECT_EQ(uint256_t(high_wide_relation_limb).slice(0, NUM_LIMB_BITS), 0);
     // And we'll need to range constrain it
+    // 68 can be treated as 12/12/12/12/12/8
+    // 68 can be treated as 12/12/12/12/12/8
 
     // Prime relation
     Fr prime_relation = accumulator_witnesses[4] * x_witnesses[4] + op + v_witnesses[4] * p_x_witnesses[4] +
