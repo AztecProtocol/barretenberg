@@ -1,19 +1,20 @@
 #pragma once
 #include "barretenberg/common/throw_or_abort.hpp"
 
-#include "types.hpp"
-#include "sha256.hpp"
 #include "aes128.hpp"
-#include "sparse.hpp"
-#include "pedersen.hpp"
-#include "uint.hpp"
-#include "non_native_group_generator.hpp"
 #include "blake2s.hpp"
+#include "dummy.hpp"
 #include "keccak/keccak_chi.hpp"
 #include "keccak/keccak_input.hpp"
 #include "keccak/keccak_output.hpp"
 #include "keccak/keccak_rho.hpp"
 #include "keccak/keccak_theta.hpp"
+#include "non_native_group_generator.hpp"
+#include "pedersen.hpp"
+#include "sha256.hpp"
+#include "sparse.hpp"
+#include "types.hpp"
+#include "uint.hpp"
 
 namespace plookup {
 
@@ -241,6 +242,12 @@ inline BasicTable create_basic_table(const BasicTableId id, const size_t index)
     }
     case PEDERSEN_IV_BASE: {
         return pedersen_tables::basic::generate_pedersen_iv_table(PEDERSEN_IV_BASE);
+    }
+    case HONK_DUMMY_BASIC1: {
+        return dummy_tables::generate_honk_dummy_table<HONK_DUMMY_BASIC1>(HONK_DUMMY_BASIC1, index);
+    }
+    case HONK_DUMMY_BASIC2: {
+        return dummy_tables::generate_honk_dummy_table<HONK_DUMMY_BASIC2>(HONK_DUMMY_BASIC2, index);
     }
     case KECCAK_INPUT: {
         return keccak_tables::KeccakInput::generate_keccak_input_table(KECCAK_INPUT, index);

@@ -3,10 +3,9 @@
 #include <array>
 #include <vector>
 
-#include "../../primitives/composers/composers_fwd.hpp"
-
 #include "../../primitives/field/field.hpp"
 #include "../../primitives/witness/witness.hpp"
+#include "barretenberg/stdlib/primitives/circuit_builders/circuit_builders_fwd.hpp"
 
 namespace proof_system::plonk {
 namespace stdlib {

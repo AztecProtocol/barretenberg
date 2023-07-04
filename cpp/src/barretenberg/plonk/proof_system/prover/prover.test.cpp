@@ -1,13 +1,13 @@
 #include "../utils/permutation.hpp"
-#include "../widgets/transition_widgets/arithmetic_widget.hpp"
 #include "../widgets/random_widgets/permutation_widget.hpp"
+#include "../widgets/transition_widgets/arithmetic_widget.hpp"
 
 #include "barretenberg/ecc/curves/bn254/bn254.hpp"
+#include "barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp"
+#include "barretenberg/polynomials/polynomial_arithmetic.hpp"
+#include "barretenberg/srs/factories/file_crs_factory.hpp"
 #include "prover.hpp"
 #include <gtest/gtest.h>
-#include "barretenberg/srs/factories/file_crs_factory.hpp"
-#include "barretenberg/polynomials/polynomial_arithmetic.hpp"
-#include "barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp"
 
 /*
 ```
@@ -115,7 +115,7 @@ plonk::Prover generate_test_data(const size_t n)
 
     auto reference_string =
         std::make_shared<barretenberg::srs::factories::FileProverCrs<curve::BN254>>(n + 1, "../srs_db/ignition");
-    std::shared_ptr<proving_key> key = std::make_shared<proving_key>(n, 0, reference_string, ComposerType::STANDARD);
+    std::shared_ptr<proving_key> key = std::make_shared<proving_key>(n, 0, reference_string, CircuitType::STANDARD);
 
     polynomial w_l(n);
     polynomial w_r(n);

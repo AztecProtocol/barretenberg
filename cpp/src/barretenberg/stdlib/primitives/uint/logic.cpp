@@ -1,5 +1,4 @@
-#include "../composers/composers.hpp"
-#include "barretenberg/honk/composer/standard_honk_composer.hpp"
+#include "../circuit_builders/circuit_builders.hpp"
 #include "uint.hpp"
 
 using namespace barretenberg;

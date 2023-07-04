@@ -1,11 +1,11 @@
-#include "pedersen.hpp"
-#include "pedersen_plookup.hpp"
+#include "barretenberg/common/test.hpp"
 #include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
 #include "barretenberg/crypto/pedersen_commitment/pedersen_lookup.hpp"
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 #include "barretenberg/numeric/random/engine.hpp"
-#include "barretenberg/common/test.hpp"
 #include "barretenberg/stdlib/primitives/curves/bn254.hpp"
+#include "pedersen.hpp"
+#include "pedersen_plookup.hpp"
 
 namespace test_stdlib_pedersen {
 using namespace barretenberg;
@@ -135,7 +135,7 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
     static void test_pedersen()
     {
 
-        Composer composer = Composer("../srs_db/ignition/");
+        Composer composer;
 
         fr left_in = fr::random_element();
         fr right_in = fr::random_element();
@@ -176,7 +176,7 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
 
     static void test_pedersen_edge_cases()
     {
-        Composer composer = Composer("../srs_db/ignition/");
+        Composer composer;
 
         fr zero_fr = fr::zero();
         fr one_fr = fr::one();
@@ -242,7 +242,7 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
 
     static void test_pedersen_large()
     {
-        Composer composer = Composer("../srs_db/ignition/");
+        Composer composer;
 
         fr left_in = fr::random_element();
         fr right_in = fr::random_element();
@@ -272,7 +272,7 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
     {
         const size_t num_input_bytes = 351;
 
-        Composer composer = Composer("../srs_db/ignition/");
+        Composer composer;
 
         std::vector<uint8_t> input;
         input.reserve(num_input_bytes);
@@ -295,7 +295,7 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
 
     static void test_multi_compress()
     {
-        Composer composer = Composer("../srs_db/ignition/");
+        Composer composer;
 
         for (size_t i = 0; i < 7; ++i) {
             std::vector<barretenberg::fr> inputs;
@@ -346,11 +346,11 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
 
     static void test_compress_eight()
     {
-        Composer composer = Composer("../srs_db/ignition/");
+        Composer composer;
 
         std::vector<grumpkin::fq> inputs;
         inputs.reserve(8);
-        std::vector<plonk::stdlib::field_t<Composer>> witness_inputs;
+        std::vector<stdlib::field_t<Composer>> witness_inputs;
 
         for (size_t i = 0; i < 8; ++i) {
             inputs.emplace_back(barretenberg::fr::random_element());
@@ -366,10 +366,10 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
 
     static void test_compress_constants()
     {
-        Composer composer = Composer("../srs_db/ignition/");
+        Composer composer;
 
         std::vector<barretenberg::fr> inputs;
-        std::vector<plonk::stdlib::field_t<Composer>> witness_inputs;
+        std::vector<stdlib::field_t<Composer>> witness_inputs;
 
         for (size_t i = 0; i < 8; ++i) {
             inputs.push_back(barretenberg::fr::random_element());
@@ -387,12 +387,11 @@ template <typename Composer> class stdlib_pedersen : public testing::Test {
     }
 };
 
-typedef testing::Types<proof_system::StandardCircuitConstructor,
-                       proof_system::TurboCircuitConstructor,
-                       proof_system::UltraCircuitConstructor>
-    ComposerTypes;
+typedef testing::
+    Types<proof_system::StandardCircuitBuilder, proof_system::TurboCircuitBuilder, proof_system::UltraCircuitBuilder>
+        CircuitTypes;
 
-TYPED_TEST_SUITE(stdlib_pedersen, ComposerTypes);
+TYPED_TEST_SUITE(stdlib_pedersen, CircuitTypes);
 
 TYPED_TEST(stdlib_pedersen, small)
 {

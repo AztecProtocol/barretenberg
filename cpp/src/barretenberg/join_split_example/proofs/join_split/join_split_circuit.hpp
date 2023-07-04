@@ -1,9 +1,9 @@
 #pragma once
-#include "join_split_tx.hpp"
-#include "../notes/circuit/value/witness_data.hpp"
 #include "../notes/circuit/claim/witness_data.hpp"
+#include "../notes/circuit/value/witness_data.hpp"
 #include "barretenberg/crypto/schnorr/schnorr.hpp"
 #include "barretenberg/join_split_example/types.hpp"
+#include "join_split_tx.hpp"
 
 namespace join_split_example {
 namespace proofs {
@@ -50,7 +50,7 @@ struct join_split_outputs {
 
 join_split_outputs join_split_circuit_component(join_split_inputs const& inputs);
 
-void join_split_circuit(Composer& composer, join_split_tx const& tx);
+void join_split_circuit(Builder& builder, join_split_tx const& tx);
 
 } // namespace join_split
 } // namespace proofs

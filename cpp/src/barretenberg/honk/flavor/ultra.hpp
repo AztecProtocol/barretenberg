@@ -1,34 +1,33 @@
 #pragma once
+#include "barretenberg/ecc/curves/bn254/g1.hpp"
+#include "barretenberg/honk/pcs/commitment_key.hpp"
+#include "barretenberg/honk/pcs/kzg/kzg.hpp"
+#include "barretenberg/honk/sumcheck/polynomials/barycentric_data.hpp"
+#include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
+#include "barretenberg/honk/sumcheck/relations/auxiliary_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/lookup_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/permutation_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
+#include "barretenberg/honk/transcript/transcript.hpp"
+#include "barretenberg/polynomials/evaluation_domain.hpp"
+#include "barretenberg/polynomials/polynomial.hpp"
+#include "barretenberg/proof_system/circuit_builder/ultra_circuit_builder.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/srs/factories/crs_factory.hpp"
 #include <array>
 #include <concepts>
 #include <span>
 #include <string>
 #include <type_traits>
 #include <vector>
-#include "barretenberg/honk/pcs/commitment_key.hpp"
-#include "barretenberg/honk/sumcheck/polynomials/barycentric_data.hpp"
-#include "barretenberg/honk/pcs/ipa/ipa.hpp"
-#include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
-#include "barretenberg/ecc/curves/bn254/g1.hpp"
-#include "barretenberg/honk/transcript/transcript.hpp"
-#include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
-#include "barretenberg/polynomials/evaluation_domain.hpp"
-#include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
-#include "barretenberg/srs/factories/crs_factory.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
-#include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/permutation_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/lookup_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/auxiliary_relation.hpp"
 
 namespace proof_system::honk::flavor {
 
 class Ultra {
   public:
-    using CircuitConstructor = UltraCircuitConstructor;
+    using CircuitBuilder = UltraCircuitBuilder;
     using FF = barretenberg::fr;
     using Polynomial = barretenberg::Polynomial<FF>;
     using PolynomialHandle = std::span<FF>;
@@ -38,11 +37,11 @@ class Ultra {
     using CommitmentHandle = G1::affine_element;
     // UltraHonk will be run with KZG by default but temporarily we set the commitment to IPA to
     // be able to do e2e tests with this pcs as well
-    // TODO: instantiate this with but IPA and KZG when the templating work is finished
-    using PCSParams = pcs::ipa::Params;
-    using PCS = pcs::ipa::IPA<PCSParams>;
+    // TODO: instantiate this with both IPA and KZG when the templating work is finished
+    using PCSParams = pcs::kzg::Params;
+    using PCS = pcs::kzg::KZG<PCSParams>;
 
-    static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
+    static constexpr size_t NUM_WIRES = CircuitBuilder::NUM_WIRES;
     // The number of multivariate polynomials on which a sumcheck prover sumcheck operates (including shifts). We often
     // need containers of this size to hold related data, so we choose a name more agnostic than `NUM_POLYNOMIALS`.
     // Note: this number does not include the individual sorted list polynomials.
@@ -62,10 +61,11 @@ class Ultra {
                                  sumcheck::AuxiliaryRelation<FF>>;
 
     static constexpr size_t MAX_RELATION_LENGTH = get_max_relation_length<Relations>();
-    static constexpr size_t NUM_RELATIONS = std::tuple_size<Relations>::value;
 
-    // Instantiate the BarycentricData needed to extend each Relation Univariate
-    static_assert(instantiate_barycentric_utils<FF, MAX_RELATION_LENGTH>());
+    // MAX_RANDOM_RELATION_LENGTH = algebraic degree of sumcheck relation *after* multiplying by the `pow_zeta` random
+    // polynomial e.g. For \sum(x) [A(x) * B(x) + C(x)] * PowZeta(X), relation length = 2 and random relation length = 3
+    static constexpr size_t MAX_RANDOM_RELATION_LENGTH = MAX_RELATION_LENGTH + 1;
+    static constexpr size_t NUM_RELATIONS = std::tuple_size<Relations>::value;
 
     // define the container for storing the univariate contribution from each relation in Sumcheck
     using RelationUnivariates = decltype(create_relation_univariates_container<FF, Relations>());
@@ -104,6 +104,8 @@ class Ultra {
         DataType& table_4 = std::get<22>(this->_data);
         DataType& lagrange_first = std::get<23>(this->_data);
         DataType& lagrange_last = std::get<24>(this->_data);
+
+        static constexpr CircuitType CIRCUIT_TYPE = CircuitBuilder::CIRCUIT_TYPE;
 
         std::vector<HandleType> get_selectors() override
         {

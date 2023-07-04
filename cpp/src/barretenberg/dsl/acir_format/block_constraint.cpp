@@ -1,6 +1,6 @@
 #include "block_constraint.hpp"
-#include "barretenberg/stdlib/primitives/memory/rom_table.hpp"
 #include "barretenberg/stdlib/primitives/memory/ram_table.hpp"
+#include "barretenberg/stdlib/primitives/memory/rom_table.hpp"
 
 using namespace proof_system::plonk;
 
@@ -10,7 +10,7 @@ namespace acir_format {
 // This function only works for constant or single witness poly_triple
 // Supporting more general poly_triple for block constraints yield to complications when we have no witness assignment
 // (e.g during verification or getting the circuit size)
-field_ct poly_to_field_ct(const poly_triple poly, Composer& composer)
+field_ct poly_to_field_ct(const poly_triple poly, Builder& builder)
 {
     ASSERT(poly.q_m == 0);
     ASSERT(poly.q_r == 0);
@@ -18,7 +18,7 @@ field_ct poly_to_field_ct(const poly_triple poly, Composer& composer)
     if (poly.q_l == 0) {
         return field_ct(poly.q_c);
     }
-    field_ct x = field_ct::from_witness_index(&composer, poly.a);
+    field_ct x = field_ct::from_witness_index(&builder, poly.a);
     ASSERT(poly.q_c == 0);
     ASSERT(poly.q_l == 1);
     x.additive_constant = poly.q_c;
@@ -26,11 +26,11 @@ field_ct poly_to_field_ct(const poly_triple poly, Composer& composer)
     return x;
 }
 
-void create_block_constraints(Composer& composer, const BlockConstraint constraint, bool has_valid_witness_assignments)
+void create_block_constraints(Builder& builder, const BlockConstraint constraint, bool has_valid_witness_assignments)
 {
     std::vector<field_ct> init;
     for (auto i : constraint.init) {
-        field_ct value = poly_to_field_ct(i, composer);
+        field_ct value = poly_to_field_ct(i, builder);
         init.push_back(value);
     }
 
@@ -39,8 +39,8 @@ void create_block_constraints(Composer& composer, const BlockConstraint constrai
         rom_table_ct table(init);
         for (auto& op : constraint.trace) {
             ASSERT(op.access_type == 0);
-            field_ct value = poly_to_field_ct(op.value, composer);
-            field_ct index = poly_to_field_ct(op.index, composer);
+            field_ct value = poly_to_field_ct(op.value, builder);
+            field_ct index = poly_to_field_ct(op.index, builder);
             // For a ROM table, constant read should be optimised out:
             // The rom_table won't work with a constant read because the table may not be initialised
             ASSERT(op.index.q_l != 0);
@@ -50,8 +50,8 @@ void create_block_constraints(Composer& composer, const BlockConstraint constrai
     case BlockType::RAM: {
         ram_table_ct table(init);
         for (auto& op : constraint.trace) {
-            field_ct value = poly_to_field_ct(op.value, composer);
-            field_ct index = poly_to_field_ct(op.index, composer);
+            field_ct value = poly_to_field_ct(op.value, builder);
+            field_ct index = poly_to_field_ct(op.index, builder);
             if (op.access_type == 0) {
                 value.assert_equal(table.read(index));
             } else {

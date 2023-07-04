@@ -1,11 +1,11 @@
+#include "../polynomials/barycentric_data.hpp"
+#include "../polynomials/univariate.hpp"
+#include "arithmetic_relation.hpp"
+#include "barretenberg/honk/flavor/standard.hpp"
 #include "barretenberg/honk/sumcheck/relations/lookup_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
-#include "barretenberg/honk/flavor/standard.hpp"
-#include "relation_parameters.hpp"
-#include "arithmetic_relation.hpp"
 #include "permutation_relation.hpp"
-#include "../polynomials/univariate.hpp"
-#include "../polynomials/barycentric_data.hpp"
+#include "relation_parameters.hpp"
 
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/numeric/random/engine.hpp"
@@ -216,8 +216,8 @@ TEST_F(StandardRelationConsistency, ArithmeticRelation)
 
         // Compute expected full length Univariates using straight forward expressions.
         // Note: expect { { 5, 22, 57, 116, 205} } for input polynomial {1, 2}
-        constexpr std::size_t NUM_CONSTRAINTS = decltype(relation)::NUM_CONSTRAINTS;
-        auto expected_full_length_univariates = std::array<Univariate<FF, FULL_RELATION_LENGTH>, NUM_CONSTRAINTS>();
+        constexpr std::size_t NUM_SUBRELATIONS = std::tuple_size_v<decltype(relation)::RelationUnivariates>;
+        auto expected_full_length_univariates = std::array<Univariate<FF, FULL_RELATION_LENGTH>, NUM_SUBRELATIONS>();
 
         expected_full_length_univariates[0] = (q_m * w_r * w_l) + (q_r * w_r) + (q_l * w_l) + (q_o * w_o) + (q_c);
         validate_evaluations(expected_full_length_univariates, relation, extended_edges, relation_parameters);
@@ -274,8 +274,8 @@ TEST_F(StandardRelationConsistency, PermutationRelation)
         const auto& lagrange_last = extended_edges.lagrange_last;
 
         // Compute expected full length Univariates using straight forward expressions
-        constexpr std::size_t NUM_CONSTRAINTS = decltype(relation)::NUM_CONSTRAINTS;
-        auto expected_full_length_univariates = std::array<Univariate<FF, FULL_RELATION_LENGTH>, NUM_CONSTRAINTS>();
+        constexpr std::size_t NUM_SUBRELATIONS = std::tuple_size_v<decltype(relation)::RelationUnivariates>;
+        auto expected_full_length_univariates = std::array<Univariate<FF, FULL_RELATION_LENGTH>, NUM_SUBRELATIONS>();
 
         expected_full_length_univariates[0] = (z_perm + lagrange_first) * (w_1 + id_1 * beta + gamma) *
                                                   (w_2 + id_2 * beta + gamma) * (w_3 + id_3 * beta + gamma) -

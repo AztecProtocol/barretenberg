@@ -1,7 +1,7 @@
-#include "barretenberg/numeric/uint256/uint256.hpp"
-#include "barretenberg/numeric/random/engine.hpp"
-#include "barretenberg/stdlib/primitives/safe_uint/safe_uint.hpp"
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
+#include "barretenberg/numeric/random/engine.hpp"
+#include "barretenberg/numeric/uint256/uint256.hpp"
+#include "barretenberg/stdlib/primitives/safe_uint/safe_uint.hpp"
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wc99-designator"
 
@@ -1454,7 +1454,7 @@ extern "C" size_t LLVMFuzzerCustomCrossOver(const uint8_t* Data1,
  */
 extern "C" size_t LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size)
 {
-    RunWithComposers<SafeUintFuzzBase, FuzzerComposerTypes>(Data, Size, VarianceRNG);
+    RunWithComposers<SafeUintFuzzBase, FuzzerCircuitTypes>(Data, Size, VarianceRNG);
     return 0;
 }
 

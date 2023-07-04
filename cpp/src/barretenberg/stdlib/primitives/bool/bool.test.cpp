@@ -1,8 +1,7 @@
-#include "bool.hpp"
-#include "barretenberg/plonk/composer/standard_plonk_composer.hpp"
-#include <gtest/gtest.h>
-#include "barretenberg/honk/composer/standard_honk_composer.hpp"
 #include "barretenberg/stdlib/primitives/byte_array/byte_array.cpp"
+#include "barretenberg/stdlib/primitives/circuit_builders/circuit_builders.hpp"
+#include "bool.hpp"
+#include <gtest/gtest.h>
 
 #define STDLIB_TYPE_ALIASES                                                                                            \
     using Composer = TypeParam;                                                                                        \
@@ -19,11 +18,10 @@ auto& engine = numeric::random::get_debug_engine();
 
 template <class Composer> class BoolTest : public ::testing::Test {};
 
-using ComposerTypes = ::testing::Types<proof_system::StandardCircuitConstructor,
-                                       proof_system::TurboCircuitConstructor,
-                                       proof_system::UltraCircuitConstructor>;
+using CircuitTypes = ::testing::
+    Types<proof_system::StandardCircuitBuilder, proof_system::TurboCircuitBuilder, proof_system::UltraCircuitBuilder>;
 
-TYPED_TEST_SUITE(BoolTest, ComposerTypes);
+TYPED_TEST_SUITE(BoolTest, CircuitTypes);
 TYPED_TEST(BoolTest, TestBasicOperations)
 {
 
