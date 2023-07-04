@@ -52,4 +52,29 @@ TEST(goblin_ultra_circuit_constructor, simple)
     EXPECT_EQ(accumulator, g1::affine_point_at_infinity);
 }
 
+TEST(goblin_ultra_circuit_constructor, batch_mul)
+{
+    using Point = g1::affine_element;
+    using Scalar = fr;
+
+    auto builder = GoblinUltraCircuitBuilder();
+    const size_t num_muls = 3;
+
+    // Compute some points and scalars
+    std::vector<Point> points;
+    std::vector<Scalar> scalars;
+    auto batched_expected = Point::infinity();
+    for (size_t i = 0; i < num_muls; ++i) {
+        points.emplace_back(Point::random_element());
+        scalars.emplace_back(Scalar::random_element());
+        batched_expected = batched_expected + points[i] * scalars[i];
+    }
+
+    // Add gates corresponding to batch mul
+    auto batched_result = builder.batch_mul(points, scalars);
+
+    // Extract current accumulator point from the op queue and check the result
+    EXPECT_EQ(batched_result, batched_expected);
+}
+
 } // namespace proof_system

@@ -16,8 +16,31 @@ using namespace barretenberg;
 
 namespace proof_system {
 
-// WORKTODO: do we need diff methods for diff ops? maybe not
+/**
+ * @brief Add gates corresponding to a batched mul
+ *
+ * @param points
+ * @param scalars
+ * @return g1::affine_element Result of batched mul
+ */
+g1::affine_element GoblinUltraCircuitBuilder::batch_mul(const std::vector<g1::affine_element>& points,
+                                                        const std::vector<fr>& scalars)
+{
+    // WORKTODO: This may need some checks, e.g.
+    ASSERT(op_queue.get_accumulator().is_point_at_infinity());
 
+    size_t num_muls = points.size();
+    for (size_t idx = 0; idx < num_muls; ++idx) {
+        queue_ecc_mul_accum(points[idx], scalars[idx]);
+    }
+    return op_queue.get_accumulator();
+}
+
+/**
+ * @brief Add gates for simple point addition without scalar and compute corresponding op natively
+ *
+ * @param point
+ */
 void GoblinUltraCircuitBuilder::queue_ecc_add_accum(const barretenberg::g1::affine_element& point)
 {
     // Add raw op to queue
@@ -28,6 +51,12 @@ void GoblinUltraCircuitBuilder::queue_ecc_add_accum(const barretenberg::g1::affi
     add_ecc_op_gates(op, point);
 }
 
+/**
+ * @brief Add gates for point mul and add and compute corresponding op natively
+ *
+ * @param point
+ * @param scalar
+ */
 void GoblinUltraCircuitBuilder::queue_ecc_mul_accum(const barretenberg::g1::affine_element& point,
                                                     const barretenberg::fr& scalar)
 {
@@ -39,6 +68,11 @@ void GoblinUltraCircuitBuilder::queue_ecc_mul_accum(const barretenberg::g1::affi
     add_ecc_op_gates(op, point, scalar);
 }
 
+/**
+ * @brief Add point equality gates
+ *
+ * @param point
+ */
 void GoblinUltraCircuitBuilder::queue_ecc_eq(const barretenberg::g1::affine_element& point)
 {
     // Add raw op to op queue
@@ -49,6 +83,13 @@ void GoblinUltraCircuitBuilder::queue_ecc_eq(const barretenberg::g1::affine_elem
     add_ecc_op_gates(op, point);
 }
 
+/**
+ * @brief Add ecc op gates for specified operation
+ *
+ * @param op Op code
+ * @param point
+ * @param scalar
+ */
 void GoblinUltraCircuitBuilder::add_ecc_op_gates(uint32_t op, const g1::affine_element& point, const fr& scalar)
 {
     auto op_tuple = make_ecc_op_tuple(op, point, scalar);
@@ -56,6 +97,14 @@ void GoblinUltraCircuitBuilder::add_ecc_op_gates(uint32_t op, const g1::affine_e
     queue_ecc_op(op_tuple);
 }
 
+/**
+ * @brief Decompose ecc operands into components, add corresponding variables, return ecc op index tuple
+ *
+ * @param op
+ * @param point
+ * @param scalar
+ * @return ecc_op_tuple Tuple of indices into variables array used to construct pair of ecc op gates
+ */
 ecc_op_tuple GoblinUltraCircuitBuilder::make_ecc_op_tuple(uint32_t op,
                                                           const g1::affine_element& point,
                                                           const fr& scalar)
