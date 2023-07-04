@@ -294,8 +294,8 @@ program
 program
   .command('write_vk')
   .description('Output verification key.')
-  .option('-j, --json-path <path>', 'Specify the JSON path', './target/main.json')
-  .requiredOption('-o, --output-path <path>', 'Specify the path to write the key')
+  .addOption(new Option('-j, --json-path <path>', 'Specify the ACIR JSON path').env("NARGO_ARTIFACT_PATH").default('./target/main.json', "in relation to current working directory"))
+  .addOption(new Option('-o, --output-path <path>', 'Specify the path to write the key').env("NARGO_VERIFICATION_KEY_PATH").makeOptionMandatory())
   .action(async ({ jsonPath, outputPath }) => {
     handleGlobalOptions();
     await writeVk(jsonPath, outputPath);
@@ -304,8 +304,8 @@ program
 program
   .command('proof_as_fields')
   .description('Return the proof as fields elements')
-  .requiredOption('-p, --proof-path <path>', 'Specify the proof path')
-  .requiredOption('-n, --num-public-inputs <number>', 'Specify the number of public inputs')
+  .addOption(new Option('-p, --proof-path <path>', 'Specify the path to the proof').env("NARGO_PROOF_PATH").makeOptionMandatory())
+  .addOption(new Option('-n, --num-public-inputs <number>', 'Specify the number of public inputs').env("NARGO_NUM_PUBLIC_INPUTS").makeOptionMandatory())
   .requiredOption('-o, --output-path <path>', 'Specify the JSON path to write the proof fields')
   .action(async ({ proofPath, numPublicInputs, outputPath }) => {
     handleGlobalOptions();
@@ -315,7 +315,7 @@ program
 program
   .command('vk_as_fields')
   .description('Return the verifiation key represented as fields elements. Also return the verification key hash.')
-  .requiredOption('-i, --input-path <path>', 'Specifies the vk path (output from write_vk)')
+  .addOption(new Option('-i, --input-path <path>', 'Specifies the vk path (output from write_vk)').env("NARGO_VERIFICATION_KEY_PATH").makeOptionMandatory())
   .requiredOption('-o, --output-path <path>', 'Specify the JSON path to write the verification key fields and key hash')
   .action(async ({ inputPath, outputPath }) => {
     handleGlobalOptions();
