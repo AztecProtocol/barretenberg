@@ -31,6 +31,9 @@ class ECCOpQueue {
     Point point_at_infinity = curve::BN254::Group::affine_point_at_infinity;
     using Fr = curve::BN254::ScalarField;
     using Fq = curve::BN254::BaseField; // Grumpkin's scalar field
+
+    Point accumulator = point_at_infinity; // current accumulator point
+
   public:
     std::vector<ECCOp> raw_ops;
     std::vector<std::array<Fr, 4>> ultra_ops;
@@ -52,8 +55,13 @@ class ECCOpQueue {
         return num_muls;
     }
 
+    Point get_accumulator() { return accumulator; }
+
     void add_accumulate(const Point& to_add)
     {
+        accumulator.self_set_infinity();
+        accumulator = accumulator + to_add;
+
         raw_ops.emplace_back(ECCOp{
             .add = true,
             .mul = false,
@@ -68,6 +76,8 @@ class ECCOpQueue {
 
     void mul_accumulate(const Point& to_mul, const Fr& scalar)
     {
+        accumulator = accumulator + to_mul * scalar;
+
         Fr scalar_1 = 0;
         Fr scalar_2 = 0;
         auto converted = scalar.from_montgomery_form();
@@ -87,6 +97,8 @@ class ECCOpQueue {
     }
     void eq(const Point& expected)
     {
+        accumulator.self_set_infinity(); // WORKTODO: is this always desired?
+
         raw_ops.emplace_back(ECCOp{
             .add = false,
             .mul = false,
