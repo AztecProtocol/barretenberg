@@ -36,69 +36,70 @@ TEST(translator_circuit_builder, scoping_out_the_circuit)
     // 2 rows:
     // OP | P.xₗₒ | P.xₕᵢ | P.yₗₒ
     // -  | P.yₕᵢ | z₁    | z₂
-    // Horizontal Rows:
-    //  |-   | OP |
-    //  |P.yₕᵢ |P.xₗₒ |
-    //  |z₁ |P.xₕᵢ |
-    // | z₂ |P.yₗₒ |
-    // | p_x_1 | p_x_0 | 68-bit limbs
-    // | p_x_1_0 | p_x_0_0 | 12 bit limbs
-    // | p_x_1_1 | p_x_0_1 | 12 bit limbs
-    // | p_x_1_2 | p_x_0_2 | 12 bit limbs
-    // | p_x_1_3 | p_x_0_3 | 12 bit limbs
-    // | p_x_1_4 | p_x_0_4 | 12 bit limbs
-    // | p_x_1_5 | p_x_0_5 | 8 bit limns
-    // | p_x_3 | p_x_2 | 68-bit limbs
-    // | p_x_3_0 | p_x_2_0 | 12 bit limbs
-    // | p_x_3_1 | p_x_2_1 | 12 bit limbs
-    // | p_x_3_2 | p_x_2_2 | 12 bit limbs
-    // | p_x_3_3 | p_x_2_3 | 12 bit limbs
-    // | p_x_3_4 | p_x_2_4 | p_x_3_4 is 2 bits and enforced with a relation. p_x_2_4 is 12 bits
-    // | -       | p_x_2_5 | 8 bit limb
-    // | p_y_1 | p_y_0 | 68-bit limbs
-    // | p_y_1_0 | p_y_0_0 | 12 bit limbs
-    // | p_y_1_1 | p_y_0_1 | 12 bit limbs
-    // | p_y_1_2 | p_y_0_2 | 12 bit limbs
-    // | p_y_1_3 | p_y_0_3 | 12 bit limbs
-    // | p_y_1_4 | p_y_0_4 | 12 bit limbs
-    // | p_y_1_5 | p_y_0_5 | 8 bit limns
-    // | p_y_3 | p_y_2 | 68-bit limbs
-    // | p_y_3_0 | p_y_2_0 | 12 bit limbs
-    // | p_y_3_1 | p_y_2_1 | 12 bit limbs
-    // | p_y_3_2 | p_y_2_2 | 12 bit limbs
-    // | p_y_3_3 | p_y_2_3 | 12 bit limbs
-    // | p_y_3_4 | p_y_2_4 | p_y_3_4 is 2 bits and enforced with a relation. p_y_2_4 is 12 bits
-    // | -       | p_y_2_5 | 8 bit limb
-    // | z_1_hi  | z_1_lo | 68 bit limbs
-    // | z_1_hi_0| z_1_lo_0| 12 bit limbs
-    // | z_1_hi_1| z_1_lo_1| 12 bit limbs
-    // | z_1_hi_2| z_1_lo_2| 12 bit limbs
-    // | z_1_hi_3| z_1_lo_3| 12 bit limbs
-    // | z_1_hi_4| z_1_lo_4| 12 bit limbs
-    // | z_1_hi_5| z_1_lo_5| 8 bit limbs
-    // | z_2_hi  | z_2_lo | 68 bit limbs
-    // | z_2_hi_0| z_2_lo_0| 12 bit limbs
-    // | z_2_hi_1| z_2_lo_1| 12 bit limbs
-    // | z_2_hi_2| z_2_lo_2| 12 bit limbs
-    // | z_2_hi_3| z_2_lo_3| 12 bit limbs
-    // | z_2_hi_4| z_2_lo_4| 12 bit limbs
-    // | z_2_hi_5| z_2_lo_5| 8 bit limbs
-    // |A₀ |Aₚᵣₑᵥ_₀| 68
-    // |A₁ |Aₚᵣₑᵥ_₁| 68
-    // |A₂ |Aₚᵣₑᵥ_₂| 68
-    // |A₃ |Aₚᵣₑᵥ_₃| 68
-    // | A_1_0 | A_0_0 | 12
-    // | A_1_1 | A_0_1 | 12
-    // | A_1_2 | A_0_2 | 12
-    // | A_1_3 | A_0_3 | 12
-    // | A_1_4 | A_0_4 | 12
-    // | A_1_5 | A_0_5 | 8
-    // | A_3_0 | A_2_0 | 12
-    // | A_3_1 | A_2_1 | 12
-    // | A_3_2 | A_2_2 | 12
-    // | A_3_3 | A_2_3 | 12
-    // | A_3_4 | A_2_4 | 2/12
-    // | -  | A_2_5 | 12
+
+    // Rows written vertically:
+    // 0	 |  -       |   OP      |
+    // 1	 |  P.yₕᵢ   |   P.xₗₒ   |
+    // 2	 |  z₁      |   P.xₕᵢ   |
+    // 3	 |  z₂      |   P.yₗₒ   |
+    // 4	 |  p_x_1   |   p_x_0   | 68-bit limbs
+    // 5	 |  p_x_1_0 |   p_x_0_0 | 12 bit limbs
+    // 6	 |  p_x_1_1 |   p_x_0_1 | 12 bit limbs
+    // 7	 |  p_x_1_2 |   p_x_0_2 | 12 bit limbs
+    // 8	 |  p_x_1_3 |   p_x_0_3 | 12 bit limbs
+    // 9	 |  p_x_1_4 |   p_x_0_4 | 12 bit limbs
+    // 10	 |  p_x_1_5 |   p_x_0_5 | 8 bit limns
+    // 11	 |  p_x_3   |   p_x_2   | 68-bit limbs
+    // 12	 |  p_x_3_0 |   p_x_2_0 | 12 bit limbs
+    // 13	 |  p_x_3_1 |   p_x_2_1 | 12 bit limbs
+    // 14	 |  p_x_3_2 |   p_x_2_2 | 12 bit limbs
+    // 15	 |  p_x_3_3 |   p_x_2_3 | 12 bit limbs
+    // 16	 |  p_x_3_4 |   p_x_2_4 | p_x_3_4 is 2 bits and enforced with a relation. p_x_2_4 is 12 bits
+    // 17	 |  -       |   p_x_2_5 | 8 bit limb
+    // 18	 |  p_y_1   |   p_y_0   | 68-bit limbs
+    // 19	 |  p_y_1_0 |   p_y_0_0 | 12 bit limbs
+    // 20	 |  p_y_1_1 |   p_y_0_1 | 12 bit limbs
+    // 21	 |  p_y_1_2 |   p_y_0_2 | 12 bit limbs
+    // 22	 |  p_y_1_3 |   p_y_0_3 | 12 bit limbs
+    // 23	 |  p_y_1_4 |   p_y_0_4 | 12 bit limbs
+    // 24	 |  p_y_1_5 |   p_y_0_5 | 8 bit limns
+    // 25	 |  p_y_3   |   p_y_2   | 68-bit limbs
+    // 26	 |  p_y_3_0 |   p_y_2_0 | 12 bit limbs
+    // 27	 |  p_y_3_1 |   p_y_2_1 | 12 bit limbs
+    // 28	 |  p_y_3_2 |   p_y_2_2 | 12 bit limbs
+    // 29	 |  p_y_3_3 |   p_y_2_3 | 12 bit limbs
+    // 30	 |  p_y_3_4 |   p_y_2_4 | p_y_3_4 is 2 bits and enforced with a relation. p_y_2_4 is 12 bits
+    // 31	 |  -       |   p_y_2_5 | 8 bit limb
+    // 32	 |  z_1_hi  |   z_1_lo  | 68 bit limbs
+    // 33	 |  z_1_hi_0|   z_1_lo_0| 12 bit limbs
+    // 34	 |  z_1_hi_1|   z_1_lo_1| 12 bit limbs
+    // 35	 |  z_1_hi_2|   z_1_lo_2| 12 bit limbs
+    // 36	 |  z_1_hi_3|   z_1_lo_3| 12 bit limbs
+    // 37	 |  z_1_hi_4|   z_1_lo_4| 12 bit limbs
+    // 38	 |  z_1_hi_5|   z_1_lo_5| 8 bit limbs
+    // 39	 |  z_2_hi  |   z_2_lo  | 68 bit limbs
+    // 40	 |  z_2_hi_0|   z_2_lo_0| 12 bit limbs
+    // 41	 |  z_2_hi_1|   z_2_lo_1| 12 bit limbs
+    // 42	 |  z_2_hi_2|   z_2_lo_2| 12 bit limbs
+    // 43	 |  z_2_hi_3|   z_2_lo_3| 12 bit limbs
+    // 44	 |  z_2_hi_4|   z_2_lo_4| 12 bit limbs
+    // 45	 |  z_2_hi_5|   z_2_lo_5| 8 bit limbs
+    // 46	 |  A₀      |   Aₚᵣₑᵥ_₀ | 68
+    // 47	 |  A₁      |   Aₚᵣₑᵥ_₁ | 68
+    // 48	 |  A₂      |   Aₚᵣₑᵥ_₂ | 68
+    // 49	 |  A₃      |   Aₚᵣₑᵥ_₃ | 68
+    // 50	 |  A_1_0   |   A_0_0   | 12
+    // 51	 |  A_1_1   |   A_0_1   | 12
+    // 52	 |  A_1_2   |   A_0_2   | 12
+    // 53	 |  A_1_3   |   A_0_3   | 12
+    // 54	 |  A_1_4   |   A_0_4   | 12
+    // 55	 |  A_1_5   |   A_0_5   | 8
+    // 56	 |  A_3_0   |   A_2_0   | 12
+    // 57	 |  A_3_1   |   A_2_1   | 12
+    // 58	 |  A_3_2   |   A_2_2   | 12
+    // 59	 |  A_3_3   |   A_2_3   | 12
+    // 60	 |  A_3_4   |   A_2_4   | 2/12
+    // 61	 |  -       |   A_2_5   | 12
 
     Fr op;
     Fr p_x_lo;
