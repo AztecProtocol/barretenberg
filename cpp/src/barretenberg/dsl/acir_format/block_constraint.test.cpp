@@ -14,25 +14,25 @@ size_t generate_block_constraint(acir_format::BlockConstraint& constraint, std::
 
     fr two = fr::one() + fr::one();
     poly_triple a0 = poly_triple{
-        .a = 1,
+        .a = 2,
         .b = 0,
         .c = 0,
         .q_m = 0,
-        .q_l = two,
+        .q_l = fr::one(),
         .q_r = 0,
         .q_o = 0,
         .q_c = 0,
     };
     fr three = fr::one() + two;
     poly_triple a1 = poly_triple{
-        .a = 0,
+        .a = 3,
         .b = 0,
         .c = 0,
         .q_m = 0,
-        .q_l = 0,
+        .q_l = fr::one(),
         .q_r = 0,
         .q_o = 0,
-        .q_c = three,
+        .q_c = 0,
     };
     poly_triple r1 = poly_triple{
         .a = 1,
@@ -45,11 +45,11 @@ size_t generate_block_constraint(acir_format::BlockConstraint& constraint, std::
         .q_c = fr::neg_one(),
     };
     poly_triple r2 = poly_triple{
-        .a = 1,
+        .a = 2,
         .b = 0,
         .c = 0,
         .q_m = 0,
-        .q_l = two,
+        .q_l = fr::one(),
         .q_r = 0,
         .q_o = 0,
         .q_c = fr::neg_one(),
