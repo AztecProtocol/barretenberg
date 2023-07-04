@@ -170,13 +170,33 @@ TEST(translator_circuit_builder, scoping_out_the_circuit)
          v_quarted_witnesses[0] * z_2_hi + quotient_witnesses[0] * neg_modulus_limbs[1] +
          quotient_witnesses[1] * neg_modulus_limbs[0] - remainder_witnesses[1]) *
             shift_1; // And this covers the limb shifted by 68
-
+    // Treating accumulator as 254-bit constrained value
+    constexpr auto max_limb_size = (uint512_t(1) << NUM_LIMB_BITS) - 1;
+    constexpr auto shift_1_u512 = uint512_t(shift_1);
+    constexpr auto op_max_size = uint512_t(4);
+    constexpr uint512_t lwl_maximum_value = op_max_size + (max_limb_size * max_limb_size) * ((shift_1_u512 * 12) + 6);
+    constexpr uint512_t lwl_maximum_value_constraint =
+        (lwl_maximum_value >> (2 * NUM_LIMB_BITS)).lo +
+        uint256_t(uint64_t((lwl_maximum_value % uint512_t(1) << (2 * NUM_LIMB_BITS)) != 0));
+    constexpr auto lwl_range_consraint_size = lwl_maximum_value_constraint.get_msb() + 1;
+    (void)lwl_range_consraint_size;
     // Low bits have to be zero
     EXPECT_EQ(uint256_t(low_wide_relation_limb).slice(0, 2 * NUM_LIMB_BITS), 0);
 
     Fr low_wide_relation_limb_divided = low_wide_relation_limb * shift_2_inverse;
     // We need to range constrain the low_wide_relation_limb_divided
+    constexpr size_t NUM_LAST_BN254_LIMB_BITS = modulus_u512.get_msb() + 1 - NUM_LIMB_BITS * 3;
 
+    constexpr auto max_high_limb_size = (uint512_t(1) << NUM_LAST_BN254_LIMB_BITS) - 1;
+    constexpr uint512_t hwl_maximum_value =
+        lwl_maximum_value_constraint + (max_limb_size * max_limb_size) * 16 +
+        (max_limb_size * max_limb_size * 10 + max_limb_size * max_high_limb_size * 10) * shift_1_u512;
+    constexpr uint512_t hwl_maximum_value_constraint =
+        (hwl_maximum_value >> (2 * NUM_LIMB_BITS)).lo +
+        uint256_t(uint64_t((hwl_maximum_value % uint512_t(1) << (2 * NUM_LIMB_BITS)) != 0));
+    constexpr auto hwl_range_consraint_size = hwl_maximum_value_constraint.get_msb() + 1;
+    info(hwl_range_consraint_size);
+    // 4 high combinations = 8 ml*ml + 8 ml*last_ml. 2 low combinations = 2*ml*ml + 2*ml*last_ml
     Fr high_wide_relation_limb =
         low_wide_relation_limb_divided + accumulator_witnesses[2] * x_witnesses[0] +
         accumulator_witnesses[1] * x_witnesses[1] + accumulator_witnesses[0] * x_witnesses[2] +
