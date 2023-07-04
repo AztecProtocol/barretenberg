@@ -9,13 +9,13 @@
 
 using curve = proof_system::plonk::stdlib::secp256r1<acir_format::Composer>;
 
-// todo: name
-size_t gen(acir_format::EcdsaSecp256r1Constraint& ecdsa_r1_constraint,
-           std::vector<fr>& witness_values,
-           uint256_t pub_x_value,
-           uint256_t pub_y_value,
-           std::array<uint8_t, 32> hashed_message,
-           crypto::ecdsa::signature signature)
+// Generate r1 constraints given pre generated pubkey, sig and message values
+size_t generate_r1_constraints(acir_format::EcdsaSecp256r1Constraint& ecdsa_r1_constraint,
+                               std::vector<fr>& witness_values,
+                               uint256_t pub_x_value,
+                               uint256_t pub_y_value,
+                               std::array<uint8_t, 32> hashed_message,
+                               crypto::ecdsa::signature signature)
 {
 
     std::vector<uint32_t> message_in;
@@ -85,7 +85,7 @@ size_t generate_ecdsa_constraint(acir_format::EcdsaSecp256r1Constraint& ecdsa_r1
     crypto::ecdsa::signature signature =
         crypto::ecdsa::construct_signature<Sha256Hasher, curve::fq, curve::fr, curve::g1>(message_string, account);
 
-    return gen(
+    return generate_r1_constraints(
         ecdsa_r1_constraint, witness_values, account.public_key.x, account.public_key.y, hashed_message, signature);
 }
 
@@ -117,7 +117,8 @@ TEST(ECDSASecp256r1, test_hardcoded)
 
     account.public_key = curve::g1::one * account.private_key;
 
-    size_t num_variables = gen(ecdsa_r1_constraint, witness_values, pub_key_x, pub_key_y, hashed_message, signature);
+    size_t num_variables =
+        generate_r1_constraints(ecdsa_r1_constraint, witness_values, pub_key_x, pub_key_y, hashed_message, signature);
     acir_format::acir_format constraint_system{
         .varnum = static_cast<uint32_t>(num_variables),
         .public_inputs = {},
