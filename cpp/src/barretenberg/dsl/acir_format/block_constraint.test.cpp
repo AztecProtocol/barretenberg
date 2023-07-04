@@ -12,7 +12,6 @@ size_t generate_block_constraint(acir_format::BlockConstraint& constraint, std::
     witness_values.emplace_back(1);
     witness_len++;
 
-    fr two = fr::one() + fr::one();
     poly_triple a0 = poly_triple{
         .a = 2,
         .b = 0,
@@ -23,7 +22,6 @@ size_t generate_block_constraint(acir_format::BlockConstraint& constraint, std::
         .q_o = 0,
         .q_c = 0,
     };
-    // fr three = fr::one() + two;
     poly_triple a1 = poly_triple{
         .a = 3,
         .b = 0,
