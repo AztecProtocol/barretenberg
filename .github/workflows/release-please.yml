@@ -106,7 +106,7 @@ jobs:
   release:
     name: Publish
     needs: [build-linux, build-mac, release-please]
-    runs-on: ubuntu-large2
+    runs-on: ubuntu-latest
     steps:
       - name: Download files from Linux Runner
         uses: actions/download-artifact@v2
