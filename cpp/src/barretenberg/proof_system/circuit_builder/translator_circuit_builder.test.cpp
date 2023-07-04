@@ -21,13 +21,13 @@ TEST(translator_circuit_builder, scoping_out_the_circuit)
     constexpr Fr shift_2_inverse = shift_2.invert();
     constexpr uint256_t DOUBLE_LIMB_SIZE = uint256_t(1) << (NUM_LIMB_BITS << 1);
     constexpr uint512_t BINARY_BASIS_MODULUS = uint512_t(1) << (NUM_LIMB_BITS << 2);
-    constexpr Fr negative_prime_modulus_mod_binary_basis = -Fr(uint256_t(modulus_u512));
     constexpr uint512_t negative_prime_modulus = BINARY_BASIS_MODULUS - modulus_u512;
-    constexpr barretenberg::fr neg_modulus_limbs[4]{
-        barretenberg::fr(negative_prime_modulus.slice(0, NUM_LIMB_BITS).lo),
-        barretenberg::fr(negative_prime_modulus.slice(NUM_LIMB_BITS, NUM_LIMB_BITS * 2).lo),
-        barretenberg::fr(negative_prime_modulus.slice(NUM_LIMB_BITS * 2, NUM_LIMB_BITS * 3).lo),
-        barretenberg::fr(negative_prime_modulus.slice(NUM_LIMB_BITS * 3, NUM_LIMB_BITS * 4).lo),
+    constexpr std::array<Fr, 5> neg_modulus_limbs = {
+        Fr(negative_prime_modulus.slice(0, NUM_LIMB_BITS).lo),
+        Fr(negative_prime_modulus.slice(NUM_LIMB_BITS, NUM_LIMB_BITS * 2).lo),
+        Fr(negative_prime_modulus.slice(NUM_LIMB_BITS * 2, NUM_LIMB_BITS * 3).lo),
+        Fr(negative_prime_modulus.slice(NUM_LIMB_BITS * 3, NUM_LIMB_BITS * 4).lo),
+        -Fr(modulus_u512.lo)
     };
     // x is the value (challenge) at which we are evaluating the polynomials
     // y is the end result of the whole combination (I don't know why we use y for domain and x for evalutation in
@@ -52,6 +52,9 @@ TEST(translator_circuit_builder, scoping_out_the_circuit)
     p_y_hi = get_random_shortened_wide_limb();
     z_1 = get_random_wide_limb();
     z_2 = get_random_wide_limb();
+
+    Fp accumulator;
+    accumulator = Fp::random_element();
     // p_y_lo = get_random_wide_limb();
     //  Creating a bigfield representation from (binary_limb_0, binary_limb_1, binary_limb_2, binary_limb_3, prime_limb)
     auto base_element_to_bigfield = [](Fp& original) {
@@ -70,16 +73,23 @@ TEST(translator_circuit_builder, scoping_out_the_circuit)
                                Fr(original.slice(0, NUM_LIMB_BITS * 2).lo) +
                                    Fr(original.slice(NUM_LIMB_BITS * 2, NUM_LIMB_BITS * 4).lo) * shift_2);
     };
+
+    auto [accumulator_0, accumulator_1, accumulator_2, accumulator_3, accumulator_prime] =
+        base_element_to_bigfield(accumulator);
+    std::array<Fr, 5> accumulator_witnesses = {
+        accumulator_0, accumulator_1, accumulator_2, accumulator_3, accumulator_prime
+    };
     //  x and powers of v are given to use in challenge form, so the verifier has to deal with this :)
     Fp v;
-    Fp v_squared(0);
-    Fp v_cubed(0);
-    Fp v_quarted(0);
-    Fp x(0);
+    Fp v_squared;
+    Fp v_cubed;
+    Fp v_quarted;
+    Fp x;
     v = Fp::random_element();
     v_squared = v * v;
     v_cubed = v_squared * v;
     v_quarted = v_cubed * v;
+    x = Fp::random_element();
 
     auto [v_0, v_1, v_2, v_3, v_prime] = base_element_to_bigfield(v);
     std::array<Fr, 5> v_witnesses = { v_0, v_1, v_2, v_3, v_prime };
@@ -89,8 +99,8 @@ TEST(translator_circuit_builder, scoping_out_the_circuit)
     std::array<Fr, 5> v_cubed_witnesses = { v_cubed_0, v_cubed_1, v_cubed_2, v_cubed_3, v_cubed_prime };
     auto [v_quarted_0, v_quarted_1, v_quarted_2, v_quarted_3, v_quarted_prime] = base_element_to_bigfield(v_quarted);
     std::array<Fr, 5> v_quarted_witnesses = { v_quarted_0, v_quarted_1, v_quarted_2, v_quarted_3, v_quarted_prime };
-    // auto [x_0, x_1, x_2, x_3, x_prime] = base_element_to_bigfield(x);
-    // Fr x_witnesses[5] = { x_0, x_1, x_2, x_3, x_prime };
+    auto [x_0, x_1, x_2, x_3, x_prime] = base_element_to_bigfield(x);
+    std::array<Fr, 5> x_witnesses = { x_0, x_1, x_2, x_3, x_prime };
 
     // Each of these first needs to be converted to a bigfield value:
     // Range constrain op to 68 bits (1 limb). We can then simply treat it as 1 limb and add it at the endw
@@ -99,6 +109,8 @@ TEST(translator_circuit_builder, scoping_out_the_circuit)
                                Fr(uint256_t(wide_limb).slice(NUM_LIMB_BITS, 2 * NUM_LIMB_BITS)));
     };
     // Unsigned interger versions for use in witness computation
+    auto uint_accumulator = uint512_t(accumulator);
+    auto uint_x = uint512_t(x);
     auto uint_op = uint512_t(op);
     auto uint_p_x = uint512_t(uint256_t(p_x_lo) + (uint256_t(p_x_hi) << (NUM_LIMB_BITS << 1)));
     auto uint_p_y = uint512_t(uint256_t(p_y_lo) + (uint256_t(p_y_hi) << (NUM_LIMB_BITS << 1)));
@@ -129,27 +141,30 @@ TEST(translator_circuit_builder, scoping_out_the_circuit)
     auto [z_1_lo, z_1_hi] = split_wide_limb_into_2_limbs(z_1);
     auto [z_2_lo, z_2_hi] = split_wide_limb_into_2_limbs(z_2);
     // Range constrain all the individual limbs
-    // The formula is `accumulator += op + v⋅p.x + v²⋅p.y + v³⋅z₁ + v⁴z₂`. We need to compute ther remainder
+    // The formula is `accumulator = accumulator⋅x + (op + v⋅p.x + v²⋅p.y + v³⋅z₁ + v⁴z₂)`. We need to compute ther
+    // remainder
 
-    Fp remainder = base_z_2 * v_quarted + base_z_1 * v_cubed + base_p_y * v_squared + base_p_x * v + base_op;
-    uint512_t quotient_by_modulus = uint_z_2 * uint_v_quarted + uint_z_1 * uint_v_cubed + uint_p_y * uint_v_squared +
-                                    uint_p_x * uint_v + uint_op - uint512_t(remainder);
+    Fp remainder =
+        accumulator * x + base_z_2 * v_quarted + base_z_1 * v_cubed + base_p_y * v_squared + base_p_x * v + base_op;
+    uint512_t quotient_by_modulus = uint_accumulator * uint_x + uint_z_2 * uint_v_quarted + uint_z_1 * uint_v_cubed +
+                                    uint_p_y * uint_v_squared + uint_p_x * uint_v + uint_op - uint512_t(remainder);
 
     EXPECT_EQ(quotient_by_modulus % uint512_t(Fp::modulus), 0);
 
     uint512_t quotient = quotient_by_modulus / uint512_t(Fp::modulus);
 
     auto [remainder_0, remainder_1, remainder_2, remainder_3, remainder_prime] = base_element_to_bigfield(remainder);
-    Fr remainder_witnesses[5] = { remainder_0, remainder_1, remainder_2, remainder_3, remainder_prime };
+    std::array<Fr, 5> remainder_witnesses = { remainder_0, remainder_1, remainder_2, remainder_3, remainder_prime };
     auto [quotient_0, quotient_1, quotient_2, quotient_3, quotient_prime] = uint512_t_to_bigfield(quotient);
-    Fr quotient_witnesses[5] = { quotient_0, quotient_1, quotient_2, quotient_3, quotient_prime };
+    std::array<Fr, 5> quotient_witnesses = { quotient_0, quotient_1, quotient_2, quotient_3, quotient_prime };
 
     // We will divide by shift_2 instantly in the relation itself, but f
     Fr low_wide_relation_limb =
-        op + v_witnesses[0] * p_x_witnesses[0] + v_squared_witnesses[0] * p_y_witnesses[0] +
-        v_cubed_witnesses[0] * z_1_lo + v_quarted_witnesses[0] * z_2_lo + quotient_witnesses[0] * neg_modulus_limbs[0] -
-        remainder_witnesses[0] + // This covers the lowest limb
-        (v_witnesses[1] * p_x_witnesses[0] + p_x_witnesses[1] * v_witnesses[0] +
+        accumulator_witnesses[0] * x_witnesses[0] + op + v_witnesses[0] * p_x_witnesses[0] +
+        v_squared_witnesses[0] * p_y_witnesses[0] + v_cubed_witnesses[0] * z_1_lo + v_quarted_witnesses[0] * z_2_lo +
+        quotient_witnesses[0] * neg_modulus_limbs[0] - remainder_witnesses[0] + // This covers the lowest limb
+        (accumulator_witnesses[1] * x_witnesses[0] + accumulator_witnesses[0] * x_witnesses[1] +
+         v_witnesses[1] * p_x_witnesses[0] + p_x_witnesses[1] * v_witnesses[0] +
          v_squared_witnesses[1] * p_y_witnesses[0] + v_squared_witnesses[0] * p_y_witnesses[1] +
          v_cubed_witnesses[1] * z_1_lo + z_1_hi * v_cubed_witnesses[0] + v_quarted_witnesses[1] * z_2_lo +
          v_quarted_witnesses[0] * z_2_hi + quotient_witnesses[0] * neg_modulus_limbs[1] +
@@ -163,14 +178,17 @@ TEST(translator_circuit_builder, scoping_out_the_circuit)
     // We need to range constrain the low_wide_relation_limb_divided
 
     Fr high_wide_relation_limb =
-        low_wide_relation_limb_divided + v_witnesses[2] * p_x_witnesses[0] + v_witnesses[1] * p_x_witnesses[1] +
-        v_witnesses[0] * p_x_witnesses[2] + v_squared_witnesses[2] * p_y_witnesses[0] +
-        v_squared_witnesses[1] * p_y_witnesses[1] + v_squared_witnesses[0] * p_y_witnesses[2] +
-        v_cubed_witnesses[2] * z_1_lo + v_cubed_witnesses[1] * z_1_hi + v_quarted_witnesses[2] * z_2_lo +
-        v_quarted_witnesses[1] * z_2_hi + quotient_witnesses[2] * neg_modulus_limbs[0] +
-        quotient_witnesses[1] * neg_modulus_limbs[1] + quotient_witnesses[0] * neg_modulus_limbs[2] -
-        remainder_witnesses[2] +
-        (v_witnesses[3] * p_x_witnesses[0] + v_witnesses[2] * p_x_witnesses[1] + v_witnesses[1] * p_x_witnesses[2] +
+        low_wide_relation_limb_divided + accumulator_witnesses[2] * x_witnesses[0] +
+        accumulator_witnesses[1] * x_witnesses[1] + accumulator_witnesses[0] * x_witnesses[2] +
+        v_witnesses[2] * p_x_witnesses[0] + v_witnesses[1] * p_x_witnesses[1] + v_witnesses[0] * p_x_witnesses[2] +
+        v_squared_witnesses[2] * p_y_witnesses[0] + v_squared_witnesses[1] * p_y_witnesses[1] +
+        v_squared_witnesses[0] * p_y_witnesses[2] + v_cubed_witnesses[2] * z_1_lo + v_cubed_witnesses[1] * z_1_hi +
+        v_quarted_witnesses[2] * z_2_lo + v_quarted_witnesses[1] * z_2_hi +
+        quotient_witnesses[2] * neg_modulus_limbs[0] + quotient_witnesses[1] * neg_modulus_limbs[1] +
+        quotient_witnesses[0] * neg_modulus_limbs[2] - remainder_witnesses[2] +
+        (accumulator_witnesses[3] * x_witnesses[0] + accumulator_witnesses[2] * x_witnesses[1] +
+         accumulator_witnesses[1] * x_witnesses[2] + accumulator_witnesses[0] * x_witnesses[3] +
+         v_witnesses[3] * p_x_witnesses[0] + v_witnesses[2] * p_x_witnesses[1] + v_witnesses[1] * p_x_witnesses[2] +
          v_witnesses[0] * p_x_witnesses[3] + v_squared_witnesses[3] * p_y_witnesses[0] +
          v_squared_witnesses[2] * p_y_witnesses[1] + v_squared_witnesses[1] * p_y_witnesses[2] +
          v_squared_witnesses[0] * p_y_witnesses[3] + v_cubed_witnesses[3] * z_1_lo + v_cubed_witnesses[2] * z_1_hi +
@@ -185,9 +203,10 @@ TEST(translator_circuit_builder, scoping_out_the_circuit)
     // And we'll need to range constrain it
 
     // Prime relation
-    Fr prime_relation = op + v_witnesses[4] * p_x_witnesses[4] + v_squared_witnesses[4] * p_y_witnesses[4] +
-                        v_cubed_witnesses[4] * z_1 + v_quarted_witnesses[4] * z_2 +
-                        quotient_witnesses[4] * negative_prime_modulus_mod_binary_basis - remainder_witnesses[4];
+    Fr prime_relation = accumulator_witnesses[4] * x_witnesses[4] + op + v_witnesses[4] * p_x_witnesses[4] +
+                        v_squared_witnesses[4] * p_y_witnesses[4] + v_cubed_witnesses[4] * z_1 +
+                        v_quarted_witnesses[4] * z_2 + quotient_witnesses[4] * neg_modulus_limbs[4] -
+                        remainder_witnesses[4];
     EXPECT_EQ(prime_relation, 0);
     EXPECT_EQ(Fp(1), Fp(1));
     EXPECT_EQ(Fr(1), Fr(1));
