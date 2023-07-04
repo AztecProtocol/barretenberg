@@ -6,16 +6,6 @@ namespace acir_format {
 
 using namespace proof_system::plonk::stdlib;
 
-crypto::schnorr::signature convert_signature(Composer& composer, fr sig_s, fr sig_e)
-{
-
-    crypto::schnorr::signature signature_cr;
-    fr::serialize_to_buffer(sig_s, &signature_cr.s[0]);
-    fr::serialize_to_buffer(sig_e, &signature_cr.e[0]);
-
-    return signature_cr;
-}
-
 // vector of bytes here, assumes that the witness indices point to a field element which can be represented
 // with just a byte.
 // notice that this function truncates each field_element to a byte
@@ -43,10 +33,6 @@ witness_ct index_to_witness(Composer& composer, uint32_t index)
 
 void create_schnorr_verify_constraints(Composer& composer, const SchnorrConstraint& input)
 {
-
-    fr sig_s = composer.get_variable(input.signature_s);
-    fr sig_e = composer.get_variable(input.signature_e);
-    auto new_sig = convert_signature(composer, sig_s, sig_e);
     // From ignorance, you will see me convert a bunch of witnesses from ByteArray -> BitArray
     // This may not be the most efficient way to do it. It is being used as it is known to work,
     // optimisations are welcome!
@@ -60,6 +46,13 @@ void create_schnorr_verify_constraints(Composer& composer, const SchnorrConstrai
     fr pubkey_value_y = composer.get_variable(input.public_key_y);
 
     point_ct pub_key{ witness_ct(&composer, pubkey_value_x), witness_ct(&composer, pubkey_value_y) };
+
+    fr sig_s = composer.get_variable(input.signature_s);
+    fr sig_e = composer.get_variable(input.signature_e);
+
+    crypto::schnorr::signature new_sig;
+    fr::serialize_to_buffer(sig_s, &new_sig.s[0]);
+    fr::serialize_to_buffer(sig_e, &new_sig.e[0]);
 
     schnorr_signature_bits_ct sig = schnorr::convert_signature(&composer, new_sig);
 
