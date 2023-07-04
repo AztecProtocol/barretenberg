@@ -1,4 +1,5 @@
 #include "barretenberg/ecc/curves/bn254/bn254.hpp"
+#include "goblin_translator_circuit_builder.hpp"
 #include <gtest/gtest.h>
 
 using namespace barretenberg;
