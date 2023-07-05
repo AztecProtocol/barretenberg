@@ -108,7 +108,7 @@ void AcirComposer::load_verification_key(std::shared_ptr<barretenberg::srs::fact
 {
     verification_key_ =
         std::make_shared<proof_system::plonk::verification_key>(std::move(data), crs_factory->get_verifier_crs());
-    composer_ = acir_format::Composer(proving_key_, verification_key_, verification_key_->circuit_size);
+    composer_ = acir_format::Composer(proving_key_, verification_key_);
 }
 
 bool AcirComposer::verify_proof(std::vector<uint8_t> const& proof, bool is_recursive)
