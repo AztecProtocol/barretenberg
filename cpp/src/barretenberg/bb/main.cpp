@@ -1,13 +1,13 @@
-#include <iostream>
-#include <string>
-#include <vector>
-#include <barretenberg/common/container.hpp>
-#include <barretenberg/dsl/acir_proofs/acir_composer.hpp>
-#include <barretenberg/dsl/acir_format/acir_format.hpp>
-#include <barretenberg/srs/global_crs.hpp>
 #include "barretenberg/bb/get_crs.hpp"
 #include "file_io.hpp"
 #include "get_bytecode.hpp"
+#include <barretenberg/common/container.hpp>
+#include <barretenberg/dsl/acir_format/acir_format.hpp>
+#include <barretenberg/dsl/acir_proofs/acir_composer.hpp>
+#include <barretenberg/srs/global_crs.hpp>
+#include <iostream>
+#include <string>
+#include <vector>
 
 using namespace barretenberg;
 
@@ -15,7 +15,7 @@ uint32_t MAX_CIRCUIT_SIZE = 1 << 19;
 auto CRS_PATH = "./crs";
 bool verbose = false;
 
-void init(const std::string& jsonPath)
+void init()
 {
     // Must +1!
     auto g1_data = get_g1_data(CRS_PATH, MAX_CIRCUIT_SIZE + 1);
@@ -153,7 +153,7 @@ int main(int argc, char* argv[])
     std::string proof_path = getOption(args, "-p", "./proofs/proof");
     std::string vk_path = getOption(args, "-k", "./target/vk");
     bool recursive = flagPresent(args, "-r") || flagPresent(args, "--recursive");
-    init(json_path);
+    init();
 
     if (command == "prove_and_verify") {
         proveAndVerify(json_path, witness_path, recursive);
