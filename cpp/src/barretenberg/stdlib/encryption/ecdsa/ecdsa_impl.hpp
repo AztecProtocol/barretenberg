@@ -2,7 +2,6 @@
 
 #include "../../hash/sha256/sha256.hpp"
 #include "../../primitives/bit_array/bit_array.hpp"
-#include "../../primitives/composers/composers.hpp"
 
 namespace proof_system::plonk {
 namespace stdlib {
@@ -75,13 +74,20 @@ bool_t<Composer> verify_signature(const stdlib::byte_array<Composer>& message,
     r.assert_is_not_equal(Fr::zero());
     s.assert_is_not_equal(Fr::zero());
 
+    // s should be less than |Fr| / 2
+    // Read more about this at: https://www.derpturkey.com/inherent-malleability-of-ecdsa-signatures/amp/
+    s.assert_less_than((Fr::modulus + 1) / 2);
+
     Fr u1 = z / s;
     Fr u2 = r / s;
 
+    public_key.validate_on_curve();
+
     G1 result;
-    if constexpr (Composer::type == ComposerType::PLOOKUP) {
-        ASSERT(Curve::type == proof_system::CurveType::SECP256K1);
-        public_key.validate_on_curve();
+    // TODO(Cody): Having Plookup should not determine which curve is used.
+    // Use special plookup secp256k1 ECDSA mul if available (this relies on k1 endomorphism, and cannot be used for
+    // other curves)
+    if constexpr (HasPlookup<Composer> && Curve::type == proof_system::CurveType::SECP256K1) {
         result = G1::secp256k1_ecdsa_mul(public_key, u1, u2);
     } else {
         result = G1::batch_mul({ G1::one(ctx), public_key }, { u1, u2 });
@@ -144,13 +150,19 @@ bool_t<Composer> verify_signature_prehashed_message_noassert(const stdlib::byte_
     r.assert_is_not_equal(Fr::zero());
     s.assert_is_not_equal(Fr::zero());
 
+    // s should be less than |Fr| / 2
+    // Read more about this at: https://www.derpturkey.com/inherent-malleability-of-ecdsa-signatures/amp/
+    s.assert_less_than((Fr::modulus + 1) / 2);
+
     Fr u1 = z / s;
     Fr u2 = r / s;
 
+    public_key.validate_on_curve();
+
     G1 result;
-    if constexpr (Composer::type == ComposerType::PLOOKUP) {
-        ASSERT(Curve::type == proof_system::CurveType::SECP256K1);
-        public_key.validate_on_curve();
+    // Use special plookup secp256k1 ECDSA mul if available (this relies on k1 endomorphism, and cannot be used for
+    // other curves)
+    if constexpr (HasPlookup<Composer> && Curve::type == proof_system::CurveType::SECP256K1) {
         result = G1::secp256k1_ecdsa_mul(public_key, u1, u2);
     } else {
         result = G1::batch_mul({ G1::one(ctx), public_key }, { u1, u2 });

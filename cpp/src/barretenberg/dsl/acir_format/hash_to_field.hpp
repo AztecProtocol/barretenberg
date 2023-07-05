@@ -1,7 +1,7 @@
 #pragma once
+#include "barretenberg/dsl/types.hpp"
 #include <cstdint>
 #include <vector>
-#include "barretenberg/dsl/types.hpp"
 
 namespace acir_format {
 
@@ -19,7 +19,7 @@ struct HashToFieldConstraint {
     friend bool operator==(HashToFieldConstraint const& lhs, HashToFieldConstraint const& rhs) = default;
 };
 
-void create_hash_to_field_constraints(Composer& composer, HashToFieldConstraint constraint);
+void create_hash_to_field_constraints(Builder& builder, HashToFieldConstraint constraint);
 
 template <typename B> inline void read(B& buf, HashToFieldInput& constraint)
 {

@@ -1,8 +1,8 @@
-#include <gtest/gtest.h>
-#include "barretenberg/stdlib/primitives/witness/witness.hpp"
+#include "barretenberg/numeric/random/engine.hpp"
 #include "barretenberg/stdlib/primitives/field/field.hpp"
 #include "barretenberg/stdlib/primitives/group/group.hpp"
-#include "barretenberg/numeric/random/engine.hpp"
+#include "barretenberg/stdlib/primitives/witness/witness.hpp"
+#include <gtest/gtest.h>
 
 #define STDLIB_TYPE_ALIASES                                                                                            \
     using Composer = TypeParam;                                                                                        \
@@ -12,17 +12,17 @@
 
 namespace stdlib_group_tests {
 using namespace barretenberg;
-using namespace plonk;
+using namespace proof_system::plonk;
+
 namespace {
 auto& engine = numeric::random::get_debug_engine();
 }
 
 template <class Composer> class GroupTest : public ::testing::Test {};
 
-using ComposerTypes = ::testing::Types<proof_system::StandardCircuitConstructor,
-                                       proof_system::TurboCircuitConstructor,
-                                       proof_system::UltraCircuitConstructor>;
-TYPED_TEST_SUITE(GroupTest, ComposerTypes);
+using CircuitTypes = ::testing::
+    Types<proof_system::StandardCircuitBuilder, proof_system::TurboCircuitBuilder, proof_system::UltraCircuitBuilder>;
+TYPED_TEST_SUITE(GroupTest, CircuitTypes);
 
 TYPED_TEST(GroupTest, TestFixedBaseScalarMul)
 {

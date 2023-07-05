@@ -1,20 +1,20 @@
 #pragma once
 #include "barretenberg/common/serialize.hpp"
-#include <array>
+#include "barretenberg/common/throw_or_abort.hpp"
+#include "barretenberg/honk/proof_system/prover.hpp"
 #include "barretenberg/honk/sumcheck/relations/relation_parameters.hpp"
+#include "barretenberg/honk/sumcheck/sumcheck_output.hpp"
 #include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/honk/utils/grand_product_delta.hpp"
-#include "barretenberg/common/throw_or_abort.hpp"
-#include "sumcheck_round.hpp"
 #include "polynomials/univariate.hpp"
+#include "sumcheck_round.hpp"
 #include <algorithm>
+#include <array>
 #include <cstddef>
+#include <optional>
 #include <span>
 #include <string>
 #include <vector>
-#include "barretenberg/honk/proof_system/prover.hpp"
-#include "barretenberg/honk/sumcheck/sumcheck_output.hpp"
-#include <optional>
 
 namespace proof_system::honk::sumcheck {
 
@@ -26,6 +26,7 @@ template <typename Flavor, class Transcript> class Sumcheck {
     using ClaimedEvaluations = typename Flavor::ClaimedEvaluations;
 
     static constexpr size_t MAX_RELATION_LENGTH = Flavor::MAX_RELATION_LENGTH;
+    static constexpr size_t MAX_RANDOM_RELATION_LENGTH = Flavor::MAX_RANDOM_RELATION_LENGTH;
     static constexpr size_t NUM_POLYNOMIALS = Flavor::NUM_ALL_ENTITIES;
 
     Transcript& transcript;
@@ -161,15 +162,15 @@ template <typename Flavor, class Transcript> class Sumcheck {
         for (size_t round_idx = 0; round_idx < multivariate_d; round_idx++) {
             // Obtain the round univariate from the transcript
             std::string round_univariate_label = "Sumcheck:univariate_" + std::to_string(round_idx);
-            auto round_univariate =
-                transcript.template receive_from_prover<Univariate<FF, MAX_RELATION_LENGTH>>(round_univariate_label);
+            auto round_univariate = transcript.template receive_from_prover<Univariate<FF, MAX_RANDOM_RELATION_LENGTH>>(
+                round_univariate_label);
 
             bool checked = round.check_sum(round_univariate, pow_univariate);
             verified = verified && checked;
             FF round_challenge = transcript.get_challenge("Sumcheck:u_" + std::to_string(round_idx));
             multivariate_challenge.emplace_back(round_challenge);
 
-            round.compute_next_target_sum(round_univariate, round_challenge, pow_univariate);
+            round.compute_next_target_sum(round_univariate, round_challenge);
             pow_univariate.partially_evaluate(round_challenge);
 
             if (!verified) {

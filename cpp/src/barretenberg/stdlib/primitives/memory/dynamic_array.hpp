@@ -1,6 +1,6 @@
 #pragma once
+#include "../circuit_builders/circuit_builders_fwd.hpp"
 #include "ram_table.hpp"
-#include "../composers/composers_fwd.hpp"
 namespace proof_system::plonk {
 namespace stdlib {
 
