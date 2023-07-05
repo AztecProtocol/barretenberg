@@ -14,8 +14,9 @@
 #include "barretenberg/ecc/scalar_multiplication/point_table.hpp"
 #include "barretenberg/ecc/scalar_multiplication/scalar_multiplication.hpp"
 #include "barretenberg/numeric/random/engine.hpp"
-#include "barretenberg/srs/io.hpp"
 #include "barretenberg/srs/factories/file_crs_factory.hpp"
+#include "barretenberg/srs/io.hpp"
+
 #include <cstddef>
 #include <vector>
 
@@ -35,8 +36,7 @@ template <typename Curve> class ScalarMultiplicationTests : public ::testing::Te
         }
     }();
 
-    static void read_transcript_g2(std::string const& srs_path)
-        requires srs::HasG2<Curve>
+    static void read_transcript_g2(std::string const& srs_path) requires srs::HasG2<Curve>
     {
         typename Curve::G2AffineElement g2_x;
         srs::IO<Curve>::read_transcript_g2(g2_x, srs_path);

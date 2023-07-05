@@ -56,7 +56,7 @@ bigfield<C, T>::bigfield(const field_t<C>& low_bits_in,
     field_t<C> limb_3(context);
     if (low_bits_in.witness_index != IS_CONSTANT) {
         std::vector<uint32_t> low_accumulator;
-        if constexpr (C::type == proof_system::ComposerType::PLOOKUP) {
+        if constexpr (HasPlookup<C>) {
             // MERGE NOTE: this was the if constexpr block introduced in ecebe7643
             const auto limb_witnesses =
                 context->decompose_non_native_field_double_width_limb(low_bits_in.normalize().witness_index);
@@ -107,7 +107,7 @@ bigfield<C, T>::bigfield(const field_t<C>& low_bits_in,
     if (high_bits_in.witness_index != IS_CONSTANT) {
 
         std::vector<uint32_t> high_accumulator;
-        if constexpr (C::type == proof_system::ComposerType::PLOOKUP) {
+        if constexpr (HasPlookup<C>) {
             const auto limb_witnesses = context->decompose_non_native_field_double_width_limb(
                 high_bits_in.normalize().witness_index, (size_t)num_high_limb_bits);
             limb_2.witness_index = limb_witnesses[0];
@@ -187,7 +187,7 @@ bigfield<C, T> bigfield<C, T>::create_from_u512_as_witness(C* ctx,
     limbs[2] = value.slice(NUM_LIMB_BITS * 2, NUM_LIMB_BITS * 3).lo;
     limbs[3] = value.slice(NUM_LIMB_BITS * 3, NUM_LIMB_BITS * 4).lo;
 
-    if constexpr (C::type == proof_system::ComposerType::PLOOKUP) {
+    if constexpr (HasPlookup<C>) {
         field_t<C> limb_0(ctx);
         field_t<C> limb_1(ctx);
         field_t<C> limb_2(ctx);
@@ -384,7 +384,7 @@ template <typename C, typename T> bigfield<C, T> bigfield<C, T>::operator+(const
     result.binary_basis_limbs[3].maximum_value =
         binary_basis_limbs[3].maximum_value + other.binary_basis_limbs[3].maximum_value;
 
-    if constexpr (C::type == proof_system::ComposerType::PLOOKUP) {
+    if constexpr (HasPlookup<C>) {
         if (prime_basis_limb.multiplicative_constant == 1 && other.prime_basis_limb.multiplicative_constant == 1 &&
             !is_constant() && !other.is_constant()) {
             bool limbconst = binary_basis_limbs[0].element.is_constant();
@@ -592,7 +592,7 @@ template <typename C, typename T> bigfield<C, T> bigfield<C, T>::operator-(const
     result.binary_basis_limbs[2].element = binary_basis_limbs[2].element + barretenberg::fr(to_add_2);
     result.binary_basis_limbs[3].element = binary_basis_limbs[3].element + barretenberg::fr(to_add_3);
 
-    if constexpr (C::type == proof_system::ComposerType::PLOOKUP) {
+    if constexpr (HasPlookup<C>) {
         if (prime_basis_limb.multiplicative_constant == 1 && other.prime_basis_limb.multiplicative_constant == 1 &&
             !is_constant() && !other.is_constant()) {
             bool limbconst = result.binary_basis_limbs[0].element.is_constant();
@@ -1647,7 +1647,7 @@ template <typename C, typename T> void bigfield<C, T>::assert_is_in_field() cons
     r1 = r1.normalize();
     r2 = r2.normalize();
     r3 = r3.normalize();
-    if constexpr (C::type == proof_system::ComposerType::PLOOKUP) {
+    if constexpr (HasPlookup<C>) {
         context->decompose_into_default_range(r0.witness_index, static_cast<size_t>(NUM_LIMB_BITS));
         context->decompose_into_default_range(r1.witness_index, static_cast<size_t>(NUM_LIMB_BITS));
         context->decompose_into_default_range(r2.witness_index, static_cast<size_t>(NUM_LIMB_BITS));
@@ -1661,6 +1661,71 @@ template <typename C, typename T> void bigfield<C, T>::assert_is_in_field() cons
             r2.witness_index, static_cast<size_t>(NUM_LIMB_BITS), "bigfield: assert_is_in_field range constraint 3.");
         context->decompose_into_base4_accumulators(
             r3.witness_index, static_cast<size_t>(NUM_LIMB_BITS), "bigfield: assert_is_in_field range constraint 4.");
+    }
+}
+
+template <typename C, typename T> void bigfield<C, T>::assert_less_than(const uint256_t upper_limit) const
+{
+    // TODO(kesha): Merge this with assert_is_in_field
+    // Warning: this assumes we have run circuit construction at least once in debug mode where large non reduced
+    // constants are allowed via ASSERT
+    if (is_constant()) {
+        return;
+    }
+    ASSERT(upper_limit != 0);
+    // The circuit checks that limit - this >= 0, so if we are doing a less_than comparison, we need to subtract 1 from
+    // the limit
+    uint256_t strict_upper_limit = upper_limit - uint256_t(1);
+    self_reduce(); // this method in particular enforces limb vals are <2^b - needed for logic described above
+    uint256_t value = get_value().lo;
+
+    const uint256_t upper_limit_value_0 = strict_upper_limit.slice(0, NUM_LIMB_BITS);
+    const uint256_t upper_limit_value_1 = strict_upper_limit.slice(NUM_LIMB_BITS, NUM_LIMB_BITS * 2);
+    const uint256_t upper_limit_value_2 = strict_upper_limit.slice(NUM_LIMB_BITS * 2, NUM_LIMB_BITS * 3);
+    const uint256_t upper_limit_value_3 = strict_upper_limit.slice(NUM_LIMB_BITS * 3, NUM_LIMB_BITS * 4);
+
+    bool borrow_0_value = value.slice(0, NUM_LIMB_BITS) > upper_limit_value_0;
+    bool borrow_1_value =
+        (value.slice(NUM_LIMB_BITS, NUM_LIMB_BITS * 2) + uint256_t(borrow_0_value)) > (upper_limit_value_1);
+    bool borrow_2_value =
+        (value.slice(NUM_LIMB_BITS * 2, NUM_LIMB_BITS * 3) + uint256_t(borrow_1_value)) > (upper_limit_value_2);
+
+    field_t<C> upper_limit_0(context, upper_limit_value_0);
+    field_t<C> upper_limit_1(context, upper_limit_value_1);
+    field_t<C> upper_limit_2(context, upper_limit_value_2);
+    field_t<C> upper_limit_3(context, upper_limit_value_3);
+    bool_t<C> borrow_0(witness_t<C>(context, borrow_0_value));
+    bool_t<C> borrow_1(witness_t<C>(context, borrow_1_value));
+    bool_t<C> borrow_2(witness_t<C>(context, borrow_2_value));
+    // The way we use borrows here ensures that we are checking that upper_limit - binary_basis > 0.
+    // We check that the result in each limb is > 0.
+    // If the modulus part in this limb is smaller, we simply borrow the value from the higher limb.
+    // The prover can rearrange the borrows the way they like. The important thing is that the borrows are
+    // constrained.
+    field_t<C> r0 = upper_limit_0 - binary_basis_limbs[0].element + static_cast<field_t<C>>(borrow_0) * shift_1;
+    field_t<C> r1 = upper_limit_1 - binary_basis_limbs[1].element + static_cast<field_t<C>>(borrow_1) * shift_1 -
+                    static_cast<field_t<C>>(borrow_0);
+    field_t<C> r2 = upper_limit_2 - binary_basis_limbs[2].element + static_cast<field_t<C>>(borrow_2) * shift_1 -
+                    static_cast<field_t<C>>(borrow_1);
+    field_t<C> r3 = upper_limit_3 - binary_basis_limbs[3].element - static_cast<field_t<C>>(borrow_2);
+    r0 = r0.normalize();
+    r1 = r1.normalize();
+    r2 = r2.normalize();
+    r3 = r3.normalize();
+    if constexpr (C::CIRCUIT_TYPE == CircuitType::ULTRA) {
+        context->decompose_into_default_range(r0.witness_index, static_cast<size_t>(NUM_LIMB_BITS));
+        context->decompose_into_default_range(r1.witness_index, static_cast<size_t>(NUM_LIMB_BITS));
+        context->decompose_into_default_range(r2.witness_index, static_cast<size_t>(NUM_LIMB_BITS));
+        context->decompose_into_default_range(r3.witness_index, static_cast<size_t>(NUM_LIMB_BITS));
+    } else {
+        context->decompose_into_base4_accumulators(
+            r0.witness_index, static_cast<size_t>(NUM_LIMB_BITS), "bigfield: assert_less_than range constraint 1.");
+        context->decompose_into_base4_accumulators(
+            r1.witness_index, static_cast<size_t>(NUM_LIMB_BITS), "bigfield: assert_less_than range constraint 2.");
+        context->decompose_into_base4_accumulators(
+            r2.witness_index, static_cast<size_t>(NUM_LIMB_BITS), "bigfield: assert_less_than range constraint 3.");
+        context->decompose_into_base4_accumulators(
+            r3.witness_index, static_cast<size_t>(NUM_LIMB_BITS), "bigfield: assert_less_than range constraint 4.");
     }
 }
 
@@ -1780,7 +1845,7 @@ template <typename C, typename T> void bigfield<C, T>::self_reduce() const
     // TODO: implicit assumption here - NUM_LIMB_BITS large enough for all the quotient
     uint32_t quotient_limb_index = context->add_variable(barretenberg::fr(quotient_value.lo));
     field_t<C> quotient_limb = field_t<C>::from_witness_index(context, quotient_limb_index);
-    if constexpr (C::type == proof_system::ComposerType::PLOOKUP) {
+    if constexpr (HasPlookup<C>) {
         context->decompose_into_default_range(quotient_limb.witness_index, static_cast<size_t>(maximum_quotient_bits));
     } else {
         context->decompose_into_base4_accumulators(quotient_limb.witness_index,
@@ -1882,7 +1947,7 @@ void bigfield<C, T>::unsafe_evaluate_multiply_add(const bigfield& input_left,
         ++max_hi_bits;
     }
 
-    if constexpr (C::type == proof_system::ComposerType::PLOOKUP) {
+    if constexpr (HasPlookup<C>) {
         // The plookup custom bigfield gate requires inputs are witnesses.
         // If we're using constant values, instantiate them as circuit variables
         const auto convert_constant_to_fixed_witness = [ctx](const bigfield& input) {
@@ -1951,7 +2016,7 @@ void bigfield<C, T>::unsafe_evaluate_multiply_add(const bigfield& input_left,
         };
         field_t<C> remainder_prime_limb = field_t<C>::accumulate(prime_limb_accumulator);
 
-        proof_system::UltraCircuitConstructor::non_native_field_witnesses witnesses{
+        proof_system::UltraCircuitBuilder::non_native_field_witnesses witnesses{
             {
                 left.binary_basis_limbs[0].element.normalize().witness_index,
                 left.binary_basis_limbs[1].element.normalize().witness_index,
@@ -2083,35 +2148,37 @@ void bigfield<C, T>::unsafe_evaluate_multiply_add(const bigfield& input_left,
                 linear_terms =
                     linear_terms.add_two(-remainders[2 * i].prime_basis_limb, -remainders[2 * i + 1].prime_basis_limb);
             }
+        }
+        if ((remainders.size() & 1UL) == 1UL) {
+            linear_terms += -remainders[remainders.size() - 1].prime_basis_limb;
+        }
+        // This is where we show our identity is zero mod r (to use CRT we show it's zero mod r and mod 2^t)
+        field_t<C>::evaluate_polynomial_identity(
+            left.prime_basis_limb, to_mul.prime_basis_limb, quotient.prime_basis_limb * neg_prime, linear_terms);
 
-            // This is where we show our identity is zero mod r (to use CRT we show it's zero mod r and mod 2^t)
-            field_t<C>::evaluate_polynomial_identity(
-                left.prime_basis_limb, to_mul.prime_basis_limb, quotient.prime_basis_limb * neg_prime, linear_terms);
+        const uint64_t carry_lo_msb = max_lo_bits - (2 * NUM_LIMB_BITS);
+        const uint64_t carry_hi_msb = max_hi_bits - (2 * NUM_LIMB_BITS);
 
-            const uint64_t carry_lo_msb = max_lo_bits - (2 * NUM_LIMB_BITS);
-            const uint64_t carry_hi_msb = max_hi_bits - (2 * NUM_LIMB_BITS);
-
-            const barretenberg::fr carry_lo_shift(uint256_t(uint256_t(1) << carry_lo_msb));
-            if ((carry_hi_msb + carry_lo_msb) < field_t<C>::modulus.get_msb()) {
-                field_t carry_combined = carry_lo + (carry_hi * carry_lo_shift);
-                carry_combined = carry_combined.normalize();
-                const auto accumulators = ctx->decompose_into_base4_accumulators(
-                    carry_combined.witness_index,
-                    static_cast<size_t>(carry_lo_msb + carry_hi_msb),
-                    "bigfield: carry_combined too large in unsafe_evaluate_multiply_add.");
-                field_t<C> accumulator_midpoint =
-                    field_t<C>::from_witness_index(ctx, accumulators[static_cast<size_t>((carry_hi_msb / 2) - 1)]);
-                carry_hi.assert_equal(accumulator_midpoint, "bigfield multiply range check failed");
-            } else {
-                carry_lo = carry_lo.normalize();
-                carry_hi = carry_hi.normalize();
-                ctx->decompose_into_base4_accumulators(carry_lo.witness_index,
-                                                       static_cast<size_t>(carry_lo_msb),
-                                                       "bigfield: carry_lo too large in unsafe_evaluate_multiply_add.");
-                ctx->decompose_into_base4_accumulators(carry_hi.witness_index,
-                                                       static_cast<size_t>(carry_hi_msb),
-                                                       "bigfield: carry_hi too large in unsafe_evaluate_multiply_add.");
-            }
+        const barretenberg::fr carry_lo_shift(uint256_t(uint256_t(1) << carry_lo_msb));
+        if ((carry_hi_msb + carry_lo_msb) < field_t<C>::modulus.get_msb()) {
+            field_t carry_combined = carry_lo + (carry_hi * carry_lo_shift);
+            carry_combined = carry_combined.normalize();
+            const auto accumulators = ctx->decompose_into_base4_accumulators(
+                carry_combined.witness_index,
+                static_cast<size_t>(carry_lo_msb + carry_hi_msb),
+                "bigfield: carry_combined too large in unsafe_evaluate_multiply_add.");
+            field_t<C> accumulator_midpoint =
+                field_t<C>::from_witness_index(ctx, accumulators[static_cast<size_t>((carry_hi_msb / 2) - 1)]);
+            carry_hi.assert_equal(accumulator_midpoint, "bigfield multiply range check failed");
+        } else {
+            carry_lo = carry_lo.normalize();
+            carry_hi = carry_hi.normalize();
+            ctx->decompose_into_base4_accumulators(carry_lo.witness_index,
+                                                   static_cast<size_t>(carry_lo_msb),
+                                                   "bigfield: carry_lo too large in unsafe_evaluate_multiply_add.");
+            ctx->decompose_into_base4_accumulators(carry_hi.witness_index,
+                                                   static_cast<size_t>(carry_hi_msb),
+                                                   "bigfield: carry_hi too large in unsafe_evaluate_multiply_add.");
         }
     }
 }
@@ -2240,7 +2307,7 @@ void bigfield<C, T>::unsafe_evaluate_multiple_multiply_add(const std::vector<big
         ++max_hi_bits;
     }
 
-    if constexpr (C::type == proof_system::ComposerType::PLOOKUP) {
+    if constexpr (HasPlookup<C>) {
         // The plookup custom bigfield gate requires inputs are witnesses.
         // If we're using constant values, instantiate them as circuit variables
 
@@ -2289,7 +2356,7 @@ void bigfield<C, T>::unsafe_evaluate_multiple_multiply_add(const std::vector<big
             }
 
             if (i > 0) {
-                proof_system::UltraCircuitConstructor::non_native_field_witnesses mul_witnesses = {
+                proof_system::UltraCircuitBuilder::non_native_field_witnesses mul_witnesses = {
                     {
                         left[i].binary_basis_limbs[0].element.normalize().witness_index,
                         left[i].binary_basis_limbs[1].element.normalize().witness_index,
@@ -2385,7 +2452,7 @@ void bigfield<C, T>::unsafe_evaluate_multiple_multiply_add(const std::vector<big
         };
         field_t<C> remainder_prime_limb = field_t<C>::accumulate(prime_limb_accumulator);
 
-        proof_system::UltraCircuitConstructor::non_native_field_witnesses witnesses{
+        proof_system::UltraCircuitBuilder::non_native_field_witnesses witnesses{
             {
                 left[0].binary_basis_limbs[0].element.normalize().witness_index,
                 left[0].binary_basis_limbs[1].element.normalize().witness_index,
@@ -2443,7 +2510,7 @@ void bigfield<C, T>::unsafe_evaluate_multiple_multiply_add(const std::vector<big
             ctx->decompose_into_default_range(lo.normalize().witness_index, carry_lo_msb);
         }
         /*  NOTE TO AUDITOR: An extraneous block
-               if constexpr (C::type == proof_system::ComposerType::PLOOKUP) {
+               if constexpr (HasPlookup<C>) {
                    carry_lo = carry_lo.normalize();
                    carry_hi = carry_hi.normalize();
                    ctx->decompose_into_default_range(carry_lo.witness_index, static_cast<size_t>(carry_lo_msb));
@@ -2606,7 +2673,7 @@ void bigfield<C, T>::unsafe_evaluate_multiple_multiply_add(const std::vector<big
 
         const barretenberg::fr carry_lo_shift(uint256_t(uint256_t(1) << carry_lo_msb));
 
-        if constexpr (C::type == proof_system::ComposerType::PLOOKUP) {
+        if constexpr (HasPlookup<C>) {
             carry_lo = carry_lo.normalize();
             carry_hi = carry_hi.normalize();
             ctx->decompose_into_default_range(carry_lo.witness_index, static_cast<size_t>(carry_lo_msb));
@@ -2645,7 +2712,7 @@ void bigfield<C, T>::unsafe_evaluate_square_add(const bigfield& left,
                                                 const bigfield& quotient,
                                                 const bigfield& remainder)
 {
-    if (C::type == proof_system::ComposerType::PLOOKUP) {
+    if (HasPlookup<C>) {
         unsafe_evaluate_multiply_add(left, left, to_add, quotient, { remainder });
         return;
     }
@@ -2766,7 +2833,7 @@ void bigfield<C, T>::unsafe_evaluate_square_add(const bigfield& left,
     const uint64_t carry_hi_msb = max_hi_bits - (2 * NUM_LIMB_BITS);
 
     const barretenberg::fr carry_lo_shift(uint256_t(uint256_t(1) << carry_lo_msb));
-    if constexpr (C::type == proof_system::ComposerType::PLOOKUP) {
+    if constexpr (HasPlookup<C>) {
         carry_lo = carry_lo.normalize();
         carry_hi = carry_hi.normalize();
         ctx->decompose_into_default_range(carry_lo.witness_index, static_cast<size_t>(carry_lo_msb));

@@ -1,7 +1,7 @@
 #pragma once
-#include <cstdint>
-#include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/common/serialize.hpp"
+#include "barretenberg/ecc/curves/bn254/fr.hpp"
+#include <cstdint>
 
 // TODO(#557): The field-specific aliases for gates should be removed and the type could be explicit when this
 // structures are used to avoid having foo_gate and foo_gate_grumpkin (i.e. use foo_gate<field> instead). Moreover, we

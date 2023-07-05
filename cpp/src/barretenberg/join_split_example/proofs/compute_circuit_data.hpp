@@ -2,12 +2,12 @@
 #include <fstream>
 #include <sys/stat.h>
 
-#include "mock/mock_circuit.hpp"
 #include "../constants.hpp"
-#include "join_split/join_split.hpp"
-#include "barretenberg/common/timer.hpp"
 #include "barretenberg/common/log.hpp"
+#include "barretenberg/common/timer.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/serialize.hpp"
+#include "join_split/join_split.hpp"
+#include "mock/mock_circuit.hpp"
 
 #ifndef __wasm__
 #include <filesystem>
@@ -52,7 +52,7 @@ circuit_data get_circuit_data(std::string const& name,
                               F const& build_circuit,
                               std::string const name_suffix_for_benchmarks = "")
 {
-    using Builder = typename Composer::CircuitConstructor;
+    using Builder = typename Composer::CircuitBuilder;
     circuit_data data;
     data.srs = srs;
     data.mock = mock;

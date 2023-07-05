@@ -1,45 +1,43 @@
 #pragma once
-#include "barretenberg/plonk/composer/composer_helper/turbo_plonk_composer_helper.hpp"
-#include "barretenberg/plonk/composer/composer_helper/ultra_plonk_composer_helper.hpp"
+#include "barretenberg/plonk/composer/turbo_composer.hpp"
+#include "barretenberg/plonk/composer/ultra_composer.hpp"
 
-#include "barretenberg/proof_system/circuit_constructors/turbo_circuit_constructor.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
+#include "barretenberg/proof_system/circuit_builder/turbo_circuit_builder.hpp"
+#include "barretenberg/stdlib/commitment/pedersen/pedersen.hpp"
+#include "barretenberg/stdlib/commitment/pedersen/pedersen_plookup.hpp"
+#include "barretenberg/stdlib/encryption/schnorr/schnorr.hpp"
+#include "barretenberg/stdlib/merkle_tree/hash_path.hpp"
 #include "barretenberg/stdlib/primitives/bigfield/bigfield.hpp"
 #include "barretenberg/stdlib/primitives/biggroup/biggroup.hpp"
 #include "barretenberg/stdlib/primitives/bit_array/bit_array.hpp"
 #include "barretenberg/stdlib/primitives/bool/bool.hpp"
-#include "barretenberg/stdlib/primitives/packed_byte_array/packed_byte_array.hpp"
 #include "barretenberg/stdlib/primitives/byte_array/byte_array.hpp"
-#include "barretenberg/stdlib/primitives/uint/uint.hpp"
-#include "barretenberg/stdlib/primitives/witness/witness.hpp"
-#include "barretenberg/stdlib/primitives/bigfield/bigfield.hpp"
-#include "barretenberg/stdlib/primitives/biggroup/biggroup.hpp"
-#include "barretenberg/stdlib/commitment/pedersen/pedersen.hpp"
-#include "barretenberg/stdlib/commitment/pedersen/pedersen_plookup.hpp"
-#include "barretenberg/stdlib/merkle_tree/hash_path.hpp"
-#include "barretenberg/stdlib/encryption/schnorr/schnorr.hpp"
 #include "barretenberg/stdlib/primitives/curves/bn254.hpp"
 #include "barretenberg/stdlib/primitives/curves/secp256k1.hpp"
-#include "barretenberg/stdlib/primitives/memory/rom_table.hpp"
 #include "barretenberg/stdlib/primitives/memory/ram_table.hpp"
-#include "barretenberg/stdlib/recursion/verifier/program_settings.hpp"
-#include "barretenberg/stdlib/recursion/verification_key/verification_key.hpp"
+#include "barretenberg/stdlib/primitives/memory/rom_table.hpp"
+#include "barretenberg/stdlib/primitives/packed_byte_array/packed_byte_array.hpp"
+#include "barretenberg/stdlib/primitives/uint/uint.hpp"
+#include "barretenberg/stdlib/primitives/witness/witness.hpp"
 #include "barretenberg/stdlib/recursion/aggregation_state/aggregation_state.hpp"
+#include "barretenberg/stdlib/recursion/verification_key/verification_key.hpp"
+#include "barretenberg/stdlib/recursion/verifier/program_settings.hpp"
 
 namespace acir_format {
 
-using Builder = proof_system::UltraCircuitConstructor;
-using Composer = plonk::UltraPlonkComposerHelper;
+using Builder = proof_system::UltraCircuitBuilder;
+using Composer = plonk::UltraComposer;
 
 using Prover = std::conditional_t<
-    std::same_as<Composer, plonk::UltraPlonkComposerHelper>,
+    std::same_as<Composer, plonk::UltraComposer>,
     plonk::UltraWithKeccakProver,
-    std::conditional_t<std::same_as<Composer, plonk::TurboPlonkComposerHelper>, plonk::TurboProver, plonk::Prover>>;
+    std::conditional_t<std::same_as<Composer, plonk::TurboComposer>, plonk::TurboProver, plonk::Prover>>;
 
 using Verifier = std::conditional_t<
-    std::same_as<Composer, plonk::UltraPlonkComposerHelper>,
+    std::same_as<Composer, plonk::UltraComposer>,
     plonk::UltraWithKeccakVerifier,
-    std::conditional_t<std::same_as<Composer, plonk::TurboPlonkComposerHelper>, plonk::TurboVerifier, plonk::Verifier>>;
+    std::conditional_t<std::same_as<Composer, plonk::TurboComposer>, plonk::TurboVerifier, plonk::Verifier>>;
 
 using RecursiveProver = plonk::UltraProver;
 
