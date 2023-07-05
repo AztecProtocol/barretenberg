@@ -16,9 +16,6 @@
         "CC": "clang",
         "CXX": "clang++",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
-      },
-      "cacheVariables": {
-        "OMP_MULTITHREADING": "OFF"
       }
     },
     {
@@ -29,9 +26,6 @@
       "environment": {
         "CC": "$env{BREW_PREFIX}/opt/llvm/bin/clang",
         "CXX": "$env{BREW_PREFIX}/opt/llvm/bin/clang++"
-      },
-      "cacheVariables": {
-        "OMP_MULTITHREADING": "OFF"
       }
     },
     {

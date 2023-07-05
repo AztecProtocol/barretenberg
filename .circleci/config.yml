@@ -310,7 +310,7 @@ jobs:
       - *checkout
       - run:
           name: "Install toolchain"
-          command: brew install cmake llvm@15 ninja
+          command: brew install cmake ninja
       - run:
           name: "Build"
           working_directory: ~/project/cpp
