@@ -8,7 +8,9 @@ class CircuitSimulatorBN254 {
   public:
     using FF = barretenberg::fr; // IOU templating
     bool contains_recursive_proof = false;
-    uint32_t zero_idx = 0;
+
+    // FF stored_value = 404;
+    const uint32_t zero_idx = 0;
 
     // uint32_t add_variable([[maybe_unused]]const FF& in){
     //   return 0; // WORKTODO: return part of `in` for debugging purposes?
@@ -43,6 +45,20 @@ class CircuitSimulatorBN254 {
                                                [[maybe_unused]] const fixed_group_init_quad& init){};
     void create_fixed_group_add_gate_final([[maybe_unused]] const add_quad& in){};
 
+    size_t get_num_constant_gates() { return 404; };
+    // maybe this shouldn't be implemented?
+
+    bool create_range_constraint(FF const& elt,
+                                 size_t const& num_bits,
+                                 std::string const& msg = "create_range_constraint")
+    {
+        const bool constraint_holds = static_cast<uint256_t>(elt).get_msb() < num_bits;
+        if (!constraint_holds) {
+            failure(msg);
+        }
+        return constraint_holds;
+    }
+
     std::vector<uint32_t> decompose_into_base4_accumulators(
         [[maybe_unused]] const uint32_t witness_index,
         [[maybe_unused]] const size_t num_bits,
@@ -50,9 +66,6 @@ class CircuitSimulatorBN254 {
     {
         return { 404 };
     };
-
-    size_t get_num_constant_gates() { return 404; };
-    // maybe this shouldn't be implemented?
 
     void assert_equal(FF left, FF right, std::string const& msg)
     {

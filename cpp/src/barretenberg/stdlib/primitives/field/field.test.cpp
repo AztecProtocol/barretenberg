@@ -16,8 +16,6 @@ namespace {
 auto& engine = numeric::random::get_debug_engine();
 }
 
-template <class T> void ignore_unused(T&) {} // use to ignore unused variables in lambdas
-
 using namespace barretenberg;
 using namespace proof_system::plonk;
 
@@ -87,6 +85,14 @@ template <typename Composer> class stdlib_field : public testing::Test {
     }
 
   public:
+    static void test_constructor_from_witness()
+    {
+        barretenberg::fr val = 2;
+        Composer composer;
+        field_ct elt(witness_ct(&composer, val));
+        EXPECT_EQ(elt.get_value(), val);
+    }
+
     static void create_range_constraint()
     {
         auto run_test = [&](fr elt, size_t num_bits, bool expect_verified) {
@@ -120,63 +126,82 @@ template <typename Composer> class stdlib_field : public testing::Test {
      */
     static void test_assert_equal()
     {
-        auto run_test = [](bool constrain, bool true_when_y_val_zero = true) {
-            Composer composer = Composer();
-            field_ct x = witness_ct(&composer, 1);
-            field_ct y = witness_ct(&composer, 0);
-
-            // With no constraints, the proof verification will pass even though
-            // we assert x and y are equal.
-            bool expected_result = true;
-
-            if (constrain) {
-                /* The fact that we have a passing test in both cases that follow tells us
-                 * that the failure in the first case comes from the additive constraint,
-                 * not from a copy constraint. That failure is because the assert_equal
-                 * below says that 'the value of y was always x'--the value 1 is substituted
-                 * for x when evaluating the gate identity.
-                 */
-                if (true_when_y_val_zero) {
-                    // constraint: 0*x + 1*y + 0*0 + 0 == 0
-                    add_triple t{ .a = x.witness_index,
-                                  .b = y.witness_index,
-                                  .c = composer.zero_idx,
-                                  .a_scaling = 0,
-                                  .b_scaling = 1,
-                                  .c_scaling = 0,
-                                  .const_scaling = 0 };
-
-                    composer.create_add_gate(t);
-                    expected_result = false;
-                } else {
-                    // constraint: 0*x + 1*y + 0*0 - 1 == 0
-                    add_triple t{ .a = x.witness_index,
-                                  .b = y.witness_index,
-                                  .c = composer.zero_idx,
-                                  .a_scaling = 0,
-                                  .b_scaling = 1,
-                                  .c_scaling = 0,
-                                  .const_scaling = -1 };
-
-                    composer.create_add_gate(t);
-                    expected_result = true;
+        if constexpr (IsSimulator<Composer>) {
+            auto run_test = [](bool expect_failure) {
+                Composer simulator;
+                auto lhs = barretenberg::fr::random_element();
+                auto rhs = lhs;
+                if (expect_failure) {
+                    lhs++;
                 }
-            }
+                simulator.assert_equal(lhs, rhs, "testing assert equal");
+                if (expect_failure) {
+                    ASSERT_TRUE(simulator.failed());
+                } else {
+                    ASSERT_FALSE(simulator.failed());
+                }
+            };
+            run_test(true);
+            run_test(false);
+        } else {
+            auto run_test = [](bool constrain, bool true_when_y_val_zero = true) {
+                Composer composer = Composer();
+                field_ct x = witness_ct(&composer, 1);
+                field_ct y = witness_ct(&composer, 0);
 
-            x.assert_equal(y);
+                // With no constraints, the proof verification will pass even though
+                // we assert x and y are equal.
+                bool expected_result = true;
 
-            // both field elements have real value 1 now
-            EXPECT_EQ(x.get_value(), 1);
-            EXPECT_EQ(y.get_value(), 1);
+                if (constrain) {
+                    /* The fact that we have a passing test in both cases that follow tells us
+                     * that the failure in the first case comes from the additive constraint,
+                     * not from a copy constraint. That failure is because the assert_equal
+                     * below says that 'the value of y was always x'--the value 1 is substituted
+                     * for x when evaluating the gate identity.
+                     */
+                    if (true_when_y_val_zero) {
+                        // constraint: 0*x + 1*y + 0*0 + 0 == 0
+                        add_triple t{ .a = x.witness_index,
+                                      .b = y.witness_index,
+                                      .c = composer.zero_idx,
+                                      .a_scaling = 0,
+                                      .b_scaling = 1,
+                                      .c_scaling = 0,
+                                      .const_scaling = 0 };
 
-            bool result = composer.check_circuit();
+                        composer.create_add_gate(t);
+                        expected_result = false;
+                    } else {
+                        // constraint: 0*x + 1*y + 0*0 - 1 == 0
+                        add_triple t{ .a = x.witness_index,
+                                      .b = y.witness_index,
+                                      .c = composer.zero_idx,
+                                      .a_scaling = 0,
+                                      .b_scaling = 1,
+                                      .c_scaling = 0,
+                                      .const_scaling = -1 };
 
-            EXPECT_EQ(result, expected_result);
-        };
+                        composer.create_add_gate(t);
+                        expected_result = true;
+                    }
+                }
 
-        run_test(false);
-        run_test(true, true);
-        run_test(true, false);
+                x.assert_equal(y);
+
+                // both field elements have real value 1 now
+                EXPECT_EQ(x.get_value(), 1);
+                EXPECT_EQ(y.get_value(), 1);
+
+                bool result = composer.check_circuit();
+
+                EXPECT_EQ(result, expected_result);
+            };
+
+            run_test(false);
+            run_test(true, true);
+            run_test(true, false);
+        }
     }
 
     // static void test_add_mul_with_constants()
@@ -302,14 +327,14 @@ template <typename Composer> class stdlib_field : public testing::Test {
         auto gates_after = composer.get_num_gates();
         EXPECT_EQ(r.get_value(), true);
 
-        fr x = composer.get_variable(r.witness_index);
+        fr x = r.get_value();
         EXPECT_EQ(x, fr(1));
 
         // This logic requires on madd in field, which creates a big mul gate.
         // This gate is implemented in standard by create 2 actual gates, while in turbo and ultra there are 2
         if constexpr (std::same_as<Composer, StandardCircuitBuilder>) {
             EXPECT_EQ(gates_after - gates_before, 6UL);
-        } else {
+        } else if (std::same_as<Composer, TurboCircuitBuilder> || std::same_as<Composer, UltraCircuitBuilder>) {
             EXPECT_EQ(gates_after - gates_before, 4UL);
         }
 
@@ -330,14 +355,14 @@ template <typename Composer> class stdlib_field : public testing::Test {
 
         auto gates_after = composer.get_num_gates();
 
-        fr x = composer.get_variable(r.witness_index);
+        fr x = r.get_value();
         EXPECT_EQ(x, fr(0));
 
         // This logic requires on madd in field, which creates a big mul gate.
         // This gate is implemented in standard by create 2 actual gates, while in turbo and ultra there are 2
         if constexpr (std::same_as<Composer, StandardCircuitBuilder>) {
             EXPECT_EQ(gates_after - gates_before, 6UL);
-        } else {
+        } else if (std::same_as<Composer, TurboCircuitBuilder> || std::same_as<Composer, UltraCircuitBuilder>) {
             EXPECT_EQ(gates_after - gates_before, 4UL);
         }
 
@@ -359,14 +384,14 @@ template <typename Composer> class stdlib_field : public testing::Test {
 
         auto gates_after = composer.get_num_gates();
 
-        fr x = composer.get_variable(r.witness_index);
+        fr x = r.get_value();
         EXPECT_EQ(x, fr(1));
 
         // This logic requires on madd in field, which creates a big mul gate.
         // This gate is implemented in standard by create 2 actual gates, while in turbo and ultra there are 2
         if constexpr (std::same_as<Composer, StandardCircuitBuilder>) {
             EXPECT_EQ(gates_after - gates_before, 11UL);
-        } else {
+        } else if (std::same_as<Composer, TurboCircuitBuilder> || std::same_as<Composer, UltraCircuitBuilder>) {
             EXPECT_EQ(gates_after - gates_before, 7UL);
         }
 
@@ -615,7 +640,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
         using witness_supplier_type = std::function<witness_ct(Composer * ctx, uint64_t, uint256_t)>;
 
         // check that constraints are satisfied for a variety of inputs
-        auto run_success_test = [&]() {
+        [[maybe_unused]] auto run_success_test = [&]() {
             Composer composer = Composer();
 
             constexpr uint256_t modulus_minus_one = fr::modulus - 1;
@@ -646,8 +671,7 @@ template <typename Composer> class stdlib_field : public testing::Test {
 
         // Now try to supply unintended witness values and test for failure.
         // Fr::modulus is equivalent to zero in Fr, but this should be forbidden by a range constraint.
-        witness_supplier_type supply_modulus_bits = [](Composer* ctx, uint64_t j, uint256_t val_256) {
-            ignore_unused(val_256);
+        witness_supplier_type supply_modulus_bits = [](Composer* ctx, uint64_t j, [[maybe_unused]] uint256_t val_256) {
             // use this to get `sum` to be fr::modulus.
             return witness_ct(ctx, fr::modulus.get_bit(j));
         };
@@ -840,6 +864,8 @@ template <typename Composer> class stdlib_field : public testing::Test {
         field_ct result = base.pow(exponent);
         barretenberg::fr expected = base_val.pow(exponent_val);
 
+        info(expected);
+        info(result.get_value());
         EXPECT_NE(result.get_value(), expected);
         EXPECT_EQ(composer.failed(), true);
         EXPECT_EQ(composer.err(), "field_t::pow exponent accumulator incorrect");
@@ -858,11 +884,10 @@ template <typename Composer> class stdlib_field : public testing::Test {
         EXPECT_EQ(value_ct.get_value(), value);
         EXPECT_EQ(first_copy.get_value(), value);
         EXPECT_EQ(second_copy.get_value(), value);
-        EXPECT_EQ(value_ct.get_witness_index() + 1, first_copy.get_witness_index());
-        EXPECT_EQ(value_ct.get_witness_index() + 2, second_copy.get_witness_index());
-
-        info("composer gates = ", composer.get_num_gates());
-
+        if constexpr (!IsSimulator<Composer>) {
+            EXPECT_EQ(value_ct.get_witness_index() + 1, first_copy.get_witness_index());
+            EXPECT_EQ(value_ct.get_witness_index() + 2, second_copy.get_witness_index());
+        }
         bool result = composer.check_circuit();
         EXPECT_EQ(result, true);
     }
@@ -912,14 +937,17 @@ template <typename Composer> class stdlib_field : public testing::Test {
     }
 };
 
-typedef testing::Types<proof_system::CircuitSimulatorBN254,
-                       proof_system::StandardCircuitBuilder,
-                       proof_system::TurboCircuitBuilder,
-                       proof_system::UltraCircuitBuilder>
-    CircuitTypes;
+using CircuitTypes = testing::Types<proof_system::CircuitSimulatorBN254,
+                                    proof_system::StandardCircuitBuilder,
+                                    proof_system::TurboCircuitBuilder,
+                                    proof_system::UltraCircuitBuilder>;
 
 TYPED_TEST_SUITE(stdlib_field, CircuitTypes);
 
+TYPED_TEST(stdlib_field, test_constructor_from_witness)
+{
+    TestFixture::test_constructor_from_witness();
+}
 TYPED_TEST(stdlib_field, test_create_range_constraint)
 {
     TestFixture::create_range_constraint();
