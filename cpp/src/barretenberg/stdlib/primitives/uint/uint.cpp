@@ -399,10 +399,9 @@ template <typename Composer, typename Native> bool_t<Composer> uint<Composer, Na
     return result;
 }
 
-INSTANTIATE_STDLIB_BASIC_TYPE_VA(uint, uint8_t);
-INSTANTIATE_STDLIB_BASIC_TYPE_VA(uint, uint16_t);
-INSTANTIATE_STDLIB_BASIC_TYPE_VA(uint, uint32_t);
-INSTANTIATE_STDLIB_BASIC_TYPE_VA(uint, uint64_t);
-
+// INSTANTIATE_STDLIB_BASIC_TYPE_VA(uint, uint8_t);
+// INSTANTIATE_STDLIB_BASIC_TYPE_VA(uint, uint16_t);
+// INSTANTIATE_STDLIB_BASIC_TYPE_VA(uint, uint32_t);
+// INSTANTIATE_STDLIB_BASIC_TYPE_VA(uint, uint64_t);
 } // namespace stdlib
 } // namespace proof_system::plonk

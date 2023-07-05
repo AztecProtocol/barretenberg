@@ -380,7 +380,7 @@ typename byte_array<Composer>::byte_slice byte_array<Composer>::split_byte(const
     return { low, scaled_high, bit };
 }
 
-INSTANTIATE_STDLIB_TYPE(byte_array);
+// INSTANTIATE_STDLIB_TYPE(byte_array);
 
 } // namespace stdlib
 } // namespace proof_system::plonk

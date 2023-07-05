@@ -397,7 +397,10 @@ void bool_t<ComposerContext>::assert_equal(const bool_t& rhs, std::string const&
     const bool_t lhs = *this;
     ComposerContext* ctx = lhs.get_context() ? lhs.get_context() : rhs.get_context();
 
-    if (lhs.is_constant() && rhs.is_constant()) {
+    if constexpr (IsSimulator<ComposerContext>) {
+        context->assert_equal(lhs.get_value(), rhs.get_value(), msg);
+        return;
+    } else if (lhs.is_constant() && rhs.is_constant()) {
         ASSERT(lhs.get_value() == rhs.get_value());
     } else if (lhs.is_constant()) {
         // if rhs is inverted, flip the value of the lhs constant

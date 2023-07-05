@@ -1,5 +1,6 @@
 #pragma once
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 
 namespace proof_system::plonk {
 namespace stdlib {
@@ -15,7 +16,9 @@ template <typename ComposerContext> class witness_t {
     {
         context = parent_context;
         witness = in;
-        witness_index = context->add_variable(witness);
+        if constexpr (!IsSimulator<ComposerContext>) {
+            witness_index = context->add_variable(witness);
+        }
     }
 
     witness_t(ComposerContext* parent_context, const bool in)
@@ -26,7 +29,9 @@ template <typename ComposerContext> class witness_t {
         } else {
             barretenberg::fr::__copy(barretenberg::fr::zero(), witness);
         }
-        witness_index = context->add_variable(witness);
+        if constexpr (!IsSimulator<ComposerContext>) {
+            witness_index = context->add_variable(witness);
+        }
     }
 
     template <typename T, typename = std::enable_if_t<std::is_integral_v<T> || std::is_enum_v<T>>>
@@ -34,7 +39,9 @@ template <typename ComposerContext> class witness_t {
     {
         context = parent_context;
         witness = barretenberg::fr{ static_cast<uint64_t>(in), 0, 0, 0 }.to_montgomery_form();
-        witness_index = context->add_variable(witness);
+        if constexpr (!IsSimulator<ComposerContext>) {
+            witness_index = context->add_variable(witness);
+        }
     }
 
     static witness_t create_constant_witness(ComposerContext* parent_context, const barretenberg::fr& in)
@@ -60,7 +67,9 @@ template <typename ComposerContext> class public_witness_t : public witness_t<Co
     {
         context = parent_context;
         barretenberg::fr::__copy(in, witness);
-        witness_index = context->add_public_variable(witness);
+        if constexpr (!IsSimulator<ComposerContext>) {
+            witness_index = context->add_public_variable(witness);
+        }
     }
 
     public_witness_t(ComposerContext* parent_context, const bool in)
@@ -78,7 +87,9 @@ template <typename ComposerContext> class public_witness_t : public witness_t<Co
     {
         context = parent_context;
         witness = barretenberg::fr{ static_cast<uint64_t>(in), 0, 0, 0 }.to_montgomery_form();
-        witness_index = context->add_public_variable(witness);
+        if constexpr (!IsSimulator<ComposerContext>) {
+            witness_index = context->add_public_variable(witness);
+        }
     }
 };
 
