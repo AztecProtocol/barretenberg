@@ -44,4 +44,5 @@ void CircuitBuilderBase<Arithmetization>::assert_equal(const uint32_t a_variable
 template class CircuitBuilderBase<arithmetization::Standard<barretenberg::fr>>;
 template class CircuitBuilderBase<arithmetization::Turbo<barretenberg::fr>>;
 template class CircuitBuilderBase<arithmetization::Ultra<barretenberg::fr>>;
+template class CircuitBuilderBase<arithmetization::GoblinTranslator>;
 } // namespace proof_system

@@ -101,7 +101,22 @@ TEST(translator_circuit_builder, scoping_out_the_circuit)
     // 59	 |  A_3_3   |   A_2_3   | 12
     // 60	 |  A_3_4   |   A_2_4   | 2/12
     // 61	 |  -       |   A_2_5   | 12
-
+    // 62    |  Q_1     |   Q_0     | 68
+    // 63    |  Q_1_0   |   Q_0_0   | 12
+    // 64    |  Q_1_1   |   Q_0_1   | 12
+    // 65    |  Q_1_2   |   Q_0_2   | 12
+    // 66    |  Q_1_3   |   Q_0_3   | 12
+    // 67    |  Q_1_4   |   Q_0_4   | 12
+    // 68    |  Q_1_5   |   Q_0_5   | 8
+    // 69    |  Q_3     |   Q_2     | 68
+    // 70    |  Q_3_0   |   Q_2_0   | 12
+    // 71    |  Q_3_1   |   Q_2_1   | 12
+    // 72    |  Q_3_2   |   Q_2_2   | 12
+    // 73    |  Q_3_3   |   Q_2_3   | 12
+    // 74    |  Q_3_4   |   Q_2_4   | 4
+    // 75    |  -       |   Q_2_5   | 8
+    // 76    |  A_prime | A_prev_prime| Full
+    // 77    |  -       | Q_prime     |
     Fr op;
     Fr p_x_lo;
     Fr p_x_hi(0);
@@ -218,6 +233,13 @@ TEST(translator_circuit_builder, scoping_out_the_circuit)
     EXPECT_EQ(quotient_by_modulus % uint512_t(Fp::modulus), 0);
 
     uint512_t quotient = quotient_by_modulus / uint512_t(Fp::modulus);
+    constexpr uint512_t MAX_CONSTRAINED_SIZE = uint512_t(1) << 254;
+    constexpr uint512_t MAX_Z_SIZE = uint512_t(1) << (NUM_LIMB_BITS * 2);
+    numeric::uint1024_t max_quotient =
+        (uint1024_t(MAX_CONSTRAINED_SIZE) * MAX_CONSTRAINED_SIZE * 3 + MAX_Z_SIZE * MAX_CONSTRAINED_SIZE * 2 + 4) /
+        modulus_u512;
+    info("Max quotient: ", max_quotient);
+    info("Max quotient range constraint: ", max_quotient.get_msb() + 1);
 
     auto [remainder_0, remainder_1, remainder_2, remainder_3, remainder_prime] = base_element_to_bigfield(remainder);
     std::array<Fr, 5> remainder_witnesses = { remainder_0, remainder_1, remainder_2, remainder_3, remainder_prime };
@@ -296,7 +318,65 @@ TEST(translator_circuit_builder, scoping_out_the_circuit)
                         v_quarted_witnesses[4] * z_2 + quotient_witnesses[4] * neg_modulus_limbs[4] -
                         remainder_witnesses[4];
     EXPECT_EQ(prime_relation, 0);
-    EXPECT_EQ(Fp(1), Fp(1));
-    EXPECT_EQ(Fr(1), Fr(1));
+}
+TEST(translator_circuit_builder, circuit_builder_base_Case)
+{
+    // Questions:
+    // 1. Do we need 68-bit limbs at all?
+    using Fr = ::curve::BN254::ScalarField;
+    using Fp = ::curve::BN254::BaseField;
+    // using Fp = ::curve::BN254::BaseField;
+
+    constexpr size_t NUM_LIMB_BITS = GoblinTranslatorCircuitBuilder::NUM_LIMB_BITS;
+    constexpr size_t MICRO_LIMB_BITS = GoblinTranslatorCircuitBuilder::MICRO_LIMB_BITS;
+
+    Fr op;
+    op = Fr(engine.get_random_uint8() & 3);
+    auto get_random_wide_limb = []() { return Fr(engine.get_random_uint256().slice(0, 2 * NUM_LIMB_BITS)); };
+    //  auto get_random_shortened_wide_limb = []() { return uint256_t(Fp::random_element()) >> (NUM_LIMB_BITS * 2); };
+    Fp p_x = Fp::random_element();
+    Fr p_x_lo = uint256_t(p_x).slice(0, 2 * NUM_LIMB_BITS);
+    Fr p_x_hi = uint256_t(p_x).slice(2 * NUM_LIMB_BITS, 4 * NUM_LIMB_BITS);
+    Fp p_y = Fp::random_element();
+    Fr p_y_lo = uint256_t(p_y).slice(0, 2 * NUM_LIMB_BITS);
+    Fr p_y_hi = uint256_t(p_y).slice(2 * NUM_LIMB_BITS, 4 * NUM_LIMB_BITS);
+    Fr z_1 = get_random_wide_limb();
+    Fr z_2 = get_random_wide_limb();
+    auto split_wide_limb_into_2_limbs = [](Fr& wide_limb) {
+        return std::make_tuple(Fr(uint256_t(wide_limb).slice(0, NUM_LIMB_BITS)),
+                               Fr(uint256_t(wide_limb).slice(NUM_LIMB_BITS, 2 * NUM_LIMB_BITS)));
+    };
+    auto split_standard_limb_into_micro_limbs = [](Fr& limb) {
+        return std::array<Fr, 6>{
+            uint256_t(limb).slice(0, MICRO_LIMB_BITS),
+            uint256_t(limb).slice(MICRO_LIMB_BITS, 2 * MICRO_LIMB_BITS),
+            uint256_t(limb).slice(2 * MICRO_LIMB_BITS, 3 * MICRO_LIMB_BITS),
+            uint256_t(limb).slice(3 * MICRO_LIMB_BITS, 4 * MICRO_LIMB_BITS),
+            uint256_t(limb).slice(4 * MICRO_LIMB_BITS, 5 * MICRO_LIMB_BITS),
+            uint256_t(limb).slice(5 * MICRO_LIMB_BITS, 6 * MICRO_LIMB_BITS),
+        };
+    };
+    auto [p_x_0, p_x_1] = split_wide_limb_into_2_limbs(p_x_lo);
+    auto [p_x_2, p_x_3] = split_wide_limb_into_2_limbs(p_x_hi);
+    GoblinTranslatorCircuitBuilder::accumulation_input single_accumulation_step;
+    single_accumulation_step.op = op;
+    single_accumulation_step.P_x_lo = p_x_lo;
+    single_accumulation_step.P_x_hi = p_x_hi;
+    single_accumulation_step.P_y_lo = p_y_lo;
+    single_accumulation_step.P_y_hi = p_y_hi;
+    single_accumulation_step.z_1 = z_1;
+    single_accumulation_step.z_2 = z_2;
+    single_accumulation_step.P_x_limbs[0] = p_x_0;
+    single_accumulation_step.P_x_limbs[1] = p_x_1;
+    single_accumulation_step.P_x_limbs[2] = p_x_2;
+    single_accumulation_step.P_x_limbs[3] = p_x_3;
+    for (size_t i = 0; i < GoblinTranslatorCircuitBuilder::NUM_BINARY_LIMBS; i++) {
+        single_accumulation_step.P_x_microlimbs[i] =
+            split_standard_limb_into_micro_limbs(single_accumulation_step.P_x_limbs[i]);
+    }
+
+    auto circuit_builder = GoblinTranslatorCircuitBuilder();
+    circuit_builder.create_accumulation_gate(single_accumulation_step);
+    EXPECT_TRUE(circuit_builder.check_circuit());
 }
 } // namespace proof_system
