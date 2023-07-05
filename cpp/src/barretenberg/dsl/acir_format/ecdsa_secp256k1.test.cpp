@@ -81,9 +81,9 @@ size_t generate_ecdsa_constraint(EcdsaSecp256k1Constraint& ecdsa_constraint, Wit
 
 TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
 {
-    EcdsaSecp256k1Constraint ecdsa_constraint;
+    EcdsaSecp256k1Constraint ecdsa_k1_constraint;
     WitnessVector witness_values;
-    size_t num_variables = generate_ecdsa_constraint(ecdsa_constraint, witness_values);
+    size_t num_variables = generate_ecdsa_constraint(ecdsa_k1_constraint, witness_values);
     acir_format constraint_system{
         .varnum = static_cast<uint32_t>(num_variables),
         .public_inputs = {},
@@ -106,7 +106,7 @@ TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
 
     auto builder = create_circuit_with_witness(constraint_system, witness_values);
 
-    EXPECT_EQ(builder.get_variable(ecdsa_constraint.result), 1);
+    EXPECT_EQ(builder.get_variable(ecdsa_k1_constraint.result), 1);
 
     auto composer = Composer();
     auto prover = composer.create_prover(builder);
@@ -121,9 +121,9 @@ TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
 // even though we are just building the circuit.
 TEST(ECDSASecp256k1, TestECDSACompilesForVerifier)
 {
-    EcdsaSecp256k1Constraint ecdsa_constraint;
+    EcdsaSecp256k1Constraint ecdsa_k1_constraint;
     WitnessVector witness_values;
-    size_t num_variables = generate_ecdsa_constraint(ecdsa_constraint, witness_values);
+    size_t num_variables = generate_ecdsa_constraint(ecdsa_k1_constraint, witness_values);
     acir_format constraint_system{
         .varnum = static_cast<uint32_t>(num_variables),
         .public_inputs = {},
@@ -179,7 +179,7 @@ TEST(ECDSASecp256k1, TestECDSAConstraintFail)
     };
 
     auto builder = create_circuit_with_witness(constraint_system, witness_values);
-    EXPECT_EQ(builder.get_variable(ecdsa_constraint.result), 0);
+    EXPECT_EQ(builder.get_variable(ecdsa_k1_constraint.result), 0);
 
     auto composer = Composer();
     auto prover = composer.create_prover(builder);

@@ -83,7 +83,7 @@ witness_ct ecdsa_index_to_witness(Builder& builder, uint32_t index)
     return { &builder, value };
 }
 
-void create_ecdsa_k1_verify_constraints(Composer& composer,
+void create_ecdsa_k1_verify_constraints(Builder& builder,
                                         const EcdsaSecp256k1Constraint& input,
                                         bool has_valid_witness_assignments)
 {

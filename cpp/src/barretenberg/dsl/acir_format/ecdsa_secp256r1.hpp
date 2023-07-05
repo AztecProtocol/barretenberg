@@ -1,6 +1,6 @@
 #pragma once
-#include <vector>
 #include "barretenberg/dsl/types.hpp"
+#include <vector>
 
 namespace acir_format {
 
@@ -26,11 +26,11 @@ struct EcdsaSecp256r1Constraint {
     friend bool operator==(EcdsaSecp256r1Constraint const& lhs, EcdsaSecp256r1Constraint const& rhs) = default;
 };
 
-void create_ecdsa_r1_verify_constraints(Composer& composer,
+void create_ecdsa_r1_verify_constraints(Builder& builder,
                                         const EcdsaSecp256r1Constraint& input,
                                         bool has_valid_witness_assignments = true);
 
-void dummy_ecdsa_constraint(Composer& composer, EcdsaSecp256r1Constraint const& input);
+void dummy_ecdsa_constraint(Builder& builder, EcdsaSecp256r1Constraint const& input);
 
 template <typename B> inline void read(B& buf, EcdsaSecp256r1Constraint& constraint)
 {

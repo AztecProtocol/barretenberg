@@ -1,17 +1,18 @@
 #include "acir_format.hpp"
-#include "ecdsa_secp256r1.hpp"
+#include "barretenberg/crypto/ecdsa/ecdsa.hpp"
 #include "barretenberg/plonk/proof_system/types/proof.hpp"
 #include "barretenberg/plonk/proof_system/verification_key/verification_key.hpp"
-#include "barretenberg/crypto/ecdsa/ecdsa.hpp"
+#include "ecdsa_secp256r1.hpp"
 
 #include <gtest/gtest.h>
 #include <vector>
 
-using curve = proof_system::plonk::stdlib::secp256r1<acir_format::Composer>;
+namespace acir_format::tests {
+using curve_ct = proof_system::plonk::stdlib::secp256r1<Builder>;
 
 // Generate r1 constraints given pre generated pubkey, sig and message values
-size_t generate_r1_constraints(acir_format::EcdsaSecp256r1Constraint& ecdsa_r1_constraint,
-                               std::vector<fr>& witness_values,
+size_t generate_r1_constraints(EcdsaSecp256r1Constraint& ecdsa_r1_constraint,
+                               WitnessVector& witness_values,
                                uint256_t pub_x_value,
                                uint256_t pub_y_value,
                                std::array<uint8_t, 32> hashed_message,
@@ -56,7 +57,7 @@ size_t generate_r1_constraints(acir_format::EcdsaSecp256r1Constraint& ecdsa_r1_c
     offset += 1;
     witness_values.emplace_back(1);
 
-    ecdsa_r1_constraint = acir_format::EcdsaSecp256r1Constraint{
+    ecdsa_r1_constraint = EcdsaSecp256r1Constraint{
         .hashed_message = message_in,
         .pub_x_indices = pub_x_indices_in,
         .pub_y_indices = pub_y_indices_in,
@@ -66,8 +67,7 @@ size_t generate_r1_constraints(acir_format::EcdsaSecp256r1Constraint& ecdsa_r1_c
     return offset;
 }
 
-size_t generate_ecdsa_constraint(acir_format::EcdsaSecp256r1Constraint& ecdsa_r1_constraint,
-                                 std::vector<fr>& witness_values)
+size_t generate_ecdsa_constraint(EcdsaSecp256r1Constraint& ecdsa_r1_constraint, WitnessVector& witness_values)
 {
 
     std::string message_string = "Instructions unclear, ask again later.";
@@ -78,12 +78,13 @@ size_t generate_ecdsa_constraint(acir_format::EcdsaSecp256r1Constraint& ecdsa_r1
     std::copy(message_string.begin(), message_string.end(), std::back_inserter(message_buffer));
     auto hashed_message = sha256::sha256(message_buffer);
 
-    crypto::ecdsa::key_pair<curve::fr, curve::g1> account;
-    account.private_key = curve::fr::random_element();
-    account.public_key = curve::g1::one * account.private_key;
+    crypto::ecdsa::key_pair<curve_ct::fr, curve_ct::g1> account;
+    account.private_key = curve_ct::fr::random_element();
+    account.public_key = curve_ct::g1::one * account.private_key;
 
     crypto::ecdsa::signature signature =
-        crypto::ecdsa::construct_signature<Sha256Hasher, curve::fq, curve::fr, curve::g1>(message_string, account);
+        crypto::ecdsa::construct_signature<Sha256Hasher, curve_ct::fq, curve_ct::fr, curve_ct::g1>(message_string,
+                                                                                                   account);
 
     return generate_r1_constraints(
         ecdsa_r1_constraint, witness_values, account.public_key.x, account.public_key.y, hashed_message, signature);
@@ -91,8 +92,8 @@ size_t generate_ecdsa_constraint(acir_format::EcdsaSecp256r1Constraint& ecdsa_r1
 
 TEST(ECDSASecp256r1, test_hardcoded)
 {
-    acir_format::EcdsaSecp256r1Constraint ecdsa_r1_constraint;
-    std::vector<fr> witness_values;
+    EcdsaSecp256r1Constraint ecdsa_r1_constraint;
+    WitnessVector witness_values;
 
     std::string message = "ECDSA proves knowledge of a secret number in the context of a single message";
     std::array<uint8_t, 32> hashed_message = {
@@ -112,14 +113,14 @@ TEST(ECDSASecp256r1, test_hardcoded)
         .v = 0
     };
 
-    crypto::ecdsa::key_pair<curve::fr, curve::g1> account;
-    account.private_key = curve::fr(uint256_t("020202020202020202020202020202020202020202020202020202020202020202"));
+    crypto::ecdsa::key_pair<curve_ct::fr, curve_ct::g1> account;
+    account.private_key = curve_ct::fr(uint256_t("020202020202020202020202020202020202020202020202020202020202020202"));
 
-    account.public_key = curve::g1::one * account.private_key;
+    account.public_key = curve_ct::g1::one * account.private_key;
 
     size_t num_variables =
         generate_r1_constraints(ecdsa_r1_constraint, witness_values, pub_key_x, pub_key_y, hashed_message, signature);
-    acir_format::acir_format constraint_system{
+    acir_format constraint_system{
         .varnum = static_cast<uint32_t>(num_variables),
         .public_inputs = {},
         .fixed_base_scalar_mul_constraints = {},
@@ -144,22 +145,23 @@ TEST(ECDSASecp256r1, test_hardcoded)
         message, pub_key, signature);
     EXPECT_EQ(we_ballin, true);
 
-    auto composer = acir_format::create_circuit_with_witness(constraint_system, witness_values);
+    auto builder = create_circuit_with_witness(constraint_system, witness_values);
 
-    EXPECT_EQ(composer.get_variable(ecdsa_r1_constraint.result), 1);
-    auto prover = composer.create_prover();
+    EXPECT_EQ(builder.get_variable(ecdsa_r1_constraint.result), 1);
+    auto composer = Composer();
+    auto prover = composer.create_prover(builder);
 
     auto proof = prover.construct_proof();
-    auto verifier = composer.create_verifier();
+    auto verifier = composer.create_verifier(builder);
     EXPECT_EQ(verifier.verify_proof(proof), true);
 }
 
 TEST(ECDSASecp256r1, TestECDSAConstraintSucceed)
 {
-    acir_format::EcdsaSecp256r1Constraint ecdsa_r1_constraint;
-    std::vector<fr> witness_values;
+    EcdsaSecp256r1Constraint ecdsa_r1_constraint;
+    WitnessVector witness_values;
     size_t num_variables = generate_ecdsa_constraint(ecdsa_r1_constraint, witness_values);
-    acir_format::acir_format constraint_system{
+    acir_format constraint_system{
         .varnum = static_cast<uint32_t>(num_variables),
         .public_inputs = {},
         .fixed_base_scalar_mul_constraints = {},
@@ -179,13 +181,14 @@ TEST(ECDSASecp256r1, TestECDSAConstraintSucceed)
         .constraints = {},
     };
 
-    auto composer = acir_format::create_circuit_with_witness(constraint_system, witness_values);
+    auto builder = create_circuit_with_witness(constraint_system, witness_values);
 
-    EXPECT_EQ(composer.get_variable(ecdsa_r1_constraint.result), 1);
-    auto prover = composer.create_prover();
+    EXPECT_EQ(builder.get_variable(ecdsa_r1_constraint.result), 1);
+    auto composer = Composer();
+    auto prover = composer.create_prover(builder);
 
     auto proof = prover.construct_proof();
-    auto verifier = composer.create_verifier();
+    auto verifier = composer.create_verifier(builder);
     EXPECT_EQ(verifier.verify_proof(proof), true);
 }
 
@@ -194,10 +197,10 @@ TEST(ECDSASecp256r1, TestECDSAConstraintSucceed)
 // even though we are just building the circuit.
 TEST(ECDSASecp256r1, TestECDSACompilesForVerifier)
 {
-    acir_format::EcdsaSecp256r1Constraint ecdsa_r1_constraint;
-    std::vector<fr> witness_values;
+    EcdsaSecp256r1Constraint ecdsa_r1_constraint;
+    WitnessVector witness_values;
     size_t num_variables = generate_ecdsa_constraint(ecdsa_r1_constraint, witness_values);
-    acir_format::acir_format constraint_system{
+    acir_format constraint_system{
         .varnum = static_cast<uint32_t>(num_variables),
         .public_inputs = {},
         .fixed_base_scalar_mul_constraints = {},
@@ -216,14 +219,13 @@ TEST(ECDSASecp256r1, TestECDSACompilesForVerifier)
         .recursion_constraints = {},
         .constraints = {},
     };
-    auto crs_factory = std::make_unique<proof_system::ReferenceStringFactory>();
-    auto composer = create_circuit(constraint_system, std::move(crs_factory));
+    auto builder = create_circuit(constraint_system);
 }
 
 TEST(ECDSASecp256r1, TestECDSAConstraintFail)
 {
-    acir_format::EcdsaSecp256r1Constraint ecdsa_r1_constraint;
-    std::vector<fr> witness_values;
+    EcdsaSecp256r1Constraint ecdsa_r1_constraint;
+    WitnessVector witness_values;
     size_t num_variables = generate_ecdsa_constraint(ecdsa_r1_constraint, witness_values);
 
     // set result value to be false
@@ -232,7 +234,7 @@ TEST(ECDSASecp256r1, TestECDSAConstraintFail)
     // tamper with signature
     witness_values[witness_values.size() - 20] += 1;
 
-    acir_format::acir_format constraint_system{
+    acir_format constraint_system{
         .varnum = static_cast<uint32_t>(num_variables),
         .public_inputs = {},
         .fixed_base_scalar_mul_constraints = {},
@@ -252,12 +254,14 @@ TEST(ECDSASecp256r1, TestECDSAConstraintFail)
         .constraints = {},
     };
 
-    auto composer = acir_format::create_circuit_with_witness(constraint_system, witness_values);
+    auto builder = create_circuit_with_witness(constraint_system, witness_values);
 
-    EXPECT_EQ(composer.get_variable(ecdsa_r1_constraint.result), 0);
-    auto prover = composer.create_prover();
+    EXPECT_EQ(builder.get_variable(ecdsa_r1_constraint.result), 0);
+    auto composer = Composer();
+    auto prover = composer.create_prover(builder);
 
     auto proof = prover.construct_proof();
-    auto verifier = composer.create_verifier();
+    auto verifier = composer.create_verifier(builder);
     EXPECT_EQ(verifier.verify_proof(proof), true);
 }
+} // namespace acir_format::tests
