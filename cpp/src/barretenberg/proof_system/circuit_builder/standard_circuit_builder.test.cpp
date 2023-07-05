@@ -24,7 +24,7 @@ TEST(standard_circuit_constructor, base_case)
 
 TEST(standard_circuit_constructor, grumpkin_base_case)
 {
-    StandardGrumpkinCircuitConstructor composer = StandardGrumpkinCircuitConstructor();
+    StandardGrumpkinCircuitBuilder composer = StandardGrumpkinCircuitBuilder();
     grumpkin::fr a = grumpkin::fr::one();
     composer.add_public_variable(a);
 
