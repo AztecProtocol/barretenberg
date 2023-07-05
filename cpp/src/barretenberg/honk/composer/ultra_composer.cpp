@@ -16,21 +16,10 @@ template <UltraFlavor Flavor> void UltraComposer_<Flavor>::compute_witness(Circu
         return;
     }
 
-    size_t tables_size = 0;
-    size_t lookups_size = 0;
-    for (const auto& table : circuit_constructor.lookup_tables) {
-        tables_size += table.size;
-        lookups_size += table.lookup_gates.size();
-    }
-
     const size_t filled_gates = circuit_constructor.num_gates + circuit_constructor.public_inputs.size();
-    const size_t total_num_gates = std::max(filled_gates, tables_size + lookups_size);
-
-    const size_t subgroup_size = circuit_constructor.get_circuit_subgroup_size(total_num_gates + NUM_RESERVED_GATES);
 
     // Pad the wires (pointers to `witness_indices` of the `variables` vector).
-    // Note: the remaining NUM_RESERVED_GATES indices are padded with zeros within `construct_wire_polynomials_base`
-    // (called next).
+    // Note: total_num_gates = filled_gates + tables_size
     for (size_t i = filled_gates; i < total_num_gates; ++i) {
         circuit_constructor.w_l.emplace_back(circuit_constructor.zero_idx);
         circuit_constructor.w_r.emplace_back(circuit_constructor.zero_idx);
@@ -38,30 +27,24 @@ template <UltraFlavor Flavor> void UltraComposer_<Flavor>::compute_witness(Circu
         circuit_constructor.w_4.emplace_back(circuit_constructor.zero_idx);
     }
 
-    // TODO(#340)(luke): within construct_wire_polynomials_base, the 3rd argument is used in the calculation of the
-    // dyadic circuit size (subgroup_size). Here (and in other split composers) we're passing in NUM_RESERVED_GATES,
-    // but elsewhere, e.g. directly above, we use NUM_RESERVED_GATES in a similar role. Therefore, these two constants
-    // must be equal for everything to be consistent. What we should do is compute the dyadic circuit size once and for
-    // all then pass that around rather than computing in multiple places.
-    auto wire_polynomials =
-        construct_wire_polynomials_base<Flavor>(circuit_constructor, total_num_gates, NUM_RESERVED_GATES);
+    auto wire_polynomials = construct_wire_polynomials_base<Flavor>(circuit_constructor, total_num_gates);
 
     proving_key->w_l = wire_polynomials[0];
     proving_key->w_r = wire_polynomials[1];
     proving_key->w_o = wire_polynomials[2];
     proving_key->w_4 = wire_polynomials[3];
 
-    polynomial s_1(subgroup_size);
-    polynomial s_2(subgroup_size);
-    polynomial s_3(subgroup_size);
-    polynomial s_4(subgroup_size);
+    polynomial s_1(dyadic_circuit_size);
+    polynomial s_2(dyadic_circuit_size);
+    polynomial s_3(dyadic_circuit_size);
+    polynomial s_4(dyadic_circuit_size);
     // TODO(luke): The +1 size for z_lookup is not necessary and can lead to confusion. Resolve.
-    polynomial z_lookup(subgroup_size + 1); // Only instantiated in this function; nothing assigned.
+    polynomial z_lookup(dyadic_circuit_size + 1); // Only instantiated in this function; nothing assigned.
 
     // TODO(kesha): Look at this once we figure out how we do ZK (previously we had roots cut out, so just added
     // randomness)
     // The size of empty space in sorted polynomials
-    size_t count = subgroup_size - tables_size - lookups_size;
+    size_t count = dyadic_circuit_size - tables_size - lookups_size;
     ASSERT(count > 0); // We need at least 1 row of zeroes for the permutation argument
     for (size_t i = 0; i < count; ++i) {
         s_1[i] = 0;
@@ -189,38 +172,32 @@ std::shared_ptr<typename Flavor::ProvingKey> UltraComposer_<Flavor>::compute_pro
         return proving_key;
     }
 
-    size_t tables_size = 0;
-    size_t lookups_size = 0;
     for (const auto& table : circuit_constructor.lookup_tables) {
         tables_size += table.size;
         lookups_size += table.lookup_gates.size();
     }
 
     const size_t minimum_circuit_size = tables_size + lookups_size;
-    const size_t num_randomized_gates = NUM_RESERVED_GATES;
-    // Initialize proving_key
-    // TODO(#392)(Kesha): replace composer types.
-    proving_key = initialize_proving_key<Flavor>(
-        circuit_constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates);
+
+    num_public_inputs = circuit_constructor.public_inputs.size();
+    const size_t num_constraints = circuit_constructor.num_gates + num_public_inputs;
+    total_num_gates = std::max(minimum_circuit_size, num_constraints);
+    dyadic_circuit_size = circuit_constructor.get_circuit_subgroup_size(total_num_gates);
+
+    proving_key = std::make_shared<ProvingKey>(dyadic_circuit_size, num_public_inputs);
 
     construct_selector_polynomials<Flavor>(circuit_constructor, proving_key.get());
-
-    // TODO(#217)(luke): Naively enforcing non-zero selectors for Honk will result in some relations not being
-    // satisfied.
-    // enforce_nonzero_polynomial_selectors(circuit_constructor, proving_key.get());
 
     compute_honk_generalized_sigma_permutations<Flavor>(circuit_constructor, proving_key.get());
 
     compute_first_and_last_lagrange_polynomials<Flavor>(proving_key.get());
 
-    const size_t subgroup_size = proving_key->circuit_size;
+    polynomial poly_q_table_column_1(dyadic_circuit_size);
+    polynomial poly_q_table_column_2(dyadic_circuit_size);
+    polynomial poly_q_table_column_3(dyadic_circuit_size);
+    polynomial poly_q_table_column_4(dyadic_circuit_size);
 
-    polynomial poly_q_table_column_1(subgroup_size);
-    polynomial poly_q_table_column_2(subgroup_size);
-    polynomial poly_q_table_column_3(subgroup_size);
-    polynomial poly_q_table_column_4(subgroup_size);
-
-    size_t offset = subgroup_size - tables_size;
+    size_t offset = dyadic_circuit_size - tables_size;
 
     // Create lookup selector polynomials which interpolate each table column.
     // Our selector polys always need to interpolate the full subgroup size, so here we offset so as to
@@ -250,33 +227,6 @@ std::shared_ptr<typename Flavor::ProvingKey> UltraComposer_<Flavor>::compute_pro
     }
 
     // Polynomial memory is zeroed out when constructed with size hint, so we don't have to initialize trailing space
-
-    // // In the case of using UltraPlonkComposer for a circuit which does _not_ make use of any lookup tables, all
-    // four
-    // // table columns would be all zeros. This would result in these polys' commitments all being the point at
-    // infinity
-    // // (which is bad because our point arithmetic assumes we'll never operate on the point at infinity). To avoid
-    // this,
-    // // we set the last evaluation of each poly to be nonzero. The last `num_roots_cut_out_of_vanishing_poly = 4`
-    // // evaluations are ignored by constraint checks; we arbitrarily choose the very-last evaluation to be nonzero.
-    // See
-    // // ComposerBase::compute_proving_key_base for further explanation, as a similar trick is done there. We could
-    // // have chosen `1` for each such evaluation here, but that would have resulted in identical commitments for
-    // // all four columns. We don't want to have equal commitments, because biggroup operations assume no points are
-    // // equal, so if we tried to verify an ultra proof in a circuit, the biggroup operations would fail. To combat
-    // // this, we just choose distinct values:
-
-    // TODO(#217)(luke): Similar to the selectors, enforcing non-zero values by inserting an arbitrary final element
-    // in the table polys will result in lookup relations not being satisfied. Address this with issue #217.
-    // size_t num_selectors = circuit_constructor.num_selectors;
-    // ASSERT(offset == subgroup_size - 1);
-    // auto unique_last_value = num_selectors + 1; // Note: in compute_proving_key_base, moments earlier, each selector
-    //                                             // vector was given a unique last value from 1..num_selectors. So we
-    //                                             // avoid those values and continue the count, to ensure uniqueness.
-    // poly_q_table_column_1[subgroup_size - 1] = unique_last_value;
-    // poly_q_table_column_2[subgroup_size - 1] = ++unique_last_value;
-    // poly_q_table_column_3[subgroup_size - 1] = ++unique_last_value;
-    // poly_q_table_column_4[subgroup_size - 1] = ++unique_last_value;
 
     proving_key->table_1 = poly_q_table_column_1;
     proving_key->table_2 = poly_q_table_column_2;

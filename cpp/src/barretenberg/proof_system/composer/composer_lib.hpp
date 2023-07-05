@@ -27,9 +27,8 @@ std::shared_ptr<typename Flavor::ProvingKey> initialize_proving_key(
     CircuitType circuit_type = CircuitType::UNDEFINED)
 {
     const size_t num_gates = circuit_constructor.num_gates;
-    std::span<const uint32_t> public_inputs = circuit_constructor.public_inputs;
 
-    const size_t num_public_inputs = public_inputs.size();
+    const size_t num_public_inputs = circuit_constructor.public_inputs.size();
     const size_t num_constraints = num_gates + num_public_inputs;
     const size_t total_num_constraints = std::max(minimum_circuit_size, num_constraints);
     const size_t subgroup_size =
@@ -132,7 +131,7 @@ template <typename Flavor>
 std::vector<barretenberg::polynomial> construct_wire_polynomials_base(
     const typename Flavor::CircuitBuilder& circuit_constructor,
     const size_t minimum_circuit_size,
-    const size_t number_of_randomized_gates)
+    const size_t number_of_randomized_gates = 0)
 {
     const size_t num_gates = circuit_constructor.num_gates;
     std::span<const uint32_t> public_inputs = circuit_constructor.public_inputs;

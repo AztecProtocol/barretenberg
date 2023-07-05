@@ -22,7 +22,6 @@ template <UltraFlavor Flavor> class UltraComposer_ {
     using PCSVerificationKey = typename PCSParams::VerificationKey;
 
     static constexpr std::string_view NAME_STRING = "UltraHonk";
-    static constexpr size_t NUM_RESERVED_GATES = 4; // equal to the number of multilinear evaluations leaked
     static constexpr size_t NUM_WIRES = CircuitBuilder::NUM_WIRES;
     std::shared_ptr<ProvingKey> proving_key;
     std::shared_ptr<VerificationKey> verification_key;
@@ -36,6 +35,11 @@ template <UltraFlavor Flavor> class UltraComposer_ {
     std::vector<uint32_t> recursive_proof_public_input_indices;
     bool contains_recursive_proof = false;
     bool computed_witness = false;
+    size_t total_num_gates = 0;     // total num gates (the number used to compute dyadic size)
+    size_t dyadic_circuit_size = 0; // final dyadic circuit size
+    size_t lookups_size = 0;        // total number of lookup gates
+    size_t tables_size = 0;         // total number of table entries
+    size_t num_public_inputs = 0;
 
     UltraComposer_()
         : crs_factory_(barretenberg::srs::get_crs_factory()){};
