@@ -36,7 +36,7 @@ std::shared_ptr<plonk::proving_key> TurboComposer::compute_proving_key(const Cir
     const size_t num_randomized_gates = NUM_RESERVED_GATES;
     // Initialize circuit_proving_key
     // TODO(#392)(Kesha): replace composer types.
-    circuit_proving_key = initialize_proving_key<Flavor>(
+    circuit_proving_key = initialize_proving_key(
         circuit_constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, CircuitType::TURBO);
 
     construct_selector_polynomials<Flavor>(circuit_constructor, circuit_proving_key.get());

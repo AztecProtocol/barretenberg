@@ -25,7 +25,7 @@ template <typename Flavor> class TranscriptTests : public testing::Test {
      * to warn the developer if the Prover/Verifier has deviated from this manifest, however, the Transcript class is
      * not otherwise contrained to follow the manifest.
      *
-     * @note Entries in the manifest consist of a name and a size (bytes), NOT actual data.
+     * @note Entries in the manifest consist of a name string and a size (bytes), NOT actual data.
      *
      * @return TranscriptManifest
      */

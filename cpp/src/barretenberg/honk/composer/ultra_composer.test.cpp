@@ -89,7 +89,7 @@ TEST_F(UltraHonkComposerTests, PublicInputs)
 {
     auto builder = UltraCircuitBuilder();
     size_t num_gates = 10;
-    // TODO(luke): If were going to add any PI, the first has to be zero to ensure shiftable wires.
+    // TODO(#597)(luke): If were going to add any PI, the first has to be zero to ensure shiftable wires.
     builder.add_public_variable(0);
 
     for (size_t i = 0; i < num_gates; ++i) {

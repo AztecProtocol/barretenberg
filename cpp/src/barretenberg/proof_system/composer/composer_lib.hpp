@@ -7,47 +7,6 @@
 namespace proof_system {
 
 /**
- * @brief Initilalize proving key and load the crs
- *
- * @tparam Flavor
- * @param circuit_constructor  Object containing the circuit
- * @param crs_factory Produces the prover's reference string
- * @param minimum_circuit_size The minimum size of polynomials without randomized elements
- * @param num_randomized_gates Number of gates with randomized witnesses
- * @param circuit_type This is passed in the case of Plonk since we use flavor-independent proving and verification keys
- * in that case.
- * @return std::shared_ptr<typename Flavor::ProvingKey>
- */
-template <typename Flavor>
-std::shared_ptr<typename Flavor::ProvingKey> initialize_proving_key(
-    const typename Flavor::CircuitBuilder& circuit_constructor,
-    barretenberg::srs::factories::CrsFactory* crs_factory,
-    const size_t minimum_circuit_size,
-    const size_t num_randomized_gates,
-    CircuitType circuit_type = CircuitType::UNDEFINED)
-{
-    const size_t num_gates = circuit_constructor.num_gates;
-
-    const size_t num_public_inputs = circuit_constructor.public_inputs.size();
-    const size_t num_constraints = num_gates + num_public_inputs;
-    const size_t total_num_constraints = std::max(minimum_circuit_size, num_constraints);
-    const size_t subgroup_size =
-        circuit_constructor.get_circuit_subgroup_size(total_num_constraints + num_randomized_gates); // next power of 2
-
-    // Differentiate between Honk and Plonk here since Plonk pkey requires crs whereas Honk pkey does not
-    std::shared_ptr<typename Flavor::ProvingKey> proving_key;
-    if constexpr (IsHonkFlavor<Flavor>) {
-        proving_key = std::make_shared<typename Flavor::ProvingKey>(subgroup_size, num_public_inputs);
-    } else if constexpr (IsPlonkFlavor<Flavor>) {
-        auto crs = crs_factory->get_prover_crs(subgroup_size + 1);
-        proving_key =
-            std::make_shared<typename Flavor::ProvingKey>(subgroup_size, num_public_inputs, crs, circuit_type);
-    }
-
-    return proving_key;
-}
-
-/**
  * @brief Construct selector polynomials from ciruit selector information and put into polynomial cache
  *
  * @tparam Flavor
@@ -59,6 +18,7 @@ void construct_selector_polynomials(const typename Flavor::CircuitBuilder& circu
                                     typename Flavor::ProvingKey* proving_key)
 {
     const size_t num_public_inputs = circuit_constructor.public_inputs.size();
+    // const size_t offset = num_public_inputs +
     // TODO(#398): Loose coupling here! Would rather build up pk from arithmetization
     size_t selector_idx = 0; // TODO(#391) zip
     for (auto& selector_values : circuit_constructor.selectors) {

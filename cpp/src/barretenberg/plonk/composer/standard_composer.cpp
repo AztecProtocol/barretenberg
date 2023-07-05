@@ -61,7 +61,7 @@ std::shared_ptr<plonk::proving_key> StandardComposer::compute_proving_key(const 
     const size_t num_randomized_gates = NUM_RESERVED_GATES;
     // Initialize circuit_proving_key
     // TODO(#392)(Kesha): replace composer types.
-    circuit_proving_key = proof_system::initialize_proving_key<Flavor>(
+    circuit_proving_key = initialize_proving_key(
         circuit_constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, CircuitType::STANDARD);
     // Compute lagrange selectors
     construct_selector_polynomials<Flavor>(circuit_constructor, circuit_proving_key.get());

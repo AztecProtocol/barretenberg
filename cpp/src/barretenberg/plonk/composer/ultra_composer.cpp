@@ -1,4 +1,5 @@
 #include "ultra_composer.hpp"
+#include "barretenberg/plonk/composer/composer_lib.hpp"
 #include "barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp"
 #include "barretenberg/plonk/proof_system/types/program_settings.hpp"
 #include "barretenberg/plonk/proof_system/types/prover_settings.hpp"
@@ -379,7 +380,7 @@ std::shared_ptr<proving_key> UltraComposer::compute_proving_key(CircuitBuilder& 
     const size_t num_randomized_gates = NUM_RESERVED_GATES;
     // Initialize circuit_proving_key
     // TODO(#392)(Kesha): replace composer types.
-    circuit_proving_key = initialize_proving_key<Flavor>(
+    circuit_proving_key = initialize_proving_key(
         circuit_constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, CircuitType::ULTRA);
 
     construct_selector_polynomials<Flavor>(circuit_constructor, circuit_proving_key.get());
