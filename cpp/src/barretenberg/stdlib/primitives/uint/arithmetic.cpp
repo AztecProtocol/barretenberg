@@ -392,10 +392,10 @@ std::pair<uint<Composer, Native>, uint<Composer, Native>> uint<Composer, Native>
     return std::make_pair(quotient, remainder);
 }
 
-// INSTANTIATE_STDLIB_BASIC_TYPE_VA(uint, uint8_t);
-// INSTANTIATE_STDLIB_BASIC_TYPE_VA(uint, uint16_t);
-// INSTANTIATE_STDLIB_BASIC_TYPE_VA(uint, uint32_t);
-// INSTANTIATE_STDLIB_BASIC_TYPE_VA(uint, uint64_t);
+INSTANTIATE_STDLIB_BASIC_TYPE_VA(uint, uint8_t);
+INSTANTIATE_STDLIB_BASIC_TYPE_VA(uint, uint16_t);
+INSTANTIATE_STDLIB_BASIC_TYPE_VA(uint, uint32_t);
+INSTANTIATE_STDLIB_BASIC_TYPE_VA(uint, uint64_t);
 
 } // namespace stdlib
 } // namespace proof_system::plonk

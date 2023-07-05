@@ -1217,6 +1217,7 @@ std::vector<bool_t<ComposerContext>> field_t<ComposerContext>::decompose_into_bi
 }
 
 INSTANTIATE_STDLIB_TYPE(field_t);
+INSTANTIATE_STDLIB_SIMULATOR_TYPE(field_t);
 
 } // namespace stdlib
 } // namespace proof_system::plonk

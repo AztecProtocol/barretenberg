@@ -7,6 +7,7 @@
 #include "barretenberg/stdlib/primitives/point/point.hpp"
 #include "barretenberg/stdlib/primitives/witness/witness.hpp"
 
+// TODO: This does not belong in barretenberg.
 namespace proof_system::plonk {
 namespace stdlib {
 

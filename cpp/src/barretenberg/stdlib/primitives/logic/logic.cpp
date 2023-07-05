@@ -113,5 +113,5 @@ field_t<Composer> logic<Composer>::create_logic_constraint(
         return field_t<Composer>::from_witness_index(ctx, out_idx);
     }
 }
-// INSTANTIATE_STDLIB_TYPE(logic);
+INSTANTIATE_STDLIB_TYPE(logic);
 } // namespace proof_system::plonk::stdlib

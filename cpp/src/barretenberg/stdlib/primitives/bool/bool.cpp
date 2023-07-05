@@ -552,6 +552,7 @@ template <typename ComposerContext> bool_t<ComposerContext> bool_t<ComposerConte
 }
 
 INSTANTIATE_STDLIB_TYPE(bool_t);
+INSTANTIATE_STDLIB_SIMULATOR_TYPE(bool_t);
 
 } // namespace stdlib
 } // namespace proof_system::plonk

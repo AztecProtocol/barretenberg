@@ -160,7 +160,7 @@ template <typename ComposerContext> std::string bit_array<ComposerContext>::get_
     return output;
 }
 
-// INSTANTIATE_STDLIB_TYPE(bit_array)
+INSTANTIATE_STDLIB_TYPE(bit_array)
 
 } // namespace stdlib
 } // namespace proof_system::plonk
