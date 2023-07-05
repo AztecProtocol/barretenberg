@@ -314,23 +314,28 @@ jobs:
           name: "Test"
           command: cond_spot_run_tests bb.js
 
-  aarch64-macos-clang:
-    macos:
-      xcode: "14.3.1"
-    resource_class: macos.m1.medium.gen1
-    steps:
-      - *checkout
-      - run:
-          name: "Install toolchain"
-          command: brew install cmake ninja
-      - run:
-          name: "Build"
-          working_directory: ~/project/cpp
-          command: cmake --preset default && cmake --build --preset default --target bb
-      - run:
-          name: "Test"
-          working_directory: ~/project/cpp/bin-test
-          command: ./bin-test.sh
+  # These machines cost a fortune (10x other machines).
+  # There is a branch coming for github actions that will build mac stuff on releases.
+  # I'll leave this here for now, just in case proves useful to be able to do CI mac builds on branches,
+  # but let's not uncomment in master.
+  #
+  # aarch64-macos-clang:
+  #   macos:
+  #     xcode: "14.3.1"
+  #   resource_class: macos.m1.medium.gen1
+  #   steps:
+  #     - *checkout
+  #     - run:
+  #         name: "Install toolchain"
+  #         command: brew install cmake ninja
+  #     - run:
+  #         name: "Build"
+  #         working_directory: ~/project/cpp
+  #         command: cmake --preset default && cmake --build --preset default --target bb
+  #     - run:
+  #         name: "Test"
+  #         working_directory: ~/project/cpp/bin-test
+  #         command: ./bin-test.sh
 
   ###################################
   # Aztec integration tests
@@ -411,7 +416,7 @@ notmaster: &notmaster
 workflows:
   system:
     jobs:
-      - aarch64-macos-clang: *defaults
+      # - aarch64-macos-clang: *defaults
       - x86_64-linux-gcc: *defaults
       - x86_64-linux-clang: *defaults
       - x86_64-linux-clang-assert: *defaults
