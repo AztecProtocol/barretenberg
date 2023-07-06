@@ -935,6 +935,25 @@ template <typename Composer> class stdlib_field : public testing::Test {
         bool check_result = composer.check_circuit();
         EXPECT_EQ(check_result, true);
     }
+
+    static void test_add_two()
+    {
+        Composer composer = Composer();
+        auto x_1 = barretenberg::fr::random_element();
+        auto x_2 = barretenberg::fr::random_element();
+        auto x_3 = barretenberg::fr::random_element();
+
+        field_ct x_1_ct = witness_ct(&composer, x_1);
+        field_ct x_2_ct = witness_ct(&composer, x_2);
+        field_ct x_3_ct = witness_ct(&composer, x_3);
+
+        auto sum_ct = x_1_ct.add_two(x_2_ct, x_3_ct);
+
+        EXPECT_EQ(sum_ct.get_value(), x_1 + x_2 + x_3);
+
+        bool circuit_checks = composer.check_circuit();
+        EXPECT_TRUE(circuit_checks);
+    }
 };
 
 using CircuitTypes = testing::Types<proof_system::CircuitSimulatorBN254,
@@ -1072,5 +1091,8 @@ TYPED_TEST(stdlib_field, test_ranged_less_than)
 {
     TestFixture::test_ranged_less_than();
 }
-
+TYPED_TEST(stdlib_field, test_add_two)
+{
+    TestFixture::test_add_two();
+}
 } // namespace test_stdlib_field
