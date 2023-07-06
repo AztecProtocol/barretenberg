@@ -27,7 +27,7 @@ template <UltraFlavor Flavor> void UltraComposer_<Flavor>::compute_witness(Circu
         circuit_constructor.w_4.emplace_back(circuit_constructor.zero_idx);
     }
 
-    auto wire_polynomials = construct_wire_polynomials_base<Flavor>(circuit_constructor, total_num_gates);
+    auto wire_polynomials = construct_wire_polynomials_base<Flavor>(circuit_constructor, dyadic_circuit_size);
 
     proving_key->w_l = wire_polynomials[0];
     proving_key->w_r = wire_polynomials[1];

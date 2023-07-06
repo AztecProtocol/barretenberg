@@ -82,31 +82,16 @@ void enforce_nonzero_selector_polynomials(const typename Flavor::CircuitBuilder&
  *
  * @tparam Flavor provides the circuit constructor type and the number of wires.
  * @param circuit_constructor
- * @param minimum_circuit_size
- * @param number_of_randomized_gates
+ * @param dyadic_circuit_size Power of 2 circuit size
  *
  * @return std::vector<barretenberg::polynomial>
  * */
 template <typename Flavor>
 std::vector<barretenberg::polynomial> construct_wire_polynomials_base(
-    const typename Flavor::CircuitBuilder& circuit_constructor,
-    const size_t minimum_circuit_size,
-    const size_t number_of_randomized_gates = 0)
+    const typename Flavor::CircuitBuilder& circuit_constructor, const size_t dyadic_circuit_size)
 {
-    const size_t num_gates = circuit_constructor.num_gates;
     std::span<const uint32_t> public_inputs = circuit_constructor.public_inputs;
     const size_t num_public_inputs = public_inputs.size();
-
-    const size_t num_constraints = std::max(minimum_circuit_size, num_gates + num_public_inputs);
-    // TODO(#216)(Adrian): Not a fan of specifying NUM_RESERVED_GATES everywhere,
-    // Each flavor of Honk should have a "fixed" number of random places to add randomness to.
-    // It should be taken care of in as few places possible.
-    const size_t subgroup_size =
-        circuit_constructor.get_circuit_subgroup_size(num_constraints + number_of_randomized_gates);
-
-    // construct a view over all the wire's variable indices
-    // w[j][i] is the index of the variable in the j-th wire, at gate i
-    // Each array should be of size `num_gates`
 
     std::vector<barretenberg::polynomial> wire_polynomials;
     // Note: randomness is added to 3 of the last 4 positions in plonk/proof_system/prover/prover.cpp
@@ -115,7 +100,7 @@ std::vector<barretenberg::polynomial> construct_wire_polynomials_base(
     for (auto& wire : circuit_constructor.wires) {
         // Initialize the polynomial with all the actual copies variable values
         // Expect all values to be set to 0 initially
-        barretenberg::polynomial w_lagrange(subgroup_size);
+        barretenberg::polynomial w_lagrange(dyadic_circuit_size);
 
         // Place all public inputs at the start of the first two wires.
         // All selectors at these indices are set to 0, so these values are not constrained at all.
@@ -128,7 +113,7 @@ std::vector<barretenberg::polynomial> construct_wire_polynomials_base(
 
         // Assign the variable values (which are pointed-to by the `w_` wire_polynomials) to the wire witness
         // polynomials `poly_w_`, shifted to make room for the public inputs at the beginning.
-        for (size_t i = 0; i < num_gates; ++i) {
+        for (size_t i = 0; i < circuit_constructor.num_gates; ++i) {
             w_lagrange[num_public_inputs + i] = circuit_constructor.get_variable(wire[i]);
         }
         wire_polynomials.push_back(std::move(w_lagrange));

@@ -26,7 +26,7 @@ void StandardComposer_<Flavor>::compute_witness(const CircuitBuilder& circuit_co
     if (computed_witness) {
         return;
     }
-    auto wire_polynomials = construct_wire_polynomials_base<Flavor>(circuit_constructor, minimum_circuit_size);
+    auto wire_polynomials = construct_wire_polynomials_base<Flavor>(circuit_constructor, dyadic_circuit_size);
 
     proving_key->w_l = wire_polynomials[0];
     proving_key->w_r = wire_polynomials[1];

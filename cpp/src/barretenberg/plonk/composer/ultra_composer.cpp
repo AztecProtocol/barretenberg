@@ -49,10 +49,7 @@ void UltraComposer::compute_witness(CircuitBuilder& circuit_constructor)
         circuit_constructor.w_4.emplace_back(circuit_constructor.zero_idx);
     }
 
-    // TODO(luke): subgroup size was already computed above but compute_witness_base computes it again. If we pass in
-    // NUM_RESERVED_GATES (as in the other split composers) the resulting sizes can differ. Reconcile this.
-    auto wire_polynomial_evaluations =
-        construct_wire_polynomials_base<Flavor>(circuit_constructor, total_num_gates, NUM_RESERVED_GATES);
+    auto wire_polynomial_evaluations = construct_wire_polynomials_base<Flavor>(circuit_constructor, subgroup_size);
 
     for (size_t j = 0; j < program_width; ++j) {
         std::string index = std::to_string(j + 1);

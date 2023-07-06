@@ -30,8 +30,14 @@ void StandardComposer::compute_witness(const CircuitBuilder& circuit_constructor
     if (computed_witness) {
         return;
     }
-    auto wire_polynomial_evaluations =
-        construct_wire_polynomials_base<Flavor>(circuit_constructor, minimum_circuit_size, NUM_RESERVED_GATES);
+    const size_t num_gates = circuit_constructor.num_gates;
+    const size_t num_public_inputs = circuit_constructor.public_inputs.size();
+
+    const size_t num_constraints = std::max(minimum_circuit_size, num_gates + num_public_inputs);
+
+    const size_t subgroup_size = circuit_constructor.get_circuit_subgroup_size(num_constraints + NUM_RESERVED_GATES);
+
+    auto wire_polynomial_evaluations = construct_wire_polynomials_base<Flavor>(circuit_constructor, subgroup_size);
 
     for (size_t j = 0; j < program_width; ++j) {
         std::string index = std::to_string(j + 1);
