@@ -342,6 +342,17 @@ TEST(translator_circuit_builder, circuit_builder_base_Case)
     Fr p_y_hi = uint256_t(p_y).slice(2 * NUM_LIMB_BITS, 4 * NUM_LIMB_BITS);
     Fr z_1 = get_random_wide_limb();
     Fr z_2 = get_random_wide_limb();
+
+    Fp previous_accumulator = Fp::random_element();
+    Fp current_accumulator = Fp::random_element();
+    auto base_element_to_bigfield = [](Fp& original) {
+        uint256_t original_uint = original;
+        return std::make_tuple(Fr(original_uint.slice(0, NUM_LIMB_BITS)),
+                               Fr(original_uint.slice(NUM_LIMB_BITS, 2 * NUM_LIMB_BITS)),
+                               Fr(original_uint.slice(2 * NUM_LIMB_BITS, 3 * NUM_LIMB_BITS)),
+                               Fr(original_uint.slice(3 * NUM_LIMB_BITS, 4 * NUM_LIMB_BITS)),
+                               Fr(original_uint));
+    };
     auto split_wide_limb_into_2_limbs = [](Fr& wide_limb) {
         return std::make_tuple(Fr(uint256_t(wide_limb).slice(0, NUM_LIMB_BITS)),
                                Fr(uint256_t(wide_limb).slice(NUM_LIMB_BITS, 2 * NUM_LIMB_BITS)));
@@ -360,6 +371,26 @@ TEST(translator_circuit_builder, circuit_builder_base_Case)
     auto [p_x_2, p_x_3] = split_wide_limb_into_2_limbs(p_x_hi);
     auto [p_y_0, p_y_1] = split_wide_limb_into_2_limbs(p_y_lo);
     auto [p_y_2, p_y_3] = split_wide_limb_into_2_limbs(p_y_hi);
+    // Construct bigfield representations of z1 and z2 only using 2 limbs each
+    // z_1 and z_2 are low enough to act as their own prime limbs
+    auto [z_1_lo, z_1_hi] = split_wide_limb_into_2_limbs(z_1);
+    auto [z_2_lo, z_2_hi] = split_wide_limb_into_2_limbs(z_2);
+    auto [previous_accumulator_0, previous_accumulator_1, previous_accumulator_2, previous_accumulator_3, _unused1] =
+        base_element_to_bigfield(previous_accumulator);
+    std::array<Fr, 4> previous_accumulator_witnesses = {
+        previous_accumulator_0,
+        previous_accumulator_1,
+        previous_accumulator_2,
+        previous_accumulator_3,
+    };
+    auto [current_accumulator_0, current_accumulator_1, current_accumulator_2, current_accumulator_3, _unused2] =
+        base_element_to_bigfield(current_accumulator);
+    std::array<Fr, 4> current_accumulator_witnesses = {
+        current_accumulator_0,
+        current_accumulator_1,
+        current_accumulator_2,
+        current_accumulator_3,
+    };
     GoblinTranslatorCircuitBuilder::accumulation_input single_accumulation_step;
     single_accumulation_step.op = op;
     single_accumulation_step.P_x_lo = p_x_lo;
@@ -368,14 +399,13 @@ TEST(translator_circuit_builder, circuit_builder_base_Case)
     single_accumulation_step.P_y_hi = p_y_hi;
     single_accumulation_step.z_1 = z_1;
     single_accumulation_step.z_2 = z_2;
-    single_accumulation_step.P_x_limbs[0] = p_x_0;
-    single_accumulation_step.P_x_limbs[1] = p_x_1;
-    single_accumulation_step.P_x_limbs[2] = p_x_2;
-    single_accumulation_step.P_x_limbs[3] = p_x_3;
-    single_accumulation_step.P_y_limbs[0] = p_y_0;
-    single_accumulation_step.P_y_limbs[1] = p_y_1;
-    single_accumulation_step.P_y_limbs[2] = p_y_2;
-    single_accumulation_step.P_y_limbs[3] = p_y_3;
+    single_accumulation_step.P_x_limbs = { p_x_0, p_x_1, p_x_2, p_x_3 };
+    single_accumulation_step.P_y_limbs = { p_y_0, p_y_1, p_y_2, p_y_3 };
+    single_accumulation_step.z_1_limbs = { z_1_lo, z_1_hi };
+    single_accumulation_step.z_2_limbs = { z_2_lo, z_2_hi };
+    single_accumulation_step.current_accumulator = current_accumulator_witnesses;
+    single_accumulation_step.previous_accumulator = previous_accumulator_witnesses;
+
     for (size_t i = 0; i < GoblinTranslatorCircuitBuilder::NUM_BINARY_LIMBS; i++) {
         single_accumulation_step.P_x_microlimbs[i] =
             split_standard_limb_into_micro_limbs(single_accumulation_step.P_x_limbs[i]);
@@ -385,6 +415,17 @@ TEST(translator_circuit_builder, circuit_builder_base_Case)
             split_standard_limb_into_micro_limbs(single_accumulation_step.P_y_limbs[i]);
     }
 
+    for (size_t i = 0; i < GoblinTranslatorCircuitBuilder::NUM_Z_LIMBS; i++) {
+        single_accumulation_step.z_1_microlimbs[i] =
+            split_standard_limb_into_micro_limbs(single_accumulation_step.z_1_limbs[i]);
+        single_accumulation_step.z_2_microlimbs[i] =
+            split_standard_limb_into_micro_limbs(single_accumulation_step.z_2_limbs[i]);
+    }
+    for (size_t i = 0; i < GoblinTranslatorCircuitBuilder::NUM_BINARY_LIMBS; i++) {
+        single_accumulation_step.current_accumulator_microlimbs[i] =
+            split_standard_limb_into_micro_limbs(single_accumulation_step.current_accumulator[i]);
+        // info("Stored: ", single_accumulation_step.current_accumulator_microlimbs[i][5], " at ", i);
+    }
     auto circuit_builder = GoblinTranslatorCircuitBuilder();
     circuit_builder.create_accumulation_gate(single_accumulation_step);
     EXPECT_TRUE(circuit_builder.check_circuit());
