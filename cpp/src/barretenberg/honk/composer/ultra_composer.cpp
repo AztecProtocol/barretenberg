@@ -7,6 +7,38 @@
 namespace proof_system::honk {
 
 /**
+ * @brief Helper method to compute quantities like total number of gates and dyadic circuit size
+ *
+ * @tparam Flavor
+ * @param circuit_constructor
+ */
+template <UltraFlavor Flavor>
+void UltraComposer_<Flavor>::compute_circuit_size_parameters(CircuitBuilder& circuit_constructor)
+{
+    // Compute total length of the tables and the number of lookup gates; their sum is the minimum circuit size
+    for (const auto& table : circuit_constructor.lookup_tables) {
+        tables_size += table.size;
+        lookups_size += table.lookup_gates.size();
+    }
+
+    const size_t num_gates = circuit_constructor.num_gates;
+    num_public_inputs = circuit_constructor.public_inputs.size();
+
+    // minimum circuit size due to the length of lookups plus tables
+    const size_t minimum_circuit_size = tables_size + lookups_size + zero_wire_offset;
+
+    // number of populated rows in the execution trace
+    filled_gates = circuit_constructor.num_gates + circuit_constructor.public_inputs.size() + zero_wire_offset;
+
+    // The number of gates is max(lookup gates + tables, all gates) + 1, where the +1 is due to the addition of a
+    // "zero row" at the top of the execution trace to ensure wire and other polynomials are shiftable.
+    total_num_gates = std::max(minimum_circuit_size, filled_gates);
+
+    // Next power of 2
+    dyadic_circuit_size = circuit_constructor.get_circuit_subgroup_size(total_num_gates);
+}
+
+/**
  * @brief Compute witness polynomials
  *
  */
@@ -15,8 +47,6 @@ template <UltraFlavor Flavor> void UltraComposer_<Flavor>::compute_witness(Circu
     if (computed_witness) {
         return;
     }
-
-    const size_t filled_gates = circuit_constructor.num_gates + circuit_constructor.public_inputs.size();
 
     // Pad the wires (pointers to `witness_indices` of the `variables` vector).
     // Note: total_num_gates = filled_gates + tables_size
@@ -134,17 +164,8 @@ UltraProver_<Flavor> UltraComposer_<Flavor>::create_prover(CircuitBuilder& circu
     circuit_constructor.add_gates_to_ensure_all_polys_are_non_zero();
     circuit_constructor.finalize_circuit();
 
-    for (const auto& table : circuit_constructor.lookup_tables) {
-        tables_size += table.size;
-        lookups_size += table.lookup_gates.size();
-    }
-
-    const size_t minimum_circuit_size = tables_size + lookups_size;
-
-    num_public_inputs = circuit_constructor.public_inputs.size();
-    const size_t num_constraints = circuit_constructor.num_gates + num_public_inputs;
-    total_num_gates = std::max(minimum_circuit_size, num_constraints);
-    dyadic_circuit_size = circuit_constructor.get_circuit_subgroup_size(total_num_gates);
+    // Compute total number of gates, dyadic circuit size, etc.
+    compute_circuit_size_parameters(circuit_constructor);
 
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);

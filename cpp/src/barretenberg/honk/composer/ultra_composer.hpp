@@ -36,10 +36,12 @@ template <UltraFlavor Flavor> class UltraComposer_ {
     bool contains_recursive_proof = false;
     bool computed_witness = false;
     size_t total_num_gates = 0;     // total num gates (the number used to compute dyadic size)
+    size_t filled_gates = 0;        // num_gates + num_public_inputs + zero_wire_offset
     size_t dyadic_circuit_size = 0; // final dyadic circuit size
     size_t lookups_size = 0;        // total number of lookup gates
     size_t tables_size = 0;         // total number of table entries
     size_t num_public_inputs = 0;
+    const size_t zero_wire_offset = 1; // offset due to placing zero wires at the start of execution trace
 
     UltraComposer_()
         : crs_factory_(barretenberg::srs::get_crs_factory()){};
@@ -61,6 +63,8 @@ template <UltraFlavor Flavor> class UltraComposer_ {
 
     std::shared_ptr<ProvingKey> compute_proving_key(const CircuitBuilder& circuit_constructor);
     std::shared_ptr<VerificationKey> compute_verification_key(const CircuitBuilder& circuit_constructor);
+
+    void compute_circuit_size_parameters(CircuitBuilder& circuit_constructor);
 
     void compute_witness(CircuitBuilder& circuit_constructor);
 
