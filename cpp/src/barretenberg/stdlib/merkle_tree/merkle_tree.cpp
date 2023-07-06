@@ -107,7 +107,7 @@ template <typename Store> fr_hash_path MerkleTree<Store>::get_hash_path(index_t 
                 }
             } else {
                 // Requesting path to a different, independent element.
-                // We know that this element exits in an empty subtree, of height determined by the common bits in the
+                // We know that this element exists in an empty subtree, of height determined by the common bits in the
                 // stumps index and the requested index.
                 size_t common_bits = numeric::count_leading_zeros(diff);
                 size_t common_height = sizeof(index_t) * 8 - common_bits - 1;
@@ -177,7 +177,7 @@ template <typename Store> fr_sibling_path MerkleTree<Store>::get_sibling_path(in
                 path[0] = current;
             } else if (diff > 1) {
                 // Requesting path to a different, independent element.
-                // We know that this element exits in an empty subtree, of height determined by the common bits in the
+                // We know that this element exists in an empty subtree, of height determined by the common bits in the
                 // stumps index and the requested index.
                 size_t common_bits = numeric::count_leading_zeros(diff);
                 size_t common_height = sizeof(index_t) * 8 - common_bits - 1;
