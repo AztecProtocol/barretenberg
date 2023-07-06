@@ -38,7 +38,7 @@ acir_format::acir_format get_contraint_system(std::string const& json_path)
     return from_buffer<acir_format::acir_format>(bytecode.data());
 }
 
-void proveAndVerify(const std::string& jsonPath, const std::string& witnessPath, bool recursive)
+bool proveAndVerify(const std::string& jsonPath, const std::string& witnessPath, bool recursive)
 {
     auto acir_composer = new acir_proofs::AcirComposer(MAX_CIRCUIT_SIZE, verbose);
     auto constraint_system = get_contraint_system(jsonPath);
@@ -46,6 +46,7 @@ void proveAndVerify(const std::string& jsonPath, const std::string& witnessPath,
     auto proof = acir_composer->create_proof(srs::get_crs_factory(), constraint_system, witness, recursive);
     auto verified = acir_composer->verify_proof(proof, recursive);
     info("verified: ", verified);
+    return verified;
 }
 
 void prove(const std::string& jsonPath, const std::string& witnessPath, bool recursive, const std::string& outputPath)
@@ -156,7 +157,7 @@ int main(int argc, char* argv[])
     init();
 
     if (command == "prove_and_verify") {
-        proveAndVerify(json_path, witness_path, recursive);
+        return proveAndVerify(json_path, witness_path, recursive) ? 0 : 1;
     } else if (command == "prove") {
         std::string output_path = getOption(args, "-o", "./proofs/proof");
         prove(json_path, witness_path, recursive, output_path);
