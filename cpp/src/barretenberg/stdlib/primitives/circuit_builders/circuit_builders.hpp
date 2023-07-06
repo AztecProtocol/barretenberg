@@ -32,6 +32,9 @@ template <typename T> concept HasPlookup = proof_system::IsAnyOf<T, proof_system
     template class stdlib_type<proof_system::StandardCircuitBuilder>;                                                  \
     template class stdlib_type<proof_system::TurboCircuitBuilder>;
 
+#define INSTANTIATE_STDLIB_SIMULATOR_TYPE_VA(stdlib_type, ...)                                                         \
+    template class stdlib_type<proof_system::CircuitSimulatorBN254, __VA_ARGS__>;
+
 #define INSTANTIATE_STDLIB_BASIC_TYPE_VA(stdlib_type, ...)                                                             \
     template class stdlib_type<proof_system::StandardCircuitBuilder, __VA_ARGS__>;                                     \
     template class stdlib_type<proof_system::TurboCircuitBuilder, __VA_ARGS__>;

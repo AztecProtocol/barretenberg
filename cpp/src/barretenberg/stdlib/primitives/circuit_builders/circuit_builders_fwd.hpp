@@ -50,6 +50,9 @@ using UltraCircuitBuilder = UltraCircuitBuilder_<barretenberg::field<barretenber
     extern template class stdlib_type<proof_system::StandardCircuitBuilder>;                                           \
     extern template class stdlib_type<proof_system::TurboCircuitBuilder>;
 
+#define EXTERN_STDLIB_SIMULATOR_TYPE_VA(stdlib_type, ...)                                                              \
+    extern template class stdlib_type<proof_system::CircuitSimulatorBN254, __VA_ARGS__>;
+
 #define EXTERN_STDLIB_BASIC_TYPE_VA(stdlib_type, ...)                                                                  \
     extern template class stdlib_type<proof_system::StandardCircuitBuilder, __VA_ARGS__>;                              \
     extern template class stdlib_type<proof_system::TurboCircuitBuilder, __VA_ARGS__>;

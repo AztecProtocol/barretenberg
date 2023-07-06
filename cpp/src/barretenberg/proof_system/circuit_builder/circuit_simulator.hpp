@@ -8,8 +8,8 @@ class CircuitSimulatorBN254 {
   public:
     using FF = barretenberg::fr; // IOU templating
     bool contains_recursive_proof = false;
+    static constexpr size_t UINT_LOG2_BASE = 2; // WORKTODO: 6 for Ultra
 
-    // FF stored_value = 404;
     const uint32_t zero_idx = 0;
 
     // uint32_t add_variable([[maybe_unused]]const FF& in){
@@ -44,6 +44,19 @@ class CircuitSimulatorBN254 {
     void create_fixed_group_add_gate_with_init([[maybe_unused]] const fixed_group_add_quad& in,
                                                [[maybe_unused]] const fixed_group_init_quad& init){};
     void create_fixed_group_add_gate_final([[maybe_unused]] const add_quad& in){};
+
+    accumulator_triple create_and_constraint([[maybe_unused]] const uint32_t a,
+                                             [[maybe_unused]] const uint32_t b,
+                                             [[maybe_unused]] const size_t num_bits)
+    {
+        return { { 404 }, { 404 }, { 404 } };
+    };
+    accumulator_triple create_xor_constraint([[maybe_unused]] const uint32_t a,
+                                             [[maybe_unused]] const uint32_t b,
+                                             [[maybe_unused]] const size_t num_bits)
+    {
+        return { { 404 }, { 404 }, { 404 } };
+    };
 
     size_t get_num_constant_gates() { return 404; };
     // maybe this shouldn't be implemented?
