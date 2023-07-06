@@ -10,6 +10,8 @@
 
 template <typename T> concept HasPlookup = proof_system::IsAnyOf<T, proof_system::UltraCircuitBuilder>;
 
+#define INSTANTIATE_STDLIB_SIMULATOR_METHOD(stdlib_method) template stdlib_method(proof_system::CircuitSimulatorBN254);
+
 #define INSTANTIATE_STDLIB_METHOD(stdlib_method)                                                                       \
     template stdlib_method(proof_system::StandardCircuitBuilder);                                                      \
     template stdlib_method(proof_system::TurboCircuitBuilder);                                                         \

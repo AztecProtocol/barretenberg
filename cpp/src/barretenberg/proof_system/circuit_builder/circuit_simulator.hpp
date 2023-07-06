@@ -1,12 +1,17 @@
 #pragma once
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/proof_system/arithmetization/gate_data.hpp"
+#include "barretenberg/proof_system/types/merkle_hash_type.hpp"
+#include "barretenberg/proof_system/types/pedersen_commitment_type.hpp"
 
 namespace proof_system {
 
 class CircuitSimulatorBN254 {
   public:
-    using FF = barretenberg::fr; // IOU templating
+    using FF = barretenberg::fr;                                                 // IOU templating
+    static constexpr merkle::HashType merkle_hash_type = merkle::HashType::NONE; // UGH
+    static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::NONE;
+
     bool contains_recursive_proof = false;
     static constexpr size_t UINT_LOG2_BASE = 2; // WORKTODO: 6 for Ultra
 
@@ -30,7 +35,7 @@ class CircuitSimulatorBN254 {
         // WORKTODO: logic?
     };
 
-    [[nodiscard]] size_t get_num_gates() const { return 1028; }
+    [[nodiscard]] size_t get_num_gates() const { return 0; }
 
     void create_add_gate([[maybe_unused]] const add_triple& in){};
     void create_mul_gate([[maybe_unused]] const mul_triple& in){};

@@ -41,6 +41,7 @@ template <typename ComposerContext> class pedersen_hash {
 };
 
 EXTERN_STDLIB_TYPE(pedersen_hash);
+EXTERN_STDLIB_SIMULATOR_TYPE(pedersen_hash);
 
 } // namespace stdlib
 } // namespace proof_system::plonk

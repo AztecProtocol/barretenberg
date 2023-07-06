@@ -36,6 +36,9 @@ using UltraCircuitBuilder = UltraCircuitBuilder_<barretenberg::field<barretenber
     extern template class stdlib_type<proof_system::TurboCircuitBuilder>;                                              \
     extern template class stdlib_type<proof_system::UltraCircuitBuilder>;
 
+#define EXTERN_STDLIB_SIMULATOR_METHOD(stdlib_method)                                                                  \
+    extern template stdlib_method(proof_system::CircuitSimulatorBN254);
+
 #define EXTERN_STDLIB_METHOD(stdlib_method)                                                                            \
     extern template stdlib_method(proof_system::StandardCircuitBuilder);                                               \
     extern template stdlib_method(proof_system::TurboCircuitBuilder);                                                  \

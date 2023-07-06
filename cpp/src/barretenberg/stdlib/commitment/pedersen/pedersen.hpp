@@ -52,6 +52,7 @@ template <typename ComposerContext> class pedersen_commitment {
 };
 
 EXTERN_STDLIB_TYPE(pedersen_commitment);
+EXTERN_STDLIB_SIMULATOR_TYPE(pedersen_commitment);
 
 } // namespace stdlib
 } // namespace proof_system::plonk

@@ -135,6 +135,7 @@ template <typename C> field_t<C> pedersen_commitment<C>::compress(const byte_arr
 }
 
 INSTANTIATE_STDLIB_TYPE(pedersen_commitment);
+INSTANTIATE_STDLIB_SIMULATOR_TYPE(pedersen_commitment);
 
 } // namespace stdlib
 } // namespace proof_system::plonk

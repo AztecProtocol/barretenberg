@@ -592,9 +592,11 @@ template <typename ComposerContext> void field_t<ComposerContext>::assert_is_not
         // We don't return; we continue with the function, for debugging purposes.
     }
 
-    if (witness_index == IS_CONSTANT) {
-        ASSERT(additive_constant != barretenberg::fr(0));
-        return;
+    if constexpr (!IsSimulator<ComposerContext>) {
+        if (witness_index == IS_CONSTANT) {
+            ASSERT(additive_constant != barretenberg::fr(0));
+            return;
+        }
     }
 
     ComposerContext* ctx = context;
