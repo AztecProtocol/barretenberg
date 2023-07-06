@@ -16,10 +16,10 @@ class CircuitSimulatorBN254 {
     //   return 0; // WORKTODO: return part of `in` for debugging purposes?
     // }
 
-    inline uint32_t add_variable([[maybe_unused]] const barretenberg::fr index) const { return 404; }
-    inline barretenberg::fr get_variable([[maybe_unused]] const uint32_t index) const { return 404; }
+    inline uint32_t add_variable([[maybe_unused]] const barretenberg::fr index) const { return 1028; }
+    inline barretenberg::fr get_variable([[maybe_unused]] const uint32_t index) const { return 1028; }
 
-    uint32_t put_constant_variable([[maybe_unused]] const barretenberg::fr& variable) { return 404; }
+    uint32_t put_constant_variable([[maybe_unused]] const barretenberg::fr& variable) { return 1028; }
     void set_public_input([[maybe_unused]] const uint32_t witness_index)
     {
         // WORKTODO Public input logic?
@@ -30,7 +30,7 @@ class CircuitSimulatorBN254 {
         // WORKTODO: logic?
     };
 
-    [[nodiscard]] size_t get_num_gates() const { return 404; }
+    [[nodiscard]] size_t get_num_gates() const { return 1028; }
 
     void create_add_gate([[maybe_unused]] const add_triple& in){};
     void create_mul_gate([[maybe_unused]] const mul_triple& in){};
@@ -49,16 +49,16 @@ class CircuitSimulatorBN254 {
                                              [[maybe_unused]] const uint32_t b,
                                              [[maybe_unused]] const size_t num_bits)
     {
-        return { { 404 }, { 404 }, { 404 } };
+        return { { 1028 }, { 1028 }, { 1028 } };
     };
     accumulator_triple create_xor_constraint([[maybe_unused]] const uint32_t a,
                                              [[maybe_unused]] const uint32_t b,
                                              [[maybe_unused]] const size_t num_bits)
     {
-        return { { 404 }, { 404 }, { 404 } };
+        return { { 1028 }, { 1028 }, { 1028 } };
     };
 
-    size_t get_num_constant_gates() { return 404; };
+    size_t get_num_constant_gates() { return 1028; };
     // maybe this shouldn't be implemented?
 
     bool create_range_constraint(FF const& elt,
@@ -77,7 +77,7 @@ class CircuitSimulatorBN254 {
         [[maybe_unused]] const size_t num_bits,
         [[maybe_unused]] std::string const& msg = "create_range_constraint")
     {
-        return { 404 };
+        return { 1028 };
     };
 
     void assert_equal(FF left, FF right, std::string const& msg)
