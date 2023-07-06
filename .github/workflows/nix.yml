@@ -52,7 +52,7 @@ jobs:
       - name: Build barretenberg as ${{ matrix.target }}
         if: ${{ inputs.ref }}
         run: |
-          nix build -L AztecProtocol/barretenberg/${{ inputs.ref }}#${{ matrix.target }}
+          nix build -L github:AztecProtocol/barretenberg/${{ inputs.ref }}#${{ matrix.target }}
 
       - name: Prepare artifact
         run: |
