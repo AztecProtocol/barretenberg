@@ -50,10 +50,6 @@ std::shared_ptr<typename Flavor::ProvingKey> StandardComposer_<Flavor>::compute_
         return proving_key;
     }
 
-    num_public_inputs = circuit_constructor.public_inputs.size();
-    total_num_gates = circuit_constructor.num_gates + num_public_inputs;
-    dyadic_circuit_size = circuit_constructor.get_circuit_subgroup_size(total_num_gates);
-
     proving_key = std::make_shared<ProvingKey>(dyadic_circuit_size, num_public_inputs);
 
     // Compute lagrange selectors
@@ -119,6 +115,10 @@ StandardVerifier_<Flavor> StandardComposer_<Flavor>::create_verifier(const Circu
 template <StandardFlavor Flavor>
 StandardProver_<Flavor> StandardComposer_<Flavor>::create_prover(const CircuitBuilder& circuit_constructor)
 {
+    num_public_inputs = circuit_constructor.public_inputs.size();
+    total_num_gates = circuit_constructor.num_gates + num_public_inputs;
+    dyadic_circuit_size = circuit_constructor.get_circuit_subgroup_size(total_num_gates);
+
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
 

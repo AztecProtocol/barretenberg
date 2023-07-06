@@ -134,6 +134,18 @@ UltraProver_<Flavor> UltraComposer_<Flavor>::create_prover(CircuitBuilder& circu
     circuit_constructor.add_gates_to_ensure_all_polys_are_non_zero();
     circuit_constructor.finalize_circuit();
 
+    for (const auto& table : circuit_constructor.lookup_tables) {
+        tables_size += table.size;
+        lookups_size += table.lookup_gates.size();
+    }
+
+    const size_t minimum_circuit_size = tables_size + lookups_size;
+
+    num_public_inputs = circuit_constructor.public_inputs.size();
+    const size_t num_constraints = circuit_constructor.num_gates + num_public_inputs;
+    total_num_gates = std::max(minimum_circuit_size, num_constraints);
+    dyadic_circuit_size = circuit_constructor.get_circuit_subgroup_size(total_num_gates);
+
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
 
@@ -171,18 +183,6 @@ std::shared_ptr<typename Flavor::ProvingKey> UltraComposer_<Flavor>::compute_pro
     if (proving_key) {
         return proving_key;
     }
-
-    for (const auto& table : circuit_constructor.lookup_tables) {
-        tables_size += table.size;
-        lookups_size += table.lookup_gates.size();
-    }
-
-    const size_t minimum_circuit_size = tables_size + lookups_size;
-
-    num_public_inputs = circuit_constructor.public_inputs.size();
-    const size_t num_constraints = circuit_constructor.num_gates + num_public_inputs;
-    total_num_gates = std::max(minimum_circuit_size, num_constraints);
-    dyadic_circuit_size = circuit_constructor.get_circuit_subgroup_size(total_num_gates);
 
     proving_key = std::make_shared<ProvingKey>(dyadic_circuit_size, num_public_inputs);
 
