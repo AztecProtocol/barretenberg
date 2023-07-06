@@ -33,6 +33,7 @@ rm -rf bit_shifts_runtime comptime_fail poseidonsponge_x5_254 sha2_blocks sha2_b
 function test() {
   echo -n "Testing $1... "
   cd $1
+  # TODO: We shouldn't need nargo, the vectors should be precompiled and executed.
   nargo compile main > /dev/null
   ../../bin/acir-to-bberg-circuit
   nargo execute witness > /dev/null
