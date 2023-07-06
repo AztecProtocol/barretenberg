@@ -168,8 +168,8 @@ template <typename Store> fr_sibling_path MerkleTree<Store>::get_sibling_path(in
                 path[j] = zero_hashes_[j];
             }
 
-            // If diff == 0, we are requesting the sibling of the stump's element which is populated only with zero
-            // hashes.
+            // If diff == 0, we are requesting the sibling path of the only non-zero element in the stump which is
+            // populated only with zero hashes.
             if (diff == 1) {
                 // Requesting path of the sibling of the non-zero leaf in the stump.
                 // Set the bottom element of the path to the non-zero leaf and populate the rest with zero hashes.
