@@ -382,7 +382,7 @@ std::shared_ptr<proving_key> UltraComposer::compute_proving_key(CircuitBuilder& 
 
     construct_selector_polynomials<Flavor>(circuit_constructor, circuit_proving_key.get());
 
-    enforce_nonzero_selector_polynomials<Flavor>(circuit_constructor, circuit_proving_key.get());
+    enforce_nonzero_selector_polynomials(circuit_constructor, circuit_proving_key.get());
 
     compute_monomial_and_coset_selector_forms(circuit_proving_key.get(), ultra_selector_properties());
 

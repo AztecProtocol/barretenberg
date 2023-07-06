@@ -41,7 +41,7 @@ std::shared_ptr<plonk::proving_key> TurboComposer::compute_proving_key(const Cir
 
     construct_selector_polynomials<Flavor>(circuit_constructor, circuit_proving_key.get());
 
-    enforce_nonzero_selector_polynomials<Flavor>(circuit_constructor, circuit_proving_key.get());
+    enforce_nonzero_selector_polynomials(circuit_constructor, circuit_proving_key.get());
 
     compute_monomial_and_coset_selector_forms(circuit_proving_key.get(), turbo_selector_properties());
 

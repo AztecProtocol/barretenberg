@@ -72,7 +72,7 @@ std::shared_ptr<plonk::proving_key> StandardComposer::compute_proving_key(const 
     // Compute lagrange selectors
     construct_selector_polynomials<Flavor>(circuit_constructor, circuit_proving_key.get());
     // Make all selectors nonzero
-    enforce_nonzero_selector_polynomials<Flavor>(circuit_constructor, circuit_proving_key.get());
+    enforce_nonzero_selector_polynomials(circuit_constructor, circuit_proving_key.get());
     // Compute selectors in monomial form
     compute_monomial_and_coset_selector_forms(circuit_proving_key.get(), standard_selector_properties());
 

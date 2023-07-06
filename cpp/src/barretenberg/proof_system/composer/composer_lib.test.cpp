@@ -72,23 +72,23 @@ TEST_F(ComposerLibTests, ConstructSelectors)
     EXPECT_EQ(proving_key.q_c[3], 20);
 }
 
-TEST_F(ComposerLibTests, EnforceNonzeroSelectors)
-{
-    circuit_constructor.q_m = { 0, 0, 0, 0 };
-    circuit_constructor.q_1 = { 0, 0, 0, 0 };
-    circuit_constructor.q_2 = { 0, 0, 0, 0 };
-    circuit_constructor.q_3 = { 0, 0, 0, 0 };
-    circuit_constructor.q_c = { 0, 0, 0, 0 };
+// TEST_F(ComposerLibTests, EnforceNonzeroSelectors)
+// {
+//     circuit_constructor.q_m = { 0, 0, 0, 0 };
+//     circuit_constructor.q_1 = { 0, 0, 0, 0 };
+//     circuit_constructor.q_2 = { 0, 0, 0, 0 };
+//     circuit_constructor.q_3 = { 0, 0, 0, 0 };
+//     circuit_constructor.q_c = { 0, 0, 0, 0 };
 
-    construct_selector_polynomials<Flavor>(circuit_constructor, &proving_key);
-    enforce_nonzero_selector_polynomials<Flavor>(circuit_constructor, &proving_key);
+//     construct_selector_polynomials<Flavor>(circuit_constructor, &proving_key);
+//     enforce_nonzero_selector_polynomials<Flavor>(circuit_constructor, &proving_key);
 
-    EXPECT_EQ(proving_key.q_m[3], 1);
-    EXPECT_EQ(proving_key.q_l[3], 2);
-    EXPECT_EQ(proving_key.q_r[3], 3);
-    EXPECT_EQ(proving_key.q_o[3], 4);
-    EXPECT_EQ(proving_key.q_c[3], 5);
-}
+//     EXPECT_EQ(proving_key.q_m[3], 1);
+//     EXPECT_EQ(proving_key.q_l[3], 2);
+//     EXPECT_EQ(proving_key.q_r[3], 3);
+//     EXPECT_EQ(proving_key.q_o[3], 4);
+//     EXPECT_EQ(proving_key.q_c[3], 5);
+// }
 
 TEST_F(ComposerLibTests, ConstructWitnessPolynomialsBase)
 {

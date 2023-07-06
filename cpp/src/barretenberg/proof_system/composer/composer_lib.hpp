@@ -43,38 +43,6 @@ void construct_selector_polynomials(const typename Flavor::CircuitBuilder& circu
 }
 
 /**
- * @brief Fill the last index of each selector polynomial in lagrange form with a non-zero value
- *
- * @tparam Flavor
- * @param circuit_constructor The object holding the circuit
- * @param key Pointer to the proving key
- *
- * @warning We should ensure that this does not clash with any other values we want to place at the end of of the
- * witness vectors. In later iterations of the Sumcheck, we will be able to efficiently cancel out any checks in the
- * last 2^k rows, so any randomness or unique values should be placed there. -@adr1anh
- */
-template <typename Flavor>
-void enforce_nonzero_selector_polynomials(const typename Flavor::CircuitBuilder& circuit_constructor,
-                                          typename Flavor::ProvingKey* proving_key)
-{
-    if constexpr (IsHonkFlavor<Flavor>) {
-        size_t idx = 1;
-        for (auto selector : proving_key->get_selectors()) {
-            selector[selector.size() - 1] = idx;
-            ++idx;
-        }
-    } else if constexpr (IsPlonkFlavor<Flavor>) {
-        for (size_t idx = 0; idx < circuit_constructor.num_selectors; ++idx) {
-            auto current_selector =
-                proving_key->polynomial_store.get(circuit_constructor.selector_names_[idx] + "_lagrange");
-            current_selector[current_selector.size() - 1] = idx + 1;
-            proving_key->polynomial_store.put(circuit_constructor.selector_names_[idx] + "_lagrange",
-                                              std::move(current_selector));
-        }
-    }
-}
-
-/**
  * @brief Construct the witness polynomials from the witness vectors in the circuit constructor.
  *
  * @details The first two witness polynomials begin with the public input values.
