@@ -358,6 +358,8 @@ TEST(translator_circuit_builder, circuit_builder_base_Case)
     };
     auto [p_x_0, p_x_1] = split_wide_limb_into_2_limbs(p_x_lo);
     auto [p_x_2, p_x_3] = split_wide_limb_into_2_limbs(p_x_hi);
+    auto [p_y_0, p_y_1] = split_wide_limb_into_2_limbs(p_y_lo);
+    auto [p_y_2, p_y_3] = split_wide_limb_into_2_limbs(p_y_hi);
     GoblinTranslatorCircuitBuilder::accumulation_input single_accumulation_step;
     single_accumulation_step.op = op;
     single_accumulation_step.P_x_lo = p_x_lo;
@@ -370,9 +372,17 @@ TEST(translator_circuit_builder, circuit_builder_base_Case)
     single_accumulation_step.P_x_limbs[1] = p_x_1;
     single_accumulation_step.P_x_limbs[2] = p_x_2;
     single_accumulation_step.P_x_limbs[3] = p_x_3;
+    single_accumulation_step.P_y_limbs[0] = p_y_0;
+    single_accumulation_step.P_y_limbs[1] = p_y_1;
+    single_accumulation_step.P_y_limbs[2] = p_y_2;
+    single_accumulation_step.P_y_limbs[3] = p_y_3;
     for (size_t i = 0; i < GoblinTranslatorCircuitBuilder::NUM_BINARY_LIMBS; i++) {
         single_accumulation_step.P_x_microlimbs[i] =
             split_standard_limb_into_micro_limbs(single_accumulation_step.P_x_limbs[i]);
+    }
+    for (size_t i = 0; i < GoblinTranslatorCircuitBuilder::NUM_BINARY_LIMBS; i++) {
+        single_accumulation_step.P_y_microlimbs[i] =
+            split_standard_limb_into_micro_limbs(single_accumulation_step.P_y_limbs[i]);
     }
 
     auto circuit_builder = GoblinTranslatorCircuitBuilder();

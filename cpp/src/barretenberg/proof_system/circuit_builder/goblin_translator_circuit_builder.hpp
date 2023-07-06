@@ -28,7 +28,7 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
         X_LO_Y_HI,
         X_HI_Z_1,
         Y_LO_Z_2,
-        P_X_LOWER_LIMBS,
+        P_X_LOW_LIMBS,
         P_X_LOW_LIMBS_RANGE_CONSTRAINT_0,
         P_X_LOW_LIMBS_RANGE_CONSTRAINT_1,
         P_X_LOW_LIMBS_RANGE_CONSTRAINT_2,
@@ -42,7 +42,7 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
         P_X_HIGH_LIMBS_RANGE_CONSTRAINT_3,
         P_X_HIGH_LIMBS_RANGE_CONSTRAINT_4,
         P_X_HIGH_LIMBS_RANGE_CONSTRAINT_TAIL,
-        P_Y_LOWER_LIMBS,
+        P_Y_LOW_LIMBS,
         P_Y_LOW_LIMBS_RANGE_CONSTRAINT_0,
         P_Y_LOW_LIMBS_RANGE_CONSTRAINT_1,
         P_Y_LOW_LIMBS_RANGE_CONSTRAINT_2,
@@ -161,18 +161,10 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
         ASSERT(uint256_t(acc_step.P_y_limbs[3]) < ((uint256_t(1) << NUM_LAST_LIMB_BITS)));
 
         // TODO(kesha): Continue mini-refactor
-        auto& p_x_0_p_x_1_wire = std::get<WireIds::P_X_LOWER_LIMBS>(wires);
-        p_x_0_p_x_1_wire.push_back(add_variable(acc_step.P_x_limbs[0]));
-        p_x_0_p_x_1_wire.push_back(add_variable(acc_step.P_x_limbs[1]));
-        auto& p_x_2_p_x_3_wire = std::get<WireIds::P_X_HIGH_LIMBS>(wires);
-        p_x_2_p_x_3_wire.push_back(add_variable(acc_step.P_x_limbs[2]));
-        p_x_2_p_x_3_wire.push_back(add_variable(acc_step.P_x_limbs[3]));
-        auto& p_y_0_p_y_1_wire = std::get<WireIds::P_X_LOWER_LIMBS>(wires);
-        p_y_0_p_y_1_wire.push_back(add_variable(acc_step.P_x_limbs[0]));
-        p_y_0_p_y_1_wire.push_back(add_variable(acc_step.P_x_limbs[1]));
-        auto& p_y_2_p_y_3_wire = std::get<WireIds::P_X_HIGH_LIMBS>(wires);
-        p_y_2_p_y_3_wire.push_back(add_variable(acc_step.P_x_limbs[2]));
-        p_y_2_p_y_3_wire.push_back(add_variable(acc_step.P_x_limbs[3]));
+        insert_pair_into_wire(WireIds::P_X_LOW_LIMBS, acc_step.P_x_limbs[0], acc_step.P_x_limbs[1]);
+        insert_pair_into_wire(WireIds::P_X_HIGH_LIMBS, acc_step.P_x_limbs[2], acc_step.P_x_limbs[3]);
+        insert_pair_into_wire(WireIds::P_Y_LOW_LIMBS, acc_step.P_y_limbs[0], acc_step.P_y_limbs[1]);
+        insert_pair_into_wire(WireIds::P_Y_HIGH_LIMBS, acc_step.P_y_limbs[2], acc_step.P_y_limbs[3]);
 
         for (size_t limb_index = 0; limb_index < (NUM_BINARY_LIMBS); limb_index++) {
             for (size_t micro_limb_index = 0; micro_limb_index < (micro_limb_index - 1); micro_limb_index++) {
@@ -188,14 +180,22 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
         lay_limbs_in_row(acc_step.P_x_microlimbs[1], WireIds::P_X_LOW_LIMBS_RANGE_CONSTRAINT_0);
         lay_limbs_in_row(acc_step.P_x_microlimbs[2], WireIds::P_X_HIGH_LIMBS_RANGE_CONSTRAINT_0);
         lay_limbs_in_row(acc_step.P_x_microlimbs[3], WireIds::P_X_HIGH_LIMBS_RANGE_CONSTRAINT_0);
+        lay_limbs_in_row(acc_step.P_y_microlimbs[0], WireIds::P_Y_LOW_LIMBS_RANGE_CONSTRAINT_0);
+        lay_limbs_in_row(acc_step.P_y_microlimbs[1], WireIds::P_Y_LOW_LIMBS_RANGE_CONSTRAINT_0);
+        lay_limbs_in_row(acc_step.P_y_microlimbs[2], WireIds::P_Y_HIGH_LIMBS_RANGE_CONSTRAINT_0);
+        lay_limbs_in_row(acc_step.P_y_microlimbs[3], WireIds::P_Y_HIGH_LIMBS_RANGE_CONSTRAINT_0);
+
         num_gates += 2;
     }
     bool check_circuit()
     {
         auto& x_lo_y_hi_wire = std::get<WireIds::X_LO_Y_HI>(wires);
         auto& x_hi_z_1_wire = std::get<WireIds::X_HI_Z_1>(wires);
-        auto& p_x_0_p_x_1_wire = std::get<WireIds::P_X_LOWER_LIMBS>(wires);
+        auto& y_lo_z_2_wire = std::get<WireIds::Y_LO_Z_2>(wires);
+        auto& p_x_0_p_x_1_wire = std::get<WireIds::P_X_LOW_LIMBS>(wires);
         auto& p_x_2_p_x_3_wire = std::get<WireIds::P_X_HIGH_LIMBS>(wires);
+        auto& p_y_0_p_y_1_wire = std::get<WireIds::P_Y_LOW_LIMBS>(wires);
+        auto& p_y_2_p_y_3_wire = std::get<WireIds::P_Y_HIGH_LIMBS>(wires);
 
         auto get_sequential_micro_chunks = [this](size_t gate_index, WireIds starting_wire_index, size_t chunk_count) {
             std::vector<Fr> chunks;
@@ -214,28 +214,47 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
         };
         for (size_t i = 0; i < num_gates; i++) {
             if (!(i & 1)) {
+                Fr p_x_lo = get_variable(x_lo_y_hi_wire[i]);
+                Fr p_x_hi = get_variable(x_hi_z_1_wire[i]);
                 Fr p_x_0 = get_variable(p_x_0_p_x_1_wire[i]);
                 Fr p_x_1 = get_variable(p_x_0_p_x_1_wire[i + 1]);
-                Fr p_x_lo = get_variable(x_lo_y_hi_wire[i]);
                 Fr p_x_2 = get_variable(p_x_2_p_x_3_wire[i]);
                 Fr p_x_3 = get_variable(p_x_2_p_x_3_wire[i + 1]);
-                Fr p_x_hi = get_variable(x_hi_z_1_wire[i]);
+                Fr p_y_lo = get_variable(y_lo_z_2_wire[i]);
+                Fr p_y_hi = get_variable(x_lo_y_hi_wire[i + 1]);
+                Fr p_y_0 = get_variable(p_y_0_p_y_1_wire[i]);
+                Fr p_y_1 = get_variable(p_y_0_p_y_1_wire[i + 1]);
+                Fr p_y_2 = get_variable(p_y_2_p_y_3_wire[i]);
+                Fr p_y_3 = get_variable(p_y_2_p_y_3_wire[i + 1]);
 
                 // These need to be range constrained, but that logic is not present yet
                 auto p_x_0_chunks =
                     get_sequential_micro_chunks(i, WireIds::P_X_LOW_LIMBS_RANGE_CONSTRAINT_0, NUM_MICRO_LIMBS);
-
                 auto p_x_1_chunks =
                     get_sequential_micro_chunks(i + 1, WireIds::P_X_LOW_LIMBS_RANGE_CONSTRAINT_0, NUM_MICRO_LIMBS);
                 auto p_x_2_chunks =
                     get_sequential_micro_chunks(i, WireIds::P_X_HIGH_LIMBS_RANGE_CONSTRAINT_0, NUM_MICRO_LIMBS);
                 auto p_x_3_chunks =
                     get_sequential_micro_chunks(i + 1, WireIds::P_X_HIGH_LIMBS_RANGE_CONSTRAINT_0, NUM_MICRO_LIMBS);
+                auto p_y_0_chunks =
+                    get_sequential_micro_chunks(i, WireIds::P_Y_LOW_LIMBS_RANGE_CONSTRAINT_0, NUM_MICRO_LIMBS);
+                auto p_y_1_chunks =
+                    get_sequential_micro_chunks(i + 1, WireIds::P_Y_LOW_LIMBS_RANGE_CONSTRAINT_0, NUM_MICRO_LIMBS);
+                auto p_y_2_chunks =
+                    get_sequential_micro_chunks(i, WireIds::P_Y_HIGH_LIMBS_RANGE_CONSTRAINT_0, NUM_MICRO_LIMBS);
+                auto p_y_3_chunks =
+                    get_sequential_micro_chunks(i + 1, WireIds::P_Y_HIGH_LIMBS_RANGE_CONSTRAINT_0, NUM_MICRO_LIMBS);
 
                 if ((p_x_0 + Fr(SHIFT_1) * p_x_1) != p_x_lo) {
                     return false;
                 }
                 if ((p_x_2 + Fr(SHIFT_1) * p_x_3) != p_x_hi) {
+                    return false;
+                }
+                if ((p_y_0 + Fr(SHIFT_1) * p_y_1) != p_y_lo) {
+                    return false;
+                }
+                if ((p_y_2 + Fr(SHIFT_1) * p_y_3) != p_y_hi) {
                     return false;
                 }
 
@@ -249,6 +268,18 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
                     return false;
                 }
                 if (p_x_3 != accumulate_limb_from_micro_chunks(p_x_3_chunks)) {
+                    return false;
+                }
+                if (p_y_0 != accumulate_limb_from_micro_chunks(p_y_0_chunks)) {
+                    return false;
+                }
+                if (p_y_1 != accumulate_limb_from_micro_chunks(p_y_1_chunks)) {
+                    return false;
+                }
+                if (p_y_2 != accumulate_limb_from_micro_chunks(p_y_2_chunks)) {
+                    return false;
+                }
+                if (p_y_3 != accumulate_limb_from_micro_chunks(p_y_3_chunks)) {
                     return false;
                 }
             }
