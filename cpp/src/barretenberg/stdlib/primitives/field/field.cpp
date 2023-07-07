@@ -599,14 +599,13 @@ template <typename ComposerContext> void field_t<ComposerContext>::assert_is_not
         }
     }
 
-    ComposerContext* ctx = context;
-    if (get_value() == 0 && ctx) {
-        ctx->failure(msg);
+    if (get_value() == 0 && context) {
+        context->failure(msg);
     }
 
     barretenberg::fr inverse_value = (get_value() == 0) ? 0 : get_value().invert();
 
-    field_t<ComposerContext> inverse(witness_t<ComposerContext>(ctx, inverse_value));
+    field_t<ComposerContext> inverse(witness_t<ComposerContext>(context, inverse_value));
 
     // Aim of new gate: `this` has an inverse (hence is not zero).
     // I.e.:
@@ -618,7 +617,7 @@ template <typename ComposerContext> void field_t<ComposerContext>::assert_is_not
     const poly_triple gate_coefficients{
         .a = witness_index,             // input value
         .b = inverse.witness_index,     // inverse
-        .c = ctx->zero_idx,             // no output
+        .c = context->zero_idx,         // no output
         .q_m = multiplicative_constant, // a * b * mul_const
         .q_l = barretenberg::fr(0),     // a * 0
         .q_r = additive_constant,       // b * mul_const
