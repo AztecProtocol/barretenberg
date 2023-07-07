@@ -25,12 +25,19 @@ template <typename Store> class NullifierTree : public MerkleTree<Store> {
 
     fr update_element(fr const& value);
 
-  private:
+  protected:
     using MerkleTree<Store>::update_element;
     using MerkleTree<Store>::get_element;
     using MerkleTree<Store>::compute_zero_path_hash;
 
-  private:
+    // const std::vector<barretenberg::fr>& get_hashes() { return hashes_; }
+    const WrappedNullifierLeaf get_leaf(size_t index)
+    {
+        // return (index < leaves_.size()) ? leaves_[index] : WrappedNullifierLeaf::zero();
+        return (index < leaves.size()) ? leaves[index] : WrappedNullifierLeaf::zero();
+    }
+    const std::vector<WrappedNullifierLeaf>& get_leaves() { return leaves; }
+
     using MerkleTree<Store>::store_;
     using MerkleTree<Store>::zero_hashes_;
     using MerkleTree<Store>::depth_;
