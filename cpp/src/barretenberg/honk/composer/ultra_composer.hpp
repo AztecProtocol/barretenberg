@@ -35,13 +35,13 @@ template <UltraFlavor Flavor> class UltraComposer_ {
     std::vector<uint32_t> recursive_proof_public_input_indices;
     bool contains_recursive_proof = false;
     bool computed_witness = false;
-    size_t total_num_gates = 0;     // total num gates (the number used to compute dyadic size)
-    size_t filled_gates = 0;        // num_gates + num_public_inputs + zero_wire_offset
+    size_t total_num_gates = 0; // num_gates + num_pub_inputs + tables + zero_wire_offset (used to compute dyadic size)
     size_t dyadic_circuit_size = 0; // final dyadic circuit size
     size_t lookups_size = 0;        // total number of lookup gates
     size_t tables_size = 0;         // total number of table entries
     size_t num_public_inputs = 0;
-    const size_t zero_wire_offset = 1; // offset due to placing zero wires at the start of execution trace
+    // WORKTODO: set as the length of an object zero_wires in circuit constructor?
+    const size_t zero_wire_offset = 0; // offset due to placing zero wires at the start of execution trace
 
     UltraComposer_()
         : crs_factory_(barretenberg::srs::get_crs_factory()){};

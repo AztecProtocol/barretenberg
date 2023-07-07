@@ -587,7 +587,7 @@ template <typename FF> class UltraCircuitBuilder_ : public CircuitBuilderBase<ar
         w_r.reserve(size_hint);
         w_o.reserve(size_hint);
         w_4.reserve(size_hint);
-        this->add_public_variable(FF::zero());
+        // this->add_public_variable(FF::zero()); // WORKTODO: possible hack to make shifts work w/ PI
         this->zero_idx = put_constant_variable(FF::zero());
         this->tau.insert({ DUMMY_TAG, DUMMY_TAG }); // TODO(luke): explain this
     };

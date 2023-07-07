@@ -15,9 +15,11 @@ namespace proof_system {
  */
 template <typename Flavor>
 void construct_selector_polynomials(const typename Flavor::CircuitBuilder& circuit_constructor,
-                                    typename Flavor::ProvingKey* proving_key)
+                                    typename Flavor::ProvingKey* proving_key,
+                                    const size_t offset = 0)
 {
-    const size_t num_public_inputs = circuit_constructor.public_inputs.size();
+    // Offset for starting to write selectors is input offset + num public inputs
+    const size_t gate_offset = offset + circuit_constructor.public_inputs.size();
     // const size_t offset = num_public_inputs +
     // TODO(#398): Loose coupling here! Would rather build up pk from arithmetization
     size_t selector_idx = 0; // TODO(#391) zip
@@ -28,7 +30,7 @@ void construct_selector_polynomials(const typename Flavor::CircuitBuilder& circu
         // Initializing the polynomials in this way automatically applies 0-padding to the selectors.
         barretenberg::polynomial selector_poly_lagrange(proving_key->circuit_size);
         for (size_t i = 0; i < selector_values.size(); ++i) {
-            selector_poly_lagrange[num_public_inputs + i] = selector_values[i];
+            selector_poly_lagrange[i + gate_offset] = selector_values[i];
         }
         if constexpr (IsHonkFlavor<Flavor>) {
             // TODO(#398): Loose coupling here of arithmetization and flavor.
@@ -56,7 +58,9 @@ void construct_selector_polynomials(const typename Flavor::CircuitBuilder& circu
  * */
 template <typename Flavor>
 std::vector<barretenberg::polynomial> construct_wire_polynomials_base(
-    const typename Flavor::CircuitBuilder& circuit_constructor, const size_t dyadic_circuit_size)
+    const typename Flavor::CircuitBuilder& circuit_constructor,
+    const size_t dyadic_circuit_size,
+    const size_t offset = 0)
 {
     std::span<const uint32_t> public_inputs = circuit_constructor.public_inputs;
     const size_t num_public_inputs = public_inputs.size();
@@ -70,19 +74,21 @@ std::vector<barretenberg::polynomial> construct_wire_polynomials_base(
         // Expect all values to be set to 0 initially
         barretenberg::polynomial w_lagrange(dyadic_circuit_size);
 
-        // Place all public inputs at the start of the first two wires.
+        // Place all public inputs at the start of the first two wires, possibly offset by some value > 0.
         // All selectors at these indices are set to 0, so these values are not constrained at all.
+        const size_t pub_input_offset = offset; // offset at which to start writing pub inputs
         if (wire_idx < 2) {
             for (size_t i = 0; i < num_public_inputs; ++i) {
-                w_lagrange[i] = circuit_constructor.get_variable(public_inputs[i]);
+                w_lagrange[i + pub_input_offset] = circuit_constructor.get_variable(public_inputs[i]);
             }
             ++wire_idx;
         }
 
         // Assign the variable values (which are pointed-to by the `w_` wire_polynomials) to the wire witness
-        // polynomials `poly_w_`, shifted to make room for the public inputs at the beginning.
+        // polynomials `poly_w_`, shifted to make room for public inputs and the specified offset (possibly 0).
+        const size_t gate_offset = num_public_inputs + offset; // offset at which to start writing gates
         for (size_t i = 0; i < circuit_constructor.num_gates; ++i) {
-            w_lagrange[num_public_inputs + i] = circuit_constructor.get_variable(wire[i]);
+            w_lagrange[i + gate_offset] = circuit_constructor.get_variable(wire[i]);
         }
         wire_polynomials.push_back(std::move(w_lagrange));
     }

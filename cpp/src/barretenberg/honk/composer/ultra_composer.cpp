@@ -25,14 +25,15 @@ void UltraComposer_<Flavor>::compute_circuit_size_parameters(CircuitBuilder& cir
     num_public_inputs = circuit_constructor.public_inputs.size();
 
     // minimum circuit size due to the length of lookups plus tables
-    const size_t minimum_circuit_size = tables_size + lookups_size + zero_wire_offset;
+    const size_t minimum_circuit_size_due_to_lookups = tables_size + lookups_size + zero_wire_offset;
 
     // number of populated rows in the execution trace
-    filled_gates = circuit_constructor.num_gates + circuit_constructor.public_inputs.size() + zero_wire_offset;
+    const size_t num_rows_populated_in_execution_trace =
+        circuit_constructor.num_gates + circuit_constructor.public_inputs.size() + zero_wire_offset;
 
-    // The number of gates is max(lookup gates + tables, all gates) + 1, where the +1 is due to the addition of a
-    // "zero row" at the top of the execution trace to ensure wire and other polynomials are shiftable.
-    total_num_gates = std::max(minimum_circuit_size, filled_gates);
+    // The number of gates is max(lookup gates + tables, rows already populated in trace) + 1, where the +1 is due to
+    // addition of a "zero row" at top of the execution trace to ensure wires and other polys are shiftable.
+    total_num_gates = std::max(minimum_circuit_size_due_to_lookups, num_rows_populated_in_execution_trace);
 
     // Next power of 2
     dyadic_circuit_size = circuit_constructor.get_circuit_subgroup_size(total_num_gates);
@@ -48,16 +49,17 @@ template <UltraFlavor Flavor> void UltraComposer_<Flavor>::compute_witness(Circu
         return;
     }
 
-    // Pad the wires (pointers to `witness_indices` of the `variables` vector).
-    // Note: total_num_gates = filled_gates + tables_size
-    for (size_t i = filled_gates; i < total_num_gates; ++i) {
+    // At this point, the wires have been populated with as many values as rows in the execution trace. We need to pad
+    // with zeros up to the full length, i.e. total_num_gates = already populated rows of execution trace + tables_size.
+    for (size_t i = 0; i < tables_size; ++i) {
         circuit_constructor.w_l.emplace_back(circuit_constructor.zero_idx);
         circuit_constructor.w_r.emplace_back(circuit_constructor.zero_idx);
         circuit_constructor.w_o.emplace_back(circuit_constructor.zero_idx);
         circuit_constructor.w_4.emplace_back(circuit_constructor.zero_idx);
     }
 
-    auto wire_polynomials = construct_wire_polynomials_base<Flavor>(circuit_constructor, dyadic_circuit_size);
+    auto wire_polynomials =
+        construct_wire_polynomials_base<Flavor>(circuit_constructor, dyadic_circuit_size, zero_wire_offset);
 
     proving_key->w_l = wire_polynomials[0];
     proving_key->w_r = wire_polynomials[1];
@@ -137,11 +139,10 @@ template <UltraFlavor Flavor> void UltraComposer_<Flavor>::compute_witness(Circu
     // Copy memory read/write record data into proving key. Prover needs to know which gates contain a read/write
     // 'record' witness on the 4th wire. This wire value can only be fully computed once the first 3 wire polynomials
     // have been committed to. The 4th wire on these gates will be a random linear combination of the first 3 wires,
-    // using the plookup challenge `eta`. Because we shift the gates by the number of public inputs, we need to update
-    // the records with the public_inputs offset
-    const uint32_t public_inputs_count = static_cast<uint32_t>(circuit_constructor.public_inputs.size());
-    auto add_public_inputs_offset = [public_inputs_count](uint32_t gate_index) {
-        return gate_index + public_inputs_count;
+    // using the plookup challenge `eta`. We need to update the records with an offset Because we shift the gates by
+    // the number of public inputs plus an additional offset for a zero row.
+    auto add_public_inputs_offset = [this](uint32_t gate_index) {
+        return gate_index + num_public_inputs + zero_wire_offset;
     };
     proving_key->memory_read_records = std::vector<uint32_t>();
     proving_key->memory_write_records = std::vector<uint32_t>();
@@ -209,7 +210,7 @@ std::shared_ptr<typename Flavor::ProvingKey> UltraComposer_<Flavor>::compute_pro
 
     construct_selector_polynomials<Flavor>(circuit_constructor, proving_key.get());
 
-    compute_honk_generalized_sigma_permutations<Flavor>(circuit_constructor, proving_key.get());
+    compute_honk_generalized_sigma_permutations<Flavor>(circuit_constructor, proving_key.get(), zero_wire_offset);
 
     compute_first_and_last_lagrange_polynomials<Flavor>(proving_key.get());
 
