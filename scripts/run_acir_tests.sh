@@ -5,7 +5,7 @@
 
 set -e
 
-BB=${BB:-../../build/bin/bb}
+BB=$PWD/${BB:-./cpp/build/bin/bb}
 
 # Pull down the test vectors from the noir repo, if we don't have the folder already.
 if [ ! -d acir_tests ]; then
@@ -20,15 +20,18 @@ if [ ! -d acir_tests ]; then
 fi
 
 # Get the tool to convert acir to bb constraint buf, if we don't have it already.
-if [ ! -f ./bin/acir-to-bberg-circuit ]; then
+if [ ! -f ./rust/bin/acir-to-bberg-circuit ]; then
+  mkdir -p ./rust/bin
+  cd rust
   rm -rf acir-to-bberg-circuit
+  # TODO: Just bring this into the repo and maintain it here. Remove once bb understands acir.
   git clone https://github.com/vezenovm/acir-to-bberg-circuit.git
   cd acir-to-bberg-circuit
   cargo build --release
   cd ..
-  mkdir -p bin
   cp ./acir-to-bberg-circuit/target/release/acir-to-bberg-circuit ./bin
   rm -rf acir-to-bberg-circuit
+  cd ..
 fi
 
 cd acir_tests
@@ -41,7 +44,7 @@ function test() {
   cd $1
   # TODO: We shouldn't need nargo, the vectors should be precompiled and executed.
   nargo compile main > /dev/null
-  ../../bin/acir-to-bberg-circuit
+  ../../rust/bin/acir-to-bberg-circuit
   nargo execute witness > /dev/null
   set +e
   if [ -n "$VERBOSE" ]; then
