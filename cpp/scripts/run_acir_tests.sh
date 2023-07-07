@@ -1,5 +1,11 @@
 #!/bin/bash
+# Env var overrides:
+#   BB: to specify a different binary to test with (e.g. bb.js or bb.js-dev).
+#   VERBOSE: to enable logging for each test.
+
 set -e
+
+BB=${BB:-../../build/bin/bb}
 
 # Pull down the test vectors from the noir repo, if we don't have the folder already.
 if [ ! -d acir_tests ]; then
@@ -38,7 +44,11 @@ function test() {
   ../../bin/acir-to-bberg-circuit
   nargo execute witness > /dev/null
   set +e
-  ../../build/bin/bb prove_and_verify 2> /dev/null
+  if [ -n "$VERBOSE" ]; then
+    $BB prove_and_verify -v
+  else
+    $BB prove_and_verify > /dev/null 2>&1
+  fi
   result=$?
   set -e
   cd ..
