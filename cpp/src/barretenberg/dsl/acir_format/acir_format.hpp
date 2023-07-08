@@ -2,16 +2,9 @@
 #include "barretenberg/common/slab_allocator.hpp"
 #include "barretenberg/dsl/types.hpp"
 #include "blake2s_constraint.hpp"
-// <<<<<<< HEAD
-// =======
-#include "keccak_constraint.hpp"
-#include "fixed_base_scalar_mul.hpp"
-#include "schnorr_verify.hpp"
-#include "ecdsa_secp256k1.hpp"
-#include "ecdsa_secp256r1.hpp"
-// >>>>>>> initial commit
 #include "block_constraint.hpp"
 #include "ecdsa_secp256k1.hpp"
+#include "ecdsa_secp256r1.hpp"
 #include "fixed_base_scalar_mul.hpp"
 #include "hash_to_field.hpp"
 #include "keccak_constraint.hpp"

@@ -143,7 +143,7 @@ void dummy_ecdsa_constraint(Builder& builder, EcdsaSecp256k1Constraint const& in
     std::vector<uint32_t> pub_x_indices_;
     std::vector<uint32_t> pub_y_indices_;
     std::vector<uint32_t> signature_;
-    std::vector<uint32_t> message_indicies_;
+    std::vector<uint32_t> message_indices_;
     signature_.resize(64);
 
     // Create a valid signature with a valid public key
@@ -166,7 +166,7 @@ void dummy_ecdsa_constraint(Builder& builder, EcdsaSecp256k1Constraint const& in
         uint32_t y_wit = builder.add_variable(pub_y_value.slice(248 - i * 8, 256 - i * 8));
         uint32_t r_wit = builder.add_variable(signature.r[i]);
         uint32_t s_wit = builder.add_variable(signature.s[i]);
-        message_indicies_.emplace_back(m_wit);
+        message_indices_.emplace_back(m_wit);
         pub_x_indices_.emplace_back(x_wit);
         pub_y_indices_.emplace_back(y_wit);
         signature_[i] = r_wit;
@@ -175,7 +175,7 @@ void dummy_ecdsa_constraint(Builder& builder, EcdsaSecp256k1Constraint const& in
 
     // Call assert_equal(from, to) to replace the value in `to` by the value in `from`
     for (size_t i = 0; i < input.hashed_message.size(); ++i) {
-        builder.assert_equal(message_indicies_[i], input.hashed_message[i]);
+        builder.assert_equal(message_indices_[i], input.hashed_message[i]);
     }
     for (size_t i = 0; i < input.pub_x_indices.size(); ++i) {
         builder.assert_equal(pub_x_indices_[i], input.pub_x_indices[i]);
