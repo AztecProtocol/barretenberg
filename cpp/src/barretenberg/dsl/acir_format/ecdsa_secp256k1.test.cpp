@@ -9,7 +9,7 @@
 
 using curve = proof_system::plonk::stdlib::secp256k1<acir_format::Composer>;
 
-size_t generate_ecdsa_constraint(acir_format::EcdsaSecp256k1Constraint& ecdsa_constraint,
+size_t generate_ecdsa_constraint(acir_format::EcdsaSecp256k1Constraint& ecdsa_k1_constraint,
                                  std::vector<fr>& witness_values)
 {
     std::string message_string = "Instructions unclear, ask again later.";
@@ -68,7 +68,7 @@ size_t generate_ecdsa_constraint(acir_format::EcdsaSecp256k1Constraint& ecdsa_co
     offset += 1;
     witness_values.emplace_back(1);
 
-    ecdsa_constraint = acir_format::EcdsaSecp256k1Constraint{
+    ecdsa_k1_constraint = acir_format::EcdsaSecp256k1Constraint{
         .hashed_message = message_in,
         .pub_x_indices = pub_x_indices_in,
         .pub_y_indices = pub_y_indices_in,
@@ -80,9 +80,9 @@ size_t generate_ecdsa_constraint(acir_format::EcdsaSecp256k1Constraint& ecdsa_co
 
 TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
 {
-    acir_format::EcdsaSecp256k1Constraint ecdsa_constraint;
+    acir_format::EcdsaSecp256k1Constraint ecdsa_k1_constraint;
     std::vector<fr> witness_values;
-    size_t num_variables = generate_ecdsa_constraint(ecdsa_constraint, witness_values);
+    size_t num_variables = generate_ecdsa_constraint(ecdsa_k1_constraint, witness_values);
     acir_format::acir_format constraint_system{
         .varnum = static_cast<uint32_t>(num_variables),
         .public_inputs = {},
@@ -90,7 +90,8 @@ TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
         .logic_constraints = {},
         .range_constraints = {},
         .schnorr_constraints = {},
-        .ecdsa_constraints = { ecdsa_constraint },
+        .ecdsa_k1_constraints = { ecdsa_k1_constraint },
+        .ecdsa_r1_constraints = {},
         .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},
@@ -104,7 +105,7 @@ TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
 
     auto composer = acir_format::create_circuit_with_witness(constraint_system, witness_values);
 
-    EXPECT_EQ(composer.get_variable(ecdsa_constraint.result), 1);
+    EXPECT_EQ(composer.get_variable(ecdsa_k1_constraint.result), 1);
     auto prover = composer.create_prover();
 
     auto proof = prover.construct_proof();
@@ -117,9 +118,9 @@ TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
 // even though we are just building the circuit.
 TEST(ECDSASecp256k1, TestECDSACompilesForVerifier)
 {
-    acir_format::EcdsaSecp256k1Constraint ecdsa_constraint;
+    acir_format::EcdsaSecp256k1Constraint ecdsa_k1_constraint;
     std::vector<fr> witness_values;
-    size_t num_variables = generate_ecdsa_constraint(ecdsa_constraint, witness_values);
+    size_t num_variables = generate_ecdsa_constraint(ecdsa_k1_constraint, witness_values);
     acir_format::acir_format constraint_system{
         .varnum = static_cast<uint32_t>(num_variables),
         .public_inputs = {},
@@ -127,7 +128,8 @@ TEST(ECDSASecp256k1, TestECDSACompilesForVerifier)
         .logic_constraints = {},
         .range_constraints = {},
         .schnorr_constraints = {},
-        .ecdsa_constraints = { ecdsa_constraint },
+        .ecdsa_k1_constraints = { ecdsa_k1_constraint },
+        .ecdsa_r1_constraints = {},
         .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},
@@ -144,9 +146,9 @@ TEST(ECDSASecp256k1, TestECDSACompilesForVerifier)
 
 TEST(ECDSASecp256k1, TestECDSAConstraintFail)
 {
-    acir_format::EcdsaSecp256k1Constraint ecdsa_constraint;
+    acir_format::EcdsaSecp256k1Constraint ecdsa_k1_constraint;
     std::vector<fr> witness_values;
-    size_t num_variables = generate_ecdsa_constraint(ecdsa_constraint, witness_values);
+    size_t num_variables = generate_ecdsa_constraint(ecdsa_k1_constraint, witness_values);
 
     // set result value to be false
     witness_values[witness_values.size() - 1] = 0;
@@ -161,7 +163,8 @@ TEST(ECDSASecp256k1, TestECDSAConstraintFail)
         .logic_constraints = {},
         .range_constraints = {},
         .schnorr_constraints = {},
-        .ecdsa_constraints = { ecdsa_constraint },
+        .ecdsa_k1_constraints = { ecdsa_k1_constraint },
+        .ecdsa_r1_constraints = {},
         .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},
@@ -175,7 +178,7 @@ TEST(ECDSASecp256k1, TestECDSAConstraintFail)
 
     auto composer = acir_format::create_circuit_with_witness(constraint_system, witness_values);
 
-    EXPECT_EQ(composer.get_variable(ecdsa_constraint.result), 0);
+    EXPECT_EQ(composer.get_variable(ecdsa_k1_constraint.result), 0);
     auto prover = composer.create_prover();
 
     auto proof = prover.construct_proof();

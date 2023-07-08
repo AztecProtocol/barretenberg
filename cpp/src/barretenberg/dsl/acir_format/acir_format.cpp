@@ -54,9 +54,14 @@ void create_circuit(Composer& composer, const acir_format& constraint_system)
         create_schnorr_verify_constraints(composer, constraint);
     }
 
-    // Add ECDSA constraints
-    for (const auto& constraint : constraint_system.ecdsa_constraints) {
-        create_ecdsa_verify_constraints(composer, constraint, false);
+    // Add ECDSA K1 constraints
+    for (const auto& constraint : constraint_system.ecdsa_k1_constraints) {
+        create_ecdsa_k1_verify_constraints(composer, constraint, false);
+    }
+
+    // Add ECDSA R1 constraints
+    for (const auto& constraint : constraint_system.ecdsa_r1_constraints) {
+        create_ecdsa_r1_verify_constraints(composer, constraint, false);
     }
 
     // Add blake2s constraints
@@ -140,9 +145,14 @@ Composer create_circuit(const acir_format& constraint_system,
         create_schnorr_verify_constraints(composer, constraint);
     }
 
-    // Add ECDSA constraints
-    for (const auto& constraint : constraint_system.ecdsa_constraints) {
-        create_ecdsa_verify_constraints(composer, constraint, false);
+    // Add ECDSA k1 constraints
+    for (const auto& constraint : constraint_system.ecdsa_k1_constraints) {
+        create_ecdsa_k1_verify_constraints(composer, constraint, false);
+    }
+
+    // Add ECDSA r1 constraints
+    for (const auto& constraint : constraint_system.ecdsa_r1_constraints) {
+        create_ecdsa_r1_verify_constraints(composer, constraint, false);
     }
 
     // Add blake2s constraints
@@ -233,8 +243,13 @@ Composer create_circuit_with_witness(const acir_format& constraint_system,
     }
 
     // Add ECDSA constraints
-    for (const auto& constraint : constraint_system.ecdsa_constraints) {
-        create_ecdsa_verify_constraints(composer, constraint);
+    for (const auto& constraint : constraint_system.ecdsa_k1_constraints) {
+        create_ecdsa_k1_verify_constraints(composer, constraint);
+    }
+
+    // Add ECDSA r1 constraints
+    for (const auto& constraint : constraint_system.ecdsa_r1_constraints) {
+        create_ecdsa_r1_verify_constraints(composer, constraint);
     }
 
     // Add blake2s constraints
@@ -321,9 +336,14 @@ Composer create_circuit_with_witness(const acir_format& constraint_system, std::
         create_schnorr_verify_constraints(composer, constraint);
     }
 
-    // Add ECDSA constraints
-    for (const auto& constraint : constraint_system.ecdsa_constraints) {
-        create_ecdsa_verify_constraints(composer, constraint);
+    // Add ECDSA k1 constraints
+    for (const auto& constraint : constraint_system.ecdsa_k1_constraints) {
+        create_ecdsa_k1_verify_constraints(composer, constraint);
+    }
+
+    // Add ECDSA r1 constraints
+    for (const auto& constraint : constraint_system.ecdsa_r1_constraints) {
+        create_ecdsa_r1_verify_constraints(composer, constraint);
     }
 
     // Add blake2s constraints
@@ -408,9 +428,14 @@ void create_circuit_with_witness(Composer& composer, const acir_format& constrai
         create_schnorr_verify_constraints(composer, constraint);
     }
 
-    // Add ECDSA constraints
-    for (const auto& constraint : constraint_system.ecdsa_constraints) {
-        create_ecdsa_verify_constraints(composer, constraint);
+    // Add ECDSA k1 constraints
+    for (const auto& constraint : constraint_system.ecdsa_k1_constraints) {
+        create_ecdsa_k1_verify_constraints(composer, constraint);
+    }
+
+    // Add ECDSA r1 constraints
+    for (const auto& constraint : constraint_system.ecdsa_r1_constraints) {
+        create_ecdsa_r1_verify_constraints(composer, constraint);
     }
 
     // Add blake2s constraints
