@@ -12,7 +12,7 @@
 using namespace barretenberg;
 
 uint32_t MAX_CIRCUIT_SIZE = 1 << 19;
-auto CRS_PATH = "./crs";
+std::string CRS_PATH = "./crs";
 bool verbose = false;
 
 void init()
@@ -153,6 +153,7 @@ int main(int argc, char* argv[])
     std::string witness_path = getOption(args, "-w", "./target/witness.tr");
     std::string proof_path = getOption(args, "-p", "./proofs/proof");
     std::string vk_path = getOption(args, "-k", "./target/vk");
+    CRS_PATH = getOption(args, "-c", "./crs");
     bool recursive = flagPresent(args, "-r") || flagPresent(args, "--recursive");
     init();
 

@@ -6,4 +6,3 @@ ts/dest
 .tsbuildinfo
 .idea
 cmake-build-debug
-acir_tests
