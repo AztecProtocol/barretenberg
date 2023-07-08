@@ -7,6 +7,7 @@ set -e
 
 BB=$PWD/${BB:-../cpp/build/bin/bb}
 ATBBC=$PWD/acir-to-bberg-circuit/target/release/acir-to-bberg-circuit
+CRS_PATH=~/.bb-crs
 
 # Pull down the test vectors from the noir repo, if we don't have the folder already.
 if [ ! -d acir_tests ]; then
@@ -43,9 +44,9 @@ function test() {
   fi
   set +e
   if [ -n "$VERBOSE" ]; then
-    $BB prove_and_verify -v -c ../crs
+    $BB prove_and_verify -v -c $CRS_PATH
   else
-    $BB prove_and_verify -c ../crs > /dev/null 2>&1
+    $BB prove_and_verify -c $CRS_PATH > /dev/null 2>&1
   fi
   result=$?
   set -e
