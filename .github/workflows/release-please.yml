@@ -93,7 +93,7 @@ jobs:
       - name: Compile Barretenberg
         run: |
           cd cpp
-          cmake --preset default -DCMAKE_BUILD_TYPE=RelWithAssert -DOMP_MULTITHREADING=OFF
+          cmake --preset default -DCMAKE_BUILD_TYPE=RelWithAssert
           cmake --build --preset default ${@/#/--target }
       - name: Tar native static `lib` folder
         run: tar -cvf macos-static-lib.tar cpp/build/lib
