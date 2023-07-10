@@ -14,6 +14,10 @@ namespace merkle_tree {
 
 using namespace barretenberg;
 
+// Size of merkle tree nodes in bytes.
+const size_t REGULAR_NODE_SIZE = 64;
+const size_t STUMP_NODE_SIZE = 65;
+
 template <typename T> inline bool bit_set(T const& index, size_t i)
 {
     return bool((index >> i) & 0x1);
@@ -76,7 +80,7 @@ template <typename Store> fr_hash_path MerkleTree<Store>::get_hash_path(index_t 
             continue;
         }
 
-        if (data.size() == 64) {
+        if (data.size() == REGULAR_NODE_SIZE) {
             // This is a regular node with left and right trees. Descend according to index path.
             auto left = from_buffer<fr>(data, 0);
             auto right = from_buffer<fr>(data, 32);
@@ -87,7 +91,7 @@ template <typename Store> fr_hash_path MerkleTree<Store>::get_hash_path(index_t 
         } else {
             // This is a stump. The hash path can be fully restored from this node.
             // In case of a stump, we store: [key : (value, local_index, true)], i.e. 65-byte data.
-            ASSERT(data.size() == 65);
+            ASSERT(data.size() == STUMP_NODE_SIZE);
             fr current = from_buffer<fr>(data, 0);
             index_t element_index = from_buffer<index_t>(data, 32);
             index_t subtree_index = numeric::keep_n_lsb(index, i + 1);
@@ -147,7 +151,7 @@ template <typename Store> fr_sibling_path MerkleTree<Store>::get_sibling_path(in
             continue;
         }
 
-        if (data.size() == 64) {
+        if (data.size() == REGULAR_NODE_SIZE) {
             // This is a regular node with left and right trees. Descend according to index path.
             bool is_right = bit_set(index, i);
             path[i] = from_buffer<fr>(data, is_right ? 0 : 32);
@@ -157,7 +161,7 @@ template <typename Store> fr_sibling_path MerkleTree<Store>::get_sibling_path(in
         } else {
             // This is a stump. The sibling path can be fully restored from this node.
             // In case of a stump, we store: [key : (value, local_index, true)], i.e. 65-byte data.
-            ASSERT(data.size() == 65);
+            ASSERT(data.size() == STUMP_NODE_SIZE);
             fr current = from_buffer<fr>(data, 0);
             index_t element_index = from_buffer<index_t>(data, 32);
             index_t subtree_index = numeric::keep_n_lsb(index, i + 1);
@@ -265,7 +269,7 @@ fr MerkleTree<Store>::update_element(fr const& root, fr const& value, index_t in
         return key;
     }
 
-    if (data.size() == 65) {
+    if (data.size() == STUMP_NODE_SIZE) {
         // We've come across a stump.
         index_t existing_index = from_buffer<index_t>(data, 32);
 
@@ -283,7 +287,7 @@ fr MerkleTree<Store>::update_element(fr const& root, fr const& value, index_t in
         return fork_stump(existing_value, existing_index, value, index, height, common_height);
     } else {
         // If its not a stump, the data size must be 64 bytes.
-        ASSERT(data.size() == 64);
+        ASSERT(data.size() == REGULAR_NODE_SIZE);
         bool is_right = bit_set(index, height - 1);
         fr subtree_root = from_buffer<fr>(data, is_right ? 32 : 0);
         fr subtree_root_copy = subtree_root;
