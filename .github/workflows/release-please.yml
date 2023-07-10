@@ -57,7 +57,7 @@ jobs:
         run: |
           cd cpp
           cmake --preset default -DCMAKE_BUILD_TYPE=RelWithAssert -DOMP_MULTITHREADING=OFF
-          cmake --build --preset default ${@/#/--target }
+          cmake --build --preset default --target bb
       - name: Compile Barretenberg.js
         run: |
           cd ts
