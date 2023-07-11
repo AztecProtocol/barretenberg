@@ -15,8 +15,8 @@ namespace merkle_tree {
 using namespace barretenberg;
 
 // Size of merkle tree nodes in bytes.
-const size_t REGULAR_NODE_SIZE = 64;
-const size_t STUMP_NODE_SIZE = 65;
+constexpr size_t REGULAR_NODE_SIZE = 64;
+constexpr size_t STUMP_NODE_SIZE = 65;
 
 template <typename T> inline bool bit_set(T const& index, size_t i)
 {
