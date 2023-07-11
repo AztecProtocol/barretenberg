@@ -117,9 +117,6 @@ jobs:
       - name: Create Mac Build Environment
         run: |
           brew install cmake ninja
-      - name: Configure Brew prefix
-        run: |
-          echo "BREW_PREFIX=$(brew --prefix)" >> $GITHUB_ENV
       - name: Compile Barretenberg
         run: |
           cd cpp
