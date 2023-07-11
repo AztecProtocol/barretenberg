@@ -34,7 +34,7 @@ jobs:
             
 
   build-linux:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: [release-please]
     if: ${{ needs.release-please.outputs.tag-name }}
     steps:
@@ -101,19 +101,25 @@ jobs:
           
   build-mac:
     name: Build on Mac
+    runs-on: macos-13
     needs: [release-please]
     if: ${{ needs.release-please.outputs.tag-name }}
-    runs-on: macos-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+#         We need clang 14.0.3 or higher, as lower versions do not seem
+#         to be spec conformant. In particular std::span does not seem
+#         to follow the specifications.
+      - name: Select Xcode version
+        run: |
+         sudo xcode-select -switch /Applications/Xcode_14.3.1.app
+
       - name: Create Mac Build Environment
         run: |
           brew install cmake ninja
-          
       - name: Configure Brew prefix
-        run: echo "BREW_PREFIX=$(brew --prefix)" >> $GITHUB_ENV
-          
+        run: |
+          echo "BREW_PREFIX=$(brew --prefix)" >> $GITHUB_ENV
       - name: Compile Barretenberg
         run: |
           cd cpp
