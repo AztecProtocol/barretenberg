@@ -179,9 +179,6 @@ TEST(stdlib_merkle_tree, test_get_sibling_path_layers)
         db.update_element(0x0, VALUES[1]);
         auto after = db.get_sibling_path(7);
 
-        info("before: ", before[0], " ", before[1], " ", before[2]);
-        info("after: ", after[0], " ", after[1], " ", after[2]);
-
         EXPECT_EQ(before[0], after[0]);
         EXPECT_EQ(before[1], after[1]);
         EXPECT_NE(before[2], after[2]);
