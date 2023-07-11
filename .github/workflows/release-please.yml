@@ -20,18 +20,7 @@ jobs:
         id: release
         uses: google-github-actions/release-please-action@v3
         with:
-          release-type: simple
-          package-name: barretenberg
-          bump-minor-pre-major: true
-          bump-patch-for-minor-pre-major: true
-          prerelease: true # Marks GitHub Releases for 0.x.x versions as "Pre-release"
-          pull-request-title-pattern: "chore(barretenberg): Release ${version}"
-          extra-files: |
-            cpp/CMakeLists.txt
-            VERSION
-            barretenberg.nix
-            barretenberg-wasm.nix
-            
+          command: manifest
 
   build-linux:
     runs-on: ubuntu-latest
@@ -117,6 +106,7 @@ jobs:
       - name: Create Mac Build Environment
         run: |
           brew install cmake ninja
+          
       - name: Compile Barretenberg
         run: |
           cd cpp
@@ -150,6 +140,7 @@ jobs:
       - name: Publish to GitHub
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ needs.release-please.outputs.tag-name }}
           prerelease: true
           files: |
             barretenberg.wasm
