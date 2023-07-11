@@ -2,13 +2,13 @@
 #include <map>
 #include <unordered_map>
 
+#include "barretenberg/ecc/curves/bn254/bn254.hpp"
 #include "barretenberg/ecc/scalar_multiplication/runtime_states.hpp"
+#include "barretenberg/plonk/proof_system/constants.hpp"
+#include "barretenberg/plonk/proof_system/types/polynomial_manifest.hpp"
 #include "barretenberg/polynomials/evaluation_domain.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/srs/factories/crs_factory.hpp"
-#include "barretenberg/plonk/proof_system/constants.hpp"
-#include "barretenberg/plonk/proof_system/types/polynomial_manifest.hpp"
-#include "barretenberg/ecc/curves/bn254/bn254.hpp"
 
 #ifdef __wasm__
 #include "barretenberg/proof_system/polynomial_store/polynomial_store_cache.hpp"
@@ -20,7 +20,7 @@
 namespace proof_system::plonk {
 
 struct proving_key_data {
-    uint32_t composer_type;
+    uint32_t circuit_type;
     uint32_t circuit_size;
     uint32_t num_public_inputs;
     bool contains_recursive_proof;
@@ -49,13 +49,13 @@ struct proving_key {
     proving_key(const size_t num_gates,
                 const size_t num_inputs,
                 std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> const& crs,
-                ComposerType type);
+                CircuitType type = CircuitType::UNDEFINED);
 
     proving_key(std::ostream& is, std::string const& crs_path);
 
     void init();
 
-    uint32_t composer_type;
+    CircuitType circuit_type;
     size_t circuit_size;
     size_t log_circuit_size;
     size_t num_public_inputs;

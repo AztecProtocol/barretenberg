@@ -1,16 +1,16 @@
 
 #include <gtest/gtest.h>
 
-#include "rom_table.hpp"
 #include "barretenberg/numeric/random/engine.hpp"
-#include "barretenberg/proof_system/circuit_constructors/ultra_circuit_constructor.hpp"
+#include "barretenberg/proof_system/circuit_builder/ultra_circuit_builder.hpp"
+#include "rom_table.hpp"
 
 namespace test_stdlib_rom_array {
 using namespace barretenberg;
 using namespace proof_system::plonk;
 
 // Defining ultra-specific types for local testing.
-using Composer = proof_system::UltraCircuitConstructor;
+using Composer = proof_system::UltraCircuitBuilder;
 using field_ct = stdlib::field_t<Composer>;
 using witness_ct = stdlib::witness_t<Composer>;
 using rom_table_ct = stdlib::rom_table<Composer>;

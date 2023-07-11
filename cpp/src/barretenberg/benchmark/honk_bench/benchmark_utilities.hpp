@@ -2,16 +2,16 @@
 
 #include "barretenberg/stdlib/encryption/ecdsa/ecdsa.hpp"
 #include "barretenberg/stdlib/hash/keccak/keccak.hpp"
-#include "barretenberg/stdlib/primitives/curves/secp256k1.hpp"
-#include "barretenberg/stdlib/primitives/packed_byte_array/packed_byte_array.hpp"
 #include "barretenberg/stdlib/hash/sha256/sha256.hpp"
-#include "barretenberg/stdlib/primitives/bool/bool.hpp"
-#include "barretenberg/stdlib/primitives/field/field.hpp"
-#include "barretenberg/stdlib/primitives/witness/witness.hpp"
-#include "barretenberg/stdlib/merkle_tree/merkle_tree.hpp"
 #include "barretenberg/stdlib/merkle_tree/membership.hpp"
 #include "barretenberg/stdlib/merkle_tree/memory_store.hpp"
 #include "barretenberg/stdlib/merkle_tree/memory_tree.hpp"
+#include "barretenberg/stdlib/merkle_tree/merkle_tree.hpp"
+#include "barretenberg/stdlib/primitives/bool/bool.hpp"
+#include "barretenberg/stdlib/primitives/curves/secp256k1.hpp"
+#include "barretenberg/stdlib/primitives/field/field.hpp"
+#include "barretenberg/stdlib/primitives/packed_byte_array/packed_byte_array.hpp"
+#include "barretenberg/stdlib/primitives/witness/witness.hpp"
 
 using namespace benchmark;
 
@@ -180,7 +180,7 @@ template <typename Builder> void generate_merkle_membership_test_circuit(Builder
  */
 template <typename Composer>
 void construct_proof_with_specified_num_gates(State& state,
-                                              void (*test_circuit_function)(typename Composer::CircuitConstructor&,
+                                              void (*test_circuit_function)(typename Composer::CircuitBuilder&,
                                                                             size_t)) noexcept
 {
     barretenberg::srs::init_crs_factory("../srs_db/ignition");
@@ -188,7 +188,7 @@ void construct_proof_with_specified_num_gates(State& state,
     for (auto _ : state) {
         // Constuct circuit and prover; don't include this part in measurement
         state.PauseTiming();
-        auto builder = typename Composer::CircuitConstructor();
+        auto builder = typename Composer::CircuitBuilder();
         test_circuit_function(builder, num_gates);
 
         auto composer = Composer();
@@ -212,7 +212,7 @@ void construct_proof_with_specified_num_gates(State& state,
  */
 template <typename Composer>
 void construct_proof_with_specified_num_iterations(State& state,
-                                                   void (*test_circuit_function)(typename Composer::CircuitConstructor&,
+                                                   void (*test_circuit_function)(typename Composer::CircuitBuilder&,
                                                                                  size_t)) noexcept
 {
     barretenberg::srs::init_crs_factory("../srs_db/ignition");
@@ -220,7 +220,7 @@ void construct_proof_with_specified_num_iterations(State& state,
     for (auto _ : state) {
         // Constuct circuit and prover; don't include this part in measurement
         state.PauseTiming();
-        auto builder = typename Composer::CircuitConstructor();
+        auto builder = typename Composer::CircuitBuilder();
         test_circuit_function(builder, num_iterations);
 
         auto composer = Composer();

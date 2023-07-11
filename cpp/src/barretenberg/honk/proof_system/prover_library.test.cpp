@@ -2,16 +2,16 @@
 #include "barretenberg/ecc/curves/bn254/bn254.hpp"
 #include "barretenberg/honk/flavor/standard.hpp"
 #include "barretenberg/honk/flavor/ultra.hpp"
+#include "barretenberg/polynomials/polynomial.hpp"
 #include "prover.hpp"
 #include "prover_library.hpp"
-#include "barretenberg/polynomials/polynomial.hpp"
 
 #include "barretenberg/srs/factories/file_crs_factory.hpp"
 #include <array>
-#include <string>
-#include <vector>
 #include <cstddef>
 #include <gtest/gtest.h>
+#include <string>
+#include <vector>
 
 using namespace proof_system::honk;
 namespace prover_library_tests {
@@ -59,8 +59,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         static const size_t num_public_inputs = 0;
 
         // Instatiate a proving_key and make a pointer to it. This will be used to instantiate a Prover.
-        auto proving_key =
-            std::make_shared<typename Flavor::ProvingKey>(num_gates, num_public_inputs, ComposerType::STANDARD_HONK);
+        auto proving_key = std::make_shared<typename Flavor::ProvingKey>(num_gates, num_public_inputs);
 
         // static const size_t program_width = StandardProver::settings_::program_width;
 
@@ -172,8 +171,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
 
         // Instatiate a proving_key and make a pointer to it. This will be used to instantiate a Prover.
         using Flavor = honk::flavor::Ultra;
-        auto proving_key =
-            std::make_shared<typename Flavor::ProvingKey>(circuit_size, num_public_inputs, ComposerType::STANDARD_HONK);
+        auto proving_key = std::make_shared<typename Flavor::ProvingKey>(circuit_size, num_public_inputs);
 
         // Construct mock wire and permutation polynomials.
         // Note: for the purpose of checking the consistency between two methods of computing z_lookup, these
@@ -305,8 +303,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         static const size_t circuit_size = 8;
         static const size_t num_public_inputs = 0;
         using Flavor = honk::flavor::Ultra;
-        auto proving_key =
-            std::make_shared<typename Flavor::ProvingKey>(circuit_size, num_public_inputs, ComposerType::STANDARD_HONK);
+        auto proving_key = std::make_shared<typename Flavor::ProvingKey>(circuit_size, num_public_inputs);
 
         // Get random challenge eta
         auto eta = FF::random_element();

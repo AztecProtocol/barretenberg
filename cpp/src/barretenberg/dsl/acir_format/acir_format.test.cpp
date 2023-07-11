@@ -1,10 +1,9 @@
-#include <vector>
 #include <gtest/gtest.h>
+#include <vector>
 
 #include "acir_format.hpp"
-#include "ecdsa_secp256k1.hpp"
-#include "barretenberg/plonk/proof_system/types/proof.hpp"
 #include "barretenberg/common/streams.hpp"
+#include "barretenberg/plonk/proof_system/types/proof.hpp"
 #include "barretenberg/serialize/test_helper.hpp"
 #include "ecdsa_secp256k1.hpp"
 
@@ -30,7 +29,8 @@ TEST(acir_format, test_a_single_constraint_no_pub_inputs)
         .logic_constraints = {},
         .range_constraints = {},
         .schnorr_constraints = {},
-        .ecdsa_constraints = {},
+        .ecdsa_k1_constraints = {},
+        .ecdsa_r1_constraints = {},
         .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},
@@ -136,7 +136,8 @@ TEST(acir_format, test_logic_gate_from_noir_circuit)
         .logic_constraints = { logic_constraint },
         .range_constraints = { range_a, range_b },
         .schnorr_constraints = {},
-        .ecdsa_constraints = {},
+        .ecdsa_k1_constraints = {},
+        .ecdsa_r1_constraints = {},
         .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},
@@ -202,7 +203,8 @@ TEST(acir_format, test_schnorr_verify_pass)
         .logic_constraints = {},
         .range_constraints = range_constraints,
         .schnorr_constraints = { schnorr_constraint },
-        .ecdsa_constraints = {},
+        .ecdsa_k1_constraints = {},
+        .ecdsa_r1_constraints = {},
         .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},
@@ -275,7 +277,8 @@ TEST(acir_format, test_schnorr_verify_small_range)
         .logic_constraints = {},
         .range_constraints = range_constraints,
         .schnorr_constraints = { schnorr_constraint },
-        .ecdsa_constraints = {},
+        .ecdsa_k1_constraints = {},
+        .ecdsa_r1_constraints = {},
         .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},

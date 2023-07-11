@@ -9,14 +9,14 @@
 #include "../byte_array/byte_array.hpp"
 #include "../field/field.hpp"
 #include "./bigfield.hpp"
-#include "barretenberg/stdlib/primitives/circuit_builders/circuit_builders.hpp"
-#include "barretenberg/stdlib/primitives/curves/bn254.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
 #include "barretenberg/plonk/proof_system/verifier/verifier.hpp"
+#include "barretenberg/stdlib/primitives/circuit_builders/circuit_builders.hpp"
+#include "barretenberg/stdlib/primitives/curves/bn254.hpp"
 
+#include "barretenberg/polynomials/polynomial_arithmetic.hpp"
 #include <memory>
 #include <utility>
-#include "barretenberg/polynomials/polynomial_arithmetic.hpp"
 
 namespace test_stdlib_bigfield {
 using namespace barretenberg;
@@ -847,10 +847,9 @@ template <typename Composer> class stdlib_bigfield : public testing::Test {
 };
 
 // Define types for which the above tests will be constructed.
-typedef testing::Types<proof_system::StandardCircuitConstructor,
-                       proof_system::TurboCircuitConstructor,
-                       proof_system::UltraCircuitConstructor>
-    CircuitTypes;
+typedef testing::
+    Types<proof_system::StandardCircuitBuilder, proof_system::TurboCircuitBuilder, proof_system::UltraCircuitBuilder>
+        CircuitTypes;
 // Define the suite of tests.
 TYPED_TEST_SUITE(stdlib_bigfield, CircuitTypes);
 TYPED_TEST(stdlib_bigfield, badmul)

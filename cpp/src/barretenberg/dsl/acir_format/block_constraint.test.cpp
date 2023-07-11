@@ -1,7 +1,7 @@
 #include "acir_format.hpp"
-#include "block_constraint.hpp"
 #include "barretenberg/plonk/proof_system/types/proof.hpp"
 #include "barretenberg/plonk/proof_system/verification_key/verification_key.hpp"
+#include "block_constraint.hpp"
 
 #include <gtest/gtest.h>
 #include <vector>
@@ -110,7 +110,8 @@ TEST(up_ram, TestBlockConstraint)
         .logic_constraints = {},
         .range_constraints = {},
         .schnorr_constraints = {},
-        .ecdsa_constraints = {},
+        .ecdsa_k1_constraints = {},
+        .ecdsa_r1_constraints = {},
         .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},

@@ -1,16 +1,16 @@
-#include <benchmark/benchmark.h>
-#include <cstddef>
-#include "barretenberg/honk/composer/composer_helper/standard_honk_composer_helper.hpp"
+#include "barretenberg/honk/composer/standard_composer.hpp"
 #include "barretenberg/stdlib/primitives/field/field.hpp"
 #include "barretenberg/stdlib/primitives/witness/witness.hpp"
+#include <benchmark/benchmark.h>
+#include <cstddef>
 
 using namespace benchmark;
 using namespace proof_system::plonk::stdlib;
 
 namespace standard_honk_bench {
 
-using Builder = proof_system::StandardCircuitConstructor;
-using Composer = proof_system::honk::StandardHonkComposerHelper;
+using Builder = proof_system::StandardCircuitBuilder;
+using Composer = proof_system::honk::StandardComposer;
 
 constexpr size_t MIN_LOG_NUM_GATES = 16;
 constexpr size_t MAX_LOG_NUM_GATES = 16;

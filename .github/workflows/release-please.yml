@@ -23,6 +23,7 @@ jobs:
           command: manifest
 
   build-linux:
+    name: Build on Linux
     runs-on: ubuntu-latest
     needs: [release-please]
     if: ${{ needs.release-please.outputs.tag-name }}
@@ -44,7 +45,7 @@ jobs:
         curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
         echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
         sudo apt -y update && sudo apt -y install yarn
-    - name: Run Bootstrap
+    - name: Compile Barretenberg
       run: |
         cd cpp
         
@@ -56,7 +57,7 @@ jobs:
         cmake --preset wasm
         cmake --build --preset wasm
     
-    - name: Copy Barretenberg.wasm to root
+    - name: Copy Barretenberg.wasm to Root directory
       run: cp cpp/build-wasm/bin/barretenberg.wasm ./
       
     - name: Compile Typescript

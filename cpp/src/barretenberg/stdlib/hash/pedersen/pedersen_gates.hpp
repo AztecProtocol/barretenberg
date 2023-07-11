@@ -1,9 +1,9 @@
 #pragma once
-#include "barretenberg/proof_system/arithmetization/gate_data.hpp"
+#include "../../primitives/byte_array/byte_array.hpp"
 #include "../../primitives/circuit_builders/circuit_builders_fwd.hpp"
 #include "../../primitives/field/field.hpp"
 #include "../../primitives/point/point.hpp"
-#include "../../primitives/byte_array/byte_array.hpp"
+#include "barretenberg/proof_system/arithmetization/gate_data.hpp"
 
 namespace proof_system::plonk {
 namespace stdlib {
@@ -35,7 +35,7 @@ template <typename Composer> class pedersen_gates {
 
     void create_fixed_group_add_gate(const fixed_group_add_quad& in)
     {
-        if constexpr (Composer::type == ComposerType::TURBO) {
+        if constexpr (std::same_as<Composer, TurboCircuitBuilder>) {
             context->create_fixed_group_add_gate(in);
         } else {
 
@@ -228,7 +228,7 @@ template <typename Composer> class pedersen_gates {
 
     void create_fixed_group_add_gate_with_init(const fixed_group_add_quad& in, const fixed_group_init_quad& init)
     {
-        if constexpr (Composer::type == ComposerType::TURBO) {
+        if constexpr (std::same_as<Composer, TurboCircuitBuilder>) {
             context->create_fixed_group_add_gate_with_init(in, init);
         } else {
             uint32_t x_0_idx = in.a;
@@ -294,7 +294,7 @@ template <typename Composer> class pedersen_gates {
 
     void create_fixed_group_add_gate_final(const add_quad& in)
     {
-        if constexpr (Composer::type == ComposerType::TURBO) {
+        if constexpr (std::same_as<Composer, TurboCircuitBuilder>) {
             context->create_fixed_group_add_gate_final(in);
         } else {
 

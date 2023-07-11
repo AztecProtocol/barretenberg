@@ -1,23 +1,23 @@
 #pragma once
+#include "barretenberg/ecc/curves/bn254/g1.hpp"
+#include "barretenberg/honk/pcs/commitment_key.hpp"
+#include "barretenberg/honk/pcs/kzg/kzg.hpp"
+#include "barretenberg/honk/sumcheck/polynomials/barycentric_data.hpp"
+#include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
+#include "barretenberg/honk/sumcheck/relations/arithmetic_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/permutation_relation.hpp"
+#include "barretenberg/honk/transcript/transcript.hpp"
+#include "barretenberg/polynomials/evaluation_domain.hpp"
+#include "barretenberg/polynomials/polynomial.hpp"
+#include "barretenberg/proof_system/circuit_builder/standard_circuit_builder.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
+#include "barretenberg/srs/factories/crs_factory.hpp"
 #include <array>
 #include <concepts>
 #include <span>
 #include <string>
 #include <type_traits>
 #include <vector>
-#include "barretenberg/honk/pcs/commitment_key.hpp"
-#include "barretenberg/honk/sumcheck/polynomials/barycentric_data.hpp"
-#include "barretenberg/honk/pcs/kzg/kzg.hpp"
-#include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
-#include "barretenberg/ecc/curves/bn254/g1.hpp"
-#include "barretenberg/honk/sumcheck/relations/arithmetic_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/permutation_relation.hpp"
-#include "barretenberg/honk/transcript/transcript.hpp"
-#include "barretenberg/polynomials/evaluation_domain.hpp"
-#include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/proof_system/circuit_constructors/standard_circuit_constructor.hpp"
-#include "barretenberg/srs/factories/crs_factory.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
 
 namespace proof_system::honk::flavor {
 
@@ -31,7 +31,7 @@ namespace proof_system::honk::flavor {
  */
 class Standard {
   public:
-    using CircuitConstructor = StandardCircuitConstructor;
+    using CircuitBuilder = StandardCircuitBuilder;
     using FF = barretenberg::fr;
     using Polynomial = barretenberg::Polynomial<FF>;
     using PolynomialHandle = std::span<FF>;
@@ -42,7 +42,7 @@ class Standard {
     using PCSParams = pcs::kzg::Params;
     using PCS = pcs::kzg::KZG<PCSParams>;
 
-    static constexpr size_t NUM_WIRES = CircuitConstructor::NUM_WIRES;
+    static constexpr size_t NUM_WIRES = CircuitBuilder::NUM_WIRES;
     // The number of multivariate polynomials on which a sumcheck prover sumcheck operates (including shifts). We often
     // need containers of this size to hold related data, so we choose a name more agnostic than `NUM_POLYNOMIALS`
     static constexpr size_t NUM_ALL_ENTITIES = 18;
@@ -61,9 +61,6 @@ class Standard {
     // polynomial e.g. For \sum(x) [A(x) * B(x) + C(x)] * PowZeta(X), relation length = 2 and random relation length = 3
     static constexpr size_t MAX_RANDOM_RELATION_LENGTH = MAX_RELATION_LENGTH + 1;
     static constexpr size_t NUM_RELATIONS = std::tuple_size<Relations>::value;
-
-    // Instantiate the BarycentricData needed to extend each Relation Univariate
-    static_assert(instantiate_barycentric_utils<FF, MAX_RANDOM_RELATION_LENGTH>());
 
     // define the containers for storing the contributions from each relation in Sumcheck
     using RelationUnivariates = decltype(create_relation_univariates_container<FF, Relations>());
@@ -90,6 +87,8 @@ class Standard {
         DataType& id_3 = std::get<10>(this->_data);
         DataType& lagrange_first = std::get<11>(this->_data);
         DataType& lagrange_last = std::get<12>(this->_data); // = LAGRANGE_N-1 whithout ZK, but can be less
+
+        static constexpr CircuitType CIRCUIT_TYPE = CircuitBuilder::CIRCUIT_TYPE;
 
         std::vector<HandleType> get_selectors() override { return { q_m, q_l, q_r, q_o, q_c }; };
         std::vector<HandleType> get_sigma_polynomials() override { return { sigma_1, sigma_2, sigma_3 }; };

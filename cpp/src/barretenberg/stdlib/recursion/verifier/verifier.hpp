@@ -3,15 +3,15 @@
 #include "barretenberg/ecc/curves/bn254/fq12.hpp"
 #include "barretenberg/ecc/curves/bn254/pairing.hpp"
 #include "barretenberg/plonk/flavor/flavor.hpp"
+#include "barretenberg/plonk/proof_system/public_inputs/public_inputs.hpp"
 #include "barretenberg/plonk/proof_system/types/proof.hpp"
 #include "barretenberg/plonk/proof_system/utils/kate_verification.hpp"
-#include "barretenberg/plonk/proof_system/public_inputs/public_inputs.hpp"
 #include "barretenberg/stdlib/primitives/bigfield/bigfield.hpp"
 #include "barretenberg/stdlib/primitives/biggroup/biggroup.hpp"
 #include "barretenberg/stdlib/primitives/bool/bool.hpp"
 #include "barretenberg/stdlib/primitives/field/field.hpp"
-#include "barretenberg/stdlib/recursion/transcript/transcript.hpp"
 #include "barretenberg/stdlib/recursion/aggregation_state/aggregation_state.hpp"
+#include "barretenberg/stdlib/recursion/transcript/transcript.hpp"
 #include "barretenberg/stdlib/recursion/verifier/program_settings.hpp"
 
 namespace proof_system::plonk {
@@ -414,19 +414,18 @@ aggregation_state<Curve> verify_proof_(typename Curve::Builder* context,
 }
 
 template <typename Flavor>
-aggregation_state<bn254<typename Flavor::CircuitConstructor>> verify_proof(
-    typename Flavor::CircuitConstructor* context,
-    std::shared_ptr<verification_key<bn254<typename Flavor::CircuitConstructor>>> key,
+aggregation_state<bn254<typename Flavor::CircuitBuilder>> verify_proof(
+    typename Flavor::CircuitBuilder* context,
+    std::shared_ptr<verification_key<bn254<typename Flavor::CircuitBuilder>>> key,
     const plonk::proof& proof,
-    const aggregation_state<bn254<typename Flavor::CircuitConstructor>> previous_output =
-        aggregation_state<bn254<typename Flavor::CircuitConstructor>>())
+    const aggregation_state<bn254<typename Flavor::CircuitBuilder>> previous_output =
+        aggregation_state<bn254<typename Flavor::CircuitBuilder>>())
 {
     // TODO(Cody): Be sure this is kosher
     const auto manifest =
         Flavor::create_manifest(static_cast<size_t>(key->num_public_inputs.get_value().from_montgomery_form().data[0]));
-    return verify_proof<
-        bn254<typename Flavor::CircuitConstructor>,
-        recursion::recursive_ultra_verifier_settings<stdlib::bn254<typename Flavor::CircuitConstructor>>>(
+    return verify_proof<bn254<typename Flavor::CircuitBuilder>,
+                        recursion::recursive_ultra_verifier_settings<stdlib::bn254<typename Flavor::CircuitBuilder>>>(
         context, key, manifest, proof, previous_output);
 }
 

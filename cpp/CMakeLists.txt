@@ -6,14 +6,14 @@ cmake_minimum_required(VERSION 3.24)
 project(
     Barretenberg
     DESCRIPTION "BN254 elliptic curve library, and PLONK SNARK prover"
-    VERSION 0.1.0 # x-release-please-version
+    VERSION 0.3.0 # x-release-please-version
     LANGUAGES CXX C
 )
 
 option(DISABLE_ASM "Disable custom assembly" OFF)
 option(DISABLE_ADX "Disable ADX assembly variant" OFF)
 option(MULTITHREADING "Enable multi-threading" ON)
-option(OMP_MULTITHREADING "Enable OMP multi-threading" ON)
+option(OMP_MULTITHREADING "Enable OMP multi-threading" OFF)
 option(TESTING "Build tests" ON)
 option(BENCHMARKS "Build benchmarks" ON)
 option(FUZZING "Build fuzzing harnesses" OFF)
