@@ -53,18 +53,16 @@ jobs:
         cmake --build --preset default --target bb
 
         ./scripts/install-wasi-sdk.sh
-
-        cmake --preset wasm
-        cmake --build --preset wasm
     
-    - name: Copy Barretenberg.wasm to Root directory
-      run: cp cpp/build-wasm/bin/barretenberg.wasm ./
-      
+
     - name: Compile Typescript
       run: |
         cd ts
         yarn install && yarn && yarn build
-        
+    
+    - name: Copy Barretenberg.wasm to Root directory
+      run: cp cpp/build-wasm/bin/barretenberg.wasm ./
+      
     - name: Setup Node.js
       uses: actions/setup-node@v2
       with:
