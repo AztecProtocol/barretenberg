@@ -12,6 +12,8 @@ name: release-please
 jobs:
   release-please:
     name: Create Release
+    outputs:
+      tag-name: ${{ steps.release.outputs.tag_name }}
     runs-on: ubuntu-latest
     steps:
       - name: Run Release Please
@@ -29,58 +31,78 @@ jobs:
             VERSION
             barretenberg.nix
             barretenberg-wasm.nix
+            
 
   build-linux:
-    name: Build on Ubuntu
+    runs-on: self-hosted
     needs: [release-please]
-    runs-on: ubuntu-latest
+    if: ${{ needs.release-please.outputs.tag-name }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Install Bleeding edge CMake
-        run: |
-              sudo apt -y remove --purge cmake
-              sudo snap install cmake --classic
-      - name: Install Yarn
-        run: |
-          curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
-          echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-          sudo apt -y update && sudo apt -y install yarn
-      - name: Install Clang/Ninja
-        run: |
-          sudo apt-get -y install clang clang-format ninja-build
-      - name: Install WASI-SDK
-        run: |
-          cd cpp
-          ./scripts/install-wasi-sdk.sh
-      - name: Compile Barretenberg
-        run: |
-          cd cpp
-          cmake --preset default -DCMAKE_BUILD_TYPE=RelWithAssert -DOMP_MULTITHREADING=OFF
-          cmake --build --preset default --target bb
-      - name: Compile Barretenberg.js
-        run: |
-          cd ts
-          yarn && yarn build
-      - name: Tar Typescript `dest` folder
-        run: tar -cvf dest.tar ts/dest
-      - name: Tar Native static `lib` folder
-        run: tar -cvf ubuntu-static-lib.tar cpp/build/lib
-      - name: Tar WASM static `lib` folder
-        run: tar -cvf wasm-static-lib.tar cpp/build-wasm/lib
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v2
-        with:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Install bleeding edge cmake
+      run: |
+        sudo apt -y remove --purge cmake
+        sudo snap install cmake --classic
+        
+    - name: Create Build Environment
+      run: |
+        sudo apt-get update
+        sudo apt-get -y install clang ninja-build yarn
+    - name: Install yarn
+      run: |
+        curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+        echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+        sudo apt -y update && sudo apt -y install yarn
+    - name: Run Bootstrap
+      run: |
+        cd cpp
+        
+        cmake --preset default -DCMAKE_BUILD_TYPE=RelWithAssert
+        cmake --build --preset default --target bb
+
+        ./scripts/install-wasi-sdk.sh
+
+        cmake --preset wasm
+        cmake --build --preset wasm
+    
+    - name: Copy Barretenberg.wasm to root
+      run: cp cpp/build-wasm/bin/barretenberg.wasm ./
+      
+    - name: Compile Typescript
+      run: |
+        cd ts
+        yarn install && yarn && yarn build
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '18'
+        registry-url: 'https://registry.npmjs.org'
+        
+    - name: Deploy Typescript to NPM
+      run: |
+        cd ts
+        yarn deploy
+      env:
+        NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+        
+    - name: Tar and GZip bb Binary (Ubuntu)
+      run: tar -cvzf bb-ubuntu.tar.gz cpp/build/bin/bb
+      
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
           name: release-linux-wasm
           path: |
-            cpp/build-wasm/bin/barretenberg.wasm
-            dest.tar
-            ubuntu-static-lib.tar
-            wasm-static-lib.tar
+            barretenberg.wasm
+            bb-ubuntu.tar.gz
           
   build-mac:
     name: Build on Mac
     needs: [release-please]
+    if: ${{ needs.release-please.outputs.tag-name }}
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -88,20 +110,24 @@ jobs:
       - name: Create Mac Build Environment
         run: |
           brew install cmake ninja
+          
       - name: Configure Brew prefix
         run: echo "BREW_PREFIX=$(brew --prefix)" >> $GITHUB_ENV
+          
       - name: Compile Barretenberg
         run: |
           cd cpp
           cmake --preset default -DCMAKE_BUILD_TYPE=RelWithAssert
-          cmake --build --preset default -- target bb
-      - name: Tar native static `lib` folder
-        run: tar -cvf macos-static-lib.tar cpp/build/lib
+          cmake --build --preset default --target bb
+          
+      - name: Tar bb binary (Mac)
+        run: tar -cvzf bb-mac.tar.gz cpp/build/bin/bb
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
           name: release-mac
-          path: macos-static-lib.tar
+          path: bb-mac.tar.gz
 
   release:
     name: Publish
@@ -112,17 +138,17 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: release-linux-wasm
+          
       - name: Download files from Mac Runner
         uses: actions/download-artifact@v2
         with:
           name: release-mac
+      
       - name: Publish to GitHub
         uses: softprops/action-gh-release@v1
         with:
           prerelease: true
           files: |
-            ./cpp/build-wasm/bin/barretenberg.wasm
-            dest.tar
-            ubuntu-static-lib.tar
-            wasm-static-lib.tar
-            macos-static-lib.tar
+            barretenberg.wasm
+            bb-ubuntu.tar.gz
+            bb-mac.tar.gz
