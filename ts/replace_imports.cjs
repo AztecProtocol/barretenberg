@@ -1,8 +1,8 @@
 const replaceInFile = require('replace-in-file');
 const path = require('path');
-const dynamic_imports = require("./dynamic_imports.cjs")
 
 const buildTarget = process.env.BUILD_TARGET;
+const dynamic_imports = ['barretenberg_wasm', 'crs', 'random', 'types'];
 
 async function replaceImports() {
   try {

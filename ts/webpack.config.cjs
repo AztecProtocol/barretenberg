@@ -8,46 +8,34 @@ const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 const webpack = require('webpack');
 const { resolve } = path;
 
-const isNode = process.env.BUILD_TARGET === 'node';
+const buildTarget = process.env.BUILD_TARGET;
+const isNode = buildTarget === 'node';
+const configFile = path.resolve(__dirname, `./tsconfig.${buildTarget}.json`) ;
 
-const common = {
+module.exports = {
   mode: 'production',
   entry: './src/index.ts',
+  target: isNode ? "node" : "web",
+  output: {
+    path: resolve(__dirname, `./dest/${buildTarget}`),
+    filename: '[name].js',
+  },
   module: {
     rules: [
       {
-        test: /\.tsx?$/,
-        use: [{ loader: 'ts-loader', options: { transpileOnly: true, onlyCompileBundledFiles: true } }],
+        test: /\.ts?$/,
+        use: [{ loader: 'ts-loader', options: { transpileOnly: true, onlyCompileBundledFiles: true, configFile } }],
       },
     ],
   },
   resolve: {
-    alias: {
-      'idb-keyval': require.resolve('idb-keyval'),
-      crypto: require.resolve('crypto-browserify'),
-      path: require.resolve('path-browserify'),
-      url: require.resolve('url/'),
-    },
-    fallback: {
-      os: require.resolve('os-browserify/browser'),
-      events: false,
-    },
     plugins: [
       new ResolveTypeScriptPlugin(),
-      new TsconfigPathsPlugin({ configFile: path.resolve(__dirname, "./tsconfig.json") })
+      new TsconfigPathsPlugin({ configFile })
     ],
   },
   optimization: {
-    minimize: false,
-  },
-}
-
-const webConfig = {
-  ...common,
-  target: 'web',
-  output: {
-    path: resolve(__dirname, './dest/browser'),
-    filename: '[name].js',
+    minimize: isNode,
   },
   plugins: [
     new webpack.DefinePlugin({ 'process.env.NODE_DEBUG': false }),
@@ -66,30 +54,3 @@ const webConfig = {
     }),
   ],
 }
-
-const nodeConfig = {
-  ...common,
-  target: 'node',
-  output: {
-    path: resolve(__dirname, './dest/node'),
-    filename: '[name].js',
-  },
-  plugins: [
-    new webpack.DefinePlugin({ 'process.env.NODE_DEBUG': false }),
-    new webpack.ProvidePlugin({ Buffer: ['buffer', 'Buffer'] }),
-    new CopyWebpackPlugin({
-      patterns: [
-        {
-          from: `../cpp/build-wasm/bin/barretenberg.wasm`,
-          to: '../barretenberg.wasm',
-        },
-        {
-          from: `../cpp/build-wasm-threads/bin/barretenberg.wasm`,
-          to: '../barretenberg-threads.wasm',
-        },
-      ],
-    }),
-  ],
-}
-
-module.exports = isNode ? nodeConfig : webConfig;
