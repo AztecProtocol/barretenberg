@@ -53,16 +53,9 @@
   "dependencies": {
     "comlink": "^4.4.1",
     "commander": "^10.0.1",
-    "crypto-browserify": "^3.12.0",
     "debug": "^4.3.4",
-    "eventemitter3": "^5.0.1",
-    "fs": "^0.0.1-security",
     "idb-keyval": "^6.2.1",
-    "os-browserify": "^0.3.0",
-    "path-browserify": "^1.0.1",
-    "ts-node": "^10.9.1",
-    "tslib": "^2.4.0",
-    "url": "^0.11.1"
+    "ts-node": "^10.9.1"
   },
   "devDependencies": {
     "@jest/globals": "^29.4.3",
