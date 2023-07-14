@@ -3,7 +3,6 @@ import { Crs, BarretenbergApiAsync, newBarretenbergApiAsync, RawBuffer } from '.
 import createDebug from 'debug';
 import { readFileSync, writeFileSync } from 'fs';
 import { gunzipSync } from 'zlib';
-import { numToUInt32BE } from './serialize/serialize.js';
 import { Command } from 'commander';
 
 createDebug.log = console.error.bind(console);

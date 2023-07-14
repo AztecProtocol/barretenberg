@@ -1,10 +1,5 @@
 #pragma once
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wsign-conversion"
-#pragma clang diagnostic ignored "-Wshorten-64-to-32"
-#pragma clang diagnostic ignored "-Wunused-parameter"
-
 #include "bincode.hpp"
 #include "serde.hpp"
 
@@ -6306,5 +6301,3 @@ Circuit::Witness serde::Deserializable<Circuit::Witness>::deserialize(Deserializ
     deserializer.decrease_container_depth();
     return obj;
 }
-
-#pragma clang diagnostic pop

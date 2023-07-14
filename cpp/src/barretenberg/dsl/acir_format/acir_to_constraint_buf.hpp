@@ -12,8 +12,7 @@
 #include "barretenberg/dsl/acir_format/schnorr_verify.hpp"
 #include "barretenberg/dsl/acir_format/sha256_constraint.hpp"
 #include "barretenberg/proof_system/arithmetization/gate_data.hpp"
-#include "serde/acir.hpp"
-#include "serde/witness_map.hpp"
+#include "serde/index.hpp"
 #include <stdexcept>
 
 namespace acir_format {
@@ -184,6 +183,9 @@ void handle_blackbox_func_call(Circuit::Opcode::BlackBoxFuncCall const& arg, aci
                     .proof = map(arg.proof, [](auto& e) { return e.witness.value; }),
                     .public_inputs = map(arg.public_inputs, [](auto& e) { return e.witness.value; }),
                     .key_hash = arg.key_hash.witness.value,
+                    .input_aggregation_object = {},
+                    .output_aggregation_object = {},
+                    .nested_aggregation_object = {},
                 };
                 if (arg.input_aggregation_object.has_value()) {
                     for (size_t i = 0; i < RecursionConstraint::AGGREGATION_OBJECT_SIZE; ++i) {
