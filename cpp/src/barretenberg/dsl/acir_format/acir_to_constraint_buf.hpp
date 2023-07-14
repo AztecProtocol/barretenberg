@@ -57,13 +57,6 @@ void handle_arithmetic(Circuit::Opcode::Arithmetic const& arg, acir_format& af)
         }
     }
     pt.q_c = uint256_t(arg.value.q_c);
-    // info(pt.a);
-    // info(pt.b);
-    // info(pt.c);
-    // info(pt.q_l);
-    // info(pt.q_r);
-    // info(pt.q_o);
-    // info(pt.q_c);
     af.constraints.push_back(pt);
 }
 
@@ -223,10 +216,10 @@ acir_format circuit_buf_to_acir_format(std::vector<uint8_t> const& buf)
                     handle_arithmetic(arg, af);
                 } else if constexpr (std::is_same_v<T, Circuit::Opcode::BlackBoxFuncCall>) {
                     handle_blackbox_func_call(arg, af);
-                    // } else if constexpr (std::is_same_v<T, Circuit::Opcode::RAM>) {
-                    //     throw_or_abort("Implement handling RAM opcode!");
-                    // } else if constexpr (std::is_same_v<T, Circuit::Opcode::ROM>) {
-                    //     throw_or_abort("Implement handling ROM opcode!");
+                } else if constexpr (std::is_same_v<T, Circuit::Opcode::RAM>) {
+                    throw_or_abort("Implement handling RAM opcode!");
+                } else if constexpr (std::is_same_v<T, Circuit::Opcode::ROM>) {
+                    throw_or_abort("Implement handling ROM opcode!");
                 }
             },
             gate.value);
