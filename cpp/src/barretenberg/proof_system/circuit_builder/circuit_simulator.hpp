@@ -1,9 +1,12 @@
 #pragma once
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/proof_system/arithmetization/gate_data.hpp"
+#include "barretenberg/proof_system/plookup_tables/plookup_tables.hpp"
+#include "barretenberg/proof_system/plookup_tables/types.hpp"
 #include "barretenberg/proof_system/types/circuit_type.hpp"
 #include "barretenberg/proof_system/types/merkle_hash_type.hpp"
 #include "barretenberg/proof_system/types/pedersen_commitment_type.hpp"
+#include <cstdint>
 
 namespace proof_system {
 
@@ -17,6 +20,7 @@ class CircuitSimulatorBN254 {
     bool contains_recursive_proof = false;
     static constexpr size_t UINT_LOG2_BASE = 2; // WORKTODO: 6 for Ultra
 
+    static constexpr size_t num_gates = 0;
     static constexpr uint32_t zero_idx = 0;
 
     // uint32_t add_variable([[maybe_unused]]const FF& in){
@@ -65,6 +69,16 @@ class CircuitSimulatorBN254 {
     void create_fixed_group_add_gate_with_init([[maybe_unused]] const fixed_group_add_quad& in,
                                                [[maybe_unused]] const fixed_group_init_quad& init){};
     void create_fixed_group_add_gate_final([[maybe_unused]] const add_quad& in){};
+    void create_ecc_add_gate([[maybe_unused]] const ecc_add_gate& in){};
+
+    plookup::ReadData<uint32_t> create_gates_from_plookup_accumulators(
+        [[maybe_unused]] const plookup::MultiTableId& id,
+        [[maybe_unused]] const plookup::ReadData<FF>& read_values,
+        [[maybe_unused]] const uint32_t key_a_index,
+        [[maybe_unused]] std::optional<uint32_t> key_b_index = std::nullopt)
+    {
+        return {};
+    };
 
     accumulator_triple create_and_constraint([[maybe_unused]] const uint32_t a,
                                              [[maybe_unused]] const uint32_t b,
@@ -100,6 +114,10 @@ class CircuitSimulatorBN254 {
     {
         return { 1028 };
     };
+
+    void create_new_range_constraint([[maybe_unused]] const uint32_t variable_index,
+                                     [[maybe_unused]] const uint64_t target_range,
+                                     [[maybe_unused]] std::string const msg = "create_new_range_constraint"){};
 
     void assert_equal(FF left, FF right, std::string const& msg)
     {
