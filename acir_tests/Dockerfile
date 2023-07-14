@@ -7,5 +7,7 @@ COPY --from=0 /usr/src/barretenberg/cpp/build /usr/src/barretenberg/cpp/build
 COPY --from=1 /usr/src/barretenberg/ts /usr/src/barretenberg/ts
 WORKDIR /usr/src/barretenberg/acir_tests
 COPY . .
+# Run all native tests.
 RUN ./run_acir_tests.sh
-RUN BB=../ts/dest/main.js ./run_acir_tests.sh
+# Just run double_verify_proof as a sanity check as bb.js is quite slow.
+RUN BB=../ts/dest/main.js ./run_acir_tests.sh double_verify_proof
