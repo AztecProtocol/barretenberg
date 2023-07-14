@@ -47,7 +47,11 @@ template <typename ComposerContext> class witness_t {
     static witness_t create_constant_witness(ComposerContext* parent_context, const barretenberg::fr& in)
     {
         witness_t out(parent_context, in);
-        parent_context->assert_equal_constant(out.witness_index, in);
+        if constexpr (IsSimulator<ComposerContext>) {
+            parent_context->assert_equal_constant(out.witness, in, "Failed to create constant witness.");
+        } else {
+            parent_context->assert_equal_constant(out.witness_index, in, "Failed to create constant witness.");
+        }
         return out;
     }
 

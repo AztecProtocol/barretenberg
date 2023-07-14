@@ -1,6 +1,7 @@
 #pragma once
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/proof_system/arithmetization/gate_data.hpp"
+#include "barretenberg/proof_system/types/circuit_type.hpp"
 #include "barretenberg/proof_system/types/merkle_hash_type.hpp"
 #include "barretenberg/proof_system/types/pedersen_commitment_type.hpp"
 
@@ -11,6 +12,7 @@ class CircuitSimulatorBN254 {
     using FF = barretenberg::fr;                                                 // IOU templating
     static constexpr merkle::HashType merkle_hash_type = merkle::HashType::NONE; // UGH
     static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::NONE;
+    static constexpr CircuitType CIRCUIT_TYPE = CircuitType::UNDEFINED;
 
     bool contains_recursive_proof = false;
     static constexpr size_t UINT_LOG2_BASE = 2; // WORKTODO: 6 for Ultra
@@ -20,6 +22,20 @@ class CircuitSimulatorBN254 {
     // uint32_t add_variable([[maybe_unused]]const FF& in){
     //   return 0; // WORKTODO: return part of `in` for debugging purposes?
     // }
+
+    std::vector<uint32_t> public_inputs;
+    void add_recursive_proof(const std::vector<uint32_t>& proof_output_witness_indices)
+    {
+
+        if (contains_recursive_proof) {
+            failure("added recursive proof when one already exists");
+        }
+        contains_recursive_proof = true;
+
+        for (uint32_t idx = 0; idx < proof_output_witness_indices.size(); idx++) {
+            recursive_proof_public_input_indices.push_back(idx);
+        }
+    }
 
     inline uint32_t add_variable([[maybe_unused]] const barretenberg::fr index) const { return 1028; }
     inline barretenberg::fr get_variable([[maybe_unused]] const uint32_t index) const { return 1028; }
@@ -108,6 +124,9 @@ class CircuitSimulatorBN254 {
     }
 
     [[nodiscard]] bool check_circuit() const { return !_failed; }
+
+    // Public input indices which contain recursive proof information
+    std::vector<uint32_t> recursive_proof_public_input_indices;
 };
 
 } // namespace proof_system

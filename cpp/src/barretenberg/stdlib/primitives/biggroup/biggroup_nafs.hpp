@@ -507,7 +507,10 @@ std::vector<bool_t<C>> element<C, Fq, Fr, G>::compute_naf(const Fr& scalar, cons
             bit.context = ctx;
             bit.witness_index = witness_t<C>(ctx, true).witness_index; // flip sign
             bit.witness_bool = true;
-            if constexpr (HasPlookup<C>) {
+            if constexpr (IsSimulator<C>) {
+                ctx->create_range_constraint(
+                    bit.get_value(), 1, "biggroup_nafs: compute_naf extracted too many bits in non-next_entry case");
+            } else if constexpr (HasPlookup<C>) {
                 ctx->create_new_range_constraint(
                     bit.witness_index, 1, "biggroup_nafs: compute_naf extracted too many bits in non-next_entry case");
             } else {
@@ -519,7 +522,10 @@ std::vector<bool_t<C>> element<C, Fq, Fr, G>::compute_naf(const Fr& scalar, cons
             bool_t<C> bit(ctx, false);
             bit.witness_index = witness_t<C>(ctx, false).witness_index; // don't flip sign
             bit.witness_bool = false;
-            if constexpr (HasPlookup<C>) {
+            if constexpr (IsSimulator<C>) {
+                ctx->create_range_constraint(
+                    bit.get_value(), 1, "biggroup_nafs: compute_naf extracted too many bits in next_entry case");
+            } else if constexpr (HasPlookup<C>) {
                 ctx->create_new_range_constraint(
                     bit.witness_index, 1, "biggroup_nafs: compute_naf extracted too many bits in next_entry case");
             } else {
