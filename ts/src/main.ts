@@ -39,13 +39,14 @@ async function getGates(jsonPath: string, api: BarretenbergApiAsync) {
 
 function getWitness(witnessPath: string) {
   const data = readFileSync(witnessPath);
-  return Buffer.concat([numToUInt32BE(data.length / 32), data]);
+  const decompressed = gunzipSync(data);
+  return decompressed;
 }
 
 async function computeCircuitSize(jsonPath: string, api: BarretenbergApiAsync) {
   debug(`computing circuit size...`);
   const bytecode = getBytecode(jsonPath);
-  const [exact, total, subgroup] = await api.acirGetCircuitSizes(new RawBuffer(bytecode));
+  const [exact, total, subgroup] = await api.acirGetCircuitSizes(bytecode);
   return { exact, total, subgroup };
 }
 
@@ -94,7 +95,7 @@ export async function proveAndVerify(jsonPath: string, witnessPath: string, crsP
     debug(`creating proof...`);
     const bytecode = getBytecode(jsonPath);
     const witness = getWitness(witnessPath);
-    const proof = await api.acirCreateProof(acirComposer, new RawBuffer(bytecode), new RawBuffer(witness), isRecursive);
+    const proof = await api.acirCreateProof(acirComposer, bytecode, witness, isRecursive);
 
     debug(`verifying...`);
     const verified = await api.acirVerifyProof(acirComposer, proof, isRecursive);
@@ -117,7 +118,7 @@ export async function prove(
     debug(`creating proof...`);
     const bytecode = getBytecode(jsonPath);
     const witness = getWitness(witnessPath);
-    const proof = await api.acirCreateProof(acirComposer, new RawBuffer(bytecode), new RawBuffer(witness), isRecursive);
+    const proof = await api.acirCreateProof(acirComposer, bytecode, witness, isRecursive);
     debug(`done.`);
 
     writeFileSync(outputPath, proof);
@@ -169,7 +170,7 @@ export async function writeVk(jsonPath: string, crsPath: string, outputPath: str
   try {
     debug('initing proving key...');
     const bytecode = getBytecode(jsonPath);
-    await api.acirInitProvingKey(acirComposer, new RawBuffer(bytecode));
+    await api.acirInitProvingKey(acirComposer, bytecode);
 
     debug('initing verification key...');
     const vk = await api.acirGetVerificationKey(acirComposer);

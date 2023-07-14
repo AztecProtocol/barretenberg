@@ -1,8 +1,8 @@
 #include "barretenberg/bb/get_crs.hpp"
-#include "file_io.hpp"
 #include "get_bytecode.hpp"
+#include "get_witness.hpp"
 #include <barretenberg/common/container.hpp>
-#include <barretenberg/dsl/acir_format/acir_format.hpp>
+#include <barretenberg/dsl/acir_format/acir_to_constraint_buf.hpp>
 #include <barretenberg/dsl/acir_proofs/acir_composer.hpp>
 #include <barretenberg/srs/global_crs.hpp>
 #include <iostream>
@@ -25,23 +25,20 @@ void init()
 
 acir_format::WitnessVector get_witness(std::string const& witness_path)
 {
-    auto witness_data = read_file(witness_path);
-    // We need to prefix the number of fields to comply with serialization format.
-    // TODO: Make noir side output witness data prefixed.
-    return from_buffer<acir_format::WitnessVector>(
-        join({ to_buffer((uint32_t)witness_data.size() / 32), witness_data }));
+    auto witness_data = get_witness_data(witness_path);
+    return acir_format::witness_buf_to_witness_data(witness_data);
 }
 
-acir_format::acir_format get_contraint_system(std::string const& json_path)
+acir_format::acir_format get_constraint_system(std::string const& json_path)
 {
     auto bytecode = get_bytecode(json_path);
-    return from_buffer<acir_format::acir_format>(bytecode.data());
+    return acir_format::circuit_buf_to_acir_format(bytecode);
 }
 
 bool proveAndVerify(const std::string& jsonPath, const std::string& witnessPath, bool recursive)
 {
     auto acir_composer = new acir_proofs::AcirComposer(MAX_CIRCUIT_SIZE, verbose);
-    auto constraint_system = get_contraint_system(jsonPath);
+    auto constraint_system = get_constraint_system(jsonPath);
     auto witness = get_witness(witnessPath);
     auto proof = acir_composer->create_proof(srs::get_crs_factory(), constraint_system, witness, recursive);
     auto verified = acir_composer->verify_proof(proof, recursive);
@@ -52,7 +49,7 @@ bool proveAndVerify(const std::string& jsonPath, const std::string& witnessPath,
 void prove(const std::string& jsonPath, const std::string& witnessPath, bool recursive, const std::string& outputPath)
 {
     auto acir_composer = new acir_proofs::AcirComposer(MAX_CIRCUIT_SIZE, verbose);
-    auto constraint_system = get_contraint_system(jsonPath);
+    auto constraint_system = get_constraint_system(jsonPath);
     auto witness = get_witness(witnessPath);
     auto proof = acir_composer->create_proof(srs::get_crs_factory(), constraint_system, witness, recursive);
     write_file(outputPath, proof);
@@ -62,7 +59,7 @@ void prove(const std::string& jsonPath, const std::string& witnessPath, bool rec
 void gateCount(const std::string& jsonPath)
 {
     auto acir_composer = new acir_proofs::AcirComposer(MAX_CIRCUIT_SIZE, verbose);
-    auto constraint_system = get_contraint_system(jsonPath);
+    auto constraint_system = get_constraint_system(jsonPath);
     acir_composer->create_circuit(constraint_system);
     info("gates: ", acir_composer->get_total_circuit_size());
 }
@@ -80,7 +77,7 @@ bool verify(const std::string& proof_path, bool recursive, const std::string& vk
 void writeVk(const std::string& jsonPath, const std::string& outputPath)
 {
     auto acir_composer = new acir_proofs::AcirComposer(MAX_CIRCUIT_SIZE, verbose);
-    auto constraint_system = get_contraint_system(jsonPath);
+    auto constraint_system = get_constraint_system(jsonPath);
     acir_composer->init_proving_key(srs::get_crs_factory(), constraint_system);
     auto vk = acir_composer->init_verification_key();
     write_file(outputPath, to_buffer(*vk));
