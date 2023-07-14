@@ -7,7 +7,7 @@ set -e
 
 BB=$PWD/${BB:-../cpp/build/bin/bb}
 CRS_PATH=~/.bb-crs
-BRANCH=master
+BRANCH=kh-b64-bytecode
 
 # Pull down the test vectors from the noir repo, if we don't have the folder already.
 if [ ! -d acir_tests ]; then
