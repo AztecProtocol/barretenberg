@@ -6,6 +6,7 @@
 #include <barretenberg/dsl/acir_proofs/acir_composer.hpp>
 #include <barretenberg/srs/global_crs.hpp>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -136,47 +137,52 @@ std::string getOption(std::vector<std::string>& args, const std::string& option,
 
 int main(int argc, char* argv[])
 {
-    std::vector<std::string> args(argv + 1, argv + argc);
-    verbose = flagPresent(args, "-v") || flagPresent(args, "--verbose");
+    try {
+        std::vector<std::string> args(argv + 1, argv + argc);
+        verbose = flagPresent(args, "-v") || flagPresent(args, "--verbose");
 
-    if (args.empty()) {
-        std::cerr << "No command provided.\n";
+        if (args.empty()) {
+            std::cerr << "No command provided.\n";
+            return 1;
+        }
+
+        std::string command = args[0];
+
+        std::string json_path = getOption(args, "-j", "./target/main.json");
+        std::string witness_path = getOption(args, "-w", "./target/witness.tr");
+        std::string proof_path = getOption(args, "-p", "./proofs/proof");
+        std::string vk_path = getOption(args, "-k", "./target/vk");
+        CRS_PATH = getOption(args, "-c", "./crs");
+        bool recursive = flagPresent(args, "-r") || flagPresent(args, "--recursive");
+        init();
+
+        if (command == "prove_and_verify") {
+            return proveAndVerify(json_path, witness_path, recursive) ? 0 : 1;
+        } else if (command == "prove") {
+            std::string output_path = getOption(args, "-o", "./proofs/proof");
+            prove(json_path, witness_path, recursive, output_path);
+        } else if (command == "gates") {
+            gateCount(json_path);
+        } else if (command == "verify") {
+            verify(proof_path, recursive, vk_path);
+        } else if (command == "contract") {
+            std::string output_path = getOption(args, "-o", "./target/contract.sol");
+            contract(output_path, vk_path);
+        } else if (command == "write_vk") {
+            std::string output_path = getOption(args, "-o", "./target/vk");
+            writeVk(json_path, output_path);
+        } else if (command == "proof_as_fields") {
+            std::string output_path = getOption(args, "-o", proof_path + "_fields.json");
+            proofAsFields(proof_path, vk_path, output_path);
+        } else if (command == "vk_as_fields") {
+            std::string output_path = getOption(args, "-o", vk_path + "_fields.json");
+            vkAsFields(vk_path, output_path);
+        } else {
+            std::cerr << "Unknown command: " << command << "\n";
+            return 1;
+        }
+    } catch (std::runtime_error const& err) {
+        std::cerr << err.what() << std::endl;
         return 1;
-    }
-
-    std::string command = args[0];
-
-    std::string json_path = getOption(args, "-j", "./target/main.json");
-    std::string witness_path = getOption(args, "-w", "./target/witness.tr");
-    std::string proof_path = getOption(args, "-p", "./proofs/proof");
-    std::string vk_path = getOption(args, "-k", "./target/vk");
-    CRS_PATH = getOption(args, "-c", "./crs");
-    bool recursive = flagPresent(args, "-r") || flagPresent(args, "--recursive");
-    init();
-
-    if (command == "prove_and_verify") {
-        return proveAndVerify(json_path, witness_path, recursive) ? 0 : 1;
-    } else if (command == "prove") {
-        std::string output_path = getOption(args, "-o", "./proofs/proof");
-        prove(json_path, witness_path, recursive, output_path);
-    } else if (command == "gates") {
-        gateCount(json_path);
-    } else if (command == "verify") {
-        verify(proof_path, recursive, vk_path);
-    } else if (command == "contract") {
-        std::string output_path = getOption(args, "-o", "./target/contract.sol");
-        contract(output_path, vk_path);
-    } else if (command == "write_vk") {
-        std::string output_path = getOption(args, "-o", "./target/vk");
-        writeVk(json_path, output_path);
-    } else if (command == "proof_as_fields") {
-        std::string output_path = getOption(args, "-o", proof_path + "_fields.json");
-        proofAsFields(proof_path, vk_path, output_path);
-    } else if (command == "vk_as_fields") {
-        std::string output_path = getOption(args, "-o", vk_path + "_fields.json");
-        vkAsFields(vk_path, output_path);
-    } else {
-        std::cerr << "Unknown command: " << command << "\n";
-        return -1;
     }
 }

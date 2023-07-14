@@ -2,6 +2,7 @@
 #include "acir_format.hpp"
 #include "barretenberg/common/container.hpp"
 #include "barretenberg/dsl/acir_format/blake2s_constraint.hpp"
+#include "barretenberg/dsl/acir_format/block_constraint.hpp"
 #include "barretenberg/dsl/acir_format/ecdsa_secp256k1.hpp"
 #include "barretenberg/dsl/acir_format/hash_to_field.hpp"
 #include "barretenberg/dsl/acir_format/keccak_constraint.hpp"
@@ -13,11 +14,11 @@
 #include "barretenberg/dsl/acir_format/sha256_constraint.hpp"
 #include "barretenberg/proof_system/arithmetization/gate_data.hpp"
 #include "serde/index.hpp"
-#include <stdexcept>
+#include <iterator>
 
 namespace acir_format {
 
-void handle_arithmetic(Circuit::Opcode::Arithmetic const& arg, acir_format& af)
+poly_triple serialize_arithmetic_gate(Circuit::Expression const& arg)
 {
     poly_triple pt{
         .a = 0,
@@ -30,7 +31,7 @@ void handle_arithmetic(Circuit::Opcode::Arithmetic const& arg, acir_format& af)
         .q_c = 0,
     };
     // Think this never longer than 1?
-    for (const auto& e : arg.value.mul_terms) {
+    for (const auto& e : arg.mul_terms) {
         uint256_t qm(std::get<0>(e));
         uint32_t a = std::get<1>(e).value;
         uint32_t b = std::get<2>(e).value;
@@ -38,7 +39,7 @@ void handle_arithmetic(Circuit::Opcode::Arithmetic const& arg, acir_format& af)
         pt.a = a;
         pt.b = b;
     }
-    for (const auto& e : arg.value.linear_combinations) {
+    for (const auto& e : arg.linear_combinations) {
         barretenberg::fr x(uint256_t(std::get<0>(e)));
         uint32_t witness = std::get<1>(e).value;
 
@@ -55,8 +56,13 @@ void handle_arithmetic(Circuit::Opcode::Arithmetic const& arg, acir_format& af)
             throw_or_abort("Cannot assign linear term to a constrain of width 3");
         }
     }
-    pt.q_c = uint256_t(arg.value.q_c);
-    af.constraints.push_back(pt);
+    pt.q_c = uint256_t(arg.q_c);
+    return pt;
+}
+
+void handle_arithmetic(Circuit::Opcode::Arithmetic const& arg, acir_format& af)
+{
+    af.constraints.push_back(serialize_arithmetic_gate(arg.value));
 }
 
 void handle_blackbox_func_call(Circuit::Opcode::BlackBoxFuncCall const& arg, acir_format& af)
@@ -201,6 +207,31 @@ void handle_blackbox_func_call(Circuit::Opcode::BlackBoxFuncCall const& arg, aci
         arg.value.value);
 }
 
+void handle_memory(Circuit::MemoryBlock const& mem_block, bool is_ram, acir_format& af)
+{
+    std::vector<poly_triple> init;
+    std::vector<MemOp> trace;
+    auto len = mem_block.len;
+    for (size_t i = 0; i < len; ++i) {
+        init.push_back(serialize_arithmetic_gate(mem_block.trace[i].value));
+    }
+    for (size_t i = len; i < mem_block.trace.size(); ++i) {
+        auto index = serialize_arithmetic_gate(mem_block.trace[i].index);
+        auto value = serialize_arithmetic_gate(mem_block.trace[i].value);
+        auto op = mem_block.trace[i].operation;
+        if (!(op.mul_terms.empty() && op.linear_combinations.empty())) {
+            throw_or_abort("Expected constant.");
+        }
+        bool access_type(uint256_t(op.q_c));
+        trace.push_back(MemOp{
+            .access_type = access_type,
+            .index = index,
+            .value = value,
+        });
+    }
+    af.block_constraints.push_back(BlockConstraint{ .init = init, .trace = trace, .type = (BlockType)is_ram });
+}
+
 acir_format circuit_buf_to_acir_format(std::vector<uint8_t> const& buf)
 {
     auto circuit = Circuit::Circuit::bincodeDeserialize(buf);
@@ -219,9 +250,9 @@ acir_format circuit_buf_to_acir_format(std::vector<uint8_t> const& buf)
                 } else if constexpr (std::is_same_v<T, Circuit::Opcode::BlackBoxFuncCall>) {
                     handle_blackbox_func_call(arg, af);
                 } else if constexpr (std::is_same_v<T, Circuit::Opcode::RAM>) {
-                    throw_or_abort("Implement handling RAM opcode!");
+                    handle_memory(arg.value, true, af);
                 } else if constexpr (std::is_same_v<T, Circuit::Opcode::ROM>) {
-                    throw_or_abort("Implement handling ROM opcode!");
+                    handle_memory(arg.value, false, af);
                 }
             },
             gate.value);

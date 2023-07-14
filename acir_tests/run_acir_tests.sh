@@ -42,14 +42,17 @@ function test() {
   fi
   result=$?
   set -e
-  cd ..
 
   if [ $result -eq 0 ]; then
     echo -e "\033[32mPASSED\033[0m"
   else
     echo -e "\033[31mFAILED\033[0m"
+    # Run again verbose.
+    $BB prove_and_verify -v -c $CRS_PATH
     exit 1
   fi
+
+  cd ..
 }
 
 if [ -n "$1" ]; then
