@@ -208,7 +208,7 @@ std::shared_ptr<typename Flavor::ProvingKey> UltraComposer_<Flavor>::compute_pro
 
     proving_key = std::make_shared<ProvingKey>(dyadic_circuit_size, num_public_inputs);
 
-    construct_selector_polynomials<Flavor>(circuit_constructor, proving_key.get());
+    construct_selector_polynomials<Flavor>(circuit_constructor, proving_key.get(), zero_wire_offset);
 
     compute_honk_generalized_sigma_permutations<Flavor>(circuit_constructor, proving_key.get(), zero_wire_offset);
 

@@ -41,7 +41,7 @@ template <UltraFlavor Flavor> class UltraComposer_ {
     size_t tables_size = 0;         // total number of table entries
     size_t num_public_inputs = 0;
     // WORKTODO: set as the length of an object zero_wires in circuit constructor?
-    const size_t zero_wire_offset = 0; // offset due to placing zero wires at the start of execution trace
+    const size_t zero_wire_offset = 1; // offset due to placing zero wires at the start of execution trace
 
     UltraComposer_()
         : crs_factory_(barretenberg::srs::get_crs_factory()){};

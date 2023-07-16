@@ -17,7 +17,8 @@ template <typename Field>
 Field compute_public_input_delta(std::span<const Field> public_inputs,
                                  const Field& beta,
                                  const Field& gamma,
-                                 const size_t domain_size)
+                                 const size_t domain_size,
+                                 const size_t offset = 0)
 {
     Field numerator = Field::one();
     Field denominator = Field::one();
@@ -41,8 +42,8 @@ Field compute_public_input_delta(std::span<const Field> public_inputs,
     //      denominator_acc = γ - β⋅(1+i) = γ - β   - β⋅i
     // at the end of the loop, add and subtract β to each term respectively to
     // set the expected value for the start of iteration i+1.
-    Field numerator_acc = gamma + (beta * Field(domain_size));
-    Field denominator_acc = gamma - beta;
+    Field numerator_acc = gamma + (beta * Field(domain_size + offset));
+    Field denominator_acc = gamma - beta * Field(1 + offset);
 
     for (const auto& x_i : public_inputs) {
         numerator *= (numerator_acc + x_i);     // γ + xᵢ + β(n+i)

@@ -74,6 +74,10 @@ std::vector<CyclicPermutation> compute_wire_copy_cycles(const typename Flavor::C
     std::span<const uint32_t> public_inputs = circuit_constructor.public_inputs;
     const size_t num_public_inputs = public_inputs.size();
 
+    // Define offsets for placement of public inputs and gates in execution trace
+    const size_t pub_inputs_offset = offset;
+    const size_t gates_offset = num_public_inputs + pub_inputs_offset;
+
     // Each variable represents one cycle
     const size_t number_of_cycles = circuit_constructor.variables.size();
     std::vector<CyclicPermutation> copy_cycles(number_of_cycles);
@@ -107,14 +111,14 @@ std::vector<CyclicPermutation> compute_wire_copy_cycles(const typename Flavor::C
     // for all i s.t. row i defines a public input.
     for (size_t i = 0; i < num_public_inputs; ++i) {
         const uint32_t public_input_index = real_variable_index[public_inputs[i]];
-        const auto gate_index = static_cast<uint32_t>(i);
+        const auto gate_index = static_cast<uint32_t>(i + pub_inputs_offset);
         // These two nodes must be in adjacent locations in the cycle for correct handling of public inputs
         copy_cycles[public_input_index].emplace_back(cycle_node{ 0, gate_index });
         copy_cycles[public_input_index].emplace_back(cycle_node{ 1, gate_index });
     }
 
     // Iterate over all variables of the "real" gates, and add a corresponding node to the cycle for that variable
-    for (size_t gate_idx = 0; gate_idx < num_gates; ++gate_idx) {
+    for (size_t i = 0; i < num_gates; ++i) {
         size_t wire_idx = 0;
         for (auto& wire : circuit_constructor.wires) {
             // We are looking at the j-th wire in the i-th row.
@@ -122,10 +126,10 @@ std::vector<CyclicPermutation> compute_wire_copy_cycles(const typename Flavor::C
             // of the `constructor.variables` vector.
             // Therefore, we add (i,j) to the cycle at index `var_index` to indicate that w^j_i should have the values
             // constructor.variables[var_index].
-            const uint32_t var_index = circuit_constructor.real_variable_index[wire[gate_idx]];
+            const uint32_t var_index = circuit_constructor.real_variable_index[wire[i]];
             const auto wire_index = static_cast<uint32_t>(wire_idx);
-            const auto shifted_gate_idx = static_cast<uint32_t>(gate_idx + num_public_inputs);
-            copy_cycles[var_index].emplace_back(cycle_node{ wire_index, shifted_gate_idx });
+            const auto gate_idx = static_cast<uint32_t>(i + gates_offset);
+            copy_cycles[var_index].emplace_back(cycle_node{ wire_index, gate_idx });
             ++wire_idx;
         }
     }
@@ -220,7 +224,7 @@ PermutationMapping<Flavor::NUM_WIRES> compute_permutation_mapping(
     }
 
     // Add information about public inputs to the computation
-    const uint32_t num_public_inputs = static_cast<uint32_t>(circuit_constructor.public_inputs.size());
+    const auto num_public_inputs = static_cast<uint32_t>(circuit_constructor.public_inputs.size());
 
     // The public inputs are placed at the top of the execution trace, potentially offset by some value.
     // WORKTODO: we're now offsetting the sigmas; is there a corresponding thing for ids? I think not.
