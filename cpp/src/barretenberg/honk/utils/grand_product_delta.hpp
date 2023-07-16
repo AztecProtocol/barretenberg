@@ -13,13 +13,13 @@ namespace proof_system::honk {
  * @param domain_size Total number of rows required for the circuit (power of 2)
  * @return Field Public input Δ
  */
-template <typename Field>
-Field compute_public_input_delta(std::span<const Field> public_inputs,
-                                 const Field& beta,
-                                 const Field& gamma,
-                                 const size_t domain_size,
-                                 const size_t offset = 0)
+template <typename Flavor>
+typename Flavor::FF compute_public_input_delta(std::span<const typename Flavor::FF> public_inputs,
+                                               const typename Flavor::FF& beta,
+                                               const typename Flavor::FF& gamma,
+                                               const size_t domain_size)
 {
+    using Field = typename Flavor::FF;
     Field numerator = Field::one();
     Field denominator = Field::one();
 
@@ -42,6 +42,9 @@ Field compute_public_input_delta(std::span<const Field> public_inputs,
     //      denominator_acc = γ - β⋅(1+i) = γ - β   - β⋅i
     // at the end of the loop, add and subtract β to each term respectively to
     // set the expected value for the start of iteration i+1.
+    // Note: If a zero row is included at the start of the execution
+    // trace, the indices of the PI are offset by 1.
+    const size_t offset = Flavor::zero_row ? 1 : 0;
     Field numerator_acc = gamma + (beta * Field(domain_size + offset));
     Field denominator_acc = gamma - beta * Field(1 + offset);
 

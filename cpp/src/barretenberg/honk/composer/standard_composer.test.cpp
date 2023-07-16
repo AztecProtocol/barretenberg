@@ -103,7 +103,7 @@ TEST_F(StandardHonkComposerTests, SigmaIDCorrectness)
         }
 
         // test correctness of the public input delta
-        auto delta = proof_system::honk::compute_public_input_delta<fr>(public_inputs, beta, gamma, n);
+        auto delta = proof_system::honk::compute_public_input_delta<flavor::Standard>(public_inputs, beta, gamma, n);
         EXPECT_EQ(left / right, delta);
 
         for (size_t i = 0; i < num_public_inputs; ++i) {

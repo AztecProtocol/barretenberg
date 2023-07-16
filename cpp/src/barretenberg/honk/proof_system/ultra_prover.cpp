@@ -73,7 +73,7 @@ UltraProver_<Flavor>::UltraProver_(std::shared_ptr<typename Flavor::ProvingKey> 
 
     // Add public inputs to transcript from the second wire polynomial
     std::span<FF> public_wires_source = prover_polynomials.w_r;
-    const size_t pub_input_offset = 1;
+    const size_t pub_input_offset = Flavor::zero_row ? 1 : 0;
 
     for (size_t i = pub_input_offset; i < key->num_public_inputs + pub_input_offset; ++i) {
         public_inputs.emplace_back(public_wires_source[i]);
@@ -157,7 +157,7 @@ template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_grand_product_c
     // Compute and store parameters required by relations in Sumcheck
     auto [beta, gamma] = transcript.get_challenges("beta", "gamma");
 
-    auto public_input_delta = compute_public_input_delta<FF>(public_inputs, beta, gamma, key->circuit_size, 1);
+    auto public_input_delta = compute_public_input_delta<Flavor>(public_inputs, beta, gamma, key->circuit_size);
     auto lookup_grand_product_delta = compute_lookup_grand_product_delta(beta, gamma, key->circuit_size);
 
     relation_parameters.beta = beta;
