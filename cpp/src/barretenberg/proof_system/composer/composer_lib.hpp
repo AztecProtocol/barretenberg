@@ -15,11 +15,11 @@ namespace proof_system {
  */
 template <typename Flavor>
 void construct_selector_polynomials(const typename Flavor::CircuitBuilder& circuit_constructor,
-                                    typename Flavor::ProvingKey* proving_key,
-                                    const size_t offset = 0)
+                                    typename Flavor::ProvingKey* proving_key)
 {
+    const size_t zero_row_offset = Flavor::zero_row ? 1 : 0;
     // Offset for starting to write selectors is input offset + num public inputs
-    const size_t gate_offset = offset + circuit_constructor.public_inputs.size();
+    const size_t gate_offset = zero_row_offset + circuit_constructor.public_inputs.size();
     // const size_t offset = num_public_inputs +
     // TODO(#398): Loose coupling here! Would rather build up pk from arithmetization
     size_t selector_idx = 0; // TODO(#391) zip
@@ -58,10 +58,9 @@ void construct_selector_polynomials(const typename Flavor::CircuitBuilder& circu
  * */
 template <typename Flavor>
 std::vector<barretenberg::polynomial> construct_wire_polynomials_base(
-    const typename Flavor::CircuitBuilder& circuit_constructor,
-    const size_t dyadic_circuit_size,
-    const size_t offset = 0)
+    const typename Flavor::CircuitBuilder& circuit_constructor, const size_t dyadic_circuit_size)
 {
+    const size_t zero_row_offset = Flavor::zero_row ? 1 : 0;
     std::span<const uint32_t> public_inputs = circuit_constructor.public_inputs;
     const size_t num_public_inputs = public_inputs.size();
 
@@ -76,7 +75,7 @@ std::vector<barretenberg::polynomial> construct_wire_polynomials_base(
 
         // Place all public inputs at the start of the first two wires, possibly offset by some value > 0.
         // All selectors at these indices are set to 0, so these values are not constrained at all.
-        const size_t pub_input_offset = offset; // offset at which to start writing pub inputs
+        const size_t pub_input_offset = zero_row_offset; // offset at which to start writing pub inputs
         if (wire_idx < 2) {
             for (size_t i = 0; i < num_public_inputs; ++i) {
                 w_lagrange[i + pub_input_offset] = circuit_constructor.get_variable(public_inputs[i]);
@@ -86,7 +85,7 @@ std::vector<barretenberg::polynomial> construct_wire_polynomials_base(
 
         // Assign the variable values (which are pointed-to by the `w_` wire_polynomials) to the wire witness
         // polynomials `poly_w_`, shifted to make room for public inputs and the specified offset (possibly 0).
-        const size_t gate_offset = num_public_inputs + offset; // offset at which to start writing gates
+        const size_t gate_offset = num_public_inputs + pub_input_offset; // offset at which to start writing gates
         for (size_t i = 0; i < circuit_constructor.num_gates; ++i) {
             w_lagrange[i + gate_offset] = circuit_constructor.get_variable(wire[i]);
         }

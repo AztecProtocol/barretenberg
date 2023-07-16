@@ -58,8 +58,7 @@ template <UltraFlavor Flavor> void UltraComposer_<Flavor>::compute_witness(Circu
         circuit_constructor.w_4.emplace_back(circuit_constructor.zero_idx);
     }
 
-    auto wire_polynomials =
-        construct_wire_polynomials_base<Flavor>(circuit_constructor, dyadic_circuit_size, zero_wire_offset);
+    auto wire_polynomials = construct_wire_polynomials_base<Flavor>(circuit_constructor, dyadic_circuit_size);
 
     proving_key->w_l = wire_polynomials[0];
     proving_key->w_r = wire_polynomials[1];
@@ -208,9 +207,9 @@ std::shared_ptr<typename Flavor::ProvingKey> UltraComposer_<Flavor>::compute_pro
 
     proving_key = std::make_shared<ProvingKey>(dyadic_circuit_size, num_public_inputs);
 
-    construct_selector_polynomials<Flavor>(circuit_constructor, proving_key.get(), zero_wire_offset);
+    construct_selector_polynomials<Flavor>(circuit_constructor, proving_key.get());
 
-    compute_honk_generalized_sigma_permutations<Flavor>(circuit_constructor, proving_key.get(), zero_wire_offset);
+    compute_honk_generalized_sigma_permutations<Flavor>(circuit_constructor, proving_key.get());
 
     compute_first_and_last_lagrange_polynomials<Flavor>(proving_key.get());
 

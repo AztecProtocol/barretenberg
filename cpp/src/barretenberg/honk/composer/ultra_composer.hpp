@@ -21,6 +21,9 @@ template <UltraFlavor Flavor> class UltraComposer_ {
     using PCSCommitmentKey = typename PCSParams::CommitmentKey;
     using PCSVerificationKey = typename PCSParams::VerificationKey;
 
+    // offset due to placing zero wires at the start of execution trace
+    static constexpr size_t zero_wire_offset = Flavor::zero_row ? 1 : 0;
+
     static constexpr std::string_view NAME_STRING = "UltraHonk";
     static constexpr size_t NUM_WIRES = CircuitBuilder::NUM_WIRES;
     std::shared_ptr<ProvingKey> proving_key;
@@ -40,8 +43,6 @@ template <UltraFlavor Flavor> class UltraComposer_ {
     size_t lookups_size = 0;        // total number of lookup gates
     size_t tables_size = 0;         // total number of table entries
     size_t num_public_inputs = 0;
-    // WORKTODO: set as the length of an object zero_wires in circuit constructor?
-    const size_t zero_wire_offset = 1; // offset due to placing zero wires at the start of execution trace
 
     UltraComposer_()
         : crs_factory_(barretenberg::srs::get_crs_factory()){};

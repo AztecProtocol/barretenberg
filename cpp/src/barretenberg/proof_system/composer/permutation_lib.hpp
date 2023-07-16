@@ -66,8 +66,7 @@ namespace {
  * @tparam program_width Program width
  * */
 template <typename Flavor>
-std::vector<CyclicPermutation> compute_wire_copy_cycles(const typename Flavor::CircuitBuilder& circuit_constructor,
-                                                        const size_t offset = 0)
+std::vector<CyclicPermutation> compute_wire_copy_cycles(const typename Flavor::CircuitBuilder& circuit_constructor)
 {
     // Reference circuit constructor members
     const size_t num_gates = circuit_constructor.num_gates;
@@ -75,7 +74,7 @@ std::vector<CyclicPermutation> compute_wire_copy_cycles(const typename Flavor::C
     const size_t num_public_inputs = public_inputs.size();
 
     // Define offsets for placement of public inputs and gates in execution trace
-    const size_t pub_inputs_offset = offset;
+    const size_t pub_inputs_offset = Flavor::zero_row ? 1 : 0;
     const size_t gates_offset = num_public_inputs + pub_inputs_offset;
 
     // Each variable represents one cycle
@@ -88,10 +87,10 @@ std::vector<CyclicPermutation> compute_wire_copy_cycles(const typename Flavor::C
 
     // Add 'offset' many rows of wires to the zero index cycle. This will be used to ensure there are offset-many rows
     // of zeros at the start of the execution trace.
-    for (size_t gate_idx = 0; gate_idx < offset; ++gate_idx) {
+    if (Flavor::zero_row) {
         for (size_t wire_idx = 0; wire_idx < Flavor::NUM_WIRES; ++wire_idx) {
             const auto wire_index = static_cast<uint32_t>(wire_idx);
-            const auto gate_index = static_cast<uint32_t>(gate_idx);
+            const uint32_t gate_index = 0;                          // place zeros at 0th index
             const uint32_t zero_idx = circuit_constructor.zero_idx; // index of constant zero in variables
             copy_cycles[zero_idx].emplace_back(cycle_node{ wire_index, gate_index });
         }
@@ -151,12 +150,10 @@ std::vector<CyclicPermutation> compute_wire_copy_cycles(const typename Flavor::C
  */
 template <typename Flavor, bool generalized>
 PermutationMapping<Flavor::NUM_WIRES> compute_permutation_mapping(
-    const typename Flavor::CircuitBuilder& circuit_constructor,
-    typename Flavor::ProvingKey* proving_key,
-    const size_t offset = 0)
+    const typename Flavor::CircuitBuilder& circuit_constructor, typename Flavor::ProvingKey* proving_key)
 {
     // Compute wire copy cycles (cycles of permutations)
-    auto wire_copy_cycles = compute_wire_copy_cycles<Flavor>(circuit_constructor, offset);
+    auto wire_copy_cycles = compute_wire_copy_cycles<Flavor>(circuit_constructor);
 
     PermutationMapping<Flavor::NUM_WIRES> mapping;
 
@@ -227,12 +224,13 @@ PermutationMapping<Flavor::NUM_WIRES> compute_permutation_mapping(
     const auto num_public_inputs = static_cast<uint32_t>(circuit_constructor.public_inputs.size());
 
     // The public inputs are placed at the top of the execution trace, potentially offset by some value.
-    // WORKTODO: we're now offsetting the sigmas; is there a corresponding thing for ids? I think not.
-    for (size_t i = offset; i < num_public_inputs + offset; ++i) {
-        mapping.sigmas[0][i].row_index = static_cast<uint32_t>(i);
-        mapping.sigmas[0][i].column_index = 0;
-        mapping.sigmas[0][i].is_public_input = true;
-        if (mapping.sigmas[0][i].is_tag) {
+    const size_t zero_row_offset = Flavor::zero_row ? 1 : 0;
+    for (size_t i = 0; i < num_public_inputs; ++i) {
+        size_t idx = i + zero_row_offset;
+        mapping.sigmas[0][idx].row_index = static_cast<uint32_t>(idx);
+        mapping.sigmas[0][idx].column_index = 0;
+        mapping.sigmas[0][idx].is_public_input = true;
+        if (mapping.sigmas[0][idx].is_tag) {
             std::cerr << "MAPPING IS BOTH A TAG AND A PUBLIC INPUT" << std::endl;
         }
     }
@@ -535,10 +533,9 @@ void compute_plonk_generalized_sigma_permutations(const typename Flavor::Circuit
  */
 template <typename Flavor>
 void compute_honk_generalized_sigma_permutations(const typename Flavor::CircuitBuilder& circuit_constructor,
-                                                 typename Flavor::ProvingKey* proving_key,
-                                                 const size_t offset = 0)
+                                                 typename Flavor::ProvingKey* proving_key)
 {
-    auto mapping = compute_permutation_mapping<Flavor, true>(circuit_constructor, proving_key, offset);
+    auto mapping = compute_permutation_mapping<Flavor, true>(circuit_constructor, proving_key);
 
     // Compute Honk-style sigma and ID polynomials from the corresponding mappings
     compute_honk_style_permutation_lagrange_polynomials_from_mapping<Flavor>(
