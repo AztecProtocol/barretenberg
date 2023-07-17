@@ -59,7 +59,7 @@ class ECCOpQueue {
 
     void add_accumulate(const Point& to_add)
     {
-        accumulator.self_set_infinity();
+        accumulator.self_set_infinity(); // WORKTODO: this shouldnt be here should it?
         accumulator = accumulator + to_add;
 
         raw_ops.emplace_back(ECCOp{

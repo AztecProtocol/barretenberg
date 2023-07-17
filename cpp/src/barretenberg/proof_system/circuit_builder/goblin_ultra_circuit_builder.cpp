@@ -9,8 +9,8 @@
  */
 #include "goblin_ultra_circuit_builder.hpp"
 #include <barretenberg/plonk/proof_system/constants.hpp>
-#include <unordered_set>
 #include <unordered_map>
+#include <unordered_set>
 
 using namespace barretenberg;
 
@@ -47,7 +47,7 @@ void GoblinUltraCircuitBuilder::queue_ecc_add_accum(const barretenberg::g1::affi
     op_queue.add_accumulate(point);
 
     // Add ecc op gates
-    uint32_t op = 0; // WORKTODO: how to specify these values
+    uint32_t op = 0; // WORKTODO: how to specify these values. ENUM?
     add_ecc_op_gates(op, point);
 }
 
@@ -140,15 +140,17 @@ ecc_op_tuple GoblinUltraCircuitBuilder::make_ecc_op_tuple(uint32_t op,
  */
 void GoblinUltraCircuitBuilder::queue_ecc_op(const ecc_op_tuple& in)
 {
-    op_witness_1.emplace_back(in.op);
-    op_witness_2.emplace_back(in.x_lo);
-    op_witness_3.emplace_back(in.x_hi);
-    op_witness_4.emplace_back(in.y_lo);
+    op_wire_1.emplace_back(in.op);
+    op_wire_2.emplace_back(in.x_lo);
+    op_wire_3.emplace_back(in.x_hi);
+    op_wire_4.emplace_back(in.y_lo);
 
-    op_witness_1.emplace_back(in.op); // WORKTODO: op? 0? something else?
-    op_witness_2.emplace_back(in.y_hi);
-    op_witness_3.emplace_back(in.z_lo);
-    op_witness_4.emplace_back(in.z_hi);
+    op_wire_1.emplace_back(in.op); // WORKTODO: sort of a dummy. is "op" ok?
+    op_wire_2.emplace_back(in.y_hi);
+    op_wire_3.emplace_back(in.z_lo);
+    op_wire_4.emplace_back(in.z_hi);
+
+    num_ecc_op_gates += 2;
 };
 
 } // namespace proof_system

@@ -1,5 +1,5 @@
-#include "goblin_ultra_circuit_builder.hpp"
 #include "barretenberg/crypto/generators/generator_data.hpp"
+#include "goblin_ultra_circuit_builder.hpp"
 #include <gtest/gtest.h>
 
 using namespace barretenberg;
@@ -9,7 +9,11 @@ auto& engine = numeric::random::get_debug_engine();
 }
 namespace proof_system {
 
-TEST(goblin_ultra_circuit_constructor, base_case)
+/**
+ * @brief Simple add gate to check basic Ultra functionality
+ *
+ */
+TEST(GoblinCircuitBuilder, BaseCase)
 {
     auto circuit_constructor = GoblinUltraCircuitBuilder();
     fr a = fr::random_element();
@@ -26,7 +30,11 @@ TEST(goblin_ultra_circuit_constructor, base_case)
     EXPECT_EQ(circuit_constructor.check_circuit(), true);
 }
 
-TEST(goblin_ultra_circuit_constructor, simple)
+/**
+ * @brief Test correctness of native ecc computations performed behind the scenes when adding simple ecc op gates
+ *
+ */
+TEST(GoblinCircuitBuilder, Simple)
 {
     auto builder = GoblinUltraCircuitBuilder();
 
@@ -52,7 +60,11 @@ TEST(goblin_ultra_circuit_constructor, simple)
     EXPECT_EQ(accumulator, g1::affine_point_at_infinity);
 }
 
-TEST(goblin_ultra_circuit_constructor, batch_mul)
+/**
+ * @brief Test correctness of native ecc batch mul performed behind the scenes when adding ecc op gates for a batch mul
+ *
+ */
+TEST(GoblinCircuitBuilder, BatchMul)
 {
     using Point = g1::affine_element;
     using Scalar = fr;
@@ -60,7 +72,7 @@ TEST(goblin_ultra_circuit_constructor, batch_mul)
     auto builder = GoblinUltraCircuitBuilder();
     const size_t num_muls = 3;
 
-    // Compute some points and scalars
+    // Compute some random points and scalars to batch multiply
     std::vector<Point> points;
     std::vector<Scalar> scalars;
     auto batched_expected = Point::infinity();
@@ -70,7 +82,7 @@ TEST(goblin_ultra_circuit_constructor, batch_mul)
         batched_expected = batched_expected + points[i] * scalars[i];
     }
 
-    // Add gates corresponding to batch mul
+    // Populate the batch mul operands in the op wires and natively compute the result
     auto batched_result = builder.batch_mul(points, scalars);
 
     // Extract current accumulator point from the op queue and check the result
