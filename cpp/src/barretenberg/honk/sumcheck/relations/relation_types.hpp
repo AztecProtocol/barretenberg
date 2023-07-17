@@ -6,10 +6,8 @@
 #include "relation_parameters.hpp"
 
 namespace proof_system::honk::sumcheck {
-template <typename T> concept HasSubrelationLinearlyIndependentMember = requires(T)
-{
-    T::Relation::SUBRELATION_LINEARLY_INDEPENDENT;
-};
+template <typename T>
+concept HasSubrelationLinearlyIndependentMember = requires(T) { T::Relation::SUBRELATION_LINEARLY_INDEPENDENT; };
 /**
  * @brief The templates defined herein facilitate sharing the relation arithmetic between the prover and the verifier.
  *
@@ -37,8 +35,8 @@ template <typename T> concept HasSubrelationLinearlyIndependentMember = requires
  */
 template <typename FF, typename AccumulatorTypes, typename T>
     requires std::is_same<std::span<FF>, T>::value
-inline std::tuple_element<0, typename AccumulatorTypes::AccumulatorViews>::type get_view(const T& input,
-                                                                                         const size_t index)
+inline typename std::tuple_element<0, typename AccumulatorTypes::AccumulatorViews>::type get_view(const T& input,
+                                                                                                  const size_t index)
 {
     return input[index];
 }
@@ -54,7 +52,8 @@ inline std::tuple_element<0, typename AccumulatorTypes::AccumulatorViews>::type 
  * @return requires
  */
 template <typename FF, typename AccumulatorTypes, typename T>
-inline std::tuple_element<0, typename AccumulatorTypes::AccumulatorViews>::type get_view(const T& input, const size_t)
+inline typename std::tuple_element<0, typename AccumulatorTypes::AccumulatorViews>::type get_view(const T& input,
+                                                                                                  const size_t)
 {
     return typename std::tuple_element<0, typename AccumulatorTypes::AccumulatorViews>::type(input);
 }
@@ -111,8 +110,8 @@ template <typename FF, template <typename> typename RelationBase> class Relation
      * @tparam size_t
      */
     template <size_t>
-    static constexpr bool is_subrelation_linearly_independent() requires(
-        !HasSubrelationLinearlyIndependentMember<Relation>)
+    static constexpr bool is_subrelation_linearly_independent()
+        requires(!HasSubrelationLinearlyIndependentMember<Relation>)
     {
         return true;
     }
@@ -123,8 +122,8 @@ template <typename FF, template <typename> typename RelationBase> class Relation
      * @tparam size_t
      */
     template <size_t subrelation_index>
-    static constexpr bool is_subrelation_linearly_independent() requires(
-        HasSubrelationLinearlyIndependentMember<Relation>)
+    static constexpr bool is_subrelation_linearly_independent()
+        requires(HasSubrelationLinearlyIndependentMember<Relation>)
     {
         return std::get<subrelation_index>(Relation::SUBRELATION_LINEARLY_INDEPENDENT);
     }
