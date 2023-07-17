@@ -30,7 +30,7 @@ template <typename FF> class LookupRelationBase {
     static constexpr size_t LEN_2 = 3; // left-shiftable polynomial sub-relation
     template <template <size_t...> typename AccumulatorTypesContainer>
     using AccumulatorTypesBase = AccumulatorTypesContainer<LEN_1, LEN_2>;
-    template <typename T> using Accumulator = std::tuple_element<0, typename T::Accumulators>::type;
+    template <typename T> using Accumulator = typename std::tuple_element<0, typename T::Accumulators>::type;
 
     /**
      * @brief Get the grand product polynomial object (either from the proving key or AllEntities depending on context)

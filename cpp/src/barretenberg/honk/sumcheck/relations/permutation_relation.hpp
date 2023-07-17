@@ -1,7 +1,6 @@
 #pragma once
-#include "barretenberg/polynomials/polynomial.hpp"
-#include "relation_parameters.hpp"
 #include "../polynomials/univariate.hpp"
+#include "barretenberg/polynomials/polynomial.hpp"
 #include "relation_parameters.hpp"
 #include "relation_types.hpp"
 // TODO(luke): change name of this file to permutation_grand_product_relation(s).hpp and move 'init' relation into it.
@@ -17,7 +16,7 @@ template <typename FF> class PermutationRelationBase {
     static constexpr size_t LEN_2 = 3; // left-shiftable polynomial sub-relation
     template <template <size_t...> typename AccumulatorTypesContainer>
     using AccumulatorTypesBase = AccumulatorTypesContainer<LEN_1, LEN_2>;
-    template <typename T> using Accumulator = std::tuple_element<0, typename T::Accumulators>::type;
+    template <typename T> using Accumulator = typename std::tuple_element<0, typename T::Accumulators>::type;
 
     inline static auto& get_grand_product_polynomial(auto& input) { return input.z_perm; }
     inline static auto& get_shifted_grand_product_polynomial(auto& input) { return input.z_perm_shift; }
@@ -119,7 +118,7 @@ template <typename FF> class UltraPermutationRelationBase {
     static constexpr size_t LEN_2 = 3; // left-shiftable polynomial sub-relation
     template <template <size_t...> typename AccumulatorTypesContainer>
     using AccumulatorTypesBase = AccumulatorTypesContainer<LEN_1, LEN_2>;
-    template <typename T> using Accumulator = std::tuple_element<0, typename T::Accumulators>::type;
+    template <typename T> using Accumulator = typename std::tuple_element<0, typename T::Accumulators>::type;
 
     inline static auto& get_grand_product_polynomial(auto& input) { return input.z_perm; }
     inline static auto& get_shifted_grand_product_polynomial(auto& input) { return input.z_perm_shift; }
