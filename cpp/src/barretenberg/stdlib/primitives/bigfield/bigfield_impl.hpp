@@ -81,7 +81,9 @@ bigfield<C, T>::bigfield(const field_t<C>& low_bits_in,
             mid_index = static_cast<size_t>((NUM_LIMB_BITS / 2) - 1);
             // Turbo plonk range constraint returns an array of partial sums, midpoint will happen to hold the big limb
             // value
-            limb_1.witness_index = low_accumulator[mid_index];
+            if constexpr (!IsSimulator<C>) {
+                limb_1.witness_index = low_accumulator[mid_index];
+            }
             // We can get the first half bits of low_bits_in from the variables we already created
             limb_0 = (low_bits_in - (limb_1 * shift_1));
         }
