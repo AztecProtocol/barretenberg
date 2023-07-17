@@ -1,5 +1,6 @@
 #include "prover.hpp"
 #include "barretenberg/honk/proof_system/prover_library.hpp"
+#include "barretenberg/honk/proof_system/permutation_library.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck.hpp"
 #include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/honk/utils/power_polynomial.hpp"
@@ -112,12 +113,9 @@ template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_grand_pro
         .public_input_delta = public_input_delta,
     };
 
-    key->z_perm = prover_library::compute_permutation_grand_product<Flavor>(key, beta, gamma);
+    permutation_library::compute_permutation_grand_products<Flavor>(key, prover_polynomials, relation_parameters);
 
     queue.add_commitment(key->z_perm, commitment_labels.z_perm);
-
-    prover_polynomials.z_perm = key->z_perm;
-    prover_polynomials.z_perm_shift = key->z_perm.shifted();
 }
 
 /**
