@@ -1,8 +1,8 @@
+#include "ecdsa_secp256k1.hpp"
 #include "acir_format.hpp"
 #include "barretenberg/crypto/ecdsa/ecdsa.hpp"
 #include "barretenberg/plonk/proof_system/types/proof.hpp"
 #include "barretenberg/plonk/proof_system/verification_key/verification_key.hpp"
-#include "ecdsa_secp256k1.hpp"
 
 #include <gtest/gtest.h>
 #include <vector>
@@ -69,13 +69,11 @@ size_t generate_ecdsa_constraint(EcdsaSecp256k1Constraint& ecdsa_constraint, Wit
     offset += 1;
     witness_values.emplace_back(1);
 
-    ecdsa_constraint = EcdsaSecp256k1Constraint{
-        .hashed_message = message_in,
-        .pub_x_indices = pub_x_indices_in,
-        .pub_y_indices = pub_y_indices_in,
-        .result = result_in,
-        .signature = signature_in,
-    };
+    ecdsa_constraint = EcdsaSecp256k1Constraint{ .hashed_message = message_in,
+                                                 .signature = signature_in,
+                                                 .pub_x_indices = pub_x_indices_in,
+                                                 .pub_y_indices = pub_y_indices_in,
+                                                 .result = result_in };
     return offset;
 }
 

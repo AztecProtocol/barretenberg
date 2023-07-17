@@ -1,5 +1,6 @@
 #pragma once
 #include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
+#include "barretenberg/serialize/msgpack.hpp"
 
 namespace proof_system::plonk {
 namespace stdlib {
@@ -13,6 +14,7 @@ struct nullifier_leaf {
     index_t nextIndex;
     fr nextValue;
 
+    MSGPACK_FIELD(value, nextIndex, netValue);
     bool operator==(nullifier_leaf const&) const = default;
 
     std::ostream& operator<<(std::ostream& os)

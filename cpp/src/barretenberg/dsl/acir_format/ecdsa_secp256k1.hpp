@@ -1,6 +1,7 @@
 #pragma once
 #include "barretenberg/crypto/ecdsa/ecdsa.hpp"
 #include "barretenberg/dsl/types.hpp"
+#include "barretenberg/serialize/msgpack.hpp"
 #include <vector>
 
 namespace acir_format {
@@ -25,7 +26,7 @@ struct EcdsaSecp256k1Constraint {
     uint32_t result;
 
     // for serialization, update with any new fields
-    MSGPACK_FIELDS(hashed_message, signature, result, pub_x_indices, pub_y_indices, result);
+    MSGPACK_FIELDS(hashed_message, signature, pub_x_indices, pub_y_indices, result);
     friend bool operator==(EcdsaSecp256k1Constraint const& lhs, EcdsaSecp256k1Constraint const& rhs) = default;
 };
 

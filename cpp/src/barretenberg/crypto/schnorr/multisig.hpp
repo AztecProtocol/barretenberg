@@ -7,6 +7,8 @@
 #include <utility>
 #include <vector>
 
+#include "barretenberg/serialize/msgpack.hpp"
+
 #include "proof_of_possession.hpp"
 #include "schnorr.hpp"
 

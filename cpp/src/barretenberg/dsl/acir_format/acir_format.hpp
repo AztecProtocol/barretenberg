@@ -1,6 +1,7 @@
 #pragma once
 #include "barretenberg/common/slab_allocator.hpp"
 #include "barretenberg/dsl/types.hpp"
+#include "barretenberg/serialize/msgpack.hpp"
 #include "blake2s_constraint.hpp"
 #include "block_constraint.hpp"
 #include "ecdsa_secp256k1.hpp"
