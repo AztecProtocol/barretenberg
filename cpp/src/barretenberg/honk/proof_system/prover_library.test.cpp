@@ -1,10 +1,11 @@
 
+#include "prover_library.hpp"
 #include "barretenberg/ecc/curves/bn254/bn254.hpp"
 #include "barretenberg/honk/flavor/standard.hpp"
 #include "barretenberg/honk/flavor/ultra.hpp"
 #include "barretenberg/honk/proof_system/permutation_library.hpp"
+#include "barretenberg/polynomials/polynomial.hpp"
 #include "prover.hpp"
-#include "prover_library.hpp"
 
 #include "barretenberg/srs/factories/file_crs_factory.hpp"
 #include <array>
@@ -117,6 +118,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
             prover_polynomials.sigma_4 = proving_key->sigma_4;
             prover_polynomials.id_4 = proving_key->id_4;
         }
+        prover_polynomials.z_perm = proving_key->z_perm;
 
         // Method 1: Compute z_perm using 'compute_grand_product_polynomial' as the prover would in practice
         constexpr size_t PERMUTATION_RELATION_INDEX = 0;
@@ -124,13 +126,14 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         if constexpr (Flavor::NUM_WIRES == 4) {
             using RHS = sumcheck::UltraPermutationRelation<FF>;
             static_assert(std::same_as<LHS, RHS>);
-
+            permutation_library::compute_permutation_grand_product<Flavor, RHS>(
+                proving_key->circuit_size, prover_polynomials, params);
         } else {
             using RHS = sumcheck::PermutationRelation<FF>;
             static_assert(std::same_as<LHS, RHS>);
+            permutation_library::compute_permutation_grand_product<Flavor, RHS>(
+                proving_key->circuit_size, prover_polynomials, params);
         }
-        permutation_library::compute_permutation_grand_product<Flavor, PERMUTATION_RELATION_INDEX>(
-            proving_key, prover_polynomials, params);
 
         // Method 2: Compute z_perm locally using the simplest non-optimized syntax possible. The comment below,
         // which describes the computation in 4 steps, is adapted from a similar comment in
@@ -288,14 +291,16 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         prover_polynomials.q_o = proving_key->q_o;
         prover_polynomials.q_c = proving_key->q_c;
         prover_polynomials.q_lookup = proving_key->q_lookup;
+        prover_polynomials.z_perm = proving_key->z_perm;
+        prover_polynomials.z_lookup = proving_key->z_lookup;
 
         // Method 1: Compute z_lookup using the prover library method
         constexpr size_t LOOKUP_RELATION_INDEX = 1;
         using LHS = std::tuple_element<LOOKUP_RELATION_INDEX, typename Flavor::GrandProductRelations>::type;
         using RHS = sumcheck::LookupRelation<FF>;
         static_assert(std::same_as<LHS, RHS>);
-        permutation_library::compute_permutation_grand_product<Flavor, LOOKUP_RELATION_INDEX>(
-            proving_key, prover_polynomials, params);
+        permutation_library::compute_permutation_grand_product<Flavor, RHS>(
+            proving_key->circuit_size, prover_polynomials, params);
 
         // Method 2: Compute the lookup grand product polynomial Z_lookup:
         //
@@ -416,7 +421,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
     };
 };
 
-typedef testing::Types<barretenberg::fr> FieldTypes;
+using FieldTypes = testing::Types<barretenberg::fr>;
 TYPED_TEST_SUITE(ProverLibraryTests, FieldTypes);
 
 TYPED_TEST(ProverLibraryTests, PermutationGrandProduct)
