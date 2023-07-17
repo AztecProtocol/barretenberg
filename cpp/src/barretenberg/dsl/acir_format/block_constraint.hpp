@@ -1,9 +1,8 @@
 #pragma once
+#include "barretenberg/dsl/types.hpp"
+#include "barretenberg/stdlib/primitives/field/field.hpp"
 #include <cstdint>
 #include <vector>
-#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
-#include "barretenberg/stdlib/primitives/field/field.hpp"
-#include "barretenberg/dsl/types.hpp"
 
 namespace acir_format {
 
@@ -24,7 +23,7 @@ struct BlockConstraint {
     BlockType type;
 };
 
-void create_block_constraints(Composer& composer,
+void create_block_constraints(Builder& builder,
                               const BlockConstraint constraint,
                               bool has_valid_witness_assignments = true);
 

@@ -1,12 +1,9 @@
 #include <gtest/gtest.h>
 
-#include "packed_byte_array.hpp"
-#include "barretenberg/stdlib/primitives/byte_array/byte_array.hpp"
 #include "barretenberg/numeric/random/engine.hpp"
-#include "barretenberg/plonk/composer/standard_plonk_composer.hpp"
-#include "barretenberg/plonk/composer/turbo_plonk_composer.hpp"
-#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
-#include "barretenberg/honk/composer/standard_honk_composer.hpp"
+#include "barretenberg/stdlib/primitives/byte_array/byte_array.hpp"
+#include "barretenberg/stdlib/primitives/circuit_builders/circuit_builders.hpp"
+#include "packed_byte_array.hpp"
 
 #pragma GCC diagnostic ignored "-Wunused-local-typedefs"
 
@@ -24,10 +21,9 @@ auto& engine = numeric::random::get_debug_engine();
 
 template <class Composer> class PackedByteArrayTest : public ::testing::Test {};
 
-using ComposerTypes = ::testing::Types<proof_system::StandardCircuitConstructor,
-                                       proof_system::TurboCircuitConstructor,
-                                       proof_system::UltraCircuitConstructor>;
-TYPED_TEST_SUITE(PackedByteArrayTest, ComposerTypes);
+using CircuitTypes = ::testing::
+    Types<proof_system::StandardCircuitBuilder, proof_system::TurboCircuitBuilder, proof_system::UltraCircuitBuilder>;
+TYPED_TEST_SUITE(PackedByteArrayTest, CircuitTypes);
 
 TYPED_TEST(PackedByteArrayTest, string_constructor_and_get_value_consistency)
 {

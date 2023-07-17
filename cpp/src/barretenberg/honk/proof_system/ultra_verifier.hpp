@@ -1,8 +1,8 @@
 #pragma once
-// #include "barretenberg/honk/flavor/standard.hpp"
 #include "barretenberg/honk/flavor/ultra.hpp"
-#include "barretenberg/plonk/proof_system/types/proof.hpp"
+#include "barretenberg/honk/flavor/ultra_grumpkin.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck.hpp"
+#include "barretenberg/plonk/proof_system/types/proof.hpp"
 
 namespace proof_system::honk {
 template <typename Flavor> class UltraVerifier_ {
@@ -28,6 +28,7 @@ template <typename Flavor> class UltraVerifier_ {
 };
 
 extern template class UltraVerifier_<honk::flavor::Ultra>;
+extern template class UltraVerifier_<honk::flavor::UltraGrumpkin>;
 
 using UltraVerifier = UltraVerifier_<honk::flavor::Ultra>;
 

@@ -7,13 +7,13 @@
 
 #include "msgpack_impl/check_memory_span.hpp"
 #include "msgpack_impl/concepts.hpp"
+#include "msgpack_impl/func_traits.hpp"
 #include "msgpack_impl/msgpack_impl.hpp"
 #include "msgpack_impl/name_value_pair_macro.hpp"
 #include "msgpack_impl/schema_impl.hpp"
 #include "msgpack_impl/schema_name.hpp"
 #include "msgpack_impl/struct_map_impl.hpp"
 #include "msgpack_impl/variant_impl.hpp"
-#include "msgpack_impl/func_traits.hpp"
 
 #include <cstring>
 #include <type_traits>
@@ -85,16 +85,23 @@ inline void msgpack_cbind_schema_impl(auto func, uint8_t** output_out, size_t* o
     *output_len_out = schema.size();
 }
 
+// The CBIND_NOSCHEMA macro generates a function named 'cname' that decodes the input arguments from msgpack format,
+// calls the target function, and then encodes the return value back into msgpack format. It should be used over CBIND
+// in cases where we do not want schema generation, such as meta-functions that themselves give information to control
+// how the schema is interpreted.
+#define CBIND_NOSCHEMA(cname, func)                                                                                    \
+    WASM_EXPORT void cname(const uint8_t* input_in, size_t input_len_in, uint8_t** output_out, size_t* output_len_out) \
+    {                                                                                                                  \
+        msgpack_cbind_impl(func, input_in, input_len_in, output_out, output_len_out);                                  \
+    }
+
 // The CBIND macro is a convenient utility that abstracts away several steps in binding C functions with msgpack
 // serialization. It creates two separate functions:
 // 1. cname function: This decodes the input arguments from msgpack format, calls the target function,
 // and then encodes the return value back into msgpack format.
 // 2. cname##__schema function: This creates a JSON schema of the function's input arguments and return type.
 #define CBIND(cname, func)                                                                                             \
-    WASM_EXPORT void cname(const uint8_t* input_in, size_t input_len_in, uint8_t** output_out, size_t* output_len_out) \
-    {                                                                                                                  \
-        msgpack_cbind_impl(func, input_in, input_len_in, output_out, output_len_out);                                  \
-    }                                                                                                                  \
+    CBIND_NOSCHEMA(cname, func)                                                                                        \
     WASM_EXPORT void cname##__schema(uint8_t** output_out, size_t* output_len_out)                                     \
     {                                                                                                                  \
         msgpack_cbind_schema_impl(func, output_out, output_len_out);                                                   \

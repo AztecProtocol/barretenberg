@@ -1,12 +1,10 @@
-#include "schnorr.hpp"
+#include <gtest/gtest.h>
+
 #include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
-#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
-#include "barretenberg/stdlib/primitives/field/field.hpp"
-#include "barretenberg/stdlib/primitives/bool/bool.hpp"
-#include "barretenberg/stdlib/primitives/witness/witness.hpp"
+#include "barretenberg/proof_system/circuit_builder/ultra_circuit_builder.hpp"
 #include "barretenberg/stdlib/primitives/point/point.hpp"
-#include <gtest/gtest.h>
+#include "schnorr.hpp"
 
 namespace proof_system::test_stdlib_schnorr {
 
@@ -14,7 +12,7 @@ using namespace barretenberg;
 using namespace proof_system::plonk::stdlib;
 using namespace proof_system::plonk::stdlib::schnorr;
 
-using Composer = proof_system::UltraCircuitConstructor;
+using Composer = proof_system::UltraCircuitBuilder;
 using bool_ct = bool_t<Composer>;
 using byte_array_ct = byte_array<Composer>;
 using field_ct = field_t<Composer>;

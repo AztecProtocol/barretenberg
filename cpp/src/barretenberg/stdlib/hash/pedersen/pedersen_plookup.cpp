@@ -2,9 +2,8 @@
 #include "barretenberg/crypto/pedersen_hash/pedersen.hpp"
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 
-#include "barretenberg/proof_system/plookup_tables/types.hpp"
-#include "../../primitives/composers/composers.hpp"
 #include "../../primitives/plookup/plookup.hpp"
+#include "barretenberg/proof_system/plookup_tables/types.hpp"
 
 using namespace proof_system;
 

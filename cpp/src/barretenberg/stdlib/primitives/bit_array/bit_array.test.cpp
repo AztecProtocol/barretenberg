@@ -1,10 +1,10 @@
-#include "bit_array.hpp"
-#include <gtest/gtest.h>
 #include "barretenberg/numeric/random/engine.hpp"
-#include "barretenberg/honk/composer/standard_honk_composer.hpp"
 #include "barretenberg/stdlib/primitives/byte_array/byte_array.hpp"
+#include "barretenberg/stdlib/primitives/circuit_builders/circuit_builders.hpp"
 #include "barretenberg/stdlib/primitives/field/field.hpp"
 #include "barretenberg/stdlib/primitives/witness/witness.hpp"
+#include "bit_array.hpp"
+#include <gtest/gtest.h>
 
 #pragma GCC diagnostic ignored "-Wunused-local-typedefs"
 
@@ -28,10 +28,9 @@ auto& engine = numeric::random::get_debug_engine();
 
 template <class Composer> class BitArrayTest : public ::testing::Test {};
 
-using ComposerTypes = ::testing::Types<proof_system::StandardCircuitConstructor,
-                                       proof_system::TurboCircuitConstructor,
-                                       proof_system::UltraCircuitConstructor>;
-TYPED_TEST_SUITE(BitArrayTest, ComposerTypes);
+using CircuitTypes = ::testing::
+    Types<proof_system::StandardCircuitBuilder, proof_system::TurboCircuitBuilder, proof_system::UltraCircuitBuilder>;
+TYPED_TEST_SUITE(BitArrayTest, CircuitTypes);
 
 TYPED_TEST(BitArrayTest, test_uint32_input_output_consistency)
 {

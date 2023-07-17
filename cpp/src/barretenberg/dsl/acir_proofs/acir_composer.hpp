@@ -1,15 +1,15 @@
-#include <cstdint>
-#include <cstddef>
-#include <memory>
+#include <barretenberg/dsl/acir_format/acir_format.hpp>
 #include <barretenberg/plonk/proof_system/proving_key/proving_key.hpp>
 #include <barretenberg/plonk/proof_system/verification_key/verification_key.hpp>
-#include <barretenberg/dsl/acir_format/acir_format.hpp>
+#include <cstddef>
+#include <cstdint>
+#include <memory>
 
 namespace acir_proofs {
 
 class AcirComposer {
   public:
-    AcirComposer(size_t size_hint = 0);
+    AcirComposer(size_t size_hint = 0, bool verbose = true);
 
     void create_circuit(acir_format::acir_format& constraint_system);
 
@@ -38,6 +38,7 @@ class AcirComposer {
     std::vector<barretenberg::fr> serialize_verification_key_into_fields();
 
   private:
+    acir_format::Builder builder_;
     acir_format::Composer composer_;
     size_t size_hint_;
     size_t exact_circuit_size_;
@@ -45,6 +46,14 @@ class AcirComposer {
     size_t circuit_subgroup_size_;
     std::shared_ptr<proof_system::plonk::proving_key> proving_key_;
     std::shared_ptr<proof_system::plonk::verification_key> verification_key_;
+    bool verbose_ = true;
+
+    template <typename... Args> inline void vinfo(Args... args)
+    {
+        if (verbose_) {
+            info(args...);
+        }
+    }
 };
 
 } // namespace acir_proofs

@@ -1,8 +1,8 @@
 #include "./c_bind.hpp"
 #include "./mem.hpp"
-#include "./timer.hpp"
 #include "./serialize.hpp"
 #include "./slab_allocator.hpp"
+#include "./timer.hpp"
 #include <algorithm>
 
 #ifndef NO_MULTITHREADING
@@ -69,6 +69,15 @@ WASM_EXPORT void test_abort()
 }
 
 #endif
+
+WASM_EXPORT void test_stdout_stderr()
+{
+    fprintf(stdout, "c: hello stdout!");
+    fflush(stdout);
+    fprintf(stderr, "c: hello stderr!");
+    std::cout << "c++: hello stdout!" << std::flush;
+    std::cerr << "c++: hello stderr!";
+}
 
 WASM_EXPORT void common_init_slab_allocator(uint32_t const* circuit_size)
 {

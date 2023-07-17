@@ -1,13 +1,10 @@
 #include "../bool/bool.hpp"
-#include "field.hpp"
 #include "array.hpp"
+#include "barretenberg/numeric/random/engine.hpp"
+#include "barretenberg/stdlib/primitives/circuit_builders/circuit_builders.hpp"
+#include "field.hpp"
 #include <gtest/gtest.h>
 #include <utility>
-#include "barretenberg/honk/composer/standard_honk_composer.hpp"
-#include "barretenberg/plonk/composer/standard_plonk_composer.hpp"
-#include "barretenberg/plonk/composer/ultra_plonk_composer.hpp"
-#include "barretenberg/plonk/composer/turbo_plonk_composer.hpp"
-#include "barretenberg/numeric/random/engine.hpp"
 
 namespace test_stdlib_array {
 
@@ -598,12 +595,11 @@ template <typename Composer> class stdlib_array : public testing::Test {
     }
 };
 
-typedef testing::Types<proof_system::StandardCircuitConstructor,
-                       proof_system::TurboCircuitConstructor,
-                       proof_system::UltraCircuitConstructor>
-    ComposerTypes;
+typedef testing::
+    Types<proof_system::StandardCircuitBuilder, proof_system::TurboCircuitBuilder, proof_system::UltraCircuitBuilder>
+        CircuitTypes;
 
-TYPED_TEST_SUITE(stdlib_array, ComposerTypes);
+TYPED_TEST_SUITE(stdlib_array, CircuitTypes);
 
 TYPED_TEST(stdlib_array, test_array_length)
 {

@@ -1,7 +1,7 @@
+#include "barretenberg/numeric/random/engine.hpp"
 #include "uint.hpp"
 #include <functional>
 #include <gtest/gtest.h>
-#include "barretenberg/numeric/random/engine.hpp"
 
 using namespace barretenberg;
 using namespace proof_system::plonk;
@@ -75,7 +75,7 @@ uint_native rotate(uint_native value, size_t rotation)
                     : value;
 }
 template <typename Composer> class stdlib_uint : public testing::Test {
-    typedef typename std::conditional<Composer::type == ComposerType::PLOOKUP,
+    typedef typename std::conditional<std::same_as<Composer, UltraCircuitBuilder>,
                                       stdlib::uint_plookup<Composer, uint_native>,
                                       stdlib::uint<Composer, uint_native>>::type uint_ct;
     typedef stdlib::bool_t<Composer> bool_ct;
@@ -1743,12 +1743,11 @@ template <typename Composer> class stdlib_uint : public testing::Test {
     }
 };
 
-typedef testing::Types<proof_system::StandardCircuitConstructor,
-                       proof_system::TurboCircuitConstructor,
-                       proof_system::UltraCircuitConstructor>
-    ComposerTypes;
+typedef testing::
+    Types<proof_system::StandardCircuitBuilder, proof_system::TurboCircuitBuilder, proof_system::UltraCircuitBuilder>
+        CircuitTypes;
 
-TYPED_TEST_SUITE(stdlib_uint, ComposerTypes);
+TYPED_TEST_SUITE(stdlib_uint, CircuitTypes);
 
 TYPED_TEST(stdlib_uint, test_weak_normalize)
 {
@@ -1923,10 +1922,10 @@ TYPED_TEST(stdlib_uint, test_at)
 // There was one plookup-specific test in the ./plookup/uint_plookup.test.cpp
 TEST(stdlib_uint32, test_accumulators_plookup_uint32)
 {
-    using uint32_ct = proof_system::plonk::stdlib::uint32<plonk::UltraPlonkComposer>;
-    using witness_ct = proof_system::plonk::stdlib::witness_t<plonk::UltraPlonkComposer>;
+    using uint32_ct = proof_system::plonk::stdlib::uint32<proof_system::UltraCircuitBuilder>;
+    using witness_ct = proof_system::plonk::stdlib::witness_t<proof_system::UltraCircuitBuilder>;
 
-    plonk::UltraPlonkComposer composer = proof_system::plonk::UltraPlonkComposer();
+    proof_system::UltraCircuitBuilder composer;
 
     uint32_t a_val = engine.get_random_uint32();
     uint32_t b_val = engine.get_random_uint32();
@@ -1943,7 +1942,7 @@ TEST(stdlib_uint32, test_accumulators_plookup_uint32)
         EXPECT_EQ(result, expected);
     }
 
-    printf("composer gates = %zu\n", composer.get_num_gates());
+    info("composer gates = ", composer.get_num_gates());
 
     bool proof_result = composer.check_circuit();
     EXPECT_EQ(proof_result, true);

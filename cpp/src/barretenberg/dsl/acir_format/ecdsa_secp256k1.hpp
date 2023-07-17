@@ -1,6 +1,7 @@
 #pragma once
-#include <vector>
+#include "barretenberg/crypto/ecdsa/ecdsa.hpp"
 #include "barretenberg/dsl/types.hpp"
+#include <vector>
 
 namespace acir_format {
 
@@ -26,11 +27,15 @@ struct EcdsaSecp256k1Constraint {
     friend bool operator==(EcdsaSecp256k1Constraint const& lhs, EcdsaSecp256k1Constraint const& rhs) = default;
 };
 
-void create_ecdsa_verify_constraints(Composer& composer,
-                                     const EcdsaSecp256k1Constraint& input,
-                                     bool has_valid_witness_assignments = true);
+void create_ecdsa_k1_verify_constraints(Builder& builder,
+                                        const EcdsaSecp256k1Constraint& input,
+                                        bool has_valid_witness_assignments = true);
 
-void dummy_ecdsa_constraint(Composer& composer, EcdsaSecp256k1Constraint const& input);
+void dummy_ecdsa_constraint(Builder& builder, EcdsaSecp256k1Constraint const& input);
+
+crypto::ecdsa::signature ecdsa_convert_signature(Builder& builder, std::vector<uint32_t> signature);
+witness_ct ecdsa_index_to_witness(Builder& builder, uint32_t index);
+byte_array_ct ecdsa_vector_of_bytes_to_byte_array(Builder& builder, std::vector<uint32_t> vector_of_bytes);
 
 template <typename B> inline void read(B& buf, EcdsaSecp256k1Constraint& constraint)
 {

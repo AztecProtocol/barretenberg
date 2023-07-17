@@ -1,18 +1,19 @@
 #pragma once
 #include "barretenberg/common/slab_allocator.hpp"
-#include "logic_constraint.hpp"
-#include "range_constraint.hpp"
-#include "sha256_constraint.hpp"
-#include "blake2s_constraint.hpp"
-#include "keccak_constraint.hpp"
-#include "fixed_base_scalar_mul.hpp"
-#include "schnorr_verify.hpp"
-#include "ecdsa_secp256k1.hpp"
-#include "recursion_constraint.hpp"
-#include "block_constraint.hpp"
-#include "pedersen.hpp"
-#include "hash_to_field.hpp"
 #include "barretenberg/dsl/types.hpp"
+#include "blake2s_constraint.hpp"
+#include "block_constraint.hpp"
+#include "ecdsa_secp256k1.hpp"
+#include "ecdsa_secp256r1.hpp"
+#include "fixed_base_scalar_mul.hpp"
+#include "hash_to_field.hpp"
+#include "keccak_constraint.hpp"
+#include "logic_constraint.hpp"
+#include "pedersen.hpp"
+#include "range_constraint.hpp"
+#include "recursion_constraint.hpp"
+#include "schnorr_verify.hpp"
+#include "sha256_constraint.hpp"
 
 namespace acir_format {
 
@@ -26,7 +27,8 @@ struct acir_format {
     std::vector<LogicConstraint> logic_constraints;
     std::vector<RangeConstraint> range_constraints;
     std::vector<SchnorrConstraint> schnorr_constraints;
-    std::vector<EcdsaSecp256k1Constraint> ecdsa_constraints;
+    std::vector<EcdsaSecp256k1Constraint> ecdsa_k1_constraints;
+    std::vector<EcdsaSecp256r1Constraint> ecdsa_r1_constraints;
     std::vector<Sha256Constraint> sha256_constraints;
     std::vector<Blake2sConstraint> blake2s_constraints;
     std::vector<KeccakConstraint> keccak_constraints;
@@ -45,24 +47,17 @@ struct acir_format {
 
 using WitnessVector = std::vector<fr, ContainerSlabAllocator<fr>>;
 
-void read_witness(Composer& composer, std::vector<barretenberg::fr> const& witness);
+void read_witness(Builder& builder, std::vector<barretenberg::fr> const& witness);
 
-void create_circuit(Composer& composer, const acir_format& constraint_system);
+void create_circuit(Builder& builder, const acir_format& constraint_system);
 
-Composer create_circuit(const acir_format& constraint_system,
-                        std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
-                        size_t size_hint = 0);
+Builder create_circuit(const acir_format& constraint_system, size_t size_hint = 0);
 
-Composer create_circuit_with_witness(const acir_format& constraint_system,
-                                     WitnessVector const& witness,
-                                     std::shared_ptr<barretenberg::srs::factories::CrsFactory> const& crs_factory,
-                                     size_t size_hint = 0);
+Builder create_circuit_with_witness(const acir_format& constraint_system,
+                                    WitnessVector const& witness,
+                                    size_t size_hint = 0);
 
-Composer create_circuit_with_witness(const acir_format& constraint_system, WitnessVector const& witness);
-
-void create_circuit_with_witness(Composer& composer,
-                                 const acir_format& constraint_system,
-                                 WitnessVector const& witness);
+void create_circuit_with_witness(Builder& builder, const acir_format& constraint_system, WitnessVector const& witness);
 
 // Serialisation
 template <typename B> inline void read(B& buf, acir_format& data)
@@ -74,7 +69,8 @@ template <typename B> inline void read(B& buf, acir_format& data)
     read(buf, data.range_constraints);
     read(buf, data.sha256_constraints);
     read(buf, data.schnorr_constraints);
-    read(buf, data.ecdsa_constraints);
+    read(buf, data.ecdsa_k1_constraints);
+    read(buf, data.ecdsa_r1_constraints);
     read(buf, data.blake2s_constraints);
     read(buf, data.keccak_constraints);
     read(buf, data.keccak_var_constraints);
@@ -95,7 +91,8 @@ template <typename B> inline void write(B& buf, acir_format const& data)
     write(buf, data.range_constraints);
     write(buf, data.sha256_constraints);
     write(buf, data.schnorr_constraints);
-    write(buf, data.ecdsa_constraints);
+    write(buf, data.ecdsa_k1_constraints);
+    write(buf, data.ecdsa_r1_constraints);
     write(buf, data.blake2s_constraints);
     write(buf, data.keccak_constraints);
     write(buf, data.keccak_var_constraints);
