@@ -29,7 +29,7 @@ fi
 cd acir_tests
 
 # Remove excluded and expected-to-fail tests.
-rm -rf bit_shifts_runtime comptime_fail poseidonsponge_x5_254 sha2_blocks sha2_byte diamond_deps_0 range_fail workspace
+rm -rf bit_shifts_runtime comptime_fail poseidonsponge_x5_254 sha2_blocks sha2_byte diamond_deps_0 range_fail workspace*
 
 function test() {
   echo -n "Testing $1... "
