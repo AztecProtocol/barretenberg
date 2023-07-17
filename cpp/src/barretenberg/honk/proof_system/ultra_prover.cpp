@@ -71,12 +71,14 @@ UltraProver_<Flavor>::UltraProver_(std::shared_ptr<typename Flavor::ProvingKey> 
     prover_polynomials.w_r_shift = key->w_r.shifted();
     prover_polynomials.w_o_shift = key->w_o.shifted();
 
-    // Add public inputs to transcript from the second wire polynomial
+    // Add public inputs to transcript from the second wire polynomial; The PI have been written into the wires at the
+    // 0th or 1st index depending on whether or not a zero row is utilized.
     std::span<FF> public_wires_source = prover_polynomials.w_r;
-    const size_t pub_input_offset = Flavor::zero_row ? 1 : 0;
+    const size_t pub_input_offset = Flavor::has_zero_row ? 1 : 0;
 
-    for (size_t i = pub_input_offset; i < key->num_public_inputs + pub_input_offset; ++i) {
-        public_inputs.emplace_back(public_wires_source[i]);
+    for (size_t i = 0; i < key->num_public_inputs; ++i) {
+        size_t idx = i + pub_input_offset;
+        public_inputs.emplace_back(public_wires_source[idx]);
     }
 }
 

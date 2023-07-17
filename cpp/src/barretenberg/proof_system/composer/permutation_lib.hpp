@@ -74,7 +74,7 @@ std::vector<CyclicPermutation> compute_wire_copy_cycles(const typename Flavor::C
     const size_t num_public_inputs = public_inputs.size();
 
     // Define offsets for placement of public inputs and gates in execution trace
-    const size_t pub_inputs_offset = Flavor::zero_row ? 1 : 0;
+    const size_t pub_inputs_offset = Flavor::has_zero_row ? 1 : 0;
     const size_t gates_offset = num_public_inputs + pub_inputs_offset;
 
     // Each variable represents one cycle
@@ -85,9 +85,9 @@ std::vector<CyclicPermutation> compute_wire_copy_cycles(const typename Flavor::C
     // Represents the index of a variable in circuit_constructor.variables
     std::span<const uint32_t> real_variable_index = circuit_constructor.real_variable_index;
 
-    // Add 'offset' many rows of wires to the zero index cycle. This will be used to ensure there are offset-many rows
-    // of zeros at the start of the execution trace.
-    if (Flavor::zero_row) {
+    // For some flavors, we need to ensure the value in the 0th index of each wire is 0 to allow for left-shift by 1. To
+    // do this, we add the wires of the first gate in the execution trace to the "zero index" copy cycle.
+    if (Flavor::has_zero_row) {
         for (size_t wire_idx = 0; wire_idx < Flavor::NUM_WIRES; ++wire_idx) {
             const auto wire_index = static_cast<uint32_t>(wire_idx);
             const uint32_t gate_index = 0;                          // place zeros at 0th index
@@ -223,8 +223,8 @@ PermutationMapping<Flavor::NUM_WIRES> compute_permutation_mapping(
     // Add information about public inputs to the computation
     const auto num_public_inputs = static_cast<uint32_t>(circuit_constructor.public_inputs.size());
 
-    // The public inputs are placed at the top of the execution trace, potentially offset by some value.
-    const size_t zero_row_offset = Flavor::zero_row ? 1 : 0;
+    // The public inputs are placed at the top of the execution trace, potentially offset by a zero row.
+    const size_t zero_row_offset = Flavor::has_zero_row ? 1 : 0;
     for (size_t i = 0; i < num_public_inputs; ++i) {
         size_t idx = i + zero_row_offset;
         mapping.sigmas[0][idx].row_index = static_cast<uint32_t>(idx);

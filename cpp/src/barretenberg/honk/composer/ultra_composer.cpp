@@ -25,11 +25,11 @@ void UltraComposer_<Flavor>::compute_circuit_size_parameters(CircuitBuilder& cir
     num_public_inputs = circuit_constructor.public_inputs.size();
 
     // minimum circuit size due to the length of lookups plus tables
-    const size_t minimum_circuit_size_due_to_lookups = tables_size + lookups_size + zero_wire_offset;
+    const size_t minimum_circuit_size_due_to_lookups = tables_size + lookups_size + zero_row_offset;
 
     // number of populated rows in the execution trace
     const size_t num_rows_populated_in_execution_trace =
-        circuit_constructor.num_gates + circuit_constructor.public_inputs.size() + zero_wire_offset;
+        circuit_constructor.num_gates + circuit_constructor.public_inputs.size() + zero_row_offset;
 
     // The number of gates is max(lookup gates + tables, rows already populated in trace) + 1, where the +1 is due to
     // addition of a "zero row" at top of the execution trace to ensure wires and other polys are shiftable.
@@ -141,7 +141,7 @@ template <UltraFlavor Flavor> void UltraComposer_<Flavor>::compute_witness(Circu
     // using the plookup challenge `eta`. We need to update the records with an offset Because we shift the gates by
     // the number of public inputs plus an additional offset for a zero row.
     auto add_public_inputs_offset = [this](uint32_t gate_index) {
-        return gate_index + num_public_inputs + zero_wire_offset;
+        return gate_index + num_public_inputs + zero_row_offset;
     };
     proving_key->memory_read_records = std::vector<uint32_t>();
     proving_key->memory_write_records = std::vector<uint32_t>();

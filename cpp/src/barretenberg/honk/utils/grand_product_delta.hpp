@@ -44,7 +44,7 @@ typename Flavor::FF compute_public_input_delta(std::span<const typename Flavor::
     // set the expected value for the start of iteration i+1.
     // Note: If a zero row is included at the start of the execution
     // trace, the indices of the PI are offset by 1.
-    const size_t offset = Flavor::zero_row ? 1 : 0;
+    const size_t offset = Flavor::has_zero_row ? 1 : 0;
     Field numerator_acc = gamma + (beta * Field(domain_size + offset));
     Field denominator_acc = gamma - beta * Field(1 + offset);
 

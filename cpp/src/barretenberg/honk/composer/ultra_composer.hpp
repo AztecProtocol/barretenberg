@@ -22,7 +22,7 @@ template <UltraFlavor Flavor> class UltraComposer_ {
     using PCSVerificationKey = typename PCSParams::VerificationKey;
 
     // offset due to placing zero wires at the start of execution trace
-    static constexpr size_t zero_wire_offset = Flavor::zero_row ? 1 : 0;
+    static constexpr size_t zero_row_offset = Flavor::has_zero_row ? 1 : 0;
 
     static constexpr std::string_view NAME_STRING = "UltraHonk";
     static constexpr size_t NUM_WIRES = CircuitBuilder::NUM_WIRES;
@@ -38,7 +38,7 @@ template <UltraFlavor Flavor> class UltraComposer_ {
     std::vector<uint32_t> recursive_proof_public_input_indices;
     bool contains_recursive_proof = false;
     bool computed_witness = false;
-    size_t total_num_gates = 0; // num_gates + num_pub_inputs + tables + zero_wire_offset (used to compute dyadic size)
+    size_t total_num_gates = 0; // num_gates + num_pub_inputs + tables + zero_row_offset (used to compute dyadic size)
     size_t dyadic_circuit_size = 0; // final dyadic circuit size
     size_t lookups_size = 0;        // total number of lookup gates
     size_t tables_size = 0;         // total number of table entries

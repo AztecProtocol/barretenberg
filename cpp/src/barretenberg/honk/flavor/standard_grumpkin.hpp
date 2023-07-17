@@ -58,7 +58,7 @@ class StandardGrumpkin {
     using RelationValues = decltype(create_relation_values_container<FF, Relations>());
 
     // Whether or not the first row of the execution trace is reserved for 0s to enable shifts
-    static constexpr bool zero_row = false;
+    static constexpr bool has_zero_row = false;
 
   private:
     /**

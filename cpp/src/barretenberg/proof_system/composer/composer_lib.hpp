@@ -17,10 +17,9 @@ template <typename Flavor>
 void construct_selector_polynomials(const typename Flavor::CircuitBuilder& circuit_constructor,
                                     typename Flavor::ProvingKey* proving_key)
 {
-    const size_t zero_row_offset = Flavor::zero_row ? 1 : 0;
-    // Offset for starting to write selectors is input offset + num public inputs
+    // Offset for starting to write selectors is zero row offset + num public inputs
+    const size_t zero_row_offset = Flavor::has_zero_row ? 1 : 0;
     const size_t gate_offset = zero_row_offset + circuit_constructor.public_inputs.size();
-    // const size_t offset = num_public_inputs +
     // TODO(#398): Loose coupling here! Would rather build up pk from arithmetization
     size_t selector_idx = 0; // TODO(#391) zip
     for (auto& selector_values : circuit_constructor.selectors) {
@@ -60,7 +59,7 @@ template <typename Flavor>
 std::vector<barretenberg::polynomial> construct_wire_polynomials_base(
     const typename Flavor::CircuitBuilder& circuit_constructor, const size_t dyadic_circuit_size)
 {
-    const size_t zero_row_offset = Flavor::zero_row ? 1 : 0;
+    const size_t zero_row_offset = Flavor::has_zero_row ? 1 : 0;
     std::span<const uint32_t> public_inputs = circuit_constructor.public_inputs;
     const size_t num_public_inputs = public_inputs.size();
 
@@ -73,7 +72,7 @@ std::vector<barretenberg::polynomial> construct_wire_polynomials_base(
         // Expect all values to be set to 0 initially
         barretenberg::polynomial w_lagrange(dyadic_circuit_size);
 
-        // Place all public inputs at the start of the first two wires, possibly offset by some value > 0.
+        // Place all public inputs at the start of the first two wires, possibly offset by a zero row.
         // All selectors at these indices are set to 0, so these values are not constrained at all.
         const size_t pub_input_offset = zero_row_offset; // offset at which to start writing pub inputs
         if (wire_idx < 2) {
