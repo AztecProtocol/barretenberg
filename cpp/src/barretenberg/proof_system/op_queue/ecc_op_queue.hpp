@@ -32,7 +32,8 @@ class ECCOpQueue {
     using Fr = curve::BN254::ScalarField;
     using Fq = curve::BN254::BaseField; // Grumpkin's scalar field
 
-    Point accumulator = point_at_infinity; // current accumulator point
+    // The operations written to the queue are also performed natively; the result is stored in accumulator
+    Point accumulator = point_at_infinity;
 
   public:
     std::vector<ECCOp> raw_ops;
@@ -57,11 +58,17 @@ class ECCOpQueue {
 
     Point get_accumulator() { return accumulator; }
 
+    /**
+     * @brief Write point addition op to queue and natively perform addition
+     *
+     * @param to_add
+     */
     void add_accumulate(const Point& to_add)
     {
-        accumulator.self_set_infinity(); // WORKTODO: this shouldnt be here should it?
+        // Update the accumulator natively
         accumulator = accumulator + to_add;
 
+        // Store the operation
         raw_ops.emplace_back(ECCOp{
             .add = true,
             .mul = false,
@@ -74,10 +81,17 @@ class ECCOpQueue {
         });
     }
 
+    /**
+     * @brief Write multiply and add op to queue and natively perform operation
+     *
+     * @param to_add
+     */
     void mul_accumulate(const Point& to_mul, const Fr& scalar)
     {
+        // Update the accumulator natively
         accumulator = accumulator + to_mul * scalar;
 
+        // Store the operation
         Fr scalar_1 = 0;
         Fr scalar_2 = 0;
         auto converted = scalar.from_montgomery_form();
@@ -95,9 +109,17 @@ class ECCOpQueue {
             .mul_scalar_full = scalar,
         });
     }
-    void eq(const Point& expected)
+
+    /**
+     * @brief Write equality op to queue and check equality with native accumulator
+     *
+     * @param expected
+     * @return whether accumulator point == expected point
+     */
+    bool eq(const Point& expected)
     {
-        accumulator.self_set_infinity(); // WORKTODO: is this always desired?
+        bool accumulator_equals_expected = (accumulator == expected);
+        accumulator.self_set_infinity(); // TODO(luke): is this always desired?
 
         raw_ops.emplace_back(ECCOp{
             .add = false,
@@ -109,8 +131,14 @@ class ECCOpQueue {
             .scalar_2 = 0,
             .mul_scalar_full = 0,
         });
+
+        return accumulator_equals_expected;
     }
 
+    /**
+     * @brief Write empty row to queue
+     *
+     */
     void empty_row()
     {
         raw_ops.emplace_back(ECCOp{
