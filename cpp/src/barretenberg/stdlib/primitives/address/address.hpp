@@ -90,9 +90,13 @@ template <typename Composer> class address_t {
         : address_(address)
         , context_(nullptr){};
 
-    address_t(int const& address)
+    address_t(int const& address) // WORKTODO: signed type here? why?
         : address_(address)
         , context_(nullptr){};
+
+    address_t(Composer* context, int const& address) // WORKTODO: And here
+        : address_(address)
+        , context_(context){};
 
     address_t(witness_t<Composer> const& witness)
     {
