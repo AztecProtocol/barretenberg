@@ -24,43 +24,44 @@ struct acir_format {
 
     std::vector<uint32_t> public_inputs;
 
-    std::vector<FixedBaseScalarMul> fixed_base_scalar_mul_constraints;
     std::vector<LogicConstraint> logic_constraints;
     std::vector<RangeConstraint> range_constraints;
+    std::vector<Sha256Constraint> sha256_constraints;
     std::vector<SchnorrConstraint> schnorr_constraints;
     std::vector<EcdsaSecp256k1Constraint> ecdsa_k1_constraints;
     std::vector<EcdsaSecp256r1Constraint> ecdsa_r1_constraints;
-    std::vector<Sha256Constraint> sha256_constraints;
     std::vector<Blake2sConstraint> blake2s_constraints;
     std::vector<KeccakConstraint> keccak_constraints;
     std::vector<KeccakVarConstraint> keccak_var_constraints;
-    std::vector<HashToFieldConstraint> hash_to_field_constraints;
     std::vector<PedersenConstraint> pedersen_constraints;
-    std::vector<BlockConstraint> block_constraints;
+    std::vector<HashToFieldConstraint> hash_to_field_constraints;
+    std::vector<FixedBaseScalarMul> fixed_base_scalar_mul_constraints;
     std::vector<RecursionConstraint> recursion_constraints;
     // A standard plonk arithmetic constraint, as defined in the poly_triple struct, consists of selector values
     // for q_M,q_L,q_R,q_O,q_C and indices of three variables taking the role of left, right and output wire
     // This could be a large vector so use slab allocator, we don't expect the blackbox implementations to be so large.
     std::vector<poly_triple, ContainerSlabAllocator<poly_triple>> constraints;
+    std::vector<BlockConstraint> block_constraints;
 
     // For serialization, update with any new fields
     MSGPACK_FIELDS(varnum,
                    public_inputs,
-                   fixed_base_scalar_mul_constraints,
                    logic_constraints,
                    range_constraints,
+                   sha256_constraints,
                    schnorr_constraints,
                    ecdsa_k1_constraints,
                    ecdsa_r1_constraints,
-                   sha256_constraints,
+                   blake2s_constraints,
                    blake2s_constraints,
                    keccak_constraints,
                    keccak_var_constraints,
-                   hash_to_field_constraints,
                    pedersen_constraints,
-                   block_constraints,
+                   hash_to_field_constraints,
+                   fixed_base_scalar_mul_constraints,
                    recursion_constraints,
-                   constraints);
+                   constraints,
+                   block_constraints);
 
     friend bool operator==(acir_format const& lhs, acir_format const& rhs) = default;
 };
