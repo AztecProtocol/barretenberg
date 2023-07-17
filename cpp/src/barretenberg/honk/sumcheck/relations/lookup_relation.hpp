@@ -1,12 +1,8 @@
 #pragma once
+#include "../polynomials/univariate.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "relation_parameters.hpp"
-#include "../polynomials/univariate.hpp"
-#include "relation_parameters.hpp"
 #include "relation_types.hpp"
-
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 namespace proof_system::honk::sumcheck {
 
@@ -170,15 +166,7 @@ template <typename FF> class LookupRelationBase {
                                                   const RelationParameters<FF>& relation_parameters,
                                                   const FF& scaling_factor)
     {
-        const auto& eta = relation_parameters.eta;
-        const auto& beta = relation_parameters.beta;
-        const auto& gamma = relation_parameters.gamma;
         const auto& grand_product_delta = relation_parameters.lookup_grand_product_delta;
-
-        const auto one_plus_beta = FF::one() + beta;
-        const auto gamma_by_one_plus_beta = gamma * one_plus_beta;
-        const auto eta_sqr = eta * eta;
-        const auto eta_cube = eta_sqr * eta;
 
         // Contribution (1)
         {

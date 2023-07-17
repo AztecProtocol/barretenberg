@@ -170,7 +170,7 @@ UltraProver_<Flavor> UltraComposer_<Flavor>::create_prover(CircuitBuilder& circu
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
 
-    compute_commitment_key(proving_key->circuit_size, crs_factory_);
+    compute_commitment_key(proving_key->circuit_size);
 
     UltraProver_<Flavor> output_state(proving_key, commitment_key);
 
