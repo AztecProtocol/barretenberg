@@ -1,11 +1,11 @@
 import { wrap } from 'comlink';
 import { BarretenbergWasmWorker, type BarretenbergWasm } from '../barretenberg_wasm.js';
-import debug from "debug";
+import debug from 'debug';
 
 export async function fetchCode(multithreading: boolean) {
-  const wasmModuleUrl = multithreading ? 
-    new URL(`../../barretenberg-threads.wasm`, import.meta.url) :
-    new URL(`../../barretenberg.wasm`, import.meta.url);
+  const wasmModuleUrl = multithreading
+    ? new URL(`../../barretenberg-threads.wasm`, import.meta.url)
+    : new URL(`../../barretenberg.wasm`, import.meta.url);
   const res = await fetch(wasmModuleUrl.href);
   return await res.arrayBuffer();
 }

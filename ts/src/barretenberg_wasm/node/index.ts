@@ -10,7 +10,7 @@ import { writeSync } from 'fs';
 
 export async function fetchCode(multithreading: boolean) {
   const __dirname = dirname(fileURLToPath(import.meta.url));
-  return await readFile(__dirname + `/../../${multithreading ? "barretenberg-threads.wasm" : "barretenberg.wasm"}`);
+  return await readFile(__dirname + `/../../${multithreading ? 'barretenberg-threads.wasm' : 'barretenberg.wasm'}`);
 }
 
 export function createWorker() {
