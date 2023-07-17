@@ -56,6 +56,8 @@ template <typename G1, typename HashRegNon, typename HashSig = Blake2sHasher> cl
         // proof of knowledge of the secret_key for public_key
         ProofOfPossession<G1, HashRegNon> proof_of_possession;
 
+        // For serialization, update with any new fields
+        MSGPACK_FIELDS(public_key, proof_of_possession);
         // restore default constructor to enable deserialization
         MultiSigPublicKey() = default;
         // create a MultiSigPublicKey with a proof of possession associated with public_key of account
@@ -71,6 +73,8 @@ template <typename G1, typename HashRegNon, typename HashSig = Blake2sHasher> cl
 
         Fr r;
         Fr s;
+        // For serialization, update with any new fields
+        MSGPACK_FIELDS(r, s);
     };
 
     struct RoundOnePublicOutput {
@@ -83,7 +87,8 @@ template <typename G1, typename HashRegNon, typename HashSig = Blake2sHasher> cl
         affine_element R;
         // S = s⋅G
         affine_element S;
-
+        // For serialization, update with any new fields
+        MSGPACK_FIELDS(R, S);
         // for std::sort
         bool operator<(const RoundOnePublicOutput& other) const
         {
@@ -431,46 +436,4 @@ template <typename G1, typename HashRegNon, typename HashSig = Blake2sHasher> cl
         return sig;
     }
 };
-
-template <typename B>
-inline void read(B& it, multisig<grumpkin::g1, KeccakHasher, Blake2sHasher>::RoundOnePublicOutput& tx)
-{
-    read(it, tx.R);
-    read(it, tx.S);
-}
-
-template <typename B>
-inline void write(B& buf, multisig<grumpkin::g1, KeccakHasher, Blake2sHasher>::RoundOnePublicOutput const& tx)
-{
-    write(buf, tx.R);
-    write(buf, tx.S);
-}
-
-template <typename B>
-inline void read(B& it, multisig<grumpkin::g1, KeccakHasher, Blake2sHasher>::RoundOnePrivateOutput& tx)
-{
-    read(it, tx.r);
-    read(it, tx.s);
-}
-
-template <typename B>
-inline void write(B& buf, multisig<grumpkin::g1, KeccakHasher, Blake2sHasher>::RoundOnePrivateOutput const& tx)
-{
-    write(buf, tx.r);
-    write(buf, tx.s);
-}
-
-template <typename B>
-inline void read(B& it, multisig<grumpkin::g1, KeccakHasher, Blake2sHasher>::MultiSigPublicKey& tx)
-{
-    read(it, tx.public_key);
-    read(it, tx.proof_of_possession);
-}
-
-template <typename B>
-inline void write(B& buf, multisig<grumpkin::g1, KeccakHasher, Blake2sHasher>::MultiSigPublicKey const& tx)
-{
-    write(buf, tx.public_key);
-    write(buf, tx.proof_of_possession);
-}
 } // namespace crypto::schnorr

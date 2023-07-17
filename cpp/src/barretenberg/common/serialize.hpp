@@ -30,6 +30,7 @@
 #pragma once
 #include "barretenberg/common/log.hpp"
 #include "barretenberg/common/net.hpp"
+#include "barretenberg/serialize/msgpack_apply.hpp"
 #include <array>
 #include <cassert>
 #include <iostream>
@@ -42,7 +43,14 @@
 __extension__ using uint128_t = unsigned __int128;
 #endif
 
+template <typename T>
+concept IntegralOrEnum = std::integral<T> || std::is_enum_v<T>;
+
 namespace serialize {
+// Forward declare derived msgpack methods
+void read(auto& it, msgpack_concepts::HasMsgPack auto& obj);
+void write(auto& buf, const msgpack_concepts::HasMsgPack auto& obj);
+
 // Basic integer read / write, to / from raw buffers.
 // Pointers to buffers are advanced by length of type.
 inline void read(uint8_t const*& it, uint8_t& value)
@@ -123,34 +131,34 @@ inline void write(uint8_t*& it, uint128_t value)
 #endif
 
 // Reading / writing integer types to / from vectors.
-template <typename T> inline std::enable_if_t<std::is_integral_v<T>> read(std::vector<uint8_t> const& buf, T& value)
+void read(std::vector<uint8_t> const& buf, std::integral auto& value)
 {
     auto ptr = &buf[0];
     read(ptr, value);
 }
 
-template <typename T> inline std::enable_if_t<std::is_integral_v<T>> write(std::vector<uint8_t>& buf, T value)
+void write(std::vector<uint8_t>& buf, const std::integral auto& value)
 {
-    buf.resize(buf.size() + sizeof(T));
-    uint8_t* ptr = &*buf.end() - sizeof(T);
+    buf.resize(buf.size() + sizeof(value));
+    uint8_t* ptr = &*buf.end() - sizeof(value);
     write(ptr, value);
 }
 
 // Reading writing integer types to / from streams.
-template <typename T> inline std::enable_if_t<std::is_integral_v<T>> read(std::istream& is, T& value)
+void read(std::istream& is, std::integral auto& value)
 {
-    std::array<uint8_t, sizeof(T)> buf;
-    is.read((char*)buf.data(), sizeof(T));
+    std::array<uint8_t, sizeof(value)> buf;
+    is.read((char*)buf.data(), sizeof(value));
     uint8_t const* ptr = &buf[0];
     read(ptr, value);
 }
 
-template <typename T> inline std::enable_if_t<std::is_integral_v<T>> write(std::ostream& os, T value)
+void write(std::ostream& os, const std::integral auto& value)
 {
-    std::array<uint8_t, sizeof(T)> buf;
+    std::array<uint8_t, sizeof(value)> buf;
     uint8_t* ptr = &buf[0];
     write(ptr, value);
-    os.write((char*)buf.data(), sizeof(T));
+    os.write((char*)buf.data(), sizeof(value));
 }
 
 // DEBUG_CANARY_READ and DEBUG_CANARY_WRITE write strings during debug testing
@@ -173,18 +181,25 @@ template <typename T> inline std::enable_if_t<std::is_integral_v<T>> write(std::
 } // namespace serialize
 
 namespace std {
-
-// Forwarding functions from std to serialize namespace for integers.
-template <typename B, typename T> inline std::enable_if_t<std::is_integral_v<T>> read(B& buf, T& value)
+inline void read(auto& buf, std::integral auto& value)
 {
     DEBUG_CANARY_READ(buf, value);
     serialize::read(buf, value);
 }
 
-template <typename B, typename T> inline std::enable_if_t<std::is_integral_v<T>> write(B& buf, T value)
+inline void write(auto& buf, std::integral auto value)
 {
     DEBUG_CANARY_WRITE(buf, value);
     serialize::write(buf, value);
+}
+// Forward to the serialize namespace templated methods for HasMsgPack
+inline void read(auto& it, msgpack_concepts::HasMsgPack auto& obj)
+{
+    serialize::read(it, obj);
+}
+inline void write(auto& buf, const msgpack_concepts::HasMsgPack auto& obj)
+{
+    serialize::write(buf, obj);
 }
 
 // Optimised specialisation for reading arrays of bytes from a raw buffer.
@@ -260,6 +275,7 @@ template <size_t N> inline void write(std::ostream& os, std::array<uint8_t, N> c
 // Generic read of array of types from supported buffer types.
 template <typename B, typename T, size_t N> inline void read(B& it, std::array<T, N>& value)
 {
+    using serialize::read;
     DEBUG_CANARY_READ(it, value);
     for (size_t i = 0; i < N; ++i) {
         read(it, value[i]);
@@ -394,7 +410,6 @@ template <typename T, typename B> T from_buffer(B const& buffer, size_t offset =
 
 template <typename T> std::vector<uint8_t> to_buffer(T const& value)
 {
-    using serialize::write;
     std::vector<uint8_t> buf;
     write(buf, value);
     return buf;
@@ -402,7 +417,6 @@ template <typename T> std::vector<uint8_t> to_buffer(T const& value)
 
 template <typename T> uint8_t* to_heap_buffer(T const& value)
 {
-    using serialize::write;
     std::vector<uint8_t> buf;
     write(buf, value);
     auto* ptr = (uint8_t*)aligned_alloc(64, buf.size());
@@ -450,3 +464,64 @@ using out_str_buf = uint8_t**;
 // Use these to pass a raw memory pointer.
 using in_ptr = void* const*;
 using out_ptr = void**;
+
+namespace serialize {
+
+/**
+ * @brief Passthrough method that exists for better error reporting.
+ */
+void read_msgpack_field(auto& it, auto& field)
+{
+    using namespace serialize;
+    read(it, field);
+}
+/**
+ * @brief Passthrough method that exists for better error reporting.
+ */
+void read_msgpack_fields(auto& it, auto&... fields)
+{
+    using namespace serialize;
+    (read_msgpack_field(it, fields), ...);
+}
+/**
+ * @brief Automatically derived read for any object that defines .msgpack() (implicitly defined by MSGPACK_FIELDS).
+ * @param it The iterator to read from.
+ * @param func The function to call with each field as an argument.
+ */
+void read(auto& it, msgpack_concepts::HasMsgPack auto& obj)
+{
+    msgpack::msgpack_apply(obj, [&](auto&... obj_fields) {
+        // apply 'read' to each object field
+        read_msgpack_fields(it, obj_fields...);
+    });
+};
+/**
+ * @brief Passthrough method that exists for better error reporting.
+ */
+void write_msgpack_field(auto& it, const auto& field)
+{
+    using namespace serialize;
+    write(it, field);
+}
+// @brief explicit form. Mysteriously has to sometimes be called.
+void write_msgpack(auto& buf, const msgpack_concepts::HasMsgPack auto& obj)
+{
+    msgpack::msgpack_apply(obj, [&](auto&... obj_fields) {
+        // apply 'write' to each object field
+        (write_msgpack_field(buf, obj_fields), ...);
+    });
+};
+/**
+ * @brief Automatically derived :write for any object that defines .msgpack() (implicitly defined by MSGPACK_FIELDS).
+ * @param buf The buffer to write to.
+ * @param func The function to call with each field as an argument.
+ */
+void write(auto& buf, const msgpack_concepts::HasMsgPack auto& obj)
+{
+    using namespace serialize;
+    msgpack::msgpack_apply(obj, [&](auto&... obj_fields) {
+        // apply 'write' to each object field
+        (write_msgpack_field(buf, obj_fields), ...);
+    });
+};
+} // namespace serialize

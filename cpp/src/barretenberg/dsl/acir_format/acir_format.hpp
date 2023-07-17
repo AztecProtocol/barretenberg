@@ -42,6 +42,25 @@ struct acir_format {
     // This could be a large vector so use slab allocator, we don't expect the blackbox implementations to be so large.
     std::vector<poly_triple, ContainerSlabAllocator<poly_triple>> constraints;
 
+    // For serialization, update with any new fields
+    MSGPACK_FIELDS(varnum,
+                   public_inputs,
+                   fixed_base_scalar_mul_constraints,
+                   logic_constraints,
+                   range_constraints,
+                   schnorr_constraints,
+                   ecdsa_k1_constraints,
+                   ecdsa_r1_constraints,
+                   sha256_constraints,
+                   blake2s_constraints,
+                   keccak_constraints,
+                   keccak_var_constraints,
+                   hash_to_field_constraints,
+                   pedersen_constraints,
+                   block_constraints,
+                   recursion_constraints,
+                   constraints);
+
     friend bool operator==(acir_format const& lhs, acir_format const& rhs) = default;
 };
 
@@ -58,50 +77,5 @@ Builder create_circuit_with_witness(const acir_format& constraint_system,
                                     size_t size_hint = 0);
 
 void create_circuit_with_witness(Builder& builder, const acir_format& constraint_system, WitnessVector const& witness);
-
-// Serialisation
-template <typename B> inline void read(B& buf, acir_format& data)
-{
-    using serialize::read;
-    read(buf, data.varnum);
-    read(buf, data.public_inputs);
-    read(buf, data.logic_constraints);
-    read(buf, data.range_constraints);
-    read(buf, data.sha256_constraints);
-    read(buf, data.schnorr_constraints);
-    read(buf, data.ecdsa_k1_constraints);
-    read(buf, data.ecdsa_r1_constraints);
-    read(buf, data.blake2s_constraints);
-    read(buf, data.keccak_constraints);
-    read(buf, data.keccak_var_constraints);
-    read(buf, data.pedersen_constraints);
-    read(buf, data.hash_to_field_constraints);
-    read(buf, data.fixed_base_scalar_mul_constraints);
-    read(buf, data.recursion_constraints);
-    read(buf, data.constraints);
-    read(buf, data.block_constraints);
-}
-
-template <typename B> inline void write(B& buf, acir_format const& data)
-{
-    using serialize::write;
-    write(buf, data.varnum);
-    write(buf, data.public_inputs);
-    write(buf, data.logic_constraints);
-    write(buf, data.range_constraints);
-    write(buf, data.sha256_constraints);
-    write(buf, data.schnorr_constraints);
-    write(buf, data.ecdsa_k1_constraints);
-    write(buf, data.ecdsa_r1_constraints);
-    write(buf, data.blake2s_constraints);
-    write(buf, data.keccak_constraints);
-    write(buf, data.keccak_var_constraints);
-    write(buf, data.pedersen_constraints);
-    write(buf, data.hash_to_field_constraints);
-    write(buf, data.fixed_base_scalar_mul_constraints);
-    write(buf, data.recursion_constraints);
-    write(buf, data.constraints);
-    write(buf, data.block_constraints);
-}
 
 } // namespace acir_format
