@@ -49,7 +49,7 @@ void compute_permutation_grand_product(const size_t circuit_size,
 {
     using FF = typename Flavor::FF;
     using Polynomial = typename Flavor::Polynomial;
-    using ValueAccumTypes = PermutationRelation::ValueAccumTypes;
+    using ValueAccumTypes = typename PermutationRelation::ValueAccumTypes;
 
     // Allocate numerator/denominator polynomials that will serve as scratch space
     // TODO(zac) we can re-use the permutation polynomial as the numerator polynomial. Reduces readability
