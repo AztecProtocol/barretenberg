@@ -122,9 +122,10 @@ template <class FF> class ProverLibraryTests : public testing::Test {
 
         // Method 1: Compute z_perm using 'compute_grand_product_polynomial' as the prover would in practice
         constexpr size_t PERMUTATION_RELATION_INDEX = 0;
-        using LHS = std::tuple_element<PERMUTATION_RELATION_INDEX, typename Flavor::GrandProductRelations>::type;
+        using LHS =
+            typename std::tuple_element<PERMUTATION_RELATION_INDEX, typename Flavor::GrandProductRelations>::type;
         if constexpr (Flavor::NUM_WIRES == 4) {
-            using RHS = sumcheck::UltraPermutationRelation<FF>;
+            using RHS = typename sumcheck::UltraPermutationRelation<FF>;
             static_assert(std::same_as<LHS, RHS>);
             permutation_library::compute_permutation_grand_product<Flavor, RHS>(
                 proving_key->circuit_size, prover_polynomials, params);
@@ -296,7 +297,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
 
         // Method 1: Compute z_lookup using the prover library method
         constexpr size_t LOOKUP_RELATION_INDEX = 1;
-        using LHS = std::tuple_element<LOOKUP_RELATION_INDEX, typename Flavor::GrandProductRelations>::type;
+        using LHS = typename std::tuple_element<LOOKUP_RELATION_INDEX, typename Flavor::GrandProductRelations>::type;
         using RHS = sumcheck::LookupRelation<FF>;
         static_assert(std::same_as<LHS, RHS>);
         permutation_library::compute_permutation_grand_product<Flavor, RHS>(
