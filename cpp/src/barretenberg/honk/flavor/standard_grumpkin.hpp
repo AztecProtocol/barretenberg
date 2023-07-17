@@ -1,15 +1,9 @@
 #pragma once
-#include <array>
-#include <concepts>
-#include <span>
-#include <string>
-#include <type_traits>
-#include <vector>
-#include "barretenberg/honk/pcs/commitment_key.hpp"
-#include "barretenberg/honk/sumcheck/polynomials/barycentric_data.hpp"
-#include "barretenberg/honk/pcs/ipa/ipa.hpp"
-#include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
+#include "barretenberg/honk/pcs/commitment_key.hpp"
+#include "barretenberg/honk/pcs/ipa/ipa.hpp"
+#include "barretenberg/honk/sumcheck/polynomials/barycentric_data.hpp"
+#include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
 #include "barretenberg/honk/sumcheck/relations/arithmetic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/permutation_relation.hpp"
 #include "barretenberg/honk/transcript/transcript.hpp"
@@ -17,6 +11,12 @@
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/proof_system/circuit_builder/standard_circuit_builder.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
+#include <array>
+#include <concepts>
+#include <span>
+#include <string>
+#include <type_traits>
+#include <vector>
 
 namespace proof_system::honk::flavor {
 class StandardGrumpkin {
@@ -52,9 +52,6 @@ class StandardGrumpkin {
     // polynomial e.g. For \sum(x) [A(x) * B(x) + C(x)] * PowZeta(X), relation length = 2 and random relation length = 3
     static constexpr size_t MAX_RANDOM_RELATION_LENGTH = MAX_RELATION_LENGTH + 1;
     static constexpr size_t NUM_RELATIONS = std::tuple_size<Relations>::value;
-
-    // Instantiate the BarycentricData needed to extend each Relation Univariate
-    static_assert(instantiate_barycentric_utils<FF, MAX_RANDOM_RELATION_LENGTH>());
 
     // define the containers for storing the contributions from each relation in Sumcheck
     using RelationUnivariates = decltype(create_relation_univariates_container<FF, Relations>());

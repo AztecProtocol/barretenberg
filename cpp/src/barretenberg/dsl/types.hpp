@@ -2,29 +2,28 @@
 #include "barretenberg/plonk/composer/turbo_composer.hpp"
 #include "barretenberg/plonk/composer/ultra_composer.hpp"
 
-#include "barretenberg/proof_system/circuit_builder/turbo_circuit_builder.hpp"
 #include "barretenberg/plonk/proof_system/prover/prover.hpp"
+#include "barretenberg/proof_system/circuit_builder/turbo_circuit_builder.hpp"
+#include "barretenberg/stdlib/commitment/pedersen/pedersen.hpp"
+#include "barretenberg/stdlib/commitment/pedersen/pedersen_plookup.hpp"
+#include "barretenberg/stdlib/encryption/schnorr/schnorr.hpp"
+#include "barretenberg/stdlib/merkle_tree/hash_path.hpp"
 #include "barretenberg/stdlib/primitives/bigfield/bigfield.hpp"
 #include "barretenberg/stdlib/primitives/biggroup/biggroup.hpp"
 #include "barretenberg/stdlib/primitives/bit_array/bit_array.hpp"
 #include "barretenberg/stdlib/primitives/bool/bool.hpp"
-#include "barretenberg/stdlib/primitives/packed_byte_array/packed_byte_array.hpp"
 #include "barretenberg/stdlib/primitives/byte_array/byte_array.hpp"
-#include "barretenberg/stdlib/primitives/uint/uint.hpp"
-#include "barretenberg/stdlib/primitives/witness/witness.hpp"
-#include "barretenberg/stdlib/primitives/bigfield/bigfield.hpp"
-#include "barretenberg/stdlib/primitives/biggroup/biggroup.hpp"
-#include "barretenberg/stdlib/commitment/pedersen/pedersen.hpp"
-#include "barretenberg/stdlib/commitment/pedersen/pedersen_plookup.hpp"
-#include "barretenberg/stdlib/merkle_tree/hash_path.hpp"
-#include "barretenberg/stdlib/encryption/schnorr/schnorr.hpp"
 #include "barretenberg/stdlib/primitives/curves/bn254.hpp"
 #include "barretenberg/stdlib/primitives/curves/secp256k1.hpp"
-#include "barretenberg/stdlib/primitives/memory/rom_table.hpp"
+#include "barretenberg/stdlib/primitives/curves/secp256r1.hpp"
 #include "barretenberg/stdlib/primitives/memory/ram_table.hpp"
-#include "barretenberg/stdlib/recursion/verifier/program_settings.hpp"
-#include "barretenberg/stdlib/recursion/verification_key/verification_key.hpp"
+#include "barretenberg/stdlib/primitives/memory/rom_table.hpp"
+#include "barretenberg/stdlib/primitives/packed_byte_array/packed_byte_array.hpp"
+#include "barretenberg/stdlib/primitives/uint/uint.hpp"
+#include "barretenberg/stdlib/primitives/witness/witness.hpp"
 #include "barretenberg/stdlib/recursion/aggregation_state/aggregation_state.hpp"
+#include "barretenberg/stdlib/recursion/verification_key/verification_key.hpp"
+#include "barretenberg/stdlib/recursion/verifier/program_settings.hpp"
 
 namespace acir_format {
 
@@ -62,6 +61,7 @@ using pedersen_commitment = proof_system::plonk::stdlib::pedersen_commitment<Bui
 using group_ct = proof_system::plonk::stdlib::group<Builder>;
 using bn254 = proof_system::plonk::stdlib::bn254<Builder>;
 using secp256k1_ct = proof_system::plonk::stdlib::secp256k1<Builder>;
+using secp256r1_ct = proof_system::plonk::stdlib::secp256r1<Builder>;
 
 using hash_path_ct = proof_system::plonk::stdlib::merkle_tree::hash_path<Builder>;
 

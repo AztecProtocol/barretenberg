@@ -1,6 +1,6 @@
 #pragma once
-#include "hash_path.hpp"
 #include "barretenberg/stdlib/primitives/field/field.hpp"
+#include "hash_path.hpp"
 
 namespace proof_system::plonk {
 namespace stdlib {
@@ -20,6 +20,8 @@ template <typename Store> class MerkleTree {
     ~MerkleTree();
 
     fr_hash_path get_hash_path(index_t index);
+
+    fr_sibling_path get_sibling_path(index_t index);
 
     fr update_element(index_t index, fr const& value);
 

@@ -67,6 +67,7 @@ add_subdirectory(barretenberg/serialize)
 add_subdirectory(barretenberg/solidity_helpers)
 add_subdirectory(barretenberg/wasi)
 add_subdirectory(barretenberg/grumpkin_srs_gen)
+add_subdirectory(barretenberg/bb)
 
 if(BENCHMARKS)
     add_subdirectory(barretenberg/benchmark)
@@ -82,8 +83,7 @@ message(STATUS "Compiling all-in-one barretenberg archive")
 add_library(
     barretenberg
     STATIC
-    $<TARGET_OBJECTS:acir_format_objects>
-    $<TARGET_OBJECTS:acir_proofs_objects>
+    $<TARGET_OBJECTS:dsl_objects>
     $<TARGET_OBJECTS:common_objects>
     $<TARGET_OBJECTS:crypto_aes128_objects>
     $<TARGET_OBJECTS:crypto_blake2s_objects>
@@ -145,8 +145,7 @@ if(WASM)
     add_executable(
         barretenberg.wasm
         $<TARGET_OBJECTS:wasi_objects>
-        $<TARGET_OBJECTS:acir_format_objects>
-        $<TARGET_OBJECTS:acir_proofs_objects>
+        $<TARGET_OBJECTS:dsl_objects>
         $<TARGET_OBJECTS:common_objects>
         $<TARGET_OBJECTS:crypto_aes128_objects>
         $<TARGET_OBJECTS:crypto_blake2s_objects>

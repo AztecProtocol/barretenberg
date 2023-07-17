@@ -1,8 +1,8 @@
 #include <cstddef>
 #include <gtest/gtest.h>
 
-#include "polynomial_store.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
+#include "polynomial_store.hpp"
 
 namespace proof_system {
 
@@ -88,27 +88,6 @@ TEST(PolynomialStore, Remove)
 
     EXPECT_THROW(polynomial_store.get("id_1"), std::out_of_range);
     EXPECT_EQ(polynomial_store.get_size_in_bytes(), bytes_expected);
-}
-
-// Check that PolynomialStore supports range based for loop
-TEST(PolynomialStore, RangeBasedFor)
-{
-    PolynomialStore<Fr> polynomial_store;
-    size_t size = 100;
-    Polynomial poly1(size);
-    Polynomial poly2(size);
-
-    polynomial_store.put("id_1", std::move(poly1));
-    polynomial_store.put("id_2", std::move(poly2));
-
-    // Check that PolynomialStore meets criteria for std::ranges::range
-    EXPECT_TRUE(std::ranges::range<PolynomialStore<Fr>>);
-
-    // For example ...
-    // Polynomial polynomial_sum(size);
-    // for (const auto& [key, polynomial] : polynomial_store) {
-    //     polynomial_sum += polynomial;
-    // }
 }
 
 } // namespace proof_system

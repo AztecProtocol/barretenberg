@@ -1,5 +1,4 @@
 #include "ecdsa_secp256k1.hpp"
-#include "barretenberg/crypto/ecdsa/ecdsa.hpp"
 #include "barretenberg/stdlib/encryption/ecdsa/ecdsa.hpp"
 
 namespace acir_format {
@@ -84,9 +83,9 @@ witness_ct ecdsa_index_to_witness(Builder& builder, uint32_t index)
     return { &builder, value };
 }
 
-void create_ecdsa_verify_constraints(Builder& builder,
-                                     const EcdsaSecp256k1Constraint& input,
-                                     bool has_valid_witness_assignments)
+void create_ecdsa_k1_verify_constraints(Builder& builder,
+                                        const EcdsaSecp256k1Constraint& input,
+                                        bool has_valid_witness_assignments)
 {
 
     if (has_valid_witness_assignments == false) {
@@ -144,6 +143,7 @@ void dummy_ecdsa_constraint(Builder& builder, EcdsaSecp256k1Constraint const& in
     std::vector<uint32_t> pub_x_indices_;
     std::vector<uint32_t> pub_y_indices_;
     std::vector<uint32_t> signature_;
+    std::vector<uint32_t> message_indices_;
     signature_.resize(64);
 
     // Create a valid signature with a valid public key
@@ -161,10 +161,12 @@ void dummy_ecdsa_constraint(Builder& builder, EcdsaSecp256k1Constraint const& in
     // We don't use them in a gate, so when we call assert_equal, they will be
     // replaced as if they never existed.
     for (size_t i = 0; i < 32; ++i) {
+        uint32_t m_wit = builder.add_variable(input.hashed_message[i]);
         uint32_t x_wit = builder.add_variable(pub_x_value.slice(248 - i * 8, 256 - i * 8));
         uint32_t y_wit = builder.add_variable(pub_y_value.slice(248 - i * 8, 256 - i * 8));
         uint32_t r_wit = builder.add_variable(signature.r[i]);
         uint32_t s_wit = builder.add_variable(signature.s[i]);
+        message_indices_.emplace_back(m_wit);
         pub_x_indices_.emplace_back(x_wit);
         pub_y_indices_.emplace_back(y_wit);
         signature_[i] = r_wit;
@@ -172,6 +174,9 @@ void dummy_ecdsa_constraint(Builder& builder, EcdsaSecp256k1Constraint const& in
     }
 
     // Call assert_equal(from, to) to replace the value in `to` by the value in `from`
+    for (size_t i = 0; i < input.hashed_message.size(); ++i) {
+        builder.assert_equal(message_indices_[i], input.hashed_message[i]);
+    }
     for (size_t i = 0; i < input.pub_x_indices.size(); ++i) {
         builder.assert_equal(pub_x_indices_[i], input.pub_x_indices[i]);
     }
