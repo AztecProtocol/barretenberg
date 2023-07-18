@@ -51,10 +51,10 @@
     },
     "moduleNameMapper": {
       "^(\\.{1,2}/.*)\\.js$": "$1",
-      "^dynamic/(.*)$": "/usr/src/barretenberg/ts/src/$1/node/index.ts"
+      "^dynamic/(.*)$": "<rootDir>/src/$1/node/index.ts"
     },
     "testRegex": "./src/.*\\.test\\.ts$",
-    "rootDir": "./src"
+    "rootDir": "."
   },
   "dependencies": {
     "comlink": "^4.4.1",
