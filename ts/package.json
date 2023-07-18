@@ -50,7 +50,8 @@
       ]
     },
     "moduleNameMapper": {
-      "^(\\.{1,2}/.*)\\.js$": "$1"
+      "^(\\.{1,2}/.*)\\.js$": "$1",
+      "^dynamic/(.*)$": "<rootDir>/src/$1/node/index.ts"
     },
     "testRegex": "./src/.*\\.test\\.ts$",
     "rootDir": "./src"
