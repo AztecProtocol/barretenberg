@@ -51,7 +51,7 @@
     },
     "moduleNameMapper": {
       "^(\\.{1,2}/.*)\\.js$": "$1",
-      "^dynamic/(.*)$": "<rootDir>../$1/node/index.ts"
+      "^dynamic/(.*)$": "/usr/src/barretenberg/ts/src/$1/node/index.ts"
     },
     "testRegex": "./src/.*\\.test\\.ts$",
     "rootDir": "./src"
