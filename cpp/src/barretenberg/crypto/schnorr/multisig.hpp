@@ -67,6 +67,12 @@ template <typename G1, typename HashRegNon, typename HashSig = Blake2sHasher> cl
             : public_key(account.public_key)
             , proof_of_possession(account)
         {}
+        // Needed to appease MSGPACK_FIELDS
+        MultiSigPublicKey(const affine_element& public_key,
+                          const ProofOfPossession<G1, HashRegNon>& proof_of_possession)
+            : public_key(public_key)
+            , proof_of_possession(proof_of_possession)
+        {}
     };
 
     struct RoundOnePrivateOutput {

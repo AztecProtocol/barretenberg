@@ -10,11 +10,6 @@
 #include "drop_keys.hpp"
 #include <msgpack.hpp>
 
-namespace msgpack {
-template <typename T, typename... Args>
-concept MsgpackConstructible = requires(T object, Args... args) { T{ args... }; };
-} // namespace msgpack
-
 namespace msgpack::adaptor {
 // reads structs with msgpack() method from a JSON-like dictionary
 template <msgpack_concepts::HasMsgPack T> struct convert<T> {
@@ -24,7 +19,7 @@ template <msgpack_concepts::HasMsgPack T> struct convert<T> {
                       "MSGPACK_FIELDS requires default-constructible types (used during unpacking)");
         v.msgpack([&](auto&... args) {
             auto static_checker = [&](auto&... value_args) {
-                static_assert(msgpack::MsgpackConstructible<T, decltype(value_args)...>,
+                static_assert(msgpack_concepts::MsgpackConstructible<T, decltype(value_args)...>,
                               "MSGPACK_FIELDS requires a constructor that can take the types listed in MSGPACK_FIELDS. "
                               "Type or arg count mismatch, or member initializer constructor not available.");
             };
@@ -43,7 +38,7 @@ template <msgpack_concepts::HasMsgPack T> struct pack<T> {
                       "MSGPACK_FIELDS requires default-constructible types (used during unpacking)");
         const_cast<T&>(v).msgpack([&](auto&... args) {
             auto static_checker = [&](auto&... value_args) {
-                static_assert(msgpack::MsgpackConstructible<T, decltype(value_args)...>,
+                static_assert(msgpack_concepts::MsgpackConstructible<T, decltype(value_args)...>,
                               "T requires a constructor that can take the fields listed in MSGPACK_FIELDS (T will be "
                               "in template parameters in the compiler stack trace)"
                               "Check the MSGPACK_FIELDS macro usage in T for incompleteness or wrong order."
