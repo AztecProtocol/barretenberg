@@ -141,8 +141,8 @@ template <typename Composer> class address_t {
 
     static address_t<Composer> derive_from_private_key(field_t<Composer> const& private_key)
     {
-        // TODO: Dummy logic, for now. Proper derivation undecided.
-        point<Composer> public_key = group<Composer>::template fixed_base_scalar_mul_g1<254>(private_key);
+        // TODO: Dummy logic, for now. Proper derivation undecided.  // WORKTODO
+        point<Composer> public_key = group<Composer>::template fixed_base_scalar_mul<254>(private_key, 0);
         return address_t<Composer>(public_key.x);
     }
 

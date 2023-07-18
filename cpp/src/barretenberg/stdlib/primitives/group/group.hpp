@@ -35,6 +35,16 @@ template <typename ComposerContext>
 template <size_t num_bits>
 point<ComposerContext> group<ComposerContext>::fixed_base_scalar_mul_g1(const field_t<ComposerContext>& in)
 {
+    if constexpr (IsSimulator<ComposerContext>) {
+        if (in.get_value() == barretenberg::fr(0)) {
+            in.context->failure("input scalar to fixed_base_scalar_mul_internal cannot be 0");
+            return { 0, 0 };
+        }
+        auto result =
+            crypto::generators::fixed_base_scalar_mul<num_bits>(in.get_value(), 0); // WORKTODO: is g1::one generator 0?
+        result = result.normalize();
+        return { witness_t<ComposerContext>(in.context, result.x), witness_t<ComposerContext>(in.context, result.y) };
+    }
     const auto ladder = get_g1_ladder(num_bits);
     auto generator = grumpkin::g1::one;
     return group<ComposerContext>::fixed_base_scalar_mul_internal<num_bits>(in, generator, ladder);
@@ -52,7 +62,7 @@ point<ComposerContext> group<ComposerContext>::fixed_base_scalar_mul(const field
         }
         auto result = crypto::generators::fixed_base_scalar_mul<num_bits>(in.get_value(), generator_index);
         result = result.normalize();
-        return { result.x, result.y };
+        return { witness_t<ComposerContext>(in.context, result.x), witness_t<ComposerContext>(in.context, result.y) };
     }
     // we assume for fixed_base_scalar_mul we're interested in the gen at subindex 0
     generator_index_t index = { generator_index, 0 };

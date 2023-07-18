@@ -1,6 +1,7 @@
 #include "pedersen.hpp"
 #include "../../hash/pedersen/pedersen.hpp"
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "pedersen_plookup.hpp"
 
 #include "../../primitives/packed_byte_array/packed_byte_array.hpp"
@@ -96,7 +97,15 @@ field_t<C> pedersen_commitment<C>::compress(const std::vector<field_t>& inputs, 
         return pedersen_plookup_commitment<C>::compress(inputs, hash_index);
     }
 
-    return commit(inputs, hash_index).x;
+    if constexpr (IsSimulator<C>) {
+        std::vector<barretenberg::fr> native_inputs(inputs.size());
+        for (auto& input : inputs) {
+            native_inputs.push_back(input.get_value());
+        }
+        return witness_t<C>(inputs[0].context, crypto::pedersen_commitment::commit_native(native_inputs, hash_index).x);
+    } else {
+        return commit(inputs, hash_index).x;
+    }
 }
 
 /**
