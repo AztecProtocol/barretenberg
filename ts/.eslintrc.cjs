@@ -26,6 +26,8 @@ const contexts = [
   'EnumExpression',
 ];
 
+const isDocker = process.env.DOCKER_ENV === 'true';
+
 module.exports = {
   extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'prettier'],
   root: true,
@@ -36,7 +38,7 @@ module.exports = {
     {
       files: ['*.ts', '*.tsx'],
       parserOptions: {
-        project: ['./ts/tsconfig.node.json', './ts/tsconfig.browser.json'],
+        project: [`.${isDocker ? '' : '/ts'}/tsconfig.node.json`, `.${isDocker ? '' : '/ts'}/tsconfig.browser.json`],
       },
     },
     {

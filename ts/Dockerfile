@@ -1,5 +1,6 @@
 #FROM aztecprotocol/barretenberg-wasm-linux-clang:latest
 FROM 278380418400.dkr.ecr.eu-west-2.amazonaws.com/barretenberg-wasm-linux-clang
+ENV DOCKER_ENV=true
 
 FROM node:18-alpine
 COPY --from=0 /usr/src/barretenberg /usr/src/barretenberg
