@@ -85,21 +85,21 @@ TEST(ECDSASecp256k1, TestECDSAConstraintSucceed)
     acir_format constraint_system{
         .varnum = static_cast<uint32_t>(num_variables),
         .public_inputs = {},
-        .fixed_base_scalar_mul_constraints = {},
         .logic_constraints = {},
         .range_constraints = {},
+        .sha256_constraints = {},
         .schnorr_constraints = {},
         .ecdsa_k1_constraints = { ecdsa_k1_constraint },
         .ecdsa_r1_constraints = {},
-        .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},
         .keccak_var_constraints = {},
-        .hash_to_field_constraints = {},
         .pedersen_constraints = {},
-        .block_constraints = {},
+        .hash_to_field_constraints = {},
+        .fixed_base_scalar_mul_constraints = {},
         .recursion_constraints = {},
         .constraints = {},
+        .block_constraints = {},
     };
 
     auto builder = create_circuit_with_witness(constraint_system, witness_values);
@@ -125,22 +125,23 @@ TEST(ECDSASecp256k1, TestECDSACompilesForVerifier)
     acir_format constraint_system{
         .varnum = static_cast<uint32_t>(num_variables),
         .public_inputs = {},
-        .fixed_base_scalar_mul_constraints = {},
         .logic_constraints = {},
         .range_constraints = {},
+        .sha256_constraints = {},
         .schnorr_constraints = {},
         .ecdsa_k1_constraints = { ecdsa_k1_constraint },
         .ecdsa_r1_constraints = {},
-        .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},
         .keccak_var_constraints = {},
-        .hash_to_field_constraints = {},
         .pedersen_constraints = {},
-        .block_constraints = {},
+        .hash_to_field_constraints = {},
+        .fixed_base_scalar_mul_constraints = {},
         .recursion_constraints = {},
         .constraints = {},
+        .block_constraints = {},
     };
+
     auto builder = create_circuit(constraint_system);
 }
 
@@ -159,21 +160,21 @@ TEST(ECDSASecp256k1, TestECDSAConstraintFail)
     acir_format constraint_system{
         .varnum = static_cast<uint32_t>(num_variables),
         .public_inputs = {},
-        .fixed_base_scalar_mul_constraints = {},
         .logic_constraints = {},
         .range_constraints = {},
+        .sha256_constraints = {},
         .schnorr_constraints = {},
         .ecdsa_k1_constraints = { ecdsa_k1_constraint },
         .ecdsa_r1_constraints = {},
-        .sha256_constraints = {},
         .blake2s_constraints = {},
         .keccak_constraints = {},
         .keccak_var_constraints = {},
-        .hash_to_field_constraints = {},
         .pedersen_constraints = {},
-        .block_constraints = {},
+        .hash_to_field_constraints = {},
+        .fixed_base_scalar_mul_constraints = {},
         .recursion_constraints = {},
         .constraints = {},
+        .block_constraints = {},
     };
 
     auto builder = create_circuit_with_witness(constraint_system, witness_values);
