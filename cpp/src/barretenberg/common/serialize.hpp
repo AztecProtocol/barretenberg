@@ -35,6 +35,7 @@
 #include <cassert>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <optional>
 #include <type_traits>
 #include <vector>
@@ -160,52 +161,31 @@ void write(std::ostream& os, const std::integral auto& value)
     write(ptr, value);
     os.write((char*)buf.data(), sizeof(value));
 }
-
-// DEBUG_CANARY_READ and DEBUG_CANARY_WRITE write strings during debug testing
-// so that we can detect serialization misalignment for more complicated types.
-// This is in an awkward location as it must see the above functions, and be seen by the below functions.
-#ifndef ENABLE_SERIALIZE_CANARY
-#define DEBUG_CANARY_WRITE(buf, x)
-#define DEBUG_CANARY_READ(it, x)
-#else
-#define DEBUG_CANARY_WRITE(buf, x) serialize::write(buf, (uint64_t) typeid(x).hash_code())
-#define DEBUG_CANARY_READ(it, x)                                                                                       \
-    {                                                                                                                  \
-        uint64_t hash_code;                                                                                            \
-        serialize::read(it, hash_code);                                                                                \
-        if (hash_code != (uint64_t) typeid(x).hash_code()) {                                                           \
-            throw std::runtime_error(std::string("Could not read magic string for ") + typeid(x).name());              \
-        }                                                                                                              \
-    }
-#endif
 } // namespace serialize
 
 namespace std {
 inline void read(auto& buf, std::integral auto& value)
 {
-    DEBUG_CANARY_READ(buf, value);
     serialize::read(buf, value);
 }
 
 inline void write(auto& buf, std::integral auto value)
 {
-    DEBUG_CANARY_WRITE(buf, value);
     serialize::write(buf, value);
 }
-// Forward to the serialize namespace templated methods for HasMsgPack
-inline void read(auto& it, msgpack_concepts::HasMsgPack auto& obj)
-{
-    serialize::read(it, obj);
-}
-inline void write(auto& buf, const msgpack_concepts::HasMsgPack auto& obj)
-{
-    serialize::write(buf, obj);
-}
+// // Forward to the serialize namespace templated methods for HasMsgPack
+// inline void read(auto& it, msgpack_concepts::HasMsgPack auto& obj)
+// {
+//     serialize::read(it, obj);
+// }
+// inline void write(auto& buf, const msgpack_concepts::HasMsgPack auto& obj)
+// {
+//     serialize::write(buf, obj);
+// }
 
 // Optimised specialisation for reading arrays of bytes from a raw buffer.
 template <size_t N> inline void read(uint8_t const*& it, std::array<uint8_t, N>& value)
 {
-    DEBUG_CANARY_READ(it, value);
     std::copy(it, it + N, value.data());
     it += N;
 }
@@ -213,7 +193,6 @@ template <size_t N> inline void read(uint8_t const*& it, std::array<uint8_t, N>&
 // Optimised specialisation for writing arrays of bytes to a raw buffer.
 template <size_t N> inline void write(uint8_t*& buf, std::array<uint8_t, N> const& value)
 {
-    DEBUG_CANARY_WRITE(buf, value);
     std::copy(value.begin(), value.end(), buf);
     buf += N;
 }
@@ -221,7 +200,6 @@ template <size_t N> inline void write(uint8_t*& buf, std::array<uint8_t, N> cons
 // Optimised specialisation for reading vectors of bytes from a raw buffer.
 inline void read(uint8_t const*& it, std::vector<uint8_t>& value)
 {
-    DEBUG_CANARY_READ(it, value);
     uint32_t size;
     read(it, size);
     value.resize(size);
@@ -232,7 +210,6 @@ inline void read(uint8_t const*& it, std::vector<uint8_t>& value)
 // Optimised specialisation for writing vectors of bytes to a raw buffer.
 inline void write(uint8_t*& buf, std::vector<uint8_t> const& value)
 {
-    DEBUG_CANARY_WRITE(buf, value);
     write(buf, static_cast<uint32_t>(value.size()));
     std::copy(value.begin(), value.end(), buf);
     buf += value.size();
@@ -241,7 +218,6 @@ inline void write(uint8_t*& buf, std::vector<uint8_t> const& value)
 // Optimised specialisation for reading vectors of bytes from an input stream.
 inline void read(std::istream& is, std::vector<uint8_t>& value)
 {
-    DEBUG_CANARY_READ(is, value);
     uint32_t size;
     read(is, size);
     value.resize(size);
@@ -251,7 +227,6 @@ inline void read(std::istream& is, std::vector<uint8_t>& value)
 // Optimised specialisation for writing vectors of bytes to an output stream.
 inline void write(std::ostream& os, std::vector<uint8_t> const& value)
 {
-    DEBUG_CANARY_WRITE(os, value);
     write(os, static_cast<uint32_t>(value.size()));
     os.write((char*)value.data(), (std::streamsize)value.size());
 }
@@ -259,7 +234,6 @@ inline void write(std::ostream& os, std::vector<uint8_t> const& value)
 // Optimised specialisation for writing arrays of bytes to a vector.
 template <size_t N> inline void write(std::vector<uint8_t>& buf, std::array<uint8_t, N> const& value)
 {
-    DEBUG_CANARY_WRITE(buf, value);
     buf.resize(buf.size() + N);
     auto ptr = &*buf.end() - N;
     write(ptr, value);
@@ -268,7 +242,6 @@ template <size_t N> inline void write(std::vector<uint8_t>& buf, std::array<uint
 // Optimised specialisation for writing arrays of bytes to an output stream.
 template <size_t N> inline void write(std::ostream& os, std::array<uint8_t, N> const& value)
 {
-    DEBUG_CANARY_WRITE(os, value);
     os.write((char*)value.data(), value.size());
 }
 
@@ -276,7 +249,6 @@ template <size_t N> inline void write(std::ostream& os, std::array<uint8_t, N> c
 template <typename B, typename T, size_t N> inline void read(B& it, std::array<T, N>& value)
 {
     using serialize::read;
-    DEBUG_CANARY_READ(it, value);
     for (size_t i = 0; i < N; ++i) {
         read(it, value[i]);
     }
@@ -285,7 +257,7 @@ template <typename B, typename T, size_t N> inline void read(B& it, std::array<T
 // Generic write of array of types to supported buffer types.
 template <typename B, typename T, size_t N> inline void write(B& buf, std::array<T, N> const& value)
 {
-    DEBUG_CANARY_WRITE(buf, value);
+    using serialize::write;
     for (size_t i = 0; i < N; ++i) {
         write(buf, value[i]);
     }
@@ -294,7 +266,7 @@ template <typename B, typename T, size_t N> inline void write(B& buf, std::array
 // Generic read of vector of types from supported buffer types.
 template <typename B, typename T, typename A> inline void read(B& it, std::vector<T, A>& value)
 {
-    DEBUG_CANARY_READ(it, value);
+    using serialize::read;
     uint32_t size;
     read(it, size);
     value.resize(size);
@@ -306,6 +278,7 @@ template <typename B, typename T, typename A> inline void read(B& it, std::vecto
 // Generic write of vector of types to supported buffer types.
 template <typename B, typename T, typename A> inline void write(B& buf, std::vector<T, A> const& value)
 {
+    using serialize::write;
     write(buf, static_cast<uint32_t>(value.size()));
     for (size_t i = 0; i < value.size(); ++i) {
         write(buf, value[i]);
@@ -315,7 +288,7 @@ template <typename B, typename T, typename A> inline void write(B& buf, std::vec
 // Read string from supported buffer types.
 template <typename B> inline void read(B& it, std::string& value)
 {
-    DEBUG_CANARY_READ(it, value);
+    using serialize::read;
     std::vector<uint8_t> buf;
     read(it, buf);
     value = std::string(buf.begin(), buf.end());
@@ -324,13 +297,14 @@ template <typename B> inline void read(B& it, std::string& value)
 // Write of strings to supported buffer types.
 template <typename B> inline void write(B& buf, std::string const& value)
 {
+    using serialize::write;
     write(buf, std::vector<uint8_t>(value.begin(), value.end()));
 }
 
 // Read std::pair.
 template <typename B, typename T, typename U> inline void read(B& it, std::pair<T, U>& value)
 {
-    DEBUG_CANARY_READ(it, value);
+    using serialize::read;
     read(it, value.first);
     read(it, value.second);
 }
@@ -338,15 +312,30 @@ template <typename B, typename T, typename U> inline void read(B& it, std::pair<
 // Write std::pair.
 template <typename B, typename T, typename U> inline void write(B& buf, std::pair<T, U> const& value)
 {
-    DEBUG_CANARY_WRITE(buf, value);
+    using serialize::write;
     write(buf, value.first);
     write(buf, value.second);
+}
+
+// Read std::shared_ptr.
+template <typename B, typename T> inline void read(B& it, std::shared_ptr<T>& value_ptr)
+{
+    using serialize::read;
+    T value;
+    read(it, value_ptr);
+}
+
+// Write std::shared_ptr.
+template <typename B, typename T> inline void write(B& buf, std::shared_ptr<T> const& value_ptr)
+{
+    using serialize::write;
+    write(buf, *value_ptr);
 }
 
 // Read std::map
 template <typename B, typename T, typename U> inline void read(B& it, std::map<T, U>& value)
 {
-    DEBUG_CANARY_READ(it, value);
+    using serialize::read;
     value.clear();
     uint32_t size;
     read(it, size);
@@ -360,7 +349,7 @@ template <typename B, typename T, typename U> inline void read(B& it, std::map<T
 // Write std::map.
 template <typename B, typename T, typename U> inline void write(B& buf, std::map<T, U> const& value)
 {
-    DEBUG_CANARY_WRITE(buf, value);
+    using serialize::write;
     write(buf, static_cast<uint32_t>(value.size()));
     for (auto const& kv : value) {
         write(buf, kv);
@@ -370,7 +359,7 @@ template <typename B, typename T, typename U> inline void write(B& buf, std::map
 // Read std::optional<T>.
 template <typename B, typename T> inline void read(B& it, std::optional<T>& opt_value)
 {
-    DEBUG_CANARY_READ(it, opt_value);
+    using serialize::read;
     bool is_nullopt;
     read(it, is_nullopt);
     if (is_nullopt) {
@@ -387,7 +376,7 @@ template <typename B, typename T> inline void read(B& it, std::optional<T>& opt_
 // value.
 template <typename B, typename T> inline void write(B& buf, std::optional<T> const& opt_value)
 {
-    DEBUG_CANARY_WRITE(buf, opt_value);
+    using serialize::write;
     if (opt_value) {
         write(buf, false); // is not nullopt
         write(buf, *opt_value);
@@ -410,6 +399,7 @@ template <typename T, typename B> T from_buffer(B const& buffer, size_t offset =
 
 template <typename T> std::vector<uint8_t> to_buffer(T const& value)
 {
+    using serialize::write;
     std::vector<uint8_t> buf;
     write(buf, value);
     return buf;
@@ -417,6 +407,7 @@ template <typename T> std::vector<uint8_t> to_buffer(T const& value)
 
 template <typename T> uint8_t* to_heap_buffer(T const& value)
 {
+    using serialize::write;
     std::vector<uint8_t> buf;
     write(buf, value);
     auto* ptr = (uint8_t*)aligned_alloc(64, buf.size());
@@ -470,7 +461,7 @@ namespace serialize {
 /**
  * @brief Passthrough method that exists for better error reporting.
  */
-void read_msgpack_field(auto& it, auto& field)
+inline void read_msgpack_field(auto& it, auto& field)
 {
     using namespace serialize;
     read(it, field);
@@ -478,7 +469,7 @@ void read_msgpack_field(auto& it, auto& field)
 /**
  * @brief Passthrough method that exists for better error reporting.
  */
-void read_msgpack_fields(auto& it, auto&... fields)
+inline void read_msgpack_fields(auto& it, auto&... fields)
 {
     using namespace serialize;
     (read_msgpack_field(it, fields), ...);
@@ -488,7 +479,7 @@ void read_msgpack_fields(auto& it, auto&... fields)
  * @param it The iterator to read from.
  * @param func The function to call with each field as an argument.
  */
-void read(auto& it, msgpack_concepts::HasMsgPack auto& obj)
+inline void read(auto& it, msgpack_concepts::HasMsgPack auto& obj)
 {
     msgpack::msgpack_apply(obj, [&](auto&... obj_fields) {
         // apply 'read' to each object field
@@ -498,13 +489,13 @@ void read(auto& it, msgpack_concepts::HasMsgPack auto& obj)
 /**
  * @brief Passthrough method that exists for better error reporting.
  */
-void write_msgpack_field(auto& it, const auto& field)
+inline void write_msgpack_field(auto& it, const auto& field)
 {
     using namespace serialize;
     write(it, field);
 }
 // @brief explicit form. Mysteriously has to sometimes be called.
-void write_msgpack(auto& buf, const msgpack_concepts::HasMsgPack auto& obj)
+inline void write_msgpack(auto& buf, const msgpack_concepts::HasMsgPack auto& obj)
 {
     msgpack::msgpack_apply(obj, [&](auto&... obj_fields) {
         // apply 'write' to each object field
@@ -516,7 +507,7 @@ void write_msgpack(auto& buf, const msgpack_concepts::HasMsgPack auto& obj)
  * @param buf The buffer to write to.
  * @param func The function to call with each field as an argument.
  */
-void write(auto& buf, const msgpack_concepts::HasMsgPack auto& obj)
+inline void write(auto& buf, const msgpack_concepts::HasMsgPack auto& obj)
 {
     using namespace serialize;
     msgpack::msgpack_apply(obj, [&](auto&... obj_fields) {
