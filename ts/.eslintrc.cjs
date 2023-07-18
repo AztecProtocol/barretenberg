@@ -26,7 +26,7 @@ const contexts = [
   'EnumExpression',
 ];
 
-const isDocker = process.env.DOCKER_ENV === 'true';
+const isDocker = process.env.DOCKER_ENV;
 
 module.exports = {
   extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'prettier'],
