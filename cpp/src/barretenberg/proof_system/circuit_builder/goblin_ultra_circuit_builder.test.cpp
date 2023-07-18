@@ -1,5 +1,5 @@
 #include "barretenberg/crypto/generators/generator_data.hpp"
-#include "goblin_ultra_circuit_builder.hpp"
+#include "ultra_circuit_builder.hpp"
 #include <gtest/gtest.h>
 
 using namespace barretenberg;
@@ -10,36 +10,15 @@ auto& engine = numeric::random::get_debug_engine();
 namespace proof_system {
 
 /**
- * @brief Simple add gate to check basic Ultra functionality
- *
- */
-TEST(GoblinCircuitBuilder, BaseCase)
-{
-    auto circuit_constructor = GoblinUltraCircuitBuilder();
-    fr a = fr::random_element();
-    fr b = fr::random_element();
-
-    auto a_idx = circuit_constructor.add_variable(a);
-    auto b_idx = circuit_constructor.add_variable(b);
-    auto c_idx = circuit_constructor.add_variable(a + b);
-
-    circuit_constructor.create_add_gate({ a_idx, b_idx, c_idx, fr::one(), fr::one(), -fr::one(), fr::zero() });
-
-    circuit_constructor.get_num_gates();
-
-    EXPECT_EQ(circuit_constructor.check_circuit(), true);
-}
-
-/**
  * @brief Test the queueing of simple ecc ops via the Goblin builder
  * @details There are two things to check here: 1) When ecc ops are queued by the builder, the corresponding native
  * operations are performed correctly by the internal ecc op queue, and 2) The ecc op gate operands are correctly
  * encoded in the op_wires, i.e. the operands can be reconstructed as expected.
  *
  */
-TEST(GoblinCircuitBuilder, Simple)
+TEST(GoblinUltraCircuitBuilder, Simple)
 {
-    auto builder = GoblinUltraCircuitBuilder();
+    auto builder = UltraCircuitBuilder();
 
     // Compute a simple point accumulation natively
     auto P1 = g1::affine_element::random_element();
@@ -66,38 +45,38 @@ TEST(GoblinCircuitBuilder, Simple)
     EXPECT_EQ(builder.num_ecc_op_gates, 6);
 
     // Check that the expected op codes have been correctly recorded in the 1st op wire
-    EXPECT_EQ(builder.op_wire_1[0], EccOpCode::ADD_ACCUM);
-    EXPECT_EQ(builder.op_wire_1[2], EccOpCode::MUL_ACCUM);
-    EXPECT_EQ(builder.op_wire_1[4], EccOpCode::EQUALITY);
+    EXPECT_EQ(builder.ecc_op_wire_1[0], EccOpCode::ADD_ACCUM);
+    EXPECT_EQ(builder.ecc_op_wire_1[2], EccOpCode::MUL_ACCUM);
+    EXPECT_EQ(builder.ecc_op_wire_1[4], EccOpCode::EQUALITY);
 
     // Check that we can reconstruct the coordinates of P1 from the op_wires
     auto chunk_size = plonk::NUM_LIMB_BITS_IN_FIELD_SIMULATION * 2;
-    auto P1_x_lo = uint256_t(builder.variables[builder.op_wire_2[0]]);
-    auto P1_x_hi = uint256_t(builder.variables[builder.op_wire_3[0]]);
+    auto P1_x_lo = uint256_t(builder.variables[builder.ecc_op_wire_2[0]]);
+    auto P1_x_hi = uint256_t(builder.variables[builder.ecc_op_wire_3[0]]);
     auto P1_x = P1_x_lo + (P1_x_hi << chunk_size);
     EXPECT_EQ(P1_x, uint256_t(P1.x));
-    auto P1_y_lo = uint256_t(builder.variables[builder.op_wire_4[0]]);
-    auto P1_y_hi = uint256_t(builder.variables[builder.op_wire_2[1]]);
+    auto P1_y_lo = uint256_t(builder.variables[builder.ecc_op_wire_4[0]]);
+    auto P1_y_hi = uint256_t(builder.variables[builder.ecc_op_wire_2[1]]);
     auto P1_y = P1_y_lo + (P1_y_hi << chunk_size);
     EXPECT_EQ(P1_y, uint256_t(P1.y));
 
     // Check that we can reconstruct the coordinates of P2 from the op_wires
-    auto P2_x_lo = uint256_t(builder.variables[builder.op_wire_2[2]]);
-    auto P2_x_hi = uint256_t(builder.variables[builder.op_wire_3[2]]);
+    auto P2_x_lo = uint256_t(builder.variables[builder.ecc_op_wire_2[2]]);
+    auto P2_x_hi = uint256_t(builder.variables[builder.ecc_op_wire_3[2]]);
     auto P2_x = P2_x_lo + (P2_x_hi << chunk_size);
     EXPECT_EQ(P2_x, uint256_t(P2.x));
-    auto P2_y_lo = uint256_t(builder.variables[builder.op_wire_4[2]]);
-    auto P2_y_hi = uint256_t(builder.variables[builder.op_wire_2[3]]);
+    auto P2_y_lo = uint256_t(builder.variables[builder.ecc_op_wire_4[2]]);
+    auto P2_y_hi = uint256_t(builder.variables[builder.ecc_op_wire_2[3]]);
     auto P2_y = P2_y_lo + (P2_y_hi << chunk_size);
     EXPECT_EQ(P2_y, uint256_t(P2.y));
 
     // Check that we can reconstruct the coordinates of P_result from the op_wires
-    auto P_expected_x_lo = uint256_t(builder.variables[builder.op_wire_2[4]]);
-    auto P_expected_x_hi = uint256_t(builder.variables[builder.op_wire_3[4]]);
+    auto P_expected_x_lo = uint256_t(builder.variables[builder.ecc_op_wire_2[4]]);
+    auto P_expected_x_hi = uint256_t(builder.variables[builder.ecc_op_wire_3[4]]);
     auto P_expected_x = P_expected_x_lo + (P_expected_x_hi << chunk_size);
     EXPECT_EQ(P_expected_x, uint256_t(P_expected.x));
-    auto P_expected_y_lo = uint256_t(builder.variables[builder.op_wire_4[4]]);
-    auto P_expected_y_hi = uint256_t(builder.variables[builder.op_wire_2[5]]);
+    auto P_expected_y_lo = uint256_t(builder.variables[builder.ecc_op_wire_4[4]]);
+    auto P_expected_y_hi = uint256_t(builder.variables[builder.ecc_op_wire_2[5]]);
     auto P_expected_y = P_expected_y_lo + (P_expected_y_hi << chunk_size);
     EXPECT_EQ(P_expected_y, uint256_t(P_expected.y));
 }
@@ -106,12 +85,12 @@ TEST(GoblinCircuitBuilder, Simple)
  * @brief Test correctness of native ecc batch mul performed behind the scenes when adding ecc op gates for a batch mul
  *
  */
-TEST(GoblinCircuitBuilder, BatchMul)
+TEST(GoblinUltraCircuitBuilder, BatchMul)
 {
     using Point = g1::affine_element;
     using Scalar = fr;
 
-    auto builder = GoblinUltraCircuitBuilder();
+    auto builder = UltraCircuitBuilder();
     const size_t num_muls = 3;
 
     // Compute some random points and scalars to batch multiply
