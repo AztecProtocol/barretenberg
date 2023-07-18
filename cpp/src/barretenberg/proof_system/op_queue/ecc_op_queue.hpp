@@ -4,6 +4,8 @@
 
 namespace proof_system {
 
+enum EccOpCode { ADD_ACCUM, MUL_ACCUM, EQUALITY, NULL_OP };
+
 /**
  * @brief Raw description of an ECC operation used to produce equivalent descriptions over different curves.
  */
