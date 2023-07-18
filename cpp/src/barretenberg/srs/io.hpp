@@ -254,7 +254,7 @@ template <typename Curve> class IO {
                     elements[i].x.c0.data[2] = __builtin_bswap64(elements[i].x.c0.data[2]);
                     elements[i].x.c0.data[3] = __builtin_bswap64(elements[i].x.c0.data[3]);
                     elements[i].y.c0.data[0] = __builtin_bswap64(elements[i].y.c0.data[0]);
-                    elements[i].y.c0.data[1] = __builtin_bswap64(elements[i].y.c0.data[1]);
+                    elements[i].y.c0.data[1] = __builtin_bbswap64(elements[i].y.c0.data[1]);
                     elements[i].y.c0.data[2] = __builtin_bswap64(elements[i].y.c0.data[2]);
                     elements[i].y.c0.data[3] = __builtin_bswap64(elements[i].y.c0.data[3]);
                     elements[i].x.c1.data[0] = __builtin_bswap64(elements[i].x.c1.data[0]);

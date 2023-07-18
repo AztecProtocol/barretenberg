@@ -10,6 +10,25 @@
 
 namespace barretenberg::srs::factories {
 
+/**
+ * Create reference strings given a path to a directory of transcript files.
+ */
+template <typename Curve> class FileCrsFactory : public CrsFactory<Curve> {
+  public:
+    FileCrsFactory(std::string path, size_t initial_degree = 0);
+    FileCrsFactory(FileCrsFactory&& other) = default;
+
+    std::shared_ptr<barretenberg::srs::factories::ProverCrs<Curve>> get_prover_crs(size_t degree) override;
+
+    std::shared_ptr<barretenberg::srs::factories::VerifierCrs<Curve>> get_verifier_crs(size_t degree) override;
+
+  private:
+    std::string path_;
+    size_t degree_;
+    std::shared_ptr<barretenberg::srs::factories::ProverCrs<Curve>> prover_crs_;
+    std::shared_ptr<barretenberg::srs::factories::VerifierCrs<Curve>> verifier_crs_;
+};
+
 template <typename Curve> class FileProverCrs : public ProverCrs<Curve> {
   public:
     // this could go in the source file but let's see
@@ -37,25 +56,6 @@ template <typename Curve> class FileVerifierCrs : public VerifierCrs<Curve> {
 
   private:
     size_t num_points;
-};
-
-/**
- * Create reference strings given a path to a directory of transcript files.
- */
-template <typename Curve> class FileCrsFactory : public CrsFactory<Curve> {
-  public:
-    FileCrsFactory(std::string path, size_t initial_degree = 0);
-    FileCrsFactory(FileCrsFactory&& other) = default;
-
-    std::shared_ptr<barretenberg::srs::factories::ProverCrs<Curve>> get_prover_crs(size_t degree) override;
-
-    std::shared_ptr<barretenberg::srs::factories::VerifierCrs<Curve>> get_verifier_crs(size_t degree) override;
-
-  private:
-    std::string path_;
-    size_t degree_;
-    std::shared_ptr<barretenberg::srs::factories::ProverCrs<Curve>> prover_crs_;
-    std::shared_ptr<barretenberg::srs::factories::VerifierCrs<Curve>> verifier_crs_;
 };
 
 extern template class FileProverCrs<curve::BN254>;
