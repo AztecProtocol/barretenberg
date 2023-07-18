@@ -173,15 +173,6 @@ inline void write(auto& buf, std::integral auto value)
 {
     serialize::write(buf, value);
 }
-// // Forward to the serialize namespace templated methods for HasMsgPack
-// inline void read(auto& it, msgpack_concepts::HasMsgPack auto& obj)
-// {
-//     serialize::read(it, obj);
-// }
-// inline void write(auto& buf, const msgpack_concepts::HasMsgPack auto& obj)
-// {
-//     serialize::write(buf, obj);
-// }
 
 // Optimised specialisation for reading arrays of bytes from a raw buffer.
 template <size_t N> inline void read(uint8_t const*& it, std::array<uint8_t, N>& value)
