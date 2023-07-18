@@ -80,7 +80,7 @@ WASM_EXPORT void multisig_construct_signature_round_1(uint8_t* round_one_public_
     using multisig = crypto::schnorr::multisig<grumpkin::g1, KeccakHasher, Blake2sHasher>;
 
     auto [public_output, private_output] = multisig::construct_signature_round_1();
-    serialize::write_msgpack(round_one_public_output_buf, public_output);
+    serialize::write(round_one_public_output_buf, public_output);
     serialize::write(round_one_private_output_buf, private_output);
 }
 

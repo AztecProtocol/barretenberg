@@ -313,7 +313,8 @@ template <typename B, typename T> inline void read(B& it, std::shared_ptr<T>& va
 {
     using serialize::read;
     T value;
-    read(it, value_ptr);
+    read(it, value);
+    *value_ptr = std::make_shared(value);
 }
 
 // Write std::shared_ptr.
@@ -485,14 +486,6 @@ inline void write_msgpack_field(auto& it, const auto& field)
     using namespace serialize;
     write(it, field);
 }
-// @brief explicit form. Mysteriously has to sometimes be called.
-inline void write_msgpack(auto& buf, const msgpack_concepts::HasMsgPack auto& obj)
-{
-    msgpack::msgpack_apply(obj, [&](auto&... obj_fields) {
-        // apply 'write' to each object field
-        (write_msgpack_field(buf, obj_fields), ...);
-    });
-};
 /**
  * @brief Automatically derived :write for any object that defines .msgpack() (implicitly defined by MSGPACK_FIELDS).
  * @param buf The buffer to write to.
