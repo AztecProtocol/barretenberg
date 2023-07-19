@@ -487,7 +487,7 @@ inline void write_msgpack_field(auto& it, const auto& field)
     write(it, field);
 }
 /**
- * @brief Automatically derived :write for any object that defines .msgpack() (implicitly defined by MSGPACK_FIELDS).
+ * @brief Automatically derived write for any object that defines .msgpack() (implicitly defined by MSGPACK_FIELDS).
  * @param buf The buffer to write to.
  * @param func The function to call with each field as an argument.
  */
