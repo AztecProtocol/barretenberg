@@ -27,7 +27,7 @@ namespace proof_system::honk::flavor {
 
 class GoblinUltra {
   public:
-    using CircuitBuilder = UltraCircuitBuilder; // WORKTODO
+    using CircuitBuilder = UltraCircuitBuilder;
     using FF = barretenberg::fr;
     using Polynomial = barretenberg::Polynomial<FF>;
     using PolynomialHandle = std::span<FF>;

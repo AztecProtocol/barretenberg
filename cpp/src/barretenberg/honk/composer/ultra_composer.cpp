@@ -27,8 +27,13 @@ void UltraComposer_<Flavor>::compute_circuit_size_parameters(CircuitBuilder& cir
     const size_t minimum_circuit_size_due_to_lookups = tables_size + lookups_size + zero_row_offset;
 
     // number of populated rows in the execution trace
-    const size_t num_rows_populated_in_execution_trace =
+    size_t num_rows_populated_in_execution_trace =
         circuit_constructor.num_gates + circuit_constructor.public_inputs.size() + zero_row_offset;
+
+    // If Goblin, we must account for ecc op gates
+    if constexpr (IsGoblinFlavor<Flavor>) {
+        num_rows_populated_in_execution_trace += circuit_constructor.num_ecc_op_gates;
+    }
 
     // The number of gates is max(lookup gates + tables, rows already populated in trace) + 1, where the +1 is due to
     // addition of a "zero row" at top of the execution trace to ensure wires and other polys are shiftable.
@@ -319,5 +324,6 @@ std::shared_ptr<typename Flavor::VerificationKey> UltraComposer_<Flavor>::comput
 }
 template class UltraComposer_<honk::flavor::Ultra>;
 template class UltraComposer_<honk::flavor::UltraGrumpkin>;
+template class UltraComposer_<honk::flavor::GoblinUltra>;
 
 } // namespace proof_system::honk

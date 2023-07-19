@@ -3,6 +3,7 @@
 #include "barretenberg/honk/proof_system/ultra_prover.hpp"
 #include "barretenberg/honk/proof_system/ultra_verifier.hpp"
 #include "barretenberg/proof_system/composer/composer_lib.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "barretenberg/srs/factories/file_crs_factory.hpp"
 
 #include <cstddef>
@@ -81,7 +82,9 @@ template <UltraFlavor Flavor> class UltraComposer_ {
 };
 extern template class UltraComposer_<honk::flavor::Ultra>;
 extern template class UltraComposer_<honk::flavor::UltraGrumpkin>;
+extern template class UltraComposer_<honk::flavor::GoblinUltra>;
 // TODO(#532): this pattern is weird; is this not instantiating the templates?
 using UltraComposer = UltraComposer_<honk::flavor::Ultra>;
 using UltraGrumpkinComposer = UltraComposer_<honk::flavor::UltraGrumpkin>;
+using GoblinUltraComposer = UltraComposer_<honk::flavor::GoblinUltra>;
 } // namespace proof_system::honk

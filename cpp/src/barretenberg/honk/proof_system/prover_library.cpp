@@ -1,4 +1,5 @@
 #include "prover_library.hpp"
+#include "barretenberg/honk/flavor/goblin_ultra.hpp"
 #include "barretenberg/honk/flavor/standard.hpp"
 #include "barretenberg/honk/flavor/standard_grumpkin.hpp"
 #include "barretenberg/honk/flavor/ultra.hpp"
@@ -99,5 +100,3 @@ template typename honk::flavor::UltraGrumpkin::Polynomial compute_sorted_list_ac
 template void add_plookup_memory_records_to_wire_4<honk::flavor::UltraGrumpkin>(
     std::shared_ptr<typename honk::flavor::UltraGrumpkin::ProvingKey>& key,
     typename honk::flavor::UltraGrumpkin::FF eta);
-
-} // namespace proof_system::honk::prover_library

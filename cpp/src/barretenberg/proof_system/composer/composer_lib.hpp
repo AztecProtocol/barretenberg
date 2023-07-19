@@ -19,7 +19,24 @@ void construct_selector_polynomials(const typename Flavor::CircuitBuilder& circu
 {
     // Offset for starting to write selectors is zero row offset + num public inputs
     const size_t zero_row_offset = Flavor::has_zero_row ? 1 : 0;
-    const size_t gate_offset = zero_row_offset + circuit_constructor.public_inputs.size();
+    size_t gate_offset = zero_row_offset + circuit_constructor.public_inputs.size();
+
+    // If Goblin, (1) update the conventional gate offset to account for ecc op gates at the top of the execution trace,
+    // and (2) construct ecc op gate selector polynomial.
+    // Note 1: All other selectors will be automatically and correctly initialized to 0 on this domain.
+    // Note 2: If applicable, the ecc op gates are shifted down by 1 to account for a zero row.
+    if constexpr (IsGoblinFlavor<Flavor>) {
+        const size_t num_ecc_op_gates = circuit_constructor.num_ecc_op_gates;
+        gate_offset += num_ecc_op_gates;
+        const size_t op_gate_offset = zero_row_offset;
+        // The op gate selector is simply the indicator on the domain [offset, num_ecc_op_gates + offset - 1]
+        barretenberg::polynomial selector_poly_lagrange(proving_key->circuit_size);
+        for (size_t i = 0; i < num_ecc_op_gates; ++i) {
+            selector_poly_lagrange[i + op_gate_offset] = 1;
+        }
+        proving_key->q_ecc_op_queue = selector_poly_lagrange;
+    }
+
     // TODO(#398): Loose coupling here! Would rather build up pk from arithmetization
     size_t selector_idx = 0; // TODO(#391) zip
     for (auto& selector_values : circuit_constructor.selectors) {
