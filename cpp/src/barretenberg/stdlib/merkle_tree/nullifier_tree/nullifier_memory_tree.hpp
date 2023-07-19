@@ -7,6 +7,9 @@ namespace proof_system::plonk {
 namespace stdlib {
 namespace merkle_tree {
 
+// tuple(nullifier_leaf, sibling_path, index) // utility alias
+using LowLeafWitnessData = std::tuple<std::vector<nullifier_leaf>, std::vector<std::vector<fr>>, std::vector<uint32_t>>;
+
 using namespace barretenberg;
 
 /**
@@ -76,14 +79,21 @@ class NullifierMemoryTree : public MemoryTree {
     using MemoryTree::root;
     using MemoryTree::update_element;
 
-    fr update_element(fr const& value);
-
+    // Inspectors
+    size_t size() { return leaves_.size(); }
+    fr total_size() const { return total_size_; }
+    fr depth() const { return depth_; }
     const std::vector<barretenberg::fr>& get_hashes() { return hashes_; }
     const WrappedNullifierLeaf get_leaf(size_t index)
     {
         return (index < leaves_.size()) ? leaves_[index] : WrappedNullifierLeaf::zero();
     }
     const std::vector<WrappedNullifierLeaf>& get_leaves() { return leaves_; }
+
+    // Mutators
+    fr update_element(fr const& value);
+    fr update_element_in_place(size_t index, const nullifier_leaf& value);
+    LowLeafWitnessData batch_insert(std::vector<fr> const& values);
 
   protected:
     using MemoryTree::depth_;

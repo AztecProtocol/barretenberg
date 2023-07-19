@@ -72,6 +72,180 @@ fr NullifierMemoryTree::update_element(fr const& value)
     return root;
 }
 
+// Check for a larger value in an array
+bool check_has_less_than(std::vector<fr> const& values, fr const& value)
+{
+    // Must perform comparisons on integers
+    auto const value_as_uint = uint256_t(value);
+    for (auto const& v : values) {
+        if (uint256_t(v) < value_as_uint) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * @brief Insert a batch of values into the tree, returning the low nullifiers membership information (leaf, sibling
+ * path, index)
+ *
+ * Special Considerations
+ *
+ * Short algorithm description:
+ * When batch inserting values into the tree, we first update their "low_nullifiers" (the node that will insert to the
+ * inserted value).
+ *  - For each low nullifier that we update, we need to perform a membership check against the current root of the tree.
+ *  - Once membership is confirmed, we can update the leaf, then use the same sibling path to update the root.
+ *  - The next membership check will be against the new root.
+ *
+ * If the low nullifier for a value exists within the batch being inserted, then we cannot perform a membership check,
+ * as it has not yet been inserted! In this case we provide an all 0 sibling path and all 0 low nullifier, all
+ * corresponding aztec circuits account for this case.
+ *
+ * A description of the algorithm can be found here:
+ * https://colab.research.google.com/drive/1A0gizduSi4FIiIJZ8OylwIpO9-OTqV-R
+ *
+ * @param values - An array of values to insert into the tree.
+ * @return std::vector<LowLeafWitnessData>
+ */
+LowLeafWitnessData NullifierMemoryTree::batch_insert(std::vector<fr> const& values)
+{
+    // Start insertion index
+    size_t const start_insertion_index = this->size();
+
+    // Low nullifiers
+    auto values_size = values.size();
+    std::vector<nullifier_leaf> low_nullifiers(values_size);
+    std::vector<nullifier_leaf> pending_insertion_tree(values_size);
+
+    // Low nullifier sibling paths
+    std::vector<std::vector<fr>> sibling_paths(values_size);
+
+    // Low nullifier indexes
+    std::vector<uint32_t> low_nullifier_indexes(values_size);
+
+    // Keep track of the currently touched nodes while updating
+    std::map<size_t, std::vector<fr>> touched_nodes;
+
+    // Keep track of 0 values
+    std::vector<fr> const empty_sp(depth_, 0);
+    auto const empty_leaf = nullifier_leaf::empty();
+    uint32_t const empty_index = 0;
+
+    // Find the leaf with the value closest and less than `value` for each value
+    for (size_t i = 0; i < values.size(); ++i) {
+
+        auto new_value = values[i];
+        auto insertion_index = start_insertion_index + i;
+
+        size_t current = 0;
+        bool is_already_present = false;
+        std::tie(current, is_already_present) = find_closest_leaf(leaves_, new_value);
+
+        // If the inserted value is 0, then we ignore and provide a dummy low nullifier
+        if (new_value == 0) {
+            sibling_paths[i] = empty_sp;
+            low_nullifier_indexes[i] = empty_index;
+            low_nullifiers[i] = empty_leaf;
+            pending_insertion_tree[i] = empty_leaf;
+            continue;
+        }
+
+        // If the low_nullifier node has been touched this sub tree insertion, we provide a dummy sibling path
+        // It will be up to the circuit to check if the included node is valid vs the other nodes that have been
+        // inserted before it If it has not been touched, we provide a sibling path then update the nodes pointers
+        auto prev_nodes = touched_nodes.find(current);
+
+        bool has_less_than = false;
+        if (prev_nodes != touched_nodes.end()) {
+            has_less_than = check_has_less_than(prev_nodes->second, new_value);
+        }
+        // If there is a lower value in the tree, we need to check the current low nullifiers for one that can be used
+        if (has_less_than) {
+            for (size_t j = 0; j < pending_insertion_tree.size(); ++j) {
+
+                nullifier_leaf& pending = pending_insertion_tree[j];
+                // Skip checking empty values
+                if (pending.is_empty()) {
+                    continue;
+                }
+
+                if (uint256_t(pending.value) < uint256_t(new_value) &&
+                    (uint256_t(pending.nextValue) > uint256_t(new_value) || pending.nextValue == fr::zero())) {
+
+                    // Add a new pending low nullifier for this value
+                    nullifier_leaf const current_low_leaf = { .value = new_value,
+                                                              .nextIndex = pending_insertion_tree[j].nextIndex,
+                                                              .nextValue = pending_insertion_tree[j].nextValue };
+
+                    pending_insertion_tree[i] = current_low_leaf;
+
+                    // Update the pending low nullifier to point at the new value
+                    pending.nextValue = new_value;
+                    pending.nextIndex = insertion_index;
+
+                    break;
+                }
+            }
+
+            // add empty low nullifier
+            sibling_paths[i] = empty_sp;
+            low_nullifier_indexes[i] = empty_index;
+            low_nullifiers[i] = empty_leaf;
+        } else {
+            // Update the touched mapping
+            if (prev_nodes == touched_nodes.end()) {
+                std::vector<fr> const new_touched_values = { new_value };
+                touched_nodes[current] = new_touched_values;
+            } else {
+                prev_nodes->second.push_back(new_value);
+            }
+
+            nullifier_leaf const low_nullifier = leaves_[current].unwrap();
+            std::vector<fr> const sibling_path = this->get_sibling_path(current);
+
+            sibling_paths[i] = sibling_path;
+            low_nullifier_indexes[i] = static_cast<uint32_t>(current);
+            low_nullifiers[i] = low_nullifier;
+
+            // TODO(SEAN): rename this and new leaf
+            nullifier_leaf insertion_leaf = { .value = new_value,
+                                              .nextIndex = low_nullifier.nextIndex,
+                                              .nextValue = low_nullifier.nextValue };
+            pending_insertion_tree[i] = insertion_leaf;
+
+            // Update the current low nullifier
+            nullifier_leaf const new_leaf = { .value = low_nullifier.value,
+                                              .nextIndex = insertion_index,
+                                              .nextValue = new_value };
+
+            // Update the old leaf in the tree
+            // update old value in tree
+            update_element_in_place(current, new_leaf);
+        }
+    }
+
+    // resize leaves array
+    this->leaves_.resize(this->leaves_.size() + pending_insertion_tree.size());
+    for (size_t i = 0; i < pending_insertion_tree.size(); ++i) {
+        nullifier_leaf const pending = pending_insertion_tree[i];
+
+        // Update the old leaf in the tree
+        // update old value in tree
+        update_element_in_place(start_insertion_index + i, pending);
+    }
+
+    // Return tuple of low nullifiers and sibling paths
+    return std::make_tuple(low_nullifiers, sibling_paths, low_nullifier_indexes);
+}
+
+// Update the value of a leaf in place
+fr NullifierMemoryTree::update_element_in_place(size_t index, const nullifier_leaf& leaf)
+{
+    this->leaves_[index].set(leaf);
+    return update_element(index, leaf.hash());
+}
+
 } // namespace merkle_tree
 } // namespace stdlib
 } // namespace proof_system::plonk
