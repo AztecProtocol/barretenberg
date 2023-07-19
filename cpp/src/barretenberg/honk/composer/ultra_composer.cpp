@@ -23,17 +23,16 @@ void UltraComposer_<Flavor>::compute_circuit_size_parameters(CircuitBuilder& cir
 
     num_public_inputs = circuit_constructor.public_inputs.size();
 
-    // minimum circuit size due to the length of lookups plus tables
-    const size_t minimum_circuit_size_due_to_lookups = tables_size + lookups_size + zero_row_offset;
-
-    // number of populated rows in the execution trace
-    size_t num_rows_populated_in_execution_trace =
-        circuit_constructor.num_gates + circuit_constructor.public_inputs.size() + zero_row_offset;
-
     // If Goblin, we must account for ecc op gates
     if constexpr (IsGoblinFlavor<Flavor>) {
-        num_rows_populated_in_execution_trace += circuit_constructor.num_ecc_op_gates;
+        num_ecc_op_gates = circuit_constructor.num_ecc_op_gates;
     }
+
+    // minimum circuit size due to the length of lookups plus tables
+    const size_t minimum_circuit_size_due_to_lookups = tables_size + lookups_size + num_zero_rows;
+
+    // number of populated rows in the execution trace
+    size_t num_rows_populated_in_execution_trace = num_zero_rows + num_ecc_op_gates + num_public_inputs + num_gates;
 
     // The number of gates is max(lookup gates + tables, rows already populated in trace) + 1, where the +1 is due to
     // addition of a "zero row" at top of the execution trace to ensure wires and other polys are shiftable.
@@ -53,6 +52,7 @@ template <UltraFlavor Flavor> void UltraComposer_<Flavor>::compute_witness(Circu
         return;
     }
 
+    // WORKTODO: is this even necessary? I dont think these values are ever accessed.
     // At this point, the wires have been populated with as many values as rows in the execution trace. We need to pad
     // with zeros up to the full length, i.e. total_num_gates = already populated rows of execution trace + tables_size.
     for (size_t i = 0; i < tables_size; ++i) {
@@ -142,10 +142,11 @@ template <UltraFlavor Flavor> void UltraComposer_<Flavor>::compute_witness(Circu
     // Copy memory read/write record data into proving key. Prover needs to know which gates contain a read/write
     // 'record' witness on the 4th wire. This wire value can only be fully computed once the first 3 wire polynomials
     // have been committed to. The 4th wire on these gates will be a random linear combination of the first 3 wires,
-    // using the plookup challenge `eta`. We need to update the records with an offset Because we shift the gates by
-    // the number of public inputs plus an additional offset for a zero row.
+    // using the plookup challenge `eta`. We need to update the records with an offset Because we shift the gates to
+    // account for public inputs, a zero row, etc.
     auto add_public_inputs_offset = [this](uint32_t gate_index) {
-        return gate_index + num_public_inputs + zero_row_offset;
+        size_t offset = num_ecc_op_gates + num_public_inputs + num_zero_rows;
+        return gate_index + offset;
     };
     proving_key->memory_read_records = std::vector<uint32_t>();
     proving_key->memory_write_records = std::vector<uint32_t>();

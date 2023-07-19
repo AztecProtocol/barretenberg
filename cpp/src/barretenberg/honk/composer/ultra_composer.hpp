@@ -23,7 +23,7 @@ template <UltraFlavor Flavor> class UltraComposer_ {
     using PCSVerificationKey = typename PCSParams::VerificationKey;
 
     // offset due to placing zero wires at the start of execution trace
-    static constexpr size_t zero_row_offset = Flavor::has_zero_row ? 1 : 0;
+    static constexpr size_t num_zero_rows = Flavor::has_zero_row ? 1 : 0;
 
     static constexpr std::string_view NAME_STRING = "UltraHonk";
     static constexpr size_t NUM_WIRES = CircuitBuilder::NUM_WIRES;
@@ -44,6 +44,7 @@ template <UltraFlavor Flavor> class UltraComposer_ {
     size_t lookups_size = 0;        // total number of lookup gates
     size_t tables_size = 0;         // total number of table entries
     size_t num_public_inputs = 0;
+    size_t num_ecc_op_gates = 0;
 
     UltraComposer_()
         : crs_factory_(barretenberg::srs::get_crs_factory()){};
