@@ -20,8 +20,7 @@ namespace proof_system::honk {
  * @tparam Program settings needed to establish if w_4 is being used.
  * */
 template <StandardFlavor Flavor>
-void StandardComposer_<Flavor>::compute_witness(const CircuitBuilder& circuit_constructor,
-                                                const size_t minimum_circuit_size)
+void StandardComposer_<Flavor>::compute_witness(const CircuitBuilder& circuit_constructor, const size_t /*unused*/)
 {
     if (computed_witness) {
         return;

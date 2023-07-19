@@ -21,7 +21,6 @@ void UltraComposer_<Flavor>::compute_circuit_size_parameters(CircuitBuilder& cir
         lookups_size += table.lookup_gates.size();
     }
 
-    const size_t num_gates = circuit_constructor.num_gates;
     num_public_inputs = circuit_constructor.public_inputs.size();
 
     // minimum circuit size due to the length of lookups plus tables
