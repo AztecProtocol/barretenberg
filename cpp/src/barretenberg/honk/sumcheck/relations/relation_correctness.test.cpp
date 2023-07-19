@@ -389,4 +389,148 @@ TEST_F(RelationCorrectnessTests, UltraRelationCorrectness)
     check_relation<Flavor>(std::get<5>(relations), circuit_size, prover_polynomials, params);
 }
 
+TEST_F(RelationCorrectnessTests, GoblinUltraRelationCorrectness)
+{
+    using Flavor = honk::flavor::GoblinUltra;
+    using FF = typename Flavor::FF;
+    using ProverPolynomials = typename Flavor::ProverPolynomials;
+    // using ClaimedEvaluations = typename Flavor::ClaimedEvaluations;
+
+    // Create a composer and then add an assortment of gates designed to ensure that the constraint(s) represented
+    // by each relation are non-trivially exercised.
+    auto circuit_constructor = UltraCircuitBuilder();
+
+    barretenberg::fr pedersen_input_value = fr::random_element();
+    fr a = fr::one();
+    // Using the public variable to check that public_input_delta is computed and added to the relation correctly
+    // TODO(luke): add method "add_public_variable" to UH circuit_constructor
+    // uint32_t a_idx = circuit_constructor.add_public_variable(a);
+
+    // Add some basic add gates
+    uint32_t a_idx = circuit_constructor.add_variable(a);
+    fr b = fr::one();
+    fr c = a + b;
+    fr d = a + c;
+    uint32_t b_idx = circuit_constructor.add_variable(b);
+    uint32_t c_idx = circuit_constructor.add_variable(c);
+    uint32_t d_idx = circuit_constructor.add_variable(d);
+    for (size_t i = 0; i < 16; i++) {
+        circuit_constructor.create_add_gate({ a_idx, b_idx, c_idx, 1, 1, -1, 0 });
+        circuit_constructor.create_add_gate({ d_idx, c_idx, a_idx, 1, -1, -1, 0 });
+    }
+
+    // Create a prover (it will compute proving key and witness)
+    auto composer = GoblinUltraComposer();
+    auto prover = composer.create_prover(circuit_constructor);
+    auto circuit_size = prover.key->circuit_size;
+
+    // Generate eta, beta and gamma
+    fr eta = fr::random_element();
+    fr beta = fr::random_element();
+    fr gamma = fr::random_element();
+
+    // Compute public input delta
+    const auto public_inputs = circuit_constructor.get_public_inputs();
+    auto public_input_delta =
+        honk::compute_public_input_delta<Flavor>(public_inputs, beta, gamma, prover.key->circuit_size);
+    auto lookup_grand_product_delta =
+        honk::compute_lookup_grand_product_delta<FF>(beta, gamma, prover.key->circuit_size);
+
+    sumcheck::RelationParameters<FF> params{
+        .eta = eta,
+        .beta = beta,
+        .gamma = gamma,
+        .public_input_delta = public_input_delta,
+        .lookup_grand_product_delta = lookup_grand_product_delta,
+    };
+
+    // Compute sorted witness-table accumulator
+    prover.key->sorted_accum = prover_library::compute_sorted_list_accumulator<Flavor>(prover.key, eta);
+
+    // Add RAM/ROM memory records to wire four
+    prover_library::add_plookup_memory_records_to_wire_4<Flavor>(prover.key, eta);
+
+    // Compute grand product polynomial
+    prover.key->z_perm = prover_library::compute_permutation_grand_product<Flavor>(prover.key, beta, gamma);
+
+    // Compute lookup grand product polynomial
+    prover.key->z_lookup = prover_library::compute_lookup_grand_product<Flavor>(prover.key, eta, beta, gamma);
+
+    ProverPolynomials prover_polynomials;
+
+    prover_polynomials.q_ecc_op_queue = prover.key->q_ecc_op_queue;
+    // WORKTODO: make this real
+    prover_polynomials.ecc_op_wire_1 = prover.key->w_l;
+    prover_polynomials.ecc_op_wire_2 = prover.key->w_l;
+    prover_polynomials.ecc_op_wire_3 = prover.key->w_l;
+    prover_polynomials.ecc_op_wire_4 = prover.key->w_l;
+
+    prover_polynomials.w_l = prover.key->w_l;
+    prover_polynomials.w_r = prover.key->w_r;
+    prover_polynomials.w_o = prover.key->w_o;
+    prover_polynomials.w_4 = prover.key->w_4;
+    prover_polynomials.w_l_shift = prover.key->w_l.shifted();
+    prover_polynomials.w_r_shift = prover.key->w_r.shifted();
+    prover_polynomials.w_o_shift = prover.key->w_o.shifted();
+    prover_polynomials.w_4_shift = prover.key->w_4.shifted();
+    prover_polynomials.sorted_accum = prover.key->sorted_accum;
+    prover_polynomials.sorted_accum_shift = prover.key->sorted_accum.shifted();
+    prover_polynomials.table_1 = prover.key->table_1;
+    prover_polynomials.table_2 = prover.key->table_2;
+    prover_polynomials.table_3 = prover.key->table_3;
+    prover_polynomials.table_4 = prover.key->table_4;
+    prover_polynomials.table_1_shift = prover.key->table_1.shifted();
+    prover_polynomials.table_2_shift = prover.key->table_2.shifted();
+    prover_polynomials.table_3_shift = prover.key->table_3.shifted();
+    prover_polynomials.table_4_shift = prover.key->table_4.shifted();
+    prover_polynomials.z_perm = prover.key->z_perm;
+    prover_polynomials.z_perm_shift = prover.key->z_perm.shifted();
+    prover_polynomials.z_lookup = prover.key->z_lookup;
+    prover_polynomials.z_lookup_shift = prover.key->z_lookup.shifted();
+    prover_polynomials.q_m = prover.key->q_m;
+    prover_polynomials.q_l = prover.key->q_l;
+    prover_polynomials.q_r = prover.key->q_r;
+    prover_polynomials.q_o = prover.key->q_o;
+    prover_polynomials.q_c = prover.key->q_c;
+    prover_polynomials.q_4 = prover.key->q_4;
+    prover_polynomials.q_arith = prover.key->q_arith;
+    prover_polynomials.q_sort = prover.key->q_sort;
+    prover_polynomials.q_elliptic = prover.key->q_elliptic;
+    prover_polynomials.q_aux = prover.key->q_aux;
+    prover_polynomials.q_lookup = prover.key->q_lookup;
+    prover_polynomials.sigma_1 = prover.key->sigma_1;
+    prover_polynomials.sigma_2 = prover.key->sigma_2;
+    prover_polynomials.sigma_3 = prover.key->sigma_3;
+    prover_polynomials.sigma_4 = prover.key->sigma_4;
+    prover_polynomials.id_1 = prover.key->id_1;
+    prover_polynomials.id_2 = prover.key->id_2;
+    prover_polynomials.id_3 = prover.key->id_3;
+    prover_polynomials.id_4 = prover.key->id_4;
+    prover_polynomials.lagrange_first = prover.key->lagrange_first;
+    prover_polynomials.lagrange_last = prover.key->lagrange_last;
+
+    // Check that selectors are nonzero to ensure corresponding relation has nontrivial contribution
+    ensure_non_zero(prover.key->q_arith);
+    ensure_non_zero(prover.key->q_sort);
+    ensure_non_zero(prover.key->q_lookup);
+    ensure_non_zero(prover.key->q_elliptic);
+    ensure_non_zero(prover.key->q_aux);
+
+    // Construct the round for applying sumcheck relations and results for storing computed results
+    auto relations = std::tuple(honk::sumcheck::UltraArithmeticRelation<FF>(),
+                                honk::sumcheck::UltraPermutationRelation<FF>(),
+                                honk::sumcheck::LookupRelation<FF>(),
+                                honk::sumcheck::GenPermSortRelation<FF>(),
+                                honk::sumcheck::EllipticRelation<FF>(),
+                                honk::sumcheck::AuxiliaryRelation<FF>());
+
+    // Check that each relation is satisfied across each row of the prover polynomials
+    check_relation<Flavor>(std::get<0>(relations), circuit_size, prover_polynomials, params);
+    check_relation<Flavor>(std::get<1>(relations), circuit_size, prover_polynomials, params);
+    check_relation<Flavor>(std::get<2>(relations), circuit_size, prover_polynomials, params);
+    check_relation<Flavor>(std::get<3>(relations), circuit_size, prover_polynomials, params);
+    check_relation<Flavor>(std::get<4>(relations), circuit_size, prover_polynomials, params);
+    check_relation<Flavor>(std::get<5>(relations), circuit_size, prover_polynomials, params);
+}
+
 } // namespace test_honk_relations
