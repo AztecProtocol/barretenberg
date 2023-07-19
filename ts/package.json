@@ -36,15 +36,11 @@
   },
   "jest": {
     "preset": "ts-jest/presets/default-esm",
-    "globals": {
-      "ts-jest": {
-        "tsconfig": "./tsconfig.node.json"
-      }
-    },
     "transform": {
       "./src/.*\\.ts": [
         "ts-jest",
         {
+          "tsconfig": "./tsconfig.node.json",
           "useESM": true
         }
       ]
