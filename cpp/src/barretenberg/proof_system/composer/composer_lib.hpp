@@ -64,7 +64,7 @@ void construct_selector_polynomials(const typename Flavor::CircuitBuilder& circu
  * @brief Construct the witness polynomials from the witness vectors in the circuit constructor.
  *
  * @details The first two witness polynomials begin with the public input values.
- *
+ * WORKTODO: add a comment here that broadly explains the block concept
  *
  * @tparam Flavor provides the circuit constructor type and the number of wires.
  * @param circuit_constructor
@@ -76,14 +76,20 @@ template <typename Flavor>
 std::vector<barretenberg::polynomial> construct_wire_polynomials_base(
     const typename Flavor::CircuitBuilder& circuit_constructor, const size_t dyadic_circuit_size)
 {
-    const size_t num_gates = circuit_constructor.num_gates;
+    // Determine size of each block in the execution trace
     const size_t num_zero_rows = Flavor::has_zero_row ? 1 : 0;
+    const size_t num_gates = circuit_constructor.num_gates;
     std::span<const uint32_t> public_inputs = circuit_constructor.public_inputs;
     const size_t num_public_inputs = public_inputs.size();
+    size_t num_ecc_op_gates = 0;
+    if constexpr (IsGoblinFlavor<Flavor>) {
+        num_ecc_op_gates = circuit_constructor.num_ecc_op_gates;
+    }
 
-    // Set offsets for public inputs and conventional gates
-    size_t pub_input_offset = num_zero_rows;                // offset at which to start writing pub inputs
-    size_t gate_offset = num_public_inputs + num_zero_rows; // offset at which to start writing gates
+    // Define offsets at which to start writing different blocks of data
+    size_t op_gate_offset = num_zero_rows;
+    size_t pub_input_offset = num_zero_rows + num_ecc_op_gates;
+    size_t gate_offset = num_zero_rows + num_ecc_op_gates + num_public_inputs;
 
     std::vector<barretenberg::polynomial> wire_polynomials;
 
@@ -93,29 +99,27 @@ std::vector<barretenberg::polynomial> construct_wire_polynomials_base(
         // Expect all values to be set to 0 initially
         barretenberg::polynomial w_lagrange(dyadic_circuit_size);
 
-        // If Goblin, insert ecc op wire values into wire polynomial
-        if constexpr (IsGoblinFlavor<Flavor>) {
-            // Define the offset for ecc op gates
-            const size_t op_gate_offset = num_zero_rows;
-            // Update the other offsets to account for number of ecc op gates
-            const size_t num_ecc_op_gates = circuit_constructor.num_ecc_op_gates;
-            pub_input_offset += num_ecc_op_gates;
-            gate_offset += num_ecc_op_gates;
+        // Insert zero row values into wire polynomial
+        for (size_t i = 0; i < num_zero_rows; ++i) {
+            w_lagrange[i] = circuit_constructor.get_variable(circuit_constructor.zero_idx);
+        }
 
+        // Insert ECC op wire values into wire polynomial
+        if constexpr (IsGoblinFlavor<Flavor>) {
             for (size_t i = 0; i < num_ecc_op_gates; ++i) {
                 auto& op_wire = circuit_constructor.ecc_op_wires[wire_idx];
                 w_lagrange[i + op_gate_offset] = circuit_constructor.get_variable(op_wire[i]);
             }
         }
 
-        // Place public inputs into only the first two wire polynomials
+        // Insert public inputs (first two wire polynomials only)
         if (wire_idx < 2) {
             for (size_t i = 0; i < num_public_inputs; ++i) {
                 w_lagrange[i + pub_input_offset] = circuit_constructor.get_variable(public_inputs[i]);
             }
         }
 
-        // Place conventional gate wire values into the wire polynomials
+        // Insert conventional gate wire values into the wire polynomial
         for (size_t i = 0; i < num_gates; ++i) {
             auto& wire = circuit_constructor.wires[wire_idx];
             w_lagrange[i + gate_offset] = circuit_constructor.get_variable(wire[i]);

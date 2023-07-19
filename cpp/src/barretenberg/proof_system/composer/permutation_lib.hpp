@@ -11,6 +11,7 @@
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/polynomials/iterate_over_domain.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 
 #include <algorithm>
 #include <cstddef>
@@ -107,15 +108,15 @@ std::vector<CyclicPermutation> compute_wire_copy_cycles(const typename Flavor::C
         pub_inputs_offset += num_ecc_op_gates;
         gates_offset += num_ecc_op_gates;
 
+        const auto& op_wires = circuit_constructor.ecc_op_wires;
         // Iterate over all variables of the ecc op gates, and add a corresponding node to the cycle for that variable
         for (size_t i = 0; i < num_ecc_op_gates; ++i) {
-            size_t op_wire_idx = 0;
-            for (auto& op_wire : circuit_constructor.ecc_op_wires) {
-                const uint32_t var_index = circuit_constructor.real_variable_index[op_wire[i]];
-                const auto op_wire_index = static_cast<uint32_t>(op_wire_idx);
-                const auto op_gate_idx = static_cast<uint32_t>(i + op_gates_offset);
-                copy_cycles[var_index].emplace_back(cycle_node{ op_wire_index, op_gate_idx });
-                ++op_wire_idx;
+            // Note: We exclude the first op wire since it contains the op codes which are not stored in variables
+            for (size_t op_wire_idx = 1; op_wire_idx < 4; ++op_wire_idx) {
+                const uint32_t var_index = circuit_constructor.real_variable_index[op_wires[op_wire_idx][i]];
+                const auto wire_index = static_cast<uint32_t>(op_wire_idx);
+                const auto gate_idx = static_cast<uint32_t>(i + op_gates_offset);
+                copy_cycles[var_index].emplace_back(cycle_node{ wire_index, gate_idx });
             }
         }
     }
