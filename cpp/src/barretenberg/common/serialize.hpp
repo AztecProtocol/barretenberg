@@ -451,21 +451,15 @@ using out_ptr = void**;
 namespace serialize {
 
 /**
- * @brief Passthrough method that exists for better error reporting.
+ * @brief Helper method for better error reporting. Clang does not give the best errors for "auto..."
+ * arguments.
  */
-inline void read_msgpack_field(auto& it, auto& field)
+inline void _read_msgpack_field(auto& it, auto& field)
 {
     using namespace serialize;
     read(it, field);
 }
-/**
- * @brief Passthrough method that exists for better error reporting.
- */
-inline void read_msgpack_fields(auto& it, auto&... fields)
-{
-    using namespace serialize;
-    (read_msgpack_field(it, fields), ...);
-}
+
 /**
  * @brief Automatically derived read for any object that defines .msgpack() (implicitly defined by MSGPACK_FIELDS).
  * @param it The iterator to read from.
@@ -475,13 +469,15 @@ inline void read(auto& it, msgpack_concepts::HasMsgPack auto& obj)
 {
     msgpack::msgpack_apply(obj, [&](auto&... obj_fields) {
         // apply 'read' to each object field
-        read_msgpack_fields(it, obj_fields...);
+        (_read_msgpack_field(it, obj_fields), ...);
     });
 };
+
 /**
- * @brief Passthrough method that exists for better error reporting.
+ * @brief Helper method for better error reporting. Clang does not give the best errors for "auto..."
+ * arguments.
  */
-inline void write_msgpack_field(auto& it, const auto& field)
+inline void _write_msgpack_field(auto& it, const auto& field)
 {
     using namespace serialize;
     write(it, field);
@@ -496,7 +492,7 @@ inline void write(auto& buf, const msgpack_concepts::HasMsgPack auto& obj)
     using namespace serialize;
     msgpack::msgpack_apply(obj, [&](auto&... obj_fields) {
         // apply 'write' to each object field
-        (write_msgpack_field(buf, obj_fields), ...);
+        (_write_msgpack_field(buf, obj_fields), ...);
     });
 };
 } // namespace serialize

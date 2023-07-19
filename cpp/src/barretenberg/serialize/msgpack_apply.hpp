@@ -5,7 +5,7 @@
 
 namespace msgpack {
 /**
- * @brief Passthrough method for better error reporting.
+ * @brief Helper method for better error reporting. Clang does not give the best errors for lambdas.
  */
 template <msgpack_concepts::HasMsgPack T> void msgpack_apply(const auto& func, auto&... args)
 {
