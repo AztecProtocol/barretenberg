@@ -47,10 +47,10 @@
     },
     "moduleNameMapper": {
       "^(\\.{1,2}/.*)\\.js$": "$1",
-      "^dynamic/(.*)$": "<rootDir>/src/$1/node/index.ts"
+      "^dynamic/(.*)$": "<rootDir>/$1/node/index.ts"
     },
     "testRegex": "./src/.*\\.test\\.ts$",
-    "rootDir": "."
+    "rootDir": "./src"
   },
   "dependencies": {
     "comlink": "^4.4.1",
