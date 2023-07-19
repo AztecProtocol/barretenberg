@@ -555,15 +555,17 @@ void UltraCircuitBuilder_<FF>::queue_ecc_mul_accum(const barretenberg::g1::affin
 /**
  * @brief Add point equality gates
  *
- * @param point
+ * @return point to which equality has been asserted
  */
-template <typename FF> void UltraCircuitBuilder_<FF>::queue_ecc_eq(const barretenberg::g1::affine_element& point)
+template <typename FF> barretenberg::g1::affine_element UltraCircuitBuilder_<FF>::queue_ecc_eq()
 {
     // Add raw op to op queue
-    op_queue.eq(point);
+    auto point = op_queue.eq();
 
     // Add ecc op gates
     add_ecc_op_gates(EccOpCode::EQUALITY, point);
+
+    return point;
 }
 
 /**

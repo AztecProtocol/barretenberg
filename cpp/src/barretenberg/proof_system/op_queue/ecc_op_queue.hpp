@@ -113,14 +113,13 @@ class ECCOpQueue {
     }
 
     /**
-     * @brief Write equality op to queue and check equality with native accumulator
+     * @brief Write equality op using internal accumulator point
      *
-     * @param expected
-     * @return whether accumulator point == expected point
+     * @return current internal accumulator point (prior to reset to 0)
      */
-    bool eq(const Point& expected)
+    Point eq()
     {
-        bool accumulator_equals_expected = (accumulator == expected);
+        auto expected = accumulator;
         accumulator.self_set_infinity(); // TODO(luke): is this always desired?
 
         raw_ops.emplace_back(ECCOp{
@@ -134,7 +133,7 @@ class ECCOpQueue {
             .mul_scalar_full = 0,
         });
 
-        return accumulator_equals_expected;
+        return expected;
     }
 
     /**

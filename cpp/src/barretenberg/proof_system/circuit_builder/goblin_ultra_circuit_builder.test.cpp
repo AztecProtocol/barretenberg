@@ -16,7 +16,7 @@ namespace proof_system {
  * encoded in the op_wires, i.e. the operands can be reconstructed as expected.
  *
  */
-TEST(GoblinUltraCircuitBuilder, Simple)
+TEST(UltraCircuitBuilder, GoblinSimple)
 {
     auto builder = UltraCircuitBuilder();
 
@@ -30,12 +30,11 @@ TEST(GoblinUltraCircuitBuilder, Simple)
     builder.queue_ecc_add_accum(P1);
     builder.queue_ecc_mul_accum(P2, z);
 
-    // Extract current accumulator point from the op queue and check the result
-    auto P_result = builder.op_queue.get_accumulator();
-    EXPECT_EQ(P_result, P_expected);
+    // Add equality op gates based on the internal accumulator
+    auto P_result = builder.queue_ecc_eq();
 
-    // Use the result to add equality op gates
-    builder.queue_ecc_eq(P_result);
+    // Check that value returned from internal accumulator is correct
+    EXPECT_EQ(P_result, P_expected);
 
     // Check that the accumulator in the op queue has been reset to 0
     auto accumulator = builder.op_queue.get_accumulator();
@@ -85,7 +84,7 @@ TEST(GoblinUltraCircuitBuilder, Simple)
  * @brief Test correctness of native ecc batch mul performed behind the scenes when adding ecc op gates for a batch mul
  *
  */
-TEST(GoblinUltraCircuitBuilder, BatchMul)
+TEST(UltraCircuitBuilder, GoblinBatchMul)
 {
     using Point = g1::affine_element;
     using Scalar = fr;

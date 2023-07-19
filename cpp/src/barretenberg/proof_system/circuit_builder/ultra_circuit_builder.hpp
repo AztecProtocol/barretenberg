@@ -708,7 +708,7 @@ template <typename FF> class UltraCircuitBuilder_ : public CircuitBuilderBase<ar
      **/
     void queue_ecc_add_accum(const g1::affine_element& point);
     void queue_ecc_mul_accum(const g1::affine_element& point, const fr& scalar);
-    void queue_ecc_eq(const g1::affine_element& point);
+    g1::affine_element queue_ecc_eq();
     g1::affine_element batch_mul(const std::vector<g1::affine_element>& points, const std::vector<fr>& scalars);
 
   private:
