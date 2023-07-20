@@ -22,13 +22,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get -y install clang ninja-build yarn
-
       - name: Install yarn
         run: |
           curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
           echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
           sudo apt -y update && sudo apt -y install yarn
-
       - name: Compile Barretenberg
         run: |
           cd cpp
@@ -36,10 +34,16 @@ jobs:
           cmake --preset default -DCMAKE_BUILD_TYPE=RelWithAssert
           cmake --build --preset default --target bb
 
+      - name: Install WASI-SDK
+        run: |
+          cd cpp
+
+          ./scripts/install-wasi-sdk.sh
+
       - name: Compile Typescript
         run: |
           cd ts
-          yarn && yarn build
+          yarn install && yarn && yarn build
 
       - name: Checkout destination repository
         uses: actions/checkout@v3
