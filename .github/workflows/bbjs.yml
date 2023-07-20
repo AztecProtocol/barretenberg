@@ -1,4 +1,4 @@
-name: CI
+name: Release bb.js
 
 on:
   push:
@@ -39,7 +39,7 @@ jobs:
       - name: Compile Typescript
         run: |
           cd ts
-          yarn install && yarn && yarn build
+          yarn && yarn build
 
       - name: Checkout destination repository
         uses: actions/checkout@v3
