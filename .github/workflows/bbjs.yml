@@ -22,7 +22,9 @@ jobs:
       - name: Compile Barretenberg
         run: |
           cd cpp
-          ./bootstrap.sh
+
+          cmake --preset default -DCMAKE_BUILD_TYPE=RelWithAssert
+          cmake --build --preset default --target bb
 
       - name: Compile Typescript
         run: |
