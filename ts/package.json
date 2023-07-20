@@ -13,6 +13,7 @@
   "files": [
     "src/",
     "dest/",
+    "!dest/browser/*.wasm",
     "README.md"
   ],
   "scripts": {
@@ -29,8 +30,7 @@
     "test": "yarn build && yarn test:jest && yarn test:bin",
     "test:jest": "NODE_NO_WARNINGS=1 node --experimental-vm-modules $(yarn bin jest) --no-cache --passWithNoTests",
     "test:bin": "cd ./bin-test && ./bin-test.sh",
-    "test-debug": "NODE_OPTIONS='--loader ts-node/esm' NODE_NO_WARNINGS=1 node --inspect-brk=0.0.0.0 --experimental-vm-modules $(yarn bin jest) --no-cache --passWithNoTests --runInBand",
-    "simple_test": "NODE_OPTIONS='--loader ts-node/esm' NODE_NO_WARNINGS=1 node ./src/examples/simple.rawtest.ts",
+    "test-debug": "NODE_NO_WARNINGS=1 node --inspect-brk=0.0.0.0 --experimental-vm-modules $(yarn bin jest) --no-cache --passWithNoTests --runInBand",
     "prepack": "yarn build",
     "deploy": "npm publish --access public"
   },
@@ -42,8 +42,7 @@
     "comlink": "^4.4.1",
     "commander": "^10.0.1",
     "debug": "^4.3.4",
-    "idb-keyval": "^6.2.1",
-    "ts-node": "^10.9.1"
+    "idb-keyval": "^6.2.1"
   },
   "devDependencies": {
     "@jest/globals": "^29.4.3",
