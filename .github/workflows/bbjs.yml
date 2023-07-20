@@ -9,9 +9,7 @@ jobs:
   build-and-deploy:
     name: Build on Linux
     runs-on: ubuntu-20.04
-    needs: [release-please]
-    if: ${{ needs.release-please.outputs.tag-name }}
-      steps:
+    steps:
       - name: Checkout Code
         uses: actions/checkout@v2
 
@@ -19,7 +17,7 @@ jobs:
         run: |
           sudo apt -y remove --purge cmake
           sudo snap install cmake --classic
-          
+
       - name: Create Build Environment
         run: |
           sudo apt-get update
@@ -34,7 +32,7 @@ jobs:
       - name: Compile Barretenberg
         run: |
           cd cpp
-          
+
           cmake --preset default -DCMAKE_BUILD_TYPE=RelWithAssert
           cmake --build --preset default --target bb
 
