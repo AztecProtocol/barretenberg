@@ -398,30 +398,39 @@ TEST_F(RelationCorrectnessTests, GoblinUltraRelationCorrectness)
 
     // Create a composer and then add an assortment of gates designed to ensure that the constraint(s) represented
     // by each relation are non-trivially exercised.
-    auto circuit_constructor = UltraCircuitBuilder();
+    auto builder = UltraCircuitBuilder();
 
-    barretenberg::fr pedersen_input_value = fr::random_element();
-    fr a = fr::one();
     // Using the public variable to check that public_input_delta is computed and added to the relation correctly
-    // TODO(luke): add method "add_public_variable" to UH circuit_constructor
-    // uint32_t a_idx = circuit_constructor.add_public_variable(a);
+    // TODO(luke): add method "add_public_variable" to UH builder
+    // uint32_t a_idx = builder.add_public_variable(a);
+
+    // Add some ecc op gates
+    for (size_t i = 0; i < 10; ++i) {
+        builder.queue_ecc_add_accum(g1::affine_one);
+    }
+
+    // Add some public inputs
+    for (size_t i = 0; i < 10; ++i) {
+        builder.add_public_variable(fr::random_element());
+    }
 
     // Add some basic add gates
-    uint32_t a_idx = circuit_constructor.add_variable(a);
+    fr a = fr::random_element();
     fr b = fr::one();
     fr c = a + b;
     fr d = a + c;
-    uint32_t b_idx = circuit_constructor.add_variable(b);
-    uint32_t c_idx = circuit_constructor.add_variable(c);
-    uint32_t d_idx = circuit_constructor.add_variable(d);
+    uint32_t a_idx = builder.add_public_variable(a);
+    uint32_t b_idx = builder.add_variable(b);
+    uint32_t c_idx = builder.add_variable(c);
+    uint32_t d_idx = builder.add_variable(d);
     for (size_t i = 0; i < 16; i++) {
-        circuit_constructor.create_add_gate({ a_idx, b_idx, c_idx, 1, 1, -1, 0 });
-        circuit_constructor.create_add_gate({ d_idx, c_idx, a_idx, 1, -1, -1, 0 });
+        builder.create_add_gate({ a_idx, b_idx, c_idx, 1, 1, -1, 0 });
+        builder.create_add_gate({ d_idx, c_idx, a_idx, 1, -1, -1, 0 });
     }
 
     // Create a prover (it will compute proving key and witness)
     auto composer = GoblinUltraComposer();
-    auto prover = composer.create_prover(circuit_constructor);
+    auto prover = composer.create_prover(builder);
     auto circuit_size = prover.key->circuit_size;
 
     // Generate eta, beta and gamma
@@ -430,9 +439,15 @@ TEST_F(RelationCorrectnessTests, GoblinUltraRelationCorrectness)
     fr gamma = fr::random_element();
 
     // Compute public input delta
-    const auto public_inputs = circuit_constructor.get_public_inputs();
-    auto public_input_delta =
-        honk::compute_public_input_delta<Flavor>(public_inputs, beta, gamma, prover.key->circuit_size);
+    const auto public_inputs = builder.get_public_inputs();
+
+    // If Goblin, must account for the fact that PI are offset in the wire polynomials by the number of ecc op gates
+    size_t pub_inputs_offset = 0;
+    if constexpr (IsGoblinFlavor<Flavor>) {
+        pub_inputs_offset = builder.num_ecc_op_gates;
+    }
+    auto public_input_delta = honk::compute_public_input_delta<Flavor>(
+        public_inputs, beta, gamma, prover.key->circuit_size, pub_inputs_offset);
     auto lookup_grand_product_delta =
         honk::compute_lookup_grand_product_delta<FF>(beta, gamma, prover.key->circuit_size);
 
