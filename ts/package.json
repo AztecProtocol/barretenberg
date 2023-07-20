@@ -26,8 +26,8 @@
     "serve": "webpack serve",
     "formatting": "prettier --check ./src && eslint --max-warnings 0 ./src",
     "formatting:fix": "prettier -w ./src",
-    "test": "yarn test:jest && yarn test:bin",
-    "test:jest": "NODE_OPTIONS='--loader ts-node/esm' NODE_NO_WARNINGS=1 node --experimental-vm-modules $(yarn bin jest) --no-cache --passWithNoTests",
+    "test": "yarn build && yarn test:jest && yarn test:bin",
+    "test:jest": "NODE_NO_WARNINGS=1 node --experimental-vm-modules $(yarn bin jest) --no-cache --passWithNoTests",
     "test:bin": "cd ./bin-test && ./bin-test.sh",
     "test-debug": "NODE_OPTIONS='--loader ts-node/esm' NODE_NO_WARNINGS=1 node --inspect-brk=0.0.0.0 --experimental-vm-modules $(yarn bin jest) --no-cache --passWithNoTests --runInBand",
     "simple_test": "NODE_OPTIONS='--loader ts-node/esm' NODE_NO_WARNINGS=1 node ./src/examples/simple.rawtest.ts",
@@ -35,22 +35,8 @@
     "deploy": "npm publish --access public"
   },
   "jest": {
-    "preset": "ts-jest/presets/default-esm",
-    "transform": {
-      "./src/.*\\.ts": [
-        "ts-jest",
-        {
-          "tsconfig": "./tsconfig.node.json",
-          "useESM": true
-        }
-      ]
-    },
-    "moduleNameMapper": {
-      "^(\\.{1,2}/.*)\\.js$": "$1",
-      "^dynamic/(.*)$": "<rootDir>/$1/node/index.ts"
-    },
-    "testRegex": "./src/.*\\.test\\.ts$",
-    "rootDir": "./src"
+    "testRegex": "./dest/node/.*\\.test\\.js$",
+    "rootDir": "./dest"
   },
   "dependencies": {
     "comlink": "^4.4.1",
