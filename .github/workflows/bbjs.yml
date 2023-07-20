@@ -7,22 +7,34 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    name: Build on Linux
+    runs-on: ubuntu-20.04
+    needs: [release-please]
+    if: ${{ needs.release-please.outputs.tag-name }}
+      steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Install bleeding edge cmake
+        run: |
+          sudo apt -y remove --purge cmake
+          sudo snap install cmake --classic
+          
+      - name: Create Build Environment
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install clang ninja-build yarn
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: "18"
-          registry-url: "https://registry.npmjs.org"
+      - name: Install yarn
+        run: |
+          curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+          echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+          sudo apt -y update && sudo apt -y install yarn
 
       - name: Compile Barretenberg
         run: |
           cd cpp
-
+          
           cmake --preset default -DCMAKE_BUILD_TYPE=RelWithAssert
           cmake --build --preset default --target bb
 
