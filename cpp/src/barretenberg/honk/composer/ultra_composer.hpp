@@ -71,6 +71,8 @@ template <UltraFlavor Flavor> class UltraComposer_ {
 
     void compute_witness(CircuitBuilder& circuit_constructor);
 
+    void construct_ecc_op_wire_polynomials(auto&);
+
     UltraProver_<Flavor> create_prover(CircuitBuilder& circuit_constructor);
     UltraVerifier_<Flavor> create_verifier(const CircuitBuilder& circuit_constructor);
 

@@ -100,10 +100,13 @@ TEST_F(GoblinUltraHonkComposerTests, BasicExecutionTraceOrdering)
     auto q_ecc_op = prover.key->q_ecc_op_queue;
     for (size_t i = 0; i < circuit_size; ++i) {
         auto val = q_ecc_op[i];
+        auto anti_val = q_ecc_op[i] * (-1) + 1; // also needed in realtion
         if (i >= num_zero_rows && i < num_zero_rows + num_ecc_op_gates) {
             EXPECT_EQ(val, 1);
+            EXPECT_EQ(anti_val, 0);
         } else {
             EXPECT_EQ(val, 0);
+            EXPECT_EQ(anti_val, 1);
         }
     }
 }

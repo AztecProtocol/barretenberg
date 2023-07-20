@@ -94,6 +94,7 @@ class GoblinUltra {
         DataType& q_elliptic = std::get<8>(this->_data);
         DataType& q_aux = std::get<9>(this->_data);
         DataType& q_lookup = std::get<10>(this->_data);
+        // WORKTODO: this is more like "lagrange_first" than a selector. chi_ecc_op_queue?
         DataType& q_ecc_op_queue = std::get<11>(this->_data);
         DataType& sigma_1 = std::get<12>(this->_data);
         DataType& sigma_2 = std::get<13>(this->_data);
@@ -114,7 +115,7 @@ class GoblinUltra {
 
         std::vector<HandleType> get_selectors() override
         {
-            return { q_m, q_c, q_l, q_r, q_o, q_4, q_arith, q_sort, q_elliptic, q_aux, q_lookup, q_ecc_op_queue };
+            return { q_m, q_c, q_l, q_r, q_o, q_4, q_arith, q_sort, q_elliptic, q_aux, q_lookup };
         };
         std::vector<HandleType> get_sigma_polynomials() override { return { sigma_1, sigma_2, sigma_3, sigma_4 }; };
         std::vector<HandleType> get_id_polynomials() override { return { id_1, id_2, id_3, id_4 }; };

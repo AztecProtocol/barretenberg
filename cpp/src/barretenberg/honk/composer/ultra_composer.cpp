@@ -52,17 +52,21 @@ template <UltraFlavor Flavor> void UltraComposer_<Flavor>::compute_witness(Circu
         return;
     }
 
-    // WORKTODO: is this even necessary? I dont think these values are ever accessed.
+    // WORKTODO: I dont think this is necessary at all but leaving here for now so as not to complicate my life.
     // At this point, the wires have been populated with as many values as rows in the execution trace. We need to pad
     // with zeros up to the full length, i.e. total_num_gates = already populated rows of execution trace + tables_size.
     for (size_t i = 0; i < tables_size; ++i) {
-        circuit_constructor.w_l.emplace_back(circuit_constructor.zero_idx);
+        circuit_constructor.w_l.emplace_back(10);
         circuit_constructor.w_r.emplace_back(circuit_constructor.zero_idx);
         circuit_constructor.w_o.emplace_back(circuit_constructor.zero_idx);
         circuit_constructor.w_4.emplace_back(circuit_constructor.zero_idx);
     }
 
     auto wire_polynomials = construct_wire_polynomials_base<Flavor>(circuit_constructor, dyadic_circuit_size);
+
+    if constexpr (IsGoblinFlavor<Flavor>) {
+        construct_ecc_op_wire_polynomials(wire_polynomials);
+    }
 
     proving_key->w_l = wire_polynomials[0];
     proving_key->w_r = wire_polynomials[1];
@@ -81,6 +85,7 @@ template <UltraFlavor Flavor> void UltraComposer_<Flavor>::compute_witness(Circu
     // The size of empty space in sorted polynomials
     size_t count = dyadic_circuit_size - tables_size - lookups_size;
     ASSERT(count > 0); // We need at least 1 row of zeroes for the permutation argument
+    // WORKTODO: this is also not necessary; polynomial coeffs are initialized to zero.
     for (size_t i = 0; i < count; ++i) {
         s_1[i] = 0;
         s_2[i] = 0;
@@ -161,6 +166,27 @@ template <UltraFlavor Flavor> void UltraComposer_<Flavor>::compute_witness(Circu
                    add_public_inputs_offset);
 
     computed_witness = true;
+}
+
+template <UltraFlavor Flavor> void UltraComposer_<Flavor>::construct_ecc_op_wire_polynomials(auto& wire_polynomials)
+{
+    std::array<polynomial, Flavor::NUM_WIRES> op_wire_polynomials;
+    for (auto& poly : op_wire_polynomials) {
+        poly = polynomial(dyadic_circuit_size);
+    }
+
+    const size_t op_wire_offset = Flavor::has_zero_row ? 1 : 0;
+    for (size_t poly_idx = 0; poly_idx < Flavor::NUM_WIRES; ++poly_idx) {
+        for (size_t i = 0; i < num_ecc_op_gates; ++i) {
+            size_t idx = i + op_wire_offset;
+            op_wire_polynomials[poly_idx][idx] = wire_polynomials[poly_idx][idx];
+        }
+    }
+
+    proving_key->ecc_op_wire_1 = op_wire_polynomials[0];
+    proving_key->ecc_op_wire_2 = op_wire_polynomials[1];
+    proving_key->ecc_op_wire_3 = op_wire_polynomials[2];
+    proving_key->ecc_op_wire_4 = op_wire_polynomials[3];
 }
 
 template <UltraFlavor Flavor>
