@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - jb/bbjs-cra
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "18"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Compile Barretenberg
+        run: |
+          cd cpp
+          ./bootstrap.sh
+
+      - name: Compile Typescript
+        run: |
+          cd ts
+          yarn install && yarn && yarn build
+
+      - name: Checkout destination repository
+        uses: actions/checkout@v3
+        with:
+          repository: AztecProtocol/bb.js
+          path: ./bb.js
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push to destination repository
+        run: |
+          cd ./bb.js
+          cp -R ../ts/dest/* .
+          git add .
+          git commit -m "Tracking changes"
+          git push
