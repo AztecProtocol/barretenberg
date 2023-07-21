@@ -310,12 +310,6 @@ jobs:
       - *checkout
       - *setup_env
       - run:
-          name: "Pull Docker Image"
-          command: docker pull 278380418400.dkr.ecr.us-east-2.amazonaws.com/bb.js:cache-6251826cb33e24d6a1a06bb67117b3ae6f0de913
-      - run:
-          name: "Show Docker image history"
-          command: docker history 278380418400.dkr.ecr.us-east-2.amazonaws.com/bb.js:cache-6251826cb33e24d6a1a06bb67117b3ae6f0de913
-      - run:
           name: "Test"
           command: cond_spot_run_tests bb.js
 
