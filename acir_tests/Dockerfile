@@ -5,7 +5,6 @@ FROM node:18-alpine
 RUN apk update && apk add git bash curl
 COPY --from=0 /usr/src/barretenberg/cpp/build /usr/src/barretenberg/cpp/build
 COPY --from=1 /usr/src/barretenberg/ts /usr/src/barretenberg/ts
-
 WORKDIR /usr/src/barretenberg/acir_tests
 COPY . .
 # Run all native tests.
