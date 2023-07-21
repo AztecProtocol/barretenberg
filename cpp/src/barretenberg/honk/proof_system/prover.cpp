@@ -1,4 +1,5 @@
 #include "prover.hpp"
+#include "barretenberg/honk/proof_system/grand_product_library.hpp"
 #include "barretenberg/honk/proof_system/prover_library.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck.hpp"
 #include "barretenberg/honk/transcript/transcript.hpp"
@@ -104,7 +105,7 @@ template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_grand_pro
     // Compute and store parameters required by relations in Sumcheck
     auto [beta, gamma] = transcript.get_challenges("beta", "gamma");
 
-    auto public_input_delta = compute_public_input_delta<FF>(public_inputs, beta, gamma, key->circuit_size);
+    auto public_input_delta = compute_public_input_delta<Flavor>(public_inputs, beta, gamma, key->circuit_size);
 
     relation_parameters = sumcheck::RelationParameters<FF>{
         .beta = beta,
@@ -112,12 +113,9 @@ template <StandardFlavor Flavor> void StandardProver_<Flavor>::execute_grand_pro
         .public_input_delta = public_input_delta,
     };
 
-    key->z_perm = prover_library::compute_permutation_grand_product<Flavor>(key, beta, gamma);
+    grand_product_library::compute_grand_products<Flavor>(key, prover_polynomials, relation_parameters);
 
     queue.add_commitment(key->z_perm, commitment_labels.z_perm);
-
-    prover_polynomials.z_perm = key->z_perm;
-    prover_polynomials.z_perm_shift = key->z_perm.shifted();
 }
 
 /**

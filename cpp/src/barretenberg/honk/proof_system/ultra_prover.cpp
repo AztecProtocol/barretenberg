@@ -3,8 +3,11 @@
 #include "barretenberg/ecc/curves/bn254/g1.hpp"
 #include "barretenberg/honk/pcs/claim.hpp"
 #include "barretenberg/honk/pcs/commitment_key.hpp"
+#include "barretenberg/honk/proof_system/grand_product_library.hpp"
 #include "barretenberg/honk/proof_system/prover_library.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp" // will go away
+#include "barretenberg/honk/sumcheck/relations/lookup_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/permutation_relation.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck.hpp"
 #include "barretenberg/honk/utils/power_polynomial.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
@@ -71,11 +74,14 @@ UltraProver_<Flavor>::UltraProver_(std::shared_ptr<typename Flavor::ProvingKey> 
     prover_polynomials.w_r_shift = key->w_r.shifted();
     prover_polynomials.w_o_shift = key->w_o.shifted();
 
-    // Add public inputs to transcript from the second wire polynomial
+    // Add public inputs to transcript from the second wire polynomial; The PI have been written into the wires at the
+    // 0th or 1st index depending on whether or not a zero row is utilized.
     std::span<FF> public_wires_source = prover_polynomials.w_r;
+    const size_t pub_input_offset = Flavor::has_zero_row ? 1 : 0;
 
     for (size_t i = 0; i < key->num_public_inputs; ++i) {
-        public_inputs.emplace_back(public_wires_source[i]);
+        size_t idx = i + pub_input_offset;
+        public_inputs.emplace_back(public_wires_source[idx]);
     }
 }
 
@@ -156,7 +162,7 @@ template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_grand_product_c
     // Compute and store parameters required by relations in Sumcheck
     auto [beta, gamma] = transcript.get_challenges("beta", "gamma");
 
-    auto public_input_delta = compute_public_input_delta<FF>(public_inputs, beta, gamma, key->circuit_size);
+    auto public_input_delta = compute_public_input_delta<Flavor>(public_inputs, beta, gamma, key->circuit_size);
     auto lookup_grand_product_delta = compute_lookup_grand_product_delta(beta, gamma, key->circuit_size);
 
     relation_parameters.beta = beta;
@@ -164,18 +170,11 @@ template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_grand_product_c
     relation_parameters.public_input_delta = public_input_delta;
     relation_parameters.lookup_grand_product_delta = lookup_grand_product_delta;
 
-    // Compute permutation grand product and its commitment
-    key->z_perm = prover_library::compute_permutation_grand_product<Flavor>(key, beta, gamma);
+    // Compute permutation + lookup grand product and their commitments
+    grand_product_library::compute_grand_products<Flavor>(key, prover_polynomials, relation_parameters);
+
     queue.add_commitment(key->z_perm, commitment_labels.z_perm);
-
-    // Compute lookup grand product and its commitment
-    key->z_lookup = prover_library::compute_lookup_grand_product<Flavor>(key, relation_parameters.eta, beta, gamma);
     queue.add_commitment(key->z_lookup, commitment_labels.z_lookup);
-
-    prover_polynomials.z_perm = key->z_perm;
-    prover_polynomials.z_perm_shift = key->z_perm.shifted();
-    prover_polynomials.z_lookup = key->z_lookup;
-    prover_polynomials.z_lookup_shift = key->z_lookup.shifted();
 }
 
 /**

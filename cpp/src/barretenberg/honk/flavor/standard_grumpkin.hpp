@@ -43,6 +43,8 @@ class StandardGrumpkin {
     // The total number of witness entities not including shifts.
     static constexpr size_t NUM_WITNESS_ENTITIES = 4;
 
+    // define the tuple of Relations that require grand products
+    using GrandProductRelations = std::tuple<sumcheck::PermutationRelation<FF>>;
     // define the tuple of Relations that comprise the Sumcheck relation
     using Relations = std::tuple<sumcheck::ArithmeticRelation<FF>, sumcheck::PermutationRelation<FF>>;
 
@@ -57,8 +59,8 @@ class StandardGrumpkin {
     using RelationUnivariates = decltype(create_relation_univariates_container<FF, Relations>());
     using RelationValues = decltype(create_relation_values_container<FF, Relations>());
 
-    // define utilities to extend univarates from RELATION_LENGTH to MAX_RELATION_LENGTH for each Relation
-    // using BarycentricUtils = decltype(create_barycentric_utils<FF, Relations, MAX_RELATION_LENGTH>());
+    // Whether or not the first row of the execution trace is reserved for 0s to enable shifts
+    static constexpr bool has_zero_row = false;
 
   private:
     /**
