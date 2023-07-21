@@ -2,6 +2,8 @@ FROM 278380418400.dkr.ecr.eu-west-2.amazonaws.com/barretenberg-x86_64-linux-clan
 FROM 278380418400.dkr.ecr.eu-west-2.amazonaws.com/bb.js
 
 FROM node:18-alpine
+
+RUN apk add --update cmake
 RUN apk update && apk add git bash curl
 COPY --from=0 /usr/src/barretenberg/cpp/build /usr/src/barretenberg/cpp/build
 COPY --from=1 /usr/src/barretenberg/ts /usr/src/barretenberg/ts
