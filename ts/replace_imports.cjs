@@ -14,11 +14,13 @@ async function replaceImports() {
         to: `'./${buildTarget}/index.js';`,
       });
     });
+    const filePath = path.resolve(__dirname, `dest/${buildTarget}/barretenberg_wasm/${buildTarget}/index.js`);
+    // Grab the contents for a hacky check if this has ran twice
     const contents = fs.readFileSync(filePath, 'utf8');
     // hack to allow for shared .wasm files between build targets
     if (contents.includes('../../') && !contents.includes('../../../')) {
       await replaceInFile({
-        files: path.resolve(__dirname, `dest/${buildTarget}/barretenberg_wasm/${buildTarget}/index.js`),
+        files: filePath,
         from: /\.\.\/\.\.\//g,
         to: `../../../`,
       });
