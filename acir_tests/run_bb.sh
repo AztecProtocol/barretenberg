@@ -1,3 +1,4 @@
 #!/bin/bash
-# Used to explicitly call node TODO did htis help
-exec node ../../ts/dest/node/main.js $@
+# Used to call this script from a stable path
+DIR=$(dirname "$0")
+exec node "$DIR/../ts/dest/node/main.js" $@
