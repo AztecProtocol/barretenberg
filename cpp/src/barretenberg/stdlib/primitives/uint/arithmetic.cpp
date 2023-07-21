@@ -313,6 +313,7 @@ std::pair<uint<Composer, Native>, uint<Composer, Native>> uint<Composer, Native>
         field_t<Composer> one = field_t<Composer>::from_witness_index(context, 1);
         field_t<Composer> zero = field_t<Composer>::from_witness_index(context, 0);
         one / zero;
+        context->failure("uint division by 0.");
     } else if (!other.is_constant()) {
         const bool_t<Composer> is_divisor_zero = field_t<Composer>(other).is_zero();
         field_t<Composer>(is_divisor_zero).assert_equal(0); // here 0 is a circuit constant

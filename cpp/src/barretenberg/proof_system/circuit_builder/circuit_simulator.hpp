@@ -80,6 +80,29 @@ class CircuitSimulatorBN254 {
         return {};
     };
 
+    std::vector<uint32_t> decompose_into_default_range(
+        [[maybe_unused]] const uint32_t variable_index,
+        [[maybe_unused]] const uint64_t num_bits,
+        [[maybe_unused]] const uint64_t target_range_bitnum = 1028,
+        [[maybe_unused]] std::string const& msg = "decompose_into_default_range")
+    {
+        return {};
+    };
+
+    std::vector<uint32_t> decompose_into_default_range_better_for_oddlimbnum(
+        [[maybe_unused]] const uint32_t variable_index,
+        [[maybe_unused]] const size_t num_bits,
+        [[maybe_unused]] std::string const& msg = "decompose_into_default_range_better_for_oddlimbnum")
+    {
+        return {};
+    };
+    void create_dummy_constraints([[maybe_unused]] const std::vector<uint32_t>& variable_index){};
+    void create_sort_constraint([[maybe_unused]] const std::vector<uint32_t>& variable_index){};
+    void create_sort_constraint_with_edges([[maybe_unused]] const std::vector<uint32_t>& variable_index,
+                                           [[maybe_unused]] const FF&,
+                                           [[maybe_unused]] const FF&){};
+    void assign_tag([[maybe_unused]] const uint32_t variable_index, [[maybe_unused]] const uint32_t tag){};
+
     accumulator_triple create_and_constraint([[maybe_unused]] const uint32_t a,
                                              [[maybe_unused]] const uint32_t b,
                                              [[maybe_unused]] const size_t num_bits)
