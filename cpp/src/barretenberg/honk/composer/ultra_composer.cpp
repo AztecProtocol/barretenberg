@@ -52,46 +52,30 @@ template <UltraFlavor Flavor> void UltraComposer_<Flavor>::compute_witness(Circu
         return;
     }
 
-    // WORKTODO: I dont think this is necessary at all but leaving here for now so as not to complicate my life.
-    // At this point, the wires have been populated with as many values as rows in the execution trace. We need to pad
-    // with zeros up to the full length, i.e. total_num_gates = already populated rows of execution trace + tables_size.
-    for (size_t i = 0; i < tables_size; ++i) {
-        circuit_constructor.w_l.emplace_back(10);
-        circuit_constructor.w_r.emplace_back(circuit_constructor.zero_idx);
-        circuit_constructor.w_o.emplace_back(circuit_constructor.zero_idx);
-        circuit_constructor.w_4.emplace_back(circuit_constructor.zero_idx);
-    }
-
+    // Construct the conventional wire polynomials
     auto wire_polynomials = construct_wire_polynomials_base<Flavor>(circuit_constructor, dyadic_circuit_size);
-
-    if constexpr (IsGoblinFlavor<Flavor>) {
-        construct_ecc_op_wire_polynomials(wire_polynomials);
-    }
 
     proving_key->w_l = wire_polynomials[0];
     proving_key->w_r = wire_polynomials[1];
     proving_key->w_o = wire_polynomials[2];
     proving_key->w_4 = wire_polynomials[3];
 
+    // If Goblin, construct the ECC op queue wire polynomials
+    if constexpr (IsGoblinFlavor<Flavor>) {
+        construct_ecc_op_wire_polynomials(wire_polynomials);
+    }
+
+    // Construct the sorted concatenated list polynomials for the lookup argument
     polynomial s_1(dyadic_circuit_size);
     polynomial s_2(dyadic_circuit_size);
     polynomial s_3(dyadic_circuit_size);
     polynomial s_4(dyadic_circuit_size);
-    // TODO(luke): The +1 size for z_lookup is not necessary and can lead to confusion. Resolve.
-    polynomial z_lookup(dyadic_circuit_size + 1); // Only instantiated in this function; nothing assigned.
 
-    // TODO(kesha): Look at this once we figure out how we do ZK (previously we had roots cut out, so just added
-    // randomness)
-    // The size of empty space in sorted polynomials
-    size_t count = dyadic_circuit_size - tables_size - lookups_size;
-    ASSERT(count > 0); // We need at least 1 row of zeroes for the permutation argument
-    // WORKTODO: this is also not necessary; polynomial coeffs are initialized to zero.
-    for (size_t i = 0; i < count; ++i) {
-        s_1[i] = 0;
-        s_2[i] = 0;
-        s_3[i] = 0;
-        s_4[i] = 0;
-    }
+    // The sorted list polynomials have M = tables_size + lookups_size populated entries. We define the index below so
+    // that these entries are written into the last M indices of the polynomials. The values on the first
+    // dyadic_circuit_size - M indices are automatically initialized to zero via the polynomial constructor.
+    size_t s_index = dyadic_circuit_size - tables_size - lookups_size;
+    ASSERT(s_index > 0); // We need at least 1 row of zeroes for the permutation argument
 
     for (auto& table : circuit_constructor.lookup_tables) {
         const fr table_index(table.table_index);
@@ -130,11 +114,11 @@ template <UltraFlavor Flavor> void UltraComposer_<Flavor>::compute_witness(Circu
 
         for (const auto& entry : lookup_gates) {
             const auto components = entry.to_sorted_list_components(table.use_twin_keys);
-            s_1[count] = components[0];
-            s_2[count] = components[1];
-            s_3[count] = components[2];
-            s_4[count] = table_index;
-            ++count;
+            s_1[s_index] = components[0];
+            s_2[s_index] = components[1];
+            s_3[s_index] = components[2];
+            s_4[s_index] = table_index;
+            ++s_index;
         }
     }
 
@@ -148,7 +132,7 @@ template <UltraFlavor Flavor> void UltraComposer_<Flavor>::compute_witness(Circu
     // 'record' witness on the 4th wire. This wire value can only be fully computed once the first 3 wire polynomials
     // have been committed to. The 4th wire on these gates will be a random linear combination of the first 3 wires,
     // using the plookup challenge `eta`. We need to update the records with an offset Because we shift the gates to
-    // account for public inputs, a zero row, etc.
+    // account for everything that comes before them in the execution trace, e.g. public inputs, a zero row, etc.
     auto add_public_inputs_offset = [this](uint32_t gate_index) {
         size_t offset = num_ecc_op_gates + num_public_inputs + num_zero_rows;
         return gate_index + offset;

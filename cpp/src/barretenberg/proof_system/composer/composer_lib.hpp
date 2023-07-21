@@ -34,7 +34,7 @@ void construct_selector_polynomials(const typename Flavor::CircuitBuilder& circu
         for (size_t i = 0; i < num_ecc_op_gates; ++i) {
             selector_poly_lagrange[i + op_gate_offset] = 1;
         }
-        proving_key->q_ecc_op_queue = selector_poly_lagrange;
+        proving_key->lagrange_ecc_op = selector_poly_lagrange;
     }
 
     // TODO(#398): Loose coupling here! Would rather build up pk from arithmetization
@@ -63,8 +63,11 @@ void construct_selector_polynomials(const typename Flavor::CircuitBuilder& circu
 /**
  * @brief Construct the witness polynomials from the witness vectors in the circuit constructor.
  *
- * @details The first two witness polynomials begin with the public input values.
- * WORKTODO: add a comment here that broadly explains the block concept
+ * @details We can think of the entries in the wire polynomials as reflecting the structure of the circuit execution
+ * trace. The execution trace is broken up into several distinct blocks, depending on Flavor. For example, for Goblin
+ * Ultra Honk, the order is: leading zero row, ECC op gates, public inputs, conventional wires. We construct the
+ * wire polynomials accordingly by applying appropriate "offsets" for each block. The actual values are determined by
+ * corresponding arrays of indices into the variables vector of the circuit builder.
  *
  * @tparam Flavor provides the circuit constructor type and the number of wires.
  * @param circuit_constructor
@@ -76,7 +79,7 @@ template <typename Flavor>
 std::vector<barretenberg::polynomial> construct_wire_polynomials_base(
     const typename Flavor::CircuitBuilder& circuit_constructor, const size_t dyadic_circuit_size)
 {
-    // Determine size of each block in the execution trace
+    // Determine size of each block of data in the wire polynomials
     const size_t num_zero_rows = Flavor::has_zero_row ? 1 : 0;
     const size_t num_gates = circuit_constructor.num_gates;
     std::span<const uint32_t> public_inputs = circuit_constructor.public_inputs;
@@ -99,7 +102,7 @@ std::vector<barretenberg::polynomial> construct_wire_polynomials_base(
         // Expect all values to be set to 0 initially
         barretenberg::polynomial w_lagrange(dyadic_circuit_size);
 
-        // Insert zero row values into wire polynomial
+        // Insert leading zero row into wire poly (for clarity; not stricly necessary due to zero-initialization)
         for (size_t i = 0; i < num_zero_rows; ++i) {
             w_lagrange[i] = circuit_constructor.get_variable(circuit_constructor.zero_idx);
         }

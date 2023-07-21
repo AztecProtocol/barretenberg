@@ -95,22 +95,21 @@ class GoblinUltra {
         DataType& q_elliptic = std::get<8>(this->_data);
         DataType& q_aux = std::get<9>(this->_data);
         DataType& q_lookup = std::get<10>(this->_data);
-        // WORKTODO: this is more like "lagrange_first" than a selector. chi_ecc_op_queue?
-        DataType& q_ecc_op_queue = std::get<11>(this->_data);
-        DataType& sigma_1 = std::get<12>(this->_data);
-        DataType& sigma_2 = std::get<13>(this->_data);
-        DataType& sigma_3 = std::get<14>(this->_data);
-        DataType& sigma_4 = std::get<15>(this->_data);
-        DataType& id_1 = std::get<16>(this->_data);
-        DataType& id_2 = std::get<17>(this->_data);
-        DataType& id_3 = std::get<18>(this->_data);
-        DataType& id_4 = std::get<19>(this->_data);
-        DataType& table_1 = std::get<20>(this->_data);
-        DataType& table_2 = std::get<21>(this->_data);
-        DataType& table_3 = std::get<22>(this->_data);
-        DataType& table_4 = std::get<23>(this->_data);
-        DataType& lagrange_first = std::get<24>(this->_data);
-        DataType& lagrange_last = std::get<25>(this->_data);
+        DataType& sigma_1 = std::get<11>(this->_data);
+        DataType& sigma_2 = std::get<12>(this->_data);
+        DataType& sigma_3 = std::get<13>(this->_data);
+        DataType& sigma_4 = std::get<14>(this->_data);
+        DataType& id_1 = std::get<15>(this->_data);
+        DataType& id_2 = std::get<16>(this->_data);
+        DataType& id_3 = std::get<17>(this->_data);
+        DataType& id_4 = std::get<18>(this->_data);
+        DataType& table_1 = std::get<19>(this->_data);
+        DataType& table_2 = std::get<20>(this->_data);
+        DataType& table_3 = std::get<21>(this->_data);
+        DataType& table_4 = std::get<22>(this->_data);
+        DataType& lagrange_first = std::get<23>(this->_data);
+        DataType& lagrange_last = std::get<24>(this->_data);
+        DataType& lagrange_ecc_op = std::get<25>(this->_data); // indicator poly for ecc op gates
 
         static constexpr CircuitType CIRCUIT_TYPE = CircuitBuilder::CIRCUIT_TYPE;
 
@@ -179,21 +178,21 @@ class GoblinUltra {
         DataType& q_elliptic = std::get<8>(this->_data);
         DataType& q_aux = std::get<9>(this->_data);
         DataType& q_lookup = std::get<10>(this->_data);
-        DataType& q_ecc_op_queue = std::get<11>(this->_data);
-        DataType& sigma_1 = std::get<12>(this->_data);
-        DataType& sigma_2 = std::get<13>(this->_data);
-        DataType& sigma_3 = std::get<14>(this->_data);
-        DataType& sigma_4 = std::get<15>(this->_data);
-        DataType& id_1 = std::get<16>(this->_data);
-        DataType& id_2 = std::get<17>(this->_data);
-        DataType& id_3 = std::get<18>(this->_data);
-        DataType& id_4 = std::get<19>(this->_data);
-        DataType& table_1 = std::get<20>(this->_data);
-        DataType& table_2 = std::get<21>(this->_data);
-        DataType& table_3 = std::get<22>(this->_data);
-        DataType& table_4 = std::get<23>(this->_data);
-        DataType& lagrange_first = std::get<24>(this->_data);
-        DataType& lagrange_last = std::get<25>(this->_data);
+        DataType& sigma_1 = std::get<11>(this->_data);
+        DataType& sigma_2 = std::get<12>(this->_data);
+        DataType& sigma_3 = std::get<13>(this->_data);
+        DataType& sigma_4 = std::get<14>(this->_data);
+        DataType& id_1 = std::get<15>(this->_data);
+        DataType& id_2 = std::get<16>(this->_data);
+        DataType& id_3 = std::get<17>(this->_data);
+        DataType& id_4 = std::get<18>(this->_data);
+        DataType& table_1 = std::get<19>(this->_data);
+        DataType& table_2 = std::get<20>(this->_data);
+        DataType& table_3 = std::get<21>(this->_data);
+        DataType& table_4 = std::get<22>(this->_data);
+        DataType& lagrange_first = std::get<23>(this->_data);
+        DataType& lagrange_last = std::get<24>(this->_data);
+        DataType& lagrange_ecc_op = std::get<25>(this->_data);
         DataType& w_l = std::get<26>(this->_data);
         DataType& w_r = std::get<27>(this->_data);
         DataType& w_o = std::get<28>(this->_data);
@@ -225,42 +224,24 @@ class GoblinUltra {
         // Gemini-specific getters.
         std::vector<HandleType> get_unshifted() override
         {
-            return { q_c,
-                     q_l,
-                     q_r,
-                     q_o,
-                     q_4,
-                     q_m,
-                     q_arith,
-                     q_sort,
-                     q_elliptic,
-                     q_aux,
-                     q_lookup,
-                     q_ecc_op_queue,
-                     sigma_1,
-                     sigma_2,
-                     sigma_3,
-                     sigma_4,
-                     id_1,
-                     id_2,
-                     id_3,
-                     id_4,
-                     table_1,
-                     table_2,
-                     table_3,
-                     table_4,
-                     lagrange_first,
-                     lagrange_last,
-                     w_l,
-                     w_r,
-                     w_o,
-                     w_4,
-                     sorted_accum,
-                     z_perm,
-                     z_lookup,
-                     ecc_op_wire_1,
-                     ecc_op_wire_2,
-                     ecc_op_wire_3,
+            return { q_c,           q_l,
+                     q_r,           q_o,
+                     q_4,           q_m,
+                     q_arith,       q_sort,
+                     q_elliptic,    q_aux,
+                     q_lookup,      sigma_1,
+                     sigma_2,       sigma_3,
+                     sigma_4,       id_1,
+                     id_2,          id_3,
+                     id_4,          table_1,
+                     table_2,       table_3,
+                     table_4,       lagrange_first,
+                     lagrange_last, lagrange_ecc_op,
+                     w_l,           w_r,
+                     w_o,           w_4,
+                     sorted_accum,  z_perm,
+                     z_lookup,      ecc_op_wire_1,
+                     ecc_op_wire_2, ecc_op_wire_3,
                      ecc_op_wire_4 };
         };
         std::vector<HandleType> get_to_be_shifted() override
@@ -404,7 +385,6 @@ class GoblinUltra {
             q_elliptic = "__Q_ELLIPTIC";
             q_aux = "__Q_AUX";
             q_lookup = "__Q_LOOKUP";
-            q_ecc_op_queue = "__Q_ECC_OP_QUEUE";
             sigma_1 = "__SIGMA_1";
             sigma_2 = "__SIGMA_2";
             sigma_3 = "__SIGMA_3";
@@ -419,6 +399,7 @@ class GoblinUltra {
             table_4 = "__TABLE_4";
             lagrange_first = "__LAGRANGE_FIRST";
             lagrange_last = "__LAGRANGE_LAST";
+            lagrange_ecc_op = "__Q_ECC_OP_QUEUE";
         };
     };
 
@@ -438,7 +419,6 @@ class GoblinUltra {
             q_elliptic = verification_key->q_elliptic;
             q_aux = verification_key->q_aux;
             q_lookup = verification_key->q_lookup;
-            q_ecc_op_queue = verification_key->q_ecc_op_queue;
             sigma_1 = verification_key->sigma_1;
             sigma_2 = verification_key->sigma_2;
             sigma_3 = verification_key->sigma_3;
@@ -453,6 +433,7 @@ class GoblinUltra {
             table_4 = verification_key->table_4;
             lagrange_first = verification_key->lagrange_first;
             lagrange_last = verification_key->lagrange_last;
+            lagrange_ecc_op = verification_key->lagrange_ecc_op;
         }
     };
 };

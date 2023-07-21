@@ -100,7 +100,7 @@ std::vector<CyclicPermutation> compute_wire_copy_cycles(const typename Flavor::C
     size_t pub_inputs_offset = num_zero_rows;
     size_t gates_offset = num_public_inputs + num_zero_rows;
 
-    // If Goblin, adjust offsets to account for ecc op gates
+    // If Goblin, adjust offsets to account for ecc op gates and update copy cycles to include these gates
     if constexpr (IsGoblinFlavor<Flavor>) {
         // Set ecc op gate offset and update offsets for PI and conventional gates
         const size_t op_gates_offset = num_zero_rows;

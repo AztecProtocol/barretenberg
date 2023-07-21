@@ -27,7 +27,16 @@ template <typename FF> class EccOpQueueRelationBase {
     /**
      * @brief Expression for the generalized permutation sort gate.
      * @details The relation is defined as C(extended_edges(X)...) =
-     *    // WORKTODO: comments here and throughout relation!
+     *    \alpha_{base} *
+     *       ( \Sum_{i=0}^3 \alpha^i * (w_i - w_{op,i}) * \chi_{ecc_op} +
+     *         \Sum_{i=0}^3 \alpha^{i+4} w_{op,i} * \bar{\chi}_{ecc_op} )
+     *
+     * where w_{op,i} are the ecc op gate wires, \chi_{ecc_op} is the indicator for the portion of the domain
+     * representing ecc op gates and \bar{\chi} is the indicator on the complementary domain.
+     *
+     * The first four sub-relations check that the values in the conventional wires are identical to the values in the
+     * ecc op wires over the portion of the execution trace representing ECC op queue gates. The next four check
+     * that the op wire polynomials are identically zero everywhere else.
      *
      * @param evals transformed to `evals + C(extended_edges(X)...)*scaling_factor`
      * @param extended_edges an std::array containing the fully extended Univariate edges.
@@ -51,52 +60,52 @@ template <typename FF> class EccOpQueueRelationBase {
         auto op_wire_2 = View(extended_edges.ecc_op_wire_2);
         auto op_wire_3 = View(extended_edges.ecc_op_wire_3);
         auto op_wire_4 = View(extended_edges.ecc_op_wire_4);
-        auto q_ecc_op_queue = View(extended_edges.q_ecc_op_queue);
+        auto lagrange_ecc_op = View(extended_edges.lagrange_ecc_op);
 
-        // If q_ecc_op_queue is the indicator for ecc_op_gates, this is the indicator for the complement
-        auto complement_q_ecc_op = q_ecc_op_queue * FF(-1) + FF(1);
+        // If lagrange_ecc_op is the indicator for ecc_op_gates, this is the indicator for the complement
+        auto complement_ecc_op = lagrange_ecc_op * FF(-1) + FF(1);
 
         // Contribution (1)
         auto tmp = op_wire_1 - w_1;
-        tmp *= q_ecc_op_queue;
+        tmp *= lagrange_ecc_op;
         tmp *= scaling_factor;
         std::get<0>(accumulators) += tmp;
 
         // Contribution (2)
         tmp = op_wire_2 - w_2;
-        tmp *= q_ecc_op_queue;
+        tmp *= lagrange_ecc_op;
         tmp *= scaling_factor;
         std::get<1>(accumulators) += tmp;
 
         // Contribution (3)
         tmp = op_wire_3 - w_3;
-        tmp *= q_ecc_op_queue;
+        tmp *= lagrange_ecc_op;
         tmp *= scaling_factor;
         std::get<2>(accumulators) += tmp;
 
         // Contribution (4)
         tmp = op_wire_4 - w_4;
-        tmp *= q_ecc_op_queue;
+        tmp *= lagrange_ecc_op;
         tmp *= scaling_factor;
         std::get<3>(accumulators) += tmp;
 
         // Contribution (5)
-        tmp = op_wire_1 * complement_q_ecc_op;
+        tmp = op_wire_1 * complement_ecc_op;
         tmp *= scaling_factor;
         std::get<4>(accumulators) += tmp;
 
         // Contribution (6)
-        tmp = op_wire_2 * complement_q_ecc_op;
+        tmp = op_wire_2 * complement_ecc_op;
         tmp *= scaling_factor;
         std::get<5>(accumulators) += tmp;
 
         // Contribution (7)
-        tmp = op_wire_3 * complement_q_ecc_op;
+        tmp = op_wire_3 * complement_ecc_op;
         tmp *= scaling_factor;
         std::get<6>(accumulators) += tmp;
 
         // Contribution (8)
-        tmp = op_wire_4 * complement_q_ecc_op;
+        tmp = op_wire_4 * complement_ecc_op;
         tmp *= scaling_factor;
         std::get<7>(accumulators) += tmp;
     };

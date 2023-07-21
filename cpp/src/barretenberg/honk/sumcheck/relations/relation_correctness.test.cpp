@@ -474,7 +474,7 @@ TEST_F(RelationCorrectnessTests, GoblinUltraRelationCorrectness)
 
     ProverPolynomials prover_polynomials;
 
-    prover_polynomials.q_ecc_op_queue = prover.key->q_ecc_op_queue;
+    prover_polynomials.lagrange_ecc_op = prover.key->lagrange_ecc_op;
     prover_polynomials.ecc_op_wire_1 = prover.key->ecc_op_wire_1;
     prover_polynomials.ecc_op_wire_2 = prover.key->ecc_op_wire_2;
     prover_polynomials.ecc_op_wire_3 = prover.key->ecc_op_wire_3;

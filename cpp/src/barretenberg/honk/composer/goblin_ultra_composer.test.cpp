@@ -56,7 +56,7 @@ TEST_F(GoblinUltraHonkComposerTests, Basic)
     auto composer = GoblinUltraComposer();
 }
 
-// WORKTODO: flesh this out!
+// TODO(luke): flesh this out or rework once prover/verifier is implemented.
 TEST_F(GoblinUltraHonkComposerTests, BasicExecutionTraceOrdering)
 {
     auto builder = UltraCircuitBuilder();
@@ -98,7 +98,7 @@ TEST_F(GoblinUltraHonkComposerTests, BasicExecutionTraceOrdering)
     auto circuit_size = prover.key->circuit_size;
 
     // Check that the ecc op selector is 1 on the block of ecc op gates and 0 elsewhere
-    auto q_ecc_op = prover.key->q_ecc_op_queue;
+    auto q_ecc_op = prover.key->lagrange_ecc_op;
     for (size_t i = 0; i < circuit_size; ++i) {
         auto val = q_ecc_op[i];
         auto anti_val = q_ecc_op[i] * (-1) + 1; // also needed in realtion
@@ -113,7 +113,6 @@ TEST_F(GoblinUltraHonkComposerTests, BasicExecutionTraceOrdering)
 
     auto op_wire_2 = prover.key->ecc_op_wire_2;
     auto w_2 = prover.key->w_r;
-    // q_ecc_op = prover.key->q_ecc_op_queue;
     for (size_t i = 0; i < circuit_size; ++i) {
         auto op_val = op_wire_2[i];
         auto val = w_2[i];
