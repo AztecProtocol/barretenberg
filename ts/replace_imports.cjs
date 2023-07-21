@@ -1,4 +1,5 @@
 const replaceInFile = require('replace-in-file');
+const fs = require('fs');
 const path = require('path');
 
 const buildTarget = process.env.BUILD_TARGET;
