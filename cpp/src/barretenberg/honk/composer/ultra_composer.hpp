@@ -30,7 +30,7 @@ template <UltraFlavor Flavor> class UltraComposer_ {
     std::shared_ptr<VerificationKey> verification_key;
 
     // The crs_factory holds the path to the srs and exposes methods to extract the srs elements
-    std::shared_ptr<srs::factories::CrsFactory> crs_factory_;
+    std::shared_ptr<srs::factories::CrsFactory<typename Flavor::Curve>> crs_factory_;
 
     // The commitment key is passed to the prover but also used herein to compute the verfication key commitments
     std::shared_ptr<PCSCommitmentKey> commitment_key;
@@ -47,7 +47,7 @@ template <UltraFlavor Flavor> class UltraComposer_ {
     UltraComposer_()
         : crs_factory_(barretenberg::srs::get_crs_factory()){};
 
-    explicit UltraComposer_(std::shared_ptr<srs::factories::CrsFactory> crs_factory)
+    explicit UltraComposer_(std::shared_ptr<srs::factories::CrsFactory<typename Flavor::Curve>> crs_factory)
         : crs_factory_(std::move(crs_factory))
     {}
 

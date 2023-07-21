@@ -27,7 +27,7 @@ void construct_selector_polynomials(const typename Flavor::CircuitBuilder& circu
 
         // Copy the selector values for all gates, keeping the rows at which we store public inputs as 0.
         // Initializing the polynomials in this way automatically applies 0-padding to the selectors.
-        barretenberg::polynomial selector_poly_lagrange(proving_key->circuit_size);
+        typename Flavor::Polynomial selector_poly_lagrange(proving_key->circuit_size);
         for (size_t i = 0; i < selector_values.size(); ++i) {
             selector_poly_lagrange[i + gate_offset] = selector_values[i];
         }
@@ -53,24 +53,24 @@ void construct_selector_polynomials(const typename Flavor::CircuitBuilder& circu
  * @param circuit_constructor
  * @param dyadic_circuit_size Power of 2 circuit size
  *
- * @return std::vector<barretenberg::polynomial>
+ * @return std::vector<typename Flavor::Polynomial>
  * */
 template <typename Flavor>
-std::vector<barretenberg::polynomial> construct_wire_polynomials_base(
+std::vector<typename Flavor::Polynomial> construct_wire_polynomials_base(
     const typename Flavor::CircuitBuilder& circuit_constructor, const size_t dyadic_circuit_size)
 {
     const size_t zero_row_offset = Flavor::has_zero_row ? 1 : 0;
     std::span<const uint32_t> public_inputs = circuit_constructor.public_inputs;
     const size_t num_public_inputs = public_inputs.size();
 
-    std::vector<barretenberg::polynomial> wire_polynomials;
+    std::vector<typename Flavor::Polynomial> wire_polynomials;
     // Note: randomness is added to 3 of the last 4 positions in plonk/proof_system/prover/prover.cpp
     // StandardProverBase::execute_preamble_round().
     size_t wire_idx = 0; // TODO(#391) zip
     for (auto& wire : circuit_constructor.wires) {
         // Initialize the polynomial with all the actual copies variable values
         // Expect all values to be set to 0 initially
-        barretenberg::polynomial w_lagrange(dyadic_circuit_size);
+        typename Flavor::Polynomial w_lagrange(dyadic_circuit_size);
 
         // Place all public inputs at the start of the first two wires, possibly offset by a zero row.
         // All selectors at these indices are set to 0, so these values are not constrained at all.

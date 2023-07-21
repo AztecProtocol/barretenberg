@@ -1,4 +1,5 @@
 #pragma once
+#include "barretenberg/ecc/curves/bn254/bn254.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/plonk/proof_system/verification_key/verification_key.hpp"
 
@@ -77,6 +78,7 @@ void compute_monomial_and_coset_selector_forms(plonk::proving_key* key,
  */
 std::shared_ptr<plonk::verification_key> compute_verification_key_common(
     std::shared_ptr<plonk::proving_key> const& proving_key,
-    std::shared_ptr<barretenberg::srs::factories::VerifierCrs> const& vrs);
+    // silencing for now but need to figure out where to extract type of VerifierCrs from :-/
+    std::shared_ptr<barretenberg::srs::factories::VerifierCrs<curve::BN254>> const& vrs);
 
 } // namespace proof_system::plonk

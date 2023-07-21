@@ -411,11 +411,19 @@ TEST_F(StandardHonkComposerTests, SumcheckEvaluations)
     run_test(/*expected_result=*/true);
     run_test(/*expected_result=*/false);
 }
-TEST(StandardGrumpkinHonkComposer, BaseCase)
+
+class StandardGrumpkinHonkComposerTests : public ::testing::Test {
+  protected:
+    static void SetUpTestSuite() { barretenberg::srs::init_grumpkin_crs_factory("../srs_db/grumpkin"); }
+};
+
+TEST_F(StandardGrumpkinHonkComposerTests, BaseCase)
 {
-    auto circuit_constructor = StandardCircuitBuilder();
-    fr a = 1;
+    auto circuit_constructor = StandardGrumpkinCircuitBuilder();
+    grumpkin::fr a = grumpkin::fr::one();
+    grumpkin::fr b = grumpkin::fr::one();
     circuit_constructor.add_variable(a);
+    circuit_constructor.add_variable(b);
 
     auto composer = StandardGrumpkinComposer();
     auto prover = composer.create_prover(circuit_constructor);
