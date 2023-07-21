@@ -102,7 +102,8 @@ field_t<C> pedersen_commitment<C>::compress(const std::vector<field_t>& inputs, 
         for (auto& input : inputs) {
             native_inputs.push_back(input.get_value());
         }
-        return witness_t<C>(inputs[0].context, crypto::pedersen_commitment::commit_native(native_inputs, hash_index).x);
+        return witness_t<C>(inputs[0].context,
+                            crypto::pedersen_commitment::lookup::commit_native(native_inputs, hash_index).x);
     } else {
         return commit(inputs, hash_index).x;
     }

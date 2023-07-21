@@ -2,6 +2,7 @@
 #include "../../primitives/circuit_builders/circuit_builders_fwd.hpp"
 #include "../../primitives/field/field.hpp"
 #include "../../primitives/point/point.hpp"
+#include "barretenberg/crypto/pedersen_commitment/pedersen_lookup.hpp"
 #include "barretenberg/crypto/pedersen_hash/pedersen.hpp"
 
 namespace proof_system::plonk {
