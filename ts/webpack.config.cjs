@@ -1,5 +1,7 @@
 /**
  * Builds both the web and node version of the worker, and outputs it to the dest directory.
+ * NOTE: Currently only runs on web, has issues with translating node imports to require.
+ * Currently node passes only through typescript compiler.
  */
 const path = require('path');
 const ResolveTypeScriptPlugin = require('resolve-typescript-plugin');
@@ -10,12 +12,12 @@ const { resolve } = path;
 
 const buildTarget = process.env.BUILD_TARGET;
 const isNode = buildTarget === 'node';
-const configFile = path.resolve(__dirname, `./tsconfig.${buildTarget}.json`) ;
+const configFile = path.resolve(__dirname, `./tsconfig.${buildTarget}.json`);
 
 module.exports = {
   mode: 'production',
   entry: './src/index.ts',
-  target: isNode ? "node" : "web",
+  target: isNode ? 'node' : 'web',
   output: {
     path: resolve(__dirname, `./dest/${buildTarget}`),
     filename: '[name].js',
@@ -29,10 +31,7 @@ module.exports = {
     ],
   },
   resolve: {
-    plugins: [
-      new ResolveTypeScriptPlugin(),
-      new TsconfigPathsPlugin({ configFile })
-    ],
+    plugins: [new ResolveTypeScriptPlugin(), new TsconfigPathsPlugin({ configFile })],
   },
   optimization: {
     minimize: isNode,
@@ -53,4 +52,4 @@ module.exports = {
       ],
     }),
   ],
-}
+};

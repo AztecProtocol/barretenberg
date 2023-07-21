@@ -1,4 +1,5 @@
 const replaceInFile = require('replace-in-file');
+const fs = require('fs');
 const path = require('path');
 
 const buildTarget = process.env.BUILD_TARGET;
@@ -12,14 +13,18 @@ async function replaceImports() {
         from: new RegExp(`'dynamic\\/${item}';`, 'g'),
         to: `'./${buildTarget}/index.js';`,
       });
-    });    
-
-    // hack to allow for shared .wasm files between build targets
-    await replaceInFile({
-      files: path.resolve(__dirname, `dest/${buildTarget}/barretenberg_wasm/${buildTarget}/index.js`),
-      from: /\.\.\/\.\.\//g,
-      to: `../../../`,
     });
+    const filePath = path.resolve(__dirname, `dest/${buildTarget}/barretenberg_wasm/${buildTarget}/index.js`);
+    // Grab the contents for a hacky check if this has ran twice
+    const contents = fs.readFileSync(filePath, 'utf8');
+    // hack to allow for shared .wasm files between build targets
+    if (contents.includes('../../') && !contents.includes('../../../')) {
+      await replaceInFile({
+        files: filePath,
+        from: /\.\.\/\.\.\//g,
+        to: `../../../`,
+      });
+    }
   } catch (error) {
     console.error('Error occurred:', error);
   }
