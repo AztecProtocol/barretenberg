@@ -52,6 +52,7 @@ class Ultra {
     // The total number of witness entities not including shifts.
     static constexpr size_t NUM_WITNESS_ENTITIES = 11;
 
+    using GrandProductRelations = std::tuple<sumcheck::UltraPermutationRelation<FF>, sumcheck::LookupRelation<FF>>;
     // define the tuple of Relations that comprise the Sumcheck relation
     using Relations = std::tuple<sumcheck::UltraArithmeticRelation<FF>,
                                  sumcheck::UltraPermutationRelation<FF>,
@@ -70,6 +71,9 @@ class Ultra {
     // define the container for storing the univariate contribution from each relation in Sumcheck
     using RelationUnivariates = decltype(create_relation_univariates_container<FF, Relations>());
     using RelationValues = decltype(create_relation_values_container<FF, Relations>());
+
+    // Whether or not the first row of the execution trace is reserved for 0s to enable shifts
+    static constexpr bool has_zero_row = true;
 
   private:
     template <typename DataType, typename HandleType>
