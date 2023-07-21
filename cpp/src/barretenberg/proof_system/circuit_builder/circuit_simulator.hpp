@@ -19,6 +19,7 @@ class CircuitSimulatorBN254 {
     static constexpr std::string_view NAME_STRING = "SIMULATOR";
     bool contains_recursive_proof = false;
     static constexpr size_t UINT_LOG2_BASE = 2; // WORKTODO: 6 for Ultra
+    static constexpr size_t DEFAULT_PLOOKUP_RANGE_BITNUM = 1028;
 
     static constexpr size_t num_gates = 0;
     static constexpr uint32_t zero_idx = 0;
