@@ -87,11 +87,15 @@ void add_plookup_memory_records_to_wire_4(std::shared_ptr<typename Flavor::Provi
     }
 }
 
+// flavor::Ultra
+
 template typename honk::flavor::Ultra::Polynomial compute_sorted_list_accumulator<honk::flavor::Ultra>(
     std::shared_ptr<typename honk::flavor::Ultra::ProvingKey>& key, typename honk::flavor::Ultra::FF eta);
 
 template void add_plookup_memory_records_to_wire_4<honk::flavor::Ultra>(
     std::shared_ptr<typename honk::flavor::Ultra::ProvingKey>& key, typename honk::flavor::Ultra::FF eta);
+
+// flavor::UltraGrumpkin
 
 template typename honk::flavor::UltraGrumpkin::Polynomial compute_sorted_list_accumulator<honk::flavor::UltraGrumpkin>(
     std::shared_ptr<typename honk::flavor::UltraGrumpkin::ProvingKey>& key,
@@ -100,3 +104,13 @@ template typename honk::flavor::UltraGrumpkin::Polynomial compute_sorted_list_ac
 template void add_plookup_memory_records_to_wire_4<honk::flavor::UltraGrumpkin>(
     std::shared_ptr<typename honk::flavor::UltraGrumpkin::ProvingKey>& key,
     typename honk::flavor::UltraGrumpkin::FF eta);
+
+// flavor::GoblinUltra
+
+template typename honk::flavor::GoblinUltra::Polynomial compute_sorted_list_accumulator<honk::flavor::GoblinUltra>(
+    std::shared_ptr<typename honk::flavor::GoblinUltra::ProvingKey>& key, typename honk::flavor::GoblinUltra::FF eta);
+
+template void add_plookup_memory_records_to_wire_4<honk::flavor::GoblinUltra>(
+    std::shared_ptr<typename honk::flavor::GoblinUltra::ProvingKey>& key, typename honk::flavor::GoblinUltra::FF eta);
+
+} // namespace proof_system::honk::prover_library

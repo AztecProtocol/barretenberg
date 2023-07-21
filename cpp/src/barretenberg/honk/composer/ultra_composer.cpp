@@ -21,6 +21,7 @@ void UltraComposer_<Flavor>::compute_circuit_size_parameters(CircuitBuilder& cir
         lookups_size += table.lookup_gates.size();
     }
 
+    const size_t num_gates = circuit_constructor.num_gates;
     num_public_inputs = circuit_constructor.public_inputs.size();
 
     // If Goblin, we must account for ecc op gates

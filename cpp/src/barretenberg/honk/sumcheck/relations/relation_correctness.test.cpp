@@ -466,12 +466,6 @@ TEST_F(RelationCorrectnessTests, GoblinUltraRelationCorrectness)
     // Add RAM/ROM memory records to wire four
     prover_library::add_plookup_memory_records_to_wire_4<Flavor>(prover.key, eta);
 
-    // Compute grand product polynomial
-    prover.key->z_perm = prover_library::compute_permutation_grand_product<Flavor>(prover.key, beta, gamma);
-
-    // Compute lookup grand product polynomial
-    prover.key->z_lookup = prover_library::compute_lookup_grand_product<Flavor>(prover.key, eta, beta, gamma);
-
     ProverPolynomials prover_polynomials;
 
     prover_polynomials.lagrange_ecc_op = prover.key->lagrange_ecc_op;
@@ -498,10 +492,6 @@ TEST_F(RelationCorrectnessTests, GoblinUltraRelationCorrectness)
     prover_polynomials.table_2_shift = prover.key->table_2.shifted();
     prover_polynomials.table_3_shift = prover.key->table_3.shifted();
     prover_polynomials.table_4_shift = prover.key->table_4.shifted();
-    prover_polynomials.z_perm = prover.key->z_perm;
-    prover_polynomials.z_perm_shift = prover.key->z_perm.shifted();
-    prover_polynomials.z_lookup = prover.key->z_lookup;
-    prover_polynomials.z_lookup_shift = prover.key->z_lookup.shifted();
     prover_polynomials.q_m = prover.key->q_m;
     prover_polynomials.q_l = prover.key->q_l;
     prover_polynomials.q_r = prover.key->q_r;
@@ -523,6 +513,9 @@ TEST_F(RelationCorrectnessTests, GoblinUltraRelationCorrectness)
     prover_polynomials.id_4 = prover.key->id_4;
     prover_polynomials.lagrange_first = prover.key->lagrange_first;
     prover_polynomials.lagrange_last = prover.key->lagrange_last;
+
+    // Compute grand product polynomials for permutation + lookup
+    grand_product_library::compute_grand_products<Flavor>(prover.key, prover_polynomials, params);
 
     // Check that selectors are nonzero to ensure corresponding relation has nontrivial contribution
     ensure_non_zero(prover.key->q_arith);
