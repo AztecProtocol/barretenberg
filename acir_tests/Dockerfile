@@ -6,8 +6,7 @@ RUN test -d /usr/src/barretenberg/ts || (echo "/usr/src/barretenberg/ts director
 
 FROM node:18-alpine
 
-RUN apk add --update cmake
-RUN apk update && apk add git bash curl
+RUN apk update && apk add cmake git bash curl
 COPY --from=builder1 /usr/src/barretenberg/cpp/build /usr/src/barretenberg/cpp/build
 COPY --from=builder2 /usr/src/barretenberg/ts /usr/src/barretenberg/ts
 WORKDIR /usr/src/barretenberg/acir_tests
