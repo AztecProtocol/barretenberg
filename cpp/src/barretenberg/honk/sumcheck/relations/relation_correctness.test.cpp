@@ -6,6 +6,7 @@
 #include "barretenberg/honk/proof_system/prover_library.hpp"
 #include "barretenberg/honk/sumcheck/relations/arithmetic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/auxiliary_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/ecc_op_queue_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/lookup_relation.hpp"
@@ -474,11 +475,10 @@ TEST_F(RelationCorrectnessTests, GoblinUltraRelationCorrectness)
     ProverPolynomials prover_polynomials;
 
     prover_polynomials.q_ecc_op_queue = prover.key->q_ecc_op_queue;
-    // WORKTODO: make this real
-    prover_polynomials.ecc_op_wire_1 = prover.key->w_l;
-    prover_polynomials.ecc_op_wire_2 = prover.key->w_l;
-    prover_polynomials.ecc_op_wire_3 = prover.key->w_l;
-    prover_polynomials.ecc_op_wire_4 = prover.key->w_l;
+    prover_polynomials.ecc_op_wire_1 = prover.key->ecc_op_wire_1;
+    prover_polynomials.ecc_op_wire_2 = prover.key->ecc_op_wire_2;
+    prover_polynomials.ecc_op_wire_3 = prover.key->ecc_op_wire_3;
+    prover_polynomials.ecc_op_wire_4 = prover.key->ecc_op_wire_4;
 
     prover_polynomials.w_l = prover.key->w_l;
     prover_polynomials.w_r = prover.key->w_r;
@@ -537,7 +537,8 @@ TEST_F(RelationCorrectnessTests, GoblinUltraRelationCorrectness)
                                 honk::sumcheck::LookupRelation<FF>(),
                                 honk::sumcheck::GenPermSortRelation<FF>(),
                                 honk::sumcheck::EllipticRelation<FF>(),
-                                honk::sumcheck::AuxiliaryRelation<FF>());
+                                honk::sumcheck::AuxiliaryRelation<FF>(),
+                                honk::sumcheck::EccOpQueueRelation<FF>());
 
     // Check that each relation is satisfied across each row of the prover polynomials
     check_relation<Flavor>(std::get<0>(relations), circuit_size, prover_polynomials, params);
@@ -546,6 +547,7 @@ TEST_F(RelationCorrectnessTests, GoblinUltraRelationCorrectness)
     check_relation<Flavor>(std::get<3>(relations), circuit_size, prover_polynomials, params);
     check_relation<Flavor>(std::get<4>(relations), circuit_size, prover_polynomials, params);
     check_relation<Flavor>(std::get<5>(relations), circuit_size, prover_polynomials, params);
+    check_relation<Flavor>(std::get<6>(relations), circuit_size, prover_polynomials, params);
 }
 
 } // namespace test_honk_relations

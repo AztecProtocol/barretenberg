@@ -70,7 +70,8 @@ TEST_F(GoblinUltraHonkComposerTests, BasicExecutionTraceOrdering)
 
     // Add some ecc op gates
     for (size_t i = 0; i < num_ecc_ops; ++i) {
-        builder.queue_ecc_add_accum(g1::affine_one);
+        auto point = g1::affine_one * fr::random_element();
+        builder.queue_ecc_add_accum(point);
     }
 
     // Add some public inputs
@@ -107,6 +108,17 @@ TEST_F(GoblinUltraHonkComposerTests, BasicExecutionTraceOrdering)
         } else {
             EXPECT_EQ(val, 0);
             EXPECT_EQ(anti_val, 1);
+        }
+    }
+
+    auto op_wire_2 = prover.key->ecc_op_wire_2;
+    auto w_2 = prover.key->w_r;
+    // q_ecc_op = prover.key->q_ecc_op_queue;
+    for (size_t i = 0; i < circuit_size; ++i) {
+        auto op_val = op_wire_2[i];
+        auto val = w_2[i];
+        if (i >= num_zero_rows && i < num_zero_rows + num_ecc_op_gates) {
+            EXPECT_EQ(val, op_val);
         }
     }
 }

@@ -5,6 +5,7 @@
 #include "barretenberg/honk/sumcheck/polynomials/barycentric_data.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
 #include "barretenberg/honk/sumcheck/relations/auxiliary_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/ecc_op_queue_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/lookup_relation.hpp"
@@ -58,8 +59,8 @@ class GoblinUltra {
                                  sumcheck::LookupRelation<FF>,
                                  sumcheck::GenPermSortRelation<FF>,
                                  sumcheck::EllipticRelation<FF>,
-                                 sumcheck::AuxiliaryRelation<FF>
-                                 /*OpQueueConsistencyRelation*/>;
+                                 sumcheck::AuxiliaryRelation<FF>,
+                                 sumcheck::EccOpQueueRelation<FF>>;
 
     static constexpr size_t MAX_RELATION_LENGTH = get_max_relation_length<Relations>();
 

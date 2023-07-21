@@ -168,6 +168,14 @@ template <UltraFlavor Flavor> void UltraComposer_<Flavor>::compute_witness(Circu
     computed_witness = true;
 }
 
+/**
+ * @brief Construct Goblin style ECC op wire polynomials
+ * @details The Ecc op wire values are assumed to have already been stored in the corresponding block of the
+ * conventional wire polynomials. The values for the ecc op wire polynomials are set based on those values.
+ *
+ * @tparam Flavor
+ * @param wire_polynomials
+ */
 template <UltraFlavor Flavor> void UltraComposer_<Flavor>::construct_ecc_op_wire_polynomials(auto& wire_polynomials)
 {
     std::array<polynomial, Flavor::NUM_WIRES> op_wire_polynomials;
