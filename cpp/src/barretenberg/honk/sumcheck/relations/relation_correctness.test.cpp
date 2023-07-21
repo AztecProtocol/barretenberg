@@ -61,6 +61,145 @@ template <typename Flavor> void check_relation(auto relation, auto circuit_size,
     }
 }
 
+template <typename Flavor> void create_some_add_gates(auto& circuit_builder)
+{
+    fr a = fr::random_element();
+
+    // Add some basic add gates; incorporate a public input for non-trivial PI-delta
+    uint32_t a_idx = circuit_builder.add_public_variable(a);
+    fr b = fr::random_element();
+    fr c = a + b;
+    fr d = a + c;
+    uint32_t b_idx = circuit_builder.add_variable(b);
+    uint32_t c_idx = circuit_builder.add_variable(c);
+    uint32_t d_idx = circuit_builder.add_variable(d);
+    for (size_t i = 0; i < 16; i++) {
+        circuit_builder.create_add_gate({ a_idx, b_idx, c_idx, 1, 1, -1, 0 });
+        circuit_builder.create_add_gate({ d_idx, c_idx, a_idx, 1, -1, -1, 0 });
+    }
+
+    // If Ultra arithmetization, add a big add gate with use of next row to test q_arith = 2
+    if constexpr (IsUltraFlavor<Flavor>) {
+        fr e = a + b + c + d;
+        uint32_t e_idx = circuit_builder.add_variable(e);
+
+        uint32_t zero_idx = circuit_builder.zero_idx;
+        circuit_builder.create_big_add_gate({ a_idx, b_idx, c_idx, d_idx, -1, -1, -1, -1, 0 }, true); // use next row
+        circuit_builder.create_big_add_gate({ zero_idx, zero_idx, zero_idx, e_idx, 0, 0, 0, 0, 0 }, false);
+    }
+}
+
+template <typename Flavor> void create_some_lookup_gates(auto& circuit_builder)
+{
+    // Add some lookup gates (related to pedersen hashing)
+    barretenberg::fr pedersen_input_value = fr::random_element();
+    const fr input_hi = uint256_t(pedersen_input_value).slice(126, 256);
+    const fr input_lo = uint256_t(pedersen_input_value).slice(0, 126);
+    const auto input_hi_index = circuit_builder.add_variable(input_hi);
+    const auto input_lo_index = circuit_builder.add_variable(input_lo);
+
+    const auto sequence_data_hi = plookup::get_lookup_accumulators(plookup::MultiTableId::PEDERSEN_LEFT_HI, input_hi);
+    const auto sequence_data_lo = plookup::get_lookup_accumulators(plookup::MultiTableId::PEDERSEN_LEFT_LO, input_lo);
+
+    circuit_builder.create_gates_from_plookup_accumulators(
+        plookup::MultiTableId::PEDERSEN_LEFT_HI, sequence_data_hi, input_hi_index);
+    circuit_builder.create_gates_from_plookup_accumulators(
+        plookup::MultiTableId::PEDERSEN_LEFT_LO, sequence_data_lo, input_lo_index);
+}
+
+template <typename Flavor> void create_some_genperm_sort_gates(auto& circuit_builder)
+{
+    // Add a sort gate (simply checks that consecutive inputs have a difference of < 4)
+    using FF = typename Flavor::FF;
+    auto a_idx = circuit_builder.add_variable(FF(0));
+    auto b_idx = circuit_builder.add_variable(FF(1));
+    auto c_idx = circuit_builder.add_variable(FF(2));
+    auto d_idx = circuit_builder.add_variable(FF(3));
+    circuit_builder.create_sort_constraint({ a_idx, b_idx, c_idx, d_idx });
+}
+
+template <typename Flavor> void create_some_RAM_gates(auto& circuit_builder)
+{
+    // Add some RAM gates
+    uint32_t ram_values[8]{
+        circuit_builder.add_variable(fr::random_element()), circuit_builder.add_variable(fr::random_element()),
+        circuit_builder.add_variable(fr::random_element()), circuit_builder.add_variable(fr::random_element()),
+        circuit_builder.add_variable(fr::random_element()), circuit_builder.add_variable(fr::random_element()),
+        circuit_builder.add_variable(fr::random_element()), circuit_builder.add_variable(fr::random_element()),
+    };
+
+    size_t ram_id = circuit_builder.create_RAM_array(8);
+
+    for (size_t i = 0; i < 8; ++i) {
+        circuit_builder.init_RAM_element(ram_id, i, ram_values[i]);
+    }
+
+    auto a_idx = circuit_builder.read_RAM_array(ram_id, circuit_builder.add_variable(5));
+    EXPECT_EQ(a_idx != ram_values[5], true);
+
+    auto b_idx = circuit_builder.read_RAM_array(ram_id, circuit_builder.add_variable(4));
+    auto c_idx = circuit_builder.read_RAM_array(ram_id, circuit_builder.add_variable(1));
+
+    circuit_builder.write_RAM_array(ram_id, circuit_builder.add_variable(4), circuit_builder.add_variable(500));
+    auto d_idx = circuit_builder.read_RAM_array(ram_id, circuit_builder.add_variable(4));
+
+    EXPECT_EQ(circuit_builder.get_variable(d_idx), 500);
+
+    // ensure these vars get used in another arithmetic gate
+    const auto e_value = circuit_builder.get_variable(a_idx) + circuit_builder.get_variable(b_idx) +
+                         circuit_builder.get_variable(c_idx) + circuit_builder.get_variable(d_idx);
+    auto e_idx = circuit_builder.add_variable(e_value);
+
+    circuit_builder.create_big_add_gate({ a_idx, b_idx, c_idx, d_idx, -1, -1, -1, -1, 0 }, true);
+    circuit_builder.create_big_add_gate(
+        {
+            circuit_builder.zero_idx,
+            circuit_builder.zero_idx,
+            circuit_builder.zero_idx,
+            e_idx,
+            0,
+            0,
+            0,
+            0,
+            0,
+        },
+        false);
+}
+
+template <typename Flavor> void create_some_elliptic_curve_addition_gates(auto& circuit_builder)
+{
+    // Add an elliptic curve addition gate
+    grumpkin::g1::affine_element p1 = crypto::generators::get_generator_data({ 0, 0 }).generator;
+    grumpkin::g1::affine_element p2 = crypto::generators::get_generator_data({ 0, 1 }).generator;
+
+    grumpkin::fq beta_scalar = grumpkin::fq::cube_root_of_unity();
+    grumpkin::g1::affine_element p2_endo = p2;
+    p2_endo.x *= beta_scalar;
+
+    grumpkin::g1::affine_element p3(grumpkin::g1::element(p1) - grumpkin::g1::element(p2_endo));
+
+    uint32_t x1 = circuit_builder.add_variable(p1.x);
+    uint32_t y1 = circuit_builder.add_variable(p1.y);
+    uint32_t x2 = circuit_builder.add_variable(p2.x);
+    uint32_t y2 = circuit_builder.add_variable(p2.y);
+    uint32_t x3 = circuit_builder.add_variable(p3.x);
+    uint32_t y3 = circuit_builder.add_variable(p3.y);
+
+    ecc_add_gate gate{ x1, y1, x2, y2, x3, y3, beta_scalar, -1 };
+    circuit_builder.create_ecc_add_gate(gate);
+}
+
+template <typename Flavor> void create_some_ecc_op_queue_gates(auto& circuit_builder)
+{
+    static_assert(IsGoblinFlavor<Flavor>);
+    const size_t num_ecc_operations = 10; // arbitrary
+    for (size_t i = 0; i < num_ecc_operations; ++i) {
+        auto point = g1::affine_one * fr::random_element();
+        auto scalar = fr::random_element();
+        circuit_builder.queue_ecc_mul_accum(point, scalar);
+    }
+}
+
 class RelationCorrectnessTests : public ::testing::Test {
   protected:
     static void SetUpTestSuite() { barretenberg::srs::init_crs_factory("../srs_db/ignition"); }
@@ -81,24 +220,12 @@ TEST_F(RelationCorrectnessTests, StandardRelationCorrectness)
     using Flavor = honk::flavor::Standard;
     using FF = typename Flavor::FF;
     using ProverPolynomials = typename Flavor::ProverPolynomials;
-    // using ClaimedEvaluations = typename Flavor::ClaimedEvaluations;
 
     // Create a composer and a dummy circuit with a few gates
     auto circuit_constructor = StandardCircuitBuilder();
-    fr a = fr::one();
-    // Using the public variable to check that public_input_delta is computed and added to the relation correctly
-    uint32_t a_idx = circuit_constructor.add_public_variable(a);
-    fr b = fr::one();
-    fr c = a + b;
-    fr d = a + c;
-    uint32_t b_idx = circuit_constructor.add_variable(b);
-    uint32_t c_idx = circuit_constructor.add_variable(c);
-    uint32_t d_idx = circuit_constructor.add_variable(d);
-    for (size_t i = 0; i < 16; i++) {
-        circuit_constructor.create_add_gate({ a_idx, b_idx, c_idx, fr::one(), fr::one(), fr::neg_one(), fr::zero() });
-        circuit_constructor.create_add_gate(
-            { d_idx, c_idx, a_idx, fr::one(), fr::neg_one(), fr::neg_one(), fr::zero() });
-    }
+
+    create_some_add_gates<Flavor>(circuit_constructor);
+
     // Create a prover (it will compute proving key and witness)
     auto composer = StandardComposer();
     auto prover = composer.create_prover(circuit_constructor);
@@ -163,132 +290,23 @@ TEST_F(RelationCorrectnessTests, StandardRelationCorrectness)
  * indices
  *
  */
-// TODO(luke): possibly make circuit construction one or many functions to clarify the individual components
 // TODO(luke): Add a gate that sets q_arith = 3 to check secondary arithmetic relation
 TEST_F(RelationCorrectnessTests, UltraRelationCorrectness)
 {
     using Flavor = honk::flavor::Ultra;
     using FF = typename Flavor::FF;
     using ProverPolynomials = typename Flavor::ProverPolynomials;
-    // using ClaimedEvaluations = typename Flavor::ClaimedEvaluations;
 
     // Create a composer and then add an assortment of gates designed to ensure that the constraint(s) represented
     // by each relation are non-trivially exercised.
     auto circuit_constructor = UltraCircuitBuilder();
 
-    barretenberg::fr pedersen_input_value = fr::random_element();
-    fr a = fr::one();
-    // Using the public variable to check that public_input_delta is computed and added to the relation correctly
-    // TODO(luke): add method "add_public_variable" to UH circuit_constructor
-    // uint32_t a_idx = circuit_constructor.add_public_variable(a);
-
-    // Add some basic add gates
-    uint32_t a_idx = circuit_constructor.add_variable(a);
-    fr b = fr::one();
-    fr c = a + b;
-    fr d = a + c;
-    uint32_t b_idx = circuit_constructor.add_variable(b);
-    uint32_t c_idx = circuit_constructor.add_variable(c);
-    uint32_t d_idx = circuit_constructor.add_variable(d);
-    for (size_t i = 0; i < 16; i++) {
-        circuit_constructor.create_add_gate({ a_idx, b_idx, c_idx, 1, 1, -1, 0 });
-        circuit_constructor.create_add_gate({ d_idx, c_idx, a_idx, 1, -1, -1, 0 });
-    }
-
-    // Add a big add gate with use of next row to test q_arith = 2
-    fr e = a + b + c + d;
-    uint32_t e_idx = circuit_constructor.add_variable(e);
-
-    uint32_t zero_idx = circuit_constructor.zero_idx;
-    circuit_constructor.create_big_add_gate({ a_idx, b_idx, c_idx, d_idx, -1, -1, -1, -1, 0 }, true); // use next row
-    circuit_constructor.create_big_add_gate({ zero_idx, zero_idx, zero_idx, e_idx, 0, 0, 0, 0, 0 }, false);
-
-    // Add some lookup gates (related to pedersen hashing)
-    const fr input_hi = uint256_t(pedersen_input_value).slice(126, 256);
-    const fr input_lo = uint256_t(pedersen_input_value).slice(0, 126);
-    const auto input_hi_index = circuit_constructor.add_variable(input_hi);
-    const auto input_lo_index = circuit_constructor.add_variable(input_lo);
-
-    const auto sequence_data_hi = plookup::get_lookup_accumulators(plookup::MultiTableId::PEDERSEN_LEFT_HI, input_hi);
-    const auto sequence_data_lo = plookup::get_lookup_accumulators(plookup::MultiTableId::PEDERSEN_LEFT_LO, input_lo);
-
-    circuit_constructor.create_gates_from_plookup_accumulators(
-        plookup::MultiTableId::PEDERSEN_LEFT_HI, sequence_data_hi, input_hi_index);
-    circuit_constructor.create_gates_from_plookup_accumulators(
-        plookup::MultiTableId::PEDERSEN_LEFT_LO, sequence_data_lo, input_lo_index);
-
-    // Add a sort gate (simply checks that consecutive inputs have a difference of < 4)
-    a_idx = circuit_constructor.add_variable(FF(0));
-    b_idx = circuit_constructor.add_variable(FF(1));
-    c_idx = circuit_constructor.add_variable(FF(2));
-    d_idx = circuit_constructor.add_variable(FF(3));
-    circuit_constructor.create_sort_constraint({ a_idx, b_idx, c_idx, d_idx });
-
-    // Add an elliptic curve addition gate
-    grumpkin::g1::affine_element p1 = crypto::generators::get_generator_data({ 0, 0 }).generator;
-    grumpkin::g1::affine_element p2 = crypto::generators::get_generator_data({ 0, 1 }).generator;
-
-    grumpkin::fq beta_scalar = grumpkin::fq::cube_root_of_unity();
-    grumpkin::g1::affine_element p2_endo = p2;
-    p2_endo.x *= beta_scalar;
-
-    grumpkin::g1::affine_element p3(grumpkin::g1::element(p1) - grumpkin::g1::element(p2_endo));
-
-    uint32_t x1 = circuit_constructor.add_variable(p1.x);
-    uint32_t y1 = circuit_constructor.add_variable(p1.y);
-    uint32_t x2 = circuit_constructor.add_variable(p2.x);
-    uint32_t y2 = circuit_constructor.add_variable(p2.y);
-    uint32_t x3 = circuit_constructor.add_variable(p3.x);
-    uint32_t y3 = circuit_constructor.add_variable(p3.y);
-
-    ecc_add_gate gate{ x1, y1, x2, y2, x3, y3, beta_scalar, -1 };
-    circuit_constructor.create_ecc_add_gate(gate);
-
-    // Add some RAM gates
-    uint32_t ram_values[8]{
-        circuit_constructor.add_variable(fr::random_element()), circuit_constructor.add_variable(fr::random_element()),
-        circuit_constructor.add_variable(fr::random_element()), circuit_constructor.add_variable(fr::random_element()),
-        circuit_constructor.add_variable(fr::random_element()), circuit_constructor.add_variable(fr::random_element()),
-        circuit_constructor.add_variable(fr::random_element()), circuit_constructor.add_variable(fr::random_element()),
-    };
-
-    size_t ram_id = circuit_constructor.create_RAM_array(8);
-
-    for (size_t i = 0; i < 8; ++i) {
-        circuit_constructor.init_RAM_element(ram_id, i, ram_values[i]);
-    }
-
-    a_idx = circuit_constructor.read_RAM_array(ram_id, circuit_constructor.add_variable(5));
-    EXPECT_EQ(a_idx != ram_values[5], true);
-
-    b_idx = circuit_constructor.read_RAM_array(ram_id, circuit_constructor.add_variable(4));
-    c_idx = circuit_constructor.read_RAM_array(ram_id, circuit_constructor.add_variable(1));
-
-    circuit_constructor.write_RAM_array(
-        ram_id, circuit_constructor.add_variable(4), circuit_constructor.add_variable(500));
-    d_idx = circuit_constructor.read_RAM_array(ram_id, circuit_constructor.add_variable(4));
-
-    EXPECT_EQ(circuit_constructor.get_variable(d_idx), 500);
-
-    // ensure these vars get used in another arithmetic gate
-    const auto e_value = circuit_constructor.get_variable(a_idx) + circuit_constructor.get_variable(b_idx) +
-                         circuit_constructor.get_variable(c_idx) + circuit_constructor.get_variable(d_idx);
-    e_idx = circuit_constructor.add_variable(e_value);
-
-    circuit_constructor.create_big_add_gate({ a_idx, b_idx, c_idx, d_idx, -1, -1, -1, -1, 0 }, true);
-    circuit_constructor.create_big_add_gate(
-        {
-            circuit_constructor.zero_idx,
-            circuit_constructor.zero_idx,
-            circuit_constructor.zero_idx,
-            e_idx,
-            0,
-            0,
-            0,
-            0,
-            0,
-        },
-        false);
+    // Create an assortment of representative gates
+    create_some_add_gates<Flavor>(circuit_constructor);
+    create_some_lookup_gates<Flavor>(circuit_constructor);
+    create_some_genperm_sort_gates<Flavor>(circuit_constructor);
+    create_some_elliptic_curve_addition_gates<Flavor>(circuit_constructor);
+    create_some_RAM_gates<Flavor>(circuit_constructor);
 
     // Create a prover (it will compute proving key and witness)
     auto composer = UltraComposer();
@@ -395,39 +413,18 @@ TEST_F(RelationCorrectnessTests, GoblinUltraRelationCorrectness)
     using Flavor = honk::flavor::GoblinUltra;
     using FF = typename Flavor::FF;
     using ProverPolynomials = typename Flavor::ProverPolynomials;
-    // using ClaimedEvaluations = typename Flavor::ClaimedEvaluations;
 
     // Create a composer and then add an assortment of gates designed to ensure that the constraint(s) represented
     // by each relation are non-trivially exercised.
     auto builder = UltraCircuitBuilder();
 
-    // Using the public variable to check that public_input_delta is computed and added to the relation correctly
-    // TODO(luke): add method "add_public_variable" to UH builder
-    // uint32_t a_idx = builder.add_public_variable(a);
-
-    // Add some ecc op gates
-    for (size_t i = 0; i < 10; ++i) {
-        builder.queue_ecc_add_accum(g1::affine_one);
-    }
-
-    // Add some public inputs
-    for (size_t i = 0; i < 10; ++i) {
-        builder.add_public_variable(fr::random_element());
-    }
-
-    // Add some basic add gates
-    fr a = fr::random_element();
-    fr b = fr::one();
-    fr c = a + b;
-    fr d = a + c;
-    uint32_t a_idx = builder.add_public_variable(a);
-    uint32_t b_idx = builder.add_variable(b);
-    uint32_t c_idx = builder.add_variable(c);
-    uint32_t d_idx = builder.add_variable(d);
-    for (size_t i = 0; i < 16; i++) {
-        builder.create_add_gate({ a_idx, b_idx, c_idx, 1, 1, -1, 0 });
-        builder.create_add_gate({ d_idx, c_idx, a_idx, 1, -1, -1, 0 });
-    }
+    // Create an assortment of representative gates
+    create_some_add_gates<Flavor>(builder);
+    create_some_lookup_gates<Flavor>(builder);
+    create_some_genperm_sort_gates<Flavor>(builder);
+    create_some_elliptic_curve_addition_gates<Flavor>(builder);
+    create_some_RAM_gates<Flavor>(builder);
+    create_some_ecc_op_queue_gates<Flavor>(builder); // Goblin!
 
     // Create a prover (it will compute proving key and witness)
     auto composer = GoblinUltraComposer();

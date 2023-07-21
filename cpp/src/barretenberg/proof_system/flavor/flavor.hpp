@@ -302,6 +302,9 @@ template <typename T>
 concept IsHonkFlavor = IsAnyOf<T, honk::flavor::Standard, honk::flavor::Ultra, honk::flavor::StandardGrumpkin, honk::flavor::UltraGrumpkin, honk::flavor::GoblinUltra>;
 
 template <typename T> 
+concept IsUltraFlavor = IsAnyOf<T, honk::flavor::Ultra, honk::flavor::UltraGrumpkin, honk::flavor::GoblinUltra>;
+
+template <typename T> 
 concept IsGoblinFlavor = IsAnyOf<T, honk::flavor::GoblinUltra>;
 
 template <typename T> concept IsGrumpkinFlavor = IsAnyOf<T, honk::flavor::StandardGrumpkin, honk::flavor::UltraGrumpkin>;
