@@ -2,9 +2,8 @@
 
 #include "barretenberg/honk/composer/standard_composer.hpp"
 #include "barretenberg/honk/composer/ultra_composer.hpp"
+#include "barretenberg/honk/proof_system/grand_product_library.hpp"
 #include "barretenberg/honk/proof_system/prover_library.hpp"
-#include "barretenberg/honk/proof_system/permutation_library.hpp"
-#include "barretenberg/honk/sumcheck/relations/relation_parameters.hpp"
 #include "barretenberg/honk/sumcheck/relations/arithmetic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/auxiliary_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
@@ -143,8 +142,7 @@ TEST_F(RelationCorrectnessTests, StandardRelationCorrectness)
     prover_polynomials.lagrange_last = prover.key->lagrange_last;
 
     // Compute grand product polynomial
-    permutation_library::compute_permutation_grand_products<honk::flavor::Standard>(
-        prover.key, prover_polynomials, params);
+    grand_product_library::compute_grand_products<honk::flavor::Standard>(prover.key, prover_polynomials, params);
 
     // Construct the round for applying sumcheck relations and results for storing computed results
     auto relations = std::tuple(honk::sumcheck::ArithmeticRelation<FF>(), honk::sumcheck::PermutationRelation<FF>());
@@ -365,7 +363,7 @@ TEST_F(RelationCorrectnessTests, UltraRelationCorrectness)
     prover_polynomials.lagrange_last = prover.key->lagrange_last;
 
     // Compute grand product polynomials for permutation + lookup
-    permutation_library::compute_permutation_grand_products<Flavor>(prover.key, prover_polynomials, params);
+    grand_product_library::compute_grand_products<Flavor>(prover.key, prover_polynomials, params);
 
     // Check that selectors are nonzero to ensure corresponding relation has nontrivial contribution
     ensure_non_zero(prover.key->q_arith);

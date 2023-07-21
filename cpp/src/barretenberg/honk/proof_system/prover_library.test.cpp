@@ -1,11 +1,11 @@
 
-#include "prover_library.hpp"
 #include "barretenberg/ecc/curves/bn254/bn254.hpp"
 #include "barretenberg/honk/flavor/standard.hpp"
 #include "barretenberg/honk/flavor/ultra.hpp"
-#include "barretenberg/honk/proof_system/permutation_library.hpp"
+#include "barretenberg/honk/proof_system/grand_product_library.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "prover.hpp"
+#include "prover_library.hpp"
 
 #include "barretenberg/srs/factories/file_crs_factory.hpp"
 #include <array>
@@ -127,12 +127,12 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         if constexpr (Flavor::NUM_WIRES == 4) {
             using RHS = typename sumcheck::UltraPermutationRelation<FF>;
             static_assert(std::same_as<LHS, RHS>);
-            permutation_library::compute_permutation_grand_product<Flavor, RHS>(
+            grand_product_library::compute_grand_product<Flavor, RHS>(
                 proving_key->circuit_size, prover_polynomials, params);
         } else {
             using RHS = sumcheck::PermutationRelation<FF>;
             static_assert(std::same_as<LHS, RHS>);
-            permutation_library::compute_permutation_grand_product<Flavor, RHS>(
+            grand_product_library::compute_grand_product<Flavor, RHS>(
                 proving_key->circuit_size, prover_polynomials, params);
         }
 
@@ -300,7 +300,7 @@ template <class FF> class ProverLibraryTests : public testing::Test {
         using LHS = typename std::tuple_element<LOOKUP_RELATION_INDEX, typename Flavor::GrandProductRelations>::type;
         using RHS = sumcheck::LookupRelation<FF>;
         static_assert(std::same_as<LHS, RHS>);
-        permutation_library::compute_permutation_grand_product<Flavor, RHS>(
+        grand_product_library::compute_grand_product<Flavor, RHS>(
             proving_key->circuit_size, prover_polynomials, params);
 
         // Method 2: Compute the lookup grand product polynomial Z_lookup:

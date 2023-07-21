@@ -1,8 +1,8 @@
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/honk/composer/standard_composer.hpp"
 #include "barretenberg/honk/composer/ultra_composer.hpp"
-#include "barretenberg/honk/proof_system/permutation_library.hpp"
 #include "barretenberg/honk/flavor/standard.hpp"
+#include "barretenberg/honk/proof_system/grand_product_library.hpp"
 #include "barretenberg/honk/sumcheck/relations/auxiliary_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
@@ -479,8 +479,7 @@ TEST_F(SumcheckTests, RealCircuitStandard)
     prover_polynomials.lagrange_last = prover.key->lagrange_last;
 
     // Compute grand product polynomial
-    permutation_library::compute_permutation_grand_products<Flavor>(
-        prover.key, prover_polynomials, relation_parameters);
+    grand_product_library::compute_grand_products<Flavor>(prover.key, prover_polynomials, relation_parameters);
 
     auto prover_transcript = ProverTranscript<FF>::init_empty();
 
@@ -694,8 +693,7 @@ TEST_F(SumcheckTests, RealCircuitUltra)
     prover_polynomials.lagrange_first = prover.key->lagrange_first;
     prover_polynomials.lagrange_last = prover.key->lagrange_last;
 
-    permutation_library::compute_permutation_grand_products<Flavor>(
-        prover.key, prover_polynomials, relation_parameters);
+    grand_product_library::compute_grand_products<Flavor>(prover.key, prover_polynomials, relation_parameters);
 
     auto prover_transcript = ProverTranscript<FF>::init_empty();
 

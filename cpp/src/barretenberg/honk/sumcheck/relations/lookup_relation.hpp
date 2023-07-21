@@ -61,7 +61,7 @@ template <typename FF> class LookupRelationBase {
      * @return Accumulator<AccumulatorTypes> either Univariate or FF depending on context
      */
     template <typename AccumulatorTypes>
-    inline static Accumulator<AccumulatorTypes> compute_permutation_numerator(
+    inline static Accumulator<AccumulatorTypes> compute_grand_product_numerator(
         const auto& extended_edges, const RelationParameters<FF>& relation_parameters, const size_t index)
     {
         const auto& beta = relation_parameters.beta;
@@ -125,7 +125,7 @@ template <typename FF> class LookupRelationBase {
      * @return Accumulator<AccumulatorTypes> either Univariate or FF depending on context
      */
     template <typename AccumulatorTypes>
-    inline static Accumulator<AccumulatorTypes> compute_permutation_denominator(
+    inline static Accumulator<AccumulatorTypes> compute_grand_product_denominator(
         const auto& extended_edges, const RelationParameters<FF>& relation_parameters, const size_t index)
     {
         const auto& beta = relation_parameters.beta;
@@ -178,8 +178,9 @@ template <typename FF> class LookupRelationBase {
             auto lagrange_first = View(extended_edges.lagrange_first);
             auto lagrange_last = View(extended_edges.lagrange_last);
 
-            const auto lhs = compute_permutation_numerator<AccumulatorTypes>(extended_edges, relation_parameters, 0);
-            const auto rhs = compute_permutation_denominator<AccumulatorTypes>(extended_edges, relation_parameters, 0);
+            const auto lhs = compute_grand_product_numerator<AccumulatorTypes>(extended_edges, relation_parameters, 0);
+            const auto rhs =
+                compute_grand_product_denominator<AccumulatorTypes>(extended_edges, relation_parameters, 0);
 
             const auto tmp =
                 lhs * (z_lookup + lagrange_first) - rhs * (z_lookup_shift + lagrange_last * grand_product_delta);

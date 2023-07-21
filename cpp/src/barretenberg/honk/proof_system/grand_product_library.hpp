@@ -4,8 +4,10 @@
 #include "barretenberg/polynomials/polynomial.hpp"
 #include <typeinfo>
 
-namespace proof_system::honk::permutation_library {
+namespace proof_system::honk::grand_product_library {
 
+// TODO(luke): This contains utilities for grand product computation and is not specific to the permutation grand
+// product. Update comments accordingly.
 /**
  * @brief Compute a permutation grand product polynomial Z_perm(X)
  * *
@@ -42,14 +44,14 @@ namespace proof_system::honk::permutation_library {
  *
  * Note: Step (3) utilizes Montgomery batch inversion to replace n-many inversions with
  */
-template <typename Flavor, typename PermutationRelation>
-void compute_permutation_grand_product(const size_t circuit_size,
-                                       auto& full_polynomials,
-                                       sumcheck::RelationParameters<typename Flavor::FF>& relation_parameters)
+template <typename Flavor, typename GrandProdRelation>
+void compute_grand_product(const size_t circuit_size,
+                           auto& full_polynomials,
+                           sumcheck::RelationParameters<typename Flavor::FF>& relation_parameters)
 {
     using FF = typename Flavor::FF;
     using Polynomial = typename Flavor::Polynomial;
-    using ValueAccumTypes = typename PermutationRelation::ValueAccumTypes;
+    using ValueAccumTypes = typename GrandProdRelation::ValueAccumTypes;
 
     // Allocate numerator/denominator polynomials that will serve as scratch space
     // TODO(zac) we can re-use the permutation polynomial as the numerator polynomial. Reduces readability
@@ -57,7 +59,7 @@ void compute_permutation_grand_product(const size_t circuit_size,
     Polynomial denominator = Polynomial{ circuit_size };
 
     // Step (1)
-    // Populate `numerator` and `denominator` with the algebra described by PermutationRelation
+    // Populate `numerator` and `denominator` with the algebra described by Relation
     const size_t num_threads = circuit_size >= get_num_cpus_pow2() ? get_num_cpus_pow2() : 1;
     const size_t block_size = circuit_size / num_threads;
     parallel_for(num_threads, [&](size_t thread_idx) {
@@ -69,9 +71,9 @@ void compute_permutation_grand_product(const size_t circuit_size,
             for (size_t k = 0; k < Flavor::NUM_ALL_ENTITIES; ++k) {
                 evaluations[k] = full_polynomials[k].size() > i ? full_polynomials[k][i] : 0;
             }
-            numerator[i] = PermutationRelation::template compute_permutation_numerator<ValueAccumTypes>(
+            numerator[i] = GrandProdRelation::template compute_grand_product_numerator<ValueAccumTypes>(
                 evaluations, relation_parameters, i);
-            denominator[i] = PermutationRelation::template compute_permutation_denominator<ValueAccumTypes>(
+            denominator[i] = GrandProdRelation::template compute_grand_product_denominator<ValueAccumTypes>(
                 evaluations, relation_parameters, i);
         }
     });
@@ -124,7 +126,7 @@ void compute_permutation_grand_product(const size_t circuit_size,
     });
 
     // Step (3) Compute z_perm[i] = numerator[i] / denominator[i]
-    auto& grand_product_polynomial = PermutationRelation::get_grand_product_polynomial(full_polynomials);
+    auto& grand_product_polynomial = GrandProdRelation::get_grand_product_polynomial(full_polynomials);
     grand_product_polynomial[0] = 0;
     parallel_for(num_threads, [&](size_t thread_idx) {
         const size_t start = thread_idx * block_size;
@@ -136,30 +138,29 @@ void compute_permutation_grand_product(const size_t circuit_size,
 }
 
 template <typename Flavor>
-void compute_permutation_grand_products(std::shared_ptr<typename Flavor::ProvingKey>& key,
-                                        typename Flavor::ProverPolynomials& full_polynomials,
-                                        sumcheck::RelationParameters<typename Flavor::FF>& relation_parameters)
+void compute_grand_products(std::shared_ptr<typename Flavor::ProvingKey>& key,
+                            typename Flavor::ProverPolynomials& full_polynomials,
+                            sumcheck::RelationParameters<typename Flavor::FF>& relation_parameters)
 {
     using GrandProductRelations = typename Flavor::GrandProductRelations;
     using FF = typename Flavor::FF;
 
     constexpr size_t NUM_RELATIONS = std::tuple_size<GrandProductRelations>{};
     barretenberg::constexpr_for<0, NUM_RELATIONS, 1>([&]<size_t i>() {
-        using PermutationRelation = typename std::tuple_element<i, GrandProductRelations>::type;
+        using GrandProdRelation = typename std::tuple_element<i, GrandProductRelations>::type;
 
         // Assign the grand product polynomial to the relevant std::span member of `full_polynomials` (and its shift)
         // For example, for UltraPermutationRelation, this will be `full_polynomials.z_perm`
         // For example, for LookupRelation, this will be `full_polynomials.z_lookup`
-        std::span<FF>& full_polynomial = PermutationRelation::get_grand_product_polynomial(full_polynomials);
-        auto& key_polynomial = PermutationRelation::get_grand_product_polynomial(*key);
+        std::span<FF>& full_polynomial = GrandProdRelation::get_grand_product_polynomial(full_polynomials);
+        auto& key_polynomial = GrandProdRelation::get_grand_product_polynomial(*key);
         full_polynomial = key_polynomial;
 
-        compute_permutation_grand_product<Flavor, PermutationRelation>(
-            key->circuit_size, full_polynomials, relation_parameters);
+        compute_grand_product<Flavor, GrandProdRelation>(key->circuit_size, full_polynomials, relation_parameters);
         std::span<FF>& full_polynomial_shift =
-            PermutationRelation::get_shifted_grand_product_polynomial(full_polynomials);
+            GrandProdRelation::get_shifted_grand_product_polynomial(full_polynomials);
         full_polynomial_shift = key_polynomial.shifted();
     });
 }
 
-} // namespace proof_system::honk::permutation_library
+} // namespace proof_system::honk::grand_product_library

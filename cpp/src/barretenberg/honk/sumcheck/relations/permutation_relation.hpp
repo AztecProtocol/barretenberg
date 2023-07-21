@@ -22,7 +22,7 @@ template <typename FF> class PermutationRelationBase {
     inline static auto& get_shifted_grand_product_polynomial(auto& input) { return input.z_perm_shift; }
 
     template <typename AccumulatorTypes>
-    inline static Accumulator<AccumulatorTypes> compute_permutation_numerator(
+    inline static Accumulator<AccumulatorTypes> compute_grand_product_numerator(
         const auto& input, const RelationParameters<FF>& relation_parameters, const size_t index)
     {
         auto w_1 = get_view<FF, AccumulatorTypes>(input.w_l, index);
@@ -39,7 +39,7 @@ template <typename FF> class PermutationRelationBase {
     }
 
     template <typename AccumulatorTypes>
-    inline static Accumulator<AccumulatorTypes> compute_permutation_denominator(
+    inline static Accumulator<AccumulatorTypes> compute_grand_product_denominator(
         const auto& input, const RelationParameters<FF>& relation_parameters, const size_t index)
     {
         //  using View = typename std::tuple_element<0, typename AccumulatorTypes::AccumulatorViews>::type;
@@ -91,9 +91,9 @@ template <typename FF> class PermutationRelationBase {
             // Contribution (1)
             std::get<0>(accumulator) +=
                 (((z_perm + lagrange_first) *
-                  compute_permutation_numerator<AccumulatorTypes>(input, relation_parameters, 0)) -
+                  compute_grand_product_numerator<AccumulatorTypes>(input, relation_parameters, 0)) -
                  ((z_perm_shift + lagrange_last * public_input_delta) *
-                  compute_permutation_denominator<AccumulatorTypes>(input, relation_parameters, 0))) *
+                  compute_grand_product_denominator<AccumulatorTypes>(input, relation_parameters, 0))) *
                 scaling_factor;
         }
         {
@@ -124,7 +124,7 @@ template <typename FF> class UltraPermutationRelationBase {
     inline static auto& get_shifted_grand_product_polynomial(auto& input) { return input.z_perm_shift; }
 
     template <typename AccumulatorTypes>
-    inline static Accumulator<AccumulatorTypes> compute_permutation_numerator(
+    inline static Accumulator<AccumulatorTypes> compute_grand_product_numerator(
         const auto& input, const RelationParameters<FF>& relation_parameters, const size_t index)
     {
         auto w_1 = get_view<FF, AccumulatorTypes>(input.w_l, index);
@@ -144,7 +144,7 @@ template <typename FF> class UltraPermutationRelationBase {
     }
 
     template <typename AccumulatorTypes>
-    inline static Accumulator<AccumulatorTypes> compute_permutation_denominator(
+    inline static Accumulator<AccumulatorTypes> compute_grand_product_denominator(
         const auto& input, const RelationParameters<FF>& relation_parameters, const size_t index)
     {
         auto w_1 = get_view<FF, AccumulatorTypes>(input.w_l, index);
@@ -194,9 +194,9 @@ template <typename FF> class UltraPermutationRelationBase {
             // Contribution (1)
             std::get<0>(accumulators) +=
                 (((z_perm + lagrange_first) *
-                  compute_permutation_numerator<AccumulatorTypes>(extended_edges, relation_parameters, 0)) -
+                  compute_grand_product_numerator<AccumulatorTypes>(extended_edges, relation_parameters, 0)) -
                  ((z_perm_shift + lagrange_last * public_input_delta) *
-                  compute_permutation_denominator<AccumulatorTypes>(extended_edges, relation_parameters, 0))) *
+                  compute_grand_product_denominator<AccumulatorTypes>(extended_edges, relation_parameters, 0))) *
                 scaling_factor;
         }
         // Contribution (2)
