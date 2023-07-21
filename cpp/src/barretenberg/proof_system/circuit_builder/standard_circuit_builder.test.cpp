@@ -1,7 +1,10 @@
 #include "barretenberg/crypto/generators/generator_data.hpp"
 #include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
 #include "standard_circuit_builder.hpp"
+#include <fstream>
 #include <gtest/gtest.h>
+#include <iostream>
+#include <string>
 
 using namespace barretenberg;
 using namespace proof_system;
@@ -434,4 +437,72 @@ TEST(standard_circuit_constructor, test_check_circuit_broken)
     EXPECT_EQ(result, false);
 }
 
+TEST(standard_circuit_constructor, test_set_variable_name)
+{
+    StandardCircuitBuilder builder = StandardCircuitBuilder();
+    fr a = fr::one();
+    uint32_t a_idx = builder.add_public_variable(a);
+    const std::string a_name = "a_in";
+    builder.set_variable_name(a_idx, a_name);
+    fr b = fr::one();
+    fr c = a + b;
+    uint32_t b_idx = builder.add_variable(b);
+    uint32_t c_idx = builder.add_variable(c);
+    builder.create_add_gate({ a_idx, b_idx, c_idx, fr::one(), fr::one(), fr::neg_one(), fr::zero() });
+    builder.assert_equal(a_idx, b_idx);
+    EXPECT_TRUE(builder.check_circuit());
+    const std::string b_name = "b_in";
+
+    EXPECT_FALSE(builder._failed);
+    builder.set_variable_name(b_idx, b_name);
+    EXPECT_TRUE(builder._failed);
+}
+
+TEST(standard_circuit_constructor, test_set_variable_name_todo)
+{
+    StandardCircuitBuilder builder = StandardCircuitBuilder();
+    fr a = fr::one();
+    uint32_t a_idx = builder.add_public_variable(a);
+    const std::string a_name = "a_in";
+    builder.set_variable_name(a_idx, a_name);
+    fr b = fr::one();
+    fr c = a + b;
+    uint32_t b_idx = builder.add_variable(b);
+    uint32_t c_idx = builder.add_variable(c);
+    builder.create_add_gate({ a_idx, b_idx, c_idx, fr::one(), fr::one(), fr::neg_one(), fr::zero() });
+
+    const std::string b_name = "b_in";
+
+    EXPECT_FALSE(builder._failed);
+    builder.set_variable_name(b_idx, b_name);
+
+    builder.assert_equal(a_idx, b_idx);
+    EXPECT_TRUE(builder.check_circuit());
+    EXPECT_FALSE(builder._failed); // THIS IS NOT OK
+}
+
+TEST(standard, functionality_check)
+{
+    StandardCircuitBuilder builder = StandardCircuitBuilder();
+    fr a = fr::one();
+    uint32_t a_idx = builder.add_public_variable(a);
+    uint32_t b_idx = builder.add_public_variable(fr::one());
+    uint32_t c_idx = builder.add_variable(fr(2));
+
+    builder.set_variable_name(a_idx, "a_in");
+    builder.set_variable_name(b_idx, "b_in");
+    builder.export_circuit(std::cout);
+    builder.assert_equal(a_idx, b_idx);
+    builder.update_variable_names(b_idx);
+    builder.export_circuit(std::cout);
+
+    builder.create_add_gate({ a_idx, b_idx, c_idx, fr::one(), fr::one(), fr::neg_one(), fr::zero() });
+    builder.set_variable_name(c_idx, "c_in");
+
+    std::ofstream myfile;
+    myfile.open("circuit.json", std::ios::out | std::ios::trunc | std::ios::binary);
+
+    builder.export_circuit(myfile);
+    builder.export_circuit(std::cout);
+}
 } // namespace standard_circuit_constructor_tests

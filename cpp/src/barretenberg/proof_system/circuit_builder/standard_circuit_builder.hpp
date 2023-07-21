@@ -113,6 +113,8 @@ template <typename FF> class StandardCircuitBuilder_ : public CircuitBuilderBase
     size_t get_num_constant_gates() const override { return 0; }
 
     bool check_circuit();
+
+    void export_circuit(std::ostream& out) override;
 };
 
 extern template class StandardCircuitBuilder_<barretenberg::fr>;

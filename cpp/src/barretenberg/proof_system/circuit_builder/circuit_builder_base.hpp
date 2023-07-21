@@ -5,6 +5,9 @@
 #include "barretenberg/proof_system/arithmetization/gate_data.hpp"
 #include <utility>
 
+#include <string> // -------------------------
+#include <unordered_map>
+
 namespace proof_system {
 static constexpr uint32_t DUMMY_TAG = 0;
 
@@ -26,6 +29,8 @@ template <typename Arithmetization> class CircuitBuilderBase {
 
     std::vector<uint32_t> public_inputs;
     std::vector<FF> variables;
+    std::unordered_map<uint32_t, std::string> variable_names; // -------------------
+
     // index of next variable in equivalence class (=REAL_VARIABLE if you're last)
     std::vector<uint32_t> next_var_index;
     // index of  previous variable in equivalence class (=FIRST if you're in a cycle alone)
@@ -57,6 +62,7 @@ template <typename Arithmetization> class CircuitBuilderBase {
         : selector_names_(std::move(selector_names))
     {
         variables.reserve(size_hint * 3);
+        variable_names.reserve(size_hint * 3);
         next_var_index.reserve(size_hint * 3);
         prev_var_index.reserve(size_hint * 3);
         real_variable_index.reserve(size_hint * 3);
@@ -184,6 +190,77 @@ template <typename Arithmetization> class CircuitBuilderBase {
         real_variable_tags.emplace_back(DUMMY_TAG);
         return index;
     }
+
+    /**
+     * Assign a name to a variable. One name per class(or maybe not).
+     *
+     * @param index The index of the variable you want to name.
+     *
+     * */
+    virtual void set_variable_name(uint32_t index, const std::string& name)
+    {
+        ASSERT(variables.size() > index);
+        uint32_t first_idx = get_first_variable_in_class(index);
+        uint32_t cur_idx = first_idx;
+
+        while (cur_idx != REAL_VARIABLE) {
+            if (variable_names.contains(cur_idx)) {
+                failure("Attempted to assign a name to a variable that already has a name");
+                return;
+            }
+            cur_idx = next_var_index[cur_idx];
+        } // can do that at the end
+        variable_names.insert({ first_idx, name });
+    }
+
+    // explisitly call after assert_equal?
+    virtual void update_variable_names(uint32_t index)
+    { // whenever assert_equal is called?
+        uint32_t first_idx = get_first_variable_in_class(index);
+
+        uint32_t cur_idx = next_var_index[first_idx];
+        while (cur_idx != REAL_VARIABLE && !variable_names.contains(cur_idx)) {
+            cur_idx = next_var_index[cur_idx];
+        }
+
+        if (variable_names.contains(first_idx)) {
+            if (cur_idx != REAL_VARIABLE) {
+                variable_names.extract(cur_idx);
+            }
+            return;
+        }
+
+        if (cur_idx != REAL_VARIABLE) {
+            std::string var_name = variable_names.find(cur_idx)->second;
+            variable_names.erase(cur_idx);
+            variable_names.insert({ first_idx, var_name });
+            return;
+        }
+        failure("No previously assigned names found");
+    }
+
+    // must be called at the end of the circuit construction
+    // optimize
+    virtual void finalize_variable_names()
+    {
+        for (auto& tup1 : variable_names) { // use size_t
+            for (auto& tup2 : variable_names) {
+                if (tup2.first == tup1.first) {
+                    continue;
+                }
+                if (get_first_variable_in_class(tup1.first) == get_first_variable_in_class(tup2.first)) {
+                    failure("Variables from the same equivalence class have separate names");
+                    update_variable_names(tup2.first);
+                }
+            }
+        }
+    }
+
+    virtual void export_circuit(std::ostream& out)
+    {
+        info("not implemented"); // bruh;
+    };                           //= 0;
+
     /**
      * Add a public variable to variables
      *
