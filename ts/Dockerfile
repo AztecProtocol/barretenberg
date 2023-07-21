@@ -2,6 +2,8 @@
 FROM 278380418400.dkr.ecr.eu-west-2.amazonaws.com/barretenberg-wasm-linux-clang
 
 FROM node:18-alpine
+
+RUN apk add --update cmake
 COPY --from=0 /usr/src/barretenberg /usr/src/barretenberg
 WORKDIR /usr/src/barretenberg/ts
 COPY .yarn .yarn
