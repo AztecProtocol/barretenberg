@@ -1671,9 +1671,18 @@ template <typename C, typename T> void bigfield<C, T>::assert_less_than(const ui
     // TODO(kesha): Merge this with assert_is_in_field
     // Warning: this assumes we have run circuit construction at least once in debug mode where large non reduced
     // constants are allowed via ASSERT
-    if (is_constant()) {
+    if constexpr (IsSimulator<C>) {
+        if (get_value() >= static_cast<uint512_t>(upper_limit)) {
+            context->failure("Bigfield assert_less_than failed in simulation.");
+        }
         return;
     }
+
+    if (is_constant()) {
+        ASSERT(get_value() < static_cast<uint512_t>(upper_limit));
+        return;
+    }
+
     ASSERT(upper_limit != 0);
     // The circuit checks that limit - this >= 0, so if we are doing a less_than comparison, we need to subtract 1 from
     // the limit
