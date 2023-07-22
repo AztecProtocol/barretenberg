@@ -125,7 +125,6 @@ class CircuitSimulatorBN254 {
                                  std::string const& msg = "create_range_constraint")
     {
         const bool constraint_holds = static_cast<uint256_t>(elt).get_msb() < num_bits;
-        info(static_cast<uint256_t>(elt));
         if (!constraint_holds) {
             failure(msg);
         }
