@@ -386,6 +386,8 @@ std::vector<field_t<C>> element<C, Fq, Fr, G>::compute_wnaf(const Fr& scalar)
         field_t<C> entry(witness_t<C>(ctx, offset_entry));
         if constexpr (HasPlookup<C>) {
             ctx->create_new_range_constraint(entry.witness_index, 1ULL << (WNAF_SIZE), "biggroup_nafs");
+        } else if constexpr (IsSimulator<C>) {
+            ctx->create_range_constraint(entry.get_value(), WNAF_SIZE, "biggroup_nafs");
         } else {
             ctx->create_range_constraint(entry.witness_index, WNAF_SIZE, "biggroup_nafs");
         }
@@ -396,6 +398,8 @@ std::vector<field_t<C>> element<C, Fq, Fr, G>::compute_wnaf(const Fr& scalar)
     wnaf_entries.emplace_back(witness_t<C>(ctx, skew));
     if constexpr (HasPlookup<C>) {
         ctx->create_new_range_constraint(wnaf_entries[wnaf_entries.size() - 1].witness_index, 1, "biggroup_nafs");
+    } else if constexpr (IsSimulator<C>) {
+        ctx->create_range_constraint(wnaf_entries[wnaf_entries.size() - 1].get_value(), 1, "biggroup_nafs");
     } else {
         ctx->create_range_constraint(wnaf_entries[wnaf_entries.size() - 1].witness_index, 1, "biggroup_nafs");
     }
