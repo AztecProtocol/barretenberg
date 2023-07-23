@@ -294,7 +294,7 @@ namespace proof_system {
  * @tparam U A parameter pack of types being checked against T.
  */
 // clang-format off
-//WORKTODO: In which of these does Goblin belong?
+
 template <typename T>
 concept IsPlonkFlavor = IsAnyOf<T, plonk::flavor::Standard, plonk::flavor::Turbo, plonk::flavor::Ultra>;
 

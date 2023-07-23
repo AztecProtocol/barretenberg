@@ -39,14 +39,13 @@ template <UltraFlavor Flavor> class UltraProver_ {
     void execute_shplonk_partial_evaluation_round();
     void execute_final_pcs_round();
 
-    void compute_wire_commitments();
-
     plonk::proof& export_proof();
     plonk::proof& construct_proof();
 
     ProverTranscript<FF> transcript;
 
     std::vector<FF> public_inputs;
+    size_t public_input_offset; // offset of the PI relative to 0th index in the wire polynomials
 
     sumcheck::RelationParameters<FF> relation_parameters;
 

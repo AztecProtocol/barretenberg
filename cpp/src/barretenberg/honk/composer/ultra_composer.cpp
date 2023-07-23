@@ -283,6 +283,10 @@ std::shared_ptr<typename Flavor::ProvingKey> UltraComposer_<Flavor>::compute_pro
 
     proving_key->contains_recursive_proof = contains_recursive_proof;
 
+    if constexpr (IsGoblinFlavor<Flavor>) {
+        proving_key->num_ecc_op_gates = num_ecc_op_gates;
+    }
+
     return proving_key;
 }
 
@@ -332,6 +336,10 @@ std::shared_ptr<typename Flavor::VerificationKey> UltraComposer_<Flavor>::comput
     verification_key->table_4 = commitment_key->commit(proving_key->table_4);
     verification_key->lagrange_first = commitment_key->commit(proving_key->lagrange_first);
     verification_key->lagrange_last = commitment_key->commit(proving_key->lagrange_last);
+
+    if constexpr (IsGoblinFlavor<Flavor>) {
+        verification_key->lagrange_ecc_op = commitment_key->commit(proving_key->lagrange_ecc_op);
+    }
 
     // // See `add_recusrive_proof()` for how this recursive data is assigned.
     // verification_key->recursive_proof_public_input_indices =

@@ -299,6 +299,8 @@ class GoblinUltra {
         std::vector<uint32_t> memory_read_records;
         std::vector<uint32_t> memory_write_records;
 
+        size_t num_ecc_op_gates;
+
         // The plookup wires that store plookup read data.
         std::array<PolynomialHandle, 3> get_table_column_wires() { return { w_l, w_r, w_o }; };
     };

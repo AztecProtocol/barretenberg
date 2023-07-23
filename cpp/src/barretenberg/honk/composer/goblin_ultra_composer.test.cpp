@@ -71,7 +71,8 @@ TEST_F(GoblinUltraHonkComposerTests, BasicExecutionTraceOrdering)
     // Add some ecc op gates
     for (size_t i = 0; i < num_ecc_ops; ++i) {
         auto point = g1::affine_one * fr::random_element();
-        builder.queue_ecc_add_accum(point);
+        auto scalar = fr::random_element();
+        builder.queue_ecc_mul_accum(point, scalar);
     }
 
     // Add some public inputs
@@ -95,6 +96,11 @@ TEST_F(GoblinUltraHonkComposerTests, BasicExecutionTraceOrdering)
 
     auto composer = GoblinUltraComposer();
     auto prover = composer.create_prover(builder);
+    auto verifier = composer.create_verifier(builder);
+    auto proof = prover.construct_proof();
+    bool verified = verifier.verify_proof(proof);
+    EXPECT_EQ(verified, true);
+
     auto circuit_size = prover.key->circuit_size;
 
     // Check that the ecc op selector is 1 on the block of ecc op gates and 0 elsewhere
