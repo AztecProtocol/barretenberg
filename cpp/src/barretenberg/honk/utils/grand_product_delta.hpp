@@ -12,7 +12,7 @@ namespace proof_system::honk {
  * @param gamma Schwartz-Zippel random evaluation to ensure ∏ᵢ (γ + Sᵢ) = ∏ᵢ (γ + Tᵢ)
  * @param domain_size Total number of rows required for the circuit (power of 2)
  * @param offset Extent to which PI are offset from the 0th index in the wire polynomials, for example, due to inclusion
- * of Goblin style ECC op gates at the top of the execution trace. (Leading zero row is accounted for separately).
+ * of a leading zero row or Goblin style ECC op gates at the top of the execution trace.
  * @return Field Public input Δ
  */
 template <typename Flavor>
@@ -48,7 +48,6 @@ typename Flavor::FF compute_public_input_delta(std::span<const typename Flavor::
     // Note: The public inputs may be offset from the 0th index of the wires, for example due to the inclusion of an
     // initial zero row or Goblin-stlye ECC op gates. Accordingly, the indices i in the above formulas are given by i =
     // [0, m-1] + offset, i.e. i = offset, 1 + offset, …, m - 1 + offset.
-    offset += Flavor::has_zero_row ? 1 : 0;
     Field numerator_acc = gamma + (beta * Field(domain_size + offset));
     Field denominator_acc = gamma - beta * Field(1 + offset);
 

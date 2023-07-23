@@ -85,13 +85,13 @@ UltraProver_<Flavor>::UltraProver_(std::shared_ptr<typename Flavor::ProvingKey> 
     // Add public inputs to transcript from the second wire polynomial; This requires determination of the offset at
     // which the PI have been written into the wires relative to the 0th index.
     std::span<FF> public_wires_source = prover_polynomials.w_r;
-    public_input_offset = Flavor::has_zero_row ? 1 : 0;
+    pub_inputs_offset = Flavor::has_zero_row ? 1 : 0;
     if constexpr (IsGoblinFlavor<Flavor>) {
-        public_input_offset += key->num_ecc_op_gates;
+        pub_inputs_offset += key->num_ecc_op_gates;
     }
 
     for (size_t i = 0; i < key->num_public_inputs; ++i) {
-        size_t idx = i + public_input_offset;
+        size_t idx = i + pub_inputs_offset;
         public_inputs.emplace_back(public_wires_source[idx]);
     }
 }
@@ -107,7 +107,7 @@ template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_preamble_round(
 
     transcript.send_to_verifier("circuit_size", circuit_size);
     transcript.send_to_verifier("public_input_size", num_public_inputs);
-    transcript.send_to_verifier("public_input_offset", static_cast<uint32_t>(public_input_offset));
+    transcript.send_to_verifier("pub_inputs_offset", static_cast<uint32_t>(pub_inputs_offset));
 
     for (size_t i = 0; i < key->num_public_inputs; ++i) {
         auto public_input_i = public_inputs[i];
@@ -171,11 +171,8 @@ template <UltraFlavor Flavor> void UltraProver_<Flavor>::execute_grand_product_c
     // Compute and store parameters required by relations in Sumcheck
     auto [beta, gamma] = transcript.get_challenges("beta", "gamma");
 
-    // WORKTODO: yuk! need to decide how to handle offset in compute_public_input_delta. Right now it's -1 b/c I'm
-    // accounting for leading zeros both in the prover and in the function.
-    auto pi_offset_yuk = public_input_offset - 1;
     auto public_input_delta =
-        compute_public_input_delta<Flavor>(public_inputs, beta, gamma, key->circuit_size, pi_offset_yuk);
+        compute_public_input_delta<Flavor>(public_inputs, beta, gamma, key->circuit_size, pub_inputs_offset);
     auto lookup_grand_product_delta = compute_lookup_grand_product_delta(beta, gamma, key->circuit_size);
 
     relation_parameters.beta = beta;

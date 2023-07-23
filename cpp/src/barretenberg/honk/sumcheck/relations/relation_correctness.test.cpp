@@ -320,8 +320,9 @@ TEST_F(RelationCorrectnessTests, UltraRelationCorrectness)
 
     // Compute public input delta
     const auto public_inputs = circuit_constructor.get_public_inputs();
-    auto public_input_delta =
-        honk::compute_public_input_delta<Flavor>(public_inputs, beta, gamma, prover.key->circuit_size);
+    const size_t pub_inputs_offset = Flavor::has_zero_row ? 1 : 0;
+    auto public_input_delta = honk::compute_public_input_delta<Flavor>(
+        public_inputs, beta, gamma, prover.key->circuit_size, pub_inputs_offset);
     auto lookup_grand_product_delta =
         honk::compute_lookup_grand_product_delta<FF>(beta, gamma, prover.key->circuit_size);
 
@@ -440,9 +441,9 @@ TEST_F(RelationCorrectnessTests, GoblinUltraRelationCorrectness)
     const auto public_inputs = builder.get_public_inputs();
 
     // If Goblin, must account for the fact that PI are offset in the wire polynomials by the number of ecc op gates
-    size_t pub_inputs_offset = 0;
+    size_t pub_inputs_offset = Flavor::has_zero_row ? 1 : 0;
     if constexpr (IsGoblinFlavor<Flavor>) {
-        pub_inputs_offset = builder.num_ecc_op_gates;
+        pub_inputs_offset += builder.num_ecc_op_gates;
     }
     auto public_input_delta = honk::compute_public_input_delta<Flavor>(
         public_inputs, beta, gamma, prover.key->circuit_size, pub_inputs_offset);

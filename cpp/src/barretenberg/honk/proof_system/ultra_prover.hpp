@@ -45,7 +45,7 @@ template <UltraFlavor Flavor> class UltraProver_ {
     ProverTranscript<FF> transcript;
 
     std::vector<FF> public_inputs;
-    size_t public_input_offset; // offset of the PI relative to 0th index in the wire polynomials
+    size_t pub_inputs_offset; // offset of the PI relative to 0th index in the wire polynomials
 
     sumcheck::RelationParameters<FF> relation_parameters;
 

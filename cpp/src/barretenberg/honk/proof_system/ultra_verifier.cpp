@@ -54,7 +54,7 @@ template <typename Flavor> bool UltraVerifier_<Flavor>::verify_proof(const plonk
     // TODO(Adrian): Change the initialization of the transcript to take the VK hash?
     const auto circuit_size = transcript.template receive_from_prover<uint32_t>("circuit_size");
     const auto public_input_size = transcript.template receive_from_prover<uint32_t>("public_input_size");
-    const auto public_input_offset = transcript.template receive_from_prover<uint32_t>("public_input_offset");
+    const auto pub_inputs_offset = transcript.template receive_from_prover<uint32_t>("pub_inputs_offset");
 
     if (circuit_size != key->circuit_size) {
         return false;
@@ -97,9 +97,8 @@ template <typename Flavor> bool UltraVerifier_<Flavor>::verify_proof(const plonk
     // Get permutation challenges
     auto [beta, gamma] = transcript.get_challenges("beta", "gamma");
 
-    // WORKTODO: Ick!
     const FF public_input_delta =
-        compute_public_input_delta<Flavor>(public_inputs, beta, gamma, circuit_size, public_input_offset - 1);
+        compute_public_input_delta<Flavor>(public_inputs, beta, gamma, circuit_size, pub_inputs_offset);
     const FF lookup_grand_product_delta = compute_lookup_grand_product_delta<FF>(beta, gamma, circuit_size);
 
     relation_parameters.beta = beta;
