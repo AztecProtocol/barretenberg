@@ -66,9 +66,10 @@ void construct_selector_polynomials(const typename Flavor::CircuitBuilder& circu
  *
  * @details We can think of the entries in the wire polynomials as reflecting the structure of the circuit execution
  * trace. The execution trace is broken up into several distinct blocks, depending on Flavor. For example, for Goblin
- * Ultra Honk, the order is: leading zero row, ECC op gates, public inputs, conventional wires. We construct the
- * wire polynomials accordingly by applying appropriate "offsets" for each block. The actual values are determined by
- * corresponding arrays of indices into the variables vector of the circuit builder.
+ * Ultra Honk, the order is: leading zero row, ECC op gates, public inputs, conventional wires. The actual values used
+ * to populate the wire polynomials are determined by corresponding arrays of indices into the variables vector of the
+ * circuit builder, and their location in the polynomials is determined by applying the appropriate "offset" for the
+ * corresponding block.
  *
  * @tparam Flavor provides the circuit constructor type and the number of wires.
  * @param circuit_constructor

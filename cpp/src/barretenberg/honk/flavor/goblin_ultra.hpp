@@ -36,9 +36,6 @@ class GoblinUltra {
     using GroupElement = G1::element;
     using Commitment = G1::affine_element;
     using CommitmentHandle = G1::affine_element;
-    // UltraHonk will be run with KZG by default but temporarily we set the commitment to IPA to
-    // be able to do e2e tests with this pcs as well
-    // TODO: instantiate this with both IPA and KZG when the templating work is finished
     using PCSParams = pcs::kzg::Params;
     using PCS = pcs::kzg::KZG<PCSParams>;
 
@@ -46,12 +43,12 @@ class GoblinUltra {
     // The number of multivariate polynomials on which a sumcheck prover sumcheck operates (including shifts). We often
     // need containers of this size to hold related data, so we choose a name more agnostic than `NUM_POLYNOMIALS`.
     // Note: this number does not include the individual sorted list polynomials.
-    static constexpr size_t NUM_ALL_ENTITIES = 48; // 43 + 4 + 1?
+    static constexpr size_t NUM_ALL_ENTITIES = 48; // 43 (UH) + 4 op wires + 1 op wire "selector"
     // The number of polynomials precomputed to describe a circuit and to aid a prover in constructing a satisfying
     // assignment of witnesses. We again choose a neutral name.
-    static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 26; // 25 + 1?
+    static constexpr size_t NUM_PRECOMPUTED_ENTITIES = 26; // 25 (UH) + 1 op wire "selector"
     // The total number of witness entities not including shifts.
-    static constexpr size_t NUM_WITNESS_ENTITIES = 15; // 11 + 4?
+    static constexpr size_t NUM_WITNESS_ENTITIES = 15; // 11 (UH) + 4 op wires
 
     using GrandProductRelations = std::tuple<sumcheck::UltraPermutationRelation<FF>, sumcheck::LookupRelation<FF>>;
 
@@ -299,7 +296,7 @@ class GoblinUltra {
         std::vector<uint32_t> memory_read_records;
         std::vector<uint32_t> memory_write_records;
 
-        size_t num_ecc_op_gates;
+        size_t num_ecc_op_gates; // needed to determine public input offset
 
         // The plookup wires that store plookup read data.
         std::array<PolynomialHandle, 3> get_table_column_wires() { return { w_l, w_r, w_o }; };

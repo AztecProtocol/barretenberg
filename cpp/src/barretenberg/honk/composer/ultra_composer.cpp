@@ -21,13 +21,10 @@ void UltraComposer_<Flavor>::compute_circuit_size_parameters(CircuitBuilder& cir
         lookups_size += table.lookup_gates.size();
     }
 
+    // Get num conventional gates, num public inputs and num Goblin style ECC op gates
     const size_t num_gates = circuit_constructor.num_gates;
     num_public_inputs = circuit_constructor.public_inputs.size();
-
-    // If Goblin, we must account for ecc op gates
-    if constexpr (IsGoblinFlavor<Flavor>) {
-        num_ecc_op_gates = circuit_constructor.num_ecc_op_gates;
-    }
+    num_ecc_op_gates = circuit_constructor.num_ecc_op_gates;
 
     // minimum circuit size due to the length of lookups plus tables
     const size_t minimum_circuit_size_due_to_lookups = tables_size + lookups_size + num_zero_rows;
@@ -72,9 +69,10 @@ template <UltraFlavor Flavor> void UltraComposer_<Flavor>::compute_witness(Circu
     polynomial s_3(dyadic_circuit_size);
     polynomial s_4(dyadic_circuit_size);
 
-    // The sorted list polynomials have M = tables_size + lookups_size populated entries. We define the index below so
-    // that these entries are written into the last M indices of the polynomials. The values on the first
-    // dyadic_circuit_size - M indices are automatically initialized to zero via the polynomial constructor.
+    // The sorted list polynomials have (tables_size + lookups_size) populated entries. We define the index below so
+    // that these entries are written into the last indices of the polynomials. The values on the first
+    // dyadic_circuit_size - (tables_size + lookups_size) indices are automatically initialized to zero via the
+    // polynomial constructor.
     size_t s_index = dyadic_circuit_size - tables_size - lookups_size;
     ASSERT(s_index > 0); // We need at least 1 row of zeroes for the permutation argument
 
@@ -168,6 +166,9 @@ template <UltraFlavor Flavor> void UltraComposer_<Flavor>::construct_ecc_op_wire
         poly = polynomial(dyadic_circuit_size);
     }
 
+    // The ECC op wires are constructed to contain the op data on the appropriate range and to vanish everywhere else.
+    // The op data is assumed to have already been stored at the correct location in the convetional wires so the data
+    // can simply be copied over directly.
     const size_t op_wire_offset = Flavor::has_zero_row ? 1 : 0;
     for (size_t poly_idx = 0; poly_idx < Flavor::NUM_WIRES; ++poly_idx) {
         for (size_t i = 0; i < num_ecc_op_gates; ++i) {
@@ -337,6 +338,8 @@ std::shared_ptr<typename Flavor::VerificationKey> UltraComposer_<Flavor>::comput
     verification_key->lagrange_first = commitment_key->commit(proving_key->lagrange_first);
     verification_key->lagrange_last = commitment_key->commit(proving_key->lagrange_last);
 
+    // TODO(luke): Similar to the lagrange_first/last polynomials, we dont really need to commit to this polynomial due
+    // to its simple structure. Handling it in the same way as the lagrange polys for now for simplicity.
     if constexpr (IsGoblinFlavor<Flavor>) {
         verification_key->lagrange_ecc_op = commitment_key->commit(proving_key->lagrange_ecc_op);
     }

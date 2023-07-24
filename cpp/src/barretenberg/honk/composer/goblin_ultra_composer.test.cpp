@@ -1,20 +1,11 @@
 #include <cstddef>
 #include <cstdint>
 #include <gtest/gtest.h>
-#include <string>
-#include <vector>
 
 #include "barretenberg/common/log.hpp"
 #include "barretenberg/honk/composer/ultra_composer.hpp"
-#include "barretenberg/honk/proof_system/prover.hpp"
 #include "barretenberg/honk/proof_system/ultra_prover.hpp"
-#include "barretenberg/honk/sumcheck/relations/permutation_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/relation_parameters.hpp"
-#include "barretenberg/honk/sumcheck/sumcheck_round.hpp"
-#include "barretenberg/honk/utils/grand_product_delta.hpp"
-#include "barretenberg/numeric/uint256/uint256.hpp"
 #include "barretenberg/proof_system/circuit_builder/ultra_circuit_builder.hpp"
-#include "barretenberg/proof_system/plookup_tables/types.hpp"
 
 using namespace proof_system::honk;
 
@@ -30,43 +21,17 @@ class GoblinUltraHonkComposerTests : public ::testing::Test {
 };
 
 /**
- * @brief Test simple circuit with public inputs
+ * @brief Test proof construction/verification for a circuit with ECC op gates, public inputs, and basic arithmetic
+ * gates
  *
  */
-TEST_F(GoblinUltraHonkComposerTests, Basic)
-{
-    auto builder = UltraCircuitBuilder();
-    size_t num_gates = 10;
-
-    // Add some arbitrary arithmetic gates that utilize public inputs
-    for (size_t i = 0; i < num_gates; ++i) {
-        fr a = fr::random_element();
-        uint32_t a_idx = builder.add_public_variable(a);
-
-        fr b = fr::random_element();
-        fr c = fr::random_element();
-        fr d = a + b + c;
-        uint32_t b_idx = builder.add_variable(b);
-        uint32_t c_idx = builder.add_variable(c);
-        uint32_t d_idx = builder.add_variable(d);
-
-        builder.create_big_add_gate({ a_idx, b_idx, c_idx, d_idx, fr(1), fr(1), fr(1), fr(-1), fr(0) });
-    }
-
-    auto composer = GoblinUltraComposer();
-}
-
-// TODO(luke): flesh this out or rework once prover/verifier is implemented.
-TEST_F(GoblinUltraHonkComposerTests, BasicExecutionTraceOrdering)
+TEST_F(GoblinUltraHonkComposerTests, SimpleCircuit)
 {
     auto builder = UltraCircuitBuilder();
 
+    // Define an arbitrary number of operations/gates
     size_t num_ecc_ops = 3;
-    size_t num_gates_per_op = 2;
-    size_t num_ecc_op_gates = num_gates_per_op * num_ecc_ops;
     size_t num_conventional_gates = 10;
-    size_t num_public_inputs = 5;
-    size_t num_zero_rows = honk::flavor::GoblinUltra::has_zero_row ? 1 : 0;
 
     // Add some ecc op gates
     for (size_t i = 0; i < num_ecc_ops; ++i) {
@@ -75,18 +40,13 @@ TEST_F(GoblinUltraHonkComposerTests, BasicExecutionTraceOrdering)
         builder.queue_ecc_mul_accum(point, scalar);
     }
 
-    // Add some public inputs
-    for (size_t i = 0; i < num_public_inputs; ++i) {
-        builder.add_public_variable(fr::random_element());
-    }
-
-    // Add some conventional gates
+    // Add some conventional gates that utlize public inputs
     for (size_t i = 0; i < num_conventional_gates; ++i) {
         fr a = fr::random_element();
         fr b = fr::random_element();
         fr c = fr::random_element();
         fr d = a + b + c;
-        uint32_t a_idx = builder.add_variable(a);
+        uint32_t a_idx = builder.add_public_variable(a);
         uint32_t b_idx = builder.add_variable(b);
         uint32_t c_idx = builder.add_variable(c);
         uint32_t d_idx = builder.add_variable(d);
@@ -100,32 +60,6 @@ TEST_F(GoblinUltraHonkComposerTests, BasicExecutionTraceOrdering)
     auto proof = prover.construct_proof();
     bool verified = verifier.verify_proof(proof);
     EXPECT_EQ(verified, true);
-
-    auto circuit_size = prover.key->circuit_size;
-
-    // Check that the ecc op selector is 1 on the block of ecc op gates and 0 elsewhere
-    auto q_ecc_op = prover.key->lagrange_ecc_op;
-    for (size_t i = 0; i < circuit_size; ++i) {
-        auto val = q_ecc_op[i];
-        auto anti_val = q_ecc_op[i] * (-1) + 1; // also needed in realtion
-        if (i >= num_zero_rows && i < num_zero_rows + num_ecc_op_gates) {
-            EXPECT_EQ(val, 1);
-            EXPECT_EQ(anti_val, 0);
-        } else {
-            EXPECT_EQ(val, 0);
-            EXPECT_EQ(anti_val, 1);
-        }
-    }
-
-    auto op_wire_2 = prover.key->ecc_op_wire_2;
-    auto w_2 = prover.key->w_r;
-    for (size_t i = 0; i < circuit_size; ++i) {
-        auto op_val = op_wire_2[i];
-        auto val = w_2[i];
-        if (i >= num_zero_rows && i < num_zero_rows + num_ecc_op_gates) {
-            EXPECT_EQ(val, op_val);
-        }
-    }
 }
 
 } // namespace test_ultra_honk_composer

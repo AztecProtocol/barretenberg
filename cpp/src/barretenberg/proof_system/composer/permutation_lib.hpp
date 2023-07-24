@@ -65,8 +65,7 @@ namespace {
  * the witness wires that must have the same value.
  *
  * @tparam program_width Program width
- * WORKTODO: Add a comment to this block that explains how these copy cycles effectively determine the execution trace
- * order via the "offsets". Clean up the other comments accordingly
+ *
  * */
 template <typename Flavor>
 std::vector<CyclicPermutation> compute_wire_copy_cycles(const typename Flavor::CircuitBuilder& circuit_constructor)
