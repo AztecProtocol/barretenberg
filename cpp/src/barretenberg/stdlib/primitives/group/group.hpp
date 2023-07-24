@@ -6,6 +6,8 @@
 
 #include "../../hash/pedersen/pedersen.hpp"
 #include "../../hash/pedersen/pedersen_gates.hpp"
+#include "barretenberg/ecc/scalar_multiplication/scalar_multiplication.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 
 namespace proof_system::plonk {
 namespace stdlib {
@@ -35,19 +37,35 @@ template <typename ComposerContext>
 template <size_t num_bits>
 point<ComposerContext> group<ComposerContext>::fixed_base_scalar_mul_g1(const field_t<ComposerContext>& in)
 {
+    // WORKTODO: native fixed base mul doesn't expose option to use grumpkin::g1::one
     if constexpr (IsSimulator<ComposerContext>) {
         if (in.get_value() == barretenberg::fr(0)) {
             in.context->failure("input scalar to fixed_base_scalar_mul_internal cannot be 0");
             return { 0, 0 };
         }
+
+        using Curve = curve::Grumpkin;
+        using Fr = typename Curve::ScalarField;
+        using AffineElement = typename Curve::AffineElement;
+
+        // WORKTODO: ugly.
+        size_t num_points = 1;
+        Fr* scalars = (Fr*)aligned_alloc(32, sizeof(Fr) * 1);
+        scalars[0] = static_cast<uint256_t>(in.get_value());
+        AffineElement* points = (AffineElement*)aligned_alloc(32, sizeof(AffineElement) * (num_points * 2 + 1));
+        points[0] = grumpkin::g1::one;
+        barretenberg::scalar_multiplication::generate_pippenger_point_table<curve::Grumpkin>(
+            points, points, num_points);
+        barretenberg::scalar_multiplication::pippenger_runtime_state<curve::Grumpkin> state(num_points);
         auto result =
-            crypto::generators::fixed_base_scalar_mul<num_bits>(in.get_value(), 0); // WORKTODO: is g1::one generator 0?
+            barretenberg::scalar_multiplication::pippenger<curve::Grumpkin>(scalars, points, num_points, state);
         result = result.normalize();
         return { witness_t<ComposerContext>(in.context, result.x), witness_t<ComposerContext>(in.context, result.y) };
+    } else {
+        const auto ladder = get_g1_ladder(num_bits);
+        auto generator = grumpkin::g1::one;
+        return group<ComposerContext>::fixed_base_scalar_mul_internal<num_bits>(in, generator, ladder);
     }
-    const auto ladder = get_g1_ladder(num_bits);
-    auto generator = grumpkin::g1::one;
-    return group<ComposerContext>::fixed_base_scalar_mul_internal<num_bits>(in, generator, ladder);
 }
 
 template <typename ComposerContext>
