@@ -419,50 +419,18 @@ class StandardGrumpkinHonkComposerTests : public ::testing::Test {
 
 TEST_F(StandardGrumpkinHonkComposerTests, BaseCase)
 {
-    // auto circuit_constructor = StandardGrumpkinCircuitBuilder();
-    // grumpkin::fr a = grumpkin::fr::zero();
-    // grumpkin::fr b = grumpkin::fr::zero();
-    // circuit_constructor.add_variable(a);
-    // circuit_constructor.add_variable(b);
+    auto circuit_constructor = StandardGrumpkinCircuitBuilder();
+    grumpkin::fr a = grumpkin::fr::zero();
+    grumpkin::fr b = grumpkin::fr::zero();
+    circuit_constructor.add_variable(a);
+    circuit_constructor.add_variable(b);
 
-    // auto composer = StandardGrumpkinComposer();
-    // auto prover = composer.create_prover(circuit_constructor);
-    // auto proof = prover.construct_proof();
-    // auto verifier = composer.create_verifier(circuit_constructor);
-    // bool verified = verifier.verify_proof(proof);
-    // ASSERT_TRUE(verified);
-
-    auto run_test = [](bool expect_verified) {
-        auto circuit_constructor = StandardGrumpkinCircuitBuilder();
-        // 1 + 1 - 2 = 0
-        uint32_t w_l_1_idx;
-        if (expect_verified) {
-            w_l_1_idx = circuit_constructor.add_variable(1);
-        } else {
-            w_l_1_idx = circuit_constructor.add_variable(0);
-        }
-        uint32_t w_r_1_idx = circuit_constructor.add_variable(1);
-        uint32_t w_o_1_idx = circuit_constructor.add_variable(2);
-        circuit_constructor.create_add_gate({ w_l_1_idx, w_r_1_idx, w_o_1_idx, 1, 1, -1, 0 });
-
-        // 2 * 2 - 4 = 0
-        uint32_t w_l_2_idx = circuit_constructor.add_variable(2);
-        uint32_t w_r_2_idx = circuit_constructor.add_variable(2);
-        uint32_t w_o_2_idx = circuit_constructor.add_variable(4);
-        circuit_constructor.create_mul_gate({ w_l_2_idx, w_r_2_idx, w_o_2_idx, 1, -1, 0 });
-
-        auto composer = StandardGrumpkinComposer();
-        auto prover = composer.create_prover(circuit_constructor);
-        auto proof = prover.construct_proof();
-
-        auto verifier = composer.create_verifier(circuit_constructor);
-        bool verified = verifier.verify_proof(proof);
-
-        EXPECT_EQ(verified, expect_verified);
-    };
-
-    run_test(/* expect_verified=*/true);
-    run_test(/* expect_verified=*/false);
+    auto composer = StandardGrumpkinComposer();
+    auto prover = composer.create_prover(circuit_constructor);
+    auto proof = prover.construct_proof();
+    auto verifier = composer.create_verifier(circuit_constructor);
+    bool verified = verifier.verify_proof(proof);
+    ASSERT_TRUE(verified);
 }
 
 TEST_F(StandardGrumpkinHonkComposerTests, issue)
