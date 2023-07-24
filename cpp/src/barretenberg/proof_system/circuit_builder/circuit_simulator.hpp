@@ -23,12 +23,12 @@ class CircuitSimulatorBN254 {
 
     static constexpr size_t num_gates = 0;
     static constexpr uint32_t zero_idx = 0;
+    std::vector<FF> public_inputs;
 
     // uint32_t add_variable([[maybe_unused]]const FF& in){
     //   return 0; // WORKTODO: return part of `in` for debugging purposes?
     // }
 
-    std::vector<uint32_t> public_inputs;
     void add_recursive_proof(const std::vector<uint32_t>& proof_output_witness_indices)
     {
 
@@ -50,6 +50,8 @@ class CircuitSimulatorBN254 {
     {
         // WORKTODO Public input logic?
     }
+
+    void set_public_input([[maybe_unused]] const barretenberg::fr value) { public_inputs.emplace_back(value); }
 
     void fix_witness([[maybe_unused]] const uint32_t witness_index,
                      [[maybe_unused]] const barretenberg::fr& witness_value){
