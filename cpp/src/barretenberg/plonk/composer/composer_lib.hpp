@@ -21,11 +21,12 @@ struct SelectorProperties {
  * in that case.
  * @return std::shared_ptr<typename Flavor::ProvingKey>
  */
-std::shared_ptr<plonk::proving_key> initialize_proving_key(const auto& circuit_constructor,
-                                                           barretenberg::srs::factories::CrsFactory* crs_factory,
-                                                           const size_t minimum_circuit_size,
-                                                           const size_t num_randomized_gates,
-                                                           CircuitType circuit_type)
+std::shared_ptr<plonk::proving_key> initialize_proving_key(
+    const auto& circuit_constructor,
+    barretenberg::srs::factories::CrsFactory<curve::BN254>* crs_factory,
+    const size_t minimum_circuit_size,
+    const size_t num_randomized_gates,
+    CircuitType circuit_type)
 {
     const size_t num_gates = circuit_constructor.num_gates;
 

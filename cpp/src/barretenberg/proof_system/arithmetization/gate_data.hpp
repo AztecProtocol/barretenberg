@@ -60,6 +60,7 @@ template <typename FF> struct poly_triple_ {
 
     friend bool operator==(poly_triple_<FF> const& lhs, poly_triple_<FF> const& rhs) = default;
 };
+using poly_triple = poly_triple_<barretenberg::fr>;
 struct ecc_op_tuple {
     uint32_t op;
     uint32_t x_lo;

@@ -61,7 +61,9 @@ namespace {
 
 /**
  * @brief Compute all CyclicPermutations of the circuit. Each CyclicPermutation represents the indices of the values in
- * the witness wires that must have the same value.
+ * the witness wires that must have the same value.    using Curve = curve::BN254;
+    using FF = Curve::ScalarField;
+    using Polynomial = barretenberg::Polynomial<FF>;
  *
  * @tparam program_width Program width
  * */

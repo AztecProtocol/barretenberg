@@ -1,7 +1,7 @@
-#include "recursion_constraint.hpp"
 #include "acir_format.hpp"
 #include "barretenberg/plonk/proof_system/types/proof.hpp"
 #include "barretenberg/plonk/proof_system/verification_key/verification_key.hpp"
+#include "recursion_constraint.hpp"
 
 #include <gtest/gtest.h>
 #include <vector>
@@ -11,6 +11,7 @@ using namespace proof_system::plonk;
 namespace acir_format::test {
 Builder create_inner_circuit()
 {
+    using poly_triple = poly_triple_<barretenberg::fr>;
     /**
      * constraints produced by Noir program:
      * fn main(x : u32, y : pub u32) {
