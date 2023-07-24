@@ -1,6 +1,7 @@
 #pragma once
 #include "acir_format.hpp"
 #include "barretenberg/common/container.hpp"
+#include "barretenberg/common/throw_or_abort.hpp"
 #include "barretenberg/dsl/acir_format/blake2s_constraint.hpp"
 #include "barretenberg/dsl/acir_format/block_constraint.hpp"
 #include "barretenberg/dsl/acir_format/ecdsa_secp256k1.hpp"
@@ -254,6 +255,10 @@ acir_format circuit_buf_to_acir_format(std::vector<uint8_t> const& buf)
                     handle_memory(arg.value, true, af);
                 } else if constexpr (std::is_same_v<T, Circuit::Opcode::ROM>) {
                     handle_memory(arg.value, false, af);
+                } else if constexpr (std::is_same_v<T, Circuit::Opcode::MemoryInit>) {
+                    throw_or_abort("memory init unimplemented");
+                } else if constexpr (std::is_same_v<T, Circuit::Opcode::MemoryOp>) {
+                    throw_or_abort("memory op unimplemented");
                 }
             },
             gate.value);
