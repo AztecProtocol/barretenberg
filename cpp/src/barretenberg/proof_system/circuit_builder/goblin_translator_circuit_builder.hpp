@@ -14,68 +14,79 @@
 #include <array>
 namespace proof_system {
 class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::GoblinTranslator> {
+    // We don't need templating for Goblin
     using Fr = barretenberg::fr;
     using Fp = barretenberg::fq;
 
   public:
+    /**
+     * We won't need these standard gates that are defined as virtual in circuit builder base
+     *
+     */
     void create_add_gate(const add_triple&) override{};
     void create_mul_gate(const mul_triple&) override{};
     void create_bool_gate(const uint32_t) override{};
     void create_poly_gate(const poly_triple&) override{};
     [[nodiscard]] size_t get_num_constant_gates() const override { return 0; };
 
+    /**
+     * @brief There are so many wires that naming them has no sense, it is easier to access them with enums
+     *
+     */
     enum WireIds {
-        OP,
+        OP, // The first 4 wires contain the standard values from the EccQueue wire
         X_LO_Y_HI,
         X_HI_Z_1,
         Y_LO_Z_2,
-        P_X_LOW_LIMBS,
-        P_X_LOW_LIMBS_RANGE_CONSTRAINT_0,
+        P_X_LOW_LIMBS,                    // P.xₗₒ split into 2 68 bit limbs
+        P_X_LOW_LIMBS_RANGE_CONSTRAINT_0, // Low limbs split further into smaller chunks for range constraints
         P_X_LOW_LIMBS_RANGE_CONSTRAINT_1,
         P_X_LOW_LIMBS_RANGE_CONSTRAINT_2,
         P_X_LOW_LIMBS_RANGE_CONSTRAINT_3,
         P_X_LOW_LIMBS_RANGE_CONSTRAINT_4,
         P_X_LOW_LIMBS_RANGE_CONSTRAINT_TAIL,
-        P_X_HIGH_LIMBS,
-        P_X_HIGH_LIMBS_RANGE_CONSTRAINT_0,
+        P_X_HIGH_LIMBS,                    // P.xₕᵢ split into 2 68 bit limbs
+        P_X_HIGH_LIMBS_RANGE_CONSTRAINT_0, // High limbs split into chunks for range constraints
         P_X_HIGH_LIMBS_RANGE_CONSTRAINT_1,
         P_X_HIGH_LIMBS_RANGE_CONSTRAINT_2,
         P_X_HIGH_LIMBS_RANGE_CONSTRAINT_3,
         P_X_HIGH_LIMBS_RANGE_CONSTRAINT_4,
         P_X_HIGH_LIMBS_RANGE_CONSTRAINT_TAIL,
-        P_Y_LOW_LIMBS,
-        P_Y_LOW_LIMBS_RANGE_CONSTRAINT_0,
+        P_Y_LOW_LIMBS,                    // P.yₗₒ split into 2 68 bit limbs
+        P_Y_LOW_LIMBS_RANGE_CONSTRAINT_0, // Low limbs split into chunks for range constraints
         P_Y_LOW_LIMBS_RANGE_CONSTRAINT_1,
         P_Y_LOW_LIMBS_RANGE_CONSTRAINT_2,
         P_Y_LOW_LIMBS_RANGE_CONSTRAINT_3,
         P_Y_LOW_LIMBS_RANGE_CONSTRAINT_4,
         P_Y_LOW_LIMBS_RANGE_CONSTRAINT_TAIL,
-        P_Y_HIGH_LIMBS,
-        P_Y_HIGH_LIMBS_RANGE_CONSTRAINT_0,
+        P_Y_HIGH_LIMBS,                    // P.yₕᵢ split into 2 68 bit limbs
+        P_Y_HIGH_LIMBS_RANGE_CONSTRAINT_0, // High limbs split into chunks for range constraints
         P_Y_HIGH_LIMBS_RANGE_CONSTRAINT_1,
         P_Y_HIGH_LIMBS_RANGE_CONSTRAINT_2,
         P_Y_HIGH_LIMBS_RANGE_CONSTRAINT_3,
         P_Y_HIGH_LIMBS_RANGE_CONSTRAINT_4,
         P_Y_HIGH_LIMBS_RANGE_CONSTRAINT_TAIL,
-        Z_LO_LIMBS, // Low limbs of z_1 and z_2
-        Z_LO_LIMBS_RANGE_CONSTRAINT_0,
+        Z_LO_LIMBS,                    // Low limbs of z_1 and z_2
+        Z_LO_LIMBS_RANGE_CONSTRAINT_0, // Range constraints for low limbs of z_1 and z_2
         Z_LO_LIMBS_RANGE_CONSTRAINT_1,
         Z_LO_LIMBS_RANGE_CONSTRAINT_2,
         Z_LO_LIMBS_RANGE_CONSTRAINT_3,
         Z_LO_LIMBS_RANGE_CONSTRAINT_4,
         Z_LO_LIMBS_RANGE_CONSTRAINT_TAIL,
-        Z_HI_LIMBS, // Hi Limbs of z_1 and z_2
-        Z_HI_LIMBS_RANGE_CONSTRAINT_0,
+        Z_HI_LIMBS,                    // Hi Limbs of z_1 and z_2
+        Z_HI_LIMBS_RANGE_CONSTRAINT_0, // Range constraints for high limbs of z_1 and z_2
         Z_HI_LIMBS_RANGE_CONSTRAINT_1,
         Z_HI_LIMBS_RANGE_CONSTRAINT_2,
         Z_HI_LIMBS_RANGE_CONSTRAINT_3,
         Z_HI_LIMBS_RANGE_CONSTRAINT_4,
         Z_HI_LIMBS_RANGE_CONSTRAINT_TAIL,
-        ACCUMULATORS_BINARY_LIMBS_0,
+        ACCUMULATORS_BINARY_LIMBS_0, // Contain 68-bit limbs of current and previous accumulator (previous at higher
+                                     // indices because of the nuances of KZG commitment)
         ACCUMULATORS_BINARY_LIMBS_1,
         ACCUMULATORS_BINARY_LIMBS_2,
         ACCUMULATORS_BINARY_LIMBS_3,
-        ACCUMULATOR_LO_LIMBS_RANGE_CONSTRAINT_0,
+        ACCUMULATOR_LO_LIMBS_RANGE_CONSTRAINT_0, // Range constraints for the current accumulator limbs (no need to redo
+                                                 // previous accumulator)
         ACCUMULATOR_LO_LIMBS_RANGE_CONSTRAINT_1,
         ACCUMULATOR_LO_LIMBS_RANGE_CONSTRAINT_2,
         ACCUMULATOR_LO_LIMBS_RANGE_CONSTRAINT_3,
@@ -87,9 +98,9 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
         ACCUMULATOR_HI_LIMBS_RANGE_CONSTRAINT_3,
         ACCUMULATOR_HI_LIMBS_RANGE_CONSTRAINT_4,
         ACCUMULATOR_HI_LIMBS_RANGE_CONSTRAINT_TAIL,
-        QUOTIENT_LO_BINARY_LIMBS,
+        QUOTIENT_LO_BINARY_LIMBS, // Quotient limbs
         QUOTIENT_HI_BINARY_LIMBS,
-        QUOTIENT_LO_LIMBS_RANGE_CONSTRAIN_0,
+        QUOTIENT_LO_LIMBS_RANGE_CONSTRAIN_0, // Range constraints for quotient
         QUOTIENT_LO_LIMBS_RANGE_CONSTRAIN_1,
         QUOTIENT_LO_LIMBS_RANGE_CONSTRAIN_2,
         QUOTIENT_LO_LIMBS_RANGE_CONSTRAIN_3,
@@ -101,9 +112,11 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
         QUOTIENT_HI_LIMBS_RANGE_CONSTRAIN_3,
         QUOTIENT_HI_LIMBS_RANGE_CONSTRAIN_4,
         QUOTIENT_HI_LIMBS_RANGE_CONSTRAIN_TAIL,
-        RELATION_WIDE_LIMBS,
+        RELATION_WIDE_LIMBS, // Limbs for checking the correctness of  mod 2²⁷² relations. TODO(kesha): add range
+                             // constraints
 
     };
+    static constexpr size_t MAX_OPERAND = 3;
     static constexpr size_t NUM_LIMB_BITS = 68;
     static constexpr size_t NUM_Z_LIMBS = 2;
     static constexpr size_t MICRO_LIMB_BITS = 12;
@@ -193,6 +206,13 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
         std::array<Fr, NUM_BINARY_LIMBS + 1> v_quarted_limbs = { 0 };
     };
 
+    /**
+     * @brief Create bigfield representations of x and powers of v
+     *
+     * @param x The point at which the polynomials are being evaluated
+     * @param v The batching challenge
+     * @return RelationInputs
+     */
     static RelationInputs compute_relation_inputs_limbs(Fp x, Fp v)
     {
         /**
@@ -221,34 +241,46 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
         result.v_quarted_limbs = base_element_to_bigfield(v_quarted);
         return result;
     }
+
+    /**
+     * @brief Create a single accumulation gate
+     *
+     * @param acc_step
+     */
     void create_accumulation_gate(const AccumulationInput acc_step)
     {
         // The first wires OpQueue/Transcript wires
-        ASSERT(uint256_t(acc_step.op) < 4);
+        ASSERT(uint256_t(acc_step.op) <= MAX_OPERAND);
         auto& op_wire = std::get<WireIds::OP>(wires);
         op_wire.push_back(add_variable(acc_step.op));
         op_wire.push_back(zero_idx);
 
+        /**
+         * @brief Insert two values into the same wire sequentially
+         *
+         */
         auto insert_pair_into_wire = [this](WireIds wire_index, Fr first, Fr second) {
             auto& current_wire = wires[wire_index];
             current_wire.push_back(add_variable(first));
             current_wire.push_back(add_variable(second));
         };
 
+        // Check and insert P_x_lo and P_y_hi into wire 1
         ASSERT(uint256_t(acc_step.P_x_lo) <= MAX_LOW_WIDE_LIMB_SIZE);
         ASSERT(uint256_t(acc_step.P_y_hi) <= MAX_HIGH_WIDE_LIMB_SIZE);
         insert_pair_into_wire(WireIds::X_LO_Y_HI, acc_step.P_x_lo, acc_step.P_y_hi);
 
+        // Check and insert P_x_hi and z_1 into wire 2
         ASSERT(uint256_t(acc_step.P_x_hi) <= MAX_HIGH_WIDE_LIMB_SIZE);
         ASSERT(uint256_t(acc_step.z_1) <= MAX_LOW_WIDE_LIMB_SIZE);
         insert_pair_into_wire(WireIds::X_HI_Z_1, acc_step.P_x_hi, acc_step.z_1);
 
+        // Check and insert P_y_lo and z_2 into wire 3
         ASSERT(uint256_t(acc_step.P_y_lo) <= MAX_LOW_WIDE_LIMB_SIZE);
         ASSERT(uint256_t(acc_step.z_2) <= MAX_LOW_WIDE_LIMB_SIZE);
         insert_pair_into_wire(WireIds::Y_LO_Z_2, acc_step.P_y_lo, acc_step.z_2);
 
-        // The P_x limb wires
-
+        // Check decomposition of values from the Queue into limbs used in bigfield evaluations
         ASSERT(acc_step.P_x_lo == (acc_step.P_x_limbs[0] + acc_step.P_x_limbs[1] * SHIFT_1));
         ASSERT(acc_step.P_x_hi == (acc_step.P_x_limbs[2] + acc_step.P_x_limbs[3] * SHIFT_1));
         ASSERT(acc_step.P_y_lo == (acc_step.P_y_limbs[0] + acc_step.P_y_limbs[1] * SHIFT_1));
@@ -256,6 +288,10 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
         ASSERT(acc_step.z_1 == (acc_step.z_1_limbs[0] + acc_step.z_1_limbs[1] * SHIFT_1));
         ASSERT(acc_step.z_2 == (acc_step.z_2_limbs[0] + acc_step.z_2_limbs[1] * SHIFT_1));
 
+        /**
+         * @brief Check correctness of limbs values
+         *
+         */
         auto check_binary_limbs_maximum_values = []<size_t total_limbs>(const std::array<Fr, total_limbs>& limbs) {
             if constexpr (total_limbs == (NUM_BINARY_LIMBS + 1)) {
                 for (size_t i = 0; i < NUM_BINARY_LIMBS - 1; i++) {
@@ -268,6 +304,10 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
                 }
             }
         };
+        /**
+         * @brief Check correctness of values for range constraint limbs
+         *
+         */
         auto check_micro_limbs_maximum_values =
             []<size_t binary_limb_count, size_t micro_limb_count>(
                 const std::array<std::array<Fr, micro_limb_count>, binary_limb_count>& limbs) {
@@ -277,6 +317,8 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
                     }
                 }
             };
+
+        // Check limb values are in range
         check_binary_limbs_maximum_values(acc_step.P_x_limbs);
         check_binary_limbs_maximum_values(acc_step.P_y_limbs);
         check_binary_limbs_maximum_values(acc_step.z_1_limbs);
@@ -285,6 +327,7 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
         check_binary_limbs_maximum_values(acc_step.current_accumulator);
         check_binary_limbs_maximum_values(acc_step.quotient_binary_limbs);
 
+        // Insert limbs used in bigfield evaluations
         insert_pair_into_wire(P_X_LOW_LIMBS, acc_step.P_x_limbs[0], acc_step.P_x_limbs[1]);
         insert_pair_into_wire(P_X_HIGH_LIMBS, acc_step.P_x_limbs[2], acc_step.P_x_limbs[3]);
         insert_pair_into_wire(P_Y_LOW_LIMBS, acc_step.P_y_limbs[0], acc_step.P_y_limbs[1]);
@@ -297,30 +340,27 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
             QUOTIENT_HI_BINARY_LIMBS, acc_step.quotient_binary_limbs[2], acc_step.quotient_binary_limbs[3]);
         insert_pair_into_wire(RELATION_WIDE_LIMBS, acc_step.relation_wide_limbs[0], acc_step.relation_wide_limbs[1]);
 
+        // Check limbs used in range constraints are in range
         check_micro_limbs_maximum_values(acc_step.P_x_microlimbs);
         check_micro_limbs_maximum_values(acc_step.P_y_microlimbs);
         check_micro_limbs_maximum_values(acc_step.z_1_microlimbs);
         check_micro_limbs_maximum_values(acc_step.z_2_microlimbs);
         check_micro_limbs_maximum_values(acc_step.current_accumulator_microlimbs);
-        info(uint256_t(acc_step.relation_wide_limbs[1]).get_msb());
+
+        // Check that relation limbs are in range
         ASSERT(uint256_t(acc_step.relation_wide_limbs[0]).get_msb() < WIDE_RELATION_LIMB_BITS);
         ASSERT(uint256_t(acc_step.relation_wide_limbs[1]).get_msb() < WIDE_RELATION_LIMB_BITS);
 
+        /**
+         * @brief Put several values in sequential wires
+         *
+         */
         auto lay_limbs_in_row = [this]<size_t array_size>(std::array<Fr, array_size> input,
                                                           WireIds starting_wire,
                                                           size_t number_of_elements) {
             ASSERT(number_of_elements <= array_size);
             for (size_t i = 0; i < number_of_elements; i++) {
                 wires[starting_wire + i].push_back(add_variable(input[i]));
-
-                // info("Pushed ",
-                //      input[i],
-                //      " to ",
-                //      starting_wire + i,
-                //      ":",
-                //      i,
-                //      " at ",
-                //      wires[starting_wire + i].size() - 1);
             }
         };
         lay_limbs_in_row(acc_step.P_x_microlimbs[0], P_X_LOW_LIMBS_RANGE_CONSTRAINT_0, NUM_MICRO_LIMBS);
@@ -352,6 +392,17 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
 
         num_gates += 2;
     }
+
+    /**
+     * @brief Check the witness satisifies the circuit
+     *
+     * @details Does one gate for now
+     *
+     * @param x
+     * @param v
+     * @return true
+     * @return false
+     */
     bool check_circuit(Fp x, Fp v)
     {
         RelationInputs relation_inputs = compute_relation_inputs_limbs(x, v);
