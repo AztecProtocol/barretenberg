@@ -1,9 +1,9 @@
 #pragma once
 #include <iomanip>
-#include <ostream>
 #include <map>
-#include <vector>
 #include <optional>
+#include <ostream>
+#include <vector>
 
 namespace std {
 
@@ -19,8 +19,7 @@ inline std::ostream& operator<<(std::ostream& os, std::vector<uint8_t> const& ar
     return os;
 }
 
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true, typename A>
-inline std::ostream& operator<<(std::ostream& os, std::vector<T, A> const& arr)
+template <std::integral T, typename A> inline std::ostream& operator<<(std::ostream& os, std::vector<T, A> const& arr)
 {
     os << "[";
     for (auto element : arr) {
@@ -30,8 +29,8 @@ inline std::ostream& operator<<(std::ostream& os, std::vector<T, A> const& arr)
     return os;
 }
 
-template <typename T, std::enable_if_t<!std::is_integral<T>::value, bool> = true, typename A>
-inline std::ostream& operator<<(std::ostream& os, std::vector<T, A> const& arr)
+template <typename T, typename A>
+requires(!std::integral<T>) inline std::ostream& operator<<(std::ostream& os, std::vector<T, A> const& arr)
 {
     os << "[\n";
     for (auto element : arr) {

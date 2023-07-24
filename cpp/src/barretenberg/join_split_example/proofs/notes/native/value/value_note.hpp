@@ -2,8 +2,8 @@
 #include "barretenberg/common/serialize.hpp"
 #include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
-#include "create_partial_commitment.hpp"
 #include "complete_partial_commitment.hpp"
+#include "create_partial_commitment.hpp"
 
 namespace join_split_example {
 namespace proofs {
@@ -57,7 +57,7 @@ inline void write(std::vector<uint8_t>& buf, value_note const& note)
     write(buf, note.value);
     write(buf, note.asset_id);
     write(buf, note.account_required);
-    write(buf, note.owner);
+    serialize::write(buf, note.owner);
     write(buf, note.secret);
     write(buf, note.creator_pubkey);
     write(buf, note.input_nullifier);

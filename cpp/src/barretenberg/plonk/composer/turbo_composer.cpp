@@ -1,17 +1,16 @@
 #include "turbo_composer.hpp"
-#include "barretenberg/proof_system/circuit_builder/turbo_circuit_builder.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
-#include "barretenberg/plonk/proof_system/widgets/random_widgets/permutation_widget.hpp"
-#include "barretenberg/plonk/proof_system/widgets/transition_widgets/turbo_arithmetic_widget.hpp"
-#include "barretenberg/plonk/proof_system/widgets/transition_widgets/fixed_base_widget.hpp"
-#include "barretenberg/plonk/proof_system/widgets/transition_widgets/turbo_logic_widget.hpp"
-#include "barretenberg/plonk/proof_system/widgets/transition_widgets/turbo_range_widget.hpp"
+#include "barretenberg/plonk/composer/composer_lib.hpp"
 #include "barretenberg/plonk/proof_system/commitment_scheme/kate_commitment_scheme.hpp"
+#include "barretenberg/plonk/proof_system/widgets/random_widgets/permutation_widget.hpp"
+#include "barretenberg/plonk/proof_system/widgets/transition_widgets/fixed_base_widget.hpp"
 #include "barretenberg/plonk/proof_system/widgets/transition_widgets/transition_widget.hpp"
 #include "barretenberg/plonk/proof_system/widgets/transition_widgets/turbo_arithmetic_widget.hpp"
-#include "barretenberg/proof_system/composer/permutation_lib.hpp"
+#include "barretenberg/plonk/proof_system/widgets/transition_widgets/turbo_logic_widget.hpp"
+#include "barretenberg/plonk/proof_system/widgets/transition_widgets/turbo_range_widget.hpp"
+#include "barretenberg/proof_system/circuit_builder/turbo_circuit_builder.hpp"
 #include "barretenberg/proof_system/composer/composer_lib.hpp"
-#include "barretenberg/plonk/composer/composer_lib.hpp"
+#include "barretenberg/proof_system/composer/permutation_lib.hpp"
 
 using namespace barretenberg;
 
@@ -37,12 +36,12 @@ std::shared_ptr<plonk::proving_key> TurboComposer::compute_proving_key(const Cir
     const size_t num_randomized_gates = NUM_RESERVED_GATES;
     // Initialize circuit_proving_key
     // TODO(#392)(Kesha): replace composer types.
-    circuit_proving_key = initialize_proving_key<Flavor>(
+    circuit_proving_key = initialize_proving_key(
         circuit_constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates, CircuitType::TURBO);
 
     construct_selector_polynomials<Flavor>(circuit_constructor, circuit_proving_key.get());
 
-    enforce_nonzero_selector_polynomials<Flavor>(circuit_constructor, circuit_proving_key.get());
+    enforce_nonzero_selector_polynomials(circuit_constructor, circuit_proving_key.get());
 
     compute_monomial_and_coset_selector_forms(circuit_proving_key.get(), turbo_selector_properties());
 
@@ -95,8 +94,13 @@ void TurboComposer::compute_witness(const CircuitBuilder& circuit_constructor, c
     if (computed_witness) {
         return;
     }
-    auto wire_polynomial_evaluations =
-        construct_wire_polynomials_base<Flavor>(circuit_constructor, minimum_circuit_size, NUM_RESERVED_GATES);
+    const size_t num_gates = circuit_constructor.num_gates;
+    const size_t num_public_inputs = circuit_constructor.public_inputs.size();
+
+    const size_t num_constraints = std::max(minimum_circuit_size, num_gates + num_public_inputs);
+    const size_t subgroup_size = circuit_constructor.get_circuit_subgroup_size(num_constraints + NUM_RESERVED_GATES);
+
+    auto wire_polynomial_evaluations = construct_wire_polynomials_base<Flavor>(circuit_constructor, subgroup_size);
 
     for (size_t j = 0; j < program_width; ++j) {
         std::string index = std::to_string(j + 1);

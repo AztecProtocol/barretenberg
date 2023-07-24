@@ -1,7 +1,7 @@
 #include "standard_composer.hpp"
-#include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/numeric/bitop/get_msb.hpp"
+#include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/srs/factories/crs_factory.hpp"
 
 #include <cstddef>
@@ -9,32 +9,6 @@
 #include <string>
 
 namespace proof_system::honk {
-
-/**
- * Compute proving key base.
- *
- * 1. Load crs.
- * 2. Initialize this->proving_key.
- * 3. Create constraint selector polynomials from each of this composer's `selectors` vectors and add them to the
- * proving key.
- *
- * @param minimum_circuit_size Used as the total number of gates when larger than n + count of public inputs.
- * @param num_reserved_gates The number of reserved gates.
- * @return Pointer to the initialized proving key updated with selector polynomials.
- * */
-template <StandardFlavor Flavor>
-std::shared_ptr<typename Flavor::ProvingKey> StandardComposer_<Flavor>::compute_proving_key_base(
-    const CircuitBuilder& constructor, const size_t minimum_circuit_size, const size_t num_randomized_gates)
-{
-    // Initialize proving_key
-    // TODO(#392)(Kesha): replace composer types.
-    proving_key =
-        initialize_proving_key<Flavor>(constructor, crs_factory_.get(), minimum_circuit_size, num_randomized_gates);
-    // Compute lagrange selectors
-    construct_selector_polynomials<Flavor>(constructor, proving_key.get());
-
-    return proving_key;
-}
 
 /**
  * Compute witness polynomials (w_1, w_2, w_3, w_4).
@@ -46,14 +20,12 @@ std::shared_ptr<typename Flavor::ProvingKey> StandardComposer_<Flavor>::compute_
  * @tparam Program settings needed to establish if w_4 is being used.
  * */
 template <StandardFlavor Flavor>
-void StandardComposer_<Flavor>::compute_witness(const CircuitBuilder& circuit_constructor,
-                                                const size_t minimum_circuit_size)
+void StandardComposer_<Flavor>::compute_witness(const CircuitBuilder& circuit_constructor, const size_t /*unused*/)
 {
     if (computed_witness) {
         return;
     }
-    auto wire_polynomials =
-        construct_wire_polynomials_base<Flavor>(circuit_constructor, minimum_circuit_size, NUM_RESERVED_GATES);
+    auto wire_polynomials = construct_wire_polynomials_base<Flavor>(circuit_constructor, dyadic_circuit_size);
 
     proving_key->w_l = wire_polynomials[0];
     proving_key->w_r = wire_polynomials[1];
@@ -76,8 +48,12 @@ std::shared_ptr<typename Flavor::ProvingKey> StandardComposer_<Flavor>::compute_
     if (proving_key) {
         return proving_key;
     }
-    // Compute q_l, q_r, q_o, etc polynomials
-    StandardComposer_::compute_proving_key_base(circuit_constructor, /*minimum_circuit_size=*/0, NUM_RESERVED_GATES);
+
+    // Construct a proving key
+    proving_key = std::make_shared<ProvingKey>(dyadic_circuit_size, num_public_inputs);
+
+    // Compute lagrange selectors
+    construct_selector_polynomials<Flavor>(circuit_constructor, proving_key.get());
 
     // Compute sigma polynomials (we should update that late)
     compute_standard_honk_sigma_permutations<Flavor>(circuit_constructor, proving_key.get());
@@ -95,7 +71,7 @@ std::shared_ptr<typename Flavor::ProvingKey> StandardComposer_<Flavor>::compute_
  * */
 template <StandardFlavor Flavor>
 std::shared_ptr<typename Flavor::VerificationKey> StandardComposer_<Flavor>::compute_verification_key(
-    const CircuitBuilder& circuit_constructor)
+    const CircuitBuilder& /*unused*/)
 {
     if (verification_key) {
         return verification_key;
@@ -139,10 +115,15 @@ StandardVerifier_<Flavor> StandardComposer_<Flavor>::create_verifier(const Circu
 template <StandardFlavor Flavor>
 StandardProver_<Flavor> StandardComposer_<Flavor>::create_prover(const CircuitBuilder& circuit_constructor)
 {
+    // Compute some key cicuit size paramaters
+    num_public_inputs = circuit_constructor.public_inputs.size();
+    total_num_gates = circuit_constructor.num_gates + num_public_inputs;
+    dyadic_circuit_size = circuit_constructor.get_circuit_subgroup_size(total_num_gates);
+
     compute_proving_key(circuit_constructor);
     compute_witness(circuit_constructor);
 
-    compute_commitment_key(proving_key->circuit_size, crs_factory_);
+    compute_commitment_key(proving_key->circuit_size);
 
     StandardProver_<Flavor> output_state(proving_key, commitment_key);
 

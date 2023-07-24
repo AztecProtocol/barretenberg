@@ -1,26 +1,26 @@
 #pragma once
+#include "barretenberg/ecc/curves/bn254/g1.hpp"
+#include "barretenberg/honk/pcs/commitment_key.hpp"
+#include "barretenberg/honk/pcs/ipa/ipa.hpp"
+#include "barretenberg/honk/sumcheck/polynomials/barycentric_data.hpp"
+#include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
+#include "barretenberg/honk/sumcheck/relations/auxiliary_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/lookup_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/permutation_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
+#include "barretenberg/honk/transcript/transcript.hpp"
+#include "barretenberg/polynomials/evaluation_domain.hpp"
+#include "barretenberg/polynomials/polynomial.hpp"
+#include "barretenberg/proof_system/circuit_builder/ultra_circuit_builder.hpp"
+#include "barretenberg/proof_system/flavor/flavor.hpp"
 #include <array>
 #include <concepts>
 #include <span>
 #include <string>
 #include <type_traits>
 #include <vector>
-#include "barretenberg/honk/pcs/commitment_key.hpp"
-#include "barretenberg/honk/sumcheck/polynomials/barycentric_data.hpp"
-#include "barretenberg/honk/pcs/ipa/ipa.hpp"
-#include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
-#include "barretenberg/ecc/curves/bn254/g1.hpp"
-#include "barretenberg/honk/transcript/transcript.hpp"
-#include "barretenberg/polynomials/evaluation_domain.hpp"
-#include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/proof_system/circuit_builder/ultra_circuit_builder.hpp"
-#include "barretenberg/proof_system/flavor/flavor.hpp"
-#include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/permutation_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/lookup_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/auxiliary_relation.hpp"
 
 namespace proof_system::honk::flavor {
 
@@ -50,6 +50,7 @@ class UltraGrumpkin {
     // The total number of witness entities not including shifts.
     static constexpr size_t NUM_WITNESS_ENTITIES = 11;
 
+    using GrandProductRelations = std::tuple<sumcheck::UltraPermutationRelation<FF>, sumcheck::LookupRelation<FF>>;
     // define the tuple of Relations that comprise the Sumcheck relation
     using Relations = std::tuple<sumcheck::UltraArithmeticRelation<FF>,
                                  sumcheck::UltraPermutationRelation<FF>,
@@ -65,12 +66,12 @@ class UltraGrumpkin {
     static constexpr size_t MAX_RANDOM_RELATION_LENGTH = MAX_RELATION_LENGTH + 1;
     static constexpr size_t NUM_RELATIONS = std::tuple_size<Relations>::value;
 
-    // Instantiate the BarycentricData needed to extend each Relation Univariate
-    static_assert(instantiate_barycentric_utils<FF, MAX_RANDOM_RELATION_LENGTH>());
-
     // define the container for storing the univariate contribution from each relation in Sumcheck
     using RelationUnivariates = decltype(create_relation_univariates_container<FF, Relations>());
     using RelationValues = decltype(create_relation_values_container<FF, Relations>());
+
+    // Whether or not the first row of the execution trace is reserved for 0s to enable shifts
+    static constexpr bool has_zero_row = true;
 
   private:
     template <typename DataType, typename HandleType>

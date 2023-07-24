@@ -1,13 +1,13 @@
 #pragma once
-#include "evaluation_domain.hpp"
-#include <cstddef>
-#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 #include "barretenberg/common/mem.hpp"
 #include "barretenberg/crypto/sha256/sha256.hpp"
-#include <fstream>
-#include <concepts>
-#include <span>
+#include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
+#include "evaluation_domain.hpp"
 #include "polynomial_arithmetic.hpp"
+#include <concepts>
+#include <cstddef>
+#include <fstream>
+#include <span>
 
 namespace barretenberg {
 
@@ -198,6 +198,13 @@ template <typename Fr> class Polynomial {
      */
     void factor_roots(std::span<const Fr> roots) { polynomial_arithmetic::factor_roots(std::span{ *this }, roots); };
     void factor_roots(const Fr& root) { polynomial_arithmetic::factor_roots(std::span{ *this }, root); };
+
+#ifdef __clang__
+    // Needed for clang versions earlier than 14.0.3, but breaks gcc.
+    // Can remove once ecosystem is firmly upgraded.
+    operator std::span<Fr>() { return std::span<Fr>(coefficients_.get(), size_); }
+    operator std::span<const Fr>() const { return std::span<const Fr>(coefficients_.get(), size_); }
+#endif
 
     iterator begin() { return coefficients_.get(); }
     iterator end() { return coefficients_.get() + size_; }

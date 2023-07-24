@@ -1,21 +1,21 @@
 #pragma once
-#include <tuple>
 #include "../msgpack.hpp"
+#include <tuple>
 
 // Define a template struct to deduce function traits for different function types
 template <typename Func> struct func_traits;
 
 // Specialization for function pointers
 template <typename R, typename... Vs> struct func_traits<R (*)(Vs...)> {
-    typedef std::tuple<Vs...> Args; // Define a tuple type that holds all argument types
-    Args args;                      // Args instance
-    R ret;                          // Holds return type
-    MSGPACK_FIELDS(args, ret);      // Macro from msgpack library to serialize/deserialize fields
+    typedef std::tuple<typename std::decay<Vs>::type...> Args; // Define a tuple type that holds all argument types
+    Args args;                                                 // Args instance
+    R ret;                                                     // Holds return type
+    MSGPACK_FIELDS(args, ret); // Macro from msgpack library to serialize/deserialize fields
 };
 
 // Specialization for function references
 template <typename R, typename... Vs> struct func_traits<R (&)(Vs...)> {
-    typedef std::tuple<Vs...> Args;
+    typedef std::tuple<typename std::decay<Vs>::type...> Args;
     Args args;
     R ret;
     MSGPACK_FIELDS(args, ret);
@@ -24,7 +24,7 @@ template <typename R, typename... Vs> struct func_traits<R (&)(Vs...)> {
 // Specialization for member function pointers. This also includes lambda types,
 // as they are functors (objects with operator()) and hence have a member function pointer
 template <typename R, typename T, typename... Vs> struct func_traits<R (T::*)(Vs...) const> {
-    typedef std::tuple<Vs...> Args;
+    typedef std::tuple<typename std::decay<Vs>::type...> Args;
     Args args;
     R ret;
     MSGPACK_FIELDS(args, ret);

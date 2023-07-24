@@ -1,9 +1,9 @@
 #pragma once
-#include "barretenberg/numeric/uint256/uint256.hpp"
-#include <vector>
-#include <type_traits>
 #include "barretenberg/ecc/curves/bn254/fq2.hpp"
+#include "barretenberg/numeric/uint256/uint256.hpp"
 #include "barretenberg/serialize/msgpack.hpp"
+#include <type_traits>
+#include <vector>
 
 namespace barretenberg {
 namespace group_elements {
@@ -185,20 +185,6 @@ template <typename Fq, typename Fr, typename Params> class alignas(64) affine_el
     // for serialization: update with new fields
     MSGPACK_FIELDS(x, y);
 };
-
-template <typename B, typename Fq, typename Fr, typename Params> void read(B& it, affine_element<Fq, Fr, Params>& value)
-{
-    read(it, value.x);
-    read(it, value.y);
-}
-
-template <typename B, typename Fq, typename Fr, typename Params>
-void write(B& buf, affine_element<Fq, Fr, Params> const& value)
-{
-    write(buf, value.x);
-    write(buf, value.y);
-}
-
 } // namespace group_elements
 } // namespace barretenberg
 

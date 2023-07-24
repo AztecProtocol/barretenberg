@@ -1,15 +1,15 @@
 #pragma once
 #include "barretenberg/common/log.hpp"
-#include <array>
-#include <algorithm>
-#include <tuple>
 #include "barretenberg/common/thread.hpp"
-#include "polynomials/barycentric_data.hpp"
-#include "polynomials/univariate.hpp"
-#include "polynomials/pow.hpp"
-#include "relations/relation_parameters.hpp"
 #include "barretenberg/honk/flavor/ultra.hpp"
+#include "polynomials/barycentric_data.hpp"
+#include "polynomials/pow.hpp"
+#include "polynomials/univariate.hpp"
+#include "relations/relation_parameters.hpp"
+#include <algorithm>
+#include <array>
 #include <functional>
+#include <tuple>
 
 namespace proof_system::honk::sumcheck {
 
@@ -228,7 +228,7 @@ template <typename Flavor> class SumcheckRound {
      *
      * @param univariate T^{l}(X), the round univariate that is equal to S^{l}(X)/( (1−X) + X⋅ζ^{ 2^l } )
      */
-    bool check_sum(Univariate<FF, MAX_RANDOM_RELATION_LENGTH>& univariate, const PowUnivariate<FF>& pow_univariate)
+    bool check_sum(Univariate<FF, MAX_RANDOM_RELATION_LENGTH>& univariate)
     {
         // S^{l}(0) = ( (1−0) + 0⋅ζ^{ 2^l } ) ⋅ T^{l}(0) = T^{l}(0)
         // S^{l}(1) = ( (1−1) + 1⋅ζ^{ 2^l } ) ⋅ T^{l}(1) = ζ^{ 2^l } ⋅ T^{l}(1)

@@ -1,8 +1,8 @@
 #include "./ultra_verifier.hpp"
-#include "barretenberg/honk/transcript/transcript.hpp"
-#include "barretenberg/numeric/bitop/get_msb.hpp"
 #include "barretenberg/honk/flavor/standard.hpp"
+#include "barretenberg/honk/transcript/transcript.hpp"
 #include "barretenberg/honk/utils/power_polynomial.hpp"
+#include "barretenberg/numeric/bitop/get_msb.hpp"
 
 using namespace barretenberg;
 using namespace proof_system::honk::sumcheck;
@@ -84,7 +84,7 @@ template <typename Flavor> bool UltraVerifier_<Flavor>::verify_proof(const plonk
     // Get permutation challenges
     auto [beta, gamma] = transcript.get_challenges("beta", "gamma");
 
-    const FF public_input_delta = compute_public_input_delta<FF>(public_inputs, beta, gamma, circuit_size);
+    const FF public_input_delta = compute_public_input_delta<Flavor>(public_inputs, beta, gamma, circuit_size);
     const FF lookup_grand_product_delta = compute_lookup_grand_product_delta<FF>(beta, gamma, circuit_size);
 
     relation_parameters.beta = beta;

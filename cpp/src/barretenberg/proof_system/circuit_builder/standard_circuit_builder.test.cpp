@@ -1,7 +1,7 @@
+#include "barretenberg/crypto/generators/generator_data.hpp"
+#include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
 #include "standard_circuit_builder.hpp"
 #include <gtest/gtest.h>
-#include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
-#include "barretenberg/crypto/generators/generator_data.hpp"
 
 using namespace barretenberg;
 using namespace proof_system;
@@ -19,6 +19,16 @@ TEST(standard_circuit_constructor, base_case)
     circuit_constructor.add_public_variable(a);
 
     bool result = circuit_constructor.check_circuit();
+    EXPECT_EQ(result, true);
+}
+
+TEST(standard_circuit_constructor, grumpkin_base_case)
+{
+    StandardGrumpkinCircuitBuilder composer = StandardGrumpkinCircuitBuilder();
+    grumpkin::fr a = grumpkin::fr::one();
+    composer.add_public_variable(a);
+
+    bool result = composer.check_circuit();
     EXPECT_EQ(result, true);
 }
 

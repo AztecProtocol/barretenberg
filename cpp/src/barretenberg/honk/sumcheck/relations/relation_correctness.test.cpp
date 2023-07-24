@@ -2,15 +2,16 @@
 
 #include "barretenberg/honk/composer/standard_composer.hpp"
 #include "barretenberg/honk/composer/ultra_composer.hpp"
+#include "barretenberg/honk/proof_system/grand_product_library.hpp"
 #include "barretenberg/honk/proof_system/prover_library.hpp"
-#include "barretenberg/honk/sumcheck/relations/relation_parameters.hpp"
 #include "barretenberg/honk/sumcheck/relations/arithmetic_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/permutation_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/lookup_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/auxiliary_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/elliptic_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/gen_perm_sort_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/lookup_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/permutation_relation.hpp"
+#include "barretenberg/honk/sumcheck/relations/relation_parameters.hpp"
+#include "barretenberg/honk/sumcheck/relations/ultra_arithmetic_relation.hpp"
 
 using namespace proof_system::honk;
 
@@ -109,17 +110,13 @@ TEST_F(RelationCorrectnessTests, StandardRelationCorrectness)
     // Compute public input delta
     const auto public_inputs = circuit_constructor.get_public_inputs();
     auto public_input_delta =
-        honk::compute_public_input_delta<FF>(public_inputs, beta, gamma, prover.key->circuit_size);
+        honk::compute_public_input_delta<Flavor>(public_inputs, beta, gamma, prover.key->circuit_size);
 
     sumcheck::RelationParameters<FF> params{
         .beta = beta,
         .gamma = gamma,
         .public_input_delta = public_input_delta,
     };
-
-    // Compute grand product polynomial
-    polynomial z_permutation =
-        prover_library::compute_permutation_grand_product<honk::flavor::Standard>(prover.key, beta, gamma);
 
     // Create an array of spans to the underlying polynomials to more easily
     // get the transposition.
@@ -130,8 +127,6 @@ TEST_F(RelationCorrectnessTests, StandardRelationCorrectness)
     prover_polynomials.w_l = prover.key->w_l;
     prover_polynomials.w_r = prover.key->w_r;
     prover_polynomials.w_o = prover.key->w_o;
-    prover_polynomials.z_perm = z_permutation;
-    prover_polynomials.z_perm_shift = z_permutation.shifted();
     prover_polynomials.q_m = prover.key->q_m;
     prover_polynomials.q_l = prover.key->q_l;
     prover_polynomials.q_r = prover.key->q_r;
@@ -145,6 +140,9 @@ TEST_F(RelationCorrectnessTests, StandardRelationCorrectness)
     prover_polynomials.id_3 = prover.key->id_3;
     prover_polynomials.lagrange_first = prover.key->lagrange_first;
     prover_polynomials.lagrange_last = prover.key->lagrange_last;
+
+    // Compute grand product polynomial
+    grand_product_library::compute_grand_products<honk::flavor::Standard>(prover.key, prover_polynomials, params);
 
     // Construct the round for applying sumcheck relations and results for storing computed results
     auto relations = std::tuple(honk::sumcheck::ArithmeticRelation<FF>(), honk::sumcheck::PermutationRelation<FF>());
@@ -304,7 +302,7 @@ TEST_F(RelationCorrectnessTests, UltraRelationCorrectness)
     // Compute public input delta
     const auto public_inputs = circuit_constructor.get_public_inputs();
     auto public_input_delta =
-        honk::compute_public_input_delta<FF>(public_inputs, beta, gamma, prover.key->circuit_size);
+        honk::compute_public_input_delta<Flavor>(public_inputs, beta, gamma, prover.key->circuit_size);
     auto lookup_grand_product_delta =
         honk::compute_lookup_grand_product_delta<FF>(beta, gamma, prover.key->circuit_size);
 
@@ -321,12 +319,6 @@ TEST_F(RelationCorrectnessTests, UltraRelationCorrectness)
 
     // Add RAM/ROM memory records to wire four
     prover_library::add_plookup_memory_records_to_wire_4<Flavor>(prover.key, eta);
-
-    // Compute grand product polynomial
-    prover.key->z_perm = prover_library::compute_permutation_grand_product<Flavor>(prover.key, beta, gamma);
-
-    // Compute lookup grand product polynomial
-    prover.key->z_lookup = prover_library::compute_lookup_grand_product<Flavor>(prover.key, eta, beta, gamma);
 
     ProverPolynomials prover_polynomials;
 
@@ -348,10 +340,6 @@ TEST_F(RelationCorrectnessTests, UltraRelationCorrectness)
     prover_polynomials.table_2_shift = prover.key->table_2.shifted();
     prover_polynomials.table_3_shift = prover.key->table_3.shifted();
     prover_polynomials.table_4_shift = prover.key->table_4.shifted();
-    prover_polynomials.z_perm = prover.key->z_perm;
-    prover_polynomials.z_perm_shift = prover.key->z_perm.shifted();
-    prover_polynomials.z_lookup = prover.key->z_lookup;
-    prover_polynomials.z_lookup_shift = prover.key->z_lookup.shifted();
     prover_polynomials.q_m = prover.key->q_m;
     prover_polynomials.q_l = prover.key->q_l;
     prover_polynomials.q_r = prover.key->q_r;
@@ -373,6 +361,9 @@ TEST_F(RelationCorrectnessTests, UltraRelationCorrectness)
     prover_polynomials.id_4 = prover.key->id_4;
     prover_polynomials.lagrange_first = prover.key->lagrange_first;
     prover_polynomials.lagrange_last = prover.key->lagrange_last;
+
+    // Compute grand product polynomials for permutation + lookup
+    grand_product_library::compute_grand_products<Flavor>(prover.key, prover_polynomials, params);
 
     // Check that selectors are nonzero to ensure corresponding relation has nontrivial contribution
     ensure_non_zero(prover.key->q_arith);

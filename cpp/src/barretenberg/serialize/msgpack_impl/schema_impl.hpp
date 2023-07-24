@@ -1,15 +1,15 @@
 #pragma once
 
-#include <memory>
-#include <concepts>
-#include <string>
-#include <array>
 #include "schema_name.hpp"
+#include <array>
+#include <concepts>
+#include <memory>
+#include <string>
 
 struct MsgpackSchemaPacker;
 
 // Forward declare for MsgpackSchemaPacker
-template <typename T> inline void msgpack_schema_pack_wrapper(MsgpackSchemaPacker& packer, const T& obj);
+template <typename T> inline void _msgpack_schema_pack(MsgpackSchemaPacker& packer, const T& obj);
 
 /**
  * Define a serialization schema based on compile-time information about a type being serialized.
@@ -53,7 +53,7 @@ struct MsgpackSchemaPacker : msgpack::packer<msgpack::sbuffer> {
      * @tparam T the object's type.
      * @param obj the object.
      */
-    template <typename T> void pack_schema(const T& obj) { msgpack_schema_pack_wrapper(*this, obj); }
+    template <typename T> void pack_schema(const T& obj) { _msgpack_schema_pack(*this, obj); }
 
     // Recurse over any templated containers
     // Outputs e.g. ['vector', ['sub-type']]
@@ -66,7 +66,7 @@ struct MsgpackSchemaPacker : msgpack::packer<msgpack::sbuffer> {
 
         // Note: if this fails to compile, check first in list of template Arg's
         // it may need a msgpack_schema_pack specialization (particularly if it doesn't define MSGPACK_FIELDS).
-        (msgpack_schema_pack_wrapper(*this, Args{}), ...); /* pack schemas of all template Args */
+        (_msgpack_schema_pack(*this, Args{}), ...); /* pack schemas of all template Args */
     }
     /**
      * @brief Encode a type that defines msgpack based on its key value pairs.
@@ -153,8 +153,10 @@ requires(!msgpack_concepts::HasMsgPackSchema<T>) inline void msgpack_schema_pack
     packer.pack_with_name(type, object);
 }
 
-// This indirection is purely for better error reporting
-template <typename T> inline void msgpack_schema_pack_wrapper(MsgpackSchemaPacker& packer, const T& obj)
+/**
+ * @brief Helper method for better error reporting. Clang does not give the best errors for argument lists.
+ */
+template <typename T> inline void _msgpack_schema_pack(MsgpackSchemaPacker& packer, const T& obj)
 {
     static_assert(msgpack_concepts::SchemaPackable<T>,
                   "see the first type argument in the error trace, it might need a msgpack_schema method!");
@@ -200,7 +202,7 @@ inline void msgpack_schema_pack(MsgpackSchemaPacker& packer, std::array<T, N> co
     packer.pack("array");
     // That has a size 2 tuple as its 2nd arg
     packer.pack_array(2); /* param list format for consistency*/
-    msgpack_schema_pack_wrapper(packer, T{});
+    _msgpack_schema_pack(packer, T{});
     packer.pack(N);
 }
 
@@ -214,7 +216,7 @@ inline std::string msgpack_schema_to_string(auto obj)
 {
     msgpack::sbuffer output;
     MsgpackSchemaPacker printer{ output };
-    msgpack_schema_pack_wrapper(printer, obj);
+    _msgpack_schema_pack(printer, obj);
     msgpack::object_handle oh = msgpack::unpack(output.data(), output.size());
     std::stringstream pretty_output;
     pretty_output << oh.get() << std::endl;

@@ -6,8 +6,10 @@
 #include "relation_parameters.hpp"
 
 namespace proof_system::honk::sumcheck {
-template <typename T>
-concept HasSubrelationLinearlyIndependentMember = requires(T) { T::Relation::SUBRELATION_LINEARLY_INDEPENDENT; };
+template <typename T> concept HasSubrelationLinearlyIndependentMember = requires(T)
+{
+    T::Relation::SUBRELATION_LINEARLY_INDEPENDENT;
+};
 /**
  * @brief The templates defined herein facilitate sharing the relation arithmetic between the prover and the verifier.
  *
@@ -24,13 +26,48 @@ concept HasSubrelationLinearlyIndependentMember = requires(T) { T::Relation::SUB
  */
 
 /**
+ * @brief Getter method that will return `input[index]` iff `input` is a std::span container
+ *
+ * @tparam FF
+ * @tparam TypeMuncher
+ * @tparam T
+ * @param input
+ * @param index
+ * @return requires
+ */
+template <typename FF, typename AccumulatorTypes, typename T>
+requires std::is_same<std::span<FF>, T>::value inline
+    typename std::tuple_element<0, typename AccumulatorTypes::AccumulatorViews>::type
+    get_view(const T& input, const size_t index)
+{
+    return input[index];
+}
+
+/**
+ * @brief Getter method that will return `input[index]` iff `input` is not a std::span container
+ *
+ * @tparam FF
+ * @tparam TypeMuncher
+ * @tparam T
+ * @param input
+ * @param index
+ * @return requires
+ */
+template <typename FF, typename AccumulatorTypes, typename T>
+inline typename std::tuple_element<0, typename AccumulatorTypes::AccumulatorViews>::type get_view(const T& input,
+                                                                                                  const size_t)
+{
+    return typename std::tuple_element<0, typename AccumulatorTypes::AccumulatorViews>::type(input);
+}
+
+/**
  * @brief A wrapper for Relations to expose methods used by the Sumcheck prover or verifier to add the contribution of
  * a given relation to the corresponding accumulator.
  *
  * @tparam FF
  * @tparam RelationBase Base class that implements the arithmetic for a given relation (or set of sub-relations)
  */
-template <typename FF, template <typename> typename RelationBase> class RelationWrapper {
+template <typename FF, template <typename> typename RelationBase> class RelationWrapper : public RelationBase<FF> {
   private:
     template <size_t... Values> struct UnivariateAccumulatorTypes {
         using Accumulators = std::tuple<Univariate<FF, Values>...>;
@@ -75,8 +112,8 @@ template <typename FF, template <typename> typename RelationBase> class Relation
      * @tparam size_t
      */
     template <size_t>
-    static constexpr bool is_subrelation_linearly_independent()
-        requires(!HasSubrelationLinearlyIndependentMember<Relation>)
+    static constexpr bool is_subrelation_linearly_independent() requires(
+        !HasSubrelationLinearlyIndependentMember<Relation>)
     {
         return true;
     }
@@ -87,8 +124,8 @@ template <typename FF, template <typename> typename RelationBase> class Relation
      * @tparam size_t
      */
     template <size_t subrelation_index>
-    static constexpr bool is_subrelation_linearly_independent()
-        requires(HasSubrelationLinearlyIndependentMember<Relation>)
+    static constexpr bool is_subrelation_linearly_independent() requires(
+        HasSubrelationLinearlyIndependentMember<Relation>)
     {
         return std::get<subrelation_index>(Relation::SUBRELATION_LINEARLY_INDEPENDENT);
     }
