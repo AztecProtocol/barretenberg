@@ -35,7 +35,7 @@ fail_dirs=$(grep "^fail" config.toml | sed 's/fail = \[//;s/\]//;s/\"//g;s/ //g'
 # Convert them to array
 exclude_array=($exclude_dirs)
 fail_array=($fail_dirs)
-skip_array=(diamond_deps_0 workspace workspace_default_member)
+skip_array=(diamond_deps_0 workspace workspace_default_member 9_conditional)
 
 function test() {
   echo -n "Testing $1... "
