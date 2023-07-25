@@ -1,4 +1,5 @@
 #pragma once
+#include "barretenberg/ecc/curves/bn254/bn254.hpp"
 #include <array>
 #include <barretenberg/common/slab_allocator.hpp>
 #include <cstddef>
@@ -177,5 +178,6 @@ class GoblinTranslator : public Arithmetization</*NUM_WIRES =*/78, /*num_selecto
   public:
     // Dirty hack
     using Selectors = bool;
+    using FF = curve::BN254::ScalarField;
 };
 } // namespace arithmetization
