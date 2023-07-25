@@ -421,9 +421,7 @@ TEST_F(StandardGrumpkinHonkComposerTests, BaseCase)
 {
     auto circuit_constructor = StandardGrumpkinCircuitBuilder();
     grumpkin::fr a = grumpkin::fr::zero();
-    grumpkin::fr b = grumpkin::fr::zero();
     circuit_constructor.add_variable(a);
-    circuit_constructor.add_variable(b);
 
     auto composer = StandardGrumpkinComposer();
     auto prover = composer.create_prover(circuit_constructor);
@@ -431,13 +429,5 @@ TEST_F(StandardGrumpkinHonkComposerTests, BaseCase)
     auto verifier = composer.create_verifier(circuit_constructor);
     bool verified = verifier.verify_proof(proof);
     ASSERT_TRUE(verified);
-}
-
-TEST_F(StandardGrumpkinHonkComposerTests, issue)
-{
-    // this passes regardles what parameter i give to get_root_of_unity
-    auto a = grumpkin::fr::get_root_of_unity(80);
-
-    EXPECT_EQ(a, grumpkin::fr::zero());
 }
 } // namespace test_standard_honk_composer

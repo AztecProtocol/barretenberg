@@ -28,7 +28,7 @@ void init_crs_factory(std::string crs_path)
 
 void init_grumpkin_crs_factory(std::string crs_path)
 {
-    grumpkin_crs_factory = std::make_shared<factories::FileCrsFactory<curve::Grumpkin>>(crs_path);
+    grumpkin_crs_factory = std::make_shared<factories::FileCrsFactory<curve::Grumpkin>>(crs_path, 128);
 }
 
 std::shared_ptr<factories::CrsFactory<curve::BN254>> get_crs_factory()

@@ -68,7 +68,7 @@ template <typename FF> class EvaluationDomain {
 
 // tell the compiler we will take care of instantiating these in the .cpp file
 extern template class EvaluationDomain<barretenberg::fr>;
-extern template class EvaluationDomain<grumpkin::fr>;
+// extern template class EvaluationDomain<grumpkin::fr>;
 // add alias for compatibility
 using evaluation_domain = EvaluationDomain<barretenberg::fr>;
 } // namespace barretenberg
