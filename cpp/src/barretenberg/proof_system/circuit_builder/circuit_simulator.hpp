@@ -15,7 +15,7 @@ class CircuitSimulatorBN254 {
     using FF = barretenberg::fr;                                                 // IOU templating
     static constexpr merkle::HashType merkle_hash_type = merkle::HashType::NONE; // UGH
     static constexpr pedersen::CommitmentType commitment_type = pedersen::CommitmentType::NONE;
-    static constexpr CircuitType CIRCUIT_TYPE = CircuitType::UNDEFINED;
+    static constexpr CircuitType CIRCUIT_TYPE = CircuitType::ULTRA;
     static constexpr std::string_view NAME_STRING = "SIMULATOR";
     bool contains_recursive_proof = false;
     static constexpr size_t UINT_LOG2_BASE = 2; // WORKTODO: 6 for Ultra
