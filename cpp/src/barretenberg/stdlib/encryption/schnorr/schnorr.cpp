@@ -244,7 +244,7 @@ point<C> variable_base_mul(const point<C>& pub_key, const point<C>& current_accu
     }
 
     // At this point, accumulator is [W + skew]pub + [2^{129}]collision_mask.
-    // If wnaf_skew, subtract pub_key frorm accumulator.
+    // If wnaf_skew, subtract pub_key from accumulator.
     field_t<C> add_lambda = (accumulator.y + pub_key.y) / (accumulator.x - pub_key.x);
     field_t<C> x_add = add_lambda.madd(add_lambda, -(accumulator.x + pub_key.x));
     field_t<C> y_add = add_lambda.madd((pub_key.x - x_add), pub_key.y);
@@ -266,7 +266,7 @@ point<C> variable_base_mul(const point<C>& pub_key, const point<C>& current_accu
 
 /**
  * @brief Make the computations needed to verify a signature (s, e),  i.e., compute
- *          e' = hash(([s]g + [e]pub).x | message)
+ *           e' = hash(([s]g + [e]pub).x | pub.x | pub.y | message)
           and return e'.
  *
  * @details TurboPlonk: ~10850 gates (~4k for variable_base_mul, ~6k for blake2s) for a string of length < 32.
@@ -276,25 +276,30 @@ std::array<field_t<C>, 2> verify_signature_internal(const byte_array<C>& message
                                                     const point<C>& pub_key,
                                                     const signature_bits<C>& sig)
 {
-    // Compute [s]g, where s = (s_lo, s_hi) and g = G1::one.
+    // Compute [s]g, where s = (s_lo, s_hi) and g is the canonical generator.
     point<C> R_1 = group<C>::fixed_base_scalar_mul(sig.s_lo, sig.s_hi);
     // Compute [e]pub, where e = (e_lo, e_hi)
     point<C> R_2 = variable_base_mul(pub_key, sig.e_lo, sig.e_hi);
 
     // check R_1 != R_2
+    // TODO: This is checking that the x-coordinates are not equal.
+    // TODO: Theres no comment here stating why this is okay if for example R_1.y =  -R_2.y
     (R_1.x - R_2.x).assert_is_not_zero("Cannot add points in Schnorr verification.");
-    // Compute x-coord of R_1 + R_2 = [s]g + [e]pub.
+    // Compute x-coord of R_3 = R_1 + R_2 = [s]g + [e]pub.
     field_t<C> lambda = (R_1.y - R_2.y) / (R_1.x - R_2.x);
-    field_t<C> x_3 = lambda * lambda - (R_1.x + R_2.x);
+    field_t<C> R_3_x = lambda * lambda - (R_1.x + R_2.x);
 
-    // build input (pedersen(([s]g + [e]pub).x | pub.x | pub.y) | message) to hash function
-    // pedersen hash ([r].x | pub.x) to make sure the size of `hash_input` is <= 64 bytes for a 32 byte message
-    byte_array<C> hash_input(stdlib::pedersen_commitment<C>::compress({ x_3, pub_key.x, pub_key.y }));
+    // Compute e' = hash(R_3.x | pub.x | pub.y | message)
+    byte_array<C> hash_input;
+
+    hash_input.write(static_cast<byte_array<C>>(R_3_x));
+    hash_input.write(static_cast<byte_array<C>>(pub_key.x));
+    hash_input.write(static_cast<byte_array<C>>(pub_key.y));
     hash_input.write(message);
 
-    // compute  e' = hash(([s]g + [e]pub).x | message)
     byte_array<C> output = blake2s(hash_input);
 
+    // TODO(check): why is hi the first 16 bytes
     field_t<C> output_hi(output.slice(0, 16));
     field_t<C> output_lo(output.slice(16, 16));
 
@@ -303,7 +308,7 @@ std::array<field_t<C>, 2> verify_signature_internal(const byte_array<C>& message
 
 /**
  * @brief Verify that a signature (s, e) is valid, i.e., compute
- *          e' = hash(([s]g + [e]pub).x | message)
+ *          e' = hash(([s]g + [e]pub).x | pub.x | pub.y | message)
  *        and check that
  *          e' == e is true.
  */
@@ -317,7 +322,7 @@ void verify_signature(const byte_array<C>& message, const point<C>& pub_key, con
 
 /**
  * @brief Attempt to verify a signature (s, e) and return the result, i.e., compute
- *          e' = hash(([s]g + [e]pub).x | message)
+ *          e' = hash(([s]g + [e]pub).x | pub.x | pub.y | message)
  *        and return the boolean witness e' == e.
  */
 template <typename C>

@@ -11,23 +11,12 @@ namespace schnorr {
 /**
  * @brief Generate the schnorr signature challenge parameter `e` given a message, signer pubkey and nonce
  *
- * @details Normal Schnorr param e = H(R.x || pubkey || message)
- * But we want to keep hash preimage to <= 64 bytes for a 32 byte message
- * (for performance reasons in our join-split circuit!)
- *
- * barretenberg schnorr defines e as the following:
- *
- * e = H(pedersen(R.x || pubkey.x || pubkey.y), message)
- *
- * pedersen is collision resistant => e can be modelled as randomly distributed
- * as long as H can be modelled as a random oracle
- *
  * @tparam Hash the hash-function used as random-oracle
  * @tparam G1 Group over which the signature is produced
  * @param message what are we signing over?
  * @param pubkey the pubkey of the signer
  * @param R the nonce
- * @return e = H(pedersen(R.x || pubkey.x || pubkey.y), message) as a 256-bit integer,
+ * @return e = H(R.x || pubkey.x || pubkey.y || message) as a 256-bit integer,
  *      represented in a container of 32 uint8_t's
  *
  *
@@ -41,15 +30,14 @@ static auto generate_schnorr_challenge(const std::string& message,
                                        const typename G1::affine_element& pubkey,
                                        const typename G1::affine_element& R)
 {
-    using Fq = typename G1::coordinate_field;
-    // create challenge message pedersen_commitment(R.x, pubkey)
-    Fq compressed_keys = crypto::pedersen_commitment::compress_native({ R.x, pubkey.x, pubkey.y });
     std::vector<uint8_t> e_buffer;
-    write(e_buffer, compressed_keys);
+    write(e_buffer, R.x);
+    write(e_buffer, pubkey.x);
+    write(e_buffer, pubkey.y);
     std::copy(message.begin(), message.end(), std::back_inserter(e_buffer));
 
-    // hash the result of the pedersen hash digest
-    // we return auto since some hash implementation return
+    // Hash the buffer to produce a 256-bit integer
+    // We return auto since some hash implementation return
     // either a std::vector or a std::array with 32 bytes
     return Hash::hash(e_buffer);
 }
@@ -148,7 +136,7 @@ bool verify_signature(const std::string& message, const typename G1::affine_elem
 
     // compare the _hashes_ rather than field elements modulo r
 
-    // e = H(pedersen(r, pk.x, pk.y), m), where r = x(R)
+    // e = H(r, pk.x, pk.y, m), where r = x(R)
     auto target_e = generate_schnorr_challenge<Hash, G1>(message, public_key, R);
     return std::equal(sig.e.begin(), sig.e.end(), target_e.begin(), target_e.end());
 }
