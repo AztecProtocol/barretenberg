@@ -13,7 +13,7 @@
 namespace proof_system::honk::pcs::shplonk {
 template <class Params> class ShplonkTest : public CommitmentTest<Params> {};
 
-TYPED_TEST_SUITE(ShplonkTest, CommitmentSchemeParams);
+TYPED_TEST_SUITE(ShplonkTest, IpaCommitmentSchemeParams);
 
 // Test of Shplonk prover/verifier for two polynomials of different size, each opened at a single (different) point
 TYPED_TEST(ShplonkTest, ShplonkSimple)

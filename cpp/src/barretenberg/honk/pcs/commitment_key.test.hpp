@@ -128,6 +128,7 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
         Fr y_expected = witness.evaluate(x);
         EXPECT_EQ(y, y_expected) << "OpeningClaim: evaluations mismatch";
         Commitment commitment_expected = commit(witness);
+        // found it
         EXPECT_EQ(commitment, commitment_expected) << "OpeningClaim: commitment mismatch";
     }
 

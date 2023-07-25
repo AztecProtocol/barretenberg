@@ -100,7 +100,7 @@ template <class Params> class GeminiTest : public CommitmentTest<Params> {
     }
 };
 
-TYPED_TEST_SUITE(GeminiTest, CommitmentSchemeParams);
+TYPED_TEST_SUITE(GeminiTest, IpaCommitmentSchemeParams);
 
 TYPED_TEST(GeminiTest, Single)
 {

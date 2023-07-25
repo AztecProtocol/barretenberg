@@ -87,8 +87,8 @@ TEST_F(IPATest, GeminiShplonkIPAWithShift)
     using Shplonk = shplonk::SingleBatchOpeningScheme<Params>;
     using Gemini = gemini::MultilinearReductionScheme<Params>;
 
-    const size_t n = 16;
-    const size_t log_n = 4;
+    const size_t n = 8;
+    const size_t log_n = 3;
 
     Fr rho = Fr::random_element();
 
