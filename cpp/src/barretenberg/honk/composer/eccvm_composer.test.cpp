@@ -11,7 +11,7 @@
 #include "barretenberg/honk/utils/grand_product_delta.hpp"
 #include "barretenberg/numeric/uint256/uint256.hpp"
 #include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/proof_system/circuit_constructors/eccvm/eccvm_circuit_builder.hpp"
+#include "barretenberg/proof_system/circuit_builder/eccvm/eccvm_circuit_builder.hpp"
 
 using namespace proof_system::honk;
 

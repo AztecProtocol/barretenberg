@@ -1,4 +1,4 @@
-#include "barretenberg/honk/composer/composer/eccvm_composer.hpp"
+#include "barretenberg/honk/composer/eccvm_composer.hpp"
 #include "barretenberg/honk/flavor/ecc_vm.hpp"
 #include "barretenberg/honk/proof_system/lookup_library.hpp"
 #include "barretenberg/honk/proof_system/permutation_library.hpp"

@@ -1,6 +1,6 @@
+#include "eccvm_circuit_builder.hpp"
 #include "barretenberg/crypto/generators/generator_data.hpp"
 #include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
-#include "eccvm_circuit_builder.hpp"
 #include <gtest/gtest.h>
 
 using namespace barretenberg;
@@ -102,11 +102,6 @@ TEST(ECCVMCircuitConstructor, EqFails)
 TEST(ECCVMCircuitConstructor, EmptyRow)
 {
     proof_system::ECCVMCircuitConstructor<proof_system::honk::flavor::ECCVM> circuit;
-
-    grumpkin::g1::element a = grumpkin::get_generator(0);
-    grumpkin::fr x = grumpkin::fr::random_element(&engine);
-
-    grumpkin::g1::element expected_1 = (a * x);
 
     circuit.empty_row();
 

@@ -1,24 +1,24 @@
 #include "eccvm_prover.hpp"
-#include <algorithm>
-#include <cstddef>
-#include "barretenberg/honk/proof_system/prover_library.hpp"
+#include "barretenberg/honk/pcs/claim.hpp"
+#include "barretenberg/honk/pcs/commitment_key.hpp"
 #include "barretenberg/honk/proof_system/lookup_library.hpp"
 #include "barretenberg/honk/proof_system/permutation_library.hpp"
+#include "barretenberg/honk/proof_system/prover_library.hpp"
+#include "barretenberg/honk/sumcheck/polynomials/univariate.hpp" // will go away
 #include "barretenberg/honk/sumcheck/relations/lookup_relation.hpp"
 #include "barretenberg/honk/sumcheck/relations/permutation_relation.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck.hpp"
-#include <array>
-#include "barretenberg/honk/sumcheck/polynomials/univariate.hpp" // will go away
 #include "barretenberg/honk/utils/power_polynomial.hpp"
-#include "barretenberg/honk/pcs/commitment_key.hpp"
-#include <memory>
-#include <span>
-#include <utility>
-#include <vector>
 #include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/transcript/transcript_wrappers.hpp"
+#include <algorithm>
+#include <array>
+#include <cstddef>
+#include <memory>
+#include <span>
 #include <string>
-#include "barretenberg/honk/pcs/claim.hpp"
+#include <utility>
+#include <vector>
 
 namespace proof_system::honk {
 
@@ -167,7 +167,6 @@ template <ECCVMFlavor Flavor> void ECCVMProver_<Flavor>::compute_wire_commitment
 template <ECCVMFlavor Flavor> void ECCVMProver_<Flavor>::execute_preamble_round()
 {
     const auto circuit_size = static_cast<uint32_t>(key->circuit_size);
-    const auto num_public_inputs = static_cast<uint32_t>(key->num_public_inputs);
 
     transcript.send_to_verifier("circuit_size", circuit_size);
 }
