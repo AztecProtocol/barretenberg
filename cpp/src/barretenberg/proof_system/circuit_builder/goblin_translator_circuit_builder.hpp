@@ -12,6 +12,7 @@
 #include "barretenberg/proof_system/arithmetization/arithmetization.hpp"
 #include "circuit_builder_base.hpp"
 #include <array>
+#include <cstddef>
 namespace proof_system {
 class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::GoblinTranslator> {
     // We don't need templating for Goblin
@@ -33,7 +34,7 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
      * @brief There are so many wires that naming them has no sense, it is easier to access them with enums
      *
      */
-    enum WireIds {
+    enum WireIds : size_t {
         OP, // The first 4 wires contain the standard values from the EccQueue wire
         X_LO_Y_HI,
         X_HI_Z_1,
@@ -360,7 +361,7 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
                                                           size_t number_of_elements) {
             ASSERT(number_of_elements <= array_size);
             for (size_t i = 0; i < number_of_elements; i++) {
-                wires[static_cast<size_t>(starting_wire) + i].push_back(add_variable(input[i]));
+                wires[starting_wire + i].push_back(add_variable(input[i]));
             }
         };
         lay_limbs_in_row(acc_step.P_x_microlimbs[0], P_X_LOW_LIMBS_RANGE_CONSTRAINT_0, NUM_MICRO_LIMBS);
