@@ -855,6 +855,12 @@ struct MemOp {
     friend bool operator==(const MemOp&, const MemOp&);
     std::vector<uint8_t> bincodeSerialize() const;
     static MemOp bincodeDeserialize(std::vector<uint8_t>);
+
+    bool is_rom() const
+    {
+        return this->operation.mul_terms.size() == 0 && this->operation.linear_combinations.size() == 0 &&
+               uint256_t(this->operation.q_c) == 0;
+    }
 };
 
 struct MemoryBlock {
