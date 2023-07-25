@@ -169,7 +169,20 @@ template <typename Params> class SingleBatchOpeningScheme {
             current_nu *= nu;
         }
         // [G] += G₀⋅[1] = [G] + (∑ⱼ ρʲ ⋅ vⱼ / ( r − xⱼ ))⋅[1]
-        G_commitment += GroupElement::one() * G_commitment_constant;
+
+        if constexpr (std::same_as<GroupElement, grumpkin::g1::element>) {
+            constexpr size_t n = 4096;
+            std::shared_ptr<barretenberg::srs::factories::CrsFactory<ipa::Params::Curve>> crs_factory(
+                new barretenberg::srs::factories::FileCrsFactory<ipa::Params::Curve>("../srs_db/grumpkin", 4096));
+            auto ck = std::make_shared<ipa::Params::CommitmentKey>(n, crs_factory);
+            Polynomial one(1);
+            one[0] = 1;
+            auto G_one = ck->commit(one);
+            G_commitment += G_one * G_commitment_constant;
+        } else {
+            //  GroupElement sort_of_one{ x, y };
+            G_commitment += GroupElement::one() * G_commitment_constant;
+        }
 
         // Return opening pair (z, 0) and commitment [G]
         return { { z_challenge, Fr::zero() }, G_commitment };
