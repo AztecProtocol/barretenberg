@@ -146,7 +146,13 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
     static constexpr std::string_view NAME_STRING = "GoblinTranslatorArithmetization";
     // TODO(kesha): fix size hints
     GoblinTranslatorCircuitBuilder()
-        : CircuitBuilderBase({}, 0){};
+        : CircuitBuilderBase({}, 0)
+    {
+        // We'll have to shift all wires, so we need the starting element to be zero
+        for (auto& wire : wires) {
+            wire.push_back(0);
+        }
+    };
     GoblinTranslatorCircuitBuilder(const GoblinTranslatorCircuitBuilder& other) = delete;
     GoblinTranslatorCircuitBuilder(GoblinTranslatorCircuitBuilder&& other) noexcept
         : CircuitBuilderBase(std::move(other)){};
@@ -406,7 +412,10 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
      */
     bool check_circuit(Fp x, Fp v)
     {
+        // Compute the limbs of x and powers of v (these go into the relation)
         RelationInputs relation_inputs = compute_relation_inputs_limbs(x, v);
+
+        // Get the wires
         auto& op_wire = std::get<OP>(wires);
         auto& x_lo_y_hi_wire = std::get<X_LO_Y_HI>(wires);
         auto& x_hi_z_1_wire = std::get<X_HI_Z_1>(wires);
@@ -425,6 +434,10 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
         auto& quotient_high_binary_limbs = std::get<QUOTIENT_HI_BINARY_LIMBS>(wires);
         auto& relation_wide_limbs_wire = std::get<RELATION_WIDE_LIMBS>(wires);
 
+        /**
+         * @brief Get elements at the same index from several sequential wires and put them into a vector
+         *
+         */
         auto get_sequential_micro_chunks = [this](size_t gate_index, WireIds starting_wire_index, size_t chunk_count) {
             std::vector<Fr> chunks;
             for (size_t i = starting_wire_index; i < starting_wire_index + chunk_count; i++) {
@@ -432,6 +445,12 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
             }
             return chunks;
         };
+
+        /**
+         * @brief Reconstruct the value of one regular limb used in relation computation from micro chunks used to
+         * create range constraints
+         *
+         */
         auto accumulate_limb_from_micro_chunks = [](const std::vector<Fr>& chunks) {
             Fr mini_accumulator(0);
             for (auto it = chunks.end(); it != chunks.begin();) {
@@ -440,8 +459,14 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
             }
             return mini_accumulator;
         };
+        /**
+         * @brief Enumerate through the gates
+         *
+         */
         for (size_t i = 0; i < num_gates; i++) {
-            if (!(i & 1)) {
+            // The main relation is computed between odd and the next even indices. For example, 1 and 2
+            if (i & 1) {
+                // Get the values
                 Fr op = get_variable(op_wire[i]);
                 Fr p_x_lo = get_variable(x_lo_y_hi_wire[i]);
                 Fr p_x_hi = get_variable(x_hi_z_1_wire[i]);
@@ -524,6 +549,8 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
                     get_sequential_micro_chunks(i + 1, QUOTIENT_HI_LIMBS_RANGE_CONSTRAIN_0, NUM_MICRO_LIMBS),
                 };
 
+                // Lambda for checking the correctness of decomposition of values in the Queue into limbs for checking
+                // the relation
                 auto check_wide_limb_into_binary_limb_relation = [](const std::vector<Fr>& wide_limbs,
                                                                     const std::vector<Fr>& binary_limbs) {
                     ASSERT(wide_limbs.size() * 2 == binary_limbs.size());
@@ -534,6 +561,11 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
                     }
                     return true;
                 };
+                // Check that everything has been decomposed correctly
+                // P.xₗₒ = P.xₗₒ_0 + SHIFT_1 * P.xₗₒ_1
+                // P.xₕᵢ  = P.xₕᵢ_0 + SHIFT_1 * P.xₕᵢ_1
+                // z_1 = z_1ₗₒ + SHIFT_1 * z_1ₕᵢ
+                // z_2 = z_2ₗₒ + SHIFT_2 * z_1ₕᵢ
                 if (!(check_wide_limb_into_binary_limb_relation({ p_x_lo, p_x_hi }, p_x_binary_limbs) &&
                       check_wide_limb_into_binary_limb_relation({ p_y_lo, p_y_hi }, p_y_binary_limbs) &&
                       check_wide_limb_into_binary_limb_relation({ z_1 }, z_1_binary_limbs) &&
@@ -541,6 +573,8 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
                     return false;
                 }
 
+                // Check that limbs have been decomposed into microlimbs correctly
+                // value = ∑ (2ˡ)ⁱ⋅ chunkᵢ, where 2ˡ is the shift
                 auto check_micro_limb_decomposition_correctness =
                     [&accumulate_limb_from_micro_chunks](const std::vector<Fr>& binary_limbs,
                                                          const std::vector<std::vector<Fr>>& micro_limbs) {
@@ -552,6 +586,7 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
                         }
                         return true;
                     };
+                // Check all micro limb decompositions
                 if (!check_micro_limb_decomposition_correctness(p_x_binary_limbs, p_x_micro_chunks)) {
                     return false;
                 }
@@ -571,6 +606,44 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
                 if (!check_micro_limb_decomposition_correctness(quotient_binary_limbs, quotient_micro_chunks)) {
                     return false;
                 }
+
+                // The logic we are trying to enforce is:
+                // current_accumulator = previous_accumulator ⋅ x + op + P.x ⋅ v + P.y ⋅ v² + z_1 ⋅ v³ + z_2 ⋅ v⁴ mod Fp
+                // To ensure this we transform the relation into the form:
+                // previous_accumulator ⋅ x + op + P.x ⋅ v + P.y ⋅ v² + z_1 ⋅ v³ + z_2 ⋅ v⁴ - quotient ⋅ p -
+                // current_accumulator = 0 However, we don't have integers. Despite that, we can approximate integers
+                // for a certain range, if we know that there will not be any overflows.
+                // For now we set the range to 2²⁷² ⋅ r. We can evaluate the logic modulo 2²⁷² with range constraints
+                // and r is native.
+                //
+                // previous_accumulator ⋅ x + op + P.x ⋅ v + P.y ⋅ v² + z_1 ⋅ v³ + z_2 ⋅ v⁴ - quotient ⋅ p -
+                // current_accumulator = 0 =>
+                // 1. previous_accumulator ⋅ x + op + P.x ⋅ v + P.y ⋅ v² + z_1 ⋅ v³ + z_2 ⋅ v⁴ + quotient ⋅ (-p mod
+                // 2²⁷²) - current_accumulator = 0 mod 2²⁷²
+                // 2. previous_accumulator ⋅ x + op + P.x ⋅ v + P.y ⋅ v² + z_1 ⋅ v³ + z_2 ⋅ v⁴ - quotient ⋅ p -
+                // current_accumulator = 0 mod r
+                //
+                // The second relation is straightforward and easy to check. The first, not so much. We have to evaluate
+                // certain bit chunks of the equation and ensure that they are zero. For example, for the lowest limb it
+                // would be (inclusive ranges):
+                //
+                // previous_accumulator[0:67] ⋅ x[0:67] + op + P.x[0:67] ⋅ v[0:67] + P.y[0:67] ⋅ v²[0:67] + z_1[0:67] ⋅
+                // v³[0:67] + z_2[0:67] ⋅ v⁴[0:67] + quotient[0:67] ⋅ (-p mod 2²⁷²)[0:67] - current_accumulator[0:67] =
+                // intermediate_value; (we don't take parts of op, because it's supposed to be between 0 and 3)
+                //
+                // We could check that this intermediate_value is equal to  0 mod 2⁶⁸ by dividing it by 2⁶⁸ and
+                // constraining it. For efficiency, we actually compute wider evaluations for 136 bits, which require us
+                // to also obtain and shift products of [68:135] by [0:67] and [0:67] by [68:135] bits.
+                // The result of division goes into the next evaluation (the same as a carry flag would)
+                // So the lowest wide limb is : (∑everything[0:67]⋅everything[0:67] +
+                // 2⁶⁸⋅(∑everything[0:67]⋅everything[68:135]))/ 2¹³⁶
+                //
+                // The high is:
+                // (low_limb + ∑everything[0:67]⋅everything[136:203] + ∑everything[68:135]⋅everything[68:135] +
+                // 2⁶⁸(∑everything[0:67]⋅everything[204:271] + ∑everything[68:135]⋅everything[136:203])) / 2¹³⁶
+                //
+                // We also limit computation on limbs of op, z_1 and z_2, since we know that op has only the lowest limb
+                // and z_1 and z_2 have only the two lowest limbs
                 Fr low_wide_limb_relation_check =
 
                     (previous_accumulator_binary_limbs[0] * relation_inputs.x_limbs[0] + op +
