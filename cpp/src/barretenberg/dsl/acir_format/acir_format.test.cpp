@@ -5,6 +5,7 @@
 #include "barretenberg/common/streams.hpp"
 #include "barretenberg/serialize/test_helper.hpp"
 #include "ecdsa_secp256k1.hpp"
+#include "keccak_constraint.hpp"
 TEST(acir_format, msgpack_logic_constraint)
 {
     auto [actual, expected] = msgpack_roundtrip(acir_format::LogicConstraint{});
@@ -262,6 +263,84 @@ TEST(acir_format, test_schnorr_verify_small_range)
           84, 137, 184, 221, 176, 121, 179, 27,  63,  70,  54,    16,    176, 250, 39, 239, 1,   0,   0,   0 });
 
     auto prover = composer.create_ultra_with_keccak_prover();
+    auto proof = prover.construct_proof();
+
+    auto verifier = composer.create_ultra_with_keccak_verifier();
+
+    EXPECT_EQ(verifier.verify_proof(proof), true);
+}
+
+TEST(acir_format, test_var_keccak)
+{
+    acir_format::HashInput input1;
+    input1.witness = 1;
+    input1.num_bits = 8;
+    acir_format::HashInput input2;
+    input2.witness = 2;
+    input2.num_bits = 8;
+    acir_format::HashInput input3;
+    input3.witness = 3;
+    input3.num_bits = 8;
+    acir_format::KeccakVarConstraint keccak;
+    keccak.inputs = { input1, input2, input3 };
+    keccak.var_message_size = 4;
+    keccak.result = { 5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+                      21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36 };
+
+    acir_format::RangeConstraint range_a{
+        .witness = 1,
+        .num_bits = 8,
+    };
+    acir_format::RangeConstraint range_b{
+        .witness = 2,
+        .num_bits = 8,
+    };
+    acir_format::RangeConstraint range_c{
+        .witness = 3,
+        .num_bits = 8,
+    };
+    acir_format::RangeConstraint range_d{
+        .witness = 4,
+        .num_bits = 8,
+    };
+
+    auto dummy = poly_triple{
+        .a = 1,
+        .b = 0,
+        .c = 0,
+        .q_m = 0,
+        .q_l = 1,
+        .q_r = 0,
+        .q_o = 0,
+        .q_c = fr::neg_one() * fr(4),
+    };
+
+    acir_format::acir_format constraint_system{
+        .varnum = 37,
+        .public_inputs = {},
+        .fixed_base_scalar_mul_constraints = {},
+        .logic_constraints = {},
+        .range_constraints = { range_a, range_b, range_c, range_d },
+        .schnorr_constraints = {},
+        .ecdsa_k1_constraints = {},
+        .ecdsa_r1_constraints = {},
+        .sha256_constraints = {},
+        .blake2s_constraints = {},
+        .keccak_constraints = {},
+        .keccak_var_constraints = { keccak },
+        .hash_to_field_constraints = {},
+        .pedersen_constraints = {},
+        .block_constraints = {},
+        .recursion_constraints = {},
+        .constraints = { dummy },
+    };
+
+    auto composer = acir_format::create_circuit_with_witness(constraint_system, { 4, 2, 6, 2 });
+
+    std::cout << "made composer" << std::endl;
+
+    auto prover = composer.create_ultra_with_keccak_prover();
+
     auto proof = prover.construct_proof();
 
     auto verifier = composer.create_ultra_with_keccak_verifier();
