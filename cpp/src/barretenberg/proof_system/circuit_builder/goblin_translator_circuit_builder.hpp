@@ -17,7 +17,7 @@ namespace proof_system {
 class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::GoblinTranslator> {
     // We don't need templating for Goblin
     using Fr = barretenberg::fr;
-    using Fp = barretenberg::fq;
+    using Fq = barretenberg::fq;
 
   public:
     /**
@@ -127,13 +127,13 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
     static constexpr size_t WIDE_RELATION_LIMB_BITS = 72;
     static constexpr auto MICRO_SHIFT = uint256_t(1) << MICRO_LIMB_BITS;
     static constexpr auto MAXIMUM_LEFTOVER_LIMB_SIZE = (uint256_t(1) << LEFTOVER_CHUNK_BITS) - 1;
-    static constexpr size_t NUM_LAST_LIMB_BITS = Fp::modulus.get_msb() + 1 - 3 * NUM_LIMB_BITS;
+    static constexpr size_t NUM_LAST_LIMB_BITS = Fq::modulus.get_msb() + 1 - 3 * NUM_LIMB_BITS;
     static constexpr auto MAX_LOW_WIDE_LIMB_SIZE = (uint256_t(1) << (NUM_LIMB_BITS * 2)) - 1;
     static constexpr auto MAX_HIGH_WIDE_LIMB_SIZE = (uint256_t(1) << (NUM_LIMB_BITS + NUM_LAST_LIMB_BITS)) - 1;
     static constexpr auto SHIFT_1 = uint256_t(1) << NUM_LIMB_BITS;
     static constexpr auto SHIFT_2 = uint256_t(1) << (NUM_LIMB_BITS << 1);
     static constexpr auto SHIFT_2_INVERSE = Fr(SHIFT_2).invert();
-    static constexpr uint512_t MODULUS_U512 = uint512_t(Fp::modulus);
+    static constexpr uint512_t MODULUS_U512 = uint512_t(Fq::modulus);
     static constexpr uint512_t BINARY_BASIS_MODULUS = uint512_t(1) << (NUM_LIMB_BITS << 2);
     static constexpr uint512_t NEGATIVE_PRIME_MODULUS = BINARY_BASIS_MODULUS - MODULUS_U512;
     static constexpr std::array<Fr, 5> NEGATIVE_MODULUS_LIMBS = {
@@ -141,7 +141,7 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
         Fr(NEGATIVE_PRIME_MODULUS.slice(NUM_LIMB_BITS, NUM_LIMB_BITS * 2).lo),
         Fr(NEGATIVE_PRIME_MODULUS.slice(NUM_LIMB_BITS * 2, NUM_LIMB_BITS * 3).lo),
         Fr(NEGATIVE_PRIME_MODULUS.slice(NUM_LIMB_BITS * 3, NUM_LIMB_BITS * 4).lo),
-        -Fr(Fp::modulus)
+        -Fr(Fq::modulus)
     };
     static constexpr std::string_view NAME_STRING = "GoblinTranslatorArithmetization";
     // TODO(kesha): fix size hints
@@ -220,13 +220,13 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
      * @param v The batching challenge
      * @return RelationInputs
      */
-    static RelationInputs compute_relation_inputs_limbs(Fp x, Fp v)
+    static RelationInputs compute_relation_inputs_limbs(Fq x, Fq v)
     {
         /**
-         * @brief A small function to transform a native element Fp into its bigfield representation  in Fr scalars
+         * @brief A small function to transform a native element Fq into its bigfield representation  in Fr scalars
          *
          */
-        auto base_element_to_bigfield = [](Fp& original) {
+        auto base_element_to_bigfield = [](Fq& original) {
             uint256_t original_uint = original;
             return std::array<Fr, 5>({ Fr(original_uint.slice(0, NUM_LIMB_BITS)),
                                        Fr(original_uint.slice(NUM_LIMB_BITS, 2 * NUM_LIMB_BITS)),
@@ -234,9 +234,9 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
                                        Fr(original_uint.slice(3 * NUM_LIMB_BITS, 4 * NUM_LIMB_BITS)),
                                        Fr(original_uint) });
         };
-        Fp v_squared;
-        Fp v_cubed;
-        Fp v_quarted;
+        Fq v_squared;
+        Fq v_cubed;
+        Fq v_quarted;
         v_squared = v * v;
         v_cubed = v_squared * v;
         v_quarted = v_cubed * v;
@@ -410,7 +410,7 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
      * @return true
      * @return false
      */
-    bool check_circuit(Fp x, Fp v)
+    bool check_circuit(Fq x, Fq v)
     {
         // Compute the limbs of x and powers of v (these go into the relation)
         RelationInputs relation_inputs = compute_relation_inputs_limbs(x, v);
@@ -608,7 +608,7 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
                 }
 
                 // The logic we are trying to enforce is:
-                // current_accumulator = previous_accumulator ⋅ x + op + P.x ⋅ v + P.y ⋅ v² + z_1 ⋅ v³ + z_2 ⋅ v⁴ mod Fp
+                // current_accumulator = previous_accumulator ⋅ x + op + P.x ⋅ v + P.y ⋅ v² + z_1 ⋅ v³ + z_2 ⋅ v⁴ mod Fq
                 // To ensure this we transform the relation into the form:
                 // previous_accumulator ⋅ x + op + P.x ⋅ v + P.y ⋅ v² + z_1 ⋅ v³ + z_2 ⋅ v⁴ - quotient ⋅ p -
                 // current_accumulator = 0 However, we don't have integers. Despite that, we can approximate integers

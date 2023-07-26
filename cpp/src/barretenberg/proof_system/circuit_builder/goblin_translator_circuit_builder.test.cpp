@@ -9,9 +9,9 @@ namespace {
 auto& engine = numeric::random::get_debug_engine();
 }
 namespace proof_system {
-template <typename Fp, typename Fr>
+template <typename Fq, typename Fr>
 GoblinTranslatorCircuitBuilder::AccumulationInput generate_witness_values(
-    Fr op, Fr p_x_lo, Fr p_x_hi, Fr p_y_lo, Fr p_y_hi, Fr z_1, Fr z_2, Fp previous_accumulator, Fp v, Fp x)
+    Fr op, Fr p_x_lo, Fr p_x_hi, Fr p_y_lo, Fr p_y_hi, Fr z_1, Fr z_2, Fq previous_accumulator, Fq v, Fq x)
 {
     constexpr size_t NUM_LIMB_BITS = GoblinTranslatorCircuitBuilder::NUM_LIMB_BITS;
     constexpr size_t MICRO_LIMB_BITS = GoblinTranslatorCircuitBuilder::MICRO_LIMB_BITS;
@@ -22,10 +22,10 @@ GoblinTranslatorCircuitBuilder::AccumulationInput generate_witness_values(
     constexpr auto shift_2_inverse = GoblinTranslatorCircuitBuilder::SHIFT_2_INVERSE;
 
     /**
-     * @brief A small function to transform a native element Fp into its bigfield representation  in Fr scalars
+     * @brief A small function to transform a native element Fq into its bigfield representation  in Fr scalars
      *
      */
-    auto base_element_to_bigfield = [](Fp& original) {
+    auto base_element_to_bigfield = [](Fq& original) {
         uint256_t original_uint = original;
         return std::array<Fr, 5>({ Fr(original_uint.slice(0, NUM_LIMB_BITS)),
                                    Fr(original_uint.slice(NUM_LIMB_BITS, 2 * NUM_LIMB_BITS)),
@@ -65,9 +65,9 @@ GoblinTranslatorCircuitBuilder::AccumulationInput generate_witness_values(
         };
     };
     //  x and powers of v are given to use in challenge form, so the verifier has to deal with this :)
-    Fp v_squared;
-    Fp v_cubed;
-    Fp v_quarted;
+    Fq v_squared;
+    Fq v_cubed;
+    Fq v_quarted;
     v_squared = v * v;
     v_cubed = v_squared * v;
     v_quarted = v_cubed * v;
@@ -94,12 +94,12 @@ GoblinTranslatorCircuitBuilder::AccumulationInput generate_witness_values(
     auto uint_v_cubed = uint512_t(v_cubed);
     auto uint_v_quarted = uint512_t(v_quarted);
 
-    // Construct Fp for op, P.x, P.y, z_1, z_2 for use in witness computation
-    Fp base_op = Fp(uint256_t(op));
-    Fp base_p_x = Fp(uint256_t(p_x_lo) + (uint256_t(p_x_hi) << (NUM_LIMB_BITS << 1)));
-    Fp base_p_y = Fp(uint256_t(p_y_lo) + (uint256_t(p_y_hi) << (NUM_LIMB_BITS << 1)));
-    Fp base_z_1 = Fp(uint256_t(z_1));
-    Fp base_z_2 = Fp(uint256_t(z_2));
+    // Construct Fq for op, P.x, P.y, z_1, z_2 for use in witness computation
+    Fq base_op = Fq(uint256_t(op));
+    Fq base_p_x = Fq(uint256_t(p_x_lo) + (uint256_t(p_x_hi) << (NUM_LIMB_BITS << 1)));
+    Fq base_p_y = Fq(uint256_t(p_y_lo) + (uint256_t(p_y_hi) << (NUM_LIMB_BITS << 1)));
+    Fq base_z_1 = Fq(uint256_t(z_1));
+    Fq base_z_2 = Fq(uint256_t(z_2));
 
     // Construct bigfield representations of P.x and P.y
     auto [p_x_0, p_x_1] = split_wide_limb_into_2_limbs(p_x_lo);
@@ -119,13 +119,13 @@ GoblinTranslatorCircuitBuilder::AccumulationInput generate_witness_values(
     // The formula is `accumulator = accumulator⋅x + (op + v⋅p.x + v²⋅p.y + v³⋅z₁ + v⁴z₂)`. We need to compute the
     // remainder (new accumulator value)
 
-    Fp remainder = previous_accumulator * x + base_z_2 * v_quarted + base_z_1 * v_cubed + base_p_y * v_squared +
+    Fq remainder = previous_accumulator * x + base_z_2 * v_quarted + base_z_1 * v_cubed + base_p_y * v_squared +
                    base_p_x * v + base_op;
     uint512_t quotient_by_modulus = uint_previous_accumulator * uint_x + uint_z_2 * uint_v_quarted +
                                     uint_z_1 * uint_v_cubed + uint_p_y * uint_v_squared + uint_p_x * uint_v + uint_op -
                                     uint512_t(remainder);
 
-    uint512_t quotient = quotient_by_modulus / uint512_t(Fp::modulus);
+    uint512_t quotient = quotient_by_modulus / uint512_t(Fq::modulus);
     constexpr uint512_t MAX_CONSTRAINED_SIZE = uint512_t(1) << 254;
     constexpr uint512_t MAX_Z_SIZE = uint512_t(1) << (NUM_LIMB_BITS * 2);
     numeric::uint1024_t max_quotient =
@@ -263,7 +263,7 @@ TEST(translator_circuit_builder, scoping_out_the_circuit)
     // Questions:
     // 1. Do we need 68-bit limbs at all?
     using Fr = ::curve::BN254::ScalarField;
-    using Fp = ::curve::BN254::BaseField;
+    using Fq = ::curve::BN254::BaseField;
 
     constexpr size_t NUM_LIMB_BITS = 68;
 
@@ -362,7 +362,7 @@ TEST(translator_circuit_builder, scoping_out_the_circuit)
     Fr z_2;
     op = Fr::random_element();
     auto get_random_wide_limb = []() { return Fr(engine.get_random_uint256() >> (256 - NUM_LIMB_BITS * 2)); };
-    auto get_random_shortened_wide_limb = []() { return uint256_t(Fp::random_element()) >> (NUM_LIMB_BITS * 2); };
+    auto get_random_shortened_wide_limb = []() { return uint256_t(Fq::random_element()) >> (NUM_LIMB_BITS * 2); };
     p_x_lo = get_random_wide_limb();
     p_x_hi = get_random_shortened_wide_limb();
     p_y_lo = get_random_wide_limb();
@@ -370,10 +370,10 @@ TEST(translator_circuit_builder, scoping_out_the_circuit)
     z_1 = get_random_wide_limb();
     z_2 = get_random_wide_limb();
 
-    Fp accumulator;
-    accumulator = Fp::random_element();
-    Fp v = Fp::random_element();
-    Fp x = Fp::random_element();
+    Fq accumulator;
+    accumulator = Fq::random_element();
+    Fq v = Fq::random_element();
+    Fq x = Fq::random_element();
     // p_y_lo = get_random_wide_limb();
     //  Creating a bigfield representation from (binary_limb_0, binary_limb_1, binary_limb_2, binary_limb_3, prime_limb)
 
@@ -399,27 +399,27 @@ TEST(translator_circuit_builder, circuit_builder_base_case)
     // Questions:
     // 1. Do we need 68-bit limbs at all?
     using Fr = ::curve::BN254::ScalarField;
-    using Fp = ::curve::BN254::BaseField;
-    // using Fp = ::curve::BN254::BaseField;
+    using Fq = ::curve::BN254::BaseField;
+    // using Fq = ::curve::BN254::BaseField;
 
     constexpr size_t NUM_LIMB_BITS = GoblinTranslatorCircuitBuilder::NUM_LIMB_BITS;
 
     Fr op;
     op = Fr(engine.get_random_uint8() & 3);
     auto get_random_wide_limb = []() { return Fr(engine.get_random_uint256().slice(0, 2 * NUM_LIMB_BITS)); };
-    //  auto get_random_shortened_wide_limb = []() { return uint256_t(Fp::random_element()) >> (NUM_LIMB_BITS * 2); };
-    Fp p_x = Fp::random_element();
+    //  auto get_random_shortened_wide_limb = []() { return uint256_t(Fq::random_element()) >> (NUM_LIMB_BITS * 2); };
+    Fq p_x = Fq::random_element();
     Fr p_x_lo = uint256_t(p_x).slice(0, 2 * NUM_LIMB_BITS);
     Fr p_x_hi = uint256_t(p_x).slice(2 * NUM_LIMB_BITS, 4 * NUM_LIMB_BITS);
-    Fp p_y = Fp::random_element();
+    Fq p_y = Fq::random_element();
     Fr p_y_lo = uint256_t(p_y).slice(0, 2 * NUM_LIMB_BITS);
     Fr p_y_hi = uint256_t(p_y).slice(2 * NUM_LIMB_BITS, 4 * NUM_LIMB_BITS);
     Fr z_1 = get_random_wide_limb();
     Fr z_2 = get_random_wide_limb();
-    Fp v = Fp::random_element();
-    Fp x = Fp::random_element();
+    Fq v = Fq::random_element();
+    Fq x = Fq::random_element();
 
-    Fp previous_accumulator = Fp::random_element();
+    Fq previous_accumulator = Fq::random_element();
     GoblinTranslatorCircuitBuilder::AccumulationInput single_accumulation_step =
         generate_witness_values(op, p_x_lo, p_x_hi, p_y_lo, p_y_hi, z_1, z_2, previous_accumulator, v, x);
 
