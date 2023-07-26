@@ -3,7 +3,6 @@
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/honk/sumcheck/relations/relation_parameters.hpp"
 #include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
-#include "barretenberg/plonk/proof_system/types/program_settings.hpp"
 #include "barretenberg/plonk/proof_system/types/proof.hpp"
 
 // TODO(@zac-williamson). We used to include `program_settings.hpp` in this file. Needed to remove due to circular
