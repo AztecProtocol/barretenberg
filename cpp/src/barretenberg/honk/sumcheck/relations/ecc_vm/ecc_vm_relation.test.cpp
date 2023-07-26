@@ -33,15 +33,15 @@ namespace {
 auto& engine = numeric::random::get_debug_engine();
 }
 
-static grumpkin::g1::element a;
-static grumpkin::g1::element b;
-static grumpkin::g1::element c;
-static grumpkin::fr x;
-static grumpkin::fr y;
-static bool init = false;
-
 ECCVMCircuitConstructor<Flavor> generate_trace(numeric::random::Engine* engine = nullptr)
 {
+    static bool init = false;
+    static grumpkin::g1::element a;
+    static grumpkin::g1::element b;
+    static grumpkin::g1::element c;
+    static grumpkin::fr x;
+    static grumpkin::fr y;
+
     ECCVMCircuitConstructor<Flavor> result;
     if (!init) {
         a = grumpkin::get_generator(0);
@@ -51,8 +51,6 @@ ECCVMCircuitConstructor<Flavor> generate_trace(numeric::random::Engine* engine =
         y = grumpkin::fr::random_element(engine);
         init = true;
     }
-    grumpkin::g1::element expected_1 = (a * x) + a + (b * x) + (b * x) + (b * x);
-    grumpkin::g1::element expected_2 = (a * x) + c + (b * x);
 
     result.mul_accumulate(a, x);
 
@@ -160,7 +158,7 @@ TEST(SumcheckRelation, ECCVMFullRelationAlgebra)
             r = 0;
         }
 
-        const auto evaluate_relation = [&]<typename Relation>(std::string relation_name) {
+        const auto evaluate_relation = [&]<typename Relation>(const std::string& relation_name) {
             auto relation = Relation();
             typename Relation::RelationValues result;
             for (auto& r : result) {
