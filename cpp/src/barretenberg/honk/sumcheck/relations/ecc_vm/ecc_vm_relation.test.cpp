@@ -266,7 +266,7 @@ TEST(SumcheckRelation, ECCVMFullRelationProver)
         //     c += 1;
         // }
         const size_t multivariate_n = full_polynomials[0].size();
-        const size_t multivariate_d = numeric::get_msb64(multivariate_n);
+        const size_t multivariate_d = static_cast<size_t>(numeric::get_msb64(multivariate_n));
 
         EXPECT_EQ(1ULL << multivariate_d, multivariate_n);
 
@@ -331,7 +331,7 @@ TEST_F(ECCVMComposerTestsB, BaseCase)
     auto full_polynomials = circuit_constructor.compute_full_polynomials();
     // compute_logderivative_inverse(prover.proving_key, full_polynomials)
     const size_t multivariate_n = full_polynomials[0].size();
-    const size_t multivariate_d = numeric::get_msb64(multivariate_n);
+    const size_t multivariate_d = static_cast<size_t>(numeric::get_msb64(multivariate_n));
 
     EXPECT_EQ(1ULL << multivariate_d, multivariate_n);
 
