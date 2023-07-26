@@ -966,9 +966,10 @@ struct PublicInputs {
 
 struct Circuit {
     uint32_t current_witness_index;
-    std::vector<Opcode> opcodes;
-    PublicInputs public_parameters;
-    PublicInputs return_values;
+    std::vector<Circuit::Opcode> opcodes;
+    std::vector<Circuit::Witness> private_parameters;
+    Circuit::PublicInputs public_parameters;
+    Circuit::PublicInputs return_values;
 
     friend bool operator==(const Circuit&, const Circuit&);
     std::vector<uint8_t> bincodeSerialize() const;
@@ -4459,6 +4460,9 @@ inline bool operator==(const Circuit& lhs, const Circuit& rhs)
     if (!(lhs.opcodes == rhs.opcodes)) {
         return false;
     }
+    if (!(lhs.private_parameters == rhs.private_parameters)) {
+        return false;
+    }
     if (!(lhs.public_parameters == rhs.public_parameters)) {
         return false;
     }
@@ -4494,6 +4498,7 @@ void serde::Serializable<Circuit::Circuit>::serialize(const Circuit::Circuit& ob
     serializer.increase_container_depth();
     serde::Serializable<decltype(obj.current_witness_index)>::serialize(obj.current_witness_index, serializer);
     serde::Serializable<decltype(obj.opcodes)>::serialize(obj.opcodes, serializer);
+    serde::Serializable<decltype(obj.private_parameters)>::serialize(obj.private_parameters, serializer);
     serde::Serializable<decltype(obj.public_parameters)>::serialize(obj.public_parameters, serializer);
     serde::Serializable<decltype(obj.return_values)>::serialize(obj.return_values, serializer);
     serializer.decrease_container_depth();
@@ -4507,6 +4512,7 @@ Circuit::Circuit serde::Deserializable<Circuit::Circuit>::deserialize(Deserializ
     Circuit::Circuit obj;
     obj.current_witness_index = serde::Deserializable<decltype(obj.current_witness_index)>::deserialize(deserializer);
     obj.opcodes = serde::Deserializable<decltype(obj.opcodes)>::deserialize(deserializer);
+    obj.private_parameters = serde::Deserializable<decltype(obj.private_parameters)>::deserialize(deserializer);
     obj.public_parameters = serde::Deserializable<decltype(obj.public_parameters)>::deserialize(deserializer);
     obj.return_values = serde::Deserializable<decltype(obj.return_values)>::deserialize(deserializer);
     deserializer.decrease_container_depth();
