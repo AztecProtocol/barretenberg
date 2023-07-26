@@ -51,7 +51,7 @@ template <typename Flavor> class ECCVMMSMMBuilder {
         // 1 we can define the following struture: 1st write column = positive 2nd write column = negative the row
         // number is a function of pc and slice value row = pc_delta * rows_per_point_table + some function of the slice
         // value pc_delta = total_number_of_muls - pc std::vector<std::array<size_t, > point_table_read_counts;
-        const size_t table_rows = static_cast<const size_t>(total_number_of_muls) * 8;
+        const size_t table_rows = static_cast<size_t>(total_number_of_muls) * 8;
         point_table_read_counts[0].reserve(table_rows);
         point_table_read_counts[1].reserve(table_rows);
         for (size_t i = 0; i < table_rows; ++i) {
