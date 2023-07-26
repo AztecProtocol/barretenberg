@@ -5,8 +5,8 @@
 #include "barretenberg/ecc/curves/grumpkin/grumpkin.hpp"
 
 #include "./msm_builder.hpp"
-#include "./transcript_builder.hpp"
 #include "./precomputed_tables_builder.hpp"
+#include "./transcript_builder.hpp"
 #include "barretenberg/honk/flavor/ecc_vm.hpp"
 #include "barretenberg/honk/proof_system/lookup_library.hpp"
 #include "barretenberg/honk/proof_system/permutation_library.hpp"
@@ -248,7 +248,7 @@ template <typename Flavor> class ECCVMCircuitConstructor {
 
         const size_t num_rows = std::max(precompute_table_size, std::max(msm_size, transcript_size));
 
-        const size_t num_rows_log2 = numeric::get_msb64(num_rows);
+        const size_t num_rows_log2 = static_cast<size_t>(numeric::get_msb64(num_rows));
         size_t num_rows_pow2 = 1UL << (num_rows_log2 + (1UL << num_rows_log2 == num_rows ? 0 : 1));
 
         RawPolynomials rows;
