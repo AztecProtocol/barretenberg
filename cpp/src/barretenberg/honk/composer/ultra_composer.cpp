@@ -132,10 +132,8 @@ template <UltraFlavor Flavor> void UltraComposer_<Flavor>::compute_witness(Circu
     // have been committed to. The 4th wire on these gates will be a random linear combination of the first 3 wires,
     // using the plookup challenge `eta`. We need to update the records with an offset Because we shift the gates to
     // account for everything that comes before them in the execution trace, e.g. public inputs, a zero row, etc.
-    auto add_public_inputs_offset = [this](uint32_t gate_index) {
-        size_t offset = num_ecc_op_gates + num_public_inputs + num_zero_rows;
-        return gate_index + offset;
-    };
+    size_t offset = num_ecc_op_gates + num_public_inputs + num_zero_rows;
+    auto add_public_inputs_offset = [offset](uint32_t gate_index) { return gate_index + offset; };
     proving_key->memory_read_records = std::vector<uint32_t>();
     proving_key->memory_write_records = std::vector<uint32_t>();
 
