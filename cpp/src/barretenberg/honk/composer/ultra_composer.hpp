@@ -44,8 +44,7 @@ template <UltraFlavor Flavor> class UltraComposer_ {
     size_t tables_size = 0;         // total number of table entries
     size_t num_public_inputs = 0;
 
-    UltraComposer_()
-        : crs_factory_(barretenberg::srs::get_crs_factory()){};
+    UltraComposer_() { crs_factory_ = barretenberg::srs::get_crs_factory(); }
 
     explicit UltraComposer_(std::shared_ptr<srs::factories::CrsFactory<typename Flavor::Curve>> crs_factory)
         : crs_factory_(std::move(crs_factory))
@@ -80,6 +79,8 @@ template <UltraFlavor Flavor> class UltraComposer_ {
     };
 };
 extern template class UltraComposer_<honk::flavor::Ultra>;
+// TODO: the UltraGrumpkin flavor still works on BN254 because plookup needs to be templated to be able to construct
+// Grumpkin circuits.
 extern template class UltraComposer_<honk::flavor::UltraGrumpkin>;
 // TODO(#532): this pattern is weird; is this not instantiating the templates?
 using UltraComposer = UltraComposer_<honk::flavor::Ultra>;

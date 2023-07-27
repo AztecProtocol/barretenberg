@@ -59,7 +59,11 @@ template <typename Curve> class CrsFactory {
     CrsFactory(CrsFactory&& other) = default;
     virtual ~CrsFactory() = default;
     virtual std::shared_ptr<barretenberg::srs::factories::ProverCrs<Curve>> get_prover_crs(size_t) { return nullptr; }
-    virtual std::shared_ptr<barretenberg::srs::factories::VerifierCrs<Curve>> get_verifier_crs() { return nullptr; }
+    virtual std::shared_ptr<barretenberg::srs::factories::VerifierCrs<Curve>> get_verifier_crs(
+        [[maybe_unused]] size_t degree = 0)
+    {
+        return nullptr;
+    }
 };
 
 } // namespace barretenberg::srs::factories

@@ -69,7 +69,7 @@ std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> MemCrsFac
     return prover_crs_;
 }
 
-std::shared_ptr<barretenberg::srs::factories::VerifierCrs<curve::BN254>> MemCrsFactory::get_verifier_crs()
+std::shared_ptr<barretenberg::srs::factories::VerifierCrs<curve::BN254>> MemCrsFactory::get_verifier_crs(size_t)
 {
     return verifier_crs_;
 }

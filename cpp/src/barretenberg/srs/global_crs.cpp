@@ -11,14 +11,11 @@ std::shared_ptr<barretenberg::srs::factories::CrsFactory<curve::Grumpkin>> grump
 
 namespace barretenberg::srs {
 
-// MemCrsFactory is only loaded in the web so no point parameterising for now, we don't wanna touch cbinds
-// Initialises the crs using the memory buffers, we can avoid touching i believe it's a wasm thing :-?
+// Initialises the crs using the memory buffers
 void init_crs_factory(std::vector<g1::affine_element> const& points, g2::affine_element const g2_point)
 {
     crs_factory = std::make_shared<factories::MemCrsFactory>(points, g2_point);
 }
-
-// for now let's just have two stupid methods for initialising this for grumpkin
 
 // Initialises crs from a file path this we use in the entire codebase
 void init_crs_factory(std::string crs_path)

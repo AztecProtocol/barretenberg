@@ -9,7 +9,7 @@
 
 namespace barretenberg::srs::factories {
 
-FileVerifierCrs<curve::BN254>::FileVerifierCrs([[maybe_unused]] const size_t num_points, std::string const& path)
+FileVerifierCrs<curve::BN254>::FileVerifierCrs(std::string const& path, const size_t)
     : precomputed_g2_lines(
           (barretenberg::pairing::miller_lines*)(aligned_alloc(64, sizeof(barretenberg::pairing::miller_lines) * 2)))
 {
@@ -27,7 +27,7 @@ FileVerifierCrs<curve::BN254>::~FileVerifierCrs()
     aligned_free(precomputed_g2_lines);
 }
 
-FileVerifierCrs<curve::Grumpkin>::FileVerifierCrs(const size_t num_points, std::string const& path)
+FileVerifierCrs<curve::Grumpkin>::FileVerifierCrs(std::string const& path, const size_t num_points)
     : num_points(num_points)
 {
     using Curve = curve::Grumpkin;
@@ -51,8 +51,6 @@ template <typename Curve>
 FileCrsFactory<Curve>::FileCrsFactory(std::string path, size_t initial_degree)
     : path_(std::move(path))
     , degree_(initial_degree)
-    // problematic!
-    , verifier_crs_(std::make_shared<FileVerifierCrs<Curve>>(degree_, path_))
 {}
 
 template <typename Curve>
@@ -60,19 +58,18 @@ std::shared_ptr<barretenberg::srs::factories::ProverCrs<Curve>> FileCrsFactory<C
 {
     if (degree != degree_ || !prover_crs_) {
         prover_crs_ = std::make_shared<FileProverCrs<Curve>>(degree, path_);
-        verifier_crs_ = std::make_shared<FileVerifierCrs<Curve>>(degree, path_);
         degree_ = degree;
     }
     return prover_crs_;
 }
 
 template <typename Curve>
-std::shared_ptr<barretenberg::srs::factories::VerifierCrs<Curve>> FileCrsFactory<Curve>::get_verifier_crs()
+std::shared_ptr<barretenberg::srs::factories::VerifierCrs<Curve>> FileCrsFactory<Curve>::get_verifier_crs(size_t degree)
 {
-    // if (degree != degree_ || !verifier_crs_) {
-    //     verifier_crs_ = std::make_shared<FileVerifierCrs<Curve>>(degree, path_);
-    //     degree_ = degree;
-    // }
+    if (degree != degree_ || !verifier_crs_) {
+        verifier_crs_ = std::make_shared<FileVerifierCrs<Curve>>(path_, degree);
+        degree_ = degree;
+    }
     return verifier_crs_;
 }
 

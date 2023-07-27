@@ -20,7 +20,8 @@ class MemCrsFactory : public CrsFactory<curve::BN254> {
 
     std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> get_prover_crs(size_t degree) override;
 
-    std::shared_ptr<barretenberg::srs::factories::VerifierCrs<curve::BN254>> get_verifier_crs() override;
+    std::shared_ptr<barretenberg::srs::factories::VerifierCrs<curve::BN254>> get_verifier_crs(
+        size_t degree = 0) override;
 
   private:
     std::shared_ptr<barretenberg::srs::factories::ProverCrs<curve::BN254>> prover_crs_;

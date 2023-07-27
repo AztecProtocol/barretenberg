@@ -551,7 +551,6 @@ template <class T> constexpr field<T> field<T>::get_root_of_unity(const size_t s
 {
     field r{ T::primitive_root_0, T::primitive_root_1, T::primitive_root_2, T::primitive_root_3 };
     for (size_t i = primitive_root_log_size(); i > subgroup_size; --i) {
-        // problem is this primitive root log size??
         r.self_sqr();
     }
     return r;

@@ -17,6 +17,7 @@ using namespace proof_system::honk;
 
 namespace test_standard_honk_composer {
 
+// TODO: have all the tests working on Grumpkin
 class StandardHonkComposerTests : public ::testing::Test {
   protected:
     static void SetUpTestSuite() { barretenberg::srs::init_crs_factory("../srs_db/ignition"); }

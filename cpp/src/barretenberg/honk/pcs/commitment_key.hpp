@@ -247,13 +247,11 @@ struct Params {
          */
         VerificationKey(size_t num_points, std::shared_ptr<barretenberg::srs::factories::CrsFactory<Curve>> crs_factory)
             : pippenger_runtime_state(num_points)
-            , srs(crs_factory->get_verifier_crs())
-        // , srs(crs_factory->get_prover_crs(num_points))
+            , srs(crs_factory->get_verifier_crs(num_points))
 
         {}
 
         barretenberg::scalar_multiplication::pippenger_runtime_state<Curve> pippenger_runtime_state;
-        // std::shared_ptr<barretenberg::srs::factories::ProverCrs<Curve>> srs;
         std::shared_ptr<barretenberg::srs::factories::VerifierCrs<Curve>> srs;
     };
 };

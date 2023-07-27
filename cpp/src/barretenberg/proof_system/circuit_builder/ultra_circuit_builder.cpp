@@ -3536,7 +3536,7 @@ template <typename FF> bool UltraCircuitBuilder_<FF>::check_circuit()
     return result;
 }
 template class UltraCircuitBuilder_<barretenberg::fr>;
-// TODO: this is still hard
+// To enable this we need to template plookup
 // template class UltraCircuitBuilder_<grumpkin::fr>;
 
 } // namespace proof_system

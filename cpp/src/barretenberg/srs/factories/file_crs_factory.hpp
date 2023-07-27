@@ -20,7 +20,7 @@ template <typename Curve> class FileCrsFactory : public CrsFactory<Curve> {
 
     std::shared_ptr<barretenberg::srs::factories::ProverCrs<Curve>> get_prover_crs(size_t degree) override;
 
-    std::shared_ptr<barretenberg::srs::factories::VerifierCrs<Curve>> get_verifier_crs() override;
+    std::shared_ptr<barretenberg::srs::factories::VerifierCrs<Curve>> get_verifier_crs(size_t degree = 0) override;
 
   private:
     std::string path_;
@@ -51,14 +51,14 @@ template <typename Curve> class FileProverCrs : public ProverCrs<Curve> {
 
 template <typename Curve> class FileVerifierCrs : public VerifierCrs<Curve> {
   public:
-    FileVerifierCrs(const size_t num_points, std::string const& path);
+    FileVerifierCrs(std::string const& path, const size_t num_points);
 };
 
 template <> class FileVerifierCrs<curve::BN254> : public VerifierCrs<curve::BN254> {
     using Curve = curve::BN254;
 
   public:
-    FileVerifierCrs(const size_t num_points, std::string const& path);
+    FileVerifierCrs(std::string const& path, const size_t num_points = 0);
     virtual ~FileVerifierCrs();
     Curve::G2AffineElement get_g2x() const override { return g2_x; };
     pairing::miller_lines const* get_precomputed_g2_lines() const override { return precomputed_g2_lines; };
@@ -74,7 +74,7 @@ template <> class FileVerifierCrs<curve::Grumpkin> : public VerifierCrs<curve::G
     using Curve = curve::Grumpkin;
 
   public:
-    FileVerifierCrs(const size_t num_points, std::string const& path);
+    FileVerifierCrs(std::string const& path, const size_t num_points);
     virtual ~FileVerifierCrs() = default;
     Curve::AffineElement* get_monomial_points() const override;
     size_t get_monomial_size() const override;
