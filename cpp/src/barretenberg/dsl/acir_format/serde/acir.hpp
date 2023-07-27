@@ -855,22 +855,6 @@ struct MemOp {
     friend bool operator==(const MemOp&, const MemOp&);
     std::vector<uint8_t> bincodeSerialize() const;
     static MemOp bincodeDeserialize(std::vector<uint8_t>);
-
-    bool is_rom() const
-    {
-        return this->operation.mul_terms.size() == 0 && this->operation.linear_combinations.size() == 0 &&
-               uint256_t(this->operation.q_c) == 0;
-    }
-};
-
-struct MemoryBlock {
-    Circuit::BlockId id;
-    uint32_t len;
-    std::vector<Circuit::MemOp> trace;
-
-    friend bool operator==(const MemoryBlock&, const MemoryBlock&);
-    std::vector<uint8_t> bincodeSerialize() const;
-    static MemoryBlock bincodeDeserialize(std::vector<uint8_t>);
 };
 
 struct Opcode {
@@ -899,30 +883,6 @@ struct Opcode {
         static Directive bincodeDeserialize(std::vector<uint8_t>);
     };
 
-    struct Block {
-        Circuit::MemoryBlock value;
-
-        friend bool operator==(const Block&, const Block&);
-        std::vector<uint8_t> bincodeSerialize() const;
-        static Block bincodeDeserialize(std::vector<uint8_t>);
-    };
-
-    struct ROM {
-        Circuit::MemoryBlock value;
-
-        friend bool operator==(const ROM&, const ROM&);
-        std::vector<uint8_t> bincodeSerialize() const;
-        static ROM bincodeDeserialize(std::vector<uint8_t>);
-    };
-
-    struct RAM {
-        Circuit::MemoryBlock value;
-
-        friend bool operator==(const RAM&, const RAM&);
-        std::vector<uint8_t> bincodeSerialize() const;
-        static RAM bincodeDeserialize(std::vector<uint8_t>);
-    };
-
     struct Brillig {
         Circuit::Brillig value;
 
@@ -949,7 +909,7 @@ struct Opcode {
         static MemoryInit bincodeDeserialize(std::vector<uint8_t>);
     };
 
-    std::variant<Arithmetic, BlackBoxFuncCall, Directive, Block, ROM, RAM, Brillig, MemoryOp, MemoryInit> value;
+    std::variant<Arithmetic, BlackBoxFuncCall, Directive, Brillig, MemoryOp, MemoryInit> value;
 
     friend bool operator==(const Opcode&, const Opcode&);
     std::vector<uint8_t> bincodeSerialize() const;
@@ -1000,7 +960,7 @@ inline BinaryFieldOp BinaryFieldOp::bincodeDeserialize(std::vector<uint8_t> inpu
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BinaryFieldOp>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -1046,7 +1006,7 @@ inline BinaryFieldOp::Add BinaryFieldOp::Add::bincodeDeserialize(std::vector<uin
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BinaryFieldOp::Add>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -1086,7 +1046,7 @@ inline BinaryFieldOp::Sub BinaryFieldOp::Sub::bincodeDeserialize(std::vector<uin
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BinaryFieldOp::Sub>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -1126,7 +1086,7 @@ inline BinaryFieldOp::Mul BinaryFieldOp::Mul::bincodeDeserialize(std::vector<uin
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BinaryFieldOp::Mul>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -1166,7 +1126,7 @@ inline BinaryFieldOp::Div BinaryFieldOp::Div::bincodeDeserialize(std::vector<uin
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BinaryFieldOp::Div>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -1206,7 +1166,7 @@ inline BinaryFieldOp::Equals BinaryFieldOp::Equals::bincodeDeserialize(std::vect
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BinaryFieldOp::Equals>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -1250,7 +1210,7 @@ inline BinaryIntOp BinaryIntOp::bincodeDeserialize(std::vector<uint8_t> input)
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BinaryIntOp>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -1296,7 +1256,7 @@ inline BinaryIntOp::Add BinaryIntOp::Add::bincodeDeserialize(std::vector<uint8_t
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BinaryIntOp::Add>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -1336,7 +1296,7 @@ inline BinaryIntOp::Sub BinaryIntOp::Sub::bincodeDeserialize(std::vector<uint8_t
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BinaryIntOp::Sub>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -1376,7 +1336,7 @@ inline BinaryIntOp::Mul BinaryIntOp::Mul::bincodeDeserialize(std::vector<uint8_t
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BinaryIntOp::Mul>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -1416,7 +1376,7 @@ inline BinaryIntOp::SignedDiv BinaryIntOp::SignedDiv::bincodeDeserialize(std::ve
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BinaryIntOp::SignedDiv>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -1457,7 +1417,7 @@ inline BinaryIntOp::UnsignedDiv BinaryIntOp::UnsignedDiv::bincodeDeserialize(std
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BinaryIntOp::UnsignedDiv>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -1498,7 +1458,7 @@ inline BinaryIntOp::Equals BinaryIntOp::Equals::bincodeDeserialize(std::vector<u
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BinaryIntOp::Equals>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -1539,7 +1499,7 @@ inline BinaryIntOp::LessThan BinaryIntOp::LessThan::bincodeDeserialize(std::vect
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BinaryIntOp::LessThan>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -1580,7 +1540,7 @@ inline BinaryIntOp::LessThanEquals BinaryIntOp::LessThanEquals::bincodeDeseriali
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BinaryIntOp::LessThanEquals>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -1621,7 +1581,7 @@ inline BinaryIntOp::And BinaryIntOp::And::bincodeDeserialize(std::vector<uint8_t
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BinaryIntOp::And>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -1661,7 +1621,7 @@ inline BinaryIntOp::Or BinaryIntOp::Or::bincodeDeserialize(std::vector<uint8_t> 
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BinaryIntOp::Or>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -1701,7 +1661,7 @@ inline BinaryIntOp::Xor BinaryIntOp::Xor::bincodeDeserialize(std::vector<uint8_t
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BinaryIntOp::Xor>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -1741,7 +1701,7 @@ inline BinaryIntOp::Shl BinaryIntOp::Shl::bincodeDeserialize(std::vector<uint8_t
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BinaryIntOp::Shl>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -1781,7 +1741,7 @@ inline BinaryIntOp::Shr BinaryIntOp::Shr::bincodeDeserialize(std::vector<uint8_t
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BinaryIntOp::Shr>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -1824,7 +1784,7 @@ inline BlackBoxFuncCall BlackBoxFuncCall::bincodeDeserialize(std::vector<uint8_t
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxFuncCall>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -1880,7 +1840,7 @@ inline BlackBoxFuncCall::AND BlackBoxFuncCall::AND::bincodeDeserialize(std::vect
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxFuncCall::AND>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -1937,7 +1897,7 @@ inline BlackBoxFuncCall::XOR BlackBoxFuncCall::XOR::bincodeDeserialize(std::vect
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxFuncCall::XOR>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -1988,7 +1948,7 @@ inline BlackBoxFuncCall::RANGE BlackBoxFuncCall::RANGE::bincodeDeserialize(std::
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxFuncCall::RANGE>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -2038,7 +1998,7 @@ inline BlackBoxFuncCall::SHA256 BlackBoxFuncCall::SHA256::bincodeDeserialize(std
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxFuncCall::SHA256>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -2090,7 +2050,7 @@ inline BlackBoxFuncCall::Blake2s BlackBoxFuncCall::Blake2s::bincodeDeserialize(s
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxFuncCall::Blake2s>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -2151,7 +2111,7 @@ inline BlackBoxFuncCall::SchnorrVerify BlackBoxFuncCall::SchnorrVerify::bincodeD
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxFuncCall::SchnorrVerify>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -2212,7 +2172,7 @@ inline BlackBoxFuncCall::Pedersen BlackBoxFuncCall::Pedersen::bincodeDeserialize
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxFuncCall::Pedersen>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -2268,7 +2228,7 @@ inline BlackBoxFuncCall::HashToField128Security BlackBoxFuncCall::HashToField128
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxFuncCall::HashToField128Security>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -2329,7 +2289,7 @@ inline BlackBoxFuncCall::EcdsaSecp256k1 BlackBoxFuncCall::EcdsaSecp256k1::bincod
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxFuncCall::EcdsaSecp256k1>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -2396,7 +2356,7 @@ inline BlackBoxFuncCall::EcdsaSecp256r1 BlackBoxFuncCall::EcdsaSecp256r1::bincod
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxFuncCall::EcdsaSecp256r1>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -2455,7 +2415,7 @@ inline BlackBoxFuncCall::FixedBaseScalarMul BlackBoxFuncCall::FixedBaseScalarMul
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxFuncCall::FixedBaseScalarMul>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -2507,7 +2467,7 @@ inline BlackBoxFuncCall::Keccak256 BlackBoxFuncCall::Keccak256::bincodeDeseriali
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxFuncCall::Keccak256>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -2564,7 +2524,7 @@ inline BlackBoxFuncCall::Keccak256VariableLength BlackBoxFuncCall::Keccak256Vari
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxFuncCall::Keccak256VariableLength>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -2632,7 +2592,7 @@ inline BlackBoxFuncCall::RecursiveAggregation BlackBoxFuncCall::RecursiveAggrega
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxFuncCall::RecursiveAggregation>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -2691,7 +2651,7 @@ inline BlackBoxOp BlackBoxOp::bincodeDeserialize(std::vector<uint8_t> input)
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxOp>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -2743,7 +2703,7 @@ inline BlackBoxOp::Sha256 BlackBoxOp::Sha256::bincodeDeserialize(std::vector<uin
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxOp::Sha256>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -2794,7 +2754,7 @@ inline BlackBoxOp::Blake2s BlackBoxOp::Blake2s::bincodeDeserialize(std::vector<u
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxOp::Blake2s>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -2846,7 +2806,7 @@ inline BlackBoxOp::Keccak256 BlackBoxOp::Keccak256::bincodeDeserialize(std::vect
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxOp::Keccak256>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -2899,7 +2859,7 @@ inline BlackBoxOp::HashToField128Security BlackBoxOp::HashToField128Security::bi
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxOp::HashToField128Security>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -2960,7 +2920,7 @@ inline BlackBoxOp::EcdsaSecp256k1 BlackBoxOp::EcdsaSecp256k1::bincodeDeserialize
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxOp::EcdsaSecp256k1>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -3027,7 +2987,7 @@ inline BlackBoxOp::EcdsaSecp256r1 BlackBoxOp::EcdsaSecp256r1::bincodeDeserialize
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxOp::EcdsaSecp256r1>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -3094,7 +3054,7 @@ inline BlackBoxOp::SchnorrVerify BlackBoxOp::SchnorrVerify::bincodeDeserialize(s
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxOp::SchnorrVerify>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -3155,7 +3115,7 @@ inline BlackBoxOp::Pedersen BlackBoxOp::Pedersen::bincodeDeserialize(std::vector
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxOp::Pedersen>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -3209,7 +3169,7 @@ inline BlackBoxOp::FixedBaseScalarMul BlackBoxOp::FixedBaseScalarMul::bincodeDes
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlackBoxOp::FixedBaseScalarMul>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -3258,7 +3218,7 @@ inline BlockId BlockId::bincodeDeserialize(std::vector<uint8_t> input)
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BlockId>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -3319,7 +3279,7 @@ inline Brillig Brillig::bincodeDeserialize(std::vector<uint8_t> input)
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<Brillig>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -3376,7 +3336,7 @@ inline BrilligInputs BrilligInputs::bincodeDeserialize(std::vector<uint8_t> inpu
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BrilligInputs>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -3425,7 +3385,7 @@ inline BrilligInputs::Single BrilligInputs::Single::bincodeDeserialize(std::vect
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BrilligInputs::Single>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -3472,7 +3432,7 @@ inline BrilligInputs::Array BrilligInputs::Array::bincodeDeserialize(std::vector
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BrilligInputs::Array>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -3519,7 +3479,7 @@ inline BrilligOpcode BrilligOpcode::bincodeDeserialize(std::vector<uint8_t> inpu
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BrilligOpcode>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -3577,7 +3537,7 @@ inline BrilligOpcode::BinaryFieldOp BrilligOpcode::BinaryFieldOp::bincodeDeseria
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BrilligOpcode::BinaryFieldOp>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -3642,7 +3602,7 @@ inline BrilligOpcode::BinaryIntOp BrilligOpcode::BinaryIntOp::bincodeDeserialize
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BrilligOpcode::BinaryIntOp>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -3700,7 +3660,7 @@ inline BrilligOpcode::JumpIfNot BrilligOpcode::JumpIfNot::bincodeDeserialize(std
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BrilligOpcode::JumpIfNot>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -3752,7 +3712,7 @@ inline BrilligOpcode::JumpIf BrilligOpcode::JumpIf::bincodeDeserialize(std::vect
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BrilligOpcode::JumpIf>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -3801,7 +3761,7 @@ inline BrilligOpcode::Jump BrilligOpcode::Jump::bincodeDeserialize(std::vector<u
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BrilligOpcode::Jump>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -3848,7 +3808,7 @@ inline BrilligOpcode::Call BrilligOpcode::Call::bincodeDeserialize(std::vector<u
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BrilligOpcode::Call>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -3898,7 +3858,7 @@ inline BrilligOpcode::Const BrilligOpcode::Const::bincodeDeserialize(std::vector
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BrilligOpcode::Const>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -3944,7 +3904,7 @@ inline BrilligOpcode::Return BrilligOpcode::Return::bincodeDeserialize(std::vect
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BrilligOpcode::Return>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -3994,7 +3954,7 @@ inline BrilligOpcode::ForeignCall BrilligOpcode::ForeignCall::bincodeDeserialize
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BrilligOpcode::ForeignCall>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -4048,7 +4008,7 @@ inline BrilligOpcode::Mov BrilligOpcode::Mov::bincodeDeserialize(std::vector<uin
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BrilligOpcode::Mov>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -4099,7 +4059,7 @@ inline BrilligOpcode::Load BrilligOpcode::Load::bincodeDeserialize(std::vector<u
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BrilligOpcode::Load>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -4151,7 +4111,7 @@ inline BrilligOpcode::Store BrilligOpcode::Store::bincodeDeserialize(std::vector
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BrilligOpcode::Store>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -4200,7 +4160,7 @@ inline BrilligOpcode::BlackBox BrilligOpcode::BlackBox::bincodeDeserialize(std::
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BrilligOpcode::BlackBox>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -4244,7 +4204,7 @@ inline BrilligOpcode::Trap BrilligOpcode::Trap::bincodeDeserialize(std::vector<u
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BrilligOpcode::Trap>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -4285,7 +4245,7 @@ inline BrilligOpcode::Stop BrilligOpcode::Stop::bincodeDeserialize(std::vector<u
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BrilligOpcode::Stop>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -4329,7 +4289,7 @@ inline BrilligOutputs BrilligOutputs::bincodeDeserialize(std::vector<uint8_t> in
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BrilligOutputs>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -4378,7 +4338,7 @@ inline BrilligOutputs::Simple BrilligOutputs::Simple::bincodeDeserialize(std::ve
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BrilligOutputs::Simple>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -4425,7 +4385,7 @@ inline BrilligOutputs::Array BrilligOutputs::Array::bincodeDeserialize(std::vect
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<BrilligOutputs::Array>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -4484,7 +4444,7 @@ inline Circuit Circuit::bincodeDeserialize(std::vector<uint8_t> input)
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<Circuit>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -4541,7 +4501,7 @@ inline Directive Directive::bincodeDeserialize(std::vector<uint8_t> input)
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<Directive>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -4593,7 +4553,7 @@ inline Directive::Invert Directive::Invert::bincodeDeserialize(std::vector<uint8
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<Directive::Invert>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -4641,7 +4601,7 @@ inline Directive::Quotient Directive::Quotient::bincodeDeserialize(std::vector<u
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<Directive::Quotient>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -4694,7 +4654,7 @@ inline Directive::ToLeRadix Directive::ToLeRadix::bincodeDeserialize(std::vector
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<Directive::ToLeRadix>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -4754,7 +4714,7 @@ inline Directive::PermutationSort Directive::PermutationSort::bincodeDeserialize
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<Directive::PermutationSort>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -4807,7 +4767,7 @@ inline Directive::Log Directive::Log::bincodeDeserialize(std::vector<uint8_t> in
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<Directive::Log>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -4858,7 +4818,7 @@ inline Expression Expression::bincodeDeserialize(std::vector<uint8_t> input)
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<Expression>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -4911,7 +4871,7 @@ inline ForeignCallOutput ForeignCallOutput::bincodeDeserialize(std::vector<uint8
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<ForeignCallOutput>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -4961,7 +4921,7 @@ inline ForeignCallOutput::Single ForeignCallOutput::Single::bincodeDeserialize(s
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<ForeignCallOutput::Single>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -5008,7 +4968,7 @@ inline ForeignCallOutput::Array ForeignCallOutput::Array::bincodeDeserialize(std
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<ForeignCallOutput::Array>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -5055,7 +5015,7 @@ inline ForeignCallResult ForeignCallResult::bincodeDeserialize(std::vector<uint8
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<ForeignCallResult>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -5108,7 +5068,7 @@ inline FunctionInput FunctionInput::bincodeDeserialize(std::vector<uint8_t> inpu
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<FunctionInput>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -5162,7 +5122,7 @@ inline HeapArray HeapArray::bincodeDeserialize(std::vector<uint8_t> input)
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<HeapArray>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -5216,7 +5176,7 @@ inline HeapVector HeapVector::bincodeDeserialize(std::vector<uint8_t> input)
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<HeapVector>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -5267,7 +5227,7 @@ inline LogInfo LogInfo::bincodeDeserialize(std::vector<uint8_t> input)
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<LogInfo>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -5316,7 +5276,7 @@ inline LogInfo::FinalizedOutput LogInfo::FinalizedOutput::bincodeDeserialize(std
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<LogInfo::FinalizedOutput>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -5363,7 +5323,7 @@ inline LogInfo::WitnessOutput LogInfo::WitnessOutput::bincodeDeserialize(std::ve
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<LogInfo::WitnessOutput>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -5416,7 +5376,7 @@ inline MemOp MemOp::bincodeDeserialize(std::vector<uint8_t> input)
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<MemOp>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -5449,65 +5409,6 @@ Circuit::MemOp serde::Deserializable<Circuit::MemOp>::deserialize(Deserializer& 
 
 namespace Circuit {
 
-inline bool operator==(const MemoryBlock& lhs, const MemoryBlock& rhs)
-{
-    if (!(lhs.id == rhs.id)) {
-        return false;
-    }
-    if (!(lhs.len == rhs.len)) {
-        return false;
-    }
-    if (!(lhs.trace == rhs.trace)) {
-        return false;
-    }
-    return true;
-}
-
-inline std::vector<uint8_t> MemoryBlock::bincodeSerialize() const
-{
-    auto serializer = serde::BincodeSerializer();
-    serde::Serializable<MemoryBlock>::serialize(*this, serializer);
-    return std::move(serializer).bytes();
-}
-
-inline MemoryBlock MemoryBlock::bincodeDeserialize(std::vector<uint8_t> input)
-{
-    auto deserializer = serde::BincodeDeserializer(input);
-    auto value = serde::Deserializable<MemoryBlock>::deserialize(deserializer);
-    if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
-    }
-    return value;
-}
-
-} // end of namespace Circuit
-
-template <>
-template <typename Serializer>
-void serde::Serializable<Circuit::MemoryBlock>::serialize(const Circuit::MemoryBlock& obj, Serializer& serializer)
-{
-    serializer.increase_container_depth();
-    serde::Serializable<decltype(obj.id)>::serialize(obj.id, serializer);
-    serde::Serializable<decltype(obj.len)>::serialize(obj.len, serializer);
-    serde::Serializable<decltype(obj.trace)>::serialize(obj.trace, serializer);
-    serializer.decrease_container_depth();
-}
-
-template <>
-template <typename Deserializer>
-Circuit::MemoryBlock serde::Deserializable<Circuit::MemoryBlock>::deserialize(Deserializer& deserializer)
-{
-    deserializer.increase_container_depth();
-    Circuit::MemoryBlock obj;
-    obj.id = serde::Deserializable<decltype(obj.id)>::deserialize(deserializer);
-    obj.len = serde::Deserializable<decltype(obj.len)>::deserialize(deserializer);
-    obj.trace = serde::Deserializable<decltype(obj.trace)>::deserialize(deserializer);
-    deserializer.decrease_container_depth();
-    return obj;
-}
-
-namespace Circuit {
-
 inline bool operator==(const Opcode& lhs, const Opcode& rhs)
 {
     if (!(lhs.value == rhs.value)) {
@@ -5528,7 +5429,7 @@ inline Opcode Opcode::bincodeDeserialize(std::vector<uint8_t> input)
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<Opcode>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -5577,7 +5478,7 @@ inline Opcode::Arithmetic Opcode::Arithmetic::bincodeDeserialize(std::vector<uin
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<Opcode::Arithmetic>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -5623,7 +5524,7 @@ inline Opcode::BlackBoxFuncCall Opcode::BlackBoxFuncCall::bincodeDeserialize(std
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<Opcode::BlackBoxFuncCall>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -5670,7 +5571,7 @@ inline Opcode::Directive Opcode::Directive::bincodeDeserialize(std::vector<uint8
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<Opcode::Directive>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -5690,141 +5591,6 @@ template <typename Deserializer>
 Circuit::Opcode::Directive serde::Deserializable<Circuit::Opcode::Directive>::deserialize(Deserializer& deserializer)
 {
     Circuit::Opcode::Directive obj;
-    obj.value = serde::Deserializable<decltype(obj.value)>::deserialize(deserializer);
-    return obj;
-}
-
-namespace Circuit {
-
-inline bool operator==(const Opcode::Block& lhs, const Opcode::Block& rhs)
-{
-    if (!(lhs.value == rhs.value)) {
-        return false;
-    }
-    return true;
-}
-
-inline std::vector<uint8_t> Opcode::Block::bincodeSerialize() const
-{
-    auto serializer = serde::BincodeSerializer();
-    serde::Serializable<Opcode::Block>::serialize(*this, serializer);
-    return std::move(serializer).bytes();
-}
-
-inline Opcode::Block Opcode::Block::bincodeDeserialize(std::vector<uint8_t> input)
-{
-    auto deserializer = serde::BincodeDeserializer(input);
-    auto value = serde::Deserializable<Opcode::Block>::deserialize(deserializer);
-    if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
-    }
-    return value;
-}
-
-} // end of namespace Circuit
-
-template <>
-template <typename Serializer>
-void serde::Serializable<Circuit::Opcode::Block>::serialize(const Circuit::Opcode::Block& obj, Serializer& serializer)
-{
-    serde::Serializable<decltype(obj.value)>::serialize(obj.value, serializer);
-}
-
-template <>
-template <typename Deserializer>
-Circuit::Opcode::Block serde::Deserializable<Circuit::Opcode::Block>::deserialize(Deserializer& deserializer)
-{
-    Circuit::Opcode::Block obj;
-    obj.value = serde::Deserializable<decltype(obj.value)>::deserialize(deserializer);
-    return obj;
-}
-
-namespace Circuit {
-
-inline bool operator==(const Opcode::ROM& lhs, const Opcode::ROM& rhs)
-{
-    if (!(lhs.value == rhs.value)) {
-        return false;
-    }
-    return true;
-}
-
-inline std::vector<uint8_t> Opcode::ROM::bincodeSerialize() const
-{
-    auto serializer = serde::BincodeSerializer();
-    serde::Serializable<Opcode::ROM>::serialize(*this, serializer);
-    return std::move(serializer).bytes();
-}
-
-inline Opcode::ROM Opcode::ROM::bincodeDeserialize(std::vector<uint8_t> input)
-{
-    auto deserializer = serde::BincodeDeserializer(input);
-    auto value = serde::Deserializable<Opcode::ROM>::deserialize(deserializer);
-    if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
-    }
-    return value;
-}
-
-} // end of namespace Circuit
-
-template <>
-template <typename Serializer>
-void serde::Serializable<Circuit::Opcode::ROM>::serialize(const Circuit::Opcode::ROM& obj, Serializer& serializer)
-{
-    serde::Serializable<decltype(obj.value)>::serialize(obj.value, serializer);
-}
-
-template <>
-template <typename Deserializer>
-Circuit::Opcode::ROM serde::Deserializable<Circuit::Opcode::ROM>::deserialize(Deserializer& deserializer)
-{
-    Circuit::Opcode::ROM obj;
-    obj.value = serde::Deserializable<decltype(obj.value)>::deserialize(deserializer);
-    return obj;
-}
-
-namespace Circuit {
-
-inline bool operator==(const Opcode::RAM& lhs, const Opcode::RAM& rhs)
-{
-    if (!(lhs.value == rhs.value)) {
-        return false;
-    }
-    return true;
-}
-
-inline std::vector<uint8_t> Opcode::RAM::bincodeSerialize() const
-{
-    auto serializer = serde::BincodeSerializer();
-    serde::Serializable<Opcode::RAM>::serialize(*this, serializer);
-    return std::move(serializer).bytes();
-}
-
-inline Opcode::RAM Opcode::RAM::bincodeDeserialize(std::vector<uint8_t> input)
-{
-    auto deserializer = serde::BincodeDeserializer(input);
-    auto value = serde::Deserializable<Opcode::RAM>::deserialize(deserializer);
-    if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
-    }
-    return value;
-}
-
-} // end of namespace Circuit
-
-template <>
-template <typename Serializer>
-void serde::Serializable<Circuit::Opcode::RAM>::serialize(const Circuit::Opcode::RAM& obj, Serializer& serializer)
-{
-    serde::Serializable<decltype(obj.value)>::serialize(obj.value, serializer);
-}
-
-template <>
-template <typename Deserializer>
-Circuit::Opcode::RAM serde::Deserializable<Circuit::Opcode::RAM>::deserialize(Deserializer& deserializer)
-{
-    Circuit::Opcode::RAM obj;
     obj.value = serde::Deserializable<decltype(obj.value)>::deserialize(deserializer);
     return obj;
 }
@@ -5851,7 +5617,7 @@ inline Opcode::Brillig Opcode::Brillig::bincodeDeserialize(std::vector<uint8_t> 
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<Opcode::Brillig>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -5900,7 +5666,7 @@ inline Opcode::MemoryOp Opcode::MemoryOp::bincodeDeserialize(std::vector<uint8_t
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<Opcode::MemoryOp>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -5951,7 +5717,7 @@ inline Opcode::MemoryInit Opcode::MemoryInit::bincodeDeserialize(std::vector<uin
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<Opcode::MemoryInit>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -5999,7 +5765,7 @@ inline PublicInputs PublicInputs::bincodeDeserialize(std::vector<uint8_t> input)
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<PublicInputs>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -6060,7 +5826,7 @@ inline QuotientDirective QuotientDirective::bincodeDeserialize(std::vector<uint8
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<QuotientDirective>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -6118,7 +5884,7 @@ inline RegisterIndex RegisterIndex::bincodeDeserialize(std::vector<uint8_t> inpu
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<RegisterIndex>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -6167,7 +5933,7 @@ inline RegisterOrMemory RegisterOrMemory::bincodeDeserialize(std::vector<uint8_t
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<RegisterOrMemory>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -6217,7 +5983,7 @@ inline RegisterOrMemory::RegisterIndex RegisterOrMemory::RegisterIndex::bincodeD
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<RegisterOrMemory::RegisterIndex>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -6264,7 +6030,7 @@ inline RegisterOrMemory::HeapArray RegisterOrMemory::HeapArray::bincodeDeseriali
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<RegisterOrMemory::HeapArray>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -6311,7 +6077,7 @@ inline RegisterOrMemory::HeapVector RegisterOrMemory::HeapVector::bincodeDeseria
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<RegisterOrMemory::HeapVector>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -6358,7 +6124,7 @@ inline Value Value::bincodeDeserialize(std::vector<uint8_t> input)
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<Value>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
@@ -6407,7 +6173,7 @@ inline Witness Witness::bincodeDeserialize(std::vector<uint8_t> input)
     auto deserializer = serde::BincodeDeserializer(input);
     auto value = serde::Deserializable<Witness>::deserialize(deserializer);
     if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
+        throw serde::deserialization_error("Some input bytes were not read");
     }
     return value;
 }
