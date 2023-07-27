@@ -518,16 +518,15 @@ template <typename FF> void StandardCircuitBuilder_<FF>::export_circuit(std::ost
     // res.reserve(base::variable_names.size());
     out << "{\"public_inps\": [";
     for (uint32_t i = 0; i < this->get_num_public_inputs(); i++) {
-        out << this->get_public_input_index(i) << ", "; // TODO something wrong here
+        out << this->real_variable_index[this->public_inputs[i]] << ", ";
     }
     out << "],\n";
 
-    out << "\"vars_of_interest\" : [";
+    out << "\"vars_of_interest\" : {";
     for (auto& tup : base::variable_names) {
-        out << "[\"" + tup.second + "\", " << this->get_variable(tup.first) << ", "
-            << this->real_variable_index[tup.first] << "], \n";
+        out << this->real_variable_index[tup.first] << ": \"" + tup.second + "\",\n";
     }
-    out << "], ";
+    out << "}, ";
     // out << msgpack_schema_to_string(res);
 
     out << "\"variables\": [";
@@ -543,9 +542,9 @@ template <typename FF> void StandardCircuitBuilder_<FF>::export_circuit(std::ost
         out << ", " << q_2[i];
         out << ", " << q_3[i];
         out << ", " << q_c[i];
-        out << ", " << w_l[i];
-        out << ", " << w_r[i];
-        out << ", " << w_o[i];
+        out << ", " << this->real_variable_index[w_l[i]];
+        out << ", " << this->real_variable_index[w_r[i]];
+        out << ", " << this->real_variable_index[w_o[i]];
         out << "],\n";
     }
     out << "]}\n\n";
