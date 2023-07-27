@@ -201,21 +201,26 @@ template <typename Arithmetization> class CircuitBuilderBase {
     {
         ASSERT(variables.size() > index);
         uint32_t first_idx = get_first_variable_in_class(index);
-        uint32_t cur_idx = first_idx;
 
-        while (cur_idx != REAL_VARIABLE) {
-            if (variable_names.contains(cur_idx)) {
-                failure("Attempted to assign a name to a variable that already has a name");
-                return;
-            }
-            cur_idx = next_var_index[cur_idx];
-        } // can do that at the end
+        // uint32_t cur_idx = first_idx;
+        // while (cur_idx != REAL_VARIABLE) {
+        //    if (variable_names.contains(cur_idx)) {
+        //        failure("Attempted to assign a name to a variable that already has a name");
+        //        return;
+        //    }
+        //    cur_idx = next_var_index[cur_idx];
+        //}
+
+        if (variable_names.contains(first_idx)) {
+            failure("Attempted to assign a name to a variable that already has a name");
+            return;
+        }
         variable_names.insert({ first_idx, name });
     }
 
-    // explisitly call after assert_equal?
+    // explisitly call after assert_equal
     virtual void update_variable_names(uint32_t index)
-    { // whenever assert_equal is called?
+    {
         uint32_t first_idx = get_first_variable_in_class(index);
 
         uint32_t cur_idx = next_var_index[first_idx];
@@ -240,26 +245,32 @@ template <typename Arithmetization> class CircuitBuilderBase {
     }
 
     // must be called at the end of the circuit construction
-    // optimize
     virtual void finalize_variable_names()
     {
-        for (auto& tup1 : variable_names) { // use size_t
-            for (auto& tup2 : variable_names) {
-                if (tup2.first == tup1.first) {
-                    continue;
-                }
-                if (get_first_variable_in_class(tup1.first) == get_first_variable_in_class(tup2.first)) {
-                    failure("Variables from the same equivalence class have separate names");
-                    update_variable_names(tup2.first);
+        std::vector<uint32_t> keys;
+        std::vector<uint32_t> firsts;
+
+        for (auto& tup : variable_names) {
+            keys.push_back(tup.first);
+            firsts.push_back(get_first_variable_in_class(tup.first));
+        }
+
+        for (size_t i = 0; i < keys.size() - 1; i++) {
+            for (size_t j = i + 1; j < keys.size(); i++) {
+                uint32_t first_idx_a = firsts[i];
+                uint32_t first_idx_b = firsts[j];
+                if (first_idx_a == first_idx_b) {
+                    std::string substr1 = variable_names[keys[i]];
+                    std::string substr2 = variable_names[keys[j]];
+                    failure("Variables from the same equivalence class have separate names: " + substr2 + ", " +
+                            substr2);
+                    update_variable_names(first_idx_b);
                 }
             }
         }
     }
 
-    virtual void export_circuit(std::ostream& out)
-    {
-        info("not implemented"); // bruh;
-    };                           //= 0;
+    virtual void export_circuit(std::ostream&) { info("not implemented"); };
 
     /**
      * Add a public variable to variables
