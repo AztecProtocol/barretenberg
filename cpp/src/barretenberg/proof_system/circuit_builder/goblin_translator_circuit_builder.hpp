@@ -166,7 +166,7 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
 
     /**
      * @brief The accumulation input structure contains all the necessary values to initalize an accumulation gate as
-     * well as addition values for checking its correctness
+     * well as additional values for checking its correctness
      *
      * @details For example, we don't really nead the prime limbs, but they serve to check the correctness of over
      * values. We also don't need the values of x's and v's limbs during circuit construction, since they are added to
@@ -174,7 +174,7 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
      */
     struct AccumulationInput {
         // Members necessary for the gate creation
-        Fr op; // Operator
+        Fr op_code; // Operator
         Fr P_x_lo;
         Fr P_x_hi;
         std::array<Fr, NUM_BINARY_LIMBS + 1> P_x_limbs;
@@ -257,9 +257,9 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
     void create_accumulation_gate(const AccumulationInput acc_step)
     {
         // The first wires OpQueue/Transcript wires
-        ASSERT(uint256_t(acc_step.op) <= MAX_OPERAND);
+        ASSERT(uint256_t(acc_step.op_code) <= MAX_OPERAND);
         auto& op_wire = std::get<WireIds::OP>(wires);
-        op_wire.push_back(add_variable(acc_step.op));
+        op_wire.push_back(add_variable(acc_step.op_code));
         op_wire.push_back(zero_idx);
 
         /**
@@ -467,7 +467,7 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
             // The main relation is computed between odd and the next even indices. For example, 1 and 2
             if (i & 1) {
                 // Get the values
-                Fr op = get_variable(op_wire[i]);
+                Fr op_code = get_variable(op_wire[i]);
                 Fr p_x_lo = get_variable(x_lo_y_hi_wire[i]);
                 Fr p_x_hi = get_variable(x_hi_z_1_wire[i]);
                 Fr p_x_0 = get_variable(p_x_0_p_x_1_wire[i]);
@@ -608,13 +608,12 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
                 }
 
                 // The logic we are trying to enforce is:
-                // current_accumulator = previous_accumulator ⋅ x + op + P.x ⋅ v + P.y ⋅ v² + z_1 ⋅ v³ + z_2 ⋅ v⁴ mod Fq
-                // To ensure this we transform the relation into the form:
-                // previous_accumulator ⋅ x + op + P.x ⋅ v + P.y ⋅ v² + z_1 ⋅ v³ + z_2 ⋅ v⁴ - quotient ⋅ p -
-                // current_accumulator = 0 However, we don't have integers. Despite that, we can approximate integers
-                // for a certain range, if we know that there will not be any overflows.
-                // For now we set the range to 2²⁷² ⋅ r. We can evaluate the logic modulo 2²⁷² with range constraints
-                // and r is native.
+                // current_accumulator = previous_accumulator ⋅ x + op_code + P.x ⋅ v + P.y ⋅ v² + z_1 ⋅ v³ + z_2 ⋅ v⁴
+                // mod Fq To ensure this we transform the relation into the form: previous_accumulator ⋅ x + op + P.x ⋅
+                // v + P.y ⋅ v² + z_1 ⋅ v³ + z_2 ⋅ v⁴ - quotient ⋅ p - current_accumulator = 0 However, we don't have
+                // integers. Despite that, we can approximate integers for a certain range, if we know that there will
+                // not be any overflows. For now we set the range to 2²⁷² ⋅ r. We can evaluate the logic modulo 2²⁷²
+                // with range constraints and r is native.
                 //
                 // previous_accumulator ⋅ x + op + P.x ⋅ v + P.y ⋅ v² + z_1 ⋅ v³ + z_2 ⋅ v⁴ - quotient ⋅ p -
                 // current_accumulator = 0 =>
@@ -646,7 +645,7 @@ class GoblinTranslatorCircuitBuilder : CircuitBuilderBase<arithmetization::Gobli
                 // and z_1 and z_2 have only the two lowest limbs
                 Fr low_wide_limb_relation_check =
 
-                    (previous_accumulator_binary_limbs[0] * relation_inputs.x_limbs[0] + op +
+                    (previous_accumulator_binary_limbs[0] * relation_inputs.x_limbs[0] + op_code +
                      relation_inputs.v_limbs[0] * p_x_0 + relation_inputs.v_squared_limbs[0] * p_y_0 +
                      relation_inputs.v_cubed_limbs[0] * z_1_lo + relation_inputs.v_quarted_limbs[0] * z_2_lo +
                      quotient_binary_limbs[0] * NEGATIVE_MODULUS_LIMBS[0] - current_accumulator_binary_limbs[0]) +

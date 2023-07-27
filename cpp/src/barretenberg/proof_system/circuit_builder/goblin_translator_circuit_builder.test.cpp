@@ -11,7 +11,7 @@ auto& engine = numeric::random::get_debug_engine();
 namespace proof_system {
 template <typename Fq, typename Fr>
 GoblinTranslatorCircuitBuilder::AccumulationInput generate_witness_values(
-    Fr op, Fr p_x_lo, Fr p_x_hi, Fr p_y_lo, Fr p_y_hi, Fr z_1, Fr z_2, Fq previous_accumulator, Fq v, Fq x)
+    Fr op_code, Fr p_x_lo, Fr p_x_hi, Fr p_y_lo, Fr p_y_hi, Fr z_1, Fr z_2, Fq previous_accumulator, Fq v, Fq x)
 {
     constexpr size_t NUM_LIMB_BITS = GoblinTranslatorCircuitBuilder::NUM_LIMB_BITS;
     constexpr size_t MICRO_LIMB_BITS = GoblinTranslatorCircuitBuilder::MICRO_LIMB_BITS;
@@ -84,7 +84,7 @@ GoblinTranslatorCircuitBuilder::AccumulationInput generate_witness_values(
     // elements involved
     auto uint_previous_accumulator = uint512_t(previous_accumulator);
     auto uint_x = uint512_t(x);
-    auto uint_op = uint512_t(op);
+    auto uint_op = uint512_t(op_code);
     auto uint_p_x = uint512_t(uint256_t(p_x_lo) + (uint256_t(p_x_hi) << (NUM_LIMB_BITS << 1)));
     auto uint_p_y = uint512_t(uint256_t(p_y_lo) + (uint256_t(p_y_hi) << (NUM_LIMB_BITS << 1)));
     auto uint_z_1 = uint512_t(z_1);
@@ -95,7 +95,7 @@ GoblinTranslatorCircuitBuilder::AccumulationInput generate_witness_values(
     auto uint_v_quarted = uint512_t(v_quarted);
 
     // Construct Fq for op, P.x, P.y, z_1, z_2 for use in witness computation
-    Fq base_op = Fq(uint256_t(op));
+    Fq base_op = Fq(uint256_t(op_code));
     Fq base_p_x = Fq(uint256_t(p_x_lo) + (uint256_t(p_x_hi) << (NUM_LIMB_BITS << 1)));
     Fq base_p_y = Fq(uint256_t(p_y_lo) + (uint256_t(p_y_hi) << (NUM_LIMB_BITS << 1)));
     Fq base_z_1 = Fq(uint256_t(z_1));
@@ -139,9 +139,10 @@ GoblinTranslatorCircuitBuilder::AccumulationInput generate_witness_values(
     auto [quotient_0, quotient_1, quotient_2, quotient_3, quotient_prime] = uint512_t_to_bigfield(quotient);
     std::array<Fr, 5> quotient_witnesses = { quotient_0, quotient_1, quotient_2, quotient_3, quotient_prime };
 
-    // We will divide by shift_2 instantly in the relation itself, but f
+    // We will divide by shift_2 instantly in the relation itself, but first we need to compute the low part (0*0) and
+    // the high part (0*1, 1*0) multiplied by a signle limb shift
     Fr low_wide_relation_limb_part_1 =
-        previous_accumulator_witnesses[0] * x_witnesses[0] + op + v_witnesses[0] * p_x_witnesses[0] +
+        previous_accumulator_witnesses[0] * x_witnesses[0] + op_code + v_witnesses[0] * p_x_witnesses[0] +
         v_squared_witnesses[0] * p_y_witnesses[0] + v_cubed_witnesses[0] * z_1_lo + v_quarted_witnesses[0] * z_2_lo +
         quotient_witnesses[0] * neg_modulus_limbs[0] - remainder_witnesses[0]; // This covers the lowest limb
     info("LW1:", low_wide_relation_limb_part_1);
@@ -161,12 +162,13 @@ GoblinTranslatorCircuitBuilder::AccumulationInput generate_witness_values(
     constexpr auto max_limb_size = (uint512_t(1) << NUM_LIMB_BITS) - 1;
     constexpr auto shift_1_u512 = uint512_t(shift_1);
     constexpr auto op_max_size = uint512_t(4);
-    constexpr uint512_t lwl_maximum_value = op_max_size + (max_limb_size * max_limb_size) * ((shift_1_u512 * 12) + 6);
-    constexpr uint512_t lwl_maximum_value_constraint =
-        (lwl_maximum_value >> (2 * NUM_LIMB_BITS)).lo +
-        uint256_t(uint64_t((lwl_maximum_value % uint512_t(1) << (2 * NUM_LIMB_BITS)) != 0));
-    constexpr auto lwl_range_consraint_size = lwl_maximum_value_constraint.get_msb() + 1;
-    info("Low limb range constraint: ", lwl_range_consraint_size);
+    constexpr uint512_t low_wide_limb_maximum_value =
+        op_max_size + (max_limb_size * max_limb_size) * ((shift_1_u512 * 12) + 6);
+    constexpr uint512_t low_wide_limb_maximum_value_constraint =
+        (low_wide_limb_maximum_value >> (2 * NUM_LIMB_BITS)).lo +
+        uint256_t(uint64_t((low_wide_limb_maximum_value % uint512_t(1) << (2 * NUM_LIMB_BITS)) != 0));
+    constexpr auto low_wide_limb_range_consraint_size = low_wide_limb_maximum_value_constraint.get_msb() + 1;
+    info("Low limb range constraint: ", low_wide_limb_range_consraint_size);
     // Low bits have to be zero
     ASSERT(uint256_t(low_wide_relation_limb).slice(0, 2 * NUM_LIMB_BITS) == 0);
 
@@ -175,14 +177,14 @@ GoblinTranslatorCircuitBuilder::AccumulationInput generate_witness_values(
     constexpr size_t NUM_LAST_BN254_LIMB_BITS = modulus_u512.get_msb() + 1 - NUM_LIMB_BITS * 3;
 
     constexpr auto max_high_limb_size = (uint512_t(1) << NUM_LAST_BN254_LIMB_BITS) - 1;
-    constexpr uint512_t hwl_maximum_value =
-        lwl_maximum_value_constraint + (max_limb_size * max_limb_size) * 16 +
+    constexpr uint512_t high_wide_limb_maximum_value =
+        low_wide_limb_maximum_value_constraint + (max_limb_size * max_limb_size) * 16 +
         (max_limb_size * max_limb_size * 10 + max_limb_size * max_high_limb_size * 10) * shift_1_u512;
-    constexpr uint512_t hwl_maximum_value_constraint =
-        (hwl_maximum_value >> (2 * NUM_LIMB_BITS)).lo +
-        uint256_t(uint64_t((hwl_maximum_value % uint512_t(1) << (2 * NUM_LIMB_BITS)) != 0));
-    constexpr auto hwl_range_consraint_size = hwl_maximum_value_constraint.get_msb() + 1;
-    info(hwl_range_consraint_size);
+    constexpr uint512_t high_wide_limb_maximum_value_constraint =
+        (high_wide_limb_maximum_value >> (2 * NUM_LIMB_BITS)).lo +
+        uint256_t(uint64_t((high_wide_limb_maximum_value % uint512_t(1) << (2 * NUM_LIMB_BITS)) != 0));
+    constexpr auto high_wide_limb_range_constraint_size = high_wide_limb_maximum_value_constraint.get_msb() + 1;
+    info(high_wide_limb_range_constraint_size);
     // 4 high combinations = 8 ml*ml + 8 ml*last_ml. 2 low combinations = 2*ml*ml + 2*ml*last_ml
     Fr high_wide_relation_limb =
         low_wide_relation_limb_divided + previous_accumulator_witnesses[2] * x_witnesses[0] +
@@ -209,7 +211,7 @@ GoblinTranslatorCircuitBuilder::AccumulationInput generate_witness_values(
     ASSERT(uint256_t(high_wide_relation_limb).slice(0, 2 * NUM_LIMB_BITS) == 0);
 
     GoblinTranslatorCircuitBuilder::AccumulationInput input{
-        .op = op,
+        .op_code = op_code,
         .P_x_lo = p_x_lo,
         .P_x_hi = p_x_hi,
         .P_x_limbs = p_x_witnesses,
@@ -386,7 +388,7 @@ TEST(translator_circuit_builder, scoping_out_the_circuit)
     GoblinTranslatorCircuitBuilder::AccumulationInput witnesses =
         generate_witness_values(op, p_x_lo, p_x_hi, p_y_lo, p_y_hi, z_1, z_2, accumulator, v, x);
     // Prime relation
-    Fr prime_relation = witnesses.previous_accumulator[4] * witnesses.x_limbs[4] + witnesses.op +
+    Fr prime_relation = witnesses.previous_accumulator[4] * witnesses.x_limbs[4] + witnesses.op_code +
                         witnesses.v_limbs[4] * witnesses.P_x_limbs[4] +
                         witnesses.v_squared_limbs[4] * witnesses.P_y_limbs[4] + witnesses.v_cubed_limbs[4] * z_1 +
                         witnesses.v_quarted_limbs[4] * z_2 + witnesses.quotient_binary_limbs[4] * neg_modulus_limbs[4] -
