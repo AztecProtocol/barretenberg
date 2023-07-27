@@ -185,7 +185,7 @@ TEST_F(IPATest, GeminiShplonkIPAWithShift)
                                                        verifier_transcript);
 
     // Shplonk verifier claim: commitment [Q] - [Q_z], opening point (z_challenge, 0)
-    const auto shplonk_verifier_claim = Shplonk::reduce_verify(gemini_verifier_claim, verifier_transcript);
+    const auto shplonk_verifier_claim = Shplonk::reduce_verify(this->vk(), gemini_verifier_claim, verifier_transcript);
 
     // IPA verifier:
     // aggregates inputs [Q] - [Q_z] and [W] into an 'accumulator' (can perform pairing check on result)

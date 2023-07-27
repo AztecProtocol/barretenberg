@@ -73,7 +73,6 @@ template <typename Params> class CommitmentTest : public ::testing::Test {
     using Fr = typename Params::Fr;
     using Commitment = typename Params::Commitment;
     using Polynomial = typename Params::Polynomial;
-    using Transcript = transcript::StandardTranscript;
 
   public:
     CommitmentTest()

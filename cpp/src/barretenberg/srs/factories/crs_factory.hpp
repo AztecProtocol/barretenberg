@@ -30,7 +30,6 @@ template <typename Curve> class ProverCrs {
 template <typename Curve> class VerifierCrs {
   public:
     virtual ~VerifierCrs() = default;
-    ;
 };
 template <> class VerifierCrs<curve::BN254> {
     using Curve = curve::BN254;
@@ -38,6 +37,7 @@ template <> class VerifierCrs<curve::BN254> {
   public:
     virtual Curve::G2AffineElement get_g2x() const = 0;
     virtual barretenberg::pairing::miller_lines const* get_precomputed_g2_lines() const = 0;
+    virtual Curve::AffineElement get_first_g1() const = 0;
 };
 
 template <> class VerifierCrs<curve::Grumpkin> {
@@ -46,6 +46,7 @@ template <> class VerifierCrs<curve::Grumpkin> {
   public:
     virtual Curve::AffineElement* get_monomial_points() const = 0;
     virtual size_t get_monomial_size() const = 0;
+    virtual Curve::AffineElement get_first_g1() const = 0;
 };
 
 /**

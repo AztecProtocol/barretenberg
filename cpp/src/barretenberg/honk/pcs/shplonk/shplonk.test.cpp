@@ -64,7 +64,7 @@ TYPED_TEST(ShplonkTest, ShplonkSimple)
     auto verifier_transcript = VerifierTranscript<Fr>::init_empty(prover_transcript);
 
     // Execute the shplonk verifier functionality
-    const auto verifier_claim = Shplonk::reduce_verify(opening_claims, verifier_transcript);
+    const auto verifier_claim = Shplonk::reduce_verify(this->vk(), opening_claims, verifier_transcript);
 
     this->verify_opening_claim(verifier_claim, shplonk_prover_witness);
 }

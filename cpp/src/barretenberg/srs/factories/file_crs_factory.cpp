@@ -13,10 +13,13 @@ FileVerifierCrs<curve::BN254>::FileVerifierCrs([[maybe_unused]] const size_t num
     : precomputed_g2_lines(
           (barretenberg::pairing::miller_lines*)(aligned_alloc(64, sizeof(barretenberg::pairing::miller_lines) * 2)))
 {
-
+    using Curve = curve::BN254;
+    auto point_buf = scalar_multiplication::point_table_alloc<Curve::AffineElement>(1);
+    srs::IO<Curve>::read_transcript_g1(point_buf.get(), 1, path);
     srs::IO<curve::BN254>::read_transcript_g2(g2_x, path);
     barretenberg::pairing::precompute_miller_lines(barretenberg::g2::one, precomputed_g2_lines[0]);
     barretenberg::pairing::precompute_miller_lines(g2_x, precomputed_g2_lines[1]);
+    first_g1 = point_buf[0];
 }
 
 FileVerifierCrs<curve::BN254>::~FileVerifierCrs()
@@ -29,9 +32,9 @@ FileVerifierCrs<curve::Grumpkin>::FileVerifierCrs(const size_t num_points, std::
 {
     using Curve = curve::Grumpkin;
     monomials_ = scalar_multiplication::point_table_alloc<Curve::AffineElement>(num_points);
-
     srs::IO<Curve>::read_transcript_g1(monomials_.get(), num_points, path);
     scalar_multiplication::generate_pippenger_point_table<Curve>(monomials_.get(), monomials_.get(), num_points);
+    first_g1 = monomials_[0];
 };
 
 curve::Grumpkin::AffineElement* FileVerifierCrs<curve::Grumpkin>::get_monomial_points() const

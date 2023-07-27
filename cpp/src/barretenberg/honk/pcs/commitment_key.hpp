@@ -95,11 +95,11 @@ struct Params {
          * @brief Construct a new Kate Verification Key object from existing SRS
          *
          * @param num_points
-         * @param verifier_crs verifier G2 point
+         * @paramsrs verifier G2 point
          */
         VerificationKey([[maybe_unused]] size_t num_points,
                         std::shared_ptr<barretenberg::srs::factories::CrsFactory<Curve>> crs_factory)
-            : verifier_crs(crs_factory->get_verifier_crs())
+            : srs(crs_factory->get_verifier_crs())
         {}
 
         /**
@@ -114,12 +114,12 @@ struct Params {
             Commitment pairing_points[2]{ p0, p1 };
             // The final pairing check of step 12.
             Curve::TargetField result = barretenberg::pairing::reduced_ate_pairing_batch_precomputed(
-                pairing_points, verifier_crs->get_precomputed_g2_lines(), 2);
+                pairing_points, srs->get_precomputed_g2_lines(), 2);
 
             return (result == Curve::TargetField::one());
         }
 
-        std::shared_ptr<barretenberg::srs::factories::VerifierCrs<Curve>> verifier_crs;
+        std::shared_ptr<barretenberg::srs::factories::VerifierCrs<Curve>> srs;
     };
 };
 
