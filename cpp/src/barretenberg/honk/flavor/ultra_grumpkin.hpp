@@ -26,9 +26,8 @@
 namespace proof_system::honk::flavor {
 
 class UltraGrumpkin {
-    // TODO(Mara): At the moment this class is a duplicate of the Standard flavor with a different PCS for testing
-    // purposes. This will be changed to Grumpkin once generating Honk proofs over Grumpkin has been enabled.
-    // Not ready to switch this to actual Grumpkin so we keep KZG
+    // TODO(#636): At the moment this class is a duplicate of the Ultra flavor with a different PCS for testing
+    // purposes. This can be changed to Grumpkin and IPA once UltraCircuitBuilder also works on Grumpkin.
   public:
     using CircuitBuilder = UltraCircuitBuilder;
     using PCSParams = pcs::kzg::Params;

@@ -494,13 +494,16 @@ template <typename FF> bool StandardCircuitBuilder_<FF>::check_circuit()
     FF gate_sum;
     FF left, right, output;
     for (size_t i = 0; i < this->num_gates; i++) {
+
         gate_sum = FF::zero();
         left = this->get_variable(w_l[i]);
         right = this->get_variable(w_r[i]);
         output = this->get_variable(w_o[i]);
         gate_sum = q_m[i] * left * right + q_1[i] * left + q_2[i] * right + q_3[i] * output + q_c[i];
-        if (!gate_sum.is_zero())
+        if (!gate_sum.is_zero()) {
+            info("gate number", i);
             return false;
+        }
     }
     return true;
 }

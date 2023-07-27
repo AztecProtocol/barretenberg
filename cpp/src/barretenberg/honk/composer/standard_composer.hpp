@@ -37,7 +37,7 @@ template <StandardFlavor Flavor> class StandardComposer_ {
 
     bool computed_witness = false;
     // TODO(Luke): use make_shared
-    // TODO(#): design the crs factory better
+    // TODO(#637): design the crs factory better
     StandardComposer_()
     {
         if constexpr (IsGrumpkinFlavor<Flavor>) {

@@ -8,8 +8,8 @@ namespace acir_format {
 
 struct MemOp {
     uint8_t access_type;
-    poly_triple_<curve::BN254::ScalarField> index;
-    poly_triple_<curve::BN254::ScalarField> value;
+    poly_triple index;
+    poly_triple value;
 };
 
 enum BlockType {
@@ -18,7 +18,7 @@ enum BlockType {
 };
 
 struct BlockConstraint {
-    std::vector<poly_triple_<curve::BN254::ScalarField>> init;
+    std::vector<poly_triple> init;
     std::vector<MemOp> trace;
     BlockType type;
 };

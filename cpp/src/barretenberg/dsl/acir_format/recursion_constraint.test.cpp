@@ -11,7 +11,6 @@ using namespace proof_system::plonk;
 namespace acir_format::test {
 Builder create_inner_circuit()
 {
-    using poly_triple = poly_triple_<barretenberg::fr>;
     /**
      * constraints produced by Noir program:
      * fn main(x : u32, y : pub u32) {

@@ -24,11 +24,47 @@ TEST(standard_circuit_constructor, base_case)
 
 TEST(standard_circuit_constructor, grumpkin_base_case)
 {
-    StandardGrumpkinCircuitBuilder composer = StandardGrumpkinCircuitBuilder();
+    StandardGrumpkinCircuitBuilder circuit_constructor = StandardGrumpkinCircuitBuilder();
     grumpkin::fr a = grumpkin::fr::one();
-    composer.add_public_variable(a);
+    circuit_constructor.add_public_variable(a);
+    grumpkin::fr b = grumpkin::fr::one();
+    grumpkin::fr c = a + b;
+    grumpkin::fr d = a + c;
+    uint32_t a_idx = circuit_constructor.add_variable(a);
+    uint32_t b_idx = circuit_constructor.add_variable(b);
+    uint32_t c_idx = circuit_constructor.add_variable(c);
+    uint32_t d_idx = circuit_constructor.add_variable(d);
 
-    bool result = composer.check_circuit();
+    uint32_t w_l_2_idx = circuit_constructor.add_variable(2);
+    uint32_t w_r_2_idx = circuit_constructor.add_variable(2);
+    uint32_t w_o_2_idx = circuit_constructor.add_variable(4);
+    circuit_constructor.create_mul_gate({ w_l_2_idx, w_r_2_idx, w_o_2_idx, 1, -1, 0 });
+
+    circuit_constructor.create_add_gate({ a_idx,
+                                          b_idx,
+                                          c_idx,
+                                          grumpkin::fr::one(),
+                                          grumpkin::fr::one(),
+                                          grumpkin::fr::neg_one(),
+                                          grumpkin::fr::zero() });
+
+    circuit_constructor.create_add_gate({ d_idx,
+                                          c_idx,
+                                          a_idx,
+                                          grumpkin::fr::one(),
+                                          grumpkin::fr::neg_one(),
+                                          grumpkin::fr::neg_one(),
+                                          grumpkin::fr::zero() });
+
+    circuit_constructor.create_add_gate({ d_idx,
+                                          c_idx,
+                                          b_idx,
+                                          grumpkin::fr::one(),
+                                          grumpkin::fr::neg_one(),
+                                          grumpkin::fr::neg_one(),
+                                          grumpkin::fr::zero() });
+
+    bool result = circuit_constructor.check_circuit();
     EXPECT_EQ(result, true);
 }
 
