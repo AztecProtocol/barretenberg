@@ -1,13 +1,13 @@
-#include "ecc_msm_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/relation_parameters.hpp"
-#include "barretenberg/honk/sumcheck/relations/relation_definitions_fwd.hpp"
 #include "barretenberg/honk/flavor/ecc_vm.hpp"
+#include "barretenberg/honk/sumcheck/relations/relation_definitions_fwd.hpp"
+#include "barretenberg/honk/sumcheck/relations/relation_parameters.hpp"
+#include "ecc_msm_relation.hpp"
 
 namespace proof_system::honk::sumcheck {
 
 template <typename FF>
 template <typename AccumulatorTypes>
-ECCVMSetRelationBase<FF>::template Accumulator<AccumulatorTypes> ECCVMSetRelationBase<
+typename ECCVMSetRelationBase<FF>::template Accumulator<AccumulatorTypes> ECCVMSetRelationBase<
     FF>::compute_permutation_numerator(const auto& extended_edges,
                                        const RelationParameters<FF>& relation_params,
                                        const size_t index)
@@ -212,7 +212,7 @@ ECCVMSetRelationBase<FF>::template Accumulator<AccumulatorTypes> ECCVMSetRelatio
 
 template <typename FF>
 template <typename AccumulatorTypes>
-ECCVMSetRelationBase<FF>::template Accumulator<AccumulatorTypes> ECCVMSetRelationBase<
+typename ECCVMSetRelationBase<FF>::template Accumulator<AccumulatorTypes> ECCVMSetRelationBase<
     FF>::compute_permutation_denominator(const auto& extended_edges,
                                          const RelationParameters<FF>& relation_params,
                                          const size_t index)

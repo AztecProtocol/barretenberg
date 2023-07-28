@@ -1,7 +1,7 @@
 #pragma once
-#include "barretenberg/polynomials/polynomial.hpp"
-#include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
 #include "barretenberg/honk/sumcheck/sumcheck.hpp"
+#include "barretenberg/plonk/proof_system/proving_key/proving_key.hpp"
+#include "barretenberg/polynomials/polynomial.hpp"
 #include <typeinfo>
 
 namespace proof_system::honk::permutation_library {
@@ -49,7 +49,7 @@ void compute_permutation_grand_product(const size_t circuit_size,
 {
     using FF = typename Flavor::FF;
     using Polynomial = typename Flavor::Polynomial;
-    using ValueAccumTypes = PermutationRelation::ValueAccumTypes;
+    using ValueAccumTypes = typename PermutationRelation::ValueAccumTypes;
 
     // Allocate numerator/denominator polynomials that will serve as scratch space
     // TODO(zac) we can re-use the permutation polynomial as the numerator polynomial. Reduces readability
@@ -145,7 +145,7 @@ void compute_permutation_grand_products(std::shared_ptr<typename Flavor::Proving
 
     constexpr size_t NUM_RELATIONS = std::tuple_size<GrandProductRelations>{};
     barretenberg::constexpr_for<0, NUM_RELATIONS, 1>([&]<size_t i>() {
-        using PermutationRelation = std::tuple_element<i, GrandProductRelations>::type;
+        using PermutationRelation = typename std::tuple_element<i, GrandProductRelations>::type;
 
         // Assign the grand product polynomial to the relevant std::span member of `full_polynomials` (and its shift)
         // For example, for UltraPermutationRelation, this will be `full_polynomials.z_perm`

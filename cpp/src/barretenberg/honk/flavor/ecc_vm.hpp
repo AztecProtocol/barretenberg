@@ -1,23 +1,23 @@
 #pragma once
-#include <array>
-#include <concepts>
-#include <span>
-#include <string>
-#include <type_traits>
-#include <vector>
+#include "../sumcheck/relations/relation_definitions_fwd.hpp"
+#include "../sumcheck/relations/relation_types.hpp"
 #include "barretenberg/honk/pcs/commitment_key.hpp"
+#include "barretenberg/honk/pcs/ipa/ipa.hpp"
+#include "barretenberg/honk/pcs/kzg/kzg.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
-#include "barretenberg/proof_system/relations/ecc_vm/ecc_wnaf_relation.hpp"
 #include "barretenberg/proof_system/flavor/flavor.hpp"
 #include "barretenberg/proof_system/relations/ecc_vm/ecc_lookup_relation.hpp"
 #include "barretenberg/proof_system/relations/ecc_vm/ecc_msm_relation.hpp"
 #include "barretenberg/proof_system/relations/ecc_vm/ecc_point_table_relation.hpp"
 #include "barretenberg/proof_system/relations/ecc_vm/ecc_set_relation.hpp"
 #include "barretenberg/proof_system/relations/ecc_vm/ecc_transcript_relation.hpp"
-#include "../sumcheck/relations/relation_types.hpp"
-#include "../sumcheck/relations/relation_definitions_fwd.hpp"
-#include "barretenberg/honk/pcs/kzg/kzg.hpp"
-#include "barretenberg/honk/pcs/ipa/ipa.hpp"
+#include "barretenberg/proof_system/relations/ecc_vm/ecc_wnaf_relation.hpp"
+#include <array>
+#include <concepts>
+#include <span>
+#include <string>
+#include <type_traits>
+#include <vector>
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-const-or-ref-data-members)
 
@@ -36,9 +36,9 @@ class ECCVMBase {
     using FF = typename G1::subgroup_field;
     using Polynomial = barretenberg::Polynomial<FF>;
     using PolynomialHandle = std::span<FF>;
-    using GroupElement = G1::element;
-    using Commitment = G1::affine_element;
-    using CommitmentHandle = G1::affine_element;
+    using GroupElement = typename G1::element;
+    using Commitment = typename G1::affine_element;
+    using CommitmentHandle = typename G1::affine_element;
 
     static constexpr size_t NUM_WIRES = 74;
 

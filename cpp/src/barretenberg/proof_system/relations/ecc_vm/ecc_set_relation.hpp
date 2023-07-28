@@ -2,11 +2,11 @@
 #include <array>
 #include <tuple>
 
-#include "barretenberg/polynomials/polynomial.hpp"
 #include "barretenberg/common/constexpr_utils.hpp"
+#include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
 #include "barretenberg/honk/sumcheck/relations/relation_parameters.hpp"
 #include "barretenberg/honk/sumcheck/relations/relation_types.hpp"
-#include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
+#include "barretenberg/polynomials/polynomial.hpp"
 
 namespace proof_system::honk::sumcheck {
 
@@ -19,7 +19,7 @@ template <typename FF> class ECCVMSetRelationBase {
     static constexpr size_t LEN_2 = RELATION_LENGTH; // left-shiftable polynomial sub-relation
     template <template <size_t...> typename AccumulatorTypesContainer>
     using AccumulatorTypesBase = AccumulatorTypesContainer<LEN_1>;
-    template <typename T> using Accumulator = std::tuple_element<0, typename T::Accumulators>::type;
+    template <typename T> using Accumulator = typename std::tuple_element<0, typename T::Accumulators>::type;
 
     template <typename AccumulatorTypes>
     static Accumulator<AccumulatorTypes> convert_to_wnaf(const auto& s0, const auto& s1)
