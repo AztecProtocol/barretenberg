@@ -15,6 +15,12 @@
 
 using namespace proof_system::honk;
 
+#define TYPE_ALIASES                                                                                                   \
+    using Flavor = TypeParam;                                                                                          \
+    using FF = typename Flavor::FF;                                                                                    \
+    using CircuitBuilder = StandardCircuitBuilder_<FF>;                                                                \
+    using Composer = StandardComposer_<Flavor>;
+
 namespace test_standard_honk_composer {
 
 template <typename Flavor> class StandardHonkComposerTests : public ::testing::Test {
@@ -43,10 +49,7 @@ TYPED_TEST_SUITE(StandardHonkComposerTests, FlavorTypes);
  */
 TYPED_TEST(StandardHonkComposerTests, SigmaIDCorrectness)
 {
-    using Flavor = TypeParam;
-    using FF = typename Flavor::FF;
-    using CircuitBuilder = StandardCircuitBuilder_<FF>;
-    using Composer = StandardComposer_<Flavor>;
+    TYPE_ALIASES
     auto test_permutation = [](CircuitBuilder& circuit_constructor, Composer& composer) {
         auto prover = composer.create_prover(circuit_constructor);
         auto proving_key = prover.key;
@@ -160,10 +163,7 @@ TYPED_TEST(StandardHonkComposerTests, SigmaIDCorrectness)
  */
 TYPED_TEST(StandardHonkComposerTests, LagrangeCorrectness)
 {
-    using Flavor = TypeParam;
-    using FF = typename Flavor::FF;
-    using CircuitBuilder = StandardCircuitBuilder_<FF>;
-    using Composer = StandardComposer_<Flavor>;
+    TYPE_ALIASES
     using Polynomial = typename Flavor::Polynomial;
     // Create a dummy circuit with a few gates
     auto circuit_constructor = CircuitBuilder();
@@ -219,10 +219,7 @@ TYPED_TEST(StandardHonkComposerTests, LagrangeCorrectness)
  */
 TYPED_TEST(StandardHonkComposerTests, AssertEquals)
 {
-    using Flavor = TypeParam;
-    using FF = typename Flavor::FF;
-    using CircuitBuilder = StandardCircuitBuilder_<FF>;
-    using Composer = StandardComposer_<Flavor>;
+    TYPE_ALIASES
 
     /**
      * @brief A function that creates a simple circuit with repeated gates, leading to large permutation cycles
@@ -326,10 +323,7 @@ TYPED_TEST(StandardHonkComposerTests, AssertEquals)
 
 TYPED_TEST(StandardHonkComposerTests, VerificationKeyCreation)
 {
-    using Flavor = TypeParam;
-    using FF = typename Flavor::FF;
-    using CircuitBuilder = StandardCircuitBuilder_<FF>;
-    using Composer = StandardComposer_<Flavor>;
+    TYPE_ALIASES
 
     // Create a composer and a dummy circuit with a few gates
     auto circuit_constructor = CircuitBuilder();
@@ -358,10 +352,7 @@ TYPED_TEST(StandardHonkComposerTests, VerificationKeyCreation)
 
 TYPED_TEST(StandardHonkComposerTests, BaseCase)
 {
-    using Flavor = TypeParam;
-    using FF = typename Flavor::FF;
-    using CircuitBuilder = StandardCircuitBuilder_<FF>;
-    using Composer = StandardComposer_<Flavor>;
+    TYPE_ALIASES
     auto circuit_constructor = CircuitBuilder();
     FF a = 1;
     circuit_constructor.add_variable(a);
@@ -376,10 +367,7 @@ TYPED_TEST(StandardHonkComposerTests, BaseCase)
 
 TYPED_TEST(StandardHonkComposerTests, TwoGates)
 {
-    using Flavor = TypeParam;
-    using FF = typename Flavor::FF;
-    using CircuitBuilder = StandardCircuitBuilder_<FF>;
-    using Composer = StandardComposer_<Flavor>;
+    TYPE_ALIASES
     auto run_test = [](bool expect_verified) {
         auto circuit_constructor = CircuitBuilder();
         // 1 + 1 - 2 = 0
@@ -399,7 +387,6 @@ TYPED_TEST(StandardHonkComposerTests, TwoGates)
         uint32_t w_o_2_idx = circuit_constructor.add_variable(4);
         circuit_constructor.create_mul_gate({ w_l_2_idx, w_r_2_idx, w_o_2_idx, 1, -1, 0 });
 
-        EXPECT_TRUE(circuit_constructor.check_circuit());
         auto composer = Composer();
         auto prover = composer.create_prover(circuit_constructor);
         auto proof = prover.construct_proof();
@@ -411,15 +398,12 @@ TYPED_TEST(StandardHonkComposerTests, TwoGates)
     };
 
     run_test(/* expect_verified=*/true);
-    // run_test(/* expect_verified=*/false);
+    run_test(/* expect_verified=*/false);
 }
 
 TYPED_TEST(StandardHonkComposerTests, SumcheckEvaluations)
 {
-    using Flavor = TypeParam;
-    using FF = typename Flavor::FF;
-    using CircuitBuilder = StandardCircuitBuilder_<FF>;
-    using Composer = StandardComposer_<Flavor>;
+    TYPE_ALIASES
     auto run_test = [](bool expected_result) {
         auto circuit_constructor = CircuitBuilder();
         FF a = FF::one();

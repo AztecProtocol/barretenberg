@@ -106,25 +106,21 @@ TEST_F(IPATest, GeminiShplonkIPAWithShift)
     auto eval2 = poly2.evaluate_mle(mle_opening_point);
     auto eval2_shift = poly2.evaluate_mle(mle_opening_point, true);
 
-    // Collect multilinear evaluations for input to prover
     std::vector<Fr> multilinear_evaluations = { eval1, eval2, eval2_shift };
 
     std::vector<Fr> rhos = Gemini::powers_of_rho(rho, multilinear_evaluations.size());
 
-    // Compute batched multivariate evaluation
     Fr batched_evaluation = Fr::zero();
     for (size_t i = 0; i < rhos.size(); ++i) {
         batched_evaluation += multilinear_evaluations[i] * rhos[i];
     }
 
-    // Compute batched polynomials
     Polynomial batched_unshifted(n);
     Polynomial batched_to_be_shifted(n);
     batched_unshifted.add_scaled(poly1, rhos[0]);
     batched_unshifted.add_scaled(poly2, rhos[1]);
     batched_to_be_shifted.add_scaled(poly2, rhos[2]);
 
-    // Compute batched commitments
     GroupElement batched_commitment_unshifted = GroupElement::zero();
     GroupElement batched_commitment_to_be_shifted = GroupElement::zero();
     batched_commitment_unshifted = commitment1 * rhos[0] + commitment2 * rhos[1];
@@ -132,11 +128,6 @@ TEST_F(IPATest, GeminiShplonkIPAWithShift)
 
     auto prover_transcript = ProverTranscript<Fr>::init_empty();
 
-    // Run the full prover PCS protocol:
-
-    // Compute:
-    // - (d+1) opening pairs: {r, \hat{a}_0}, {-r^{2^i}, a_i}, i = 0, ..., d-1
-    // - (d+1) Fold polynomials Fold_{r}^(0), Fold_{-r}^(0), and Fold^(i), i = 0, ..., d-1
     auto fold_polynomials = Gemini::compute_fold_polynomials(
         mle_opening_point, std::move(batched_unshifted), std::move(batched_to_be_shifted));
 
@@ -157,9 +148,6 @@ TEST_F(IPATest, GeminiShplonkIPAWithShift)
         prover_transcript.send_to_verifier(label, evaluation);
     }
 
-    // Shplonk prover output:
-    // - opening pair: (z_challenge, 0)
-    // - witness: polynomial Q - Q_z
     const Fr nu_challenge = prover_transcript.get_challenge("Shplonk:nu");
     auto batched_quotient_Q = Shplonk::compute_batched_quotient(gemini_opening_pairs, gemini_witnesses, nu_challenge);
     prover_transcript.send_to_verifier("Shplonk:Q", this->ck()->commit(batched_quotient_Q));
@@ -168,30 +156,18 @@ TEST_F(IPATest, GeminiShplonkIPAWithShift)
     const auto [shplonk_opening_pair, shplonk_witness] = Shplonk::compute_partially_evaluated_batched_quotient(
         gemini_opening_pairs, gemini_witnesses, std::move(batched_quotient_Q), nu_challenge, z_challenge);
 
-    // KZG prover:
-    // - Adds commitment [W] to transcript
     IPA::compute_opening_proof(this->ck(), shplonk_opening_pair, shplonk_witness, prover_transcript);
-
-    // Run the full verifier PCS protocol with genuine opening claims (genuine commitment, genuine evaluation)
 
     auto verifier_transcript = VerifierTranscript<Fr>::init_empty(prover_transcript);
 
-    // Gemini verifier output:
-    // - claim: d+1 commitments to Fold_{r}^(0), Fold_{-r}^(0), Fold^(l), d+1 evaluations a_0_pos, a_l, l = 0:d-1
     auto gemini_verifier_claim = Gemini::reduce_verify(mle_opening_point,
                                                        batched_evaluation,
                                                        batched_commitment_unshifted,
                                                        batched_commitment_to_be_shifted,
                                                        verifier_transcript);
 
-    // Shplonk verifier claim: commitment [Q] - [Q_z], opening point (z_challenge, 0)
     const auto shplonk_verifier_claim = Shplonk::reduce_verify(this->vk(), gemini_verifier_claim, verifier_transcript);
-
-    // IPA verifier:
-    // aggregates inputs [Q] - [Q_z] and [W] into an 'accumulator' (can perform pairing check on result)
     bool verified = IPA::verify(this->vk(), shplonk_verifier_claim, verifier_transcript);
-
-    // Final pairing check: e([Q] - [Q_z] + z[W], [1]_2) = e([W], [x]_2)
 
     EXPECT_EQ(verified, true);
 }

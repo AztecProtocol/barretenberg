@@ -25,7 +25,6 @@ template <> inline std::shared_ptr<kzg::Params::CommitmentKey> CreateCommitmentK
 {
     constexpr size_t n = 4096;
     std::shared_ptr<barretenberg::srs::factories::CrsFactory<kzg::Params::Curve>> crs_factory(
-        // TODO: add the path to params?
         new barretenberg::srs::factories::FileCrsFactory<kzg::Params::Curve>("../srs_db/ignition", 4096));
     return std::make_shared<kzg::Params::CommitmentKey>(n, crs_factory);
 }
