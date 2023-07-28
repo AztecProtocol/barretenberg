@@ -56,6 +56,8 @@ jobs:
         run: |
           cd ./bb.js
           cp -R ../ts/dest/* .
+          git config user.email "jony@aztecprotocol.com"
+          git config user.name "GitHub Workflow"
           git add .
           git commit -m "Tracking changes"
           git push
