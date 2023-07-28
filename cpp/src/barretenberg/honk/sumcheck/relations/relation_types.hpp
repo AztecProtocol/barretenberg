@@ -1,8 +1,8 @@
 #pragma once
-#include <array>
-#include <tuple>
-#include <span>
 #include "relation_parameters.hpp"
+#include <array>
+#include <span>
+#include <tuple>
 
 // forward-declare Polynomial so we can use in a concept
 namespace barretenberg {
@@ -65,8 +65,8 @@ inline typename std::tuple_element<0, typename AccumulatorTypes::AccumulatorView
  */
 template <typename FF, typename AccumulatorTypes, typename T>
     requires std::is_same<barretenberg::Polynomial<FF>, T>::value
-inline std::tuple_element<0, typename AccumulatorTypes::AccumulatorViews>::type get_view(const T& input,
-                                                                                         const size_t index)
+inline typename std::tuple_element<0, typename AccumulatorTypes::AccumulatorViews>::type get_view(const T& input,
+                                                                                                  const size_t index)
 {
     return input[index];
 }
@@ -87,7 +87,6 @@ inline typename std::tuple_element<0, typename AccumulatorTypes::AccumulatorView
 {
     return typename std::tuple_element<0, typename AccumulatorTypes::AccumulatorViews>::type(input);
 }
-
 
 /**
  * @brief A wrapper for Relations to expose methods used by the Sumcheck prover or verifier to add the contribution of
