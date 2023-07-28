@@ -1,7 +1,7 @@
-#include "ecc_msm_relation.hpp"
-#include "barretenberg/honk/sumcheck/relations/relation_parameters.hpp"
-#include "barretenberg/honk/sumcheck/relations/relation_definitions_fwd.hpp"
 #include "barretenberg/honk/flavor/ecc_vm.hpp"
+#include "barretenberg/honk/sumcheck/relations/relation_definitions_fwd.hpp"
+#include "barretenberg/honk/sumcheck/relations/relation_parameters.hpp"
+#include "ecc_msm_relation.hpp"
 
 namespace proof_system::honk::sumcheck {
 
@@ -53,7 +53,7 @@ void ECCVMLookupRelationBase<FF>::add_edge_contribution_impl(typename Accumulato
     Accumulator inverse_accumulator = Accumulator(lookup_inverses); // denominator_accumulator[NUM_TOTAL_TERMS - 1];
 
     const auto row_has_write = View(extended_edges.q_wnaf);
-    const auto row_has_read = View(extended_edges.msm_q_add + extended_edges.msm_q_skew);
+    const auto row_has_read = View(extended_edges.msm_q_add) + View(extended_edges.msm_q_skew);
     const auto inverse_exists = row_has_write + row_has_read - (row_has_write * row_has_read);
 
     std::get<1>(accumulator) += denominator_accumulator[NUM_TOTAL_TERMS - 1] * lookup_inverses - inverse_exists;
