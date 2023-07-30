@@ -1,13 +1,21 @@
 #pragma once
+#include "relation_parameters.hpp"
 #include <array>
+#include <span>
 #include <tuple>
 
-#include "../polynomials/univariate.hpp"
-#include "relation_parameters.hpp"
+// forward-declare Polynomial so we can use in a concept
+namespace barretenberg {
+template <typename FF> class Polynomial;
+}
+template <typename FF, size_t Length> class Univariate;
+template <typename FF, size_t Length> class UnivariateView;
 
 namespace proof_system::honk::sumcheck {
-template <typename T>
-concept HasSubrelationLinearlyIndependentMember = requires(T) { T::Relation::SUBRELATION_LINEARLY_INDEPENDENT; };
+template <typename T> concept HasSubrelationLinearlyIndependentMember = requires(T)
+{
+    T::Relation::SUBRELATION_LINEARLY_INDEPENDENT;
+};
 /**
  * @brief The templates defined herein facilitate sharing the relation arithmetic between the prover and the verifier.
  *
@@ -27,6 +35,24 @@ concept HasSubrelationLinearlyIndependentMember = requires(T) { T::Relation::SUB
  * @brief Getter method that will return `input[index]` iff `input` is a std::span container
  *
  * @tparam FF
+ * @tparam AccumulatorTypes
+ * @tparam T
+ * @param input
+ * @param index
+ * @return requires
+ */
+template <typename FF, typename AccumulatorTypes, typename T>
+requires std::is_same<std::span<FF>, T>::value inline
+    typename std::tuple_element<0, typename AccumulatorTypes::AccumulatorViews>::type
+    get_view(const T& input, const size_t index)
+{
+    return input[index];
+}
+
+/**
+ * @brief Getter method that will return `input[index]` iff `input` is a Polynomial container
+ *
+ * @tparam FF
  * @tparam TypeMuncher
  * @tparam T
  * @param input
@@ -34,15 +60,15 @@ concept HasSubrelationLinearlyIndependentMember = requires(T) { T::Relation::SUB
  * @return requires
  */
 template <typename FF, typename AccumulatorTypes, typename T>
-    requires std::is_same<std::span<FF>, T>::value
-inline typename std::tuple_element<0, typename AccumulatorTypes::AccumulatorViews>::type get_view(const T& input,
-                                                                                                  const size_t index)
+requires std::is_same<barretenberg::Polynomial<FF>, T>::value inline
+    typename std::tuple_element<0, typename AccumulatorTypes::AccumulatorViews>::type
+    get_view(const T& input, const size_t index)
 {
     return input[index];
 }
 
 /**
- * @brief Getter method that will return `input[index]` iff `input` is not a std::span container
+ * @brief Getter method that will return `input[index]` iff `input` is not a std::span or a Polynomial container
  *
  * @tparam FF
  * @tparam TypeMuncher
@@ -102,6 +128,17 @@ template <typename FF, template <typename> typename RelationBase> class Relation
         Relation::template add_edge_contribution_impl<ValueAccumTypes>(
             accumulator, input, relation_parameters, scaling_factor);
     }
+    /**
+     * @brief Check is subrelation is linearly independent
+     * Method is active if relation has SUBRELATION_LINEARLY_INDEPENDENT array defined
+     * @tparam size_t
+     */
+    template <size_t>
+    static constexpr bool is_subrelation_linearly_independent() requires(
+        !HasSubrelationLinearlyIndependentMember<Relation>)
+    {
+        return std::get<subrelation_index>(Relation::SUBRELATION_LINEARLY_INDEPENDENT);
+    }
 
     /**
      * @brief Check is subrelation is linearly independent
@@ -109,23 +146,11 @@ template <typename FF, template <typename> typename RelationBase> class Relation
      * (i.e. default is to make linearly independent)
      * @tparam size_t
      */
-    template <size_t>
-    static constexpr bool is_subrelation_linearly_independent()
-        requires(!HasSubrelationLinearlyIndependentMember<Relation>)
+    template <size_t subrelation_index>
+    static constexpr bool is_subrelation_linearly_independent() requires(
+        HasSubrelationLinearlyIndependentMember<Relation>)
     {
         return true;
-    }
-
-    /**
-     * @brief Check is subrelation is linearly independent
-     * Method is active if relation has SUBRELATION_LINEARLY_INDEPENDENT array defined
-     * @tparam size_t
-     */
-    template <size_t subrelation_index>
-    static constexpr bool is_subrelation_linearly_independent()
-        requires(HasSubrelationLinearlyIndependentMember<Relation>)
-    {
-        return std::get<subrelation_index>(Relation::SUBRELATION_LINEARLY_INDEPENDENT);
     }
 };
 
