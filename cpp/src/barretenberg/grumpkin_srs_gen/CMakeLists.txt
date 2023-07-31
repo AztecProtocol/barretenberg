@@ -1,4 +1,4 @@
-if (!FUZZING)
+if (NOT(FUZZING))
     add_executable(
         grumpkin_srs_gen
         grumpkin_srs_gen.cpp
