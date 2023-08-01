@@ -1,3 +1,4 @@
+# Note to reviewer: this yml will be merged with the release-please yml, this is just for developing
 name: Release bb.js
 
 on:
@@ -11,7 +12,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install bleeding edge cmake
         run: |
@@ -31,33 +32,32 @@ jobs:
 
       - name: Compile Barretenberg
         run: |
-          cd cpp
           cmake --preset default -DCMAKE_BUILD_TYPE=RelWithAssert
           cmake --build --preset default --target bb
+        working-directory: ./circuits/cpp/barretenberg/cpp
 
       - name: Install WASI-SDK
-        run: |
-          cd cpp
-          ./scripts/install-wasi-sdk.sh
+        run: ./scripts/install-wasi-sdk.sh
+        working-directory: ./circuits/cpp/barretenberg/cpp
 
       - name: Compile Typescript
-        run: |
-          cd ts
-          yarn install && yarn && yarn build
+        run: yarn install && yarn && yarn build
+        working-directory: ./circuits/cpp/barretenberg/ts
 
       - name: Checkout destination repository
         uses: actions/checkout@v3
         with:
-          repository: AztecProtocol/bb.js
-          path: ./bb.js
-          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: AztecProtocol/dev-bb.js
+          path: ./dev-bb.js
+          token: ${{ secrets.AZTEC_BOT_GITHUB_TOKEN }}
 
       - name: Push to destination repository
         run: |
-          cd ./bb.js
-          cp -R ../ts/dest/* .
-          git config user.email "jony@aztecprotocol.com"
-          git config user.name "GitHub Workflow"
+          cd ./dev-bb.js
+          cp -R ../circuits/cpp/barretenberg/ts/dest/* .
+          git config --global user.name AztecBot
+          git config --global user.email tech@aztecprotocol.com
+          git checkout -b dev || git checkout dev
           git add .
           git commit -m "Tracking changes"
-          git push
+          git push origin dev
