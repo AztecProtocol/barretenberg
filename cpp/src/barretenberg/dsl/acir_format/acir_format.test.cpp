@@ -337,8 +337,6 @@ TEST(acir_format, test_var_keccak)
 
     auto composer = acir_format::create_circuit_with_witness(constraint_system, { 4, 2, 6, 2 });
 
-    std::cout << "made composer" << std::endl;
-
     auto prover = composer.create_ultra_with_keccak_prover();
 
     auto proof = prover.construct_proof();
