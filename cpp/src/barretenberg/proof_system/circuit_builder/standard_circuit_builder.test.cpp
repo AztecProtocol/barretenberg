@@ -511,7 +511,7 @@ TEST(standard, functionality_check)
 TEST(standard, test_circuit)
 {
     StandardCircuitBuilder builder = StandardCircuitBuilder();
-    size_t n = 3;
+    size_t n = 20;
     std::vector<uint32_t> coeffs = { 17, 20, 1, 10, 1, 12, 18, 6, 0, 4, 2, 14, 9, 19, 16, 11, 2, 13, 18, 6 };
     std::vector<uint32_t> idxs;
     for (size_t i = 0; i < n; i++) {
