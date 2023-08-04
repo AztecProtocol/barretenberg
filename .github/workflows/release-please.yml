@@ -2,7 +2,6 @@ on:
   push:
     branches:
       - master
-      - kh-bb-bin
 
 permissions:
   contents: write
@@ -94,7 +93,7 @@ jobs:
     name: Build on Mac
     runs-on: macos-13
     needs: [release-please]
-    # if: ${{ needs.release-please.outputs.tag-name }}
+    if: ${{ needs.release-please.outputs.tag-name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
