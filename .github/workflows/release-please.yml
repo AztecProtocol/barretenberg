@@ -2,6 +2,7 @@ on:
   push:
     branches:
       - master
+      - kh-bb-bin
 
 permissions:
   contents: write
@@ -48,7 +49,6 @@ jobs:
     - name: Compile Barretenberg
       run: |
         cd cpp
-        
         cmake --preset default -DCMAKE_BUILD_TYPE=RelWithAssert
         cmake --build --preset default --target bb
 
@@ -94,7 +94,7 @@ jobs:
     name: Build on Mac
     runs-on: macos-13
     needs: [release-please]
-    if: ${{ needs.release-please.outputs.tag-name }}
+    # if: ${{ needs.release-please.outputs.tag-name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -107,22 +107,27 @@ jobs:
 
       - name: Create Mac Build Environment
         run: |
-          brew install cmake ninja
+          brew install cmake ninja llvm libomp
           
       - name: Compile Barretenberg
+        working-directory: cpp
         run: |
-          cd cpp
           cmake --preset default -DCMAKE_BUILD_TYPE=RelWithAssert
           cmake --build --preset default --target bb
           
-      - name: Tar bb binary (Mac)
-        run: tar -cvzf bb-mac.tar.gz cpp/build/bin/bb
+      - name: Package barretenberg artifact
+        working-directory: cpp/build/bin
+        run: |
+          mkdir dist
+          cp ./bb ./dist/bb
+          7z a -ttar -so -an ./dist/* | 7z a -si ./barretenberg-x86_64-apple-darwin.tar.gz
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
         with:
-          name: release-mac
-          path: bb-mac.tar.gz
+          name: barretenberg-x86_64-apple-darwin
+          path: ./cpp/build/bin/dist/*
+          retention-days: 3
 
   release:
     name: Publish
@@ -137,7 +142,7 @@ jobs:
       - name: Download files from Mac Runner
         uses: actions/download-artifact@v2
         with:
-          name: release-mac
+          name: barretenberg-x86_64-apple-darwin.tar.gz
       
       - name: Publish to GitHub
         uses: softprops/action-gh-release@v1
@@ -147,4 +152,4 @@ jobs:
           files: |
             barretenberg.wasm.tar.gz
             bb-ubuntu.tar.gz
-            bb-mac.tar.gz
+            barretenberg-x86_64-apple-darwin.tar.gz
