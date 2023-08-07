@@ -106,7 +106,7 @@ jobs:
 
       - name: Create Mac Build Environment
         run: |
-          brew install cmake ninja llvm libomp
+          brew install cmake ninja
           
       - name: Compile Barretenberg
         working-directory: cpp
