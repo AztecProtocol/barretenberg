@@ -141,7 +141,7 @@ jobs:
       - name: Download files from Mac Runner
         uses: actions/download-artifact@v2
         with:
-          name: barretenberg-x86_64-apple-darwin.tar.gz
+          name: barretenberg-x86_64-apple-darwin
       
       - name: Publish to GitHub
         uses: softprops/action-gh-release@v1
