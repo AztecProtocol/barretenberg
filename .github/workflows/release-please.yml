@@ -125,7 +125,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: barretenberg-x86_64-apple-darwin
-          path: ./cpp/build/bin/dist/*
+          path: ./cpp/build/bin/barretenberg-x86_64-apple-darwin.tar.gz
           retention-days: 3
 
   release:
