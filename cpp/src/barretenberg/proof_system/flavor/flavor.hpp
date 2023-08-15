@@ -64,6 +64,8 @@
  */
 
 #pragma once
+#include "barretenberg/honk/pcs/commitment_key.hpp"
+#include "barretenberg/honk/pcs/verification_key.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/barycentric_data.hpp"
 #include "barretenberg/honk/sumcheck/polynomials/univariate.hpp"
 #include "barretenberg/polynomials/evaluation_domain.hpp"
