@@ -513,12 +513,10 @@ template <typename FF> bool StandardCircuitBuilder_<FF>::check_circuit()
 
 // need to be called after the circuit is completed
 // since there are functions like assert_eqaul and update_real_variable_indices
-template <typename FF> void StandardCircuitBuilder_<FF>::export_circuit(std::ostream& out)
+template <typename FF> void StandardCircuitBuilder_<FF>::export_circuit_json(std::ostream& out)
 {
-    // json???
     using base = CircuitBuilderBase<arithmetization::Standard<FF>>;
-    // std::vector<std::pair<uint32_t, std::string>> res;
-    // res.reserve(base::variable_names.size());
+
     out << "{\"public_inps\": [";
     for (uint32_t i = 0; i < this->get_num_public_inputs(); i++) {
         out << this->real_variable_index[this->public_inputs[i]] << ", ";
@@ -530,28 +528,60 @@ template <typename FF> void StandardCircuitBuilder_<FF>::export_circuit(std::ost
         out << this->real_variable_index[tup.first] << ": \"" + tup.second + "\",\n";
     }
     out << "}, ";
-    // out << msgpack_schema_to_string(res);
 
     out << "\"variables\": [";
     for (auto var : this->variables) {
-        out << var << ", ";
+        out << "\"" << var << "\", ";
     }
     out << "], \n";
 
-    // here we need to check if the varable is public and has a name
     out << "\"gates\": [";
     for (size_t i = 0; i < this->num_gates; i++) {
-        out << "[" << q_m[i] << ", " << q_1[i];
-        out << ", " << q_2[i];
-        out << ", " << q_3[i];
-        out << ", " << q_c[i];
-        out << ", " << this->real_variable_index[w_l[i]];
-        out << ", " << this->real_variable_index[w_r[i]];
-        out << ", " << this->real_variable_index[w_o[i]];
+        out << "[\"" << q_m[i] << "\", \"" << q_1[i] << "\"";
+        out << ", \"" << q_2[i] << "\"";
+        out << ", \"" << q_3[i] << "\"";
+        out << ", \"" << q_c[i] << "\"";
+        out << ", " << this->real_variable_index[w_l[i]] << "";
+        out << ", " << this->real_variable_index[w_r[i]] << "";
+        out << ", " << this->real_variable_index[w_o[i]] << "";
         out << "],\n";
     }
     out << "]}\n\n";
-} // placing, huh?
+}
+
+template <typename FF> void StandardCircuitBuilder_<FF>::export_circuit(std::ostream& out)
+{
+    using base = CircuitBuilderBase<arithmetization::Standard<FF>>;
+
+    CircuitSchema cir;
+    for (uint32_t i = 0; i < this->get_num_public_inputs(); i++) {
+        cir.public_inps.push_back(this->real_variable_index[this->public_inputs[i]]);
+    }
+
+    for (auto& tup : base::variable_names) {
+        cir.vars_of_interest.insert({ this->real_variable_index[tup.first], tup.second });
+    }
+
+    for (auto var : this->variables) {
+        cir.variables.push_back(var);
+    }
+
+    for (size_t i = 0; i < this->num_gates; i++) {
+        std::vector<FF> tmp_sel = { q_m[i], q_1[i], q_2[i], q_3[i], q_c[i] };
+        std::vector<uint32_t> tmp_wit = {
+            this->real_variable_index[w_l[i]],
+            this->real_variable_index[w_r[i]],
+            this->real_variable_index[w_o[i]],
+        };
+        cir.selectors.push_back(tmp_sel);
+        cir.wits.push_back(tmp_wit);
+    }
+
+    msgpack::sbuffer buffer;
+    msgpack::pack(buffer, cir);
+    info("Buffer size: ", buffer.size());
+    out.write(buffer.data(), static_cast<long>(buffer.size()));
+}
 
 template class StandardCircuitBuilder_<barretenberg::fr>;
 template class StandardCircuitBuilder_<grumpkin::fr>;
