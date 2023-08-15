@@ -274,6 +274,7 @@ template <typename Arithmetization> class CircuitBuilderBase {
     }
 
     virtual void export_circuit(std::ostream&) { info("not implemented"); };
+    virtual void export_circuit_json(std::ostream&) { info("not implemented"); };
 
     /**
      * Add a public variable to variables
