@@ -1,4 +1,4 @@
-#include "check_sound_circ.hpp"
+#include "sound_circuit.hpp"
 
 cvc5::Term const_equal(cvc5::Term& var, std::string& t, cvc5::Solver& s, cvc5::Sort& fp, uint32_t base)
 {

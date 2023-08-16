@@ -1,4 +1,4 @@
-#include "check_sound_circ.hpp"
+#include "sound_circuit.hpp"
 
 //#include <boost/multiprecision/cpp_int.hpp>
 
