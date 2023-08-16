@@ -7,7 +7,7 @@ describe('simple', () => {
   let api: BarretenbergApiAsync;
 
   before(async function () {
-    this.timeout(30000); // Set timeout for this hook
+    this.timeout(30000);
 
     api = await newBarretenbergApiAsync();
 
@@ -24,7 +24,7 @@ describe('simple', () => {
   });
 
   it('should construct 512k gate proof', async function () {
-    this.timeout(90000); // Set timeout for this test
+    this.timeout(90000);
 
     const valid = await api.examplesSimpleCreateAndVerifyProof();
     expect(valid).to.equal(true);

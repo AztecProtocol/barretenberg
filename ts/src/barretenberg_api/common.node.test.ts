@@ -5,7 +5,7 @@ describe('env', () => {
   let api: BarretenbergApiAsync;
 
   before(async function () {
-    this.timeout(15000); // Set timeout for this hook
+    this.timeout(15000);
     api = await newBarretenbergApiAsync(3);
   });
 

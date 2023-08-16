@@ -6,12 +6,10 @@ describe('barretenberg wasm', () => {
   let wasm!: BarretenbergWasm;
 
   before(async () => {
-    // Note: beforeAll is changed to before in Mocha.
     wasm = await BarretenbergWasm.new();
   });
 
   after(async () => {
-    // Note: afterAll is changed to after in Mocha.
     await wasm.destroy();
   });
 
@@ -22,11 +20,11 @@ describe('barretenberg wasm', () => {
     wasm.writeMemory(ptr, buf);
     const result = Buffer.from(wasm.getMemorySlice(ptr, ptr + length));
     wasm.call('bbfree', ptr);
-    expect(result).to.deep.equal(buf); // Using Chai's deep.equal instead of Jest's toStrictEqual
+    expect(result).to.deep.equal(buf);
   });
 
   it('test abort', () => {
-    expect(() => wasm.call('test_abort')).to.throw(); // Using Chai's throw() assertion
+    expect(() => wasm.call('test_abort')).to.throw();
   });
 
   it('test c/c++ stdout/stderr', () => {

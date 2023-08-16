@@ -38,15 +38,21 @@ describe('schnorr', () => {
     const expectedInvertedStr =
       '0x164f01b1011a1b292217acf53eef4d74f625f6e9bd5edfdb74c56fd81aafeebb0ed3273ce80b35f29e5a2997ca397a6f1b874f3083f16948e6ac8e8a3ad649d5';
     const expectedInverted = Point.fromString(expectedInvertedStr);
+
+    // negate - should match expected negated key
     const negatedPublicKey = api.schnorrNegatePublicKey(publicKey);
     expect(negatedPublicKey.equals(expectedInverted)).to.be.true;
+    // negate again - should be original public key now
     expect(api.schnorrNegatePublicKey(negatedPublicKey).equals(publicKey)).to.be.true;
   });
 
   it('should create + verify multi signature', () => {
+    // set up multisig accounts
     const numSigners = 7;
     const pks = [...Array(numSigners)].map(() => Fr.random());
     const pubKeys = pks.map(pk => api.schnorrMultisigCreateMultisigPublicKey(pk));
+
+    // round one
     const roundOnePublicOutputs: Buffer128[] = [];
     const roundOnePrivateOutputs: Buffer128[] = [];
     for (let i = 0; i < numSigners; ++i) {
@@ -54,6 +60,8 @@ describe('schnorr', () => {
       roundOnePublicOutputs.push(publicOutput);
       roundOnePrivateOutputs.push(privateOutput);
     }
+
+    // round two
     const roundTwoOutputs = pks.map(
       (pk, i) =>
         api.schnorrMultisigConstructSignatureRound2(
@@ -64,6 +72,8 @@ describe('schnorr', () => {
           roundOnePublicOutputs,
         )[0],
     );
+
+    // generate signature
     const [s, e] = api.schnorrMultisigCombineSignatures(msg, pubKeys, roundOnePublicOutputs, roundTwoOutputs)!;
     const [combinedKey] = api.schnorrMultisigValidateAndCombineSignerPubkeys(pubKeys);
     expect(combinedKey).not.to.equal(Buffer.alloc(64));
@@ -80,9 +90,12 @@ describe('schnorr', () => {
   });
 
   it('should not construct invalid multi signature', () => {
+    // set up multisig accounts
     const numSigners = 7;
     const pks = [...Array(numSigners)].map(() => Fr.random());
     const pubKeys = pks.map(pk => api.schnorrMultisigCreateMultisigPublicKey(pk));
+
+    // round one
     const roundOnePublicOutputs: Buffer128[] = [];
     const roundOnePrivateOutputs: Buffer128[] = [];
     for (let i = 0; i < numSigners; ++i) {
@@ -90,6 +103,8 @@ describe('schnorr', () => {
       roundOnePublicOutputs.push(publicOutput);
       roundOnePrivateOutputs.push(privateOutput);
     }
+
+    // round two
     const roundTwoOutputs = pks.map(
       (pk, i) =>
         api.schnorrMultisigConstructSignatureRound2(
@@ -100,6 +115,8 @@ describe('schnorr', () => {
           roundOnePublicOutputs,
         )[0],
     );
+
+    // wrong number of data
     expect(
       api.schnorrMultisigCombineSignatures(
         msg,
@@ -108,15 +125,18 @@ describe('schnorr', () => {
         roundTwoOutputs.slice(0, -1),
       )[2],
     ).to.be.false;
+
+    // invalid round two output
     const invalidOutputs = [...roundTwoOutputs];
     invalidOutputs[1] = api.schnorrMultisigConstructSignatureRound2(
       msg,
-      pks[2],
+      pks[2], // <- Wrong private key.
       roundOnePrivateOutputs[1],
       pubKeys,
       roundOnePublicOutputs,
     )[0];
     expect(api.schnorrMultisigCombineSignatures(msg, pubKeys, roundOnePublicOutputs, invalidOutputs)[2]).to.be.false;
+    // contains duplicates
     const duplicatedOutputs = [...roundTwoOutputs];
     duplicatedOutputs[1] = roundTwoOutputs[2];
     expect(api.schnorrMultisigCombineSignatures(msg, pubKeys, roundOnePublicOutputs, duplicatedOutputs)[2]).to.be.false;
