@@ -1,3 +1,4 @@
+import { expect } from 'chai';
 import { newBarretenbergApiSync } from '../factory/index.js';
 import { Buffer32, Fr } from '../types/index.js';
 import { BarretenbergApiSync } from './index.js';
@@ -5,11 +6,11 @@ import { BarretenbergApiSync } from './index.js';
 describe('blake2s', () => {
   let api: BarretenbergApiSync;
 
-  beforeAll(async () => {
+  before(async () => {
     api = await newBarretenbergApiSync();
   });
 
-  afterAll(async () => {
+  after(async () => {
     await api.destroy();
   });
 
@@ -22,7 +23,7 @@ describe('blake2s', () => {
       ]),
     );
     const result = api.blake2s(input);
-    expect(result).toEqual(expected);
+    expect(result).to.deep.equal(expected);
   });
 
   it('blake2sToField', () => {
@@ -34,6 +35,6 @@ describe('blake2s', () => {
       ]),
     );
     const result = api.blake2sToField(input);
-    expect(result).toEqual(expected);
+    expect(result).to.deep.equal(expected);
   });
 });

@@ -1,3 +1,4 @@
+import { expect } from 'chai';
 import { Crs } from '../index.js';
 import { BarretenbergApiAsync, newBarretenbergApiAsync } from '../factory/index.js';
 import { RawBuffer } from '../types/index.js';
@@ -5,7 +6,9 @@ import { RawBuffer } from '../types/index.js';
 describe('simple', () => {
   let api: BarretenbergApiAsync;
 
-  beforeAll(async () => {
+  before(async function () {
+    this.timeout(30000); // Set timeout for this hook
+
     api = await newBarretenbergApiAsync();
 
     // Important to init slab allocator as first thing, to ensure maximum memory efficiency.
@@ -14,14 +17,16 @@ describe('simple', () => {
 
     const crs = await Crs.new(2 ** 19 + 1);
     await api.srsInitSrs(new RawBuffer(crs.getG1Data()), crs.numPoints, new RawBuffer(crs.getG2Data()));
-  }, 30000);
+  });
 
-  afterAll(async () => {
+  after(async () => {
     await api.destroy();
   });
 
-  it('should construct 512k gate proof', async () => {
+  it('should construct 512k gate proof', async function () {
+    this.timeout(90000); // Set timeout for this test
+
     const valid = await api.examplesSimpleCreateAndVerifyProof();
-    expect(valid).toBe(true);
-  }, 90000);
+    expect(valid).to.equal(true);
+  });
 });
