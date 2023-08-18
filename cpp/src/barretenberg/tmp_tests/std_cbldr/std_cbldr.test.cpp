@@ -150,32 +150,4 @@ TEST(standard, test_circuit)
     myfile.close();
 }
 
-// TEST(standard, test_circuit_field) // TODO check how to add variable names here
-// {
-//     StandardCircuitBuilder builder = StandardCircuitBuilder();
-
-//     size_t n = 20;
-//     std::vector<uint32_t> cfs = { 17, 20, 1, 10, 1, 12, 18, 6, 0, 4, 2, 14, 9, 19, 16, 11, 2, 13, 18, 6 };
-//     std::vector<field_ct> coeffs;
-//     for (size_t i = 0; i < n; i++) {
-//         coeffs.emplace_back(field_ct(pub_witness_t(&builder, cfs[i])));
-//     }
-//     field_ct z(witness_t(&builder, 10));
-//     field_ct res(witness_t(&builder, fr::zero()));
-
-//     for (size_t i = 0; i < n; i++) {
-//         res = res * z + coeffs[i];
-//     }
-//     EXPECT_TRUE(builder.check_circuit());
-//     info(res);
-//     info(builder.num_gates);
-//     info(builder.get_num_variables());
-//     info(builder.get_num_public_inputs());
-
-//     std::ofstream myfile;
-//     myfile.open("field.json", std::ios::out | std::ios::trunc | std::ios::binary);
-
-//     builder.export_circuit(myfile);
-// }
-
 } // namespace standard_circuit_constructor_tests
