@@ -42,7 +42,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/msgp
 #include(ExternalProject)
 #ExternalProject_Add(cvc5
 #    GIT_REPOSITORY https://github.com/Sarkoxed/cvc5
-#    GIT_TAG finite-field-base-support
+#    GIT_TAG origin/finite-field-base-support
 #    SOURCE_DIR src/cvc5
 #    BINARY_DIR build-cvc5
 #    CMAKE_ARGS
@@ -58,7 +58,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/msgp
 #         -DUSE_POLY=ON 
 #         -DUSE_COCOA=ON 
 # )
-
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cvc5/tmp-build/include)
 #add_subdirectory(cvc5)
 
