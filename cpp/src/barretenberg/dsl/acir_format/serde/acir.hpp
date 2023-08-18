@@ -755,31 +755,6 @@ struct Brillig {
     static Brillig bincodeDeserialize(std::vector<uint8_t>);
 };
 
-struct LogInfo {
-
-    struct FinalizedOutput {
-        std::string value;
-
-        friend bool operator==(const FinalizedOutput&, const FinalizedOutput&);
-        std::vector<uint8_t> bincodeSerialize() const;
-        static FinalizedOutput bincodeDeserialize(std::vector<uint8_t>);
-    };
-
-    struct WitnessOutput {
-        std::vector<Circuit::Witness> value;
-
-        friend bool operator==(const WitnessOutput&, const WitnessOutput&);
-        std::vector<uint8_t> bincodeSerialize() const;
-        static WitnessOutput bincodeDeserialize(std::vector<uint8_t>);
-    };
-
-    std::variant<FinalizedOutput, WitnessOutput> value;
-
-    friend bool operator==(const LogInfo&, const LogInfo&);
-    std::vector<uint8_t> bincodeSerialize() const;
-    static LogInfo bincodeDeserialize(std::vector<uint8_t>);
-};
-
 struct QuotientDirective {
     Circuit::Expression a;
     Circuit::Expression b;
@@ -832,15 +807,7 @@ struct Directive {
         static PermutationSort bincodeDeserialize(std::vector<uint8_t>);
     };
 
-    struct Log {
-        Circuit::LogInfo value;
-
-        friend bool operator==(const Log&, const Log&);
-        std::vector<uint8_t> bincodeSerialize() const;
-        static Log bincodeDeserialize(std::vector<uint8_t>);
-    };
-
-    std::variant<Invert, Quotient, ToLeRadix, PermutationSort, Log> value;
+    std::variant<Invert, Quotient, ToLeRadix, PermutationSort> value;
 
     friend bool operator==(const Directive&, const Directive&);
     std::vector<uint8_t> bincodeSerialize() const;
@@ -4747,51 +4714,6 @@ Circuit::Directive::PermutationSort serde::Deserializable<Circuit::Directive::Pe
 
 namespace Circuit {
 
-inline bool operator==(const Directive::Log& lhs, const Directive::Log& rhs)
-{
-    if (!(lhs.value == rhs.value)) {
-        return false;
-    }
-    return true;
-}
-
-inline std::vector<uint8_t> Directive::Log::bincodeSerialize() const
-{
-    auto serializer = serde::BincodeSerializer();
-    serde::Serializable<Directive::Log>::serialize(*this, serializer);
-    return std::move(serializer).bytes();
-}
-
-inline Directive::Log Directive::Log::bincodeDeserialize(std::vector<uint8_t> input)
-{
-    auto deserializer = serde::BincodeDeserializer(input);
-    auto value = serde::Deserializable<Directive::Log>::deserialize(deserializer);
-    if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
-    }
-    return value;
-}
-
-} // end of namespace Circuit
-
-template <>
-template <typename Serializer>
-void serde::Serializable<Circuit::Directive::Log>::serialize(const Circuit::Directive::Log& obj, Serializer& serializer)
-{
-    serde::Serializable<decltype(obj.value)>::serialize(obj.value, serializer);
-}
-
-template <>
-template <typename Deserializer>
-Circuit::Directive::Log serde::Deserializable<Circuit::Directive::Log>::deserialize(Deserializer& deserializer)
-{
-    Circuit::Directive::Log obj;
-    obj.value = serde::Deserializable<decltype(obj.value)>::deserialize(deserializer);
-    return obj;
-}
-
-namespace Circuit {
-
 inline bool operator==(const Expression& lhs, const Expression& rhs)
 {
     if (!(lhs.mul_terms == rhs.mul_terms)) {
@@ -5202,149 +5124,6 @@ Circuit::HeapVector serde::Deserializable<Circuit::HeapVector>::deserialize(Dese
     obj.pointer = serde::Deserializable<decltype(obj.pointer)>::deserialize(deserializer);
     obj.size = serde::Deserializable<decltype(obj.size)>::deserialize(deserializer);
     deserializer.decrease_container_depth();
-    return obj;
-}
-
-namespace Circuit {
-
-inline bool operator==(const LogInfo& lhs, const LogInfo& rhs)
-{
-    if (!(lhs.value == rhs.value)) {
-        return false;
-    }
-    return true;
-}
-
-inline std::vector<uint8_t> LogInfo::bincodeSerialize() const
-{
-    auto serializer = serde::BincodeSerializer();
-    serde::Serializable<LogInfo>::serialize(*this, serializer);
-    return std::move(serializer).bytes();
-}
-
-inline LogInfo LogInfo::bincodeDeserialize(std::vector<uint8_t> input)
-{
-    auto deserializer = serde::BincodeDeserializer(input);
-    auto value = serde::Deserializable<LogInfo>::deserialize(deserializer);
-    if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
-    }
-    return value;
-}
-
-} // end of namespace Circuit
-
-template <>
-template <typename Serializer>
-void serde::Serializable<Circuit::LogInfo>::serialize(const Circuit::LogInfo& obj, Serializer& serializer)
-{
-    serializer.increase_container_depth();
-    serde::Serializable<decltype(obj.value)>::serialize(obj.value, serializer);
-    serializer.decrease_container_depth();
-}
-
-template <>
-template <typename Deserializer>
-Circuit::LogInfo serde::Deserializable<Circuit::LogInfo>::deserialize(Deserializer& deserializer)
-{
-    deserializer.increase_container_depth();
-    Circuit::LogInfo obj;
-    obj.value = serde::Deserializable<decltype(obj.value)>::deserialize(deserializer);
-    deserializer.decrease_container_depth();
-    return obj;
-}
-
-namespace Circuit {
-
-inline bool operator==(const LogInfo::FinalizedOutput& lhs, const LogInfo::FinalizedOutput& rhs)
-{
-    if (!(lhs.value == rhs.value)) {
-        return false;
-    }
-    return true;
-}
-
-inline std::vector<uint8_t> LogInfo::FinalizedOutput::bincodeSerialize() const
-{
-    auto serializer = serde::BincodeSerializer();
-    serde::Serializable<LogInfo::FinalizedOutput>::serialize(*this, serializer);
-    return std::move(serializer).bytes();
-}
-
-inline LogInfo::FinalizedOutput LogInfo::FinalizedOutput::bincodeDeserialize(std::vector<uint8_t> input)
-{
-    auto deserializer = serde::BincodeDeserializer(input);
-    auto value = serde::Deserializable<LogInfo::FinalizedOutput>::deserialize(deserializer);
-    if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
-    }
-    return value;
-}
-
-} // end of namespace Circuit
-
-template <>
-template <typename Serializer>
-void serde::Serializable<Circuit::LogInfo::FinalizedOutput>::serialize(const Circuit::LogInfo::FinalizedOutput& obj,
-                                                                       Serializer& serializer)
-{
-    serde::Serializable<decltype(obj.value)>::serialize(obj.value, serializer);
-}
-
-template <>
-template <typename Deserializer>
-Circuit::LogInfo::FinalizedOutput serde::Deserializable<Circuit::LogInfo::FinalizedOutput>::deserialize(
-    Deserializer& deserializer)
-{
-    Circuit::LogInfo::FinalizedOutput obj;
-    obj.value = serde::Deserializable<decltype(obj.value)>::deserialize(deserializer);
-    return obj;
-}
-
-namespace Circuit {
-
-inline bool operator==(const LogInfo::WitnessOutput& lhs, const LogInfo::WitnessOutput& rhs)
-{
-    if (!(lhs.value == rhs.value)) {
-        return false;
-    }
-    return true;
-}
-
-inline std::vector<uint8_t> LogInfo::WitnessOutput::bincodeSerialize() const
-{
-    auto serializer = serde::BincodeSerializer();
-    serde::Serializable<LogInfo::WitnessOutput>::serialize(*this, serializer);
-    return std::move(serializer).bytes();
-}
-
-inline LogInfo::WitnessOutput LogInfo::WitnessOutput::bincodeDeserialize(std::vector<uint8_t> input)
-{
-    auto deserializer = serde::BincodeDeserializer(input);
-    auto value = serde::Deserializable<LogInfo::WitnessOutput>::deserialize(deserializer);
-    if (deserializer.get_buffer_offset() < input.size()) {
-        throw_or_abort("Some input bytes were not read");
-    }
-    return value;
-}
-
-} // end of namespace Circuit
-
-template <>
-template <typename Serializer>
-void serde::Serializable<Circuit::LogInfo::WitnessOutput>::serialize(const Circuit::LogInfo::WitnessOutput& obj,
-                                                                     Serializer& serializer)
-{
-    serde::Serializable<decltype(obj.value)>::serialize(obj.value, serializer);
-}
-
-template <>
-template <typename Deserializer>
-Circuit::LogInfo::WitnessOutput serde::Deserializable<Circuit::LogInfo::WitnessOutput>::deserialize(
-    Deserializer& deserializer)
-{
-    Circuit::LogInfo::WitnessOutput obj;
-    obj.value = serde::Deserializable<decltype(obj.value)>::deserialize(deserializer);
     return obj;
 }
 
