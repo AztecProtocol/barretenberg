@@ -48,6 +48,7 @@
 	You are able to create two types of ff terms:
 	- `FFTerm Var(str name, Solver* s)`  - creates a symbolic finite field variable
 	- `FFTerm Const(str val, Solver*  s, u32 base=16)` - creates a numeric value.
+
 	You can add, subtract, multiply and divide these variables(including !+, !-, etc);
 	Also there are two functions :
 	- `batch_add(std::vector<FFTerm>& terms)`
@@ -58,6 +59,7 @@
 	
 	Also there is a Bool type:
 	- `Bool Bool(FFTerm t)` or `Bool Bool(bool b, Solver* s)`
+
 	You can `|, &, ==, !=` these variables and also `batch_or`, `batch_and` them.
 	To create a constrain you should call `assert_term` method.
 	
@@ -153,4 +155,4 @@
     info(vals["cr"]);
 ```
 
-More examples can be find in examples directory
+More examples can be found in examples directory
