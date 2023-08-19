@@ -31,8 +31,8 @@ using pub_witness_t = proof_system::plonk::stdlib::public_witness_t<StandardCirc
 
 using bn254 = stdlib::bn254<StandardCircuitBuilder>;
 
-using fr_ct = bn254::fr_ct;
-using fq_ct = bn254::fq_ct;
+using fr_ct = bn254::ScalarField;
+using fq_ct = bn254::BaseField;
 using public_witness_ct = bn254::public_witness_ct;
 using witness_ct = bn254::witness_ct;
 
