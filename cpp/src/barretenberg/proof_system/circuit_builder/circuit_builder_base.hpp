@@ -5,7 +5,6 @@
 #include "barretenberg/proof_system/arithmetization/gate_data.hpp"
 #include <utility>
 
-#include <string> // -------------------------
 #include <unordered_map>
 
 namespace proof_system {
@@ -29,7 +28,7 @@ template <typename Arithmetization> class CircuitBuilderBase {
 
     std::vector<uint32_t> public_inputs;
     std::vector<FF> variables;
-    std::unordered_map<uint32_t, std::string> variable_names; // -------------------
+    std::unordered_map<uint32_t, std::string> variable_names;
 
     // index of next variable in equivalence class (=REAL_VARIABLE if you're last)
     std::vector<uint32_t> next_var_index;
@@ -204,15 +203,6 @@ template <typename Arithmetization> class CircuitBuilderBase {
     {
         ASSERT(variables.size() > index);
         uint32_t first_idx = get_first_variable_in_class(index);
-
-        // uint32_t cur_idx = first_idx;
-        // while (cur_idx != REAL_VARIABLE) {
-        //    if (variable_names.contains(cur_idx)) {
-        //        failure("Attempted to assign a name to a variable that already has a name");
-        //        return;
-        //    }
-        //    cur_idx = next_var_index[cur_idx];
-        //}
 
         if (variable_names.contains(first_idx)) {
             failure("Attempted to assign a name to a variable that already has a name");

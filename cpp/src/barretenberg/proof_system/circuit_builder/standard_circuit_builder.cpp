@@ -511,8 +511,6 @@ template <typename FF> bool StandardCircuitBuilder_<FF>::check_circuit()
     return true;
 }
 
-// need to be called after the circuit is completed
-// since there are functions like assert_eqaul and update_real_variable_indices
 template <typename FF> void StandardCircuitBuilder_<FF>::export_circuit_json(std::ostream& out)
 {
     using base = CircuitBuilderBase<arithmetization::Standard<FF>>;
