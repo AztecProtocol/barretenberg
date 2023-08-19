@@ -11,12 +11,10 @@ const std::string q = "218882428718392752222464057452572750886963111572978236626
 const std::string r_hex = "30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001";
 const std::string q_hex = "30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47";
 
-uint32_t num_coeffs = 35;
-
-FFTerm polynomial_evaluation(Circuit& c)
+FFTerm polynomial_evaluation(Circuit& c, size_t n)
 {
-    std::vector<smt_terms::FFTerm> coeffs(num_coeffs);
-    for (size_t i = 0; i < num_coeffs; i++) {
+    std::vector<smt_terms::FFTerm> coeffs(n);
+    for (size_t i = 0; i < n; i++) {
         coeffs[i] = c["coeff_" + std::to_string(i)];
     }
 
@@ -25,7 +23,7 @@ FFTerm polynomial_evaluation(Circuit& c)
 
     // FFTerm ev = c["one"];
     FFTerm ev = c["zero"];
-    for (size_t i = 0; i < num_coeffs; i++) {
+    for (size_t i = 0; i < n; i++) {
         ev = ev * point + coeffs[i];
     }
 
@@ -42,9 +40,10 @@ void model_variables(Circuit& c, Solver* s, FFTerm& evaluation)
 
     auto values = s->model(terms);
 
-    std::cout << "point = " << values["point"] << std::endl;
-    std::cout << "circuit_result = " << values["result"] << std::endl;
-    std::cout << "function_evaluation = " << values["evaluation"] << std::endl;
+    info("point = ", values["point"]);
+    ;
+    info("circuit_result = ", values["result"]);
+    info("function_evaluation = ", values["evaluation"]);
 }
 
 int main(int, char** argv)
@@ -58,16 +57,16 @@ int main(int, char** argv)
     Solver s(r, true, 10);
     Circuit circuit(circuit_info, &s);
 
-    FFTerm ev = polynomial_evaluation(circuit);
+    FFTerm ev = polynomial_evaluation(circuit, n);
 
     auto start = std::chrono::high_resolution_clock::now();
     bool res = s.check();
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-
-    std::cout << "Gates: " << circuit.get_num_gates() << std::endl;
-    std::cout << "Result: " << s.getResult() << std::endl;
-    std::cout << "Time elapsed: " << static_cast<double>(duration.count()) / 1e6 << " sec" << std::endl;
+    info();
+    info("Gates: ", circuit.get_num_gates());
+    info("Result: ", s.getResult());
+    info("Time elapsed: ", static_cast<double>(duration.count()) / 1e6, " sec");
 
     if (res) {
         model_variables(circuit, &s, ev);

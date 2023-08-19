@@ -11,8 +11,6 @@
 using namespace barretenberg;
 using namespace proof_system;
 
-auto& engine = numeric::random::get_debug_engine();
-
 using field_ct = proof_system::plonk::stdlib::field_t<StandardCircuitBuilder>;
 using witness_t = proof_system::plonk::stdlib::witness_t<StandardCircuitBuilder>;
 using pub_witness_t = proof_system::plonk::stdlib::public_witness_t<StandardCircuitBuilder>;

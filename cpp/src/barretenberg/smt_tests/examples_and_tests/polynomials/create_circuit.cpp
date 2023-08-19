@@ -1,4 +1,7 @@
 #include "create_circuit.hpp"
+namespace {
+auto& engine = numeric::random::get_debug_engine();
+}
 
 void create_circuit(const std::string& fname, size_t n, bool pub_coeffs)
 {

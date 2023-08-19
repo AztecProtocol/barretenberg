@@ -34,6 +34,4 @@ using fq_ct = bn254::BaseField;
 using public_witness_ct = bn254::public_witness_ct;
 using witness_ct = bn254::witness_ct;
 
-auto NUM_LIMB_BITS = NUM_LIMB_BITS_IN_FIELD_SIMULATION;
-
 void create_circuit(const std::string& fname, bool pub_ab);
