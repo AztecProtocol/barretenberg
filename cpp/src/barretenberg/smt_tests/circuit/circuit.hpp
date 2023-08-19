@@ -7,7 +7,6 @@
 #include "barretenberg/serialize/msgpack.hpp"
 #include <string>
 #include <unordered_map>
-//#include "../../json/single_include/nlohmann/json.hpp"
 
 #include "barretenberg/smt_tests/terms/ffterm.hpp"
 //#include "barretenberg/smt_tests/terms/bool.hpp"
@@ -41,7 +40,6 @@ class Circuit { // SymCircuit?
     void add_gates();
 
   public:
-    // explicit Circuit(nlohmann::json& circuit_info, Solver* solver);
     explicit Circuit(CircuitSchema& circuit_info, Solver* solver);
 
     FFTerm operator[](const std::string& name);
@@ -50,5 +48,4 @@ class Circuit { // SymCircuit?
 };
 
 CircuitSchema unpack(const std::string&);
-// nlohmann::json open(const std::string& filename);
 }; // namespace smt_circuit

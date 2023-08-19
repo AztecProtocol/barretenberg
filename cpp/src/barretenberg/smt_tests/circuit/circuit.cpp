@@ -1,63 +1,21 @@
 #include "circuit.hpp"
 namespace smt_circuit {
-// Circuit::Circuit(nlohmann::json& circuit_info, Solver* solver):solver(solver){
-//     variables = circuit_info["variables"].get<std::vector<std::string>>();
-//     for(size_t i = 0; i < variables.size(); i++){
-//         variables[i][1] = '0'; // avoiding x in 0x part
-//     }
-
-//     public_inps = circuit_info["public_inps"].get<std::vector<uint32_t>>();
-//     for(auto x: circuit_info["vars_of_interest"].get<std::unordered_map<std::string, std::string>>()){
-//         vars_of_interest.insert({std::stoi(x.first), x.second});
-//         terms.insert({x.second, std::stoi(x.first)});
-//     }
-
-//     // I home they are still at these idxs
-//     vars_of_interest.insert({0, "zero"});
-//     vars_of_interest.insert({1, "one"});
-//     terms.insert({"zero", 0});
-//     terms.insert({"one", 1});
-
-//     for(size_t i = 0; i < circuit_info["gates"].size(); i++){
-//         auto tmp = circuit_info["gates"][i];
-
-//         std::vector<std::string> tmp_sel;
-//         for(size_t j = 0; j < 5; j++){
-//             std::string q_i = tmp[j].get<std::string>();
-//             q_i[1] = '0'; // avoiding x in 0x part
-//             tmp_sel.push_back(q_i);
-//         }
-//         selectors.push_back(tmp_sel);
-
-//         std::vector<uint32_t> tmp_wit_idxs = {tmp[5], tmp[6], tmp[7]};
-//         wit_idxs.push_back(tmp_wit_idxs);
-//     }
-
-// //    Solver solver(modulus, model, base);
-//     this->init();
-//     this->add_gates();
-// }
-
-//    for (auto var : circuit_info.variables) { // TODO use just string repr if possible?
-//        std::stringstream buf;
-//        buf << var;
-//        std::string tmp = buf.str();
-//        tmp[1] = '0'; // to avoid x in 0x part
-//        variables.push_back(tmp);
-//    }
 
 Circuit::Circuit(CircuitSchema& circuit_info, Solver* solver)
-    : solver(solver)
+    : public_inps(circuit_info.public_inps)
+    , vars_of_interest(circuit_info.vars_of_interest)
+    , wit_idxs(circuit_info.wits)
+    , solver(solver)
 {
-    for (size_t i = 0; i < variables.size(); i++) {
-        std::string tmp = std::string(variables[i]);
+    for (auto var : circuit_info.variables) {
+        std::stringstream buf; // TODO(alex): looks bad. Would be great to create tostring() converter
+        buf << var;
+        std::string tmp = buf.str();
+        tmp[1] = '0'; // avoiding x in 0x part
         variables.push_back(tmp);
-        variables[i][1] = '0'; // avoiding x in 0x part
     }
 
-    public_inps = circuit_info.public_inps;
-    vars_of_interest = circuit_info.vars_of_interest;
-    for (auto x : vars_of_interest) {
+    for (auto& x : vars_of_interest) {
         terms.insert({ x.second, x.first });
     }
 
@@ -67,12 +25,12 @@ Circuit::Circuit(CircuitSchema& circuit_info, Solver* solver)
     terms.insert({ "zero", 0 });
     terms.insert({ "one", 1 });
 
-    wit_idxs = circuit_info.wits;
-
-    for (size_t i = 0; i < circuit_info.selectors.size(); i++) {
+    for (auto sel : circuit_info.selectors) {
         std::vector<std::string> tmp_sel;
         for (size_t j = 0; j < 5; j++) {
-            std::string q_i = std::string(selectors[i][j]);
+            std::stringstream buf; // TODO(alex): #2
+            buf << sel[j];
+            std::string q_i = buf.str();
             q_i[1] = '0'; // avoiding x in 0x part
             tmp_sel.push_back(q_i);
         }
@@ -156,17 +114,6 @@ FFTerm Circuit::operator[](const std::string& name)
     uint32_t idx = this->terms[name];
     return this->vars[idx];
 }
-
-// nlohmann::json open(const std::string& filename){
-//     std::ifstream fin;
-//     fin.open(filename);
-//     if(!fin.is_open()){
-//         throw std::invalid_argument("no such a file");
-//     }
-//     nlohmann::json res;
-//     fin >> res;
-//     return res;
-// }
 
 CircuitSchema unpack(const std::string& filename)
 {
