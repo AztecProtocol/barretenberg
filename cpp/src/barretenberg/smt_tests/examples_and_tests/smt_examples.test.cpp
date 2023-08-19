@@ -27,27 +27,31 @@ TEST(circuit_verification, multiplication_true)
 {
     StandardCircuitBuilder builder = StandardCircuitBuilder();
 
-    field_t a(witness_t(&composer, fr::random_element()));
-    field_t b(witness_t(&composer, fr::random_element()));
-    field_t c = (2 * a) / (3 * b);
+    field_t a(witness_t(&builder, fr::random_element()));
+    field_t b(witness_t(&builder, fr::random_element()));
+    field_t c = (a + a) / (b + b + b);
 
-    circuit.set_variable_name(a.witness_index, "a");
-    circuit.set_variable_name(b.witness_index, "b");
-    circuit.set_variable_name(c.witness_index, "c");
+    builder.set_variable_name(a.witness_index, "a");
+    builder.set_variable_name(b.witness_index, "b");
+    builder.set_variable_name(c.witness_index, "c");
     ASSERT_TRUE(builder.check_circuit());
-    builder.export_circuit("mult");
 
-    CircuitSchema circuit_info = unpack("mult.pack");
+    std::ofstream myfile;
+    myfile.open("mult.pack", std::ios::out | std::ios::trunc | std::ios::binary);
+    builder.export_circuit(myfile);
+    myfile.close();
+
+    smt_circuit::CircuitSchema circuit_info = smt_circuit::unpack("mult.pack");
     smt_solver::Solver s(p, true);
     smt_circuit::Circuit circuit(circuit_info, &s);
-    smt_terms::FFTerm a = circuit["a"];
-    smt_terms::FFTerm b = circuit["b"];
-    smt_terms::FFTerm c = circuit["c"];
+    smt_terms::FFTerm a1 = circuit["a"];
+    smt_terms::FFTerm b1 = circuit["b"];
+    smt_terms::FFTerm c1 = circuit["c"];
     smt_terms::FFTerm two = smt_terms::Const("2", &s, 10);
     smt_terms::FFTerm thr = smt_terms::Const("3", &s, 10);
     smt_terms::FFTerm cr = smt_terms::Var("cr", &s);
-    cr = (two * a) / (thr * b);
-    c != cr;
+    cr = (two * a1) / (thr * b1);
+    c1 != cr;
 
     bool res = s.check();
     ASSERT_FALSE(res);
@@ -59,38 +63,40 @@ TEST(circuit_verification, multiplication_false)
 
     field_t a(witness_t(&builder, fr::random_element()));
     field_t b(witness_t(&builder, fr::random_element()));
-    field_t c = (1 * a) / (3 * b); // mistake was here
+    field_t c = (a) / (b + b + b); // mistake was here
 
-    circuit.set_variable_name(a.witness_index, "a");
-    circuit.set_variable_name(b.witness_index, "b");
-    circuit.set_variable_name(c.witness_index, "c");
+    builder.set_variable_name(a.witness_index, "a");
+    builder.set_variable_name(b.witness_index, "b");
+    builder.set_variable_name(c.witness_index, "c");
     ASSERT_TRUE(builder.check_circuit());
-    builder.export_circuit("mult");
 
-    CircuitSchema circuit_info = unpack("mult.pack");
+    std::ofstream myfile;
+    myfile.open("mult.pack", std::ios::out | std::ios::trunc | std::ios::binary);
+    builder.export_circuit(myfile);
+    myfile.close();
+
+    smt_circuit::CircuitSchema circuit_info = smt_circuit::unpack("mult.pack");
     smt_solver::Solver s(p, true);
     smt_circuit::Circuit circuit(circuit_info, &s);
 
-    smt_terms::FFTerm a = circuit["a"];
-    smt_terms::FFTerm b = circuit["b"];
-    smt_terms::FFTerm c = circuit["c"];
+    smt_terms::FFTerm a1 = circuit["a"];
+    smt_terms::FFTerm b1 = circuit["b"];
+    smt_terms::FFTerm c1 = circuit["c"];
 
     smt_terms::FFTerm two = smt_terms::Const("2", &s, 10);
     smt_terms::FFTerm thr = smt_terms::Const("3", &s, 10);
     smt_terms::FFTerm cr = smt_terms::Var("cr", &s);
-    cr = (two a) / (thr * b) c != cr;
+    cr = (two * a1) / (thr * b1);
+    c1 != cr;
 
     bool res = s.check();
     ASSERT_TRUE(res);
 
-    std::unordered_map<std::string, cvc5::Term> terms(;
-    terms.insert({"a", a});
-    terms.insert({"a", a});
-    terms.insert({"c", c});
-    terms.insert({"cr", cr});
+    std::unordered_map<std::string, cvc5::Term> terms({ { "a", a1 }, { "b", b1 }, { "c", c1 }, { "cr", cr } });
 
     std::unordered_map<std::string, std::string> vals = s.model(terms);
-    ASSERT_EQ(terms["a"], "0");
+    ASSERT_EQ(vals["a"], "0");
+
     info(vals["a"]);
     info(vals["b"]);
     info(vals["c"]);

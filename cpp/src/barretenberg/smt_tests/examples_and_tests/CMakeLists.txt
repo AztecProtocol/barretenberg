@@ -7,7 +7,7 @@ add_executable(poly_smt
 target_link_libraries(
   poly_smt
   ${CMAKE_SOURCE_DIR}/src/cvc5/tmp-build/lib/libcvc5.so.1
-  smt_tests
+  smt_circuit
   proof_system
   common
 )                                                                                                                                                                                 
@@ -21,9 +21,10 @@ add_executable(bf_mul_smt
 target_link_libraries(
   bf_mul_smt
   ${CMAKE_SOURCE_DIR}/src/cvc5/tmp-build/lib/libcvc5.so.1
-  smt_tests
+  smt_circuit
   proof_system
   common
 )
 
-barretenberg_module(smt_examples smt_tests proof_system stdlib_primitives)
+barretenberg_module(smt_examples smt_circuit proof_system stdlib_primitives ${CMAKE_SOURCE_DIR}/src/cvc5/tmp-build/lib/libcvc5.so.1) 
+# TODO(alex): stil doesn't work

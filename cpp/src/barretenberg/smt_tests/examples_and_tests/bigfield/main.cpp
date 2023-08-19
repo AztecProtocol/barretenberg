@@ -13,20 +13,20 @@ const std::string q_hex = "30644e72e131a029b85045b68181585d97816a916871ca8d3c208
 
 std::vector<FFTerm> bigfield_multiplication(Circuit& c, Solver* s)
 {
-    FFTerm a_limb0 = c["a_limb0"];
-    FFTerm a_limb1 = c["a_limb1"];
-    FFTerm a_limb2 = c["a_limb2"];
-    FFTerm a_limb3 = c["a_limb3"];
+    FFTerm a_limb0 = c["a_limb_0"];
+    FFTerm a_limb1 = c["a_limb_1"];
+    FFTerm a_limb2 = c["a_limb_2"];
+    FFTerm a_limb3 = c["a_limb_3"];
 
-    FFTerm b_limb0 = c["b_limb0"];
-    FFTerm b_limb1 = c["b_limb1"];
-    FFTerm b_limb2 = c["b_limb2"];
-    FFTerm b_limb3 = c["b_limb3"];
+    FFTerm b_limb0 = c["b_limb_0"];
+    FFTerm b_limb1 = c["b_limb_1"];
+    FFTerm b_limb2 = c["b_limb_2"];
+    FFTerm b_limb3 = c["b_limb_3"];
 
-    FFTerm c_limb0 = c["c_limb0"];
-    FFTerm c_limb1 = c["c_limb1"];
-    FFTerm c_limb2 = c["c_limb2"];
-    FFTerm c_limb3 = c["c_limb3"];
+    FFTerm c_limb0 = c["c_limb_0"];
+    FFTerm c_limb1 = c["c_limb_1"];
+    FFTerm c_limb2 = c["c_limb_2"];
+    FFTerm c_limb3 = c["c_limb_3"];
 
     FFTerm two68 = Const("100000000000000000", s);
     FFTerm two136 = two68 * two68;
@@ -45,9 +45,9 @@ void model_variables(Circuit& c, Solver* s, std::vector<FFTerm>& evaluation)
 {
     std::unordered_map<std::string, cvc5::Term> terms;
     for (size_t i = 0; i < 4; i++) {
-        terms.insert({ "a_limb" + std::to_string(i), c["a_limb" + std::to_string(i)] });
-        terms.insert({ "b_limb" + std::to_string(i), c["b_limb" + std::to_string(i)] });
-        terms.insert({ "c_limb" + std::to_string(i), c["c_limb" + std::to_string(i)] });
+        terms.insert({ "a_limb_" + std::to_string(i), c["a_limb_" + std::to_string(i)] });
+        terms.insert({ "b_limb_" + std::to_string(i), c["b_limb_" + std::to_string(i)] });
+        terms.insert({ "c_limb_" + std::to_string(i), c["c_limb_" + std::to_string(i)] });
     }
     terms.insert({ "cr", evaluation[0] });
     terms.insert({ "n", evaluation[1] });
@@ -55,15 +55,15 @@ void model_variables(Circuit& c, Solver* s, std::vector<FFTerm>& evaluation)
     auto values = s->model(terms);
 
     for (size_t i = 0; i < 4; i++) {
-        std::string tmp = "a_limb" + std::to_string(i);
+        std::string tmp = "a_limb_" + std::to_string(i);
         info(tmp, " = ", values[tmp]);
     }
     for (size_t i = 0; i < 4; i++) {
-        std::string tmp = "b_limb" + std::to_string(i);
+        std::string tmp = "b_limb_" + std::to_string(i);
         info(tmp, " = ", values[tmp]);
     }
     for (size_t i = 0; i < 4; i++) {
-        std::string tmp = "c_limb" + std::to_string(i);
+        std::string tmp = "c_limb_" + std::to_string(i);
         info(tmp, " = ", values[tmp]);
     }
     info("cr = ", values["cr"]);
