@@ -1,0 +1,1 @@
+barretenberg_module(smt_terms smt_solver)
