@@ -9,10 +9,8 @@
     "displayName": "bb.js",
     "tsconfig": "./tsconfig.json"
   },
-  "main": "./dest/node/index.js",
-  "bin": {
-    "bb": "dest/node/main.js"
-  },
+  "main": "./dest/index.js",
+  "bin": "./dest/main.js",
   "files": [
     "src/",
     "dest/",
