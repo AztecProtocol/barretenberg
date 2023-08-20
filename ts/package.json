@@ -9,8 +9,10 @@
     "displayName": "bb.js",
     "tsconfig": "./tsconfig.json"
   },
-  "main": "./dest/index.js",
-  "bin": "./dest/main.js",
+  "main": "./dest/node/index.js",
+  "bin": {
+    "bb": "dest/node/main.js"
+  },
   "files": [
     "src/",
     "dest/",
@@ -23,27 +25,35 @@
     "build:dev": "tsc -b --watch",
     "build:wasm": "cd ../cpp && cmake --preset wasm-threads && cmake --build --preset wasm-threads && cmake --preset wasm && cmake --build --preset wasm",
     "build:ts:browser": "tsc -b tsconfig.browser.json && BUILD_TARGET=browser webpack && chmod +x ./dest/browser/main.js && BUILD_TARGET=browser node replace_imports.cjs",
+    "build:ts:browser:tests": "tsc -b tsconfig.browser.json && BUILD_TARGET=browser webpack --config webpack.tests.config.cjs",
     "build:ts:node": "tsc -b tsconfig.node.json && chmod +x ./dest/node/main.js && BUILD_TARGET=node node replace_imports.cjs",
     "build:bindings": "cd .. && ./scripts/bindgen.sh",
     "serve": "webpack serve",
     "formatting": "prettier --check ./src && eslint --max-warnings 0 ./src",
     "formatting:fix": "prettier -w ./src",
-    "test": "yarn build:ts:browser && yarn build:ts:node && yarn test:jest && yarn test:bin",
-    "test:jest": "NODE_NO_WARNINGS=1 node --experimental-vm-modules $(yarn bin jest) --no-cache --passWithNoTests",
+    "test": "yarn clean && yarn build:wasm && yarn build:ts:browser:tests && yarn test:browser",
+    "test:node": "NODE_NO_WARNINGS=1 node --experimental-vm-modules $(yarn bin jest) --no-cache --passWithNoTests",
+    "test:browser": "karma start karma.config.cjs",
     "test:bin": "cd ./bin-test && ./bin-test.sh",
     "test-debug": "NODE_NO_WARNINGS=1 node --inspect-brk=0.0.0.0 --experimental-vm-modules $(yarn bin jest) --no-cache --passWithNoTests --runInBand",
     "prepack": "yarn build",
     "deploy": "npm publish --access public"
   },
   "jest": {
-    "testRegex": "./dest/node/.*\\.test\\.js$",
+    "testRegex": "./dest/(node|browser)/.*\\.test\\.js$",
     "rootDir": "./dest"
   },
   "dependencies": {
     "comlink": "^4.4.1",
     "commander": "^10.0.1",
     "debug": "^4.3.4",
-    "idb-keyval": "^6.2.1"
+    "glob": "^10.3.3",
+    "idb-keyval": "^6.2.1",
+    "jasmine-core": "^5.1.0",
+    "karma": "^6.4.2",
+    "karma-chrome-launcher": "^3.2.0",
+    "karma-jasmine": "^5.1.0",
+    "path-browserify": "^1.0.1"
   },
   "devDependencies": {
     "@jest/globals": "^29.4.3",

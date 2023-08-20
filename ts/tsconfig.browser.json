@@ -2,11 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "target": "es2020",
-    "lib": [
-      "dom",
-      "esnext",
-      "es2017.object"
-    ],
+    "lib": ["dom", "esnext", "es2017.object"],
     "module": "NodeNext",
     "strict": false,
     "declaration": true,
@@ -22,19 +18,12 @@
     "rootDir": "src",
     "tsBuildInfoFile": ".tsbuildinfo.browser",
     "paths": {
-      "dynamic/barretenberg_wasm": [
-        "src/barretenberg_wasm/browser/index.ts"
-      ],
-      "dynamic/crs": [
-        "src/crs/browser/index.ts"
-      ],
-      "dynamic/random": [
-        "src/random/browser/index.ts"
-      ],
-      "dynamic/types": [
-        "src/types/browser/index.ts"
-      ]
+      "dynamic/barretenberg_wasm": ["src/barretenberg_wasm/browser/index.ts"],
+      "dynamic/crs": ["src/crs/browser/index.ts"],
+      "dynamic/random": ["src/random/browser/index.ts"],
+      "dynamic/types": ["src/types/browser/index.ts"]
     }
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "exclude": ["src/**/*.node.test.ts", "**/*.node.test.ts"]
 }
