@@ -1,7 +1,9 @@
-import { expect } from 'chai';
 import { newBarretenbergApiSync } from '../factory/index.js';
 import { Buffer32, Fr } from '../types/index.js';
 import { BarretenbergApiSync } from './index.js';
+
+require = require('esm')(module);
+const { expect } = require('chai');
 
 describe('blake2s', () => {
   let api: BarretenbergApiSync;
