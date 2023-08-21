@@ -17,7 +17,7 @@
     "outDir": "dest/browser",
     "rootDir": "src",
     "tsBuildInfoFile": ".tsbuildinfo.browser",
-    "types": ["node", "mocha", "./chai-esm.d.ts"],
+    "types": ["node", "mocha"],
     "paths": {
       "dynamic/barretenberg_wasm": ["src/barretenberg_wasm/browser/index.ts"],
       "dynamic/crs": ["src/crs/browser/index.ts"],

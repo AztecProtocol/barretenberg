@@ -9,8 +9,10 @@
     "displayName": "bb.js",
     "tsconfig": "./tsconfig.json"
   },
-  "main": "./dest/index.js",
-  "bin": "./dest/main.js",
+  "main": "./dest/node/index.js",
+  "bin": {
+    "bb": "dest/node/main.js"
+  },
   "files": [
     "src/",
     "dest/",
@@ -29,7 +31,7 @@
     "formatting": "prettier --check ./src && eslint --max-warnings 0 ./src",
     "formatting:fix": "prettier -w ./src",
     "test": "yarn build && yarn test:browser && yarn test:node && yarn test:bin",
-    "test:browser": "web-test-runner 'dest/browser/**/*.test.js'",
+    "test:browser": "web-test-runner",
     "test:node": "NODE_NO_WARNINGS=1 mocha 'dest/node/**/*.test.js'",
     "test:bin": "cd ./bin-test && ./bin-test.sh",
     "test-debug": "NODE_NO_WARNINGS=1 node --inspect-brk=0.0.0.0 'dest/node/**/*.test.js'",
@@ -40,11 +42,11 @@
     "comlink": "^4.4.1",
     "commander": "^10.0.1",
     "debug": "^4.3.4",
-    "esm": "^3.2.25",
     "idb-keyval": "^6.2.1"
   },
   "devDependencies": {
     "@esm-bundle/chai": "^4.3.4-fix.0",
+    "@rollup/plugin-commonjs": "^25.0.4",
     "@types/debug": "^4.1.7",
     "@types/detect-node": "^2.0.0",
     "@types/node": "^18.7.23",
@@ -52,6 +54,7 @@
     "@typescript-eslint/eslint-plugin": "^5.54.1",
     "@typescript-eslint/parser": "^5.54.1",
     "@web/dev-server-esbuild": "^0.4.1",
+    "@web/dev-server-rollup": "^0.5.2",
     "@web/test-runner": "^0.15.3",
     "@web/test-runner-playwright": "^0.10.0",
     "buffer": "^6.0.3",
@@ -59,6 +62,7 @@
     "copy-webpack-plugin": "^11.0.0",
     "eslint": "^8.35.0",
     "eslint-config-prettier": "^8.8.0",
+    "expect": "^29.6.3",
     "html-webpack-plugin": "^5.5.1",
     "mocha": "^10.2.0",
     "prettier": "^2.8.4",
@@ -68,6 +72,7 @@
     "tsconfig-paths-webpack-plugin": "^4.0.1",
     "tslib": "^2.6.2",
     "typescript": "^5.0.4",
+    "uvu": "^0.5.6",
     "webpack": "^5.82.1",
     "webpack-cli": "^5.1.1",
     "webpack-dev-server": "^4.15.0"
