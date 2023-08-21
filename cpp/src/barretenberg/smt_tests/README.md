@@ -1,3 +1,14 @@
+# Building cvc5
+
+As for now it's required to build cvc5 library manually.
+
+- navigate yourself into barratenberg/cpp/src/cvc5 directory
+- run `./configure.sh production --auto-download --cocoa --cryptominisat -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ --prefix="./tmp-build"`
+- `cd build && make -j4`
+- `make install`
+
+Now you can import it using <cvc5/cvc5.h>
+
 # How to use smt_circuit library
 
 ## 1. Setting variable names during circuit creation and exporting the circuit.
