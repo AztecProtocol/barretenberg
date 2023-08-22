@@ -82,16 +82,14 @@ jobs:
         run: |
           jq '.dependencies["@aztec/bb.js"] = "file:../ts/dest"' nextjs-bbjs-demo/package.json > nextjs-bbjs-demo/package.temp.json
           mv nextjs-bbjs-demo/package.temp.json nextjs-bbjs-demo/package.json
+          cat nextjs-bbjs-demo/package.json
 
       - name: Install dependencies in nextjs-bbjs-demo
         run: |
           cd nextjs-bbjs-demo
           npm install
-
-      - name: Build nextjs-bbjs-demo
-        run: |
-          cd nextjs-bbjs-demo
-          npm run build
+          cd node_modules/@aztec/bb.js
+          ls -R
 
       - name: Run dev and test scripts concurrently
         run: |
