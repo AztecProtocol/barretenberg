@@ -511,43 +511,41 @@ template <typename FF> bool StandardCircuitBuilder_<FF>::check_circuit()
     return true;
 }
 
-template <typename FF> std::string StandardCircuitBuilder_<FF>::export_circuit_json()
-{
-    using base = CircuitBuilderBase<arithmetization::Standard<FF>>;
+// template <typename FF> void StandardCircuitBuilder_<FF>::export_circuit_json(std::ostream& out)
+// {
+//     using base = CircuitBuilderBase<arithmetization::Standard<FF>>;
 
-    std::string res = "";
-    res += "{\"public_inps\": [";
-    for (uint32_t i = 0; i < this->get_num_public_inputs(); i++) {
-        res += this->real_variable_index[this->public_inputs[i]] + ", ";
-    }
-    res += "],\n";
+//     out << "{\"public_inps\": [";
+//     for (uint32_t i = 0; i < this->get_num_public_inputs(); i++) {
+//         out << this->real_variable_index[this->public_inputs[i]] << ", ";
+//     }
+//     out << "],\n";
 
-    res += "\"vars_of_interest\" : {";
-    for (auto& tup : base::variable_names) {
-        res += this->real_variable_index[tup.first] + ": \"" + tup.second + "\",\n";
-    }
-    res += "}, ";
+//     out << "\"vars_of_interest\" : {";
+//     for (auto& tup : base::variable_names) {
+//         out << this->real_variable_index[tup.first] << ": \"" + tup.second + "\",\n";
+//     }
+//     out << "}, ";
 
-    res += "\"variables\": [";
-    for (auto var : this->variables) {
-        res += "\"" + var + "\", ";
-    }
-    res += "], \n";
+//     out << "\"variables\": [";
+//     for (auto var : this->variables) {
+//         out << "\"" << var << "\", ";
+//     }
+//     out << "], \n";
 
-    res += "\"gates\": [";
-    for (size_t i = 0; i < this->num_gates; i++) {
-        res += "[\"" << q_m[i] + "\", \"" + q_1[i] + "\"";
-        res += ", \"" << q_2[i] + "\"";
-        res += ", \"" << q_3[i] + "\"";
-        res += ", \"" << q_c[i] + "\"";
-        res += ", " << this->real_variable_index[w_l[i]] + "";
-        res += ", " << this->real_variable_index[w_r[i]] + "";
-        res += ", " << this->real_variable_index[w_o[i]] + "";
-        res += "],\n";
-    }
-    res += "]}\n\n";
-    return res;
-}
+//     out << "\"gates\": [";
+//     for (size_t i = 0; i < this->num_gates; i++) {
+//         out << "[\"" << q_m[i] << "\", \"" << q_1[i] << "\"";
+//         out << ", \"" << q_2[i] << "\"";
+//         out << ", \"" << q_3[i] << "\"";
+//         out << ", \"" << q_c[i] << "\"";
+//         out << ", " << this->real_variable_index[w_l[i]] << "";
+//         out << ", " << this->real_variable_index[w_r[i]] << "";
+//         out << ", " << this->real_variable_index[w_o[i]] << "";
+//         out << "],\n";
+//     }
+//     out << "]}\n\n";
+// }
 
 template <typename FF> msgpack::sbuffer StandardCircuitBuilder_<FF>::export_circuit()
 {
@@ -579,8 +577,8 @@ template <typename FF> msgpack::sbuffer StandardCircuitBuilder_<FF>::export_circ
 
     msgpack::sbuffer buffer;
     msgpack::pack(buffer, cir);
-    info("Buffer size: ", buffer.size());
     return buffer;
+    // info("Buffer size: ", buffer.size());
     // out.write(buffer.data(), static_cast<long>(buffer.size()));
 }
 

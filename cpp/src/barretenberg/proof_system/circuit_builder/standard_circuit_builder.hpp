@@ -115,7 +115,7 @@ template <typename FF> class StandardCircuitBuilder_ : public CircuitBuilderBase
     bool check_circuit();
 
     msgpack::sbuffer export_circuit() override;
-    std::string export_circuit_json() override;
+    // std::string export_circuit_json() override;
 
   private:
     struct CircuitSchema {

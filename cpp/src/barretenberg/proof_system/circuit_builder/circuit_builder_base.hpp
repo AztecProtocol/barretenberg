@@ -264,8 +264,12 @@ template <typename Arithmetization> class CircuitBuilderBase {
         }
     }
 
-    virtual msgpack::sbuffer export_circuit() { info("not implemented"); };
-    virtual std::string export_circuit_json() { info("not implemented"); };
+    virtual msgpack::sbuffer export_circuit()
+    {
+        info("not implemented");
+        return { 1 };
+    };
+    // virtual std::string export_circuit_json() { info("not implemented"); };
 
     /**
      * Add a public variable to variables
