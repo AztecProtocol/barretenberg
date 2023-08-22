@@ -1,1 +1,0 @@
-barretenberg_module(smt_circuit smt_terms smt_solver)

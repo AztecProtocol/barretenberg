@@ -8,7 +8,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "barretenberg/smt_tests/terms/ffterm.hpp"
+#include "barretenberg/smt_verification/terms/ffterm.hpp"
 //#include "barretenberg/smt_tests/terms/bool.hpp"
 
 namespace smt_circuit {
@@ -35,17 +35,20 @@ class Circuit { // SymCircuit?
     std::vector<FFTerm> vars;
 
     Solver* solver;
+    std::string tag;
 
     void init();
     void add_gates();
 
   public:
-    explicit Circuit(CircuitSchema& circuit_info, Solver* solver);
+    explicit Circuit(CircuitSchema& circuit_info, Solver* solver, const std::string& tag = "");
 
     FFTerm operator[](const std::string& name);
     inline uint32_t get_num_gates() const { return static_cast<uint32_t>(selectors.size()); };
     inline uint32_t get_num_vars() const { return static_cast<uint32_t>(vars.size()); };
 };
 
-CircuitSchema unpack(const std::string&);
+CircuitSchema unpack_from_buffer(const msgpack::sbuffer& buf);
+CircuitSchema unpack_from_file(const std::string& fname);
+
 }; // namespace smt_circuit

@@ -21,25 +21,30 @@ Now you can import it using <cvc5/cvc5.h>
 
 - ```finalize_variable_names()``` - in case you don't want to mess with previous method, this one finds all the collisions and removes them.
 
-- ```export_circuit(ostream)``` - exports all variables, gates, and assigned names to an msgpack-compatible file.
+- ```export_circuit()``` - exports all variables, gates, and assigned names to an msgpack-compatible buffer namely `msgpack::sbuffer`.
 
-- ```export_circuit_json(ostream)``` - exports all variables, gates, and assigned names to a json(kinda)-compatible file.
+- ```export_circuit_json()``` - exports all variables, gates, and assigned names to a json(kinda)-compatible string.
 
 ## 2. Symbolic Circuit initialization and term creation
 
-1. First you need to import the circuit from the saved file:
+1. First you need to import the circuit from the saved file or from the buffer:
 
-	`smt_circuit::CircuitSchema c_info = smt_circuit::unpack(fname);`
+	- `smt_circuit::CircuitSchema c_info = smt_circuit::unpack_from_file(str fname);`
+
+  	- `smt_circuit::CircuitSchema c_info = smt_circuit::unpack_from_buffer(msgpack::sbuffer buf);`
+
 
 2. Initialize the Solver:
 
-	`smt_solver::Solver s(str modulus, bool produce_model=false, u32 base=16)`
+	`smt_solver::Solver s(str modulus, bool produce_model=false, u32 base=16, u64 timeout)`
 	
 	!note that there should be no "0x" part in the modulus hex representation.
 	
 	`produce_model` flag should be initialized as true if you want to check the values obtained using the solver when the result of the check does not meet your expectations. **All the public variables will be constrained to be equal their real value**.
 	
 	`base` can be any positive integer, it will mostly bee 10 or 16, I guess.
+
+    `timeout` solver timeout in milliseconds
 	
 3. Initialize the Circuit 
 
@@ -49,10 +54,11 @@ Now you can import it using <cvc5/cvc5.h>
     
     `Bool` - simulates the boolean values and mostly will be used only to simulate `if` statements if needed.
 	
-	- ```smt_circuit::Circuit circuit(CircuitSchema c_info, Solver* s)```
+	- ```smt_circuit::Circuit circuit(CircuitSchema c_info, Solver* s, str tag="")```
 	
 	    It will generate all the symbolic values of the circuit wires values, add all the gate constrains, create a map `string->FFTerm`.
-	
+        In case you want to create two similar circuits with the same solver and schema, then you should specify the tag(name) of a circuit. 
+
 	Then you can get the previously named variables via `circuit[name]`.
 4. Terms creation
 

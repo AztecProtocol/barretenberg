@@ -1,4 +1,0 @@
-add_subdirectory(terms)
-add_subdirectory(solver)
-add_subdirectory(circuit)
-add_subdirectory(examples_and_tests)

@@ -8,7 +8,7 @@
 
 #include "barretenberg/stdlib/primitives/field/field.hpp"
 
-#include "barretenberg/smt_tests/circuit/circuit.hpp"
+#include "barretenberg/smt_verification/circuit/circuit.hpp"
 
 using namespace barretenberg;
 using namespace proof_system;
@@ -38,10 +38,9 @@ TEST(circuit_verification, multiplication_true)
 
     std::ofstream myfile;
     myfile.open("mult.pack", std::ios::out | std::ios::trunc | std::ios::binary);
-    builder.export_circuit(myfile);
-    myfile.close();
+    auto buf = builder.export_circuit();
 
-    smt_circuit::CircuitSchema circuit_info = smt_circuit::unpack("mult.pack");
+    smt_circuit::CircuitSchema circuit_info = smt_circuit::unpack_from_buffer(buf);
     smt_solver::Solver s(p, true);
     smt_circuit::Circuit circuit(circuit_info, &s);
     smt_terms::FFTerm a1 = circuit["a"];

@@ -13,11 +13,15 @@ class Solver {
     cvc5::Solver s;
     cvc5::Sort fp;
 
-    explicit Solver(const std::string& modulus, bool produce_model = false, uint32_t base = 16)
+    // TODO(alex): more options???
+    explicit Solver(const std::string& modulus, bool produce_model = false, uint32_t base = 16, uint32_t timeout = 0)
     {
         fp = s.mkFiniteFieldSort(modulus, base);
         if (produce_model) {
             s.setOption("produce-models", "true");
+        }
+        if (timeout > 0) {
+            s.setOption("tlimit-per", std::to_string(timeout));
         }
     }
 

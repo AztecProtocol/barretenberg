@@ -1,5 +1,5 @@
 #pragma once
-#include "barretenberg/smt_tests/solver/solver.hpp"
+#include "barretenberg/smt_verification/solver/solver.hpp"
 
 namespace smt_terms {
 using namespace smt_solver;

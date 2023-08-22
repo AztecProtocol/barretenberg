@@ -1,12 +1,19 @@
 #include "circuit.hpp"
 namespace smt_circuit {
 
-Circuit::Circuit(CircuitSchema& circuit_info, Solver* solver)
+Circuit::Circuit(CircuitSchema& circuit_info, Solver* solver, const std::string& tag)
     : public_inps(circuit_info.public_inps)
     , vars_of_interest(circuit_info.vars_of_interest)
     , wit_idxs(circuit_info.wits)
     , solver(solver)
+    , tag(tag)
 {
+    if (!this->tag.empty()) {
+        if (this->tag[0] != '_') {
+            this->tag = "_" + this->tag;
+        }
+    }
+
     for (auto var : circuit_info.variables) {
         std::stringstream buf; // TODO(alex): looks bad. Would be great to create tostring() converter
         buf << var;
@@ -46,16 +53,16 @@ void Circuit::init()
     size_t num_vars = variables.size();
 
     // I believe noone will name zero and one otherwise...
-    vars.push_back(Var("zero", this->solver));
-    vars.push_back(Var("one", this->solver));
+    vars.push_back(Var("zero" + this->tag, this->solver));
+    vars.push_back(Var("one" + this->tag, this->solver));
 
     // TODO(alex): maybe public variables should be Consts
     for (size_t i = 2; i < num_vars; i++) {
         if (vars_of_interest.contains(static_cast<uint32_t>(i))) {
             std::string name = vars_of_interest[static_cast<uint32_t>(i)];
-            vars.push_back(Var(name, this->solver));
+            vars.push_back(Var(name + this->tag, this->solver));
         } else {
-            vars.push_back(Var("var_" + std::to_string(i), this->solver));
+            vars.push_back(Var("var_" + std::to_string(i) + this->tag, this->solver));
         }
     }
 
@@ -115,7 +122,7 @@ FFTerm Circuit::operator[](const std::string& name)
     return this->vars[idx];
 }
 
-CircuitSchema unpack(const std::string& filename)
+CircuitSchema unpack_from_file(const std::string& filename)
 {
     std::ifstream fin;
     fin.open(filename, std::ios::in | std::ios::binary);
@@ -136,6 +143,13 @@ CircuitSchema unpack(const std::string& filename)
     char* encoded_data = (char*)aligned_alloc(64, static_cast<size_t>(fsize));
     fin.read(encoded_data, fsize);
     msgpack::unpack((const char*)encoded_data, static_cast<size_t>(fsize)).get().convert(cir);
+    return cir;
+}
+
+CircuitSchema unpack_from_buffer(const msgpack::sbuffer& buf)
+{
+    CircuitSchema cir;
+    msgpack::unpack(buf.data(), buf.size()).get().convert(cir);
     return cir;
 }
 }; // namespace smt_circuit

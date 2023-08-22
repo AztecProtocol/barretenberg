@@ -7,8 +7,6 @@
 #include "circuit_builder_base.hpp"
 #include <array>
 
-#include "barretenberg/serialize/cbind.hpp"
-
 namespace proof_system {
 inline std::vector<std::string> standard_selector_names()
 {
@@ -116,8 +114,8 @@ template <typename FF> class StandardCircuitBuilder_ : public CircuitBuilderBase
 
     bool check_circuit();
 
-    void export_circuit(std::ostream& out) override;
-    void export_circuit_json(std::ostream& out) override;
+    msgpack::sbuffer export_circuit() override;
+    std::string export_circuit_json() override;
 
   private:
     struct CircuitSchema {

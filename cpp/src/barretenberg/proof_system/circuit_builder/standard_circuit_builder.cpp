@@ -511,43 +511,45 @@ template <typename FF> bool StandardCircuitBuilder_<FF>::check_circuit()
     return true;
 }
 
-template <typename FF> void StandardCircuitBuilder_<FF>::export_circuit_json(std::ostream& out)
+template <typename FF> std::string StandardCircuitBuilder_<FF>::export_circuit_json()
 {
     using base = CircuitBuilderBase<arithmetization::Standard<FF>>;
 
-    out << "{\"public_inps\": [";
+    std::string res = "";
+    res += "{\"public_inps\": [";
     for (uint32_t i = 0; i < this->get_num_public_inputs(); i++) {
-        out << this->real_variable_index[this->public_inputs[i]] << ", ";
+        res += this->real_variable_index[this->public_inputs[i]] + ", ";
     }
-    out << "],\n";
+    res += "],\n";
 
-    out << "\"vars_of_interest\" : {";
+    res += "\"vars_of_interest\" : {";
     for (auto& tup : base::variable_names) {
-        out << this->real_variable_index[tup.first] << ": \"" + tup.second + "\",\n";
+        res += this->real_variable_index[tup.first] + ": \"" + tup.second + "\",\n";
     }
-    out << "}, ";
+    res += "}, ";
 
-    out << "\"variables\": [";
+    res += "\"variables\": [";
     for (auto var : this->variables) {
-        out << "\"" << var << "\", ";
+        res += "\"" + var + "\", ";
     }
-    out << "], \n";
+    res += "], \n";
 
-    out << "\"gates\": [";
+    res += "\"gates\": [";
     for (size_t i = 0; i < this->num_gates; i++) {
-        out << "[\"" << q_m[i] << "\", \"" << q_1[i] << "\"";
-        out << ", \"" << q_2[i] << "\"";
-        out << ", \"" << q_3[i] << "\"";
-        out << ", \"" << q_c[i] << "\"";
-        out << ", " << this->real_variable_index[w_l[i]] << "";
-        out << ", " << this->real_variable_index[w_r[i]] << "";
-        out << ", " << this->real_variable_index[w_o[i]] << "";
-        out << "],\n";
+        res += "[\"" << q_m[i] + "\", \"" + q_1[i] + "\"";
+        res += ", \"" << q_2[i] + "\"";
+        res += ", \"" << q_3[i] + "\"";
+        res += ", \"" << q_c[i] + "\"";
+        res += ", " << this->real_variable_index[w_l[i]] + "";
+        res += ", " << this->real_variable_index[w_r[i]] + "";
+        res += ", " << this->real_variable_index[w_o[i]] + "";
+        res += "],\n";
     }
-    out << "]}\n\n";
+    res += "]}\n\n";
+    return res;
 }
 
-template <typename FF> void StandardCircuitBuilder_<FF>::export_circuit(std::ostream& out)
+template <typename FF> msgpack::sbuffer StandardCircuitBuilder_<FF>::export_circuit()
 {
     using base = CircuitBuilderBase<arithmetization::Standard<FF>>;
 
@@ -578,7 +580,8 @@ template <typename FF> void StandardCircuitBuilder_<FF>::export_circuit(std::ost
     msgpack::sbuffer buffer;
     msgpack::pack(buffer, cir);
     info("Buffer size: ", buffer.size());
-    out.write(buffer.data(), static_cast<long>(buffer.size()));
+    return buffer;
+    // out.write(buffer.data(), static_cast<long>(buffer.size()));
 }
 
 template class StandardCircuitBuilder_<barretenberg::fr>;

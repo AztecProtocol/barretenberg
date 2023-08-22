@@ -3,6 +3,8 @@
 
 namespace smt_solver {
 
+// TODO(alex): timeouts are needed;
+
 bool Solver::check()
 {
     cvc5::Result result = this->s.checkSat();

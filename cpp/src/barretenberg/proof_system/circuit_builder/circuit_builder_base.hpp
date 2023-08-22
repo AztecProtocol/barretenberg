@@ -3,6 +3,7 @@
 #include "barretenberg/ecc/curves/bn254/fr.hpp"
 #include "barretenberg/proof_system/arithmetization/arithmetization.hpp"
 #include "barretenberg/proof_system/arithmetization/gate_data.hpp"
+#include "barretenberg/serialize/cbind.hpp"
 #include <utility>
 
 #include <unordered_map>
@@ -263,8 +264,8 @@ template <typename Arithmetization> class CircuitBuilderBase {
         }
     }
 
-    virtual void export_circuit(std::ostream&) { info("not implemented"); };
-    virtual void export_circuit_json(std::ostream&) { info("not implemented"); };
+    virtual msgpack::sbuffer export_circuit() { info("not implemented"); };
+    virtual std::string export_circuit_json() { info("not implemented"); };
 
     /**
      * Add a public variable to variables

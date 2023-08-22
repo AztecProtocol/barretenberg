@@ -1,1 +1,0 @@
-barretenberg_module(smt_solver smt_tests)
