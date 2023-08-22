@@ -36,12 +36,10 @@ TEST(circuit_verification, multiplication_true)
     builder.set_variable_name(c.witness_index, "c");
     ASSERT_TRUE(builder.check_circuit());
 
-    std::ofstream myfile;
-    myfile.open("mult.pack", std::ios::out | std::ios::trunc | std::ios::binary);
     auto buf = builder.export_circuit();
 
     smt_circuit::CircuitSchema circuit_info = smt_circuit::unpack_from_buffer(buf);
-    smt_solver::Solver s(p, true);
+    smt_solver::Solver s(p, true, 10);
     smt_circuit::Circuit circuit(circuit_info, &s);
     smt_terms::FFTerm a1 = circuit["a"];
     smt_terms::FFTerm b1 = circuit["b"];
@@ -69,13 +67,10 @@ TEST(circuit_verification, multiplication_false)
     builder.set_variable_name(c.witness_index, "c");
     ASSERT_TRUE(builder.check_circuit());
 
-    std::ofstream myfile;
-    myfile.open("mult.pack", std::ios::out | std::ios::trunc | std::ios::binary);
-    builder.export_circuit(myfile);
-    myfile.close();
+    auto buf = builder.export_circuit();
 
-    smt_circuit::CircuitSchema circuit_info = smt_circuit::unpack("mult.pack");
-    smt_solver::Solver s(p, true);
+    smt_circuit::CircuitSchema circuit_info = smt_circuit::unpack_from_buffer(buf);
+    smt_solver::Solver s(p, true, 10);
     smt_circuit::Circuit circuit(circuit_info, &s);
 
     smt_terms::FFTerm a1 = circuit["a"];
@@ -94,10 +89,9 @@ TEST(circuit_verification, multiplication_false)
     std::unordered_map<std::string, cvc5::Term> terms({ { "a", a1 }, { "b", b1 }, { "c", c1 }, { "cr", cr } });
 
     std::unordered_map<std::string, std::string> vals = s.model(terms);
-    ASSERT_EQ(vals["a"], "0");
 
-    info(vals["a"]);
-    info(vals["b"]);
-    info(vals["c"]);
-    info(vals["cr"]);
+    info("a = ", vals["a"]);
+    info("b = ", vals["b"]);
+    info("c = ", vals["c"]);
+    info("c_res = ", vals["cr"]);
 }

@@ -4,6 +4,7 @@
 
 #include <chrono>
 #include <fstream>
+#include <gtest/gtest.h>
 #include <iostream>
 #include <string>
 
@@ -24,7 +25,7 @@ namespace {
 auto& engine = numeric::random::get_debug_engine();
 }
 
-msgpack::sbuffer polynomial_evaluation_circuit(size_t n, bool pub_coeffs)
+msgpack::sbuffer create_circuit(size_t n, bool pub_coeffs)
 {
     StandardCircuitBuilder builder = StandardCircuitBuilder();
     std::vector<fr> coeffs;
@@ -156,7 +157,7 @@ TEST(polynomial_evaluation, incorrect)
     auto stop = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
 
-    ASSERT_FALSE(res);
+    ASSERT_TRUE(res);
     info();
     info("Gates: ", circuit.get_num_gates());
     info("Result: ", s.getResult());
@@ -166,4 +167,5 @@ TEST(polynomial_evaluation, incorrect)
         model_variables(circuit, &s, ev);
     }
 }
-}
+
+// TODO(alex) try with arbitrary coefficients

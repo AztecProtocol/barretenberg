@@ -21,6 +21,7 @@
 #include <utility>
 
 #include <chrono>
+#include <gtest/gtest.h>
 #include <iostream>
 
 #include "barretenberg/smt_verification/circuit/circuit.hpp"
@@ -60,9 +61,6 @@ msgpack::sbuffer create_circuit(bool pub_ab, bool ab)
             witness_ct(&builder, fr(uint256_t(inputs[1]).slice(0, fq_ct::NUM_LIMB_BITS * 2))),
             witness_ct(&builder, fr(uint256_t(inputs[1]).slice(fq_ct::NUM_LIMB_BITS * 2, fq_ct::NUM_LIMB_BITS * 4))));
     }
-
-    // info("a = ", a.get_value());
-    // info("b = ", b.get_value());
     builder.set_variable_name(a.binary_basis_limbs[0].element.witness_index, "a_limb_0");
     builder.set_variable_name(a.binary_basis_limbs[1].element.witness_index, "a_limb_1");
     builder.set_variable_name(a.binary_basis_limbs[2].element.witness_index, "a_limb_2");
@@ -75,29 +73,16 @@ msgpack::sbuffer create_circuit(bool pub_ab, bool ab)
         builder.set_variable_name(b.binary_basis_limbs[3].element.witness_index, "b_limb_3");
     }
 
-    // uint64_t before = builder.get_num_gates();
     fq_ct c;
     if (ab) {
         c = a * b;
     } else {
         c = a * a;
     }
-    // info("c = ", c.get_value());
-
     builder.set_variable_name(c.binary_basis_limbs[0].element.witness_index, "c_limb_0");
     builder.set_variable_name(c.binary_basis_limbs[1].element.witness_index, "c_limb_1");
     builder.set_variable_name(c.binary_basis_limbs[2].element.witness_index, "c_limb_2");
     builder.set_variable_name(c.binary_basis_limbs[3].element.witness_index, "c_limb_3");
-
-    // info(builder.variable_names[c.binary_basis_limbs[3].element.witness_index]);
-
-    // uint64_t after = builder.get_num_gates();
-    // info(after);
-    // info(builder.get_num_variables());
-
-    // fq expected = (inputs[0] * inputs[1]);
-    // expected = expected.from_montgomery_form();
-
     return builder.export_circuit();
 }
 
@@ -165,33 +150,7 @@ void model_variables(Circuit& c, Solver* s, std::vector<FFTerm>& evaluation)
     info("n = ", values["n"]);
 }
 
-TEST(bigfield, multiplication_equal)
-{
-    bool public_a_b = true;
-    bool a_neq_b = true;
-    auto buf = create_circuit(public_a_b, a_neq_b);
-
-    CircuitSchema circuit_info = unpack_from_buffer(buf);
-    Solver s(r, true, 10);
-    Circuit circuit(circuit_info, &s);
-    std::vector<FFTerm> ev = bigfield_multiplication(circuit, &s);
-
-    auto start = std::chrono::high_resolution_clock::now();
-    bool res = s.check();
-    auto stop = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-
-    info();
-    info("Gates: ", circuit.get_num_gates());
-    info("Result: ", s.getResult());
-    info("Time elapsed: ", static_cast<double>(duration.count()) / 1e6, " sec");
-
-    if (res) {
-        model_variables(circuit, &s, ev);
-    }
-}
-
-std::vector<FFTerm> unique_result(Circuit& c1, Circuit& c2, Solver* s)
+void unique_result(Circuit& c1, Circuit& c2, Solver* s)
 {
     c1["a_limb_0"] == c2["a_limb_0"];
     c1["a_limb_1"] == c2["a_limb_1"];
@@ -204,7 +163,8 @@ std::vector<FFTerm> unique_result(Circuit& c1, Circuit& c2, Solver* s)
     Bool res2 = Bool(c1["c_limb_2"], *s) != Bool(c2["c_limb_2"], *s);
     Bool res3 = Bool(c1["c_limb_3"], *s) != Bool(c2["c_limb_3"], *s);
 
-    Bool res = batch_or({ res0, res1, res2, res3 });
+    const std::vector<Bool> terms = { res0, res1, res2, res3 };
+    Bool res = batch_or(terms);
     res.assert_term();
 }
 
@@ -234,17 +194,43 @@ void model_variables1(Circuit& c1, Circuit& c2, Solver* s)
     }
 }
 
+TEST(bigfield, multiplication_equal)
+{
+    bool public_a_b = true;
+    bool a_neq_b = true;
+    auto buf = create_circuit(public_a_b, a_neq_b);
+
+    CircuitSchema circuit_info = unpack_from_buffer(buf);
+    Solver s(r, true, 10);
+    Circuit circuit(circuit_info, &s);
+    std::vector<FFTerm> ev = correct_result(circuit, &s);
+
+    auto start = std::chrono::high_resolution_clock::now();
+    bool res = s.check();
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+
+    info();
+    info("Gates: ", circuit.get_num_gates());
+    info("Result: ", s.getResult());
+    info("Time elapsed: ", static_cast<double>(duration.count()) / 1e6, " sec");
+
+    if (res) {
+        model_variables(circuit, &s, ev);
+    }
+}
+
 TEST(bigfield, unique_square)
 {
     auto buf = create_circuit(true, false);
 
-    CircuitSchema circuit_info = unpack(fname + ".pack");
+    CircuitSchema circuit_info = unpack_from_buffer(buf);
 
     Solver s(r, true, 10, 1000);
     Circuit circuit1(circuit_info, &s, "circ1");
     Circuit circuit2(circuit_info, &s, "circ2");
 
-    std::vector<FFTerm> ev = bigfield_multiplication(circuit, &s);
+    unique_result(circuit1, circuit2, &s);
 
     auto start = std::chrono::high_resolution_clock::now();
     bool res = s.check();
@@ -254,11 +240,11 @@ TEST(bigfield, unique_square)
     ASSERT_FALSE(res);
 
     info();
-    info("Gates: ", circuit.get_num_gates());
+    info("Gates: ", circuit1.get_num_gates());
     info("Result: ", s.getResult());
     info("Time elapsed: ", static_cast<double>(duration.count()) / 1e6, " sec");
 
     if (res) {
-        model_variables1(circuit, &s, ev);
+        model_variables1(circuit1, circuit2, &s);
     }
 }
