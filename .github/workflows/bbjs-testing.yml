@@ -70,3 +70,32 @@ jobs:
         run: |
           cd ts/dest
           ls -R
+
+      - name: Checkout nextjs-bbjs-demo repository
+        uses: actions/checkout@v3
+        with:
+          repository: noir-lang/nextjs-bbjs-demo
+          ref: bbjs-tests
+          path: nextjs-bbjs-demo
+
+      - name: Update package.json to point to local dependency
+        run: |
+          jq '.dependencies["@aztec/bb.js"] = "file:../ts/dest"' nextjs-bbjs-demo/package.json > nextjs-bbjs-demo/package.temp.json
+          mv nextjs-bbjs-demo/package.temp.json nextjs-bbjs-demo/package.json
+
+      - name: Install dependencies in nextjs-bbjs-demo
+        run: |
+          cd nextjs-bbjs-demo
+          npm install
+
+      - name: Build nextjs-bbjs-demo
+        run: |
+          cd nextjs-bbjs-demo
+          npm run build
+
+      - name: Run dev and test scripts concurrently
+        run: |
+          cd nextjs-bbjs-demo
+          npm run dev &
+          sleep 10 # This is to give the dev server a head start
+          npm run test
