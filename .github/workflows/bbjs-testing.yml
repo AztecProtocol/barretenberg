@@ -89,10 +89,14 @@ jobs:
         run: |
           cd nextjs-bbjs-demo
           npm install
+          cd node_modules/@aztec/bb.js
+          ls -R
+          cat package.json
 
       - name: Run dev and test scripts concurrently
         run: |
           cd nextjs-bbjs-demo
-          (timeout 600 npm run dev) &
-          sleep 10
+          trap "kill 0" EXIT
+          (timeout 600 npm run dev || exit 1) &
+          sleep 10 # This is to give the dev server a head start
           npm run test
