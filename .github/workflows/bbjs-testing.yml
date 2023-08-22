@@ -66,10 +66,11 @@ jobs:
           cd ts
           yarn install && yarn && yarn build
 
-      - name: Output result
+      - name: Pack the library for npm
         run: |
-          cd ts/dest
-          ls -R
+          cd ts
+          npm pack
+          echo "TARBALL_NAME=$(ls *.tgz)" >> $GITHUB_ENV
 
       - name: Checkout nextjs-bbjs-demo repository
         uses: actions/checkout@v3
@@ -78,9 +79,9 @@ jobs:
           ref: bbjs-tests
           path: nextjs-bbjs-demo
 
-      - name: Update package.json to point to local dependency
+      - name: Update package.json to point to local tarball dependency
         run: |
-          jq '.dependencies["@aztec/bb.js"] = "file:../ts/dest"' nextjs-bbjs-demo/package.json > nextjs-bbjs-demo/package.temp.json
+          jq ".dependencies[\"@aztec/bb.js\"] = \"file:../ts/${TARBALL_NAME}\"" nextjs-bbjs-demo/package.json > nextjs-bbjs-demo/package.temp.json
           mv nextjs-bbjs-demo/package.temp.json nextjs-bbjs-demo/package.json
           cat nextjs-bbjs-demo/package.json
 
@@ -88,12 +89,10 @@ jobs:
         run: |
           cd nextjs-bbjs-demo
           npm install
-          cd node_modules/@aztec/bb.js
-          ls -R
 
       - name: Run dev and test scripts concurrently
         run: |
           cd nextjs-bbjs-demo
-          npm run dev &
-          sleep 10 # This is to give the dev server a head start
+          (timeout 600 npm run dev) &
+          sleep 10
           npm run test
