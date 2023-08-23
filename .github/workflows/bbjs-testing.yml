@@ -89,20 +89,17 @@ jobs:
         run: |
           cd nextjs-bbjs-demo
           npm install
-          cat package.json
 
       - name: Output bb.js package contents
         run: |
           cd nextjs-bbjs-demo/node_modules/@aztec/bb.js
-          ls -R
-          cat package.json
 
       - name: Run dev and test scripts concurrently
         run: |
           cd nextjs-bbjs-demo
           (timeout 600 npm run dev || exit 255) & # The exit code 255 is chosen to be distinct.
           DEVPID=$!
-          sleep 10
+          sleep 30
           npm run test
           wait $DEVPID
           EXITCODE=$?
