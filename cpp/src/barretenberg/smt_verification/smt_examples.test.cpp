@@ -95,3 +95,34 @@ TEST(circuit_verification, multiplication_false)
     info("c = ", vals["c"]);
     info("c_res = ", vals["cr"]);
 }
+
+TEST(circuit_verifiaction, unique_witness)
+{
+    StandardCircuitBuilder builder = StandardCircuitBuilder();
+
+    field_t a(witness_t(&builder, fr::random_element()));
+    field_t b(witness_t(&builder, fr::random_element()));
+    builder.set_variable_name(a.witness_index, "a");
+    builder.set_variable_name(b.witness_index, "b");
+
+    field_t c;
+    for (size_t i = 0; i < 20; i++) {
+        c = a + b;
+        a = b;
+        b = c;
+    }
+
+    builder.set_variable_name(a.witness_index, "pre_res");
+    builder.set_variable_name(b.witness_index, "res");
+
+    auto buf = builder.export_circuit();
+
+    smt_solver::Solver s(p, true, 10);
+    smt_circuit::CircuitSchema circuit_info = smt_circuit::unpack_from_buffer(buf);
+
+    std::pair<smt_circuit::Circuit, smt_circuit::Circuit> cirs =
+        smt_circuit::unique_witness(circuit_info, &s, { "a", "b", "res" }, { "pre_res" });
+
+    bool res = s.check();
+    ASSERT_TRUE(res);
+}
