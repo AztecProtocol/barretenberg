@@ -7,6 +7,7 @@ on:
 
 jobs:
   build:
+    timeout-minutes: 60
     runs-on: ubuntu-latest
 
     steps:
@@ -28,15 +29,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get -y install ninja-build yarn
-
-      # - name: Install Clang16
-      #   run: |
-      #     wget https://github.com/llvm/llvm-project/releases/download/llvmorg-16.0.0/clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
-      #     tar -xvf clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04.tar.xz
-      #     sudo cp clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04/bin/* /usr/local/bin/
-      #     sudo cp -r clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04/include/* /usr/local/include/
-      #     sudo cp -r clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04/lib/* /usr/local/lib/
-      #     sudo cp -r clang+llvm-16.0.0-x86_64-linux-gnu-ubuntu-18.04/share/* /usr/local/share/
 
       - name: Install yarn
         run: |
@@ -85,13 +77,6 @@ jobs:
       - name: Run dev and test scripts concurrently
         run: |
           cd nextjs-bbjs-demo
-          (timeout 600 npm run dev || exit 255) & # The exit code 255 is chosen to be distinct.
-          DEVPID=$!
+          npm run dev
           sleep 30
           npm run test
-          wait $DEVPID
-          EXITCODE=$?
-          if [ $EXITCODE -eq 255 ]; then
-            echo "npm run dev timed out!"
-            exit 1
-          fi
