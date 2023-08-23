@@ -15,6 +15,8 @@ namespace smt_circuit {
 using namespace smt_solver;
 using namespace smt_terms;
 
+const std::string p = "21888242871839275222246405745257275088548364400416034343698204186575808495617";
+
 struct CircuitSchema {
     std::vector<uint32_t> public_inps;
     std::unordered_map<uint32_t, std::string> vars_of_interest;
@@ -50,5 +52,10 @@ class Circuit { // SymCircuit?
 
 CircuitSchema unpack_from_buffer(const msgpack::sbuffer& buf);
 CircuitSchema unpack_from_file(const std::string& fname);
+
+std::pair<Circuit, Circuit> unique_witness(CircuitSchema& circuit_info,
+                                           Solver* s,
+                                           const std::vector<std::string>& inputs,
+                                           const std::vector<std::string>& outputs);
 
 }; // namespace smt_circuit

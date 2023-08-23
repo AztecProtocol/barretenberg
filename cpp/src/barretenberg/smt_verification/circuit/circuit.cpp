@@ -152,4 +152,27 @@ CircuitSchema unpack_from_buffer(const msgpack::sbuffer& buf)
     msgpack::unpack(buf.data(), buf.size()).get().convert(cir);
     return cir;
 }
+
+std::pair<Circuit, Circuit> unique_witness(CircuitSchema& circuit_info,
+                                           Solver* s,
+                                           const std::vector<std::string>& inputs,
+                                           const std::vector<std::string>& outputs)
+{
+    Circuit c1(circuit_info, s, "circuit1");
+    Circuit c2(circuit_info, s, "circuit2");
+
+    for (const auto& input : inputs) {
+        c1[input] == c2[input];
+    }
+
+    std::vector<Bool> neqs;
+    for (const auto& out : outputs) {
+        Bool tmp = Bool(c1[out], *s) != Bool(c2[out], *s);
+        neqs.push_back(tmp);
+    }
+    Bool neq = batch_or(neqs);
+    neq.assert_term();
+    return { c1, c2 };
+}
+
 }; // namespace smt_circuit

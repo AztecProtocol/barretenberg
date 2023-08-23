@@ -150,24 +150,6 @@ void model_variables(Circuit& c, Solver* s, std::vector<FFTerm>& evaluation)
     info("n = ", values["n"]);
 }
 
-void unique_result(Circuit& c1, Circuit& c2, Solver* s)
-{
-    c1["a_limb_0"] == c2["a_limb_0"];
-    c1["a_limb_1"] == c2["a_limb_1"];
-    c1["a_limb_2"] == c2["a_limb_2"];
-    c1["a_limb_3"] == c2["a_limb_3"];
-
-    Bool res0 = Bool(c1["c_limb_0"], *s) !=
-                Bool(c2["c_limb_0"], *s); // TODO(alex) assert_in_field is alredy called find where it's not the case
-    Bool res1 = Bool(c1["c_limb_1"], *s) != Bool(c2["c_limb_1"], *s);
-    Bool res2 = Bool(c1["c_limb_2"], *s) != Bool(c2["c_limb_2"], *s);
-    Bool res3 = Bool(c1["c_limb_3"], *s) != Bool(c2["c_limb_3"], *s);
-
-    const std::vector<Bool> terms = { res0, res1, res2, res3 };
-    Bool res = batch_or(terms);
-    res.assert_term();
-}
-
 void model_variables1(Circuit& c1, Circuit& c2, Solver* s)
 {
     std::unordered_map<std::string, cvc5::Term> terms;
@@ -227,11 +209,9 @@ TEST(bigfield, unique_square)
     CircuitSchema circuit_info = unpack_from_buffer(buf);
 
     Solver s(r, true, 10, 1000);
-    Circuit circuit1(circuit_info, &s, "circ1");
-    Circuit circuit2(circuit_info, &s, "circ2");
 
-    unique_result(circuit1, circuit2, &s);
-
+    std::pair<Circuit, Circuit> cs = unique_witness(
+        circuit_info, &s, { "a_limb_0, a_limb_1, a_limb_2, a_limb3" }, { "c_limb_0, c_limb_1, c_limb_2, c_limb3" });
     auto start = std::chrono::high_resolution_clock::now();
     bool res = s.check();
     auto stop = std::chrono::high_resolution_clock::now();
@@ -240,11 +220,11 @@ TEST(bigfield, unique_square)
     ASSERT_FALSE(res);
 
     info();
-    info("Gates: ", circuit1.get_num_gates());
+    info("Gates: ", cs.first.get_num_gates());
     info("Result: ", s.getResult());
     info("Time elapsed: ", static_cast<double>(duration.count()) / 1e6, " sec");
 
     if (res) {
-        model_variables1(circuit1, circuit2, &s);
+        model_variables1(cs.first, cs.second, &s);
     }
 }

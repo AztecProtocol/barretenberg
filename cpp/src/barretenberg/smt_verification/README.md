@@ -89,6 +89,9 @@ Now you can import it using <cvc5/cvc5.h>
 	You should generate an unordered map with `str->term` values and ask the solver to obtain `unoredered_map<str, str> res = solver.model(unordered_map<str, FFTerm> terms)`. 
 	Now you have the values of the specified terms, which resulted into `true` result. 
 
+6. Automated verification of a unique witness
+
+    There's also a function `pair<Circuit, Circuit> unique_witness(CircuitSchema circuit_info, Solver* s, vector<str> inputs, vector<str> outputs)` that will create two separate circuits and constrain their inputs to be eqal and outputs to be not. Then later you can run `s.check()` and `s.model()` if you wish.
 
 ## 3. Simple examples
 
