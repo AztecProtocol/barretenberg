@@ -169,9 +169,14 @@ std::pair<Circuit, Circuit> unique_witness(CircuitSchema& circuit_info,
     for (const auto& out : outputs) {
         Bool tmp = Bool(c1[out], *s) != Bool(c2[out], *s);
         neqs.push_back(tmp);
+        std::cout << std::string(tmp) << std::endl;
     }
-    Bool neq = batch_or(neqs);
-    neq.assert_term();
+
+    if (neqs.size() > 1) {
+        batch_or(neqs).assert_term();
+    } else if (neqs.size() == 1) {
+        neqs[0].assert_term();
+    }
     return { c1, c2 };
 }
 
