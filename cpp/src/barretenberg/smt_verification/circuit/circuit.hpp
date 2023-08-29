@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "barretenberg/smt_verification/terms/bool.hpp"
 #include "barretenberg/smt_verification/terms/ffterm.hpp"
 //#include "barretenberg/smt_tests/terms/bool.hpp"
 
@@ -26,6 +27,7 @@ struct CircuitSchema {
     MSGPACK_FIELDS(public_inps, vars_of_interest, variables, selectors, wits);
 };
 
+// TODO(alex): think on the partial value assertion inside the circuit.
 class Circuit { // SymCircuit?
   private:
     std::vector<std::string> variables;
@@ -55,7 +57,13 @@ CircuitSchema unpack_from_file(const std::string& fname);
 
 std::pair<Circuit, Circuit> unique_witness(CircuitSchema& circuit_info,
                                            Solver* s,
-                                           const std::vector<std::string>& inputs,
-                                           const std::vector<std::string>& outputs);
+                                           const std::vector<std::string>& equal,
+                                           const std::vector<std::string>& nequal,
+                                           const std::vector<std::string>& eqall = {},
+                                           const std::vector<std::string>& neqall = {});
+
+// void get_all_solutions(std::unordered_map<std::string, cvc5::Term>, std::unordered_map)
+// TODO(alex): Do we need the function that will do recheck based on the current model to consequently find all the
+// solutions.
 
 }; // namespace smt_circuit

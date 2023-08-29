@@ -155,21 +155,37 @@ CircuitSchema unpack_from_buffer(const msgpack::sbuffer& buf)
 
 std::pair<Circuit, Circuit> unique_witness(CircuitSchema& circuit_info,
                                            Solver* s,
-                                           const std::vector<std::string>& inputs,
-                                           const std::vector<std::string>& outputs)
+                                           const std::vector<std::string>& equal,
+                                           const std::vector<std::string>& nequal,
+                                           const std::vector<std::string>& eqall,
+                                           const std::vector<std::string>& neqall)
 {
     Circuit c1(circuit_info, s, "circuit1");
     Circuit c2(circuit_info, s, "circuit2");
 
-    for (const auto& input : inputs) {
-        c1[input] == c2[input];
+    for (const auto& term : equal) {
+        c1[term] == c2[term];
+    }
+    for (const auto& term : nequal) {
+        c1[term] != c2[term];
+    }
+
+    std::vector<Bool> eqs;
+    for (const auto& term : eqall) {
+        Bool tmp = Bool(c1[term]) == Bool(c2[term]);
+        eqs.push_back(tmp);
+    }
+
+    if (eqs.size() > 1) {
+        batch_or(eqs).assert_term();
+    } else if (eqs.size() == 1) {
+        eqs[0].assert_term();
     }
 
     std::vector<Bool> neqs;
-    for (const auto& out : outputs) {
-        Bool tmp = Bool(c1[out], *s) != Bool(c2[out], *s);
+    for (const auto& term : neqall) {
+        Bool tmp = Bool(c1[term]) != Bool(c2[term]);
         neqs.push_back(tmp);
-        std::cout << std::string(tmp) << std::endl;
     }
 
     if (neqs.size() > 1) {
