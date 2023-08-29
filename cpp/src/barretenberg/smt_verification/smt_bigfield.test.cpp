@@ -210,8 +210,11 @@ TEST(bigfield, unique_square)
 
     Solver s(r, true, 10, 1000);
 
-    std::pair<Circuit, Circuit> cs = unique_witness(
-        circuit_info, &s, { "a_limb_0, a_limb_1, a_limb_2, a_limb3" }, { "c_limb_0, c_limb_1, c_limb_2, c_limb3" });
+    std::pair<Circuit, Circuit> cs = unique_witness(circuit_info,
+                                                    &s,
+                                                    { "a_limb_0", "a_limb_1", "a_limb_2", "a_limb_3" },
+                                                    { "c_limb_0", "c_limb_1", "c_limb_2", "c_limb_3" });
+
     auto start = std::chrono::high_resolution_clock::now();
     bool res = s.check();
     auto stop = std::chrono::high_resolution_clock::now();

@@ -97,23 +97,21 @@ TEST(circuit_verification, multiplication_false)
 }
 
 TEST(circuit_verifiaction, unique_witness)
+// two roots of a quadratic eq x^2 + a * x + b = s
 {
     StandardCircuitBuilder builder = StandardCircuitBuilder();
 
-    field_t a(witness_t(&builder, fr::random_element()));
-    field_t b(witness_t(&builder, fr::random_element()));
+    field_t a(pub_witness_t(&builder, fr::random_element()));
+    field_t b(pub_witness_t(&builder, fr::random_element()));
+    info("a = ", a);
+    info("b = ", b);
     builder.set_variable_name(a.witness_index, "a");
     builder.set_variable_name(b.witness_index, "b");
-
-    field_t c;
-    for (size_t i = 0; i < 20; i++) {
-        c = a + b;
-        a = b;
-        b = c;
-    }
-
-    builder.set_variable_name(a.witness_index, "pre_res");
-    builder.set_variable_name(b.witness_index, "res");
+    field_t z(witness_t(&builder, fr::random_element()));
+    field_t ev = z * z + a * z + b;
+    info("ev = ", ev);
+    builder.set_variable_name(z.witness_index, "z");
+    builder.set_variable_name(ev.witness_index, "ev");
 
     auto buf = builder.export_circuit();
 
@@ -121,8 +119,17 @@ TEST(circuit_verifiaction, unique_witness)
     smt_circuit::CircuitSchema circuit_info = smt_circuit::unpack_from_buffer(buf);
 
     std::pair<smt_circuit::Circuit, smt_circuit::Circuit> cirs =
-        smt_circuit::unique_witness(circuit_info, &s, { "a", "b", "res" }, { "pre_res" });
+        smt_circuit::unique_witness(circuit_info, &s, { "ev" }, { "z" });
 
     bool res = s.check();
     ASSERT_TRUE(res);
+    for (auto x : s.s.getAssertions()) {
+        info(x);
+        info();
+    }
+
+    std::unordered_map<std::string, cvc5::Term> terms = { { "z_c1", cirs.first["z"] }, { "z_c2", cirs.second["z"] } };
+    std::unordered_map<std::string, std::string> vals = s.model(terms);
+    info(vals["z_c1"]);
+    info(vals["z_c2"]);
 }

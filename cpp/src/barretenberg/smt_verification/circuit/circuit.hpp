@@ -30,6 +30,10 @@ struct CircuitSchema {
 // TODO(alex): think on the partial value assertion inside the circuit.
 class Circuit { // SymCircuit?
   private:
+    void init();
+    void add_gates();
+
+  public:
     std::vector<std::string> variables;
     std::vector<uint32_t> public_inps;
     std::unordered_map<uint32_t, std::string> vars_of_interest;
@@ -41,10 +45,6 @@ class Circuit { // SymCircuit?
     Solver* solver;
     std::string tag;
 
-    void init();
-    void add_gates();
-
-  public:
     explicit Circuit(CircuitSchema& circuit_info, Solver* solver, const std::string& tag = "");
 
     FFTerm operator[](const std::string& name);
