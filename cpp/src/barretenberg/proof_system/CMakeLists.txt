@@ -1,1 +1,1 @@
-barretenberg_module(proof_system polynomials crypto_generators crypto_pedersen_hash stdlib_primitives)
+barretenberg_module(proof_system polynomials crypto_generators crypto_pedersen_hash)

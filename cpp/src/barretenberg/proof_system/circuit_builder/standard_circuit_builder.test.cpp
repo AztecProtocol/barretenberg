@@ -1,12 +1,7 @@
 #include "barretenberg/crypto/generators/generator_data.hpp"
 #include "barretenberg/crypto/pedersen_commitment/pedersen.hpp"
 #include "standard_circuit_builder.hpp"
-#include <fstream>
 #include <gtest/gtest.h>
-#include <iostream>
-#include <string>
-
-#include "barretenberg/stdlib/primitives/field/field.hpp"
 
 using namespace barretenberg;
 using namespace proof_system;
@@ -473,4 +468,5 @@ TEST(standard_circuit_constructor, test_check_circuit_broken)
     bool result = circuit_constructor.check_circuit();
     EXPECT_EQ(result, false);
 }
+
 } // namespace standard_circuit_constructor_tests
