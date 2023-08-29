@@ -511,42 +511,11 @@ template <typename FF> bool StandardCircuitBuilder_<FF>::check_circuit()
     return true;
 }
 
-// template <typename FF> void StandardCircuitBuilder_<FF>::export_circuit_json(std::ostream& out)
-// {
-//     using base = CircuitBuilderBase<arithmetization::Standard<FF>>;
-
-//     out << "{\"public_inps\": [";
-//     for (uint32_t i = 0; i < this->get_num_public_inputs(); i++) {
-//         out << this->real_variable_index[this->public_inputs[i]] << ", ";
-//     }
-//     out << "],\n";
-
-//     out << "\"vars_of_interest\" : {";
-//     for (auto& tup : base::variable_names) {
-//         out << this->real_variable_index[tup.first] << ": \"" + tup.second + "\",\n";
-//     }
-//     out << "}, ";
-
-//     out << "\"variables\": [";
-//     for (auto var : this->variables) {
-//         out << "\"" << var << "\", ";
-//     }
-//     out << "], \n";
-
-//     out << "\"gates\": [";
-//     for (size_t i = 0; i < this->num_gates; i++) {
-//         out << "[\"" << q_m[i] << "\", \"" << q_1[i] << "\"";
-//         out << ", \"" << q_2[i] << "\"";
-//         out << ", \"" << q_3[i] << "\"";
-//         out << ", \"" << q_c[i] << "\"";
-//         out << ", " << this->real_variable_index[w_l[i]] << "";
-//         out << ", " << this->real_variable_index[w_r[i]] << "";
-//         out << ", " << this->real_variable_index[w_o[i]] << "";
-//         out << "],\n";
-//     }
-//     out << "]}\n\n";
-// }
-
+/**
+ * Export the existing circuit into msgpack compatible buffer.
+ *
+ * @return msgpack compatible buffer
+ */
 template <typename FF> msgpack::sbuffer StandardCircuitBuilder_<FF>::export_circuit()
 {
     using base = CircuitBuilderBase<arithmetization::Standard<FF>>;

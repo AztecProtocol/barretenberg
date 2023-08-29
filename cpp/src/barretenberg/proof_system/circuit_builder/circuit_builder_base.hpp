@@ -195,11 +195,12 @@ template <typename Arithmetization> class CircuitBuilderBase {
     }
 
     /**
-     * Assign a name to a variable. One name per class(or maybe not).
+     * Assign a name to a variable(equivalence calss). Should be one name per equivalence class.
      *
-     * @param index The index of the variable you want to name.
+     * @param index Index of the variable you want to name.
+     * @param name  Name of the variable.
      *
-     * */
+     */
     virtual void set_variable_name(uint32_t index, const std::string& name)
     {
         ASSERT(variables.size() > index);
@@ -212,7 +213,13 @@ template <typename Arithmetization> class CircuitBuilderBase {
         variable_names.insert({ first_idx, name });
     }
 
-    // explisitly call after assert_equal
+    /**
+     * After assert_equal() merge two class names if present.
+     * Preserves the first name in class.
+     *
+     * @param index Index of the variable you have previously named and used in assert_equal.
+     *
+     */
     virtual void update_variable_names(uint32_t index)
     {
         uint32_t first_idx = get_first_variable_in_class(index);
@@ -238,7 +245,11 @@ template <typename Arithmetization> class CircuitBuilderBase {
         failure("No previously assigned names found");
     }
 
-    // must be called at the end of the circuit construction
+    /**
+     * After finishing the circuit can be called for automatic merging
+     * all existing collisions.
+     *
+     */
     virtual void finalize_variable_names()
     {
         std::vector<uint32_t> keys;
@@ -264,12 +275,16 @@ template <typename Arithmetization> class CircuitBuilderBase {
         }
     }
 
+    /**
+     * Export the existing circuit into msgpack compatible buffer.
+     *
+     * @return msgpack compatible buffer
+     */
     virtual msgpack::sbuffer export_circuit()
     {
         info("not implemented");
-        return { 1 };
+        return { 0 };
     };
-    // virtual std::string export_circuit_json() { info("not implemented"); };
 
     /**
      * Add a public variable to variables
