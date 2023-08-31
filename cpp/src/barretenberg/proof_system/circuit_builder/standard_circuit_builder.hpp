@@ -118,6 +118,7 @@ template <typename FF> class StandardCircuitBuilder_ : public CircuitBuilderBase
 
   private:
     struct CircuitSchema {
+        std::string modulus;
         std::vector<uint32_t> public_inps;
         std::unordered_map<uint32_t, std::string> vars_of_interest;
         std::vector<FF> variables;

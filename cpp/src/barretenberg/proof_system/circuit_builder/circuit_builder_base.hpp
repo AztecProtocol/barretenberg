@@ -195,7 +195,7 @@ template <typename Arithmetization> class CircuitBuilderBase {
     }
 
     /**
-     * Assign a name to a variable(equivalence calss). Should be one name per equivalence class.
+     * Assign a name to a variable(equivalence class). Should be one name per equivalence class.
      *
      * @param index Index of the variable you want to name.
      * @param name  Name of the variable.
