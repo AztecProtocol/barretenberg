@@ -80,11 +80,6 @@ msgpack::sbuffer create_circuit(size_t n, bool pub_coeffs)
     return builder.export_circuit();
 }
 
-const std::string r = "21888242871839275222246405745257275088548364400416034343698204186575808495617";
-const std::string q = "21888242871839275222246405745257275088696311157297823662689037894645226208583";
-const std::string r_hex = "30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001";
-const std::string q_hex = "30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47";
-
 FFTerm polynomial_evaluation(Circuit& c, size_t n, bool is_correct = true)
 {
     std::vector<smt_terms::FFTerm> coeffs(n);
@@ -125,7 +120,7 @@ TEST(polynomial_evaluation, correct)
 
     CircuitSchema circuit_info = unpack_from_buffer(buf);
 
-    Solver s(r, true, 10);
+    Solver s(circuit_info.modulus, true);
     Circuit circuit(circuit_info, &s);
     FFTerm ev = polynomial_evaluation(circuit, n, true);
 
@@ -148,7 +143,7 @@ TEST(polynomial_evaluation, incorrect)
 
     CircuitSchema circuit_info = unpack_from_buffer(buf);
 
-    Solver s(r, true, 10);
+    Solver s(circuit_info.modulus, true);
     Circuit circuit(circuit_info, &s);
     FFTerm ev = polynomial_evaluation(circuit, n, false);
 

@@ -86,11 +86,6 @@ msgpack::sbuffer create_circuit(bool pub_ab, bool ab)
     return builder.export_circuit();
 }
 
-const std::string r = "21888242871839275222246405745257275088548364400416034343698204186575808495617";
-const std::string q = "21888242871839275222246405745257275088696311157297823662689037894645226208583";
-const std::string r_hex = "30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001";
-const std::string q_hex = "30644e72e131a029b85045b68181585d97816a916871ca8d3c208c16d87cfd47";
-
 std::vector<FFTerm> correct_result(Circuit& c, Solver* s)
 {
     FFTerm a_limb0 = c["a_limb_0"];
@@ -183,7 +178,7 @@ TEST(bigfield, multiplication_equal)
     auto buf = create_circuit(public_a_b, a_neq_b);
 
     CircuitSchema circuit_info = unpack_from_buffer(buf);
-    Solver s(r, true, 10);
+    Solver s(circuit_info.modulus, true);
     Circuit circuit(circuit_info, &s);
     std::vector<FFTerm> ev = correct_result(circuit, &s);
 
@@ -208,7 +203,7 @@ TEST(bigfield, unique_square)
 
     CircuitSchema circuit_info = unpack_from_buffer(buf);
 
-    Solver s(r, true, 10, 1000);
+    Solver s(circuit_info.modulus, true, 16);//, 1000);
 
     std::pair<Circuit, Circuit> cs = unique_witness(circuit_info,
                                                     &s,
