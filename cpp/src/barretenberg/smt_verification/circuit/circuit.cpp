@@ -64,7 +64,6 @@ void Circuit::init()
 {
     size_t num_vars = variables.size();
 
-    // I believe noone will name zero and one otherwise...
     vars.push_back(Var("zero" + this->tag, this->solver));
     vars.push_back(Var("one" + this->tag, this->solver));
 
