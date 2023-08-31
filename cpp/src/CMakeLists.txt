@@ -58,8 +58,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/msgp
 #         -DUSE_POLY=ON 
 #         -DUSE_COCOA=ON 
 # )
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cvc5/tmp-lib/include)
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cvc5/tmp-lib/include)
 #add_subdirectory(cvc5)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} $ENV{HOME}/cvc5/tmp-lib/include)
 
 
 # I feel this should be limited to ecc, however it's currently used in headers that go across libraries,
