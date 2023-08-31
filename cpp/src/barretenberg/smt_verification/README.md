@@ -2,10 +2,19 @@
 
 As for now it's required to build cvc5 library manually.
 
+<!-- 
 - navigate yourself into barratenberg/cpp/src/cvc5 directory
 - run `./configure.sh production --auto-download --cocoa --cryptominisat -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ --prefix="./tmp-lib"`
 - `cd build && make -j4`
-- `make install`
+- `make install` 
+-->
+
+- inside your home repository do `git clone git@github.com:Sarkoxed/cvc5.git` (temporarily, since they have been merging my patch for a month now)
+- inside the cvc5 repo: 
+    - `git checkout finite-field-base-support`
+    - `./configure.sh production --auto-download --cocoa --cryptominisat -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_CXX_COMPILER=/usr/bin/clang++ --prefix="./tmp-lib"`
+    - `cd build && make`
+    - `make install`
 
 Now you can import it using <cvc5/cvc5.h>
 
@@ -23,7 +32,17 @@ Now you can import it using <cvc5/cvc5.h>
 
 - ```export_circuit()``` - exports all variables, gates, and assigned names to an msgpack-compatible buffer namely `msgpack::sbuffer`.
 
-- ```export_circuit_json()``` - exports all variables, gates, and assigned names to a json(kinda)-compatible string.
+To store it on the disk just do 
+
+```cpp
+    msgpack::sbuffer buffer = circuit.export_circuit();
+    
+    std::fstream myfile;
+    myfile.open("fname.pack", std::ios::out | std::ios::trunc | std::ios::binary);
+
+    myfile.write(buffer.data(), static_cast<long>(buffer.size()));
+    myfile.close();
+```
 
 ## 2. Symbolic Circuit initialization and term creation
 
@@ -38,7 +57,7 @@ Now you can import it using <cvc5/cvc5.h>
 
 	`smt_solver::Solver s(str modulus, bool produce_model=false, u32 base=16, u64 timeout)`
 	
-	!note that there should be no "0x" part in the modulus hex representation.
+	!note that there should be no "0x" part in the modulus hex representation if you put it manually. Otherwise you can use CircuitSchema.modulus member.
 	
 	`produce_model` flag should be initialized as true if you want to check the values obtained using the solver when the result of the check does not meet your expectations. **All the public variables will be constrained to be equal their real value**.
 	
@@ -110,7 +129,7 @@ Now you can import it using <cvc5/cvc5.h>
     auto buf = builder.export_circuit();
 
     smt_circuit::CircuitSchema circuit_info = smt_circuit::unpack_from_buffer(buf);
-    smt_solver::Solver s(p, true, 10);
+    smt_solver::Solver s(circuit_info.modulus, true, 10);
     smt_circuit::Circuit circuit(circuit_info, &s);
     smt_terms::FFTerm a1 = circuit["a"];
     smt_terms::FFTerm b1 = circuit["b"];
@@ -141,7 +160,7 @@ Now you can import it using <cvc5/cvc5.h>
     auto buf = builder.export_circuit();
 
     smt_circuit::CircuitSchema circuit_info = smt_circuit::unpack_from_buffer(buf);
-    smt_solver::Solver s(p, true, 10);
+    smt_solver::Solver s(circuit_info.modulus, true);
     smt_circuit::Circuit circuit(circuit_info, &s);
 
     smt_terms::FFTerm a1 = circuit["a"];
