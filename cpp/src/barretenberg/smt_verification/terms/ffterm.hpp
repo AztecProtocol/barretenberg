@@ -4,6 +4,14 @@
 namespace smt_terms {
 using namespace smt_solver;
 
+/** 
+ * @brief Finite Field element class.
+ *
+ * @details Can be a finite field symbolic variable or a constant.
+ * Both of them support basic arithmetic operations: +, -, *, /.
+ * Check the satisfability of a system and get it's model.
+ *
+ */
 class FFTerm {
   public:
     Solver* solver;
@@ -35,11 +43,6 @@ class FFTerm {
 
     void operator==(const FFTerm& other) const;
     void operator!=(const FFTerm& other) const;
-
-    // TODO(alex): Maybe do the same thing with +, - but I don't see a point
-    // and also properlythink on how to implement this sh
-    // void operator==(const std::pair<std::string, uint32_t>& other) const;
-    // void operator!=(const std::pair<std::string, uint32_t>& other) const;
 
     operator std::string() const { return isconst ? term.getFiniteFieldValue() : term.toString(); };
     operator cvc5::Term() const { return term; };

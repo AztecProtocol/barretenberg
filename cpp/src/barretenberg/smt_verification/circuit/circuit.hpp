@@ -19,6 +19,7 @@ using namespace smt_terms;
 const std::string p = "21888242871839275222246405745257275088548364400416034343698204186575808495617";
 
 struct CircuitSchema {
+    std::string modulus;
     std::vector<uint32_t> public_inps;
     std::unordered_map<uint32_t, std::string> vars_of_interest;
     std::vector<barretenberg::fr> variables;
@@ -27,23 +28,33 @@ struct CircuitSchema {
     MSGPACK_FIELDS(public_inps, vars_of_interest, variables, selectors, wits);
 };
 
-// TODO(alex): think on the partial value assertion inside the circuit.
-class Circuit { // SymCircuit?
+/**
+ * @brief Symbolic Circuit class.
+ * 
+ * @details Contains all the information about the circuit: gates, variables, 
+ * symbolic variables, specified names and global solver.
+ *
+ * @todo TODO(alex): think on the partial value assertion inside the circuit.
+ * @todo TODO(alex): class SymCircuit?
+ */
+class Circuit {
   private:
     void init();
     void add_gates();
 
   public:
-    std::vector<std::string> variables;
-    std::vector<uint32_t> public_inps;
-    std::unordered_map<uint32_t, std::string> vars_of_interest;
-    std::unordered_map<std::string, uint32_t> terms;
-    std::vector<std::vector<std::string>> selectors;
-    std::vector<std::vector<uint32_t>> wit_idxs;
-    std::vector<FFTerm> vars;
+    std::vector<std::string> variables;               // circuit witness
+    std::vector<uint32_t> public_inps;                // public inputs from the circuit
+    std::unordered_map<uint32_t, std::string> vars_of_interest; // names of the variables
+    std::unordered_map<std::string, uint32_t> terms;  // inverse map of the previous memeber
+    std::vector<std::vector<std::string>> selectors;  // selectors from the circuit
+    std::vector<std::vector<uint32_t>> wit_idxs;      // values used in gates from the circuit
+    std::vector<FFTerm> vars;                         // all the symbolic variables in the circuit
 
-    Solver* solver;
-    std::string tag;
+    Solver* solver;                                   // pointer to the solver
+    std::string tag;                                  // tag of the symbolic circuit. 
+                                                      // If not empty, will be added to the names
+                                                      // of symbolic variables to prevent collisions.
 
     explicit Circuit(CircuitSchema& circuit_info, Solver* solver, const std::string& tag = "");
 
@@ -62,8 +73,8 @@ std::pair<Circuit, Circuit> unique_witness(CircuitSchema& circuit_info,
                                            const std::vector<std::string>& eqall = {},
                                            const std::vector<std::string>& neqall = {});
 
-// void get_all_solutions(std::unordered_map<std::string, cvc5::Term>, std::unordered_map)
 // TODO(alex): Do we need the function that will do recheck based on the current model to consequently find all the
-// solutions.
+// solutions?
+// void get_all_solutions(std::unordered_map<std::string, cvc5::Term>, std::unordered_map)
 
 }; // namespace smt_circuit

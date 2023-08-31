@@ -4,6 +4,16 @@
 
 namespace smt_solver {
 
+/** 
+ * @brief Class for the solver.
+ *
+ * @details Solver class that can be used to create
+ * a solver, finite field terms and the circuit. 
+ * Check the satisfability of a system and get it's model.
+ *
+ * @todo TODO(alex): more cvc5 options inside the constructor.
+ * @todo TODO(alex) perhaps add the << operator to make it easier to read the constraints.
+ */
 class Solver {
   private:
     bool res = false;
@@ -13,7 +23,6 @@ class Solver {
     cvc5::Solver s;
     cvc5::Sort fp;
 
-    // TODO(alex): more options???
     explicit Solver(const std::string& modulus, bool produce_model = false, uint32_t base = 16, uint32_t timeout = 0)
     {
         fp = s.mkFiniteFieldSort(modulus, base);
@@ -35,7 +44,7 @@ class Solver {
     [[nodiscard]] std::string getResult() const
     {
         if (!checked) {
-            return "no result, yet";
+            return "No result, yet";
         }
         return res ? "SAT" : "UNSAT";
     }
@@ -43,5 +52,4 @@ class Solver {
     std::unordered_map<std::string, std::string> model(std::unordered_map<std::string, cvc5::Term>& terms) const;
     ~Solver() = default;
 };
-
 }; // namespace smt_solver

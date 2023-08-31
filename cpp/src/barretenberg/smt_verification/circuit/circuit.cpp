@@ -1,6 +1,13 @@
 #include "circuit.hpp"
 namespace smt_circuit {
 
+/**
+ * @brief Construct a new Circuit::Circuit object
+ * 
+ * @param circuit_info CircuitShema object
+ * @param solver pointer to the global solver
+ * @param tag tag of the circuit. Empty by default.
+ */
 Circuit::Circuit(CircuitSchema& circuit_info, Solver* solver, const std::string& tag)
     : public_inps(circuit_info.public_inps)
     , vars_of_interest(circuit_info.vars_of_interest)
@@ -48,6 +55,11 @@ Circuit::Circuit(CircuitSchema& circuit_info, Solver* solver, const std::string&
     this->add_gates();
 }
 
+/**
+ * Creates all the needed symbolic variables and constants
+ * which are used in circuit.
+ * 
+ */
 void Circuit::init()
 {
     size_t num_vars = variables.size();
@@ -56,7 +68,6 @@ void Circuit::init()
     vars.push_back(Var("zero" + this->tag, this->solver));
     vars.push_back(Var("one" + this->tag, this->solver));
 
-    // TODO(alex): maybe public variables should be Consts
     for (size_t i = 2; i < num_vars; i++) {
         if (vars_of_interest.contains(static_cast<uint32_t>(i))) {
             std::string name = vars_of_interest[static_cast<uint32_t>(i)];
@@ -74,6 +85,10 @@ void Circuit::init()
     }
 }
 
+/**
+ * @brief Adds all the gate constraints to the solver.
+ * 
+ */
 void Circuit::add_gates()
 {
     for (size_t i = 0; i < get_num_gates(); i++) {
@@ -113,6 +128,12 @@ void Circuit::add_gates()
     }
 }
 
+/**
+ * @brief Returns a previously named symbolic variable.
+ * 
+ * @param name 
+ * @return FFTerm 
+ */
 FFTerm Circuit::operator[](const std::string& name)
 {
     if (!this->terms.contains(name)) {
@@ -122,6 +143,14 @@ FFTerm Circuit::operator[](const std::string& name)
     return this->vars[idx];
 }
 
+/**
+ * @brief Get the CircuitSchema object
+ * @details Initialize the CircuitSchmea from the binary file
+ * that contains an msgpack compatible buffer.
+ * 
+ * @param filename 
+ * @return CircuitSchema 
+ */
 CircuitSchema unpack_from_file(const std::string& filename)
 {
     std::ifstream fin;
@@ -146,6 +175,13 @@ CircuitSchema unpack_from_file(const std::string& filename)
     return cir;
 }
 
+/**
+ * @brief Get the CircuitSchema object
+ * @details Initialize the CircuitSchmea from the msgpack compatible buffer.
+ * 
+ * @param buf 
+ * @return CircuitSchema 
+ */
 CircuitSchema unpack_from_buffer(const msgpack::sbuffer& buf)
 {
     CircuitSchema cir;
@@ -153,6 +189,21 @@ CircuitSchema unpack_from_buffer(const msgpack::sbuffer& buf)
     return cir;
 }
 
+/**
+ * @brief Check your circuit for witness uniqness
+ * 
+ * @details Creates two Circuit objects that represent the same
+ * circuit, however you can choose which variables should be (not) equal in both cases,
+ * and also the variables that should (not) be equal at the same time.
+ *  
+ * @param circuit_info 
+ * @param s pointer to the global solver
+ * @param equal all the variables that should be equal in both circuits
+ * @param nequal all the variables that should be different in both circuits
+ * @param eqall all the variables that should not be equal at the same time
+ * @param neqall all the variables that should not be different at the same time
+ * @return std::pair<Circuit, Circuit>
+ */
 std::pair<Circuit, Circuit> unique_witness(CircuitSchema& circuit_info,
                                            Solver* s,
                                            const std::vector<std::string>& equal,

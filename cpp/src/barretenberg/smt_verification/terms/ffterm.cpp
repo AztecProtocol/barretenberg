@@ -2,10 +2,26 @@
 
 namespace smt_terms {
 
+/**
+ * Create a finite field symbolic variable.
+ *
+ * @param name Name of the variable. Should be unique per variable.
+ * @param slv  Pointer to the global solver.
+ * @return Finite field symbolic variable.
+ * */
 FFTerm Var(const std::string& name, Solver* slv)
 {
     return FFTerm(name, slv);
 };
+
+/**
+ * Create a finite field numeric member.
+ *
+ * @param val  String representation of the value.
+ * @param slv  Pointer to the global solver.
+ * @param base Base of the string representation. 16 by default.
+ * @return Finite field constant.
+ * */
 FFTerm Const(const std::string& val, Solver* slv, uint32_t base)
 {
     return FFTerm(val, slv, true, base);
@@ -58,6 +74,16 @@ void FFTerm::operator*=(const FFTerm& other)
     this->term = this->solver->s.mkTerm(cvc5::Kind::FINITE_FIELD_MULT, { this->term, other.term });
 }
 
+/**
+ * @brief Division operation
+ * 
+ * @details Returns a result of the division by
+ * creating a new symbolic variable and adding a new constraint 
+ * to the solver.
+ *
+ * @param other 
+ * @return FFTerm 
+ */
 FFTerm FFTerm::operator/(const FFTerm& other) const
 {
     cvc5::Term res = this->solver->s.mkConst(this->solver->fp,
@@ -80,12 +106,20 @@ void FFTerm::operator/=(const FFTerm& other)
     this->term = res;
 }
 
+/**
+ * Create an equality constraint between two finite field elements.
+ *
+ */
 void FFTerm::operator==(const FFTerm& other) const
 {
     cvc5::Term eq = this->solver->s.mkTerm(cvc5::Kind::EQUAL, { this->term, other.term });
     this->solver->s.assertFormula(eq);
 }
 
+/**
+ * Create an inequality constraint between two finite field elements.
+ *
+ */
 void FFTerm::operator!=(const FFTerm& other) const
 {
     cvc5::Term eq = this->solver->s.mkTerm(cvc5::Kind::EQUAL, { this->term, other.term });

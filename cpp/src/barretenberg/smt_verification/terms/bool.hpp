@@ -4,6 +4,13 @@
 namespace smt_terms {
 using namespace smt_solver;
 
+/**
+ * @brief Bool element class.
+ * 
+ * @details Can be used to create non trivial constraints.
+ * Supports basic boolean arithmetic: &, |.
+ *
+ */
 class Bool {
   public:
     cvc5::Solver* solver;

@@ -3,8 +3,11 @@
 
 namespace smt_solver {
 
-// TODO(alex): timeouts are needed;
-
+/**
+ * Check if the symbolic model is solvable.
+ *
+ * @return true if the model is solvable.
+ * */
 bool Solver::check()
 {
     cvc5::Result result = this->s.checkSat();
@@ -13,6 +16,12 @@ bool Solver::check()
     return this->res;
 }
 
+/**
+ * If the system is solvable, extract the values for the given symbolic variables.
+ *
+ * @param terms A map containing pairs (name, symbolic term).
+ * @return A map containing pairs (name, value).
+ * */
 std::unordered_map<std::string, std::string> Solver::model(std::unordered_map<std::string, cvc5::Term>& terms) const
 {
     if (!this->res) {
@@ -25,5 +34,4 @@ std::unordered_map<std::string, std::string> Solver::model(std::unordered_map<st
     }
     return resulting_model;
 }
-
 }; // namespace smt_solver
