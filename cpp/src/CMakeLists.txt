@@ -39,27 +39,6 @@ endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/msgpack-c/include)
 
-#include(ExternalProject)
-#ExternalProject_Add(cvc5
-#    GIT_REPOSITORY https://github.com/Sarkoxed/cvc5
-#    GIT_TAG origin/finite-field-base-support
-#    SOURCE_DIR src/cvc5
-#    BINARY_DIR build-cvc5
-#    CMAKE_ARGS
-# #       -DCMAKE_INSTAL_PREFIX:PATH=    
-# #       -DCMAKE_PREFIX_PATH="${CMAKE_BINARY_DIR}/tmp"
-#        -DCMAKE_BUILD_TYPE=Production
-#        -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-#         -DCMAKE_C_COMPILER=/usr/bin/clang 
-#         -DCMAKE_CXX_COMPILER=/usr/bin/clang++ 
-#         -DENABLE_AUTO_DOWNLOAD=ON 
-#         -DBUILD_SHARED_LIBS=OFF 
-#         -DUSE_CRYPTOMINISAT=ON 
-#         -DUSE_POLY=ON 
-#         -DUSE_COCOA=ON 
-# )
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/cvc5/tmp-lib/include)
-#add_subdirectory(cvc5)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} $ENV{HOME}/cvc5/tmp-lib/include)
 
 
