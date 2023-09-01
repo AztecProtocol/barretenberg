@@ -1,16 +1,14 @@
 #pragma once
+#include "barretenberg/serialize/cbind.hpp"
+#include "barretenberg/serialize/msgpack.hpp"
 #include <fstream>
 #include <limits>
 #include <sstream>
-//#include <format>
-#include "barretenberg/serialize/cbind.hpp"
-#include "barretenberg/serialize/msgpack.hpp"
 #include <string>
 #include <unordered_map>
 
 #include "barretenberg/smt_verification/terms/bool.hpp"
 #include "barretenberg/smt_verification/terms/ffterm.hpp"
-//#include "barretenberg/smt_tests/terms/bool.hpp"
 
 namespace smt_circuit {
 using namespace smt_solver;
@@ -30,8 +28,8 @@ struct CircuitSchema {
 
 /**
  * @brief Symbolic Circuit class.
- * 
- * @details Contains all the information about the circuit: gates, variables, 
+ *
+ * @details Contains all the information about the circuit: gates, variables,
  * symbolic variables, specified names and global solver.
  *
  * @todo TODO(alex): think on the partial value assertion inside the circuit.
@@ -43,18 +41,18 @@ class Circuit {
     void add_gates();
 
   public:
-    std::vector<std::string> variables;               // circuit witness
-    std::vector<uint32_t> public_inps;                // public inputs from the circuit
+    std::vector<std::string> variables;                         // circuit witness
+    std::vector<uint32_t> public_inps;                          // public inputs from the circuit
     std::unordered_map<uint32_t, std::string> vars_of_interest; // names of the variables
-    std::unordered_map<std::string, uint32_t> terms;  // inverse map of the previous memeber
-    std::vector<std::vector<std::string>> selectors;  // selectors from the circuit
-    std::vector<std::vector<uint32_t>> wit_idxs;      // values used in gates from the circuit
-    std::vector<FFTerm> vars;                         // all the symbolic variables in the circuit
+    std::unordered_map<std::string, uint32_t> terms;            // inverse map of the previous memeber
+    std::vector<std::vector<std::string>> selectors;            // selectors from the circuit
+    std::vector<std::vector<uint32_t>> wit_idxs;                // values used in gates from the circuit
+    std::vector<FFTerm> vars;                                   // all the symbolic variables in the circuit
 
-    Solver* solver;                                   // pointer to the solver
-    std::string tag;                                  // tag of the symbolic circuit. 
-                                                      // If not empty, will be added to the names
-                                                      // of symbolic variables to prevent collisions.
+    Solver* solver;  // pointer to the solver
+    std::string tag; // tag of the symbolic circuit.
+                     // If not empty, will be added to the names
+                     // of symbolic variables to prevent collisions.
 
     explicit Circuit(CircuitSchema& circuit_info, Solver* solver, const std::string& tag = "");
 
