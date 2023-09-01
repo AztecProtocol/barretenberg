@@ -86,6 +86,8 @@ msgpack::sbuffer create_circuit(bool pub_ab, bool ab)
     return builder.export_circuit();
 }
 
+const std::string q = "21888242871839275222246405745257275088696311157297823662689037894645226208583";
+
 std::vector<FFTerm> correct_result(Circuit& c, Solver* s)
 {
     FFTerm a_limb0 = c["a_limb_0"];
@@ -203,7 +205,7 @@ TEST(bigfield, unique_square)
 
     CircuitSchema circuit_info = unpack_from_buffer(buf);
 
-    Solver s(circuit_info.modulus, true, 16);//, 1000);
+    Solver s(circuit_info.modulus, true, 16); //, 1000);
 
     std::pair<Circuit, Circuit> cs = unique_witness(circuit_info,
                                                     &s,
