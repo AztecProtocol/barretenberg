@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.5.2](https://github.com/AztecProtocol/barretenberg/compare/barretenberg-v0.5.1...barretenberg-v0.5.2) (2023-09-07)
+
+
+### Features
+
+* `GrumpkinScalar` type ([#1919](https://github.com/AztecProtocol/barretenberg/issues/1919)) ([ca42322](https://github.com/AztecProtocol/barretenberg/commit/ca423221d3fba5a4d60f7239fc21092db12a3c31))
+
+
+### Bug Fixes
+
+* Add retry to tag and docker actions ([#2099](https://github.com/AztecProtocol/barretenberg/issues/2099)) ([113f991](https://github.com/AztecProtocol/barretenberg/commit/113f991b1e00cef05a0855af1471addb6fe99d65))
+* **breaking change:** Change embedded curve scalar mul to use two limbs to properly encode the scalar field ([#2105](https://github.com/AztecProtocol/barretenberg/issues/2105)) ([2281507](https://github.com/AztecProtocol/barretenberg/commit/2281507f31ea3a34b42a3ae278d7071f7e08573a))
+* Remaining refs to clang15 ([#2077](https://github.com/AztecProtocol/barretenberg/issues/2077)) ([4c456a2](https://github.com/AztecProtocol/barretenberg/commit/4c456a2b196282160fd69bead6a1cea85289af37))
+
 ## [0.5.1](https://github.com/AztecProtocol/barretenberg/compare/barretenberg-v0.5.0...barretenberg-v0.5.1) (2023-09-05)
 
 
