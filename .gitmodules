@@ -10,3 +10,6 @@
 [submodule "build-system"]
 	path = build-system
 	url = git@github.com:AztecProtocol/build-system.git
+[submodule "cpp/src/cvc5"]
+	path = cpp/src/cvc5
+	url = git@github.com:Sarkoxed/cvc5.git
