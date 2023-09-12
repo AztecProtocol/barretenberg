@@ -1,6 +1,7 @@
 #pragma once
 #include "claim_tx.hpp"
 #include <stdlib/types/turbo.hpp>
+#include "../notes/constants.hpp"
 
 namespace rollup {
 namespace proofs {
@@ -46,13 +47,15 @@ inline bool_ct product_check(Composer& composer,
     constexpr barretenberg::fr shift_3 = barretenberg::fr(uint256_t(1) << (68 * 3));
 
     // Split a field_t element into 4 68-bit limbs
-    const auto split_into_limbs = [&composer, &shift_1, &shift_2, &shift_3](const field_ct& input) {
+    const auto split_into_limbs = [&composer, &shift_1, &shift_2, &shift_3](const field_ct& input,
+                                                                            const size_t MAX_INPUT_BITS) {
         const uint256_t value = input.get_value();
 
-        const uint256_t t0 = value.slice(0, 68);
-        const uint256_t t1 = value.slice(68, 136);
-        const uint256_t t2 = value.slice(136, 204);
-        const uint256_t t3 = value.slice(204, 272);
+        constexpr size_t NUM_BITS_PER_LIMB = 68;
+        const uint256_t t0 = value.slice(0, NUM_BITS_PER_LIMB);
+        const uint256_t t1 = value.slice(NUM_BITS_PER_LIMB, 2 * NUM_BITS_PER_LIMB);
+        const uint256_t t2 = value.slice(2 * NUM_BITS_PER_LIMB, 3 * NUM_BITS_PER_LIMB);
+        const uint256_t t3 = value.slice(3 * NUM_BITS_PER_LIMB, 4 * NUM_BITS_PER_LIMB);
 
         std::array<field_ct, 4> limbs{
             witness_ct(&composer, t0),
@@ -70,14 +73,34 @@ inline bool_ct product_check(Composer& composer,
         limbs[2].create_range_constraint(68);
         limbs[3].create_range_constraint(68);
 
+        // Check that limb_hi * 2^LO_BITS + limb_lo < modulus when evaluated over the integers
+        {
+            field_ct limbs_lo = limbs[0] + limbs[1] * (uint256_t(1) << 68);
+            field_ct limbs_hi = limbs[2] + limbs[3] * (uint256_t(1) << 68);
+            constexpr size_t LO_BITS = 68 * 2;
+            const size_t HI_BITS = MAX_INPUT_BITS - LO_BITS;
+            const uint256_t modulus = (uint256_t(1) << MAX_INPUT_BITS) - 1;
+            const uint256_t r_lo = modulus.slice(0, LO_BITS);
+            const uint256_t r_hi = modulus.slice(LO_BITS, HI_BITS);
+            bool need_borrow = uint256_t(limbs_lo.get_value()) > r_lo;
+            field_ct borrow = limbs_lo.is_constant() ? need_borrow : field_ct(witness_ct(&composer, need_borrow));
+            (borrow * borrow).assert_equal(borrow);
+            // Hi range check = r_hi - y_hi - borrow
+            // Lo range check = r_lo - y_lo + borrow * 2^{136}
+            field_ct hi = (-limbs_hi + r_hi) - borrow;
+            field_ct lo = (-limbs_lo + r_lo) + (borrow * (uint256_t(1) << LO_BITS));
+
+            hi.create_range_constraint(HI_BITS, "limb split, HI_BITS fail");
+            lo.create_range_constraint(LO_BITS, "limb split, LO_BITS fail");
+        }
         return limbs;
     };
 
-    const auto left_1 = split_into_limbs(a1);
-    const auto left_2 = split_into_limbs(a2);
-    const auto right_1 = split_into_limbs(b1);
-    const auto right_2 = split_into_limbs(b2);
-    const auto residual_limbs = split_into_limbs(residual);
+    const auto left_1 = split_into_limbs(a1, notes::DEFI_DEPOSIT_VALUE_BIT_LENGTH);
+    const auto left_2 = split_into_limbs(a2, notes::NOTE_VALUE_BIT_LENGTH);
+    const auto right_1 = split_into_limbs(b1, notes::NOTE_VALUE_BIT_LENGTH);
+    const auto right_2 = split_into_limbs(b2, notes::NOTE_VALUE_BIT_LENGTH);
+    const auto residual_limbs = split_into_limbs(residual, notes::NOTE_VALUE_BIT_LENGTH);
 
     // takes a [204-208]-bit limb and splits it into a low 136-bit limb and a high 72-bit limb
     const auto split_out_carry_term = [&composer, &shift_2](const field_ct& limb) {
@@ -150,6 +173,29 @@ inline bool_ct product_check(Composer& composer,
 inline bool_ct ratio_check(Composer& composer, ratios const& ratios)
 {
     const field_ct residual = ratios.get_residual(composer);
+
+    // we have the following implicit definitions for `ratios.a1/a2/b1/b2`:
+    //       a1 = deposit_value
+    //       a2 = total_input_value
+    //       b1 = output_value
+    //       b2 = total_output_value
+    //
+    // we want the following expression over the integers:
+    //       output_value = (deposit_value * total_output_value) / total_input_value
+    //
+    // we do this via checking:
+    //      a1 * b2 == b1 * a2 + residual
+    //
+    // where `residual` is a remainder term in case `deposit_value * total_output_value` is not divisible by
+    // `total_input_value` this requires us to validate that `residual < total_input_value`
+
+    ratios.a1.create_range_constraint(notes::DEFI_DEPOSIT_VALUE_BIT_LENGTH, "ratio_check range constraint failure: a1");
+    ratios.a2.create_range_constraint(notes::NOTE_VALUE_BIT_LENGTH, "ratio_check range constraint failure: a2");
+    ratios.b1.create_range_constraint(notes::NOTE_VALUE_BIT_LENGTH, "ratio_check range constraint failure: b1");
+    ratios.b2.create_range_constraint(notes::NOTE_VALUE_BIT_LENGTH, "ratio_check range constraint failure: b2");
+    residual.create_range_constraint(notes::NOTE_VALUE_BIT_LENGTH, "ratio_check range constraint failure: residual");
+    (ratios.a2 - residual)
+        .create_range_constraint(notes::NOTE_VALUE_BIT_LENGTH, "ratio_check range constraint failure: residual >= a2");
 
     return (ratios.a2 != 0) && (ratios.b2 != 0) &&
            product_check(composer, ratios.a1, ratios.b2, ratios.b1, ratios.a2, residual);

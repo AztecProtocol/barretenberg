@@ -1579,6 +1579,34 @@ TEST_F(claim_tests, test_real_virtual)
     EXPECT_EQ(tx.get_output_notes()[0], result.public_inputs[InnerProofFields::NOTE_COMMITMENT1]);
     EXPECT_EQ(tx.get_output_notes()[1], result.public_inputs[InnerProofFields::NOTE_COMMITMENT2]);
 }
+
+TEST_F(claim_tests, test_claim_fails_if_unbalanced)
+{
+    const claim_note note1 = { .deposit_value = 1,
+                               .bridge_call_data = 0,
+                               .defi_interaction_nonce = 0,
+                               .fee = 0,
+                               .value_note_partial_commitment =
+                                   create_partial_commitment(user.note_secret, user.owner.public_key, 0, 0),
+                               .input_nullifier = fr::random_element(&engine) };
+
+    const defi_interaction::note note2 = { .bridge_call_data = 0,
+                                           .interaction_nonce = 0,
+                                           .total_input_value = 100,
+                                           .total_output_value_a = 100,
+                                           .total_output_value_b = 100,
+                                           .interaction_result = 1 };
+    append_note(note1, data_tree);
+    append_note(note2, defi_tree);
+    claim_tx tx = create_claim_tx(note1, 0, 0, note2);
+    tx.output_value_a = 100;
+    tx.output_value_b = 100;
+
+    auto result = verify_logic(tx, cd);
+
+    EXPECT_FALSE(result.logic_verified);
+}
+
 } // namespace claim
 } // namespace proofs
 } // namespace rollup
