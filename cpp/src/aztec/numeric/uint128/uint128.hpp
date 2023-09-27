@@ -2,8 +2,8 @@
 #include <iomanip>
 #include <ostream>
 
-#ifdef __i386__
 #include <cstdint>
+#ifdef __i386__
 #include <common/serialize.hpp>
 
 namespace numeric {
