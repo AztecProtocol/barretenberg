@@ -38,7 +38,7 @@ constexpr bool is_circuit_change_expected = 0;
  constraints. They need to be changed when there is a circuit change. */
 constexpr uint32_t ACCOUNT = 23967;
 constexpr uint32_t JOIN_SPLIT = 64047;
-constexpr uint32_t CLAIM = 22684;
+constexpr uint32_t CLAIM = 23050;
 constexpr uint32_t ROLLUP = 1173221;
 constexpr uint32_t ROOT_ROLLUP = 5481327;
 constexpr uint32_t ROOT_VERIFIER = 7435892;
