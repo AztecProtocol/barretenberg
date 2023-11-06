@@ -89,7 +89,7 @@ template <size_t Start, size_t End, size_t Inc, class F> constexpr void constexp
          * 1. I want to call a member of `f` that expects one or more template parameters
          * 2. The member of `f` that I want to call is the function operator
          * 3. The template parameter is `Start`
-         * 4. The funtion operator itself contains no arguments
+         * 4. The function operator itself contains no arguments
          */
         f.template operator()<Start>();
 
