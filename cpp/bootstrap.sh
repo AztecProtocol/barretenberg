@@ -70,6 +70,12 @@ version_greater_equal() {
 check_compiler_version() {
     local cmake_preset_file="CMakePresets.json"
 
+    # Check if CMakePresets.json file exists, silently return if it does not
+    if [ ! -f "$cmake_preset_file" ]; then
+        return 0
+    fi
+
+    # Extract the compiler command (e.g., 'gcc' or 'clang') from CMakePresets.json
     local CC=$(jq -r --arg PRESET "$PRESET" '.configurePresets[] | select(.name == $PRESET) | .environment.CC' "$cmake_preset_file")
     
     case "$CC" in
@@ -78,13 +84,17 @@ check_compiler_version() {
         local _minimum_version
 
         if [[ $CC == *"gcc"* ]]; then
-            _minimum_version="10"
+            # Minimum required version to 10 for GCC
+            _minimum_version="10" 
         elif [[ $CC == *"clang"* ]]; then
-            _minimum_version="16"
+            # Minimum required version to 16 for Clang
+            _minimum_version="16" 
         fi
         
         if [ -n "$_minimum_version" ] && command -v $CC > /dev/null; then
-            local _version=$($CC --version | grep -o '[0-9]\+\.[0-9]\+' | head -n1)
+            # Get the installed compiler version (e.g., '9.3')
+            local _version=$($CC --version | grep -o '[0-9]\+\.[0-9]\+' | head -n1) 
+            # Check if installed compiler meets the version requirement
             if ! version_greater_equal "$_version" "$_minimum_version"; then
                 echo "$CC version is not sufficient ($_version < $_minimum_version)"
                 exit 1
