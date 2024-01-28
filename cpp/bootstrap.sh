@@ -46,6 +46,114 @@ fi
 # Remove cmake cache files.
 rm -f {build,build-wasm,build-wasm-threads}/CMakeCache.txt
 
+# Function to compare versions
+version_greater_equal() {
+    IFS='.' read -ra VER1 <<< "$1"
+    IFS='.' read -ra VER2 <<< "$2"
+
+    for i in {0..2}; do
+        VER1_PART=${VER1[i]:-0}
+        VER2_PART=${VER2[i]:-0}
+
+        if [[ "$VER1_PART" -gt "$VER2_PART" ]]; then
+            return 0
+        elif [[ "$VER1_PART" -lt "$VER2_PART" ]]; then
+            return 1
+        fi
+    done
+
+    # If all components are equal
+    return 0
+}
+
+# Function to check compiler version
+check_compiler_version() {
+    local cmake_preset_file="CMakePresets.json"
+
+    local CC=$(jq -r --arg PRESET "$PRESET" '.configurePresets[] | select(.name == $PRESET) | .environment.CC' "$cmake_preset_file")
+    
+    case "$CC" in
+        *gcc*|*clang*)
+        
+        local _minimum_version
+
+        if [[ $CC == *"gcc"* ]]; then
+            _minimum_version="10"
+        elif [[ $CC == *"clang"* ]]; then
+            _minimum_version="16"
+        fi
+        
+        if [ -n "$_minimum_version" ] && command -v $CC > /dev/null; then
+            local _version=$($CC --version | grep -o '[0-9]\+\.[0-9]\+' | head -n1)
+            if ! version_greater_equal "$_version" "$_minimum_version"; then
+                echo "$CC version is not sufficient ($_version < $_minimum_version)"
+                exit 1
+            fi
+        elif [ -n "$_minimum_version" ]; then
+            echo "$CC is not installed"
+            exit 1
+        fi
+        
+        ;;
+    esac
+}
+
+# Check CMake version
+check_cmake_version() {
+    local cmake_preset_file="CMakePresets.json"
+
+    # Check if CMakePresets.json file exists, silently return if it does not
+    if [ ! -f "$cmake_preset_file" ]; then
+        return 0
+    fi
+
+    # Check if CMake is installed
+    if ! command -v cmake &> /dev/null; then
+        echo "CMake is not installed. Please install CMake before proceeding."
+        exit 1
+    fi
+
+    # Extract required CMake version from CMakePresets.json
+    REQUIRED_MAJOR=$(jq -r '.cmakeMinimumRequired.major' "$cmake_preset_file")
+    REQUIRED_MINOR=$(jq -r '.cmakeMinimumRequired.minor' "$cmake_preset_file")
+    REQUIRED_PATCH=$(jq -r '.cmakeMinimumRequired.patch' "$cmake_preset_file")
+
+    # Get installed CMake version
+    INSTALLED_CMAKE_VERSION=$(cmake --version | head -n1 | awk '{print $3}')
+    
+    # Compare versions using version_greater_equal function
+    if ! version_greater_equal "$INSTALLED_CMAKE_VERSION" "$REQUIRED_MAJOR.$REQUIRED_MINOR.$REQUIRED_PATCH"; then
+        echo "CMake version is lower than the required version $REQUIRED_MAJOR.$REQUIRED_MINOR.$REQUIRED_PATCH for $cmake_preset_file"
+        echo "Please update CMake to at least this version."
+        exit 1
+    fi
+}
+
+# Check if Ninja is installed
+check_ninja_installed() {
+    # Check if Ninja is installed
+    if ! command -v ninja &> /dev/null; then
+        echo "Ninja is not installed. Please install Ninja before proceeding."
+        exit 1
+    fi
+}
+
+perform_system_checks() {
+
+    # Call the function to check the compiler version
+    check_compiler_version
+
+    # Call the function to check CMake version
+    check_cmake_version
+
+    # Call the function to check if Ninja is installed
+    check_ninja_installed
+    
+}
+
+# Call the function to perform all system checks
+perform_system_checks
+
 echo "#################################"
 echo "# Building with preset: $PRESET"
 echo "# When running cmake directly, remember to use: --build --preset $PRESET"
