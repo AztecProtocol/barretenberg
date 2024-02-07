@@ -220,6 +220,63 @@ class TurboComposer : public ComposerBase {
                   { { "PI_Z", g1_size, false }, { "PI_Z_OMEGA", g1_size, false } }, "separator", 3) });
         return output;
     }
+    static transcript::Manifest create_unrolled_manifest_for_batching(const size_t num_public_inputs)
+    {
+        // add public inputs....
+        constexpr size_t g1_size = 64;
+        constexpr size_t fr_size = 32;
+        const size_t public_input_size = fr_size * num_public_inputs;
+        const transcript::Manifest output =
+            transcript::Manifest({ transcript::Manifest::RoundManifest(
+                                       { { "circuit_size", 4, true }, { "public_input_size", 4, true } }, "init", 1),
+                                   transcript::Manifest::RoundManifest({}, "eta", 0),
+                                   transcript::Manifest::RoundManifest(
+                                       {
+                                           { "public_inputs", public_input_size, false },
+                                           { "W_1", g1_size, false },
+                                           { "W_2", g1_size, false },
+                                           { "W_3", g1_size, false },
+                                           { "W_4", g1_size, false },
+                                       },
+                                       "beta",
+                                       2),
+                                   transcript::Manifest::RoundManifest({ { "Z_PERM", g1_size, false } }, "alpha", 1),
+                                   transcript::Manifest::RoundManifest(
+                                       {
+                                           { "T_1", g1_size, false },
+                                           { "T_2", g1_size, false },
+                                           { "T_3", g1_size, false },
+                                           { "T_4", g1_size, false },
+                                       },
+                                       "z",
+                                       1),
+                                   transcript::Manifest::RoundManifest(
+                                       {
+                                           { "t", fr_size, true, -1 },         { "w_1", fr_size, false, 0 },
+                                           { "w_2", fr_size, false, 1 },       { "w_3", fr_size, false, 2 },
+                                           { "w_4", fr_size, false, 3 },       { "sigma_1", fr_size, false, 4 },
+                                           { "sigma_2", fr_size, false, 5 },   { "sigma_3", fr_size, false, 6 },
+                                           { "sigma_4", fr_size, false, 7 },   { "q_1", fr_size, false, 8 },
+                                           { "q_2", fr_size, false, 9 },       { "q_3", fr_size, false, 10 },
+                                           { "q_4", fr_size, false, 11 },      { "q_5", fr_size, false, 12 },
+                                           { "q_m", fr_size, false, 13 },      { "q_c", fr_size, false, 14 },
+                                           { "q_arith", fr_size, false, 15 },  { "q_logic", fr_size, false, 16 },
+                                           { "q_range", fr_size, false, 17 },  { "q_ecc_1", fr_size, false, 18 },
+                                           { "z_perm", fr_size, false, 19 },   { "z_perm_omega", fr_size, false, 19 },
+                                           { "w_1_omega", fr_size, false, 0 }, { "w_2_omega", fr_size, false, 1 },
+                                           { "w_3_omega", fr_size, false, 2 }, { "w_4_omega", fr_size, false, 3 },
+                                       },
+                                       "nu",
+                                       20,
+                                       true),
+                                   transcript::Manifest::RoundManifest({ { "PI_Z", g1_size, false },
+                                                                         { "PI_Z_OMEGA", g1_size, false },
+                                                                         { "PREVIOUS_OUTPUT_P0", g1_size, true },
+                                                                         { "PREVIOUS_OUTPUT_P1", g1_size, true } },
+                                                                       "separator",
+                                                                       3) });
+        return output;
+    }
 };
 /**
  * CheckGetter class is used to evaluate widget operations for circuit_checking

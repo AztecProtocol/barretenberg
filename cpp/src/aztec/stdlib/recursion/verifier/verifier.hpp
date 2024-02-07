@@ -48,7 +48,7 @@ template <typename Composer> struct lagrange_evaluations {
 };
 
 template <typename Curve, typename Transcript, typename program_settings>
-void populate_kate_element_map(typename Curve::Composer* ctx,
+void populate_kate_element_map(typename Curve::Composer* ,
                                typename Transcript::Key* key,
                                const Transcript& transcript,
                                std::map<std::string, typename Curve::g1_ct>& kate_g1_elements,
@@ -57,7 +57,6 @@ void populate_kate_element_map(typename Curve::Composer* ctx,
                                std::map<std::string, typename Curve::fr_ct>& kate_fr_elements_at_zeta_omega)
 {
     using fr_ct = typename Curve::fr_ct;
-    using g1_ct = typename Curve::g1_ct;
     const auto& polynomial_manifest = key->polynomial_manifest;
     for (size_t i = 0; i < key->polynomial_manifest.size(); ++i) {
         const auto& item = polynomial_manifest[i];
@@ -65,10 +64,13 @@ void populate_kate_element_map(typename Curve::Composer* ctx,
         const std::string poly_label(item.polynomial_label);
         switch (item.source) {
         case waffle::PolynomialSource::WITNESS: {
-            const auto element = transcript.get_group_element(label);
-            ASSERT(element.on_curve());
-            // g1_ct::from_witness validates that the point produced lies on the curve
-            kate_g1_elements.insert({ label, g1_ct::from_witness(ctx, element) });
+             // get_circuit_group_element validates that the point produced lies on the curve
+            const auto element = transcript.get_circuit_group_element(label);
+            ASSERT(element.get_value().on_curve());
+            if (element.get_value().is_point_at_infinity()) {
+                std::cerr << label << " witness is point at infinity! Error!" << std::endl;
+            }
+            kate_g1_elements.insert({ label, element });
             break;
         }
         case waffle::PolynomialSource::SELECTOR: {
@@ -107,15 +109,17 @@ void populate_kate_element_map(typename Curve::Composer* ctx,
     fr_ct z_power = 1;
     for (size_t i = 0; i < program_settings::program_width; ++i) {
         std::string quotient_label = "T_" + std::to_string(i + 1);
-        const auto element = transcript.get_group_element(quotient_label);
-
-        kate_g1_elements.insert({ quotient_label, g1_ct::from_witness(ctx, element) });
+        const auto element = transcript.get_circuit_group_element(quotient_label);
+            if (!element.get_value().on_curve()) {
+                std::cerr << quotient_label<<"witness not on curve!" << std::endl;
+            }
+        kate_g1_elements.insert({ quotient_label, element });
         kate_fr_elements_at_zeta_large.insert({ quotient_label, quotient_nu * z_power });
         z_power *= key->z_pow_n;
     }
 
-    const auto PI_Z = transcript.get_group_element("PI_Z");
-    const auto PI_Z_OMEGA = transcript.get_group_element("PI_Z_OMEGA");
+    const auto PI_Z = transcript.get_circuit_group_element("PI_Z");
+    const auto PI_Z_OMEGA = transcript.get_circuit_group_element("PI_Z_OMEGA");
 
     fr_ct u = transcript.get_challenge_field_element("separator", 0);
 
@@ -124,10 +128,10 @@ void populate_kate_element_map(typename Curve::Composer* ctx,
     kate_g1_elements.insert({ "BATCH_EVALUATION", g1::affine_one });
     kate_fr_elements_at_zeta_large.insert({ "BATCH_EVALUATION", -batch_evaluation });
 
-    kate_g1_elements.insert({ "PI_Z_OMEGA", g1_ct::from_witness(ctx, PI_Z_OMEGA) });
+    kate_g1_elements.insert({ "PI_Z_OMEGA", PI_Z_OMEGA });
     kate_fr_elements_at_zeta_large.insert({ "PI_Z_OMEGA", zeta * key->domain.root * u });
 
-    kate_g1_elements.insert({ "PI_Z", g1_ct::from_witness(ctx, PI_Z) });
+    kate_g1_elements.insert({ "PI_Z", PI_Z });
     kate_fr_elements_at_zeta.insert({ "PI_Z", zeta });
 }
 
@@ -243,6 +247,11 @@ recursion_output<Curve> verify_proof(typename Curve::Composer* context,
     transcript.add_field_element("t", t_eval);
 
     transcript.apply_fiat_shamir("nu");
+    // If we are verifying a proof that's batched with others, we need to add the outputs of previous proofs
+    if (previous_output.has_data) {
+        transcript.add_group_element("PREVIOUS_OUTPUT_P0", previous_output.P0);
+        transcript.add_group_element("PREVIOUS_OUTPUT_P1", previous_output.P1);
+    }
     transcript.apply_fiat_shamir("separator");
 
     fr_ct u = transcript.get_challenge_field_element("separator", 0);
