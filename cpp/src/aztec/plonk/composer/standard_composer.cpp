@@ -578,6 +578,7 @@ waffle::accumulator_triple StandardComposer::create_logic_constraint(const uint3
     uint32_t out_accumulator_idx = zero_idx;
     constexpr fr four = fr(4);
     constexpr fr neg_two = -fr(2);
+    constexpr fr two = fr(2);
     for (size_t i = num_bits - 1; i < num_bits; i -= 2) {
         bool left_hi_val = left_witness_value.get_bit(i);
         bool left_lo_val = left_witness_value.get_bit(i - 1);
@@ -628,8 +629,15 @@ waffle::accumulator_triple StandardComposer::create_logic_constraint(const uint3
         fr out_quad = get_variable(out_lo_idx) + get_variable(out_hi_idx) + get_variable(out_hi_idx);
 
         uint32_t left_quad_idx = add_variable(left_quad);
+
+        // Connect the left bits to the left quad
+        create_add_gate({ left_hi_idx, left_lo_idx, left_quad_idx, two, fr::one(), fr::neg_one(), fr::zero() });
         uint32_t right_quad_idx = add_variable(right_quad);
+        // Connect the right bits to the right quad
+        create_add_gate({ right_hi_idx, right_lo_idx, right_quad_idx, two, fr::one(), fr::neg_one(), fr::zero() });
         uint32_t out_quad_idx = add_variable(out_quad);
+        // Connect the out bits to the out quad
+        create_add_gate({ out_hi_idx, out_lo_idx, out_quad_idx, two, fr::one(), fr::neg_one(), fr::zero() });
 
         fr new_left_accumulator = left_accumulator + left_accumulator;
         new_left_accumulator = new_left_accumulator + new_left_accumulator;
@@ -678,6 +686,9 @@ waffle::accumulator_triple StandardComposer::create_logic_constraint(const uint3
         out_accumulator = new_out_accumulator;
         out_accumulator_idx = new_out_accumulator_idx;
     }
+    // Connect the accumulators to inputs
+    this->assert_equal(accumulators.left.back(), a);
+    this->assert_equal(accumulators.right.back(), b);
     return accumulators;
 }
 
