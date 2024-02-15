@@ -41,7 +41,7 @@ constexpr uint32_t JOIN_SPLIT = 64047;
 constexpr uint32_t CLAIM = 22684;
 constexpr uint32_t ROLLUP = 1167809;
 constexpr uint32_t ROOT_ROLLUP = 5466707;
-constexpr uint32_t ROOT_VERIFIER = 7370222;
+constexpr uint32_t ROOT_VERIFIER = 7628270;
 }; // namespace circuit_gate_count
 
 namespace circuit_gate_next_power_of_two {
@@ -61,10 +61,11 @@ namespace circuit_vk_hash {
  to comply with the from_buffer<>() method. */
 constexpr auto ACCOUNT = uint256_t(0xcd6d70c733eaf823, 0x6505d3402817ad3d, 0xbf9e2b6a262589cf, 0xafcc546b55cc45e3);
 constexpr auto JOIN_SPLIT = uint256_t(0xb23c7772f47bc823, 0x5493625d4f08603c, 0x21ac50a5929576f9, 0xb7b3113c131460e5);
-constexpr auto CLAIM = uint256_t(0x878301ebba40ab60,0x931466762c62d661,0x40aad71ec3496905,0x9f47aaa109759d0a);
-constexpr auto ROLLUP = uint256_t(0xf44baaa37288ca65,0x6f64332a4ca268bf,0xbe5c494e2865a60e,0x1e8b5662757f8e20);
-constexpr auto ROOT_ROLLUP = uint256_t(0xdcbabcbfaa6269a5,0x4a668f1dab145571,0x299452ce1fb7f1cd,0x8cac80eb09b22ef);
-constexpr auto ROOT_VERIFIER = uint256_t(0x7903f56d88e25af0,0xf91770db5afb066c,0x3fb58a1a6e94df6c,0x7a37d6b22db595b1);
+constexpr auto CLAIM = uint256_t(0x878301ebba40ab60, 0x931466762c62d661, 0x40aad71ec3496905, 0x9f47aaa109759d0a);
+constexpr auto ROLLUP = uint256_t(0xf44baaa37288ca65, 0x6f64332a4ca268bf, 0xbe5c494e2865a60e, 0x1e8b5662757f8e20);
+constexpr auto ROOT_ROLLUP = uint256_t(0xdcbabcbfaa6269a5, 0x4a668f1dab145571, 0x299452ce1fb7f1cd, 0x8cac80eb09b22ef);
+constexpr auto ROOT_VERIFIER =
+    uint256_t(0x46109c3d19c1a7f0, 0x9e2c0513c4a64cb2, 0xdba57e1635e4f0b0, 0xf59e2bc6dae15542);
 }; // namespace circuit_vk_hash
 
 namespace ProofIds {
