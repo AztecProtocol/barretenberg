@@ -22,6 +22,7 @@ if(NOT WASM)
         -Wno-implicit-int-conversion
         -Wno-conversion
         -Wno-implicit-fallthrough
+        -Wno-unused-but-set-variable
     )
 
     link_libraries(leveldb)
