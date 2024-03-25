@@ -22,8 +22,11 @@ if(NOT WASM)
         -Wno-implicit-int-conversion
         -Wno-conversion
         -Wno-implicit-fallthrough
-        -Wno-unused-but-set-variable
     )
+
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "15")
+        target_compile_options(leveldb PRIVATE -Wno-unused-but-set-variable)
+    endif()
 
     link_libraries(leveldb)
 endif()
