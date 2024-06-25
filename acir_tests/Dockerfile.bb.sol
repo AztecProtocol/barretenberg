@@ -19,7 +19,7 @@ COPY . .
 # and the recursive aggregation circuits which use the Keccak based prover.
 #
 # NOTE: When circuits are marked `recursive` it means the backend will use a prover that
-# produces SNARK recursion friendly proofs, while the solidity verifier expects proofs
+# produces SNARK recursion-friendly proofs, while the solidity verifier expects proofs
 # whose transcript uses Keccak hashing. 
 RUN (cd sol-test && yarn)
 RUN PARALLEL=1 FLOW=sol ./run_acir_tests.sh assert_statement double_verify_proof double_verify_nested_proof
