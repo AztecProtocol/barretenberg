@@ -7,7 +7,7 @@ import solc from "solc";
 const NUMBER_OF_FIELDS_IN_PROOF = 93;
 
 // We use the solcjs compiler version in this test, although it is slower than foundry, to run the test end to end
-// it simplifies of parallelising the test suite
+// it simplifies of parallelizing the test suite
 
 // What does this file do?
 //
