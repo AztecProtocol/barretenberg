@@ -288,7 +288,7 @@ and tunnel the port through ssh.
 ### Debugging Verifification Failures
 
 The CicuitChecker::check_circuit function is used to get the gate index and block information about a failing circuit constraint.
-If you are in a scenario where you have a failing call to check_circuit and wish to get more information out of it than just the gate index, you can use this feature to get a stack trace, see example below.
+If you are in a scenario where you have a failing call to check_circuit and wish to get more information out of it than just the gate index, you can use this feature to get a stack trace, see the example below.
 
 Usage instructions:
 - On ubuntu (or our mainframe accounts) use `sudo apt-get install libdw-dev` to support trace printing
@@ -296,7 +296,7 @@ Usage instructions:
 - Run any case where you have a failing check_circuit call, you will now have a stack trace illuminating where this constraint was added in code.
 
 Caveats:
-- This works best for code that is not overly generic, i.e. where just the sequence of function calls carries a lot of information. It is possible to tag extra data along with the stack trace, this can be done as a followup, please leave feedback if desired.
+- This works best for code that is not overly generic, i.e. where just the sequence of function calls carries a lot of information. It is possible to tag extra data along with the stack trace, this can be done as a follow-up, please leave feedback if desired.
 - There are certain functions like `assert_equals` that can cause gates that occur _before_ them to fail. If this would be useful to automatically report, please leave feedback.
 
 Example:
