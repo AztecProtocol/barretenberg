@@ -15,7 +15,7 @@ $BIN verify -k vk -p proof $FLAGS
 # Check supplemental functions.
 # Grep to determine success.
 $BIN contract -k vk $BFLAG -o - | grep "Verification Key Hash" > /dev/null
-# Use jq to determine success, and also check result not empty.
+# Use jq to determine success, and also check result is not empty.
 OUTPUT=$($BIN proof_as_fields -k vk -p proof -o - | jq .)
 [ -n "$OUTPUT" ] || exit 1
 OUTPUT=$($BIN vk_as_fields -k vk -o - | jq .)

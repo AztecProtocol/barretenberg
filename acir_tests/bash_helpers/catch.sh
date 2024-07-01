@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Handler for SIGCHLD, cleanup if child exit with error
+# Handler for SIGCHLD, cleanup if child exits with error
 handle_sigchild() {
     for pid in "${pids[@]}"; do
         # If process is no longer running
