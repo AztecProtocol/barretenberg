@@ -15,6 +15,13 @@ WASM_EXPORT void to_radix(uint256_t const* input_, uint256_t* output, uint64_t s
     }
 }
 
+WASM_EXPORT void print_u256(uint256_t const* input, size_t num)
+{
+    for (size_t i = 0; i < num; ++i) {
+        info(input[i]);
+    }
+}
+
 WASM_EXPORT void bb_printf(char const* ptr, ...)
 {
     std::string str;
@@ -66,6 +73,23 @@ WASM_EXPORT void bn254_fr_mul(uint64_t const* lhs, uint64_t const* rhs, uint64_t
     rhs_fr.self_to_montgomery_form();
     // info("rhs_fr: ", rhs_fr);
     auto r_fr = lhs_fr * rhs_fr;
+    // info("r_fr: ", r_fr);
+    r_fr.self_from_montgomery_form();
+    result[0] = r_fr.data[0];
+    result[1] = r_fr.data[1];
+    result[2] = r_fr.data[2];
+    result[3] = r_fr.data[3];
+}
+
+WASM_EXPORT void bn254_fr_div(uint64_t const* lhs, uint64_t const* rhs, uint64_t* result)
+{
+    auto lhs_fr = bb::fr(lhs[0], lhs[1], lhs[2], lhs[3]);
+    lhs_fr.self_to_montgomery_form();
+    // info("lhs_fr: ", lhs_fr);
+    auto rhs_fr = bb::fr(rhs[0], rhs[1], rhs[2], rhs[3]);
+    rhs_fr.self_to_montgomery_form();
+    // info("rhs_fr: ", rhs_fr);
+    auto r_fr = lhs_fr / rhs_fr;
     // info("r_fr: ", r_fr);
     r_fr.self_from_montgomery_form();
     result[0] = r_fr.data[0];
