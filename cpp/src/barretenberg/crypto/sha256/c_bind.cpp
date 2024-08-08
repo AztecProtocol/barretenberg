@@ -1,7 +1,7 @@
 #include "barretenberg/common/streams.hpp"
 #include "barretenberg/common/wasm_export.hpp"
 #include "sha256.hpp"
-#include <string.h>
+#include <cstring>
 
 using namespace bb;
 

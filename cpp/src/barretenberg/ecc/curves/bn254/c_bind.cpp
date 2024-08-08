@@ -1,5 +1,6 @@
 #include "../bn254/fr.hpp"
 #include "barretenberg/common/wasm_export.hpp"
+#include <ostream>
 #include <string>
 
 using namespace bb;
@@ -11,7 +12,32 @@ WASM_EXPORT void to_radix(uint256_t const* input_, uint256_t* output, uint64_t s
     uint256_t radix = radix_;
     for (size_t i = 0; i < size; ++i) {
         output[i] = input % radix;
-        input /= 2;
+        input /= radix;
+    }
+}
+
+WASM_EXPORT void foreign_call_print_sa(bool const* newline, uint256_t const* input, size_t num)
+{
+    std::string str;
+    str.reserve(num);
+    for (size_t i = 0; i < num; ++i) {
+        str += (char)input[i].data[0];
+    }
+    std::cerr << str;
+    if (*newline) {
+        std::cerr << std::endl;
+    } else {
+        std::cerr << std::flush;
+    }
+}
+
+WASM_EXPORT void foreign_call_print_ss(bool const* newline, uint256_t const* input)
+{
+    std::cerr << *input;
+    if (*newline) {
+        std::cerr << std::endl;
+    } else {
+        std::cerr << std::flush;
     }
 }
 

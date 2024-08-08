@@ -1,6 +1,7 @@
 #include "c_bind.hpp"
 #include "barretenberg/common/mem.hpp"
 #include "barretenberg/common/serialize.hpp"
+#include "barretenberg/common/streams.hpp"
 #include "pedersen.hpp"
 
 using namespace bb;
@@ -40,4 +41,16 @@ WASM_EXPORT void pedersen_hash_buffer(uint8_t const* input_buffer, uint32_t cons
     ctx.offset = static_cast<size_t>(ntohl(*hash_index));
     auto r = crypto::pedersen_hash::hash_buffer(to_hash, ctx);
     fr::serialize_to_buffer(r, output);
+}
+
+WASM_EXPORT void blackbox_pedersen_hash(uint256_t* inputs,
+                                        size_t const size,
+                                        uint32_t const hash_index,
+                                        uint256_t* output)
+{
+    std::vector<grumpkin::fq> to_hash(inputs, inputs + size);
+    crypto::GeneratorContext<curve::Grumpkin> ctx;
+    ctx.offset = static_cast<size_t>(hash_index);
+    auto r = crypto::pedersen_hash::hash(to_hash, ctx);
+    *output = r;
 }

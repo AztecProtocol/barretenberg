@@ -13,3 +13,16 @@ WASM_EXPORT void pedersen_commit(fr::vec_in_buf inputs_buffer, grumpkin::g1::aff
 
     write(output, pedersen_commitment);
 }
+
+WASM_EXPORT void blackbox_pedersen_commit(uint256_t* inputs,
+                                          size_t const size,
+                                          uint32_t const hash_index,
+                                          std::pair<uint256_t, uint256_t>* output)
+{
+    std::vector<grumpkin::fq> to_hash(inputs, inputs + size);
+    crypto::GeneratorContext<curve::Grumpkin> ctx;
+    ctx.offset = static_cast<size_t>(hash_index);
+    auto r = crypto::pedersen_commitment::commit_native(to_hash, ctx);
+    (*output).first = r.x;
+    (*output).second = r.y;
+}
