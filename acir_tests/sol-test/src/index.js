@@ -8,7 +8,7 @@ const NUMBER_OF_FIELDS_IN_PLONK_PROOF = 93;
 const NUMBER_OF_FIELDS_IN_HONK_PROOF = 393;
 
 // We use the solcjs compiler version in this test, although it is slower than foundry, to run the test end to end
-// it simplifies of parallelising the test suite
+// it simplifies of parallelizing the test suite
 
 // What does this file do?
 //
