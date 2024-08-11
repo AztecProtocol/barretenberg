@@ -123,8 +123,8 @@ typename G1::affine_element ecdsa_recover_public_key(const std::string& message,
     return recovered_public_key;
 }
 
-template <typename Hash, typename Fq, typename Fr, typename G1>
-bool ecdsa_verify_signature(const std::string& message,
+template <typename Fq, typename Fr, typename G1>
+bool ecdsa_verify_signature(const std::array<uint8_t, 32>& hashed_message,
                             const typename G1::affine_element& public_key,
                             const ecdsa_signature& sig)
 {
@@ -155,10 +155,7 @@ bool ecdsa_verify_signature(const std::string& message,
     Fr r = Fr(r_uint);
     Fr s = Fr(s_uint);
 
-    std::vector<uint8_t> message_buffer;
-    std::copy(message.begin(), message.end(), std::back_inserter(message_buffer));
-    auto ev = Hash::hash(message_buffer);
-    Fr z = Fr::serialize_from_buffer(&ev[0]);
+    Fr z = Fr::serialize_from_buffer(&hashed_message[0]);
 
     Fr s_inv = s.invert();
 
@@ -169,5 +166,16 @@ bool ecdsa_verify_signature(const std::string& message,
     uint256_t Rx(R.x);
     Fr result(Rx);
     return result == r;
+}
+
+template <typename Hash, typename Fq, typename Fr, typename G1>
+bool ecdsa_verify_signature(const std::string& message,
+                            const typename G1::affine_element& public_key,
+                            const ecdsa_signature& sig)
+{
+    std::vector<uint8_t> message_buffer;
+    std::copy(message.begin(), message.end(), std::back_inserter(message_buffer));
+    auto ev = Hash::hash(message_buffer);
+    return ecdsa_verify_signature<Fq, Fr, G1>(ev, public_key, sig);
 }
 } // namespace bb::crypto
