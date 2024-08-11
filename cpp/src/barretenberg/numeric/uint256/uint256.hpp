@@ -100,6 +100,7 @@ class alignas(32) uint256_t {
     template <std::integral T> explicit constexpr operator T() const { return static_cast<T>(data[0]); };
 
     [[nodiscard]] constexpr bool get_bit(uint64_t bit_index) const;
+    constexpr void set_bit(const uint64_t bit_index, bool bit);
     [[nodiscard]] constexpr uint64_t get_msb() const;
 
     [[nodiscard]] constexpr uint256_t slice(uint64_t start, uint64_t end) const;

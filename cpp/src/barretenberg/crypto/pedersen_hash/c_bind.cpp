@@ -43,14 +43,28 @@ WASM_EXPORT void pedersen_hash_buffer(uint8_t const* input_buffer, uint32_t cons
     fr::serialize_to_buffer(r, output);
 }
 
-WASM_EXPORT void blackbox_pedersen_hash(uint256_t* inputs,
-                                        size_t const size,
-                                        uint32_t const hash_index,
-                                        uint256_t* output)
+inline bb::fr bn254_fr_decode(bb::fr* f_)
 {
-    std::vector<grumpkin::fq> to_hash(inputs, inputs + size);
+    if (!f_->get_bit(255)) {
+        f_->self_to_montgomery_form();
+        f_->set_bit(255, true);
+    }
+
+    auto f = *f_;
+    f.set_bit(255, false);
+    return f;
+}
+
+WASM_EXPORT void blackbox_pedersen_hash(bb::fr* inputs, size_t const size, uint32_t const hash_index, bb::fr* output)
+{
+    std::vector<grumpkin::fq> to_hash;
+    to_hash.reserve(size);
+    for (size_t i = 0; i < size; ++i) {
+        to_hash.emplace_back(bn254_fr_decode(&inputs[i]));
+    }
     crypto::GeneratorContext<curve::Grumpkin> ctx;
     ctx.offset = static_cast<size_t>(hash_index);
     auto r = crypto::pedersen_hash::hash(to_hash, ctx);
     *output = r;
+    output->set_bit(255, true);
 }

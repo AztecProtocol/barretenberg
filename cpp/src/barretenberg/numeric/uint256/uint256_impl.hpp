@@ -320,6 +320,18 @@ constexpr bool uint256_t::get_bit(const uint64_t bit_index) const
     return static_cast<bool>((data[idx] >> shift) & 1);
 }
 
+constexpr void uint256_t::set_bit(const uint64_t bit_index, bool bit)
+{
+    ASSERT(bit_index < 256);
+    const auto idx = static_cast<size_t>(bit_index >> 6);
+    const size_t shift = bit_index & 63;
+    if (bit) {
+        data[idx] |= 1ULL << shift;
+    } else {
+        data[idx] &= ~(1ULL << shift);
+    }
+}
+
 constexpr uint64_t uint256_t::get_msb() const
 {
     uint64_t idx = numeric::get_msb(data[3]);
