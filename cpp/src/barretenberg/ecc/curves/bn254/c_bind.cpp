@@ -7,31 +7,6 @@ using namespace bb;
 
 // #pragma clang diagnostic ignored "-Wunused-parameter"
 
-// WASM_EXPORT void foreign_call_print_sa(bool const* newline, uint256_t const* input, size_t num)
-// {
-//     std::string str;
-//     str.reserve(num);
-//     for (size_t i = 0; i < num; ++i) {
-//         str += (char)input[i].data[0];
-//     }
-//     std::cerr << str;
-//     if (*newline) {
-//         std::cerr << std::endl;
-//     } else {
-//         std::cerr << std::flush;
-//     }
-// }
-
-// WASM_EXPORT void foreign_call_print_ss(bool const* newline, uint256_t const* input)
-// {
-//     std::cerr << *input;
-//     if (*newline) {
-//         std::cerr << std::endl;
-//     } else {
-//         std::cerr << std::flush;
-//     }
-// }
-
 WASM_EXPORT void print_u256(uint256_t const* input, size_t num)
 {
     for (size_t i = 0; i < num; ++i) {
@@ -44,20 +19,6 @@ WASM_EXPORT void print_u256(uint256_t const* input, size_t num)
         }
     }
 }
-
-// WASM_EXPORT void bb_printf(char const* ptr, ...)
-// {
-//     std::string str;
-//     for (int i = 0; ptr[i] != 0; i += 32) {
-//         str += ptr[i];
-//     }
-//     info(str);
-
-//     // va_list args;
-//     // va_start(args, ptr);
-//     // vprintf(format, args);
-//     // va_end(args);
-// }
 
 // First encodes the memory slot to montgomery form if it's not already.
 // Then returns the decoded field in montgomery form.
@@ -150,15 +111,28 @@ WASM_EXPORT void bn254_fr_sqrt(uint8_t const* input, uint8_t* result)
 
 WASM_EXPORT void to_radix(uint256_t const* input_, uint256_t* output, uint64_t size, uint64_t radix_)
 {
+    // info(*input_);
+    // info(size);
+    // info(radix_);
     uint256_t input = *input_;
     if (input.get_bit(255)) {
         input.set_bit(255, false);
         input = bb::fr(input.data[0], input.data[1], input.data[2], input.data[3]);
     }
+    // if (input.data[2] == 0 && input.data[3] == 0) {
+    // uint128_t value = static_cast<uint128_t>(input);
+    // uint128_t radix = radix_;
+    // for (size_t i = 0; i < size; ++i) {
+    //     output[i] = uint256_t::from_uint128(value % radix);
+    //     value /= radix;
+    // }
+    // } else {
     uint256_t radix = radix_;
     for (size_t i = 0; i < size; ++i) {
-        output[i] = input % radix;
-        input /= radix;
+        auto r = input.divmod(radix);
+        output[i] = r.second;
+        input = r.first;
     }
+    // }
 }
 // NOLINTEND(cert-dcl37-c, cert-dcl51-cpp, bugprone-reserved-identifier)

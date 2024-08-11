@@ -74,8 +74,8 @@
       "binaryDir": "build-debug",
       "environment": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CFLAGS": "-gdwarf-4",
-        "CXXFLAGS": "-gdwarf-4",
+        "CFLAGS": "-gdwarf-4 -fPIC -mcmodel=large",
+        "CXXFLAGS": "-gdwarf-4 -fPIC -mcmodel=large",
         "LDFLAGS": "-gdwarf-4"
       },
       "cacheVariables": {
