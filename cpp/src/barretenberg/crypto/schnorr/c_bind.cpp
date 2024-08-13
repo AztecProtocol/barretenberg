@@ -147,3 +147,46 @@ WASM_EXPORT void schnorr_multisig_combine_signatures(uint8_t const* message_buf,
         *success = false;
     }
 }
+
+// First encodes the memory slot to montgomery form if it's not already.
+// Then returns the decoded field in montgomery form.
+inline bb::fr bn254_fr_decode(bb::fr* f_)
+{
+    if (!f_->get_bit(255)) {
+        f_->self_to_montgomery_form();
+        f_->set_bit(255, true);
+    }
+
+    auto f = *f_;
+    f.set_bit(255, false);
+    return f;
+}
+
+WASM_EXPORT void blackbox_schnorr_verify_signature(uint256_t const* message,
+                                                   size_t message_size,
+                                                   bb::fr* pub_key_x,
+                                                   bb::fr* pub_key_y,
+                                                   uint256_t const* sig,
+                                                   uint256_t* result)
+{
+    auto x = bn254_fr_decode(pub_key_x);
+    auto y = bn254_fr_decode(pub_key_y);
+    grumpkin::g1::affine_element pubk(x, y);
+
+    std::string msg;
+    msg.reserve(message_size);
+    for (size_t i = 0; i < message_size; ++i) {
+        msg += static_cast<char>(message[i]);
+    }
+
+    std::array<uint8_t, 32> s, e;
+    for (size_t i = 0; i < 32; ++i) {
+        s[i] = static_cast<uint8_t>(sig[i].data[0]);
+        e[i] = static_cast<uint8_t>(sig[i + 32].data[0]);
+    }
+
+    crypto::schnorr_signature signature = { s, e };
+    bool r =
+        crypto::schnorr_verify_signature<Blake2sHasher, grumpkin::fq, grumpkin::fr, grumpkin::g1>(msg, pubk, signature);
+    *result = r;
+}

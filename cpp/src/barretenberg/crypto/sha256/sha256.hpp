@@ -11,6 +11,8 @@ namespace bb::crypto {
 
 using Sha256Hash = std::array<uint8_t, 32>;
 
+std::array<uint32_t, 8> sha256_block(const std::array<uint32_t, 8>& h_init, const std::array<uint32_t, 16>& input);
+
 Sha256Hash sha256_block(const std::vector<uint8_t>& input);
 
 template <typename T> Sha256Hash sha256(const T& input);

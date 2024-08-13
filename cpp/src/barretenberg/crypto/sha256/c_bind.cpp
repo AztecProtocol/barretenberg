@@ -32,3 +32,19 @@ WASM_EXPORT void blackbox_sha256(uint8_t* in, const size_t length, uint8_t* r)
         r[i * 32] = output[i];
     }
 }
+
+WASM_EXPORT void blackbox_sha256_compression(uint256_t const* in, uint256_t const* hash_values, uint256_t* r)
+{
+    std::array<uint32_t, 16> input;
+    for (size_t i = 0; i < 16; ++i) {
+        input[i] = static_cast<uint32_t>(in[i]);
+    }
+    std::array<uint32_t, 8> h;
+    for (size_t i = 0; i < 8; ++i) {
+        h[i] = static_cast<uint32_t>(hash_values[i]);
+    }
+    const auto output = crypto::sha256_block(h, input);
+    for (size_t i = 0; i < 8; ++i) {
+        r[i] = output[i];
+    }
+}

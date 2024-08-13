@@ -47,3 +47,35 @@ WASM_EXPORT void poseidon2_permutation(fr::vec_in_buf inputs_buffer, fr::vec_out
     const std::vector<fr> results(results_array.begin(), results_array.end());
     *output = to_heap_buffer(results);
 }
+
+// First encodes the memory slot to montgomery form if it's not already.
+// Then returns the decoded field in montgomery form.
+inline bb::fr bn254_fr_decode(bb::fr* f_)
+{
+    if (!f_->get_bit(255)) {
+        f_->self_to_montgomery_form();
+        f_->set_bit(255, true);
+    }
+
+    auto f = *f_;
+    f.set_bit(255, false);
+    return f;
+}
+
+WASM_EXPORT void blackbox_poseidon2_permutation(bb::fr* in, bb::fr* output, size_t)
+{
+    using Permutation = crypto::Poseidon2Permutation<crypto::Poseidon2Bn254ScalarFieldParams>;
+
+    std::array<bb::fr, 4> input;
+    for (size_t i = 0; i < 4; ++i) {
+        input[i] = bn254_fr_decode(&in[i]);
+    }
+
+    Permutation::State results_array = Permutation::permutation(input);
+
+    for (size_t i = 0; i < 4; ++i) {
+        output[i] = results_array[i];
+        // Track montgomery form.
+        output[i].set_bit(255, true);
+    }
+}
