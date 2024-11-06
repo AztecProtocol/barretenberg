@@ -77,7 +77,7 @@ bb verify_ultra_honk -k ./target/vk -p ./target/proof
 
 ```
 
-If successful, the verification will complete in silence.
+If successful, the verification will be completed in silence.
 
 ### MegaHonk
 
@@ -165,7 +165,7 @@ git clone -b release/10.x --depth 1 https://github.com/llvm/llvm-project.git \
 
 ### Bootstrap
 
-The bootstrap script will build both the native and wasm versions of barretenberg:
+The bootstrap script will build both the native and wasm versions of Barretenberg:
 
 ```bash
 cd cpp
@@ -258,7 +258,7 @@ Then run tests (on the mainframe always use taskset and nice to limit your influ
 taskset 0xffffff nice -n10 make test
 ```
 
-And generate report:
+And generate the report:
 
 ```
 make create_full_coverage_report
@@ -266,7 +266,7 @@ make create_full_coverage_report
 
 The report will land in the build directory in the all_test_coverage_report directory.
 
-Alternatively you can build separate test binaries, e.g. honk_tests or numeric_tests and run **make test** just for them or even just for a single test. Then the report will just show coverage for those binaries.
+Alternatively, you can build separate test binaries, e.g. honk_tests or numeric_tests and run **make test** just for them or even just for a single test. Then the report will just show coverage for those binaries.
 
 ### Formatting
 
@@ -409,7 +409,7 @@ Usage instructions:
 
 Caveats:
 
-- This works best for code that is not overly generic, i.e. where just the sequence of function calls carries a lot of information. It is possible to tag extra data along with the stack trace, this can be done as a followup, please leave feedback if desired.
+- This works best for code that is not overly generic, i.e. where just the sequence of function calls carries a lot of information. It is possible to tag extra data along with the stack trace, this can be done as a follow-up, please leave feedback if desired.
 - There are certain functions like `assert_equals` that can cause gates that occur *before* them to fail. If this would be useful to automatically report, please leave feedback.
 
 Example:
