@@ -1,0 +1,1 @@
+barretenberg_module(acir_formal_proofs stdlib_circuit_builders circuit_checker stdlib_primitives numeric stdlib_aes128 stdlib_sha256 stdlib_blake2s stdlib_blake3s)
