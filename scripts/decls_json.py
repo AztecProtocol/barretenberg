@@ -54,14 +54,15 @@ def process_files(files: List[str]) -> List[dict]:
                             {
                                 'name': arg.spelling,
                                 'type': arg.type.spelling,
-                            } for arg in node.get_arguments() if arg.type.get_canonical().get_pointee().is_const_qualified() or arg.type.get_canonical().is_const_qualified()
+                            } for arg in node.get_arguments() if (arg.type.get_canonical().get_pointee() and arg.type.get_canonical().get_pointee().is_const_qualified()) or arg.type.get_canonical().is_const_qualified()
                         ],
                         'outArgs': [
                             {
                                 'name': arg.spelling,
                                 'type': arg.type.spelling,
-                            } for arg in node.get_arguments() if not (arg.type.get_canonical().get_pointee().is_const_qualified() or arg.type.get_canonical().is_const_qualified())
-                        ],
+                            } for arg in node.get_arguments() if not ((arg.type.get_canonical().get_pointee() and arg.type.get_canonical().get_pointee().is_const_qualified()) or arg.type.get_canonical().is_const_qualified()
+                            )
+                        ],                       
                         'isAsync': has_annotation(node, 'async_wasm_export')
                     }
                     result.append(func)
