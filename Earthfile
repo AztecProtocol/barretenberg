@@ -157,7 +157,7 @@ barretenberg-acir-tests-bb.js:
     RUN BROWSER=chrome THREAD_MODEL=mt ./run_acir_tests_browser.sh verify_honk_proof
     # Run UltraHonk recursive verification through bb.js on chrome testing single-threaded browser support.
     RUN BROWSER=chrome THREAD_MODEL=st ./run_acir_tests_browser.sh verify_honk_proof
-    # Commenting for now as fails intermittently. Unreproducable on mainframe.
+    # Commenting for now as fails intermittently. Unreproducible on mainframe.
     # See https://github.com/AztecProtocol/aztec-packages/issues/2104
     #RUN BROWSER=webkit THREAD_MODEL=st ./run_acir_tests_browser.sh 1_mul
     # TODO(https://github.com/noir-lang/noir/issues/5106)
