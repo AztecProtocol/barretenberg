@@ -81,7 +81,7 @@ mkdir minimized_crashes
 ./bin/<fuzzer_executable> -minimize_crash=1 -artifact_prefix=minimized_crashes <crash_file>
 ```
 
-Also, both bigfield and safeuint fuzzer containt the SHOW_INFORMATION preprocessor cases, which enable the printing of instructions and values to make debugging the crash easier.
+Also, both bigfield and safeuint fuzzer contain the SHOW_INFORMATION preprocessor cases, which enable the printing of instructions and values to make debugging the crash easier.
 
 # Coverage reports
 
