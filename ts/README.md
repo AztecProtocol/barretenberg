@@ -58,7 +58,7 @@ Commands:
   prove_and_verify [options]  Generate a proof and verify it. Process exits with success or failure code.
   prove [options]             Generate a proof and write it to a file.
   gates [options]             Print gate count to standard output.
-  verify [options]            Verify a proof. Process exists with success or failure code.
+  verify [options]            Verify a proof. Process exits with success or failure code.
   contract [options]          Output solidity verification key contract.
   write_vk [options]          Output verification key.
   proof_as_fields [options]   Return the proof as fields elements
