@@ -42,21 +42,23 @@ struct HeaderOnlyMessage {
     MSGPACK_FIELDS(msgType, header);
 };
 
-template <class T> struct TypedMessage {
-    uint32_t msgType;
-    MsgHeader header;
-    T value;
+template <typename T>
+struct TypedMessage {
+    uint32_t msgType;  // The type of the message.
+    MsgHeader header;  // The header of the message.
+    T value;           // The actual message content.
 
-    TypedMessage(uint32_t type, MsgHeader& hdr, const T& val)
-        : msgType(type)
-        , header(hdr)
-        , value(val)
-    {}
+    // Constructor to initialize the message with type, header, and value.
+    TypedMessage(uint32_t type, const MsgHeader& hdr, const T& val)
+        : msgType(type), header(hdr), value(val) {}
 
+    // Default constructor for creating an empty message.
     TypedMessage() = default;
 
+    // Serialization support using msgpack.
     MSGPACK_FIELDS(msgType, header, value);
 };
+
 
 // #pragma pack(pop)
 } // namespace bb::messaging
