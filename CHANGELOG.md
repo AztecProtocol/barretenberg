@@ -1617,7 +1617,7 @@
 * **avm:** Reenable tag error sload ([#7153](https://github.com/AztecProtocol/aztec-packages/issues/7153)) ([fd92d46](https://github.com/AztecProtocol/aztec-packages/commit/fd92d467eee51638b896852b789c8fae17e0689c))
 * **avm:** Update codegen ([#7178](https://github.com/AztecProtocol/aztec-packages/issues/7178)) ([1d29708](https://github.com/AztecProtocol/aztec-packages/commit/1d29708bb6136184c27c1dc4f632b277cf3e4e64))
 * Bug fixing bench prover test ([#7135](https://github.com/AztecProtocol/aztec-packages/issues/7135)) ([13678be](https://github.com/AztecProtocol/aztec-packages/commit/13678be4e1c76d20a804a04b0fa82f68aeca38ae)), closes [#7080](https://github.com/AztecProtocol/aztec-packages/issues/7080)
-* Fix bug for a unit test in full proving mode repated to MSM ([#7104](https://github.com/AztecProtocol/aztec-packages/issues/7104)) ([e37809b](https://github.com/AztecProtocol/aztec-packages/commit/e37809bdcdcf76f89f68403ee75aaf6d32c79a94))
+* Fix bug for a unit test in full proving mode related to MSM ([#7104](https://github.com/AztecProtocol/aztec-packages/issues/7104)) ([e37809b](https://github.com/AztecProtocol/aztec-packages/commit/e37809bdcdcf76f89f68403ee75aaf6d32c79a94))
 
 
 ### Miscellaneous
