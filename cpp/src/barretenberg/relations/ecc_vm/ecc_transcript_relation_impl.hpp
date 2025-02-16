@@ -22,7 +22,7 @@ namespace bb {
  * that must be evaluated.
  *
  * One mul opcode can generate up to TWO multiplications. Each 128-bit scalar `z1, z2` is treated as an independent mul.
- * The purpose of this is to reduce the length of the MSM algorithm evalauted in `ecc_msm_relation.hpp` to 128 bits
+ * The purpose of this is to reduce the length of the MSM algorithm evaluated in `ecc_msm_relation.hpp` to 128 bits
  * (from 256 bits). Many scalar muls required to recursively verify a proof are only 128-bits in length; this prevents
  * us doing redundant computation.
  * @tparam FF
