@@ -1062,7 +1062,7 @@ void write_vk_honk(const std::string& bytecodePath, const std::string& outputPat
 
 /**
  * @brief Compute and write to file a MegaHonk VK for a circuit to be accumulated in the IVC
- * @note This method differes from write_vk_honk<MegaFlavor> in that it handles kernel circuits which require special
+ * @note This method differs from write_vk_honk<MegaFlavor> in that it handles kernel circuits which require special
  * treatment (i.e. construction of mock IVC state to correctly complete the kernel logic).
  *
  * @param bytecodePath
