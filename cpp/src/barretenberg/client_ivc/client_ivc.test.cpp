@@ -152,7 +152,7 @@ TEST_F(ClientIVCTests, BasicFour)
 
 /**
  * @brief Check that the IVC fails if an intermediate fold proof is invalid
- * @details When accumulating 4 circuits, there are 3 fold proofs to verify (the first two are recursively verfied and
+ * @details When accumulating 4 circuits, there are 3 fold proofs to verify (the first two are recursively verified and
  * the 3rd is verified as part of the IVC proof). Check that if any of one of these proofs is invalid, the IVC will
  * fail.
  *
