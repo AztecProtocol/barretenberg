@@ -156,7 +156,7 @@ template <typename FF_> class AuxiliaryRelationImpl {
         auto non_native_field_gate_1_m = limb_subproduct;
         non_native_field_gate_1_m -= (w_3_m + w_4_m);
         // We transform into ShortAccumulator to extend the degree of `non_native_field_gate_1` beyond degree-2
-        // (CoefficientAccumulator only supports Monomials of up to degree 2 as it is not efficient to peform
+        // (CoefficientAccumulator only supports Monomials of up to degree 2 as it is not efficient to perform
         // higher-degree computations in the coefficient basis) We use ShortAccumulator instead of Accumulator, because
         // this term is only used in subrelations that have the same degree as subrelation `0` (which can be lower than
         // the degree of subrelation `3`, which is how `Accumulator` is defined)
