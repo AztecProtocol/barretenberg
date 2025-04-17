@@ -1661,7 +1661,7 @@ GENERATE_TREEVIEW = YES
 # FULL_SIDEBAR option determines if the side bar is limited to only the treeview
 # area (value NO) or if it should extend to the full height of the window (value
 # YES). Setting this to YES gives a layout similar to
-# https://docs.readthedocs.io with more room for contents, but less room for the
+# https://docs.readthedocs.com/platform with more room for contents, but less room for the
 # project logo, title, and description. If either GENERATE_TREEVIEW or
 # DISABLE_INDEX is set to NO, this option has no effect.
 # The default value is: NO.
