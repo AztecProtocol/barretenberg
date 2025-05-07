@@ -10,7 +10,7 @@ Then just build with `smt-verification` preset.
 
 ### There're four new methods inside Standard and Ultra CircuitBuilders
 
-- ```set_variable_name(u32 index, str name)``` - assignes a name to a variable. Specifically, binds a name with the first index of an equivalence class.
+- ```set_variable_name(u32 index, str name)``` - assigns a name to a variable. Specifically, binds a name with the first index of an equivalence class.
 
 **!NOTE that somtimes you may encounter variables that are set to be `assert_equal` to `zero`. Their name will be erased no matter what first variable in class says.**
 
