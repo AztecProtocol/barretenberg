@@ -8,7 +8,7 @@ clang.cindex.Config.set_library_file('/usr/lib/llvm-18/lib/libclang-18.so.1')
 
 def has_annotation(node, annotation):
     for child in node.get_children():
-        if child.kind == clang.cindex.CursorKind.ANNOTATE_ATTR and annotation in child.spelling:
+        if child.kind == clang.cindex.CursorKind.ANNOTATE_ATTR and child.spelling and annotation in child.spelling:
             return True
     return False
 
