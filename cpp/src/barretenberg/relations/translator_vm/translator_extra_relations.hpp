@@ -68,7 +68,7 @@ template <typename FF_> class TranslatorAccumulatorTransferRelationImpl {
      * @brief Returns true if the contribution from all subrelations for the provided inputs is identically zero
      *
      * @details This has a negligible chance of failing in sumcheck (not in the first round) because effectively
-     * transfrom original coefficients into a random linear combination. But checking each individually is noticeably
+     * transform original coefficients into a random linear combination. But checking each individually is noticeably
      * slower.
      *
      */
