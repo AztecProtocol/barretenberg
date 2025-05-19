@@ -385,7 +385,7 @@ cmake --build --preset default --target run_ecc_bench
 
 ### Debugging
 
-#### Debugging Verifification Failures
+#### Debugging Verification Failures
 
 The CircuitChecker::check_circuit function is used to get the gate index and block information about a failing circuit constraint.
 If you are in a scenario where you have a failing call to check_circuit and wish to get more information out of it than just the gate index, you can use this feature to get a stack trace, see example below.
