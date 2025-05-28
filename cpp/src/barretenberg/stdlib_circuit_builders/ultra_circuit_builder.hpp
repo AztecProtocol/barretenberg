@@ -329,6 +329,8 @@ class UltraCircuitBuilder_ : public CircuitBuilderBase<typename ExecutionTrace_:
     std::vector<uint32_t> used_witnesses;
     std::vector<cached_partial_non_native_field_multiplication> cached_partial_non_native_field_multiplications;
 
+    std::unordered_map<std::tuple<uint32_t, bb::fr, bb::fr>, field_t<UltraCircuitBuilder>, boost::hash<std::tuple<uint32_t, bb::fr, bb::fr>>> normalized_cache;
+
     bool circuit_finalized = false;
 
     std::vector<fr> ipa_proof;
@@ -716,6 +718,19 @@ class UltraCircuitBuilder_ : public CircuitBuilderBase<typename ExecutionTrace_:
     std::vector<uint32_t> get_used_witnesses() const { return used_witnesses; }
 
     void update_used_witnesses(uint32_t var_idx) { used_witnesses.emplace_back(var_idx); }
+
+    field_t<UltraCircuitBuilder> get_normalized(uint32_t witness_index, const bb::fr& mul, const bb::fr& add) const {
+    return normalized_cache.at({witness_index, mul, add});
+    }
+
+    bool has_normalized(uint32_t witness_index, const bb::fr& mul, const bb::fr& add) const {
+    return normalized_cache.contains({witness_index, mul, add});
+    }
+
+    void cache_normalized(uint32_t witness_index, const bb::fr& mul, const bb::fr& add, const field_t<UltraCircuitBuilder>& normalized) {
+    normalized_cache[{witness_index, mul, add}] = normalized;
+    }
+
 
     /**x
      * @brief Print the number and composition of gates in the circuit

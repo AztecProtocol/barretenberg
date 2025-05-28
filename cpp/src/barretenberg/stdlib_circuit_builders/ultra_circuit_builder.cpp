@@ -736,6 +736,28 @@ uint32_t UltraCircuitBuilder_<ExecutionTrace>::put_constant_variable(const FF& v
     }
 }
 
+template <typename ExecutionTrace>
+field_t<UltraCircuitBuilder_<ExecutionTrace>> UltraCircuitBuilder_<ExecutionTrace>::get_normalized(
+    uint32_t witness_index, const bb::fr& mul, const bb::fr& add) const
+{
+    return normalized_cache.at({witness_index, mul, add});
+}
+
+template <typename ExecutionTrace>
+bool UltraCircuitBuilder_<ExecutionTrace>::has_normalized(
+    uint32_t witness_index, const bb::fr& mul, const bb::fr& add) const
+{
+    return normalized_cache.contains({witness_index, mul, add});
+}
+
+template <typename ExecutionTrace>
+void UltraCircuitBuilder_<ExecutionTrace>::cache_normalized(
+    uint32_t witness_index, const bb::fr& mul, const bb::fr& add,
+    const field_t<UltraCircuitBuilder_<ExecutionTrace>>& normalized)
+{
+    normalized_cache[{witness_index, mul, add}] = normalized;
+}
+
 /**
  * @brief Get the basic table with provided ID from the set of tables for the present circuit; create it if it doesnt
  * yet exist

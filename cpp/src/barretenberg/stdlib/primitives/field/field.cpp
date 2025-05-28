@@ -525,6 +525,9 @@ template <typename Builder> field_t<Builder> field_t<Builder>::add_two(const fie
  */
 template <typename Builder> field_t<Builder> field_t<Builder>::normalize() const
 {
+    if (context && context->has_normalized(witness_index, multiplicative_constant, additive_constant)) {
+        return context->get_normalized(witness_index, multiplicative_constant, additive_constant);
+    }
     if (witness_index == IS_CONSTANT ||
         ((multiplicative_constant == bb::fr::one()) && (additive_constant == bb::fr::zero()))) {
         return *this;
@@ -557,6 +560,7 @@ template <typename Builder> field_t<Builder> field_t<Builder>::normalize() const
                                .c_scaling = bb::fr::neg_one(),
                                .const_scaling = additive_constant });
     result.tag = tag;
+    context->cache_normalized(witness_index, multiplicative_constant, additive_constant, result);
     return result;
 }
 
