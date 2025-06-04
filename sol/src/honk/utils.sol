@@ -23,22 +23,15 @@ function bytes32ToString(bytes32 value) pure returns (string memory result) {
 
 function logG(string memory name, Honk.G1ProofPoint memory p) pure {
     Honk.G1Point memory point = convertProofPoint(p);
-
-    // TODO: convert both to hex before printing to line up with cpp
     string memory x = bytes32ToString(bytes32(point.x));
     string memory y = bytes32ToString(bytes32(point.y));
-
-    string memory message = string(abi.encodePacked(name, " x: ", x, " y: ", y));
-    console2.log(message);
+    console2.log(name, x, y);
 }
 
 function logG(string memory name, uint256 i, Honk.G1Point memory point) pure {
-    // TODO: convert both to hex before printing to line up with cpp
     string memory x = bytes32ToString(bytes32(point.x));
     string memory y = bytes32ToString(bytes32(point.y));
-
-    string memory message = string(abi.encodePacked(" x: ", x, " y: ", y));
-    console2.log(name, i, message);
+    console2.log(name, i, x, y);
 }
 
 function logUint(string memory name, uint256 value) pure {
