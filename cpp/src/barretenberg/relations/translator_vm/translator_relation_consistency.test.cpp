@@ -405,7 +405,7 @@ TEST_F(TranslatorRelationConsistency, DecompositionRelation)
 
         // All decomposition happen only at odd indices, so we use lagrange odd
         /**
-         * @brief Check decomposition of a relation limb. Relation limbs are 84 bits, so the decompositon takes 6
+         * @brief Check decomposition of a relation limb. Relation limbs are 84 bits, so the decomposition takes 6
          * 14-bit microlimbs
          *
          */
