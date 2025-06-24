@@ -8,6 +8,11 @@
 #include "../bitop/get_msb.hpp"
 #include "./uint256.hpp"
 #include "barretenberg/common/assert.hpp"
+
+#if defined(__wasm__)
+#include <wasm_simd128.h>
+#endif
+
 namespace bb::numeric {
 
 constexpr std::pair<uint64_t, uint64_t> uint256_t::mul_wide(const uint64_t a, const uint64_t b)
@@ -79,11 +84,13 @@ constexpr uint64_t uint256_t::mac_discard_hi(const uint64_t a,
 {
     return (b * c + a + carry_in);
 }
+
 #if defined(__wasm__) || !defined(__SIZEOF_INT128__)
 
 /**
- * @brief Multiply one limb by 9 limbs and add to resulting limbs
- *
+ * @brief Optimized multiply-add operation using SIMD instructions when available
+ * This implementation provides better performance on WebAssembly platforms by utilizing SIMD
+ * instructions for parallel multiplication and addition operations.
  */
 constexpr void uint256_t::wasm_madd(const uint64_t& left_limb,
                                     const uint64_t* right_limbs,
@@ -97,6 +104,23 @@ constexpr void uint256_t::wasm_madd(const uint64_t& left_limb,
                                     uint64_t& result_7,
                                     uint64_t& result_8)
 {
+#if defined(__wasm__) && defined(__wasm_simd128__)
+    // Load 2 64-bit integers into a 128-bit SIMD vector
+    v128_t left = wasm_i64x2_splat(left_limb);
+    
+    // Process 2 limbs at a time using SIMD
+    for (int i = 0; i < 8; i += 2) {
+        v128_t right = wasm_v128_load(right_limbs + i);
+        v128_t prod = wasm_i64x2_mul(left, right);
+        v128_t curr = wasm_v128_load(&result_0 + i);
+        v128_t sum = wasm_i64x2_add(curr, prod);
+        wasm_v128_store(&result_0 + i, sum);
+    }
+    
+    // Handle the last limb separately
+    result_8 += left_limb * right_limbs[8];
+#else
+    // Fallback implementation for non-SIMD platforms
     result_0 += left_limb * right_limbs[0];
     result_1 += left_limb * right_limbs[1];
     result_2 += left_limb * right_limbs[2];
@@ -106,6 +130,7 @@ constexpr void uint256_t::wasm_madd(const uint64_t& left_limb,
     result_6 += left_limb * right_limbs[6];
     result_7 += left_limb * right_limbs[7];
     result_8 += left_limb * right_limbs[8];
+#endif
 }
 
 /**
@@ -125,6 +150,7 @@ constexpr std::array<uint64_t, WASM_NUM_LIMBS> uint256_t::wasm_convert(const uin
              (data[3] >> 40) & 0x1fffffff };
 }
 #endif
+
 constexpr std::pair<uint256_t, uint256_t> uint256_t::divmod(const uint256_t& b) const
 {
     if (*this == 0 || b == 0) {
