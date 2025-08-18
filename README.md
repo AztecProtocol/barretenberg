@@ -83,7 +83,7 @@ Barretenberg can generate a smart contract that verifies proofs in Solidity (i.e
 First, prove the valid execution of your Noir program and export the verification key:
 
 ```bash
-bb prove --sceme ultra_honk -b ./target/hello_world.json -w ./target/witness-name.gz -o ./target/proof
+bb prove --scheme ultra_honk -b ./target/hello_world.json -w ./target/witness-name.gz -o ./target/proof
 bb write_vk --scheme ultra_honk -b ./target/hello_world.json -o ./target/vk
 ```
 
