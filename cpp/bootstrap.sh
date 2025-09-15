@@ -153,10 +153,11 @@ function build_smt_verification {
   if cache_download barretenberg-smt-$hash.zst; then
     return
   fi
+
   sudo apt update && sudo apt install -y python3-pip python3-venv m4
   cmake --preset smt-verification
   cmake --build build-smt --target smt_verification_tests
-  cache_upload barretenberg-smt-$hash.zst build-smt/bin
+  cache_upload barretenberg-smt-$hash.zst build-smt
 }
 
 function build_release {
@@ -188,7 +189,7 @@ function build {
     build_wasm_threads
   )
   if [ "$(arch)" == "amd64" ] && [ "$CI" -eq 1 ]; then
-    builds+=(build_gcc_syntax_check_only build_fuzzing_syntax_check_only build_smt_verification build_asan_fast)
+    builds+=(build_gcc_syntax_check_only build_fuzzing_syntax_check_only build_asan_fast build_smt_verification)
   fi
   if [ "$CI_FULL" -eq 1 ]; then
     builds+=(build_darwin)
@@ -275,7 +276,7 @@ function bench_cmds {
   echo "$prefix barretenberg/cpp/scripts/run_bench.sh native bb-micro-bench/native/client_ivc_verify build/bin/client_ivc_bench VerificationOnly$"
 }
 
-# Runs benchmarks sharded over mache cores.
+# Runs benchmarks sharded over machine cores.
 function bench {
   echo_header "bb bench"
   rm -rf bench-out && mkdir -p bench-out
