@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# CPU scaling benchmark wrapper that uses benchmark_remote.sh properly
+# CPU scaling benchmark that runs benchmarks locally
 # This script runs a command multiple times with different HARDWARE_CONCURRENCY values
 # and tracks the scaling performance of specific BB_BENCH entries
 # Uses --bench_out flag to get JSON output for accurate timing extraction
@@ -31,19 +31,9 @@ CPU_LIST="${3:-1,2,4,8,16}"
 # Convert comma-separated list to array
 IFS=',' read -ra CPU_COUNTS <<< "$CPU_LIST"
 
-# Check if required environment variables are set for remote execution
-if [ -z "${BB_SSH_KEY:-}" ] || [ -z "${BB_SSH_INSTANCE:-}" ] || [ -z "${BB_SSH_CPP_PATH:-}" ]; then
-    echo -e "${RED}Error: Remote execution requires BB_SSH_KEY, BB_SSH_INSTANCE, and BB_SSH_CPP_PATH environment variables${NC}"
-    echo "Please set:"
-    echo "  export BB_SSH_KEY='-i /path/to/key.pem'"
-    echo "  export BB_SSH_INSTANCE='user@ec2-instance.amazonaws.com'"
-    echo "  export BB_SSH_CPP_PATH='/path/to/barretenberg/cpp'"
-    exit 1
-fi
-
 # Create output directory with timestamp
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-OUTPUT_DIR="bench_scaling_remote_${TIMESTAMP}"
+OUTPUT_DIR="bench_scaling_local_${TIMESTAMP}"
 mkdir -p "$OUTPUT_DIR"
 
 # Results file
@@ -51,21 +41,20 @@ RESULTS_FILE="$OUTPUT_DIR/scaling_results.txt"
 CSV_FILE="$OUTPUT_DIR/scaling_results.csv"
 
 echo -e "${GREEN}╔════════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║         CPU Scaling Benchmark (Remote Execution)              ║${NC}"
+echo -e "${GREEN}║           CPU Scaling Benchmark (Local Execution)             ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 echo -e "${CYAN}Benchmark Entry:${NC} ${YELLOW}$BENCH_NAME${NC}"
 echo -e "${CYAN}Command:${NC} $COMMAND"
 echo -e "${CYAN}CPU Counts:${NC} ${CPU_COUNTS[@]}"
-echo -e "${CYAN}Remote Host:${NC} ${BB_SSH_INSTANCE}"
-echo -e "${CYAN}Remote Path:${NC} ${BB_SSH_CPP_PATH}"
+echo -e "${CYAN}Machine:${NC} $(hostname)"
 echo -e "${CYAN}Output Directory:${NC} $OUTPUT_DIR"
 echo ""
 
 # Initialize results file
 echo "CPU Scaling Benchmark: $BENCH_NAME" > "$RESULTS_FILE"
 echo "Command: $COMMAND" >> "$RESULTS_FILE"
-echo "Remote Host: $BB_SSH_INSTANCE" >> "$RESULTS_FILE"
+echo "Machine: $(hostname)" >> "$RESULTS_FILE"
 echo "Date: $(date)" >> "$RESULTS_FILE"
 echo "================================================" >> "$RESULTS_FILE"
 echo "" >> "$RESULTS_FILE"
@@ -110,7 +99,7 @@ declare -a ALL_CPUS=()
 declare -a ALL_TIMES=()
 declare -a ALL_SPEEDUPS=()
 
-echo -e "${BLUE}Starting benchmark runs on remote machine...${NC}"
+echo -e "${BLUE}Starting benchmark runs locally...${NC}"
 echo ""
 
 # Run benchmark for each CPU count
@@ -122,26 +111,19 @@ for cpu_count in "${CPU_COUNTS[@]}"; do
     run_dir="$OUTPUT_DIR/run_${cpu_count}cpus"
     mkdir -p "$run_dir"
     log_file="$run_dir/output.log"
+    bench_json_file="$run_dir/bench.json"
 
-    # Run command on remote machine with specified CPU count
-    echo -e "${CYAN}Executing on remote via benchmark_remote.sh...${NC}"
+    # Run command locally with specified CPU count
+    echo -e "${CYAN}Executing locally...${NC}"
     start_time=$(date +%s.%N)
 
-    # Clean up any stale benchmark file from previous runs on remote
-    ssh $BB_SSH_KEY $BB_SSH_INSTANCE "rm -f /tmp/bench_${cpu_count}.json" 2>/dev/null
+    # Clean up any stale benchmark file
+    rm -f "$bench_json_file"
 
-    # Use benchmark_remote.sh to execute on remote with --bench_out for JSON output
-    # The benchmark_remote.sh script handles locking and setup
-    # Use tee to show output in real-time AND save to log file
-    bench_json_file="$run_dir/bench.json"
-    ./scripts/benchmark_remote.sh bb "HARDWARE_CONCURRENCY=$cpu_count $COMMAND --bench_out /tmp/bench_${cpu_count}.json" 2>&1 | tee "$log_file"
+    # Execute the command locally with HARDWARE_CONCURRENCY environment variable
+    # Add --bench_out flag to get JSON output
+    HARDWARE_CONCURRENCY=$cpu_count eval "$COMMAND --bench_out $bench_json_file" 2>&1 | tee "$log_file"
     
-    # Retrieve the JSON file from remote
-    ssh $BB_SSH_KEY $BB_SSH_INSTANCE "cat /tmp/bench_${cpu_count}.json" > "$bench_json_file" 2>/dev/null
-    
-    # Clean up the remote benchmark file after retrieval
-    ssh $BB_SSH_KEY $BB_SSH_INSTANCE "rm -f /tmp/bench_${cpu_count}.json" 2>/dev/null
-
     end_time=$(date +%s.%N)
     wall_time=$(awk -v e="$end_time" -v s="$start_time" 'BEGIN{printf "%.2f", e-s}')
 
@@ -295,9 +277,5 @@ if [ "${#ALL_SPEEDUPS[@]}" -gt 1 ]; then
         echo -e "  At ${last_cpu} CPUs: ${actual_efficiency}% efficiency"
     fi
 fi
-
-# Clean up all temporary benchmark files on remote
-echo -e "${CYAN}Cleaning up remote temporary files...${NC}"
-ssh $BB_SSH_KEY $BB_SSH_INSTANCE "rm -f /tmp/bench_*.json" 2>/dev/null
 
 echo ""
