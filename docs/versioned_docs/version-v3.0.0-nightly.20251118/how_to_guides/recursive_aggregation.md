@@ -134,18 +134,10 @@ Since we're using Honk proofs, let's instantiate the UltraHonkBackend just as in
 
 ```typescript
 // Setup backend for main circuit (inner circuit)
-mainBackend = new UltraHonkBackend(
-  mainBytecode,
-  { threads: 8 },
-  { recursive: true }
-);
+mainBackend = new UltraHonkBackend(mainBytecode, { threads: 8 }, { recursive: true });
 
 // Setup backend for recursive circuit (outer circuit)
-recursiveBackend = new UltraHonkBackend(
-  recursiveBytecode,
-  { threads: 8 },
-  { recursive: false }
-);
+recursiveBackend = new UltraHonkBackend(recursiveBytecode, { threads: 8 }, { recursive: false });
 ```
 
 
@@ -159,10 +151,14 @@ We can now generate the proof and the verification key (VK), for example:
 
 ```typescript
 // Generate proof for main circuit with keccakZK for recursive verification
-const mainProofData = await mainBackend.generateProof(mainWitness, { keccakZK: true });
+const mainProofData = await mainBackend.generateProof(mainWitness, {
+  keccakZK: true,
+});
 
 // Generate verification key for main circuit
-const mainVerificationKey = await mainBackend.getVerificationKey({ keccakZK: true });
+const mainVerificationKey = await mainBackend.getVerificationKey({
+  keccakZK: true,
+});
 ```
 
 
@@ -179,13 +175,14 @@ We now need to prepare our inputs to be fed correctly into the recursive program
 ```typescript
 // Convert proof and VK to fields for recursive circuit
 const barretenbergAPI = await Barretenberg.new({ threads: 1 });
-const vkAsFields = (await barretenbergAPI.acirVkAsFieldsUltraHonk(new RawBuffer(mainVerificationKey)))
-  .map(field => field.toString());
+const vkAsFields = (await barretenbergAPI.acirVkAsFieldsUltraHonk(new RawBuffer(mainVerificationKey))).map(field =>
+  field.toString(),
+);
 
 recursiveInputs = {
   proof: deflattenFields(mainProofData.proof),
   public_inputs: [2],
-  verification_key: vkAsFields
+  verification_key: vkAsFields,
 };
 
 await barretenbergAPI.destroy();
