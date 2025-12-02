@@ -128,7 +128,7 @@ const solidityContract = await backend.getSolidityVerifier(vkKeccak);
 For more control, you can use the Barretenberg API directly:
 
 ```typescript
-const api = await Barretenberg.new({ threads: 1, logger: console.log });
+const api = await Barretenberg.new({ threads: 1 });
 
 // Blake2s hashing
 const input = Buffer.from('hello world!');

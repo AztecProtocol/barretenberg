@@ -174,7 +174,7 @@ We now need to prepare our inputs to be fed correctly into the recursive program
 
 ```typescript
 // Convert proof and VK to fields for recursive circuit
-const barretenbergAPI = await Barretenberg.new({ threads: 1, logger: console.log });
+const barretenbergAPI = await Barretenberg.new({ threads: 1 });
 const vkAsFields = (await barretenbergAPI.acirVkAsFieldsUltraHonk(new RawBuffer(mainVerificationKey))).map(field =>
   field.toString(),
 );
