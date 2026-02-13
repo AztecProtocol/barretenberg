@@ -41,6 +41,8 @@
 #define to_be64(X) X
 #endif
 
+#include <vector>
+
 /** Loads 64-bit integer from given memory location as little-endian number. */
 static inline uint64_t load_le(const uint8_t* data)
 {
@@ -113,24 +115,24 @@ struct keccak256 ethash_keccak256(const uint8_t* data, size_t size) NOEXCEPT
 
 struct keccak256 hash_field_elements(const uint64_t* limbs, size_t num_elements)
 {
-    uint8_t input_buffer[num_elements * 32];
+    std::vector<uint8_t> input_buffer(num_elements * 32);
 
     for (size_t i = 0; i < num_elements; ++i) {
         for (size_t j = 0; j < 4; ++j) {
             uint64_t word = (limbs[i * 4 + j]);
             size_t idx = i * 32 + j * 8;
-            input_buffer[idx] = (uint8_t)((word >> 56) & 0xff);
-            input_buffer[idx + 1] = (uint8_t)((word >> 48) & 0xff);
-            input_buffer[idx + 2] = (uint8_t)((word >> 40) & 0xff);
-            input_buffer[idx + 3] = (uint8_t)((word >> 32) & 0xff);
-            input_buffer[idx + 4] = (uint8_t)((word >> 24) & 0xff);
-            input_buffer[idx + 5] = (uint8_t)((word >> 16) & 0xff);
-            input_buffer[idx + 6] = (uint8_t)((word >> 8) & 0xff);
-            input_buffer[idx + 7] = (uint8_t)(word & 0xff);
+            input_buffer[idx] = static_cast<uint8_t>((word >> 56U) & 0xffU);
+            input_buffer[idx + 1] = static_cast<uint8_t>((word >> 48U) & 0xffU);
+            input_buffer[idx + 2] = static_cast<uint8_t>((word >> 40U) & 0xffU);
+            input_buffer[idx + 3] = static_cast<uint8_t>((word >> 32U) & 0xffU);
+            input_buffer[idx + 4] = static_cast<uint8_t>((word >> 24U) & 0xffU);
+            input_buffer[idx + 5] = static_cast<uint8_t>((word >> 16U) & 0xffU);
+            input_buffer[idx + 6] = static_cast<uint8_t>((word >> 8U) & 0xffU);
+            input_buffer[idx + 7] = static_cast<uint8_t>(word & 0xffU);
         }
     }
 
-    return ethash_keccak256(input_buffer, num_elements * 32);
+    return ethash_keccak256(input_buffer.data(), input_buffer.size());
 }
 
 struct keccak256 hash_field_element(const uint64_t* limb)
