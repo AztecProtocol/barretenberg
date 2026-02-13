@@ -26,6 +26,15 @@ class ChonkAPI : public API {
                                  const std::filesystem::path& output_path,
                                  const std::filesystem::path& vk_path) override;
 
+    void write_solana_verifier(const Flags& flags,
+                               const std::filesystem::path& output_path,
+                               const std::filesystem::path& vk_path) override;
+
+    bool verify_solana_staged(const Flags& flags,
+                              const std::filesystem::path& public_inputs_path,
+                              const std::filesystem::path& proof_path,
+                              const std::filesystem::path& vk_path) override;
+
     // Two modes:
     // - write a vk for a standalone circuit
     // - write the vk of the hiding circuit which requires the last circuit input (e.g. a private-tail in Aztec) to be

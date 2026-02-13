@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 #include <filesystem>
 #include <iostream>
 
@@ -26,6 +27,7 @@ class API {
         std::string vk_policy{ "default" };     // policy for handling VKs during IVC accumulation
 
         bool optimized_solidity_verifier{ false }; // should we use the optimized sol verifier? (temp)
+        size_t solana_chunk_size{ 900 };           // default chunk size for Solana artifact chunk manifests/helpers
 
         friend std::ostream& operator<<(std::ostream& os, const Flags& flags)
         {
@@ -43,6 +45,7 @@ class API {
                << "  slow_low_memory " << flags.slow_low_memory << "\n"
                << "  storage_budget " << flags.storage_budget << "\n"
                << "  vk_policy " << flags.vk_policy << "\n"
+               << "  solana_chunk_size " << flags.solana_chunk_size << "\n"
                << "]" << std::endl;
             return os;
         }
@@ -67,5 +70,14 @@ class API {
     virtual void write_solidity_verifier(const Flags& flags,
                                          const std::filesystem::path& output_path,
                                          const std::filesystem::path& vk_path) = 0;
+
+    virtual void write_solana_verifier(const Flags& flags,
+                                       const std::filesystem::path& output_path,
+                                       const std::filesystem::path& vk_path) = 0;
+
+    virtual bool verify_solana_staged(const Flags& flags,
+                                      const std::filesystem::path& public_inputs_path,
+                                      const std::filesystem::path& proof_path,
+                                      const std::filesystem::path& vk_path) = 0;
 };
 } // namespace bb

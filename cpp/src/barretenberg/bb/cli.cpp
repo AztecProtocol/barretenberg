@@ -298,6 +298,12 @@ int parse_and_run_cli_command(int argc, char* argv[])
             "--optimized", flags.optimized_solidity_verifier, "Use the optimized Solidity verifier.");
     };
 
+    const auto add_solana_chunk_size_option = [&](CLI::App* subcommand) {
+        return subcommand->add_option("--chunk_size",
+                                      flags.solana_chunk_size,
+                                      "Chunk size in bytes used for generated Solana chunk manifests/helpers.");
+    };
+
     bool print_bench = false;
     const auto add_print_bench_flag = [&](CLI::App* subcommand) {
         return subcommand->add_flag(
@@ -440,6 +446,40 @@ int parse_and_run_cli_command(int argc, char* argv[])
     remove_zk_option(write_solidity_verifier);
     add_crs_path_option(write_solidity_verifier);
     add_optimized_solidity_verifier_flag(write_solidity_verifier);
+
+    /***************************************************************************************************************
+     * Subcommand: write_solana_verifier
+     ***************************************************************************************************************/
+    CLI::App* write_solana_verifier =
+        app.add_subcommand("write_solana_verifier",
+                           "Write Solana verifier artifacts for the circuit with verification key at vk_path.");
+
+    add_scheme_option(write_solana_verifier);
+    add_vk_path_option(write_solana_verifier);
+    add_output_path_option(write_solana_verifier, output_path);
+
+    add_verbose_flag(write_solana_verifier);
+    remove_zk_option(write_solana_verifier);
+    add_oracle_hash_option(write_solana_verifier);
+    add_ipa_accumulation_flag(write_solana_verifier);
+    add_solana_chunk_size_option(write_solana_verifier);
+
+    /***************************************************************************************************************
+     * Subcommand: solana_staged_verify
+     ***************************************************************************************************************/
+    CLI::App* solana_staged_verify = app.add_subcommand(
+        "solana_staged_verify",
+        "Run the minimal staged Solana-style verification flow locally using vk/proof/public_inputs artifacts.");
+
+    add_scheme_option(solana_staged_verify);
+    add_public_inputs_path_option(solana_staged_verify);
+    add_proof_path_option(solana_staged_verify);
+    add_vk_path_option(solana_staged_verify);
+    add_verbose_flag(solana_staged_verify);
+    add_oracle_hash_option(solana_staged_verify);
+    remove_zk_option(solana_staged_verify);
+    add_ipa_accumulation_flag(solana_staged_verify);
+    add_solana_chunk_size_option(solana_staged_verify);
 
     std::filesystem::path avm_inputs_path{ "./target/avm_inputs.bin" };
     const auto add_avm_inputs_option = [&](CLI::App* subcommand) {
@@ -637,6 +677,15 @@ int parse_and_run_cli_command(int argc, char* argv[])
         if (write_solidity_verifier->parsed()) {
             api.write_solidity_verifier(flags, output_path, vk_path);
             return 0;
+        }
+        if (write_solana_verifier->parsed()) {
+            api.write_solana_verifier(flags, output_path, vk_path);
+            return 0;
+        }
+        if (solana_staged_verify->parsed()) {
+            const bool verified = api.verify_solana_staged(flags, public_inputs_path, proof_path, vk_path);
+            vinfo("solana staged verified: ", verified);
+            return verified ? 0 : 1;
         }
         auto subcommands = app.get_subcommands();
         const std::string message = std::string("No handler for subcommand ") + subcommands[0]->get_name();

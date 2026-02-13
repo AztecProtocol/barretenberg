@@ -91,7 +91,61 @@ Barretenberg UltraHonk comes with the capability to verify proofs in Solidity, i
    **WARNING:** Contract incomplete, do not use in production!
 
    ```bash
-   bb write_solidity_verifier --scheme ultra_honk -k ./target/vk -b ./target/hello_world.json -o ./target/Verifier.sol
+   bb write_solidity_verifier --scheme ultra_honk -k ./target/vk -o ./target/Verifier.sol
+   ```
+
+##### Generating artifacts for Solana verification sessions
+
+Barretenberg UltraHonk can emit Solana-oriented verifier artifacts from a precomputed VK.
+
+1. Compute the verification key for your Noir program:
+
+   ```bash
+   bb write_vk --scheme ultra_honk -b ./target/hello_world.json -o ./target
+   ```
+
+2. Generate Solana artifacts:
+
+   ```bash
+   bb write_solana_verifier --scheme ultra_honk --chunk_size 900 -k ./target/vk -o ./target/solana
+   ```
+
+3. Run a local minimal staged-session verification (Phase 2 bootstrap):
+
+   ```bash
+   bb solana_staged_verify \
+     --scheme ultra_honk \
+     --chunk_size 900 \
+     -k ./target/vk \
+     -p ./target/proof \
+     -i ./target/public_inputs
+   ```
+
+4. Output files:
+   - `./target/solana/vk.bin`: serialized verification key bytes
+   - `./target/solana/vk_meta.json`: VK metadata (`vk_hash`, `log_n`, `num_public_inputs`, etc.)
+   - `./target/solana/vk_chunks.json`: deterministic VK chunk manifest
+   - `./target/solana/session_abi.json`: canonical staged-session ABI (typed account layouts, instruction discriminants, binary encoding layout, verify stage map, state transitions, hash boundary rules)
+   - `./target/solana/client_helper.ts`: helper for deterministic chunking, canonical hash preimage construction, staged payloads, and binary instruction encoding
+   - `./target/solana/solana_verifier_program/Cargo.toml`
+   - `./target/solana/solana_verifier_program/src/lib.rs`
+   - `./target/solana/solana_verifier_program/src/generated_vk.rs`
+   - `./target/solana/solana_verifier_program/src/generated_config.rs`
+   - `./target/solana/solana_verifier_program/README.md`
+
+5. Validate generated scaffold compile:
+
+   ```bash
+   cargo check --offline --manifest-path ./target/solana/solana_verifier_program/Cargo.toml
+   ```
+
+   Optional SBF build check:
+
+   ```bash
+   PATH=/Users/Americansprit/.local/share/solana/install/active_release/bin:$PATH \
+     cargo build-sbf --offline --tools-version v1.52 \
+     --sbf-out-dir ./target/solana/sbf_out \
+     --manifest-path ./target/solana/solana_verifier_program/Cargo.toml
    ```
 
 #### Usage with MegaHonk

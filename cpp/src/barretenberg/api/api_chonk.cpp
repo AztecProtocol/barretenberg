@@ -145,6 +145,24 @@ void ChonkAPI::write_solidity_verifier([[maybe_unused]] const Flags& flags,
     throw_or_abort("API function contract not implemented");
 }
 
+void ChonkAPI::write_solana_verifier([[maybe_unused]] const Flags& flags,
+                                     [[maybe_unused]] const std::filesystem::path& output_path,
+                                     [[maybe_unused]] const std::filesystem::path& vk_path)
+{
+    BB_BENCH_NAME("ChonkAPI::write_solana_verifier");
+    throw_or_abort("API function solana verifier not implemented");
+}
+
+bool ChonkAPI::verify_solana_staged([[maybe_unused]] const Flags& flags,
+                                    [[maybe_unused]] const std::filesystem::path& public_inputs_path,
+                                    [[maybe_unused]] const std::filesystem::path& proof_path,
+                                    [[maybe_unused]] const std::filesystem::path& vk_path)
+{
+    BB_BENCH_NAME("ChonkAPI::verify_solana_staged");
+    throw_or_abort("API function solana staged verify not implemented");
+    return false;
+}
+
 bool ChonkAPI::check_precomputed_vks(const Flags& flags, const std::filesystem::path& input_path)
 {
     BB_BENCH_NAME("ChonkAPI::check_precomputed_vks");
