@@ -9,7 +9,7 @@ So the only valid input is `x = 6`.
 ## Run the full local flow
 
 ```bash
-cd /Users/Americansprit/blockchain/barretenberg/docs/examples/fixtures/solana_x_plus_7
+cd docs/examples/fixtures/solana_x_plus_7
 ./run_solana_flow.sh
 ```
 

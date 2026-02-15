@@ -65,7 +65,7 @@ cargo check --offline --manifest-path ./target/solana/solana_verifier_program/Ca
 Optional SBF build validation (when Solana toolchain is installed):
 
 ```bash
-PATH=/Users/Americansprit/.local/share/solana/install/active_release/bin:$PATH \
+PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH" \
   cargo build-sbf --offline --tools-version v1.52 \
   --sbf-out-dir ./target/solana/sbf_out \
   --manifest-path ./target/solana/solana_verifier_program/Cargo.toml
@@ -137,7 +137,7 @@ This command executes:
 
 A standalone on-chain state-machine scaffold lives at:
 
-- `/Users/Americansprit/blockchain/barretenberg/solana/ultrahonk_verifier_program`
+- `solana/ultrahonk_verifier_program`
 
 It currently implements instruction decoding, session transition checks, and unit tests, and is intended to be the
 base for full `solana-program` account wiring.

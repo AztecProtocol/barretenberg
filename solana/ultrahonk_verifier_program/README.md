@@ -1,9 +1,8 @@
 # UltraHonk Solana Verifier Program Scaffold
 
-This crate is a standalone scaffold for the staged UltraHonk verifier session state machine described in:
-
-- `ultrahonk_solana_universal_generator_plan.md`
-- generated `session_abi.json` / `client_helper.ts` artifacts
+This crate is a standalone scaffold for the staged UltraHonk verifier session state machine and
+the generated `session_abi.json` / `client_helper.ts` artifacts emitted by
+`bb write_solana_verifier`.
 
 ## What is implemented
 
@@ -54,7 +53,7 @@ cargo test --features sbf-entrypoint
 Run SBF CU benchmark harness:
 
 ```bash
-PATH=/Users/Americansprit/.local/share/solana/install/active_release/bin:$PATH \
-  /Users/Americansprit/.local/share/solana/install/active_release/bin/cargo-test-sbf \
+PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH" \
+  cargo-test-sbf \
   --tools-version v1.52 --features sbf-entrypoint --test cu_bench -- --ignored --nocapture
 ```

@@ -142,7 +142,7 @@ Barretenberg UltraHonk can emit Solana-oriented verifier artifacts from a precom
    Optional SBF build check:
 
    ```bash
-   PATH=/Users/Americansprit/.local/share/solana/install/active_release/bin:$PATH \
+   PATH="$HOME/.local/share/solana/install/active_release/bin:$PATH" \
      cargo build-sbf --offline --tools-version v1.52 \
      --sbf-out-dir ./target/solana/sbf_out \
      --manifest-path ./target/solana/solana_verifier_program/Cargo.toml

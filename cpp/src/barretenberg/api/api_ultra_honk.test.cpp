@@ -12,11 +12,13 @@
 #include <array>
 #include <chrono>
 #include <cstddef>
+#include <cstring>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
 #include <math.h>
+#include <string>
 #include <sstream>
 #include <string_view>
 
@@ -32,10 +34,12 @@ namespace {
 // Uniqueness needed because tests are run in parallel and write to same file names.
 std::filesystem::path get_test_dir(const std::string_view& test_name)
 {
-    std::filesystem::path temp_dir = "tmp_api_ultra_honk_test";
-    std::filesystem::create_directories(temp_dir);
-    std::filesystem::create_directories(temp_dir / test_name);
-    return temp_dir / test_name;
+    const auto unique_suffix =
+        std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
+    std::filesystem::path temp_dir = std::filesystem::temp_directory_path() / "bb_api_ultra_honk_test";
+    std::filesystem::path run_dir = temp_dir / (std::string(test_name) + "_" + unique_suffix);
+    std::filesystem::create_directories(run_dir);
+    return run_dir;
 }
 
 // Create test data
@@ -74,7 +78,8 @@ std::filesystem::path find_repo_root()
 {
     auto cursor = std::filesystem::absolute(std::filesystem::path(__FILE__)).parent_path();
     for (size_t i = 0; i < 16; ++i) {
-        if (std::filesystem::exists(cursor / "ultrahonk_solana_universal_generator_plan.md")) {
+        if (std::filesystem::exists(cursor / "cpp" / "CMakeLists.txt") &&
+            std::filesystem::exists(cursor / "solana" / "ultrahonk_verifier_program" / "Cargo.toml")) {
             return cursor;
         }
         if (cursor == cursor.parent_path()) {
@@ -471,10 +476,24 @@ TEST_F(ApiUltraHonkTest, WriteSolanaVerifierGeneratedProgramRunsGuardUnitTests)
 
 TEST_F(ApiUltraHonkTest, WriteSolanaVerifierGeneratedProgramBuildsSbfWhenToolchainAvailable)
 {
-    constexpr const char* SOLANA_BIN_PATH = "/Users/Americansprit/.local/share/solana/install/active_release/bin";
-    if (!is_command_available("cargo-build-sbf") &&
-        !is_command_available_with_path_prefix("cargo-build-sbf", SOLANA_BIN_PATH)) {
-        GTEST_SKIP() << "cargo-build-sbf is not available in PATH";
+    std::string solana_bin_path;
+    if (const auto* configured_solana_bin = std::getenv("SOLANA_BIN_DIR");
+        configured_solana_bin != nullptr && std::strlen(configured_solana_bin) > 0) {
+        solana_bin_path = configured_solana_bin;
+    } else if (const auto* home = std::getenv("HOME"); home != nullptr && std::strlen(home) > 0) {
+        solana_bin_path = std::string(home) + "/.local/share/solana/install/active_release/bin";
+    }
+
+    const bool cargo_build_sbf_in_path = is_command_available("cargo-build-sbf");
+    const bool cargo_build_sbf_in_solana_path =
+        !solana_bin_path.empty() && is_command_available_with_path_prefix("cargo-build-sbf", solana_bin_path);
+    if (!cargo_build_sbf_in_path && !cargo_build_sbf_in_solana_path) {
+        GTEST_SKIP() << "cargo-build-sbf is not available in PATH (set SOLANA_BIN_DIR or update PATH)";
+    }
+    const std::string cargo_build_sbf_prefix =
+        cargo_build_sbf_in_path ? "" : ("PATH=\"" + solana_bin_path + ":$PATH\" ");
+    if (run_shell_command(cargo_build_sbf_prefix + "cargo build-sbf -h >/dev/null 2>&1") != 0) {
+        GTEST_SKIP() << "cargo-build-sbf is present but Solana SBF SDK is not configured";
     }
     const auto solana_cache_dir = test_dir / "sbf_cache";
     const auto sbf_out_dir = test_dir / "sbf_out";
@@ -517,12 +536,25 @@ TEST_F(ApiUltraHonkTest, WriteSolanaVerifierGeneratedProgramBuildsSbfWhenToolcha
     const auto generated_program_dir = solana_dir / "solana_verifier_program";
     ASSERT_TRUE(std::filesystem::exists(generated_program_dir / "Cargo.toml"));
 
+    const auto sbf_log_path = test_dir / "cargo_build_sbf.log";
     const std::string sbf_build_cmd = "XDG_CACHE_HOME=\"" + solana_cache_dir.string() + "\" " +
-                                      "PATH=\"" + std::string(SOLANA_BIN_PATH) + ":$PATH\" "
+                                      cargo_build_sbf_prefix +
                                       "cargo build-sbf --offline --tools-version v1.52 --sbf-out-dir \"" +
                                       sbf_out_dir.string() + "\" --manifest-path \"" +
-                                      (generated_program_dir / "Cargo.toml").string() + "\"";
-    EXPECT_EQ(run_shell_command(sbf_build_cmd), 0);
+                                      (generated_program_dir / "Cargo.toml").string() + "\" > \"" +
+                                      sbf_log_path.string() + "\" 2>&1";
+    const int sbf_build_exit_code = run_shell_command(sbf_build_cmd);
+    if (sbf_build_exit_code != 0 && std::filesystem::exists(sbf_log_path)) {
+        const auto sbf_log_buf = read_file(sbf_log_path);
+        const std::string sbf_log(sbf_log_buf.begin(), sbf_log_buf.end());
+        if (sbf_log.find("Solana SDK path does not exist") != std::string::npos ||
+            sbf_log.find("platform-tools-sdk/sbf") != std::string::npos) {
+            GTEST_SKIP() << "cargo build-sbf is present but Solana SBF SDK path is not configured";
+        }
+        EXPECT_EQ(sbf_build_exit_code, 0) << sbf_log;
+    } else {
+        EXPECT_EQ(sbf_build_exit_code, 0);
+    }
 }
 
 TEST_F(ApiUltraHonkTest, WriteSolanaVerifierSessionAbiLocksToRuntimeConstants)
