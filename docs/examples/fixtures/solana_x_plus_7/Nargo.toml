@@ -1,0 +1,6 @@
+[package]
+name = "solana_x_plus_7"
+type = "bin"
+authors = [""]
+
+[dependencies]

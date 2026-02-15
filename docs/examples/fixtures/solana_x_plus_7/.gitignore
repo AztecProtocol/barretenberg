@@ -1,0 +1,3 @@
+target/
+.env
+devnet-deployer-keypair.json

@@ -7948,7 +7948,10 @@ dependencies = [
  "solana-program",
  "solana-program-test",
  "solana-pubkey 3.0.0",
+ "solana-rpc-client",
+ "solana-sdk-ids",
  "solana-signer",
+ "solana-system-interface 3.0.0",
  "solana-transaction",
  "tokio",
 ]

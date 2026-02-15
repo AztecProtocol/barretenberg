@@ -11,10 +11,13 @@ use solana_program::{
     entrypoint::ProgramResult,
     hash::hashv,
     msg,
-    program::set_return_data,
+    program::{invoke_signed, set_return_data},
     program_error::ProgramError,
     pubkey::Pubkey,
+    sysvar::{rent::Rent, Sysvar},
 };
+use solana_sdk_ids::system_program;
+use solana_system_interface::instruction as system_instruction;
 
 pub const SESSION_ABI_VERSION: u32 = 2;
 pub const TOTAL_VERIFY_STAGES: u32 = 3;
@@ -170,6 +173,10 @@ pub enum SessionError {
     VerifyStageOutOfRange(u32),
     FinalizeBeforeFullIngest,
     FinalizeBeforeAllStages,
+    AuthorityAccountNotWritable,
+    MissingSystemProgramAccount,
+    InvalidSystemProgramAccount,
+    SessionAccountAlreadyExists,
 }
 
 impl SessionStatus {
@@ -214,6 +221,10 @@ impl SessionError {
             SessionError::VerifyStageOutOfRange(_) => 22,
             SessionError::FinalizeBeforeFullIngest => 23,
             SessionError::FinalizeBeforeAllStages => 24,
+            SessionError::AuthorityAccountNotWritable => 25,
+            SessionError::MissingSystemProgramAccount => 26,
+            SessionError::InvalidSystemProgramAccount => 27,
+            SessionError::SessionAccountAlreadyExists => 28,
         }
     }
 }
@@ -992,6 +1003,68 @@ fn validate_vk_binding_if_present(
     Ok(())
 }
 
+fn maybe_create_session_account_for_init<'a>(
+    program_id: &Pubkey,
+    authority_account: &AccountInfo<'a>,
+    session_account: &AccountInfo<'a>,
+    system_program_account: Option<&AccountInfo<'a>>,
+    payload: &InitSessionPayload,
+) -> ProgramResult {
+    if session_account.owner == program_id {
+        return Ok(());
+    }
+    if session_account.lamports() != 0 || session_account.data_len() != 0 {
+        if session_account.owner != &system_program::id() {
+            return Err(SessionError::InvalidAccountOwner.into());
+        }
+        return Err(SessionError::SessionAccountAlreadyExists.into());
+    }
+    if !authority_account.is_writable {
+        return Err(SessionError::AuthorityAccountNotWritable.into());
+    }
+
+    let system_program_account =
+        system_program_account.ok_or(SessionError::MissingSystemProgramAccount)?;
+    if system_program_account.key != &system_program::id() {
+        return Err(SessionError::InvalidSystemProgramAccount.into());
+    }
+
+    let required = SessionAccount::serialized_size_for_totals(
+        payload.proof_total_len,
+        payload.public_inputs_total_len,
+    )?;
+    let required_u64 = u64::try_from(required).map_err(|_| SessionError::LengthTooLarge)?;
+    let rent_lamports = Rent::get()?.minimum_balance(required);
+
+    let (_, bump) = derive_session_pda(program_id, authority_account.key, &payload.session_bind_hash);
+    let bump_seed = [bump];
+    let signer_seeds: [&[u8]; 4] = [
+        b"session",
+        authority_account.key.as_ref(),
+        payload.session_bind_hash.as_ref(),
+        &bump_seed,
+    ];
+
+    let create_ix = system_instruction::create_account(
+        authority_account.key,
+        session_account.key,
+        rent_lamports,
+        required_u64,
+        program_id,
+    );
+    invoke_signed(
+        &create_ix,
+        &[
+            authority_account.clone(),
+            session_account.clone(),
+            system_program_account.clone(),
+        ],
+        &[&signer_seeds],
+    )?;
+
+    Ok(())
+}
+
 pub fn process_instruction_accounts(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
@@ -1004,7 +1077,7 @@ pub fn process_instruction_accounts(
         .map_err(|_| SessionError::MissingRequiredAccount("authority"))?;
     let session_account = next_account_info(&mut account_iter)
         .map_err(|_| SessionError::MissingRequiredAccount("session"))?;
-    let vk_account = account_iter.next();
+    let third_account = account_iter.next();
 
     if !authority_account.is_signer {
         return Err(SessionError::MissingRequiredSignature.into());
@@ -1012,24 +1085,47 @@ pub fn process_instruction_accounts(
     if !session_account.is_writable {
         return Err(SessionError::SessionAccountNotWritable.into());
     }
-    if session_account.owner != program_id {
-        return Err(SessionError::InvalidAccountOwner.into());
-    }
-
-    let mut session = {
-        let data_ref = session_account
-            .try_borrow_data()
-            .map_err(|_| SessionError::InvalidSessionAccountData)?;
-        SessionAccount::deserialize_from_account_data(&data_ref)?
-    };
-
+    let vk_account: Option<&AccountInfo>;
+    let mut preloaded_session = None;
     let expected_bind_hash = match &instruction {
-        VerifierInstruction::InitSession(payload) => payload.session_bind_hash,
+        VerifierInstruction::InitSession(payload) => {
+            let (expected_pda, _) =
+                derive_session_pda(program_id, authority_account.key, &payload.session_bind_hash);
+            if expected_pda != *session_account.key {
+                return Err(SessionError::InvalidSessionAccountPda.into());
+            }
+
+            if session_account.owner == program_id {
+                vk_account = third_account;
+            } else {
+                maybe_create_session_account_for_init(
+                    program_id,
+                    authority_account,
+                    session_account,
+                    third_account,
+                    payload,
+                )?;
+                vk_account = account_iter.next();
+            }
+            payload.session_bind_hash
+        }
         _ => {
+            vk_account = third_account;
+            if session_account.owner != program_id {
+                return Err(SessionError::InvalidAccountOwner.into());
+            }
+            let session = {
+                let data_ref = session_account
+                    .try_borrow_data()
+                    .map_err(|_| SessionError::InvalidSessionAccountData)?;
+                SessionAccount::deserialize_from_account_data(&data_ref)?
+            };
             if !session.initialized {
                 return Err(SessionError::SessionNotInitialized.into());
             }
-            session.session_bind_hash
+            let bind_hash = session.session_bind_hash;
+            preloaded_session = Some(session);
+            bind_hash
         }
     };
 
@@ -1054,6 +1150,15 @@ pub fn process_instruction_accounts(
     }
 
     validate_vk_binding_if_present(&instruction, vk_account, program_id)?;
+
+    let mut session = if let Some(session) = preloaded_session {
+        session
+    } else {
+        let data_ref = session_account
+            .try_borrow_data()
+            .map_err(|_| SessionError::InvalidSessionAccountData)?;
+        SessionAccount::deserialize_from_account_data(&data_ref)?
+    };
 
     let result =
         process_decoded_instruction(&mut session, authority_account.key.to_bytes(), instruction)?;
